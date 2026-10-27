@@ -45,6 +45,9 @@ export async function POST(request: Request) {
       }))
     );
     if (mediaError) {
+      // No orphan posts: media belongs to the post, so drop the post and
+      // let the cascade take the media rows with it.
+      await supabase.from("posts").delete().eq("id", post.id);
       return NextResponse.json({ error: mediaError.message }, { status: 400 });
     }
   }
@@ -55,6 +58,9 @@ export async function POST(request: Request) {
     .from("jobs")
     .insert({ post_id: post.id, kind: "analyze", priority: 100, status: "queued" });
   if (jobError) {
+    // A post must never exist without its job: drop the post (media rows
+    // follow through the cascade) and report the enqueue failure.
+    await supabase.from("posts").delete().eq("id", post.id);
     return NextResponse.json({ error: jobError.message }, { status: 400 });
   }
 
