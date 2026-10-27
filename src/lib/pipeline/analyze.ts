@@ -1,4 +1,5 @@
 import { ioError } from "@/lib/worker/errors";
+import { isOwnedPhotoPath } from "@/lib/media/paths";
 // Analyze pipeline entry (items 8-10 share this boundary).
 // Item 8: load the first photo, segment it, store the mask PNGs.
 // Item 9: name the regions with Muse Spark (identifyMeal below).
@@ -46,6 +47,12 @@ export async function loadFirstPhoto(
   if (error) throw ioError("analyze: photo metadata lookup failed.", error, mediaStatus);
   if (!media) {
     throw new Error("analyze: post has no photo.");
+  }
+  const { data: post, error: ownerError, status: ownerStatus } = await supabase
+    .from("posts").select("user_id").eq("id", postId).maybeSingle<{ user_id: string }>();
+  if (ownerError) throw ioError("analyze: photo owner lookup failed.", ownerError, ownerStatus);
+  if (!post || !isOwnedPhotoPath(media.storage_path, post.user_id, postId)) {
+    throw new Error("analyze: photo path does not belong to this meal.");
   }
   const { data: blob, error: downloadError } = await supabase.storage
     .from(BUCKET)
