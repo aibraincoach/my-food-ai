@@ -23,7 +23,7 @@ Never commit secrets; use `.env.example` only. Prior Supabase wipe notes: [docs/
 
 ## PM handover
 
-Reconcile documents, commit on the document branch, then `skills/pm-handover/scripts/pack.sh`. The handover text is the reply; zip output goes under `uploads/` (gitignored).
+Reconcile documents, commit on the document branch, then `skills/pm-handover/scripts/pack.sh`. The handover text is the reply; zip output goes under `uploads/` (gitignored). Every prompt for any agent is delivered whole inside a single code block, with framing outside it.
 
 ## Session summary
 
