@@ -25,6 +25,13 @@ declare v_snapshot jsonb; v_old text; v_position integer; v_owner uuid;
 begin
   select user_id into v_owner from public.posts where id = p_post_id for update;
   if not found then return jsonb_build_object('published', false); end if;
+  -- A complete old snapshot must not publish ready over queued corrections.
+  if exists (select 1 from public.jobs where post_id = p_post_id and kind = 'correct'
+    and status in ('queued','running') and coalesce(payload->>'correction_applied','false') <> 'true') then
+    update public.posts set status = case when status in ('processing','needs_input') then status else 'queued' end
+      where id = p_post_id;
+    return jsonb_build_object('published', false);
+  end if;
   v_snapshot := public.results_card_snapshot(p_post_id);
   if v_snapshot->>'fingerprint' is distinct from p_fingerprint or exists (
     select 1 from jsonb_array_elements(v_snapshot->'items') e where e->'nutrition' = 'null'::jsonb

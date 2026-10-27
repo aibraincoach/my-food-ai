@@ -4,7 +4,7 @@ import { readFileSync } from 'node:fs';
 import { spawnSync } from 'node:child_process';
 import test from 'node:test';
 
-test('failed card maintenance preserves ready meal; analysis failures still mark failed', () => {
+test('card publication waits for corrections and failed maintenance preserves the meal', () => {
   assert.ok(process.env.SUPABASE_DB_URL);
   const migrations = [['0007_post_items_supersede.sql', "to_regprocedure('public.edit_post_item(uuid,uuid,text,uuid,text,numeric,jsonb)')"], ['0008_post_media_kind.sql', "to_regprocedure('public.publish_results_card(uuid,text,text,integer)')"]].map(([name, probe]) =>
     `select ${probe} is not null as installed \\gset
@@ -20,13 +20,22 @@ ${migrations}
 -- Exercise the installed-schema branch without persisting any DDL.
 ${migrations}
 do $test$
-declare u uuid:=gen_random_uuid(); p uuid; j uuid; item uuid;
+declare u uuid:=gen_random_uuid(); p uuid; j uuid; item uuid; fingerprint text; result jsonb;
 begin
  insert into auth.users(id) values(u);
  insert into profiles(id,handle) values(u,'card-'||u);
  insert into posts(user_id,status) values(u,'ready') returning id into p;
  insert into post_items(post_id,name,source) values(p,'Rice','model') returning id into item;
  insert into item_nutrition(post_item_id,calories) values(item,100);
+ fingerprint := results_card_snapshot(p)->>'fingerprint';
+ insert into jobs(post_id,kind,status) values(p,'correct','queued') returning id into j;
+ result := publish_results_card(p,fingerprint,u::text||'/'||p::text||'/cards/fixture/card.png',1080);
+ if (result->>'published')::boolean or (select status from posts where id=p)<>'queued'
+ or exists(select 1 from post_media where post_id=p and kind='card') then raise exception 'card published over pending correction'; end if;
+ update jobs set status='running',payload='{"correction_applied":true}' where id=j;
+ result := publish_results_card(p,fingerprint,u::text||'/'||p::text||'/cards/fixture/card.png',1080);
+ if not (result->>'published')::boolean or (select status from posts where id=p)<>'ready' then raise exception 'applied correction blocked publication'; end if;
+
  insert into jobs(post_id,kind,status,attempts) values(p,'card_backfill','running',3) returning id into j;
  perform fail_job(j,'Card storage unavailable',true);
  if (select status from jobs where id=j)<>'error' or (select status from posts where id=p)<>'ready'
