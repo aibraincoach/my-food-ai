@@ -38,7 +38,7 @@ const form=new FormData();form.append('request',new Blob([JSON.stringify({model:
 const transcription=await(await call('/asr/transcribe?sessionId=fixture',form,{Accept:'application/json'})).json();
 await writeFile(new URL('transcribe.json',dir),JSON.stringify(transcription,null,2)+'\n');console.log('Recorded transcription');
 const foods={};
-for(const query of nutrients){const params=new URLSearchParams({query,pageSize:'5',dataType:'Foundation,SR Legacy,Branded',api_key:process.env.FDC_API_KEY});const r=await fetch(`https://api.nal.usda.gov/fdc/v1/foods/search?${params}`);if(!r.ok)throw new Error(`FDC fixture lookup failed ${r.status}`);foods[query]=await r.json();}
+for(const query of nutrients){const params=new URLSearchParams({query,pageSize:'5',dataType:'Foundation,SR Legacy,Branded',api_key:process.env.FDC_API_KEY});const r=await fetch(`https://api.nal.usda.gov/fdc/v1/foods/search?${params}`);if(!r.ok)throw new Error(`FDC fixture lookup failed ${r.status}`);const payload=await r.json();foods[query]={foods:(payload.foods??[]).map(food=>({...Object.fromEntries(['fdcId','description','dataType','servingSize','servingSizeUnit'].filter(key=>food[key]!==undefined).map(key=>[key,food[key]])),foodNutrients:(food.foodNutrients??[]).map(n=>({nutrientId:n.nutrientId,nutrientName:n.nutrientName,unitName:n.unitName,value:n.value}))}))};}
 await writeFile(new URL('fdc.json',dir),JSON.stringify(foods,null,2)+'\n');
 await writeFile(new URL('recording.json',dir),JSON.stringify({recorded_at:new Date().toISOString(),source:'Real Meta Model API and USDA responses',inputs:['plate1.jpg','plate2.jpg','plate3.jpg','tone.wav'],image_bytes_stored:false},null,2)+'\n');
 console.log(`Recorded ${nutrients.size} USDA cache entries in ${fileURLToPath(dir)}`);
