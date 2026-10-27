@@ -1,0 +1,176 @@
+// Muse Spark 1.3 item naming and portions (item 9). Non-streaming
+// /v1/responses with strict JSON output against the identify schema.
+// Server-only: reads MODEL_API_KEY from the environment.
+import { MetaApiError, createResponse } from "./client";
+import { identifyPrompt, identifySchema } from "@/lib/prompts";
+
+export interface IdentifyRegion {
+  index: number;
+  box: { left: number; top: number; right: number; bottom: number };
+  areaFraction: number;
+}
+
+export interface IdentifiedItem {
+  regionIndex: number | null;
+  name: string;
+  portionText: string | null;
+  portionGrams: number | null;
+  confidence: number | null;
+}
+
+export interface IdentifiedMeal {
+  items: IdentifiedItem[];
+  summary: string;
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null;
+}
+
+function invalidIdentify(): MetaApiError {
+  return new MetaApiError(500, "spark: identify output failed validation.");
+}
+
+// Validate the parsed JSON against the identify schema shape. Unknown
+// region indexes are coerced to null (caption-only) so item 10 never
+// attaches a mask path to a region SAM did not return.
+function parseIdentifiedMeal(
+  text: string,
+  knownRegions: Set<number>
+): IdentifiedMeal {
+  let payload: unknown;
+  try {
+    payload = JSON.parse(text) as unknown;
+  } catch {
+    throw invalidIdentify();
+  }
+  if (!isRecord(payload)) throw invalidIdentify();
+  const { items, summary } = payload;
+  if (!Array.isArray(items) || typeof summary !== "string") {
+    throw invalidIdentify();
+  }
+  const out: IdentifiedItem[] = [];
+  for (const entry of items) {
+    if (!isRecord(entry)) throw invalidIdentify();
+    const regionIndex =
+      entry.region_index === null || entry.region_index === undefined
+        ? null
+        : entry.region_index;
+    if (regionIndex !== null && typeof regionIndex !== "number") {
+      throw invalidIdentify();
+    }
+    const { name, portion_text, portion_grams, confidence } = entry;
+    if (typeof name !== "string") throw invalidIdentify();
+    if (
+      (portion_text !== null &&
+        portion_text !== undefined &&
+        typeof portion_text !== "string") ||
+      (portion_grams !== null &&
+        portion_grams !== undefined &&
+        typeof portion_grams !== "number") ||
+      (confidence !== null &&
+        confidence !== undefined &&
+        typeof confidence !== "number")
+    ) {
+      throw invalidIdentify();
+    }
+    const index =
+      typeof regionIndex === "number" && knownRegions.has(regionIndex)
+        ? regionIndex
+        : null;
+    out.push({
+      regionIndex: index,
+      name,
+      portionText:
+        typeof portion_text === "string" ? portion_text : null,
+      portionGrams:
+        typeof portion_grams === "number" ? portion_grams : null,
+      confidence: typeof confidence === "number" ? confidence : null,
+    });
+  }
+  return { items: out, summary };
+}
+
+function regionLines(regions: IdentifyRegion[]): string {
+  if (regions.length === 0) return "(no regions; name from the whole image)";
+  return regions
+    .map(
+      (r) =>
+        `${r.index}: [${r.box.left},${r.box.top},${r.box.right},${r.box.bottom}] area ${r.areaFraction.toFixed(3)}`
+    )
+    .join("\n");
+}
+
+export async function identifyItems(
+  image: Uint8Array | null,
+  mime: string,
+  caption: string | null,
+  regions: IdentifyRegion[]
+): Promise<IdentifiedMeal> {
+  // Caption-only posts have no photo: the call is text-only and every
+  // returned item lands in captionOnly (region_index null).
+  const content: Record<string, unknown>[] = [];
+  if (image) {
+    content.push({
+      type: "input_image",
+      image_url: `data:${mime};base64,${Buffer.from(image).toString("base64")}`,
+    });
+  }
+  const text =
+    `Caption: ${caption && caption.trim() ? caption.trim() : "(none)"}\n` +
+    `Regions (index, box left/top/right/bottom in source pixels, area fraction):\n${regionLines(regions)}`;
+  const known = new Set(regions.map((r) => r.index));
+  let maxTokens = 2048;
+  for (let attempt = 0; attempt < 4; attempt += 1) {
+    let out;
+    try {
+      out = await createResponse({
+        model: "muse-spark-1.3",
+        instructions: identifyPrompt,
+        input: [
+          {
+            type: "message",
+            role: "user",
+            content: [{ type: "input_text", text }, ...content],
+          },
+        ],
+        text: {
+          format: {
+            type: "json_schema",
+            name: "identify",
+            schema: identifySchema,
+            strict: true,
+          },
+        },
+        max_output_tokens: maxTokens,
+      });
+    } catch (error) {
+      // The gateway returns transient 404s (empty body) on non-streaming
+      // POSTs; 429/5xx are requeueable too. A 400 fails at once.
+      const status =
+        error instanceof MetaApiError ? error.status : 500;
+      const retryable = status === 404 || status === 429 || status >= 500;
+      if (!retryable || attempt === 3) throw error;
+      await new Promise((resolve) =>
+        setTimeout(resolve, 1000 * (attempt + 1))
+      );
+      continue;
+    }
+    if (out.refusal) {
+      throw new MetaApiError(500, "spark: model refused the identify call.");
+    }
+    if (out.status === "incomplete" && maxTokens < 4096) {
+      // Raise the token ceiling and retry.
+      maxTokens = 4096;
+      continue;
+    }
+    if (out.status !== "completed" || out.outputText === null) {
+      throw new MetaApiError(
+        500,
+        `spark: identify ended with status ${out.status}.`
+      );
+    }
+    return parseIdentifiedMeal(out.outputText, known);
+  }
+  throw new MetaApiError(500, "spark: identify failed after retries.");
+}
