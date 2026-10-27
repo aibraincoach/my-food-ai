@@ -29,7 +29,7 @@ export async function pipelineHarness(){
   for(let offset=0;offset<paths.length;offset+=1000){const {error}=await admin.storage.from('media').remove(paths.slice(offset,offset+1000));if(error)problems.push('fixture storage');}
   if(created.length){const {error}=await admin.from('posts').delete().in('id',created);if(error)problems.push('fixture posts');}
   if(cacheInserted.length){const {error}=await admin.from('fdc_cache').delete().in('query',cacheInserted);if(error)problems.push('fixture cache');}
-  await user.auth.signOut().catch(()=>{});
+  await user.auth.signOut({scope:'local'}).catch(()=>{});
   assert.deepEqual(problems,[],'Fixture cleanup failed');
   } finally {
    try { await fake.close(); } finally {
