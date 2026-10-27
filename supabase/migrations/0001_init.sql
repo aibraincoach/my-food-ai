@@ -12,7 +12,15 @@ create table public.profiles (
 );
 alter table public.profiles enable row level security;
 create policy profiles_owner_select on public.profiles for select using (auth.uid() = id);
-create policy profiles_owner_update on public.profiles for update using (auth.uid() = id);
+-- WITH CHECK pins the new row to role 'user': without it any user could
+-- promote themselves to admin (role is unchanged by the USING check on id).
+create policy profiles_owner_update on public.profiles for update
+  using (auth.uid() = id)
+  with check (auth.uid() = id and role = 'user');
+-- Owner-only self-provisioning for sign-up (service-role insert in the
+-- sign-up action also works; this keeps client sign-up unbroken).
+create policy profiles_owner_insert on public.profiles for insert
+  with check (auth.uid() = id);
 
 -- posts ------------------------------------------------------------------
 create table public.posts (

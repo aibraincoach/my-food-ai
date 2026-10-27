@@ -51,6 +51,21 @@ assert(
   !/post_comments.*for update/i.test(sql) && !/post_comments.*for delete/i.test(sql),
   "post_comments has no update/delete policy"
 );
+// profiles update must pin role to 'user' via WITH CHECK (review: without it
+// any user can promote themselves to admin, since USING on id is unchanged
+// by the escalation)
+assert(
+  /create policy profiles_owner_update[\s\S]*?with check \([\s\S]*?role\s*=\s*'user'/i.test(sql),
+  "profiles update policy pins role to 'user'"
+);
+// profiles must allow owner self-provisioning on sign-up (review: without an
+// insert policy no client can create its own profiles row)
+assert(
+  /create policy profiles_owner_insert on public\.profiles for insert[\s\S]*?with check \(auth\.uid\(\) = id\)/i.test(
+    sql
+  ),
+  "profiles has owner-only insert policy"
+);
 
 if (process.env.SUPABASE_DB_URL) {
   console.log("DB live check skipped: no test users provisioned in this run.");
