@@ -4,13 +4,14 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 export async function getQueueStats(admin: SupabaseClient, now = new Date()) {
   const hourAgo = new Date(now.getTime() - 60 * 60_000);
   const dayAgo = new Date(now.getTime() - 24 * 60 * 60_000);
-  const [depth, oldest, failures, errors] = await Promise.all([
+  const [depth, oldest, failures, errors, posts] = await Promise.all([
     admin.from("jobs").select("id", { count: "exact", head: true }).eq("status", "queued"),
     admin.from("jobs").select("created_at").eq("status", "queued").order("created_at").limit(1).maybeSingle(),
     admin.from("jobs").select("id", { count: "exact", head: true }).eq("status", "error").gte("finished_at", dayAgo.toISOString()).lte("finished_at", now.toISOString()),
     admin.from("jobs").select("id,error,started_at,finished_at").not("error", "is", null).order("started_at", { ascending: false, nullsFirst: false }).order("id").limit(10),
+    admin.from("posts").select("id,created_at").order("created_at", { ascending: false }).order("id").limit(20),
   ]);
-  if ([depth, oldest, failures, errors].some((result) => result.error)) throw new Error("Queue statistics could not be read.");
+  if ([depth, oldest, failures, errors, posts].some((result) => result.error)) throw new Error("Queue statistics could not be read.");
   const perMinute = Array.from({ length: 60 }, (_, i) => ({
     from: new Date(hourAgo.getTime() + i * 60_000).toISOString(), count: 0,
   }));
@@ -33,5 +34,6 @@ export async function getQueueStats(admin: SupabaseClient, now = new Date()) {
     failures: failures.count ?? 0,
     perMinute,
     errors: errors.data ?? [],
+    posts: posts.data ?? [],
   };
 }

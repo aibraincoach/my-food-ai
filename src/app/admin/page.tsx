@@ -33,5 +33,9 @@ export default async function AdminPage() {
       <time className="text-meta text-muted" dateTime={entry.finished_at ?? entry.started_at ?? undefined}>{entry.finished_at ?? entry.started_at ?? "Time unavailable"}</time>
       <pre className="whitespace-pre-wrap break-words font-sans text-detail">{entry.error}</pre>
     </li>)}</ol>}
+    <h2 className="mt-card-gap mb-sheet-top text-sheet-title">Recent posts</h2>
+    <ol className="space-y-sheet-top">{stats.posts.map((post) => <li key={post.id} className="break-words border-b border-hairline pb-sheet-top">
+      <span>{post.id}</span><br /><time className="text-meta text-muted" dateTime={post.created_at}>{post.created_at}</time>
+    </li>)}</ol>
   </main>;
 }
