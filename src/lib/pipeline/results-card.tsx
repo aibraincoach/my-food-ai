@@ -6,6 +6,7 @@ import { randomUUID } from "node:crypto";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { ResultsCard } from "@/components/ResultsCard";
 import { tokens } from "@/lib/theme/tokens";
+import { isOwnedGeneratedCardPath } from "@/lib/media/paths";
 import { normalizeStoredNutrition, sumNutrition, toNumber, type CurrentItem } from "@/lib/nutrition/totals";
 
 type Snapshot = {
@@ -60,6 +61,10 @@ export async function renderResultsCard(admin: SupabaseClient, postId: string, j
     await admin.storage.from("media").remove([path]);
     return false;
   }
-  if (published.data.old_path) await admin.storage.from("media").remove([published.data.old_path]);
+  // Treat stored metadata as untrusted: historical client-writable rows must
+  // never turn service-role cleanup into deletion of another meal's object.
+  if (published.data.old_path !== path && isOwnedGeneratedCardPath(published.data.old_path, snapshot.user_id, postId)) {
+    await admin.storage.from("media").remove([published.data.old_path]);
+  }
   return true;
 }
