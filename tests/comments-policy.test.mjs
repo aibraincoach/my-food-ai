@@ -97,7 +97,11 @@ do $t$declare p uuid;j uuid;begin
  perform persist_analysis(p,'[]','No food');
  select id into j from jobs where post_id=p and kind='correct' and status='queued';
  if j is null then raise exception 'initial retry stranded comments';end if;
+ if(select status from posts where id=p)<>'queued' then raise exception 'initial analysis published while comment pending';end if;
  if mark_post_ready(p)then raise exception 'initial retry hid pending comment';end if;
+ update posts set status='ready' where id=p;
+ if mark_post_ready(p)then raise exception 'pending completion published ready';end if;
+ if(select status from posts where id=p)<>'queued' then raise exception 'pending completion left ready status';end if;
  update jobs set status='running',payload='{"correction_applied":true,"correction_sequence":0,"correction_pending_ids":[]}' where id=j;
  if not mark_post_ready(p)then raise exception 'no-pending retry could not complete';end if;
 end;$t$;

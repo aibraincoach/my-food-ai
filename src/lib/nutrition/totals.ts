@@ -34,6 +34,14 @@ export function toNumber(value: Numeric): number {
   return 0;
 }
 
+// Unknown is distinct from measured zero. Keep known nutrients independent:
+// missing calories do not erase a measured protein amount, for example.
+function nutritionNumber(value: Numeric): number | null {
+  if (value == null || (typeof value === "string" && !value.trim())) return null;
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : null;
+}
+
 export function sumNutrition(items: NutritionLike[]): MealTotals {
   const totals: MealTotals = {
     calories: 0,
@@ -72,6 +80,36 @@ export interface StoredNutrient {
   unit?: string;
   value: number | null;
   basis?: "portion";
+}
+
+// Preserve first-seen order and stored units. A nutrient missing from one
+// item is unknown for the whole meal, not a complete sum of the other items.
+export function sumMicronutrients(items: { micronutrients: StoredNutrient[] }[]): { name: string; unit: string; value: number | null }[] {
+  const totals = new Map<string, { name: string; unit: string; value: number | null; count: number }>();
+  for (const item of items) {
+    const contributions = new Map<string, { name: string; unit: string; value: number | null }>();
+    for (const nutrient of item.micronutrients) {
+      const name = nutrient.nutrientName ?? nutrient.name;
+      const unit = nutrient.unitName ?? nutrient.unit;
+      if (!name || !unit) continue;
+      const key = `${nutrient.nutrientId ?? name}:${unit}`;
+      const value = nutritionNumber(nutrient.value);
+      const previous = contributions.get(key);
+      if (!previous) contributions.set(key, { name, unit, value });
+      // Duplicate measurements are not extra consumption. Conflicting values
+      // have no trustworthy choice, so this item's contribution is unknown.
+      else if (previous.value !== value) previous.value = null;
+    }
+    for (const [key, contribution] of contributions) {
+      const previous = totals.get(key);
+      if (!previous) totals.set(key, { ...contribution, count: 1 });
+      else {
+        previous.value = previous.value === null || contribution.value === null ? null : nutritionNumber(previous.value + contribution.value);
+        previous.count++;
+      }
+    }
+  }
+  return [...totals.values()].map(({ name, unit, value, count }) => ({ name, unit, value: count === items.length ? value : null }));
 }
 
 export interface CurrentItem extends NutritionLike {
