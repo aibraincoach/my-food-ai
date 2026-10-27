@@ -12,7 +12,8 @@ function installed() {
   return window.matchMedia("(display-mode: standalone)").matches || Boolean((navigator as Navigator & { standalone?: boolean }).standalone);
 }
 function applicationKey(value: string): Uint8Array<ArrayBuffer> {
-  const raw = atob(value.replaceAll("-", "+").replaceAll("_", "/"));
+  const padding = "=".repeat((4 - value.length % 4) % 4);
+  const raw = atob((value + padding).replaceAll("-", "+").replaceAll("_", "/"));
   return Uint8Array.from(raw, (character) => character.charCodeAt(0));
 }
 export default function PushPrompt() {
@@ -26,7 +27,10 @@ export default function PushPrompt() {
     const reconcile = async (id: string | null) => {
       if (read(ownerKey) && read(ownerKey) !== id) {
         const registration = await navigator.serviceWorker.getRegistration();
-        await (await registration?.pushManager.getSubscription())?.unsubscribe();
+        const previous = await registration?.pushManager.getSubscription();
+        // Keep the old owner marker on failure so a subsequent post retries
+        // unsubscription rather than treating an active endpoint as detached.
+        if (previous && !await previous.unsubscribe()) throw new Error("Could not unsubscribe this device.");
         write(ownerKey, "");
       }
       if (!cancelled) setAccount((current) => current === id ? current : null);
@@ -40,6 +44,8 @@ export default function PushPrompt() {
       if (!installed() || Notification.permission === "denied") return;
       const { data } = await client.auth.getUser();
       if (!data.user || cancelled || read(promptedKey(data.user.id))) return;
+      await reconcile(data.user.id);
+      if (cancelled) return;
       setAccount(data.user.id);
     };
     const onPost = () => { void posted().catch(() => {}); };
@@ -50,10 +56,9 @@ export default function PushPrompt() {
   const enable = async () => {
     if (!account || busy) return;
     setBusy(true); setError("");
-    write(promptedKey(account), "1");
     try {
       // Called directly from a button gesture, required by mobile browsers.
-      if (await Notification.requestPermission() !== "granted") { setAccount(null); return; }
+      if (await Notification.requestPermission() !== "granted") { write(promptedKey(account), "1"); setAccount(null); return; }
       const registration = await Promise.race([navigator.serviceWorker.ready, new Promise<never>((_, reject) => setTimeout(() => reject(new Error()), 15000))]);
       let subscription = await registration.pushManager.getSubscription();
       if (!subscription) subscription = await registration.pushManager.subscribe({ userVisibleOnly: true,
@@ -63,6 +68,7 @@ export default function PushPrompt() {
       const response = await fetch("/api/push/subscribe", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(subscription) });
       if (!response.ok) throw new Error();
       write(ownerKey, account);
+      write(promptedKey(account), "1");
       setAccount(null);
     } catch { setError("Notifications could not be enabled. You can try again."); }
     finally { setBusy(false); }

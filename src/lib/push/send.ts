@@ -42,7 +42,7 @@ export async function sendPostPush(admin: SupabaseClient, postId: string, questi
         await webpush.sendNotification({ endpoint: subscription.endpoint, keys: subscription.keys }, payload,
           { vapidDetails: { subject, publicKey, privateKey }, TTL: 3600, timeout: 10000 });
       } catch (error) {
-        if (typeof error === "object" && error !== null && "statusCode" in error && error.statusCode === 410) {
+        if (typeof error === "object" && error !== null && "statusCode" in error && (error.statusCode === 410 || error.statusCode === 404)) {
           await admin.from("push_subscriptions").delete().eq("id", subscription.id).eq("user_id", post.user_id);
         }
       }
