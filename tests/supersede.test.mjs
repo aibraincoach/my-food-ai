@@ -55,6 +55,20 @@ begin
  if mark_post_ready(p) then raise exception 'stale recompute marked new item ready'; end if;
  perform edit_post_item(p,current_setting('test.owner')::uuid,'remove',added,null,null,null);
  if not mark_post_ready(p) then raise exception 'removed item blocked readiness'; end if;
+ -- Selected nutrition and immutable replacement commit together.
+ added := edit_post_item_with_nutrition(p,current_setting('test.owner')::uuid,'portion',new_id,'Rice',25,null,
+   '{"calories":25,"source_ref":"22","micronutrients":[]}');
+ if not exists(select 1 from item_nutrition where post_item_id=added and calories=25 and source_ref='22')
+ or not exists(select 1 from post_items where id=new_id and superseded_at is not null)
+ or not exists(select 1 from item_nutrition where post_item_id=new_id and calories=100) then
+   raise exception 'selected nutrition or immutable history lost'; end if;
+ new_id := added;
+ begin
+   perform edit_post_item_with_nutrition(p,current_setting('test.owner')::uuid,'portion',new_id,'Rice',10,null,
+     '{"calories":"invalid numeric","source_ref":"22"}');
+   raise exception 'invalid nutrition accepted';
+ exception when invalid_text_representation then null; end;
+ if not exists(select 1 from current_post_items where id=new_id) then raise exception 'nutrition failure left partial item edit'; end if;
  perform set_config('test.post',p::text,true); perform set_config('test.item',new_id::text,true);
 end;
 $test$;
@@ -85,6 +99,10 @@ begin
  begin
   perform edit_post_item(current_setting('test.post')::uuid,current_setting('test.owner')::uuid,'remove',current_setting('test.item')::uuid,null,null,null);
   raise exception 'client RPC accepted';
+ exception when insufficient_privilege then null; end;
+ begin
+  perform edit_post_item_with_nutrition(current_setting('test.post')::uuid,current_setting('test.owner')::uuid,'add',null,'Forgery',10,null,'{"calories":999}');
+  raise exception 'client selected nutrition RPC accepted';
  exception when insufficient_privilege then null; end;
  insert into post_items(post_id,name,source) values(current_setting('test.post')::uuid,'Own item','user');
  update post_items set superseded_at=now() where id=current_setting('test.item')::uuid;
