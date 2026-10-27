@@ -9,6 +9,7 @@ import {
   type FeedPost,
 } from "@/lib/posts/feed";
 import PostCard from "@/components/PostCard";
+import AnalysisBlock from "@/components/AnalysisBlock";
 import RealtimePost from "@/components/RealtimePost";
 
 type State =
@@ -92,7 +93,16 @@ export default function Feed() {
         <RealtimePost
           key={post.id}
           initial={post}
-          renderCard={(fresh) => <PostCard post={fresh} />}
+          renderCard={(fresh) => (
+            <PostCard
+              post={fresh}
+              analysis={
+                fresh.status === "ready" && fresh.items.length > 0 ? (
+                  <AnalysisBlock post={fresh} />
+                ) : undefined
+              }
+            />
+          )}
         />
       ))}
     </div>
