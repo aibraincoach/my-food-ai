@@ -133,3 +133,28 @@ end;
 $$;
 revoke all on function public.mark_post_ready(uuid) from public, anon, authenticated;
 grant execute on function public.mark_post_ready(uuid) to service_role;
+
+-- A selected FDC record is resolved and scaled by the server, never from
+-- client-supplied nutrient values. Keep the existing edit RPC signature for
+-- later wrappers; this outer transaction retains its post lock through insert.
+create or replace function public.edit_post_item_with_nutrition(
+  p_post_id uuid, p_user_id uuid, p_action text, p_item_id uuid,
+  p_name text, p_portion_grams numeric, p_box jsonb, p_nutrition jsonb
+) returns uuid language plpgsql security definer set search_path = public, pg_temp as $$
+declare v_new uuid;
+begin
+  if p_action = 'remove' or p_nutrition is null or jsonb_typeof(p_nutrition) <> 'object' then
+    raise exception 'Selected food nutrition is required' using errcode = '22023';
+  end if;
+  v_new := public.edit_post_item(p_post_id, p_user_id, p_action, p_item_id, p_name, p_portion_grams, p_box);
+  insert into public.item_nutrition(post_item_id, calories, protein_g, carbs_g, fat_g,
+    fibre_g, sugar_g, sodium_mg, micronutrients, source_ref)
+  values (v_new, (p_nutrition->>'calories')::numeric, (p_nutrition->>'protein_g')::numeric,
+    (p_nutrition->>'carbs_g')::numeric, (p_nutrition->>'fat_g')::numeric,
+    (p_nutrition->>'fibre_g')::numeric, (p_nutrition->>'sugar_g')::numeric,
+    (p_nutrition->>'sodium_mg')::numeric, coalesce(p_nutrition->'micronutrients','[]'::jsonb), p_nutrition->>'source_ref');
+  return v_new;
+end;
+$$;
+revoke all on function public.edit_post_item_with_nutrition(uuid, uuid, text, uuid, text, numeric, jsonb, jsonb) from public, anon, authenticated;
+grant execute on function public.edit_post_item_with_nutrition(uuid, uuid, text, uuid, text, numeric, jsonb, jsonb) to service_role;
