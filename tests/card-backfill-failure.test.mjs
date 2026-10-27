@@ -6,7 +6,7 @@ import test from 'node:test';
 
 test('card publication waits for corrections and failed maintenance preserves the meal', () => {
   assert.ok(process.env.SUPABASE_DB_URL);
-  const migrations = [['0007_post_items_supersede.sql', "to_regprocedure('public.edit_post_item(uuid,uuid,text,uuid,text,numeric,jsonb)')"], ['0008_post_media_kind.sql', "to_regprocedure('public.publish_results_card(uuid,text,text,integer)')"]].map(([name, probe]) =>
+  const migrations = [['0007_post_items_supersede.sql', "to_regprocedure('public.edit_post_item(uuid,uuid,text,uuid,text,numeric,jsonb)')"], ['0007b_comment_corrections.sql', "to_regprocedure('public.post_work_matches(uuid,uuid)')"], ['0008_post_media_kind.sql', "to_regprocedure('public.publish_results_card(uuid,text,text,integer,uuid)')"]].map(([name, probe]) =>
     `select ${probe} is not null as installed \\gset
 \\if :installed
 \\else
@@ -20,7 +20,7 @@ ${migrations}
 -- Exercise the installed-schema branch without persisting any DDL.
 ${migrations}
 do $test$
-declare u uuid:=gen_random_uuid(); p uuid; j uuid; item uuid; fingerprint text; result jsonb;
+declare u uuid:=gen_random_uuid(); p uuid; j uuid; previous_job uuid; item uuid; fingerprint text; result jsonb;
 begin
  insert into auth.users(id) values(u);
  insert into profiles(id,handle) values(u,'card-'||u);
@@ -32,21 +32,36 @@ begin
  result := publish_results_card(p,fingerprint,u::text||'/'||p::text||'/cards/fixture/card.png',1080);
  if (result->>'published')::boolean or (select status from posts where id=p)<>'queued'
  or exists(select 1 from post_media where post_id=p and kind='card') then raise exception 'card published over pending correction'; end if;
- update jobs set status='running',payload='{"correction_applied":true}' where id=j;
- result := publish_results_card(p,fingerprint,u::text||'/'||p::text||'/cards/fixture/card.png',1080);
+ update jobs set status='running',payload='{"correction_applied":true,"post_ownership":true}' where id=j;
+ update posts set active_job_id=j where id=p;
+ result := publish_results_card(p,fingerprint,u::text||'/'||p::text||'/cards/unauthorized/card.png',1080);
+ if (result->>'published')::boolean then raise exception 'null job bypassed active owner'; end if;
+ result := publish_results_card(p,fingerprint,u::text||'/'||p::text||'/cards/unauthorized/card.png',1080,gen_random_uuid());
+ if (result->>'published')::boolean then raise exception 'foreign job bypassed active owner'; end if;
+ result := publish_results_card(p,fingerprint,u::text||'/'||p::text||'/cards/fixture/card.png',1080,j);
  if not (result->>'published')::boolean or (select status from posts where id=p)<>'ready' then raise exception 'applied correction blocked publication'; end if;
 
+ previous_job:=j;
+ update jobs set status='finished' where id=j;
  insert into jobs(post_id,kind,status,attempts) values(p,'card_backfill','running',3) returning id into j;
+ update posts set active_job_id=j where id=p;
  perform fail_job(j,'Card storage unavailable',true);
  if (select status from jobs where id=j)<>'error' or (select status from posts where id=p)<>'ready'
  or not exists(select 1 from item_nutrition where post_item_id=item and calories=100) then raise exception 'card failure damaged meal'; end if;
  insert into jobs(post_id,kind,status,attempts) values(p,'analyze','running',3) returning id into j;
+ update posts set active_job_id=j where id=p;
  perform fail_job(j,'Analysis unavailable',true);
  if (select status from posts where id=p)<>'failed' then raise exception 'analysis failure was not recorded'; end if;
- result := publish_results_card(p,fingerprint,u::text||'/'||p::text||'/cards/stale/card.png',1080);
+ result := publish_results_card(p,fingerprint,u::text||'/'||p::text||'/cards/stale/card.png',1080,previous_job);
  if (result->>'published')::boolean or (select status from posts where id=p)<>'failed'
  or exists(select 1 from post_media where post_id=p and storage_path like '%/stale/card.png') then raise exception 'stale render cleared terminal failure'; end if;
 
+ update posts set status='processing',active_job_id=null where id=p;
+ result := publish_results_card(p,fingerprint,u::text||'/'||p::text||'/cards/unowned/card.png',1080);
+ if (result->>'published')::boolean then raise exception 'unowned processing meal published'; end if;
+ update posts set status='ready' where id=p;
+ result := publish_results_card(p,fingerprint,u::text||'/'||p::text||'/cards/maintenance/card.png',1080);
+ if not (result->>'published')::boolean then raise exception 'ready maintenance blocked'; end if;
 end;
 $test$;
 rollback;`;
