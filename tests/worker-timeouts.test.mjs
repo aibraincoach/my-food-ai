@@ -54,3 +54,36 @@ test('pipeline preserves real Supabase Storage HTTP and timeout metadata', async
     });
   }
 });
+
+test('database HTTP and serialized transport errors survive persist and finish boundaries', async () => {
+  const { createClient } = await import('@supabase/supabase-js');
+  const { persistAnalysis } = await import('../src/lib/pipeline/persist.ts');
+  const { finishJob } = await import('../src/lib/queue/claim.ts');
+  for (const scenario of [503, 400, 'timeout']) {
+    const db = createClient('https://fixture.invalid', 'fixture-key', { global: { fetch: async () => {
+      if (scenario === 'timeout') throw new TypeError('fetch failed', { cause: { code: 'UND_ERR_HEADERS_TIMEOUT' } });
+      return new Response(JSON.stringify({ message: 'database failure', code: '' }), { status: scenario });
+    } } });
+    for (const call of [() => persistAnalysis(db, { postId: 'fixture', regions: [], captionOnly: [], summary: '' }), () => finishJob(db, 'fixture')]) {
+      await assert.rejects(call(), error => {
+        assert.equal(isRetriable(error), scenario !== 400, `${scenario}: ${error.message}`);
+        return true;
+      });
+    }
+  }
+});
+
+test('PostgREST transaction conflicts retry despite HTTP409; constraints do not', async () => {
+  const { createClient } = await import('@supabase/supabase-js');
+  const { finishJob } = await import('../src/lib/queue/claim.ts');
+  for (const code of ['40001', '40P01', '23514', '23505']) {
+    const db = createClient('https://fixture.invalid', 'fixture-key', { global: { fetch: async () =>
+      new Response(JSON.stringify({ message: 'transaction rejected', code }), { status: 409 }) } });
+    await assert.rejects(finishJob(db, 'fixture'), error => {
+      assert.equal(isRetriable(error), code === '40001' || code === '40P01', code);
+      return true;
+    });
+  }
+  assert.equal(isRetriable(new ApiError(409, 'model conflict')), false);
+  assert.equal(isRetriable(new ApiError(400, 'bad model input')), false);
+});
