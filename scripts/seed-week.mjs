@@ -12,9 +12,15 @@ function checked(r){if(r.error)throw new Error(r.error.message);return r.data;}
 try{
   for(const date of seedDates){
     const name=date.saturday?'ramen':date.bigBreakfast?'Eggs and toast':'Rice and beans';
-    const post=checked(await db.from('posts').insert({user_id:login.data.user.id,caption:name,eaten_at:date.eatenAt,status:'ready'}).select('id').single());
-    const item=checked(await db.from('post_items').insert({post_id:post.id,name,portion_grams:250}).select('id').single());
-    checked(await db.from('item_nutrition').insert({post_item_id:item.id,calories:date.bigBreakfast?900:350,protein_g:20,carbs_g:40,fat_g:10}));
+    const post=checked(await db.from('posts').insert({user_id:login.data.user.id,caption:name,eaten_at:date.eatenAt,status:'processing'}).select('id').single());
+    try{
+      const item=checked(await db.from('post_items').insert({post_id:post.id,name,portion_grams:250}).select('id').single());
+      checked(await db.from('item_nutrition').insert({post_item_id:item.id,calories:date.bigBreakfast?900:350,protein_g:20,carbs_g:40,fat_g:10}));
+      checked(await db.from('posts').update({status:'ready',analysis_initialized_at:new Date().toISOString()}).eq('id',post.id));
+    }catch(error){
+      checked(await db.from('posts').delete().eq('id',post.id));
+      throw error;
+    }
   }
   console.log(`Seeded seven meals in ${seedZone}; use that timezone for browser search checks.`);
 }finally{await ordinary.auth.signOut();}
