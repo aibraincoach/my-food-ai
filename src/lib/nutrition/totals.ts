@@ -79,20 +79,26 @@ export interface StoredNutrient {
 export function sumMicronutrients(items: { micronutrients: StoredNutrient[] }[]): { name: string; unit: string; value: number | null }[] {
   const totals = new Map<string, { name: string; unit: string; value: number | null; count: number }>();
   for (const item of items) {
-    const seen = new Set<string>();
+    const contributions = new Map<string, { name: string; unit: string; value: number | null }>();
     for (const nutrient of item.micronutrients) {
       const name = nutrient.nutrientName ?? nutrient.name;
       const unit = nutrient.unitName ?? nutrient.unit;
       if (!name || !unit) continue;
       const key = `${nutrient.nutrientId ?? name}:${unit}`;
       const value = nutritionNumber(nutrient.value);
+      const previous = contributions.get(key);
+      if (!previous) contributions.set(key, { name, unit, value });
+      // Duplicate measurements are not extra consumption. Conflicting values
+      // have no trustworthy choice, so this item's contribution is unknown.
+      else if (previous.value !== value) previous.value = null;
+    }
+    for (const [key, contribution] of contributions) {
       const previous = totals.get(key);
-      if (!previous) totals.set(key, { name, unit, value, count: 1 });
+      if (!previous) totals.set(key, { ...contribution, count: 1 });
       else {
-        previous.value = previous.value === null || value === null ? null : nutritionNumber(previous.value + value);
-        if (!seen.has(key)) previous.count++;
+        previous.value = previous.value === null || contribution.value === null ? null : nutritionNumber(previous.value + contribution.value);
+        previous.count++;
       }
-      seen.add(key);
     }
   }
   return [...totals.values()].map(({ name, unit, value, count }) => ({ name, unit, value: count === items.length ? value : null }));

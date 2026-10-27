@@ -31,3 +31,10 @@ test('micronutrient totals preserve order/units and reject partial totals',()=>{
  assert.equal(sumMicronutrients([{micronutrients:[iron(0)]},{micronutrients:[iron(0)]}])[0].value,0);
  assert.deepEqual(sumMicronutrients([]),[]);
 });
+
+test('duplicate micronutrients count once and conflicting measurements stay unknown',()=>{
+ const iron=value=>({nutrientId:1089,nutrientName:'Iron',unitName:'MG',value});
+ assert.equal(sumMicronutrients([{micronutrients:[iron(1),iron(1)]},{micronutrients:[iron(2)]}])[0].value,3);
+ assert.equal(sumMicronutrients([{micronutrients:[iron(1),iron(2)]},{micronutrients:[iron(2)]}])[0].value,null);
+ assert.equal(sumMicronutrients([{micronutrients:[iron(null),iron(1)]}])[0].value,null);
+});
