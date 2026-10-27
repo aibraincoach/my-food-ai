@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import type { FeedPost } from "@/lib/posts/feed";
 import { formatConsumed, sumNutrition } from "@/lib/nutrition/totals";
 
@@ -39,7 +40,13 @@ function StatusLine({ post }: { post: FeedPost }) {
   );
 }
 
-export default function PostCard({ post }: { post: FeedPost }) {
+export default function PostCard({
+  post,
+  analysis,
+}: {
+  post: FeedPost;
+  analysis?: ReactNode;
+}) {
   return (
     <article className="flex flex-col gap-2 border-b border-neutral-200 pb-4">
       {post.photoUrl ? (
@@ -60,7 +67,11 @@ export default function PostCard({ post }: { post: FeedPost }) {
       >
         {formatEatenAt(post.eaten_at)}
       </time>
-      <StatusLine post={post} />
+      {post.status === "ready" && post.items.length > 0 && analysis ? (
+        analysis
+      ) : (
+        <StatusLine post={post} />
+      )}
     </article>
   );
 }
