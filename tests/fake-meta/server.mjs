@@ -10,7 +10,7 @@ export async function startFakeMeta(){
    const path=new URL(request.url,'http://localhost').pathname;
    const json=()=>JSON.parse(Buffer.concat(chunks).toString()||'{}');
    if(path==='/__control'&&request.method==='POST'){
-    const next=json();if(![400,429,503].includes(next.status)||!Number.isInteger(next.times??1)||(next.times??1)<1){response.writeHead(400).end();return;}
+    const next=json();if(![400,429,503].includes(next.status)||!Number.isInteger(next.times??1)||(next.times??1)<0){response.writeHead(400).end();return;}
     control={status:next.status,times:next.times??1,retryAfter:next.retryAfter};response.writeHead(204).end();return;
    }
    calls.push({path,method:request.method});
