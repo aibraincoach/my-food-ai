@@ -94,7 +94,7 @@ async function toFeedPost(
   let items: FeedItem[] = [];
   if (row.status === "ready") {
     const { data: itemRows } = await supabase
-      .from("post_items")
+      .from("current_post_items")
       .select("id,name,portion_text,portion_grams")
       .eq("post_id", row.id)
       .order("created_at", { ascending: true });
