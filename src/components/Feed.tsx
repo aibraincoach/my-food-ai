@@ -39,6 +39,7 @@ export default function Feed() {
     const cards = new Map<string, FeedPost>();
     const newest: string[] = [];
     const pending = new Map<string, { again: boolean; retries: number }>();
+    const deferred = new Map<string, number>();
     const timers = new Set<ReturnType<typeof setTimeout>>();
 
     const publish = () => {
@@ -51,6 +52,7 @@ export default function Feed() {
 
     const removeCard = (id:string) => {
       const interrupted=[...pending.keys()].filter(other=>other!==id);
+      deferred.delete(id);
       unavailable.add(id);generation++;
       baseline=baseline.filter(post=>post.id!==id);cards.delete(id);
       const index=newest.indexOf(id);if(index>=0)newest.splice(index,1);
@@ -75,6 +77,7 @@ export default function Feed() {
       }
       const active = pending.get(id);
       if (active) { active.again = true; return; }
+      deferred.delete(id);
       const requestGeneration = generation;
       const request = { again: false, retries: 0 };
       pending.set(id, request);
@@ -85,7 +88,9 @@ export default function Feed() {
           const card = await getPostCard(supabase, id);
           if (!live || requestGeneration !== generation) return;
           if(!card||card.status==="needs_input"){removeCard(id);return;}
-          if(answered.has(id)&&card.status!=="ready"&&card.status!=="failed"){pending.delete(id);return;}
+          if(answered.has(id)&&card.status!=="ready"&&card.status!=="failed"){
+            pending.delete(id);deferred.set(id,Date.now()+15_000);return;
+          }
           if(card.status==="ready"||card.status==="failed")answered.delete(id);
           unavailable.delete(id);
           cards.set(id, card);
@@ -100,7 +105,9 @@ export default function Feed() {
             const timer = setTimeout(() => { timers.delete(timer); void fetchCard(); }, RETRY_INTERVAL_MS);
             timers.add(timer);
           } else {
-            pending.delete(id); // ID discovery can retry a missed row later.
+            pending.delete(id);
+            // Older settled meals may never reappear in the discovery window.
+            deferred.set(id,Date.now()+15_000);
           }
         }
       };
@@ -153,11 +160,12 @@ export default function Feed() {
         publish();
       }).catch(()=>{if(live && pageGeneration === generation)setPageError(true);}).finally(()=>{if(pageGeneration === generation)loadingMore=false;});
     };
-    const discover = async () => {
+    const discover = async (retryNow=false) => {
       if (!live || initialLoading || discovering || document.hidden) return;
       discovering = true;
       const discoveryGeneration=generation;
       try {
+        for(const [id,due] of deferred)if(retryNow||due<=Date.now())requestCard(id);
         if (!loaded) { await load(); return; }
         if (!userId) return;
         const { data, error } = await supabase.from("posts").select("id")
@@ -198,7 +206,7 @@ export default function Feed() {
     };
     void load();
     const timer = setInterval(() => { void discover(); }, DISCOVERY_INTERVAL_MS);
-    const focus = () => { void discover(); };
+    const focus = () => { void discover(true); };
     window.addEventListener("focus", focus);
     document.addEventListener("visibilitychange", focus);
     const channel = supabase.channel("feed-inserts").on("postgres_changes",
