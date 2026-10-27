@@ -127,3 +127,33 @@ pg_cron not installed
  lowdown    | identities   | identities_select_cockpit
 (2 rows)
 ```
+
+## Wiped 2026-10-27
+
+Statement run (single transaction via `psql` and `SUPABASE_DB_URL`):
+
+```sql
+begin;
+drop schema if exists lowdown cascade;
+drop schema public cascade;
+create schema public;
+grant usage on schema public to postgres, anon, authenticated, service_role;
+grant all on schema public to postgres, service_role;
+alter default privileges in schema public grant all on tables to postgres, anon, authenticated, service_role;
+alter default privileges in schema public grant all on functions to postgres, anon, authenticated, service_role;
+alter default privileges in schema public grant all on sequences to postgres, anon, authenticated, service_role;
+commit;
+```
+
+Transaction output (summary): `lowdown` dropped (39 objects cascaded); `public` dropped (21 objects cascaded, including prior fitness-coach tables and `handle_new_user` trigger on `auth.users`); empty `public` recreated with grants and default privileges; `COMMIT` succeeded.
+
+Verification (read-only):
+
+```
+ nspname | count 
+---------+-------
+ public  |     0
+(1 row)
+```
+
+`lowdown` namespace no longer present (expected).
