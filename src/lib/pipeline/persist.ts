@@ -101,8 +101,8 @@ export async function persistAnalysis(
 }
 
 // Publication clears clarification atomically with ready under the post lock.
-export async function markReady(postId: string, admin: SupabaseClient = createAdminClient(), jobId?:string): Promise<boolean> {
+export async function markReady(postId: string, admin: SupabaseClient = createAdminClient(), jobId?:string, options: { notify?: boolean } = {}): Promise<boolean> {
   const ready = await renderResultsCard(admin, postId, jobId);
-  if (ready) await sendPostPush(admin, postId);
+  if (ready && options.notify !== false) await sendPostPush(admin, postId);
   return ready;
 }

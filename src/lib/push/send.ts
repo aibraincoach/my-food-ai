@@ -22,8 +22,13 @@ export async function sendPostPush(admin: SupabaseClient, postId: string, questi
   const subject = process.env.VAPID_SUBJECT;
   if (!publicKey || !privateKey || !subject) return;
   try {
-    const { data: post, error } = await admin.from("posts").select("user_id").eq("id", postId).maybeSingle();
+    const { data: post, error } = await admin.from("posts").select("user_id,status,needs_input").eq("id", postId).maybeSingle();
     if (error || !post) return;
+    // Persistence may have queued an answer submitted during the model call.
+    // Notify only the state that actually survived that transaction.
+    if (question !== undefined) {
+      if (post.status !== "needs_input" || post.needs_input?.question !== question) return;
+    } else if (post.status !== "ready") return;
     const { data: subscriptions, error: subscriptionError } = await admin.from("push_subscriptions")
       .select("id,endpoint,keys").eq("user_id", post.user_id);
     if (subscriptionError || !subscriptions?.length) return;

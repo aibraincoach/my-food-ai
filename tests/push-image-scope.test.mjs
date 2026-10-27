@@ -26,7 +26,7 @@ test('notification images never sign another meal or user storage path', async (
     ]){
       const signed=[];delivered.length=0;
       const admin={from(table){
-        const data=table==='posts'?{user_id:'owner'}:table==='post_media'?{kind,storage_path:path}:
+        const data=table==='posts'?{user_id:'owner',status:'ready',needs_input:null}:table==='post_media'?{kind,storage_path:path}:
           [{id:'subscription',endpoint:'https://fcm.googleapis.com/fixture',keys:{p256dh:'A'.repeat(87),auth:'A'.repeat(22)}}];
         const q={select(){return q;},eq(){return q;},order(){return q;},limit(){return q;},maybeSingle(){return q;},then(resolve){return Promise.resolve({data,error:null}).then(resolve);}};
         return q;
