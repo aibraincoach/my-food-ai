@@ -125,11 +125,11 @@ $test$;
 select 'persist-idempotent: passed';
 rollback;
 `;
-  const result = spawnSync("psql", ["-X", "-q", "-A", "-t"], {
+  const result = spawnSync("psql", ["-X", "-q", "-A", "-t", "--dbname", process.env.SUPABASE_DB_URL], {
     input: sql,
     encoding: "utf8",
     timeout: 90_000,
-    env: { ...process.env, PGDATABASE: process.env.SUPABASE_DB_URL },
+    env: process.env,
   });
   assert.ifError(result.error);
   assert.equal(result.status, 0, result.stderr);
