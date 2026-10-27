@@ -8,4 +8,4 @@ export function readNeedsInput(value:unknown):NeedsInput|null {
   return {question:checkWording(v.question).ok?v.question:"What did you eat?",short:v.short,
     options:v.options.filter(option=>checkWording(option).ok)};
 }
-import {checkWording} from "./wording";
+import {checkWording} from "./wording-check";
