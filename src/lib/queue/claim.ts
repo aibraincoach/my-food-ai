@@ -19,7 +19,7 @@ export interface JobRow {
 // Lowest priority number first, then oldest — FOR UPDATE SKIP LOCKED inside
 // the claim_job() function. Stamps started_at and increments attempts.
 export async function claimJob(admin: SupabaseClient): Promise<JobRow | null> {
-  const { data, error, status } = await admin.rpc("claim_job");
+  const { data, error, status } = await admin.rpc("claim_owned_job");
   if (error) throw ioError(`claim_job failed: ${error.message}`, error, status);
   return (data ?? null) as JobRow | null;
 }
