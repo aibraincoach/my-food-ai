@@ -52,19 +52,13 @@ export async function runWorker(
   } finally {
     await releaseLease(admin, holder).catch(() => {});
   }
-  const { data: next, error, status } = await admin
-    .from("jobs")
-    .select("run_after")
-    .eq("status", "queued")
-    .order("run_after", { ascending: true })
-    .limit(1)
-    .maybeSingle<{ run_after: string }>();
+  const { data: next, error, status } = await admin.rpc("next_worker_wake");
   if (error) throw ioError(`worker remaining jobs: ${error.message}`, error, status);
   if (next && tickSelf) {
     // after() awaits this timer and the self-request. Delay rather than spin
     // through new serverless invocations while the backoff is still pending.
-    const delay = Math.max(0, new Date(next.run_after).getTime() - Date.now());
-    await new Promise((resolve) => setTimeout(resolve, Math.min(delay, 60_000)));
+    const delay = Math.max(0, new Date(next as string).getTime() - Date.now());
+    await new Promise((resolve) => setTimeout(resolve, Math.min(Math.max(delay, 1000), 60_000)));
     await tickSelf();
   }
 }
