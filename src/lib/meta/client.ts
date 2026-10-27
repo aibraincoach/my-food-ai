@@ -5,8 +5,8 @@ import { ApiError } from "@/lib/worker/errors";
 // Base URL https://api.meta.ai/v1, header Authorization: Bearer $MODEL_API_KEY.
 // Keys stay server-side; nothing here runs in the browser.
 
-// P6: Vercel deployment dpl_8R4S58TRC1obJhabRqsYNzBoMiwf returned
-// config.functionTimeout=300 seconds (fluid), verified through v13 REST.
+// P6: Vercel effective production config.functionTimeout=300 seconds (fluid),
+// verified through v13 REST on 2026-10-27.
 // Two 30-second calls plus at most 10 seconds waiting fit that duration.
 export const TIMEOUT_MS = 30000;
 export const MAX_RETRIES = 1;
