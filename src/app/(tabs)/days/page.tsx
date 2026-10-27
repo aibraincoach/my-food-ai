@@ -1,10 +1,14 @@
+import { connection } from "next/server";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import MonthGrid from "@/components/MonthGrid";
 import { dateInZone, getDays, validZone } from "@/lib/posts/days";
 import { createClient } from "@/lib/supabase/server";
 
+export const instant = false;
+
 export default async function DaysPage({ searchParams }: { searchParams: Promise<{ month?: string; tz?: string }> }) {
+  await connection();
   const params = await searchParams;
   const zone = validZone(params.tz || (await cookies()).get("time-zone")?.value);
   const today = dateInZone(new Date(), zone);
