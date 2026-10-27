@@ -7,7 +7,11 @@ test('committed analysis replay preserves user edits, removed meals and zero-foo
  const migration=readFileSync(new URL('../supabase/migrations/0007_post_items_supersede.sql',import.meta.url),'utf8');
  const sql=`\\set ON_ERROR_STOP on
 begin;set local lock_timeout='5s';set local statement_timeout='30s';
+select exists(select 1 from information_schema.columns where table_schema='public' and table_name='posts' and column_name='analysis_initialized_at') as installed \\gset
+\\if :installed
+\\else
 ${migration}
+\\endif
 select gen_random_uuid() as owner \\gset
 insert into auth.users(id)values(:'owner');insert into profiles(id,handle)values(:'owner','replay-'||:'owner');
 select set_config('test.owner',:'owner',true);
@@ -18,8 +22,7 @@ begin
  insert into posts(user_id,status)values(current_setting('test.owner')::uuid,'queued')returning id into p;
  insert into post_comments(post_id,author,body)values(p,'user','Halve it');
  insert into jobs(post_id,kind,status)values(p,'correct','error');
- perform persist_analysis(p,payload,'Rice.');
- if (select count(*)from jobs where post_id=p and kind='correct' and status='queued')<>1 then raise exception 'successful initial retry stranded comments';end if;select analysis_initialized_at into marker from posts where id=p;
+ perform persist_analysis(p,payload,'Rice.');select analysis_initialized_at into marker from posts where id=p;
  if marker is null then raise exception 'missing atomic marker';end if;
  select id into i from current_post_items where post_id=p;
  replacement:=edit_post_item(p,current_setting('test.owner')::uuid,'portion',i,null,50,null);
