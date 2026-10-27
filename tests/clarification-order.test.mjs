@@ -55,6 +55,8 @@ do $$ declare u uuid:=gen_random_uuid();p uuid;j uuid;j2 uuid;c public.post_comm
  if(publish_results_card(p,s->>'fingerprint',u||'/'||p||'/cards/'||gen_random_uuid()||'/card.png',1080,null)->>'published')::boolean then raise exception 'unowned render bypassed owner';end if;
  if not(publish_results_card(p,s->>'fingerprint',u||'/'||p||'/cards/'||gen_random_uuid()||'/card.png',1080,(select active_job_id from posts where id=p))->>'published')::boolean then raise exception 'resolved follow-up could not publish';end if;
  if exists(select 1 from posts where id=p and (status<>'ready' or needs_input is not null))then raise exception 'ready publication exposed stale clarification';end if;
+ update post_media set storage_path=gen_random_uuid()||'/'||gen_random_uuid()||'/cards/'||gen_random_uuid()||'/card.png' where post_id=p and kind='card';
+ if publish_results_card(p,s->>'fingerprint',u||'/'||p||'/cards/'||gen_random_uuid()||'/card.png',1080,(select active_job_id from posts where id=p))->>'old_path' is not null then raise exception 'clarification publisher returned foreign cleanup path';end if;
  update posts set status='failed',fail_reason='Correction failed' where id=p;
  if(publish_results_card(p,s->>'fingerprint',u||'/'||p||'/cards/'||gen_random_uuid()||'/card.png',1080,(select active_job_id from posts where id=p))->>'published')::boolean then raise exception 'stale card cleared failed correction';end if;
  if(select status from posts where id=p)<>'failed'then raise exception 'failed state changed';end if;
@@ -72,6 +74,44 @@ do $$ declare u uuid:=gen_random_uuid();p uuid;i uuid;replacement uuid;initial_q
  if not exists(select 1 from current_post_items where id=replacement and portion_grams=50)then raise exception 'question retry replaced edit';end if;
  if not exists(select 1 from posts where id=p and needs_input=initial_question and status='queued')then raise exception 'question retry restored stale clarification';end if;
  if (select count(*)from post_comments where post_id=p and author='model')<>1 then raise exception 'question retry duplicated comment';end if;
+end $$;
+do $$ declare u uuid:=gen_random_uuid();p uuid;j uuid;c public.post_comments;s jsonb;
+ q jsonb:='{"question":"Rice or pasta?","short":"Clarification needed","options":["Rice","Pasta"]}';begin
+ insert into auth.users(id)values(u);insert into profiles(id,handle)values(u,'question-replay-'||u);
+ insert into posts(user_id,status)values(u,'processing')returning id into p;
+ insert into jobs(post_id,kind,status,attempts,payload)values(p,'analyze','running',1,'{"post_ownership":true}')returning id into j;
+ update posts set active_job_id=j where id=p;
+ perform persist_owned_analysis(p,j,'[]','Question',q);
+ -- Persistence succeeded but finishing failed; retry takes ownership again.
+ perform fail_job(j,'finish response timed out',true);
+ update jobs set status='running',attempts=2 where id=j;update posts set status='processing' where id=p;
+ s:=results_card_snapshot(p);
+ if(publish_results_card(p,s->>'fingerprint',u||'/'||p||'/cards/'||gen_random_uuid()||'/card.png',1080,j)->>'published')::boolean then raise exception 'initial question replay published ready';end if;
+ if not exists(select 1 from posts where id=p and status='needs_input' and needs_input=q)then raise exception 'initial question was lost';end if;
+ update jobs set status='finished' where id=j;
+ c:=append_post_comment(p,u,'Maybe rice');select id into j from jobs where post_id=p and status='queued';
+ update jobs set status='running',attempts=1,payload=jsonb_build_object('post_ownership',true,'correction_from_sequence',0,'correction_pending_ids',jsonb_build_array(c.id))where id=j;
+ update posts set active_job_id=j,status='processing' where id=p;
+ perform persist_correction_question(p,j,array[]::uuid[],c.id,'[]','Question',q);
+ perform fail_job(j,'finish response timed out',true);
+ update jobs set status='running',attempts=2 where id=j;update posts set status='processing' where id=p;
+ s:=results_card_snapshot(p);
+ if(publish_results_card(p,s->>'fingerprint',u||'/'||p||'/cards/'||gen_random_uuid()||'/card.png',1080,j)->>'published')::boolean then raise exception 'correction question replay published ready';end if;
+ if not exists(select 1 from posts where id=p and status='needs_input' and needs_input=q)then raise exception 'correction question was lost';end if;
+ update jobs set status='finished' where id=j;
+ insert into jobs(post_id,kind,status,payload)values(p,'correct','running','{"post_ownership":true}')returning id into j;
+ update posts set active_job_id=j,status='processing' where id=p;
+ if not complete_empty_correction(p,j)then raise exception 'empty correction could not finish';end if;
+ if(publish_results_card(p,s->>'fingerprint',u||'/'||p||'/cards/'||gen_random_uuid()||'/card.png',1080,j)->>'published')::boolean then raise exception 'empty correction answered a question';end if;
+ update jobs set status='finished' where id=j;
+ -- A later actual answer advances the sequence and may clear the question.
+ c:=append_post_comment(p,u,'It was pasta');select id into j from jobs where post_id=p and status='queued';
+ update jobs set status='running',payload=jsonb_build_object('post_ownership',true,'correction_from_sequence',1,'correction_pending_ids',jsonb_build_array(c.id))where id=j;
+ update posts set active_job_id=j,status='processing' where id=p;
+ perform persist_correction(p,j,array[]::uuid[],c.id,'[]','Pasta.');
+ s:=results_card_snapshot(p);
+ if not(publish_results_card(p,s->>'fingerprint',u||'/'||p||'/cards/'||gen_random_uuid()||'/card.png',1080,j)->>'published')::boolean then raise exception 'actual answer could not publish';end if;
+ if exists(select 1 from posts where id=p and needs_input is not null)then raise exception 'resolved question remains';end if;
 end $$;
 select 'clarification-order: passed';
 rollback;`;

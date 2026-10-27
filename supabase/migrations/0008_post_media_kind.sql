@@ -2,6 +2,27 @@ alter table public.post_media add column if not exists kind text not null defaul
   check (kind in ('photo', 'card'));
 create unique index if not exists post_media_one_card on public.post_media(post_id) where kind = 'card';
 
+-- Photo rows remain owner-writable. Generated card pointers are server-owned;
+-- otherwise an owner could forge the previous path used by privileged cleanup.
+create function public.protect_generated_card_media() returns trigger
+language plpgsql set search_path = public, pg_temp as $$
+begin
+  if current_user in ('authenticated', 'anon') and
+    ((tg_op <> 'DELETE' and new.kind = 'card') or (tg_op <> 'INSERT' and old.kind = 'card')) then
+    raise exception 'Generated card media is server managed' using errcode = '42501';
+  end if;
+  if current_user in ('authenticated', 'anon') and tg_op <> 'DELETE' and
+    (new.position < 0 or new.storage_path is distinct from
+      auth.uid()::text || '/' || new.post_id::text || '/' || new.position::text || '.jpg') then
+    raise exception 'Photo path must belong to this owner and meal' using errcode = '42501';
+  end if;
+  if tg_op = 'DELETE' then return old; end if;
+  return new;
+end;
+$$;
+create trigger protect_generated_card_media before insert or update or delete on public.post_media
+  for each row execute function public.protect_generated_card_media();
+
 -- A single-statement snapshot includes the exact item and nutrition rows.
 create or replace function public.results_card_snapshot(p_post_id uuid)
 returns jsonb language sql security definer set search_path = public, pg_temp as $$
@@ -48,6 +69,12 @@ begin
   on conflict(post_id) where kind = 'card' do update set storage_path = excluded.storage_path,
     position = excluded.position, width = excluded.width, height = excluded.height;
   update public.posts set status = 'ready', fail_reason = null where id = p_post_id;
+  -- Existing rows may predate pointer protection. Return only a generated
+  -- object within this exact owner's meal namespace for privileged deletion.
+  if v_old is not null and v_old !~ ('^' || v_owner::text || '/' || p_post_id::text ||
+    '/cards/[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}/card[.]png$') then
+    v_old := null;
+  end if;
   return jsonb_build_object('published', true, 'old_path', v_old);
 end;
 $$;
