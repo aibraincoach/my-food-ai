@@ -1,4 +1,4 @@
-import { toNumber, type CurrentItem, type NutritionLike } from "@/lib/nutrition/totals";
+import { sumNutrition, sumMicronutrients, type CurrentItem, type NutritionLike } from "@/lib/nutrition/totals";
 
 function number(value: number | null) {
   return value === null ? "—" : new Intl.NumberFormat(undefined, { maximumFractionDigits: 2 }).format(value);
@@ -11,20 +11,8 @@ export default function NutritionTable({ items }: { items: CurrentItem[] }) {
     { name: "Fibre", key: "fibre_g", unit: "g" }, { name: "Sugar", key: "sugar_g", unit: "g" },
     { name: "Sodium", key: "sodium_mg", unit: "mg" },
   ];
-  const micros = new Map<string, { name: string; unit: string; value: number | null }>();
-  for (const item of items) for (const nutrient of item.micronutrients) {
-    const name = nutrient.nutrientName ?? nutrient.name;
-    const unit = nutrient.unitName ?? nutrient.unit;
-    if (!name || !unit) continue;
-    const key = `${nutrient.nutrientId ?? name}:${unit}`;
-    const previous = micros.get(key);
-    const value = nutrient.value === null || !Number.isFinite(nutrient.value) ? null : nutrient.value;
-    if (!previous) micros.set(key, { name, unit, value });
-    else previous.value = previous.value === null || value === null ? null : previous.value + value;
-  }
-  const rows = [...core.map(({ name, key, unit }) => ({ name, unit,
-    value: items.some((item) => item[key] == null) ? null : items.reduce((total, item) => total + toNumber(item[key]), 0),
-  })), ...micros.values()];
+  const totals = sumNutrition(items);
+  const rows = [...core.map(({ name, key, unit }) => ({ name, unit, value: totals[key] })), ...sumMicronutrients(items)];
   return <section className="px-screen-x pt-grid" aria-label="Consumed nutrition">
     <table className="w-full border-collapse text-detail tabular-nums"><caption className="sr-only">Consumed nutrition from USDA FoodData Central</caption>
       <tbody>{rows.map((row, index) => <tr key={`${index}:${row.name}:${row.unit}`} className={`h-table-row border-b border-hairline ${index === 0 ? "font-medium text-text" : "text-muted"}`}>

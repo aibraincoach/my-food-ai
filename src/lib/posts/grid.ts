@@ -5,6 +5,7 @@ import { getCurrentItems, sumNutrition } from "@/lib/nutrition/totals";
 export interface GridPost {
   id: string;
   caption: string;
+  status: string;
   photoUrl: string | null;
   calories: number | null;
 }
@@ -46,6 +47,7 @@ export async function getProfileGrid(supabase: SupabaseClient, userId: string): 
       return {
         id: row.id,
         caption: row.caption,
+        status: row.status,
         photoUrl,
         calories: row.status === "ready"
           ? (sumNutrition(await getCurrentItems(supabase, row.id))).calories

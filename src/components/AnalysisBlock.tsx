@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import type { FeedItem, FeedPost } from "@/lib/posts/feed";
-import { formatConsumed, formatGrams, sumNutrition, toNumber } from "@/lib/nutrition/totals";
+import { formatConsumed, formatGrams, sumNutrition, formatNutrition } from "@/lib/nutrition/totals";
 import { Icon } from "@/components/ui/Icon";
 import ThumbsFeedback from "@/components/ThumbsFeedback";
 
@@ -14,7 +14,7 @@ function itemPortion(item: FeedItem): string | null {
 export default function AnalysisBlock({ post }: { post: FeedPost }) {
   const [open, setOpen] = useState(false);
   const totals = sumNutrition(post.items);
-  const macroLine = `${Math.round(totals.protein_g)} g protein · ${Math.round(totals.carbs_g)} g carbs · ${Math.round(totals.fat_g)} g fat`;
+  const macroLine = `${formatNutrition(totals.protein_g)} g protein · ${formatNutrition(totals.carbs_g)} g carbs · ${formatNutrition(totals.fat_g)} g fat`;
   return <div className="flex flex-col gap-px text-detail">
     <button type="button" onClick={() => setOpen((value) => !value)} aria-expanded={open}
       aria-controls={`analysis-${post.id}`}
@@ -27,7 +27,7 @@ export default function AnalysisBlock({ post }: { post: FeedPost }) {
         <ul className="flex flex-col gap-px">
           {post.items.map((item) => {
             const portion = itemPortion(item);
-            return <li key={item.id}>{item.name}{portion ? ` · ${portion}` : ""}{` · ${Math.round(toNumber(item.calories))} kcal`}</li>;
+            return <li key={item.id}>{item.name}{portion ? ` · ${portion}` : ""}{` · ${formatNutrition(item.calories)} kcal`}</li>;
           })}
         </ul>
         <p className="tabular-nums">{macroLine}</p>

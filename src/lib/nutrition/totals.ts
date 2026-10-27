@@ -14,13 +14,13 @@ export interface NutritionLike {
 }
 
 export interface MealTotals {
-  calories: number;
-  protein_g: number;
-  carbs_g: number;
-  fat_g: number;
-  fibre_g: number;
-  sugar_g: number;
-  sodium_mg: number;
+  calories: number | null;
+  protein_g: number | null;
+  carbs_g: number | null;
+  fat_g: number | null;
+  fibre_g: number | null;
+  sugar_g: number | null;
+  sodium_mg: number | null;
 }
 
 // PostgREST returns numeric columns as strings; coerce defensively.
@@ -33,30 +33,31 @@ export function toNumber(value: Numeric): number {
   return 0;
 }
 
+// Unknown is distinct from measured zero. Keep known nutrients independent:
+// missing calories do not erase a measured protein amount, for example.
+function nutritionNumber(value: Numeric): number | null {
+  if (value == null || (typeof value === "string" && !value.trim())) return null;
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : null;
+}
+
+export function formatNutrition(value: Numeric): string {
+  const amount = nutritionNumber(value);
+  return amount === null ? "—" : String(Math.round(amount));
+}
+
 export function sumNutrition(items: NutritionLike[]): MealTotals {
-  const totals: MealTotals = {
-    calories: 0,
-    protein_g: 0,
-    carbs_g: 0,
-    fat_g: 0,
-    fibre_g: 0,
-    sugar_g: 0,
-    sodium_mg: 0,
-  };
-  for (const item of items) {
-    totals.calories += toNumber(item.calories);
-    totals.protein_g += toNumber(item.protein_g);
-    totals.carbs_g += toNumber(item.carbs_g);
-    totals.fat_g += toNumber(item.fat_g);
-    totals.fibre_g += toNumber(item.fibre_g);
-    totals.sugar_g += toNumber(item.sugar_g);
-    totals.sodium_mg += toNumber(item.sodium_mg);
+  const totals: MealTotals = { calories: 0, protein_g: 0, carbs_g: 0, fat_g: 0, fibre_g: 0, sugar_g: 0, sodium_mg: 0 };
+  for (const item of items) for (const key of Object.keys(totals) as (keyof MealTotals)[]) {
+    const amount = nutritionNumber(item[key]);
+    const subtotal = totals[key];
+    totals[key] = amount === null || subtotal === null ? null : nutritionNumber(subtotal + amount);
   }
   return totals;
 }
 
 export function formatConsumed(totals: MealTotals): string {
-  return `Consumed: ${Math.round(totals.calories)} kcal`;
+  return `Consumed: ${formatNutrition(totals.calories)} kcal`;
 }
 
 export function formatGrams(grams: Numeric): string {
@@ -71,6 +72,30 @@ export interface StoredNutrient {
   unit?: string;
   value: number | null;
   basis?: "portion";
+}
+
+// Preserve first-seen order and stored units. A nutrient missing from one
+// item is unknown for the whole meal, not a complete sum of the other items.
+export function sumMicronutrients(items: { micronutrients: StoredNutrient[] }[]): { name: string; unit: string; value: number | null }[] {
+  const totals = new Map<string, { name: string; unit: string; value: number | null; count: number }>();
+  for (const item of items) {
+    const seen = new Set<string>();
+    for (const nutrient of item.micronutrients) {
+      const name = nutrient.nutrientName ?? nutrient.name;
+      const unit = nutrient.unitName ?? nutrient.unit;
+      if (!name || !unit) continue;
+      const key = `${nutrient.nutrientId ?? name}:${unit}`;
+      const value = nutritionNumber(nutrient.value);
+      const previous = totals.get(key);
+      if (!previous) totals.set(key, { name, unit, value, count: 1 });
+      else {
+        previous.value = previous.value === null || value === null ? null : nutritionNumber(previous.value + value);
+        if (!seen.has(key)) previous.count++;
+      }
+      seen.add(key);
+    }
+  }
+  return [...totals.values()].map(({ name, unit, value, count }) => ({ name, unit, value: count === items.length ? value : null }));
 }
 
 export interface CurrentItem extends NutritionLike {

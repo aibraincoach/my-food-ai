@@ -1,5 +1,6 @@
 "use client";
 
+import { formatNutrition } from "@/lib/nutrition/totals";
 import { tokens } from "@/lib/theme/tokens";
 
 import { useRef, useState, useSyncExternalStore } from "react";
@@ -51,18 +52,18 @@ export default function StoryPlayer({ day, zone, previous, next }: { day: Logged
         </button>
         <div className="px-screen-x"><p className="text-body">{post.caption}</p><p className="mt-1 text-meta text-faint">{time(post.eatenAt)}</p></div>
       </> : <div className="flex flex-col gap-7 px-screen-x">
-        <div><p className="mb-3 text-detail text-faint">Consumed on {weekday}</p><p className="flex items-baseline gap-2"><span className="text-display-day tabular-nums">{Math.round(day.totals.calories)}</span><span className="text-sheet-title font-normal text-faint">kcal</span></p></div>
+        <div><p className="mb-3 text-detail text-faint">Consumed on {weekday}</p><p className="flex items-baseline gap-2"><span className="text-display-day tabular-nums">{formatNutrition(day.totals.calories)}</span><span className="text-sheet-title font-normal text-faint">kcal</span></p></div>
         <div className="grid grid-cols-3 border-t border-surface/15 pt-4">
-          {[[day.totals.protein_g, "protein"], [day.totals.carbs_g, "carbs"], [day.totals.fat_g, "fat"]].map(([value, word]) => <div key={word}><p className="text-day-macro tabular-nums">{Math.round(Number(value))} g</p><p className="text-meta text-faint">{word}</p></div>)}
+          {([[day.totals.protein_g, "protein"], [day.totals.carbs_g, "carbs"], [day.totals.fat_g, "fat"]] as const).map(([value, word]) => <div key={word}><p className="text-day-macro tabular-nums">{formatNutrition(value)} g</p><p className="text-meta text-faint">{word}</p></div>)}
         </div>
         <div className="grid grid-cols-3 gap-2">{day.posts.map((entry) => <Link key={entry.id} href={`/posts/${entry.id}`} className="min-w-0">
           <div className="flex aspect-square items-center justify-center overflow-hidden rounded-thumb bg-card text-text">
             {entry.photoUrl ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img src={entry.photoUrl} alt={entry.caption || "Meal"} className="h-full w-full object-cover" />
-            ) : <span className="text-detail tabular-nums">{Math.round(entry.totals.calories)} kcal</span>}
+            ) : <span className="text-detail tabular-nums">{formatNutrition(entry.totals.calories)} kcal</span>}
           </div>
-          <p className="mt-1 text-label text-faint tabular-nums">{time(entry.eatenAt)}<br />{Math.round(entry.totals.calories)} kcal</p>
+          <p className="mt-1 text-label text-faint tabular-nums">{time(entry.eatenAt)}<br />{formatNutrition(entry.totals.calories)} kcal</p>
         </Link>)}</div>
       </div>}
       <nav className="flex justify-between px-screen-x text-meta text-faint" aria-label="Adjacent days"><button className="min-h-tap" onClick={() => adjacent(previous)}>Previous day</button><button className="min-h-tap" onClick={() => adjacent(next)}>Next day</button></nav>

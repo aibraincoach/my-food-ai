@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { formatNutrition } from "@/lib/nutrition/totals";
 import type { GridPost } from "@/lib/posts/grid";
 
 export function ProfileGrid({ posts }: { posts: GridPost[] }) {
@@ -11,10 +12,10 @@ export function ProfileGrid({ posts }: { posts: GridPost[] }) {
             // Signed private media must bypass the public image optimizer.
             // eslint-disable-next-line @next/next/no-img-element
             <img src={post.photoUrl} alt={post.caption || "Meal"} className="h-full w-full object-cover" />
-          ) : post.calories === null ? (
+          ) : post.status !== "ready" ? (
             <span className="text-meta text-muted">Processing</span>
           ) : (
-            <span>{Math.round(post.calories)} kcal</span>
+            <span>{formatNutrition(post.calories)} kcal</span>
           )}
         </Link>
       ))}

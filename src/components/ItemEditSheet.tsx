@@ -5,7 +5,7 @@ import { Sheet } from "@/components/ui/Sheet";
 import { Field } from "@/components/ui/Field";
 import { Button } from "@/components/ui/Button";
 import type { DetailItem, ItemBox, ItemEdit } from "@/lib/posts/items";
-import { formatGrams, toNumber } from "@/lib/nutrition/totals";
+import { formatGrams, formatNutrition } from "@/lib/nutrition/totals";
 
 type Match = { id: number; description: string };
 export default function ItemEditSheet({ postId, item, color, box, onClose, onSaved, onAdd, onDraw }: {
@@ -59,7 +59,7 @@ export default function ItemEditSheet({ postId, item, color, box, onClose, onSav
   const visibleMatches = name !== chosen && matches?.query === name.trim() ? matches : null;
   return <Sheet open onClose={onClose} label={item ? "Edit meal item" : "Add meal item"}>
     <div className="flex items-center gap-2 text-sheet-title"><span className="size-shimmer-h shrink-0 rounded-circle" style={{ background: color }} aria-hidden="true" />
-      <h2>{item ? `${item.name} · ${item.portion_grams == null ? "—" : formatGrams(item.portion_grams)} · ${item.calories == null ? "—" : Math.round(toNumber(item.calories))} kcal` : "Add another item"}</h2>
+      <h2>{item ? `${item.name} · ${item.portion_grams == null ? "—" : formatGrams(item.portion_grams)} · ${formatNutrition(item.calories)} kcal` : "Add another item"}</h2>
     </div>
     <div className="flex flex-col gap-grid">
       <Field label="Name" value={name} onChange={(event) => setName(event.target.value)} maxLength={160} disabled={saving} autoComplete="off" />
