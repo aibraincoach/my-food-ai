@@ -1,6 +1,7 @@
 import { connection } from "next/server";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
+import LocalTimeZone from "@/components/LocalTimeZone";
 import MonthGrid from "@/components/MonthGrid";
 import { dateInZone, getDays, validZone } from "@/lib/posts/days";
 import { createClient } from "@/lib/supabase/server";
@@ -18,5 +19,5 @@ export default async function DaysPage({ searchParams }: { searchParams: Promise
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect("/sign-in");
   const days = await getDays(supabase, user.id, zone, `${month}-01`, `${month}-${last}`);
-  return <main className="flex flex-1 flex-col"><MonthGrid month={month} days={days} today={today} zone={zone} /></main>;
+  return <main className="flex flex-1 flex-col"><LocalTimeZone zone={zone} explicit={Boolean(params.tz)} /><MonthGrid month={month} days={days} today={today} zone={zone} /></main>;
 }
