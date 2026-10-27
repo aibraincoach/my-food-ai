@@ -85,7 +85,7 @@ export interface CurrentItem extends NutritionLike {
   source_ref: string | null;
 }
 
-type NutritionRow = NutritionLike & {
+export type NutritionRow = NutritionLike & {
   post_item_id: string;
   micronutrients: StoredNutrient[];
   source_ref: string | null;
@@ -108,6 +108,18 @@ export function normalizeStoredNutrition(row: NutritionRow, grams: Numeric): Nut
   return { ...row, calories: scaled.calories, protein_g: scaled.proteinG, carbs_g: scaled.carbsG,
     fat_g: scaled.fatG, fibre_g: scaled.fibreG, sugar_g: scaled.sugarG, sodium_mg: scaled.sodiumMg,
     micronutrients: scaled.micronutrients as StoredNutrient[] };
+}
+
+// Portion-only revisions retain the already selected USDA identity and density.
+export function rescaleStoredNutrition(row: NutritionRow, oldGrams: Numeric, newGrams: Numeric): NutritionRow {
+  const normalized = normalizeStoredNutrition(row, oldGrams);
+  const old = toNumber(oldGrams), next = toNumber(newGrams);
+  const factor = old > 0 && next > 0 ? next / old : null;
+  const scale = (value: Numeric) => value == null || factor === null ? null : toNumber(value) * factor;
+  return { ...normalized, calories: scale(normalized.calories), protein_g: scale(normalized.protein_g),
+    carbs_g: scale(normalized.carbs_g), fat_g: scale(normalized.fat_g), fibre_g: scale(normalized.fibre_g),
+    sugar_g: scale(normalized.sugar_g), sodium_mg: scale(normalized.sodium_mg),
+    micronutrients: normalized.micronutrients.map(entry => ({ ...entry, value: scale(entry.value), basis: "portion" })) };
 }
 
 // All detail/totals consumers use only current rows; superseded originals and

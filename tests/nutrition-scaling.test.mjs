@@ -2,7 +2,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { scaleNutrition } from '../src/lib/fdc/nutrients.ts';
-import { normalizeStoredNutrition } from '../src/lib/nutrition/totals.ts';
+import { normalizeStoredNutrition, rescaleStoredNutrition } from '../src/lib/nutrition/totals.ts';
 const food = { fdcId: 1, description: 'Fixture', dataType: 'Branded', servingSize: 30, servingSizeUnit: 'g', foodNutrients: [
   { nutrientId: 1008, nutrientName: 'Energy', unitName: 'KCAL', value: 200 },
   { nutrientId: 1003, nutrientName: 'Protein', unitName: 'G', value: 10 },
@@ -27,4 +27,14 @@ test('legacy read normalization corrects macros and does not double-scale versio
   assert.equal(normalized.micronutrients[2].value, 3);
   assert.deepEqual(normalizeStoredNutrition(normalized, 50), normalized);
   assert.equal(normalizeStoredNutrition(row, null).calories, null);
+});
+
+test('portion changes retain exact selected identity and normalized density', () => {
+  const row = {post_item_id:'fixture', source_ref:'987654', calories:333, protein_g:16, micronutrients:food.foodNutrients};
+  const revised = rescaleStoredNutrition(row, 50, 75);
+  assert.equal(revised.source_ref,'987654'); assert.equal(revised.calories,150);
+  assert.equal(revised.protein_g,7.5); assert.equal(revised.micronutrients[2].value,4.5);
+  const again = rescaleStoredNutrition(revised,75,25);
+  assert.equal(again.calories,50); assert.equal(again.source_ref,'987654');
+  assert.equal(rescaleStoredNutrition(row,null,50).calories,null);
 });
