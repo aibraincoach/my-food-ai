@@ -39,7 +39,7 @@ grant execute on function public.persist_correction_question(uuid,uuid,uuid[],uu
 -- Do not publish an older render over a question, even if its item fingerprint matches.
 create or replace function public.publish_results_card(p_post_id uuid, p_fingerprint text, p_storage_path text, p_size integer, p_job_id uuid default null)
 returns jsonb language plpgsql security definer set search_path = public, pg_temp as $$
-declare v_snapshot jsonb; v_old text; v_position integer; v_owner uuid; v_status text; v_question jsonb; v_question_sequence integer;
+declare v_snapshot jsonb; v_old text; v_position integer; v_owner uuid; v_status text; v_question jsonb; v_question_sequence bigint;
 begin
   select user_id,status,needs_input into v_owner,v_status,v_question from public.posts where id = p_post_id for update;
   if not found or v_status in ('failed','needs_input') then return jsonb_build_object('published', false); end if;
@@ -54,14 +54,14 @@ begin
     return jsonb_build_object('published', false);
   end if;
   if v_question is not null then
-    select coalesce(max((payload->>'correction_sequence')::integer),0) into v_question_sequence
+    select coalesce(max((payload->>'correction_sequence')::bigint),0) into v_question_sequence
       from public.jobs where post_id=p_post_id and kind='correct' and payload->>'needs_input_question'='true';
     -- Initial questions precede correction sequence one. A correction question
     -- at sequence N requires an actual later correction, not replay or an empty
     -- completion at N. Claiming work changes status, so status alone is unsafe.
     if not exists(select 1 from public.jobs where id=p_job_id and post_id=p_post_id and kind='correct'
       and payload->>'correction_applied'='true' and not coalesce((payload->>'needs_input_question')::boolean,false)
-      and (payload->>'correction_sequence')::integer>v_question_sequence) then
+      and (payload->>'correction_sequence')::bigint>v_question_sequence) then
       update public.posts set status='needs_input' where id=p_post_id;
       return jsonb_build_object('published',false);
     end if;
@@ -80,6 +80,9 @@ begin
   on conflict(post_id) where kind = 'card' do update set storage_path = excluded.storage_path,
     position = excluded.position, width = excluded.width, height = excluded.height;
   update public.posts set status = 'ready', fail_reason = null, needs_input = null where id = p_post_id;
+  if v_old is not null and v_old !~ ('^'||v_owner::text||'/'||p_post_id::text||'/cards/[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}/card[.]png$') then
+    v_old:=null;
+  end if;
   return jsonb_build_object('published', true, 'old_path', v_old);
 end;
 $$;
