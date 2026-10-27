@@ -1,18 +1,22 @@
 # My Food AI — Backlog†
 
-Last edited: Tuesday 2026-10-27 at 13:15 MDT (UTC-06:00) by Cursor agent, backlog sync and GitHub issue creation
+Last edited: Tuesday 2026-10-27 at 10:33 JST (UTC+09:00) by Claude, PM session 1; synced to repo with issues #28–#29 by Cursor agent 2026-10-26 MDT
 
 ## Backlog
 
-Ordered by what moves the product ahead next.
+Ordered by what moves the product ahead next. Each item carries its GitHub issue number from aibraincoach/my-food-ai (#2–#26, #28–#29; #1 is the docs PR). Issue #27 was closed as non-engineering housekeeping. Blocked items have no issue.
 
 ### #2 App shell and navigation
 
 The app needs a frame before any feature can be placed in it. Build a Next.js App Router PWA (manifest, service worker, installable from iPhone Safari, app name "My Food AI") with a five-slot bottom bar in this order: Home, Search, +, Days, Profile. Each slot is a route; + opens the capture screen as a full-screen sheet over whichever tab is current. Layout is mobile-first at 390 px wide with no horizontal scroll; desktop centres the same column. No onboarding, no interstitials, no splash beyond the browser's. Done when all five routes render placeholder content and the PWA installs on a phone.
 
+### #28 Design system from the designer's style sheet
+
+The repository has no design system, and none exists elsewhere for this project, so without one every screen gets styled ad hoc. The visual direction is a mainstream photo-feed app: square photos, quiet type, one-column cards, a bottom bar with a centre +, and nothing that reads as a dashboard. The product, its copy and the repo never name the app it resembles. The designer delivers one style sheet (type scale, colour tokens, spacing, corner radius, item outline colours) and all ten screens in a single pass, in light mode only, with a generic brand mark and app icon; the brand mark is a stand-in and does not need to be final. These are the screens of a working app, not illustrative mockups. Turn the style sheet into Tailwind theme tokens named by role (surface, text, muted, accent) and a small set of shared components, so later screens use tokens and never raw values. Done when the theme file exists, the five routes from the app shell use it, and changing one colour token changes it everywhere.
+
 ### #3 Sign in and sign up
 
-The first screen is the brand, a username field, a password field, Sign in, and a Sign up link, matching what Instagram shows a signed-out visitor; Continue with Facebook sits beneath, because this is a Meta hackathon and Facebook Login is Meta's own SDK. Use Supabase Auth for email+password and for the Facebook provider (needs a Meta app ID and secret from developers.facebook.com, dev mode is enough for test users). On first successful sign-up create a `profiles` row and land the user on an empty feed with one line, "Post your first meal", and the + highlighted. No profile photo step, no find-friends, no notification prompt. Done when a new user reaches the empty feed in two screens.
+The first screen is the brand, a username field, a password field, Sign in, and a Sign up link, matching what the Exemplar shows a signed-out visitor; Continue with Facebook sits beneath, because this is a Meta hackathon and Facebook Login is Meta's own SDK. Use Supabase Auth for email+password and for the Facebook provider (needs a Meta app ID and secret from developers.facebook.com, dev mode is enough for test users). On first successful sign-up create a `profiles` row and land the user on an empty feed with one line, "Post your first meal", and the + highlighted. No profile photo step, no find-friends, no notification prompt. Done when a new user reaches the empty feed in two screens.
 
 ### #4 Schema with row-level security
 
@@ -48,7 +52,11 @@ Home is the user's own posts, newest first, in cards that look and move like a p
 
 ### #12 Analysis block on the card
 
-The card must show what was eaten without turning into a dashboard. Under the caption, one line per item in the form "Grilled chicken breast · 150 g · 248 kcal", then a total line "Consumed: 612 kcal · 48 g protein · 31 g carbs · 29 g fat". Small type, muted, no rings, no bars, no percentages. Tapping the block opens the post detail. Done when a three-item post reads in four lines and nothing on the card implies a goal.
+The card must show what was eaten without turning into a dashboard, and a paragraph under a photo is not acceptable. At rest, under the caption, the card shows one quiet line: "Consumed: 612 kcal". Tapping that line expands it in place into one line per item in the form "Grilled chicken breast · 150 g · 248 kcal" followed by the macro line "48 g protein · 31 g carbs · 29 g fat"; tapping again collapses it. Small type, muted, no rings, no bars, no percentages. The expanded block links to the post detail, which holds the full nutrition table. Done when a card at rest shows the photo, the caption and one analysis line, a tap expands the item lines, and nothing on the card implies a goal.
+
+### #29 Results card as a carousel slide
+
+Not every post has a photo, and a photo post loses its numbers once the analysis is one line of small type. When the worker sets a post to ready, generate a results card image from the stored items and totals: a clean square card with the item names, portions and totals in the app's type and colours. For a photo post the card is appended as the next slide of the carousel, after the photo or photos. For a caption-only post the card is the post's image, so every post has something to show in the feed and the profile grid. Render the card from data with code (server-side HTML or SVG to PNG), not with an image-generation model: this build is limited to the Meta Model API models SAM 3.1, Muse Spark 1.3 and Muse Voice Transcribe 1.0, and a rendered card cannot misspell a number. Store it as a post_media row with a kind column (photo or card, added in a new migration), regenerate it when a correction supersedes the items, and keep every rule from the analysis block: consumed wording only, no goal, no rings or percentages. Done when a logged photo shows the photo and then the card as swipeable slides, a caption-only post shows the card as its image, and a correction changes the numbers on the card.
 
 ### #13 Post detail with item outlines
 
@@ -106,10 +114,6 @@ Typing a correction with one hand holding a fork is slow. Add a microphone butto
 
 The submission needs a public repo, a video, and a write-up that names what was built during the event. Script: open on the Cal AI timeline ("50 screens and 22 minutes before my first log, 11:45 to 12:07"), cut to sign-in → camera → post in ten seconds, show the SAM outlines on the detail, make a correction and show the thread keeping both versions, show the needs-input strip, close on Days. Write-up states everything was built Oct 26 to Nov 4 on the Meta Model API with SAM 3.1 and Muse Spark 1.3, lists the three Meta model calls, and says what the app does not do. Done when the video is under three minutes and the write-up is in README.md.
 
-### #27 BACKLOG.md sync
-
-On request, copy this document into the repo as BACKLOG.md so the coding agent reads the same list. The coder never edits BACKLOG.md; the doc is the source and the file is a copy with the same "Last edited" line. Done when the file matches the doc.
-
 ## Blocked
 
 ### Sign in with ChatGPT and Google
@@ -127,6 +131,10 @@ Blocked by the free-first decision. The `jobs.priority` column supports it; noth
 ### Facebook Login in production mode
 
 Blocked by Meta app review. Dev mode works for the developer's own and test accounts, which is enough for the demo. Public sign-in with Facebook needs the app submitted for review, which takes longer than the event.
+
+### Dark mode
+
+Blocked by scope. The first design pass is light mode only. Dark mode is designed after the ten screens are built, and the colour tokens in the design system item are named by role so a dark set can be added without touching components.
 
 ---
 
