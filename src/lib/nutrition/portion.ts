@@ -26,7 +26,7 @@ export async function resolvePortionNutrition(admin: SupabaseClient, postId: str
   if(nutritionError)throw ioError('Prior nutrition could not be read.',nutritionError,nutritionStatus);
   if(row){
    const nutrition=row as NutritionRow;
-   const hasAmounts=[nutrition.calories,nutrition.protein_g,nutrition.carbs_g,nutrition.fat_g,...nutrition.micronutrients.map(n=>n.value)].some(n=>n!=null);
+   const hasAmounts=[nutrition.calories,nutrition.protein_g,nutrition.carbs_g,nutrition.fat_g,...(Array.isArray(nutrition.micronutrients)?nutrition.micronutrients:[]).map(n=>n.value)].some(n=>n!=null);
    if(nutrition.source_ref && (toNumber(prior.portion_grams)<=0 || !hasAmounts)) {
     const id=Number(nutrition.source_ref);
     const food=await getFoodById(admin,id);
