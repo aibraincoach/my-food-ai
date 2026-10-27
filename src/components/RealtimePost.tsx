@@ -2,69 +2,49 @@
 
 import { useEffect, useState, type ReactNode } from "react";
 import { createClient } from "@/lib/supabase/client";
-import {
-  getPostCard,
-  isSettled,
-  type FeedPost,
-} from "@/lib/posts/feed";
+import { getPostCard, isSettled, type FeedPost } from "@/lib/posts/feed";
 
-const POLL_INTERVAL_MS = 3000;
+const POLL_INTERVAL_MS = 2000;
 
-// Owns one card's data: subscribes to postgres_changes on the post row,
-// refreshes the card in place on change, and polls every 3 s while the
-// post is not settled (the polling fallback when realtime does not deliver).
-export default function RealtimePost({
-  initial,
-  renderCard,
-}: {
+export default function RealtimePost({ initial, renderCard }: {
   initial: FeedPost;
   renderCard: (post: FeedPost) => ReactNode;
 }) {
-  const [post, setPost] = useState<FeedPost>(initial);
+  const [snapshot, setSnapshot] = useState({ seed: initial, current: initial });
+  // A fresh local-create read supersedes an earlier INSERT snapshot, including
+  // its signed photo URL. Never retain the old mount-only initial state.
+  const post = snapshot.seed === initial ? snapshot.current : initial;
 
   useEffect(() => {
     const supabase = createClient();
     let live = true;
-
+    let inFlight = false;
+    let again = false;
     const refresh = async () => {
+      if (inFlight) { again = true; return; }
+      inFlight = true;
       try {
-        const fresh = await getPostCard(supabase, initial.id);
-        if (live && fresh) setPost(fresh);
+        do {
+          again = false;
+          const fresh = await getPostCard(supabase, initial.id);
+          if (live && fresh) setSnapshot({ seed: initial, current: fresh });
+        } while (live && again);
       } catch {
-        // Keep the last good card; the next poll retries.
-      }
+        // Preserve the last good card; polling retries unsettled posts.
+      } finally { inFlight = false; }
     };
-
-    const channel = supabase
-      .channel(`post-${initial.id}`)
-      .on(
-        "postgres_changes",
-        {
-          event: "UPDATE",
-          schema: "public",
-          table: "posts",
-          filter: `id=eq.${initial.id}`,
-        },
-        () => {
-          void refresh();
-        }
-      )
-      .subscribe();
-
-    // Poll only while unsettled; the effect re-runs when the status
-    // settles and the timer is cleared.
-    const timer = isSettled(post.status)
-      ? null
-      : setInterval(() => {
-          void refresh();
-        }, POLL_INTERVAL_MS);
-
+    const channel = supabase.channel(`post-${initial.id}`).on("postgres_changes", {
+      event: "UPDATE", schema: "public", table: "posts", filter: `id=eq.${initial.id}`,
+    }, () => { void refresh(); }).subscribe();
+    // Close the window between the initial read and subscription becoming live.
+    void refresh();
+    const timer = isSettled(post.status) ? null : setInterval(() => { void refresh(); }, POLL_INTERVAL_MS);
     return () => {
       live = false;
       if (timer) clearInterval(timer);
       void supabase.removeChannel(channel);
     };
-  }, [initial.id, post.status]);
+  }, [initial, post.status]);
 
   return <>{renderCard(post)}</>;
 }

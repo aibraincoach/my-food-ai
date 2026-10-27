@@ -80,6 +80,12 @@ test("classified failures, delayed claims, third-attempt limit and worker-only a
     await db.query("begin; set local lock_timeout = '5s'; set local statement_timeout = '10s'; lock public.jobs in access exclusive mode;");
     const installed = await db.query("select exists(select 1 from information_schema.columns where table_schema='public' and table_name='jobs' and column_name='run_after');");
     if (installed === "f") await db.query(readFileSync(new URL("../supabase/migrations/0005_jobs_retry.sql", import.meta.url), "utf8"));
+    const owned = await db.query("select to_regprocedure('public.claim_owned_job(timestamptz)') is not null;");
+    if (owned === "f") {
+      const items = await db.query("select to_regprocedure('public.mark_post_ready(uuid)') is not null;");
+      if (items === "f") await db.query(readFileSync(new URL("../supabase/migrations/0007_post_items_supersede.sql", import.meta.url), "utf8"));
+      await db.query(readFileSync(new URL("../supabase/migrations/0007b_comment_corrections.sql", import.meta.url), "utf8"));
+    }
     // Hide other jobs only inside this transaction. The table lock prevents
     // another worker seeing this state or competing for the fixture job.
     await db.query("update public.jobs set status='finished' where status='queued';");
@@ -98,11 +104,11 @@ test("classified failures, delayed claims, third-attempt limit and worker-only a
     const admin = {
       async rpc(name, args = {}) {
         let sql;
-        if (name === "claim_job") sql = "select row_to_json(public.claim_job());";
+        if (name === "claim_owned_job") sql = "select row_to_json(public.claim_owned_job());";
         else if (name === "fail_job") sql = `select public.fail_job(${sqlString(args.p_job_id)},${sqlString(args.p_message)},${args.p_retriable});`;
         else throw new Error("Unexpected RPC " + name);
         const output = await db.query(sql);
-        return { data: name === "claim_job" && output ? JSON.parse(output) : null, error: null };
+        return { data: name === "claim_owned_job" && output ? JSON.parse(output) : null, error: null };
       },
     };
     async function enqueue(status) {
