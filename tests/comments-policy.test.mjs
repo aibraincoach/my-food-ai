@@ -112,6 +112,20 @@ do $t$declare p uuid;j uuid;begin
  update posts set status='queued' where id=p;
  if not mark_post_ready(p)then raise exception 'explicit retry could not complete';end if;
 end;$t$;
+do $t$ declare p uuid;j uuid;j2 uuid;begin
+ insert into posts(user_id,status,analysis_initialized_at)values(current_setting('test.owner')::uuid,'processing',now())returning id into p;
+ insert into jobs(post_id,kind,status)values(p,'correct','running')returning id into j;
+ -- Completion wins the post lock: a later append must schedule another job.
+ if not complete_empty_correction(p,j)then raise exception 'empty completion rejected';end if;
+ perform append_post_comment(p,current_setting('test.owner')::uuid,'New message');
+ select id into j2 from jobs where post_id=p and kind='correct' and status='queued';
+ if j2 is null then raise exception 'append after completion lost its job';end if;
+ update jobs set status='running' where id=j2;
+ -- Append wins the lock: stale empty completion must not mark this job applied.
+ if complete_empty_correction(p,j2)then raise exception 'pending message lost to empty completion';end if;
+ if(select payload->>'correction_applied' from jobs where id=j2)='true' then raise exception 'pending job marked applied';end if;
+ if mark_post_ready(p)then raise exception 'pending message published ready';end if;
+end;$t$;
 select 'comments: passed';rollback;
 `;
  const r=spawnSync('psql',['-X','-qAt','--dbname',process.env.SUPABASE_DB_URL],{input:sql,encoding:'utf8',timeout:90000});
