@@ -1,3 +1,4 @@
+import { ioError } from "@/lib/worker/errors";
 import type { JobHandler } from '@/lib/worker/handlers';
 import { getCurrentItems, toNumber } from '@/lib/nutrition/totals';
 import { createResponse, MetaApiError } from '@/lib/meta/client';
@@ -6,6 +7,7 @@ import schema from '@/lib/prompts/spark/correct.schema.json';
 import { searchFoods } from '@/lib/fdc/client';
 import { chooseBestMatch, scaleNutrition } from '@/lib/fdc/nutrients';
 import { safeSummary, type ConsumedTotals } from '@/lib/pipeline/wording';
+import { correctionWindow, correctionReply } from '@/lib/pipeline/correction-state';
 import { markReady } from '@/lib/pipeline/persist';
 
 type Correction = {name:string;portion_text:string|null;portion_grams:number|null;region_index:number|null;keep:string|null};
@@ -23,17 +25,25 @@ function parse(text:string):{items:Correction[];reply:string} {
 const correct:JobHandler=async(admin,job)=>{
  if(!job.post_id)throw new Error('Correction requires a post.');
  if(job.payload.correction_applied===true){await markReady(job.post_id,admin);return;}
- const items=await getCurrentItems(admin,job.post_id);
- const {data:thread,error:threadError}=await admin.from('post_comments').select('id,author,body,created_at').eq('post_id',job.post_id).order('created_at').order('id');
- if(threadError)throw new Error('Correction thread could not be read.');
- const latest=thread?.findLast(c=>c.author==='user');
+ const items=await getCurrentItems(admin,job.post_id,{requireNutrition:true});
+ const {data:thread,error:threadError,status:threadStatus}=await admin.from('post_comments').select('id,author,body,created_at').eq('post_id',job.post_id).order('created_at').order('id');
+ if(threadError)throw ioError('Correction thread could not be read.',threadError,threadStatus);
+ const {data:completed,error:progressError,status:progressStatus}=await admin.from('jobs').select('payload').eq('post_id',job.post_id).eq('kind','correct').eq('payload->>correction_applied','true');
+ if(progressError)throw ioError('Correction progress could not be read.',progressError,progressStatus);
+ let window;
+ try{window=correctionWindow(thread??[],completed??[]);}catch{throw new MetaApiError(503,'Correction history changed while loading.');}
+ const latest=window.pending.at(-1);
  if(!latest)return;
- const {data:media,error:mediaError}=await admin.from('post_media').select('storage_path').eq('post_id',job.post_id).order('position').limit(1).maybeSingle();
- if(mediaError)throw new Error('Correction photo could not be read.');
- const content:Record<string,unknown>[]=[{type:'input_text',text:JSON.stringify({items:items.map((i,index)=>({id:i.id,name:i.name,portion_text:i.portion_text,portion_grams:i.portion_grams,calories:i.calories,region_index:i.box?index:null,box:i.box})),thread})}];
+ const {data:prepared,error:prepareError,status:prepareStatus}=await admin.from('jobs').update({payload:{...job.payload,correction_from_sequence:window.sequence,correction_pending_ids:window.pending.map(comment=>comment.id)}}).eq('id',job.id).eq('status','running').select('id').maybeSingle();
+ if(prepareError)throw ioError('Correction snapshot could not be saved.',prepareError,prepareStatus);
+ if(!prepared)throw new MetaApiError(503,'Correction snapshot could not be saved.');
+ const {data:media,error:mediaError,status:mediaStatus}=await admin.from('post_media').select('storage_path').eq('post_id',job.post_id).order('position').limit(1).maybeSingle();
+ if(mediaError)throw ioError('Correction photo could not be read.',mediaError,mediaStatus);
+ const content:Record<string,unknown>[]=[{type:'input_text',text:JSON.stringify({items:items.map((i,index)=>({id:i.id,name:i.name,portion_text:i.portion_text,portion_grams:i.portion_grams,calories:i.calories,region_index:i.box?index:null,box:i.box})),history:window.history,pending_messages:window.pending})}];
  if(media){
   const {data,error}=await admin.storage.from('media').download(media.storage_path);
-  if(error||!data)throw new Error('Correction photo could not be opened.');
+  if(error)throw ioError('Correction photo could not be opened.',error);
+  if(!data)throw new Error('Correction photo could not be opened.');
   content.push({type:'input_image',image_url:`data:${data.type||'image/jpeg'};base64,${Buffer.from(await data.arrayBuffer()).toString('base64')}`});
  }
  const response=await createResponse({model:'muse-spark-1.3',instructions:correctPrompt,input:[{type:'message',role:'user',content}],text:{format:{type:'json_schema',name:'correct',schema,strict:true}},max_output_tokens:4096});
@@ -56,9 +66,9 @@ const correct:JobHandler=async(admin,job)=>{
  }
  const totals={} as ConsumedTotals;
  for(const key of ['calories','protein_g','carbs_g','fat_g'] as const)totals[key]=rows.some(r=>r.nutrition[key]==null)?null:rows.reduce((n,r)=>n+toNumber(r.nutrition[key]),0);
- const reply=await safeSummary(result.reply,totals);
- const {error}=await admin.rpc('persist_correction',{p_post_id:job.post_id,p_job_id:job.id,p_expected:items.map(i=>i.id),p_through:latest.id,p_items:rows,p_reply:reply});
- if(error)throw new Error(`Correction transaction failed: ${error.code}`);
+ const reply=await safeSummary(correctionReply(items,rows,totals),totals);
+ const {error,status}=await admin.rpc('persist_correction',{p_post_id:job.post_id,p_job_id:job.id,p_expected:items.map(i=>i.id),p_through:latest.id,p_items:rows,p_reply:reply});
+ if(error)throw ioError('Correction transaction failed.',error,status);
  await markReady(job.post_id,admin);
 };
 export default correct;
