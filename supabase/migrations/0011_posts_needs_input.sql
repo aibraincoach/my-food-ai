@@ -56,10 +56,10 @@ begin
   if v_question is not null then
     select coalesce(max((payload->>'correction_sequence')::bigint),0) into v_question_sequence
       from public.jobs where post_id=p_post_id and kind='correct' and payload->>'needs_input_question'='true';
-    -- Initial questions precede correction sequence one. A correction question
-    -- at sequence N requires an actual later correction, not replay or an empty
-    -- completion at N. Claiming work changes status, so status alone is unsafe.
-    if not exists(select 1 from public.jobs where id=p_job_id and post_id=p_post_id and kind='correct'
+    -- Initial questions precede correction sequence one. An actual later answer
+    -- remains resolved if a successor recompute must finish card publication.
+    -- The current job's execution ownership was checked separately above.
+    if not exists(select 1 from public.jobs where post_id=p_post_id and kind='correct'
       and payload->>'correction_applied'='true' and not coalesce((payload->>'needs_input_question')::boolean,false)
       and (payload->>'correction_sequence')::bigint>v_question_sequence) then
       update public.posts set status='needs_input' where id=p_post_id;
