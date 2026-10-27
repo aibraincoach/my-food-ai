@@ -17,12 +17,14 @@ export async function findPrior(admin:SupabaseClient,postId:string):Promise<{hin
   if(!items?.length) return null;
   const hint=`This user logged this meal before as: ${items.map(item=>`${item.name}, ${item.portion_grams??"unknown"} g`).join("; ")}; keep these names and portions unless the photo clearly differs.`;
   if(best.score<PRIOR.copyThreshold) return {hint};
+  const {data:post,error:postError,status:postStatus}=await admin.from("posts").select("user_id,caption").eq("id",postId).single();
+  if(postError) throw ioError(postError.message,postError,postStatus);
+  const {data:past,error:pastError,status:pastStatus}=await admin.from("posts").select("caption").eq("id",best.post_id).eq("user_id",post.user_id).single();
+  if(pastError) throw ioError(pastError.message,pastError,pastStatus);
   let photos;
   try {photos=await Promise.all([loadFirstPhoto(admin,postId),loadFirstPhoto(admin,best.post_id)]);} catch {return {hint};}
-  const result=await createResponse({model:"muse-spark-1.3",instructions:sameMealPrompt,input:[{role:"user",content:[{type:"input_text",text:hint},...photos.map(photo=>({type:"input_image",image_url:`data:image/jpeg;base64,${Buffer.from(photo.bytes).toString("base64")}`}))]}],text:{format:{type:"json_schema",name:"same_meal",strict:true,schema:sameMealSchema}},max_output_tokens:128});
+  const result=await createResponse({model:"muse-spark-1.3",instructions:sameMealPrompt,input:[{role:"user",content:[{type:"input_text",text:JSON.stringify({prior:hint,current_caption:post.caption,past_caption:past.caption,image_order:["current","past"]})},...photos.map(photo=>({type:"input_image",image_url:`data:image/jpeg;base64,${Buffer.from(photo.bytes).toString("base64")}`}))]}],text:{format:{type:"json_schema",name:"same_meal",strict:true,schema:sameMealSchema}},max_output_tokens:128});
   if(result.status!=="completed"||!result.outputText||JSON.parse(result.outputText).same_meal!==true) return {hint:""};
-  const {data:post,error:postError,status:postStatus}=await admin.from("posts").select("user_id").eq("id",postId).single();
-  if(postError) throw ioError(postError.message,postError,postStatus);
   const nutrition=items.map(item=>{const row=Array.isArray(item.item_nutrition)?item.item_nutrition[0]:item.item_nutrition;return row??{};});
   return {hint,nutrition,named:{postId,userId:post.user_id,photoWidth:photos[0].width,photoHeight:photos[0].height,regions:[],
     captionOnly:items.map(item=>({name:item.name,portionText:item.portion_text,portionGrams:item.portion_grams,confidence:item.confidence,regionIndex:null})),
