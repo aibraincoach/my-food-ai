@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {spawnSync} from 'node:child_process';
-test('committed analysis replay preserves user edits, removed meals and zero-food marker',()=>{
+for (const alreadyInstalled of [false,true]) test(`committed analysis replay preserves edits and markers (already installed: ${alreadyInstalled})`,()=>{
  assert.ok(process.env.SUPABASE_DB_URL);
  const migration=readFileSync(new URL('../supabase/migrations/0007_post_items_supersede.sql',import.meta.url),'utf8');
  const sql=`\\set ON_ERROR_STOP on
@@ -44,5 +44,7 @@ do $t$begin
  begin insert into posts(user_id,status,analysis_initialized_at)values(current_setting('test.owner')::uuid,'queued',now());raise exception 'client forged marker';exception when insufficient_privilege then null;end;
 end;$t$;
 rollback;`;
- const r=spawnSync('psql',['-X','-qAt','--dbname',process.env.SUPABASE_DB_URL],{input:sql,encoding:'utf8',timeout:90000});assert.ifError(r.error);assert.equal(r.status,0,r.stderr);
+ const install=sql.slice(sql.indexOf('select exists'),sql.indexOf('select gen_random_uuid'));
+ const input=alreadyInstalled?sql.replace('select gen_random_uuid()',install+'select gen_random_uuid()'):sql;
+ const r=spawnSync('psql',['-X','-qAt','--dbname',process.env.SUPABASE_DB_URL],{input,encoding:'utf8',timeout:90000});assert.ifError(r.error);assert.equal(r.status,0,r.stderr);
 });
