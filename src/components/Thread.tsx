@@ -14,8 +14,9 @@ export default function Thread({postId}:{postId:string}){
  useEffect(()=>{
   const client=createClient();let live=true;let inFlight=false;let initialized=false;let knownStatus:string|null=null;const knownModels=new Set<string>();
   const load=async()=>{if(inFlight)return;inFlight=true;try{
-   const {data:verdict}=await client.from('post_feedback').select('verdict,model_comment_id').eq('post_id',postId).maybeSingle();
-   if(live)setAccepted(verdict?.verdict==='up'?verdict.model_comment_id:null);
+   const {data:verdict}=await client.from('post_feedback').select('verdict,model_comment_id,item_fingerprint').eq('post_id',postId).maybeSingle();
+   const {data:revision}=await client.rpc('feedback_revision',{p_post_id:postId});
+   if(live)setAccepted(verdict?.verdict==='up'&&verdict.item_fingerprint===revision?.fingerprint?verdict.model_comment_id:null);
    const [data,{data:post,error:postError}]=await Promise.all([
     readPostComments(client,postId),
     client.from('posts').select('status').eq('id',postId).maybeSingle(),
