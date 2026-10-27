@@ -1,3 +1,4 @@
+import { connection } from "next/server";
 import { Suspense } from "react";
 import Feed from "@/components/Feed";
 import DayBubbles from "@/components/DayBubbles";
@@ -6,6 +7,7 @@ import { createClient } from "@/lib/supabase/server";
 import { dateInZone, getDays, shiftDay, validZone } from "@/lib/posts/days";
 
 async function HomeDays() {
+  await connection();
   const zone = validZone((await cookies()).get("time-zone")?.value);
   const today = dateInZone(new Date(), zone);
   const supabase = await createClient();
