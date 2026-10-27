@@ -3,7 +3,10 @@
 export function scopedFixtureClaims(admin,fixtureJobs,fixturePosts){
  return new Proxy(admin,{get(target,property){
   if(property==='rpc')return async(name,args)=>{
-   if(name!=='claim_job'&&name!=='claim_owned_job')return target.rpc(name,args);
+   if(name!=='claim_job'&&name!=='claim_owned_job'){
+    if(name.startsWith('claim'))throw new Error('Unrecognized claim RPC must never reach the global queue.');
+    return target.rpc(name,args);
+   }
    if(!fixtureJobs.size)return {data:null,error:null};
    const {data:rows,error}=await target.from('jobs').select('*').in('id',[...fixtureJobs]).eq('status','queued').order('priority').order('created_at').order('id').limit(1);
    if(error||!rows?.length)return {data:null,error};const row=rows[0];

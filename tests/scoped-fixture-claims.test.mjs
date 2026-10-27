@@ -8,6 +8,7 @@ test('both legacy and owned claim names stay fixture-scoped and assign execution
  }};
  const jobs=new Set();const scoped=scopedFixtureClaims(admin,jobs,['fixture-post']);
  for(const name of ['claim_job','claim_owned_job'])assert.equal((await scoped.rpc(name)).data,null);
+ await assert.rejects(scoped.rpc('claim_unscoped_job'),/Unrecognized/);
  assert.equal(forwarded,0);jobs.add('fixture-job');
  for(const name of ['claim_job','claim_owned_job'])assert.equal((await scoped.rpc(name)).data.payload.post_ownership,true);
  assert.equal(forwarded,0);assert.equal(updates.filter(u=>u.table==='posts'&&u.value.active_job_id==='fixture-job').length,2);
