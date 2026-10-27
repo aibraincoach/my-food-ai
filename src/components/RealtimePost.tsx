@@ -14,6 +14,11 @@ export default function RealtimePost({ initial, renderCard }: {
   // A fresh local-create read supersedes an earlier INSERT snapshot, including
   // its signed photo URL. Never retain the old mount-only initial state.
   const post = snapshot.seed === initial ? snapshot.current : initial;
+  // Initial analysis publishes ready before the stored card finishes rendering.
+  // Keep the fallback read alive until its card slide arrives, even if Realtime
+  // misses the subsequent publication UPDATE.
+  const awaitingCard = post.status === "ready" && post.items.length > 0
+    && !post.slides.some((slide) => slide.kind === "card");
 
   useEffect(() => {
     const supabase = createClient();
@@ -38,13 +43,13 @@ export default function RealtimePost({ initial, renderCard }: {
     }, () => { void refresh(); }).subscribe();
     // Close the window between the initial read and subscription becoming live.
     void refresh();
-    const timer = isSettled(post.status) ? null : setInterval(() => { void refresh(); }, POLL_INTERVAL_MS);
+    const timer = isSettled(post.status) && !awaitingCard ? null : setInterval(() => { void refresh(); }, POLL_INTERVAL_MS);
     return () => {
       live = false;
       if (timer) clearInterval(timer);
       void supabase.removeChannel(channel);
     };
-  }, [initial, post.status]);
+  }, [initial, post.status, awaitingCard]);
 
   return post.status === "needs_input" ? null : <>{renderCard(post)}</>;
 }
