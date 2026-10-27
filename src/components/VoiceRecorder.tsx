@@ -2,6 +2,7 @@
 import {useEffect,useRef,useState} from 'react';
 import {Icon} from '@/components/ui/Icon';
 import {encodeWav} from '@/lib/audio/wav-encoder';
+import {MAX_RECORDING_SECONDS} from '@/lib/audio/limits';
 type Capture={context:AudioContext;stream:MediaStream;node:AudioWorkletNode;chunks:Float32Array[];timer:ReturnType<typeof setTimeout>|null};
 export default function VoiceRecorder({disabled,onTranscript,onActiveChange}:{disabled:boolean;onTranscript:(text:string)=>void;onActiveChange:(active:boolean)=>void}){
  const [state,setState]=useState<'idle'|'starting'|'recording'|'sending'>('idle');const [error,setError]=useState('');
@@ -38,9 +39,9 @@ export default function VoiceRecorder({disabled,onTranscript,onActiveChange}:{di
    const node=new AudioWorkletNode(context,'meal-recorder');const record:Capture={context,stream,node,chunks:[],timer:null};
    node.port.onmessage=({data})=>{if(data.samples)record.chunks.push(data.samples);};
    const source=context.createMediaStreamSource(stream);source.connect(node);node.connect(context.destination);
-   capture.current=record;record.timer=setTimeout(stop,600000);setState('recording');
+   capture.current=record;record.timer=setTimeout(stop,MAX_RECORDING_SECONDS*1000);setState('recording');
   }catch(cause){stream?.getTracks().forEach(t=>t.stop());if(context)void context.close();if(alive.current){setError(cause instanceof Error?cause.message:'Microphone could not be opened.');setState('idle');onActiveChange(false);}}
   finally{locked.current=false;}
  };
- return <><button type="button" disabled={disabled||state==='starting'||state==='sending'} aria-label={state==='recording'?'Stop recording':'Record a correction'} aria-pressed={state==='recording'} onClick={()=>{if(state==='recording')stop();else void begin();}} className={`flex min-h-tap min-w-tap items-center justify-center ${state==='recording'?'rounded-circle bg-text text-surface':'text-muted'}`}><Icon name="mic"/></button>{state==='recording'||state==='sending'?<span role="status" className="w-full text-meta text-muted">{state==='recording'?'Recording… tap the microphone to stop.':'Transcribing…'}</span>:null}{error?<p role="alert" className="w-full text-meta text-muted">{error}</p>:null}</>;
+ return <><button type="button" disabled={disabled||state==='starting'||state==='sending'} aria-label={state==='recording'?'Stop recording':'Record a correction'} aria-pressed={state==='recording'} onClick={()=>{if(state==='recording')stop();else void begin();}} className={`flex min-h-tap min-w-tap items-center justify-center ${state==='recording'?'rounded-circle bg-text text-surface':'text-muted'}`}><Icon name="mic"/></button>{state==='recording'||state==='sending'?<span role="status" className="w-full text-meta text-muted">{state==='recording'?'Recording… tap to stop. Stops automatically after two minutes.':'Transcribing…'}</span>:null}{error?<p role="alert" className="w-full text-meta text-muted">{error}</p>:null}</>;
 }

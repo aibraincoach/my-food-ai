@@ -1,7 +1,8 @@
+import {MAX_RECORDING_SECONDS} from "./limits";
 // Canonical 44-byte RIFF header, mono signed PCM16 at 16 kHz.
 export function encodeWav(chunks:Float32Array[],sampleRate:number):ArrayBuffer {
  if(!Number.isFinite(sampleRate)||sampleRate<=0)throw new Error('Invalid recording sample rate.');
- const count=Math.min(chunks.reduce((n,c)=>n+c.length,0),Math.floor(sampleRate*600));const samples=new Float32Array(count);
+ const count=Math.min(chunks.reduce((n,c)=>n+c.length,0),Math.floor(sampleRate*MAX_RECORDING_SECONDS));const samples=new Float32Array(count);
  let cursor=0;for(const chunk of chunks){const take=Math.min(chunk.length,count-cursor);samples.set(chunk.subarray(0,take),cursor);cursor+=take;if(cursor===count)break;}
  const targetRate=16000;const frames=Math.floor(count*targetRate/sampleRate);const buffer=new ArrayBuffer(44+frames*2);const view=new DataView(buffer);
  const text=(offset:number,value:string)=>{for(let i=0;i<value.length;i++)view.setUint8(offset+i,value.charCodeAt(i));};
