@@ -5,6 +5,7 @@ import { toNumber, type Numeric } from "@/lib/nutrition/totals";
 export interface GridPost {
   id: string;
   caption: string;
+  status: string;
   photoUrl: string | null;
   calories: number | null;
 }
@@ -47,6 +48,7 @@ export async function getProfileGrid(supabase: SupabaseClient, userId: string): 
       return {
         id: row.id,
         caption: row.caption,
+        status: row.status,
         photoUrl,
         calories: row.status === "ready"
           ? row.post_items.reduce((sum, item) => sum + toNumber(item.item_nutrition?.calories), 0)
