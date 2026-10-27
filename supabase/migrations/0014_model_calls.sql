@@ -1,8 +1,11 @@
 -- Close the pre-existing self-provisioning privilege escalation before an
 -- admin-readable trace table is introduced. Ordinary users cannot choose admin.
-drop policy profiles_owner_insert on public.profiles;
+drop policy if exists profiles_owner_insert on public.profiles;
 create policy profiles_owner_insert on public.profiles for insert
   with check (auth.uid() = id and role = 'user');
+drop policy if exists profiles_owner_update on public.profiles;
+create policy profiles_owner_update on public.profiles for update
+  using (auth.uid() = id) with check (auth.uid() = id and role = 'user');
 
 create table public.model_calls (
   id uuid primary key default gen_random_uuid(),
