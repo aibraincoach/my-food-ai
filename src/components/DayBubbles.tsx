@@ -24,12 +24,7 @@ export default function DayBubbles({ days, today, zone }: { days: LoggedDay[]; t
       const key = date.toISOString().slice(0, 10);
       const day = days.find((entry) => entry.date === key);
       return <Link key={key} href={`/days/${key}?tz=${encodeURIComponent(zone)}`} aria-label={date.toLocaleDateString("en", { timeZone: "UTC", weekday: "long", month: "long", day: "numeric" })} className={`flex flex-col items-center gap-grid ${day ? "text-text" : "text-faint"}`}>
-        <span className={`flex size-sheet-bottom items-center justify-center overflow-hidden rounded-circle border text-body tabular-nums ${day ? "border-text bg-card" : "border-dashed border-ring"}`}>
-          {day?.posts[0]?.photoUrl ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={day.posts[0].photoUrl} alt="" className="h-full w-full object-cover" />
-          ) : date.getUTCDate()}
-        </span>
+        <span className={`flex size-sheet-bottom items-center justify-center rounded-circle text-body tabular-nums ${key === today ? "border-2 border-text text-text" : day ? "border-2 border-ring text-text" : "text-faint"}`}>{date.getUTCDate()}</span>
         <span className="text-bubble">{date.toLocaleDateString("en", { timeZone: "UTC", weekday: "short" }).slice(0, 1)}</span>
       </Link>;
     })}
