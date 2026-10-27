@@ -48,6 +48,9 @@ begin
   perform edit_post_item(p,current_setting('test.other')::uuid,'remove',new_id,null,null,null);
   raise exception 'wrong owner accepted';
  exception when insufficient_privilege then null; end;
+ -- Model a claimed legacy recompute; one-argument completion remains valid
+ -- both before and after the ownership migration. Never claim global jobs.
+ update jobs set status='running',attempts=attempts+1,started_at=now() where post_id=p and kind='recompute' and status='queued';
  if mark_post_ready(p) then raise exception 'ready with missing nutrition'; end if;
  insert into item_nutrition(post_item_id,calories) values(new_id,100);
  if not mark_post_ready(p) then raise exception 'complete post not ready'; end if;
