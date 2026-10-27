@@ -43,8 +43,15 @@ begin
 
  previous_job:=j;
  update jobs set status='finished' where id=j;
+ -- Completed ownership remains recorded; legitimate ready maintenance must still work.
+ result := publish_results_card(p,fingerprint,u::text||'/'||p::text||'/cards/after-completion/card.png',1080);
+ if not (result->>'published')::boolean then raise exception 'finished owner blocked ready maintenance'; end if;
+ result := publish_results_card(p,fingerprint,u::text||'/'||p::text||'/cards/stale-owner/card.png',1080,j);
+ if (result->>'published')::boolean then raise exception 'finished job retained publication rights'; end if;
  insert into jobs(post_id,kind,status,attempts) values(p,'card_backfill','running',3) returning id into j;
  update posts set active_job_id=j where id=p;
+ result := publish_results_card(p,fingerprint,u::text||'/'||p::text||'/cards/new-backfill/card.png',1080,j);
+ if not (result->>'published')::boolean then raise exception 'current backfill owner could not publish'; end if;
  perform fail_job(j,'Card storage unavailable',true);
  if (select status from jobs where id=j)<>'error' or (select status from posts where id=p)<>'ready'
  or not exists(select 1 from item_nutrition where post_item_id=item and calories=100) then raise exception 'card failure damaged meal'; end if;
