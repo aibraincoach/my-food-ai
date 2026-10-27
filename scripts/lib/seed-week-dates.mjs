@@ -1,6 +1,6 @@
 // Explicit IANA zone must match the browser used for the search demonstration.
 export function seedWeekDates(zone, now=new Date()) {
- if(!zone)throw new Error('Set TEST_TIME_ZONE to the browser IANA timezone before seeding.');
+ if(!zone)throw new Error('Pass --time-zone with the browser IANA timezone before seeding.');
  const format=new Intl.DateTimeFormat('en',{timeZone:zone,year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',second:'2-digit',hourCycle:'h23'});
  const parts=date=>Object.fromEntries(format.formatToParts(date).filter(p=>p.type!=='literal').map(p=>[p.type,Number(p.value)]));
  const today=parts(now);
