@@ -99,6 +99,8 @@ async function toFeedPost(
   };
 }
 
+export const VISIBLE_MEAL_FILTER="needs_input.is.null,status.eq.failed";
+
 // Stable keyset pagination: the ID breaks ties between equal timestamps.
 export async function getFeed(
   supabase: SupabaseClient,
@@ -113,7 +115,7 @@ export async function getFeed(
     .order("created_at", { ascending: false })
     .order("id", { ascending: false })
     .limit(FEED_PAGE_SIZE + 1);
-  if (cursor) query = query.or(`created_at.lt.${cursor.created_at},and(created_at.eq.${cursor.created_at},id.lt.${cursor.id})`);
+  query = cursor ? query.or(`and(or(${VISIBLE_MEAL_FILTER}),or(created_at.lt.${cursor.created_at},and(created_at.eq.${cursor.created_at},id.lt.${cursor.id})))`) : query.or(VISIBLE_MEAL_FILTER);
   const {data,error} = await query;
   if (error) {
     throw new Error(error.message);
@@ -131,7 +133,7 @@ export async function getPostCard(
   const { data, error } = await supabase
     .from("posts")
     .select("id,caption,eaten_at,status,created_at")
-    .eq("id", postId)
+    .eq("id", postId).or(VISIBLE_MEAL_FILTER)
     .maybeSingle<PostRow>();
   if (error) {
     throw new Error(error.message);
