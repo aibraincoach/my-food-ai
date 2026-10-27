@@ -26,7 +26,7 @@ export default function Thread({postId}:{postId:string}){
    if(initialized&&models.some(row=>!knownModels.has(row.id)))router.refresh();
    for(const model of models)knownModels.add(model.id);initialized=true;
    if(knownStatus&&knownStatus!==post.status)router.refresh();knownStatus=post.status;
-   const feedback=correctionFeedback(post.status,data?.at(-1)?.author);
+   const feedback=correctionFeedback(post.status);
    setError(feedback==='failed'?'The meal could not be updated. Use Retry to try again.':'');setRows(old=>sort([...new Map([...old,...(data??[])].map(row=>[row.id,row as CommentRow])).values()]));
    setWaiting(feedback==='waiting');
   }catch{if(live)setError('Comments could not be loaded.');}finally{inFlight=false;}};

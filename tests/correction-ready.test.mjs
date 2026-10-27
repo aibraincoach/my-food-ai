@@ -15,6 +15,6 @@ test('delayed initial analysis defers correction; terminal uninitialized failure
  await waitForInitialAnalysis(client({initialized:true}),'post'); // includes valid zero-food analysis
 });
 test('terminal failure replaces progress even if latest comment remains user-authored',()=>{
- assert.equal(correctionFeedback('queued','user'),'waiting');assert.equal(correctionFeedback('processing','user'),'waiting');
- assert.equal(correctionFeedback('failed','user'),'failed');assert.equal(correctionFeedback('ready','user'),'idle');assert.equal(correctionFeedback('needs_input','model'),'idle');
+ assert.equal(correctionFeedback('queued'),'waiting');assert.equal(correctionFeedback('queued'),'waiting');assert.equal(correctionFeedback('processing'),'waiting');assert.equal(correctionFeedback('processing'),'waiting');
+ assert.equal(correctionFeedback('failed'),'failed');assert.equal(correctionFeedback('ready'),'idle');assert.equal(correctionFeedback('needs_input'),'idle');
 });

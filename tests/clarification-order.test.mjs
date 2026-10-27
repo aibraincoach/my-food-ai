@@ -43,11 +43,18 @@ do $$ declare u uuid:=gen_random_uuid();p uuid;j uuid;j2 uuid;c public.post_comm
  select id into j2 from jobs where post_id=p and status='queued';
  if j2 is null then raise exception 'follow-up missing';end if;
  s:=results_card_snapshot(p);
+ update posts set status='ready' where id=p;
  if(publish_results_card(p,s->>'fingerprint',u||'/'||p||'/cards/'||gen_random_uuid()||'/card.png',1080)->>'published')::boolean then raise exception 'pending answer was published ready';end if;
+ if(select status from posts where id=p)<>'queued'then raise exception 'pending answer left ready status';end if;
  update jobs set status='running',payload=jsonb_build_object('correction_from_sequence',1,'correction_pending_ids',jsonb_build_array(c2.id))where id=j2;
  perform persist_correction(p,j2,array[]::uuid[],c2.id,'[]','Consumed: 0 kcal.');
  s:=results_card_snapshot(p);
  if not(publish_results_card(p,s->>'fingerprint',u||'/'||p||'/cards/'||gen_random_uuid()||'/card.png',1080)->>'published')::boolean then raise exception 'resolved follow-up could not publish';end if;
+ update posts set status='failed',fail_reason='Correction failed' where id=p;
+ if(publish_results_card(p,s->>'fingerprint',u||'/'||p||'/cards/'||gen_random_uuid()||'/card.png',1080)->>'published')::boolean then raise exception 'stale card cleared failed correction';end if;
+ if(select status from posts where id=p)<>'failed'then raise exception 'failed state changed';end if;
+ update posts set status='queued' where id=p;
+ if not(publish_results_card(p,s->>'fingerprint',u||'/'||p||'/cards/'||gen_random_uuid()||'/card.png',1080)->>'published')::boolean then raise exception 'explicit retry blocked';end if;
 end $$;
 do $$ declare u uuid:=gen_random_uuid();p uuid;i uuid;replacement uuid;initial_question jsonb:='{"question":"How much rice?","short":"Portion needed","options":["50g","100g"]}';begin
  insert into auth.users(id)values(u);insert into profiles(id,handle)values(u,'initial-question-'||u);
