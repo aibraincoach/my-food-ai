@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
-import { FEED_PAGE_SIZE, getFeed, getPostCard, type FeedPost } from "@/lib/posts/feed";
+import { FEED_PAGE_SIZE, VISIBLE_MEAL_FILTER, getFeed, getPostCard, type FeedPost } from "@/lib/posts/feed";
 import { tokens } from "@/lib/theme/tokens";
 import PostCard from "@/components/PostCard";
 import AnalysisBlock from "@/components/AnalysisBlock";
@@ -45,7 +45,7 @@ export default function Feed() {
       if (!live) return;
       // A late initial load must not erase cards received while it was in flight.
       const promoted = newest.flatMap((id) => cards.has(id) ? [cards.get(id)!] : []);
-      const posts = mergeFeedPosts(baseline, promoted).filter(post=>!unavailable.has(post.id)&&post.status!=="needs_input"&&(!answered.has(post.id)||post.status==="ready"));
+      const posts = mergeFeedPosts(baseline, promoted).filter(post=>!unavailable.has(post.id)&&post.status!=="needs_input"&&(!answered.has(post.id)||post.status==="ready"||post.status==="failed"));
       if (loaded || promoted.length) setState({ kind: "ready", posts });
     };
 
@@ -83,8 +83,8 @@ export default function Feed() {
           const card = await getPostCard(supabase, id);
           if (!live || requestGeneration !== generation) return;
           if(!card||card.status==="needs_input"){removeCard(id);return;}
-          if(answered.has(id)&&card.status!=="ready"){pending.delete(id);return;}
-          if(card.status==="ready")answered.delete(id);
+          if(answered.has(id)&&card.status!=="ready"&&card.status!=="failed"){pending.delete(id);return;}
+          if(card.status==="ready"||card.status==="failed")answered.delete(id);
           unavailable.delete(id);
           cards.set(id, card);
           publish();
@@ -116,7 +116,7 @@ export default function Feed() {
       if(typeof id==="string"&&id){answered.add(id);removeCard(id);}
     };
     window.addEventListener("post-answer-resume",resume);
-    window.addEventListener("post-ready",created);
+    window.addEventListener("post-settled",created);
 
     const load = async () => {
       initialLoading = true;
@@ -159,7 +159,7 @@ export default function Feed() {
         if (!loaded) { await load(); return; }
         if (!userId) return;
         const { data, error } = await supabase.from("posts").select("id")
-          .eq("user_id", userId).neq("status", "needs_input").order("created_at", { ascending: false })
+          .eq("user_id", userId).neq("status", "needs_input").or(VISIBLE_MEAL_FILTER).order("created_at", { ascending: false })
           .order("id", { ascending: false }).limit(FEED_PAGE_SIZE);
         if (!live || error || discoveryGeneration!==generation) return;
         // A full discovery window without any baseline overlap can hide a
@@ -206,7 +206,7 @@ export default function Feed() {
       for (const retry of timers) clearTimeout(retry);
       window.removeEventListener("post-created", created);
       window.removeEventListener("post-answer-resume",resume);
-      window.removeEventListener("post-ready",created);
+      window.removeEventListener("post-settled",created);
       window.removeEventListener("post-unavailable",unavailableEvent);
       window.removeEventListener("focus", focus);
       document.removeEventListener("visibilitychange", focus);
