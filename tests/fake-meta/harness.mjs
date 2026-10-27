@@ -7,25 +7,51 @@ import {createClient} from '@supabase/supabase-js';
 import {startFakeMeta} from './server.mjs';
 export async function pipelineHarness(){
  for(const key of ['NEXT_PUBLIC_SUPABASE_URL','NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY','SUPABASE_SECRET_KEY','TEST_USER_EMAIL','TEST_USER_PASSWORD'])assert.ok(process.env[key],`${key} is required`);
- const fake=await startFakeMeta();const originalFetch=globalThis.fetch;const allowed=new Set([new URL(fake.origin).origin,new URL(process.env.NEXT_PUBLIC_SUPABASE_URL).origin]);
- globalThis.fetch=(input,init)=>{const url=new URL(typeof input==='string'||input instanceof URL?input:input.url);assert.ok(allowed.has(url.origin),`Unexpected network origin: ${url.origin}`);return originalFetch(input,init);};
- process.env.MODEL_API_BASE_URL=fake.baseURL;process.env.MODEL_API_KEY='offline-fixture-not-a-secret';delete process.env.FDC_API_KEY;
+ // Validate client configuration before starting a server or changing globals.
+ const supabaseOrigin=new URL(process.env.NEXT_PUBLIC_SUPABASE_URL).origin;
  const admin=createClient(process.env.NEXT_PUBLIC_SUPABASE_URL,process.env.SUPABASE_SECRET_KEY,{auth:{persistSession:false,autoRefreshToken:false}});
  const user=createClient(process.env.NEXT_PUBLIC_SUPABASE_URL,process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY,{auth:{persistSession:false,autoRefreshToken:false}});
+ const originalFetch=globalThis.fetch;
+ const previousEnv=Object.fromEntries(['MODEL_API_BASE_URL','MODEL_API_KEY','FDC_API_KEY'].map(key=>[key,process.env[key]]));
+ const fake=await startFakeMeta();const allowed=new Set([new URL(fake.origin).origin,supabaseOrigin]);
  let ownerId;const created=[],paths=[],cacheInserted=[];const fixtureJobs=new Set();
  const cleanup=async()=>{
   const problems=[];
-  if(ownerId)for(const id of created){const prefix=`${ownerId}/${id}/masks`;const {data,error}=await admin.storage.from('media').list(prefix,{limit:1000});if(error)problems.push('fixture mask listing');else for(const item of data??[])if(item.id&&!paths.includes(`${prefix}/${item.name}`))paths.push(`${prefix}/${item.name}`);}
+  try {
+  if(ownerId)for(const id of created){
+   const prefix=`${ownerId}/${id}/masks`;
+   for(let offset=0;;offset+=1000){
+    const {data,error}=await admin.storage.from('media').list(prefix,{limit:1000,offset,sortBy:{column:'name',order:'asc'}});
+    if(error){problems.push('fixture mask listing');break;}
+    for(const item of data??[])if(item.id&&!paths.includes(`${prefix}/${item.name}`))paths.push(`${prefix}/${item.name}`);
+    if((data?.length??0)<1000)break;
+   }
+  }
 
   if(paths.length){const {error}=await admin.storage.from('media').remove(paths);if(error)problems.push('fixture storage');}
   if(created.length){const {error}=await admin.from('posts').delete().in('id',created);if(error)problems.push('fixture posts');}
   if(cacheInserted.length){const {error}=await admin.from('fdc_cache').delete().in('query',cacheInserted);if(error)problems.push('fixture cache');}
-  await user.auth.signOut().catch(()=>{});await fake.close();globalThis.fetch=originalFetch;
+  await user.auth.signOut().catch(()=>{});
   assert.deepEqual(problems,[],'Fixture cleanup failed');
+  } finally {
+   try { await fake.close(); } finally {
+    globalThis.fetch=originalFetch;
+    for(const [key,value]of Object.entries(previousEnv)){if(value===undefined)delete process.env[key];else process.env[key]=value;}
+   }
+  }
  };
  try{
+  globalThis.fetch=(input,init)=>{const url=new URL(typeof input==='string'||input instanceof URL?input:input.url);assert.ok(allowed.has(url.origin),`Unexpected network origin: ${url.origin}`);return originalFetch(input,init);};
+  process.env.MODEL_API_BASE_URL=fake.baseURL;process.env.MODEL_API_KEY='offline-fixture-not-a-secret';delete process.env.FDC_API_KEY;
   const {data:auth,error:authError}=await user.auth.signInWithPassword({email:process.env.TEST_USER_EMAIL,password:process.env.TEST_USER_PASSWORD});assert.equal(authError,null,'Test account sign-in failed');ownerId=auth.user.id;
   const {error:viewError}=await admin.from('current_post_items').select('id').limit(0);assert.equal(viewError,null,'Pipeline requires item12 migration0007 visible through PostgREST');
+  // These deliberately missing post IDs cannot write rows. Probe the RPCs
+  // before seeding cache/post/media fixtures, with a precise migration failure.
+  const missingPost=randomUUID();
+  const {error:appendProbe}=await admin.rpc('append_post_comment',{p_post_id:missingPost,p_user_id:auth.user.id,p_text:''});
+  assert.equal(appendProbe?.code,'42501','Pipeline requires item16 migration0007b append RPC visible through PostgREST');
+  const {error:correctionProbe}=await admin.rpc('persist_correction',{p_post_id:missingPost,p_job_id:randomUUID(),p_expected:[],p_through:randomUUID(),p_items:[],p_reply:''});
+  assert.equal(correctionProbe?.code,'42501','Pipeline requires item16 migration0007b persist RPC visible through PostgREST');
   const fdc=JSON.parse(await readFile(new URL('./fixtures/fdc.json',import.meta.url),'utf8'));
   for(const [query,response]of Object.entries(fdc)){
    const {data,error}=await admin.from('fdc_cache').select('query').eq('query',query).maybeSingle();assert.equal(error,null);
