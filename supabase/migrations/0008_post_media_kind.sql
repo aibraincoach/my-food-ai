@@ -19,12 +19,14 @@ grant execute on function public.results_card_snapshot(uuid) to service_role;
 -- Immutable object paths plus conditional publication prevent an older render
 -- from overwriting a corrected card. Publication and ready happen under the
 -- same post lock used by edits and corrections.
-create or replace function public.publish_results_card(p_post_id uuid, p_fingerprint text, p_storage_path text, p_size integer)
+drop function if exists public.publish_results_card(uuid, text, text, integer);
+create or replace function public.publish_results_card(p_post_id uuid, p_fingerprint text, p_storage_path text, p_size integer, p_job_id uuid default null)
 returns jsonb language plpgsql security definer set search_path = public, pg_temp as $$
 declare v_snapshot jsonb; v_old text; v_position integer; v_owner uuid; v_status text;
 begin
   select user_id, status into v_owner, v_status from public.posts where id = p_post_id for update;
   if not found or v_status in ('failed','needs_input') then return jsonb_build_object('published', false); end if;
+  if not public.post_work_matches(p_post_id, p_job_id) then return jsonb_build_object('published', false); end if;
   -- A complete old snapshot must not publish ready over queued corrections.
   if exists (select 1 from public.jobs where post_id = p_post_id and kind = 'correct'
     and status in ('queued','running') and coalesce(payload->>'correction_applied','false') <> 'true') then
@@ -49,8 +51,8 @@ begin
   return jsonb_build_object('published', true, 'old_path', v_old);
 end;
 $$;
-revoke all on function public.publish_results_card(uuid, text, text, integer) from public, anon, authenticated;
-grant execute on function public.publish_results_card(uuid, text, text, integer) to service_role;
+revoke all on function public.publish_results_card(uuid, text, text, integer, uuid) from public, anon, authenticated;
+grant execute on function public.publish_results_card(uuid, text, text, integer, uuid) to service_role;
 
 create or replace function public.enqueue_card_backfill()
 returns integer language plpgsql security definer set search_path = public, pg_temp as $$
@@ -69,29 +71,4 @@ $$;
 revoke all on function public.enqueue_card_backfill() from public, anon, authenticated;
 grant execute on function public.enqueue_card_backfill() to service_role;
 
--- Reuse bounded retry bookkeeping while isolating card maintenance failures.
-create or replace function public.fail_job(p_job_id uuid, p_message text, p_retriable boolean)
-returns void language plpgsql security definer
-set search_path = public, pg_temp as $$
-declare
-  v_job public.jobs;
-begin
-  select * into v_job from public.jobs where id = p_job_id for update;
-  if not found or v_job.status <> 'running' then
-    raise exception 'fail_job requires a running job';
-  end if;
-  if not p_retriable or v_job.attempts >= 3 then
-    update public.jobs set status = 'error', finished_at = clock_timestamp(), error = p_message
-      where id = p_job_id;
-    -- Card maintenance must never discard a meal's successful analysis.
-    if v_job.kind <> 'card_backfill' then
-    update public.posts set status = 'failed', fail_reason = split_part(p_message, E'\n', 1)
-      where id = v_job.post_id;
-    end if;
-  else
-    update public.jobs set status = 'queued', finished_at = null, error = p_message,
-      run_after = clock_timestamp() + interval '30 seconds' * power(2, v_job.attempts - 1)
-      where id = p_job_id;
-  end if;
-end $$;
-
+-- Worker failure ownership and card-maintenance isolation are defined centrally in 0007b.
