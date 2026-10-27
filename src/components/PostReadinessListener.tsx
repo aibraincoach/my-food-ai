@@ -25,13 +25,31 @@ export default function PostReadinessListener() {
       const id = (event as CustomEvent<{ id?: unknown }>).detail?.id;
       if (typeof id === "string") settle(id, "ready");
     };
-    const focus = () => router.refresh();
+    const seedPending = async () => {
+      try {
+        const { data: { user } } = await db.auth.getUser();
+        if (!user || !live) return;
+        const { data, error } = await db.from("posts").select("id")
+          .eq("user_id", user.id).in("status", ["queued", "processing"]);
+        if (!live) return;
+        if (!error) for (const row of data ?? []) {
+          if (!pending.has(row.id)) pending.set(row.id, { started: Date.now(), nextCheck: 0 });
+        }
+        // Covers a meal that became ready before this pending-status read,
+        // including the gap before the realtime subscription is established.
+        router.refresh();
+      } catch {
+        if (live) router.refresh();
+      }
+    };
+    const focus = () => { void seedPending(); };
     const channel = db.channel("tab-post-readiness").on("postgres_changes", {
       event: "UPDATE", schema: "public", table: "posts",
     }, ({ new: row }) => {
-      if (typeof row.id === "string" && pending.has(row.id)) settle(row.id, row.status);
+      if (typeof row.id === "string") settle(row.id, row.status);
     }).subscribe();
-    // Only query newly created IDs. Back off after two minutes and stop after
+    void seedPending();
+    // Only poll pending IDs discovered at entry or newly created IDs. Back off after two minutes and stop after
     // fifteen; no repeated page hydration while analysis is still pending.
     const timer = setInterval(async () => {
       const now = Date.now();
