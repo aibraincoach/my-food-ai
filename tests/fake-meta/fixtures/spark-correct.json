@@ -1,0 +1,125 @@
+{
+  "top_logprobs": 0,
+  "temperature": 1,
+  "top_p": 1,
+  "service_tier": "auto",
+  "model": "muse-spark-1.3",
+  "reasoning": {
+    "effort": "high"
+  },
+  "background": false,
+  "text": {
+    "format": {
+      "type": "json_schema",
+      "name": "correct",
+      "schema": {
+        "required": [
+          "items",
+          "reply",
+          "needs_input"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "items": {
+            "items": {
+              "additionalProperties": false,
+              "properties": {
+                "keep": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "name": {
+                  "type": "string"
+                },
+                "portion_grams": {
+                  "type": [
+                    "number",
+                    "null"
+                  ]
+                },
+                "portion_text": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "region_index": {
+                  "type": [
+                    "integer",
+                    "null"
+                  ]
+                }
+              },
+              "required": [
+                "name",
+                "portion_text",
+                "portion_grams",
+                "region_index",
+                "keep"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "needs_input": {
+            "type": "null"
+          },
+          "reply": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "strict": true
+    }
+  },
+  "tools": [],
+  "tool_choice": "auto",
+  "truncation": "disabled",
+  "id": "resp_6ae0dda27e71d6f30e3a4a3e",
+  "object": "response",
+  "status": "completed",
+  "created_at": 1793121697,
+  "completed_at": 1793121698,
+  "error": null,
+  "incomplete_details": null,
+  "output": [
+    {
+      "type": "reasoning",
+      "id": "rs_6ae0dda27e71d6f30e3a4a3e:rs_f34334ec-0445-46e1-a74b-bc4654b58981",
+      "summary": [],
+      "status": "completed"
+    },
+    {
+      "type": "message",
+      "id": "msg_6fc84e8e-ac3a-4f59-a082-f60f9b80de4f",
+      "role": "assistant",
+      "content": [
+        {
+          "type": "output_text",
+          "text": "{\"items\":[{\"keep\":null,\"name\":\"rice\",\"portion_grams\":75,\"portion_text\":\"75 grams\",\"region_index\":null}],\"needs_input\":null,\"reply\":\"Changed rice to 75 grams.\"}",
+          "annotations": [],
+          "logprobs": []
+        }
+      ],
+      "status": "completed"
+    }
+  ],
+  "instructions": "Return the complete meal list after changing the rice to 75 grams. keep and region_index must be null for every item. Give one plain reply saying what changed, no advice. needs_input null.",
+  "usage": {
+    "input_tokens": 1544,
+    "input_tokens_details": {
+      "cached_tokens": 0
+    },
+    "output_tokens": 1436,
+    "output_tokens_details": {
+      "reasoning_tokens": 1383
+    },
+    "total_tokens": 2980
+  },
+  "parallel_tool_calls": true,
+  "store": true,
+  "max_output_tokens": 4096
+}
