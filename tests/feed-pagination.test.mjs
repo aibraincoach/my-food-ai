@@ -2,7 +2,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { createClient } from '@supabase/supabase-js';
-import { getFeed } from '../src/lib/posts/feed.ts';
+import { getFeed, getPostCard } from '../src/lib/posts/feed.ts';
 import { encodeFeedCursor, parseFeedCursor } from '../src/lib/posts/feed-cursor.ts';
 import { mergeFeedPosts, discoveryLostOverlap } from '../src/lib/posts/feed-order.ts';
 import { retryKind } from '../src/lib/posts/retry-kind.ts';
@@ -47,7 +47,8 @@ test('21 posts created together all appear once across pages', async () => {
         return 0;
       });
       const filter = url.searchParams.get('or');
-      if (filter) {
+      assert.ok(filter.includes("needs_input.is.null,status.eq.failed"),"persisted clarification visibility applies on every page");
+      if (filter.includes("created_at.lt.")) {
         const boundary = /created_at\.lt\.([^,]+),and\(created_at\.eq\.([^,]+),id\.lt\.([^)]*)\)/.exec(filter);
         assert.ok(boundary, 'valid composite PostgREST boundary');
         selected = selected.filter(row => row.created_at < boundary[1] || (row.created_at === boundary[2] && row.id < boundary[3]));
@@ -90,4 +91,16 @@ test('invalid cursor data is rejected before any database request', async () => 
 test('uninitialized failure retries initial analysis before pending correction; initialized replay recomputes',()=>{
  assert.equal(retryKind('correct',false),'analyze');assert.equal(retryKind('analyze',false),'analyze');
  assert.equal(retryKind('analyze',true),'recompute');assert.equal(retryKind('correct',true),'correct');
+});
+
+test('persisted questions remain hidden while queued but failed answers stay recoverable',async()=>{
+ let status='queued';
+ const db=createClient('https://fixture.invalid','fixture',{global:{fetch:async input=>{
+  const url=new URL(input instanceof Request?input.url:String(input));
+  if(url.pathname.endsWith('/post_media'))return Response.json([]);
+  assert.equal(url.searchParams.get('or'),'(needs_input.is.null,status.eq.failed)');
+  return Response.json(status==='failed'?{id:uuid(1),caption:'meal',eaten_at:timestamp,created_at:timestamp,status}:null);
+ }}});
+ assert.equal(await getPostCard(db,uuid(1)),null);
+ status='failed';assert.equal((await getPostCard(db,uuid(1))).status,'failed');
 });
