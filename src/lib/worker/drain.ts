@@ -42,12 +42,20 @@ export async function runWorker(
 ): Promise<void> {
   const startedAt = Date.now();
   try {
-    for (;;) {
-      if (Date.now() - startedAt > WORK_MS) break;
-      const { processed } = await drainOnce(admin);
-      if (processed === 0) break;
-      await renewLease(admin, holder).catch(() => {});
-    }
+    const configured = Number(process.env.WORKER_CONCURRENCY ?? "1");
+    const concurrency = Number.isSafeInteger(configured) && configured > 0 ? configured : 1;
+    // Each lane claims through the same SKIP LOCKED RPC. Await every lane
+    // before releasing the shared lease, including when another lane fails.
+    const lanes = await Promise.allSettled(Array.from({ length: concurrency }, async () => {
+      for (;;) {
+        if (Date.now() - startedAt > WORK_MS) break;
+        const { processed } = await drainOnce(admin);
+        if (processed === 0) break;
+        await renewLease(admin, holder).catch(() => {});
+      }
+    }));
+    const failed = lanes.find((lane) => lane.status === "rejected");
+    if (failed?.status === "rejected") throw failed.reason;
   } finally {
     await releaseLease(admin, holder).catch(() => {});
   }
