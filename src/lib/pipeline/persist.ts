@@ -47,7 +47,11 @@ export async function persistAnalysis(
   }
   // Complete every external lookup before changing the post. A lookup failure
   // leaves the previous analysis intact; the RPC commits the whole replacement.
-  const items = [];
+  const items: {
+    name: string; portion_text: string | null; portion_grams: number | null;
+    box: unknown; mask_path: string | null; confidence: number | null;
+    nutrition: ConsumedTotals & { fibre_g: number | null; sugar_g: number | null; sodium_mg: number | null; micronutrients: unknown; source_ref: string | null };
+  }[] = [];
   for (const row of rows) {
     const foods = await searchFoods(admin, row.name);
     const scaled = scaleNutrition(chooseBestMatch(foods), row.portionGrams);
