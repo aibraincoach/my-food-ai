@@ -21,10 +21,14 @@ begin
   if candidate.post_id is not null and candidate.kind in ('analyze','correct','recompute','card_backfill','test_noop','test_throw') then
    select id into post_found from public.posts where id=candidate.post_id for update skip locked;
    if not found then skipped:=array_append(skipped,candidate.id);continue;end if;
+   -- Primary work regenerates its card on completion. Retire obsolete backfill
+   -- instead of leaving a due, permanently ineligible job waking the worker.
+   if candidate.kind='card_backfill' and (not exists(select 1 from public.posts where id=candidate.post_id and status='ready') or exists(select 1 from public.jobs where post_id=candidate.post_id and kind in ('analyze','correct','recompute') and status in ('queued','running'))) then
+    update public.jobs set status='finished',finished_at=p_now,error=null,
+     payload=payload||jsonb_build_object('skipped_reason','superseded by current meal state') where id=candidate.id;
+    continue;end if;
    -- Recheck after locking the post: two lanes may have seen no running job.
    if exists(select 1 from public.jobs where post_id=candidate.post_id and status='running' and kind in ('analyze','correct','recompute','card_backfill','test_noop','test_throw')) then
-    skipped:=array_append(skipped,candidate.id);continue;end if;
-   if candidate.kind='card_backfill' and (not exists(select 1 from public.posts where id=candidate.post_id and status='ready') or exists(select 1 from public.jobs where post_id=candidate.post_id and kind in ('analyze','correct','recompute') and status in ('queued','running'))) then
     skipped:=array_append(skipped,candidate.id);continue;end if;
    update public.posts set active_job_id=case when p_owned then candidate.id else null end,
     status=case when candidate.kind='card_backfill' then status else 'processing' end,
@@ -57,11 +61,17 @@ grant execute on function public.post_work_matches(uuid,uuid) to service_role;
 
 create or replace function public.fail_job(p_job_id uuid,p_message text,p_retriable boolean) returns void
 language plpgsql security definer set search_path=public,pg_temp as $$
-declare v_job public.jobs; owns boolean;
+declare v_job public.jobs; owns boolean; initial_post_id uuid;
 begin
+ -- Match discard/edit/publication lock order: post before job. A discard may
+ -- delete the job while this waits; that is already a terminal outcome.
+ select post_id into initial_post_id from public.jobs where id=p_job_id;
+ if not found then return;end if;
+ if initial_post_id is not null then perform 1 from public.posts where id=initial_post_id for update;end if;
  select * into v_job from public.jobs where id=p_job_id for update;
- if not found or v_job.status<>'running' then raise exception 'fail_job requires a running job';end if;
- perform 1 from public.posts where id=v_job.post_id for update;
+ if not found then return;end if;
+ if v_job.post_id is distinct from initial_post_id then raise exception 'Job post changed' using errcode='40001';end if;
+ if v_job.status<>'running' then raise exception 'fail_job requires a running job';end if;
  owns:=public.post_work_matches(v_job.post_id,case when coalesce((v_job.payload->>'post_ownership')::boolean,false) then v_job.id else null end);
  if not p_retriable or v_job.attempts>=3 then
   update public.jobs set status='error',finished_at=clock_timestamp(),error=p_message where id=p_job_id;
@@ -73,6 +83,70 @@ begin
    run_after=clock_timestamp()+interval '30 seconds'*power(2,v_job.attempts-1) where id=p_job_id;
  end if;
 end $$;
+
+-- The tick route and verified deployment limit are 300 seconds. A further
+-- 60-second grace avoids treating the last request's teardown as abandonment.
+-- Recovery runs only after exclusive acquisition of an expired/unheld lease.
+create function public.recover_abandoned_jobs(p_now timestamptz) returns void
+language plpgsql security definer set search_path=public,pg_temp as $$
+declare candidate public.jobs; current_job public.jobs; owns boolean;
+begin
+ for candidate in select * from public.jobs where status='running'
+  and coalesce(started_at,created_at)<=p_now-interval '360 seconds' order by started_at,id
+ loop
+  if candidate.post_id is not null then
+   perform 1 from public.posts where id=candidate.post_id for update skip locked;
+   if not found then continue;end if;
+  end if;
+  select * into current_job from public.jobs where id=candidate.id for update skip locked;
+  if not found or current_job.status<>'running' or current_job.post_id is distinct from candidate.post_id
+   or coalesce(current_job.started_at,current_job.created_at)>p_now-interval '360 seconds' then continue;end if;
+  owns:=current_job.post_id is null or public.post_work_matches(current_job.post_id,
+   case when coalesce((current_job.payload->>'post_ownership')::boolean,false) then current_job.id else null end);
+  -- A stale predecessor is terminal; only its current owner may retry. fail_job
+  -- preserves the three-attempt ceiling and never fails a newer meal owner.
+  perform public.fail_job(current_job.id,'Worker execution expired before completion',owns);
+ end loop;
+end $$;
+revoke all on function public.recover_abandoned_jobs(timestamptz) from public,anon,authenticated,service_role;
+
+create or replace function public.try_acquire_worker_lease(p_holder text,ttl_seconds int default 300)
+returns boolean language plpgsql security definer set search_path=public,pg_temp as $$
+declare lease public.worker_lease; v_now timestamptz:=clock_timestamp();
+begin
+ insert into public.worker_lease(id)values(1)on conflict(id)do nothing;
+ select * into lease from public.worker_lease where id=1 for update;
+ if lease.expires_at>v_now then
+  if lease.holder is distinct from p_holder then return false;end if;
+  update public.worker_lease set expires_at=v_now+make_interval(secs=>ttl_seconds) where id=1;
+  return true;
+ end if;
+ -- While this row is locked no other caller can acquire a live worker lease.
+ perform public.recover_abandoned_jobs(v_now);
+ update public.worker_lease set holder=p_holder,expires_at=v_now+make_interval(secs=>ttl_seconds)where id=1;
+ return true;
+end $$;
+revoke all on function public.try_acquire_worker_lease(text,int) from public,anon,authenticated;
+grant execute on function public.try_acquire_worker_lease(text,int) to service_role;
+revoke all on function public.release_worker_lease(text) from public,anon,authenticated;
+grant execute on function public.release_worker_lease(text) to service_role;
+
+-- Include orphaned running work even without a successor. A queued meal waits
+-- until its running owner can be recovered rather than self-ticking at zero delay.
+create function public.next_worker_wake() returns timestamptz
+language sql stable security definer set search_path=public,pg_temp as $$
+ select case when min(wake_at) is null then null else greatest(min(wake_at),
+  (select expires_at from public.worker_lease where id=1)) end from (
+  select greatest(j.run_after,coalesce((select max(coalesce(r.started_at,r.created_at)+interval '360 seconds')
+   from public.jobs r where r.post_id=j.post_id and r.status='running'
+    and r.kind in ('analyze','correct','recompute','card_backfill','test_noop','test_throw')),j.run_after)) as wake_at
+   from public.jobs j where j.status='queued'
+  union all
+  select coalesce(started_at,created_at)+interval '360 seconds' from public.jobs where status='running'
+ ) wakes
+$$;
+revoke all on function public.next_worker_wake() from public,anon,authenticated;
+grant execute on function public.next_worker_wake() to service_role;
 
 -- Hold ownership across initial persistence as well as publication. Existing
 -- legacy persistence RPCs remain callable for migration-before-merge workers.

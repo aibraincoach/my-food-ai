@@ -30,7 +30,7 @@ export async function queueTick(
     admin.from("jobs").select("id", { count: "exact", head: true }).eq("status", "running"),
   ]);
   const depth = queued ?? 0;
-  if (depth === 0) {
+  if (depth === 0 && (running ?? 0) === 0) {
     return { queued: 0, running: running ?? 0, traffic: trafficForDepth(0), started: false };
   }
   const started = await tryAcquireLease(admin, holder, ttlSeconds);
