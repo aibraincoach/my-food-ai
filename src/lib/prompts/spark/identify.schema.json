@@ -1,0 +1,25 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "identify",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["items", "summary"],
+  "properties": {
+    "items": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["region_index", "name", "portion_text", "portion_grams", "confidence"],
+        "properties": {
+          "region_index": { "type": ["integer", "null"] },
+          "name": { "type": "string" },
+          "portion_text": { "type": ["string", "null"] },
+          "portion_grams": { "type": ["number", "null"] },
+          "confidence": { "type": ["number", "null"] }
+        }
+      }
+    },
+    "summary": { "type": "string" }
+  }
+}
