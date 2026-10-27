@@ -4,20 +4,20 @@ import vm from 'node:vm';
 import {readFileSync} from 'node:fs';
 import ts from 'typescript';
 test('retiring the last meal clears feed state and rejects an older hydration result',async()=>{
- const effects=[],listeners=new Map(),states=[];let resolveCard;
+ const effects=[],listeners=new Map(),states=[],resolvers=new Map();let resolveCard,resolvePage,discoverTick;let forceReset=false;
  const post={id:'meal',status:'processing',created_at:'2026-10-01',items:[],slides:[]};
  const channel={on(){return this;},subscribe(){return this;}};
  const exports={};
  const code=ts.transpileModule(readFileSync(new URL('../src/components/Feed.tsx',import.meta.url),'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,jsx:ts.JsxEmit.ReactJSX,target:ts.ScriptTarget.ES2022}}).outputText;
  vm.runInNewContext(code,{exports,document:{hidden:false,addEventListener(){},removeEventListener(){}},CustomEvent:class{constructor(type,init){this.type=type;this.detail=init?.detail;}},
- window:{addEventListener(type,fn){listeners.set(type,fn);},removeEventListener(){},dispatchEvent(){}},setInterval:()=>1,clearInterval(){},setTimeout,clearTimeout,
+ window:{addEventListener(type,fn){listeners.set(type,fn);},removeEventListener(){},dispatchEvent(){}},setInterval:fn=>{discoverTick=fn;return 1;},clearInterval(){},setTimeout,clearTimeout,
  require(name){
   if(name==='react')return{useEffect:fn=>effects.push(fn),useRef:current=>({current}),useState:initial=>[initial,state=>states.push(state)]};
   if(name==='react/jsx-runtime')return{jsx:()=>null,jsxs:()=>null};
   if(name==='next/navigation')return{useRouter:()=>({replace(){}})};
-  if(name==='@/lib/supabase/client')return{createClient:()=>({auth:{getUser:async()=>({data:{user:{id:'owner'}}})},channel:()=>channel,removeChannel(){}})};
-  if(name==='@/lib/posts/feed')return{FEED_PAGE_SIZE:20,getFeed:async()=>({posts:[post],nextCursor:null}),getPostCard:()=>new Promise(resolve=>{resolveCard=resolve;})};
-  if(name==='@/lib/posts/feed-order')return{mergeFeedPosts:(baseline,promoted)=>[...new Map([...baseline,...promoted].map(row=>[row.id,row])).values()],discoveryLostOverlap:()=>false};
+  if(name==='@/lib/supabase/client')return{createClient:()=>({auth:{getUser:async()=>({data:{user:{id:'owner'}}})},channel:()=>channel,removeChannel(){},from(){return{select(){return this;},eq(){return this;},neq(){return this;},or(){return this;},order(){return this;},limit:async()=>({data:[{id:'new-page-meal'}],error:null})};}})};
+  if(name==='@/lib/posts/feed')return{FEED_PAGE_SIZE:20,getFeed:async()=>forceReset?new Promise(resolve=>{resolvePage=resolve;}):({posts:[post],nextCursor:null}),getPostCard:(_db,id)=>new Promise(resolve=>{resolveCard=resolve;resolvers.set(id,resolve);})};
+  if(name==='@/lib/posts/feed-order')return{mergeFeedPosts:(baseline,promoted)=>[...new Map([...baseline,...promoted].map(row=>[row.id,row])).values()],discoveryLostOverlap:()=>forceReset};
   if(name==='@/lib/theme/tokens')return{tokens:{spacing:{'sheet-bottom':1}}};
   if(name.startsWith('@/components/'))return{default:()=>null};
   throw Error(name);
@@ -39,5 +39,29 @@ test('retiring the last meal clears feed state and rejects an older hydration re
  resolveCard({...post,id:'older-meal',status:'ready'});await new Promise(resolve=>setImmediate(resolve));
  assert.equal(states.at(-1).posts[0].id,'older-meal','answered meal outside discovery window is restored by ID');
  listeners.get('post-answer-resume')({detail:{id:'older-meal'}});listeners.get('post-settled')({detail:{id:'older-meal'}});resolveCard({...post,id:'older-meal',status:'failed'});await new Promise(resolve=>setImmediate(resolve));assert.equal(states.at(-1).posts[0].status,'failed','failed answer remains recoverable');
+ listeners.get('post-answer-resume')({detail:{id:'settled-outside-window'}});
+ listeners.get('post-settled')({detail:{id:'settled-outside-window'}});
+ const interrupted=resolveCard;
+ listeners.get('post-unavailable')({detail:{id:'unrelated-removed-meal'}});
+ const restarted=resolveCard;
+ assert.notEqual(restarted,interrupted,'removing another meal must restart the pending settled-card read');
+ interrupted({...post,id:'settled-outside-window',status:'ready'});await new Promise(resolve=>setImmediate(resolve));
+ assert.ok(!states.at(-1).posts.some(row=>row.id==='settled-outside-window'),'the invalidated old read stays ignored');
+ restarted({...post,id:'settled-outside-window',status:'ready'});await new Promise(resolve=>setImmediate(resolve));
+ assert.ok(states.at(-1).posts.some(row=>row.id==='settled-outside-window'),'the restarted read restores an older settled meal without ID discovery');
+ listeners.get('post-answer-resume')({detail:{id:'settled-during-reset'}});
+ listeners.get('post-settled')({detail:{id:'settled-during-reset'}});
+ const beforeReset=resolveCard;
+ forceReset=true;discoverTick();await new Promise(resolve=>setImmediate(resolve));
+ assert.equal(typeof resolvePage,'function','a fresh first-page read is pending');
+ beforeReset({...post,id:'settled-during-reset',status:'ready'});await new Promise(resolve=>setImmediate(resolve));
+ assert.ok(states.at(-1).posts.some(row=>row.id==='settled-during-reset'),'the settled-card read can complete while the fresh page is loading');
+ resolvePage({posts:[{...post,id:'new-page-meal',status:'ready'}],nextCursor:null});await new Promise(resolve=>setImmediate(resolve));
+ const afterReset=resolvers.get('settled-during-reset');
+ assert.notEqual(afterReset,beforeReset,'installing the new page restarts the older settled-card read');
+ assert.ok(!states.at(-1).posts.some(row=>row.id==='settled-during-reset'),'the reset waits for the fresh card read');
+ afterReset({...post,id:'settled-during-reset',status:'ready'});await new Promise(resolve=>setImmediate(resolve));
+ assert.ok(states.at(-1).posts.some(row=>row.id==='new-page-meal'),'the fresh first page remains installed');
+ assert.ok(states.at(-1).posts.some(row=>row.id==='settled-during-reset'),'the older settled meal survives the full-window reset');
  for(const cleanup of cleanups)cleanup?.();
 });
