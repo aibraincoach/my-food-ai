@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-img-element -- Private signed images bypass paid optimization. */
 "use client";
 import {useState} from "react";
 import {Sheet} from "@/components/ui/Sheet";
@@ -9,7 +10,7 @@ export default function NeedsInputSheet({post,onClose,onAnswered}:{post:Question
   const [answer,setAnswer]=useState("");const [busy,setBusy]=useState(false);const [error,setError]=useState("");
   return <Sheet open onClose={onClose} label="Clarify meal">
     <div className="flex gap-sheet-top">
-      {post.photoUrl&&/* eslint-disable-next-line @next/next/no-img-element */<img src={post.photoUrl} alt="Meal" className="size-brand rounded-tile object-cover"/>}
+      {post.photoUrl&&<img src={post.photoUrl} alt="Meal" className="size-brand rounded-tile object-cover"/>}
       <div><h2 className="text-sheet-title">{post.needs_input.question}</h2><p className="text-detail text-muted">{new Date(post.eaten_at).toLocaleTimeString([],{hour:"numeric",minute:"2-digit"})}</p></div>
     </div>
     {post.needs_input.options.map(option=><button key={option} type="button" onClick={()=>setAnswer(option)} aria-pressed={answer===option} className="min-h-field-h rounded-field border border-line bg-white px-field-x text-left text-body">{option}</button>)}

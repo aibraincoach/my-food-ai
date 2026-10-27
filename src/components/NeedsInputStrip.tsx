@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-img-element -- Private signed images bypass paid optimization. */
 "use client";
 import {useEffect,useState} from "react";
 import {createClient} from "@/lib/supabase/client";
@@ -29,7 +30,7 @@ export default function NeedsInputStrip(){
   const remove=(id:string)=>{setPosts(rows=>rows.filter(row=>row.id!==id));setSelected(null);};
   return <>{posts.map(post=><div key={post.id} className="flex min-h-brand items-center gap-sheet-top border-b border-hairline px-screen-x">
     <button type="button" onClick={()=>setSelected(post)} className="flex min-w-0 flex-1 items-center gap-sheet-top text-left">
-      {post.photoUrl?/* eslint-disable-next-line @next/next/no-img-element */<img src={post.photoUrl} alt="" className="size-tap shrink-0 rounded-thumb object-cover"/>:<span className="size-tap shrink-0 rounded-thumb bg-card"/>}
+      {post.photoUrl?<img src={post.photoUrl} alt="" className="size-tap shrink-0 rounded-thumb object-cover"/>:<span className="size-tap shrink-0 rounded-thumb bg-card"/>}
       <span className="min-w-0"><span className="block text-body">{post.needs_input.short}</span><span className="block truncate text-meta text-muted">{post.needs_input.short==="No food found"?"Add a caption to log it":post.needs_input.question}</span></span>
     </button>
     <button type="button" aria-label="Discard meal" className="flex size-tap items-center justify-center" onClick={async()=>{const response=await fetch(`/api/posts/${post.id}/discard`,{method:"POST"});if(response.ok)remove(post.id);else setError("Meal could not be discarded.");}}><Icon name="close"/></button>
