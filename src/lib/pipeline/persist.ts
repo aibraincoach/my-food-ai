@@ -14,7 +14,8 @@ import type { NamedPost } from "./analyze";
 
 export async function persistAnalysis(
   admin: SupabaseClient,
-  named: NamedPost
+  named: NamedPost,
+  copiedNutrition?: Record<string, unknown>[]
 ): Promise<void> {
   const rows: {
     name: string;
@@ -48,8 +49,8 @@ export async function persistAnalysis(
   // Complete every external lookup before changing the post. A lookup failure
   // leaves the previous analysis intact; the RPC commits the whole replacement.
   const items = [];
-  for (const row of rows) {
-    const foods = await searchFoods(admin, row.name);
+  for (const [index,row] of rows.entries()) {
+    const foods = copiedNutrition ? [] : await searchFoods(admin, row.name);
     const scaled = scaleNutrition(chooseBestMatch(foods), row.portionGrams);
     items.push({
       name: row.name,
@@ -68,6 +69,7 @@ export async function persistAnalysis(
         sodium_mg: scaled.sodiumMg,
         micronutrients: scaled.micronutrients,
         source_ref: scaled.sourceRef,
+        ...(copiedNutrition?.[index] ?? {}),
       },
     });
   }

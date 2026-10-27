@@ -105,7 +105,8 @@ export async function identifyItems(
   image: Uint8Array | null,
   mime: string,
   caption: string | null,
-  regions: IdentifyRegion[]
+  regions: IdentifyRegion[],
+  prior = ""
 ): Promise<IdentifiedMeal> {
   // Caption-only posts have no photo: the call is text-only and every
   // returned item lands in captionOnly (region_index null).
@@ -126,7 +127,7 @@ export async function identifyItems(
     try {
       out = await createResponse({
         model: "muse-spark-1.3",
-        instructions: identifyPrompt,
+        instructions: identifyPrompt + (prior ? `\n${prior}` : ""),
         input: [
           {
             type: "message",
