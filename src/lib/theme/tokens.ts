@@ -38,6 +38,7 @@ export const tokens = {
   icon: { stroke: 1.7, navigationStroke: 1.8, strongStroke: 2, thumbStroke: 1.6 },
   brand: { barWidth: 6, barHeight: 40, barRadius: 3, angle: 35, dot: 14, dotX: -11, dotY: -9 },
   card: { labelTracking: 0.4, itemLeading: 1.5, emphasisWeight: 600 },
+  detail: { outlineWidth: 2, chipX: 7, switchWidth: 22, switchHeight: 13, switchKnob: 9, switchInset: 2 },
   motion: { shimmerSeconds: 1.6 },
   opacity: { lightTooltip: 0.96 },
 } as const;
