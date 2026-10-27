@@ -7,6 +7,6 @@ const backfill: JobHandler = async (admin, job) => {
   const { data, error, status } = await admin.from("posts").select("status").eq("id", job.post_id).maybeSingle();
   if (error) throw ioError("Card backfill could not read post.", error, status);
   if (data?.status !== "ready") return;
-  await markReady(job.post_id, admin);
+  await markReady(job.post_id, admin, job.id);
 };
 export default backfill;
