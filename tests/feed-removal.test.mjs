@@ -4,19 +4,19 @@ import vm from 'node:vm';
 import {readFileSync} from 'node:fs';
 import ts from 'typescript';
 test('retiring the last meal clears feed state and rejects an older hydration result',async()=>{
- const effects=[],listeners=new Map(),states=[],resolvers=new Map();let resolveCard,resolvePage,discoverTick;let forceReset=false;
+ const effects=[],listeners=new Map(),states=[],resolvers=new Map(),rejectors=new Map(),retryTimers=[];let resolveCard,resolvePage,discoverTick;let forceReset=false;
  const post={id:'meal',status:'processing',created_at:'2026-10-01',items:[],slides:[]};
  const channel={on(){return this;},subscribe(){return this;}};
  const exports={};
  const code=ts.transpileModule(readFileSync(new URL('../src/components/Feed.tsx',import.meta.url),'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,jsx:ts.JsxEmit.ReactJSX,target:ts.ScriptTarget.ES2022}}).outputText;
  vm.runInNewContext(code,{exports,document:{hidden:false,addEventListener(){},removeEventListener(){}},CustomEvent:class{constructor(type,init){this.type=type;this.detail=init?.detail;}},
- window:{addEventListener(type,fn){listeners.set(type,fn);},removeEventListener(){},dispatchEvent(){}},setInterval:fn=>{discoverTick=fn;return 1;},clearInterval(){},setTimeout,clearTimeout,
+ window:{addEventListener(type,fn){listeners.set(type,fn);},removeEventListener(){},dispatchEvent(){}},setInterval:fn=>{discoverTick=fn;return 1;},clearInterval(){},setTimeout:fn=>{retryTimers.push(fn);return retryTimers.length;},clearTimeout(){},
  require(name){
   if(name==='react')return{useEffect:fn=>effects.push(fn),useRef:current=>({current}),useState:initial=>[initial,state=>states.push(state)]};
   if(name==='react/jsx-runtime')return{jsx:()=>null,jsxs:()=>null};
   if(name==='next/navigation')return{useRouter:()=>({replace(){}})};
   if(name==='@/lib/supabase/client')return{createClient:()=>({auth:{getUser:async()=>({data:{user:{id:'owner'}}})},channel:()=>channel,removeChannel(){},from(){return{select(){return this;},eq(){return this;},neq(){return this;},or(){return this;},order(){return this;},limit:async()=>({data:[{id:'new-page-meal'}],error:null})};}})};
-  if(name==='@/lib/posts/feed')return{FEED_PAGE_SIZE:20,getFeed:async()=>forceReset?new Promise(resolve=>{resolvePage=resolve;}):({posts:[post],nextCursor:null}),getPostCard:(_db,id)=>new Promise(resolve=>{resolveCard=resolve;resolvers.set(id,resolve);})};
+  if(name==='@/lib/posts/feed')return{FEED_PAGE_SIZE:20,getFeed:async()=>forceReset?new Promise(resolve=>{resolvePage=resolve;}):({posts:[post],nextCursor:null}),getPostCard:(_db,id)=>new Promise((resolve,reject)=>{resolveCard=resolve;resolvers.set(id,resolve);rejectors.set(id,reject);})};
   if(name==='@/lib/posts/feed-order')return{mergeFeedPosts:(baseline,promoted)=>[...new Map([...baseline,...promoted].map(row=>[row.id,row])).values()],discoveryLostOverlap:()=>forceReset};
   if(name==='@/lib/theme/tokens')return{tokens:{spacing:{'sheet-bottom':1}}};
   if(name.startsWith('@/components/'))return{default:()=>null};
@@ -63,5 +63,22 @@ test('retiring the last meal clears feed state and rejects an older hydration re
  afterReset({...post,id:'settled-during-reset',status:'ready'});await new Promise(resolve=>setImmediate(resolve));
  assert.ok(states.at(-1).posts.some(row=>row.id==='new-page-meal'),'the fresh first page remains installed');
  assert.ok(states.at(-1).posts.some(row=>row.id==='settled-during-reset'),'the older settled meal survives the full-window reset');
+ forceReset=false;
+ listeners.get('post-answer-resume')({detail:{id:'settled-after-network-recovery'}});
+ listeners.get('post-settled')({detail:{id:'settled-after-network-recovery'}});
+ for(let attempt=0;attempt<4;attempt++){
+  rejectors.get('settled-after-network-recovery')(new Error('temporary network failure'));
+  await new Promise(resolve=>setImmediate(resolve));
+  if(attempt<3){assert.equal(retryTimers.length,1);retryTimers.shift()();}
+ }
+ const exhausted=resolvers.get('settled-after-network-recovery');
+ assert.equal(retryTimers.length,0,'bounded quick retries are exhausted');
+ listeners.get('focus')();await new Promise(resolve=>setImmediate(resolve));
+ const recovered=resolvers.get('settled-after-network-recovery');
+ assert.notEqual(recovered,exhausted,'focus retains and retries the older ID outside discovery');
+ recovered({...post,id:'settled-after-network-recovery',status:'ready'});await new Promise(resolve=>setImmediate(resolve));
+ assert.ok(states.at(-1).posts.some(row=>row.id==='settled-after-network-recovery'),'a transient outage cannot permanently strand the older settled meal');
+ listeners.get('focus')();await new Promise(resolve=>setImmediate(resolve));
+ assert.equal(resolvers.get('settled-after-network-recovery'),recovered,'an accepted card leaves deferred recovery tracking');
  for(const cleanup of cleanups)cleanup?.();
 });
