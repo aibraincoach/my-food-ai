@@ -10,16 +10,21 @@ export async function POST(request:Request,{params}:{params:Promise<{id:string}>
   if(error)return new Response(null,{status:500});if(!post)return new Response(null,{status:404});
   const admin=createAdminClient(),bucket=admin.storage.from("media");
   try{
+    const root=`${user.id}/${id}`;
     const paths:string[]=[];
     const walk=async(prefix:string)=>{
       for(let offset=0;;offset+=100){
         const {data,error}=await bucket.list(prefix,{limit:100,offset,sortBy:{column:"name",order:"asc"}});
         if(error)throw error;
-        for(const entry of data??[]){const path=`${prefix}/${entry.name}`;if(entry.id)paths.push(path);else await walk(path);}
+        for(const entry of data??[]){
+          const path=`${prefix}/${entry.name}`;
+          if(!path.startsWith(`${root}/`)||path.split('/').includes('..'))throw new Error('Invalid stored media path.');
+          if(entry.id)paths.push(path);else await walk(path);
+        }
         if(!data||data.length<100)break;
       }
     };
-    await walk(`${user.id}/${id}`);
+    await walk(root);
     // The detached cleanup job and conditional post deletion commit together.
     // Its NULL post_id keeps the durable paths alive after cascading deletion.
     const removed=await admin.rpc("discard_post",{p_post_id:id,p_user_id:user.id,p_paths:paths});
