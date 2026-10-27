@@ -36,6 +36,7 @@ begin
  or exists(select 1 from post_media where post_id=p and kind='card') then raise exception 'card published over pending correction'; end if;
  update jobs set status='finished' where id=previous_job;
  update jobs set status='running',payload='{"correction_applied":true,"post_ownership":true}' where id=j;
+ update jobs set payload=payload||'{"post_ownership":true}'::jsonb where id=j;
  update posts set active_job_id=j where id=p;
  result := publish_results_card(p,fingerprint,u::text||'/'||p::text||'/cards/unauthorized/card.png',1080);
  if (result->>'published')::boolean then raise exception 'null job bypassed active owner'; end if;
@@ -46,12 +47,13 @@ begin
 
  previous_job:=j;
  update jobs set status='finished' where id=j;
- -- Completed ownership remains recorded; legitimate ready maintenance must still work.
+ -- Completed ownership remains recorded; maintenance must claim its own job.
  result := publish_results_card(p,fingerprint,u::text||'/'||p::text||'/cards/after-completion/card.png',1080);
- if not (result->>'published')::boolean then raise exception 'finished owner blocked ready maintenance'; end if;
+ if (result->>'published')::boolean then raise exception 'null maintenance bypassed retained owner'; end if;
  result := publish_results_card(p,fingerprint,u::text||'/'||p::text||'/cards/stale-owner/card.png',1080,j);
  if (result->>'published')::boolean then raise exception 'finished job retained publication rights'; end if;
  insert into jobs(post_id,kind,status,attempts) values(p,'card_backfill','running',3) returning id into j;
+ update jobs set payload=payload||'{"post_ownership":true}'::jsonb where id=j;
  update posts set active_job_id=j where id=p;
  result := publish_results_card(p,fingerprint,u::text||'/'||p::text||'/cards/new-backfill/card.png',1080,j);
  if not (result->>'published')::boolean then raise exception 'current backfill owner could not publish'; end if;
@@ -59,6 +61,7 @@ begin
  if (select status from jobs where id=j)<>'error' or (select status from posts where id=p)<>'ready'
  or not exists(select 1 from item_nutrition where post_item_id=item and calories=100) then raise exception 'card failure damaged meal'; end if;
  insert into jobs(post_id,kind,status,attempts) values(p,'analyze','running',3) returning id into j;
+ update jobs set payload=payload||'{"post_ownership":true}'::jsonb where id=j;
  update posts set active_job_id=j where id=p;
  perform fail_job(j,'Analysis unavailable',true);
  if (select status from posts where id=p)<>'failed' then raise exception 'analysis failure was not recorded'; end if;
