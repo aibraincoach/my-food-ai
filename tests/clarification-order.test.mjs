@@ -49,6 +49,18 @@ do $$ declare u uuid:=gen_random_uuid();p uuid;j uuid;j2 uuid;c public.post_comm
  s:=results_card_snapshot(p);
  if not(publish_results_card(p,s->>'fingerprint',u||'/'||p||'/cards/'||gen_random_uuid()||'/card.png',1080)->>'published')::boolean then raise exception 'resolved follow-up could not publish';end if;
 end $$;
+do $$ declare u uuid:=gen_random_uuid();p uuid;i uuid;replacement uuid;initial_question jsonb:='{"question":"How much rice?","short":"Portion needed","options":["50g","100g"]}';begin
+ insert into auth.users(id)values(u);insert into profiles(id,handle)values(u,'initial-question-'||u);
+ insert into posts(user_id,status)values(u,'queued')returning id into p;
+ perform persist_analysis_question(p,'[{"name":"Rice","portion_grams":100,"nutrition":{"calories":200}}]','Summary',initial_question);
+ if not exists(select 1 from posts where id=p and analysis_initialized_at is not null and status='needs_input')then raise exception 'initial question did not initialize';end if;
+ select id into i from current_post_items where post_id=p;
+ replacement:=edit_post_item(p,u,'portion',i,null,50,null);
+ perform persist_analysis_question(p,'[]','Retry','{"question":"Stale retry?","short":"Stale","options":["A","B"]}');
+ if not exists(select 1 from current_post_items where id=replacement and portion_grams=50)then raise exception 'question retry replaced edit';end if;
+ if not exists(select 1 from posts where id=p and needs_input=initial_question and status='queued')then raise exception 'question retry restored stale clarification';end if;
+ if (select count(*)from post_comments where post_id=p and author='model')<>1 then raise exception 'question retry duplicated comment';end if;
+end $$;
 select 'clarification-order: passed';
 rollback;`;
   const result=spawnSync('psql',['-X','-qAt','--dbname',process.env.SUPABASE_DB_URL],{input:sql,encoding:'utf8',timeout:60000});
