@@ -36,11 +36,18 @@ test('logout waits for registration then removes only the current endpoint befor
 test('authenticated logout cannot remove other devices or another account endpoint', () => {
   assert.ok(process.env.SUPABASE_DB_URL);
   const migration = readFileSync(new URL('../supabase/migrations/0012_push_subscriptions.sql', import.meta.url), 'utf8');
+  const setup = `select to_regclass('public.push_subscriptions') is not null as installed \\gset
+\\if :installed
+\\else
+${migration}
+\\endif`;
   const sql = `\\set ON_ERROR_STOP on
 begin;
 set local lock_timeout='5s';
 set local statement_timeout='30s';
-${migration}
+${setup}
+-- Exercise setup again against the installed table, still inside rollback.
+${setup}
 select gen_random_uuid() a, gen_random_uuid() b \\gset
 insert into auth.users(id)values(:'a'),(:'b');
 insert into profiles(id,handle)values(:'a','push-'||:'a'),(:'b','push-'||:'b');
