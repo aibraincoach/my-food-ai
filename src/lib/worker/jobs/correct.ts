@@ -1,3 +1,4 @@
+import { readPostComments, readCorrectionProgress } from '@/lib/posts/timeline';
 import { resolvePortionNutrition } from "@/lib/nutrition/portion";
 import { waitForInitialAnalysis } from "@/lib/pipeline/correction-ready";
 import { ioError } from "@/lib/worker/errors";
@@ -29,10 +30,7 @@ const correct:JobHandler=async(admin,job)=>{
  await waitForInitialAnalysis(admin,job.post_id);
  if(job.payload.correction_applied===true){await markReady(job.post_id,admin);return;}
  const items=await getCurrentItems(admin,job.post_id,{requireNutrition:true});
- const {data:thread,error:threadError,status:threadStatus}=await admin.from('post_comments').select('id,author,body,created_at').eq('post_id',job.post_id).order('created_at').order('id');
- if(threadError)throw ioError('Correction thread could not be read.',threadError,threadStatus);
- const {data:completed,error:progressError,status:progressStatus}=await admin.from('jobs').select('payload').eq('post_id',job.post_id).eq('kind','correct').eq('payload->>correction_applied','true');
- if(progressError)throw ioError('Correction progress could not be read.',progressError,progressStatus);
+ const [thread,completed]=await Promise.all([readPostComments(admin,job.post_id),readCorrectionProgress(admin,job.post_id)]);
  let window;
  try{window=correctionWindow(thread??[],completed??[]);}catch{throw new MetaApiError(503,'Correction history changed while loading.');}
  const latest=window.pending.at(-1);
