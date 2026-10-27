@@ -1,8 +1,14 @@
 // Analyze pipeline entry (items 8-10 share this boundary).
 // Item 8: load the first photo, segment it, store the mask PNGs.
-// Item 9 adds naming; item 10 adds nutrition and persistence.
+// Item 9: name the regions with Muse Spark (identifyMeal below).
+// Item 10: FDC lookup plus the one-RPC persist.
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { segmentFoodRegions, type FoodRegion } from "@/lib/meta/sam";
+import {
+  identifyItems,
+  type IdentifiedItem,
+  type IdentifiedMeal,
+} from "@/lib/meta/spark";
 import { outlinePngFromRegion } from "./masks";
 
 const BUCKET = "media";
@@ -88,4 +94,57 @@ export async function segmentPost(
     photoHeight: photo.height,
     regions,
   };
+}
+
+export interface NamedRegion extends SegmentedRegion {
+  item: IdentifiedItem | null;
+}
+
+export interface NamedPost extends SegmentedPost {
+  regions: NamedRegion[];
+  // Items without a region (caption-only); item 10 persists them with
+  // a null box and mask path.
+  captionOnly: IdentifiedItem[];
+  summary: string;
+}
+
+// Item 9: name the segmented regions with Muse Spark. Works with zero
+// regions (whole-image naming). Unknown region indexes come back as
+// null (caption-only). Item 10 persists the rows.
+export async function identifyMeal(
+  photo: Uint8Array,
+  mime: string,
+  caption: string | null,
+  segmented: SegmentedPost
+): Promise<NamedPost> {
+  const meal: IdentifiedMeal = await identifyItems(
+    photo,
+    mime,
+    caption,
+    segmented.regions.map((r) => ({
+      index: r.index,
+      box: r.box,
+      areaFraction: r.areaFraction,
+    }))
+  );
+  const byRegion = new Map<number, IdentifiedItem>();
+  const captionOnly: IdentifiedItem[] = [];
+  for (const item of meal.items) {
+    if (item.regionIndex === null) {
+      captionOnly.push(item);
+      continue;
+    }
+    if (!byRegion.has(item.regionIndex)) {
+      byRegion.set(item.regionIndex, item);
+    } else {
+      // A second item for the same region is still food: keep it as a
+      // caption-only row (null box) rather than dropping it silently.
+      captionOnly.push(item);
+    }
+  }
+  const regions: NamedRegion[] = segmented.regions.map((region) => ({
+    ...region,
+    item: byRegion.get(region.index) ?? null,
+  }));
+  return { ...segmented, regions, captionOnly, summary: meal.summary };
 }
