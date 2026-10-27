@@ -29,5 +29,14 @@ test('retiring the last meal clears feed state and rejects an older hydration re
  assert.equal(states.at(-1).posts.length,0);
  resolveCard({...post,status:'ready'});await new Promise(resolve=>setImmediate(resolve));
  assert.equal(states.at(-1).posts.length,0,'stale hydration must not resurrect removed meal');
+ listeners.get('post-answer-resume')({detail:{id:'older-meal'}});
+ assert.equal(states.at(-1).posts.length,0,'answer stays hidden until ready');
+ listeners.get('post-ready')({detail:{id:'older-meal'}});
+ resolveCard({...post,id:'older-meal',status:'needs_input'});await new Promise(resolve=>setImmediate(resolve));
+ assert.equal(states.at(-1).posts.length,0,'a repeated question stays hidden');
+ listeners.get('post-answer-resume')({detail:{id:'older-meal'}});
+ listeners.get('post-ready')({detail:{id:'older-meal'}});
+ resolveCard({...post,id:'older-meal',status:'ready'});await new Promise(resolve=>setImmediate(resolve));
+ assert.equal(states.at(-1).posts[0].id,'older-meal','answered meal outside discovery window is restored by ID');
  for(const cleanup of cleanups)cleanup?.();
 });
