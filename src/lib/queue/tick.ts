@@ -1,13 +1,8 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { tryAcquireLease } from "@/lib/queue/lease";
 
-export type Traffic = "low" | "medium" | "high";
-
-export function trafficForDepth(depth: number): Traffic {
-  if (depth < 10) return "low";
-  if (depth <= 50) return "medium";
-  return "high";
-}
+import { getTraffic, type Traffic } from "@/lib/queue/traffic";
+export { trafficForDepth, type Traffic } from "@/lib/queue/traffic";
 
 export interface TickStatus {
   queued: number;
@@ -25,14 +20,18 @@ export async function queueTick(
   holder: string,
   ttlSeconds = 300
 ): Promise<TickStatus & { started: boolean }> {
-  const [{ count: queued }, { count: running }] = await Promise.all([
+  const [queuedResult, runningResult, traffic] = await Promise.all([
     admin.from("jobs").select("id", { count: "exact", head: true }).eq("status", "queued"),
     admin.from("jobs").select("id", { count: "exact", head: true }).eq("status", "running"),
+    getTraffic(admin),
   ]);
+  if (queuedResult.error || runningResult.error) throw new Error("Queue depth could not be read.");
+  const queued = queuedResult.count;
+  const running = runningResult.count;
   const depth = queued ?? 0;
   if (depth === 0 && (running ?? 0) === 0) {
-    return { queued: 0, running: running ?? 0, traffic: trafficForDepth(0), started: false };
+    return { queued: 0, running: running ?? 0, traffic, started: false };
   }
   const started = await tryAcquireLease(admin, holder, ttlSeconds);
-  return { queued: depth, running: running ?? 0, traffic: trafficForDepth(depth), started };
+  return { queued: depth, running: running ?? 0, traffic, started };
 }
