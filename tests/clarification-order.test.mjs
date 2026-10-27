@@ -97,6 +97,11 @@ do $$ declare u uuid:=gen_random_uuid();p uuid;j uuid;c public.post_comments;s j
  if(publish_results_card(p,s->>'fingerprint',u||'/'||p||'/cards/'||gen_random_uuid()||'/card.png',1080,j)->>'published')::boolean then raise exception 'correction question replay published ready';end if;
  if not exists(select 1 from posts where id=p and status='needs_input' and needs_input=q)then raise exception 'correction question was lost';end if;
  update jobs set status='finished' where id=j;
+ insert into jobs(post_id,kind,status,payload)values(p,'correct','running','{"post_ownership":true}')returning id into j;
+ update posts set active_job_id=j,status='processing' where id=p;
+ if not complete_empty_correction(p,j)then raise exception 'empty correction could not finish';end if;
+ if(publish_results_card(p,s->>'fingerprint',u||'/'||p||'/cards/'||gen_random_uuid()||'/card.png',1080,j)->>'published')::boolean then raise exception 'empty correction answered a question';end if;
+ update jobs set status='finished' where id=j;
  -- A later actual answer advances the sequence and may clear the question.
  c:=append_post_comment(p,u,'It was pasta');select id into j from jobs where post_id=p and status='queued';
  update jobs set status='running',payload=jsonb_build_object('post_ownership',true,'correction_from_sequence',1,'correction_pending_ids',jsonb_build_array(c.id))where id=j;
