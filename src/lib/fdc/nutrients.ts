@@ -1,12 +1,8 @@
-// Per-100 g scaling of an FDC match to the estimated portion (item 10).
-// Preference: Foundation, then SR Legacy, then Branded. Foundation and
-// SR Legacy values are per 100 g; Branded label values are per serving,
-// so Branded scales by servingSize when it is in grams, else falls back
-// to the per-100 g reading. Nutrient ids verified against the live API:
-// Energy 1008 (kcal; 2047/2048 fallbacks; kJ converted), Protein 1003,
-// Total lipid 1004, Carbohydrate 1005, Fiber 1079, Sugars 2000,
-// Sodium 1093. The full nutrient array is kept in micronutrients and
-// source_ref is the FDC id, so numbers are traceable to USDA FDC.
+// FDC foodNutrients are standardized per 100 units, including Branded foods;
+// they are not the per-serving labelNutrients values. USDA documentation:
+// https://fdc.nal.usda.gov/GBFPD_Documentation/
+// Consumed values preserve nutrient order and units and carry basis="portion".
+// A gram portion cannot convert a declared milliliter basis without density.
 import type { FdcFood } from "./client";
 
 const ENERGY_IDS = [1008, 2047, 2048];
@@ -49,19 +45,9 @@ export function chooseBestMatch(foods: FdcFood[]): FdcFood | null {
   return best;
 }
 
-// Grams of reference the food's nutrient values describe.
-function referenceGrams(food: FdcFood): number {
-  if (food.dataType === "Branded") {
-    const unit = (food.servingSizeUnit ?? "").toLowerCase();
-    if (
-      typeof food.servingSize === "number" &&
-      food.servingSize > 0 &&
-      (unit === "g" || unit === "gram" || unit === "ml")
-    ) {
-      return food.servingSize;
-    }
-  }
-  return 100;
+function gramBasis(food: FdcFood): boolean {
+  const unit = (food.servingSizeUnit ?? "").toLowerCase();
+  return !(food.dataType === "Branded" && ["ml", "milliliter", "milliliters"].includes(unit));
 }
 
 function unitToGrams(value: number, unit: string): number {
@@ -108,8 +94,13 @@ export function scaleNutrition(
     };
   }
   const sourceRef = String(food.fdcId);
-  const micronutrients: unknown[] = food.foodNutrients;
-  if (portionGrams === null || portionGrams <= 0) {
+  const factor = portionGrams !== null && Number.isFinite(portionGrams) && portionGrams > 0 && gramBasis(food)
+    ? portionGrams / 100 : null;
+  const micronutrients = food.foodNutrients.map((nutrient) => ({
+    ...nutrient, value: factor === null ? null : nutrient.value * factor,
+    basis: "portion" as const,
+  }));
+  if (factor === null) {
     return {
       calories: null,
       proteinG: null,
@@ -122,7 +113,6 @@ export function scaleNutrition(
       sourceRef,
     };
   }
-  const factor = portionGrams / referenceGrams(food);
   const scale = (
     ids: number[],
     convert: (value: number, unit: string) => number

@@ -3,6 +3,7 @@
 // item_nutrition row after an FDC lookup, the summary as the first
 // post_comments row (author model), and flips the post to ready.
 // Zero items is a ready post with no rows: the card reads "No food found".
+import { createAdminClient } from "@/lib/supabase/admin";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { searchFoods } from "@/lib/fdc/client";
 import {
@@ -78,4 +79,12 @@ export async function persistAnalysis(
   if (error) {
     throw new Error(`persist: analysis transaction failed: ${error.message}`);
   }
+  await markReady(named.postId, admin);
+}
+
+// The shared application completion hook. Stored cards and push attach here.
+export async function markReady(postId: string, admin: SupabaseClient = createAdminClient()): Promise<boolean> {
+  const { data, error } = await admin.rpc("mark_post_ready", { p_post_id: postId });
+  if (error) throw new Error(`markReady failed: ${error.message}`);
+  return data === true;
 }
