@@ -56,8 +56,34 @@ test('claims serialize one meal, parallelize different meals and retain completi
   assert.equal(sql(`select post_work_matches('${a}','${maintenance}');`).trim(),'t');
   sql(`select fail_job('${maintenance}','card unavailable',false);`);
   assert.equal(sql(`select status from posts where id='${a}';`).trim(),'ready');
-  const pending=job(a);job(a,'card_backfill',1);
+  const pending=job(a);const obsolete=job(a,'card_backfill',1);
   assert.equal(sql('select (claim_owned_job()).id;').trim(),pending,'queued primary blocks higher-priority maintenance');
+  assert.equal(sql(`select status||':'||attempts from jobs where id='${obsolete}';`).trim(),'finished:0','obsolete maintenance must leave the due queue');
+  const failedMeal=post(),failedCard=job(failedMeal,'card_backfill');
+  assert.equal(sql('select (claim_owned_job()).id;').trim(),'');
+  assert.equal(sql(`select status from jobs where id='${failedCard}';`).trim(),'finished');
+  assert.equal(sql(`select status from posts where id='${failedMeal}';`).trim(),'failed');
+  // Concurrent discard follows post -> cascade job order. Failure handling
+  // must wait without holding the child job lock, then accept its deletion.
+  const doomed=post(),doomedJob=job(doomed);
+  assert.equal(sql('select (claim_owned_job()).id;').trim(),doomedJob);
+  const discard=spawn(join(bin,'psql'),['-X','-qAt','-v','ON_ERROR_STOP=1'],{env,stdio:['pipe','pipe','pipe']});
+  let discardOut='',discardErrors='';discard.stdout.on('data',chunk=>{discardOut+=chunk;});discard.stderr.on('data',chunk=>{discardErrors+=chunk;});
+  const discarded=new Promise((resolve,reject)=>discard.on('close',code=>code===0?resolve():reject(new Error(discardErrors))));
+  discard.stdin.end(`begin;set local statement_timeout='5s';select id from posts where id='${doomed}' for update;select pg_sleep(0.5);delete from posts where id='${doomed}';commit;`);
+  const lockDeadline=Date.now()+5000;while(!discardOut.includes(doomed)&&Date.now()<lockDeadline)await new Promise(r=>setTimeout(r,10));
+  assert.ok(discardOut.includes(doomed),'discard did not lock post');
+  const failing=spawn(join(bin,'psql'),['-X','-qAt','-v','ON_ERROR_STOP=1'],{env,stdio:['pipe','pipe','pipe']});
+  let failErrors='';failing.stderr.on('data',chunk=>{failErrors+=chunk;});
+  const failed=new Promise((resolve,reject)=>failing.on('close',code=>code===0?resolve():reject(new Error(failErrors))));
+  failing.stdin.end(`set statement_timeout='5s';select fail_job('${doomedJob}','interrupted analysis',false);`);
+  await Promise.all([discarded,failed]);
+  assert.equal(sql(`select count(*) from jobs where id='${doomedJob}';`).trim(),'0');
+  // Detached cleanup jobs deliberately have no post to lock.
+  const detached=sql("insert into jobs(kind,status,attempts)values('media_cleanup','running',1)returning id;").trim();
+  sql(`select fail_job('${detached}','cleanup retry',true);`);
+  assert.equal(sql(`select status from jobs where id='${detached}';`).trim(),'queued');
+  sql(`delete from jobs where id='${detached}';`);
   // Old claim/one-argument publication remains valid during migration rollout.
   const legacyPost=post(),legacy=job(legacyPost);
   assert.equal(sql('select (claim_job()).id;').trim(),legacy);
@@ -65,6 +91,7 @@ test('claims serialize one meal, parallelize different meals and retain completi
   assert.equal(sql(`select mark_post_ready('${legacyPost}');`).trim(),'t');
   sql(`update jobs set status='finished' where id='${legacy}';update posts set status='processing' where id='${legacyPost}';`);
   assert.equal(sql(`select mark_post_ready('${legacyPost}');`).trim(),'f','ownerless non-ready maintenance is refused');
+  run(process.execPath,['--test',new URL('./supersede.test.mjs',import.meta.url).pathname],{env:{...env,SUPABASE_DB_URL:`postgresql:///postgres?host=${encodeURIComponent(dir)}`}});
   sql(`set role authenticated;select set_config('request.jwt.claims','{"sub":"${owner}"}',false);
    do $$begin begin update posts set active_job_id='${a1}' where id='${a}';raise exception 'owner forged';exception when insufficient_privilege then null;end;end$$;`);
  }finally{
