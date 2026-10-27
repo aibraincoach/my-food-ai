@@ -18,7 +18,8 @@ import type { NamedPost } from "./analyze";
 export async function persistAnalysis(
   admin: SupabaseClient,
   named: NamedPost,
-  copiedNutrition?: Record<string, unknown>[]
+  copiedNutrition?: Record<string, unknown>[],
+  jobId?: string
 ): Promise<void> {
   const rows: {
     name: string;
@@ -85,23 +86,20 @@ export async function persistAnalysis(
     return [key, values.some((value) => value === null) ? null : values.reduce<number>((sum, value) => sum + (value ?? 0), 0)];
   })) as ConsumedTotals;
   const summary = await safeSummary(named.summary, totals);
-  const { error, status } = await admin.rpc(named.needsInput ? "persist_analysis_question" : "persist_analysis", {
+  const { error, status } = await admin.rpc("persist_owned_analysis", {
+    p_job_id: jobId ?? null,
     p_post_id: named.postId,
     p_items: items,
     p_summary: summary,
-    ...(named.needsInput ? {p_question:named.needsInput} : {}),
+    p_needs_input: named.needsInput ?? null,
   });
   if (error) {
     throw ioError(`persist: analysis transaction failed: ${error.message}`, error, status);
   }
-  if (!named.needsInput) await markReady(named.postId, admin);
+  if (!named.needsInput) await markReady(named.postId, admin, jobId);
 }
 
-// The shared application completion hook. Stored cards and push attach here.
-export async function markReady(postId: string, admin: SupabaseClient = createAdminClient()): Promise<boolean> {
-  const state = await admin.from("posts").select("status").eq("id",postId).maybeSingle();
-  if(state.error)throw ioError("Could not read completion state.",state.error,state.status);
-  if(!state.data || state.data.status === "needs_input")return false;
-  // Publication clears clarification in the same post-locked transaction as ready.
-  return renderResultsCard(admin, postId);
+// Publication clears clarification atomically with ready under the post lock.
+export async function markReady(postId: string, admin: SupabaseClient = createAdminClient(), jobId?:string): Promise<boolean> {
+  return renderResultsCard(admin, postId, jobId);
 }

@@ -25,7 +25,7 @@ function fonts() {
   return fontData;
 }
 
-export async function renderResultsCard(admin: SupabaseClient, postId: string): Promise<boolean> {
+export async function renderResultsCard(admin: SupabaseClient, postId: string, jobId?: string): Promise<boolean> {
   const { data, error, status } = await admin.rpc("results_card_snapshot", { p_post_id: postId });
   if (error) throw ioError(`Card snapshot failed: ${error.message}`, error, status);
   const snapshot = data as Snapshot | null;
@@ -50,7 +50,7 @@ export async function renderResultsCard(admin: SupabaseClient, postId: string): 
   const path = `${snapshot.user_id}/${postId}/cards/${randomUUID()}/card.png`;
   const upload = await admin.storage.from("media").upload(path, await response.arrayBuffer(), { contentType: "image/png", upsert: false });
   if (upload.error) throw ioError(`Card upload failed: ${upload.error.message}`, upload.error);
-  const published = await admin.rpc("publish_results_card", { p_post_id: postId, p_fingerprint: snapshot.fingerprint, p_storage_path: path, p_size: size });
+  const published = await admin.rpc("publish_results_card", { p_post_id: postId, p_fingerprint: snapshot.fingerprint, p_storage_path: path, p_size: size, p_job_id: jobId ?? null });
   if (published.error) {
     // An ambiguous network response may have committed publication. Keep its
     // object rather than break a successfully committed media pointer.

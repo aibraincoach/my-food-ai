@@ -31,7 +31,7 @@ function parse(text:string):{items:Correction[];reply:string;needs_input:NeedsIn
 const correct:JobHandler=async(admin,job)=>{
  if(!job.post_id)throw new Error('Correction requires a post.');
  await waitForInitialAnalysis(admin,job.post_id);
- if(job.payload.correction_applied===true){await markReady(job.post_id,admin);return;}
+ if(job.payload.correction_applied===true){await markReady(job.post_id,admin,job.id);return;}
  const items=await loadCorrectionItems(admin,job.post_id,()=>recompute(admin,job));
  const [thread,completed]=await Promise.all([readPostComments(admin,job.post_id),readCorrectionProgress(admin,job.post_id)]);
  let window;
@@ -41,7 +41,7 @@ const correct:JobHandler=async(admin,job)=>{
   const {data:completed,error,status}=await admin.rpc('complete_empty_correction',{p_post_id:job.post_id,p_job_id:job.id});
   if(error)throw ioError('Correction completion could not be saved.',error,status);
   if(!completed)throw new MetaApiError(503,'A correction arrived while completing this attempt.');
-  await markReady(job.post_id,admin);return;
+  await markReady(job.post_id,admin,job.id);return;
  }
  const {data:prepared,error:prepareError,status:prepareStatus}=await admin.from('jobs').update({payload:{...job.payload,correction_from_sequence:window.sequence,correction_pending_ids:window.pending.map(comment=>comment.id)}}).eq('id',job.id).eq('status','running').select('id').maybeSingle();
  if(prepareError)throw ioError('Correction snapshot could not be saved.',prepareError,prepareStatus);
@@ -84,6 +84,6 @@ const correct:JobHandler=async(admin,job)=>{
  const reply=await safeSummary(correctionReply(items,rows,totals),totals);
  const {error,status}=await admin.rpc(result.needs_input?'persist_correction_question':'persist_correction',{p_post_id:job.post_id,p_job_id:job.id,p_expected:items.map(i=>i.id),p_through:latest.id,p_items:rows,p_reply:reply,...(result.needs_input?{p_question:result.needs_input}:{})});
  if(error)throw ioError('Correction transaction failed.',error,status);
- if(!result.needs_input)await markReady(job.post_id,admin);
+ if(!result.needs_input)await markReady(job.post_id,admin,job.id);
 };
 export default correct;

@@ -1,3 +1,92 @@
+-- New workers opt into execution ownership; legacy claim callers remain usable
+-- while this migration is installed before the application deployment.
+alter table public.posts add column active_job_id uuid;
+create function public.protect_post_job_owner() returns trigger language plpgsql set search_path=public,pg_temp as $$
+begin
+ if current_user in ('authenticated','anon') and
+   ((tg_op='INSERT' and new.active_job_id is not null) or (tg_op='UPDATE' and new.active_job_id is distinct from old.active_job_id)) then
+  raise exception 'Job ownership is server managed' using errcode='42501';end if;
+ return new;
+end $$;
+create trigger protect_post_job_owner before insert or update of active_job_id on public.posts for each row execute function public.protect_post_job_owner();
+
+create function public.claim_post_job(p_now timestamptz,p_owned boolean) returns public.jobs
+language plpgsql security definer set search_path=public,pg_temp as $$
+declare candidate public.jobs; skipped uuid[]:=array[]::uuid[]; post_found uuid;
+begin
+ loop
+  select * into candidate from public.jobs j where j.status='queued' and j.run_after<=p_now and not(j.id=any(skipped))
+   order by j.priority,j.created_at,j.id limit 1 for update skip locked;
+  if not found then return null;end if;
+  if candidate.post_id is not null and candidate.kind in ('analyze','correct','recompute','card_backfill','test_noop','test_throw') then
+   select id into post_found from public.posts where id=candidate.post_id for update skip locked;
+   if not found then skipped:=array_append(skipped,candidate.id);continue;end if;
+   -- Recheck after locking the post: two lanes may have seen no running job.
+   if exists(select 1 from public.jobs where post_id=candidate.post_id and status='running' and kind in ('analyze','correct','recompute','card_backfill','test_noop','test_throw')) then
+    skipped:=array_append(skipped,candidate.id);continue;end if;
+   if candidate.kind='card_backfill' and (not exists(select 1 from public.posts where id=candidate.post_id and status='ready') or exists(select 1 from public.jobs where post_id=candidate.post_id and kind in ('analyze','correct','recompute') and status in ('queued','running'))) then
+    skipped:=array_append(skipped,candidate.id);continue;end if;
+   update public.posts set active_job_id=case when p_owned then candidate.id else null end,
+    status=case when candidate.kind='card_backfill' then status else 'processing' end,
+    fail_reason=case when candidate.kind='card_backfill' then fail_reason else null end where id=candidate.post_id;
+  end if;
+  update public.jobs set status='running',started_at=p_now,finished_at=null,attempts=attempts+1,
+   payload=payload||jsonb_build_object('post_ownership',p_owned) where id=candidate.id returning * into candidate;
+  return candidate;
+ end loop;
+end $$;
+revoke all on function public.claim_post_job(timestamptz,boolean) from public,anon,authenticated,service_role;
+create or replace function public.claim_job(p_now timestamptz default now()) returns public.jobs
+language sql security definer set search_path=public,pg_temp as $$ select public.claim_post_job(p_now,false) $$;
+create function public.claim_owned_job(p_now timestamptz default now()) returns public.jobs
+language sql security definer set search_path=public,pg_temp as $$ select public.claim_post_job(p_now,true) $$;
+revoke all on function public.claim_owned_job(timestamptz) from public,anon,authenticated;
+grant execute on function public.claim_owned_job(timestamptz) to service_role;
+
+create function public.post_work_matches(p_post_id uuid,p_job_id uuid) returns boolean
+language sql stable security definer set search_path=public,pg_temp as $$
+ select coalesce((select case when p_job_id is not null then exists(
+  select 1 from public.jobs j where j.id=p_job_id and j.post_id=p.id and j.status='running' and j.kind in ('analyze','correct','recompute','card_backfill','test_noop','test_throw')
+  and (p.active_job_id=p_job_id or (p.active_job_id is null and not coalesce((j.payload->>'post_ownership')::boolean,false))))
+ else p.active_job_id is null and (p.status='ready' or exists(select 1 from public.jobs j where j.post_id=p.id and j.status='running'
+  and j.kind in ('analyze','correct','recompute','card_backfill','test_noop','test_throw') and not coalesce((j.payload->>'post_ownership')::boolean,false))) end
+ from public.posts p where p.id=p_post_id),false)
+$$;
+revoke all on function public.post_work_matches(uuid,uuid) from public,anon,authenticated;
+grant execute on function public.post_work_matches(uuid,uuid) to service_role;
+
+create or replace function public.fail_job(p_job_id uuid,p_message text,p_retriable boolean) returns void
+language plpgsql security definer set search_path=public,pg_temp as $$
+declare v_job public.jobs; owns boolean;
+begin
+ select * into v_job from public.jobs where id=p_job_id for update;
+ if not found or v_job.status<>'running' then raise exception 'fail_job requires a running job';end if;
+ perform 1 from public.posts where id=v_job.post_id for update;
+ owns:=public.post_work_matches(v_job.post_id,case when coalesce((v_job.payload->>'post_ownership')::boolean,false) then v_job.id else null end);
+ if not p_retriable or v_job.attempts>=3 then
+  update public.jobs set status='error',finished_at=clock_timestamp(),error=p_message where id=p_job_id;
+  if owns and v_job.kind<>'card_backfill' then
+   update public.posts set status='failed',fail_reason=split_part(p_message,E'\n',1) where id=v_job.post_id;
+  end if;
+ else
+  update public.jobs set status='queued',finished_at=null,error=p_message,
+   run_after=clock_timestamp()+interval '30 seconds'*power(2,v_job.attempts-1) where id=p_job_id;
+ end if;
+end $$;
+
+-- Hold ownership across initial persistence as well as publication. Existing
+-- legacy persistence RPCs remain callable for migration-before-merge workers.
+create function public.persist_owned_analysis(p_post_id uuid,p_job_id uuid,p_items jsonb,p_summary text,p_needs_input jsonb default null)
+returns void language plpgsql security definer set search_path=public,pg_temp as $$
+begin
+ perform 1 from public.posts where id=p_post_id for update;
+ if not public.post_work_matches(p_post_id,p_job_id) then raise exception 'Analysis job no longer owns this meal' using errcode='40001';end if;
+ if p_needs_input is null then perform public.persist_analysis(p_post_id,p_items,p_summary);
+ else perform public.persist_analysis_question(p_post_id,p_items,p_summary,p_needs_input);end if;
+end $$;
+revoke all on function public.persist_owned_analysis(uuid,uuid,jsonb,text,jsonb) from public,anon,authenticated;
+grant execute on function public.persist_owned_analysis(uuid,uuid,jsonb,text,jsonb) to service_role;
+
 -- Apply after 0007 and before 0008. Users can append only their own words.
 drop policy if exists post_comments_owner_insert on public.post_comments;
 create policy post_comments_owner_insert on public.post_comments for insert to authenticated with check (
@@ -34,6 +123,7 @@ declare expected uuid[]; actual uuid[]; row jsonb; new_id uuid; prior uuid;
 begin
  perform 1 from public.posts where id=p_post_id for update;
  if not found then raise exception 'Post missing' using errcode='42501'; end if;
+ if not public.post_work_matches(p_post_id,p_job_id) then raise exception 'Correction job no longer owns this meal' using errcode='40001';end if;
  if exists(select 1 from public.jobs where id=p_job_id and post_id=p_post_id and coalesce((payload->>'correction_applied')::boolean,false)) then return false; end if;
  if not exists(select 1 from public.jobs where id=p_job_id and post_id=p_post_id and kind='correct' and status='running') then raise exception 'Correction job missing' using errcode='22023'; end if;
  select payload into v_payload from public.jobs where id=p_job_id;
@@ -113,12 +203,12 @@ create trigger resume_comments_after_initial_analysis after update of analysis_i
 
 -- Standalone thread completion must respect follow-up work too. The later
 -- stored-card publication guard keeps the same invariant.
-create or replace function public.mark_post_ready(p_post_id uuid)
+create function public.mark_post_ready(p_post_id uuid,p_job_id uuid)
 returns boolean language plpgsql security definer set search_path=public,pg_temp as $$
 declare current_status text;
 begin
  select status into current_status from public.posts where id=p_post_id for update;
- if not found or current_status in ('failed','needs_input') then return false;end if;
+ if not found or current_status in ('failed','needs_input') or not public.post_work_matches(p_post_id,p_job_id) then return false;end if;
  if exists(select 1 from public.jobs where post_id=p_post_id and kind='correct' and status in ('queued','running')
    and not coalesce((payload->>'correction_applied')::boolean,false)) then
   update public.posts set status=case when status in ('processing','needs_input') then status else 'queued' end where id=p_post_id;
@@ -128,6 +218,9 @@ begin
  update public.posts set status='ready',fail_reason=null where id=p_post_id;
  return true;
 end $$;
+create or replace function public.mark_post_ready(p_post_id uuid) returns boolean language sql security definer set search_path=public,pg_temp as $$ select public.mark_post_ready(p_post_id,null) $$;
+revoke all on function public.mark_post_ready(uuid,uuid) from public,anon,authenticated;
+grant execute on function public.mark_post_ready(uuid,uuid) to service_role;
 revoke all on function public.mark_post_ready(uuid) from public,anon,authenticated;
 grant execute on function public.mark_post_ready(uuid) to service_role;
 
@@ -139,6 +232,7 @@ declare applied uuid[]; sequence bigint;
 begin
  perform 1 from public.posts where id=p_post_id for update;
  if not found then raise exception 'Post missing' using errcode='42501';end if;
+ if not public.post_work_matches(p_post_id,p_job_id) then raise exception 'Correction job no longer owns this meal' using errcode='40001';end if;
  if not exists(select 1 from public.jobs where id=p_job_id and post_id=p_post_id and kind='correct' and status='running') then
   raise exception 'Correction job missing' using errcode='22023';end if;
  select coalesce(array_agg(distinct value::uuid),array[]::uuid[]) into applied
