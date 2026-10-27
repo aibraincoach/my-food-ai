@@ -1,0 +1,2 @@
+export const sameMealPrompt = `Compare these two meal photographs and their captions. Return same_meal true only if they show the same foods in the same portions. A changed item or visibly different amount means false. Do not infer identity from matching plates alone.`;
+export const sameMealSchema = {type:"object",properties:{same_meal:{type:"boolean"}},required:["same_meal"],additionalProperties:false};

@@ -1,0 +1,29 @@
+import type {SupabaseClient} from "@supabase/supabase-js";
+import {createResponse} from "@/lib/meta/client";
+import {sameMealPrompt,sameMealSchema} from "@/lib/prompts/spark/same-meal";
+import {loadFirstPhoto, type NamedPost} from "./analyze";
+// A nearby place is within 150m. Missing photo/location signals contribute zero.
+export const PRIOR = {textWeight:0.5,photoWeight:0.3,placeWeight:0.2,placeMetres:150,copyThreshold:0.85,hintThreshold:0.55} as const;
+export async function findPrior(admin:SupabaseClient,postId:string):Promise<{hint:string; named?:NamedPost; nutrition?:Record<string,unknown>[]}|null> {
+  const {data,error}=await admin.rpc("meal_prior_candidates",{p_post_id:postId});
+  if(error) throw new Error(`Meal prior lookup failed: ${error.message}`);
+  const candidates=(data??[]).map((row:{post_id:string;text_score:number;photo_score:number;distance_m:number|null})=>({...row,
+    score:PRIOR.textWeight*row.text_score+PRIOR.photoWeight*row.photo_score+PRIOR.placeWeight*(row.distance_m!==null&&row.distance_m<=PRIOR.placeMetres?1:0)})).sort((a:{score:number},b:{score:number})=>b.score-a.score);
+  const best=candidates[0];
+  if(!best||best.score<PRIOR.hintThreshold) return null;
+  const {data:items,error:itemError}=await admin.from("post_items").select("id,name,portion_text,portion_grams,confidence,item_nutrition(*)").eq("post_id",best.post_id).is("superseded_at",null).order("created_at");
+  if(itemError) throw new Error(itemError.message);
+  if(!items?.length) return null;
+  const hint=`This user logged this meal before as: ${items.map(item=>`${item.name}, ${item.portion_grams??"unknown"} g`).join("; ")}; keep these names and portions unless the photo clearly differs.`;
+  if(best.score<PRIOR.copyThreshold) return {hint};
+  let photos;
+  try {photos=await Promise.all([loadFirstPhoto(admin,postId),loadFirstPhoto(admin,best.post_id)]);} catch {return {hint};}
+  const result=await createResponse({model:"muse-spark-1.3",instructions:sameMealPrompt,input:[{role:"user",content:[{type:"input_text",text:hint},...photos.map(photo=>({type:"input_image",image_url:`data:image/jpeg;base64,${Buffer.from(photo.bytes).toString("base64")}`}))]}],text:{format:{type:"json_schema",name:"same_meal",strict:true,schema:sameMealSchema}},max_output_tokens:128});
+  if(result.status!=="completed"||!result.outputText||JSON.parse(result.outputText).same_meal!==true) return {hint:""};
+  const {data:post,error:postError}=await admin.from("posts").select("user_id").eq("id",postId).single();
+  if(postError) throw new Error(postError.message);
+  const nutrition=items.map(item=>{const row=Array.isArray(item.item_nutrition)?item.item_nutrition[0]:item.item_nutrition;return row??{};});
+  return {hint,nutrition,named:{postId,userId:post.user_id,photoWidth:photos[0].width,photoHeight:photos[0].height,regions:[],
+    captionOnly:items.map(item=>({name:item.name,portionText:item.portion_text,portionGrams:item.portion_grams,confidence:item.confidence,regionIndex:null})),
+    summary:items.map(item=>`${item.name} ${item.portion_grams??""} g`).join(" · ")}};
+}

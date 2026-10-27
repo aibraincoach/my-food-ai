@@ -16,7 +16,8 @@ import type { NamedPost } from "./analyze";
 
 export async function persistAnalysis(
   admin: SupabaseClient,
-  named: NamedPost
+  named: NamedPost,
+  copiedNutrition?: Record<string, unknown>[]
 ): Promise<void> {
   const rows: {
     name: string;
@@ -54,8 +55,8 @@ export async function persistAnalysis(
     box: unknown; mask_path: string | null; confidence: number | null;
     nutrition: ConsumedTotals & { fibre_g: number | null; sugar_g: number | null; sodium_mg: number | null; micronutrients: unknown; source_ref: string | null };
   }[] = [];
-  for (const row of rows) {
-    const foods = await searchFoods(admin, row.name);
+  for (const [index,row] of rows.entries()) {
+    const foods = copiedNutrition ? [] : await searchFoods(admin, row.name);
     const scaled = scaleNutrition(chooseBestMatch(foods), row.portionGrams);
     items.push({
       name: row.name,
@@ -74,6 +75,7 @@ export async function persistAnalysis(
         sodium_mg: scaled.sodiumMg,
         micronutrients: scaled.micronutrients,
         source_ref: scaled.sourceRef,
+        ...(copiedNutrition?.[index] ?? {}),
       },
     });
   }
