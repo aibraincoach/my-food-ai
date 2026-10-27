@@ -159,12 +159,14 @@ export async function getFoodById(admin: SupabaseClient, id: number): Promise<Fd
   const {data: cached, error, status} = await admin.from("fdc_cache").select("response").eq("query", key).maybeSingle();
   if (error) throw ioError("Retained food cache could not be read.", error, status);
   if (cached) return parseFoodDetail(cached.response, id);
-  const params = new URLSearchParams({format: "full", api_key: fdcApiKey()});
-  const response = await fetch(`${FDC_BASE_URL}/food/${id}?${params}`, {signal: AbortSignal.timeout(30000)});
-  if (!response.ok) throw new ApiError(response.status, await response.text(), "Retained food could not be loaded.");
-  const payload: unknown = await response.json();
-  const food = parseFoodDetail(payload, id);
-  const {error: saveError, status: saveStatus} = await admin.from("fdc_cache").upsert({query: key, response: payload}, {onConflict: "query"});
-  if (saveError) throw ioError("Retained food cache could not be saved.", saveError, saveStatus);
-  return food;
+  return recordCall("fdc", { fdcId: id }, async () => {
+    const params = new URLSearchParams({format: "full", api_key: fdcApiKey()});
+    const response = await fetch(`${FDC_BASE_URL}/food/${id}?${params}`, {signal: AbortSignal.timeout(30000)});
+    if (!response.ok) throw new ApiError(response.status, await response.text(), "Retained food could not be loaded.");
+    const payload: unknown = await response.json();
+    const food = parseFoodDetail(payload, id);
+    const {error: saveError, status: saveStatus} = await admin.from("fdc_cache").upsert({query: key, response: payload}, {onConflict: "query"});
+    if (saveError) throw ioError("Retained food cache could not be saved.", saveError, saveStatus);
+    return food;
+  }, (food) => ({ text: food, fdcId: food.fdcId }));
 }
