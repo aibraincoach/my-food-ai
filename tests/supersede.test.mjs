@@ -23,9 +23,9 @@ insert into profiles(id,handle) values (:'owner','edit-'||:'owner'),(:'other','e
 select set_config('test.owner', :'owner', true), set_config('test.other', :'other', true);
 set local role service_role;
 do $test$
-declare p uuid; old_id uuid; new_id uuid; added uuid;
+declare p uuid; pending uuid; empty_post uuid; old_id uuid; new_id uuid; added uuid;
 begin
- insert into posts(user_id,status) values(current_setting('test.owner')::uuid,'ready') returning id into p;
+ insert into posts(user_id,status,analysis_initialized_at) values(current_setting('test.owner')::uuid,'ready',now()) returning id into p;
  insert into post_items(post_id,name,portion_grams,source,mask_path,box) values(p,'Rice',100,'model','mask.png','{"left":0,"top":0,"right":10,"bottom":10}') returning id into old_id;
  insert into item_nutrition(post_item_id,calories) values(old_id,200);
  new_id := edit_post_item(p,current_setting('test.owner')::uuid,'portion',old_id,null,50,null);
@@ -69,6 +69,16 @@ begin
    raise exception 'invalid nutrition accepted';
  exception when invalid_text_representation then null; end;
  if not exists(select 1 from current_post_items where id=new_id) then raise exception 'nutrition failure left partial item edit'; end if;
+ insert into posts(user_id,status)values(current_setting('test.owner')::uuid,'queued')returning id into pending;
+ begin
+  perform edit_post_item(pending,current_setting('test.owner')::uuid,'add',null,'Rice',50,null);raise exception 'uninitialized add accepted';
+ exception when object_not_in_prerequisite_state then null;end;
+ if exists(select 1 from post_items where post_id=pending)or exists(select 1 from jobs where post_id=pending)then raise exception 'rejected add left rows/jobs';end if;
+ perform set_config('test.pending',pending::text,true);
+ insert into posts(user_id,status)values(current_setting('test.owner')::uuid,'queued')returning id into empty_post;
+ perform persist_analysis(empty_post,'[]','No food');
+ added:=edit_post_item(empty_post,current_setting('test.owner')::uuid,'add',null,'Rice',50,null);
+ if added is null then raise exception 'completed empty meal cannot add';end if;
  perform set_config('test.post',p::text,true); perform set_config('test.item',new_id::text,true);
 end;
 $test$;
@@ -76,6 +86,9 @@ set local role authenticated;
 select set_config('request.jwt.claims',jsonb_build_object('sub',:'owner','role','authenticated')::text,true);
 do $test$
 begin
+ begin
+  insert into post_items(post_id,name,portion_grams,source)values(current_setting('test.pending')::uuid,'Early',50,'user');raise exception 'owner inserted before initialization';
+ exception when insufficient_privilege then null;end;
  begin
   update post_items set name='Changed' where id=current_setting('test.item')::uuid;
   raise exception 'name update accepted';

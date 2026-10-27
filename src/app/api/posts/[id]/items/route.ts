@@ -20,8 +20,8 @@ export async function POST(request: Request, context: { params: Promise<{ id: st
   const result = await editPostItem(createAdminClient(), id, user.id, edit);
   if (result.error) {
     const code = result.error.code;
-    const status = code === "42501" ? 404 : code === "40001" ? 409 : code?.startsWith("22") ? 400 : 500;
-    const message = status === 409 ? "This item changed. Reload and try again." : status === 400 ? "Invalid item details." : status === 404 ? "Post not found." : "The item could not be saved.";
+    const status = code === "42501" ? 404 : (code === "40001" || code === "55000") ? 409 : code?.startsWith("22") ? 400 : 500;
+    const message = code === "55000" ? "Wait for the initial meal analysis before editing." : status === 409 ? "This item changed. Reload and try again." : status === 400 ? "Invalid item details." : status === 404 ? "Post not found." : "The item could not be saved.";
     return NextResponse.json({ error: message }, { status });
   }
   after(async () => {
