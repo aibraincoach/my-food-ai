@@ -62,7 +62,7 @@ export async function pipelineHarness(){
   const enqueue=async(postId,kind)=>{assert.ok(created.includes(postId),'Only fixture posts can be enqueued');const id=randomUUID();const {error}=await admin.from('jobs').insert({id,post_id:postId,kind,status:'queued',run_after:'2099-01-01T00:00:00Z'});assert.equal(error,null);fixtureJobs.add(id);return id;};
   const post=async(photo=false)=>{
    const id=randomUUID();const {error}=await admin.from('posts').insert({id,user_id:auth.user.id,caption:'Offline pipeline fixture',status:'queued'});assert.equal(error,null);created.push(id);
-   if(photo){const path=`${auth.user.id}/${id}/original.jpg`;const bytes=await readFile(new URL('../../scripts/fixtures/plate1.jpg',import.meta.url));const {error:uploadError}=await admin.storage.from('media').upload(path,bytes,{contentType:'image/jpeg'});assert.equal(uploadError,null);paths.push(path);
+   if(photo){const path=`${auth.user.id}/${id}/0.jpg`;const bytes=await readFile(new URL('../../scripts/fixtures/plate1.jpg',import.meta.url));const {error:uploadError}=await admin.storage.from('media').upload(path,bytes,{contentType:'image/jpeg'});assert.equal(uploadError,null);paths.push(path);
     const {error:mediaError}=await admin.from('post_media').insert({post_id:id,storage_path:path,position:0,width:1280,height:1327});assert.equal(mediaError,null);
    }
    return {id,jobId:await enqueue(id,'analyze')};
