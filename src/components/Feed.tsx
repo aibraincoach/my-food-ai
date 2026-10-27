@@ -50,13 +50,15 @@ export default function Feed() {
     };
 
     const removeCard = (id:string) => {
+      const interrupted=[...pending.keys()].filter(other=>other!==id);
       unavailable.add(id);generation++;
       baseline=baseline.filter(post=>post.id!==id);cards.delete(id);
       const index=newest.indexOf(id);if(index>=0)newest.splice(index,1);
-      // Invalidate every in-flight read before publishing removal. Discovery
-      // retries interrupted IDs; old pages cannot resurrect a hidden card.
+      // Old pages cannot resurrect a hidden card. Restart unrelated reads:
+      // settled meals may be older than the bounded discovery window.
       pending.clear();for(const retry of timers)clearTimeout(retry);timers.clear();
       loadingMore=false;publish();
+      for(const other of interrupted)requestCard(other);
     };
     const unavailableEvent=(event:Event)=>{
       const id=(event as CustomEvent<{id?:unknown}>).detail?.id;
@@ -169,6 +171,7 @@ export default function Feed() {
         if (discoveryLostOverlap(baseline, data ?? [], FEED_PAGE_SIZE)) {
           const page = await getFeed(supabase, userId);
           if (!live || discoveryGeneration!==generation) return;
+          const interrupted=[...pending.keys()];
           generation++;
           for(const post of page.posts)if(post.status!=="needs_input")unavailable.delete(post.id);
           baseline = page.posts.filter(post=>!unavailable.has(post.id));
@@ -177,6 +180,7 @@ export default function Feed() {
           loadingMore = false;
           setPageError(false);
           publish();
+          for(const id of interrupted)requestCard(id);
           return;
         }
         // Visit oldest first: newly discovered rows are prepended in order.

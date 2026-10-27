@@ -39,5 +39,15 @@ test('retiring the last meal clears feed state and rejects an older hydration re
  resolveCard({...post,id:'older-meal',status:'ready'});await new Promise(resolve=>setImmediate(resolve));
  assert.equal(states.at(-1).posts[0].id,'older-meal','answered meal outside discovery window is restored by ID');
  listeners.get('post-answer-resume')({detail:{id:'older-meal'}});listeners.get('post-settled')({detail:{id:'older-meal'}});resolveCard({...post,id:'older-meal',status:'failed'});await new Promise(resolve=>setImmediate(resolve));assert.equal(states.at(-1).posts[0].status,'failed','failed answer remains recoverable');
+ listeners.get('post-answer-resume')({detail:{id:'settled-outside-window'}});
+ listeners.get('post-settled')({detail:{id:'settled-outside-window'}});
+ const interrupted=resolveCard;
+ listeners.get('post-unavailable')({detail:{id:'unrelated-removed-meal'}});
+ const restarted=resolveCard;
+ assert.notEqual(restarted,interrupted,'removing another meal must restart the pending settled-card read');
+ interrupted({...post,id:'settled-outside-window',status:'ready'});await new Promise(resolve=>setImmediate(resolve));
+ assert.ok(!states.at(-1).posts.some(row=>row.id==='settled-outside-window'),'the invalidated old read stays ignored');
+ restarted({...post,id:'settled-outside-window',status:'ready'});await new Promise(resolve=>setImmediate(resolve));
+ assert.ok(states.at(-1).posts.some(row=>row.id==='settled-outside-window'),'the restarted read restores an older settled meal without ID discovery');
  for(const cleanup of cleanups)cleanup?.();
 });
