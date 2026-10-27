@@ -102,12 +102,20 @@ function regionLines(regions: IdentifyRegion[]): string {
 }
 
 export async function identifyItems(
-  image: Uint8Array,
+  image: Uint8Array | null,
   mime: string,
   caption: string | null,
   regions: IdentifyRegion[]
 ): Promise<IdentifiedMeal> {
-  const imageUrl = `data:${mime};base64,${Buffer.from(image).toString("base64")}`;
+  // Caption-only posts have no photo: the call is text-only and every
+  // returned item lands in captionOnly (region_index null).
+  const content: Record<string, unknown>[] = [];
+  if (image) {
+    content.push({
+      type: "input_image",
+      image_url: `data:${mime};base64,${Buffer.from(image).toString("base64")}`,
+    });
+  }
   const text =
     `Caption: ${caption && caption.trim() ? caption.trim() : "(none)"}\n` +
     `Regions (index, box left/top/right/bottom in source pixels, area fraction):\n${regionLines(regions)}`;
@@ -117,26 +125,23 @@ export async function identifyItems(
     let out;
     try {
       out = await createResponse({
-      model: "muse-spark-1.3",
-      instructions: identifyPrompt,
-      input: [
-        {
-          type: "message",
-          role: "user",
-          content: [
-            { type: "input_text", text },
-            { type: "input_image", image_url: imageUrl },
-          ],
+        model: "muse-spark-1.3",
+        instructions: identifyPrompt,
+        input: [
+          {
+            type: "message",
+            role: "user",
+            content: [{ type: "input_text", text }, ...content],
+          },
+        ],
+        text: {
+          format: {
+            type: "json_schema",
+            name: "identify",
+            schema: identifySchema,
+            strict: true,
+          },
         },
-      ],
-      text: {
-        format: {
-          type: "json_schema",
-          name: "identify",
-          schema: identifySchema,
-          strict: true,
-        },
-      },
         max_output_tokens: maxTokens,
       });
     } catch (error) {

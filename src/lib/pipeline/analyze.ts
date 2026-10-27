@@ -26,7 +26,7 @@ export interface SegmentedPost {
 }
 
 // First photo (position 0, original) as bytes plus its recorded size.
-async function loadFirstPhoto(
+export async function loadFirstPhoto(
   supabase: SupabaseClient,
   postId: string
 ): Promise<{ bytes: Uint8Array; width: number; height: number }> {
@@ -112,7 +112,7 @@ export interface NamedPost extends SegmentedPost {
 // regions (whole-image naming). Unknown region indexes come back as
 // null (caption-only). Item 10 persists the rows.
 export async function identifyMeal(
-  photo: Uint8Array,
+  photo: Uint8Array | null,
   mime: string,
   caption: string | null,
   segmented: SegmentedPost
@@ -147,4 +147,51 @@ export async function identifyMeal(
     item: byRegion.get(region.index) ?? null,
   }));
   return { ...segmented, regions, captionOnly, summary: meal.summary };
+}
+
+interface PostCaptionRow {
+  user_id: string;
+  caption: string | null;
+}
+
+// Item 10: full analyze pass for one post — caption, segment (mask PNGs),
+// identify. The caller persists with persistAnalysis.
+export async function analyzePost(
+  supabase: SupabaseClient,
+  postId: string
+): Promise<NamedPost> {
+  const { data: post, error: postError } = await supabase
+    .from("posts")
+    .select("user_id,caption")
+    .eq("id", postId)
+    .maybeSingle<PostCaptionRow>();
+  if (postError || !post) {
+    throw new Error("analyze: post not found.");
+  }
+  // Caption-only posts are valid (item 6): with no post_media rows there
+  // is nothing to segment, so Spark names from the caption alone and
+  // every item persists with a null box and mask path (item 10).
+  let segmented: SegmentedPost;
+  let photo: Uint8Array | null;
+  try {
+    segmented = await segmentPost(supabase, postId, post.user_id);
+    photo = (await loadFirstPhoto(supabase, postId)).bytes;
+  } catch (error) {
+    if (
+      error instanceof Error &&
+      error.message === "analyze: post has no photo."
+    ) {
+      segmented = {
+        postId,
+        userId: post.user_id,
+        photoWidth: 0,
+        photoHeight: 0,
+        regions: [],
+      };
+      photo = null;
+    } else {
+      throw error;
+    }
+  }
+  return identifyMeal(photo, "image/jpeg", post.caption, segmented);
 }
