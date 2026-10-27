@@ -26,7 +26,7 @@ export interface SegmentedPost {
 }
 
 // First photo (position 0, original) as bytes plus its recorded size.
-async function loadFirstPhoto(
+export async function loadFirstPhoto(
   supabase: SupabaseClient,
   postId: string
 ): Promise<{ bytes: Uint8Array; width: number; height: number }> {
@@ -147,4 +147,33 @@ export async function identifyMeal(
     item: byRegion.get(region.index) ?? null,
   }));
   return { ...segmented, regions, captionOnly, summary: meal.summary };
+}
+
+interface PostCaptionRow {
+  user_id: string;
+  caption: string | null;
+}
+
+// Item 10: full analyze pass for one post — caption, segment (mask PNGs),
+// identify. The caller persists with persistAnalysis.
+export async function analyzePost(
+  supabase: SupabaseClient,
+  postId: string
+): Promise<NamedPost> {
+  const { data: post, error: postError } = await supabase
+    .from("posts")
+    .select("user_id,caption")
+    .eq("id", postId)
+    .maybeSingle<PostCaptionRow>();
+  if (postError || !post) {
+    throw new Error("analyze: post not found.");
+  }
+  const segmented = await segmentPost(supabase, postId, post.user_id);
+  const photo = await loadFirstPhoto(supabase, postId);
+  return identifyMeal(
+    photo.bytes,
+    "image/jpeg",
+    post.caption,
+    segmented
+  );
 }

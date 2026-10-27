@@ -117,26 +117,26 @@ export async function identifyItems(
     let out;
     try {
       out = await createResponse({
-      model: "muse-spark-1.3",
-      instructions: identifyPrompt,
-      input: [
-        {
-          type: "message",
-          role: "user",
-          content: [
-            { type: "input_text", text },
-            { type: "input_image", image_url: imageUrl },
-          ],
+        model: "muse-spark-1.3",
+        instructions: identifyPrompt,
+        input: [
+          {
+            type: "message",
+            role: "user",
+            content: [
+              { type: "input_text", text },
+              { type: "input_image", image_url: imageUrl },
+            ],
+          },
+        ],
+        text: {
+          format: {
+            type: "json_schema",
+            name: "identify",
+            schema: identifySchema,
+            strict: true,
+          },
         },
-      ],
-      text: {
-        format: {
-          type: "json_schema",
-          name: "identify",
-          schema: identifySchema,
-          strict: true,
-        },
-      },
         max_output_tokens: maxTokens,
       });
     } catch (error) {
