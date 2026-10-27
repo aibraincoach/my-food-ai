@@ -1,3 +1,4 @@
+import { connection } from "next/server";
 import { redirect } from "next/navigation";
 import { ProfileGrid } from "@/components/ProfileGrid";
 import { signOut } from "@/lib/auth/actions";
@@ -5,6 +6,7 @@ import { getProfileGrid } from "@/lib/posts/grid";
 import { createClient } from "@/lib/supabase/server";
 
 export default async function ProfilePage() {
+  await connection();
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect("/sign-in");
