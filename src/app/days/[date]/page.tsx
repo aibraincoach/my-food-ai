@@ -1,3 +1,4 @@
+import { connection } from "next/server";
 import { cookies } from "next/headers";
 import { notFound, redirect } from "next/navigation";
 import StoryPlayer from "@/components/StoryPlayer";
@@ -5,7 +6,10 @@ import { getDays, shiftDay, validDate, validZone } from "@/lib/posts/days";
 import { sumNutrition } from "@/lib/nutrition/totals";
 import { createClient } from "@/lib/supabase/server";
 
+export const instant = false;
+
 export default async function DayPage({ params, searchParams }: { params: Promise<{ date: string }>; searchParams: Promise<{ tz?: string }> }) {
+  await connection();
   const { date } = await params;
   if (!validDate(date)) notFound();
   const query = await searchParams;
