@@ -22,6 +22,10 @@ create function public.persist_correction_question(p_post_id uuid,p_job_id uuid,
 returns void language plpgsql security definer set search_path=public,pg_temp as $$
 begin
   if not public.persist_correction(p_post_id,p_job_id,p_expected,p_through,p_items,p_question->>'question') then return; end if;
+  -- Persist the outcome in the same transaction as the question. A retry of
+  -- this completed correction must not reinterpret it as an answered meal.
+  update public.jobs set payload=payload||jsonb_build_object('needs_input_question',true)
+    where id=p_job_id;
   -- A message arriving during the model call already has follow-up work.
   -- Keep its queued state instead of hiding it behind the older question.
   update public.posts set status=case when exists (
@@ -35,9 +39,9 @@ grant execute on function public.persist_correction_question(uuid,uuid,uuid[],uu
 -- Do not publish an older render over a question, even if its item fingerprint matches.
 create or replace function public.publish_results_card(p_post_id uuid, p_fingerprint text, p_storage_path text, p_size integer, p_job_id uuid default null)
 returns jsonb language plpgsql security definer set search_path = public, pg_temp as $$
-declare v_snapshot jsonb; v_old text; v_position integer; v_owner uuid; v_status text;
+declare v_snapshot jsonb; v_old text; v_position integer; v_owner uuid; v_status text; v_question jsonb; v_question_sequence integer;
 begin
-  select user_id,status into v_owner,v_status from public.posts where id = p_post_id for update;
+  select user_id,status,needs_input into v_owner,v_status,v_question from public.posts where id = p_post_id for update;
   if not found or v_status in ('failed','needs_input') then return jsonb_build_object('published', false); end if;
   if not public.post_work_matches(p_post_id,p_job_id) then
     return jsonb_build_object('published', false);
@@ -48,6 +52,19 @@ begin
   ) then
     update public.posts set status=case when status in ('processing','needs_input') then status else 'queued' end where id=p_post_id;
     return jsonb_build_object('published', false);
+  end if;
+  if v_question is not null then
+    select coalesce(max((payload->>'correction_sequence')::integer),0) into v_question_sequence
+      from public.jobs where post_id=p_post_id and kind='correct' and payload->>'needs_input_question'='true';
+    -- Initial questions precede correction sequence one. A correction question
+    -- at sequence N requires an actual later correction, not replay or an empty
+    -- completion at N. Claiming work changes status, so status alone is unsafe.
+    if not exists(select 1 from public.jobs where id=p_job_id and post_id=p_post_id and kind='correct'
+      and payload->>'correction_applied'='true' and not coalesce((payload->>'needs_input_question')::boolean,false)
+      and (payload->>'correction_sequence')::integer>v_question_sequence) then
+      update public.posts set status='needs_input' where id=p_post_id;
+      return jsonb_build_object('published',false);
+    end if;
   end if;
   v_snapshot := public.results_card_snapshot(p_post_id);
   if v_snapshot->>'fingerprint' is distinct from p_fingerprint or exists (
