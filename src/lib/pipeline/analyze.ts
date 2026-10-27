@@ -2,6 +2,7 @@
 // Item 8: load the first photo, segment it, store the mask PNGs.
 // Item 9: name the regions with Muse Spark (identifyMeal below).
 // Item 10: FDC lookup plus the one-RPC persist.
+import type { NeedsInput } from "./needs-input";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { segmentFoodRegions, type FoodRegion } from "@/lib/meta/sam";
 import {
@@ -33,6 +34,7 @@ export async function loadFirstPhoto(
   const { data: media, error } = await supabase
     .from("post_media")
     .select("storage_path,width,height")
+    .eq("kind", "photo")
     .eq("post_id", postId)
     .order("position", { ascending: true })
     .limit(1)
@@ -106,6 +108,7 @@ export interface NamedPost extends SegmentedPost {
   // a null box and mask path.
   captionOnly: IdentifiedItem[];
   summary: string;
+  needsInput?: NeedsInput | null;
 }
 
 // Item 9: name the segmented regions with Muse Spark. Works with zero
@@ -115,7 +118,8 @@ export async function identifyMeal(
   photo: Uint8Array | null,
   mime: string,
   caption: string | null,
-  segmented: SegmentedPost
+  segmented: SegmentedPost,
+  prior = ""
 ): Promise<NamedPost> {
   const meal: IdentifiedMeal = await identifyItems(
     photo,
@@ -125,7 +129,8 @@ export async function identifyMeal(
       index: r.index,
       box: r.box,
       areaFraction: r.areaFraction,
-    }))
+    })),
+    prior
   );
   const byRegion = new Map<number, IdentifiedItem>();
   const captionOnly: IdentifiedItem[] = [];
@@ -146,7 +151,7 @@ export async function identifyMeal(
     ...region,
     item: byRegion.get(region.index) ?? null,
   }));
-  return { ...segmented, regions, captionOnly, summary: meal.summary };
+  return { ...segmented, regions, captionOnly, summary: meal.summary, needsInput: meal.needsInput };
 }
 
 interface PostCaptionRow {
@@ -158,7 +163,8 @@ interface PostCaptionRow {
 // identify. The caller persists with persistAnalysis.
 export async function analyzePost(
   supabase: SupabaseClient,
-  postId: string
+  postId: string,
+  prior = ""
 ): Promise<NamedPost> {
   const { data: post, error: postError } = await supabase
     .from("posts")
@@ -193,5 +199,5 @@ export async function analyzePost(
       throw error;
     }
   }
-  return identifyMeal(photo, "image/jpeg", post.caption, segmented);
+  return identifyMeal(photo, "image/jpeg", post.caption, segmented, prior);
 }

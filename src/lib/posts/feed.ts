@@ -1,6 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { feedCopyUrl } from "@/lib/media/media-url";
-import type { Numeric } from "@/lib/nutrition/totals";
+import { getCurrentItems, type Numeric } from "@/lib/nutrition/totals";
 
 export type PostStatus =
   | "queued"
@@ -59,77 +59,20 @@ interface PostRow {
 }
 
 
-interface ItemRow {
-  id: string;
-  name: string;
-  portion_text: string | null;
-  portion_grams: Numeric;
-}
-
-interface NutritionRow {
-  post_item_id: string;
-  calories: Numeric;
-  protein_g: Numeric;
-  carbs_g: Numeric;
-  fat_g: Numeric;
-  fibre_g: Numeric;
-  sugar_g: Numeric;
-  sodium_mg: Numeric;
-}
-
 async function toFeedPost(
   supabase: SupabaseClient,
   row: PostRow
 ): Promise<FeedPost> {
   const { data: media, error: mediaError } = await supabase.from("post_media")
-    .select("storage_path").eq("post_id",row.id).order("position");
+    .select("storage_path,kind").eq("post_id",row.id).order("position");
   if(mediaError) throw new Error(mediaError.message);
   const slides = (await Promise.all((media ?? []).map(async (entry) => {
-    try { return {url: await feedCopyUrl(supabase,feedPathFor(entry.storage_path)),kind:"photo" as const}; }
+    try { return {url: await feedCopyUrl(supabase, entry.kind === "card" ? entry.storage_path : feedPathFor(entry.storage_path)),kind:entry.kind as "photo"|"card"}; }
     catch { return null; }
-  }))).filter((entry): entry is {url:string;kind:"photo"} => entry !== null);
+  }))).filter((entry): entry is {url:string;kind:"photo"|"card"} => entry !== null);
   const photoUrl = slides[0]?.url ?? null;
 
-  let items: FeedItem[] = [];
-  if (row.status === "ready") {
-    const { data: itemRows } = await supabase
-      .from("post_items")
-      .select("id,name,portion_text,portion_grams")
-      .eq("post_id", row.id)
-      .order("created_at", { ascending: true });
-    const typed = (itemRows ?? []) as ItemRow[];
-    if (typed.length > 0) {
-      const { data: nutritionRows } = await supabase
-        .from("item_nutrition")
-        .select(
-          "post_item_id,calories,protein_g,carbs_g,fat_g,fibre_g,sugar_g,sodium_mg"
-        )
-        .in(
-          "post_item_id",
-          typed.map((item) => item.id)
-        );
-      const byItem = new Map<string, NutritionRow>();
-      for (const nutrition of (nutritionRows ?? []) as NutritionRow[]) {
-        byItem.set(nutrition.post_item_id, nutrition);
-      }
-      items = typed.map((item) => {
-        const nutrition = byItem.get(item.id);
-        return {
-          id: item.id,
-          name: item.name,
-          portion_text: item.portion_text,
-          portion_grams: item.portion_grams,
-          calories: nutrition?.calories ?? null,
-          protein_g: nutrition?.protein_g ?? null,
-          carbs_g: nutrition?.carbs_g ?? null,
-          fat_g: nutrition?.fat_g ?? null,
-          fibre_g: nutrition?.fibre_g ?? null,
-          sugar_g: nutrition?.sugar_g ?? null,
-          sodium_mg: nutrition?.sodium_mg ?? null,
-        };
-      });
-    }
-  }
+  const items: FeedItem[] = row.status === "ready" ? await getCurrentItems(supabase, row.id) : [];
 
   return {
     id: row.id,
@@ -152,7 +95,7 @@ export async function getFeed(
   let query = supabase
     .from("posts")
     .select("id,caption,eaten_at,status,created_at")
-    .eq("user_id", userId)
+    .eq("user_id", userId).neq("status","needs_input")
     .order("created_at", { ascending: false })
     .limit(FEED_PAGE_SIZE + 1);
   if(before) query = query.lt("created_at",before);

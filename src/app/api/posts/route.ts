@@ -18,8 +18,14 @@ export async function POST(request: Request) {
     location?: { lat: number; lng: number; accuracy_m?: number | null } | null;
     caption?: string;
     eaten_at?: string;
-    shots?: { position: number; width: number; height: number }[];
+    shots?: { position: number; width: number; height: number; phash?: string }[];
   };
+  for(const shot of body.shots??[]) {
+    if(shot.phash !== undefined) {
+      if(typeof shot.phash!=="string" || !/^-?\d{1,20}$/.test(shot.phash) || BigInt(shot.phash)<-(BigInt(1)<<BigInt(63)) || BigInt(shot.phash)>=(BigInt(1)<<BigInt(63)))
+        return NextResponse.json({error:"Invalid photo hash."},{status:400});
+    }
+  }
   const location = body.location;
   if (location != null && (
     typeof location !== "object" || !Number.isFinite(location.lat) || !Number.isFinite(location.lng) ||
@@ -61,6 +67,7 @@ export async function POST(request: Request) {
         post_id: post.id,
         storage_path: `${user.id}/${post.id}/${s.position}.jpg`,
         position: s.position,
+        phash: s.phash ?? null,
         width: s.width,
         height: s.height,
       }))

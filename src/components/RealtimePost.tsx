@@ -46,5 +46,5 @@ export default function RealtimePost({ initial, renderCard }: {
     };
   }, [initial, post.status]);
 
-  return <>{renderCard(post)}</>;
+  return post.status === "needs_input" ? null : <>{renderCard(post)}</>;
 }
