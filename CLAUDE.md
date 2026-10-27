@@ -27,7 +27,7 @@ Reconcile documents, commit on the document branch, then `skills/pm-handover/scr
 
 ## Session summary
 
-_Update on handover._
+_Updated 2026-10-27 07:44 UTC (handover for incoming PM; PM session 1 fired, merge-order authority with the owner). Observed `origin/main` at `6dd5353` (PR #41 merge). Merged this session: #46 (atomic post creation + 0003 search_path pins), #40 (item 1 + /v1 fix), #41 (item 8). Open, reviewed, unmerged: #42 (item 9, zero blockers on fixed head `80878a7`), #43 (item 10, rebased `d889a98`, review running), #38 (item 11), #39 (item 12) — merges halted, no SHA orders outstanding. #43 already carries #42's fix (rebased onto `80878a7`, verified in tree). PostgREST PGRST002 recovered 2026-10-27 ~07:30 UTC by recreating the wiped `lowdown` schema empty + `USAGE` grants to `authenticator`; platform exposed-schemas config still references it (no Management API route; dashboard fix pending) and a stub migration is proposed, not applied. Docs: [PR #1](https://github.com/aibraincoach/my-food-ai/pull/1) `docs/fleet-initial` open, never merged; Vercel builds skipped on that branch via `vercel.json` ignoreCommand after two ERROR previews.
 
 - Date: 2026-10-26 (PM handover session 1, Cursor on oracle-arm)
 - State: Greenfield after DB wipe (`f8f2d3d5eb517732fa0084c73c99e69629821b9c` on `origin/main`, observed 2026-10-27 01:03 UTC). Backlog empty until feature set agreed.

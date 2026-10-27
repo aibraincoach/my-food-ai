@@ -90,10 +90,6 @@ The submission needs a public repo, a video, and a write-up that names what was 
 
 Handed to the coder on 2026-10-27 at 13:30 JST as Run 1 of the build plan. An item leaves the backlog when its pull request has merged. Part a of #11 (basic card) is in flight too; the rest of #11 stays in the list above.
 
-### #8 SAM 3.1 segmentation step
-
-Every item on the plate needs an outline so the post detail can show where each estimate came from. Call Meta Model API `sam-3.1` with the post's first image and a text prompt such as "food item" to get masks and boxes for every match; store each mask as a PNG under `media/{user_id}/{post_id}/masks/{n}.png` and the box in `post_items.mask_path` and a boxes column or jsonb. If SAM returns nothing (a photo of a receipt, a sock), record zero items and let the mismatch step handle it. Done when a plate with three distinct items yields three masks that align with the photo in the detail view.
-
 ### #9 Item naming and portions
 
 Masks say where food is, not what it is. Send the image, the caption, and each mask's box to Muse Spark 1.3 and ask for, per mask, a name, a portion in plain words and in grams, and a confidence; also ask it to reconcile the caption with the masks (caption "two eggs and toast" with two masks means one mask is probably both eggs). Write one `post_items` row per item with source model. The prompt and its schema live in one file so later sessions can tune it without touching the worker. Done when the three-item test plate comes back with correct names and portions within what a person would accept.

@@ -5,7 +5,7 @@ Hackathon codebase for My Food AI (becomes My Fitness AI after the event). GitHu
 ## Start here
 
 - [CLAUDE.md](CLAUDE.md) — agent and coder rules
-- [BACKLOG.md](BACKLOG.md) — ordered work list (empty until features are agreed)
+- [BACKLOG.md](BACKLOG.md) — ordered work list
 - [REVIEW_POLICY.md](REVIEW_POLICY.md) — PPLX → AGY → Codex review order
 
 ## Agent skills

@@ -2,6 +2,13 @@
 
 Check before delivering a plan. Revised 2026-10-02.
 
+> Coder annotation 2026-10-27 (handoff, not the planner's words): the
+> "plan is its own merge order" lines below (Run shape, Authorization)
+> are superseded. Owner rule since 16:43 JST: the coder never merges
+> without a merge order naming one PR and one head SHA, sent after the
+> planner's evaluation and the reviewer's zero-blocker result on that
+> head. Standing conditional orders do not authorize merges.
+
 ## Planner role
 
 The planner writes plans only. It never writes to the codebase and never posts to GitHub. A coder commits a plan's text unchanged when asked. A prompt the planner wrote goes to the coder as RT sends it; the PM adds nothing.
