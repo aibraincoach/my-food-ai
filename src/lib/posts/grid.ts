@@ -36,7 +36,12 @@ export async function getProfileGrid(supabase: SupabaseClient, userId: string): 
       if (first) {
         const dot = first.storage_path.lastIndexOf(".");
         const base = dot < 0 ? first.storage_path : first.storage_path.slice(0, dot);
-        photoUrl = await feedCopyUrl(supabase, first.kind === "card" ? first.storage_path : `${base}.feed.jpg`);
+        try {
+          photoUrl = await feedCopyUrl(supabase, first.kind === "card" ? first.storage_path : `${base}.feed.jpg`);
+        } catch {
+          // One unavailable private image must not hide the whole post grid.
+          photoUrl = null;
+        }
       }
       return {
         id: row.id,
