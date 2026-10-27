@@ -1,3 +1,4 @@
+import { ioError } from "@/lib/worker/errors";
 // Analyze pipeline entry (items 8-10 share this boundary).
 // Item 8: load the first photo, segment it, store the mask PNGs.
 // Item 9: name the regions with Muse Spark (identifyMeal below).
@@ -30,7 +31,7 @@ export async function loadFirstPhoto(
   supabase: SupabaseClient,
   postId: string
 ): Promise<{ bytes: Uint8Array; width: number; height: number }> {
-  const { data: media, error } = await supabase
+  const { data: media, error, status: mediaStatus } = await supabase
     .from("post_media")
     .select("storage_path,width,height")
     .eq("post_id", postId)
@@ -41,7 +42,7 @@ export async function loadFirstPhoto(
       width: number | null;
       height: number | null;
     }>();
-  if (error) throw new Error("analyze: photo metadata lookup failed.", { cause: error });
+  if (error) throw ioError("analyze: photo metadata lookup failed.", error, mediaStatus);
   if (!media) {
     throw new Error("analyze: post has no photo.");
   }
@@ -162,12 +163,12 @@ export async function analyzePost(
   supabase: SupabaseClient,
   postId: string
 ): Promise<NamedPost> {
-  const { data: post, error: postError } = await supabase
+  const { data: post, error: postError, status: postStatus } = await supabase
     .from("posts")
     .select("user_id,caption")
     .eq("id", postId)
     .maybeSingle<PostCaptionRow>();
-  if (postError) throw new Error("analyze: post lookup failed.", { cause: postError });
+  if (postError) throw ioError("analyze: post lookup failed.", postError, postStatus);
   if (!post) {
     throw new Error("analyze: post not found.");
   }
