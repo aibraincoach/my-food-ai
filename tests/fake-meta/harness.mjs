@@ -4,6 +4,7 @@ import assert from 'node:assert/strict';
 import {randomUUID} from 'node:crypto';
 import {readFile} from 'node:fs/promises';
 import {createClient} from '@supabase/supabase-js';
+import {listFixtureObjects} from './storage-cleanup.mjs';
 import {startFakeMeta} from './server.mjs';
 export async function pipelineHarness(){
  for(const key of ['NEXT_PUBLIC_SUPABASE_URL','NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY','SUPABASE_SECRET_KEY','TEST_USER_EMAIL','TEST_USER_PASSWORD'])assert.ok(process.env[key],`${key} is required`);
@@ -19,16 +20,12 @@ export async function pipelineHarness(){
   const problems=[];
   try {
   if(ownerId)for(const id of created){
-   const prefix=`${ownerId}/${id}/masks`;
-   for(let offset=0;;offset+=1000){
-    const {data,error}=await admin.storage.from('media').list(prefix,{limit:1000,offset,sortBy:{column:'name',order:'asc'}});
-    if(error){problems.push('fixture mask listing');break;}
-    for(const item of data??[])if(item.id&&!paths.includes(`${prefix}/${item.name}`))paths.push(`${prefix}/${item.name}`);
-    if((data?.length??0)<1000)break;
-   }
+   try{for(const path of await listFixtureObjects(admin.storage.from('media'),`${ownerId}/${id}`))if(!paths.includes(path))paths.push(path);}
+   catch{problems.push('fixture storage listing');}
   }
+  assert.ok(paths.every(path=>created.some(id=>path.startsWith(`${ownerId}/${id}/`))),'Refusing storage cleanup outside fixture posts');
 
-  if(paths.length){const {error}=await admin.storage.from('media').remove(paths);if(error)problems.push('fixture storage');}
+  for(let offset=0;offset<paths.length;offset+=1000){const {error}=await admin.storage.from('media').remove(paths.slice(offset,offset+1000));if(error)problems.push('fixture storage');}
   if(created.length){const {error}=await admin.from('posts').delete().in('id',created);if(error)problems.push('fixture posts');}
   if(cacheInserted.length){const {error}=await admin.from('fdc_cache').delete().in('query',cacheInserted);if(error)problems.push('fixture cache');}
   await user.auth.signOut().catch(()=>{});

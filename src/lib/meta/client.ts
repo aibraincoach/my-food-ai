@@ -57,6 +57,13 @@ function retryable(status: number): boolean {
   return status === 408 || status === 409 || status === 429 || status >= 500;
 }
 
+// Buffer before exposing a response so header and body timeouts share one
+// retry boundary. SDK SSE consumers still receive the original event bytes.
+async function bufferedResponse(response: Response, headers = response.headers): Promise<Response> {
+  const body = response.body === null ? null : await response.arrayBuffer();
+  return new Response(body, {status: response.status, statusText: response.statusText, headers});
+}
+
 // SDK retries use these same limits. Its documented override header prevents
 // the SDK's longer Retry-After allowance from extending the job attempt.
 export function createMetaClient(): OpenAI {
@@ -64,12 +71,16 @@ export function createMetaClient(): OpenAI {
     fetch: async (input, init) => {
       const response = await fetch(input, init);
       const wait = retryAfterSeconds(response.headers);
-      if (!retryable(response.status) || (wait !== null && wait > MAX_RETRY_AFTER_S)) {
-        const headers = new Headers(response.headers);
-        headers.set("x-should-retry", "false");
-        return new Response(response.body, { status: response.status, statusText: response.statusText, headers });
+      const headers = new Headers(response.headers);
+      const noRetry = !retryable(response.status) || (wait !== null && wait > MAX_RETRY_AFTER_S);
+      if (noRetry) headers.set("x-should-retry", "false");
+      try { return await bufferedResponse(response, headers); }
+      catch (error) {
+        // An already known permanent HTTP error must not become a transport
+        // retry merely because its diagnostic body stalled.
+        if (!response.ok && noRetry) return new Response(null, {status: response.status, headers});
+        throw error;
       }
-      return response;
     },
   });
 }
@@ -78,13 +89,24 @@ export async function metaFetch(path: string, init: RequestInit = {}): Promise<R
   const headers = new Headers(init.headers);
   headers.set("Authorization", `Bearer ${metaApiKey()}`);
   for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
-    let response: Response;
+    let response: Response | undefined;
     const timeout = AbortSignal.timeout(TIMEOUT_MS);
     const signal = init.signal ? AbortSignal.any([init.signal, timeout]) : timeout;
     try {
       response = await fetch(`${META_API_BASE_URL}${path}`, { ...init, headers, signal });
+      const wait = retryAfterSeconds(response.headers);
+      // Retryable error responses can be cancelled immediately below; all
+      // success/final bodies must finish within this attempt's timeout.
+      const willRetry = !response.ok && attempt < MAX_RETRIES && retryable(response.status)
+        && (wait === null || wait <= MAX_RETRY_AFTER_S);
+      if (!willRetry) response = await bufferedResponse(response);
     } catch (error) {
       if (init.signal?.aborted) throw error;
+      if (response && !response.ok) {
+        const wait = retryAfterSeconds(response.headers);
+        if (!retryable(response.status) || (wait !== null && wait > MAX_RETRY_AFTER_S))
+          throw new MetaApiError(response.status, `meta: ${path} failed with ${response.status}.`);
+      }
       if (attempt < MAX_RETRIES) continue;
       throw new MetaApiError(timeout.aborted ? 504 : 503, "meta: request could not be completed.");
     }
