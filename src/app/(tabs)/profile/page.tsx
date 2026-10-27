@@ -1,8 +1,9 @@
 export default function ProfilePage() {
   return (
-    <main className="flex flex-1 flex-col p-4">
-      <h1 className="text-lg font-semibold">Profile</h1>
-      <p className="mt-2 text-sm text-neutral-500">Profile lands here in item 19.</p>
+    <main className="flex flex-1 flex-col">
+      <header className="flex h-top-h shrink-0 items-center px-screen-x">
+        <h1 className="text-title">Profile</h1>
+      </header>
     </main>
   );
 }
