@@ -70,6 +70,12 @@ web_modules/
 .env.*
 !.env.example
 
+# PM handover packages (RT-owned; only pack.sh writes here)
+uploads/
+
+# AGY review state (local git metadata)
+review-state/
+
 # parcel-bundler cache (https://parceljs.org/)
 .cache
 .parcel-cache

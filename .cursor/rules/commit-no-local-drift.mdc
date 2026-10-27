@@ -1,0 +1,15 @@
+---
+description: Commit and push all work; never leave uncommitted or unpushed changes
+alwaysApply: true
+---
+
+# No local-only changes
+
+When you create or modify tracked project files, finish the session step with them on the remote:
+
+1. Before ending work (or when the user asked for a deliverable), run `git status`. If anything is modified or untracked that belongs in the repo, stage and commit it in the same turn.
+2. Push the branch after commit unless the user explicitly forbids push for that task.
+3. Do not tell the user that files are "updated locally" or "not committed yet" as a normal outcome. That is a failure mode — fix it immediately.
+4. Gitignored paths (e.g. `.env`, `uploads/`) are the only exception.
+
+If a commit hook fails, fix the problem and create a new commit; do not leave the tree dirty.

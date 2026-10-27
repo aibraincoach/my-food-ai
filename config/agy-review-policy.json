@@ -1,0 +1,9 @@
+{
+  "schema_version": 1,
+  "repository": "aibraincoach/my-food-ai",
+  "retired_through": [],
+  "effort": "high",
+  "packet_limit_bytes": 150000,
+  "timeout_seconds": 2700,
+  "preferred_models": ["gemini-3.8-flash-high"]
+}
