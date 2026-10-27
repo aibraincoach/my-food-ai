@@ -1,3 +1,4 @@
+import { encodeFeedCursor, parseFeedCursor } from "./feed-cursor";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { feedCopyUrl } from "@/lib/media/media-url";
 import { normalizeStoredNutrition, type StoredNutrient, type Numeric } from "@/lib/nutrition/totals";
@@ -146,26 +147,28 @@ async function toFeedPost(
   };
 }
 
-// The user's own posts, newest first, 20 per page with no cursor yet.
+// Stable keyset pagination: the ID breaks ties between equal timestamps.
 export async function getFeed(
   supabase: SupabaseClient,
   userId: string,
   before: string | null = null
 ): Promise<{posts: FeedPost[]; nextCursor:string|null}> {
+  const cursor = before === null ? null : parseFeedCursor(before);
   let query = supabase
     .from("posts")
     .select("id,caption,eaten_at,status,created_at")
     .eq("user_id", userId)
     .order("created_at", { ascending: false })
+    .order("id", { ascending: false })
     .limit(FEED_PAGE_SIZE + 1);
-  if(before) query = query.lt("created_at",before);
+  if (cursor) query = query.or(`created_at.lt.${cursor.created_at},and(created_at.eq.${cursor.created_at},id.lt.${cursor.id})`);
   const {data,error} = await query;
   if (error) {
     throw new Error(error.message);
   }
   const rows = (data ?? []) as PostRow[];
   const page = rows.slice(0,FEED_PAGE_SIZE);
-  return {posts:await Promise.all(page.map((row)=>toFeedPost(supabase,row))), nextCursor: rows.length>FEED_PAGE_SIZE ? page.at(-1)!.created_at : null};
+  return {posts:await Promise.all(page.map((row)=>toFeedPost(supabase,row))), nextCursor: rows.length>FEED_PAGE_SIZE ? encodeFeedCursor(page.at(-1)!) : null};
 }
 
 // One card's worth of data, used for realtime refreshes and polling.
