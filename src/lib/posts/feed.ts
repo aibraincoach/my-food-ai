@@ -1,7 +1,7 @@
 import { encodeFeedCursor, parseFeedCursor } from "./feed-cursor";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { feedCopyUrl } from "@/lib/media/media-url";
-import type { Numeric } from "@/lib/nutrition/totals";
+import { normalizeStoredNutrition, type StoredNutrient, type Numeric } from "@/lib/nutrition/totals";
 
 export type PostStatus =
   | "queued"
@@ -68,6 +68,8 @@ interface ItemRow {
 }
 
 interface NutritionRow {
+  micronutrients: StoredNutrient[];
+  source_ref: string | null;
   post_item_id: string;
   calories: Numeric;
   protein_g: Numeric;
@@ -103,7 +105,7 @@ async function toFeedPost(
       const { data: nutritionRows } = await supabase
         .from("item_nutrition")
         .select(
-          "post_item_id,calories,protein_g,carbs_g,fat_g,fibre_g,sugar_g,sodium_mg"
+          "post_item_id,calories,protein_g,carbs_g,fat_g,fibre_g,sugar_g,sodium_mg,micronutrients,source_ref"
         )
         .in(
           "post_item_id",
@@ -114,7 +116,8 @@ async function toFeedPost(
         byItem.set(nutrition.post_item_id, nutrition);
       }
       items = typed.map((item) => {
-        const nutrition = byItem.get(item.id);
+        const stored = byItem.get(item.id);
+        const nutrition = stored ? normalizeStoredNutrition(stored, item.portion_grams) : null;
         return {
           id: item.id,
           name: item.name,

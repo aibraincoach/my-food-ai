@@ -1,3 +1,4 @@
+import { ioError } from "@/lib/worker/errors";
 // One-RPC persist for a finished analysis (item 10). Inserts one
 // post_items row per item (source model, mask_path, box), the matching
 // item_nutrition row after an FDC lookup, the summary as the first
@@ -71,20 +72,20 @@ export async function persistAnalysis(
       },
     });
   }
-  const { error } = await admin.rpc("persist_analysis", {
+  const { error, status } = await admin.rpc("persist_analysis", {
     p_post_id: named.postId,
     p_items: items,
     p_summary: named.summary,
   });
   if (error) {
-    throw new Error(`persist: analysis transaction failed: ${error.message}`);
+    throw ioError(`persist: analysis transaction failed: ${error.message}`, error, status);
   }
   await markReady(named.postId, admin);
 }
 
 // The shared application completion hook. Stored cards and push attach here.
 export async function markReady(postId: string, admin: SupabaseClient = createAdminClient()): Promise<boolean> {
-  const { data, error } = await admin.rpc("mark_post_ready", { p_post_id: postId });
-  if (error) throw new Error(`markReady failed: ${error.message}`);
+  const { data, error, status } = await admin.rpc("mark_post_ready", { p_post_id: postId });
+  if (error) throw ioError("Post readiness could not be saved.", error, status);
   return data === true;
 }
