@@ -35,6 +35,7 @@ export default function Feed() {
     let loadingMore = false;
     let generation = 0;
     const unavailable = new Set<string>();
+    const answered = new Set<string>();
     const cards = new Map<string, FeedPost>();
     const newest: string[] = [];
     const pending = new Map<string, { again: boolean; retries: number }>();
@@ -44,7 +45,7 @@ export default function Feed() {
       if (!live) return;
       // A late initial load must not erase cards received while it was in flight.
       const promoted = newest.flatMap((id) => cards.has(id) ? [cards.get(id)!] : []);
-      const posts = mergeFeedPosts(baseline, promoted).filter(post=>!unavailable.has(post.id)&&post.status!=="needs_input");
+      const posts = mergeFeedPosts(baseline, promoted).filter(post=>!unavailable.has(post.id)&&post.status!=="needs_input"&&(!answered.has(post.id)||post.status==="ready"));
       if (loaded || promoted.length) setState({ kind: "ready", posts });
     };
 
@@ -82,6 +83,8 @@ export default function Feed() {
           const card = await getPostCard(supabase, id);
           if (!live || requestGeneration !== generation) return;
           if(!card||card.status==="needs_input"){removeCard(id);return;}
+          if(answered.has(id)&&card.status!=="ready"){pending.delete(id);return;}
+          if(card.status==="ready")answered.delete(id);
           unavailable.delete(id);
           cards.set(id, card);
           publish();
@@ -108,7 +111,12 @@ export default function Feed() {
     };
     // Register before starting the initial asynchronous load.
     window.addEventListener("post-created", created);
-    window.addEventListener("post-updated", created);
+    const resume=(event:Event)=>{
+      const id=(event as CustomEvent<{id?:unknown}>).detail?.id;
+      if(typeof id==="string"&&id){answered.add(id);removeCard(id);}
+    };
+    window.addEventListener("post-answer-resume",resume);
+    window.addEventListener("post-ready",created);
 
     const load = async () => {
       initialLoading = true;
@@ -197,7 +205,8 @@ export default function Feed() {
       clearInterval(timer);
       for (const retry of timers) clearTimeout(retry);
       window.removeEventListener("post-created", created);
-      window.removeEventListener("post-updated", created);
+      window.removeEventListener("post-answer-resume",resume);
+      window.removeEventListener("post-ready",created);
       window.removeEventListener("post-unavailable",unavailableEvent);
       window.removeEventListener("focus", focus);
       document.removeEventListener("visibilitychange", focus);

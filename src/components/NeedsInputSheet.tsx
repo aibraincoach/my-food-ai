@@ -16,6 +16,6 @@ export default function NeedsInputSheet({post,onClose,onAnswered}:{post:Question
     {post.needs_input.options.map(option=><button key={option} type="button" onClick={()=>setAnswer(option)} aria-pressed={answer===option} className="min-h-field-h rounded-field border border-line bg-white px-field-x text-left text-body">{option}</button>)}
     <Field value={answer} onChange={event=>setAnswer(event.target.value)} placeholder="Something else…" aria-label="Your answer"/>
     {error&&<p role="alert" className="text-detail">{error}</p>}
-    <Button disabled={busy||!answer.trim()} onClick={async()=>{setBusy(true);try{const response=await fetch(`/api/posts/${post.id}/comments`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({text:answer})});if(!response.ok)throw new Error();window.dispatchEvent(new CustomEvent("post-updated",{detail:{id:post.id}}));onAnswered();}catch{setError("Answer could not be saved.");}finally{setBusy(false);}}}>{busy?"Saving…":"Done"}</Button>
+    <Button disabled={busy||!answer.trim()} onClick={async()=>{setBusy(true);try{const response=await fetch(`/api/posts/${post.id}/comments`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({text:answer})});if(!response.ok)throw new Error();window.dispatchEvent(new CustomEvent("post-answer-resume",{detail:{id:post.id}}));onAnswered();}catch{setError("Answer could not be saved.");}finally{setBusy(false);}}}>{busy?"Saving…":"Done"}</Button>
   </Sheet>;
 }
