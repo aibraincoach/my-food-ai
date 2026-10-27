@@ -8,6 +8,9 @@ test('a changed caption reaches confirmation before prior nutrition can be copie
   process.env.MODEL_API_KEY='fixture-key';
   let confirmation;
   globalThis.fetch=async(_url,options)=>{
+    const url=new URL(_url instanceof Request?_url.url:String(_url));
+    if(url.pathname.endsWith('/rest/v1/model_calls'))return new Response(null,{status:201});
+    assert.equal(url.pathname,'/v1/responses');
     const request=JSON.parse(options.body);
     confirmation=JSON.parse(request.input[0].content[0].text);
     const same=confirmation.current_caption===confirmation.past_caption;
@@ -37,7 +40,7 @@ test('captionless identical photos reach confirmation but never copy without its
   const savedFetch=globalThis.fetch,savedKey=process.env.MODEL_API_KEY;
   process.env.MODEL_API_KEY='fixture-key';
   let approved=false,calls=0;
-  globalThis.fetch=async()=>{calls++;return Response.json({status:'completed',output:[{type:'message',content:[{type:'output_text',text:JSON.stringify({same_meal:approved})}]}]});};
+  globalThis.fetch=async input=>{const url=new URL(input instanceof Request?input.url:String(input));if(url.pathname.endsWith('/rest/v1/model_calls'))return new Response(null,{status:201});assert.equal(url.pathname,'/v1/responses');calls++;return Response.json({status:'completed',output:[{type:'message',content:[{type:'output_text',text:JSON.stringify({same_meal:approved})}]}]});};
   const db=createClient('https://fixture.invalid','fixture-key',{global:{fetch:async input=>{
     const url=new URL(input instanceof Request?input.url:String(input));
     if(url.pathname.endsWith('/rpc/meal_prior_candidates'))return Response.json([{post_id:'past',text_score:null,photo_score:1,distance_m:null}]);

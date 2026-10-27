@@ -126,6 +126,22 @@ do $t$ declare p uuid;j uuid;j2 uuid;begin
  if(select payload->>'correction_applied' from jobs where id=j2)='true' then raise exception 'pending job marked applied';end if;
  if mark_post_ready(p)then raise exception 'pending message published ready';end if;
 end;$t$;
+do $t$ declare p uuid;j uuid;c public.post_comments;begin
+ insert into posts(user_id,status,analysis_initialized_at)values(current_setting('test.owner')::uuid,'failed',now())returning id into p;
+ insert into jobs(post_id,kind,status)values(p,'recompute','error');
+ c:=append_post_comment(p,current_setting('test.owner')::uuid,'Remove all food');
+ select id into j from jobs where post_id=p and kind='correct' and status='queued';
+ update jobs set status='running',payload=jsonb_build_object('correction_from_sequence',0,'correction_pending_ids',jsonb_build_array(c.id)) where id=j;
+ update posts set status='failed',fail_reason='Earlier recompute failed' where id=p;
+ if mark_post_ready(p)then raise exception 'stale render cleared earlier failure';end if;
+ if not persist_correction(p,j,array[]::uuid[],c.id,'[]'::jsonb,'No food remains.')then raise exception 'new correction not committed';end if;
+ if(select status from posts where id=p)<>'processing' or (select fail_reason from posts where id=p)is not null then raise exception 'successful correction retained predecessor failure';end if;
+ if not mark_post_ready(p)then raise exception 'recovered correction could not become ready';end if;
+ update posts set status='failed',fail_reason='Newer failure' where id=p;
+ if persist_correction(p,j,array[]::uuid[],c.id,'[]'::jsonb,'Replay')then raise exception 'old correction reapplied';end if;
+ if mark_post_ready(p)then raise exception 'old successful replay cleared newer failure';end if;
+ if(select fail_reason from posts where id=p)<>'Newer failure' then raise exception 'replay changed newer failure';end if;
+end;$t$;
 select 'comments: passed';rollback;
 `;
  const r=spawnSync('psql',['-X','-qAt','--dbname',process.env.SUPABASE_DB_URL],{input:sql,encoding:'utf8',timeout:90000});
