@@ -1,3 +1,5 @@
+import { ApiError } from "@/lib/worker/errors";
+
 // The one fetch wrapper for the Meta Model API (section 4).
 // Base URL https://api.meta.ai/v1, header Authorization: Bearer $MODEL_API_KEY.
 // Keys stay server-side; nothing here runs in the browser.
@@ -12,14 +14,12 @@ export function metaApiKey(): string {
   return key;
 }
 
-export class MetaApiError extends Error {
-  readonly status: number;
+export class MetaApiError extends ApiError {
   readonly code: string | undefined;
 
-  constructor(status: number, message: string, code?: string) {
-    super(message);
+  constructor(status: number, message: string, code?: string, body = "") {
+    super(status, body, message);
     this.name = "MetaApiError";
-    this.status = status;
     this.code = code;
   }
 }
@@ -47,12 +47,13 @@ export async function metaFetch(
   if (!response.ok) {
     let code: string | undefined;
     const message = `meta: ${path} failed with ${response.status}.`;
+    const body = await response.text();
     try {
-      code = errorCode(await response.json());
+      code = errorCode(JSON.parse(body));
     } catch {
       // Keep the default message when the body is not JSON.
     }
-    throw new MetaApiError(response.status, message, code);
+    throw new MetaApiError(response.status, message, code, body);
   }
   return response;
 }

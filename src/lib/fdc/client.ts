@@ -4,6 +4,7 @@
 // cache: every query hits fdc_cache first and only misses reach FDC.
 // Server-only: reads FDC_API_KEY from the environment.
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { ApiError } from "@/lib/worker/errors";
 
 const FDC_BASE_URL = "https://api.nal.usda.gov/fdc/v1";
 const DATA_TYPES = "Foundation,SR Legacy,Branded";
@@ -112,11 +113,12 @@ export async function searchFoods(
   const response = await fetch(
     `${FDC_BASE_URL}/foods/search?${params.toString()}`
   );
-  if (response.status === 429) {
-    throw new Error("fdc: rate limited (429); back off for an hour.");
-  }
   if (!response.ok) {
-    throw new Error(`fdc: search failed with ${response.status}.`);
+    throw new ApiError(
+      response.status,
+      await response.text(),
+      `fdc: search failed with ${response.status}.`
+    );
   }
   const payload = (await response.json()) as unknown;
   await admin.from("fdc_cache").upsert(
