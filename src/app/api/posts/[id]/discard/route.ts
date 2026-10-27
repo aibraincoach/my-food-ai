@@ -20,9 +20,12 @@ export async function POST(_request:Request,{params}:{params:Promise<{id:string}
       }
     };
     await walk(`${user.id}/${id}`);
-    for(let i=0;i<paths.length;i+=100){const {error}=await bucket.remove(paths.slice(i,i+100));if(error)throw error;}
-    const removed=await admin.from("posts").delete().eq("id",id).eq("user_id",user.id).eq("status","needs_input");
+    // Listing is read-only. Do not remove media until the conditional delete
+    // confirms this is still the owner's unanswered clarification post.
+    const removed=await admin.from("posts").delete().eq("id",id).eq("user_id",user.id).eq("status","needs_input").select("id").maybeSingle();
     if(removed.error)throw removed.error;
+    if(!removed.data)return NextResponse.json({error:"Meal changed before it could be discarded."},{status:409});
+    for(let i=0;i<paths.length;i+=100){const {error}=await bucket.remove(paths.slice(i,i+100));if(error)throw error;}
     return new Response(null,{status:204});
   }catch{return NextResponse.json({error:"Meal could not be discarded."},{status:500});}
 }

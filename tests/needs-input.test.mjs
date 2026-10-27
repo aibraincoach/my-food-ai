@@ -18,6 +18,15 @@ do $$ declare n int;begin
  get diagnostics n=row_count;
  if n<>0 then raise exception 'cross-user discard';end if;
 end $$;
+reset role;
+update posts set status='ready' where id=:'post';
+do $$ declare n int;begin
+ delete from posts where id=current_setting('test.question_post')::uuid and status='needs_input';
+ get diagnostics n=row_count;
+ if n<>0 or not exists(select 1 from posts where id=current_setting('test.question_post')::uuid and status='ready')then
+  raise exception 'changed meal was discarded';
+ end if;
+end $$;
 select 'needs-input: passed';
 rollback;`;
  const result=spawnSync('psql',['-X','-qAt','--dbname',process.env.SUPABASE_DB_URL],{input:sql,encoding:'utf8',timeout:60000});
