@@ -33,12 +33,15 @@ revoke all on function public.persist_correction_question(uuid,uuid,uuid[],uuid,
 grant execute on function public.persist_correction_question(uuid,uuid,uuid[],uuid,jsonb,text,jsonb) to service_role;
 
 -- Do not publish an older render over a question, even if its item fingerprint matches.
-create or replace function public.publish_results_card(p_post_id uuid, p_fingerprint text, p_storage_path text, p_size integer)
+create or replace function public.publish_results_card(p_post_id uuid, p_fingerprint text, p_storage_path text, p_size integer, p_job_id uuid default null)
 returns jsonb language plpgsql security definer set search_path = public, pg_temp as $$
 declare v_snapshot jsonb; v_old text; v_position integer; v_owner uuid; v_status text;
 begin
   select user_id,status into v_owner,v_status from public.posts where id = p_post_id for update;
   if not found or v_status in ('failed','needs_input') then return jsonb_build_object('published', false); end if;
+  if not public.post_work_matches(p_post_id,p_job_id) then
+    return jsonb_build_object('published', false);
+  end if;
   if exists (
     select 1 from public.jobs where post_id=p_post_id and kind='correct' and status in ('queued','running')
       and not coalesce((payload->>'correction_applied')::boolean,false)
@@ -59,12 +62,12 @@ begin
   values(p_post_id, 'card', p_storage_path, v_position, p_size, p_size)
   on conflict(post_id) where kind = 'card' do update set storage_path = excluded.storage_path,
     position = excluded.position, width = excluded.width, height = excluded.height;
-  update public.posts set status = 'ready', fail_reason = null where id = p_post_id;
+  update public.posts set status = 'ready', fail_reason = null, needs_input = null where id = p_post_id;
   return jsonb_build_object('published', true, 'old_path', v_old);
 end;
 $$;
-revoke all on function public.publish_results_card(uuid, text, text, integer) from public, anon, authenticated;
-grant execute on function public.publish_results_card(uuid, text, text, integer) to service_role;
+revoke all on function public.publish_results_card(uuid, text, text, integer, uuid) from public, anon, authenticated;
+grant execute on function public.publish_results_card(uuid, text, text, integer, uuid) to service_role;
 
 -- Detached cleanup survives post/job cascades and is committed with deletion.
 create or replace function public.discard_post(p_post_id uuid,p_user_id uuid,p_paths text[])
