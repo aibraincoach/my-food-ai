@@ -73,6 +73,7 @@ begin
  or (select count(*)from jobs where post_id=p and kind='correct' and status='queued')<>1 then raise exception 'history/reply/follow-up missing';end if;
  if persist_correction(p,j,array[old_id],c.id,payload,'Duplicate') then raise exception 'retry applied twice';end if;
  if(select count(*)from post_comments where post_id=p and author='model')<>1 then raise exception 'duplicate model reply';end if;
+ if mark_post_ready(p)then raise exception 'pending follow-up published ready';end if;
  -- A distinct job consumes both messages arriving during the previous call.
  select id into j2 from jobs where post_id=p and kind='correct' and status='queued';
  update jobs set status='running',payload=jsonb_build_object('correction_from_sequence',1,'correction_pending_ids',jsonb_build_array(later.id,later2.id)) where id=j2;
@@ -88,6 +89,17 @@ begin
   perform persist_correction(p,j3,array[]::uuid[],c.id,'[]'::jsonb,'Stale');raise exception 'stale empty snapshot accepted';
  exception when serialization_failure then null;end;
  if (select count(*) from post_comments where post_id=p and author='model')<>2 then raise exception 'stale transaction wrote reply';end if;
+end;$t$;
+do $t$declare p uuid;j uuid;begin
+ insert into posts(user_id,status)values(current_setting('test.owner')::uuid,'queued')returning id into p;
+ insert into post_comments(post_id,author,body)values(p,'user','Halve it');
+ insert into jobs(post_id,kind,status)values(p,'correct','error');
+ perform persist_analysis(p,'[]','No food');
+ select id into j from jobs where post_id=p and kind='correct' and status='queued';
+ if j is null then raise exception 'initial retry stranded comments';end if;
+ if mark_post_ready(p)then raise exception 'initial retry hid pending comment';end if;
+ update jobs set status='running',payload='{"correction_applied":true,"correction_sequence":0,"correction_pending_ids":[]}' where id=j;
+ if not mark_post_ready(p)then raise exception 'no-pending retry could not complete';end if;
 end;$t$;
 select 'comments: passed';rollback;
 `;
