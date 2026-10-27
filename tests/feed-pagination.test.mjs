@@ -5,9 +5,19 @@ import { createClient } from '@supabase/supabase-js';
 import { getFeed } from '../src/lib/posts/feed.ts';
 import { encodeFeedCursor, parseFeedCursor } from '../src/lib/posts/feed-cursor.ts';
 import { mergeFeedPosts } from '../src/lib/posts/feed-order.ts';
+import { retryKind } from '../src/lib/posts/retry-kind.ts';
 
 const timestamp = '2026-10-27T12:00:00.123456+00:00';
 const uuid = n => `00000000-0000-0000-0000-${String(n).padStart(12, '0')}`;
+
+test('retrying edited meals does not restart the initial analysis', () => {
+  assert.equal(retryKind('analyze'), 'analyze');
+  assert.equal(retryKind('correct'), 'correct');
+  assert.equal(retryKind('recompute'), 'recompute');
+  assert.equal(retryKind('card_backfill'), 'recompute');
+  assert.equal(retryKind(undefined), null);
+  assert.equal(retryKind('unknown'), null);
+});
 
 test('refreshing or retrying an older meal preserves chronological order', () => {
   const recent = { id: uuid(2), created_at: timestamp, status: 'ready' };
