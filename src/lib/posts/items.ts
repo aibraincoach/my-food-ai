@@ -60,7 +60,7 @@ export async function editPostItem(admin: SupabaseClient, postId: string, userId
 }
 
 export async function getPostDetail(supabase: SupabaseClient, postId: string) {
-  const { data: post, error } = await supabase.from("posts").select("id,caption,eaten_at,status")
+  const { data: post, error } = await supabase.from("posts").select("id,caption,eaten_at,status,analysis_initialized_at")
     .eq("id", postId).maybeSingle();
   if (error) throw new Error("Meal could not be loaded.");
   if (!post) return null;
