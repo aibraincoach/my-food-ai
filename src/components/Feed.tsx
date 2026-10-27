@@ -108,6 +108,7 @@ export default function Feed() {
     };
     // Register before starting the initial asynchronous load.
     window.addEventListener("post-created", created);
+    window.addEventListener("post-updated", created);
 
     const load = async () => {
       initialLoading = true;
@@ -196,6 +197,7 @@ export default function Feed() {
       clearInterval(timer);
       for (const retry of timers) clearTimeout(retry);
       window.removeEventListener("post-created", created);
+      window.removeEventListener("post-updated", created);
       window.removeEventListener("post-unavailable",unavailableEvent);
       window.removeEventListener("focus", focus);
       document.removeEventListener("visibilitychange", focus);
