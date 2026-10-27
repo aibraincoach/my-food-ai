@@ -30,3 +30,18 @@ export function isRetriable(error: unknown): boolean {
   }
   return false;
 }
+
+// PostgREST returns HTTP status beside (not inside) its error. Network failures
+// are serialized into message/details with status 0 by the SDK.
+export function ioError(message: string, cause: unknown, status?: number): Error {
+  const error = new Error(message, { cause });
+  if (status !== undefined && status >= 400) return Object.assign(error, { status });
+  if (status === 0 && cause && typeof cause === "object") {
+    const detail = cause as { message?: string; details?: string };
+    const text = `${detail.message ?? ""} ${detail.details ?? ""}`;
+    const code = text.match(/\b(?:ETIMEDOUT|UND_ERR_CONNECT_TIMEOUT|UND_ERR_HEADERS_TIMEOUT|UND_ERR_BODY_TIMEOUT)\b/)?.[0];
+    if (code) return Object.assign(error, { code });
+    if (/^(AbortError|TimeoutError):/.test(detail.message ?? "")) return Object.assign(error, { name: "TimeoutError" });
+  }
+  return error;
+}

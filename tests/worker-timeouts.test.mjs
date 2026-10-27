@@ -54,3 +54,21 @@ test('pipeline preserves real Supabase Storage HTTP and timeout metadata', async
     });
   }
 });
+
+test('database HTTP and serialized transport errors survive persist and finish boundaries', async () => {
+  const { createClient } = await import('@supabase/supabase-js');
+  const { persistAnalysis } = await import('../src/lib/pipeline/persist.ts');
+  const { finishJob } = await import('../src/lib/queue/claim.ts');
+  for (const scenario of [503, 400, 'timeout']) {
+    const db = createClient('https://fixture.invalid', 'fixture-key', { global: { fetch: async () => {
+      if (scenario === 'timeout') throw new TypeError('fetch failed', { cause: { code: 'UND_ERR_HEADERS_TIMEOUT' } });
+      return new Response(JSON.stringify({ message: 'database failure', code: '' }), { status: scenario });
+    } } });
+    for (const call of [() => persistAnalysis(db, { postId: 'fixture', regions: [], captionOnly: [], summary: '' }), () => finishJob(db, 'fixture')]) {
+      await assert.rejects(call(), error => {
+        assert.equal(isRetriable(error), scenario !== 400, `${scenario}: ${error.message}`);
+        return true;
+      });
+    }
+  }
+});
