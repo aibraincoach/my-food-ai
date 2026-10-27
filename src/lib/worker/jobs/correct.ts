@@ -1,9 +1,10 @@
 import { readPostComments, readCorrectionProgress } from '@/lib/posts/timeline';
 import { resolvePortionNutrition } from "@/lib/nutrition/portion";
-import { waitForInitialAnalysis } from "@/lib/pipeline/correction-ready";
+import recompute from "./recompute";
+import { loadCorrectionItems, waitForInitialAnalysis } from "@/lib/pipeline/correction-ready";
 import { ioError } from "@/lib/worker/errors";
 import type { JobHandler } from '@/lib/worker/handlers';
-import { getCurrentItems, toNumber } from '@/lib/nutrition/totals';
+import { toNumber } from '@/lib/nutrition/totals';
 import { createResponse, MetaApiError } from '@/lib/meta/client';
 import { correctPrompt } from '@/lib/prompts/spark/correct';
 import schema from '@/lib/prompts/spark/correct.schema.json';
@@ -29,7 +30,7 @@ const correct:JobHandler=async(admin,job)=>{
  if(!job.post_id)throw new Error('Correction requires a post.');
  await waitForInitialAnalysis(admin,job.post_id);
  if(job.payload.correction_applied===true){await markReady(job.post_id,admin);return;}
- const items=await getCurrentItems(admin,job.post_id,{requireNutrition:true});
+ const items=await loadCorrectionItems(admin,job.post_id,()=>recompute(admin,job));
  const [thread,completed]=await Promise.all([readPostComments(admin,job.post_id),readCorrectionProgress(admin,job.post_id)]);
  let window;
  try{window=correctionWindow(thread??[],completed??[]);}catch{throw new MetaApiError(503,'Correction history changed while loading.');}
