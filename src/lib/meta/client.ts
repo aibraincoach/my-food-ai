@@ -44,10 +44,10 @@ function errorCode(payload: unknown): string | undefined {
 }
 
 function retryAfterSeconds(headers: Headers): number | null {
-  const millis = headers.get("retry-after-ms");
-  if (millis !== null && Number.isFinite(Number(millis))) return Math.max(0, Number(millis) / 1000);
-  const value = headers.get("retry-after");
-  if (value === null) return null;
+  const millis = headers.get("retry-after-ms")?.trim();
+  if (millis && Number.isFinite(Number(millis))) return Math.max(0, Number(millis) / 1000);
+  const value = headers.get("retry-after")?.trim();
+  if (!value) return null;
   if (Number.isFinite(Number(value))) return Math.max(0, Number(value));
   const date = Date.parse(value);
   return Number.isFinite(date) ? Math.max(0, (date - Date.now()) / 1000) : null;
