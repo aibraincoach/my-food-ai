@@ -1,3 +1,4 @@
+alter table public.posts add column analysis_initialized_at timestamptz;
 -- 0004 already introduced these history columns for retry-safe persistence.
 alter table public.post_items add column if not exists superseded_at timestamptz;
 alter table public.post_items add column if not exists supersedes uuid references public.post_items(id);
@@ -12,7 +13,7 @@ create policy post_items_owner_select on public.post_items for select to authent
 );
 create policy post_items_owner_insert on public.post_items for insert to authenticated with check (
   source = 'user' and superseded_at is null and
-  exists (select 1 from public.posts p where p.id = post_id and p.user_id = auth.uid())
+  exists (select 1 from public.posts p where p.id = post_id and p.user_id = auth.uid() and p.analysis_initialized_at is not null)
 );
 create policy post_items_owner_supersede on public.post_items for update to authenticated using (
   superseded_at is null and exists (select 1 from public.posts p where p.id = post_id and p.user_id = auth.uid())
@@ -64,9 +65,11 @@ declare
   v_grams numeric;
   v_width integer;
   v_height integer;
+  v_initialized timestamptz;
 begin
-  perform 1 from public.posts where id = p_post_id and user_id = p_user_id for update;
+  select analysis_initialized_at into v_initialized from public.posts where id = p_post_id and user_id = p_user_id for update;
   if not found then raise exception 'Post not found' using errcode = '42501'; end if;
+  if v_initialized is null then raise exception 'Initial meal analysis must complete before editing' using errcode='55000';end if;
   if p_action is null or p_action not in ('rename', 'portion', 'remove', 'add') then
     raise exception 'Invalid item action' using errcode = '22023';
   end if;
@@ -161,7 +164,6 @@ grant execute on function public.edit_post_item_with_nutrition(uuid, uuid, text,
 
 -- Initial analysis commits once. Later card/finish retries must never restore
 -- model rows over a user's edits (including removing the entire meal).
-alter table public.posts add column analysis_initialized_at timestamptz;
 update public.posts p set analysis_initialized_at=now()
 where exists(select 1 from public.post_comments c where c.post_id=p.id and c.author='model')
    or exists(select 1 from public.post_items i where i.post_id=p.id and i.source='model');
