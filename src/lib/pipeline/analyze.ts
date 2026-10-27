@@ -112,7 +112,7 @@ export interface NamedPost extends SegmentedPost {
 // regions (whole-image naming). Unknown region indexes come back as
 // null (caption-only). Item 10 persists the rows.
 export async function identifyMeal(
-  photo: Uint8Array,
+  photo: Uint8Array | null,
   mime: string,
   caption: string | null,
   segmented: SegmentedPost
@@ -168,12 +168,30 @@ export async function analyzePost(
   if (postError || !post) {
     throw new Error("analyze: post not found.");
   }
-  const segmented = await segmentPost(supabase, postId, post.user_id);
-  const photo = await loadFirstPhoto(supabase, postId);
-  return identifyMeal(
-    photo.bytes,
-    "image/jpeg",
-    post.caption,
-    segmented
-  );
+  // Caption-only posts are valid (item 6): with no post_media rows there
+  // is nothing to segment, so Spark names from the caption alone and
+  // every item persists with a null box and mask path (item 10).
+  let segmented: SegmentedPost;
+  let photo: Uint8Array | null;
+  try {
+    segmented = await segmentPost(supabase, postId, post.user_id);
+    photo = (await loadFirstPhoto(supabase, postId)).bytes;
+  } catch (error) {
+    if (
+      error instanceof Error &&
+      error.message === "analyze: post has no photo."
+    ) {
+      segmented = {
+        postId,
+        userId: post.user_id,
+        photoWidth: 0,
+        photoHeight: 0,
+        regions: [],
+      };
+      photo = null;
+    } else {
+      throw error;
+    }
+  }
+  return identifyMeal(photo, "image/jpeg", post.caption, segmented);
 }
