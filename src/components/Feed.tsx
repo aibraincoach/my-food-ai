@@ -105,7 +105,7 @@ export default function Feed() {
     loadMore.current = () => {
       if(!cursor || loadingMore || !live) return;
       loadingMore=true;
-      void fetch(`/api/feed?before=${encodeURIComponent(cursor)}`).then(async response=>{
+      void fetch(`/api/feed?cursor=${encodeURIComponent(cursor)}`).then(async response=>{
         if(!response.ok) throw new Error("Feed page failed.");
         const page = await response.json() as {posts:FeedPost[];nextCursor:string|null};
         if(!live) return;
