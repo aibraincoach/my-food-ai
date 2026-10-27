@@ -7,7 +7,7 @@ begin
     new.search_tsv=to_tsvector('english',coalesce(new.caption,'')||' '||coalesce((select string_agg(name,' ') from post_items where post_id=new.id and superseded_at is null),''));
     return new;
   end if;
-  update posts set search_tsv=to_tsvector('english',caption||' '||coalesce((select string_agg(name,' ') from post_items where post_id=coalesce(new.post_id,old.post_id) and superseded_at is null),'')) where id=coalesce(new.post_id,old.post_id);
+  update posts set search_tsv=to_tsvector('english',coalesce(caption,'')||' '||coalesce((select string_agg(name,' ') from post_items where post_id=coalesce(new.post_id,old.post_id) and superseded_at is null),'')) where id=coalesce(new.post_id,old.post_id);
   return coalesce(new,old);
 end $$;
 create trigger posts_search before insert or update of caption on public.posts for each row execute function public.rebuild_post_search();
