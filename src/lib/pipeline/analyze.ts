@@ -134,7 +134,13 @@ export async function identifyMeal(
       captionOnly.push(item);
       continue;
     }
-    if (!byRegion.has(item.regionIndex)) byRegion.set(item.regionIndex, item);
+    if (!byRegion.has(item.regionIndex)) {
+      byRegion.set(item.regionIndex, item);
+    } else {
+      // A second item for the same region is still food: keep it as a
+      // caption-only row (null box) rather than dropping it silently.
+      captionOnly.push(item);
+    }
   }
   const regions: NamedRegion[] = segmented.regions.map((region) => ({
     ...region,
