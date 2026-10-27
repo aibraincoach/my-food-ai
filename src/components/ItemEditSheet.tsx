@@ -8,13 +8,14 @@ import type { DetailItem, ItemBox, ItemEdit } from "@/lib/posts/items";
 import { formatGrams, formatNutrition } from "@/lib/nutrition/totals";
 
 type Match = { id: number; description: string };
-export default function ItemEditSheet({ postId, item, color, box, onClose, onSaved, onAdd, onDraw }: {
-  postId: string; item: DetailItem | null; color: string; box?: ItemBox;
+export default function ItemEditSheet({ postId, item, color, box, open = true, onClose, onSaved, onAdd, onDraw }: {
+  postId: string; item: DetailItem | null; color: string; box?: ItemBox; open?: boolean;
   onClose: () => void; onSaved: () => void; onAdd: () => void; onDraw?: () => void;
 }) {
   const [name, setName] = useState(item?.name ?? "");
   const [grams, setGrams] = useState(item?.portion_grams == null ? "" : String(item.portion_grams));
   const [chosen, setChosen] = useState(name);
+  const [fdcSelection, setFdcSelection] = useState<ItemEdit["fdc_selection"]>();
   const [matches, setMatches] = useState<{ query: string; values: Match[]; error?: string } | null>(null);
   const [saving, setSaving] = useState(false);
   const savingRef = useRef(false);
@@ -46,7 +47,7 @@ export default function ItemEditSheet({ postId, item, color, box, onClose, onSav
     savingRef.current = true; setSaving(true); setError(null);
     const edit: ItemEdit = remove ? { action: "remove", item_id: item?.id } : {
       action: !item ? "add" : name.trim() !== item.name ? "rename" : "portion",
-      item_id: item?.id, name: name.trim(), portion_grams: amount, ...(!item && box ? { box } : {}),
+      item_id: item?.id, name: name.trim(), portion_grams: amount, fdc_selection: fdcSelection, ...(!item && box ? { box } : {}),
     };
     try {
       const response = await fetch(`/api/posts/${postId}/items`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(edit) });
@@ -57,15 +58,15 @@ export default function ItemEditSheet({ postId, item, color, box, onClose, onSav
     finally { savingRef.current = false; setSaving(false); }
   };
   const visibleMatches = name !== chosen && matches?.query === name.trim() ? matches : null;
-  return <Sheet open onClose={onClose} label={item ? "Edit meal item" : "Add meal item"}>
+  return <Sheet open={open} onClose={onClose} label={item ? "Edit meal item" : "Add meal item"}>
     <div className="flex items-center gap-2 text-sheet-title"><span className="size-shimmer-h shrink-0 rounded-circle" style={{ background: color }} aria-hidden="true" />
       <h2>{item ? `${item.name} · ${item.portion_grams == null ? "—" : formatGrams(item.portion_grams)} · ${formatNutrition(item.calories)} kcal` : "Add another item"}</h2>
     </div>
     <div className="flex flex-col gap-grid">
-      <Field label="Name" value={name} onChange={(event) => setName(event.target.value)} maxLength={160} disabled={saving} autoComplete="off" />
+      <Field label="Name" value={name} onChange={(event) => { setName(event.target.value); setFdcSelection(undefined); }} maxLength={160} disabled={saving} autoComplete="off" />
       {visibleMatches?.values.length ? <ul aria-label="Food matches" className="divide-y divide-hairline">
         {visibleMatches.values.map((food) => <li key={food.id}><button type="button" disabled={saving}
-          className="min-h-tap w-full py-grid text-left text-detail" onClick={() => { setName(food.description); setChosen(food.description); }}>{food.description}</button></li>)}
+          className="min-h-tap w-full py-grid text-left text-detail" onClick={() => { setName(food.description); setChosen(food.description); setFdcSelection({ id: food.id, query: visibleMatches.query }); }}>{food.description}</button></li>)}
       </ul> : null}
       {visibleMatches?.error ? <p className="text-meta text-muted">{visibleMatches.error}</p> : null}
     </div>

@@ -1,4 +1,5 @@
 import { traceContext } from "@/lib/trace/context";
+import { ioError } from "@/lib/worker/errors";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { claimJob, finishJob } from "@/lib/queue/claim";
 import { releaseLease, renewLease } from "@/lib/queue/lease";
@@ -23,12 +24,12 @@ export async function drainOnce(admin: SupabaseClient): Promise<DrainStats> {
   } catch (e) {
     // The database locks the running job and commits job/post failure together.
     // attempts was incremented by claim_job; the third retriable error is final.
-    const { error } = await admin.rpc("fail_job", {
+    const { error, status } = await admin.rpc("fail_job", {
       p_job_id: job.id,
       p_message: e instanceof Error ? e.message : "worker error.",
       p_retriable: isRetriable(e),
     });
-    if (error) throw new Error(`fail_job failed: ${error.message}`);
+    if (error) throw ioError(`fail_job failed: ${error.message}`, error, status);
     return { processed: 1, failed: true };
   }
 }
@@ -52,14 +53,14 @@ export async function runWorker(
   } finally {
     await releaseLease(admin, holder).catch(() => {});
   }
-  const { data: next, error } = await admin
+  const { data: next, error, status } = await admin
     .from("jobs")
     .select("run_after")
     .eq("status", "queued")
     .order("run_after", { ascending: true })
     .limit(1)
     .maybeSingle<{ run_after: string }>();
-  if (error) throw new Error(`worker remaining jobs: ${error.message}`);
+  if (error) throw ioError(`worker remaining jobs: ${error.message}`, error, status);
   if (next && tickSelf) {
     // after() awaits this timer and the self-request. Delay rather than spin
     // through new serverless invocations while the backoff is still pending.

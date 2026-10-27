@@ -1,3 +1,4 @@
+import { ApiError, ioError } from "@/lib/worker/errors";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { scaleNutrition } from "@/lib/fdc/nutrients";
 
@@ -116,7 +117,7 @@ export interface CurrentItem extends NutritionLike {
   source_ref: string | null;
 }
 
-type NutritionRow = NutritionLike & {
+export type NutritionRow = NutritionLike & {
   post_item_id: string;
   micronutrients: StoredNutrient[];
   source_ref: string | null;
@@ -141,21 +142,34 @@ export function normalizeStoredNutrition(row: NutritionRow, grams: Numeric): Nut
     micronutrients: scaled.micronutrients as StoredNutrient[] };
 }
 
+// Portion-only revisions retain the already selected USDA identity and density.
+export function rescaleStoredNutrition(row: NutritionRow, oldGrams: Numeric, newGrams: Numeric): NutritionRow {
+  const normalized = normalizeStoredNutrition(row, oldGrams);
+  const old = toNumber(oldGrams), next = toNumber(newGrams);
+  const factor = old > 0 && next > 0 ? next / old : null;
+  const scale = (value: Numeric) => value == null || factor === null ? null : toNumber(value) * factor;
+  return { ...normalized, calories: scale(normalized.calories), protein_g: scale(normalized.protein_g),
+    carbs_g: scale(normalized.carbs_g), fat_g: scale(normalized.fat_g), fibre_g: scale(normalized.fibre_g),
+    sugar_g: scale(normalized.sugar_g), sodium_mg: scale(normalized.sodium_mg),
+    micronutrients: normalized.micronutrients.map(entry => ({ ...entry, value: scale(entry.value), basis: "portion" })) };
+}
+
 // All detail/totals consumers use only current rows; superseded originals and
 // their nutrition remain in the database as immutable edit history.
-export async function getCurrentItems(supabase: SupabaseClient, postId: string): Promise<CurrentItem[]> {
-  const { data, error } = await supabase.from("current_post_items")
+export async function getCurrentItems(supabase: SupabaseClient, postId: string, options: { requireNutrition?: boolean } = {}): Promise<CurrentItem[]> {
+  const { data, error, status } = await supabase.from("current_post_items")
     .select("id,name,portion_text,portion_grams,box,mask_path,source").eq("post_id", postId)
     .order("created_at", { ascending: true });
-  if (error) throw new Error(`Current items could not be read: ${error.message}`);
+  if (error) throw ioError("Current items could not be read.", error, status);
   if (!data?.length) return [];
-  const { data: nutrition, error: nutritionError } = await supabase.from("item_nutrition")
+  const { data: nutrition, error: nutritionError, status: nutritionStatus } = await supabase.from("item_nutrition")
     .select("post_item_id,calories,protein_g,carbs_g,fat_g,fibre_g,sugar_g,sodium_mg,micronutrients,source_ref")
     .in("post_item_id", data.map((item) => item.id));
-  if (nutritionError) throw new Error(`Nutrition could not be read: ${nutritionError.message}`);
+  if (nutritionError) throw ioError("Nutrition could not be read.", nutritionError, nutritionStatus);
   const byId = new Map((nutrition as NutritionRow[] | null ?? []).map((row) => [row.post_item_id, row]));
   return data.map((item) => {
     const row = byId.get(item.id);
+    if (!row && options.requireNutrition) throw new ApiError(503, "", "Item nutrition is awaiting recomputation.");
     const normalized = row ? normalizeStoredNutrition(row, item.portion_grams) : null;
     return { ...item, source: item.source as "model" | "user", calories: normalized?.calories ?? null,
       protein_g: normalized?.protein_g ?? null, carbs_g: normalized?.carbs_g ?? null,

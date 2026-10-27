@@ -8,6 +8,7 @@ import { tokens } from "@/lib/theme/tokens";
 import PostCard from "@/components/PostCard";
 import AnalysisBlock from "@/components/AnalysisBlock";
 import RealtimePost from "@/components/RealtimePost";
+import { mergeFeedPosts } from "@/lib/posts/feed-order";
 
 type State = { kind: "loading" } | { kind: "error" } | { kind: "ready"; posts: FeedPost[] };
 const DISCOVERY_INTERVAL_MS = 2000;
@@ -20,6 +21,7 @@ export default function Feed() {
   const sentinel = useRef<HTMLDivElement>(null);
   const loadMore = useRef<() => void>(()=>{});
   const [state, setState] = useState<State>({ kind: "loading" });
+  const [pageError, setPageError] = useState(false);
 
   useEffect(() => {
     const supabase = createClient();
@@ -39,7 +41,7 @@ export default function Feed() {
       if (!live) return;
       // A late initial load must not erase cards received while it was in flight.
       const promoted = newest.flatMap((id) => cards.has(id) ? [cards.get(id)!] : []);
-      const posts = [...promoted, ...baseline.filter((post) => !cards.has(post.id))];
+      const posts = mergeFeedPosts(baseline, promoted);
       if (loaded || promoted.length) setState({ kind: "ready", posts });
     };
 
@@ -105,14 +107,15 @@ export default function Feed() {
     loadMore.current = () => {
       if(!cursor || loadingMore || !live) return;
       loadingMore=true;
-      void fetch(`/api/feed?before=${encodeURIComponent(cursor)}`).then(async response=>{
+      setPageError(false);
+      void fetch(`/api/feed?cursor=${encodeURIComponent(cursor)}`).then(async response=>{
         if(!response.ok) throw new Error("Feed page failed.");
         const page = await response.json() as {posts:FeedPost[];nextCursor:string|null};
         if(!live) return;
         baseline.push(...page.posts.filter(post=>!baseline.some(existing=>existing.id===post.id)));
         cursor=page.nextCursor;
         publish();
-      }).catch(()=>{}).finally(()=>{loadingMore=false;});
+      }).catch(()=>{if(live)setPageError(true);}).finally(()=>{loadingMore=false;});
     };
     const discover = async () => {
       if (!live || !userId || discovering || document.hidden) return;
@@ -177,6 +180,10 @@ export default function Feed() {
     {state.posts.map((post) => <RealtimePost key={post.id} initial={post} renderCard={(fresh) => <PostCard post={fresh}
       analysis={fresh.status === "ready" && fresh.items.length > 0 ? <AnalysisBlock post={fresh} /> : undefined}
     />} />)}
+    {pageError ? <div className="px-screen-x text-detail text-muted" role="alert">
+      <p>More meals could not be loaded.</p>
+      <button type="button" className="min-h-tap text-text" onClick={() => loadMore.current()}>Try again</button>
+    </div> : null}
     <div ref={sentinel} className="h-tap" aria-hidden="true" />
   </div>;
 }

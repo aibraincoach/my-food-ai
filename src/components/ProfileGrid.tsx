@@ -13,7 +13,7 @@ export function ProfileGrid({ posts }: { posts: GridPost[] }) {
             // eslint-disable-next-line @next/next/no-img-element
             <img src={post.photoUrl} alt={post.caption || "Meal"} className="h-full w-full object-cover" />
           ) : post.status !== "ready" ? (
-            <span className="text-meta text-muted">Processing</span>
+            <span className="text-meta text-muted">{post.status === "failed" ? "Could not analyse" : post.status === "needs_input" ? "Needs input" : "Processing"}</span>
           ) : (
             <span>{formatNutrition(post.calories)} kcal</span>
           )}
