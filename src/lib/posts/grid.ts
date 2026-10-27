@@ -1,6 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { feedCopyUrl } from "@/lib/media/media-url";
-import { toNumber, type Numeric } from "@/lib/nutrition/totals";
+import { getCurrentItems, sumNutrition } from "@/lib/nutrition/totals";
 
 export interface GridPost {
   id: string;
@@ -13,8 +13,7 @@ interface GridRow {
   id: string;
   caption: string;
   status: string;
-  post_media: { position: number; storage_path: string }[];
-  post_items: { item_nutrition: { calories: Numeric } | null }[];
+  post_media: { position: number; storage_path: string; kind: "photo" | "card" }[];
 }
 
 // Read with the session client, retaining RLS as well as the explicit owner filter.
@@ -24,7 +23,7 @@ export async function getProfileGrid(supabase: SupabaseClient, userId: string): 
   const pageSize = 100;
   for (let offset = 0; ; offset += pageSize) {
     const { data, error } = await supabase.from("posts")
-      .select("id,caption,status,post_media(position,storage_path),post_items(item_nutrition(calories))")
+      .select("id,caption,status,post_media(position,storage_path,kind)")
       .eq("user_id", userId)
       .order("created_at", { ascending: false })
       .order("id", { ascending: false })
@@ -37,14 +36,14 @@ export async function getProfileGrid(supabase: SupabaseClient, userId: string): 
       if (first) {
         const dot = first.storage_path.lastIndexOf(".");
         const base = dot < 0 ? first.storage_path : first.storage_path.slice(0, dot);
-        photoUrl = await feedCopyUrl(supabase, `${base}.feed.jpg`);
+        photoUrl = await feedCopyUrl(supabase, first.kind === "card" ? first.storage_path : `${base}.feed.jpg`);
       }
       return {
         id: row.id,
         caption: row.caption,
         photoUrl,
         calories: row.status === "ready"
-          ? row.post_items.reduce((sum, item) => sum + toNumber(item.item_nutrition?.calories), 0)
+          ? (sumNutrition(await getCurrentItems(supabase, row.id))).calories
           : null,
       };
     })));

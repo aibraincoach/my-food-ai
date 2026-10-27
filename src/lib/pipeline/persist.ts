@@ -10,6 +10,7 @@ import {
   chooseBestMatch,
   scaleNutrition,
 } from "@/lib/fdc/nutrients";
+import { renderResultsCard } from "./results-card";
 import type { NamedPost } from "./analyze";
 
 export async function persistAnalysis(
@@ -84,7 +85,5 @@ export async function persistAnalysis(
 
 // The shared application completion hook. Stored cards and push attach here.
 export async function markReady(postId: string, admin: SupabaseClient = createAdminClient()): Promise<boolean> {
-  const { data, error } = await admin.rpc("mark_post_ready", { p_post_id: postId });
-  if (error) throw new Error(`markReady failed: ${error.message}`);
-  return data === true;
+  return renderResultsCard(admin, postId);
 }
