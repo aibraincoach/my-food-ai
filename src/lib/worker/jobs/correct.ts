@@ -1,3 +1,5 @@
+import { resolvePortionNutrition } from "@/lib/nutrition/portion";
+import { waitForInitialAnalysis } from "@/lib/pipeline/correction-ready";
 import { ioError } from "@/lib/worker/errors";
 import type { JobHandler } from '@/lib/worker/handlers';
 import { getCurrentItems, toNumber } from '@/lib/nutrition/totals';
@@ -24,6 +26,7 @@ function parse(text:string):{items:Correction[];reply:string} {
 }
 const correct:JobHandler=async(admin,job)=>{
  if(!job.post_id)throw new Error('Correction requires a post.');
+ await waitForInitialAnalysis(admin,job.post_id);
  if(job.payload.correction_applied===true){await markReady(job.post_id,admin);return;}
  const items=await getCurrentItems(admin,job.post_id,{requireNutrition:true});
  const {data:thread,error:threadError,status:threadStatus}=await admin.from('post_comments').select('id,author,body,created_at').eq('post_id',job.post_id).order('created_at').order('id');
@@ -33,13 +36,13 @@ const correct:JobHandler=async(admin,job)=>{
  let window;
  try{window=correctionWindow(thread??[],completed??[]);}catch{throw new MetaApiError(503,'Correction history changed while loading.');}
  const latest=window.pending.at(-1);
- if(!latest)return;
+ if(!latest){await markReady(job.post_id,admin);return;}
  const {data:prepared,error:prepareError,status:prepareStatus}=await admin.from('jobs').update({payload:{...job.payload,correction_from_sequence:window.sequence,correction_pending_ids:window.pending.map(comment=>comment.id)}}).eq('id',job.id).eq('status','running').select('id').maybeSingle();
  if(prepareError)throw ioError('Correction snapshot could not be saved.',prepareError,prepareStatus);
  if(!prepared)throw new MetaApiError(503,'Correction snapshot could not be saved.');
  const {data:media,error:mediaError,status:mediaStatus}=await admin.from('post_media').select('storage_path').eq('post_id',job.post_id).order('position').limit(1).maybeSingle();
  if(mediaError)throw ioError('Correction photo could not be read.',mediaError,mediaStatus);
- const content:Record<string,unknown>[]=[{type:'input_text',text:JSON.stringify({items:items.map((i,index)=>({id:i.id,name:i.name,portion_text:i.portion_text,portion_grams:i.portion_grams,calories:i.calories,region_index:i.box?index:null,box:i.box})),history:window.history,pending_messages:window.pending})}];
+ const content:Record<string,unknown>[]=[{type:'input_text',text:JSON.stringify({items:items.map((i,index)=>({id:i.id,name:i.name,portion_text:i.portion_text,portion_grams:i.portion_grams,calories:i.calories,region_index:index,box:i.box})),history:window.history,pending_messages:window.pending})}];
  if(media){
   const {data,error}=await admin.storage.from('media').download(media.storage_path);
   if(error)throw ioError('Correction photo could not be opened.',error);
@@ -55,12 +58,18 @@ const correct:JobHandler=async(admin,job)=>{
   const old=item.keep?items.find(i=>i.id===item.keep):undefined;
   if(item.keep&&(!old||kept.has(item.keep)||old.name!==item.name||old.portion_text!==item.portion_text||(old.portion_grams==null?null:toNumber(old.portion_grams))!==item.portion_grams))throw new MetaApiError(500,'Correction changed an item marked unchanged.');
   if(item.keep)kept.add(item.keep);
-  const region=item.region_index===null?undefined:items[item.region_index];
+  if(item.region_index!==null&&(item.region_index<0||item.region_index>=items.length))throw new MetaApiError(500,'Invalid source item index.');
+  const named=items.filter(prior=>prior.name===item.name);
+  const region=item.region_index===null?(named.length===1?named[0]:undefined):items[item.region_index];
   let nutrition;
   if(old)nutrition={calories:old.calories,protein_g:old.protein_g,carbs_g:old.carbs_g,fat_g:old.fat_g,fibre_g:old.fibre_g,sugar_g:old.sugar_g,sodium_mg:old.sodium_mg,micronutrients:old.micronutrients,source_ref:old.source_ref};
   else {
+   const retained=region?.name===item.name?await resolvePortionNutrition(admin,job.post_id,region.id,item.name,item.portion_grams):null;
+   if(retained)nutrition=retained;
+   else {
    const n=scaleNutrition(chooseBestMatch(await searchFoods(admin,item.name)),item.portion_grams);
    nutrition={calories:n.calories,protein_g:n.proteinG,carbs_g:n.carbsG,fat_g:n.fatG,fibre_g:n.fibreG,sugar_g:n.sugarG,sodium_mg:n.sodiumMg,micronutrients:n.micronutrients,source_ref:n.sourceRef};
+   }
   }
   rows.push({name:item.name,portion_text:item.portion_text,portion_grams:item.portion_grams,box:old?old.box:region?.box??null,mask_path:old?old.mask_path:region?.mask_path??null,supersedes:old?.id??region?.id??null,nutrition});
  }
