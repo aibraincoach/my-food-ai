@@ -3,13 +3,24 @@ import type {SupabaseClient} from "@supabase/supabase-js";
 import {createResponse} from "@/lib/meta/client";
 import {sameMealPrompt,sameMealSchema} from "@/lib/prompts/spark/same-meal";
 import {loadFirstPhoto, type NamedPost} from "./analyze";
-// A nearby place is within 150m. Missing photo/location signals contribute zero.
+// Preserve the planned relative weights, normalized over available signals.
+// Missing caption/photo/location must not penalize supported photo-only meals.
 export const PRIOR = {textWeight:0.5,photoWeight:0.3,placeWeight:0.2,placeMetres:150,copyThreshold:0.85,hintThreshold:0.55} as const;
+export function priorScore(row: { text_score: number | null; photo_score: number | null; distance_m: number | null }): number {
+  const signals = [[row.text_score, PRIOR.textWeight], [row.photo_score, PRIOR.photoWeight],
+    [row.distance_m === null ? null : row.distance_m <= PRIOR.placeMetres ? 1 : 0, PRIOR.placeWeight]];
+  let score = 0, weight = 0;
+  for (const [value, importance] of signals) {
+    if (value === null || importance === null) continue;
+    score += value * importance; weight += importance;
+  }
+  return weight ? score / weight : 0;
+}
 export async function findPrior(admin:SupabaseClient,postId:string):Promise<{hint:string; named?:NamedPost; nutrition?:Record<string,unknown>[]}|null> {
   const {data,error,status}=await admin.rpc("meal_prior_candidates",{p_post_id:postId});
   if(error) throw ioError(`Meal prior lookup failed: ${error.message}`,error,status);
-  const candidates=(data??[]).map((row:{post_id:string;text_score:number;photo_score:number;distance_m:number|null})=>({...row,
-    score:PRIOR.textWeight*row.text_score+PRIOR.photoWeight*row.photo_score+PRIOR.placeWeight*(row.distance_m!==null&&row.distance_m<=PRIOR.placeMetres?1:0)})).sort((a:{score:number},b:{score:number})=>b.score-a.score);
+  const candidates=(data??[]).map((row:{post_id:string;text_score:number|null;photo_score:number|null;distance_m:number|null})=>({...row,
+    score:priorScore(row)})).sort((a:{score:number},b:{score:number})=>b.score-a.score);
   const best=candidates[0];
   if(!best||best.score<PRIOR.hintThreshold) return null;
   const {data:items,error:itemError,status:itemStatus}=await admin.from("post_items").select("id,name,portion_text,portion_grams,confidence,item_nutrition(*)").eq("post_id",best.post_id).is("superseded_at",null).order("created_at");
