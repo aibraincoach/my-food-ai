@@ -19,16 +19,20 @@ export function isRetriable(error: unknown): boolean {
   // fetch wraps Undici failures in TypeError.cause; SDKs can add another wrapper.
   // Guard cycles without retrying unrelated transport or programming errors.
   const seen = new Set<object>();
+  let httpStatus: number | undefined;
   while (typeof error === "object" && error !== null && !seen.has(error)) {
     seen.add(error);
     const value = error as { status?: unknown; name?: unknown; code?: unknown; cause?: unknown; originalError?: unknown };
-    if (typeof value.status === "number") return value.status === 429 || value.status >= 500;
-    if (value.name === "AbortError" || value.name === "TimeoutError"
-      || (typeof value.code === "string" && TIMEOUT_CODES.has(value.code))) return true;
+    // PostgREST maps serialization conflicts/deadlocks to 4xx responses,
+    // but retrying their entire transaction is safe and required.
+    if (value.code === "40001" || value.code === "40P01") return true;
+    if (httpStatus === undefined && typeof value.status === "number") httpStatus = value.status;
+    if (httpStatus === undefined && (value.name === "AbortError" || value.name === "TimeoutError"
+      || (typeof value.code === "string" && TIMEOUT_CODES.has(value.code)))) return true;
     // Supabase StorageUnknownError retains fetch failures as originalError.
     error = value.cause ?? value.originalError;
   }
-  return false;
+  return httpStatus === 429 || (httpStatus !== undefined && httpStatus >= 500);
 }
 
 // PostgREST returns HTTP status beside (not inside) its error. Network failures
