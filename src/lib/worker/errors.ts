@@ -11,17 +11,21 @@ export class ApiError extends Error {
   }
 }
 
+const TIMEOUT_CODES = new Set([
+  "ETIMEDOUT", "UND_ERR_CONNECT_TIMEOUT", "UND_ERR_HEADERS_TIMEOUT", "UND_ERR_BODY_TIMEOUT",
+]);
+
 export function isRetriable(error: unknown): boolean {
-  if (typeof error !== "object" || error === null) return false;
-  const value = error as { status?: unknown; name?: unknown; code?: unknown; cause?: unknown };
-  if (typeof value.status === "number") {
-    return value.status === 429 || value.status >= 500;
-  }
-  if (value.name === "AbortError" || value.code === "ETIMEDOUT") return true;
-  // Node's fetch wraps network timeouts in a TypeError with a cause.
-  if (typeof value.cause === "object" && value.cause !== null) {
-    const cause = value.cause as { code?: unknown };
-    return cause.code === "ETIMEDOUT";
+  // fetch wraps Undici failures in TypeError.cause; SDKs can add another wrapper.
+  // Guard cycles without retrying unrelated transport or programming errors.
+  const seen = new Set<object>();
+  while (typeof error === "object" && error !== null && !seen.has(error)) {
+    seen.add(error);
+    const value = error as { status?: unknown; name?: unknown; code?: unknown; cause?: unknown };
+    if (typeof value.status === "number") return value.status === 429 || value.status >= 500;
+    if (value.name === "AbortError" || value.name === "TimeoutError"
+      || (typeof value.code === "string" && TIMEOUT_CODES.has(value.code))) return true;
+    error = value.cause;
   }
   return false;
 }
