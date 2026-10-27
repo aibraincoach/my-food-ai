@@ -1,0 +1,94 @@
+import { NextResponse } from "next/server";
+import { createClient } from "@/lib/supabase/server";
+import { signShotUploads } from "@/lib/media/storage";
+
+// POST creates the posts row (status queued), the post_media rows and the
+// analyze job in one go, and returns signed upload URLs. Caption-only posts
+// skip the uploads. PUT (the complete step) ticks the queue once uploads
+// finish; the post stays queued until the worker (item 7) claims it.
+export async function POST(request: Request) {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return NextResponse.json({ error: "Sign in required." }, { status: 401 });
+
+  const body = (await request.json()) as {
+    caption?: string;
+    eaten_at?: string;
+    shots?: { position: number; width: number; height: number }[];
+  };
+  const { data: post, error: postError } = await supabase
+    .from("posts")
+    .insert({
+      user_id: user.id,
+      caption: body.caption ?? "",
+      eaten_at: body.eaten_at ?? new Date().toISOString(),
+      status: "queued",
+    })
+    .select("id")
+    .single();
+  if (postError || !post) {
+    return NextResponse.json({ error: postError?.message ?? "Post insert failed." }, { status: 400 });
+  }
+
+  const shots = body.shots ?? [];
+  if (shots.length > 0) {
+    const { error: mediaError } = await supabase.from("post_media").insert(
+      shots.map((s) => ({
+        post_id: post.id,
+        storage_path: `${user.id}/${post.id}/${s.position}.jpg`,
+        position: s.position,
+        width: s.width,
+        height: s.height,
+      }))
+    );
+    if (mediaError) {
+      return NextResponse.json({ error: mediaError.message }, { status: 400 });
+    }
+  }
+
+  const { error: jobError } = await supabase
+    .from("jobs")
+    .insert({ post_id: post.id, kind: "analyze", priority: 100, status: "queued" });
+  if (jobError) {
+    return NextResponse.json({ error: jobError.message }, { status: 400 });
+  }
+
+  const uploads =
+    shots.length > 0
+      ? await signShotUploads(
+          supabase,
+          user.id,
+          post.id,
+          shots.map((s) => s.position)
+        ).catch((e: unknown) => {
+          return { error: e instanceof Error ? e.message : "Signing upload URLs failed." };
+        })
+      : [];
+  if ("error" in (uploads as object) && (uploads as { error?: string }).error) {
+    return NextResponse.json({ error: (uploads as { error: string }).error }, { status: 500 });
+  }
+  return NextResponse.json({ postId: post.id, uploads });
+}
+
+export async function PUT(request: Request) {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return NextResponse.json({ error: "Sign in required." }, { status: 401 });
+  const { postId } = (await request.json()) as { postId?: string };
+  if (!postId) return NextResponse.json({ error: "postId is required." }, { status: 400 });
+
+  const { data: post } = await supabase.from("posts").select("id").eq("id", postId).single();
+  if (!post) return NextResponse.json({ error: "Post not found." }, { status: 404 });
+
+  // Best-effort tick; the route lands with item 7.
+  try {
+    await fetch(new URL("/api/jobs/tick", request.url));
+  } catch {
+    // The worker picks the job up on the next request tick.
+  }
+  return NextResponse.json({ ok: true });
+}
