@@ -73,3 +73,8 @@ test('invalid cursor data is rejected before any database request', async () => 
   }
   assert.equal(requests, 0);
 });
+
+test('uninitialized failure retries initial analysis before pending correction; initialized replay recomputes',()=>{
+ assert.equal(retryKind('correct',false),'analyze');assert.equal(retryKind('analyze',false),'analyze');
+ assert.equal(retryKind('analyze',true),'recompute');assert.equal(retryKind('correct',true),'correct');
+});
