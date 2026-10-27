@@ -1,0 +1,37 @@
+// node --import tsx --test tests/worker-timeouts.test.mjs
+import assert from 'node:assert/strict';
+import test from 'node:test';
+import { createServer } from 'node:http';
+import { once } from 'node:events';
+import { ApiError, isRetriable } from '../src/lib/worker/errors.ts';
+
+test('fetch timeout causes remain retryable through SDK wrappers', () => {
+  for (const code of ['UND_ERR_CONNECT_TIMEOUT', 'UND_ERR_HEADERS_TIMEOUT', 'UND_ERR_BODY_TIMEOUT', 'ETIMEDOUT']) {
+    const cause = Object.assign(new Error('transport timed out'), { code });
+    const fetchError = new TypeError('fetch failed', { cause });
+    assert.equal(isRetriable(fetchError), true, code);
+    assert.equal(isRetriable(new Error('provider request failed', { cause: fetchError })), true, code);
+  }
+  assert.equal(isRetriable(new TypeError('fetch failed', { cause: { code: 'ENOTFOUND' } })), false);
+  assert.equal(isRetriable(new ApiError(400, 'invalid request')), false);
+  assert.equal(isRetriable(new SyntaxError('invalid provider JSON')), false);
+  const cyclic = new Error('not a timeout');
+  cyclic.cause = cyclic;
+  assert.equal(isRetriable(cyclic), false);
+});
+
+test('native fetch AbortSignal timeout is retryable', async () => {
+  const server = createServer(() => {});
+  server.listen(0, '127.0.0.1');
+  await once(server, 'listening');
+  try {
+    await assert.rejects(fetch(`http://127.0.0.1:${server.address().port}`, { signal: AbortSignal.timeout(30) }), error => {
+      assert.equal(error.name, 'TimeoutError');
+      assert.equal(isRetriable(error), true);
+      return true;
+    });
+  } finally {
+    server.closeAllConnections();
+    await new Promise(resolve => server.close(resolve));
+  }
+});
