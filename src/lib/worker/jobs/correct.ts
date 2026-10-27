@@ -5,6 +5,7 @@ import { resolvePortionNutrition } from "@/lib/nutrition/portion";
 import recompute from "./recompute";
 import { loadCorrectionItems, waitForInitialAnalysis } from "@/lib/pipeline/correction-ready";
 import { ioError } from "@/lib/worker/errors";
+import { isOwnedPhotoPath } from "@/lib/media/paths";
 import type { JobHandler } from '@/lib/worker/handlers';
 import { toNumber } from '@/lib/nutrition/totals';
 import { createResponse, MetaApiError } from '@/lib/meta/client';
@@ -51,6 +52,9 @@ const correct:JobHandler=async(admin,job)=>{
  if(mediaError)throw ioError('Correction photo could not be read.',mediaError,mediaStatus);
  const content:Record<string,unknown>[]=[{type:'input_text',text:JSON.stringify({items:items.map((i,index)=>({id:i.id,name:i.name,portion_text:i.portion_text,portion_grams:i.portion_grams,calories:i.calories,region_index:index,box:i.box})),history:window.history,pending_messages:window.pending})}];
  if(media){
+  const {data:post,error:ownerError,status:ownerStatus}=await admin.from('posts').select('user_id').eq('id',job.post_id).maybeSingle();
+  if(ownerError)throw ioError('Correction photo owner could not be read.',ownerError,ownerStatus);
+  if(!post||!isOwnedPhotoPath(media.storage_path,post.user_id,job.post_id))throw new Error('Correction photo path does not belong to this meal.');
   const {data,error}=await admin.storage.from('media').download(media.storage_path);
   if(error)throw ioError('Correction photo could not be opened.',error);
   if(!data)throw new Error('Correction photo could not be opened.');

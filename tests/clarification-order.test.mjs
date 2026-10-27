@@ -109,8 +109,12 @@ do $$ declare u uuid:=gen_random_uuid();p uuid;j uuid;c public.post_comments;s j
  update jobs set status='running',payload=jsonb_build_object('post_ownership',true,'correction_from_sequence',1,'correction_pending_ids',jsonb_build_array(c.id))where id=j;
  update posts set active_job_id=j,status='processing' where id=p;
  perform persist_correction(p,j,array[]::uuid[],c.id,'[]','Pasta.');
+ -- The answer committed, but a successor recompute owns final publication.
+ update jobs set status='finished' where id=j;
+ insert into jobs(post_id,kind,status,payload)values(p,'recompute','running','{"post_ownership":true}')returning id into j;
+ update posts set active_job_id=j,status='processing' where id=p;
  s:=results_card_snapshot(p);
- if not(publish_results_card(p,s->>'fingerprint',u||'/'||p||'/cards/'||gen_random_uuid()||'/card.png',1080,j)->>'published')::boolean then raise exception 'actual answer could not publish';end if;
+ if not(publish_results_card(p,s->>'fingerprint',u||'/'||p||'/cards/'||gen_random_uuid()||'/card.png',1080,j)->>'published')::boolean then raise exception 'successor recompute lost the actual answer';end if;
  if exists(select 1 from posts where id=p and needs_input is not null)then raise exception 'resolved question remains';end if;
 end $$;
 select 'clarification-order: passed';
