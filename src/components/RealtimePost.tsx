@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { getPostCard, isSettled, type FeedPost } from "@/lib/posts/feed";
 
@@ -14,6 +14,15 @@ export default function RealtimePost({ initial, renderCard }: {
   // A fresh local-create read supersedes an earlier INSERT snapshot, including
   // its signed photo URL. Never retain the old mount-only initial state.
   const post = snapshot.seed === initial ? snapshot.current : initial;
+
+  const lastReady = useRef(post.status === "ready" ? JSON.stringify([post.id, post.items]) : "");
+  useEffect(() => {
+    if (post.status !== "ready") return;
+    const signature = JSON.stringify([post.id, post.items]);
+    if (lastReady.current === signature) return;
+    lastReady.current = signature;
+    window.dispatchEvent(new CustomEvent("post-ready", { detail: { id: post.id } }));
+  }, [post]);
 
   useEffect(() => {
     const supabase = createClient();
