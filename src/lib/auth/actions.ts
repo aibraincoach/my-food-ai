@@ -19,14 +19,26 @@ export async function signUp(formData: FormData): Promise<void> {
   }
   // The profiles table has no client insert policy, so the row is created
   // with the service-role client; the secret key never leaves the server.
+  // The redirect below stays outside the try: redirect() throws
+  // NEXT_REDIRECT, which a catch here would mistake for a real error.
+  let profileMessage: string | null = null;
   try {
     const admin = createAdminClient();
     const { error: profileError } = await admin
       .from("profiles")
       .insert({ id: data.user.id, handle });
-    if (profileError) fail("/sign-up", profileError.message);
+    if (profileError) profileMessage = profileError.message;
   } catch (e) {
-    fail("/sign-up", e instanceof Error ? e.message : "Profile creation failed.");
+    profileMessage = e instanceof Error ? e.message : "Profile creation failed.";
+  }
+  if (profileMessage) {
+    // Roll back the orphan auth user so the address can sign up again.
+    try {
+      await createAdminClient().auth.admin.deleteUser(data.user.id);
+    } catch {
+      // Best effort; the sign-up error below is what matters.
+    }
+    fail("/sign-up", profileMessage);
   }
   redirect("/");
 }
