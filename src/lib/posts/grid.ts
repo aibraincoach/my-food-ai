@@ -27,6 +27,7 @@ export async function getProfileGrid(supabase: SupabaseClient, userId: string): 
     const { data, error } = await supabase.from("posts")
       .select("id,caption,status,post_media(position,storage_path),post_items(item_nutrition(calories))")
       .eq("user_id", userId)
+      .is("post_items.superseded_at", null)
       .order("created_at", { ascending: false })
       .order("id", { ascending: false })
       .range(offset, offset + pageSize - 1);
