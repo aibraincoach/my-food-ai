@@ -107,7 +107,7 @@ export default function OutlineOverlay({ postId, caption, eatenAt, status, photo
     if (!drawing || !a || !p) return;
     const box = { left: Math.min(a.x, p.x), top: Math.min(a.y, p.y), right: Math.max(a.x, p.x), bottom: Math.max(a.y, p.y) };
     setDrawing(false); setDrawBox(null);
-    setSelection({ item: null, box: box.right - box.left > 1 && box.bottom - box.top > 1 ? box : undefined, key: Date.now() });
+    setSelection((current) => current ? { ...current, box: box.right - box.left > 1 && box.bottom - box.top > 1 ? box : current.box } : null);
   };
   const add = () => { setDrawing(false); setSelection({ item: null, key: Date.now() }); };
   const totals = sumNutrition(items);
@@ -148,14 +148,14 @@ export default function OutlineOverlay({ postId, caption, eatenAt, status, photo
       <p className="min-w-0 whitespace-pre-wrap break-words text-body">{caption}</p>
       {photo ? <p className="shrink-0 text-meta text-muted">{drawing ? "Drag to draw a box" : "Tap an outline to edit"}</p> : null}
     </div>
-    {drawing ? <div className="flex justify-between px-screen-x text-comment"><button className="min-h-tap" onClick={add}>Continue without a box</button><button className="min-h-tap text-muted" onClick={() => { setDrawing(false); setDrawBox(null); }}>Cancel</button></div> : null}
+    {drawing ? <div className="flex justify-between px-screen-x text-comment"><button className="min-h-tap" onClick={() => { setDrawing(false); setDrawBox(null); setSelection((current) => current ? { ...current, box: undefined } : null); }}>Continue without a box</button><button className="min-h-tap text-muted" onClick={() => { setDrawing(false); setDrawBox(null); }}>Cancel</button></div> : null}
     <ItemRows items={items} onSelect={(item) => setSelection({ item, key: Date.now() })} onAdd={add} />
     {waiting || ["queued", "processing"].includes(status) ? <p role="status" className="px-screen-x text-meta text-muted">Updating nutrition…</p> : null}
     {status === "failed" ? <p role="status" className="px-screen-x text-meta text-muted">Nutrition could not be updated.</p> : null}
-    {selection ? <ItemEditSheet key={selection.key} postId={postId} item={selection.item} box={selection.box}
+    {selection ? <ItemEditSheet key={selection.key} postId={postId} item={selection.item} box={selection.box} open={!drawing}
       color={outlineColor(selection.item ? Math.max(0, items.findIndex((item) => item.id === selection.item!.id)) : items.length)}
       onClose={() => setSelection(null)} onAdd={add}
-      onDraw={photo ? () => { setSelection(null); setOutlines(true); setDrawing(true); } : undefined}
+      onDraw={photo ? () => { setOutlines(true); setDrawing(true); } : undefined}
       onSaved={() => { setSelection(null); setWaiting(true); router.refresh(); void fetch("/api/jobs/tick").catch(() => {}); }} /> : null}
   </>;
 }

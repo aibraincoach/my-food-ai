@@ -61,3 +61,30 @@ end;
 $$;
 revoke all on function public.enqueue_card_backfill() from public, anon, authenticated;
 grant execute on function public.enqueue_card_backfill() to service_role;
+
+-- Reuse bounded retry bookkeeping while isolating card maintenance failures.
+create or replace function public.fail_job(p_job_id uuid, p_message text, p_retriable boolean)
+returns void language plpgsql security definer
+set search_path = public, pg_temp as $$
+declare
+  v_job public.jobs;
+begin
+  select * into v_job from public.jobs where id = p_job_id for update;
+  if not found or v_job.status <> 'running' then
+    raise exception 'fail_job requires a running job';
+  end if;
+  if not p_retriable or v_job.attempts >= 3 then
+    update public.jobs set status = 'error', finished_at = clock_timestamp(), error = p_message
+      where id = p_job_id;
+    -- Card maintenance must never discard a meal's successful analysis.
+    if v_job.kind <> 'card_backfill' then
+    update public.posts set status = 'failed', fail_reason = split_part(p_message, E'\n', 1)
+      where id = v_job.post_id;
+    end if;
+  else
+    update public.jobs set status = 'queued', finished_at = null, error = p_message,
+      run_after = clock_timestamp() + interval '30 seconds' * power(2, v_job.attempts - 1)
+      where id = p_job_id;
+  end if;
+end $$;
+

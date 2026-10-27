@@ -16,6 +16,14 @@ if (existsSync(envLocal)) {
   }
 }
 
+// Importing this module is side-effect free apart from loading missing env names.
+export async function drainOnce(admin) {
+  const { tsImport } = await import("tsx/esm/api");
+  const worker = await tsImport("../src/lib/worker/drain.ts", import.meta.url);
+  return worker.drainOnce(admin);
+}
+
+if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
 if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.SUPABASE_SECRET_KEY) {
   console.error("worker-local: Supabase URL/secret key missing from .env.local.");
   process.exit(1);
@@ -32,3 +40,5 @@ const [{ count: queued }, { count: running }, { data: oldest }] = await Promise.
   admin.from("jobs").select("id,kind,created_at,attempts").eq("status", "queued").order("created_at").limit(1),
 ]);
 console.log(JSON.stringify({ queued: queued ?? 0, running: running ?? 0, oldest: oldest?.[0] ?? null }));
+
+}
