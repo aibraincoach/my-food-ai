@@ -1,5 +1,6 @@
 'use client';
 import {useCallback,useEffect,useState} from 'react';
+import {readPostComments} from '@/lib/posts/timeline';
 import {useRouter} from 'next/navigation';
 import {correctionFeedback} from '@/lib/posts/correction-feedback';
 import {createClient} from '@/lib/supabase/client';
@@ -12,11 +13,11 @@ export default function Thread({postId}:{postId:string}){
  useEffect(()=>{
   const client=createClient();let live=true;let inFlight=false;let initialized=false;let knownStatus:string|null=null;const knownModels=new Set<string>();
   const load=async()=>{if(inFlight)return;inFlight=true;try{
-   const [{data,error},{data:post,error:postError}]=await Promise.all([
-    client.from('post_comments').select('id,author,body,created_at').eq('post_id',postId).order('created_at').order('id'),
+   const [data,{data:post,error:postError}]=await Promise.all([
+    readPostComments(client,postId),
     client.from('posts').select('status').eq('id',postId).maybeSingle(),
    ]);
-   if(!live)return;if(error||postError||!post){setError('Comments could not be loaded.');return;}
+   if(!live)return;if(postError||!post){setError('Comments could not be loaded.');return;}
    const models=(data??[]).filter(row=>row.author==='model');
    if(initialized&&models.some(row=>!knownModels.has(row.id)))router.refresh();
    for(const model of models)knownModels.add(model.id);initialized=true;
