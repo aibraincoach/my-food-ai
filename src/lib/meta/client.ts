@@ -1,5 +1,5 @@
 import OpenAI from "openai";
-import { ApiError } from "@/lib/worker/errors";
+import { ApiError, isRetriable } from "@/lib/worker/errors";
 
 // The one fetch wrapper for the Meta Model API (section 4).
 // Base URL https://api.meta.ai/v1, header Authorization: Bearer $MODEL_API_KEY.
@@ -53,7 +53,7 @@ function retryAfterSeconds(headers: Headers): number | null {
 }
 
 function retryable(status: number): boolean {
-  return status === 408 || status === 409 || status === 429 || status >= 500;
+  return status === 429 || status >= 500;
 }
 
 // Buffer before exposing a response so header and body timeouts share one
@@ -106,8 +106,10 @@ export async function metaFetch(path: string, init: RequestInit = {}): Promise<R
         if (!retryable(response.status) || (wait !== null && wait > MAX_RETRY_AFTER_S))
           throw new MetaApiError(response.status, `meta: ${path} failed with ${response.status}.`);
       }
+      if (!timeout.aborted && !isRetriable(error)) throw error;
       if (attempt < MAX_RETRIES) continue;
-      throw new MetaApiError(timeout.aborted ? 504 : 503, "meta: request could not be completed.");
+      // Preserve the timeout/transport cause for the worker classifier.
+      throw error;
     }
     if (response.ok) return response;
     const wait = retryAfterSeconds(response.headers);
