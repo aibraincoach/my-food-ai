@@ -7,6 +7,7 @@ import { font } from "@/lib/theme/font";
 import { TopBar } from "@/components/ui/TopBar";
 import { Icon } from "@/components/ui/Icon";
 import OutlineOverlay, { DetailDate } from "@/components/OutlineOverlay";
+import Thread from "@/components/Thread";
 import NutritionTable from "@/components/NutritionTable";
 
 export const instant = false;
@@ -24,5 +25,6 @@ export default async function PostDetail({ params }: { params: Promise<{ id: str
     <TopBar title={<DetailDate value={detail.post.eaten_at} weekday />} left={<Link href="/" aria-label="Back to meals" className="flex min-h-tap min-w-tap items-center"><Icon name="back" /></Link>} />
     <OutlineOverlay postId={id} caption={detail.post.caption} eatenAt={detail.post.eaten_at} status={detail.post.status} photo={detail.photo} items={detail.items} />
     <NutritionTable items={detail.items} />
+    <Thread postId={id} />
   </main>;
 }
