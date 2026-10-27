@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { signShotUploads } from "@/lib/media/storage";
 
 // POST creates the posts row (status queued), the post_media rows and the
@@ -48,7 +49,9 @@ export async function POST(request: Request) {
     }
   }
 
-  const { error: jobError } = await supabase
+  // jobs has no client insert policy (service-role only), so the enqueue
+  // uses the admin client; the secret key never leaves the server.
+  const { error: jobError } = await createAdminClient()
     .from("jobs")
     .insert({ post_id: post.id, kind: "analyze", priority: 100, status: "queued" });
   if (jobError) {
