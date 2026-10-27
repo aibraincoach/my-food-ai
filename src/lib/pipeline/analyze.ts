@@ -33,6 +33,7 @@ export async function loadFirstPhoto(
   const { data: media, error } = await supabase
     .from("post_media")
     .select("storage_path,width,height")
+    .eq("kind", "photo")
     .eq("post_id", postId)
     .order("position", { ascending: true })
     .limit(1)
