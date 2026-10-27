@@ -1,3 +1,4 @@
+import { ioError } from "@/lib/worker/errors";
 // Analyze pipeline entry (items 8-10 share this boundary).
 // Item 8: load the first photo, segment it, store the mask PNGs.
 // Item 9: name the regions with Muse Spark (identifyMeal below).
@@ -30,7 +31,7 @@ export async function loadFirstPhoto(
   supabase: SupabaseClient,
   postId: string
 ): Promise<{ bytes: Uint8Array; width: number; height: number }> {
-  const { data: media, error } = await supabase
+  const { data: media, error, status: mediaStatus } = await supabase
     .from("post_media")
     .select("storage_path,width,height")
     .eq("post_id", postId)
@@ -41,7 +42,8 @@ export async function loadFirstPhoto(
       width: number | null;
       height: number | null;
     }>();
-  if (error || !media) {
+  if (error) throw ioError("analyze: photo metadata lookup failed.", error, mediaStatus);
+  if (!media) {
     throw new Error("analyze: post has no photo.");
   }
   const { data: blob, error: downloadError } = await supabase.storage
@@ -49,7 +51,8 @@ export async function loadFirstPhoto(
     .download(media.storage_path);
   if (downloadError || !blob) {
     throw new Error(
-      `analyze: photo download failed: ${downloadError?.message ?? "empty object."}`
+      `analyze: photo download failed: ${downloadError?.message ?? "empty object."}`,
+      { cause: downloadError }
     );
   }
   return {
@@ -83,7 +86,7 @@ export async function segmentPost(
       .from(BUCKET)
       .upload(maskPath, png, { contentType: "image/png", upsert: true });
     if (uploadError) {
-      throw new Error(`analyze: mask upload failed: ${uploadError.message}`);
+      throw new Error(`analyze: mask upload failed: ${uploadError.message}`, { cause: uploadError });
     }
     regions.push({ ...region, maskPath });
   }
@@ -163,12 +166,13 @@ export async function analyzePost(
   postId: string,
   prior = ""
 ): Promise<NamedPost> {
-  const { data: post, error: postError } = await supabase
+  const { data: post, error: postError, status: postStatus } = await supabase
     .from("posts")
     .select("user_id,caption")
     .eq("id", postId)
     .maybeSingle<PostCaptionRow>();
-  if (postError || !post) {
+  if (postError) throw ioError("analyze: post lookup failed.", postError, postStatus);
+  if (!post) {
     throw new Error("analyze: post not found.");
   }
   // Caption-only posts are valid (item 6): with no post_media rows there
