@@ -48,6 +48,7 @@ test('the real recompute handler repairs an exhausted predecessor without creati
   if(path.endsWith('/posts'))return Response.json({status:'processing'});
   if(path.endsWith('/rpc/results_card_snapshot')){publications++;return Response.json(null);}
   if(path.endsWith('/rpc/mark_post_ready')){publications++;return Response.json(false);}
+
   throw new Error(`Unexpected request: ${path}`);
  }}});
  const job={id:'current-correction',post_id:'post',kind:'correct',status:'running',payload:{}};
