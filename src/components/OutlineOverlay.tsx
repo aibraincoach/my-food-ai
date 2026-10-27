@@ -111,12 +111,13 @@ export default function OutlineOverlay({ initialized, postId, caption, eatenAt, 
   };
   const add = () => { setDrawing(false); setSelection({ item: null, key: Date.now() }); };
   const totals = sumNutrition(items);
+  const showNutrition = initialized && (items.length > 0 || status === "ready");
   return <>
     <div ref={ref} className="relative aspect-square w-full overflow-hidden bg-card" style={{ touchAction: drawing ? "none" : "auto" }}
       onPointerDown={pointerDown} onPointerMove={pointerMove} onPointerUp={pointerUp}
       onPointerCancel={() => { start.current = null; setDrawBox(null); }}
       onClick={(event) => {
-        if (drawing || !outlines || selection) return;
+        if (!initialized || drawing || !outlines || selection) return;
         const p = point(event); if (!p) return;
         const hit = items.filter((item) => item.box && p.x >= item.box.left && p.x <= item.box.right && p.y >= item.box.top && p.y <= item.box.bottom)
           .sort((a, b) => (a.box!.right - a.box!.left) * (a.box!.bottom - a.box!.top) - (b.box!.right - b.box!.left) * (b.box!.bottom - b.box!.top))[0];
@@ -140,9 +141,9 @@ export default function OutlineOverlay({ initialized, postId, caption, eatenAt, 
             <span className="absolute rounded-circle bg-white" style={{ width: tokens.detail.switchKnob, height: tokens.detail.switchKnob, top: tokens.detail.switchInset, left: outlines ? tokens.detail.switchWidth - tokens.detail.switchKnob - tokens.detail.switchInset : tokens.detail.switchInset }} />
           </span>
         </button>
-      </> : <ResultsCard size={width} time={new Date(eatenAt).toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit", ...(localTime ? {} : { timeZone: "UTC" }) })}
+      </> : showNutrition ? <ResultsCard size={width} time={new Date(eatenAt).toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit", ...(localTime ? {} : { timeZone: "UTC" }) })}
         calories={totals.calories} protein={totals.protein_g} carbs={totals.carbs_g} fat={totals.fat_g}
-        items={items.map((item) => ({ name: item.name, grams: item.portion_grams == null ? null : toNumber(item.portion_grams) }))} />}
+        items={items.map((item) => ({ name: item.name, grams: item.portion_grams == null ? null : toNumber(item.portion_grams) }))} /> : <div role="status" className="flex h-full items-center justify-center px-screen-x text-body text-muted">{status === "failed" ? "This meal could not be analysed." : status === "needs_input" ? "Clarification needed" : "Processing, traffic low"}</div>}
     </div>
     <div className="flex items-start justify-between gap-2 px-screen-x pt-grid">
       <p className="min-w-0 whitespace-pre-wrap break-words text-body">{caption}</p>
