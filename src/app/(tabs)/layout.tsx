@@ -4,6 +4,7 @@ import { Suspense, useState } from "react";
 import BottomBar from "@/components/BottomBar";
 import CaptureSheet from "@/components/CaptureSheet";
 import PostCreatedListeners from "@/components/PostCreatedListeners";
+import PostReadinessListener from "@/components/PostReadinessListener";
 import QueueTicker from "@/components/QueueTicker";
 
 export default function TabsLayout({ children }: { children: React.ReactNode }) {
@@ -12,6 +13,7 @@ export default function TabsLayout({ children }: { children: React.ReactNode }) 
     <div className="mx-auto flex min-h-dvh w-full max-w-phone flex-1 flex-col bg-surface pb-bar-h">
       <QueueTicker />
       <PostCreatedListeners />
+      <PostReadinessListener />
       <Suspense fallback={<p className="p-screen-x text-detail text-muted">Loading…</p>}>
         {children}
       </Suspense>
