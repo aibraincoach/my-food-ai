@@ -36,8 +36,9 @@ const correct:JobHandler=async(admin,job)=>{
  try{window=correctionWindow(thread??[],completed??[]);}catch{throw new MetaApiError(503,'Correction history changed while loading.');}
  const latest=window.pending.at(-1);
  if(!latest){
-  const {error,status}=await admin.from('jobs').update({payload:{...job.payload,correction_applied:true,correction_sequence:window.sequence,correction_pending_ids:[]}}).eq('id',job.id).eq('status','running');
+  const {data:completed,error,status}=await admin.rpc('complete_empty_correction',{p_post_id:job.post_id,p_job_id:job.id});
   if(error)throw ioError('Correction completion could not be saved.',error,status);
+  if(!completed)throw new MetaApiError(503,'A correction arrived while completing this attempt.');
   await markReady(job.post_id,admin);return;
  }
  const {data:prepared,error:prepareError,status:prepareStatus}=await admin.from('jobs').update({payload:{...job.payload,correction_from_sequence:window.sequence,correction_pending_ids:window.pending.map(comment=>comment.id)}}).eq('id',job.id).eq('status','running').select('id').maybeSingle();
