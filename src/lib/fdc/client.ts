@@ -97,15 +97,19 @@ export async function searchFoods(
   admin: SupabaseClient,
   query: string
 ): Promise<FdcFood[]> {
-  const key = normalizeQuery(query);
-  const { data: cached, error: cacheError } = await admin
-    .from("fdc_cache")
-    .select("response")
-    .eq("query", key)
-    .maybeSingle<{ response: unknown }>();
-  if (!cacheError && cached) {
-    return asFoods(cached.response);
-  }
+  const normalized = normalizeQuery(query);
+  const key = `fdc-search:${normalized}`;
+  const readCache = async (cacheKey: string) => {
+    const {data,error,status}=await admin.from("fdc_cache").select("response").eq("query",cacheKey).maybeSingle<{response:unknown}>();
+    if(error)throw ioError("Food cache could not be read.",error,status);
+    return data?.response;
+  };
+  const cached = await readCache(key) as {kind?:unknown;query?:unknown;payload?:{foods?:unknown}} | undefined;
+  if(cached?.kind==='fdc-search-v1'&&cached.query===normalized&&Array.isArray(cached.payload?.foods))return asFoods(cached.payload);
+  // Old unprefixed search entries remain usable only at their exact query key.
+  // A typed entry at that key may belong to another cache namespace, so reject it.
+  const legacy = await readCache(normalized) as {kind?:unknown;foods?:unknown} | undefined;
+  if(legacy&&!legacy.kind&&Array.isArray(legacy.foods))return asFoods(legacy);
   return recordCall("fdc", { query }, async () => {
   const params = new URLSearchParams({
     query: query.trim(),
@@ -125,7 +129,7 @@ export async function searchFoods(
   }
   const payload = (await response.json()) as unknown;
   await admin.from("fdc_cache").upsert(
-    { query: key, response: payload as Record<string, unknown> },
+    { query: key, response: {kind:"fdc-search-v1",query:normalized,payload} },
     { onConflict: "query" }
   );
   return asFoods(payload);
@@ -158,15 +162,21 @@ export async function getFoodById(admin: SupabaseClient, id: number): Promise<Fd
   const key = `fdc-detail:${id}`;
   const {data: cached, error, status} = await admin.from("fdc_cache").select("response").eq("query", key).maybeSingle();
   if (error) throw ioError("Retained food cache could not be read.", error, status);
-  if (cached) return parseFoodDetail(cached.response, id);
+  if (cached) {
+    const entry=cached.response as {kind?:unknown;fdcId?:unknown;payload?:unknown};
+    try {
+      if(entry?.kind==='fdc-detail-v1'&&entry.fdcId===id)return parseFoodDetail(entry.payload,id);
+      if(entry&&!entry.kind)return parseFoodDetail(entry,id);
+    } catch { /* A legacy search-key collision is a cache miss, never permanent failure. */ }
+  }
   return recordCall("fdc", { fdcId: id }, async () => {
-    const params = new URLSearchParams({format: "full", api_key: fdcApiKey()});
-    const response = await fetch(`${FDC_BASE_URL}/food/${id}?${params}`, {signal: AbortSignal.timeout(30000)});
-    if (!response.ok) throw new ApiError(response.status, await response.text(), "Retained food could not be loaded.");
-    const payload: unknown = await response.json();
-    const food = parseFoodDetail(payload, id);
-    const {error: saveError, status: saveStatus} = await admin.from("fdc_cache").upsert({query: key, response: payload}, {onConflict: "query"});
-    if (saveError) throw ioError("Retained food cache could not be saved.", saveError, saveStatus);
-    return food;
+  const params = new URLSearchParams({format: "full", api_key: fdcApiKey()});
+  const response = await fetch(`${FDC_BASE_URL}/food/${id}?${params}`, {signal: AbortSignal.timeout(30000)});
+  if (!response.ok) throw new ApiError(response.status, await response.text(), "Retained food could not be loaded.");
+  const payload: unknown = await response.json();
+  const food = parseFoodDetail(payload, id);
+  const {error: saveError, status: saveStatus} = await admin.from("fdc_cache").upsert({query: key, response: {kind:"fdc-detail-v1",fdcId:id,payload}}, {onConflict: "query"});
+  if (saveError) throw ioError("Retained food cache could not be saved.", saveError, saveStatus);
+  return food;
   }, (food) => ({ text: food, fdcId: food.fdcId }));
 }

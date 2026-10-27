@@ -154,6 +154,10 @@ export function rescaleStoredNutrition(row: NutritionRow, oldGrams: Numeric, new
     micronutrients: normalized.micronutrients.map(entry => ({ ...entry, value: scale(entry.value), basis: "portion" })) };
 }
 
+export class MissingNutritionError extends ApiError {
+  constructor() { super(503, "", "Item nutrition is awaiting recomputation."); this.name="MissingNutritionError"; }
+}
+
 // All detail/totals consumers use only current rows; superseded originals and
 // their nutrition remain in the database as immutable edit history.
 export async function getCurrentItems(supabase: SupabaseClient, postId: string, options: { requireNutrition?: boolean } = {}): Promise<CurrentItem[]> {
@@ -169,7 +173,7 @@ export async function getCurrentItems(supabase: SupabaseClient, postId: string, 
   const byId = new Map((nutrition as NutritionRow[] | null ?? []).map((row) => [row.post_item_id, row]));
   return data.map((item) => {
     const row = byId.get(item.id);
-    if (!row && options.requireNutrition) throw new ApiError(503, "", "Item nutrition is awaiting recomputation.");
+    if (!row && options.requireNutrition) throw new MissingNutritionError();
     const normalized = row ? normalizeStoredNutrition(row, item.portion_grams) : null;
     return { ...item, source: item.source as "model" | "user", calories: normalized?.calories ?? null,
       protein_g: normalized?.protein_g ?? null, carbs_g: normalized?.carbs_g ?? null,

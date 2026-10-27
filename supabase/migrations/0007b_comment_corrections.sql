@@ -82,6 +82,7 @@ begin
  if exists(select 1 from public.post_comments where post_id=p_post_id and author='user' and not(id=any(v_applied||v_pending))) then
   insert into public.jobs(post_id,kind,priority,status) select p_post_id,'correct',100,'queued'
    where not exists(select 1 from public.jobs where post_id=p_post_id and kind='correct' and status='queued');
+  update public.posts set status='queued' where id=p_post_id;
  end if;
  return true;
 end;
@@ -97,6 +98,10 @@ begin
  select new.id,'correct',100,'queued'
  where exists(select 1 from public.post_comments where post_id=new.id and author='user')
    and not exists(select 1 from public.jobs where post_id=new.id and kind='correct' and status in ('queued','running'));
+ if exists(select 1 from public.jobs where post_id=new.id and kind='correct' and status in ('queued','running')
+   and not coalesce((payload->>'correction_applied')::boolean,false)) then
+  update public.posts set status='queued' where id=new.id;
+ end if;
  return new;
 end $$;
 create trigger resume_comments_after_initial_analysis after update of analysis_initialized_at on public.posts
@@ -107,11 +112,14 @@ create trigger resume_comments_after_initial_analysis after update of analysis_i
 -- stored-card publication guard keeps the same invariant.
 create or replace function public.mark_post_ready(p_post_id uuid)
 returns boolean language plpgsql security definer set search_path=public,pg_temp as $$
+declare current_status text;
 begin
- perform 1 from public.posts where id=p_post_id for update;
- if not found then return false;end if;
+ select status into current_status from public.posts where id=p_post_id for update;
+ if not found or current_status in ('failed','needs_input') then return false;end if;
  if exists(select 1 from public.jobs where post_id=p_post_id and kind='correct' and status in ('queued','running')
-   and not coalesce((payload->>'correction_applied')::boolean,false)) then return false;end if;
+   and not coalesce((payload->>'correction_applied')::boolean,false)) then
+  update public.posts set status=case when status in ('processing','needs_input') then status else 'queued' end where id=p_post_id;
+  return false;end if;
  if exists(select 1 from public.current_post_items i left join public.item_nutrition n on n.post_item_id=i.id
    where i.post_id=p_post_id and n.post_item_id is null) then return false;end if;
  update public.posts set status='ready',fail_reason=null where id=p_post_id;
@@ -119,3 +127,26 @@ begin
 end $$;
 revoke all on function public.mark_post_ready(uuid) from public,anon,authenticated;
 grant execute on function public.mark_post_ready(uuid) to service_role;
+
+-- A fresh retry can find no pending messages. Serialize its completion with
+-- append_post_comment so a message arriving after the read always gets work.
+create function public.complete_empty_correction(p_post_id uuid,p_job_id uuid)
+returns boolean language plpgsql security definer set search_path=public,pg_temp as $$
+declare applied uuid[]; sequence bigint;
+begin
+ perform 1 from public.posts where id=p_post_id for update;
+ if not found then raise exception 'Post missing' using errcode='42501';end if;
+ if not exists(select 1 from public.jobs where id=p_job_id and post_id=p_post_id and kind='correct' and status='running') then
+  raise exception 'Correction job missing' using errcode='22023';end if;
+ select coalesce(array_agg(distinct value::uuid),array[]::uuid[]) into applied
+ from public.jobs j cross join lateral jsonb_array_elements_text(coalesce(j.payload->'correction_pending_ids','[]'::jsonb))
+ where j.post_id=p_post_id and j.kind='correct' and j.payload->>'correction_applied'='true';
+ if exists(select 1 from public.post_comments where post_id=p_post_id and author='user' and not(id=any(applied))) then return false;end if;
+ select coalesce(max((payload->>'correction_sequence')::bigint),0) into sequence from public.jobs
+ where post_id=p_post_id and kind='correct' and payload->>'correction_applied'='true';
+ update public.jobs set payload=payload||jsonb_build_object('correction_applied',true,'correction_sequence',sequence,'correction_pending_ids','[]'::jsonb)
+ where id=p_job_id;
+ return true;
+end $$;
+revoke all on function public.complete_empty_correction(uuid,uuid) from public,anon,authenticated;
+grant execute on function public.complete_empty_correction(uuid,uuid) to service_role;
