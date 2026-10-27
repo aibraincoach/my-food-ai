@@ -35,20 +35,36 @@ export async function getDays(supabase: SupabaseClient, userId: string, zone: st
       .eq("user_id", userId).eq("status", "ready").gte("eaten_at", lower).lt("eaten_at", upper)
       .order("eaten_at", { ascending: true }).order("id", { ascending: true }).range(offset, offset + 99);
     if (error) throw new Error("Days could not be loaded.");
-    for (const row of data ?? []) {
-      const date = dateInZone(row.eaten_at, zone);
-      if (date < from || date > through) continue;
-      const [items, media] = await Promise.all([
-        getCurrentItems(supabase, row.id),
-        supabase.from("post_media").select("storage_path").eq("post_id", row.id).order("position", { ascending: true }).limit(1).maybeSingle(),
-      ]);
-      if (media.error) throw new Error("Day media could not be loaded.");
-      const path = media.data?.storage_path as string | undefined;
-      const photoUrl = path ? await feedCopyUrl(supabase, path.endsWith("/card.png") ? path : `${path.replace(/\.[^/.]+$/, "")}.feed.jpg`) : null;
-      const totals = sumNutrition(items);
-      const post: DayPost = { id: row.id, caption: row.caption, eatenAt: row.eaten_at, photoUrl, items, totals };
-      const day = groups.get(date) ?? { date, posts: [], totals: sumNutrition([]) };
-      day.posts.push(post); day.totals = sumNutrition([day.totals, totals]); groups.set(date, day);
+    const rows = data ?? [];
+    // Keep latency bounded without issuing every month's request at once.
+    for (let start = 0; start < rows.length; start += 8) {
+      const loaded = await Promise.all(rows.slice(start, start + 8).map(async (row) => {
+        const date = dateInZone(row.eaten_at, zone);
+        if (date < from || date > through) return null;
+        const [items, media] = await Promise.all([
+          getCurrentItems(supabase, row.id),
+          supabase.from("post_media").select("storage_path").eq("post_id", row.id).order("position", { ascending: true }).limit(1).maybeSingle(),
+        ]);
+        const path = media.error ? undefined : media.data?.storage_path as string | undefined;
+        let photoUrl: string | null = null;
+        if (path) {
+          try {
+            photoUrl = await feedCopyUrl(supabase, path.endsWith("/card.png") ? path : `${path.replace(/\.[^/.]+$/, "")}.feed.jpg`);
+          } catch {
+            // A missing optional feed copy must not hide meals or their totals.
+          }
+        }
+        const totals = sumNutrition(items);
+        const post: DayPost = { id: row.id, caption: row.caption, eatenAt: row.eaten_at, photoUrl, items, totals };
+        return { date, post };
+      }));
+      // Promise.all retains source order, including within each local day.
+      for (const entry of loaded) {
+        if (!entry) continue;
+        const { date, post } = entry;
+        const day = groups.get(date) ?? { date, posts: [], totals: sumNutrition([]) };
+        day.posts.push(post); day.totals = sumNutrition([day.totals, post.totals]); groups.set(date, day);
+      }
     }
     if ((data?.length ?? 0) < 100) break;
   }

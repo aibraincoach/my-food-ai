@@ -1,10 +1,12 @@
+import { searchFoods } from "@/lib/fdc/client";
+import { scaleNutrition } from "@/lib/fdc/nutrients";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { getCurrentItems, type CurrentItem } from "@/lib/nutrition/totals";
 
 export type ItemBox = { left: number; top: number; right: number; bottom: number };
 export type DetailItem = Omit<CurrentItem, "box"> & { box: ItemBox | null; maskUrl: string | null };
 export type DetailPhoto = { url: string; width: number; height: number };
-export type ItemEdit = { action: "rename" | "portion" | "remove" | "add"; item_id?: string; name?: string; portion_grams?: number; box?: ItemBox };
+export type ItemEdit = { action: "rename" | "portion" | "remove" | "add"; item_id?: string; name?: string; portion_grams?: number; box?: ItemBox; fdc_selection?: { id: number; query: string } };
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 export const isUuid = (value: unknown): value is string => typeof value === "string" && UUID.test(value);
 
@@ -27,16 +29,32 @@ export function parseItemEdit(body: unknown): ItemEdit {
   if ((action === "add" || action === "rename") && b.name === undefined) throw new Error("A name is required.");
   if (b.portion_grams !== undefined && (typeof b.portion_grams !== "number" || !Number.isFinite(b.portion_grams) || b.portion_grams <= 0 || b.portion_grams > 100000)) throw new Error("Enter a portion between 0 and 100000 grams.");
   if ((action === "add" || action === "portion") && b.portion_grams === undefined) throw new Error("A portion in grams is required.");
+  let selection: ItemEdit["fdc_selection"];
+  if (b.fdc_selection !== undefined) {
+    const selected = b.fdc_selection as Record<string, unknown> | null;
+    if (!selected || typeof selected !== "object" || !Number.isSafeInteger(selected.id) || Number(selected.id) <= 0
+      || typeof selected.query !== "string" || selected.query.trim().length < 2 || selected.query.trim().length > 160
+      || action === "remove" || b.name === undefined || b.portion_grams === undefined) throw new Error("Invalid food selection.");
+    selection = { id: selected.id as number, query: selected.query.trim() };
+  }
   const box = b.box === undefined ? undefined : itemBox(b.box);
   if (box === null || (b.box !== undefined && action !== "add")) throw new Error("A valid box can be supplied for a new item only.");
   return { action, item_id: b.item_id as string | undefined, name: typeof b.name === "string" ? b.name.trim() : undefined,
-    portion_grams: b.portion_grams as number | undefined, box };
+    portion_grams: b.portion_grams as number | undefined, box, fdc_selection: selection };
 }
 
 export async function editPostItem(admin: SupabaseClient, postId: string, userId: string, edit: ItemEdit) {
-  const { data, error } = await admin.rpc("edit_post_item", { p_post_id: postId, p_user_id: userId,
+  let nutrition;
+  if (edit.fdc_selection) {
+    const food = (await searchFoods(admin, edit.fdc_selection.query)).find((row) => row.fdcId === edit.fdc_selection!.id);
+    if (!food || food.description !== edit.name) return { error: { code: "22023", message: "Food selection changed; search again." }, itemId: null };
+    const n = scaleNutrition(food, edit.portion_grams ?? null);
+    nutrition = { calories: n.calories, protein_g: n.proteinG, carbs_g: n.carbsG, fat_g: n.fatG,
+      fibre_g: n.fibreG, sugar_g: n.sugarG, sodium_mg: n.sodiumMg, micronutrients: n.micronutrients, source_ref: n.sourceRef };
+  }
+  const { data, error } = await admin.rpc(nutrition ? "edit_post_item_with_nutrition" : "edit_post_item", { p_post_id: postId, p_user_id: userId,
     p_action: edit.action, p_item_id: edit.item_id ?? null, p_name: edit.name ?? null,
-    p_portion_grams: edit.portion_grams ?? null, p_box: edit.box ?? null });
+    p_portion_grams: edit.portion_grams ?? null, p_box: edit.box ?? null, ...(nutrition ? { p_nutrition: nutrition } : {}) });
   if (error) return { error, itemId: null };
   return { error: null, itemId: data as string | null };
 }

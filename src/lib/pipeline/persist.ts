@@ -1,4 +1,5 @@
 import { sendPostPush } from "@/lib/push/send";
+import { ioError } from "@/lib/worker/errors";
 // One-RPC persist for a finished analysis (item 10). Inserts one
 // post_items row per item (source model, mask_path, box), the matching
 // item_nutrition row after an FDC lookup, the summary as the first
@@ -85,14 +86,14 @@ export async function persistAnalysis(
     return [key, values.some((value) => value === null) ? null : values.reduce<number>((sum, value) => sum + (value ?? 0), 0)];
   })) as ConsumedTotals;
   const summary = await safeSummary(named.summary, totals);
-  const { error } = await admin.rpc(named.needsInput ? "persist_analysis_question" : "persist_analysis", {
+  const { error, status } = await admin.rpc(named.needsInput ? "persist_analysis_question" : "persist_analysis", {
     p_post_id: named.postId,
     p_items: items,
     p_summary: summary,
     ...(named.needsInput ? {p_question:named.needsInput} : {}),
   });
   if (error) {
-    throw new Error(`persist: analysis transaction failed: ${error.message}`);
+    throw ioError(`persist: analysis transaction failed: ${error.message}`, error, status);
   }
   if (!named.needsInput) await markReady(named.postId, admin);
 }
@@ -100,12 +101,12 @@ export async function persistAnalysis(
 // The shared application completion hook. Stored cards and push attach here.
 export async function markReady(postId: string, admin: SupabaseClient = createAdminClient()): Promise<boolean> {
   const state = await admin.from("posts").select("status").eq("id",postId).maybeSingle();
-  if(state.error)throw new Error("Could not read completion state.");
+  if(state.error)throw ioError("Could not read completion state.",state.error,state.status);
   if(!state.data || state.data.status === "needs_input")return false;
   const ready = await renderResultsCard(admin, postId);
   if (ready) {
-    const {error}=await admin.from("posts").update({needs_input:null}).eq("id",postId).eq("status","ready");
-    if(error)throw new Error("Could not clear clarification.");
+    const {error,status}=await admin.from("posts").update({needs_input:null}).eq("id",postId).eq("status","ready");
+    if(error)throw ioError("Could not clear clarification.",error,status);
     await sendPostPush(admin, postId);
   }
   return ready;
