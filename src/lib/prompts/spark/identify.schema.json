@@ -3,23 +3,92 @@
   "title": "identify",
   "type": "object",
   "additionalProperties": false,
-  "required": ["items", "summary"],
+  "required": [
+    "items",
+    "summary",
+    "needs_input"
+  ],
   "properties": {
     "items": {
       "type": "array",
       "items": {
         "type": "object",
         "additionalProperties": false,
-        "required": ["region_index", "name", "portion_text", "portion_grams", "confidence"],
+        "required": [
+          "region_index",
+          "name",
+          "portion_text",
+          "portion_grams",
+          "confidence"
+        ],
         "properties": {
-          "region_index": { "type": ["integer", "null"] },
-          "name": { "type": "string" },
-          "portion_text": { "type": ["string", "null"] },
-          "portion_grams": { "type": ["number", "null"] },
-          "confidence": { "type": ["number", "null"] }
+          "region_index": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "name": {
+            "type": "string"
+          },
+          "portion_text": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "portion_grams": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "confidence": {
+            "type": [
+              "number",
+              "null"
+            ]
+          }
         }
       }
     },
-    "summary": { "type": "string" }
+    "summary": {
+      "type": "string"
+    },
+    "needs_input": {
+      "anyOf": [
+        {
+          "type": "null"
+        },
+        {
+          "type": "object",
+          "properties": {
+            "question": {
+              "type": "string"
+            },
+            "short": {
+              "type": "string",
+              "enum": [
+                "Clarification needed",
+                "No food found"
+              ]
+            },
+            "options": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "maxItems": 3
+            }
+          },
+          "required": [
+            "question",
+            "short",
+            "options"
+          ],
+          "additionalProperties": false
+        }
+      ]
+    }
   }
 }

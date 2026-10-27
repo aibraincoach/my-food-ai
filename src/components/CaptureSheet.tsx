@@ -1,5 +1,6 @@
 "use client";
 
+import FirstRunHint from "@/components/FirstRunHint";
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/Button";
@@ -7,6 +8,7 @@ import { Field } from "@/components/ui/Field";
 import { Icon } from "@/components/ui/Icon";
 import { TopBar } from "@/components/ui/TopBar";
 import { requestLocation } from "@/lib/location/capture";
+import { openCamera, grabFrame, type Camera } from "@/lib/media/camera";
 import { createPost } from "@/lib/posts/create";
 import { tokens } from "@/lib/theme/tokens";
 
@@ -20,11 +22,46 @@ export default function CaptureSheet({ onClose }: { onClose: () => void }) {
   const galleryRef = useRef<HTMLInputElement>(null);
   const cameraRef = useRef<HTMLInputElement>(null);
   const shotsRef = useRef<Shot[]>([]);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const liveCameraRef = useRef<Camera | null>(null);
+  const mountedRef = useRef(false);
+  const [stream, setStream] = useState<MediaStream | null>(null);
+  const [cameraBusy, setCameraBusy] = useState(false);
   const postingRef = useRef(false);
   const [shots, setShots] = useState<Shot[]>([]);
   const [caption, setCaption] = useState("");
   const [posting, setPosting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    mountedRef.current = true;
+    let cancelled = false;
+    void openCamera("environment").then((camera) => {
+      if (cancelled) { camera.close(); return; }
+      liveCameraRef.current = camera;
+      setStream(camera.stream);
+    }).catch(() => { /* The existing camera picker remains available. */ });
+    return () => {
+      cancelled = true;
+      mountedRef.current = false;
+      liveCameraRef.current?.close();
+      liveCameraRef.current = null;
+    };
+  }, []);
+
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video || !stream) return;
+    let cancelled = false;
+    video.srcObject = stream;
+    void video.play().catch(() => {
+      if (cancelled) return;
+      liveCameraRef.current?.close();
+      liveCameraRef.current = null;
+      setStream(null);
+    });
+    return () => { cancelled = true; video.srcObject = null; };
+  }, [stream]);
 
   useEffect(() => {
     const previousFocus = document.activeElement;
@@ -61,13 +98,38 @@ export default function CaptureSheet({ onClose }: { onClose: () => void }) {
     for (const shot of shotsRef.current) URL.revokeObjectURL(shot.previewUrl);
   }, []);
 
-  const addFiles = (files: FileList | null) => {
+  const addFiles = (files: FileList | File[] | null) => {
     if (!files || postingRef.current) return;
     const added = Array.from(files)
       .slice(0, MAX_SHOTS - shotsRef.current.length)
       .map((file) => ({ file, previewUrl: URL.createObjectURL(file) }));
     shotsRef.current = [...shotsRef.current, ...added];
     setShots(shotsRef.current);
+  };
+
+  const takePhoto = async () => {
+    if (postingRef.current || cameraBusy || shotsRef.current.length >= MAX_SHOTS) return;
+    if (!stream || !videoRef.current) { cameraRef.current?.click(); return; }
+    setCameraBusy(true);
+    try {
+      const blob = await grabFrame(videoRef.current);
+      if (mountedRef.current) addFiles([new File([blob], "meal.jpg", { type: "image/jpeg" })]);
+    } catch {
+      if (mountedRef.current) setError("Could not capture a photo. Try again or choose one from the gallery.");
+    } finally { if (mountedRef.current) setCameraBusy(false); }
+  };
+
+  const flipCamera = async () => {
+    if (cameraBusy || postingRef.current || !liveCameraRef.current) return;
+    setCameraBusy(true);
+    try {
+      const next = await liveCameraRef.current.flip();
+      if (mountedRef.current) setStream(next);
+    } catch {
+      liveCameraRef.current?.close();
+      liveCameraRef.current = null;
+      if (mountedRef.current) setStream(null);
+    } finally { if (mountedRef.current) setCameraBusy(false); }
   };
 
   const removeShot = (index: number) => {
@@ -112,7 +174,7 @@ export default function CaptureSheet({ onClose }: { onClose: () => void }) {
           right={<span className="w-tap" aria-hidden="true" />}
         />
         <div className="relative flex shrink-0 items-center justify-center overflow-hidden bg-camera text-camera-muted" style={{ height: tokens.capture.previewHeight, marginTop: tokens.capture.previewTop }}>
-          {latest ? (
+          {stream ? <video ref={videoRef} muted playsInline autoPlay aria-label="Live camera viewfinder" className="h-full w-full object-cover" /> : latest ? (
             // Local blob previews require no remote image transformation.
             // eslint-disable-next-line @next/next/no-img-element
             <img src={latest.previewUrl} alt="Latest meal photo" className="h-full w-full object-cover" />
@@ -122,10 +184,10 @@ export default function CaptureSheet({ onClose }: { onClose: () => void }) {
         <input ref={cameraRef} type="file" accept="image/*" capture="environment" className="hidden" disabled={posting || full} onChange={(event) => { addFiles(event.target.files); event.target.value = ""; }} />
         <div className="flex shrink-0 items-center justify-center" style={{ height: tokens.capture.controlsHeight, gap: tokens.capture.controlsGap }}>
           <button type="button" aria-label="Choose photos from gallery" disabled={posting || full} onClick={() => galleryRef.current?.click()} className="flex size-tap items-center justify-center rounded-circle bg-camera-button disabled:opacity-50"><Icon name="camera" size={tokens.capture.galleryIcon} /></button>
-          <button type="button" aria-label="Take a photo" disabled={posting || full} onClick={() => cameraRef.current?.click()} className="flex items-center justify-center rounded-circle border-surface disabled:opacity-50" style={{ width: tokens.capture.shutterSize, height: tokens.capture.shutterSize, borderWidth: tokens.capture.shutterBorder }}>
+          <button type="button" aria-label="Take a photo" disabled={posting || full || cameraBusy} onClick={takePhoto} className="flex items-center justify-center rounded-circle border-surface disabled:opacity-50" style={{ width: tokens.capture.shutterSize, height: tokens.capture.shutterSize, borderWidth: tokens.capture.shutterBorder }}>
             <span className="block rounded-circle bg-surface" style={{ width: tokens.capture.shutterDisc, height: tokens.capture.shutterDisc }} />
           </button>
-          <span className="size-tap" aria-hidden="true" />
+          {stream ? <button type="button" aria-label="Flip camera" disabled={posting || cameraBusy} onClick={flipCamera} className="flex size-tap items-center justify-center rounded-circle bg-camera-button disabled:opacity-50"><Icon name="flip" size={tokens.capture.galleryIcon} /></button> : <span className="size-tap" aria-hidden="true" />}
         </div>
         <div className="flex shrink-0 overflow-x-auto px-screen-x" style={{ gap: tokens.capture.thumbGap }} aria-label="Meal photos">
           {shots.map((shot, i) => (
@@ -139,10 +201,11 @@ export default function CaptureSheet({ onClose }: { onClose: () => void }) {
         </div>
         <div className="min-h-card-gap flex-1" />
         <div className="flex flex-col px-screen-x pb-card-gap" style={{ gap: tokens.capture.bottomGap }}>
+          <FirstRunHint hint="capture" />
           <Field variant="camera" id="capture-caption" aria-label="Caption" value={caption} onChange={(event) => setCaption(event.target.value)} disabled={posting} placeholder="What did you eat?" />
           <p className="px-grid text-meta text-camera-muted">Location is saved with the post and helps recognise meals you eat in the same place. Only you see it.</p>
           {error && <p role="alert" className="text-detail text-surface">{error}</p>}
-          <Button variant="camera" onClick={post} disabled={posting || (!caption.trim() && shots.length === 0)}>{posting ? "Posting…" : "Post"}</Button>
+          <Button variant="camera" onClick={post} disabled={posting || cameraBusy || (!caption.trim() && shots.length === 0)}>{posting ? "Posting…" : "Post"}</Button>
         </div>
       </div>
     </div>
