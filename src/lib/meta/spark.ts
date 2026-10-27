@@ -123,9 +123,7 @@ export async function identifyItems(
   const known = new Set(regions.map((r) => r.index));
   let maxTokens = 2048;
   for (let attempt = 0; attempt < 4; attempt += 1) {
-    let out;
-    try {
-      out = await createResponse({
+    const out = await createResponse({
         model: "muse-spark-1.3",
         instructions: identifyPrompt + (prior ? `\n${prior}` : ""),
         input: [
@@ -145,18 +143,6 @@ export async function identifyItems(
         },
         max_output_tokens: maxTokens,
       });
-    } catch (error) {
-      // The gateway returns transient 404s (empty body) on non-streaming
-      // POSTs; 429/5xx are requeueable too. A 400 fails at once.
-      const status =
-        error instanceof MetaApiError ? error.status : 500;
-      const retryable = status === 404 || status === 429 || status >= 500;
-      if (!retryable || attempt === 3) throw error;
-      await new Promise((resolve) =>
-        setTimeout(resolve, 1000 * (attempt + 1))
-      );
-      continue;
-    }
     if (out.refusal) {
       throw new MetaApiError(500, "spark: model refused the identify call.");
     }
