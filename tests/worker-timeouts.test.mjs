@@ -35,3 +35,22 @@ test('native fetch AbortSignal timeout is retryable', async () => {
     await new Promise(resolve => server.close(resolve));
   }
 });
+
+test('pipeline preserves real Supabase Storage HTTP and timeout metadata', async () => {
+  const { createClient } = await import('@supabase/supabase-js');
+  const { loadFirstPhoto } = await import('../src/lib/pipeline/analyze.ts');
+  for (const scenario of [503, 429, 404, 'timeout']) {
+    const db = createClient('https://fixture.invalid', 'fixture-key', { global: { fetch: async input => {
+      const url = new URL(input instanceof Request ? input.url : String(input));
+      if (url.pathname.includes('/rest/v1/post_media')) return new Response(JSON.stringify({ storage_path: 'fixture.jpg', width: 10, height: 10 }));
+      assert.ok(url.pathname.includes('/storage/v1/object/'));
+      if (scenario === 'timeout') throw new TypeError('fetch failed', { cause: { code: 'UND_ERR_CONNECT_TIMEOUT' } });
+      return new Response(JSON.stringify({ message: 'storage failure', statusCode: String(scenario) }), { status: scenario });
+    } } });
+    await assert.rejects(loadFirstPhoto(db, 'fixture-post'), error => {
+      assert.match(error.message, /photo download failed/);
+      assert.equal(isRetriable(error), scenario !== 404, String(scenario));
+      return true;
+    });
+  }
+});
