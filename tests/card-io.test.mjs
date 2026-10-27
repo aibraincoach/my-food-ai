@@ -3,7 +3,8 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { createClient } from '@supabase/supabase-js';
 import { renderResultsCard } from '../src/lib/pipeline/results-card.tsx';
-import backfill from '../src/lib/worker/jobs/card_backfill.ts';
+import { createRequire } from 'node:module';
+const backfill = createRequire(import.meta.url)('../src/lib/worker/jobs/card_backfill.ts').default;
 import { isRetriable } from '../src/lib/worker/errors.ts';
 
 test('card snapshot and backfill reads retain database retry classification', async () => {
