@@ -104,6 +104,13 @@ do $t$declare p uuid;j uuid;begin
  if(select status from posts where id=p)<>'queued' then raise exception 'pending completion left ready status';end if;
  update jobs set status='running',payload='{"correction_applied":true,"correction_sequence":0,"correction_pending_ids":[]}' where id=j;
  if not mark_post_ready(p)then raise exception 'no-pending retry could not complete';end if;
+ update posts set status='failed',fail_reason='Correction failed' where id=p;
+ if mark_post_ready(p)then raise exception 'stale completion cleared terminal failure';end if;
+ if(select status from posts where id=p)<>'failed'then raise exception 'terminal failure changed';end if;
+ update posts set status='needs_input' where id=p;
+ if mark_post_ready(p)then raise exception 'stale completion cleared question';end if;
+ update posts set status='queued' where id=p;
+ if not mark_post_ready(p)then raise exception 'explicit retry could not complete';end if;
 end;$t$;
 select 'comments: passed';rollback;
 `;

@@ -112,12 +112,13 @@ create trigger resume_comments_after_initial_analysis after update of analysis_i
 -- stored-card publication guard keeps the same invariant.
 create or replace function public.mark_post_ready(p_post_id uuid)
 returns boolean language plpgsql security definer set search_path=public,pg_temp as $$
+declare current_status text;
 begin
- perform 1 from public.posts where id=p_post_id for update;
- if not found then return false;end if;
+ select status into current_status from public.posts where id=p_post_id for update;
+ if not found or current_status in ('failed','needs_input') then return false;end if;
  if exists(select 1 from public.jobs where post_id=p_post_id and kind='correct' and status in ('queued','running')
    and not coalesce((payload->>'correction_applied')::boolean,false)) then
-  update public.posts set status=case when status='processing' then 'processing' else 'queued' end where id=p_post_id;
+  update public.posts set status=case when status in ('processing','needs_input') then status else 'queued' end where id=p_post_id;
   return false;end if;
  if exists(select 1 from public.current_post_items i left join public.item_nutrition n on n.post_item_id=i.id
    where i.post_id=p_post_id and n.post_item_id is null) then return false;end if;
