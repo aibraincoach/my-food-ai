@@ -39,7 +39,11 @@ const correct:JobHandler=async(admin,job)=>{
  let window;
  try{window=correctionWindow(thread??[],completed??[]);}catch{throw new MetaApiError(503,'Correction history changed while loading.');}
  const latest=window.pending.at(-1);
- if(!latest){await markReady(job.post_id,admin);return;}
+ if(!latest){
+  const {error,status}=await admin.from('jobs').update({payload:{...job.payload,correction_applied:true,correction_sequence:window.sequence,correction_pending_ids:[]}}).eq('id',job.id).eq('status','running');
+  if(error)throw ioError('Correction completion could not be saved.',error,status);
+  await markReady(job.post_id,admin);return;
+ }
  const {data:prepared,error:prepareError,status:prepareStatus}=await admin.from('jobs').update({payload:{...job.payload,correction_from_sequence:window.sequence,correction_pending_ids:window.pending.map(comment=>comment.id)}}).eq('id',job.id).eq('status','running').select('id').maybeSingle();
  if(prepareError)throw ioError('Correction snapshot could not be saved.',prepareError,prepareStatus);
  if(!prepared)throw new MetaApiError(503,'Correction snapshot could not be saved.');
