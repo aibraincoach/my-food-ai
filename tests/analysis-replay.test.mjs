@@ -16,7 +16,10 @@ do $t$
 declare p uuid;empty_post uuid;i uuid;replacement uuid;marker timestamptz;payload jsonb:='[{"name":"Rice","portion_grams":100,"nutrition":{"calories":200}}]'::jsonb;
 begin
  insert into posts(user_id,status)values(current_setting('test.owner')::uuid,'queued')returning id into p;
- perform persist_analysis(p,payload,'Rice.');select analysis_initialized_at into marker from posts where id=p;
+ insert into post_comments(post_id,author,body)values(p,'user','Halve it');
+ insert into jobs(post_id,kind,status)values(p,'correct','error');
+ perform persist_analysis(p,payload,'Rice.');
+ if (select count(*)from jobs where post_id=p and kind='correct' and status='queued')<>1 then raise exception 'successful initial retry stranded comments';end if;select analysis_initialized_at into marker from posts where id=p;
  if marker is null then raise exception 'missing atomic marker';end if;
  select id into i from current_post_items where post_id=p;
  replacement:=edit_post_item(p,current_setting('test.owner')::uuid,'portion',i,null,50,null);
