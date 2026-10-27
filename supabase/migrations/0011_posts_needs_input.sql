@@ -2,7 +2,11 @@
 alter table public.posts add column needs_input jsonb;
 create function public.persist_analysis_question(p_post_id uuid,p_items jsonb,p_summary text,p_question jsonb)
 returns void language plpgsql security definer set search_path=public,pg_temp as $$
+declare initialized timestamptz;
 begin
+  select analysis_initialized_at into initialized from public.posts where id=p_post_id for update;
+  if not found then raise exception 'Post not found' using errcode='42501';end if;
+  if initialized is not null then return;end if;
   perform public.persist_analysis(p_post_id,p_items,p_question->>'question');
   update public.posts set status=case when exists (
     select 1 from public.jobs where post_id=p_post_id and kind='correct' and status in ('queued','running')
