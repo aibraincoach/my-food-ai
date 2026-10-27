@@ -3,7 +3,7 @@ alter table public.posts add column needs_input jsonb;
 create function public.persist_analysis_question(p_post_id uuid,p_items jsonb,p_summary text,p_question jsonb)
 returns void language plpgsql security definer set search_path=public,pg_temp as $$
 begin
-  perform public.persist_analysis(p_post_id,p_items,p_summary);
+  perform public.persist_analysis(p_post_id,p_items,p_question->>'question');
   update public.posts set status=case when exists (
     select 1 from public.jobs where post_id=p_post_id and kind='correct' and status in ('queued','running')
       and not coalesce((payload->>'correction_applied')::boolean,false)
@@ -17,14 +17,13 @@ grant execute on function public.persist_analysis_question(uuid,jsonb,text,jsonb
 create function public.persist_correction_question(p_post_id uuid,p_job_id uuid,p_expected uuid[],p_through uuid,p_items jsonb,p_reply text,p_question jsonb)
 returns void language plpgsql security definer set search_path=public,pg_temp as $$
 begin
-  if not public.persist_correction(p_post_id,p_job_id,p_expected,p_through,p_items,p_reply) then return; end if;
+  if not public.persist_correction(p_post_id,p_job_id,p_expected,p_through,p_items,p_question->>'question') then return; end if;
   -- A message arriving during the model call already has follow-up work.
   -- Keep its queued state instead of hiding it behind the older question.
   update public.posts set status=case when exists (
     select 1 from public.jobs where post_id=p_post_id and kind='correct' and status in ('queued','running')
       and not coalesce((payload->>'correction_applied')::boolean,false)
   ) then 'queued' else 'needs_input' end,needs_input=p_question where id=p_post_id;
-  insert into post_comments(post_id,author,body) values(p_post_id,'model',p_question->>'question');
 end $$;
 revoke all on function public.persist_correction_question(uuid,uuid,uuid[],uuid,jsonb,text,jsonb) from public,anon,authenticated;
 grant execute on function public.persist_correction_question(uuid,uuid,uuid[],uuid,jsonb,text,jsonb) to service_role;

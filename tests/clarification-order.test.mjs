@@ -39,6 +39,7 @@ do $$ declare u uuid:=gen_random_uuid();p uuid;j uuid;j2 uuid;c public.post_comm
  c2:=append_post_comment(p,u,'It was pasta');
  perform persist_correction_question(p,j,array[]::uuid[],c.id,'[]','Consumed: 0 kcal.','{"question":"Rice or pasta?","short":"Clarification needed","options":["Rice","Pasta"]}');
  if(select status from posts where id=p)<>'queued'then raise exception 'question hid queued answer';end if;
+ if(select count(*)from post_comments where post_id=p and author='model')<>1 then raise exception 'question wrote duplicate model replies';end if;
  select id into j2 from jobs where post_id=p and status='queued';
  if j2 is null then raise exception 'follow-up missing';end if;
  s:=results_card_snapshot(p);
