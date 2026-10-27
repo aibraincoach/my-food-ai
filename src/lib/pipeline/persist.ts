@@ -1,3 +1,4 @@
+import { ioError } from "@/lib/worker/errors";
 // One-RPC persist for a finished analysis (item 10). Inserts one
 // post_items row per item (source model, mask_path, box), the matching
 // item_nutrition row after an FDC lookup, the summary as the first
@@ -82,13 +83,13 @@ export async function persistAnalysis(
     return [key, values.some((value) => value === null) ? null : values.reduce<number>((sum, value) => sum + (value ?? 0), 0)];
   })) as ConsumedTotals;
   const summary = await safeSummary(named.summary, totals);
-  const { error } = await admin.rpc("persist_analysis", {
+  const { error, status } = await admin.rpc("persist_analysis", {
     p_post_id: named.postId,
     p_items: items,
     p_summary: summary,
   });
   if (error) {
-    throw new Error(`persist: analysis transaction failed: ${error.message}`);
+    throw ioError(`persist: analysis transaction failed: ${error.message}`, error, status);
   }
   await markReady(named.postId, admin);
 }

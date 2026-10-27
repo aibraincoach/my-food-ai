@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/Button";
 import { Field } from "@/components/ui/Field";
 import { Icon } from "@/components/ui/Icon";
 import { TopBar } from "@/components/ui/TopBar";
+import { requestLocation } from "@/lib/location/capture";
 import { createPost } from "@/lib/posts/create";
 import { tokens } from "@/lib/theme/tokens";
 
@@ -84,7 +85,8 @@ export default function CaptureSheet({ onClose }: { onClose: () => void }) {
     setPosting(true);
     setError(null);
     try {
-      const { postId } = await createPost(caption, shotsRef.current.map((shot) => shot.file));
+      const location = await requestLocation();
+      const { postId } = await createPost(caption, shotsRef.current.map((shot) => shot.file), location);
       // Uploads are complete. Home can fetch the complete card even if its
       // Realtime INSERT event arrived before the files or was never delivered.
       window.dispatchEvent(new CustomEvent("post-created", { detail: { id: postId } }));
