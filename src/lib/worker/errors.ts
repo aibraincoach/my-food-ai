@@ -21,11 +21,12 @@ export function isRetriable(error: unknown): boolean {
   const seen = new Set<object>();
   while (typeof error === "object" && error !== null && !seen.has(error)) {
     seen.add(error);
-    const value = error as { status?: unknown; name?: unknown; code?: unknown; cause?: unknown };
+    const value = error as { status?: unknown; name?: unknown; code?: unknown; cause?: unknown; originalError?: unknown };
     if (typeof value.status === "number") return value.status === 429 || value.status >= 500;
     if (value.name === "AbortError" || value.name === "TimeoutError"
       || (typeof value.code === "string" && TIMEOUT_CODES.has(value.code))) return true;
-    error = value.cause;
+    // Supabase StorageUnknownError retains fetch failures as originalError.
+    error = value.cause ?? value.originalError;
   }
   return false;
 }

@@ -41,7 +41,8 @@ export async function loadFirstPhoto(
       width: number | null;
       height: number | null;
     }>();
-  if (error || !media) {
+  if (error) throw new Error("analyze: photo metadata lookup failed.", { cause: error });
+  if (!media) {
     throw new Error("analyze: post has no photo.");
   }
   const { data: blob, error: downloadError } = await supabase.storage
@@ -49,7 +50,8 @@ export async function loadFirstPhoto(
     .download(media.storage_path);
   if (downloadError || !blob) {
     throw new Error(
-      `analyze: photo download failed: ${downloadError?.message ?? "empty object."}`
+      `analyze: photo download failed: ${downloadError?.message ?? "empty object."}`,
+      { cause: downloadError }
     );
   }
   return {
@@ -83,7 +85,7 @@ export async function segmentPost(
       .from(BUCKET)
       .upload(maskPath, png, { contentType: "image/png", upsert: true });
     if (uploadError) {
-      throw new Error(`analyze: mask upload failed: ${uploadError.message}`);
+      throw new Error(`analyze: mask upload failed: ${uploadError.message}`, { cause: uploadError });
     }
     regions.push({ ...region, maskPath });
   }
@@ -165,7 +167,8 @@ export async function analyzePost(
     .select("user_id,caption")
     .eq("id", postId)
     .maybeSingle<PostCaptionRow>();
-  if (postError || !post) {
+  if (postError) throw new Error("analyze: post lookup failed.", { cause: postError });
+  if (!post) {
     throw new Error("analyze: post not found.");
   }
   // Caption-only posts are valid (item 6): with no post_media rows there
