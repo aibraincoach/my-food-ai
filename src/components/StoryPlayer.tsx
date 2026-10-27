@@ -1,5 +1,7 @@
 "use client";
 
+import { tokens } from "@/lib/theme/tokens";
+
 import { useRef, useState, useSyncExternalStore } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -11,8 +13,8 @@ function subscribeWidth(listener: () => void) {
   window.addEventListener("resize", listener);
   return () => window.removeEventListener("resize", listener);
 }
-const readWidth = () => Math.min(390, window.innerWidth);
-const serverWidth = () => 390;
+const readWidth = () => Math.min(tokens.spacing.phone, window.innerWidth);
+const serverWidth = () => tokens.spacing.phone;
 
 export default function StoryPlayer({ day, zone, previous, next }: { day: LoggedDay; zone: string; previous: string; next: string }) {
   const width = useSyncExternalStore(subscribeWidth, readWidth, serverWidth);
