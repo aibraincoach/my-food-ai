@@ -29,9 +29,12 @@ begin
  insert into item_nutrition(post_item_id,calories) values(item,100);
  fingerprint := results_card_snapshot(p)->>'fingerprint';
  insert into jobs(post_id,kind,status) values(p,'correct','queued') returning id into j;
- result := publish_results_card(p,fingerprint,u::text||'/'||p::text||'/cards/fixture/card.png',1080);
+ insert into jobs(post_id,kind,status) values(p,'analyze','running') returning id into previous_job;
+ update posts set active_job_id=previous_job where id=p;
+ result := publish_results_card(p,fingerprint,u::text||'/'||p::text||'/cards/fixture/card.png',1080,previous_job);
  if (result->>'published')::boolean or (select status from posts where id=p)<>'queued'
  or exists(select 1 from post_media where post_id=p and kind='card') then raise exception 'card published over pending correction'; end if;
+ update jobs set status='finished' where id=previous_job;
  update jobs set status='running',payload='{"correction_applied":true,"post_ownership":true}' where id=j;
  update posts set active_job_id=j where id=p;
  result := publish_results_card(p,fingerprint,u::text||'/'||p::text||'/cards/unauthorized/card.png',1080);
