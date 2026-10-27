@@ -11,10 +11,6 @@ import {
 } from "@/lib/fdc/nutrients";
 import type { NamedPost } from "./analyze";
 
-interface InsertedItem {
-  id: string;
-}
-
 export async function persistAnalysis(
   admin: SupabaseClient,
   named: NamedPost
@@ -48,35 +44,20 @@ export async function persistAnalysis(
       maskPath: null,
     });
   }
+  // Complete every external lookup before changing the post. A lookup failure
+  // leaves the previous analysis intact; the RPC commits the whole replacement.
+  const items = [];
   for (const row of rows) {
-    const { data: inserted, error: itemError } = await admin
-      .from("post_items")
-      .insert({
-        post_id: named.postId,
-        name: row.name,
-        portion_text: row.portionText,
-        portion_grams: row.portionGrams,
-        box: row.box,
-        mask_path: row.maskPath,
-        confidence: row.confidence,
-        source: "model",
-      })
-      .select("id")
-      .single<InsertedItem>();
-    if (itemError || !inserted) {
-      throw new Error(
-        `persist: post_items insert failed: ${itemError?.message ?? "no row."}`
-      );
-    }
     const foods = await searchFoods(admin, row.name);
-    const scaled = scaleNutrition(
-      chooseBestMatch(foods),
-      row.portionGrams
-    );
-    const { error: nutritionError } = await admin
-      .from("item_nutrition")
-      .insert({
-        post_item_id: inserted.id,
+    const scaled = scaleNutrition(chooseBestMatch(foods), row.portionGrams);
+    items.push({
+      name: row.name,
+      portion_text: row.portionText,
+      portion_grams: row.portionGrams,
+      box: row.box,
+      mask_path: row.maskPath,
+      confidence: row.confidence,
+      nutrition: {
         calories: scaled.calories,
         protein_g: scaled.proteinG,
         carbs_g: scaled.carbsG,
@@ -86,30 +67,15 @@ export async function persistAnalysis(
         sodium_mg: scaled.sodiumMg,
         micronutrients: scaled.micronutrients,
         source_ref: scaled.sourceRef,
-      });
-    if (nutritionError) {
-      throw new Error(
-        `persist: item_nutrition insert failed: ${nutritionError.message}`
-      );
-    }
+      },
+    });
   }
-  const { error: commentError } = await admin.from("post_comments").insert({
-    post_id: named.postId,
-    author: "model",
-    body: named.summary,
+  const { error } = await admin.rpc("persist_analysis", {
+    p_post_id: named.postId,
+    p_items: items,
+    p_summary: named.summary,
   });
-  if (commentError) {
-    throw new Error(
-      `persist: summary comment insert failed: ${commentError.message}`
-    );
-  }
-  const { error: statusError } = await admin
-    .from("posts")
-    .update({ status: "ready" })
-    .eq("id", named.postId);
-  if (statusError) {
-    throw new Error(
-      `persist: ready update failed: ${statusError.message}`
-    );
+  if (error) {
+    throw new Error(`persist: analysis transaction failed: ${error.message}`);
   }
 }
