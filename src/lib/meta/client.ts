@@ -112,7 +112,8 @@ export function readResponseOutput(payload: unknown): ResponseOutput {
 export async function createResponse(
   body: Record<string, unknown>
 ): Promise<ResponseOutput> {
-  const response = await metaFetch("/v1/responses", {
+  // Path is relative to META_API_BASE_URL, which already ends in /v1.
+  const response = await metaFetch("/responses", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(body),

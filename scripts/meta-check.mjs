@@ -98,7 +98,7 @@ async function checkSpark(path) {
   const schema = JSON.parse(
     readFileSync(join(root, "src/lib/prompts/spark/identify.schema.json"), "utf8")
   );
-  const res = await postJson(`${BASE_URL}/v1/responses`, {
+  const res = await postJson(`${BASE_URL}/responses`, {
     model: "muse-spark-1.3",
     instructions,
     input: [
@@ -167,7 +167,7 @@ async function checkTranscribe(path) {
   let status = 0;
   let payload = null;
   for (let i = 0; i < 3; i += 1) {
-    const res = await fetch(`${BASE_URL}/v1/asr/transcribe?sessionId=meta-check-1`, {
+    const res = await fetch(`${BASE_URL}/asr/transcribe?sessionId=meta-check-1`, {
       method: "POST",
       headers: { Authorization: `Bearer ${MODEL_API_KEY}`, Accept: "application/json" },
       body: buildForm(),
