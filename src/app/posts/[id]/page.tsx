@@ -1,25 +1,28 @@
 import Link from "next/link";
 import { connection } from "next/server";
+import { notFound, redirect } from "next/navigation";
+import { createClient } from "@/lib/supabase/server";
+import { getPostDetail, isUuid } from "@/lib/posts/items";
+import { font } from "@/lib/theme/font";
+import { TopBar } from "@/components/ui/TopBar";
+import { Icon } from "@/components/ui/Icon";
+import OutlineOverlay, { DetailDate } from "@/components/OutlineOverlay";
+import NutritionTable from "@/components/NutritionTable";
 
 export const instant = false;
 
-// Placeholder until item 17 builds the detail with outlines,
-// the nutrition table and the thread.
-export default async function PostDetailPlaceholder({
-  params,
-}: {
-  params: Promise<{ id: string }>;
-}) {
+export default async function PostDetail({ params }: { params: Promise<{ id: string }> }) {
   await connection();
-  // Consume the dynamic param so the route stays dynamic; the id is
-  // used by item 17.
-  await params;
-  return (
-    <main className="flex flex-1 flex-col gap-2 p-4">
-      <p className="text-sm text-neutral-500">Meal detail is coming.</p>
-      <Link href="/" className="text-sm text-neutral-500 underline">
-        Back to meals
-      </Link>
-    </main>
-  );
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) redirect("/sign-in");
+  const { id } = await params;
+  if (!isUuid(id)) notFound();
+  const detail = await getPostDetail(supabase, id);
+  if (!detail) notFound();
+  return <main className={`${font.className} mx-auto min-h-dvh w-full max-w-phone bg-surface pb-sheet-bottom text-text`}>
+    <TopBar title={<DetailDate value={detail.post.eaten_at} weekday />} left={<Link href="/" aria-label="Back to meals" className="flex min-h-tap min-w-tap items-center"><Icon name="back" /></Link>} />
+    <OutlineOverlay key={id} initialized={detail.post.analysis_initialized_at != null} postId={id} caption={detail.post.caption} eatenAt={detail.post.eaten_at} status={detail.post.status} photo={detail.photo} items={detail.items} />
+    <NutritionTable items={detail.items} />
+  </main>;
 }
