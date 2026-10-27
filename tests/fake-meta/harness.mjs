@@ -1,3 +1,4 @@
+import {scopedFixtureClaims} from './scoped-claims.mjs';
 // Real database fixtures, isolated claim adapter, and a network allowlist.
 // The production claim RPC is covered separately by rollback SQL tests.
 import assert from 'node:assert/strict';
@@ -49,23 +50,16 @@ export async function pipelineHarness(){
   assert.equal(appendProbe?.code,'42501','Pipeline requires item16 migration0007b append RPC visible through PostgREST');
   const {error:correctionProbe}=await admin.rpc('persist_correction',{p_post_id:missingPost,p_job_id:randomUUID(),p_expected:[],p_through:randomUUID(),p_items:[],p_reply:''});
   assert.equal(correctionProbe?.code,'42501','Pipeline requires item16 migration0007b persist RPC visible through PostgREST');
+  const {error:ownershipProbe}=await admin.rpc('post_work_matches',{p_post_id:missingPost,p_job_id:null});
+  assert.equal(ownershipProbe,null,'Pipeline requires execution-ownership migration0007b visible through PostgREST');
   const fdc=JSON.parse(await readFile(new URL('./fixtures/fdc.json',import.meta.url),'utf8'));
   for(const [query,response]of Object.entries(fdc)){
    const {data,error}=await admin.from('fdc_cache').select('query').eq('query',query).maybeSingle();assert.equal(error,null);
    if(!data){const {error:writeError}=await admin.from('fdc_cache').insert({query,response});if(writeError?.code!=='23505'){assert.equal(writeError,null);cacheInserted.push(query);}}
   }
-  const scoped=new Proxy(admin,{get(target,property){
-   if(property==='rpc')return async(name,args)=>{
-    if(name!=='claim_job')return target.rpc(name,args);
-    if(!fixtureJobs.size)return {data:null,error:null};
-    const {data:rows,error}=await target.from('jobs').select('*').in('id',[...fixtureJobs]).eq('status','queued').order('priority').order('created_at').limit(1);
-    if(error||!rows?.length)return {data:null,error};const row=rows[0];
-    return target.from('jobs').update({status:'running',started_at:new Date().toISOString(),attempts:row.attempts+1}).eq('id',row.id).eq('status','queued').select('*').maybeSingle();
-   };
-   const value=Reflect.get(target,property);return typeof value==='function'?value.bind(target):value;
-  }});
+  const scoped=scopedFixtureClaims(admin,fixtureJobs,created);
   const {drainOnce}=await import('../../src/lib/worker/drain.ts');
-  const enqueue=async(postId,kind)=>{const id=randomUUID();const {error}=await admin.from('jobs').insert({id,post_id:postId,kind,status:'queued',run_after:'2099-01-01T00:00:00Z'});assert.equal(error,null);fixtureJobs.add(id);return id;};
+  const enqueue=async(postId,kind)=>{assert.ok(created.includes(postId),'Only fixture posts can be enqueued');const id=randomUUID();const {error}=await admin.from('jobs').insert({id,post_id:postId,kind,status:'queued',run_after:'2099-01-01T00:00:00Z'});assert.equal(error,null);fixtureJobs.add(id);return id;};
   const post=async(photo=false)=>{
    const id=randomUUID();const {error}=await admin.from('posts').insert({id,user_id:auth.user.id,caption:'Offline pipeline fixture',status:'queued'});assert.equal(error,null);created.push(id);
    if(photo){const path=`${auth.user.id}/${id}/original.jpg`;const bytes=await readFile(new URL('../../scripts/fixtures/plate1.jpg',import.meta.url));const {error:uploadError}=await admin.storage.from('media').upload(path,bytes,{contentType:'image/jpeg'});assert.equal(uploadError,null);paths.push(path);
