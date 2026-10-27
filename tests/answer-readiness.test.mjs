@@ -11,8 +11,8 @@ test('answered old IDs remain tracked through delayed processing and repeated qu
  const exports={};vm.runInNewContext(code,{exports,Date:class extends Date{static now(){return now;}},document:{visibilityState:'visible'},CustomEvent:class{constructor(type,init){this.type=type;this.detail=init.detail;}},setInterval:fn=>{tick=fn;return 1;},clearInterval(){},window:{addEventListener(n,fn){listeners.set(n,fn);},removeEventListener(){},dispatchEvent(event){events.push(event);listeners.get(event.type)?.(event);}},require(name){if(name==='react')return{useEffect:fn=>effects.push(fn)};if(name==='next/navigation')return{useRouter:()=>({refresh(){}})};if(name==='@/lib/supabase/client')return{createClient:()=>db};throw Error(name);}});
  exports.default();const cleanup=effects[0]();await new Promise(resolve=>setImmediate(resolve));
  listeners.get('post-answer-resume')({detail:{id:'older-meal'}});
- for(let i=0;i<30;i++){now+=3000;await tick();}assert.equal(events.length,0,'queued answer must not reappear');
+ for(let i=0;i<400;i++){now+=3000;await tick();}assert.equal(events.length,0,'queued answer must not reappear');
  status='needs_input';now+=3000;await tick();assert.equal(events.length,0,'repeated question remains hidden');
  listeners.get('post-answer-resume')({detail:{id:'older-meal'}});status='processing';now+=3000;await tick();assert.equal(events.length,0);
- status='ready';now+=3000;await tick();assert.equal(events.length,1);assert.equal(events[0].type,'post-ready');assert.equal(events[0].detail.id,'older-meal');cleanup();
+ status='ready';now+=3000;await tick();assert.equal(events.length,2);assert.equal(events[0].type,'post-settled');assert.equal(events[0].detail.id,'older-meal');cleanup();
 });
