@@ -43,6 +43,10 @@ begin
  insert into jobs(post_id,kind,status,attempts) values(p,'analyze','running',3) returning id into j;
  perform fail_job(j,'Analysis unavailable',true);
  if (select status from posts where id=p)<>'failed' then raise exception 'analysis failure was not recorded'; end if;
+ result := publish_results_card(p,fingerprint,u::text||'/'||p::text||'/cards/stale/card.png',1080);
+ if (result->>'published')::boolean or (select status from posts where id=p)<>'failed'
+ or exists(select 1 from post_media where post_id=p and storage_path like '%/stale/card.png') then raise exception 'stale render cleared terminal failure'; end if;
+
 end;
 $test$;
 rollback;`;
