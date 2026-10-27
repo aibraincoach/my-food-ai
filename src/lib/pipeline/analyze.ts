@@ -1,0 +1,91 @@
+// Analyze pipeline entry (items 8-10 share this boundary).
+// Item 8: load the first photo, segment it, store the mask PNGs.
+// Item 9 adds naming; item 10 adds nutrition and persistence.
+import type { SupabaseClient } from "@supabase/supabase-js";
+import { segmentFoodRegions, type FoodRegion } from "@/lib/meta/sam";
+import { outlinePngFromRegion } from "./masks";
+
+const BUCKET = "media";
+
+export interface SegmentedRegion extends FoodRegion {
+  maskPath: string;
+}
+
+export interface SegmentedPost {
+  postId: string;
+  userId: string;
+  photoWidth: number;
+  photoHeight: number;
+  regions: SegmentedRegion[];
+}
+
+// First photo (position 0, original) as bytes plus its recorded size.
+async function loadFirstPhoto(
+  supabase: SupabaseClient,
+  postId: string
+): Promise<{ bytes: Uint8Array; width: number; height: number }> {
+  const { data: media, error } = await supabase
+    .from("post_media")
+    .select("storage_path,width,height")
+    .eq("post_id", postId)
+    .order("position", { ascending: true })
+    .limit(1)
+    .maybeSingle<{
+      storage_path: string;
+      width: number | null;
+      height: number | null;
+    }>();
+  if (error || !media) {
+    throw new Error("analyze: post has no photo.");
+  }
+  const { data: blob, error: downloadError } = await supabase.storage
+    .from(BUCKET)
+    .download(media.storage_path);
+  if (downloadError || !blob) {
+    throw new Error(
+      `analyze: photo download failed: ${downloadError?.message ?? "empty object."}`
+    );
+  }
+  return {
+    bytes: new Uint8Array(await blob.arrayBuffer()),
+    width: media.width ?? 0,
+    height: media.height ?? 0,
+  };
+}
+
+export async function segmentPost(
+  supabase: SupabaseClient,
+  postId: string,
+  userId: string
+): Promise<SegmentedPost> {
+  const photo = await loadFirstPhoto(supabase, postId);
+  if (photo.width <= 0 || photo.height <= 0) {
+    throw new Error("analyze: photo has no recorded size.");
+  }
+  const mime = "image/jpeg";
+  const found = await segmentFoodRegions(
+    photo.bytes,
+    mime,
+    photo.width,
+    photo.height
+  );
+  const regions: SegmentedRegion[] = [];
+  for (const region of found) {
+    const maskPath = `${userId}/${postId}/masks/${region.index}.png`;
+    const png = outlinePngFromRegion(region, photo.width, photo.height);
+    const { error: uploadError } = await supabase.storage
+      .from(BUCKET)
+      .upload(maskPath, png, { contentType: "image/png", upsert: true });
+    if (uploadError) {
+      throw new Error(`analyze: mask upload failed: ${uploadError.message}`);
+    }
+    regions.push({ ...region, maskPath });
+  }
+  return {
+    postId,
+    userId,
+    photoWidth: photo.width,
+    photoHeight: photo.height,
+    regions,
+  };
+}
