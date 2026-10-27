@@ -9,6 +9,7 @@ import {
   chooseBestMatch,
   scaleNutrition,
 } from "@/lib/fdc/nutrients";
+import { safeSummary, type ConsumedTotals } from "./wording";
 import type { NamedPost } from "./analyze";
 
 export async function persistAnalysis(
@@ -70,10 +71,15 @@ export async function persistAnalysis(
       },
     });
   }
+  const totals = Object.fromEntries(["calories", "protein_g", "carbs_g", "fat_g"].map((key) => {
+    const values = items.map((item) => item.nutrition[key as keyof ConsumedTotals]);
+    return [key, values.some((value) => value === null) ? null : values.reduce<number>((sum, value) => sum + (value ?? 0), 0)];
+  })) as ConsumedTotals;
+  const summary = await safeSummary(named.summary, totals);
   const { error } = await admin.rpc("persist_analysis", {
     p_post_id: named.postId,
     p_items: items,
-    p_summary: named.summary,
+    p_summary: summary,
   });
   if (error) {
     throw new Error(`persist: analysis transaction failed: ${error.message}`);
