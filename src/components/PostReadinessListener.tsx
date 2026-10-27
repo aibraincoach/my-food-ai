@@ -16,6 +16,7 @@ export default function PostReadinessListener() {
       if (!["ready", "failed", "needs_input"].includes(status)) return;
       pending.delete(id);
       if (live) {
+        if(announce&&status!=="needs_input")window.dispatchEvent(new CustomEvent("post-settled",{detail:{id,status}}));
         if(status==="ready"&&announce)window.dispatchEvent(new CustomEvent("post-ready",{detail:{id}}));
         router.refresh();
       }
@@ -52,11 +53,10 @@ export default function PostReadinessListener() {
       if (typeof row.id === "string") settle(row.id, row.status);
     }).subscribe();
     void seedPending();
-    // Only poll pending IDs discovered at entry or newly created IDs. Back off after two minutes and stop after
-    // fifteen; no repeated page hydration while analysis is still pending.
+    // Poll known pending IDs until terminal, with a slower status-only check after two minutes.
+    // Long queues must not strand an answered meal outside the discovery page.
     const timer = setInterval(async () => {
       const now = Date.now();
-      for (const [id, state] of pending) if (now - state.started > 15 * 60_000) pending.delete(id);
       if (!pending.size || polling || document.visibilityState === "hidden") return;
       const due = [...pending].filter(([, state]) => state.nextCheck <= now).map(([id]) => id);
       if (!due.length) return;
@@ -66,8 +66,12 @@ export default function PostReadinessListener() {
         state.nextCheck = now + (now - state.started > 120_000 ? 15_000 : 3000);
       }
       try {
-        const { data } = await db.from("posts").select("id,status").in("id", due);
-        if (live) for (const row of data ?? []) settle(row.id, row.status);
+        const { data,error } = await db.from("posts").select("id,status").in("id", due);
+        if (live&&!error) {
+          for (const row of data ?? []) settle(row.id, row.status);
+          const found=new Set((data??[]).map(row=>row.id));
+          for(const id of due)if(!found.has(id))pending.delete(id);
+        }
       } catch {
         // The bounded next status check retries transient network errors.
       } finally { polling = false; }
