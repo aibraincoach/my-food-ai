@@ -79,6 +79,9 @@ begin
  insert into public.post_comments(post_id,author,body) values(p_post_id,'model',p_reply);
  update public.jobs set payload=payload||jsonb_build_object('correction_applied',true,'correction_sequence',v_sequence+1,
    'correction_through',p_through,'correction_pending_ids',to_jsonb(v_pending)) where id=p_job_id;
+ -- A newly committed correction supersedes an earlier recompute failure.
+ -- Idempotent replays return above, so an old completion cannot clear a newer failure.
+ update public.posts set status='processing',fail_reason=null where id=p_post_id;
  if exists(select 1 from public.post_comments where post_id=p_post_id and author='user' and not(id=any(v_applied||v_pending))) then
   insert into public.jobs(post_id,kind,priority,status) select p_post_id,'correct',100,'queued'
    where not exists(select 1 from public.jobs where post_id=p_post_id and kind='correct' and status='queued');
