@@ -12,10 +12,13 @@ export default function PostReadinessListener() {
     const pending = new Map<string, { started: number; nextCheck: number }>();
     let live = true;
     let polling = false;
-    const settle = (id: string, status: string) => {
+    const settle = (id: string, status: string, announce=true) => {
       if (!["ready", "failed", "needs_input"].includes(status)) return;
       pending.delete(id);
-      if (live) router.refresh();
+      if (live) {
+        if(status==="ready"&&announce)window.dispatchEvent(new CustomEvent("post-ready",{detail:{id}}));
+        router.refresh();
+      }
     };
     const created = (event: Event) => {
       const id = (event as CustomEvent<{ id?: unknown }>).detail?.id;
@@ -23,7 +26,7 @@ export default function PostReadinessListener() {
     };
     const ready = (event: Event) => {
       const id = (event as CustomEvent<{ id?: unknown }>).detail?.id;
-      if (typeof id === "string") settle(id, "ready");
+      if (typeof id === "string") settle(id, "ready",false);
     };
     const seedPending = async () => {
       try {
@@ -70,11 +73,13 @@ export default function PostReadinessListener() {
       } finally { polling = false; }
     }, 3000);
     window.addEventListener("post-created", created);
+    window.addEventListener("post-answer-resume",created);
     window.addEventListener("post-ready", ready);
     window.addEventListener("focus", focus);
     return () => {
       live = false; clearInterval(timer); void db.removeChannel(channel);
       window.removeEventListener("post-created", created);
+      window.removeEventListener("post-answer-resume",created);
       window.removeEventListener("post-ready", ready);
       window.removeEventListener("focus", focus);
     };
