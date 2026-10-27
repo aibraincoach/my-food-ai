@@ -1,3 +1,4 @@
+import { sendPostPush } from "@/lib/push/send";
 import {readNeedsInput,type NeedsInput} from '@/lib/pipeline/needs-input';
 import type { JobHandler } from '@/lib/worker/handlers';
 import { getCurrentItems, toNumber } from '@/lib/nutrition/totals';
@@ -62,5 +63,6 @@ const correct:JobHandler=async(admin,job)=>{
  const {error}=await admin.rpc(result.needs_input?'persist_correction_question':'persist_correction',{p_post_id:job.post_id,p_job_id:job.id,p_expected:items.map(i=>i.id),p_through:latest.id,p_items:rows,p_reply:reply,...(result.needs_input?{p_question:result.needs_input}:{})});
  if(error)throw new Error(`Correction transaction failed: ${error.code}`);
  if(!result.needs_input)await markReady(job.post_id,admin);
+ else await sendPostPush(admin,job.post_id,result.needs_input.question);
 };
 export default correct;

@@ -1,3 +1,4 @@
+import { sendPostPush } from "@/lib/push/send";
 // One-RPC persist for a finished analysis (item 10). Inserts one
 // post_items row per item (source model, mask_path, box), the matching
 // item_nutrition row after an FDC lookup, the summary as the first
@@ -105,6 +106,7 @@ export async function markReady(postId: string, admin: SupabaseClient = createAd
   if (ready) {
     const {error}=await admin.from("posts").update({needs_input:null}).eq("id",postId).eq("status","ready");
     if(error)throw new Error("Could not clear clarification.");
+    await sendPostPush(admin, postId);
   }
   return ready;
 }
