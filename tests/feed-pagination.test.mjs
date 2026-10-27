@@ -4,7 +4,7 @@ import test from 'node:test';
 import { createClient } from '@supabase/supabase-js';
 import { getFeed } from '../src/lib/posts/feed.ts';
 import { encodeFeedCursor, parseFeedCursor } from '../src/lib/posts/feed-cursor.ts';
-import { mergeFeedPosts } from '../src/lib/posts/feed-order.ts';
+import { mergeFeedPosts, discoveryLostOverlap } from '../src/lib/posts/feed-order.ts';
 import { retryKind } from '../src/lib/posts/retry-kind.ts';
 
 const timestamp = '2026-10-27T12:00:00.123456+00:00';
@@ -63,6 +63,19 @@ test('21 posts created together all appear once across pages', async () => {
   assert.equal(second.posts.length, 1);
   assert.equal(second.nextCursor, null);
   assert.deepEqual([...first.posts, ...second.posts].map(p => p.id), rows.map(p => p.id).reverse());
+  // More than one page arrives while discovery/realtime is unavailable.
+  const added = Array.from({length:21},(_,i)=>({id:uuid(i+22),created_at:'2026-10-28T12:00:00.123456+00:00',eaten_at:timestamp,caption:'',status:'queued'}));
+  rows.push(...added);
+  const discovered = [...added].reverse().slice(0,20);
+  assert.equal(discoveryLostOverlap(first.posts, discovered, 20), true);
+  assert.equal(discoveryLostOverlap([], discovered, 20), true, 'an initially empty feed also gains a pagination cursor');
+  assert.equal(discoveryLostOverlap(first.posts, first.posts, 20), false);
+  const refreshed = await getFeed(db, uuid(99));
+  const recovered = [...refreshed.posts];
+  let cursor = refreshed.nextCursor;
+  while(cursor){const page=await getFeed(db,uuid(99),cursor);recovered.push(...page.posts);cursor=page.nextCursor;}
+  assert.deepEqual(recovered.map(p=>p.id), rows.map(p=>p.id).reverse(), 'fresh cursor recovers all missed rows and older history without duplicates');
+
 });
 
 test('invalid cursor data is rejected before any database request', async () => {
