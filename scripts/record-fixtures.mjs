@@ -16,7 +16,7 @@ const sam=await call('/responses',JSON.stringify({model:'sam-3.1',stream:true,in
 await writeFile(new URL('sam.sse',dir),await sam.text());console.log('Recorded sam stream');
 const identify=JSON.parse(await readFile(new URL('src/lib/prompts/spark/identify.schema.json',root),'utf8'));
 const correct=JSON.parse(await readFile(new URL('src/lib/prompts/spark/correct.schema.json',root),'utf8'));
-for(const schema of [identify,correct]){schema.properties.needs_input={type:'null'};schema.required.push('needs_input');}
+for(const schema of [identify,correct]){schema.properties.needs_input={type:'null'};schema.required=[...new Set([...schema.required,'needs_input'])];}
 const nullable={anyOf:[{type:'string'},{type:'null'}]};
 const formats={
  identify:{schema:identify,instructions:'Identify foods and grams from the photograph. region_index must be null. Give a plain factual summary with no advice. needs_input null.',content:[await photo(2)]},
