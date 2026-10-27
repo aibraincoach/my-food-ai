@@ -171,7 +171,9 @@ export default function Feed() {
         if (discoveryLostOverlap(baseline, data ?? [], FEED_PAGE_SIZE)) {
           const page = await getFeed(supabase, userId);
           if (!live || discoveryGeneration!==generation) return;
-          const interrupted=[...pending.keys()];
+          // A promoted read may have completed while the page was loading.
+          // Refresh it after installing the page too, even outside this window.
+          const interrupted=[...new Set([...pending.keys(),...newest])];
           generation++;
           for(const post of page.posts)if(post.status!=="needs_input")unavailable.delete(post.id);
           baseline = page.posts.filter(post=>!unavailable.has(post.id));

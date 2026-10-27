@@ -4,7 +4,7 @@ import vm from 'node:vm';
 import {readFileSync} from 'node:fs';
 import ts from 'typescript';
 test('retiring the last meal clears feed state and rejects an older hydration result',async()=>{
- const effects=[],listeners=new Map(),states=[];let resolveCard,resolvePage,discoverTick;let forceReset=false;
+ const effects=[],listeners=new Map(),states=[],resolvers=new Map();let resolveCard,resolvePage,discoverTick;let forceReset=false;
  const post={id:'meal',status:'processing',created_at:'2026-10-01',items:[],slides:[]};
  const channel={on(){return this;},subscribe(){return this;}};
  const exports={};
@@ -16,7 +16,7 @@ test('retiring the last meal clears feed state and rejects an older hydration re
   if(name==='react/jsx-runtime')return{jsx:()=>null,jsxs:()=>null};
   if(name==='next/navigation')return{useRouter:()=>({replace(){}})};
   if(name==='@/lib/supabase/client')return{createClient:()=>({auth:{getUser:async()=>({data:{user:{id:'owner'}}})},channel:()=>channel,removeChannel(){},from(){return{select(){return this;},eq(){return this;},neq(){return this;},or(){return this;},order(){return this;},limit:async()=>({data:[{id:'new-page-meal'}],error:null})};}})};
-  if(name==='@/lib/posts/feed')return{FEED_PAGE_SIZE:20,getFeed:async()=>forceReset?new Promise(resolve=>{resolvePage=resolve;}):({posts:[post],nextCursor:null}),getPostCard:()=>new Promise(resolve=>{resolveCard=resolve;})};
+  if(name==='@/lib/posts/feed')return{FEED_PAGE_SIZE:20,getFeed:async()=>forceReset?new Promise(resolve=>{resolvePage=resolve;}):({posts:[post],nextCursor:null}),getPostCard:(_db,id)=>new Promise(resolve=>{resolveCard=resolve;resolvers.set(id,resolve);})};
   if(name==='@/lib/posts/feed-order')return{mergeFeedPosts:(baseline,promoted)=>[...new Map([...baseline,...promoted].map(row=>[row.id,row])).values()],discoveryLostOverlap:()=>forceReset};
   if(name==='@/lib/theme/tokens')return{tokens:{spacing:{'sheet-bottom':1}}};
   if(name.startsWith('@/components/'))return{default:()=>null};
@@ -54,11 +54,12 @@ test('retiring the last meal clears feed state and rejects an older hydration re
  const beforeReset=resolveCard;
  forceReset=true;discoverTick();await new Promise(resolve=>setImmediate(resolve));
  assert.equal(typeof resolvePage,'function','a fresh first-page read is pending');
- resolvePage({posts:[{...post,id:'new-page-meal',status:'ready'}],nextCursor:null});await new Promise(resolve=>setImmediate(resolve));
- const afterReset=resolveCard;
- assert.notEqual(afterReset,beforeReset,'installing the new page restarts the older settled-card read');
  beforeReset({...post,id:'settled-during-reset',status:'ready'});await new Promise(resolve=>setImmediate(resolve));
- assert.ok(!states.at(-1).posts.some(row=>row.id==='settled-during-reset'),'the old generation cannot restore a card');
+ assert.ok(states.at(-1).posts.some(row=>row.id==='settled-during-reset'),'the settled-card read can complete while the fresh page is loading');
+ resolvePage({posts:[{...post,id:'new-page-meal',status:'ready'}],nextCursor:null});await new Promise(resolve=>setImmediate(resolve));
+ const afterReset=resolvers.get('settled-during-reset');
+ assert.notEqual(afterReset,beforeReset,'installing the new page restarts the older settled-card read');
+ assert.ok(!states.at(-1).posts.some(row=>row.id==='settled-during-reset'),'the reset waits for the fresh card read');
  afterReset({...post,id:'settled-during-reset',status:'ready'});await new Promise(resolve=>setImmediate(resolve));
  assert.ok(states.at(-1).posts.some(row=>row.id==='new-page-meal'),'the fresh first page remains installed');
  assert.ok(states.at(-1).posts.some(row=>row.id==='settled-during-reset'),'the older settled meal survives the full-window reset');
