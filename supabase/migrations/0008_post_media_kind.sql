@@ -21,10 +21,17 @@ grant execute on function public.results_card_snapshot(uuid) to service_role;
 -- same post lock used by edits and corrections.
 create or replace function public.publish_results_card(p_post_id uuid, p_fingerprint text, p_storage_path text, p_size integer)
 returns jsonb language plpgsql security definer set search_path = public, pg_temp as $$
-declare v_snapshot jsonb; v_old text; v_position integer; v_owner uuid;
+declare v_snapshot jsonb; v_old text; v_position integer; v_owner uuid; v_status text;
 begin
-  select user_id into v_owner from public.posts where id = p_post_id for update;
-  if not found then return jsonb_build_object('published', false); end if;
+  select user_id, status into v_owner, v_status from public.posts where id = p_post_id for update;
+  if not found or v_status in ('failed','needs_input') then return jsonb_build_object('published', false); end if;
+  -- A complete old snapshot must not publish ready over queued corrections.
+  if exists (select 1 from public.jobs where post_id = p_post_id and kind = 'correct'
+    and status in ('queued','running') and coalesce(payload->>'correction_applied','false') <> 'true') then
+    update public.posts set status = case when status in ('processing','needs_input') then status else 'queued' end
+      where id = p_post_id;
+    return jsonb_build_object('published', false);
+  end if;
   v_snapshot := public.results_card_snapshot(p_post_id);
   if v_snapshot->>'fingerprint' is distinct from p_fingerprint or exists (
     select 1 from jsonb_array_elements(v_snapshot->'items') e where e->'nutrition' = 'null'::jsonb

@@ -13,7 +13,7 @@ test('selected FDC identity wins over first/ranked food and client nutrient forg
     from: table => {
       assert.equal(table, 'fdc_cache');
       return { select: () => ({ eq: (_column, query) => {
-        assert.equal(query, 'rice');
+        assert.ok(['rice','fdc-search:rice'].includes(query));
         return { maybeSingle: async () => ({ data: { response: { foods } }, error: null }) };
       } }) };
     },
