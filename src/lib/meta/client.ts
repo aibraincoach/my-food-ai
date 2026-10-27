@@ -1,8 +1,16 @@
+import OpenAI from "openai";
 import { ApiError } from "@/lib/worker/errors";
 
 // The one fetch wrapper for the Meta Model API (section 4).
 // Base URL https://api.meta.ai/v1, header Authorization: Bearer $MODEL_API_KEY.
 // Keys stay server-side; nothing here runs in the browser.
+
+// P6: Vercel deployment dpl_8R4S58TRC1obJhabRqsYNzBoMiwf returned
+// config.functionTimeout=300 seconds (fluid), verified through v13 REST.
+// Two 30-second calls plus at most 10 seconds waiting fit that duration.
+export const TIMEOUT_MS = 30000;
+export const MAX_RETRIES = 1;
+export const MAX_RETRY_AFTER_S = 10;
 
 export const META_API_BASE_URL = process.env.MODEL_API_BASE_URL || "https://api.meta.ai/v1";
 
@@ -34,28 +42,69 @@ function errorCode(payload: unknown): string | undefined {
   return undefined;
 }
 
-export async function metaFetch(
-  path: string,
-  init: RequestInit = {}
-): Promise<Response> {
+function retryAfterSeconds(headers: Headers): number | null {
+  const millis = headers.get("retry-after-ms");
+  if (millis !== null && Number.isFinite(Number(millis))) return Math.max(0, Number(millis) / 1000);
+  const value = headers.get("retry-after");
+  if (value === null) return null;
+  if (Number.isFinite(Number(value))) return Math.max(0, Number(value));
+  const date = Date.parse(value);
+  return Number.isFinite(date) ? Math.max(0, (date - Date.now()) / 1000) : null;
+}
+
+function retryable(status: number): boolean {
+  return status === 408 || status === 409 || status === 429 || status >= 500;
+}
+
+// SDK retries use these same limits. Its documented override header prevents
+// the SDK's longer Retry-After allowance from extending the job attempt.
+export function createMetaClient(): OpenAI {
+  return new OpenAI({ baseURL: META_API_BASE_URL, apiKey: metaApiKey(), timeout: TIMEOUT_MS, maxRetries: MAX_RETRIES,
+    fetch: async (input, init) => {
+      const response = await fetch(input, init);
+      const wait = retryAfterSeconds(response.headers);
+      if (!retryable(response.status) || (wait !== null && wait > MAX_RETRY_AFTER_S)) {
+        const headers = new Headers(response.headers);
+        headers.set("x-should-retry", "false");
+        return new Response(response.body, { status: response.status, statusText: response.statusText, headers });
+      }
+      return response;
+    },
+  });
+}
+
+export async function metaFetch(path: string, init: RequestInit = {}): Promise<Response> {
   const headers = new Headers(init.headers);
   headers.set("Authorization", `Bearer ${metaApiKey()}`);
-  const response = await fetch(`${META_API_BASE_URL}${path}`, {
-    ...init,
-    headers,
-  });
-  if (!response.ok) {
-    let code: string | undefined;
-    const message = `meta: ${path} failed with ${response.status}.`;
-    const body = await response.text();
+  for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
+    let response: Response;
+    const timeout = AbortSignal.timeout(TIMEOUT_MS);
+    const signal = init.signal ? AbortSignal.any([init.signal, timeout]) : timeout;
     try {
-      code = errorCode(JSON.parse(body));
-    } catch {
-      // Keep the default message when the body is not JSON.
+      response = await fetch(`${META_API_BASE_URL}${path}`, { ...init, headers, signal });
+    } catch (error) {
+      if (init.signal?.aborted) throw error;
+      if (attempt < MAX_RETRIES) continue;
+      throw new MetaApiError(timeout.aborted ? 504 : 503, "meta: request could not be completed.");
     }
-    throw new MetaApiError(response.status, message, code, body);
+    if (response.ok) return response;
+    const wait = retryAfterSeconds(response.headers);
+    if (attempt < MAX_RETRIES && retryable(response.status) && (wait === null || wait <= MAX_RETRY_AFTER_S)) {
+      await response.body?.cancel();
+      await new Promise<void>((resolve, reject) => {
+        const abort = () => { clearTimeout(timer); reject(init.signal?.reason); };
+        const timer = setTimeout(() => { init.signal?.removeEventListener("abort", abort); resolve(); }, (wait ?? 0.5) * 1000);
+        if (init.signal?.aborted) abort();
+        else init.signal?.addEventListener("abort", abort, { once: true });
+      });
+      continue;
+    }
+    const body = await response.text();
+    let code: string | undefined;
+    try { code = errorCode(JSON.parse(body)); } catch { /* Non-JSON errors retain their HTTP status. */ }
+    throw new MetaApiError(response.status, `meta: ${path} failed with ${response.status}.`, code, body);
   }
-  return response;
+  throw new MetaApiError(503, "meta: retry limit reached.");
 }
 
 export interface ResponseOutput {
