@@ -5,6 +5,8 @@ export interface JobRow {
   post_id: string | null;
   kind: string;
   priority: number;
+  payload: Record<string, unknown>;
+  run_after: string;
   status: string;
   attempts: number;
   created_at: string;
@@ -29,23 +31,3 @@ export async function finishJob(admin: SupabaseClient, id: string): Promise<void
   if (error) throw new Error(`finish_job failed: ${error.message}`);
 }
 
-// A 429/5xx-style retryable failure: back to queued with the error noted.
-// Past three attempts the post is failed.
-export async function failJob(admin: SupabaseClient, job: JobRow, message: string): Promise<void> {
-  if (job.attempts >= 3) {
-    await admin.from("jobs").update({
-      status: "error",
-      finished_at: new Date().toISOString(),
-      error: message,
-    }).eq("id", job.id);
-    if (job.post_id) {
-      await admin.from("posts").update({ status: "failed" }).eq("id", job.post_id);
-    }
-    return;
-  }
-  const { error } = await admin
-    .from("jobs")
-    .update({ status: "queued", error: message })
-    .eq("id", job.id);
-  if (error) throw new Error(`fail_job failed: ${error.message}`);
-}
