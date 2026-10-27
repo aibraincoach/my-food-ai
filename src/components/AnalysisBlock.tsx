@@ -32,7 +32,7 @@ export default function AnalysisBlock({ post }: { post: FeedPost }) {
         </ul>
         <p className="tabular-nums">{macroLine}</p>
       </Link>
-      <ThumbsFeedback postId={post.id} modelCommentId={post.modelCommentId??null} />
+      <ThumbsFeedback postId={post.id} modelCommentId={post.modelCommentId??null} fingerprint={post.analysisFingerprint??null} />
     </div> : null}
   </div>;
 }
