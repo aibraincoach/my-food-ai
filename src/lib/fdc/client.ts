@@ -1,3 +1,5 @@
+import { recordCall } from "@/lib/trace/record";
+import { chooseBestMatch } from "./nutrients";
 // USDA FoodData Central search with a Postgres cache (item 10).
 // Base https://api.nal.usda.gov/fdc/v1, api_key query parameter.
 // 1,000 requests/hour per IP then 429 plus a one-hour block, hence the
@@ -104,6 +106,7 @@ export async function searchFoods(
   if (!cacheError && cached) {
     return asFoods(cached.response);
   }
+  return recordCall("fdc", { query }, async () => {
   const params = new URLSearchParams({
     query: query.trim(),
     dataType: DATA_TYPES,
@@ -126,4 +129,5 @@ export async function searchFoods(
     { onConflict: "query" }
   );
   return asFoods(payload);
+  }, (foods) => ({ text: foods, fdcId: chooseBestMatch(foods)?.fdcId ?? null }));
 }

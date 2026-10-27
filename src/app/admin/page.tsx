@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { connection } from "next/server";
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
@@ -35,7 +36,7 @@ export default async function AdminPage() {
     </li>)}</ol>}
     <h2 className="mt-card-gap mb-sheet-top text-sheet-title">Recent posts</h2>
     <ol className="space-y-sheet-top">{stats.posts.map((post) => <li key={post.id} className="break-words border-b border-hairline pb-sheet-top">
-      <span>{post.id}</span><br /><time className="text-meta text-muted" dateTime={post.created_at}>{post.created_at}</time>
+      <Link href={`/admin/posts/${post.id}`} className="underline">{post.id}</Link><br /><time className="text-meta text-muted" dateTime={post.created_at}>{post.created_at}</time>
     </li>)}</ol>
   </main>;
 }
