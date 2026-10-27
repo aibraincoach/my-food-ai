@@ -158,3 +158,35 @@ end;
 $$;
 revoke all on function public.edit_post_item_with_nutrition(uuid, uuid, text, uuid, text, numeric, jsonb, jsonb) from public, anon, authenticated;
 grant execute on function public.edit_post_item_with_nutrition(uuid, uuid, text, uuid, text, numeric, jsonb, jsonb) to service_role;
+
+-- Initial analysis commits once. Later card/finish retries must never restore
+-- model rows over a user's edits (including removing the entire meal).
+alter table public.posts add column analysis_initialized_at timestamptz;
+update public.posts p set analysis_initialized_at=now()
+where exists(select 1 from public.post_comments c where c.post_id=p.id and c.author='model')
+   or exists(select 1 from public.post_items i where i.post_id=p.id and i.source='model');
+create function public.guard_analysis_marker() returns trigger language plpgsql set search_path=public,pg_temp as $$
+begin
+ if current_user in ('authenticated','anon') and
+   ((tg_op='INSERT' and new.analysis_initialized_at is not null) or
+    (tg_op='UPDATE' and new.analysis_initialized_at is distinct from old.analysis_initialized_at)) then
+  raise exception 'Analysis initialization is server-owned' using errcode='42501';
+ end if;
+ return new;
+end $$;
+create trigger protect_analysis_marker before insert or update on public.posts
+ for each row execute function public.guard_analysis_marker();
+alter function public.persist_analysis(uuid,jsonb,text) rename to persist_analysis_initial;
+revoke all on function public.persist_analysis_initial(uuid,jsonb,text) from public,anon,authenticated,service_role;
+create function public.persist_analysis(p_post_id uuid,p_items jsonb,p_summary text)
+returns void language plpgsql security definer set search_path=public,pg_temp as $$
+declare initialized timestamptz;
+begin
+ select analysis_initialized_at into initialized from public.posts where id=p_post_id for update;
+ if not found then raise exception 'Post not found' using errcode='42501';end if;
+ if initialized is not null then return;end if;
+ perform public.persist_analysis_initial(p_post_id,p_items,p_summary);
+ update public.posts set analysis_initialized_at=clock_timestamp() where id=p_post_id;
+end $$;
+revoke all on function public.persist_analysis(uuid,jsonb,text) from public,anon,authenticated;
+grant execute on function public.persist_analysis(uuid,jsonb,text) to service_role;
