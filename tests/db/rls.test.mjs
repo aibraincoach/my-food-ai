@@ -20,6 +20,6 @@ test('second ordinary user cannot read another user’s post or child rows', asy
     assert.ok(jobs.error || jobs.data?.length === 0, 'jobs must be unreadable');
   } finally {
     if(post) checked(await db.from('posts').delete().eq('id',post.id));
-    await first.client.auth.signOut(); await second.client.auth.signOut();
+    await first.client.auth.signOut({scope:'local'}); await second.client.auth.signOut({scope:'local'});
   }
 });
