@@ -50,6 +50,7 @@ do $$ declare u uuid:=gen_random_uuid();p uuid;j uuid;j2 uuid;c public.post_comm
  perform persist_correction(p,j2,array[]::uuid[],c2.id,'[]','Consumed: 0 kcal.');
  s:=results_card_snapshot(p);
  if not(publish_results_card(p,s->>'fingerprint',u||'/'||p||'/cards/'||gen_random_uuid()||'/card.png',1080)->>'published')::boolean then raise exception 'resolved follow-up could not publish';end if;
+ if exists(select 1 from posts where id=p and (status<>'ready' or needs_input is not null))then raise exception 'ready publication exposed stale clarification';end if;
  update posts set status='failed',fail_reason='Correction failed' where id=p;
  if(publish_results_card(p,s->>'fingerprint',u||'/'||p||'/cards/'||gen_random_uuid()||'/card.png',1080)->>'published')::boolean then raise exception 'stale card cleared failed correction';end if;
  if(select status from posts where id=p)<>'failed'then raise exception 'failed state changed';end if;

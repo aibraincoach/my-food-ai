@@ -102,10 +102,6 @@ export async function markReady(postId: string, admin: SupabaseClient = createAd
   const state = await admin.from("posts").select("status").eq("id",postId).maybeSingle();
   if(state.error)throw ioError("Could not read completion state.",state.error,state.status);
   if(!state.data || state.data.status === "needs_input")return false;
-  const ready = await renderResultsCard(admin, postId);
-  if (ready) {
-    const {error,status}=await admin.from("posts").update({needs_input:null}).eq("id",postId).eq("status","ready");
-    if(error)throw ioError("Could not clear clarification.",error,status);
-  }
-  return ready;
+  // Publication clears clarification in the same post-locked transaction as ready.
+  return renderResultsCard(admin, postId);
 }

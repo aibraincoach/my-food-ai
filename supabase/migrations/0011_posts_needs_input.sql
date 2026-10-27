@@ -59,7 +59,7 @@ begin
   values(p_post_id, 'card', p_storage_path, v_position, p_size, p_size)
   on conflict(post_id) where kind = 'card' do update set storage_path = excluded.storage_path,
     position = excluded.position, width = excluded.width, height = excluded.height;
-  update public.posts set status = 'ready', fail_reason = null where id = p_post_id;
+  update public.posts set status = 'ready', fail_reason = null, needs_input = null where id = p_post_id;
   return jsonb_build_object('published', true, 'old_path', v_old);
 end;
 $$;
