@@ -1,3 +1,4 @@
+import { ioError } from "@/lib/worker/errors";
 import type { SupabaseClient } from "@supabase/supabase-js";
 
 export interface JobRow {
@@ -18,15 +19,15 @@ export interface JobRow {
 // Lowest priority number first, then oldest — FOR UPDATE SKIP LOCKED inside
 // the claim_job() function. Stamps started_at and increments attempts.
 export async function claimJob(admin: SupabaseClient): Promise<JobRow | null> {
-  const { data, error } = await admin.rpc("claim_job");
-  if (error) throw new Error(`claim_job failed: ${error.message}`);
+  const { data, error, status } = await admin.rpc("claim_job");
+  if (error) throw ioError(`claim_job failed: ${error.message}`, error, status);
   return (data ?? null) as JobRow | null;
 }
 
 export async function finishJob(admin: SupabaseClient, id: string): Promise<void> {
-  const { error } = await admin
+  const { error, status } = await admin
     .from("jobs")
     .update({ status: "finished", finished_at: new Date().toISOString(), error: null })
     .eq("id", id);
-  if (error) throw new Error(`finish_job failed: ${error.message}`);
+  if (error) throw ioError(`finish_job failed: ${error.message}`, error, status);
 }
