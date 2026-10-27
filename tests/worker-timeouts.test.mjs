@@ -72,3 +72,18 @@ test('database HTTP and serialized transport errors survive persist and finish b
     }
   }
 });
+
+test('PostgREST transaction conflicts retry despite HTTP409; constraints do not', async () => {
+  const { createClient } = await import('@supabase/supabase-js');
+  const { finishJob } = await import('../src/lib/queue/claim.ts');
+  for (const code of ['40001', '40P01', '23514', '23505']) {
+    const db = createClient('https://fixture.invalid', 'fixture-key', { global: { fetch: async () =>
+      new Response(JSON.stringify({ message: 'transaction rejected', code }), { status: 409 }) } });
+    await assert.rejects(finishJob(db, 'fixture'), error => {
+      assert.equal(isRetriable(error), code === '40001' || code === '40P01', code);
+      return true;
+    });
+  }
+  assert.equal(isRetriable(new ApiError(409, 'model conflict')), false);
+  assert.equal(isRetriable(new ApiError(400, 'bad model input')), false);
+});
