@@ -4,6 +4,7 @@
 // cache: every query hits fdc_cache first and only misses reach FDC.
 // Server-only: reads FDC_API_KEY from the environment.
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { ApiError, ioError } from "@/lib/worker/errors";
 
 const FDC_BASE_URL = "https://api.nal.usda.gov/fdc/v1";
 const DATA_TYPES = "Foundation,SR Legacy,Branded";
@@ -112,11 +113,12 @@ export async function searchFoods(
   const response = await fetch(
     `${FDC_BASE_URL}/foods/search?${params.toString()}`
   );
-  if (response.status === 429) {
-    throw new Error("fdc: rate limited (429); back off for an hour.");
-  }
   if (!response.ok) {
-    throw new Error(`fdc: search failed with ${response.status}.`);
+    throw new ApiError(
+      response.status,
+      await response.text(),
+      `fdc: search failed with ${response.status}.`
+    );
   }
   const payload = (await response.json()) as unknown;
   await admin.from("fdc_cache").upsert(
@@ -124,4 +126,41 @@ export async function searchFoods(
     { onConflict: "query" }
   );
   return asFoods(payload);
+}
+
+// The full USDA detail shape carries nutrient.id/name/unitName and amount.
+// https://fdc.nal.usda.gov/api-guide/ — GET /food/{fdcId}, format=full.
+export function parseFoodDetail(payload: unknown, expectedId: number): FdcFood {
+  const food = payload as Record<string, unknown> | null;
+  if (!food || food.fdcId !== expectedId || typeof food.description !== "string"
+    || typeof food.dataType !== "string" || !Array.isArray(food.foodNutrients)) throw new ApiError(502, "", "fdc: invalid food detail.");
+  const nutrients: FdcNutrient[] = [];
+  for (const raw of food.foodNutrients) {
+    if (!raw || typeof raw !== "object") continue;
+    const row = raw as Record<string, unknown>;
+    const nutrient = row.nutrient as Record<string, unknown> | undefined;
+    if (nutrient && typeof nutrient.id === "number" && typeof nutrient.name === "string"
+      && typeof nutrient.unitName === "string" && typeof row.amount === "number" && Number.isFinite(row.amount)) {
+      nutrients.push({nutrientId: nutrient.id, nutrientName: nutrient.name, unitName: nutrient.unitName, value: row.amount});
+    }
+  }
+  return {fdcId: expectedId, description: food.description, dataType: food.dataType, foodNutrients: nutrients,
+    servingSize: typeof food.servingSize === "number" ? food.servingSize : undefined,
+    servingSizeUnit: typeof food.servingSizeUnit === "string" ? food.servingSizeUnit : undefined};
+}
+
+export async function getFoodById(admin: SupabaseClient, id: number): Promise<FdcFood> {
+  if (!Number.isSafeInteger(id) || id <= 0) throw new Error("fdc: invalid retained food identity.");
+  const key = `fdc-detail:${id}`;
+  const {data: cached, error, status} = await admin.from("fdc_cache").select("response").eq("query", key).maybeSingle();
+  if (error) throw ioError("Retained food cache could not be read.", error, status);
+  if (cached) return parseFoodDetail(cached.response, id);
+  const params = new URLSearchParams({format: "full", api_key: fdcApiKey()});
+  const response = await fetch(`${FDC_BASE_URL}/food/${id}?${params}`, {signal: AbortSignal.timeout(30000)});
+  if (!response.ok) throw new ApiError(response.status, await response.text(), "Retained food could not be loaded.");
+  const payload: unknown = await response.json();
+  const food = parseFoodDetail(payload, id);
+  const {error: saveError, status: saveStatus} = await admin.from("fdc_cache").upsert({query: key, response: payload}, {onConflict: "query"});
+  if (saveError) throw ioError("Retained food cache could not be saved.", saveError, saveStatus);
+  return food;
 }
