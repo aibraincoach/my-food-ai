@@ -30,4 +30,3 @@ export async function finishJob(admin: SupabaseClient, id: string): Promise<void
     .eq("id", id);
   if (error) throw new Error(`finish_job failed: ${error.message}`);
 }
-
