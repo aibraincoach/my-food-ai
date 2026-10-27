@@ -14,9 +14,16 @@ test('offline model responses drive a real meal, correction and error transition
   const {data:after}=await h.admin.from('post_comments').select('id').eq('post_id',meal.id).eq('author','model');assert.equal(after.length,2);
   const invalid=await h.post(true);await h.control({status:400,times:1});assert.equal((await h.drain()).failed,true);
   const {data:failed}=await h.admin.from('jobs').select('status,attempts').eq('id',invalid.jobId).single();assert.equal(failed.status,'error');assert.equal(failed.attempts,1);
-  const retry=await h.post(true);await h.control({status:429,times:1,retryAfter:0});await h.drain();
-  let {data:job}=await h.admin.from('jobs').select('status').eq('id',retry.jobId).single();
-  if(job.status==='queued'){await h.drain();({data:job}=await h.admin.from('jobs').select('status').eq('id',retry.jobId).single());}
-  assert.equal(job.status,'finished');assert.ok(h.fake.calls.some(c=>c.path==='/v1/responses'));
+  const retry=await h.post(true);
+  // Keep failing longer than any SDK's internal retry allowance. This test
+  // verifies queue recovery; the separate client test covers in-attempt retry.
+  await h.control({status:429,times:100,retryAfter:0});
+  assert.equal((await h.drain()).failed,true);
+  let {data:job}=await h.admin.from('jobs').select('status,attempts').eq('id',retry.jobId).single();
+  assert.equal(job.status,'queued');assert.equal(job.attempts,1);
+  await h.control({status:429,times:0});
+  assert.equal((await h.drain()).failed,false);
+  ({data:job}=await h.admin.from('jobs').select('status,attempts').eq('id',retry.jobId).single());
+  assert.equal(job.status,'finished');assert.equal(job.attempts,2);assert.ok(h.fake.calls.some(c=>c.path==='/v1/responses'));
  }finally{await h.cleanup();}
 });

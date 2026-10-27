@@ -4,9 +4,16 @@ import {readFileSync} from 'node:fs';
 import {spawnSync} from 'node:child_process';
 test('candidate SQL distinguishes absent signals from genuine mismatches',()=>{
  assert.ok(process.env.SUPABASE_DB_URL);
- const migrations=['0006_post_locations.sql','0010_post_media_phash.sql'].map(name=>readFileSync(new URL(`../supabase/migrations/${name}`,import.meta.url),'utf8')).join('\n');
+ const migrations=[['0006_post_locations.sql',"to_regclass('public.post_locations')"],['0010_post_media_phash.sql',"to_regprocedure('public.meal_prior_candidates(uuid)')"]].map(([name,probe])=>
+   `select ${probe} is not null as installed \\gset
+\\if :installed
+\\else
+${readFileSync(new URL(`../supabase/migrations/${name}`,import.meta.url),'utf8')}
+\\endif`).join('\n');
  const sql=`\\set ON_ERROR_STOP on
 begin;set local lock_timeout='5s';set local statement_timeout='30s';
+${migrations}
+-- Repeat setup inside the same rollback to exercise already-installed schemas.
 ${migrations}
 do $t$ declare u uuid:=gen_random_uuid();c uuid;p uuid;r record;begin
 insert into auth.users(id)values(u);insert into profiles(id,handle)values(u,'prior-'||u);
