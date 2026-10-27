@@ -10,8 +10,8 @@ import {
   chooseBestMatch,
   scaleNutrition,
 } from "@/lib/fdc/nutrients";
-import { safeSummary, type ConsumedTotals } from "./wording";
 import { renderResultsCard } from "./results-card";
+import { safeSummary, type ConsumedTotals } from "./wording";
 import type { NamedPost } from "./analyze";
 
 export async function persistAnalysis(
