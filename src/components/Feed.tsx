@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { FEED_PAGE_SIZE, getFeed, getPostCard, type FeedPost } from "@/lib/posts/feed";
@@ -17,6 +17,8 @@ const RETRY_INTERVAL_MS = 1000;
 // Per-card refreshes remain in RealtimePost, so discovery fetches only IDs.
 export default function Feed() {
   const router = useRouter();
+  const sentinel = useRef<HTMLDivElement>(null);
+  const loadMore = useRef<() => void>(()=>{});
   const [state, setState] = useState<State>({ kind: "loading" });
 
   useEffect(() => {
@@ -26,6 +28,8 @@ export default function Feed() {
     let discovering = false;
     let baseline: FeedPost[] = [];
     let loaded = false;
+    let cursor: string | null = null;
+    let loadingMore = false;
     const cards = new Map<string, FeedPost>();
     const newest: string[] = [];
     const pending = new Map<string, { again: boolean; retries: number }>();
@@ -88,7 +92,9 @@ export default function Feed() {
         if (!live) return;
         if (!user) { router.replace("/sign-in"); return; }
         userId = user.id;
-        baseline = await getFeed(supabase, user.id);
+        const page = await getFeed(supabase,user.id);
+        baseline = page.posts;
+        cursor = page.nextCursor;
         loaded = true;
         publish();
       } catch {
@@ -96,6 +102,18 @@ export default function Feed() {
       }
     };
 
+    loadMore.current = () => {
+      if(!cursor || loadingMore || !live) return;
+      loadingMore=true;
+      void fetch(`/api/feed?before=${encodeURIComponent(cursor)}`).then(async response=>{
+        if(!response.ok) throw new Error("Feed page failed.");
+        const page = await response.json() as {posts:FeedPost[];nextCursor:string|null};
+        if(!live) return;
+        baseline.push(...page.posts.filter(post=>!baseline.some(existing=>existing.id===post.id)));
+        cursor=page.nextCursor;
+        publish();
+      }).catch(()=>{}).finally(()=>{loadingMore=false;});
+    };
     const discover = async () => {
       if (!live || !userId || discovering || document.hidden) return;
       discovering = true;
@@ -143,6 +161,13 @@ export default function Feed() {
     return () => window.removeEventListener("feed-state-request", publish);
   }, [state]);
 
+  useEffect(()=>{
+    if(!sentinel.current) return;
+    const observer=new IntersectionObserver(entries=>{if(entries.some(entry=>entry.isIntersecting)) loadMore.current();});
+    observer.observe(sentinel.current);
+    return ()=>observer.disconnect();
+  },[state]);
+
   if (state.kind === "loading") return <p className="px-screen-x text-detail text-muted" role="status">Loading feed…</p>;
   if (state.kind === "error") return <p className="px-screen-x text-detail text-muted" role="alert">Could not load meals.</p>;
   if (!state.posts.length) return <div className="flex flex-1 items-center justify-center" style={{ paddingBottom: tokens.spacing['sheet-bottom'] * 3 }}>
@@ -152,5 +177,6 @@ export default function Feed() {
     {state.posts.map((post) => <RealtimePost key={post.id} initial={post} renderCard={(fresh) => <PostCard post={fresh}
       analysis={fresh.status === "ready" && fresh.items.length > 0 ? <AnalysisBlock post={fresh} /> : undefined}
     />} />)}
+    <div ref={sentinel} className="h-tap" aria-hidden="true" />
   </div>;
 }
