@@ -1,0 +1,127 @@
+{
+  "top_logprobs": 0,
+  "temperature": 1,
+  "top_p": 1,
+  "service_tier": "auto",
+  "model": "muse-spark-1.3",
+  "reasoning": {
+    "effort": "high"
+  },
+  "background": false,
+  "text": {
+    "format": {
+      "type": "json_schema",
+      "name": "identify",
+      "schema": {
+        "properties": {
+          "items": {
+            "items": {
+              "additionalProperties": false,
+              "properties": {
+                "confidence": {
+                  "type": [
+                    "number",
+                    "null"
+                  ]
+                },
+                "name": {
+                  "type": "string"
+                },
+                "portion_grams": {
+                  "type": [
+                    "number",
+                    "null"
+                  ]
+                },
+                "portion_text": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "region_index": {
+                  "type": [
+                    "integer",
+                    "null"
+                  ]
+                }
+              },
+              "required": [
+                "region_index",
+                "name",
+                "portion_text",
+                "portion_grams",
+                "confidence"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "needs_input": {
+            "type": "null"
+          },
+          "summary": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "items",
+          "summary",
+          "needs_input"
+        ],
+        "type": "object",
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "additionalProperties": false,
+        "title": "identify"
+      },
+      "strict": true
+    }
+  },
+  "tools": [],
+  "tool_choice": "auto",
+  "truncation": "disabled",
+  "id": "resp_6ae0dd929bb7f8cb80124d81",
+  "object": "response",
+  "status": "completed",
+  "created_at": 1793121682,
+  "completed_at": 1793121682,
+  "error": null,
+  "incomplete_details": null,
+  "output": [
+    {
+      "type": "reasoning",
+      "id": "rs_6ae0dd929bb7f8cb80124d81:rs_c6d89f4a-e219-478e-ad68-a8d3ec7c9311",
+      "summary": [],
+      "status": "completed"
+    },
+    {
+      "type": "message",
+      "id": "msg_5670cb4a-579f-438a-960b-74476eb4dfbc",
+      "role": "assistant",
+      "content": [
+        {
+          "type": "output_text",
+          "text": "{\"items\": [{\"confidence\": 0.95, \"name\": \"Yorkshire pudding\", \"portion_grams\": 80, \"portion_text\": \"2 pieces\", \"region_index\": null}, {\"confidence\": 0.8, \"name\": \"sliced roast beef\", \"portion_grams\": 180, \"portion_text\": \"about 6 slices\", \"region_index\": null}, {\"confidence\": 0.85, \"name\": \"stuffing\", \"portion_grams\": 75, \"portion_text\": \"1 scoop\", \"region_index\": null}, {\"confidence\": 0.9, \"name\": \"brown gravy\", \"portion_grams\": 80, \"portion_text\": \"about 1/3 cup\", \"region_index\": null}], \"needs_input\": null, \"summary\": \"A white plate holds two Yorkshire puddings, several slices of roast meat covered in brown gravy, and a portion of stuffing.\"}",
+          "annotations": [],
+          "logprobs": []
+        }
+      ],
+      "status": "completed"
+    }
+  ],
+  "instructions": "Identify foods and grams from the photograph. region_index must be null. Give a plain factual summary with no advice. needs_input null.",
+  "usage": {
+    "input_tokens": 2225,
+    "input_tokens_details": {
+      "cached_tokens": 0
+    },
+    "output_tokens": 1308,
+    "output_tokens_details": {
+      "reasoning_tokens": 1100
+    },
+    "total_tokens": 3533
+  },
+  "parallel_tool_calls": true,
+  "store": true,
+  "max_output_tokens": 4096
+}
