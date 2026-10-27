@@ -5,7 +5,7 @@ import Link from "next/link";
 import type { FeedItem, FeedPost } from "@/lib/posts/feed";
 import { formatConsumed, formatGrams, sumNutrition, toNumber } from "@/lib/nutrition/totals";
 import { Icon } from "@/components/ui/Icon";
-import { tokens } from "@/lib/theme/tokens";
+import ThumbsFeedback from "@/components/ThumbsFeedback";
 
 function itemPortion(item: FeedItem): string | null {
   return item.portion_grams == null ? item.portion_text : formatGrams(item.portion_grams);
@@ -32,9 +32,7 @@ export default function AnalysisBlock({ post }: { post: FeedPost }) {
         </ul>
         <p className="tabular-nums">{macroLine}</p>
       </Link>
-      <div className="flex py-2" aria-hidden="true" style={{ gap: tokens.spacing['icon-thumb'] - tokens.border.hairline * 2 }}>
-        <Icon name="thumb" /><Icon name="thumb" down />
-      </div>
+      <ThumbsFeedback postId={post.id} modelCommentId={post.modelCommentId??null} fingerprint={post.analysisFingerprint??null} />
     </div> : null}
   </div>;
 }
