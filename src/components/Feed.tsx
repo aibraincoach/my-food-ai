@@ -119,7 +119,7 @@ export default function Feed() {
       discovering = true;
       try {
         const { data, error } = await supabase.from("posts").select("id")
-          .eq("user_id", userId).order("created_at", { ascending: false }).limit(FEED_PAGE_SIZE);
+          .eq("user_id", userId).neq("status","needs_input").order("created_at", { ascending: false }).limit(FEED_PAGE_SIZE);
         if (!live || error) return;
         // Visit oldest first: newly discovered rows are prepended in order.
         for (const row of [...(data ?? [])].reverse()) {

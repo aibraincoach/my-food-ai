@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import NeedsInputStrip from "@/components/NeedsInputStrip";
 import Feed from "@/components/Feed";
 import DayBubbles from "@/components/DayBubbles";
 import { cookies } from "next/headers";
@@ -17,6 +18,7 @@ async function HomeDays() {
 export default function Home() {
   return <main className="flex flex-1 flex-col">
     <header className="flex h-top-h items-center px-screen-x"><h1 className="text-title">My Food AI</h1></header>
+    <NeedsInputStrip />
     <Suspense fallback={<div className="h-bar-h" />}><HomeDays /></Suspense>
     <Suspense fallback={<p className="px-screen-x text-detail text-muted">Loading feed…</p>}>
       <Feed />

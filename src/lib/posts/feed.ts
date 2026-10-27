@@ -95,7 +95,7 @@ export async function getFeed(
   let query = supabase
     .from("posts")
     .select("id,caption,eaten_at,status,created_at")
-    .eq("user_id", userId)
+    .eq("user_id", userId).neq("status","needs_input")
     .order("created_at", { ascending: false })
     .limit(FEED_PAGE_SIZE + 1);
   if(before) query = query.lt("created_at",before);

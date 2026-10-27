@@ -2,6 +2,7 @@
 // Item 8: load the first photo, segment it, store the mask PNGs.
 // Item 9: name the regions with Muse Spark (identifyMeal below).
 // Item 10: FDC lookup plus the one-RPC persist.
+import type { NeedsInput } from "./needs-input";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { segmentFoodRegions, type FoodRegion } from "@/lib/meta/sam";
 import {
@@ -107,6 +108,7 @@ export interface NamedPost extends SegmentedPost {
   // a null box and mask path.
   captionOnly: IdentifiedItem[];
   summary: string;
+  needsInput?: NeedsInput | null;
 }
 
 // Item 9: name the segmented regions with Muse Spark. Works with zero
@@ -149,7 +151,7 @@ export async function identifyMeal(
     ...region,
     item: byRegion.get(region.index) ?? null,
   }));
-  return { ...segmented, regions, captionOnly, summary: meal.summary };
+  return { ...segmented, regions, captionOnly, summary: meal.summary, needsInput: meal.needsInput };
 }
 
 interface PostCaptionRow {

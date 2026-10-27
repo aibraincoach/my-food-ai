@@ -1,3 +1,4 @@
+import {readNeedsInput,type NeedsInput} from '@/lib/pipeline/needs-input';
 import type { JobHandler } from '@/lib/worker/handlers';
 import { getCurrentItems, toNumber } from '@/lib/nutrition/totals';
 import { createResponse, MetaApiError } from '@/lib/meta/client';
@@ -9,7 +10,7 @@ import { safeSummary, type ConsumedTotals } from '@/lib/pipeline/wording';
 import { markReady } from '@/lib/pipeline/persist';
 
 type Correction = {name:string;portion_text:string|null;portion_grams:number|null;region_index:number|null;keep:string|null};
-function parse(text:string):{items:Correction[];reply:string} {
+function parse(text:string):{items:Correction[];reply:string;needs_input:NeedsInput|null} {
  let result;
  try {result=JSON.parse(text);}catch{throw new MetaApiError(500,'Invalid correction JSON.');}
  if(!result||!Array.isArray(result.items)||result.items.length>100||typeof result.reply!=='string'||!result.reply.trim())throw new MetaApiError(500,'Invalid correction response.');
@@ -18,6 +19,7 @@ function parse(text:string):{items:Correction[];reply:string} {
    !(i.portion_grams===null||(typeof i.portion_grams==='number'&&Number.isFinite(i.portion_grams)&&i.portion_grams>0&&i.portion_grams<=100000))||
    !(i.region_index===null||Number.isInteger(i.region_index))||!(i.keep===null||typeof i.keep==='string'))throw new MetaApiError(500,'Invalid correction item.');
  }
+ result.needs_input=readNeedsInput(result.needs_input);
  return result;
 }
 const correct:JobHandler=async(admin,job)=>{
@@ -28,7 +30,7 @@ const correct:JobHandler=async(admin,job)=>{
  if(threadError)throw new Error('Correction thread could not be read.');
  const latest=thread?.findLast(c=>c.author==='user');
  if(!latest)return;
- const {data:media,error:mediaError}=await admin.from('post_media').select('storage_path').eq('post_id',job.post_id).order('position').limit(1).maybeSingle();
+ const {data:media,error:mediaError}=await admin.from('post_media').select('storage_path').eq('post_id',job.post_id).eq('kind','photo').order('position').limit(1).maybeSingle();
  if(mediaError)throw new Error('Correction photo could not be read.');
  const content:Record<string,unknown>[]=[{type:'input_text',text:JSON.stringify({items:items.map((i,index)=>({id:i.id,name:i.name,portion_text:i.portion_text,portion_grams:i.portion_grams,calories:i.calories,region_index:i.box?index:null,box:i.box})),thread})}];
  if(media){
@@ -57,8 +59,8 @@ const correct:JobHandler=async(admin,job)=>{
  const totals={} as ConsumedTotals;
  for(const key of ['calories','protein_g','carbs_g','fat_g'] as const)totals[key]=rows.some(r=>r.nutrition[key]==null)?null:rows.reduce((n,r)=>n+toNumber(r.nutrition[key]),0);
  const reply=await safeSummary(result.reply,totals);
- const {error}=await admin.rpc('persist_correction',{p_post_id:job.post_id,p_job_id:job.id,p_expected:items.map(i=>i.id),p_through:latest.id,p_items:rows,p_reply:reply});
+ const {error}=await admin.rpc(result.needs_input?'persist_correction_question':'persist_correction',{p_post_id:job.post_id,p_job_id:job.id,p_expected:items.map(i=>i.id),p_through:latest.id,p_items:rows,p_reply:reply,...(result.needs_input?{p_question:result.needs_input}:{})});
  if(error)throw new Error(`Correction transaction failed: ${error.code}`);
- await markReady(job.post_id,admin);
+ if(!result.needs_input)await markReady(job.post_id,admin);
 };
 export default correct;
