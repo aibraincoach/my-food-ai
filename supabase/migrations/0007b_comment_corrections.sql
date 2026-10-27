@@ -88,3 +88,34 @@ end;
 $$;
 revoke all on function public.persist_correction(uuid,uuid,uuid[],uuid,jsonb,text) from public,anon,authenticated;
 grant execute on function public.persist_correction(uuid,uuid,uuid[],uuid,jsonb,text) to service_role;
+
+-- Scheduling belongs with the correction handler, not the earlier item-edit
+-- migration. Recover comments that waited through a failed initial analysis.
+create function public.resume_initial_comments() returns trigger language plpgsql security definer set search_path=public,pg_temp as $$
+begin
+ insert into public.jobs(post_id,kind,priority,status)
+ select new.id,'correct',100,'queued'
+ where exists(select 1 from public.post_comments where post_id=new.id and author='user')
+   and not exists(select 1 from public.jobs where post_id=new.id and kind='correct' and status in ('queued','running'));
+ return new;
+end $$;
+create trigger resume_comments_after_initial_analysis after update of analysis_initialized_at on public.posts
+ for each row when(old.analysis_initialized_at is null and new.analysis_initialized_at is not null)
+ execute function public.resume_initial_comments();
+
+-- Standalone thread completion must respect follow-up work too. The later
+-- stored-card publication guard keeps the same invariant.
+create or replace function public.mark_post_ready(p_post_id uuid)
+returns boolean language plpgsql security definer set search_path=public,pg_temp as $$
+begin
+ perform 1 from public.posts where id=p_post_id for update;
+ if not found then return false;end if;
+ if exists(select 1 from public.jobs where post_id=p_post_id and kind='correct' and status in ('queued','running')
+   and not coalesce((payload->>'correction_applied')::boolean,false)) then return false;end if;
+ if exists(select 1 from public.current_post_items i left join public.item_nutrition n on n.post_item_id=i.id
+   where i.post_id=p_post_id and n.post_item_id is null) then return false;end if;
+ update public.posts set status='ready',fail_reason=null where id=p_post_id;
+ return true;
+end $$;
+revoke all on function public.mark_post_ready(uuid) from public,anon,authenticated;
+grant execute on function public.mark_post_ready(uuid) to service_role;
