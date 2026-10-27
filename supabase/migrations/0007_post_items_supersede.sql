@@ -187,12 +187,7 @@ begin
  if initialized is not null then return;end if;
  perform public.persist_analysis_initial(p_post_id,p_items,p_summary);
  update public.posts set analysis_initialized_at=clock_timestamp() where id=p_post_id;
- -- Comments rejected while the initial attempt was terminally failed remain
- -- unapplied. A successful explicit analysis retry schedules them again.
- insert into public.jobs(post_id,kind,priority,status)
- select p_post_id,'correct',100,'queued'
- where exists(select 1 from public.post_comments where post_id=p_post_id and author='user')
-   and not exists(select 1 from public.jobs where post_id=p_post_id and kind='correct' and status in ('queued','running'));
+
 end $$;
 revoke all on function public.persist_analysis(uuid,jsonb,text) from public,anon,authenticated;
 grant execute on function public.persist_analysis(uuid,jsonb,text) to service_role;
