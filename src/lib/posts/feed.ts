@@ -25,6 +25,7 @@ export interface FeedItem {
 }
 
 export interface FeedPost {
+  modelCommentId?: string | null;
   id: string;
   caption: string;
   eaten_at: string;
@@ -80,10 +81,17 @@ interface NutritionRow {
   sodium_mg: Numeric;
 }
 
+async function latestRevision(client:SupabaseClient,postId:string):Promise<string|null> {
+ const {data,error}=await client.from('post_comments').select('id').eq('post_id',postId).eq('author','model').order('created_at',{ascending:false}).order('id',{ascending:false}).limit(1).maybeSingle();
+ if(error)throw new Error('Analysis revision could not be read.');
+ return data?.id??null;
+}
+
 async function toFeedPost(
   supabase: SupabaseClient,
   row: PostRow
 ): Promise<FeedPost> {
+  const revisionBefore=row.status==="ready"?await latestRevision(supabase,row.id):null;
   const { data: media, error: mediaError } = await supabase.from("post_media")
     .select("storage_path").eq("post_id",row.id).order("position");
   if(mediaError) throw new Error(mediaError.message);
@@ -135,7 +143,9 @@ async function toFeedPost(
     }
   }
 
+  const revisionAfter=row.status==="ready"?await latestRevision(supabase,row.id):null;
   return {
+    modelCommentId: row.status==="ready"&&revisionBefore===revisionAfter?revisionAfter:null,
     id: row.id,
     caption: row.caption,
     eaten_at: row.eaten_at,
