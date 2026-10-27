@@ -3,16 +3,14 @@ import { recordCall } from "@/lib/trace/record";
 // single concept "food item"; records parsed with @meta-sam/parser.
 // Zero records is normal. Server-only: reads MODEL_API_KEY from the
 // environment and is called only from the worker and scripts.
-import OpenAI from "openai";
 import {
   decodeMaskToRaster,
   parseImageStream,
   recordsOfKind,
 } from "@meta-sam/parser";
 import {
-  META_API_BASE_URL,
   MetaApiError,
-  metaApiKey,
+  createMetaClient,
 } from "./client";
 
 export interface RegionBox {
@@ -58,10 +56,7 @@ async function segmentFoodRegionsRaw(
   photoWidth: number,
   photoHeight: number
 ): Promise<FoodRegion[]> {
-  const client = new OpenAI({
-    baseURL: META_API_BASE_URL,
-    apiKey: metaApiKey(),
-  });
+  const client = createMetaClient();
   const imageUrl = `data:${mime};base64,${Buffer.from(image).toString("base64")}`;
   let stream;
   try {
