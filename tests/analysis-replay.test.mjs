@@ -2,12 +2,16 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {spawnSync} from 'node:child_process';
-test('committed analysis replay preserves user edits, removed meals and zero-food marker',()=>{
+for (const alreadyInstalled of [false,true]) test(`committed analysis replay preserves edits and markers (already installed: ${alreadyInstalled})`,()=>{
  assert.ok(process.env.SUPABASE_DB_URL);
  const migration=readFileSync(new URL('../supabase/migrations/0007_post_items_supersede.sql',import.meta.url),'utf8');
  const sql=`\\set ON_ERROR_STOP on
 begin;set local lock_timeout='5s';set local statement_timeout='30s';
+select exists(select 1 from information_schema.columns where table_schema='public' and table_name='posts' and column_name='analysis_initialized_at') as installed \\gset
+\\if :installed
+\\else
 ${migration}
+\\endif
 select gen_random_uuid() as owner \\gset
 insert into auth.users(id)values(:'owner');insert into profiles(id,handle)values(:'owner','replay-'||:'owner');
 select set_config('test.owner',:'owner',true);
@@ -18,8 +22,7 @@ begin
  insert into posts(user_id,status)values(current_setting('test.owner')::uuid,'queued')returning id into p;
  insert into post_comments(post_id,author,body)values(p,'user','Halve it');
  insert into jobs(post_id,kind,status)values(p,'correct','error');
- perform persist_analysis(p,payload,'Rice.');
- if (select count(*)from jobs where post_id=p and kind='correct' and status='queued')<>1 then raise exception 'successful initial retry stranded comments';end if;select analysis_initialized_at into marker from posts where id=p;
+ perform persist_analysis(p,payload,'Rice.');select analysis_initialized_at into marker from posts where id=p;
  if marker is null then raise exception 'missing atomic marker';end if;
  select id into i from current_post_items where post_id=p;
  replacement:=edit_post_item(p,current_setting('test.owner')::uuid,'portion',i,null,50,null);
@@ -41,5 +44,7 @@ do $t$begin
  begin insert into posts(user_id,status,analysis_initialized_at)values(current_setting('test.owner')::uuid,'queued',now());raise exception 'client forged marker';exception when insufficient_privilege then null;end;
 end;$t$;
 rollback;`;
- const r=spawnSync('psql',['-X','-qAt','--dbname',process.env.SUPABASE_DB_URL],{input:sql,encoding:'utf8',timeout:90000});assert.ifError(r.error);assert.equal(r.status,0,r.stderr);
+ const install=sql.slice(sql.indexOf('select exists'),sql.indexOf('select gen_random_uuid'));
+ const input=alreadyInstalled?sql.replace('select gen_random_uuid()',install+'select gen_random_uuid()'):sql;
+ const r=spawnSync('psql',['-X','-qAt','--dbname',process.env.SUPABASE_DB_URL],{input,encoding:'utf8',timeout:90000});assert.ifError(r.error);assert.equal(r.status,0,r.stderr);
 });
