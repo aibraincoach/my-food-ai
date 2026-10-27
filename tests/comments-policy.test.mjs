@@ -50,14 +50,15 @@ begin
 end;$t$;
 set local role service_role;
 do $t$
-declare p uuid:=current_setting('test.post')::uuid;old_id uuid;j uuid;c post_comments;later post_comments;payload jsonb;
+declare p uuid:=current_setting('test.post')::uuid;old_id uuid;j uuid;c post_comments;later post_comments;later2 post_comments;payload jsonb;j2 uuid;j3 uuid;
 begin
  insert into post_items(post_id,name,portion_grams,source)values(p,'Rice',100,'model')returning id into old_id;
  insert into item_nutrition(post_item_id,calories)values(old_id,200);
  c:=append_post_comment(p,current_setting('test.owner')::uuid,'Half the rice');
  select id into j from jobs where post_id=p and kind='correct' and status='queued';
- update jobs set status='running' where id=j;
+ update jobs set status='running',payload=jsonb_build_object('correction_from_sequence',0,'correction_pending_ids',(select jsonb_agg(id) from post_comments where post_id=p and author='user')) where id=j;
  later:=append_post_comment(p,current_setting('test.owner')::uuid,'Also add beans');
+ later2:=append_post_comment(p,current_setting('test.owner')::uuid,'Then halve the beans');
  if(select count(*)from jobs where post_id=p and kind='correct')<>1 then raise exception 'duplicated running correction';end if;
  payload:=jsonb_build_array(jsonb_build_object('name','Rice','portion_text','50 g','portion_grams',50,'supersedes',old_id,'nutrition',jsonb_build_object('calories',100)));
  begin
@@ -72,6 +73,21 @@ begin
  or (select count(*)from jobs where post_id=p and kind='correct' and status='queued')<>1 then raise exception 'history/reply/follow-up missing';end if;
  if persist_correction(p,j,array[old_id],c.id,payload,'Duplicate') then raise exception 'retry applied twice';end if;
  if(select count(*)from post_comments where post_id=p and author='model')<>1 then raise exception 'duplicate model reply';end if;
+ -- A distinct job consumes both messages arriving during the previous call.
+ select id into j2 from jobs where post_id=p and kind='correct' and status='queued';
+ update jobs set status='running',payload=jsonb_build_object('correction_from_sequence',1,'correction_pending_ids',jsonb_build_array(later.id,later2.id)) where id=j2;
+ select id into old_id from current_post_items where post_id=p;
+ if not persist_correction(p,j2,array[old_id],later2.id,'[]'::jsonb,'Removed all items.') then raise exception 'second job not applied';end if;
+ if (select (jobs.payload->>'correction_sequence')::int from jobs where id=j2)<>2 or (select jsonb_array_length(jobs.payload->'correction_pending_ids') from jobs where id=j2)<>2 then raise exception 'progress not durable across job IDs';end if;
+ -- Empty item arrays cannot detect a competing empty-to-empty correction;
+ -- the monotonic progress sequence must reject its stale snapshot.
+ c:=append_post_comment(p,current_setting('test.owner')::uuid,'Keep empty');
+ select id into j3 from jobs where post_id=p and kind='correct' and status='queued';
+ update jobs set status='running',payload=jsonb_build_object('correction_from_sequence',1,'correction_pending_ids',jsonb_build_array(c.id)) where id=j3;
+ begin
+  perform persist_correction(p,j3,array[]::uuid[],c.id,'[]'::jsonb,'Stale');raise exception 'stale empty snapshot accepted';
+ exception when serialization_failure then null;end;
+ if (select count(*) from post_comments where post_id=p and author='model')<>2 then raise exception 'stale transaction wrote reply';end if;
 end;$t$;
 select 'comments: passed';rollback;
 `;

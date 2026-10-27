@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { after, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { signShotUploads } from "@/lib/media/storage";
@@ -106,6 +106,14 @@ export async function POST(request: Request) {
   if ("error" in (uploads as object) && (uploads as { error?: string }).error) {
     return NextResponse.json({ error: (uploads as { error: string }).error }, { status: 500 });
   }
+  // Caption-only posts have no upload-complete request to wait for. Keep
+  // the kickoff alive after this response; the tick route owns the worker lease.
+  if (shots.length === 0) after(async () => {
+    const response = await fetch(new URL("/api/jobs/tick", request.url), {
+      cache: "no-store", signal: AbortSignal.timeout(10_000),
+    });
+    if (!response.ok) throw new Error(`Post worker kickoff failed: ${response.status}`);
+  });
   return NextResponse.json({ postId: post.id, uploads });
 }
 
