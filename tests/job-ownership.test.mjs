@@ -98,6 +98,40 @@ test('claims serialize one meal, parallelize different meals and retain completi
   run(process.execPath,['--test',new URL('./supersede.test.mjs',import.meta.url).pathname],{env:{...env,SUPABASE_DB_URL:`postgresql:///postgres?host=${encodeURIComponent(dir)}`}});
   sql(`set role authenticated;select set_config('request.jwt.claims','{"sub":"${owner}"}',false);
    do $$begin begin update posts set active_job_id='${a1}' where id='${a}';raise exception 'owner forged';exception when insufficient_privilege then null;end;end$$;`);
+  // Only an expired/unheld lease may recover timed-out executions. Fresh
+  // work blocks its successor until the verified 300s limit plus 60s grace.
+  sql('delete from jobs;');
+  const orphanPost=post(),orphan=job(orphanPost);
+  assert.equal(sql('select (claim_owned_job()).id;').trim(),orphan);
+  assert.equal(sql("select next_worker_wake()>clock_timestamp()+interval '350 seconds';").trim(),'t','lone running work schedules recovery');
+  const successor=job(orphanPost);
+  assert.equal(sql("select next_worker_wake()>clock_timestamp()+interval '350 seconds';").trim(),'t','fresh running owner delays its queued successor');
+  sql(`update jobs set started_at=clock_timestamp()-interval '361 seconds' where id='${orphan}';
+   insert into worker_lease(id,holder,expires_at)values(1,'live-worker',clock_timestamp()+interval '60 seconds')
+    on conflict(id)do update set holder=excluded.holder,expires_at=excluded.expires_at;`);
+  assert.equal(sql("select try_acquire_worker_lease('other-worker');").trim(),'f');
+  assert.equal(sql(`select status from jobs where id='${orphan}';`).trim(),'running','live lease prevents recovery even of old jobs');
+  assert.equal(sql("select try_acquire_worker_lease('live-worker');").trim(),'t','holder may renew its own live lease');
+  assert.equal(sql(`select status from jobs where id='${orphan}';`).trim(),'running');
+  sql("update worker_lease set expires_at=clock_timestamp()-interval '1 second';");
+  assert.equal(sql("select try_acquire_worker_lease('recovery-worker');").trim(),'t');
+  assert.equal(sql(`select status||':'||attempts from jobs where id='${orphan}';`).trim(),'queued:1');
+  assert.equal(sql(`select run_after>clock_timestamp() from jobs where id='${orphan}';`).trim(),'t');
+  assert.equal(sql(`select mark_post_ready('${orphanPost}','${orphan}');`).trim(),'f','recovered execution can no longer publish');
+  assert.equal(sql('select (claim_owned_job()).id;').trim(),successor,'a successor is no longer stranded');
+  // Retire an abandoned stale predecessor without changing the newer owner.
+  sql(`update jobs set status='running',started_at=clock_timestamp()-interval '361 seconds' where id='${orphan}';
+   update worker_lease set expires_at=clock_timestamp()-interval '1 second';`);
+  assert.equal(sql("select try_acquire_worker_lease('recovery-worker-2');").trim(),'t');
+  assert.equal(sql(`select status from jobs where id='${orphan}';`).trim(),'error');
+  assert.equal(sql(`select active_job_id from posts where id='${orphanPost}';`).trim(),successor);
+  assert.equal(sql(`select status from posts where id='${orphanPost}';`).trim(),'processing');
+  sql(`update jobs set attempts=3,started_at=clock_timestamp()-interval '361 seconds' where id='${successor}';
+   update worker_lease set expires_at=clock_timestamp()-interval '1 second';`);
+  assert.equal(sql("select try_acquire_worker_lease('recovery-worker-3');").trim(),'t');
+  assert.equal(sql(`select status||':'||attempts from jobs where id='${successor}';`).trim(),'error:3');
+  assert.equal(sql(`select status from posts where id='${orphanPost}';`).trim(),'failed','attempt ceiling still terminal');
+  assert.equal(sql('select next_worker_wake() is null;').trim(),'t','no due work remains after terminal recovery');
  }finally{
   if(started)run(join(bin,'pg_ctl'),['-D',data,'-m','immediate','-w','stop']);rmSync(dir,{recursive:true,force:true});
  }
