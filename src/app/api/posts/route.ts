@@ -52,7 +52,11 @@ export async function POST(request: Request) {
       accuracy_m: location.accuracy_m ?? null,
     });
     if (error) {
-      await supabase.from("posts").delete().eq("id", post.id);
+      const cleanup = await supabase.from("posts").delete().eq("id", post.id);
+      if (cleanup.error) {
+        console.error("Post cleanup failed after location insertion failure.");
+        return NextResponse.json({ error: "Post could not be completed. Please check Home before trying again." }, { status: 500 });
+      }
       return NextResponse.json({ error: "Could not save post location." }, { status: 400 });
     }
   }
