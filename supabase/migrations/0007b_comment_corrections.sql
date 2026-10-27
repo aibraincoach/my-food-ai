@@ -21,10 +21,14 @@ begin
   if candidate.post_id is not null and candidate.kind in ('analyze','correct','recompute','card_backfill','test_noop','test_throw') then
    select id into post_found from public.posts where id=candidate.post_id for update skip locked;
    if not found then skipped:=array_append(skipped,candidate.id);continue;end if;
+   -- Primary work regenerates its card on completion. Retire obsolete backfill
+   -- instead of leaving a due, permanently ineligible job waking the worker.
+   if candidate.kind='card_backfill' and (not exists(select 1 from public.posts where id=candidate.post_id and status='ready') or exists(select 1 from public.jobs where post_id=candidate.post_id and kind in ('analyze','correct','recompute') and status in ('queued','running'))) then
+    update public.jobs set status='finished',finished_at=p_now,error=null,
+     payload=payload||jsonb_build_object('skipped_reason','superseded by current meal state') where id=candidate.id;
+    continue;end if;
    -- Recheck after locking the post: two lanes may have seen no running job.
    if exists(select 1 from public.jobs where post_id=candidate.post_id and status='running' and kind in ('analyze','correct','recompute','card_backfill','test_noop','test_throw')) then
-    skipped:=array_append(skipped,candidate.id);continue;end if;
-   if candidate.kind='card_backfill' and (not exists(select 1 from public.posts where id=candidate.post_id and status='ready') or exists(select 1 from public.jobs where post_id=candidate.post_id and kind in ('analyze','correct','recompute') and status in ('queued','running'))) then
     skipped:=array_append(skipped,candidate.id);continue;end if;
    update public.posts set active_job_id=case when p_owned then candidate.id else null end,
     status=case when candidate.kind='card_backfill' then status else 'processing' end,
@@ -57,11 +61,17 @@ grant execute on function public.post_work_matches(uuid,uuid) to service_role;
 
 create or replace function public.fail_job(p_job_id uuid,p_message text,p_retriable boolean) returns void
 language plpgsql security definer set search_path=public,pg_temp as $$
-declare v_job public.jobs; owns boolean;
+declare v_job public.jobs; owns boolean; initial_post_id uuid;
 begin
+ -- Match discard/edit/publication lock order: post before job. A discard may
+ -- delete the job while this waits; that is already a terminal outcome.
+ select post_id into initial_post_id from public.jobs where id=p_job_id;
+ if not found then return;end if;
+ if initial_post_id is not null then perform 1 from public.posts where id=initial_post_id for update;end if;
  select * into v_job from public.jobs where id=p_job_id for update;
- if not found or v_job.status<>'running' then raise exception 'fail_job requires a running job';end if;
- perform 1 from public.posts where id=v_job.post_id for update;
+ if not found then return;end if;
+ if v_job.post_id is distinct from initial_post_id then raise exception 'Job post changed' using errcode='40001';end if;
+ if v_job.status<>'running' then raise exception 'fail_job requires a running job';end if;
  owns:=public.post_work_matches(v_job.post_id,case when coalesce((v_job.payload->>'post_ownership')::boolean,false) then v_job.id else null end);
  if not p_retriable or v_job.attempts>=3 then
   update public.jobs set status='error',finished_at=clock_timestamp(),error=p_message where id=p_job_id;
