@@ -33,3 +33,23 @@ test('terminal recompute failure can be repaired in the correction attempt; expl
  rows=[];const io=Object.assign(new Error('upstream outage'),{status:503});
  await assert.rejects(loadCorrectionItems(db,'post',async()=>{throw io;}),error=>error===io&&isRetriable(error));
 });
+test('the real recompute handler repairs an exhausted predecessor without creating another job',async()=>{
+ const {default:recompute}=await import('../src/lib/worker/jobs/recompute.ts');
+ const {loadCorrectionItems}=await import('../src/lib/pipeline/correction-ready.ts');
+ const item={id:'edited',name:'rice',portion_grams:50,source:'user',supersedes:null};let nutrition=[],publications=0,writes=0;
+ const db=createClient('http://127.0.0.1:1','fixture',{global:{fetch:async(input,init)=>{
+  const url=new URL(input);const path=url.pathname;
+  if(path.endsWith('/current_post_items'))return Response.json([item]);
+  if(path.endsWith('/item_nutrition')){
+   if(init?.method==='POST'){writes++;nutrition=[JSON.parse(init.body)];return new Response(null,{status:201});}
+   return Response.json(nutrition);
+  }
+  if(path.endsWith('/fdc_cache'))return Response.json({response:{foods:[{fdcId:77,description:'rice',dataType:'Foundation',foodNutrients:[{nutrientId:1008,nutrientName:'Energy',unitName:'KCAL',value:200}]}]}});
+  if(path.endsWith('/rpc/mark_post_ready')){publications++;return Response.json(false);}
+  throw new Error(`Unexpected request: ${path}`);
+ }}});
+ const job={id:'current-correction',post_id:'post',kind:'correct',status:'running',payload:{}};
+ const items=await loadCorrectionItems(db,'post',()=>recompute(db,job));
+ assert.equal(items[0].calories,100);assert.equal(writes,1);assert.equal(publications,1);
+ await loadCorrectionItems(db,'post',()=>recompute(db,job));assert.equal(writes,1);
+});
