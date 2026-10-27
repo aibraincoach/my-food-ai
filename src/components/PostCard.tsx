@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import type { FeedPost } from "@/lib/posts/feed";
 import { formatConsumed, sumNutrition, toNumber } from "@/lib/nutrition/totals";
@@ -72,11 +73,11 @@ function StatusLine({ post }: { post: FeedPost }) {
 
 export default function PostCard({ post, analysis }: { post: FeedPost; analysis?: ReactNode }) {
   return <article className="flex flex-col gap-2" data-post-id={post.id} data-post-status={post.status}>
-    {post.slides?.length ? <Carousel slides={post.slides} caption={post.caption} postId={post.id} /> : post.status === "ready" && post.items.length ? <CaptionCard post={post} /> : null}
+    {post.slides?.length ? <Carousel slides={post.slides} caption={post.caption} postId={post.id} modelCommentId={post.modelCommentId??null} fingerprint={post.analysisFingerprint??null} /> : post.status === "ready" && post.items.length ? <CaptionCard post={post} /> : null}
     <div className="flex flex-col gap-2 px-screen-x">
       <div className="flex items-start justify-between gap-2">
         <p className="min-w-0 whitespace-pre-wrap break-words text-body">{post.caption}</p>
-        <time dateTime={post.eaten_at} className="shrink-0 whitespace-nowrap text-meta text-muted">{timeLabel(post.eaten_at)}</time>
+        <Link href={`/posts/${post.id}`} aria-label="Open meal details" className="min-h-tap shrink-0 whitespace-nowrap text-meta text-muted"><time dateTime={post.eaten_at}>{timeLabel(post.eaten_at)}</time></Link>
       </div>
       {post.status === "ready" && post.items.length > 0 && analysis ? analysis : <StatusLine post={post} />}
     </div>

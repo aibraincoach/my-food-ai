@@ -66,3 +66,22 @@ $$;
 revoke all on function public.publish_results_card(uuid, text, text, integer) from public, anon, authenticated;
 grant execute on function public.publish_results_card(uuid, text, text, integer) to service_role;
 
+-- Detached cleanup survives post/job cascades and is committed with deletion.
+create or replace function public.discard_post(p_post_id uuid,p_user_id uuid,p_paths text[])
+returns boolean language plpgsql security definer set search_path=public,pg_temp as $$
+declare v_status text; v_prefix text:=p_user_id::text||'/'||p_post_id::text||'/';
+begin
+  select status into v_status from public.posts where id=p_post_id and user_id=p_user_id for update;
+  if not found or v_status<>'needs_input' then return false;end if;
+  if p_paths is null or exists(select 1 from unnest(p_paths) path
+    where path is null or left(path,length(v_prefix))<>v_prefix or '..'=any(string_to_array(path,'/'))) then
+    raise exception 'Invalid cleanup path' using errcode='22023';
+  end if;
+  insert into public.jobs(post_id,kind,priority,status,payload)
+  values(null,'media_cleanup',200,'queued',jsonb_build_object('owner_id',p_user_id,'deleted_post_id',p_post_id,'paths',to_jsonb(p_paths)));
+  delete from public.posts where id=p_post_id;
+  return true;
+end;
+$$;
+revoke all on function public.discard_post(uuid,uuid,text[]) from public,anon,authenticated;
+grant execute on function public.discard_post(uuid,uuid,text[]) to service_role;

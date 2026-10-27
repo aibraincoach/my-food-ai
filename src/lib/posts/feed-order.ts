@@ -10,3 +10,9 @@ export function mergeFeedPosts<T extends DatedPost>(existing: T[], refreshed: T[
     return a.id === b.id ? 0 : a.id < b.id ? 1 : -1;
   });
 }
+
+// IDs from realtime are not a pagination baseline: they may themselves sit
+// above an unseen gap. Only overlap with an actual fetched page proves continuity.
+export function discoveryLostOverlap(baseline: { id: string }[], discovered: { id: string }[], pageSize: number): boolean {
+  return discovered.length >= pageSize && !discovered.some(row => baseline.some(post => post.id === row.id));
+}

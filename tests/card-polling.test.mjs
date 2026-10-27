@@ -7,15 +7,15 @@ import ts from 'typescript';
 // Run the real component's effects against a clock and a counted data source.
 // No React DOM/layout snapshots; this checks its network/resource behavior.
 function harness(status, hidden = false) {
-  let now = 1000, reads = 0, update;
+  let now = 1000, reads = 0, update, deletion;const retired=[];
   const effects = [], intervals = [], refs = [];
   const doc = { visibilityState: hidden ? 'hidden' : 'visible', addEventListener() {}, removeEventListener() {} };
   const post = { id: 'meal', status, items: [{id:'rice'}], slides: [] };
-  const channel = { on(_name,_filter,cb) { update=cb;return this; }, subscribe() {return this;} };
+  const channel = { on(_name,filter,cb) { if(filter.event==='DELETE')deletion=cb;else update=cb;return this; }, subscribe() {return this;} };
   const exports = {};
   const code=ts.transpileModule(readFileSync(new URL('../src/components/RealtimePost.tsx',import.meta.url),'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,jsx:ts.JsxEmit.ReactJSX,target:ts.ScriptTarget.ES2022}}).outputText;
   vm.runInNewContext(code, {exports, Date:class extends Date {static now(){return now;}}, document:doc,
-    window:{dispatchEvent(){},addEventListener(){},removeEventListener(){}}, CustomEvent:class {},
+    window:{dispatchEvent(event){retired.push(event);},addEventListener(){},removeEventListener(){}}, CustomEvent:class {constructor(type,init){this.type=type;this.detail=init?.detail;}},
     setInterval:cb=>{intervals.push(cb);return cb;},clearInterval(){},
     require(name){
       if(name==='react')return {useState:initial=>[initial,()=>{}],useRef:initial=>{const ref={current:initial};refs.push(ref);return ref;},useEffect:fn=>effects.push(fn)};
@@ -26,7 +26,7 @@ function harness(status, hidden = false) {
     }});
   exports.default({initial:post,renderCard:()=>null});
   const cleanups=effects.map(fn=>fn());
-  return {doc,reads:()=>reads,update:()=>update(),async tick(ms){now+=ms;for(const cb of intervals)cb();await Promise.resolve();await Promise.resolve();},cleanup(){for(const fn of cleanups)fn?.();}};
+  return {doc,post,retired,remove:()=>deletion({old:{id:post.id}}),reads:()=>reads,update:()=>update(),async tick(ms){now+=ms;for(const cb of intervals)cb();await Promise.resolve();await Promise.resolve();},cleanup(){for(const fn of cleanups)fn?.();}};
 }
 test('missing optional cards back off and stop automatic hydration, but realtime still updates',async()=>{
  const h=harness('ready');
@@ -38,4 +38,11 @@ test('missing optional cards back off and stop automatic hydration, but realtime
 test('hidden pages make no reads; active analysis retains two-second fallback',async()=>{
  const hidden=harness('ready',true);for(let i=0;i<30;i++)await hidden.tick(2000);assert.equal(hidden.reads(),0);hidden.cleanup();
  const active=harness('processing');await Promise.resolve();for(let i=0;i<5;i++)await active.tick(2000);assert.ok(active.reads()>=5);active.cleanup();
+});
+
+test('clarification and deleted meals retire instead of polling invisibly',async()=>{
+ const h=harness('processing');await Promise.resolve();h.post.status='needs_input';h.update();await Promise.resolve();await Promise.resolve();
+ assert.equal(h.retired.at(-1).type,'post-unavailable');assert.equal(h.retired.at(-1).detail.reason,'needs_input');
+ const reads=h.reads();for(let i=0;i<20;i++)await h.tick(2000);assert.equal(h.reads(),reads);h.cleanup();
+ const deleted=harness('processing');await Promise.resolve();deleted.remove();const before=deleted.reads();await deleted.tick(2000);assert.equal(deleted.reads(),before);assert.equal(deleted.retired.at(-1).detail.reason,'deleted');deleted.cleanup();
 });

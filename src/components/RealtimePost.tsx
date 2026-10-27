@@ -13,6 +13,7 @@ export default function RealtimePost({ initial, renderCard }: {
   initial: FeedPost;
   renderCard: (post: FeedPost) => ReactNode;
 }) {
+  const [removed,setRemoved]=useState(false);
   const [snapshot, setSnapshot] = useState({ seed: initial, current: initial });
   // A fresh local-create read supersedes an earlier INSERT snapshot, including
   // its signed photo URL. Never retain the old mount-only initial state.
@@ -39,6 +40,13 @@ export default function RealtimePost({ initial, renderCard }: {
     let live = true;
     let inFlight = false;
     let again = false;
+    let timer:ReturnType<typeof setInterval>|null=null;
+    const retire = (reason:"deleted"|"needs_input") => {
+      if(!live)return;live=false;again=false;
+      if(timer)clearInterval(timer);
+      setRemoved(true);
+      window.dispatchEvent(new CustomEvent("post-unavailable",{detail:{id:initial.id,reason}}));
+    };
     if (cardPolling.current.id !== initial.id || !awaitingCard) cardPolling.current = { id: initial.id, started: 0, next: 0 };
     if (awaitingCard && !cardPolling.current.started) cardPolling.current.started = Date.now();
     const refresh = async () => {
@@ -49,7 +57,9 @@ export default function RealtimePost({ initial, renderCard }: {
         do {
           again = false;
           const fresh = await getPostCard(supabase, initial.id);
-          if (live && fresh) setSnapshot({ seed: initial, current: fresh });
+          if(!live)return;
+          if(!fresh||fresh.status==="needs_input"){retire(fresh?"needs_input":"deleted");return;}
+          setSnapshot({ seed: initial, current: fresh });
         } while (live && again && pageVisible());
       } catch {
         // Preserve the last good card; polling retries unsettled posts.
@@ -57,11 +67,13 @@ export default function RealtimePost({ initial, renderCard }: {
     };
     const channel = supabase.channel(`post-${initial.id}`).on("postgres_changes", {
       event: "UPDATE", schema: "public", table: "posts", filter: `id=eq.${initial.id}`,
-    }, () => { void refresh(); }).subscribe();
+    }, () => { void refresh(); }).on("postgres_changes", {
+      event:"DELETE",schema:"public",table:"posts",filter:`id=eq.${initial.id}`,
+    },(payload)=>{if((payload.old as {id?:string}).id===initial.id)retire("deleted");}).subscribe();
     // Close the window between the initial read and subscription becoming live.
     void refresh();
-    const timer = isSettled(post.status) && !awaitingCard ? null : setInterval(() => {
-      if (!pageVisible()) return;
+    timer = isSettled(post.status) && !awaitingCard ? null : setInterval(() => {
+      if (!live || !pageVisible()) return;
       if (awaitingCard) {
         const now = Date.now(), state = cardPolling.current;
         const elapsed = now - state.started;
@@ -85,5 +97,5 @@ export default function RealtimePost({ initial, renderCard }: {
     };
   }, [initial, post.status, awaitingCard]);
 
-  return post.status === "needs_input" ? null : <>{renderCard(post)}</>;
+  return removed || post.status === "needs_input" ? null : <>{renderCard(post)}</>;
 }
