@@ -36,6 +36,7 @@ do $$ declare u uuid:=gen_random_uuid();p uuid;j uuid;j2 uuid;c public.post_comm
  c:=append_post_comment(p,u,'Was this rice?');
  select id into j from jobs where post_id=p and status='queued';
  update jobs set status='running',payload=jsonb_build_object('correction_from_sequence',0,'correction_pending_ids',jsonb_build_array(c.id))where id=j;
+ update posts set active_job_id=j where id=p;
  c2:=append_post_comment(p,u,'It was pasta');
  perform persist_correction_question(p,j,array[]::uuid[],c.id,'[]','Consumed: 0 kcal.','{"question":"Rice or pasta?","short":"Clarification needed","options":["Rice","Pasta"]}');
  if(select status from posts where id=p)<>'queued'then raise exception 'question hid queued answer';end if;
@@ -44,18 +45,21 @@ do $$ declare u uuid:=gen_random_uuid();p uuid;j uuid;j2 uuid;c public.post_comm
  if j2 is null then raise exception 'follow-up missing';end if;
  s:=results_card_snapshot(p);
  update posts set status='ready' where id=p;
- if(publish_results_card(p,s->>'fingerprint',u||'/'||p||'/cards/'||gen_random_uuid()||'/card.png',1080)->>'published')::boolean then raise exception 'pending answer was published ready';end if;
+ if(publish_results_card(p,s->>'fingerprint',u||'/'||p||'/cards/'||gen_random_uuid()||'/card.png',1080,(select active_job_id from posts where id=p))->>'published')::boolean then raise exception 'pending answer was published ready';end if;
  if(select status from posts where id=p)<>'queued'then raise exception 'pending answer left ready status';end if;
  update jobs set status='running',payload=jsonb_build_object('correction_from_sequence',1,'correction_pending_ids',jsonb_build_array(c2.id))where id=j2;
+ update posts set active_job_id=j2 where id=p;
  perform persist_correction(p,j2,array[]::uuid[],c2.id,'[]','Consumed: 0 kcal.');
  s:=results_card_snapshot(p);
- if not(publish_results_card(p,s->>'fingerprint',u||'/'||p||'/cards/'||gen_random_uuid()||'/card.png',1080)->>'published')::boolean then raise exception 'resolved follow-up could not publish';end if;
+ if(publish_results_card(p,s->>'fingerprint',u||'/'||p||'/cards/'||gen_random_uuid()||'/card.png',1080,j)->>'published')::boolean then raise exception 'prior owner published clarification';end if;
+ if(publish_results_card(p,s->>'fingerprint',u||'/'||p||'/cards/'||gen_random_uuid()||'/card.png',1080,null)->>'published')::boolean then raise exception 'unowned render bypassed owner';end if;
+ if not(publish_results_card(p,s->>'fingerprint',u||'/'||p||'/cards/'||gen_random_uuid()||'/card.png',1080,(select active_job_id from posts where id=p))->>'published')::boolean then raise exception 'resolved follow-up could not publish';end if;
  if exists(select 1 from posts where id=p and (status<>'ready' or needs_input is not null))then raise exception 'ready publication exposed stale clarification';end if;
  update posts set status='failed',fail_reason='Correction failed' where id=p;
- if(publish_results_card(p,s->>'fingerprint',u||'/'||p||'/cards/'||gen_random_uuid()||'/card.png',1080)->>'published')::boolean then raise exception 'stale card cleared failed correction';end if;
+ if(publish_results_card(p,s->>'fingerprint',u||'/'||p||'/cards/'||gen_random_uuid()||'/card.png',1080,(select active_job_id from posts where id=p))->>'published')::boolean then raise exception 'stale card cleared failed correction';end if;
  if(select status from posts where id=p)<>'failed'then raise exception 'failed state changed';end if;
  update posts set status='queued' where id=p;
- if not(publish_results_card(p,s->>'fingerprint',u||'/'||p||'/cards/'||gen_random_uuid()||'/card.png',1080)->>'published')::boolean then raise exception 'explicit retry blocked';end if;
+ if not(publish_results_card(p,s->>'fingerprint',u||'/'||p||'/cards/'||gen_random_uuid()||'/card.png',1080,(select active_job_id from posts where id=p))->>'published')::boolean then raise exception 'explicit retry blocked';end if;
 end $$;
 do $$ declare u uuid:=gen_random_uuid();p uuid;i uuid;replacement uuid;initial_question jsonb:='{"question":"How much rice?","short":"Portion needed","options":["50g","100g"]}';begin
  insert into auth.users(id)values(u);insert into profiles(id,handle)values(u,'initial-question-'||u);
