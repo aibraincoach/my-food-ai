@@ -22,3 +22,17 @@ export async function POST(request: Request) {
   if (error) return NextResponse.json({ error: "Subscription could not be saved." }, { status: 500 });
   return NextResponse.json({ ok: true });
 }
+
+export async function DELETE(request: Request) {
+  if (request.headers.get("origin") !== new URL(request.url).origin) return NextResponse.json({ error: "Invalid origin." }, { status: 403 });
+  const client = await createClient();
+  const { data: { user } } = await client.auth.getUser();
+  if (!user) return NextResponse.json({ error: "Sign in required." }, { status: 401 });
+  let body;
+  try { body = await request.json(); } catch { return NextResponse.json({ error: "Invalid endpoint." }, { status: 400 }); }
+  if (!body || typeof body.endpoint !== "string" || !body.endpoint || body.endpoint.length > 4096) return NextResponse.json({ error: "Invalid endpoint." }, { status: 400 });
+  // RLS plus both predicates limit logout to this account on this device.
+  const { error } = await client.from("push_subscriptions").delete().eq("user_id", user.id).eq("endpoint", body.endpoint);
+  if (error) return NextResponse.json({ error: "Device could not be detached." }, { status: 500 });
+  return NextResponse.json({ ok: true });
+}

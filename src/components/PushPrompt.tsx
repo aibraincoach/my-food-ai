@@ -4,7 +4,7 @@ import { createClient } from "@/lib/supabase/client";
 import { Sheet } from "@/components/ui/Sheet";
 import { Button } from "@/components/ui/Button";
 
-const ownerKey = "meal-push-owner";
+import { pushOwnerKey as ownerKey, pushSessionStarted, pushIsSigningOut, withPushLock } from "@/lib/push/lifecycle";
 const promptedKey = (id: string) => `meal-push-prompted:${id}`;
 function read(key: string) { try { return localStorage.getItem(key); } catch { return null; } }
 function write(key: string, value: string) { try { localStorage.setItem(key, value); } catch { /* Private storage may be unavailable. */ } }
@@ -16,12 +16,26 @@ function applicationKey(value: string): Uint8Array<ArrayBuffer> {
   const raw = atob((value + padding).replaceAll("-", "+").replaceAll("_", "/"));
   return Uint8Array.from(raw, (character) => character.charCodeAt(0));
 }
+async function registerDevice(account: string) {
+  if (pushIsSigningOut()) return;
+  const registration = await Promise.race([navigator.serviceWorker.ready, new Promise<never>((_, reject) => setTimeout(() => reject(new Error()), 15000))]);
+  let subscription = await registration.pushManager.getSubscription();
+  if (!subscription) subscription = await registration.pushManager.subscribe({ userVisibleOnly: true,
+    applicationServerKey: applicationKey(process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY!) });
+  const { data } = await createClient().auth.getUser();
+  if (data.user?.id !== account || pushIsSigningOut()) { await subscription.unsubscribe(); return; }
+  const response = await fetch("/api/push/subscribe", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(subscription) });
+  if (!response.ok) throw new Error();
+  write(ownerKey, account);
+  write(promptedKey(account), "1");
+}
 export default function PushPrompt() {
   const [account, setAccount] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   useEffect(() => {
     if (!process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY || !("Notification" in window) || !("PushManager" in window) || !("serviceWorker" in navigator)) return;
+    pushSessionStarted();
     const client = createClient();
     let cancelled = false;
     const reconcile = async (id: string | null) => {
@@ -35,20 +49,21 @@ export default function PushPrompt() {
       }
       if (!cancelled) setAccount((current) => current === id ? current : null);
     };
-    void client.auth.getUser().then(({ data }) => reconcile(data.user?.id ?? null)).catch(() => {});
+    void client.auth.getUser().then(({ data }) => withPushLock(() => reconcile(data.user?.id ?? null))).catch(() => {});
     const { data: auth } = client.auth.onAuthStateChange((_event, session) => {
       // Avoid calling async Supabase APIs inside its auth callback.
-      void reconcile(session?.user.id ?? null).catch(() => {});
+      void withPushLock(() => reconcile(session?.user.id ?? null)).catch(() => {});
     });
     const posted = async () => {
       if (!installed() || Notification.permission === "denied") return;
       const { data } = await client.auth.getUser();
-      if (!data.user || cancelled || read(promptedKey(data.user.id))) return;
+      if (!data.user || cancelled || pushIsSigningOut()) return;
       await reconcile(data.user.id);
-      if (cancelled) return;
-      setAccount(data.user.id);
+      if (cancelled || pushIsSigningOut()) return;
+      if (Notification.permission === "granted") { await registerDevice(data.user.id); return; }
+      if (!read(promptedKey(data.user.id))) setAccount(data.user.id);
     };
-    const onPost = () => { void posted().catch(() => {}); };
+    const onPost = () => { void withPushLock(posted).catch(() => {}); };
     window.addEventListener("post-created", onPost);
     return () => { cancelled = true; auth.subscription.unsubscribe(); window.removeEventListener("post-created", onPost); };
   }, []);
@@ -59,16 +74,7 @@ export default function PushPrompt() {
     try {
       // Called directly from a button gesture, required by mobile browsers.
       if (await Notification.requestPermission() !== "granted") { write(promptedKey(account), "1"); setAccount(null); return; }
-      const registration = await Promise.race([navigator.serviceWorker.ready, new Promise<never>((_, reject) => setTimeout(() => reject(new Error()), 15000))]);
-      let subscription = await registration.pushManager.getSubscription();
-      if (!subscription) subscription = await registration.pushManager.subscribe({ userVisibleOnly: true,
-        applicationServerKey: applicationKey(process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY!) });
-      const { data } = await createClient().auth.getUser();
-      if (data.user?.id !== account) { await subscription.unsubscribe(); throw new Error(); }
-      const response = await fetch("/api/push/subscribe", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(subscription) });
-      if (!response.ok) throw new Error();
-      write(ownerKey, account);
-      write(promptedKey(account), "1");
+      await withPushLock(() => registerDevice(account));
       setAccount(null);
     } catch { setError("Notifications could not be enabled. You can try again."); }
     finally { setBusy(false); }
