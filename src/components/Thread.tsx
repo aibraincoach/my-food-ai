@@ -1,4 +1,5 @@
 'use client';
+import FirstRunHint from "@/components/FirstRunHint";
 import {useCallback,useEffect,useState} from 'react';
 import {createClient} from '@/lib/supabase/client';
 import CommentComposer,{type CommentRow} from '@/components/CommentComposer';
@@ -25,6 +26,7 @@ export default function Thread({postId}:{postId:string}){
   <div aria-live="polite">{rows.map(row=><div key={row.id} className="border-b border-hairline py-sheet-top text-comment"><span className="font-semibold">{row.author==='model'?'Analysis':'You'}</span>{accepted&&row.id===rows.findLast(r=>r.author==='model')?.id?<span className="ml-2 text-meta text-muted">Accepted</span>:null}<p className="mt-grid whitespace-pre-wrap break-words">{row.body}</p></div>)}</div>
   {waiting?<p role="status" className="py-grid text-meta text-muted">Updating the meal…</p>:null}
   {error?<p role="status" className="text-meta text-muted">{error}</p>:null}
+  <FirstRunHint hint="thread" />
   <CommentComposer postId={postId} onPosted={append}/>
  </section>;
 }
