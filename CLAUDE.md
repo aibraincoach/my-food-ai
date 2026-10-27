@@ -29,7 +29,8 @@ Reconcile documents, commit on the document branch, then `skills/pm-handover/scr
 
 _Update on handover._
 
-- Date: 2026-10-26 (PM session 1, Cursor)
-- State: Greenfield after DB wipe (`f8f2d3d`). `BACKLOG.md` added; backlog empty until feature set agreed. Agent skills and review tooling imported from naval-association-calgary fleet pattern.
-- Open: inaugural docs PR on `docs/fleet-initial` (backlog + skills/docs).
-- Next: agree feature set and populate backlog; stand up application stack per owner direction.
+- Date: 2026-10-26 (PM handover session 1, Cursor on oracle-arm)
+- State: Greenfield after DB wipe (`f8f2d3d5eb517732fa0084c73c99e69629821b9c` on `origin/main`, observed 2026-10-27 01:03 UTC). Backlog empty until feature set agreed.
+- Open: [PR #1](https://github.com/aibraincoach/my-food-ai/pull/1) `docs/fleet-initial` at `d73518ee7e7d22cff121d1812824c5b3743d897e` (MERGEABLE, docs-only). Commits: `5aab9d0` backlog, `d73518e` skills/tooling.
+- Skills verified: `node --check tools/pplx-review.mjs`, `node tools/mem-guard.mjs 1`, `node scripts/review/agy-review.test.mjs` (5/5 pass, 2026-10-26 MDT).
+- Next: owner agrees feature set → planner fills backlog; merge PR #1 when ordered; then application stack work.
