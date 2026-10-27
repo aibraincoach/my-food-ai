@@ -15,10 +15,23 @@ export async function POST(request: Request) {
   if (!user) return NextResponse.json({ error: "Sign in required." }, { status: 401 });
 
   const body = (await request.json()) as {
+    location?: { lat: number; lng: number; accuracy_m?: number | null } | null;
     caption?: string;
     eaten_at?: string;
-    shots?: { position: number; width: number; height: number }[];
+    shots?: { position: number; width: number; height: number; phash?: string }[];
   };
+  for(const shot of body.shots??[]) {
+    if(shot.phash !== undefined) {
+      if(typeof shot.phash!=="string" || !/^-?\d{1,20}$/.test(shot.phash) || BigInt(shot.phash)<-(BigInt(1)<<BigInt(63)) || BigInt(shot.phash)>=(BigInt(1)<<BigInt(63)))
+        return NextResponse.json({error:"Invalid photo hash."},{status:400});
+    }
+  }
+  const location = body.location;
+  if (location != null && (
+    typeof location !== "object" || !Number.isFinite(location.lat) || !Number.isFinite(location.lng) ||
+    Math.abs(location.lat) > 90 || Math.abs(location.lng) > 180 ||
+    (location.accuracy_m != null && (!Number.isFinite(location.accuracy_m) || location.accuracy_m < 0))
+  )) return NextResponse.json({ error: "Invalid location." }, { status: 400 });
   const { data: post, error: postError } = await supabase
     .from("posts")
     .insert({
@@ -33,6 +46,20 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: postError?.message ?? "Post insert failed." }, { status: 400 });
   }
 
+  if (location) {
+    const { error } = await supabase.from("post_locations").insert({
+      post_id: post.id, lat: location.lat, lng: location.lng,
+      accuracy_m: location.accuracy_m ?? null,
+    });
+    if (error) {
+      const cleanup = await supabase.from("posts").delete().eq("id", post.id);
+      if (cleanup.error) {
+        console.error("Post cleanup failed after location insertion failure.");
+        return NextResponse.json({ error: "Post could not be completed. Please check Home before trying again." }, { status: 500 });
+      }
+      return NextResponse.json({ error: "Could not save post location." }, { status: 400 });
+    }
+  }
   const shots = body.shots ?? [];
   if (shots.length > 0) {
     const { error: mediaError } = await supabase.from("post_media").insert(
@@ -40,6 +67,7 @@ export async function POST(request: Request) {
         post_id: post.id,
         storage_path: `${user.id}/${post.id}/${s.position}.jpg`,
         position: s.position,
+        phash: s.phash ?? null,
         width: s.width,
         height: s.height,
       }))
