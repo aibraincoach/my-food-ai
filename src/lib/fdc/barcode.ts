@@ -3,28 +3,11 @@
 // exactly, so a scanned EAN-13 that is a UPC-A with a leading 0 must be trimmed back to 12 digits.
 import { recordCall } from "@/lib/trace/record";
 import { ApiError } from "@/lib/worker/errors";
+import { gtinCandidates } from "@/lib/fdc/gtin";
+
+export { gtinCandidates, validGtin } from "@/lib/fdc/gtin";
 
 const FDC_BASE_URL = "https://api.nal.usda.gov/fdc/v1";
-
-// GS1 check digit over all digits but the last.
-export function validGtin(code: string): boolean {
-  if (!/^\d+$/.test(code) || ![8, 12, 13, 14].includes(code.length)) return false;
-  const digits = [...code].map(Number);
-  const check = digits.pop()!;
-  const sum = digits.reverse().reduce((total, digit, index) => total + digit * (index % 2 === 0 ? 3 : 1), 0);
-  return (10 - (sum % 10)) % 10 === check;
-}
-
-// The forms FDC may hold for one scanned code, most likely first. Returns [] for anything that is not a valid GTIN.
-export function gtinCandidates(raw: string): string[] {
-  const code = raw.trim();
-  if (!validGtin(code)) return [];
-  const out = [code];
-  if (code.length === 13 && code.startsWith("0")) out.push(code.slice(1));
-  if (code.length === 14 && code.startsWith("00")) out.push(code.slice(2));
-  if (code.length === 14 && code.startsWith("0")) out.push(code.slice(1));
-  return [...new Set(out)];
-}
 
 export interface BarcodeNutrition {
   calories: number | null; protein_g: number | null; carbs_g: number | null; fat_g: number | null;

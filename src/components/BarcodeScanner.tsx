@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { BarcodeProduct } from "@/lib/fdc/barcode";
+import { expandUpcE } from "@/lib/fdc/gtin";
 import { formatNutrition } from "@/lib/nutrition/totals";
 
 // Scans with @zxing/library (pure JavaScript), because iOS Safari ships with BarcodeDetector disabled.
@@ -10,6 +11,7 @@ export default function BarcodeScanner() {
   const video = useRef<HTMLVideoElement>(null);
   const stop = useRef<() => void>(() => {});
   const lookup = useRef(0);
+  const starting = useRef(false);
   const [scanning, setScanning] = useState(false);
   const [status, setStatus] = useState("");
   const [product, setProduct] = useState<BarcodeProduct | null>(null);
@@ -26,28 +28,38 @@ export default function BarcodeScanner() {
     } catch { if (request === lookup.current) setStatus("Barcode lookup is temporarily unavailable."); }
   }, []);
 
-  const close = useCallback(() => { stop.current(); stop.current = () => {}; setScanning(false); }, []);
-  useEffect(() => () => stop.current(), []);
+  // One token per scanning session: stopping, unmounting or starting again invalidates every older step.
+  const session = useRef(0);
+  const close = useCallback(() => { session.current += 1; lookup.current += 1; stop.current(); stop.current = () => {}; setScanning(false); }, []);
+  useEffect(() => close, [close]);
 
   const open = async () => {
+    if (starting.current || scanning) return;
+    starting.current = true;
+    const mine = ++session.current;
+    lookup.current += 1;                       // a lookup still running for an earlier scan must not show up now
     setStatus("Starting the camera…"); setProduct(null);
+    let reader: { reset(): void } | null = null;
     try {
       const { BrowserMultiFormatReader, BarcodeFormat, DecodeHintType } = await import("@zxing/library");
+      if (mine !== session.current) return;
       const hints = new Map<import("@zxing/library").DecodeHintType, unknown>([[DecodeHintType.POSSIBLE_FORMATS, [BarcodeFormat.UPC_A, BarcodeFormat.UPC_E, BarcodeFormat.EAN_13, BarcodeFormat.EAN_8]]]);
-      const reader = new BrowserMultiFormatReader(hints);
+      const zx = new BrowserMultiFormatReader(hints);
+      reader = zx;
+      stop.current = () => zx.reset();
       setScanning(true);
-      let done = false;
-      stop.current = () => { done = true; reader.reset(); };
-      await reader.decodeFromConstraints({ video: { facingMode: { ideal: "environment" } } }, video.current!, (result) => {
-        if (done || !result) return;
-        done = true; reader.reset(); setScanning(false);
-        void find(result.getText());
+      await zx.decodeFromConstraints({ video: { facingMode: { ideal: "environment" } } }, video.current!, (result) => {
+        if (mine !== session.current || !result) return;
+        session.current += 1; zx.reset(); setScanning(false);
+        const text = result.getText();
+        void find(result.getBarcodeFormat() === BarcodeFormat.UPC_E ? expandUpcE(text) ?? text : text);
       });
+      if (mine !== session.current) { zx.reset(); return; }   // stopped while the camera was being acquired
       setStatus("Point the camera at the barcode.");
     } catch {
-      close();
-      setStatus("The camera could not be opened. Allow camera access and try again.");
-    }
+      reader?.reset();
+      if (mine === session.current) { close(); setStatus("The camera could not be opened. Allow camera access and try again."); }
+    } finally { starting.current = false; }
   };
 
   const serving = product?.servingSize && product.servingSizeUnit?.toLowerCase() === "g" ? product.servingSize : null;

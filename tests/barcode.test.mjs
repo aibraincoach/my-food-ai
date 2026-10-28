@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { BarcodeFormat, BinaryBitmap, DecodeHintType, HybridBinarizer, MultiFormatReader, RGBLuminanceSource } from "@zxing/library";
 import { gtinCandidates, lookupBarcode, productFromFood, validGtin } from "../src/lib/fdc/barcode.ts";
+import { expandUpcE } from "../src/lib/fdc/gtin.ts";
 
 test("check digits are verified and EAN-13 forms of a UPC-A are mapped back to 12 digits", () => {
   assert.equal(validGtin("016000275683"), true);
@@ -62,4 +63,13 @@ test("a live FDC Branded Foods lookup by gtin_upc returns usable nutrition", { s
 
 test("an unknown but valid code finds nothing", { skip: !process.env.FDC_API_KEY }, async () => {
   assert.equal(await lookupBarcode("038000138416"), null);
+});
+
+test("a UPC-E expands to its UPC-A; anything that does not expand to a valid UPC-A is left alone", () => {
+  assert.equal(expandUpcE("04252614"), "042100005264");   // the GS1 worked example (d7 = 4)
+  assert.equal(expandUpcE("01234565"), "012345000065");    // d7 = 5
+  assert.equal(expandUpcE("04252615"), null);              // bad check digit
+  assert.equal(expandUpcE("24252614"), null);              // number system 2 is not UPC-E
+  assert.equal(expandUpcE("12345670"), "123456000070");    // number system 1, d7 = 7
+  assert.equal(expandUpcE("96385074"), null);              // a genuine EAN-8 (starts with 9) is never expanded
 });
