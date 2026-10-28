@@ -1,13 +1,14 @@
 import { tokens } from "@/lib/theme/tokens";
 import Link from "next/link";
-import type { LoggedDay } from "@/lib/posts/days";
+import SafeImage from "@/components/SafeImage";
+import { withZone, type LoggedDay } from "@/lib/posts/days";
 
-export default function MonthGrid({ month, days, today, zone }: { month: string; days: LoggedDay[]; today: string; zone: string }) {
+export default function MonthGrid({ month, days, today, zone, zoneKnown }: { month: string; days: LoggedDay[]; today: string; zone: string; zoneKnown: boolean }) {
   const first = new Date(`${month}-01T12:00:00Z`);
   const count = new Date(Date.UTC(first.getUTCFullYear(), first.getUTCMonth() + 1, 0)).getUTCDate();
   const previous = new Date(Date.UTC(first.getUTCFullYear(), first.getUTCMonth() - 1, 1, 12));
   const next = new Date(Date.UTC(first.getUTCFullYear(), first.getUTCMonth() + 1, 1, 12));
-  const query = (date: Date) => `/days?month=${date.toISOString().slice(0, 7)}&tz=${encodeURIComponent(zone)}`;
+  const query = (date: Date) => withZone(`/days?month=${date.toISOString().slice(0, 7)}`, zone, zoneKnown);
   return <>
     <header className="flex h-top-h items-center justify-between px-screen-x">
       <h1 className="text-title">{first.toLocaleDateString("en", { timeZone: "UTC", month: "long", year: "numeric" })}</h1>
@@ -22,12 +23,9 @@ export default function MonthGrid({ month, days, today, zone }: { month: string;
       {Array.from({ length: count }, (_, index) => {
         const date = `${month}-${String(index + 1).padStart(2, "0")}`;
         const day = days.find((entry) => entry.date === date);
-        return <Link href={`/days/${date}?tz=${encodeURIComponent(zone)}`} key={date} className="flex flex-col items-center" style={{ gap: tokens.calendar.labelGap }} aria-label={`${date}${day ? `, ${Math.round(day.totals.calories)} kcal` : ""}`}>
-          <span className={`relative overflow-hidden rounded-tile ${date === today ? "border-text" : ""}`} style={{ width: tokens.calendar.cell, height: tokens.calendar.cell, borderWidth: date === today ? tokens.calendar.border : undefined }}>
-            {day?.posts[0]?.photoUrl && (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={day.posts[0].photoUrl} alt="" className="absolute inset-0 h-full w-full object-cover" />
-            )}
+        return <Link href={withZone(`/days/${date}`, zone, zoneKnown)} key={date} className="flex flex-col items-center" style={{ gap: tokens.calendar.labelGap }} aria-label={`${date}${day ? `, ${Math.round(day.totals.calories)} kcal` : ""}`}>
+          <span className={`relative overflow-hidden rounded-tile ${date === today ? "border-text" : ""}`} style={{ width: "100%", maxWidth: tokens.calendar.cell, aspectRatio: "1 / 1", borderWidth: date === today ? tokens.calendar.border : undefined }}>
+            {day?.posts[0]?.photoUrl && <SafeImage src={day.posts[0].photoUrl} className="absolute inset-0 h-full w-full object-cover" />}
             <span style={{ padding: tokens.calendar.padding }} className={`relative block text-label font-medium ${date > today ? "text-faint" : "text-text"}`}>{index + 1}</span>
           </span>
           <span className="text-bubble text-muted tabular-nums" style={{ height: tokens.calendar.labelHeight, lineHeight: `${tokens.calendar.labelHeight}px` }}>{day ? `${Math.round(day.totals.calories)} kcal` : ""}</span>

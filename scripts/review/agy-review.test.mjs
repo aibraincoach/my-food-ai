@@ -125,3 +125,21 @@ test('extractResponse unwraps the agy json envelope and fenced JSON', () => {
   assert.ok(extractResponse('not json').error);
   assert.ok(extractResponse(JSON.stringify({ response: 'prose only' })).error);
 });
+
+test('supplemental context uses exact committed head, without changing diff coverage', () => {
+  const { dir, base, head } = repoWithTwoCommits();
+  try {
+    writeFileSync(join(dir, 'keep.ts'), 'uncommitted content must not enter packet');
+    const out = join(dir, 'packet');
+    const manifest = writePacket(dir, base, head, out, { contextPaths: ['keep.ts'] });
+    const part = manifest.supplemental[0].parts[0];
+    assert.equal(readFileSync(join(out, part.name), 'utf8'), 'export const a = 2;\n');
+    assert.deepEqual(manifest.files.map(f => f.path), buildManifest(dir, base, head).map(f => f.path));
+    assert.match(readFileSync(join(out, 'MANIFEST.md'), 'utf8'), /Supplemental exact-head context: keep.ts/);
+    assert.throws(() => writePacket(dir, base, head, out, { contextPaths: ['../secret'] }), /invalid context path/);
+    const prompt = tool.buildPrompt(manifest, {});
+    assert.match(prompt, /My Food AI/);
+    assert.match(prompt, /admin-only database trace/);
+    assert.doesNotMatch(prompt, /lib\/openai.js|Shut-off|no conversation content/);
+  } finally { rmSync(dir, { recursive: true, force: true }); }
+});

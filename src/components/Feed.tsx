@@ -155,7 +155,7 @@ export default function Feed() {
         if(!response.ok) throw new Error("Feed page failed.");
         const page = await response.json() as {posts:FeedPost[];nextCursor:string|null};
         if(!live || pageGeneration !== generation) return;
-        baseline.push(...page.posts.filter(post=>!unavailable.has(post.id)&&!baseline.some(existing=>existing.id===post.id)));
+        baseline = mergeFeedPosts(baseline, page.posts.filter(post=>!unavailable.has(post.id)));
         cursor=page.nextCursor;
         publish();
       }).catch(()=>{if(live && pageGeneration === generation)setPageError(true);}).finally(()=>{if(pageGeneration === generation)loadingMore=false;});
@@ -184,7 +184,8 @@ export default function Feed() {
           const interrupted=[...new Set([...pending.keys(),...newest])];
           generation++;
           for(const post of page.posts)if(post.status!=="needs_input")unavailable.delete(post.id);
-          baseline = page.posts.filter(post=>!unavailable.has(post.id));
+          // Keep what the reader has already loaded; only the traversal restarts.
+          baseline = mergeFeedPosts(baseline.filter(post=>!unavailable.has(post.id)), page.posts.filter(post=>!unavailable.has(post.id)));
           cursor = page.nextCursor;
           cards.clear(); newest.length = 0; pending.clear();
           loadingMore = false;
