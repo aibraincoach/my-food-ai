@@ -5,6 +5,7 @@ import test from 'node:test';
 import { register } from 'tsx/esm/api';
 import { admin, checked } from './helpers.mjs';
 import { drainOnce } from '../../scripts/worker-local.mjs';
+import { testHandlers } from '../fixtures/job-handlers.mjs';
 
 // Exercise the actual production claim RPC in a rolled-back SQL transaction.
 // A brief table lock excludes concurrent inserts into the reserved fixture
@@ -101,14 +102,14 @@ test('drainOnce finishes ten isolated fixture jobs without claiming other work',
     checked(await db.from('jobs').insert(rows));
     const expected = [...rows].sort((a,b)=>a.priority-b.priority || a.created_at.localeCompare(b.created_at) || a.id.localeCompare(b.id));
     for (let i=0;i<10;i++) {
-      const result = await drainOnce(scoped);
+      const result = await drainOnce(scoped, testHandlers);
       const diagnostic = result.failed ? checked(await db.from('jobs').select('error').eq('id',expected[i].id).single()).error : undefined;
       assert.deepEqual(result, {processed:1,failed:false}, diagnostic);
       const done = checked(await db.from('jobs').select('id,status,attempts').in('id',ids).eq('status','finished'));
       assert.deepEqual(done.map(row=>row.id).sort(), expected.slice(0,i+1).map(row=>row.id).sort());
       assert.ok(done.every(row=>row.attempts===1));
     }
-    assert.deepEqual(await drainOnce(scoped), {processed:0,failed:false}, 'fixture exhaustion cannot drain unrelated jobs');
+    assert.deepEqual(await drainOnce(scoped, testHandlers), {processed:0,failed:false}, 'fixture exhaustion cannot drain unrelated jobs');
   } finally {
     try { if (ids.length) checked(await db.from('jobs').delete().in('id',ids)); }
     finally { await unregister(); }

@@ -3,7 +3,7 @@ import { ioError } from "@/lib/worker/errors";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { claimJob, finishJob } from "@/lib/queue/claim";
 import { releaseLease, renewLease } from "@/lib/queue/lease";
-import { runJob } from "@/lib/worker/handlers";
+import { jobHandlers, runJob, type JobHandlers } from "@/lib/worker/handlers";
 import { isRetriable } from "@/lib/worker/errors";
 import { workerConcurrency } from "@/lib/worker/concurrency";
 
@@ -15,11 +15,11 @@ export interface DrainStats {
 }
 
 // One job through the handler, with finish/retry/failed semantics.
-export async function drainOnce(admin: SupabaseClient): Promise<DrainStats> {
+export async function drainOnce(admin: SupabaseClient, handlers: JobHandlers = jobHandlers): Promise<DrainStats> {
   const job = await claimJob(admin);
   if (!job) return { processed: 0, failed: false };
   try {
-    await traceContext.run({ postId: job.post_id }, () => runJob(admin, job));
+    await traceContext.run({ postId: job.post_id }, () => runJob(admin, job, handlers));
     await finishJob(admin, job.id);
     return { processed: 1, failed: false };
   } catch (e) {

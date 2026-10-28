@@ -6,6 +6,7 @@ import { spawn } from "node:child_process";
 import { once } from "node:events";
 import { readFileSync } from "node:fs";
 import { createInterface } from "node:readline";
+import { testHandlers } from "./fixtures/job-handlers.mjs";
 import { randomUUID } from "node:crypto";
 import test from "node:test";
 import { register } from "tsx/esm/api";
@@ -100,7 +101,7 @@ test("classified failures, delayed claims, third-attempt limit and worker-only a
     await db.query("reset role; set local role service_role;");
 
     // Only the transport is adapted; claims and failure transitions run the
-    // actual production RPCs, and drainOnce loads the actual test_throw module.
+    // actual production RPCs, and drainOnce runs the fixture test_throw handler passed in explicitly.
     const admin = {
       async rpc(name, args = {}) {
         let sql;
@@ -121,7 +122,7 @@ test("classified failures, delayed claims, third-attempt limit and worker-only a
       return JSON.parse(await db.query(`select json_build_object('status',j.status,'attempts',j.attempts,'finished',j.finished_at is not null,'error',j.error,'future',j.run_after > clock_timestamp(),'delay',extract(epoch from j.run_after-clock_timestamp()),'post_status',p.status,'reason',p.fail_reason) from public.jobs j join public.posts p on p.id=j.post_id where j.id=${sqlString(job)};`));
     }
     const bad = await enqueue(400);
-    assert.deepEqual(await drainOnce(admin), { processed: 1, failed: true });
+    assert.deepEqual(await drainOnce(admin, testHandlers), { processed: 1, failed: true });
     const badState = await state(bad);
     assert.equal(badState.status, "error");
     assert.equal(badState.attempts, 1);
@@ -131,7 +132,7 @@ test("classified failures, delayed claims, third-attempt limit and worker-only a
     assert.match(badState.error, /second line/);
 
     const limited = await enqueue(429);
-    await drainOnce(admin);
+    await drainOnce(admin, testHandlers);
     let actual = await state(limited);
     assert.equal(actual.status, "queued");
     assert.equal(actual.attempts, 1);
@@ -140,10 +141,10 @@ test("classified failures, delayed claims, third-attempt limit and worker-only a
     assert.ok(actual.delay > 25 && actual.delay <= 30);
     assert.equal(actual.post_status, "processing");
     assert.equal(actual.reason, null);
-    assert.deepEqual(await drainOnce(admin), { processed: 0, failed: false }, "future job is not claimed early");
+    assert.deepEqual(await drainOnce(admin, testHandlers), { processed: 0, failed: false }, "future job is not claimed early");
     for (const attempt of [2, 3]) {
       await db.query(`update public.jobs set run_after=now()-interval '1 second' where id=${sqlString(limited)};`);
-      await drainOnce(admin);
+      await drainOnce(admin, testHandlers);
       actual = await state(limited);
       assert.equal(actual.attempts, attempt);
       if (attempt === 2) {
