@@ -14,6 +14,7 @@ import { chooseBestMatch, scaleNutrition } from '@/lib/fdc/nutrients';
 import { safeSummary, type ConsumedTotals } from '@/lib/pipeline/wording';
 import { correctionWindow, correctionReply } from '@/lib/pipeline/correction-state';
 import { markReady } from '@/lib/pipeline/persist';
+import { boundedHistory } from '@/lib/pipeline/history-budget';
 
 type Correction = {name:string;portion_text:string|null;portion_grams:number|null;region_index:number|null;keep:string|null};
 function parse(text:string):{items:Correction[];reply:string} {
@@ -47,7 +48,7 @@ const correct:JobHandler=async(admin,job)=>{
  if(!prepared)throw new MetaApiError(503,'Correction snapshot could not be saved.');
  const {data:media,error:mediaError,status:mediaStatus}=await admin.from('post_media').select('storage_path').eq('post_id',job.post_id).eq('kind','photo').order('position').limit(1).maybeSingle();
  if(mediaError)throw ioError('Correction photo could not be read.',mediaError,mediaStatus);
- const content:Record<string,unknown>[]=[{type:'input_text',text:JSON.stringify({items:items.map((i,index)=>({id:i.id,name:i.name,portion_text:i.portion_text,portion_grams:i.portion_grams,calories:i.calories,region_index:index,box:i.box})),history:window.history,pending_messages:window.pending})}];
+ const content:Record<string,unknown>[]=[{type:'input_text',text:JSON.stringify({items:items.map((i,index)=>({id:i.id,name:i.name,portion_text:i.portion_text,portion_grams:i.portion_grams,calories:i.calories,region_index:index,box:i.box})),history:boundedHistory(window.history),pending_messages:window.pending})}];
  if(media){
   const {data:post,error:ownerError,status:ownerStatus}=await admin.from('posts').select('user_id').eq('id',job.post_id).maybeSingle();
   if(ownerError)throw ioError('Correction photo owner could not be read.',ownerError,ownerStatus);
@@ -67,6 +68,9 @@ const correct:JobHandler=async(admin,job)=>{
   if(item.keep&&(!old||kept.has(item.keep)||old.name!==item.name||old.portion_text!==item.portion_text||(old.portion_grams==null?null:toNumber(old.portion_grams))!==item.portion_grams))throw new MetaApiError(500,'Correction changed an item marked unchanged.');
   if(item.keep)kept.add(item.keep);
   if(item.region_index!==null&&(item.region_index<0||item.region_index>=items.length))throw new MetaApiError(500,'Invalid source item index.');
+  // Intended name match: an item the model returns without a region index adopts the photo region
+  // and history of the one prior item with the same name; with zero or several same-named items it gets none.
+  // PM decision (item 16): a new item sharing a prior item's name is that item.
   const named=items.filter(prior=>prior.name===item.name);
   const region=item.region_index===null?(named.length===1?named[0]:undefined):items[item.region_index];
   let nutrition;

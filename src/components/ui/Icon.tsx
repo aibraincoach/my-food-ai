@@ -1,7 +1,7 @@
 import type { SVGProps } from 'react';
 import { tokens } from '@/lib/theme/tokens';
 
-export type IconName = 'home' | 'search' | 'plus' | 'days' | 'profile' | 'close' | 'back' | 'chevron-down' | 'camera' | 'thumb' | 'mic';
+export type IconName = 'home' | 'search' | 'plus' | 'days' | 'profile' | 'close' | 'back' | 'chevron-down' | 'camera' | 'thumb' | 'mic' | 'flip';
 type Props = SVGProps<SVGSVGElement> & { name: IconName; active?: boolean; down?: boolean; size?: number; label?: string };
 
 export function Icon({ name, active = false, down = false, size, label, style, ...props }: Props) {
@@ -19,6 +19,7 @@ export function Icon({ name, active = false, down = false, size, label, style, .
     back: <path d="M15 5l-7 7 7 7" />,
     'chevron-down': <path d="m6 9 6 6 6-6" />,
     camera: <><rect x="3" y="7" width="18" height="13" rx="2" /><circle cx="12" cy="13.5" r="3.5" /><path d="M9 7l1.5-3h3L15 7" /></>,
+    flip: <path d="M4 12a8 8 0 0 1 14-5l2 2M20 12a8 8 0 0 1-14 5l-2-2M20 4v5h-5M4 20v-5h5" />,
     thumb: <path d="M7 11v9H4v-9zM7 11l4-7c1.5 0 2.5 1 2.5 2.5V10h5c1 0 2 1 1.8 2l-1.2 6c-.2 1-1 2-2 2H7" />,
     mic: <><rect x="9" y="3" width="6" height="11" rx="3" /><path d="M5 11a7 7 0 0 0 14 0M12 18v3" /></>,
   };

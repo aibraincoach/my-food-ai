@@ -40,7 +40,7 @@ export const PART_BYTES = 40_000; // below the observed 46,080-byte single view_
 export const READ_METHOD = "view_file";
 
 export function parseArgs(argv) {
-  const out = { effort: "high", timeout: "20m", context: true };
+  const out = { effort: "high", timeout: "20m", context: true, contextPaths: [] };
   for (let i = 0; i < argv.length; i++) {
     const a = argv[i];
     const next = () => argv[++i];
@@ -53,6 +53,7 @@ export function parseArgs(argv) {
     else if (a === "--pr") out.pr = next();
     else if (a === "--repo") out.repo = next();
     else if (a === "--dry-run") out.dryRun = true;
+    else if (a === "--context-path") out.contextPaths.push(next());
     else if (a === "--no-context") out.context = false;
     else if (a === "--check-only") out.checkOnly = next();
     else throw new Error(`unknown argument ${a}`);
@@ -112,7 +113,7 @@ function slug(path) {
 }
 
 /** Write patches (and optional head-file context) to disk; return the manifest record. */
-export function writePacket(cwd, base, head, outDir, { context = true } = {}) {
+export function writePacket(cwd, base, head, outDir, { context = true, contextPaths = [] } = {}) {
   rmSync(outDir, { recursive: true, force: true });
   mkdirSync(join(outDir, "patches"), { recursive: true });
   if (context) mkdirSync(join(outDir, "context"), { recursive: true });
@@ -136,6 +137,18 @@ export function writePacket(cwd, base, head, outDir, { context = true } = {}) {
     }
     manifest.files.push(record);
   });
+  manifest.supplemental = [...new Set(contextPaths)].map((path, index) => {
+    // Read only committed content from the exact reviewed head, never the working tree.
+    if (!path || path.startsWith("/") || path.split("/").some((p) => p === ".." || p === ".git")) throw new Error(`invalid context path: ${path}`);
+    const content = git(["show", `${head}:${path}`], cwd);
+    mkdirSync(join(outDir, "context"), { recursive: true });
+    const parts = splitParts(content).map((text, n) => {
+      const name = `context/supplemental-${index + 1}-${slug(path)}.part${n + 1}.txt`;
+      writeFileSync(join(outDir, name), text);
+      return { name, bytes: Buffer.byteLength(text), sha256: sha256(text) };
+    });
+    return { path, parts };
+  });
   writeFileSync(join(outDir, "MANIFEST.json"), JSON.stringify(manifest, null, 2));
   writeFileSync(join(outDir, "MANIFEST.md"), renderManifestMd(manifest));
   writeFileSync(join(outDir, "schema.json"), JSON.stringify(responseSchema(), null, 2));
@@ -152,6 +165,9 @@ export function renderManifestMd(m) {
   ];
   for (const f of m.files) {
     lines.push(`| ${f.index} | ${f.path} | ${f.status} | ${f.parts.map((p) => `${p.name}: ${p.bytes}`).join("; ")} |`);
+  }
+  for (const f of m.supplemental ?? []) {
+    lines.push(`Supplemental exact-head context: ${f.path}: ${f.parts.map((p) => `${p.name} (${p.bytes} bytes)`).join("; ")}`);
   }
   lines.push("", "Optional surrounding context for added/modified files is under context/ (same reading rule).");
   return lines.join("\n") + "\n";
@@ -214,11 +230,11 @@ export function buildPrompt(manifest, { pr, repo }) {
     `The working directory contains only this review packet. Start by reading MANIFEST.md with the native file viewer (view_file).`,
     `Then read EVERY part listed under patches/ with view_file, one part per call, in full. There are ${manifest.files.length} changed paths and ${manifest.files.reduce((n, f) => n + f.parts.length, 0)} patch parts.`,
     `Deleted files carry their complete removed content in the patch; read them too.`,
-    `Files under context/ hold the complete head version of added or modified files for surrounding context; read them with view_file when you need them.`,
+    `Files under context/ hold exact-head surrounding source and explicitly supplied dependency context; read them with view_file when needed. Missing context is not evidence that a dependency export is absent. Report uncertainty if the packet cannot establish a claim.`,
     ``,
     `READING RULE, NOT NEGOTIABLE: use only the native file viewer for review content. Do not use run_command, cat, sed, head, tail, grep -A, git show, git diff or any shell output capture to read review content; shell output is clipped to an 8,192-byte tail and previous reviews lost content that way. If the viewer ever returns a partial read, read the remainder with the offset it reports before continuing.`,
     ``,
-    `Assess through three lenses, in order: (1) runtime correctness (crashes, hangs, wrong output on real conditions); (2) data and privacy rules of this repo (no conversation content — audio, transcript, translation — logged or persisted anywhere, including analytics, error reports and feedback storage; analytics tables carry metadata only; server-side role checks on every API; every OpenAI call goes through lib/openai.js; secrets only in server env; Feedback and Shut-off controls always visible in-session); (3) cross-PR integration with the rest of the merged stack. Ground every finding in a quoted line from the packet. Do not edit, post, browse, run tests or delegate.`,
+    `Assess through three lenses, in order: (1) runtime correctness (crashes, hangs, wrong output in real conditions); (2) My Food AI data and privacy requirements: owner isolation and server-side authorization, secrets only in server environment, no image/audio bytes or credentials in model-call traces. The explicitly authorized item33 feature records request text, returned text, timing and token usage in an admin-only database trace, including transcription text; that authorized content is not itself a blocker. Evaluate its access controls and sanitization. Do not import another repository's policy or API paths; (3) cross-PR integration with the supplied exact-head source. Ground every finding in a quoted line from the packet. Do not edit, post, browse, run tests or delegate.`,
     ``,
     `Your final answer must be JSON matching the supplied schema and nothing else. In files[], list every path from MANIFEST.md with the same status, and for each part record read_method ("${READ_METHOD}"), bytes_read exactly as delivered, and complete=true only when the whole part was read. If any part could not be read completely, set verdict "REVIEW INCOMPLETE" and say which. Use "BLOCKERS: FOUND" when any grounded blocker exists, otherwise "BLOCKERS: NONE".`,
   ].join('\n');
@@ -305,7 +321,7 @@ export async function main(argv = process.argv.slice(2)) {
   const outDir = resolve(args.out ?? join(git(["rev-parse", "--absolute-git-dir"], cwd).trim(), "review-state", `agy-${shortHead}`));
   // Capture check-only input before rebuilding a packet that may contain it.
   const checkOnlyInput = args.checkOnly ? readFileSync(args.checkOnly, "utf8") : null;
-  const manifest = writePacket(cwd, args.base, args.head, outDir, { context: args.context });
+  const manifest = writePacket(cwd, args.base, args.head, outDir, { context: args.context, contextPaths: args.contextPaths });
   const repo = args.repo ?? git(["remote", "get-url", "origin"], cwd).trim().replace(/^.*github\.com[:/]/, "").replace(/\.git$/, "");
   const prompt = buildPrompt(manifest, { pr: args.pr, repo });
   writeFileSync(join(outDir, "prompt.txt"), prompt);

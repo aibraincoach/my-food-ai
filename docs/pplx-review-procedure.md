@@ -32,4 +32,4 @@ Type exactly: `code review https://github.com/aibraincoach/my-food-ai/pull/<N>` 
 
 ## Failure
 
-Two failed PPLX attempts on the same head → AGY (`docs/agy-review-procedure.md`).
+Two failed headless-runner attempts do not make PPLX unavailable. Work through every PPLX route your harness has (cookie refresh, the owner's Chrome, the other OCI server; see PPLX routes in `REVIEW_POLICY.md`). Only when all of them have failed in one session, and the exact page text has been reported to the owner, use AGY (`docs/agy-review-procedure.md`), labelled as a fallback.

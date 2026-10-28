@@ -42,12 +42,41 @@ export default function PostReadinessListener() {
         if (live) router.refresh();
       }
     };
-    const focus = () => { void seedPending(); };
+    // Meals created elsewhere are never in `pending`; look at the newest few posts now and then
+    // so a disconnected channel cannot leave Days or a story stale until the next focus.
+    const known = new Map<string, string>();
+    let discovered = false;
+    const discover = async () => {
+      try {
+        const { data, error } = await db.from("posts").select("id,status").order("created_at", { ascending: false }).limit(20);
+        if (!live || error) return;
+        let changed = false;
+        for (const row of data ?? []) {
+          if (discovered && known.get(row.id) !== row.status && ["ready", "failed", "needs_input"].includes(row.status)) changed = true;
+          known.set(row.id, row.status);
+        }
+        discovered = true;
+        if (changed) router.refresh();
+      } catch {
+        // The next visible check retries.
+      }
+    };
+    const discoveryTimer = setInterval(() => { if (document.visibilityState === "visible") void discover(); }, 15_000);
+    void discover();
+    // A visible page re-renders once a minute: this covers an update to an older meal that
+    // `discover` cannot see and carries "today" across local midnight (the server derives it).
+    const reconcileTimer = setInterval(() => { if (document.visibilityState === "visible" && live) router.refresh(); }, 60_000);
+    const visible = () => { if (document.visibilityState === "visible" && live) router.refresh(); };
+    document.addEventListener("visibilitychange", visible);
+    const focus = () => { void seedPending(); void discover(); };
     const channel = db.channel("tab-post-readiness").on("postgres_changes", {
       event: "UPDATE", schema: "public", table: "posts",
     }, ({ new: row }) => {
       if (typeof row.id === "string") settle(row.id, row.status);
-    }).subscribe();
+    }).subscribe((status) => {
+      // Reconcile once the channel is live (and again after a reconnect): the first read can run before it is.
+      if (status === "SUBSCRIBED") void seedPending();
+    });
     void seedPending();
     // Only poll pending IDs discovered at entry or newly created IDs. Back off after two minutes and stop after
     // fifteen; no repeated page hydration while analysis is still pending.
@@ -73,7 +102,7 @@ export default function PostReadinessListener() {
     window.addEventListener("post-ready", ready);
     window.addEventListener("focus", focus);
     return () => {
-      live = false; clearInterval(timer); void db.removeChannel(channel);
+      live = false; clearInterval(timer); clearInterval(discoveryTimer); clearInterval(reconcileTimer); document.removeEventListener("visibilitychange", visible); void db.removeChannel(channel);
       window.removeEventListener("post-created", created);
       window.removeEventListener("post-ready", ready);
       window.removeEventListener("focus", focus);

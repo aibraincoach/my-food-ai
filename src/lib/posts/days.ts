@@ -8,6 +8,11 @@ export function validZone(zone?: string | null): string {
   try { if (zone) { zone = decodeURIComponent(zone); new Intl.DateTimeFormat("en", { timeZone: zone }); return zone; } } catch {}
   return "UTC";
 }
+// A time zone that came from the UTC fallback is not the reader's choice: only a zone from the
+// query string or the cookie is carried in links, so the browser's zone can still replace the fallback.
+export function withZone(path: string, zone: string, known: boolean): string {
+  return known ? `${path}${path.includes("?") ? "&" : "?"}tz=${encodeURIComponent(zone)}` : path;
+}
 export function dateInZone(value: string | Date, zone: string): string {
   const parts = new Intl.DateTimeFormat("en", { timeZone: zone, year: "numeric", month: "2-digit", day: "2-digit" }).formatToParts(new Date(value));
   const get = (type: string) => parts.find((part) => part.type === type)!.value;
@@ -17,8 +22,12 @@ export function shiftDay(date: string, offset: number): string {
   const value = new Date(`${date}T12:00:00Z`); value.setUTCDate(value.getUTCDate() + offset);
   return value.toISOString().slice(0, 10);
 }
+// Date.UTC reads years 0-99 as 19xx, so only 2000-2999 are supported.
+export function validMonth(month: string | undefined): month is string {
+  return typeof month === "string" && /^2\d{3}-(0[1-9]|1[0-2])$/.test(month);
+}
 export function validDate(date: string): boolean {
-  return /^\d{4}-\d{2}-\d{2}$/.test(date) && Number.isFinite(Date.parse(`${date}T12:00:00Z`)) && new Date(`${date}T12:00:00Z`).toISOString().slice(0, 10) === date;
+  return /^2\d{3}-\d{2}-\d{2}$/.test(date) && Number.isFinite(Date.parse(`${date}T12:00:00Z`)) && new Date(`${date}T12:00:00Z`).toISOString().slice(0, 10) === date;
 }
 
 // Calendar grouping is equivalent to (eaten_at AT TIME ZONE zone)::date,
@@ -69,4 +78,24 @@ export async function getDays(supabase: SupabaseClient, userId: string, zone: st
     if ((data?.length ?? 0) < 100) break;
   }
   return [...groups.values()].sort((a, b) => a.date.localeCompare(b.date));
+}
+
+// Home's bubbles only need which local days have a ready meal: no items,
+// nutrition or photos, so an optional read cannot hide the strip.
+export async function getLoggedDates(supabase: SupabaseClient, userId: string, zone: string, from: string, through: string): Promise<{ date: string }[]> {
+  const dates = new Set<string>();
+  const lower = `${shiftDay(from, -1)}T00:00:00Z`;
+  const upper = `${shiftDay(through, 2)}T00:00:00Z`;
+  for (let offset = 0; ; offset += 100) {
+    const { data, error } = await supabase.from("posts").select("id,eaten_at")
+      .eq("user_id", userId).eq("status", "ready").gte("eaten_at", lower).lt("eaten_at", upper)
+      .order("eaten_at", { ascending: true }).order("id", { ascending: true }).range(offset, offset + 99);
+    if (error) throw new Error("Days could not be loaded.");
+    for (const row of data ?? []) {
+      const date = dateInZone(row.eaten_at, zone);
+      if (date >= from && date <= through) dates.add(date);
+    }
+    if ((data?.length ?? 0) < 100) break;
+  }
+  return [...dates].sort().map((date) => ({ date }));
 }
