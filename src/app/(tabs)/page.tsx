@@ -8,12 +8,13 @@ import { dateInZone, getLoggedDates, shiftDay, validZone } from "@/lib/posts/day
 
 async function HomeDays() {
   await connection();
-  const zone = validZone((await cookies()).get("time-zone")?.value);
+  const cookieZone = (await cookies()).get("time-zone")?.value;
+  const zone = validZone(cookieZone);
   const today = dateInZone(new Date(), zone);
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   const days = user ? await getLoggedDates(supabase, user.id, zone, shiftDay(today, -6), today) : [];
-  return <DayBubbles days={days} today={today} zone={zone} />;
+  return <DayBubbles days={days} today={today} zone={zone} zoneKnown={Boolean(cookieZone)} />;
 }
 
 export default function Home() {

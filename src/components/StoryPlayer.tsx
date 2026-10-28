@@ -7,7 +7,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ResultsCard } from "@/components/ResultsCard";
 import { Icon } from "@/components/ui/Icon";
-import type { LoggedDay } from "@/lib/posts/days";
+import { withZone, type LoggedDay } from "@/lib/posts/days";
 
 function subscribeWidth(listener: () => void) {
   window.addEventListener("resize", listener);
@@ -16,7 +16,7 @@ function subscribeWidth(listener: () => void) {
 const readWidth = () => Math.min(tokens.spacing.phone, window.innerWidth);
 const serverWidth = () => tokens.spacing.phone;
 
-export default function StoryPlayer({ day, zone, previous, next }: { day: LoggedDay; zone: string; previous: string; next: string }) {
+export default function StoryPlayer({ day, zone, zoneKnown, previous, next }: { day: LoggedDay; zone: string; zoneKnown: boolean; previous: string; next: string }) {
   const width = useSyncExternalStore(subscribeWidth, readWidth, serverWidth);
   // Keyed by meal id, not index: a refresh can insert a meal while the story is open.
   // null means the reader has not chosen a slide, so the first one follows the data
@@ -38,7 +38,7 @@ export default function StoryPlayer({ day, zone, previous, next }: { day: Logged
   const time = (value: string) => new Date(value).toLocaleTimeString("en", { timeZone: zone, hour: "numeric", minute: "2-digit" });
   const title = new Date(`${day.date}T12:00:00Z`).toLocaleDateString("en", { timeZone: "UTC", weekday: "long", month: "short", day: "numeric" });
   const weekday = new Date(`${day.date}T12:00:00Z`).toLocaleDateString("en", { timeZone: "UTC", weekday: "long" });
-  const adjacent = (date: string) => router.push(`/days/${date}?tz=${encodeURIComponent(zone)}`);
+  const adjacent = (date: string) => router.push(withZone(`/days/${date}`, zone, zoneKnown));
   return <main className="mx-auto flex min-h-dvh w-full max-w-phone flex-col bg-text text-surface"
     onTouchStart={(event) => { const point = event.touches[0]; start.current = { x: point.clientX, y: point.clientY }; }}
     onTouchEnd={(event) => {
@@ -52,7 +52,7 @@ export default function StoryPlayer({ day, zone, previous, next }: { day: Logged
     </div>
     <header className="flex items-center justify-between px-screen-x">
       <h1 className="text-body font-semibold">{title}</h1>
-      <Link href={`/days?month=${day.date.slice(0, 7)}&tz=${encodeURIComponent(zone)}`} aria-label="Close day" className="flex size-tap items-center justify-center"><Icon name="close" /></Link>
+      <Link href={withZone(`/days?month=${day.date.slice(0, 7)}`, zone, zoneKnown)} aria-label="Close day" className="flex size-tap items-center justify-center"><Icon name="close" /></Link>
     </header>
     <div className="flex flex-1 flex-col justify-end gap-7 pb-14">
       {post ? <>

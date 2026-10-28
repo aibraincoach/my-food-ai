@@ -15,12 +15,13 @@ export default async function DayPage({ params, searchParams }: { params: Promis
   const { date } = await params;
   if (!validDate(date)) notFound();
   const query = await searchParams;
-  const zone = validZone(query.tz || (await cookies()).get("time-zone")?.value);
+  const cookieZone = (await cookies()).get("time-zone")?.value;
+  const zone = validZone(query.tz || cookieZone);
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect("/sign-in");
   const days = await getDays(supabase, user.id, zone, date, date);
   const day = days[0] ?? { date, posts: [], totals: sumNutrition([]) };
   // Stories live outside the tabs layout, so they need their own readiness observer.
-  return <><PostReadinessListener /><LocalTimeZone zone={zone} explicit={Boolean(query.tz)} /><StoryPlayer key={`${date}:${zone}`} day={day} zone={zone} previous={shiftDay(date, -1)} next={shiftDay(date, 1)} /></>;
+  return <><PostReadinessListener /><LocalTimeZone zone={zone} explicit={Boolean(query.tz)} /><StoryPlayer key={`${date}:${zone}`} day={day} zone={zone} zoneKnown={Boolean(query.tz || cookieZone)} previous={shiftDay(date, -1)} next={shiftDay(date, 1)} /></>;
 }

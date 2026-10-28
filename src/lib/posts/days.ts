@@ -8,6 +8,11 @@ export function validZone(zone?: string | null): string {
   try { if (zone) { zone = decodeURIComponent(zone); new Intl.DateTimeFormat("en", { timeZone: zone }); return zone; } } catch {}
   return "UTC";
 }
+// A time zone that came from the UTC fallback is not the reader's choice: only a zone from the
+// query string or the cookie is carried in links, so the browser's zone can still replace the fallback.
+export function withZone(path: string, zone: string, known: boolean): string {
+  return known ? `${path}${path.includes("?") ? "&" : "?"}tz=${encodeURIComponent(zone)}` : path;
+}
 export function dateInZone(value: string | Date, zone: string): string {
   const parts = new Intl.DateTimeFormat("en", { timeZone: zone, year: "numeric", month: "2-digit", day: "2-digit" }).formatToParts(new Date(value));
   const get = (type: string) => parts.find((part) => part.type === type)!.value;
