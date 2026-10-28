@@ -3,14 +3,20 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { createClient } from "@supabase/supabase-js";
 import { isRetriable } from "../src/lib/worker/errors.ts";
-import { loadFirstPhoto, photoStillUploading, UPLOAD_GRACE_MS } from "../src/lib/pipeline/analyze.ts";
+import { loadFirstPhoto, photoStillUploading } from "../src/lib/pipeline/analyze.ts";
+import { UPLOAD_GRACE_MS, UPLOAD_PARK_MS } from "../src/lib/media/upload-window.ts";
 
 const notFound = { message: "Object not found" };
 const now = Date.parse("2026-10-28T12:00:00Z");
 const ago = (ms) => new Date(now - ms).toISOString();
 
-test("a missing object is the upload still in flight only in the first minute", () => {
+test("the retry window always outlasts the parking delay by a full minute", () => {
+  assert.ok(UPLOAD_GRACE_MS >= UPLOAD_PARK_MS + 60_000);
+});
+
+test("a missing object is the upload still in flight only inside the grace window", () => {
   assert.equal(photoStillUploading(notFound, ago(1300), now), true);
+  assert.equal(photoStillUploading(notFound, ago(UPLOAD_PARK_MS + 30_000), now), true); // a job released by the fallback still retries
   assert.equal(photoStillUploading(notFound, ago(UPLOAD_GRACE_MS - 1), now), true);
   assert.equal(photoStillUploading(notFound, ago(UPLOAD_GRACE_MS + 1), now), false);
   assert.equal(photoStillUploading({ message: "permission denied" }, ago(1000), now), false);
@@ -33,5 +39,5 @@ test("the worker retries a photo that is not readable right after creation", asy
 });
 
 test("a photo that is still missing after the grace period fails for good", async () => {
-  await assert.rejects(loadFirstPhoto(dbFor(new Date(Date.now() - 5 * 60_000).toISOString()), "post"), (error) => !isRetriable(error) && /photo download failed/.test(error.message));
+  await assert.rejects(loadFirstPhoto(dbFor(new Date(Date.now() - 10 * 60_000).toISOString()), "post"), (error) => !isRetriable(error) && /photo download failed/.test(error.message));
 });

@@ -3,9 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { signShotUploads } from "@/lib/media/storage";
 
-// A post with photos parks its analyze job until the client confirms the uploads (PUT), so no worker tick can
-// claim it while the photo is still being uploaded. If the client never confirms, the job runs after this delay.
-const UPLOAD_PARK_MS = 120_000;
+import { UPLOAD_PARK_MS } from "@/lib/media/upload-window";
 
 // POST creates the posts row (status queued), the post_media rows and the
 // analyze job in one go, and returns signed upload URLs. Caption-only posts
