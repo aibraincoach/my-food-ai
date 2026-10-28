@@ -6,9 +6,14 @@ import { jobHandlers, runJob } from "../src/lib/worker/handlers.ts";
 import { testHandlers } from "./fixtures/job-handlers.mjs";
 
 test("the production registry lists exactly the real job kinds, and no fixture kind", () => {
-  assert.deepEqual(Object.keys(jobHandlers).sort(), ["analyze", "card_backfill", "correct", "recompute"]);
+  assert.deepEqual(Object.keys(jobHandlers).sort(), ["analyze", "card_backfill", "correct", "media_cleanup", "recompute"]);
   assert.ok(!("test_throw" in jobHandlers) && !("test_noop" in jobHandlers));
   assert.ok(Object.isFrozen(jobHandlers));
+});
+
+test("every handler file in the worker's jobs folder is registered (an omission would fail its jobs)", () => {
+  const kinds = readdirSync(new URL("../src/lib/worker/jobs/", import.meta.url)).filter((name) => name.endsWith(".ts")).map((name) => name.replace(/\.ts$/, "")).sort();
+  assert.deepEqual(Object.keys(jobHandlers).sort(), kinds);
 });
 
 test("an unknown or inherited job kind is rejected before anything runs", async () => {

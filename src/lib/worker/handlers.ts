@@ -4,6 +4,7 @@ import analyze from "@/lib/worker/jobs/analyze";
 import correct from "@/lib/worker/jobs/correct";
 import recompute from "@/lib/worker/jobs/recompute";
 import cardBackfill from "@/lib/worker/jobs/card_backfill";
+import mediaCleanup from "@/lib/worker/jobs/media_cleanup";
 
 export type JobHandler = (admin: SupabaseClient, job: JobRow) => Promise<void>;
 export type JobHandlers = Readonly<Record<string, JobHandler>>;
@@ -15,6 +16,7 @@ export const jobHandlers: JobHandlers = Object.freeze({
   correct,
   recompute,
   card_backfill: cardBackfill,
+  media_cleanup: mediaCleanup,
 });
 
 // Tests pass their own table (including fixture kinds); production always uses the one above.
