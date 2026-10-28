@@ -17,7 +17,7 @@ export default async function ProfilePage() {
   if (error) throw new Error("Profile could not be loaded.");
   return (
     <main className="flex flex-1 flex-col">
-      <header className="flex h-top-h shrink-0 items-center justify-between gap-3 px-screen-x">
+      <header className="flex h-top-safe shrink-0 items-center justify-between gap-3 px-screen-x">
         <h1 className="truncate text-title">@{profile.handle}</h1>
         <SignOutButton />
       </header>

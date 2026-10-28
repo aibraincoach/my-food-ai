@@ -40,7 +40,7 @@ export default function StoryPlayer({ day, zone, zoneKnown, previous, next }: { 
   const title = new Date(`${day.date}T12:00:00Z`).toLocaleDateString("en", { timeZone: "UTC", weekday: "long", month: "short", day: "numeric" });
   const weekday = new Date(`${day.date}T12:00:00Z`).toLocaleDateString("en", { timeZone: "UTC", weekday: "long" });
   const adjacent = (date: string) => router.push(withZone(`/days/${date}`, zone, zoneKnown));
-  return <main className="mx-auto flex min-h-dvh w-full max-w-phone flex-col bg-text text-surface"
+  return <main className="mx-auto flex min-h-dvh w-full max-w-phone flex-col bg-text pt-safe pb-safe text-surface"
     onTouchStart={(event) => { const point = event.touches[0]; start.current = { x: point.clientX, y: point.clientY }; }}
     onTouchEnd={(event) => {
       const origin = start.current; start.current = null;

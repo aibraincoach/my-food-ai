@@ -15,7 +15,7 @@ export function Sheet({ open, onClose, children, label }: Props) {
   return <dialog ref={ref} aria-label={label} onCancel={onClose} onClick={(event) => {
     if (event.target === event.currentTarget) onClose();
   }} className="fixed inset-0 m-0 h-full max-h-none w-full max-w-none bg-transparent p-0 text-text backdrop:bg-scrim">
-    <div className="absolute inset-x-0 bottom-0 mx-auto flex max-h-full max-w-phone flex-col gap-sheet-gap overflow-y-auto rounded-t-sheet bg-surface px-screen-x pt-sheet-top pb-sheet-bottom">
+    <div className="absolute inset-x-0 bottom-0 mx-auto flex max-h-full max-w-phone flex-col gap-sheet-gap overflow-y-auto rounded-t-sheet bg-surface px-screen-x pt-sheet-top pb-sheet-safe">
       <div aria-hidden="true" className="mx-auto h-handle-h w-handle-w shrink-0 rounded-circle bg-ring" />
       {children}
     </div>

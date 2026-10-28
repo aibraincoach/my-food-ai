@@ -214,7 +214,7 @@ export default function CaptureSheet({ onClose }: { onClose: () => void }) {
           {!full && <button type="button" aria-label="Add another photo" disabled={posting} onClick={() => galleryRef.current?.click()} className="flex shrink-0 items-center justify-center rounded-thumb border border-dashed border-camera-muted text-camera-muted disabled:opacity-50" style={{ width: tokens.capture.thumbSize, height: tokens.capture.thumbSize }}><Icon name="plus" size={tokens.capture.addIcon} /></button>}
         </div>
         <div className="min-h-card-gap flex-1" />
-        <div className="flex flex-col px-screen-x pb-card-gap" style={{ gap: tokens.capture.bottomGap }}>
+        <div className="flex flex-col px-screen-x pb-card-safe" style={{ gap: tokens.capture.bottomGap }}>
           <FirstRunHint hint="capture" />
           <div className="flex items-center justify-between px-grid text-detail">
             <label htmlFor="capture-when" className="text-camera-muted">When</label>

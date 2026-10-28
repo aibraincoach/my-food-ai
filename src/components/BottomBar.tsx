@@ -42,7 +42,7 @@ export default function BottomBar({ onPlus }: { onPlus: () => void }) {
     );
   };
   return (
-    <nav aria-label="Primary" className="fixed bottom-0 left-1/2 z-30 grid h-bar-h w-full max-w-phone -translate-x-1/2 grid-cols-5 border-t border-hairline bg-surface">
+    <nav aria-label="Primary" className="fixed bottom-0 left-1/2 z-30 grid h-bar-safe w-full max-w-phone -translate-x-1/2 grid-cols-5 border-t border-hairline bg-surface">
       {link(SLOTS[0])}
       {link(SLOTS[1])}
       <div className="relative flex items-start justify-center">
