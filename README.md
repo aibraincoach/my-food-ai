@@ -62,3 +62,5 @@ Only public-prefixed names are intended for browser exposure. Deployment environ
 ## Licences
 
 Application source: [MIT licence](LICENSE). Dependencies, font, data and hosted-model terms: [third-party notices](THIRD_PARTY.md).
+
+[Meal photo evaluation](docs/eval.md)
