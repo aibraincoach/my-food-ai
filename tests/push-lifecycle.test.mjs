@@ -64,3 +64,41 @@ rollback;`;
   const result = spawnSync('psql', ['-X','-q','--dbname',process.env.SUPABASE_DB_URL], { input: sql, encoding: 'utf8', timeout: 90000 });
   assert.ifError(result.error); assert.equal(result.status, 0, result.stderr);
 });
+
+test('a sign-out started in another tab blocks registration here until the marker expires or fails', async () => {
+  const store = new Map();
+  const originalStorage = Object.getOwnPropertyDescriptor(globalThis, 'localStorage');
+  const originalNow = Date.now;
+  Object.defineProperty(globalThis, 'localStorage', { configurable: true, value: { getItem: (k) => store.get(k) ?? null, setItem: (k, v) => store.set(k, v), removeItem: (k) => store.delete(k) } });
+  try {
+    const { pushSignOutFailed } = await import('../src/lib/push/lifecycle.ts');
+    pushSessionStarted();
+    pushSignOutStarted();            // tab A starts signing out and writes the shared marker
+    pushSessionStarted();            // tab B mounts: its own flag is clear, the shared marker is not
+    assert.equal(pushIsSigningOut(), true);
+    const start = originalNow();
+    Date.now = () => start + 31_000;  // a stuck marker expires so a later sign-in is not blocked
+    assert.equal(pushIsSigningOut(), false);
+    Date.now = originalNow;
+    pushSignOutStarted(); pushSessionStarted();
+    assert.equal(pushIsSigningOut(), true);
+    pushSignOutFailed();             // a failed sign-out releases every tab
+    assert.equal(pushIsSigningOut(), false);
+  } finally {
+    Date.now = originalNow;
+    if (originalStorage) Object.defineProperty(globalThis, 'localStorage', originalStorage); else delete globalThis.localStorage;
+  }
+});
+
+test('registration and logout share one origin-wide Web Lock', async () => {
+  const names = [];
+  const originalNavigator = Object.getOwnPropertyDescriptor(globalThis, 'navigator');
+  Object.defineProperty(globalThis, 'navigator', { configurable: true, value: { locks: { request: async (name, work) => { names.push(name); return work(); } } } });
+  try {
+    await withPushLock(async () => 'registration');
+    await withPushLock(async () => 'logout');
+    assert.deepEqual(names, ['meal-push-lifecycle', 'meal-push-lifecycle']);
+  } finally {
+    if (originalNavigator) Object.defineProperty(globalThis, 'navigator', originalNavigator); else delete globalThis.navigator;
+  }
+});
