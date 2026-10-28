@@ -10,6 +10,7 @@ const file = (name) => readFileSync(new URL(`../supabase/migrations/${name}`, im
 test("the search index follows item inserts and moves, and locks the post before reading", () => {
   assert.ok(process.env.SUPABASE_DB_URL, "SUPABASE_DB_URL is required");
   const migration = file("0009_posts_search.sql");
+  const functionBlock = migration.slice(migration.indexOf("create function public.rebuild_post_search()"), migration.indexOf("create trigger posts_search")).replace("create function", "create or replace function");
   assert.match(migration, /perform 1 from posts where id=target for update;/);
   const sql = `\\set ON_ERROR_STOP on
 begin;
@@ -18,11 +19,13 @@ select to_regclass('public.current_post_items') is not null as has7 \\gset
 \\else
 ${file("0007_post_items_supersede.sql")}
 \\endif
-select to_regprocedure('public.rebuild_post_search()') is not null as installed \\gset
+select to_regprocedure('public.search_consumed_kcal(numeric,jsonb,numeric)') is not null as installed \\gset
 \\if :installed
-drop function public.rebuild_post_search() cascade;
-\\endif
+-- Migration 0009 is deployed: re-create only the index function from the file and test that.
+${functionBlock}
+\\else
 ${migration.replace(/^create extension.*$/m, "").replace(/^alter table public.posts add column search_tsv.*$/m, "alter table public.posts add column if not exists search_tsv tsvector;").replace(/^create index posts_search_idx.*$/m, "create index if not exists posts_search_idx on public.posts using gin(search_tsv);")}
+\\endif
 do $t$ declare u uuid:=gen_random_uuid(); a uuid; b uuid; moved uuid;
 begin
   insert into auth.users(id) values (u); insert into profiles(id,handle) values (u,'idx-'||u);

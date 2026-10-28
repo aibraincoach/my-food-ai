@@ -42,7 +42,9 @@ test('pipeline preserves real Supabase Storage HTTP and timeout metadata', async
   for (const scenario of [503, 429, 404, 'timeout']) {
     const db = createClient('https://fixture.invalid', 'fixture-key', { global: { fetch: async input => {
       const url = new URL(input instanceof Request ? input.url : String(input));
-      if (url.pathname.includes('/rest/v1/post_media')) return new Response(JSON.stringify({ storage_path: 'fixture.jpg', width: 10, height: 10 }));
+      if (url.pathname.includes('/rest/v1/post_media')) return new Response(JSON.stringify({ storage_path: 'fixture-owner/fixture-post/0.jpg', width: 10, height: 10 }));
+      // The photo path must belong to the meal's owner before any privileged download.
+      if (url.pathname.includes('/rest/v1/posts')) return new Response(JSON.stringify({ user_id: 'fixture-owner' }));
       assert.ok(url.pathname.includes('/storage/v1/object/'));
       if (scenario === 'timeout') throw new TypeError('fetch failed', { cause: { code: 'UND_ERR_CONNECT_TIMEOUT' } });
       return new Response(JSON.stringify({ message: 'storage failure', statusCode: String(scenario) }), { status: scenario });

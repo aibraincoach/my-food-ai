@@ -71,13 +71,19 @@ test("same-meal confirmation retries the gateway's transient 404 like identifica
   globalThis.fetch = async () => (calls++ === 0 ? new Response("", { status: 404 }) : new Response(JSON.stringify({ status: "completed", output: [{ type: "message", content: [{ type: "output_text", text: JSON.stringify({ same_meal: false }) }] }] }), { status: 200 }));
   try {
     const photo = { data: new Blob([new Uint8Array([1, 2, 3])]), error: null };
-    const chain = (result) => new Proxy({}, { get: (_, name) => name === "then" ? (resolve) => resolve(result) : name === "single" || name === "maybeSingle" ? async () => result : () => chain(result) });
-    const tables = {
-      post_items: { data: [{ id: "i", name: "Rice", portion_text: null, portion_grams: 150, confidence: 0.9, item_nutrition: [] }], error: null },
-      posts: { data: { user_id: "u", caption: "rice" }, error: null },
-      post_media: { data: { storage_path: "u/p/photo.jpg", width: 10, height: 10 }, error: null },
-    };
-    const admin = { rpc: async () => ({ data: [{ post_id: "p", text_score: 1, photo_score: 1, distance_m: null }], error: null }), from: (name) => chain(tables[name]), storage: { from: () => ({ download: async () => photo }) } };
+    // Each table answers per requested post; photo paths must belong to the meal's owner ("u").
+    const chain = (name, ctx = {}) => new Proxy({}, { get: (_, method) => {
+      const result = () => {
+        if (name === "post_items") return { data: [{ id: "i", name: "Rice", portion_text: null, portion_grams: 150, confidence: 0.9, item_nutrition: [] }], error: null };
+        if (name === "post_media") return { data: { storage_path: `u/${ctx.post_id}/0.jpg`, width: 10, height: 10 }, error: null };
+        return { data: { user_id: "u", caption: "rice" }, error: null };
+      };
+      if (method === "then") return (resolve) => resolve(result());
+      if (method === "single" || method === "maybeSingle") return async () => result();
+      if (method === "eq") return (column, value) => chain(name, { ...ctx, [column]: value });
+      return () => chain(name, ctx);
+    } });
+    const admin = { rpc: async () => ({ data: [{ post_id: "p", text_score: 1, photo_score: 1, distance_m: null }], error: null }), from: (name) => chain(name), storage: { from: () => ({ download: async () => photo }) } };
     const result = await findPrior(admin, "current");
     assert.equal(calls, 2);
     assert.equal(result.hint, "");

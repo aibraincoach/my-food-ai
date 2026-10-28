@@ -82,8 +82,9 @@ begin
   if (select count(*) from public.post_comments where post_id = v_post and author = 'user') <> 1 then
     raise exception 'user comment was removed';
   end if;
-  if (select status from public.posts where id = v_post) <> 'ready' then
-    raise exception 'post was not marked ready';
+  -- The fixture has a pending user comment, so initialisation resumes the meal for a correction (queued).
+  if (select status from public.posts where id = v_post) <> 'queued' then
+    raise exception 'post was not resumed for its pending comment';
   end if;
   if not exists (
     select 1 from public.post_items i join public.item_nutrition n on n.post_item_id = i.id
@@ -130,7 +131,7 @@ begin
   perform public.persist_analysis(v_post, '[]'::jsonb, 'No food');
   if (select count(*) from public.post_items where post_id = v_post) <> 3
     or (select count(*) from public.item_nutrition n join public.post_items i on i.id = n.post_item_id where i.post_id = v_post) <> 3
-    or (select status from public.posts where id = v_post) <> 'ready' then
+    or (select status from public.posts where id = v_post) <> 'queued' then
     raise exception 'empty analysis left model items or removed protected rows';
   end if;
 end;
