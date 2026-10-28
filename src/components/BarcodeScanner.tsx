@@ -30,7 +30,7 @@ export default function BarcodeScanner() {
 
   // One token per scanning session: stopping, unmounting or starting again invalidates every older step.
   const session = useRef(0);
-  const close = useCallback(() => { session.current += 1; lookup.current += 1; stop.current(); stop.current = () => {}; setScanning(false); }, []);
+  const close = useCallback(() => { session.current += 1; lookup.current += 1; stop.current(); stop.current = () => {}; setScanning(false); setStatus(""); }, []);
   useEffect(() => close, [close]);
 
   const open = async () => {

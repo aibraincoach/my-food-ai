@@ -8,6 +8,7 @@ import { gtinCandidates } from "@/lib/fdc/gtin";
 export { gtinCandidates, validGtin } from "@/lib/fdc/gtin";
 
 const FDC_BASE_URL = "https://api.nal.usda.gov/fdc/v1";
+const MAX_PAGES = 3;
 
 export interface BarcodeNutrition {
   calories: number | null; protein_g: number | null; carbs_g: number | null; fat_g: number | null;
@@ -54,14 +55,17 @@ export async function lookupBarcode(raw: string): Promise<BarcodeProduct | null>
   if (!key) throw new Error("fdc: FDC_API_KEY is not set.");
   return recordCall("fdc", { query: `gtin:${candidates[0]}` }, async () => {
     for (const gtin of candidates) {
-      const params = new URLSearchParams({ query: gtin, dataType: "Branded", pageSize: "10", api_key: key });
-      const response = await fetch(`${FDC_BASE_URL}/foods/search?${params}`);
-      if (!response.ok) throw new ApiError(response.status, await response.text(), `fdc: barcode search failed with ${response.status}.`);
-      const payload = (await response.json()) as { foods?: unknown };
-      const foods = Array.isArray(payload.foods) ? payload.foods : [];
-      // The text search can match other fields; only an exact gtin_upc is the scanned product.
-      const exact = foods.filter((food) => (food as { gtinUpc?: unknown })?.gtinUpc === gtin);
-      for (const food of exact) { const product = productFromFood(food, gtin); if (product) return product; }
+      // The search is a text search: page through it (bounded) until the exact gtinUpc turns up with usable nutrition.
+      for (let page = 1; page <= MAX_PAGES; page += 1) {
+        const params = new URLSearchParams({ query: gtin, dataType: "Branded", pageSize: "50", pageNumber: String(page), api_key: key });
+        const response = await fetch(`${FDC_BASE_URL}/foods/search?${params}`);
+        if (!response.ok) throw new ApiError(response.status, await response.text(), `fdc: barcode search failed with ${response.status}.`);
+        const payload = (await response.json()) as { foods?: unknown; totalPages?: unknown };
+        const foods = Array.isArray(payload.foods) ? payload.foods : [];
+        const exact = foods.filter((food) => (food as { gtinUpc?: unknown })?.gtinUpc === gtin);
+        for (const food of exact) { const product = productFromFood(food, gtin); if (product) return product; }
+        if (typeof payload.totalPages !== "number" || page >= payload.totalPages) break;
+      }
     }
     return null;
   }, (product) => ({ text: product, fdcId: product?.fdcId ?? null }));

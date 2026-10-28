@@ -73,3 +73,17 @@ test("a UPC-E expands to its UPC-A; anything that does not expand to a valid UPC
   assert.equal(expandUpcE("12345670"), "123456000070");    // number system 1, d7 = 7
   assert.equal(expandUpcE("96385074"), null);              // a genuine EAN-8 (starts with 9) is never expanded
 });
+
+test("a usable exact match on a later results page is still found", async () => {
+  const realFetch = globalThis.fetch;
+  const food = (nutrients) => ({ fdcId: 7, description: "Later page", gtinUpc: "016000275683", foodNutrients: nutrients });
+  const pages = { 1: { totalPages: 2, foods: [food([])] }, 2: { totalPages: 2, foods: [food([{ nutrientId: 1008, value: 100 }])] } };
+  const requested = [];
+  globalThis.fetch = async (url) => { const page = Number(new URL(url).searchParams.get("pageNumber")); requested.push(page); return new Response(JSON.stringify(pages[page]), { status: 200 }); };
+  process.env.FDC_API_KEY ||= "test";
+  try {
+    const product = await lookupBarcode("016000275683");
+    assert.equal(product?.fdcId, 7);
+    assert.deepEqual(requested, [1, 2]);
+  } finally { globalThis.fetch = realFetch; }
+});
