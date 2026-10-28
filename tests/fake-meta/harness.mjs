@@ -19,7 +19,7 @@ export async function pipelineHarness(){
  const originalFetch=globalThis.fetch;
  const previousEnv=Object.fromEntries(['MODEL_API_BASE_URL','MODEL_API_KEY','FDC_API_KEY'].map(key=>[key,process.env[key]]));
  const fake=await startFakeMeta();const allowed=new Set([new URL(fake.origin).origin,supabaseOrigin]);
- const violations=[];let ownerId,leaseHolder=null;const created=[],paths=[],cacheInserted=[];const fixtureJobs=new Set();
+ const violations=[];let ownerId,leaseHolder=null,leaseKeepalive=null,leaseLost=false;const created=[],paths=[],cacheInserted=[];const fixtureJobs=new Set();
  const cleanup=async()=>{
   const problems=[];
   // Every step runs on its own, so one failure never skips the rest. Releasing the worker lease and the
@@ -36,6 +36,7 @@ export async function pipelineHarness(){
    await step('fixture posts',async()=>{if(created.length){const {error}=await admin.from('posts').delete().in('id',created);if(error)throw error;}});
    await step('fixture cache',async()=>{if(cacheInserted.length){const {error}=await admin.from('fdc_cache').delete().in('query',cacheInserted);if(error)throw error;}});
   } finally {
+   clearInterval(leaseKeepalive);
    await step('worker lease',async()=>{if(leaseHolder){const {error}=await admin.rpc('release_worker_lease',{p_holder:leaseHolder});if(error)throw error;}});
    await step('session',()=>user.auth.signOut({scope:'local'}));
    try { await fake.close(); } finally {
@@ -65,12 +66,16 @@ export async function pipelineHarness(){
   // hold it, so a requeued fixture job is never claimable by them, whatever its run_after says.
   const holder=`fixture-${randomUUID()}`;
   for(let waited=0;;waited+=2000){
-   const {data:got,error:leaseError}=await admin.rpc('try_acquire_worker_lease',{p_holder:holder,ttl_seconds:900});
+   const {data:got,error:leaseError}=await admin.rpc('try_acquire_worker_lease',{p_holder:holder,ttl_seconds:120});
    assert.equal(leaseError,null);
    if(got){leaseHolder=holder;break;}
    assert.ok(waited<60000,'The worker lease stayed held by another worker; refusing to run fixtures beside a live worker');
    await new Promise(resolve=>setTimeout(resolve,2000));
   }
+  // A short lease kept alive here (try_acquire_worker_lease cannot extend a lease its own holder still has, so the
+  // row is updated directly). If it is ever lost the run stops at the next drain instead of racing live workers.
+  leaseKeepalive=setInterval(()=>{admin.from('worker_lease').update({expires_at:new Date(Date.now()+120_000).toISOString()}).eq('id',1).eq('holder',leaseHolder).select('id').then(({data,error})=>{if(error||!data?.length)leaseLost=true;},()=>{leaseLost=true;});},30_000);
+  leaseKeepalive.unref?.();
   const fdc=JSON.parse(await readFile(new URL('./fixtures/fdc.json',import.meta.url),'utf8'));
   for(const [query,response]of Object.entries(fdc)){
    const {data,error}=await admin.from('fdc_cache').select('query').eq('query',query).maybeSingle();assert.equal(error,null);
@@ -87,6 +92,7 @@ export async function pipelineHarness(){
    return {id,jobId:await enqueue(id,'analyze')};
   };
   const drain=async()=>{
+   assert.ok(!leaseLost,'The worker lease was lost; refusing to run fixtures beside live workers');
    let result,failure;
    try{result=await drainOnce(scoped);}catch(error){failure=error;}
    // fail_job applies production backoff (30 s for a first retry). Move only our fixture jobs into the
