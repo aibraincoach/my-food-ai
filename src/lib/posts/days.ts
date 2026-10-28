@@ -80,7 +80,11 @@ export async function getDays(supabase: SupabaseClient, userId: string, zone: st
   return [...groups.values()].sort((a, b) => a.date.localeCompare(b.date));
 }
 
-// Home's bubbles only need which local days have a ready meal: no items,
+// A day is logged as soon as a meal was posted for it, even while it is still being analysed or waiting for a reply
+// (only a failed meal does not count); the story and totals still show ready meals only.
+export const LOGGED_STATUSES = ["ready", "queued", "processing", "needs_input"];
+
+// Home's bubbles only need which local days have a logged meal: no items,
 // nutrition or photos, so an optional read cannot hide the strip.
 export async function getLoggedDates(supabase: SupabaseClient, userId: string, zone: string, from: string, through: string): Promise<{ date: string }[]> {
   const dates = new Set<string>();
@@ -88,7 +92,7 @@ export async function getLoggedDates(supabase: SupabaseClient, userId: string, z
   const upper = `${shiftDay(through, 2)}T00:00:00Z`;
   for (let offset = 0; ; offset += 100) {
     const { data, error } = await supabase.from("posts").select("id,eaten_at")
-      .eq("user_id", userId).eq("status", "ready").gte("eaten_at", lower).lt("eaten_at", upper)
+      .eq("user_id", userId).in("status", LOGGED_STATUSES).gte("eaten_at", lower).lt("eaten_at", upper)
       .order("eaten_at", { ascending: true }).order("id", { ascending: true }).range(offset, offset + 99);
     if (error) throw new Error("Days could not be loaded.");
     for (const row of data ?? []) {
