@@ -1,14 +1,8 @@
 // Run with node --env-file=.env.local --test tests/persist-idempotent.test.mjs.
-// The migration, fixtures and assertions all roll back, even before deployment.
+// Needs a database migrated through 0007. The fixtures and assertions all roll back.
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
-import { readFileSync } from "node:fs";
 import test from "node:test";
-
-const migration = readFileSync(
-  new URL("../supabase/migrations/0004_persist_analysis.sql", import.meta.url),
-  "utf8"
-);
 
 test("analysis persistence follows the initialisation marker and preserves history", () => {
   assert.ok(process.env.SUPABASE_DB_URL, "SUPABASE_DB_URL is required for this database test");
@@ -17,11 +11,16 @@ test("analysis persistence follows the initialisation marker and preserves histo
 begin;
 set local lock_timeout = '5s';
 set local statement_timeout = '30s';
-select to_regprocedure('public.persist_analysis(uuid,jsonb,text)') is not null as installed \u005cgset
-\u005cif :installed
-\u005celse
-${migration}
-\u005cendif
+-- The test exercises the marker contract of migration 0007, so it needs a database migrated through it.
+do $prereq$
+begin
+  if to_regprocedure('public.persist_analysis(uuid,jsonb,text)') is null
+    or not exists (select 1 from information_schema.columns
+      where table_schema = 'public' and table_name = 'posts' and column_name = 'analysis_initialized_at') then
+    raise exception 'apply migrations through 0007_post_items_supersede before running this test';
+  end if;
+end;
+$prereq$;
 
 -- Create a disposable ordinary account without any Auth API or email call.
 select gen_random_uuid() as fixture_user \u005cgset
