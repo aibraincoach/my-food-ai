@@ -99,21 +99,25 @@ export async function persistAnalysis(
   if (!named.needsInput) await markReady(named.postId, admin, jobId);
 }
 
-// The meal becomes ready on its nutrition alone (same gates as card publication, minus the card). The
-// stored card is optional: a render or upload failure never fails a meal whose analysis is complete. It
-// invalidates the old card through an owner- and worker-checked RPC, so the feed shows live nutrition, and
-// queues card maintenance (a retriable card_backfill job). The card_backfill job itself passes requireCard
-// so a failed or rejected publication is retried.
+// The meal becomes ready on its nutrition alone (same gates as card publication, minus the card), and the same
+// owner- and worker-checked transaction detaches its old card, so an outdated card is never shown beside new
+// nutrition. The stored card is then optional: a render or upload failure never fails a meal whose analysis
+// is complete; it queues card maintenance (a retriable card_backfill job, eligible because the card is gone).
+// The card_backfill job itself passes requireCard so a failed or rejected publication is retried.
 export async function markReady(postId: string, admin: SupabaseClient = createAdminClient(), jobId?: string, options: { requireCard?: boolean } = {}): Promise<boolean> {
   const { data, error, status } = await admin.rpc("complete_post_without_card", { p_post_id: postId, p_job_id: jobId ?? null });
   if (error) throw ioError("Post readiness could not be saved.", error, status);
-  if (data !== true) return false;
+  const completion = data as { ready?: boolean; old_card_path?: string | null } | null;
+  if (completion?.ready !== true) return false;
+  // After the commit: only a path the database validated as a generated card of this owner's meal.
+  if (typeof completion.old_card_path === "string") {
+    await admin.storage.from("media").remove([completion.old_card_path]).then(() => undefined, () => undefined);
+  }
   let published = false;
   try {
     published = await renderResultsCard(admin, postId, jobId);
   } catch (cardError) {
     if (options.requireCard) throw cardError;
-    await invalidateStaleCard(admin, postId, jobId);
     await admin.rpc("enqueue_card_backfill").then(() => undefined, () => undefined);
     return true;
   }
@@ -123,18 +127,4 @@ export async function markReady(postId: string, admin: SupabaseClient = createAd
     if (!card.error && !card.data) throw Object.assign(new Error("Card was not published."), { status: 503 });
   }
   return true;
-}
-
-// Best effort. The database decides: it locks the post, checks the caller still owns the work, removes only the
-// generation read here and returns a path only when it is a generated card of this owner's meal.
-async function invalidateStaleCard(admin: SupabaseClient, postId: string, jobId?: string): Promise<void> {
-  try {
-    const { data: card } = await admin.from("post_media").select("storage_path").eq("post_id", postId).eq("kind", "card").maybeSingle();
-    if (!card?.storage_path) return;
-    const { data: path, error } = await admin.rpc("invalidate_results_card", { p_post_id: postId, p_job_id: jobId ?? null, p_expected_path: card.storage_path });
-    if (error || typeof path !== "string") return;
-    await admin.storage.from("media").remove([path]);
-  } catch {
-    // The backfill job queued by the caller still replaces the card.
-  }
 }
