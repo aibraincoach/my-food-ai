@@ -16,6 +16,8 @@ export interface BarcodeNutrition {
 }
 export interface BarcodeProduct {
   fdcId: number; gtin: string; name: string; brand: string | null;
+  // FDC standardises branded values to 100 g or 100 ml; no density conversion is made between them.
+  basisUnit: "g" | "ml";
   servingSize: number | null; servingSizeUnit: string | null; servingText: string | null;
   per100g: BarcodeNutrition;
 }
@@ -39,6 +41,7 @@ export function productFromFood(food: unknown, gtin: string): BarcodeProduct | n
   if (per100g.calories === null && per100g.protein_g === null && per100g.carbs_g === null && per100g.fat_g === null) return null;
   return {
     fdcId: f.fdcId, gtin, name: f.description,
+    basisUnit: typeof f.servingSizeUnit === "string" && f.servingSizeUnit.toLowerCase() === "ml" ? "ml" : "g",
     brand: typeof f.brandOwner === "string" ? f.brandOwner : typeof f.brandName === "string" ? f.brandName : null,
     servingSize: typeof f.servingSize === "number" ? f.servingSize : null,
     servingSizeUnit: typeof f.servingSizeUnit === "string" ? f.servingSizeUnit : null,

@@ -46,15 +46,19 @@ export default function BarcodeScanner() {
       const hints = new Map<import("@zxing/library").DecodeHintType, unknown>([[DecodeHintType.POSSIBLE_FORMATS, [BarcodeFormat.UPC_A, BarcodeFormat.UPC_E, BarcodeFormat.EAN_13, BarcodeFormat.EAN_8]]]);
       const zx = new BrowserMultiFormatReader(hints);
       reader = zx;
-      stop.current = () => zx.reset();
+      // Acquire the camera ourselves so a cancelled session can stop it before ZXing ever sees it.
+      const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: "environment" } } });
+      const release = () => { stream.getTracks().forEach((track) => track.stop()); zx.reset(); };
+      if (mine !== session.current) { release(); return; }
+      stop.current = release;
       setScanning(true);
-      await zx.decodeFromConstraints({ video: { facingMode: { ideal: "environment" } } }, video.current!, (result) => {
+      await zx.decodeFromStream(stream, video.current!, (result) => {
         if (mine !== session.current || !result) return;
-        session.current += 1; zx.reset(); setScanning(false);
+        session.current += 1; release(); setScanning(false);
         const text = result.getText();
         void find(result.getBarcodeFormat() === BarcodeFormat.UPC_E ? expandUpcE(text) ?? text : text);
       });
-      if (mine !== session.current) { zx.reset(); return; }   // stopped while the camera was being acquired
+      if (mine !== session.current) { release(); return; }   // stopped while playback was starting
       setStatus("Point the camera at the barcode.");
     } catch {
       reader?.reset();
@@ -62,7 +66,8 @@ export default function BarcodeScanner() {
     } finally { starting.current = false; }
   };
 
-  const serving = product?.servingSize && product.servingSizeUnit?.toLowerCase() === "g" ? product.servingSize : null;
+  const basis = product?.basisUnit ?? "g";
+  const serving = product?.servingSize && product.servingSizeUnit?.toLowerCase() === basis ? product.servingSize : null;
   const scale = (value: number | null, grams: number) => value === null ? "–" : formatNutrition(value * grams / 100);
   return <section aria-label="Scan a barcode" className="flex flex-col gap-3 px-screen-x pb-sheet-top text-detail">
     {scanning
@@ -73,7 +78,7 @@ export default function BarcodeScanner() {
     {product ? <div className="flex flex-col gap-2">
       <p className="text-body">{product.name}</p>
       {product.brand ? <p className="text-meta text-faint">{product.brand}</p> : null}
-      <table className="w-full tabular-nums"><thead><tr className="text-left text-meta text-faint"><th scope="col"><span className="sr-only">Nutrient</span></th>{serving ? <th scope="col">Per serving ({serving} g{product.servingText ? `, ${product.servingText}` : ""})</th> : null}<th scope="col">Per 100 g</th></tr></thead>
+      <table className="w-full tabular-nums"><thead><tr className="text-left text-meta text-faint"><th scope="col"><span className="sr-only">Nutrient</span></th>{serving ? <th scope="col">Per serving ({serving} {basis}{product.servingText ? `, ${product.servingText}` : ""})</th> : null}<th scope="col">Per 100 {basis}</th></tr></thead>
         <tbody>{([["Calories", "calories", "kcal"], ["Protein", "protein_g", "g"], ["Carbs", "carbs_g", "g"], ["Fat", "fat_g", "g"], ["Fibre", "fibre_g", "g"], ["Sugar", "sugar_g", "g"], ["Sodium", "sodium_mg", "mg"]] as const).map(([label, key, unit]) =>
           <tr key={key}><th scope="row" className="py-1 text-left font-normal">{label}</th>{serving ? <td>{scale(product.per100g[key], serving)} {unit}</td> : null}<td>{product.per100g[key] === null ? "–" : formatNutrition(product.per100g[key])} {unit}</td></tr>)}</tbody></table>
     </div> : null}

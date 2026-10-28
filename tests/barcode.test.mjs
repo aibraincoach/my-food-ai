@@ -87,3 +87,9 @@ test("a usable exact match on a later results page is still found", async () => 
     assert.deepEqual(requested, [1, 2]);
   } finally { globalThis.fetch = realFetch; }
 });
+
+test("a product given per millilitre keeps that basis", () => {
+  const drink = productFromFood({ fdcId: 2, description: "Drink", servingSize: 250, servingSizeUnit: "ml", foodNutrients: [{ nutrientId: 1008, value: 45 }] }, "070847811169");
+  assert.equal(drink.basisUnit, "ml");
+  assert.equal(productFromFood({ fdcId: 3, description: "Food", servingSize: 27, servingSizeUnit: "g", foodNutrients: [{ nutrientId: 1008, value: 45 }] }, "x").basisUnit, "g");
+});
