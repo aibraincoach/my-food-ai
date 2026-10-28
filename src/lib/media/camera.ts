@@ -6,30 +6,76 @@ export interface Camera {
   close(): void;
 }
 
+// The switch failed but a camera is live again and the facing is unchanged; flipping again may succeed.
+// `stream` is set when the previous camera had to be reopened, so the preview must follow it.
+export class CameraFlipError extends Error {
+  readonly retryable = true;
+  constructor(cause: unknown, readonly stream?: MediaStream) {
+    super("Could not switch cameras.", { cause });
+    this.name = "CameraFlipError";
+  }
+}
+
+// A camera that is busy or cannot start because another capture holds the hardware.
+function isContention(error: unknown): boolean {
+  const name = (error as { name?: unknown } | null)?.name;
+  return name === "NotReadableError" || name === "AbortError" || name === "TrackStartError";
+}
+
 export async function openCamera(initialFacing: Facing): Promise<Camera> {
   if (!navigator.mediaDevices?.getUserMedia) throw new Error("Camera unavailable.");
   let facing = initialFacing;
   let closed = false;
   let generation = 0;
-  const first = await navigator.mediaDevices.getUserMedia({ video: { facingMode: facing }, audio: false });
+  const open = (mode: Facing) => navigator.mediaDevices.getUserMedia({ video: { facingMode: mode }, audio: false });
+  const stop = (stream: MediaStream) => stream.getTracks().forEach((track) => track.stop());
+  const first = await open(facing);
   const camera: Camera = {
     stream: first,
     async flip() {
       const request = ++generation;
-      camera.stream.getTracks().forEach((track) => track.stop());
-      facing = facing === "environment" ? "user" : "environment";
-      const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: facing }, audio: false });
-      if (closed || request !== generation) {
-        stream.getTracks().forEach((track) => track.stop());
+      const superseded = () => closed || request !== generation;
+      const next: Facing = facing === "environment" ? "user" : "environment";
+      let stream: MediaStream | undefined;
+      try {
+        // Acquire first: a rejected request leaves the working camera untouched.
+        stream = await open(next);
+      } catch (cause) {
+        if (superseded()) throw new Error("Camera closed.");
+        // Releasing the working camera only helps when the failure is device contention. Anything else
+        // (permission, no such camera, constraints) leaves it running and the facing unchanged.
+        if (!isContention(cause)) throw new CameraFlipError(cause);
+        // Some devices cannot open a second camera while the first is held. Release it and try
+        // again; if that still fails, reopen the previous camera so the preview is never left dead.
+        stop(camera.stream);
+        try {
+          stream = await open(next);
+        } catch (second) {
+          if (superseded()) throw new Error("Camera closed.");
+          let restored: MediaStream;
+          try {
+            restored = await open(facing);
+          } catch {
+            throw new Error("Camera unavailable.");
+          }
+          if (superseded()) { stop(restored); throw new Error("Camera closed."); }
+          camera.stream = restored;
+          throw new CameraFlipError(second ?? cause, restored);
+        }
+      }
+      if (superseded()) {
+        stop(stream);
         throw new Error("Camera closed.");
       }
+      if (camera.stream !== stream) stop(camera.stream);
+      facing = next;
       camera.stream = stream;
       return stream;
     },
     close() {
       closed = true;
       generation++;
-      camera.stream.getTracks().forEach((track) => track.stop());
+      stop(camera.stream);
     },
   };
   return camera;
