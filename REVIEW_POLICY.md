@@ -31,6 +31,8 @@ There are four ways to reach PPLX. Try every route your harness has, in this ord
 3. **The owner's Chrome** (only agents on the Claude harness, which has the Claude in Chrome tools; Codex, Muse, Cursor Agent and Kimi do not and use routes 1, 2 and 4): submit exactly `code review <PR URL>` on Gemini 3.8 Flash in the owner's signed-in Chrome through the Claude in Chrome tools, read the answer, and post the receipt with the thread link.
 4. **The other OCI server**: run the same runner from the other OCI server.
 
+Runner exits 6 (head has no successful Vercel status), 7 (memory guard) and 8 (fresh claim or existing receipt for the head) are gates, not route failures. Resolve them (wait for Vercel, free memory, reuse or wait for the existing claim or receipt) and do not switch routes to get around them. Every route keeps the same gates: review only the current PR head, with a successful Vercel status, and with no fresh claim or receipt for it.
+
 AGY and Codex are used only after every route your harness has has failed in one session. A Cloudflare page is a failed route, not a quota. Report its exact text to the owner in the same message.
 
 Quota exhaustion stops that route; record the message and time. Move to the next route. No paid fallback on the same route.
