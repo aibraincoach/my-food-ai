@@ -99,7 +99,16 @@ export async function persistAnalysis(
   if (!named.needsInput) await markReady(named.postId, admin, jobId);
 }
 
-// Publication clears clarification atomically with ready under the post lock.
+// Publication clears clarification atomically with ready under the post lock. The stored card is optional:
+// a render or upload failure is logged and the meal is marked ready on its nutrition anyway; the live card
+// is the fallback. (An outdated card after a failed regeneration is tracked in the backlog.)
 export async function markReady(postId: string, admin: SupabaseClient = createAdminClient(), jobId?:string): Promise<boolean> {
-  return renderResultsCard(admin, postId, jobId);
+  try {
+    return await renderResultsCard(admin, postId, jobId);
+  } catch (cardError) {
+    console.error("results card failed; marking the meal ready without it", postId, cardError instanceof Error ? cardError.message : cardError);
+    const { data, error, status } = await admin.rpc("mark_post_ready", { p_post_id: postId, p_job_id: jobId ?? null });
+    if (error) throw ioError("Post readiness could not be saved.", error, status);
+    return data === true;
+  }
 }
