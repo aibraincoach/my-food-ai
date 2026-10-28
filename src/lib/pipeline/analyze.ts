@@ -118,7 +118,8 @@ export async function identifyMeal(
   photo: Uint8Array | null,
   mime: string,
   caption: string | null,
-  segmented: SegmentedPost
+  segmented: SegmentedPost,
+  prior = ""
 ): Promise<NamedPost> {
   const meal: IdentifiedMeal = await identifyItems(
     photo,
@@ -128,7 +129,8 @@ export async function identifyMeal(
       index: r.index,
       box: r.box,
       areaFraction: r.areaFraction,
-    }))
+    })),
+    prior
   );
   const byRegion = new Map<number, IdentifiedItem>();
   const captionOnly: IdentifiedItem[] = [];
@@ -161,7 +163,8 @@ interface PostCaptionRow {
 // identify. The caller persists with persistAnalysis.
 export async function analyzePost(
   supabase: SupabaseClient,
-  postId: string
+  postId: string,
+  prior = ""
 ): Promise<NamedPost> {
   const { data: post, error: postError, status: postStatus } = await supabase
     .from("posts")
@@ -197,5 +200,5 @@ export async function analyzePost(
       throw error;
     }
   }
-  return identifyMeal(photo, "image/jpeg", post.caption, segmented);
+  return identifyMeal(photo, "image/jpeg", post.caption, segmented, prior);
 }
