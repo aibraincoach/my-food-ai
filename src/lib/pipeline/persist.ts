@@ -98,6 +98,18 @@ export async function persistAnalysis(
 }
 
 // The shared application completion hook. Stored cards and push attach here.
-export async function markReady(postId: string, admin: SupabaseClient = createAdminClient(),jobId?:string): Promise<boolean> {
-  return renderResultsCard(admin, postId, jobId);
+// The meal becomes ready on its nutrition alone. The stored card is optional: a render or upload failure
+// queues card maintenance (a retriable card_backfill job) and never fails a meal whose analysis is complete.
+// The card_backfill job itself passes requireCard so its failures are retried.
+export async function markReady(postId: string, admin: SupabaseClient = createAdminClient(),jobId?:string,options: { requireCard?: boolean } = {}): Promise<boolean> {
+  const { data, error, status } = await admin.rpc("mark_post_ready", { p_post_id: postId,p_job_id:jobId??null });
+  if (error) throw ioError("Post readiness could not be saved.", error, status);
+  if (data !== true) return false;
+  try {
+    await renderResultsCard(admin, postId, jobId);
+  } catch (cardError) {
+    if (options.requireCard) throw cardError;
+    await admin.rpc("enqueue_card_backfill").then(() => undefined, () => undefined);
+  }
+  return true;
 }
