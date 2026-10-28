@@ -25,6 +25,8 @@ export interface FeedItem {
 }
 
 export interface FeedPost {
+  modelCommentId?: string | null;
+  analysisFingerprint?: string | null;
   id: string;
   caption: string;
   eaten_at: string;
@@ -80,10 +82,17 @@ interface NutritionRow {
   sodium_mg: Numeric;
 }
 
+async function latestRevision(client:SupabaseClient,postId:string):Promise<{modelCommentId:string|null;fingerprint:string}|null> {
+ const {data,error}=await client.rpc('feedback_revision',{p_post_id:postId});
+ if(error)throw new Error('Analysis revision could not be read.');
+ return data;
+}
+
 async function toFeedPost(
   supabase: SupabaseClient,
   row: PostRow
 ): Promise<FeedPost> {
+  const revisionBefore=row.status==="ready"?await latestRevision(supabase,row.id):null;
   const { data: media, error: mediaError } = await supabase.from("post_media")
     .select("storage_path").eq("post_id",row.id).order("position");
   if(mediaError) throw new Error(mediaError.message);
@@ -135,7 +144,10 @@ async function toFeedPost(
     }
   }
 
+  const revisionAfter=row.status==="ready"?await latestRevision(supabase,row.id):null;
   return {
+    modelCommentId: row.status==="ready"&&JSON.stringify(revisionBefore)===JSON.stringify(revisionAfter)?revisionAfter?.modelCommentId??null:null,
+    analysisFingerprint:row.status==="ready"&&JSON.stringify(revisionBefore)===JSON.stringify(revisionAfter)?revisionAfter?.fingerprint??null:null,
     id: row.id,
     caption: row.caption,
     eaten_at: row.eaten_at,

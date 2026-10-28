@@ -1,8 +1,9 @@
 "use client";
 import {useState} from "react";
+import DoubleTap from "@/components/DoubleTap";
 import {tokens} from "@/lib/theme/tokens";
 export type Slide = {url:string;kind?:"photo"|"card"};
-export default function Carousel({slides,caption}:{slides:Slide[];caption:string}) {
+export default function Carousel({slides,caption,postId,modelCommentId,fingerprint}:{slides:Slide[];caption:string;postId:string;modelCommentId:string|null;fingerprint:string|null}) {
   const [index,setIndex]=useState(0);
   return <div className="relative">
     <div className="flex snap-x snap-mandatory overflow-x-auto" onScroll={event=>{
@@ -10,8 +11,13 @@ export default function Carousel({slides,caption}:{slides:Slide[];caption:string
       setIndex(Math.round(element.scrollLeft/element.clientWidth));
     }} aria-label="Meal photos" tabIndex={0}>
       {slides.map((slide,i)=><div key={`${slide.url}-${i}`} className="aspect-square w-full shrink-0 snap-center">
+        {slide.kind!=="card" ? <DoubleTap postId={postId} modelCommentId={modelCommentId} fingerprint={fingerprint}>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={slide.url} alt={caption||`Meal photo ${i+1}`} className="h-full w-full object-cover" />
+        </DoubleTap> : <>
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src={slide.url} alt={slide.kind==="card"?"Consumed nutrition":caption||`Meal photo ${i+1}`} className="h-full w-full object-cover" />
+        </>}
       </div>)}
     </div>
     {slides.length>1&&<>

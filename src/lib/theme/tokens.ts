@@ -33,6 +33,7 @@ export const tokens = {
     'tooltip-y': 10, 'tooltip-x': 14, 'tooltip-caret': 12, 'tooltip-offset': 6,
     'shimmer-h': 12, brand: 64, 'card-padding': 32, 'macro-gap': 28,
   },
+  calendar: { cell: 46, border: 1.5, padding: 5, rowGap: 6, outerX: 12, columnGap: 4, weekdayY: 8, labelHeight: 12, labelGap: 4 },
   radii: { chip: 6, thumb: 8, tile: 10, field: 12, pill: 22, sheet: 28, circle: 9999 },
   border: { hairline: 1 },
   icon: { stroke: 1.7, navigationStroke: 1.8, strongStroke: 2, thumbStroke: 1.6 },
