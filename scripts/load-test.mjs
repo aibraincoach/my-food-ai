@@ -78,7 +78,7 @@ async function report(run) {
     ...run.posts.map((p) => `| ${p.number} | ${p.fixture} | ${seconds(p.startedAt === undefined ? undefined : p.startedAt - run.startedAt)} | ${safeError(p.error ?? p.status)} | ${seconds(p.readyMs)} |`), '',
     'Observed job errors containing 429:', '',
     ...(run.rateLimits.length ? run.rateLimits.map((e) => `- Post ${e.number}, attempt ${e.attempt}: ${safeError(e.error)}`) : ['None observed.']), '',
-    'Demo worker concurrency: **1**. One worker lane is the conservative demo setting; this report does not justify increasing it. Confirm the deployed setting before interpreting these timings.',
+    `Worker concurrency (operator-reported via DEPLOYED_WORKER_CONCURRENCY, not read from the deployment): **${process.env.DEPLOYED_WORKER_CONCURRENCY?.trim() || 'unknown'}**. This report does not justify increasing it; confirm the deployed setting before comparing timings across runs.`,
   ];
   if (incomplete || failed) lines.push('', 'This run did not complete successfully for every post. The unresolved outcomes above remain part of the result.');
   const current = await readFile(DOC, 'utf8');
