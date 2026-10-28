@@ -29,7 +29,7 @@ export async function queueTick(
   const queued = queuedResult.count;
   const running = runningResult.count;
   const depth = queued ?? 0;
-  if (depth === 0) {
+  if (depth === 0 && (running ?? 0) === 0) {
     return { queued: 0, running: running ?? 0, traffic, started: false };
   }
   const started = await tryAcquireLease(admin, holder, ttlSeconds);
