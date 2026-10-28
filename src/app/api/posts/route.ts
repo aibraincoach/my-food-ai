@@ -3,6 +3,10 @@ import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { signShotUploads } from "@/lib/media/storage";
 
+// A post with photos parks its analyze job until the client confirms the uploads (PUT), so no worker tick can
+// claim it while the photo is still being uploaded. If the client never confirms, the job runs after this delay.
+const UPLOAD_PARK_MS = 120_000;
+
 // POST creates the posts row (status queued), the post_media rows and the
 // analyze job in one go, and returns signed upload URLs. Caption-only posts
 // skip the uploads. PUT (the complete step) ticks the queue once uploads
@@ -84,7 +88,7 @@ export async function POST(request: Request) {
   // uses the admin client; the secret key never leaves the server.
   const { error: jobError } = await createAdminClient()
     .from("jobs")
-    .insert({ post_id: post.id, kind: "analyze", priority: 100, status: "queued" });
+    .insert({ post_id: post.id, kind: "analyze", priority: 100, status: "queued", ...(shots.length > 0 ? { run_after: new Date(Date.now() + UPLOAD_PARK_MS).toISOString() } : {}) });
   if (jobError) {
     // A post must never exist without its job: drop the post (media rows
     // follow through the cascade) and report the enqueue failure.
@@ -129,6 +133,10 @@ export async function PUT(request: Request) {
   const { data: post } = await supabase.from("posts").select("id").eq("id", postId).single();
   if (!post) return NextResponse.json({ error: "Post not found." }, { status: 404 });
 
+  // The uploads are done: release the parked analyze job now (the admin client; jobs has no client policy).
+  const release = await createAdminClient().from("jobs").update({ run_after: new Date().toISOString() })
+    .eq("post_id", postId).eq("kind", "analyze").eq("status", "queued");
+  if (release.error) return NextResponse.json({ error: "Post could not be released for analysis." }, { status: 500 });
   // Best-effort tick; the route lands with item 7.
   try {
     await fetch(new URL("/api/jobs/tick", request.url));
