@@ -1,6 +1,6 @@
 'use client';
 import {useCallback,useEffect,useRef,useState} from 'react';
-import {readPostComments,readPostCommentsAfter} from '@/lib/posts/timeline';
+import {readPostComments} from '@/lib/posts/timeline';
 import {useRouter} from 'next/navigation';
 import {correctionFeedback} from '@/lib/posts/correction-feedback';
 import {createClient} from '@/lib/supabase/client';
@@ -12,15 +12,15 @@ export default function Thread({postId}:{postId:string}){
  const wake=useRef<()=>void>(()=>{});
  const append=useCallback((row:CommentRow)=>{setRows(old=>sort([...old.filter(r=>r.id!==row.id),row]));setWaiting(row.author==='user');router.refresh();wake.current();},[router]);
  useEffect(()=>{
-  const client=createClient();let live=true;let inFlight=false;let initialized=false;let after:{id:string;created_at:string}|undefined;let busy=true;let lastLoad=0;let knownStatus:string|null=null;const knownModels=new Set<string>();
-  // The first read (and any channel reconnect) loads the whole thread; later reads fetch only newer comments.
-  const load=async(full=false)=>{if(inFlight)return;inFlight=true;try{
+  const client=createClient();let live=true;let inFlight=false;let initialized=false;let busy=true;let lastLoad=0;let knownStatus:string|null=null;const knownModels=new Set<string>();
+  // Always a full, ordered read: a comment can commit with an earlier timestamp than one already seen.
+  const load=async()=>{if(inFlight)return;inFlight=true;try{
    const [data,{data:post,error:postError}]=await Promise.all([
-    full||!after?readPostComments(client,postId):readPostCommentsAfter(client,postId,after),
+    readPostComments(client,postId),
     client.from('posts').select('status').eq('id',postId).maybeSingle(),
    ]);
    if(!live)return;if(postError||!post){setError('Comments could not be loaded.');return;}
-   if(data.length)after=data[data.length-1];lastLoad=Date.now();busy=!['ready','failed','needs_input'].includes(post.status);
+   lastLoad=Date.now();busy=!['ready','failed','needs_input'].includes(post.status);
    const models=(data??[]).filter(row=>row.author==='model');
    if(initialized&&models.some(row=>!knownModels.has(row.id)))router.refresh();
    for(const model of models)knownModels.add(model.id);initialized=true;
@@ -29,10 +29,10 @@ export default function Thread({postId}:{postId:string}){
    setFailed(feedback==='failed');setError(feedback==='failed'?'The meal could not be updated.':'');setRows(old=>sort([...new Map([...old,...(data??[])].map(row=>[row.id,row as CommentRow])).values()]));
    setWaiting(feedback==='waiting');
   }catch{if(live)setError('Comments could not be loaded.');}finally{inFlight=false;}};
-  const channel=client.channel(`thread-${postId}`).on('postgres_changes',{event:'INSERT',schema:'public',table:'post_comments',filter:`post_id=eq.${postId}`},()=>{void load();}).subscribe((status)=>{if(status==='SUBSCRIBED')void load(true);});
+  const channel=client.channel(`thread-${postId}`).on('postgres_changes',{event:'INSERT',schema:'public',table:'post_comments',filter:`post_id=eq.${postId}`},()=>{void load();}).subscribe((status)=>{if(status==='SUBSCRIBED')void load();});
   wake.current=()=>{busy=true;void load();};
-  void load(true);
-  // Poll quickly while work is pending; an idle meal is only rechecked now and then.
+  void load();
+  // Poll quickly while work is pending; an idle meal is only rechecked every 15 seconds.
   const timer=setInterval(()=>{if(document.visibilityState==='visible'&&(busy||Date.now()-lastLoad>15000))void load();},2000);
   return()=>{live=false;wake.current=()=>{};clearInterval(timer);void client.removeChannel(channel);};
  },[postId,router]);
