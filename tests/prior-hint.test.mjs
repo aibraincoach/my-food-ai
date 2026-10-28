@@ -68,7 +68,7 @@ test("same-meal confirmation retries the gateway's transient 404 like identifica
   const key = process.env.MODEL_API_KEY;
   process.env.MODEL_API_KEY = "test-key";
   let calls = 0;
-  globalThis.fetch = async () => (calls++ === 0 ? new Response("", { status: 404 }) : new Response(JSON.stringify({ status: "completed", output: [{ type: "message", content: [{ type: "output_text", text: JSON.stringify({ same_meal: false }) }] }] }), { status: 200 }));
+  globalThis.fetch = async (input) => !String(input instanceof Request ? input.url : input).includes('/v1/responses') ? new Response(null, { status: 201 }) : (calls++ === 0 ? new Response("", { status: 404 }) : new Response(JSON.stringify({ status: "completed", output: [{ type: "message", content: [{ type: "output_text", text: JSON.stringify({ same_meal: false }) }] }] }), { status: 200 }));
   try {
     const photo = { data: new Blob([new Uint8Array([1, 2, 3])]), error: null };
     // Each table answers per requested post; photo paths must belong to the meal's owner ("u").
