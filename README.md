@@ -62,3 +62,15 @@ Only public-prefixed names are intended for browser exposure. Deployment environ
 ## Licences
 
 Application source: [MIT licence](LICENSE). Dependencies, font, data and hosted-model terms: [third-party notices](THIRD_PARTY.md).
+
+[Meal photo evaluation](docs/eval.md)
+
+## Submission write-up
+
+Implementation work began on October 26 for the November 4 submission. The pull-request implementation covers a private meal feed, camera and gallery capture, food outlines, editable item history, a correction thread, search and day views. Supporting changes add retry handling, current-item totals, stored nutrition cards, evaluation fixtures and a queue load runner. These changes are submitted for review; this write-up does not claim they are all merged or validated in production.
+
+SAM 3.1 receives a meal photograph and finds food regions. Muse Spark 1.3 receives the photograph, caption and relevant correction context, then returns structured food names and portion estimates. Muse Voice Transcribe 1.0 receives recorded speech and returns text for the user to confirm before posting. Nutrition values come from USDA FoodData Central and are scaled to estimated portions; the models do not supply authoritative nutrient values.
+
+The app records consumed food. It does not provide advice, goals or health claims, and it does not share meals between users. Portion amounts are estimates. The licensed evaluation set uses explicitly annotated food names and rough visual gram estimates, which are not measured nutritional ground truth.
+
+Production evidence remains pending the merge phase: the [meal photo evaluation](docs/eval.md), [queue load test](docs/load-test.md), and two complete runs of the [production demo checklist](docs/demo.md). Device camera and notification behavior also require real-device verification. A pending result is not a passing result.

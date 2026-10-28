@@ -5,14 +5,14 @@ import Link from "next/link";
 import type { FeedItem, FeedPost } from "@/lib/posts/feed";
 import { formatConsumed, formatGrams, sumNutrition, toNumber } from "@/lib/nutrition/totals";
 import { Icon } from "@/components/ui/Icon";
-import { tokens } from "@/lib/theme/tokens";
+import ThumbsFeedback from "@/components/ThumbsFeedback";
 
 function itemPortion(item: FeedItem): string | null {
   return item.portion_grams == null ? item.portion_text : formatGrams(item.portion_grams);
 }
 
-export default function AnalysisBlock({ post }: { post: FeedPost }) {
-  const [open, setOpen] = useState(false);
+export default function AnalysisBlock({ post, initiallyOpen = false }: { post: FeedPost; initiallyOpen?: boolean }) {
+  const [open, setOpen] = useState(initiallyOpen);
   const totals = sumNutrition(post.items);
   const macroLine = `${Math.round(totals.protein_g)} g protein · ${Math.round(totals.carbs_g)} g carbs · ${Math.round(totals.fat_g)} g fat`;
   return <div className="flex flex-col gap-px text-detail">
@@ -32,9 +32,7 @@ export default function AnalysisBlock({ post }: { post: FeedPost }) {
         </ul>
         <p className="tabular-nums">{macroLine}</p>
       </Link>
-      <div className="flex py-2" aria-hidden="true" style={{ gap: tokens.spacing['icon-thumb'] - tokens.border.hairline * 2 }}>
-        <Icon name="thumb" /><Icon name="thumb" down />
-      </div>
+      <ThumbsFeedback postId={post.id} modelCommentId={post.modelCommentId??null} fingerprint={post.analysisFingerprint??null} />
     </div> : null}
   </div>;
 }
