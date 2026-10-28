@@ -8,7 +8,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ResultsCard } from "@/components/ResultsCard";
 import { Icon } from "@/components/ui/Icon";
-import type { LoggedDay } from "@/lib/posts/days";
+import { withZone, type LoggedDay } from "@/lib/posts/days";
 
 function subscribeWidth(listener: () => void) {
   window.addEventListener("resize", listener);
@@ -17,16 +17,29 @@ function subscribeWidth(listener: () => void) {
 const readWidth = () => Math.min(tokens.spacing.phone, window.innerWidth);
 const serverWidth = () => tokens.spacing.phone;
 
-export default function StoryPlayer({ day, zone, previous, next }: { day: LoggedDay; zone: string; previous: string; next: string }) {
+export default function StoryPlayer({ day, zone, zoneKnown, previous, next }: { day: LoggedDay; zone: string; zoneKnown: boolean; previous: string; next: string }) {
   const width = useSyncExternalStore(subscribeWidth, readWidth, serverWidth);
-  const [slide, setSlide] = useState(0);
+  // Keyed by meal id, not index: a refresh can insert a meal while the story is open.
+  // null means the reader has not chosen a slide, so the first one follows the data
+  // (an empty day shows its totals, then the first meal once one becomes ready).
+  const [pick, setPick] = useState<string | null>(null);
+  // Signed photo URLs expire; a meal whose photo fails to load falls back to its nutrition card.
+  // Failures are remembered per URL, so a refreshed signed URL for the same meal is tried again.
+  const [brokenPhotos, setBrokenPhotos] = useState<ReadonlySet<string>>(new Set());
+  const photo = (entry: { photoUrl?: string | null }) => entry.photoUrl && !brokenPhotos.has(entry.photoUrl) ? entry.photoUrl : null;
+  const photoFailed = (url: string | null) => { if (url) setBrokenPhotos((current) => new Set(current).add(url)); };
+  const slide = pick === null ? 0 : pick === "totals" ? day.posts.length : Math.max(0, day.posts.findIndex((entry) => entry.id === pick));
+  const setSlide = (target: number | ((current: number) => number)) => {
+    const index = typeof target === "function" ? target(slide) : target;
+    setPick(index >= day.posts.length ? "totals" : day.posts[index].id);
+  };
   const start = useRef<{ x: number; y: number } | null>(null);
   const router = useRouter();
   const post = day.posts[slide];
   const time = (value: string) => new Date(value).toLocaleTimeString("en", { timeZone: zone, hour: "numeric", minute: "2-digit" });
   const title = new Date(`${day.date}T12:00:00Z`).toLocaleDateString("en", { timeZone: "UTC", weekday: "long", month: "short", day: "numeric" });
   const weekday = new Date(`${day.date}T12:00:00Z`).toLocaleDateString("en", { timeZone: "UTC", weekday: "long" });
-  const adjacent = (date: string) => router.push(`/days/${date}?tz=${encodeURIComponent(zone)}`);
+  const adjacent = (date: string) => router.push(withZone(`/days/${date}`, zone, zoneKnown));
   return <main className="mx-auto flex min-h-dvh w-full max-w-phone flex-col bg-text text-surface"
     onTouchStart={(event) => { const point = event.touches[0]; start.current = { x: point.clientX, y: point.clientY }; }}
     onTouchEnd={(event) => {
@@ -40,14 +53,14 @@ export default function StoryPlayer({ day, zone, previous, next }: { day: Logged
     </div>
     <header className="flex items-center justify-between px-screen-x">
       <h1 className="text-body font-semibold">{title}</h1>
-      <Link href={`/days?month=${day.date.slice(0, 7)}&tz=${encodeURIComponent(zone)}`} aria-label="Close day" className="flex size-tap items-center justify-center"><Icon name="close" /></Link>
+      <Link href={withZone(`/days?month=${day.date.slice(0, 7)}`, zone, zoneKnown)} aria-label="Close day" className="flex size-tap items-center justify-center"><Icon name="close" /></Link>
     </header>
     <div className="flex flex-1 flex-col justify-end gap-7 pb-14">
       {post ? <>
         <button onClick={() => setSlide((current) => Math.min(current + 1, day.posts.length))} aria-label="Next slide" className="aspect-square w-full overflow-hidden">
-          {post.photoUrl ? (
+          {photo(post) ? (
             // eslint-disable-next-line @next/next/no-img-element
-            <img src={post.photoUrl} alt={post.caption || "Meal"} className="h-full w-full object-cover" />
+            <img src={photo(post)!} onError={() => photoFailed(post.photoUrl)} alt={post.caption || "Meal"} className="h-full w-full object-cover" />
           ) : <div className="h-full w-full overflow-hidden"><ResultsCard size={width} time={time(post.eatenAt)} calories={post.totals.calories} protein={post.totals.protein_g} carbs={post.totals.carbs_g} fat={post.totals.fat_g} items={post.items.map((item) => ({ name: item.name, grams: item.portion_grams == null ? null : Number(item.portion_grams) }))} /></div>}
         </button>
         <div className="px-screen-x"><p className="text-body">{post.caption}</p><p className="mt-1 text-meta text-faint">{time(post.eatenAt)}</p></div>
@@ -58,9 +71,9 @@ export default function StoryPlayer({ day, zone, previous, next }: { day: Logged
         </div>
         <div className="grid grid-cols-3 gap-2">{day.posts.map((entry) => <Link key={entry.id} href={`/posts/${entry.id}`} className="min-w-0">
           <div className="flex aspect-square items-center justify-center overflow-hidden rounded-thumb bg-card text-text">
-            {entry.photoUrl ? (
+            {photo(entry) ? (
               // eslint-disable-next-line @next/next/no-img-element
-              <img src={entry.photoUrl} alt={entry.caption || "Meal"} className="h-full w-full object-cover" />
+              <img src={photo(entry)!} onError={() => photoFailed(entry.photoUrl)} alt={entry.caption || "Meal"} className="h-full w-full object-cover" />
             ) : <span className="text-detail tabular-nums">{formatNutrition(entry.totals.calories)} kcal</span>}
           </div>
           <p className="mt-1 text-label text-faint tabular-nums">{time(entry.eatenAt)}<br />{formatNutrition(entry.totals.calories)} kcal</p>

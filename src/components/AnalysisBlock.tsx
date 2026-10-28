@@ -11,8 +11,8 @@ function itemPortion(item: FeedItem): string | null {
   return item.portion_grams == null ? item.portion_text : formatGrams(item.portion_grams);
 }
 
-export default function AnalysisBlock({ post }: { post: FeedPost }) {
-  const [open, setOpen] = useState(false);
+export default function AnalysisBlock({ post, initiallyOpen = false }: { post: FeedPost; initiallyOpen?: boolean }) {
+  const [open, setOpen] = useState(initiallyOpen);
   const totals = sumNutrition(post.items);
   const macroLine = `${formatNutrition(totals.protein_g)} g protein · ${formatNutrition(totals.carbs_g)} g carbs · ${formatNutrition(totals.fat_g)} g fat`;
   return <div className="flex flex-col gap-px text-detail">
