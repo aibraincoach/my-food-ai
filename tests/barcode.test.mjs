@@ -79,7 +79,7 @@ test("a usable exact match on a later results page is still found", async () => 
   const food = (nutrients) => ({ fdcId: 7, description: "Later page", gtinUpc: "016000275683", foodNutrients: nutrients });
   const pages = { 1: { totalPages: 2, foods: [food([])] }, 2: { totalPages: 2, foods: [food([{ nutrientId: 1008, value: 100 }])] } };
   const requested = [];
-  globalThis.fetch = async (url) => { const page = Number(new URL(url).searchParams.get("pageNumber")); requested.push(page); return new Response(JSON.stringify(pages[page]), { status: 200 }); };
+  globalThis.fetch = async (url) => { if (!String(url).includes("/foods/search")) return realFetch(url); const page = Number(new URL(url).searchParams.get("pageNumber")); requested.push(page); return new Response(JSON.stringify(pages[page]), { status: 200 }); };
   process.env.FDC_API_KEY ||= "test";
   try {
     const product = await lookupBarcode("016000275683");
