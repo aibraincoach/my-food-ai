@@ -28,15 +28,30 @@ export function withPushLock<T>(work: () => Promise<T>): Promise<T> {
   return result;
 }
 
+export const detachRequestTimeoutMs = 5000;
+
+// Both halves always run: a failed or hung server request must not stop the browser from dropping the
+// subscription (a closed app can still receive pushes). The request is aborted at its own deadline so the
+// lifecycle lock is always released. Any failure still throws, and the owner marker stays for a retry.
 export async function detachCurrentPushDevice() {
   if (!("serviceWorker" in navigator)) return;
   const registration = await navigator.serviceWorker.getRegistration();
   const subscription = await registration?.pushManager?.getSubscription();
   if (subscription) {
-    // The route is authenticated while logout has not cleared the session yet.
-    const response = await fetch("/api/push/subscribe", { method: "DELETE", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ endpoint: subscription.endpoint }) });
-    if (!response.ok) throw new Error("This device could not be detached.");
-    if (!await subscription.unsubscribe()) throw new Error("This device could not be unsubscribed.");
+    let failure: Error | null = null;
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), detachRequestTimeoutMs);
+    try {
+      // The route is authenticated while logout has not cleared the session yet.
+      const response = await fetch("/api/push/subscribe", { method: "DELETE", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ endpoint: subscription.endpoint }), signal: controller.signal });
+      if (!response.ok) failure = new Error("This device could not be detached.");
+    } catch {
+      failure = new Error("This device could not be detached.");
+    } finally { clearTimeout(timer); }
+    let unsubscribed = false;
+    try { unsubscribed = await subscription.unsubscribe(); } catch { /* reported below */ }
+    if (!unsubscribed) failure ??= new Error("This device could not be unsubscribed.");
+    if (failure) throw failure;
   }
   try { localStorage.removeItem(pushOwnerKey); } catch { /* Storage may be unavailable. */ }
 }

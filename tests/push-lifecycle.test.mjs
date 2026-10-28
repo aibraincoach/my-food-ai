@@ -102,3 +102,43 @@ test('registration and logout share one origin-wide Web Lock', async () => {
     if (originalNavigator) Object.defineProperty(globalThis, 'navigator', originalNavigator); else delete globalThis.navigator;
   }
 });
+
+function pushEnvironment(subscription) {
+  Object.defineProperty(globalThis, 'navigator', { configurable: true, value: { serviceWorker: { getRegistration: async () => ({ pushManager: { getSubscription: async () => subscription } }) } } });
+}
+
+test('a failed server detach still unsubscribes the browser, then reports the failure', async () => {
+  const { detachCurrentPushDevice } = await import('../src/lib/push/lifecycle.ts');
+  const originalNavigator = Object.getOwnPropertyDescriptor(globalThis, 'navigator');
+  const originalFetch = globalThis.fetch;
+  let unsubscribed = 0;
+  pushEnvironment({ endpoint: 'https://fixture.invalid/device-A', unsubscribe: async () => { unsubscribed++; return true; } });
+  globalThis.fetch = async () => new Response('{}', { status: 500 });
+  try {
+    await assert.rejects(detachCurrentPushDevice(), /could not be detached/);
+    assert.equal(unsubscribed, 1);
+  } finally {
+    globalThis.fetch = originalFetch;
+    if (originalNavigator) Object.defineProperty(globalThis, 'navigator', originalNavigator); else delete globalThis.navigator;
+  }
+});
+
+test('a hanging server detach is aborted at its deadline so the lifecycle lock is released', { timeout: 20000 }, async () => {
+  const { detachCurrentPushDevice, detachRequestTimeoutMs } = await import('../src/lib/push/lifecycle.ts');
+  const originalNavigator = Object.getOwnPropertyDescriptor(globalThis, 'navigator');
+  const originalFetch = globalThis.fetch;
+  const realSetTimeout = globalThis.setTimeout;
+  let unsubscribed = 0;
+  pushEnvironment({ endpoint: 'https://fixture.invalid/device-A', unsubscribe: async () => { unsubscribed++; return true; } });
+  globalThis.fetch = (_url, init) => new Promise((_, reject) => init.signal.addEventListener('abort', () => reject(new DOMException('aborted', 'AbortError'))));
+  globalThis.setTimeout = (fn, ms, ...rest) => realSetTimeout(fn, ms === detachRequestTimeoutMs ? 20 : ms, ...rest); // shorten only the detach deadline
+  try {
+    await assert.rejects(withPushLock(detachCurrentPushDevice), /could not be detached/);
+    assert.equal(unsubscribed, 1);
+    assert.equal(await withPushLock(async () => 'next lifecycle operation'), 'next lifecycle operation'); // the lock was released
+  } finally {
+    globalThis.setTimeout = realSetTimeout;
+    globalThis.fetch = originalFetch;
+    if (originalNavigator) Object.defineProperty(globalThis, 'navigator', originalNavigator); else delete globalThis.navigator;
+  }
+});
