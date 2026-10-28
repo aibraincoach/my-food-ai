@@ -43,7 +43,7 @@ returns table(id uuid) language sql stable security invoker set search_path=publ
   ), median as (select percentile_cont(0.5) within group(order by kcal) kcal from totals where items>0 and kcal is not null)
   select p.id from posts p join totals t on t.id=p.id cross join median m
   where p.user_id=auth.uid() and p.status='ready'
-    and (p_terms='' or p.search_tsv@@plainto_tsquery('english',p_terms))
+    and (p_terms='' or p.search_tsv@@websearch_to_tsquery('english',p_terms))
     and (p_from is null or p.eaten_at>=p_from) and (p_to is null or p.eaten_at<p_to)
     and (not p_big or t.kcal>=1.5*m.kcal)
     and (p_meal is null or case p_meal
