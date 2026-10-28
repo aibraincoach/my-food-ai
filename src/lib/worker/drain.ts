@@ -1,3 +1,4 @@
+import { traceContext } from "@/lib/trace/context";
 import { ioError } from "@/lib/worker/errors";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { claimJob, finishJob } from "@/lib/queue/claim";
@@ -18,7 +19,7 @@ export async function drainOnce(admin: SupabaseClient): Promise<DrainStats> {
   const job = await claimJob(admin);
   if (!job) return { processed: 0, failed: false };
   try {
-    await runJob(admin, job);
+    await traceContext.run({ postId: job.post_id }, () => runJob(admin, job));
     await finishJob(admin, job.id);
     return { processed: 1, failed: false };
   } catch (e) {

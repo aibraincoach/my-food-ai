@@ -18,7 +18,7 @@ export default function CommentComposer({postId,onPosted}:{postId:string;onPoste
   finally{posting.current=false;setBusy(false);}
  }}>
   <input id="comment-field" ref={ref} value={text} onChange={e=>setText(e.target.value)} maxLength={4000} disabled={busy} aria-label="Comment or correct" placeholder="Comment or correct…" className="min-h-tap min-w-0 flex-1 rounded-field border border-line bg-white px-field-x text-body outline-none focus:border-text" />
-  <VoiceRecorder disabled={busy} onActiveChange={active=>{voicePending.current=active;setVoiceBusy(active);}} onTranscript={transcript=>{setText(current=>`${current}${current.trim()?" ":""}${transcript}`.slice(0,4000));ref.current?.focus();}} />
+  <VoiceRecorder postId={postId} disabled={busy} onActiveChange={active=>{voicePending.current=active;setVoiceBusy(active);}} onTranscript={transcript=>{setText(current=>`${current}${current.trim()?" ":""}${transcript}`.slice(0,4000));ref.current?.focus();}} />
   <button type="submit" disabled={busy||voiceBusy||!text.trim()} aria-label="Send comment" className="flex min-h-tap min-w-tap items-center justify-center rounded-circle bg-text text-surface disabled:opacity-40"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true"><path d="M12 20V4m-7 7 7-7 7 7"/></svg></button>
   {error?<p role="alert" className="w-full text-meta text-muted">{error}</p>:null}
  </form>;

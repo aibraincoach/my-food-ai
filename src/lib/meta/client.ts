@@ -1,3 +1,4 @@
+import { recordCall, type CallKind } from "@/lib/trace/record";
 import OpenAI from "openai";
 import { ApiError, isRetriable } from "@/lib/worker/errors";
 
@@ -186,11 +187,12 @@ export function readResponseOutput(payload: unknown): ResponseOutput {
 export async function createResponse(
   body: Record<string, unknown>
 ): Promise<ResponseOutput> {
-  // Path is relative to META_API_BASE_URL, which already ends in /v1.
-  const response = await metaFetch("/responses", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(body),
-  });
-  return readResponseOutput(await response.json());
+  const format = (body.text as { format?: { name?: string } } | undefined)?.format?.name;
+  const kind: CallKind = format === "correct" ? "spark_correct" : format === "same_meal" ? "spark_same_meal" : (format === "search" || format === "search_query") ? "spark_search" : "spark_identify";
+  return recordCall(kind, body, async () => {
+    const response = await metaFetch("/responses", {
+      method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body),
+    });
+    return readResponseOutput(await response.json());
+  }, (out) => ({ text: out.outputText, usage: out.usage }));
 }

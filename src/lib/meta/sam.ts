@@ -1,3 +1,4 @@
+import { recordCall } from "@/lib/trace/record";
 // SAM 3.1 segmentation step (item 8). One streaming request with the
 // single concept "food item"; records parsed with @meta-sam/parser.
 // Zero records is normal. Server-only: reads MODEL_API_KEY from the
@@ -49,7 +50,7 @@ function identityNumber(identity: string): number | null {
 // Box N (objectId "N") pairs with mask N (identity "image:*:N"); the
 // stream interleaves them as box, mask, box, mask. Pair on the number
 // and drop anything unpaired.
-export async function segmentFoodRegions(
+async function segmentFoodRegionsRaw(
   image: Uint8Array,
   mime: string,
   photoWidth: number,
@@ -123,4 +124,10 @@ export async function segmentFoodRegions(
     });
   }
   return regions;
+}
+
+export async function segmentFoodRegions(image: Uint8Array, mime: string, photoWidth: number, photoHeight: number): Promise<FoodRegion[]> {
+  return recordCall("sam", { prompt: "food item", mime, photoWidth, photoHeight },
+    () => segmentFoodRegionsRaw(image, mime, photoWidth, photoHeight),
+    (regions) => ({ text: regions.map(({ index, box, areaFraction, confidence }) => ({ index, box, areaFraction, confidence })) }));
 }

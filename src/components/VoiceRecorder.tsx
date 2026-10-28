@@ -4,7 +4,7 @@ import {Icon} from '@/components/ui/Icon';
 import {encodeWav} from '@/lib/audio/wav-encoder';
 import {MAX_RECORDING_SECONDS} from '@/lib/audio/limits';
 type Capture={context:AudioContext;stream:MediaStream;node:AudioWorkletNode;chunks:Float32Array[];timer:ReturnType<typeof setTimeout>|null};
-export default function VoiceRecorder({disabled,onTranscript,onActiveChange}:{disabled:boolean;onTranscript:(text:string)=>void;onActiveChange:(active:boolean)=>void}){
+export default function VoiceRecorder({postId,disabled,onTranscript,onActiveChange}:{postId:string;disabled:boolean;onTranscript:(text:string)=>void;onActiveChange:(active:boolean)=>void}){
  const [state,setState]=useState<'idle'|'starting'|'recording'|'sending'>('idle');const [error,setError]=useState('');
  const capture=useRef<Capture|null>(null);const alive=useRef(true);const locked=useRef(false);const abort=useRef<AbortController|null>(null);
  const cleanup=(record:Capture)=>{if(record.timer)clearTimeout(record.timer);record.stream.getTracks().forEach(t=>t.stop());record.node.disconnect();void record.context.close();};
@@ -18,7 +18,7 @@ export default function VoiceRecorder({disabled,onTranscript,onActiveChange}:{di
    if(!alive.current){locked.current=false;return;}
    try{
     const wav=encodeWav(record.chunks,record.context.sampleRate);if(wav.byteLength<=44)throw new Error('No audio was recorded.');
-    const form=new FormData();form.append('audio',new Blob([wav],{type:'audio/wav'}),'correction.wav');form.append('draftId',crypto.randomUUID());
+    const form=new FormData();form.append('audio',new Blob([wav],{type:'audio/wav'}),'correction.wav');form.append('draftId',crypto.randomUUID());form.append('postId',postId);
     const controller=new AbortController();abort.current=controller;
     const response=await fetch('/api/transcribe',{method:'POST',body:form,signal:controller.signal});const body=await response.json();
     if(!response.ok)throw new Error(body.error??'Transcription could not be completed.');
