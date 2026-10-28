@@ -26,7 +26,7 @@ export async function getProfileGrid(supabase: SupabaseClient, userId: string): 
     const { data, error } = await supabase.from("posts")
       .select("id,caption,status,post_media(position,storage_path,kind)")
       .eq("user_id", userId)
-      .order("created_at", { ascending: false })
+      .order("eaten_at", { ascending: false })
       .order("id", { ascending: false })
       .range(offset, offset + pageSize - 1);
     if (error) throw new Error("Profile posts could not be loaded.");

@@ -10,6 +10,7 @@ import { TopBar } from "@/components/ui/TopBar";
 import { requestLocation } from "@/lib/location/capture";
 import { openCamera, grabFrame, CameraFlipError, type Camera } from "@/lib/media/camera";
 import { createPost } from "@/lib/posts/create";
+import { fromLocalInput, toLocalInput } from "@/lib/posts/eaten-at";
 import { tokens } from "@/lib/theme/tokens";
 
 type Shot = { file: File; previewUrl: string };
@@ -32,6 +33,8 @@ export default function CaptureSheet({ onClose }: { onClose: () => void }) {
   const postingRef = useRef(false);
   const [shots, setShots] = useState<Shot[]>([]);
   const [caption, setCaption] = useState("");
+  // null means Now; otherwise the datetime-local value (the reader's local wall-clock time) the meal was eaten.
+  const [when, setWhen] = useState<string | null>(null);
   const [posting, setPosting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -157,7 +160,9 @@ export default function CaptureSheet({ onClose }: { onClose: () => void }) {
     setError(null);
     try {
       const location = await requestLocation();
-      const { postId } = await createPost(caption, shotsRef.current.map((shot) => shot.file), location);
+      const eatenAt = when === null ? null : fromLocalInput(when);
+      if (when !== null && !eatenAt) throw new Error("Choose a time that is not in the future.");
+      const { postId } = await createPost(caption, shotsRef.current.map((shot) => shot.file), location, eatenAt);
       // Uploads are complete. Home can fetch the complete card even if its
       // Realtime INSERT event arrived before the files or was never delivered.
       window.dispatchEvent(new CustomEvent("post-created", { detail: { id: postId } }));
@@ -192,7 +197,7 @@ export default function CaptureSheet({ onClose }: { onClose: () => void }) {
         <input ref={galleryRef} type="file" accept="image/*" multiple className="hidden" disabled={posting || full} onChange={(event) => { addFiles(event.target.files); event.target.value = ""; }} />
         <input ref={cameraRef} type="file" accept="image/*" capture="environment" className="hidden" disabled={posting || full} onChange={(event) => { addFiles(event.target.files); event.target.value = ""; }} />
         <div className="flex shrink-0 items-center justify-center" style={{ height: tokens.capture.controlsHeight, gap: tokens.capture.controlsGap }}>
-          <button type="button" aria-label="Choose photos from gallery" disabled={posting || full} onClick={() => galleryRef.current?.click()} className="flex size-tap items-center justify-center rounded-circle bg-camera-button disabled:opacity-50"><Icon name="camera" size={tokens.capture.galleryIcon} /></button>
+          <button type="button" aria-label="Choose from library" disabled={posting || full} onClick={() => galleryRef.current?.click()} className="flex size-tap items-center justify-center rounded-circle bg-camera-button disabled:opacity-50"><Icon name="camera" size={tokens.capture.galleryIcon} /></button>
           <button type="button" aria-label="Take a photo" disabled={posting || full || cameraBusy} onClick={takePhoto} className="flex items-center justify-center rounded-circle border-surface disabled:opacity-50" style={{ width: tokens.capture.shutterSize, height: tokens.capture.shutterSize, borderWidth: tokens.capture.shutterBorder }}>
             <span className="block rounded-circle bg-surface" style={{ width: tokens.capture.shutterDisc, height: tokens.capture.shutterDisc }} />
           </button>
@@ -211,6 +216,14 @@ export default function CaptureSheet({ onClose }: { onClose: () => void }) {
         <div className="min-h-card-gap flex-1" />
         <div className="flex flex-col px-screen-x pb-card-gap" style={{ gap: tokens.capture.bottomGap }}>
           <FirstRunHint hint="capture" />
+          <div className="flex items-center justify-between px-grid text-detail">
+            <label htmlFor="capture-when" className="text-camera-muted">When</label>
+            <span className="flex items-center gap-2">
+              {when === null
+                ? <button id="capture-when" type="button" disabled={posting} onClick={() => setWhen(toLocalInput(new Date()))} className="min-h-tap text-surface disabled:opacity-50">Now ›</button>
+                : <><input id="capture-when" type="datetime-local" value={when} max={toLocalInput(new Date())} disabled={posting} onChange={(event) => setWhen(event.target.value)} className="min-h-tap rounded-field bg-camera-button px-tooltip-x text-surface" /><button type="button" disabled={posting} onClick={() => setWhen(null)} className="min-h-tap text-camera-muted disabled:opacity-50">Now</button></>}
+            </span>
+          </div>
           <Field variant="camera" id="capture-caption" aria-label="Caption" value={caption} onChange={(event) => setCaption(event.target.value)} disabled={posting} placeholder="What did you eat?" />
           <p className="px-grid text-meta text-camera-muted">Location is saved with the post and helps recognise meals you eat in the same place. Only you see it.</p>
           {error && <p role="alert" className="text-detail text-surface">{error}</p>}
