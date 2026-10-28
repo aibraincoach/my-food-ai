@@ -10,7 +10,7 @@ test('search uses consumed known meals and eaten-time ordering on fresh and inst
 \\else
 ${migration('0007_post_items_supersede.sql')}
 \\endif
-select to_regprocedure('public.search_own_posts(text,timestamp with time zone,timestamp with time zone,text,boolean,boolean,text)') is not null as installed \\gset
+select to_regprocedure('public.search_own_posts(text,timestamp with time zone,timestamp with time zone,text,boolean,boolean,text,text)') is not null as installed \\gset
 \\if :installed
 \\else
 ${migration('0009_posts_search.sql')}
@@ -35,6 +35,10 @@ do $$ declare u uuid:=gen_random_uuid();p uuid;i uuid;latest uuid;big uuid;begin
  for k in 1..8 loop insert into posts(user_id,status)values(u,case when k%2=0 then 'failed' else 'queued' end);end loop;
  if (select id from search_own_posts(p_latest=>true))<>latest then raise exception 'latest used insertion time';end if;
  if (select count(*) from search_own_posts(p_big=>true))<>1 or not exists(select 1 from search_own_posts(p_big=>true)where id=big) then raise exception 'baseline included unknown/unfinished or legacy calories';end if;
+ -- A superlative ranks by calories inside its filters: the 400 kcal meal beats the newer 200 kcal one,
+ -- even though only the 600 kcal meal clears the global 'big' threshold.
+ if (select id from search_own_posts(p_from=>now()-interval '36 hours',p_rank=>'largest') limit 1)<>(select id from posts where user_id=u and eaten_at<now()-interval '12 hours' and eaten_at>now()-interval '36 hours') then raise exception 'largest did not rank by calories';end if;
+ if (select id from search_own_posts(p_from=>now()-interval '36 hours') limit 1)<>latest then raise exception 'recent did not rank by eaten time';end if;
  insert into post_items(post_id,name)values(big,'unknown contribution');
  if exists(select 1 from search_own_posts(p_big=>true)where id=big)then raise exception 'partial total treated as complete';end if;
  if search_consumed_kcal(77,'[{"nutrientId":1008,"nutrientName":"Energy","unitName":"KJ","value":100}]',50)<>11.9503 then raise exception 'kilojoule conversion';end if;

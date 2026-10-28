@@ -4,7 +4,7 @@ import test from "node:test";
 import { hasSemanticOperator } from "../src/lib/search/operators.ts";
 
 test("meal, size and recency words are semantic operators", () => {
-  for (const text of ["breakfast", "big breakfast", "what was my biggest dinner", "latest lunch", "my last meal", "snacks yesterday", "most recent dinner"]) {
+  for (const text of ["breakfast", "big breakfast", "what was my biggest dinner", "latest lunch", "my last meal", "snacks yesterday", "most recent dinner", "ramen before Monday", "pizza after Friday", "ramen since Tuesday"]) {
     assert.equal(hasSemanticOperator(text), true, text);
   }
 });
