@@ -74,7 +74,7 @@ async function report(run) {
   const seconds = (ms) => ms === null || ms === undefined ? '—' : (ms / 1000).toFixed(2);
   const lines = [
     `Run started: ${new Date(run.startedAt).toISOString()}.`, '',
-    `Twenty posts were scheduled across 114 seconds. Observed creation starts: ${schedule.started} of ${COUNT}; last start at ${seconds(schedule.lastStart)} seconds (scheduling drift ${seconds(schedule.drift)} seconds). ${schedule.met ? 'The two-minute workload window was met.' : 'The two-minute workload window was NOT met, so this run does not represent the intended arrival pattern; its latencies are qualified accordingly.'} ${run.posts.filter((p) => p.id).length} post rows were created.`,
+    `Twenty posts were scheduled across 114 seconds. Observed creation starts: ${schedule.started} of ${COUNT}; last start at ${seconds(schedule.lastStart)} seconds (scheduling drift ${seconds(schedule.drift)} seconds); maximum start lateness ${seconds(schedule.maxLateness)} seconds; smallest gap between starts ${seconds(schedule.minGap)} seconds. ${schedule.met ? 'Starts were on the six-second pace inside the two-minute window.' : 'The intended arrival pattern was NOT produced (late or bunched starts, or the window was missed), so this run is not the stated workload and its latencies are qualified accordingly.'} ${run.posts.filter((p) => p.id).length} post rows were created.`,
     ...(run.pollError ? ['', `State polling stopped early: ${run.pollError}. Results below are partial.`] : []),
     `Ready: ${ready.length}; failed requests/posts: ${failed}; incomplete at observation deadline: ${incomplete}.`,
     `Median time to ready: ${seconds(median)} seconds. Maximum: ${seconds(ready.at(-1))} seconds.`, '',
@@ -93,7 +93,7 @@ async function report(run) {
   await writeFile(join(privateDir, 'result.json'), JSON.stringify(run, null, 2) + '\n', { mode: 0o600 });
   console.log(`Report written; private run identifiers: ${join(privateDir, 'result.json')}`);
   console.log(`Ready ${ready.length}/${COUNT}; failed ${failed}; incomplete ${incomplete}; median ${seconds(median)}s; max ${seconds(ready.at(-1))}s.`);
-  if (failed || incomplete) process.exitCode = 1;
+  if (failed || incomplete || !schedule.met) process.exitCode = 1;
 }
 
 async function main() {
