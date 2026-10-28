@@ -1,8 +1,10 @@
+import {readNeedsInput,type NeedsInput} from '@/lib/pipeline/needs-input';
 import { readPostComments, readCorrectionProgress } from '@/lib/posts/timeline';
 import { resolvePortionNutrition } from "@/lib/nutrition/portion";
 import recompute from "./recompute";
 import { loadCorrectionItems, waitForInitialAnalysis } from "@/lib/pipeline/correction-ready";
 import { ioError } from "@/lib/worker/errors";
+import { isOwnedPhotoPath } from "@/lib/media/paths";
 import type { JobHandler } from '@/lib/worker/handlers';
 import { toNumber } from '@/lib/nutrition/totals';
 import { createResponse, MetaApiError } from '@/lib/meta/client';
@@ -13,9 +15,10 @@ import { chooseBestMatch, scaleNutrition } from '@/lib/fdc/nutrients';
 import { safeSummary, type ConsumedTotals } from '@/lib/pipeline/wording';
 import { correctionWindow, correctionReply } from '@/lib/pipeline/correction-state';
 import { markReady } from '@/lib/pipeline/persist';
+import { boundedHistory } from '@/lib/pipeline/history-budget';
 
 type Correction = {name:string;portion_text:string|null;portion_grams:number|null;region_index:number|null;keep:string|null};
-function parse(text:string):{items:Correction[];reply:string} {
+function parse(text:string):{items:Correction[];reply:string;needs_input:NeedsInput|null} {
  let result;
  try {result=JSON.parse(text);}catch{throw new MetaApiError(500,'Invalid correction JSON.');}
  if(!result||!Array.isArray(result.items)||result.items.length>100||typeof result.reply!=='string'||!result.reply.trim())throw new MetaApiError(500,'Invalid correction response.');
@@ -24,6 +27,7 @@ function parse(text:string):{items:Correction[];reply:string} {
    !(i.portion_grams===null||(typeof i.portion_grams==='number'&&Number.isFinite(i.portion_grams)&&i.portion_grams>0&&i.portion_grams<=100000))||
    !(i.region_index===null||Number.isInteger(i.region_index))||!(i.keep===null||typeof i.keep==='string'))throw new MetaApiError(500,'Invalid correction item.');
  }
+ result.needs_input=readNeedsInput(result.needs_input);
  return result;
 }
 const correct:JobHandler=async(admin,job)=>{
@@ -44,10 +48,13 @@ const correct:JobHandler=async(admin,job)=>{
  const {data:prepared,error:prepareError,status:prepareStatus}=await admin.from('jobs').update({payload:{...job.payload,correction_from_sequence:window.sequence,correction_pending_ids:window.pending.map(comment=>comment.id)}}).eq('id',job.id).eq('status','running').select('id').maybeSingle();
  if(prepareError)throw ioError('Correction snapshot could not be saved.',prepareError,prepareStatus);
  if(!prepared)throw new MetaApiError(503,'Correction snapshot could not be saved.');
- const {data:media,error:mediaError,status:mediaStatus}=await admin.from('post_media').select('storage_path').eq('post_id',job.post_id).order('position').limit(1).maybeSingle();
+ const {data:media,error:mediaError,status:mediaStatus}=await admin.from('post_media').select('storage_path').eq('post_id',job.post_id).eq('kind','photo').order('position').limit(1).maybeSingle();
  if(mediaError)throw ioError('Correction photo could not be read.',mediaError,mediaStatus);
- const content:Record<string,unknown>[]=[{type:'input_text',text:JSON.stringify({items:items.map((i,index)=>({id:i.id,name:i.name,portion_text:i.portion_text,portion_grams:i.portion_grams,calories:i.calories,region_index:index,box:i.box})),history:window.history,pending_messages:window.pending})}];
+ const content:Record<string,unknown>[]=[{type:'input_text',text:JSON.stringify({items:items.map((i,index)=>({id:i.id,name:i.name,portion_text:i.portion_text,portion_grams:i.portion_grams,calories:i.calories,region_index:index,box:i.box})),history:boundedHistory(window.history),pending_messages:window.pending})}];
  if(media){
+  const {data:post,error:ownerError,status:ownerStatus}=await admin.from('posts').select('user_id').eq('id',job.post_id).maybeSingle();
+  if(ownerError)throw ioError('Correction photo owner could not be read.',ownerError,ownerStatus);
+  if(!post||!isOwnedPhotoPath(media.storage_path,post.user_id,job.post_id))throw new Error('Correction photo path does not belong to this meal.');
   const {data,error}=await admin.storage.from('media').download(media.storage_path);
   if(error)throw ioError('Correction photo could not be opened.',error);
   if(!data)throw new Error('Correction photo could not be opened.');
@@ -63,6 +70,9 @@ const correct:JobHandler=async(admin,job)=>{
   if(item.keep&&(!old||kept.has(item.keep)||old.name!==item.name||old.portion_text!==item.portion_text||(old.portion_grams==null?null:toNumber(old.portion_grams))!==item.portion_grams))throw new MetaApiError(500,'Correction changed an item marked unchanged.');
   if(item.keep)kept.add(item.keep);
   if(item.region_index!==null&&(item.region_index<0||item.region_index>=items.length))throw new MetaApiError(500,'Invalid source item index.');
+  // Intended name match: an item the model returns without a region index adopts the photo region
+  // and history of the one prior item with the same name; with zero or several same-named items it gets none.
+  // PM decision (item 16): a new item sharing a prior item's name is that item.
   const named=items.filter(prior=>prior.name===item.name);
   const region=item.region_index===null?(named.length===1?named[0]:undefined):items[item.region_index];
   let nutrition;
@@ -80,8 +90,8 @@ const correct:JobHandler=async(admin,job)=>{
  const totals={} as ConsumedTotals;
  for(const key of ['calories','protein_g','carbs_g','fat_g'] as const)totals[key]=rows.some(r=>r.nutrition[key]==null)?null:rows.reduce((n,r)=>n+toNumber(r.nutrition[key]),0);
  const reply=await safeSummary(correctionReply(items,rows,totals),totals);
- const {error,status}=await admin.rpc('persist_correction',{p_post_id:job.post_id,p_job_id:job.id,p_expected:items.map(i=>i.id),p_through:latest.id,p_items:rows,p_reply:reply});
+ const {error,status}=await admin.rpc(result.needs_input?'persist_correction_question':'persist_correction',{p_post_id:job.post_id,p_job_id:job.id,p_expected:items.map(i=>i.id),p_through:latest.id,p_items:rows,p_reply:reply,...(result.needs_input?{p_question:result.needs_input}:{})});
  if(error)throw ioError('Correction transaction failed.',error,status);
- await markReady(job.post_id,admin,job.id);
+ if(!result.needs_input)await markReady(job.post_id,admin,job.id);
 };
 export default correct;

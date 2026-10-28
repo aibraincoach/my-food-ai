@@ -1,8 +1,24 @@
-export default function DaysPage() {
-  return (
-    <main className="flex flex-1 flex-col p-4">
-      <h1 className="text-lg font-semibold">Days</h1>
-      <p className="mt-2 text-sm text-neutral-500">Days lands here in item 22.</p>
-    </main>
-  );
+import { connection } from "next/server";
+import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
+import LocalTimeZone from "@/components/LocalTimeZone";
+import MonthGrid from "@/components/MonthGrid";
+import { dateInZone, getDays, validMonth, validZone } from "@/lib/posts/days";
+import { createClient } from "@/lib/supabase/server";
+
+export const instant = false;
+
+export default async function DaysPage({ searchParams }: { searchParams: Promise<{ month?: string; tz?: string }> }) {
+  await connection();
+  const params = await searchParams;
+  const cookieZone = (await cookies()).get("time-zone")?.value;
+  const zone = validZone(params.tz || cookieZone);
+  const today = dateInZone(new Date(), zone);
+  const month = validMonth(params.month) ? params.month : today.slice(0, 7);
+  const last = new Date(Date.UTC(Number(month.slice(0, 4)), Number(month.slice(5)), 0)).getUTCDate();
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) redirect("/sign-in");
+  const days = await getDays(supabase, user.id, zone, `${month}-01`, `${month}-${last}`);
+  return <main className="flex flex-1 flex-col"><LocalTimeZone zone={zone} explicit={Boolean(params.tz)} /><MonthGrid month={month} days={days} today={today} zone={zone} zoneKnown={Boolean(params.tz || cookieZone)} /></main>;
 }

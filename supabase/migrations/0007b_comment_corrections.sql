@@ -161,12 +161,11 @@ end $$;
 revoke all on function public.persist_owned_analysis(uuid,uuid,jsonb,text,jsonb) from public,anon,authenticated;
 grant execute on function public.persist_owned_analysis(uuid,uuid,jsonb,text,jsonb) to service_role;
 
--- Apply after 0007 and before 0008. Users can append only their own words.
+-- Apply after 0007 and before 0008. Users append their words only through
+-- append_post_comment (service role), which validates, locks and queues the correction.
+-- A direct client insert would show in the thread without ever being scheduled.
 drop policy if exists post_comments_owner_insert on public.post_comments;
-create policy post_comments_owner_insert on public.post_comments for insert to authenticated with check (
-  author = 'user' and exists(select 1 from public.posts p where p.id=post_id and p.user_id=auth.uid())
-);
-revoke update, delete on public.post_comments from authenticated;
+revoke insert, update, delete on public.post_comments from authenticated;
 
 create or replace function public.append_post_comment(p_post_id uuid,p_user_id uuid,p_text text)
 returns public.post_comments language plpgsql security definer set search_path=public,pg_temp as $$
