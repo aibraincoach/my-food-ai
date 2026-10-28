@@ -67,10 +67,19 @@ export async function pipelineHarness(){
    }
    return {id,jobId:await enqueue(id,'analyze')};
   };
-  const drain=async()=>{const result=await drainOnce(scoped);
-   // fail_job applies production backoff. Move only our fixture jobs into the
-   // distant future before another production worker can claim a test retry.
-   await admin.from('jobs').update({run_after:'2099-01-01T00:00:00Z'}).in('id',[...fixtureJobs]).eq('status','queued');
+  const drain=async()=>{
+   let result,failure;
+   try{result=await drainOnce(scoped);}catch(error){failure=error;}
+   // fail_job applies production backoff (30 s for a first retry). Move only our fixture jobs into the
+   // distant future before another production worker can claim a test retry. This also runs when the
+   // drain threw, is retried, and a failed restore is an error rather than silently ignored.
+   let restored=false;
+   for(let attempt=0;attempt<3&&!restored;attempt++){
+    const {error}=await admin.from('jobs').update({run_after:'2099-01-01T00:00:00Z'}).in('id',[...fixtureJobs]).eq('status','queued');
+    restored=!error;
+   }
+   if(!restored)throw new Error('Could not restore fixture job isolation.');
+   if(failure)throw failure;
    for(const id of created){const {data:items}=await admin.from('post_items').select('mask_path').eq('post_id',id);for(const i of items??[])if(i.mask_path&&!paths.includes(i.mask_path))paths.push(i.mask_path);}
    return result;
   };
