@@ -74,3 +74,23 @@ export async function getDays(supabase: SupabaseClient, userId: string, zone: st
   }
   return [...groups.values()].sort((a, b) => a.date.localeCompare(b.date));
 }
+
+// Home's bubbles only need which local days have a ready meal: no items,
+// nutrition or photos, so an optional read cannot hide the strip.
+export async function getLoggedDates(supabase: SupabaseClient, userId: string, zone: string, from: string, through: string): Promise<{ date: string }[]> {
+  const dates = new Set<string>();
+  const lower = `${shiftDay(from, -1)}T00:00:00Z`;
+  const upper = `${shiftDay(through, 2)}T00:00:00Z`;
+  for (let offset = 0; ; offset += 100) {
+    const { data, error } = await supabase.from("posts").select("id,eaten_at")
+      .eq("user_id", userId).eq("status", "ready").gte("eaten_at", lower).lt("eaten_at", upper)
+      .order("eaten_at", { ascending: true }).order("id", { ascending: true }).range(offset, offset + 99);
+    if (error) throw new Error("Days could not be loaded.");
+    for (const row of data ?? []) {
+      const date = dateInZone(row.eaten_at, zone);
+      if (date >= from && date <= through) dates.add(date);
+    }
+    if ((data?.length ?? 0) < 100) break;
+  }
+  return [...dates].sort().map((date) => ({ date }));
+}

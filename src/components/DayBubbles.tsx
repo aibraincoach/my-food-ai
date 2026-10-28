@@ -3,9 +3,8 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import type { LoggedDay } from "@/lib/posts/days";
 
-export default function DayBubbles({ days, today, zone }: { days: LoggedDay[]; today: string; zone: string }) {
+export default function DayBubbles({ days, today, zone }: { days: { date: string }[]; today: string; zone: string }) {
   const router = useRouter();
   const [empty, setEmpty] = useState(false);
   useEffect(() => {

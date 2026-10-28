@@ -42,7 +42,28 @@ export default function PostReadinessListener() {
         if (live) router.refresh();
       }
     };
-    const focus = () => { void seedPending(); };
+    // Meals created elsewhere are never in `pending`; look at the newest few posts now and then
+    // so a disconnected channel cannot leave Days or a story stale until the next focus.
+    const known = new Map<string, string>();
+    let discovered = false;
+    const discover = async () => {
+      try {
+        const { data, error } = await db.from("posts").select("id,status").order("created_at", { ascending: false }).limit(20);
+        if (!live || error) return;
+        let changed = false;
+        for (const row of data ?? []) {
+          if (discovered && known.get(row.id) !== row.status && ["ready", "failed", "needs_input"].includes(row.status)) changed = true;
+          known.set(row.id, row.status);
+        }
+        discovered = true;
+        if (changed) router.refresh();
+      } catch {
+        // The next visible check retries.
+      }
+    };
+    const discoveryTimer = setInterval(() => { if (document.visibilityState === "visible") void discover(); }, 15_000);
+    void discover();
+    const focus = () => { void seedPending(); void discover(); };
     const channel = db.channel("tab-post-readiness").on("postgres_changes", {
       event: "UPDATE", schema: "public", table: "posts",
     }, ({ new: row }) => {
@@ -76,7 +97,7 @@ export default function PostReadinessListener() {
     window.addEventListener("post-ready", ready);
     window.addEventListener("focus", focus);
     return () => {
-      live = false; clearInterval(timer); void db.removeChannel(channel);
+      live = false; clearInterval(timer); clearInterval(discoveryTimer); void db.removeChannel(channel);
       window.removeEventListener("post-created", created);
       window.removeEventListener("post-ready", ready);
       window.removeEventListener("focus", focus);

@@ -4,7 +4,7 @@ import Feed from "@/components/Feed";
 import DayBubbles from "@/components/DayBubbles";
 import { cookies } from "next/headers";
 import { createClient } from "@/lib/supabase/server";
-import { dateInZone, getDays, shiftDay, validZone } from "@/lib/posts/days";
+import { dateInZone, getLoggedDates, shiftDay, validZone } from "@/lib/posts/days";
 
 async function HomeDays() {
   await connection();
@@ -12,7 +12,7 @@ async function HomeDays() {
   const today = dateInZone(new Date(), zone);
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
-  const days = user ? await getDays(supabase, user.id, zone, shiftDay(today, -6), today) : [];
+  const days = user ? await getLoggedDates(supabase, user.id, zone, shiftDay(today, -6), today) : [];
   return <DayBubbles days={days} today={today} zone={zone} />;
 }
 
