@@ -29,3 +29,69 @@ test("a slow or distant second tap is a new first tap", () => {
 test("without a destination a first tap is ignored", () => {
   assert.deepEqual(decideTap(null, at(1000), { canVote: true, hasHref: false }), { action: "ignore" });
 });
+
+import { mock } from "node:test";
+import { createTapController } from "../src/lib/posts/tap.ts";
+
+function rig(canVote = true) {
+  let clock = 0;
+  const log = [];
+  const controller = createTapController({ now: () => clock, open: (href) => log.push(`open:${href}`), vote: () => log.push("vote") });
+  const options = { canVote, href: "/posts/1" };
+  const tap = (at, x = 100, y = 100) => { clock = at; controller.down(x, y); controller.up(x, y, options); };
+  return { controller, log, tap, options, setClock: (at) => { clock = at; } };
+}
+
+test("controller: an ordinary single tap opens the meal exactly once", () => {
+  mock.timers.enable({ apis: ["setTimeout"] });
+  try {
+    const { log, tap } = rig();
+    tap(0);
+    mock.timers.tick(319); assert.deepEqual(log, []);
+    mock.timers.tick(5); assert.deepEqual(log, ["open:/posts/1"]);
+    mock.timers.tick(1000); assert.deepEqual(log, ["open:/posts/1"]);
+  } finally { mock.timers.reset(); }
+});
+
+test("controller: an ordinary double tap votes once and never opens", () => {
+  mock.timers.enable({ apis: ["setTimeout"] });
+  try {
+    const { log, tap } = rig();
+    tap(0); mock.timers.tick(150); tap(150);
+    mock.timers.tick(2000);
+    assert.deepEqual(log, ["vote"]);
+  } finally { mock.timers.reset(); }
+});
+
+test("controller: starting a swipe or a cancelled pointer before the wait ends opens nothing", () => {
+  mock.timers.enable({ apis: ["setTimeout"] });
+  try {
+    const a = rig();
+    a.tap(0); mock.timers.tick(100); a.controller.down(100, 100); a.controller.up(100, 160, a.options); // dragged: not a tap
+    mock.timers.tick(2000); assert.deepEqual(a.log, []);
+    const b = rig();
+    b.tap(0); mock.timers.tick(100); b.controller.cancel();
+    mock.timers.tick(2000); assert.deepEqual(b.log, []);
+  } finally { mock.timers.reset(); }
+});
+
+test("controller: a second press that begins inside the window holds the navigation until it is released", () => {
+  mock.timers.enable({ apis: ["setTimeout"] });
+  try {
+    const { controller, log, options, setClock } = rig();
+    setClock(0); controller.down(100, 100); controller.up(100, 100, options);   // first tap, navigation queued for 320 ms
+    mock.timers.tick(250); setClock(250); controller.down(100, 100);            // second press starts: queued navigation is suspended
+    mock.timers.tick(100); assert.deepEqual(log, []);                           // 350 ms: still held, no navigation under the finger
+    setClock(280); controller.up(100, 100, options);                            // released 280 ms after the first tap: a double tap
+    assert.deepEqual(log, ["vote"]);
+  } finally { mock.timers.reset(); }
+});
+
+test("controller: disposing with a navigation queued opens nothing later", () => {
+  mock.timers.enable({ apis: ["setTimeout"] });
+  try {
+    const { controller, log, tap } = rig();
+    tap(0); controller.dispose();
+    mock.timers.tick(2000); assert.deepEqual(log, []);
+  } finally { mock.timers.reset(); }
+});
