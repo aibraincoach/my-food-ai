@@ -78,7 +78,8 @@ test('drainOnce finishes ten isolated fixture jobs without claiming other work',
   // failure paths still use Supabase. The SQL test above proves claim ordering.
   const scoped = new Proxy(db, { get(target, property) {
     if (property === 'rpc') return async (name, args) => {
-      if (name !== 'claim_job') {
+      if (name !== 'claim_job' && name !== 'claim_owned_job') {
+        assert.ok(!name.startsWith('claim'), 'Unrecognized claim RPC must never reach the global queue');
         if (name === 'fail_job') assert.ok(ids.includes(args.p_job_id), 'failure must belong to this fixture');
         return target.rpc(name, args);
       }
@@ -93,6 +94,7 @@ test('drainOnce finishes ten isolated fixture jobs without claiming other work',
     return typeof value === 'function' ? value.bind(target) : value;
   }});
   try {
+    await assert.rejects(() => scoped.rpc('claim_unscoped_job'), /Unrecognized claim RPC/);
     const rows = Array.from({length:10},(_,i)=>({id:randomUUID(),kind:'test_noop',status:'queued',priority:i%3,
       created_at:new Date(Date.now()-(10-i)*1000).toISOString(),run_after:'2099-01-01T00:00:00Z'}));
     ids.push(...rows.map(row=>row.id));
