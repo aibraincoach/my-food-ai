@@ -9,8 +9,10 @@ test('selected FDC identity wins over first/ranked food and client nutrient forg
     { fdcId: 22, description: 'Rice', dataType: 'Branded', foodNutrients: [{ nutrientId: 1008, nutrientName: 'Energy', unitName: 'KCAL', value: 100 }] },
   ];
   let calls = 0;
+  const notes = [];
   const admin = {
     from: table => {
+      if (table === 'post_comments') return { insert: async row => { notes.push(row); return { error: null }; } };
       assert.equal(table, 'fdc_cache');
       return { select: () => ({ eq: (_column, query) => {
         assert.ok(['rice','fdc-search:rice'].includes(query));
@@ -30,4 +32,5 @@ test('selected FDC identity wins over first/ranked food and client nutrient forg
   assert.equal((await editPostItem(admin, 'post', 'owner', parseItemEdit({ ...payload, fdc_selection: { id: 999, query: 'rice' } }))).error.code, '22023');
   assert.equal((await editPostItem(admin, 'post', 'owner', parseItemEdit({ ...payload, name: 'Forged description' }))).error.code, '22023');
   assert.equal(calls, 1, 'unverified selections must not write');
+  assert.deepEqual(notes, [{ post_id: 'post', author: 'model', body: 'Added Rice, 50 g.' }], 'only the committed edit is noted in the thread');
 });

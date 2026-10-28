@@ -1,4 +1,5 @@
-import { searchFoods } from "@/lib/fdc/client";
+import { getFoodById, searchFoods } from "@/lib/fdc/client";
+import { isUnit, OZ_G, roundGrams, toGrams, type Unit } from "@/lib/nutrition/units";
 import { scaleNutrition } from "@/lib/fdc/nutrients";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { getCurrentItems, type CurrentItem } from "@/lib/nutrition/totals";
@@ -6,7 +7,7 @@ import { getCurrentItems, type CurrentItem } from "@/lib/nutrition/totals";
 export type ItemBox = { left: number; top: number; right: number; bottom: number };
 export type DetailItem = Omit<CurrentItem, "box"> & { box: ItemBox | null; maskUrl: string | null };
 export type DetailPhoto = { url: string; width: number; height: number };
-export type ItemEdit = { action: "rename" | "portion" | "remove" | "add"; item_id?: string; name?: string; portion_grams?: number; box?: ItemBox; fdc_selection?: { id: number; query: string } };
+export type ItemEdit = { action: "rename" | "portion" | "remove" | "add"; item_id?: string; name?: string; portion_grams?: number; portion_amount?: number; portion_unit?: Unit; box?: ItemBox; fdc_selection?: { id: number; query: string } };
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 export const isUuid = (value: unknown): value is string => typeof value === "string" && UUID.test(value);
 
@@ -20,7 +21,17 @@ export function itemBox(raw: unknown): ItemBox | null {
 
 export function parseItemEdit(body: unknown): ItemEdit {
   if (!body || typeof body !== "object" || Array.isArray(body)) throw new Error("An item edit is required.");
-  const b = body as Record<string, unknown>;
+  let b = body as Record<string, unknown>;
+  // An amount in another unit: oz converts exactly here; cup and piece need the food's stated weight, so the grams
+  // stay a placeholder until editPostItem resolves them against the matched FDC food.
+  let unit: Unit | undefined;
+  if (b.portion_unit !== undefined) {
+    if (!isUnit(b.portion_unit) || b.portion_grams !== undefined) throw new Error("Invalid portion unit.");
+    const amount = b.portion_amount;
+    if (typeof amount !== "number" || !Number.isFinite(amount) || amount <= 0 || amount > 100000) throw new Error("Enter an amount between 0 and 100000.");
+    unit = b.portion_unit;
+    b = { ...b, portion_grams: unit === "g" ? amount : unit === "oz" ? roundGrams(amount * OZ_G) : 1 };
+  }
   if (!["rename", "portion", "remove", "add"].includes(String(b.action))) throw new Error("Invalid item action.");
   const action = b.action as ItemEdit["action"];
   if (action !== "add" && !isUuid(b.item_id)) throw new Error("An item ID is required.");
@@ -40,10 +51,31 @@ export function parseItemEdit(body: unknown): ItemEdit {
   const box = b.box === undefined ? undefined : itemBox(b.box);
   if (box === null || (b.box !== undefined && action !== "add")) throw new Error("A valid box can be supplied for a new item only.");
   return { action, item_id: b.item_id as string | undefined, name: typeof b.name === "string" ? b.name.trim() : undefined,
-    portion_grams: b.portion_grams as number | undefined, box, fdc_selection: selection };
+    portion_grams: b.portion_grams as number | undefined, box, fdc_selection: selection,
+    ...(unit ? { portion_amount: b.portion_amount as number, portion_unit: unit } : {}) };
 }
 
+const UNIT_UNAVAILABLE = { code: "UNIT", message: "No weight is known for that unit." };
+const amountText = (edit: ItemEdit) => edit.portion_unit && edit.portion_unit !== "g"
+  ? `${edit.portion_amount} ${edit.portion_unit}${edit.portion_amount === 1 || edit.portion_unit === "oz" ? "" : "s"} (${edit.portion_grams} g)` : `${edit.portion_grams} g`;
+
 export async function editPostItem(admin: SupabaseClient, postId: string, userId: string, edit: ItemEdit) {
+  let before: string | null = null;
+  if (edit.item_id) {
+    const { data } = await admin.from("current_post_items").select("name").eq("id", edit.item_id).eq("post_id", postId).maybeSingle();
+    before = (data as { name?: string } | null)?.name ?? null;
+  }
+  if (edit.portion_unit === "cup" || edit.portion_unit === "piece") {
+    let foodId = edit.fdc_selection?.id ?? null;
+    if (foodId === null && edit.item_id) {
+      const { data } = await admin.from("item_nutrition").select("source_ref").eq("post_item_id", edit.item_id).maybeSingle();
+      const ref = Number((data as { source_ref?: string | null } | null)?.source_ref);
+      foodId = Number.isSafeInteger(ref) && ref > 0 ? ref : null;
+    }
+    const grams = foodId === null ? null : toGrams(edit.portion_amount!, edit.portion_unit, (await getFoodById(admin, foodId)).portions ?? []);
+    if (grams === null) return { error: UNIT_UNAVAILABLE, itemId: null };
+    edit = { ...edit, portion_grams: roundGrams(grams) };
+  }
   let nutrition;
   if (edit.fdc_selection) {
     const food = (await searchFoods(admin, edit.fdc_selection.query)).find((row) => row.fdcId === edit.fdc_selection!.id);
@@ -56,11 +88,17 @@ export async function editPostItem(admin: SupabaseClient, postId: string, userId
     p_action: edit.action, p_item_id: edit.item_id ?? null, p_name: edit.name ?? null,
     p_portion_grams: edit.portion_grams ?? null, p_box: edit.box ?? null, ...(nutrition ? { p_nutrition: nutrition } : {}) });
   if (error) return { error, itemId: null };
+  // The thread records what changed; a failed note never undoes the edit.
+  const note = edit.action === "remove" ? `Removed ${before ?? "an item"}.`
+    : edit.action === "add" ? `Added ${edit.name}, ${amountText(edit)}.`
+    : edit.action === "rename" ? `Renamed ${before ?? "an item"} to ${edit.name}, ${amountText(edit)}.`
+    : `${edit.name} set to ${amountText(edit)}.`;
+  await admin.from("post_comments").insert({ post_id: postId, author: "model", body: note });
   return { error: null, itemId: data as string | null };
 }
 
 export async function getPostDetail(supabase: SupabaseClient, postId: string) {
-  const { data: post, error } = await supabase.from("posts").select("id,caption,eaten_at,status,analysis_initialized_at")
+  const { data: post, error } = await supabase.from("posts").select("id,caption,eaten_at,status,analysis_initialized_at,servings")
     .eq("id", postId).maybeSingle();
   if (error) throw new Error("Meal could not be loaded.");
   if (!post) return null;
