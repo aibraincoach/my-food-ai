@@ -10,7 +10,7 @@ const migration = readFileSync(
   "utf8"
 );
 
-test("analysis persistence replaces atomically and preserves history", () => {
+test("analysis persistence follows the initialisation marker and preserves history", () => {
   assert.ok(process.env.SUPABASE_DB_URL, "SUPABASE_DB_URL is required for this database test");
   const sql = `
 \u005cset ON_ERROR_STOP on
@@ -38,6 +38,7 @@ declare
   v_history uuid;
   v_replacement uuid;
   v_initial_ids uuid[];
+  v_changed jsonb;
   v_payload jsonb := '[
     {"name":"Rice","portion_text":"one bowl","portion_grams":150,"box":{"x":1,"y":2,"width":3,"height":4},"mask_path":"fixture-mask.png","confidence":0.9,
      "nutrition":{"calories":195,"protein_g":4,"carbs_g":42,"fat_g":0.5,"fibre_g":1,"sugar_g":0,"sodium_mg":2,"micronutrients":[{"name":"Iron","value":1,"unit":"MG"}],"source_ref":"fixture-rice"}},
@@ -45,6 +46,7 @@ declare
      "nutrition":{"calories":null,"protein_g":null,"carbs_g":null,"fat_g":null,"fibre_g":null,"sugar_g":null,"sodium_mg":null,"micronutrients":[],"source_ref":null}}
   ]';
 begin
+  v_changed := jsonb_set(v_payload, '{0,name}', '"Rice v2"');
   insert into public.posts (user_id, status)
     values (current_setting('test.persist_user')::uuid, 'processing') returning id into v_post;
   insert into public.post_comments (post_id, author, body) values (v_post, 'user', 'Caption');
@@ -57,7 +59,8 @@ begin
     values (v_user_item, 10), (v_history, 20), (v_replacement, 30);
 
   perform public.persist_analysis(v_post, v_payload, 'First summary');
-  perform public.persist_analysis(v_post, v_payload, 'Retry summary');
+  -- Once the marker is set, a retry changes nothing, even with a different payload.
+  perform public.persist_analysis(v_post, v_changed, 'Retry summary');
 
   if (select count(*) from public.post_items where post_id = v_post) <> 5 then
     raise exception 'retry duplicated items or removed history/user rows';
@@ -87,8 +90,23 @@ begin
       and n.micronutrients = '[{"name":"Iron","value":1,"unit":"MG"}]'::jsonb
   ) then raise exception 'item/nutrition values did not round trip'; end if;
 
+  if (select analysis_initialized_at from public.posts where id = v_post) is null then
+    raise exception 'persist did not set the initialisation marker';
+  end if;
+
+  -- Before initialisation a retry replaces the model items and sets the marker.
+  update public.posts set status = 'processing', analysis_initialized_at = null where id = v_post;
+  perform public.persist_analysis(v_post, v_changed, 'Replacement summary');
+  if (select count(*) from public.post_items where post_id = v_post) <> 5
+    or not exists (select 1 from public.post_items where post_id = v_post and name = 'Rice v2' and source = 'model')
+    or exists (select 1 from public.post_items where post_id = v_post and name = 'Rice')
+    or (select analysis_initialized_at from public.posts where id = v_post) is null
+    or (select body from public.post_comments where post_id = v_post and author = 'model') <> 'First summary' then
+    raise exception 'retry before initialisation did not replace the model items';
+  end if;
+
   select array_agg(id order by id) into v_initial_ids from public.post_items where post_id = v_post;
-  update public.posts set status = 'processing' where id = v_post;
+  update public.posts set status = 'processing', analysis_initialized_at = null where id = v_post;
   -- The second item fails after the first inserted. Both the deletion and
   -- partial insertion must unwind, leaving the original IDs and post status.
   begin
@@ -97,7 +115,8 @@ begin
   exception when not_null_violation then null;
   end;
   if (select array_agg(id order by id) from public.post_items where post_id = v_post) is distinct from v_initial_ids
-    or (select status from public.posts where id = v_post) <> 'processing' then
+    or (select status from public.posts where id = v_post) <> 'processing'
+    or (select analysis_initialized_at from public.posts where id = v_post) is not null then
     raise exception 'failed persist did not roll back atomically';
   end if;
 
