@@ -25,7 +25,7 @@ begin
     update public.post_items set superseded_at = now() where id = v_item.id;
     insert into public.post_items (post_id, name, portion_text, portion_grams, box, mask_path, confidence, source, supersedes)
     values (p_post_id, v_item.name,
-      case when v_item.portion_grams is null then v_item.portion_text else round(v_item.portion_grams * v_ratio, 2)::text || ' g' end,
+      case when v_item.portion_grams is null then v_item.portion_text else trim_scale(round(v_item.portion_grams * v_ratio, 2))::text || ' g' end,
       case when v_item.portion_grams is null then null else round(v_item.portion_grams * v_ratio, 2) end,
       v_item.box, v_item.mask_path, v_item.confidence, 'user', v_item.id);
   end loop;

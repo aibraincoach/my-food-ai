@@ -26,6 +26,7 @@ insert into posts(id,user_id,caption,status,analysis_initialized_at) values (:'p
 insert into post_items(post_id,name,portion_text,portion_grams,source) values (:'post','Rice','100 g',100,'model'),(:'post','Beans','50 g',50,'model');
 select public.set_post_servings(:'post', :'owner', 2) as r \\gset
 ${expect("doubled", "(select sum(portion_grams) from current_post_items where post_id=:'post') = 300")}
+${expect("text", "(select portion_text from current_post_items where post_id=:'post' and name='Rice') = '200 g'")}
 ${expect("history", "(select count(*) from post_items where post_id=:'post' and superseded_at is not null) = 2 and (select count(*) from current_post_items where post_id=:'post') = 2")}
 ${expect("job", "(select count(*) from jobs where post_id=:'post' and kind='recompute' and status='queued') = 1")}
 ${expect("note", "(select count(*) from post_comments where post_id=:'post' and author='model' and body like 'Servings changed from 1 to 2.%') = 1")}

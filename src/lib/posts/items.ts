@@ -89,10 +89,11 @@ export async function editPostItem(admin: SupabaseClient, postId: string, userId
     p_portion_grams: edit.portion_grams ?? null, p_box: edit.box ?? null, ...(nutrition ? { p_nutrition: nutrition } : {}) });
   if (error) return { error, itemId: null };
   // The thread records what changed; a failed note never undoes the edit.
+  const name = edit.name ?? before ?? "An item";
   const note = edit.action === "remove" ? `Removed ${before ?? "an item"}.`
-    : edit.action === "add" ? `Added ${edit.name}, ${amountText(edit)}.`
-    : edit.action === "rename" ? `Renamed ${before ?? "an item"} to ${edit.name}, ${amountText(edit)}.`
-    : `${edit.name} set to ${amountText(edit)}.`;
+    : edit.action === "add" ? `Added ${name}, ${amountText(edit)}.`
+    : edit.action === "rename" ? `Renamed ${before ?? "an item"} to ${name}, ${amountText(edit)}.`
+    : `${name} set to ${amountText(edit)}.`;
   await admin.from("post_comments").insert({ post_id: postId, author: "model", body: note });
   return { error: null, itemId: data as string | null };
 }

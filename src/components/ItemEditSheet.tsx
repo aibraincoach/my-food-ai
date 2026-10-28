@@ -6,7 +6,7 @@ import { Field } from "@/components/ui/Field";
 import { Button } from "@/components/ui/Button";
 import type { DetailItem, ItemBox, ItemEdit } from "@/lib/posts/items";
 import { formatGrams, formatNutrition } from "@/lib/nutrition/totals";
-import { UNITS, type Unit } from "@/lib/nutrition/units";
+import { OZ_G, UNITS, type Unit } from "@/lib/nutrition/units";
 
 type Match = { id: number; description: string };
 export default function ItemEditSheet({ postId, item, color, box, open = true, onClose, onSaved, onAdd, onDraw }: {
@@ -40,6 +40,14 @@ export default function ItemEditSheet({ postId, item, color, box, open = true, o
     return () => { clearTimeout(timer); controller.abort(); };
   }, [name, chosen]);
 
+  // Keep the number meaningful across a unit change: g and oz convert, cup and piece start empty.
+  const changeUnit = (next: Unit) => {
+    const value = Number(grams);
+    if (grams !== "" && Number.isFinite(value) && value > 0 && (unit === "g" || unit === "oz") && (next === "g" || next === "oz") && next !== unit) {
+      setGrams(String(Math.round((next === "oz" ? value / OZ_G : value * OZ_G) * 100) / 100));
+    } else if (next !== unit) setGrams("");
+    setUnit(next);
+  };
   const submit = async (remove = false) => {
     if (savingRef.current) return;
     const amount = Number(grams);
@@ -76,7 +84,7 @@ export default function ItemEditSheet({ postId, item, color, box, open = true, o
       <Field label="Portion" type="number" inputMode="decimal" min="0.01" max="100000" step="any" value={grams} suffix={unit} disabled={saving} onChange={(event) => setGrams(event.target.value)} />
       <div className="flex gap-2" role="group" aria-label="Unit">{UNITS.map((option) => <button type="button" key={option} disabled={saving} aria-pressed={unit === option}
         className={`min-h-tap flex-1 rounded-field border text-body ${unit === option ? "border-text bg-text text-surface" : "border-line bg-white text-text"}`}
-        onClick={() => setUnit(option)}>{option}</button>)}</div>
+        onClick={() => changeUnit(option)}>{option}</button>)}</div>
       {unit === "g" ? <div className="flex gap-2">{[80, 120, 160, 200].map((amount) => <button type="button" key={amount} disabled={saving} aria-pressed={Number(grams) === amount}
         className={`min-h-tap flex-1 rounded-field border text-body ${Number(grams) === amount ? "border-text bg-text text-surface" : "border-line bg-white text-text"}`}
         onClick={() => setGrams(String(amount))}>{amount} g</button>)}</div> : null}
