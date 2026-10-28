@@ -17,8 +17,12 @@ export function shiftDay(date: string, offset: number): string {
   const value = new Date(`${date}T12:00:00Z`); value.setUTCDate(value.getUTCDate() + offset);
   return value.toISOString().slice(0, 10);
 }
+// Date.UTC reads years 0-99 as 19xx, so only 2000-2999 are supported.
+export function validMonth(month: string | undefined): month is string {
+  return typeof month === "string" && /^2\d{3}-(0[1-9]|1[0-2])$/.test(month);
+}
 export function validDate(date: string): boolean {
-  return /^\d{4}-\d{2}-\d{2}$/.test(date) && Number.isFinite(Date.parse(`${date}T12:00:00Z`)) && new Date(`${date}T12:00:00Z`).toISOString().slice(0, 10) === date;
+  return /^2\d{3}-\d{2}-\d{2}$/.test(date) && Number.isFinite(Date.parse(`${date}T12:00:00Z`)) && new Date(`${date}T12:00:00Z`).toISOString().slice(0, 10) === date;
 }
 
 // Calendar grouping is equivalent to (eaten_at AT TIME ZONE zone)::date,
