@@ -8,6 +8,9 @@ import {createClient} from '@supabase/supabase-js';
 import {listFixtureObjects} from './storage-cleanup.mjs';
 import {startFakeMeta} from './server.mjs';
 export async function pipelineHarness(){
+ // This harness takes the global worker lease of the shared database for the whole run, which stops every
+ // deployed worker. It refuses to start unless that is explicitly accepted, and releases the lease in finally.
+ if(process.env.ALLOW_SHARED_DB_TESTS!=='1')throw new Error('Refusing to run: this harness holds the global worker lease of the shared database and pauses live workers. Set ALLOW_SHARED_DB_TESTS=1 to run it (never during a demo).');
  for(const key of ['NEXT_PUBLIC_SUPABASE_URL','NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY','SUPABASE_SECRET_KEY','TEST_USER_EMAIL','TEST_USER_PASSWORD'])assert.ok(process.env[key],`${key} is required`);
  // Validate client configuration before starting a server or changing globals.
  const supabaseOrigin=new URL(process.env.NEXT_PUBLIC_SUPABASE_URL).origin;
@@ -16,30 +19,37 @@ export async function pipelineHarness(){
  const originalFetch=globalThis.fetch;
  const previousEnv=Object.fromEntries(['MODEL_API_BASE_URL','MODEL_API_KEY','FDC_API_KEY'].map(key=>[key,process.env[key]]));
  const fake=await startFakeMeta();const allowed=new Set([new URL(fake.origin).origin,supabaseOrigin]);
- let ownerId;const created=[],paths=[],cacheInserted=[];const fixtureJobs=new Set();
+ const violations=[];let ownerId,leaseHolder=null,leaseKeepalive=null,leaseLost=false;const created=[],paths=[],cacheInserted=[];const fixtureJobs=new Set();
  const cleanup=async()=>{
   const problems=[];
+  // Every step runs on its own, so one failure never skips the rest. Releasing the worker lease and the
+  // process-wide restores are in the finally and always run.
+  const step=async(name,work)=>{try{await work();}catch{problems.push(name);}};
   try {
-  if(ownerId)for(const id of created){
-   try{for(const path of await listFixtureObjects(admin.storage.from('media'),`${ownerId}/${id}`))if(!paths.includes(path))paths.push(path);}
-   catch{problems.push('fixture storage listing');}
-  }
-  assert.ok(paths.every(path=>created.some(id=>path.startsWith(`${ownerId}/${id}/`))),'Refusing storage cleanup outside fixture posts');
-
-  for(let offset=0;offset<paths.length;offset+=1000){const {error}=await admin.storage.from('media').remove(paths.slice(offset,offset+1000));if(error)problems.push('fixture storage');}
-  if(created.length){const {error}=await admin.from('posts').delete().in('id',created);if(error)problems.push('fixture posts');}
-  if(cacheInserted.length){const {error}=await admin.from('fdc_cache').delete().in('query',cacheInserted);if(error)problems.push('fixture cache');}
-  await user.auth.signOut({scope:'local'}).catch(()=>{});
-  assert.deepEqual(problems,[],'Fixture cleanup failed');
+   await step('fixture storage',async()=>{
+    if(ownerId)for(const id of created){
+     for(const path of await listFixtureObjects(admin.storage.from('media'),`${ownerId}/${id}`))if(!paths.includes(path))paths.push(path);
+    }
+    assert.ok(paths.every(path=>created.some(id=>path.startsWith(`${ownerId}/${id}/`))),'Refusing storage cleanup outside fixture posts');
+    for(let offset=0;offset<paths.length;offset+=1000){const {error}=await admin.storage.from('media').remove(paths.slice(offset,offset+1000));if(error)throw error;}
+   });
+   await step('fixture posts',async()=>{if(created.length){const {error}=await admin.from('posts').delete().in('id',created);if(error)throw error;}});
+   await step('fixture cache',async()=>{if(cacheInserted.length){const {error}=await admin.from('fdc_cache').delete().in('query',cacheInserted);if(error)throw error;}});
   } finally {
+   clearInterval(leaseKeepalive);
+   await step('worker lease',async()=>{if(leaseHolder){const {error}=await admin.rpc('release_worker_lease',{p_holder:leaseHolder});if(error)throw error;}});
+   await step('session',()=>user.auth.signOut({scope:'local'}));
    try { await fake.close(); } finally {
     globalThis.fetch=originalFetch;
     for(const [key,value]of Object.entries(previousEnv)){if(value===undefined)delete process.env[key];else process.env[key]=value;}
    }
   }
+  assert.deepEqual(problems,[],'Fixture cleanup failed');
  };
  try{
-  globalThis.fetch=(input,init)=>{const url=new URL(typeof input==='string'||input instanceof URL?input:input.url);assert.ok(allowed.has(url.origin),`Unexpected network origin: ${url.origin}`);return originalFetch(input,init);};
+  globalThis.fetch=(input,init)=>{const url=new URL(typeof input==='string'||input instanceof URL?input:input.url);if(url.protocol==='data:')return originalFetch(input,init); // inline data (the card renderer's fonts and images) never leaves the process
+  if(!allowed.has(url.origin))violations.push(url.origin);
+  assert.ok(allowed.has(url.origin),`Unexpected network origin: ${url.origin}`);return originalFetch(input,init);};
   process.env.MODEL_API_BASE_URL=fake.baseURL;process.env.MODEL_API_KEY='offline-fixture-not-a-secret';delete process.env.FDC_API_KEY;
   const {data:auth,error:authError}=await user.auth.signInWithPassword({email:process.env.TEST_USER_EMAIL,password:process.env.TEST_USER_PASSWORD});assert.equal(authError,null,'Test account sign-in failed');ownerId=auth.user.id;
   const {error:viewError}=await admin.from('current_post_items').select('id').limit(0);assert.equal(viewError,null,'Pipeline requires item12 migration0007 visible through PostgREST');
@@ -52,6 +62,20 @@ export async function pipelineHarness(){
   assert.equal(correctionProbe?.code,'42501','Pipeline requires item16 migration0007b persist RPC visible through PostgREST');
   const {error:ownershipProbe}=await admin.rpc('post_work_matches',{p_post_id:missingPost,p_job_id:null});
   assert.equal(ownershipProbe,null,'Pipeline requires execution-ownership migration0007b visible through PostgREST');
+  // Hold the global worker lease for the whole run. Production workers only claim jobs while they
+  // hold it, so a requeued fixture job is never claimable by them, whatever its run_after says.
+  const holder=`fixture-${randomUUID()}`;
+  for(let waited=0;;waited+=2000){
+   const {data:got,error:leaseError}=await admin.rpc('try_acquire_worker_lease',{p_holder:holder,ttl_seconds:120});
+   assert.equal(leaseError,null);
+   if(got){leaseHolder=holder;break;}
+   assert.ok(waited<60000,'The worker lease stayed held by another worker; refusing to run fixtures beside a live worker');
+   await new Promise(resolve=>setTimeout(resolve,2000));
+  }
+  // A short lease kept alive here (try_acquire_worker_lease cannot extend a lease its own holder still has, so the
+  // row is updated directly). If it is ever lost the run stops at the next drain instead of racing live workers.
+  leaseKeepalive=setInterval(()=>{admin.from('worker_lease').update({expires_at:new Date(Date.now()+120_000).toISOString()}).eq('id',1).eq('holder',leaseHolder).select('id').then(({data,error})=>{if(error||!data?.length)leaseLost=true;},()=>{leaseLost=true;});},30_000);
+  leaseKeepalive.unref?.();
   const fdc=JSON.parse(await readFile(new URL('./fixtures/fdc.json',import.meta.url),'utf8'));
   for(const [query,response]of Object.entries(fdc)){
    const {data,error}=await admin.from('fdc_cache').select('query').eq('query',query).maybeSingle();assert.equal(error,null);
@@ -67,13 +91,27 @@ export async function pipelineHarness(){
    }
    return {id,jobId:await enqueue(id,'analyze')};
   };
-  const drain=async()=>{const result=await drainOnce(scoped);
-   // fail_job applies production backoff. Move only our fixture jobs into the
-   // distant future before another production worker can claim a test retry.
-   await admin.from('jobs').update({run_after:'2099-01-01T00:00:00Z'}).in('id',[...fixtureJobs]).eq('status','queued');
+  const drain=async()=>{
+   assert.ok(!leaseLost,'The worker lease was lost; refusing to run fixtures beside live workers');
+   let result,failure;
+   try{result=await drainOnce(scoped);}catch(error){failure=error;}
+   // fail_job applies production backoff (30 s for a first retry). Move only our fixture jobs into the
+   // distant future before another production worker can claim a test retry. This also runs when the
+   // drain threw, is retried, and a failed restore is an error rather than silently ignored.
+   let restored=false;
+   for(let attempt=0;attempt<3&&!restored;attempt++){
+    const {error}=await admin.from('jobs').update({run_after:'2099-01-01T00:00:00Z'}).in('id',[...fixtureJobs]).eq('status','queued');
+    restored=!error;
+   }
+   if(!restored)throw new Error('Could not restore fixture job isolation.');
+   // A blocked outbound request is a harness failure even when the application turned it into a retry.
+   assert.deepEqual(violations,[],'The harness blocked an unexpected network origin');
+   if(failure)throw failure;
    for(const id of created){const {data:items}=await admin.from('post_items').select('mask_path').eq('post_id',id);for(const i of items??[])if(i.mask_path&&!paths.includes(i.mask_path))paths.push(i.mask_path);}
    return result;
   };
-  return {admin,user,fake,post,enqueue,drain,cleanup,control:async(body)=>{const response=await fetch(`${fake.origin}/__control`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});assert.equal(response.status,204);}};
+  // A job the app's own RPC queued for a fixture post joins the fixture set and is parked like the others.
+  const adopt=async(jobId)=>{const {data,error}=await admin.from('jobs').update({run_after:'2099-01-01T00:00:00Z'}).eq('id',jobId).in('post_id',created).select('id').single();assert.equal(error,null);assert.ok(data,'Only jobs of fixture posts can be adopted');fixtureJobs.add(jobId);};
+  return {admin,user,fake,post,enqueue,adopt,drain,cleanup,control:async(body)=>{const response=await fetch(`${fake.origin}/__control`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});assert.equal(response.status,204);}};
  }catch(error){await cleanup();throw error;}
 }

@@ -66,7 +66,7 @@ export async function getPostDetail(supabase: SupabaseClient, postId: string) {
   if (!post) return null;
   const current = await getCurrentItems(supabase, postId);
   const { data: media, error: mediaError } = await supabase.from("post_media").select("storage_path,width,height")
-    .eq("post_id", postId).order("position").limit(1).maybeSingle();
+    .eq("kind", "photo").eq("post_id", postId).order("position").limit(1).maybeSingle();
   if (mediaError) throw new Error("Meal photo could not be loaded.");
   let photo: DetailPhoto | null = null;
   if (media) {

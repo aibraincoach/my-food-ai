@@ -5,6 +5,7 @@
 export interface ReencodedShot {
   original: Blob;
   feed: Blob;
+  phash: string;
   width: number;
   height: number;
 }
@@ -33,6 +34,17 @@ function toJpeg(canvas: HTMLCanvasElement): Promise<Blob> {
   });
 }
 
+function differenceHash(source: HTMLCanvasElement): string {
+  const canvas=document.createElement("canvas"); canvas.width=9;canvas.height=8;
+  const ctx=canvas.getContext("2d"); if(!ctx) throw new Error("Canvas unavailable.");
+  ctx.drawImage(source,0,0,9,8);
+  const pixels=ctx.getImageData(0,0,9,8).data;
+  const gray=(i:number)=>pixels[i]*0.299+pixels[i+1]*0.587+pixels[i+2]*0.114;
+  let hash=BigInt(0);
+  for(let y=0;y<8;y++) for(let x=0;x<8;x++) hash=(hash<<BigInt(1))|BigInt(gray((y*9+x)*4)>gray((y*9+x+1)*4)?1:0);
+  return BigInt.asIntN(64,hash).toString();
+}
+
 export async function reencodeShot(file: File): Promise<ReencodedShot> {
   const url = URL.createObjectURL(file);
   try {
@@ -47,7 +59,7 @@ export async function reencodeShot(file: File): Promise<ReencodedShot> {
       toJpeg(originalCanvas),
       toJpeg(drawScaled(img, FEED_LONG_SIDE)),
     ]);
-    return { original, feed, width: originalCanvas.width, height: originalCanvas.height };
+    return { original, feed, phash:differenceHash(originalCanvas), width: originalCanvas.width, height: originalCanvas.height };
   } finally {
     URL.revokeObjectURL(url);
   }

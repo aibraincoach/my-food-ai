@@ -1,0 +1,84 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import vm from 'node:vm';
+import {readFileSync} from 'node:fs';
+import ts from 'typescript';
+test('retiring the last meal clears feed state and rejects an older hydration result',async()=>{
+ const effects=[],listeners=new Map(),states=[],resolvers=new Map(),rejectors=new Map(),retryTimers=[];let resolveCard,resolvePage,discoverTick;let forceReset=false;
+ const post={id:'meal',status:'processing',created_at:'2026-10-01',items:[],slides:[]};
+ const channel={on(){return this;},subscribe(){return this;}};
+ const exports={};
+ const code=ts.transpileModule(readFileSync(new URL('../src/components/Feed.tsx',import.meta.url),'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,jsx:ts.JsxEmit.ReactJSX,target:ts.ScriptTarget.ES2022}}).outputText;
+ vm.runInNewContext(code,{exports,document:{hidden:false,addEventListener(){},removeEventListener(){}},CustomEvent:class{constructor(type,init){this.type=type;this.detail=init?.detail;}},
+ window:{addEventListener(type,fn){listeners.set(type,fn);},removeEventListener(){},dispatchEvent(){}},setInterval:fn=>{discoverTick=fn;return 1;},clearInterval(){},setTimeout:fn=>{retryTimers.push(fn);return retryTimers.length;},clearTimeout(){},
+ require(name){
+  if(name==='react')return{useEffect:fn=>effects.push(fn),useRef:current=>({current}),useState:initial=>[initial,state=>states.push(state)]};
+  if(name==='react/jsx-runtime')return{jsx:()=>null,jsxs:()=>null};
+  if(name==='next/navigation')return{useRouter:()=>({replace(){}})};
+  if(name==='@/lib/supabase/client')return{createClient:()=>({auth:{getUser:async()=>({data:{user:{id:'owner'}}})},channel:()=>channel,removeChannel(){},from(){return{select(){return this;},eq(){return this;},neq(){return this;},or(){return this;},order(){return this;},limit:async()=>({data:[{id:'new-page-meal'}],error:null})};}})};
+  if(name==='@/lib/posts/feed')return{FEED_PAGE_SIZE:20,getFeed:async()=>forceReset?new Promise(resolve=>{resolvePage=resolve;}):({posts:[post],nextCursor:null}),getPostCard:(_db,id)=>new Promise((resolve,reject)=>{resolveCard=resolve;resolvers.set(id,resolve);rejectors.set(id,reject);})};
+  if(name==='@/lib/posts/feed-order')return{mergeFeedPosts:(baseline,promoted)=>[...new Map([...baseline,...promoted].map(row=>[row.id,row])).values()],discoveryLostOverlap:()=>forceReset};
+  if(name==='@/lib/theme/tokens')return{tokens:{spacing:{'sheet-bottom':1}}};
+  if(name.startsWith('@/components/'))return{default:()=>null};
+  throw Error(name);
+ }});
+ exports.default();const cleanups=effects.map(fn=>fn());await new Promise(resolve=>setImmediate(resolve));
+ assert.equal(states.at(-1).posts.length,1);
+ listeners.get('post-created')({detail:{id:'meal'}});
+ listeners.get('post-unavailable')({detail:{id:'meal',reason:'needs_input'}});
+ assert.equal(states.at(-1).posts.length,0);
+ resolveCard({...post,status:'ready'});await new Promise(resolve=>setImmediate(resolve));
+ assert.equal(states.at(-1).posts.length,0,'stale hydration must not resurrect removed meal');
+ listeners.get('post-answer-resume')({detail:{id:'older-meal'}});
+ assert.equal(states.at(-1).posts.length,0,'answer stays hidden until ready');
+ listeners.get('post-settled')({detail:{id:'older-meal'}});
+ resolveCard({...post,id:'older-meal',status:'needs_input'});await new Promise(resolve=>setImmediate(resolve));
+ assert.equal(states.at(-1).posts.length,0,'a repeated question stays hidden');
+ listeners.get('post-answer-resume')({detail:{id:'older-meal'}});
+ listeners.get('post-settled')({detail:{id:'older-meal'}});
+ resolveCard({...post,id:'older-meal',status:'ready'});await new Promise(resolve=>setImmediate(resolve));
+ assert.equal(states.at(-1).posts[0].id,'older-meal','answered meal outside discovery window is restored by ID');
+ listeners.get('post-answer-resume')({detail:{id:'older-meal'}});listeners.get('post-settled')({detail:{id:'older-meal'}});resolveCard({...post,id:'older-meal',status:'failed'});await new Promise(resolve=>setImmediate(resolve));assert.equal(states.at(-1).posts[0].status,'failed','failed answer remains recoverable');
+ listeners.get('post-answer-resume')({detail:{id:'settled-outside-window'}});
+ listeners.get('post-settled')({detail:{id:'settled-outside-window'}});
+ const interrupted=resolveCard;
+ listeners.get('post-unavailable')({detail:{id:'unrelated-removed-meal'}});
+ const restarted=resolveCard;
+ assert.notEqual(restarted,interrupted,'removing another meal must restart the pending settled-card read');
+ interrupted({...post,id:'settled-outside-window',status:'ready'});await new Promise(resolve=>setImmediate(resolve));
+ assert.ok(!states.at(-1).posts.some(row=>row.id==='settled-outside-window'),'the invalidated old read stays ignored');
+ restarted({...post,id:'settled-outside-window',status:'ready'});await new Promise(resolve=>setImmediate(resolve));
+ assert.ok(states.at(-1).posts.some(row=>row.id==='settled-outside-window'),'the restarted read restores an older settled meal without ID discovery');
+ listeners.get('post-answer-resume')({detail:{id:'settled-during-reset'}});
+ listeners.get('post-settled')({detail:{id:'settled-during-reset'}});
+ const beforeReset=resolveCard;
+ forceReset=true;discoverTick();await new Promise(resolve=>setImmediate(resolve));
+ assert.equal(typeof resolvePage,'function','a fresh first-page read is pending');
+ beforeReset({...post,id:'settled-during-reset',status:'ready'});await new Promise(resolve=>setImmediate(resolve));
+ assert.ok(states.at(-1).posts.some(row=>row.id==='settled-during-reset'),'the settled-card read can complete while the fresh page is loading');
+ resolvePage({posts:[{...post,id:'new-page-meal',status:'ready'}],nextCursor:null});await new Promise(resolve=>setImmediate(resolve));
+ const afterReset=resolvers.get('settled-during-reset');
+ assert.notEqual(afterReset,beforeReset,'installing the new page restarts the older settled-card read');
+ assert.ok(!states.at(-1).posts.some(row=>row.id==='settled-during-reset'),'the reset waits for the fresh card read');
+ afterReset({...post,id:'settled-during-reset',status:'ready'});await new Promise(resolve=>setImmediate(resolve));
+ assert.ok(states.at(-1).posts.some(row=>row.id==='new-page-meal'),'the fresh first page remains installed');
+ assert.ok(states.at(-1).posts.some(row=>row.id==='settled-during-reset'),'the older settled meal survives the full-window reset');
+ forceReset=false;
+ listeners.get('post-answer-resume')({detail:{id:'settled-after-network-recovery'}});
+ listeners.get('post-settled')({detail:{id:'settled-after-network-recovery'}});
+ for(let attempt=0;attempt<4;attempt++){
+  rejectors.get('settled-after-network-recovery')(new Error('temporary network failure'));
+  await new Promise(resolve=>setImmediate(resolve));
+  if(attempt<3){assert.equal(retryTimers.length,1);retryTimers.shift()();}
+ }
+ const exhausted=resolvers.get('settled-after-network-recovery');
+ assert.equal(retryTimers.length,0,'bounded quick retries are exhausted');
+ listeners.get('focus')();await new Promise(resolve=>setImmediate(resolve));
+ const recovered=resolvers.get('settled-after-network-recovery');
+ assert.notEqual(recovered,exhausted,'focus retains and retries the older ID outside discovery');
+ recovered({...post,id:'settled-after-network-recovery',status:'ready'});await new Promise(resolve=>setImmediate(resolve));
+ assert.ok(states.at(-1).posts.some(row=>row.id==='settled-after-network-recovery'),'a transient outage cannot permanently strand the older settled meal');
+ listeners.get('focus')();await new Promise(resolve=>setImmediate(resolve));
+ assert.equal(resolvers.get('settled-after-network-recovery'),recovered,'an accepted card leaves deferred recovery tracking');
+ for(const cleanup of cleanups)cleanup?.();
+});
