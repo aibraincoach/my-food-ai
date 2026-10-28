@@ -18,9 +18,51 @@ The runner signs in as the ordinary test account using the installed SSR library
 The existing fixtures include empty plates; this run measures transport and queue behavior, not food-recognition accuracy. Fixture licences are recorded in `scripts/fixtures/ATTRIBUTION.md`.
 
 <!-- load-test-results:start -->
-Not run yet. No latency, throughput or successful-completion claim is made.
+Run started: 2026-10-28T23:16:41.017Z.
 
-Demo worker concurrency: **1**, the default. Keep it at one until a completed production run supplies evidence to change it.
+Twenty posts were scheduled across 114 seconds. Observed creation starts: 20 of 20; last start at 114.00 seconds (scheduling drift 0.00 seconds); maximum start lateness 0.00 seconds; smallest gap between starts 6.00 seconds. Starts were on the six-second pace inside the two-minute window. 20 post rows were created.
+Ready: 7; failed requests/posts: 2; incomplete at observation deadline: 11.
+Median time to ready: 57.36 seconds. Maximum: 329.86 seconds.
+
+| Post | Fixture | Creation started (s) | Result | Observed ready (s) |
+| --- | --- | ---: | --- | ---: |
+| 1 | eval/photos/01.jpg | 0.00 | ready | 12.65 |
+| 2 | eval/photos/02.jpg | 6.00 | ready | 14.96 |
+| 3 | eval/photos/03.jpg | 12.00 | failed | — |
+| 4 | eval/photos/01.jpg | 18.00 | ready | 57.12 |
+| 5 | eval/photos/02.jpg | 24.00 | ready | 57.36 |
+| 6 | eval/photos/03.jpg | 30.00 | failed | — |
+| 7 | eval/photos/01.jpg | 36.00 | ready | 187.09 |
+| 8 | eval/photos/02.jpg | 42.00 | ready | 233.43 |
+| 9 | eval/photos/03.jpg | 48.00 | ready | 329.86 |
+| 10 | eval/photos/01.jpg | 54.00 | queued | — |
+| 11 | eval/photos/02.jpg | 60.00 | queued | — |
+| 12 | eval/photos/03.jpg | 66.00 | queued | — |
+| 13 | eval/photos/01.jpg | 72.00 | queued | — |
+| 14 | eval/photos/02.jpg | 78.00 | queued | — |
+| 15 | eval/photos/03.jpg | 84.00 | queued | — |
+| 16 | eval/photos/01.jpg | 90.00 | queued | — |
+| 17 | eval/photos/02.jpg | 96.00 | queued | — |
+| 18 | eval/photos/03.jpg | 102.00 | queued | — |
+| 19 | eval/photos/01.jpg | 108.00 | queued | — |
+| 20 | eval/photos/02.jpg | 114.00 | queued | — |
+
+Observed job errors containing 429:
+
+None observed.
+
+Worker concurrency (operator-reported via DEPLOYED_WORKER_CONCURRENCY, not read from the deployment): **unknown**. This report does not justify increasing it; confirm the deployed setting before comparing timings across runs.
+
+This run did not complete successfully for every post. The unresolved outcomes above remain part of the result.
 <!-- load-test-results:end -->
 
-Production execution is deferred until after the merge phase. Authentication reuses `scripts/lib/session.mjs`. When available, `eval/photos/01.jpg` to `03.jpg` replace the older plate fixtures.
+Authentication reuses `scripts/lib/session.mjs`. When available, `eval/photos/01.jpg` to `03.jpg` replace the older plate fixtures.
+
+## Run of 2026-10-28 against production (b025d13)
+
+The results above are from the one production run so far, with the test account. Observations that the table does not show:
+
+- The runner's fifteen-minute window ended with 11 of 20 posts still queued. They were not slow: their analyze jobs were due, at attempt 0, with no worker lease held. The worker had stopped after about 330 seconds, and a manual `GET /api/jobs/tick` started it again. This is tracked as #177; until it is fixed the numbers above measure a run where nobody was ticking the queue, not the steady-state throughput.
+- Both failed posts used `eval/photos/03.jpg` and failed with `spark: identify ended with status incomplete.` after three attempts.
+- No 429 was observed from any service.
+- The deployed worker concurrency was not read from the deployment, so the report says `unknown`; the demo setting stays at one.
