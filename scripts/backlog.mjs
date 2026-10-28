@@ -3,7 +3,9 @@
 import { execFileSync } from "node:child_process";
 import { writeFileSync } from "node:fs";
 
-const issues = JSON.parse(execFileSync("gh", ["issue", "list", "--state", "open", "--limit", "500", "--json", "number,title,labels,body"], { encoding: "utf8" }));
+// The repository is explicit, so the issues read always belong to the file written below.
+const REPO = "aibraincoach/my-food-ai";
+const issues = JSON.parse(execFileSync("gh", ["issue", "list", "--repo", REPO, "--state", "open", "--limit", "500", "--json", "number,title,labels,body"], { encoding: "utf8" }));
 issues.sort((a, b) => a.number - b.number);
 
 // An issue labelled "blocked" is marked inline; its reason is the body's "Blocked: ..." line.
