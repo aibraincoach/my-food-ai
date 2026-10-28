@@ -142,3 +142,41 @@ test('a hanging server detach is aborted at its deadline so the lifecycle lock i
     if (originalNavigator) Object.defineProperty(globalThis, 'navigator', originalNavigator); else delete globalThis.navigator;
   }
 });
+
+test('starting a sign-out aborts a stalled registration request so it cannot hold the lock', { timeout: 20000 }, async () => {
+  const { postPushSubscription, pushSignOutFailed } = await import('../src/lib/push/lifecycle.ts');
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = (_url, init) => new Promise((_, reject) => init.signal.addEventListener('abort', () => reject(new DOMException('aborted', 'AbortError'))));
+  try {
+    pushSessionStarted();
+    const registration = withPushLock(() => postPushSubscription({ endpoint: 'https://fixture.invalid/device-A' }));
+    await new Promise(resolve => setImmediate(resolve));
+    pushSignOutStarted();
+    await assert.rejects(registration, /aborted/);
+    assert.equal(await withPushLock(async () => 'logout cleanup runs'), 'logout cleanup runs');
+    pushSignOutFailed(); // a later registration gets a fresh signal
+    globalThis.fetch = async (_url, init) => { assert.equal(init.signal.aborted, false); return new Response('{}'); };
+    assert.equal((await postPushSubscription({})).status, 200);
+  } finally { globalThis.fetch = originalFetch; pushSignOutFailed(); }
+});
+
+test('a subscription without a matching owner marker is dropped; a matching one is kept', async () => {
+  const { reconcilePushOwner } = await import('../src/lib/push/lifecycle.ts');
+  const originalNavigator = Object.getOwnPropertyDescriptor(globalThis, 'navigator');
+  let unsubscribed = 0;
+  Object.defineProperty(globalThis, 'navigator', { configurable: true, value: { serviceWorker: { getRegistration: async () => ({ pushManager: { getSubscription: async () => ({ unsubscribe: async () => { unsubscribed++; return true; } }) } }) } } });
+  const store = new Map();
+  const storage = { read: (k) => store.get(k) ?? null, write: (k, v) => store.set(k, v) };
+  try {
+    await reconcilePushOwner('account-B', storage);        // no marker: an interrupted registration or A's leftover
+    assert.equal(unsubscribed, 1);
+    assert.equal(store.get('meal-push-owner'), '');
+    store.set('meal-push-owner', 'account-B');
+    await reconcilePushOwner('account-B', storage);        // marker matches: kept
+    assert.equal(unsubscribed, 1);
+    await reconcilePushOwner('account-C', storage);        // another account: dropped
+    assert.equal(unsubscribed, 2);
+  } finally {
+    if (originalNavigator) Object.defineProperty(globalThis, 'navigator', originalNavigator); else delete globalThis.navigator;
+  }
+});

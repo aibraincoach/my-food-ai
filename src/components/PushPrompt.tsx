@@ -4,7 +4,7 @@ import { createClient } from "@/lib/supabase/client";
 import { Sheet } from "@/components/ui/Sheet";
 import { Button } from "@/components/ui/Button";
 
-import { pushOwnerKey as ownerKey, pushSessionStarted, pushIsSigningOut, withPushLock } from "@/lib/push/lifecycle";
+import { pushOwnerKey as ownerKey, pushSessionStarted, pushIsSigningOut, withPushLock, postPushSubscription, reconcilePushOwner } from "@/lib/push/lifecycle";
 const promptedKey = (id: string) => `meal-push-prompted:${id}`;
 function read(key: string) { try { return localStorage.getItem(key); } catch { return null; } }
 function write(key: string, value: string) { try { localStorage.setItem(key, value); } catch { /* Private storage may be unavailable. */ } }
@@ -24,7 +24,7 @@ async function registerDevice(account: string) {
     applicationServerKey: applicationKey(process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY!) });
   const { data } = await createClient().auth.getUser();
   if (data.user?.id !== account || pushIsSigningOut()) { await subscription.unsubscribe(); return; }
-  const response = await fetch("/api/push/subscribe", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(subscription) });
+  const response = await postPushSubscription(subscription);
   if (!response.ok) throw new Error();
   write(ownerKey, account);
   write(promptedKey(account), "1");
@@ -39,14 +39,7 @@ export default function PushPrompt() {
     const client = createClient();
     let cancelled = false;
     const reconcile = async (id: string | null) => {
-      if (read(ownerKey) && read(ownerKey) !== id) {
-        const registration = await navigator.serviceWorker.getRegistration();
-        const previous = await registration?.pushManager.getSubscription();
-        // Keep the old owner marker on failure so a subsequent post retries
-        // unsubscription rather than treating an active endpoint as detached.
-        if (previous && !await previous.unsubscribe()) throw new Error("Could not unsubscribe this device.");
-        write(ownerKey, "");
-      }
+      await reconcilePushOwner(id, { read, write });
       if (!cancelled) setAccount((current) => current === id ? current : null);
     };
     void client.auth.getUser().then(({ data }) => withPushLock(() => reconcile(data.user?.id ?? null))).catch(() => {});

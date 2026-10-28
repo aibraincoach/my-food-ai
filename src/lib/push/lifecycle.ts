@@ -10,13 +10,26 @@ const signOutTtlMs = 30_000;
 function readSignOutMarker(): number {
   try { return Number(localStorage.getItem(signOutKey)) || 0; } catch { return 0; }
 }
-export function pushSessionStarted() { signingOut = false; }
+// Registration requests are cancelled the moment a sign-out starts, and never wait longer than their own deadline,
+// so they cannot hold the lifecycle lock while logout needs it.
+export const registerRequestTimeoutMs = 8000;
+let registrationController = new AbortController();
+export function pushRegistrationSignal(): AbortSignal {
+  return AbortSignal.any([registrationController.signal, AbortSignal.timeout(registerRequestTimeoutMs)]);
+}
+export function postPushSubscription(subscription: unknown): Promise<Response> {
+  return fetch("/api/push/subscribe", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(subscription), signal: pushRegistrationSignal() });
+}
+function freshRegistrationController() { if (registrationController.signal.aborted) registrationController = new AbortController(); }
+export function pushSessionStarted() { signingOut = false; freshRegistrationController(); }
 export function pushSignOutStarted() {
   signingOut = true;
+  registrationController.abort();
   try { localStorage.setItem(signOutKey, String(Date.now())); } catch { /* Storage may be unavailable; the Web Lock still serializes. */ }
 }
 export function pushSignOutFailed() {
   signingOut = false;
+  freshRegistrationController();
   try { localStorage.removeItem(signOutKey); } catch { /* Storage may be unavailable. */ }
 }
 // True in this tab, or in any tab of this origin that started a sign-out within the last 30 seconds.
@@ -54,4 +67,16 @@ export async function detachCurrentPushDevice() {
     if (failure) throw failure;
   }
   try { localStorage.removeItem(pushOwnerKey); } catch { /* Storage may be unavailable. */ }
+}
+
+// A browser subscription is only trusted when the owner marker names the signed-in account. A missing marker
+// means an interrupted registration (the server may have saved it before the response was lost) or another
+// account's leftover, so it is dropped before anything else; the next post registers it again.
+export async function reconcilePushOwner(account: string | null, storage: { read(key: string): string | null; write(key: string, value: string): void }): Promise<void> {
+  if (storage.read(pushOwnerKey) === account) return;
+  const registration = await navigator.serviceWorker.getRegistration();
+  const previous = await registration?.pushManager?.getSubscription();
+  // Keep the marker unchanged on failure so a subsequent attempt retries the unsubscription.
+  if (previous && !await previous.unsubscribe()) throw new Error("Could not unsubscribe this device.");
+  storage.write(pushOwnerKey, "");
 }
