@@ -39,6 +39,8 @@ declare
   v_replacement uuid;
   v_initial_ids uuid[];
   v_changed jsonb;
+  v_first_ids uuid[];
+  v_marker timestamptz;
   v_payload jsonb := '[
     {"name":"Rice","portion_text":"one bowl","portion_grams":150,"box":{"x":1,"y":2,"width":3,"height":4},"mask_path":"fixture-mask.png","confidence":0.9,
      "nutrition":{"calories":195,"protein_g":4,"carbs_g":42,"fat_g":0.5,"fibre_g":1,"sugar_g":0,"sodium_mg":2,"micronutrients":[{"name":"Iron","value":1,"unit":"MG"}],"source_ref":"fixture-rice"}},
@@ -59,11 +61,17 @@ begin
     values (v_user_item, 10), (v_history, 20), (v_replacement, 30);
 
   perform public.persist_analysis(v_post, v_payload, 'First summary');
+  select array_agg(id order by id), (select analysis_initialized_at from public.posts where id = v_post)
+    into v_first_ids, v_marker from public.post_items where post_id = v_post;
   -- Once the marker is set, a retry changes nothing, even with a different payload.
   perform public.persist_analysis(v_post, v_changed, 'Retry summary');
 
   if (select count(*) from public.post_items where post_id = v_post) <> 5 then
     raise exception 'retry duplicated items or removed history/user rows';
+  end if;
+  if (select array_agg(id order by id) from public.post_items where post_id = v_post) is distinct from v_first_ids
+    or (select analysis_initialized_at from public.posts where id = v_post) is distinct from v_marker then
+    raise exception 'retry after initialisation changed item identity or the marker';
   end if;
   if (select count(*) from public.item_nutrition n join public.post_items i on i.id = n.post_item_id where i.post_id = v_post) <> 5 then
     raise exception 'retry duplicated or lost nutrition';
