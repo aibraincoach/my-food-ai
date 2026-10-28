@@ -11,6 +11,7 @@ import {
   chooseBestMatch,
   scaleNutrition,
 } from "@/lib/fdc/nutrients";
+import { renderResultsCard } from "./results-card";
 import { safeSummary, type ConsumedTotals } from "./wording";
 import type { NamedPost } from "./analyze";
 
@@ -90,16 +91,15 @@ export async function persistAnalysis(
     p_post_id: named.postId,
     p_items: items,
     p_summary: summary,
+    p_needs_input: named.needsInput ?? null,
   });
   if (error) {
     throw ioError(`persist: analysis transaction failed: ${error.message}`, error, status);
   }
-  await markReady(named.postId, admin,jobId);
+  if (!named.needsInput) await markReady(named.postId, admin, jobId);
 }
 
-// The shared application completion hook. Stored cards and push attach here.
-export async function markReady(postId: string, admin: SupabaseClient = createAdminClient(),jobId?:string): Promise<boolean> {
-  const { data, error, status } = await admin.rpc("mark_post_ready", { p_post_id: postId,p_job_id:jobId??null });
-  if (error) throw ioError("Post readiness could not be saved.", error, status);
-  return data === true;
+// Publication clears clarification atomically with ready under the post lock.
+export async function markReady(postId: string, admin: SupabaseClient = createAdminClient(), jobId?:string): Promise<boolean> {
+  return renderResultsCard(admin, postId, jobId);
 }

@@ -1,6 +1,7 @@
 // Muse Spark 1.3 item naming and portions (item 9). Non-streaming
 // /v1/responses with strict JSON output against the identify schema.
 // Server-only: reads MODEL_API_KEY from the environment.
+import { readNeedsInput, type NeedsInput } from "@/lib/pipeline/needs-input";
 import { MetaApiError } from "./client";
 import { createResponseRetrying404 } from "./retry404";
 import { identifyPrompt, identifySchema } from "@/lib/prompts";
@@ -22,6 +23,7 @@ export interface IdentifiedItem {
 export interface IdentifiedMeal {
   items: IdentifiedItem[];
   summary: string;
+  needsInput: NeedsInput | null;
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -89,7 +91,7 @@ function parseIdentifiedMeal(
       confidence: typeof confidence === "number" ? confidence : null,
     });
   }
-  return { items: out, summary };
+  return { items: out, summary, needsInput: readNeedsInput(payload.needs_input) };
 }
 
 function regionLines(regions: IdentifyRegion[]): string {
