@@ -23,7 +23,7 @@ export default function MonthGrid({ month, days, today, zone }: { month: string;
         const date = `${month}-${String(index + 1).padStart(2, "0")}`;
         const day = days.find((entry) => entry.date === date);
         return <Link href={`/days/${date}?tz=${encodeURIComponent(zone)}`} key={date} className="flex flex-col items-center" style={{ gap: tokens.calendar.labelGap }} aria-label={`${date}${day ? `, ${Math.round(day.totals.calories)} kcal` : ""}`}>
-          <span className={`relative overflow-hidden rounded-tile ${date === today ? "border-text" : ""}`} style={{ width: tokens.calendar.cell, height: tokens.calendar.cell, borderWidth: date === today ? tokens.calendar.border : undefined }}>
+          <span className={`relative overflow-hidden rounded-tile ${date === today ? "border-text" : ""}`} style={{ width: "100%", maxWidth: tokens.calendar.cell, aspectRatio: "1 / 1", borderWidth: date === today ? tokens.calendar.border : undefined }}>
             {day?.posts[0]?.photoUrl && (
               // eslint-disable-next-line @next/next/no-img-element
               <img src={day.posts[0].photoUrl} alt="" className="absolute inset-0 h-full w-full object-cover" />

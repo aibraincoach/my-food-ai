@@ -18,7 +18,13 @@ const serverWidth = () => tokens.spacing.phone;
 
 export default function StoryPlayer({ day, zone, previous, next }: { day: LoggedDay; zone: string; previous: string; next: string }) {
   const width = useSyncExternalStore(subscribeWidth, readWidth, serverWidth);
-  const [slide, setSlide] = useState(0);
+  // Keyed by meal id, not index: a refresh can insert a meal while the story is open.
+  const [pick, setPick] = useState<string>(day.posts[0]?.id ?? "totals");
+  const slide = pick === "totals" ? day.posts.length : Math.max(0, day.posts.findIndex((entry) => entry.id === pick));
+  const setSlide = (target: number | ((current: number) => number)) => {
+    const index = typeof target === "function" ? target(slide) : target;
+    setPick(index >= day.posts.length ? "totals" : day.posts[index].id);
+  };
   const start = useRef<{ x: number; y: number } | null>(null);
   const router = useRouter();
   const post = day.posts[slide];
