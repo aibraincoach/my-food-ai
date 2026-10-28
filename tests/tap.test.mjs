@@ -75,15 +75,29 @@ test("controller: starting a swipe or a cancelled pointer before the wait ends o
   } finally { mock.timers.reset(); }
 });
 
-test("controller: a second press that begins inside the window holds the navigation until it is released", () => {
+test("controller: a second press inside the window holds the navigation; released inside the window it is a double tap", () => {
   mock.timers.enable({ apis: ["setTimeout"] });
   try {
     const { controller, log, options, setClock } = rig();
     setClock(0); controller.down(100, 100); controller.up(100, 100, options);   // first tap, navigation queued for 320 ms
-    mock.timers.tick(250); setClock(250); controller.down(100, 100);            // second press starts: queued navigation is suspended
-    mock.timers.tick(100); assert.deepEqual(log, []);                           // 350 ms: still held, no navigation under the finger
-    setClock(280); controller.up(100, 100, options);                            // released 280 ms after the first tap: a double tap
+    mock.timers.tick(250); setClock(250); controller.down(100, 100);            // second press starts: the queued navigation is suspended
+    mock.timers.tick(30); setClock(280); assert.deepEqual(log, []);             // nothing opens under the finger
+    controller.up(100, 100, options);                                          // released at 280 ms, inside the window: a double tap
+    mock.timers.tick(2000);
     assert.deepEqual(log, ["vote"]);
+  } finally { mock.timers.reset(); }
+});
+
+test("controller: a second press held past the window and released is a new single tap that opens once, after the wait", () => {
+  mock.timers.enable({ apis: ["setTimeout"] });
+  try {
+    const { controller, log, options, setClock } = rig();
+    setClock(0); controller.down(100, 100); controller.up(100, 100, options);   // first tap
+    mock.timers.tick(250); setClock(250); controller.down(100, 100);            // second press starts and is held
+    mock.timers.tick(100); setClock(350); assert.deepEqual(log, []);            // no navigation fires while the finger is down
+    controller.up(100, 100, options);                                          // released at 350 ms: too late to pair with the first tap
+    mock.timers.tick(319); assert.deepEqual(log, []);
+    mock.timers.tick(5); assert.deepEqual(log, ["open:/posts/1"]);
   } finally { mock.timers.reset(); }
 });
 
