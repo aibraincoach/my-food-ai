@@ -4,6 +4,7 @@ import { claimJob, finishJob } from "@/lib/queue/claim";
 import { releaseLease, renewLease } from "@/lib/queue/lease";
 import { runJob } from "@/lib/worker/handlers";
 import { isRetriable } from "@/lib/worker/errors";
+import { workerConcurrency } from "@/lib/worker/concurrency";
 
 const WORK_MS = 60_000;
 
@@ -43,28 +44,29 @@ export async function runWorker(
 ): Promise<void> {
   const startedAt = Date.now();
   try {
-    for (;;) {
-      if (Date.now() - startedAt > WORK_MS) break;
-      const { processed } = await drainOnce(admin);
-      if (processed === 0) break;
-      await renewLease(admin, holder).catch(() => {});
-    }
+    const concurrency = workerConcurrency(process.env.WORKER_CONCURRENCY);
+    // Each lane claims through the same SKIP LOCKED RPC. Await every lane
+    // before releasing the shared lease, including when another lane fails.
+    const lanes = await Promise.allSettled(Array.from({ length: concurrency }, async () => {
+      for (;;) {
+        if (Date.now() - startedAt > WORK_MS) break;
+        const { processed } = await drainOnce(admin);
+        if (processed === 0) break;
+        await renewLease(admin, holder).catch(() => {});
+      }
+    }));
+    const failed = lanes.find((lane) => lane.status === "rejected");
+    if (failed?.status === "rejected") throw failed.reason;
   } finally {
     await releaseLease(admin, holder).catch(() => {});
   }
-  const { data: next, error, status } = await admin
-    .from("jobs")
-    .select("run_after")
-    .eq("status", "queued")
-    .order("run_after", { ascending: true })
-    .limit(1)
-    .maybeSingle<{ run_after: string }>();
+  const { data: next, error, status } = await admin.rpc("next_worker_wake");
   if (error) throw ioError(`worker remaining jobs: ${error.message}`, error, status);
   if (next && tickSelf) {
     // after() awaits this timer and the self-request. Delay rather than spin
     // through new serverless invocations while the backoff is still pending.
-    const delay = Math.max(0, new Date(next.run_after).getTime() - Date.now());
-    await new Promise((resolve) => setTimeout(resolve, Math.min(delay, 60_000)));
+    const delay = Math.max(0, new Date(next as string).getTime() - Date.now());
+    await new Promise((resolve) => setTimeout(resolve, Math.min(Math.max(delay, 1000), 60_000)));
     await tickSelf();
   }
 }

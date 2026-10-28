@@ -1,5 +1,6 @@
 "use client";
 
+import FirstRunHint from "@/components/FirstRunHint";
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/Button";
@@ -204,6 +205,7 @@ export default function CaptureSheet({ onClose }: { onClose: () => void }) {
         </div>
         <div className="min-h-card-gap flex-1" />
         <div className="flex flex-col px-screen-x pb-card-gap" style={{ gap: tokens.capture.bottomGap }}>
+          <FirstRunHint hint="capture" />
           <Field variant="camera" id="capture-caption" aria-label="Caption" value={caption} onChange={(event) => setCaption(event.target.value)} disabled={posting} placeholder="What did you eat?" />
           <p className="px-grid text-meta text-camera-muted">Location is saved with the post and helps recognise meals you eat in the same place. Only you see it.</p>
           {error && <p role="alert" className="text-detail text-surface">{error}</p>}

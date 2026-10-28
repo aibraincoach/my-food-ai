@@ -23,7 +23,7 @@ export async function createPost(caption: string, shots: File[], location: Captu
       caption,
       location,
       eaten_at: new Date().toISOString(),
-      shots: reencoded.map((r, i) => ({ position: i, width: r.width, height: r.height })),
+      shots: reencoded.map((r, i) => ({ position: i, width: r.width, height: r.height, phash:r.phash })),
     }),
   });
   if (!createRes.ok) {

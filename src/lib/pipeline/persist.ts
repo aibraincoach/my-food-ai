@@ -11,12 +11,15 @@ import {
   chooseBestMatch,
   scaleNutrition,
 } from "@/lib/fdc/nutrients";
+import { renderResultsCard } from "./results-card";
 import { safeSummary, type ConsumedTotals } from "./wording";
 import type { NamedPost } from "./analyze";
 
 export async function persistAnalysis(
   admin: SupabaseClient,
-  named: NamedPost
+  named: NamedPost,
+  copiedNutrition?: Record<string, unknown>[],
+  jobId?: string
 ): Promise<void> {
   const rows: {
     name: string;
@@ -54,8 +57,8 @@ export async function persistAnalysis(
     box: unknown; mask_path: string | null; confidence: number | null;
     nutrition: ConsumedTotals & { fibre_g: number | null; sugar_g: number | null; sodium_mg: number | null; micronutrients: unknown; source_ref: string | null };
   }[] = [];
-  for (const row of rows) {
-    const foods = await searchFoods(admin, row.name);
+  for (const [index,row] of rows.entries()) {
+    const foods = copiedNutrition ? [] : await searchFoods(admin, row.name);
     const scaled = scaleNutrition(chooseBestMatch(foods), row.portionGrams);
     items.push({
       name: row.name,
@@ -74,6 +77,7 @@ export async function persistAnalysis(
         sodium_mg: scaled.sodiumMg,
         micronutrients: scaled.micronutrients,
         source_ref: scaled.sourceRef,
+        ...(copiedNutrition?.[index] ?? {}),
       },
     });
   }
@@ -82,20 +86,20 @@ export async function persistAnalysis(
     return [key, values.some((value) => value === null) ? null : values.reduce<number>((sum, value) => sum + (value ?? 0), 0)];
   })) as ConsumedTotals;
   const summary = await safeSummary(named.summary, totals);
-  const { error, status } = await admin.rpc("persist_analysis", {
+  const { error, status } = await admin.rpc("persist_owned_analysis", {
+    p_job_id: jobId ?? null,
     p_post_id: named.postId,
     p_items: items,
     p_summary: summary,
+    p_needs_input: named.needsInput ?? null,
   });
   if (error) {
     throw ioError(`persist: analysis transaction failed: ${error.message}`, error, status);
   }
-  await markReady(named.postId, admin);
+  if (!named.needsInput) await markReady(named.postId, admin, jobId);
 }
 
-// The shared application completion hook. Stored cards and push attach here.
-export async function markReady(postId: string, admin: SupabaseClient = createAdminClient()): Promise<boolean> {
-  const { data, error, status } = await admin.rpc("mark_post_ready", { p_post_id: postId });
-  if (error) throw ioError("Post readiness could not be saved.", error, status);
-  return data === true;
+// Publication clears clarification atomically with ready under the post lock.
+export async function markReady(postId: string, admin: SupabaseClient = createAdminClient(), jobId?:string): Promise<boolean> {
+  return renderResultsCard(admin, postId, jobId);
 }

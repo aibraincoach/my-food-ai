@@ -1,9 +1,2 @@
-export default function SearchPage() {
-  return (
-    <main className="flex flex-1 flex-col">
-      <header className="flex h-top-h shrink-0 items-center px-screen-x">
-        <h1 className="text-title">Search</h1>
-      </header>
-    </main>
-  );
-}
+import SearchBox from "@/components/SearchBox";
+export default function SearchPage(){return <main><h1 className="sr-only">Search</h1><SearchBox/></main>;}
