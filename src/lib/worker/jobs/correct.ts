@@ -64,6 +64,9 @@ const correct:JobHandler=async(admin,job)=>{
   if(item.keep&&(!old||kept.has(item.keep)||old.name!==item.name||old.portion_text!==item.portion_text||(old.portion_grams==null?null:toNumber(old.portion_grams))!==item.portion_grams))throw new MetaApiError(500,'Correction changed an item marked unchanged.');
   if(item.keep)kept.add(item.keep);
   if(item.region_index!==null&&(item.region_index<0||item.region_index>=items.length))throw new MetaApiError(500,'Invalid source item index.');
+  // Intended name match: an item the model returns without a region index adopts the photo region
+  // and history of the one prior item with the same name; with zero or several same-named items it gets none.
+  // PM decision (item 16): a new item sharing a prior item's name is that item.
   const named=items.filter(prior=>prior.name===item.name);
   const region=item.region_index===null?(named.length===1?named[0]:undefined):items[item.region_index];
   let nutrition;
