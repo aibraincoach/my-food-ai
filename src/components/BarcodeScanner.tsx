@@ -30,7 +30,7 @@ export default function BarcodeScanner() {
 
   // One token per scanning session: stopping, unmounting or starting again invalidates every older step.
   const session = useRef(0);
-  const close = useCallback(() => { session.current += 1; lookup.current += 1; stop.current(); stop.current = () => {}; setScanning(false); setStatus(""); }, []);
+  const close = useCallback(() => { session.current += 1; lookup.current += 1; stop.current(); stop.current = () => {}; starting.current = false; setScanning(false); setStatus(""); }, []);
   useEffect(() => close, [close]);
 
   const open = async () => {
@@ -63,7 +63,7 @@ export default function BarcodeScanner() {
     } catch {
       reader?.reset();
       if (mine === session.current) { close(); setStatus("The camera could not be opened. Allow camera access and try again."); }
-    } finally { starting.current = false; }
+    } finally { if (mine === session.current) starting.current = false; }   // a close() has already released it
   };
 
   const basis = product?.basisUnit ?? "g";

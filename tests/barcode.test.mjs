@@ -63,7 +63,7 @@ test("a live FDC Branded Foods lookup by gtin_upc returns usable nutrition", { s
 
 test("a product FDC stores zero-padded is found live, and a valid code FDC does not hold finds nothing", { skip: !process.env.FDC_API_KEY }, async () => {
   assert.match((await lookupBarcode("038000138416"))?.name ?? "", /pringles/i);
-  assert.equal(await lookupBarcode("012345678905"), null);
+  assert.equal(await lookupBarcode("012345678912"), null);
 });
 
 test("a UPC-E expands to its UPC-A; anything that does not expand to a valid UPC-A is left alone", () => {
