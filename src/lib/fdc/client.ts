@@ -4,7 +4,7 @@
 // cache: every query hits fdc_cache first and only misses reach FDC.
 // Server-only: reads FDC_API_KEY from the environment.
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { ApiError } from "@/lib/worker/errors";
+import { ApiError, ioError } from "@/lib/worker/errors";
 
 const FDC_BASE_URL = "https://api.nal.usda.gov/fdc/v1";
 const DATA_TYPES = "Foundation,SR Legacy,Branded";
@@ -95,15 +95,19 @@ export async function searchFoods(
   admin: SupabaseClient,
   query: string
 ): Promise<FdcFood[]> {
-  const key = normalizeQuery(query);
-  const { data: cached, error: cacheError } = await admin
-    .from("fdc_cache")
-    .select("response")
-    .eq("query", key)
-    .maybeSingle<{ response: unknown }>();
-  if (!cacheError && cached) {
-    return asFoods(cached.response);
-  }
+  const normalized = normalizeQuery(query);
+  const key = `fdc-search:${normalized}`;
+  const readCache = async (cacheKey: string) => {
+    const {data,error,status}=await admin.from("fdc_cache").select("response").eq("query",cacheKey).maybeSingle<{response:unknown}>();
+    if(error)throw ioError("Food cache could not be read.",error,status);
+    return data?.response;
+  };
+  const cached = await readCache(key) as {kind?:unknown;query?:unknown;payload?:{foods?:unknown}} | undefined;
+  if(cached?.kind==='fdc-search-v1'&&cached.query===normalized&&Array.isArray(cached.payload?.foods))return asFoods(cached.payload);
+  // Old unprefixed search entries remain usable only at their exact query key.
+  // A typed entry at that key may belong to another cache namespace, so reject it.
+  const legacy = await readCache(normalized) as {kind?:unknown;foods?:unknown} | undefined;
+  if(legacy&&!legacy.kind&&Array.isArray(legacy.foods))return asFoods(legacy);
   const params = new URLSearchParams({
     query: query.trim(),
     dataType: DATA_TYPES,
@@ -122,8 +126,51 @@ export async function searchFoods(
   }
   const payload = (await response.json()) as unknown;
   await admin.from("fdc_cache").upsert(
-    { query: key, response: payload as Record<string, unknown> },
+    { query: key, response: {kind:"fdc-search-v1",query:normalized,payload} },
     { onConflict: "query" }
   );
   return asFoods(payload);
+}
+
+// The full USDA detail shape carries nutrient.id/name/unitName and amount.
+// https://fdc.nal.usda.gov/api-guide/ — GET /food/{fdcId}, format=full.
+export function parseFoodDetail(payload: unknown, expectedId: number): FdcFood {
+  const food = payload as Record<string, unknown> | null;
+  if (!food || food.fdcId !== expectedId || typeof food.description !== "string"
+    || typeof food.dataType !== "string" || !Array.isArray(food.foodNutrients)) throw new ApiError(502, "", "fdc: invalid food detail.");
+  const nutrients: FdcNutrient[] = [];
+  for (const raw of food.foodNutrients) {
+    if (!raw || typeof raw !== "object") continue;
+    const row = raw as Record<string, unknown>;
+    const nutrient = row.nutrient as Record<string, unknown> | undefined;
+    if (nutrient && typeof nutrient.id === "number" && typeof nutrient.name === "string"
+      && typeof nutrient.unitName === "string" && typeof row.amount === "number" && Number.isFinite(row.amount)) {
+      nutrients.push({nutrientId: nutrient.id, nutrientName: nutrient.name, unitName: nutrient.unitName, value: row.amount});
+    }
+  }
+  return {fdcId: expectedId, description: food.description, dataType: food.dataType, foodNutrients: nutrients,
+    servingSize: typeof food.servingSize === "number" ? food.servingSize : undefined,
+    servingSizeUnit: typeof food.servingSizeUnit === "string" ? food.servingSizeUnit : undefined};
+}
+
+export async function getFoodById(admin: SupabaseClient, id: number): Promise<FdcFood> {
+  if (!Number.isSafeInteger(id) || id <= 0) throw new Error("fdc: invalid retained food identity.");
+  const key = `fdc-detail:${id}`;
+  const {data: cached, error, status} = await admin.from("fdc_cache").select("response").eq("query", key).maybeSingle();
+  if (error) throw ioError("Retained food cache could not be read.", error, status);
+  if (cached) {
+    const entry=cached.response as {kind?:unknown;fdcId?:unknown;payload?:unknown};
+    try {
+      if(entry?.kind==='fdc-detail-v1'&&entry.fdcId===id)return parseFoodDetail(entry.payload,id);
+      if(entry&&!entry.kind)return parseFoodDetail(entry,id);
+    } catch { /* A legacy search-key collision is a cache miss, never permanent failure. */ }
+  }
+  const params = new URLSearchParams({format: "full", api_key: fdcApiKey()});
+  const response = await fetch(`${FDC_BASE_URL}/food/${id}?${params}`, {signal: AbortSignal.timeout(30000)});
+  if (!response.ok) throw new ApiError(response.status, await response.text(), "Retained food could not be loaded.");
+  const payload: unknown = await response.json();
+  const food = parseFoodDetail(payload, id);
+  const {error: saveError, status: saveStatus} = await admin.from("fdc_cache").upsert({query: key, response: {kind:"fdc-detail-v1",fdcId:id,payload}}, {onConflict: "query"});
+  if (saveError) throw ioError("Retained food cache could not be saved.", saveError, saveStatus);
+  return food;
 }
