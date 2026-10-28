@@ -16,7 +16,7 @@ export async function pipelineHarness(){
  const originalFetch=globalThis.fetch;
  const previousEnv=Object.fromEntries(['MODEL_API_BASE_URL','MODEL_API_KEY','FDC_API_KEY'].map(key=>[key,process.env[key]]));
  const fake=await startFakeMeta();const allowed=new Set([new URL(fake.origin).origin,supabaseOrigin]);
- let ownerId;const created=[],paths=[],cacheInserted=[];const fixtureJobs=new Set();
+ let ownerId,leaseHolder=null;const created=[],paths=[],cacheInserted=[];const fixtureJobs=new Set();
  const cleanup=async()=>{
   const problems=[];
   try {
@@ -29,6 +29,7 @@ export async function pipelineHarness(){
   for(let offset=0;offset<paths.length;offset+=1000){const {error}=await admin.storage.from('media').remove(paths.slice(offset,offset+1000));if(error)problems.push('fixture storage');}
   if(created.length){const {error}=await admin.from('posts').delete().in('id',created);if(error)problems.push('fixture posts');}
   if(cacheInserted.length){const {error}=await admin.from('fdc_cache').delete().in('query',cacheInserted);if(error)problems.push('fixture cache');}
+  if(leaseHolder){const {error}=await admin.rpc('release_worker_lease',{p_holder:leaseHolder});if(error)problems.push('worker lease');}
   await user.auth.signOut({scope:'local'}).catch(()=>{});
   assert.deepEqual(problems,[],'Fixture cleanup failed');
   } finally {
@@ -52,6 +53,16 @@ export async function pipelineHarness(){
   assert.equal(correctionProbe?.code,'42501','Pipeline requires item16 migration0007b persist RPC visible through PostgREST');
   const {error:ownershipProbe}=await admin.rpc('post_work_matches',{p_post_id:missingPost,p_job_id:null});
   assert.equal(ownershipProbe,null,'Pipeline requires execution-ownership migration0007b visible through PostgREST');
+  // Hold the global worker lease for the whole run. Production workers only claim jobs while they
+  // hold it, so a requeued fixture job is never claimable by them, whatever its run_after says.
+  const holder=`fixture-${randomUUID()}`;
+  for(let waited=0;;waited+=2000){
+   const {data:got,error:leaseError}=await admin.rpc('try_acquire_worker_lease',{p_holder:holder,ttl_seconds:900});
+   assert.equal(leaseError,null);
+   if(got){leaseHolder=holder;break;}
+   assert.ok(waited<60000,'The worker lease stayed held by another worker; refusing to run fixtures beside a live worker');
+   await new Promise(resolve=>setTimeout(resolve,2000));
+  }
   const fdc=JSON.parse(await readFile(new URL('./fixtures/fdc.json',import.meta.url),'utf8'));
   for(const [query,response]of Object.entries(fdc)){
    const {data,error}=await admin.from('fdc_cache').select('query').eq('query',query).maybeSingle();assert.equal(error,null);
@@ -83,6 +94,8 @@ export async function pipelineHarness(){
    for(const id of created){const {data:items}=await admin.from('post_items').select('mask_path').eq('post_id',id);for(const i of items??[])if(i.mask_path&&!paths.includes(i.mask_path))paths.push(i.mask_path);}
    return result;
   };
-  return {admin,user,fake,post,enqueue,drain,cleanup,control:async(body)=>{const response=await fetch(`${fake.origin}/__control`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});assert.equal(response.status,204);}};
+  // A job the app's own RPC queued for a fixture post joins the fixture set and is parked like the others.
+  const adopt=async(jobId)=>{const {data,error}=await admin.from('jobs').update({run_after:'2099-01-01T00:00:00Z'}).eq('id',jobId).in('post_id',created).select('id').single();assert.equal(error,null);assert.ok(data,'Only jobs of fixture posts can be adopted');fixtureJobs.add(jobId);};
+  return {admin,user,fake,post,enqueue,adopt,drain,cleanup,control:async(body)=>{const response=await fetch(`${fake.origin}/__control`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});assert.equal(response.status,204);}};
  }catch(error){await cleanup();throw error;}
 }
