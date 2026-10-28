@@ -19,31 +19,35 @@ export async function pipelineHarness(){
  const originalFetch=globalThis.fetch;
  const previousEnv=Object.fromEntries(['MODEL_API_BASE_URL','MODEL_API_KEY','FDC_API_KEY'].map(key=>[key,process.env[key]]));
  const fake=await startFakeMeta();const allowed=new Set([new URL(fake.origin).origin,supabaseOrigin]);
- let ownerId,leaseHolder=null;const created=[],paths=[],cacheInserted=[];const fixtureJobs=new Set();
+ const violations=[];let ownerId,leaseHolder=null;const created=[],paths=[],cacheInserted=[];const fixtureJobs=new Set();
  const cleanup=async()=>{
   const problems=[];
+  // Every step runs on its own, so one failure never skips the rest. Releasing the worker lease and the
+  // process-wide restores are in the finally and always run.
+  const step=async(name,work)=>{try{await work();}catch{problems.push(name);}};
   try {
-  if(ownerId)for(const id of created){
-   try{for(const path of await listFixtureObjects(admin.storage.from('media'),`${ownerId}/${id}`))if(!paths.includes(path))paths.push(path);}
-   catch{problems.push('fixture storage listing');}
-  }
-  assert.ok(paths.every(path=>created.some(id=>path.startsWith(`${ownerId}/${id}/`))),'Refusing storage cleanup outside fixture posts');
-
-  for(let offset=0;offset<paths.length;offset+=1000){const {error}=await admin.storage.from('media').remove(paths.slice(offset,offset+1000));if(error)problems.push('fixture storage');}
-  if(created.length){const {error}=await admin.from('posts').delete().in('id',created);if(error)problems.push('fixture posts');}
-  if(cacheInserted.length){const {error}=await admin.from('fdc_cache').delete().in('query',cacheInserted);if(error)problems.push('fixture cache');}
-  if(leaseHolder){const {error}=await admin.rpc('release_worker_lease',{p_holder:leaseHolder});if(error)problems.push('worker lease');}
-  await user.auth.signOut({scope:'local'}).catch(()=>{});
-  assert.deepEqual(problems,[],'Fixture cleanup failed');
+   await step('fixture storage',async()=>{
+    if(ownerId)for(const id of created){
+     for(const path of await listFixtureObjects(admin.storage.from('media'),`${ownerId}/${id}`))if(!paths.includes(path))paths.push(path);
+    }
+    assert.ok(paths.every(path=>created.some(id=>path.startsWith(`${ownerId}/${id}/`))),'Refusing storage cleanup outside fixture posts');
+    for(let offset=0;offset<paths.length;offset+=1000){const {error}=await admin.storage.from('media').remove(paths.slice(offset,offset+1000));if(error)throw error;}
+   });
+   await step('fixture posts',async()=>{if(created.length){const {error}=await admin.from('posts').delete().in('id',created);if(error)throw error;}});
+   await step('fixture cache',async()=>{if(cacheInserted.length){const {error}=await admin.from('fdc_cache').delete().in('query',cacheInserted);if(error)throw error;}});
   } finally {
+   await step('worker lease',async()=>{if(leaseHolder){const {error}=await admin.rpc('release_worker_lease',{p_holder:leaseHolder});if(error)throw error;}});
+   await step('session',()=>user.auth.signOut({scope:'local'}));
    try { await fake.close(); } finally {
     globalThis.fetch=originalFetch;
     for(const [key,value]of Object.entries(previousEnv)){if(value===undefined)delete process.env[key];else process.env[key]=value;}
    }
   }
+  assert.deepEqual(problems,[],'Fixture cleanup failed');
  };
  try{
   globalThis.fetch=(input,init)=>{const url=new URL(typeof input==='string'||input instanceof URL?input:input.url);if(url.protocol==='data:')return originalFetch(input,init); // inline data (the card renderer's fonts and images) never leaves the process
+  if(!allowed.has(url.origin))violations.push(url.origin);
   assert.ok(allowed.has(url.origin),`Unexpected network origin: ${url.origin}`);return originalFetch(input,init);};
   process.env.MODEL_API_BASE_URL=fake.baseURL;process.env.MODEL_API_KEY='offline-fixture-not-a-secret';delete process.env.FDC_API_KEY;
   const {data:auth,error:authError}=await user.auth.signInWithPassword({email:process.env.TEST_USER_EMAIL,password:process.env.TEST_USER_PASSWORD});assert.equal(authError,null,'Test account sign-in failed');ownerId=auth.user.id;
@@ -94,6 +98,8 @@ export async function pipelineHarness(){
     restored=!error;
    }
    if(!restored)throw new Error('Could not restore fixture job isolation.');
+   // A blocked outbound request is a harness failure even when the application turned it into a retry.
+   assert.deepEqual(violations,[],'The harness blocked an unexpected network origin');
    if(failure)throw failure;
    for(const id of created){const {data:items}=await admin.from('post_items').select('mask_path').eq('post_id',id);for(const i of items??[])if(i.mask_path&&!paths.includes(i.mask_path))paths.push(i.mask_path);}
    return result;
