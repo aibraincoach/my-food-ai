@@ -11,7 +11,7 @@ issues.sort((a, b) => a.number - b.number);
 // An issue labelled "blocked" is marked inline; its reason is the body's "Blocked: ..." line.
 const line = ({ number, title, labels, body }) => {
   if (!labels.some((label) => label.name === "blocked")) return `- #${number} ${title}`;
-  const reason = /^Blocked:\s*(.+)$/m.exec(body ?? "")?.[1].trim();
+  const reason = /^Blocked:\s*(.+)$/m.exec(body ?? "")?.[1].trim().replace(/\.$/, "");
   return `- #${number} ${title} (blocked: ${reason ?? "see the issue"})`;
 };
 

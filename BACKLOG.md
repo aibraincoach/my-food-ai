@@ -45,7 +45,7 @@
 - #110 Scanning a barcode returns the branded food's nutrition from FDC
 - #111 Water and caffeine can be logged as intake only, with no targets and no "left"
 - #112 The job handlers are registered in an explicit registry, with no dynamic import and no test_throw handler in production
-- #114 Public sign-in with Facebook works in production mode (blocked: Meta app review.)
-- #115 Dark mode renders every screen from the same tokens (blocked: scope; the first design pass is light mode only.)
+- #114 Public sign-in with Facebook works in production mode (blocked: Meta app review)
+- #115 Dark mode renders every screen from the same tokens (blocked: scope; the first design pass is light mode only)
 
 † One GitHub issue per item, with a title that states the done condition; an issue is closed by its pull request. This file is regenerated from the open issues by `node scripts/backlog.mjs` and is never edited by hand.
