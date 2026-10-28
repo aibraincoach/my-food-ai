@@ -16,6 +16,12 @@ export class CameraFlipError extends Error {
   }
 }
 
+// A camera that is busy or cannot start because another capture holds the hardware.
+function isContention(error: unknown): boolean {
+  const name = (error as { name?: unknown } | null)?.name;
+  return name === "NotReadableError" || name === "AbortError" || name === "TrackStartError";
+}
+
 export async function openCamera(initialFacing: Facing): Promise<Camera> {
   if (!navigator.mediaDevices?.getUserMedia) throw new Error("Camera unavailable.");
   let facing = initialFacing;
@@ -36,6 +42,9 @@ export async function openCamera(initialFacing: Facing): Promise<Camera> {
         stream = await open(next);
       } catch (cause) {
         if (superseded()) throw new Error("Camera closed.");
+        // Releasing the working camera only helps when the failure is device contention. Anything else
+        // (permission, no such camera, constraints) leaves it running and the facing unchanged.
+        if (!isContention(cause)) throw new CameraFlipError(cause);
         // Some devices cannot open a second camera while the first is held. Release it and try
         // again; if that still fails, reopen the previous camera so the preview is never left dead.
         stop(camera.stream);

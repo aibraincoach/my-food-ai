@@ -63,3 +63,21 @@ test("if the previous camera cannot be reopened either, the failure is not a ret
   const camera = await openCamera("environment");
   await assert.rejects(camera.flip(), (error) => !(error instanceof CameraFlipError) && /Camera unavailable/.test(error.message));
 });
+
+test("a failure that releasing cannot fix leaves the working camera running", async () => {
+  const { openCamera, CameraFlipError } = await import("../src/lib/media/camera.ts");
+  const first = fakeStream();
+  const second = fakeStream();
+  const seen = stubCamera((n) => {
+    if (n === 1) return first;
+    if (n === 2) throw new DOMException("denied", "NotAllowedError");
+    return second;
+  });
+  const camera = await openCamera("environment");
+  await assert.rejects(camera.flip(), (error) => error instanceof CameraFlipError && error.stream === undefined);
+  assert.equal(first.track.stopped, false);
+  assert.equal(camera.stream, first);
+  assert.deepEqual(seen, ["environment", "user"]); // no second attempt, no restore
+  assert.equal(await camera.flip(), second); // a later flip can still succeed
+  assert.equal(first.track.stopped, true);
+});
