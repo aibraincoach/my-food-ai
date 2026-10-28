@@ -8,6 +8,9 @@ import {createClient} from '@supabase/supabase-js';
 import {listFixtureObjects} from './storage-cleanup.mjs';
 import {startFakeMeta} from './server.mjs';
 export async function pipelineHarness(){
+ // This harness takes the global worker lease of the shared database for the whole run, which stops every
+ // deployed worker. It refuses to start unless that is explicitly accepted, and releases the lease in finally.
+ if(process.env.ALLOW_SHARED_DB_TESTS!=='1')throw new Error('Refusing to run: this harness holds the global worker lease of the shared database and pauses live workers. Set ALLOW_SHARED_DB_TESTS=1 to run it (never during a demo).');
  for(const key of ['NEXT_PUBLIC_SUPABASE_URL','NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY','SUPABASE_SECRET_KEY','TEST_USER_EMAIL','TEST_USER_PASSWORD'])assert.ok(process.env[key],`${key} is required`);
  // Validate client configuration before starting a server or changing globals.
  const supabaseOrigin=new URL(process.env.NEXT_PUBLIC_SUPABASE_URL).origin;
@@ -40,7 +43,8 @@ export async function pipelineHarness(){
   }
  };
  try{
-  globalThis.fetch=(input,init)=>{const url=new URL(typeof input==='string'||input instanceof URL?input:input.url);assert.ok(allowed.has(url.origin),`Unexpected network origin: ${url.origin}`);return originalFetch(input,init);};
+  globalThis.fetch=(input,init)=>{const url=new URL(typeof input==='string'||input instanceof URL?input:input.url);if(url.protocol==='data:')return originalFetch(input,init); // inline data (the card renderer's fonts and images) never leaves the process
+  assert.ok(allowed.has(url.origin),`Unexpected network origin: ${url.origin}`);return originalFetch(input,init);};
   process.env.MODEL_API_BASE_URL=fake.baseURL;process.env.MODEL_API_KEY='offline-fixture-not-a-secret';delete process.env.FDC_API_KEY;
   const {data:auth,error:authError}=await user.auth.signInWithPassword({email:process.env.TEST_USER_EMAIL,password:process.env.TEST_USER_PASSWORD});assert.equal(authError,null,'Test account sign-in failed');ownerId=auth.user.id;
   const {error:viewError}=await admin.from('current_post_items').select('id').limit(0);assert.equal(viewError,null,'Pipeline requires item12 migration0007 visible through PostgREST');
