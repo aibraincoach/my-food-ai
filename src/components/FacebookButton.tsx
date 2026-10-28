@@ -1,5 +1,7 @@
 "use client";
 
+import { Button } from "@/components/ui/Button";
+import { tokens } from "@/lib/theme/tokens";
 import { createClient } from "@/lib/supabase/client";
 
 export default function FacebookButton() {
@@ -11,8 +13,9 @@ export default function FacebookButton() {
     });
   };
   return (
-    <button type="button" onClick={onClick} className="w-full border border-neutral-300 py-2 text-sm">
+    <Button variant="secondary" onClick={onClick} className="flex items-center justify-center gap-tooltip-y">
+      <span aria-hidden="true" className="flex items-center justify-center rounded-circle bg-facebook text-white" style={{ width: tokens.spacing["icon-thumb"], height: tokens.spacing["icon-thumb"], fontSize: tokens.typography.comment.size, fontWeight: 700 }}>f</span>
       Continue with Facebook
-    </button>
+    </Button>
   );
 }

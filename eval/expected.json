@@ -1,0 +1,125 @@
+{
+  "annotation_basis": "Visual portion estimates, not measured weights; see SOURCES.md.",
+  "photos": [
+    {
+      "file": "01.jpg",
+      "caption": "Scrambled eggs on toast",
+      "items": [
+        {
+          "name": "scrambled eggs",
+          "grams": 150
+        },
+        {
+          "name": "toast",
+          "grams": 70
+        }
+      ]
+    },
+    {
+      "file": "02.jpg",
+      "caption": "Plain spaghetti",
+      "items": [
+        {
+          "name": "spaghetti",
+          "grams": 200
+        }
+      ]
+    },
+    {
+      "file": "03.jpg",
+      "caption": "Sushi platter",
+      "items": [
+        {
+          "name": "sushi",
+          "grams": 650
+        }
+      ]
+    },
+    {
+      "file": "04.jpg",
+      "caption": "Margherita pizza",
+      "items": [
+        {
+          "name": "margherita pizza",
+          "grams": 300
+        }
+      ]
+    },
+    {
+      "file": "05.jpg",
+      "caption": "Hamburger and french fries",
+      "items": [
+        {
+          "name": "hamburger",
+          "grams": 250
+        },
+        {
+          "name": "french fries",
+          "grams": 150
+        }
+      ]
+    },
+    {
+      "file": "06.jpg",
+      "caption": "Caesar salad",
+      "items": [
+        {
+          "name": "caesar salad",
+          "grams": 220
+        }
+      ]
+    },
+    {
+      "file": "07.jpg",
+      "caption": "Two pancakes",
+      "items": [
+        {
+          "name": "pancakes",
+          "grams": 120
+        }
+      ]
+    },
+    {
+      "file": "08.jpg",
+      "caption": "Ramen",
+      "items": [
+        {
+          "name": "ramen",
+          "grams": 500
+        }
+      ]
+    },
+    {
+      "file": "09.jpg",
+      "caption": "Cheeseburger and french fries",
+      "items": [
+        {
+          "name": "cheeseburger",
+          "grams": 280
+        },
+        {
+          "name": "french fries",
+          "grams": 150
+        }
+      ]
+    },
+    {
+      "file": "10.jpg",
+      "caption": "Roast lamb with Yorkshire pudding and stuffing",
+      "items": [
+        {
+          "name": "roast lamb",
+          "grams": 180
+        },
+        {
+          "name": "Yorkshire pudding",
+          "grams": 80
+        },
+        {
+          "name": "stuffing",
+          "grams": 80
+        }
+      ]
+    }
+  ]
+}
