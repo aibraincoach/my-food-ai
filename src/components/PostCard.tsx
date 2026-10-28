@@ -1,10 +1,13 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import type { FeedPost } from "@/lib/posts/feed";
 import { formatConsumed, sumNutrition, toNumber } from "@/lib/nutrition/totals";
 import { tokens } from "@/lib/theme/tokens";
 import { ResultsCard } from "@/components/ResultsCard";
+import { currentTraffic } from "@/components/QueueTicker";
+import Carousel from "@/components/Carousel";
 import { Shimmer } from "@/components/ui/Shimmer";
 
 function timeLabel(value: string) {
@@ -32,9 +35,27 @@ function CaptionCard({ post }: { post: FeedPost }) {
 }
 
 function StatusLine({ post }: { post: FeedPost }) {
+  const [traffic,setTraffic]=useState(currentTraffic);
+  const [retrying,setRetrying]=useState(false);
+  const [error,setError]=useState("");
+  useEffect(()=>{
+    const receive=(event:Event)=>setTraffic((event as CustomEvent<{traffic:string}>).detail.traffic);
+    window.addEventListener("queue-traffic",receive);
+    return ()=>window.removeEventListener("queue-traffic",receive);
+  },[]);
+  const retry=async()=>{
+    setRetrying(true);setError("");
+    try {
+      const response=await fetch(`/api/posts/${post.id}/retry`,{method:"POST"});
+      if(!response.ok) throw new Error("Could not retry. Please try again.");
+      window.dispatchEvent(new CustomEvent("post-created",{detail:{id:post.id}}));
+    } catch(error) {setError(error instanceof Error?error.message:"Could not retry.");}
+    finally{setRetrying(false);}
+  };
   if (post.status === "failed") return <div className="flex flex-col gap-0.5 text-detail">
     <p className="text-muted">This photo could not be analysed.</p>
-    <span className="text-text">Try again</span>
+    <button type="button" disabled={retrying} onClick={retry} className="min-h-tap self-start text-text">{retrying?"Retrying…":"Try again"}</button>
+    {error&&<p role="alert">{error}</p>}
   </div>;
   if (post.status === "ready") {
     if (!post.items.length) return <div className="flex flex-col gap-0.5 text-detail">
@@ -46,21 +67,17 @@ function StatusLine({ post }: { post: FeedPost }) {
   return <div className="flex flex-col gap-2" role="status" aria-label="Processing">
     <Shimmer width={tokens.spacing.tap * 5} />
     <Shimmer width={tokens.spacing['table-row'] * 10} />
-    <p className="text-meta text-faint">Processing, traffic low</p>
+    <p className="text-meta text-faint">Processing, traffic {traffic}</p>
   </div>;
 }
 
 export default function PostCard({ post, analysis }: { post: FeedPost; analysis?: ReactNode }) {
   return <article className="flex flex-col gap-2" data-post-id={post.id} data-post-status={post.status}>
-    {post.photoUrl ? (
-      // Signed, already-sized feed copy; do not send private images to an optimizer.
-      // eslint-disable-next-line @next/next/no-img-element
-      <img src={post.photoUrl} alt={post.caption || "Meal photo"} className="aspect-square w-full object-cover" />
-    ) : post.status === "ready" && post.items.length ? <CaptionCard post={post} /> : null}
+    {post.slides?.length ? <Carousel slides={post.slides} caption={post.caption} /> : post.status === "ready" && post.items.length ? <CaptionCard post={post} /> : null}
     <div className="flex flex-col gap-2 px-screen-x">
       <div className="flex items-start justify-between gap-2">
         <p className="min-w-0 whitespace-pre-wrap break-words text-body">{post.caption}</p>
-        <time dateTime={post.eaten_at} className="shrink-0 whitespace-nowrap text-meta text-muted">{timeLabel(post.eaten_at)}</time>
+        <Link href={`/posts/${post.id}`} aria-label="Open meal details" className="min-h-tap shrink-0 whitespace-nowrap text-meta text-muted"><time dateTime={post.eaten_at}>{timeLabel(post.eaten_at)}</time></Link>
       </div>
       {post.status === "ready" && post.items.length > 0 && analysis ? analysis : <StatusLine post={post} />}
     </div>
