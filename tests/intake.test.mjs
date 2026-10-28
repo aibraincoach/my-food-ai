@@ -43,3 +43,30 @@ test("no intake text or code mentions a target, a goal or what is left", () => {
     assert.doesNotMatch(source, /\b(?<!event\.)(target|goal|remaining|left|quota|recommended|daily value)\b/i, file);
   }
 });
+
+import { getDays } from "../src/lib/posts/days.ts";
+
+test("the day story adds up every intake row across pages, not just the first page", async () => {
+  // 2,500 rows on the same local day come back in pages of 1,000; all of them must be counted.
+  const rows = Array.from({ length: 2500 }, (_, i) => ({ kind: "water", amount: 10, logged_at: `2026-10-27T12:${String(i % 60).padStart(2, "0")}:00Z` }));
+  const post = { id: "p1", caption: "", eaten_at: "2026-10-27T13:00:00Z" };
+  const calls = { intakePages: 0 };
+  const builder = (table) => {
+    let range = null;
+    const result = () => {
+      if (table === "posts") return { data: range && range[0] === 0 ? [post] : [], error: null };
+      if (table === "intake_logs") { calls.intakePages++; return { data: rows.slice(range[0], range[1] + 1), error: null }; }
+      return { data: [], error: null };
+    };
+    const chain = new Proxy({}, { get: (_, name) => {
+      if (name === "then") return (resolve) => resolve(result());
+      if (name === "range") return (from, to) => { range = [from, to]; return chain; };
+      if (name === "maybeSingle") return async () => ({ data: null, error: null });
+      return () => chain;
+    } });
+    return chain;
+  };
+  const days = await getDays({ from: builder, storage: { from: () => ({ createSignedUrl: async () => ({ data: null, error: { message: "none" } }) }) } }, "u", "UTC", "2026-10-27", "2026-10-27");
+  assert.equal(calls.intakePages, 3);
+  assert.deepEqual(days[0].intake, { water: 25000, caffeine: 0 });
+});

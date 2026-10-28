@@ -80,10 +80,19 @@ export async function getDays(supabase: SupabaseClient, userId: string, zone: st
   }
   // Water and caffeine logged on a day that has meals appear as that day's intake totals (never a target).
   if (groups.size) {
-    const { data: intake, error: intakeError } = await supabase.from("intake_logs").select("kind,amount,logged_at")
-      .eq("user_id", userId).gte("logged_at", lower).lt("logged_at", upper).limit(5000);
+    // Every row, in a fixed order, a page at a time: a capped response must never pass for the full total.
+    const intake: IntakeRow[] = [];
+    let intakeError = false;
+    for (let offset = 0; ; offset += 1000) {
+      const { data, error } = await supabase.from("intake_logs").select("kind,amount,logged_at")
+        .eq("user_id", userId).gte("logged_at", lower).lt("logged_at", upper)
+        .order("logged_at", { ascending: true }).order("id", { ascending: true }).range(offset, offset + 999);
+      if (error) { intakeError = true; break; }
+      intake.push(...((data ?? []) as IntakeRow[]));
+      if ((data?.length ?? 0) < 1000) break;
+    }
     if (!intakeError) {
-      const byDay = groupIntakeByDay((intake ?? []) as IntakeRow[], (instant) => dateInZone(instant, zone));
+      const byDay = groupIntakeByDay(intake, (instant) => dateInZone(instant, zone));
       for (const day of groups.values()) day.intake = byDay.get(day.date) ?? emptyIntake();
     }
   }
