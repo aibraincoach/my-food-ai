@@ -1,0 +1,182 @@
+import assert from 'node:assert/strict';
+import test from 'node:test';
+import { readFileSync } from 'node:fs';
+import { spawnSync } from 'node:child_process';
+import { withPushLock, pushSessionStarted, pushSignOutStarted, pushIsSigningOut, detachCurrentPushDevice } from '../src/lib/push/lifecycle.ts';
+
+test('logout waits for registration then removes only the current endpoint before unsubscribe', async () => {
+  const events = [];
+  const originalNavigator = Object.getOwnPropertyDescriptor(globalThis, 'navigator');
+  const originalFetch = globalThis.fetch;
+  const originalStorage = Object.getOwnPropertyDescriptor(globalThis, 'localStorage');
+  try {
+    Object.defineProperty(globalThis, 'navigator', { configurable: true, value: { serviceWorker: { getRegistration: async () => ({ pushManager: { getSubscription: async () => ({ endpoint: 'https://fixture.invalid/device-A', unsubscribe: async () => { events.push('unsubscribe'); return true; } }) } }) } } });
+    Object.defineProperty(globalThis, 'localStorage', { configurable: true, value: { removeItem: () => events.push('clear-owner') } });
+    globalThis.fetch = async (_url, init) => {
+      assert.equal(init.method, 'DELETE');
+      assert.deepEqual(JSON.parse(init.body), { endpoint: 'https://fixture.invalid/device-A' });
+      events.push('delete-device'); return new Response('{}');
+    };
+    pushSessionStarted();
+    let release;
+    const pending = withPushLock(async () => { await new Promise(resolve => { release = resolve; }); events.push('registration-complete'); });
+    await new Promise(resolve => setImmediate(resolve));
+    pushSignOutStarted();
+    assert.equal(pushIsSigningOut(), true);
+    const cleanup = withPushLock(detachCurrentPushDevice);
+    release(); await pending; await cleanup;
+    assert.deepEqual(events, ['registration-complete', 'delete-device', 'unsubscribe', 'clear-owner']);
+  } finally {
+    if (originalNavigator) Object.defineProperty(globalThis, 'navigator', originalNavigator); else delete globalThis.navigator;
+    if (originalStorage) Object.defineProperty(globalThis, 'localStorage', originalStorage); else delete globalThis.localStorage;
+    globalThis.fetch = originalFetch; pushSessionStarted();
+  }
+});
+
+test('authenticated logout cannot remove other devices or another account endpoint', () => {
+  assert.ok(process.env.SUPABASE_DB_URL);
+  const migration = readFileSync(new URL('../supabase/migrations/0012_push_subscriptions.sql', import.meta.url), 'utf8');
+  const setup = `select to_regclass('public.push_subscriptions') is not null as installed \\gset
+\\if :installed
+\\else
+${migration}
+\\endif`;
+  const sql = `\\set ON_ERROR_STOP on
+begin;
+set local lock_timeout='5s';
+set local statement_timeout='30s';
+${setup}
+-- Exercise setup again against the installed table, still inside rollback.
+${setup}
+select gen_random_uuid() a, gen_random_uuid() b \\gset
+insert into auth.users(id)values(:'a'),(:'b');
+insert into profiles(id,handle)values(:'a','push-'||:'a'),(:'b','push-'||:'b');
+insert into push_subscriptions(user_id,endpoint,keys)values(:'a','device-A','{}'),(:'a','device-other','{}'),(:'b','device-B','{}');
+set local role authenticated;
+select set_config('request.jwt.claims',jsonb_build_object('sub',:'a','role','authenticated')::text,true);
+delete from push_subscriptions where user_id=:'a' and endpoint='device-A';
+delete from push_subscriptions where endpoint='device-B';
+reset role;
+do $test$ begin
+ if exists(select 1 from push_subscriptions where endpoint='device-A') or not exists(select 1 from push_subscriptions where endpoint='device-other') or not exists(select 1 from push_subscriptions where endpoint='device-B') then raise exception 'logout scope violated'; end if;
+end; $test$;
+rollback;`;
+  const result = spawnSync('psql', ['-X','-q','--dbname',process.env.SUPABASE_DB_URL], { input: sql, encoding: 'utf8', timeout: 90000 });
+  assert.ifError(result.error); assert.equal(result.status, 0, result.stderr);
+});
+
+test('a sign-out started in another tab blocks registration here until the marker expires or fails', async () => {
+  const store = new Map();
+  const originalStorage = Object.getOwnPropertyDescriptor(globalThis, 'localStorage');
+  const originalNow = Date.now;
+  Object.defineProperty(globalThis, 'localStorage', { configurable: true, value: { getItem: (k) => store.get(k) ?? null, setItem: (k, v) => store.set(k, v), removeItem: (k) => store.delete(k) } });
+  try {
+    const { pushSignOutFailed } = await import('../src/lib/push/lifecycle.ts');
+    pushSessionStarted();
+    pushSignOutStarted();            // tab A starts signing out and writes the shared marker
+    pushSessionStarted();            // tab B mounts: its own flag is clear, the shared marker is not
+    assert.equal(pushIsSigningOut(), true);
+    const start = originalNow();
+    Date.now = () => start + 31_000;  // a stuck marker expires so a later sign-in is not blocked
+    assert.equal(pushIsSigningOut(), false);
+    Date.now = originalNow;
+    pushSignOutStarted(); pushSessionStarted();
+    assert.equal(pushIsSigningOut(), true);
+    pushSignOutFailed();             // a failed sign-out releases every tab
+    assert.equal(pushIsSigningOut(), false);
+  } finally {
+    Date.now = originalNow;
+    if (originalStorage) Object.defineProperty(globalThis, 'localStorage', originalStorage); else delete globalThis.localStorage;
+  }
+});
+
+test('registration and logout share one origin-wide Web Lock', async () => {
+  const names = [];
+  const originalNavigator = Object.getOwnPropertyDescriptor(globalThis, 'navigator');
+  Object.defineProperty(globalThis, 'navigator', { configurable: true, value: { locks: { request: async (name, work) => { names.push(name); return work(); } } } });
+  try {
+    await withPushLock(async () => 'registration');
+    await withPushLock(async () => 'logout');
+    assert.deepEqual(names, ['meal-push-lifecycle', 'meal-push-lifecycle']);
+  } finally {
+    if (originalNavigator) Object.defineProperty(globalThis, 'navigator', originalNavigator); else delete globalThis.navigator;
+  }
+});
+
+function pushEnvironment(subscription) {
+  Object.defineProperty(globalThis, 'navigator', { configurable: true, value: { serviceWorker: { getRegistration: async () => ({ pushManager: { getSubscription: async () => subscription } }) } } });
+}
+
+test('a failed server detach still unsubscribes the browser, then reports the failure', async () => {
+  const { detachCurrentPushDevice } = await import('../src/lib/push/lifecycle.ts');
+  const originalNavigator = Object.getOwnPropertyDescriptor(globalThis, 'navigator');
+  const originalFetch = globalThis.fetch;
+  let unsubscribed = 0;
+  pushEnvironment({ endpoint: 'https://fixture.invalid/device-A', unsubscribe: async () => { unsubscribed++; return true; } });
+  globalThis.fetch = async () => new Response('{}', { status: 500 });
+  try {
+    await assert.rejects(detachCurrentPushDevice(), /could not be detached/);
+    assert.equal(unsubscribed, 1);
+  } finally {
+    globalThis.fetch = originalFetch;
+    if (originalNavigator) Object.defineProperty(globalThis, 'navigator', originalNavigator); else delete globalThis.navigator;
+  }
+});
+
+test('a hanging server detach is aborted at its deadline so the lifecycle lock is released', { timeout: 20000 }, async () => {
+  const { detachCurrentPushDevice, detachRequestTimeoutMs } = await import('../src/lib/push/lifecycle.ts');
+  const originalNavigator = Object.getOwnPropertyDescriptor(globalThis, 'navigator');
+  const originalFetch = globalThis.fetch;
+  const realSetTimeout = globalThis.setTimeout;
+  let unsubscribed = 0;
+  pushEnvironment({ endpoint: 'https://fixture.invalid/device-A', unsubscribe: async () => { unsubscribed++; return true; } });
+  globalThis.fetch = (_url, init) => new Promise((_, reject) => init.signal.addEventListener('abort', () => reject(new DOMException('aborted', 'AbortError'))));
+  globalThis.setTimeout = (fn, ms, ...rest) => realSetTimeout(fn, ms === detachRequestTimeoutMs ? 20 : ms, ...rest); // shorten only the detach deadline
+  try {
+    await assert.rejects(withPushLock(detachCurrentPushDevice), /could not be detached/);
+    assert.equal(unsubscribed, 1);
+    assert.equal(await withPushLock(async () => 'next lifecycle operation'), 'next lifecycle operation'); // the lock was released
+  } finally {
+    globalThis.setTimeout = realSetTimeout;
+    globalThis.fetch = originalFetch;
+    if (originalNavigator) Object.defineProperty(globalThis, 'navigator', originalNavigator); else delete globalThis.navigator;
+  }
+});
+
+test('starting a sign-out aborts a stalled registration request so it cannot hold the lock', { timeout: 20000 }, async () => {
+  const { postPushSubscription, pushSignOutFailed } = await import('../src/lib/push/lifecycle.ts');
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = (_url, init) => new Promise((_, reject) => init.signal.addEventListener('abort', () => reject(new DOMException('aborted', 'AbortError'))));
+  try {
+    pushSessionStarted();
+    const registration = withPushLock(() => postPushSubscription({ endpoint: 'https://fixture.invalid/device-A' }));
+    await new Promise(resolve => setImmediate(resolve));
+    pushSignOutStarted();
+    await assert.rejects(registration, /aborted/);
+    assert.equal(await withPushLock(async () => 'logout cleanup runs'), 'logout cleanup runs');
+    pushSignOutFailed(); // a later registration gets a fresh signal
+    globalThis.fetch = async (_url, init) => { assert.equal(init.signal.aborted, false); return new Response('{}'); };
+    assert.equal((await postPushSubscription({})).status, 200);
+  } finally { globalThis.fetch = originalFetch; pushSignOutFailed(); }
+});
+
+test('a subscription without a matching owner marker is dropped; a matching one is kept', async () => {
+  const { reconcilePushOwner } = await import('../src/lib/push/lifecycle.ts');
+  const originalNavigator = Object.getOwnPropertyDescriptor(globalThis, 'navigator');
+  let unsubscribed = 0;
+  Object.defineProperty(globalThis, 'navigator', { configurable: true, value: { serviceWorker: { getRegistration: async () => ({ pushManager: { getSubscription: async () => ({ unsubscribe: async () => { unsubscribed++; return true; } }) } }) } } });
+  const store = new Map();
+  const storage = { read: (k) => store.get(k) ?? null, write: (k, v) => store.set(k, v) };
+  try {
+    await reconcilePushOwner('account-B', storage);        // no marker: an interrupted registration or A's leftover
+    assert.equal(unsubscribed, 1);
+    assert.equal(store.get('meal-push-owner'), '');
+    store.set('meal-push-owner', 'account-B');
+    await reconcilePushOwner('account-B', storage);        // marker matches: kept
+    assert.equal(unsubscribed, 1);
+    await reconcilePushOwner('account-C', storage);        // another account: dropped
+    assert.equal(unsubscribed, 2);
+  } finally {
+    if (originalNavigator) Object.defineProperty(globalThis, 'navigator', originalNavigator); else delete globalThis.navigator;
+  }
+});

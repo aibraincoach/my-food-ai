@@ -1,3 +1,4 @@
+import { sendPostPush } from "@/lib/push/send";
 import { ioError } from "@/lib/worker/errors";
 // One-RPC persist for a finished analysis (item 10). Inserts one
 // post_items row per item (source model, mask_path, box), the matching
@@ -102,13 +103,16 @@ export async function persistAnalysis(
 // Publication clears clarification atomically with ready under the post lock. The stored card is optional:
 // a render or upload failure is logged and the meal is marked ready on its nutrition anyway; the live card
 // is the fallback. (An outdated card after a failed regeneration is tracked in the backlog.)
-export async function markReady(postId: string, admin: SupabaseClient = createAdminClient(), jobId?:string): Promise<boolean> {
+export async function markReady(postId: string, admin: SupabaseClient = createAdminClient(), jobId?:string, options: { notify?: boolean } = {}): Promise<boolean> {
+  let ready: boolean;
   try {
-    return await renderResultsCard(admin, postId, jobId);
+    ready = await renderResultsCard(admin, postId, jobId);
   } catch (cardError) {
     console.error("results card failed; marking the meal ready without it", postId, cardError instanceof Error ? cardError.message : cardError);
     const { data, error, status } = await admin.rpc("mark_post_ready", { p_post_id: postId, p_job_id: jobId ?? null });
     if (error) throw ioError("Post readiness could not be saved.", error, status);
-    return data === true;
+    ready = data === true;
   }
+  if (ready && options.notify !== false) await sendPostPush(admin, postId);
+  return ready;
 }

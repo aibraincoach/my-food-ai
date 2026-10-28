@@ -1,7 +1,7 @@
 import { connection } from "next/server";
 import { redirect } from "next/navigation";
 import { ProfileGrid } from "@/components/ProfileGrid";
-import { signOut } from "@/lib/auth/actions";
+import { SignOutButton } from "@/components/SignOutButton";
 import { getProfileGrid } from "@/lib/posts/grid";
 import { createClient } from "@/lib/supabase/server";
 
@@ -19,9 +19,7 @@ export default async function ProfilePage() {
     <main className="flex flex-1 flex-col">
       <header className="flex h-top-h shrink-0 items-center justify-between gap-3 px-screen-x">
         <h1 className="truncate text-title">@{profile.handle}</h1>
-        <form action={signOut}>
-          <button type="submit" className="min-h-tap shrink-0 whitespace-nowrap text-comment text-muted">Sign out</button>
-        </form>
+        <SignOutButton />
       </header>
       <ProfileGrid posts={posts} />
     </main>

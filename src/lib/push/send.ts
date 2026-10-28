@@ -1,0 +1,49 @@
+import webpush from "web-push";
+import type { SupabaseClient } from "@supabase/supabase-js";
+
+export function validSubscription(value: unknown): value is webpush.PushSubscription {
+  if (!value || typeof value !== "object") return false;
+  const subscription = value as webpush.PushSubscription;
+  try {
+    const url = new URL(subscription.endpoint);
+    return typeof subscription.endpoint === "string" && subscription.endpoint.length <= 4096 &&
+      url.protocol === "https:" && !url.port && !url.username && !url.password && (
+        url.hostname === "fcm.googleapis.com" || url.hostname === "web.push.apple.com" ||
+        url.hostname === "updates.push.services.mozilla.com" || url.hostname.endsWith(".notify.windows.com")
+      ) && /^[A-Za-z0-9_-]{87}$/.test(subscription.keys?.p256dh ?? "") && /^[A-Za-z0-9_-]{22}$/.test(subscription.keys?.auth ?? "");
+  } catch { return false; }
+}
+
+// Delivery is optional: a push outage must never invalidate meal analysis.
+export async function sendPostPush(admin: SupabaseClient, postId: string, question?: string): Promise<void> {
+  const publicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
+  const privateKey = process.env.VAPID_PRIVATE_KEY;
+  const subject = process.env.VAPID_SUBJECT;
+  if (!publicKey || !privateKey || !subject) return;
+  try {
+    const { data: post, error } = await admin.from("posts").select("user_id,status,needs_input").eq("id", postId).maybeSingle();
+    if (error || !post) return;
+    // Persistence may have queued an answer submitted during the model call.
+    // Notify only the state that actually survived that transaction.
+    if (question !== undefined) {
+      if (post.status !== "needs_input" || post.needs_input?.question !== question) return;
+    } else if (post.status !== "ready") return;
+    const { data: subscriptions, error: subscriptionError } = await admin.from("push_subscriptions")
+      .select("id,endpoint,keys").eq("user_id", post.user_id);
+    if (subscriptionError || !subscriptions?.length) return;
+    // The notification carries generic text only: no question, caption, nutrition or image. A lock screen or a
+    // shared device can show it, so the meal stays inside the app. The post id is only what the tap opens.
+    const payload = JSON.stringify({ title: question ? "Your meal needs a reply" : "Your meal is ready", postId });
+    await Promise.all(subscriptions.map(async (subscription) => {
+      if (!validSubscription(subscription)) return;
+      try {
+        await webpush.sendNotification({ endpoint: subscription.endpoint, keys: subscription.keys }, payload,
+          { vapidDetails: { subject, publicKey, privateKey }, TTL: 3600, timeout: 10000 });
+      } catch (error) {
+        if (typeof error === "object" && error !== null && "statusCode" in error && (error.statusCode === 410 || error.statusCode === 404)) {
+          await admin.from("push_subscriptions").delete().eq("id", subscription.id).eq("user_id", post.user_id);
+        }
+      }
+    }));
+  } catch { /* Push is best-effort; never log private endpoints or keys. */ }
+}
