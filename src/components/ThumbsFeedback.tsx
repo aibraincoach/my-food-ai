@@ -1,4 +1,5 @@
 'use client';
+import FirstRunHint from "@/components/FirstRunHint";
 import {useEffect,useRef,useState} from 'react';
 import {useRouter} from 'next/navigation';
 import {createClient} from '@/lib/supabase/client';
@@ -15,5 +16,7 @@ export default function ThumbsFeedback({postId,modelCommentId,fingerprint}:{post
   try{await sendFeedback(postId,value,modelCommentId,fingerprint);setVerdict(value);if(value==='down')router.push(`/posts/${postId}?reply=1`);}
   catch{setError('Feedback could not be saved.');}finally{saving.current=false;setBusy(false);}
  };
- return <div><div className="flex gap-2 py-2">{(['up','down']as const).map(value=><button key={value} type="button" disabled={busy||!modelCommentId||!fingerprint} aria-label={value==='up'?'Accept analysis':'Correct analysis'} aria-pressed={verdict===value} className={`flex min-h-tap min-w-tap items-center justify-center ${verdict===value?'text-text':'text-muted'}`} onClick={()=>{void vote(value);}}><Icon name="thumb" down={value==='down'}/></button>)}</div>{error?<p role="alert" className="text-meta text-muted">{error}</p>:null}</div>;
+ return <div><div className="flex items-center gap-2 py-2">{(['up','down']as const).map(value=><button key={value} type="button" disabled={busy||!modelCommentId||!fingerprint} aria-label={value==='up'?'Accept analysis':'Correct analysis'} aria-pressed={verdict===value} className={`flex min-h-tap min-w-tap items-center justify-center ${verdict===value?'text-text':'text-muted'}`} onClick={()=>{void vote(value);}}><Icon name="thumb" down={value==='down'}/></button>)}<FirstRunHint hint="thumbs" /></div>{error?<p role="alert" className="text-meta text-muted">{error}</p>:null}</div>;
+
+
 }
