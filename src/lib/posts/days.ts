@@ -1,9 +1,10 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { feedCopyUrl } from "@/lib/media/media-url";
+import { groupIntakeByDay, emptyIntake, type IntakeRow, type IntakeTotals } from "@/lib/intake/intake";
 import { getCurrentItems, sumNutrition, type CurrentItem, type MealTotals } from "@/lib/nutrition/totals";
 
 export interface DayPost { id: string; caption: string; eatenAt: string; photoUrl: string | null; items: CurrentItem[]; totals: MealTotals }
-export interface LoggedDay { date: string; posts: DayPost[]; totals: MealTotals }
+export interface LoggedDay { date: string; posts: DayPost[]; totals: MealTotals; intake: IntakeTotals }
 export function validZone(zone?: string | null): string {
   try { if (zone) { zone = decodeURIComponent(zone); new Intl.DateTimeFormat("en", { timeZone: zone }); return zone; } } catch {}
   return "UTC";
@@ -71,11 +72,29 @@ export async function getDays(supabase: SupabaseClient, userId: string, zone: st
       for (const entry of loaded) {
         if (!entry) continue;
         const { date, post } = entry;
-        const day = groups.get(date) ?? { date, posts: [], totals: sumNutrition([]) };
+        const day = groups.get(date) ?? { date, posts: [], totals: sumNutrition([]), intake: emptyIntake() };
         day.posts.push(post); day.totals = sumNutrition([day.totals, post.totals]); groups.set(date, day);
       }
     }
     if ((data?.length ?? 0) < 100) break;
+  }
+  // Water and caffeine logged on a day that has meals appear as that day's intake totals (never a target).
+  if (groups.size) {
+    // Every row, in a fixed order, a page at a time: a capped response must never pass for the full total.
+    const intake: IntakeRow[] = [];
+    let intakeError = false;
+    for (let offset = 0; ; offset += 1000) {
+      const { data, error } = await supabase.from("intake_logs").select("kind,amount,logged_at")
+        .eq("user_id", userId).gte("logged_at", lower).lt("logged_at", upper)
+        .order("logged_at", { ascending: true }).order("id", { ascending: true }).range(offset, offset + 999);
+      if (error) { intakeError = true; break; }
+      intake.push(...((data ?? []) as IntakeRow[]));
+      if ((data?.length ?? 0) < 1000) break;
+    }
+    if (!intakeError) {
+      const byDay = groupIntakeByDay(intake, (instant) => dateInZone(instant, zone));
+      for (const day of groups.values()) day.intake = byDay.get(day.date) ?? emptyIntake();
+    }
   }
   return [...groups.values()].sort((a, b) => a.date.localeCompare(b.date));
 }

@@ -1,6 +1,7 @@
 "use client";
 
 import { formatNutrition } from "@/lib/nutrition/totals";
+import { intakeLine } from "@/lib/intake/intake";
 import { tokens } from "@/lib/theme/tokens";
 
 import { useRef, useState, useSyncExternalStore } from "react";
@@ -69,6 +70,7 @@ export default function StoryPlayer({ day, zone, zoneKnown, previous, next }: { 
         <div className="grid grid-cols-3 border-t border-surface/15 pt-4">
           {([[day.totals.protein_g, "protein"], [day.totals.carbs_g, "carbs"], [day.totals.fat_g, "fat"]] as const).map(([value, word]) => <div key={word}><p className="text-day-macro tabular-nums">{formatNutrition(value)} g</p><p className="text-meta text-faint">{word}</p></div>)}
         </div>
+        {intakeLine(day.intake) ? <p className="text-meta text-faint tabular-nums">{intakeLine(day.intake)}</p> : null}
         <div className="grid grid-cols-3 gap-2">{day.posts.map((entry) => <Link key={entry.id} href={`/posts/${entry.id}`} className="min-w-0">
           <div className="flex aspect-square items-center justify-center overflow-hidden rounded-thumb bg-card text-text">
             {photo(entry) ? (
