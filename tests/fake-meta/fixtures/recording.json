@@ -1,0 +1,11 @@
+{
+  "recorded_at": "2026-10-27T17:22:04.622Z",
+  "source": "Real Meta Model API and USDA responses",
+  "inputs": [
+    "plate1.jpg",
+    "plate2.jpg",
+    "plate3.jpg",
+    "tone.wav"
+  ],
+  "image_bytes_stored": false
+}

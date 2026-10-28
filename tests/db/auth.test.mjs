@@ -8,5 +8,5 @@ test('ordinary account signs in and reads its profile', async () => {
     const profile = checked(await account.client.from('profiles').select('id,role').eq('id',account.user.id).single());
     assert.equal(profile.id, account.user.id);
     assert.equal(profile.role, 'user');
-  } finally { await account.client.auth.signOut(); }
+  } finally { await account.client.auth.signOut({scope:'local'}); }
 });

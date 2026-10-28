@@ -4,7 +4,7 @@ import { ApiError } from "@/lib/worker/errors";
 // Base URL https://api.meta.ai/v1, header Authorization: Bearer $MODEL_API_KEY.
 // Keys stay server-side; nothing here runs in the browser.
 
-export const META_API_BASE_URL = "https://api.meta.ai/v1";
+export const META_API_BASE_URL = process.env.MODEL_API_BASE_URL || "https://api.meta.ai/v1";
 
 export function metaApiKey(): string {
   const key = process.env.MODEL_API_KEY;
