@@ -5,8 +5,8 @@ export type TimelineComment = Cursor & { author: 'user' | 'model'; body: string 
 type Progress = Cursor & { payload: Record<string, unknown> };
 // Continue until an empty page, including when the server caps pages below our
 // requested size. Both columns are immutable and id breaks timestamp ties.
-async function readTimeline<T extends Cursor>(client: SupabaseClient, table: string, columns: string, postId: string, progress = false): Promise<T[]> {
- const rows:T[]=[]; let cursor:Cursor|undefined;
+async function readTimeline<T extends Cursor>(client: SupabaseClient, table: string, columns: string, postId: string, progress = false, after?: Cursor): Promise<T[]> {
+ const rows:T[]=[]; let cursor:Cursor|undefined=after;
  for (;;) {
   let query=client.from(table).select(columns).eq('post_id',postId).order('created_at').order('id').limit(500);
   if(progress)query=query.eq('kind','correct').eq('payload->>correction_applied','true');
@@ -21,4 +21,6 @@ async function readTimeline<T extends Cursor>(client: SupabaseClient, table: str
  }
 }
 export const readPostComments=(client:SupabaseClient,postId:string)=>readTimeline<TimelineComment>(client,'post_comments','id,author,body,created_at',postId);
+// Only comments after a known (created_at, id) position: an idle thread polls this, not the whole history.
+export const readPostCommentsAfter=(client:SupabaseClient,postId:string,after:{id:string;created_at:string})=>readTimeline<TimelineComment>(client,'post_comments','id,author,body,created_at',postId,false,after);
 export const readCorrectionProgress=(client:SupabaseClient,postId:string)=>readTimeline<Progress>(client,'jobs','id,created_at,payload',postId,true);

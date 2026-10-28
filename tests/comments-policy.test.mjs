@@ -25,11 +25,14 @@ insert into auth.users(id)values(:'owner'),(:'other');
 insert into profiles(id,handle)values(:'owner','comment-'||:'owner'),(:'other','comment-'||:'other');
 insert into posts(user_id,status)values(:'owner','ready')returning id as post \\gset
 select set_config('test.post',:'post',true),set_config('test.owner',:'owner',true);
+insert into post_comments(post_id,author,body)values(:'post','user','User words');
 set local role authenticated;
 select set_config('request.jwt.claims',jsonb_build_object('sub',:'owner','role','authenticated')::text,true);
 do $t$
 begin
- insert into post_comments(post_id,author,body)values(current_setting('test.post')::uuid,'user','User words');
+ begin
+  insert into post_comments(post_id,author,body)values(current_setting('test.post')::uuid,'user','Direct words');raise exception 'direct user insert allowed';
+ exception when insufficient_privilege then null;end;
  begin
   insert into post_comments(post_id,author,body)values(current_setting('test.post')::uuid,'model','Forged');raise exception 'model author allowed';
  exception when insufficient_privilege then null;end;
