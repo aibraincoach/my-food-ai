@@ -7,6 +7,7 @@ import { chooseBestMatch } from "./nutrients";
 // Server-only: reads FDC_API_KEY from the environment.
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { ApiError, ioError } from "@/lib/worker/errors";
+import { portionsFromDetail, type FoodPortion } from "@/lib/nutrition/units";
 
 const FDC_BASE_URL = "https://api.nal.usda.gov/fdc/v1";
 const DATA_TYPES = "Foundation,SR Legacy,Branded";
@@ -25,6 +26,8 @@ export interface FdcFood {
   foodNutrients: FdcNutrient[];
   servingSize?: number;
   servingSizeUnit?: string;
+  // Gram weights the food states for cups and pieces (detail lookups only).
+  portions?: FoodPortion[];
 }
 
 function fdcApiKey(): string {
@@ -154,7 +157,8 @@ export function parseFoodDetail(payload: unknown, expectedId: number): FdcFood {
   }
   return {fdcId: expectedId, description: food.description, dataType: food.dataType, foodNutrients: nutrients,
     servingSize: typeof food.servingSize === "number" ? food.servingSize : undefined,
-    servingSizeUnit: typeof food.servingSizeUnit === "string" ? food.servingSizeUnit : undefined};
+    servingSizeUnit: typeof food.servingSizeUnit === "string" ? food.servingSizeUnit : undefined,
+    portions: portionsFromDetail(payload)};
 }
 
 export async function getFoodById(admin: SupabaseClient, id: number): Promise<FdcFood> {

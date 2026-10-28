@@ -6,6 +6,7 @@ import { Field } from "@/components/ui/Field";
 import { Button } from "@/components/ui/Button";
 import type { DetailItem, ItemBox, ItemEdit } from "@/lib/posts/items";
 import { formatGrams, formatNutrition } from "@/lib/nutrition/totals";
+import { OZ_G, UNITS, type Unit } from "@/lib/nutrition/units";
 
 type Match = { id: number; description: string };
 export default function ItemEditSheet({ postId, item, color, box, open = true, onClose, onSaved, onAdd, onDraw }: {
@@ -14,6 +15,7 @@ export default function ItemEditSheet({ postId, item, color, box, open = true, o
 }) {
   const [name, setName] = useState(item?.name ?? "");
   const [grams, setGrams] = useState(item?.portion_grams == null ? "" : String(item.portion_grams));
+  const [unit, setUnit] = useState<Unit>("g");
   const [chosen, setChosen] = useState(name);
   const [fdcSelection, setFdcSelection] = useState<ItemEdit["fdc_selection"]>();
   const [matches, setMatches] = useState<{ query: string; values: Match[]; error?: string } | null>(null);
@@ -38,6 +40,14 @@ export default function ItemEditSheet({ postId, item, color, box, open = true, o
     return () => { clearTimeout(timer); controller.abort(); };
   }, [name, chosen]);
 
+  // Keep the number meaningful across a unit change: g and oz convert, cup and piece start empty.
+  const changeUnit = (next: Unit) => {
+    const value = Number(grams);
+    if (grams !== "" && Number.isFinite(value) && value > 0 && (unit === "g" || unit === "oz") && (next === "g" || next === "oz") && next !== unit) {
+      setGrams(String(Math.round((next === "oz" ? value / OZ_G : value * OZ_G) * 100) / 100));
+    } else if (next !== unit) setGrams("");
+    setUnit(next);
+  };
   const submit = async (remove = false) => {
     if (savingRef.current) return;
     const amount = Number(grams);
@@ -47,7 +57,7 @@ export default function ItemEditSheet({ postId, item, color, box, open = true, o
     savingRef.current = true; setSaving(true); setError(null);
     const edit: ItemEdit = remove ? { action: "remove", item_id: item?.id } : {
       action: !item ? "add" : name.trim() !== item.name ? "rename" : "portion",
-      item_id: item?.id, name: name.trim(), portion_grams: amount, fdc_selection: fdcSelection, ...(!item && box ? { box } : {}),
+      item_id: item?.id, name: name.trim(), ...(unit === "g" ? { portion_grams: amount } : { portion_amount: amount, portion_unit: unit }), fdc_selection: fdcSelection, ...(!item && box ? { box } : {}),
     };
     try {
       const response = await fetch(`/api/posts/${postId}/items`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(edit) });
@@ -71,10 +81,13 @@ export default function ItemEditSheet({ postId, item, color, box, open = true, o
       {visibleMatches?.error ? <p className="text-meta text-muted">{visibleMatches.error}</p> : null}
     </div>
     <div className="flex flex-col gap-2">
-      <Field label="Portion" type="number" inputMode="decimal" min="0.01" max="100000" step="any" value={grams} suffix="g" disabled={saving} onChange={(event) => setGrams(event.target.value)} />
-      <div className="flex gap-2">{[80, 120, 160, 200].map((amount) => <button type="button" key={amount} disabled={saving} aria-pressed={Number(grams) === amount}
+      <Field label="Portion" type="number" inputMode="decimal" min="0.01" max="100000" step="any" value={grams} suffix={unit} disabled={saving} onChange={(event) => setGrams(event.target.value)} />
+      <div className="flex gap-2" role="group" aria-label="Unit">{UNITS.map((option) => <button type="button" key={option} disabled={saving} aria-pressed={unit === option}
+        className={`min-h-tap flex-1 rounded-field border text-body ${unit === option ? "border-text bg-text text-surface" : "border-line bg-white text-text"}`}
+        onClick={() => changeUnit(option)}>{option}</button>)}</div>
+      {unit === "g" ? <div className="flex gap-2">{[80, 120, 160, 200].map((amount) => <button type="button" key={amount} disabled={saving} aria-pressed={Number(grams) === amount}
         className={`min-h-tap flex-1 rounded-field border text-body ${Number(grams) === amount ? "border-text bg-text text-surface" : "border-line bg-white text-text"}`}
-        onClick={() => setGrams(String(amount))}>{amount} g</button>)}</div>
+        onClick={() => setGrams(String(amount))}>{amount} g</button>)}</div> : null}
     </div>
     {!item && onDraw ? <button type="button" onClick={onDraw} disabled={saving} className="min-h-tap text-left text-comment text-muted">{box ? "Draw a different box" : "Draw a box on the photo (optional)"}</button> : null}
     {error ? <p role="alert" className="text-detail text-text">{error}</p> : null}
