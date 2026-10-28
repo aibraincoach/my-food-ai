@@ -9,32 +9,15 @@
 - #8 SAM 3.1 segmentation step
 - #9 Item naming and portions
 - #10 Nutrition lookup
-- #11 Feed
-- #14 Comment or correct thread
-- #15 Thumbs feedback
-- #16 Mismatch and needs-input strip
-- #17 Repeated meals
 - #18 Days
-- #19 Search
 - #20 Profile
-- #21 Queue traffic indicator and admin view
-- #22 Push notifications
 - #23 First-run hints
 - #24 Rate limit and load test
-- #25 Voice correction
 - #26 Demo video and submission
 - #28 Design system from the designer's style sheet
 - #29 Results card as a carousel slide
 - #44 Dedicated test account for browser checks of signed-in production app
-- #45 Capture browser geolocation at post time for repeated-meal ranking
-- #50 Database integration tests for auth, RLS, queue drain, and after()
-- #58 A new post appears at the top of Home without a reload
-- #59 Live camera viewfinder with a flip-camera button on the capture screen
 - #60 The public repository holds no personal names, account detail or internal history
-- #61 A judge can run the app from a clean clone with one setup check
-- #62 A set of real meal photos scores the app's estimates against expected items
-- #63 Model-written text is checked in code for banned wording before it is stored
-- #64 LICENSE and third-party notices on main
 - #65 The pipeline's tests run against an offline fake Meta Model API
 - #66 The Meta Model API client sets its retries and timeout explicitly
 - #67 Each post keeps a trace of its model calls, readable on the admin page
@@ -47,5 +30,7 @@
 - #112 The job handlers are registered in an explicit registry, with no dynamic import and no test_throw handler in production
 - #114 Public sign-in with Facebook works in production mode (blocked: Meta app review)
 - #115 Dark mode renders every screen from the same tokens (blocked: scope; the first design pass is light mode only)
+- #137 A post whose photo is not yet readable when analysis starts is retried, not failed
+- #139 Renewing the worker lease actually extends a lease its own holder still holds
 
 † One GitHub issue per item, with a title that states the done condition; an issue is closed by its pull request. This file is regenerated from the open issues by `node scripts/backlog.mjs` and is never edited by hand.
