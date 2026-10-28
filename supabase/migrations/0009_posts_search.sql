@@ -2,12 +2,22 @@ create extension if not exists pg_trgm;
 alter table public.posts add column search_tsv tsvector;
 create index posts_search_idx on public.posts using gin(search_tsv);
 create function public.rebuild_post_search() returns trigger language plpgsql security definer set search_path=public as $$
+declare target uuid;
 begin
   if tg_table_name='posts' then
     new.search_tsv=to_tsvector('english',coalesce(new.caption,'')||' '||coalesce((select string_agg(name,' ') from post_items where post_id=new.id and superseded_at is null),''));
     return new;
   end if;
-  update posts set search_tsv=to_tsvector('english',coalesce(caption,'')||' '||coalesce((select string_agg(name,' ') from post_items where post_id=coalesce(new.post_id,old.post_id) and superseded_at is null),'')) where id=coalesce(new.post_id,old.post_id);
+  -- Every post an item change touches is rebuilt: both of them when an item moves.
+  -- Each is locked first, in id order (so two writers cannot deadlock), and its items are read
+  -- only after the lock is held, so a concurrent insert that commits first is always seen.
+  for target in
+    select distinct x from unnest(array[case when tg_op<>'INSERT' then old.post_id end, case when tg_op<>'DELETE' then new.post_id end]) as t(x)
+    where x is not null order by x
+  loop
+    perform 1 from posts where id=target for update;
+    update posts set search_tsv=to_tsvector('english',coalesce(caption,'')||' '||coalesce((select string_agg(name,' ') from post_items where post_id=target and superseded_at is null),'')) where id=target;
+  end loop;
   return coalesce(new,old);
 end $$;
 create trigger posts_search before insert or update of caption on public.posts for each row execute function public.rebuild_post_search();

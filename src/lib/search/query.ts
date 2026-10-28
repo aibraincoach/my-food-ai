@@ -4,7 +4,7 @@ import type {SupabaseClient} from "@supabase/supabase-js";
 import {createResponse} from "@/lib/meta/client";
 import {searchQueryPrompt,searchQuerySchema} from "@/lib/prompts/spark/search-query";
 import {getPostCard,type FeedPost} from "@/lib/posts/feed";
-import {hasSemanticOperator,SEARCH_HYDRATE_CONCURRENCY,SEARCH_PAGE_SIZE} from "./operators";
+import {hasSemanticOperator,SEARCH_HYDRATE_CONCURRENCY,SEARCH_PAGE_SIZE,stripQuestionWords} from "./operators";
 
 export type SearchResult={posts:FeedPost[];truncated:boolean};
 
@@ -26,7 +26,7 @@ export async function searchPosts(db:SupabaseClient,text:string,timeZone?:string
   const parsed=parseSearchDates(text,zone,now);
   let terms=parsed.terms;
   const from=parsed.from,to=parsed.to;
-  terms=terms.replace(/\b(what|did|i|eat|on|at|the|show|me)\b/gi," ").trim();
+  terms=stripQuestionWords(terms);
   // The direct full-text path is only for literal food searches; a question with a meal,
   // size or recency word always goes through the structured interpretation below.
   if(!hasSemanticOperator(text)){

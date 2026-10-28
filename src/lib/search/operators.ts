@@ -8,3 +8,9 @@ export function hasSemanticOperator(text: string): boolean {
 
 export const SEARCH_PAGE_SIZE = 24;
 export const SEARCH_HYDRATE_CONCURRENCY = 6;
+
+// Question filler is removed only outside quotation marks: "chicken on the rice" is a phrase the
+// reader asked for exactly.
+export function stripQuestionWords(text: string): string {
+  return text.split(/("[^"]*")/).map((part, index) => index % 2 === 1 ? part : part.replace(/\b(what|did|i|eat|on|at|the|show|me)\b/gi, " ")).join("").replace(/\s+/g, " ").trim();
+}

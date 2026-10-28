@@ -14,3 +14,11 @@ test("plain food searches are literal", () => {
     assert.equal(hasSemanticOperator(text), false, text);
   }
 });
+
+import { stripQuestionWords } from "../src/lib/search/operators.ts";
+
+test("question filler is stripped outside quotes and kept inside them", () => {
+  assert.equal(stripQuestionWords("what did I eat on Monday"), "Monday");
+  assert.equal(stripQuestionWords('show me "chicken on the rice"'), '"chicken on the rice"');
+  assert.equal(stripQuestionWords('the "a b" what ramen'), '"a b" ramen');
+});
