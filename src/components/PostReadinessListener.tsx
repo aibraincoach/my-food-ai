@@ -47,7 +47,10 @@ export default function PostReadinessListener() {
       event: "UPDATE", schema: "public", table: "posts",
     }, ({ new: row }) => {
       if (typeof row.id === "string") settle(row.id, row.status);
-    }).subscribe();
+    }).subscribe((status) => {
+      // Reconcile once the channel is live (and again after a reconnect): the first read can run before it is.
+      if (status === "SUBSCRIBED") void seedPending();
+    });
     void seedPending();
     // Only poll pending IDs discovered at entry or newly created IDs. Back off after two minutes and stop after
     // fifteen; no repeated page hydration while analysis is still pending.

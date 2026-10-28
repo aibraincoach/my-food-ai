@@ -1,5 +1,6 @@
 import { tokens } from "@/lib/theme/tokens";
 import Link from "next/link";
+import SafeImage from "@/components/SafeImage";
 import type { LoggedDay } from "@/lib/posts/days";
 
 export default function MonthGrid({ month, days, today, zone }: { month: string; days: LoggedDay[]; today: string; zone: string }) {
@@ -24,10 +25,7 @@ export default function MonthGrid({ month, days, today, zone }: { month: string;
         const day = days.find((entry) => entry.date === date);
         return <Link href={`/days/${date}?tz=${encodeURIComponent(zone)}`} key={date} className="flex flex-col items-center" style={{ gap: tokens.calendar.labelGap }} aria-label={`${date}${day ? `, ${Math.round(day.totals.calories)} kcal` : ""}`}>
           <span className={`relative overflow-hidden rounded-tile ${date === today ? "border-text" : ""}`} style={{ width: "100%", maxWidth: tokens.calendar.cell, aspectRatio: "1 / 1", borderWidth: date === today ? tokens.calendar.border : undefined }}>
-            {day?.posts[0]?.photoUrl && (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={day.posts[0].photoUrl} alt="" className="absolute inset-0 h-full w-full object-cover" />
-            )}
+            {day?.posts[0]?.photoUrl && <SafeImage src={day.posts[0].photoUrl} className="absolute inset-0 h-full w-full object-cover" />}
             <span style={{ padding: tokens.calendar.padding }} className={`relative block text-label font-medium ${date > today ? "text-faint" : "text-text"}`}>{index + 1}</span>
           </span>
           <span className="text-bubble text-muted tabular-nums" style={{ height: tokens.calendar.labelHeight, lineHeight: `${tokens.calendar.labelHeight}px` }}>{day ? `${Math.round(day.totals.calories)} kcal` : ""}</span>
