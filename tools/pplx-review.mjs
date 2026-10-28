@@ -434,7 +434,10 @@ async function pollAnswer(tab) {
       return { ok: false, code: 3, message: "DEVIATION: Searching the web", header, text };
     }
     const len = text.length;
-    const researched = text.includes("Researched") || text.includes("Reviewed");
+    // The current UI labels a completed answer with a standalone "Finished".
+    // Keep the same length, stability, deadline and model-proof requirements.
+    const researched = text.includes("Researched") || text.includes("Reviewed")
+      || /^\s*Finished\s*$/m.test(text);
     if (len >= 400 && researched && len === lastLen) stable++;
     else stable = 0;
     lastLen = len;
