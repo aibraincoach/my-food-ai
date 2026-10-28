@@ -19,6 +19,8 @@ test("a missing object is the upload still in flight only inside the grace windo
   assert.equal(photoStillUploading(notFound, ago(UPLOAD_PARK_MS + 30_000), now), true); // a job released by the fallback still retries
   assert.equal(photoStillUploading(notFound, ago(UPLOAD_GRACE_MS - 1), now), true);
   assert.equal(photoStillUploading(notFound, ago(UPLOAD_GRACE_MS + 1), now), false);
+  assert.equal(photoStillUploading({ statusCode: "404" }, ago(1000), now), true);
+  assert.equal(photoStillUploading({ error: "not_found" }, ago(1000), now), true);
   assert.equal(photoStillUploading({ message: "permission denied" }, ago(1000), now), false);
   assert.equal(photoStillUploading(notFound, undefined, now), false);
   assert.equal(photoStillUploading(notFound, new Date(now + 5000).toISOString(), now), false); // clock skew is not a grace

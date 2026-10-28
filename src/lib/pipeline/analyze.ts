@@ -34,9 +34,11 @@ export { UPLOAD_GRACE_MS };
 
 // "Object not found" from storage (any status the SDK reports it under), within the grace period after creation.
 export function photoStillUploading(error: unknown, createdAt: string | undefined, now = Date.now()): boolean {
-  const message = typeof error === "object" && error !== null ? String((error as { message?: unknown }).message ?? "") : "";
+  const fields = typeof error === "object" && error !== null ? error as { message?: unknown; statusCode?: unknown; error?: unknown } : {};
+  // The SDK reports a missing object by message, by "404" in statusCode, or as error "not_found", depending on version.
+  const missing = /not found/i.test(String(fields.message ?? "")) || String(fields.statusCode ?? "") === "404" || String(fields.error ?? "") === "not_found";
   const created = createdAt ? Date.parse(createdAt) : NaN;
-  return /object not found|not found/i.test(message) && Number.isFinite(created) && now - created >= 0 && now - created < UPLOAD_GRACE_MS;
+  return missing && Number.isFinite(created) && now - created >= 0 && now - created < UPLOAD_GRACE_MS;
 }
 
 export async function loadFirstPhoto(

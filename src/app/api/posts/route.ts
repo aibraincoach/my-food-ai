@@ -128,7 +128,7 @@ export async function PUT(request: Request) {
   const { postId } = (await request.json()) as { postId?: string };
   if (!postId) return NextResponse.json({ error: "postId is required." }, { status: 400 });
 
-  const { data: post } = await supabase.from("posts").select("id").eq("id", postId).single();
+  const { data: post } = await supabase.from("posts").select("id").eq("id", postId).eq("user_id", user.id).single();
   if (!post) return NextResponse.json({ error: "Post not found." }, { status: 404 });
 
   // The uploads are done: release the parked analyze job now (the admin client; jobs has no client policy).
