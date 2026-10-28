@@ -8,12 +8,14 @@ import { Field } from "@/components/ui/Field";
 import { Icon } from "@/components/ui/Icon";
 import { TopBar } from "@/components/ui/TopBar";
 import { requestLocation } from "@/lib/location/capture";
-import { openCamera, grabFrame, type Camera } from "@/lib/media/camera";
+import { openCamera, grabFrame, CameraFlipError, type Camera } from "@/lib/media/camera";
 import { createPost } from "@/lib/posts/create";
 import { tokens } from "@/lib/theme/tokens";
 
 type Shot = { file: File; previewUrl: string };
 const MAX_SHOTS = 8;
+
+const FLIP_ERROR = "Could not switch cameras. Try again.";
 
 export default function CaptureSheet({ onClose }: { onClose: () => void }) {
   const router = useRouter();
@@ -122,13 +124,20 @@ export default function CaptureSheet({ onClose }: { onClose: () => void }) {
   const flipCamera = async () => {
     if (cameraBusy || postingRef.current || !liveCameraRef.current) return;
     setCameraBusy(true);
+    // Only this message is cleared on a new attempt; capture and posting errors stay.
+    setError((current) => (current === FLIP_ERROR ? null : current));
     try {
       const next = await liveCameraRef.current.flip();
       if (mountedRef.current) setStream(next);
-    } catch {
-      liveCameraRef.current?.close();
-      liveCameraRef.current = null;
-      if (mountedRef.current) setStream(null);
+    } catch (e) {
+      if (e instanceof CameraFlipError) {
+        // A reopened previous camera replaces the stream the preview was showing.
+        if (mountedRef.current) { if (e.stream) setStream(e.stream); setError(FLIP_ERROR); }
+      } else {
+        liveCameraRef.current?.close();
+        liveCameraRef.current = null;
+        if (mountedRef.current) setStream(null);
+      }
     } finally { if (mountedRef.current) setCameraBusy(false); }
   };
 

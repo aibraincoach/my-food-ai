@@ -14,7 +14,8 @@ export class ApiError extends Error {
 }
 
 const TIMEOUT_CODES = new Set([
-  "ETIMEDOUT", "UND_ERR_CONNECT_TIMEOUT", "UND_ERR_HEADERS_TIMEOUT", "UND_ERR_BODY_TIMEOUT",
+  "ETIMEDOUT", "ECONNRESET", "ECONNREFUSED",
+  "UND_ERR_CONNECT_TIMEOUT", "UND_ERR_HEADERS_TIMEOUT", "UND_ERR_BODY_TIMEOUT",
 ]);
 
 export function isRetriable(error: unknown): boolean {
@@ -47,7 +48,7 @@ export function ioError(message: string, cause: unknown, status?: number): Error
   if (status === 0 && cause && typeof cause === "object") {
     const detail = cause as { message?: string; details?: string };
     const text = `${detail.message ?? ""} ${detail.details ?? ""}`;
-    const code = text.match(/\b(?:ETIMEDOUT|UND_ERR_CONNECT_TIMEOUT|UND_ERR_HEADERS_TIMEOUT|UND_ERR_BODY_TIMEOUT)\b/)?.[0];
+    const code = text.match(/\b(?:ETIMEDOUT|ECONNRESET|ECONNREFUSED|UND_ERR_CONNECT_TIMEOUT|UND_ERR_HEADERS_TIMEOUT|UND_ERR_BODY_TIMEOUT)\b/)?.[0];
     if (code) return Object.assign(error, { code });
     if (/^(AbortError|TimeoutError):/.test(detail.message ?? "")) return Object.assign(error, { name: "TimeoutError" });
   }

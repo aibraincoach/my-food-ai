@@ -9,9 +9,15 @@ test('offline model responses drive a real meal, correction and error transition
   const meal=await h.post(true);assert.equal((await h.drain()).failed,false);
   const {data:ready}=await h.admin.from('posts').select('status').eq('id',meal.id).single();assert.equal(ready.status,'ready');
   const {data:before}=await h.admin.from('post_comments').select('id').eq('post_id',meal.id).eq('author','model');assert.equal(before.length,1);
-  const {error:commentError}=await h.user.from('post_comments').insert({post_id:meal.id,author:'user',body:'Use 75 grams of rice.'});assert.equal(commentError,null);
-  await h.enqueue(meal.id,'correct');assert.equal((await h.drain()).failed,false);
+  // Comments reach the database only through the server RPC (as in the app), which also queues the correction.
+  const {data:{user:owner}}=await h.user.auth.getUser();
+  const {error:commentError}=await h.admin.rpc('append_post_comment',{p_post_id:meal.id,p_user_id:owner.id,p_text:'Use 75 grams of rice.'});assert.equal(commentError,null);
+  const {data:queuedCorrection,error:queuedError}=await h.admin.from('jobs').select('id').eq('post_id',meal.id).eq('kind','correct').eq('status','queued').single();assert.equal(queuedError,null);
+  await h.adopt(queuedCorrection.id);assert.equal((await h.drain()).failed,false);
   const {data:after}=await h.admin.from('post_comments').select('id').eq('post_id',meal.id).eq('author','model');assert.equal(after.length,2);
+  // The correction replaced the meal: the current items are the recorded corrected rice at 75 g.
+  const {data:current,error:currentError}=await h.admin.from('current_post_items').select('name,portion_grams').eq('post_id',meal.id);assert.equal(currentError,null);
+  assert.deepEqual(current.map(item=>[item.name.toLowerCase(),Number(item.portion_grams)]),[['rice',75]]);
   const invalid=await h.post(true);await h.control({status:400,times:1});assert.equal((await h.drain()).failed,true);
   const {data:failed}=await h.admin.from('jobs').select('status,attempts').eq('id',invalid.jobId).single();assert.equal(failed.status,'error');assert.equal(failed.attempts,1);
   const retry=await h.post(true);

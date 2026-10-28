@@ -5,6 +5,7 @@ import { claimJob, finishJob } from "@/lib/queue/claim";
 import { releaseLease, renewLease } from "@/lib/queue/lease";
 import { runJob } from "@/lib/worker/handlers";
 import { isRetriable } from "@/lib/worker/errors";
+import { workerConcurrency } from "@/lib/worker/concurrency";
 
 const WORK_MS = 60_000;
 
@@ -44,12 +45,19 @@ export async function runWorker(
 ): Promise<void> {
   const startedAt = Date.now();
   try {
-    for (;;) {
-      if (Date.now() - startedAt > WORK_MS) break;
-      const { processed } = await drainOnce(admin);
-      if (processed === 0) break;
-      await renewLease(admin, holder).catch(() => {});
-    }
+    const concurrency = workerConcurrency(process.env.WORKER_CONCURRENCY);
+    // Each lane claims through the same SKIP LOCKED RPC. Await every lane
+    // before releasing the shared lease, including when another lane fails.
+    const lanes = await Promise.allSettled(Array.from({ length: concurrency }, async () => {
+      for (;;) {
+        if (Date.now() - startedAt > WORK_MS) break;
+        const { processed } = await drainOnce(admin);
+        if (processed === 0) break;
+        await renewLease(admin, holder).catch(() => {});
+      }
+    }));
+    const failed = lanes.find((lane) => lane.status === "rejected");
+    if (failed?.status === "rejected") throw failed.reason;
   } finally {
     await releaseLease(admin, holder).catch(() => {});
   }

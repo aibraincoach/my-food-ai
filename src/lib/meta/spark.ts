@@ -2,7 +2,8 @@
 // /v1/responses with strict JSON output against the identify schema.
 // Server-only: reads MODEL_API_KEY from the environment.
 import { readNeedsInput, type NeedsInput } from "@/lib/pipeline/needs-input";
-import { MetaApiError, createResponse } from "./client";
+import { MetaApiError } from "./client";
+import { createResponseRetrying404 } from "./retry404";
 import { identifyPrompt, identifySchema } from "@/lib/prompts";
 
 export interface IdentifyRegion {
@@ -125,7 +126,7 @@ export async function identifyItems(
   const known = new Set(regions.map((r) => r.index));
   let maxTokens = 2048;
   for (let attempt = 0; attempt < 4; attempt += 1) {
-    const out = await createResponse({
+    const out = await createResponseRetrying404({
         model: "muse-spark-1.3",
         instructions: identifyPrompt + (prior ? `\n${prior}` : ""),
         input: [
