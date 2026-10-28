@@ -20,4 +20,6 @@ Captures and triage under `docs/reviews/`. Triage ends with `Real findings: <n>`
 
 ## Quota
 
+PPLX is first for every review. The owner states usage is unlimited. Any claim that PPLX is unavailable requires a live attempt in the same session, the exact error or page text, and a same-message report to the owner. Fallback tools are labelled.
+
 Quota exhaustion stops that route; record the message and time. Move to the next route. No paid fallback on the same route.
