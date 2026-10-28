@@ -35,3 +35,13 @@ test("it appears at 8:30 on today's bubble (Days groups by eaten_at in the reade
   const client = { from: () => chain };
   assert.deepEqual(await getLoggedDates(client, "u", "America/Edmonton", "2026-10-22", "2026-10-28"), [{ date: "2026-10-28" }]);
 });
+
+import { discoveryLostOverlap } from "../src/lib/posts/feed-order.ts";
+
+test("hydrated back-dated cards count as known, so discovery does not reset pagination every poll", () => {
+  const baseline = Array.from({ length: 20 }, (_, i) => ({ id: `recent${i}` }));          // the eaten-ordered page
+  const discovered = Array.from({ length: 20 }, (_, i) => ({ id: `backdated${i}` }));      // newest-created meals, all back-dated
+  assert.equal(discoveryLostOverlap(baseline, discovered, 20), true);                       // before hydration: a gap is possible
+  const cards = discovered.map((row) => ({ id: row.id }));                                  // after discovery hydrated them
+  assert.equal(discoveryLostOverlap([...baseline, ...cards], discovered, 20), false);       // known now: no repeated reset
+});

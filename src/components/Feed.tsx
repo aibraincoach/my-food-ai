@@ -176,12 +176,15 @@ export default function Feed() {
         // gap larger than one page after an outage (or an initially empty feed).
         // Restart pagination from the fresh first page; the old cursor would
         // otherwise skip that gap forever. In-flight old reads cannot restore it.
-        if (discoveryLostOverlap(baseline, data ?? [], FEED_PAGE_SIZE)) {
+        // Discovery lists the newest-created meals while the baseline is ordered by when they were eaten, so a
+        // hydrated back-dated card counts as known: overlap is judged against baseline and cards together.
+        if (discoveryLostOverlap([...baseline, ...cards.values()], data ?? [], FEED_PAGE_SIZE)) {
           const page = await getFeed(supabase, userId);
           if (!live || discoveryGeneration!==generation) return;
           // A promoted read may have completed while the page was loading.
           // Refresh it after installing the page too, even outside this window.
-          const interrupted=[...new Set([...pending.keys(),...newest])];
+          // Newly created meals (possibly back-dated beyond this page) are hydrated by id, never skipped.
+          const interrupted=[...new Set([...pending.keys(),...newest,...(data ?? []).map((row)=>row.id)])];
           generation++;
           for(const post of page.posts)if(post.status!=="needs_input")unavailable.delete(post.id);
           // Keep what the reader has already loaded; only the traversal restarts.
