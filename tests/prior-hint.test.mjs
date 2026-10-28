@@ -41,3 +41,23 @@ test("a retryable photo metadata failure reaches the worker instead of becoming 
   const admin = fakeAdmin({ candidate: { post_id: "p", text_score: 1, photo_score: null, distance_m: null }, mediaResult: { data: null, error: { message: "unavailable" }, status: 503 } });
   await assert.rejects(findPrior(admin, "current"), (error) => error.status === 503);
 });
+
+test("an empty top-ranked prior does not hide a usable runner-up", async () => {
+  const { findPrior } = await import("../src/lib/pipeline/prior.ts");
+  const asked = [];
+  const chain = (result) => new Proxy({}, { get: (_, name) => name === "then" ? (resolve) => resolve(result) : () => chain(result) });
+  const admin = {
+    rpc: async () => ({ data: [
+      { post_id: "empty", text_score: 1, photo_score: null, distance_m: null },
+      { post_id: "used", text_score: 0.7, photo_score: null, distance_m: null },
+    ], error: null }),
+    from: () => ({
+      select: () => ({
+        eq: (_, id) => { asked.push(id); return chain({ data: id === "empty" ? [] : [{ id: "i", name: "Rice", portion_text: null, portion_grams: 150, confidence: 0.9, item_nutrition: [] }], error: null }); },
+      }),
+    }),
+  };
+  const result = await findPrior(admin, "current");
+  assert.deepEqual(asked, ["empty", "used"]);
+  assert.match(result.hint, /Rice, 150 g/);
+});

@@ -21,11 +21,16 @@ export async function findPrior(admin:SupabaseClient,postId:string):Promise<{hin
   if(error) throw ioError(`Meal prior lookup failed: ${error.message}`,error,status);
   const candidates=(data??[]).map((row:{post_id:string;text_score:number|null;photo_score:number|null;distance_m:number|null})=>({...row,
     score:priorScore(row)})).sort((a:{score:number},b:{score:number})=>b.score-a.score);
-  const best=candidates[0];
-  if(!best||best.score<PRIOR.hintThreshold) return null;
-  const {data:items,error:itemError,status:itemStatus}=await admin.from("post_items").select("id,name,portion_text,portion_grams,confidence,item_nutrition(*)").eq("post_id",best.post_id).is("superseded_at",null).order("created_at");
-  if(itemError) throw ioError(itemError.message,itemError,itemStatus);
-  if(!items?.length) return null;
+  // A ready meal can have no current items (the user removed them all). Skip such candidates and
+  // take the best of the next few that still have a usable analysis.
+  let best: (typeof candidates)[number] | undefined;
+  let items: { id: string; name: string; portion_text: string | null; portion_grams: number | null; confidence: number | null; item_nutrition: unknown }[] | null = null;
+  for(const candidate of candidates.filter((row:{score:number})=>row.score>=PRIOR.hintThreshold).slice(0,3)){
+    const {data:rows,error:itemError,status:itemStatus}=await admin.from("post_items").select("id,name,portion_text,portion_grams,confidence,item_nutrition(*)").eq("post_id",candidate.post_id).is("superseded_at",null).order("created_at");
+    if(itemError) throw ioError(itemError.message,itemError,itemStatus);
+    if(rows?.length){best=candidate;items=rows;break;}
+  }
+  if(!best||!items) return null;
   // Historical reference only: the current caption and photo always win, and a changed caption (for
   // example "two bowls") changes the portion. Never an instruction to repeat the earlier amounts.
   const hint=`Historical reference only (unconfirmed): this user logged this meal before as: ${items.map(item=>`${item.name}, ${item.portion_grams??"unknown"} g`).join("; ")}. Use these names or portions only when the current caption and photo support them. A changed caption takes precedence; never assume the previous portion.`;
