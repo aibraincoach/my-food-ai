@@ -3,6 +3,9 @@ import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { signShotUploads } from "@/lib/media/storage";
 
+import { UPLOAD_PARK_MS } from "@/lib/media/upload-window";
+import { releaseParkedAnalyze } from "@/lib/queue/release";
+
 // POST creates the posts row (status queued), the post_media rows and the
 // analyze job in one go, and returns signed upload URLs. Caption-only posts
 // skip the uploads. PUT (the complete step) ticks the queue once uploads
@@ -84,7 +87,7 @@ export async function POST(request: Request) {
   // uses the admin client; the secret key never leaves the server.
   const { error: jobError } = await createAdminClient()
     .from("jobs")
-    .insert({ post_id: post.id, kind: "analyze", priority: 100, status: "queued" });
+    .insert({ post_id: post.id, kind: "analyze", priority: 100, status: "queued", ...(shots.length > 0 ? { run_after: new Date(Date.now() + UPLOAD_PARK_MS).toISOString() } : {}) });
   if (jobError) {
     // A post must never exist without its job: drop the post (media rows
     // follow through the cascade) and report the enqueue failure.
@@ -126,9 +129,12 @@ export async function PUT(request: Request) {
   const { postId } = (await request.json()) as { postId?: string };
   if (!postId) return NextResponse.json({ error: "postId is required." }, { status: 400 });
 
-  const { data: post } = await supabase.from("posts").select("id").eq("id", postId).single();
+  const { data: post } = await supabase.from("posts").select("id").eq("id", postId).eq("user_id", user.id).single();
   if (!post) return NextResponse.json({ error: "Post not found." }, { status: 404 });
 
+  // The uploads are done: release the parked analyze job now (the admin client; jobs has no client policy).
+  const release = await releaseParkedAnalyze(createAdminClient(), postId);
+  if (release.error) return NextResponse.json({ error: "Post could not be released for analysis." }, { status: 500 });
   // Best-effort tick; the route lands with item 7.
   try {
     await fetch(new URL("/api/jobs/tick", request.url));

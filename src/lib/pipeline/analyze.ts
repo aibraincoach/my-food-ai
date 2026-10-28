@@ -1,5 +1,6 @@
-import { ioError } from "@/lib/worker/errors";
+import { ApiError, ioError } from "@/lib/worker/errors";
 import { isOwnedPhotoPath } from "@/lib/media/paths";
+import { UPLOAD_GRACE_MS } from "@/lib/media/upload-window";
 // Analyze pipeline entry (items 8-10 share this boundary).
 // Item 8: load the first photo, segment it, store the mask PNGs.
 // Item 9: name the regions with Muse Spark (identifyMeal below).
@@ -29,6 +30,17 @@ export interface SegmentedPost {
 }
 
 // First photo (position 0, original) as bytes plus its recorded size.
+export { UPLOAD_GRACE_MS };
+
+// "Object not found" from storage (any status the SDK reports it under), within the grace period after creation.
+export function photoStillUploading(error: unknown, createdAt: string | undefined, now = Date.now()): boolean {
+  const fields = typeof error === "object" && error !== null ? error as { message?: unknown; statusCode?: unknown; error?: unknown } : {};
+  // The SDK reports a missing object by message, by "404" in statusCode, or as error "not_found", depending on version.
+  const missing = /not found/i.test(String(fields.message ?? "")) || String(fields.statusCode ?? "") === "404" || String(fields.error ?? "") === "not_found";
+  const created = createdAt ? Date.parse(createdAt) : NaN;
+  return missing && Number.isFinite(created) && now - created >= 0 && now - created < UPLOAD_GRACE_MS;
+}
+
 export async function loadFirstPhoto(
   supabase: SupabaseClient,
   postId: string
@@ -50,7 +62,7 @@ export async function loadFirstPhoto(
     throw new Error("analyze: post has no photo.");
   }
   const { data: post, error: ownerError, status: ownerStatus } = await supabase
-    .from("posts").select("user_id").eq("id", postId).maybeSingle<{ user_id: string }>();
+    .from("posts").select("user_id,created_at").eq("id", postId).maybeSingle<{ user_id: string; created_at?: string }>();
   if (ownerError) throw ioError("analyze: photo owner lookup failed.", ownerError, ownerStatus);
   if (!post || !isOwnedPhotoPath(media.storage_path, post.user_id, postId)) {
     throw new Error("analyze: photo path does not belong to this meal.");
@@ -59,6 +71,11 @@ export async function loadFirstPhoto(
     .from(BUCKET)
     .download(media.storage_path);
   if (downloadError || !blob) {
+    // The client uploads after the post exists. A missing object in the first minute is the upload still in
+    // flight, so the job is retried with the usual backoff; a genuinely missing photo still fails after that.
+    if (photoStillUploading(downloadError, post.created_at)) {
+      throw new ApiError(503, "", "analyze: photo is not readable yet; retrying.");
+    }
     throw new Error(
       `analyze: photo download failed: ${downloadError?.message ?? "empty object."}`,
       { cause: downloadError }
