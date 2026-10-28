@@ -7,7 +7,7 @@ import { Field } from "@/components/ui/Field";
 import { Icon } from "@/components/ui/Icon";
 import { TopBar } from "@/components/ui/TopBar";
 import { requestLocation } from "@/lib/location/capture";
-import { openCamera, grabFrame, type Camera } from "@/lib/media/camera";
+import { openCamera, grabFrame, CameraFlipError, type Camera } from "@/lib/media/camera";
 import { createPost } from "@/lib/posts/create";
 import { tokens } from "@/lib/theme/tokens";
 
@@ -124,10 +124,14 @@ export default function CaptureSheet({ onClose }: { onClose: () => void }) {
     try {
       const next = await liveCameraRef.current.flip();
       if (mountedRef.current) setStream(next);
-    } catch {
-      liveCameraRef.current?.close();
-      liveCameraRef.current = null;
-      if (mountedRef.current) setStream(null);
+    } catch (e) {
+      if (e instanceof CameraFlipError) {
+        if (mountedRef.current) setError("Could not switch cameras. Try again.");
+      } else {
+        liveCameraRef.current?.close();
+        liveCameraRef.current = null;
+        if (mountedRef.current) setStream(null);
+      }
     } finally { if (mountedRef.current) setCameraBusy(false); }
   };
 

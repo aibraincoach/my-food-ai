@@ -6,6 +6,15 @@ export interface Camera {
   close(): void;
 }
 
+// The previous stream is still live and the facing is unchanged; flipping again may succeed.
+export class CameraFlipError extends Error {
+  readonly retryable = true;
+  constructor(cause: unknown) {
+    super("Could not switch cameras.", { cause });
+    this.name = "CameraFlipError";
+  }
+}
+
 export async function openCamera(initialFacing: Facing): Promise<Camera> {
   if (!navigator.mediaDevices?.getUserMedia) throw new Error("Camera unavailable.");
   let facing = initialFacing;
@@ -16,13 +25,21 @@ export async function openCamera(initialFacing: Facing): Promise<Camera> {
     stream: first,
     async flip() {
       const request = ++generation;
-      camera.stream.getTracks().forEach((track) => track.stop());
-      facing = facing === "environment" ? "user" : "environment";
-      const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: facing }, audio: false });
+      const next: Facing = facing === "environment" ? "user" : "environment";
+      // Acquire first: a rejected request must leave the working camera untouched.
+      let stream: MediaStream;
+      try {
+        stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: next }, audio: false });
+      } catch (cause) {
+        if (closed || request !== generation) throw new Error("Camera closed.");
+        throw new CameraFlipError(cause);
+      }
       if (closed || request !== generation) {
         stream.getTracks().forEach((track) => track.stop());
         throw new Error("Camera closed.");
       }
+      camera.stream.getTracks().forEach((track) => track.stop());
+      facing = next;
       camera.stream = stream;
       return stream;
     },
