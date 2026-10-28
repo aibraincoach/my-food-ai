@@ -4,12 +4,14 @@ import { ioError } from "@/lib/worker/errors";
 // item_nutrition row after an FDC lookup, the summary as the first
 // post_comments row (author model), and flips the post to ready.
 // Zero items is a ready post with no rows: the card reads "No food found".
+import { createAdminClient } from "@/lib/supabase/admin";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { searchFoods } from "@/lib/fdc/client";
 import {
   chooseBestMatch,
   scaleNutrition,
 } from "@/lib/fdc/nutrients";
+import { safeSummary, type ConsumedTotals } from "./wording";
 import type { NamedPost } from "./analyze";
 
 export async function persistAnalysis(
@@ -47,7 +49,11 @@ export async function persistAnalysis(
   }
   // Complete every external lookup before changing the post. A lookup failure
   // leaves the previous analysis intact; the RPC commits the whole replacement.
-  const items = [];
+  const items: {
+    name: string; portion_text: string | null; portion_grams: number | null;
+    box: unknown; mask_path: string | null; confidence: number | null;
+    nutrition: ConsumedTotals & { fibre_g: number | null; sugar_g: number | null; sodium_mg: number | null; micronutrients: unknown; source_ref: string | null };
+  }[] = [];
   for (const row of rows) {
     const foods = await searchFoods(admin, row.name);
     const scaled = scaleNutrition(chooseBestMatch(foods), row.portionGrams);
@@ -71,12 +77,25 @@ export async function persistAnalysis(
       },
     });
   }
+  const totals = Object.fromEntries(["calories", "protein_g", "carbs_g", "fat_g"].map((key) => {
+    const values = items.map((item) => item.nutrition[key as keyof ConsumedTotals]);
+    return [key, values.some((value) => value === null) ? null : values.reduce<number>((sum, value) => sum + (value ?? 0), 0)];
+  })) as ConsumedTotals;
+  const summary = await safeSummary(named.summary, totals);
   const { error, status } = await admin.rpc("persist_analysis", {
     p_post_id: named.postId,
     p_items: items,
-    p_summary: named.summary,
+    p_summary: summary,
   });
   if (error) {
     throw ioError(`persist: analysis transaction failed: ${error.message}`, error, status);
   }
+  await markReady(named.postId, admin);
+}
+
+// The shared application completion hook. Stored cards and push attach here.
+export async function markReady(postId: string, admin: SupabaseClient = createAdminClient()): Promise<boolean> {
+  const { data, error, status } = await admin.rpc("mark_post_ready", { p_post_id: postId });
+  if (error) throw ioError("Post readiness could not be saved.", error, status);
+  return data === true;
 }
