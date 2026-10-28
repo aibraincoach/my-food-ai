@@ -4,14 +4,19 @@ import { traceContext } from "./context";
 export type CallKind = "sam" | "spark_identify" | "spark_correct" | "spark_same_meal" | "spark_search" | "fdc" | "transcribe";
 type Details = { text?: unknown; usage?: { input_tokens?: number; output_tokens?: number } | null; fdcId?: number | null };
 
-const SENSITIVE_KEY = /image_url|audio|raster|mask|authorization|api[_-]?key|token$|secret/i;
+const SENSITIVE_KEY = /image_url|audio|raster|mask|authorization|api[_-]?key|token$|secret|pass(word|wd|phrase)|pwd|cookie/i;
 export const TRACE_WRITE_TIMEOUT_MS = 3000;
 
 // Credentials typed into free text (a caption, a transcript, a model reply) have no key name to filter on.
 function redactCredentials(text: string): string {
+  const label = "authorization|api[_-]?key|access[_-]?token|refresh[_-]?token|secret|pass(?:word|wd|phrase)|pwd";
   return text
     .replace(/\bBearer\s+[A-Za-z0-9._~+\/=-]{6,}/gi, "Bearer [credential omitted]")
-    .replace(/\b(authorization|api[_-]?key|access[_-]?token|refresh[_-]?token|secret|password)\b(\s*[:=]\s*|"\s*:\s*")(?:Bearer\s+)?[^\s"',;}]+/gi, "$1$2[credential omitted]");
+    // JSON-style pair: "password": "value" (quoted value, any characters inside).
+    .replace(new RegExp(`("(?:${label})"\\s*:\\s*)("[^"]*"|'[^']*'|[^\\s,}\\]]+)`, "gi"), '$1"[credential omitted]"')
+    // Assignment: password=value, password: "two words", password=two word passphrase. A labelled credential is
+    // redacted to the end of its quoted value, or conservatively to the end of the line, comma or semicolon.
+    .replace(new RegExp(`\\b(${label})(\\s*[:=]\\s*)("[^"]*"|'[^']*'|[^\\r\\n,;]+)`, "gi"), "$1$2[credential omitted]");
 }
 
 // Keep readable prompts/results, but never persist image/audio bytes, masks,

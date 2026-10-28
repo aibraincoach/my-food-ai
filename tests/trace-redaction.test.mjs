@@ -44,3 +44,18 @@ test("a stalled trace store never holds back a finished call, and a failing call
     await new Promise((resolve) => server.close(resolve));
   }
 });
+
+test("passwords are redacted as keys, in serialized JSON, in quoted assignments and when multi-word", () => {
+  for (const input of [
+    { password: "hunter2" },
+    '{"password":"hunter2"}',
+    'Caption: password="hunter2"',
+    "Caption: password=two word passphrase",
+    "my passphrase: 'correct horse battery'",
+    { user: { pwd: "hunter2" } },
+  ]) {
+    const out = traceText(input);
+    assert.doesNotMatch(out, /hunter2|two word|correct horse/, JSON.stringify(input));
+  }
+  assert.match(traceText("Caption: password=hunter2, then rice and beans"), /credential omitted/);
+});
