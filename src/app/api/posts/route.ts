@@ -4,6 +4,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { signShotUploads } from "@/lib/media/storage";
 
 import { UPLOAD_PARK_MS } from "@/lib/media/upload-window";
+import { releaseParkedAnalyze } from "@/lib/queue/release";
 
 // POST creates the posts row (status queued), the post_media rows and the
 // analyze job in one go, and returns signed upload URLs. Caption-only posts
@@ -132,8 +133,7 @@ export async function PUT(request: Request) {
   if (!post) return NextResponse.json({ error: "Post not found." }, { status: 404 });
 
   // The uploads are done: release the parked analyze job now (the admin client; jobs has no client policy).
-  const release = await createAdminClient().from("jobs").update({ run_after: new Date().toISOString() })
-    .eq("post_id", postId).eq("kind", "analyze").eq("status", "queued");
+  const release = await releaseParkedAnalyze(createAdminClient(), postId);
   if (release.error) return NextResponse.json({ error: "Post could not be released for analysis." }, { status: 500 });
   // Best-effort tick; the route lands with item 7.
   try {
