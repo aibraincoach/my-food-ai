@@ -21,16 +21,17 @@
 - #65 The pipeline's tests run against an offline fake Meta Model API
 - #66 The Meta Model API client sets its retries and timeout explicitly
 - #67 Each post keeps a trace of its model calls, readable on the admin page
-- #106 A post logged now with a time of 8:30 this morning appears at 8:30 on today's bubble
-- #107 A new user opens post detail from any card without being told how
-- #108 The installed iPhone app respects the safe areas at 390x844 and 430x932
-- #109 Today's day bubble shows a marker whenever a post exists today
-- #110 Scanning a barcode returns the branded food's nutrition from FDC
-- #111 Water and caffeine can be logged as intake only, with no targets and no "left"
-- #112 The job handlers are registered in an explicit registry, with no dynamic import and no test_throw handler in production
 - #114 Public sign-in with Facebook works in production mode (blocked: Meta app review)
 - #115 Dark mode renders every screen from the same tokens (blocked: scope; the first design pass is light mode only)
-- #137 A post whose photo is not yet readable when analysis starts is retried, not failed
 - #139 Renewing the worker lease actually extends a lease its own holder still holds
+- #168 Desktop browser layout is usable at 1280x800 and 1920x1080
+- #169 An MCP server and HTTP API let an agent log and read meals
+- #170 A meal has servings and unit-aware amounts
+- #171 Foods can be searched and logged without the model
+- #172 Meals can be saved and logged again
+- #173 A photo can be added to an existing post
+- #174 A post can be deleted after confirmation
+- #175 Days shows intake-only days
+- #177 Queued meals keep being analysed after the first worker run, with no one polling
 
 † One GitHub issue per item, with a title that states the done condition; an issue is closed by its pull request. This file is regenerated from the open issues by `node scripts/backlog.mjs` and is never edited by hand.
