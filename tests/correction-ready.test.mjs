@@ -45,7 +45,10 @@ test('the real recompute handler repairs an exhausted predecessor without creati
    return Response.json(nutrition);
   }
   if(path.endsWith('/fdc_cache'))return Response.json({response:{foods:[{fdcId:77,description:'rice',dataType:'Foundation',foodNutrients:[{nutrientId:1008,nutrientName:'Energy',unitName:'KCAL',value:200}]}]}});
+  if(path.endsWith('/posts'))return Response.json({status:'processing'});
+  if(path.endsWith('/rpc/results_card_snapshot')){publications++;return Response.json(null);}
   if(path.endsWith('/rpc/mark_post_ready')){publications++;return Response.json(false);}
+
   throw new Error(`Unexpected request: ${path}`);
  }}});
  const job={id:'current-correction',post_id:'post',kind:'correct',status:'running',payload:{}};

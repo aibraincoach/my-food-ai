@@ -20,7 +20,7 @@ test('claims serialize one meal, parallelize different meals and retain completi
    create function auth.uid() returns uuid language sql stable as $$select (nullif(current_setting('request.jwt.claims',true),'')::jsonb->>'sub')::uuid$$;
    create schema storage;create table storage.buckets(id text primary key,name text,public boolean);create table storage.objects(bucket_id text,name text);
    create function storage.foldername(text) returns text[] language sql immutable as $$select string_to_array($1,'/')$$;`);
-  for(const name of ['0001_init.sql','0002_fdc_cache.sql','0003_pin_search_path.sql','0004_persist_analysis.sql','0005_jobs_retry.sql','0007_post_items_supersede.sql','0007b_comment_corrections.sql'])sql(migration(name));
+  for(const name of ['0001_init.sql','0002_fdc_cache.sql','0003_pin_search_path.sql','0004_persist_analysis.sql','0005_jobs_retry.sql','0007_post_items_supersede.sql','0007b_comment_corrections.sql','0008_post_media_kind.sql'])sql(migration(name));
   sql(`grant usage on schema public,auth to authenticated;grant all on all tables in schema public to authenticated;`);
   const owner=sql('insert into auth.users values(gen_random_uuid())returning id;').trim();
   sql(`insert into profiles(id,handle)values('${owner}','ownership');`);
@@ -51,9 +51,13 @@ test('claims serialize one meal, parallelize different meals and retain completi
   sql(`update jobs set status='running' where id='${a1}';select fail_job('${a1}','stale callback',false);`);
   assert.equal(sql(`select status from posts where id='${a}';`).trim(),'ready');
   assert.equal(sql(`select mark_post_ready('${a}','${a1}');`).trim(),'f');
+  const publish=(post,jobId)=>sql(`select publish_results_card('${post}',results_card_snapshot('${post}')->>'fingerprint','${owner}/${post}/cards/fixture/card.png',1080,${jobId?`'${jobId}'`:'null'})->>'published';`).trim();
+  assert.equal(publish(a,undefined),'false','retained finished owner requires a new maintenance claim');
+  assert.equal(publish(a,a1),'false','old primary cannot publish after newer completion');
   const maintenance=job(a,'card_backfill');
   assert.equal(sql('select (claim_owned_job()).id;').trim(),maintenance);
   assert.equal(sql(`select post_work_matches('${a}','${maintenance}');`).trim(),'t');
+  assert.equal(publish(a,maintenance),'true','actual claimed maintenance replaces finished owner and publishes');
   sql(`select fail_job('${maintenance}','card unavailable',false);`);
   assert.equal(sql(`select status from posts where id='${a}';`).trim(),'ready');
   const pending=job(a);const obsolete=job(a,'card_backfill',1);

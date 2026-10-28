@@ -1,4 +1,5 @@
 'use client';
+import FirstRunHint from '@/components/FirstRunHint';
 import {useCallback,useEffect,useRef,useState} from 'react';
 import {readPostComments} from '@/lib/posts/timeline';
 import {useRouter} from 'next/navigation';
@@ -45,6 +46,7 @@ export default function Thread({postId}:{postId:string}){
   <div aria-live="polite">{rows.map(row=><div key={row.id} className="border-b border-hairline py-sheet-top text-comment"><span className="font-semibold">{row.author==='model'?'Analysis':'You'}</span>{accepted===row.id?<span className="ml-2 text-meta text-muted">Accepted</span>:null}<p className="mt-grid whitespace-pre-wrap break-words">{row.body}</p></div>)}</div>
   {waiting?<p role="status" className="py-grid text-meta text-muted">Updating the meal…</p>:null}
   {error?<p role="status" className="text-meta text-muted">{error}</p>:null}
+  <FirstRunHint hint="thread" />
   {failed?<button type="button" disabled={retrying} onClick={retry} className="min-h-tap text-meta text-text">{retrying?'Retrying…':'Try again'}</button>:null}
   <CommentComposer postId={postId} onPosted={append}/>
  </section>;

@@ -1,7 +1,9 @@
 // Muse Spark 1.3 item naming and portions (item 9). Non-streaming
 // /v1/responses with strict JSON output against the identify schema.
 // Server-only: reads MODEL_API_KEY from the environment.
-import { MetaApiError, createResponse } from "./client";
+import { readNeedsInput, type NeedsInput } from "@/lib/pipeline/needs-input";
+import { MetaApiError } from "./client";
+import { createResponseRetrying404 } from "./retry404";
 import { identifyPrompt, identifySchema } from "@/lib/prompts";
 
 export interface IdentifyRegion {
@@ -21,6 +23,7 @@ export interface IdentifiedItem {
 export interface IdentifiedMeal {
   items: IdentifiedItem[];
   summary: string;
+  needsInput: NeedsInput | null;
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -88,7 +91,7 @@ function parseIdentifiedMeal(
       confidence: typeof confidence === "number" ? confidence : null,
     });
   }
-  return { items: out, summary };
+  return { items: out, summary, needsInput: readNeedsInput(payload.needs_input) };
 }
 
 function regionLines(regions: IdentifyRegion[]): string {
@@ -105,7 +108,8 @@ export async function identifyItems(
   image: Uint8Array | null,
   mime: string,
   caption: string | null,
-  regions: IdentifyRegion[]
+  regions: IdentifyRegion[],
+  prior = ""
 ): Promise<IdentifiedMeal> {
   // Caption-only posts have no photo: the call is text-only and every
   // returned item lands in captionOnly (region_index null).
@@ -122,11 +126,9 @@ export async function identifyItems(
   const known = new Set(regions.map((r) => r.index));
   let maxTokens = 2048;
   for (let attempt = 0; attempt < 4; attempt += 1) {
-    let out;
-    try {
-      out = await createResponse({
+    const out = await createResponseRetrying404({
         model: "muse-spark-1.3",
-        instructions: identifyPrompt,
+        instructions: identifyPrompt + (prior ? `\n${prior}` : ""),
         input: [
           {
             type: "message",
@@ -144,18 +146,6 @@ export async function identifyItems(
         },
         max_output_tokens: maxTokens,
       });
-    } catch (error) {
-      // The gateway returns transient 404s (empty body) on non-streaming
-      // POSTs; 429/5xx are requeueable too. A 400 fails at once.
-      const status =
-        error instanceof MetaApiError ? error.status : 500;
-      const retryable = status === 404 || status === 429 || status >= 500;
-      if (!retryable || attempt === 3) throw error;
-      await new Promise((resolve) =>
-        setTimeout(resolve, 1000 * (attempt + 1))
-      );
-      continue;
-    }
     if (out.refusal) {
       throw new MetaApiError(500, "spark: model refused the identify call.");
     }
