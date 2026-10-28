@@ -9,8 +9,8 @@ test("check digits are verified and EAN-13 forms of a UPC-A are mapped back to 1
   assert.equal(validGtin("016000275683"), true);
   assert.equal(validGtin("016000275684"), false);
   assert.equal(validGtin("abc"), false);
-  assert.deepEqual(gtinCandidates("016000275683"), ["016000275683"]);
-  assert.deepEqual(gtinCandidates("0016000275683"), ["0016000275683", "016000275683"]);
+  assert.deepEqual(gtinCandidates("016000275683"), ["016000275683", "00016000275683"]);
+  assert.deepEqual(gtinCandidates("0016000275683"), ["0016000275683", "016000275683", "00016000275683"]);
   assert.deepEqual(gtinCandidates("0016000275684"), []);
   assert.deepEqual(gtinCandidates(""), []);
 });
@@ -61,8 +61,9 @@ test("a live FDC Branded Foods lookup by gtin_upc returns usable nutrition", { s
   assert.equal(await lookupBarcode("0016000275683").then((p) => p?.fdcId), product.fdcId, "EAN-13 form finds the same product");
 });
 
-test("an unknown but valid code finds nothing", { skip: !process.env.FDC_API_KEY }, async () => {
-  assert.equal(await lookupBarcode("038000138416"), null);
+test("a product FDC stores zero-padded is found live, and a valid code FDC does not hold finds nothing", { skip: !process.env.FDC_API_KEY }, async () => {
+  assert.match((await lookupBarcode("038000138416"))?.name ?? "", /pringles/i);
+  assert.equal(await lookupBarcode("012345678905"), null);
 });
 
 test("a UPC-E expands to its UPC-A; anything that does not expand to a valid UPC-A is left alone", () => {
@@ -92,4 +93,21 @@ test("a product given per millilitre keeps that basis", () => {
   const drink = productFromFood({ fdcId: 2, description: "Drink", servingSize: 250, servingSizeUnit: "ml", foodNutrients: [{ nutrientId: 1008, value: 45 }] }, "070847811169");
   assert.equal(drink.basisUnit, "ml");
   assert.equal(productFromFood({ fdcId: 3, description: "Food", servingSize: 27, servingSizeUnit: "g", foodNutrients: [{ nutrientId: 1008, value: 45 }] }, "x").basisUnit, "g");
+});
+
+test("a record stored zero-padded to 14 digits is found by the 12-digit scan, and the reverse", async () => {
+  const realFetch = globalThis.fetch;
+  process.env.FDC_API_KEY ||= "test";
+  const run = async (stored, scanned) => {
+    globalThis.fetch = async (url) => {
+      if (!String(url).includes("/foods/search")) return realFetch(url);
+      return new Response(JSON.stringify({ totalPages: 1, foods: [{ fdcId: 9, description: "Padded", gtinUpc: stored, foodNutrients: [{ nutrientId: 1008, value: 100 }] }] }), { status: 200 });
+    };
+    return (await lookupBarcode(scanned))?.fdcId ?? null;
+  };
+  try {
+    assert.equal(await run("00039400001263", "039400001263"), 9);
+    assert.equal(await run("039400001263", "00039400001263"), 9);
+    assert.equal(await run("00039400001270", "039400001263"), null, "a different code is never matched");
+  } finally { globalThis.fetch = realFetch; }
 });

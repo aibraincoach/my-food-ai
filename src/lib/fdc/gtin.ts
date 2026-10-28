@@ -16,8 +16,13 @@ export function gtinCandidates(raw: string): string[] {
   if (code.length === 13 && code.startsWith("0")) out.push(code.slice(1));
   if (code.length === 14 && code.startsWith("00")) out.push(code.slice(2));
   if (code.length === 14 && code.startsWith("0")) out.push(code.slice(1));
+  // FDC also stores some codes zero-padded to 14 digits.
+  if (code.length < 14) out.push(code.padStart(14, "0"));
   return [...new Set(out)];
 }
+
+// The same product code written with different zero padding (UPC-A, EAN-13, GTIN-14 with a 0 indicator).
+export const sameGtin = (a: string, b: string): boolean => /^\d+$/.test(a) && /^\d+$/.test(b) && a.replace(/^0+/, "") === b.replace(/^0+/, "");
 
 
 // A UPC-E (8 digits, number system 0 or 1) is a compressed UPC-A; FDC stores the 12-digit form. A genuine EAN-8

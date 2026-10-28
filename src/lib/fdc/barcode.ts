@@ -3,7 +3,7 @@
 // exactly, so a scanned EAN-13 that is a UPC-A with a leading 0 must be trimmed back to 12 digits.
 import { recordCall } from "@/lib/trace/record";
 import { ApiError } from "@/lib/worker/errors";
-import { gtinCandidates } from "@/lib/fdc/gtin";
+import { gtinCandidates, sameGtin } from "@/lib/fdc/gtin";
 
 export { gtinCandidates, validGtin } from "@/lib/fdc/gtin";
 
@@ -65,8 +65,8 @@ export async function lookupBarcode(raw: string): Promise<BarcodeProduct | null>
         if (!response.ok) throw new ApiError(response.status, await response.text(), `fdc: barcode search failed with ${response.status}.`);
         const payload = (await response.json()) as { foods?: unknown; totalPages?: unknown };
         const foods = Array.isArray(payload.foods) ? payload.foods : [];
-        const exact = foods.filter((food) => (food as { gtinUpc?: unknown })?.gtinUpc === gtin);
-        for (const food of exact) { const product = productFromFood(food, gtin); if (product) return product; }
+        const exact = foods.filter((food) => { const stored = (food as { gtinUpc?: unknown })?.gtinUpc; return typeof stored === "string" && sameGtin(stored, gtin); });
+        for (const food of exact) { const product = productFromFood(food, candidates[0]); if (product) return product; }
         if (typeof payload.totalPages !== "number" || page >= payload.totalPages) break;
       }
     }
