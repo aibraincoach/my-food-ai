@@ -1,6 +1,5 @@
 import webpush from "web-push";
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { isOwnedGeneratedCardPath, isOwnedPhotoPath } from "@/lib/media/paths";
 
 export function validSubscription(value: unknown): value is webpush.PushSubscription {
   if (!value || typeof value !== "object") return false;
@@ -32,18 +31,9 @@ export async function sendPostPush(admin: SupabaseClient, postId: string, questi
     const { data: subscriptions, error: subscriptionError } = await admin.from("push_subscriptions")
       .select("id,endpoint,keys").eq("user_id", post.user_id);
     if (subscriptionError || !subscriptions?.length) return;
-    const { data: media } = await admin.from("post_media").select("storage_path,kind")
-      .eq("post_id", postId).order("position").limit(1).maybeSingle();
-    let image: string | undefined;
-    if (media && (media.kind === "card"
-      ? isOwnedGeneratedCardPath(media.storage_path, post.user_id, postId)
-      : isOwnedPhotoPath(media.storage_path, post.user_id, postId))) {
-      const base = media.storage_path.replace(/\.[^.]+$/, "");
-      const path = media.kind === "card" ? media.storage_path : `${base}.feed.jpg`;
-      const signed = await admin.storage.from("media").createSignedUrl(path, 3600);
-      image = signed.data?.signedUrl;
-    }
-    const payload = JSON.stringify({ title: question ? "Your meal needs a reply" : "Your meal is ready", body: question?.slice(0, 300), image, postId });
+    // The notification carries generic text only: no question, caption, nutrition or image. A lock screen or a
+    // shared device can show it, so the meal stays inside the app. The post id is only what the tap opens.
+    const payload = JSON.stringify({ title: question ? "Your meal needs a reply" : "Your meal is ready", postId });
     await Promise.all(subscriptions.map(async (subscription) => {
       if (!validSubscription(subscription)) return;
       try {
