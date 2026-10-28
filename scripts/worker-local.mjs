@@ -17,10 +17,10 @@ if (existsSync(envLocal)) {
 }
 
 // Importing this module is side-effect free apart from loading missing env names.
-export async function drainOnce(admin) {
+export async function drainOnce(admin, handlers) {
   const { tsImport } = await import("tsx/esm/api");
   const worker = await tsImport("../src/lib/worker/drain.ts", import.meta.url);
-  return worker.drainOnce(admin);
+  return worker.drainOnce(admin, handlers);
 }
 
 if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {

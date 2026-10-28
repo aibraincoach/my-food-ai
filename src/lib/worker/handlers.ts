@@ -1,15 +1,27 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { JobRow } from "@/lib/queue/claim";
+import analyze from "@/lib/worker/jobs/analyze";
+import correct from "@/lib/worker/jobs/correct";
+import recompute from "@/lib/worker/jobs/recompute";
+import cardBackfill from "@/lib/worker/jobs/card_backfill";
+import mediaCleanup from "@/lib/worker/jobs/media_cleanup";
 
 export type JobHandler = (admin: SupabaseClient, job: JobRow) => Promise<void>;
+export type JobHandlers = Readonly<Record<string, JobHandler>>;
 
-export async function runJob(admin: SupabaseClient, job: JobRow): Promise<void> {
-  const kind = job.kind;
-  // Job kinds come only from server-created rows. Also reject path traversal
-  // before constructing the bundle's dynamic import.
-  if (!/^[a-z][a-z0-9_]*$/.test(kind)) {
-    throw new Error("worker: invalid job kind.");
-  }
-  const run: JobHandler = (await import(`./jobs/${kind}`)).default;
+// Every job kind the worker runs is listed here, explicitly. A kind that is not in this table is rejected;
+// nothing is imported by name at run time, and no test fixture handler lives in the production folder.
+export const jobHandlers: JobHandlers = Object.freeze({
+  analyze,
+  correct,
+  recompute,
+  card_backfill: cardBackfill,
+  media_cleanup: mediaCleanup,
+});
+
+// Tests pass their own table (including fixture kinds); production always uses the one above.
+export async function runJob(admin: SupabaseClient, job: JobRow, handlers: JobHandlers = jobHandlers): Promise<void> {
+  const run = Object.hasOwn(handlers, job.kind) ? handlers[job.kind] : undefined;
+  if (!run) throw new Error("worker: unknown job kind.");
   await run(admin, job);
 }
