@@ -57,7 +57,7 @@ test("a successful retry queues the job and the post once", async () => {
 });
 
 test("recovery after a lost discovery overlap keeps loaded history", () => {
-  const post = (n) => ({ id: `id${n}`, created_at: `2026-10-27T12:00:${String(n).padStart(2, "0")}.000000+00:00` });
+  const post = (n) => ({ id: `id${n}`, eaten_at: `2026-10-27T12:00:${String(n).padStart(2, "0")}.000000+00:00` });
   const loaded = [post(10), post(9), post(8)];
   const fresh = [post(30), post(29)];
   const merged = mergeFeedPosts(loaded, fresh);

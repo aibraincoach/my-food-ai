@@ -101,7 +101,7 @@ async function toFeedPost(
 
 export const VISIBLE_MEAL_FILTER="needs_input.is.null,status.eq.failed";
 
-// Stable keyset pagination: the ID breaks ties between equal timestamps.
+// Stable keyset pagination by eaten_at (when the meal was eaten): the ID breaks ties between equal timestamps.
 export async function getFeed(
   supabase: SupabaseClient,
   userId: string,
@@ -112,10 +112,10 @@ export async function getFeed(
     .from("posts")
     .select("id,caption,eaten_at,status,created_at")
     .eq("user_id", userId).neq("status","needs_input")
-    .order("created_at", { ascending: false })
+    .order("eaten_at", { ascending: false })
     .order("id", { ascending: false })
     .limit(FEED_PAGE_SIZE + 1);
-  query = cursor ? query.or(`and(or(${VISIBLE_MEAL_FILTER}),or(created_at.lt.${cursor.created_at},and(created_at.eq.${cursor.created_at},id.lt.${cursor.id})))`) : query.or(VISIBLE_MEAL_FILTER);
+  query = cursor ? query.or(`and(or(${VISIBLE_MEAL_FILTER}),or(eaten_at.lt.${cursor.eaten_at},and(eaten_at.eq.${cursor.eaten_at},id.lt.${cursor.id})))`) : query.or(VISIBLE_MEAL_FILTER);
   const {data,error} = await query;
   if (error) {
     throw new Error(error.message);

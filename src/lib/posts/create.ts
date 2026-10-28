@@ -14,7 +14,7 @@ export interface CreatedPost {
 // re-encoded (EXIF stripped), the post row + analyze job are created, both
 // JPEGs per shot are PUT to their signed URLs, and the complete step ticks
 // the queue (item 7).
-export async function createPost(caption: string, shots: File[], location: CapturedLocation | null = null): Promise<CreatedPost> {
+export async function createPost(caption: string, shots: File[], location: CapturedLocation | null = null, eatenAt: string | null = null): Promise<CreatedPost> {
   const reencoded = await Promise.all(shots.map((file) => reencodeShot(file)));
   const createRes = await fetch("/api/posts", {
     method: "POST",
@@ -22,7 +22,7 @@ export async function createPost(caption: string, shots: File[], location: Captu
     body: JSON.stringify({
       caption,
       location,
-      eaten_at: new Date().toISOString(),
+      eaten_at: eatenAt ?? new Date().toISOString(),
       shots: reencoded.map((r, i) => ({ position: i, width: r.width, height: r.height, phash:r.phash })),
     }),
   });

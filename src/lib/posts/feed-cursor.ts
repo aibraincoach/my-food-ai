@@ -1,4 +1,4 @@
-export interface FeedCursor { created_at: string; id: string }
+export interface FeedCursor { eaten_at: string; id: string }
 
 // Keep PostgreSQL's microsecond precision: converting through Date.toISOString()
 // would round the boundary and could skip posts within the same millisecond.
@@ -21,14 +21,14 @@ export function parseFeedCursor(value: string): FeedCursor {
     if (value.length > 256 || !/^[A-Za-z0-9_-]+$/.test(value)) throw new Error();
     const parsed: unknown = JSON.parse(atob(value.replace(/-/g, "+").replace(/_/g, "/")));
     if (!parsed || typeof parsed !== "object") throw new Error();
-    const { created_at, id } = parsed as Partial<FeedCursor>;
-    if (!validTimestamp(created_at) || typeof id !== "string"
+    const { eaten_at, id } = parsed as Partial<FeedCursor>;
+    if (!validTimestamp(eaten_at) || typeof id !== "string"
       || !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id)) throw new Error();
-    return { created_at, id };
+    return { eaten_at, id };
   } catch { throw new Error("Invalid cursor."); }
 }
 
 export function encodeFeedCursor(cursor: FeedCursor): string {
-  return btoa(JSON.stringify({ created_at: cursor.created_at, id: cursor.id }))
+  return btoa(JSON.stringify({ eaten_at: cursor.eaten_at, id: cursor.id }))
     .replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
 }

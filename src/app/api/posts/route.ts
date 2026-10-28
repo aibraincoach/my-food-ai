@@ -2,6 +2,7 @@ import { after, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { signShotUploads } from "@/lib/media/storage";
+import { validEatenAt } from "@/lib/posts/eaten-at";
 
 import { UPLOAD_PARK_MS } from "@/lib/media/upload-window";
 import { releaseParkedAnalyze } from "@/lib/queue/release";
@@ -29,6 +30,8 @@ export async function POST(request: Request) {
         return NextResponse.json({error:"Invalid photo hash."},{status:400});
     }
   }
+  const eatenAt = body.eaten_at === undefined ? new Date().toISOString() : validEatenAt(body.eaten_at);
+  if (!eatenAt) return NextResponse.json({ error: "Invalid time eaten." }, { status: 400 });
   const location = body.location;
   if (location != null && (
     typeof location !== "object" || !Number.isFinite(location.lat) || !Number.isFinite(location.lng) ||
@@ -40,7 +43,7 @@ export async function POST(request: Request) {
     .insert({
       user_id: user.id,
       caption: body.caption ?? "",
-      eaten_at: body.eaten_at ?? new Date().toISOString(),
+      eaten_at: eatenAt,
       status: "queued",
     })
     .select("id")

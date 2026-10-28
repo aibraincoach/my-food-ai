@@ -20,17 +20,17 @@ test('retrying edited meals does not restart the initial analysis', () => {
 });
 
 test('refreshing or retrying an older meal preserves chronological order', () => {
-  const recent = { id: uuid(2), created_at: timestamp, status: 'ready' };
-  const older = { id: uuid(1), created_at: '2026-10-26T12:00:00.123456+00:00', status: 'failed' };
+  const recent = { id: uuid(2), eaten_at: timestamp, status: 'ready' };
+  const older = { id: uuid(1), eaten_at: '2026-10-26T12:00:00.123456+00:00', status: 'failed' };
   const retried = { ...older, status: 'queued' };
-  const newest = { id: uuid(3), created_at: '2026-10-27T12:00:00.123457+00:00', status: 'queued' };
+  const newest = { id: uuid(3), eaten_at: '2026-10-27T12:00:00.123457+00:00', status: 'queued' };
   const result = mergeFeedPosts([recent, older], [retried, newest]);
   assert.deepEqual(result.map(post => post.id), [newest.id, recent.id, older.id]);
   assert.equal(result[2].status, 'queued');
 });
 
 test('21 posts created together all appear once across pages', async () => {
-  const rows = Array.from({ length: 21 }, (_, i) => ({ id: uuid(i + 1), created_at: timestamp, eaten_at: timestamp, caption: '', status: 'queued' }));
+  const rows = Array.from({ length: 21 }, (_, i) => ({ id: uuid(i + 1), eaten_at: timestamp, caption: '', status: 'queued' }));
   const db = createClient('https://fixture.invalid', 'fixture-key', {
     global: { fetch: async input => {
       const url = new URL(input instanceof Request ? input.url : String(input));
@@ -48,24 +48,24 @@ test('21 posts created together all appear once across pages', async () => {
       });
       const filter = url.searchParams.get('or');
       assert.ok(filter.includes("needs_input.is.null,status.eq.failed"),"persisted clarification visibility applies on every page");
-      if (filter.includes("created_at.lt.")) {
-        const boundary = /created_at\.lt\.([^,]+),and\(created_at\.eq\.([^,]+),id\.lt\.([^)]*)\)/.exec(filter);
+      if (filter.includes("eaten_at.lt.")) {
+        const boundary = /eaten_at\.lt\.([^,]+),and\(eaten_at\.eq\.([^,]+),id\.lt\.([^)]*)\)/.exec(filter);
         assert.ok(boundary, 'valid composite PostgREST boundary');
-        selected = selected.filter(row => row.created_at < boundary[1] || (row.created_at === boundary[2] && row.id < boundary[3]));
+        selected = selected.filter(row => row.eaten_at < boundary[1] || (row.eaten_at === boundary[2] && row.id < boundary[3]));
       }
-      if (url.searchParams.has('created_at')) selected = selected.filter(row => row.created_at < url.searchParams.get('created_at').slice(3));
+      if (url.searchParams.has('eaten_at')) selected = selected.filter(row => row.eaten_at < url.searchParams.get('eaten_at').slice(3));
       return new Response(JSON.stringify(selected.slice(0, Number(url.searchParams.get('limit')))));
     } },
   });
   const first = await getFeed(db, uuid(99));
   assert.equal(first.posts.length, 20);
-  assert.equal(parseFeedCursor(first.nextCursor).created_at, timestamp, 'microseconds survive');
+  assert.equal(parseFeedCursor(first.nextCursor).eaten_at, timestamp, 'microseconds survive');
   const second = await getFeed(db, uuid(99), first.nextCursor);
   assert.equal(second.posts.length, 1);
   assert.equal(second.nextCursor, null);
   assert.deepEqual([...first.posts, ...second.posts].map(p => p.id), rows.map(p => p.id).reverse());
   // More than one page arrives while discovery/realtime is unavailable.
-  const added = Array.from({length:21},(_,i)=>({id:uuid(i+22),created_at:'2026-10-28T12:00:00.123456+00:00',eaten_at:timestamp,caption:'',status:'queued'}));
+  const added = Array.from({length:21},(_,i)=>({id:uuid(i+22),eaten_at:'2026-10-28T12:00:00.123456+00:00',caption:'',status:'queued'}));
   rows.push(...added);
   const discovered = [...added].reverse().slice(0,20);
   assert.equal(discoveryLostOverlap(first.posts, discovered, 20), true);
@@ -82,7 +82,7 @@ test('21 posts created together all appear once across pages', async () => {
 test('invalid cursor data is rejected before any database request', async () => {
   let requests = 0;
   const db = createClient('https://fixture.invalid', 'fixture-key', { global: { fetch: async () => { requests++; throw new Error('must not query'); } } });
-  for (const cursor of ['', '0', timestamp, 'not-json', encodeFeedCursor({ created_at: '0', id: uuid(1) }), encodeFeedCursor({ created_at: '2026-02-30T00:00:00Z', id: uuid(1) }), encodeFeedCursor({ created_at: timestamp, id: 'bad),id.gt.0' })]) {
+  for (const cursor of ['', '0', timestamp, 'not-json', encodeFeedCursor({ eaten_at: '0', id: uuid(1) }), encodeFeedCursor({ eaten_at: '2026-02-30T00:00:00Z', id: uuid(1) }), encodeFeedCursor({ eaten_at: timestamp, id: 'bad),id.gt.0' })]) {
     await assert.rejects(getFeed(db, uuid(99), cursor), /Invalid cursor/);
   }
   assert.equal(requests, 0);
@@ -99,7 +99,7 @@ test('persisted questions remain hidden while queued but failed answers stay rec
   const url=new URL(input instanceof Request?input.url:String(input));
   if(url.pathname.endsWith('/post_media'))return Response.json([]);
   assert.equal(url.searchParams.get('or'),'(needs_input.is.null,status.eq.failed)');
-  return Response.json(status==='failed'?{id:uuid(1),caption:'meal',eaten_at:timestamp,created_at:timestamp,status}:null);
+  return Response.json(status==='failed'?{id:uuid(1),caption:'meal',eaten_at:timestamp,status}:null);
  }}});
  assert.equal(await getPostCard(db,uuid(1)),null);
  status='failed';assert.equal((await getPostCard(db,uuid(1))).status,'failed');
