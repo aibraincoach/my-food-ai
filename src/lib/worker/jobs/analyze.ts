@@ -8,9 +8,9 @@ const analyze: JobHandler = async (admin, job) => {
   const {data:post,error,status}=await admin.from("posts").select("analysis_initialized_at").eq("id",job.post_id).maybeSingle();
   if(error)throw ioError("Initial analysis state could not be read.",error,status);
   if(!post)throw new Error("analyze: post not found.");
-  if(post.analysis_initialized_at){await markReady(job.post_id,admin);return;}
+  if(post.analysis_initialized_at){await markReady(job.post_id,admin,job.id);return;}
   const named = await analyzePost(admin, job.post_id);
-  await persistAnalysis(admin, named);
+  await persistAnalysis(admin, named, undefined, job.id);
 };
 
 export default analyze;

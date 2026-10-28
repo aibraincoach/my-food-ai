@@ -16,7 +16,9 @@ import type { NamedPost } from "./analyze";
 
 export async function persistAnalysis(
   admin: SupabaseClient,
-  named: NamedPost
+  named: NamedPost,
+  _priorNutrition?: unknown,
+  jobId?: string
 ): Promise<void> {
   const rows: {
     name: string;
@@ -82,7 +84,8 @@ export async function persistAnalysis(
     return [key, values.some((value) => value === null) ? null : values.reduce<number>((sum, value) => sum + (value ?? 0), 0)];
   })) as ConsumedTotals;
   const summary = await safeSummary(named.summary, totals);
-  const { error, status } = await admin.rpc("persist_analysis", {
+  const { error, status } = await admin.rpc("persist_owned_analysis", {
+    p_job_id: jobId ?? null,
     p_post_id: named.postId,
     p_items: items,
     p_summary: summary,
@@ -90,12 +93,12 @@ export async function persistAnalysis(
   if (error) {
     throw ioError(`persist: analysis transaction failed: ${error.message}`, error, status);
   }
-  await markReady(named.postId, admin);
+  await markReady(named.postId, admin,jobId);
 }
 
 // The shared application completion hook. Stored cards and push attach here.
-export async function markReady(postId: string, admin: SupabaseClient = createAdminClient()): Promise<boolean> {
-  const { data, error, status } = await admin.rpc("mark_post_ready", { p_post_id: postId });
+export async function markReady(postId: string, admin: SupabaseClient = createAdminClient(),jobId?:string): Promise<boolean> {
+  const { data, error, status } = await admin.rpc("mark_post_ready", { p_post_id: postId,p_job_id:jobId??null });
   if (error) throw ioError("Post readiness could not be saved.", error, status);
   return data === true;
 }

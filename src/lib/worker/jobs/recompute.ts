@@ -36,5 +36,5 @@ export default async function recompute(admin: SupabaseClient, job: JobRow): Pro
       if (writeError) throw ioError(`recompute save: ${writeError.message}`, writeError, writeStatus);
     }
   }
-  await markReady(job.post_id, admin);
+  await markReady(job.post_id, admin,job.id);
 }
