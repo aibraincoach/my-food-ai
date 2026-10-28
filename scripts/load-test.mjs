@@ -1,6 +1,7 @@
 // node --env-file=.env.local scripts/load-test.mjs
 import { createClient } from '@supabase/supabase-js';
 import { signInAsTestUser } from './lib/session.mjs';
+import { scheduleSummary } from './lib/schedule.mjs';
 import { readFile, writeFile, mkdtemp } from 'node:fs/promises';
 import { createRequire } from 'node:module';
 import { tmpdir } from 'node:os';
@@ -11,6 +12,8 @@ const COUNT = 20;
 const INTERVAL_MS = 6_000;
 const POLL_MS = 2_000;
 const MAX_WAIT_MS = 15 * 60_000;
+const WINDOW_MS = 120_000;
+const QUERY_TIMEOUT_MS = 30_000;
 const DOC = new URL('../docs/load-test.md', import.meta.url);
 const BEGIN = '<!-- load-test-results:start -->';
 const END = '<!-- load-test-results:end -->';
@@ -67,10 +70,12 @@ async function report(run) {
   const median = ready.length ? (ready.length % 2 ? ready[middle] : (ready[middle - 1] + ready[middle]) / 2) : null;
   const failed = run.posts.filter((p) => p.error || p.status === 'failed').length;
   const incomplete = run.posts.filter((p) => !p.error && !['ready', 'failed'].includes(p.status)).length;
+  const schedule = scheduleSummary(run.posts.map((p) => p.startedAt === undefined ? NaN : p.startedAt - run.startedAt), { count: COUNT, intervalMs: INTERVAL_MS, windowMs: WINDOW_MS });
   const seconds = (ms) => ms === null || ms === undefined ? '—' : (ms / 1000).toFixed(2);
   const lines = [
     `Run started: ${new Date(run.startedAt).toISOString()}.`, '',
-    `Twenty posts were scheduled across 114 seconds, within the two-minute window. ${run.posts.filter((p) => p.id).length} post rows were created.`,
+    `Twenty posts were scheduled across 114 seconds. Observed creation starts: ${schedule.started} of ${COUNT}; last start at ${seconds(schedule.lastStart)} seconds (scheduling drift ${seconds(schedule.drift)} seconds). ${schedule.met ? 'The two-minute workload window was met.' : 'The two-minute workload window was NOT met, so this run does not represent the intended arrival pattern; its latencies are qualified accordingly.'} ${run.posts.filter((p) => p.id).length} post rows were created.`,
+    ...(run.pollError ? ['', `State polling stopped early: ${run.pollError}. Results below are partial.`] : []),
     `Ready: ${ready.length}; failed requests/posts: ${failed}; incomplete at observation deadline: ${incomplete}.`,
     `Median time to ready: ${seconds(median)} seconds. Maximum: ${seconds(ready.at(-1))} seconds.`, '',
     '| Post | Fixture | Creation started (s) | Result | Observed ready (s) |',
@@ -127,11 +132,13 @@ async function main() {
       while (Date.now() - run.startedAt < MAX_WAIT_MS) {
         const ids = run.posts.filter((p) => p.id).map((p) => p.id);
         if (ids.length) {
+          // Each query is bounded by the time left, so a stalled read cannot outlive the deadline.
+          const signal = () => AbortSignal.timeout(Math.max(1_000, Math.min(QUERY_TIMEOUT_MS, MAX_WAIT_MS - (Date.now() - run.startedAt))));
           const [posts, jobs] = await Promise.all([
-            admin.from('posts').select('id,status').in('id', ids),
-            admin.from('jobs').select('id,post_id,error,attempts').in('post_id', ids),
+            admin.from('posts').select('id,status').in('id', ids).abortSignal(signal()),
+            admin.from('jobs').select('id,post_id,error,attempts').in('post_id', ids).abortSignal(signal()),
           ]);
-          if (posts.error || jobs.error) throw new Error('Load-test state polling failed.');
+          if (posts.error || jobs.error) { run.pollError = 'a state query failed or timed out'; break; }
           for (const post of posts.data) {
             const entry = run.posts.find((p) => p.id === post.id);
             entry.status = post.status;
