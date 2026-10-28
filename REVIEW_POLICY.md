@@ -5,7 +5,7 @@ Effective 2026-10-26 for My Food AI. Adapted from naval-association-calgary and 
 ## Routes, in order
 
 1. **PPLX**: Gemini 3.8 Flash on Perplexity via `tools/pplx-review.mjs` (`skills/pplx-review/SKILL.md`, `docs/pplx-review-procedure.md`). Submission is exactly `code review <PR URL>`.
-2. **AGY**: Antigravity CLI (`skills/agy-review/SKILL.md`, `docs/agy-review-procedure.md`, model from `config/agy-review-policy.json`). Only after all four PPLX routes have failed (see PPLX routes under Quota).
+2. **AGY**: Antigravity CLI (`skills/agy-review/SKILL.md`, `docs/agy-review-procedure.md`, model from `config/agy-review-policy.json`). Only after every PPLX route available to the current harness has failed in one session (see PPLX routes under Quota).
 3. **Codex**: read-only `codex exec review` from a clean clone (`skills/codex-review/SKILL.md`, `docs/codex-review-procedure.md`). Only when PPLX and AGY are unavailable, and only if no commit on the head was written by OpenAI.
 
 Never use a Claude model, a coding sub-agent, or the model that wrote the code as the reviewer.
