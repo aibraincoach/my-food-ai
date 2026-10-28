@@ -11,7 +11,7 @@ export default function MonthGrid({ month, days, today, zone, zoneKnown }: { mon
   const next = new Date(Date.UTC(first.getUTCFullYear(), first.getUTCMonth() + 1, 1, 12));
   const query = (date: Date) => withZone(`/days?month=${date.toISOString().slice(0, 7)}`, zone, zoneKnown);
   return <>
-    <header className="flex h-top-h items-center justify-between px-screen-x">
+    <header className="flex h-top-safe items-center justify-between px-screen-x">
       <h1 className="text-title">{first.toLocaleDateString("en", { timeZone: "UTC", month: "long", year: "numeric" })}</h1>
       <Link href={query(previous)} className="flex min-h-tap items-center text-detail text-muted">{previous.toLocaleDateString("en", { timeZone: "UTC", month: "long" })}</Link>
     </header>

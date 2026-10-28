@@ -22,7 +22,7 @@ export default async function PostDetail({ params }: { params: Promise<{ id: str
   if (!isUuid(id)) notFound();
   const detail = await getPostDetail(supabase, id);
   if (!detail) notFound();
-  return <main className={`${font.className} mx-auto min-h-dvh w-full max-w-phone bg-surface pb-sheet-bottom text-text`}>
+  return <main className={`${font.className} mx-auto min-h-dvh w-full max-w-phone bg-surface pb-sheet-safe text-text`}>
     <TopBar title={<DetailDate value={detail.post.eaten_at} weekday />} left={<Link href="/" aria-label="Back to meals" className="flex min-h-tap min-w-tap items-center"><Icon name="back" /></Link>} />
     <OutlineOverlay key={id} initialized={detail.post.analysis_initialized_at != null} postId={id} caption={detail.post.caption} eatenAt={detail.post.eaten_at} status={detail.post.status} photo={detail.photo} items={detail.items} />
     <EatenAtEditor key={`${id}:${detail.post.eaten_at}`} postId={id} eatenAt={detail.post.eaten_at} />

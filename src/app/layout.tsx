@@ -12,7 +12,8 @@ export const metadata: Metadata = {
   icons: { apple: "/icons/icon-192.png" },
 };
 
-export const viewport: Viewport = { themeColor: tokens.colors.surface };
+// viewport-fit=cover lets the page run under the notch and home indicator; env(safe-area-inset-*) keeps content clear of them.
+export const viewport: Viewport = { themeColor: tokens.colors.surface, viewportFit: "cover" };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (

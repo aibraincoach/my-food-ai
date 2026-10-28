@@ -10,7 +10,7 @@ import QueueTicker from "@/components/QueueTicker";
 export default function TabsLayout({ children }: { children: React.ReactNode }) {
   const [sheetOpen, setSheetOpen] = useState(false);
   return (
-    <div className="mx-auto flex min-h-dvh w-full max-w-phone flex-1 flex-col bg-surface pb-bar-h">
+    <div className="mx-auto flex min-h-dvh w-full max-w-phone flex-1 flex-col bg-surface pb-bar-safe">
       <QueueTicker />
       <PostCreatedListeners />
       <PostReadinessListener />
