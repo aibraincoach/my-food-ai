@@ -9,7 +9,8 @@ async function withFetch(sequence, run) {
   const originalKey = process.env.MODEL_API_KEY;
   process.env.MODEL_API_KEY = "test-key";
   let calls = 0;
-  globalThis.fetch = async () => { const next = sequence[calls++]; return next(); };
+  // Only model calls follow the scripted sequence; anything else (the trace insert) just succeeds.
+  globalThis.fetch = async (input) => { if (!String(input instanceof Request ? input.url : input).includes('/v1/responses')) return new Response(null, { status: 201 }); const next = sequence[calls++]; return next(); };
   try { return await run(() => calls); } finally { globalThis.fetch = original; if (originalKey === undefined) delete process.env.MODEL_API_KEY; else process.env.MODEL_API_KEY = originalKey; }
 }
 

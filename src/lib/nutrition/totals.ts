@@ -15,13 +15,13 @@ export interface NutritionLike {
 }
 
 export interface MealTotals {
-  calories: number;
-  protein_g: number;
-  carbs_g: number;
-  fat_g: number;
-  fibre_g: number;
-  sugar_g: number;
-  sodium_mg: number;
+  calories: number | null;
+  protein_g: number | null;
+  carbs_g: number | null;
+  fat_g: number | null;
+  fibre_g: number | null;
+  sugar_g: number | null;
+  sodium_mg: number | null;
 }
 
 // PostgREST returns numeric columns as strings; coerce defensively.
@@ -42,30 +42,23 @@ function nutritionNumber(value: Numeric): number | null {
   return Number.isFinite(parsed) ? parsed : null;
 }
 
+export function formatNutrition(value: Numeric): string {
+  const amount = nutritionNumber(value);
+  return amount === null ? "—" : String(Math.round(amount));
+}
+
 export function sumNutrition(items: NutritionLike[]): MealTotals {
-  const totals: MealTotals = {
-    calories: 0,
-    protein_g: 0,
-    carbs_g: 0,
-    fat_g: 0,
-    fibre_g: 0,
-    sugar_g: 0,
-    sodium_mg: 0,
-  };
-  for (const item of items) {
-    totals.calories += toNumber(item.calories);
-    totals.protein_g += toNumber(item.protein_g);
-    totals.carbs_g += toNumber(item.carbs_g);
-    totals.fat_g += toNumber(item.fat_g);
-    totals.fibre_g += toNumber(item.fibre_g);
-    totals.sugar_g += toNumber(item.sugar_g);
-    totals.sodium_mg += toNumber(item.sodium_mg);
+  const totals: MealTotals = { calories: 0, protein_g: 0, carbs_g: 0, fat_g: 0, fibre_g: 0, sugar_g: 0, sodium_mg: 0 };
+  for (const item of items) for (const key of Object.keys(totals) as (keyof MealTotals)[]) {
+    const amount = nutritionNumber(item[key]);
+    const subtotal = totals[key];
+    totals[key] = amount === null || subtotal === null ? null : nutritionNumber(subtotal + amount);
   }
   return totals;
 }
 
 export function formatConsumed(totals: MealTotals): string {
-  return `Consumed: ${Math.round(totals.calories)} kcal`;
+  return `Consumed: ${formatNutrition(totals.calories)} kcal`;
 }
 
 export function formatGrams(grams: Numeric): string {
