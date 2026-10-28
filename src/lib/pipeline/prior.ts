@@ -1,4 +1,4 @@
-import {ioError} from "@/lib/worker/errors";
+import {ioError,isRetriable} from "@/lib/worker/errors";
 import type {SupabaseClient} from "@supabase/supabase-js";
 import {createResponse} from "@/lib/meta/client";
 import {sameMealPrompt,sameMealSchema} from "@/lib/prompts/spark/same-meal";
@@ -26,14 +26,22 @@ export async function findPrior(admin:SupabaseClient,postId:string):Promise<{hin
   const {data:items,error:itemError,status:itemStatus}=await admin.from("post_items").select("id,name,portion_text,portion_grams,confidence,item_nutrition(*)").eq("post_id",best.post_id).is("superseded_at",null).order("created_at");
   if(itemError) throw ioError(itemError.message,itemError,itemStatus);
   if(!items?.length) return null;
-  const hint=`This user logged this meal before as: ${items.map(item=>`${item.name}, ${item.portion_grams??"unknown"} g`).join("; ")}; keep these names and portions unless the photo clearly differs.`;
+  // Historical reference only: the current caption and photo always win, and a changed caption (for
+  // example "two bowls") changes the portion. Never an instruction to repeat the earlier amounts.
+  const hint=`Historical reference only (unconfirmed): this user logged this meal before as: ${items.map(item=>`${item.name}, ${item.portion_grams??"unknown"} g`).join("; ")}. Use these names or portions only when the current caption and photo support them. A changed caption takes precedence; never assume the previous portion.`;
   if(best.score<PRIOR.copyThreshold) return {hint};
   const {data:post,error:postError,status:postStatus}=await admin.from("posts").select("user_id,caption").eq("id",postId).single();
   if(postError) throw ioError(postError.message,postError,postStatus);
   const {data:past,error:pastError,status:pastStatus}=await admin.from("posts").select("caption").eq("id",best.post_id).eq("user_id",post.user_id).single();
   if(pastError) throw ioError(pastError.message,pastError,pastStatus);
   let photos;
-  try {photos=await Promise.all([loadFirstPhoto(admin,postId),loadFirstPhoto(admin,best.post_id)]);} catch {return {hint};}
+  try {photos=await Promise.all([loadFirstPhoto(admin,postId),loadFirstPhoto(admin,best.post_id)]);}
+  catch(error) {
+    // A missing or unreadable photo is expected (caption-only meals) and leaves the neutral hint; a
+    // retryable database or transport failure must reach the worker's retry handling instead.
+    if(isRetriable(error)) throw error;
+    return {hint};
+  }
   const result=await createResponse({model:"muse-spark-1.3",instructions:sameMealPrompt,input:[{role:"user",content:[{type:"input_text",text:JSON.stringify({prior:hint,current_caption:post.caption,past_caption:past.caption,image_order:["current","past"]})},...photos.map(photo=>({type:"input_image",image_url:`data:image/jpeg;base64,${Buffer.from(photo.bytes).toString("base64")}`}))]}],text:{format:{type:"json_schema",name:"same_meal",strict:true,schema:sameMealSchema}},max_output_tokens:128});
   if(result.status!=="completed"||!result.outputText||JSON.parse(result.outputText).same_meal!==true) return {hint:""};
   const nutrition=items.map(item=>{const row=Array.isArray(item.item_nutrition)?item.item_nutrition[0]:item.item_nutrition;return row??{};});

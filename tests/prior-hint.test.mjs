@@ -1,0 +1,43 @@
+// node --import tsx --test tests/prior-hint.test.mjs
+import assert from "node:assert/strict";
+import test from "node:test";
+
+// Every query chain resolves to the table's canned result, however it is awaited.
+function fakeAdmin({ candidate, mediaResult }) {
+  const tables = {
+    post_items: { data: [{ id: "i", name: "Rice", portion_text: "a bowl", portion_grams: 150, confidence: 0.9, item_nutrition: [] }], error: null },
+    posts: { data: { user_id: "u", caption: "two bowls of rice" }, error: null },
+    post_media: mediaResult,
+  };
+  const chain = (result) => new Proxy({}, { get: (_, name) => {
+    if (name === "then") return (resolve) => resolve(result);
+    if (name === "single" || name === "maybeSingle") return async () => result;
+    return () => chain(result);
+  } });
+  return {
+    rpc: async () => ({ data: [candidate], error: null }),
+    from: (name) => chain(tables[name]),
+    storage: { from: () => ({ download: async () => ({ data: null, error: { message: "gone" } }) }) },
+  };
+}
+
+test("a weak prior is only historical reference and never tells the model to keep portions", async () => {
+  const { findPrior } = await import("../src/lib/pipeline/prior.ts");
+  const result = await findPrior(fakeAdmin({ candidate: { post_id: "p", text_score: 0.7, photo_score: null, distance_m: null }, mediaResult: { data: null, error: null } }), "current");
+  assert.match(result.hint, /Historical reference only/);
+  assert.match(result.hint, /changed caption takes precedence/);
+  assert.doesNotMatch(result.hint, /keep these names and portions/);
+});
+
+test("a caption-only meal with a strong prior falls back to the neutral hint", async () => {
+  const { findPrior } = await import("../src/lib/pipeline/prior.ts");
+  const result = await findPrior(fakeAdmin({ candidate: { post_id: "p", text_score: 1, photo_score: null, distance_m: null }, mediaResult: { data: null, error: null } }), "current");
+  assert.match(result.hint, /Historical reference only/);
+  assert.equal(result.named, undefined);
+});
+
+test("a retryable photo metadata failure reaches the worker instead of becoming a hint", async () => {
+  const { findPrior } = await import("../src/lib/pipeline/prior.ts");
+  const admin = fakeAdmin({ candidate: { post_id: "p", text_score: 1, photo_score: null, distance_m: null }, mediaResult: { data: null, error: { message: "unavailable" }, status: 503 } });
+  await assert.rejects(findPrior(admin, "current"), (error) => error.status === 503);
+});
