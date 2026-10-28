@@ -99,17 +99,40 @@ export async function persistAnalysis(
 
 // The shared application completion hook. Stored cards and push attach here.
 // The meal becomes ready on its nutrition alone. The stored card is optional: a render or upload failure
-// queues card maintenance (a retriable card_backfill job) and never fails a meal whose analysis is complete.
-// The card_backfill job itself passes requireCard so its failures are retried.
+// never fails a meal whose analysis is complete. It drops the old card (which would show outdated numbers),
+// so the feed falls back to the live nutrition, and queues card maintenance (a retriable card_backfill job).
+// The card_backfill job itself passes requireCard so a failed or rejected publication is retried.
 export async function markReady(postId: string, admin: SupabaseClient = createAdminClient(),jobId?:string,options: { requireCard?: boolean } = {}): Promise<boolean> {
   const { data, error, status } = await admin.rpc("mark_post_ready", { p_post_id: postId,p_job_id:jobId??null });
   if (error) throw ioError("Post readiness could not be saved.", error, status);
   if (data !== true) return false;
+  let published = false;
   try {
-    await renderResultsCard(admin, postId, jobId);
+    published = await renderResultsCard(admin, postId, jobId);
   } catch (cardError) {
     if (options.requireCard) throw cardError;
+    await dropStaleCard(admin, postId);
     await admin.rpc("enqueue_card_backfill").then(() => undefined, () => undefined);
+    return true;
+  }
+  if (!published && options.requireCard) {
+    // Rejected publication: superseded work is fine, but a ready meal still without a card must be retried.
+    const card = await admin.from("post_media").select("id").eq("post_id", postId).eq("kind", "card").maybeSingle();
+    if (!card.error && !card.data) throw Object.assign(new Error("Card was not published."), { status: 503 });
   }
   return true;
+}
+
+async function dropStaleCard(admin: SupabaseClient, postId: string): Promise<void> {
+  try {
+    const { data } = await admin.from("post_media").select("storage_path").eq("post_id", postId).eq("kind", "card").maybeSingle();
+    if (!data) return;
+    await admin.from("post_media").delete().eq("post_id", postId).eq("kind", "card");
+    // Only generated card objects of this meal are ever removed.
+    if (typeof data.storage_path === "string" && data.storage_path.includes(`/${postId}/cards/`) && data.storage_path.endsWith("/card.png")) {
+      await admin.storage.from("media").remove([data.storage_path]);
+    }
+  } catch {
+    // Best effort: the backfill job below still replaces the card.
+  }
 }
