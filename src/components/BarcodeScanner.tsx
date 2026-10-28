@@ -1,0 +1,86 @@
+"use client";
+
+import { useCallback, useEffect, useRef, useState } from "react";
+import type { BarcodeProduct } from "@/lib/fdc/barcode";
+import { expandUpcE } from "@/lib/fdc/gtin";
+import { formatNutrition } from "@/lib/nutrition/totals";
+
+// Scans with @zxing/library (pure JavaScript), because iOS Safari ships with BarcodeDetector disabled.
+// The decoder is loaded only when the camera is opened.
+export default function BarcodeScanner() {
+  const video = useRef<HTMLVideoElement>(null);
+  const stop = useRef<() => void>(() => {});
+  const lookup = useRef(0);
+  const starting = useRef(false);
+  const [scanning, setScanning] = useState(false);
+  const [status, setStatus] = useState("");
+  const [product, setProduct] = useState<BarcodeProduct | null>(null);
+
+  const find = useCallback(async (code: string) => {
+    const request = ++lookup.current;
+    setStatus("Looking up the product…"); setProduct(null);
+    try {
+      const response = await fetch(`/api/fdc/barcode?code=${encodeURIComponent(code)}`);
+      const body = await response.json().catch(() => ({})) as { product?: BarcodeProduct; error?: string };
+      if (request !== lookup.current) return;
+      if (!response.ok || !body.product) { setStatus(body.error ?? "Barcode lookup is temporarily unavailable."); return; }
+      setProduct(body.product); setStatus("");
+    } catch { if (request === lookup.current) setStatus("Barcode lookup is temporarily unavailable."); }
+  }, []);
+
+  // One token per scanning session: stopping, unmounting or starting again invalidates every older step.
+  const session = useRef(0);
+  const close = useCallback(() => { session.current += 1; lookup.current += 1; stop.current(); stop.current = () => {}; starting.current = false; setScanning(false); setStatus(""); }, []);
+  useEffect(() => close, [close]);
+
+  const open = async () => {
+    if (starting.current || scanning) return;
+    starting.current = true;
+    const mine = ++session.current;
+    lookup.current += 1;                       // a lookup still running for an earlier scan must not show up now
+    setStatus("Starting the camera…"); setProduct(null);
+    let reader: { reset(): void } | null = null;
+    try {
+      const { BrowserMultiFormatReader, BarcodeFormat, DecodeHintType } = await import("@zxing/library");
+      if (mine !== session.current) return;
+      const hints = new Map<import("@zxing/library").DecodeHintType, unknown>([[DecodeHintType.POSSIBLE_FORMATS, [BarcodeFormat.UPC_A, BarcodeFormat.UPC_E, BarcodeFormat.EAN_13, BarcodeFormat.EAN_8]]]);
+      const zx = new BrowserMultiFormatReader(hints);
+      reader = zx;
+      // Acquire the camera ourselves so a cancelled session can stop it before ZXing ever sees it.
+      const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: "environment" } } });
+      const release = () => { stream.getTracks().forEach((track) => track.stop()); zx.reset(); };
+      if (mine !== session.current) { release(); return; }
+      stop.current = release;
+      setScanning(true);
+      await zx.decodeFromStream(stream, video.current!, (result) => {
+        if (mine !== session.current || !result) return;
+        session.current += 1; release(); setScanning(false);
+        const text = result.getText();
+        void find(result.getBarcodeFormat() === BarcodeFormat.UPC_E ? expandUpcE(text) ?? text : text);
+      });
+      if (mine !== session.current) { release(); return; }   // stopped while playback was starting
+      setStatus("Point the camera at the barcode.");
+    } catch {
+      reader?.reset();
+      if (mine === session.current) { close(); setStatus("The camera could not be opened. Allow camera access and try again."); }
+    } finally { if (mine === session.current) starting.current = false; }   // a close() has already released it
+  };
+
+  const basis = product?.basisUnit ?? "g";
+  const serving = product?.servingSize && product.servingSizeUnit?.toLowerCase() === basis ? product.servingSize : null;
+  const scale = (value: number | null, grams: number) => value === null ? "–" : formatNutrition(value * grams / 100);
+  return <section aria-label="Scan a barcode" className="flex flex-col gap-3 px-screen-x pb-sheet-top text-detail">
+    {scanning
+      ? <button type="button" onClick={close} className="min-h-tap self-start text-text">Stop scanning</button>
+      : <button type="button" onClick={() => { void open(); }} className="min-h-tap self-start text-text">Scan a barcode</button>}
+    <video ref={video} muted playsInline aria-label="Camera" className={scanning ? "aspect-square w-full rounded-field object-cover" : "hidden"} />
+    {status ? <p className="text-muted" role="status">{status}</p> : null}
+    {product ? <div className="flex flex-col gap-2">
+      <p className="text-body">{product.name}</p>
+      {product.brand ? <p className="text-meta text-faint">{product.brand}</p> : null}
+      <table className="w-full tabular-nums"><thead><tr className="text-left text-meta text-faint"><th scope="col"><span className="sr-only">Nutrient</span></th>{serving ? <th scope="col">Per serving ({serving} {basis}{product.servingText ? `, ${product.servingText}` : ""})</th> : null}<th scope="col">Per 100 {basis}</th></tr></thead>
+        <tbody>{([["Calories", "calories", "kcal"], ["Protein", "protein_g", "g"], ["Carbs", "carbs_g", "g"], ["Fat", "fat_g", "g"], ["Fibre", "fibre_g", "g"], ["Sugar", "sugar_g", "g"], ["Sodium", "sodium_mg", "mg"]] as const).map(([label, key, unit]) =>
+          <tr key={key}><th scope="row" className="py-1 text-left font-normal">{label}</th>{serving ? <td>{scale(product.per100g[key], serving)} {unit}</td> : null}<td>{product.per100g[key] === null ? "–" : formatNutrition(product.per100g[key])} {unit}</td></tr>)}</tbody></table>
+    </div> : null}
+  </section>;
+}
