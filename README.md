@@ -54,7 +54,7 @@ Only public-prefixed names are intended for browser exposure. Deployment environ
 - `skills/`: contributor workflows.
 - `src/`: application routes, components, model integrations and worker.
 - `supabase/`: database migrations.
-- `tests/`: automated checks.
+- `tests/`: automated checks. The database and pipeline tests hold the worker lease and must not run during a demo.
 - `tools/`: external review support tools.
 
 `node_modules/`, build output and local uploads are generated or private working files, not application source. Evaluation fixtures are added under `eval/` by the evaluation item.
