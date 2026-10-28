@@ -63,6 +63,11 @@ export default function PostReadinessListener() {
     };
     const discoveryTimer = setInterval(() => { if (document.visibilityState === "visible") void discover(); }, 15_000);
     void discover();
+    // A visible page re-renders once a minute: this covers an update to an older meal that
+    // `discover` cannot see and carries "today" across local midnight (the server derives it).
+    const reconcileTimer = setInterval(() => { if (document.visibilityState === "visible" && live) router.refresh(); }, 60_000);
+    const visible = () => { if (document.visibilityState === "visible" && live) router.refresh(); };
+    document.addEventListener("visibilitychange", visible);
     const focus = () => { void seedPending(); void discover(); };
     const channel = db.channel("tab-post-readiness").on("postgres_changes", {
       event: "UPDATE", schema: "public", table: "posts",
@@ -97,7 +102,7 @@ export default function PostReadinessListener() {
     window.addEventListener("post-ready", ready);
     window.addEventListener("focus", focus);
     return () => {
-      live = false; clearInterval(timer); clearInterval(discoveryTimer); void db.removeChannel(channel);
+      live = false; clearInterval(timer); clearInterval(discoveryTimer); clearInterval(reconcileTimer); document.removeEventListener("visibilitychange", visible); void db.removeChannel(channel);
       window.removeEventListener("post-created", created);
       window.removeEventListener("post-ready", ready);
       window.removeEventListener("focus", focus);
