@@ -52,7 +52,9 @@ returns table(id uuid) language sql stable security invoker set search_path=publ
       when 'dinner' then extract(hour from p.eaten_at at time zone p_tz) between 17 and 22
       when 'snack' then extract(hour from p.eaten_at at time zone p_tz) not between 5 and 14 and extract(hour from p.eaten_at at time zone p_tz) not between 17 and 22
       else false end)
-  order by case when p_latest then p.eaten_at else p.created_at end desc,p.id desc limit case when p_latest then 1 else 100 end;
+  -- Food date, not creation date, so a backfilled meal cannot displace a recently eaten one.
+  -- One row more than the page the app shows, so it can say the list was cut.
+  order by p.eaten_at desc,p.id desc limit case when p_latest then 1 else 25 end;
 $$;
 revoke all on function public.search_own_posts(text,timestamptz,timestamptz,text,boolean,boolean,text) from public,anon;
 grant execute on function public.search_own_posts(text,timestamptz,timestamptz,text,boolean,boolean,text) to authenticated;
