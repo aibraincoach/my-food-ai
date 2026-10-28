@@ -24,13 +24,13 @@ PPLX is first for every review. The owner states usage is unlimited. Any claim t
 
 ### PPLX routes
 
-There are four ways to reach PPLX. Try them in this order, in the same session, before any claim that PPLX is unavailable:
+There are four ways to reach PPLX. Try every route your harness has, in this order, in the same session, before any claim that PPLX is unavailable:
 
 1. **Headless runner**: `scripts/pplx-firefox.sh` and `tools/pplx-review.mjs` (`skills/pplx-review/SKILL.md`).
 2. **Cookie refresh**: if the runner meets Cloudflare ("Just a moment...") or never shows `#ask-input`, the signed-in profile's `cf_clearance` has gone stale. Open a visible Firefox on that profile on the owner's display (`DISPLAY=:10`), let the owner pass the check, then run route 1 again.
-3. **The owner's Chrome**: submit exactly `code review <PR URL>` on Gemini 3.8 Flash in the owner's signed-in Chrome through the Claude in Chrome tools, read the answer, and post the receipt with the thread link.
+3. **The owner's Chrome** (only agents on the Claude harness, which has the Claude in Chrome tools; Codex, Muse, Cursor Agent and Kimi do not and use routes 1, 2 and 4): submit exactly `code review <PR URL>` on Gemini 3.8 Flash in the owner's signed-in Chrome through the Claude in Chrome tools, read the answer, and post the receipt with the thread link.
 4. **The other OCI server**: run the same runner from the other OCI server.
 
-AGY and Codex are used only after all four routes fail in one session. A Cloudflare page is a failed route, not a quota. Report its exact text to the owner in the same message.
+AGY and Codex are used only after every route your harness has has failed in one session. A Cloudflare page is a failed route, not a quota. Report its exact text to the owner in the same message.
 
 Quota exhaustion stops that route; record the message and time. Move to the next route. No paid fallback on the same route.
