@@ -1,7 +1,8 @@
 // Muse Spark 1.3 item naming and portions (item 9). Non-streaming
 // /v1/responses with strict JSON output against the identify schema.
 // Server-only: reads MODEL_API_KEY from the environment.
-import { MetaApiError, createResponse } from "./client";
+import { MetaApiError } from "./client";
+import { createResponseRetrying404 } from "./retry404";
 import { identifyPrompt, identifySchema } from "@/lib/prompts";
 
 export interface IdentifyRegion {
@@ -123,9 +124,7 @@ export async function identifyItems(
   const known = new Set(regions.map((r) => r.index));
   let maxTokens = 2048;
   for (let attempt = 0; attempt < 4; attempt += 1) {
-    let out;
-    try {
-      out = await createResponse({
+    const out = await createResponseRetrying404({
         model: "muse-spark-1.3",
         instructions: identifyPrompt + (prior ? `\n${prior}` : ""),
         input: [
@@ -145,13 +144,6 @@ export async function identifyItems(
         },
         max_output_tokens: maxTokens,
       });
-    } catch (error) {
-      // The gateway returns transient empty-body 404s on non-streaming POSTs. 429 and 5xx belong to the
-      // worker's retry policy; any other 404 would be a real missing resource, so only this is retried here.
-      if (!(error instanceof MetaApiError && error.status === 404) || attempt === 3) throw error;
-      await new Promise((resolve) => setTimeout(resolve, 1000 * (attempt + 1)));
-      continue;
-    }
     if (out.refusal) {
       throw new MetaApiError(500, "spark: model refused the identify call.");
     }
