@@ -71,13 +71,13 @@ function StatusLine({ post }: { post: FeedPost }) {
   </div>;
 }
 
-export default function PostCard({ post, analysis }: { post: FeedPost; analysis?: ReactNode }) {
+export default function PostCard({ post, analysis, showDate = false }: { post: FeedPost; analysis?: ReactNode; showDate?: boolean }) {
   return <article className="flex flex-col gap-2" data-post-id={post.id} data-post-status={post.status}>
     {post.slides?.length ? <Carousel slides={post.slides} caption={post.caption} /> : post.status === "ready" && post.items.length ? <CaptionCard post={post} /> : null}
     <div className="flex flex-col gap-2 px-screen-x">
       <div className="flex items-start justify-between gap-2">
         <p className="min-w-0 whitespace-pre-wrap break-words text-body">{post.caption}</p>
-        <Link href={`/posts/${post.id}`} aria-label="Open meal details" className="min-h-tap shrink-0 whitespace-nowrap text-meta text-muted"><time dateTime={post.eaten_at}>{timeLabel(post.eaten_at)}</time></Link>
+        <Link href={`/posts/${post.id}`} aria-label="Open meal details" className="min-h-tap shrink-0 whitespace-nowrap text-meta text-muted"><time dateTime={post.eaten_at}>{showDate ? new Date(post.eaten_at).toLocaleDateString(undefined,{weekday:"short",month:"short",day:"numeric"}) : timeLabel(post.eaten_at)}</time></Link>
       </div>
       {post.status === "ready" && post.items.length > 0 && analysis ? analysis : <StatusLine post={post} />}
     </div>
