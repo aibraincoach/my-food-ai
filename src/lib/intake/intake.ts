@@ -42,3 +42,10 @@ export function intakeLine(totals: IntakeTotals, { includeZero = false }: { incl
     .map((kind) => `${INTAKE[kind].label} ${totals[kind]} ${INTAKE[kind].unit}`)
     .join(" · ");
 }
+
+// Custom coffee uses the existing intake table's whole 1–1000 mg bounds.
+export function customCoffeeCaffeine(ml: number): number | null {
+  if (!Number.isInteger(ml) || ml < 1 || ml > 5000) return null;
+  const mg = Math.round(ml * 95 / 240);
+  return mg >= 1 && mg <= 1000 ? mg : null;
+}

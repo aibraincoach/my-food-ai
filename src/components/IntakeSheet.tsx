@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/Button";
 import { Icon } from "@/components/ui/Icon";
 import { tokens } from "@/lib/theme/tokens";
 import { createPost } from "@/lib/posts/create";
+import { customCoffeeCaffeine } from "@/lib/intake/intake";
 import type { DrinkRow } from "@/lib/intake/hydration";
 
 const water = [{ ml: 150, label: "small glass" }, { ml: 250, label: "glass" }, { ml: 330, label: "bottle" }, { ml: 500, label: "large bottle" }, { ml: 750, label: "sports bottle" }, { ml: 1000, label: "jug" }];
@@ -45,7 +46,7 @@ export default function IntakeSheet({ initialKind, embedded = false, onClose }: 
     return () => controller.abort();
   }, [open]);
   const ml = selected ?? Number(custom);
-  const valid = Number.isInteger(ml) && ml >= 1 && ml <= 5000 && (tab !== "Coffee" || selected !== null || Math.round(ml * 95 / 240) <= 1000) && (tab !== "Other" || name.trim().length > 0);
+  const valid = Number.isInteger(ml) && ml >= 1 && ml <= 5000 && (tab !== "Coffee" || selected !== null || customCoffeeCaffeine(ml) !== null) && (tab !== "Other" || name.trim().length > 0);
   const label = tab === "Water" ? "Water" : tab === "Coffee" ? `Coffee${selected === 30 ? ", espresso" : selected === 240 ? ", cup" : selected === 350 ? ", large" : ""}` : name.trim();
   const close = () => { if (!busy) { setOpen(false); onClose?.(); window.dispatchEvent(new Event("entry-closed")); } };
   const post = async () => {
@@ -87,6 +88,7 @@ export default function IntakeSheet({ initialKind, embedded = false, onClose }: 
         </button>)}</div>}
       <Field label="Other amount" suffix="ml" inputMode="numeric" value={custom} disabled={busy} className="mt-2" onChange={event => { setSelected(null); setCustom(event.target.value); }} />
       {tab === "Coffee" && selected === null && ml > 0 && Number.isFinite(ml) ? <p className="mt-1 text-label text-muted">{Math.round(ml * 95 / 240)} mg caffeine</p> : null}
+      {tab === "Coffee" && selected === null && custom && !valid ? <p role="status" className="mt-1 text-label text-muted">Enter a whole amount from 2 to 2527 ml.</p> : null}
       <p className="text-meta text-muted" style={{ marginTop: sectionGap, marginBottom: tokens.spacing.grid }}>Drank today</p>
       {readError ? <p role="status" className="text-meta text-muted">Drinks could not be read.</p> : rows.map((row, index) => <div key={`${row.logged_at}-${index}`} className="flex items-center gap-2 border-b border-hairline" style={{ minHeight: tokens.capture.controlsGap }}>
         <time className="shrink-0 text-meta text-muted tabular-nums" style={{ width: tokens.capture.thumbSize + tokens.spacing.grid }} dateTime={row.logged_at}>{new Date(row.logged_at).toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" })}</time>

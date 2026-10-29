@@ -5,7 +5,8 @@ import { spawnSync } from "node:child_process";
 import test from "node:test";
 import { createClient } from "@supabase/supabase-js";
 import { parseDrinkInput, postDrink } from "../src/lib/intake/post-drink.ts";
-import { hydrationSoFar } from "../src/lib/intake/hydration.ts";
+import { customCoffeeCaffeine } from "../src/lib/intake/intake.ts";
+import { hydrationSoFar, getDrinkCardsData } from "../src/lib/intake/hydration.ts";
 import { dateInZone } from "../src/lib/posts/days.ts";
 import { signInAsTestUser } from "../scripts/lib/session.mjs";
 
@@ -16,6 +17,13 @@ test("drink data is bounded and caffeine/labels come from the server", () => {
   assert.deepEqual(parseDrinkInput({ kind: "caffeine", ml: 240 }), { kind: "caffeine", ml: 240, label: "Coffee, cup", caffeineMg: 95 });
   assert.equal(parseDrinkInput({ kind: "caffeine", ml: 30 }).caffeineMg, 63);
   assert.equal(parseDrinkInput({ kind: "caffeine", ml: 30, custom: true }).caffeineMg, 12);
+  for (const ml of [1,2,2527,2528]) {
+    const caffeine = customCoffeeCaffeine(ml);
+    const parsed = parseDrinkInput({ kind: "caffeine", ml, custom: true });
+    assert.equal(parsed?.caffeineMg ?? null, caffeine);
+  }
+  assert.equal(customCoffeeCaffeine(1), null);
+  assert.equal(customCoffeeCaffeine(2), 1);
   for (const body of [null, { kind: "water", ml: 0 }, { kind: "water", ml: 5001 }, { kind: "water", ml: 1.5 }, { kind: "water", ml: "330" }, { kind: "caffeine", ml: 5000 }, { kind: "other", ml: 30 }]) assert.equal(parseDrinkInput(body), null);
 });
 
@@ -52,21 +60,65 @@ test("hydration counts food water once, old water rows and local-day cutoff", as
     { id: "previous-day", eaten_at: "2026-10-28T03:00:00Z" },
   ];
   const builder = table => {
-    let from = 0, through = 999, postId;
+    let from = 0, through = 999, columns, ids, cutoff;
     const chain = new Proxy({}, { get: (_, method) => {
       if (method === "then") return resolve => {
-        const data = table === "intake_logs" ? intake.slice(from,through+1) : table === "posts" ? posts.slice(from,through+1)
-          : table === "current_post_items" ? [{ id: postId+"-item",name:"meal",portion_grams:100,source:"user" }]
-          : table === "item_nutrition" ? [{ post_item_id:"meal-item",micronutrients:[{nutrientId:1051,unitName:"G",value:420,basis:"portion"}] }] : [];
-        resolve({data,error:null});
+        let data = [];
+        if (table === "intake_logs") data = columns === "post_id" ? intake.filter(row => ids.includes(row.post_id)) : intake;
+        if (table === "posts") data = posts.filter(row => !cutoff || row.eaten_at <= cutoff);
+        if (table === "current_post_items") data = [{id:"meal-item",post_id:"meal",portion_grams:100}].filter(item => ids.includes(item.post_id));
+        if (table === "item_nutrition") data = [{post_item_id:"meal-item",micronutrients:[{nutrientId:1051,unitName:"G",value:420,basis:"portion"}]}];
+        resolve({data:data.slice(from,through+1),error:null});
       };
+      if (method === "select") return value => { columns=value;return chain; };
+      if (method === "in") return (_,value) => { ids=value;return chain; };
+      if (method === "lte") return (_,value) => { cutoff=value;return chain; };
       if (method === "range") return (start,end) => { from=start;through=end;return chain; };
-      if (method === "eq") return (column,value) => { if(column === "post_id") postId=value;return chain; };
       return () => chain;
     } }); return chain;
   };
   const result = await hydrationSoFar({from:builder},"owner","2026-10-28","America/Edmonton","2026-10-28T09:30:00Z");
   assert.deepEqual(result,{drinksMl:820,foodMl:420,totalMl:1240});
+});
+
+test("batched cards share a day read, preserve legacy food water, and apply each drink's own cutoff", async () => {
+  const calls = [];
+  const posts = [
+    {id:"w",eaten_at:"2026-10-28T08:00:00Z"},{id:"c",eaten_at:"2026-10-28T09:00:00Z"},
+    {id:"meal1",eaten_at:"2026-10-28T07:30:00Z"},{id:"meal2",eaten_at:"2026-10-28T08:30:00Z"},
+  ];
+  const drinks = [
+    {post_id:"w",kind:"water",amount:330,ml:330,label:"Water",logged_at:posts[0].eaten_at},
+    {post_id:"c",kind:"caffeine",amount:95,ml:240,label:"Coffee, cup",logged_at:posts[1].eaten_at},
+  ];
+  const items = [{id:"i1",post_id:"meal1",portion_grams:100},{id:"i2",post_id:"meal2",portion_grams:50}];
+  const nutrition = [
+    {post_item_id:"i1",micronutrients:[{nutrientId:1051,nutrientName:"Water",unitName:"G",value:420,basis:"portion"}]},
+    {post_item_id:"i2",micronutrients:[{nutrientId:1051,nutrientName:"Water",unitName:"G",value:200}]},
+  ];
+  const builder = table => {
+    let columns, filter, offset=0, end=999, cutoff;
+    const chain = new Proxy({}, {get:(_,method)=>{
+      if(method === "then") return resolve=>{
+        calls.push([table,columns]);
+        let data = table === "posts" ? posts : table === "intake_logs" ? drinks : table === "current_post_items" ? items : nutrition;
+        if(filter)data=data.filter(row=>filter[1].includes(row[filter[0]]));
+        if(cutoff)data=data.filter(row=>row.eaten_at <= cutoff);
+        resolve({data:data.slice(offset,end+1),error:null});
+      };
+      if(method === "select")return value=>{columns=value;return chain;};
+      if(method === "in")return(column,values)=>{filter=[column,values];return chain;};
+      if(method === "lte")return(_,value)=>{cutoff=value;return chain;};
+      if(method === "range")return(start,last)=>{offset=start;end=last;return chain;};
+      return()=>chain;
+    }});return chain;
+  };
+  const result=await getDrinkCardsData({from:builder},"owner",["w","c","non-drink"],"UTC");
+  assert.equal(result.w.drinksMl,330);assert.equal(result.w.foodMl,420);assert.equal(result.w.totalMl,750);
+  assert.equal(result.c.drinksMl,570);assert.equal(result.c.foodMl,520);assert.equal(result.c.totalMl,1090);
+  assert.equal(result["non-drink"],null);
+  assert.equal(calls.filter(([table])=>table === "current_post_items").length,1,"current items are shared across cards");
+  assert.equal(calls.filter(([table])=>table === "item_nutrition").length,1,"nutrition is shared across cards");
 });
 
 test("migration 0019 enforces bounds and preserves owner-only access in a rolled-back database transaction", () => {

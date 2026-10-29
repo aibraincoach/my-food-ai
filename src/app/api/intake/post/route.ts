@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { parseDrinkInput, postDrink } from "@/lib/intake/post-drink";
-import { drinksForDay, getDrinkCardData } from "@/lib/intake/hydration";
+import { drinksForDay, getDrinkCardData, getDrinkCardsData } from "@/lib/intake/hydration";
 import { dateInZone, validZone } from "@/lib/posts/days";
 import { isUuid } from "@/lib/posts/items";
 
@@ -14,6 +14,12 @@ export async function GET(request: Request) {
   const params = new URL(request.url).searchParams;
   const zone = validZone(params.get("tz") ?? (await cookies()).get("time-zone")?.value);
   try {
+    const postIds = params.get("post_ids");
+    if (postIds !== null) {
+      const ids = [...new Set(postIds.split(","))];
+      if (!ids.length || ids.length > 50 || ids.some(id => !isUuid(id))) return NextResponse.json({ error: "Invalid posts." }, { status: 400 });
+      return NextResponse.json({ drinks: await getDrinkCardsData(db, user.id, ids, zone) });
+    }
     const postId = params.get("post_id");
     if (postId) {
       if (!isUuid(postId)) return NextResponse.json({ error: "Invalid post." }, { status: 400 });

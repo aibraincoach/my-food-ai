@@ -3,6 +3,7 @@ import { searchFoods } from "@/lib/fdc/client";
 import { scaleNutrition } from "@/lib/fdc/nutrients";
 import { dateInZone, validZone } from "@/lib/posts/days";
 import { hydrationSoFar, type DrinkCardData } from "./hydration";
+import { customCoffeeCaffeine } from "./intake";
 import { renderResultsCard } from "@/lib/pipeline/results-card";
 
 export interface DrinkInput { kind: "water" | "caffeine"; label: string; ml: number; caffeineMg: number }
@@ -15,8 +16,8 @@ export function parseDrinkInput(body: unknown): DrinkInput | null {
   const ml = value.ml as number;
   if (value.kind === "water") return { kind: "water", label: "Water", ml, caffeineMg: 0 };
   const preset = value.custom === true ? undefined : presets.find(row => row.ml === ml);
-  const caffeineMg = preset?.mg ?? Math.round(ml * 95 / 240);
-  if (caffeineMg < 1 || caffeineMg > 1000) return null;
+  const caffeineMg = preset?.mg ?? customCoffeeCaffeine(ml);
+  if (caffeineMg === null) return null;
   return { kind: "caffeine", label: preset?.label ?? "Coffee", ml, caffeineMg };
 }
 
@@ -51,6 +52,9 @@ export async function postDrink(admin: SupabaseClient, userId: string, input: Dr
     ml: input.ml, label: input.label, caffeineMg: input.caffeineMg };
   // The committed post remains readable with its live card if optional PNG rendering fails.
   await renderResultsCard(admin, postId, undefined, drink, zone);
-  } catch { /* A committed drink remains a success; its live card retries the read. */ }
+  } catch {
+    // Do not turn a committed drink into a failed POST; the live card retries the read.
+    console.error("Drink hydration/card rendering failed.", { postId });
+  }
   return { postId, drink };
 }
