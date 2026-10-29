@@ -19,7 +19,17 @@ export async function POST(request: Request) {
   } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: "Sign in required." }, { status: 401 });
 
-  const body = (await request.json()) as { postId?: string; shots?: ShotSpec[] };
+  const body = (await request.json().catch(() => ({}))) as { postId?: string; staged?: boolean; shots?: ShotSpec[] };
+  if (body.staged === true) {
+    // A scanned food must upload before the ready post is inserted; it never creates an analyze job.
+    const stageId = crypto.randomUUID();
+    try {
+      const uploads = await signShotUploads(supabase, user.id, stageId, [0]);
+      return NextResponse.json({ uploads });
+    } catch {
+      return NextResponse.json({ error: "Signing upload URLs failed." }, { status: 500 });
+    }
+  }
   if (!body.postId || !Array.isArray(body.shots) || body.shots.length === 0) {
     return NextResponse.json({ error: "postId and shots are required." }, { status: 400 });
   }
