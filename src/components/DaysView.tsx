@@ -185,7 +185,7 @@ export default function DaysView({ initialMonths, earliest, today, zone, initial
       right={<button type="button" onClick={() => { void showMenu(); }} className="flex min-h-tap items-center gap-1 text-detail text-muted" style={{ marginRight: -tokens.spacing.grid * 2 }}>{top.slice(0, 4)}<Icon name="chevron-down" /></button>} />
     <div className="flex flex-col pt-1" style={{ gap: tokens.spacing["icon-small"] + tokens.spacing.grid }}>
       {displayed.map(month => <MonthGrid key={month} month={month} summary={months[month]} today={today} selected={selected} onDay={date => { void openDay(date); }} />)}
-      <div ref={tail} className="px-screen-x text-month text-faint" style={{ minHeight: tokens.spacing.tap }}>{monthName(shiftMonth(last, -1))}</div>
+      <div ref={tail} className="px-screen-x text-month text-faint" style={{ minHeight: tokens.spacing.tap }}>{monthName(shiftMonth(last, -1), true)}</div>
     </div>
     {loadingMonth || loadingDay ? <p role="status" className="px-screen-x text-meta text-muted">{loadingDay ? "Loading day…" : "Loading months…"}</p> : null}
     {error ? <p role="alert" className="px-screen-x text-meta text-muted">{error}<button type="button" className="ml-2 min-h-tap text-text" onClick={() => { setError(""); if (retry.current) retry.current(); else router.refresh(); }}>Try again</button></p> : null}

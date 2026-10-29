@@ -8,6 +8,7 @@ import { tokens } from "@/lib/theme/tokens";
 import { dateInZone, shiftDay, type LoggedDay } from "@/lib/posts/days";
 import { ResultsCard } from "@/components/ResultsCard";
 import { Icon } from "@/components/ui/Icon";
+import { formatDayKcal } from "@/components/MonthGrid";
 
 function subscribeWidth(listener: () => void) {
   window.addEventListener("resize", listener);
@@ -126,7 +127,7 @@ export default function StoryPlayer({ day, zone, onClose, onDay, cell }: { day: 
           </div>
           <div className="px-screen-x"><p className="text-body">{post.caption}</p><p className="mt-1 text-meta text-faint">{time(post.eatenAt)}</p></div>
         </div> : <div className="mt-auto flex shrink-0 flex-col gap-7 px-screen-x">
-          <div><p className="mb-3 text-detail text-faint">Consumed on {weekday}</p><p className="flex items-baseline gap-2"><span className="text-display-day tabular-nums">{formatNutrition(day.totals.calories)}</span><span className="text-month font-normal text-faint">kcal</span></p></div>
+          <div><p className="mb-3 text-detail text-faint">Consumed on {weekday}</p><p className="flex items-baseline gap-2"><span className="text-display-day tabular-nums">{formatDayKcal(day.totals.calories)}</span><span className="text-month font-normal text-faint">kcal</span></p></div>
           <div className="grid grid-cols-3 pt-4" style={{ borderTop: `${tokens.border.hairline}px solid ${tokens.colors.surface}`, borderTopColor: `color-mix(in srgb, ${tokens.colors.surface} 14%, transparent)` }}>
             {([[day.totals.protein_g, "protein"], [day.totals.carbs_g, "carbs"], [day.totals.fat_g, "fat"]] as const).map(([value, word]) => <div key={word}><p className="text-day-macro tabular-nums">{formatNutrition(value)} g</p><p className="text-meta text-faint">{word}</p></div>)}
           </div>
