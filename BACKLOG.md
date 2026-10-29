@@ -1,6 +1,6 @@
 # My Food AI — Backlog†
 
-Last edited: Thursday 2026-10-29 at 12:36 JST (UTC+09:00) by Claude, successor PM
+Last edited: Thursday 2026-10-29 at 12:57 JST (UTC+09:00) by Claude, successor PM
 
 ## Backlog
 
@@ -29,6 +29,12 @@ The owner sees room for two months on the screen and is unsure whether one month
 Water and caffeine intake and the barcode scanner are built but have no designer's frame to check them against.
 
 Both are merged (#111 and #165) and have not been tried on a phone. Draw the intake control and the scanner at 390x844 in light mode, in past tense, with no budget, no progress and no "left". Done when both frames are delivered.
+
+### #195 The second photo can show what was not eaten
+
+A user who photographs a whole cake and then eats part of it cannot say that the second photo shows what remains.
+
+The owner wants it very clear which photo is the not-eaten one: a toggle on the second photo only, or a + at the end of the carousel reached by swiping right on the card. The app never shows the word "left", so the label reads "Not eaten". Design the + in the carousel, the toggle on and off, the label on the slide, and how the card shows what was consumed. Done when frames at 390x844 for adding the second photo, the toggle states and a card with a not-eaten slide are delivered.
 
 ## Analysis pipeline and worker
 
@@ -94,29 +100,17 @@ Meals get logged late. A coffee is remembered hours afterwards and a photo is of
 
 The owner asked for this after logging coffee hours late; Cal AI uses a time chip that opens a wheel picker. Add "Choose from library" to the capture sheet for one or several photos, and a "When" row set to Now that opens a time picker; a caption-only post such as "coffee" can be given a past time. Eaten-at defaults to the photo's capture time when the browser provides it, and post detail gets an edit-time control. The feed, Days and Search order by eaten-at. Done when a post logged now with a time of 8:30 this morning appears at 8:30 on today's bubble.
 
-### #171 Food search without the model
-
-Logging a known food always costs a model call, even when a database entry would do.
-
-Cal AI lists database matches with calories and serving size as the user types. Add "Search foods" to the + sheet running an FDC text search with per-serving calories; picking a result creates a ready post with a servings control and no model call, and "Describe it instead" falls back to the model. Done when searching "croissant" and picking one logs a ready post in under three seconds.
-
 ### #172 Saved meals and Log again
 
 Habits repeat, and today every repeat is logged again from scratch.
 
-Cal AI has saved foods and a Copy To action. Add a bookmark on post detail that saves a meal, a list of saved meals in the + sheet, and "Log again" in the post menu to copy a meal to a chosen time. Done when a saved coffee logs in two taps at Now and at an earlier time through the picker.
-
-### #170 Servings and unit-aware amounts on a meal
-
-A meal's portion can be edited only as grams per item, so "two servings" cannot be expressed.
-
-Cal AI has a servings pill and per-item servings. Add a servings control on post detail that scales every item and the totals, and per-item amounts in g, oz, piece or cup; edits append to the thread. Proposed placement, not yet decided: a tappable amount inside each item line plus one "x 1 serving" pill on the Consumed line. Done when 2 servings doubles the totals and 80 g recomputes an item's nutrition from FDC per 100 g.
+Cal AI has saved foods and a Copy To action. Add a bookmark on post detail that saves a meal, a list of saved meals in the + sheet, and "Log again" in the post menu to copy a meal to a chosen time. The designer is drawing the frames, and the item is not built before they exist. Done when a saved coffee logs in two taps at Now and at an earlier time through the picker.
 
 ### #173 Add a photo to an existing post
 
-A meal sometimes needs a second photo after it is posted, and a post cannot take one.
+A post cannot take a second photo. That matters most when a meal is only partly eaten: a whole chocolate cake is photographed, part of it is eaten, and the app has no way to record that the second photo shows what remains.
 
-Cal AI's post menu has Add Photo. Add "Add photo" to the post menu; the photo joins the carousel and triggers a re-estimate as a thread reply. Done when a second photo appears in the carousel and the thread shows a revised summary.
+The owner asked for this on Oct 29 and wants it unmistakable which photo is which. Add "Add photo" to the post menu and a + at the end of the card's carousel, reached by swiping right on the card; the photo joins the carousel and triggers a re-estimate as a thread reply. Only the second photo can be marked "Not eaten" with a toggle: the app then records what was eaten as the first photo's items minus the items in the marked photo, shown as Consumed, and keeps both estimates in the thread. The app never shows the word "left", so the label is "Not eaten". The look comes from the designer's frame. Done when a second photo appears in the carousel, a photo marked Not eaten lowers the consumed totals by the items it shows, the first photo cannot be marked, and the thread shows both estimates.
 
 ### #174 Delete a post
 
@@ -128,9 +122,9 @@ Cal AI's post menu has Delete Food. Add "Delete" to the post menu with a confirm
 
 ### #192 The photo does not reload while a post is being processed
 
-The photo on a post reloads again and again while the analysis is running, which looks broken.
+While a post is being processed, its photo flickers, flashes and reloads over and over. It looks broken.
 
-The cause is not known. Each card polls its row every 3 seconds while the post is unsettled, and a refresh may be fetching the signed image address again; check that first and confirm it by observation. Fix it so the image loads once and the rest of the card updates around it. Done when a post made on production shows its photo with no visible reload from posting until it is ready.
+The owner reported this on Oct 29 while using the app. A planner report of Oct 27, written on the #38 head, said each card subscribes to its row and polls every 3 seconds while the post is unsettled; whether that, the realtime event or the refresh after posting re-creates the photo is not known, so verify it first and confirm the cause by observation. Fix it so the image loads once and the rest of the card updates around it. Done when a post made on production shows its photo with no flicker or reload from posting until it is ready.
 
 ### #107 Every card has a visible way to open post detail
 
@@ -217,6 +211,12 @@ Restyle it from the frame using the theme tokens and shared components: the dark
 Installed to an iPhone home screen, the app collides with the system: the clock overlaps content and the bottom bar is clipped.
 
 The owner's screenshot shows the clipped bar. The installed app does not respect the status bar, the notch or the home indicator. Set viewport-fit=cover and pad the header, the bottom bar and every sheet with env(safe-area-inset-\*). Done when nothing overlaps the clock or the home indicator at 390x844 and 430x932.
+
+### #196 The coder signs in to production as the test account with no person involved
+
+The coder cannot sign in to the production app, so it cannot run a page look or the demo script itself and has to stop at the sign-in step.
+
+A planner report of Oct 28 said the coder's browser tool refuses to type a password even for the test account, and production sign-in has stayed with the owner since. The coder reaches production only through a session helper for API checks. The owner's rule is that a test run needs no human step. Make the test account's sign-in work for the coder from start to finish. Done when the coder signs in to production as the test account, posts a meal and reaches the feed with no person involved, and the page looks and the demo script run the same way.
 
 ### #193 Page looks for every screen against the designer's frames
 
