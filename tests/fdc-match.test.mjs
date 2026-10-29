@@ -44,3 +44,14 @@ test("without a query, data-type rank still decides", () => {
   ];
   assert.equal(chooseBestMatch(foods)?.fdcId, 1);
 });
+
+import { identifyPrompt } from "../src/lib/prompts/spark/identify.ts";
+import { correctPrompt } from "../src/lib/prompts/spark/correct.ts";
+test("both portion prompts bind caption count and size to one single serving", () => {
+  for (const prompt of [identifyPrompt, correctPrompt]) {
+    assert.match(prompt, /count or size in the caption bounds the portion exactly/);
+    assert.match(prompt, /one slice.*never two/);
+    assert.match(prompt, /small.*low end of the range/);
+    assert.match(prompt, /a slice of Japanese toast.*thick single slice/);
+  }
+});

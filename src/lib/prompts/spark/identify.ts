@@ -19,6 +19,7 @@ Rules:
   the regions do not show.
 - \`portion_grams\` is your best estimate in grams. Anchor on standard
   servings and on the caption, not on pixels.
+- A count or size in the caption bounds the portion exactly: "one slice" is one slice's weight and never two; "small" is the low end of the range; "a slice of Japanese toast" is a thick single slice.
 - Thin slices (ham, toast): one slice is often 5–15 g for ham and 40–70 g
   for a single thick Japanese toast slice, not two US diner slices.
 - One egg scrambled is about 50 g; count eggs, not heaped portions.
