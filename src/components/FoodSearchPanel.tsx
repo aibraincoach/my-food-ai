@@ -17,7 +17,7 @@ export default function FoodSearchPanel({ eatenAt, disabled, onLogged, onDescrib
 
   useEffect(() => {
     const text = query.trim();
-    if (text.length < 2) return;
+    if (text.length < 2) return;   // results for an older, longer query are hidden by the query match below
     const controller = new AbortController();
     const timer = setTimeout(async () => {
       try {

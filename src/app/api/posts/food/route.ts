@@ -27,6 +27,7 @@ export async function POST(request: Request) {
     const n = scaleNutrition(food, grams);
     const { data, error } = await admin.rpc("create_food_post", { p_user_id: user.id, p_eaten_at: eatenAt, p_name: food.description.slice(0, 160), p_grams: grams,
       p_nutrition: { calories: n.calories, protein_g: n.proteinG, carbs_g: n.carbsG, fat_g: n.fatG, fibre_g: n.fibreG, sugar_g: n.sugarG, sodium_mg: n.sodiumMg, micronutrients: n.micronutrients, source_ref: n.sourceRef } });
+    if (error?.code === "42501") return NextResponse.json({ error: "Sign in required." }, { status: 401 });
     if (error) return NextResponse.json({ error: error.code?.startsWith("22") ? "That food could not be logged." : "The meal could not be saved." }, { status: error.code?.startsWith("22") ? 400 : 500 });
     return NextResponse.json({ post_id: data as string }, { status: 201 });
   } catch (error) {
