@@ -110,7 +110,7 @@ export default function StoryPlayer({ day, zone, onClose, onDay, cell }: { day: 
         <h1 className="text-body font-semibold">{title}</h1>
         <button type="button" onClick={() => { void close(); }} aria-label="Close day" className="flex size-tap items-center justify-center"><Icon name="close" size={tokens.radii.pill} /></button>
       </header>
-      <div ref={content} className="flex min-h-0 flex-1 flex-col gap-7 overflow-y-auto" style={{ paddingBottom: tokens.spacing.tap }}
+      <div ref={content} className="flex min-h-0 flex-1 flex-col gap-7 overflow-y-auto" style={{ paddingBottom: tokens.spacing.tap, touchAction: "none" }}
         onClick={event => {
           if (gesture.current || (event.target as HTMLElement).closest("a,button")) return;
           const rect = event.currentTarget.getBoundingClientRect(), fraction = (event.clientX - rect.left) / rect.width;
