@@ -22,14 +22,25 @@ export default function PlusMenu({ open, onClose }: { open: boolean; onClose: ()
   }, [open]);
   useEffect(() => {
     const frame = requestAnimationFrame(() => setVisible(open));
-    const key = (event: KeyboardEvent) => { if(event.key === "Escape") {onClose();document.getElementById("post-menu-toggle")?.focus();} };
+    const previousOverflow = document.body.style.overflow;
+    if (open) document.body.style.overflow = "hidden";
+    const key = (event: KeyboardEvent) => {
+      if(event.key === "Escape") {event.preventDefault();onClose();document.getElementById("post-menu-toggle")?.focus();}
+      if(event.key === "Tab" && open) {
+        const buttons = [...(ref.current?.querySelectorAll<HTMLButtonElement>('button:not([tabindex="-1"])') ?? [])];
+        const first = buttons[0], last = buttons.at(-1);
+        if (!buttons.includes(document.activeElement as HTMLButtonElement) || (event.shiftKey && document.activeElement === first)) {event.preventDefault();(event.shiftKey ? last : first)?.focus();}
+        else if (!event.shiftKey && document.activeElement === last) {event.preventDefault();first?.focus();}
+      }
+    };
     if(open) window.addEventListener("keydown",key);
-    return () => {cancelAnimationFrame(frame);window.removeEventListener("keydown",key);};
+    return () => {cancelAnimationFrame(frame);window.removeEventListener("keydown",key);if(open)document.body.style.overflow=previousOverflow;};
   }, [open,onClose]);
-  useEffect(() => { if(open) {const timer=setTimeout(()=>ref.current?.querySelector<HTMLButtonElement>("button[data-entry]")?.focus(),360);return()=>clearTimeout(timer);} },[open]);
+  useEffect(() => { if(open) {const timer=setTimeout(()=>{if(document.activeElement === document.getElementById("post-menu-toggle") || document.activeElement === document.body)ref.current?.querySelector<HTMLButtonElement>("button[data-entry]")?.focus();},360);return()=>clearTimeout(timer);} },[open]);
+  const dismiss = () => {onClose();document.getElementById("post-menu-toggle")?.focus();};
   return <div ref={ref} id="post-menu" role="group" aria-label="New post" aria-hidden={!open} inert={!open} className="fixed inset-0 z-40" style={{pointerEvents:open?"auto":"none"}}>
-    <button tabIndex={-1} aria-label="Close post menu" onClick={onClose} className="absolute inset-0 h-full w-full" style={{background:tokens.colors['scrim-light'],opacity:visible?1:0,transition:`opacity ${open?160:220}ms`}} />
-    <button aria-label="Close post menu" onClick={onClose} className="fixed flex h-tap w-tap items-center justify-center rounded-circle bg-text text-surface" style={{left:centre.x-tokens.spacing.tap/2,top:centre.y-tokens.spacing.tap/2,opacity:visible?1:0,transition:"opacity 160ms"}}><Icon name="plus" style={{transform:"rotate(45deg)"}} /></button>
+    <button tabIndex={-1} aria-label="Close post menu" onClick={dismiss} className="absolute inset-0 h-full w-full" style={{background:tokens.colors['scrim-light'],opacity:visible?1:0,transition:`opacity ${open?160:220}ms`}} />
+    <button aria-label="Close post menu" onClick={dismiss} className="fixed flex h-tap w-tap items-center justify-center rounded-circle bg-text text-surface" style={{left:centre.x-tokens.spacing.tap/2,top:centre.y-tokens.spacing.tap/2,opacity:visible?1:0,transition:"opacity 160ms"}}><Icon name="plus" style={{transform:"rotate(45deg)"}} /></button>
     {entries.map(({entry,label,icon,angle},index)=>{
       const radius=tokens.spacing['table-row']*5;
       const radians=angle*Math.PI/180;
