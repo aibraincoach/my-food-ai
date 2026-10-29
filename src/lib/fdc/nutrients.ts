@@ -95,11 +95,12 @@ export function scoreFoodMatch(query: string, food: FdcFood): number {
     if (/\bside salad\b/.test(desc) || /\blettuce\b/.test(desc) || /\bmixed salad\b/.test(desc)) score += 3;
   }
   if (/\bcoffee\b/.test(q)) {
-    if (/\bsoymilk\b/.test(desc) || /\bsilk\b/.test(desc)) score -= 8;
+    const plainCoffee = !/\b(milk|soymilk|soy|silk|cream|creamer|sugar|latte|cappuccino|mocha)\b/.test(q);
+    if (plainCoffee && (/\bsoymilk\b/.test(desc) || /\bsilk\b/.test(desc))) score -= 8;
     if (/\bpepper\b/.test(desc) && !/\bcoffee\b/.test(desc)) score -= 8;
-    if (/\bblack coffee\b/.test(desc)) score += 4;
+    if (plainCoffee && /\bblack coffee\b/.test(desc)) score += 4;
     const kcal = energyPer100Kcal(food);
-    if (/\bbeverages,\s*coffee\b/.test(desc) && kcal !== null && kcal <= 5) score += 3;
+    if (plainCoffee && /\bbeverages,\s*coffee\b/.test(desc) && kcal !== null && kcal <= 5) score += 3;
   }
   if (/\begg\b/.test(q)) {
     if (/\bketchup\b/.test(desc) && !/\begg\b/.test(desc)) score -= 10;

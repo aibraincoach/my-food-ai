@@ -55,3 +55,11 @@ test("both portion prompts bind caption count and size to one single serving", (
     assert.match(prompt, /a slice of Japanese toast.*thick single slice/);
   }
 });
+
+test("explicitly requested soymilk coffee is not replaced by black coffee", () => {
+  const foods = [
+    { fdcId: 1, description: "BLACK COFFEE", dataType: "Foundation", foodNutrients: kcal(0) },
+    { fdcId: 2, description: "SILK Coffee, soymilk", dataType: "SR Legacy", foodNutrients: kcal(62) },
+  ];
+  assert.equal(chooseBestMatch(foods, "coffee with soymilk")?.fdcId, 2);
+});
