@@ -9,10 +9,12 @@ declare
   v_name text := btrim(coalesce(p_name, ''));
   v_post uuid;
   v_item uuid;
+  v_unit text := coalesce(p_nutrition->>'portion_unit', 'g');
 begin
   if length(v_name) = 0 or length(v_name) > 160 then raise exception 'Name must contain 1 to 160 characters' using errcode = '22023'; end if;
   if p_grams is null or p_grams <= 0 or p_grams > 100000 then raise exception 'Portion must be between 0 and 100000 grams' using errcode = '22023'; end if;
   if p_nutrition is null or jsonb_typeof(p_nutrition) <> 'object' then raise exception 'Nutrition is required' using errcode = '22023'; end if;
+  if v_unit not in ('g', 'ml') then raise exception 'Invalid portion unit' using errcode = '22023'; end if;
   if p_eaten_at is null or p_eaten_at > now() + interval '5 minutes' then raise exception 'Invalid time eaten' using errcode = '22023'; end if;
   if not exists (select 1 from public.profiles where id = p_user_id) then raise exception 'User not found' using errcode = '42501'; end if;
   if p_photo is not null then
@@ -30,7 +32,7 @@ begin
   insert into public.posts (user_id, caption, eaten_at, status, analysis_initialized_at)
   values (p_user_id, v_name, p_eaten_at, 'ready', clock_timestamp()) returning id into v_post;
   insert into public.post_items (post_id, name, portion_text, portion_grams, source)
-  values (v_post, v_name, trim_scale(p_grams)::text || ' g', p_grams, 'user') returning id into v_item;
+  values (v_post, v_name, trim_scale(p_grams)::text || ' ' || v_unit, case when v_unit = 'g' then p_grams else null end, 'user') returning id into v_item;
   insert into public.item_nutrition (post_item_id, calories, protein_g, carbs_g, fat_g, fibre_g, sugar_g, sodium_mg, micronutrients, source_ref)
   values (v_item, (p_nutrition->>'calories')::numeric, (p_nutrition->>'protein_g')::numeric, (p_nutrition->>'carbs_g')::numeric,
     (p_nutrition->>'fat_g')::numeric, (p_nutrition->>'fibre_g')::numeric, (p_nutrition->>'sugar_g')::numeric,

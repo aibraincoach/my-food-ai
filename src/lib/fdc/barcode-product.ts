@@ -74,5 +74,6 @@ export function barcodeNutrition(product: BarcodeProduct, amount: number) {
     ...Object.fromEntries(Object.entries(product.per100g).map(([key, value]) => [key, value === null ? null : value * factor])),
     micronutrients: product.micronutrients.map((n) => ({ ...n, value: n.value * factor })),
     source_ref: String(product.fdcId),
+    portion_unit: product.basisUnit,
   };
 }

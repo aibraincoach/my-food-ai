@@ -42,11 +42,14 @@ export default function CaptureSheet({ onClose, initialMode = "photo" }: { onClo
   const galleryRef = useRef<HTMLInputElement>(null);
   const cameraRef = useRef<HTMLInputElement>(null);
   const shotsRef = useRef<Shot[]>([]);
+  const pendingFilesRef = useRef<File[]>([]);
+  const [pendingCount, setPendingCount] = useState(0);
   const videoRef = useRef<HTMLVideoElement>(null);
   const liveCameraRef = useRef<Camera | null>(null);
   const mountedRef = useRef(false);
   const [stream, setStream] = useState<MediaStream | null>(null);
   const [cameraBusy, setCameraBusy] = useState(false);
+  const [cameraUnavailable, setCameraUnavailable] = useState(false);
   const postingRef = useRef(false);
   const [shots, setShots] = useState<Shot[]>([]);
   const [caption, setCaption] = useState("");
@@ -93,8 +96,8 @@ export default function CaptureSheet({ onClose, initialMode = "photo" }: { onClo
     void openCamera("environment").then((camera) => {
       if (cancelled) { camera.close(); return; }
       liveCameraRef.current = camera;
-      setStream(camera.stream);
-    }).catch(() => { /* The existing camera picker remains available. */ });
+      setCameraUnavailable(false); setStream(camera.stream);
+    }).catch(() => { if (!cancelled) setCameraUnavailable(true); });
     return () => {
       cancelled = true;
       mountedRef.current = false;
@@ -112,7 +115,7 @@ export default function CaptureSheet({ onClose, initialMode = "photo" }: { onClo
       if (cancelled) return;
       liveCameraRef.current?.close();
       liveCameraRef.current = null;
-      setStream(null);
+      setStream(null); setCameraUnavailable(true);
     });
     return () => { cancelled = true; video.srcObject = null; };
   }, [stream, mode]);
@@ -182,7 +185,11 @@ export default function CaptureSheet({ onClose, initialMode = "photo" }: { onClo
     if (!files || postingRef.current || scanBusy.current) return;
     scanBusy.current = true; setCameraBusy(true);
     try {
-      for (const file of Array.from(files).slice(0, MAX_SHOTS - shotsRef.current.length)) {
+      pendingFilesRef.current.push(...Array.from(files).slice(0, MAX_SHOTS - shotsRef.current.length - pendingFilesRef.current.length));
+      setPendingCount(pendingFilesRef.current.length);
+      while (pendingFilesRef.current.length && shotsRef.current.length < MAX_SHOTS) {
+        const file = pendingFilesRef.current.shift()!;
+        setPendingCount(pendingFilesRef.current.length);
         // A single bounded decode precedes all uploads, including library photos in text mode.
         let deadline: ReturnType<typeof setTimeout> | undefined;
         const code = await Promise.race([decodeBarcodeFile(file), new Promise<null>((resolve) => { deadline = setTimeout(() => resolve(null), 900); })]).finally(() => clearTimeout(deadline));
@@ -241,7 +248,7 @@ export default function CaptureSheet({ onClose, initialMode = "photo" }: { onClo
   };
 
   const post = async () => {
-    if (postingRef.current || (!caption.trim() && shotsRef.current.length === 0)) return;
+    if (postingRef.current || pendingFilesRef.current.length > 0 || (!caption.trim() && shotsRef.current.length === 0)) return;
     postingRef.current = true;
     setPosting(true);
     setError(null);
@@ -281,7 +288,12 @@ export default function CaptureSheet({ onClose, initialMode = "photo" }: { onClo
       const result = await response.json();
       if (!response.ok) throw new Error(result.error ?? "The meal could not be saved.");
       window.dispatchEvent(new CustomEvent("post-created", { detail: { id: result.post_id } }));
-      onClose(); router.refresh();
+      if (pendingFilesRef.current.length || shotsRef.current.length) {
+        // A multi-selection is retained until the user explicitly continues it.
+        postingRef.current = false; dismissBarcode(); setStream(null); setMode("text");
+        window.setTimeout(() => document.getElementById("capture-caption")?.focus(), 0);
+      } else onClose();
+      router.refresh();
     } catch (error) { if (mountedRef.current) setError(error instanceof Error ? error.message : "The meal could not be saved."); }
     finally { postingRef.current = false; if (mountedRef.current) setPosting(false); }
   };
@@ -316,7 +328,7 @@ export default function CaptureSheet({ onClose, initialMode = "photo" }: { onClo
             <div className="pointer-events-none absolute" style={{ width: tokens.spacing['macro-gap'] * 10, height: tokens.spacing['macro-gap'] * 5, top: tokens.capture.previewHeight / 2 - tokens.spacing['macro-gap'] * 2.5 }}>
               {(["tl", "tr", "bl", "br"] as const).map((corner) => <span key={corner} className="absolute border-surface" style={{ width: tokens.spacing['macro-gap'], height: tokens.spacing['macro-gap'],
                 ...(corner.includes("t") ? { top: 0, borderTopWidth: tokens.icon.strongStroke + tokens.border.hairline / 2 } : { bottom: 0, borderBottomWidth: tokens.icon.strongStroke + tokens.border.hairline / 2 }),
-                ...(corner.includes("l") ? { left: 0, borderLeftWidth: tokens.icon.strongStroke + tokens.border.hairline / 2 } : { right: 0, borderRightWidth: tokens.icon.strongStroke + tokens.border.hairline / 2 }), borderRadius: tokens.radii.chip }} />)}
+                ...(corner.includes("l") ? { left: 0, borderLeftWidth: tokens.icon.strongStroke + tokens.border.hairline / 2 } : { right: 0, borderRightWidth: tokens.icon.strongStroke + tokens.border.hairline / 2 }), borderRadius: corner === "tl" ? `${tokens.radii.chip}px 0 0 0` : corner === "tr" ? `0 ${tokens.radii.chip}px 0 0` : corner === "bl" ? `0 0 0 ${tokens.radii.chip}px` : `0 0 ${tokens.radii.chip}px 0` }} />)}
               <span className="absolute top-1/2 bg-accent" style={{ height: tokens.icon.strongStroke, left: tokens.spacing['field-x'], right: tokens.spacing['field-x'], boxShadow: `0 0 ${tokens.spacing['sheet-top']}px ${tokens.colors.accent}` }} />
             </div>
             <p className="absolute bottom-icon-small rounded-tile bg-overlay-dark px-tooltip-caret py-tooltip-offset text-detail text-surface">Hold the barcode inside the frame</p>
@@ -349,7 +361,8 @@ export default function CaptureSheet({ onClose, initialMode = "photo" }: { onClo
         <div className="min-h-card-gap flex-1" />
         {(mode === "barcode" || barcodeState !== "idle") ? <section aria-label="Scanned product" className="relative rounded-t-sheet bg-text px-screen-x text-surface" style={{ paddingTop: tokens.spacing['screen-x'] - tokens.icon.strongStroke, paddingBottom: `calc(${tokens.brand.barHeight - tokens.radii.chip}px + env(safe-area-inset-bottom))` }}>
           {barcodeState !== "idle" && <button type="button" aria-label="Dismiss scanned product" disabled={posting} onClick={dismissBarcode} className="absolute right-screen-x top-sheet-top flex size-tap items-center justify-center"><Icon name="close" size={tokens.capture.galleryIcon} /></button>}
-          {barcodeState === "idle" ? <><p className="text-body">Looking for a barcode…</p><p className="text-detail text-faint">Hold the code steady in the frame</p></> : barcodeState === "looking" ? <p className="text-body" role="status">Looking it up…</p> : barcodeState === "missing" ? <><p className="text-body">Not in the database</p><button type="button" onClick={() => { switchMode("text"); setCaption(""); window.setTimeout(() => document.getElementById("capture-caption")?.focus(), 0); }} className="min-h-tap text-detail underline">Type it instead</button></> : null}
+          {barcodeState === "idle" ? <><p className="text-body">{cameraUnavailable ? "Camera unavailable" : "Looking for a barcode…"}</p><p className="text-detail text-faint">{cameraUnavailable ? "Choose a photo containing a barcode." : "Hold the code steady in the frame"}</p></> : barcodeState === "looking" ? <p className="text-body" role="status">Looking it up…</p> : barcodeState === "missing" ? <><p className="text-body">Not in the database</p><button type="button" onClick={() => { dismissBarcode(); switchMode("text"); setCaption(""); window.setTimeout(() => document.getElementById("capture-caption")?.focus(), 0); }} className="min-h-tap text-detail underline">Type it instead</button></> : null}
+          {cameraUnavailable && mode === "barcode" && <div className="mt-sheet-top"><p role="status" className="text-detail text-faint">The camera could not be opened. Choose a photo from the library.</p><button type="button" disabled={posting || cameraBusy} onClick={() => galleryRef.current?.click()} className="min-h-tap text-detail underline">Choose from library</button></div>}
           {product && <>
             <div className="flex gap-sheet-top pr-tap">
               <div className="min-w-0 flex-1"><p className="text-meta text-faint">Found</p><p className="text-month">{product.name}</p><p className="text-detail text-faint">Per 100 {product.basisUnit} · {macros(100)}</p></div>
@@ -361,8 +374,10 @@ export default function CaptureSheet({ onClose, initialMode = "photo" }: { onClo
             <p className="text-body" style={{ marginTop: tokens.spacing['screen-x'] - tokens.icon.strongStroke }}>Consumed: {value("calories", portion)} kcal <span className="text-detail font-normal text-faint">· {macros(portion).split(" · ").slice(1).join(" · ")}</span></p>
             <Button variant="camera" className="mt-field-x" disabled={posting} onClick={() => { void postBarcode(); }}>{posting ? "Posting…" : `Post · ${product.name.charAt(0).toUpperCase() + product.name.slice(1).toLowerCase().slice(0, 23)} ${amountLabel(portion)}`}</Button>
           </>}
+          {pendingCount + shots.length > 0 && <p className="mt-sheet-top text-detail text-faint">{pendingCount + shots.length} other selected {pendingCount + shots.length === 1 ? "photo is" : "photos are"} waiting. Post this product or dismiss it to continue.</p>}
           {error && <p role="alert" className="mt-sheet-top text-detail">{error}</p>}
         </section> : <div className="flex flex-col px-screen-x pb-card-safe" style={{ gap: tokens.capture.bottomGap }}>
+          {pendingCount > 0 && <button type="button" disabled={posting || cameraBusy} onClick={() => { void addFiles([]); }} className="min-h-tap text-detail underline">Continue with {pendingCount} selected {pendingCount === 1 ? "photo" : "photos"}</button>}
           <FirstRunHint hint="capture" />
           <div className="flex items-center justify-between px-grid text-detail">
             <label htmlFor="capture-when" className="text-camera-muted">When</label>
@@ -378,7 +393,7 @@ export default function CaptureSheet({ onClose, initialMode = "photo" }: { onClo
           <Field variant="camera" id="capture-caption" aria-label="Caption" value={caption} onChange={(event) => setCaption(event.target.value)} disabled={posting} placeholder="What did you eat?" />
           <button type="button" disabled={posting} onClick={() => { setSearchingFoods(true); setError(null); }} className="min-h-tap self-start px-grid text-detail text-surface disabled:opacity-50">Search foods</button>
           <p className="px-grid text-meta text-camera-muted">Location is saved with the post and helps recognise meals you eat in the same place. Only you see it.</p>
-          <Button variant="camera" onClick={post} disabled={posting || cameraBusy || (!caption.trim() && shots.length === 0)}>{posting ? "Posting…" : "Post"}</Button>
+          <Button variant="camera" onClick={post} disabled={posting || cameraBusy || pendingCount > 0 || (!caption.trim() && shots.length === 0)}>{posting ? "Posting…" : "Post"}</Button>
           </>}
           {error && <p role="alert" className="text-detail text-surface">{error}</p>}
         </div>}

@@ -21,6 +21,7 @@ test("barcode portions stay in their declared mass or volume basis, with dedupli
   assert.equal(packageAmount(product), 1000);
   assert.equal(barcodeNutrition(product, 250).calories, 152.5);
   assert.equal(barcodeNutrition(product, 250).source_ref, "7");
+  assert.equal(barcodeNutrition(product, 250).portion_unit, "ml");
   assert.equal(amountInBasis(1, "g", "ml"), null);
   assert.equal(amountInBasis(1, "fl oz", "ml"), 29.5735295625);
   assert.equal(amountInBasis(1, "oz", "g"), 28.349523125);
@@ -51,6 +52,13 @@ select (select status='ready' from posts where id=:'post')
 \\if :photo_ok
 \\else
 select 1/0 as photo_post_failed;
+\\endif
+-- Volume is a known volume, never a guessed mass; its stored nutrition is still the selected portion.
+select public.create_food_post(:'owner',now(),'Oat drink',250,'{"calories":152.5,"portion_unit":"ml"}') as volume \\gset
+select portion_text='250 ml' and portion_grams is null as volume_ok from current_post_items where post_id=:'volume' \\gset
+\\if :volume_ok
+\\else
+select 1/0 as volume_recorded_as_mass;
 \\endif
 -- Existing food-search/drink callers use the original five arguments.
 select public.create_food_post(:'owner',now(),'Legacy caller',100,'{}') as legacy \\gset
