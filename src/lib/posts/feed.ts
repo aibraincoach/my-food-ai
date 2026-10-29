@@ -73,7 +73,7 @@ async function latestRevision(client:SupabaseClient,postId:string):Promise<{mode
 async function toFeedPost(
   supabase: SupabaseClient,
   row: PostRow,
-  zone = "UTC"
+  zone?: string
 ): Promise<FeedPost> {
   const revisionBefore=row.status==="ready"?await latestRevision(supabase,row.id):null;
   const { data: media, error: mediaError } = await supabase.from("post_media")
@@ -91,7 +91,7 @@ async function toFeedPost(
   return {
     modelCommentId: row.status==="ready"&&JSON.stringify(revisionBefore)===JSON.stringify(revisionAfter)?revisionAfter?.modelCommentId??null:null,
     analysisFingerprint:row.status==="ready"&&JSON.stringify(revisionBefore)===JSON.stringify(revisionAfter)?revisionAfter?.fingerprint??null:null,
-    day: dateInZone(row.eaten_at, zone),
+    day: zone ? dateInZone(row.eaten_at, zone) : undefined,
     id: row.id,
     caption: row.caption,
     eaten_at: row.eaten_at,
