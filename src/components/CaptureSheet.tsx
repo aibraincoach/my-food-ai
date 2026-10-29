@@ -1,6 +1,7 @@
 "use client";
 
 import FirstRunHint from "@/components/FirstRunHint";
+import FoodSearchPanel from "@/components/FoodSearchPanel";
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/Button";
@@ -35,6 +36,7 @@ export default function CaptureSheet({ onClose }: { onClose: () => void }) {
   const [caption, setCaption] = useState("");
   // null means Now; otherwise the datetime-local value (the reader's local wall-clock time) the meal was eaten.
   const [when, setWhen] = useState<string | null>(null);
+  const [searchingFoods, setSearchingFoods] = useState(false);
   const [posting, setPosting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -224,10 +226,15 @@ export default function CaptureSheet({ onClose }: { onClose: () => void }) {
                 : <><input id="capture-when" type="datetime-local" value={when} max={toLocalInput(new Date())} disabled={posting} onChange={(event) => setWhen(event.target.value)} className="min-h-tap rounded-field bg-camera-button px-tooltip-x text-surface" /><button type="button" disabled={posting} onClick={() => setWhen(null)} className="min-h-tap text-camera-muted disabled:opacity-50">Now</button></>}
             </span>
           </div>
+          {searchingFoods ? <FoodSearchPanel eatenAt={when === null ? null : fromLocalInput(when)} disabled={posting}
+            onLogged={(postId) => { window.dispatchEvent(new CustomEvent("post-created", { detail: { id: postId } })); onClose(); router.refresh(); }}
+            onDescribe={(text) => { if (text && !caption.trim()) setCaption(text); setSearchingFoods(false); setError(null); }} onError={setError} /> : <>
           <Field variant="camera" id="capture-caption" aria-label="Caption" value={caption} onChange={(event) => setCaption(event.target.value)} disabled={posting} placeholder="What did you eat?" />
+          <button type="button" disabled={posting} onClick={() => { setSearchingFoods(true); setError(null); }} className="min-h-tap self-start px-grid text-detail text-surface disabled:opacity-50">Search foods</button>
           <p className="px-grid text-meta text-camera-muted">Location is saved with the post and helps recognise meals you eat in the same place. Only you see it.</p>
-          {error && <p role="alert" className="text-detail text-surface">{error}</p>}
           <Button variant="camera" onClick={post} disabled={posting || cameraBusy || (!caption.trim() && shots.length === 0)}>{posting ? "Posting…" : "Post"}</Button>
+          </>}
+          {error && <p role="alert" className="text-detail text-surface">{error}</p>}
         </div>
       </div>
     </div>

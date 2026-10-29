@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { searchFoods } from "@/lib/fdc/client";
 import { ApiError } from "@/lib/worker/errors";
+import { caloriesPerServing, servingGrams } from "@/lib/fdc/serving";
 
 export async function GET(request: Request) {
   const supabase = await createClient();
@@ -12,7 +13,7 @@ export async function GET(request: Request) {
   if (!query || query.length > 160) return NextResponse.json({ error: "Enter a food name up to 160 characters." }, { status: 400 });
   try {
     const foods = await searchFoods(createAdminClient(), query);
-    return NextResponse.json({ foods: foods.slice(0, 5).map((food) => ({ id: food.fdcId, description: food.description })) },
+    return NextResponse.json({ foods: foods.slice(0, 5).map((food) => ({ id: food.fdcId, description: food.description, serving_g: servingGrams(food), calories: caloriesPerServing(food) })) },
       { headers: { "Cache-Control": "private, no-store" } });
   } catch (error) {
     return NextResponse.json({ error: "Food search is temporarily unavailable." }, { status: error instanceof ApiError && error.status === 429 ? 429 : 502 });
