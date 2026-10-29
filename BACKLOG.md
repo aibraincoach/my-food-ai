@@ -1,40 +1,54 @@
 # My Food AI — Backlog†
 
-Last edited: Thursday 2026-10-29 at 12:57 JST (UTC+09:00) by Claude, successor PM
+Last edited: Thursday 2026-10-29 at 13:21 JST (UTC+09:00) by Claude, successor PM
 
 ## Backlog
 
 ## For the designer
-
-### #185 Days are NOT separated in the feed
-
-The feed is one unbroken run of cards, so a user cannot see where one day ends and the next begins.
-
-Design the day separation for the feed: a day header or divider, the wording for today and yesterday, and how it behaves while scrolling. A day's total may appear only as a record, with no comparison, average or target. The build follows the frame. Done when the designer delivers frames at 390x844 for the feed with day separators, including a day with one post and a gap where a day has none.
-
-### #186 The + button spins out its entries
-
-The + button only opens the camera, but a meal can be logged by camera, by text, as a drink or as a coffee.
-
-The owner wants the + to spin out from the button into four entries (camera, text, liquid beverage, coffee) plus a fifth the user can define, moving outward, and he likes that it moves. Done when the frames for the closed, opening and open states and the motion are delivered at 390x844.
-
-### #187 The Days screen is easy to use and easy to leave
-
-From the Days tab it is unclear how to get back to the main screen: there is no back button, an earlier month is reached only by scrolling to the bottom, and tapping a day opens a story viewer with no obvious way out.
-
-The owner sees room for two months on the screen and is unsure whether one month at a time is acceptable. The designer reworks the Days screen: how months are laid out and reached, a visible back control, and where a tapped day leads. Done when frames for the month view, the story entry and the story exit are delivered at 390x844, with the way back to the main screen visible on each.
-
-### #188 Frames for the intake control and the barcode scanner
-
-Water and caffeine intake and the barcode scanner are built but have no designer's frame to check them against.
-
-Both are merged (#111 and #165) and have not been tried on a phone. Draw the intake control and the scanner at 390x844 in light mode, in past tense, with no budget, no progress and no "left". Done when both frames are delivered.
 
 ### #195 The second photo can show what was not eaten
 
 A user who photographs a whole cake and then eats part of it cannot say that the second photo shows what remains.
 
 The owner wants it very clear which photo is the not-eaten one: a toggle on the second photo only, or a + at the end of the carousel reached by swiping right on the card. The app never shows the word "left", so the label reads "Not eaten". Design the + in the carousel, the toggle on and off, the label on the slide, and how the card shows what was consumed. Done when frames at 390x844 for adding the second photo, the toggle states and a card with a not-eaten slide are delivered.
+
+### #198 Frames for saved meals and Log again
+
+Saved meals and Log again cannot be built because no frame shows them.
+
+#172 adds a bookmark on post detail that saves a meal, a list of saved meals and "Log again" in the post menu to copy a meal to a chosen time. The + now spins out five entries (frames 2c and 2d), so the designer decides where saved meals sit beside them. Done when frames at 390x844 are delivered for the bookmark on post detail, the saved-meals list, and "Log again" with its time choice.
+
+## Build the round 2 frames
+
+### #185 Days are NOT separated in the feed
+
+The feed is one unbroken run of cards, so a user cannot see where one day ends and the next begins.
+
+The designer's round 2 frames 2a and 2b show the feed with a header for each day: the name ("Today", "Yesterday", then the weekday and date), the day's total as a record in the form "Consumed: 2,118 kcal" with no comparison, average or target, the header pinned while its posts scroll, and an empty header for a day with no post. Build the feed to those frames. Done when the feed shows a header per day as in the frames, Today and Yesterday are named, a day with one post and an empty day between posted days both appear, and the header stays pinned while its posts scroll.
+
+### #186 The + button spins out its entries
+
+The + button only opens the camera, but a meal can be logged by camera, by text, as a drink or as a coffee.
+
+The designer's frames 2c and 2d are delivered. This item is built together with #191 in one pull request and closes with it. Done when #191 is done and the + matches frames 2c and 2d.
+
+### #191 The + button offers camera, text, drink and coffee entries
+
+The + button opens only the camera, so logging by text, a drink or a coffee takes extra steps.
+
+Caption-only posts already work, and water and caffeine intake logging is on main (#111). The designer's frames 2c and 2d show the + opening into camera, text, drink, coffee and a fifth entry the user names and gives an icon, with the motion in the designer's note. Each entry opens its own capture directly: text opens the capture sheet without the camera, and drink and coffee open the intake sheet of #188. Done when each of the four entries logs a post starting from the +, a user-defined fifth entry can be added, named and removed, and the + matches frames 2c and 2d.
+
+### #187 The Days screen is easy to use and easy to leave
+
+From the Days tab it is unclear how to get back to the main screen: there is no back button, an earlier month is reached only by scrolling to the bottom, and tapping a day opens a story viewer with no obvious way out.
+
+The designer's round 2 frames 2e, 2f and 2g show Days as a column of months, newest first, with each day's kcal inside its cell, a visible "Feed" control to go back, a "Go to" menu for earlier months, and a story that opens over the month and closes three ways ("‹ October", the ×, and a swipe down) into the tapped day's cell. Build Days to those frames. Done when Days shows two months per screen, earlier months arrive by scrolling and through the menu, "Feed" and the Home tab return to the feed, a tapped day opens as the last card of its story, and "‹ October", the × and a swipe down each leave it with the month behind.
+
+### #188 The intake control and the barcode scanner follow their frames
+
+Water and caffeine intake and the barcode scanner were built before the designer drew them, and the built versions do not match the frames: the intake control is a row on Home and the scanner is on the Search tab.
+
+Frame 2h is a sheet opened from the + with Water, Coffee and Other tabs, amount cells, a "Drank today" list and a "Post · …" button, and each drink also becomes a post in the feed. Frame 2i is the capture sheet in Barcode mode, with a Photo | Barcode toggle, a scan frame, the product found with its per-100 line and amount chips, and "Post · …"; the text entry opens the same sheet without the camera. Both are past tense with no budget, no progress and no "left". Done when the Drink and Coffee entries of the + open the intake sheet on the matching tab and each logs a post, the Barcode mode posts a scanned product with its pack photo, and both match frames 2h and 2i.
 
 ## Analysis pipeline and worker
 
@@ -87,12 +101,6 @@ A judge looking at the app sees only the end result, not what the model was aske
 Meta's workshop ships an Agent Console that shows every turn: what the model was asked, what it returned, the tokens used and which checks passed. Record, in a new table that only admins can read, one row per call a post made (SAM, Spark identify, Spark correct, FDC lookup, transcribe) with the time, the duration, the tokens, the request text without the image, the returned text, and the FDC id where one matched. Show a post's trace on the admin page and never in the user's app. Done when a post made on production has a trace listing each call it made, and a non-admin cannot read the table.
 
 ## Logging and editing meals
-
-### #191 The + button offers camera, text, drink and coffee entries
-
-The + button opens only the camera, so logging by text, a drink or a coffee takes extra steps.
-
-Caption-only posts already work, and water and caffeine intake logging is on main (#111). Make the + open an entry list of camera, text, liquid beverage and coffee, plus one more entry the user can define, each opening its own capture directly. The spin-out look comes from the designer's frame. Done when each of the four entries logs a post starting from the +, and a user-defined fifth entry can be added.
 
 ### #106 Log from the camera roll and set the time a meal was eaten
 
