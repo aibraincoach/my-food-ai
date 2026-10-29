@@ -83,7 +83,6 @@ export default function DaysView({ initialMonths, earliest, today, zone, initial
   useEffect(() => {
     monthsRef.current = { ...monthsRef.current, ...initialMonths };
     setMonths(monthsRef.current);
-    setCounts(null);
     if (initialDay && activeRef.current?.date === initialDay.date) {
       activeRef.current = initialDay; setActive(initialDay);
     }
@@ -159,7 +158,6 @@ export default function DaysView({ initialMonths, earliest, today, zone, initial
   }, [openDay, url]);
   const showMenu = async () => {
     setMenu(true);
-    if (counts) return;
     setMenuLoading(true); setMenuError("");
     try {
       const response = await fetch(url("/api/days?months=1"), { cache: "no-store" });
