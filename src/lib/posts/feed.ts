@@ -1,3 +1,4 @@
+import { dateInZone, getDayTotals, type FeedDayTotal } from "./days";
 import { encodeFeedCursor, parseFeedCursor } from "./feed-cursor";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { feedCopyUrl } from "@/lib/media/media-url";
@@ -25,6 +26,7 @@ export interface FeedItem {
 }
 
 export interface FeedPost {
+  day?: string;
   modelCommentId?: string | null;
   analysisFingerprint?: string | null;
   id: string;
@@ -70,7 +72,8 @@ async function latestRevision(client:SupabaseClient,postId:string):Promise<{mode
 
 async function toFeedPost(
   supabase: SupabaseClient,
-  row: PostRow
+  row: PostRow,
+  zone = "UTC"
 ): Promise<FeedPost> {
   const revisionBefore=row.status==="ready"?await latestRevision(supabase,row.id):null;
   const { data: media, error: mediaError } = await supabase.from("post_media")
@@ -88,6 +91,7 @@ async function toFeedPost(
   return {
     modelCommentId: row.status==="ready"&&JSON.stringify(revisionBefore)===JSON.stringify(revisionAfter)?revisionAfter?.modelCommentId??null:null,
     analysisFingerprint:row.status==="ready"&&JSON.stringify(revisionBefore)===JSON.stringify(revisionAfter)?revisionAfter?.fingerprint??null:null,
+    day: dateInZone(row.eaten_at, zone),
     id: row.id,
     caption: row.caption,
     eaten_at: row.eaten_at,
@@ -105,8 +109,9 @@ export const VISIBLE_MEAL_FILTER="needs_input.is.null,status.eq.failed";
 export async function getFeed(
   supabase: SupabaseClient,
   userId: string,
-  before: string | null = null
-): Promise<{posts: FeedPost[]; nextCursor:string|null}> {
+  before: string | null = null,
+  zone = "UTC"
+): Promise<{posts: FeedPost[]; nextCursor:string|null; days: FeedDayTotal[]}> {
   const cursor = before === null ? null : parseFeedCursor(before);
   let query = supabase
     .from("posts")
@@ -122,7 +127,7 @@ export async function getFeed(
   }
   const rows = (data ?? []) as PostRow[];
   const page = rows.slice(0,FEED_PAGE_SIZE);
-  return {posts:await Promise.all(page.map((row)=>toFeedPost(supabase,row))), nextCursor: rows.length>FEED_PAGE_SIZE ? encodeFeedCursor(page.at(-1)!) : null};
+  return {posts:await Promise.all(page.map((row)=>toFeedPost(supabase,row,zone))), days:await getDayTotals(supabase,userId,zone,page.map(row=>dateInZone(row.eaten_at,zone))), nextCursor: rows.length>FEED_PAGE_SIZE ? encodeFeedCursor(page.at(-1)!) : null};
 }
 
 // One card's worth of data, used for realtime refreshes and polling.

@@ -3,7 +3,6 @@ import { Suspense } from "react";
 import NeedsInputStrip from "@/components/NeedsInputStrip";
 import Feed from "@/components/Feed";
 import DayBubbles from "@/components/DayBubbles";
-import IntakeBar from "@/components/IntakeBar";
 import { cookies } from "next/headers";
 import { createClient } from "@/lib/supabase/server";
 import { dateInZone, getLoggedDates, shiftDay, validZone } from "@/lib/posts/days";
@@ -21,10 +20,9 @@ async function HomeDays() {
 
 export default function Home() {
   return <main className="flex flex-1 flex-col">
-    <header className="flex h-top-safe items-center px-screen-x"><h1 className="text-title">My Food AI</h1></header>
+    <header className="sticky top-0 z-20 flex h-top-safe items-center bg-surface px-screen-x"><h1 className="text-title">My Food AI</h1></header>
     <NeedsInputStrip />
     <Suspense fallback={<div className="h-bar-h" />}><HomeDays /></Suspense>
-    <IntakeBar />
     <Suspense fallback={<p className="px-screen-x text-detail text-muted">Loading feed…</p>}>
       <Feed />
     </Suspense>
