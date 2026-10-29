@@ -60,7 +60,7 @@ export async function persistAnalysis(
   }[] = [];
   for (const [index,row] of rows.entries()) {
     const foods = copiedNutrition ? [] : await searchFoods(admin, row.name);
-    const scaled = scaleNutrition(chooseBestMatch(foods), row.portionGrams);
+    const scaled = scaleNutrition(chooseBestMatch(foods, row.name), row.portionGrams);
     items.push({
       name: row.name,
       portion_text: row.portionText,
