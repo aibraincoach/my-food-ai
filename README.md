@@ -47,8 +47,8 @@ Only public-prefixed names are intended for browser exposure. Deployment environ
 ## Testing
 
 `node --env-file=.env.local scripts/browser-session.mjs` prints the test session cookies as one JSON line for the browser driver.
-Add `--link` to generate a single-use sign-in link without sending mail; add `--user=2` for the second test account.
-Treat either output as a credential: consume it locally and keep it out of logs, issues and screenshots.
+Add `--user=2` to obtain the second test account’s session cookies.
+Treat the output as a credential: consume it locally and keep it out of logs, issues and screenshots.
 
 ## Repository map
 
