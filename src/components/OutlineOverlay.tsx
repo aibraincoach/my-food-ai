@@ -6,6 +6,7 @@ import { createClient } from "@/lib/supabase/client";
 import type { DetailItem, DetailPhoto, ItemBox } from "@/lib/posts/items";
 import { sumNutrition, formatGrams, toNumber } from "@/lib/nutrition/totals";
 import { tokens } from "@/lib/theme/tokens";
+import { useDrinkCard } from "@/components/useDrinkCard";
 import { ResultsCard } from "@/components/ResultsCard";
 import ItemRows, { outlineColor } from "@/components/ItemRows";
 import ItemEditSheet from "@/components/ItemEditSheet";
@@ -40,6 +41,7 @@ export default function OutlineOverlay({ initialized, postId, caption, eatenAt, 
   initialized: boolean; postId: string; caption: string; eatenAt: string; status: string; photo: DetailPhoto | null; items: DetailItem[];
 }) {
   const router = useRouter();
+  const drink = useDrinkCard(postId, status, eatenAt);
   const localTime = useSyncExternalStore(subscribeClock, () => true, () => false);
   const ref = useRef<HTMLDivElement>(null);
   const [width, setWidth] = useState<number>(tokens.spacing.phone);
@@ -141,7 +143,7 @@ export default function OutlineOverlay({ initialized, postId, caption, eatenAt, 
             <span className="absolute rounded-circle bg-white" style={{ width: tokens.detail.switchKnob, height: tokens.detail.switchKnob, top: tokens.detail.switchInset, left: outlines ? tokens.detail.switchWidth - tokens.detail.switchKnob - tokens.detail.switchInset : tokens.detail.switchInset }} />
           </span>
         </button>
-      </> : showNutrition ? <ResultsCard size={width} time={new Date(eatenAt).toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit", ...(localTime ? {} : { timeZone: "UTC" }) })}
+      </> : showNutrition ? <ResultsCard drink={drink} size={width} time={new Date(eatenAt).toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit", ...(localTime ? {} : { timeZone: "UTC" }) })}
         calories={totals.calories} protein={totals.protein_g} carbs={totals.carbs_g} fat={totals.fat_g}
         items={items.map((item) => ({ name: item.name, grams: item.portion_grams == null ? null : toNumber(item.portion_grams) }))} /> : <div role="status" className="flex h-full items-center justify-center px-screen-x text-body text-muted">{status === "failed" ? "This meal could not be analysed." : status === "needs_input" ? "Clarification needed" : "Processing, traffic low"}</div>}
     </div>

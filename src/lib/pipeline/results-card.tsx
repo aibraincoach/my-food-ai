@@ -9,6 +9,8 @@ import { tokens } from "@/lib/theme/tokens";
 import { isOwnedGeneratedCardPath } from "@/lib/media/paths";
 import { normalizeStoredNutrition, sumNutrition, toNumber, type CurrentItem } from "@/lib/nutrition/totals";
 
+import { getDrinkCardData, type DrinkCardData } from "@/lib/intake/hydration";
+
 type Snapshot = {
   user_id: string;
   eaten_at: string;
@@ -26,18 +28,19 @@ function fonts() {
   return fontData;
 }
 
-export async function renderResultsCard(admin: SupabaseClient, postId: string, jobId?: string): Promise<boolean> {
+export async function renderResultsCard(admin: SupabaseClient, postId: string, jobId?: string, variant?: DrinkCardData, zone = "UTC"): Promise<boolean> {
   const { data, error, status } = await admin.rpc("results_card_snapshot", { p_post_id: postId });
   if (error) throw ioError(`Card snapshot failed: ${error.message}`, error, status);
   const snapshot = data as Snapshot | null;
   if (!snapshot || snapshot.items.some(({ nutrition }) => !nutrition)) return false;
   const nutrition = snapshot.items.map(({ item, nutrition }) => normalizeStoredNutrition(nutrition!, item.portion_grams));
   const totals = sumNutrition(nutrition);
+  const drink = variant ?? await getDrinkCardData(admin, snapshot.user_id, postId, zone);
   const [light, regular, medium, semibold] = await fonts();
   const size = tokens.card.outputSize;
   const response = new ImageResponse(<ResultsCard
-    size={size} fontFamily="Manrope"
-    time={new Date(snapshot.eaten_at).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", timeZone: "UTC" }) + " UTC"}
+    size={size} fontFamily="Manrope" drink={drink}
+    time={new Date(snapshot.eaten_at).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", timeZone: zone }) + (zone === "UTC" ? " UTC" : "")}
     calories={totals.calories} protein={totals.protein_g} carbs={totals.carbs_g} fat={totals.fat_g}
     items={snapshot.items.map(({ item }) => ({ name: item.name, grams: item.portion_grams == null ? null : toNumber(item.portion_grams) }))}
   />, { width: size, height: size, fonts: [
