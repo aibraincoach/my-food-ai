@@ -77,7 +77,7 @@ export default function CaptureSheet({ onClose, initialMode = "photo" }: { onClo
     } catch {
       if (mountedRef.current && mine === lookupRef.current) { setBarcodeState("error"); setError("Barcode lookup is temporarily unavailable. Try again."); }
     }
-  }, []);
+  }, [setError]);
 
   const dismissBarcode = () => {
     if (postingRef.current) return;
@@ -195,7 +195,6 @@ export default function CaptureSheet({ onClose, initialMode = "photo" }: { onClo
         const code = await Promise.race([decodeBarcodeFile(file), new Promise<null>((resolve) => { deadline = setTimeout(() => resolve(null), 900); })]).finally(() => clearTimeout(deadline));
         if (!mountedRef.current) return;
         if (code) {
-          rejectedCode.current = { code, lastSeen: Date.now() };
           await findBarcode(code, file);
           return;
         }
@@ -301,6 +300,13 @@ export default function CaptureSheet({ onClose, initialMode = "photo" }: { onClo
   const latest = shots[shots.length - 1];
   const full = shots.length >= MAX_SHOTS;
   const switchMode = (next: CaptureMode) => { if (!postingRef.current && next !== mode) { dismissBarcode(); if ((mode === "text") !== (next === "text")) setStream(null); setMode(next); } };
+  const continueSelected = async () => {
+    if (postingRef.current) return;
+    if (mode === "barcode") switchMode("text");
+    // A live frame may be finishing as the control is pressed. Keep the file selection intact.
+    while (scanBusy.current && mountedRef.current) await new Promise((resolve) => window.setTimeout(resolve, 50));
+    if (mountedRef.current) await addFiles([]);
+  };
   const pack = product ? packageAmount(product) : null;
   const amountLabel = (amount: number) => product?.basisUnit === "ml" && amount >= 1000 && amount % 1000 === 0 ? `${amount / 1000} l` : `${new Intl.NumberFormat(undefined, { maximumFractionDigits: 2 }).format(amount)} ${product?.basisUnit ?? "g"}`;
   const value = (key: "calories" | "protein_g" | "carbs_g" | "fat_g", amount: number) => {
@@ -363,6 +369,7 @@ export default function CaptureSheet({ onClose, initialMode = "photo" }: { onClo
           {barcodeState !== "idle" && <button type="button" aria-label="Dismiss scanned product" disabled={posting} onClick={dismissBarcode} className="absolute right-screen-x top-sheet-top flex size-tap items-center justify-center"><Icon name="close" size={tokens.capture.galleryIcon} /></button>}
           {barcodeState === "idle" ? <><p className="text-body">{cameraUnavailable ? "Camera unavailable" : "Looking for a barcode…"}</p><p className="text-detail text-faint">{cameraUnavailable ? "Choose a photo containing a barcode." : "Hold the code steady in the frame"}</p></> : barcodeState === "looking" ? <p className="text-body" role="status">Looking it up…</p> : barcodeState === "missing" ? <><p className="text-body">Not in the database</p><button type="button" onClick={() => { dismissBarcode(); switchMode("text"); setCaption(""); window.setTimeout(() => document.getElementById("capture-caption")?.focus(), 0); }} className="min-h-tap text-detail underline">Type it instead</button></> : null}
           {cameraUnavailable && mode === "barcode" && <div className="mt-sheet-top"><p role="status" className="text-detail text-faint">The camera could not be opened. Choose a photo from the library.</p><button type="button" disabled={posting || cameraBusy} onClick={() => galleryRef.current?.click()} className="min-h-tap text-detail underline">Choose from library</button></div>}
+          {barcodeState === "idle" && pendingCount > 0 && <button type="button" disabled={posting || cameraBusy} onClick={() => { void continueSelected(); }} className="min-h-tap text-detail underline">Continue with {pendingCount} selected {pendingCount === 1 ? "photo" : "photos"}</button>}
           {product && <>
             <div className="flex gap-sheet-top pr-tap">
               <div className="min-w-0 flex-1"><p className="text-meta text-faint">Found</p><p className="text-month">{product.name}</p><p className="text-detail text-faint">Per 100 {product.basisUnit} · {macros(100)}</p></div>
@@ -377,7 +384,7 @@ export default function CaptureSheet({ onClose, initialMode = "photo" }: { onClo
           {pendingCount + shots.length > 0 && <p className="mt-sheet-top text-detail text-faint">{pendingCount + shots.length} other selected {pendingCount + shots.length === 1 ? "photo is" : "photos are"} waiting. Post this product or dismiss it to continue.</p>}
           {error && <p role="alert" className="mt-sheet-top text-detail">{error}</p>}
         </section> : <div className="flex flex-col px-screen-x pb-card-safe" style={{ gap: tokens.capture.bottomGap }}>
-          {pendingCount > 0 && <button type="button" disabled={posting || cameraBusy} onClick={() => { void addFiles([]); }} className="min-h-tap text-detail underline">Continue with {pendingCount} selected {pendingCount === 1 ? "photo" : "photos"}</button>}
+          {pendingCount > 0 && <button type="button" disabled={posting || cameraBusy} onClick={() => { void continueSelected(); }} className="min-h-tap text-detail underline">Continue with {pendingCount} selected {pendingCount === 1 ? "photo" : "photos"}</button>}
           <FirstRunHint hint="capture" />
           <div className="flex items-center justify-between px-grid text-detail">
             <label htmlFor="capture-when" className="text-camera-muted">When</label>
