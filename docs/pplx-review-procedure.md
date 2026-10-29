@@ -33,3 +33,7 @@ Type exactly: `code review https://github.com/aibraincoach/my-food-ai/pull/<N>` 
 ## Failure
 
 Two failed headless-runner attempts do not make PPLX unavailable. Work through every PPLX route your harness has (cookie refresh, the owner's Chrome, the other OCI server; see PPLX routes in `REVIEW_POLICY.md`). Only when all of them have failed in one session, and the exact page text has been reported to the owner, use AGY (`docs/agy-review-procedure.md`), labelled as a fallback.
+
+## Observed model mismatch in Run 3
+
+The submitted request's gemini38flash preference alone did not prove the answer's model: several completed answers identified GPT-6.1 Sol in the selected-model and footer text. Those attempts were rejected. Verify selected model, request proof and answer footer together; do not certify an ineligible answer. Observation timeouts do not prove a live thread stopped: retain the thread handle and inspect its actual completion before restarting. Label any eligible fallback accurately.

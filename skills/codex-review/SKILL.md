@@ -9,7 +9,9 @@ Policy: `REVIEW_POLICY.md`. Procedure: `docs/codex-review-procedure.md`. Adapted
 
 ## When
 
-Only when every commit on the PR head was not written by OpenAI, and PPLX and AGY are both unavailable for that head.
+Owner-authorized exception, 2026-10-29: Codex was explicitly requested as an additional reviewer on #205 and #206, including again after their real findings are fixed. This narrow instruction overrides the usual third-route/non-OpenAI restriction for those PRs only. First-reviewer receipts remain valid, but do not waive second-reviewer findings. No general waiver or merge authorization follows from it.
+
+Outside the explicit owner-authorized exception above, only when every commit on the PR head was not written by OpenAI, and PPLX and AGY are both unavailable for that head.
 
 ## One PR
 

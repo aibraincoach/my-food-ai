@@ -1,5 +1,7 @@
 # Planner contract
 
+> Current owner overrides (2026-10-29): a merge prompt may batch ready PRs, each with its exact SHA and checks; plans are not standing merge orders. A changed head needs its own applicable receipt. The Run3 stacked branches were an explicit plan exception to the generic no-stacking rule, but their bases did not automatically retarget after #200 merged. Check actual bases. Codex is explicitly authorized as an additional reviewer on #205/#206 and again after their fixes; the generic non-OpenAI restriction below does not negate that narrow instruction.
+
 Check before delivering a plan. Revised 2026-10-02.
 
 > Coder annotation 2026-10-27 (handoff, not the planner's words): the

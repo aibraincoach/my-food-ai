@@ -1,5 +1,7 @@
 # Review execution policy
 
+Owner-authorized exception, 2026-10-29: Codex was explicitly requested as an additional reviewer on #205 and #206, including again after their real findings are fixed. This narrow instruction overrides the usual third-route/non-OpenAI restriction for those PRs only. First-reviewer receipts remain valid, but do not waive second-reviewer findings. No general waiver or merge authorization follows from it.
+
 Effective 2026-10-26 for My Food AI. Adapted from naval-association-calgary and calgarysalutes-website.
 
 ## Routes, in order
