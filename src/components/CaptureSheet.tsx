@@ -174,7 +174,7 @@ export default function CaptureSheet({ onClose, initialMode = "photo" }: { onClo
         rejectedCode.current = { code, lastSeen: now };
         if (barcodeState !== "idle" || suppressed) return;
         const blob = await grabFrame(videoRef.current);
-        if (!cancelled) await findBarcode(code, new File([blob], "pack.jpg", { type: "image/jpeg" }));
+        if (!cancelled) void findBarcode(code, new File([blob], "pack.jpg", { type: "image/jpeg" }));
       } catch { /* An unreadable frame is retried on the next interval. */ }
       finally { scanBusy.current = false; }
     }, 300);
