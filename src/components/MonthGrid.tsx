@@ -1,39 +1,39 @@
+"use client";
+
 import { formatNutrition } from "@/lib/nutrition/totals";
 import { tokens } from "@/lib/theme/tokens";
-import Link from "next/link";
-import SafeImage from "@/components/SafeImage";
-import { withZone, type LoggedDay } from "@/lib/posts/days";
+import type { MonthSummary } from "@/lib/posts/days";
 
-export default function MonthGrid({ month, days, today, zone, zoneKnown }: { month: string; days: LoggedDay[]; today: string; zone: string; zoneKnown: boolean }) {
+export function monthName(month: string, year = false) {
+  return new Date(`${month}-01T12:00:00Z`).toLocaleDateString("en", { timeZone: "UTC", month: "long", ...(year ? { year: "numeric" } : {}) });
+}
+export function postedLabel(count: number) { return count === 0 ? "No days posted" : `${count} ${count === 1 ? "day" : "days"} posted`; }
+
+export default function MonthGrid({ month, summary, today, selected, onDay }: { month: string; summary: MonthSummary; today: string; selected?: string; onDay: (date: string, cell: HTMLElement) => void }) {
   const first = new Date(`${month}-01T12:00:00Z`);
   const count = new Date(Date.UTC(first.getUTCFullYear(), first.getUTCMonth() + 1, 0)).getUTCDate();
-  const previous = new Date(Date.UTC(first.getUTCFullYear(), first.getUTCMonth() - 1, 1, 12));
-  const next = new Date(Date.UTC(first.getUTCFullYear(), first.getUTCMonth() + 1, 1, 12));
-  const query = (date: Date) => withZone(`/days?month=${date.toISOString().slice(0, 7)}`, zone, zoneKnown);
-  return <>
-    <header className="flex h-top-safe items-center justify-between px-screen-x">
-      <h1 className="text-title">{first.toLocaleDateString("en", { timeZone: "UTC", month: "long", year: "numeric" })}</h1>
-      <Link href={query(previous)} className="flex min-h-tap items-center text-detail text-muted">{previous.toLocaleDateString("en", { timeZone: "UTC", month: "long" })}</Link>
-    </header>
-    <div style={{ paddingInline: tokens.calendar.outerX }}>
-    <div className="grid grid-cols-7" style={{ columnGap: tokens.calendar.columnGap, paddingBlock: tokens.calendar.weekdayY }}>
-      {["S", "M", "T", "W", "T", "F", "S"].map((label, index) => <span key={index} className="text-center text-label text-muted">{label}</span>)}
+  return <section aria-label={monthName(month, true)} data-month={month} id={`month-${month}`}>
+    <div className="flex items-baseline justify-between px-screen-x" style={{ paddingBottom: tokens.spacing.grid + tokens.spacing.grid / 2 }}>
+      <h2 className="text-month">{monthName(month)}</h2><span className="text-meta text-muted tabular-nums">{postedLabel(summary.posted)}</span>
     </div>
-    <div className="grid grid-cols-7" style={{ columnGap: tokens.calendar.columnGap, rowGap: tokens.calendar.rowGap }}>
-      {Array.from({ length: first.getUTCDay() }, (_, index) => <span key={`blank-${index}`} />)}
-      {Array.from({ length: count }, (_, index) => {
-        const date = `${month}-${String(index + 1).padStart(2, "0")}`;
-        const day = days.find((entry) => entry.date === date);
-        return <Link href={withZone(`/days/${date}`, zone, zoneKnown)} key={date} className="flex flex-col items-center" style={{ gap: tokens.calendar.labelGap }} aria-label={`${date}${day ? `, ${formatNutrition(day.totals.calories)} kcal` : ""}`}>
-          <span className={`relative overflow-hidden rounded-tile ${date === today ? "border-text" : ""}`} style={{ width: "100%", maxWidth: tokens.calendar.cell, aspectRatio: "1 / 1", borderWidth: date === today ? tokens.calendar.border : undefined }}>
-            {day?.posts[0]?.photoUrl && <SafeImage src={day.posts[0].photoUrl} className="absolute inset-0 h-full w-full object-cover" />}
-            <span style={{ padding: tokens.calendar.padding }} className={`relative block text-label font-medium ${date > today ? "text-faint" : "text-text"}`}>{index + 1}</span>
-          </span>
-          <span className="text-bubble text-muted tabular-nums" style={{ height: tokens.calendar.labelHeight, lineHeight: `${tokens.calendar.labelHeight}px` }}>{day ? `${formatNutrition(day.totals.calories)} kcal` : ""}</span>
-        </Link>;
-      })}
+    <div style={{ paddingInline: tokens.spacing["tooltip-x"] }}>
+      <div className="grid grid-cols-7 gap-1 pb-1" aria-hidden="true">{["S", "M", "T", "W", "T", "F", "S"].map((label, index) => <span key={index} className="text-center text-bubble text-faint">{label}</span>)}</div>
+      <div className="grid grid-cols-7 gap-1">
+        {Array.from({ length: first.getUTCDay() }, (_, index) => <span key={`blank-${index}`} />)}
+        {Array.from({ length: count }, (_, index) => {
+          const date = `${month}-${String(index + 1).padStart(2, "0")}`;
+          const day = summary.days.find(entry => entry.day === date);
+          const enabled = Boolean(day && date <= today);
+          const outlined = date === today || date === selected;
+          return <button type="button" key={date} data-day={date} disabled={!enabled} onClick={event => onDay(date, event.currentTarget)}
+            aria-label={`${date}${day ? `, ${day.posts} ${day.posts === 1 ? "post" : "posts"}${day.ready ? `, ${formatNutrition(day.kcal)} kcal` : ""}` : ""}`}
+            className={`flex min-w-0 flex-col justify-between rounded-tile text-left ${day ? "bg-card" : ""} ${date > today ? "text-faint" : "text-text"}`}
+            style={{ height: tokens.spacing.tap, padding: `${tokens.spacing.grid}px ${tokens.calendar.padding}px`, border: outlined ? `${tokens.calendar.border}px solid ${tokens.colors.text}` : `${tokens.calendar.border}px solid transparent` }}>
+            <span className="text-label font-medium leading-none">{index + 1}</span>
+            <span className="text-cell-kcal text-muted tabular-nums">{day?.ready ? formatNutrition(day.kcal) : ""}</span>
+          </button>;
+        })}
+      </div>
     </div>
-    </div>
-    {month < today.slice(0, 7) && <Link href={query(next)} className="mx-screen-x mt-4 flex min-h-tap items-center justify-end text-detail text-muted">{next.toLocaleDateString("en", { timeZone: "UTC", month: "long" })}</Link>}
-  </>;
+  </section>;
 }
