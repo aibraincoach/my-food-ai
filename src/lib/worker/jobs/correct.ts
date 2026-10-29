@@ -82,7 +82,7 @@ const correct:JobHandler=async(admin,job)=>{
    const retained=region?.name===item.name?await resolvePortionNutrition(admin,job.post_id,region.id,item.name,item.portion_grams):null;
    if(retained)nutrition=retained;
    else {
-   const n=scaleNutrition(chooseBestMatch(await searchFoods(admin,item.name)),item.portion_grams);
+   const n=scaleNutrition(chooseBestMatch(await searchFoods(admin,item.name), item.name),item.portion_grams);
    nutrition={calories:n.calories,protein_g:n.proteinG,carbs_g:n.carbsG,fat_g:n.fatG,fibre_g:n.fibreG,sugar_g:n.sugarG,sodium_mg:n.sodiumMg,micronutrients:n.micronutrients,source_ref:n.sourceRef};
    }
   }

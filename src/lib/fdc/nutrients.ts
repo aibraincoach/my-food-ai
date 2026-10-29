@@ -35,14 +35,12 @@ function rankOf(dataType: string): number {
   return DATA_TYPE_RANK[dataType] ?? 99;
 }
 
-export function chooseBestMatch(foods: FdcFood[]): FdcFood | null {
-  let best: FdcFood | null = null;
-  for (const food of foods) {
-    if (!best || rankOf(food.dataType) < rankOf(best.dataType)) {
-      best = food;
-    }
-  }
-  return best;
+const QUERY_STOP = new Set(["with", "and", "the", "one", "small", "a", "an", "of", "for"]);
+
+function queryTokens(query: string): string[] {
+  return [...new Set(
+    query.toLowerCase().split(/[^a-z]+/).filter((token) => token.length > 2 && !QUERY_STOP.has(token)),
+  )];
 }
 
 function gramBasis(food: FdcFood): boolean {
@@ -72,6 +70,63 @@ function nutrientValue(
     if (found) return { value: found.value, unit: found.unitName };
   }
   return null;
+}
+
+function energyPer100Kcal(food: FdcFood): number | null {
+  const energy = nutrientValue(food, ENERGY_IDS);
+  return energy ? energyToKcal(energy.value, energy.unit) : null;
+}
+
+// Rank FDC search hits for an item name. Data-type rank alone picked dressing
+// for salad, soymilk for black coffee, and ketchup for scrambled egg (#189).
+export function scoreFoodMatch(query: string, food: FdcFood): number {
+  const desc = food.description.toLowerCase();
+  const q = query.toLowerCase();
+  let score = 0;
+  for (const token of queryTokens(query)) {
+    if (desc.includes(token)) score += 1;
+  }
+  if (/\bsalad\b/.test(q) && !/\bdressing\b/.test(q)) {
+    if (/\bdressing\b/.test(desc)) score -= 8;
+    if (/\bspread\b/.test(desc)) score -= 6;
+    if (/\b(tuna|ham|potato|egg) salad\b/.test(desc)) score -= 4;
+    if (/\bside salad\b/.test(desc) || /\blettuce\b/.test(desc) || /\bmixed salad\b/.test(desc)) score += 3;
+  }
+  if (/\bcoffee\b/.test(q)) {
+    if (/\bsoymilk\b/.test(desc) || /\bsilk\b/.test(desc)) score -= 8;
+    if (/\bpepper\b/.test(desc) && !/\bcoffee\b/.test(desc)) score -= 8;
+    if (/\bblack coffee\b/.test(desc)) score += 4;
+    const kcal = energyPer100Kcal(food);
+    if (/\bbeverages,\s*coffee\b/.test(desc) && kcal !== null && kcal <= 5) score += 3;
+  }
+  if (/\begg\b/.test(q)) {
+    if (/\bketchup\b/.test(desc) && !/\begg\b/.test(desc)) score -= 10;
+    if (/\bscrambled\b/.test(desc) || (/\begg\b/.test(desc) && !/\bketchup\b/.test(desc))) score += 4;
+  }
+  score -= rankOf(food.dataType) * 0.01;
+  return score;
+}
+
+export function chooseBestMatch(foods: FdcFood[], query?: string): FdcFood | null {
+  if (!foods.length) return null;
+  const trimmed = query?.trim();
+  if (!trimmed) {
+    let best: FdcFood | null = null;
+    for (const food of foods) {
+      if (!best || rankOf(food.dataType) < rankOf(best.dataType)) best = food;
+    }
+    return best;
+  }
+  let best = foods[0];
+  let bestScore = scoreFoodMatch(trimmed, best);
+  for (const food of foods.slice(1)) {
+    const score = scoreFoodMatch(trimmed, food);
+    if (score > bestScore || (score === bestScore && rankOf(food.dataType) < rankOf(best.dataType))) {
+      best = food;
+      bestScore = score;
+    }
+  }
+  return best;
 }
 
 // Scale one match to portion grams. A null portion leaves every column
