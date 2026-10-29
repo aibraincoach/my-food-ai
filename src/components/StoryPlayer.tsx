@@ -25,6 +25,7 @@ export default function StoryPlayer({ day, zone, onClose, onDay, cell }: { day: 
   const [dragging, setDragging] = useState(false);
   const start = useRef<{ x: number; y: number } | null>(null);
   const gesture = useRef(false);
+  const gestureMode = useRef<"scroll" | "dismiss" | "horizontal" | null>(null);
   const closing = useRef(false);
   const [drag, setDrag] = useState(0);
   const [pick, setPick] = useState<string>("totals");
@@ -69,8 +70,8 @@ export default function StoryPlayer({ day, zone, onClose, onDay, cell }: { day: 
     const origin = start.current; start.current = null; setDragging(false);
     if (!origin) return;
     const dx = x - origin.x, dy = y - origin.y;
-    if (Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(dy)) { gesture.current = true; adjacent(dx < 0 ? next : previous); }
-    else if (dy > 120) { gesture.current = true; void close(); }
+    if (gestureMode.current !== "scroll" && gestureMode.current !== "dismiss" && Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(dy)) { gesture.current = true; adjacent(dx < 0 ? next : previous); }
+    else if (gestureMode.current === "dismiss" && dy > 120) { gesture.current = true; void close(); }
     else if (Math.abs(dy) > 10 || Math.abs(dx) > 10) { gesture.current = true; setDrag(0); }
   };
   return <dialog ref={dialog} aria-label={`Meals on ${title}`} onCancel={event => { event.preventDefault(); void close(); }}
@@ -78,18 +79,27 @@ export default function StoryPlayer({ day, zone, onClose, onDay, cell }: { day: 
     <div className="absolute inset-0 bg-text" style={{ opacity: 0.32 * (1 - Math.min(drag / 300, 1)) }} />
     <div ref={story} className="relative mx-auto flex h-dvh w-full max-w-phone flex-col overflow-hidden bg-text pt-safe pb-safe"
       style={{ transform: `translateY(${drag}px) scale(${1 - 0.14 * Math.min(drag / 150, 1)})`, transformOrigin: "top center", borderRadius: drag ? tokens.spacing["field-h"] - tokens.spacing.grid * 2 : 0, boxShadow: drag ? tokens.colors["shadow-story"] : undefined, transition: dragging ? undefined : "transform 220ms ease", touchAction: "none" }}
-      onPointerDown={event => { if (event.button !== 0) return; gesture.current = false; scrollStart.current = content.current?.scrollTop ?? 0; start.current = { x: event.clientX, y: event.clientY }; }}
+      onPointerDown={event => { if (event.button !== 0) return; gesture.current = false; gestureMode.current = null; scrollStart.current = content.current?.scrollTop ?? 0; start.current = { x: event.clientX, y: event.clientY }; }}
       onPointerMove={event => {
         const origin = start.current;
         if (!origin) return;
         const dy = event.clientY - origin.y, dx = event.clientX - origin.x;
-        if (Math.abs(dy) <= 10 || Math.abs(dy) <= Math.abs(dx)) return;
+        if (!gestureMode.current) {
+          if (Math.max(Math.abs(dx), Math.abs(dy)) <= 10) return;
+          gestureMode.current = Math.abs(dx) > Math.abs(dy) ? "horizontal" : dy > 0 && scrollStart.current <= 0 ? "dismiss" : "scroll";
+        }
         gesture.current = true;
         event.currentTarget.setPointerCapture(event.pointerId);
-        if (dy > 0 && scrollStart.current <= 0) { setDragging(true); setDrag(dy); }
-        else if (content.current) content.current.scrollTop = scrollStart.current - dy;
+        if (gestureMode.current === "dismiss") { setDragging(true); setDrag(Math.max(0, dy)); }
+        else if (gestureMode.current === "scroll" && content.current) content.current.scrollTop = scrollStart.current - dy;
       }}
-      onPointerUp={event => release(event.clientX, event.clientY)} onPointerCancel={() => { start.current = null; setDragging(false); setDrag(0); }}
+      onPointerUp={event => {
+        if (event.currentTarget.hasPointerCapture(event.pointerId)) event.currentTarget.releasePointerCapture(event.pointerId);
+        release(event.clientX, event.clientY);
+      }} onPointerCancel={event => {
+        if (event.currentTarget.hasPointerCapture(event.pointerId)) event.currentTarget.releasePointerCapture(event.pointerId);
+        start.current = null; gestureMode.current = null; setDragging(false); setDrag(0);
+      }}
       onClickCapture={event => { if (gesture.current) { event.preventDefault(); event.stopPropagation(); } }}>
       <div className="flex gap-1" style={{ padding: `${tokens.spacing.grid * 2}px ${tokens.spacing["sheet-top"]}px 0` }} aria-label={`Slide ${slide + 1} of ${day.posts.length + 1}`}>
         {Array.from({ length: day.posts.length + 1 }, (_, index) => <button type="button" key={index} aria-label={`Show slide ${index + 1}`} onClick={() => setSlide(index)} className={`flex-1 bg-surface ${index > slide ? "opacity-30" : ""}`} style={{ height: tokens.border.hairline * 2 }} />)}

@@ -27,6 +27,9 @@ export default function DaysView({ initialMonths, earliest, today, zone, initial
   const [menuError, setMenuError] = useState("");
   const [menuLoading, setMenuLoading] = useState(false);
   const dayRequest = useRef(0);
+  const retry = useRef<(() => void) | null>(null);
+  const activeRef = useRef<LoggedDay | null>(initialDay ?? null);
+  const previousInitialMonths = useRef(initialMonths);
   const tail = useRef<HTMLDivElement>(null);
   const top = today.slice(0, 7), floor = earliest.slice(0, 7);
   const displayed = Object.keys(months).sort().reverse();
@@ -56,7 +59,7 @@ export default function DaysView({ initialMonths, earliest, today, zone, initial
   const scrollMonth = useCallback((month: string) => {
     requestAnimationFrame(() => document.getElementById(`month-${month}`)?.scrollIntoView({ block: "start", behavior: "instant" }));
   }, []);
-  const openDay = useCallback(async (date: string, updateUrl = true) => {
+  const openDay = useCallback(async function requestDay(date: string, updateUrl = true): Promise<void> {
     if (!validDate(date) || date > today) return;
     const request = ++dayRequest.current;
     setLoadingDay(true); setError("");
@@ -65,10 +68,15 @@ export default function DaysView({ initialMonths, earliest, today, zone, initial
       if (!response.ok) throw new Error("The day could not be loaded. Try again.");
       const data: { day: LoggedDay } = await response.json();
       if (request !== dayRequest.current) return;
-      setSelected(date); setActive(data.day);
+      setSelected(date); activeRef.current = data.day; setActive(data.day);
       scrollMonth(date.slice(0, 7));
       if (updateUrl) window.history.replaceState(null, "", url(`/days/${date}`));
-    } catch (failure) { if (request === dayRequest.current) setError(failure instanceof Error ? failure.message : "The day could not be loaded."); }
+    } catch (failure) {
+      if (request === dayRequest.current) {
+        retry.current = () => { void requestDay(date, updateUrl); };
+        setError(failure instanceof Error ? failure.message : "The day could not be loaded.");
+      }
+    }
     finally { if (request === dayRequest.current) setLoadingDay(false); }
   }, [today, url, loadThrough, scrollMonth]);
   // Readiness refreshes supply new server props without discarding months already read.
@@ -76,8 +84,32 @@ export default function DaysView({ initialMonths, earliest, today, zone, initial
     monthsRef.current = { ...monthsRef.current, ...initialMonths };
     setMonths(monthsRef.current);
     setCounts(null);
-    if (initialDay) setActive(current => current?.date === initialDay.date ? initialDay : current);
-  }, [initialMonths, initialDay]);
+    if (initialDay && activeRef.current?.date === initialDay.date) {
+      activeRef.current = initialDay; setActive(initialDay);
+    }
+    if (previousInitialMonths.current === initialMonths) return;
+    previousInitialMonths.current = initialMonths;
+    let live = true;
+    // A server reconciliation only includes the first two months. Revalidate
+    // older loaded records as well, preserving their order and scroll position.
+    for (const month of Object.keys(monthsRef.current).filter(value => !initialMonths[value])) {
+      void fetch(url(`/api/days?month=${month}`), { cache: "no-store" }).then(async response => {
+        if (!response.ok) return;
+        const summary: MonthSummary = await response.json();
+        if (live) { monthsRef.current = { ...monthsRef.current, [month]: summary }; setMonths(monthsRef.current); }
+      }).catch(() => {});
+    }
+    const activeDate = activeRef.current?.date;
+    if (activeDate && initialDay?.date !== activeDate) {
+      const request = ++dayRequest.current;
+      void fetch(url(`/api/days?date=${activeDate}`), { cache: "no-store" }).then(async response => {
+        if (!response.ok) return;
+        const data: { day: LoggedDay } = await response.json();
+        if (live && request === dayRequest.current && activeRef.current?.date === activeDate) { activeRef.current = data.day; setActive(data.day); }
+      }).catch(() => {});
+    }
+    return () => { live = false; };
+  }, [initialMonths, initialDay, url]);
   useEffect(() => {
     if (!initialDay) return;
     let live = true;
@@ -88,7 +120,7 @@ export default function DaysView({ initialMonths, earliest, today, zone, initial
     const reconcile = () => {
       const date = window.location.pathname.match(/^\/days\/(2\d{3}-\d{2}-\d{2})$/)?.[1];
       if (date) void openDay(date, false);
-      else if (window.location.pathname === "/days") { dayRequest.current++; setActive(null); }
+      else if (window.location.pathname === "/days") { dayRequest.current++; activeRef.current = null; setActive(null); }
     };
     window.addEventListener("popstate", reconcile);
     return () => window.removeEventListener("popstate", reconcile);
@@ -100,7 +132,12 @@ export default function DaysView({ initialMonths, earliest, today, zone, initial
     const observer = new IntersectionObserver(entries => {
       if (!entries.some(entry => entry.isIntersecting)) return;
       observer.disconnect(); setLoadingMonth(true); setError("");
-      void loadMonth(shiftMonth(last, -1)).catch(failure => setError(failure.message)).finally(() => setLoadingMonth(false));
+      const nextMonth = shiftMonth(last, -1);
+      const attempt = () => {
+        setLoadingMonth(true); setError("");
+        void loadMonth(nextMonth).catch(failure => { retry.current = attempt; setError(failure.message); }).finally(() => setLoadingMonth(false));
+      };
+      attempt();
     });
     observer.observe(sentinel);
     return () => observer.disconnect();
@@ -134,11 +171,11 @@ export default function DaysView({ initialMonths, earliest, today, zone, initial
   const jump = async (month: string) => {
     setMenu(false); setLoadingMonth(true); setError("");
     try { await loadThrough(month); scrollMonth(month); }
-    catch (failure) { setError(failure instanceof Error ? failure.message : "The month could not be loaded."); }
+    catch (failure) { retry.current = () => { void jump(month); }; setError(failure instanceof Error ? failure.message : "The month could not be loaded."); }
     finally { setLoadingMonth(false); }
   };
   const close = () => {
-    dayRequest.current++; setActive(null); setLoadingDay(false);
+    dayRequest.current++; activeRef.current = null; setActive(null); setLoadingDay(false);
     window.history.replaceState(null, "", url("/days"));
     if (selected) requestAnimationFrame(() => document.querySelector<HTMLElement>(`[data-day="${selected}"]`)?.focus({ preventScroll: true }));
   };
@@ -151,7 +188,7 @@ export default function DaysView({ initialMonths, earliest, today, zone, initial
       <div ref={tail} className="px-screen-x text-month text-faint" style={{ minHeight: tokens.spacing.tap }}>{monthName(shiftMonth(last, -1))}</div>
     </div>
     {loadingMonth || loadingDay ? <p role="status" className="px-screen-x text-meta text-muted">{loadingDay ? "Loading day…" : "Loading months…"}</p> : null}
-    {error ? <p role="alert" className="px-screen-x text-meta text-muted">{error}<button type="button" className="ml-2 min-h-tap text-text" onClick={() => { setError(""); router.refresh(); if (last > floor) void jump(shiftMonth(last, -1)); }}>Try again</button></p> : null}
+    {error ? <p role="alert" className="px-screen-x text-meta text-muted">{error}<button type="button" className="ml-2 min-h-tap text-text" onClick={() => { setError(""); if (retry.current) retry.current(); else router.refresh(); }}>Try again</button></p> : null}
     <GoToMonthSheet open={menu} months={allMonths} counts={counts} loading={menuLoading} error={menuError} onClose={() => setMenu(false)} onMonth={month => { void jump(month); }} />
     {active ? <StoryPlayer key={active.date} day={active} zone={zone} onClose={close} onDay={date => { void openDay(date); }} cell={() => document.querySelector<HTMLElement>(`[data-day="${active.date}"]`)?.getBoundingClientRect()} /> : null}
   </main>;
