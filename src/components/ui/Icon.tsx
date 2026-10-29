@@ -1,7 +1,7 @@
 import type { SVGProps } from 'react';
 import { tokens } from '@/lib/theme/tokens';
 
-export type IconName = 'home' | 'search' | 'plus' | 'days' | 'profile' | 'close' | 'back' | 'chevron-down' | 'camera' | 'thumb' | 'mic' | 'flip';
+export type IconName = 'home' | 'search' | 'plus' | 'days' | 'profile' | 'close' | 'back' | 'chevron-down' | 'camera' | 'thumb' | 'mic' | 'flip' | 'entry-camera' | 'entry-text' | 'entry-drink' | 'entry-coffee';
 type Props = SVGProps<SVGSVGElement> & { name: IconName; active?: boolean; down?: boolean; size?: number; label?: string };
 
 export function Icon({ name, active = false, down = false, size, label, style, ...props }: Props) {
@@ -10,6 +10,10 @@ export function Icon({ name, active = false, down = false, size, label, style, .
     : name === 'thumb' ? tokens.icon.thumbStroke : tokens.icon.stroke;
   const dimension = size ?? (name === 'chevron-down' ? tokens.spacing['icon-small'] : name === 'thumb' ? tokens.spacing['icon-thumb'] : tokens.spacing.icon);
   const shapes = {
+    'entry-camera': <path d="M3 7h3l2-3h8l2 3h3v13H3z M12 17a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7" />,
+    'entry-text': <path d="M4 6h16M4 12h10M4 18h7" />,
+    'entry-drink': <path d="M6 3h12l-1.5 17h-9z M7 9h10" />,
+    'entry-coffee': <path d="M4 8h12v7a4 4 0 0 1-4 4H8a4 4 0 0 1-4-4z M16 10h2a2 2 0 0 1 0 4h-2 M7 4v2M10 3v3" />,
     home: <path d="M3 11 12 3l9 8v10h-6v-6H9v6H3z" fill={active ? 'currentColor' : 'none'} />,
     search: <><circle cx="11" cy="11" r="7" /><path d="m20 20-4-4" /></>,
     plus: <path d="M12 5v14M5 12h14" />,
