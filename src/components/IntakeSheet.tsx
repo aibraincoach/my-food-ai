@@ -69,11 +69,11 @@ export default function IntakeSheet({ initialKind, embedded = false, onClose }: 
   };
   const sectionGap = tokens.spacing['item-row'];
   const content = <>
-    <div className="flex flex-col" style={{ marginTop: -tokens.spacing['tooltip-y'] }}>
+    <div className="flex flex-col" style={{ marginTop: -tokens.radii.chip, marginBottom: -tokens.spacing['sheet-bottom'] }}>
       <div className="flex h-tap items-center justify-between"><h2 className="text-sheet-head">Drink</h2>
         <button type="button" aria-label="Close drink" disabled={busy} className="flex min-h-tap min-w-tap items-center justify-end" onClick={close}><Icon name="close" size={tokens.spacing['item-row']} /></button>
       </div>
-      <div role="tablist" aria-label="Drink kind" className="flex rounded-field bg-field" style={{ padding: tokens.border.hairline + tokens.icon.strongStroke }}>
+      <div role="tablist" aria-label="Drink kind" className="mt-2 flex rounded-field bg-field" style={{ padding: tokens.border.hairline + tokens.icon.strongStroke }}>
         {(["Water", "Coffee", "Other"] as const).map(value => <button type="button" role="tab" aria-selected={tab === value} key={value} disabled={busy}
           className={`flex-1 text-comment ${tab === value ? "bg-surface font-semibold text-text" : "font-medium text-muted"}`}
           style={{ height: tokens.spacing['table-row'] + tokens.spacing.grid * 2, borderRadius: tokens.radii.field - (tokens.border.hairline + tokens.icon.strongStroke), boxShadow: tab === value ? tokens.colors['shadow-segment'] : undefined }}
@@ -86,7 +86,7 @@ export default function IntakeSheet({ initialKind, embedded = false, onClose }: 
           style={{ height: tokens.capture.thumbSize }} onClick={() => { setSelected(option.ml); setCustom(""); }}>
           <span className="font-semibold">{option.ml === 1000 ? "1 l" : `${option.ml} ml`}</span><span className="text-label opacity-70">{option.label}</span>
         </button>)}</div>}
-      <Field label="Other amount" suffix="ml" inputMode="numeric" value={custom} disabled={busy} className="mt-2" onChange={event => { setSelected(null); setCustom(event.target.value); }} />
+      <Field placeholder="Other amount" aria-label="Other amount" suffix="ml" inputMode="numeric" value={custom} disabled={busy} className="mt-2" onChange={event => { setSelected(null); setCustom(event.target.value); }} />
       {tab === "Coffee" && selected === null && ml > 0 && Number.isFinite(ml) ? <p className="mt-1 text-label text-muted">{Math.round(ml * 95 / 240)} mg caffeine</p> : null}
       {tab === "Coffee" && selected === null && custom && !valid ? <p role="status" className="mt-1 text-label text-muted">Enter a whole amount from 2 to 2527 ml.</p> : null}
       <p className="text-meta text-muted" style={{ marginTop: sectionGap, marginBottom: tokens.spacing.grid }}>Drank today</p>
