@@ -84,10 +84,11 @@ export default function CaptureSheet({ onClose, initialMode = "photo" }: { onClo
     packPhotoRef.current = null;
   };
 
+  const cameraEnabled = mode !== "text";
   useEffect(() => {
     mountedRef.current = true;
     let cancelled = false;
-    if (mode === "text") return () => { cancelled = true; mountedRef.current = false; };
+    if (!cameraEnabled) return () => { cancelled = true; mountedRef.current = false; };
     void loadBarcodeDecoder();
     void openCamera("environment").then((camera) => {
       if (cancelled) { camera.close(); return; }
@@ -100,7 +101,7 @@ export default function CaptureSheet({ onClose, initialMode = "photo" }: { onClo
       liveCameraRef.current?.close();
       liveCameraRef.current = null;
     };
-  }, [mode]);
+  }, [cameraEnabled]);
 
   useEffect(() => {
     const video = videoRef.current;
@@ -287,7 +288,7 @@ export default function CaptureSheet({ onClose, initialMode = "photo" }: { onClo
 
   const latest = shots[shots.length - 1];
   const full = shots.length >= MAX_SHOTS;
-  const switchMode = (next: CaptureMode) => { if (!postingRef.current && next !== mode) { dismissBarcode(); setStream(null); setMode(next); } };
+  const switchMode = (next: CaptureMode) => { if (!postingRef.current && next !== mode) { dismissBarcode(); if ((mode === "text") !== (next === "text")) setStream(null); setMode(next); } };
   const pack = product ? packageAmount(product) : null;
   const amountLabel = (amount: number) => product?.basisUnit === "ml" && amount >= 1000 && amount % 1000 === 0 ? `${amount / 1000} l` : `${new Intl.NumberFormat(undefined, { maximumFractionDigits: 2 }).format(amount)} ${product?.basisUnit ?? "g"}`;
   const value = (key: "calories" | "protein_g" | "carbs_g" | "fat_g", amount: number) => {
