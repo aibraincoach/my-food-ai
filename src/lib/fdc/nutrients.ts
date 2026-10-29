@@ -82,14 +82,16 @@ function energyPer100Kcal(food: FdcFood): number | null {
 export function scoreFoodMatch(query: string, food: FdcFood): number {
   const desc = food.description.toLowerCase();
   const q = query.toLowerCase();
+  const descTokens = new Set(desc.split(/[^a-z]+/).filter(Boolean));
   let score = 0;
   for (const token of queryTokens(query)) {
-    if (desc.includes(token)) score += 1;
+    if (descTokens.has(token)) score += 1;
   }
   if (/\bsalad\b/.test(q) && !/\bdressing\b/.test(q)) {
     if (/\bdressing\b/.test(desc)) score -= 8;
     if (/\bspread\b/.test(desc)) score -= 6;
-    if (/\b(tuna|ham|potato|egg) salad\b/.test(desc)) score -= 4;
+    const compound = desc.match(/\b(tuna|ham|potato|egg) salad\b/)?.[1];
+    if (compound && !q.includes(compound)) score -= 4;
     if (/\bside salad\b/.test(desc) || /\blettuce\b/.test(desc) || /\bmixed salad\b/.test(desc)) score += 3;
   }
   if (/\bcoffee\b/.test(q)) {

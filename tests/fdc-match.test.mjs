@@ -29,6 +29,14 @@ test("scrambled egg with ketchup prefers egg over ketchup", () => {
   assert.equal(chooseBestMatch(foods, "scrambled egg with ketchup")?.fdcId, 172187);
 });
 
+test("egg salad is not penalized when the query names egg salad", () => {
+  const foods = [
+    { fdcId: 173343, description: "Potato salad with egg", dataType: "SR Legacy", foodNutrients: kcal(157) },
+    { fdcId: 169057, description: "Salad dressing, green goddess, regular", dataType: "SR Legacy", foodNutrients: kcal(427) },
+  ];
+  assert.equal(chooseBestMatch(foods, "egg salad")?.fdcId, 173343);
+});
+
 test("without a query, data-type rank still decides", () => {
   const foods = [
     { fdcId: 2, description: "Branded", dataType: "Branded", foodNutrients: kcal(100) },
