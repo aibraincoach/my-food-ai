@@ -28,6 +28,13 @@ test('failed save retry reuses uploaded photo; a partial upload retries only its
  assert.deepEqual(calls,[['/api/media/sign-upload','POST'],['original','PUT'],['feed','PUT'],['feed','PUT']]);
 });
 
+test('expired partial and completed stages renew before upload and cleanup expiry',async()=>{
+ let now=0,signs=0;const uploader=new PackPhotoUpload(async()=>({original:new Blob(['x']),feed:new Blob(['y']),width:1,height:1}),async(url,options)=>options.method==='POST'?Response.json({uploads:[{originalPath:`stage${++signs}/0.jpg`,originalSignedUrl:'original',feedSignedUrl:'feed'}]}):new Response(''),()=>now);
+ const file=new File(['photo'],'pack.jpg');assert.equal((await uploader.prepare(file)).path,'stage1/0.jpg');
+ now=111*60*1000;assert.equal((await uploader.prepare(file)).path,'stage2/0.jpg');assert.equal(signs,2);
+ now=4*60*60*1000;assert.equal((await uploader.prepare(file)).path,'stage3/0.jpg');assert.equal(signs,3);
+});
+
 test('a cleanup record is durable before upload, delayed past capability expiry, and scheduling failure is fatal',async()=>{
  let row;const before=Date.now();
  await queueStagedPhotoCleanup({from(table){assert.equal(table,'jobs');return{async insert(value){row=value;return{error:null}}}}},'owner','stage');
@@ -67,6 +74,7 @@ test('servings RPC scales volume labels and gram portions and claims a staged ph
  insert into storage.objects values('media',path),('media',replace(path,'.jpg','.feed.jpg'));
  p:=barcode_fixture.create_food_post(owner,now(),'Oat drink',250,'{"calories":150,"portion_unit":"ml"}',jsonb_build_object('path',path,'width',100,'height',100));
  again:=barcode_fixture.create_food_post(owner,now(),'Oat drink',250,'{"calories":150,"portion_unit":"ml"}',jsonb_build_object('path',path,'width',100,'height',100));
+ if p<>stage then raise exception 'photo path is not post scoped';end if;
  if again<>p or (select count(*) from barcode_fixture.posts)<>1 then raise exception 'duplicate post';end if;
  perform barcode_fixture.set_post_servings(p,owner,2);
  if not exists(select 1 from barcode_fixture.post_items where post_id=p and superseded_at is null and portion_text='500 ml' and portion_grams is null) then raise exception 'volume scaling failed';end if;

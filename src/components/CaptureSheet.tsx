@@ -181,11 +181,12 @@ export default function CaptureSheet({ onClose, initialMode = "photo" }: { onClo
   }, [mode, barcodeState, stream, findBarcode]);
 
   const addFiles = async (files: FileList | File[] | null) => {
-    if (!files || postingRef.current || scanBusy.current) return;
+    if (!files || postingRef.current) return;
+    pendingFilesRef.current.push(...Array.from(files).slice(0, Math.max(0, MAX_SHOTS - shotsRef.current.length - pendingFilesRef.current.length)));
+    setPendingCount(pendingFilesRef.current.length);
+    if (scanBusy.current) return;
     scanBusy.current = true; setCameraBusy(true);
     try {
-      pendingFilesRef.current.push(...Array.from(files).slice(0, MAX_SHOTS - shotsRef.current.length - pendingFilesRef.current.length));
-      setPendingCount(pendingFilesRef.current.length);
       while (pendingFilesRef.current.length && shotsRef.current.length < MAX_SHOTS) {
         const file = pendingFilesRef.current.shift()!;
         setPendingCount(pendingFilesRef.current.length);

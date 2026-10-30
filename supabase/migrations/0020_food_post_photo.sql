@@ -47,8 +47,10 @@ begin
       raise exception 'Pack photo expired; choose the photo again' using errcode='22023';
     end if;
   end if;
-  insert into public.posts (user_id, caption, eaten_at, status, analysis_initialized_at)
-  values (p_user_id, v_name, p_eaten_at, 'ready', clock_timestamp()) returning id into v_post;
+  -- Keep every photo under its actual post id, as required by correction authorization.
+  v_post:=case when p_photo is null then gen_random_uuid() else split_part(p_photo->>'path','/',2)::uuid end;
+  insert into public.posts (id, user_id, caption, eaten_at, status, analysis_initialized_at)
+  values (v_post, p_user_id, v_name, p_eaten_at, 'ready', clock_timestamp());
   insert into public.post_items (post_id, name, portion_text, portion_grams, source)
   values (v_post, v_name, trim_scale(p_grams)::text || ' ' || v_unit, case when v_unit = 'g' then p_grams else null end, 'user') returning id into v_item;
   insert into public.item_nutrition (post_item_id, calories, protein_g, carbs_g, fat_g, fibre_g, sugar_g, sodium_mg, micronutrients, source_ref)
