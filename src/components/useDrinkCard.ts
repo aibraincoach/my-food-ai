@@ -41,8 +41,10 @@ export function useDrinkCard(postId: string, status: string, eatenAt: string): D
     let timer: ReturnType<typeof setTimeout> | undefined;
     let attempt = 0;
     let inFlight = false;
+    let refreshPending = false;
     const read = async () => {
-      if (!active || inFlight) return;
+      if (!active) return;
+      if (inFlight) { refreshPending = true; return; }
       inFlight = true;
       try {
         const drink = await requestDrink(postId, zone);
@@ -50,7 +52,10 @@ export function useDrinkCard(postId: string, status: string, eatenAt: string): D
         if (active && !drink && attempt++ < 3) timer = setTimeout(read, 1000 * attempt);
       } catch {
         if (active && attempt++ < 3) timer = setTimeout(read, 1000 * attempt);
-      } finally { inFlight = false; }
+      } finally {
+        inFlight = false;
+        if (active && refreshPending) { refreshPending = false; clearTimeout(timer); void read(); }
+      }
     };
     const refresh = () => { clearTimeout(timer); attempt = 0; void read(); };
     const visible = () => { if (document.visibilityState === "visible") refresh(); };
