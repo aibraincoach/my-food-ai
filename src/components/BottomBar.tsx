@@ -14,7 +14,7 @@ const SLOTS: { href: string; label: string; icon: IconName }[] = [
   { href: "/profile", label: "Profile", icon: "profile" },
 ];
 
-export default function BottomBar({ onPlus }: { onPlus: () => void }) {
+export default function BottomBar({ onPlus, menuOpen = false }: { onPlus: () => void; menuOpen?: boolean }) {
   const pathname = usePathname();
   const [feedEmpty, setFeedEmpty] = useState(false);
   useEffect(() => {
@@ -49,12 +49,12 @@ export default function BottomBar({ onPlus }: { onPlus: () => void }) {
         {empty ? <div className="pointer-events-none absolute bottom-full left-1/2 -translate-x-1/2 pb-screen-x whitespace-nowrap">
           <Tooltip>Photograph a meal</Tooltip>
         </div> : null}
-        <button type="button" aria-label="Post a meal" onClick={onPlus}
-          className={`-mt-tooltip-y flex h-tap w-tap items-center justify-center rounded-circle ${empty ? "bg-accent text-white" : "bg-surface text-text"}`}
+        <button type="button" id="post-menu-toggle" aria-label={menuOpen ? "Close post menu" : "Post a meal"} aria-expanded={menuOpen} aria-controls="post-menu" onClick={onPlus}
+          className={`-mt-tooltip-y flex h-tap w-tap items-center justify-center rounded-circle ${menuOpen ? "bg-text text-surface" : empty ? "bg-accent text-white" : "bg-surface text-text"}`}
           style={empty
             ? { boxShadow: `0 0 0 ${tokens.spacing['tooltip-offset']}px ${tokens.colors['accent-halo']}` }
             : { border: `${tokens.icon.strongStroke - tokens.border.hairline / 2}px solid ${tokens.colors.text}` }}>
-          <Icon name="plus" />
+          <Icon name="plus" style={{transform: `rotate(${menuOpen ? 45 : 0}deg)`, transition: "transform 160ms"}} />
         </button>
       </div>
       {link(SLOTS[2])}

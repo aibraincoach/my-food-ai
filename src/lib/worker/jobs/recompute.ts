@@ -26,7 +26,7 @@ export default async function recompute(admin: SupabaseClient, job: JobRow): Pro
         if (retainedError) throw ioError("recompute: retained food could not be saved.", retainedError, retainedStatus);
         continue;
       }
-      const food = chooseBestMatch(await searchFoods(admin, item.name));
+      const food = chooseBestMatch(await searchFoods(admin, item.name), item.name);
       const n = scaleNutrition(food, item.portion_grams == null ? null : toNumber(item.portion_grams));
       const { error: writeError, status: writeStatus } = await admin.from("item_nutrition").upsert({
         post_item_id: item.id, calories: n.calories, protein_g: n.proteinG,

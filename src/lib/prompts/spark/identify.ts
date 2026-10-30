@@ -19,6 +19,14 @@ Rules:
   the regions do not show.
 - \`portion_grams\` is your best estimate in grams. Anchor on standard
   servings and on the caption, not on pixels.
+- A count or size in the caption bounds the portion exactly: "one slice" is one slice's weight and never two; "small" is the low end of the range; "a slice of Japanese toast" is a thick single slice.
+- Thin slices (ham, toast): one slice is often 5–15 g for ham and 40–70 g
+  for a single thick Japanese toast slice, not two US diner slices.
+- One egg scrambled is about 50 g; count eggs, not heaped portions.
+- Black coffee and tea: use about 240 g for a cup; the drink itself has
+  negligible calories unless milk or sugar is visible.
+- Green salad without dressing visible: a small side is often 30–80 g of
+  greens, not dressing.
 - \`region_index\` is the region's index, or null for caption-only items.
 - \`confidence\` is 0 to 1, your own estimate, or null when unsure.
 - \`summary\` is one plain sentence saying what the meal is.
