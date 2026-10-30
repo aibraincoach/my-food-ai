@@ -79,7 +79,7 @@ const correct:JobHandler=async(admin,job)=>{
   let nutrition;
   if(old)nutrition={calories:old.calories,protein_g:old.protein_g,carbs_g:old.carbs_g,fat_g:old.fat_g,fibre_g:old.fibre_g,sugar_g:old.sugar_g,sodium_mg:old.sodium_mg,micronutrients:old.micronutrients,source_ref:old.source_ref};
   else {
-   const retained=region?.name===item.name?await resolvePortionNutrition(admin,job.post_id,region.id,item.name,item.portion_grams):null;
+   const retained=region?.name===item.name?await resolvePortionNutrition(admin,job.post_id,region.id,item.name,item.portion_grams,item.portion_text):null;
    if(retained)nutrition=retained;
    else {
    const n=scaleNutrition(chooseBestMatch(await searchFoods(admin,item.name), item.name),item.portion_grams);

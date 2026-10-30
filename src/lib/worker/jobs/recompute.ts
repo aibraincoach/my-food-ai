@@ -10,7 +10,7 @@ import { toNumber } from "@/lib/nutrition/totals";
 export default async function recompute(admin: SupabaseClient, job: JobRow): Promise<void> {
   if (!job.post_id) throw new Error("recompute: post is required.");
   const { data: items, error, status: itemsStatus } = await admin.from("current_post_items")
-    .select("id,name,portion_grams,supersedes").eq("post_id", job.post_id);
+    .select("id,name,portion_grams,portion_text,supersedes").eq("post_id", job.post_id);
   if (error) throw ioError(`recompute items: ${error.message}`, error, itemsStatus);
   if (items?.length) {
     const { data: existing, error: nutritionError, status: nutritionStatus } = await admin.from("item_nutrition")
@@ -20,7 +20,7 @@ export default async function recompute(admin: SupabaseClient, job: JobRow): Pro
     for (const item of items) {
       if (complete.has(item.id)) continue;
       // A portion revision must not silently choose a different search result.
-      const retained = await resolvePortionNutrition(admin, job.post_id, item.supersedes, item.name, item.portion_grams);
+      const retained = await resolvePortionNutrition(admin, job.post_id, item.supersedes, item.name, item.portion_grams, item.portion_text);
       if (retained) {
         const { error: retainedError, status: retainedStatus } = await admin.from("item_nutrition").upsert({ ...retained, post_item_id: item.id }, { onConflict: "post_item_id", ignoreDuplicates: true });
         if (retainedError) throw ioError("recompute: retained food could not be saved.", retainedError, retainedStatus);
