@@ -192,7 +192,14 @@ export default function CaptureSheet({ onClose, initialMode = "photo" }: { onClo
         const file = pendingFilesRef.current[0];
         // A single bounded decode precedes all uploads, including library photos in text mode.
         let deadline: ReturnType<typeof setTimeout> | undefined;
-        const code = await Promise.race([decodeBarcodeFile(file), new Promise<null>((resolve) => { deadline = setTimeout(() => resolve(null), 900); })]).finally(() => clearTimeout(deadline));
+        let code: string | null;
+        try {
+          code = await Promise.race([decodeBarcodeFile(file), new Promise<null>((resolve) => { deadline = setTimeout(() => resolve(null), 900); })]).finally(() => clearTimeout(deadline));
+        } catch {
+          pendingFilesRef.current.shift(); setPendingCount(pendingFilesRef.current.length);
+          if (mountedRef.current) setError("Could not read that photo. The other selected photos were kept.");
+          continue;
+        }
         if (!mountedRef.current) return;
         if (code) {
           pendingFilesRef.current.shift(); setPendingCount(pendingFilesRef.current.length);

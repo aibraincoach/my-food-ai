@@ -19,4 +19,5 @@ Gemini confirmation on cbd6d3e83529c3a7c3ede4546a32747b3c02281b (original authen
 - Repeated video srcObject reset on Photo/Barcode switch — Real: the binding effect now depends on stream only, preserving the same mounted video and live track across that switch.
 - Zero-dimension decoder concern — Not real: the existing width/height guard returns before scaling.
 - Compound package size parsing — Not real as a blocker: unsupported units/compound forms deliberately return null and use safe amount choices.
-Real findings: 9
+- P2 unreadable file blocks retained pending queue (Codex confirmation on 5d1a49198dbc6fc6ccbf9aeeb625ccf85ee5578c) — Real. A failed decode now removes only that file, records a visible error and continues draining the other selections; a corrupt image cannot strand the form.
+Real findings: 10
