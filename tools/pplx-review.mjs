@@ -489,7 +489,7 @@ async function connectBiDi() {
     ws.addEventListener("error", (e) => rej(e), { once: true });
   });
   ws.addEventListener("message", (ev) => onMessage(ev.data));
-  await send("session.new", { capabilities: { alwaysMatch: { acceptInsecureCerts: true } } });
+  await send("session.new", { capabilities: { alwaysMatch: {} } });
   sessionOpen = true;
 }
 

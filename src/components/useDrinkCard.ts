@@ -55,10 +55,11 @@ export function useDrinkCard(postId: string, status: string, eatenAt: string): D
     const refresh = () => { clearTimeout(timer); attempt = 0; void read(); };
     const visible = () => { if (document.visibilityState === "visible") refresh(); };
     window.addEventListener("post-created", refresh);
+    window.addEventListener("post-ready", refresh);
     window.addEventListener("online", refresh);
     document.addEventListener("visibilitychange", visible);
     void read();
-    return () => { active = false; clearTimeout(timer); window.removeEventListener("post-created", refresh);
+    return () => { active = false; clearTimeout(timer); window.removeEventListener("post-created", refresh); window.removeEventListener("post-ready", refresh);
       window.removeEventListener("online", refresh); document.removeEventListener("visibilitychange", visible); };
   }, [postId, status, eatenAt]);
   return value?.id === postId ? value.drink : null;

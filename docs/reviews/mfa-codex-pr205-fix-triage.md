@@ -11,4 +11,5 @@ Additional Codex confirmation on 492b7866adb0dd029d297a01e26942e57ca5b285:
 https://github.com/aibraincoach/my-food-ai/pull/205#issuecomment-6521202514
 - P1 cross-owner linked intake — Real. The original owner-insert policy did not constrain post ownership. Linked intake now requires the trusted server, validates matching ownership under the post lock, and is unique per post. The local fixture rejects a foreign owner link.
 - P2 publication/read race — Real. Separate ready-post and intake commits exposed an intermediate state; the hook also stopped permanently after a failed read. create_drink_post now commits both rows in one transaction. The hook retries failed/null reads and refreshes on post-created, reconnect and return to the visible tab. The local fixture forces an intake failure and proves no partial post survives, then verifies the successful linked timestamp.
-Real findings: 4
+- P2 delayed food nutrition leaves drink hydration stale (Codex confirmation on e3441eb5761a1614786805206a399766670cc573) — Real. The hook now also invalidates on the existing post-ready event, including when another earlier meal finishes processing or a correction completes.
+Real findings: 5
