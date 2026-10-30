@@ -9,7 +9,7 @@
  * On every exit (success, error, timeout) it closes its tab(s) and ends the BiDi session (session.end), so the next run
  * can open a new session on the same Firefox. After the capture is written a 10-second hard-exit timer guards the
  * close, so a hung browsingContext.close or session.end cannot hold the process.
- * One deadline: 120 seconds from the moment each tab opens (RT, 2026-10-11: no PPLX review lasts more than 2 minutes).
+ * Inspect the authenticated page every second; fail fast on missing input. The capture deadline is an automation safety limit, not provider latency.
  * The ask-box wait and the answer polling both use the time left; "Elapsed since Enter" is a diagnostic.
  * Batch mode serializes typing and Enter under a foreground lock so background tabs do not drop keystrokes.
  */
@@ -304,7 +304,7 @@ function submissionExpired(tab) {
   if (tab.timeLeft() > 0) return false;
   recordFailure(tab, {
     code: 2,
-    message: `PPLX timeout before submission: ${tab.sinceTabOpen()}s since tab open`,
+    message: `Automation deadline before submission: ${tab.sinceTabOpen()}s since tab open`,
     header: `Head at submission: ${tab.headAt}\nElapsed since tab open: ${tab.sinceTabOpen()}s\n`,
     text: "",
   });
@@ -313,12 +313,14 @@ function submissionExpired(tab) {
 }
 
 async function waitAskInput(tab) {
-  let askReady = false;
-  while (!askReady && tab.timeLeft() > 0) {
-    await new Promise((r) => setTimeout(r, 2000));
-    askReady = await evalScript(tab.context, `!!document.querySelector('#ask-input')`);
+  for (let second = 1; second <= 5 && tab.timeLeft() > 0; second++) {
+    const snapshot = await evalScript(tab.context, `JSON.stringify({title:document.title, ready:document.readyState, ask:!!document.querySelector('#ask-input'), main:(document.querySelector('main')?.innerText||'').slice(0,300)})`);
+    console.error(`${tab.prUrl}: page inspection ${second}s: ${snapshot}`);
+    if (JSON.parse(snapshot).ask) return true;
+    await new Promise(resolve => setTimeout(resolve, 1000));
   }
-  return askReady;
+  console.error(`${tab.prUrl}: input absent; inspect the authenticated Firefox. This is an automation/page-state failure, not PPLX response latency.`);
+  return false;
 }
 
 async function ensureModel(tab) {
@@ -426,7 +428,7 @@ async function pollAnswer(tab) {
       timedOut = true;
       break;
     }
-    await new Promise((r) => setTimeout(r, Math.max(500, Math.min(4000, tab.timeLeft()))));
+    await new Promise((r) => setTimeout(r, Math.max(500, Math.min(1000, tab.timeLeft()))));
     text = await evalScript(tab.context, `(document.querySelector('main')||{}).innerText||''`);
     if (text.includes("Searching the web")) {
       const elapsed = ((Date.now() - tab.enterAt) / 1000).toFixed(1);
@@ -434,6 +436,7 @@ async function pollAnswer(tab) {
       return { ok: false, code: 3, message: "DEVIATION: Searching the web", header, text };
     }
     const len = text.length;
+    console.error(`${tab.prUrl}: inspected answer at ${((Date.now()-tab.enterAt)/1000).toFixed(1)}s; ${len} characters`);
     // The current UI labels a completed answer with a standalone "Finished".
     // Keep the same length, stability, deadline and model-proof requirements.
     const researched = text.includes("Researched") || text.includes("Reviewed")
@@ -441,7 +444,7 @@ async function pollAnswer(tab) {
     if (len >= 400 && researched && len === lastLen) stable++;
     else stable = 0;
     lastLen = len;
-    if (stable >= 4) break;
+    if (stable >= 2) break;
   }
 
   const elapsedSinceEnter = ((Date.now() - tab.enterAt) / 1000).toFixed(1);
@@ -462,7 +465,7 @@ async function pollAnswer(tab) {
     return {
       ok: false,
       code: 2,
-      message: `PPLX timeout: ${tab.sinceTabOpen()}s since tab open (limit ${LIMIT_MS / 1000}s), ${elapsedSinceEnter}s since Enter`,
+      message: `Automation capture deadline: ${tab.sinceTabOpen()}s since tab open (limit ${LIMIT_MS / 1000}s), ${elapsedSinceEnter}s since Enter`,
       header,
       text,
     };
@@ -486,7 +489,7 @@ async function connectBiDi() {
     ws.addEventListener("error", (e) => rej(e), { once: true });
   });
   ws.addEventListener("message", (ev) => onMessage(ev.data));
-  await send("session.new", { capabilities: { alwaysMatch: { acceptInsecureCerts: true } } });
+  await send("session.new", { capabilities: { alwaysMatch: {} } });
   sessionOpen = true;
 }
 
@@ -502,7 +505,7 @@ async function runSingleReview(tab) {
   if (!(await waitAskInput(tab))) {
     recordFailure(tab, {
       code: 2,
-      message: `no #ask-input within ${tab.sinceTabOpen()}s of tab open`,
+      message: `No input found during live page inspections (${tab.sinceTabOpen()}s); inspect browser/authentication`,
       header: `Head at submission: ${tab.headAt}\n`,
       text: "",
     });
@@ -599,7 +602,7 @@ async function runBatchMode({ urls, outDir }) {
         if (!(await waitAskInput(tab))) {
           recordFailure(tab, {
             code: 2,
-            message: `no #ask-input within ${tab.sinceTabOpen()}s of tab open`,
+            message: `No input found during live page inspections (${tab.sinceTabOpen()}s); inspect browser/authentication`,
             header: `Head at submission: ${tab.headAt}\n`,
             text: "",
           });

@@ -7,7 +7,7 @@ description: Run the PPLX code review (Gemini 3.8 Flash on Perplexity, Firefox h
 
 Policy lives in `REVIEW_POLICY.md` and `docs/pplx-review-procedure.md`. Ported from naval-association-calgary / calgarysalutes-website (2026-10-14). This skill is the mechanics.
 
-1. Start Firefox once per batch (copies the signed-in profile, picks a free port, runs the memory guard for `PPLX_TABS` tabs):
+1. Attach to the original authenticated Firefox on display :10 through BiDi. Never copy its profile. Restart that same profile with session restoration if BiDi needs enabling. Inspect the page every second, and diagnose missing input immediately. A selector failure is an automation failure, not PPLX response latency. Run the memory guard for `PPLX_TABS` tabs:
    ```bash
    export PPLX_TABS=<number of PRs>
    eval "$(scripts/pplx-firefox.sh)"

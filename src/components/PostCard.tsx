@@ -7,6 +7,8 @@ import { formatConsumed, sumNutrition, toNumber } from "@/lib/nutrition/totals";
 import { tokens } from "@/lib/theme/tokens";
 import { ResultsCard } from "@/components/ResultsCard";
 import { currentTraffic } from "@/components/QueueTicker";
+import { useDrinkCard } from "@/components/useDrinkCard";
+import type { DrinkCardData } from "@/lib/intake/hydration";
 import Carousel from "@/components/Carousel";
 import { Shimmer } from "@/components/ui/Shimmer";
 
@@ -15,7 +17,7 @@ function timeLabel(value: string) {
   return Number.isNaN(date.getTime()) ? "" : date.toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" });
 }
 
-function CaptionCard({ post }: { post: FeedPost }) {
+function CaptionCard({ post, drink }: { post: FeedPost; drink?: DrinkCardData | null }) {
   const ref = useRef<HTMLDivElement>(null);
   const [width, setWidth] = useState<number>(tokens.spacing.phone);
   useEffect(() => {
@@ -28,7 +30,7 @@ function CaptionCard({ post }: { post: FeedPost }) {
   }, []);
   const totals = sumNutrition(post.items);
   return <div ref={ref} className="aspect-square w-full overflow-hidden bg-card" aria-label="Meal nutrition summary">
-    <ResultsCard size={width} time={timeLabel(post.eaten_at)} calories={totals.calories}
+    <ResultsCard drink={drink} size={width} time={timeLabel(post.eaten_at)} calories={totals.calories}
       protein={totals.protein_g} carbs={totals.carbs_g} fat={totals.fat_g}
       items={post.items.map((item) => ({ name: item.name, grams: item.portion_grams == null ? null : toNumber(item.portion_grams) }))} />
   </div>;
@@ -72,14 +74,15 @@ function StatusLine({ post }: { post: FeedPost }) {
 }
 
 export default function PostCard({ post, analysis, showDate = false }: { post: FeedPost; analysis?: ReactNode; showDate?: boolean }) {
+  const drink = useDrinkCard(post.id, post.status, post.eaten_at);
   return <article className="flex flex-col gap-2" data-post-id={post.id} data-post-status={post.status}>
-    {post.slides?.length ? <Carousel slides={post.slides} caption={post.caption} postId={post.id} href={`/posts/${post.id}`} modelCommentId={post.modelCommentId??null} fingerprint={post.analysisFingerprint??null} /> : post.status === "ready" && post.items.length ? <Link href={`/posts/${post.id}`} aria-label="Open meal details" className="block"><CaptionCard post={post} /></Link> : null}
+    {drink ? <Link href={`/posts/${post.id}`} aria-label="Open drink details" className="block"><CaptionCard post={post} drink={drink} /></Link> : post.slides?.length ? <Carousel slides={post.slides} caption={post.caption} postId={post.id} href={`/posts/${post.id}`} modelCommentId={post.modelCommentId??null} fingerprint={post.analysisFingerprint??null} /> : post.status === "ready" && post.items.length ? <Link href={`/posts/${post.id}`} aria-label="Open meal details" className="block"><CaptionCard post={post} /></Link> : null}
     <div className="flex flex-col gap-2 px-screen-x">
       <div className="flex items-start justify-between gap-2">
         <p className="min-w-0 whitespace-pre-wrap break-words text-body">{post.caption}</p>
         <time dateTime={post.eaten_at} className="shrink-0 whitespace-nowrap text-meta text-muted">{showDate ? new Date(post.eaten_at).toLocaleDateString(undefined,{weekday:"short",month:"short",day:"numeric"}) : timeLabel(post.eaten_at)}</time>
       </div>
-      {post.status === "ready" && post.items.length > 0 && analysis ? analysis : <StatusLine post={post} />}
+      {drink ? <p className="text-detail text-muted">Drank: {drink.ml} ml · {drink.totalMl.toLocaleString("en-US")} ml so far today</p> : post.status === "ready" && post.items.length > 0 && analysis ? analysis : <StatusLine post={post} />}
       {/* The one control that is always visible and labelled: every card, whatever its status. */}
       <Link href={`/posts/${post.id}`} className="flex min-h-tap items-center self-start text-detail text-text">Details ›</Link>
     </div>

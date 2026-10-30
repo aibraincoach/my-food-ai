@@ -1,7 +1,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { feedCopyUrl } from "@/lib/media/media-url";
 import { groupIntakeByDay, emptyIntake, type IntakeRow, type IntakeTotals } from "@/lib/intake/intake";
-import { getCurrentItems, normalizeStoredNutrition, type NutritionRow, sumNutrition, type CurrentItem, type MealTotals } from "@/lib/nutrition/totals";
+import { getCurrentItems, normalizeStoredNutrition, sumNutrition, type CurrentItem, type MealTotals, type NutritionRow } from "@/lib/nutrition/totals";
 
 export interface DayPost { id: string; caption: string; eatenAt: string; photoUrl: string | null; items: CurrentItem[]; totals: MealTotals }
 export interface LoggedDay { date: string; posts: DayPost[]; totals: MealTotals; intake: IntakeTotals }
@@ -153,4 +153,66 @@ export async function getDayTotals(db: SupabaseClient, userId: string, zone: str
     if ((data?.length ?? 0) < 1000) break;
   }
   return [...groups.values()];
+}
+
+export interface MonthDay { day: string; kcal: number | null; posts: number; ready: boolean }
+export interface MonthSummary { days: MonthDay[]; posted: number }
+export function shiftMonth(month: string, offset: number): string {
+  const date = new Date(`${month}-01T12:00:00Z`);
+  date.setUTCMonth(date.getUTCMonth() + offset);
+  return date.toISOString().slice(0, 7);
+}
+export async function getEarliestPostDate(supabase: SupabaseClient, userId: string, zone: string): Promise<string | null> {
+  const { data, error } = await supabase.from("posts").select("eaten_at").eq("user_id", userId)
+    .order("eaten_at", { ascending: true }).order("id", { ascending: true }).limit(1).maybeSingle();
+  if (error) throw new Error("The first posted day could not be read.");
+  return data ? dateInZone(data.eaten_at, zone) : null;
+}
+
+// Month grids need no photos, signed URLs or per-post requests. Read current
+// nutrition in the same paginated query as posts and group by the local day.
+export async function getMonthSummary(supabase: SupabaseClient, userId: string, zone: string, month: string): Promise<MonthSummary> {
+  if (!validMonth(month)) throw new Error("Invalid month.");
+  const from = `${month}-01`, through = shiftDay(`${shiftMonth(month, 1)}-01`, -1);
+  const groups = new Map<string, MonthDay>();
+  for (let offset = 0; ; offset += 100) {
+    const { data, error } = await supabase.from("posts")
+      .select("id,eaten_at,status,current_post_items(id,portion_grams,item_nutrition(post_item_id,calories,protein_g,carbs_g,fat_g,fibre_g,sugar_g,sodium_mg,micronutrients,source_ref))")
+      .eq("user_id", userId).in("status", LOGGED_STATUSES)
+      .gte("eaten_at", `${shiftDay(from, -1)}T00:00:00Z`).lt("eaten_at", `${shiftDay(through, 2)}T00:00:00Z`)
+      .order("eaten_at", { ascending: true }).order("id", { ascending: true }).range(offset, offset + 99);
+    if (error) throw new Error("The month's posted days could not be loaded.");
+    for (const row of data ?? []) {
+      const date = dateInZone(row.eaten_at, zone);
+      if (date < from || date > through) continue;
+      const day = groups.get(date) ?? { day: date, kcal: 0, posts: 0, ready: false };
+      day.posts++;
+      if (row.status === "ready") {
+        day.ready = true;
+        for (const item of row.current_post_items ?? []) {
+          const stored = Array.isArray(item.item_nutrition) ? item.item_nutrition[0] : item.item_nutrition;
+          const normalized = stored ? normalizeStoredNutrition(stored as NutritionRow, item.portion_grams) : null;
+          const calories = normalized?.calories;
+          day.kcal = day.kcal === null || calories == null ? null : day.kcal + Number(calories);
+        }
+      }
+      groups.set(date, day);
+    }
+    if ((data?.length ?? 0) < 100) break;
+  }
+  return { days: [...groups.values()].map(day => ({ ...day, kcal: day.ready ? day.kcal : null })).sort((a, b) => a.day.localeCompare(b.day)), posted: groups.size };
+}
+
+export async function getPostedMonthCounts(supabase: SupabaseClient, userId: string, zone: string): Promise<Record<string, number>> {
+  const dates = new Set<string>();
+  for (let offset = 0; ; offset += 1000) {
+    const { data, error } = await supabase.from("posts").select("id,eaten_at").eq("user_id", userId).in("status", LOGGED_STATUSES)
+      .order("eaten_at", { ascending: true }).order("id", { ascending: true }).range(offset, offset + 999);
+    if (error) throw new Error("Posted months could not be loaded.");
+    for (const post of data ?? []) dates.add(dateInZone(post.eaten_at, zone));
+    if ((data?.length ?? 0) < 1000) break;
+  }
+  const months: Record<string, number> = {};
+  for (const date of dates) months[date.slice(0, 7)] = (months[date.slice(0, 7)] ?? 0) + 1;
+  return months;
 }

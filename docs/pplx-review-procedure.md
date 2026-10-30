@@ -33,3 +33,9 @@ Type exactly: `code review https://github.com/aibraincoach/my-food-ai/pull/<N>` 
 ## Failure
 
 Two failed headless-runner attempts do not make PPLX unavailable. Work through every PPLX route your harness has (cookie refresh, the owner's Chrome, the other OCI server; see PPLX routes in `REVIEW_POLICY.md`). Only when all of them have failed in one session, and the exact page text has been reported to the owner, use AGY (`docs/agy-review-procedure.md`), labelled as a fallback.
+
+## Authenticated Firefox and live observation
+
+Use the original authenticated Firefox on display :10 through BiDi. Never copy its profile or substitute a fresh browser, Playwright or Chromium for PPLX. Attach to its listener; if necessary restart the same profile with session restoration and BiDi enabled.
+
+Inspect the page every second before and after submission. PPLX normally starts answering within two or three seconds. If the input or answer is absent, inspect the actual page, title, authentication and selected model immediately. A selector failure is an automation failure, not a PPLX response timeout or proof that PPLX is unavailable. Never spend 120 seconds blindly waiting for an input.

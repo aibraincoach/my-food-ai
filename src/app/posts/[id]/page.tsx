@@ -25,10 +25,10 @@ export default async function PostDetail({ params }: { params: Promise<{ id: str
   if (!detail) notFound();
   return <main className={`${font.className} mx-auto min-h-dvh w-full max-w-phone bg-surface pb-sheet-safe text-text`}>
     <TopBar title={<DetailDate value={detail.post.eaten_at} weekday />} left={<Link href="/" aria-label="Back to meals" className="flex min-h-tap min-w-tap items-center"><Icon name="back" /></Link>} />
-    <OutlineOverlay key={id} initialized={detail.post.analysis_initialized_at != null} postId={id} caption={detail.post.caption} eatenAt={detail.post.eaten_at} status={detail.post.status} photo={detail.photo} items={detail.items} />
+    <OutlineOverlay key={id} initialized={detail.post.analysis_initialized_at != null} readOnly={detail.isDrink} postId={id} caption={detail.post.caption} eatenAt={detail.post.eaten_at} status={detail.post.status} photo={detail.photo} items={detail.items} />
     <EatenAtEditor key={`${id}:${detail.post.eaten_at}`} postId={id} eatenAt={detail.post.eaten_at} />
-    {detail.post.analysis_initialized_at != null ? <ServingsControl key={`${id}:${detail.post.servings}`} postId={id} servings={Number(detail.post.servings)} /> : null}
+    {detail.post.analysis_initialized_at != null && !detail.isDrink ? <ServingsControl key={`${id}:${detail.post.servings}`} postId={id} servings={Number(detail.post.servings)} /> : null}
     {detail.post.analysis_initialized_at != null && (detail.items.length > 0 || detail.post.status === "ready") ? <NutritionTable items={detail.items} /> : null}
-    <Thread key={id} postId={id} />
+    <Thread key={id} postId={id} readOnly={detail.isDrink} />
   </main>;
 }
