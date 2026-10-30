@@ -28,6 +28,15 @@ test('failed save retry reuses uploaded photo; a partial upload retries only its
  assert.deepEqual(calls,[['/api/media/sign-upload','POST'],['original','PUT'],['feed','PUT'],['feed','PUT']]);
 });
 
+test('lost PUT responses reconcile stored bytes instead of re-uploading or orphaning another stage',async()=>{
+ const stored=new Map(),calls=[];
+ const uploader=new PackPhotoUpload(async()=>({original:new Blob(['x']),feed:new Blob(['y']),width:1,height:1}),async(url,options)=>{
+ calls.push([url,options.method]);if(options.method==='POST')return Response.json({uploads:[{originalPath:'stage/0.jpg',feedPath:'stage/0.feed.jpg',originalSignedUrl:'original',feedSignedUrl:'feed'}]});stored.set(url==='original'?'stage/0.jpg':'stage/0.feed.jpg',await options.body.text());throw new Error('response lost');
+ },Date.now,async(path,blob)=>stored.get(path)===await blob.text());
+ const file=new File(['photo'],'pack.jpg');assert.equal((await uploader.prepare(file)).path,'stage/0.jpg');await uploader.prepare(file);
+ assert.deepEqual(calls,[['/api/media/sign-upload','POST'],['original','PUT'],['feed','PUT']]);
+});
+
 test('expired partial and completed stages renew before upload and cleanup expiry',async()=>{
  let now=0,signs=0;const uploader=new PackPhotoUpload(async()=>({original:new Blob(['x']),feed:new Blob(['y']),width:1,height:1}),async(url,options)=>options.method==='POST'?Response.json({uploads:[{originalPath:`stage${++signs}/0.jpg`,originalSignedUrl:'original',feedSignedUrl:'feed'}]}):new Response(''),()=>now);
  const file=new File(['photo'],'pack.jpg');assert.equal((await uploader.prepare(file)).path,'stage1/0.jpg');

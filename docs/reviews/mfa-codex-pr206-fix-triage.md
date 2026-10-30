@@ -12,4 +12,11 @@ https://github.com/aibraincoach/my-food-ai/pull/206#issuecomment-6521202821
 - P2 volume text absent from correction caller — Real. correct.ts now passes the corrected portion_text into the same retained-nutrition resolver as recompute.ts.
 - P2 concurrent selections dropped — Real. addFiles now appends incoming files before checking the decoder lock, so they remain queued while a decode or lookup is active.
 - P2 expired cached uploads cannot retry — Real. Cached stages renew after 110 minutes, before upload expiry or delayed cleanup, whether uploads were partial or complete. The offline fixture advances the clock and verifies fresh tracked stages.
-Real findings: 6
+- P2 ambiguous successful PUT cannot retry (Codex confirmation on cbd6d3e83529c3a7c3ede4546a32747b3c02281b) — Real. Failed/unknown PUT responses now reconcile the exact stored bytes using the signed-in storage read policy, preserving immutable uploads and the same tracked stage. The offline test simulates lost responses for both copies.
+- P2 in-flight photo omitted from capacity (same confirmation) — Real. Decoding retains the file in the pending queue until its result is committed, so concurrent additions count the in-flight file and cannot strand a ninth selection.
+Gemini confirmation on cbd6d3e83529c3a7c3ede4546a32747b3c02281b (original authenticated Firefox, captured gemini38flash request):
+- Pending-file continuation — Not real: the visible explicit continuation control intentionally retains selections after a product is posted.
+- Repeated video srcObject reset on Photo/Barcode switch — Real: the binding effect now depends on stream only, preserving the same mounted video and live track across that switch.
+- Zero-dimension decoder concern — Not real: the existing width/height guard returns before scaling.
+- Compound package size parsing — Not real as a blocker: unsupported units/compound forms deliberately return null and use safe amount choices.
+Real findings: 9

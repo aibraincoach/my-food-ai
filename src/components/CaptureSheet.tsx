@@ -117,7 +117,7 @@ export default function CaptureSheet({ onClose, initialMode = "photo" }: { onClo
       setStream(null); setCameraUnavailable(true);
     });
     return () => { cancelled = true; video.srcObject = null; };
-  }, [stream, mode]);
+  }, [stream]);
 
   useEffect(() => {
     const previousFocus = document.activeElement;
@@ -188,17 +188,19 @@ export default function CaptureSheet({ onClose, initialMode = "photo" }: { onClo
     scanBusy.current = true; setCameraBusy(true);
     try {
       while (pendingFilesRef.current.length && shotsRef.current.length < MAX_SHOTS) {
-        const file = pendingFilesRef.current.shift()!;
-        setPendingCount(pendingFilesRef.current.length);
+        // Keep the in-flight file in the queue so another selection cannot exceed capacity.
+        const file = pendingFilesRef.current[0];
         // A single bounded decode precedes all uploads, including library photos in text mode.
         let deadline: ReturnType<typeof setTimeout> | undefined;
         const code = await Promise.race([decodeBarcodeFile(file), new Promise<null>((resolve) => { deadline = setTimeout(() => resolve(null), 900); })]).finally(() => clearTimeout(deadline));
         if (!mountedRef.current) return;
         if (code) {
+          pendingFilesRef.current.shift(); setPendingCount(pendingFilesRef.current.length);
           await findBarcode(code, file);
           return;
         }
         shotsRef.current = [...shotsRef.current, { file, previewUrl: URL.createObjectURL(file) }];
+        pendingFilesRef.current.shift(); setPendingCount(pendingFilesRef.current.length);
         setShots(shotsRef.current);
       }
     } catch { if (mountedRef.current) setError("Could not read that photo. Choose another photo."); }
