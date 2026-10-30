@@ -121,5 +121,7 @@ export async function getPostDetail(supabase: SupabaseClient, postId: string) {
     }
     return { ...item, box: itemBox(item.box), maskUrl };
   }));
-  return { post, photo, items };
+  const { data: drink, error: drinkError } = await supabase.from("intake_logs").select("id").eq("post_id", postId).limit(1).maybeSingle();
+  if (drinkError) throw new Error("Drink details could not be read.");
+  return { post, photo, items, isDrink: drink !== null };
 }

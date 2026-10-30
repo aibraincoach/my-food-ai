@@ -1,0 +1,9 @@
+Triage reviewer: Codex implementation agent; integrated head 45a04d5d4e2f378013a52f3355c318fc9ea0ace1, base main.
+Original Codex receipt: https://github.com/aibraincoach/my-food-ai/pull/205#issuecomment-6489501011
+
+1. P1 missing intake-sheet trigger — Not real on the integrated branch. Main supplies PlusMenu and TabsLayout: Drink dispatches open-entry/drink and mounts IntakeSheet embedded with initialKind=water; Coffee mounts it with initialKind=caffeine. An isolated Firefox BiDi run of the actual integrated Layout, PlusMenu and IntakeSheet clicked both entries and observed selected tabs Water and Coffee respectively. Background queue/session components were stubbed; no production request was made.
+2. P2 eaten-at does not move linked intake — Real. The existing PATCH updated only posts.eaten_at. The new trigger updates intake_logs.logged_at in the same transaction. The disposable local PostgreSQL trigger check moves a drink across dates and verifies its volume disappears from the old date and appears on the new date.
+3. P2 generic item edits contradict intake — Real. Generic meal edits have no coffee-preset or volume semantics. Linked drink records now reject item add/rename/portion/remove, servings changes and correction reprocessing atomically instead of changing only one representation. Detail hides servings, disables item edits and shows the recorded-drink explanation instead of a correction composer. The local PostgreSQL check proves rejected writes preserve the item and intake; ordinary post deletion still works.
+
+Main was integrated with a merge commit; no conflicts. Existing four offline drink/hydration checks and the new timestamp/consistency check passed. No production database writes or migrations were run. Full migration/production HTTP tests remain deferred until the separately ordered migration.
+Real findings: 2

@@ -37,8 +37,8 @@ function Mask({ url, photo, color, frame, fallback }: {
     : <div className="pointer-events-none absolute rounded-field" style={{ ...fallback, border: `${tokens.detail.outlineWidth}px solid ${color}` }} />;
 }
 
-export default function OutlineOverlay({ initialized, postId, caption, eatenAt, status, photo, items }: {
-  initialized: boolean; postId: string; caption: string; eatenAt: string; status: string; photo: DetailPhoto | null; items: DetailItem[];
+export default function OutlineOverlay({ initialized, readOnly = false, postId, caption, eatenAt, status, photo, items }: {
+  initialized: boolean; readOnly?: boolean; postId: string; caption: string; eatenAt: string; status: string; photo: DetailPhoto | null; items: DetailItem[];
 }) {
   const router = useRouter();
   const drink = useDrinkCard(postId, status, eatenAt);
@@ -119,7 +119,7 @@ export default function OutlineOverlay({ initialized, postId, caption, eatenAt, 
       onPointerDown={pointerDown} onPointerMove={pointerMove} onPointerUp={pointerUp}
       onPointerCancel={() => { start.current = null; setDrawBox(null); }}
       onClick={(event) => {
-        if (!initialized || drawing || !outlines || selection) return;
+        if (readOnly || !initialized || drawing || !outlines || selection) return;
         const p = point(event); if (!p) return;
         const hit = items.filter((item) => item.box && p.x >= item.box.left && p.x <= item.box.right && p.y >= item.box.top && p.y <= item.box.bottom)
           .sort((a, b) => (a.box!.right - a.box!.left) * (a.box!.bottom - a.box!.top) - (b.box!.right - b.box!.left) * (b.box!.bottom - b.box!.top))[0];
@@ -130,7 +130,7 @@ export default function OutlineOverlay({ initialized, postId, caption, eatenAt, 
         <img src={photo.url} alt={caption || "Meal photo"} draggable={false} className="h-full w-full object-contain" />
         {outlines && items.map((item, index) => item.box ? <div key={item.id}>
           <Mask url={item.maskUrl} photo={photo} color={outlineColor(index)} frame={frame} fallback={boxStyle(item.box)} />
-          <button type="button" disabled={!initialized} aria-label={`Edit ${item.name}`} className="absolute max-w-full rounded-chip py-grid text-label font-semibold text-white"
+          <button type="button" disabled={!initialized || readOnly} aria-label={`Edit ${item.name}`} className="absolute max-w-full rounded-chip py-grid text-label font-semibold text-white"
             style={{ left: offsetX + item.box.left * scale, top: offsetY + item.box.top * scale, paddingLeft: tokens.detail.chipX, paddingRight: tokens.detail.chipX, background: outlineColor(index) }}
             onClick={(event) => { event.stopPropagation(); setSelection({ item, key: Date.now() }); }}>
             {item.name}{item.portion_grams == null ? "" : ` · ${formatGrams(item.portion_grams)}`}
@@ -152,7 +152,7 @@ export default function OutlineOverlay({ initialized, postId, caption, eatenAt, 
       {photo ? <p className="shrink-0 text-meta text-muted">{drawing ? "Drag to draw a box" : "Tap an outline to edit"}</p> : null}
     </div>
     {drawing ? <div className="flex justify-between px-screen-x text-comment"><button className="min-h-tap" onClick={() => { setDrawing(false); setDrawBox(null); setSelection((current) => current ? { ...current, box: undefined } : null); }}>Continue without a box</button><button className="min-h-tap text-muted" onClick={() => { setDrawing(false); setDrawBox(null); }}>Cancel</button></div> : null}
-    <ItemRows disabled={!initialized} items={items} onSelect={(item) => setSelection({ item, key: Date.now() })} onAdd={add} />
+    <ItemRows disabled={!initialized || readOnly} items={items} onSelect={(item) => setSelection({ item, key: Date.now() })} onAdd={add} />
     {waiting || ["queued", "processing"].includes(status) ? <p role="status" className="px-screen-x text-meta text-muted">Updating nutrition…</p> : null}
     {status === "failed" ? <p role="status" className="px-screen-x text-meta text-muted">Nutrition could not be updated.</p> : null}
     {selection ? <ItemEditSheet key={selection.key} postId={postId} item={selection.item} box={selection.box} open={!drawing}
