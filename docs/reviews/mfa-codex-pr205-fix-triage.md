@@ -6,4 +6,9 @@ Original Codex receipt: https://github.com/aibraincoach/my-food-ai/pull/205#issu
 3. P2 generic item edits contradict intake — Real. Generic meal edits have no coffee-preset or volume semantics. Linked drink records now reject item add/rename/portion/remove, servings changes and correction reprocessing atomically instead of changing only one representation. Detail hides servings, disables item edits and shows the recorded-drink explanation instead of a correction composer. The local PostgreSQL check proves rejected writes preserve the item and intake; ordinary post deletion still works.
 
 Main was integrated with a merge commit; no conflicts. Existing four offline drink/hydration checks and the new timestamp/consistency check passed. No production database writes or migrations were run. Full migration/production HTTP tests remain deferred until the separately ordered migration.
-Real findings: 2
+
+Additional Codex confirmation on 492b7866adb0dd029d297a01e26942e57ca5b285:
+https://github.com/aibraincoach/my-food-ai/pull/205#issuecomment-6521202514
+- P1 cross-owner linked intake — Real. The original owner-insert policy did not constrain post ownership. Linked intake now requires the trusted server, validates matching ownership under the post lock, and is unique per post. The local fixture rejects a foreign owner link.
+- P2 publication/read race — Real. Separate ready-post and intake commits exposed an intermediate state; the hook also stopped permanently after a failed read. create_drink_post now commits both rows in one transaction. The hook retries failed/null reads and refreshes on post-created, reconnect and return to the visible tab. The local fixture forces an intake failure and proves no partial post survives, then verifies the successful linked timestamp.
+Real findings: 4

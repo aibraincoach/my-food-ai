@@ -27,22 +27,13 @@ test("drink data is bounded and caffeine/labels come from the server", () => {
   for (const body of [null, { kind: "water", ml: 0 }, { kind: "water", ml: 5001 }, { kind: "water", ml: 1.5 }, { kind: "water", ml: "330" }, { kind: "caffeine", ml: 5000 }, { kind: "other", ml: 30 }]) assert.equal(parseDrinkInput(body), null);
 });
 
-test("a failed intake insert compensates by removing only its owner's new post", async () => {
-  const calls = [];
-  const admin = {
-    rpc: async () => ({ data: "new-post", error: null }),
-    from(table) {
-      assert.ok(table === "posts" || table === "intake_logs");
-      return {
-        insert: async () => ({ error: { message: "write failed" } }),
-        delete() { calls.push("delete"); return this; },
-        eq(column, value) { calls.push([column, value]); return this; },
-        then(resolve) { resolve({ error: null }); },
-      };
-    },
-  };
-  await assert.rejects(postDrink(admin, "owner", parseDrinkInput({ kind: "water", ml: 330 }), "UTC"), /could not be saved/);
-  assert.deepEqual(calls, ["delete", ["id", "new-post"], ["user_id", "owner"]]);
+test("a failed atomic drink save does not expose or compensate a partially committed post", async () => {
+  let calls = 0;
+  const admin = { async rpc(name,args) { calls++; assert.equal(name,"create_drink_post"); assert.equal(args.p_ml,330);
+    assert.equal(args.p_kind,"water"); return {data:null,error:{message:"write failed"}}; },
+    from() { throw new Error("No separate post/intake writes are allowed."); } };
+  await assert.rejects(postDrink(admin,"owner",parseDrinkInput({kind:"water",ml:330}),"UTC"),/could not be saved/);
+  assert.equal(calls,1);
 });
 
 test("hydration counts food water once, old water rows and local-day cutoff", async () => {

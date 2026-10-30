@@ -35,16 +35,10 @@ export async function postDrink(admin: SupabaseClient, userId: string, input: Dr
       micronutrients: [...n.micronutrients.filter(row => (row as { nutrientId?: number }).nutrientId !== 1057),
         { nutrientId: 1057, nutrientName: "Caffeine", unitName: "MG", value: input.caffeineMg, basis: "portion" }], source_ref: n.sourceRef };
   }
-  const { data, error } = await admin.rpc("create_food_post", { p_user_id: userId, p_eaten_at: eatenAt, p_name: input.label, p_grams: input.ml, p_nutrition: nutrition });
+  const { data, error } = await admin.rpc("create_drink_post", { p_user_id: userId, p_eaten_at: eatenAt,
+    p_kind: input.kind, p_ml: input.ml, p_label: input.label, p_caffeine_mg: input.caffeineMg, p_nutrition: nutrition });
   if (error || typeof data !== "string") throw new Error("The drink could not be saved.");
   const postId = data;
-  const { error: intakeError } = await admin.from("intake_logs").insert({ user_id: userId, kind: input.kind,
-    amount: input.kind === "water" ? input.ml : input.caffeineMg, ml: input.ml, label: input.label, post_id: postId, logged_at: eatenAt });
-  if (intakeError) {
-    const cleanup = await admin.from("posts").delete().eq("id", postId).eq("user_id", userId);
-    if (cleanup.error) throw new Error("The intake could not be saved and its meal could not be removed.");
-    throw new Error("The drink could not be saved.");
-  }
   const zone = validZone(tz);
   let drink: DrinkCardData | null = null;
   try {

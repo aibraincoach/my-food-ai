@@ -38,8 +38,28 @@ export function useDrinkCard(postId: string, status: string, eatenAt: string): D
     if (status !== "ready") return;
     let active = true;
     const zone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-    void requestDrink(postId, zone).then(drink => { if (active) setValue({ id: postId, drink }); }).catch(() => {});
-    return () => { active = false; };
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    let attempt = 0;
+    let inFlight = false;
+    const read = async () => {
+      if (!active || inFlight) return;
+      inFlight = true;
+      try {
+        const drink = await requestDrink(postId, zone);
+        if (active) setValue({ id: postId, drink });
+        if (active && !drink && attempt++ < 3) timer = setTimeout(read, 1000 * attempt);
+      } catch {
+        if (active && attempt++ < 3) timer = setTimeout(read, 1000 * attempt);
+      } finally { inFlight = false; }
+    };
+    const refresh = () => { clearTimeout(timer); attempt = 0; void read(); };
+    const visible = () => { if (document.visibilityState === "visible") refresh(); };
+    window.addEventListener("post-created", refresh);
+    window.addEventListener("online", refresh);
+    document.addEventListener("visibilitychange", visible);
+    void read();
+    return () => { active = false; clearTimeout(timer); window.removeEventListener("post-created", refresh);
+      window.removeEventListener("online", refresh); document.removeEventListener("visibilitychange", visible); };
   }, [postId, status, eatenAt]);
   return value?.id === postId ? value.drink : null;
 }
