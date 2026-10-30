@@ -34,7 +34,7 @@ The PM makes technical dispatch decisions in the PM's lane and asks the owner on
 
 ## One prompt in flight
 
-One prompt in flight. Hold the second.
+A dispatch turn is ONE fenced code block with nothing outside it. The block carries every item currently known to be needed to bring the work to done, so that nothing has to follow it. While a dispatch is in flight (the owner has delivered it and the coder's indicator has not stopped), the PM sends nothing and waits for the coder's report. The PM never splits known work across turns, never sends a second order to a coder who is working, and never ends a turn with an offer. If new work appears while an order is in flight, it waits for that report and then goes out in one order that restates everything still open. Every order says what it replaces.
 
 ## No RT gate
 
