@@ -1,0 +1,21 @@
+Triage reviewer: Codex implementation agent; integrated head 45a04d5d4e2f378013a52f3355c318fc9ea0ace1, base main.
+Original Codex receipt: https://github.com/aibraincoach/my-food-ai/pull/205#issuecomment-6489501011
+
+1. P1 missing intake-sheet trigger — Not real on the integrated branch. Main supplies PlusMenu and TabsLayout: Drink dispatches open-entry/drink and mounts IntakeSheet embedded with initialKind=water; Coffee mounts it with initialKind=caffeine. An isolated Firefox BiDi run of the actual integrated Layout, PlusMenu and IntakeSheet clicked both entries and observed selected tabs Water and Coffee respectively. Background queue/session components were stubbed; no production request was made.
+2. P2 eaten-at does not move linked intake — Real. The existing PATCH updated only posts.eaten_at. The new trigger updates intake_logs.logged_at in the same transaction. The disposable local PostgreSQL trigger check moves a drink across dates and verifies its volume disappears from the old date and appears on the new date.
+3. P2 generic item edits contradict intake — Real. Generic meal edits have no coffee-preset or volume semantics. Linked drink records now reject item add/rename/portion/remove, servings changes and correction reprocessing atomically instead of changing only one representation. Detail hides servings, disables item edits and shows the recorded-drink explanation instead of a correction composer. The local PostgreSQL check proves rejected writes preserve the item and intake; ordinary post deletion still works.
+
+Main was integrated with a merge commit; no conflicts. Existing four offline drink/hydration checks and the new timestamp/consistency check passed. No production database writes or migrations were run. Full migration/production HTTP tests remain deferred until the separately ordered migration.
+
+Additional Codex confirmation on 492b7866adb0dd029d297a01e26942e57ca5b285:
+https://github.com/aibraincoach/my-food-ai/pull/205#issuecomment-6521202514
+- P1 cross-owner linked intake — Real. The original owner-insert policy did not constrain post ownership. Linked intake now requires the trusted server, validates matching ownership under the post lock, and is unique per post. The local fixture rejects a foreign owner link.
+- P2 publication/read race — Real. Separate ready-post and intake commits exposed an intermediate state; the hook also stopped permanently after a failed read. create_drink_post now commits both rows in one transaction. The hook retries failed/null reads and refreshes on post-created, reconnect and return to the visible tab. The local fixture forces an intake failure and proves no partial post survives, then verifies the successful linked timestamp.
+- P2 delayed food nutrition leaves drink hydration stale (Codex confirmation on e3441eb5761a1614786805206a399766670cc573) — Real. The hook now also invalidates on the existing post-ready event, including when another earlier meal finishes processing or a correction completes.
+- P2 readiness event during an active hydration read (Codex confirmation on fbf70c73b26c6044bd5bda7d8ef2a4c7ae8b4de4) — Real. Refreshes received during a request now set a pending invalidation and cause another read after it settles, instead of dropping the event and retaining an old total.
+Gemini confirmation submitted on fbf70c73b26c6044bd5bda7d8ef2a4c7ae8b4de4 (head advanced during the response; this is not a final-head receipt):
+- SQL injection in the local fixture — Not real: only trusted committed SQL is read; no request or user input is interpolated, execution is restricted to an explicitly configured loopback test database and rolled back, and ON_ERROR_STOP makes malformed fixtures fail. Installing full migrations is deliberately outside this order.
+- Missing timezone in drink POST — Real: the sheet now sends its IANA zone on POST as it already did on GET, and the route validates that query value before falling back to the cookie.
+- Nested pagination latency — Not real as a blocker: reads are bounded/batched and no incorrect total or measured unacceptable latency was established.
+- In-flight cache recommendation — Not real: a fresh request during an active read is required for committed nutrition invalidation; reusing the older promise could restore the stale-total bug.
+Real findings: 7

@@ -7,7 +7,7 @@ import {correctionFeedback} from '@/lib/posts/correction-feedback';
 import {createClient} from '@/lib/supabase/client';
 import CommentComposer,{type CommentRow} from '@/components/CommentComposer';
 const sort=(rows:CommentRow[])=>rows.toSorted((a,b)=>a.created_at.localeCompare(b.created_at)||a.id.localeCompare(b.id));
-export default function Thread({postId}:{postId:string}){
+export default function Thread({postId,readOnly=false}:{postId:string;readOnly?:boolean}){
  const [accepted,setAccepted]=useState<string|null>(null);
  const router=useRouter();
  const [rows,setRows]=useState<CommentRow[]>([]);const [error,setError]=useState('');const [waiting,setWaiting]=useState(false);const [failed,setFailed]=useState(false);const [retrying,setRetrying]=useState(false);
@@ -48,6 +48,6 @@ export default function Thread({postId}:{postId:string}){
   {error?<p role="status" className="text-meta text-muted">{error}</p>:null}
   <FirstRunHint hint="thread" />
   {failed?<button type="button" disabled={retrying} onClick={retry} className="min-h-tap text-meta text-text">{retrying?'Retrying…':'Try again'}</button>:null}
-  <CommentComposer postId={postId} onPosted={append}/>
+  {readOnly ? <p className="text-meta text-muted">Drink amounts were recorded when posted.</p> : <CommentComposer postId={postId} onPosted={append}/>}
  </section>;
 }
