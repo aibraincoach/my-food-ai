@@ -1,3 +1,5 @@
+import { cookies } from "next/headers";
+import { validZone } from "@/lib/posts/days";
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { getFeed } from "@/lib/posts/feed";
@@ -12,5 +14,6 @@ export async function GET(request: Request) {
   const before = params.get("cursor") ?? params.get("before");
   try { if (before !== null) parseFeedCursor(before); }
   catch { return NextResponse.json({error:"Invalid cursor."},{status:400}); }
-  return NextResponse.json(await getFeed(db,user.id,before),{headers:{"Cache-Control":"private, no-store"}});
+  const zone = validZone(params.get("tz") ?? (await cookies()).get("time-zone")?.value);
+  return NextResponse.json(await getFeed(db,user.id,before,zone),{headers:{"Cache-Control":"private, no-store"}});
 }

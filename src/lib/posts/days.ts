@@ -123,6 +123,38 @@ export async function getLoggedDates(supabase: SupabaseClient, userId: string, z
   return [...dates].sort().map((date) => ({ date }));
 }
 
+export interface FeedDayTotal { day: string; kcal: number | null; ready: boolean }
+
+// Read all current nutrition for the touched days together, never one query per card.
+// The relationships are inferred from the view's underlying post_items foreign keys.
+export async function getDayTotals(db: SupabaseClient, userId: string, zone: string, dates: string[]): Promise<FeedDayTotal[]> {
+  const wanted = [...new Set(dates)].sort();
+  if (!wanted.length) return [];
+  const groups = new Map(wanted.map(day => [day, { day, kcal: 0 as number | null, ready: false }]));
+  const lower = `${shiftDay(wanted[0], -1)}T00:00:00Z`;
+  const upper = `${shiftDay(wanted.at(-1)!, 2)}T00:00:00Z`;
+  for (let offset = 0; ; offset += 1000) {
+    const { data, error } = await db.from('posts')
+      .select('id,eaten_at,current_post_items(portion_grams,item_nutrition(post_item_id,calories,protein_g,carbs_g,fat_g,fibre_g,sugar_g,sodium_mg,micronutrients,source_ref))')
+      .eq('user_id', userId).eq('status', 'ready').or('needs_input.is.null,status.eq.failed')
+      .gte('eaten_at', lower).lt('eaten_at', upper).order('eaten_at').order('id').range(offset, offset + 999);
+    if (error) throw new Error('Day totals could not be loaded.');
+    for (const row of data ?? []) {
+      const group = groups.get(dateInZone(row.eaten_at, zone));
+      if (!group) continue;
+      group.ready = true;
+      for (const item of row.current_post_items ?? []) {
+        const nutrients = Array.isArray(item.item_nutrition) ? item.item_nutrition : [item.item_nutrition];
+        const nutrition = nutrients[0];
+        const value = nutrition ? normalizeStoredNutrition(nutrition as NutritionRow, item.portion_grams).calories : null;
+        group.kcal = group.kcal === null || value == null ? null : group.kcal + Number(value);
+      }
+    }
+    if ((data?.length ?? 0) < 1000) break;
+  }
+  return [...groups.values()];
+}
+
 export interface MonthDay { day: string; kcal: number | null; posts: number; ready: boolean }
 export interface MonthSummary { days: MonthDay[]; posted: number }
 export function shiftMonth(month: string, offset: number): string {

@@ -5,12 +5,14 @@ import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { FEED_PAGE_SIZE, VISIBLE_MEAL_FILTER, getFeed, getPostCard, type FeedPost } from "@/lib/posts/feed";
 import { tokens } from "@/lib/theme/tokens";
+import DayHeader from "@/components/DayHeader";
+import { dateInZone, shiftDay, getDayTotals, type FeedDayTotal } from "@/lib/posts/days";
 import PostCard from "@/components/PostCard";
 import AnalysisBlock from "@/components/AnalysisBlock";
 import RealtimePost from "@/components/RealtimePost";
 import { mergeFeedPosts, discoveryLostOverlap } from "@/lib/posts/feed-order";
 
-type State = { kind: "loading" } | { kind: "error" } | { kind: "ready"; posts: FeedPost[] };
+type State = { kind: "loading" } | { kind: "error" } | { kind: "ready"; posts: FeedPost[]; days: FeedDayTotal[] };
 const DISCOVERY_INTERVAL_MS = 2000;
 const RETRY_INTERVAL_MS = 1000;
 
@@ -25,6 +27,10 @@ export default function Feed() {
 
   useEffect(() => {
     const supabase = createClient();
+    const zone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    const dayTotals = new Map<string, FeedDayTotal>();
+    let totalsGeneration = 0;
+    const mergeDays = (days: FeedDayTotal[]) => { for (const day of days) dayTotals.set(day.day, day); };
     let live = true;
     let userId: string | null = null;
     let discovering = false;
@@ -47,9 +53,21 @@ export default function Feed() {
       // A late initial load must not erase cards received while it was in flight.
       const promoted = newest.flatMap((id) => cards.has(id) ? [cards.get(id)!] : []);
       const posts = mergeFeedPosts(baseline, promoted).filter(post=>!unavailable.has(post.id)&&post.status!=="needs_input"&&(!answered.has(post.id)||post.status==="ready"||post.status==="failed"));
-      if (loaded || promoted.length) setState({ kind: "ready", posts });
+      if (loaded || promoted.length) setState({ kind: "ready", posts, days: [...dayTotals.values()] });
     };
 
+    const refreshTotals = async () => {
+      if (!userId) return;
+      const version = ++totalsGeneration;
+      const dates = [...baseline, ...cards.values()].filter(post => !unavailable.has(post.id)).map(post => dateInZone(post.eaten_at, zone));
+      try {
+        const days = await getDayTotals(supabase, userId, zone, dates);
+        if (!live || version !== totalsGeneration) return;
+        mergeDays(days); publish();
+      } catch { /* Keep the last complete totals; the next readiness event retries. */ }
+    };
+    const readyEvent = () => { void refreshTotals(); };
+    window.addEventListener("post-ready", readyEvent);
     const removeCard = (id:string) => {
       const interrupted=[...pending.keys()].filter(other=>other!==id);
       deferred.delete(id);
@@ -59,7 +77,7 @@ export default function Feed() {
       // Old pages cannot resurrect a hidden card. Restart unrelated reads:
       // settled meals may be older than the bounded discovery window.
       pending.clear();for(const retry of timers)clearTimeout(retry);timers.clear();
-      loadingMore=false;publish();
+      loadingMore=false;publish();void refreshTotals();
       for(const other of interrupted)requestCard(other);
     };
     const unavailableEvent=(event:Event)=>{
@@ -93,7 +111,9 @@ export default function Feed() {
           }
           if(card.status==="ready"||card.status==="failed")answered.delete(id);
           unavailable.delete(id);
+          card.day = dateInZone(card.eaten_at, zone);
           cards.set(id, card);
+          void refreshTotals();
           publish();
           // A local completion event can arrive while the INSERT read still
           // sees unuploaded media. Always read again after that event.
@@ -135,8 +155,9 @@ export default function Feed() {
         if (!live) return;
         if (!user) { router.replace("/sign-in"); return; }
         userId = user.id;
-        const page = await getFeed(supabase,user.id);
+        const page = await getFeed(supabase,user.id,null,zone);
         if(!live||loadGeneration!==generation)return;
+        mergeDays(page.days);
         baseline = page.posts.filter(post=>!unavailable.has(post.id));
         cursor = page.nextCursor;
         loaded = true;
@@ -151,10 +172,11 @@ export default function Feed() {
       loadingMore=true;
       const pageGeneration = generation;
       setPageError(false);
-      void fetch(`/api/feed?cursor=${encodeURIComponent(cursor)}`).then(async response=>{
+      void fetch(`/api/feed?cursor=${encodeURIComponent(cursor)}&tz=${encodeURIComponent(zone)}`).then(async response=>{
         if(!response.ok) throw new Error("Feed page failed.");
-        const page = await response.json() as {posts:FeedPost[];nextCursor:string|null};
+        const page = await response.json() as {posts:FeedPost[];nextCursor:string|null;days:FeedDayTotal[]};
         if(!live || pageGeneration !== generation) return;
+        mergeDays(page.days);
         baseline = mergeFeedPosts(baseline, page.posts.filter(post=>!unavailable.has(post.id)));
         cursor=page.nextCursor;
         publish();
@@ -179,7 +201,7 @@ export default function Feed() {
         // Discovery lists the newest-created meals while the baseline is ordered by when they were eaten, so a
         // hydrated back-dated card counts as known: overlap is judged against baseline and cards together.
         if (discoveryLostOverlap([...baseline, ...cards.values()], data ?? [], FEED_PAGE_SIZE)) {
-          const page = await getFeed(supabase, userId);
+          const page = await getFeed(supabase, userId,null,zone);
           if (!live || discoveryGeneration!==generation) return;
           // A promoted read may have completed while the page was loading.
           // Refresh it after installing the page too, even outside this window.
@@ -188,6 +210,7 @@ export default function Feed() {
           generation++;
           for(const post of page.posts)if(post.status!=="needs_input")unavailable.delete(post.id);
           // Keep what the reader has already loaded; only the traversal restarts.
+          mergeDays(page.days);
           baseline = mergeFeedPosts(baseline.filter(post=>!unavailable.has(post.id)), page.posts.filter(post=>!unavailable.has(post.id)));
           cursor = page.nextCursor;
           cards.clear(); newest.length = 0; pending.clear();
@@ -220,6 +243,7 @@ export default function Feed() {
 
     return () => {
       live = false;
+      window.removeEventListener("post-ready", readyEvent);
       clearInterval(timer);
       for (const retry of timers) clearTimeout(retry);
       window.removeEventListener("post-created", created);
@@ -253,10 +277,23 @@ export default function Feed() {
   if (!state.posts.length) return <div className="flex flex-1 items-center justify-center" style={{ paddingBottom: tokens.spacing['sheet-bottom'] * 3 }}>
     <p className="text-sheet-title font-normal text-muted">Post your first meal</p>
   </div>;
-  return <div className="flex flex-col gap-card-gap">
-    {state.posts.map((post) => <RealtimePost key={post.id} initial={post} renderCard={(fresh) => <PostCard post={fresh}
+  const zone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+  const groups = new Map<string, FeedPost[]>();
+  for (const post of state.posts) {
+    const day = dateInZone(post.eaten_at, zone);
+    groups.set(day, [...(groups.get(day) ?? []), post]);
+  }
+  const listed = [...groups.keys()].sort().reverse();
+  const days: string[] = [];
+  for (let day = listed[0]; day >= listed.at(-1)!; day = shiftDay(day, -1)) days.push(day);
+  const totals = new Map(state.days.map(day => [day.day, day]));
+  return <div className="flex flex-col">
+    {days.map(day => <section key={day} aria-label={day} className="relative pb-card-gap">
+      <DayHeader day={day} zone={zone} empty={!groups.has(day)} total={totals.get(day)} />
+      {groups.has(day) ? <div className="flex flex-col gap-card-gap pt-sheet-top">{groups.get(day)!.map((post) => <RealtimePost key={post.id} initial={post} renderCard={(fresh) => <PostCard post={fresh}
       analysis={fresh.status === "ready" && fresh.items.length > 0 ? <AnalysisBlock post={fresh} /> : undefined}
-    />} />)}
+    />} />)}</div> : null}
+    </section>)}
     {pageError ? <div className="px-screen-x text-detail text-muted" role="alert">
       <p>More meals could not be loaded.</p>
       <button type="button" className="min-h-tap text-text" onClick={() => loadMore.current()}>Try again</button>
