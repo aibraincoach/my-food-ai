@@ -56,7 +56,7 @@ export default function IntakeSheet({ initialKind, embedded = false, onClose }: 
       let id: string;
       if (tab === "Other") id = (await createPost(`${name.trim()} ${ml} ml`, [])).postId;
       else {
-        const response = await fetch("/api/intake/post", { method: "POST", headers: { "Content-Type": "application/json" },
+        const response = await fetch(`/api/intake/post?tz=${encodeURIComponent(Intl.DateTimeFormat().resolvedOptions().timeZone)}`, { method: "POST", headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ kind: tab === "Water" ? "water" : "caffeine", ml, custom: selected === null }) });
         const data = await response.json();
         if (!response.ok) throw new Error(data.error ?? "The drink could not be saved.");

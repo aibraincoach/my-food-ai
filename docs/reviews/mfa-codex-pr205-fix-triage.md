@@ -13,4 +13,9 @@ https://github.com/aibraincoach/my-food-ai/pull/205#issuecomment-6521202514
 - P2 publication/read race — Real. Separate ready-post and intake commits exposed an intermediate state; the hook also stopped permanently after a failed read. create_drink_post now commits both rows in one transaction. The hook retries failed/null reads and refreshes on post-created, reconnect and return to the visible tab. The local fixture forces an intake failure and proves no partial post survives, then verifies the successful linked timestamp.
 - P2 delayed food nutrition leaves drink hydration stale (Codex confirmation on e3441eb5761a1614786805206a399766670cc573) — Real. The hook now also invalidates on the existing post-ready event, including when another earlier meal finishes processing or a correction completes.
 - P2 readiness event during an active hydration read (Codex confirmation on fbf70c73b26c6044bd5bda7d8ef2a4c7ae8b4de4) — Real. Refreshes received during a request now set a pending invalidation and cause another read after it settles, instead of dropping the event and retaining an old total.
-Real findings: 6
+Gemini confirmation submitted on fbf70c73b26c6044bd5bda7d8ef2a4c7ae8b4de4 (head advanced during the response; this is not a final-head receipt):
+- SQL injection in the local fixture — Not real: only trusted committed SQL is read; no request or user input is interpolated, execution is restricted to an explicitly configured loopback test database and rolled back, and ON_ERROR_STOP makes malformed fixtures fail. Installing full migrations is deliberately outside this order.
+- Missing timezone in drink POST — Real: the sheet now sends its IANA zone on POST as it already did on GET, and the route validates that query value before falling back to the cookie.
+- Nested pagination latency — Not real as a blocker: reads are bounded/batched and no incorrect total or measured unacceptable latency was established.
+- In-flight cache recommendation — Not real: a fresh request during an active read is required for committed nutrition invalidation; reusing the older promise could restore the stale-total bug.
+Real findings: 7
