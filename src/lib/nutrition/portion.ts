@@ -12,11 +12,11 @@ export function storedNutrition(n: ScaledNutrition, id: string): NutritionRow {
 // Follow pending revisions until the last resolved identity, stopping at a name
 // change. A coalesced recompute may never populate intermediate revisions.
 export async function resolvePortionNutrition(admin: SupabaseClient, postId: string, priorId: string | null,
- name: string, grams: Numeric): Promise<NutritionRow | null> {
+ name: string, grams: Numeric, portionText?: string | null): Promise<NutritionRow | null> {
  const seen=new Set<string>();
  while(priorId){
   if(seen.has(priorId))throw new Error('Invalid item revision chain.');seen.add(priorId);
-  const {data:prior,error,status}=await admin.from('post_items').select('id,name,portion_grams,supersedes')
+  const {data:prior,error,status}=await admin.from('post_items').select('id,name,portion_grams,portion_text,supersedes')
    .eq('id',priorId).eq('post_id',postId).maybeSingle();
   if(error)throw ioError('Prior item could not be read.',error,status);
   if(!prior||prior.name!==name)return null;
@@ -27,6 +27,11 @@ export async function resolvePortionNutrition(admin: SupabaseClient, postId: str
   if(row){
    const nutrition=row as NutritionRow;
    const hasAmounts=[nutrition.calories,nutrition.protein_g,nutrition.carbs_g,nutrition.fat_g,...(Array.isArray(nutrition.micronutrients)?nutrition.micronutrients:[]).map(n=>n.value)].some(n=>n!=null);
+   if (prior.portion_grams == null && grams == null) {
+    const volume = (text: unknown) => typeof text === 'string' && /^[0-9]+([.][0-9]+)? ml$/.test(text) ? Number(text.split(' ')[0]) : null;
+    const oldMl = volume(prior.portion_text), newMl = volume(portionText);
+    if (oldMl !== null && newMl !== null) return rescaleStoredNutrition(nutrition, oldMl, newMl);
+   }
    if(nutrition.source_ref && (toNumber(prior.portion_grams)<=0 || !hasAmounts)) {
     const id=Number(nutrition.source_ref);
     const food=await getFoodById(admin,id);

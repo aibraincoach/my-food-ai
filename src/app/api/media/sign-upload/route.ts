@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
+import { queueStagedPhotoCleanup } from "@/lib/media/staged-photo";
 import { signShotUploads } from "@/lib/media/storage";
 
 interface ShotSpec {
@@ -24,6 +26,8 @@ export async function POST(request: Request) {
     // A scanned food must upload before the ready post is inserted; it never creates an analyze job.
     const stageId = crypto.randomUUID();
     try {
+      // Persist cleanup before issuing either upload capability, including partial uploads.
+      await queueStagedPhotoCleanup(createAdminClient(), user.id, stageId);
       const uploads = await signShotUploads(supabase, user.id, stageId, [0]);
       return NextResponse.json({ uploads });
     } catch {

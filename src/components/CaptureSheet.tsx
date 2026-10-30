@@ -1,9 +1,8 @@
 "use client";
+import { PackPhotoUpload } from "@/lib/media/pack-photo-upload";
 
 import { decodeBarcode, decodeBarcodeFile, loadBarcodeDecoder } from "@/components/BarcodeScanner";
 import { barcodeAmounts, amountInBasis, packageAmount, type BarcodeProduct } from "@/lib/fdc/barcode-product";
-import { reencodeShot } from "@/lib/media/reencode";
-import type { SignedUpload } from "@/lib/media/storage";
 import { formatNutrition } from "@/lib/nutrition/totals";
 import FirstRunHint from "@/components/FirstRunHint";
 import FoodSearchPanel from "@/components/FoodSearchPanel";
@@ -269,21 +268,15 @@ export default function CaptureSheet({ onClose, initialMode = "photo" }: { onClo
     }
   };
 
+  const packUploadRef = useRef<PackPhotoUpload | null>(null);
   const postBarcode = async () => {
     if (postingRef.current || !product || !packPhotoRef.current) return;
     postingRef.current = true; setPosting(true); setError(null);
     try {
-      const image = await reencodeShot(packPhotoRef.current.file);
-      const sign = await fetch("/api/media/sign-upload", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ staged: true }) });
-      if (!sign.ok) throw new Error("The pack photo could not be uploaded.");
-      const { uploads } = await sign.json() as { uploads: SignedUpload[] };
-      const upload = uploads[0];
-      for (const [url, blob] of [[upload.originalSignedUrl, image.original], [upload.feedSignedUrl, image.feed]] as const) {
-        const result = await fetch(url, { method: "PUT", headers: { "Content-Type": "image/jpeg" }, body: blob });
-        if (!result.ok) throw new Error("The pack photo could not be uploaded.");
-      }
+      packUploadRef.current ??= new PackPhotoUpload();
+      const photo = await packUploadRef.current.prepare(packPhotoRef.current.file);
       const response = await fetch("/api/posts/food", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ gtin: product.gtin, amount: portion, unit: product.basisUnit,
-        ...(when === null ? {} : { eaten_at: fromLocalInput(when) }), photo: { path: upload.originalPath, width: image.width, height: image.height } }) });
+        ...(when === null ? {} : { eaten_at: fromLocalInput(when) }), photo }) });
       const result = await response.json();
       if (!response.ok) throw new Error(result.error ?? "The meal could not be saved.");
       window.dispatchEvent(new CustomEvent("post-created", { detail: { id: result.post_id } }));

@@ -9,6 +9,8 @@ declare
   v_name text := btrim(coalesce(p_name, ''));
   v_post uuid;
   v_item uuid;
+  v_cleanup_status text;
+  v_cleanup_due timestamptz;
   v_unit text := coalesce(p_nutrition->>'portion_unit', 'g');
 begin
   if length(v_name) = 0 or length(v_name) > 160 then raise exception 'Name must contain 1 to 160 characters' using errcode = '22023'; end if;
@@ -29,6 +31,22 @@ begin
       raise exception 'Pack photo upload is incomplete' using errcode = '22023';
     end if;
   end if;
+  if p_photo is not null then
+    -- A lost response may retry the same completed upload. Claim that path once.
+    perform pg_advisory_xact_lock(hashtextextended(p_photo->>'path', 0));
+    select m.post_id into v_post from public.post_media m join public.posts p on p.id=m.post_id
+      where m.storage_path=p_photo->>'path' and p.user_id=p_user_id limit 1;
+    if found then return v_post; end if;
+    -- Serialize claiming a stage against its delayed cleanup job. Once cleanup is
+    -- eligible/running, an old upload cannot be attached to a newly created post.
+    select status,run_after into v_cleanup_status,v_cleanup_due from public.jobs
+      where kind='media_cleanup' and payload->>'owner_id'=p_user_id::text
+        and payload->>'deleted_post_id'=split_part(p_photo->>'path','/',2)
+      for update;
+    if found and (v_cleanup_status<>'queued' or v_cleanup_due<=clock_timestamp()) then
+      raise exception 'Pack photo expired; choose the photo again' using errcode='22023';
+    end if;
+  end if;
   insert into public.posts (user_id, caption, eaten_at, status, analysis_initialized_at)
   values (p_user_id, v_name, p_eaten_at, 'ready', clock_timestamp()) returning id into v_post;
   insert into public.post_items (post_id, name, portion_text, portion_grams, source)
@@ -46,3 +64,43 @@ end;
 $$;
 revoke all on function public.create_food_post(uuid, timestamptz, text, numeric, jsonb, jsonb) from public, anon, authenticated;
 grant execute on function public.create_food_post(uuid, timestamptz, text, numeric, jsonb, jsonb) to service_role;
+
+-- Scale known volumes without inventing mass.
+create or replace function public.set_post_servings(p_post_id uuid, p_user_id uuid, p_servings numeric)
+returns numeric language plpgsql security definer set search_path = public, pg_temp as $$
+declare
+  v_old numeric;
+  v_initialized timestamptz;
+  v_ratio numeric;
+  v_item public.post_items;
+begin
+  if p_servings is null or p_servings < 0.25 or p_servings > 50 then
+    raise exception 'Servings must be between 0.25 and 50' using errcode = '22023';
+  end if;
+  p_servings := round(p_servings, 2);
+  select servings, analysis_initialized_at into v_old, v_initialized from public.posts
+    where id = p_post_id and user_id = p_user_id for update;
+  if not found then raise exception 'Post not found' using errcode = '42501'; end if;
+  if v_initialized is null then raise exception 'Initial meal analysis must complete before editing' using errcode = '55000'; end if;
+  if p_servings = v_old then return v_old; end if;
+  v_ratio := p_servings / v_old;
+  for v_item in select * from public.post_items where post_id = p_post_id and superseded_at is null for update loop
+    update public.post_items set superseded_at = now() where id = v_item.id;
+    insert into public.post_items (post_id, name, portion_text, portion_grams, box, mask_path, confidence, source, supersedes)
+    values (p_post_id, v_item.name,
+      case when v_item.portion_grams is null and v_item.portion_text ~ '^[0-9]+([.][0-9]+)? ml$' then trim_scale(round(split_part(v_item.portion_text,' ',1)::numeric * v_ratio, 2))::text || ' ml' when v_item.portion_grams is null then v_item.portion_text else trim_scale(round(v_item.portion_grams * v_ratio, 2))::text || ' g' end,
+      case when v_item.portion_grams is null then null else round(v_item.portion_grams * v_ratio, 2) end,
+      v_item.box, v_item.mask_path, v_item.confidence, 'user', v_item.id);
+  end loop;
+  update public.posts set servings = p_servings, status = 'queued', fail_reason = null where id = p_post_id;
+  insert into public.jobs(post_id, kind, priority, status)
+  select p_post_id, 'recompute', 100, 'queued'
+  where not exists (select 1 from public.jobs where post_id = p_post_id and kind = 'recompute' and status = 'queued');
+  insert into public.post_comments(post_id, author, body)
+  values (p_post_id, 'model', 'Servings changed from ' || trim(trailing '.' from trim(trailing '0' from v_old::text))
+    || ' to ' || trim(trailing '.' from trim(trailing '0' from p_servings::text)) || '. Every item and the totals were scaled to match.');
+  return p_servings;
+end;
+$$;
+revoke all on function public.set_post_servings(uuid, uuid, numeric) from public, anon, authenticated;
+grant execute on function public.set_post_servings(uuid, uuid, numeric) to service_role;

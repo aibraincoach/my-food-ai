@@ -56,7 +56,7 @@ test('cleanup retries partial storage removal using durable paths and stays with
  const prefix=`${owner}/${post}`,path=`${prefix}/photo.jpg`;
  const job={post_id:null,payload:{owner_id:owner,deleted_post_id:post,paths:[path]}};
  let fail=true;const removed=[];
- const admin={storage:{from:()=>({list:async directory=>{assert.equal(directory,prefix);return {data:[{id:'object',name:'copy.jpg'}],error:null};},remove:async paths=>{
+ const admin={from:()=>({select(){return this},like(){return this},async limit(){return {data:[],error:null}}}),storage:{from:()=>({list:async directory=>{assert.equal(directory,prefix);return {data:[{id:'object',name:'copy.jpg'}],error:null};},remove:async paths=>{
    removed.push(paths);return {error:fail?{status:503,message:'unavailable'}:null};
  }})}};
  await assert.rejects(cleanup(admin,job),error=>isRetriable(error));
