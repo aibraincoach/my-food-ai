@@ -44,6 +44,12 @@ Additional names used by development scripts and optional features:
 
 Only public-prefixed names are intended for browser exposure. Deployment environment variables are configured separately from `.env.local`.
 
+## Testing
+
+`node --env-file=.env.local scripts/browser-session.mjs` prints the test session cookies as one JSON line for the browser driver.
+Add `--user=2` to obtain the second test account’s session cookies.
+Treat the output as a credential: consume it locally and keep it out of logs, issues and screenshots.
+
 ## Repository map
 
 - `.cursor/`: editor rules and workflows.
