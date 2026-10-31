@@ -34,6 +34,18 @@ export interface FdcFood {
   portions?: FoodPortion[];
 }
 
+// A thirty-hit lookup would overflow the trace's 60KB text limit if every
+// micronutrient were repeated. Keep every candidate identity and the core
+// values used to select it; full consumed nutrients remain on item_nutrition.
+export function foodSearchTrace(foods: FdcFood[]) {
+  const core = new Set([1008,2047,2048,1003,1004,1005]);
+  return {projection:"candidate-identities-and-core-nutrients",foods:foods.map(food=>({
+    fdcId:food.fdcId,description:food.description.slice(0,500),dataType:food.dataType,
+    servingSizeUnit:food.servingSizeUnit?.slice(0,32),
+    nutrients:food.foodNutrients.filter(n=>core.has(n.nutrientId)).slice(0,6).map(n=>({id:n.nutrientId,value:n.value,unit:n.unitName.slice(0,32)})),
+  }))};
+}
+
 function fdcApiKey(): string {
   const key = process.env.FDC_API_KEY;
   if (!key) {
@@ -116,7 +128,7 @@ export async function searchFoods(
     return data?.response;
   };
   const cached = await readCache(key) as {kind?:unknown;query?:unknown;payload?:{foods?:unknown}} | undefined;
-  if(cached?.kind===FDC_SEARCH_CACHE_KIND&&cached.query===normalized&&Array.isArray(cached.payload?.foods))return recordCall("fdc", {query,source:"cache",catalogVersion:FDC_SEARCH_CACHE_KIND}, async()=>asFoods(cached.payload), foods=>({text:{source:"cache",foods}}));
+  if(cached?.kind===FDC_SEARCH_CACHE_KIND&&cached.query===normalized&&Array.isArray(cached.payload?.foods))return recordCall("fdc", {query,source:"cache",catalogVersion:FDC_SEARCH_CACHE_KIND}, async()=>asFoods(cached.payload), foods=>({text:{source:"cache",...foodSearchTrace(foods)}}));
   // v1 and unversioned caches omit prepared dishes and retain only five hits.
   // Do not let those old candidate sets hide the coverage fix indefinitely.
   return recordCall("fdc", { query, source:"network" }, async () => {
@@ -141,7 +153,7 @@ export async function searchFoods(
   );
   await (signal ? cacheWrite.abortSignal(signal) : cacheWrite);
   return asFoods(payload);
-  }, (foods) => ({ text: {source:"network",foods} }));
+  }, (foods) => ({ text: {source:"network",...foodSearchTrace(foods)} }));
 }
 
 // The full USDA detail shape carries nutrient.id/name/unitName and amount.

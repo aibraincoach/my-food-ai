@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {searchFoods,FDC_SEARCH_CACHE_KIND} from '../src/lib/fdc/client.ts';
+import {searchFoods,FDC_SEARCH_CACHE_KIND,foodSearchTrace} from '../src/lib/fdc/client.ts';
+import {traceText} from '../src/lib/trace/record.ts';
 import {matchFood,foodSearchQuery,requiredFoodSearchQuery} from '../src/lib/fdc/match.ts';
 import {gramBasis} from '../src/lib/fdc/nutrients.ts';
 
@@ -27,6 +28,13 @@ test('gram portions reject volume and unsupported activity units while accepting
  const food={dataType:'Branded'};
  for(const servingSizeUnit of ['ml',' mL ','IU','each'])assert.equal(gramBasis({...food,servingSizeUnit}),false);
  for(const servingSizeUnit of ['g','GRM','oz'])assert.equal(gramBasis({...food,servingSizeUnit}),true);
+});
+
+test('all thirty candidate identities remain readable when full micronutrient arrays would exceed the trace limit',()=>{
+ const foods=Array.from({length:30},(_,i)=>({fdcId:i+1,description:'food '.repeat(1000),dataType:'Survey (FNDDS)',foodNutrients:Array.from({length:200},(_,j)=>({nutrientId:[1008,2047,2048,1003,1004,1005][j]??(3000+j),value:j,unitName:'MG'}))}));
+ const text=traceText(foodSearchTrace(foods));assert.ok(text.length<60000);
+ const decoded=JSON.parse(text);assert.equal(decoded.projection,'candidate-identities-and-core-nutrients');assert.deepEqual(decoded.foods.map(f=>f.fdcId),foods.map(f=>f.fdcId));
+ assert.ok(decoded.foods.every(f=>f.nutrients.length===6));
 });
 
 test('refined queries require the translated base food and normalize preparation across dishes',()=>{
