@@ -10,7 +10,7 @@ test('food decisions reserve output capacity for reasoning and still reject inco
  const candidate={fdcId:7,description:'Carrots, raw',dataType:'Foundation',foodNutrients:[{nutrientId:1008,nutrientName:'Energy',unitName:'KCAL',value:41}]};
  const requests=[];let forceIncomplete=false;let abortDuringResponse;
  const reasoningTokens=3000,jsonTokens=54;
- const db={from(){return{select(){return{eq(){return{abortSignal(){return this},async maybeSingle(){return{data:{response:{foods:[candidate]}},error:null}}}}}}}}};
+ const db={from(){return{select(){return{eq(){return{abortSignal(){return this},async maybeSingle(){return{data:{response:{kind:'fdc-search-v2',query:'raw carrots',payload:{foods:[candidate]}}},error:null}}}}}}}}};
  globalThis.fetch=async(input,init)=>{
   const url=typeof input==='string'?input:input instanceof URL?input.href:input.url;
   if(url.startsWith('https://trace.test/rest/v1/model_calls'))return new Response(null,{status:201});

@@ -1,0 +1,14 @@
+[
+ {"name":"Japanese toast","caption":"Japanese toast, a small slice of ham, a small salad, one scrambled egg and a black coffee.","requires":[["bread"],["toast"]],"rejects":["persimmon","noodle","rye"]},
+ {"name":"ham","caption":"Japanese toast, a small slice of ham, a small salad, one scrambled egg and a black coffee.","requires":[["ham"]],"rejects":["stroganoff","sandwich","croquette"]},
+ {"name":"green salad","caption":"Japanese toast, a small slice of ham, a small salad, one scrambled egg and a black coffee.","requires":[["salad","greens"]],"rejects":["dressing","mcdonald","tuna","potato"]},
+ {"name":"scrambled egg","caption":"Japanese toast, a small slice of ham, a small salad, one scrambled egg and a black coffee.","requires":[["egg"],["scrambl"]],"rejects":["ketchup"]},
+ {"name":"black coffee","caption":"Japanese toast, a small slice of ham, a small salad, one scrambled egg and a black coffee.","requires":[["coffee"],["brewed"]],"rejects":["soymilk","chicory","cream","decaffeinated"]},
+ {"name":"Tonkatsu","caption":"Tonkatsu with Japanese curry sauce and cooked white rice. Huge plate!","requires":[["pork"],["coated","breaded"]],"rejects":["sauce","sandwich","sausage"]},
+ {"name":"Japanese curry sauce","caption":"Tonkatsu with Japanese curry sauce and cooked white rice. Huge plate!","requires":[["curry"],["sauce"]],"rejects":["persimmon","powder","noodle"]},
+ {"name":"Cooked white rice","caption":"Tonkatsu with Japanese curry sauce and cooked white rice. Huge plate!","requires":[["rice"],["cooked"]],"rejects":["glutinous","raw","fried"]},
+ {"name":"lentil soup","caption":"A bowl of lentil soup.","requires":[["lentil"],["soup"]],"rejects":["dry","powder"]},
+ {"name":"baked salmon","caption":"A fillet of baked salmon.","requires":[["salmon"],["cook","bak"]],"rejects":["raw","smoked","sandwich"]},
+ {"name":"raw apple","caption":"A raw apple.","requires":[["apple"],["raw"]],"rejects":["juice","pie","dried"]},
+ {"name":"ceramic plate","caption":"An empty ceramic plate, no food.","unavailable":true}
+]
