@@ -33,8 +33,9 @@ export function requiredFoodSearchQuery(value: string, food: string): string {
 }
 
 // Spark counts internal reasoning against max_output_tokens, before emitting schema JSON.
-// A refined production decision also exhausted 2048; permit one bounded escalation.
-const MATCH_OUTPUT_TOKENS = [2048, 8192] as const;
+// Thirty-candidate real decisions frequently need 2–4K reasoning tokens.
+// Start at 4096 to avoid paying for a truncated 2048 call before escalating.
+const MATCH_OUTPUT_TOKENS = [4096, 8192] as const;
 
 async function choose(name: string, caption: string, foods: FdcFood[], retry: boolean, signal?:AbortSignal, currentQuery = name): Promise<MatchChoice> {
   let result: Awaited<ReturnType<typeof createResponse>> | undefined;
