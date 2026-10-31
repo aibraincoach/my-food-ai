@@ -124,3 +124,15 @@ node --env-file=.env.local --import tsx scripts/real-same-meal-smoke.mjs --real-
 It checks identical photos/captions, different foods and a changed caption amount through the actual reuse-confirmation service. It permits at most six Meta calls in two minutes, uses licensed fixtures, and writes no database or storage records. Only a completed, strictly boolean confirmation can authorize copying nutrition; inconclusive confirmation continues normal analysis.
 
 Prior nutrition is reused only when every item has finite core nutrition and a matching current-version selection or validated-copy trace for its food-database source. Legacy, incomplete or unproven results remain a historical hint and are analyzed again.
+
+### Food reference coverage and the real matching gate
+
+Food searches include USDA Survey (FNDDS) prepared foods alongside Foundation, SR Legacy and Branded data, with thirty candidates rather than five. Search caches are versioned: the earlier candidate lists are not reused. Matching distinguishes a compatible generic nutrition reference from a different food or preparation; a rejection gets at most one translated, target-only search. Volume-based records still require a supported mass basis. Selected and unavailable outcomes carry a matcher version in the admin trace.
+
+Before merging a change to matching prompts, model caps or the model client, run the real food-reference gate as well as the identify gate. It calls Muse Spark and USDA, keeps cache/trace writes in memory, and includes the breakfast/curry cases plus unrelated foods and a non-food rejection:
+
+```sh
+node --env-file=.env.local --import tsx scripts/real-food-match-smoke.mjs --real-meta
+```
+
+The gate records actual selections and failures; matching a generic reference does not establish the owner's acceptance of a recipe or portion.
