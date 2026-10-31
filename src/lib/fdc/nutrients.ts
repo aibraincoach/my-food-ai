@@ -43,9 +43,9 @@ function queryTokens(query: string): string[] {
   )];
 }
 
-function gramBasis(food: FdcFood): boolean {
+export function gramBasis(food: FdcFood): boolean {
   const unit = (food.servingSizeUnit ?? "").toLowerCase();
-  return !(food.dataType === "Branded" && ["ml", "milliliter", "milliliters"].includes(unit));
+  return !(food.dataType === "Branded" && ["ml", "cl", "l", "milliliter", "milliliters", "millilitre", "millilitres", "liter", "litre", "liters", "litres", "fl oz", "floz", "fluid ounce", "fluid ounces"].includes(unit));
 }
 
 function unitToGrams(value: number, unit: string): number {
@@ -72,64 +72,25 @@ function nutrientValue(
   return null;
 }
 
-function energyPer100Kcal(food: FdcFood): number | null {
-  const energy = nutrientValue(food, ENERGY_IDS);
-  return energy ? energyToKcal(energy.value, energy.unit) : null;
-}
-
 // Rank FDC search hits for an item name. Data-type rank alone picked dressing
 // for salad, soymilk for black coffee, and ketchup for scrambled egg (#189).
 export function scoreFoodMatch(query: string, food: FdcFood): number {
-  const desc = food.description.toLowerCase();
-  const q = query.toLowerCase();
-  const descTokens = new Set(desc.split(/[^a-z]+/).filter(Boolean));
-  let score = 0;
-  for (const token of queryTokens(query)) {
-    if (descTokens.has(token)) score += 1;
-  }
-  if (/\bsalad\b/.test(q) && !/\bdressing\b/.test(q)) {
-    if (/\bdressing\b/.test(desc)) score -= 8;
-    if (/\bspread\b/.test(desc)) score -= 6;
-    const compound = desc.match(/\b(tuna|ham|potato|egg) salad\b/)?.[1];
-    if (compound && !q.includes(compound)) score -= 4;
-    if (/\bside salad\b/.test(desc) || /\blettuce\b/.test(desc) || /\bmixed salad\b/.test(desc)) score += 3;
-  }
-  if (/\bcoffee\b/.test(q)) {
-    const plainCoffee = !/\b(milk|soymilk|soy|silk|cream|creamer|sugar|latte|cappuccino|mocha)\b/.test(q);
-    if (plainCoffee && (/\bsoymilk\b/.test(desc) || /\bsilk\b/.test(desc))) score -= 8;
-    if (/\bpepper\b/.test(desc) && !/\bcoffee\b/.test(desc)) score -= 8;
-    if (plainCoffee && /\bblack coffee\b/.test(desc)) score += 4;
-    const kcal = energyPer100Kcal(food);
-    if (plainCoffee && /\bbeverages,\s*coffee\b/.test(desc) && kcal !== null && kcal <= 5) score += 3;
-  }
-  if (/\begg\b/.test(q)) {
-    if (/\bketchup\b/.test(desc) && !/\begg\b/.test(desc)) score -= 10;
-    if (/\bscrambled\b/.test(desc) || (/\begg\b/.test(desc) && !/\bketchup\b/.test(desc))) score += 4;
-  }
-  score -= rankOf(food.dataType) * 0.01;
-  return score;
+  const words = queryTokens(query);
+  const description = new Set(food.description.toLowerCase().split(/[^a-z]+/).filter(Boolean));
+  const overlap = words.filter(word => description.has(word)).length;
+  const unrequested = ["sauce", "dressing", "spread", "powder", "dried", "sweetened", "glutinous"].filter(word => description.has(word) && !words.includes(word));
+  return (words.length ? overlap / words.length : 0) - unrequested.length - rankOf(food.dataType) * 0.001;
+}
+
+export function hasNutrition(food: FdcFood): boolean {
+  return food.foodNutrients.some(n => [1008, 2047, 2048, 1003, 1004, 1005].includes(n.nutrientId) && Number.isFinite(n.value));
 }
 
 export function chooseBestMatch(foods: FdcFood[], query?: string): FdcFood | null {
-  if (!foods.length) return null;
-  const trimmed = query?.trim();
-  if (!trimmed) {
-    let best: FdcFood | null = null;
-    for (const food of foods) {
-      if (!best || rankOf(food.dataType) < rankOf(best.dataType)) best = food;
-    }
-    return best;
-  }
-  let best = foods[0];
-  let bestScore = scoreFoodMatch(trimmed, best);
-  for (const food of foods.slice(1)) {
-    const score = scoreFoodMatch(trimmed, food);
-    if (score > bestScore || (score === bestScore && rankOf(food.dataType) < rankOf(best.dataType))) {
-      best = food;
-      bestScore = score;
-    }
-  }
-  return best;
+  const eligible = foods.filter(food => gramBasis(food) && hasNutrition(food));
+  if (!query?.trim()) return eligible.sort((a,b) => rankOf(a.dataType)-rankOf(b.dataType))[0] ?? null;
+  const ranked = eligible.map(food => ({food,score:scoreFoodMatch(query,food)})).sort((a,b) => b.score-a.score);
+  return ranked[0]?.score >= 0.66 ? ranked[0].food : null;
 }
 
 // Scale one match to portion grams. A null portion leaves every column

@@ -1,4 +1,5 @@
 "use client";
+import { unavailableFoods } from "@/lib/nutrition/totals";
 
 import { useEffect, useRef, useState, useSyncExternalStore, type CSSProperties, type PointerEvent } from "react";
 import { useRouter } from "next/navigation";
@@ -143,7 +144,7 @@ export default function OutlineOverlay({ initialized, readOnly = false, postId, 
             <span className="absolute rounded-circle bg-white" style={{ width: tokens.detail.switchKnob, height: tokens.detail.switchKnob, top: tokens.detail.switchInset, left: outlines ? tokens.detail.switchWidth - tokens.detail.switchKnob - tokens.detail.switchInset : tokens.detail.switchInset }} />
           </span>
         </button>
-      </> : showNutrition ? <ResultsCard drink={drink} size={width} time={new Date(eatenAt).toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit", ...(localTime ? {} : { timeZone: "UTC" }) })}
+      </> : showNutrition ? <ResultsCard unavailable={unavailableFoods(totals)} drink={drink} size={width} time={new Date(eatenAt).toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit", ...(localTime ? {} : { timeZone: "UTC" }) })}
         calories={totals.calories} protein={totals.protein_g} carbs={totals.carbs_g} fat={totals.fat_g}
         items={items.map((item) => ({ name: item.name, grams: item.portion_grams == null ? null : toNumber(item.portion_grams) }))} /> : <div role="status" className="flex h-full items-center justify-center px-screen-x text-body text-muted">{status === "failed" ? "This meal could not be analysed." : status === "needs_input" ? "Clarification needed" : "Processing, traffic low"}</div>}
     </div>
