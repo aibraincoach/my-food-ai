@@ -1,3 +1,5 @@
+> Reconciled 2026-10-31: Run 3 is merged and deployed. Migrations 0019/0020 are applied; production sign-in, three-photo upload, admin browser trace and eaten-at checks were completed. The non-admin HTTP status remains #229 and breakfast matching/totals remain #189/#225/#226/#230. The snapshot below records the earlier pre-merge run; its pending statements are historical. Current evidence links are in CLAUDE.md.
+
 > Historical pre-merge evidence from PR #207 at 4f67cdce646e60cc96c6d803397e5053e813ae4c. It is not the current delivery status. Since that snapshot, #203 became cookie-only at 1fddd03957222cd70c67e7b362839c4e08ee35de; the owner-designated database admin role was granted; Codex reported unresolved findings on #205/#206; #200 merged into main; #202 merged only into run3/tokens. Current instructions and observations are in CLAUDE.md. The snapshot below is retained verbatim as historical evidence.
 
 # Run 3 execution evidence

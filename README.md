@@ -89,7 +89,7 @@ SAM 3.1 receives a meal photograph and finds food regions. Muse Spark 1.3 receiv
 
 The app records consumed food. It does not provide advice, goals or health claims, and it does not share meals between users. Portion amounts are estimates. The licensed evaluation set uses explicitly annotated food names and rough visual gram estimates, which are not measured nutritional ground truth.
 
-Production evidence remains pending the merge phase: the [meal photo evaluation](docs/eval.md), [queue load test](docs/load-test.md), and two complete runs of the [production demo checklist](docs/demo.md). Device camera and notification behavior also require real-device verification. A pending result is not a passing result.
+Run 3 is merged and deployed. Production checks recorded autonomous test-account sign-in, three successful photo uploads with a post-three-hour recheck, intake and feed/Days behavior, eaten-at editing, and an admin trace page. Food matching and incomplete meal totals still have recorded failures; see the [backlog](BACKLOG.md). The full [meal photo evaluation](docs/eval.md) and two complete [production demo runs](docs/demo.md) remain unrecorded; the [queue load test](docs/load-test.md) records the unresolved worker stall. Device camera and notification behavior require real-device verification. A pending result is not a passing result.
 
 ## Runtime AI and browser features
 
