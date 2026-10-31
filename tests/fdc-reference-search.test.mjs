@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {searchFoods,FDC_SEARCH_CACHE_KIND} from '../src/lib/fdc/client.ts';
-import {matchFood,foodSearchQuery} from '../src/lib/fdc/match.ts';
+import {matchFood,foodSearchQuery,requiredFoodSearchQuery} from '../src/lib/fdc/match.ts';
 import {gramBasis} from '../src/lib/fdc/nutrients.ts';
 
 test('new catalog includes prepared-food references and never reads old five-hit caches',async()=>{
@@ -27,4 +27,11 @@ test('gram portions reject volume and unsupported activity units while accepting
  const food={dataType:'Branded'};
  for(const servingSizeUnit of ['ml',' mL ','IU','each'])assert.equal(gramBasis({...food,servingSizeUnit}),false);
  for(const servingSizeUnit of ['g','GRM','oz'])assert.equal(gramBasis({...food,servingSizeUnit}),true);
+});
+
+test('refined queries require the translated base food and normalize preparation across dishes',()=>{
+ assert.equal(requiredFoodSearchQuery('pork breaded fried','pork'),'+pork coated fried');
+ assert.equal(requiredFoodSearchQuery('fish battered cooked','fish'),'+fish coated cooked');
+ assert.throws(()=>requiredFoodSearchQuery('cooked grain','another'),/required food term/);
+ assert.throws(()=>requiredFoodSearchQuery('cooked grain','two words'),/required food term/);
 });
