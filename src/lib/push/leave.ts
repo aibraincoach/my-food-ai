@@ -8,10 +8,11 @@ function isRedirect(error: unknown): boolean {
 // Ending the session never depends on notifications. Device cleanup is bounded and best effort; if it fails the
 // owner marker stays, so the next page load unsubscribes this device (PushPrompt reconciles a previous owner).
 // Returns "failed" only when the sign-out itself failed, after restoring this tab's push state.
-export async function leaveSession({ detach, signOut, timeoutMs = 8000 }: {
+export async function leaveSession({ detach, signOut, timeoutMs = 8000, signOutTimeoutMs = 10000 }: {
   detach: () => Promise<unknown>;
   signOut: () => Promise<unknown>;
   timeoutMs?: number;
+  signOutTimeoutMs?: number;
 }): Promise<"failed"> {
   pushSignOutStarted();
   let timer: ReturnType<typeof setTimeout> | undefined;
@@ -21,10 +22,10 @@ export async function leaveSession({ detach, signOut, timeoutMs = 8000 }: {
     // Best effort only.
   } finally { clearTimeout(timer); }
   try {
-    await signOut();
+    await Promise.race([signOut(), new Promise((_, reject) => { timer = setTimeout(() => reject(new Error("Sign-out timed out.")), signOutTimeoutMs); })]);
   } catch (error) {
     if (isRedirect(error)) throw error;
     pushSignOutFailed();
-  }
+  } finally { clearTimeout(timer); }
   return "failed";
 }
