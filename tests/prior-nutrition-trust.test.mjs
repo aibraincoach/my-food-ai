@@ -6,6 +6,7 @@ const item={name:'Rice',item_nutrition:[nutrition]};
 const trace=(request={},response={},extra={})=>({request_text:JSON.stringify({event:'food_resolution',name:'Rice',matcherVersion:FOOD_MATCH_VERSION,...request}),response_text:JSON.stringify({source:'selected',...response}),fdc_id:7,error:null,started_at:'2026-10-31T00:00:00Z',...extra});
 test('only complete current-version nutrition with selected matching provenance is reusable',()=>{
  assert.equal(priorNutritionTrusted([item],[trace()]),true);
+ assert.equal(priorNutritionTrusted([{...item,item_nutrition:JSON.stringify(nutrition)}],[trace()]),false);
  for(const key of ['calories','protein_g','carbs_g','fat_g'])for(const invalid of [null,undefined,NaN,Infinity,-1])assert.equal(priorNutritionTrusted([{...item,item_nutrition:[{...nutrition,[key]:invalid}]}],[trace()]),false);
  assert.equal(priorNutritionTrusted([item],[trace({matcherVersion:'legacy'})]),false);
  assert.equal(priorNutritionTrusted([item],[trace({name:'Other food'})]),false);

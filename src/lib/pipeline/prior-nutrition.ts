@@ -20,7 +20,7 @@ export function priorNutritionTrusted(items: readonly PriorItem[], traces: reado
   });
   return items.length > 0 && items.every(item => {
     const raw = Array.isArray(item.item_nutrition) ? item.item_nutrition[0] : item.item_nutrition;
-    const nutrition = object(raw);
+    const nutrition = raw !== null && typeof raw === "object" && !Array.isArray(raw) ? raw as Record<string,unknown> : null;
     if (!nutrition || !["calories","protein_g","carbs_g","fat_g"].every(key => typeof nutrition[key] === "number" && Number.isFinite(nutrition[key]) && (nutrition[key] as number) >= 0)) return false;
     const sourceId = Number(nutrition.source_ref);
     if (!Number.isSafeInteger(sourceId) || sourceId <= 0) return false;
