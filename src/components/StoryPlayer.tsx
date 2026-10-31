@@ -1,4 +1,5 @@
 "use client";
+import { unavailableFoods } from "@/lib/nutrition/totals";
 
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import {useDeviceTimeZone} from "@/components/LocalTime";
@@ -126,7 +127,7 @@ export default function StoryPlayer({ day, zone, onClose, onDay, cell }: { day: 
             {photo(post) ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img src={photo(post)!} onError={() => photoFailed(post.photoUrl)} alt={post.caption || "Meal"} className="h-full w-full object-cover" />
-            ) : <ResultsCard size={width} time={time(post.eatenAt)} calories={post.totals.calories} protein={post.totals.protein_g} carbs={post.totals.carbs_g} fat={post.totals.fat_g} items={post.items.map(item => ({ name: item.name, grams: item.portion_grams == null ? null : Number(item.portion_grams) }))} />}
+            ) : <ResultsCard unavailable={unavailableFoods(post.totals)} size={width} time={time(post.eatenAt)} calories={post.totals.calories} protein={post.totals.protein_g} carbs={post.totals.carbs_g} fat={post.totals.fat_g} items={post.items.map(item => ({ name: item.name, grams: item.portion_grams == null ? null : Number(item.portion_grams) }))} />}
           </div>
           <div className="px-screen-x"><p className="text-body">{post.caption}</p><p className="mt-1 text-meta text-faint">{time(post.eatenAt)}</p></div>
         </div> : <div className="mt-auto flex shrink-0 flex-col gap-7 px-screen-x">
