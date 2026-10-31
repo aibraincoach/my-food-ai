@@ -1,6 +1,6 @@
 # My Food AI — Backlog†
 
-Last edited: Saturday 2026-10-31 at 16:24 MYT (UTC+08:00) by Codex, reconciling the owner-supplied 09:45 MYT backlog
+Last edited: Saturday 2026-10-31 at 22:17 WIB (UTC+07:00) by Codex, reconciling the owner-supplied 22:07 WIB backlog
 
 ## Backlog
 
@@ -122,17 +122,29 @@ Written text on a card could state calorie or macro numbers that differ from the
 
 A ChatGPT code review of Oct 29 claimed the model-written summary is checked for wording but not compared with the calculated totals, and that a formatter working from the totals already exists; nobody has verified this. First read the summary code and try to produce a summary whose number differs from the totals, then report. If it can differ, publish only nutrition text formatted from the totals, leave the caption's own numbers (such as "two eggs") alone, and make every screen that shows these numbers agree after rounding. Done when a model summary saying 900 kcal against calculated totals of 600 kcal publishes 600 everywhere, or the report shows it cannot happen. Status reconciled Oct 31: Run 4: #236 merged summaries formatted from calculated totals, shared rounding and current-data nutrition cards. Regression tests passed; this does not make the failed new production meal analyses passing results.
 
-### #229 A non-admin request for a trace page returns 404
-
-A user who is not an admin and opens a trace page gets a page that answers success instead of not found.
-
-The coder's Oct 30 production check of #67 had a second test account request a trace page: the answer was HTTP 200 with not-found content and no trace, where 404 is required. The database access is right for both accounts. Done when the same request returns 404 on production. Status reconciled Oct 31: Run 4: #238 merged the pre-stream admin gate. The Oct 31 production repeat after test-role restoration returned HTTP 404, 9 bytes and no trace.
-
 ### #230 A coffee with no nutrition does not blank a breakfast, and toast does not match persimmons
 
 The breakfast logged again on Oct 30 still matched wrong foods and showed no total.
 
 The re-log on production matched the toast to dried Japanese persimmons, the salad to a fast-food side salad and the black coffee to a branded entry with null nutrition, so the meal's total was unknown. The comment on #189 holds the item names, weights, FDC ids and calories. It shares its cause with the items on Japanese dishes and on totals above. Done when the same breakfast logged again matches plain foods and shows a total of the known items with the coffee named as unknown. Status reconciled Oct 31: Run 4: the shared matching/totals fix is merged in #236; the first new production breakfast failed before publishing its analysis. #246 awaits separate authorization, and the breakfast has not passed.
+
+### The matcher runs out of room before it finishes its answer
+
+A meal fails to publish its nutrition because the food matcher is cut off before it writes a result.
+
+The coder's production test of Oct 31 found that the matcher's 256-token limit is used up by its reasoning before it writes the JSON, so the post fails before nutrition is published. Reviewed PR #246 fixes this and is not merged. Both meal re-logs of that test failed this way, and the owner has not accepted either. Done when the breakfast and the curry meal logged again on production reach ready with matched foods, and the owner accepts the totals. Status reconciled Oct 31: #246 merged at 15:13:44 UTC as 3769e7888b785cca8fde5d1e7d2836f264aa2f4c; the earlier unmerged statement is superseded. Deployment and fresh meal acceptance are being checked separately.
+
+### A photo that needs a long answer makes the identify step fail
+
+One of the test photos cannot be identified because the identify call runs out of room.
+
+The coder found that evaluation fixture 03 can use the whole 4,096-token limit on the identify call, so that post fails. PR #246 does not fix this. Done when fixture 03 posted on production reaches ready.
+
+### The tests cannot see an output limit that is too small
+
+A change that cuts a model's answer short passes review and every test, then fails on production.
+
+The matcher's 256-token cap passed review and 94 tests because the tests use a fake model, and the fake does not spend reasoning tokens. Any output cap looks fine locally and fails live; the identify stage's 4,096-token ceiling is the same class. Done when a check that sends one real request through the matcher and the identify stage, with the production limits, fails when the limit is exhausted.
 
 ### #139 A held worker lease renews for its full time
 
@@ -144,7 +156,7 @@ The coder found this in the lease SQL; a 300-second time-to-live against about 6
 
 Posts wait in the queue and never finish when the worker stops, until someone triggers it by hand.
 
-The production load test of Oct 28 stopped processing after about 330 seconds: 11 of 20 posts stayed queued, with their jobs due, at attempt 0 and with no worker lease held, until a manual call to the jobs tick route restarted the worker. Issue #177 is open with no fix PR as of the coder's report on Oct 29. The cause is not established. Done when twenty posts made over two minutes on production all reach ready with nobody calling the tick route. Status reconciled Oct 31: Run 4: #239 and migration 0024 installed an independent minute wake with effective concurrency 1. The Oct 31 production test created twenty photo posts over 113.045 seconds; the frozen fifteen-minute run report recorded none ready, ten failed and ten were incomplete (two processing, eight queued). The wake was activated, then disabled on terminal failure; configuration is verified empty. Incomplete matcher and identify output blocked acceptance, so this does not prove the stall fixed. #246 awaits separate merge authorization and addresses only the matcher cap.
+The production load test of Oct 28 stopped processing after about 330 seconds: 11 of 20 posts stayed queued, with their jobs due, at attempt 0 and with no worker lease held, until a manual call to the jobs tick route restarted the worker. A durable wake merged in #239 on Oct 31. The twenty-post test on production that day created the posts in 113 seconds, and at fifteen minutes none were ready, 10 had failed and 10 were unfinished; the wake was switched off afterwards and its configuration is empty. Two runtime defects found by that test are listed below, so whether the wake drains the queue is still unproven. Done when twenty posts made over two minutes on production all reach ready with nobody calling the tick route.
 
 ### #190 Production evaluation of ten real meal photos
 
@@ -174,7 +186,7 @@ Meta's workshop client sets four retries and a 180-second timeout on the OpenAI 
 
 A judge looking at the app sees only the end result, not what the model was asked or what it returned.
 
-Meta's workshop ships an Agent Console that shows every turn: what the model was asked, what it returned, the tokens used and which checks passed. Record, in a new table that only admins can read, one row per call a post made (SAM, Spark identify, Spark correct, FDC lookup, transcribe) with the time, the duration, the tokens, the request text without the image, the returned text, and the FDC id where one matched. Show a post's trace on the admin page and never in the user's app. Done when a post made on production has a trace listing each call it made, and a non-admin cannot read the table. Production authorization reads public.profiles.role, not ADMIN_EMAIL or a Vercel admin variable. The owner-designated account now has the admin role; its identity remains private. The remaining proof is a production trace plus non-admin table isolation and page refusal. Oct 30 production check: the trace and database access passed (three rows for one photo post; a second account read none). The admin browser check subsequently passed at 390x844 using a temporary admin role on the first configured test account; its original user role was immediately restored. A non-admin request returned HTTP 200 with not-found content instead of 404 (#229). The trace gap was checked on Oct 31: the photo post had three items, one external FDC lookup, and two older cache hits. Cache hits return before trace recording; copied nutrition can bypass a lookup entirely. Status reconciled Oct 31: Run 4: #236 records external, cached and reused nutrition provenance. The Oct 31 production admin browser check rendered SAM, identify and FDC rows at 390×844, and the temporary test-account admin role was restored to user. A non-admin repeat returned HTTP 404 with no trace (#238). Full provenance for the failing new meals remains unverified.
+Meta's workshop ships an Agent Console that shows every turn: what the model was asked, what it returned, the tokens used and which checks passed. Record, in a new table that only admins can read, one row per call a post made (SAM, Spark identify, Spark correct, FDC lookup, transcribe) with the time, the duration, the tokens, the request text without the image, the returned text, and the FDC id where one matched. Show a post's trace on the admin page and never in the user's app. Done when a post made on production has a trace listing each call it made, and a non-admin cannot read the table. Production authorization reads public.profiles.role, not ADMIN_EMAIL or a Vercel admin variable. The owner-designated account now has the admin role; its identity remains private. The remaining proof is a production trace plus non-admin table isolation and page refusal. Oct 30 production check: the trace and database access passed (three rows for one photo post; a second account read none). The admin browser check subsequently passed at 390x844 using a temporary admin role on the first configured test account; its original user role was immediately restored. A non-admin request returned HTTP 200 with not-found content instead of 404 (#229). The trace gap was checked on Oct 31: the photo post had three items, one external FDC lookup, and two older cache hits. Cache hits return before trace recording; copied nutrition can bypass a lookup entirely. Status reconciled Oct 31: Run 4: #236 records external, cached and reused nutrition provenance. The Oct 31 production admin browser check rendered SAM, identify and FDC rows at 390×844, and the temporary test-account admin role was restored to user. A non-admin repeat returned HTTP 404 with no trace (#238). Full provenance for the failing new meals remains unverified. Current open note: #236 records network, cache and copied-nutrition provenance and local regressions pass, but fresh production multi-item provenance is not yet verified. The earlier admin browser check passed and the temporary test role was restored. Keep #67 open pending the coder's production evidence; a planner's closure opinion is not that evidence.
 
 ## Logging and editing meals
 
