@@ -1,6 +1,6 @@
 # My Food AI — Backlog†
 
-Last edited: Saturday 2026-10-31 at 16:23 MYT (UTC+08:00) by Codex, reconciling the owner-supplied 09:45 MYT backlog
+Last edited: Saturday 2026-10-31 at 16:24 MYT (UTC+08:00) by Codex, reconciling the owner-supplied 09:45 MYT backlog
 
 ## Backlog
 
@@ -144,7 +144,7 @@ The coder found this in the lease SQL; a 300-second time-to-live against about 6
 
 Posts wait in the queue and never finish when the worker stops, until someone triggers it by hand.
 
-The production load test of Oct 28 stopped processing after about 330 seconds: 11 of 20 posts stayed queued, with their jobs due, at attempt 0 and with no worker lease held, until a manual call to the jobs tick route restarted the worker. Issue #177 is open with no fix PR as of the coder's report on Oct 29. The cause is not established. Done when twenty posts made over two minutes on production all reach ready with nobody calling the tick route. Status reconciled Oct 31: Run 4: #239 and migration 0024 installed an independent minute wake with effective concurrency 1. The Oct 31 production test created twenty photo posts over 113.045 seconds; at the final read after fifteen minutes none was ready, ten failed and ten were incomplete (two processing, eight queued). The wake was activated, then disabled on terminal failure; configuration is verified empty. Incomplete matcher and identify output blocked acceptance, so this does not prove the stall fixed. #246 awaits separate merge authorization and addresses only the matcher cap.
+The production load test of Oct 28 stopped processing after about 330 seconds: 11 of 20 posts stayed queued, with their jobs due, at attempt 0 and with no worker lease held, until a manual call to the jobs tick route restarted the worker. Issue #177 is open with no fix PR as of the coder's report on Oct 29. The cause is not established. Done when twenty posts made over two minutes on production all reach ready with nobody calling the tick route. Status reconciled Oct 31: Run 4: #239 and migration 0024 installed an independent minute wake with effective concurrency 1. The Oct 31 production test created twenty photo posts over 113.045 seconds; the frozen fifteen-minute run report recorded none ready, ten failed and ten were incomplete (two processing, eight queued). The wake was activated, then disabled on terminal failure; configuration is verified empty. Incomplete matcher and identify output blocked acceptance, so this does not prove the stall fixed. #246 awaits separate merge authorization and addresses only the matcher cap.
 
 ### #190 Production evaluation of ten real meal photos
 
@@ -156,7 +156,7 @@ The ten licensed meal photos, their expected items and the eval script are merge
 
 Nobody knows whether the Meta Model API's per-minute limit survives the judges' burst of live posts.
 
-$150 of credit is irrelevant if the limit bites. Read the limits on Meta's pricing and rate-limits page and write them in docs/load-test.md, then run twenty posts through the queue in two minutes and record wait times and any 429s. Worker concurrency is already a setting (bounded 1 to 4), and the results block in docs/load-test.md still reads "Not run yet". Done when the numbers are in docs/load-test.md and the demo plan picks a concurrency that holds. GitHub issue status at this reconciliation: closed; this supplied entry is retained as context, not open implementation work. Status reconciled Oct 31: Oct 31 production load check: twenty photo posts were created in 113.045 seconds with concurrency 1. At the final read after the fifteen-minute deadline, none was ready, ten failed and ten were incomplete. The independent wake was turned on and then disabled upon terminal failures; configuration is empty. Incomplete matcher and identify output prevented acceptance. No passing throughput or no-429 conclusion is inferred.
+$150 of credit is irrelevant if the limit bites. Read the limits on Meta's pricing and rate-limits page and write them in docs/load-test.md, then run twenty posts through the queue in two minutes and record wait times and any 429s. Worker concurrency is already a setting (bounded 1 to 4), and the results block in docs/load-test.md still reads "Not run yet". Done when the numbers are in docs/load-test.md and the demo plan picks a concurrency that holds. GitHub issue status at this reconciliation: closed; this supplied entry is retained as context, not open implementation work. Status reconciled Oct 31: Oct 31 production load check: twenty photo posts were created in 113.045 seconds with concurrency 1. The frozen fifteen-minute run report recorded none ready, ten failed and ten were incomplete. The independent wake was turned on and then disabled upon terminal failures; configuration is empty. Incomplete matcher and identify output prevented acceptance. No passing throughput or no-429 conclusion is inferred.
 
 ### #65 The pipeline's tests run against an offline fake Meta Model API
 

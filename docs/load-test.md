@@ -71,9 +71,9 @@ The results above are the historical Oct 28 production run with the test account
 
 Main and production: `34d905161cd129b30b86d305a91cedf8a183ca27`, READY, with a 300-second function duration and effective worker concurrency 1. Migration 0024 was applied in one transaction. The wake was activated at 08:06:22.337 UTC. The test began at 08:06:23.001 UTC and created twenty photo posts through the normal upload/completion path over 113.045 seconds. The harness issued no manual tick or browser-focus wake.
 
-At 08:12:25 UTC, four posts had terminal failures. The wake configuration was removed at 08:13:02.599 UTC as ordered and verified empty; the minute schedule remains registered but cannot send HTTP without its configured origin. The fifteen-minute deadline was 08:21:23 UTC; the final read-only observation was recorded at 08:21:56.989 UTC.
+At 08:12:25 UTC, four posts had terminal failures. The wake configuration was removed at 08:13:02.599 UTC as ordered and verified empty; the minute schedule remains registered but cannot send HTTP without its configured origin. The fifteen-minute deadline was 08:21:23.001 UTC. The run report was written at 08:21:24.114 UTC and froze the post statuses below. A summary exported at 08:21:56.989 UTC reused that report; its export time is not a new post-status observation.
 
-| Result at final read | Posts |
+| Frozen fifteen-minute run result | Posts |
 | --- | ---: |
 | Ready | 0 |
 | Failed | 10 |
