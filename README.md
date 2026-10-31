@@ -80,3 +80,9 @@ SAM 3.1 receives a meal photograph and finds food regions. Muse Spark 1.3 receiv
 The app records consumed food. It does not provide advice, goals or health claims, and it does not share meals between users. Portion amounts are estimates. The licensed evaluation set uses explicitly annotated food names and rough visual gram estimates, which are not measured nutritional ground truth.
 
 Production evidence remains pending the merge phase: the [meal photo evaluation](docs/eval.md), [queue load test](docs/load-test.md), and two complete runs of the [production demo checklist](docs/demo.md). Device camera and notification behavior also require real-device verification. A pending result is not a passing result.
+
+## Runtime AI and browser features
+
+All runtime AI calls use the Meta Model API: SAM 3.1 (`sam-3.1`) segments food in photos; Muse Spark 1.3 (`muse-spark-1.3`) identifies foods and portions, interprets corrections and searches, checks repeat meals, and checks generated wording; Muse Voice Transcribe 1.0 (`muse-voice-transcribe-1.0`) transcribes recorded corrections. The OpenAI-compatible SDK is a client for Meta's endpoint, not a call to an OpenAI model.
+
+Camera access, microphone recording, image resizing, deterministic barcode decoding, and notifications use browser features or local code. USDA FoodData Central supplies nutrition database records; it is not an AI model. The app currently has no text-to-speech or spoken output, including OS or browser speech synthesis. No third-party AI voice is used.
