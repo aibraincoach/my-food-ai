@@ -11,12 +11,17 @@ export type MatchChoice = { id: number | null; query: string | null; reason: str
 export type MatchDependencies = { search: (query: string) => Promise<FdcFood[]>; choose: (name: string, caption: string, foods: FdcFood[], retry: boolean) => Promise<MatchChoice> };
 
 // Spark counts internal reasoning against max_output_tokens, before emitting schema JSON.
-// Production replay needed 633–801 tokens for a decision whose JSON was only 188 characters.
-const MATCH_OUTPUT_TOKENS = 2048;
+// A refined production decision also exhausted 2048; permit one bounded escalation.
+const MATCH_OUTPUT_TOKENS = [2048, 8192] as const;
 
 async function choose(name: string, caption: string, foods: FdcFood[], retry: boolean, signal?:AbortSignal): Promise<MatchChoice> {
-  const result = await createResponse({model:"muse-spark-1.3",instructions:"Select the USDA record for the actual food identity and preparation, not a shared adjective or country name. Select null when every candidate is wrong. Reject incompatible food categories, processing and preparation; do not substitute restaurant-specific or branded preparations unless the caption identifies them. Do not guess nutrition. On the first rejection propose one improved English food search using the item and caption; on retry propose no further query. Return only an id from the supplied candidates or null.",input:[{role:"user",content:[{type:"input_text",text:JSON.stringify({name,caption,retry,candidates:foods.map(f=>({id:f.fdcId,description:f.description,dataType:f.dataType,unit:f.servingSizeUnit??"g"}))})}]}],text:{format:{type:"json_schema",name:"search_query",strict:true,schema:{type:"object",additionalProperties:false,properties:{id:{type:["integer","null"]},query:{type:["string","null"]},reason:{type:"string"}},required:["id","query","reason"]}}},max_output_tokens:MATCH_OUTPUT_TOKENS},{signal});
-  if(result.status!=="completed"||!result.outputText||result.refusal)throw new MetaApiError(502,"Food match decision did not complete.");
+  let result: Awaited<ReturnType<typeof createResponse>> | undefined;
+  for (const maxOutputTokens of MATCH_OUTPUT_TOKENS) {
+    if (signal?.aborted) throw new MetaApiError(503,"Food resolution budget was exhausted.");
+    result = await createResponse({model:"muse-spark-1.3",instructions:"Select the USDA record for the actual food identity and preparation, not a shared adjective or country name. Select null when every candidate is wrong. Reject incompatible food categories, processing and preparation; do not substitute restaurant-specific or branded preparations unless the caption identifies them. Do not guess nutrition. On the first rejection propose one improved English food search using the item and caption; on retry propose no further query. Return only an id from the supplied candidates or null.",input:[{role:"user",content:[{type:"input_text",text:JSON.stringify({name,caption,retry,candidates:foods.map(f=>({id:f.fdcId,description:f.description,dataType:f.dataType,unit:f.servingSizeUnit??"g"}))})}]}],text:{format:{type:"json_schema",name:"search_query",strict:true,schema:{type:"object",additionalProperties:false,properties:{id:{type:["integer","null"]},query:{type:["string","null"]},reason:{type:"string"}},required:["id","query","reason"]}}},max_output_tokens:maxOutputTokens},{signal});
+    if (result.status!=="incomplete" || result.refusal) break;
+  }
+  if(!result||result.status!=="completed"||!result.outputText||result.refusal)throw new MetaApiError(502,"Food match decision did not complete.");
   let parsed:unknown;
   try { parsed=JSON.parse(result.outputText); } catch { throw new MetaApiError(502,"Food match decision was invalid."); }
   if(typeof parsed!=="object"||parsed===null||Array.isArray(parsed))throw new MetaApiError(502,"Food match decision was invalid.");
