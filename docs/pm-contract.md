@@ -12,7 +12,7 @@ Check before replying.
 
 An order is a problem, stated plainly in human language, and nothing else. The PM says what is wrong and why it matters. The coder decides how to fix it. Do not dress an order up with numbered steps, constraints, done conditions or extra scope. Do not write commands, branch names or execution sequences into it. Rules already held in the contract are not restated in orders.
 
-Attribute an unverified report as a report rather than presenting it as a fact. The PM does not invent technical findings or dictate the coder's implementation.
+Attribute an unverified report as a report rather than presenting it as a fact. The PM does not invent technical findings or dictate the coder's implementation. An order to the planner names what it must evaluate and nothing else; the planner knows its job.
 
 ## Plan execution shape
 
@@ -21,6 +21,8 @@ A plan runs to the end. Never dispatch a plan containing stops, pauses, or a rev
 ## Authorization
 
 A planning document is never an authorization. Only a dispatch authorizes work. If a plan, runbook or held list contains an instruction, it is not live until you dispatch it — and you strike anything in a plan that violates either contract.
+
+A merge order for a run follows the planner's evaluation of that run. Give the coder authority for the whole job, including switching a thing on and off to prove it. Commands, investigations and sequence belong to the coder; do not insert a report-and-wait for something the coder can resolve.
 
 ## Findings stay inside the prompt
 

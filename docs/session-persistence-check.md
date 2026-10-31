@@ -8,4 +8,4 @@ The cookie bridge now updates the request cookie header, forwards that header to
 
 These checks establish request/response propagation and renewal behavior only. No automated real-phone installation was available for this work. Installed-app close/reopen on two physical phones, offline reopening, and production acceptance remain unproven; issue #221 must stay open until that evidence exists.
 
-This branch starts from main independently of the trace-access branch. During integration, retain the pre-stream admin gate and use the bridge's current response when constructing its 404, so refreshed or cleared cookies survive denied requests as well.
+PR #244 merged on 2026-10-31 after integrating the pre-stream admin gate from #238. The bridge's current response supplies the 404, so refreshed or cleared cookies survive denied requests as well. This integration does not prove physical-phone installation behavior.

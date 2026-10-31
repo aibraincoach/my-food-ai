@@ -15,6 +15,10 @@ npm run dev
 
 Fill the variable names in `.env.local` before running the check. Use a Supabase project with this repository's migrations applied in numeric order and the private media bucket configured. The check prints only check names and pass/fail results, stops at the first missing required variable, and exits unsuccessfully if a service check fails. It checks connectivity and model availability; it does not apply migrations or prove all application flows. Open the local address printed by the development server. Keep `.env.local` private and uncommitted.
 
+## Migration numbering
+
+Run 4 uses migrations 0021, 0023 and 0024. Number 0022 was reserved but unused and is permanently retired; there is no 0022 SQL file to create or apply. Future migrations use 0025 or higher. A numeric gap is not a missing installation step.
+
 ## Variables
 
 Required for the setup check:
@@ -37,7 +41,7 @@ Additional names used by development scripts and optional features:
 - `TEST_USER2_PASSWORD`: second test user's password.
 - `MODEL_API_BASE_URL`: optional model endpoint override for offline tests.
 - `ADMIN_EMAIL`: optional operator convenience only; production authorization does not read it. Admin pages and trace access read `public.profiles.role`; grant that role privately after the account and profile exist.
-- `WORKER_CONCURRENCY`: optional worker parallelism; defaults to one.
+- `WORKER_CONCURRENCY`: legacy deployment setting; Run 4 fixes effective worker concurrency at one, including when an older setting requests more lanes.
 - `NEXT_PUBLIC_VAPID_PUBLIC_KEY`: optional browser push subscription key.
 - `VAPID_PRIVATE_KEY`: optional server-only push signing key.
 - `VAPID_SUBJECT`: optional push sender contact identifier.
@@ -83,13 +87,13 @@ Application source: [MIT licence](LICENSE). Dependencies, font, data and hosted-
 
 ## Submission write-up
 
-Implementation work began on October 26 for the November 4 submission. The pull-request implementation covers a private meal feed, camera and gallery capture, food outlines, editable item history, a correction thread, search and day views. Supporting changes add retry handling, current-item totals, stored nutrition cards, evaluation fixtures and a queue load runner. These changes are submitted for review; this write-up does not claim they are all merged or validated in production.
+Implementation work began on October 26 for the November 4 submission. The pull-request implementation covers a private meal feed, camera and gallery capture, food outlines, editable item history, a correction thread, search and day views. Supporting changes add retry handling, current-item totals, stored nutrition cards, evaluation fixtures and a queue load runner. Run 3 and the ten Run 4 implementation PRs are merged. Production acceptance is recorded separately below; a merge does not establish food accuracy or a complete demonstration.
 
 SAM 3.1 receives a meal photograph and finds food regions. Muse Spark 1.3 receives the photograph, caption and relevant correction context, then returns structured food names and portion estimates. Muse Voice Transcribe 1.0 receives recorded speech and returns text for the user to confirm before posting. Nutrition values come from USDA FoodData Central and are scaled to estimated portions; the models do not supply authoritative nutrient values.
 
 The app records consumed food. It does not provide advice, goals or health claims, and it does not share meals between users. Portion amounts are estimates. The licensed evaluation set uses explicitly annotated food names and rough visual gram estimates, which are not measured nutritional ground truth.
 
-Run 3 is merged and deployed. Production checks recorded autonomous test-account sign-in, three successful photo uploads with a post-three-hour recheck, intake and feed/Days behavior, eaten-at editing, and an admin trace page. Food matching and incomplete meal totals still have recorded failures; see the [backlog](BACKLOG.md). The full [meal photo evaluation](docs/eval.md) and two complete [production demo runs](docs/demo.md) remain unrecorded; the [queue load test](docs/load-test.md) records the unresolved worker stall. Device camera and notification behavior require real-device verification. A pending result is not a passing result.
+Run 3 and Run 4 implementation PRs #236–#245 are merged; production serves `34d905161cd129b30b86d305a91cedf8a183ca27`, READY at this reconciliation. Migrations 0021, 0023 and 0024 are applied; worker concurrency is one and its independent wake remains dormant. The first new breakfast/curry analyses failed on an incomplete match decision. Reviewed fix #246 is unmerged pending separate authorization, so no passing meal recheck or twenty-post drain is claimed. The admin trace rendered at 390×844, the temporary test role was restored, and the non-admin repeat returned HTTP 404. Full [meal photo evaluation](docs/eval.md), two complete [demo runs](docs/demo.md), and real-phone installed-session/mobile-loading acceptance remain unrecorded. Historical [load-test evidence](docs/load-test.md) still records the earlier stall. See [current session evidence](CLAUDE.md) and [backlog](BACKLOG.md) for unresolved acceptance.
 
 ## Runtime AI and browser features
 

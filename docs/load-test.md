@@ -11,7 +11,7 @@ Limits verified on 2026-10-28 (JST) from Meta Model API's **Pricing and rate lim
 
 Meta applies these limits per team, separately for each model; file and realtime transcription share the stream allowance. These published limits do not guarantee measured application throughput.
 
-Run `node --env-file=.env.local scripts/load-test.mjs` from the repository after installing dependencies, including Next's optional image-processing dependency. Required names: `APP_URL`, `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, `SUPABASE_SECRET_KEY`, `TEST_USER_EMAIL`, `TEST_USER_PASSWORD`. `WORKER_CONCURRENCY` configures the deployed worker (1 to 4; anything else means 1); changing it only in the local test environment does not change the deployment. Set `DEPLOYED_WORKER_CONCURRENCY` to the value the deployment uses so the report records it; when unset the report says `unknown`.
+Run `node --env-file=.env.local scripts/load-test.mjs` from the repository after installing dependencies, including Next's optional image-processing dependency. Required names: `APP_URL`, `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, `SUPABASE_SECRET_KEY`, `TEST_USER_EMAIL`, `TEST_USER_PASSWORD`. Run 4 fixes effective worker concurrency at 1, including when a legacy `WORKER_CONCURRENCY` setting requests more lanes; changing a local variable does not change the deployment. Set `DEPLOYED_WORKER_CONCURRENCY` to the value the deployment uses so the report records it; when unset the report says `unknown`.
 
 The runner signs in as the ordinary test account using the installed SSR library's cookie encoding, schedules twenty requests six seconds apart, rotates the three existing fixture plates, and uploads original/feed JPEGs through the same application routes as the client. It observes post state every two seconds for at most fifteen minutes. Latency starts before post creation and ends at the first observed ready state, so it includes uploads and up to one polling interval. Job errors containing 429 are retained while polling because a successful retry clears the stored error. Private post identifiers are written only to a temporary local report, not this document.
 
@@ -60,9 +60,13 @@ Authentication reuses `scripts/lib/session.mjs`. When available, `eval/photos/01
 
 ## Run of 2026-10-28 against production (b025d13)
 
-The results above are from the one production run so far, with the test account. Observations that the table does not show:
+The results above are the historical Oct 28 production run with the test account. Observations that the table does not show:
 
 - The runner's fifteen-minute window ended with 11 of 20 posts still queued. They were not slow: their analyze jobs were due, at attempt 0, with no worker lease held. The worker had stopped after about 330 seconds, and a manual `GET /api/jobs/tick` started it again. This is tracked as #177; until it is fixed the numbers above measure a run where nobody was ticking the queue, not the steady-state throughput.
 - Both failed posts used `eval/photos/03.jpg` and failed with `spark: identify ended with status incomplete.` after three attempts.
 - No 429 was observed from any service.
 - The deployed worker concurrency was not read from the deployment, so the report says `unknown`; the demo setting stays at one.
+
+## Run 4 status — 2026-10-31
+
+PR #239 merged and migration 0024 was applied in one transaction. Effective concurrency is 1. The independent minute wake remains dormant with zero deployment-configuration rows. The new twenty-post production test has not run: the first breakfast/curry re-logs failed on an incomplete match decision, and the reviewed #246 fix awaits separate exact-head authorization. No throughput, queue-drain success or 429 result is inferred from this unrun test. The Oct 28 table above remains historical evidence.

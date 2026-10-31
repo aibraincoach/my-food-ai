@@ -17,7 +17,7 @@ Keep cleanup identifiers in a private local file and remove only the posts creat
 
 | Evidence | Run 1 | Run 2 |
 | --- | --- | --- |
-| Main commit | Pending merge phase | Pending merge phase |
+| Main commit | Not recorded for a complete run | Not recorded for a complete run |
 | Run time | Not run | Not run |
 | Full sequence | Not run | Not run |
 | Failures and fix PRs | Not observed | Not observed |
