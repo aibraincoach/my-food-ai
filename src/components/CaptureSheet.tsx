@@ -60,6 +60,20 @@ export default function CaptureSheet({ onClose, initialMode = "photo" }: { onClo
   const [posting, setPosting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const [viewport, setViewport] = useState<{ height: number; top: number } | null>(null);
+  useEffect(() => {
+    const visual = window.visualViewport;
+    if (!visual) return;
+    const update = () => setViewport({ height: visual.height, top: visual.offsetTop });
+    update();
+    visual.addEventListener("resize", update);
+    visual.addEventListener("scroll", update);
+    return () => {
+      visual.removeEventListener("resize", update);
+      visual.removeEventListener("scroll", update);
+    };
+  }, []);
+
   const findBarcode = useCallback(async (code: string, file: File) => {
     const mine = ++lookupRef.current;
     if (packPhotoRef.current) URL.revokeObjectURL(packPhotoRef.current.previewUrl);
@@ -326,13 +340,16 @@ export default function CaptureSheet({ onClose, initialMode = "photo" }: { onClo
 
 
   return (
-    <div ref={dialogRef} role="dialog" aria-modal="true" aria-labelledby="capture-title" className="fixed inset-0 z-50 overflow-y-auto bg-camera text-surface">
-      <div className="mx-auto flex min-h-dvh w-full max-w-phone flex-col">
+    <div ref={dialogRef} role="dialog" aria-modal="true" aria-labelledby="capture-title" className="fixed inset-x-0 top-0 z-50 h-dvh overflow-hidden bg-camera text-surface" style={viewport ? { height: viewport.height, top: viewport.top } : undefined}>
+      <div className="mx-auto flex h-full w-full max-w-phone flex-col">
+        <div className="shrink-0">
         <TopBar
           title={<span id="capture-title">New post</span>}
           left={<button ref={closeRef} type="button" onClick={onClose} disabled={posting} aria-label="Close capture" className="flex size-tap items-center justify-start disabled:opacity-50"><Icon name="close" /></button>}
           right={<span className="w-tap" aria-hidden="true" />}
         />
+        </div>
+        <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain" aria-label="Capture content">
         {mode !== "text" && <><div className="relative flex shrink-0 items-center justify-center overflow-hidden bg-camera text-camera-muted" style={{ height: tokens.capture.previewHeight, marginTop: tokens.capture.previewTop }}>
           {stream ? <video ref={videoRef} muted playsInline autoPlay aria-label="Live camera viewfinder" className="h-full w-full object-cover" /> : latest ? (
             // Local blob previews require no remote image transformation.
@@ -388,11 +405,9 @@ export default function CaptureSheet({ onClose, initialMode = "photo" }: { onClo
             <p className="text-meta text-faint" style={{ marginTop: tokens.spacing['screen-x'] - tokens.icon.strongStroke }}>How much?</p>
             <div className="mt-tooltip-y flex flex-wrap gap-2">{barcodeAmounts(product).map((amount) => <button key={amount} type="button" disabled={posting} aria-pressed={portion === amount} onClick={() => setPortion(amount)} style={{ height: tokens.brand.barHeight }} className={`rounded-field border px-tooltip-caret text-comment font-medium ${portion === amount ? "border-surface bg-surface text-text" : "border-ring-on-ink text-surface"}`}>{pack === amount ? `Pack · ${amountLabel(amount)}` : amountLabel(amount)}</button>)}</div>
             <p className="text-body" style={{ marginTop: tokens.spacing['screen-x'] - tokens.icon.strongStroke }}>Consumed: {value("calories", portion)} kcal <span className="text-detail font-normal text-faint">· {macros(portion).split(" · ").slice(1).join(" · ")}</span></p>
-            <Button variant="camera" className="mt-field-x" disabled={posting} onClick={() => { void postBarcode(); }}>{posting ? "Posting…" : `Post · ${product.name.charAt(0).toUpperCase() + product.name.slice(1).toLowerCase().slice(0, 23)} ${amountLabel(portion)}`}</Button>
           </>}
           {pendingCount + shots.length > 0 && <p className="mt-sheet-top text-detail text-faint">{pendingCount + shots.length} other selected {pendingCount + shots.length === 1 ? "photo is" : "photos are"} waiting. Post this product or dismiss it to continue.</p>}
-          {error && <p role="alert" className="mt-sheet-top text-detail">{error}</p>}
-        </section> : <div className="flex flex-col px-screen-x pb-card-safe" style={{ gap: tokens.capture.bottomGap }}>
+        </section> : <div className="flex flex-col px-screen-x pb-sheet-top" style={{ gap: tokens.capture.bottomGap }}>
           {pendingCount > 0 && <button type="button" disabled={posting || cameraBusy} onClick={() => { void continueSelected(); }} className="min-h-tap text-detail underline">Continue with {pendingCount} selected {pendingCount === 1 ? "photo" : "photos"}</button>}
           <FirstRunHint hint="capture" />
           <div className="flex items-center justify-between px-grid text-detail">
@@ -409,10 +424,16 @@ export default function CaptureSheet({ onClose, initialMode = "photo" }: { onClo
           <Field variant="camera" id="capture-caption" aria-label="Caption" value={caption} onChange={(event) => setCaption(event.target.value)} disabled={posting} placeholder="What did you eat?" />
           <button type="button" disabled={posting} onClick={() => { setSearchingFoods(true); setError(null); }} className="min-h-tap self-start px-grid text-detail text-surface disabled:opacity-50">Search foods</button>
           <p className="px-grid text-meta text-camera-muted">Location is saved with the post and helps recognise meals you eat in the same place. Only you see it.</p>
-          {pendingCount > 0 && <button type="button" disabled={posting || cameraBusy} onClick={() => { void continueSelected(); }} className="min-h-tap text-detail text-surface underline">Retry selected photos</button>}
-          <Button variant="camera" onClick={post} disabled={posting || cameraBusy || pendingCount > 0 || (!caption.trim() && shots.length === 0)}>{posting ? "Posting…" : "Post"}</Button>
           </>}
-          {error && <p role="alert" className="text-detail text-surface">{error}</p>}
+        </div>}
+        </div>
+        {(!searchingFoods || mode === "barcode" || barcodeState !== "idle" || error) && <div className="max-h-[50%] shrink-0 overflow-y-auto bg-camera px-screen-x pt-sheet-top pb-card-safe" aria-label="Capture actions">
+          {error && <p role="alert" className="mb-sheet-top text-detail text-surface">{error}</p>}
+          {!searchingFoods && barcodeState === "idle" && mode !== "barcode" && <>
+            {pendingCount > 0 && <button type="button" disabled={posting || cameraBusy} onClick={() => { void continueSelected(); }} className="min-h-tap text-detail text-surface underline">Retry selected photos</button>}
+            <Button variant="camera" onClick={post} disabled={posting || cameraBusy || pendingCount > 0 || (!caption.trim() && shots.length === 0)}>{posting ? "Posting…" : "Post"}</Button>
+          </>}
+          {product && <Button variant="camera" disabled={posting} onClick={() => { void postBarcode(); }}>{posting ? "Posting…" : `Post · ${product.name.charAt(0).toUpperCase() + product.name.slice(1).toLowerCase().slice(0, 23)} ${amountLabel(portion)}`}</Button>}
         </div>}
       </div>
     </div>
