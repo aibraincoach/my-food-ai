@@ -1,7 +1,8 @@
 import {ioError,isRetriable} from "@/lib/worker/errors";
 import type {SupabaseClient} from "@supabase/supabase-js";
-import {createResponseRetrying404} from "@/lib/meta/retry404";
-import {sameMealPrompt,sameMealSchema} from "@/lib/prompts/spark/same-meal";
+import {confirmSameMeal} from "@/lib/meta/same-meal";
+import {priorNutritionTrusted} from "./prior-nutrition";
+import {FOOD_MATCH_VERSION} from "@/lib/fdc/version";
 import {loadFirstPhoto, type NamedPost} from "./analyze";
 // Preserve the planned relative weights, normalized over available signals.
 // Missing caption/photo/location must not penalize supported photo-only meals.
@@ -35,6 +36,10 @@ export async function findPrior(admin:SupabaseClient,postId:string):Promise<{hin
   // example "two bowls") changes the portion. Never an instruction to repeat the earlier amounts.
   const hint=`Historical reference only (unconfirmed): this user logged this meal before as: ${items.map(item=>`${item.name}, ${item.portion_grams??"unknown"} g`).join("; ")}. Use these names or portions only when the current caption and photo support them. A changed caption takes precedence; never assume the previous portion.`;
   if(best.score<PRIOR.copyThreshold) return {hint};
+  const {data:decisions,error:traceError,status:traceStatus}=await admin.from("model_calls")
+    .select("request_text,response_text,fdc_id,error,started_at").eq("post_id",best.post_id).eq("kind","fdc").gt("fdc_id",0).like("request_text",'%"event":%').order("started_at",{ascending:false}).limit(200);
+  if(traceError) throw ioError("Prior nutrition provenance could not be read.",traceError,traceStatus);
+  if(!priorNutritionTrusted(items,decisions??[])) return {hint};
   const {data:post,error:postError,status:postStatus}=await admin.from("posts").select("user_id,caption").eq("id",postId).single();
   if(postError) throw ioError(postError.message,postError,postStatus);
   const {data:past,error:pastError,status:pastStatus}=await admin.from("posts").select("caption").eq("id",best.post_id).eq("user_id",post.user_id).single();
@@ -47,9 +52,9 @@ export async function findPrior(admin:SupabaseClient,postId:string):Promise<{hin
     if(isRetriable(error)) throw error;
     return {hint};
   }
-  const result=await createResponseRetrying404({model:"muse-spark-1.3",instructions:sameMealPrompt,input:[{role:"user",content:[{type:"input_text",text:JSON.stringify({prior:hint,current_caption:post.caption,past_caption:past.caption,image_order:["current","past"]})},...photos.map(photo=>({type:"input_image",image_url:`data:image/jpeg;base64,${Buffer.from(photo.bytes).toString("base64")}`}))]}],text:{format:{type:"json_schema",name:"same_meal",strict:true,schema:sameMealSchema}},max_output_tokens:128});
-  if(result.status!=="completed"||!result.outputText||JSON.parse(result.outputText).same_meal!==true) return {hint:""};
-  const nutrition=items.map(item=>{const row=Array.isArray(item.item_nutrition)?item.item_nutrition[0]:item.item_nutrition;return row??{};});
+  const confirmed=await confirmSameMeal(photos.map(photo=>photo.bytes),{prior:hint,currentCaption:post.caption,pastCaption:past.caption});
+  if(!confirmed) return {hint:""};
+  const nutrition=items.map(item=>{const row=Array.isArray(item.item_nutrition)?item.item_nutrition[0]:item.item_nutrition;return {...(row as Record<string,unknown>??{}),matcher_version:FOOD_MATCH_VERSION};});
   return {hint,nutrition,named:{postId,userId:post.user_id,photoWidth:photos[0].width,photoHeight:photos[0].height,regions:[],
     captionOnly:items.map(item=>({name:item.name,portionText:item.portion_text,portionGrams:item.portion_grams,confidence:item.confidence,regionIndex:null})),
     summary:items.map(item=>`${item.name} ${item.portion_grams??""} g`).join(" · ")}};
