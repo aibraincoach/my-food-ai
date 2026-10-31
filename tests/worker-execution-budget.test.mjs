@@ -17,11 +17,12 @@ test('nutrition uses remaining invocation time and reserves persistence plus the
 
 test('raw Meta requests stop at the invocation deadline without a transport retry',{timeout:3000},async()=>{
  const oldFetch=globalThis.fetch,oldKey=process.env.MODEL_API_KEY;process.env.MODEL_API_KEY='fixture-only';let calls=0;
+ const keepAlive=setTimeout(()=>{},1000);
  globalThis.fetch=async(_input,init)=>{calls++;return new Promise((_resolve,reject)=>{const fail=()=>reject(init.signal.reason);if(init.signal.aborted)fail();else init.signal.addEventListener('abort',fail,{once:true});});};
  try{
   await traceContext.run({postId:null,deadlineAt:Date.now()+20},()=>assert.rejects(metaFetch('/responses',{method:'POST',body:'{}'}),error=>error.name==='TimeoutError'));
   assert.equal(calls,1);
- }finally{globalThis.fetch=oldFetch;if(oldKey===undefined)delete process.env.MODEL_API_KEY;else process.env.MODEL_API_KEY=oldKey;}
+ }finally{clearTimeout(keepAlive);globalThis.fetch=oldFetch;if(oldKey===undefined)delete process.env.MODEL_API_KEY;else process.env.MODEL_API_KEY=oldKey;}
 });
 
 test('expired invocation cannot start an SDK request or extend an existing caller signal',{timeout:3000},async()=>{
@@ -50,5 +51,18 @@ test('late worker handoff skips both the timer and request so the durable wake c
   throw Error('Unexpected RPC');
  }};
  try{await runWorker(admin,'fixture',async()=>{ticks++;});assert.equal(ticks,0);assert.deepEqual(waits,[]);}
+ finally{Date.now=oldNow;globalThis.setTimeout=oldTimeout;}
+});
+
+test('a handoff timer that resumes late cannot launch a request',async()=>{
+ const oldNow=Date.now,oldTimeout=globalThis.setTimeout;let now=0,ticks=0;const waits=[];
+ Date.now=()=>now;globalThis.setTimeout=(fn,delay)=>{waits.push(delay);now=269500;fn();return 0;};
+ const admin={async rpc(name){
+  if(name==='claim_owned_job')return{data:null,error:null};
+  if(name==='release_worker_lease')return{error:null};
+  if(name==='next_worker_wake')return{data:new Date(0).toISOString(),error:null};
+  throw Error('Unexpected RPC');
+ }};
+ try{await runWorker(admin,'fixture',async()=>{ticks++;});assert.equal(ticks,0);assert.deepEqual(waits,[1000]);}
  finally{Date.now=oldNow;globalThis.setTimeout=oldTimeout;}
 });

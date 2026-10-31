@@ -7,7 +7,7 @@ import { jobHandlers, runJob, type JobHandlers } from "@/lib/worker/handlers";
 import { isRetriable } from "@/lib/worker/errors";
 import { workerConcurrency } from "@/lib/worker/concurrency";
 
-import { WORKER_PROCESSING_MS, workerHandoffDelay } from "./budget";
+import { WORKER_PROCESSING_MS, HANDOFF_REQUEST_MS, workerHandoffDelay } from "./budget";
 
 const WORK_MS = 60_000;
 
@@ -71,6 +71,7 @@ export async function runWorker(
     const delay = workerHandoffDelay(new Date(next as string).getTime(), startedAt);
     if (delay === null) return;
     await new Promise((resolve) => setTimeout(resolve, delay));
+    if (Date.now() + HANDOFF_REQUEST_MS > startedAt + WORKER_PROCESSING_MS) return;
     await tickSelf();
   }
 }
