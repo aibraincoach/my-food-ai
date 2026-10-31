@@ -30,7 +30,10 @@ export async function POST(request: Request) {
   if (location !== null && (typeof location !== "object" || !Number.isFinite(location.lat) || !Number.isFinite(location.lng) || Math.abs(location.lat) > 90 || Math.abs(location.lng) > 180 || (location.accuracy_m != null && (!Number.isFinite(location.accuracy_m) || location.accuracy_m < 0)))) return NextResponse.json({ error: "Invalid location." }, { status: 400 });
   const admin = createAdminClient();
   const { data, error } = await admin.rpc("reserve_post_upload", { p_operation_id: operationId, p_user_id: user.id, p_caption: body.caption, p_eaten_at: eatenAt, p_shots: shots, p_location: location });
-  if (error || !data) return NextResponse.json({ error: "The post draft could not be reserved. Your photos were kept; try again." }, { status: 409 });
+  if (error || !data) {
+    const expired = /expired/i.test(error?.message ?? "");
+    return NextResponse.json({ error: expired ? "The upload draft expired. Your photos were kept; try again." : "The post draft could not be reserved. Your photos were kept; try again." }, { status: expired ? 410 : 409 });
+  }
   if (data.published) { kickoff(request); return NextResponse.json({ postId: operationId, uploads: [], completed: true }); }
   if (shots.length === 0) {
     try { await publishUpload(admin, user.id, operationId); kickoff(request); return NextResponse.json({ postId: operationId, uploads: [], completed: true }); }

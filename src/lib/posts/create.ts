@@ -22,7 +22,11 @@ export class PostUploadDraft {
     try { images = await pending.images; }
     catch { this.pending = null; throw new Error("The photo could not be prepared. Your selected files were kept."); }
     const create = await this.request("/api/posts", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ operation_id: pending.id, capture_intent: intent, caption, location, eaten_at: eatenAt ?? new Date().toISOString(), shots: images.map((image, position) => ({ position, width: image.width, height: image.height, phash: image.phash })) }) });
-    if (!create.ok) throw new Error("The post could not be prepared. Your draft was kept; try again.");
+    if (!create.ok) {
+      const detail = await create.json().catch(() => null);
+      if (create.status === 410) this.pending = null;
+      throw new Error(typeof detail?.error === "string" ? detail.error : "The post could not be prepared. Your draft was kept; try again.");
+    }
     const result = await create.json() as { postId: string; uploads: SignedUpload[]; completed?: boolean };
     if (result.postId !== pending.id || !Array.isArray(result.uploads)) throw new Error("The post draft could not be confirmed. Try again.");
     if (result.completed) return { postId: result.postId };

@@ -65,3 +65,14 @@ test('publication service delegates only an owner-scoped atomic RPC and propagat
  assert.equal(await publishUpload(db,'owner',id),id);assert.deepEqual(calls,[['publish_uploaded_post',{p_operation_id:id,p_user_id:'owner'}]]);
  await assert.rejects(publishUpload({rpc:async()=>({data:null,error:{message:'missing'}})},'owner',id),/could not be completed/);
 });
+test('an expired stage keeps the selected file but starts a fresh operation on explicit retry',async()=>{
+ let reserves=0,uuids=0;const ids=[];
+ const second='22222222-2222-4222-8222-222222222222';
+ const request=async(url,init)=>{
+  if(init.method==='POST'){const parsed=JSON.parse(init.body);ids.push(parsed.operation_id);return ++reserves===1?response({error:'The upload draft expired. Your photos were kept; try again.'},410):response({postId:second,uploads:[upload]});}
+  return response({ok:true});
+ };
+ const draft=new PostUploadDraft(async()=>image,request,async()=>false,()=>++uuids===1?id:second);
+ await assert.rejects(draft.submit('meal',[file],null,null,'photo'),/expired/);
+ assert.deepEqual(await draft.submit('meal',[file],null,null,'photo'),{postId:second});assert.deepEqual(ids,[id,second]);
+});
