@@ -1,5 +1,5 @@
 // Explicit paid release gate, excluded from the offline node:test suite.
-// Uses a licensed fixture, real SAM regions and the actual identify service. No database writes.
+// Uses a licensed fixture, real SAM regions and the actual identify and food-match services. No database writes.
 import {createRequire} from 'node:module';
 import {readFile} from 'node:fs/promises';
 import {execFileSync} from 'node:child_process';
@@ -22,8 +22,8 @@ globalThis.fetch=async(input,init)=>{
  if(url.origin!==metaOrigin||url.pathname!=='/v1/responses')throw Error('Real smoke blocked an unexpected network destination.');
  const body=JSON.parse(init?.body??'{}');
  if(!['sam-3.1','muse-spark-1.3'].includes(body.model))throw Error('Real smoke blocked an unexpected model.');
- if(calls.length>=6)throw Error('Real smoke model-request limit reached.');
- const entry={model:body.model,cap:body.max_output_tokens??null};calls.push(entry);
+ if(calls.length>=8)throw Error('Real smoke model-request limit reached.');
+ const entry={model:body.model,format:body.text?.format?.name??null,cap:body.max_output_tokens??null};calls.push(entry);
  const started=performance.now();
  const signal=init?.signal?AbortSignal.any([init.signal,deadline]):deadline;
  const response=await originalFetch(input,{...init,signal});entry.http=response.status;
@@ -41,6 +41,7 @@ const started=performance.now();
 try{
  const {segmentFoodRegions}=await import('../src/lib/meta/sam.ts');
  const {identifyItems}=await import('../src/lib/meta/spark.ts');
+ const {resolveFoodMatch}=await import('../src/lib/fdc/match.ts');
  const {data,info}=await sharp(await readFile(new URL('../eval/photos/03.jpg',import.meta.url))).rotate().resize(4096,4096,{fit:'inside',withoutEnlargement:true}).jpeg({quality:85}).toBuffer({resolveWithObject:true});
  const regions=await segmentFoodRegions(data,'image/jpeg',info.width,info.height);
  if(!regions.length)throw Error('Busy fixture returned no SAM regions.');
@@ -48,6 +49,18 @@ try{
  const meal=await identifyItems(data,'image/jpeg','Load test busy meal',regions);
  if(!meal.items.length)throw Error('Busy fixture returned no identified foods.');
  receipt.items=meal.items.map(item=>({name:item.name,portion_estimate_g:item.portionGrams}));
+ // Frozen public USDA candidates reproduce the failed refined ham decision; no USDA or database calls.
+ const fixture=JSON.parse(await readFile(new URL('./fixtures/ham-resolution.json',import.meta.url),'utf8'));
+ const searches=[];
+ const cache={from(table){if(table!=='fdc_cache')throw Error('Unexpected smoke database table.');return{select(){return{eq(_column,key){const request={abortSignal(){return request;},async maybeSingle(){
+  const query=String(key).replace(/^fdc-search:/,'');searches.push(query);
+  const foods=query===fixture.name?fixture.initialFoods:fixture.refinedFoods;
+  return{data:{response:{kind:'fdc-search-v1',query,payload:{foods}}},error:null};
+ }};return request;}};}};}};
+ const matched=await resolveFoodMatch(cache,fixture.name,fixture.caption);
+ const validIds=new Set([...fixture.initialFoods,...fixture.refinedFoods].map(food=>food.fdcId));
+ if(matched&&!validIds.has(matched.fdcId))throw Error('Matcher selected an unknown candidate.');
+ receipt.match={name:fixture.name,searches,selected:matched?{id:matched.fdcId,description:matched.description}:null};
  receipt.pass=true;
 }catch(error){receipt.pass=false;receipt.failure=error instanceof Error?error.name:'SmokeFailure';process.exitCode=1;
 }finally{receipt.elapsed_ms=Math.round(performance.now()-started);globalThis.fetch=originalFetch;console.log(JSON.stringify(receipt,null,2));}
