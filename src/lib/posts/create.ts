@@ -1,54 +1,51 @@
 import type { CapturedLocation } from "@/lib/location/capture";
 import { reencodeShot } from "@/lib/media/reencode";
+import { uploadedMatches } from "@/lib/media/pack-photo-upload";
+import type { SignedUpload } from "@/lib/media/storage";
 
-export interface NewShot {
-  file: File;
-  previewUrl: string;
-}
+export interface NewShot { file: File; previewUrl: string }
+export interface CreatedPost { postId: string }
 
-export interface CreatedPost {
-  postId: string;
-}
+// A capture sheet owns this operation until publication succeeds. Repeated attempts
+// keep its identifier, encoded bytes and acknowledged uploads, including lost responses.
+export class PostUploadDraft {
+  private pending: { id: string; files: File[]; images: Promise<Awaited<ReturnType<typeof reencodeShot>>[]>; completed: Set<string> } | null = null;
+  constructor(private encode = reencodeShot, private request: typeof fetch = (...args) => fetch(...args), private verify = uploadedMatches, private uuid = () => crypto.randomUUID()) {}
 
-// Caption alone with no photo is a valid post. With shots, each file is
-// re-encoded (EXIF stripped), the post row + analyze job are created, both
-// JPEGs per shot are PUT to their signed URLs, and the complete step ticks
-// the queue (item 7).
-export async function createPost(caption: string, shots: File[], location: CapturedLocation | null = null, eatenAt: string | null = null): Promise<CreatedPost> {
-  const reencoded = await Promise.all(shots.map((file) => reencodeShot(file)));
-  const createRes = await fetch("/api/posts", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      caption,
-      location,
-      eaten_at: eatenAt ?? new Date().toISOString(),
-      shots: reencoded.map((r, i) => ({ position: i, width: r.width, height: r.height, phash:r.phash })),
-    }),
-  });
-  if (!createRes.ok) {
-    throw new Error((await createRes.json())?.error ?? "Post creation failed.");
+  async submit(caption: string, files: File[], location: CapturedLocation | null, eatenAt: string | null, intent: "photo" | "text"): Promise<CreatedPost> {
+    if (intent === "photo" && files.length === 0) throw new Error("The selected photo is not ready. Your draft was kept.");
+    if (!this.pending || files.length !== this.pending.files.length || files.some((file, i) => file !== this.pending!.files[i])) {
+      this.pending = { id: this.uuid(), files: [...files], images: Promise.all(files.map(file => this.encode(file))), completed: new Set() };
+    }
+    const pending = this.pending;
+    let images: Awaited<ReturnType<typeof reencodeShot>>[];
+    try { images = await pending.images; }
+    catch { this.pending = null; throw new Error("The photo could not be prepared. Your selected files were kept."); }
+    const create = await this.request("/api/posts", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ operation_id: pending.id, capture_intent: intent, caption, location, eaten_at: eatenAt ?? new Date().toISOString(), shots: images.map((image, position) => ({ position, width: image.width, height: image.height, phash: image.phash })) }) });
+    if (!create.ok) throw new Error("The post could not be prepared. Your draft was kept; try again.");
+    const result = await create.json() as { postId: string; uploads: SignedUpload[]; completed?: boolean };
+    if (result.postId !== pending.id || !Array.isArray(result.uploads)) throw new Error("The post draft could not be confirmed. Try again.");
+    if (result.completed) return { postId: result.postId };
+    if (result.uploads.length !== images.length) throw new Error("The selected photos could not be confirmed. Your draft was kept.");
+    for (const upload of result.uploads) {
+      const image = images[upload.position];
+      if (!image) throw new Error("The selected photos could not be confirmed.");
+      for (const [url, path, blob] of [[upload.originalSignedUrl, upload.originalPath, image.original], [upload.feedSignedUrl, upload.feedPath, image.feed]] as const) {
+        if (pending.completed.has(path)) continue;
+        let confirmed = false;
+        try { confirmed = (await this.request(url, { method: "PUT", headers: { "Content-Type": "image/jpeg" }, body: blob })).ok; }
+        catch { /* Reconcile an ambiguous upload through the owner's read policy. */ }
+        if (!confirmed) confirmed = await this.verify(path, blob);
+        if (!confirmed) throw new Error("The photo upload failed. Your draft was kept; try again.");
+        pending.completed.add(path);
+      }
+    }
+    const complete = await this.request("/api/posts", { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ postId: pending.id }) });
+    if (!complete.ok) throw new Error("The post could not be completed. Your uploaded photos were kept; try again.");
+    return { postId: pending.id };
   }
-  const { postId, uploads } = (await createRes.json()) as {
-    postId: string;
-    uploads: { position: number; originalSignedUrl: string; feedSignedUrl: string }[];
-  };
-  await Promise.all(
-    uploads.flatMap((u) => {
-      const r = reencoded[u.position];
-      const put = (url: string, blob: Blob) =>
-        fetch(url, { method: "PUT", headers: { "Content-Type": "image/jpeg" }, body: blob }).then(
-          (res) => {
-            if (!res.ok) throw new Error(`Upload failed for shot ${u.position}.`);
-          }
-        );
-      return [put(u.originalSignedUrl, r.original), put(u.feedSignedUrl, r.feed)];
-    })
-  );
-  await fetch("/api/posts", {
-    method: "PUT",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ postId }),
-  }).catch(() => {});
-  return { postId };
+}
+
+export async function createPost(caption: string, shots: File[], location: CapturedLocation | null = null, eatenAt: string | null = null, draft = new PostUploadDraft(), intent: "photo" | "text" = shots.length ? "photo" : "text"): Promise<CreatedPost> {
+  return draft.submit(caption, shots, location, eatenAt, intent);
 }

@@ -14,7 +14,7 @@ import { Icon } from "@/components/ui/Icon";
 import { TopBar } from "@/components/ui/TopBar";
 import { requestLocation } from "@/lib/location/capture";
 import { openCamera, grabFrame, CameraFlipError, type Camera } from "@/lib/media/camera";
-import { createPost } from "@/lib/posts/create";
+import { createPost, PostUploadDraft } from "@/lib/posts/create";
 import { fromLocalInput, toLocalInput } from "@/lib/posts/eaten-at";
 import { tokens } from "@/lib/theme/tokens";
 
@@ -41,6 +41,8 @@ export default function CaptureSheet({ onClose, initialMode = "photo" }: { onClo
   const galleryRef = useRef<HTMLInputElement>(null);
   const cameraRef = useRef<HTMLInputElement>(null);
   const shotsRef = useRef<Shot[]>([]);
+  const ordinaryUploadRef = useRef<PostUploadDraft | null>(null);
+  const selectedPhotoRef = useRef(false);
   const pendingFilesRef = useRef<File[]>([]);
   const [pendingCount, setPendingCount] = useState(0);
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -84,6 +86,7 @@ export default function CaptureSheet({ onClose, initialMode = "photo" }: { onClo
     setProduct(null); setBarcodeState("idle"); setPackPhoto(null); setError(null);
     if (packPhotoRef.current) URL.revokeObjectURL(packPhotoRef.current.previewUrl);
     packPhotoRef.current = null;
+    if (!shotsRef.current.length && !pendingFilesRef.current.length) selectedPhotoRef.current = false;
   };
 
   const cameraEnabled = mode !== "text";
@@ -182,6 +185,7 @@ export default function CaptureSheet({ onClose, initialMode = "photo" }: { onClo
 
   const addFiles = async (files: FileList | File[] | null) => {
     if (!files || postingRef.current) return;
+    if (Array.from(files).length) selectedPhotoRef.current = true;
     pendingFilesRef.current.push(...Array.from(files).slice(0, Math.max(0, MAX_SHOTS - shotsRef.current.length - pendingFilesRef.current.length)));
     setPendingCount(pendingFilesRef.current.length);
     if (scanBusy.current) return;
@@ -196,9 +200,8 @@ export default function CaptureSheet({ onClose, initialMode = "photo" }: { onClo
         try {
           code = await Promise.race([decodeBarcodeFile(file), new Promise<null>((resolve) => { deadline = setTimeout(() => resolve(null), 900); })]).finally(() => clearTimeout(deadline));
         } catch {
-          pendingFilesRef.current.shift(); setPendingCount(pendingFilesRef.current.length);
-          if (mountedRef.current) setError("Could not read that photo. The other selected photos were kept.");
-          continue;
+          if (mountedRef.current) setError("Could not read that photo. Your selected photos were kept; try again.");
+          return;
         }
         if (!mountedRef.current) return;
         if (code) {
@@ -253,10 +256,11 @@ export default function CaptureSheet({ onClose, initialMode = "photo" }: { onClo
     URL.revokeObjectURL(shot.previewUrl);
     shotsRef.current = shotsRef.current.filter((_, i) => i !== index);
     setShots(shotsRef.current);
+    if (!shotsRef.current.length && !pendingFilesRef.current.length) selectedPhotoRef.current = false;
   };
 
   const post = async () => {
-    if (postingRef.current || pendingFilesRef.current.length > 0 || (!caption.trim() && shotsRef.current.length === 0)) return;
+    if (postingRef.current || cameraBusy || pendingFilesRef.current.length > 0 || (!caption.trim() && shotsRef.current.length === 0)) return;
     postingRef.current = true;
     setPosting(true);
     setError(null);
@@ -264,7 +268,8 @@ export default function CaptureSheet({ onClose, initialMode = "photo" }: { onClo
       const location = await requestLocation();
       const eatenAt = when === null ? null : fromLocalInput(when);
       if (when !== null && !eatenAt) throw new Error("Choose a time that is not in the future.");
-      const { postId } = await createPost(caption, shotsRef.current.map((shot) => shot.file), location, eatenAt);
+      ordinaryUploadRef.current ??= new PostUploadDraft();
+      const { postId } = await createPost(caption, shotsRef.current.map((shot) => shot.file), location, eatenAt, ordinaryUploadRef.current, selectedPhotoRef.current ? "photo" : "text");
       // Uploads are complete. Home can fetch the complete card even if its
       // Realtime INSERT event arrived before the files or was never delivered.
       window.dispatchEvent(new CustomEvent("post-created", { detail: { id: postId } }));
@@ -403,6 +408,7 @@ export default function CaptureSheet({ onClose, initialMode = "photo" }: { onClo
           <Field variant="camera" id="capture-caption" aria-label="Caption" value={caption} onChange={(event) => setCaption(event.target.value)} disabled={posting} placeholder="What did you eat?" />
           <button type="button" disabled={posting} onClick={() => { setSearchingFoods(true); setError(null); }} className="min-h-tap self-start px-grid text-detail text-surface disabled:opacity-50">Search foods</button>
           <p className="px-grid text-meta text-camera-muted">Location is saved with the post and helps recognise meals you eat in the same place. Only you see it.</p>
+          {pendingCount > 0 && <button type="button" disabled={posting || cameraBusy} onClick={() => { void continueSelected(); }} className="min-h-tap text-detail text-surface underline">Retry selected photos</button>}
           <Button variant="camera" onClick={post} disabled={posting || cameraBusy || pendingCount > 0 || (!caption.trim() && shots.length === 0)}>{posting ? "Posting…" : "Post"}</Button>
           </>}
           {error && <p role="alert" className="text-detail text-surface">{error}</p>}

@@ -1,0 +1,59 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {execFileSync} from 'node:child_process';
+import {existsSync,mkdtempSync,readFileSync,rmSync} from 'node:fs';
+import {tmpdir} from 'node:os';
+import {join} from 'node:path';
+
+const bin=process.env.PG_TEST_BIN ?? '/usr/pgsql-17/bin';
+test('upload publication is atomic, owner scoped, idempotent and gated on storage objects', {skip:!existsSync(join(bin,'initdb'))?'Local PostgreSQL test binaries unavailable':false,timeout:30000},()=>{
+ const directory=mkdtempSync(join(tmpdir(),'mfa-upload-test-'));const data=join(directory,'data');let started=false;
+ const env={...process.env,PGHOST:directory,PGPORT:'5432',PGUSER:'postgres',PGDATABASE:'postgres'};
+ const sql=text=>execFileSync(join(bin,'psql'),['-X','-v','ON_ERROR_STOP=1','-At'],{input:text,env,encoding:'utf8',stdio:['pipe','pipe','pipe']});
+ try{
+  execFileSync(join(bin,'initdb'),['-D',data,'--auth=trust','--no-locale','-U','postgres'],{stdio:'pipe'});
+  execFileSync(join(bin,'pg_ctl'),['-D',data,'-l',join(directory,'postgres.log'),'-o',`-k ${directory} -p 5432 -c listen_addresses=''`,'-w','start'],{stdio:'pipe'});started=true;
+  sql(`create role anon;create role authenticated;create role service_role;
+    create table public.profiles(id uuid primary key);
+    create table public.posts(id uuid primary key,user_id uuid,caption text,eaten_at timestamptz,status text);
+    create table public.post_locations(post_id uuid,lat double precision,lng double precision,accuracy_m double precision);
+    create table public.post_media(id uuid default gen_random_uuid(),post_id uuid,storage_path text,position integer,width integer,height integer,phash bigint);
+    create table public.jobs(id uuid primary key default gen_random_uuid(),post_id uuid,kind text,priority integer,status text,run_after timestamptz default now(),payload jsonb);
+    create schema storage;create table storage.objects(bucket_id text,name text,metadata jsonb);
+    insert into public.profiles values('11111111-1111-4111-8111-111111111111'),('22222222-2222-4222-8222-222222222222');`);
+  sql(readFileSync(new URL('../supabase/migrations/0023_photo_publication.sql',import.meta.url),'utf8'));
+  const owner='11111111-1111-4111-8111-111111111111',other='22222222-2222-4222-8222-222222222222',id='33333333-3333-4333-8333-333333333333';
+  const reserve=`select reserve_post_upload('${id}','${owner}','meal',now(),'[{"position":0,"width":10,"height":10}]');`;
+  sql(reserve);sql(reserve);
+  assert.equal(sql(`select count(*) from public.post_upload_drafts;`).trim(),'1');
+  assert.equal(sql(`select count(*) from public.posts;`).trim(),'0');
+  assert.equal(sql(`select count(*) from public.jobs where kind='analyze';`).trim(),'0');
+  assert.equal(sql(`select count(*) from public.jobs where kind='media_cleanup';`).trim(),'1');
+  assert.throws(()=>sql(`select publish_uploaded_post('${id}','${other}');`));
+  assert.throws(()=>sql(`select publish_uploaded_post('${id}','${owner}');`));
+  assert.equal(sql(`select count(*) from public.posts;`).trim(),'0');
+  sql(`insert into storage.objects values('media','${owner}/${id}/0.jpg','{"size":123}');`);
+  assert.throws(()=>sql(`select publish_uploaded_post('${id}','${owner}');`));
+  assert.equal(sql(`select count(*) from public.posts;`).trim(),'0');
+  sql(`insert into storage.objects values('media','${owner}/${id}/0.feed.jpg','{"size":45}');`);
+  assert.equal(sql(`select publish_uploaded_post('${id}','${owner}');`).trim(),id);
+  assert.equal(sql(`select publish_uploaded_post('${id}','${owner}');`).trim(),id);
+  assert.equal(sql(`select count(*) from public.posts;`).trim(),'1');
+  assert.equal(sql(`select count(*) from public.post_media;`).trim(),'1');
+  assert.equal(sql(`select count(*) from public.jobs where kind='analyze';`).trim(),'1');
+  assert.equal(sql(`select published from public.post_upload_drafts;`).trim(),'t');
+  assert.equal(sql(`select count(*) from public.post_media where storage_path like '${owner}/${id}/%';`).trim(),'1');
+  assert.equal(sql(`select has_function_privilege('authenticated','public.publish_uploaded_post(uuid,uuid)','execute');`).trim(),'f');
+  assert.equal(sql(`select has_table_privilege('authenticated','public.post_upload_drafts','select');`).trim(),'f');
+  const expired='44444444-4444-4444-8444-444444444444';
+  sql(`select reserve_post_upload('${expired}','${owner}','meal',now(),'[{"position":0,"width":10,"height":10}]');update public.jobs set status='running' where id=(select cleanup_job_id from public.post_upload_drafts where id='${expired}');`);
+  assert.throws(()=>sql(`select publish_uploaded_post('${expired}','${owner}');`));
+  assert.equal(sql(`select count(*) from public.posts where id='${expired}';`).trim(),'0');
+  const textId='55555555-5555-4555-8555-555555555555';
+  sql(`select reserve_post_upload('${textId}','${owner}','coffee',now(),'[]');select publish_uploaded_post('${textId}','${owner}');`);
+  assert.equal(sql(`select count(*) from public.jobs where post_id='${textId}' and kind='analyze';`).trim(),'1');
+ }finally{
+  if(started)execFileSync(join(bin,'pg_ctl'),['-D',data,'-m','immediate','-w','stop'],{stdio:'pipe'});
+  rmSync(directory,{recursive:true,force:true});
+ }
+});
