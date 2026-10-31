@@ -115,6 +115,16 @@ node --env-file=.env.local --import tsx scripts/real-identify-smoke.mjs --real-m
 
 This explicit paid mode runs fresh SAM, identification and every identified food through the actual two-lane resolver. USDA search is read-only and its cache exists only in memory. Limits are 80 Meta requests, 40 USDA reads, 262,144 reserved output tokens and 270 seconds; the receipt reports actual usage without asserting a dollar price. No database or storage writes occur. The production nutrition phase gets at most 180 seconds, capped by the invocation's remaining 270-second processing allowance with 15 seconds reserved for persistence and a further 30 seconds before the platform's 300-second limit. Late worker handoffs defer to the durable scheduled wake instead of extending the invocation with a timer.
 
+Changes to prior-meal confirmation also require its explicit real decision gate:
+
+```sh
+node --env-file=.env.local --import tsx scripts/real-same-meal-smoke.mjs --real-meta
+```
+
+It checks identical photos/captions, different foods and a changed caption amount through the actual reuse-confirmation service. It permits at most six Meta calls in two minutes, uses licensed fixtures, and writes no database or storage records. Only a completed, strictly boolean confirmation can authorize copying nutrition; inconclusive confirmation continues normal analysis.
+
+Prior nutrition is reused only when every item has finite core nutrition and a matching current-version selection or validated-copy trace for its food-database source. Legacy, incomplete or unproven results remain a historical hint and are analyzed again.
+
 ### Food reference coverage and the real matching gate
 
 Food searches include USDA Survey (FNDDS) prepared foods alongside Foundation, SR Legacy and Branded data, with thirty candidates rather than five. Search caches are versioned: the earlier candidate lists are not reused. Matching distinguishes a compatible generic nutrition reference from a different food or preparation; a rejection gets at most one translated, target-only search. Volume-based records still require a supported mass basis. Selected and unavailable outcomes carry a matcher version in the admin trace.
