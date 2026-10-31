@@ -45,7 +45,10 @@ export class PostUploadDraft {
       }
     }
     const complete = await this.request("/api/posts", { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ postId: pending.id }) });
-    if (!complete.ok) throw new Error("The post could not be completed. Your uploaded photos were kept; try again.");
+    if (!complete.ok) {
+      if (complete.status === 410) this.pending = null;
+      throw new Error(complete.status === 410 ? "The upload draft expired. Your photos were kept; try again." : "The post could not be completed. Your uploaded photos were kept; try again.");
+    }
     return { postId: pending.id };
   }
 }

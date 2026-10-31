@@ -55,5 +55,8 @@ export async function PUT(request: Request) {
     const postId = await publishUpload(createAdminClient(), user.id, body.postId);
     kickoff(request);
     return NextResponse.json({ ok: true, postId });
-  } catch { return NextResponse.json({ error: "The photo upload could not be completed. Your draft was kept; try again." }, { status: 409 }); }
+  } catch (error) {
+    const expired = error instanceof Error && error.name === "UploadExpiredError";
+    return NextResponse.json({ error: expired ? "The upload draft expired. Your photos were kept; try again." : "The photo upload could not be completed. Your draft was kept; try again." }, { status: expired ? 410 : 409 });
+  }
 }

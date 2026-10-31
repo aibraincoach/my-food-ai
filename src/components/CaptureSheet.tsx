@@ -222,6 +222,7 @@ export default function CaptureSheet({ onClose, initialMode = "photo" }: { onClo
     if (!stream || !videoRef.current) { cameraRef.current?.click(); return; }
     setCameraBusy(true);
     try {
+      selectedPhotoRef.current = true;
       const blob = await grabFrame(videoRef.current);
       if (mountedRef.current) await addFiles([new File([blob], "meal.jpg", { type: "image/jpeg" })]);
     } catch {

@@ -12,6 +12,10 @@ export function validUploadShots(value: unknown): value is UploadShot[] {
 }
 export async function publishUpload(db: SupabaseClient, userId: string, operationId: string) {
   const { data, error } = await db.rpc("publish_uploaded_post", { p_operation_id: operationId, p_user_id: userId });
-  if (error || typeof data !== "string") throw new Error("The photo upload could not be completed. Your draft was kept; try again.");
+  if (error || typeof data !== "string") {
+    const failure = new Error("The photo upload could not be completed. Your draft was kept; try again.");
+    if (/expired/i.test(error?.message ?? "")) failure.name = "UploadExpiredError";
+    throw failure;
+  }
   return data;
 }
