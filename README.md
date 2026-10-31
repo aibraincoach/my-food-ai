@@ -98,3 +98,11 @@ All runtime AI calls use the Meta Model API: SAM 3.1 (`sam-3.1`) segments food i
 Camera access, microphone recording, image resizing, deterministic barcode decoding, and notifications use browser features or local code. USDA FoodData Central supplies nutrition database records; it is not an AI model. The app currently has no text-to-speech or spoken output, including OS or browser speech synthesis. No third-party AI voice is used.
 
 Nutrition summaries are formatted from calculated USDA values. Known nutrient sums retain named omissions; model-written nutrition numbers are not published as calculated totals. Food resolution has a shared time budget and records external, cached and reused provenance.
+
+Before merging a model prompt, output-cap or client change, run the explicit paid Meta gate:
+
+```sh
+node --env-file=.env.local --import tsx scripts/real-identify-smoke.mjs --real-meta
+```
+
+It uses licensed evaluation photo 03, real SAM regions and the actual structured identify parser, with at most six Meta requests and a four-minute deadline. It writes no database or storage records. Keep its sanitized head, status, token and latency receipt beside the review; a nonzero exit blocks release. This is separate from the offline unit suite. Photo portions remain estimates.
