@@ -19,7 +19,8 @@ test('a changed caption reaches confirmation before prior nutrition can be copie
   const db=createClient('https://fixture.invalid','fixture-key',{global:{fetch:async input=>{
     const url=new URL(input instanceof Request?input.url:String(input));
     if(url.pathname.endsWith('/rpc/meal_prior_candidates'))return Response.json([{post_id:'past',text_score:1,photo_score:1,distance_m:0}]);
-    if(url.pathname.endsWith('/post_items'))return Response.json([{id:'item',name:'Rice',portion_text:'one bowl',portion_grams:100,confidence:1,item_nutrition:[{calories:130}]}]);
+    if(url.pathname.endsWith('/model_calls'))return Response.json([{request_text:JSON.stringify({event:'food_resolution',name:'Rice',matcherVersion:'fdc-reference-v2'}),response_text:JSON.stringify({source:'selected'}),fdc_id:7,error:null,started_at:'2026-10-31T00:00:00Z'}]);
+    if(url.pathname.endsWith('/post_items'))return Response.json([{id:'item',name:'Rice',portion_text:'one bowl',portion_grams:100,confidence:1,item_nutrition:[{calories:130,protein_g:2,carbs_g:28,fat_g:0,source_ref:'7'}]}]);
     if(url.pathname.endsWith('/post_media'))return Response.json([{storage_path:`owner/${url.searchParams.get('post_id').slice(3)}/0.jpg`,width:10,height:10}]);
     if(url.pathname.includes('/storage/'))return new Response(new Uint8Array([1,2,3]),{headers:{'Content-Type':'image/jpeg'}});
     if(url.pathname.endsWith('/posts'))return Response.json({user_id:'owner',caption:url.searchParams.get('id')==='eq.current'?'Two bowls of rice':'One bowl of rice'});
@@ -44,7 +45,8 @@ test('captionless identical photos reach confirmation but never copy without its
   const db=createClient('https://fixture.invalid','fixture-key',{global:{fetch:async input=>{
     const url=new URL(input instanceof Request?input.url:String(input));
     if(url.pathname.endsWith('/rpc/meal_prior_candidates'))return Response.json([{post_id:'past',text_score:null,photo_score:1,distance_m:null}]);
-    if(url.pathname.endsWith('/post_items'))return Response.json([{id:'item',name:'Rice',portion_grams:100,item_nutrition:[{calories:130}]}]);
+    if(url.pathname.endsWith('/model_calls'))return Response.json([{request_text:JSON.stringify({event:'food_resolution',name:'Rice',matcherVersion:'fdc-reference-v2'}),response_text:JSON.stringify({source:'selected'}),fdc_id:7,error:null,started_at:'2026-10-31T00:00:00Z'}]);
+    if(url.pathname.endsWith('/post_items'))return Response.json([{id:'item',name:'Rice',portion_grams:100,item_nutrition:[{calories:130,protein_g:2,carbs_g:28,fat_g:0,source_ref:'7'}]}]);
     if(url.pathname.endsWith('/post_media'))return Response.json([{storage_path:`owner/${url.searchParams.get('post_id').slice(3)}/0.jpg`,width:10,height:10}]);
     if(url.pathname.includes('/storage/'))return new Response(new Uint8Array([1,2,3]),{headers:{'Content-Type':'image/jpeg'}});
     if(url.pathname.endsWith('/posts'))return Response.json({user_id:'owner',caption:''});

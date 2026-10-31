@@ -122,3 +122,5 @@ node --env-file=.env.local --import tsx scripts/real-same-meal-smoke.mjs --real-
 ```
 
 It checks identical photos/captions, different foods and a changed caption amount through the actual reuse-confirmation service. It permits at most six Meta calls in two minutes, uses licensed fixtures, and writes no database or storage records. Only a completed, strictly boolean confirmation can authorize copying nutrition; inconclusive confirmation continues normal analysis.
+
+Prior nutrition is reused only when every item has finite core nutrition and a matching current-version selection or validated-copy trace for its food-database source. Legacy, incomplete or unproven results remain a historical hint and are analyzed again.
