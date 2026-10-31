@@ -1,8 +1,10 @@
 # Codex review (My Food AI)
 
+Owner-authorized exception, 2026-10-29: Codex was explicitly requested as an additional reviewer on #205 and #206, including again after their real findings are fixed. This narrow instruction overrides the usual third-route/non-OpenAI restriction for those PRs only. First-reviewer receipts remain valid, but do not waive second-reviewer findings. No general waiver or merge authorization follows from it.
+
 Policy: `REVIEW_POLICY.md`. Skill: `skills/codex-review/SKILL.md`. Adapted from naval-association-calgary `docs/review.md`.
 
-Use only when PPLX and AGY are unavailable and no commit on the PR head was authored by OpenAI.
+Outside the explicit owner-authorized exception above, use only when PPLX and AGY are unavailable and no commit on the PR head was authored by OpenAI.
 
 ```bash
 N=<PR>
