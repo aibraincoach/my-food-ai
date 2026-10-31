@@ -33,6 +33,7 @@ Current-version copied nutrition separately preserved two items, source lineage,
 
 ## Unmodified automated item report
 
+<!-- eval-results:start -->
 Run: 2026-10-31T18:12:41.458Z.
 
 Weights below are visual annotations, not measured ground truth.
@@ -159,3 +160,5 @@ Totals: found 3, missed 0, invented 1.
 Overall: found 12, missed 3, invented 14. Ready photos: 10/10.
 
 Non-ready photos are reported as missed expected items because no completed result was available; this includes pipeline failures, not only recognition failures. Unmatched returned names are labeled invented by this mechanical matcher; ingredient-level versus composite-dish naming requires visual review and is not itself proof of hallucination.
+
+<!-- eval-results:end -->
