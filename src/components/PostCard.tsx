@@ -11,6 +11,7 @@ import { currentTraffic } from "@/components/QueueTicker";
 import { useDrinkCard } from "@/components/useDrinkCard";
 import type { DrinkCardData } from "@/lib/intake/hydration";
 import Carousel from "@/components/Carousel";
+import PostMenu from "@/components/PostMenu";
 import { Shimmer } from "@/components/ui/Shimmer";
 
 
@@ -63,6 +64,7 @@ export default function PostCard({ post, analysis, showDate = false }: { post: F
     <div className="flex flex-col gap-2 px-screen-x">
       <div className="flex items-start justify-between gap-2">
         <p className="min-w-0 whitespace-pre-wrap break-words text-body">{post.caption}</p>
+        <PostMenu postId={post.id} caption={post.caption} />
         <time dateTime={post.eaten_at} className="shrink-0 whitespace-nowrap text-meta text-muted">{showDate ? localDate : localClock}</time>
       </div>
       {drink ? <p className="text-detail text-muted">Drank: {drink.ml} ml · {drink.totalMl.toLocaleString("en-US")} ml so far today</p> : post.status === "ready" && post.items.length > 0 && analysis ? analysis : <StatusLine post={post} />}
