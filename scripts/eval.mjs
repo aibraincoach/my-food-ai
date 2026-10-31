@@ -68,6 +68,7 @@ async function main() {
   const sharp = createRequire(require.resolve('next/package.json'))('sharp');
   const { photos } = JSON.parse(await readFile(new URL('../eval/expected.json', import.meta.url), 'utf8'));
   const results = [], owned = [];
+  const rawActual = new Map(); // Preserve legacy scoring inputs in memory; redact only persisted/displayed evidence.
   const startedAt = new Date().toISOString();
   const evidenceDir = process.env.EVAL_OUTPUT_DIR ? resolve(process.env.EVAL_OUTPUT_DIR) : null;
   const repoDir = resolve(new URL('..', import.meta.url).pathname);
@@ -106,6 +107,7 @@ async function main() {
       if (result.state === 'ready') {
         const { data, error } = await admin.from('post_items').select('name,portion_grams,nutrition:item_nutrition(calories,source_ref)').eq('post_id', payload.postId).is('superseded_at', null);
         if (error) throw new Error('Items unavailable');
+        rawActual.set(result, data.map(item => ({ name: item.name, grams: item.portion_grams })));
         result.actual = data.map((item) => { const nutrition = Array.isArray(item.nutrition) ? item.nutrition[0] : item.nutrition; return { name: safe(item.name), grams: item.portion_grams, calories: nutrition?.calories ?? null, sourceRef: nutrition?.source_ref == null ? null : safe(nutrition.source_ref) }; });
       } else process.exitCode = 1;
       try {
@@ -134,7 +136,7 @@ async function main() {
   const lines = [`Run: ${new Date().toISOString()}.`, '', 'Weights below are visual annotations, not measured ground truth.', ''];
   const total = { found: 0, missed: 0, invented: 0 };
   for (const result of results) {
-    const rows = match(result.expected, result.actual);
+    const rows = match(result.expected, rawActual.get(result) ?? result.actual);
     const counts = { found: 0, missed: 0, invented: 0 };
     rows.forEach((row) => { counts[row.status]++; total[row.status]++; });
     lines.push(`## Photo ${result.file}`, '', `Pipeline outcome: ${result.state}; elapsed ${(result.elapsedMs / 1000).toFixed(2)} seconds.`, ...(result.error ? [`Error: ${safe(result.error)}.`] : []), '', '| Expected item | Returned item | Expected grams | Returned grams | Status |', '| --- | --- | ---: | ---: | --- |', ...rows.map((row) => `| ${safe(row.expected?.name)} | ${safe(row.actual?.name)} | ${safe(row.expected?.grams)} | ${safe(row.actual?.grams)} | ${row.status} |`), '', `Totals: found ${counts.found}, missed ${counts.missed}, invented ${counts.invented}.`, '');
