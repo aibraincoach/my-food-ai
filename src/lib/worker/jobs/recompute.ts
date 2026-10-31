@@ -2,7 +2,7 @@ import { resolvePortionNutrition } from "@/lib/nutrition/portion";
 import { ioError } from "@/lib/worker/errors";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { JobRow } from "@/lib/queue/claim";
-import { resolveFoodMatch, traceNutritionReuse } from "@/lib/fdc/match";
+import { resolveFoodMatch, traceNutritionReuse, nutritionResolutionBudget } from "@/lib/fdc/match";
 import { scaleNutrition } from "@/lib/fdc/nutrients";
 import { markReady } from "@/lib/pipeline/persist";
 import { toNumber } from "@/lib/nutrition/totals";
@@ -12,8 +12,9 @@ export default async function recompute(admin: SupabaseClient, job: JobRow): Pro
   const { data: items, error, status: itemsStatus } = await admin.from("current_post_items")
     .select("id,name,portion_grams,portion_text,supersedes").eq("post_id", job.post_id);
   if (error) throw ioError(`recompute items: ${error.message}`, error, itemsStatus);
-  const {data:context,error:contextError,status:contextStatus}=await admin.from("posts").select("caption").eq("id",job.post_id).single();
-  if(contextError)throw ioError("Recompute context could not be read.",contextError,contextStatus);
+ const resolutionBudget=nutritionResolutionBudget();
+  const {data:context,error:contextError,status:contextStatus}=await admin.from("posts").select("caption").eq("id",job.post_id).abortSignal(resolutionBudget).single();
+  if(contextError)throw ioError("Recompute context could not be read.",contextError,resolutionBudget.aborted?503:contextStatus);
   if (items?.length) {
     const { data: existing, error: nutritionError, status: nutritionStatus } = await admin.from("item_nutrition")
       .select("post_item_id,source_ref").in("post_item_id", items.map((item) => item.id));
@@ -28,7 +29,7 @@ export default async function recompute(admin: SupabaseClient, job: JobRow): Pro
         if (retainedError) throw ioError("recompute: retained food could not be saved.", retainedError, retainedStatus);
         continue;
       }
-      const food = await resolveFoodMatch(admin,item.name,context.caption??"");
+      const food = await resolveFoodMatch(admin,item.name,context.caption??"",resolutionBudget);
       const n = scaleNutrition(food, item.portion_grams == null ? null : toNumber(item.portion_grams));
       const { error: writeError, status: writeStatus } = await admin.from("item_nutrition").upsert({
         post_item_id: item.id, calories: n.calories, protein_g: n.proteinG,

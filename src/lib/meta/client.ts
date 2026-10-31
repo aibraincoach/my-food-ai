@@ -185,13 +185,14 @@ export function readResponseOutput(payload: unknown): ResponseOutput {
 }
 
 export async function createResponse(
-  body: Record<string, unknown>
+  body: Record<string, unknown>,
+  options: {signal?:AbortSignal} = {}
 ): Promise<ResponseOutput> {
   const format = (body.text as { format?: { name?: string } } | undefined)?.format?.name;
   const kind: CallKind = format === "correct" ? "spark_correct" : format === "same_meal" ? "spark_same_meal" : (format === "search" || format === "search_query") ? "spark_search" : "spark_identify";
   return recordCall(kind, body, async () => {
     const response = await metaFetch("/responses", {
-      method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body),
+      method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body), signal:options.signal,
     });
     return readResponseOutput(await response.json());
   }, (out) => ({ text: out.outputText, usage: out.usage }));

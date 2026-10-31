@@ -97,12 +97,14 @@ function asFoods(payload: unknown): FdcFood[] {
 // fails at once.
 export async function searchFoods(
   admin: SupabaseClient,
-  query: string
+  query: string,
+  signal?: AbortSignal
 ): Promise<FdcFood[]> {
   const normalized = normalizeQuery(query);
   const key = `fdc-search:${normalized}`;
   const readCache = async (cacheKey: string) => {
-    const {data,error,status}=await admin.from("fdc_cache").select("response").eq("query",cacheKey).maybeSingle<{response:unknown}>();
+    const request=admin.from("fdc_cache").select("response").eq("query",cacheKey);
+    const {data,error,status}=await (signal?request.abortSignal(signal):request).maybeSingle<{response:unknown}>();
     if(error)throw ioError("Food cache could not be read.",error,status);
     return data?.response;
   };
@@ -120,7 +122,7 @@ export async function searchFoods(
     api_key: fdcApiKey(),
   });
   const response = await fetch(
-    `${FDC_BASE_URL}/foods/search?${params.toString()}`
+    `${FDC_BASE_URL}/foods/search?${params.toString()}`, {signal}
   );
   if (!response.ok) {
     throw new ApiError(
@@ -130,10 +132,11 @@ export async function searchFoods(
     );
   }
   const payload = (await response.json()) as unknown;
-  await admin.from("fdc_cache").upsert(
+  const cacheWrite = admin.from("fdc_cache").upsert(
     { query: key, response: {kind:"fdc-search-v1",query:normalized,payload} },
     { onConflict: "query" }
   );
+  await (signal ? cacheWrite.abortSignal(signal) : cacheWrite);
   return asFoods(payload);
   }, (foods) => ({ text: {source:"network",foods} }));
 }

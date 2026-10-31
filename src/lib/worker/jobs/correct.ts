@@ -11,7 +11,7 @@ import { toNumber } from '@/lib/nutrition/totals';
 import { createResponse, MetaApiError } from '@/lib/meta/client';
 import { correctPrompt } from '@/lib/prompts/spark/correct';
 import schema from '@/lib/prompts/spark/correct.schema.json';
-import { resolveFoodMatch, traceNutritionReuse } from '@/lib/fdc/match';
+import { resolveFoodMatch, traceNutritionReuse, nutritionResolutionBudget } from '@/lib/fdc/match';
 import { sumNutrition } from '@/lib/nutrition/totals';
 import { scaleNutrition } from '@/lib/fdc/nutrients';
 import { safeSummary } from '@/lib/pipeline/wording';
@@ -65,8 +65,9 @@ const correct:JobHandler=async(admin,job)=>{
  const response=await createResponse({model:'muse-spark-1.3',instructions:correctPrompt,input:[{type:'message',role:'user',content}],text:{format:{type:'json_schema',name:'correct',schema,strict:true}},max_output_tokens:4096});
  if(response.status!=='completed'||!response.outputText||response.refusal)throw new MetaApiError(500,'Correction did not finish.');
  const result=parse(response.outputText);
- const {data:context,error:contextError,status:contextStatus}=await admin.from("posts").select("caption").eq("id",job.post_id).single();
- if(contextError)throw ioError("Correction context could not be read.",contextError,contextStatus);
+ const resolutionBudget=nutritionResolutionBudget();
+ const {data:context,error:contextError,status:contextStatus}=await admin.from("posts").select("caption").eq("id",job.post_id).abortSignal(resolutionBudget).single();
+ if(contextError)throw ioError("Correction context could not be read.",contextError,resolutionBudget.aborted?503:contextStatus);
  const kept=new Set<string>();
  const rows=[];
  for(const item of result.items){
@@ -85,7 +86,7 @@ const correct:JobHandler=async(admin,job)=>{
    const retained=region?.name===item.name?await resolvePortionNutrition(admin,job.post_id,region.id,item.name,item.portion_grams,item.portion_text):null;
    if(retained)nutrition=retained;
    else {
-   const n=scaleNutrition(await resolveFoodMatch(admin,item.name,context.caption??''),item.portion_grams);
+   const n=scaleNutrition(await resolveFoodMatch(admin,item.name,context.caption??'',resolutionBudget),item.portion_grams);
    nutrition={calories:n.calories,protein_g:n.proteinG,carbs_g:n.carbsG,fat_g:n.fatG,fibre_g:n.fibreG,sugar_g:n.sugarG,sodium_mg:n.sodiumMg,micronutrients:n.micronutrients,source_ref:n.sourceRef};
    }
   }

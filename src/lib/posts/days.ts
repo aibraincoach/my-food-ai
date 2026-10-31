@@ -152,7 +152,7 @@ export async function getDayTotals(db: SupabaseClient, userId: string, zone: str
     }
     if ((data?.length ?? 0) < 1000) break;
   }
-  return [...groups.values()].map(group=>({...group,kcal:group.known===0&&group.missing.length?null:group.kcal}));
+  return [...groups.values()].map(group=>({...group,missing:[...new Set(group.missing)],kcal:group.known===0&&group.missing.length?null:group.kcal}));
 }
 
 export interface MonthDay { day: string; kcal: number | null; posts: number; ready: boolean; missing?:string[]; known?:number }
@@ -200,7 +200,7 @@ export async function getMonthSummary(supabase: SupabaseClient, userId: string, 
     }
     if ((data?.length ?? 0) < 100) break;
   }
-  return { days: [...groups.values()].map(day => ({ ...day, kcal: day.ready && !((day.known??0)===0&&day.missing?.length) ? day.kcal : null })).sort((a, b) => a.day.localeCompare(b.day)), posted: groups.size };
+  return { days: [...groups.values()].map(day => ({ ...day, missing:[...new Set(day.missing??[])], kcal: day.ready && !((day.known??0)===0&&day.missing?.length) ? day.kcal : null })).sort((a, b) => a.day.localeCompare(b.day)), posted: groups.size };
 }
 
 export async function getPostedMonthCounts(supabase: SupabaseClient, userId: string, zone: string): Promise<Record<string, number>> {

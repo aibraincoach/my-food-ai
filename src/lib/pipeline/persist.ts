@@ -7,7 +7,7 @@ import { ioError } from "@/lib/worker/errors";
 // Zero items is a ready post with no rows: the card reads "No food found".
 import { createAdminClient } from "@/lib/supabase/admin";
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { resolveFoodMatch, traceNutritionReuse } from "@/lib/fdc/match";
+import { resolveFoodMatch, traceNutritionReuse, nutritionResolutionBudget } from "@/lib/fdc/match";
 import { sumNutrition } from "@/lib/nutrition/totals";
 import {
   scaleNutrition,
@@ -58,12 +58,13 @@ export async function persistAnalysis(
     box: unknown; mask_path: string | null; confidence: number | null;
     nutrition: ConsumedTotals & { fibre_g: number | null; sugar_g: number | null; sodium_mg: number | null; micronutrients: unknown; source_ref: string | null };
   }[] = [];
-  const {data:context,error:contextError,status:contextStatus}=await admin.from("posts").select("caption").eq("id",named.postId).single();
-  if(contextError)throw ioError("Meal context could not be read.",contextError,contextStatus);
+ const resolutionBudget=nutritionResolutionBudget();
+  const {data:context,error:contextError,status:contextStatus}=await admin.from("posts").select("caption").eq("id",named.postId).abortSignal(resolutionBudget).single();
+  if(contextError)throw ioError("Meal context could not be read.",contextError,resolutionBudget.aborted?503:contextStatus);
   for (const [index,row] of rows.entries()) {
     const copied=copiedNutrition?.[index];
     if(copied)await traceNutritionReuse(row.name,copied,"copied",typeof copied.post_item_id==="string"?copied.post_item_id:undefined);
-    const food=copied?null:await resolveFoodMatch(admin,row.name,context.caption??"");
+    const food=copied?null:await resolveFoodMatch(admin,row.name,context.caption??"",resolutionBudget);
     const scaled = scaleNutrition(food, row.portionGrams);
     items.push({
       name: row.name,

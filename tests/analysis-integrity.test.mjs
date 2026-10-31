@@ -44,3 +44,9 @@ test('primary card omissions describe its displayed nutrients while detail retai
  assert.deepEqual(unavailableFoods(totals),['coffee']);
  assert.deepEqual(totals.missing.fibre_g,['toast']);
 });
+
+test('exhausted shared resolution budget rejects before another lookup, never publishes an unknown match',async()=>{
+ let calls=0;const controller=new AbortController();controller.abort();
+ await assert.rejects(matchFood('food','',{search:async()=>{calls++;return[]},choose:async()=>({id:null,query:null,reason:'none'})},controller.signal),error=>error.status===503);
+ assert.equal(calls,0);
+});
