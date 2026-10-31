@@ -33,7 +33,15 @@ test('terminal recompute failure can be repaired in the correction attempt; expl
  rows=[];const io=Object.assign(new Error('upstream outage'),{status:503});
  await assert.rejects(loadCorrectionItems(db,'post',async()=>{throw io;}),error=>error===io&&isRetriable(error));
 });
-test('the real recompute handler repairs an exhausted predecessor without creating another job',async()=>{
+test('the real recompute handler repairs an exhausted predecessor without creating another job',async(t)=>{
+ const savedFetch=globalThis.fetch,savedKey=process.env.MODEL_API_KEY;
+ process.env.MODEL_API_KEY='fixture-only';
+ globalThis.fetch=async input=>{
+  const url=typeof input==='string'?input:input instanceof URL?input.href:input.url;
+  if(!url.startsWith('https://api.meta.ai/v1/responses'))throw Error('Unexpected model-test request');
+  return Response.json({status:'completed',output:[{type:'message',content:[{type:'output_text',text:JSON.stringify({id:77,query:null,reason:'same food'})}]}]});
+ };
+ t.after(()=>{globalThis.fetch=savedFetch;if(savedKey===undefined)delete process.env.MODEL_API_KEY;else process.env.MODEL_API_KEY=savedKey;});
  const {default:recompute}=await import('../src/lib/worker/jobs/recompute.ts');
  const {loadCorrectionItems}=await import('../src/lib/pipeline/correction-ready.ts');
  const item={id:'edited',name:'rice',portion_grams:50,source:'user',supersedes:null};let nutrition=[],publications=0,writes=0;
