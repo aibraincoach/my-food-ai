@@ -12,7 +12,7 @@ Check before replying.
 
 An order is a problem, stated plainly in human language, and nothing else. The PM says what is wrong and why it matters. The coder decides how to fix it. Do not dress an order up with numbered steps, constraints, done conditions or extra scope. Do not write commands, branch names or execution sequences into it. Rules already held in the contract are not restated in orders.
 
-Attribute an unverified report as a report rather than presenting it as a fact. The PM does not invent technical findings or dictate the coder's implementation. An order to the planner names what it must evaluate and nothing else; the planner knows its job.
+Attribute an unverified report as a report rather than presenting it as a fact. The PM does not invent technical findings or dictate the coder's implementation. An order to the planner names what it must evaluate and nothing else; the planner knows its job. Before acting on a planner evaluation, check each claim against the coder's reports. An unresolved technical gap goes to the coder as a question in the next order; a backlog entry with an open note is not removed on the planner's word. An item assigned to the PM stays with the PM and is not passed into the coder's order. Identify a dispatch's recipient and purpose.
 
 ## Plan execution shape
 

@@ -20,3 +20,14 @@ The ten PRs below merged in ascending order. Gemini 3.8 Flash through PPLX indep
 | [#243](https://github.com/aibraincoach/my-food-ai/pull/243) | `8fef65c7d157df051dd2e64de94a561ae6201b75` | `71105c288cee20557a1b391e5d7a21907190d535` | [BLOCKERS: NONE](https://github.com/aibraincoach/my-food-ai/pull/243#issuecomment-6538996064) |
 | [#244](https://github.com/aibraincoach/my-food-ai/pull/244) | `21f0c0c41278ee009dbe1c984585bf95aa596803` | `373ccb5d80d5ebf8b437ed7cfd21cfd5716bdb46` | [BLOCKERS: NONE](https://github.com/aibraincoach/my-food-ai/pull/244#issuecomment-6540840060) |
 | [#245](https://github.com/aibraincoach/my-food-ai/pull/245) | `2b06b63207f8e8acb931e28928c4fa20315e8202` | `34d905161cd129b30b86d305a91cedf8a183ca27` | [BLOCKERS: NONE](https://github.com/aibraincoach/my-food-ai/pull/245#issuecomment-6540840025) |
+
+## Runtime follow-ups — 2026-10-31
+
+Both fixes received independent Gemini review through PPLX, followed by evidence-based triage. The two model-output failures are distinct. Real Meta smoke results and production acceptance are recorded separately.
+
+| PR | Reviewed head | Merge commit | Same-head final triage |
+| --- | --- | --- | --- |
+| [#246](https://github.com/aibraincoach/my-food-ai/pull/246) | `144dbf336c7412618b72c2ff9a655f4278df04e3` | `3769e7888b785cca8fde5d1e7d2836f264aa2f4c` | [BLOCKERS: NONE after triage](https://github.com/aibraincoach/my-food-ai/pull/246#issuecomment-6540898054) |
+| [#247](https://github.com/aibraincoach/my-food-ai/pull/247) | `b224e9ac89ca1cf14879266227bc2a82c1193aa0` | `b6fa1c278251421112b2db3a3d64c7bc51fde60b` | [BLOCKERS: NONE after triage](https://github.com/aibraincoach/my-food-ai/pull/247#issuecomment-6545317333) |
+| [#248](https://github.com/aibraincoach/my-food-ai/pull/248) | `72fe5b02f00acc3d1086f4ac26ca2a37b6697b3b` | `fa491be094ae145a623d4416cb672ed101543dc5` | [BLOCKERS: NONE after triage](https://github.com/aibraincoach/my-food-ai/pull/248#issuecomment-6545597184) |
+| [#249](https://github.com/aibraincoach/my-food-ai/pull/249) | `1ff60524e51d48285e09c4e097e113597009e2f2` | `edb56d42c8a2b1dad12434a9ae4b46f6820e7a32` | [BLOCKERS: NONE after triage](https://github.com/aibraincoach/my-food-ai/pull/249#issuecomment-6545822136) |
