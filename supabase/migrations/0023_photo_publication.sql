@@ -3,12 +3,13 @@ create table public.post_upload_drafts (
   id uuid primary key,
   user_id uuid not null references public.profiles(id) on delete cascade,
   caption text not null,
-  eaten_at timestamptz not null,
+  eaten_at timestamptz,
   shots jsonb not null,
   location jsonb,
   cleanup_job_id uuid,
   published boolean not null default false,
-  created_at timestamptz not null default clock_timestamp()
+  created_at timestamptz not null default clock_timestamp(),
+  check ((not published and eaten_at is not null) or (published and caption='' and location is null and shots='[]'::jsonb and eaten_at is null and cleanup_job_id is null))
 );
 alter table public.post_upload_drafts enable row level security;
 revoke all on public.post_upload_drafts from anon,authenticated;
@@ -89,7 +90,8 @@ begin
     values(d.id,p_user_id::text||'/'||d.id::text||'/'||(s->>'position')||'.jpg',(s->>'position')::integer,(s->>'width')::integer,(s->>'height')::integer,(s->>'phash')::bigint);
   end loop;
   insert into public.jobs(id,post_id,kind,priority,status) values(d.id,d.id,'analyze',100,'queued');
-  update public.post_upload_drafts set published=true where id=d.id;
+  -- Keep only the ownership/idempotency tombstone, never a second meal payload.
+  update public.post_upload_drafts set published=true,caption='',location=null,shots='[]'::jsonb,eaten_at=null,cleanup_job_id=null where id=d.id;
   return d.id;
 end $$;
 revoke all on function public.reserve_post_upload(uuid,uuid,text,timestamptz,jsonb,jsonb) from public,anon,authenticated;

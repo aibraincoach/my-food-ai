@@ -10,9 +10,19 @@ export interface CreatedPost { postId: string }
 // keep its identifier, encoded bytes and acknowledged uploads, including lost responses.
 export class PostUploadDraft {
   private pending: { id: string; files: File[]; images: Promise<Awaited<ReturnType<typeof reencodeShot>>[]>; completed: Set<string> } | null = null;
+  private active: Promise<CreatedPost> | null = null;
   constructor(private encode = reencodeShot, private request: typeof fetch = (...args) => fetch(...args), private verify = uploadedMatches, private uuid = () => crypto.randomUUID()) {}
 
-  async submit(caption: string, files: File[], location: CapturedLocation | null, eatenAt: string | null, intent: "photo" | "text"): Promise<CreatedPost> {
+  submit(caption: string, files: File[], location: CapturedLocation | null, eatenAt: string | null, intent: "photo" | "text"): Promise<CreatedPost> {
+    if (this.active) return this.active;
+    const operation = this.runSubmit(caption, files, location, eatenAt, intent);
+    this.active = operation;
+    const settled = () => { if (this.active === operation) this.active = null; };
+    void operation.then(settled, settled);
+    return operation;
+  }
+
+  private async runSubmit(caption: string, files: File[], location: CapturedLocation | null, eatenAt: string | null, intent: "photo" | "text"): Promise<CreatedPost> {
     if (intent === "photo" && files.length === 0) throw new Error("The selected photo is not ready. Your draft was kept.");
     if (!this.pending || files.length !== this.pending.files.length || files.some((file, i) => file !== this.pending!.files[i])) {
       this.pending = { id: this.uuid(), files: [...files], images: Promise.all(files.map(file => this.encode(file))), completed: new Set() };
@@ -31,19 +41,33 @@ export class PostUploadDraft {
     if (result.postId !== pending.id || !Array.isArray(result.uploads)) throw new Error("The post draft could not be confirmed. Try again.");
     if (result.completed) return { postId: result.postId };
     if (result.uploads.length !== images.length) throw new Error("The selected photos could not be confirmed. Your draft was kept.");
+    const tasks: { url: string; path: string; blob: Blob }[] = [];
     for (const upload of result.uploads) {
       const image = images[upload.position];
       if (!image) throw new Error("The selected photos could not be confirmed.");
       for (const [url, path, blob] of [[upload.originalSignedUrl, upload.originalPath, image.original], [upload.feedSignedUrl, upload.feedPath, image.feed]] as const) {
-        if (pending.completed.has(path)) continue;
-        let confirmed = false;
-        try { confirmed = (await this.request(url, { method: "PUT", headers: { "Content-Type": "image/jpeg" }, body: blob })).ok; }
-        catch { /* Reconcile an ambiguous upload through the owner's read policy. */ }
-        if (!confirmed) confirmed = await this.verify(path, blob);
-        if (!confirmed) throw new Error("The photo upload failed. Your draft was kept; try again.");
-        pending.completed.add(path);
+        if (!pending.completed.has(path)) tasks.push({ url, path, blob });
       }
     }
+    let cursor = 0;
+    let failure: Error | null = null;
+    const lane = async () => {
+      while (!failure && cursor < tasks.length) {
+        const { url, path, blob } = tasks[cursor++];
+        try {
+          let confirmed = false;
+          try { confirmed = (await this.request(url, { method: "PUT", headers: { "Content-Type": "image/jpeg" }, body: blob })).ok; }
+          catch { /* Reconcile an ambiguous upload through the owner's read policy. */ }
+          if (!confirmed) confirmed = await this.verify(path, blob);
+          if (!confirmed) throw new Error("The photo upload failed. Your draft was kept; try again.");
+          pending.completed.add(path);
+        } catch (error) { failure = error instanceof Error ? error : new Error("The photo upload failed. Your draft was kept; try again."); }
+      }
+    };
+    // Drain both in-flight requests before rejecting. A retry can never race an
+    // earlier lane, and successful copies remain acknowledged for that retry.
+    await Promise.all(Array.from({ length: Math.min(2, tasks.length) }, lane));
+    if (failure) throw failure;
     const complete = await this.request("/api/posts", { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ postId: pending.id }) });
     if (!complete.ok) {
       if (complete.status === 410) this.pending = null;

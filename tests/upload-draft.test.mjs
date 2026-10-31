@@ -76,3 +76,29 @@ test('an expired stage keeps the selected file but starts a fresh operation on e
  await assert.rejects(draft.submit('meal',[file],null,null,'photo'),/expired/);
  assert.deepEqual(await draft.submit('meal',[file],null,null,'photo'),{postId:second});assert.deepEqual(ids,[id,second]);
 });
+test('four photos upload with at most two concurrent PUT requests',async()=>{
+ const files=Array.from({length:4},(_,i)=>new File(['photo'+i],'photo'+i+'.jpg'));
+ const uploads=files.map((_,position)=>({...upload,position,originalPath:`owner/stage/${position}.jpg`,feedPath:`owner/stage/${position}.feed.jpg`,originalSignedUrl:`https://storage.invalid/${position}/original`,feedSignedUrl:`https://storage.invalid/${position}/feed`}));
+ let active=0,maximum=0,puts=0,completed=0;
+ const request=async(url,init)=>{
+  if(init.method==='POST')return response({postId:id,uploads});
+  if(url==='/api/posts'){assert.equal(active,0);completed++;return response({ok:true});}
+  active++;maximum=Math.max(maximum,active);puts++;await new Promise(r=>setTimeout(r,5));active--;return response({});
+ };
+ await new PostUploadDraft(async()=>image,request,async()=>false,()=>id).submit('meal',files,null,null,'photo');
+ assert.equal(maximum,2);assert.equal(puts,8);assert.equal(completed,1);
+});
+test('failure waits for all in-flight PUTs before permitting retry',async()=>{
+ let release;const gate=new Promise(resolve=>release=resolve);let reserves=0,feedCalls=0,settled=false;
+ const request=async(url,init)=>{
+  if(init.method==='POST'){reserves++;return response({postId:id,uploads:[upload]});}
+  if(url==='/api/posts')return response({ok:true});
+  if(url===upload.originalSignedUrl)return response({},503);
+  feedCalls++;await gate;return response({});
+ };
+ const draft=new PostUploadDraft(async()=>image,request,async()=>false,()=>id);
+ const first=draft.submit('meal',[file],null,null,'photo');first.catch(()=>{settled=true});
+ await new Promise(r=>setTimeout(r,10));assert.equal(settled,false);
+ assert.equal(draft.submit('meal',[file],null,null,'photo'),first);assert.equal(reserves,1);assert.equal(feedCalls,1);
+ release();await assert.rejects(first,/upload failed/);assert.equal(settled,true);
+});
