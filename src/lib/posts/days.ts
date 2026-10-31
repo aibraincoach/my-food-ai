@@ -53,7 +53,7 @@ export async function getDays(supabase: SupabaseClient, userId: string, zone: st
         if (date < from || date > through) return null;
         const [items, media] = await Promise.all([
           getCurrentItems(supabase, row.id),
-          supabase.from("post_media").select("storage_path").eq("post_id", row.id).order("position", { ascending: true }).limit(1).maybeSingle(),
+          supabase.from("post_media").select("storage_path").eq("kind","photo").eq("post_id", row.id).order("position", { ascending: true }).limit(1).maybeSingle(),
         ]);
         const path = media.error ? undefined : media.data?.storage_path as string | undefined;
         let photoUrl: string | null = null;
@@ -123,19 +123,19 @@ export async function getLoggedDates(supabase: SupabaseClient, userId: string, z
   return [...dates].sort().map((date) => ({ date }));
 }
 
-export interface FeedDayTotal { day: string; kcal: number | null; ready: boolean }
+export interface FeedDayTotal { day: string; kcal: number | null; ready: boolean; missing?:string[]; known?:number }
 
 // Read all current nutrition for the touched days together, never one query per card.
 // The relationships are inferred from the view's underlying post_items foreign keys.
 export async function getDayTotals(db: SupabaseClient, userId: string, zone: string, dates: string[]): Promise<FeedDayTotal[]> {
   const wanted = [...new Set(dates)].sort();
   if (!wanted.length) return [];
-  const groups = new Map(wanted.map(day => [day, { day, kcal: 0 as number | null, ready: false }]));
+  const groups = new Map(wanted.map(day => [day, { day, kcal: 0 as number | null, ready: false, missing:[] as string[], known:0 }]));
   const lower = `${shiftDay(wanted[0], -1)}T00:00:00Z`;
   const upper = `${shiftDay(wanted.at(-1)!, 2)}T00:00:00Z`;
   for (let offset = 0; ; offset += 1000) {
     const { data, error } = await db.from('posts')
-      .select('id,eaten_at,current_post_items(portion_grams,item_nutrition(post_item_id,calories,protein_g,carbs_g,fat_g,fibre_g,sugar_g,sodium_mg,micronutrients,source_ref))')
+      .select('id,eaten_at,current_post_items(name,portion_grams,item_nutrition(post_item_id,calories,protein_g,carbs_g,fat_g,fibre_g,sugar_g,sodium_mg,micronutrients,source_ref))')
       .eq('user_id', userId).eq('status', 'ready').or('needs_input.is.null,status.eq.failed')
       .gte('eaten_at', lower).lt('eaten_at', upper).order('eaten_at').order('id').range(offset, offset + 999);
     if (error) throw new Error('Day totals could not be loaded.');
@@ -147,15 +147,15 @@ export async function getDayTotals(db: SupabaseClient, userId: string, zone: str
         const nutrients = Array.isArray(item.item_nutrition) ? item.item_nutrition : [item.item_nutrition];
         const nutrition = nutrients[0];
         const value = nutrition ? normalizeStoredNutrition(nutrition as NutritionRow, item.portion_grams).calories : null;
-        group.kcal = group.kcal === null || value == null ? null : group.kcal + Number(value);
+        if(value==null)group.missing.push(item.name); else {group.kcal=(group.kcal??0)+Number(value);group.known++;}
       }
     }
     if ((data?.length ?? 0) < 1000) break;
   }
-  return [...groups.values()];
+  return [...groups.values()].map(group=>({...group,missing:[...new Set(group.missing)],kcal:group.known===0&&group.missing.length?null:group.kcal}));
 }
 
-export interface MonthDay { day: string; kcal: number | null; posts: number; ready: boolean }
+export interface MonthDay { day: string; kcal: number | null; posts: number; ready: boolean; missing?:string[]; known?:number }
 export interface MonthSummary { days: MonthDay[]; posted: number }
 export function shiftMonth(month: string, offset: number): string {
   const date = new Date(`${month}-01T12:00:00Z`);
@@ -177,7 +177,7 @@ export async function getMonthSummary(supabase: SupabaseClient, userId: string, 
   const groups = new Map<string, MonthDay>();
   for (let offset = 0; ; offset += 100) {
     const { data, error } = await supabase.from("posts")
-      .select("id,eaten_at,status,current_post_items(id,portion_grams,item_nutrition(post_item_id,calories,protein_g,carbs_g,fat_g,fibre_g,sugar_g,sodium_mg,micronutrients,source_ref))")
+      .select("id,eaten_at,status,current_post_items(id,name,portion_grams,item_nutrition(post_item_id,calories,protein_g,carbs_g,fat_g,fibre_g,sugar_g,sodium_mg,micronutrients,source_ref))")
       .eq("user_id", userId).in("status", LOGGED_STATUSES)
       .gte("eaten_at", `${shiftDay(from, -1)}T00:00:00Z`).lt("eaten_at", `${shiftDay(through, 2)}T00:00:00Z`)
       .order("eaten_at", { ascending: true }).order("id", { ascending: true }).range(offset, offset + 99);
@@ -185,7 +185,7 @@ export async function getMonthSummary(supabase: SupabaseClient, userId: string, 
     for (const row of data ?? []) {
       const date = dateInZone(row.eaten_at, zone);
       if (date < from || date > through) continue;
-      const day = groups.get(date) ?? { day: date, kcal: 0, posts: 0, ready: false };
+      const day = groups.get(date) ?? { day: date, kcal: 0, posts: 0, ready: false, missing:[],known:0 };
       day.posts++;
       if (row.status === "ready") {
         day.ready = true;
@@ -193,14 +193,14 @@ export async function getMonthSummary(supabase: SupabaseClient, userId: string, 
           const stored = Array.isArray(item.item_nutrition) ? item.item_nutrition[0] : item.item_nutrition;
           const normalized = stored ? normalizeStoredNutrition(stored as NutritionRow, item.portion_grams) : null;
           const calories = normalized?.calories;
-          day.kcal = day.kcal === null || calories == null ? null : day.kcal + Number(calories);
+          if(calories==null)(day.missing??=[]).push(item.name); else {day.kcal=(day.kcal??0)+Number(calories);day.known=(day.known??0)+1;}
         }
       }
       groups.set(date, day);
     }
     if ((data?.length ?? 0) < 100) break;
   }
-  return { days: [...groups.values()].map(day => ({ ...day, kcal: day.ready ? day.kcal : null })).sort((a, b) => a.day.localeCompare(b.day)), posted: groups.size };
+  return { days: [...groups.values()].map(day => ({ ...day, missing:[...new Set(day.missing??[])], kcal: day.ready && !((day.known??0)===0&&day.missing?.length) ? day.kcal : null })).sort((a, b) => a.day.localeCompare(b.day)), posted: groups.size };
 }
 
 export async function getPostedMonthCounts(supabase: SupabaseClient, userId: string, zone: string): Promise<Record<string, number>> {

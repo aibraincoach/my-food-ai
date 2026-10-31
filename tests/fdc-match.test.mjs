@@ -5,12 +5,12 @@ import { chooseBestMatch } from "../src/lib/fdc/nutrients.ts";
 
 const kcal = (value) => [{ nutrientId: 1008, nutrientName: "Energy", unitName: "KCAL", value }];
 
-test("mixed green salad prefers side salad over dressing", () => {
+test("an unqualified green salad does not accept a dressing or a restaurant side salad", () => {
   const foods = [
     { fdcId: 169057, description: "Salad dressing, green goddess, regular", dataType: "SR Legacy", foodNutrients: kcal(427) },
     { fdcId: 172074, description: "McDONALD'S, Side Salad", dataType: "SR Legacy", foodNutrients: kcal(20) },
   ];
-  assert.equal(chooseBestMatch(foods, "mixed green salad")?.fdcId, 172074);
+  assert.equal(chooseBestMatch(foods, "mixed green salad"), null);
 });
 
 test("black coffee prefers zero-cal branded black coffee over soymilk", () => {
