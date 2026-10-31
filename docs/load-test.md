@@ -67,6 +67,21 @@ The results above are the historical Oct 28 production run with the test account
 - No 429 was observed from any service.
 - The deployed worker concurrency was not read from the deployment, so the report says `unknown`; the demo setting stays at one.
 
-## Run 4 status — 2026-10-31
+## Run 4 production test — 2026-10-31
 
-PR #239 merged and migration 0024 was applied in one transaction. Effective concurrency is 1. The independent minute wake remains dormant with zero deployment-configuration rows. The new twenty-post production test has not run: the first breakfast/curry re-logs failed on an incomplete match decision, and the reviewed #246 fix awaits separate exact-head authorization. No throughput, queue-drain success or 429 result is inferred from this unrun test. The Oct 28 table above remains historical evidence.
+Main and production: `34d905161cd129b30b86d305a91cedf8a183ca27`, READY, with a 300-second function duration and effective worker concurrency 1. Migration 0024 was applied in one transaction. The wake was activated at 08:06:22.337 UTC. The test began at 08:06:23.001 UTC and created twenty photo posts through the normal upload/completion path over 113.045 seconds. The harness issued no manual tick or browser-focus wake.
+
+At 08:12:25 UTC, four posts had terminal failures. The wake configuration was removed at 08:13:02.599 UTC as ordered and verified empty; the minute schedule remains registered but cannot send HTTP without its configured origin. The fifteen-minute deadline was 08:21:23 UTC; the final read-only observation was recorded at 08:21:56.989 UTC.
+
+| Result at final read | Posts |
+| --- | ---: |
+| Ready | 0 |
+| Failed | 10 |
+| Processing | 2 |
+| Queued | 8 |
+
+**Failed:** the criterion required all twenty ready. No successful queue drain, worker-stall resolution or throughput is claimed. Initial minute SQL checks succeeded at 08:07, 08:08 and 08:09 while the lease was held; this does not independently demonstrate recovery from a lost worker. The wake remains disabled with zero configured origins.
+
+Two distinct model failures were observed. Photos 01 and 02 completed identification but failed on the match decision's 256-token cap. Reviewed PR #246 raises that matcher cap to 2048 and remains unmerged pending separate exact-head authorization. Photo 03 sometimes exhausted identification's 2048-token initial limit and 4096-token retry, returning incomplete or partial JSON. That second defect is not fixed by #246. This diagnosis used recorded traces, without another model request. Neither the full ten-photo accuracy evaluation nor a clean rate-limit result is inferred from this run.
+
+The separate breakfast and curry re-logs also failed after three attempts each, with no persisted items and unavailable totals. Owner food acceptance remains absent. The Oct 28 table above is retained as historical evidence. Private identifiers and signed URLs are kept out of this document.
