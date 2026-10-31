@@ -1,4 +1,5 @@
 import test from 'node:test';import assert from 'node:assert/strict';
+import {FOOD_MATCH_VERSION} from '../src/lib/fdc/version.ts';
 import {searchFoods} from '../src/lib/fdc/client.ts';import {traceNutritionReuse} from '../src/lib/fdc/match.ts';
 test('network lookup, cache reuse and copied nutrition each write labelled provenance without extra lookup',async()=>{
  const previousFetch=globalThis.fetch,previousUrl=process.env.NEXT_PUBLIC_SUPABASE_URL,previousKey=process.env.SUPABASE_SECRET_KEY,previousFdc=process.env.FDC_API_KEY;
@@ -19,5 +20,10 @@ test('network lookup, cache reuse and copied nutrition each write labelled prove
   assert.equal(network,1);assert.equal(records.length,3);
   assert.deepEqual(records.map(r=>JSON.parse(r.request_text).source),['network','cache','copied']);
   assert.equal(records[2].fdc_id,7);assert.equal(JSON.parse(records[2].request_text).sourceItem,'fixture-item');
+  assert.equal(JSON.parse(records[2].request_text).matcherVersion,undefined,'legacy copy cannot certify the current matcher');
+  await traceNutritionReuse('raw carrots',{source_ref:'7',matcher_version:FOOD_MATCH_VERSION},'copied','fixture-item');
+  assert.equal(JSON.parse(records[3].request_text).matcherVersion,FOOD_MATCH_VERSION);
+  await traceNutritionReuse('raw carrots',{source_ref:'7',matcher_version:FOOD_MATCH_VERSION},'retained','fixture-item');
+  assert.equal(JSON.parse(records[4].request_text).matcherVersion,undefined,'editing does not certify an old match');
  }finally{globalThis.fetch=previousFetch;if(previousUrl===undefined)delete process.env.NEXT_PUBLIC_SUPABASE_URL;else process.env.NEXT_PUBLIC_SUPABASE_URL=previousUrl;if(previousKey===undefined)delete process.env.SUPABASE_SECRET_KEY;else process.env.SUPABASE_SECRET_KEY=previousKey;if(previousFdc===undefined)delete process.env.FDC_API_KEY;else process.env.FDC_API_KEY=previousFdc;}
 });
