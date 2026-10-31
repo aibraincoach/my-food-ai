@@ -54,7 +54,7 @@ Treat the output as a credential: consume it locally and keep it out of logs, is
 
 The following snapshot is retained as history; current deployment and merge state must be checked separately.
 
-> Ordinary configured test-account production sign-in has been exercised successfully. PR #203 adds a cookie-only `scripts/browser-session.mjs`; that script is still unmerged into main. Its removed magic-link fallback is not a supported mode. Never publish session-cookie output.
+> Ordinary configured test-account production sign-in has been exercised successfully. PR #203 adds a cookie-only `scripts/browser-session.mjs`; that script is merged into main and was used in the Oct 31 production UI demonstrations. Its removed magic-link fallback is not a supported mode. Never publish session-cookie output.
 >
 > ## Run 3 delivery status
 >
@@ -144,3 +144,7 @@ node --env-file=.env.local --import tsx scripts/real-correction-smoke.mjs --real
 ```
 
 It replays a photo clarification with zero existing items and a portion correction with two existing items through the real correction request. The schema permits only current source-item indices or null, so a new photo's region cannot be mistaken for an existing item. The gate permits at most four Meta requests in two minutes and keeps trace writes in memory; it writes no database or storage records.
+
+## Production verification
+
+[Ten licensed meal photos and visual adjudication](docs/eval.md), [two UI demonstration runs and limits](docs/demo.md), and [production drain evidence](docs/load-test.md), and [closed-issue acceptance](docs/closed-issue-acceptance.md) distinguish tested runtime commits from later documentation merges.
