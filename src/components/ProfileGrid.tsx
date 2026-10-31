@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { formatNutrition } from "@/lib/nutrition/totals";
+import ProfileNutritionTile from "@/components/ProfileNutritionTile";
 import type { GridPost } from "@/lib/posts/grid";
 
 export function ProfileGrid({ posts }: { posts: GridPost[] }) {
@@ -15,7 +15,7 @@ export function ProfileGrid({ posts }: { posts: GridPost[] }) {
           ) : post.status !== "ready" ? (
             <span className="text-meta text-muted">{post.status === "failed" ? "Could not analyse" : post.status === "needs_input" ? "Needs input" : "Processing"}</span>
           ) : (
-            <span>{formatNutrition(post.calories)} kcal</span>
+            <ProfileNutritionTile post={post} />
           )}
         </Link>
       ))}

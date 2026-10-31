@@ -1,6 +1,6 @@
-export const MAX_WORKER_CONCURRENCY = 4;
+export const MAX_WORKER_CONCURRENCY = 1;
 
-// An unset, blank, fractional, negative or oversized value must never fan out
+// Run 4 fixes worker concurrency at one. An old larger deployment setting must not fan out
 // into an uncontrolled number of claim loops: fall back to one lane.
 export function workerConcurrency(raw: string | undefined): number {
   if (raw === undefined || raw.trim() === "") return 1;

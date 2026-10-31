@@ -17,6 +17,7 @@ export default function MonthGrid({ month, summary, today, selected, onDay }: { 
     <div className="flex items-baseline justify-between px-screen-x" style={{ paddingBottom: tokens.spacing.grid + tokens.spacing.grid / 2 }}>
       <h2 className="text-month">{monthName(month, true)}</h2><span className="text-meta text-muted tabular-nums">{postedLabel(summary.posted)}</span>
     </div>
+    {summary.days.some(day=>day.missing?.length) ? <p className="px-screen-x text-meta text-muted">* Known nutrition shown. Nutrition unavailable: {[...new Set(summary.days.flatMap(day=>day.missing??[]))].join(", ")}</p> : null}
     <div style={{ paddingInline: tokens.spacing["tooltip-x"] }}>
       <div className="grid grid-cols-7 gap-1 pb-1" aria-hidden="true">{["S", "M", "T", "W", "T", "F", "S"].map((label, index) => <span key={index} className="text-center text-bubble text-faint">{label}</span>)}</div>
       <div className="grid grid-cols-7 gap-1">
@@ -27,11 +28,11 @@ export default function MonthGrid({ month, summary, today, selected, onDay }: { 
           const enabled = Boolean(day && date <= today);
           const outlined = date === today || date === selected;
           return <button type="button" key={date} data-day={date} disabled={!enabled} onClick={event => onDay(date, event.currentTarget)}
-            aria-label={`${date}${day ? `, ${day.posts} ${day.posts === 1 ? "post" : "posts"}${day.ready ? `, ${formatNutrition(day.kcal)} kcal` : ""}` : ""}`}
+            aria-label={`${date}${day ? `, ${day.posts} ${day.posts === 1 ? "post" : "posts"}${day.ready ? `, ${formatNutrition(day.kcal)} kcal${day.missing?.length?`, nutrition unavailable: ${[...new Set(day.missing)].join(", ")}`:""}` : ""}` : ""}`}
             className={`flex min-w-0 flex-col justify-between rounded-tile text-left ${day ? "bg-card" : ""} ${date > today ? "text-faint" : "text-text"}`}
             style={{ height: tokens.spacing.tap, padding: `${tokens.spacing.grid}px ${tokens.calendar.padding}px`, border: outlined ? `${tokens.calendar.border}px solid ${tokens.colors.text}` : `${tokens.calendar.border}px solid transparent` }}>
             <span className="text-label font-medium leading-none">{index + 1}</span>
-            <span className="text-cell-kcal text-muted tabular-nums">{day?.ready ? formatDayKcal(day.kcal) : ""}</span>
+            <span className="text-cell-kcal text-muted tabular-nums">{day?.ready ? `${formatDayKcal(day.kcal)}${day.missing?.length?"*":""}` : ""}</span>
           </button>;
         })}
       </div>
