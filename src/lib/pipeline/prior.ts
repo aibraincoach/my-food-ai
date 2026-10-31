@@ -37,7 +37,7 @@ export async function findPrior(admin:SupabaseClient,postId:string):Promise<{hin
   const hint=`Historical reference only (unconfirmed): this user logged this meal before as: ${items.map(item=>`${item.name}, ${item.portion_grams??"unknown"} g`).join("; ")}. Use these names or portions only when the current caption and photo support them. A changed caption takes precedence; never assume the previous portion.`;
   if(best.score<PRIOR.copyThreshold) return {hint};
   const {data:decisions,error:traceError,status:traceStatus}=await admin.from("model_calls")
-    .select("request_text,response_text,fdc_id,error,started_at").eq("post_id",best.post_id).eq("kind","fdc").order("started_at",{ascending:false}).limit(200);
+    .select("request_text,response_text,fdc_id,error,started_at").eq("post_id",best.post_id).eq("kind","fdc").gt("fdc_id",0).like("request_text",'%"event":%').order("started_at",{ascending:false}).limit(200);
   if(traceError) throw ioError("Prior nutrition provenance could not be read.",traceError,traceStatus);
   if(!priorNutritionTrusted(items,decisions??[])) return {hint};
   const {data:post,error:postError,status:postStatus}=await admin.from("posts").select("user_id,caption").eq("id",postId).single();
