@@ -30,7 +30,8 @@ function fixture({signFails=false}={}){
 }
 test('caption-only grid uses current known nutrition and identifies omissions, never old card pixels',async()=>{
  const {db,calls}=fixture();const posts=await getProfileGrid(db,'owner');const meal=posts.find(p=>p.id==='meal');
- assert.equal(meal.photoUrl,null);assert.equal(meal.calories,257.6);assert.deepEqual(new Set(unavailableFoods(sumNutrition(meal.items))),new Set(['coffee','toast']));
+ assert.equal(meal.photoUrl,null);assert.equal(meal.calories,257.6);assert.deepEqual(new Set(unavailableFoods(sumNutrition(meal.items))),new Set(['coffee']));
+ assert.ok(sumNutrition(meal.items).missing.fibre_g.includes('toast'));
  assert.equal(meal.items.length,2);assert.equal(posts.find(p=>p.id==='drink').isDrink,true);
  assert.equal(posts.find(p=>p.id==='photo').photoUrl,'signed:owner/photo/1.feed.jpg');
  assert.deepEqual(calls.find(c=>c.sign).sign,['owner/photo/1.feed.jpg']);
