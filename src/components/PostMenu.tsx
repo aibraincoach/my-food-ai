@@ -3,6 +3,7 @@ import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Sheet } from "@/components/ui/Sheet";
 import { MAX_CAPTION_LENGTH } from "@/lib/posts/caption";
+import { updateCaption } from "@/lib/posts/caption-client";
 
 export default function PostMenu({ postId, caption }: { postId: string; caption: string }) {
   const router = useRouter();
@@ -17,9 +18,7 @@ export default function PostMenu({ postId, caption }: { postId: string; caption:
     if (savingRef.current) return;
     savingRef.current = true; setSaving(true); setError("");
     try {
-      const response = await fetch(`/api/posts/${postId}/caption`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ caption: value }) });
-      if (!response.ok) throw new Error("The caption could not be saved. Try again.");
-      window.dispatchEvent(new CustomEvent("post-created", { detail: { id: postId } }));
+      await updateCaption(postId, value);
       router.refresh(); setOpen(false);
     } catch (e) { setError(e instanceof Error ? e.message : "The caption could not be saved."); }
     finally { savingRef.current = false; setSaving(false); }
