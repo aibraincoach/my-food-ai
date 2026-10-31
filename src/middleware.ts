@@ -1,24 +1,16 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { createServerClient } from "@supabase/ssr";
+import { sessionCookieBridge } from "@/lib/auth/session-cookies";
 
 const PROTECTED = ["/", "/search", "/days", "/profile"];
 
 export async function middleware(request: NextRequest) {
-  const response = NextResponse.next();
+  const session = sessionCookieBridge(request);
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!,
     {
-      cookies: {
-        getAll() {
-          return request.cookies.getAll();
-        },
-        setAll(cookiesToSet) {
-          for (const { name, value, options } of cookiesToSet) {
-            response.cookies.set(name, value, options);
-          }
-        },
-      },
+      cookies: session.cookies,
     }
   );
   const {
@@ -26,9 +18,9 @@ export async function middleware(request: NextRequest) {
   } = await supabase.auth.getUser();
   const pathname = request.nextUrl.pathname;
   if (!user && PROTECTED.some((p) => pathname === p || pathname.startsWith(p + "/"))) {
-    return NextResponse.redirect(new URL("/sign-in", request.url));
+    return session.apply(NextResponse.redirect(new URL("/sign-in", request.url)));
   }
-  return response;
+  return session.response;
 }
 
 export const config = {
