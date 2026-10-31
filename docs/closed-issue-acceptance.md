@@ -1,12 +1,31 @@
 # Closed-issue acceptance audit
 
+Final disposition after the production checks through `4598a0ea51f9478ed6fc49d069ef6b5ff7eb7f81` and publication of this evidence: seven live GitHub issue conditions have supporting production evidence; three remain unproven. All associated implementation PRs below merged. The Home frame-restyling claim attached to backlog number #11 is a separate unproven claim.
+
+| Issue | Merged implementation | Final production disposition |
+| --- | --- | --- |
+| #24 | #80, #178 | MET: the historical healthy twenty-post run and concurrency 1 are published in load-test.md. All twenty reached ready on attempt 1; the automatic scheduled wake was observed. |
+| #106 | #152 | MET: camera-library/time flow, time persistence, feed reordering and day/story evidence; the exact 08:30 story check has historical proof. |
+| #107 | #154 | Controls and three navigation paths passed; independent unfamiliar-user discoverability remains UNPROVEN. |
+| #109 | #159 | MET: a posted day had a marker and six empty days had none. |
+| #13 | #82 | MET: actual item selection, portion editing, changed totals/card and preserved original item/history. |
+| #14 | #86 | MET: actual correction produced a model reply and revised totals while retaining the earlier versions. |
+| #15 | #90 | MET: double-tap and both visible verdicts persisted; down focused the correction composer. |
+| #11 | #83 | MET for the actual Feed issue: new card and analysis updates without refresh. Every Home-frame state in the differently worded backlog row remains UNPROVEN. |
+| #108 | #157 | UNPROVEN: installed-iPhone clock/notch/home-indicator clearance has no physical-device acceptance. |
+| #22 | #94 | UNPROVEN: #94 merged, but actual background notification delivery/open on an installed phone has no acceptance evidence. |
+
+The PM can distinguish completed scope from the remaining hardware, novice and Home-frame checks using this table. Full merge SHAs and the earlier evidence cutoffs follow. Earlier failures are retained as history, rather than current dispositions.
+
+## Initial read-only baseline, 17:03 UTC
+
 Baseline read-only audit captured 2026-10-31T17:03:25.118592+00:00. Main: `edb56d42c8a2b1dad12434a9ae4b46f6820e7a32`. Preserved deployment record: `edb56d42c8a2b1dad12434a9ae4b46f6820e7a32`, `READY` at 2026-10-31T16:33:52.853Z.
 
 The initial baseline used GitHub closure metadata, source and authenticated read-only queries. Later sections explicitly add real production UI writes on runtime `4f51b7afec2ded63374a9615dd6ad5d3b9508bad` and the two demonstration flows through `4598a0ea51f9478ed6fc49d069ef6b5ff7eb7f81`. The baseline read-only limitation does not describe those later tests.
 
 Status reflects the written acceptance condition. Unproven means current production evidence still needs the stated check. Historical closure and implemented code are recorded separately.
 
-| Issue | Actual closure | Implementation merge | Current acceptance | Evidence / remaining gap |
+| Issue | Actual closure | Implementation merge | Baseline acceptance | Evidence / remaining gap |
 |---|---|---|---|---|
 | [#24](https://github.com/aibraincoach/my-food-ai/issues/24) | Direct/manual API, 2026-10-28T23:35:26Z | #80 MERGED `fe7bd84606a66aa3407a084ad11a3931ada49ff8`; #178 MERGED `1fa0af0000ea384fd7e8b1e92ba41984ac28fef3` | **FAILED** | The latest passing20-post numbers are still outside the repository; main docs/load-test.md publishes the earlier7ready/2failed/11queued report and unknown deployed concurrency. The issue was finally closed after that failed run. Current operational drain evidence is positive:20/20ready on attempt1,113.119s creation span, no recorded job errors; this does not repair the published evidence. |
 | [#106](https://github.com/aibraincoach/my-food-ai/issues/106) | PR #152, 2026-10-28T13:47:27Z | #152 MERGED `9aeb9ae4856c38f44c5b096735b52810e11f93ac` | **UNPROVEN** | Historical production acceptance exists on cd21e6be; latest main retains capture When/library flow and detail Time eaten, which was present in the current read-only detail response. The create-at08:30/edit-time/order sequence has not been rerun on the current deployed head. |
@@ -55,7 +74,7 @@ Worker production demonstration update
 
 #14 MET: actual plain-language correction to150grams produced user and model thread entries4.367seconds apart,150g/235.5kcal(displayed236),four lineage rows,preserved original analysis and another changed card hash. The real UI showed original,user and new-model texts.
 
-Evidence: demo/run1/before-edit.json,after-manual-reference.json,after-portion.json,after-thread.json,ui-evidence.json. Audit totals now6MET,1FAILED(publication pending252merge),3UNPROVEN(#107independentnovice,#108physicaliPhone,#22physicalpush).
+Evidence: demo/run1/before-edit.json,after-manual-reference.json,after-portion.json,after-thread.json,ui-evidence.json. Before publication, this intermediate cutoff had six met conditions, one publication condition pending, and three unproven conditions. The consolidated disposition is the table at the beginning of this document.
 
 
 Issue/backlog description mismatch
