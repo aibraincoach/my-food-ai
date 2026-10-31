@@ -1,16 +1,19 @@
 'use client';
 import FirstRunHint from "@/components/FirstRunHint";
-import {useEffect,useRef,useState} from 'react';
+import {useEffect,useLayoutEffect,useRef,useState} from 'react';
 import {useRouter} from 'next/navigation';
 import {createClient} from '@/lib/supabase/client';
 import {sendFeedback,type Verdict} from '@/lib/posts/feedback';
 import {saveFeedbackOptimistically} from '@/lib/posts/feedback-optimistic';
 import {Icon} from '@/components/ui/Icon';
 export default function ThumbsFeedback({postId,modelCommentId,fingerprint}:{postId:string;modelCommentId:string|null;fingerprint:string|null}){
- const router=useRouter();const [verdict,setVerdict]=useState<Verdict|null>(null);const [error,setError]=useState<{revision:string;message:string}|null>(null);const [busyRevision,setBusyRevision]=useState<string|null>(null);const saving=useRef<symbol|null>(null);const revision=JSON.stringify([modelCommentId,fingerprint]);const revisionRef=useRef(revision);const busy=busyRevision===revision;
- useEffect(()=>{let live=true;saving.current=null;revisionRef.current=revision;const client=createClient();
-  const refresh=()=>{void client.from('post_feedback').select('verdict,model_comment_id,item_fingerprint').eq('post_id',postId).maybeSingle().then(({data})=>{if(live&&!saving.current)setVerdict(data?.model_comment_id===modelCommentId&&data?.item_fingerprint===fingerprint?data?.verdict??null:null);});};
-  const onFeedback=(event:Event)=>{const detail=(event as CustomEvent).detail;if(detail?.postId===postId&&!saving.current&&detail.modelCommentId===modelCommentId&&detail.fingerprint===fingerprint)setVerdict(detail.verdict);};
+ const router=useRouter();const [verdict,setVerdict]=useState<Verdict|null>(null);const [error,setError]=useState<{revision:string;message:string}|null>(null);const [busyRevision,setBusyRevision]=useState<string|null>(null);const saving=useRef<symbol|null>(null);const revision=JSON.stringify([postId,modelCommentId,fingerprint]);const revisionRef=useRef(revision);const busy=busyRevision===revision;
+ // Invalidate an old request during commit, before passive subscriptions or
+ // promise callbacks can observe the newly displayed analysis.
+ useLayoutEffect(()=>{saving.current=null;revisionRef.current=revision;return()=>{saving.current=null;revisionRef.current='';};},[revision]);
+ useEffect(()=>{let live=true;const client=createClient();
+  const refresh=()=>{void client.from('post_feedback').select('verdict,model_comment_id,item_fingerprint').eq('post_id',postId).maybeSingle().then(({data})=>{if(live&&revisionRef.current===revision&&!saving.current)setVerdict(data?.model_comment_id===modelCommentId&&data?.item_fingerprint===fingerprint?data?.verdict??null:null);});};
+  const onFeedback=(event:Event)=>{const detail=(event as CustomEvent).detail;if(detail?.postId===postId&&revisionRef.current===revision&&!saving.current&&detail.modelCommentId===modelCommentId&&detail.fingerprint===fingerprint)setVerdict(detail.verdict);};
   window.addEventListener('post-feedback',onFeedback);refresh();return()=>{live=false;window.removeEventListener('post-feedback',onFeedback);};
  },[postId,modelCommentId,fingerprint,revision]);
  const vote=async(value:Verdict)=>{if(saving.current||!modelCommentId||!fingerprint)return;const token=Symbol();const displayedRevision=revision;saving.current=token;setBusyRevision(revision);setError(null);
