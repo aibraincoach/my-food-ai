@@ -2,6 +2,8 @@
 import { unavailableFoods } from "@/lib/nutrition/totals";
 
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
+import {useDeviceTimeZone} from "@/components/LocalTime";
+import {formatLocalTime} from "@/lib/time/local";
 import Link from "next/link";
 import { formatNutrition } from "@/lib/nutrition/totals";
 import { intakeLine } from "@/lib/intake/intake";
@@ -19,6 +21,7 @@ const readWidth = () => Math.min(tokens.spacing.phone, window.innerWidth);
 const serverWidth = () => tokens.spacing.phone;
 
 export default function StoryPlayer({ day, zone, onClose, onDay, cell }: { day: LoggedDay; zone: string; onClose: () => void; onDay: (date: string) => void; cell: () => DOMRect | undefined }) {
+  const clockZone=useDeviceTimeZone();
   const width = useSyncExternalStore(subscribeWidth, readWidth, serverWidth);
   const dialog = useRef<HTMLDialogElement>(null);
   const story = useRef<HTMLDivElement>(null);
@@ -39,7 +42,7 @@ export default function StoryPlayer({ day, zone, onClose, onDay, cell }: { day: 
   const today = dateInZone(new Date(), zone);
   const previous = shiftDay(day.date, -1), next = shiftDay(day.date, 1);
   const post = day.posts[slide];
-  const time = (value: string) => new Date(value).toLocaleTimeString("en", { timeZone: zone, hour: "numeric", minute: "2-digit" });
+  const time = (value: string) => clockZone ? formatLocalTime(value,clockZone) : "";
   const title = new Date(`${day.date}T12:00:00Z`).toLocaleDateString("en", { timeZone: "UTC", weekday: "long", month: "short", day: "numeric" });
   const weekday = new Date(`${day.date}T12:00:00Z`).toLocaleDateString("en", { timeZone: "UTC", weekday: "long" });
   const month = new Date(`${day.date}T12:00:00Z`).toLocaleDateString("en", { timeZone: "UTC", month: "long" });
@@ -124,7 +127,7 @@ export default function StoryPlayer({ day, zone, onClose, onDay, cell }: { day: 
             {photo(post) ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img src={photo(post)!} onError={() => photoFailed(post.photoUrl)} alt={post.caption || "Meal"} className="h-full w-full object-cover" />
-            ) : <ResultsCard unavailable={unavailableFoods(day.totals)} size={width} time={time(post.eatenAt)} calories={post.totals.calories} protein={post.totals.protein_g} carbs={post.totals.carbs_g} fat={post.totals.fat_g} items={post.items.map(item => ({ name: item.name, grams: item.portion_grams == null ? null : Number(item.portion_grams) }))} />}
+            ) : <ResultsCard unavailable={unavailableFoods(post.totals)} size={width} time={time(post.eatenAt)} calories={post.totals.calories} protein={post.totals.protein_g} carbs={post.totals.carbs_g} fat={post.totals.fat_g} items={post.items.map(item => ({ name: item.name, grams: item.portion_grams == null ? null : Number(item.portion_grams) }))} />}
           </div>
           <div className="px-screen-x"><p className="text-body">{post.caption}</p><p className="mt-1 text-meta text-faint">{time(post.eatenAt)}</p></div>
         </div> : <div className="mt-auto flex shrink-0 flex-col gap-7 px-screen-x">
