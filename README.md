@@ -136,3 +136,11 @@ node --env-file=.env.local --import tsx scripts/real-food-match-smoke.mjs --real
 ```
 
 The gate records actual selections and failures; matching a generic reference does not establish the owner's acceptance of a recipe or portion.
+
+A correction-schema change also runs the explicit paid source-association gate:
+
+```sh
+node --env-file=.env.local --import tsx scripts/real-correction-smoke.mjs --real-meta
+```
+
+It replays a photo clarification with zero existing items and a portion correction with two existing items through the real correction request. The schema permits only current source-item indices or null, so a new photo's region cannot be mistaken for an existing item. The gate permits at most four Meta requests in two minutes and keeps trace writes in memory; it writes no database or storage records.
