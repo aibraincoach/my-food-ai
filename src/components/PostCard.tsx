@@ -1,12 +1,11 @@
 "use client";
-import { unavailableFoods } from "@/lib/nutrition/totals";
 
 import Link from "next/link";
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import type { FeedPost } from "@/lib/posts/feed";
-import { formatConsumed, sumNutrition, toNumber } from "@/lib/nutrition/totals";
+import { formatConsumed, sumNutrition } from "@/lib/nutrition/totals";
 import { tokens } from "@/lib/theme/tokens";
-import { ResultsCard } from "@/components/ResultsCard";
+import LiveNutritionCard from "@/components/LiveNutritionCard";
 import { currentTraffic } from "@/components/QueueTicker";
 import { useDrinkCard } from "@/components/useDrinkCard";
 import type { DrinkCardData } from "@/lib/intake/hydration";
@@ -19,22 +18,7 @@ function timeLabel(value: string) {
 }
 
 function CaptionCard({ post, drink }: { post: FeedPost; drink?: DrinkCardData | null }) {
-  const ref = useRef<HTMLDivElement>(null);
-  const [width, setWidth] = useState<number>(tokens.spacing.phone);
-  useEffect(() => {
-    if (!ref.current) return;
-    const observer = new ResizeObserver(([entry]) => {
-      if (entry.contentRect.width > 0) setWidth(entry.contentRect.width);
-    });
-    observer.observe(ref.current);
-    return () => observer.disconnect();
-  }, []);
-  const totals = sumNutrition(post.items);
-  return <div ref={ref} className="aspect-square w-full overflow-hidden bg-card" aria-label="Meal nutrition summary">
-    <ResultsCard unavailable={unavailableFoods(totals)} drink={drink} size={width} time={timeLabel(post.eaten_at)} calories={totals.calories}
-      protein={totals.protein_g} carbs={totals.carbs_g} fat={totals.fat_g}
-      items={post.items.map((item) => ({ name: item.name, grams: item.portion_grams == null ? null : toNumber(item.portion_grams) }))} />
-  </div>;
+  return <LiveNutritionCard items={post.items} eatenAt={post.eaten_at} drink={drink} />;
 }
 
 function StatusLine({ post }: { post: FeedPost }) {
@@ -77,7 +61,7 @@ function StatusLine({ post }: { post: FeedPost }) {
 export default function PostCard({ post, analysis, showDate = false }: { post: FeedPost; analysis?: ReactNode; showDate?: boolean }) {
   const drink = useDrinkCard(post.id, post.status, post.eaten_at);
   return <article className="flex flex-col gap-2" data-post-id={post.id} data-post-status={post.status}>
-    {drink ? <Link href={`/posts/${post.id}`} aria-label="Open drink details" className="block"><CaptionCard post={post} drink={drink} /></Link> : post.slides?.length ? <Carousel slides={post.slides} caption={post.caption} postId={post.id} href={`/posts/${post.id}`} modelCommentId={post.modelCommentId??null} fingerprint={post.analysisFingerprint??null} /> : post.status === "ready" && post.items.length ? <Link href={`/posts/${post.id}`} aria-label="Open meal details" className="block"><CaptionCard post={post} /></Link> : null}
+    {drink ? <Link href={`/posts/${post.id}`} aria-label="Open drink details" className="block"><CaptionCard post={post} drink={drink} /></Link> : post.slides?.length ? <Carousel slides={post.slides} caption={post.caption} postId={post.id} href={`/posts/${post.id}`} modelCommentId={post.modelCommentId??null} fingerprint={post.analysisFingerprint??null} nutrition={post.status === "ready" ? <CaptionCard post={post} /> : <div className="flex aspect-square items-center justify-center bg-card text-detail text-muted">Processing…</div>} /> : post.status === "ready" && post.items.length ? <Link href={`/posts/${post.id}`} aria-label="Open meal details" className="block"><CaptionCard post={post} /></Link> : null}
     <div className="flex flex-col gap-2 px-screen-x">
       <div className="flex items-start justify-between gap-2">
         <p className="min-w-0 whitespace-pre-wrap break-words text-body">{post.caption}</p>
