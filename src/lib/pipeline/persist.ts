@@ -7,9 +7,9 @@ import { ioError } from "@/lib/worker/errors";
 // Zero items is a ready post with no rows: the card reads "No food found".
 import { createAdminClient } from "@/lib/supabase/admin";
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { searchFoods } from "@/lib/fdc/client";
+import { resolveFoodMatch, traceNutritionReuse } from "@/lib/fdc/match";
+import { sumNutrition } from "@/lib/nutrition/totals";
 import {
-  chooseBestMatch,
   scaleNutrition,
 } from "@/lib/fdc/nutrients";
 import { renderResultsCard } from "./results-card";
@@ -58,9 +58,13 @@ export async function persistAnalysis(
     box: unknown; mask_path: string | null; confidence: number | null;
     nutrition: ConsumedTotals & { fibre_g: number | null; sugar_g: number | null; sodium_mg: number | null; micronutrients: unknown; source_ref: string | null };
   }[] = [];
+  const {data:context,error:contextError,status:contextStatus}=await admin.from("posts").select("caption").eq("id",named.postId).single();
+  if(contextError)throw ioError("Meal context could not be read.",contextError,contextStatus);
   for (const [index,row] of rows.entries()) {
-    const foods = copiedNutrition ? [] : await searchFoods(admin, row.name);
-    const scaled = scaleNutrition(chooseBestMatch(foods, row.name), row.portionGrams);
+    const copied=copiedNutrition?.[index];
+    if(copied)await traceNutritionReuse(row.name,copied,"copied",typeof copied.post_item_id==="string"?copied.post_item_id:undefined);
+    const food=copied?null:await resolveFoodMatch(admin,row.name,context.caption??"");
+    const scaled = scaleNutrition(food, row.portionGrams);
     items.push({
       name: row.name,
       portion_text: row.portionText,
@@ -78,14 +82,11 @@ export async function persistAnalysis(
         sodium_mg: scaled.sodiumMg,
         micronutrients: scaled.micronutrients,
         source_ref: scaled.sourceRef,
-        ...(copiedNutrition?.[index] ?? {}),
+        ...(copied ?? {}),
       },
     });
   }
-  const totals = Object.fromEntries(["calories", "protein_g", "carbs_g", "fat_g"].map((key) => {
-    const values = items.map((item) => item.nutrition[key as keyof ConsumedTotals]);
-    return [key, values.some((value) => value === null) ? null : values.reduce<number>((sum, value) => sum + (value ?? 0), 0)];
-  })) as ConsumedTotals;
+  const totals = sumNutrition(items.map(item=>({...item.nutrition,name:item.name})));
   const summary = await safeSummary(named.summary, totals);
   const { error, status } = await admin.rpc("persist_owned_analysis", {
     p_job_id: jobId ?? null,

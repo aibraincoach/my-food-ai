@@ -1,5 +1,4 @@
 import { recordCall } from "@/lib/trace/record";
-import { chooseBestMatch } from "./nutrients";
 // USDA FoodData Central search with a Postgres cache (item 10).
 // Base https://api.nal.usda.gov/fdc/v1, api_key query parameter.
 // 1,000 requests/hour per IP then 429 plus a one-hour block, hence the
@@ -108,12 +107,12 @@ export async function searchFoods(
     return data?.response;
   };
   const cached = await readCache(key) as {kind?:unknown;query?:unknown;payload?:{foods?:unknown}} | undefined;
-  if(cached?.kind==='fdc-search-v1'&&cached.query===normalized&&Array.isArray(cached.payload?.foods))return asFoods(cached.payload);
+  if(cached?.kind==='fdc-search-v1'&&cached.query===normalized&&Array.isArray(cached.payload?.foods))return recordCall("fdc", {query,source:"cache"}, async()=>asFoods(cached.payload), foods=>({text:{source:"cache",foods}}));
   // Old unprefixed search entries remain usable only at their exact query key.
   // A typed entry at that key may belong to another cache namespace, so reject it.
   const legacy = await readCache(normalized) as {kind?:unknown;foods?:unknown} | undefined;
-  if(legacy&&!legacy.kind&&Array.isArray(legacy.foods))return asFoods(legacy);
-  return recordCall("fdc", { query }, async () => {
+  if(legacy&&!legacy.kind&&Array.isArray(legacy.foods))return recordCall("fdc", {query,source:"legacy_cache"}, async()=>asFoods(legacy), foods=>({text:{source:"legacy_cache",foods}}));
+  return recordCall("fdc", { query, source:"network" }, async () => {
   const params = new URLSearchParams({
     query: query.trim(),
     dataType: DATA_TYPES,
@@ -136,7 +135,7 @@ export async function searchFoods(
     { onConflict: "query" }
   );
   return asFoods(payload);
-  }, (foods) => ({ text: foods, fdcId: chooseBestMatch(foods)?.fdcId ?? null }));
+  }, (foods) => ({ text: {source:"network",foods} }));
 }
 
 // The full USDA detail shape carries nutrient.id/name/unitName and amount.
@@ -169,11 +168,11 @@ export async function getFoodById(admin: SupabaseClient, id: number): Promise<Fd
   if (cached) {
     const entry=cached.response as {kind?:unknown;fdcId?:unknown;payload?:unknown};
     try {
-      if(entry?.kind==='fdc-detail-v1'&&entry.fdcId===id)return parseFoodDetail(entry.payload,id);
-      if(entry&&!entry.kind)return parseFoodDetail(entry,id);
+      if(entry?.kind==='fdc-detail-v1'&&entry.fdcId===id)return await recordCall("fdc",{fdcId:id,source:"cache"},async()=>parseFoodDetail(entry.payload,id),food=>({text:{source:"cache",food},fdcId:id}));
+      if(entry&&!entry.kind)return await recordCall("fdc",{fdcId:id,source:"legacy_cache"},async()=>parseFoodDetail(entry,id),food=>({text:{source:"legacy_cache",food},fdcId:id}));
     } catch { /* A legacy search-key collision is a cache miss, never permanent failure. */ }
   }
-  return recordCall("fdc", { fdcId: id }, async () => {
+  return recordCall("fdc", { fdcId: id, source:"network" }, async () => {
   const params = new URLSearchParams({format: "full", api_key: fdcApiKey()});
   const response = await fetch(`${FDC_BASE_URL}/food/${id}?${params}`, {signal: AbortSignal.timeout(30000)});
   if (!response.ok) throw new ApiError(response.status, await response.text(), "Retained food could not be loaded.");

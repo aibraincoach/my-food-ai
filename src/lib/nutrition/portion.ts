@@ -1,3 +1,4 @@
+import {traceNutritionReuse} from "@/lib/fdc/match";
 import type {SupabaseClient} from '@supabase/supabase-js';
 import {getFoodById} from '@/lib/fdc/client';
 import {scaleNutrition, type ScaledNutrition} from '@/lib/fdc/nutrients';
@@ -26,6 +27,7 @@ export async function resolvePortionNutrition(admin: SupabaseClient, postId: str
   if(nutritionError)throw ioError('Prior nutrition could not be read.',nutritionError,nutritionStatus);
   if(row){
    const nutrition=row as NutritionRow;
+   await traceNutritionReuse(name,nutrition,"retained",priorId);
    const hasAmounts=[nutrition.calories,nutrition.protein_g,nutrition.carbs_g,nutrition.fat_g,...(Array.isArray(nutrition.micronutrients)?nutrition.micronutrients:[]).map(n=>n.value)].some(n=>n!=null);
    if (prior.portion_grams == null && grams == null) {
     const volume = (text: unknown) => typeof text === 'string' && /^[0-9]+([.][0-9]+)? ml$/.test(text) ? Number(text.split(' ')[0]) : null;

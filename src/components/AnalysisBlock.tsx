@@ -27,7 +27,7 @@ export default function AnalysisBlock({ post, initiallyOpen = false }: { post: F
         <ul className="flex flex-col gap-px">
           {post.items.map((item) => {
             const portion = itemPortion(item);
-            return <li key={item.id}>{item.name}{portion ? ` · ${portion}` : ""}{` · ${formatNutrition(item.calories)} kcal`}</li>;
+            return <li key={item.id}>{item.name}{portion ? ` · ${portion}` : ""}{` · ${item.calories==null?"unavailable":formatNutrition(item.calories)} kcal`}</li>;
           })}
         </ul>
         <p className="tabular-nums">{macroLine}</p>

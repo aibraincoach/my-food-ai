@@ -1,4 +1,5 @@
 "use client";
+import { unavailableFoods } from "@/lib/nutrition/totals";
 
 import Link from "next/link";
 import { useEffect, useRef, useState, type ReactNode } from "react";
@@ -30,7 +31,7 @@ function CaptionCard({ post, drink }: { post: FeedPost; drink?: DrinkCardData | 
   }, []);
   const totals = sumNutrition(post.items);
   return <div ref={ref} className="aspect-square w-full overflow-hidden bg-card" aria-label="Meal nutrition summary">
-    <ResultsCard drink={drink} size={width} time={timeLabel(post.eaten_at)} calories={totals.calories}
+    <ResultsCard unavailable={unavailableFoods(totals)} drink={drink} size={width} time={timeLabel(post.eaten_at)} calories={totals.calories}
       protein={totals.protein_g} carbs={totals.carbs_g} fat={totals.fat_g}
       items={post.items.map((item) => ({ name: item.name, grams: item.portion_grams == null ? null : toNumber(item.portion_grams) }))} />
   </div>;

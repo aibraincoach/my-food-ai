@@ -14,7 +14,12 @@ export interface NutritionLike {
   sodium_mg: Numeric;
 }
 
+export const NUTRIENT_KEYS = ["calories","protein_g","carbs_g","fat_g","fibre_g","sugar_g","sodium_mg"] as const;
+export type NutrientKey = typeof NUTRIENT_KEYS[number];
+export type MissingNutrition = Partial<Record<NutrientKey, string[]>>;
+
 export interface MealTotals {
+  missing?: MissingNutrition;
   calories: number | null;
   protein_g: number | null;
   carbs_g: number | null;
@@ -47,18 +52,32 @@ export function formatNutrition(value: Numeric): string {
   return amount === null ? "—" : String(Math.round(amount));
 }
 
-export function sumNutrition(items: NutritionLike[]): MealTotals {
+export function sumNutrition(items: (NutritionLike & {name?:string;missing?:MissingNutrition})[]): MealTotals {
   const totals: MealTotals = { calories: 0, protein_g: 0, carbs_g: 0, fat_g: 0, fibre_g: 0, sugar_g: 0, sodium_mg: 0 };
-  for (const item of items) for (const key of Object.keys(totals) as (keyof MealTotals)[]) {
-    const amount = nutritionNumber(item[key]);
-    const subtotal = totals[key];
-    totals[key] = amount === null || subtotal === null ? null : nutritionNumber(subtotal + amount);
+  const missing: MissingNutrition = {};
+  for(const key of NUTRIENT_KEYS){
+    let sum=0, known=0;
+    const omitted=new Set<string>();
+    for(const item of items){
+      const amount=nutritionNumber(item[key]);
+      if(amount===null)omitted.add(item.name||"an item");
+      else {sum+=amount;known++;}
+      for(const name of item.missing?.[key]??[])omitted.add(name);
+    }
+    totals[key]=items.length===0?0:known&&Number.isFinite(sum)?sum:null;
+    if(omitted.size)missing[key]=[...omitted];
   }
+  if(Object.keys(missing).length)totals.missing=missing;
   return totals;
 }
 
+export function unavailableFoods(totals: {missing?:MissingNutrition}): string[] {
+  return [...new Set(Object.values(totals.missing??{}).flat())];
+}
+
 export function formatConsumed(totals: MealTotals): string {
-  return `Consumed: ${formatNutrition(totals.calories)} kcal`;
+  const names=unavailableFoods(totals);
+  return `Consumed: ${totals.calories===null?"unavailable":formatNutrition(totals.calories)} kcal${names.length?` · Nutrition unavailable: ${names.join(", ")}`:""}`;
 }
 
 export function formatGrams(grams: Numeric): string {
@@ -75,34 +94,28 @@ export interface StoredNutrient {
   basis?: "portion";
 }
 
-// Preserve first-seen order and stored units. A nutrient missing from one
-// item is unknown for the whole meal, not a complete sum of the other items.
-export function sumMicronutrients(items: { micronutrients: StoredNutrient[] }[]): { name: string; unit: string; value: number | null }[] {
-  const totals = new Map<string, { name: string; unit: string; value: number | null; count: number }>();
-  for (const item of items) {
-    const contributions = new Map<string, { name: string; unit: string; value: number | null }>();
-    for (const nutrient of item.micronutrients) {
-      const name = nutrient.nutrientName ?? nutrient.name;
-      const unit = nutrient.unitName ?? nutrient.unit;
-      if (!name || !unit) continue;
-      const key = `${nutrient.nutrientId ?? name}:${unit}`;
-      const value = nutritionNumber(nutrient.value);
-      const previous = contributions.get(key);
-      if (!previous) contributions.set(key, { name, unit, value });
-      // Duplicate measurements are not extra consumption. Conflicting values
-      // have no trustworthy choice, so this item's contribution is unknown.
-      else if (previous.value !== value) previous.value = null;
+// Sum available micronutrients, distinguishing unavailable values from measured zero.
+export function sumMicronutrients(items: {name?:string;micronutrients:StoredNutrient[]}[]): {name:string;unit:string;value:number|null;unavailable?:string[]}[] {
+  const identities=new Map<string,{name:string;unit:string}>();
+  const contributions=items.map(item=>{
+    const map=new Map<string,number|null>();
+    for(const n of item.micronutrients){
+      const name=n.nutrientName??n.name,unit=n.unitName??n.unit;
+      if(!name||!unit)continue;
+      const key=`${n.nutrientId??name}:${unit}`;identities.set(key,{name,unit});
+      const value=nutritionNumber(n.value);
+      if(!map.has(key))map.set(key,value);else if(map.get(key)!==value)map.set(key,null);
     }
-    for (const [key, contribution] of contributions) {
-      const previous = totals.get(key);
-      if (!previous) totals.set(key, { ...contribution, count: 1 });
-      else {
-        previous.value = previous.value === null || contribution.value === null ? null : nutritionNumber(previous.value + contribution.value);
-        previous.count++;
-      }
+    return map;
+  });
+  return [...identities].map(([key,identity])=>{
+    let value=0,known=0;const omitted=new Set<string>();
+    for(const [index,map] of contributions.entries()){
+      const amount=map.get(key);
+      if(amount==null)omitted.add(items[index].name??"an item");else {value+=amount;known++;}
     }
-  }
-  return [...totals.values()].map(({ name, unit, value, count }) => ({ name, unit, value: count === items.length ? value : null }));
+    return {...identity,value:known&&Number.isFinite(value)?value:null,...(omitted.size?{unavailable:[...omitted]}:{})};
+  });
 }
 
 export interface CurrentItem extends NutritionLike {
