@@ -1,7 +1,6 @@
 import {ioError,isRetriable} from "@/lib/worker/errors";
 import type {SupabaseClient} from "@supabase/supabase-js";
-import {createResponseRetrying404} from "@/lib/meta/retry404";
-import {sameMealPrompt,sameMealSchema} from "@/lib/prompts/spark/same-meal";
+import {confirmSameMeal} from "@/lib/meta/same-meal";
 import {loadFirstPhoto, type NamedPost} from "./analyze";
 // Preserve the planned relative weights, normalized over available signals.
 // Missing caption/photo/location must not penalize supported photo-only meals.
@@ -47,8 +46,8 @@ export async function findPrior(admin:SupabaseClient,postId:string):Promise<{hin
     if(isRetriable(error)) throw error;
     return {hint};
   }
-  const result=await createResponseRetrying404({model:"muse-spark-1.3",instructions:sameMealPrompt,input:[{role:"user",content:[{type:"input_text",text:JSON.stringify({prior:hint,current_caption:post.caption,past_caption:past.caption,image_order:["current","past"]})},...photos.map(photo=>({type:"input_image",image_url:`data:image/jpeg;base64,${Buffer.from(photo.bytes).toString("base64")}`}))]}],text:{format:{type:"json_schema",name:"same_meal",strict:true,schema:sameMealSchema}},max_output_tokens:128});
-  if(result.status!=="completed"||!result.outputText||JSON.parse(result.outputText).same_meal!==true) return {hint:""};
+  const confirmed=await confirmSameMeal(photos.map(photo=>photo.bytes),{prior:hint,currentCaption:post.caption,pastCaption:past.caption});
+  if(!confirmed) return {hint:""};
   const nutrition=items.map(item=>{const row=Array.isArray(item.item_nutrition)?item.item_nutrition[0]:item.item_nutrition;return row??{};});
   return {hint,nutrition,named:{postId,userId:post.user_id,photoWidth:photos[0].width,photoHeight:photos[0].height,regions:[],
     captionOnly:items.map(item=>({name:item.name,portionText:item.portion_text,portionGrams:item.portion_grams,confidence:item.confidence,regionIndex:null})),
