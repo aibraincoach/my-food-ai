@@ -21,7 +21,8 @@ export default function DayHeader({ day, zone, empty, total }: { day: string; zo
     <header className={`sticky z-10 flex h-tap items-center justify-between border-b border-hairline bg-surface px-screen-x ${empty ? "text-faint" : "text-text"} ${stuck ? "stuck" : ""}`}
       style={{top: `calc(${tokens.spacing['top-h']}px + env(safe-area-inset-top))`, boxShadow: stuck ? tokens.colors['shadow-stuck'] : undefined}}>
       <div className="flex items-baseline gap-2"><span className="text-body font-semibold">{relative ?? label}</span>{relative ? <span className={`text-meta ${empty ? "text-faint" : "text-muted"}`}>{label}</span> : null}</div>
-      <span className={`text-meta tabular-nums ${empty ? "text-faint" : "text-muted"}`}>{empty ? "No posts" : total?.ready ? `Consumed: ${total.kcal === null ? "—" : Math.round(total.kcal).toLocaleString("en-US")} kcal` : ""}</span>
+      <span className={`text-meta tabular-nums ${empty ? "text-faint" : "text-muted"}`}>{empty ? "No posts" : total?.ready ? `Consumed: ${total.kcal === null ? "unavailable" : Math.round(total.kcal).toLocaleString("en-US")} kcal${total.missing?.length?"*":""}` : ""}</span>
     </header>
+    {total?.missing?.length ? <p className="px-screen-x py-grid text-meta text-muted">* Known nutrition shown. Nutrition unavailable: {[...new Set(total.missing)].join(", ")}</p> : null}
   </>;
 }

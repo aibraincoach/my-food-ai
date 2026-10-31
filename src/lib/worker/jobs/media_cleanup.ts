@@ -36,5 +36,11 @@ const cleanup: JobHandler = async (admin, job) => {
     const { error } = await bucket.remove(all.slice(index, index + 100));
     if (error) throw ioError("Discarded meal media could not be removed.", error);
   }
+  // An expired ordinary-upload stage has no post and no reason to retain its
+  // caption/location manifest after every object has been removed. Pack stages
+  // have no such row. A published tombstone or a claimed photo is never deleted.
+  const { error: draftError, status: draftStatus } = await admin.from("post_upload_drafts").delete()
+    .eq("id", postId).eq("user_id", owner).eq("published", false);
+  if (draftError) throw ioError("Discarded upload draft could not be removed.", draftError, draftStatus);
 };
 export default cleanup;
