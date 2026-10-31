@@ -56,6 +56,7 @@ function feedPathFor(storagePath: string): string {
 }
 
 interface PostRow {
+  user_id: string;
   created_at: string;
   id: string;
   caption: string;
@@ -80,7 +81,7 @@ async function toFeedPost(
     .select("storage_path,kind").eq("post_id",row.id).order("position");
   if(mediaError) throw new Error(mediaError.message);
   const slides = (await Promise.all((media ?? []).map(async (entry) => {
-    try { return {url: await feedCopyUrl(supabase, entry.kind === "card" ? entry.storage_path : feedPathFor(entry.storage_path)),kind:entry.kind as "photo"|"card"}; }
+    try { return {url: await feedCopyUrl(supabase, entry.kind === "card" ? entry.storage_path : feedPathFor(entry.storage_path),row.user_id),kind:entry.kind as "photo"|"card"}; }
     catch { return null; }
   }))).filter((entry): entry is {url:string;kind:"photo"|"card"} => entry !== null);
   const photoUrl = slides[0]?.url ?? null;
@@ -115,7 +116,7 @@ export async function getFeed(
   const cursor = before === null ? null : parseFeedCursor(before);
   let query = supabase
     .from("posts")
-    .select("id,caption,eaten_at,status,created_at")
+    .select("id,user_id,caption,eaten_at,status,created_at")
     .eq("user_id", userId).neq("status","needs_input")
     .order("eaten_at", { ascending: false })
     .order("id", { ascending: false })
@@ -137,7 +138,7 @@ export async function getPostCard(
 ): Promise<FeedPost | null> {
   const { data, error } = await supabase
     .from("posts")
-    .select("id,caption,eaten_at,status,created_at")
+    .select("id,user_id,caption,eaten_at,status,created_at")
     .eq("id", postId).or(VISIBLE_MEAL_FILTER)
     .maybeSingle<PostRow>();
   if (error) {
