@@ -1,25 +1,17 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { createServerClient } from "@supabase/ssr";
 import { adminRequestAllowed, adminNotFoundResponse } from "@/lib/auth/admin-access";
+import { sessionCookieBridge } from "@/lib/auth/session-cookies";
 
 const PROTECTED = ["/", "/search", "/days", "/profile"];
 
 export async function middleware(request: NextRequest) {
-  const response = NextResponse.next();
+  const session = sessionCookieBridge(request);
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!,
     {
-      cookies: {
-        getAll() {
-          return request.cookies.getAll();
-        },
-        setAll(cookiesToSet) {
-          for (const { name, value, options } of cookiesToSet) {
-            response.cookies.set(name, value, options);
-          }
-        },
-      },
+      cookies: session.cookies,
     }
   );
   const {
@@ -27,15 +19,13 @@ export async function middleware(request: NextRequest) {
   } = await supabase.auth.getUser();
   const pathname = request.nextUrl.pathname;
   if (pathname === "/admin" || pathname.startsWith("/admin/")) {
-    const allowed = await adminRequestAllowed(user?.id, async () =>
-      supabase.from("profiles").select("role").eq("id", user!.id).maybeSingle(),
-    );
-    if (!allowed) return adminNotFoundResponse(response);
+    const allowed=await adminRequestAllowed(user?.id,async()=>supabase.from("profiles").select("role").eq("id",user!.id).maybeSingle());
+    if(!allowed)return adminNotFoundResponse(session.response);
   }
   if (!user && PROTECTED.some((p) => pathname === p || pathname.startsWith(p + "/"))) {
-    return NextResponse.redirect(new URL("/sign-in", request.url));
+    return session.apply(NextResponse.redirect(new URL("/sign-in", request.url)));
   }
-  return response;
+  return session.response;
 }
 
 export const config = {
