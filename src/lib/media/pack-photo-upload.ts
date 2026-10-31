@@ -4,7 +4,7 @@ import type { SignedUpload } from "./storage";
 
 // A PUT may commit while its response is lost. Reconcile by reading the exact bytes
 // through the signed-in owner's storage policy; do not overwrite an attached photo.
-async function uploadedMatches(path: string, expected: Blob): Promise<boolean> {
+export async function uploadedMatches(path: string, expected: Blob): Promise<boolean> {
   try {
     const { data, error } = await createClient().storage.from("media").download(path);
     if (error || !data || data.size !== expected.size) return false;
