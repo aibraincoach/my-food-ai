@@ -109,4 +109,12 @@ Before merging a model prompt, output-cap or client change, run the explicit pai
 node --env-file=.env.local --import tsx scripts/real-identify-smoke.mjs --real-meta
 ```
 
-It uses licensed evaluation photo 03, real SAM regions and the actual structured identify parser, with at most six Meta requests and a four-minute deadline. It writes no database or storage records. Keep its sanitized head, status, token and latency receipt beside the review; a nonzero exit blocks release. This is separate from the offline unit suite. Photo portions remain estimates.
+It uses licensed evaluation photo 03, real SAM regions and the actual structured identify parser, then the actual food resolver on frozen public USDA candidates from the refined ham failure, with at most eight Meta requests and a four-minute deadline. It writes no database or storage records. Keep its sanitized head, status, token and latency receipt beside the review; a nonzero exit blocks release. Both identify and matcher paths must pass for prompt, cap or client changes; neither a fake provider nor an identify-only run replaces this gate. USDA FoodData Central is a nutrition database, not an AI model. This is separate from the offline unit suite. Photo portions remain estimates.
+
+For changes to meal capacity or execution deadlines, run the complete busy-meal gate as well:
+
+```sh
+node --env-file=.env.local --import tsx scripts/real-identify-smoke.mjs --real-meta --full-meal
+```
+
+This explicit paid mode runs fresh SAM, identification and every identified food through the actual two-lane resolver. USDA search is read-only and its cache exists only in memory. Limits are 80 Meta requests, 40 USDA reads, 262,144 reserved output tokens and 270 seconds; the receipt reports actual usage without asserting a dollar price. No database or storage writes occur. The production nutrition phase gets at most 180 seconds, capped by the invocation's remaining 270-second processing allowance with 15 seconds reserved for persistence and a further 30 seconds before the platform's 300-second limit. Late worker handoffs defer to the durable scheduled wake instead of extending the invocation with a timer.
