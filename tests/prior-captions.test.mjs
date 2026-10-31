@@ -31,6 +31,7 @@ test('a changed caption reaches confirmation before prior nutrition can be copie
     assert.equal(confirmation.current_caption,'Two bowls of rice');
     assert.equal(confirmation.past_caption,'One bowl of rice');
     assert.equal(result.named,undefined,'different portions cannot reuse prior nutrition');
+    assert.equal(result.nutrition,undefined,'unconfirmed quantities cannot receive a certification marker');
   }finally{globalThis.fetch=savedFetch;if(savedKey===undefined)delete process.env.MODEL_API_KEY;else process.env.MODEL_API_KEY=savedKey;}
 });
 
@@ -60,6 +61,7 @@ test('captionless identical photos reach confirmation but never copy without its
     assert.equal(accepted.named.captionOnly[0].portionGrams,100);
     assert.equal(accepted.nutrition[0].calories,130);
     assert.equal(accepted.nutrition[0].post_item_id,'item');
+    assert.equal(accepted.nutrition[0].matcher_version,'fdc-reference-v2');
     currentVersion=false;
     assert.equal((await findPrior(db,'current')).named,undefined,'legacy nutrition is reanalyzed even when photos match');
     assert.equal(calls,2,'untrusted prior cannot reach model approval');

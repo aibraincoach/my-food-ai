@@ -2,6 +2,7 @@ import {ioError,isRetriable} from "@/lib/worker/errors";
 import type {SupabaseClient} from "@supabase/supabase-js";
 import {confirmSameMeal} from "@/lib/meta/same-meal";
 import {priorNutritionTrusted} from "./prior-nutrition";
+import {FOOD_MATCH_VERSION} from "@/lib/fdc/version";
 import {loadFirstPhoto, type NamedPost} from "./analyze";
 // Preserve the planned relative weights, normalized over available signals.
 // Missing caption/photo/location must not penalize supported photo-only meals.
@@ -53,7 +54,7 @@ export async function findPrior(admin:SupabaseClient,postId:string):Promise<{hin
   }
   const confirmed=await confirmSameMeal(photos.map(photo=>photo.bytes),{prior:hint,currentCaption:post.caption,pastCaption:past.caption});
   if(!confirmed) return {hint:""};
-  const nutrition=items.map(item=>{const row=Array.isArray(item.item_nutrition)?item.item_nutrition[0]:item.item_nutrition;return row??{};});
+  const nutrition=items.map(item=>{const row=Array.isArray(item.item_nutrition)?item.item_nutrition[0]:item.item_nutrition;return {...(row as Record<string,unknown>??{}),matcher_version:FOOD_MATCH_VERSION};});
   return {hint,nutrition,named:{postId,userId:post.user_id,photoWidth:photos[0].width,photoHeight:photos[0].height,regions:[],
     captionOnly:items.map(item=>({name:item.name,portionText:item.portion_text,portionGrams:item.portion_grams,confidence:item.confidence,regionIndex:null})),
     summary:items.map(item=>`${item.name} ${item.portion_grams??""} g`).join(" · ")}};
