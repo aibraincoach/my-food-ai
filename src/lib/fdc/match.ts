@@ -3,9 +3,10 @@ import { searchFoods, type FdcFood } from "./client";
 import { gramBasis, hasNutrition } from "./nutrients";
 import { createResponse, MetaApiError } from "@/lib/meta/client";
 import { recordCall } from "@/lib/trace/record";
+import { nutritionBudgetMs, NUTRITION_MAX_MS } from "@/lib/worker/budget";
 
-export const NUTRITION_RESOLUTION_MS = 75_000;
-export const nutritionResolutionBudget = () => AbortSignal.timeout(NUTRITION_RESOLUTION_MS);
+export const NUTRITION_RESOLUTION_MS = NUTRITION_MAX_MS;
+export const nutritionResolutionBudget = () => AbortSignal.timeout(nutritionBudgetMs());
 
 export type MatchChoice = { id: number | null; query: string | null; reason: string };
 export type MatchDependencies = { search: (query: string) => Promise<FdcFood[]>; choose: (name: string, caption: string, foods: FdcFood[], retry: boolean) => Promise<MatchChoice> };

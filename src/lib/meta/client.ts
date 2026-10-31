@@ -1,6 +1,7 @@
 import { recordCall, type CallKind } from "@/lib/trace/record";
 import OpenAI from "openai";
 import { ApiError, isRetriable } from "@/lib/worker/errors";
+import { workerDeadlineSignal } from "@/lib/worker/budget";
 
 // The one fetch wrapper for the Meta Model API (section 4).
 // Base URL https://api.meta.ai/v1, header Authorization: Bearer $MODEL_API_KEY.
@@ -69,7 +70,9 @@ async function bufferedResponse(response: Response, headers = response.headers):
 export function createMetaClient(): OpenAI {
   return new OpenAI({ baseURL: META_API_BASE_URL, apiKey: metaApiKey(), timeout: TIMEOUT_MS, maxRetries: MAX_RETRIES,
     fetch: async (input, init) => {
-      const response = await fetch(input, init);
+      const signal = workerDeadlineSignal(init?.signal ?? undefined);
+      signal?.throwIfAborted();
+      const response = await fetch(input, { ...init, signal });
       const wait = retryAfterSeconds(response.headers);
       const headers = new Headers(response.headers);
       const noRetry = !retryable(response.status) || (wait !== null && wait > MAX_RETRY_AFTER_S);
@@ -88,11 +91,13 @@ export function createMetaClient(): OpenAI {
 export async function metaFetch(path: string, init: RequestInit = {}): Promise<Response> {
   const headers = new Headers(init.headers);
   headers.set("Authorization", `Bearer ${metaApiKey()}`);
+  const callerSignal = workerDeadlineSignal(init.signal ?? undefined);
   for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
     let response: Response | undefined;
     const timeout = AbortSignal.timeout(TIMEOUT_MS);
-    const signal = init.signal ? AbortSignal.any([init.signal, timeout]) : timeout;
+    const signal = callerSignal ? AbortSignal.any([callerSignal, timeout]) : timeout;
     try {
+      signal.throwIfAborted();
       response = await fetch(`${META_API_BASE_URL}${path}`, { ...init, headers, signal });
       const wait = retryAfterSeconds(response.headers);
       // Retryable error responses can be cancelled immediately below; all
@@ -101,7 +106,7 @@ export async function metaFetch(path: string, init: RequestInit = {}): Promise<R
         && (wait === null || wait <= MAX_RETRY_AFTER_S);
       if (!willRetry) response = await bufferedResponse(response);
     } catch (error) {
-      if (init.signal?.aborted) throw error;
+      if (callerSignal?.aborted) throw error;
       if (response && !response.ok) {
         const wait = retryAfterSeconds(response.headers);
         if (!retryable(response.status) || (wait !== null && wait > MAX_RETRY_AFTER_S))
@@ -117,10 +122,10 @@ export async function metaFetch(path: string, init: RequestInit = {}): Promise<R
     if (attempt < MAX_RETRIES && retryable(response.status) && (wait === null || wait <= MAX_RETRY_AFTER_S)) {
       await response.body?.cancel();
       await new Promise<void>((resolve, reject) => {
-        const abort = () => { clearTimeout(timer); reject(init.signal?.reason); };
-        const timer = setTimeout(() => { init.signal?.removeEventListener("abort", abort); resolve(); }, (wait ?? 0.5) * 1000);
-        if (init.signal?.aborted) abort();
-        else init.signal?.addEventListener("abort", abort, { once: true });
+        const abort = () => { clearTimeout(timer); reject(callerSignal?.reason); };
+        const timer = setTimeout(() => { callerSignal?.removeEventListener("abort", abort); resolve(); }, (wait ?? 0.5) * 1000);
+        if (callerSignal?.aborted) abort();
+        else callerSignal?.addEventListener("abort", abort, { once: true });
       });
       continue;
     }
