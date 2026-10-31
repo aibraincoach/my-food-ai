@@ -149,9 +149,10 @@ export async function identifyItems(
     if (out.refusal) {
       throw new MetaApiError(500, "spark: model refused the identify call.");
     }
-    if (out.status === "incomplete" && maxTokens < 4096) {
-      // Raise the token ceiling and retry.
-      maxTokens = 4096;
+    if (out.status === "incomplete" && maxTokens < 8192) {
+      // Reasoning shares the output ceiling. Busy licensed fixture 03 exhausted 4096.
+      // Keep the same one escalation and existing per-call timeout.
+      maxTokens = 8192;
       continue;
     }
     if (out.status !== "completed" || out.outputText === null) {
