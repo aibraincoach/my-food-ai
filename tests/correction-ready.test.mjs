@@ -44,12 +44,13 @@ test('the real recompute handler repairs an exhausted predecessor without creati
  t.after(()=>{globalThis.fetch=savedFetch;if(savedKey===undefined)delete process.env.MODEL_API_KEY;else process.env.MODEL_API_KEY=savedKey;});
  const {default:recompute}=await import('../src/lib/worker/jobs/recompute.ts');
  const {loadCorrectionItems}=await import('../src/lib/pipeline/correction-ready.ts');
- const item={id:'edited',name:'rice',portion_grams:50,source:'user',supersedes:null};let nutrition=[],publications=0,writes=0;
+ const item={id:'edited',name:'rice',portion_grams:50,source:'user',supersedes:null};
+ const secondItem={...item,id:'second-edit',portion_grams:25};let nutrition=[],publications=0,writes=0;let batch;
  const db=createClient('http://127.0.0.1:1','fixture',{global:{fetch:async(input,init)=>{
   const url=new URL(input);const path=url.pathname;
-  if(path.endsWith('/current_post_items'))return Response.json([item]);
+  if(path.endsWith('/current_post_items'))return Response.json([item,secondItem]);
   if(path.endsWith('/item_nutrition')){
-   if(init?.method==='POST'){writes++;nutrition=[JSON.parse(init.body)];return new Response(null,{status:201});}
+   if(init?.method==='POST'){writes++;batch=JSON.parse(init.body);assert.ok(Array.isArray(batch),'recompute publishes one atomic nutrition batch');nutrition=batch;return new Response(null,{status:201});}
    return Response.json(nutrition);
   }
   if(path.endsWith('/fdc_cache'))return Response.json({response:{foods:[{fdcId:77,description:'rice',dataType:'Foundation',foodNutrients:[{nutrientId:1008,nutrientName:'Energy',unitName:'KCAL',value:200}]}]}});
@@ -61,6 +62,7 @@ test('the real recompute handler repairs an exhausted predecessor without creati
  }}});
  const job={id:'current-correction',post_id:'post',kind:'correct',status:'running',payload:{}};
  const items=await loadCorrectionItems(db,'post',()=>recompute(db,job));
- assert.equal(items[0].calories,100);assert.equal(writes,1);assert.equal(publications,1);
+ assert.equal(items[0].calories,100);assert.equal(items[1].calories,50);assert.equal(writes,1);assert.equal(publications,1);
+ assert.deepEqual(batch.map(row=>[row.post_item_id,row.calories]),[['edited',100],['second-edit',50]]);
  await loadCorrectionItems(db,'post',()=>recompute(db,job));assert.equal(writes,1);
 });
