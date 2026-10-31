@@ -198,6 +198,27 @@
     ]
   },
   {
+    "name": "cooked spaghetti",
+    "caption": "Plain spaghetti.",
+    "requires": [
+      [
+        "pasta",
+        "spaghetti"
+      ],
+      [
+        "cook"
+      ]
+    ],
+    "rejects": [
+      "squash",
+      "spinach",
+      "fortified",
+      "sauce",
+      "meat",
+      "dry"
+    ]
+  },
+  {
     "name": "ceramic plate",
     "caption": "An empty ceramic plate, no food.",
     "unavailable": true
