@@ -9,6 +9,7 @@ test('only complete current-version nutrition with selected matching provenance 
  assert.equal(priorNutritionTrusted([{...item,item_nutrition:JSON.stringify(nutrition)}],[trace()]),false);
  for(const key of ['calories','protein_g','carbs_g','fat_g'])for(const invalid of [null,undefined,NaN,Infinity,-1])assert.equal(priorNutritionTrusted([{...item,item_nutrition:[{...nutrition,[key]:invalid}]}],[trace()]),false);
  assert.equal(priorNutritionTrusted([item],[trace({matcherVersion:'legacy'})]),false);
+ assert.equal(priorNutritionTrusted([item],[trace({matcherVersion:'fdc-reference-v2'})]),false,'pre-component-coverage decisions cannot authorize reuse');
  assert.equal(priorNutritionTrusted([item],[trace({name:'Other food'})]),false);
  assert.equal(priorNutritionTrusted([item],[trace({}, {},{fdc_id:8})]),false);
  assert.equal(priorNutritionTrusted([item],[trace({event:undefined,source:'cache'})]),false);
