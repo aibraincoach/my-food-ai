@@ -3,6 +3,7 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { endCurrentSession } from "@/lib/auth/end-session";
 
 function fail(path: string, message: string): never {
   redirect(`${path}?error=${encodeURIComponent(message)}`);
@@ -54,6 +55,6 @@ export async function signIn(formData: FormData): Promise<void> {
 
 export async function signOut() {
   const supabase = await createClient();
-  await supabase.auth.signOut();
+  await endCurrentSession(supabase.auth);
   redirect("/sign-in");
 }
