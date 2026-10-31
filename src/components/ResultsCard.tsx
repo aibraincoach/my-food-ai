@@ -5,7 +5,7 @@ import { tokens } from '@/lib/theme/tokens';
 
 export type ResultsCardProps = {
   drink?: DrinkCardData | null;
-  time: string;
+  time?: string;
   calories: number | null;
   protein: number | null;
   carbs: number | null;
@@ -28,7 +28,7 @@ export function ResultsCard({ drink, time, calories, protein, carbs, fat, items,
     <span style={{ fontWeight: tokens.card.emphasisWeight }}>{formatNutrition(value)} g</span><span style={{ color: tokens.colors.muted }}>{word}</span>
   </div>;
   return <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between', width: size, height: size, padding: tokens.spacing['card-padding'] * scale, boxSizing: 'border-box', background: tokens.colors.card, color: tokens.colors.text, fontFamily }}>
-    <div style={{ display: 'flex', ...text('meta'), color: tokens.colors.muted, letterSpacing: tokens.card.labelTracking * scale, textTransform: 'uppercase' }}>{drink ? "DRANK" : "CONSUMED"} · {time}</div>
+    <div style={{ display: 'flex', ...text('meta'), color: tokens.colors.muted, letterSpacing: tokens.card.labelTracking * scale, textTransform: 'uppercase' }}>{drink ? "DRANK" : "CONSUMED"}{time ? ` · ${time}` : ""}</div>
     <div style={{ display: 'flex', flexDirection: 'column' }}>
       <div style={{ display: 'flex', ...text('display-card') }}>{drink ? drink.totalMl.toLocaleString("en-US") : formatNutrition(calories)}</div>
       <div style={{ display: 'flex', ...text('body'), color: tokens.colors.muted }}>{drink ? "ml so far today" : "kcal"}</div>

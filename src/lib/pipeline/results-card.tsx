@@ -40,7 +40,6 @@ export async function renderResultsCard(admin: SupabaseClient, postId: string, j
   const size = tokens.card.outputSize;
   const response = new ImageResponse(<ResultsCard
     size={size} fontFamily="Manrope" drink={drink}
-    time={new Date(snapshot.eaten_at).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", timeZone: zone }) + (zone === "UTC" ? " UTC" : "")}
     calories={totals.calories} protein={totals.protein_g} carbs={totals.carbs_g} fat={totals.fat_g}
     items={snapshot.items.map(({ item }) => ({ name: item.name, grams: item.portion_grams == null ? null : toNumber(item.portion_grams) }))}
   />, { width: size, height: size, fonts: [

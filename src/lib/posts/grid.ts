@@ -5,14 +5,17 @@ import { getCurrentItems, sumNutrition } from "@/lib/nutrition/totals";
 export interface GridPost {
   id: string;
   caption: string;
+  eaten_at: string;
   status: string;
   photoUrl: string | null;
+  photoKind: "photo"|"card"|null;
   calories: number | null;
 }
 
 interface GridRow {
   id: string;
   caption: string;
+  eaten_at: string;
   status: string;
   post_media: { position: number; storage_path: string; kind: "photo" | "card" }[];
 }
@@ -24,7 +27,7 @@ export async function getProfileGrid(supabase: SupabaseClient, userId: string): 
   const pageSize = 100;
   for (let offset = 0; ; offset += pageSize) {
     const { data, error } = await supabase.from("posts")
-      .select("id,caption,status,post_media(position,storage_path,kind)")
+      .select("id,caption,eaten_at,status,post_media(position,storage_path,kind)")
       .eq("user_id", userId)
       .order("eaten_at", { ascending: false })
       .order("id", { ascending: false })
@@ -47,6 +50,8 @@ export async function getProfileGrid(supabase: SupabaseClient, userId: string): 
       return {
         id: row.id,
         caption: row.caption,
+        eaten_at: row.eaten_at,
+        photoKind: first?.kind ?? null,
         status: row.status,
         photoUrl,
         calories: row.status === "ready"

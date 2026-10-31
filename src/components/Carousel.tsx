@@ -2,9 +2,10 @@
 import {useState} from "react";
 import Link from "next/link";
 import DoubleTap from "@/components/DoubleTap";
+import {NutritionImage} from "@/components/NutritionImage";
 import {tokens} from "@/lib/theme/tokens";
 export type Slide = {url:string;kind?:"photo"|"card"};
-export default function Carousel({slides,caption,postId,href,modelCommentId,fingerprint}:{slides:Slide[];caption:string;postId:string;href?:string;modelCommentId:string|null;fingerprint:string|null}) {
+export default function Carousel({slides,caption,postId,href,modelCommentId,fingerprint,eatenAt}:{slides:Slide[];caption:string;postId:string;href?:string;modelCommentId:string|null;fingerprint:string|null;eatenAt:string}) {
   const [index,setIndex]=useState(0);
   return <div className="relative">
     <div className="flex snap-x snap-mandatory overflow-x-auto" onScroll={event=>{
@@ -16,11 +17,9 @@ export default function Carousel({slides,caption,postId,href,modelCommentId,fing
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src={slide.url} alt={caption||`Meal photo ${i+1}`} className="h-full w-full object-cover" />
         </DoubleTap> : href ? <Link href={href} aria-label="Open meal details" className="block h-full w-full">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={slide.url} alt="Consumed nutrition" className="h-full w-full object-cover" />
+        <NutritionImage url={slide.url} eatenAt={eatenAt} label="CONSUMED" />
         </Link> : <>
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={slide.url} alt="Consumed nutrition" className="h-full w-full object-cover" />
+        <NutritionImage url={slide.url} eatenAt={eatenAt} label="CONSUMED" />
         </>}
       </div>)}
     </div>

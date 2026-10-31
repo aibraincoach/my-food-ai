@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
+import {useDeviceTimeZone} from "@/components/LocalTime";
+import {formatLocalTime} from "@/lib/time/local";
 import Link from "next/link";
 import { formatNutrition } from "@/lib/nutrition/totals";
 import { intakeLine } from "@/lib/intake/intake";
@@ -18,6 +20,7 @@ const readWidth = () => Math.min(tokens.spacing.phone, window.innerWidth);
 const serverWidth = () => tokens.spacing.phone;
 
 export default function StoryPlayer({ day, zone, onClose, onDay, cell }: { day: LoggedDay; zone: string; onClose: () => void; onDay: (date: string) => void; cell: () => DOMRect | undefined }) {
+  const clockZone=useDeviceTimeZone();
   const width = useSyncExternalStore(subscribeWidth, readWidth, serverWidth);
   const dialog = useRef<HTMLDialogElement>(null);
   const story = useRef<HTMLDivElement>(null);
@@ -38,7 +41,7 @@ export default function StoryPlayer({ day, zone, onClose, onDay, cell }: { day: 
   const today = dateInZone(new Date(), zone);
   const previous = shiftDay(day.date, -1), next = shiftDay(day.date, 1);
   const post = day.posts[slide];
-  const time = (value: string) => new Date(value).toLocaleTimeString("en", { timeZone: zone, hour: "numeric", minute: "2-digit" });
+  const time = (value: string) => clockZone ? formatLocalTime(value,clockZone) : "";
   const title = new Date(`${day.date}T12:00:00Z`).toLocaleDateString("en", { timeZone: "UTC", weekday: "long", month: "short", day: "numeric" });
   const weekday = new Date(`${day.date}T12:00:00Z`).toLocaleDateString("en", { timeZone: "UTC", weekday: "long" });
   const month = new Date(`${day.date}T12:00:00Z`).toLocaleDateString("en", { timeZone: "UTC", month: "long" });

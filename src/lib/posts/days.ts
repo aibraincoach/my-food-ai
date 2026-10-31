@@ -53,7 +53,7 @@ export async function getDays(supabase: SupabaseClient, userId: string, zone: st
         if (date < from || date > through) return null;
         const [items, media] = await Promise.all([
           getCurrentItems(supabase, row.id),
-          supabase.from("post_media").select("storage_path").eq("post_id", row.id).order("position", { ascending: true }).limit(1).maybeSingle(),
+          supabase.from("post_media").select("storage_path").eq("kind","photo").eq("post_id", row.id).order("position", { ascending: true }).limit(1).maybeSingle(),
         ]);
         const path = media.error ? undefined : media.data?.storage_path as string | undefined;
         let photoUrl: string | null = null;
