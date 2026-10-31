@@ -93,6 +93,8 @@ Run 3 is merged and deployed. Production checks recorded autonomous test-account
 
 ## Runtime AI and browser features
 
-All runtime AI calls use the Meta Model API: SAM 3.1 (`sam-3.1`) segments food in photos; Muse Spark 1.3 (`muse-spark-1.3`) identifies foods and portions, interprets corrections and searches, checks repeat meals, and checks generated wording; Muse Voice Transcribe 1.0 (`muse-voice-transcribe-1.0`) transcribes recorded corrections. The OpenAI-compatible SDK is a client for Meta's endpoint, not a call to an OpenAI model.
+All runtime AI calls use the Meta Model API: SAM 3.1 (`sam-3.1`) segments food in photos; Muse Spark 1.3 (`muse-spark-1.3`) identifies foods and portions, interprets corrections and searches, checks repeat meals, and selects compatible food-database records with an explicit no-match result; Muse Voice Transcribe 1.0 (`muse-voice-transcribe-1.0`) transcribes recorded corrections. The OpenAI-compatible SDK is a client for Meta's endpoint, not a call to an OpenAI model.
 
 Camera access, microphone recording, image resizing, deterministic barcode decoding, and notifications use browser features or local code. USDA FoodData Central supplies nutrition database records; it is not an AI model. The app currently has no text-to-speech or spoken output, including OS or browser speech synthesis. No third-party AI voice is used.
+
+Nutrition summaries are formatted from calculated USDA values. Known nutrient sums retain named omissions; model-written nutrition numbers are not published as calculated totals. Food resolution has a shared time budget and records external, cached and reused provenance.

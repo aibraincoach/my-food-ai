@@ -11,9 +11,11 @@ import { toNumber } from '@/lib/nutrition/totals';
 import { createResponse, MetaApiError } from '@/lib/meta/client';
 import { correctPrompt } from '@/lib/prompts/spark/correct';
 import schema from '@/lib/prompts/spark/correct.schema.json';
-import { searchFoods } from '@/lib/fdc/client';
-import { chooseBestMatch, scaleNutrition } from '@/lib/fdc/nutrients';
-import { safeSummary, type ConsumedTotals } from '@/lib/pipeline/wording';
+import { resolveNutritionItems } from "@/lib/fdc/resolve-items";
+import { resolveFoodMatch, traceNutritionReuse, nutritionResolutionBudget } from '@/lib/fdc/match';
+import { sumNutrition } from '@/lib/nutrition/totals';
+import { scaleNutrition } from '@/lib/fdc/nutrients';
+import { safeSummary } from '@/lib/pipeline/wording';
 import { correctionWindow, correctionReply } from '@/lib/pipeline/correction-state';
 import { markReady } from '@/lib/pipeline/persist';
 import { boundedHistory } from '@/lib/pipeline/history-budget';
@@ -64,9 +66,11 @@ const correct:JobHandler=async(admin,job)=>{
  const response=await createResponse({model:'muse-spark-1.3',instructions:correctPrompt,input:[{type:'message',role:'user',content}],text:{format:{type:'json_schema',name:'correct',schema,strict:true}},max_output_tokens:4096});
  if(response.status!=='completed'||!response.outputText||response.refusal)throw new MetaApiError(500,'Correction did not finish.');
  const result=parse(response.outputText);
+ const resolutionBudget=nutritionResolutionBudget();
+ const {data:context,error:contextError,status:contextStatus}=await admin.from("posts").select("caption").eq("id",job.post_id).abortSignal(resolutionBudget).single();
+ if(contextError)throw ioError("Correction context could not be read.",contextError,resolutionBudget.aborted?503:contextStatus);
  const kept=new Set<string>();
- const rows=[];
- for(const item of result.items){
+ const resolutionItems=result.items.map(item=>{
   const old=item.keep?items.find(i=>i.id===item.keep):undefined;
   if(item.keep&&(!old||kept.has(item.keep)||old.name!==item.name||old.portion_text!==item.portion_text||(old.portion_grams==null?null:toNumber(old.portion_grams))!==item.portion_grams))throw new MetaApiError(500,'Correction changed an item marked unchanged.');
   if(item.keep)kept.add(item.keep);
@@ -76,20 +80,23 @@ const correct:JobHandler=async(admin,job)=>{
   // PM decision (item 16): a new item sharing a prior item's name is that item.
   const named=items.filter(prior=>prior.name===item.name);
   const region=item.region_index===null?(named.length===1?named[0]:undefined):items[item.region_index];
+  return {item,old,region};
+ });
+ const rows=await resolveNutritionItems(resolutionItems,resolutionBudget,async({item,old,region},_index,signal)=>{
   let nutrition;
   if(old)nutrition={calories:old.calories,protein_g:old.protein_g,carbs_g:old.carbs_g,fat_g:old.fat_g,fibre_g:old.fibre_g,sugar_g:old.sugar_g,sodium_mg:old.sodium_mg,micronutrients:old.micronutrients,source_ref:old.source_ref};
   else {
-   const retained=region?.name===item.name?await resolvePortionNutrition(admin,job.post_id,region.id,item.name,item.portion_grams,item.portion_text):null;
+   const retained=region?.name===item.name?await resolvePortionNutrition(admin,job.post_id!,region.id,item.name,item.portion_grams,item.portion_text,signal):null;
    if(retained)nutrition=retained;
    else {
-   const n=scaleNutrition(chooseBestMatch(await searchFoods(admin,item.name), item.name),item.portion_grams);
+   const n=scaleNutrition(await resolveFoodMatch(admin,item.name,context.caption??'',signal),item.portion_grams);
    nutrition={calories:n.calories,protein_g:n.proteinG,carbs_g:n.carbsG,fat_g:n.fatG,fibre_g:n.fibreG,sugar_g:n.sugarG,sodium_mg:n.sodiumMg,micronutrients:n.micronutrients,source_ref:n.sourceRef};
    }
   }
-  rows.push({name:item.name,portion_text:item.portion_text,portion_grams:item.portion_grams,box:old?old.box:region?.box??null,mask_path:old?old.mask_path:region?.mask_path??null,supersedes:old?.id??region?.id??null,nutrition});
- }
- const totals={} as ConsumedTotals;
- for(const key of ['calories','protein_g','carbs_g','fat_g'] as const)totals[key]=rows.some(r=>r.nutrition[key]==null)?null:rows.reduce((n,r)=>n+toNumber(r.nutrition[key]),0);
+  if(old)await traceNutritionReuse(item.name,nutrition,"unchanged",old.id);
+  return {name:item.name,portion_text:item.portion_text,portion_grams:item.portion_grams,box:old?old.box:region?.box??null,mask_path:old?old.mask_path:region?.mask_path??null,supersedes:old?.id??region?.id??null,nutrition};
+ });
+ const totals=sumNutrition(rows.map(row=>({...row.nutrition,name:row.name})));
  const reply=await safeSummary(correctionReply(items,rows,totals),totals);
  const {error,status}=await admin.rpc(result.needs_input?'persist_correction_question':'persist_correction',{p_post_id:job.post_id,p_job_id:job.id,p_expected:items.map(i=>i.id),p_through:latest.id,p_items:rows,p_reply:reply,...(result.needs_input?{p_question:result.needs_input}:{})});
  if(error)throw ioError('Correction transaction failed.',error,status);

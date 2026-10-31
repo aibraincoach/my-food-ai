@@ -25,3 +25,13 @@ test("a failed sign-out action restores the tab and reports failure instead of s
   assert.equal(result, "failed");
   assert.equal(pushIsSigningOut(), false);
 });
+
+test("a stalled sign-out action is bounded and restores the tab for retry", async () => {
+ const started=Date.now();
+ const result=await leaveSession({detach:async()=>{},signOut:()=>new Promise(()=>{}),signOutTimeoutMs:25});
+ assert.equal(result,'failed');assert.equal(pushIsSigningOut(),false);assert.ok(Date.now()-started<1000);
+});
+test("a redirect remains navigation and is never converted into a failed-sign-out result",async()=>{
+ await assert.rejects(leaveSession({detach:async()=>{},signOut:async()=>{throw redirect()},signOutTimeoutMs:25}),/NEXT_REDIRECT/);
+ assert.equal(pushIsSigningOut(),true);
+});

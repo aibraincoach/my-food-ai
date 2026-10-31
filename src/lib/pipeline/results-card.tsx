@@ -1,3 +1,4 @@
+import { unavailableFoods } from "@/lib/nutrition/totals";
 import { ioError } from "@/lib/worker/errors";
 import { ImageResponse } from "next/og";
 import { readFile } from "node:fs/promises";
@@ -33,14 +34,13 @@ export async function renderResultsCard(admin: SupabaseClient, postId: string, j
   if (error) throw ioError(`Card snapshot failed: ${error.message}`, error, status);
   const snapshot = data as Snapshot | null;
   if (!snapshot || snapshot.items.some(({ nutrition }) => !nutrition)) return false;
-  const nutrition = snapshot.items.map(({ item, nutrition }) => normalizeStoredNutrition(nutrition!, item.portion_grams));
+  const nutrition = snapshot.items.map(({ item, nutrition }) => ({...normalizeStoredNutrition(nutrition!, item.portion_grams),name:item.name}));
   const totals = sumNutrition(nutrition);
   const drink = variant ?? await getDrinkCardData(admin, snapshot.user_id, postId, zone);
   const [light, regular, medium, semibold] = await fonts();
   const size = tokens.card.outputSize;
-  const response = new ImageResponse(<ResultsCard
+  const response = new ImageResponse(<ResultsCard unavailable={unavailableFoods(totals)}
     size={size} fontFamily="Manrope" drink={drink}
-    time={new Date(snapshot.eaten_at).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", timeZone: zone }) + (zone === "UTC" ? " UTC" : "")}
     calories={totals.calories} protein={totals.protein_g} carbs={totals.carbs_g} fat={totals.fat_g}
     items={snapshot.items.map(({ item }) => ({ name: item.name, grams: item.portion_grams == null ? null : toNumber(item.portion_grams) }))}
   />, { width: size, height: size, fonts: [

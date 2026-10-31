@@ -1,0 +1,9 @@
+# PR 237 confirmation triage at 2931088
+
+1. Multi-shot cleanup payload: Not real. `src/lib/worker/jobs/media_cleanup.ts` recursively lists the entire owned prefix with 100-entry pagination, finishes every listing before removal, and throws on listing failure. There is no fallback deletion path. Tests cover all copies of four photos, nested objects, and a failed second page deleting nothing while preserving retry metadata.
+2. Queued cleanup after successful publication: Real. The publication transaction locked and validated the queued cleanup row but only unlinked it. It now deletes that queued row under the existing lock before retaining the minimal published tombstone. The SQL regression proves failed publication preserves queued cleanup, success removes it, retry remains idempotent, and running cleanup remains protected.
+3. Draft download RLS: Not real. `0001_init.sql` policy `media_owner_read` checks the first storage path segment against `auth.uid()` without joining posts. Authenticated draft owners can reconcile uploads before publication.
+4. Sequential signed-URL positions: Optional optimization, no demonstrated correctness failure. The shared storage helper predates this change; each position already signs its two URLs concurrently. Actual PUT requests use two bounded concurrent lanes and settle all in-flight work before retry. No unrelated signing rewrite was made.
+5. Barcode decode retry state: Not real as a loss or count defect. `CaptureSheet.addFiles` retains the current file in `pendingFilesRef` until decoding succeeds; decoding failure returns without shifting it, preserving the count set on enqueue. `finally` clears busy state. Explicit retry calls `addFiles([])` and resumes the same queue; the Post control stays disabled while pending files exist. Successful decode shifts and synchronizes the count.
+
+No production migration was applied. Real findings: 1.
