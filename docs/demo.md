@@ -1,6 +1,6 @@
 # Production demo checklist
 
-Status: **not run**. Execute twice after the implementation PRs are merged and their migrations are applied. This checklist is not evidence of a successful production demonstration. No account identifiers, private media URLs or post IDs belong in this document.
+Status: **not run**. Implementation/runtime PRs are merged and their migrations applied, but two complete production sequences have not been recorded. This checklist is not evidence of a successful production demonstration. No account identifiers, private media URLs or post IDs belong in this document.
 
 For each run, record the deployed main commit, time and pass/fail outcome for each step. Record concrete failures and open a separate fix PR for each change; never mark a partial sequence complete.
 
@@ -17,7 +17,7 @@ Keep cleanup identifiers in a private local file and remove only the posts creat
 
 | Evidence | Run 1 | Run 2 |
 | --- | --- | --- |
-| Main commit | Pending merge phase | Pending merge phase |
+| Main commit | Not recorded for a complete run | Not recorded for a complete run |
 | Run time | Not run | Not run |
 | Full sequence | Not run | Not run |
 | Failures and fix PRs | Not observed | Not observed |
