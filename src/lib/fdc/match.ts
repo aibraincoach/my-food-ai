@@ -82,6 +82,6 @@ export async function resolveFoodMatch(admin:SupabaseClient,name:string,caption=
   }
 }
 
-export async function traceNutritionReuse<T extends {source_ref?:unknown}>(name:string,nutrition:T,source:string,sourceItem?:string){
-  await recordCall("fdc",{event:"nutrition_reuse",name,source,sourceItem:sourceItem??null,...(source==="copied"?{matcherVersion:FOOD_MATCH_VERSION}:{})},async()=>nutrition,n=>({text:{source,source_ref:n.source_ref??null},fdcId:Number(n.source_ref)||null}));
+export async function traceNutritionReuse<T extends {source_ref?:unknown;matcher_version?:unknown}>(name:string,nutrition:T,source:string,sourceItem?:string){
+  await recordCall("fdc",{event:"nutrition_reuse",name,source,sourceItem:sourceItem??null,...(source==="copied"&&nutrition.matcher_version===FOOD_MATCH_VERSION?{matcherVersion:FOOD_MATCH_VERSION}:{})},async()=>nutrition,n=>({text:{source,source_ref:n.source_ref??null},fdcId:Number(n.source_ref)||null}));
 }

@@ -4,6 +4,7 @@ import type { JobHandler } from "@/lib/worker/handlers";
 import { analyzePost } from "@/lib/pipeline/analyze";
 import { ioError } from "@/lib/worker/errors";
 import { persistAnalysis, markReady } from "@/lib/pipeline/persist";
+import { certifiedPriorNutrition } from "@/lib/pipeline/prior-version";
 
 const analyze: JobHandler = async (admin, job) => {
   if (!job.post_id) throw new Error("analyze: job has no post.");
@@ -12,8 +13,9 @@ const analyze: JobHandler = async (admin, job) => {
   if(!post)throw new Error("analyze: post not found.");
   if(post.analysis_initialized_at){await markReady(job.post_id,admin,job.id);return;}
   const prior = await findPrior(admin,job.post_id);
-  const named = prior?.named ?? await analyzePost(admin, job.post_id, prior?.hint);
-  await persistAnalysis(admin, named, prior?.nutrition, job.id);
+  const reusable = certifiedPriorNutrition(prior?.nutrition) ? prior : null;
+  const named = reusable?.named ?? await analyzePost(admin, job.post_id, prior?.hint);
+  await persistAnalysis(admin, named, reusable?.nutrition, job.id);
   if (named.needsInput) await sendPostPush(admin, job.post_id, named.needsInput.question);
 };
 
