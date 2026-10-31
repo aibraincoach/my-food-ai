@@ -13,7 +13,7 @@ const analyze: JobHandler = async (admin, job) => {
   if(!post)throw new Error("analyze: post not found.");
   if(post.analysis_initialized_at){await markReady(job.post_id,admin,job.id);return;}
   const prior = await findPrior(admin,job.post_id);
-  const reusable = certifiedPriorNutrition(prior?.nutrition) ? prior : null;
+  const reusable = prior?.named && certifiedPriorNutrition(prior.nutrition) ? prior : null;
   const named = reusable?.named ?? await analyzePost(admin, job.post_id, prior?.hint);
   await persistAnalysis(admin, named, reusable?.nutrition, job.id);
   if (named.needsInput) await sendPostPush(admin, job.post_id, named.needsInput.question);
