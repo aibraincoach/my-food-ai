@@ -77,7 +77,7 @@ async function main() {
   const saveEvidence = async () => { if (evidenceDir) await writeFile(join(evidenceDir, 'results.json'), JSON.stringify({ startedAt, deployedCommit: process.env.EVAL_DEPLOYED_COMMIT ?? null, results }, null, 2), { mode: 0o600 }); };
   const saveOwned = () => writeFile(join(privateDir, 'owned-posts.json'), JSON.stringify(owned), { mode: 0o600 });
   for (const photo of photos) {
-    const result = { file: photo.file, expected: photo.items, state: 'not-created', actual: [], startedAt: new Date().toISOString(), finishedAt: null, elapsedMs: null, error: null, job: null, jobError: null };
+    const result = { file: photo.file, expected: photo.items, state: 'not-created', actual: [], startedAt: new Date().toISOString(), finishedAt: null, elapsedMs: null, error: null, job: null, jobError: null, traceKinds: {}, fdcSources: {}, resolutionEvents: {}, traceError: null };
     const startMs = performance.now();
     results.push(result);
     try {
@@ -113,6 +113,17 @@ async function main() {
         if (jobError) result.jobError = 'Job metadata unavailable';
         else result.job = (jobs ?? []).map(job => ({ kind: job.kind, status: job.status, attempts: job.attempts, error: job.error == null ? null : safe(job.error) }));
       } catch { result.jobError = 'Job metadata unavailable'; }
+      try {
+        const { data: calls, error: traceError } = await admin.from('model_calls').select('kind,request_text').eq('post_id', payload.postId);
+        if (traceError) result.traceError = 'Trace metadata unavailable';
+        else for (const call of calls ?? []) {
+          result.traceKinds[call.kind] = (result.traceKinds[call.kind] ?? 0) + 1;
+          if (call.kind !== 'fdc') continue;
+          let request = {}; try { request = JSON.parse(call.request_text); } catch {}
+          if (['food_resolution','nutrition_reuse'].includes(request.event)) result.resolutionEvents[request.event] = (result.resolutionEvents[request.event] ?? 0) + 1;
+          if (['network','cache','legacy_cache','copied','retained'].includes(request.source)) result.fdcSources[request.source] = (result.fdcSources[request.source] ?? 0) + 1;
+        }
+      } catch { result.traceError = 'Trace metadata unavailable'; }
     } catch (error) {
       result.state = 'request-failed'; result.error = safe(error instanceof Error ? error.message : 'Request failed'); process.exitCode = 1;
     }
