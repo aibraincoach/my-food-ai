@@ -114,3 +114,15 @@ node --env-file=.env.local --import tsx scripts/real-identify-smoke.mjs --real-m
 ```
 
 This explicit paid mode runs fresh SAM, identification and every identified food through the actual two-lane resolver. USDA search is read-only and its cache exists only in memory. Limits are 80 Meta requests, 40 USDA reads, 262,144 reserved output tokens and 270 seconds; the receipt reports actual usage without asserting a dollar price. No database or storage writes occur. The production nutrition phase gets at most 180 seconds, capped by the invocation's remaining 270-second processing allowance with 15 seconds reserved for persistence and a further 30 seconds before the platform's 300-second limit. Late worker handoffs defer to the durable scheduled wake instead of extending the invocation with a timer.
+
+### Food reference coverage and the real matching gate
+
+Food searches include USDA Survey (FNDDS) prepared foods alongside Foundation, SR Legacy and Branded data, with thirty candidates rather than five. Search caches are versioned: the earlier candidate lists are not reused. Matching distinguishes a compatible generic nutrition reference from a different food or preparation; a rejection gets at most one translated, target-only search. Volume-based records still require a supported mass basis. Selected and unavailable outcomes carry a matcher version in the admin trace.
+
+Before merging a change to matching prompts, model caps or the model client, run the real food-reference gate as well as the identify gate. It calls Muse Spark and USDA, keeps cache/trace writes in memory, and includes the breakfast/curry cases plus unrelated foods and a non-food rejection:
+
+```sh
+node --env-file=.env.local --import tsx scripts/real-food-match-smoke.mjs --real-meta
+```
+
+The gate records actual selections and failures; matching a generic reference does not establish the owner's acceptance of a recipe or portion.
