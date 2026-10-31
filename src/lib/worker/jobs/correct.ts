@@ -11,6 +11,7 @@ import { toNumber } from '@/lib/nutrition/totals';
 import { createResponse, MetaApiError } from '@/lib/meta/client';
 import { correctPrompt } from '@/lib/prompts/spark/correct';
 import schema from '@/lib/prompts/spark/correct.schema.json';
+import { resolveNutritionItems } from "@/lib/fdc/resolve-items";
 import { resolveFoodMatch, traceNutritionReuse, nutritionResolutionBudget } from '@/lib/fdc/match';
 import { sumNutrition } from '@/lib/nutrition/totals';
 import { scaleNutrition } from '@/lib/fdc/nutrients';
@@ -69,8 +70,7 @@ const correct:JobHandler=async(admin,job)=>{
  const {data:context,error:contextError,status:contextStatus}=await admin.from("posts").select("caption").eq("id",job.post_id).abortSignal(resolutionBudget).single();
  if(contextError)throw ioError("Correction context could not be read.",contextError,resolutionBudget.aborted?503:contextStatus);
  const kept=new Set<string>();
- const rows=[];
- for(const item of result.items){
+ const resolutionItems=result.items.map(item=>{
   const old=item.keep?items.find(i=>i.id===item.keep):undefined;
   if(item.keep&&(!old||kept.has(item.keep)||old.name!==item.name||old.portion_text!==item.portion_text||(old.portion_grams==null?null:toNumber(old.portion_grams))!==item.portion_grams))throw new MetaApiError(500,'Correction changed an item marked unchanged.');
   if(item.keep)kept.add(item.keep);
@@ -80,19 +80,22 @@ const correct:JobHandler=async(admin,job)=>{
   // PM decision (item 16): a new item sharing a prior item's name is that item.
   const named=items.filter(prior=>prior.name===item.name);
   const region=item.region_index===null?(named.length===1?named[0]:undefined):items[item.region_index];
+  return {item,old,region};
+ });
+ const rows=await resolveNutritionItems(resolutionItems,resolutionBudget,async({item,old,region},_index,signal)=>{
   let nutrition;
   if(old)nutrition={calories:old.calories,protein_g:old.protein_g,carbs_g:old.carbs_g,fat_g:old.fat_g,fibre_g:old.fibre_g,sugar_g:old.sugar_g,sodium_mg:old.sodium_mg,micronutrients:old.micronutrients,source_ref:old.source_ref};
   else {
-   const retained=region?.name===item.name?await resolvePortionNutrition(admin,job.post_id,region.id,item.name,item.portion_grams,item.portion_text):null;
+   const retained=region?.name===item.name?await resolvePortionNutrition(admin,job.post_id!,region.id,item.name,item.portion_grams,item.portion_text,signal):null;
    if(retained)nutrition=retained;
    else {
-   const n=scaleNutrition(await resolveFoodMatch(admin,item.name,context.caption??'',resolutionBudget),item.portion_grams);
+   const n=scaleNutrition(await resolveFoodMatch(admin,item.name,context.caption??'',signal),item.portion_grams);
    nutrition={calories:n.calories,protein_g:n.proteinG,carbs_g:n.carbsG,fat_g:n.fatG,fibre_g:n.fibreG,sugar_g:n.sugarG,sodium_mg:n.sodiumMg,micronutrients:n.micronutrients,source_ref:n.sourceRef};
    }
   }
   if(old)await traceNutritionReuse(item.name,nutrition,"unchanged",old.id);
-  rows.push({name:item.name,portion_text:item.portion_text,portion_grams:item.portion_grams,box:old?old.box:region?.box??null,mask_path:old?old.mask_path:region?.mask_path??null,supersedes:old?.id??region?.id??null,nutrition});
- }
+  return {name:item.name,portion_text:item.portion_text,portion_grams:item.portion_grams,box:old?old.box:region?.box??null,mask_path:old?old.mask_path:region?.mask_path??null,supersedes:old?.id??region?.id??null,nutrition};
+ });
  const totals=sumNutrition(rows.map(row=>({...row.nutrition,name:row.name})));
  const reply=await safeSummary(correctionReply(items,rows,totals),totals);
  const {error,status}=await admin.rpc(result.needs_input?'persist_correction_question':'persist_correction',{p_post_id:job.post_id,p_job_id:job.id,p_expected:items.map(i=>i.id),p_through:latest.id,p_items:rows,p_reply:reply,...(result.needs_input?{p_question:result.needs_input}:{})});

@@ -7,6 +7,7 @@ import { ioError } from "@/lib/worker/errors";
 // Zero items is a ready post with no rows: the card reads "No food found".
 import { createAdminClient } from "@/lib/supabase/admin";
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { resolveNutritionItems } from "@/lib/fdc/resolve-items";
 import { resolveFoodMatch, traceNutritionReuse, nutritionResolutionBudget } from "@/lib/fdc/match";
 import { sumNutrition } from "@/lib/nutrition/totals";
 import {
@@ -61,12 +62,12 @@ export async function persistAnalysis(
  const resolutionBudget=nutritionResolutionBudget();
   const {data:context,error:contextError,status:contextStatus}=await admin.from("posts").select("caption").eq("id",named.postId).abortSignal(resolutionBudget).single();
   if(contextError)throw ioError("Meal context could not be read.",contextError,resolutionBudget.aborted?503:contextStatus);
-  for (const [index,row] of rows.entries()) {
+  const resolved = await resolveNutritionItems(rows,resolutionBudget,async (row,index,signal) => {
     const copied=copiedNutrition?.[index];
     if(copied)await traceNutritionReuse(row.name,copied,"copied",typeof copied.post_item_id==="string"?copied.post_item_id:undefined);
-    const food=copied?null:await resolveFoodMatch(admin,row.name,context.caption??"",resolutionBudget);
+    const food=copied?null:await resolveFoodMatch(admin,row.name,context.caption??"",signal);
     const scaled = scaleNutrition(food, row.portionGrams);
-    items.push({
+    return {
       name: row.name,
       portion_text: row.portionText,
       portion_grams: row.portionGrams,
@@ -85,8 +86,9 @@ export async function persistAnalysis(
         source_ref: scaled.sourceRef,
         ...(copied ?? {}),
       },
-    });
-  }
+    };
+  });
+  items.push(...resolved);
   const totals = sumNutrition(items.map(item=>({...item.nutrition,name:item.name})));
   const summary = await safeSummary(named.summary, totals);
   const { error, status } = await admin.rpc("persist_owned_analysis", {

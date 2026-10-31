@@ -13,17 +13,18 @@ export function storedNutrition(n: ScaledNutrition, id: string): NutritionRow {
 // Follow pending revisions until the last resolved identity, stopping at a name
 // change. A coalesced recompute may never populate intermediate revisions.
 export async function resolvePortionNutrition(admin: SupabaseClient, postId: string, priorId: string | null,
- name: string, grams: Numeric, portionText?: string | null): Promise<NutritionRow | null> {
+ name: string, grams: Numeric, portionText?: string | null, signal?:AbortSignal): Promise<NutritionRow | null> {
  const seen=new Set<string>();
  while(priorId){
   if(seen.has(priorId))throw new Error('Invalid item revision chain.');seen.add(priorId);
-  const {data:prior,error,status}=await admin.from('post_items').select('id,name,portion_grams,portion_text,supersedes')
-   .eq('id',priorId).eq('post_id',postId).maybeSingle();
+  const priorQuery=admin.from('post_items').select('id,name,portion_grams,portion_text,supersedes').eq('id',priorId).eq('post_id',postId);
+  if(signal)priorQuery.abortSignal(signal);
+  const {data:prior,error,status}=await priorQuery.maybeSingle();
   if(error)throw ioError('Prior item could not be read.',error,status);
   if(!prior||prior.name!==name)return null;
-  const {data:row,error:nutritionError,status:nutritionStatus}=await admin.from('item_nutrition')
-   .select('post_item_id,calories,protein_g,carbs_g,fat_g,fibre_g,sugar_g,sodium_mg,micronutrients,source_ref')
-   .eq('post_item_id',priorId).maybeSingle();
+  const nutritionQuery=admin.from('item_nutrition').select('post_item_id,calories,protein_g,carbs_g,fat_g,fibre_g,sugar_g,sodium_mg,micronutrients,source_ref').eq('post_item_id',priorId);
+  if(signal)nutritionQuery.abortSignal(signal);
+  const {data:row,error:nutritionError,status:nutritionStatus}=await nutritionQuery.maybeSingle();
   if(nutritionError)throw ioError('Prior nutrition could not be read.',nutritionError,nutritionStatus);
   if(row){
    const nutrition=row as NutritionRow;
@@ -36,7 +37,7 @@ export async function resolvePortionNutrition(admin: SupabaseClient, postId: str
    }
    if(nutrition.source_ref && (toNumber(prior.portion_grams)<=0 || !hasAmounts)) {
     const id=Number(nutrition.source_ref);
-    const food=await getFoodById(admin,id);
+    const food=await getFoodById(admin,id,signal);
     return storedNutrition(scaleNutrition(food,grams==null?null:toNumber(grams)),priorId);
    }
    return rescaleStoredNutrition(nutrition,prior.portion_grams,grams);

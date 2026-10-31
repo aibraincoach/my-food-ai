@@ -163,10 +163,12 @@ export function parseFoodDetail(payload: unknown, expectedId: number): FdcFood {
     portions: portionsFromDetail(payload)};
 }
 
-export async function getFoodById(admin: SupabaseClient, id: number): Promise<FdcFood> {
+export async function getFoodById(admin: SupabaseClient, id: number, signal?:AbortSignal): Promise<FdcFood> {
   if (!Number.isSafeInteger(id) || id <= 0) throw new Error("fdc: invalid retained food identity.");
   const key = `fdc-detail:${id}`;
-  const {data: cached, error, status} = await admin.from("fdc_cache").select("response").eq("query", key).maybeSingle();
+  const cacheQuery=admin.from("fdc_cache").select("response").eq("query",key);
+  if(signal)cacheQuery.abortSignal(signal);
+  const {data:cached,error,status}=await cacheQuery.maybeSingle();
   if (error) throw ioError("Retained food cache could not be read.", error, status);
   if (cached) {
     const entry=cached.response as {kind?:unknown;fdcId?:unknown;payload?:unknown};
@@ -177,11 +179,13 @@ export async function getFoodById(admin: SupabaseClient, id: number): Promise<Fd
   }
   return recordCall("fdc", { fdcId: id, source:"network" }, async () => {
   const params = new URLSearchParams({format: "full", api_key: fdcApiKey()});
-  const response = await fetch(`${FDC_BASE_URL}/food/${id}?${params}`, {signal: AbortSignal.timeout(30000)});
+  const response = await fetch(`${FDC_BASE_URL}/food/${id}?${params}`, {signal: signal?AbortSignal.any([signal,AbortSignal.timeout(30000)]):AbortSignal.timeout(30000)});
   if (!response.ok) throw new ApiError(response.status, await response.text(), "Retained food could not be loaded.");
   const payload: unknown = await response.json();
   const food = parseFoodDetail(payload, id);
-  const {error: saveError, status: saveStatus} = await admin.from("fdc_cache").upsert({query: key, response: {kind:"fdc-detail-v1",fdcId:id,payload}}, {onConflict: "query"});
+  const save=admin.from("fdc_cache").upsert({query:key,response:{kind:"fdc-detail-v1",fdcId:id,payload}},{onConflict:"query"});
+  if(signal)save.abortSignal(signal);
+  const {error:saveError,status:saveStatus}=await save;
   if (saveError) throw ioError("Retained food cache could not be saved.", saveError, saveStatus);
   return food;
   }, (food) => ({ text: food, fdcId: food.fdcId }));

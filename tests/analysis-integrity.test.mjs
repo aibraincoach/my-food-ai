@@ -1,6 +1,6 @@
 import test from 'node:test';import assert from 'node:assert/strict';
 import {matchFood} from '../src/lib/fdc/match.ts';
-import {chooseBestMatch,scaleNutrition} from '../src/lib/fdc/nutrients.ts';
+import {chooseBestMatch,scaleNutrition,scoreFoodMatch} from '../src/lib/fdc/nutrients.ts';
 import {sumNutrition,formatConsumed,unavailableFoods,sumMicronutrients} from '../src/lib/nutrition/totals.ts';
 import {safeSummary} from '../src/lib/pipeline/wording.ts';
 const food=(id,description,extra={})=>({fdcId:id,description,dataType:'SR Legacy',foodNutrients:[{nutrientId:1008,nutrientName:'Energy',unitName:'KCAL',value:100}],...extra});
@@ -49,4 +49,15 @@ test('exhausted shared resolution budget rejects before another lookup, never pu
  let calls=0;const controller=new AbortController();controller.abort();
  await assert.rejects(matchFood('food','',{search:async()=>{calls++;return[]},choose:async()=>({id:null,query:null,reason:'none'})},controller.signal),error=>error.status===503);
  assert.equal(calls,0);
+});
+
+test('ingredient qualification is case-insensitive before rejection scoring',()=>{
+ const candidate=food(30,'Salad dressing');
+ assert.equal(scoreFoodMatch('SALAD DRESSING',candidate),scoreFoodMatch('salad dressing',candidate));
+ assert.equal(chooseBestMatch([candidate],'SALAD DRESSING')?.fdcId,30);
+});
+test('conflicting duplicate nutrient values remain unknown without an arbitrary epsilon',()=>{
+ const iron=value=>({nutrientId:1089,nutrientName:'Iron',unitName:'MG',value});
+ const totals=sumMicronutrients([{name:'conflicting food',micronutrients:[iron(1),iron(1.00001)]},{name:'known food',micronutrients:[iron(2)]}]);
+ assert.equal(totals[0].value,2);assert.deepEqual(totals[0].unavailable,['conflicting food']);
 });
