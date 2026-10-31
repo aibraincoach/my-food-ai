@@ -1,4 +1,4 @@
-import { unavailableFoods, formatNutrition, sumNutrition, sumMicronutrients, type CurrentItem, type NutritionLike } from "@/lib/nutrition/totals";
+import { NUTRIENT_KEYS, unavailableFoods, formatNutrition, sumNutrition, sumMicronutrients, type CurrentItem, type NutritionLike } from "@/lib/nutrition/totals";
 
 function number(value: number | null) {
   return value === null ? "unavailable" : formatNutrition(value);
@@ -14,7 +14,7 @@ export default function NutritionTable({ items }: { items: CurrentItem[] }) {
   const totals = sumNutrition(items);
   const rows = [...core.map(({ name, key, unit }) => ({ name, unit, value: totals[key],unavailable:totals.missing?.[key] })), ...sumMicronutrients(items)];
   return <section className="px-screen-x pt-grid" aria-label="Consumed nutrition">
-    {unavailableFoods(totals).length ? <p className="text-meta text-muted">Known nutrition shown. Nutrition unavailable: {unavailableFoods(totals).join(", ")}</p> : null}
+    {unavailableFoods(totals,NUTRIENT_KEYS).length ? <p className="text-meta text-muted">Known nutrition shown. Nutrition unavailable: {unavailableFoods(totals,NUTRIENT_KEYS).join(", ")}</p> : null}
     <table className="w-full border-collapse text-detail tabular-nums"><caption className="sr-only">Consumed nutrition from USDA FoodData Central</caption>
       <tbody>{rows.map((row, index) => <tr key={`${index}:${row.name}:${row.unit}`} className={`h-table-row border-b border-hairline ${index === 0 ? "font-medium text-text" : "text-muted"}`}>
         <th scope="row" className="py-grid text-left" style={{ fontWeight: "inherit" }}>{row.name}{row.unavailable?.length?` · unavailable: ${row.unavailable.join(", ")}`:""}</th>

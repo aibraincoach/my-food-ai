@@ -38,3 +38,9 @@ test('micronutrients keep available contributions, flag unavailable foods, prese
  assert.equal(sumMicronutrients([{micronutrients:[iron(0)]}])[0].value,0);
  assert.equal(scaleNutrition(food(3,'Known'),null).calories,null);
 });
+
+test('primary card omissions describe its displayed nutrients while detail retains optional omissions',()=>{
+ const totals=sumNutrition([{...zero,name:'toast',calories:100,fibre_g:null},{...zero,name:'coffee',calories:null}]);
+ assert.deepEqual(unavailableFoods(totals),['coffee']);
+ assert.deepEqual(totals.missing.fibre_g,['toast']);
+});

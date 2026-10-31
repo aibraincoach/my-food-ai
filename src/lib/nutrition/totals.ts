@@ -71,8 +71,8 @@ export function sumNutrition(items: (NutritionLike & {name?:string;missing?:Miss
   return totals;
 }
 
-export function unavailableFoods(totals: {missing?:MissingNutrition}): string[] {
-  return [...new Set(Object.values(totals.missing??{}).flat())];
+export function unavailableFoods(totals: {missing?:MissingNutrition}, keys: readonly NutrientKey[] = ["calories","protein_g","carbs_g","fat_g"]): string[] {
+  return [...new Set(keys.flatMap(key=>totals.missing?.[key]??[]))];
 }
 
 export function formatConsumed(totals: MealTotals): string {
