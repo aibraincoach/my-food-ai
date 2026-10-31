@@ -35,6 +35,7 @@ test('upload publication is atomic, owner scoped, idempotent and gated on storag
   sql(`insert into storage.objects values('media','${owner}/${id}/0.jpg','{"size":123}');`);
   assert.throws(()=>sql(`select publish_uploaded_post('${id}','${owner}');`));
   assert.equal(sql(`select count(*) from public.posts;`).trim(),'0');
+  assert.equal(sql(`select count(*) from public.jobs where kind='media_cleanup' and status='queued';`).trim(),'1');
   sql(`insert into storage.objects values('media','${owner}/${id}/0.feed.jpg','{"size":45}');`);
   assert.equal(sql(`select publish_uploaded_post('${id}','${owner}');`).trim(),id);
   assert.equal(sql(`select publish_uploaded_post('${id}','${owner}');`).trim(),id);
@@ -44,6 +45,7 @@ test('upload publication is atomic, owner scoped, idempotent and gated on storag
   assert.equal(JSON.parse(sql(reserve).trim()).published,true);
   assert.equal(sql(`select count(*) from public.post_media;`).trim(),'1');
   assert.equal(sql(`select count(*) from public.jobs where kind='analyze';`).trim(),'1');
+  assert.equal(sql(`select count(*) from public.jobs where kind='media_cleanup';`).trim(),'0');
   assert.equal(sql(`select published from public.post_upload_drafts;`).trim(),'t');
   assert.equal(sql(`select caption='' and location is null and shots='[]'::jsonb and eaten_at is null and cleanup_job_id is null from public.post_upload_drafts where id='${id}';`).trim(),'t');
   assert.equal(sql(`select count(*) from public.post_media where storage_path like '${owner}/${id}/%';`).trim(),'1');
@@ -58,6 +60,7 @@ test('upload publication is atomic, owner scoped, idempotent and gated on storag
   sql(`select reserve_post_upload('${expired}','${owner}','meal',now(),'[{"position":0,"width":10,"height":10}]');update public.jobs set status='running' where id=(select cleanup_job_id from public.post_upload_drafts where id='${expired}');`);
   assert.throws(()=>sql(`select publish_uploaded_post('${expired}','${owner}');`));
   assert.equal(sql(`select count(*) from public.posts where id='${expired}';`).trim(),'0');
+  assert.equal(sql(`select count(*) from public.jobs where id=(select cleanup_job_id from public.post_upload_drafts where id='${expired}') and status='running';`).trim(),'1');
   const textId='55555555-5555-4555-8555-555555555555';
   sql(`select reserve_post_upload('${textId}','${owner}','coffee',now(),'[]');select publish_uploaded_post('${textId}','${owner}');`);
   assert.equal(sql(`select count(*) from public.jobs where post_id='${textId}' and kind='analyze';`).trim(),'1');

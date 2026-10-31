@@ -90,6 +90,10 @@ begin
     values(d.id,p_user_id::text||'/'||d.id::text||'/'||(s->>'position')||'.jpg',(s->>'position')::integer,(s->>'width')::integer,(s->>'height')::integer,(s->>'phash')::bigint);
   end loop;
   insert into public.jobs(id,post_id,kind,priority,status) values(d.id,d.id,'analyze',100,'queued');
+  -- The cleanup row is already locked and verified queued; publication makes it unnecessary.
+  if d.cleanup_job_id is not null then
+    delete from public.jobs where id=d.cleanup_job_id and status='queued';
+  end if;
   -- Keep only the ownership/idempotency tombstone, never a second meal payload.
   update public.post_upload_drafts set published=true,caption='',location=null,shots='[]'::jsonb,eaten_at=null,cleanup_job_id=null where id=d.id;
   return d.id;

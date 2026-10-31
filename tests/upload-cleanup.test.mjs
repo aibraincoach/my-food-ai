@@ -24,3 +24,13 @@ test('a claimed photo prevents all object and draft cleanup, including pack phot
 test('a storage deletion failure keeps retry metadata intact',async()=>{
  const f=fixture({removeFailure:true});await assert.rejects(cleanup(f.db,job),/could not be removed/);assert.deepEqual(f.deletes,[]);
 });
+
+test('a failed later listing page deletes no paths and retains draft metadata for retry',async()=>{
+ const f=fixture();
+ f.db.storage.from=()=>({
+  async list(path,{offset}){assert.equal(path,prefix);if(offset===0)return{data:Array.from({length:100},(_,i)=>({id:String(i),name:`${i}.jpg`})),error:null};return{data:null,error:{message:'listing unavailable'}};},
+  async remove(paths){f.removed.push(...paths);return{error:null};}
+ });
+ await assert.rejects(cleanup(f.db,job),/could not be listed/);
+ assert.deepEqual(f.removed,[]);assert.deepEqual(f.deletes,[]);
+});
