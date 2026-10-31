@@ -36,7 +36,7 @@ Additional names used by development scripts and optional features:
 - `TEST_USER2_EMAIL`: second ordinary test user's sign-in identifier.
 - `TEST_USER2_PASSWORD`: second test user's password.
 - `MODEL_API_BASE_URL`: optional model endpoint override for offline tests.
-- `ADMIN_EMAIL`: optional identifier used when granting the admin role.
+- `ADMIN_EMAIL`: optional operator convenience only; production authorization does not read it. Admin pages and trace access read `public.profiles.role`; grant that role privately after the account and profile exist.
 - `WORKER_CONCURRENCY`: optional worker parallelism; defaults to one.
 - `NEXT_PUBLIC_VAPID_PUBLIC_KEY`: optional browser push subscription key.
 - `VAPID_PRIVATE_KEY`: optional server-only push signing key.
@@ -49,6 +49,16 @@ Only public-prefixed names are intended for browser exposure. Deployment environ
 `node --env-file=.env.local scripts/browser-session.mjs` prints the test session cookies as one JSON line for the browser driver.
 Add `--user=2` to obtain the second test account’s session cookies.
 Treat the output as a credential: consume it locally and keep it out of logs, issues and screenshots.
+
+### Historical handover note (2026-10-29)
+
+The following snapshot is retained as history; current deployment and merge state must be checked separately.
+
+> Ordinary configured test-account production sign-in has been exercised successfully. PR #203 adds a cookie-only `scripts/browser-session.mjs`; that script is still unmerged into main. Its removed magic-link fallback is not a supported mode. Never publish session-cookie output.
+>
+> ## Run 3 delivery status
+>
+> Main contains the shared round2 tokens from #200. #202 merged into its existing `run3/tokens` base, not main; its plus-menu code is not released on main by that merge. Other Run3 features and their production acceptance remain pending. The current administrative record is in CLAUDE.md; neither an open feature branch nor a green preview build proves production acceptance.
 
 ## Repository map
 

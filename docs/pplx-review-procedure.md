@@ -39,3 +39,6 @@ Two failed headless-runner attempts do not make PPLX unavailable. Work through e
 Use the original authenticated Firefox on display :10 through BiDi. Never copy its profile or substitute a fresh browser, Playwright or Chromium for PPLX. Attach to its listener; if necessary restart the same profile with session restoration and BiDi enabled.
 
 Inspect the page every second before and after submission. PPLX normally starts answering within two or three seconds. If the input or answer is absent, inspect the actual page, title, authentication and selected model immediately. A selector failure is an automation failure, not a PPLX response timeout or proof that PPLX is unavailable. Never spend 120 seconds blindly waiting for an input.
+## Observed model mismatch in Run 3
+
+The submitted request's gemini38flash preference alone did not prove the answer's model: several completed answers identified GPT-6.1 Sol in the selected-model and footer text. Those attempts were rejected. Verify selected model, request proof and answer footer together; do not certify an ineligible answer. Observation timeouts do not prove a live thread stopped: retain the thread handle and inspect its actual completion before restarting. Label any eligible fallback accurately.

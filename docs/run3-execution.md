@@ -1,3 +1,5 @@
+> Historical pre-merge evidence from PR #207 at 4f67cdce646e60cc96c6d803397e5053e813ae4c. It is not the current delivery status. Since that snapshot, #203 became cookie-only at 1fddd03957222cd70c67e7b362839c4e08ee35de; the owner-designated database admin role was granted; Codex reported unresolved findings on #205/#206; #200 merged into main; #202 merged only into run3/tokens. Current instructions and observations are in CLAUDE.md. The snapshot below is retained verbatim as historical evidence.
+
 # Run 3 execution evidence
 
 This records the implementation and pre-merge validation of the supplied Run 3 plan. Production acceptance remains pending the plan’s explicit merge orders. No PR has been merged and no production migration has been applied during this run.
