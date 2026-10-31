@@ -59,7 +59,7 @@ export async function getDays(supabase: SupabaseClient, userId: string, zone: st
         let photoUrl: string | null = null;
         if (path) {
           try {
-            photoUrl = await feedCopyUrl(supabase, path.endsWith("/card.png") ? path : `${path.replace(/\.[^/.]+$/, "")}.feed.jpg`);
+            photoUrl = await feedCopyUrl(supabase, path.endsWith("/card.png") ? path : `${path.replace(/\.[^/.]+$/, "")}.feed.jpg`,userId);
           } catch {
             // A missing optional feed copy must not hide meals or their totals.
           }
