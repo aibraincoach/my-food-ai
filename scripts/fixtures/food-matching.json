@@ -219,6 +219,45 @@
     ]
   },
   {
+    "name": "Margherita pizza",
+    "caption": "Margherita pizza",
+    "requires": [
+      [
+        "pizza"
+      ],
+      [
+        "cheese",
+        "margherita"
+      ]
+    ],
+    "rejects": [
+      "pizza hut",
+      "pepperoni",
+      "sausage",
+      "dessert",
+      "mexican",
+      "no cheese"
+    ]
+  },
+  {
+    "name": "Grilled chicken Caesar salad with croutons",
+    "caption": "Caesar salad",
+    "requires": [
+      [
+        "chicken"
+      ],
+      [
+        "caesar"
+      ]
+    ],
+    "rejects": [
+      "no dressing",
+      "without dressing",
+      "dressing only",
+      "fried chicken"
+    ]
+  },
+  {
     "name": "ceramic plate",
     "caption": "An empty ceramic plate, no food.",
     "unavailable": true
