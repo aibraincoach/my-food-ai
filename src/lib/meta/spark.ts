@@ -110,7 +110,9 @@ export async function identifyItems(
   mime: string,
   caption: string | null,
   regions: IdentifyRegion[],
-  prior = ""
+  prior = "",
+  additionalPhotos:Uint8Array[]=[],
+  additionalRegionHints=""
 ): Promise<IdentifiedMeal> {
   // Caption-only posts have no photo: the call is text-only and every
   // returned item lands in captionOnly (region_index null).
@@ -121,9 +123,10 @@ export async function identifyItems(
       image_url: `data:${mime};base64,${Buffer.from(image).toString("base64")}`,
     });
   }
+  for(const photo of additionalPhotos)content.push({type:"input_image",image_url:`data:${mime};base64,${Buffer.from(photo).toString("base64")}`});
   const text =
     `Caption: ${caption && caption.trim() ? caption.trim() : "(none)"}\n` +
-    `Regions (index, box left/top/right/bottom in source pixels, area fraction):\n${regionLines(regions)}`;
+    `Regions (index, box left/top/right/bottom in source pixels, area fraction):\n${regionLines(regions)}` + (additionalPhotos.length ? `\nThe attached photos are views of one meal. Name each distinct food once across all views. Return a null region_index for food only visible in additional photos. Additional photo region guidance:\n${additionalRegionHints}` : "");
   const known = new Set(regions.map((r) => r.index));
   // Output allowance is not a work target; low effort avoids discarded warm-up calls.
   const maxTokens = 8192;

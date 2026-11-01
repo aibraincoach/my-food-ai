@@ -44,7 +44,8 @@ export interface FeedPost {
   eaten_at: string;
   status: PostStatus;
   photoUrl: string | null;
-  slides: {url:string;kind?:"photo"|"card"}[];
+  slides: {url:string;kind?:"photo"|"card";not_eaten?:boolean}[];
+  count_text?: string | null;
   created_at: string;
   items: FeedItem[];
 }
@@ -88,12 +89,12 @@ async function toFeedPost(
 ): Promise<FeedPost> {
   const revisionBefore=row.status==="ready"?await latestRevision(supabase,row.id):null;
   const { data: media, error: mediaError } = await supabase.from("post_media")
-    .select("storage_path,kind").eq("post_id",row.id).order("position");
+    .select("storage_path,kind,not_eaten").eq("post_id",row.id).order("position");
   if(mediaError) throw new Error(mediaError.message);
   const slides = (await Promise.all((media ?? []).map(async (entry) => {
-    try { return {url: await feedCopyUrl(supabase, entry.kind === "card" ? entry.storage_path : feedPathFor(entry.storage_path),row.user_id),kind:entry.kind as "photo"|"card"}; }
+    try { return {url: await feedCopyUrl(supabase, entry.kind === "card" ? entry.storage_path : feedPathFor(entry.storage_path),row.user_id),kind:entry.kind as "photo"|"card",not_eaten:Boolean(entry.not_eaten)}; }
     catch { return null; }
-  }))).filter((entry): entry is {url:string;kind:"photo"|"card"} => entry !== null);
+  }))).filter((entry): entry is {url:string;kind:"photo"|"card";not_eaten:boolean} => entry !== null);
   const photoUrl = slides[0]?.url ?? null;
 
   const items: FeedItem[] = row.status === "ready" ? await getCurrentItems(supabase, row.id) : [];
@@ -115,6 +116,7 @@ async function toFeedPost(
     slides,
     created_at: row.created_at,
     items,
+    count_text: (items[0] as FeedItem & {count_text?:string|null})?.count_text??null,
   };
 }
 

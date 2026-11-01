@@ -2,6 +2,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import type { JobRow } from "@/lib/queue/claim";
 import analyze from "@/lib/worker/jobs/analyze";
 import correct from "@/lib/worker/jobs/correct";
+import remainder from "@/lib/worker/jobs/remainder";
 import recompute from "@/lib/worker/jobs/recompute";
 import cardBackfill from "@/lib/worker/jobs/card_backfill";
 import mediaCleanup from "@/lib/worker/jobs/media_cleanup";
@@ -15,6 +16,7 @@ export const jobHandlers: JobHandlers = Object.freeze({
   analyze,
   correct,
   recompute,
+  remainder,
   card_backfill: cardBackfill,
   media_cleanup: mediaCleanup,
 });

@@ -1,14 +1,16 @@
 "use client";
-import { unavailableFoods, sumMicronutrients } from "@/lib/nutrition/totals";
+import { sumMicronutrients } from "@/lib/nutrition/totals";
 
 import {LocalTime,useLocalTime} from "@/components/LocalTime";
 import { useEffect, useRef, useState, type CSSProperties, type PointerEvent } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import type { DetailItem, DetailPhoto, ItemBox } from "@/lib/posts/items";
-import { sumNutrition, formatGrams, toNumber } from "@/lib/nutrition/totals";
+import { formatGrams } from "@/lib/nutrition/totals";
 import { tokens } from "@/lib/theme/tokens";
 import { useDrinkCard } from "@/components/useDrinkCard";
+import { cardDataFromRow, type CardData } from "@/lib/pipeline/card-data";
+import type { DrinkCardData } from "@/lib/intake/hydration";
 import { ResultsCard } from "@/components/ResultsCard";
 import ItemRows, { outlineColor } from "@/components/ItemRows";
 import ItemEditSheet from "@/components/ItemEditSheet";
@@ -41,14 +43,15 @@ function Mask({ url, photo, color, frame, fallback }: {
     : <div className="pointer-events-none absolute rounded-field" style={{ ...fallback, border: `${tokens.detail.outlineWidth}px solid ${color}` }} />;
 }
 
-export default function OutlineOverlay({ initialized, readOnly = false, postId, caption, eatenAt, status, photo, items, modelCommentId=null, fingerprint=null, saved=false, handle:providedHandle, children }: {
+export default function OutlineOverlay({ initialized, readOnly = false, postId, caption, eatenAt, status, photo, items, modelCommentId=null, fingerprint=null, saved=false, handle:providedHandle, cardData, initialDrink, children }: {
+  cardData?: CardData; initialDrink?: DrinkCardData|null;
   initialized: boolean; readOnly?: boolean; postId: string; caption: string; eatenAt: string; status: string; photo: DetailPhoto | null; items: DetailItem[]; modelCommentId?:string|null; fingerprint?:string|null; saved?:boolean; handle?:string; children?:ReactNode;
 }) {
   const router = useRouter();
   const handle=usePostHandle(providedHandle);
   const [expandedPhoto,setExpandedPhoto]=useState(false);
   const [expandedNutrition,setExpandedNutrition]=useState(false);
-  const drink = useDrinkCard(postId, status, eatenAt);
+  const drink = useDrinkCard(postId, status, eatenAt, initialDrink);
   const localTime = useLocalTime(eatenAt);
   const ref = useRef<HTMLDivElement>(null);
   const [width, setWidth] = useState<number>(tokens.spacing.phone);
@@ -86,7 +89,7 @@ export default function OutlineOverlay({ initialized, readOnly = false, postId, 
     return () => { live = false; if (timer) clearInterval(timer); void supabase.removeChannel(channel); };
   }, [postId, status, waiting, router]);
 
-  const height=photo?(expandedPhoto?width:230):width;
+  const height=photo&&!drink?(expandedPhoto?width:230):width;
   const scale = photo ? Math.max(width / photo.width, height / photo.height) : 1;
   const offsetX = photo ? (width - photo.width * scale) / 2 : 0;
   const offsetY = photo ? (height - photo.height * scale) / 2 : 0;
@@ -120,7 +123,8 @@ export default function OutlineOverlay({ initialized, readOnly = false, postId, 
     setSelection((current) => current ? { ...current, box: box.right - box.left > 1 && box.bottom - box.top > 1 ? box : current.box } : null);
   };
   const add = () => { setDrawing(false); setSelection({ item: null, key: Date.now() }); };
-  const totals = sumNutrition(items);
+  const displayCard = drink ? { ...cardDataFromRow({ items, eatenAt, drink }), footer: cardData?.footer }
+    : cardData ?? cardDataFromRow({ items, eatenAt });
   const showNutrition = initialized && (items.length > 0 || status === "ready");
   return <>
     <div ref={ref} className="relative w-full overflow-hidden bg-card" style={{ height, touchAction: drawing ? "none" : "auto" }}
@@ -135,7 +139,7 @@ export default function OutlineOverlay({ initialized, readOnly = false, postId, 
         if (hit) setSelection({ item: hit, key: Date.now() });
         else setExpandedPhoto(value=>!value);
       }}>
-      {photo ? <>
+      {photo && !drink ? <>
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src={photo.url} alt={caption || "Meal photo"} draggable={false} className="h-full w-full object-cover" />
         {outlines && items.map((item, index) => item.box ? <div key={item.id}>
@@ -148,9 +152,7 @@ export default function OutlineOverlay({ initialized, readOnly = false, postId, 
         </div> : null)}
         {drawBox ? <div className="pointer-events-none absolute rounded-field border-2 border-text" style={boxStyle(drawBox)} /> : null}
         <span className="pointer-events-none absolute bottom-3 right-3 rounded-field bg-overlay px-[10px] py-[5px] text-meta text-white">Outlines · tap one to edit</span>
-      </> : showNutrition ? <ResultsCard unavailable={unavailableFoods(totals)} drink={drink} size={width} time={localTime}
-        calories={totals.calories} protein={totals.protein_g} carbs={totals.carbs_g} fat={totals.fat_g}
-        items={items.map((item) => ({ name: item.name, grams: item.portion_grams == null ? null : toNumber(item.portion_grams) }))} /> : <div role="status" className="flex h-full items-center justify-center px-screen-x text-body text-muted">{status === "failed" ? "This meal could not be analysed." : status === "needs_input" ? "Clarification needed" : "Processing, traffic low"}</div>}
+      </> : showNutrition ? <ResultsCard data={displayCard} size={width} time={localTime} /> : <div role="status" className="flex h-full items-center justify-center px-screen-x text-body text-muted">{status === "failed" ? "This meal could not be analysed." : status === "needs_input" ? "Clarification needed" : "Processing, traffic low"}</div>}
     </div>
     <PostActions detail postId={postId} modelCommentId={modelCommentId} fingerprint={fingerprint} drink={readOnly} saved={saved}/>
     <div className="px-inset"><PostCaption handle={handle} caption={caption}/></div>

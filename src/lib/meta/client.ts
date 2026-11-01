@@ -197,7 +197,7 @@ export async function createResponse(
   options: {signal?:AbortSignal} = {}
 ): Promise<ResponseOutput> {
   const format = (body.text as { format?: { name?: string } } | undefined)?.format?.name;
-  const kind: CallKind = format === "label" ? "spark_label" : format === "correct" ? "spark_correct" : format === "same_meal" ? "spark_same_meal" : (format === "search" || format === "search_query") ? "spark_search" : "spark_identify";
+  const kind: CallKind = format === "label" ? "spark_label" : format === "remainder" ? "spark_remainder" : format === "correct" ? "spark_correct" : format === "same_meal" ? "spark_same_meal" : (format === "search" || format === "search_query") ? "spark_search" : "spark_identify";
   return recordCall(kind, body, async () => {
     const response = await metaFetch("/responses", {
       method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body), signal:options.signal,

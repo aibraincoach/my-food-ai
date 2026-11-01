@@ -1,0 +1,49 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "items"
+  ],
+  "properties": {
+    "items": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "index": {
+            "type": "integer"
+          },
+          "remaining_grams": {
+            "type": "number"
+          },
+          "total_count": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "remaining_count": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "unit": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "index",
+          "remaining_grams",
+          "total_count",
+          "remaining_count",
+          "unit"
+        ]
+      }
+    }
+  }
+}

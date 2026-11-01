@@ -101,23 +101,23 @@ export async function persistAnalysis(
   if (error) {
     throw ioError(`persist: analysis transaction failed: ${error.message}`, error, status);
   }
-  if (!named.needsInput) await markReady(named.postId, admin, jobId);
+  if (!named.needsInput) await markReady(named.postId, admin, jobId,{notify:!named.hasNotEaten,saveMeal:!named.hasNotEaten});
 }
 
 // Publication clears clarification atomically with ready under the post lock. The stored card is optional:
 // a render or upload failure is logged and the meal is marked ready on its nutrition anyway; the live card
 // is the fallback. (An outdated card after a failed regeneration is tracked in the backlog.)
-export async function markReady(postId: string, admin: SupabaseClient = createAdminClient(), jobId?:string, options: { notify?: boolean } = {}): Promise<boolean> {
+export async function markReady(postId: string, admin: SupabaseClient = createAdminClient(), jobId?:string, options: { notify?: boolean;saveMeal?:boolean;timeZone?:string } = {}): Promise<boolean> {
   let ready: boolean;
   try {
-    ready = await renderResultsCard(admin, postId, jobId);
+    ready = await renderResultsCard(admin, postId, jobId,undefined,options.timeZone);
   } catch (cardError) {
     console.error("results card failed; marking the meal ready without it", postId, cardError instanceof Error ? cardError.message : cardError);
     const { data, error, status } = await admin.rpc("mark_post_ready", { p_post_id: postId, p_job_id: jobId ?? null });
     if (error) throw ioError("Post readiness could not be saved.", error, status);
     ready = data === true;
   }
-  if(ready){const {error}=await admin.rpc('save_ready_meal',{p_post_id:postId});if(error)throw ioError('The saved meal could not be recorded.',error);}
+  if(ready&&options.saveMeal!==false){const {error}=await admin.rpc('save_ready_meal',{p_post_id:postId});if(error)throw ioError('The saved meal could not be recorded.',error);}
   if (ready && options.notify !== false) await sendPostPush(admin, postId);
   return ready;
 }

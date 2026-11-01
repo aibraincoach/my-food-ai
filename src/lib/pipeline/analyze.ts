@@ -50,6 +50,7 @@ export async function loadFirstPhoto(
     .from("post_media")
     .select("storage_path,width,height")
     .eq("kind", "photo")
+    .eq("not_eaten", false)
     .eq("post_id", postId)
     .order("position", { ascending: true })
     .limit(1)
@@ -125,6 +126,7 @@ export interface NamedRegion extends SegmentedRegion {
 }
 
 export interface NamedPost extends SegmentedPost {
+  hasNotEaten?:boolean;
   nutritionLabel?: boolean;
   labelNutrition?: Record<string,unknown>;
   regions: NamedRegion[];
@@ -143,7 +145,9 @@ export async function identifyMeal(
   mime: string,
   caption: string | null,
   segmented: SegmentedPost,
-  prior = ""
+  prior = "",
+  additionalPhotos:Uint8Array[]=[],
+  additionalRegionHints=""
 ): Promise<NamedPost> {
   const meal: IdentifiedMeal = await identifyItems(
     photo,
@@ -154,7 +158,9 @@ export async function identifyMeal(
       box: r.box,
       areaFraction: r.areaFraction,
     })),
-    prior
+    prior,
+    additionalPhotos,
+    additionalRegionHints
   );
   const byRegion = new Map<number, IdentifiedItem>();
   const captionOnly: IdentifiedItem[] = [];
@@ -225,7 +231,20 @@ export async function analyzePost(
       throw error;
     }
   }
-  const named = await identifyMeal(photo, "image/jpeg", post.caption, segmented, prior);
+  const additionalPhotos:Uint8Array[]=[];
+  const additionalRegionHints:string[]=[];
+  const {data:extraMedia,error:extraError,status:extraStatus}=await supabase.from('post_media').select('storage_path,width,height').eq('post_id',postId).eq('kind','photo').eq('not_eaten',false).order('position').range(1,7);
+  if(extraError)throw ioError('Additional meal photos could not be read.',extraError,extraStatus);
+  for(const [index,entry] of (extraMedia??[]).entries()){
+    if(!isOwnedPhotoPath(entry.storage_path,post.user_id,postId))throw Error('Additional photo does not belong to this meal.');
+    const {data:blob,error}=await supabase.storage.from(BUCKET).download(entry.storage_path);
+    if(error||!blob)throw ioError('Additional meal photo could not be opened.',error);
+    const bytes=new Uint8Array(await blob.arrayBuffer());
+    const regions=await segmentFoodRegions(bytes,'image/jpeg',entry.width??0,entry.height??0);
+    additionalPhotos.push(bytes);
+    additionalRegionHints.push(`Photo ${index+2}: ${regions.map(region=>`box [${region.box.left},${region.box.top},${region.box.right},${region.box.bottom}]`).join('; ')}`);
+  }
+  const named = await identifyMeal(photo, "image/jpeg", post.caption, segmented, prior,additionalPhotos,additionalRegionHints.join('\n'));
   if(named.nutritionLabel && !named.captionOnly.length && !named.regions.some(r=>r.item) && photo){
     const reading=await readNutritionLabel(photo);
     if(reading.is_label&&reading.serving&&reading.per_serving){

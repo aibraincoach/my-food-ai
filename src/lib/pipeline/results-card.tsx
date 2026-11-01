@@ -1,4 +1,4 @@
-import { cardDataFromRow, readCardData } from "./card-data";
+import { renderTimeZone, readStoredCardData } from "./render-zone";
 import { ioError } from "@/lib/worker/errors";
 import { ImageResponse } from "next/og";
 import { readFile } from "node:fs/promises";
@@ -29,7 +29,8 @@ function fonts() {
   return fontData;
 }
 
-export async function renderResultsCard(admin: SupabaseClient, postId: string, jobId?: string, variant?: DrinkCardData, zone = "UTC"): Promise<boolean> {
+export async function renderResultsCard(admin: SupabaseClient, postId: string, jobId?: string, variant?: DrinkCardData, zone?: string): Promise<boolean> {
+  if(zone!==undefined)await renderTimeZone(admin,postId,zone);
   const { data, error, status } = await admin.rpc("results_card_snapshot", { p_post_id: postId });
   if (error) throw ioError(`Card snapshot failed: ${error.message}`, error, status);
   const snapshot = data as Snapshot | null;
@@ -39,8 +40,7 @@ export async function renderResultsCard(admin: SupabaseClient, postId: string, j
     items: snapshot.items.map(({item}, index) => ({ ...item, ...nutrition[index] })) };
   // Model-free drinks have just read this timeline after their atomic commit.
   // Reuse that record while still rendering nutrition from this fingerprinted snapshot.
-  const cardData = variant ? cardDataFromRow({ ...source, drink: variant })
-    : await readCardData(admin, snapshot.user_id, source, zone);
+  const cardData = await readStoredCardData(admin,snapshot.user_id,source,undefined,variant);
   const [light, regular, medium, semibold] = await fonts();
   const size = tokens.card.outputSize;
   const response = new ImageResponse(<ResultsCard data={cardData}

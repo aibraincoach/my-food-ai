@@ -120,6 +120,11 @@ export function sumMicronutrients(items: {name?:string;micronutrients:StoredNutr
 
 export interface CurrentItem extends NutritionLike {
   gtin?: string | null;
+  not_eaten_grams?: number | null;
+  not_eaten_calories?:number|null;
+  supersedes?:string|null;
+  count_text?: string | null;
+  not_eaten_count_text?: string | null;
   id: string;
   name: string;
   portion_text: string | null;
@@ -176,7 +181,7 @@ export class MissingNutritionError extends ApiError {
 // their nutrition remain in the database as immutable edit history.
 export async function getCurrentItems(supabase: SupabaseClient, postId: string, options: { requireNutrition?: boolean } = {}): Promise<CurrentItem[]> {
   const { data, error, status } = await supabase.from("current_post_items")
-    .select("id,name,portion_text,portion_grams,box,mask_path,source,gtin").eq("post_id", postId)
+    .select("id,name,portion_text,portion_grams,box,mask_path,source,gtin,supersedes,not_eaten_grams,count_text,not_eaten_count_text").eq("post_id", postId)
     .order("created_at", { ascending: true });
   if (error) throw ioError("Current items could not be read.", error, status);
   if (!data?.length) return [];
@@ -185,11 +190,21 @@ export async function getCurrentItems(supabase: SupabaseClient, postId: string, 
     .in("post_item_id", data.map((item) => item.id));
   if (nutritionError) throw ioError("Nutrition could not be read.", nutritionError, nutritionStatus);
   const byId = new Map((nutrition as NutritionRow[] | null ?? []).map((row) => [row.post_item_id, row]));
+  const ancestors=data.filter(item=>item.not_eaten_grams!=null&&item.supersedes).map(item=>item.supersedes as string);
+  const priorCalories=new Map<string,number|null>();
+  if(ancestors.length){
+    const {data:parents,error:parentError,status:parentStatus}=await supabase.from('post_items').select('id,portion_grams,item_nutrition(post_item_id,calories,protein_g,carbs_g,fat_g,fibre_g,sugar_g,sodium_mg,micronutrients,source_ref)').in('id',ancestors).eq('post_id',postId);
+    if(parentError)throw ioError('Original meal nutrition could not be read.',parentError,parentStatus);
+    for(const parent of parents??[]){const row=Array.isArray(parent.item_nutrition)?parent.item_nutrition[0]:parent.item_nutrition;const value=row?normalizeStoredNutrition(row as NutritionRow,parent.portion_grams).calories:null;priorCalories.set(parent.id,value==null?null:toNumber(value));}
+  }
   return data.map((item) => {
     const row = byId.get(item.id);
     if (!row && options.requireNutrition) throw new MissingNutritionError();
     const normalized = row ? normalizeStoredNutrition(row, item.portion_grams) : null;
-    return { ...item, source: item.source as "model" | "user", calories: normalized?.calories ?? null,
+    const originalCalories=priorCalories.get(item.supersedes??'');
+    const originalGrams=toNumber(item.portion_grams)+Number(item.not_eaten_grams??0);
+    const notEatenCalories=item.not_eaten_grams==null?undefined:item.not_eaten_grams===0?0:originalCalories==null||originalGrams<=0?null:originalCalories*item.not_eaten_grams/originalGrams;
+    return { ...item,not_eaten_calories:notEatenCalories, source: item.source as "model" | "user", calories: normalized?.calories ?? null,
       protein_g: normalized?.protein_g ?? null, carbs_g: normalized?.carbs_g ?? null,
       fat_g: normalized?.fat_g ?? null, fibre_g: normalized?.fibre_g ?? null,
       sugar_g: normalized?.sugar_g ?? null, sodium_mg: normalized?.sodium_mg ?? null,
