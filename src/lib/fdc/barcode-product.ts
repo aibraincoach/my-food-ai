@@ -87,7 +87,7 @@ export type ResolvedProduct = BarcodeProduct & { source: "database" | "own" | "s
 
 // Pure precedence rule is also used by access tests; no server module enters the camera bundle.
 export function mergeProduct(gtin: string, base: BarcodeProduct | null, own: BarcodeCorrection | null, sharedName: string | null): ResolvedProduct | null {
-  if (!base && !(own?.source === "label" && own.per_100)) return null;
+  if (!base && !(own?.per_100 && own.name && own.serving_unit)) return null;
   const original = base ?? { fdcId: 0, gtin, name: "Packaged food", brand: null, basisUnit: own?.serving_unit ?? "g", servingSize: null,
     servingSizeUnit: null, servingText: null, packageWeight: null, micronutrients: [], per100g: own!.per_100! };
   return { ...original, source: own ? "own" : sharedName ? "shared" : "database", originalName: original.name,

@@ -24,7 +24,7 @@ export async function POST(request: Request, context: { params: Promise<{ id: st
     const admin=createAdminClient();
     const {data:item}=await admin.from("post_items").select("id,portion_grams,portion_text").eq("post_id",id).eq("gtin",gtin).is("superseded_at",null).maybeSingle();
     if(!item)return NextResponse.json({error:"Product not found."},{status:404});
-    const product=await resolveProduct(gtin,user.id);
+    const product=await resolveProduct(gtin,user.id,{withoutLookup:true});
     if(!product)return NextResponse.json({error:"Product not found."},{status:404});
     const match=/^([0-9]+(?:[.][0-9]+)?) (g|ml)$/.exec(item.portion_text??"");
     const amount=item.portion_grams!==null?Number(item.portion_grams):match?Number(match[1]):null;

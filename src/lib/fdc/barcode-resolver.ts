@@ -2,7 +2,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { gtinCandidates, lookupBarcode } from "./barcode";
 import { mergeProduct, type BarcodeCorrection } from "./barcode-product";
 
-export async function resolveProduct(raw: string, userId: string) {
+export async function resolveProduct(raw: string, userId: string, options: { withoutLookup?: boolean } = {}) {
   const gtin = gtinCandidates(raw)[0]?.padStart(14,"0");
   if (!gtin) return null;
   const admin = createAdminClient();
@@ -13,6 +13,7 @@ export async function resolveProduct(raw: string, userId: string) {
   if (personal.error || shared.error) throw new Error("Product corrections could not be read.");
   const own = personal.data as BarcodeCorrection | null;
   // A complete label correction is usable even if FDC has no record or is offline.
+  if(options.withoutLookup)return mergeProduct(gtin,null,own,shared.data as string|null);
   let base = null;
   try { base = await lookupBarcode(gtin); } catch(error) { if (!(own?.source === "label" && own.per_100)) throw error; }
   return mergeProduct(gtin,base,own,shared.data as string|null);

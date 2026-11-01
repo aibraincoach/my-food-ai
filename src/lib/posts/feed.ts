@@ -13,6 +13,7 @@ export type PostStatus =
   | "failed";
 
 export interface FeedItem {
+  gtin?: string | null;
   id: string;
   name: string;
   portion_text: string | null;
@@ -30,6 +31,7 @@ export interface FeedItem {
 export interface FeedPost {
   saved_meal_id?:string|null;
   source_post_id?:string|null;
+  gtin?: string | null;
   day?: string;
   modelCommentId?: string | null;
   analysisFingerprint?: string | null;
@@ -105,6 +107,7 @@ async function toFeedPost(
     modelCommentId: row.status==="ready"&&JSON.stringify(revisionBefore)===JSON.stringify(revisionAfter)?revisionAfter?.modelCommentId??null:null,
     analysisFingerprint:row.status==="ready"&&JSON.stringify(revisionBefore)===JSON.stringify(revisionAfter)?revisionAfter?.fingerprint??null:null,
     day: zone ? dateInZone(row.eaten_at, zone) : undefined,
+    gtin: items.find(item=>item.gtin)?.gtin,
     id: row.id,
     caption: row.caption,
     eaten_at: row.eaten_at,
