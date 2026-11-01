@@ -1,3 +1,4 @@
+import {absentMigration} from './fixtures/absent-migration.mjs';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import {readFileSync} from 'node:fs';
@@ -40,7 +41,7 @@ test('model-free posts record their first explicit render zone and subsequent co
 
 test('upload reservation carries a validated capture zone into the published post atomically and clears the tombstone',{skip:!process.env.SUPABASE_DB_URL},async()=>{
  const owner=await user(1);
- const migrations=['0025_barcode_corrections.sql','0026_saved_meals.sql','0027_not_eaten.sql'].map(name=>readFileSync(new URL('../supabase/migrations/'+name,import.meta.url),'utf8')).join('\n');
+ const migrations=['0025_barcode_corrections.sql','0026_saved_meals.sql','0027_not_eaten.sql'].map(name=>absentMigration(readFileSync(new URL('../supabase/migrations/'+name,import.meta.url),'utf8'),name)).join('\n');
  const script=`\\set ON_ERROR_STOP on
 begin;
 ${migrations}

@@ -1,3 +1,4 @@
+import {absentMigration} from './fixtures/absent-migration.mjs';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import {readFileSync} from 'node:fs';
@@ -10,7 +11,7 @@ test('an owner attaches verified staged media once and a no-text photo correctio
   const client=createClient(process.env.NEXT_PUBLIC_SUPABASE_URL,process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY,{auth:{persistSession:false,autoRefreshToken:false}});
   const {data,error}=await client.auth.signInWithPassword({email:process.env[`${prefix}_EMAIL`],password:process.env[`${prefix}_PASSWORD`]});assert.ifError(error);ids.push(data.user.id);
  }
- const migrations=['0025_barcode_corrections.sql','0026_saved_meals.sql','0027_not_eaten.sql'].map(file=>readFileSync(new URL('../supabase/migrations/'+file,import.meta.url),'utf8')).join('\n');
+ const migrations=['0025_barcode_corrections.sql','0026_saved_meals.sql','0027_not_eaten.sql'].map(file=>absentMigration(readFileSync(new URL('../supabase/migrations/'+file,import.meta.url),'utf8'),file)).join('\n');
  const script=`\\set ON_ERROR_STOP on
 begin;
 ${migrations}

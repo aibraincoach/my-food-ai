@@ -1,3 +1,4 @@
+import {absentMigration} from './fixtures/absent-migration.mjs';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import {readFileSync} from 'node:fs';
@@ -6,7 +7,7 @@ import {createClient} from '@supabase/supabase-js';
 import {mergeProduct,productFromFood} from '../src/lib/fdc/barcode-product.ts';
 import {canonicalGtin,parseBarcodeCorrection} from '../src/lib/posts/barcode-correction.ts';
 import {labelNutrition,parseLabelReading} from '../src/lib/meta/label.ts';
-const migration=readFileSync(new URL('../supabase/migrations/0025_barcode_corrections.sql',import.meta.url),'utf8');
+const migration=absentMigration(readFileSync(new URL('../supabase/migrations/0025_barcode_corrections.sql',import.meta.url),'utf8'),'0025_barcode_corrections.sql');
 test('own correction takes precedence over corroborated name and FDC, including a stored label for an unknown product',()=>{
  const code='016000275683';const base=productFromFood({fdcId:7,description:'Database name',foodNutrients:[{nutrientId:1008,value:90}]},code);
  assert.equal(mergeProduct(code,base,null,null).name,'Database name');

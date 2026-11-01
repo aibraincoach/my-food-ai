@@ -1,9 +1,10 @@
+import {absentMigration} from './fixtures/absent-migration.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {spawnSync} from 'node:child_process';
 import {user} from './db/helpers.mjs';
-const migration=readFileSync(new URL('../supabase/migrations/0026_saved_meals.sql',import.meta.url),'utf8');
+const migration=absentMigration(readFileSync(new URL('../supabase/migrations/0026_saved_meals.sql',import.meta.url),'utf8'),'0026_saved_meals.sql');
 test('saved meals retain exact nutrition, time and owner access in one transaction',async()=>{
  assert.ok(process.env.SUPABASE_DB_URL,'SUPABASE_DB_URL is required');
  const first=await user(1),second=await user(2);
