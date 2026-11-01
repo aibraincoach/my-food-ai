@@ -22,7 +22,7 @@ export type ResultsCardProps = {
 /** The exact same flex layout renders in the browser and next/og (Satori). */
 export function ResultsCard({ data, drink, unavailable = [], time, calories = null, protein = null, carbs = null, fat = null, items = [], size = tokens.spacing.phone, fontFamily }: ResultsCardProps) {
   const card: CardData = data ?? {
-    kind: drink ? 'drink' : 'meal', amountMl: drink?.ml,
+    kind: drink ? 'drink' : 'meal', amountMl: drink?.ml, caffeineMg: drink?.caffeineMg,
     drinkLine: drink ? `${drink.label}${drink.caffeineMg ? ` · ${drink.caffeineMg} mg caffeine · ${formatNutrition(calories)} kcal` : ''}` : undefined,
     hydration: drink ? { totalMl: drink.totalMl, drinksMl: drink.drinksMl, foodMl: drink.foodMl, caffeineMg: drink.dayCaffeineMg ?? drink.caffeineMg } : undefined,
     kcal: calories, macros: { protein, carbs, fat }, items, unavailable,
@@ -56,7 +56,7 @@ export function ResultsCard({ data, drink, unavailable = [], time, calories = nu
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 24 * scale, ...text('detail'), color: tokens.colors.muted }}>
         {split(card.hydration?.drinksMl ?? 0, 'from drinks')}
         {split(card.hydration?.foodMl ?? 0, 'from food')}
-        {card.drinkLine?.includes('caffeine') ? split(card.hydration?.caffeineMg ?? 0, 'caffeine') : null}
+        {(card.caffeineMg ?? 0) > 0 ? split(card.hydration?.caffeineMg ?? 0, 'caffeine') : null}
       </div>
     </div> : <>
       <div style={{ display: 'flex', gap: tokens.spacing['macro-gap'] * scale, ...text('body') }}>

@@ -123,8 +123,9 @@ export async function getPostHydrationData(db: SupabaseClient, userId: string, p
   for (const [day, dayPosts] of byDay) {
     const latest = dayPosts.reduce((a, b) => new Date(a.eaten_at) > new Date(b.eaten_at) ? a : b).eaten_at;
     const timeline = await hydrationTimeline(db, userId, day, zone, latest);
+    const drinksByPost = new Map(timeline.drinks.filter(row => row.post_id && row.ml != null && row.label).map(row => [row.post_id!, row]));
     for (const post of dayPosts) {
-      const drink = timeline.drinks.find(row => row.post_id === post.id && row.ml != null && row.label);
+      const drink = drinksByPost.get(post.id);
       // A renderer can supply its atomic snapshot before the ready flip. Replace
       // that post's timeline contribution, never add it a second time.
       if (!drink && post.items) {
@@ -134,7 +135,7 @@ export async function getPostHydrationData(db: SupabaseClient, userId: string, p
       }
     }
     for (const post of dayPosts) {
-      const drink = timeline.drinks.find(row => row.post_id === post.id && row.ml != null && row.label);
+      const drink = drinksByPost.get(post.id);
       const hydration = hydrationAt(timeline, post.eaten_at);
       output[post.id] = { kind: drink ? "drink" : "meal", dayHydration: hydration,
         foodWaterMl: drink ? 0 : roundWaterMl(timeline.foods.find(row => row.postId === post.id)?.waterMl ?? 0),

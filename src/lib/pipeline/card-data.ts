@@ -9,6 +9,7 @@ export interface CardData {
   time?: string;
   amountMl?: number;
   drinkLine?: string;
+  caffeineMg?: number;
   hydration?: HydrationRecord;
   kcal?: number | null;
   macros?: { protein: number | null; carbs: number | null; fat: number | null };
@@ -37,6 +38,7 @@ export function cardDataFromRow(source: CardSource): CardData {
     kind: drink || source.kind === "drink" ? "drink" : "meal",
     time: source.eaten_at ?? source.eatenAt,
     amountMl: drink?.ml,
+    caffeineMg: drink?.caffeineMg,
     drinkLine: drink ? `${drink.label}${drink.caffeineMg ? ` · ${Math.round(drink.caffeineMg)} mg caffeine · ${totals.calories === null ? "unavailable" : Math.round(totals.calories)} kcal` : ""}` : undefined,
     hydration,
     kcal: totals.calories,
