@@ -78,8 +78,8 @@ export async function pipelineHarness(){
   leaseKeepalive.unref?.();
   const fdc=JSON.parse(await readFile(new URL('./fixtures/fdc.json',import.meta.url),'utf8'));
   for(const [term,payload]of Object.entries(fdc)){
-   const query=`fdc-search-v2:${term.trim().toLowerCase()}`;
-   const response={kind:'fdc-search-v2',query:term.trim().toLowerCase(),payload};
+   const query=`fdc-search-v3:${term.trim().toLowerCase()}`;
+   const response={kind:'fdc-search-v3',query:term.trim().toLowerCase(),payload};
    const {data,error}=await admin.from('fdc_cache').select('query').eq('query',query).maybeSingle();assert.equal(error,null);
    if(!data){const {error:writeError}=await admin.from('fdc_cache').insert({query,response});if(writeError?.code!=='23505'){assert.equal(writeError,null);cacheInserted.push(query);}}
   }
