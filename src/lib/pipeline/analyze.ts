@@ -1,3 +1,4 @@
+import { readNutritionLabel, labelNutrition } from "@/lib/meta/label";
 import { ApiError, ioError } from "@/lib/worker/errors";
 import { isOwnedPhotoPath } from "@/lib/media/paths";
 import { UPLOAD_GRACE_MS } from "@/lib/media/upload-window";
@@ -124,6 +125,8 @@ export interface NamedRegion extends SegmentedRegion {
 }
 
 export interface NamedPost extends SegmentedPost {
+  nutritionLabel?: boolean;
+  labelNutrition?: Record<string,unknown>;
   regions: NamedRegion[];
   // Items without a region (caption-only); item 10 persists them with
   // a null box and mask path.
@@ -172,7 +175,7 @@ export async function identifyMeal(
     ...region,
     item: byRegion.get(region.index) ?? null,
   }));
-  return { ...segmented, regions, captionOnly, summary: meal.summary, needsInput: meal.needsInput };
+  return { ...segmented, nutritionLabel: meal.nutritionLabel, regions, captionOnly, summary: meal.summary, needsInput: meal.needsInput };
 }
 
 interface PostCaptionRow {
@@ -223,6 +226,14 @@ export async function analyzePost(
     }
   }
   const named = await identifyMeal(photo, "image/jpeg", post.caption, segmented, prior);
+  if(named.nutritionLabel && !named.captionOnly.length && !named.regions.some(r=>r.item) && photo){
+    const reading=await readNutritionLabel(photo);
+    if(reading.is_label&&reading.serving&&reading.per_serving){
+      named.captionOnly=[{regionIndex:null,name:"Packaged food",portionText:`${reading.serving.amount} ${reading.serving.unit}`,portionGrams:reading.serving.unit==="g"?reading.serving.amount:null,confidence:null}];
+      named.labelNutrition=labelNutrition(reading,1);
+      named.needsInput=null;
+    }
+  }
   await uploadSelectedMasks(supabase, named.regions, named.photoWidth, named.photoHeight);
   return named;
 }

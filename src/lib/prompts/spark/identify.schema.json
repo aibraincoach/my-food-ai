@@ -6,7 +6,8 @@
   "required": [
     "items",
     "summary",
-    "needs_input"
+    "needs_input",
+    "nutrition_label"
   ],
   "properties": {
     "items": {
@@ -89,6 +90,9 @@
           "additionalProperties": false
         }
       ]
+    },
+    "nutrition_label": {
+      "type": "boolean"
     }
   }
 }
