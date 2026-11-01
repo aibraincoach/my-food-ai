@@ -29,7 +29,13 @@ The owner-supplied Run 5 plan is preserved unchanged in [docs/plan.md](docs/plan
 
 Reconcile documents, commit on the document branch, then `skills/pm-handover/scripts/pack.sh`. The handover text is the reply; zip output goes under `uploads/` (gitignored). Dispatch shape and technical ownership follow the current PM and planner contracts linked above.
 
-## Session summary
+## Current Run 5 outcome
+
+Observed 2026-11-01 after the owner-authorized migrations/merges and production acceptance. Main and the production alias are `14c83c746bef064946fc6a1d75cc32c7c5b42841`, READY/health200. #259–#265, #267 and production defect fix #268 are merged; migrations0025–0027 are applied. The full suite passed349/349 across126files with no skips, and production checks a–g plus photo attachment passed after the soup retrieval fix. [Current execution and evidence](docs/run5-merge-and-acceptance.md), [exact-head reviews](docs/reviews/run5-review-receipts.md).
+
+Docs #266 remains unmerged as ordered; backlog docs #258 also remains open. Do not treat historical awaiting-order statements below or in the pre-merge report as current. Issue closures still need the PM's explicit order. Physical-phone proof and owner acceptance of exact meal totals remain unclaimed; the additional unchanged-identification9/10 result and unexplained handled reservation409 are retained in the current report.
+
+## Historical session summary
 
 _Observed 2026-11-01T02:11:31+00:00. Main and the production alias were independently re-read for the owner's #235-only merge order. This is documentation state, not an additional execution order._
 
