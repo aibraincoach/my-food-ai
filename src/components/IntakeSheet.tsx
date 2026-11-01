@@ -99,5 +99,5 @@ export default function IntakeSheet({ initialKind, embedded = false, onClose }: 
       <Button disabled={!valid || busy} onClick={() => { void post(); }} style={{ marginTop: tokens.spacing['screen-x'], marginBottom: tokens.spacing['table-row'] + tokens.spacing.grid }}>{busy ? "Posting…" : `Post · ${label} ${valid ? ml : ""} ml`}</Button>
     </div>
   </>;
-  return embedded ? content : <Sheet open={open} onClose={close} label="Drink">{content}</Sheet>;
+  return embedded ? content : <Sheet hideClose open={open} onClose={close} label="Drink">{content}</Sheet>;
 }
