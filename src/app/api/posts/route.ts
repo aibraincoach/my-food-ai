@@ -20,6 +20,7 @@ export async function POST(request: Request) {
   if (!user) return NextResponse.json({ error: "Sign in required." }, { status: 401 });
   const body = await request.json().catch(() => null);
   if (!body || typeof body.caption !== "string" || body.caption.length > 2000 || body.caption.includes("\u0000")) return NextResponse.json({ error: "Invalid caption." }, { status: 400 });
+  if(body.save_as_meal!==undefined&&typeof body.save_as_meal!=='boolean')return NextResponse.json({error:'Invalid save choice.'},{status:400});
   const shots = body.shots ?? [];
   if (!validUploadShots(shots) || (body.capture_intent !== undefined && !["photo", "text"].includes(body.capture_intent)) || (body.capture_intent === "photo" && shots.length === 0) || (shots.length === 0 && !body.caption.trim())) return NextResponse.json({ error: "The selected photo is not ready. Your draft was kept." }, { status: 400 });
   const operationId = body.operation_id ?? randomUUID();
@@ -34,6 +35,7 @@ export async function POST(request: Request) {
     const expired = /expired/i.test(error?.message ?? "");
     return NextResponse.json({ error: expired ? "The upload draft expired. Your photos were kept; try again." : "The post draft could not be reserved. Your photos were kept; try again." }, { status: expired ? 410 : 409 });
   }
+  if(!data.published){const {error:flagError}=await admin.from('post_upload_drafts').update({save_as_meal:body.save_as_meal===true}).eq('id',operationId).eq('user_id',user.id).eq('published',false);if(flagError)return NextResponse.json({error:'The draft could not be saved.'},{status:503});}
   if (data.published) { kickoff(request); return NextResponse.json({ postId: operationId, uploads: [], completed: true }); }
   if (shots.length === 0) {
     try { await publishUpload(admin, user.id, operationId); kickoff(request); return NextResponse.json({ postId: operationId, uploads: [], completed: true }); }

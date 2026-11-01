@@ -1,3 +1,4 @@
+import SavedMealsButton from '@/components/SavedMealsButton';
 import { connection } from "next/server";
 import { Suspense } from "react";
 import NeedsInputStrip from "@/components/NeedsInputStrip";
@@ -21,7 +22,7 @@ async function HomeDays() {
 
 export default function Home() {
   return <main className="flex flex-1 flex-col">
-    <header className="sticky top-0 z-20 flex h-top-safe items-center bg-surface px-inset"><h1 className="text-title">My Food AI</h1></header>
+    <header className="sticky top-0 z-20 flex h-top-safe items-center bg-surface px-inset"><h1 className="flex-1 text-title">My Food AI</h1><SavedMealsButton/></header>
     <NeedsInputStrip />
     <Suspense fallback={<div className="h-bar-h" />}><HomeDays /></Suspense>
     <Suspense fallback={<p className="px-screen-x text-detail text-muted">Loading feed…</p>}>

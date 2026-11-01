@@ -117,6 +117,7 @@ export async function markReady(postId: string, admin: SupabaseClient = createAd
     if (error) throw ioError("Post readiness could not be saved.", error, status);
     ready = data === true;
   }
+  if(ready){const {error}=await admin.rpc('save_ready_meal',{p_post_id:postId});if(error)throw ioError('The saved meal could not be recorded.',error);}
   if (ready && options.notify !== false) await sendPostPush(admin, postId);
   return ready;
 }
