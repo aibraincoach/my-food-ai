@@ -1,5 +1,5 @@
 'use client';
-import {useEffect,useRef,type ReactNode} from 'react';
+import {useEffect,useRef,useState,type ReactNode} from 'react';
 import {Icon} from '@/components/ui/Icon';
 import {Button} from '@/components/ui/Button';
 import {usePostHandle} from '@/components/PostHandle';
@@ -9,6 +9,7 @@ function Switch({label,on,disabled,onChange}:{label:string;on:boolean;disabled:b
  return <button type="button" role="switch" aria-label={label} aria-checked={on} disabled={disabled} onClick={onChange} className={`relative h-[26px] w-[44px] shrink-0 rounded-circle disabled:opacity-50 ${on?'bg-accent':'bg-ring'}`}><span className="absolute top-[3px] size-5 rounded-circle bg-white" style={{left:on?21:3,boxShadow:'var(--color-shadow-knob)'}}/></button>;
 }
 export default function LightComposer(p:Props) {
+ const [whenOpen,setWhenOpen]=useState(false);
  const handle=usePostHandle(),preview=useRef<HTMLDivElement>(null),caption=useRef<HTMLTextAreaElement>(null);
  useEffect(()=>{if(!p.shots.length)caption.current?.focus();},[p.shots.length]);
  useEffect(()=>{if(p.shots.length>1)preview.current?.scrollTo({left:p.index*210,behavior:'smooth'});},[p.index,p.shots.length]);
@@ -42,8 +43,8 @@ export default function LightComposer(p:Props) {
    </div>
    {p.searchPanel}
    <div className="px-inset pt-[6px]">
-    <div className="flex min-h-[52px] items-center gap-[14px] border-b border-hairline"><Icon name="clock"/><label htmlFor="composer-when" className="flex-1 text-body">Eaten at</label><span className="text-detail text-muted">{when}</span><Icon name="chevron-right" size={16}/></div>
-    <input id="composer-when" type="datetime-local" aria-label="Eaten at" disabled={p.busy} value={p.when??''} max={toLocalInput(new Date())} onChange={event=>p.setWhen(event.target.value||null)} className="mt-1 min-h-tap w-full rounded-field bg-field px-3 text-detail"/>
+    <button type="button" disabled={p.busy} onClick={()=>setWhenOpen(value=>!value)} className="flex min-h-[52px] w-full items-center gap-[14px] border-b border-hairline text-left"><Icon name="clock"/><span className="flex-1 text-body">Eaten at</span><span className="text-detail text-muted">{when}</span><Icon name="chevron-right" size={16}/></button>
+    {whenOpen&&<input id="composer-when" type="datetime-local" aria-label="Eaten at" disabled={p.busy} value={p.when??''} max={toLocalInput(new Date())} onChange={event=>p.setWhen(event.target.value||null)} className="mt-1 min-h-tap w-full rounded-field bg-field px-3 text-detail"/>}
     <button type="button" disabled={p.busy} onClick={()=>p.shots.length<2?photo():p.setIndex(p.notEaten??1)} className="flex h-[52px] w-full items-center gap-[14px] border-b border-hairline text-left"><Icon name="photo-add"/><span className="min-w-0 flex-1"><span className="block text-body">Not eaten</span><span className="block text-meta text-muted">Add a photo of what remained</span></span><span className="text-detail text-muted">{p.notEaten!==null?`Photo ${p.notEaten+1}`:p.shots.length>1?'Off':''}</span><Icon name="chevron-right" size={16}/></button>
     <div className="flex h-[52px] items-center gap-[14px] border-b border-hairline"><Icon name="pin"/><span className="flex-1"><span className="block text-body">Location</span><span className="block text-meta text-muted">Only you see it</span></span><Switch label="Save location" on={p.locationEnabled} disabled={p.busy} onChange={()=>p.setLocationEnabled(!p.locationEnabled)}/></div>
     <div className="flex h-[52px] items-center gap-[14px] border-b border-hairline"><Icon name="bookmark"/><span className="flex-1 text-body">Save as meal</span><Switch label="Save as meal" on={p.saveAsMeal} disabled={p.busy} onChange={()=>p.setSaveAsMeal(!p.saveAsMeal)}/></div>

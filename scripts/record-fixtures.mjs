@@ -22,7 +22,13 @@ const identify=JSON.parse(await readFile(new URL('src/lib/prompts/spark/identify
 const correct=JSON.parse(await readFile(new URL('src/lib/prompts/spark/correct.schema.json',root),'utf8'));
 for(const schema of [identify,correct]){schema.properties.needs_input={type:'null'};schema.required=[...new Set([...schema.required,'needs_input'])];}
 const nullable={anyOf:[{type:'string'},{type:'null'}]};
+const remainder=JSON.parse(await readFile(new URL('src/lib/prompts/spark/remainder.schema.json',root),'utf8'));
+const originalPlate=await call('/responses',JSON.stringify({model:'muse-spark-1.3',reasoning:{effort:'low'},instructions:'Identify the foods and their grams. region_index null, nutrition_label false, needs_input null. Give only factual records.',input:[{type:'message',role:'user',content:[await photo(1)]}],text:{format:{type:'json_schema',name:'identify',schema:identify,strict:true}},max_output_tokens:8192}),{'Content-Type':'application/json'});
+const originalPayload=await originalPlate.json();if(originalPayload.status!=='completed')throw Error('Original plate reference did not complete');
+const originalItems=JSON.parse(originalPayload.output.flatMap(row=>row.content??[]).find(row=>row.type==='output_text').text).items;
+const originalLines=originalItems.map((item,index)=>`${index} · ${item.name} · ${item.portion_grams??0} grams`).join('; ');
 const formats={
+ remainder:{schema:remainder,instructions:`The indexed original plate is ${originalLines}. Estimate only what was not eaten in the photo, from zero to each given quantity. Return each index once, null counts if unclear, no advice.`,content:[await photo(2)]},
  identify:{schema:identify,instructions:'Identify foods and grams from the photograph. region_index must be null. Give a plain factual summary with no advice. needs_input null.',content:[await photo(2)]},
  correct:{schema:correct,instructions:'Return the complete meal list after changing the rice to 75 grams. keep and region_index must be null for every item. Give one plain reply saying what changed, no advice. needs_input null.',content:[await photo(3)]},
  same_meal:{schema:{type:'object',properties:{same_meal:{type:'boolean'}},required:['same_meal'],additionalProperties:false},instructions:'Do these pictures show the same foods in the same amounts?',content:[await photo(1),await photo(3)]},
