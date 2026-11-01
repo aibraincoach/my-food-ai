@@ -4,6 +4,8 @@ import { spawnSync } from "node:child_process";
 import { readFileSync } from "node:fs";
 import test from "node:test";
 import { createClient } from "@supabase/supabase-js";
+import { resolveProduct } from "../src/lib/fdc/barcode-resolver.ts";
+import { user as testUser } from "./db/helpers.mjs";
 import { signInAsTestUser } from "../scripts/lib/session.mjs";
 import { lookupBarcode, productFromFood, barcodeAmounts, barcodeNutrition, amountInBasis, packageAmount } from "../src/lib/fdc/barcode.ts";
 
@@ -99,7 +101,10 @@ test("the signed-in food route accepts server-resolved GTIN/photo, rejects suppl
   catch { t.skip("Start the built item 4 app on port 3104 to run the real HTTP route check."); return; }
   const cookie = await signInAsTestUser(1);
   const admin = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.SUPABASE_SECRET_KEY);
-  const product = await lookupBarcode("016000275683");
+  const owner = await testUser(1);
+  const product = await resolveProduct("016000275683", owner.user.id);
+  assert.ok(product,"The owner-resolved barcode product must exist.");
+  const expectedNutrition = barcodeNutrition(product,27);
   let postId; let paths = [];
   const send = (path, body) => fetch(`${origin}${path}`, { method: "POST", headers: { "Content-Type": "application/json", cookie }, body: JSON.stringify(body) });
   try {
@@ -111,10 +116,14 @@ test("the signed-in food route accepts server-resolved GTIN/photo, rejects suppl
     for (const url of [upload.originalSignedUrl,upload.feedSignedUrl]) assert.equal((await fetch(url,{ method:"PUT",headers:{"Content-Type":"image/jpeg"},body:jpeg })).ok,true);
     const response = await send("/api/posts/food",{ gtin:product.gtin,amount:27,unit:"g",photo:{path:upload.originalPath,width:390,height:390} });
     const result = await response.json(); assert.equal(response.status,201,JSON.stringify(result)); postId=result.post_id;
-    const { data:post } = await admin.from("posts").select("status").eq("id",postId).single(); assert.equal(post.status,"ready");
+    const { data:post } = await admin.from("posts").select("status,user_id").eq("id",postId).single(); assert.equal(post.status,"ready"); assert.equal(post.user_id,owner.user.id);
     const { data:media } = await admin.from("post_media").select("storage_path").eq("post_id",postId).eq("kind","photo").single(); assert.equal(media.storage_path,upload.originalPath);
     const { data:item } = await admin.from("current_post_items").select("id,name,portion_grams").eq("post_id",postId).single(); assert.equal(item.name,product.name); assert.equal(item.portion_grams,27);
-    const { data:nutrition } = await admin.from("item_nutrition").select("calories,source_ref").eq("post_item_id",item.id).single(); assert.ok(Math.abs(nutrition.calories - product.per100g.calories * 0.27) < 0.0001); assert.equal(nutrition.source_ref,String(product.fdcId));
+    const { data:nutrition } = await admin.from("item_nutrition").select("calories,protein_g,carbs_g,fat_g,fibre_g,sugar_g,sodium_mg,source_ref").eq("post_item_id",item.id).single(); for(const key of ["calories","protein_g","carbs_g","fat_g","fibre_g","sugar_g","sodium_mg"]){
+      if(expectedNutrition[key]==null)assert.equal(nutrition[key],null,key);
+      else assert.ok(Math.abs(nutrition[key]-expectedNutrition[key])<0.0001,key);
+    }
+    assert.equal(nutrition.source_ref,expectedNutrition.source_ref);
     const { count:jobs } = await admin.from("jobs").select("id",{count:"exact",head:true}).eq("post_id",postId); assert.equal(jobs,0);
     const second = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL,process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY,{auth:{persistSession:false,autoRefreshToken:false}});
     const { error:signError } = await second.auth.signInWithPassword({email:process.env.TEST_USER2_EMAIL,password:process.env.TEST_USER2_PASSWORD}); assert.ifError(signError);
@@ -122,6 +131,7 @@ test("the signed-in food route accepts server-resolved GTIN/photo, rejects suppl
   } finally {
     if(postId) await admin.from("posts").delete().eq("id",postId);
     if(paths.length) await admin.storage.from("media").remove(paths);
+    await owner.client.auth.signOut({scope:"local"});
   }
 });
 
