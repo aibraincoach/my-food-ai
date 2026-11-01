@@ -8,6 +8,7 @@ import BottomBar from "@/components/BottomBar";
 import CaptureSheet from "@/components/CaptureSheet";
 import PostCreatedListeners from "@/components/PostCreatedListeners";
 import PostReadinessListener from "@/components/PostReadinessListener";
+import CorrectProductAction from "@/components/CorrectProductAction";
 import QueueTicker from "@/components/QueueTicker";
 
 // The existing controls accept these entry hints when their independent PRs land.
@@ -30,6 +31,7 @@ export default function TabsLayout({ children }: { children: React.ReactNode }) 
   }, []);
   return (
     <div className="mx-auto flex min-h-dvh w-full max-w-phone flex-1 flex-col bg-surface pb-bar-safe">
+      <CorrectProductAction />
       <QueueTicker />
       <PostCreatedListeners />
       <PostReadinessListener />

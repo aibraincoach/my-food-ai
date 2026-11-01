@@ -78,3 +78,13 @@ begin
 end $$;
 revoke all on function public.persist_owned_label(uuid,uuid,jsonb,text,jsonb) from public,anon,authenticated;
 grant execute on function public.persist_owned_label(uuid,uuid,jsonb,text,jsonb) to service_role;
+
+-- Portion edits and servings keep the code as their new current version replaces the old one.
+create function public.inherit_item_gtin() returns trigger language plpgsql set search_path=public,pg_temp as $$
+begin
+ if new.gtin is null and new.supersedes is not null then
+  select gtin into new.gtin from public.post_items where id=new.supersedes and post_id=new.post_id;
+ end if;
+ return new;
+end $$;
+create trigger post_items_inherit_gtin before insert on public.post_items for each row execute function public.inherit_item_gtin();

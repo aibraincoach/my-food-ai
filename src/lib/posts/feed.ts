@@ -26,6 +26,7 @@ export interface FeedItem {
 }
 
 export interface FeedPost {
+  gtin?: string | null;
   day?: string;
   modelCommentId?: string | null;
   analysisFingerprint?: string | null;
@@ -93,6 +94,7 @@ async function toFeedPost(
     modelCommentId: row.status==="ready"&&JSON.stringify(revisionBefore)===JSON.stringify(revisionAfter)?revisionAfter?.modelCommentId??null:null,
     analysisFingerprint:row.status==="ready"&&JSON.stringify(revisionBefore)===JSON.stringify(revisionAfter)?revisionAfter?.fingerprint??null:null,
     day: zone ? dateInZone(row.eaten_at, zone) : undefined,
+    gtin: items.find(item=>"gtin" in item && item.gtin)?.gtin as string|null|undefined,
     id: row.id,
     caption: row.caption,
     eaten_at: row.eaten_at,
