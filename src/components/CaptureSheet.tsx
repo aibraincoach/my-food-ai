@@ -34,9 +34,9 @@ if(typeof window!=="undefined")createClient().auth.onAuthStateChange((event)=>{i
 const FLIP_ERROR = "Could not switch cameras. Try again.";
 
 export type CaptureMode = "photo" | "text" | "barcode";
-export default function CaptureSheet({ onClose, initialMode = "photo" }: { onClose: () => void; initialMode?: CaptureMode }) {
+export default function CaptureSheet({ onClose, initialMode = "photo", forPost, attachNotEaten = false }: { onClose: () => void; initialMode?: CaptureMode; forPost?: string; attachNotEaten?: boolean }) {
   const router = useRouter();
-  const resumed=useRef(retainedDraft);
+  const resumed=useRef(forPost?null:retainedDraft);
   const [composer,setComposer]=useState(initialMode==='text'||Boolean(resumed.current));
   const [photoIndex,setPhotoIndex]=useState(0);
   const [notEaten,setNotEaten]=useState<number|null>(resumed.current?.notEaten??null);
@@ -90,13 +90,14 @@ export default function CaptureSheet({ onClose, initialMode = "photo" }: { onClo
 
   const closeDraft=useCallback(()=>{
     if(postingRef.current)return;
+    if(forPost){onClose();return;}
     if(resumed.current){retainedDraft=null;}
     else if(shotsRef.current.length||caption.trim())retainedDraft={files:shotsRef.current.map(shot=>shot.file),caption,when,notEaten,location,locationEnabled,saveAsMeal,upload:ordinaryUploadRef.current};
     onClose();
-  },[caption,when,notEaten,location,locationEnabled,saveAsMeal,onClose]);
+  },[caption,when,notEaten,location,locationEnabled,saveAsMeal,onClose,forPost]);
   const closeDraftRef=useRef(closeDraft);closeDraftRef.current=closeDraft;
   const enableLocation=(enabled:boolean)=>{if(!enabled){setLocationEnabled(false);return;}void requestLocation().then(fix=>{setLocation(fix);setLocationEnabled(Boolean(fix));});};
-  useEffect(()=>{let live=true;if(!resumed.current)void requestLocation().then(fix=>{if(live){setLocation(fix);setLocationEnabled(Boolean(fix));}});return()=>{live=false;};},[]);
+  useEffect(()=>{let live=true;if(!resumed.current&&!forPost)void requestLocation().then(fix=>{if(live){setLocation(fix);setLocationEnabled(Boolean(fix));}});return()=>{live=false;};},[]);
   const [viewport, setViewport] = useState<{ height: number; top: number } | null>(null);
   useEffect(() => {
     const visual = window.visualViewport;
@@ -265,10 +266,24 @@ export default function CaptureSheet({ onClose, initialMode = "photo" }: { onClo
       window.dispatchEvent(new CustomEvent("post-created",{detail:{id:result.post_id}}));onClose();router.refresh();
     }catch(e){setError(e instanceof Error?e.message:"The meal could not be saved.");}finally{postingRef.current=false;setPosting(false);}
   };
+  const attachmentUpload=useRef<PackPhotoUpload|null>(null);
+  const attachFile=async(file:File)=>{
+    if(!forPost)return false;
+    postingRef.current=true;setPosting(true);setError(null);
+    try{
+      attachmentUpload.current??=new PackPhotoUpload();
+      const photo=await attachmentUpload.current.prepare(file);
+      const response=await fetch(`/api/posts/${forPost}/media`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({photo,not_eaten:attachNotEaten})});
+      const result=await response.json();if(!response.ok)throw Error(result.error??"The photo could not be attached. Your photo was kept; try again.");
+      window.dispatchEvent(new CustomEvent("post-created",{detail:{id:forPost}}));
+      onClose();router.refresh();return true;
+    }catch(e){if(mountedRef.current)setError(e instanceof Error?e.message:"The photo could not be attached. Your photo was kept; try again.");return false;}
+    finally{postingRef.current=false;if(mountedRef.current)setPosting(false);}
+  };
   const addFiles = async (files: FileList | File[] | null) => {
     if (!files || postingRef.current) return;
     if (Array.from(files).length) selectedPhotoRef.current = true;
-    pendingFilesRef.current.push(...Array.from(files).slice(0, Math.max(0, MAX_SHOTS - shotsRef.current.length - pendingFilesRef.current.length)));
+    pendingFilesRef.current.push(...Array.from(files).slice(0, Math.max(0, (forPost?1:MAX_SHOTS) - shotsRef.current.length - pendingFilesRef.current.length)));
     setPendingCount(pendingFilesRef.current.length);
     if (scanBusy.current) return;
     scanBusy.current = true; setCameraBusy(true);
@@ -276,6 +291,11 @@ export default function CaptureSheet({ onClose, initialMode = "photo" }: { onClo
       while (pendingFilesRef.current.length && shotsRef.current.length < MAX_SHOTS) {
         // Keep the in-flight file in the queue so another selection cannot exceed capacity.
         const file = pendingFilesRef.current[0];
+        if(forPost){
+          const attached=await attachFile(file);
+          if(attached){pendingFilesRef.current.shift();setPendingCount(pendingFilesRef.current.length);}
+          return;
+        }
         if(labelForCode){
           pendingFilesRef.current.shift();setPendingCount(pendingFilesRef.current.length);
           await readLabelFile(file);return;
@@ -414,7 +434,7 @@ export default function CaptureSheet({ onClose, initialMode = "photo" }: { onClo
   const macros = (amount: number) => `${value("calories", amount)} kcal · ${value("protein_g", amount)} g protein · ${value("carbs_g", amount)} g carbs · ${value("fat_g", amount)} g fat`;
 
 
-  if(composer&&mode!=="barcode"&&barcodeState==="idle"&&labelState==="idle")return <div ref={dialogRef} role="dialog" aria-modal="true" aria-labelledby="capture-title" className="fixed inset-x-0 top-0 z-50 h-dvh overflow-hidden bg-surface" style={viewport?{height:viewport.height,top:viewport.top}:undefined}>
+  if(!forPost&&composer&&mode!=="barcode"&&barcodeState==="idle"&&labelState==="idle")return <div ref={dialogRef} role="dialog" aria-modal="true" aria-labelledby="capture-title" className="fixed inset-x-0 top-0 z-50 h-dvh overflow-hidden bg-surface" style={viewport?{height:viewport.height,top:viewport.top}:undefined}>
     <div className="mx-auto h-full max-w-phone"><LightComposer shots={shots} caption={caption} setCaption={setCaption} index={photoIndex} setIndex={setPhotoIndex} notEaten={notEaten} setNotEaten={setNotEaten} when={when} setWhen={setWhen} locationEnabled={locationEnabled} setLocationEnabled={enableLocation} saveAsMeal={saveAsMeal} setSaveAsMeal={setSaveAsMeal} busy={posting||cameraBusy} error={error} pending={pendingCount} onBack={closeDraft} onPhoto={()=>{setSearchingFoods(false);setComposer(false);setMode("photo");setStream(null);}} onSearch={()=>setSearchingFoods(value=>!value)} onPost={()=>{void post();}} onRemove={removeShot}
       searchPanel={searchingFoods?<div className="px-inset"><FoodSearchPanel eatenAt={when===null?null:fromLocalInput(when)} disabled={posting} onLogged={postId=>{retainedDraft=null;window.dispatchEvent(new CustomEvent('post-created',{detail:{id:postId}}));onClose();router.refresh();}} onDescribe={text=>{if(text&&!caption.trim())setCaption(text);setSearchingFoods(false);setError(null);}} onError={setError}/></div>:null}>
       <input ref={galleryRef} type="file" accept="image/*" multiple className="hidden" onChange={event=>{void addFiles(event.target.files);event.target.value='';}}/>
@@ -426,7 +446,7 @@ export default function CaptureSheet({ onClose, initialMode = "photo" }: { onClo
       <div className="mx-auto flex h-full w-full max-w-phone flex-col">
         <div className="shrink-0">
         <TopBar
-          title={<span id="capture-title">New post</span>}
+          title={<span id="capture-title">{forPost?(attachNotEaten?"Not eaten":"Add photo"):"New post"}</span>}
           left={<button ref={closeRef} type="button" onClick={closeDraft} disabled={posting} aria-label="Back to Feed" className="flex size-tap items-center justify-center rounded-circle bg-field text-text disabled:opacity-50"><Icon name={mode==="barcode"||barcodeState!=="idle"||labelState!=="idle"?"close":"back"} size={22} /></button>}
           right={<span className="w-tap" aria-hidden="true" />}
         />
@@ -450,11 +470,11 @@ export default function CaptureSheet({ onClose, initialMode = "photo" }: { onClo
             <p className="absolute bottom-icon-small rounded-tile bg-overlay-dark px-tooltip-caret py-tooltip-offset text-detail text-surface">Hold the barcode inside the frame</p>
           </>}
         </div>
-        <div className="flex justify-center pt-field-x">
+        {!forPost&&<div className="flex justify-center pt-field-x">
           <div className="flex rounded-pill bg-camera-field" style={{ padding: tokens.border.hairline * 3 }}>
             {(["photo", "barcode"] as const).map((tab) => <button key={tab} type="button" disabled={posting} aria-pressed={mode === tab} onClick={() => switchMode(tab)} className={`text-comment ${mode === tab ? "bg-surface font-semibold text-text" : "text-camera-muted"}`} style={{ height: tokens.spacing['table-row'] + tokens.spacing.grid, paddingInline: tokens.spacing['screen-x'] - tokens.icon.strongStroke, borderRadius: tokens.radii.pill - tokens.border.hairline * 3 }}>{tab === "photo" ? "Photo" : "Barcode"}</button>)}
           </div>
-        </div></>}
+        </div>}</>}
         <input ref={galleryRef} type="file" accept="image/*" multiple className="hidden" disabled={posting || full} onChange={(event) => { void addFiles(event.target.files); event.target.value = ""; }} />
         <input ref={cameraRef} type="file" accept="image/*" capture="environment" className="hidden" disabled={posting || full} onChange={(event) => { void addFiles(event.target.files); event.target.value = ""; }} />
         {mode === "photo" && barcodeState === "idle" && <div className="flex shrink-0 items-center justify-center" style={{ height: tokens.capture.controlsHeight, gap: tokens.capture.controlsGap }}>
@@ -464,7 +484,7 @@ export default function CaptureSheet({ onClose, initialMode = "photo" }: { onClo
           </button>
           {stream ? <button type="button" aria-label="Flip camera" disabled={posting || cameraBusy} onClick={flipCamera} className="flex size-tap items-center justify-center rounded-circle bg-camera-button disabled:opacity-50"><Icon name="flip" size={tokens.capture.galleryIcon} /></button> : <span className="size-tap" aria-hidden="true" />}
         </div>}
-        {(mode === "text" || mode === "photo") && barcodeState === "idle" && <div className="flex shrink-0 overflow-x-auto px-screen-x" style={{ gap: tokens.capture.thumbGap }} aria-label="Meal photos">
+        {!forPost&&(mode === "text" || mode === "photo") && barcodeState === "idle" && <div className="flex shrink-0 overflow-x-auto px-screen-x" style={{ gap: tokens.capture.thumbGap }} aria-label="Meal photos">
           {shots.map((shot, i) => (
             <button key={shot.previewUrl} type="button" aria-label={`Remove photo ${i + 1}`} disabled={posting} onClick={() => removeShot(i)} className="relative shrink-0 overflow-hidden rounded-thumb disabled:opacity-50" style={{ width: tokens.capture.thumbSize, height: tokens.capture.thumbSize }}>
               {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -475,7 +495,10 @@ export default function CaptureSheet({ onClose, initialMode = "photo" }: { onClo
           {!full && <button type="button" aria-label="Add another photo" disabled={posting} onClick={() => galleryRef.current?.click()} className="flex shrink-0 items-center justify-center rounded-thumb border border-dashed border-camera-muted text-camera-muted disabled:opacity-50" style={{ width: tokens.capture.thumbSize, height: tokens.capture.thumbSize }}><Icon name="plus" size={tokens.capture.addIcon} /></button>}
         </div>}
         <div className="min-h-card-gap flex-1" />
-        {labelState!=="idle" ? <section aria-label="Nutrition label" className="rounded-t-sheet bg-text px-screen-x py-5 text-surface">
+        {forPost?<div className="px-screen-x pb-card-safe text-detail">
+          {posting&&<p role="status">Adding photo…</p>}{error&&<p role="alert">{error}</p>}
+          {!posting&&pendingCount>0&&<button type="button" disabled={cameraBusy} onClick={()=>{void addFiles([]);}} className="min-h-tap underline">Retry adding photo</button>}
+        </div>:<>{labelState!=="idle" ? <section aria-label="Nutrition label" className="rounded-t-sheet bg-text px-screen-x py-5 text-surface">
           {labelState==="reading"?<p role="status" className="text-body">Reading the label…</p>:labelState==="missing"?<><p className="text-body">No nutrition label found</p><button type="button" onClick={()=>{setLabelState("idle");}} className="min-h-tap text-detail underline">Take the photo again</button><button type="button" onClick={typePackInstead} className="ml-4 min-h-tap text-detail underline">Type it instead</button></>:labelReading&&<>
           <div className="flex gap-3"><div className="min-w-0 flex-1"><p className="text-meta text-faint">Label read · per serving {labelReading.reading.serving?.amount} {labelReading.reading.serving?.unit}</p><Field id="label-name" variant="camera" autoFocus placeholder="Name this food" value={labelName} maxLength={80} onChange={e=>setLabelName(e.target.value)} disabled={posting}/><p className="mt-1.5 text-detail text-faint">{labelMacros(1)}</p></div>{packPhoto&&<img src={packPhoto.previewUrl} alt="Nutrition label" className="size-14 rounded-thumb object-cover"/>}</div>
           <p className="mt-[18px] text-meta text-faint">How much?</p><div className="mt-2.5 flex flex-wrap gap-2">{[1,2,0.5].map(n=><button key={n} type="button" disabled={posting} onClick={()=>{setLabelServings(n);setOtherServings(false);}} aria-pressed={!otherServings&&labelServings===n} className={`h-10 rounded-field border px-3 text-comment font-medium ${!otherServings&&labelServings===n?"border-surface bg-surface text-text":"border-ring-on-ink"}`}>{n===0.5?"½ serving":`${n} ${n===1?"serving":"servings"} · ${n*(labelReading.reading.serving?.amount??0)} ${labelReading.reading.serving?.unit}`}</button>)}<button type="button" onClick={()=>setOtherServings(true)} className="h-10 rounded-field border border-ring-on-ink px-3 text-comment">Other</button></div>
@@ -515,9 +538,9 @@ export default function CaptureSheet({ onClose, initialMode = "photo" }: { onClo
           <button type="button" disabled={posting} onClick={() => { setSearchingFoods(true); setError(null); }} className="min-h-tap self-start px-grid text-detail text-surface disabled:opacity-50">Search foods</button>
           <p className="px-grid text-meta text-camera-muted">Location is saved with the post and helps recognise meals you eat in the same place. Only you see it.</p>
           </>}
-        </div>}
+        </div>}</>}
         </div>
-        {(!searchingFoods || mode === "barcode" || barcodeState !== "idle" || error) && <div className="max-h-[50%] shrink-0 overflow-y-auto bg-camera px-screen-x pt-sheet-top pb-card-safe" aria-label="Capture actions">
+        {!forPost&&(!searchingFoods || mode === "barcode" || barcodeState !== "idle" || error) && <div className="max-h-[50%] shrink-0 overflow-y-auto bg-camera px-screen-x pt-sheet-top pb-card-safe" aria-label="Capture actions">
           {error && <p role="alert" className="mb-sheet-top text-detail text-surface">{error}</p>}
           {!searchingFoods && barcodeState === "idle" && mode !== "barcode" && labelState==="idle" && <>
             {pendingCount > 0 && <button type="button" disabled={posting || cameraBusy} onClick={() => { void continueSelected(); }} className="min-h-tap text-detail text-surface underline">Retry selected photos</button>}
