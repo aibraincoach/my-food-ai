@@ -101,7 +101,7 @@
       "content": [
         {
           "type": "output_text",
-          "text": "{\"items\": [{\"confidence\": 0.95, \"name\": \"Yorkshire pudding\", \"portion_grams\": 80, \"portion_text\": \"2 pieces\", \"region_index\": null}, {\"confidence\": 0.8, \"name\": \"sliced roast beef\", \"portion_grams\": 180, \"portion_text\": \"about 6 slices\", \"region_index\": null}, {\"confidence\": 0.85, \"name\": \"stuffing\", \"portion_grams\": 75, \"portion_text\": \"1 scoop\", \"region_index\": null}, {\"confidence\": 0.9, \"name\": \"brown gravy\", \"portion_grams\": 80, \"portion_text\": \"about 1/3 cup\", \"region_index\": null}], \"needs_input\": null, \"summary\": \"A white plate holds two Yorkshire puddings, several slices of roast meat covered in brown gravy, and a portion of stuffing.\"}",
+          "text": "{\"items\": [{\"confidence\": 0.95, \"name\": \"Yorkshire pudding\", \"portion_grams\": 80, \"portion_text\": \"2 pieces\", \"region_index\": null}, {\"confidence\": 0.8, \"name\": \"sliced roast beef\", \"portion_grams\": 180, \"portion_text\": \"about 6 slices\", \"region_index\": null}, {\"confidence\": 0.85, \"name\": \"stuffing\", \"portion_grams\": 75, \"portion_text\": \"1 scoop\", \"region_index\": null}, {\"confidence\": 0.9, \"name\": \"brown gravy\", \"portion_grams\": 80, \"portion_text\": \"about 1/3 cup\", \"region_index\": null}], \"needs_input\": null, \"summary\": \"A white plate holds two Yorkshire puddings, several slices of roast meat covered in brown gravy, and a portion of stuffing.\", \"nutrition_label\": false}",
           "annotations": [],
           "logprobs": []
         }

@@ -21,6 +21,7 @@ export interface IdentifiedItem {
 }
 
 export interface IdentifiedMeal {
+  nutritionLabel?: boolean;
   items: IdentifiedItem[];
   summary: string;
   needsInput: NeedsInput | null;
@@ -91,7 +92,7 @@ function parseIdentifiedMeal(
       confidence: typeof confidence === "number" ? confidence : null,
     });
   }
-  return { items: out, summary, needsInput: readNeedsInput(payload.needs_input) };
+  return { nutritionLabel: payload.nutrition_label === true, items: out, summary, needsInput: readNeedsInput(payload.needs_input) };
 }
 
 function regionLines(regions: IdentifyRegion[]): string {

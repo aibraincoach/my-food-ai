@@ -119,6 +119,7 @@ export function sumMicronutrients(items: {name?:string;micronutrients:StoredNutr
 }
 
 export interface CurrentItem extends NutritionLike {
+  gtin?: string | null;
   id: string;
   name: string;
   portion_text: string | null;
@@ -175,7 +176,7 @@ export class MissingNutritionError extends ApiError {
 // their nutrition remain in the database as immutable edit history.
 export async function getCurrentItems(supabase: SupabaseClient, postId: string, options: { requireNutrition?: boolean } = {}): Promise<CurrentItem[]> {
   const { data, error, status } = await supabase.from("current_post_items")
-    .select("id,name,portion_text,portion_grams,box,mask_path,source").eq("post_id", postId)
+    .select("id,name,portion_text,portion_grams,box,mask_path,source,gtin").eq("post_id", postId)
     .order("created_at", { ascending: true });
   if (error) throw ioError("Current items could not be read.", error, status);
   if (!data?.length) return [];

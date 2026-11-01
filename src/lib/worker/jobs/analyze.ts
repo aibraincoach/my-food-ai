@@ -15,7 +15,7 @@ const analyze: JobHandler = async (admin, job) => {
   const prior = await findPrior(admin,job.post_id);
   const reusable = prior?.named && certifiedPriorNutrition(prior.nutrition) ? prior : null;
   const named = reusable?.named ?? await analyzePost(admin, job.post_id, prior?.hint);
-  await persistAnalysis(admin, named, reusable?.nutrition, job.id);
+  await persistAnalysis(admin, named, named.labelNutrition?[named.labelNutrition]:reusable?.nutrition, job.id);
   if (named.needsInput) await sendPostPush(admin, job.post_id, named.needsInput.question);
 };
 

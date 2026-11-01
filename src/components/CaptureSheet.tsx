@@ -1,4 +1,7 @@
 "use client";
+import CorrectProductSheet from "@/components/CorrectProductSheet";
+import type { LabelReading } from "@/lib/meta/label";
+import type { ResolvedProduct } from "@/lib/fdc/barcode-product";
 import { PackPhotoUpload } from "@/lib/media/pack-photo-upload";
 
 import { decodeBarcode, decodeBarcodeFile, loadBarcodeDecoder } from "@/components/BarcodeScanner";
@@ -29,6 +32,16 @@ export default function CaptureSheet({ onClose, initialMode = "photo" }: { onClo
   const [mode, setMode] = useState<CaptureMode>(initialMode);
   const [product, setProduct] = useState<BarcodeProduct | null>(null);
   const [barcodeState, setBarcodeState] = useState<"idle" | "looking" | "missing" | "found" | "error">("idle");
+  const [scannedCode,setScannedCode]=useState("");
+  const [labelForCode,setLabelForCode]=useState<string|null>(null);
+  const [labelState,setLabelState]=useState<"idle"|"reading"|"read"|"missing">("idle");
+  const [labelReading,setLabelReading]=useState<{reading_id:string;reading:LabelReading}|null>(null);
+  const [labelName,setLabelName]=useState("");
+  const [labelServings,setLabelServings]=useState(1);
+  const [otherServings,setOtherServings]=useState(false);
+  const [correcting,setCorrecting]=useState(false);
+  const labelUploadRef=useRef<PackPhotoUpload|null>(null);
+  const labelPhotoRef=useRef<{path:string;width:number;height:number}|null>(null);
   const [packPhoto, setPackPhoto] = useState<Shot | null>(null);
   const packPhotoRef = useRef<Shot | null>(null);
   const [portion, setPortion] = useState(100);
@@ -76,6 +89,7 @@ export default function CaptureSheet({ onClose, initialMode = "photo" }: { onClo
 
   const findBarcode = useCallback(async (code: string, file: File) => {
     const mine = ++lookupRef.current;
+    setScannedCode(code);
     if (packPhotoRef.current) URL.revokeObjectURL(packPhotoRef.current.previewUrl);
     const shot = { file, previewUrl: URL.createObjectURL(file) };
     packPhotoRef.current = shot; setPackPhoto(shot);
@@ -97,7 +111,7 @@ export default function CaptureSheet({ onClose, initialMode = "photo" }: { onClo
   const dismissBarcode = () => {
     if (postingRef.current) return;
     lookupRef.current += 1;
-    setProduct(null); setBarcodeState("idle"); setPackPhoto(null); setError(null);
+    setProduct(null); setBarcodeState("idle"); setPackPhoto(null); setError(null); setLabelState("idle");setLabelReading(null);setLabelForCode(null);
     if (packPhotoRef.current) URL.revokeObjectURL(packPhotoRef.current.previewUrl);
     packPhotoRef.current = null;
     if (!shotsRef.current.length && !pendingFilesRef.current.length) selectedPhotoRef.current = false;
@@ -197,6 +211,36 @@ export default function CaptureSheet({ onClose, initialMode = "photo" }: { onClo
     return () => { cancelled = true; window.clearInterval(timer); };
   }, [mode, barcodeState, stream, findBarcode]);
 
+  const readLabelFile = async(file:File)=>{
+    setLabelState("reading");setError(null);
+    if(packPhotoRef.current)URL.revokeObjectURL(packPhotoRef.current.previewUrl);
+    const shot={file,previewUrl:URL.createObjectURL(file)};packPhotoRef.current=shot;setPackPhoto(shot);
+    try{
+      labelUploadRef.current??=new PackPhotoUpload();
+      const photo=await labelUploadRef.current.prepare(file);labelPhotoRef.current=photo;
+      const response=await fetch("/api/label/read",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({photo_path:photo.path})});
+      const result=await response.json();if(!response.ok)throw Error(result.error??"The label could not be read.");
+      if(!mountedRef.current)return;
+      if(!result.reading.is_label||!result.reading.serving||!result.reading.per_serving){setLabelState("missing");return;}
+      setLabelReading(result);setLabelName("");setLabelServings(1);setLabelState("read");
+      window.setTimeout(()=>document.getElementById("label-name")?.focus(),0);
+    }catch(e){if(mountedRef.current){setLabelState("missing");setError(e instanceof Error?e.message:"The label could not be read.");}}
+  };
+  const typePackInstead=()=>{
+    const kept=packPhotoRef.current;
+    if(kept){shotsRef.current=[...shotsRef.current,kept];setShots(shotsRef.current);packPhotoRef.current=null;}
+    dismissBarcode();setMode("text");setCaption("");setStream(null);
+    window.setTimeout(()=>document.getElementById("capture-caption")?.focus(),0);
+  };
+  const postLabel=async()=>{
+    if(postingRef.current||!labelReading||!labelPhotoRef.current)return;
+    postingRef.current=true;setPosting(true);setError(null);
+    try{
+      const response=await fetch("/api/posts/food",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({label_reading_id:labelReading.reading_id,servings:labelServings,name:labelName,photo:labelPhotoRef.current,...(labelForCode?{gtin:labelForCode}:{}),...(when===null?{}:{eaten_at:fromLocalInput(when)})})});
+      const result=await response.json();if(!response.ok)throw Error(result.error??"The meal could not be saved.");
+      window.dispatchEvent(new CustomEvent("post-created",{detail:{id:result.post_id}}));onClose();router.refresh();
+    }catch(e){setError(e instanceof Error?e.message:"The meal could not be saved.");}finally{postingRef.current=false;setPosting(false);}
+  };
   const addFiles = async (files: FileList | File[] | null) => {
     if (!files || postingRef.current) return;
     if (Array.from(files).length) selectedPhotoRef.current = true;
@@ -208,6 +252,10 @@ export default function CaptureSheet({ onClose, initialMode = "photo" }: { onClo
       while (pendingFilesRef.current.length && shotsRef.current.length < MAX_SHOTS) {
         // Keep the in-flight file in the queue so another selection cannot exceed capacity.
         const file = pendingFilesRef.current[0];
+        if(labelForCode){
+          pendingFilesRef.current.shift();setPendingCount(pendingFilesRef.current.length);
+          await readLabelFile(file);return;
+        }
         // A single bounded decode precedes all uploads, including library photos in text mode.
         let deadline: ReturnType<typeof setTimeout> | undefined;
         let code: string | null;
@@ -320,6 +368,8 @@ export default function CaptureSheet({ onClose, initialMode = "photo" }: { onClo
     finally { postingRef.current = false; if (mountedRef.current) setPosting(false); }
   };
 
+  const labelNumber=(key:"kcal"|"protein_g"|"carbs_g"|"fat_g",amount=labelServings)=>{const n=labelReading?.reading.per_serving?.[key];return n==null?"—":formatNutrition(n*amount);};
+  const labelMacros=(amount=labelServings)=>`${labelNumber("kcal",amount)} kcal · ${labelNumber("protein_g",amount)} g protein · ${labelNumber("carbs_g",amount)} g carbs · ${labelNumber("fat_g",amount)} g fat`;
   const latest = shots[shots.length - 1];
   const full = shots.length >= MAX_SHOTS;
   const switchMode = (next: CaptureMode) => { if (!postingRef.current && next !== mode) { dismissBarcode(); if ((mode === "text") !== (next === "text")) setStream(null); setMode(next); } };
@@ -351,11 +401,12 @@ export default function CaptureSheet({ onClose, initialMode = "photo" }: { onClo
         </div>
         <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain" aria-label="Capture content">
         {mode !== "text" && <><div className="relative flex shrink-0 items-center justify-center overflow-hidden bg-camera text-camera-muted" style={{ height: tokens.capture.previewHeight, marginTop: tokens.capture.previewTop }}>
-          {stream ? <video ref={videoRef} muted playsInline autoPlay aria-label="Live camera viewfinder" className="h-full w-full object-cover" /> : latest ? (
+          {labelState!=="idle"&&packPhoto ? <img src={packPhoto.previewUrl} alt="Photographed nutrition label" className="h-full w-full object-contain"/> : stream ? <video ref={videoRef} muted playsInline autoPlay aria-label="Live camera viewfinder" className="h-full w-full object-cover" /> : latest ? (
             // Local blob previews require no remote image transformation.
             // eslint-disable-next-line @next/next/no-img-element
             <img src={latest.previewUrl} alt="Latest meal photo" className="h-full w-full object-cover" />
           ) : <Icon name="camera" />}
+          {labelState==="read"&&<div aria-hidden="true" className="pointer-events-none absolute rounded-thumb border-2 border-accent" style={{left:`${(labelReading?.reading.box?.x??0)*100}%`,top:`${(labelReading?.reading.box?.y??0)*100}%`,width:`${(labelReading?.reading.box?.w??1)*100}%`,height:`${(labelReading?.reading.box?.h??1)*100}%`,boxShadow:`0 0 12px ${tokens.colors["accent-glow"]}`}}/>}
           {mode === "barcode" && <>
             <div className="pointer-events-none absolute" style={{ width: tokens.spacing['macro-gap'] * 10, height: tokens.spacing['macro-gap'] * 5, top: tokens.capture.previewHeight / 2 - tokens.spacing['macro-gap'] * 2.5 }}>
               {(["tl", "tr", "bl", "br"] as const).map((corner) => <span key={corner} className="absolute border-surface" style={{ width: tokens.spacing['macro-gap'], height: tokens.spacing['macro-gap'],
@@ -391,14 +442,21 @@ export default function CaptureSheet({ onClose, initialMode = "photo" }: { onClo
           {!full && <button type="button" aria-label="Add another photo" disabled={posting} onClick={() => galleryRef.current?.click()} className="flex shrink-0 items-center justify-center rounded-thumb border border-dashed border-camera-muted text-camera-muted disabled:opacity-50" style={{ width: tokens.capture.thumbSize, height: tokens.capture.thumbSize }}><Icon name="plus" size={tokens.capture.addIcon} /></button>}
         </div>}
         <div className="min-h-card-gap flex-1" />
-        {(mode === "barcode" || barcodeState !== "idle") ? <section aria-label="Scanned product" className="relative rounded-t-sheet bg-text px-screen-x text-surface" style={{ paddingTop: tokens.spacing['screen-x'] - tokens.icon.strongStroke, paddingBottom: `calc(${tokens.brand.barHeight - tokens.radii.chip}px + env(safe-area-inset-bottom))` }}>
+        {labelState!=="idle" ? <section aria-label="Nutrition label" className="rounded-t-sheet bg-text px-screen-x py-5 text-surface">
+          {labelState==="reading"?<p role="status" className="text-body">Reading the label…</p>:labelState==="missing"?<><p className="text-body">No nutrition label found</p><button type="button" onClick={()=>{setLabelState("idle");}} className="min-h-tap text-detail underline">Take the photo again</button><button type="button" onClick={typePackInstead} className="ml-4 min-h-tap text-detail underline">Type it instead</button></>:labelReading&&<>
+          <div className="flex gap-3"><div className="min-w-0 flex-1"><p className="text-meta text-faint">Label read · per serving {labelReading.reading.serving?.amount} {labelReading.reading.serving?.unit}</p><Field id="label-name" variant="camera" autoFocus placeholder="Name this food" value={labelName} maxLength={80} onChange={e=>setLabelName(e.target.value)} disabled={posting}/><p className="mt-1.5 text-detail text-faint">{labelMacros(1)}</p></div>{packPhoto&&<img src={packPhoto.previewUrl} alt="Nutrition label" className="size-14 rounded-thumb object-cover"/>}</div>
+          <p className="mt-[18px] text-meta text-faint">How much?</p><div className="mt-2.5 flex flex-wrap gap-2">{[1,2,0.5].map(n=><button key={n} type="button" disabled={posting} onClick={()=>{setLabelServings(n);setOtherServings(false);}} aria-pressed={!otherServings&&labelServings===n} className={`h-10 rounded-field border px-3 text-comment font-medium ${!otherServings&&labelServings===n?"border-surface bg-surface text-text":"border-ring-on-ink"}`}>{n===0.5?"½ serving":`${n} ${n===1?"serving":"servings"} · ${n*(labelReading.reading.serving?.amount??0)} ${labelReading.reading.serving?.unit}`}</button>)}<button type="button" onClick={()=>setOtherServings(true)} className="h-10 rounded-field border border-ring-on-ink px-3 text-comment">Other</button></div>
+          {otherServings&&<Field variant="camera" aria-label="Number of servings" type="number" min="0.25" max="50" step="0.1" value={labelServings} onChange={e=>setLabelServings(Number(e.target.value))} disabled={posting}/>}
+          <p className="mt-[18px] text-body">Consumed: {labelNumber("kcal")} kcal <span className="text-detail text-faint">· {labelMacros().split(" · ").slice(1).join(" · ")}</span></p><p className="mt-2.5 text-meta text-muted">Read by the model from the label. Values you change are kept with the post.</p>
+          </>}
+        </section> : (mode === "barcode" || barcodeState !== "idle") ? <section aria-label="Scanned product" className="relative rounded-t-sheet bg-text px-screen-x text-surface" style={{ paddingTop: tokens.spacing['screen-x'] - tokens.icon.strongStroke, paddingBottom: `calc(${tokens.brand.barHeight - tokens.radii.chip}px + env(safe-area-inset-bottom))` }}>
           {barcodeState !== "idle" && <button type="button" aria-label="Dismiss scanned product" disabled={posting} onClick={dismissBarcode} className="absolute right-screen-x top-sheet-top flex size-tap items-center justify-center"><Icon name="close" size={tokens.capture.galleryIcon} /></button>}
-          {barcodeState === "idle" ? <><p className="text-body">{cameraUnavailable ? "Camera unavailable" : "Looking for a barcode…"}</p><p className="text-detail text-faint">{cameraUnavailable ? "Choose a photo containing a barcode." : "Hold the code steady in the frame"}</p></> : barcodeState === "looking" ? <p className="text-body" role="status">Looking it up…</p> : barcodeState === "missing" ? <><p className="text-body">Not in the database</p><button type="button" onClick={() => { dismissBarcode(); switchMode("text"); setCaption(""); window.setTimeout(() => document.getElementById("capture-caption")?.focus(), 0); }} className="min-h-tap text-detail underline">Type it instead</button></> : null}
+          {barcodeState === "idle" ? <><p className="text-body">{cameraUnavailable ? "Camera unavailable" : "Looking for a barcode…"}</p><p className="text-detail text-faint">{cameraUnavailable ? "Choose a photo containing a barcode." : "Hold the code steady in the frame"}</p></> : barcodeState === "looking" ? <p className="text-body" role="status">Looking it up…</p> : barcodeState === "missing" ? <><p className="text-meta text-faint">Not in the database</p><p className="text-month">{scannedCode}</p><p className="text-detail text-faint">No product for this code yet. Photograph the nutrition label and the pack becomes a post the same way.</p>{packPhoto&&<img src={packPhoto.previewUrl} alt="Scanned pack" className="my-2 size-14 rounded-thumb object-cover"/>}<Button variant="camera" onClick={()=>{setLabelForCode(scannedCode);setMode("photo");setBarcodeState("idle");}}>Photograph the nutrition label</Button><button type="button" onClick={typePackInstead} className="mt-2 h-field-h w-full rounded-field border border-ring-on-ink text-body">Type it instead</button><button type="button" onClick={()=>{rejectedCode.current=null;dismissBarcode();}} className="min-h-tap w-full text-detail text-muted">Try the code again</button></> : null}
           {cameraUnavailable && mode === "barcode" && <div className="mt-sheet-top"><p role="status" className="text-detail text-faint">The camera could not be opened. Choose a photo from the library.</p><button type="button" disabled={posting || cameraBusy} onClick={() => galleryRef.current?.click()} className="min-h-tap text-detail underline">Choose from library</button></div>}
           {barcodeState === "idle" && pendingCount > 0 && <button type="button" disabled={posting || cameraBusy} onClick={() => { void continueSelected(); }} className="min-h-tap text-detail underline">Continue with {pendingCount} selected {pendingCount === 1 ? "photo" : "photos"}</button>}
           {product && <>
             <div className="flex gap-sheet-top pr-tap">
-              <div className="min-w-0 flex-1"><p className="text-meta text-faint">Found</p><p className="text-month">{product.name}</p><p className="text-detail text-faint">Per 100 {product.basisUnit} · {macros(100)}</p></div>
+              <div className="min-w-0 flex-1"><p className="text-meta text-faint">Found</p><p className="text-month">{product.name}</p><button type="button" onClick={()=>setCorrecting(true)} className="text-detail underline">Correct</button><p className="text-detail text-faint">Per 100 {product.basisUnit} · {macros(100)}</p></div>
               {/* eslint-disable-next-line @next/next/no-img-element */}
               {packPhoto && <img src={packPhoto.previewUrl} alt="Scanned pack" className="shrink-0 rounded-thumb object-cover" style={{ width: tokens.capture.thumbSize, height: tokens.capture.thumbSize }} />}
             </div>
@@ -429,13 +487,15 @@ export default function CaptureSheet({ onClose, initialMode = "photo" }: { onClo
         </div>
         {(!searchingFoods || mode === "barcode" || barcodeState !== "idle" || error) && <div className="max-h-[50%] shrink-0 overflow-y-auto bg-camera px-screen-x pt-sheet-top pb-card-safe" aria-label="Capture actions">
           {error && <p role="alert" className="mb-sheet-top text-detail text-surface">{error}</p>}
-          {!searchingFoods && barcodeState === "idle" && mode !== "barcode" && <>
+          {!searchingFoods && barcodeState === "idle" && mode !== "barcode" && labelState==="idle" && <>
             {pendingCount > 0 && <button type="button" disabled={posting || cameraBusy} onClick={() => { void continueSelected(); }} className="min-h-tap text-detail text-surface underline">Retry selected photos</button>}
             <Button variant="camera" onClick={post} disabled={posting || cameraBusy || pendingCount > 0 || (!caption.trim() && shots.length === 0)}>{posting ? "Posting…" : "Post"}</Button>
           </>}
+          {labelState==="read"&&<Button variant="camera" disabled={posting||!Number.isFinite(labelServings)||labelServings<0.25||labelServings>50} onClick={()=>{void postLabel();}}>{posting?"Posting…":`Post · ${labelServings} ${labelServings===1?"serving":"servings"}`}</Button>}
           {product && <Button variant="camera" disabled={posting} onClick={() => { void postBarcode(); }}>{posting ? "Posting…" : `Post · ${product.name.charAt(0).toUpperCase() + product.name.slice(1).toLowerCase().slice(0, 23)} ${amountLabel(portion)}`}</Button>}
         </div>}
       </div>
+      {correcting&&product&&<CorrectProductSheet product={product as ResolvedProduct} onClose={()=>setCorrecting(false)} onSaved={()=>{setCorrecting(false);void fetch(`/api/fdc/barcode?code=${encodeURIComponent(product.gtin)}`).then(r=>r.json()).then(b=>{if(b.product)setProduct(b.product);}).catch(()=>setError("The product could not be refreshed."));}}/>}
     </div>
   );
 }
