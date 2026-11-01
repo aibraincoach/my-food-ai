@@ -27,6 +27,8 @@ Reconcile documents, commit on the document branch, then `skills/pm-handover/scr
 
 ## Session summary
 
+_Current backlog update: the owner supplied the Sunday Nov 1, 09:38 WIB PM backlog for a new docs PR. [BACKLOG.md](BACKLOG.md) now follows that supplied order and wording. The prior reconciled backlog, including production status annotations, is preserved in [the 09:11 snapshot](docs/history/2026-11-01-backlog-before-0938.md). The runtime evidence below remains historical evidence; its #235-only execution order is superseded by this docs request. Round 3 frames now guide #219/#220; desktop, agent-connection and upload-progress frames remain designer dependencies. This documentation update does not change GitHub issue states or establish acceptance._
+
 _Observed 2026-11-01T02:11:31+00:00. Main and the production alias were independently re-read for the owner's #235-only merge order. This is documentation state, not an additional execution order._
 
 - Main and production at this reconciliation baseline are `c392a30ae170ec4f7a7cc48e5b8ff9b1d4d597a5`, READY, with a 300-second function duration. This documentation merge will advance main; the baseline SHA identifies the verified runtime rather than predicting this PR's merge SHA. Run 3, #236–#249 and #250–#257 are merged. Preserve all later code, receipts and production evidence when integrating the old docs branch.

@@ -1,84 +1,36 @@
 # My Food AI — Backlog†
 
-Last edited: Sunday 2026-11-01 at 09:11 WIB (UTC+07:00) by Codex, reconciling #235 with current production evidence
+Last edited: Sunday 2026-11-01 at 09:38 WIB (UTC+07:00) by Claude, PM
 
 ## Backlog
 
-> Reconciled against production baseline c392a30 and live GitHub states on Nov 1. The later evidence on main is authoritative: matching, copied-nutrition trace, ten-photo evaluation, functional demonstrations and the 51.3-second verified rehearsal are recorded. Owner food acceptance and physical-phone checks remain unproven. Six closed rows (#24, #106, #109, #13, #14, #15) were removed only with the merged implementation/production evidence in [the closed-issue audit](docs/closed-issue-acceptance.md). Closed #107/#108/#22 and the distinct Home-frame claim labelled #11 remain as explicit acceptance gaps. #67 remains GitHub-OPEN, but copied reuse is now proven. The [prior-main issue index](docs/open-issue-index.md) retains every additional issue reference from main; historical snapshots remain in [the archive](docs/history/2026-10-31-pm-snapshot.md). No issue state was changed by this reconciliation.
-
 ## For the designer
 
-### #195 The second photo can show what was not eaten
+### Frames for the desktop browser layout
 
-A user who photographs a whole cake and then eats part of it cannot say that the second photo shows what remains.
+The app has frames only for a 390 px phone, so the desktop version (#168) cannot be built.
 
-The owner wants it very clear which photo is the not-eaten one: a toggle on the second photo only, or a + at the end of the carousel reached by swiping right on the card. The app never shows the word "left", so the label reads "Not eaten". Design the + in the carousel, the toggle on and off, the label on the slide, and how the card shows what was consumed. Done when frames at 390x844 for adding the second photo, the toggle states and a card with a not-eaten slide are delivered.
+\#168 asks for a centred feed column at 1024 px and wider, a side or top navigation in place of the bottom bar, post detail beside the feed, keyboard navigation, and capture by webcam or file upload. The same rules apply as on the phone: consumed wording, and no target, percentage, ring or the word "left". Done when frames at 1280x800 are delivered for the feed with post detail beside it, capture by webcam or file upload, Days, Search and Profile.
 
-### #198 Frames for saved meals and Log again
+### Frames for connecting an agent
 
-Saved meals and Log again cannot be built because no frame shows them.
+The agent surface (#169) lets an agent log and read meals, but a user has no screen to connect one.
 
-\#172 adds a bookmark on post detail that saves a meal, the saved meals as the fifth entry of the + (frames 2c and 2d draw that place as "Your own") and "Log again" in the post menu to copy a meal to a chosen time. Done when frames at 390x844 are delivered for the bookmark on post detail, the saved meals reached from the fifth entry of the +, and "Log again" with its time choice.
-### #210 Frames for a nutrition label and for correcting a scanned product
+\#169 creates a per-user token from a "Connect an agent" row on Profile, and the user can revoke it. The row, creating a token, seeing it and revoking it have no frame. The MCP server and HTTP API need no frame. Records only, past tense, no targets. Done when frames at 390x844 are delivered for the Profile row, creating a token, a connected agent and revoking it.
 
-Frame 2i draws a barcode found, but no frame shows a nutrition label read, a barcode not found or a way to correct a scanned product.
+### Frames for the upload progress bar
 
-The owner ruled on Oct 29 to keep the Photo | Barcode toggle of frame 2i, so a user can see that a scanner exists, while the camera also identifies a barcode or a label in Photo mode without the toggle being used. Draw, in the style of frame 2i, the card for a nutrition label read, the card for a barcode not found, and the correction of a scanned product, because many barcodes come back with names in another language such as Spanish. Done when frames at 390x844 are delivered for a nutrition label read, a barcode not found and the correction.
+Nobody has drawn what a user sees while a photo uploads, so the progress bar cannot be built to a frame.
 
-### #211 Frames for the day's hydration on a drink post's card
+The owner asked on Nov 1 for a progress bar during upload so people know the app is working (see the engineering item on uploading a photo). It shows the upload only, never nutrition, goals or any score. Done when frames at 390x844 are delivered for the capture sheet and the feed card while a photo uploads, and for a failed upload.
 
-A drink becomes a post, but no frame shows what its card says.
-
-The owner ruled on Oct 29 that a drink post's card shows how much hydration the user has consumed all day, from drinks and from the water in food. It is a record in past tense, for example "Consumed today: 1,450 ml", with no target, comparison or percentage. Done when frames at 390x844 are delivered for the card of a water post, a coffee post and a food post that adds hydration.
-
-### #219 A way home from every screen
-
-From several screens a user cannot get back to Home, because the bottom bar is not shown everywhere.
-
-The owner reported this on Oct 29: the bottom bar does not appear on every surface, so there is no way home from them. #187 fixed this for Days only. Decide for post detail, the capture sheet, Search, the Days story and every other surface whether it shows the bar or a visible way home, and draw it. Done when frames at 390x844 show a way home on every screen.
-
-### #220 A short nutrition summary with the rest behind an expand
-
-The nutrition information on a meal is very long, and a user wants only the few figures everyone looks at.
-
-The owner said on Oct 29 that the nutrition view is far too big: show calories, protein, carbs and fat first and put everything else behind an expand. #13 specifies the full table with every micronutrient in one view; every figure stays one tap away for judges and for editing. Draw the summary, the expanded state and how both sit on the card and on post detail, in consumed wording with no target or percentage. Done when frames at 390x844 are delivered for the summary and the expanded table.
-
-## Build the round 2 frames
-
-### #185 Days are NOT separated in the feed
-
-The feed is one unbroken run of cards, so a user cannot see where one day ends and the next begins.
-
-The designer's round 2 frames 2a and 2b show the feed with a header for each day: the name ("Today", "Yesterday", then the weekday and date), the day's total as a record in the form "Consumed: 2,118 kcal" with no comparison, average or target, the header pinned while its posts scroll, and an empty header for a day with no post. Build the feed to those frames. Done when the feed shows a header per day as in the frames, Today and Yesterday are named, a day with one post and an empty day between posted days both appear, and the header stays pinned while its posts scroll. Oct 30 production check passed.
-
-### #186 The + button spins out its entries
-
-The + button only opens the camera, but a meal can be logged by camera, by text, as a drink or as a coffee.
-
-The designer's frames 2c and 2d are delivered. This item is built together with #191 in one pull request and closes with it. That pull request (#202) is merged to main; the entries that open the text, drink and coffee sheets depend on #205 and #206. Done when #191 is done and the + matches frames 2c and 2d. Oct 30 production check passed (fan circles 52 px, Saved dashed).
-
-### #191 The + button offers camera, text, drink and coffee entries
-
-The + button opens only the camera, so logging by text, a drink or a coffee takes extra steps.
-
-Caption-only posts already work, and water and caffeine intake logging is on main (#111). The designer's frames 2c and 2d show the + opening into a fan of entries with the motion in the designer's note. The owner ruled on Oct 29 that the fifth entry is the user's saved meals, delivered with #172, and not an entry the user names and gives an icon; until #172 exists the fan shows four entries with a place for the fifth. Each entry opens its own capture directly: text opens the capture sheet without the camera, and drink and coffee open the intake sheet of #188. Done when each of the four entries logs a post starting from the +, and the + matches frames 2c and 2d. Oct 30 production check passed: camera, text, drink and coffee each logged a post.
-### #187 The Days screen is easy to use and easy to leave
-
-From the Days tab it is unclear how to get back to the main screen: there is no back button, an earlier month is reached only by scrolling to the bottom, and tapping a day opens a story viewer with no obvious way out.
-
-The designer's round 2 frames 2e, 2f and 2g show Days as a column of months, newest first, with each day's kcal inside its cell, a visible "Feed" control to go back, a "Go to" menu for earlier months, and a story that opens over the month and closes three ways ("‹ October", the ×, and a swipe down) into the tapped day's cell. Build Days to those frames. Done when Days shows two months per screen, earlier months arrive by scrolling and through the menu, "Feed" and the Home tab return to the feed, a tapped day opens as the last card of its story, and "‹ October", the × and a swipe down each leave it with the month behind (PR #204 is merged to main; the Oct 30 production check passed).
-
-### #188 The intake control follows its frame
-
-Water and caffeine intake was built before the designer drew it, and the built version does not match the frame: the intake control is a row on Home.
-
-Frame 2h is a sheet opened from the + with Water, Coffee and Other tabs, amount cells, a "Drank today" list and a "Post · …" button. The owner ruled on Oct 29 that the row on Home goes and that each drink is a post in the feed; what the post's card says is the hydration item below. Done when the Drink and Coffee entries of the + open the intake sheet on the matching tab and each logs a post, the row on Home is gone, and the sheet matches frame 2h. Oct 30 production check passed.
+## Build the designer's frames
 
 ### #212 The regular camera reads a barcode and a nutrition label
 
 A user has to switch to a separate scanner to log a packaged food, and the scanner has not been tried on a phone.
 
-The scanner was merged in PR #165 on the Search tab and is untested on a phone. The owner ruled on Oct 29 that a photo is a photo, whether it shows food, a barcode or a package's nutrition label, so the capture sheet identifies which whether or not the Barcode toggle of frame 2i is used; the owner ruled to keep the toggle so users can see that a scanner exists. The owner prefers a deterministic read: decode the barcode from the image first and look the digits up, and use the model only when no code is found and for the label. A barcode becomes a post whose card identifies the product with its nutrition and the pack photo; a label is read into the same kind of card. The look comes from frame 2i and the designer's frames for the label and the correction. First try the existing scanner on a phone with a real pack and report what it reads. Done when a real pack's barcode, photographed through the capture sheet on a phone, posts a card with the product's name and nutrition, and a nutrition label does the same. Status reconciled Oct 31: Run 4 audit: barcode decoding and pack-photo posting already exist; a dedicated nutrition-label extraction path and real-pack phone acceptance remain incomplete. No replacement scanner was built.
+The scanner was merged in PR #165 on the Search tab and is untested on a phone. The owner ruled on Oct 29 that a photo is a photo, whether it shows food, a barcode or a package's nutrition label, so the capture sheet identifies which whether or not the Barcode toggle of frame 2i is used; the owner ruled to keep the toggle so users can see that a scanner exists. The owner prefers a deterministic read: decode the barcode from the image first and look the digits up, and use the model only when no code is found and for the label. A barcode becomes a post whose card identifies the product with its nutrition and the pack photo; a label is read into the same kind of card. The look comes from frame 2i and the designer's frames for the label and the correction. First try the existing scanner on a phone with a real pack and report what it reads. Done when a real pack's barcode, photographed through the capture sheet on a phone, posts a card with the product's name and nutrition, and a nutrition label does the same.
 
 ### #213 Corrections to a barcode's product are kept
 
@@ -90,57 +42,57 @@ Many barcodes return names in Spanish or another language. The owner wants a cor
 
 A drink becomes a post, but its card does not tell the user how much they have drunk in the day.
 
-The owner ruled on Oct 29 that every drink becomes a post and that its card shows the hydration consumed that day, in past tense and as a record with no target, comparison or percentage, counting the water in food as well as in drinks. The food database lists a water amount for most foods, but how much of a day's food water to count has not been settled, so the first step is to propose it. Done when a water post's card shows the day's hydration from drinks and food in ml, and a food post adds its water to that total. Status reconciled Oct 31: Run 4 audit: the shipped card service already includes food water through nutrient 1051 up to the drink’s eaten-at time. No duplicate implementation was added; controlled production acceptance remains separate.
+The owner ruled on Oct 29 that every drink becomes a post and that its card shows the hydration consumed that day, in past tense and as a record with no target, comparison or percentage, counting the water in food as well as in drinks. The food database lists a water amount for most foods, but how much of a day's food water to count has not been settled, so the first step is to propose it. Done when a water post's card shows the day's hydration from drinks and food in ml, and a food post adds its water to that total.
+
+### #219 A way home from every screen
+
+From several screens a user cannot get back to Home, because the bottom bar is not shown everywhere.
+
+The designer's round 3 frames 3a and 3p show a floating pill bar on Feed, Search, Days, Profile and Post detail, with Home first. Full-screen modals show a back control at the top left, and bottom sheets keep the pill visible behind a scrim, so a tap on it closes the sheet and goes home. Build to those frames. Done when the pill shows on those five screens, every other surface has the way home the frames name, and a tap on the pill closes a sheet and navigates.
+
+### #220 A short nutrition summary with the rest behind an expand
+
+The nutrition information on a meal is very long, and a user wants only the few figures everyone looks at.
+
+The designer's round 3 frames 3a, 3b and 3c show the feed card with one summary line, and post detail with a four-cell summary of calories, protein, carbs and fat, then a "Show all" row that opens the full table. #13 specifies the full table, and every figure stays one tap away. Build to those frames, in consumed wording with no target or percentage. Done when the feed card and post detail match the frames and every other figure is behind the expand.
 
 ## Analysis pipeline and worker
 
 ### #189 A meal's estimate matches what was eaten
-Originally reported: The owner logged Japanese toast, a small slice of ham, a small salad, one scrambled egg and a coffee, and the app showed 725 kcal. It put the toast at 348 kcal, the ham at 50 g even after a correction, and the coffee at 180 g.
 
-The coder's investigation of Oct 29 (comment on #189) found three wrong FDC matches: the salad matched a green-goddess dressing, the coffee matched soymilk at 180 g, and the egg matched ketchup. The toast was 120 g (two slices) with correct arithmetic, and the database shows the ham at 5 g after his correction, not 50 g. The correction thread did not rematch FDC, so the total stayed 725 kcal. PR #197 matches foods by item name and tightens the identify prompt for thin ham, one toast slice, one egg, black coffee and undressed salad; the same meal re-logged under the test account comes to about 248 kcal, with the toast still at 120 g. PR #197 was merged and deployed on Oct 29 at 16:44 JST, and a meal made after it still matched wrong foods (see the item on Japanese dishes below). Done when it is deployed and the owner accepts the weights of the meal logged again for a slice of toast, a small slice of ham and a coffee. The issue was closed by the keyword of the merged PR #197 without the owner's acceptance and was reopened on Oct 31. The Oct 30 re-log on production failed: the toast matched dried Japanese persimmons (FDC 169942), the salad matched a fast-food side salad (FDC 172074), and the black coffee matched a branded entry with no nutrition, so the meal's total shows unknown (the known items sum to 257.6 kcal). The portions were sensible. Filed as #230. Current evidence, Nov 1: Fresh v4 production after #250–#256 matched all five breakfast foods: toast FDC2707599 at60g, ham2705878 at10g, raw salad greens2709792 at40g, scrambled egg172187 at50g and brewed coffee2710375 at240g. The calculated total was272.8kcal and active worker time16.497s, attempt1. The earlier unavailable-food result is historical. The owner has not accepted the estimates; #189 remains OPEN. See docs/production-performance.md and docs/eval.md.
+The owner logged Japanese toast, a small slice of ham, a small salad, one scrambled egg and a coffee, and the app showed 725 kcal. It put the toast at 348 kcal, the ham at 50 g even after a correction, and the coffee at 180 g.
 
-### #225 One food with no nutrition match does not blank a meal's totals
-Originally reported: A meal in which one food has no nutrition values shows "— kcal" and dashes for the whole meal, so the numbers of the other foods are hidden too.
-
-The owner's post of Oct 29 at 17:20 JST (tonkatsu, Japanese curry sauce and rice) showed no totals. The coder found on production at 18:30 JST that the tonkatsu matched a food-database sauce measured in millilitres, that the nutrition code will not convert millilitres to the estimated 220 g without a density and so stores nulls, and that the meal sum passes one null on to the total. The curry and the rice have values, so the known foods can be summed. Show the sum of the foods that have values, name the food that could not be totalled, and show that food's row as unknown. Done when a meal with one unmatched food shows the sum of the others and names the one left out, and no card shows a bare dash for a meal in which any food has values. Current evidence, Nov 1: #236 merged known sums with named omissions. The earlier76.9/390kcal partial breakfast/curry results are historical evidence that unavailable foods did not blank known sums. Subsequent matching repairs produced fully matched meals. Current calculations and visible revised summaries were checked in production; issue #225 remains GitHub-OPEN, and no closure is performed by this docs merge.
+The owner's breakfast showed 725 kcal on Oct 29 because the salad, coffee and egg matched dressing, soymilk and ketchup. Matching has been fixed since (#197, #236, #246 to #255). On Nov 1 the same breakfast and curry on production match every food, but the totals differ between runs. The breakfast came to 290.8 kcal and then 272.8 kcal, because the scrambled egg picked a different reference. The curry came to 971.2 kcal and then 1,229.5 kcal, because its portions changed. Portions are model estimates and generic references do not establish the exact recipe. The issue was closed by a keyword without the owner's acceptance and was reopened on Oct 31. Done when the owner accepts the totals and the weights of the meal logged again for a slice of toast, a small slice of ham and a coffee.
 
 ### #226 Japanese dishes match the right foods in the food database
-Originally reported: Common Japanese dishes are matched to the wrong foods, so their calories and macros are wrong.
 
-The coder's production check of Oct 29 at 18:30 JST, on a post made at 17:20 JST after #197 was deployed at 16:44 JST, found the tonkatsu matched to a vegetable-and-fruit tonkatsu sauce, the Japanese curry sauce matched to Japanese dried persimmons (822 kcal for 300 g) and cooked white rice matched to glutinous rice. #189 is therefore not done. A ChatGPT code review of Oct 29 claimed the food search returns its top-ranked result whenever any result exists, with no way to reject all of them; verify that yourself and report what you find. Find how each name reaches the food search and why the right foods lose, using that post as the failing case. Fix the cause by letting the search reject every poor result: allow one improved search from the caption and the item name, then keep the food with its nutrition marked unavailable, and do not accept a result measured in millilitres for a food estimated in grams without a supported conversion. Do not add these three names as special cases. Done when the same meal logged again on production matches a cutlet, a curry sauce and plain cooked rice, a food with no good match shows its nutrition as unavailable instead of a wrong number, and the owner accepts the totals. Current evidence, Nov 1: #250/#253 repaired general prepared-food retrieval and #254 component coverage without runtime food-name special cases. Fresh v4 breakfast matched5/5 foods; curry matched3/3 to coated pork steak2705876, curry sauce2710178 and cooked white rice2708403. The curry re-log was1229.5kcal for estimated200/240/350g portions, not a measured or owner-accepted result. No persimmon or sauce-only cutlet substitute appeared. Generic references and recipe accuracy remain qualified; owner acceptance is still absent.
+Common Japanese dishes are matched to the wrong foods, so their calories and macros are wrong.
+
+The coder's check of Oct 29 found the tonkatsu matched to a sauce, the Japanese curry sauce to dried persimmons and cooked white rice to glutinous rice. The fixes (#236, #250 to #255) retrieve more candidates, include Survey and FNDDS foods, refine repeated searches and stop rejecting compatible generic references, with no food-name special cases. On Nov 1 the same meal on production matches a cutlet (FDC 2705869), a curry sauce (FDC 2710178) and plain cooked rice (FDC 2708403). A food with no good match still shows its nutrition as unavailable. Done when the owner accepts the totals.
 
 ### #227 A photo that does not upload never becomes a post without one
 
 A post made with a photo can reach the server with no photo and be analysed as text only, and nobody is told.
 
-The owner photographed his meal and posted it on Oct 29 at 17:20 JST from his phone, on a slow roaming connection in Japan. The coder's check on production at 18:30 JST found no photo row and no photo in storage for that post, an analysis request with text and no image, no segmentation call and no storage request for a photo upload; the post's only image is the generated results card. The cause is not known: the camera image may never have been attached, or the upload may have failed on the slow connection while the post went ahead. Observe first: post from the capture sheet with a photo on a throttled connection and with the connection cut during the upload, and report what the app sends. Done when a post made with a photo either has its photo stored or shows the user that the upload failed and keeps the photo for a retry, and never becomes a caption-only post silently. Status reconciled Oct 31: Run 4: #237 merged staged photo publication, verified object requirements, idempotent completion and cleanup protection. Interrupted-upload data tests and capture page checks passed; no silently published photo-intended post is accepted by the new publication path.
+The owner photographed his meal and posted it on Oct 29 at 17:20 JST from his phone, on a slow roaming connection in Japan. The coder's check on production at 18:30 JST found no photo row and no photo in storage for that post, an analysis request with text and no image, no segmentation call and no storage request for a photo upload; the post's only image is the generated results card. The cause is not known: the camera image may never have been attached, or the upload may have failed on the slow connection while the post went ahead. Observe first: post from the capture sheet with a photo on a throttled connection and with the connection cut during the upload, and report what the app sends. Done when a post made with a photo either has its photo stored or shows the user that the upload failed and keeps the photo for a retry, and never becomes a caption-only post silently.
 
 ### #228 A meal summary's numbers are the calculated totals
-Originally reported: Written text on a card could state calorie or macro numbers that differ from the calculated totals.
 
-A ChatGPT code review of Oct 29 claimed the model-written summary is checked for wording but not compared with the calculated totals, and that a formatter working from the totals already exists; nobody has verified this. First read the summary code and try to produce a summary whose number differs from the totals, then report. If it can differ, publish only nutrition text formatted from the totals, leave the caption's own numbers (such as "two eggs") alone, and make every screen that shows these numbers agree after rounding. Done when a model summary saying 900 kcal against calculated totals of 600 kcal publishes 600 everywhere, or the report shows it cannot happen. Current evidence, Nov 1: #236 replaced model-written nutrient numbers with formatted calculated totals and shared rounding. Regression checks passed. Production correction summaries subsequently displayed the stored314kcal original and236kcal revision together in the verified rehearsal. The earlier failed analyses are not the current runtime state; issue #228 remains GitHub-OPEN.
+Written text on a card could state calorie or macro numbers that differ from the calculated totals.
+
+A ChatGPT code review of Oct 29 claimed the model-written summary is checked for wording but not compared with the calculated totals, and that a formatter working from the totals already exists; nobody has verified this. First read the summary code and try to produce a summary whose number differs from the totals, then report. If it can differ, publish only nutrition text formatted from the totals, leave the caption's own numbers (such as "two eggs") alone, and make every screen that shows these numbers agree after rounding. Done when a model summary saying 900 kcal against calculated totals of 600 kcal publishes 600 everywhere, or the report shows it cannot happen.
 
 ### #230 A coffee with no nutrition does not blank a breakfast, and toast does not match persimmons
-Originally reported: The breakfast logged again on Oct 30 still matched wrong foods and showed no total.
 
-The re-log on production matched the toast to dried Japanese persimmons, the salad to a fast-food side salad and the black coffee to a branded entry with null nutrition, so the meal's total was unknown. The comment on #189 holds the item names, weights, FDC ids and calories. It shares its cause with the items on Japanese dishes and on totals above. Done when the same breakfast logged again matches plain foods and shows a total of the known items with the coffee named as unknown. Current evidence, Nov 1: The fresh v4 breakfast matched toast, ham, salad, egg and coffee and totalled272.8kcal, with no unavailable food or persimmon substitute. Coffee selected brewed coffee2710375 with nutrition, so it is not falsely marked unknown. Portions remain estimates and owner acceptance is absent. See the item-level evidence in docs/production-performance.md; #230 remains OPEN.
+The breakfast logged again on Oct 30 still matched wrong foods and showed no total.
 
-### The matcher runs out of room before it finishes its answer
-
-A meal fails to publish its nutrition because the food matcher is cut off before it writes a result.
-
-The coder's production test of Oct 31 found that the matcher's 256-token limit is used up by its reasoning before it writes the JSON, so the post fails before nutrition is published. Reviewed PR #246 was still unmerged at the source backlog's 22:07 WIB cutoff. Both meal re-logs of that test failed this way, and the owner has not accepted either. Done when the breakfast and the curry meal logged again on production reach ready with matched foods, and the owner accepts the totals. Current evidence, Nov 1: #246/#248/#249 and #256 are deployed. Identify starts at8192 with low reasoning effort; matching retains4096→8192 fallback. Fresh breakfast and curry reached ready with all foods matched. Real matcher/identify gates and production re-logs passed; the remaining owner-acceptance condition is not satisfied. See docs/production-performance.md.
+The Oct 30 re-log matched the toast to dried Japanese persimmons, the salad to a fast-food side salad and the black coffee to an entry with no nutrition, so the total was unknown. The cause is shared with the Japanese-dish and totals items. On Nov 1 the breakfast on production matches a plain food for all five items, with no food unavailable, and totals 290.8 kcal in one run and 272.8 kcal in another. Done when the owner accepts the breakfast total.
 
 ### #139 A held worker lease renews for its full time
 
 A worker that renews its lease does not actually extend it, so a long job can lose the lease while it is still running.
 
 The coder found this in the lease SQL; a 300-second time-to-live against about 60 seconds of work hides it today. Fix the renewal and add a test. Done when a lease held past its first term is still held and a test proves it.
-
-### #190 Production evaluation of ten real meal photos
-Originally reported: There is no measured result yet for how well the app finds the items in a real meal.
-
-The ten licensed meal photos, their expected items and the eval script are merged (PR #78), but the script has not run against production. Run it as the test account, commit the table to docs/eval.md and link it from the README. Done when the table shows for every photo which items were found, missed or invented. Current evidence, Nov 1: The ten licensed photos ran on production at4f51b7af, and all ten reached ready on attempt1. docs/eval.md records the unchanged name score12found/3missed/14invented plus direct visual adjudication; the name score is not a hallucination count. One original description omitted visible cheese in photo05; photo06 had a separate reference-coverage defect. Later repairs and the real ten-photo gate are separately labelled. Issue #190 remains GitHub-OPEN; no new evaluation ran in this docs merge.
 
 ### #65 The pipeline's tests run against an offline fake Meta Model API
 
@@ -154,11 +106,6 @@ A brief rate limit from the Meta Model API should not cost a job attempt, and to
 
 Meta's workshop client sets four retries and a 180-second timeout on the OpenAI SDK client, and the SDK waits as long as the API asks on a 429 or a 503. Set the retry count and the timeout on our client explicitly, in one file, within the serverless function's time limit, so the worker's own retry delay only handles failures that outlast the SDK's. Done when the settings sit in one file and a test through the fake API shows a 429 that carries a wait is retried inside one job attempt.
 
-### #67 Each post keeps a trace of its model calls, readable on the admin page
-Originally reported: A judge looking at the app sees only the end result, not what the model was asked or what it returned.
-
-Meta's workshop ships an Agent Console that shows every turn: what the model was asked, what it returned, the tokens used and which checks passed. Record, in a new table that only admins can read, one row per call a post made (SAM, Spark identify, Spark correct, FDC lookup, transcribe) with the time, the duration, the tokens, the request text without the image, the returned text, and the FDC id where one matched. Show a post's trace on the admin page and never in the user's app. Done when a post made on production has a trace listing each call it made, and a non-admin cannot read the table. Production authorization reads public.profiles.role, not ADMIN_EMAIL or a Vercel admin variable. The owner-designated account was granted the admin role; its identity remains private. At that earlier cutoff the remaining proof was a production trace plus non-admin table isolation and page refusal. Oct 30 production check: the trace and database access passed (three rows for one photo post; a second account read none). The admin browser check subsequently passed at 390x844 using a temporary admin role on the first configured test account; its original user role was immediately restored. A non-admin request returned HTTP 200 with not-found content instead of 404 (#229). The trace gap was checked on Oct 31: the photo post had three items, one external FDC lookup, and two older cache hits. Before #236, cache hits returned before trace recording and copied nutrition could bypass a lookup entirely. Current evidence, Nov 1: The earlier copied-reuse gap is now exercised in production. Two items retained matching version, source lineage and nutrient values with two explicit nutrition_reuse records, and no fake new external lookup was recorded. The real cache/network and per-item outcomes remain recorded separately. See https://github.com/aibraincoach/my-food-ai/issues/67#issuecomment-6547442271 and docs/eval.md. The earlier authenticated admin page passed and its temporary test role was restored; the non-admin repeat returned actualHTTP404. GitHub still lists #67 OPEN; this docs merge neither removes the row on a planner claim nor closes the issue.
-
 ## Logging and editing meals
 
 ### #172 Saved meals and Log again
@@ -166,6 +113,7 @@ Meta's workshop ships an Agent Console that shows every turn: what the model was
 Habits repeat, and today every repeat is logged again from scratch.
 
 Cal AI has saved foods and a Copy To action. Add a bookmark on post detail that saves a meal, the saved meals as the fifth entry of the + (the owner ruled on Oct 29 that all saved foods go there, replacing an entry of the user's own), and "Log again" in the post menu to copy a meal to a chosen time. The owner wants the bookmark to work like Instagram's save, so a user who eats tuna every day taps the saved tuna instead of scanning it each time. The designer is drawing the frames (#198), and the item is not built before they exist. Done when a saved coffee logs in two taps at Now and at an earlier time through the picker.
+
 ### #173 Add a photo to an existing post
 
 A post cannot take a second photo. That matters most when a meal is only partly eaten: a whole chocolate cake is photographed, part of it is eaten, and the app has no way to record that the second photo shows what remains.
@@ -182,7 +130,13 @@ Cal AI's post menu has Delete Food. Add "Delete" to the post menu with a confirm
 
 A user cannot change the caption of a post, so a stray character stays on the card for good.
 
-The owner reported this on Oct 29 at 17:29 JST: his caption ends in a stray "R" that he does not want. The post menu has no edit for the caption, and the comment-or-correct thread of #14 changes the items, not the caption. Add "Edit caption" to the post menu; editing the caption does not re-run the estimate or change the items. Done when a caption edited from the post menu shows its new text on the feed card, post detail, Days and Search after a reload. Status reconciled Oct 31: Run 4: #241 merged caption-only editing without re-analysis, with ownership/data tests and an integrated page check.
+The owner reported this on Oct 29 at 17:29 JST: his caption ends in a stray "R" that he does not want. The post menu has no edit for the caption, and the comment-or-correct thread of #14 changes the items, not the caption. Add "Edit caption" to the post menu; editing the caption does not re-run the estimate or change the items. Done when a caption edited from the post menu shows its new text on the feed card, post detail, Days and Search after a reload.
+
+### Uploading a photo shows its progress
+
+When a user posts a photo, nothing on the screen shows that the upload is under way, so people cannot tell whether anything is happening.
+
+The owner asked for this on Nov 1: a progress bar during the upload so people know the app is working. The bar shows the upload only, never nutrition, goals or any score, because the claims rule bans bars that read as progress toward a goal. No designer frame exists for it yet. It sits next to #227, which keeps a failed upload from becoming a post without a photo. Done when a post with a photo on a slow connection shows a progress bar from the start of the upload until it finishes, and the bar is gone once the post appears.
 
 ## Meal screens and feed
 
@@ -208,13 +162,13 @@ Water and caffeine are intake entries and are allowed; weight and exercise are n
 
 A post shows its time twice in two different zones, one labelled UTC and one in local time.
 
-The owner's screenshot of Oct 29 at 17:29 JST shows the card header "CONSUMED · 8:20 AM UTC" above a caption stamped 5:20 PM for the same post; he is in Japan. Show every time in the device's time zone: card header, post detail, the thread and the Days stories. Done when a post made at 5:20 PM in Japan reads 5:20 PM everywhere a time shows, and no screen labels a time UTC. Status reconciled Oct 31: Run 4: #240 merged device-local timestamp formatting and omitted baked-in clocks from generated nutrition images while preserving current-data cards. Zone, midnight and daylight-saving tests passed.
+The owner's screenshot of Oct 29 at 17:29 JST shows the card header "CONSUMED · 8:20 AM UTC" above a caption stamped 5:20 PM for the same post; he is in Japan. Show every time in the device's time zone: card header, post detail, the thread and the Days stories. Done when a post made at 5:20 PM in Japan reads 5:20 PM everywhere a time shows, and no screen labels a time UTC.
 
 ### #215 Thumbs up and down respond at the tap
 
 The thumbs-up and thumbs-down buttons look dead when tapped, the change shows up some time later, and they feel clunky.
 
-The owner reported this on Oct 29 while using the app. The cause is not known; a likely one is that the button waits for the server before it shows anything, but verify that by observation. Fix it so the button shows its pressed state at the tap, settles when the verdict is saved, and shows an error and reverts if the save fails. Done when a tap on either thumb changes the button visibly before the server answers on production, the saved verdict survives a reload, and a failed save is shown. Status reconciled Oct 31: Run 4: #242 merged immediate selection, rollback and committed-revision invalidation. Behavior tests and a native-browser revision-race reproduction passed; the original reviewer confirmed the fix.
+The owner reported this on Oct 29 while using the app. The cause is not known; a likely one is that the button waits for the server before it shows anything, but verify that by observation. Fix it so the button shows its pressed state at the tap, settles when the verdict is saved, and shows an error and reverts if the save fails. Done when a tap on either thumb changes the button visibly before the server answers on production, the saved verdict survives a reload, and a failed save is shown.
 
 ### #29 Rendered results-card image added to each post's carousel
 
@@ -236,20 +190,21 @@ Show a grid of post thumbnails, newest first, three across; tapping one opens th
 
 ### #216 Sign out finishes
 
-Tapping Sign out on Profile shows “Signing out…” and never completes, so the user stays signed in.
+Tapping Sign out on Profile shows "Signing out…" and never completes, so the user stays signed in.
 
-The owner reported this on Oct 29 at 15:09 on production, in desktop Chrome, on an account he had just created; signing out of his earlier account had worked a few minutes before. The cause is not known, so first observe whether the sign-out request is sent, whether it fails, and whether the page is waiting on something else, before changing anything. Done when Sign out on Profile signs the user out and returns to the sign-in page on production, on a newly created account and on an older one, and a failure shows a message instead of waiting forever. Status reconciled Oct 31: Run 4: #243 merged session termination with visible failures and bounded cleanup. Authentication and error-path tests passed; do not infer a complete two-account phone sign-out trial from those tests.
+The owner reported this on Oct 29 at 15:09 on production, in desktop Chrome, on an account he had just created; signing out of his earlier account had worked a few minutes before. The cause is not known, so first observe whether the sign-out request is sent, whether it fails, and whether the page is waiting on something else, before changing anything. Done when Sign out on Profile signs the user out and returns to the sign-in page on production, on a newly created account and on an older one, and a failure shows a message instead of waiting forever.
 
 ### #221 The installed app keeps its sign-in on every phone
 
 The owner installed the app on two phones, and when he opened it on another phone he was not signed in.
 
-The owner reported this on Oct 29. The cause is not known: a phone that never signed in must sign in once, but an installed home-screen app may also lose a session that the browser kept. First observe by installing on a second device, signing in, closing the app and reopening it, and report what happens. Done when a user who signs in on a phone is still signed in after closing and reopening the installed app, and the same account signs in on a second phone. Status reconciled Oct 31: Run 4: #244 merged the reproduced request/response cookie-renewal bridge defect. Installed-app close/reopen on two physical phones remains unproven, so this issue is not closed by the middleware tests.
+The owner reported this on Oct 29. The cause is not known: a phone that never signed in must sign in once, but an installed home-screen app may also lose a session that the browser kept. First observe by installing on a second device, signing in, closing the app and reopening it, and report what happens. Done when a user who signs in on a phone is still signed in after closing and reopening the installed app, and the same account signs in on a second phone.
 
 ### #222 Photos and cards load fast
-Originally reported: Photos and cards take a long time to appear, so the app feels slow.
 
-The owner reported this on Oct 29 while using the app. The cause is not known, so measure first: the size and format of what a card downloads, whether the feed uses thumbnails, whether images are cached between visits, and the time to the first picture on a phone. Done when the first photo of the feed shows within two seconds on a phone over mobile data, and the sizes and times before and after are in docs. Current evidence, Nov 1: #245 reduced signed-URL churn. Subsequent production browser evidence records a new photo decoded637ms after publication in a rehearsal; that is not a cold installed-phone launch on mobile data. The two-second real-phone threshold remains unproven. Use docs/phone-acceptance.md for the combined launch/session/fit checks.
+Photos and cards take a long time to appear, so the app feels slow.
+
+The owner reported this on Oct 29 while using the app. The cause is not known, so measure first: the size and format of what a card downloads, whether the feed uses thumbnails, whether images are cached between visits, and the time to the first picture on a phone. Done when the first photo of the feed shows within two seconds on a phone over mobile data, and the sizes and times before and after are in docs.
 
 ## Match the frames
 
@@ -283,9 +238,15 @@ Installed to an iPhone home screen, the app collides with the system: the clock 
 
 The owner's screenshot shows the clipped bar. The installed app does not respect the status bar, the notch or the home indicator. Set viewport-fit=cover and pad the header, the bottom bar and every sheet with env(safe-area-inset-\*). Done when nothing overlaps the clock or the home indicator at 390x844 and 430x932.
 
+### The installed app is accepted on two real phones
+
+Nothing has been proven on a phone: not the installed app, the camera, the notification or the iPhone fit, and the demo video is shot on a phone.
+
+Items #221, #222, #22 and #108 and the camera checks all wait on this. The coder's checklist is docs/phone-acceptance.md. In order: on phone A over mobile data with the screen recording, open the installed app and check that sign-in persisted (#221), the time to the first photo (#222, two seconds) and the clock, notch and bottom bar (#108). Photograph a meal with the real camera and check live preview, flip, shutter, caption and a reachable Post control with the keyboard open. Turn on notifications, post a meal and lock the phone, then check that the notification arrives and opens the post (#22). On phone B, sign in, close and reopen the installed app (#221). Force-close phone A, reopen it and repeat the image timing. Done when each check has a recorded result and every failure is filed as an item.
+
 ### #193 Page looks for every screen against the designer's frames
 
-A complete production comparison of every screen with the delivered designer frames has not been recorded; implementation page checks and browser rehearsals do not establish that full comparison.
+No screen has been compared with the designer's frames, and the intake control and the barcode scanner have no frame at all.
 
 Capture every screen at 390x844 on production and list the differences per screen, and check the intake and barcode copy against the banned wording (past tense, no budget, no progress, no "left"). Done when the differences are listed per screen and the fixes are merged.
 
@@ -298,9 +259,10 @@ The thumbs above are the first case the owner found. List every tappable control
 ## Late features
 
 ### #22 Web Push when an analysis is ready or a question is waiting
-Background notifications have not been demonstrated on an installed phone, although the push implementation is merged.
 
-PR #94 merged and #22 is GitHub-CLOSED; the old stopped-review hold is historical. The accepted payload contains only a generic title and post identifier, not meal content or a thumbnail. The installed app prompts after a first post; actual background delivery and notification-tap navigation remain unproven on physical hardware. The production preflight found the required VAPID variable names, without copying values. Use the ordered phone checks in docs/phone-acceptance.md. Done when a post is placed, the installed app is backgrounded, and its notification opens that post.
+When the user has left the app, the only way they learn the analysis landed is a push notification.
+
+Register a Web Push subscription on first post (not at sign-up), store it keyed by user, and send "Your meal is ready" with the post thumbnail when the worker sets ready; send the question text when it sets needs\_input. iOS requires the PWA to be installed to the home screen for push, so the subscription prompt appears only when installed. PR #94 is merged, so the subscription and both notifications are in the code. A notification arriving on a real phone with the app in the background has not been shown. Done when a post placed, then the app backgrounded, produces a notification that opens the post.
 
 ### #23 One-time hint tooltips for the + sheet, the thread and the thumbs
 
@@ -312,25 +274,25 @@ On the first visit to each, show a single dismissable tooltip in the style of a 
 
 The app is a phone-width column and is awkward in a desktop browser.
 
-At 1024 px and wider, use a centred feed column, replace the bottom bar with a side or top navigation, open post detail beside the feed, support keyboard navigation, and capture by webcam or file upload. Done when the feed, detail, capture, Days, Search and Profile are usable with a mouse and keyboard at 1280x800 and 1920x1080 with no horizontal scroll.
+At 1024 px and wider, use a centred feed column, replace the bottom bar with a side or top navigation, open post detail beside the feed, support keyboard navigation, and capture by webcam or file upload. It waits for the designer's desktop frames. Done when the feed, detail, capture, Days, Search and Profile are usable with a mouse and keyboard at 1280x800 and 1920x1080 with no horizontal scroll.
 
 ### #169 Agent surface: an MCP server and documented HTTP API
 
 Agents cannot log or read meals; the app has no programmatic interface.
 
-Add a streamable-HTTP MCP at /mcp with log\_meal, list\_meals, get\_meal and correct\_meal, authenticated by a per-user revocable token created from a "Connect an agent" row on Profile and rate-limited. Records only, past tense, no targets, no weight or exercise tools. Done when an MCP client logs a caption-only "coffee" with a past eaten-at and reads it back, a second user's token cannot read it, a revoked token is refused, and docs/agents.md documents setup.
+Add a streamable-HTTP MCP at /mcp with log\_meal, list\_meals, get\_meal and correct\_meal, authenticated by a per-user revocable token created from a "Connect an agent" row on Profile and rate-limited. Records only, past tense, no targets, no weight or exercise tools. The Profile row waits for the designer's frames; the server and API do not. Done when an MCP client logs a caption-only "coffee" with a past eaten-at and reads it back, a second user's token cannot read it, a revoked token is refused, and docs/agents.md documents setup.
 
 ### A Meta open-weight model identifies the food (hackathon bonus)
 
 The hackathon pays a $10,000 bonus for a build on a Meta open-weight model, and the app calls only the hosted Meta API.
 
-The owner ruled on Oct 31 that this waits until the fleet work is done and is not part of Run 4. What is known: the bonus names Muse Spark Open and Muse Glimmer; Modal approved $100 of hackathon credit for the owner and hosts a Muse Spark Open endpoint billed per token; no Modal credential exists in the coder's environment or in production (MODAL_TOKEN_ID and MODAL_TOKEN_SECRET are the missing names). The model names are hardcoded in the Meta client and the ten-photo harness cannot choose a model host, so a trial needs a throwaway clone that swaps only the identify-and-portions call and leaves SAM and transcription on the Meta API. Runtime models stay Meta models only. The trial compares the ten meal photos and one "I ate half the rice" caption against the current path with the USDA lookup unchanged, spends at most 5 US dollars, and changes nothing in production. Done when the results are in docs and the owner decides whether any open-model feature ships before the Nov 3 freeze.
+The owner ruled on Oct 31 that this waits until the fleet work is done and is not part of Run 4. What is known: the bonus names Muse Spark Open and Muse Glimmer; Modal approved $100 of hackathon credit for the owner and hosts a Muse Spark Open endpoint billed per token; no Modal credential exists in the coder's environment or in production (MODAL\_TOKEN\_ID and MODAL\_TOKEN\_SECRET are the missing names). The model names are hardcoded in the Meta client and the ten-photo harness cannot choose a model host, so a trial needs a throwaway clone that swaps only the identify-and-portions call and leaves SAM and transcription on the Meta API. Runtime models stay Meta models only. The trial compares the ten meal photos and one "I ate half the rice" caption against the current path with the USDA lookup unchanged, spends at most 5 US dollars, and changes nothing in production. Credits to collect first: Modal's $100 is approved; Baseten and Fireworks list $100 each for selected participants, and the owner's selection is unconfirmed. A throwaway clone proves the model only; a qualifying step must be a real, switchable path on main that a judge can reproduce, with the model ID logged. Done when the results are in docs and the owner decides whether any open-model feature ships before the Nov 3 freeze.
 
 ## Submission
 
 ### #60 A judge-facing pass makes the public repository start-here ready
 
-The public repository has a project README and evidence links, but still needs the final judge-facing pass and the owner’s working-file retention decision.
+The submission requires a public repository, and it still carries the default README.
 
 The coder's read-only assessment of main on 2026-10-28 found no committed secret, and the owner ruled that nothing is removed or scrubbed during the build. After the last feature merges, one pass replaces the default README with a short start-here page and the owner records which working files (the agents' contracts, the Wall of Stupid file, the review policy and the review tools) stay on main. Done when the README is the start-here page, the owner has recorded which files stay, and a search of main for host names, account identifiers and billing detail returns only what the owner chose to keep.
 
@@ -338,7 +300,13 @@ The coder's read-only assessment of main on 2026-10-28 found no committed secret
 
 The submission needs a public repo, a video, and a write-up that names what was built during the event.
 
-The owner records the final narrated submission video on Nov4; the write-up goes in README.md. A verified51.287-second uncut browser rehearsal is recorded in docs/demo-rehearsal.md, using helper sign-in and gallery capture with all processing waits included. It is not the final narrated phone recording. Script: open on the Cal AI timeline ("50 screens and 22 minutes before my first log, 11:45 to 12:07"), cut to sign-in → camera → post in ten seconds, show the SAM outlines on the detail, make a correction and show the thread keeping both versions, show the needs-input strip, close on Days. The write-up states everything was built Oct 26 to Nov 4 on the Meta Model API with SAM 3.1 and Muse Spark 1.3, lists the three Meta model calls, and says what the app does not do. Done when the video is under three minutes and the write-up is in README.md.
+The owner records the video on Nov 4; the write-up goes in README.md. Script: open on the Cal AI timeline ("50 screens and 22 minutes before my first log, 11:45 to 12:07"), cut to sign-in → camera → post in ten seconds, show the SAM outlines on the detail, make a correction and show the thread keeping both versions, show the needs-input strip, close on Days. The write-up states everything was built Oct 26 to Nov 4 on the Meta Model API with SAM 3.1 and Muse Spark 1.3, lists the three Meta model calls, and says what the app does not do. The Most Viral prize ($20,000) counts likes, reposts and comments on X through the end of Nov 8, so the video goes on X as soon as it exists; whether the post must exist before the submission deadline is unconfirmed. No merges or deploys from the start of recording until the submission is in. The owner chooses the account to record on before recording; the first test account holds many test posts, including meals with unavailable foods. Done when the video is under three minutes and the write-up is in README.md.
+
+### The live app keeps working while judges use it
+
+Judging runs Nov 4 to Nov 8, and if the Meta API credits run out first, a judge who posts a meal sees a failed analysis.
+
+The owner was told the $150 hackathon credits do not extend through judging and that spend alerts are not hard caps. Nobody has seen the balance, the end date, or what the drains, gates and re-logs have used; the 16-food gate alone made 38 model calls and 69,169 output tokens. Done when the balance and end date are known and either a payment method is attached or a fallback is chosen.
 
 ## Blocked
 
@@ -362,6 +330,6 @@ Blocked until after the hackathon, and blocked by the claims rule: the app shows
 
 ---
 
-† **What this backlog is.**The shared, ordered list of open work for My Food AI, shown live. GitHub issues in aibraincoach/my-food-ai are the record, and BACKLOG.md in the repository is generated from the same open issues, so the coder and the planner read the same list. This list usually runs a little ahead of the issues, because an item reaches them only after the PM has filed it. This owner-supplied handover snapshot retains completed entries as labelled context; fresh GitHub status distinguishes them from open work. An item stays until its issue is closed by a merged pull request, except where the owner explicitly retains a separate production acceptance check; the Blocked section holds items that cannot be worked on and says why. Designer items come first, and engineering items are grouped by the pass that will work them together, not by issue number or date.
+† **What this backlog is.** The shared, ordered list of open work for My Food AI, shown live. GitHub issues in aibraincoach/my-food-ai are the record, and BACKLOG.md in the repository is generated from the same open issues, so the coder and the planner read the same list. This list usually runs a little ahead of the issues, because an item reaches them only after the PM has filed it. An item stays until its issue is closed by a merged pull request; the Blocked section holds items that cannot be worked on and says why. Designer items come first, and engineering items are grouped by the pass that will work them together, not by issue number or date.
 
 Every item is a title line and two paragraphs. The title line carries the GitHub issue number, assigned only once the issue exists, and the number is not one of the three parts. The three parts are: (1) a title a person can read; (2) a first paragraph in plain language that states the problem; (3) a second paragraph with the minimum context a person needs to solve the problem unaided, meaning what investigation, work or the owner's observations have established, ending in a done condition. Neither paragraph is a dump of everything known. An item without all three parts is not on the backlog.
