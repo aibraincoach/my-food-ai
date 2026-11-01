@@ -2,14 +2,17 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {spawnSync} from 'node:child_process';
+import {user} from './db/helpers.mjs';
 const migration=readFileSync(new URL('../supabase/migrations/0026_saved_meals.sql',import.meta.url),'utf8');
-test('saved meals retain exact nutrition, time and owner access in one transaction',()=>{
+test('saved meals retain exact nutrition, time and owner access in one transaction',async()=>{
  assert.ok(process.env.SUPABASE_DB_URL,'SUPABASE_DB_URL is required');
+ const first=await user(1),second=await user(2);
+ assert.match(first.user.id,/^[0-9a-f-]{36}$/);assert.match(second.user.id,/^[0-9a-f-]{36}$/);
  const sql=`\\set ON_ERROR_STOP on
 begin;
 ${migration}
-select id as owner_id from public.profiles order by created_at limit 1 \\gset
-select id as other_id from public.profiles where id<>:'owner_id' order by created_at limit 1 \\gset
+select '${first.user.id}'::uuid as owner_id \\gset
+select '${second.user.id}'::uuid as other_id \\gset
 select gen_random_uuid() as post_id \\gset
 insert into public.posts(id,user_id,caption,status,analysis_initialized_at) values(:'post_id',:'owner_id','Coffee','ready',now());
 insert into public.post_items(post_id,name,portion_text,portion_grams,source) values(:'post_id','Coffee','240 ml',null,'user') returning id as item_id \\gset
@@ -34,5 +37,6 @@ do $$ begin
 end $$;
 rollback;`;
  const result=spawnSync('psql',['-X','-qAt','--dbname',process.env.SUPABASE_DB_URL],{input:sql,encoding:'utf8',timeout:90000});
+ await first.client.auth.signOut({scope:'local'});await second.client.auth.signOut({scope:'local'});
  assert.equal(result.status,0,result.stderr);
 });
