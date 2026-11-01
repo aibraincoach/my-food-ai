@@ -2,7 +2,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { getPostHydrationData, type DrinkCardData, type HydrationRecord } from "@/lib/intake/hydration";
 import { sumNutrition, toNumber, unavailableFoods, type Numeric, type NutritionLike, type StoredNutrient } from "@/lib/nutrition/totals";
 
-export type CardItem = NutritionLike & { name: string; portion_grams: Numeric; portion_text?: string | null; micronutrients?: StoredNutrient[] };
+export type CardItem = NutritionLike & { name: string; portion_grams: Numeric; portion_text?: string | null; micronutrients?: StoredNutrient[]; not_eaten_grams?:number|null;not_eaten_count_text?:string|null };
 export interface CardData {
   kind: "meal" | "drink";
   /** An instant, formatted in the viewing device's zone by the live wrapper. */
@@ -44,7 +44,7 @@ export function cardDataFromRow(source: CardSource): CardData {
     items: source.items.map(item => ({ name: item.name, grams: item.portion_grams == null ? null : toNumber(item.portion_grams) })),
     unavailable: unavailableFoods(totals),
     waterLine: (source.foodWaterMl ?? 0) >= 50 && hydration ? `Water in this meal: ${Math.round(source.foodWaterMl!).toLocaleString("en-US")} ml · Consumed today: ${hydration.totalMl.toLocaleString("en-US")} ml` : undefined,
-    footer: source.footer,
+    footer: source.footer ?? remainderFooter(source.items),
   };
 }
 export const buildCardData = cardDataFromRow;
@@ -54,4 +54,13 @@ export const buildCardData = cardDataFromRow;
 export async function readCardData(db: SupabaseClient, userId: string, post: { id: string; eaten_at: string; items: CardItem[] }, zone = "UTC"): Promise<CardData> {
   const values = await getPostHydrationData(db, userId, [{ ...post, items: post.items.map(item => ({ ...item, micronutrients: item.micronutrients ?? [] })) }], zone);
   return cardDataFromRow({ ...post, ...values[post.id] });
+}
+
+function remainderFooter(items:CardItem[]):string|undefined {
+ const omitted=items.filter(item=>item.not_eaten_grams!=null);
+ if(!omitted.length)return undefined;
+ const texts=omitted.map(item=>item.not_eaten_count_text??`${Math.round(item.not_eaten_grams!)} g`);
+ const calories=omitted.map(item=>{const consumed=toNumber(item.portion_grams),rest=item.not_eaten_grams!;return rest===0?0:consumed>0&&item.calories!=null?toNumber(item.calories)*rest/consumed:null;});
+ const kcal=calories.some(value=>value===null)?'unavailable':Math.round(calories.reduce<number>((sum,value)=>sum+(value??0),0)).toLocaleString('en-US');
+ return `Not eaten: ${texts.join(', ')} · ${kcal} kcal`;
 }
