@@ -1,5 +1,4 @@
 import Link from 'next/link';
-import CorrectProductAction from '@/components/CorrectProductAction';
 import {connection} from 'next/server';
 import {notFound,redirect} from 'next/navigation';
 import {createClient} from '@/lib/supabase/server';

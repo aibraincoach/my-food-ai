@@ -1,6 +1,7 @@
 'use client';
 import {useRouter} from 'next/navigation';
 import {useCallback,useEffect,useState} from 'react';
+import CorrectProductAction from './CorrectProductAction';
 import BottomBar from '@/components/BottomBar';
 import PlusMenu,{type PostEntry} from '@/components/PlusMenu';
 import CaptureSheet from '@/components/CaptureSheet';
@@ -22,6 +23,7 @@ export default function NavigationControls() {
     return()=>{window.removeEventListener('open-entry',open);window.removeEventListener('close-sheets',close);};
   },[]);
   return <>
+    <CorrectProductAction/>
     <BottomBar onPlus={()=>setMenuOpen(value=>!value)} menuOpen={menuOpen}/>
     <PlusMenu open={menuOpen} onClose={closeMenu}/>
     {entry==='camera'||entry==='text'?<CaptureSheet key={entry} initialMode={entry==='camera'?'photo':'text'} onClose={closeCapture}/>:null}
