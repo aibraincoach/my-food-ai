@@ -12,7 +12,8 @@ export default function DayRings({days,totals,today,zone,zoneKnown}:{days:{date:
  return <nav aria-label="Last five days" className="flex gap-[14px] overflow-hidden px-inset pt-[2px] pb-2">
   {Array.from({length:5},(_,index)=>{
    const day=shiftDay(today,-index),hasDay=days.some(entry=>entry.date===day),total=totals.find(entry=>entry.day===day);
-   const label=index===0?'Today':new Intl.DateTimeFormat('en-US',{weekday:'short',day:'numeric',timeZone:'UTC'}).format(new Date(`${day}T12:00:00Z`));
+   const parts=new Intl.DateTimeFormat('en-US',{weekday:'short',day:'numeric',timeZone:'UTC'}).formatToParts(new Date(`${day}T12:00:00Z`));
+   const label=index===0?'Today':`${parts.find(part=>part.type==='weekday')?.value} ${parts.find(part=>part.type==='day')?.value}`;
    const content=<><span className={`relative flex size-[56px] items-center justify-center rounded-circle border-2 p-[3px] ${index===0||hasDay?'border-text':'border-ring'}`}>
     <span className={`flex size-full items-center justify-center rounded-circle text-meta font-medium tabular-nums ${index===0||hasDay?'bg-card':''}`}>{total?.ready&&total.kcal!==null?Math.round(total.kcal).toLocaleString('en-US'):''}</span>
     {index===0&&<span className="absolute -right-[3px] -bottom-[3px] flex size-[22px] items-center justify-center rounded-circle border-2 border-surface bg-text text-surface"><Icon name="plus" size={12} strokeWidth={3}/></span>}
