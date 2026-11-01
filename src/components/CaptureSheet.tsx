@@ -1,4 +1,5 @@
 "use client";
+import {lockBodyScroll} from '@/lib/ui/scroll-lock';
 import CorrectProductSheet from "@/components/CorrectProductSheet";
 import type { LabelReading } from "@/lib/meta/label";
 import type { ResolvedProduct } from "@/lib/fdc/barcode-product";
@@ -176,11 +177,11 @@ export default function CaptureSheet({ onClose, initialMode = "photo" }: { onClo
 
   useEffect(() => {
     const previousFocus = document.activeElement;
-    const previousOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
+    const releaseScroll=lockBodyScroll();
     if (initialMode === "text") document.getElementById("capture-caption")?.focus();
     else closeRef.current?.focus();
     const onKeyDown = (event: KeyboardEvent) => {
+      if(event.defaultPrevented)return;
       if (event.key === "Escape" && !postingRef.current) closeDraftRef.current();
       if (event.key !== "Tab") return;
       const controls = dialogRef.current?.querySelectorAll<HTMLElement>(
@@ -200,7 +201,7 @@ export default function CaptureSheet({ onClose, initialMode = "photo" }: { onClo
     };
     document.addEventListener("keydown", onKeyDown);
     return () => {
-      document.body.style.overflow = previousOverflow;
+      releaseScroll();
       document.removeEventListener("keydown", onKeyDown);
       if (previousFocus instanceof HTMLElement) previousFocus.focus();
     };
