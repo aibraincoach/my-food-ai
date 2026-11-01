@@ -25,7 +25,7 @@ export default async function PostDetail({params}:{params:Promise<{id:string}>})
  return <main className={`${font.className} mx-auto min-h-dvh w-full max-w-phone bg-surface pb-[calc(100px+env(safe-area-inset-bottom))] text-text`}>
   <header className="flex h-top-safe items-center justify-between px-inset"><Link href="/" className="flex h-tap w-[60px] items-center text-body" aria-label="Back to Feed"><Icon name="back" size={22}/>Feed</Link><h1 className="text-body font-semibold">Post</h1><span className="w-[60px]"/></header>
   <LocalTimeZone zone={zone} explicit={Boolean(cookieZone)}/>
-  <PostDetailHeader postId={id} caption={detail.post.caption} eatenAt={detail.post.eaten_at} gtin={row?.gtin} saved={Boolean(row?.saved_meal_id)}/>
+  <PostDetailHeader readOnly={detail.isDrink} status={detail.post.status} postId={id} caption={detail.post.caption} eatenAt={detail.post.eaten_at} gtin={row?.gtin} saved={Boolean(row?.saved_meal_id)}/>
   <OutlineOverlay key={id} initialized={detail.post.analysis_initialized_at!=null} readOnly={detail.isDrink} postId={id} caption={detail.post.caption} eatenAt={detail.post.eaten_at} status={detail.post.status} photo={detail.photo} items={detail.items} cardData={detail.cardData} initialDrink={detail.drink} modelCommentId={card?.modelCommentId??null} fingerprint={card?.analysisFingerprint??null} saved={Boolean(row?.saved_meal_id)}>
    {detail.post.analysis_initialized_at!=null&&!detail.isDrink?<ServingsControl key={`${id}:${detail.post.servings}`} postId={id} servings={Number(detail.post.servings)}/>:null}
   </OutlineOverlay>
