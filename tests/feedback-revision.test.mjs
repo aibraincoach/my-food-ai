@@ -80,7 +80,7 @@ test('feed never binds a new revision to data hydrated across a correction commi
  let revisions=[{modelCommentId:'old',fingerprint:'a'},{modelCommentId:'new',fingerprint:'b'}];
  const client=createClient('http://localhost:1234','test',{global:{fetch:async(input)=>{
   const url=new URL(input);let data=[];
-  if(url.pathname.endsWith('/posts'))data={id:'post',status:'ready',caption:'',created_at:'2026-10-27',eaten_at:'2026-10-27'};
+  if(url.pathname.endsWith('/posts')&&!url.searchParams.has('status'))data={id:'post',status:'ready',caption:'',created_at:'2026-10-27',eaten_at:'2026-10-27'};
   if(url.pathname.endsWith('/rpc/feedback_revision'))data=revisions.shift();
   return new Response(JSON.stringify(data),{headers:{'Content-Type':'application/json'}});
  }}});

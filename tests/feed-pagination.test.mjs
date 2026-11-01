@@ -34,6 +34,9 @@ test('21 posts created together all appear once across pages', async () => {
   const db = createClient('https://fixture.invalid', 'fixture-key', {
     global: { fetch: async input => {
       const url = new URL(input instanceof Request ? input.url : String(input));
+      if (url.pathname.endsWith('/intake_logs')) return Response.json([]);
+      if (url.pathname.endsWith('/posts') && url.searchParams.get('status')==='eq.ready') return Response.json([]);
+      if (url.pathname.endsWith('/saved_meals')) { assert.ok(url.searchParams.has('source_post_id')); return Response.json(null); }
       if (url.pathname.endsWith('/post_media')) return new Response('[]');
       assert.ok(url.pathname.endsWith('/posts'));
       // Model PostgREST's requested sort/filter, rather than hard-code a page.
@@ -97,6 +100,9 @@ test('persisted questions remain hidden while queued but failed answers stay rec
  let status='queued';
  const db=createClient('https://fixture.invalid','fixture',{global:{fetch:async input=>{
   const url=new URL(input instanceof Request?input.url:String(input));
+  if(url.pathname.endsWith('/intake_logs'))return Response.json([]);
+  if(url.pathname.endsWith('/posts')&&url.searchParams.get('status')==='eq.ready')return Response.json([]);
+  if(url.pathname.endsWith('/saved_meals')){assert.ok(url.searchParams.has('source_post_id'));return Response.json(null);}
   if(url.pathname.endsWith('/post_media'))return Response.json([]);
   assert.equal(url.searchParams.get('or'),'(needs_input.is.null,status.eq.failed)');
   return Response.json(status==='failed'?{id:uuid(1),caption:'meal',eaten_at:timestamp,status}:null);

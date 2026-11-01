@@ -6,7 +6,7 @@ import { jobHandlers, runJob } from "../src/lib/worker/handlers.ts";
 import { testHandlers } from "./fixtures/job-handlers.mjs";
 
 test("the production registry lists exactly the real job kinds, and no fixture kind", () => {
-  assert.deepEqual(Object.keys(jobHandlers).sort(), ["analyze", "card_backfill", "correct", "media_cleanup", "recompute"]);
+  assert.deepEqual(Object.keys(jobHandlers).sort(), ["analyze", "card_backfill", "correct", "media_cleanup", "recompute", "remainder"]);
   assert.ok(!("test_throw" in jobHandlers) && !("test_noop" in jobHandlers));
   assert.ok(Object.isFrozen(jobHandlers));
 });

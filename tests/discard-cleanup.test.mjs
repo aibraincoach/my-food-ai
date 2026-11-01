@@ -56,11 +56,13 @@ test('cleanup retries partial storage removal using durable paths and stays with
  const prefix=`${owner}/${post}`,path=`${prefix}/photo.jpg`;
  const job={post_id:null,payload:{owner_id:owner,deleted_post_id:post,paths:[path]}};
  let fail=true;const removed=[];
- const admin={from:()=>({select(){return this},like(){return this},async limit(){return {data:[],error:null}}}),storage:{from:()=>({list:async directory=>{assert.equal(directory,prefix);return {data:[{id:'object',name:'copy.jpg'}],error:null};},remove:async paths=>{
+ const draftDeletes=[];
+ const admin={from:table=>{assert.ok(['post_media','post_upload_drafts'].includes(table));const filters=[];return {select(){assert.equal(table,'post_media');return this},like(column,value){assert.equal(column,'storage_path');assert.equal(value,`${prefix}/%`);return this},async limit(){return {data:[],error:null}},delete(){assert.equal(table,'post_upload_drafts');return this},eq(column,value){filters.push([column,value]);return this},then(resolve){assert.deepEqual(filters,[['id',post],['user_id',owner],['published',false]]);draftDeletes.push(filters);return Promise.resolve({error:null}).then(resolve)}}},storage:{from:()=>({list:async directory=>{assert.equal(directory,prefix);return {data:[{id:'object',name:'copy.jpg'}],error:null};},remove:async paths=>{
    removed.push(paths);return {error:fail?{status:503,message:'unavailable'}:null};
  }})}};
  await assert.rejects(cleanup(admin,job),error=>isRetriable(error));
- fail=false;await cleanup(admin,job);
+ assert.equal(draftDeletes.length,0,'failed storage removal retains the draft for retry');
+ fail=false;await cleanup(admin,job);assert.equal(draftDeletes.length,1);
  assert.deepEqual(removed,[[path,`${prefix}/copy.jpg`],[path,`${prefix}/copy.jpg`]]);
  await assert.rejects(cleanup(admin,{...job,payload:{...job.payload,paths:['other/meal.jpg']}}),/Invalid media cleanup paths/);
 });
