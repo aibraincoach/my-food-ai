@@ -124,10 +124,11 @@ export async function identifyItems(
     `Caption: ${caption && caption.trim() ? caption.trim() : "(none)"}\n` +
     `Regions (index, box left/top/right/bottom in source pixels, area fraction):\n${regionLines(regions)}`;
   const known = new Set(regions.map((r) => r.index));
-  let maxTokens = 2048;
+  let maxTokens = 8192;
   for (let attempt = 0; attempt < 4; attempt += 1) {
     const out = await createResponseRetrying404({
         model: "muse-spark-1.3",
+        reasoning: { effort: "low" },
         instructions: identifyPrompt + (prior ? `\n${prior}` : ""),
         input: [
           {
