@@ -20,8 +20,8 @@ create policy label_readings_owner on public.label_readings for select to authen
 grant select on public.label_readings to authenticated;
 revoke insert,update,delete on public.label_readings from authenticated,anon;
 create function public.barcode_shared_name(p_gtin text) returns text language sql stable security definer set search_path=public,pg_temp as $$
- select lower(btrim(name)) from public.barcode_corrections where gtin=p_gtin and name is not null
- group by lower(btrim(name)) having count(distinct user_id)>=3 order by count(distinct user_id) desc,lower(btrim(name)) limit 1
+ select lower(btrim(regexp_replace(name,'[[:space:]]+',' ','g'))) from public.barcode_corrections where gtin=p_gtin and name is not null
+ group by lower(btrim(regexp_replace(name,'[[:space:]]+',' ','g'))) having count(distinct user_id)>=3 order by count(distinct user_id) desc,lower(btrim(regexp_replace(name,'[[:space:]]+',' ','g'))) limit 1
 $$;
 revoke all on function public.barcode_shared_name(text) from public,anon;
 grant execute on function public.barcode_shared_name(text) to authenticated,service_role;
@@ -88,3 +88,30 @@ begin
  return new;
 end $$;
 create trigger post_items_inherit_gtin before insert on public.post_items for each row execute function public.inherit_item_gtin();
+
+-- Serverless instances share this atomic six-reads-per-minute owner quota.
+-- Browser roles cannot reset counters or spend another user's allowance.
+create table public.label_read_limits(
+ user_id uuid primary key references auth.users(id) on delete cascade,
+ window_started_at timestamptz not null,calls integer not null check(calls between 1 and 6)
+);
+alter table public.label_read_limits enable row level security;
+revoke all on public.label_read_limits from public,anon,authenticated;
+grant select,insert,update,delete on public.label_read_limits to service_role;
+create function public.consume_label_read(p_user_id uuid) returns integer
+language plpgsql security definer set search_path=public,pg_temp as $$
+declare allowed boolean; retry_seconds integer; instant timestamptz:=clock_timestamp();
+begin
+ if p_user_id is null then raise exception 'Owner required' using errcode='22023';end if;
+ insert into public.label_read_limits as limits(user_id,window_started_at,calls) values(p_user_id,instant,1)
+ on conflict(user_id) do update set
+  window_started_at=case when limits.window_started_at<=instant-interval '60 seconds' then instant else limits.window_started_at end,
+  calls=case when limits.window_started_at<=instant-interval '60 seconds' then 1 else limits.calls+1 end
+ where limits.window_started_at<=instant-interval '60 seconds' or limits.calls<6
+ returning true into allowed;
+ if coalesce(allowed,false) then return 0;end if;
+ select greatest(1,ceil(extract(epoch from window_started_at+interval '60 seconds'-instant))::integer) into retry_seconds from public.label_read_limits where user_id=p_user_id;
+ return coalesce(retry_seconds,60);
+end $$;
+revoke all on function public.consume_label_read(uuid) from public,anon,authenticated;
+grant execute on function public.consume_label_read(uuid) to service_role;

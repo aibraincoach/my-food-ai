@@ -4,8 +4,9 @@ const nutrients = ["calories","protein_g","carbs_g","fat_g","fibre_g","sugar_g",
 export function parseBarcodeCorrection(input: unknown): BarcodeCorrection {
   if (!input || typeof input!=="object" || Array.isArray(input)) throw Error("Enter the product details.");
   const b=input as Record<string,unknown>; const result:BarcodeCorrection={source:"user"};
-  if(typeof b.name!=="string" || !b.name.trim() || b.name.trim().length>80) throw Error("Enter a name up to 80 characters.");
-  result.name=b.name.trim();
+  const name=typeof b.name==="string"?b.name.trim().replace(/\s+/g," "):"";
+  if(!name || name.length>80) throw Error("Enter a name up to 80 characters.");
+  result.name=name;
   for(const field of ["pack","serving"] as const){
     const amount=b[`${field}_amount`],unit=b[`${field}_unit`];
     if(amount!=null && (typeof amount!=="number" || !Number.isFinite(amount)||amount<=0||amount>100000)) throw Error("Enter a valid pack and serving amount.");
