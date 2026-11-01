@@ -11,12 +11,16 @@ const analyze: JobHandler = async (admin, job) => {
   const {data:post,error,status}=await admin.from("posts").select("analysis_initialized_at").eq("id",job.post_id).maybeSingle();
   if(error)throw ioError("Initial analysis state could not be read.",error,status);
   if(!post)throw new Error("analyze: post not found.");
-  if(post.analysis_initialized_at){await markReady(job.post_id,admin,job.id);return;}
-  const prior = await findPrior(admin,job.post_id);
+  if(post.analysis_initialized_at){await markReady(job.post_id,admin,job.id);await queueRemainder();return;}
+  async function queueRemainder(){const {error,status}=await admin.rpc('queue_post_remainder',{p_post_id:job.post_id,p_job_id:job.id});if(error)throw ioError('Not-eaten work could not be queued.',error,status);}
+  const {count:photoCount,error:photoCountError,status:photoCountStatus}=await admin.from('post_media').select('id',{count:'exact',head:true}).eq('post_id',job.post_id).eq('kind','photo').eq('not_eaten',false);
+  if(photoCountError)throw ioError('Meal photos could not be counted.',photoCountError,photoCountStatus);
+  const prior = (photoCount??0)>1?null:await findPrior(admin,job.post_id);
   const reusable = prior?.named && certifiedPriorNutrition(prior.nutrition) ? prior : null;
   const named = reusable?.named ?? await analyzePost(admin, job.post_id, prior?.hint);
   await persistAnalysis(admin, named, named.labelNutrition?[named.labelNutrition]:reusable?.nutrition, job.id);
   if (named.needsInput) await sendPostPush(admin, job.post_id, named.needsInput.question);
+  else await queueRemainder();
 };
 
 export default analyze;
