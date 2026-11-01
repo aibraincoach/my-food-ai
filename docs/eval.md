@@ -4,6 +4,8 @@ Baseline runtime: `4f51b7afec2ded63374a9615dd6ad5d3b9508bad`, 2026-10-31 18:06â€
 
 The legacy scorer reports **12 found, 3 missed and 14 invented**. These are mechanical name-agreement categories, not an audited hallucination rate. In particular, spaghetti adjectives and sushi-component granularity make that aggregate misleading. The separate visual reading below preserves uncertainty instead of changing the expected labels after the run.
 
+**Direct visual recheck, Nov 1:** one of the 26 returned food descriptions is demonstrably incomplete: photo 05 says Hamburger despite visible cheese. This is a material identification failure, not an invented food. No additional returned category can confidently be called nonexistent from these pixels. That does not certify all other rows: the lemon in 06, fine sushi species in 03 and lamb species in 10 remain uncertain. Photo 06 additionally fails nutrition-reference coverage in the original run; photo 04 has a branded-reference caveat.
+
 All 26 returned items had calorie values; this does not establish that all 26 references were accurate. Independent reference inspection found 24 structurally compatible references, a branded-pizza proxy caveat and one genuine Caesar component-coverage defect.
 
 | Photo | Returned foods | Pipeline seconds | Nutrition availability | Visual adjudication |
@@ -12,12 +14,14 @@ All 26 returned items had calorie values; this does not establish that all 26 re
 | 02.jpg | plain cooked spaghetti | 17.38 | 1/1 calorie values | Plain cooked spaghetti is the expected spaghetti with extra descriptive words. The mechanical miss/invention is a name-score artifact, not a demonstrated missing or invented food. |
 | 03.jpg | Gunkan sushi with salmon roe and minced tuna; Shrimp nigiri; Tuna nigiri; Pickled ginger; Cucumber hosomaki rolls; Salmon nigiri; Tuna hosomaki rolls; Tamagoyaki nigiri; Assorted white fish, squid, octopus, clam and scallop nigiri | 86.29 | 9/9 calorie values | Nine rows describe visible sushi components at finer granularity than the single expected platter. They are not nine demonstrated inventions. Exact species and component proportions remain uncertain; Sushi NFS is a whole-dish proxy. |
 | 04.jpg | Margherita pizza | 24.93 | 1/1 calorie values | Pizza agrees with the image. The original branded PIZZA HUT reference is a recipe/proxy caveat, separately corrected in a fresh follow-up. |
-| 05.jpg | Dipping sauce; Hamburger; French fries | 38.30 | 3/3 calorie values | Burger and fries agree. A dipping-sauce bowl is visibly present at the edge; sauce contents are uncertain, so the extra sauce row is not a demonstrated invention. |
+| 05.jpg | Dipping sauce; Hamburger; French fries | 38.30 | 3/3 calorie values | **Fail: visible cheese was omitted from Hamburger and its selected no-cheese reference.** Fries agree. A dipping-sauce bowl is visibly present at the edge; sauce contents are uncertain, so the extra sauce row is not a demonstrated invention. |
 | 06.jpg | Grilled chicken Caesar salad with croutons; Lemon wedge | 41.37 | 2/2 calorie values | Chicken Caesar and croutons agree. A tiny yellow wedge is plausible but uncertain, not a confidently invented lemon. The original no-dressing reference omitted material components; fresh follow-up corrected that defect. |
 | 07.jpg | pancakes | 40.95 | 1/1 calorie values | Two pancakes agree; syrup or butter is not established visually. |
 | 08.jpg | Ramen | 17.75 | 1/1 calorie values | Ramen agrees. Visible egg and vegetable components may be represented within the dish rather than separate rows; hidden broth ingredients are not independently verified. |
 | 09.jpg | Cheeseburger; French fries | 29.96 | 2/2 calorie values | Cheeseburger and fries agree with the photograph; no extra food row was returned. |
 | 10.jpg | Stuffing; Roast lamb; Gravy; Yorkshire pudding | 67.27 | 4/4 calorie values | Roast, stuffing and Yorkshire pudding agree; gravy is visible despite being absent from expected labels. Lamb species comes from the licensed source/caption, not a reliable visual measurement. |
+
+PR #256 adds a general visible-topping/filling preservation instruction. A new real SAM-plus-identify gate on all ten unchanged images retained cheese on photo 05 and passed all ten food-category/component checks. This is a separate gate, not a rewritten baseline score. See [production latency and quality results](production-performance.md).
 
 ## Provenance and subsequent repairs
 
