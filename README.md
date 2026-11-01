@@ -15,6 +15,10 @@ npm run dev
 
 Fill the variable names in `.env.local` before running the check. Use a Supabase project with this repository's migrations applied in numeric order and the private media bucket configured. The check prints only check names and pass/fail results, stops at the first missing required variable, and exits unsuccessfully if a service check fails. It checks connectivity and model availability; it does not apply migrations or prove all application flows. Open the local address printed by the development server. Keep `.env.local` private and uncommitted.
 
+## Migration numbering
+
+Run 4 uses migrations 0021, 0023 and 0024. Number 0022 was reserved but unused and is permanently retired; there is no 0022 SQL file to create or apply. Future migrations use 0025 or higher. A numeric gap is not a missing installation step.
+
 ## Variables
 
 Required for the setup check:
@@ -37,7 +41,7 @@ Additional names used by development scripts and optional features:
 - `TEST_USER2_PASSWORD`: second test user's password.
 - `MODEL_API_BASE_URL`: optional model endpoint override for offline tests.
 - `ADMIN_EMAIL`: optional operator convenience only; production authorization does not read it. Admin pages and trace access read `public.profiles.role`; grant that role privately after the account and profile exist.
-- `WORKER_CONCURRENCY`: optional worker parallelism; defaults to one.
+- `WORKER_CONCURRENCY`: legacy deployment setting; Run 4 fixes effective worker concurrency at one, including when an older setting requests more lanes.
 - `NEXT_PUBLIC_VAPID_PUBLIC_KEY`: optional browser push subscription key.
 - `VAPID_PRIVATE_KEY`: optional server-only push signing key.
 - `VAPID_SUBJECT`: optional push sender contact identifier.
@@ -83,13 +87,13 @@ Application source: [MIT licence](LICENSE). Dependencies, font, data and hosted-
 
 ## Submission write-up
 
-Implementation work began on October 26 for the November 4 submission. The pull-request implementation covers a private meal feed, camera and gallery capture, food outlines, editable item history, a correction thread, search and day views. Supporting changes add retry handling, current-item totals, stored nutrition cards, evaluation fixtures and a queue load runner. These changes are submitted for review; this write-up does not claim they are all merged or validated in production.
+Implementation work began on October 26 for the November 4 submission. The pull-request implementation covers a private meal feed, camera and gallery capture, food outlines, editable item history, a correction thread, search and day views. Supporting changes add retry handling, current-item totals, stored nutrition cards, evaluation fixtures and a queue load runner. Run 3 and the ten Run 4 implementation PRs are merged. Production acceptance is recorded separately below; a merge does not establish food accuracy or a complete demonstration.
 
 SAM 3.1 receives a meal photograph and finds food regions. Muse Spark 1.3 receives the photograph, caption and relevant correction context, then returns structured food names and portion estimates. Muse Voice Transcribe 1.0 receives recorded speech and returns text for the user to confirm before posting. Nutrition values come from USDA FoodData Central and are scaled to estimated portions; the models do not supply authoritative nutrient values.
 
 The app records consumed food. It does not provide advice, goals or health claims, and it does not share meals between users. Portion amounts are estimates. The licensed evaluation set uses explicitly annotated food names and rough visual gram estimates, which are not measured nutritional ground truth.
 
-Production evidence remains pending the merge phase: the [meal photo evaluation](docs/eval.md), [queue load test](docs/load-test.md), and two complete runs of the [production demo checklist](docs/demo.md). Device camera and notification behavior also require real-device verification. A pending result is not a passing result.
+Run 3 and Run 4, including follow-ups #250–#257, are merged. The verified production baseline is `c392a30ae170ec4f7a7cc48e5b8ff9b1d4d597a5`, READY, with a 300-second function duration. Worker concurrency remains one and the minute wake remains enabled. The historical twenty-post run passed on edb56d42; it is not a new burst measurement of the later speed fix. Fresh single-meal observations reduced active breakfast/curry/busy-photo time to 16.5/19.5/25.2 seconds with all foods matched to nutrition, while portions and owner acceptance remain separate. The [ten-photo evaluation](docs/eval.md), [copied-nutrition trace proof](https://github.com/aibraincoach/my-food-ai/issues/67#issuecomment-6547442271), [two functional demo runs](docs/demo.md), [verified 51.3-second uncut rehearsal](docs/demo-rehearsal.md), [closed-issue audit](docs/closed-issue-acceptance.md) and [performance report](docs/production-performance.md) are recorded. Hardware camera, installed-session persistence, real mobile-data image timing, iPhone fit and background push remain unproven; use the [phone checklist](docs/phone-acceptance.md). This docs merge advances main beyond the measured runtime, without changing application code.
 
 ## Runtime AI and browser features
 

@@ -11,7 +11,7 @@ Limits verified on 2026-10-28 (JST) from Meta Model API's **Pricing and rate lim
 
 Meta applies these limits per team, separately for each model; file and realtime transcription share the stream allowance. These published limits do not guarantee measured application throughput.
 
-Run `node --env-file=.env.local scripts/load-test.mjs` from the repository after installing dependencies, including Next's optional image-processing dependency. Required names: `APP_URL`, `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, `SUPABASE_SECRET_KEY`, `TEST_USER_EMAIL`, `TEST_USER_PASSWORD`. `WORKER_CONCURRENCY` configures the deployed worker (1 to 4; anything else means 1); changing it only in the local test environment does not change the deployment. Set `DEPLOYED_WORKER_CONCURRENCY` to the value the deployment uses so the report records it; when unset the report says `unknown`.
+Run `node --env-file=.env.local scripts/load-test.mjs` from the repository after installing dependencies, including Next's optional image-processing dependency. Required names: `APP_URL`, `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, `SUPABASE_SECRET_KEY`, `TEST_USER_EMAIL`, `TEST_USER_PASSWORD`. Run 4 fixes effective worker concurrency at one, even if an older `WORKER_CONCURRENCY` value requests more lanes; changing a local variable does not change the deployment. Set `DEPLOYED_WORKER_CONCURRENCY` to the value the deployment uses so the report records it; when unset the report says `unknown`.
 
 The runner signs in as the ordinary test account using the installed SSR library's cookie encoding, schedules twenty requests six seconds apart, rotates the three existing fixture plates, and uploads original/feed JPEGs through the same application routes as the client. It observes post state every two seconds for at most fifteen minutes. Latency starts before post creation and ends at the first observed ready state, so it includes uploads and up to one polling interval. Job errors containing 429 are retained while polling because a successful retry clears the stored error. Private post identifiers are written only to a temporary local report, not this document.
 
@@ -60,13 +60,32 @@ Authentication reuses `scripts/lib/session.mjs`. When available, `eval/photos/01
 
 ## Run of 2026-10-28 against production (b025d13)
 
-The results above are from the one production run so far, with the test account. Observations that the table does not show:
+The results above are from the historical Oct 28 production run, with the test account. Observations that the table does not show:
 
 - The runner's fifteen-minute window ended with 11 of 20 posts still queued. They were not slow: their analyze jobs were due, at attempt 0, with no worker lease held. The worker had stopped after about 330 seconds, and a manual `GET /api/jobs/tick` started it again. This is tracked as #177; until it is fixed the numbers above measure a run where nobody was ticking the queue, not the steady-state throughput.
 - Both failed posts used `eval/photos/03.jpg` and failed with `spark: identify ended with status incomplete.` after three attempts.
 - No 429 was observed from any service.
 - The deployed worker concurrency was not read from the deployment, so the report says `unknown`; the demo setting stays at one.
 
+
+## Run 4 production test — 2026-10-31
+
+Main and production: `34d905161cd129b30b86d305a91cedf8a183ca27`, READY, with a 300-second function duration and effective worker concurrency 1. Migration 0024 was applied in one transaction. The wake was activated at 08:06:22.337 UTC. The test began at 08:06:23.001 UTC and created twenty photo posts through the normal upload/completion path over 113.045 seconds. The harness issued no manual tick or browser-focus wake.
+
+At 08:12:25 UTC, four posts had terminal failures. The wake configuration was removed at 08:13:02.599 UTC as ordered and verified empty; the minute schedule remains registered but cannot send HTTP without its configured origin. The fifteen-minute deadline was 08:21:23.001 UTC. The run report was written at 08:21:24.114 UTC and froze the post statuses below. A summary exported at 08:21:56.989 UTC reused that report; its export time is not a new post-status observation.
+
+| Frozen fifteen-minute run result | Posts |
+| --- | ---: |
+| Ready | 0 |
+| Failed | 10 |
+| Processing | 2 |
+| Queued | 8 |
+
+**Failed:** the criterion required all twenty ready. No successful queue drain, worker-stall resolution or throughput is claimed. Initial minute SQL checks succeeded at 08:07, 08:08 and 08:09 while the lease was held; this does not independently demonstrate recovery from a lost worker. The wake remains disabled with zero configured origins.
+
+Two distinct model failures were observed. Photos 01 and 02 completed identification but failed on the match decision's 256-token cap. At that first-run cutoff, reviewed PR #246 proposed raising the matcher cap to 2048 and was still unmerged. It and the later #247–#249 follow-ups have since merged; that recovery is separate from this failed run. Photo 03 sometimes exhausted identification's 2048-token initial limit and 4096-token retry, returning incomplete or partial JSON. That second defect is not fixed by #246. This diagnosis used recorded traces, without another model request. Neither the full ten-photo accuracy evaluation nor a clean rate-limit result is inferred from this run.
+
+The separate breakfast and curry re-logs also failed after three attempts each, with no persisted items and unavailable totals. Owner food acceptance remains absent. The Oct 28 table above is retained as historical evidence. Private identifiers and signed URLs are kept out of this document.
 
 ## Completed production drain, 2026-10-31
 
@@ -122,3 +141,7 @@ No 429 was observed in job errors. SDK-internal successful retries are not separ
 The twenty creation starts followed a 114-second schedule; actual first-to-last created rows spanned 113.119 seconds. All twenty eventually reached ready, all jobs finished on attempt 1 with no error. Median ready latency was 607.12 seconds and maximum 1205.55 seconds; this is throughput/drain evidence, not a low-latency claim.
 
 At 16:21 UTC, eight due jobs remained with no active analysis. The scheduled wake returned HTTP 200 at 16:21:00.153, and the next job was claimed at 16:21:00.877. No manual tick or browser-focus event restarted the queue. No job error reported 429; SDK-internal retries were not separately instrumented. The selected demo concurrency remains **1**. [Production proof and closure](https://github.com/aibraincoach/my-food-ai/issues/177#issuecomment-6546095477).
+
+## Current single-meal observations — Nov 1
+
+The current verified production baseline is `c392a30ae170ec4f7a7cc48e5b8ff9b1d4d597a5`, READY. #256 reduced active breakfast/curry/busy-photo times to 16.497/19.539/25.188 seconds in a three-post cohort, with all jobs finished on attempt one and the wake still enabled. These are not a new burst test and do not replace the historical twenty-post timings above. See [the full comparison](production-performance.md).
