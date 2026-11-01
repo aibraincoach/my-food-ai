@@ -5,7 +5,7 @@ import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import {useDeviceTimeZone} from "@/components/LocalTime";
 import {formatLocalTime} from "@/lib/time/local";
 import Link from "next/link";
-import { formatNutrition } from "@/lib/nutrition/totals";
+import { formatCalories, formatNutrition } from "@/lib/nutrition/totals";
 import { intakeLine } from "@/lib/intake/intake";
 import { tokens } from "@/lib/theme/tokens";
 import { dateInZone, shiftDay, type LoggedDay } from "@/lib/posts/days";
@@ -141,9 +141,9 @@ export default function StoryPlayer({ day, zone, onClose, onDay, cell }: { day: 
               {photo(entry) ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img src={photo(entry)!} onError={() => photoFailed(entry.photoUrl)} alt={entry.caption || "Meal"} className="h-full w-full object-cover" />
-              ) : <span className="text-detail tabular-nums">{formatNutrition(entry.totals.calories)} kcal</span>}
+              ) : <span className="text-detail tabular-nums">{formatCalories(entry.totals.calories)} kcal</span>}
             </div>
-            <p className="mt-1 flex justify-between gap-1 text-label text-faint tabular-nums"><span>{time(entry.eatenAt)}</span><span>{formatNutrition(entry.totals.calories)} kcal</span></p>
+            <p className="mt-1 flex justify-between gap-1 text-label text-faint tabular-nums"><span>{time(entry.eatenAt)}</span><span>{formatCalories(entry.totals.calories)} kcal</span></p>
           </Link>)}</div>
         </div>}
         <nav className="flex items-center justify-between px-screen-x text-meta text-muted" aria-label="Adjacent days">

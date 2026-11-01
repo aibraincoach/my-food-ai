@@ -52,6 +52,14 @@ export function formatNutrition(value: Numeric): string {
   return amount === null ? "—" : String(Math.round(amount));
 }
 
+// Preserve positive energy below the whole-kcal display precision; zero is a measured value.
+export function formatCalories(value: Numeric, locale?: string): string {
+  const amount = nutritionNumber(value);
+  if (amount === null) return "—";
+  if (amount > 0 && Math.round(amount) === 0) return "<1";
+  return locale ? Math.round(amount).toLocaleString(locale) : String(Math.round(amount));
+}
+
 export function sumNutrition(items: (NutritionLike & {name?:string;missing?:MissingNutrition})[]): MealTotals {
   const totals: MealTotals = { calories: 0, protein_g: 0, carbs_g: 0, fat_g: 0, fibre_g: 0, sugar_g: 0, sodium_mg: 0 };
   const missing: MissingNutrition = {};
@@ -60,11 +68,11 @@ export function sumNutrition(items: (NutritionLike & {name?:string;missing?:Miss
     const omitted=new Set<string>();
     for(const item of items){
       const amount=nutritionNumber(item[key]);
-      if(amount===null)omitted.add(item.name||"an item");
+      if(amount===null){if(!item.missing?.[key]?.length)omitted.add(item.name||"an item");}
       else {sum+=amount;known++;}
       for(const name of item.missing?.[key]??[])omitted.add(name);
     }
-    totals[key]=items.length===0?0:known&&Number.isFinite(sum)?sum:null;
+    totals[key]=known&&Number.isFinite(sum)?sum:null;
     if(omitted.size)missing[key]=[...omitted];
   }
   if(Object.keys(missing).length)totals.missing=missing;
@@ -77,7 +85,7 @@ export function unavailableFoods(totals: {missing?:MissingNutrition}, keys: read
 
 export function formatConsumed(totals: MealTotals): string {
   const names=unavailableFoods(totals);
-  return `Consumed: ${totals.calories===null?"unavailable":formatNutrition(totals.calories)} kcal${names.length?` · Nutrition unavailable: ${names.join(", ")}`:""}`;
+  return `Consumed: ${totals.calories===null?"unavailable":formatCalories(totals.calories)} kcal${names.length?` · Nutrition unavailable: ${names.join(", ")}`:""}`;
 }
 
 export function formatGrams(grams: Numeric): string {

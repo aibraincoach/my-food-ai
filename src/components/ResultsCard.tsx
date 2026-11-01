@@ -1,7 +1,7 @@
 import type { DrinkCardData } from '@/lib/intake/hydration';
 import type { CardData } from '@/lib/pipeline/card-data';
 import type { CSSProperties } from 'react';
-import { formatNutrition } from '@/lib/nutrition/totals';
+import { formatCalories, formatNutrition } from '@/lib/nutrition/totals';
 import { tokens } from '@/lib/theme/tokens';
 
 export type ResultsCardProps = {
@@ -23,7 +23,7 @@ export type ResultsCardProps = {
 export function ResultsCard({ data, drink, unavailable = [], time, calories = null, protein = null, carbs = null, fat = null, items = [], size = tokens.spacing.phone, fontFamily }: ResultsCardProps) {
   const card: CardData = data ?? {
     kind: drink ? 'drink' : 'meal', amountMl: drink?.ml, caffeineMg: drink?.caffeineMg,
-    drinkLine: drink ? `${drink.label}${drink.caffeineMg ? ` · ${drink.caffeineMg} mg caffeine · ${formatNutrition(calories)} kcal` : ''}` : undefined,
+    drinkLine: drink ? `${drink.label}${drink.caffeineMg ? ` · ${drink.caffeineMg} mg caffeine · ${formatCalories(calories)} kcal` : ''}` : undefined,
     hydration: drink ? { totalMl: drink.totalMl, drinksMl: drink.drinksMl, foodMl: drink.foodMl, caffeineMg: drink.dayCaffeineMg ?? drink.caffeineMg } : undefined,
     kcal: calories, macros: { protein, carbs, fat }, items, unavailable,
   };
@@ -43,7 +43,7 @@ export function ResultsCard({ data, drink, unavailable = [], time, calories = nu
     <div style={{ display: 'flex', ...text('meta'), color: tokens.colors.muted, letterSpacing: tokens.card.labelTracking * scale, textTransform: 'uppercase' }}>{isDrink ? 'DRANK' : 'CONSUMED'}{time ? ` · ${time}` : ''}</div>
     <div style={{ display: 'flex', flexDirection: 'column', gap: 4 * scale }}>
       <div style={{ display: 'flex', alignItems: 'baseline', gap: 10 * scale }}>
-        <div style={{ display: 'flex', ...text('display-card') }}>{isDrink ? Math.round(card.amountMl ?? 0).toLocaleString('en-US') : card.kcal === null ? 'unavailable' : formatNutrition(card.kcal)}</div>
+        <div style={{ display: 'flex', ...text('display-card') }}>{isDrink ? Math.round(card.amountMl ?? 0).toLocaleString('en-US') : card.kcal === null ? 'unavailable' : formatCalories(card.kcal)}</div>
         {isDrink ? <div style={{ display: 'flex', ...text('month'), fontWeight: 400, color: tokens.colors.muted }}>ml</div> : null}
       </div>
       <div style={{ display: 'flex', ...text('body'), fontWeight: 400, color: tokens.colors.muted }}>{isDrink ? card.drinkLine ?? '' : 'kcal'}</div>
