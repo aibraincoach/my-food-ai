@@ -17,7 +17,7 @@ Fill the variable names in `.env.local` before running the check. Use a Supabase
 
 ## Migration numbering
 
-Run 4 uses migrations 0021, 0023 and 0024. Number 0022 was reserved but unused and is permanently retired; there is no 0022 SQL file to create or apply. Future migrations use 0025 or higher. A numeric gap is not a missing installation step.
+Run 4 uses migrations 0021, 0023 and 0024. Number 0022 was reserved but unused and is permanently retired; there is no 0022 SQL file to create or apply. Run 5 adds migrations 0025, 0026 and 0027; future migrations use 0028 or higher. A numeric gap is not a missing installation step.
 
 ## Variables
 
@@ -54,16 +54,6 @@ Only public-prefixed names are intended for browser exposure. Deployment environ
 Add `--user=2` to obtain the second test account’s session cookies.
 Treat the output as a credential: consume it locally and keep it out of logs, issues and screenshots.
 
-### Historical handover note (2026-10-29)
-
-The following snapshot is retained as history; current deployment and merge state must be checked separately.
-
-> Ordinary configured test-account production sign-in has been exercised successfully. PR #203 adds a cookie-only `scripts/browser-session.mjs`; that script is merged into main and was used in the Oct 31 production UI demonstrations. Its removed magic-link fallback is not a supported mode. Never publish session-cookie output.
->
-> ## Run 3 delivery status
->
-> Main contains the shared round2 tokens from #200. #202 merged into its existing `run3/tokens` base, not main; its plus-menu code is not released on main by that merge. Other Run3 features and their production acceptance remain pending. The current administrative record is in CLAUDE.md; neither an open feature branch nor a green preview build proves production acceptance.
-
 ## Repository map
 
 - `.cursor/`: editor rules and workflows.
@@ -77,7 +67,7 @@ The following snapshot is retained as history; current deployment and merge stat
 - `tests/`: automated checks. The database and pipeline tests hold the worker lease and must not run during a demo.
 - `tools/`: external review support tools.
 
-`node_modules/`, build output and local uploads are generated or private working files, not application source. Evaluation fixtures are added under `eval/` by the evaluation item.
+`node_modules/`, build output and local uploads are generated or private working files, not application source. Licensed evaluation fixtures and their recorded results are in `eval/` and [docs/eval.md](docs/eval.md).
 
 ## Licences
 
@@ -93,7 +83,11 @@ SAM 3.1 receives a meal photograph and finds food regions. Muse Spark 1.3 receiv
 
 The app records consumed food. It does not provide advice, goals or health claims, and it does not share meals between users. Portion amounts are estimates. The licensed evaluation set uses explicitly annotated food names and rough visual gram estimates, which are not measured nutritional ground truth.
 
-Run 3 and Run 4, including follow-ups #250–#257, are merged. The verified production baseline is `c392a30ae170ec4f7a7cc48e5b8ff9b1d4d597a5`, READY, with a 300-second function duration. Worker concurrency remains one and the minute wake remains enabled. The historical twenty-post run passed on edb56d42; it is not a new burst measurement of the later speed fix. Fresh single-meal observations reduced active breakfast/curry/busy-photo time to 16.5/19.5/25.2 seconds with all foods matched to nutrition, while portions and owner acceptance remain separate. The [ten-photo evaluation](docs/eval.md), [copied-nutrition trace proof](https://github.com/aibraincoach/my-food-ai/issues/67#issuecomment-6547442271), [two functional demo runs](docs/demo.md), [verified 51.3-second uncut rehearsal](docs/demo-rehearsal.md), [closed-issue audit](docs/closed-issue-acceptance.md) and [performance report](docs/production-performance.md) are recorded. Hardware camera, installed-session persistence, real mobile-data image timing, iPhone fit and background push remain unproven; use the [phone checklist](docs/phone-acceptance.md). This docs merge advances main beyond the measured runtime, without changing application code.
+Run 3, Run 4 and Run 5 implementation PRs are merged, including follow-ups #250–#257 and #267/#268. The inspected production runtime is `14c83c746bef064946fc6a1d75cc32c7c5b42841`. A fresh twenty-post production queue run on November 1 reached **20/20 ready**, with zero failures or incomplete jobs, median 144.50 seconds and maximum 307.47 seconds; all were ready 421.474 seconds after the run began. Worker concurrency remains one. See the [load report](docs/load-test.md) and [post–Run 5 owner report](docs/post-run5-owner-report.md).
+
+The [ten-photo evaluation](docs/eval.md), [copied-nutrition trace proof](https://github.com/aibraincoach/my-food-ai/issues/67#issuecomment-6547442271), [two functional demo runs](docs/demo.md) and [51.3-second uncut rehearsal](docs/demo-rehearsal.md) are completed evidence, with their limits recorded. An additional unchanged identification diagnostic scored 9/10 after earlier 10/10 observations; it omitted fries in photo 05. Fresh model estimates can vary in portions and reference selection; Saved meals and Log again preserve stored nutrition. Owner acceptance of meal estimates remains separate.
+
+Hardware camera, installed-session persistence, real mobile-data image timing, iPhone fit and background push remain unproven; use the [phone checklist](docs/phone-acceptance.md). #11 and #22 were reopened for missing acceptance. The owner's final submission video has not been recorded by these functional rehearsals. PR #269 prepares unknown/zero-calorie display fixes and is not part of this inspected production runtime. Documentation changes do not deploy that application fix.
 
 ## Runtime AI and browser features
 

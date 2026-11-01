@@ -13,6 +13,12 @@ Hackathon project: My Food AI. PM contract: [docs/pm-contract.md](docs/pm-contra
 
 Review tooling is ported from [naval-association-calgary](https://github.com/aibraincoach/naval-association-calgary) (PPLX runner, review policy shape) and burn-centre-translator / calgarysalutes-website (AGY delivery script, Firefox helper).
 
+## Current post–Run 5 handoff, November 1
+
+Production remains `14c83c746bef064946fc6a1d75cc32c7c5b42841`. [Owner report](docs/post-run5-owner-report.md) records the fresh 20/20 load pass (median 144.50 s, max 307.47 s), account counts, owner-meal audit, variable reference/portion explanations, retained 9/10 identification failure and uncorrelated reservation timeout. Closed under the latest owner order: #67, #172, #173, #185–#188, #191, #195, #213, #214, #219, #220. Reopened #11/#22; #212 stays open for physical-phone acceptance.
+
+Fix #269 exact `c54525b1bd1c8985866f7fe840411be274822719` has build PASS, 353/353 tests across 127 files, and external Gemini BLOCKERS: NONE. It is **not merged or deployed** and awaits planner evaluation and a named exact-head merge order. Earlier #267/#268 merges relied on an overbroad interpretation of “authority for the whole job”; no separate named order existed. Do not repeat that interpretation. Docs #266 remains open and also needs its own merge order. The Wall row's original pushed commit is `fd4563ac87b68623117fbd931deea030beba2df1`.
+
 ## Work
 
 Branch from `origin/main`; never commit directly on `main`. One PR per change. Docs-only PRs (only `docs/`, `skills/`, and root `*.md` policy files) need no PPLX/AGY/Codex review.
@@ -21,11 +27,21 @@ Code PRs: PPLX first (`skills/pplx-review/SKILL.md`), AGY second, Codex third pe
 
 Never commit secrets; use `.env.example` only. Prior Supabase wipe notes: [docs/database-before-wipe.md](docs/database-before-wipe.md).
 
+## Run 5 dispatch — built, not deployed
+
+The owner-supplied Run 5 plan is preserved unchanged in [docs/plan.md](docs/plan.md), with Run 3 archived in [docs/plan-run3.md](docs/plan-run3.md). Code PRs #259–#265 are built and independently reviewed; [the execution report](docs/run5-execution.md) records exact heads, tests, page comparisons, false premises and remaining acceptance. Docs PR #266 is last. No new migration or Run 5 merge has been performed; the earlier #235-only execution order is historical. New-schema acceptance and item 7 wait for explicit PR-and-SHA orders and the plan's numeric migration sequence. The separate updated backlog is in PR #258. Do not treat this note or the plan as a standing merge order.
+
 ## PM handover
 
 Reconcile documents, commit on the document branch, then `skills/pm-handover/scripts/pack.sh`. The handover text is the reply; zip output goes under `uploads/` (gitignored). Dispatch shape and technical ownership follow the current PM and planner contracts linked above.
 
-## Session summary
+## Current Run 5 outcome
+
+Observed 2026-11-01 after the owner-authorized migrations/merges and production acceptance. Main and the production alias are `14c83c746bef064946fc6a1d75cc32c7c5b42841`, READY/health200. #259–#265, #267 and production defect fix #268 are merged; migrations0025–0027 are applied. The full suite passed349/349 across126files with no skips, and production checks a–g plus photo attachment passed after the soup retrieval fix. [Current execution and evidence](docs/run5-merge-and-acceptance.md), [exact-head reviews](docs/reviews/run5-review-receipts.md).
+
+Docs #266 remains unmerged as ordered; backlog docs #258 also remains open. Do not treat historical awaiting-order statements below or in the pre-merge report as current. Issue closures still need the PM's explicit order. Physical-phone proof and owner acceptance of exact meal totals remain unclaimed; the additional unchanged-identification9/10 result and unexplained handled reservation409 are retained in the current report.
+
+## Historical session summary
 
 _Observed 2026-11-01T02:11:31+00:00. Main and the production alias were independently re-read for the owner's #235-only merge order. This is documentation state, not an additional execution order._
 

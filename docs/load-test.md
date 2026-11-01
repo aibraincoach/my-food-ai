@@ -13,47 +13,45 @@ Meta applies these limits per team, separately for each model; file and realtime
 
 Run `node --env-file=.env.local scripts/load-test.mjs` from the repository after installing dependencies, including Next's optional image-processing dependency. Required names: `APP_URL`, `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, `SUPABASE_SECRET_KEY`, `TEST_USER_EMAIL`, `TEST_USER_PASSWORD`. Run 4 fixes effective worker concurrency at one, even if an older `WORKER_CONCURRENCY` value requests more lanes; changing a local variable does not change the deployment. Set `DEPLOYED_WORKER_CONCURRENCY` to the value the deployment uses so the report records it; when unset the report says `unknown`.
 
-The runner signs in as the ordinary test account using the installed SSR library's cookie encoding, schedules twenty requests six seconds apart, rotates the three existing fixture plates, and uploads original/feed JPEGs through the same application routes as the client. It observes post state every two seconds for at most fifteen minutes. Latency starts before post creation and ends at the first observed ready state, so it includes uploads and up to one polling interval. Job errors containing 429 are retained while polling because a successful retry clears the stored error. Private post identifiers are written only to a temporary local report, not this document.
+The runner signs in as the ordinary test account using the installed SSR library's cookie encoding, schedules twenty requests six seconds apart, rotates licensed evaluation photos 01/02/03, and uploads original/feed JPEGs through the same application routes as the client. It observes post state every two seconds for at most fifteen minutes. Latency starts before post creation and ends at the first observed ready state, so it includes uploads and up to one polling interval. Job errors containing 429 are retained while polling because a successful retry clears the stored error. Private post identifiers are written only to a temporary local report, not this document.
 
-The existing fixtures include empty plates; this run measures transport and queue behavior, not food-recognition accuracy. Fixture licences are recorded in `scripts/fixtures/ATTRIBUTION.md`.
+The November 1 run uses licensed meal photographs, not the older empty-plate fixtures. It measures transport and queue behavior, not food-recognition accuracy. Fixture licences are recorded in `eval/SOURCES.md`.
 
 <!-- load-test-results:start -->
-Run started: 2026-10-28T23:16:41.017Z.
+Run started: 2026-11-01T12:35:08.458Z.
 
 Twenty posts were scheduled across 114 seconds. Observed creation starts: 20 of 20; last start at 114.00 seconds (scheduling drift 0.00 seconds); maximum start lateness 0.00 seconds; smallest gap between starts 6.00 seconds. Starts were on the six-second pace inside the two-minute window. 20 post rows were created.
-Ready: 7; failed requests/posts: 2; incomplete at observation deadline: 11.
-Median time to ready: 57.36 seconds. Maximum: 329.86 seconds.
+Ready: 20; failed requests/posts: 0; incomplete at observation deadline: 0.
+Median time to ready: 144.50 seconds. Maximum: 307.47 seconds.
 
 | Post | Fixture | Creation started (s) | Result | Observed ready (s) |
 | --- | --- | ---: | --- | ---: |
-| 1 | eval/photos/01.jpg | 0.00 | ready | 12.65 |
-| 2 | eval/photos/02.jpg | 6.00 | ready | 14.96 |
-| 3 | eval/photos/03.jpg | 12.00 | failed | — |
-| 4 | eval/photos/01.jpg | 18.00 | ready | 57.12 |
-| 5 | eval/photos/02.jpg | 24.00 | ready | 57.36 |
-| 6 | eval/photos/03.jpg | 30.00 | failed | — |
-| 7 | eval/photos/01.jpg | 36.00 | ready | 187.09 |
-| 8 | eval/photos/02.jpg | 42.00 | ready | 233.43 |
-| 9 | eval/photos/03.jpg | 48.00 | ready | 329.86 |
-| 10 | eval/photos/01.jpg | 54.00 | queued | — |
-| 11 | eval/photos/02.jpg | 60.00 | queued | — |
-| 12 | eval/photos/03.jpg | 66.00 | queued | — |
-| 13 | eval/photos/01.jpg | 72.00 | queued | — |
-| 14 | eval/photos/02.jpg | 78.00 | queued | — |
-| 15 | eval/photos/03.jpg | 84.00 | queued | — |
-| 16 | eval/photos/01.jpg | 90.00 | queued | — |
-| 17 | eval/photos/02.jpg | 96.00 | queued | — |
-| 18 | eval/photos/03.jpg | 102.00 | queued | — |
-| 19 | eval/photos/01.jpg | 108.00 | queued | — |
-| 20 | eval/photos/02.jpg | 114.00 | queued | — |
+| 1 | eval/photos/01.jpg | 0.00 | ready | 16.76 |
+| 2 | eval/photos/02.jpg | 6.00 | ready | 21.18 |
+| 3 | eval/photos/03.jpg | 12.00 | ready | 54.42 |
+| 4 | eval/photos/01.jpg | 18.00 | ready | 62.88 |
+| 5 | eval/photos/02.jpg | 24.00 | ready | 67.15 |
+| 6 | eval/photos/03.jpg | 30.00 | ready | 94.03 |
+| 7 | eval/photos/01.jpg | 36.00 | ready | 98.60 |
+| 8 | eval/photos/02.jpg | 42.00 | ready | 102.90 |
+| 9 | eval/photos/03.jpg | 48.00 | ready | 135.96 |
+| 10 | eval/photos/01.jpg | 54.00 | ready | 142.29 |
+| 11 | eval/photos/02.jpg | 60.00 | ready | 146.71 |
+| 12 | eval/photos/03.jpg | 66.00 | ready | 179.68 |
+| 13 | eval/photos/01.jpg | 72.00 | ready | 184.02 |
+| 14 | eval/photos/02.jpg | 78.00 | ready | 190.34 |
+| 15 | eval/photos/03.jpg | 84.00 | ready | 246.51 |
+| 16 | eval/photos/01.jpg | 90.00 | ready | 255.05 |
+| 17 | eval/photos/02.jpg | 96.00 | ready | 261.46 |
+| 18 | eval/photos/03.jpg | 102.00 | ready | 296.90 |
+| 19 | eval/photos/01.jpg | 108.00 | ready | 305.26 |
+| 20 | eval/photos/02.jpg | 114.00 | ready | 307.47 |
 
 Observed job errors containing 429:
 
 None observed.
 
 Worker concurrency (operator-reported via DEPLOYED_WORKER_CONCURRENCY, not read from the deployment): **unknown**. This report does not justify increasing it; confirm the deployed setting before comparing timings across runs.
-
-This run did not complete successfully for every post. The unresolved outcomes above remain part of the result.
 <!-- load-test-results:end -->
 
 Authentication reuses `scripts/lib/session.mjs`. When available, `eval/photos/01.jpg` to `03.jpg` replace the older plate fixtures.
