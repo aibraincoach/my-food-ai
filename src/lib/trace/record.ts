@@ -1,7 +1,7 @@
 import { createAdminClient } from "@/lib/supabase/admin";
 import { traceContext } from "./context";
 
-export type CallKind = "sam" | "spark_identify" | "spark_correct" | "spark_same_meal" | "spark_search" | "fdc" | "transcribe";
+export type CallKind = "sam" | "spark_identify" | "spark_correct" | "spark_same_meal" | "spark_search" | "fdc" | "transcribe" | "spark_label" | "spark_remainder";
 type Details = { text?: unknown; usage?: { input_tokens?: number; output_tokens?: number } | null; fdcId?: number | null };
 
 const SENSITIVE_KEY = /image_url|audio|raster|mask|authorization|api[_-]?key|token$|secret|pass(word|wd|phrase)|pwd|cookie/i;

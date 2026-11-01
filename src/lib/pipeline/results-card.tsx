@@ -1,4 +1,4 @@
-import { unavailableFoods } from "@/lib/nutrition/totals";
+import { renderTimeZone, readStoredCardData } from "./render-zone";
 import { ioError } from "@/lib/worker/errors";
 import { ImageResponse } from "next/og";
 import { readFile } from "node:fs/promises";
@@ -8,9 +8,9 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { ResultsCard } from "@/components/ResultsCard";
 import { tokens } from "@/lib/theme/tokens";
 import { isOwnedGeneratedCardPath } from "@/lib/media/paths";
-import { normalizeStoredNutrition, sumNutrition, toNumber, type CurrentItem } from "@/lib/nutrition/totals";
+import { normalizeStoredNutrition, type CurrentItem } from "@/lib/nutrition/totals";
 
-import { getDrinkCardData, type DrinkCardData } from "@/lib/intake/hydration";
+import { type DrinkCardData } from "@/lib/intake/hydration";
 
 type Snapshot = {
   user_id: string;
@@ -29,20 +29,22 @@ function fonts() {
   return fontData;
 }
 
-export async function renderResultsCard(admin: SupabaseClient, postId: string, jobId?: string, variant?: DrinkCardData, zone = "UTC"): Promise<boolean> {
+export async function renderResultsCard(admin: SupabaseClient, postId: string, jobId?: string, variant?: DrinkCardData, zone?: string): Promise<boolean> {
+  if(zone!==undefined)await renderTimeZone(admin,postId,zone);
   const { data, error, status } = await admin.rpc("results_card_snapshot", { p_post_id: postId });
   if (error) throw ioError(`Card snapshot failed: ${error.message}`, error, status);
   const snapshot = data as Snapshot | null;
   if (!snapshot || snapshot.items.some(({ nutrition }) => !nutrition)) return false;
   const nutrition = snapshot.items.map(({ item, nutrition }) => ({...normalizeStoredNutrition(nutrition!, item.portion_grams),name:item.name}));
-  const totals = sumNutrition(nutrition);
-  const drink = variant ?? await getDrinkCardData(admin, snapshot.user_id, postId, zone);
+  const source = { id: postId, eaten_at: snapshot.eaten_at,
+    items: snapshot.items.map(({item}, index) => ({ ...item, ...nutrition[index] })) };
+  // Model-free drinks have just read this timeline after their atomic commit.
+  // Reuse that record while still rendering nutrition from this fingerprinted snapshot.
+  const cardData = await readStoredCardData(admin,snapshot.user_id,source,undefined,variant);
   const [light, regular, medium, semibold] = await fonts();
   const size = tokens.card.outputSize;
-  const response = new ImageResponse(<ResultsCard unavailable={unavailableFoods(totals)}
-    size={size} fontFamily="Manrope" drink={drink}
-    calories={totals.calories} protein={totals.protein_g} carbs={totals.carbs_g} fat={totals.fat_g}
-    items={snapshot.items.map(({ item }) => ({ name: item.name, grams: item.portion_grams == null ? null : toNumber(item.portion_grams) }))}
+  const response = new ImageResponse(<ResultsCard data={cardData}
+    size={size} fontFamily="Manrope"
   />, { width: size, height: size, fonts: [
     { name: "Manrope", data: light, weight: 300, style: "normal" },
     { name: "Manrope", data: regular, weight: 400, style: "normal" },

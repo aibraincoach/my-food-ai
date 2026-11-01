@@ -1,3 +1,5 @@
+import { getPostHydrationData } from "@/lib/intake/hydration";
+import { cardDataFromRow } from "@/lib/pipeline/card-data";
 import { getFoodById, searchFoods } from "@/lib/fdc/client";
 import { isUnit, OZ_G, roundGrams, toGrams, type Unit } from "@/lib/nutrition/units";
 import { scaleNutrition } from "@/lib/fdc/nutrients";
@@ -98,8 +100,8 @@ export async function editPostItem(admin: SupabaseClient, postId: string, userId
   return { error: null, itemId: data as string | null };
 }
 
-export async function getPostDetail(supabase: SupabaseClient, postId: string) {
-  const { data: post, error } = await supabase.from("posts").select("id,caption,eaten_at,status,analysis_initialized_at,servings")
+export async function getPostDetail(supabase: SupabaseClient, postId: string, zone = "UTC") {
+  const { data: post, error } = await supabase.from("posts").select("id,user_id,caption,eaten_at,status,analysis_initialized_at,servings,source_post_id")
     .eq("id", postId).maybeSingle();
   if (error) throw new Error("Meal could not be loaded.");
   if (!post) return null;
@@ -121,7 +123,7 @@ export async function getPostDetail(supabase: SupabaseClient, postId: string) {
     }
     return { ...item, box: itemBox(item.box), maskUrl };
   }));
-  const { data: drink, error: drinkError } = await supabase.from("intake_logs").select("id").eq("post_id", postId).limit(1).maybeSingle();
-  if (drinkError) throw new Error("Drink details could not be read.");
-  return { post, photo, items, isDrink: drink !== null };
+  const hydrated = (await getPostHydrationData(supabase, post.user_id, [{ id: postId, eaten_at: post.eaten_at, items }], zone))[postId];
+  return { post, photo, items, isDrink: hydrated.kind === "drink", ...hydrated,
+    cardData: cardDataFromRow({ ...post, items, ...hydrated }) };
 }

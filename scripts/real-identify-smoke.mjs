@@ -81,9 +81,9 @@ try{
  const fixture=JSON.parse(await readFile(new URL('./fixtures/ham-resolution.json',import.meta.url),'utf8'));
  const searches=[];
  const cache={from(table){if(table!=='fdc_cache')throw Error('Unexpected smoke database table.');return{select(){return{eq(_column,key){const request={abortSignal(){return request;},async maybeSingle(){
-  const query=String(key).replace(/^fdc-search-v2:/,'');searches.push(query);
+  const query=String(key).replace(/^fdc-search-v3:/,'');searches.push(query);
   const foods=query===fixture.name?fixture.initialFoods:fixture.refinedFoods;
-  return{data:{response:{kind:'fdc-search-v2',query,payload:{foods}}},error:null};
+  return{data:{response:{kind:'fdc-search-v3',query,payload:{foods}}},error:null};
  }};return request;}};}};}};
  const matched=await resolveFoodMatch(cache,fixture.name,fixture.caption);
  const validIds=new Set([...fixture.initialFoods,...fixture.refinedFoods].map(food=>food.fdcId));

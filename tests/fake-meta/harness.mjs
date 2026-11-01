@@ -77,7 +77,9 @@ export async function pipelineHarness(){
   leaseKeepalive=setInterval(()=>{admin.from('worker_lease').update({expires_at:new Date(Date.now()+120_000).toISOString()}).eq('id',1).eq('holder',leaseHolder).select('id').then(({data,error})=>{if(error||!data?.length)leaseLost=true;},()=>{leaseLost=true;});},30_000);
   leaseKeepalive.unref?.();
   const fdc=JSON.parse(await readFile(new URL('./fixtures/fdc.json',import.meta.url),'utf8'));
-  for(const [query,response]of Object.entries(fdc)){
+  for(const [term,payload]of Object.entries(fdc)){
+   const query=`fdc-search-v3:${term.trim().toLowerCase()}`;
+   const response={kind:'fdc-search-v3',query:term.trim().toLowerCase(),payload};
    const {data,error}=await admin.from('fdc_cache').select('query').eq('query',query).maybeSingle();assert.equal(error,null);
    if(!data){const {error:writeError}=await admin.from('fdc_cache').insert({query,response});if(writeError?.code!=='23505'){assert.equal(writeError,null);cacheInserted.push(query);}}
   }

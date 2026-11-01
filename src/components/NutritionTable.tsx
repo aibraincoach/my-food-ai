@@ -21,6 +21,6 @@ export default function NutritionTable({ items }: { items: CurrentItem[] }) {
         <td className="whitespace-nowrap py-grid pl-grid text-right">{number(row.value)}{row.value === null ? "" : ` ${row.unit}`}</td>
       </tr>)}</tbody>
     </table>
-    <p className="pt-sheet-top text-meta text-muted">Nutrition values from USDA FoodData Central.</p>
+    <p className="pt-sheet-top text-label text-muted">Nutrition values from USDA FoodData Central.</p>
   </section>;
 }

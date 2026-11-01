@@ -1,7 +1,7 @@
 import type { SVGProps } from 'react';
 import { tokens } from '@/lib/theme/tokens';
 
-export type IconName = 'home' | 'search' | 'plus' | 'days' | 'profile' | 'close' | 'back' | 'chevron-down' | 'camera' | 'thumb' | 'mic' | 'flip' | 'entry-camera' | 'entry-text' | 'entry-drink' | 'entry-coffee';
+export type IconName = 'home' | 'search' | 'plus' | 'days' | 'profile' | 'close' | 'back' | 'chevron-down' | 'camera' | 'thumb' | 'mic' | 'flip' | 'entry-camera' | 'entry-text' | 'entry-drink' | 'entry-coffee' | 'thumb-up' | 'thumb-down' | 'comment' | 'log-again' | 'bookmark' | 'chevron-right' | 'clock' | 'photo-add' | 'pin';
 type Props = SVGProps<SVGSVGElement> & { name: IconName; active?: boolean; down?: boolean; size?: number; label?: string };
 
 export function Icon({ name, active = false, down = false, size, label, style, ...props }: Props) {
@@ -10,6 +10,15 @@ export function Icon({ name, active = false, down = false, size, label, style, .
     : name === 'thumb' ? tokens.icon.thumbStroke : tokens.icon.stroke;
   const dimension = size ?? (name === 'chevron-down' ? tokens.spacing['icon-small'] : name === 'thumb' ? tokens.spacing['icon-thumb'] : tokens.spacing.icon);
   const shapes = {
+    'thumb-up': <path d="M7 11v9H4v-9zM7 11l4-7c1.5 0 2.5 1 2.5 2.5V10h5c1 0 2 1 1.8 2l-1.2 6c-.2 1-1 2-2 2H7" />,
+    'thumb-down': <path transform="rotate(180 12 12)" d="M7 11v9H4v-9zM7 11l4-7c1.5 0 2.5 1 2.5 2.5V10h5c1 0 2 1 1.8 2l-1.2 6c-.2 1-1 2-2 2H7" />,
+    comment: <path d="M21 12a8 8 0 0 1-11.6 7.1L4 21l1.9-5.4A8 8 0 1 1 21 12z" />,
+    'log-again': <path d="M17 2l4 4-4 4M3 11V9a4 4 0 0 1 4-4h14M7 22l-4-4 4-4M21 13v2a4 4 0 0 1-4 4H3" />,
+    bookmark: <path d="M6 3h12v18l-6-4-6 4z" fill={active?'currentColor':'none'} />,
+    'chevron-right': <path d="m9 5 7 7-7 7" />,
+    clock: <path d="M12 7v5l3 2M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18z" />,
+    'photo-add': <path d="M3 7h18v13H3zM7 7l2-3h6l2 3M3 13l5-4 5 4 4-3 4 3" />,
+    pin: <path d="M12 21s-7-6-7-11a7 7 0 0 1 14 0c0 5-7 11-7 11zM12 12a2 2 0 1 0 0-4 2 2 0 0 0 0 4z" />,
     'entry-camera': <path d="M3 7h3l2-3h8l2 3h3v13H3z M12 17a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7" />,
     'entry-text': <path d="M4 6h16M4 12h10M4 18h7" />,
     'entry-drink': <path d="M6 3h12l-1.5 17h-9z M7 9h10" />,

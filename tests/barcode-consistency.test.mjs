@@ -52,11 +52,27 @@ test('a cleanup record is durable before upload, delayed past capability expiry,
  await assert.rejects(queueStagedPhotoCleanup({from(){return{async insert(){return{error:{message:'offline'}}}}}},'owner','stage'),/could not be scheduled/);
 });
 
-test('orphan cleanup removes both copies and never removes a committed stage',async()=>{
+test('orphan cleanup removes both copies and only an unpublished owner draft; committed stages bypass every deletion',async()=>{
  const owner='00000000-0000-0000-0000-000000000001',stage='00000000-0000-0000-0000-000000000002';
- const paths=[`${owner}/${stage}/0.jpg`,`${owner}/${stage}/0.feed.jpg`];const removed=[];
+ const paths=[`${owner}/${stage}/0.jpg`,`${owner}/${stage}/0.feed.jpg`],removed=[],deletions=[];let listings=0;
  const job={post_id:null,payload:{owner_id:owner,deleted_post_id:stage,paths}};
- const admin=claimed=>({from(table){assert.equal(table,'post_media');return{select(){return this},like(){return this},async limit(){return{data:claimed?[{id:'media'}]:[],error:null}}}},storage:{from(){return{async list(){return{data:[],error:null}},async remove(paths){removed.push(...paths);return{error:null}}}}}});
+ const admin=claimed=>({from(table){
+  if(table==='post_media')return{select(){return this},like(column,prefix){assert.equal(column,'storage_path');assert.equal(prefix,`${owner}/${stage}/%`);return this},async limit(){return{data:claimed?[{id:'media'}]:[],error:null}}};
+  assert.equal(table,'post_upload_drafts');assert.equal(claimed,false,'a committed stage must never delete its manifest');
+  const predicates={};return{delete(){return this},eq(key,value){predicates[key]=value;return this},then(resolve){deletions.push({...predicates});return Promise.resolve({error:null}).then(resolve)}};
+ },storage:{from(){return{async list(directory){assert.equal(claimed,false);assert.equal(directory,`${owner}/${stage}`);listings++;return{data:[],error:null}},async remove(values){removed.push(...values);return{error:null}}}}}});
+ await cleanup(admin(true),job);assert.deepEqual(removed,[]);assert.deepEqual(deletions,[]);assert.equal(listings,0);
+ await cleanup(admin(false),job);assert.deepEqual(removed,paths);assert.deepEqual(deletions,[{id:stage,user_id:owner,published:false}]);assert.equal(listings,1);
+});
+
+test('attachment cleanup removes only reserved unclaimed copies and preserves an attached photo without scanning the meal',async()=>{
+ const owner='00000000-0000-0000-0000-000000000001',post='00000000-0000-0000-0000-000000000002',attachment='00000000-0000-0000-0000-000000000003';
+ const paths=[`${owner}/${post}/1.jpg`,`${owner}/${post}/1.feed.jpg`],removed=[];
+ const job={id:'cleanup',post_id:null,payload:{owner_id:owner,deleted_post_id:post,attachment_id:attachment,exact:true,paths}};
+ const admin=claimed=>({from(table){const predicates={};return{
+  select(){return this},eq(key,value){predicates[key]=value;return this},async maybeSingle(){assert.equal(table,'post_photo_attachments');assert.deepEqual(predicates,{id:attachment,post_id:post,user_id:owner});return{data:{target_path:paths[0],cleanup_job_id:'cleanup'},error:null}},
+  async in(column,values){assert.equal(table,'post_media');assert.equal(column,'storage_path');assert.deepEqual(values,paths);return{data:claimed?[{storage_path:paths[0]}]:[],error:null}},
+ }},storage:{from(){return{async list(){assert.fail('an attachment cleanup must not scan other meal media')},async remove(values){removed.push(...values);return{error:null}}}}}});
  await cleanup(admin(true),job);assert.deepEqual(removed,[]);
  await cleanup(admin(false),job);assert.deepEqual(removed,paths);
 });

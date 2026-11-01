@@ -20,7 +20,8 @@ test('push follows persisted waiting state and maintenance publication stays sil
   const previous=names.map(name=>process.env[name]);
   for(const name of names)process.env[name]='fixture';
   let post={user_id:'owner',status:'queued',needs_input:{question:'Which food?'}};
-  const admin={from(table){
+  const saves=[];
+  const admin={async rpc(name,args){assert.equal(name,'save_ready_meal');assert.equal(args.p_post_id,'meal');saves.push(args);return {error:null};},from(table){
     const data=table==='posts'?post:table==='post_media'?null:
       [{id:'subscription',endpoint:'https://fcm.googleapis.com/fixture',keys:{p256dh:'A'.repeat(87),auth:'A'.repeat(22)}}];
     const q={select(){return q;},eq(){return q;},order(){return q;},limit(){return q;},maybeSingle(){return q;},then(resolve){return Promise.resolve({data,error:null}).then(resolve);}};
@@ -42,7 +43,7 @@ test('push follows persisted waiting state and maintenance publication stays sil
     assert.equal(delivered.length,1,'successful normal completion still notifies');
     delivered.length=0;published=false;
     assert.equal(await markReady('meal',admin,'stale-analysis'),false);
-    assert.equal(delivered.length,0,'rejected publication must not notify');
+    assert.equal(delivered.length,0,'rejected publication must not notify');assert.equal(saves.length,1,'rejected publication must not snapshot a saved meal');
     post={...post,status:'queued'};published=true;
     await markReady('meal',admin,'analysis');
     assert.equal(delivered.length,0,'a newer pending correction must suppress stale ready messaging');

@@ -5,6 +5,7 @@ import type { SignedUpload } from "@/lib/media/storage";
 
 export interface NewShot { file: File; previewUrl: string }
 export interface CreatedPost { postId: string }
+export interface PostOptions {not_eaten_position?:number|null;save_as_meal?:boolean}
 
 // A capture sheet owns this operation until publication succeeds. Repeated attempts
 // keep its identifier, encoded bytes and acknowledged uploads, including lost responses.
@@ -13,16 +14,16 @@ export class PostUploadDraft {
   private active: Promise<CreatedPost> | null = null;
   constructor(private encode = reencodeShot, private request: typeof fetch = (...args) => fetch(...args), private verify = uploadedMatches, private uuid = () => crypto.randomUUID()) {}
 
-  submit(caption: string, files: File[], location: CapturedLocation | null, eatenAt: string | null, intent: "photo" | "text"): Promise<CreatedPost> {
+  submit(caption: string, files: File[], location: CapturedLocation | null, eatenAt: string | null, intent: "photo" | "text", options:PostOptions={}): Promise<CreatedPost> {
     if (this.active) return this.active;
-    const operation = this.runSubmit(caption, files, location, eatenAt, intent);
+    const operation = this.runSubmit(caption, files, location, eatenAt, intent, options);
     this.active = operation;
     const settled = () => { if (this.active === operation) this.active = null; };
     void operation.then(settled, settled);
     return operation;
   }
 
-  private async runSubmit(caption: string, files: File[], location: CapturedLocation | null, eatenAt: string | null, intent: "photo" | "text"): Promise<CreatedPost> {
+  private async runSubmit(caption: string, files: File[], location: CapturedLocation | null, eatenAt: string | null, intent: "photo" | "text", options:PostOptions={}): Promise<CreatedPost> {
     if (intent === "photo" && files.length === 0) throw new Error("The selected photo is not ready. Your draft was kept.");
     if (!this.pending || files.length !== this.pending.files.length || files.some((file, i) => file !== this.pending!.files[i])) {
       this.pending = { id: this.uuid(), files: [...files], images: Promise.all(files.map(file => this.encode(file))), completed: new Set() };
@@ -31,7 +32,7 @@ export class PostUploadDraft {
     let images: Awaited<ReturnType<typeof reencodeShot>>[];
     try { images = await pending.images; }
     catch { this.pending = null; throw new Error("The photo could not be prepared. Your selected files were kept."); }
-    const create = await this.request("/api/posts", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ operation_id: pending.id, capture_intent: intent, caption, location, eaten_at: eatenAt ?? new Date().toISOString(), shots: images.map((image, position) => ({ position, width: image.width, height: image.height, phash: image.phash })) }) });
+    const create = await this.request("/api/posts", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ operation_id: pending.id, capture_intent: intent, ...options, caption, location, eaten_at: eatenAt ?? new Date().toISOString(), shots: images.map((image, position) => ({ position, width: image.width, height: image.height, phash: image.phash })) }) });
     if (!create.ok) {
       const detail = await create.json().catch(() => null);
       if (create.status === 410) this.pending = null;
@@ -77,6 +78,6 @@ export class PostUploadDraft {
   }
 }
 
-export async function createPost(caption: string, shots: File[], location: CapturedLocation | null = null, eatenAt: string | null = null, draft = new PostUploadDraft(), intent: "photo" | "text" = shots.length ? "photo" : "text"): Promise<CreatedPost> {
-  return draft.submit(caption, shots, location, eatenAt, intent);
+export async function createPost(caption: string, shots: File[], location: CapturedLocation | null = null, eatenAt: string | null = null, draft = new PostUploadDraft(), intent: "photo" | "text" = shots.length ? "photo" : "text", options:PostOptions={}): Promise<CreatedPost> {
+  return draft.submit(caption, shots, location, eatenAt, intent, options);
 }

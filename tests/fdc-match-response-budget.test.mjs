@@ -7,10 +7,10 @@ test('food decisions reserve output capacity for reasoning and still reject inco
  const names=['MODEL_API_KEY','NEXT_PUBLIC_SUPABASE_URL','SUPABASE_SECRET_KEY'];
  const saved=Object.fromEntries(names.map(name=>[name,process.env[name]]));
  process.env.MODEL_API_KEY='fixture-only';process.env.NEXT_PUBLIC_SUPABASE_URL='https://trace.test';process.env.SUPABASE_SECRET_KEY='fixture-only';
- const candidate={fdcId:7,description:'Carrots, raw',dataType:'Foundation',foodNutrients:[{nutrientId:1008,nutrientName:'Energy',unitName:'KCAL',value:41}]};
+ const candidate={fdcId:7,description:'Carrots, raw',additionalDescriptions:'raw carrot, carrots',dataType:'Foundation',foodNutrients:[{nutrientId:1008,nutrientName:'Energy',unitName:'KCAL',value:41}]};
  const requests=[];let forceIncomplete=false;let abortDuringResponse;
  const reasoningTokens=5000,jsonTokens=54;
- const db={from(){return{select(){return{eq(){return{abortSignal(){return this},async maybeSingle(){return{data:{response:{kind:'fdc-search-v2',query:'raw carrots',payload:{foods:[candidate]}}},error:null}}}}}}}}};
+ const db={from(){return{select(){return{eq(){return{abortSignal(){return this},async maybeSingle(){return{data:{response:{kind:'fdc-search-v3',query:'raw carrots',payload:{foods:[candidate]}}},error:null}}}}}}}}};
  globalThis.fetch=async(input,init)=>{
   const url=typeof input==='string'?input:input instanceof URL?input.href:input.url;
   if(url.startsWith('https://trace.test/rest/v1/model_calls'))return new Response(null,{status:201});
@@ -26,6 +26,7 @@ test('food decisions reserve output capacity for reasoning and still reject inco
   assert.equal((await resolveFoodMatch(db,'raw carrots'))?.fdcId,7);
   assert.equal(requests.length,2);assert.deepEqual(requests.map(r=>r.max_output_tokens),[4096,8192]);
   assert.equal(requests[0].text.format.strict,true);
+  assert.equal(JSON.parse(requests[0].input[0].content[0].text).candidates[0].additionalDescriptions,candidate.additionalDescriptions);
   forceIncomplete=true;
   await assert.rejects(resolveFoodMatch(db,'raw carrots'),error=>error.status===502&&/did not complete/.test(error.message));
   assert.equal(requests.length,4);

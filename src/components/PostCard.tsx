@@ -4,6 +4,10 @@ import Link from "next/link";
 import {useLocalDate,useLocalTime} from "@/components/LocalTime";
 import { useEffect, useState, type ReactNode } from "react";
 import type { FeedPost } from "@/lib/posts/feed";
+import {summaryLine,type PostPresentation} from "@/lib/posts/summary-line";
+import PostActions from "@/components/PostActions";
+import PostCaption from "@/components/PostCaption";
+import {usePostHandle} from "@/components/PostHandle";
 import { formatConsumed, sumNutrition } from "@/lib/nutrition/totals";
 import { tokens } from "@/lib/theme/tokens";
 import LiveNutritionCard from "@/components/LiveNutritionCard";
@@ -16,7 +20,7 @@ import { Shimmer } from "@/components/ui/Shimmer";
 
 
 function CaptionCard({ post, drink }: { post: FeedPost; drink?: DrinkCardData | null }) {
-  return <LiveNutritionCard items={post.items} eatenAt={post.eaten_at} drink={drink} />;
+  return <LiveNutritionCard items={post.items} eatenAt={post.eaten_at} drink={drink} post={post} />;
 }
 
 function StatusLine({ post }: { post: FeedPost }) {
@@ -56,20 +60,30 @@ function StatusLine({ post }: { post: FeedPost }) {
   </div>;
 }
 
-export default function PostCard({ post, analysis, showDate = false }: { post: FeedPost; analysis?: ReactNode; showDate?: boolean }) {
-  const drink = useDrinkCard(post.id, post.status, post.eaten_at);
+export default function PostCard({ post, showDate = false }: { post: FeedPost; analysis?: ReactNode; showDate?: boolean }) {
+  const record=post as PostPresentation;
+  const drink = useDrinkCard(post.id, post.status, post.eaten_at, post.drink);
+  const handle=usePostHandle(record.handle);
+  const [slide,setSlide]=useState(0);
   const localClock=useLocalTime(post.eaten_at);const localDate=useLocalDate(post.eaten_at);
-  return <article className="flex flex-col gap-2" data-post-id={post.id} data-post-status={post.status}>
-    {drink ? <Link href={`/posts/${post.id}`} aria-label="Open drink details" className="block"><CaptionCard post={post} drink={drink} /></Link> : post.slides?.length ? <Carousel slides={post.slides} caption={post.caption} postId={post.id} href={`/posts/${post.id}`} modelCommentId={post.modelCommentId??null} fingerprint={post.analysisFingerprint??null} nutrition={post.status === "ready" ? <CaptionCard post={post} /> : <div className="flex aspect-square items-center justify-center bg-card text-detail text-muted">Processing…</div>} /> : post.status === "ready" && post.items.length ? <Link href={`/posts/${post.id}`} aria-label="Open meal details" className="block"><CaptionCard post={post} /></Link> : null}
-    <div className="flex flex-col gap-2 px-screen-x">
-      <div className="flex items-start justify-between gap-2">
-        <p className="min-w-0 whitespace-pre-wrap break-words text-body">{post.caption}</p>
-        <PostMenu postId={post.id} caption={post.caption} />
-        <time dateTime={post.eaten_at} className="shrink-0 whitespace-nowrap text-meta text-muted">{showDate ? localDate : localClock}</time>
-      </div>
-      {drink ? <p className="text-detail text-muted">Drank: {drink.ml} ml · {drink.totalMl.toLocaleString("en-US")} ml so far today</p> : post.status === "ready" && post.items.length > 0 && analysis ? analysis : <StatusLine post={post} />}
-      {/* The one control that is always visible and labelled: every card, whatever its status. */}
-      <Link href={`/posts/${post.id}`} className="flex min-h-tap items-center self-start text-detail text-text">Details ›</Link>
+  const hasDrink=record.kind==='drink'||Boolean(drink);
+  const displayRecord = drink ? { ...record, dayHydration: { totalMl: drink.totalMl, drinksMl: drink.drinksMl, foodMl: drink.foodMl, caffeineMg: drink.dayCaffeineMg ?? drink.caffeineMg } } : record;
+  return <article className="flex flex-col" data-post-id={post.id} data-post-status={post.status}>
+    <div className="flex h-[52px] items-center gap-[10px] px-inset">
+      <span className="flex size-8 shrink-0 items-center justify-center rounded-circle bg-text text-avatar text-surface">{handle.slice(0,1).toUpperCase()}</span>
+      <span className="min-w-0 flex-1 truncate text-handle">{handle}</span>
+      <PostMenu postId={post.id} caption={post.caption} eatenAt={post.eaten_at} gtin={record.gtin} rows={[
+        ...(post.status==='ready'&&!hasDrink?[{label:'Add photo',onSelect:()=>window.dispatchEvent(new CustomEvent('open-entry',{detail:{entry:'camera',forPost:post.id,notEaten:false}}))}]:[]),
+        {label:'Log again',onSelect:()=>window.dispatchEvent(new CustomEvent('log-again',{detail:{postId:post.id}}))},
+        {label:record.saved_meal_id?'Unsave':'Save meal',onSelect:()=>window.dispatchEvent(new CustomEvent('save-meal',{detail:{postId:post.id}}))},
+      ]}/>
+    </div>
+    {drink ? <Link href={`/posts/${post.id}`} aria-label="Open drink details" className="block"><CaptionCard post={post} drink={drink} /></Link> : post.slides?.length ? <Carousel canAddNotEaten={post.status==='ready'&&post.slides.some(s=>s.kind==='photo')&&!post.slides.some(s=>s.not_eaten)} slides={post.slides} caption={post.caption} postId={post.id} href={`/posts/${post.id}`} modelCommentId={post.modelCommentId??null} fingerprint={post.analysisFingerprint??null} onIndexChange={setSlide} nutrition={post.status === "ready" ? <CaptionCard post={post} /> : <div className="flex aspect-square items-center justify-center bg-card text-detail text-muted">Processing…</div>} /> : post.status === "ready" && post.items.length ? <Link href={`/posts/${post.id}`} aria-label="Open meal details" className="block"><CaptionCard post={post} /></Link> : null}
+    <PostActions postId={post.id} modelCommentId={post.modelCommentId??null} fingerprint={post.analysisFingerprint??null} drink={hasDrink} saved={Boolean(record.saved_meal_id)} slides={drink?1:post.slides?.length??1} index={slide}/>
+    <div className="flex flex-col gap-1 px-inset pt-[10px]">
+      <PostCaption handle={handle} caption={post.caption}/>
+      {post.status==='ready'&&post.items.length>0 ? <Link href={`/posts/${post.id}`} className="text-detail leading-[1.4] text-muted">{summaryLine(displayRecord,drink)} <span className="text-text">more</span></Link> : <StatusLine post={post}/>}
+      <time dateTime={post.eaten_at} className="text-meta text-muted">{showDate ? localDate : localClock}</time>
     </div>
   </article>;
 }

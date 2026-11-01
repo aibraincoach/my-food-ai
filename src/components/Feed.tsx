@@ -8,7 +8,6 @@ import { tokens } from "@/lib/theme/tokens";
 import DayHeader from "@/components/DayHeader";
 import { dateInZone, shiftDay, getDayTotals, type FeedDayTotal } from "@/lib/posts/days";
 import PostCard from "@/components/PostCard";
-import AnalysisBlock from "@/components/AnalysisBlock";
 import RealtimePost from "@/components/RealtimePost";
 import { mergeFeedPosts, discoveryLostOverlap } from "@/lib/posts/feed-order";
 
@@ -293,8 +292,7 @@ export default function Feed() {
     {days.map(day => <section key={day} aria-label={day} className="relative pb-card-gap">
       <DayHeader day={day} zone={zone} empty={!groups.has(day)} total={totals.get(day)} />
       {groups.has(day) ? <div className="flex flex-col gap-card-gap pt-sheet-top">{groups.get(day)!.map((post) => <RealtimePost key={post.id} initial={post} renderCard={(fresh) => <PostCard post={fresh}
-      analysis={fresh.status === "ready" && fresh.items.length > 0 ? <AnalysisBlock post={fresh} /> : undefined}
-    />} />)}</div> : null}
+         />} />)}</div> : null}
     </section>)}
     {pageError ? <div className="px-screen-x text-detail text-muted" role="alert">
       <p>More meals could not be loaded.</p>

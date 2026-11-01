@@ -6,7 +6,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 export async function enqueueJob(
   admin: SupabaseClient,
   postId: string,
-  kind: "analyze" | "correct" | "recompute" | "card_backfill",
+  kind: "analyze" | "correct" | "recompute" | "card_backfill" | "remainder",
   priority = 100
 ): Promise<string> {
   const { data, error, status } = await admin

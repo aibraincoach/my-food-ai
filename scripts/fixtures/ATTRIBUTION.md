@@ -8,3 +8,8 @@
 - `plate3.jpg`: "Dinner Plate (48708574133).jpg" by Auckland Museum — CC BY 2.0.
   https://commons.wikimedia.org/wiki/File:Dinner_Plate_(48708574133).jpg
 - `tone.wav`: synthesized locally (two sine bursts, no speech) for API shape checks.
+
+- `label.png`: US Food and Drug Administration, Nutrition Facts Label Download Image 1, public domain US government work; downloaded JPEG losslessly re-encoded as PNG.
+  https://www.fda.gov/files/nutrition-facts-label-download-image1.jpg
+
+The not-eaten gate uses `eval/photos/10.jpg` as the original meal and `plate2.jpg` as the comparison; both show the same licensed roast-lamb dinner photograph above. The Run 5 plan named `plate1.jpg` as a meal reference, but it shows an empty plate and supplied no foods in the first real gate attempt.

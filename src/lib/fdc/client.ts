@@ -9,10 +9,17 @@ import { ApiError, ioError } from "@/lib/worker/errors";
 import { portionsFromDetail, type FoodPortion } from "@/lib/nutrition/units";
 
 const FDC_BASE_URL = "https://api.nal.usda.gov/fdc/v1";
-// Include prepared-food references and version their larger candidate window.
-export const FDC_SEARCH_CACHE_KIND = "fdc-search-v2";
+// Cache the broad plus strict-generic candidate protocol, including USDA aliases.
+export const FDC_SEARCH_CACHE_KIND = "fdc-search-v3";
 export const FDC_SEARCH_PAGE_SIZE = 30;
 export const FDC_SEARCH_DATA_TYPES = ["Foundation", "SR Legacy", "Survey (FNDDS)", "Branded"];
+
+export const FDC_GENERIC_DATA_TYPES = ["Foundation", "SR Legacy", "Survey (FNDDS)"];
+// Build operators ourselves: user punctuation and supplied +/- cannot alter USDA syntax.
+export function strictGenericQuery(query: string): string | null {
+  const words = [...new Set(query.toLowerCase().match(/[\p{L}\p{N}]+/gu) ?? [])];
+  return words.length && words.length <= 32 ? words.map(word => `+${word}`).join(" ") : null;
+}
 
 export interface FdcNutrient {
   nutrientId: number;
@@ -26,6 +33,7 @@ export interface FdcFood {
   description: string;
   dataType: string;
   foodNutrients: FdcNutrient[];
+  additionalDescriptions?: string;
   servingSize?: number;
   servingSizeUnit?: string;
   foodCategory?: string;
@@ -34,16 +42,24 @@ export interface FdcFood {
   portions?: FoodPortion[];
 }
 
-// A thirty-hit lookup would overflow the trace's 60KB text limit if every
-// micronutrient were repeated. Keep every candidate identity and the core
-// values used to select it; full consumed nutrients remain on item_nutrition.
+// Two thirty-hit windows may carry lengthy USDA aliases. Budget descriptive
+// text before traceText's hard limit so the stored trace remains valid JSON
+// with every identity and core value, rather than a truncated candidate list.
 export function foodSearchTrace(foods: FdcFood[]) {
   const core = new Set([1008,2047,2048,1003,1004,1005]);
-  return {projection:"candidate-identities-and-core-nutrients",foods:foods.map(food=>({
-    fdcId:food.fdcId,description:food.description.slice(0,500),dataType:food.dataType,
+  const projection = {projection:"candidate-identities-and-core-nutrients",foods:foods.map(food=>({
+    fdcId:food.fdcId,description:food.description.slice(0,500),additionalDescriptions:food.additionalDescriptions?.slice(0,2000),dataType:food.dataType.slice(0,80),
     servingSizeUnit:food.servingSizeUnit?.slice(0,32),
     nutrients:food.foodNutrients.filter(n=>core.has(n.nutrientId)).slice(0,6).map(n=>({id:n.nutrientId,value:n.value,unit:n.unitName.slice(0,32)})),
   }))};
+  // Leave room for trace credential redaction; count JSON escaping too.
+  while (JSON.stringify(projection).length > 48000 && projection.foods.some(food=>food.description.length || food.additionalDescriptions?.length)) {
+    for (const food of projection.foods) {
+      food.description = food.description.slice(0,Math.floor(food.description.length/2));
+      if(food.additionalDescriptions) food.additionalDescriptions = food.additionalDescriptions.slice(0,Math.floor(food.additionalDescriptions.length/2));
+    }
+  }
+  return projection;
 }
 
 function fdcApiKey(): string {
@@ -96,6 +112,7 @@ function asFoods(payload: unknown): FdcFood[] {
     out.push({
       fdcId: food.fdcId,
       description: food.description,
+      additionalDescriptions: typeof food.additionalDescriptions === "string" ? food.additionalDescriptions : undefined,
       dataType: food.dataType,
       foodNutrients: nutrients,
       foodCategory: typeof food.foodCategory === "string" ? food.foodCategory : undefined,
@@ -129,24 +146,27 @@ export async function searchFoods(
   };
   const cached = await readCache(key) as {kind?:unknown;query?:unknown;payload?:{foods?:unknown}} | undefined;
   if(cached?.kind===FDC_SEARCH_CACHE_KIND&&cached.query===normalized&&Array.isArray(cached.payload?.foods))return recordCall("fdc", {query,source:"cache",catalogVersion:FDC_SEARCH_CACHE_KIND}, async()=>asFoods(cached.payload), foods=>({text:{source:"cache",...foodSearchTrace(foods)}}));
-  // v1 and unversioned caches omit prepared dishes and retain only five hits.
-  // Do not let those old candidate sets hide the coverage fix indefinitely.
+  // Earlier caches lack strict generic candidates and aliases; never reuse them.
   return recordCall("fdc", { query, source:"network" }, async () => {
   const params = new URLSearchParams({ api_key: fdcApiKey() });
-  const response = await fetch(
-    `${FDC_BASE_URL}/foods/search?${params.toString()}`, {
+  const fetchCandidates = async (searchQuery: string, dataType: string[]) => {
+    const response = await fetch(`${FDC_BASE_URL}/foods/search?${params.toString()}`, {
       method: "POST", headers: {"Content-Type":"application/json"},
-      body: JSON.stringify({query:query.trim(),dataType:FDC_SEARCH_DATA_TYPES,pageSize:FDC_SEARCH_PAGE_SIZE}), signal,
-    }
-  );
-  if (!response.ok) {
-    throw new ApiError(
-      response.status,
-      await response.text(),
-      `fdc: search failed with ${response.status}.`
-    );
+      body: JSON.stringify({query:searchQuery,dataType,pageSize:FDC_SEARCH_PAGE_SIZE}), signal,
+    });
+    if (!response.ok) throw new ApiError(response.status, await response.text(), `fdc: search failed with ${response.status}.`);
+    return asFoods(await response.json());
+  };
+  const broad = await fetchCandidates(query.trim(), FDC_SEARCH_DATA_TYPES);
+  const strict = strictGenericQuery(query);
+  const generic = strict ? await fetchCandidates(strict, FDC_GENERIC_DATA_TYPES) : [];
+  // Broad ordering and every broad identity survive; strict generic hits add coverage.
+  const merged = new Map(broad.map(food => [food.fdcId, food]));
+  for (const food of generic) {
+    const existing = merged.get(food.fdcId);
+    merged.set(food.fdcId, existing ? {...existing, additionalDescriptions:existing.additionalDescriptions ?? food.additionalDescriptions} : food);
   }
-  const payload = (await response.json()) as unknown;
+  const payload = {foods:[...merged.values()]};
   const cacheWrite = admin.from("fdc_cache").upsert(
     { query: key, response: {kind:FDC_SEARCH_CACHE_KIND,query:normalized,payload} },
     { onConflict: "query" }
@@ -172,7 +192,7 @@ export function parseFoodDetail(payload: unknown, expectedId: number): FdcFood {
       nutrients.push({nutrientId: nutrient.id, nutrientName: nutrient.name, unitName: nutrient.unitName, value: row.amount});
     }
   }
-  return {fdcId: expectedId, description: food.description, dataType: food.dataType, foodNutrients: nutrients,
+  return {fdcId: expectedId, description: food.description, additionalDescriptions:typeof food.additionalDescriptions === "string" ? food.additionalDescriptions : undefined, dataType: food.dataType, foodNutrients: nutrients,
     servingSize: typeof food.servingSize === "number" ? food.servingSize : undefined,
     servingSizeUnit: typeof food.servingSizeUnit === "string" ? food.servingSizeUnit : undefined,
     portions: portionsFromDetail(payload)};

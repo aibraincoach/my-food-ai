@@ -73,7 +73,27 @@ export function barcodeNutrition(product: BarcodeProduct, amount: number) {
   return {
     ...Object.fromEntries(Object.entries(product.per100g).map(([key, value]) => [key, value === null ? null : value * factor])),
     micronutrients: product.micronutrients.map((n) => ({ ...n, value: n.value * factor })),
-    source_ref: String(product.fdcId),
+    source_ref: "source" in product && product.source === "own" ? `barcode:${product.gtin}` : String(product.fdcId),
     portion_unit: product.basisUnit,
+  };
+}
+
+export interface BarcodeCorrection {
+  name?: string | null; pack_amount?: number | null; pack_unit?: "g" | "ml" | null;
+  serving_amount?: number | null; serving_unit?: "g" | "ml" | null;
+  per_100?: BarcodeNutrition | null; source?: "user" | "label";
+}
+export type ResolvedProduct = BarcodeProduct & { source: "database" | "own" | "shared"; originalName?: string };
+
+// Pure precedence rule is also used by access tests; no server module enters the camera bundle.
+export function mergeProduct(gtin: string, base: BarcodeProduct | null, own: BarcodeCorrection | null, sharedName: string | null): ResolvedProduct | null {
+  if (!base && !(own?.per_100 && own.name && own.serving_unit)) return null;
+  const original = base ?? { fdcId: 0, gtin, name: "Packaged food", brand: null, basisUnit: own?.serving_unit ?? "g", servingSize: null,
+    servingSizeUnit: null, servingText: null, packageWeight: null, micronutrients: [], per100g: own!.per_100! };
+  return { ...original, source: own ? "own" : sharedName ? "shared" : "database", originalName: original.name,
+    name: own?.name ?? sharedName ?? original.name,
+    ...(own?.per_100 ? { per100g: own.per_100, micronutrients: [], basisUnit: own.serving_unit ?? original.basisUnit } : {}),
+    ...(own?.serving_amount ? { servingSize: Number(own.serving_amount), servingSizeUnit: own.serving_unit ?? original.basisUnit } : {}),
+    ...(own?.pack_amount ? { packageWeight: `${own.pack_amount} ${own.pack_unit ?? original.basisUnit}` } : {}),
   };
 }

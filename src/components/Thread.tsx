@@ -6,8 +6,11 @@ import {useRouter} from 'next/navigation';
 import {correctionFeedback} from '@/lib/posts/correction-feedback';
 import {createClient} from '@/lib/supabase/client';
 import CommentComposer,{type CommentRow} from '@/components/CommentComposer';
+import {LocalTime} from '@/components/LocalTime';
+import {usePostHandle} from '@/components/PostHandle';
 const sort=(rows:CommentRow[])=>rows.toSorted((a,b)=>a.created_at.localeCompare(b.created_at)||a.id.localeCompare(b.id));
-export default function Thread({postId,readOnly=false}:{postId:string;readOnly?:boolean}){
+export default function Thread({postId,readOnly=false,sourcePostId}:{postId:string;readOnly?:boolean;sourcePostId?:string|null}){
+ const handle=usePostHandle();
  const [accepted,setAccepted]=useState<string|null>(null);
  const router=useRouter();
  const [rows,setRows]=useState<CommentRow[]>([]);const [error,setError]=useState('');const [waiting,setWaiting]=useState(false);const [failed,setFailed]=useState(false);const [retrying,setRetrying]=useState(false);
@@ -42,8 +45,13 @@ export default function Thread({postId,readOnly=false}:{postId:string;readOnly?:
   return()=>{live=false;wake.current=()=>{};clearInterval(timer);void client.removeChannel(channel);};
  },[postId,router]);
  const retry=async()=>{setRetrying(true);try{const response=await fetch(`/api/posts/${postId}/retry`,{method:'POST'});if(!response.ok)throw new Error('retry failed');setFailed(false);setError('');router.refresh();}catch{setError('Could not retry. Please try again.');}finally{setRetrying(false);}};
- return <section aria-label="Meal comments" className="px-screen-x pt-sheet-top">
-  <div aria-live="polite">{rows.map(row=><div key={row.id} className="border-b border-hairline py-sheet-top text-comment"><span className="font-semibold">{row.author==='model'?'Analysis':'You'}</span>{accepted===row.id?<span className="ml-2 text-meta text-muted">Accepted</span>:null}<p className="mt-grid whitespace-pre-wrap break-words">{row.body}</p></div>)}</div>
+ return <section aria-label="Meal comments" className="px-inset pt-[14px]">
+  {sourcePostId?<p className="mb-[10px] text-meta text-muted">Logged again</p>:null}
+  <h2 className="mb-[10px] text-handle">Comments <span className="font-normal text-muted">{rows.length}</span></h2>
+  <div aria-live="polite" className="flex flex-col gap-[10px]">{rows.map(row=><div key={row.id} className="flex items-start gap-[10px]">
+    <span className={`flex size-7 shrink-0 items-center justify-center rounded-circle text-avatar-sm ${row.author==='model'?'bg-text text-surface':'bg-field text-text'}`}>{row.author==='model'?'AI':handle.slice(0,1).toUpperCase()}</span>
+    <p className="min-w-0 whitespace-pre-wrap break-words text-detail leading-[1.45]"><span className="font-semibold">{row.author==='model'?'AI':handle}</span> {row.body} <span className="whitespace-nowrap text-muted"><LocalTime value={row.created_at}/></span>{accepted===row.id?<span className="ml-2 text-meta text-muted">Accepted</span>:null}</p>
+  </div>)}</div>
   {waiting?<p role="status" className="py-grid text-meta text-muted">Updating the meal…</p>:null}
   {error?<p role="status" className="text-meta text-muted">{error}</p>:null}
   <FirstRunHint hint="thread" />
