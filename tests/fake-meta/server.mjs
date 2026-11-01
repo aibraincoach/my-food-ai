@@ -20,6 +20,7 @@ export async function startFakeMeta(){
    if(path==='/v1/responses'&&request.method==='POST'){
     const body=json();
     if(body.model==='sam-3.1')filename='sam.sse';
+    else if(body.model==='muse-spark-1.3'&&body.text?.format?.name==='search_query'&&body.text?.format?.schema?.properties?.id)filename='spark-match.json';
     else if(body.model==='muse-spark-1.3'&&['identify','correct','same_meal','search_query','wording','label','remainder'].includes(body.text?.format?.name))filename=`spark-${body.text.format.name}.json`;
    }else if(path==='/v1/asr/transcribe'&&request.method==='POST')filename='transcribe.json';
    if(!filename){response.writeHead(400,{'Content-Type':'application/json'}).end(JSON.stringify({error:{message:'Unknown fixture request'}}));return;}
