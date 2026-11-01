@@ -20,7 +20,7 @@ import { Shimmer } from "@/components/ui/Shimmer";
 
 
 function CaptionCard({ post, drink }: { post: FeedPost; drink?: DrinkCardData | null }) {
-  return <LiveNutritionCard items={post.items} eatenAt={post.eaten_at} drink={drink} />;
+  return <LiveNutritionCard items={post.items} eatenAt={post.eaten_at} drink={drink} post={post} />;
 }
 
 function StatusLine({ post }: { post: FeedPost }) {
@@ -62,11 +62,12 @@ function StatusLine({ post }: { post: FeedPost }) {
 
 export default function PostCard({ post, showDate = false }: { post: FeedPost; analysis?: ReactNode; showDate?: boolean }) {
   const record=post as PostPresentation;
-  const drink = useDrinkCard(post.id, post.status, post.eaten_at);
+  const drink = useDrinkCard(post.id, post.status, post.eaten_at, post.drink);
   const handle=usePostHandle(record.handle);
   const [slide,setSlide]=useState(0);
   const localClock=useLocalTime(post.eaten_at);const localDate=useLocalDate(post.eaten_at);
   const hasDrink=record.kind==='drink'||Boolean(drink);
+  const displayRecord = drink ? { ...record, dayHydration: { totalMl: drink.totalMl, drinksMl: drink.drinksMl, foodMl: drink.foodMl, caffeineMg: drink.dayCaffeineMg ?? drink.caffeineMg } } : record;
   return <article className="flex flex-col" data-post-id={post.id} data-post-status={post.status}>
     <div className="flex h-[52px] items-center gap-[10px] px-inset">
       <span className="flex size-8 shrink-0 items-center justify-center rounded-circle bg-text text-avatar text-surface">{handle.slice(0,1).toUpperCase()}</span>
@@ -80,7 +81,7 @@ export default function PostCard({ post, showDate = false }: { post: FeedPost; a
     <PostActions postId={post.id} modelCommentId={post.modelCommentId??null} fingerprint={post.analysisFingerprint??null} drink={hasDrink} saved={Boolean(record.saved_meal_id)} slides={drink?1:post.slides?.length??1} index={slide}/>
     <div className="flex flex-col gap-1 px-inset pt-[10px]">
       <PostCaption handle={handle} caption={post.caption}/>
-      {post.status==='ready'&&post.items.length>0 ? <Link href={`/posts/${post.id}`} className="text-detail leading-[1.4] text-muted">{summaryLine(record,drink)} <span className="text-text">more</span></Link> : <StatusLine post={post}/>}
+      {post.status==='ready'&&post.items.length>0 ? <Link href={`/posts/${post.id}`} className="text-detail leading-[1.4] text-muted">{summaryLine(displayRecord,drink)} <span className="text-text">more</span></Link> : <StatusLine post={post}/>}
       <time dateTime={post.eaten_at} className="text-meta text-muted">{showDate ? localDate : localClock}</time>
     </div>
   </article>;

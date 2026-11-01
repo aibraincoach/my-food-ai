@@ -33,9 +33,9 @@ function requestDrink(postId: string, zone: string): Promise<DrinkCardData | nul
 }
 
 export function useDrinkCard(postId: string, status: string, eatenAt: string, initial?: DrinkCardData | null): DrinkCardData | null {
-  const [value, setValue] = useState<{ id: string; drink: DrinkCardData | null } | null>(null);
+  const [value, setValue] = useState<{ id: string; drink: DrinkCardData | null; initial: DrinkCardData | null | undefined } | null>(null);
   useEffect(() => {
-    if (status !== "ready") return;
+    if (status !== "ready" || initial === null) return;
     let active = true;
     const zone = Intl.DateTimeFormat().resolvedOptions().timeZone;
     let timer: ReturnType<typeof setTimeout> | undefined;
@@ -48,7 +48,7 @@ export function useDrinkCard(postId: string, status: string, eatenAt: string, in
       inFlight = true;
       try {
         const drink = await requestDrink(postId, zone);
-        if (active) setValue({ id: postId, drink });
+        if (active) setValue({ id: postId, drink, initial });
         if (active && !drink && attempt++ < 3) timer = setTimeout(read, 1000 * attempt);
       } catch {
         if (active && attempt++ < 3) timer = setTimeout(read, 1000 * attempt);
@@ -69,5 +69,5 @@ export function useDrinkCard(postId: string, status: string, eatenAt: string, in
     return () => { active = false; clearTimeout(timer); window.removeEventListener("post-created", refresh); window.removeEventListener("post-ready", refresh);
       window.removeEventListener("online", refresh); document.removeEventListener("visibilitychange", visible); };
   }, [postId, status, eatenAt, initial]);
-  return value?.id === postId ? value.drink : initial ?? null;
+  return value?.id === postId && value.initial === initial ? value.drink : initial ?? null;
 }
