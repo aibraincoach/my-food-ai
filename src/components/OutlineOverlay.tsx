@@ -153,7 +153,7 @@ export default function OutlineOverlay({ initialized, readOnly = false, postId, 
         items={items.map((item) => ({ name: item.name, grams: item.portion_grams == null ? null : toNumber(item.portion_grams) }))} /> : <div role="status" className="flex h-full items-center justify-center px-screen-x text-body text-muted">{status === "failed" ? "This meal could not be analysed." : status === "needs_input" ? "Clarification needed" : "Processing, traffic low"}</div>}
     </div>
     <PostActions detail postId={postId} modelCommentId={modelCommentId} fingerprint={fingerprint} drink={readOnly} saved={saved}/>
-    <PostCaption handle={handle} caption={caption} className="px-inset"/>
+    <div className="px-inset"><PostCaption handle={handle} caption={caption}/></div>
     {showNutrition&&<>
       <NutritionSummary items={items}/>
       <button type="button" onClick={()=>setExpandedNutrition(value=>!value)} aria-expanded={expandedNutrition} aria-controls={`all-nutrients-${postId}`} className="flex min-h-tap w-full items-center justify-between gap-2 px-inset pt-[10px] text-detail">
