@@ -1,5 +1,7 @@
 # Production meal latency, Nov 1
 
+Later Run5 burst check: **20/20 ready on attempt one**, median144.50 s, max307.47 s, all ready421.474 s from start. See [load-test.md](load-test.md). This supersedes the earlier “no new burst” cutoff below; it is not a controlled attribution to #256 alone.
+
 The change in [PR #256](https://github.com/aibraincoach/my-food-ai/pull/256) deployed as `44576592955ce576b2a66f875518d18a4ebb8bd4`, READY at 01:01:50 UTC on 2026-11-01. The prior runtime was `72910d0f49a3ba0a96bea015921d874ba13a6c5f`. No migration was needed. Worker concurrency remained one and its scheduled wake remained enabled.
 
 ## Where time goes
@@ -58,7 +60,7 @@ The independent Gemini review confirmed the final source-identical head `591a4e3
 
 ## What remains
 
-A one-worker burst still queues: the earlier twenty-post median of 607 seconds is not the service time of one meal, and no new twenty-post burst was run for this change. These three observations do not establish a new burst percentile or eliminate rate-limit risk. Matching continues to require multiple real model decisions. Any further batching, candidate reduction or worker-concurrency change needs its own food-quality and load evidence; none was silently enabled here.
+A one-worker burst still queues: the earlier twenty-post median of 607 seconds is not the service time of one meal, and no new twenty-post burst had been run at this three-meal measurement cutoff; the later Run5 burst above is now recorded. These three observations do not establish a new burst percentile or eliminate rate-limit risk. Matching continues to require multiple real model decisions. Any further batching, candidate reduction or worker-concurrency change needs its own food-quality and load evidence; none was silently enabled here.
 
 For the demo, keep the queue clear of evaluation/load-test traffic. That is test scheduling, not a product throughput fix. Use the [uncut rehearsal result](demo-rehearsal.md) and the [physical-phone acceptance checklist](phone-acceptance.md) for the remaining proof.
 
