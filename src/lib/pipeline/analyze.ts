@@ -2,7 +2,7 @@ import { ApiError, ioError } from "@/lib/worker/errors";
 import { isOwnedPhotoPath } from "@/lib/media/paths";
 import { UPLOAD_GRACE_MS } from "@/lib/media/upload-window";
 // Analyze pipeline entry (items 8-10 share this boundary).
-// Item 8: load the first photo, segment it, store the mask PNGs.
+// Load/segment once; identify before uploading only the referenced mask PNGs.
 // Item 9: name the regions with Muse Spark (identifyMeal below).
 // Item 10: FDC lookup plus the one-RPC persist.
 import type { NeedsInput } from "./needs-input";
@@ -13,7 +13,7 @@ import {
   type IdentifiedItem,
   type IdentifiedMeal,
 } from "@/lib/meta/spark";
-import { outlinePngFromRegion } from "./masks";
+import { uploadSelectedMasks } from "./selected-masks";
 
 const BUCKET = "media";
 
@@ -91,9 +91,10 @@ export async function loadFirstPhoto(
 export async function segmentPost(
   supabase: SupabaseClient,
   postId: string,
-  userId: string
+  userId: string,
+  loadedPhoto?: Awaited<ReturnType<typeof loadFirstPhoto>>,
 ): Promise<SegmentedPost> {
-  const photo = await loadFirstPhoto(supabase, postId);
+  const photo = loadedPhoto ?? await loadFirstPhoto(supabase, postId);
   if (photo.width <= 0 || photo.height <= 0) {
     throw new Error("analyze: photo has no recorded size.");
   }
@@ -107,13 +108,6 @@ export async function segmentPost(
   const regions: SegmentedRegion[] = [];
   for (const region of found) {
     const maskPath = `${userId}/${postId}/masks/${region.index}.png`;
-    const png = outlinePngFromRegion(region, photo.width, photo.height);
-    const { error: uploadError } = await supabase.storage
-      .from(BUCKET)
-      .upload(maskPath, png, { contentType: "image/png", upsert: true });
-    if (uploadError) {
-      throw new Error(`analyze: mask upload failed: ${uploadError.message}`, { cause: uploadError });
-    }
     regions.push({ ...region, maskPath });
   }
   return {
@@ -208,8 +202,9 @@ export async function analyzePost(
   let segmented: SegmentedPost;
   let photo: Uint8Array | null;
   try {
-    segmented = await segmentPost(supabase, postId, post.user_id);
-    photo = (await loadFirstPhoto(supabase, postId)).bytes;
+    const loaded = await loadFirstPhoto(supabase, postId);
+    segmented = await segmentPost(supabase, postId, post.user_id, loaded);
+    photo = loaded.bytes;
   } catch (error) {
     if (
       error instanceof Error &&
@@ -227,5 +222,7 @@ export async function analyzePost(
       throw error;
     }
   }
-  return identifyMeal(photo, "image/jpeg", post.caption, segmented, prior);
+  const named = await identifyMeal(photo, "image/jpeg", post.caption, segmented, prior);
+  await uploadSelectedMasks(supabase, named.regions, named.photoWidth, named.photoHeight);
+  return named;
 }

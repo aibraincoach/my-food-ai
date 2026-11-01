@@ -15,6 +15,7 @@ Rules:
 - If no food is visible, set short "No food found". With no caption use question "No food found in this photo. What did you eat?" and options [].
 - Otherwise needs_input is null. A caption-only post can name food normally.
 - Name one item per distinct food. Merge regions that show the same food.
+- Preserve plainly visible substantial toppings or fillings in a compound dish's name. A broad caption name does not cancel visible components, and a visible subtype within that broad name is not a photo/caption conflict. Do not infer hidden ingredients, brands or exact species beyond what the image supports.
 - Add caption-only items without a region when the caption names a food
   the regions do not show.
 - \`portion_grams\` is your best estimate in grams. Anchor on standard
