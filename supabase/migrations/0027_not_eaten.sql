@@ -161,6 +161,7 @@ declare row public.post_photo_attachments; current_status text; pos integer; cle
 begin
  select status into current_status from public.posts where id=p_post_id and user_id=p_user_id for update;
  if not found then raise exception 'Post not found' using errcode='42501';end if;
+ if exists(select 1 from public.intake_logs where post_id=p_post_id) then raise exception 'Drink amounts were recorded when posted' using errcode='55000';end if;
  select * into row from public.post_photo_attachments where stage_path=p_stage_path for update;
  if found then
   if row.post_id<>p_post_id or row.user_id<>p_user_id or row.not_eaten<>p_not_eaten then raise exception 'Photo already claimed' using errcode='22023';end if;
