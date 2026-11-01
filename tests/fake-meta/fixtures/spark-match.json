@@ -1,0 +1,5 @@
+{
+  "id": "offline-scripted-match",
+  "status": "completed",
+  "output": [{"type": "message", "role": "assistant", "content": [{"type": "output_text", "text": "{\"id\":null,\"query\":null,\"query_food\":null,\"reason\":\"Scripted offline fixture: no nutrition reference selected.\"}"}]}]
+}

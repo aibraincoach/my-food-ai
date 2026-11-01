@@ -38,9 +38,24 @@ test('privileged card cleanup never deletes a forged foreign or traversing path'
   for (const oldPath of [own, `victim/${post}/cards/${generation}/card.png`, `${user}/other/cards/${generation}/card.png`, `${user}/${post}/cards/../../victim/card.png`, `${own}?other=1`]) {
     const removed = [];
     const admin = {
-      rpc: async name => ({data: name === 'results_card_snapshot'
-        ? {user_id:user,eaten_at:'2026-10-28T00:00:00Z',fingerprint:'fixture',items:[]}
-        : {published:true,old_path:oldPath}, error:null}),
+      rpc: async (name,args) => {
+        assert.equal(args.p_post_id,post);
+        if(name==='results_card_snapshot')return{data:{user_id:user,eaten_at:'2026-10-28T00:00:00Z',fingerprint:'fixture',items:[]},error:null};
+        assert.equal(name,'publish_results_card');assert.equal(args.p_fingerprint,'fixture');assert.equal(args.p_job_id,'job');
+        assert.ok(args.p_storage_path.startsWith(`${user}/${post}/cards/`));
+        return{data:{published:true,old_path:oldPath},error:null};
+      },
+      // A successful render now reads its recorded capture zone and the day's
+      // hydration before publishing. Keep those owner-scoped reads explicit;
+      // this fixture has no intake or ready meals and never contacts a database.
+      from(table){
+        assert.ok(['posts','intake_logs'].includes(table));let columns;const filters={};
+        const query={select(value){columns=value;return query},eq(key,value){filters[key]=value;return query},
+          gte(){return query},lt(){return query},lte(){return query},order(){return query},
+          async maybeSingle(){assert.equal(table,'posts');assert.equal(columns,'render_time_zone');assert.equal(filters.id,post);return{data:{render_time_zone:'UTC'},error:null}},
+          async range(from,through){assert.equal(filters.user_id,user);assert.equal(from,0);assert.ok(through>=from);if(table==='posts')assert.equal(filters.status,'ready');return{data:[],error:null}},
+        };return query;
+      },
       storage: {from: () => ({upload:async()=>({error:null}),remove:async paths=>{removed.push(...paths);return {error:null};}})},
     };
     assert.equal(await renderResultsCard(admin,post,'job'),true);

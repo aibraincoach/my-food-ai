@@ -40,7 +40,7 @@ test('corrections never download historical photo pointers outside the owning me
     if(path.endsWith('/current_post_items'))return Response.json([]);
     if(path.endsWith('/post_comments'))return Response.json(url.searchParams.has('or')?[]:[{id:'comment',author:'user',body:'Add rice',created_at:'2026-10-27T00:00:00Z'}]);
     if(path.endsWith('/jobs'))return Response.json(init?.method==='PATCH'?{id:'job'}:[]);
-    if(path.endsWith('/post_media'))return Response.json({storage_path:storagePath});
+    if(path.endsWith('/post_media')){assert.equal(url.searchParams.get('kind'),'eq.photo');assert.equal(url.searchParams.get('not_eaten'),'eq.false');assert.equal(url.searchParams.get('order'),'position.asc');return Response.json([{storage_path:storagePath}]);}
     if(path.includes('/storage/')){downloads++;return new Response(new Uint8Array([1]),{headers:{'Content-Type':'image/jpeg'}});}
     throw Error(`Unexpected fixture path: ${path}`);
    }}});

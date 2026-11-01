@@ -1,3 +1,4 @@
+import {absentMigration} from './fixtures/absent-migration.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
@@ -25,7 +26,7 @@ test('the stored-card snapshot preserves known uneaten calories when all of a fo
 test('not-eaten revision keeps history, exact nutrition, retry idempotency and owner access',async()=>{
  assert.ok(process.env.SUPABASE_DB_URL,'SUPABASE_DB_URL is required');
  const owner=await user(1),other=await user(2);
- const migrations=['0025_barcode_corrections.sql','0026_saved_meals.sql','0027_not_eaten.sql'].map(name=>readFileSync(new URL(`../supabase/migrations/${name}`,import.meta.url),'utf8')).join('\n');
+ const migrations=['0025_barcode_corrections.sql','0026_saved_meals.sql','0027_not_eaten.sql'].map(name=>absentMigration(readFileSync(new URL(`../supabase/migrations/${name}`,import.meta.url),'utf8'),name)).join('\n');
  const sql=`\\set ON_ERROR_STOP on
 begin;
 ${migrations}
