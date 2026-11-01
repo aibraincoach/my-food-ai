@@ -24,9 +24,15 @@ export function Sheet({open,onClose,children,label}:Props) {
       if(!top())return;
       if(event.key==='Escape'){event.preventDefault();event.stopPropagation();close.current();}
       if(event.key==='Tab'){
-        const nodes=focusables(),first=nodes[0],last=nodes.at(-1);
-        if(event.shiftKey&&document.activeElement===first){event.preventDefault();last?.focus();}
-        else if(!event.shiftKey&&document.activeElement===last){event.preventDefault();first?.focus();}
+        // The portal follows the page in DOM order, while the pill belongs to
+        // the page. Walk the allowed order explicitly instead of relying on
+        // native Tab order to cross those two roots.
+        event.preventDefault();
+        const nodes=focusables();
+        if(!nodes.length){element.focus();return;}
+        const current=nodes.indexOf(document.activeElement as HTMLElement);
+        const next=current<0?(event.shiftKey?nodes.length-1:0):(current+(event.shiftKey?-1:1)+nodes.length)%nodes.length;
+        nodes[next].focus();
       }
     };
     const contain=(event:FocusEvent)=>{if(top()&&!element.contains(event.target as Node)&&!(event.target as HTMLElement)?.closest('nav[data-pill]'))focus();};
