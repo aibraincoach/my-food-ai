@@ -11,14 +11,18 @@ export function savedName(value:unknown):string {
 export async function listSaved(db:SupabaseClient):Promise<SavedMeal[]> {
  const {data,error}=await db.from('saved_meals').select('id,name,source_post_id,items,last_logged_at').order('created_at',{ascending:false});
  if(error)throw new Error('Saved meals could not be loaded.');
- return Promise.all((data??[]).map(async row=>{
-  let thumbnail:string|null=null;
-  if(row.source_post_id){
-   const {data:media}=await db.from('post_media').select('storage_path,kind').eq('post_id',row.source_post_id).order('position').limit(1).maybeSingle();
-   if(media){const path=media.kind==='card'?media.storage_path:media.storage_path.replace(/\.[^.]+$/,'.feed.jpg'); const signed=await db.storage.from('media').createSignedUrl(path,3600);thumbnail=signed.data?.signedUrl??null;}
-  }
-  return {...row,thumbnail} as SavedMeal;
- }));
+ const rows=data??[];
+ const ids=rows.map(row=>row.source_post_id).filter((id):id is string=>typeof id==='string');
+ const firstMedia=new Map<string,{storage_path:string;kind:string}>();
+ if(ids.length){
+  const {data:media,error:mediaError}=await db.from('post_media').select('post_id,storage_path,kind').in('post_id',ids).order('position');
+  if(mediaError)throw new Error('Saved meal photos could not be loaded.');
+  for(const entry of media??[])if(!firstMedia.has(entry.post_id))firstMedia.set(entry.post_id,entry);
+ }
+ const paths=[...new Set([...firstMedia.values()].map(entry=>entry.kind==='card'?entry.storage_path:entry.storage_path.replace(/\.[^.]+$/,'.feed.jpg')))];
+ const urls=new Map<string,string>();
+ if(paths.length){const signed=await db.storage.from('media').createSignedUrls(paths,3600);if(signed.error)throw new Error('Saved meal photos could not be opened.');for(const entry of signed.data??[])if(entry.path&&entry.signedUrl)urls.set(entry.path,entry.signedUrl);}
+ return rows.map(row=>{const media=firstMedia.get(row.source_post_id);const path=media?(media.kind==='card'?media.storage_path:media.storage_path.replace(/\.[^.]+$/,'.feed.jpg')):null;return {...row,thumbnail:path?urls.get(path)??null:null} as SavedMeal;});
 }
 export async function savePost(db:SupabaseClient,postId:string) {
  const {data:post,error:postError}=await db.from('posts').select('caption').eq('id',postId).maybeSingle();
