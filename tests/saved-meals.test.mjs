@@ -22,8 +22,11 @@ select set_config('request.jwt.claims',json_build_object('sub',:'owner_id','role
 select public.save_meal_from_post(:'post_id','Coffee') as saved_id \\gset
 select public.log_saved_meal(:'saved_id',now()-interval '1 day') as copied_id \\gset
 select set_config('run5.copy',:'copied_id',true);
+select public.log_post_again(:'post_id',now()-interval '2 hours') as again_id \\gset
+select set_config('run5.again',:'again_id',true);
 do $$ begin
  if (select sum(n.calories) from public.item_nutrition n join public.current_post_items i on i.id=n.post_item_id where i.post_id=current_setting('run5.copy')::uuid) is distinct from 5.125::numeric then raise exception 'Nutrition changed'; end if;
+ if (select sum(n.calories) from public.item_nutrition n join public.current_post_items i on i.id=n.post_item_id where i.post_id=current_setting('run5.again')::uuid) is distinct from 5.125::numeric then raise exception 'Log again nutrition changed';end if;
  if (select status from public.posts where id=current_setting('run5.copy')::uuid)<>'ready' then raise exception 'Copy not ready'; end if;
  if (select eaten_at>now()-interval '23 hours' from public.posts where id=current_setting('run5.copy')::uuid) then raise exception 'Chosen time changed'; end if;
  begin insert into public.saved_meals(user_id,name,items) values(auth.uid(),repeat('x',81),'[]');raise exception 'Accepted long name';exception when check_violation then null;end;
@@ -34,6 +37,8 @@ do $$ begin
  if exists(select 1 from public.saved_meals where id=current_setting('run5.saved')::uuid) then raise exception 'Cross-user saved meal visible';end if;
  begin perform public.log_saved_meal(current_setting('run5.saved')::uuid,now());raise exception 'Cross-user log allowed';exception when insufficient_privilege then null;end;
  begin perform public.log_post_again(current_setting('run5.post')::uuid,now());raise exception 'Cross-user copy allowed';exception when insufficient_privilege then null;end;
+ begin perform public.copy_owned_saved_meal(current_setting('run5.saved')::uuid,now());raise exception 'Helper cross-user log allowed';exception when insufficient_privilege then null;end;
+ begin perform public.copy_owned_post(current_setting('run5.post')::uuid,now());raise exception 'Helper cross-user copy allowed';exception when insufficient_privilege then null;end;
 end $$;
 rollback;`;
  const result=spawnSync('psql',['-X','-qAt','--dbname',process.env.SUPABASE_DB_URL],{input:sql,encoding:'utf8',timeout:90000});

@@ -3,6 +3,15 @@
 alter table public.post_media add column not_eaten boolean not null default false;
 alter table public.post_media add constraint post_media_not_eaten_photo check (not not_eaten or (kind='photo' and position>0));
 create unique index post_media_one_not_eaten on public.post_media(post_id) where not_eaten;
+-- Client owners can read the photo marker, but setting it must also queue the
+-- matching estimate through the publication/attachment transaction.
+create function public.protect_not_eaten_media() returns trigger language plpgsql set search_path=public,pg_temp as $$
+begin
+ if current_user in ('authenticated','anon') and ((tg_op='INSERT' and new.not_eaten) or (tg_op='UPDATE' and new.not_eaten is distinct from old.not_eaten)) then raise exception 'Not-eaten photos are server managed' using errcode='42501';end if;
+ return new;
+end $$;
+create trigger protect_not_eaten_media before insert or update of not_eaten on public.post_media for each row execute function public.protect_not_eaten_media();
+
 alter table public.post_items add column not_eaten_grams integer check (not_eaten_grams is null or not_eaten_grams>=0);
 alter table public.post_items add column count_text text;
 alter table public.post_items add column not_eaten_count_text text;

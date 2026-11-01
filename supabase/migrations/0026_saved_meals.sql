@@ -26,8 +26,8 @@ begin
 end $$;
 
 -- Internal helper is invoker-scoped and only accepts an owned saved snapshot.
-create function public.log_saved_meal(p_id uuid,p_eaten_at timestamptz) returns uuid
-language plpgsql security invoker set search_path=public,pg_temp as $$
+create function public.copy_owned_saved_meal(p_id uuid,p_eaten_at timestamptz) returns uuid
+language plpgsql security definer set search_path=public,pg_temp as $$
 declare v_saved public.saved_meals; v_post uuid; v_item uuid; v_row jsonb; v_n jsonb;
 begin
  if p_eaten_at is null or p_eaten_at>now()+interval '5 minutes' then raise exception 'Invalid time eaten' using errcode='22023'; end if;
@@ -48,8 +48,8 @@ begin
  return v_post;
 end $$;
 
-create function public.log_post_again(p_post_id uuid,p_eaten_at timestamptz) returns uuid
-language plpgsql security invoker set search_path=public,pg_temp as $$
+create function public.copy_owned_post(p_post_id uuid,p_eaten_at timestamptz) returns uuid
+language plpgsql security definer set search_path=public,pg_temp as $$
 declare v_source public.posts; v_copy uuid; v_item uuid; v_row record;
 begin
  if p_eaten_at is null or p_eaten_at>now()+interval '5 minutes' then raise exception 'Invalid time eaten' using errcode='22023'; end if;
@@ -68,6 +68,22 @@ begin
  update public.saved_meals set last_logged_at=clock_timestamp() where user_id=auth.uid() and source_post_id=p_post_id;
  return v_copy;
 end $$;
+-- Invoker entrypoints retain RLS checks; the narrow owned-source helpers alone
+-- may initialize the server-owned marker. Neither helper accepts client nutrition.
+create function public.log_saved_meal(p_id uuid,p_eaten_at timestamptz) returns uuid
+language plpgsql security invoker set search_path=public,pg_temp as $$
+begin
+ if not exists(select 1 from public.saved_meals where id=p_id and user_id=auth.uid()) then raise exception 'Saved meal not found' using errcode='42501';end if;
+ return public.copy_owned_saved_meal(p_id,p_eaten_at);
+end $$;
+create function public.log_post_again(p_post_id uuid,p_eaten_at timestamptz) returns uuid
+language plpgsql security invoker set search_path=public,pg_temp as $$
+begin
+ if not exists(select 1 from public.posts where id=p_post_id and user_id=auth.uid() and status='ready') then raise exception 'Meal not found' using errcode='42501';end if;
+ return public.copy_owned_post(p_post_id,p_eaten_at);
+end $$;
+revoke all on function public.copy_owned_saved_meal(uuid,timestamptz),public.copy_owned_post(uuid,timestamptz) from public,anon;
+grant execute on function public.copy_owned_saved_meal(uuid,timestamptz),public.copy_owned_post(uuid,timestamptz) to authenticated;
 revoke all on function public.save_meal_from_post(uuid,text),public.log_saved_meal(uuid,timestamptz),public.log_post_again(uuid,timestamptz) from public,anon;
 grant execute on function public.save_meal_from_post(uuid,text),public.log_saved_meal(uuid,timestamptz),public.log_post_again(uuid,timestamptz) to authenticated;
 

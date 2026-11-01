@@ -1,0 +1,114 @@
+{
+  "top_logprobs": 0,
+  "temperature": 1,
+  "top_p": 1,
+  "service_tier": "auto",
+  "model": "muse-spark-1.3",
+  "reasoning": {
+    "effort": "low"
+  },
+  "background": false,
+  "text": {
+    "format": {
+      "type": "json_schema",
+      "name": "remainder",
+      "schema": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "items": {
+              "additionalProperties": false,
+              "properties": {
+                "index": {
+                  "type": "integer"
+                },
+                "remaining_count": {
+                  "type": [
+                    "integer",
+                    "null"
+                  ]
+                },
+                "remaining_grams": {
+                  "type": "number"
+                },
+                "total_count": {
+                  "type": [
+                    "integer",
+                    "null"
+                  ]
+                },
+                "unit": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                }
+              },
+              "required": [
+                "index",
+                "remaining_grams",
+                "total_count",
+                "remaining_count",
+                "unit"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "items"
+        ],
+        "additionalProperties": false
+      },
+      "strict": true
+    }
+  },
+  "tools": [],
+  "tool_choice": "auto",
+  "truncation": "disabled",
+  "id": "resp_6ae6aca9fe4caec7d4094c28",
+  "object": "response",
+  "status": "completed",
+  "created_at": 1793502377,
+  "completed_at": 1793502377,
+  "error": null,
+  "incomplete_details": null,
+  "output": [
+    {
+      "type": "reasoning",
+      "id": "rs_6ae6aca9fe4caec7d4094c28:rs_a5f26d5c-0818-4d33-9bc4-78f83564947e",
+      "summary": [],
+      "status": "completed"
+    },
+    {
+      "type": "message",
+      "id": "msg_c3190d57-895b-42ae-b110-d427e79a0e4a",
+      "role": "assistant",
+      "content": [
+        {
+          "type": "output_text",
+          "text": "{\"items\": [{\"index\": 0, \"remaining_count\": 2, \"remaining_grams\": 80, \"total_count\": 2, \"unit\": \"puddings\"}, {\"index\": 1, \"remaining_count\": 8, \"remaining_grams\": 180, \"total_count\": 8, \"unit\": \"slices\"}, {\"index\": 2, \"remaining_count\": null, \"remaining_grams\": 80, \"total_count\": null, \"unit\": null}, {\"index\": 3, \"remaining_count\": null, \"remaining_grams\": 60, \"total_count\": null, \"unit\": null}]}",
+          "annotations": [],
+          "logprobs": []
+        }
+      ],
+      "status": "completed"
+    }
+  ],
+  "instructions": "The image shows what was not eaten of the meal described by the indexed items. For every listed item, estimate the grams visible in this photo relative to the original grams given. Use zero if none of that item is visible, and never more than the given grams. Return every input index exactly once; do not add foods. For countable foods (slices, pieces, eggs, rolls), give the original total_count and the remaining_count visible here, with the unit word. Otherwise return null for both counts and unit. Give no advice and no other text.",
+  "usage": {
+    "input_tokens": 2301,
+    "input_tokens_details": {
+      "cached_tokens": 0
+    },
+    "output_tokens": 1338,
+    "output_tokens_details": {
+      "reasoning_tokens": 1193
+    },
+    "total_tokens": 3639
+  },
+  "parallel_tool_calls": true,
+  "store": true,
+  "max_output_tokens": 4096
+}
