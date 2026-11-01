@@ -44,8 +44,12 @@ select (select count(*)=2 from post_items where post_id=:'post') and (select cou
 \\else
 select 1/0 as photo_history_failed;
 \\endif
+select public.create_drink_post(:'owner',now(),'water',330,'Water',0,'{"portion_unit":"ml","calories":0}') as drink \\gset
+select set_config('attachment.test_drink',:'drink',true),set_config('attachment.test_owner',:'owner',true);
 select set_config('attachment.test_post',:'post',true),set_config('attachment.test_other',:'other',true),set_config('attachment.test_source',:'source',true);
 do $check$ begin
+ begin perform public.prepare_post_photo_attachment(current_setting('attachment.test_drink')::uuid,current_setting('attachment.test_owner')::uuid,current_setting('attachment.test_source'),false);raise exception 'drink entered meal correction path';exception when sqlstate '55000' then null;end;
+ if (select status from public.posts where id=current_setting('attachment.test_drink')::uuid)<>'ready' then raise exception 'Drink record changed';end if;
  begin perform public.prepare_post_photo_attachment(current_setting('attachment.test_post')::uuid,current_setting('attachment.test_other')::uuid,current_setting('attachment.test_source'),false);raise exception 'foreign post accepted';exception when insufficient_privilege then null;end;
 end $check$;
 rollback;
