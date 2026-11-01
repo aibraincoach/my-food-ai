@@ -133,3 +133,110 @@ language sql stable security definer set search_path=public,pg_temp as $$
   and j.kind in ('analyze','correct','recompute','remainder','card_backfill','test_noop','test_throw') and not coalesce((j.payload->>'post_ownership')::boolean,false))) end
  from public.posts p where p.id=p_post_id),false)
 $$;
+
+-- Reserve a destination before copying a staged photo. Attachment publication is
+-- atomic and retries reuse the reservation, media row and single queued job.
+create table public.post_photo_attachments(
+ id uuid primary key default gen_random_uuid(),post_id uuid not null references public.posts(id) on delete cascade,
+ user_id uuid not null references auth.users(id) on delete cascade,stage_path text not null unique,
+ target_path text not null unique,position integer not null,not_eaten boolean not null,
+ cleanup_job_id uuid references public.jobs(id),media_id uuid references public.post_media(id) on delete set null,
+ created_at timestamptz not null default now(),unique(post_id,position)
+);
+alter table public.post_photo_attachments enable row level security;
+revoke all on public.post_photo_attachments from public,anon,authenticated;
+grant select,insert,update,delete on public.post_photo_attachments to service_role;
+create function public.prepare_post_photo_attachment(p_post_id uuid,p_user_id uuid,p_stage_path text,p_not_eaten boolean)
+returns public.post_photo_attachments language plpgsql security definer set search_path=public,pg_temp as $$
+declare row public.post_photo_attachments; current_status text; pos integer; cleanup uuid; stage_cleanup public.jobs;
+begin
+ select status into current_status from public.posts where id=p_post_id and user_id=p_user_id for update;
+ if not found then raise exception 'Post not found' using errcode='42501';end if;
+ select * into row from public.post_photo_attachments where stage_path=p_stage_path for update;
+ if found then
+  if row.post_id<>p_post_id or row.user_id<>p_user_id or row.not_eaten<>p_not_eaten then raise exception 'Photo already claimed' using errcode='22023';end if;
+  return row;
+ end if;
+ if current_status<>'ready' then raise exception 'Wait for this meal to be ready' using errcode='55000';end if;
+ if p_not_eaten is null then raise exception 'Photo type required' using errcode='22023';end if;
+ if p_stage_path !~ ('^'||p_user_id::text||'/[0-9a-f-]{36}/0[.]jpg$') then raise exception 'Invalid staged photo' using errcode='22023';end if;
+ select * into stage_cleanup from public.jobs where kind='media_cleanup' and payload->>'owner_id'=p_user_id::text and payload->>'deleted_post_id'=split_part(p_stage_path,'/',2) for update;
+ if not found or stage_cleanup.status<>'queued' or stage_cleanup.run_after<=clock_timestamp() then raise exception 'Photo stage expired' using errcode='22023';end if;
+ if not exists(select 1 from storage.objects where bucket_id='media' and name=p_stage_path) or not exists(select 1 from storage.objects where bucket_id='media' and name=replace(p_stage_path,'.jpg','.feed.jpg')) then raise exception 'Photo upload incomplete' using errcode='22023';end if;
+ if p_not_eaten and (not exists(select 1 from public.post_media where post_id=p_post_id and kind='photo') or exists(select 1 from public.post_media where post_id=p_post_id and not_eaten)) then raise exception 'The first photo is the meal; only one later photo can be not eaten' using errcode='22023';end if;
+ if (select count(*) from public.post_media where post_id=p_post_id and kind='photo')>=8 then raise exception 'A meal has at most eight photos' using errcode='22023';end if;
+ select coalesce(max(position),-1)+1 into pos from (select position from public.post_media where post_id=p_post_id and kind='photo' union all select position from public.post_photo_attachments where post_id=p_post_id) positions;
+ insert into public.post_photo_attachments(post_id,user_id,stage_path,target_path,position,not_eaten)
+ values(p_post_id,p_user_id,p_stage_path,p_user_id::text||'/'||p_post_id::text||'/'||pos::text||'.jpg',pos,p_not_eaten) returning * into row;
+ insert into public.jobs(post_id,kind,priority,status,run_after,payload) values(null,'media_cleanup',200,'queued',now()+interval '3 hours',jsonb_build_object('owner_id',p_user_id,'deleted_post_id',p_post_id,'paths',jsonb_build_array(row.target_path,replace(row.target_path,'.jpg','.feed.jpg')),'exact',true,'attachment_id',row.id)) returning id into cleanup;
+ update public.post_photo_attachments set cleanup_job_id=cleanup where id=row.id returning * into row;
+ return row;
+end $$;
+revoke all on function public.prepare_post_photo_attachment(uuid,uuid,text,boolean) from public,anon,authenticated;
+grant execute on function public.prepare_post_photo_attachment(uuid,uuid,text,boolean) to service_role;
+
+create function public.complete_post_photo_attachment(p_id uuid,p_user_id uuid,p_width integer,p_height integer)
+returns uuid language plpgsql security definer set search_path=public,pg_temp as $$
+declare row public.post_photo_attachments; current_status text; photo uuid; cleanup public.jobs;
+begin
+ select * into row from public.post_photo_attachments where id=p_id and user_id=p_user_id;
+ if not found then raise exception 'Photo not found' using errcode='42501';end if;
+ select status into current_status from public.posts where id=row.post_id and user_id=p_user_id for update;
+ if not found then raise exception 'Post not found' using errcode='42501';end if;
+ select * into row from public.post_photo_attachments where id=p_id for update;
+ if row.media_id is not null then return row.media_id;end if;
+ if current_status<>'ready' then raise exception 'Wait for this meal to be ready' using errcode='55000';end if;
+ select * into cleanup from public.jobs where id=row.cleanup_job_id for update;
+ if not found or cleanup.status<>'queued' or cleanup.run_after<=clock_timestamp() then raise exception 'Photo stage expired' using errcode='22023';end if;
+ if p_width is null or p_height is null or p_width not between 1 and 4096 or p_height not between 1 and 4096 then raise exception 'Invalid photo dimensions' using errcode='22023';end if;
+ if not exists(select 1 from storage.objects where bucket_id='media' and name=row.target_path) or not exists(select 1 from storage.objects where bucket_id='media' and name=replace(row.target_path,'.jpg','.feed.jpg')) then raise exception 'Photo upload incomplete' using errcode='22023';end if;
+ if row.not_eaten and (not exists(select 1 from public.post_media where post_id=row.post_id and kind='photo') or exists(select 1 from public.post_media where post_id=row.post_id and not_eaten)) then raise exception 'Only one later photo can be not eaten' using errcode='22023';end if;
+ if (select count(*) from public.post_media where post_id=row.post_id and kind='photo')>=8 then raise exception 'A meal has at most eight photos' using errcode='22023';end if;
+ update public.post_media set position=greatest(position,row.position)+1 where post_id=row.post_id and kind='card';
+ insert into public.post_media(post_id,storage_path,position,width,height,kind,not_eaten) values(row.post_id,row.target_path,row.position,p_width,p_height,'photo',row.not_eaten) returning id into photo;
+ update public.post_photo_attachments set media_id=photo where id=p_id;
+ update public.posts set status='processing',fail_reason=null where id=row.post_id;
+ insert into public.jobs(post_id,kind,priority,status,payload) values(row.post_id,case when row.not_eaten then 'remainder' else 'correct' end,100,'queued',case when row.not_eaten then jsonb_build_object('remainder_photo_id',photo) else jsonb_build_object('photo_added',true,'added_media_id',photo) end);
+ return photo;
+end $$;
+revoke all on function public.complete_post_photo_attachment(uuid,uuid,integer,integer) from public,anon,authenticated;
+grant execute on function public.complete_post_photo_attachment(uuid,uuid,integer,integer) to service_role;
+
+-- Photo corrections have no user comment cursor. Preserve the same compare-and-
+-- swap, exact message-set and job-ownership checks without inventing user text.
+create function public.persist_photo_correction(p_post_id uuid,p_job_id uuid,p_expected uuid[],p_items jsonb,p_reply text,p_question jsonb default null)
+returns boolean language plpgsql security definer set search_path=public,pg_temp as $$
+declare job public.jobs; actual uuid[]; expected uuid[]; row jsonb; prior uuid; fresh uuid; applied uuid[]; pending uuid[]; seq bigint;
+begin
+ perform 1 from public.posts where id=p_post_id for update;
+ if not found or not public.post_work_matches(p_post_id,p_job_id) then raise exception 'Photo job no longer owns meal' using errcode='40001';end if;
+ select * into job from public.jobs where id=p_job_id and post_id=p_post_id and kind='correct' and status='running' for update;
+ if not found or not coalesce((job.payload->>'photo_added')::boolean,false) then raise exception 'Photo correction missing' using errcode='22023';end if;
+ if coalesce((job.payload->>'correction_applied')::boolean,false) then return false;end if;
+ select coalesce(max((payload->>'correction_sequence')::bigint),0) into seq from public.jobs where post_id=p_post_id and kind='correct' and payload->>'correction_applied'='true';
+ if (job.payload->>'correction_from_sequence')::bigint is distinct from seq then raise exception 'Correction progress changed' using errcode='40001';end if;
+ select coalesce(array_agg(distinct value::uuid),array[]::uuid[]) into applied from public.jobs j cross join lateral jsonb_array_elements_text(coalesce(j.payload->'correction_pending_ids','[]')) where j.post_id=p_post_id and j.kind='correct' and j.payload->>'correction_applied'='true';
+ select coalesce(array_agg(value::uuid),array[]::uuid[]) into pending from jsonb_array_elements_text(coalesce(job.payload->'correction_pending_ids','[]'));
+ if pending && applied or exists(select 1 from unnest(pending) pending_id where not exists(select 1 from public.post_comments where id=pending_id and post_id=p_post_id and author='user')) then raise exception 'Correction messages changed' using errcode='40001';end if;
+ select array_agg(id order by id) into actual from public.current_post_items where post_id=p_post_id;
+ select array_agg(id order by id) into expected from unnest(p_expected) id;
+ if actual is distinct from expected then raise exception 'Items changed during photo correction' using errcode='40001';end if;
+ if jsonb_typeof(p_items)<>'array' or char_length(btrim(p_reply))=0 then raise exception 'Invalid correction' using errcode='22023';end if;
+ update public.post_items set superseded_at=now() where post_id=p_post_id and superseded_at is null;
+ for row in select value from jsonb_array_elements(p_items) loop
+  prior:=nullif(row->>'supersedes','')::uuid;
+  if prior is not null and not(prior=any(coalesce(p_expected,array[]::uuid[]))) then raise exception 'Invalid source item' using errcode='22023';end if;
+  insert into public.post_items(post_id,name,portion_text,portion_grams,box,mask_path,source,supersedes) values(p_post_id,row->>'name',row->>'portion_text',(row->>'portion_grams')::numeric,nullif(row->'box','null'::jsonb),row->>'mask_path','model',prior) returning id into fresh;
+  insert into public.item_nutrition(post_item_id,calories,protein_g,carbs_g,fat_g,fibre_g,sugar_g,sodium_mg,micronutrients,source_ref) values(fresh,(row#>>'{nutrition,calories}')::numeric,(row#>>'{nutrition,protein_g}')::numeric,(row#>>'{nutrition,carbs_g}')::numeric,(row#>>'{nutrition,fat_g}')::numeric,(row#>>'{nutrition,fibre_g}')::numeric,(row#>>'{nutrition,sugar_g}')::numeric,(row#>>'{nutrition,sodium_mg}')::numeric,coalesce(row#>'{nutrition,micronutrients}','[]'),row#>>'{nutrition,source_ref}');
+ end loop;
+ insert into public.post_comments(post_id,author,body) values(p_post_id,'model',coalesce(p_question->>'question',p_reply));
+ update public.jobs set payload=payload||jsonb_build_object('correction_applied',true,'correction_sequence',seq+1,'correction_pending_ids',to_jsonb(pending)) where id=p_job_id;
+ update public.posts set status=case when p_question is null then 'processing' else 'needs_input' end,needs_input=p_question,fail_reason=null where id=p_post_id;
+ if exists(select 1 from public.post_comments where post_id=p_post_id and author='user' and not(id=any(applied||pending))) then
+  insert into public.jobs(post_id,kind,priority,status) select p_post_id,'correct',100,'queued' where not exists(select 1 from public.jobs where post_id=p_post_id and kind='correct' and status='queued');
+  update public.posts set status='queued',needs_input=null where id=p_post_id;
+ end if;
+ return true;
+end $$;
+revoke all on function public.persist_photo_correction(uuid,uuid,uuid[],jsonb,text,jsonb) from public,anon,authenticated;
+grant execute on function public.persist_photo_correction(uuid,uuid,uuid[],jsonb,text,jsonb) to service_role;

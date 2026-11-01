@@ -36,11 +36,17 @@ select public.apply_post_remainder(:'post_id',:'job_id',:'photo_id',array[:'item
 select public.apply_post_remainder(:'post_id',:'job_id',:'photo_id',array[:'item_id'::uuid],:'replacement'::jsonb,'Duplicate reply must not appear.');
 select set_config('run5.post',:'post_id',true),set_config('run5.item',:'item_id',true);
 do $$ begin
+ if (select not_eaten from public.post_media where post_id=current_setting('run5.post')::uuid and position=0) then raise exception 'First photo default changed';end if;
  if (select portion_grams from public.current_post_items where post_id=current_setting('run5.post')::uuid) is distinct from 60::numeric then raise exception 'Consumed grams differ';end if;
  if (select n.calories from public.item_nutrition n join public.current_post_items i on i.id=n.post_item_id where i.post_id=current_setting('run5.post')::uuid) is distinct from 120::numeric then raise exception 'Consumed nutrition differs';end if;
  if (select count(*) from public.post_comments where post_id=current_setting('run5.post')::uuid)<>1 then raise exception 'Reply duplicated on retry';end if;
  if not exists(select 1 from public.post_items where id=current_setting('run5.item')::uuid and superseded_at is not null) then raise exception 'History lost';end if;
  begin update public.post_media set not_eaten=true where post_id=current_setting('run5.post')::uuid and position=0;raise exception 'First photo accepted';exception when check_violation or unique_violation then null;end;
+end $$;
+update public.jobs set payload=payload-'remainder_applied' where id=:'job_id';
+select set_config('run5.job',:'job_id',true),set_config('run5.photo',:'photo_id',true),set_config('run5.replacement',:'replacement',true);
+do $$ begin
+ begin perform public.apply_post_remainder(current_setting('run5.post')::uuid,current_setting('run5.job')::uuid,current_setting('run5.photo')::uuid,array[current_setting('run5.item')::uuid],current_setting('run5.replacement')::jsonb,'Stale revision');raise exception 'Stale revision accepted';exception when serialization_failure then null;end;
 end $$;
 set local role authenticated;
 select set_config('request.jwt.claims',json_build_object('sub',:'other_id','role','authenticated')::text,true);

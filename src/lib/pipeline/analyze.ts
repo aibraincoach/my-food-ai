@@ -126,6 +126,7 @@ export interface NamedRegion extends SegmentedRegion {
 }
 
 export interface NamedPost extends SegmentedPost {
+  hasNotEaten?:boolean;
   nutritionLabel?: boolean;
   labelNutrition?: Record<string,unknown>;
   regions: NamedRegion[];
