@@ -15,6 +15,7 @@ test('own correction takes precedence over corroborated name and FDC, including 
  const result=mergeProduct(code,base,own,'Shared name');assert.equal(result.name,'My name');assert.equal(result.per100g.calories,70);
  assert.equal(mergeProduct(code,null,own,null).name,'My name');assert.equal(mergeProduct(code,null,null,'Shared name'),null);
  assert.equal(canonicalGtin('0016000275683'),canonicalGtin(code));
+ assert.equal(parseBarcodeCorrection({name:'  Diet  \t Cola  '}).name,'Diet Cola');
  assert.throws(()=>parseBarcodeCorrection({name:'x'.repeat(81)}));
  assert.throws(()=>parseBarcodeCorrection({name:'Valid',per_100:{calories:-1}}));
 });
@@ -68,17 +69,39 @@ reset role;
 -- No third auth profile is created or impersonated in the connected project.
 create temporary table share_fixture(gtin text,user_id uuid,name text);
 select replace(replace(pg_get_functiondef('public.barcode_shared_name(text)'::regprocedure),'public.barcode_shared_name','pg_temp.fixture_shared_name'),'public.barcode_corrections','pg_temp.share_fixture') \\gexec
-insert into share_fixture values('fixture',gen_random_uuid(),' Coffee '),('fixture',gen_random_uuid(),'COFFEE');
+insert into share_fixture values('fixture',gen_random_uuid(),' Diet  Coffee '),('fixture',gen_random_uuid(),'DIET COFFEE');
 select pg_temp.fixture_shared_name('fixture') is null as isolated_two \\gset
 \\if :isolated_two
 \\else
 select 1/0 as fixture_two_shared;
 \\endif
-insert into share_fixture values('fixture',gen_random_uuid(),'coffee');
-select pg_temp.fixture_shared_name('fixture')='coffee' as isolated_three \\gset
+insert into share_fixture values('fixture',gen_random_uuid(),E'diet\\tcoffee');
+select pg_temp.fixture_shared_name('fixture')='diet coffee' as isolated_three \\gset
 \\if :isolated_three
 \\else
 select 1/0 as fixture_three_not_shared;
+\\endif
+select count(*) filter(where retry=0)=6 as limit_six from (select public.consume_label_read(:'a') retry from generate_series(1,6)) calls \\gset
+\\if :limit_six
+\\else
+select 1/0 as quota_refused_early;
+\\endif
+select public.consume_label_read(:'a') between 1 and 60 and public.consume_label_read(:'b')=0 as limit_owner \\gset
+\\if :limit_owner
+\\else
+select 1/0 as quota_not_owner_scoped;
+\\endif
+update label_read_limits set window_started_at=now()-interval '61 seconds' where user_id=:'a';
+select public.consume_label_read(:'a') as reset_retry \\gset
+select :reset_retry=0 and (select calls=1 from label_read_limits where user_id=:'a') as reset_ok \\gset
+\\if :reset_ok
+\\else
+select 1/0 as quota_did_not_reset;
+\\endif
+select not has_function_privilege('authenticated','public.consume_label_read(uuid)','execute') and not has_table_privilege('authenticated','public.label_read_limits','update') as quota_private \\gset
+\\if :quota_private
+\\else
+select 1/0 as quota_mutable_by_browser;
 \\endif
 rollback;
 \\echo barcode_correction_access_passed`;

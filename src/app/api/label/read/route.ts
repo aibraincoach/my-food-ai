@@ -10,6 +10,9 @@ export async function POST(request:Request){
  const admin=createAdminClient();
  const {data:photo,error}=await admin.storage.from("media").download(path);
  if(error||!photo||photo.size>20*1024*1024)return NextResponse.json({error:"The photo could not be opened."},{status:400});
+ const {data:retryAfter,error:limitError}=await admin.rpc("consume_label_read",{p_user_id:user.id});
+ if(limitError||typeof retryAfter!=="number")return NextResponse.json({error:"Label reading is temporarily unavailable."},{status:503});
+ if(retryAfter>0)return NextResponse.json({error:"Too many label reads. Try again shortly."},{status:429,headers:{"Retry-After":String(retryAfter)}});
  try{
   const reading=await readNutritionLabel(new Uint8Array(await photo.arrayBuffer()));
   const {data,error:saveError}=await admin.from("label_readings").insert({user_id:user.id,photo_path:path,reading}).select("id").single();
