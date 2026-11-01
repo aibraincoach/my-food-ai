@@ -153,7 +153,9 @@ export async function getFeed(
 export async function getPostCard(
   supabase: SupabaseClient,
   postId: string,
-  zone = "UTC"
+  // Realtime refreshes run in the browser and must retain its local-day record.
+  // Server entry points pass the request's explicit/cookie zone.
+  zone = Intl.DateTimeFormat().resolvedOptions().timeZone
 ): Promise<FeedPost | null> {
   const { data, error } = await supabase
     .from("posts")
