@@ -10,6 +10,7 @@ function fakeAdmin({ snapshotFails = true, ready = true } = {}) {
       calls.push(name);
       if (name === "results_card_snapshot") return snapshotFails ? { data: null, error: { message: "render unavailable" }, status: 503 } : { data: null, error: null };
       if (name === "mark_post_ready") { assert.equal(args.p_job_id, "job"); return { data: ready, error: null }; }
+      if (name === "save_ready_meal") { assert.equal(args.p_post_id,"post"); assert.equal(ready,true,"an unpublished meal cannot be saved"); return {data:null,error:null}; }
       throw new Error(`unexpected rpc ${name}`);
     },
   };
@@ -23,7 +24,7 @@ test("a card failure is logged and the meal is marked ready anyway", async () =>
   try {
     const admin = fakeAdmin();
     assert.equal(await markReady("post", admin, "job"), true);
-    assert.deepEqual(admin.calls, ["results_card_snapshot", "mark_post_ready"]);
+    assert.deepEqual(admin.calls, ["results_card_snapshot", "mark_post_ready", "save_ready_meal"]);
     assert.match(logged.join("\n"), /results card failed.*Card snapshot failed/s);
   } finally { console.error = original; }
 });
@@ -32,7 +33,11 @@ test("a meal that cannot be completed still reports not ready", async () => {
   const { markReady } = await import("../src/lib/pipeline/persist.ts");
   const original = console.error;
   console.error = () => {};
-  try { assert.equal(await markReady("post", fakeAdmin({ ready: false }), "job"), false); } finally { console.error = original; }
+  try {
+    const admin=fakeAdmin({ready:false});
+    assert.equal(await markReady("post",admin,"job"),false);
+    assert.deepEqual(admin.calls,["results_card_snapshot","mark_post_ready"],"a failed publication must not save a meal");
+  } finally { console.error = original; }
 });
 
 test("a failure to save readiness still surfaces (and retries) rather than being swallowed", async () => {
