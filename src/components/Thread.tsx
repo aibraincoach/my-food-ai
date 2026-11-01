@@ -9,7 +9,7 @@ import CommentComposer,{type CommentRow} from '@/components/CommentComposer';
 import {LocalTime} from '@/components/LocalTime';
 import {usePostHandle} from '@/components/PostHandle';
 const sort=(rows:CommentRow[])=>rows.toSorted((a,b)=>a.created_at.localeCompare(b.created_at)||a.id.localeCompare(b.id));
-export default function Thread({postId,readOnly=false}:{postId:string;readOnly?:boolean}){
+export default function Thread({postId,readOnly=false,sourcePostId}:{postId:string;readOnly?:boolean;sourcePostId?:string|null}){
  const handle=usePostHandle();
  const [accepted,setAccepted]=useState<string|null>(null);
  const router=useRouter();
@@ -46,6 +46,7 @@ export default function Thread({postId,readOnly=false}:{postId:string;readOnly?:
  },[postId,router]);
  const retry=async()=>{setRetrying(true);try{const response=await fetch(`/api/posts/${postId}/retry`,{method:'POST'});if(!response.ok)throw new Error('retry failed');setFailed(false);setError('');router.refresh();}catch{setError('Could not retry. Please try again.');}finally{setRetrying(false);}};
  return <section aria-label="Meal comments" className="px-inset pt-[14px]">
+  {sourcePostId?<p className="mb-[10px] text-meta text-muted">Logged again</p>:null}
   <h2 className="mb-[10px] text-handle">Comments <span className="font-normal text-muted">{rows.length}</span></h2>
   <div aria-live="polite" className="flex flex-col gap-[10px]">{rows.map(row=><div key={row.id} className="flex items-start gap-[10px]">
     <span className={`flex size-7 shrink-0 items-center justify-center rounded-circle text-avatar-sm ${row.author==='model'?'bg-text text-surface':'bg-field text-text'}`}>{row.author==='model'?'AI':handle.slice(0,1).toUpperCase()}</span>

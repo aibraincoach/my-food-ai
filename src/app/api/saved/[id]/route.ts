@@ -1,0 +1,7 @@
+import {NextResponse} from 'next/server';
+import {createClient} from '@/lib/supabase/server';
+import {isUuid} from '@/lib/posts/items';
+import {savedName} from '@/lib/posts/saved';
+type Context={params:Promise<{id:string}>};
+export async function PATCH(request:Request,{params}:Context){const db=await createClient();const{data:{user}}=await db.auth.getUser();if(!user)return NextResponse.json({error:'Sign in required.'},{status:401});const{id}=await params;if(!isUuid(id))return NextResponse.json({error:'Saved meal not found.'},{status:404});try{const body=await request.json();const name=savedName(body?.name);const{data,error}=await db.from('saved_meals').update({name}).eq('id',id).eq('user_id',user.id).select('id').maybeSingle();if(error||!data)throw new Error();return NextResponse.json({id,name});}catch{return NextResponse.json({error:'The name could not be saved.'},{status:400});}}
+export async function DELETE(_request:Request,{params}:Context){const db=await createClient();const{data:{user}}=await db.auth.getUser();if(!user)return NextResponse.json({error:'Sign in required.'},{status:401});const{id}=await params;if(!isUuid(id))return NextResponse.json({error:'Saved meal not found.'},{status:404});const{error}=await db.from('saved_meals').delete().eq('id',id).eq('user_id',user.id);return error?NextResponse.json({error:'The meal could not be unsaved.'},{status:503}):NextResponse.json({ok:true});}

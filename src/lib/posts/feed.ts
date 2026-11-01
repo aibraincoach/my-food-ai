@@ -26,6 +26,8 @@ export interface FeedItem {
 }
 
 export interface FeedPost {
+  saved_meal_id?:string|null;
+  source_post_id?:string|null;
   day?: string;
   modelCommentId?: string | null;
   analysisFingerprint?: string | null;
@@ -88,8 +90,11 @@ async function toFeedPost(
 
   const items: FeedItem[] = row.status === "ready" ? await getCurrentItems(supabase, row.id) : [];
 
+  const {data:saved,error:savedError}=await supabase.from('saved_meals').select('id').eq('source_post_id',row.id).maybeSingle();
+  if(savedError)throw new Error('Saved meal state could not be read.');
   const revisionAfter=row.status==="ready"?await latestRevision(supabase,row.id):null;
   return {
+    saved_meal_id:saved?.id??null,
     modelCommentId: row.status==="ready"&&JSON.stringify(revisionBefore)===JSON.stringify(revisionAfter)?revisionAfter?.modelCommentId??null:null,
     analysisFingerprint:row.status==="ready"&&JSON.stringify(revisionBefore)===JSON.stringify(revisionAfter)?revisionAfter?.fingerprint??null:null,
     day: zone ? dateInZone(row.eaten_at, zone) : undefined,
