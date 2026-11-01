@@ -3,8 +3,8 @@ import {localDate,localDateStart,parseSearchDates,searchZone} from "./dates";
 import type {SupabaseClient} from "@supabase/supabase-js";
 import {createResponse} from "@/lib/meta/client";
 import {searchQueryPrompt,searchQuerySchema} from "@/lib/prompts/spark/search-query";
-import {getPostCard,type FeedPost} from "@/lib/posts/feed";
-import {hasSemanticOperator,SEARCH_HYDRATE_CONCURRENCY,SEARCH_PAGE_SIZE,stripQuestionWords} from "./operators";
+import {getPostCards,type FeedPost} from "@/lib/posts/feed";
+import {hasSemanticOperator,SEARCH_PAGE_SIZE,stripQuestionWords} from "./operators";
 
 export type SearchResult={posts:FeedPost[];truncated:boolean};
 
@@ -14,11 +14,8 @@ async function run(db:SupabaseClient,query:Query,zone:string) {
   if(error) throw new Error("Search is unavailable.");
   const rows=(data??[]) as {id:string}[];
   const page=rows.slice(0,SEARCH_PAGE_SIZE);
-  // Hydrate a few cards at a time: each card is several table reads.
-  const posts:(FeedPost|null)[]=[];
-  for(let start=0;start<page.length;start+=SEARCH_HYDRATE_CONCURRENCY)
-    posts.push(...await Promise.all(page.slice(start,start+SEARCH_HYDRATE_CONCURRENCY).map(row=>getPostCard(db,row.id))));
-  return {posts:posts.filter((post):post is FeedPost=>post!==null),truncated:rows.length>SEARCH_PAGE_SIZE};
+  const posts = await getPostCards(db,page.map(row=>row.id),zone);
+  return {posts,truncated:rows.length>SEARCH_PAGE_SIZE};
 }
 export async function searchPosts(db:SupabaseClient,text:string,timeZone?:string):Promise<SearchResult> {
   const now=new Date();

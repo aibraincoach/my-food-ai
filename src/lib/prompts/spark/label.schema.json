@@ -1,0 +1,144 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "is_label",
+    "serving",
+    "per_serving",
+    "product_name",
+    "box"
+  ],
+  "properties": {
+    "is_label": {
+      "type": "boolean"
+    },
+    "serving": {
+      "anyOf": [
+        {
+          "type": "null"
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "amount",
+            "unit"
+          ],
+          "properties": {
+            "amount": {
+              "type": "number"
+            },
+            "unit": {
+              "type": "string",
+              "enum": [
+                "g",
+                "ml"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "per_serving": {
+      "anyOf": [
+        {
+          "type": "null"
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "kcal",
+            "protein_g",
+            "carbs_g",
+            "fat_g",
+            "fibre_g",
+            "sugar_g",
+            "sodium_mg"
+          ],
+          "properties": {
+            "kcal": {
+              "type": [
+                "number",
+                "null"
+              ]
+            },
+            "protein_g": {
+              "type": [
+                "number",
+                "null"
+              ]
+            },
+            "carbs_g": {
+              "type": [
+                "number",
+                "null"
+              ]
+            },
+            "fat_g": {
+              "type": [
+                "number",
+                "null"
+              ]
+            },
+            "fibre_g": {
+              "type": [
+                "number",
+                "null"
+              ]
+            },
+            "sugar_g": {
+              "type": [
+                "number",
+                "null"
+              ]
+            },
+            "sodium_mg": {
+              "type": [
+                "number",
+                "null"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "product_name": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "box": {
+      "anyOf": [
+        {
+          "type": "null"
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "x",
+            "y",
+            "w",
+            "h"
+          ],
+          "properties": {
+            "x": {
+              "type": "number"
+            },
+            "y": {
+              "type": "number"
+            },
+            "w": {
+              "type": "number"
+            },
+            "h": {
+              "type": "number"
+            }
+          }
+        }
+      ]
+    }
+  }
+}
