@@ -72,8 +72,9 @@ export async function getDays(supabase: SupabaseClient, userId: string, zone: st
       for (const entry of loaded) {
         if (!entry) continue;
         const { date, post } = entry;
-        const day = groups.get(date) ?? { date, posts: [], totals: sumNutrition([]), intake: emptyIntake() };
-        day.posts.push(post); day.totals = sumNutrition([day.totals, post.totals]); groups.set(date, day);
+        const day = groups.get(date);
+        if (day) { day.posts.push(post); day.totals = sumNutrition([day.totals, post.totals]); }
+        else groups.set(date, { date, posts: [post], totals: post.totals, intake: emptyIntake() });
       }
     }
     if ((data?.length ?? 0) < 100) break;
