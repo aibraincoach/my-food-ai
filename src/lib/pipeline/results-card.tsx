@@ -1,4 +1,4 @@
-import { unavailableFoods } from "@/lib/nutrition/totals";
+import { readCardData } from "./card-data";
 import { ioError } from "@/lib/worker/errors";
 import { ImageResponse } from "next/og";
 import { readFile } from "node:fs/promises";
@@ -8,9 +8,9 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { ResultsCard } from "@/components/ResultsCard";
 import { tokens } from "@/lib/theme/tokens";
 import { isOwnedGeneratedCardPath } from "@/lib/media/paths";
-import { normalizeStoredNutrition, sumNutrition, toNumber, type CurrentItem } from "@/lib/nutrition/totals";
+import { normalizeStoredNutrition, type CurrentItem } from "@/lib/nutrition/totals";
 
-import { getDrinkCardData, type DrinkCardData } from "@/lib/intake/hydration";
+import { type DrinkCardData } from "@/lib/intake/hydration";
 
 type Snapshot = {
   user_id: string;
@@ -35,14 +35,15 @@ export async function renderResultsCard(admin: SupabaseClient, postId: string, j
   const snapshot = data as Snapshot | null;
   if (!snapshot || snapshot.items.some(({ nutrition }) => !nutrition)) return false;
   const nutrition = snapshot.items.map(({ item, nutrition }) => ({...normalizeStoredNutrition(nutrition!, item.portion_grams),name:item.name}));
-  const totals = sumNutrition(nutrition);
-  const drink = variant ?? await getDrinkCardData(admin, snapshot.user_id, postId, zone);
+  const cardData = await readCardData(admin, snapshot.user_id, { id: postId, eaten_at: snapshot.eaten_at,
+    items: snapshot.items.map(({item}, index) => ({ ...item, ...nutrition[index] })) }, zone);
+  // The single card-data read resolves both ordinary meals and drink variants.
+  // Keep the existing optional argument ABI for model-free drink callers.
+  void variant;
   const [light, regular, medium, semibold] = await fonts();
   const size = tokens.card.outputSize;
-  const response = new ImageResponse(<ResultsCard unavailable={unavailableFoods(totals)}
-    size={size} fontFamily="Manrope" drink={drink}
-    calories={totals.calories} protein={totals.protein_g} carbs={totals.carbs_g} fat={totals.fat_g}
-    items={snapshot.items.map(({ item }) => ({ name: item.name, grams: item.portion_grams == null ? null : toNumber(item.portion_grams) }))}
+  const response = new ImageResponse(<ResultsCard data={cardData}
+    size={size} fontFamily="Manrope"
   />, { width: size, height: size, fonts: [
     { name: "Manrope", data: light, weight: 300, style: "normal" },
     { name: "Manrope", data: regular, weight: 400, style: "normal" },

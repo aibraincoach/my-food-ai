@@ -32,7 +32,7 @@ function requestDrink(postId: string, zone: string): Promise<DrinkCardData | nul
   });
 }
 
-export function useDrinkCard(postId: string, status: string, eatenAt: string): DrinkCardData | null {
+export function useDrinkCard(postId: string, status: string, eatenAt: string, initial?: DrinkCardData | null): DrinkCardData | null {
   const [value, setValue] = useState<{ id: string; drink: DrinkCardData | null } | null>(null);
   useEffect(() => {
     if (status !== "ready") return;
@@ -63,9 +63,11 @@ export function useDrinkCard(postId: string, status: string, eatenAt: string): D
     window.addEventListener("post-ready", refresh);
     window.addEventListener("online", refresh);
     document.addEventListener("visibilitychange", visible);
-    void read();
+    // Feed/detail hydration was read in the page batch. Refresh it on an event,
+    // rather than immediately issuing the same day read again for each mount.
+    if (initial === undefined) void read();
     return () => { active = false; clearTimeout(timer); window.removeEventListener("post-created", refresh); window.removeEventListener("post-ready", refresh);
       window.removeEventListener("online", refresh); document.removeEventListener("visibilitychange", visible); };
-  }, [postId, status, eatenAt]);
-  return value?.id === postId ? value.drink : null;
+  }, [postId, status, eatenAt, initial]);
+  return value?.id === postId ? value.drink : initial ?? null;
 }
