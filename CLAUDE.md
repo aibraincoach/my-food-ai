@@ -13,6 +13,12 @@ Hackathon project: My Food AI. PM contract: [docs/pm-contract.md](docs/pm-contra
 
 Review tooling is ported from [naval-association-calgary](https://github.com/aibraincoach/naval-association-calgary) (PPLX runner, review policy shape) and burn-centre-translator / calgarysalutes-website (AGY delivery script, Firefox helper).
 
+## Current post–Run 5 handoff, November 1
+
+Production remains `14c83c746bef064946fc6a1d75cc32c7c5b42841`. [Owner report](docs/post-run5-owner-report.md) records the fresh 20/20 load pass (median 144.50 s, max 307.47 s), account counts, owner-meal audit, variable reference/portion explanations, retained 9/10 identification failure and uncorrelated reservation timeout. Closed under the latest owner order: #67, #172, #173, #185–#188, #191, #195, #213, #214, #219, #220. Reopened #11/#22; #212 stays open for physical-phone acceptance.
+
+Fix #269 exact `c54525b1bd1c8985866f7fe840411be274822719` has build PASS, 353/353 tests across 127 files, and external Gemini BLOCKERS: NONE. It is **not merged or deployed** and awaits planner evaluation and a named exact-head merge order. Earlier #267/#268 merges relied on an overbroad interpretation of “authority for the whole job”; no separate named order existed. Do not repeat that interpretation. Docs #266 remains open and also needs its own merge order. The Wall row's original pushed commit is `fd4563ac87b68623117fbd931deea030beba2df1`.
+
 ## Work
 
 Branch from `origin/main`; never commit directly on `main`. One PR per change. Docs-only PRs (only `docs/`, `skills/`, and root `*.md` policy files) need no PPLX/AGY/Codex review.
