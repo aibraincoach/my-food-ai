@@ -1,5 +1,7 @@
 # Production demonstration evidence
 
+Follow-up: the [verified uncut 51.3-second rehearsal](demo-rehearsal.md) is timed separately. The two runs below remain historical functional evidence.
+
 Two actual native-browser sequences ran on production on 2026-10-31, using the configured test account, the merged #203 session helper and real capture, upload, editing, question and navigation controls. Chromium CDP used a 390×844 touch viewport; no Playwright, fabricated DOM or seeded analysis outcome was used. Camera and notification permissions were denied. Existing test subscriptions were checked before posting. No manual job tick or retry was used by the controller.
 
 These are functional runs, not sub-three-minute recorded rehearsals. Run 1 required substantial controller recovery and exposed application defects; its history is retained. Run 2 repeated the available sequence on a single final runtime. Physical-phone camera/flip/shutter, installed-iPhone layout, real push delivery and original-designer-frame comparisons remain unproven: no phone or original frame assets were available. Gallery selection is an actual fallback, not evidence of a working physical camera.

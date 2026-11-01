@@ -147,6 +147,8 @@ It replays a photo clarification with zero existing items and a portion correcti
 
 ## Production verification
 
+Current follow-up: [production meal latency](docs/production-performance.md), [timed uncut demo](docs/demo-rehearsal.md), and [owner phone checks](docs/phone-acceptance.md).
+
 [Ten licensed meal photos and visual adjudication](docs/eval.md), [two UI demonstration runs and limits](docs/demo.md), and [production drain evidence](docs/load-test.md), and [closed-issue acceptance](docs/closed-issue-acceptance.md) distinguish tested runtime commits from later documentation merges.
 
 
