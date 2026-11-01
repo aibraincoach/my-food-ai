@@ -19,23 +19,34 @@ create or replace view public.current_post_items with (security_invoker=true) as
 grant select on public.current_post_items to authenticated,service_role;
 alter table public.model_calls drop constraint model_calls_kind_check;
 alter table public.model_calls add constraint model_calls_kind_check check (kind in ('sam','spark_identify','spark_correct','spark_same_meal','spark_search','fdc','transcribe','spark_label','spark_remainder'));
+alter table public.posts add column render_time_zone text;
+alter table public.post_upload_drafts add column render_time_zone text;
+create function public.guard_render_time_zone() returns trigger language plpgsql set search_path=public,pg_temp as $$
+begin
+ if current_user in ('authenticated','anon') and ((tg_op='INSERT' and new.render_time_zone is not null) or (tg_op='UPDATE' and new.render_time_zone is distinct from old.render_time_zone)) then raise exception 'Card capture zone is server-owned' using errcode='42501';end if;
+ if new.render_time_zone is not null and not exists(select 1 from pg_timezone_names where name=new.render_time_zone) then raise exception 'Invalid card time zone' using errcode='22023';end if;
+ return new;
+end $$;
+create trigger posts_render_time_zone before insert or update of render_time_zone on public.posts for each row execute function public.guard_render_time_zone();
+create trigger draft_render_time_zone before insert or update of render_time_zone on public.post_upload_drafts for each row execute function public.guard_render_time_zone();
 alter table public.post_upload_drafts add column not_eaten_position integer check (not_eaten_position is null or not_eaten_position between 1 and 7);
 
 -- Reserve the flags in the same transaction as the upload capability. The old
 -- six-argument function remains available to clients deployed before this run.
-create function public.reserve_post_upload_with_options(p_operation_id uuid,p_user_id uuid,p_caption text,p_eaten_at timestamptz,p_shots jsonb,p_location jsonb,p_not_eaten_position integer,p_save_as_meal boolean)
+create function public.reserve_post_upload_with_options(p_operation_id uuid,p_user_id uuid,p_caption text,p_eaten_at timestamptz,p_shots jsonb,p_location jsonb,p_not_eaten_position integer,p_save_as_meal boolean,p_render_zone text default null)
 returns jsonb language plpgsql security definer set search_path=public,pg_temp as $$
 declare result jsonb;
 begin
+ if p_render_zone is not null and not exists(select 1 from pg_timezone_names where name=p_render_zone) then raise exception 'Invalid capture time zone' using errcode='22023';end if;
  if p_not_eaten_position is not null and (p_not_eaten_position<1 or p_not_eaten_position>=jsonb_array_length(p_shots)) then raise exception 'The first photo cannot be not eaten' using errcode='22023';end if;
  result:=public.reserve_post_upload(p_operation_id,p_user_id,p_caption,p_eaten_at,p_shots,p_location);
  if not coalesce((result->>'published')::boolean,false) then
-  update public.post_upload_drafts set not_eaten_position=p_not_eaten_position,save_as_meal=coalesce(p_save_as_meal,false) where id=p_operation_id and user_id=p_user_id and not published;
+  update public.post_upload_drafts set render_time_zone=coalesce(render_time_zone,p_render_zone),not_eaten_position=p_not_eaten_position,save_as_meal=coalesce(p_save_as_meal,false) where id=p_operation_id and user_id=p_user_id and not published;
  end if;
  return result;
 end $$;
-revoke all on function public.reserve_post_upload_with_options(uuid,uuid,text,timestamptz,jsonb,jsonb,integer,boolean) from public,anon,authenticated;
-grant execute on function public.reserve_post_upload_with_options(uuid,uuid,text,timestamptz,jsonb,jsonb,integer,boolean) to service_role;
+revoke all on function public.reserve_post_upload_with_options(uuid,uuid,text,timestamptz,jsonb,jsonb,integer,boolean,text) from public,anon,authenticated;
+grant execute on function public.reserve_post_upload_with_options(uuid,uuid,text,timestamptz,jsonb,jsonb,integer,boolean,text) to service_role;
 alter function public.publish_uploaded_post(uuid,uuid) rename to publish_uploaded_post_before_not_eaten;
 create function public.publish_uploaded_post(p_operation_id uuid,p_user_id uuid) returns uuid
 language plpgsql security definer set search_path=public,pg_temp as $$
@@ -45,11 +56,12 @@ begin
  select * into d from public.post_upload_drafts where id=p_operation_id and user_id=p_user_id for update;
  if not found then raise exception 'Draft not found' using errcode='42501';end if;
  result:=public.publish_uploaded_post_before_not_eaten(p_operation_id,p_user_id);
+ if not d.published then update public.posts set render_time_zone=d.render_time_zone where id=result;end if;
  if not d.published and d.not_eaten_position is not null then
   update public.post_media set not_eaten=true where post_id=result and position=d.not_eaten_position and kind='photo';
   if not found then raise exception 'Not-eaten photo was not uploaded' using errcode='22023';end if;
  end if;
- update public.post_upload_drafts set not_eaten_position=null where id=result;
+ update public.post_upload_drafts set not_eaten_position=null,render_time_zone=null where id=result;
  return result;
 end $$;
 revoke all on function public.publish_uploaded_post(uuid,uuid),public.publish_uploaded_post_before_not_eaten(uuid,uuid) from public,anon,authenticated;
@@ -161,6 +173,7 @@ declare row public.post_photo_attachments; current_status text; pos integer; cle
 begin
  select status into current_status from public.posts where id=p_post_id and user_id=p_user_id for update;
  if not found then raise exception 'Post not found' using errcode='42501';end if;
+ if exists(select 1 from public.intake_logs where post_id=p_post_id) then raise exception 'Drink amounts were recorded when posted' using errcode='55000';end if;
  select * into row from public.post_photo_attachments where stage_path=p_stage_path for update;
  if found then
   if row.post_id<>p_post_id or row.user_id<>p_user_id or row.not_eaten<>p_not_eaten then raise exception 'Photo already claimed' using errcode='22023';end if;

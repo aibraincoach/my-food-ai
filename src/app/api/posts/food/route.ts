@@ -1,3 +1,5 @@
+import {cookies} from "next/headers";
+import {validZone} from "@/lib/posts/days";
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -18,6 +20,7 @@ export async function POST(request: Request) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: "Sign in required." }, { status: 401 });
+  const timeZone=validZone((await cookies()).get("time-zone")?.value);
   const body = await request.json().catch(() => null) as { fdc_id?: unknown; query?: unknown; eaten_at?: unknown; gtin?: unknown; amount?: unknown; unit?: unknown; photo?: unknown; nutrition?: unknown; label_reading_id?: unknown; servings?: unknown; name?: unknown } | null;
   if (body && Object.hasOwn(body, "nutrition")) return NextResponse.json({ error: "Nutrition is resolved by the server." }, { status: 400 });
   if(body?.label_reading_id !== undefined){
@@ -40,7 +43,7 @@ export async function POST(request: Request) {
         const {error:saveError}=await admin.from("barcode_corrections").upsert({gtin,user_id:user.id,name,source:"label",serving_amount:reading.serving!.amount,serving_unit:reading.serving!.unit,per_100:{calories,...Object.fromEntries(["protein_g","carbs_g","fat_g","fibre_g","sugar_g","sodium_mg"].map(key=>[key,rest[key as keyof typeof rest]]))},updated_at:new Date().toISOString()},{onConflict:"gtin,user_id"});
         if(saveError)return NextResponse.json({error:"The post was saved, but the barcode correction could not be kept. Retry to keep it."},{status:503});
       }
-      await markReady(data as string,admin,undefined,{notify:false});
+      await markReady(data as string,admin,undefined,{notify:false,timeZone});
       return NextResponse.json({post_id:data},{status:201});
     }catch{return NextResponse.json({error:"A readable serving and nutrition panel are required."},{status:400});}
   }
@@ -67,7 +70,7 @@ export async function POST(request: Request) {
       if (photo) args.p_photo = photo;
       const { data, error } = await createAdminClient().rpc("create_food_post", args);
       if (error) return NextResponse.json({ error: error.code?.startsWith("22") ? "The pack photo or portion could not be saved." : "The meal could not be saved." }, { status: error.code?.startsWith("22") ? 400 : 500 });
-      await markReady(data as string,createAdminClient(),undefined,{notify:false});
+      await markReady(data as string,createAdminClient(),undefined,{notify:false,timeZone});
       return NextResponse.json({ post_id: data as string }, { status: 201 });
     } catch (error) {
       return NextResponse.json({ error: "Barcode lookup is temporarily unavailable." }, { status: error instanceof ApiError && error.status === 429 ? 429 : 502 });
@@ -88,6 +91,7 @@ export async function POST(request: Request) {
       p_nutrition: { calories: n.calories, protein_g: n.proteinG, carbs_g: n.carbsG, fat_g: n.fatG, fibre_g: n.fibreG, sugar_g: n.sugarG, sodium_mg: n.sodiumMg, micronutrients: n.micronutrients, source_ref: n.sourceRef } });
     if (error?.code === "42501") return NextResponse.json({ error: "Sign in required." }, { status: 401 });
     if (error) return NextResponse.json({ error: error.code?.startsWith("22") ? "That food could not be logged." : "The meal could not be saved." }, { status: error.code?.startsWith("22") ? 400 : 500 });
+    await markReady(data as string,admin,undefined,{notify:false,timeZone});
     return NextResponse.json({ post_id: data as string }, { status: 201 });
   } catch (error) {
     return NextResponse.json({ error: "Food search is temporarily unavailable." }, { status: error instanceof ApiError && error.status === 429 ? 429 : 502 });

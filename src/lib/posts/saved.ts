@@ -33,12 +33,12 @@ export async function savePost(db:SupabaseClient,postId:string) {
  if(error||typeof data!=='string')throw new Error('The meal could not be saved.');
  return {id:data,name};
 }
-export async function logMeal(db:SupabaseClient,admin:SupabaseClient,id:string,eatenAt:unknown,saved:boolean) {
+export async function logMeal(db:SupabaseClient,admin:SupabaseClient,id:string,eatenAt:unknown,saved:boolean,timeZone?:string) {
  const time=validEatenAt(eatenAt);
  if(!time)throw new Error('Choose a valid time eaten.');
  const {data,error}=await db.rpc(saved?'log_saved_meal':'log_post_again',saved?{p_id:id,p_eaten_at:time}:{p_post_id:id,p_eaten_at:time});
  if(error||typeof data!=='string')throw new Error('The meal could not be logged.');
  // The function already committed an exact nutrition copy; card rendering cannot undo it.
- try{await renderResultsCard(admin,data);}catch{console.error('Copied meal card could not be rendered.');}
+ try{await renderResultsCard(admin,data,undefined,undefined,timeZone);}catch{console.error('Copied meal card could not be rendered.');}
  return {postId:data};
 }

@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {spawnSync} from 'node:child_process';
 import {user} from './db/helpers.mjs';
+import {readCardData} from '../src/lib/pipeline/card-data.ts';
 import {remainderRule} from '../src/lib/pipeline/remainder-rule.ts';
 const estimate=(remaining,counts={})=>({index:0,remaining_grams:remaining,total_count:null,remaining_count:null,unit:null,...counts});
 test('not-eaten difference clamps the photographed amount and preserves count records',()=>{
@@ -13,6 +14,13 @@ test('not-eaten difference clamps the photographed amount and preserves count re
  assert.equal(remainderRule(100,estimate(25)).notEatenText,'25 g');
  assert.equal(remainderRule(100,estimate(25,{total_count:2,remaining_count:3,unit:'pieces'})).countText,null);
  assert.throws(()=>remainderRule(Number.NaN,estimate(10)));
+});
+test('the stored-card snapshot preserves known uneaten calories when all of a food was not eaten',async()=>{
+ const parent={id:'original',portion_grams:100,item_nutrition:[{post_item_id:'original',calories:500,protein_g:10,carbs_g:60,fat_g:20,fibre_g:1,sugar_g:1,sodium_mg:5,micronutrients:[],source_ref:null}]};
+ const db={from(table){let chain;chain=new Proxy({}, {get(_target,key){if(key==='then')return resolve=>resolve({data:table==='post_items'?[parent]:[],error:null});return()=>chain;}});return chain;}};
+ const data=await readCardData(db,'owner',{id:'copy',eaten_at:'2026-11-01T08:00:00Z',items:[{id:'current',name:'Food',portion_grams:0,calories:0,protein_g:0,carbs_g:0,fat_g:0,fibre_g:0,sugar_g:0,sodium_mg:0,micronutrients:[],supersedes:'original',not_eaten_grams:100,not_eaten_count_text:null}]});
+ assert.equal(data.kcal,0);
+ assert.equal(data.footer,'Not eaten: 100 g · 500 kcal');
 });
 test('not-eaten revision keeps history, exact nutrition, retry idempotency and owner access',async()=>{
  assert.ok(process.env.SUPABASE_DB_URL,'SUPABASE_DB_URL is required');

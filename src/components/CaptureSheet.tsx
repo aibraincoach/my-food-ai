@@ -363,7 +363,7 @@ export default function CaptureSheet({ onClose, initialMode = "photo", forPost, 
     URL.revokeObjectURL(shot.previewUrl);
     shotsRef.current = shotsRef.current.filter((_, i) => i !== index);
     setShots(shotsRef.current);
-    setNotEaten(value=>value===index?null:value!==null&&value>index?value-1:value);setPhotoIndex(value=>Math.max(0,Math.min(value,shotsRef.current.length-1)));
+    setNotEaten(value=>{const next=value===index?null:value!==null&&value>index?value-1:value;return next!==null&&next>0?next:null;});setPhotoIndex(value=>Math.max(0,Math.min(value,shotsRef.current.length-1)));
     if (!shotsRef.current.length && !pendingFilesRef.current.length) selectedPhotoRef.current = false;
   };
 
