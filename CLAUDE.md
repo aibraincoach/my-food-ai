@@ -21,6 +21,10 @@ Code PRs: PPLX first (`skills/pplx-review/SKILL.md`), AGY second, Codex third pe
 
 Never commit secrets; use `.env.example` only. Prior Supabase wipe notes: [docs/database-before-wipe.md](docs/database-before-wipe.md).
 
+## Run 5 dispatch — built, not deployed
+
+The owner-supplied Run 5 plan is preserved unchanged in [docs/plan.md](docs/plan.md), with Run 3 archived in [docs/plan-run3.md](docs/plan-run3.md). Code PRs #259–#265 are built and independently reviewed; [the execution report](docs/run5-execution.md) records exact heads, tests, page comparisons, false premises and remaining acceptance. Docs PR #266 is last. No new migration or Run 5 merge has been performed; the earlier #235-only execution order is historical. New-schema acceptance and item 7 wait for explicit PR-and-SHA orders and the plan's numeric migration sequence. The separate updated backlog is in PR #258. Do not treat this note or the plan as a standing merge order.
+
 ## PM handover
 
 Reconcile documents, commit on the document branch, then `skills/pm-handover/scripts/pack.sh`. The handover text is the reply; zip output goes under `uploads/` (gitignored). Dispatch shape and technical ownership follow the current PM and planner contracts linked above.

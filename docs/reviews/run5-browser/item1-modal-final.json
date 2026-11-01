@@ -1,0 +1,21 @@
+{
+  "sourceHead": "d78ce82fe72e0f7298ef4d05f469d1a71bbb5b92",
+  "privacy": "Only geometry, booleans and summary copy retained; no image files saved.",
+  "intake": {
+    "closeButtons": [
+      null
+    ],
+    "pillZ": null,
+    "homeHit": true
+  },
+  "home": {
+    "path": "/",
+    "dialog": false,
+    "overflow": null
+  },
+  "captureBack": {
+    "path": "/",
+    "dialog": false,
+    "overflow": null
+  }
+}

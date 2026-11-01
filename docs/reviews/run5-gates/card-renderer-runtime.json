@@ -1,0 +1,49 @@
+{
+  "head": "9ca8cf6894f4f948a9da051165d9c40bbbd9a16b",
+  "renderer": "real next/og ImageResponse, ResultsCard, four local Manrope TTF weights; memory-only PNGs",
+  "results": [
+    {
+      "name": "water",
+      "pass": true,
+      "pngSignature": true,
+      "width": 1080,
+      "height": 1080,
+      "bytes": 57759,
+      "footer": null,
+      "waterLine": null
+    },
+    {
+      "name": "coffee",
+      "pass": true,
+      "pngSignature": true,
+      "width": 1080,
+      "height": 1080,
+      "bytes": 68087,
+      "footer": null,
+      "waterLine": null
+    },
+    {
+      "name": "foodWater",
+      "pass": true,
+      "pngSignature": true,
+      "width": 1080,
+      "height": 1080,
+      "bytes": 53011,
+      "footer": null,
+      "waterLine": "Water in this meal: 360 ml · Consumed today: 1,810 ml"
+    },
+    {
+      "name": "fullyNotEaten",
+      "pass": true,
+      "pngSignature": true,
+      "width": 1080,
+      "height": 1080,
+      "bytes": 51136,
+      "footer": "Not eaten: 3 slices · 990 kcal",
+      "waterLine": null
+    }
+  ],
+  "externalNetworkAttempts": 0,
+  "inlineWasmReads": 1,
+  "pass": true
+}

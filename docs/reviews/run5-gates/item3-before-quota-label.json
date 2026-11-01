@@ -1,0 +1,33 @@
+{
+  "head": "7d1692924ddf14d5249a854ab1a3e21bd1912b2e",
+  "fixture": "scripts/fixtures/label.png",
+  "calls": [
+    {
+      "status": 200
+    }
+  ],
+  "reading": {
+    "box": {
+      "h": 0.851,
+      "w": 0.688,
+      "x": 0.162,
+      "y": 0.04
+    },
+    "is_label": true,
+    "per_serving": {
+      "carbs_g": 37,
+      "fat_g": 8,
+      "fibre_g": 4,
+      "kcal": 230,
+      "protein_g": 3,
+      "sodium_mg": 160,
+      "sugar_g": 12
+    },
+    "product_name": null,
+    "serving": {
+      "amount": 55,
+      "unit": "g"
+    }
+  },
+  "pass": true
+}

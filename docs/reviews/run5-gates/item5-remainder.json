@@ -1,0 +1,55 @@
+{
+  "head": "b649bbce507eb1c36d55e1af71c0429a81b3d82d",
+  "original": "eval/photos/10.jpg",
+  "fixture": "scripts/fixtures/plate2.jpg",
+  "fixtureCorrection": "The planned plate1.jpg reference is an empty plate. The original is the licensed meal photograph also used by plate2.jpg.",
+  "calls": [
+    {
+      "status": 200
+    },
+    {
+      "status": 200
+    }
+  ],
+  "reference": [
+    {
+      "index": 0,
+      "name": "Yorkshire pudding",
+      "grams": 80
+    },
+    {
+      "index": 1,
+      "name": "Sliced roast meat with brown gravy",
+      "grams": 250
+    },
+    {
+      "index": 2,
+      "name": "Savoury stuffing",
+      "grams": 90
+    }
+  ],
+  "output": [
+    {
+      "index": 0,
+      "remaining_count": 2,
+      "remaining_grams": 80,
+      "total_count": 2,
+      "unit": "puddings"
+    },
+    {
+      "index": 1,
+      "remaining_count": 10,
+      "remaining_grams": 250,
+      "total_count": 10,
+      "unit": "slices"
+    },
+    {
+      "index": 2,
+      "remaining_count": null,
+      "remaining_grams": 90,
+      "total_count": null,
+      "unit": null
+    }
+  ],
+  "pass": true
+}
