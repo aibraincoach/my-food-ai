@@ -34,7 +34,7 @@ export default function BottomBar({ onPlus, menuOpen = false }: { onPlus: () => 
     {link(SLOTS[0])}{link(SLOTS[1])}
     <div className="relative flex h-[46px] items-center justify-center">
       {pathname==='/'&&feedEmpty&&<div className="pointer-events-none absolute bottom-full left-1/2 -translate-x-1/2 whitespace-nowrap pb-4"><Tooltip>Photograph a meal</Tooltip></div>}
-      <button type="button" id="post-menu-toggle" aria-label={menuOpen?'Close post menu':'Post a meal'} aria-expanded={menuOpen} aria-controls="post-menu" onClick={()=>{dismissSheets();onPlus();}} className="flex size-[34px] items-center justify-center rounded-circle border-[1.5px] border-text text-text active:opacity-50"><Icon name="plus" size={20} style={{transform:`rotate(${menuOpen?45:0}deg)`,transition:'transform 160ms'}} /></button>
+      <button type="button" id="post-menu-toggle" aria-label={menuOpen?'Close post menu':'Post a meal'} aria-expanded={menuOpen} aria-controls="post-menu" onClick={()=>{if(!menuOpen)dismissSheets();onPlus();}} className="flex size-[34px] items-center justify-center rounded-circle border-[1.5px] border-text text-text active:opacity-50"><Icon name="plus" size={20} style={{transform:`rotate(${menuOpen?45:0}deg)`,transition:'transform 160ms'}} /></button>
     </div>
     {link(SLOTS[2])}{link(SLOTS[3])}
   </nav>;

@@ -81,7 +81,7 @@ export default function PostCard({ post, showDate = false }: { post: FeedPost; a
     <PostActions postId={post.id} modelCommentId={post.modelCommentId??null} fingerprint={post.analysisFingerprint??null} drink={hasDrink} saved={Boolean(record.saved_meal_id)} slides={drink?1:post.slides?.length??1} index={slide}/>
     <div className="flex flex-col gap-1 px-inset pt-[10px]">
       <PostCaption handle={handle} caption={post.caption}/>
-      {post.status==='ready'&&post.items.length>0 ? <Link href={`/posts/${post.id}`} className="text-detail leading-[1.4] text-muted">{summaryLine(displayRecord,drink)} <span className="text-text">more</span></Link> : <StatusLine post={post}/>}
+      {post.status==='ready'&&post.items.length>0 ? <Link href={`/posts/${post.id}`} className="flex min-w-0 items-baseline gap-1 text-detail leading-[1.4] text-muted"><span className="min-w-0 flex-1 truncate">{summaryLine(displayRecord,drink)}</span><span className="shrink-0 text-text">more</span></Link> : <StatusLine post={post}/>}
       <time dateTime={post.eaten_at} className="text-meta text-muted">{showDate ? localDate : localClock}</time>
     </div>
   </article>;
