@@ -1,12 +1,13 @@
 'use client';
-import {useRef,useState} from 'react';
+import {useRef,useState,useSyncExternalStore} from 'react';
 import {Sheet} from './ui/Sheet';
 import {Button} from './ui/Button';
 import type {SavedMeal} from '@/lib/posts/saved';
 export type LogTarget={id:string;name:string;saved:boolean;thumbnail?:string|null;items?:SavedMeal['items'];firstPostAt?:string|null};
 export default function LogAgainSheet({target,onClose,onPosted}:{target:LogTarget|null;onClose:()=>void;onPosted:()=>void}){
  const [mode,setMode]=useState('now'); const [time,setTime]=useState('');const [date,setDate]=useState('');const [busy,setBusy]=useState(false);const [error,setError]=useState('');const lock=useRef(false);
- const now=new Date(); const current=now.toLocaleTimeString([],{hour:'numeric',minute:'2-digit'});
+ const mounted=useSyncExternalStore(()=>()=>{},()=>true,()=>false);
+ const now=mounted?new Date():new Date(0); const current=now.toLocaleTimeString([],{hour:'numeric',minute:'2-digit'});
  const chips:string[]=[]; const first=target?.firstPostAt?new Date(target.firstPostAt):null;
  const start=first?first.getHours()*60+Math.floor(first.getMinutes()/30)*30:0;
  for(let m=start;m<=Math.floor((now.getHours()*60+now.getMinutes())/30)*30;m+=30)chips.push(`${String(Math.floor(m/60)).padStart(2,'0')}:${String(m%60).padStart(2,'0')}`);

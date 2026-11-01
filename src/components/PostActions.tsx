@@ -8,7 +8,7 @@ export default function PostActions({postId,modelCommentId,fingerprint,drink=fal
     {!drink && <ThumbsFeedback postId={postId} modelCommentId={modelCommentId} fingerprint={fingerprint} compact />}
     <Link href={`/posts/${postId}?reply=1`} aria-label="Comment or correct" className="flex h-tap items-center active:opacity-50"><Icon name="comment" /></Link>
     <button type="button" aria-label="Log again" className="flex h-tap items-center active:opacity-50" onClick={()=>postAction('log-again',postId)}><Icon name="log-again" /></button>
-    {slides>1&&<div className="pointer-events-none absolute left-1/2 flex -translate-x-1/2 gap-[5px]" aria-hidden="true">{Array.from({length:slides},(_,i)=><span key={i} className={`size-[6px] rounded-circle ${i===index?'bg-text':'bg-ring'}`} />)}</div>}
+    {slides>1&&<div className="pointer-events-none flex min-w-0 flex-1 items-center justify-center gap-[5px] overflow-hidden" aria-hidden="true">{Array.from({length:slides},(_,i)=><span key={i} className={`size-[6px] rounded-circle ${i===index?'bg-text':'bg-ring'}`} />)}</div>}
     <button type="button" aria-label={saved?'Unsave meal':'Save meal'} aria-pressed={saved} className="ml-auto flex h-tap items-center active:opacity-50" onClick={()=>postAction('save-meal',postId)}><Icon name="bookmark" active={saved} /></button>
   </div>;
 }
