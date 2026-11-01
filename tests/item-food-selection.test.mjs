@@ -15,8 +15,8 @@ test('selected FDC identity wins over first/ranked food and client nutrient forg
       if (table === 'post_comments') return { insert: async row => { notes.push(row); return { error: null }; } };
       assert.equal(table, 'fdc_cache');
       return { select: () => ({ eq: (_column, query) => {
-        assert.ok(['fdc-search-v2:rice'].includes(query));
-        return { maybeSingle: async () => ({ data: { response: {kind:'fdc-search-v2',query:'rice',payload:{foods}} }, error: null }) };
+        assert.ok(['fdc-search-v3:rice'].includes(query));
+        return { maybeSingle: async () => ({ data: { response: {kind:'fdc-search-v3',query:'rice',payload:{foods}} }, error: null }) };
       } }) };
     },
     rpc: async (name, args) => {
