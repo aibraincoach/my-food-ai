@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import {readFileSync} from 'node:fs';
 import {spawnSync} from 'node:child_process';
+import {createClient} from '@supabase/supabase-js';
 import {mergeProduct,productFromFood} from '../src/lib/fdc/barcode-product.ts';
 import {canonicalGtin,parseBarcodeCorrection} from '../src/lib/posts/barcode-correction.ts';
 import {labelNutrition,parseLabelReading} from '../src/lib/meta/label.ts';
@@ -23,47 +24,62 @@ test('label nutrition scales only the server-held reading and preserves unknown 
  assert.throws(()=>parseLabelReading({...reading,per_serving:{...reading.per_serving,kcal:-1}}));
  assert.throws(()=>labelNutrition({...reading,serving:null},1));
 });
-test('barcode corrections and label readings enforce owner access and three-author shared-name threshold',{skip:!process.env.SUPABASE_DB_URL},()=>{
+test('barcode corrections and label readings enforce owner access and withhold names with fewer than three authors',{skip:!process.env.SUPABASE_DB_URL},async()=>{
+ const users=[];
+ for(const prefix of ['TEST_USER','TEST_USER2']){
+  if(!process.env[`${prefix}_EMAIL`]||!process.env[`${prefix}_PASSWORD`])continue;
+  const client=createClient(process.env.NEXT_PUBLIC_SUPABASE_URL,process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY,{auth:{persistSession:false,autoRefreshToken:false}});
+  const {data,error}=await client.auth.signInWithPassword({email:process.env[`${prefix}_EMAIL`],password:process.env[`${prefix}_PASSWORD`]});assert.ifError(error);users.push(data.user.id);
+ }
+ assert.ok(users.length>=2,'Two configured test accounts are required.');
+ const code=String(Date.now()).padStart(14,'0');
  const script=`\\set ON_ERROR_STOP on
 begin;
 ${migration}
-select gen_random_uuid() as a,gen_random_uuid() as b,gen_random_uuid() as c \\gset
-insert into auth.users(id) values(:'a'),(:'b'),(:'c');
-insert into profiles(id,handle) values(:'a','bc-'||:'a'),(:'b','bc-'||:'b'),(:'c','bc-'||:'c');
+select '${users[0]}'::uuid as a,'${users[1]}'::uuid as b \\gset
 insert into label_readings(user_id,photo_path,reading) values(:'a',:'a'||'/photo.jpg','{}');
 select set_config('request.jwt.claims',jsonb_build_object('sub',:'a','role','authenticated')::text,true);
 set local role authenticated;
-insert into barcode_corrections(gtin,user_id,name,source) values('00016000275683',:'a','  Coffee  ','user');
-select count(*)=1 as owner_ok from barcode_corrections where user_id=:'a' \\gset
+insert into barcode_corrections(gtin,user_id,name,source) values('${code}',:'a','  Coffee  ','user');
+select count(*)=1 as owner_ok from barcode_corrections where user_id=:'a' and gtin='${code}' \\gset
 \\if :owner_ok
 \\else
 select 1/0 as owner_read_failed;
 \\endif
-select public.barcode_shared_name('00016000275683') is null as one_ok \\gset
+select public.barcode_shared_name('${code}') is null as one_ok \\gset
 \\if :one_ok
 \\else
 select 1/0 as one_vote_shared;
 \\endif
 select set_config('request.jwt.claims',jsonb_build_object('sub',:'b','role','authenticated')::text,true);
-select (select count(*)=0 from barcode_corrections where user_id=:'a') and (select count(*)=0 from label_readings) as hidden_ok \\gset
+select (select count(*)=0 from barcode_corrections where user_id=:'a' and gtin='${code}') and (select count(*)=0 from label_readings where photo_path=:'a'||'/photo.jpg') as hidden_ok \\gset
 \\if :hidden_ok
 \\else
 select 1/0 as cross_owner_read;
 \\endif
-insert into barcode_corrections(gtin,user_id,name,source) values('00016000275683',:'b','COFFEE','user');
-select public.barcode_shared_name('00016000275683') is null as two_ok \\gset
+insert into barcode_corrections(gtin,user_id,name,source) values('${code}',:'b','COFFEE','user');
+select public.barcode_shared_name('${code}') is null as two_ok \\gset
 \\if :two_ok
 \\else
 select 1/0 as two_votes_shared;
 \\endif
-select set_config('request.jwt.claims',jsonb_build_object('sub',:'c','role','authenticated')::text,true);
-insert into barcode_corrections(gtin,user_id,name,source) values('00016000275683',:'c','coffee','user');
-select public.barcode_shared_name('00016000275683')='coffee' as three_ok \\gset
-\\if :three_ok
-\\else
-select 1/0 as three_votes_not_shared;
-\\endif
 reset role;
+-- Run the actual sharing function's body against an isolated fixture relation.
+-- No third auth profile is created or impersonated in the connected project.
+create temporary table share_fixture(gtin text,user_id uuid,name text);
+select replace(replace(pg_get_functiondef('public.barcode_shared_name(text)'::regprocedure),'public.barcode_shared_name','pg_temp.fixture_shared_name'),'public.barcode_corrections','pg_temp.share_fixture') \\gexec
+insert into share_fixture values('fixture',gen_random_uuid(),' Coffee '),('fixture',gen_random_uuid(),'COFFEE');
+select pg_temp.fixture_shared_name('fixture') is null as isolated_two \\gset
+\\if :isolated_two
+\\else
+select 1/0 as fixture_two_shared;
+\\endif
+insert into share_fixture values('fixture',gen_random_uuid(),'coffee');
+select pg_temp.fixture_shared_name('fixture')='coffee' as isolated_three \\gset
+\\if :isolated_three
+\\else
+select 1/0 as fixture_three_not_shared;
+\\endif
 rollback;
 \\echo barcode_correction_access_passed`;
  const result=spawnSync('psql',['-X','-qAt','--dbname',process.env.SUPABASE_DB_URL],{input:script,encoding:'utf8',timeout:90000});assert.ifError(result.error);assert.equal(result.status,0,result.stderr);assert.match(result.stdout,/barcode_correction_access_passed/);
