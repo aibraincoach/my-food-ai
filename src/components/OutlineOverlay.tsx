@@ -1,5 +1,5 @@
 "use client";
-import { unavailableFoods } from "@/lib/nutrition/totals";
+import { unavailableFoods, sumMicronutrients } from "@/lib/nutrition/totals";
 
 import {LocalTime,useLocalTime} from "@/components/LocalTime";
 import { useEffect, useRef, useState, type CSSProperties, type PointerEvent } from "react";
@@ -12,6 +12,12 @@ import { useDrinkCard } from "@/components/useDrinkCard";
 import { ResultsCard } from "@/components/ResultsCard";
 import ItemRows, { outlineColor } from "@/components/ItemRows";
 import ItemEditSheet from "@/components/ItemEditSheet";
+import NutritionSummary from "@/components/NutritionSummary";
+import NutritionTable from "@/components/NutritionTable";
+import PostActions from "@/components/PostActions";
+import PostCaption from "@/components/PostCaption";
+import {usePostHandle} from "@/components/PostHandle";
+import type {ReactNode} from "react";
 
 export function DetailDate({ value, weekday = false }: { value: string; weekday?: boolean }) {
   return <LocalTime value={value} weekday={weekday} />;
@@ -35,10 +41,13 @@ function Mask({ url, photo, color, frame, fallback }: {
     : <div className="pointer-events-none absolute rounded-field" style={{ ...fallback, border: `${tokens.detail.outlineWidth}px solid ${color}` }} />;
 }
 
-export default function OutlineOverlay({ initialized, readOnly = false, postId, caption, eatenAt, status, photo, items }: {
-  initialized: boolean; readOnly?: boolean; postId: string; caption: string; eatenAt: string; status: string; photo: DetailPhoto | null; items: DetailItem[];
+export default function OutlineOverlay({ initialized, readOnly = false, postId, caption, eatenAt, status, photo, items, modelCommentId=null, fingerprint=null, saved=false, handle:providedHandle, children }: {
+  initialized: boolean; readOnly?: boolean; postId: string; caption: string; eatenAt: string; status: string; photo: DetailPhoto | null; items: DetailItem[]; modelCommentId?:string|null; fingerprint?:string|null; saved?:boolean; handle?:string; children?:ReactNode;
 }) {
   const router = useRouter();
+  const handle=usePostHandle(providedHandle);
+  const [expandedPhoto,setExpandedPhoto]=useState(false);
+  const [expandedNutrition,setExpandedNutrition]=useState(false);
   const drink = useDrinkCard(postId, status, eatenAt);
   const localTime = useLocalTime(eatenAt);
   const ref = useRef<HTMLDivElement>(null);
@@ -77,16 +86,17 @@ export default function OutlineOverlay({ initialized, readOnly = false, postId, 
     return () => { live = false; if (timer) clearInterval(timer); void supabase.removeChannel(channel); };
   }, [postId, status, waiting, router]);
 
-  const scale = photo ? Math.min(width / photo.width, width / photo.height) : 1;
+  const height=photo?(expandedPhoto?width:230):width;
+  const scale = photo ? Math.max(width / photo.width, height / photo.height) : 1;
   const offsetX = photo ? (width - photo.width * scale) / 2 : 0;
-  const offsetY = photo ? (width - photo.height * scale) / 2 : 0;
+  const offsetY = photo ? (height - photo.height * scale) / 2 : 0;
   const frame = photo ? { left: offsetX, top: offsetY, width: photo.width * scale, height: photo.height * scale } : {};
   const boxStyle = (box: ItemBox): CSSProperties => ({ left: offsetX + box.left * scale, top: offsetY + box.top * scale,
     width: (box.right - box.left) * scale, height: (box.bottom - box.top) * scale });
   const point = (event: { clientX: number; clientY: number }) => {
     if (!photo || !ref.current) return null;
     const rect = ref.current.getBoundingClientRect();
-    const ratio = Math.min(rect.width / photo.width, rect.height / photo.height);
+    const ratio = Math.max(rect.width / photo.width, rect.height / photo.height);
     const x = (event.clientX - rect.left - (rect.width - photo.width * ratio) / 2) / ratio;
     const y = (event.clientY - rect.top - (rect.height - photo.height * ratio) / 2) / ratio;
     return { x: Math.max(0, Math.min(photo.width, x)), y: Math.max(0, Math.min(photo.height, y)) };
@@ -113,19 +123,21 @@ export default function OutlineOverlay({ initialized, readOnly = false, postId, 
   const totals = sumNutrition(items);
   const showNutrition = initialized && (items.length > 0 || status === "ready");
   return <>
-    <div ref={ref} className="relative aspect-square w-full overflow-hidden bg-card" style={{ touchAction: drawing ? "none" : "auto" }}
+    <div ref={ref} className="relative w-full overflow-hidden bg-card" style={{ height, touchAction: drawing ? "none" : "auto" }}
       onPointerDown={pointerDown} onPointerMove={pointerMove} onPointerUp={pointerUp}
       onPointerCancel={() => { start.current = null; setDrawBox(null); }}
       onClick={(event) => {
-        if (readOnly || !initialized || drawing || !outlines || selection) return;
+        if (drawing || selection) return;
+        if(readOnly || !initialized || !outlines){setExpandedPhoto(value=>!value);return;}
         const p = point(event); if (!p) return;
         const hit = items.filter((item) => item.box && p.x >= item.box.left && p.x <= item.box.right && p.y >= item.box.top && p.y <= item.box.bottom)
           .sort((a, b) => (a.box!.right - a.box!.left) * (a.box!.bottom - a.box!.top) - (b.box!.right - b.box!.left) * (b.box!.bottom - b.box!.top))[0];
         if (hit) setSelection({ item: hit, key: Date.now() });
+        else setExpandedPhoto(value=>!value);
       }}>
       {photo ? <>
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={photo.url} alt={caption || "Meal photo"} draggable={false} className="h-full w-full object-contain" />
+        <img src={photo.url} alt={caption || "Meal photo"} draggable={false} className="h-full w-full object-cover" />
         {outlines && items.map((item, index) => item.box ? <div key={item.id}>
           <Mask url={item.maskUrl} photo={photo} color={outlineColor(index)} frame={frame} fallback={boxStyle(item.box)} />
           <button type="button" disabled={!initialized || readOnly} aria-label={`Edit ${item.name}`} className="absolute max-w-full rounded-chip py-grid text-label font-semibold text-white"
@@ -135,22 +147,25 @@ export default function OutlineOverlay({ initialized, readOnly = false, postId, 
           </button>
         </div> : null)}
         {drawBox ? <div className="pointer-events-none absolute rounded-field border-2 border-text" style={boxStyle(drawBox)} /> : null}
-        <button type="button" role="switch" aria-checked={outlines} aria-label="Outlines" className="absolute bottom-sheet-top right-sheet-top flex min-h-tap items-center gap-2 rounded-field bg-overlay px-tooltip-y text-meta text-white"
-          onClick={(event) => { event.stopPropagation(); setOutlines((value) => !value); }}>
-          Outlines <span className="relative rounded-circle" style={{ width: tokens.detail.switchWidth, height: tokens.detail.switchHeight, background: outlines ? tokens.colors.accent : tokens.colors.muted }}>
-            <span className="absolute rounded-circle bg-white" style={{ width: tokens.detail.switchKnob, height: tokens.detail.switchKnob, top: tokens.detail.switchInset, left: outlines ? tokens.detail.switchWidth - tokens.detail.switchKnob - tokens.detail.switchInset : tokens.detail.switchInset }} />
-          </span>
-        </button>
+        <span className="pointer-events-none absolute bottom-3 right-3 rounded-field bg-overlay px-[10px] py-[5px] text-meta text-white">Outlines · tap one to edit</span>
       </> : showNutrition ? <ResultsCard unavailable={unavailableFoods(totals)} drink={drink} size={width} time={localTime}
         calories={totals.calories} protein={totals.protein_g} carbs={totals.carbs_g} fat={totals.fat_g}
         items={items.map((item) => ({ name: item.name, grams: item.portion_grams == null ? null : toNumber(item.portion_grams) }))} /> : <div role="status" className="flex h-full items-center justify-center px-screen-x text-body text-muted">{status === "failed" ? "This meal could not be analysed." : status === "needs_input" ? "Clarification needed" : "Processing, traffic low"}</div>}
     </div>
-    <div className="flex items-start justify-between gap-2 px-screen-x pt-grid">
-      <p className="min-w-0 whitespace-pre-wrap break-words text-body">{caption}</p>
-      {photo ? <p className="shrink-0 text-meta text-muted">{drawing ? "Drag to draw a box" : "Tap an outline to edit"}</p> : null}
-    </div>
-    {drawing ? <div className="flex justify-between px-screen-x text-comment"><button className="min-h-tap" onClick={() => { setDrawing(false); setDrawBox(null); setSelection((current) => current ? { ...current, box: undefined } : null); }}>Continue without a box</button><button className="min-h-tap text-muted" onClick={() => { setDrawing(false); setDrawBox(null); }}>Cancel</button></div> : null}
-    <ItemRows disabled={!initialized || readOnly} items={items} onSelect={(item) => setSelection({ item, key: Date.now() })} onAdd={add} />
+    <PostActions postId={postId} modelCommentId={modelCommentId} fingerprint={fingerprint} drink={readOnly} saved={saved}/>
+    <PostCaption handle={handle} caption={caption} className="px-inset"/>
+    {showNutrition&&<>
+      <NutritionSummary items={items}/>
+      <button type="button" onClick={()=>setExpandedNutrition(value=>!value)} aria-expanded={expandedNutrition} aria-controls={`all-nutrients-${postId}`} className="flex min-h-tap w-full items-center justify-between gap-2 px-inset pt-[10px] text-detail">
+        <span className="text-muted">Consumed · all nutrients</span><span className="flex items-center gap-1 font-medium">{expandedNutrition?'Show less':`Show all ${7+sumMicronutrients(items).length}`} <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" className={expandedNutrition?'rotate-180':''} aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></span>
+      </button>
+      {children}
+      {expandedNutrition&&<div id={`all-nutrients-${postId}`}>
+        {drawing&&<div className="flex justify-between px-inset text-comment"><button className="min-h-tap" onClick={()=>{setDrawing(false);setDrawBox(null);setSelection(current=>current?{...current,box:undefined}:null);}}>Continue without a box</button><button className="min-h-tap text-muted" onClick={()=>{setDrawing(false);setDrawBox(null);}}>Cancel</button></div>}
+        <ItemRows disabled={!initialized||readOnly} items={items} onSelect={item=>setSelection({item,key:Date.now()})} onAdd={add}/>
+        <NutritionTable items={items}/>
+      </div>}
+    </>}
     {waiting || ["queued", "processing"].includes(status) ? <p role="status" className="px-screen-x text-meta text-muted">Updating nutrition…</p> : null}
     {status === "failed" ? <p role="status" className="px-screen-x text-meta text-muted">Nutrition could not be updated.</p> : null}
     {selection ? <ItemEditSheet key={selection.key} postId={postId} item={selection.item} box={selection.box} open={!drawing}

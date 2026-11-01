@@ -6,7 +6,7 @@ import {createClient} from '@/lib/supabase/client';
 import {sendFeedback,type Verdict} from '@/lib/posts/feedback';
 import {saveFeedbackOptimistically} from '@/lib/posts/feedback-optimistic';
 import {Icon} from '@/components/ui/Icon';
-export default function ThumbsFeedback({postId,modelCommentId,fingerprint}:{postId:string;modelCommentId:string|null;fingerprint:string|null}){
+export default function ThumbsFeedback({postId,modelCommentId,fingerprint,compact=false}:{postId:string;modelCommentId:string|null;fingerprint:string|null;compact?:boolean}){
  const router=useRouter();const [verdict,setVerdict]=useState<Verdict|null>(null);const [error,setError]=useState<{revision:string;message:string}|null>(null);const [busyRevision,setBusyRevision]=useState<string|null>(null);const saving=useRef<symbol|null>(null);const revision=JSON.stringify([postId,modelCommentId,fingerprint]);const revisionRef=useRef(revision);const busy=busyRevision===revision;
  // Invalidate an old request during commit, before passive subscriptions or
  // promise callbacks can observe the newly displayed analysis.
@@ -21,7 +21,7 @@ export default function ThumbsFeedback({postId,modelCommentId,fingerprint}:{post
   try{const current=await saveFeedbackOptimistically({previous:verdict,next:value,save:()=>sendFeedback(postId,value,modelCommentId,fingerprint),isCurrent,select:setVerdict});if(current&&value==='down')router.push(`/posts/${postId}?reply=1`);}
   catch{if(isCurrent())setError({revision:displayedRevision,message:'Feedback could not be saved.'});}finally{if(isCurrent()){saving.current=null;setBusyRevision(null);}}
  };
- return <div><div className="flex items-center gap-2 py-2">{(['up','down']as const).map(value=><button key={value} type="button" disabled={busy||!modelCommentId||!fingerprint} aria-label={value==='up'?'Accept analysis':'Correct analysis'} aria-pressed={verdict===value} className={`flex min-h-tap min-w-tap items-center justify-center ${verdict===value?'text-text':'text-muted'}`} onClick={()=>{void vote(value);}}><Icon name="thumb" down={value==='down'}/></button>)}<FirstRunHint hint="thumbs" /></div>{error?.revision===revision?<p role="alert" className="text-meta text-muted">{error.message}</p>:null}</div>;
+ return <div><div className={compact?"flex items-center gap-[18px]":"flex items-center gap-2 py-2"}>{(['up','down']as const).map(value=><button key={value} type="button" disabled={busy||!modelCommentId||!fingerprint} aria-label={value==='up'?'Accept analysis':'Correct analysis'} aria-pressed={verdict===value} className={`flex h-tap items-center justify-center ${verdict===value?'text-text':'text-text'}`} onClick={()=>{void vote(value);}}><Icon name="thumb" down={value==='down'} size={24} fill={verdict===value?'currentColor':'none'}/></button>)}<FirstRunHint hint="thumbs" /></div>{error?.revision===revision?<p role="alert" className="text-meta text-muted">{error.message}</p>:null}</div>;
 
 
 }
