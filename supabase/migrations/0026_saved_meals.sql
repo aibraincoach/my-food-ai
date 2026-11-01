@@ -18,7 +18,7 @@ begin
  select * into v_post from public.posts where id=p_post_id and user_id=auth.uid() and status='ready' for update;
  if not found then raise exception 'Meal not found' using errcode='42501'; end if;
  select jsonb_agg(jsonb_build_object('name',i.name,'portion_grams',i.portion_grams,'portion_text',i.portion_text,'nutrition',to_jsonb(n)-'post_item_id') order by i.created_at,i.id)
- into v_items from public.current_post_items i join public.item_nutrition n on n.post_item_id=i.id where i.post_id=p_post_id;
+ into v_items from public.current_post_items i left join public.item_nutrition n on n.post_item_id=i.id where i.post_id=p_post_id;
  if v_items is null then raise exception 'No meal items to save' using errcode='22023'; end if;
  insert into public.saved_meals(user_id,name,source_post_id,items) values(auth.uid(),p_name,p_post_id,v_items)
  on conflict(user_id,source_post_id) where source_post_id is not null do update set name=excluded.name,items=excluded.items returning id into v_id;
@@ -50,18 +50,22 @@ end $$;
 
 create function public.log_post_again(p_post_id uuid,p_eaten_at timestamptz) returns uuid
 language plpgsql security invoker set search_path=public,pg_temp as $$
-declare v_source public.posts; v_snapshot uuid; v_copy uuid; v_existing uuid; v_previous public.saved_meals;
+declare v_source public.posts; v_copy uuid; v_item uuid; v_row record;
 begin
+ if p_eaten_at is null or p_eaten_at>now()+interval '5 minutes' then raise exception 'Invalid time eaten' using errcode='22023'; end if;
  select * into v_source from public.posts where id=p_post_id and user_id=auth.uid() and status='ready' for update;
  if not found then raise exception 'Meal not found' using errcode='42501'; end if;
- select * into v_previous from public.saved_meals where user_id=auth.uid() and source_post_id=p_post_id;
- v_existing:=v_previous.id;
- v_snapshot:=public.save_meal_from_post(p_post_id,left(coalesce(nullif(v_source.caption,''),(select name from public.current_post_items where post_id=p_post_id order by created_at,id limit 1),'Meal'),80));
- v_copy:=public.log_saved_meal(v_snapshot,p_eaten_at);
- update public.posts set caption=v_source.caption where id=v_copy;
- -- Log again does not implicitly bookmark a meal or alter a saved snapshot.
- if v_existing is null then delete from public.saved_meals where id=v_snapshot;
- else update public.saved_meals set name=v_previous.name,items=v_previous.items where id=v_existing; end if;
+ if not exists(select 1 from public.current_post_items where post_id=p_post_id) then raise exception 'No meal items to copy' using errcode='22023'; end if;
+ insert into public.posts(user_id,caption,eaten_at,status,analysis_initialized_at,source_post_id)
+ values(auth.uid(),v_source.caption,p_eaten_at,'ready',clock_timestamp(),p_post_id) returning id into v_copy;
+ for v_row in select i.name,i.portion_grams,i.portion_text,n.* from public.current_post_items i left join public.item_nutrition n on n.post_item_id=i.id where i.post_id=p_post_id order by i.created_at,i.id loop
+  insert into public.post_items(post_id,name,portion_grams,portion_text,source) values(v_copy,v_row.name,v_row.portion_grams,v_row.portion_text,'user') returning id into v_item;
+  insert into public.item_nutrition(post_item_id,calories,protein_g,carbs_g,fat_g,fibre_g,sugar_g,sodium_mg,micronutrients,source_ref)
+  values(v_item,v_row.calories,v_row.protein_g,v_row.carbs_g,v_row.fat_g,v_row.fibre_g,v_row.sugar_g,v_row.sodium_mg,v_row.micronutrients,v_row.source_ref);
+ end loop;
+ insert into public.intake_logs(user_id,kind,amount,ml,label,post_id,logged_at)
+ select auth.uid(),kind,amount,ml,label,v_copy,p_eaten_at from public.intake_logs where post_id=p_post_id and user_id=auth.uid();
+ update public.saved_meals set last_logged_at=clock_timestamp() where user_id=auth.uid() and source_post_id=p_post_id;
  return v_copy;
 end $$;
 revoke all on function public.save_meal_from_post(uuid,text),public.log_saved_meal(uuid,timestamptz),public.log_post_again(uuid,timestamptz) from public,anon;
