@@ -42,7 +42,8 @@ export async function postDrink(admin: SupabaseClient, userId: string, input: Dr
   const zone = validZone(tz);
   let drink: DrinkCardData | null = null;
   try {
-  drink = { ...await hydrationSoFar(admin, userId, dateInZone(eatenAt, zone), zone, eatenAt),
+  const hydration = await hydrationSoFar(admin, userId, dateInZone(eatenAt, zone), zone, eatenAt);
+  drink = { ...hydration, dayCaffeineMg: hydration.caffeineMg,
     ml: input.ml, label: input.label, caffeineMg: input.caffeineMg };
   // The committed post remains readable with its live card if optional PNG rendering fails.
   await renderResultsCard(admin, postId, undefined, drink, zone);
