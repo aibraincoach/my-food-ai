@@ -10,6 +10,8 @@ These five acceptance conditions remain unproven on physical phones. Browser emu
 4. **While that analysis runs, use phone B.** Install/open the Home Screen app, sign in once if needed, close it and reopen it. It must retain the session, and A must still be signed in. If B is an iPhone of the other required size, repeat the top/bottom fit check. This covers the second-device portion of #221 without waiting idle for push.
 5. **Finish with reopen and refresh checks on A.** After checking the notification, force-close and reopen A once; it must still be signed in. Repeat the mobile-data image timing for the warm visit. Later, reopen after the access token has expired to test renewal, without signing out or clearing storage; record the interval. The project helper's freshly issued token expires in one hour under the current default, but the device's actual renewal behavior remains the evidence.
 
+6. **Scan a real pack (#212).** In the capture sheet, scan the pack in Barcode mode, then photograph the same barcode in Photo mode. Record the digits, product name, portion and nutrition shown in each case. For a code with no database product, choose “Photograph the nutrition label”, capture its panel, name it and post two servings. Record the label reading and the posted nutrition; the original pack/label photo must appear. This requires the real phone camera; the coder’s UPC-A and FDA fixtures in emulation do not prove it.
+
 Report observed behavior and timestamps for every failure. A screen recording lets launch timing, safe areas and the real camera be checked without repeating the whole sequence. Do not include account identifiers in shared evidence.
 
 ## Preflight and platform limits

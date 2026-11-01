@@ -3,6 +3,10 @@
 // Sends the three committed plates; writes responses only, never image inputs/keys.
 import {readFile,writeFile,mkdir} from 'node:fs/promises';
 import {fileURLToPath} from 'node:url';
+if(process.argv.includes('--label-only')){
+ const {spawnSync}=await import('node:child_process');
+ const r=spawnSync(process.execPath,['--import','tsx','scripts/real-label-smoke.mjs','--real-meta','--record-fixture'],{stdio:'inherit',env:process.env});process.exit(r.status??1);
+}
 const root=new URL('../',import.meta.url),dir=new URL('tests/fake-meta/fixtures/',root);
 await mkdir(dir,{recursive:true});
 if(!process.env.MODEL_API_KEY||!process.env.FDC_API_KEY)throw new Error('MODEL_API_KEY and FDC_API_KEY are required to record.');

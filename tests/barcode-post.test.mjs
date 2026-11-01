@@ -124,3 +124,18 @@ test("the signed-in food route accepts server-resolved GTIN/photo, rejects suppl
     if(paths.length) await admin.storage.from("media").remove(paths);
   }
 });
+
+// Route refuses a different user's server-held label reading before attaching any media.
+test("a label reading belonging to a second user cannot become the signed-in user's post",{skip:!process.env.SUPABASE_DB_URL},async(t)=>{
+ const installed=sql("select to_regclass('public.label_readings') is not null;").trim()==='t';
+ if(!installed){t.skip('Migration 0025 awaits its merge order.');return;}
+ const origin='http://127.0.0.1:3104';try{await fetch(origin+'/api/health');}catch{t.skip('Local built application is not running.');return;}
+ const cookie=await signInAsTestUser();
+ const admin=createClient(process.env.NEXT_PUBLIC_SUPABASE_URL,process.env.SUPABASE_SECRET_KEY,{auth:{persistSession:false,autoRefreshToken:false}});
+ const other=createClient(process.env.NEXT_PUBLIC_SUPABASE_URL,process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY,{auth:{persistSession:false,autoRefreshToken:false}});
+ const {data:auth,error:authError}=await other.auth.signInWithPassword({email:process.env.TEST_USER2_EMAIL,password:process.env.TEST_USER2_PASSWORD});assert.ifError(authError);
+ const {data:reading,error}=await admin.from('label_readings').insert({user_id:auth.user.id,photo_path:auth.user.id+'/fixture/0.jpg',reading:{is_label:true}}).select('id').single();assert.ifError(error);
+ try{
+  const response=await fetch(origin+'/api/posts/food',{method:'POST',headers:{'Content-Type':'application/json',cookie},body:JSON.stringify({label_reading_id:reading.id,servings:2,name:'Packaged food'})});assert.equal(response.status,404);
+ }finally{await admin.from('label_readings').delete().eq('id',reading.id);}
+});

@@ -91,7 +91,7 @@ export async function persistAnalysis(
   items.push(...resolved);
   const totals = sumNutrition(items.map(item=>({...item.nutrition,name:item.name})));
   const summary = await safeSummary(named.summary, totals);
-  const { error, status } = await admin.rpc("persist_owned_analysis", {
+  const { error, status } = await admin.rpc(named.labelNutrition ? "persist_owned_label" : "persist_owned_analysis", {
     p_job_id: jobId ?? null,
     p_post_id: named.postId,
     p_items: items,
