@@ -42,16 +42,24 @@ export interface FdcFood {
   portions?: FoodPortion[];
 }
 
-// A thirty-hit lookup would overflow the trace's 60KB text limit if every
-// micronutrient were repeated. Keep every candidate identity and the core
-// values used to select it; full consumed nutrients remain on item_nutrition.
+// Two thirty-hit windows may carry lengthy USDA aliases. Budget descriptive
+// text before traceText's hard limit so the stored trace remains valid JSON
+// with every identity and core value, rather than a truncated candidate list.
 export function foodSearchTrace(foods: FdcFood[]) {
   const core = new Set([1008,2047,2048,1003,1004,1005]);
-  return {projection:"candidate-identities-and-core-nutrients",foods:foods.map(food=>({
-    fdcId:food.fdcId,description:food.description.slice(0,500),additionalDescriptions:food.additionalDescriptions?.slice(0,2000),dataType:food.dataType,
+  const projection = {projection:"candidate-identities-and-core-nutrients",foods:foods.map(food=>({
+    fdcId:food.fdcId,description:food.description.slice(0,500),additionalDescriptions:food.additionalDescriptions?.slice(0,2000),dataType:food.dataType.slice(0,80),
     servingSizeUnit:food.servingSizeUnit?.slice(0,32),
     nutrients:food.foodNutrients.filter(n=>core.has(n.nutrientId)).slice(0,6).map(n=>({id:n.nutrientId,value:n.value,unit:n.unitName.slice(0,32)})),
   }))};
+  // Leave room for trace credential redaction; count JSON escaping too.
+  while (JSON.stringify(projection).length > 48000 && projection.foods.some(food=>food.description.length || food.additionalDescriptions?.length)) {
+    for (const food of projection.foods) {
+      food.description = food.description.slice(0,Math.floor(food.description.length/2));
+      if(food.additionalDescriptions) food.additionalDescriptions = food.additionalDescriptions.slice(0,Math.floor(food.additionalDescriptions.length/2));
+    }
+  }
+  return projection;
 }
 
 function fdcApiKey(): string {

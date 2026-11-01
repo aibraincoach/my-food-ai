@@ -30,11 +30,11 @@ test('gram portions reject volume and unsupported activity units while accepting
  for(const servingSizeUnit of ['g','GRM','oz'])assert.equal(gramBasis({...food,servingSizeUnit}),true);
 });
 
-test('all thirty candidate identities remain readable when full micronutrient arrays would exceed the trace limit',()=>{
- const foods=Array.from({length:30},(_,i)=>({fdcId:i+1,description:'food '.repeat(1000),dataType:'Survey (FNDDS)',foodNutrients:Array.from({length:200},(_,j)=>({nutrientId:[1008,2047,2048,1003,1004,1005][j]??(3000+j),value:j,unitName:'MG'}))}));
+test('all sixty candidate identities and core values survive long escaped descriptions and aliases',()=>{
+ const foods=Array.from({length:60},(_,i)=>({fdcId:i+1,description:'food \"\\'.repeat(1000),additionalDescriptions:'alias \"\\'.repeat(2000),dataType:'Survey (FNDDS)',foodNutrients:Array.from({length:200},(_,j)=>({nutrientId:[1008,2047,2048,1003,1004,1005][j]??(3000+j),value:j,unitName:'MG'}))}));
  const text=traceText(foodSearchTrace(foods));assert.ok(text.length<60000);
  const decoded=JSON.parse(text);assert.equal(decoded.projection,'candidate-identities-and-core-nutrients');assert.deepEqual(decoded.foods.map(f=>f.fdcId),foods.map(f=>f.fdcId));
- assert.ok(decoded.foods.every(f=>f.nutrients.length===6));
+ assert.deepEqual(decoded.foods.map(f=>f.nutrients),foods.map(food=>food.foodNutrients.slice(0,6).map(n=>({id:n.nutrientId,value:n.value,unit:n.unitName}))));
 });
 
 test('refined queries require the translated base food and normalize preparation across dishes',()=>{
