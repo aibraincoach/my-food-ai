@@ -13,12 +13,13 @@ globalThis.fetch=async(input,init)=>{
  const body=JSON.parse(init.body);if(body.model!=='muse-spark-1.3'||!['identify','remainder'].includes(body.text?.format?.name)||body.reasoning?.effort!=='low')throw Error('Unexpected remainder configuration.');
  const response=await original(input,{...init,signal:AbortSignal.timeout(90000)});calls.push({status:response.status});if(response.ok&&body.text?.format?.name==='remainder')recorded=await response.clone().json();return response;
 };
-const receipt={head:execFileSync('git',['rev-parse','HEAD'],{encoding:'utf8'}).trim(),fixture:'scripts/fixtures/plate2.jpg',calls};
+const receipt={head:execFileSync('git',['rev-parse','HEAD'],{encoding:'utf8'}).trim(),original:'eval/photos/10.jpg',fixture:'scripts/fixtures/plate2.jpg',fixtureCorrection:'The planned plate1.jpg reference is an empty plate. The original is the licensed meal photograph also used by plate2.jpg.',calls};
 try{
  const {readRemainder}=await import('../src/lib/meta/remainder.ts');
- // The original plate1 fixture is the serving reference; plate2 is the comparison.
+ // The plan named plate1, but that file is an empty plate. Use the actual
+ // licensed meal photograph underlying plate2 as the original serving reference.
  const {identifyItems}=await import('../src/lib/meta/spark.ts');
- const originalMeal=await identifyItems(await readFile(new URL('./fixtures/plate1.jpg',import.meta.url)),'image/jpeg',null,[]);
+ const originalMeal=await identifyItems(await readFile(new URL('../eval/photos/10.jpg',import.meta.url)),'image/jpeg',null,[]);
  const reference=originalMeal.items.map((item,index)=>({index,name:item.name,grams:item.portionGrams??0}));
  if(!reference.length)throw Error('No original fixture items.');
  const output=await readRemainder(await readFile(new URL('./fixtures/plate2.jpg',import.meta.url)),reference);
