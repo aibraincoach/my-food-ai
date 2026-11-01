@@ -1,3 +1,4 @@
+import { getPostHydrationData, type DrinkCardData, type HydrationRecord } from "@/lib/intake/hydration";
 import { dateInZone, getDayTotals, type FeedDayTotal } from "./days";
 import { encodeFeedCursor, parseFeedCursor } from "./feed-cursor";
 import type { SupabaseClient } from "@supabase/supabase-js";
@@ -23,12 +24,17 @@ export interface FeedItem {
   fibre_g: Numeric;
   sugar_g: Numeric;
   sodium_mg: Numeric;
+  micronutrients?: import("@/lib/nutrition/totals").StoredNutrient[];
 }
 
 export interface FeedPost {
   day?: string;
   modelCommentId?: string | null;
   analysisFingerprint?: string | null;
+  kind?: "meal" | "drink";
+  foodWaterMl?: number;
+  dayHydration?: HydrationRecord;
+  drink?: DrinkCardData | null;
   id: string;
   caption: string;
   eaten_at: string;
@@ -128,13 +134,16 @@ export async function getFeed(
   }
   const rows = (data ?? []) as PostRow[];
   const page = rows.slice(0,FEED_PAGE_SIZE);
-  return {posts:await Promise.all(page.map((row)=>toFeedPost(supabase,row,zone))), days:await getDayTotals(supabase,userId,zone,page.map(row=>dateInZone(row.eaten_at,zone))), nextCursor: rows.length>FEED_PAGE_SIZE ? encodeFeedCursor(page.at(-1)!) : null};
+  const posts = await Promise.all(page.map((row)=>toFeedPost(supabase,row,zone)));
+  const hydration = await getPostHydrationData(supabase, userId, posts.map(post => ({...post,items:post.items.map(item=>({...item,micronutrients:item.micronutrients??[]}))})), zone);
+  return {posts:posts.map(post => ({ ...post, ...hydration[post.id] })), days:await getDayTotals(supabase,userId,zone,page.map(row=>dateInZone(row.eaten_at,zone))), nextCursor: rows.length>FEED_PAGE_SIZE ? encodeFeedCursor(page.at(-1)!) : null};
 }
 
 // One card's worth of data, used for realtime refreshes and polling.
 export async function getPostCard(
   supabase: SupabaseClient,
-  postId: string
+  postId: string,
+  zone = "UTC"
 ): Promise<FeedPost | null> {
   const { data, error } = await supabase
     .from("posts")
@@ -145,5 +154,29 @@ export async function getPostCard(
     throw new Error(error.message);
   }
   if (!data) return null;
-  return toFeedPost(supabase, data);
+  const post = await toFeedPost(supabase, data, zone);
+  const hydration = await getPostHydrationData(supabase, data.user_id, [{...post,items:post.items.map(item=>({...item,micronutrients:item.micronutrients??[]}))}], zone);
+  return { ...post, ...hydration[post.id] };
+}
+
+// Search preserves the RPC's relevance order while sharing hydration reads for
+// every result on a page, just like the Home feed.
+export async function getPostCards(supabase: SupabaseClient, postIds: string[], zone = "UTC"): Promise<FeedPost[]> {
+  if (!postIds.length) return [];
+  const { data, error } = await supabase.from("posts").select("id,user_id,caption,eaten_at,status,created_at")
+    .in("id", postIds).or(VISIBLE_MEAL_FILTER);
+  if (error) throw new Error("Meals could not be loaded.");
+  const rows = (data ?? []) as PostRow[];
+  const cards: FeedPost[] = [];
+  for (let offset = 0; offset < rows.length; offset += 4) {
+    cards.push(...await Promise.all(rows.slice(offset, offset + 4).map(row => toFeedPost(supabase, row, zone))));
+  }
+  const hydrated = new Map<string, FeedPost>();
+  for (const userId of new Set(rows.map(row => row.user_id))) {
+    const ids = new Set(rows.filter(row => row.user_id === userId).map(row => row.id));
+    const owned = cards.filter(post => ids.has(post.id));
+    const values = await getPostHydrationData(supabase, userId, owned.map(post => ({ ...post, items: post.items.map(item => ({ ...item, micronutrients: item.micronutrients ?? [] })) })), zone);
+    for (const post of owned) hydrated.set(post.id, { ...post, ...values[post.id] });
+  }
+  return postIds.flatMap(id => { const post = hydrated.get(id); return post ? [post] : []; });
 }

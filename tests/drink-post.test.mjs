@@ -69,7 +69,7 @@ test("hydration counts food water once, old water rows and local-day cutoff", as
     } }); return chain;
   };
   const result = await hydrationSoFar({from:builder},"owner","2026-10-28","America/Edmonton","2026-10-28T09:30:00Z");
-  assert.deepEqual(result,{drinksMl:820,foodMl:420,totalMl:1240});
+  assert.deepEqual(result,{drinksMl:820,foodMl:340,totalMl:1160,caffeineMg:95});
 });
 
 test("batched cards share a day read, preserve legacy food water, and apply each drink's own cutoff", async () => {
@@ -105,8 +105,9 @@ test("batched cards share a day read, preserve legacy food water, and apply each
     }});return chain;
   };
   const result=await getDrinkCardsData({from:builder},"owner",["w","c","non-drink"],"UTC");
-  assert.equal(result.w.drinksMl,330);assert.equal(result.w.foodMl,420);assert.equal(result.w.totalMl,750);
-  assert.equal(result.c.drinksMl,570);assert.equal(result.c.foodMl,520);assert.equal(result.c.totalMl,1090);
+  assert.equal(result.w.drinksMl,330);assert.equal(result.w.foodMl,340);assert.equal(result.w.totalMl,670);
+  assert.equal(result.c.drinksMl,570);assert.equal(result.c.foodMl,420);assert.equal(result.c.totalMl,990);
+  assert.equal(result.w.dayCaffeineMg,0);assert.equal(result.c.dayCaffeineMg,95);
   assert.equal(result["non-drink"],null);
   assert.equal(calls.filter(([table])=>table === "current_post_items").length,1,"current items are shared across cards");
   assert.equal(calls.filter(([table])=>table === "item_nutrition").length,1,"nutrition is shared across cards");
