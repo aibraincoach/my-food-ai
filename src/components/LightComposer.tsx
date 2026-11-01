@@ -12,7 +12,7 @@ export default function LightComposer(p:Props) {
  const [whenOpen,setWhenOpen]=useState(false);
  const handle=usePostHandle(),preview=useRef<HTMLDivElement>(null),caption=useRef<HTMLTextAreaElement>(null);
  useEffect(()=>{if(!p.shots.length)caption.current?.focus();},[p.shots.length]);
- useEffect(()=>{if(p.shots.length>1)preview.current?.scrollTo({left:p.index*210,behavior:'smooth'});},[p.index,p.shots.length]);
+ useEffect(()=>{if(p.shots.length>1)preview.current?.scrollTo({left:p.index*210,behavior:'auto'});},[p.index,p.shots.length]);
  const current=p.shots[Math.min(p.index,p.shots.length-1)],on=p.notEaten===p.index;
  const when=p.when?new Date(p.when).toLocaleString(undefined,{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'}):'Now';
  const photo=()=>{if(!p.busy)p.onPhoto();};
