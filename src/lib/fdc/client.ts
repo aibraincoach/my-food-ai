@@ -9,7 +9,10 @@ import { ApiError, ioError } from "@/lib/worker/errors";
 import { portionsFromDetail, type FoodPortion } from "@/lib/nutrition/units";
 
 const FDC_BASE_URL = "https://api.nal.usda.gov/fdc/v1";
-const DATA_TYPES = "Foundation,SR Legacy,Branded";
+// Include prepared-food references and version their larger candidate window.
+export const FDC_SEARCH_CACHE_KIND = "fdc-search-v2";
+export const FDC_SEARCH_PAGE_SIZE = 30;
+export const FDC_SEARCH_DATA_TYPES = ["Foundation", "SR Legacy", "Survey (FNDDS)", "Branded"];
 
 export interface FdcNutrient {
   nutrientId: number;
@@ -25,8 +28,22 @@ export interface FdcFood {
   foodNutrients: FdcNutrient[];
   servingSize?: number;
   servingSizeUnit?: string;
+  foodCategory?: string;
+  brandOwner?: string;
   // Gram weights the food states for cups and pieces (detail lookups only).
   portions?: FoodPortion[];
+}
+
+// A thirty-hit lookup would overflow the trace's 60KB text limit if every
+// micronutrient were repeated. Keep every candidate identity and the core
+// values used to select it; full consumed nutrients remain on item_nutrition.
+export function foodSearchTrace(foods: FdcFood[]) {
+  const core = new Set([1008,2047,2048,1003,1004,1005]);
+  return {projection:"candidate-identities-and-core-nutrients",foods:foods.map(food=>({
+    fdcId:food.fdcId,description:food.description.slice(0,500),dataType:food.dataType,
+    servingSizeUnit:food.servingSizeUnit?.slice(0,32),
+    nutrients:food.foodNutrients.filter(n=>core.has(n.nutrientId)).slice(0,6).map(n=>({id:n.nutrientId,value:n.value,unit:n.unitName.slice(0,32)})),
+  }))};
 }
 
 function fdcApiKey(): string {
@@ -81,6 +98,8 @@ function asFoods(payload: unknown): FdcFood[] {
       description: food.description,
       dataType: food.dataType,
       foodNutrients: nutrients,
+      foodCategory: typeof food.foodCategory === "string" ? food.foodCategory : undefined,
+      brandOwner: typeof food.brandOwner === "string" ? food.brandOwner : undefined,
       servingSize:
         typeof food.servingSize === "number" ? food.servingSize : undefined,
       servingSizeUnit:
@@ -92,7 +111,7 @@ function asFoods(payload: unknown): FdcFood[] {
   return out;
 }
 
-// Cache first; on a miss GET /foods/search and store the raw response.
+// Cache first; on a miss POST /foods/search and store the raw response.
 // Throws on transport errors and on FDC 429/5xx (requeueable); a 400
 // fails at once.
 export async function searchFoods(
@@ -101,7 +120,7 @@ export async function searchFoods(
   signal?: AbortSignal
 ): Promise<FdcFood[]> {
   const normalized = normalizeQuery(query);
-  const key = `fdc-search:${normalized}`;
+  const key = `${FDC_SEARCH_CACHE_KIND}:${normalized}`;
   const readCache = async (cacheKey: string) => {
     const request=admin.from("fdc_cache").select("response").eq("query",cacheKey);
     const {data,error,status}=await (signal?request.abortSignal(signal):request).maybeSingle<{response:unknown}>();
@@ -109,20 +128,16 @@ export async function searchFoods(
     return data?.response;
   };
   const cached = await readCache(key) as {kind?:unknown;query?:unknown;payload?:{foods?:unknown}} | undefined;
-  if(cached?.kind==='fdc-search-v1'&&cached.query===normalized&&Array.isArray(cached.payload?.foods))return recordCall("fdc", {query,source:"cache"}, async()=>asFoods(cached.payload), foods=>({text:{source:"cache",foods}}));
-  // Old unprefixed search entries remain usable only at their exact query key.
-  // A typed entry at that key may belong to another cache namespace, so reject it.
-  const legacy = await readCache(normalized) as {kind?:unknown;foods?:unknown} | undefined;
-  if(legacy&&!legacy.kind&&Array.isArray(legacy.foods))return recordCall("fdc", {query,source:"legacy_cache"}, async()=>asFoods(legacy), foods=>({text:{source:"legacy_cache",foods}}));
+  if(cached?.kind===FDC_SEARCH_CACHE_KIND&&cached.query===normalized&&Array.isArray(cached.payload?.foods))return recordCall("fdc", {query,source:"cache",catalogVersion:FDC_SEARCH_CACHE_KIND}, async()=>asFoods(cached.payload), foods=>({text:{source:"cache",...foodSearchTrace(foods)}}));
+  // v1 and unversioned caches omit prepared dishes and retain only five hits.
+  // Do not let those old candidate sets hide the coverage fix indefinitely.
   return recordCall("fdc", { query, source:"network" }, async () => {
-  const params = new URLSearchParams({
-    query: query.trim(),
-    dataType: DATA_TYPES,
-    pageSize: "5",
-    api_key: fdcApiKey(),
-  });
+  const params = new URLSearchParams({ api_key: fdcApiKey() });
   const response = await fetch(
-    `${FDC_BASE_URL}/foods/search?${params.toString()}`, {signal}
+    `${FDC_BASE_URL}/foods/search?${params.toString()}`, {
+      method: "POST", headers: {"Content-Type":"application/json"},
+      body: JSON.stringify({query:query.trim(),dataType:FDC_SEARCH_DATA_TYPES,pageSize:FDC_SEARCH_PAGE_SIZE}), signal,
+    }
   );
   if (!response.ok) {
     throw new ApiError(
@@ -133,12 +148,12 @@ export async function searchFoods(
   }
   const payload = (await response.json()) as unknown;
   const cacheWrite = admin.from("fdc_cache").upsert(
-    { query: key, response: {kind:"fdc-search-v1",query:normalized,payload} },
+    { query: key, response: {kind:FDC_SEARCH_CACHE_KIND,query:normalized,payload} },
     { onConflict: "query" }
   );
   await (signal ? cacheWrite.abortSignal(signal) : cacheWrite);
   return asFoods(payload);
-  }, (foods) => ({ text: {source:"network",foods} }));
+  }, (foods) => ({ text: {source:"network",...foodSearchTrace(foods)} }));
 }
 
 // The full USDA detail shape carries nutrient.id/name/unitName and amount.

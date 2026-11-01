@@ -1,4 +1,4 @@
-export const NUTRITION_RESOLUTION_CONCURRENCY = 2;
+export const NUTRITION_RESOLUTION_CONCURRENCY = 4;
 
 // Resolve a meal under one deadline, retaining input order. On a failure, stop
 // queued work and cancel peers, then wait for every started task to settle before

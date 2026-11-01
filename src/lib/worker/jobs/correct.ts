@@ -10,7 +10,7 @@ import type { JobHandler } from '@/lib/worker/handlers';
 import { toNumber } from '@/lib/nutrition/totals';
 import { createResponse, MetaApiError } from '@/lib/meta/client';
 import { correctPrompt } from '@/lib/prompts/spark/correct';
-import schema from '@/lib/prompts/spark/correct.schema.json';
+import { correctionSchema } from '@/lib/prompts/spark/correct-schema';
 import { resolveNutritionItems } from "@/lib/fdc/resolve-items";
 import { resolveFoodMatch, traceNutritionReuse, nutritionResolutionBudget } from '@/lib/fdc/match';
 import { sumNutrition } from '@/lib/nutrition/totals';
@@ -63,7 +63,7 @@ const correct:JobHandler=async(admin,job)=>{
   if(!data)throw new Error('Correction photo could not be opened.');
   content.push({type:'input_image',image_url:`data:${data.type||'image/jpeg'};base64,${Buffer.from(await data.arrayBuffer()).toString('base64')}`});
  }
- const response=await createResponse({model:'muse-spark-1.3',instructions:correctPrompt,input:[{type:'message',role:'user',content}],text:{format:{type:'json_schema',name:'correct',schema,strict:true}},max_output_tokens:4096});
+ const response=await createResponse({model:'muse-spark-1.3',instructions:correctPrompt,input:[{type:'message',role:'user',content}],text:{format:{type:'json_schema',name:'correct',schema:correctionSchema(items.length),strict:true}},max_output_tokens:4096});
  if(response.status!=='completed'||!response.outputText||response.refusal)throw new MetaApiError(500,'Correction did not finish.');
  const result=parse(response.outputText);
  const resolutionBudget=nutritionResolutionBudget();

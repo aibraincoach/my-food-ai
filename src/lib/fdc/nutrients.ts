@@ -15,6 +15,7 @@ const SODIUM_ID = 1093;
 
 const DATA_TYPE_RANK: Record<string, number> = {
   Foundation: 0,
+  "Survey (FNDDS)": 0.5,
   "SR Legacy": 1,
   Branded: 2,
 };
@@ -44,8 +45,10 @@ function queryTokens(query: string): string[] {
 }
 
 export function gramBasis(food: FdcFood): boolean {
-  const unit = (food.servingSizeUnit ?? "").toLowerCase();
-  return !(food.dataType === "Branded" && ["ml", "cl", "l", "milliliter", "milliliters", "millilitre", "millilitres", "liter", "litre", "liters", "litres", "fl oz", "floz", "fluid ounce", "fluid ounces"].includes(unit));
+  const unit = (food.servingSizeUnit ?? "").trim().toLowerCase();
+  // An unsupported count/activity unit cannot establish a gram denominator.
+  // Missing units retain the historical per-100g reference behavior.
+  return food.dataType !== "Branded" || !unit || ["g","grm","gm","gram","grams","kg","mg","oz","onz","ounce","ounces"].includes(unit);
 }
 
 function unitToGrams(value: number, unit: string): number {

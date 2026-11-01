@@ -58,7 +58,7 @@ Treat the output as a credential: consume it locally and keep it out of logs, is
 
 The following snapshot is retained as history; current deployment and merge state must be checked separately.
 
-> Ordinary configured test-account production sign-in has been exercised successfully. PR #203 adds a cookie-only `scripts/browser-session.mjs`; that script is still unmerged into main. Its removed magic-link fallback is not a supported mode. Never publish session-cookie output.
+> Ordinary configured test-account production sign-in has been exercised successfully. PR #203 adds a cookie-only `scripts/browser-session.mjs`; that script is merged into main and was used in the Oct 31 production UI demonstrations. Its removed magic-link fallback is not a supported mode. Never publish session-cookie output.
 >
 > ## Run 3 delivery status
 >
@@ -93,7 +93,7 @@ SAM 3.1 receives a meal photograph and finds food regions. Muse Spark 1.3 receiv
 
 The app records consumed food. It does not provide advice, goals or health claims, and it does not share meals between users. Portion amounts are estimates. The licensed evaluation set uses explicitly annotated food names and rough visual gram estimates, which are not measured nutritional ground truth.
 
-Run 3, Run 4 implementation PRs #236–#245 and runtime follow-ups #246–#249 are merged. Production serves `edb56d42c8a2b1dad12434a9ae4b46f6820e7a32`, READY with a 300-second duration. Migrations 0021, 0023 and 0024 are applied; worker concurrency is one. The original twenty-post run failed on model/output and capacity limits; follow-ups now have real Meta/USDA gate evidence. The final-head twenty-photo drain passed: all twenty ready, each analysis job finished in one attempt, no manual tick/focus wake, median 607.12 seconds and maximum 1205.55 seconds. The minute schedule actually resumed healthy queued work; the wake remains ON and #177 is closed on that production proof. New breakfast/curry posts reached ready with known subtotals and named unavailable foods, but food matching remains incomplete and owner acceptance is absent. Fresh stored trace covered every item in those meals, including cache/network provenance; copied reuse remains unproven and #67 stays open. The separate admin browser check passed, its temporary role was restored and the non-admin repeat returned HTTP 404. Full [ten-photo evaluation](docs/eval.md), two complete [demo runs](docs/demo.md) and real-phone installed-session/mobile-loading acceptance remain unrecorded. See [load-test history](docs/load-test.md), [current evidence](CLAUDE.md) and [backlog](BACKLOG.md).
+Run 3 and Run 4, including follow-ups #250–#257, are merged. The verified production baseline is `c392a30ae170ec4f7a7cc48e5b8ff9b1d4d597a5`, READY, with a 300-second function duration. Worker concurrency remains one and the minute wake remains enabled. The historical twenty-post run passed on edb56d42; it is not a new burst measurement of the later speed fix. Fresh single-meal observations reduced active breakfast/curry/busy-photo time to 16.5/19.5/25.2 seconds with all foods matched to nutrition, while portions and owner acceptance remain separate. The [ten-photo evaluation](docs/eval.md), [copied-nutrition trace proof](https://github.com/aibraincoach/my-food-ai/issues/67#issuecomment-6547442271), [two functional demo runs](docs/demo.md), [verified 51.3-second uncut rehearsal](docs/demo-rehearsal.md), [closed-issue audit](docs/closed-issue-acceptance.md) and [performance report](docs/production-performance.md) are recorded. Hardware camera, installed-session persistence, real mobile-data image timing, iPhone fit and background push remain unproven; use the [phone checklist](docs/phone-acceptance.md). This docs merge advances main beyond the measured runtime, without changing application code.
 
 ## Runtime AI and browser features
 
@@ -117,4 +117,51 @@ For changes to meal capacity or execution deadlines, run the complete busy-meal 
 node --env-file=.env.local --import tsx scripts/real-identify-smoke.mjs --real-meta --full-meal
 ```
 
-This explicit paid mode runs fresh SAM, identification and every identified food through the actual two-lane resolver. USDA search is read-only and its cache exists only in memory. Limits are 80 Meta requests, 40 USDA reads, 262,144 reserved output tokens and 270 seconds; the receipt reports actual usage without asserting a dollar price. No database or storage writes occur. The production nutrition phase gets at most 180 seconds, capped by the invocation's remaining 270-second processing allowance with 15 seconds reserved for persistence and a further 30 seconds before the platform's 300-second limit. Late worker handoffs defer to the durable scheduled wake instead of extending the invocation with a timer.
+This explicit paid mode runs fresh SAM, identification and every identified food through the actual four-lane resolver. USDA search is read-only and its cache exists only in memory. Limits are 80 Meta requests, 40 USDA reads, 262,144 reserved output tokens and 270 seconds; the receipt reports actual usage without asserting a dollar price. No database or storage writes occur. The production nutrition phase gets at most 180 seconds, capped by the invocation's remaining 270-second processing allowance with 15 seconds reserved for persistence and a further 30 seconds before the platform's 300-second limit. Late worker handoffs defer to the durable scheduled wake instead of extending the invocation with a timer.
+
+Changes to prior-meal confirmation also require its explicit real decision gate:
+
+```sh
+node --env-file=.env.local --import tsx scripts/real-same-meal-smoke.mjs --real-meta
+```
+
+It checks identical photos/captions, different foods and a changed caption amount through the actual reuse-confirmation service. It permits at most six Meta calls in two minutes, uses licensed fixtures, and writes no database or storage records. Only a completed, strictly boolean confirmation can authorize copying nutrition; inconclusive confirmation continues normal analysis.
+
+Prior nutrition is reused only when every item has finite core nutrition and a matching current-version selection or validated-copy trace for its food-database source. Legacy, incomplete or unproven results remain a historical hint and are analyzed again.
+
+### Food reference coverage and the real matching gate
+
+Food searches include USDA Survey (FNDDS) prepared foods alongside Foundation, SR Legacy and Branded data, with thirty candidates rather than five. Search caches are versioned: the earlier candidate lists are not reused. Matching distinguishes a compatible generic nutrition reference from a different food or preparation; a rejection gets at most one translated, target-only search. Volume-based records still require a supported mass basis. Selected and unavailable outcomes carry a matcher version in the admin trace.
+
+Before merging a change to matching prompts, model caps or the model client, run the real food-reference gate as well as the identify gate. It calls Muse Spark and USDA, keeps cache/trace writes in memory, and includes the breakfast/curry cases plus unrelated foods and a non-food rejection:
+
+```sh
+node --env-file=.env.local --import tsx scripts/real-food-match-smoke.mjs --real-meta
+```
+
+The gate records actual selections and failures; matching a generic reference does not establish the owner's acceptance of a recipe or portion.
+
+A correction-schema change also runs the explicit paid source-association gate:
+
+```sh
+node --env-file=.env.local --import tsx scripts/real-correction-smoke.mjs --real-meta
+```
+
+It replays a photo clarification with zero existing items and a portion correction with two existing items through the real correction request. The schema permits only current source-item indices or null, so a new photo's region cannot be mistaken for an existing item. The gate permits at most four Meta requests in two minutes and keeps trace writes in memory; it writes no database or storage records.
+
+## Production verification
+
+Current follow-up: [production meal latency](docs/production-performance.md), [timed uncut demo](docs/demo-rehearsal.md), and [owner phone checks](docs/phone-acceptance.md).
+
+[Ten licensed meal photos and visual adjudication](docs/eval.md), [two UI demonstration runs and limits](docs/demo.md), and [production drain evidence](docs/load-test.md), and [closed-issue acceptance](docs/closed-issue-acceptance.md) distinguish tested runtime commits from later documentation merges.
+
+
+Meal analysis selects low reasoning effort explicitly for food identification and reference selection, retaining the full 8,192-token identify allowance and existing match ceilings. One worker job runs at a time; up to four independent foods resolve within that job. Only masks referenced by identified items are encoded/uploaded, with four bounded upload lanes. The selected masks must finish before publication. Policy v4 rechecks older prior-meal decisions before reuse.
+
+The visible-component regression gate includes the unchanged ten licensed photographs and separately checks the photographed cheese, croutons and egg instead of silently accepting a broad caption name:
+
+```sh
+node --env-file=.env.local --import tsx scripts/real-vision-quality-smoke.mjs --real-meta
+```
+
+It permits forty Meta requests in 270 seconds and writes no database or storage records. This gate does not certify portion mass, hidden ingredients or exact seafood species.

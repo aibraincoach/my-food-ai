@@ -31,3 +31,18 @@ Both fixes received independent Gemini review through PPLX, followed by evidence
 | [#247](https://github.com/aibraincoach/my-food-ai/pull/247) | `b224e9ac89ca1cf14879266227bc2a82c1193aa0` | `b6fa1c278251421112b2db3a3d64c7bc51fde60b` | [BLOCKERS: NONE after triage](https://github.com/aibraincoach/my-food-ai/pull/247#issuecomment-6545317333) |
 | [#248](https://github.com/aibraincoach/my-food-ai/pull/248) | `72fe5b02f00acc3d1086f4ac26ca2a37b6697b3b` | `fa491be094ae145a623d4416cb672ed101543dc5` | [BLOCKERS: NONE after triage](https://github.com/aibraincoach/my-food-ai/pull/248#issuecomment-6545597184) |
 | [#249](https://github.com/aibraincoach/my-food-ai/pull/249) | `1ff60524e51d48285e09c4e097e113597009e2f2` | `edb56d42c8a2b1dad12434a9ae4b46f6820e7a32` | [BLOCKERS: NONE after triage](https://github.com/aibraincoach/my-food-ai/pull/249#issuecomment-6545822136) |
+
+## Later merged follow-ups and evidence — current through #257
+
+These live heads/merges were re-read for #235 reconciliation. Existing main review captures, source, scripts and evidence files are preserved. Code-review dispositions remain on each PR; #252/#257 are documentation-only. Review success and actual production acceptance remain distinct.
+
+| PR | Final head | Merge commit |
+| --- | --- | --- |
+| [#250](https://github.com/aibraincoach/my-food-ai/pull/250) | `3b6799cae6370c61514977851cf40c816901644c` | `ff5ad0f371f34abe4d099f438a778d9aa04a1d0f` |
+| [#251](https://github.com/aibraincoach/my-food-ai/pull/251) | `7b63c7baa23cfe497571ad70c45f0029f0fee866` | `4f51b7afec2ded63374a9615dd6ad5d3b9508bad` |
+| [#252](https://github.com/aibraincoach/my-food-ai/pull/252) | `1c00937e6a92efdd6eee982597db24e5ff5aa475` | `72910d0f49a3ba0a96bea015921d874ba13a6c5f` |
+| [#253](https://github.com/aibraincoach/my-food-ai/pull/253) | `440a492d7a58102b419ff49bfbf7338ea1eb9569` | `6ee08878d22676d06c3f981f191d87704336619a` |
+| [#254](https://github.com/aibraincoach/my-food-ai/pull/254) | `ff12eb31485de3d7e610a539dce514c1a91c0180` | `a0c22e16911af83fe0aade470e3295a5109595b0` |
+| [#255](https://github.com/aibraincoach/my-food-ai/pull/255) | `134b01c7da7528a427cda0f1e1e2adcc51824e13` | `4598a0ea51f9478ed6fc49d069ef6b5ff7eb7f81` |
+| [#256](https://github.com/aibraincoach/my-food-ai/pull/256) | `591a4e3344a49add185a7eb6217eb5de9b50cd23` | `44576592955ce576b2a66f875518d18a4ebb8bd4` |
+| [#257](https://github.com/aibraincoach/my-food-ai/pull/257) | `9197b77247d74dbeddf5fd6ebe5c882e08144d6a` | `c392a30ae170ec4f7a7cc48e5b8ff9b1d4d597a5` |

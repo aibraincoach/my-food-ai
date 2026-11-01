@@ -53,7 +53,7 @@ test('the real recompute handler repairs an exhausted predecessor without creati
    if(init?.method==='POST'){writes++;batch=JSON.parse(init.body);assert.ok(Array.isArray(batch),'recompute publishes one atomic nutrition batch');nutrition=batch;return new Response(null,{status:201});}
    return Response.json(nutrition);
   }
-  if(path.endsWith('/fdc_cache'))return Response.json({response:{foods:[{fdcId:77,description:'rice',dataType:'Foundation',foodNutrients:[{nutrientId:1008,nutrientName:'Energy',unitName:'KCAL',value:200}]}]}});
+  if(path.endsWith('/fdc_cache'))return Response.json({response:{kind:'fdc-search-v2',query:'rice',payload:{foods:[{fdcId:77,description:'rice',dataType:'Foundation',foodNutrients:[{nutrientId:1008,nutrientName:'Energy',unitName:'KCAL',value:200}]}]}}});
   if(path.endsWith('/posts'))return Response.json({status:'processing'});
   if(path.endsWith('/rpc/results_card_snapshot')){publications++;return Response.json(null);}
   if(path.endsWith('/rpc/mark_post_ready')){publications++;return Response.json(false);}

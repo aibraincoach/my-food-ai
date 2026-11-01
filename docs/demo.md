@@ -1,25 +1,26 @@
-# Production demo checklist
+# Production demonstration evidence
 
-Status: **not run**. Implementation/runtime PRs are merged and their migrations applied, but two complete production sequences have not been recorded. This checklist is not evidence of a successful production demonstration. No account identifiers, private media URLs or post IDs belong in this document.
+Follow-up: the [verified uncut 51.3-second rehearsal](demo-rehearsal.md) is timed separately. The two runs below remain historical functional evidence.
 
-For each run, record the deployed main commit, time and pass/fail outcome for each step. Record concrete failures and open a separate fix PR for each change; never mark a partial sequence complete.
+Two actual native-browser sequences ran on production on 2026-10-31, using the configured test account, the merged #203 session helper and real capture, upload, editing, question and navigation controls. Chromium CDP used a 390×844 touch viewport; no Playwright, fabricated DOM or seeded analysis outcome was used. Camera and notification permissions were denied. Existing test subscriptions were checked before posting. No manual job tick or retry was used by the controller.
 
-1. Sign in with the ordinary test account and open Home.
-2. Open Capture. Confirm the live camera, flip and shutter on a real phone. Separately deny camera access and confirm the gallery/picker fallback. Use `eval/photos/01.jpg` when a camera photo is unavailable.
-3. Post a meal. Measure from successful creation to its appearance as the first Home card: at most five seconds, with no reload. Wait for analysis to replace processing with no reload.
-4. Open detail. Show outlines, food names, portions and nutrition. Confirm the displayed values describe consumed food and identify USDA FoodData Central as the nutrient source.
-5. Correct a food or portion. Show both earlier and corrected entries in the thread; verify that totals and the stored card change.
-6. Create a needs-input case, answer its question and confirm the completed meal enters Home. Separately discard an unwanted case.
-7. Open Days and the day's story. Confirm meal slides and totals use the current item versions.
-8. Return to Home, sign out and sign back in. Confirm the account's private data remains isolated.
+These are functional runs, not sub-three-minute recorded rehearsals. Run 1 required substantial controller recovery and exposed application defects; its history is retained. Run 2 repeated the available sequence on a single final runtime. Physical-phone camera/flip/shutter, installed-iPhone layout, real push delivery and original-designer-frame comparisons remain unproven: no phone or original frame assets were available. Gallery selection is an actual fallback, not evidence of a working physical camera.
 
-Keep cleanup identifiers in a private local file and remove only the posts created for these runs. Optional push delivery is checked only on a subscription the owner created on their own device.
-
-| Evidence | Run 1 | Run 2 |
+| Check | Run 1 | Run 2 |
 | --- | --- | --- |
-| Main commit | Not recorded for a complete run | Not recorded for a complete run |
-| Run time | Not run | Not run |
-| Full sequence | Not run | Not run |
-| Failures and fix PRs | Not observed | Not observed |
+| Runtime | Started `4f51b7afec2ded63374a9615dd6ad5d3b9508bad`; continued across `6ee08878d22676d06c3f981f191d87704336619a`, `a0c22e16911af83fe0aade470e3295a5109595b0`, ending after `4598a0ea51f9478ed6fc49d069ef6b5ff7eb7f81` deployment. Not a single-head run. | `4598a0ea51f9478ed6fc49d069ef6b5ff7eb7f81`, READY before the run; prior worker was idle. |
+| Sign-in and capture | Helper sign-in reached Home; denied camera and real gallery photo 02 used. Actual stored caption was empty. | Helper sign-in reached Home; same licensed photo 02, deliberately empty caption, gallery fallback. |
+| First card / photo | 730 ms from successful publication; no document reload. Ready observed by 33.1 seconds. | First card 422 ms; decoded photo 526 ms; ready observed by 20.05 seconds, no reload. |
+| Automatic food result | **Failed:** cooked spaghetti nutrition unavailable. Preserved as the baseline that led to #253. | **Passed:** plain cooked spaghetti 200 g, FDC 169728, 262 kcal, without manual matching. |
+| Detail | Actual loaded photo, colored outline, names, portions, nutrient table and USDA attribution observed. An early grey loading state was not treated as a missing photo. | Actual loaded photo, colored item control, portions, full nutrient table and USDA attribution observed. |
+| Item editing | Real photo-region tap opened editing. Deliberately selected a manual pasta reference: 200 g/314 kcal, then a separate 100 g edit/157 kcal. Three immutable item rows retained the original automatic unknown row; original analysis remained. | Actual colored item control opened editing: 200 g/262 kcal to 100 g/131 kcal. Original model row was superseded and retained; stored card hash changed. A direct center tap missed and was not counted as successful region editing. |
+| Plain-language correction | Separate reply to 150 g produced 235.5 kcal, displayed 236; user/model entries 4.367 seconds apart, four lineage rows and another changed card hash. | Separate reply to 150 g produced 196.5 kcal, displayed 197; user/model entries 3.330 seconds apart, three retained lineage rows and another changed card hash. |
+| Needs-input answer | Genuine photo/caption conflict, real answer, eventually ready. **Three automatic attempts**: first two emitted invalid source index 0 with no existing items. This exposed the #255 schema defect; no manual retry. | Genuine conflict, real answer, ready on **one** correction attempt. Actual stored request had zero input items and `region_index.enum: [null]`; response used null. Model call 4.246 seconds; user-to-model reply 18.736 seconds. Result 200 g plain spaghetti, FDC 2708357, 314 kcal. |
+| Discard | Separate genuine conflict discarded through UI; row absent independently. | Separate genuine conflict discarded through UI; row absent independently. |
+| Days | Day grid and story opened; corrected meal summary showed 12:05 PM / 236 kcal and a decoded photo. | Day grid and story opened; corrected meal summary showed 12:45 PM / 197 kcal and a decoded photo. |
+| Sign-out and return | Actual Profile Sign out reached visible sign-in form, then helper re-login reached protected Home. | Actual Profile Sign out and helper re-login checked after the flow. |
+| Private access | Independent second-account request showed no photo or editing content. Ordinary post returned streamed not-found content with HTTP 200; this is not claimed as transport 404. Admin trace denial returned actual HTTP 404. | The same isolation boundary was separately verified by the account-2 acceptance audit; no identity-bearing screenshots were captured. |
 
-The final demo worker concurrency remains **1** unless a completed production load test supports a change. See [load-test evidence](load-test.md) and [meal photo evaluation](eval.md). Page comparisons and the final test pass must be recorded after the last implementation item's code is written.
+The two pasta references above are distinct cooked-food records; their different calories are disclosed rather than described as identical measurements. Portions are estimates, and this workflow evidence does not establish recipe-specific nutrition accuracy.
+
+Current-version model and copied-nutrition checks are reported separately in [the evaluation](eval.md). The [load report](load-test.md) records a distinct unattended twenty-post drain on its historical runtime. Passing a live-feed transition does not prove every Home state matches a designer frame, and a desktop session does not prove installed-phone persistence or push delivery.

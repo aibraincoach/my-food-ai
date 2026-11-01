@@ -11,7 +11,7 @@ Limits verified on 2026-10-28 (JST) from Meta Model API's **Pricing and rate lim
 
 Meta applies these limits per team, separately for each model; file and realtime transcription share the stream allowance. These published limits do not guarantee measured application throughput.
 
-Run `node --env-file=.env.local scripts/load-test.mjs` from the repository after installing dependencies, including Next's optional image-processing dependency. Required names: `APP_URL`, `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, `SUPABASE_SECRET_KEY`, `TEST_USER_EMAIL`, `TEST_USER_PASSWORD`. Run 4 fixes effective worker concurrency at 1, including when a legacy `WORKER_CONCURRENCY` setting requests more lanes; changing a local variable does not change the deployment. Set `DEPLOYED_WORKER_CONCURRENCY` to the value the deployment uses so the report records it; when unset the report says `unknown`.
+Run `node --env-file=.env.local scripts/load-test.mjs` from the repository after installing dependencies, including Next's optional image-processing dependency. Required names: `APP_URL`, `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, `SUPABASE_SECRET_KEY`, `TEST_USER_EMAIL`, `TEST_USER_PASSWORD`. Run 4 fixes effective worker concurrency at one, even if an older `WORKER_CONCURRENCY` value requests more lanes; changing a local variable does not change the deployment. Set `DEPLOYED_WORKER_CONCURRENCY` to the value the deployment uses so the report records it; when unset the report says `unknown`.
 
 The runner signs in as the ordinary test account using the installed SSR library's cookie encoding, schedules twenty requests six seconds apart, rotates the three existing fixture plates, and uploads original/feed JPEGs through the same application routes as the client. It observes post state every two seconds for at most fifteen minutes. Latency starts before post creation and ends at the first observed ready state, so it includes uploads and up to one polling interval. Job errors containing 429 are retained while polling because a successful retry clears the stored error. Private post identifiers are written only to a temporary local report, not this document.
 
@@ -60,12 +60,13 @@ Authentication reuses `scripts/lib/session.mjs`. When available, `eval/photos/01
 
 ## Run of 2026-10-28 against production (b025d13)
 
-The results above are the historical Oct 28 production run with the test account. Observations that the table does not show:
+The results above are from the historical Oct 28 production run, with the test account. Observations that the table does not show:
 
 - The runner's fifteen-minute window ended with 11 of 20 posts still queued. They were not slow: their analyze jobs were due, at attempt 0, with no worker lease held. The worker had stopped after about 330 seconds, and a manual `GET /api/jobs/tick` started it again. This is tracked as #177; until it is fixed the numbers above measure a run where nobody was ticking the queue, not the steady-state throughput.
 - Both failed posts used `eval/photos/03.jpg` and failed with `spark: identify ended with status incomplete.` after three attempts.
 - No 429 was observed from any service.
 - The deployed worker concurrency was not read from the deployment, so the report says `unknown`; the demo setting stays at one.
+
 
 ## Run 4 production test — 2026-10-31
 
@@ -86,7 +87,9 @@ Two distinct model failures were observed. Photos 01 and 02 completed identifica
 
 The separate breakfast and curry re-logs also failed after three attempts each, with no persisted items and unavailable totals. Owner food acceptance remains absent. The Oct 28 table above is retained as historical evidence. Private identifiers and signed URLs are kept out of this document.
 
-## Successful final-head production run — 2026-10-31 16:06 UTC
+## Completed production drain, 2026-10-31
+
+This historical run served `edb56d42c8a2b1dad12434a9ae4b46f6820e7a32`, with concurrency **1** and a 300-second function limit. It is not a new load run on later matching changes. Observation was extended beyond the older fifteen-minute runner default.
 
 Production drain PASS on `edb56d42c8a2b1dad12434a9ae4b46f6820e7a32` (READY, 300-second function duration). #239 supplies the durable scheduled wake; #246–#249 fixed the live token/capacity failures exposed by the earlier run.
 
@@ -135,4 +138,10 @@ The first fixture03 post reached ready in one attempt with 14 items and 14 resol
 
 No 429 was observed in job errors. SDK-internal successful retries are not separately instrumented by this observation. The old failed run remains historical evidence and is not counted as a successful drain.
 
-Issue #177 was closed on this result: [production proof and closure](https://github.com/aibraincoach/my-food-ai/issues/177#issuecomment-6546095477). The private post identifiers remain in local evidence, not this document.
+The twenty creation starts followed a 114-second schedule; actual first-to-last created rows spanned 113.119 seconds. All twenty eventually reached ready, all jobs finished on attempt 1 with no error. Median ready latency was 607.12 seconds and maximum 1205.55 seconds; this is throughput/drain evidence, not a low-latency claim.
+
+At 16:21 UTC, eight due jobs remained with no active analysis. The scheduled wake returned HTTP 200 at 16:21:00.153, and the next job was claimed at 16:21:00.877. No manual tick or browser-focus event restarted the queue. No job error reported 429; SDK-internal retries were not separately instrumented. The selected demo concurrency remains **1**. [Production proof and closure](https://github.com/aibraincoach/my-food-ai/issues/177#issuecomment-6546095477).
+
+## Current single-meal observations — Nov 1
+
+The current verified production baseline is `c392a30ae170ec4f7a7cc48e5b8ff9b1d4d597a5`, READY. #256 reduced active breakfast/curry/busy-photo times to 16.497/19.539/25.188 seconds in a three-post cohort, with all jobs finished on attempt one and the wake still enabled. These are not a new burst test and do not replace the historical twenty-post timings above. See [the full comparison](production-performance.md).

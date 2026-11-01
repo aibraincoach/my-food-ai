@@ -1,3 +1,4 @@
+import {FOOD_MATCH_VERSION} from "../src/lib/fdc/version.ts";
 // node --import tsx --test tests/prior-hint.test.mjs
 import assert from "node:assert/strict";
 import test from "node:test";
@@ -5,9 +6,10 @@ import test from "node:test";
 // Every query chain resolves to the table's canned result, however it is awaited.
 function fakeAdmin({ candidate, mediaResult }) {
   const tables = {
-    post_items: { data: [{ id: "i", name: "Rice", portion_text: "a bowl", portion_grams: 150, confidence: 0.9, item_nutrition: [] }], error: null },
+    post_items: { data: [{ id: "i", name: "Rice", portion_text: "a bowl", portion_grams: 150, confidence: 0.9, item_nutrition: [{calories:130,protein_g:2,carbs_g:28,fat_g:0,source_ref:"7"}] }], error: null },
     posts: { data: { user_id: "u", caption: "two bowls of rice" }, error: null },
     post_media: mediaResult,
+    model_calls: { data: [{request_text:JSON.stringify({event:"food_resolution",name:"Rice",matcherVersion:FOOD_MATCH_VERSION}),response_text:JSON.stringify({source:"selected"}),fdc_id:7,error:null,started_at:"2026-10-31T00:00:00Z"}], error:null },
   };
   const chain = (result) => new Proxy({}, { get: (_, name) => {
     if (name === "then") return (resolve) => resolve(result);
@@ -53,7 +55,7 @@ test("an empty top-ranked prior does not hide a usable runner-up", async () => {
     ], error: null }),
     from: () => ({
       select: () => ({
-        eq: (_, id) => { asked.push(id); return chain({ data: id === "empty" ? [] : [{ id: "i", name: "Rice", portion_text: null, portion_grams: 150, confidence: 0.9, item_nutrition: [] }], error: null }); },
+        eq: (_, id) => { asked.push(id); return chain({ data: id === "empty" ? [] : [{ id: "i", name: "Rice", portion_text: null, portion_grams: 150, confidence: 0.9, item_nutrition: [{calories:130,protein_g:2,carbs_g:28,fat_g:0,source_ref:"7"}] }], error: null }); },
       }),
     }),
   };
@@ -74,7 +76,8 @@ test("same-meal confirmation retries the gateway's transient 404 like identifica
     // Each table answers per requested post; photo paths must belong to the meal's owner ("u").
     const chain = (name, ctx = {}) => new Proxy({}, { get: (_, method) => {
       const result = () => {
-        if (name === "post_items") return { data: [{ id: "i", name: "Rice", portion_text: null, portion_grams: 150, confidence: 0.9, item_nutrition: [] }], error: null };
+        if (name === "model_calls") return {data:[{request_text:JSON.stringify({event:"food_resolution",name:"Rice",matcherVersion:FOOD_MATCH_VERSION}),response_text:JSON.stringify({source:"selected"}),fdc_id:7,error:null,started_at:"2026-10-31T00:00:00Z"}],error:null};
+        if (name === "post_items") return { data: [{ id: "i", name: "Rice", portion_text: null, portion_grams: 150, confidence: 0.9, item_nutrition: [{calories:130,protein_g:2,carbs_g:28,fat_g:0,source_ref:"7"}] }], error: null };
         if (name === "post_media") return { data: { storage_path: `u/${ctx.post_id}/0.jpg`, width: 10, height: 10 }, error: null };
         return { data: { user_id: "u", caption: "rice" }, error: null };
       };

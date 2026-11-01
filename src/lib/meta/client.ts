@@ -11,6 +11,9 @@ import { workerDeadlineSignal } from "@/lib/worker/budget";
 // verified through v13 REST on 2026-10-27.
 // Two 30-second calls plus at most 10 seconds waiting fit that duration.
 export const TIMEOUT_MS = 30000;
+// Busy photo identify responses exceeded 30s after exhausting the small cap.
+// Give only that response shape 60s; the worker's absolute deadline still wins.
+export const IDENTIFY_TIMEOUT_MS = 60000;
 export const MAX_RETRIES = 1;
 export const MAX_RETRY_AFTER_S = 10;
 
@@ -88,13 +91,13 @@ export function createMetaClient(): OpenAI {
   });
 }
 
-export async function metaFetch(path: string, init: RequestInit = {}): Promise<Response> {
+export async function metaFetch(path: string, init: RequestInit = {}, timeoutMs = TIMEOUT_MS): Promise<Response> {
   const headers = new Headers(init.headers);
   headers.set("Authorization", `Bearer ${metaApiKey()}`);
   const callerSignal = workerDeadlineSignal(init.signal ?? undefined);
   for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
     let response: Response | undefined;
-    const timeout = AbortSignal.timeout(TIMEOUT_MS);
+    const timeout = AbortSignal.timeout(timeoutMs);
     const signal = callerSignal ? AbortSignal.any([callerSignal, timeout]) : timeout;
     try {
       signal.throwIfAborted();
@@ -198,7 +201,7 @@ export async function createResponse(
   return recordCall(kind, body, async () => {
     const response = await metaFetch("/responses", {
       method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body), signal:options.signal,
-    });
+    }, format === "identify" ? IDENTIFY_TIMEOUT_MS : TIMEOUT_MS);
     return readResponseOutput(await response.json());
   }, (out) => ({ text: out.outputText, usage: out.usage }));
 }

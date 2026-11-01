@@ -1,3 +1,4 @@
+import {FOOD_MATCH_VERSION} from "../src/lib/fdc/version.ts";
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import {createClient} from '@supabase/supabase-js';
@@ -19,7 +20,8 @@ test('a changed caption reaches confirmation before prior nutrition can be copie
   const db=createClient('https://fixture.invalid','fixture-key',{global:{fetch:async input=>{
     const url=new URL(input instanceof Request?input.url:String(input));
     if(url.pathname.endsWith('/rpc/meal_prior_candidates'))return Response.json([{post_id:'past',text_score:1,photo_score:1,distance_m:0}]);
-    if(url.pathname.endsWith('/post_items'))return Response.json([{id:'item',name:'Rice',portion_text:'one bowl',portion_grams:100,confidence:1,item_nutrition:[{calories:130}]}]);
+    if(url.pathname.endsWith('/model_calls'))return Response.json([{request_text:JSON.stringify({event:'food_resolution',name:'Rice',matcherVersion:FOOD_MATCH_VERSION}),response_text:JSON.stringify({source:'selected'}),fdc_id:7,error:null,started_at:'2026-10-31T00:00:00Z'}]);
+    if(url.pathname.endsWith('/post_items'))return Response.json([{id:'item',name:'Rice',portion_text:'one bowl',portion_grams:100,confidence:1,item_nutrition:[{post_item_id:'item',calories:130,protein_g:2,carbs_g:28,fat_g:0,source_ref:'7'}]}]);
     if(url.pathname.endsWith('/post_media'))return Response.json([{storage_path:`owner/${url.searchParams.get('post_id').slice(3)}/0.jpg`,width:10,height:10}]);
     if(url.pathname.includes('/storage/'))return new Response(new Uint8Array([1,2,3]),{headers:{'Content-Type':'image/jpeg'}});
     if(url.pathname.endsWith('/posts'))return Response.json({user_id:'owner',caption:url.searchParams.get('id')==='eq.current'?'Two bowls of rice':'One bowl of rice'});
@@ -30,6 +32,7 @@ test('a changed caption reaches confirmation before prior nutrition can be copie
     assert.equal(confirmation.current_caption,'Two bowls of rice');
     assert.equal(confirmation.past_caption,'One bowl of rice');
     assert.equal(result.named,undefined,'different portions cannot reuse prior nutrition');
+    assert.equal(result.nutrition,undefined,'unconfirmed quantities cannot receive a certification marker');
   }finally{globalThis.fetch=savedFetch;if(savedKey===undefined)delete process.env.MODEL_API_KEY;else process.env.MODEL_API_KEY=savedKey;}
 });
 
@@ -39,12 +42,13 @@ test('captionless identical photos reach confirmation but never copy without its
   assert.equal(priorScore({text_score:null,photo_score:null,distance_m:null}),0);
   const savedFetch=globalThis.fetch,savedKey=process.env.MODEL_API_KEY;
   process.env.MODEL_API_KEY='fixture-key';
-  let approved=false,calls=0;
+  let approved=false,calls=0,currentVersion=true;
   globalThis.fetch=async input=>{const url=new URL(input instanceof Request?input.url:String(input));if(url.pathname.endsWith('/rest/v1/model_calls'))return new Response(null,{status:201});assert.equal(url.pathname,'/v1/responses');calls++;return Response.json({status:'completed',output:[{type:'message',content:[{type:'output_text',text:JSON.stringify({same_meal:approved})}]}]});};
   const db=createClient('https://fixture.invalid','fixture-key',{global:{fetch:async input=>{
     const url=new URL(input instanceof Request?input.url:String(input));
     if(url.pathname.endsWith('/rpc/meal_prior_candidates'))return Response.json([{post_id:'past',text_score:null,photo_score:1,distance_m:null}]);
-    if(url.pathname.endsWith('/post_items'))return Response.json([{id:'item',name:'Rice',portion_grams:100,item_nutrition:[{calories:130}]}]);
+    if(url.pathname.endsWith('/model_calls'))return Response.json([{request_text:JSON.stringify({event:'food_resolution',name:'Rice',matcherVersion:currentVersion?FOOD_MATCH_VERSION:'legacy'}),response_text:JSON.stringify({source:'selected'}),fdc_id:7,error:null,started_at:'2026-10-31T00:00:00Z'}]);
+    if(url.pathname.endsWith('/post_items'))return Response.json([{id:'item',name:'Rice',portion_grams:100,item_nutrition:[{post_item_id:'item',calories:130,protein_g:2,carbs_g:28,fat_g:0,source_ref:'7'}]}]);
     if(url.pathname.endsWith('/post_media'))return Response.json([{storage_path:`owner/${url.searchParams.get('post_id').slice(3)}/0.jpg`,width:10,height:10}]);
     if(url.pathname.includes('/storage/'))return new Response(new Uint8Array([1,2,3]),{headers:{'Content-Type':'image/jpeg'}});
     if(url.pathname.endsWith('/posts'))return Response.json({user_id:'owner',caption:''});
@@ -57,5 +61,10 @@ test('captionless identical photos reach confirmation but never copy without its
     assert.equal(calls,2);
     assert.equal(accepted.named.captionOnly[0].portionGrams,100);
     assert.equal(accepted.nutrition[0].calories,130);
+    assert.equal(accepted.nutrition[0].post_item_id,'item');
+    assert.equal(accepted.nutrition[0].matcher_version,FOOD_MATCH_VERSION);
+    currentVersion=false;
+    assert.equal((await findPrior(db,'current')).named,undefined,'legacy nutrition is reanalyzed even when photos match');
+    assert.equal(calls,2,'untrusted prior cannot reach model approval');
   }finally{globalThis.fetch=savedFetch;if(savedKey===undefined)delete process.env.MODEL_API_KEY;else process.env.MODEL_API_KEY=savedKey;}
 });
