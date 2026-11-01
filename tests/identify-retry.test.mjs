@@ -35,17 +35,17 @@ test("a 400 is terminal at once and is not retried here", { timeout: 20000 }, as
 
 const validMeal = {items:[{region_index:0,name:"rice",portion_text:"one serving",portion_grams:100,confidence:0.8}],summary:"Consumed rice",needs_input:null};
 const identifyResponse = (status, value=validMeal) => Response.json({status,output:[{type:"message",content:[{type:"output_text",text:JSON.stringify(value)}]}]});
-test("busy identification retries once with reasoning capacity and validates the completed response",async()=>{
+test("identification gets completion capacity on its first low-effort request",async()=>{
  const {identifyItems}=await import("../src/lib/meta/spark.ts");
- await withFetch([()=>identifyResponse("incomplete"),()=>identifyResponse("completed")],async(calls,requests)=>{
+ await withFetch([()=>identifyResponse("completed")],async(calls,requests)=>{
   const meal=await identifyItems(null,"image/jpeg","rice",[{index:0,box:{left:0,top:0,right:10,bottom:10},areaFraction:1}]);
   assert.equal(meal.items[0].name,"rice");assert.equal(meal.items[0].regionIndex,0);
-  assert.deepEqual(requests.map(r=>r.max_output_tokens),[2048,8192]);assert.equal(calls(),2);
+  assert.deepEqual(requests.map(r=>r.max_output_tokens),[8192]);assert.equal(requests[0].reasoning.effort,"low");assert.equal(calls(),1);
  });
 });
 test("parseable truncated identification is never accepted at the final ceiling",async()=>{
  const {identifyItems}=await import("../src/lib/meta/spark.ts");
  await withFetch([()=>identifyResponse("incomplete"),()=>identifyResponse("incomplete")],async(calls)=>{
-  await assert.rejects(identifyItems(null,"image/jpeg","rice",[]),/status incomplete/);assert.equal(calls(),2);
+  await assert.rejects(identifyItems(null,"image/jpeg","rice",[]),/status incomplete/);assert.equal(calls(),1);
  });
 });

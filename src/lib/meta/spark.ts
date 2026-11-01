@@ -124,44 +124,37 @@ export async function identifyItems(
     `Caption: ${caption && caption.trim() ? caption.trim() : "(none)"}\n` +
     `Regions (index, box left/top/right/bottom in source pixels, area fraction):\n${regionLines(regions)}`;
   const known = new Set(regions.map((r) => r.index));
-  let maxTokens = 2048;
-  for (let attempt = 0; attempt < 4; attempt += 1) {
-    const out = await createResponseRetrying404({
-        model: "muse-spark-1.3",
-        instructions: identifyPrompt + (prior ? `\n${prior}` : ""),
-        input: [
-          {
-            type: "message",
-            role: "user",
-            content: [{ type: "input_text", text }, ...content],
-          },
-        ],
-        text: {
-          format: {
-            type: "json_schema",
-            name: "identify",
-            schema: identifySchema,
-            strict: true,
-          },
+  // Output allowance is not a work target; low effort avoids discarded warm-up calls.
+  const maxTokens = 8192;
+  const out = await createResponseRetrying404({
+      model: "muse-spark-1.3",
+      reasoning: { effort: "low" },
+      instructions: identifyPrompt + (prior ? `\n${prior}` : ""),
+      input: [
+        {
+          type: "message",
+          role: "user",
+          content: [{ type: "input_text", text }, ...content],
         },
-        max_output_tokens: maxTokens,
-      });
-    if (out.refusal) {
-      throw new MetaApiError(500, "spark: model refused the identify call.");
-    }
-    if (out.status === "incomplete" && maxTokens < 8192) {
-      // Reasoning shares the output ceiling. Busy licensed fixture 03 exhausted 4096.
-      // Keep the same one escalation and existing per-call timeout.
-      maxTokens = 8192;
-      continue;
-    }
-    if (out.status !== "completed" || out.outputText === null) {
-      throw new MetaApiError(
-        500,
-        `spark: identify ended with status ${out.status}.`
-      );
-    }
-    return parseIdentifiedMeal(out.outputText, known);
+      ],
+      text: {
+        format: {
+          type: "json_schema",
+          name: "identify",
+          schema: identifySchema,
+          strict: true,
+        },
+      },
+      max_output_tokens: maxTokens,
+    });
+  if (out.refusal) {
+    throw new MetaApiError(500, "spark: model refused the identify call.");
   }
-  throw new MetaApiError(500, "spark: identify failed after retries.");
+  if (out.status !== "completed" || out.outputText === null) {
+    throw new MetaApiError(
+      500,
+      `spark: identify ended with status ${out.status}.`
+    );
+  }
+  return parseIdentifiedMeal(out.outputText, known);
 }

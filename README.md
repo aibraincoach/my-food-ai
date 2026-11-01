@@ -113,7 +113,7 @@ For changes to meal capacity or execution deadlines, run the complete busy-meal 
 node --env-file=.env.local --import tsx scripts/real-identify-smoke.mjs --real-meta --full-meal
 ```
 
-This explicit paid mode runs fresh SAM, identification and every identified food through the actual two-lane resolver. USDA search is read-only and its cache exists only in memory. Limits are 80 Meta requests, 40 USDA reads, 262,144 reserved output tokens and 270 seconds; the receipt reports actual usage without asserting a dollar price. No database or storage writes occur. The production nutrition phase gets at most 180 seconds, capped by the invocation's remaining 270-second processing allowance with 15 seconds reserved for persistence and a further 30 seconds before the platform's 300-second limit. Late worker handoffs defer to the durable scheduled wake instead of extending the invocation with a timer.
+This explicit paid mode runs fresh SAM, identification and every identified food through the actual four-lane resolver. USDA search is read-only and its cache exists only in memory. Limits are 80 Meta requests, 40 USDA reads, 262,144 reserved output tokens and 270 seconds; the receipt reports actual usage without asserting a dollar price. No database or storage writes occur. The production nutrition phase gets at most 180 seconds, capped by the invocation's remaining 270-second processing allowance with 15 seconds reserved for persistence and a further 30 seconds before the platform's 300-second limit. Late worker handoffs defer to the durable scheduled wake instead of extending the invocation with a timer.
 
 Changes to prior-meal confirmation also require its explicit real decision gate:
 
@@ -148,3 +148,14 @@ It replays a photo clarification with zero existing items and a portion correcti
 ## Production verification
 
 [Ten licensed meal photos and visual adjudication](docs/eval.md), [two UI demonstration runs and limits](docs/demo.md), and [production drain evidence](docs/load-test.md), and [closed-issue acceptance](docs/closed-issue-acceptance.md) distinguish tested runtime commits from later documentation merges.
+
+
+Meal analysis selects low reasoning effort explicitly for food identification and reference selection, retaining the full 8,192-token identify allowance and existing match ceilings. One worker job runs at a time; up to four independent foods resolve within that job. Only masks referenced by identified items are encoded/uploaded, with four bounded upload lanes. The selected masks must finish before publication. Policy v4 rechecks older prior-meal decisions before reuse.
+
+The visible-component regression gate includes the unchanged ten licensed photographs and separately checks the photographed cheese, croutons and egg instead of silently accepting a broad caption name:
+
+```sh
+node --env-file=.env.local --import tsx scripts/real-vision-quality-smoke.mjs --real-meta
+```
+
+It permits forty Meta requests in 270 seconds and writes no database or storage records. This gate does not certify portion mass, hidden ingredients or exact seafood species.
