@@ -11,7 +11,7 @@ export default function ItemRows({ items, onSelect, onAdd, disabled = false }: {
 }) {
   return <div className="px-screen-x pt-tooltip-y">
     {items.map((item, index) => <button key={item.id} type="button" disabled={disabled} onClick={() => onSelect(item)}
-      className="flex min-h-tap w-full items-center gap-2 text-detail text-muted" aria-label={`Edit ${item.name}`}>
+      className="flex min-h-item-row w-full items-center gap-2 text-detail text-muted" aria-label={`Edit ${item.name}`}>
       <span className="size-2 shrink-0 rounded-circle" style={{ background: outlineColor(index) }} aria-hidden="true" />
       <span className="min-w-0 flex-1 truncate text-left">{item.name}</span>
       <span className="shrink-0 tabular-nums">{item.portion_grams == null ? "—" : formatGrams(item.portion_grams)} · {formatNutrition(item.calories)} kcal</span>
