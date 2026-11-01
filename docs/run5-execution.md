@@ -27,7 +27,7 @@ All code PRs target `main`. PR #264 contains the reviewed parent integrations an
 
 The reviewer was Gemini 3.8 Flash through the repository's [PPLX review skill](../skills/pplx-review/SKILL.md), using the original authenticated Firefox profile. No OpenAI model reviewed its own code. A changed input selector was diagnosed against the live page and repaired in temporary tooling; no fallback route or unproven availability claim was used.
 
-The [receipt ledger](reviews/run5-review-receipts.json) records each exact head, verdict and public review link. The final item-3 review used the same eligible provider/model in a new thread after the initial thread handle was lost; that limitation was disclosed, and its final review/confirmation share the captured final thread. It is not represented as uninterrupted conversation continuity.
+The [receipt ledger](reviews/run5-review-receipts.md) records each exact head, verdict and public review link. The final item-3 review used the same eligible provider/model in a new thread after the initial thread handle was lost; that limitation was disclosed, and its final review/confirmation share the captured final thread. It is not represented as uninterrupted conversation continuity.
 
 ## Verification
 
@@ -36,7 +36,7 @@ On final integrated item 6:
 - **48 targeted tests passed, zero failed.** The related unit selection passed 32/34; two existing disposable-local-database checks skipped because that environment was absent. The serial data/access selection passed 16/17; its live HTTP drink test skipped because the required new-schema local HTTP environment was not available. These skips are not acceptance evidence.
 - The data selection covered barcode correction precedence/normalization/quota, cross-user label/correction isolation, exact saved-meal nutrient copies and chosen times, wrapper/direct-helper ownership rejection, not-eaten supersession/history/CAS/retry rules, fully uneaten calorie preservation, verified attachment/idempotency/history, read-only drink protection, water shares/caffeine and capture-zone publication. New migration tests executed in transactions ending with rollback.
 - Standalone production builds passed for items 0, 1, 4 and 5, and the final combined item-6 build passed. The actual item-1-plus-item-2 subset also built successfully for old-schema live hydration comparisons. All seven final code heads separately have successful Vercel builds.
-- The real `next/og` renderer and all four local font weights produced valid **1080×1080 PNG buffers for 4/4 variants**: water, coffee, food water, and zero-consumed/full-not-eaten with a known remainder calorie footer. No image files were saved and no external network request was made. [Runtime receipt](reviews/run5-gates/card-renderer-runtime.json).
+- The real `next/og` renderer and all four local font weights produced valid **1080×1080 PNG buffers for 4/4 variants**: water, coffee, food water, and zero-consumed/full-not-eaten with a known remainder calorie footer. No image files were saved and no external network request was made. [Runtime receipt](reviews/run5-gates/card-renderer-runtime.md).
 
 Commands for the two targeted selections were `node --env-file=.env.local --import tsx --test --test-concurrency=1` followed by:
 

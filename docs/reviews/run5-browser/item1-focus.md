@@ -1,0 +1,51 @@
+# item1-focus
+
+```json
+{
+  "sourceHead": "1839e67fa1b9bd4aabf0e9490889f724064d7a7e",
+  "retainedInFinalHead": "18aac77ddd326662304b2f6c963701f9526bc0d4",
+  "pillTapClosesSheet": true,
+  "focusSequence": [
+    {
+      "tag": "TEXTAREA",
+      "pill": false
+    },
+    {
+      "tag": "A",
+      "pill": true
+    },
+    {
+      "tag": "A",
+      "pill": true
+    },
+    {
+      "tag": "BUTTON",
+      "pill": true
+    },
+    {
+      "tag": "A",
+      "pill": true
+    },
+    {
+      "tag": "A",
+      "pill": true
+    },
+    {
+      "tag": "BUTTON",
+      "pill": false
+    },
+    {
+      "tag": "TEXTAREA",
+      "pill": false
+    },
+    {
+      "tag": "A",
+      "pill": true
+    },
+    {
+      "tag": "A",
+      "pill": true
+    }
+  ]
+}
+```

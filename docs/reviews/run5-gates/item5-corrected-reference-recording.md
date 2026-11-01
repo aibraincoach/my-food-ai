@@ -1,0 +1,72 @@
+# item5-corrected-reference-recording
+
+```json
+{
+  "head": "0f89928280eaa2350117e77e5ff49cb0b58d29bc",
+  "original": "eval/photos/10.jpg",
+  "fixture": "scripts/fixtures/plate2.jpg",
+  "fixtureCorrection": "The planned plate1.jpg reference is an empty plate. The original is the licensed meal photograph also used by plate2.jpg.",
+  "calls": [
+    {
+      "status": 200
+    },
+    {
+      "status": 200
+    }
+  ],
+  "reference": [
+    {
+      "index": 0,
+      "name": "Yorkshire pudding",
+      "grams": 80
+    },
+    {
+      "index": 1,
+      "name": "sliced roast meat",
+      "grams": 180
+    },
+    {
+      "index": 2,
+      "name": "savory stuffing",
+      "grams": 80
+    },
+    {
+      "index": 3,
+      "name": "brown gravy",
+      "grams": 60
+    }
+  ],
+  "output": [
+    {
+      "index": 0,
+      "remaining_count": 2,
+      "remaining_grams": 80,
+      "total_count": 2,
+      "unit": "puddings"
+    },
+    {
+      "index": 1,
+      "remaining_count": 8,
+      "remaining_grams": 180,
+      "total_count": 8,
+      "unit": "slices"
+    },
+    {
+      "index": 2,
+      "remaining_count": null,
+      "remaining_grams": 80,
+      "total_count": null,
+      "unit": null
+    },
+    {
+      "index": 3,
+      "remaining_count": null,
+      "remaining_grams": 60,
+      "total_count": null,
+      "unit": null
+    }
+  ],
+  "pass": true,
+  "recorded": true
+}
+```

@@ -1,0 +1,437 @@
+# item5-before-final-integration-vision
+
+```json
+{
+  "head": "d4e7cb4a109f9df33d81db95e84e3a75f5f79ae3",
+  "calls": [
+    {
+      "model": "sam-3.1",
+      "cap": null,
+      "effort": null,
+      "ms": 823
+    },
+    {
+      "model": "muse-spark-1.3",
+      "cap": 8192,
+      "effort": "low",
+      "status": "completed",
+      "outputTokens": 639,
+      "reasoningTokens": 516,
+      "ms": 4035
+    },
+    {
+      "model": "sam-3.1",
+      "cap": null,
+      "effort": null,
+      "ms": 300
+    },
+    {
+      "model": "muse-spark-1.3",
+      "cap": 8192,
+      "effort": "low",
+      "status": "completed",
+      "outputTokens": 514,
+      "reasoningTokens": 437,
+      "ms": 3497
+    },
+    {
+      "model": "sam-3.1",
+      "cap": null,
+      "effort": null,
+      "ms": 750
+    },
+    {
+      "model": "muse-spark-1.3",
+      "cap": 8192,
+      "effort": "low",
+      "status": "completed",
+      "outputTokens": 2025,
+      "reasoningTokens": 1411,
+      "ms": 11293
+    },
+    {
+      "model": "sam-3.1",
+      "cap": null,
+      "effort": null,
+      "ms": 176
+    },
+    {
+      "model": "muse-spark-1.3",
+      "cap": 8192,
+      "effort": "low",
+      "status": "completed",
+      "outputTokens": 391,
+      "reasoningTokens": 302,
+      "ms": 3088
+    },
+    {
+      "model": "sam-3.1",
+      "cap": null,
+      "effort": null,
+      "ms": 720
+    },
+    {
+      "model": "muse-spark-1.3",
+      "cap": 8192,
+      "effort": "low",
+      "status": "completed",
+      "outputTokens": 1758,
+      "reasoningTokens": 1571,
+      "ms": 9468
+    },
+    {
+      "model": "sam-3.1",
+      "cap": null,
+      "effort": null,
+      "ms": 188
+    },
+    {
+      "model": "muse-spark-1.3",
+      "cap": 8192,
+      "effort": "low",
+      "status": "completed",
+      "outputTokens": 1297,
+      "reasoningTokens": 1207,
+      "ms": 6674
+    },
+    {
+      "model": "sam-3.1",
+      "cap": null,
+      "effort": null,
+      "ms": 350
+    },
+    {
+      "model": "muse-spark-1.3",
+      "cap": 8192,
+      "effort": "low",
+      "status": "completed",
+      "outputTokens": 1405,
+      "reasoningTokens": 1326,
+      "ms": 7942
+    },
+    {
+      "model": "sam-3.1",
+      "cap": null,
+      "effort": null,
+      "ms": 130
+    },
+    {
+      "model": "muse-spark-1.3",
+      "cap": 8192,
+      "effort": "low",
+      "status": "completed",
+      "outputTokens": 609,
+      "reasoningTokens": 515,
+      "ms": 4325
+    },
+    {
+      "model": "sam-3.1",
+      "cap": null,
+      "effort": null,
+      "ms": 221
+    },
+    {
+      "model": "muse-spark-1.3",
+      "cap": 8192,
+      "effort": "low",
+      "status": "completed",
+      "outputTokens": 776,
+      "reasoningTokens": 633,
+      "ms": 3788
+    },
+    {
+      "model": "sam-3.1",
+      "cap": null,
+      "effort": null,
+      "ms": 804
+    },
+    {
+      "model": "muse-spark-1.3",
+      "cap": 8192,
+      "effort": "low",
+      "status": "completed",
+      "outputTokens": 1671,
+      "reasoningTokens": 1447,
+      "ms": 7086
+    }
+  ],
+  "results": [
+    {
+      "file": "01.jpg",
+      "items": [
+        {
+          "regionIndex": 0,
+          "name": "scrambled eggs",
+          "portionText": "about 2 eggs",
+          "portionGrams": 100,
+          "confidence": 0.9
+        },
+        {
+          "regionIndex": 1,
+          "name": "toast",
+          "portionText": "2 slices",
+          "portionGrams": 60,
+          "confidence": 0.9
+        }
+      ],
+      "ms": 5395,
+      "pass": true
+    },
+    {
+      "file": "02.jpg",
+      "items": [
+        {
+          "regionIndex": 0,
+          "name": "plain spaghetti",
+          "portionText": "1 plate",
+          "portionGrams": 200,
+          "confidence": 0.95
+        }
+      ],
+      "ms": 4238,
+      "pass": true
+    },
+    {
+      "file": "03.jpg",
+      "items": [
+        {
+          "regionIndex": 18,
+          "name": "tuna hosomaki rolls",
+          "portionText": "6 pieces",
+          "portionGrams": 130,
+          "confidence": 0.9
+        },
+        {
+          "regionIndex": 11,
+          "name": "cucumber hosomaki rolls",
+          "portionText": "5 pieces",
+          "portionGrams": 100,
+          "confidence": 0.9
+        },
+        {
+          "regionIndex": 4,
+          "name": "tuna nigiri",
+          "portionText": "3 pieces",
+          "portionGrams": 90,
+          "confidence": 0.9
+        },
+        {
+          "regionIndex": 44,
+          "name": "salmon nigiri",
+          "portionText": "2 pieces",
+          "portionGrams": 70,
+          "confidence": 0.85
+        },
+        {
+          "regionIndex": 7,
+          "name": "cooked shrimp nigiri",
+          "portionText": "3 pieces",
+          "portionGrams": 90,
+          "confidence": 0.9
+        },
+        {
+          "regionIndex": 5,
+          "name": "squid nigiri",
+          "portionText": "3 pieces",
+          "portionGrams": 90,
+          "confidence": 0.8
+        },
+        {
+          "regionIndex": 14,
+          "name": "surf clam nigiri",
+          "portionText": "3 pieces",
+          "portionGrams": 90,
+          "confidence": 0.8
+        },
+        {
+          "regionIndex": 34,
+          "name": "octopus nigiri",
+          "portionText": "2 pieces",
+          "portionGrams": 60,
+          "confidence": 0.8
+        },
+        {
+          "regionIndex": 26,
+          "name": "white fish and scallop and sweet shrimp nigiri assortment",
+          "portionText": "6 pieces",
+          "portionGrams": 180,
+          "confidence": 0.75
+        },
+        {
+          "regionIndex": 42,
+          "name": "tamago nigiri",
+          "portionText": "4 pieces",
+          "portionGrams": 120,
+          "confidence": 0.9
+        },
+        {
+          "regionIndex": 23,
+          "name": "salmon roe gunkan with cucumber",
+          "portionText": "2 pieces",
+          "portionGrams": 60,
+          "confidence": 0.8
+        },
+        {
+          "regionIndex": 40,
+          "name": "minced tuna gunkan",
+          "portionText": "4 pieces",
+          "portionGrams": 80,
+          "confidence": 0.75
+        },
+        {
+          "regionIndex": 20,
+          "name": "pickled ginger",
+          "portionText": "1 small pile",
+          "portionGrams": 20,
+          "confidence": 0.85
+        }
+      ],
+      "ms": 14225,
+      "pass": true
+    },
+    {
+      "file": "04.jpg",
+      "items": [
+        {
+          "regionIndex": 0,
+          "name": "Margherita pizza",
+          "portionText": "2 slices",
+          "portionGrams": 250,
+          "confidence": 0.95
+        }
+      ],
+      "ms": 4501,
+      "pass": true
+    },
+    {
+      "file": "05.jpg",
+      "items": [
+        {
+          "regionIndex": 2,
+          "name": "cheeseburger with lettuce, tomato, onion and pickle",
+          "portionText": "1 burger",
+          "portionGrams": 280,
+          "confidence": 0.9
+        },
+        {
+          "regionIndex": 3,
+          "name": "french fries",
+          "portionText": "1 serving",
+          "portionGrams": 120,
+          "confidence": 0.95
+        },
+        {
+          "regionIndex": 0,
+          "name": "dipping sauce",
+          "portionText": "1 small cup",
+          "portionGrams": 30,
+          "confidence": 0.6
+        }
+      ],
+      "ms": 10582,
+      "pass": true
+    },
+    {
+      "file": "06.jpg",
+      "items": [
+        {
+          "regionIndex": 1,
+          "name": "grilled chicken caesar salad with croutons",
+          "portionText": "1 entree salad",
+          "portionGrams": 350,
+          "confidence": 0.9
+        }
+      ],
+      "ms": 7136,
+      "pass": true
+    },
+    {
+      "file": "07.jpg",
+      "items": [
+        {
+          "regionIndex": null,
+          "name": "pancakes",
+          "portionText": "two pancakes",
+          "portionGrams": 90,
+          "confidence": 0.95
+        }
+      ],
+      "ms": 8557,
+      "pass": true
+    },
+    {
+      "file": "08.jpg",
+      "items": [
+        {
+          "regionIndex": 0,
+          "name": "Ramen with cabbage, bean sprouts, green onions and half boiled egg",
+          "portionText": "1 bowl",
+          "portionGrams": 650,
+          "confidence": 0.9
+        }
+      ],
+      "ms": 4786,
+      "pass": true
+    },
+    {
+      "file": "09.jpg",
+      "items": [
+        {
+          "regionIndex": 5,
+          "name": "Cheeseburger with lettuce, pickle and tomato",
+          "portionText": "1 burger",
+          "portionGrams": 250,
+          "confidence": 0.95
+        },
+        {
+          "regionIndex": 7,
+          "name": "Crinkle-cut french fries",
+          "portionText": "1 serving",
+          "portionGrams": 140,
+          "confidence": 0.95
+        }
+      ],
+      "ms": 4442,
+      "pass": true
+    },
+    {
+      "file": "10.jpg",
+      "items": [
+        {
+          "regionIndex": 8,
+          "name": "roast lamb with gravy",
+          "portionText": "about 250 g sliced lamb",
+          "portionGrams": 250,
+          "confidence": 0.92
+        },
+        {
+          "regionIndex": 10,
+          "name": "Yorkshire pudding",
+          "portionText": "2 large puddings",
+          "portionGrams": 90,
+          "confidence": 0.96
+        },
+        {
+          "regionIndex": 0,
+          "name": "stuffing",
+          "portionText": "about 110 g scoop",
+          "portionGrams": 110,
+          "confidence": 0.9
+        },
+        {
+          "regionIndex": 9,
+          "name": "gravy",
+          "portionText": "about 80 g poured over",
+          "portionGrams": 80,
+          "confidence": 0.85
+        }
+      ],
+      "ms": 12557,
+      "pass": true
+    }
+  ],
+  "limits": "Food-category checks and visible component regressions, not measured portions or exact species certification",
+  "pass": true,
+  "elapsedMs": 77120
+}
+```
