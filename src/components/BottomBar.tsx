@@ -30,7 +30,7 @@ export default function BottomBar({ onPlus, menuOpen = false }: { onPlus: () => 
       {slot.href==='/profile'?<span className="flex size-[26px] items-center justify-center rounded-circle bg-text text-avatar-sm text-surface">{initial||<Icon name="profile" size={18}/>}</span>:<Icon name={slot.icon} active={active} size={24}/>}
     </Link>;
   };
-  return <nav aria-label="Primary" data-pill className="fixed left-1/2 z-50 grid h-[58px] w-[calc(100%-48px)] max-w-[342px] -translate-x-1/2 grid-cols-5 items-center rounded-[29px] bg-surface-94 px-[6px]" style={{bottom:'calc(24px + env(safe-area-inset-bottom))',boxShadow:'var(--color-shadow-pill)',backdropFilter:'blur(var(--spacing-blur-pill))'}}>
+  return <nav aria-label="Primary" data-pill className="fixed left-1/2 z-50 [[data-mfa-sheet-open]_&]:z-[70] grid h-[58px] w-[calc(100%-48px)] max-w-[342px] -translate-x-1/2 grid-cols-5 items-center rounded-[29px] bg-surface-94 px-[6px]" style={{bottom:'calc(24px + env(safe-area-inset-bottom))',boxShadow:'var(--color-shadow-pill)',backdropFilter:'blur(var(--spacing-blur-pill))'}}>
     {link(SLOTS[0])}{link(SLOTS[1])}
     <div className="relative flex h-[46px] items-center justify-center">
       {pathname==='/'&&feedEmpty&&<div className="pointer-events-none absolute bottom-full left-1/2 -translate-x-1/2 whitespace-nowrap pb-4"><Tooltip>Photograph a meal</Tooltip></div>}
