@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {execFileSync} from 'node:child_process';
+import {itemWaterMl,foodWaterMl,roundWaterMl} from '../src/lib/intake/hydration.ts';
 
 const url=process.env.LOCAL_TEST_DB_URL;
 test('drink time moves atomically and generic item/servings/correction edits cannot contradict intake', {skip:!url},()=>{
@@ -45,4 +46,16 @@ test('drink time moves atomically and generic item/servings/correction edits can
  rollback;
  select 'drink_consistency_passed';`});
  assert.match(result,/drink_consistency_passed/);
+});
+
+// Water is summed before rounding; drink-linked items are excluded by the day
+// timeline, while ml food portions retain their complete measured water amount.
+test('food water shares use the recorded unit and round the meal sum once',()=>{
+ const item=(water,portion_text)=>({portion_grams:100,portion_text,micronutrients:[{nutrientId:1051,unitName:'G',value:water,basis:'portion'}]});
+ assert.equal(itemWaterMl(item(420,'100 g')),336);
+ assert.equal(itemWaterMl(item(420,'400 ml')),420);
+ assert.equal(itemWaterMl(item(420,'100 g'),true),420);
+ assert.equal(foodWaterMl([item(30,'100 g'),item(30,'100 g')]),50);
+ assert.equal(foodWaterMl([item(30,'100 ml'),item(30,'100 ml')]),60);
+ assert.equal(roundWaterMl(44),40);assert.equal(roundWaterMl(45),50);
 });
