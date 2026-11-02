@@ -11,12 +11,13 @@ export function monthName(month: string, year = false) {
 export function formatDayKcal(value: number | null) { return formatCalories(value,"en"); }
 export function postedLabel(count: number) { return count === 0 ? "No days posted" : `${count} ${count === 1 ? "day" : "days"} posted`; }
 
-export default function MonthGrid({ month, summary, today, selected, onDay }: { month: string; summary: MonthSummary; today: string; selected?: string; onDay: (date: string, cell: HTMLElement) => void }) {
+export default function MonthGrid({ month, summary, today, selected, onDay, onOpenDay }: { month: string; summary: MonthSummary; today: string; selected?: string; onDay: (date: string, cell: HTMLElement) => void; onOpenDay?: (date:string)=>void }) {
   const desktop=useDesktop();
   const first = new Date(`${month}-01T12:00:00Z`);
   const count = new Date(Date.UTC(first.getUTCFullYear(), first.getUTCMonth() + 1, 0)).getUTCDate();
   return <section aria-label={monthName(month, true)} data-month={month} id={`month-${month}`} className="desktop:w-full" onKeyDown={event=>{
     if(!matchMedia('(min-width:1024px)').matches)return;
+    if(event.key==='Enter'&&onOpenDay){const cell=(event.target as HTMLElement).closest<HTMLButtonElement>('button[data-day]');if(cell?.dataset.day){event.preventDefault();onOpenDay(cell.dataset.day);}return;}
     const step=event.key==='ArrowRight'?1:event.key==='ArrowLeft'?-1:event.key==='ArrowDown'?7:event.key==='ArrowUp'?-7:0;
     if(!step)return;event.preventDefault();
     const buttons=Array.from(event.currentTarget.querySelectorAll<HTMLButtonElement>('button[data-day]'));

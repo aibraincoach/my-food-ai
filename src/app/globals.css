@@ -34,6 +34,8 @@ body {
 }
 
 @media (min-width: 1024px) {
+  [data-agent-row] { margin-inline:0; margin-top:20px; margin-bottom:0; }
+  #desktop-upload-slot:empty { padding-top:0; }
   [data-desktop-workspace] { width:min(var(--workspace-width),calc(100vw - 264px - var(--detail-space))); }
   [data-desktop-post][data-focused="true"] { outline:2px solid var(--color-text); outline-offset:2px; }
   .desktop-capture { height:100dvh !important; top:0 !important; display:flex; align-items:center; justify-content:center; padding:24px; background:var(--color-scrim-32); }
