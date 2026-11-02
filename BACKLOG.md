@@ -1,8 +1,34 @@
 # My Food AI — Backlog†
 
-Last edited: Monday 2026-11-02 at 14:38 WIB (UTC+07:00) by Claude, PM
+Last edited: Monday 2026-11-02 at 14:57 WIB (UTC+07:00) by Claude, PM
 
 ## Backlog
+
+## For the owner
+
+### The open-weights trial (#281) has a Modal token
+
+The open-weights trial cannot start because the coder has no credential for the host that serves the model.
+
+Modal approved $100 of hackathon credit for the owner and hosts a Muse Spark Open endpoint billed per token. MODAL\_TOKEN\_ID and MODAL\_TOKEN\_SECRET exist neither in the coder's environment nor in production. Baseten and Fireworks list $100 each for selected participants, and the owner's selection is unconfirmed. The credential reaches the coder privately and never appears in the repository, an issue or this backlog. Done when the coder confirms the trial can authenticate to the host.
+
+### #284 The Meta credit balance and end date are recorded
+
+Nobody has seen how many Meta Model API credits remain or when they end, and judging runs to Nov 8.
+
+Only the owner can read the Meta console. The balance, the end date and whether a payment method can be attached decide what #282 does. Done when the owner has recorded the balance and end date where the coder and the planner can read them.
+
+### #285 The owner's own checks before the recording
+
+Several things only the owner can do stand between the app and the recording on Nov 4.
+
+They are the phone checklist (#280, including a real half-eaten plate); choosing the account to record on (the second test account has 5 posts and no unavailable foods, the owner's has 20 with 5 unavailable); accepting or rejecting the breakfast and curry totals (#189); deciding what the video shows from round 3 and Run 5, such as a drink, saved meals, a not-eaten plate or a scan; and reading the README before recording. Done when each is done or ruled out.
+
+### #286 Rulings waiting on the owner
+
+Four rulings are open and each blocks work.
+
+Whether the open-weights trial (#281) is built before the Nov 3 23:59 WIB freeze or left; what a judge who taps the Facebook button sees (#114); whether PR #270, which holds documents only, is merged; and whether the not-eaten plate is in the video. Done when each ruling is recorded here.
 
 ## Straight to engineering
 
@@ -102,26 +128,6 @@ The app feels slow and clunky, and a user who posts a meal should be able to car
 
 The owner asked for this on Nov 2. What happens today when a person taps Post is not known: whether the capture sheet waits for the upload, whether the feed card appears at once, and whether an upload survives leaving the screen or a reload (a draft is held only in memory today, see #227). Observe first on a throttled phone-sized screen and report each. This sits with #217, #222 and the upload progress item; the progress bar, the failed-upload look and the chip shown on another screen are drawn in the designer's frames 4l to 4o. Done when a user who taps Post can leave the capture sheet at once and keep using the app while the upload and analysis finish, a failed upload is shown and can be retried, and the coder has reported what each case above did before the change.
 
-### #276 Every after-meal photo of a meal can be marked as not eaten
-
-When a meal has two plates, only one after-meal photo can be marked as not eaten. The second after-meal photo appears as additional food, and nothing lets you change it.
-
-The owner reported this on Nov 1. He logged two photos before eating as one meal, because there were two plates. After eating, he took one photo of each plate. The first counted as not eaten. The fourth photo of the meal appeared as additional food with no option to select not eaten. The coder reproduced the defect on Nov 2: a second after-meal photo added through ordinary Add photo is treated as additional food, and a second photo explicitly marked not eaten is rejected (his reports of 07:13 and 09:33 WIB). Whether logging two plates as one meal is a supported use is not known. Done when every after-meal photo in a meal can be marked as not eaten.
-
-### #277 The label for food left on the plate reads "leftovers (not eaten)"
-
-The label for food left on the plate reads "Not eaten", and the owner says that wording reads as wrong.
-
-The owner says people elsewhere call this "leftovers (not eaten)". This replaces the Oct 29 ruling that the label reads "Not eaten". The word "left" as a word for what remains of a target stays banned from the app, so the wording check must still pass. The coder reports that "leftovers" passes the check, which matches "left" as a whole word. Done when the label reads "leftovers (not eaten)" everywhere it appears: the composer, the carousel slide, the card footer, the summary line and the thread.
-
-### #278 Adding a photo to a post keeps what a not-eaten photo recorded
-
-When a post has a not-eaten photo, adding a plain photo to it afterwards wipes the leftover quantities and the card footer.
-
-The coder reproduced this on production on the second test account on Nov 2 (his report of 09:33 WIB): the meal's total went from 314 to 767 kcal, the leftover quantities became empty and the card footer disappeared, while the earlier photo's "Not eaten" label stayed. The correction worker and its SQL replacement leave out the leftover fields. A second after-meal photo added through ordinary Add photo takes the same path. A post holds one leftover today. Done when a post with a not-eaten photo keeps its leftover quantities and footer after another photo is added, and a test proves it.
-
-## Meal screens and feed
-
 ### #192 The photo does not reload while a post is being processed
 
 While a post is being processed, its photo flickers, flashes and reloads over and over. It looks broken.
@@ -157,6 +163,12 @@ The owner reported this on Oct 29 while using the app. The cause is not known; a
 Not every post has a photo, and a photo post loses its numbers once the analysis is one line of small type.
 
 When the worker sets a post to ready, generate a results card image from the stored items and totals: a clean square card with the item names, portions and totals in the app's type and colours. For a photo post the card is appended as the next slide of the carousel, after the photo or photos. For a caption-only post the card is the post's image, so every post has something to show in the feed and the profile grid. Render the card from data with code (server-side HTML or SVG to PNG), not with an image-generation model: this build is limited to the Meta Model API models SAM 3.1, Muse Spark 1.3 and Muse Voice Transcribe 1.0, and a rendered card cannot misspell a number. Store it as a post\_media row with a kind column (photo or card, added in a new migration), regenerate it when a correction supersedes the items, and keep every rule from the analysis block: consumed wording only, no goal, no rings or percentages. Done when a logged photo shows the photo and then the card as swipeable slides, a caption-only post shows the card as its image, and a correction changes the numbers on the card.
+
+### #283 A saved card image shows its whole footer
+
+A results card saved as a PNG cuts off its footer.
+
+The coder found this on Nov 2 while checking saved cards after PR #271 (his report of 14:44 WIB). Which footers clip, on which cards, and whether the card image shown in the feed clips too are not known. Observe first, then fix. Done when a saved card's PNG shows its footer in full for a meal with one photo and for a meal with leftovers photos.
 
 ### #18 Days stories row and month grid of past posts
 
@@ -283,6 +295,12 @@ The owner ruled on Oct 31 that this waits until the fleet work is done and is no
 The submission requires a public repository, and it still carries the default README.
 
 The coder's read-only assessment of main on 2026-10-28 found no committed secret, and the owner ruled that nothing is removed or scrubbed during the build. After the last feature merges, one pass replaces the default README with a short start-here page and the owner records which working files (the agents' contracts, the Wall of Stupid file, the review policy and the review tools) stay on main. Done when the README is the start-here page, the owner has recorded which files stay, and a search of main for host names, account identifiers and billing detail returns only what the owner chose to keep.
+
+### #287 The README shows judges the three Meta models, the technical depth and what the app does not do
+
+A judge reads the repository and watches the video, and the README does not yet put in front of them the evidence the four scoring criteria ask for.
+
+The Guide's section 8 scores Impact 30%, Use of Meta AI Tooling 25%, Demo 25% and Technical Depth 20% (from the hackathon rules reference; the PM has not read the Guide first-hand). The README should name SAM 3.1, Muse Spark 1.3 and Muse Voice Transcribe 1.0 with the job each does and where its model ID is logged. It should summarise what was built from Oct 26 to Nov 4 with the evidence that already exists: the test count, the ten-photo evaluation with its stated limits, the real-model gates, the worker timing and the item history that keeps every correction. It should say plainly that the app records what was eaten and never advises, sets no targets and makes no health claims, because the hackathon's anti-project list names nutrition coaching. It states only what the coder's reports prove and carries no private account detail. Done when the README has those parts, each claim links to its evidence, and the owner has read it before the recording.
 
 ### #26 Demo video under three minutes and the submission write-up
 
