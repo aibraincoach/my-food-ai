@@ -1,6 +1,7 @@
 'use client';
 import {useRouter} from 'next/navigation';
 import {useCallback,useEffect,useState} from 'react';
+import UploadChip from './UploadChip';
 import SavedMealListeners from './SavedMealListeners';
 import CorrectProductAction from './CorrectProductAction';
 import BottomBar from '@/components/BottomBar';
@@ -34,7 +35,7 @@ export default function NavigationControls() {
     return()=>{window.removeEventListener('drop',drop);window.removeEventListener('dragover',drag);window.removeEventListener('paste',paste);};
   },[entry]);
   return <>
-    <SavedMealListeners/><CorrectProductAction/>
+    <SavedMealListeners/><CorrectProductAction/><UploadChip/>
     <div className="desktop:hidden"><BottomBar onPlus={()=>setMenuOpen(value=>!value)} menuOpen={menuOpen}/>
     <PlusMenu open={menuOpen} onClose={closeMenu}/></div>
     {entry==='camera'||entry==='text'?<CaptureSheet initialFiles={initialFiles} key={`${entry}:${attachment?.postId??"new"}:${attachment?.notEaten??false}`} forPost={attachment?.postId} attachNotEaten={attachment?.notEaten} initialMode={entry==='camera'?'photo':'text'} onClose={closeCapture}/>:null}

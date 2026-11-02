@@ -1,6 +1,8 @@
 "use client";
 
 import Link from "next/link";
+import type {UploadState} from "@/lib/posts/upload-manager";
+import {UploadMedia,UploadMenu} from "./UploadingPost";
 import {useLocalDate,useLocalTime} from "@/components/LocalTime";
 import { useEffect, useState, type ReactNode } from "react";
 import type { FeedPost } from "@/lib/posts/feed";
@@ -60,7 +62,7 @@ function StatusLine({ post }: { post: FeedPost }) {
   </div>;
 }
 
-export default function PostCard({ post, showDate = false }: { post: FeedPost; analysis?: ReactNode; showDate?: boolean }) {
+export default function PostCard({ post, showDate = false, upload }: { upload?:UploadState;post: FeedPost; analysis?: ReactNode; showDate?: boolean }) {
   const record=post as PostPresentation;
   const drink = useDrinkCard(post.id, post.status, post.eaten_at, post.drink);
   const handle=usePostHandle(record.handle);
@@ -68,23 +70,23 @@ export default function PostCard({ post, showDate = false }: { post: FeedPost; a
   const localClock=useLocalTime(post.eaten_at);const localDate=useLocalDate(post.eaten_at);
   const hasDrink=(record.kind==='drink'||Boolean(drink)) && (record.drinkSource ?? drink?.source ?? 'sheet') === 'sheet';
   const displayRecord = drink ? { ...record, dayHydration: { totalMl: drink.totalMl, drinksMl: drink.drinksMl, foodMl: drink.foodMl, caffeineMg: drink.dayCaffeineMg ?? drink.caffeineMg } } : record;
-  return <article className="flex flex-col" data-post-id={post.id} data-post-status={post.status}>
+  return <article className="flex flex-col" data-post-id={post.id} data-post-status={post.status} data-upload-id={upload?.operationId}>
     <div className="flex h-[52px] items-center gap-[10px] px-inset">
       <span className="flex size-8 shrink-0 items-center justify-center rounded-circle bg-text text-avatar text-surface">{handle.slice(0,1).toUpperCase()}</span>
       <span className="min-w-0 flex-1 truncate text-handle">{handle}<AgentAttribution name={post.agentName}/></span>
-      <PostMenu postId={post.id} caption={post.caption} eatenAt={post.eaten_at} gtin={record.gtin} rows={[
+      {upload&&!upload.postId?(upload.state==='failed'?<UploadMenu upload={upload}/>:<span aria-hidden="true" className="flex size-tap items-center justify-center text-xl">···</span>):<PostMenu postId={post.id} caption={post.caption} eatenAt={post.eaten_at} gtin={record.gtin} rows={[
         ...(post.status==='ready'&&!hasDrink?[{label:'Add photo',onSelect:()=>window.dispatchEvent(new CustomEvent('open-entry',{detail:{entry:'camera',forPost:post.id,notEaten:false}}))}]:[]),
         {label:'Log again',onSelect:()=>window.dispatchEvent(new CustomEvent('log-again',{detail:{postId:post.id}}))},
         {label:record.saved_meal_id?'Unsave':'Save meal',onSelect:()=>window.dispatchEvent(new CustomEvent('save-meal',{detail:{postId:post.id}}))},
         {label:'Delete',muted:true,onSelect:()=>window.dispatchEvent(new CustomEvent('delete-post',{detail:{id:post.id}}))},
-      ]}/>
+      ]}/>}
     </div>
-    {drink && hasDrink ? <Link href={`/posts/${post.id}`} aria-label="Open drink details" className="block"><CaptionCard post={post} drink={drink} /></Link> : post.slides?.length ? <Carousel canAddNotEaten={post.status==='ready'&&post.slides.some(s=>s.kind==='photo')} slides={post.slides} caption={post.caption} postId={post.id} href={`/posts/${post.id}`} modelCommentId={post.modelCommentId??null} fingerprint={post.analysisFingerprint??null} onIndexChange={setSlide} nutrition={post.status === "ready" ? <CaptionCard post={post} drink={drink} /> : <div className="flex aspect-square items-center justify-center bg-card text-detail text-muted">Processing…</div>} /> : post.status === "ready" && post.items.length ? <Link href={`/posts/${post.id}`} aria-label="Open meal details" className="block"><CaptionCard post={post} drink={drink} /></Link> : null}
-    <PostActions postId={post.id} modelCommentId={post.modelCommentId??null} fingerprint={post.analysisFingerprint??null} drink={hasDrink} saved={Boolean(record.saved_meal_id)} slides={hasDrink?1:post.slides?.length??1} index={slide}/>
-    <div className="flex flex-col gap-1 px-inset pt-[10px]">
-      <PostCaption handle={handle} caption={post.caption}/>
-      {post.status==='ready'&&post.items.length>0 ? <Link href={`/posts/${post.id}`} className="text-detail leading-[1.4] text-muted">{summaryLine(displayRecord,drink)} <span className="text-text">more</span></Link> : <StatusLine post={post}/>}
-      <time dateTime={post.eaten_at} className="text-meta text-muted">{showDate ? localDate : localClock}</time>
+    {upload?.previewUrl?<UploadMedia upload={upload} post={post} onIndexChange={setSlide} nutrition={<CaptionCard post={post} drink={drink}/>}/>:drink && hasDrink ? <Link href={`/posts/${post.id}`} aria-label="Open drink details" className="block"><CaptionCard post={post} drink={drink} /></Link> : post.slides?.length ? <Carousel canAddNotEaten={post.status==='ready'&&post.slides.some(s=>s.kind==='photo')} slides={post.slides} caption={post.caption} postId={post.id} href={`/posts/${post.id}`} modelCommentId={post.modelCommentId??null} fingerprint={post.analysisFingerprint??null} onIndexChange={setSlide} nutrition={post.status === "ready" ? <CaptionCard post={post} drink={drink} /> : <div className="flex aspect-square items-center justify-center bg-card text-detail text-muted">Processing…</div>} /> : post.status === "ready" && post.items.length ? <Link href={`/posts/${post.id}`} aria-label="Open meal details" className="block"><CaptionCard post={post} drink={drink} /></Link> : null}
+    {!(upload&&!upload.postId&&upload.state==='failed')&&<div inert={Boolean(upload&&!upload.postId)} className={upload&&!upload.postId?"pointer-events-none opacity-50":undefined}><PostActions postId={post.id} modelCommentId={post.modelCommentId??null} fingerprint={post.analysisFingerprint??null} drink={hasDrink} saved={Boolean(record.saved_meal_id)} slides={hasDrink?1:post.slides?.length??1} index={slide}/></div>}
+    <div className={`flex flex-col gap-1 px-inset ${upload&&!upload.postId&&upload.state==='failed'?'pt-3':'pt-[10px]'}`}>
+      <PostCaption handle={handle} caption={upload&&!upload.postId?upload.caption:post.caption}/>
+      {upload&&!upload.postId?<p className="text-detail text-muted">{upload.state==='failed'?'Not posted yet. The photo is kept on this phone.':'Uploading photo…'}</p>:post.status==='ready'&&post.items.length>0 ? <Link href={`/posts/${post.id}`} className="text-detail leading-[1.4] text-muted">{summaryLine(displayRecord,drink)} <span className="text-text">more</span></Link> : <StatusLine post={post}/>}
+      <time dateTime={post.eaten_at} className="text-meta text-muted">{upload&&!upload.postId?"Just now":showDate ? localDate : localClock}</time>
     </div>
   </article>;
 }

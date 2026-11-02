@@ -7,6 +7,8 @@ import { FEED_PAGE_SIZE, VISIBLE_MEAL_FILTER, getFeed, getPostCard, type FeedPos
 import { tokens } from "@/lib/theme/tokens";
 import DayHeader from "@/components/DayHeader";
 import { dateInZone, shiftDay, getDayTotals, type FeedDayTotal } from "@/lib/posts/days";
+import {useUploads} from "@/components/useUploads";
+import {uploadManager,type UploadState} from "@/lib/posts/upload-manager";
 import PostCard from "@/components/PostCard";
 import RealtimePost from "@/components/RealtimePost";
 import { mergeFeedPosts, discoveryLostOverlap } from "@/lib/posts/feed-order";
@@ -19,6 +21,7 @@ const RETRY_INTERVAL_MS = 1000;
 // Per-card refreshes remain in RealtimePost, so discovery fetches only IDs.
 export default function Feed() {
   const router = useRouter();
+  const uploads=useUploads().filter(upload=>upload.posted);
   const sentinel = useRef<HTMLDivElement>(null);
   const loadMore = useRef<() => void>(()=>{});
   const [state, setState] = useState<State>({ kind: "loading" });
@@ -28,6 +31,7 @@ export default function Feed() {
     const supabase = createClient();
     const zone = Intl.DateTimeFormat().resolvedOptions().timeZone;
     const dayTotals = new Map<string, FeedDayTotal>();
+    const uploadDaysToRead=new Set(uploadManager.list().filter(upload=>upload.posted).map(upload=>dateInZone(upload.eatenAt,zone)));
     let totalsGeneration = 0;
     const mergeDays = (days: FeedDayTotal[]) => { for (const day of days) dayTotals.set(day.day, day); };
     let live = true;
@@ -58,14 +62,16 @@ export default function Feed() {
     const refreshTotals = async () => {
       if (!userId) return;
       const version = ++totalsGeneration;
-      const dates = [...baseline, ...cards.values()].filter(post => !unavailable.has(post.id)).map(post => dateInZone(post.eaten_at, zone));
+      const dates = [...uploadDaysToRead,...[...baseline, ...cards.values()].filter(post => !unavailable.has(post.id)).map(post => dateInZone(post.eaten_at, zone))];
       try {
         const days = await getDayTotals(supabase, userId, zone, dates);
         if (!live || version !== totalsGeneration) return;
         mergeDays(days); publish();
       } catch { /* Keep the last complete totals; the next readiness event retries. */ }
     };
-    const readyEvent = () => { void refreshTotals(); };
+    const uploading=(event:Event)=>{const detail=(event as CustomEvent<UploadState>).detail;if(detail.posted){const day=dateInZone(detail.eatenAt,zone);if(!uploadDaysToRead.has(day)){uploadDaysToRead.add(day);void refreshTotals();}}};
+    window.addEventListener('upload-started',uploading);
+    const readyEvent = (event:Event) => { void refreshTotals();const id=(event as CustomEvent<{id?:string}>).detail?.id;if(id)requestCard(id); };
     window.addEventListener("post-ready", readyEvent);
     const removeCard = (id:string) => {
       const interrupted=[...pending.keys()].filter(other=>other!==id);
@@ -140,6 +146,8 @@ export default function Feed() {
     };
     // Register before starting the initial asynchronous load.
     window.addEventListener("post-created", created);
+    const finished=(event:Event)=>{const detail=(event as CustomEvent<UploadState>).detail;if(detail.postId)requestCard(detail.postId,true);};
+    window.addEventListener("upload-finished",finished);
     window.addEventListener("post-updated", created);
     window.addEventListener("media-removed",created);
     window.addEventListener("correction-reverted",created);
@@ -165,6 +173,7 @@ export default function Feed() {
         cursor = page.nextCursor;
         loaded = true;
         publish();
+        if(uploadDaysToRead.size)void refreshTotals();
       } catch {
         if (live && !cards.size) setState({ kind: "error" });
       } finally { initialLoading = false; }
@@ -247,9 +256,11 @@ export default function Feed() {
     return () => {
       live = false;
       window.removeEventListener("post-ready", readyEvent);
+      window.removeEventListener('upload-started',uploading);
       clearInterval(timer);
       for (const retry of timers) clearTimeout(retry);
       window.removeEventListener("post-created", created);
+      window.removeEventListener("upload-finished",finished);
       window.removeEventListener("post-updated", created);
       window.removeEventListener("media-removed",created);
       window.removeEventListener("correction-reverted",created);
@@ -279,25 +290,30 @@ export default function Feed() {
     return ()=>observer.disconnect();
   },[state]);
 
+  const uploadDays=new Set<string>();
+  const localCards=uploads.map(upload=>{const server=state.kind==='ready'?state.posts.find(post=>post.id===upload.postId):undefined;const seed:FeedPost=server??{id:upload.postId??upload.operationId,caption:upload.caption,eaten_at:upload.eatenAt,created_at:upload.eatenAt,status:"queued",photoUrl:upload.previewUrl,slides:[],items:[]};const zone=Intl.DateTimeFormat().resolvedOptions().timeZone;const day=dateInZone(seed.eaten_at,zone);const header=!uploadDays.has(day);const measured=state.kind==='ready'?state.days.find(value=>value.day===day):undefined;const measuredTotal=measured?{...measured,ready:measured.ready||measured.kcal===0}:undefined;if(header)uploadDays.add(day);return <UploadHydratedCard key={upload.operationId} post={seed} upload={upload} header={header?<DayHeader day={day} zone={zone} empty={false} total={measuredTotal}/>:null}/>;});
+  if (state.kind === "loading"&&localCards.length)return <div>{localCards}{null}</div>;
   if (state.kind === "loading") return <p className="px-screen-x text-detail text-muted" role="status">Loading feed…</p>;
-  if (state.kind === "error") return <p className="px-screen-x text-detail text-muted" role="alert">Could not load meals.</p>;
+  if (state.kind === "error") return <div>{localCards}<p className="px-screen-x text-detail text-muted" role="alert">Could not load meals.</p></div>;
+  if (!state.posts.length&&localCards.length)return <div>{localCards}{null}</div>;
   if (!state.posts.length) return <div className="flex flex-1 items-center justify-center" style={{ paddingBottom: tokens.spacing['sheet-bottom'] * 3 }}>
     <p className="text-sheet-title font-normal text-muted">Post your first meal</p>
   </div>;
   const zone = Intl.DateTimeFormat().resolvedOptions().timeZone;
   const groups = new Map<string, FeedPost[]>();
-  for (const post of state.posts) {
+  for (const post of state.posts.filter(post=>!uploads.some(upload=>upload.postId===post.id))) {
     const day = dateInZone(post.eaten_at, zone);
     groups.set(day, [...(groups.get(day) ?? []), post]);
   }
   const listed = [...groups.keys()].sort().reverse();
   const days: string[] = [];
-  for (let day = listed[0]; day >= listed.at(-1)!; day = shiftDay(day, -1)) days.push(day);
+  if(listed.length)for (let day = listed[0]; day >= listed.at(-1)!; day = shiftDay(day, -1)) days.push(day);
   const totals = new Map(state.days.map(day => [day.day, day]));
   return <div className="flex flex-col">
+    {localCards}
     {days.map(day => <section key={day} aria-label={day} className="relative pb-card-gap">
-      <DayHeader day={day} zone={zone} empty={!groups.has(day)} total={totals.get(day)} />
-      {groups.has(day) ? <div className="flex flex-col gap-card-gap pt-sheet-top">{groups.get(day)!.map((post) => <div key={post.id} data-desktop-post={post.id} tabIndex={-1}><RealtimePost initial={post} renderCard={(fresh) => <PostCard post={fresh}
+      {!uploadDays.has(day)&&<DayHeader day={day} zone={zone} empty={!groups.has(day)} total={totals.get(day)} />}
+      {groups.has(day) ? <div className="flex flex-col gap-card-gap pt-sheet-top">{groups.get(day)!.map((post) => <div key={uploads.find(upload=>upload.postId===post.id)?.operationId??post.id} data-desktop-post={post.id} tabIndex={-1}><RealtimePost initial={post} renderCard={(fresh) => <PostCard post={fresh} upload={uploads.find(upload=>upload.postId===post.id)}
          />} /></div>)}</div> : null}
     </section>)}
     {pageError ? <div className="px-screen-x text-detail text-muted" role="alert">
@@ -306,4 +322,64 @@ export default function Feed() {
     </div> : null}
     <div ref={sentinel} className="h-tap" aria-hidden="true" />
   </div>;
+}
+
+function UploadHydratedCard({post,upload,header}:{post:FeedPost;upload:UploadState;header:import("react").ReactNode}) {
+  const [fresh,setFresh]=useState<FeedPost|null>(null);
+  const lastStatus=useRef(post.status);
+  useEffect(()=>{
+    const id=upload.postId;
+    if(!id)return;
+    const db=createClient();
+    let live=true,inFlight=false,again=false,missing=0,step=0;
+    let timer:ReturnType<typeof setTimeout>|null=null;
+    const delays=[2000,5000,10000,30000];
+    const read=async()=>{
+      if(!live)return;
+      if(inFlight){again=true;return;}
+      if(timer){clearTimeout(timer);timer=null;}
+      inFlight=true;
+      let unsettled=true;
+      try {
+        const card=await getPostCard(db,id);
+        if(!live)return;
+        if(!card||card.status==='needs_input'){
+          if(card||++missing>=3){
+            live=false;
+            void uploadManager.remove(upload.operationId);
+            window.dispatchEvent(new CustomEvent('post-unavailable',{detail:{id}}));
+            return;
+          }
+        } else {
+          missing=0;setFresh(card);
+          if(card.status==='ready'&&lastStatus.current!=='ready')window.dispatchEvent(new CustomEvent('post-ready',{detail:{id}}));
+          lastStatus.current=card.status;
+          unsettled=!((card.status==='ready'&&card.slides.some(slide=>slide.kind==='card'))||card.status==='failed');
+        }
+      } catch { /* Realtime or the bounded-rate fallback retries a transient read. */ }
+      finally {
+        inFlight=false;
+        if(live){
+          if(again){again=false;void read();}
+          else if(unsettled)timer=setTimeout(()=>{void read();},delays[Math.min(step++,delays.length-1)]);
+        }
+      }
+    };
+    const refresh=()=>{step=0;void read();};
+    const visible=()=>{if(!document.hidden)refresh();};
+    const changed=(event:Event)=>{if((event as CustomEvent<{id?:string}>).detail?.id===id)refresh();};
+    const channel=db.channel(`upload-post-${id}`).on('postgres_changes',{
+      event:'UPDATE',schema:'public',table:'posts',filter:`id=eq.${id}`,
+    },refresh).subscribe();
+    window.addEventListener('online',refresh);window.addEventListener('focus',refresh);
+    window.addEventListener('post-updated',changed);document.addEventListener('visibilitychange',visible);
+    void read();
+    return()=>{
+      live=false;if(timer)clearTimeout(timer);
+      window.removeEventListener('online',refresh);window.removeEventListener('focus',refresh);
+      window.removeEventListener('post-updated',changed);document.removeEventListener('visibilitychange',visible);
+      void db.removeChannel(channel);
+    };
+  },[post.id,upload.postId,upload.operationId]);
+  return <div data-desktop-post={upload.postId??upload.operationId} tabIndex={-1}>{header}<PostCard post={fresh??post} upload={upload}/></div>;
 }
