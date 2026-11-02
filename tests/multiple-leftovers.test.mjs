@@ -81,18 +81,18 @@ rollback;
  const result=spawnSync('psql',['-X','-qAt','--dbname',process.env.SUPABASE_DB_URL],{input:sql,encoding:'utf8',timeout:60000});assert.equal(result.status,0,result.stderr);
 });
 
-test('remainder worker reads its own photo and adds the new deduction to earlier photo quantities and calories',async()=>{
+test('second-plate remainder targets its own photo and preserves the first plate deduction',async()=>{
  const {createClient}=await import('@supabase/supabase-js');const {default:remainder}=await import('../src/lib/worker/jobs/remainder.ts');
  const saved=globalThis.fetch,priorKey=process.env.MODEL_API_KEY;process.env.MODEL_API_KEY='fixture';let applied,photoQuery;
- globalThis.fetch=async(_input,init)=>{let body={};try{body=JSON.parse(init?.body??'{}')}catch{}if(!body.model)return new Response(null,{status:201});return Response.json({id:'remainder',status:'completed',output:[{type:'message',role:'assistant',content:[{type:'output_text',text:JSON.stringify({items:[{index:0,remaining_grams:30,total_count:null,remaining_count:null,unit:null}]})}]}]});};
+ globalThis.fetch=async(_input,init)=>{let body={};try{body=JSON.parse(init?.body??'{}')}catch{}if(!body.model)return new Response(null,{status:201});return Response.json({id:'remainder',status:'completed',output:[{type:'message',role:'assistant',content:[{type:'output_text',text:JSON.stringify({items:[{index:0,remaining_grams:0,total_count:null,remaining_count:null,unit:null},{index:1,remaining_grams:100,total_count:null,remaining_count:null,unit:null}]})}]}]});};
  const db=createClient('http://127.0.0.1:1','fixture',{global:{fetch:async(input,init)=>{const url=new URL(input),path=url.pathname;
   if(path.endsWith('/post_media')){photoQuery=url.searchParams.get('id');return Response.json({id:'photo2',storage_path:'owner/post/3.jpg'});}
   if(path.endsWith('/posts'))return Response.json({user_id:'owner',analysis_initialized_at:'2026-11-02T00:00:00Z'});
-  if(path.endsWith('/current_post_items'))return Response.json([item]);
-  if(path.endsWith('/item_nutrition'))return Response.json([{...retainedNutrition(item),post_item_id:item.id}]);
+  if(path.endsWith('/current_post_items'))return Response.json([item,{...item,id:'pasta',name:'Pasta',portion_grams:200,not_eaten_grams:null,not_eaten_calories:null}]);
+  if(path.endsWith('/item_nutrition'))return Response.json([{...retainedNutrition(item),post_item_id:item.id},{...retainedNutrition(item),post_item_id:'pasta',calories:314}]);
   if(path.includes('/storage/'))return new Response(new Uint8Array([1]),{headers:{'Content-Type':'image/jpeg'}});
   if(path.endsWith('/apply_post_remainder')){applied=JSON.parse(init.body);return Response.json({message:'captured fixture save',code:'40001'},{status:409});}
   throw Error('Unexpected worker fixture route '+path);
  }}});
- try{await assert.rejects(remainder(db,{id:'job',post_id:'post',payload:{remainder_photo_id:'photo2'}}));assert.equal(photoQuery,'eq.photo2');assert.ok(applied);const row=applied.p_items[0];assert.equal(row.portion_grams,30);assert.equal(row.not_eaten_grams,70);assert.equal(row.not_eaten_calories,140);assert.equal(row.nutrition.calories,60);assert.match(applied.p_reply,/^leftovers \(not eaten\):/);}finally{globalThis.fetch=saved;if(priorKey===undefined)delete process.env.MODEL_API_KEY;else process.env.MODEL_API_KEY=priorKey;}
+ try{await assert.rejects(remainder(db,{id:'job',post_id:'post',payload:{remainder_photo_id:'photo2'}}));assert.equal(photoQuery,'eq.photo2');assert.ok(applied);const row=applied.p_items[0];assert.equal(row.portion_grams,60);assert.equal(row.not_eaten_grams,40);assert.equal(row.not_eaten_calories,80);assert.equal(row.nutrition.calories,120);const second=applied.p_items[1];assert.equal(second.portion_grams,100);assert.equal(second.not_eaten_grams,100);assert.equal(second.not_eaten_calories,157);assert.equal(second.nutrition.calories,157);assert.match(applied.p_reply,/^leftovers \(not eaten\):/);}finally{globalThis.fetch=saved;if(priorKey===undefined)delete process.env.MODEL_API_KEY;else process.env.MODEL_API_KEY=priorKey;}
 });
