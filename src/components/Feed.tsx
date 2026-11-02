@@ -281,10 +281,10 @@ export default function Feed() {
 
   const uploadDays=new Set<string>();
   const localCards=uploads.map(upload=>{const server=state.kind==='ready'?state.posts.find(post=>post.id===upload.postId):undefined;const seed:FeedPost=server??{id:upload.postId??upload.operationId,caption:upload.caption,eaten_at:upload.eatenAt,created_at:upload.eatenAt,status:"queued",photoUrl:upload.previewUrl,slides:[],items:[]};const zone=Intl.DateTimeFormat().resolvedOptions().timeZone;const day=dateInZone(seed.eaten_at,zone);const header=server?.status==='ready'&&!uploadDays.has(day);if(header)uploadDays.add(day);return <UploadHydratedCard key={upload.operationId} post={seed} upload={upload} header={header?<DayHeader day={day} zone={zone} empty={false} total={state.kind==='ready'?state.days.find(value=>value.day===day):undefined}/>:null}/>;});
-  if (state.kind === "loading"&&localCards.length)return <div>{localCards}</div>;
+  if (state.kind === "loading"&&localCards.length)return <div>{localCards}{null}</div>;
   if (state.kind === "loading") return <p className="px-screen-x text-detail text-muted" role="status">Loading feed…</p>;
   if (state.kind === "error") return <div>{localCards}<p className="px-screen-x text-detail text-muted" role="alert">Could not load meals.</p></div>;
-  if (!state.posts.length&&localCards.length)return <div>{localCards}</div>;
+  if (!state.posts.length&&localCards.length)return <div>{localCards}{null}</div>;
   if (!state.posts.length) return <div className="flex flex-1 items-center justify-center" style={{ paddingBottom: tokens.spacing['sheet-bottom'] * 3 }}>
     <p className="text-sheet-title font-normal text-muted">Post your first meal</p>
   </div>;
