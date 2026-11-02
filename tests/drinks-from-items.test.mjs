@@ -6,6 +6,7 @@ import { drinksFromItems, isDrinkItem } from '../src/lib/intake/drinks-from-item
 import { foodCategory, parseFoodDetail } from '../src/lib/fdc/client.ts';
 import { getPostHydrationData, itemWaterMl } from '../src/lib/intake/hydration.ts';
 import { cardDataFromRow } from '../src/lib/pipeline/card-data.ts';
+import { logMeal } from '../src/lib/posts/saved.ts';
 import { summaryLine } from '../src/lib/posts/summary-line.ts';
 
 const item = (changes = {}) => ({ id: 'cola', name: 'Cola', food_category: 'soft drinks', portion_text: '355 ml', portion_grams: 355,
@@ -93,5 +94,18 @@ test('0029 preserves categories in every SQL writer and restricts linked intake 
   for (const name of ['persist_analysis_initial', 'persist_correction', 'persist_photo_correction', 'apply_post_remainder', 'copy_owned_saved_meal', 'copy_owned_post', 'create_food_post_without_gtin', 'correct_barcode_item', 'edit_post_item_with_nutrition']) {
     const block = sql.slice(sql.indexOf(`function public.${name}(`));
     assert.match(block.slice(0, block.indexOf('$$;', block.indexOf('as $$') + 5) + 3) || block, /food_category/);
+  }
+});
+
+test('a committed Log again copy survives a failed follow-up hydration read', async () => {
+  let copies = 0;
+  const db = { rpc: async name => { assert.equal(name, 'log_post_again'); copies++; return { data: 'copied-post', error: null }; } };
+  const admin = { from() { throw new Error('network lost after copy commit'); } };
+  const result = await logMeal(db, admin, 'source', new Date(Date.now() - 3600000).toISOString(), false);
+  assert.deepEqual(result, { postId: 'copied-post' }); assert.equal(copies, 1);
+  const sql = readFileSync(new URL('../supabase/migrations/0029_drinks_from_items.sql', import.meta.url), 'utf8');
+  for (const name of ['copy_owned_saved_meal', 'copy_owned_post']) {
+    const block = sql.slice(sql.indexOf(`function public.${name}(`));
+    assert.match(block.slice(0, block.indexOf('end $$;')), /insert into public\.jobs[\s\S]*?drink_sync/);
   }
 });

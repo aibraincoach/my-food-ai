@@ -8,6 +8,7 @@ test('manual intake cannot reserve another owners item link; worker sync remains
   assert.ok(['localhost', '127.0.0.1'].includes(new URL(process.env.SUPABASE_DB_URL).hostname), 'Disposable local database only');
   const source = readFileSync(new URL('../../supabase/migrations/0029_drinks_from_items.sql', import.meta.url), 'utf8');
   const shape = source.match(/alter table public\.intake_logs add constraint intake_source_shape check \([\s\S]*?\n\);/)[0];
+  const copyFunctions = ['copy_owned_post', 'copy_owned_saved_meal'].map(name => { const start = source.indexOf(`create or replace function public.${name}(`); return source.slice(start, source.indexOf('end $$;', start) + 7); }).join('\n');
   const insertPolicy = source.match(/alter policy intake_owner_insert[^;]+;/)[0];
   const sql = `\\set ON_ERROR_STOP on
 begin;
@@ -21,10 +22,12 @@ ${shape}
 ${source}
 \\endif
 ${insertPolicy}
+${copyFunctions}
 insert into auth.users(id,email) values('10000000-0000-4000-8000-000000000001','run6-drinks-one.invalid'),('10000000-0000-4000-8000-000000000002','run6-drinks-two.invalid') on conflict(id) do nothing;
 insert into public.profiles(id,handle) values('10000000-0000-4000-8000-000000000001','run6_drinks_one'),('10000000-0000-4000-8000-000000000002','run6_drinks_two') on conflict(id) do nothing;
 insert into public.posts(id,user_id,caption,status,eaten_at) values('20000000-0000-4000-8000-000000000001','10000000-0000-4000-8000-000000000001','Cola','ready',now());
 insert into public.post_items(id,post_id,name,portion_text,portion_grams,source) values('30000000-0000-4000-8000-000000000001','20000000-0000-4000-8000-000000000001','Cola','355 ml',355,'model');
+insert into public.item_nutrition(post_item_id,calories,food_category) values('30000000-0000-4000-8000-000000000001',140,'soft drinks');
 set local role authenticated;
 select set_config('request.jwt.claims','{"sub":"10000000-0000-4000-8000-000000000002","role":"authenticated"}',true);
 do $$ begin
@@ -45,6 +48,17 @@ set local role service_role;
 select public.sync_item_drinks('20000000-0000-4000-8000-000000000001','[{"post_item_id":"30000000-0000-4000-8000-000000000001","kind":"caffeine","amount":34,"ml":355,"label":"Cola"}]');
 do $$ begin
  if not exists(select 1 from public.intake_logs where post_item_id='30000000-0000-4000-8000-000000000001' and post_id='20000000-0000-4000-8000-000000000001' and user_id='10000000-0000-4000-8000-000000000001' and amount=34 and ml=355) then raise exception 'Worker link corrupted';end if;
+end $$;
+reset role;
+set local role authenticated;
+select set_config('request.jwt.claims','{"sub":"10000000-0000-4000-8000-000000000001","role":"authenticated"}',true);
+select public.log_post_again('20000000-0000-4000-8000-000000000001',now()-interval '1 hour') as copied_id \\gset
+select set_config('run6.copied',:'copied_id',true);
+reset role;
+set local role service_role;
+do $$ begin
+ if not exists(select 1 from public.jobs where post_id=current_setting('run6.copied')::uuid and kind='recompute' and payload->>'reason'='drink_sync' and status='queued') then raise exception 'Copied meal has no durable hydration repair';end if;
+ if not exists(select 1 from public.current_post_items i join public.item_nutrition n on n.post_item_id=i.id where i.post_id=current_setting('run6.copied')::uuid and n.food_category='soft drinks') then raise exception 'Copy category lost';end if;
 end $$;
 -- With only 0029 installed the post FK still sets post_id to NULL before the
 -- item FK cascades it. Deletion must work without 0030 already being present.

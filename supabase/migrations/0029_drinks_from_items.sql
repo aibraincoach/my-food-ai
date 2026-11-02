@@ -195,6 +195,10 @@ begin
  insert into public.intake_logs(user_id,kind,amount,ml,label,post_id,logged_at)
  select auth.uid(),kind,amount,ml,label,v_post,p_eaten_at from public.intake_logs where post_id=v_saved.source_post_id and user_id=auth.uid() and source='sheet';
  update public.saved_meals set last_logged_at=clock_timestamp() where id=p_id;
+ -- A retryable hydration/card repair is committed with the copy. Losing the
+ -- following HTTP response or sync call cannot strand a successful meal copy.
+ insert into public.jobs(post_id,kind,priority,status,payload)
+ values(v_post,'recompute',100,'queued','{"reason":"drink_sync"}'::jsonb);
  return v_post;
 end $$;
 
@@ -217,6 +221,10 @@ begin
  insert into public.intake_logs(user_id,kind,amount,ml,label,post_id,logged_at)
  select auth.uid(),kind,amount,ml,label,v_copy,p_eaten_at from public.intake_logs where post_id=p_post_id and user_id=auth.uid() and source='sheet';
  update public.saved_meals set last_logged_at=clock_timestamp() where user_id=auth.uid() and source_post_id=p_post_id;
+ -- A retryable hydration/card repair is committed with the copy. Losing the
+ -- following HTTP response or sync call cannot strand a successful meal copy.
+ insert into public.jobs(post_id,kind,priority,status,payload)
+ values(v_copy,'recompute',100,'queued','{"reason":"drink_sync"}'::jsonb);
  return v_copy;
 end $$;
 
