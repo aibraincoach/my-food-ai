@@ -109,3 +109,17 @@ test('a committed Log again copy survives a failed follow-up hydration read', as
     assert.match(block.slice(0, block.indexOf('end $$;')), /insert into public\.jobs[\s\S]*?drink_sync/);
   }
 });
+
+test('ambiguous SR dairy category permits anchored milk beverages and excludes solid names', () => {
+  for (const name of ['Milk', 'Whole milk', 'Skim milk', '2% milk', 'Milk (2%)', 'Chocolate milk', 'Strawberry milk', 'Buttermilk', 'Eggnog', 'Vanilla milkshake',
+    'Milk, buttermilk, fluid, whole', 'Milk, chocolate, fluid, commercial, whole, with added vitamin A and vitamin D']) {
+    assert.equal(drinksFromItems([item({ name, food_category: 'Dairy and Egg Products' })]).length, 1, name);
+  }
+  for (const name of ['Cheese', 'Cheese, mozzarella, whole milk', 'Cheese, ricotta, whole milk', 'Milk chocolate', 'Milk, chocolate bar', 'Chocolate milk powder',
+    'Coffee cake', 'Eggnog ice cream', 'Cream of mushroom soup', 'Milk, dry, whole', 'Condensed milk', 'Milk and cookies']) {
+    assert.equal(drinksFromItems([item({ name, food_category: 'Dairy and Egg Products', portion_text: '400 ml' })]).length, 0, name);
+  }
+  // The exception cannot override a specific solid category or the no-category rule.
+  assert.equal(drinksFromItems([item({ name: 'Chocolate milk', food_category: 'sweets' })]).length, 0);
+  assert.equal(drinksFromItems([item({ name: 'Milk', food_category: null })]).length, 0);
+});

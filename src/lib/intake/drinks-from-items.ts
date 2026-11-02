@@ -12,9 +12,24 @@ const BEVERAGE_CATEGORIES = new Set(['beverages', 'water', 'soft drinks', 'coffe
 const PLAIN_DRINKS = new Set(['water', 'sparkling water', 'coffee', 'black coffee', 'espresso', 'americano', 'tea', 'green tea', 'black tea']);
 export type DrinkItem = { id: string; name: string; portion_text?: string | null; portion_grams: Numeric; food_category?: string | null; micronutrients?: StoredNutrient[] };
 export type ItemDrink = { post_item_id: string; kind: 'water' | 'caffeine'; amount: number; ml: number; label: string; caffeineMg: number };
+// SR Legacy puts liquid milk and solid cheese in the same category. This
+// owner-approved fallback is limited to that proven ambiguous category and
+// complete beverage nouns. It never treats "milk chocolate" as "chocolate milk",
+// and reference-style comma qualifiers cannot admit dry/condensed products.
+const DAIRY_DRINK_PREFIX = '(?:plain|whole|skim|skimmed|nonfat|fat[- ]free|low[- ]fat|reduced[- ]fat|[0-4](?:\\.\\d+)?%|chocolate|vanilla|strawberry|banana)';
+const PLAIN_DAIRY_DRINK = new RegExp(`^(?:${DAIRY_DRINK_PREFIX}\\s+){0,2}(?:milk|buttermilk|eggnog|milkshake|milk shake)(?:\\s+\\(?(?:whole|skim|skimmed|nonfat|fat[- ]free|low[- ]fat|reduced[- ]fat|[0-4](?:\\.\\d+)?%(?: fat)?)\\)?)?$`);
+const DAIRY_QUALIFIERS = new Set(['whole', 'fluid', 'chocolate', 'commercial', 'nonfat', 'lowfat', 'low fat', 'reduced fat', 'fat free', 'cultured', 'plain', 'sweetened', 'unsweetened', 'skim', 'vanilla', 'strawberry', 'buttermilk']);
+function ambiguousDairyDrink(name: string): boolean {
+  const normalized = name.trim().toLowerCase().replace(/\s+/g, ' ');
+  if (PLAIN_DAIRY_DRINK.test(normalized)) return true;
+  const parts = normalized.split(',').map(part => part.trim());
+  return parts.length > 1 && ['milk', 'buttermilk', 'eggnog', 'milkshake', 'milk shake'].includes(parts[0])
+    && parts.slice(1).every(part => DAIRY_QUALIFIERS.has(part) || /^[0-4](?:\.\d+)?% milkfat$/.test(part)
+      || /^(?:with|without) added vitamin (?:a|d|a and vitamin d)$/.test(part));
+}
 export function isDrinkItem(item: Pick<DrinkItem, 'name' | 'food_category'>): boolean {
   const category = item.food_category?.trim().toLowerCase();
-  return category ? BEVERAGE_CATEGORIES.has(category) || /\b(?:beverage|beverages|drink|drinks|juice|soda|coffee|tea|water)\b/.test(category)
+  return category ? (category === 'dairy and egg products' && ambiguousDairyDrink(item.name)) || BEVERAGE_CATEGORIES.has(category) || /\b(?:beverage|beverages|drink|drinks|juice|soda|coffee|tea|water)\b/.test(category)
     : PLAIN_DRINKS.has(item.name.trim().toLowerCase());
 }
 /** A volume alone never makes food a beverage. Nutrients are already scaled to
