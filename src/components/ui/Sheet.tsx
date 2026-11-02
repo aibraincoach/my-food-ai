@@ -3,10 +3,10 @@ import {useEffect,useRef,useState,type ReactNode} from 'react';
 import {createPortal} from 'react-dom';
 import {lockBodyScroll} from '@/lib/ui/scroll-lock';
 import {Icon} from '@/components/ui/Icon';
-type Props={open:boolean;onClose:()=>void;children:ReactNode;label:string;hideClose?:boolean};
+type Props={open:boolean;onClose:()=>void;children:ReactNode;label:string;hideClose?:boolean;confirmation?:boolean};
 const mountedSheets:HTMLDivElement[]=[];
 /** A portal below the navigation pill, with focus retained in the sheet or pill. */
-export function Sheet({open,onClose,children,label,hideClose=false}:Props) {
+export function Sheet({open,onClose,children,label,hideClose=false,confirmation=false}:Props) {
   const panel=useRef<HTMLDivElement>(null);const close=useRef(onClose);const swipe=useRef<number|null>(null);const [mounted,setMounted]=useState(false);
   close.current=onClose;
   useEffect(()=>{setMounted(true);},[]);
@@ -17,7 +17,7 @@ export function Sheet({open,onClose,children,label,hideClose=false}:Props) {
     const releaseScroll=lockBodyScroll();
     document.documentElement.setAttribute('data-mfa-sheet-open','');
     const top=()=>mountedSheets.at(-1)===element;
-    const focusables=()=>[...element.querySelectorAll<HTMLElement>('button:not(:disabled),a[href],input:not(:disabled),textarea:not(:disabled),select:not(:disabled),[tabindex="0"]'),...document.querySelectorAll<HTMLElement>('nav[data-pill] a,nav[data-pill] button')].filter(node=>node.getClientRects().length>0);
+    const focusables=()=>[...element.querySelectorAll<HTMLElement>('button:not(:disabled),a[href],input:not(:disabled),textarea:not(:disabled),select:not(:disabled),[tabindex="0"]'),...(!confirmation?[...document.querySelectorAll<HTMLElement>('nav[data-pill] a,nav[data-pill] button')]:[])].filter(node=>node.getClientRects().length>0);
     const focus=()=>{(element.querySelector<HTMLElement>('[autofocus]')??focusables()[0]??element).focus();};
     const frame=requestAnimationFrame(focus);
     const key=(event:KeyboardEvent)=>{
@@ -35,18 +35,18 @@ export function Sheet({open,onClose,children,label,hideClose=false}:Props) {
         nodes[next].focus();
       }
     };
-    const contain=(event:FocusEvent)=>{if(top()&&!element.contains(event.target as Node)&&!(event.target as HTMLElement)?.closest('nav[data-pill]'))focus();};
+    const contain=(event:FocusEvent)=>{if(top()&&!element.contains(event.target as Node)&&(confirmation||!(event.target as HTMLElement)?.closest('nav[data-pill]')))focus();};
     const dismiss=()=>close.current();
     window.addEventListener('keydown',key,true);window.addEventListener('close-sheets',dismiss);document.addEventListener('focusin',contain);
     return()=>{cancelAnimationFrame(frame);mountedSheets.splice(mountedSheets.indexOf(element),1);if(mountedSheets.length===0)document.documentElement.removeAttribute('data-mfa-sheet-open');releaseScroll();window.removeEventListener('keydown',key,true);window.removeEventListener('close-sheets',dismiss);document.removeEventListener('focusin',contain);previous?.focus();};
-  },[open,mounted]);
+  },[open,mounted,confirmation]);
   if(!open||!mounted)return null;
-  return createPortal(<div className="pointer-events-none fixed inset-0 z-40">
-    <button type="button" tabIndex={-1} aria-label={`Close ${label}`} onClick={onClose} className="pointer-events-auto absolute inset-0 size-full bg-scrim-32"/>
-    <div ref={panel} role="dialog" aria-label={label} tabIndex={-1} className="pointer-events-auto absolute inset-x-0 bottom-0 mx-auto flex max-h-[calc(100%-env(safe-area-inset-top))] max-w-phone flex-col gap-sheet-gap overflow-y-auto rounded-t-sheet bg-surface px-screen-x pt-sheet-top pb-[calc(112px+env(safe-area-inset-bottom))]">
-      <div className={`flex ${hideClose?'h-handle-h':'h-[24px]'} shrink-0 items-start justify-center`} onTouchStart={event=>{swipe.current=event.touches[0].clientY;}} onTouchEnd={event=>{if(swipe.current!==null&&event.changedTouches[0].clientY-swipe.current>50)onClose();swipe.current=null;}}>
-        <div aria-hidden="true" className="h-handle-h w-handle-w rounded-circle bg-ring"/>
-        {!hideClose&&<button type="button" aria-label={`Close ${label}`} className="absolute right-2 top-1 flex size-tap items-center justify-center text-muted" onClick={onClose}><Icon name="close" size={22}/></button>}
+  return createPortal(<div className={`pointer-events-none fixed inset-0 ${confirmation?'z-[80]':'z-40'}`}>
+    <button type="button" tabIndex={-1} aria-label={`Close ${label}`} onClick={onClose} className={`pointer-events-auto absolute inset-0 size-full ${confirmation?'bg-scrim':'bg-scrim-32'}`}/>
+    <div ref={panel} role="dialog" aria-modal={confirmation?true:undefined} aria-label={label} tabIndex={-1} className={`pointer-events-auto absolute inset-x-0 bottom-0 mx-auto flex max-h-[calc(100%-env(safe-area-inset-top))] max-w-phone flex-col overflow-y-auto rounded-t-sheet bg-surface px-screen-x ${confirmation?'gap-[14px] pt-[10px] pb-[calc(40px+env(safe-area-inset-bottom))]':'gap-sheet-gap pt-sheet-top pb-[calc(112px+env(safe-area-inset-bottom))]'}`}>
+      <div className={`flex ${confirmation?'h-[5px]':hideClose?'h-handle-h':'h-[24px]'} shrink-0 items-start justify-center`} onTouchStart={event=>{swipe.current=event.touches[0].clientY;}} onTouchEnd={event=>{if(swipe.current!==null&&event.changedTouches[0].clientY-swipe.current>50)onClose();swipe.current=null;}}>
+        <div aria-hidden="true" className={`${confirmation?'h-[5px]':'h-handle-h'} w-handle-w rounded-circle bg-ring`}/>
+        {!hideClose&&!confirmation&&<button type="button" aria-label={`Close ${label}`} className="absolute right-2 top-1 flex size-tap items-center justify-center text-muted" onClick={onClose}><Icon name="close" size={22}/></button>}
       </div>
       {children}
     </div>
