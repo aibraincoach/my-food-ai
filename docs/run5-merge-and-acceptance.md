@@ -1,10 +1,13 @@
 # Run 5 merge and production acceptance report
 
+Observed November 1, 2026, 15:19:11 UTC: main and production are `f095afe545a2be099ba6f2fca0b216d273db56e0`, READY, alias confirmed, health 200. #269 merged at the owner's exact head, then docs #266 merged last; #258 closed as superseded. The owner ordered the fleet closed and all subagents completed. [Final execution receipt](https://github.com/aibraincoach/my-food-ai/pull/266#issuecomment-6558350575).
+
+
 Owner execution order received 2026-11-01. This report supersedes the pre-merge status in [run5-execution.md](run5-execution.md). The original plan remains unchanged.
 
 ## Wall of Stupid
 
-The exact owner-supplied row was inserted first in the table and pushed in `fd4563ac87b68623117fbd931deea030beba2df1`. Docs PR #266 remains unmerged, as ordered.
+The exact owner-supplied row was inserted first in the table and pushed in `fd4563ac87b68623117fbd931deea030beba2df1`. Docs PR #266 subsequently merged last under the owner’s explicit exact-head order.
 
 ## Full-suite gate before the first merge
 
@@ -87,5 +90,4 @@ A new soup was then posted through the actual production UI at 04:49 America/Edm
 - The Not eaten comparison uses the same licensed meal photograph twice. The pipeline, bounds, history and card were proven; actual weighed leftovers and model estimate accuracy were not. Both estimates and their differences remain visible.
 - Real-pack/label phone acceptance, installed sessions, mobile-data timing, safe-area fit and background push remain the separate owner phone checklist. No account identifiers, signed URLs, screenshots or private design samples are published.
 
-All coder-owned Run 5 acceptance checks are complete. No issue was closed or backlog item removed without a PM closure order. Docs **#266** and the earlier backlog docs **#258** remain open/unmerged; the original plan remains unchanged. Acceptance posts and private proof records were preserved for review. Temporary processes and worktrees are cleaned after the report is pushed; the original authenticated review profile is preserved.
-
+All coder-owned Run5 acceptance checks finished within their recorded limits. The owner then ordered the issue closures/reopenings listed in [the owner report](post-run5-owner-report.md). #269 merged first and #266 merged last; #258 closed as superseded. Physical-phone and owner food acceptance remain unproven. The original plan stays unchanged, acceptance posts/private proofs are retained, and fleet processes/worktrees were cleaned. The latest final receipt supersedes earlier pending-state lines.

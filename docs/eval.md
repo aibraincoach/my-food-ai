@@ -1,5 +1,7 @@
 # Ten-photo production evaluation
 
+Later Run5 diagnostic: unchanged identification scored **9/10** after the earlier 10/10 observation, omitting visible fries and duplicating the patty in photo05. This was retained, not rerun to green. [Diagnostic receipt](reviews/run5-gates/pr268-unchanged-identify-diagnostic.md); [explanation and limits](post-run5-owner-report.md).
+
 Baseline runtime: `4f51b7afec2ded63374a9615dd6ad5d3b9508bad`, 2026-10-31 18:06–18:12 UTC. Ten normal test-account photo posts reached ready; an independent read at 18:30:03 UTC confirmed all ten analysis jobs finished on attempt 1 with no error. The observations below retain the original expected labels and unchanged legacy name scorer. Portions are visual estimates and annotations, not measurements.
 
 The legacy scorer reports **12 found, 3 missed and 14 invented**. These are mechanical name-agreement categories, not an audited hallucination rate. In particular, spaghetti adjectives and sushi-component granularity make that aggregate misleading. The separate visual reading below preserves uncertainty instead of changing the expected labels after the run.

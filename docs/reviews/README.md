@@ -1,3 +1,7 @@
+# Current review index — November 1
+
+Run5 exact-head receipts and confirmations: [Run5 review index](run5-review-receipts.md). Final #269 exact `c54525b1bd1c8985866f7fe840411be274822719`: [Gemini BLOCKERS: NONE](post-run5-pr269-c54525b-receipt.md), [triage real0](post-run5-pr269-c54525b-triage.md). #269 and docs #266 are merged; no code PR is open at this cutoff. Historical records below retain their original heads and are not new review requests.
+
 # Review captures
 
 Captures are keyed by PR and exact reviewed head. Old-head captures remain historical and do not approve a changed head. This packet carries the original Gemini results, the same-reviewer confirmation of #203's removal, and the owner-requested additional Codex results on #205/#206. Those original findings were subsequently triaged and fixed. The merged #205 head ae1b2a4d062c5751ba8464a761fcb25b3a3359ae and #206 head d7e5d9341a4a315d22a41c6dfaf92d08e1297331 each have same-head Gemini and Codex receipts reading BLOCKERS: NONE. The final receipt links are in CLAUDE.md; the earlier captures remain historical and did not waive the findings.

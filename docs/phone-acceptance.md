@@ -12,6 +12,8 @@ These five acceptance conditions remain unproven on physical phones. Browser emu
 
 6. **Scan a real pack (#212).** In the capture sheet, scan the pack in Barcode mode, then photograph the same barcode in Photo mode. Record the digits, product name, portion and nutrition shown in each case. For a code with no database product, choose “Photograph the nutrition label”, capture its panel, name it and post two servings. Record the label reading and the posted nutrition; the original pack/label photo must appear. This requires the real phone camera; the coder’s UPC-A and FDA fixtures in emulation do not prove it.
 
+7. **Use a real half-eaten plate.** Photograph the meal before and after eating and verify the consumed estimate. The previous same-image-twice fixture proves mechanics, not real remainder accuracy. If the result is wrong, exclude this flow from the demo script. The latest owner also requests multiple after-meal photos and the wording “leftovers (not eaten)”; those are pending backlog changes, not already shipped behavior.
+
 Report observed behavior and timestamps for every failure. A screen recording lets launch timing, safe areas and the real camera be checked without repeating the whole sequence. Do not include account identifiers in shared evidence.
 
 ## Preflight and platform limits

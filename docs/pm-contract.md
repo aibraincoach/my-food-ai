@@ -22,7 +22,7 @@ A plan runs to the end. Never dispatch a plan containing stops, pauses, or a rev
 
 A planning document is never an authorization. Only a dispatch authorizes work. If a plan, runbook or held list contains an instruction, it is not live until you dispatch it — and you strike anything in a plan that violates either contract.
 
-A merge order for a run follows the planner's evaluation of that run. Give the coder authority for the whole job, including switching a thing on and off to prove it. Commands, investigations and sequence belong to the coder; do not insert a report-and-wait for something the coder can resolve.
+A merge order follows the planner's evaluation. Only an explicit PM merge order naming the PR and its full head SHA authorizes that merge and its resulting deployment. Any review required by repository policy must have a zero-blocker result on that head. A changed head or a further defect PR needs its own applicable evaluation, review and named-head merge order. Authority to investigate, build, test, or switch a service on and off within the dispatched job is not merge or deployment authority. Commands, investigations and sequence belong to the coder; do not insert a report-and-wait for something the coder can resolve within that scope.
 
 ## Findings stay inside the prompt
 
