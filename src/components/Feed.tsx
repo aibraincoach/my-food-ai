@@ -90,6 +90,7 @@ export default function Feed() {
       if(typeof id==="string"&&id)removeCard(id);
     };
     window.addEventListener("post-unavailable",unavailableEvent);
+    window.addEventListener("post-deleted",unavailableEvent);
 
     const requestCard = (id: string, local = false) => {
       if (!live) return;
@@ -148,6 +149,8 @@ export default function Feed() {
     const finished=(event:Event)=>{const detail=(event as CustomEvent<UploadState>).detail;if(detail.postId)requestCard(detail.postId,true);};
     window.addEventListener("upload-finished",finished);
     window.addEventListener("post-updated", created);
+    window.addEventListener("media-removed",created);
+    window.addEventListener("correction-reverted",created);
     const resume=(event:Event)=>{
       const id=(event as CustomEvent<{id?:unknown}>).detail?.id;
       if(typeof id==="string"&&id){answered.add(id);removeCard(id);}
@@ -259,9 +262,12 @@ export default function Feed() {
       window.removeEventListener("post-created", created);
       window.removeEventListener("upload-finished",finished);
       window.removeEventListener("post-updated", created);
+      window.removeEventListener("media-removed",created);
+      window.removeEventListener("correction-reverted",created);
       window.removeEventListener("post-answer-resume",resume);
       window.removeEventListener("post-settled",created);
       window.removeEventListener("post-unavailable",unavailableEvent);
+      window.removeEventListener("post-deleted",unavailableEvent);
       window.removeEventListener("focus", focus);
       document.removeEventListener("visibilitychange", focus);
       void supabase.removeChannel(channel);

@@ -85,6 +85,8 @@ export default function RealtimePost({ initial, renderCard }: {
     // Realtime remains subscribed after the card-only polling budget expires.
     // A deliberate return to the page also gets one fresh read, without
     // restarting the automatic budget for a permanently missing card.
+    const changed=(event:Event)=>{if((event as CustomEvent<{id:string}>).detail?.id===initial.id)void refresh();};
+    window.addEventListener('media-removed',changed);window.addEventListener('correction-reverted',changed);
     const visible = () => { if (pageVisible()) void refresh(); };
     document.addEventListener("visibilitychange", visible);
     window.addEventListener("focus", visible);
@@ -93,6 +95,7 @@ export default function RealtimePost({ initial, renderCard }: {
       if (timer) clearInterval(timer);
       document.removeEventListener("visibilitychange", visible);
       window.removeEventListener("focus", visible);
+      window.removeEventListener('media-removed',changed);window.removeEventListener('correction-reverted',changed);
       void supabase.removeChannel(channel);
     };
   }, [initial, post.status, awaitingCard]);

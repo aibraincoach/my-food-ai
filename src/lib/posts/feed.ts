@@ -49,7 +49,7 @@ export interface FeedPost {
   eaten_at: string;
   status: PostStatus;
   photoUrl: string | null;
-  slides: {url:string;kind?:"photo"|"card";not_eaten?:boolean}[];
+  slides: {id?:string;url:string;kind?:"photo"|"card";not_eaten?:boolean}[];
   count_text?: string | null;
   created_at: string;
   items: FeedItem[];
@@ -96,12 +96,12 @@ async function toFeedPost(
 ): Promise<FeedPost> {
   const revisionBefore=row.status==="ready"?await latestRevision(supabase,row.id):null;
   const { data: media, error: mediaError } = await supabase.from("post_media")
-    .select("storage_path,kind,not_eaten").eq("post_id",row.id).order("position");
+    .select("id,storage_path,kind,not_eaten").eq("post_id",row.id).order("position");
   if(mediaError) throw new Error(mediaError.message);
   const slides = (await Promise.all((media ?? []).map(async (entry) => {
-    try { return {url: await feedCopyUrl(supabase, entry.kind === "card" ? entry.storage_path : feedPathFor(entry.storage_path),row.user_id),kind:entry.kind as "photo"|"card",not_eaten:Boolean(entry.not_eaten)}; }
+    try { return {id:entry.id,url: await feedCopyUrl(supabase, entry.kind === "card" ? entry.storage_path : feedPathFor(entry.storage_path),row.user_id),kind:entry.kind as "photo"|"card",not_eaten:Boolean(entry.not_eaten)}; }
     catch { return null; }
-  }))).filter((entry): entry is {url:string;kind:"photo"|"card";not_eaten:boolean} => entry !== null);
+  }))).filter((entry): entry is {id:string;url:string;kind:"photo"|"card";not_eaten:boolean} => entry !== null);
   const photoUrl = slides[0]?.url ?? null;
 
   const items: FeedItem[] = row.status === "ready" ? await getCurrentItems(supabase, row.id) : [];

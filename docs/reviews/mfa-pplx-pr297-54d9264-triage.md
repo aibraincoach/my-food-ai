@@ -1,0 +1,9 @@
+Triage reviewer: Codex; head 54d9264886429193663593f0837f58e987dad740; external reviewer: Gemini 3.8 Flash via Perplexity.
+
+1. Not real — deletion cleanup already uses prefix mode. `media_cleanup.ts` validates the detached owner/post prefix, recursively walks it after deletion and adds every discovered object before removing anything. The route's pre-walk is additional durable evidence, not the worker's exclusive cleanup list. Exact mode is used only for the separately removed photo pair.
+2. Not real — `owner_remove_post_data('media', ...)` deletes the media row and marks its post processing in one database transaction before the route responds. `getPostCard` reads current post_media rows directly; no SWR cache exists in this code. Local removal events refresh Feed and RealtimePost, and processing cards render their existing shimmer instead of old nutrition.
+3. Not real — the specified interaction is a two-row “Remove this photo / Cancel” or “Remove this correction / Cancel” menu. Opening the menu and then selecting the explicit removal action is the prescribed confirmation. An additional sheet would change the delivered interaction.
+4. Real — the two inline removal menus lacked Escape and outside-pointer dismissal. A shared `useRemovalMenus` hook now closes outside menus, closes on Escape and restores focus to the triggering summary. Selecting an action also closes its menu. The destructive color observation is not a blocker: the independent branch uses exactly the specified oklch value; the desktop token is introduced separately.
+5. Not real — `beforeLeftovers` already defines `const grams=toNumber(item.portion_grams)+item.not_eaten_grams` immediately before the returned object. That function was not introduced by this PR; this PR only preserves additive nutrition metadata in `retainedNutrition`.
+
+Real findings: 1
