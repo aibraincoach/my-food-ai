@@ -64,7 +64,7 @@ export default function LightComposer(p:Props) {
   <div className="shrink-0 px-inset pt-2 pb-[calc(30px+env(safe-area-inset-bottom))]">
    {p.error&&<p role="alert" className="mb-2 text-detail text-muted">{p.error}</p>}
    {p.pending>0&&<p role="status" className="mb-2 text-meta text-muted">Preparing selected photos…</p>}
-   <Button disabled={p.busy||p.pending>0||(!p.caption.trim()&&!p.shots.length)} onClick={p.onPost}>{p.busy?'Posting…':'Post'}</Button>
+   <Button style={{height:50,borderRadius:14,fontSize:16}} disabled={p.busy||p.pending>0||(!p.caption.trim()&&!p.shots.length)} onClick={p.onPost}>{p.busy?'Posting…':'Post'}</Button>
   </div>
   {p.children}
  </div>;

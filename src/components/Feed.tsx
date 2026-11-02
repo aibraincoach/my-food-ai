@@ -31,6 +31,7 @@ export default function Feed() {
     const supabase = createClient();
     const zone = Intl.DateTimeFormat().resolvedOptions().timeZone;
     const dayTotals = new Map<string, FeedDayTotal>();
+    const uploadDaysToRead=new Set(uploadManager.list().filter(upload=>upload.posted).map(upload=>dateInZone(upload.eatenAt,zone)));
     let totalsGeneration = 0;
     const mergeDays = (days: FeedDayTotal[]) => { for (const day of days) dayTotals.set(day.day, day); };
     let live = true;
@@ -61,13 +62,15 @@ export default function Feed() {
     const refreshTotals = async () => {
       if (!userId) return;
       const version = ++totalsGeneration;
-      const dates = [...baseline, ...cards.values()].filter(post => !unavailable.has(post.id)).map(post => dateInZone(post.eaten_at, zone));
+      const dates = [...uploadDaysToRead,...[...baseline, ...cards.values()].filter(post => !unavailable.has(post.id)).map(post => dateInZone(post.eaten_at, zone))];
       try {
         const days = await getDayTotals(supabase, userId, zone, dates);
         if (!live || version !== totalsGeneration) return;
         mergeDays(days); publish();
       } catch { /* Keep the last complete totals; the next readiness event retries. */ }
     };
+    const uploading=(event:Event)=>{const detail=(event as CustomEvent<UploadState>).detail;if(detail.posted){const day=dateInZone(detail.eatenAt,zone);if(!uploadDaysToRead.has(day)){uploadDaysToRead.add(day);void refreshTotals();}}};
+    window.addEventListener('upload-started',uploading);
     const readyEvent = (event:Event) => { void refreshTotals();const id=(event as CustomEvent<{id?:string}>).detail?.id;if(id)requestCard(id); };
     window.addEventListener("post-ready", readyEvent);
     const removeCard = (id:string) => {
@@ -167,6 +170,7 @@ export default function Feed() {
         cursor = page.nextCursor;
         loaded = true;
         publish();
+        if(uploadDaysToRead.size)void refreshTotals();
       } catch {
         if (live && !cards.size) setState({ kind: "error" });
       } finally { initialLoading = false; }
@@ -249,6 +253,7 @@ export default function Feed() {
     return () => {
       live = false;
       window.removeEventListener("post-ready", readyEvent);
+      window.removeEventListener('upload-started',uploading);
       clearInterval(timer);
       for (const retry of timers) clearTimeout(retry);
       window.removeEventListener("post-created", created);
@@ -280,7 +285,7 @@ export default function Feed() {
   },[state]);
 
   const uploadDays=new Set<string>();
-  const localCards=uploads.map(upload=>{const server=state.kind==='ready'?state.posts.find(post=>post.id===upload.postId):undefined;const seed:FeedPost=server??{id:upload.postId??upload.operationId,caption:upload.caption,eaten_at:upload.eatenAt,created_at:upload.eatenAt,status:"queued",photoUrl:upload.previewUrl,slides:[],items:[]};const zone=Intl.DateTimeFormat().resolvedOptions().timeZone;const day=dateInZone(seed.eaten_at,zone);const header=server?.status==='ready'&&!uploadDays.has(day);if(header)uploadDays.add(day);return <UploadHydratedCard key={upload.operationId} post={seed} upload={upload} header={header?<DayHeader day={day} zone={zone} empty={false} total={state.kind==='ready'?state.days.find(value=>value.day===day):undefined}/>:null}/>;});
+  const localCards=uploads.map(upload=>{const server=state.kind==='ready'?state.posts.find(post=>post.id===upload.postId):undefined;const seed:FeedPost=server??{id:upload.postId??upload.operationId,caption:upload.caption,eaten_at:upload.eatenAt,created_at:upload.eatenAt,status:"queued",photoUrl:upload.previewUrl,slides:[],items:[]};const zone=Intl.DateTimeFormat().resolvedOptions().timeZone;const day=dateInZone(seed.eaten_at,zone);const header=!uploadDays.has(day);const measured=state.kind==='ready'?state.days.find(value=>value.day===day):undefined;const measuredTotal=measured?{...measured,ready:measured.ready||measured.kcal===0}:undefined;if(header)uploadDays.add(day);return <UploadHydratedCard key={upload.operationId} post={seed} upload={upload} header={header?<DayHeader day={day} zone={zone} empty={false} total={measuredTotal}/>:null}/>;});
   if (state.kind === "loading"&&localCards.length)return <div>{localCards}{null}</div>;
   if (state.kind === "loading") return <p className="px-screen-x text-detail text-muted" role="status">Loading feed…</p>;
   if (state.kind === "error") return <div>{localCards}<p className="px-screen-x text-detail text-muted" role="alert">Could not load meals.</p></div>;
