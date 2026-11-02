@@ -34,7 +34,12 @@ export async function POST(request: Request) {
   const location = body.location ?? null;
   if (location !== null && (typeof location !== "object" || !Number.isFinite(location.lat) || !Number.isFinite(location.lng) || Math.abs(location.lat) > 90 || Math.abs(location.lng) > 180 || (location.accuracy_m != null && (!Number.isFinite(location.accuracy_m) || location.accuracy_m < 0)))) return NextResponse.json({ error: "Invalid location." }, { status: 400 });
   const admin = createAdminClient();
-  const { data, error } = await admin.rpc("reserve_post_upload_with_leftovers", { p_operation_id: operationId, p_user_id: user.id, p_caption: body.caption, p_eaten_at: eatenAt, p_shots: shots, p_location: location, p_not_eaten_positions:notEatenPositions,p_save_as_meal:body.save_as_meal===true,p_render_zone:validZone((await cookies()).get("time-zone")?.value) });
+  const options={p_operation_id:operationId,p_user_id:user.id,p_caption:body.caption,p_eaten_at:eatenAt,p_shots:shots,p_location:location,p_save_as_meal:body.save_as_meal===true,p_render_zone:validZone((await cookies()).get("time-zone")?.value)};
+  let reserved=await admin.rpc("reserve_post_upload_with_leftovers",{...options,p_not_eaten_positions:notEatenPositions});
+  // During schema rollout, preserve ordinary and legacy single-leftovers posts.
+  // Never turn a multi-leftovers request into an unmarked food photo.
+  if(reserved.error?.code==='PGRST202'&&reserved.error.message.includes('reserve_post_upload_with_leftovers')&&notEatenPositions.length<=1)reserved=await admin.rpc("reserve_post_upload_with_options",{...options,p_not_eaten_position:notEatenPositions[0]??null});
+  const {data,error}=reserved;
   if (error || !data) {
     const expired = /expired/i.test(error?.message ?? "");
     return NextResponse.json({ error: expired ? "The upload draft expired. Your photos were kept; try again." : "The post draft could not be reserved. Your photos were kept; try again." }, { status: expired ? 410 : 409 });
