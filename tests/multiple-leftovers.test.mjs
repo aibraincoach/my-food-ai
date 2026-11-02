@@ -70,6 +70,12 @@ set local role authenticated;
 select set_config('request.jwt.claims',json_build_object('sub',gen_random_uuid(),'role','authenticated')::text,true);
 do $$ begin if exists(select 1 from public.post_media where post_id=current_setting('leftovers.post')::uuid) or exists(select 1 from public.current_post_items where post_id=current_setting('leftovers.post')::uuid) then raise exception 'Other user read leftovers';end if;end $$;
 reset role;
+-- A changed consumed quantity must not inherit an obsolete pieces/slices count.
+select id as before_count from public.current_post_items where post_id=:'post' \\gset
+update public.post_items set count_text='3 of 5 pieces' where id=:'before_count';
+insert into public.post_items(post_id,name,portion_grams,source,supersedes) values(:'post','Toast',20,'model',:'before_count') returning id as changed_count \\gset
+select set_config('leftovers.changed_count',:'changed_count',true);
+do $$ begin if not exists(select 1 from public.post_items where id=current_setting('leftovers.changed_count')::uuid and not_eaten_grams=70 and not_eaten_calories=140 and count_text is null) then raise exception 'Changed quantity inherited stale count or lost leftovers';end if;end $$;
 rollback;
 `;
  const result=spawnSync('psql',['-X','-qAt','--dbname',process.env.SUPABASE_DB_URL],{input:sql,encoding:'utf8',timeout:60000});assert.equal(result.status,0,result.stderr);

@@ -20,7 +20,7 @@ begin
    new.not_eaten_grams:=prior.not_eaten_grams;
    new.not_eaten_calories:=prior.not_eaten_calories;
    new.not_eaten_count_text:=prior.not_eaten_count_text;
-   new.count_text:=prior.count_text;
+   new.count_text:=case when new.portion_grams is not distinct from prior.portion_grams then prior.count_text else null end;
   end if;
  end if;
  return new;
