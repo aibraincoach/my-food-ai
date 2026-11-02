@@ -4,10 +4,11 @@ alter table public.intake_logs
  add column post_item_id uuid references public.post_items(id) on delete cascade;
 alter table public.item_nutrition add column food_category text;
 -- Keep legacy owner-writable, unlinked intake from reserving another item's
--- unique link. Item links always belong to a server-owned post record.
+-- unique link. Allow the post FK's transient SET NULL during deletion; the
+-- post_item FK then cascades the item record without a dependency on 0030.
 alter table public.intake_logs add constraint intake_source_shape check (
  (source='sheet' and post_item_id is null) or
- (source='item' and post_id is not null and post_item_id is not null)
+ (source='item' and post_item_id is not null)
 );
 drop index public.intake_one_drink_per_post;
 create unique index intake_one_sheet_drink_per_post on public.intake_logs(post_id) where post_id is not null and source = 'sheet';
@@ -429,5 +430,5 @@ $$;
 
 -- Keep owner access identical: linked records are server-owned.
 alter policy intake_owner_select on public.intake_logs using (auth.uid()=user_id);
-alter policy intake_owner_insert on public.intake_logs with check (auth.uid()=user_id and post_id is null);
+alter policy intake_owner_insert on public.intake_logs with check (auth.uid()=user_id and post_id is null and source='sheet' and post_item_id is null);
 alter policy intake_owner_delete on public.intake_logs using (auth.uid()=user_id and post_id is null);
