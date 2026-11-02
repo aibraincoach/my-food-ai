@@ -7,7 +7,7 @@ import {rescaleStoredNutrition, toNumber, type Numeric, type NutritionRow} from 
 
 export function storedNutrition(n: ScaledNutrition, id: string): NutritionRow {
  return {post_item_id:id, calories:n.calories,protein_g:n.proteinG,carbs_g:n.carbsG,fat_g:n.fatG,
-  fibre_g:n.fibreG,sugar_g:n.sugarG,sodium_mg:n.sodiumMg,micronutrients:n.micronutrients as NutritionRow['micronutrients'],source_ref:n.sourceRef};
+  fibre_g:n.fibreG,sugar_g:n.sugarG,sodium_mg:n.sodiumMg,micronutrients:n.micronutrients as NutritionRow['micronutrients'],source_ref:n.sourceRef,food_category:n.foodCategory ?? null};
 }
 
 // Follow pending revisions until the last resolved identity, stopping at a name
@@ -22,7 +22,7 @@ export async function resolvePortionNutrition(admin: SupabaseClient, postId: str
   const {data:prior,error,status}=await priorQuery.maybeSingle();
   if(error)throw ioError('Prior item could not be read.',error,status);
   if(!prior||prior.name!==name)return null;
-  const nutritionQuery=admin.from('item_nutrition').select('post_item_id,calories,protein_g,carbs_g,fat_g,fibre_g,sugar_g,sodium_mg,micronutrients,source_ref').eq('post_item_id',priorId);
+  const nutritionQuery=admin.from('item_nutrition').select('post_item_id,calories,protein_g,carbs_g,fat_g,fibre_g,sugar_g,sodium_mg,micronutrients,source_ref,food_category').eq('post_item_id',priorId);
   if(signal)nutritionQuery.abortSignal(signal);
   const {data:row,error:nutritionError,status:nutritionStatus}=await nutritionQuery.maybeSingle();
   if(nutritionError)throw ioError('Prior nutrition could not be read.',nutritionError,nutritionStatus);
