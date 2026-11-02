@@ -23,8 +23,14 @@ test('upload publication is atomic, owner scoped, idempotent and gated on storag
     insert into public.profiles values('11111111-1111-4111-8111-111111111111'),('22222222-2222-4222-8222-222222222222');`);
   sql(readFileSync(new URL('../supabase/migrations/0023_photo_publication.sql',import.meta.url),'utf8'));
   const owner='11111111-1111-4111-8111-111111111111',other='22222222-2222-4222-8222-222222222222',id='33333333-3333-4333-8333-333333333333';
+  const arbitrary='66666666-6666-4666-8666-666666666666';
+  sql(`insert into public.posts(id,user_id,caption,eaten_at,status) values('${arbitrary}','${owner}','existing ready post',now(),'ready');`);
+  assert.throws(()=>sql(`select reserve_post_upload('${arbitrary}','${owner}','cannot re-sign ready',now(),'[{"position":0,"width":10,"height":10}]');`));
+  assert.equal(sql(`select count(*) from public.post_upload_drafts where id='${arbitrary}';`).trim(),'0');
+  sql(`delete from public.posts where id='${arbitrary}';`);
   const reserve=`select reserve_post_upload('${id}','${owner}','meal',now(),'[{"position":0,"width":10,"height":10}]','{"lat":1,"lng":2,"accuracy_m":5}');`;
   sql(reserve);sql(reserve);
+  assert.throws(()=>sql(`select reserve_post_upload('${id}','${other}','other owner',now(),'[{"position":0,"width":10,"height":10}]');`));
   assert.equal(sql(`select count(*) from public.post_upload_drafts;`).trim(),'1');
   assert.equal(sql(`select count(*) from public.posts;`).trim(),'0');
   assert.equal(sql(`select count(*) from public.jobs where kind='analyze';`).trim(),'0');

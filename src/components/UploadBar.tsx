@@ -1,0 +1,2 @@
+import type {UploadState} from '@/lib/posts/upload-manager';
+export default function UploadBar({upload}:{upload:Pick<UploadState,'sent'|'total'|'state'>}){return <div role="progressbar" aria-label="Photo upload" className="absolute inset-x-0 bottom-0 h-1 overflow-hidden bg-hairline"><div className={`h-full transition-[width] duration-150 ${upload.state==='failed'?'bg-accent':'bg-text'}`} style={{width:`${upload.total?Math.min(100,Math.max(0,upload.sent/upload.total*100)):0}%`}}/></div>;}
