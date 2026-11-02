@@ -116,10 +116,22 @@ test('ambiguous SR dairy category permits anchored milk beverages and excludes s
     assert.equal(drinksFromItems([item({ name, food_category: 'Dairy and Egg Products' })]).length, 1, name);
   }
   for (const name of ['Cheese', 'Cheese, mozzarella, whole milk', 'Cheese, ricotta, whole milk', 'Milk chocolate', 'Milk, chocolate bar', 'Chocolate milk powder',
-    'Coffee cake', 'Eggnog ice cream', 'Cream of mushroom soup', 'Milk, dry, whole', 'Condensed milk', 'Milk and cookies']) {
+    'Coffee cake', 'Eggnog ice cream', 'Cream of mushroom soup', 'Milk, dry, whole', 'Condensed milk', 'Milk and cookies',
+    'Yogurt', 'Yogurt, plain, whole milk', 'Ice cream', 'Ice cream, vanilla', 'Cream', 'Cream, whipping', 'Butter', 'Butter, salted', 'Milk and cream', 'Milk, with cream']) {
     assert.equal(drinksFromItems([item({ name, food_category: 'Dairy and Egg Products', portion_text: '400 ml' })]).length, 0, name);
   }
   // The exception cannot override a specific solid category or the no-category rule.
   assert.equal(drinksFromItems([item({ name: 'Chocolate milk', food_category: 'sweets' })]).length, 0);
   assert.equal(drinksFromItems([item({ name: 'Milk', food_category: null })]).length, 0);
+});
+
+test('a glass of milk adds drink volume while its calories stay on the drink card', () => {
+  const milk = item({ name: 'Whole milk', food_category: 'Dairy and Egg Products', portion_text: '250 ml', portion_grams: 250, micronutrients: [], calories: 150, protein_g: 8, carbs_g: 12, fat_g: 8 });
+  const snapshot = structuredClone(milk);
+  const [record] = drinksFromItems([milk]);
+  assert.equal(record.ml, 250); assert.equal(record.kind, 'water');
+  const card = cardDataFromRow({ items: [milk], kind: 'drink', drink: { source: 'item', ml: record.ml, label: record.label, caffeineMg: 0, drinksMl: 250, foodMl: 0, totalMl: 250 } });
+  assert.equal(card.kind, 'drink'); assert.equal(card.amountMl, 250); assert.equal(card.kcal, 150);
+  assert.equal(card.drinkLine, 'Whole milk · 150 kcal'); assert.deepEqual(card.macros, { protein: 8, carbs: 12, fat: 8 });
+  assert.deepEqual(milk, snapshot);
 });
