@@ -10,6 +10,7 @@ import { toNumber } from "@/lib/nutrition/totals";
 
 export default async function recompute(admin: SupabaseClient, job: JobRow): Promise<void> {
   if (!job.post_id) throw new Error("recompute: post is required.");
+  if(job.payload.reason==='media_removed'||job.payload.reason==='correction_reverted'){await rebuildRemoved(admin,job);return;}
   const { data: items, error, status: itemsStatus } = await admin.from("current_post_items")
     .select("id,name,portion_grams,portion_text,supersedes").eq("post_id", job.post_id);
   if (error) throw ioError(`recompute items: ${error.message}`, error, itemsStatus);
@@ -45,4 +46,55 @@ export default async function recompute(admin: SupabaseClient, job: JobRow): Pro
     }
   }
   await markReady(job.post_id, admin,job.id);
+}
+
+
+async function rebuildRemoved(admin:SupabaseClient,job:JobRow){
+ const postId=job.post_id!;
+ if(job.payload.removal_rebuilt===true){await markReady(postId,admin,job.id);return;}
+ // Import dynamically: ordinary corrections can use recompute to repair missing
+ // nutrition, while removal replay shares the exact correction implementation.
+ const {replayCorrection}=await import('./correct');
+ const {replayRemainder}=await import('./remainder');
+ const {readPostComments}=await import('@/lib/posts/timeline');
+ const {getCurrentItems,normalizeStoredNutrition,formatConsumed,sumNutrition}=await import('@/lib/nutrition/totals');
+ const {checkWording}=await import('@/lib/pipeline/wording-check');
+ const current=await getCurrentItems(admin,postId,{requireNutrition:true});
+ const {data:original,error:originalError,status:originalStatus}=await admin.from('post_items').select('*,item_nutrition(*)').eq('post_id',postId).eq('source','model').order('created_at').order('id');
+ if(originalError)throw ioError('Original meal could not be read.',originalError,originalStatus);
+ // Initial analysis inserts all its items in one transaction. Later model
+ // revisions share source=model, so use the earliest revision timestamp.
+ const thread=await readPostComments(admin,postId);
+ const first=thread.find(comment=>comment.author==='model')?.created_at??original?.[0]?.created_at;
+ if(!first&&current.length)throw Error('Original meal revision is unavailable.');
+ let items:import('@/lib/nutrition/totals').CurrentItem[]=(original??[]).filter(row=>row.created_at===first).map(row=>{
+  const nutrition=Array.isArray(row.item_nutrition)?row.item_nutrition[0]:row.item_nutrition;
+  if(!nutrition)throw Error('Original meal nutrition is unavailable.');
+  return {...row,...normalizeStoredNutrition(nutrition,row.portion_grams),id:row.id,not_eaten_grams:null,not_eaten_calories:null,not_eaten_count_text:null};
+ });
+ const comments=thread.filter(row=>row.author==='user'&&!row.reverted_at);
+ const {data:photos,error:photoError,status:photoStatus}=await admin.from('post_media').select('id,storage_path').eq('post_id',postId).eq('kind','photo').eq('not_eaten',true).order('position').order('id');
+ if(photoError)throw ioError('Leftovers photos could not be read.',photoError,photoStatus);
+ const {data:post,error:postError}=await admin.from('posts').select('user_id').eq('id',postId).single();
+ if(postError)throw ioError('Meal owner could not be read.',postError);
+ const {isOwnedPhotoPath}=await import('@/lib/media/paths');
+ type RebuiltRow={name:string;nutrition:Record<string,unknown>;[key:string]:unknown};
+ let rows:RebuiltRow[]=items.map(item=>({...item,nutrition:{...item}}));
+ const install=(next:RebuiltRow[])=>{rows=next;items=next.map(row=>({...row,...row.nutrition,id:typeof row.supersedes==='string'?row.supersedes:crypto.randomUUID(),source:'model',name:row.name,portion_text:row.portion_text??null,portion_grams:row.portion_grams??null,box:row.box??null,mask_path:row.mask_path??null,micronutrients:row.nutrition.micronutrients??[],source_ref:row.nutrition.source_ref??null} as import('@/lib/nutrition/totals').CurrentItem));};
+ for(const [index,comment] of comments.entries()){
+  const result=await replayCorrection(admin,postId,items,[comment],comments.slice(0,index),false,true);
+  if(result.result.needs_input)throw Error('The remaining correction needs clarification before the meal can be rebuilt.');
+  install(result.rows as unknown as RebuiltRow[]);
+ }
+ for(const photo of photos??[]){
+  if(!isOwnedPhotoPath(photo.storage_path,post.user_id,postId))throw Error('Leftovers photo does not belong to this meal.');
+  install(await replayRemainder(admin,photo.storage_path,items) as unknown as RebuiltRow[]);
+ }
+ const summary=formatConsumed(sumNutrition(items));
+ const removed=thread.find(comment=>comment.id===job.payload.comment_id);
+ const reply=job.payload.reason==='media_removed'?`Removed the leftovers (not eaten) photo. ${summary}.`:`Removed the correction "${(removed?.body??'').slice(0,60)}". ${summary}.`;
+ if(!checkWording(reply).ok)throw Error('Removal reply contained unsupported wording.');
+ const {error,status}=await admin.rpc('persist_removed_rebuild',{p_post_id:postId,p_job_id:job.id,p_expected:current.map(item=>item.id),p_comments:comments.map(comment=>comment.id),p_photos:(photos??[]).map(photo=>photo.id),p_items:rows.map(row=>{const matches=current.filter(item=>item.name===row.name);return {...row,supersedes:matches.length===1?matches[0].id:null};}),p_reply:reply});
+ if(error)throw ioError('Rebuilt meal could not be saved.',error,status);
+ await markReady(postId,admin,job.id);
 }

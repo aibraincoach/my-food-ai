@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { font } from "@/lib/theme/font";
 import { tokens } from "@/lib/theme/tokens";
 import ServiceWorkerRegistration from "@/components/ServiceWorkerRegistration";
+import DeletePostSheet from "@/components/DeletePostSheet";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -20,6 +21,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en" className="h-full antialiased">
       <body className={`${font.className} ${font.variable} flex min-h-dvh flex-col`}>
         <ServiceWorkerRegistration />
+        <DeletePostSheet />
         {children}
       </body>
     </html>

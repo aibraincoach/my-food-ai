@@ -21,3 +21,18 @@ export async function POST(request:Request,context:{params:Promise<{id:string}>}
   return NextResponse.json({error:error instanceof Error?error.message:'The photo could not be attached.'},{status:code==='42501'?404:code==='55000'||code==='40001'?409:code?.startsWith('22')?400:503});
  }
 }
+
+export async function DELETE(request:Request,{params}:{params:Promise<{id:string}>}){
+ const client=await createClient();const {data:{user}}=await client.auth.getUser();
+ if(!user)return NextResponse.json({error:'Sign in required.'},{status:401});
+ const {id}=await params;const mediaId=new URL(request.url).searchParams.get('media_id');
+ if(!isUuid(id)||!isUuid(mediaId))return new Response(null,{status:404});
+ const {data:photo,error:readError}=await client.from('post_media').select('id').eq('id',mediaId).eq('post_id',id).maybeSingle();
+ if(readError)return NextResponse.json({error:'The photo could not be read.'},{status:503});
+ if(!photo)return new Response(null,{status:404});
+ const {data,error}=await client.rpc('remove_post_media',{p_media_id:mediaId});
+ if(error)return NextResponse.json({error:'The photo could not be removed.'},{status:503});
+ if(!data)return new Response(null,{status:404});
+ after(async()=>{try{await fetch(new URL('/api/jobs/tick',request.url),{cache:'no-store',signal:AbortSignal.timeout(10000)});}catch{/* Durable wake retries. */}});
+ return new Response(null,{status:204});
+}

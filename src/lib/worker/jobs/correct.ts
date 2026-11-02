@@ -39,10 +39,9 @@ const correct:JobHandler=async(admin,job)=>{
  await waitForInitialAnalysis(admin,job.post_id);
  if(job.payload.correction_applied===true){await markReady(job.post_id,admin,job.id);return;}
  const items=await loadCorrectionItems(admin,job.post_id,()=>recompute(admin,job));
- const grossItems=items.map(beforeLeftovers);
  const [thread,completed]=await Promise.all([readPostComments(admin,job.post_id),readCorrectionProgress(admin,job.post_id)]);
  let window;
- try{window=correctionWindow(thread??[],completed??[]);}catch{throw new MetaApiError(503,'Correction history changed while loading.');}
+ try{window=correctionWindow(thread??[],completed??[]);const reverted=new Set(thread.filter(comment=>comment.reverted_at).map(comment=>comment.id));window.pending=window.pending.filter(comment=>!reverted.has(comment.id));window.history=window.history.filter(comment=>!reverted.has(comment.id));}catch{throw new MetaApiError(503,'Correction history changed while loading.');}
  const latest=window.pending.at(-1);
  const photoAdded=job.payload.photo_added===true;
  if(!latest&&!photoAdded){
@@ -54,15 +53,25 @@ const correct:JobHandler=async(admin,job)=>{
  const {data:prepared,error:prepareError,status:prepareStatus}=await admin.from('jobs').update({payload:{...job.payload,correction_from_sequence:window.sequence,correction_pending_ids:window.pending.map(comment=>comment.id)}}).eq('id',job.id).eq('status','running').select('id').maybeSingle();
  if(prepareError)throw ioError('Correction snapshot could not be saved.',prepareError,prepareStatus);
  if(!prepared)throw new MetaApiError(503,'Correction snapshot could not be saved.');
- const {data:media,error:mediaError,status:mediaStatus}=await admin.from('post_media').select('storage_path').eq('post_id',job.post_id).eq('kind','photo').eq('not_eaten',false).order('position');
+ const {rows,result}=await replayCorrection(admin,job.post_id,items,window.pending,window.history,photoAdded);
+ const totals=sumNutrition(rows.map(row=>({...row.nutrition,name:row.name})));
+ const reply=await safeSummary(correctionReply(items,rows,totals),totals);
+ const {error,status}=await admin.rpc(photoAdded?'persist_photo_correction':result.needs_input?'persist_correction_question':'persist_correction',{p_post_id:job.post_id,p_job_id:job.id,p_expected:items.map(i=>i.id),...(!photoAdded?{p_through:latest!.id}:{}),p_items:rows,p_reply:reply,...(photoAdded?{p_question:result.needs_input}:result.needs_input?{p_question:result.needs_input}:{})});
+ if(error)throw ioError('Correction transaction failed.',error,status);
+ if(!result.needs_input)await markReady(job.post_id,admin,job.id);
+ else await sendPostPush(admin,job.post_id,result.needs_input.question);
+};
+export async function replayCorrection(admin:import('@supabase/supabase-js').SupabaseClient,postId:string,items:import('@/lib/nutrition/totals').CurrentItem[],pending:Parameters<typeof correctionWindow>[0],history:Parameters<typeof correctionWindow>[0]=[],photoAdded=false,replaying=false){
+ const grossItems=items.map(beforeLeftovers);
+ const {data:media,error:mediaError,status:mediaStatus}=await admin.from('post_media').select('storage_path').eq('post_id',postId).eq('kind','photo').eq('not_eaten',false).order('position');
  if(mediaError)throw ioError('Correction photo could not be read.',mediaError,mediaStatus);
- const content:Record<string,unknown>[]=[{type:'input_text',text:JSON.stringify({items:grossItems.map((i,index)=>({id:i.id,name:i.name,portion_text:i.portion_text,portion_grams:i.portion_grams,calories:i.calories,recorded_leftovers_grams:i.not_eaten_grams??null,region_index:index,box:i.box})),history:boundedHistory(window.history),pending_messages:window.pending,photo_added:photoAdded})}];
+ const content:Record<string,unknown>[]=[{type:'input_text',text:JSON.stringify({items:grossItems.map((i,index)=>({id:i.id,name:i.name,portion_text:i.portion_text,portion_grams:i.portion_grams,calories:i.calories,recorded_leftovers_grams:i.not_eaten_grams??null,region_index:index,box:i.box})),history:boundedHistory(history),pending_messages:pending,photo_added:photoAdded})}];
  if(media?.length){
-  const {data:post,error:ownerError,status:ownerStatus}=await admin.from('posts').select('user_id').eq('id',job.post_id).maybeSingle();
+  const {data:post,error:ownerError,status:ownerStatus}=await admin.from('posts').select('user_id').eq('id',postId).maybeSingle();
   if(ownerError)throw ioError('Correction photo owner could not be read.',ownerError,ownerStatus);
   if(!post)throw new Error('Correction meal could not be read.');
   for(const photo of media){
-  if(!isOwnedPhotoPath(photo.storage_path,post.user_id,job.post_id))throw new Error('Correction photo path does not belong to this meal.');
+  if(!isOwnedPhotoPath(photo.storage_path,post.user_id,postId))throw new Error('Correction photo path does not belong to this meal.');
   const {data,error}=await admin.storage.from('media').download(photo.storage_path);
   if(error)throw ioError('Correction photo could not be opened.',error);
   if(!data)throw new Error('Correction photo could not be opened.');
@@ -73,7 +82,7 @@ const correct:JobHandler=async(admin,job)=>{
  if(response.status!=='completed'||!response.outputText||response.refusal)throw new MetaApiError(500,'Correction did not finish.');
  const result=parse(response.outputText);
  const resolutionBudget=nutritionResolutionBudget();
- const {data:context,error:contextError,status:contextStatus}=await admin.from("posts").select("caption").eq("id",job.post_id).abortSignal(resolutionBudget).single();
+ const {data:context,error:contextError,status:contextStatus}=await admin.from("posts").select("caption").eq("id",postId).abortSignal(resolutionBudget).single();
  if(contextError)throw ioError("Correction context could not be read.",contextError,resolutionBudget.aborted?503:contextStatus);
  const kept=new Set<string>();
  const resolutionItems=result.items.map(item=>{
@@ -94,7 +103,7 @@ const correct:JobHandler=async(admin,job)=>{
   let nutrition;
   if(old)nutrition={calories:old.calories,protein_g:old.protein_g,carbs_g:old.carbs_g,fat_g:old.fat_g,fibre_g:old.fibre_g,sugar_g:old.sugar_g,sodium_mg:old.sodium_mg,micronutrients:old.micronutrients,source_ref:old.source_ref};
   else {
-   const retained=region?.name===item.name?await resolvePortionNutrition(admin,job.post_id!,region.id,item.name,item.portion_grams,item.portion_text,signal):null;
+   const retained=replaying&&region?.name===item.name?(await import('@/lib/nutrition/totals')).rescaleStoredNutrition({...retainedNutrition(region),post_item_id:region.id},region.portion_grams,item.portion_grams):region?.name===item.name?await resolvePortionNutrition(admin,postId!,region.id,item.name,item.portion_grams,item.portion_text,signal):null;
    if(retained)nutrition=retained;
    else {
    const n=scaleNutrition(await resolveFoodMatch(admin,item.name,context.caption??'',signal),item.portion_grams);
@@ -106,11 +115,7 @@ const correct:JobHandler=async(admin,job)=>{
  });
  // A model omission must never delete an earlier leftover record.
  for(const prior of items.filter(item=>item.not_eaten_grams!=null&&!protectedSources.has(item.id))){rows.push({...prior,portion_grams:prior.portion_grams==null?null:toNumber(prior.portion_grams),supersedes:prior.id,nutrition:retainedNutrition(prior)});}
- const totals=sumNutrition(rows.map(row=>({...row.nutrition,name:row.name})));
- const reply=await safeSummary(correctionReply(items,rows,totals),totals);
- const {error,status}=await admin.rpc(photoAdded?'persist_photo_correction':result.needs_input?'persist_correction_question':'persist_correction',{p_post_id:job.post_id,p_job_id:job.id,p_expected:items.map(i=>i.id),...(!photoAdded?{p_through:latest!.id}:{}),p_items:rows,p_reply:reply,...(photoAdded?{p_question:result.needs_input}:result.needs_input?{p_question:result.needs_input}:{})});
- if(error)throw ioError('Correction transaction failed.',error,status);
- if(!result.needs_input)await markReady(job.post_id,admin,job.id);
- else await sendPostPush(admin,job.post_id,result.needs_input.question);
-};
+
+ return {rows,result};
+}
 export default correct;

@@ -1,11 +1,12 @@
 "use client";
-import {useRef,useState} from "react";
+import {useEffect,useRef,useState} from "react";
 import type {FeedPost} from "@/lib/posts/feed";
 import {tokens} from "@/lib/theme/tokens";
 import {Icon} from "@/components/ui/Icon";
 import PostCard from "@/components/PostCard";
 export default function SearchBox(){
   const [query,setQuery]=useState("");const [posts,setPosts]=useState<FeedPost[]>([]);const [status,setStatus]=useState("");const [truncated,setTruncated]=useState(false);const current=useRef(0);
+  useEffect(()=>{const refresh=(event:Event)=>{const id=(event as CustomEvent<{id:string}>).detail?.id;current.current++;setPosts(old=>old.filter(post=>post.id!==id));if(!query.trim())return;const request=current.current;const zone=Intl.DateTimeFormat().resolvedOptions().timeZone;void fetch(`/api/search?q=${encodeURIComponent(query)}&tz=${encodeURIComponent(zone)}`,{cache:'no-store'}).then(async response=>{if(!response.ok)return;const data=await response.json();if(request===current.current){setPosts(data.posts);setTruncated(Boolean(data.truncated));setStatus(data.posts.length?'':'No meals found.');}}).catch(()=>{});};window.addEventListener('post-deleted',refresh);return()=>window.removeEventListener('post-deleted',refresh);},[query]);
   return <><form className="px-screen-x pt-tooltip-offset pb-sheet-top" onSubmit={async event=>{
     event.preventDefault();const request=++current.current;setStatus("Searching…");setPosts([]);setTruncated(false);
     try{const zone=Intl.DateTimeFormat().resolvedOptions().timeZone;const response=await fetch(`/api/search?q=${encodeURIComponent(query)}&tz=${encodeURIComponent(zone)}`);if(!response.ok)throw new Error();const data=await response.json();if(request===current.current){setPosts(data.posts);setTruncated(Boolean(data.truncated));setStatus(data.posts.length?"":"No meals found.");}}

@@ -3,7 +3,7 @@ import {useEffect,useRef,useState} from 'react';
 import VoiceRecorder from '@/components/VoiceRecorder';
 import {useSearchParams} from 'next/navigation';
 import {usePostHandle} from '@/components/PostHandle';
-export type CommentRow={id:string;author:'user'|'model';body:string;created_at:string};
+export type CommentRow={id:string;author:'user'|'model';body:string;created_at:string;reverted_at?:string|null};
 export default function CommentComposer({postId,onPosted}:{postId:string;onPosted:(comment:CommentRow)=>void}){
  const handle=usePostHandle();
  const [text,setText]=useState(''); const [busy,setBusy]=useState(false); const posting=useRef(false);

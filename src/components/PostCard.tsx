@@ -76,6 +76,7 @@ export default function PostCard({ post, showDate = false }: { post: FeedPost; a
         ...(post.status==='ready'&&!hasDrink?[{label:'Add photo',onSelect:()=>window.dispatchEvent(new CustomEvent('open-entry',{detail:{entry:'camera',forPost:post.id,notEaten:false}}))}]:[]),
         {label:'Log again',onSelect:()=>window.dispatchEvent(new CustomEvent('log-again',{detail:{postId:post.id}}))},
         {label:record.saved_meal_id?'Unsave':'Save meal',onSelect:()=>window.dispatchEvent(new CustomEvent('save-meal',{detail:{postId:post.id}}))},
+        {label:'Delete',muted:true,onSelect:()=>window.dispatchEvent(new CustomEvent('delete-post',{detail:{id:post.id}}))},
       ]}/>
     </div>
     {drink ? <Link href={`/posts/${post.id}`} aria-label="Open drink details" className="block"><CaptionCard post={post} drink={drink} /></Link> : post.slides?.length ? <Carousel canAddNotEaten={post.status==='ready'&&post.slides.some(s=>s.kind==='photo')} slides={post.slides} caption={post.caption} postId={post.id} href={`/posts/${post.id}`} modelCommentId={post.modelCommentId??null} fingerprint={post.analysisFingerprint??null} onIndexChange={setSlide} nutrition={post.status === "ready" ? <CaptionCard post={post} /> : <div className="flex aspect-square items-center justify-center bg-card text-detail text-muted">Processing…</div>} /> : post.status === "ready" && post.items.length ? <Link href={`/posts/${post.id}`} aria-label="Open meal details" className="block"><CaptionCard post={post} /></Link> : null}

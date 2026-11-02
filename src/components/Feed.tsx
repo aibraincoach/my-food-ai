@@ -84,6 +84,7 @@ export default function Feed() {
       if(typeof id==="string"&&id)removeCard(id);
     };
     window.addEventListener("post-unavailable",unavailableEvent);
+    window.addEventListener("post-deleted",unavailableEvent);
 
     const requestCard = (id: string, local = false) => {
       if (!live) return;
@@ -140,6 +141,8 @@ export default function Feed() {
     // Register before starting the initial asynchronous load.
     window.addEventListener("post-created", created);
     window.addEventListener("post-updated", created);
+    window.addEventListener("media-removed",created);
+    window.addEventListener("correction-reverted",created);
     const resume=(event:Event)=>{
       const id=(event as CustomEvent<{id?:unknown}>).detail?.id;
       if(typeof id==="string"&&id){answered.add(id);removeCard(id);}
@@ -248,9 +251,12 @@ export default function Feed() {
       for (const retry of timers) clearTimeout(retry);
       window.removeEventListener("post-created", created);
       window.removeEventListener("post-updated", created);
+      window.removeEventListener("media-removed",created);
+      window.removeEventListener("correction-reverted",created);
       window.removeEventListener("post-answer-resume",resume);
       window.removeEventListener("post-settled",created);
       window.removeEventListener("post-unavailable",unavailableEvent);
+      window.removeEventListener("post-deleted",unavailableEvent);
       window.removeEventListener("focus", focus);
       document.removeEventListener("visibilitychange", focus);
       void supabase.removeChannel(channel);
