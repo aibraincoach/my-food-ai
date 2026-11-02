@@ -18,7 +18,7 @@ export class UploadManager {
  private state(entry:Entry):UploadState{const d=entry.data;return {operationId:d.operationId,caption:d.caption,eatenAt:d.eatenAt??new Date(d.createdAt).toISOString(),previewUrl:entry.previewUrl,sent:d.sent,total:d.total,state:d.state,error:d.error,posted:d.posted,...(entry.finished?{postId:d.snapshot?.id}: {})};}
  list=()=>[...this.entries.values()].filter(e=>!e.deleted).map(e=>this.state(e));
  newest(){return [...this.entries.values()].filter(e=>!e.deleted&&!e.data.posted).sort((a,b)=>b.data.createdAt-a.data.createdAt)[0]?.data??null;}
- private attachSnapshot(entry:Entry){entry.draft.setSnapshotListener?.(async snapshot=>{if(entry.deleted||entry.finished)return;entry.data.snapshot=snapshot;await this.persist(entry);});}
+ private attachSnapshot(entry:Entry){const draft=entry.draft;draft.setProgress((sent,total)=>{if(entry.deleted||entry.draft!==draft)return;entry.data.sent=sent;entry.data.total=total;this.notify(entry,'upload-progress');});draft.setSnapshotListener?.(async snapshot=>{if(entry.deleted||entry.finished||entry.draft!==draft)return;entry.data.snapshot=snapshot;await this.persist(entry);});}
  private make(data:StoredUpload){const entry:Entry={data,draft:this.makeDraft(),previewUrl:data.files[0]?URL.createObjectURL(data.files[0]):'',active:null,version:0,deleted:false,finished:false,writing:Promise.resolve()};if(data.snapshot)entry.draft.restore(data.snapshot);entry.draft.setProgress((sent,total)=>{if(entry.deleted)return;entry.data.sent=sent;entry.data.total=total;this.notify(entry,'upload-progress');});this.attachSnapshot(entry);return entry;}
  async initialize(ownerId:string){
   if(this.ownerId===ownerId&&this.initializing)return this.initializing;

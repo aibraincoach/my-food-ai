@@ -44,7 +44,7 @@ export class PostUploadDraft {
     if(this.prepareActive)await this.prepareActive.catch(()=>{});
     if (intent === "photo" && files.length === 0) throw new Error("The selected photo is not ready. Your draft was kept.");
     if (!this.pending || files.length !== this.pending.files.length || files.some((file, i) => file !== this.pending!.files[i])) {
-      const restored=this.restored;this.restored=null;
+      const restored=this.restored?.images.length===files.length?this.restored:null;this.restored=null;
       this.pending = { id: restored?.id??this.uuid(), files: [...files], images: restored?Promise.resolve(restored.images):Promise.all(files.map(file => this.encode(file))), completed: new Set(restored?.completed??[]) };
     }
     const pending = this.pending;
