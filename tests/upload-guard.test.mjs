@@ -1,6 +1,7 @@
 // node --import tsx --env-file=.env.local --test tests/upload-guard.test.mjs
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import {PostUploadDraft} from '../src/lib/posts/create.ts';
 import {UploadManager} from '../src/lib/posts/upload-manager.ts';
 import {admin,user,checked} from './db/helpers.mjs';
 import {randomUUID} from 'node:crypto';
@@ -27,6 +28,11 @@ test('deleting a draft waits for a pending checkpoint so it cannot reappear afte
 test('an old ambiguous publication retries the same reservation instead of duplicating the meal',async()=>{
  let factories=0,restored=null;const draft={setProgress(){},restore(value){restored=value;},snapshot:async()=>({id:'original-id',images:[],completed:[]}),stage:async()=>{},submit:async()=>({postId:'original-id'})};
  const{manager,store}=harness(()=>{factories++;return draft;});await store.put({operationId:'logical-id',ownerId:'owner',createdAt:0,reservedAt:0,caption:'meal',eatenAt:null,location:null,options:{},files:[file],snapshot:{id:'original-id',images:[],completed:[]},posted:true,publishStarted:true,state:'failed',sent:1,total:1});await manager.initialize('owner');manager.retry('logical-id');await until(()=>manager.list()[0]?.postId==='original-id');assert.equal(factories,1);assert.equal(restored.id,'original-id');
+});
+test('a checkpoint for fewer photos cannot silently omit a selected photo after reload',async()=>{
+ const image={width:10,height:10,phash:'1',original:new Blob(['original']),feed:new Blob(['feed'])};let encoded=0,manifest;
+ const request=async(url,init)=>{if(init.method==='POST'){manifest=JSON.parse(init.body);return new Response(JSON.stringify({postId:'fresh',uploads:manifest.shots.map(shot=>({position:shot.position,originalPath:`owner/fresh/${shot.position}.jpg`,feedPath:`owner/fresh/${shot.position}.feed.jpg`,originalSignedUrl:`https://storage.invalid/${shot.position}/original`,feedSignedUrl:`https://storage.invalid/${shot.position}/feed`}))}),{status:200});}return new Response('{}',{status:200});};
+ const draft=new PostUploadDraft(async()=>{encoded++;return image},request,async()=>false,()=> 'fresh');draft.restore({id:'old',images:[image],completed:[]});await draft.stage('meal',[file,new File(['second'],'second.jpg')],null,null);assert.equal(encoded,2);assert.equal(manifest.shots.length,2);assert.equal(manifest.operation_id,'fresh');
 });
 test('two-shot reservation refuses publication with only one stored object (22023)',async()=>{
  const db=admin(),{user:owner}=await user(1),id=randomUUID();const base=`${owner.id}/${id}`;
