@@ -26,7 +26,7 @@ export class UploadManager {
   return this.initializing=(async()=>{for(const data of await this.store.all()){if(this.ownerId!==ownerId)return;if(data.ownerId!==ownerId)continue;if(this.entries.has(data.operationId))continue;data.files=data.files.map((file,index)=>new File([file],file.name??`meal-${index}.jpg`,{type:file.type}));const entry=this.make(data);this.entries.set(data.operationId,entry);this.notify(entry,'upload-started');if(data.state!=='failed')void this.run(entry);}this.notify();})();
  }
  private resetMemory(){for(const entry of this.entries.values()){entry.deleted=true;if(entry.previewUrl)URL.revokeObjectURL(entry.previewUrl);}this.entries.clear();this.notify();}
- async clear(){this.resetMemory();this.ownerId='';this.initializing=null;await this.store.clear();}
+ async clear(){const writes=[...this.entries.values()].map(entry=>entry.writing.catch(()=>{}));this.resetMemory();this.ownerId='';this.initializing=null;await Promise.all(writes);await this.store.clear();}
  stage(files:File[],fields:DraftFields,operationId?:string){
   let entry=operationId?this.entries.get(operationId):undefined;
   if(!entry){const id=crypto.randomUUID();const now=Date.now();entry=this.make({operationId:id,ownerId:this.ownerId,createdAt:now,reservedAt:now,...fields,files:[...files],snapshot:null,posted:false,state:'uploading',sent:0,total:files.reduce((sum,file)=>sum+file.size,0)});this.entries.set(id,entry);}

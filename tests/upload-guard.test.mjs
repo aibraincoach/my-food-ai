@@ -20,6 +20,14 @@ test('a reload restores the persisted photo and failed draft, then explicit retr
  const good={setProgress(){},restore(){},snapshot:async()=>({id:'published',images:[],completed:[]}),stage:async()=>{},submit:async()=>{publishes++;return{postId:'published'}}};const restored=new UploadManager(store,()=>good,async()=>{});await restored.initialize('owner');assert.equal(restored.list()[0].state,'failed');assert.equal(restored.list()[0].posted,true);restored.retry(id);await until(()=>publishes===1);await until(()=>restored.list()[0].postId==='published');assert.equal((await store.all()).length,0);
 });
 test('another signed-in owner cannot restore the first owner\'s photos',async()=>{const{manager,store}=harness(()=>({setProgress(){},snapshot:async()=>null,stage:async()=>{},submit:async()=>({postId:'post'})}));await manager.initialize('owner');manager.stage([file],fields);await pause();const other=new UploadManager(store);await other.initialize('other');assert.deepEqual(other.list(),[]);});
+test('deleting a draft waits for a pending checkpoint so it cannot reappear after reload',async()=>{
+ let release;const gate=new Promise(resolve=>release=resolve),rows=new Map();const store={all:async()=>[],put:async row=>{await gate;rows.set(row.operationId,row);},remove:async id=>rows.delete(id),clear:async()=>rows.clear()};
+ const draft={setProgress(){},snapshot:async()=>null,stage:async()=>{},submit:async()=>{throw Error('must not publish')}};const manager=new UploadManager(store,()=>draft,async()=>{});await manager.initialize('owner');const id=manager.stage([file],fields);await pause();const removed=manager.remove(id);release();await removed;await pause();assert.equal(rows.size,0);assert.deepEqual(manager.list(),[]);
+});
+test('an old ambiguous publication retries the same reservation instead of duplicating the meal',async()=>{
+ let factories=0,restored=null;const draft={setProgress(){},restore(value){restored=value;},snapshot:async()=>({id:'original-id',images:[],completed:[]}),stage:async()=>{},submit:async()=>({postId:'original-id'})};
+ const{manager,store}=harness(()=>{factories++;return draft;});await store.put({operationId:'logical-id',ownerId:'owner',createdAt:0,reservedAt:0,caption:'meal',eatenAt:null,location:null,options:{},files:[file],snapshot:{id:'original-id',images:[],completed:[]},posted:true,publishStarted:true,state:'failed',sent:1,total:1});await manager.initialize('owner');manager.retry('logical-id');await until(()=>manager.list()[0]?.postId==='original-id');assert.equal(factories,1);assert.equal(restored.id,'original-id');
+});
 test('two-shot reservation refuses publication with only one stored object (22023)',async()=>{
  const db=admin(),{user:owner}=await user(1),id=randomUUID();const base=`${owner.id}/${id}`;
  const shots=[0,1].map(position=>({position,width:10,height:10,phash:'1'}));
