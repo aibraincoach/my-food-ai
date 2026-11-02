@@ -1,3 +1,4 @@
+import ConnectAgentRow from '@/components/ConnectAgentRow';
 import { connection } from "next/server";
 import { redirect } from "next/navigation";
 import { ProfileGrid } from "@/components/ProfileGrid";
@@ -21,6 +22,7 @@ export default async function ProfilePage() {
         <h1 className="truncate text-title">@{profile.handle}</h1>
         <SignOutButton />
       </header>
+      <ConnectAgentRow userId={user.id} />
       <ProfileGrid posts={posts} />
     </main>
   );

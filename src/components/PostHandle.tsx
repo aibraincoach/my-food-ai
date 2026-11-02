@@ -22,3 +22,7 @@ export function usePostHandle(handle?:string) {
  useEffect(()=>{let live=true;if(handle){setValue(handle);return;}void loadHandle().then(value=>{if(live)setValue(value);}).catch(()=>{if(live)setValue('');});return()=>{live=false;};},[handle]);
  return value;
 }
+
+export function AgentAttribution({ name }: { name?: string | null }) {
+ return name ? <span className="block truncate text-[11px] font-normal leading-[1.3] text-muted">via {name}</span> : null;
+}

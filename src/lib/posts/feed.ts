@@ -30,6 +30,8 @@ export interface FeedItem {
 }
 
 export interface FeedPost {
+  agentName?: string | null;
+  agent_token_id?: string | null;
   saved_meal_id?:string|null;
   source_post_id?:string|null;
   gtin?: string | null;
@@ -70,6 +72,8 @@ function feedPathFor(storagePath: string): string {
 }
 
 interface PostRow {
+  agent_token_id?: string | null;
+  agent_tokens?: { name: string } | { name: string }[] | null;
   user_id: string;
   created_at: string;
   id: string;
@@ -106,6 +110,8 @@ async function toFeedPost(
   if(savedError)throw new Error('Saved meal state could not be read.');
   const revisionAfter=row.status==="ready"?await latestRevision(supabase,row.id):null;
   return {
+    agentName: (Array.isArray(row.agent_tokens) ? row.agent_tokens[0] : row.agent_tokens)?.name ?? null,
+    agent_token_id: row.agent_token_id ?? null,
     saved_meal_id:saved?.id??null,
     modelCommentId: row.status==="ready"&&JSON.stringify(revisionBefore)===JSON.stringify(revisionAfter)?revisionAfter?.modelCommentId??null:null,
     analysisFingerprint:row.status==="ready"&&JSON.stringify(revisionBefore)===JSON.stringify(revisionAfter)?revisionAfter?.fingerprint??null:null,
@@ -135,7 +141,7 @@ export async function getFeed(
   const cursor = before === null ? null : parseFeedCursor(before);
   let query = supabase
     .from("posts")
-    .select("id,user_id,caption,eaten_at,status,created_at")
+    .select("id,user_id,caption,eaten_at,status,created_at,agent_token_id,agent_tokens(name)")
     .eq("user_id", userId).neq("status","needs_input")
     .order("eaten_at", { ascending: false })
     .order("id", { ascending: false })
@@ -162,7 +168,7 @@ export async function getPostCard(
 ): Promise<FeedPost | null> {
   const { data, error } = await supabase
     .from("posts")
-    .select("id,user_id,caption,eaten_at,status,created_at")
+    .select("id,user_id,caption,eaten_at,status,created_at,agent_token_id,agent_tokens(name)")
     .eq("id", postId).or(VISIBLE_MEAL_FILTER)
     .maybeSingle<PostRow>();
   if (error) {
@@ -178,7 +184,7 @@ export async function getPostCard(
 // every result on a page, just like the Home feed.
 export async function getPostCards(supabase: SupabaseClient, postIds: string[], zone = "UTC"): Promise<FeedPost[]> {
   if (!postIds.length) return [];
-  const { data, error } = await supabase.from("posts").select("id,user_id,caption,eaten_at,status,created_at")
+  const { data, error } = await supabase.from("posts").select("id,user_id,caption,eaten_at,status,created_at,agent_token_id,agent_tokens(name)")
     .in("id", postIds).or(VISIBLE_MEAL_FILTER);
   if (error) throw new Error("Meals could not be loaded.");
   const rows = (data ?? []) as PostRow[];
