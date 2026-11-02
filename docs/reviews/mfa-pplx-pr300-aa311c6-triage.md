@@ -1,0 +1,13 @@
+Triage reviewer: Codex against submitted head aa311c68c9eb46e26061dfd7760c0ba2429c857c; external reviewer Gemini 3.8 Flash on PPLX.
+
+High 1. Sequential quota RPCs — Real: a batch used one round trip per entry. Fixed in da49fb0dc6de8b8a7eb42faa4ba6ec863ad80975: agent_hit takes a bounded p_increment (default 1) and consumes the entire batch in one atomic counter operation. Unit tests prove a three-entry refused batch uses one RPC; disposable SQL proves a sixty-call batch and the sixty-first refusal.
+High 2. Security-definer ACL verification — Not real: default operations use the server-only admin client; no client component directly invokes agent_hit or agent_log_meal. Functions revoke public/anon/authenticated execution and grant service_role. RLS/access tests exercise these boundaries.
+Medium 1. Equal date endpoints — Not real: both tool schema and setup documentation explicitly define from as inclusive and to as exclusive. Equal endpoints intentionally describe an empty interval; interpreting to as inclusive end-of-day would change the documented API contract.
+Medium 2. Separate last_used_at update — Real: an unnecessary second database operation updated last use after the quota check. Fixed in da49fb0dc6de8b8a7eb42faa4ba6ec863ad80975: the revocation check, quota increment and accepted-request last-use update now share one SQL token lock and transaction. The separate client update is removed; SQL verifies last_used_at is recorded.
+Medium 3. Token navigation interception — Not real as a demonstrated blocker: the component already has beforeunload and popstate protection in addition to a capture-phase click listener. Activating an anchor with Enter dispatches a click through that listener; the cited keyboard bypass is not established by the review. Physical mobile swipe-back acceptance remains unverified and is not claimed as passed.
+Low 1. Payload length measured in code units — Real: multibyte input could exceed the intended 64KiB cap. Fixed in da49fb0dc6de8b8a7eb42faa4ba6ec863ad80975: a shared streaming reader rejects raw bytes over the cap before retaining/decoding the body. Tests cover ASCII and four-byte Unicode boundaries.
+Low 2. Singular activity label — Real: one listed meal displayed “Read 1 meals”. Fixed in da49fb0dc6de8b8a7eb42faa4ba6ec863ad80975: the label uses “Read 1 meal” for the singular result.
+
+Validation: focused unit/data gates 7/7, isolated PostgreSQL access/rate gate 1/1, focused ESLint and production build passed. No production schema was changed. Valid-token HTTP/MCP acceptance remains pending the ordered migration; it is not represented as passed.
+
+Real findings: 4

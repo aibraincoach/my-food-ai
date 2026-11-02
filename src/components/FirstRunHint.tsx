@@ -4,9 +4,10 @@ import { useEffect, useState } from "react";
 import { Tooltip } from "@/components/ui/Tooltip";
 import { dismissHint, getHintState } from "@/lib/profile/hints";
 
-type HintKey = "capture" | "thread" | "thumbs";
+type HintKey = "capture" | "thread" | "thumbs" | "modes";
 const claimed = new Set<string>();
 const copy: Record<HintKey, string> = {
+  modes: "Swipe for Barcode · the camera reads packs too",
   capture: "A caption alone works too",
   thread: "Reply here to fix the estimate",
   thumbs: "Was this estimate right?",
@@ -43,6 +44,6 @@ export default function FirstRunHint({ hint }: { hint: HintKey }) {
   }, [hint]);
   if (!visible) return null;
   return <span className="pointer-events-none relative z-10 inline-flex pb-3">
-    <Tooltip className={hint === "thumbs" ? "" : "[&>span:first-child]:!left-4"} light={hint === "capture"} caret={hint === "thumbs" ? "left" : "bottom"}>{copy[hint]}</Tooltip>
+    <Tooltip className={hint === "thumbs" ? "" : "[&>span:first-child]:!left-4"} light={hint === "capture" || hint === "modes"} caret={hint === "thumbs" ? "left" : "bottom"}>{copy[hint]}</Tooltip>
   </span>;
 }

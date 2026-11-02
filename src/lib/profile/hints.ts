@@ -2,8 +2,8 @@
 
 import { createClient } from "@/lib/supabase/server";
 
-type HintKey = "capture" | "thread" | "thumbs";
-const isHint = (key: string): key is HintKey => ["capture", "thread", "thumbs"].includes(key);
+type HintKey = "capture" | "thread" | "thumbs" | "modes";
+const isHint = (key: string): key is HintKey => ["capture", "thread", "thumbs", "modes"].includes(key);
 
 export async function getHintState(key: HintKey): Promise<{ userId: string; seen: boolean } | null> {
   if (!isHint(key)) return null;
