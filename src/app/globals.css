@@ -34,6 +34,8 @@ body {
 }
 
 @media (min-width: 1024px) {
+  [data-desktop-workspace] { width:min(var(--workspace-width),calc(100vw - 264px - var(--detail-space))); }
+  [data-desktop-post][data-focused="true"] { outline:2px solid var(--color-text); outline-offset:2px; }
   .desktop-capture { height:100dvh !important; top:0 !important; display:flex; align-items:center; justify-content:center; padding:24px; background:var(--color-scrim-32); }
   .desktop-capture button[aria-label="Take a photo"] { border-color:var(--color-text); }
   .desktop-capture button[aria-label="Take a photo"] > span { background:var(--color-text); }

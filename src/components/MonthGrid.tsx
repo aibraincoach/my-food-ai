@@ -1,6 +1,6 @@
 "use client";
+import {useDesktop} from "@/lib/ui/use-desktop";
 
-import {useEffect,useState} from "react";
 import { formatCalories } from "@/lib/nutrition/totals";
 import { tokens } from "@/lib/theme/tokens";
 import type { MonthSummary } from "@/lib/posts/days";
@@ -12,8 +12,7 @@ export function formatDayKcal(value: number | null) { return formatCalories(valu
 export function postedLabel(count: number) { return count === 0 ? "No days posted" : `${count} ${count === 1 ? "day" : "days"} posted`; }
 
 export default function MonthGrid({ month, summary, today, selected, onDay }: { month: string; summary: MonthSummary; today: string; selected?: string; onDay: (date: string, cell: HTMLElement) => void }) {
-  const [desktop,setDesktop]=useState(false);
-  useEffect(()=>{const query=matchMedia('(min-width:1024px)');const update=()=>setDesktop(query.matches);update();query.addEventListener('change',update);return()=>query.removeEventListener('change',update);},[]);
+  const desktop=useDesktop();
   const first = new Date(`${month}-01T12:00:00Z`);
   const count = new Date(Date.UTC(first.getUTCFullYear(), first.getUTCMonth() + 1, 0)).getUTCDate();
   return <section aria-label={monthName(month, true)} data-month={month} id={`month-${month}`} className="desktop:w-full" onKeyDown={event=>{

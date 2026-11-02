@@ -1,4 +1,5 @@
 "use client";
+import {useDesktop} from "@/lib/ui/use-desktop";
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
@@ -18,8 +19,7 @@ export default function DaysView({ initialMonths, earliest, today, zone, initial
   const [months, setMonths] = useState(initialMonths);
   const monthsRef = useRef(initialMonths);
   const inFlight = useRef(new Map<string, Promise<void>>());
-  const [desktop,setDesktop]=useState(false);
-  useEffect(()=>{const query=matchMedia('(min-width:1024px)');const update=()=>setDesktop(query.matches);update();query.addEventListener('change',update);return()=>query.removeEventListener('change',update);},[]);
+  const desktop=useDesktop();
   const [desktopStory,setDesktopStory]=useState(Boolean(initialDay));
   const [active, setActive] = useState<LoggedDay | null>(initialDay ?? null);
   const [selected, setSelected] = useState<string | undefined>(initialDay?.date);

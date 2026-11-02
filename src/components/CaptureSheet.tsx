@@ -1,4 +1,5 @@
 "use client";
+import {useDesktop} from "@/lib/ui/use-desktop";
 import {lockBodyScroll} from '@/lib/ui/scroll-lock';
 import CorrectProductSheet from "@/components/CorrectProductSheet";
 import type { LabelReading } from "@/lib/meta/label";
@@ -13,7 +14,7 @@ import { barcodeAmounts, amountInBasis, packageAmount, type BarcodeProduct } fro
 import { formatNutrition } from "@/lib/nutrition/totals";
 import FirstRunHint from "@/components/FirstRunHint";
 import FoodSearchPanel from "@/components/FoodSearchPanel";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useEffectEvent, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/Button";
 import { Field } from "@/components/ui/Field";
@@ -37,12 +38,11 @@ const FLIP_ERROR = "Could not switch cameras. Try again.";
 export type CaptureMode = "photo" | "text" | "barcode";
 export default function CaptureSheet({ onClose, initialMode = "photo", forPost, attachNotEaten = false, initialFiles }: { onClose: () => void; initialMode?: CaptureMode; forPost?: string; attachNotEaten?: boolean; initialFiles?: File[] }) {
   const router = useRouter();
-  const [desktop,setDesktop]=useState(false);
+  const desktop=useDesktop();
   const [desktopTab,setDesktopTab]=useState<'webcam'|'upload'>('webcam');
   const [devices,setDevices]=useState<MediaDeviceInfo[]>([]);
   const [deviceId,setDeviceId]=useState('');
   const [dragging,setDragging]=useState(false);
-  useEffect(()=>{const query=matchMedia('(min-width:1024px)');const update=()=>setDesktop(query.matches);update();query.addEventListener('change',update);return()=>query.removeEventListener('change',update);},[]);
   const resumed=useRef(forPost?null:retainedDraft);
   const [composer,setComposer]=useState(initialMode==='text'||Boolean(resumed.current));
   const [photoIndex,setPhotoIndex]=useState(0);
@@ -428,12 +428,14 @@ export default function CaptureSheet({ onClose, initialMode = "photo", forPost, 
   useEffect(()=>{
     if(initialFiles?.length)void addFiles(initialFiles);
   },[initialFiles]); // eslint-disable-line react-hooks/exhaustive-deps
+  const handleCaptureFiles=useEffectEvent((event:Event)=>{const incoming=(event as CustomEvent<{files:File[]}>).detail?.files;if(incoming?.length)void addFiles(incoming);});
+  const handleCaptureKey=useEffectEvent((event:KeyboardEvent)=>{if(!desktop||composer||desktopTab!=='webcam'||mode!=='photo'||barcodeState!=='idle'||labelState!=='idle'||event.code!=='Space'||(event.target as HTMLElement)?.closest('input,textarea,select,[contenteditable="true"]'))return;event.preventDefault();void takePhoto();});
   useEffect(()=>{
-    const files=(event:Event)=>{const incoming=(event as CustomEvent<{files:File[]}>).detail?.files;if(incoming?.length)void addFiles(incoming);};
-    const key=(event:KeyboardEvent)=>{if(!desktop||composer||desktopTab!=='webcam'||mode!=='photo'||barcodeState!=='idle'||labelState!=='idle'||event.code!=='Space'||(event.target as HTMLElement)?.closest('input,textarea,select,[contenteditable="true"]'))return;event.preventDefault();void takePhoto();};
+    const files=(event:Event)=>handleCaptureFiles(event);
+    const key=(event:KeyboardEvent)=>handleCaptureKey(event);
     window.addEventListener('capture-files',files);window.addEventListener('keydown',key);
     return()=>{window.removeEventListener('capture-files',files);window.removeEventListener('keydown',key);};
-  });
+  },[]);
   const latest = shots[shots.length - 1];
   const full = shots.length >= MAX_SHOTS;
   const switchMode = (next: CaptureMode) => { if (!postingRef.current && next !== mode) { dismissBarcode(); if ((mode === "text") !== (next === "text")) setStream(null); setMode(next);setComposer(next==="text"); } };
