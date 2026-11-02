@@ -5,7 +5,7 @@ import type { SignedUpload } from "@/lib/media/storage";
 
 export interface NewShot { file: File; previewUrl: string }
 export interface CreatedPost { postId: string }
-export interface PostOptions {not_eaten_position?:number|null;save_as_meal?:boolean}
+export interface PostOptions {not_eaten_position?:number|null;not_eaten_positions?:number[];save_as_meal?:boolean}
 
 // A capture sheet owns this operation until publication succeeds. Repeated attempts
 // keep its identifier, encoded bytes and acknowledged uploads, including lost responses.

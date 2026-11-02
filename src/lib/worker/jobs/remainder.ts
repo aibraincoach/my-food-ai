@@ -11,7 +11,8 @@ import {isOwnedPhotoPath} from '@/lib/media/paths';
 const remainder:JobHandler=async(admin,job)=>{
  if(!job.post_id)throw Error('Not-eaten estimate requires a post.');
  if(job.payload.remainder_applied===true){await markReady(job.post_id,admin,job.id);return;}
- const {data:photo,error:photoError,status:photoStatus}=await admin.from('post_media').select('id,storage_path').eq('post_id',job.post_id).eq('kind','photo').eq('not_eaten',true).maybeSingle();
+ if(typeof job.payload.remainder_photo_id!=='string')throw Error('The leftovers photo was not specified.');
+ const {data:photo,error:photoError,status:photoStatus}=await admin.from('post_media').select('id,storage_path').eq('post_id',job.post_id).eq('kind','photo').eq('not_eaten',true).eq('id',job.payload.remainder_photo_id).maybeSingle();
  if(photoError)throw ioError('Not-eaten photo could not be read.',photoError,photoStatus);
  const {data:post,error:postError,status:postStatus}=await admin.from('posts').select('user_id,analysis_initialized_at').eq('id',job.post_id).maybeSingle();
  if(postError)throw ioError('Meal could not be read.',postError,postStatus);
@@ -31,12 +32,14 @@ const remainder:JobHandler=async(admin,job)=>{
   const nutrition=rescaleStoredNutrition(normalized,item.portion_grams,rule.consumedGrams);
   if(rule.consumedGrams===0){for(const key of NUTRIENT_KEYS)nutrition[key]=normalized[key]==null?null:0;nutrition.micronutrients=normalized.micronutrients.map(entry=>({...entry,value:entry.value==null?null:0,basis:'portion'}));}
   const ratio=toNumber(item.portion_grams)>0?rule.notEatenGrams/toNumber(item.portion_grams):0;
-  return {old_id:item.id,name:item.name,portion_grams:rule.consumedGrams,portion_text:rule.consumedText,box:item.box,mask_path:item.mask_path,gtin:item.gtin??null,not_eaten_grams:rule.notEatenGrams,count_text:rule.countText,not_eaten_count_text:rule.notEatenCountText,nutrition,notEatenKcal:item.calories==null?null:toNumber(item.calories)*ratio,notEatenText:rule.notEatenText,consumedText:rule.consumedText};
+  const incrementKcal=rule.notEatenGrams===0?0:item.calories==null?null:toNumber(item.calories)*ratio;
+  const cumulativeKcal=((item.not_eaten_grams??0)>0&&item.not_eaten_calories==null)||incrementKcal==null?null:(item.not_eaten_calories??0)+incrementKcal;
+  return {old_id:item.id,name:item.name,portion_grams:rule.consumedGrams,portion_text:rule.consumedText,box:item.box,mask_path:item.mask_path,gtin:item.gtin??null,not_eaten_grams:(item.not_eaten_grams??0)+rule.notEatenGrams,not_eaten_calories:cumulativeKcal,count_text:item.not_eaten_grams?null:rule.countText,not_eaten_count_text:item.not_eaten_grams?`${(item.not_eaten_grams??0)+rule.notEatenGrams} g`:rule.notEatenCountText,nutrition,notEatenKcal:incrementKcal,notEatenText:rule.notEatenText,consumedText:rule.consumedText};
  });
  const kcal=sumNutrition(rows.map(row=>({...row.nutrition,name:row.name}))).calories;
  const omitted=rows.some(row=>row.notEatenKcal===null)?null:rows.reduce((total,row)=>total+(row.notEatenKcal??0),0);
  const describe=(values:string[])=>values.length===1?values[0]:values.join(', ');
- const reply=`Not eaten: ${describe(rows.map(row=>row.notEatenText))} · ${omitted===null?'unavailable':formatCalories(omitted,'en-US')} kcal. Consumed: ${describe(rows.map(row=>row.consumedText))} · ${kcal===null?'unavailable':formatCalories(kcal,'en-US')} kcal.`;
+ const reply=`leftovers (not eaten): ${describe(rows.map(row=>row.notEatenText))} · ${omitted===null?'unavailable':formatCalories(omitted,'en-US')} kcal. Consumed: ${describe(rows.map(row=>row.consumedText))} · ${kcal===null?'unavailable':formatCalories(kcal,'en-US')} kcal.`;
  if(!checkWording(reply).ok)throw Error('Not-eaten reply contained unsupported wording.');
  const {error,status}=await admin.rpc('apply_post_remainder',{p_post_id:job.post_id,p_job_id:job.id,p_photo_id:photo.id,p_expected:items.map(item=>item.id),p_items:rows,p_reply:reply});
  if(error)throw ioError('Not-eaten estimate could not be saved.',error,status);

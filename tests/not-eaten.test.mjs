@@ -21,7 +21,7 @@ test('the stored-card snapshot preserves known uneaten calories when all of a fo
  const db={from(table){let chain;chain=new Proxy({}, {get(_target,key){if(key==='then')return resolve=>resolve({data:table==='post_items'?[parent]:[],error:null});return()=>chain;}});return chain;}};
  const data=await readCardData(db,'owner',{id:'copy',eaten_at:'2026-11-01T08:00:00Z',items:[{id:'current',name:'Food',portion_grams:0,calories:0,protein_g:0,carbs_g:0,fat_g:0,fibre_g:0,sugar_g:0,sodium_mg:0,micronutrients:[],supersedes:'original',not_eaten_grams:100,not_eaten_count_text:null}]});
  assert.equal(data.kcal,0);
- assert.equal(data.footer,'Not eaten: 100 g · 500 kcal');
+ assert.equal(data.footer,'leftovers (not eaten): 100 g · 500 kcal');
 });
 test('not-eaten revision keeps history, exact nutrition, retry idempotency and owner access',async()=>{
  assert.ok(process.env.SUPABASE_DB_URL,'SUPABASE_DB_URL is required');

@@ -1,3 +1,4 @@
+import {beforeLeftovers,carryLeftovers,retainedNutrition} from '@/lib/pipeline/leftovers';
 import { sendPostPush } from "@/lib/push/send";
 import {readNeedsInput,type NeedsInput} from '@/lib/pipeline/needs-input';
 import { readPostComments, readCorrectionProgress } from '@/lib/posts/timeline';
@@ -38,6 +39,7 @@ const correct:JobHandler=async(admin,job)=>{
  await waitForInitialAnalysis(admin,job.post_id);
  if(job.payload.correction_applied===true){await markReady(job.post_id,admin,job.id);return;}
  const items=await loadCorrectionItems(admin,job.post_id,()=>recompute(admin,job));
+ const grossItems=items.map(beforeLeftovers);
  const [thread,completed]=await Promise.all([readPostComments(admin,job.post_id),readCorrectionProgress(admin,job.post_id)]);
  let window;
  try{window=correctionWindow(thread??[],completed??[]);}catch{throw new MetaApiError(503,'Correction history changed while loading.');}
@@ -54,7 +56,7 @@ const correct:JobHandler=async(admin,job)=>{
  if(!prepared)throw new MetaApiError(503,'Correction snapshot could not be saved.');
  const {data:media,error:mediaError,status:mediaStatus}=await admin.from('post_media').select('storage_path').eq('post_id',job.post_id).eq('kind','photo').eq('not_eaten',false).order('position');
  if(mediaError)throw ioError('Correction photo could not be read.',mediaError,mediaStatus);
- const content:Record<string,unknown>[]=[{type:'input_text',text:JSON.stringify({items:items.map((i,index)=>({id:i.id,name:i.name,portion_text:i.portion_text,portion_grams:i.portion_grams,calories:i.calories,region_index:index,box:i.box})),history:boundedHistory(window.history),pending_messages:window.pending,photo_added:photoAdded})}];
+ const content:Record<string,unknown>[]=[{type:'input_text',text:JSON.stringify({items:grossItems.map((i,index)=>({id:i.id,name:i.name,portion_text:i.portion_text,portion_grams:i.portion_grams,calories:i.calories,recorded_leftovers_grams:i.not_eaten_grams??null,region_index:index,box:i.box})),history:boundedHistory(window.history),pending_messages:window.pending,photo_added:photoAdded})}];
  if(media?.length){
   const {data:post,error:ownerError,status:ownerStatus}=await admin.from('posts').select('user_id').eq('id',job.post_id).maybeSingle();
   if(ownerError)throw ioError('Correction photo owner could not be read.',ownerError,ownerStatus);
@@ -75,7 +77,7 @@ const correct:JobHandler=async(admin,job)=>{
  if(contextError)throw ioError("Correction context could not be read.",contextError,resolutionBudget.aborted?503:contextStatus);
  const kept=new Set<string>();
  const resolutionItems=result.items.map(item=>{
-  const old=item.keep?items.find(i=>i.id===item.keep):undefined;
+  const old=item.keep?grossItems.find(i=>i.id===item.keep):undefined;
   if(item.keep&&(!old||kept.has(item.keep)||old.name!==item.name||old.portion_text!==item.portion_text||(old.portion_grams==null?null:toNumber(old.portion_grams))!==item.portion_grams))throw new MetaApiError(500,'Correction changed an item marked unchanged.');
   if(item.keep)kept.add(item.keep);
   if(item.region_index!==null&&(item.region_index<0||item.region_index>=items.length))throw new MetaApiError(500,'Invalid source item index.');
@@ -83,9 +85,11 @@ const correct:JobHandler=async(admin,job)=>{
   // and history of the one prior item with the same name; with zero or several same-named items it gets none.
   // PM decision (item 16): a new item sharing a prior item's name is that item.
   const named=items.filter(prior=>prior.name===item.name);
-  const region=item.region_index===null?(named.length===1?named[0]:undefined):items[item.region_index];
+  const region=old??(item.region_index===null?(named.length===1?named[0]:undefined):items[item.region_index]);
   return {item,old,region};
  });
+ const protectedSources=new Set<string>();
+ for(const {old,region:sourceRegion} of resolutionItems){const region=old??sourceRegion;if(region?.not_eaten_grams!=null){if(protectedSources.has(region.id))throw new MetaApiError(500,'Correction duplicated a food with recorded leftovers.');protectedSources.add(region.id);}}
  const rows=await resolveNutritionItems(resolutionItems,resolutionBudget,async({item,old,region},_index,signal)=>{
   let nutrition;
   if(old)nutrition={calories:old.calories,protein_g:old.protein_g,carbs_g:old.carbs_g,fat_g:old.fat_g,fibre_g:old.fibre_g,sugar_g:old.sugar_g,sodium_mg:old.sodium_mg,micronutrients:old.micronutrients,source_ref:old.source_ref};
@@ -98,8 +102,10 @@ const correct:JobHandler=async(admin,job)=>{
    }
   }
   if(old)await traceNutritionReuse(item.name,nutrition,"unchanged",old.id);
-  return {name:item.name,portion_text:item.portion_text,portion_grams:item.portion_grams,box:old?old.box:region?.box??null,mask_path:old?old.mask_path:region?.mask_path??null,supersedes:old?.id??region?.id??null,nutrition};
+  return carryLeftovers({name:item.name,portion_text:item.portion_text,portion_grams:item.portion_grams,box:old?old.box:region?.box??null,mask_path:old?old.mask_path:region?.mask_path??null,supersedes:old?.id??region?.id??null,nutrition},items.find(prior=>prior.id===(old?.id??region?.id)));
  });
+ // A model omission must never delete an earlier leftover record.
+ for(const prior of items.filter(item=>item.not_eaten_grams!=null&&!protectedSources.has(item.id))){rows.push({...prior,portion_grams:prior.portion_grams==null?null:toNumber(prior.portion_grams),supersedes:prior.id,nutrition:retainedNutrition(prior)});}
  const totals=sumNutrition(rows.map(row=>({...row.nutrition,name:row.name})));
  const reply=await safeSummary(correctionReply(items,rows,totals),totals);
  const {error,status}=await admin.rpc(photoAdded?'persist_photo_correction':result.needs_input?'persist_correction_question':'persist_correction',{p_post_id:job.post_id,p_job_id:job.id,p_expected:items.map(i=>i.id),...(!photoAdded?{p_through:latest!.id}:{}),p_items:rows,p_reply:reply,...(photoAdded?{p_question:result.needs_input}:result.needs_input?{p_question:result.needs_input}:{})});
