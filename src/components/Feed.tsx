@@ -8,7 +8,7 @@ import { tokens } from "@/lib/theme/tokens";
 import DayHeader from "@/components/DayHeader";
 import { dateInZone, shiftDay, getDayTotals, type FeedDayTotal } from "@/lib/posts/days";
 import {useUploads} from "@/components/useUploads";
-import type {UploadState} from "@/lib/posts/upload-manager";
+import {uploadManager,type UploadState} from "@/lib/posts/upload-manager";
 import PostCard from "@/components/PostCard";
 import RealtimePost from "@/components/RealtimePost";
 import { mergeFeedPosts, discoveryLostOverlap } from "@/lib/posts/feed-order";
@@ -315,6 +315,6 @@ export default function Feed() {
 
 function UploadHydratedCard({post,upload,header}:{post:FeedPost;upload:UploadState;header:import("react").ReactNode}){
  const [fresh,setFresh]=useState<FeedPost|null>(null);
- useEffect(()=>{if(!upload.postId)return;let live=true,timer:ReturnType<typeof setTimeout>|null=null;const db=createClient(),started=Date.now();let previousStatus=post.status;const read=async()=>{try{const card=await getPostCard(db,upload.postId!);if(live&&card){setFresh(card);if(card.status==='ready'&&previousStatus!=='ready')window.dispatchEvent(new CustomEvent('post-ready',{detail:{id:card.id}}));previousStatus=card.status;if((card.status==='ready'&&card.slides.some(slide=>slide.kind==='card'))||card.status==='failed')return;}}catch{}if(live&&Date.now()-started<120000)timer=setTimeout(()=>{void read();},2000);};void read();return()=>{live=false;if(timer)clearTimeout(timer);};},[post,upload.postId]);
+ useEffect(()=>{if(!upload.postId)return;let live=true,timer:ReturnType<typeof setTimeout>|null=null;const db=createClient(),started=Date.now();let previousStatus=post.status,missing=0;const read=async()=>{try{const card=await getPostCard(db,upload.postId!);if(live&&(!card||card.status==='needs_input')){if(card||++missing>=3){void uploadManager.remove(upload.operationId);window.dispatchEvent(new CustomEvent('post-unavailable',{detail:{id:upload.postId}}));return;}}if(live&&card){missing=0;setFresh(card);if(card.status==='ready'&&previousStatus!=='ready')window.dispatchEvent(new CustomEvent('post-ready',{detail:{id:card.id}}));previousStatus=card.status;if((card.status==='ready'&&card.slides.some(slide=>slide.kind==='card'))||card.status==='failed')return;}}catch{}if(live&&Date.now()-started<120000)timer=setTimeout(()=>{void read();},2000);};void read();return()=>{live=false;if(timer)clearTimeout(timer);};},[post,upload.postId]);
  return <div>{header}<PostCard post={fresh??post} upload={upload}/></div>;
 }
