@@ -11,6 +11,12 @@ import { toNumber, type CurrentItem, type NutritionLike, type StoredNutrient } f
 export default async function recompute(admin: SupabaseClient, job: JobRow): Promise<void> {
   if (!job.post_id) throw new Error("recompute: post is required.");
   if(job.payload.reason==='media_removed'||job.payload.reason==='correction_reverted'){await rebuildRemoved(admin,job);return;}
+  if (job.payload.reason === "drink_sync") {
+    // Copies already hold exact nutrition. This durable repair must not resolve
+    // food again, send another push, or save another meal.
+    await markReady(job.post_id, admin, job.id, { notify: false, saveMeal: false });
+    return;
+  }
   const { data: items, error, status: itemsStatus } = await admin.from("current_post_items")
     .select("id,name,portion_grams,portion_text,supersedes").eq("post_id", job.post_id);
   if (error) throw ioError(`recompute items: ${error.message}`, error, itemsStatus);
@@ -35,7 +41,7 @@ export default async function recompute(admin: SupabaseClient, job: JobRow): Pro
       return {
         post_item_id: item.id, calories: n.calories, protein_g: n.proteinG,
         carbs_g: n.carbsG, fat_g: n.fatG, fibre_g: n.fibreG, sugar_g: n.sugarG,
-        sodium_mg: n.sodiumMg, micronutrients: n.micronutrients, source_ref: n.sourceRef,
+        sodium_mg: n.sodiumMg, micronutrients: n.micronutrients, source_ref: n.sourceRef, food_category: n.foodCategory ?? null,
       };
     });
     const writes=resolved.filter(row=>row!==null);

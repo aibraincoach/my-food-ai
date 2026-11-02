@@ -16,18 +16,22 @@ export interface DrinkRow {
   ml: number | null;
   label: string | null;
   post_id: string | null;
+  source?: "sheet" | "item";
+  post_item_id?: string | null;
 }
 export interface HydrationRecord { drinksMl: number; foodMl: number; totalMl: number; caffeineMg: number }
 // caffeineMg remains the drink's own amount for existing consumers. The day's
 // caffeine is separate, and dayHydration exposes it as caffeineMg.
-export interface DrinkCardData extends Omit<HydrationRecord, "caffeineMg"> { ml: number; label: string; caffeineMg: number; dayCaffeineMg?: number }
-export interface PostHydrationData { kind: "meal" | "drink"; foodWaterMl: number; dayHydration: HydrationRecord; drink: DrinkCardData | null }
-type WaterItem = { portion_text?: string | null; portion_grams: Numeric; micronutrients: StoredNutrient[] };
+export interface DrinkCardData extends Omit<HydrationRecord, "caffeineMg"> { source?: "sheet" | "item"; ml: number; label: string; caffeineMg: number; dayCaffeineMg?: number }
+export interface ItemDrinkRecord { label: string; ml: number; caffeineMg: number }
+export interface PostHydrationData { itemDrinks: ItemDrinkRecord[]; drinkSource?: "sheet" | "item"; kind: "meal" | "drink"; foodWaterMl: number; dayHydration: HydrationRecord; drink: DrinkCardData | null }
+type WaterItem = { id?: string; portion_text?: string | null; portion_grams: Numeric; micronutrients: StoredNutrient[] };
 export function itemWaterMl(item: WaterItem, isDrink = false): number {
+  if (isDrink) return 0;
   const nutrient = item.micronutrients.find(n => n.nutrientId === 1051 && n.basis === "portion"
     && (n.unitName ?? n.unit)?.toLowerCase() === "g");
   if (!nutrient) return 0;
-  const share = isDrink || /(?:^|\s)ml\b/i.test(item.portion_text ?? "") ? FOOD_WATER_SHARE_FULL : FOOD_WATER_SHARE_OTHER;
+  const share = /(?:^|\s)ml\b/i.test(item.portion_text ?? "") ? FOOD_WATER_SHARE_FULL : FOOD_WATER_SHARE_OTHER;
   return Math.max(0, toNumber(nutrient.value)) * share;
 }
 export function foodWaterMl(items: WaterItem[]): number { return roundWaterMl(items.reduce((sum, item) => sum + itemWaterMl(item), 0)); }
@@ -35,7 +39,7 @@ export function foodWaterMl(items: WaterItem[]): number { return roundWaterMl(it
 export async function drinksForDay(db: SupabaseClient, userId: string, day: string, zone: string): Promise<DrinkRow[]> {
   const rows: DrinkRow[] = [];
   for (let offset = 0; ; offset += 1000) {
-    const { data, error } = await db.from("intake_logs").select("kind,amount,logged_at,ml,label,post_id")
+    const { data, error } = await db.from("intake_logs").select("kind,amount,logged_at,ml,label,post_id,source,post_item_id")
       .eq("user_id", userId).gte("logged_at", `${shiftDay(day, -1)}T00:00:00Z`)
       .lt("logged_at", `${shiftDay(day, 2)}T00:00:00Z`)
       .order("logged_at").order("id").range(offset, offset + 999);
@@ -62,10 +66,11 @@ async function hydrationTimeline(db: SupabaseClient, userId: string, day: string
     const candidates = (posts ?? []).filter(post => dateInZone(post.eaten_at, zone) === day);
     if (candidates.length) {
       // Exclude linked drink items regardless of when that drink was moved.
-      const { data: links, error: linkError } = await db.from("intake_logs").select("post_id")
+      const { data: links, error: linkError } = await db.from("intake_logs").select("post_id,source,post_item_id")
         .eq("user_id", userId).in("post_id", candidates.map(post => post.id));
       if (linkError) throw new Error("Drink links could not be read.");
-      const drinkIds = new Set((links ?? []).map(row => row.post_id));
+      const drinkIds = new Set((links ?? []).filter(row => row.source === "sheet" || row.source == null).map(row => row.post_id));
+      const drinkItemIds = new Set((links ?? []).filter(row => row.source === "item").map(row => row.post_item_id));
       const meals = candidates.filter(post => !drinkIds.has(post.id));
       const byPost = new Map(meals.map(post => [post.id, { postId: post.id as string, eatenAt: post.eaten_at as string, waterMl: 0 }]));
       if (meals.length) {
@@ -83,7 +88,7 @@ async function hydrationTimeline(db: SupabaseClient, userId: string, day: string
               const stored = byItem.get(item.id);
               const contribution = byPost.get(item.post_id);
               if (!stored || !contribution) continue;
-              contribution.waterMl += itemWaterMl({ ...item, micronutrients: normalizeStoredNutrition(stored, item.portion_grams).micronutrients });
+              contribution.waterMl += itemWaterMl({ ...item, micronutrients: normalizeStoredNutrition(stored, item.portion_grams).micronutrients }, drinkItemIds.has(item.id));
             }
           }
           if ((items?.length ?? 0) < 100) break;
@@ -123,23 +128,43 @@ export async function getPostHydrationData(db: SupabaseClient, userId: string, p
   for (const [day, dayPosts] of byDay) {
     const latest = dayPosts.reduce((a, b) => new Date(a.eaten_at) > new Date(b.eaten_at) ? a : b).eaten_at;
     const timeline = await hydrationTimeline(db, userId, day, zone, latest);
-    const drinksByPost = new Map(timeline.drinks.filter(row => row.post_id && row.ml != null && row.label).map(row => [row.post_id!, row]));
+    const drinksByPost = new Map<string, DrinkRow[]>();
+    for (const row of timeline.drinks.filter(row => row.post_id && row.ml != null && row.label)) {
+      drinksByPost.set(row.post_id!, [...(drinksByPost.get(row.post_id!) ?? []), row]);
+    }
+    // The batch drink-card endpoint supplies no item snapshot. Read identities
+    // to distinguish a mixed meal from a post consisting entirely of beverages.
+    const missing = dayPosts.filter(post => post.items === undefined).map(post => post.id);
+    const itemIds = new Map<string, string[]>();
+    if (missing.length) {
+      for (let offset = 0; ; offset += 1000) {
+        const { data, error } = await db.from("current_post_items").select("id,post_id").in("post_id", missing).order("id").range(offset, offset + 999);
+        if (error) throw new Error("Drink items could not be read.");
+        for (const item of data ?? []) itemIds.set(item.post_id, [...(itemIds.get(item.post_id) ?? []), item.id]);
+        if ((data?.length ?? 0) < 1000) break;
+      }
+    }
     for (const post of dayPosts) {
-      const drink = drinksByPost.get(post.id);
-      // A renderer can supply its atomic snapshot before the ready flip. Replace
-      // that post's timeline contribution, never add it a second time.
-      if (!drink && post.items) {
-        const own = { postId: post.id, eatenAt: post.eaten_at, waterMl: post.items.reduce((sum, item) => sum + itemWaterMl(item), 0) };
+      const links = drinksByPost.get(post.id) ?? [];
+      const sheet = links.some(row => row.source !== "item");
+      if (!sheet && post.items) {
+        const linked = new Set(links.map(row => row.post_item_id));
+        const own = { postId: post.id, eatenAt: post.eaten_at, waterMl: post.items.reduce((sum, item) => sum + itemWaterMl(item, linked.has(item.id)), 0) };
         const index = timeline.foods.findIndex(row => row.postId === post.id);
         if (index < 0) timeline.foods.push(own); else timeline.foods[index] = own;
       }
     }
     for (const post of dayPosts) {
-      const drink = drinksByPost.get(post.id);
+      const links = drinksByPost.get(post.id) ?? [];
+      const source = links.some(row => row.source !== "item") ? "sheet" as const : "item" as const;
+      const itemDrinks = links.filter(row => row.source === "item").map(row => ({ label: row.label!, ml: toNumber(row.ml), caffeineMg: row.kind === "caffeine" ? toNumber(row.amount) : 0 }));
+      const currentIds = post.items ? post.items.map(item => item.id) : itemIds.get(post.id) ?? [];
+      const linkedIds = new Set(links.map(row => row.post_item_id));
+      const isDrink = links.length > 0 && (source === "sheet" || currentIds.length > 0 && currentIds.every(id => id && linkedIds.has(id)));
       const hydration = hydrationAt(timeline, post.eaten_at);
-      output[post.id] = { kind: drink ? "drink" : "meal", dayHydration: hydration,
-        foodWaterMl: drink ? 0 : roundWaterMl(timeline.foods.find(row => row.postId === post.id)?.waterMl ?? 0),
-        drink: drink ? { ...hydration, ml: toNumber(drink.ml), label: drink.label!, caffeineMg: drink.kind === "caffeine" ? toNumber(drink.amount) : 0, dayCaffeineMg: hydration.caffeineMg } : null };
+      output[post.id] = { kind: isDrink ? "drink" : "meal", itemDrinks, drinkSource: links.length ? source : undefined, dayHydration: hydration,
+        foodWaterMl: isDrink ? 0 : roundWaterMl(timeline.foods.find(row => row.postId === post.id)?.waterMl ?? 0),
+        drink: isDrink ? { ...hydration, source, ml: links.reduce((sum, row) => sum + toNumber(row.ml), 0), label: links.map(row => row.label!).join(" · "), caffeineMg: links.reduce((sum, row) => sum + (row.kind === "caffeine" ? toNumber(row.amount) : 0), 0), dayCaffeineMg: hydration.caffeineMg } : null };
     }
   }
   return output;

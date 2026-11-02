@@ -16,6 +16,7 @@ export interface CardData {
   items?: { name: string; grams: number | null }[];
   unavailable?: string[];
   waterLine?: string;
+  mealDrinkLine?: string;
   footer?: string;
 }
 export interface CardSource {
@@ -25,6 +26,7 @@ export interface CardSource {
   drink?: DrinkCardData | null;
   kind?: "meal" | "drink";
   foodWaterMl?: number;
+  itemDrinks?: import("@/lib/intake/hydration").ItemDrinkRecord[];
   dayHydration?: HydrationRecord;
   footer?: string;
 }
@@ -39,13 +41,14 @@ export function cardDataFromRow(source: CardSource): CardData {
     time: source.eaten_at ?? source.eatenAt,
     amountMl: drink?.ml,
     caffeineMg: drink?.caffeineMg,
-    drinkLine: drink ? `${drink.label}${drink.caffeineMg ? ` · ${Math.round(drink.caffeineMg)} mg caffeine · ${totals.calories === null ? "unavailable" : formatCalories(totals.calories)} kcal` : ""}` : undefined,
+    drinkLine: drink ? `${drink.label}${drink.caffeineMg ? ` · ${Math.round(drink.caffeineMg)} mg caffeine · ${totals.calories === null ? "unavailable" : formatCalories(totals.calories)} kcal` : drink.source === "item" ? ` · ${totals.calories === null ? "unavailable" : formatCalories(totals.calories)} kcal` : ""}` : undefined,
     hydration,
     kcal: totals.calories,
     macros: { protein: totals.protein_g, carbs: totals.carbs_g, fat: totals.fat_g },
     items: source.items.map(item => ({ name: item.name, grams: item.portion_grams == null ? null : toNumber(item.portion_grams) })),
     unavailable: unavailableFoods(totals),
     waterLine: (source.foodWaterMl ?? 0) >= 50 && hydration ? `Water in this meal: ${Math.round(source.foodWaterMl!).toLocaleString("en-US")} ml · Consumed today: ${hydration.totalMl.toLocaleString("en-US")} ml` : undefined,
+    mealDrinkLine: !drink && source.itemDrinks?.length ? `Drank in this meal: ${source.itemDrinks.map(row => `${Math.round(row.ml).toLocaleString("en-US")} ml ${row.label}`).join(" · ")}${source.itemDrinks.reduce((sum, row) => sum + row.caffeineMg, 0) > 0 ? ` · ${Math.round(source.itemDrinks.reduce((sum, row) => sum + row.caffeineMg, 0))} mg caffeine` : ""}` : undefined,
     footer: source.footer ?? remainderFooter(source.items),
   };
 }
