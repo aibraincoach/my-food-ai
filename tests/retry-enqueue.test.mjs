@@ -23,7 +23,7 @@ function fakeAdmin({ insert, update }) {
   return {
     calls,
     from: (table) => ({
-      insert: () => chain(table, "insert", insert),
+      insert: (row) => {const result=chain(table, "insert", insert);calls.at(-1).row=row;return result;},
       update: () => chain(table, "update", update),
       delete: () => chain(table, "delete", { data: null, error: null }),
     }),
@@ -63,4 +63,12 @@ test("recovery after a lost discovery overlap keeps loaded history", () => {
   const merged = mergeFeedPosts(loaded, fresh);
   assert.deepEqual(merged.map((p) => p.id), ["id30", "id29", "id10", "id9", "id8"]);
   assert.deepEqual(mergeFeedPosts(merged, [post(9)]).map((p) => p.id), merged.map((p) => p.id));
+});
+
+
+test("retry retains removal reason and completion marker instead of publishing stale nutrition", async () => {
+  const admin = fakeAdmin({ insert: { data: { id: "j2" }, error: null }, update: { data: { id: "p" }, error: null } });
+  const payload = { reason: "correction_reverted", comment_id: "removed-comment", removal_rebuilt: true };
+  assert.equal(await enqueueRetry(admin, { ...args, kind: "recompute", payload }), "queued");
+  assert.deepEqual(admin.calls.find(call => call.op === "insert").row.payload, payload);
 });

@@ -6,7 +6,7 @@ import { resolveNutritionItems } from "@/lib/fdc/resolve-items";
 import { resolveFoodMatch, traceNutritionReuse, nutritionResolutionBudget } from "@/lib/fdc/match";
 import { scaleNutrition } from "@/lib/fdc/nutrients";
 import { markReady } from "@/lib/pipeline/persist";
-import { toNumber } from "@/lib/nutrition/totals";
+import { toNumber, type CurrentItem, type NutritionLike, type StoredNutrient } from "@/lib/nutrition/totals";
 
 export default async function recompute(admin: SupabaseClient, job: JobRow): Promise<void> {
   if (!job.post_id) throw new Error("recompute: post is required.");
@@ -78,9 +78,9 @@ async function rebuildRemoved(admin:SupabaseClient,job:JobRow){
  const {data:post,error:postError}=await admin.from('posts').select('user_id').eq('id',postId).single();
  if(postError)throw ioError('Meal owner could not be read.',postError);
  const {isOwnedPhotoPath}=await import('@/lib/media/paths');
- type RebuiltRow={name:string;nutrition:Record<string,unknown>;[key:string]:unknown};
+ type RebuiltRow=Pick<CurrentItem,'name'|'portion_text'|'portion_grams'|'box'|'mask_path'> & Partial<Pick<CurrentItem,'gtin'|'not_eaten_grams'|'not_eaten_calories'|'count_text'|'not_eaten_count_text'>> & {supersedes?:string|null;nutrition:NutritionLike & {micronutrients:StoredNutrient[];source_ref:string|null}};
  let rows:RebuiltRow[]=items.map(item=>({...item,nutrition:{...item}}));
- const install=(next:RebuiltRow[])=>{rows=next;items=next.map(row=>({...row,...row.nutrition,id:typeof row.supersedes==='string'?row.supersedes:crypto.randomUUID(),source:'model',name:row.name,portion_text:row.portion_text??null,portion_grams:row.portion_grams??null,box:row.box??null,mask_path:row.mask_path??null,micronutrients:row.nutrition.micronutrients??[],source_ref:row.nutrition.source_ref??null} as import('@/lib/nutrition/totals').CurrentItem));};
+ const install=(next:RebuiltRow[])=>{rows=next;items=next.map(row=>({...row,...row.nutrition,id:typeof row.supersedes==='string'?row.supersedes:crypto.randomUUID(),source:'model' as const,name:row.name,portion_text:row.portion_text??null,portion_grams:row.portion_grams??null,box:row.box??null,mask_path:row.mask_path??null,micronutrients:row.nutrition.micronutrients??[],source_ref:row.nutrition.source_ref??null}));};
  for(const [index,comment] of comments.entries()){
   const result=await replayCorrection(admin,postId,items,[comment],comments.slice(0,index),false,true);
   if(result.result.needs_input)throw Error('The remaining correction needs clarification before the meal can be rebuilt.');
