@@ -1,22 +1,16 @@
 # My Food AI — Backlog†
 
-Last edited: Monday 2026-11-02 at 14:57 WIB (UTC+07:00) by Claude, PM
+Last edited: Monday 2026-11-02 at 17:04 WIB (UTC+07:00) by Claude, PM
 
 ## Backlog
 
 ## For the owner
 
-### The open-weights trial (#281) has a Modal token
+### #288 The open-weights trial (#281) has a Modal token
 
 The open-weights trial cannot start because the coder has no credential for the host that serves the model.
 
 Modal approved $100 of hackathon credit for the owner and hosts a Muse Spark Open endpoint billed per token. MODAL\_TOKEN\_ID and MODAL\_TOKEN\_SECRET exist neither in the coder's environment nor in production. Baseten and Fireworks list $100 each for selected participants, and the owner's selection is unconfirmed. The credential reaches the coder privately and never appears in the repository, an issue or this backlog. Done when the coder confirms the trial can authenticate to the host.
-
-### #284 The Meta credit balance and end date are recorded
-
-Nobody has seen how many Meta Model API credits remain or when they end, and judging runs to Nov 8.
-
-Only the owner can read the Meta console. The balance, the end date and whether a payment method can be attached decide what #282 does. Done when the owner has recorded the balance and end date where the coder and the planner can read them.
 
 ### #285 The owner's own checks before the recording
 
@@ -30,6 +24,26 @@ Four rulings are open and each blocks work.
 
 Whether the open-weights trial (#281) is built before the Nov 3 23:59 WIB freeze or left; what a judge who taps the Facebook button sees (#114); whether PR #270, which holds documents only, is merged; and whether the not-eaten plate is in the video. Done when each ruling is recorded here.
 
+## For the designer
+
+### #289 Frames for logging a drink by photo, by tap or by caption
+
+The card for a drink does not show a can of cola's caffeine, and logging a drink does not feel smooth.
+
+The owner photographed a can of Coca-Cola on Nov 2. It counted as caffeine, but its card shows none. He does not want people pushed down one flow: a photo of a coffee, a photo of a glass of water, a tap on the drink sheet and a caption must each work. A photo of water is estimated and added to hydration, and a photo of a caffeine-forward drink is estimated, added and shows its caffeine on the card. He names High Coffee as a reference for logging caffeine smoothly and WaterMinder for logging liquids. Records only, past tense, no targets, no ring or percentage. Done when frames at 390x844 are delivered for the drink card with its caffeine, a photo of water, a photo of a can, a quick tap and the drink sheet.
+
+### #290 Frames for the capture sheet's modes with Barcode as an obvious choice
+
+People cannot tell that the app scans barcodes, because the Barcode choice is easy to miss.
+
+The owner ruled on Oct 29 to keep a Barcode toggle. On Nov 2 he asked for the modes to be reached by swiping, with Barcode an obvious option, so that the feature is advertised without forcing anyone down it; a photo is still a photo (#212). Done when frames at 390x844 are delivered for the capture sheet showing the swipe between modes, Barcode selected, and a first-time hint.
+
+### #291 Frames for removing and redoing
+
+A user cannot take back something added to a post, and nothing shows how to remove a post.
+
+The owner asked on Nov 2 about deleting an item and its result so people can redo it, both small (a leftovers photo or a correction added by mistake) and large (a whole post). #174 adds Delete to the post menu. Done when frames at 390x844 are delivered for deleting a post with its confirmation, removing a leftovers photo or a correction from a post, and the post after either.
+
 ## Straight to engineering
 
 ## Build the designer's frames
@@ -38,7 +52,7 @@ Whether the open-weights trial (#281) is built before the Nov 3 23:59 WIB freeze
 
 A user has to switch to a separate scanner to log a packaged food, and the scanner has not been tried on a phone.
 
-The scanner was merged in PR #165 on the Search tab and is untested on a phone. The owner ruled on Oct 29 that a photo is a photo, whether it shows food, a barcode or a package's nutrition label, so the capture sheet identifies which whether or not the Barcode toggle of frame 2i is used; the owner ruled to keep the toggle so users can see that a scanner exists. The owner prefers a deterministic read: decode the barcode from the image first and look the digits up, and use the model only when no code is found and for the label. A barcode becomes a post whose card identifies the product with its nutrition and the pack photo; a label is read into the same kind of card. The look comes from frame 2i and the designer's frames for the label and the correction. First try the existing scanner on a phone with a real pack and report what it reads. Done when a real pack's barcode, photographed through the capture sheet on a phone, posts a card with the product's name and nutrition, and a nutrition label does the same.
+The scanner was merged in PR #165 on the Search tab and is untested on a phone. The owner ruled on Oct 29 that a photo is a photo, whether it shows food, a barcode or a package's nutrition label, so the capture sheet identifies which whether or not the Barcode toggle of frame 2i is used; the owner ruled to keep the toggle so users can see that a scanner exists. On Nov 2 the owner added that Barcode must stay an obvious choice on the capture sheet, reached by swiping between modes, so that people learn scanning exists and are not pushed down that route; a photo is still a photo, and a barcode photographed in Photo mode is still read. The owner prefers a deterministic read: decode the barcode from the image first and look the digits up, and use the model only when no code is found and for the label. A barcode becomes a post whose card identifies the product with its nutrition and the pack photo; a label is read into the same kind of card. The look comes from frame 2i and the designer's frames for the label and the correction. First try the existing scanner on a phone with a real pack and report what it reads. Done when a real pack's barcode, photographed through the capture sheet on a phone, posts a card with the product's name and nutrition, and a nutrition label does the same.
 
 ## Analysis pipeline and worker
 
@@ -128,6 +142,26 @@ The app feels slow and clunky, and a user who posts a meal should be able to car
 
 The owner asked for this on Nov 2. What happens today when a person taps Post is not known: whether the capture sheet waits for the upload, whether the feed card appears at once, and whether an upload survives leaving the screen or a reload (a draft is held only in memory today, see #227). Observe first on a throttled phone-sized screen and report each. This sits with #217, #222 and the upload progress item; the progress bar, the failed-upload look and the chip shown on another screen are drawn in the designer's frames 4l to 4o. Done when a user who taps Post can leave the capture sheet at once and keep using the app while the upload and analysis finish, a failed upload is shown and can be retried, and the coder has reported what each case above did before the change.
 
+### #292 A photo of a drink adds its volume to hydration and shows its caffeine
+
+A photographed can of cola counts as caffeine but its card shows none, and logging a drink is not as smooth as it should be.
+
+The owner reported this on Nov 2. Whether the photo path and the drink sheet store the same record is not known, so observe first. A photo of water must be estimated and added to hydration, and a photo of a caffeine-forward drink must be estimated, added and show its caffeine, however it was logged. It waits for the designer's drink frames. Done when a photo of a glass of water adds to hydration, a photo of a can of cola adds its volume and shows its caffeine on the card, and the same drink logged from the sheet reads the same.
+
+### #293 A user can remove a photo or correction they added and redo it
+
+A user who adds a leftovers photo or a correction by mistake cannot take it back.
+
+The owner asked on Nov 2 about redoing both small additions and whole posts. #174 covers deleting a post. Observe what removal exists today for an added photo or a correction. A correction replaces items and keeps the old ones as history, so removal has to return the post's numbers to what they were and still show in the thread. It waits for the designer's frames. Done when a user can remove a leftovers photo or a correction from a post, the post's numbers return to what they were before it, and the removal shows in the thread.
+
+### #294 The app's words read naturally everywhere
+
+The leftovers label reads awkwardly, and nobody has reviewed the words in the rest of the app.
+
+The owner said on Nov 2 that "leftovers (not eaten)" is janky (see #277). The planner reviews the app's terms with AGY as a second opinion and lists each term, where it appears and a recommended replacement. The terms include the leftovers label, "Consumed", "Log again", "Saved meals", "Additional food", the needs-input question and the Days names. Every rule stays: consumed past tense, no target, goal, ring or percentage, and no "left" as a word for a remaining amount. Done when the list is reviewed, the owner has ruled on each term, and the wording is changed everywhere it appears.
+
+## Meal screens and feed
+
 ### #192 The photo does not reload while a post is being processed
 
 While a post is being processed, its photo flickers, flashes and reloads over and over. It looks broken.
@@ -198,7 +232,7 @@ The owner reported this on Oct 29. The cause is not known: a phone that never si
 
 Photos and cards take a long time to appear, so the app feels slow.
 
-The owner reported this on Oct 29 while using the app. The cause is not known, so measure first: the size and format of what a card downloads, whether the feed uses thumbnails, whether images are cached between visits, and the time to the first picture on a phone. Done when the first photo of the feed shows within two seconds on a phone over mobile data, and the sizes and times before and after are in docs.
+The owner reported this on Oct 29 while using the app. The cause is not known, so measure first: the size and format of what a card downloads, whether the feed uses thumbnails, whether images are cached between visits, and the time to the first picture on a phone. The owner reported on Nov 2 at about 17:00 WIB that ten seconds after opening the app nothing had shown up, and said waiting that long is not acceptable; the device and the connection are not known, so measure a cold open first. Done when the first photo of the feed shows within two seconds on a phone over mobile data, the feed shows something within two seconds of opening the app, and the sizes and times before and after are in docs.
 
 ## Match the frames
 
@@ -237,12 +271,6 @@ Restyle it from the frame using the theme tokens and shared components: the dark
 Installed to an iPhone home screen, the app collides with the system: the clock overlaps content and the bottom bar is clipped.
 
 The owner's screenshot shows the clipped bar. The installed app does not respect the status bar, the notch or the home indicator. Set viewport-fit=cover and pad the header, the bottom bar and every sheet with env(safe-area-inset-\*). Done when nothing overlaps the clock or the home indicator at 390x844 and 430x932.
-
-### #280 The installed app is accepted on two real phones
-
-Nothing has been proven on a phone: not the installed app, the camera, the notification or the iPhone fit, and the demo video is shot on a phone.
-
-Items #221, #222, #22 and #108 and the camera checks all wait on this. The coder's checklist is docs/phone-acceptance.md. In order: on phone A over mobile data with the screen recording, open the installed app and check that sign-in persisted (#221), the time to the first photo (#222, two seconds) and the clock, notch and bottom bar (#108). Photograph a meal with the real camera and check live preview, flip, shutter, caption and a reachable Post control with the keyboard open. Turn on notifications, post a meal and lock the phone, then check that the notification arrives and opens the post (#22). On phone B, sign in, close and reopen the installed app (#221). Force-close phone A, reopen it and repeat the image timing. Photograph a real half-eaten plate through the not-eaten flow: its estimate has been shown on one photo used twice, and if the result is wrong the not-eaten flow stays out of the demo script. Done when each check has a recorded result and every failure is filed as an item.
 
 ### #193 Page looks for every screen against the designer's frames
 
@@ -302,17 +330,11 @@ A judge reads the repository and watches the video, and the README does not yet 
 
 The Guide's section 8 scores Impact 30%, Use of Meta AI Tooling 25%, Demo 25% and Technical Depth 20% (from the hackathon rules reference; the PM has not read the Guide first-hand). The README should name SAM 3.1, Muse Spark 1.3 and Muse Voice Transcribe 1.0 with the job each does and where its model ID is logged. It should summarise what was built from Oct 26 to Nov 4 with the evidence that already exists: the test count, the ten-photo evaluation with its stated limits, the real-model gates, the worker timing and the item history that keeps every correction. It should say plainly that the app records what was eaten and never advises, sets no targets and makes no health claims, because the hackathon's anti-project list names nutrition coaching. It states only what the coder's reports prove and carries no private account detail. Done when the README has those parts, each claim links to its evidence, and the owner has read it before the recording.
 
-### #26 Demo video under three minutes and the submission write-up
-
-The submission needs a public repo, a video, and a write-up that names what was built during the event.
-
-The owner records the video on Nov 4; the write-up goes in README.md. Script: open on the Cal AI timeline ("50 screens and 22 minutes before my first log, 11:45 to 12:07"), cut to sign-in → camera → post in ten seconds, show the SAM outlines on the detail, make a correction and show the thread keeping both versions, show the needs-input strip, close on Days. The write-up states everything was built Oct 26 to Nov 4 on the Meta Model API with SAM 3.1 and Muse Spark 1.3, lists the three Meta model calls, and says what the app does not do. The Most Viral prize ($20,000) counts likes, reposts and comments on X through the end of Nov 8, so the video goes on X as soon as it exists; whether the post must exist before the submission deadline is unconfirmed. No merges or deploys from the start of recording until the submission is in. The owner chooses the account to record on before recording. On Nov 1 the coder counted 146 posts and 83 unavailable foods on the first test account and 20 posts and 5 unavailable on the owner's account. The second test account holds 5 posts, 4 ready and 1 needing input, none with an unavailable food; the coder added eight test posts to it for the rehearsal on Nov 2 and removed all eight again by 08:41 WIB, so its feed has four cards and one question strip. A fresh estimate does not repeat exactly, so a same-meal-again moment uses Log again, and the script keeps out the cheeseburger-and-fries photo that failed the ten-photo identification gate on Nov 1. The coder timed the script on the current interface on Nov 2 at 60.420 seconds against 51.287 for the pre-Run 5 rehearsal; by his report the longest growing interval is the wait from publication to ready, 9.537 seconds longer, on a different food, while other intervals shortened. The script he timed is the one above; the planner notes it has no drink post, barcode or label, not-eaten photo or saved list, so none of the Run 5 screens beyond Log again are in it yet. Done when the video is under three minutes and the write-up is in README.md.
-
 ### #282 The live app keeps working while judges use it
 
 Judging runs Nov 4 to Nov 8, and if the Meta API credits run out first, a judge who posts a meal sees a failed analysis.
 
-The owner was told the $150 hackathon credits do not extend through judging and that spend alerts are not hard caps. Nobody has seen the balance, the end date, or what the drains, gates and re-logs have used; the 16-food gate alone made 38 model calls and 69,169 output tokens. USDA FoodData Central limits requests to 1,000 an hour. The twenty-post drain made 94 USDA requests, 4.7 per meal, so the limit allows roughly 200 meals an hour; the sushi photo needs up to 36 requests when cold. When USDA answers 429 the worker retries at 30 and 60 seconds, ignores Retry-After, and then fails the post (the planner's reading of the coder's report of Nov 2). Done when the balance and end date are known and either a payment method is attached or a fallback is chosen.
+The owner was told the $150 hackathon credits do not extend through judging and that spend alerts are not hard caps. Nobody has seen the balance, the end date, or what the drains, gates and re-logs have used; the 16-food gate alone made 38 model calls and 69,169 output tokens. USDA FoodData Central limits requests to 1,000 an hour. The twenty-post drain made 94 USDA requests, 4.7 per meal, so the limit allows roughly 200 meals an hour; the sushi photo needs up to 36 requests when cold. When USDA answers 429 the worker retries at 30 and 60 seconds, ignores Retry-After, and then fails the post (the planner's reading of the coder's report of Nov 2). The owner's console of Nov 2 shows $134.29 of free credits remaining and two payment methods on file, so usage after the free credits end should bill a card instead of failing; that is not yet confirmed, and the end date of the free credits is not shown. Done when a post made while the Meta Model API refuses a call, or while USDA answers 429, shows the user a clear message and can be retried, and a USDA 429 waits as USDA asks.
 
 ## Blocked
 
@@ -336,6 +358,6 @@ Blocked until after the hackathon, and blocked by the claims rule: the app shows
 
 ---
 
-† **What this backlog is.** The shared, ordered list of open work for My Food AI, shown live. GitHub issues in aibraincoach/my-food-ai are the record, and BACKLOG.md in the repository is generated from the same open issues, so the coder and the planner read the same list. This list usually runs a little ahead of the issues, because an item reaches them only after the PM has filed it. An item stays until its issue is closed by a merged pull request; the Blocked section holds items that cannot be worked on and says why. Designer items come first, and engineering items are grouped by the pass that will work them together, not by issue number or date.
+† **What this backlog is.** The shared, ordered list of open work for My Food AI, shown live. GitHub issues in aibraincoach/my-food-ai are the record, and BACKLOG.md in the repository is a copy of this list that the PM supplies, so the coder and the planner read the same list. This list usually runs a little ahead of the issues, because an item reaches them only after the PM has filed it. An item stays until its issue is closed by a merged pull request; the Blocked section holds items that cannot be worked on and says why. Designer items come first, and engineering items are grouped by the pass that will work them together, not by issue number or date.
 
 Every item is a title line and two paragraphs. The title line carries the GitHub issue number, assigned only once the issue exists, and the number is not one of the three parts. The three parts are: (1) a title a person can read; (2) a first paragraph in plain language that states the problem; (3) a second paragraph with the minimum context a person needs to solve the problem unaided, meaning what investigation, work or the owner's observations have established, ending in a done condition. Neither paragraph is a dump of everything known. An item without all three parts is not on the backlog.
