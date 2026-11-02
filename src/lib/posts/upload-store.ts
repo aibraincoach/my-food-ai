@@ -2,7 +2,7 @@ import type {CapturedLocation} from '@/lib/location/capture';
 import type {PostOptions,UploadSnapshot} from './create';
 export interface StoredUpload {
   operationId:string;ownerId:string;createdAt:number;reservedAt:number;caption:string;eatenAt:string|null;
-  location:CapturedLocation|null;options:PostOptions;files:File[];snapshot:UploadSnapshot|null;posted:boolean;
+  location:CapturedLocation|null;options:PostOptions;files:File[];snapshot:UploadSnapshot|null;posted:boolean;publishStarted?:boolean;
   state:'uploading'|'uploaded'|'failed';error?:'dropped'|'too_large'|'no_response';sent:number;total:number;
 }
 function database():Promise<IDBDatabase>{return new Promise((resolve,reject)=>{const request=indexedDB.open('mfa-uploads',1);request.onupgradeneeded=()=>request.result.createObjectStore('drafts',{keyPath:'operationId'});request.onsuccess=()=>resolve(request.result);request.onerror=()=>reject(request.error);});}

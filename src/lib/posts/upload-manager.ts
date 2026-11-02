@@ -31,7 +31,7 @@ export class UploadManager {
   let entry=operationId?this.entries.get(operationId):undefined;
   if(!entry){const id=crypto.randomUUID();const now=Date.now();entry=this.make({operationId:id,ownerId:this.ownerId,createdAt:now,reservedAt:now,...fields,files:[...files],snapshot:null,posted:false,state:'uploading',sent:0,total:files.reduce((sum,file)=>sum+file.size,0)});this.entries.set(id,entry);}
   else if(files.length!==entry.data.files.length||files.some((file,i)=>file!==entry!.data.files[i])){entry.data.files=[...files];entry.data.snapshot=null;entry.data.reservedAt=Date.now();entry.draft=this.makeDraft();entry.draft.setProgress((sent,total)=>{entry!.data.sent=sent;entry!.data.total=total;this.notify(entry,'upload-progress');});if(entry.previewUrl)URL.revokeObjectURL(entry.previewUrl);entry.previewUrl=files[0]?URL.createObjectURL(files[0]):'';entry.version++;}
-  this.attachSnapshot(entry);Object.assign(entry.data,fields);entry.data.state='uploading';entry.data.error=undefined;this.notify(entry,'upload-started');void this.run(entry);return entry.data.operationId;
+  entry.version++;this.attachSnapshot(entry);Object.assign(entry.data,fields);entry.data.state='uploading';entry.data.error=undefined;this.notify(entry,'upload-started');void this.run(entry);return entry.data.operationId;
  }
  update(id:string,fields:Partial<DraftFields>){const entry=this.entries.get(id);if(!entry||entry.deleted||entry.finished)return;Object.assign(entry.data,fields);entry.version++;void this.persist(entry);this.notify(entry,'upload-progress');}
  private async persist(entry:Entry){if(!entry.deleted)await this.store.put({...entry.data,files:[...entry.data.files]});}
@@ -50,7 +50,7 @@ export class UploadManager {
    await this.persist(entry);if(entry.deleted)return;
    for(let attempt=0;attempt<3;attempt++){
     try{
-     if(Date.now()-entry.data.reservedAt>UPLOAD_PARK_MS+UPLOAD_GRACE_MS){entry.draft=this.makeDraft();entry.draft.setProgress((sent,total)=>{entry.data.sent=sent;entry.data.total=total;this.notify(entry,'upload-progress');});entry.data.snapshot=null;entry.data.reservedAt=Date.now();this.attachSnapshot(entry);}
+     if(Date.now()-entry.data.reservedAt>UPLOAD_PARK_MS+UPLOAD_GRACE_MS&&!entry.data.publishStarted){entry.draft=this.makeDraft();entry.draft.setProgress((sent,total)=>{entry.data.sent=sent;entry.data.total=total;this.notify(entry,'upload-progress');});entry.data.snapshot=null;entry.data.reservedAt=Date.now();this.attachSnapshot(entry);}
      const version=entry.version,d=entry.data;
      if(d.files.length)await entry.draft.stage(d.caption,d.files,d.location,d.eatenAt,d.options);
      if(entry.deleted)return;
@@ -59,6 +59,7 @@ export class UploadManager {
      if(version!==entry.version){attempt=-1;continue;}
      if(!d.posted){d.state='uploaded';d.sent=d.total;await this.persist(entry);this.notify(entry,'upload-progress');return;}
      // Re-reserve in submit to commit the latest caption/time/options, but each acknowledged PUT is skipped.
+     d.publishStarted=true;await this.persist(entry);if(entry.deleted)return;
      const result=await entry.draft.submit(d.caption,d.files,d.location,d.eatenAt,d.files.length?'photo':'text',d.options);
      if(entry.deleted)return;
      d.snapshot=await entry.draft.snapshot();entry.finished=true;d.state='uploaded';d.sent=d.total;
