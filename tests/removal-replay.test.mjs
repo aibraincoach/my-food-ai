@@ -9,7 +9,7 @@ const nutrition=(id,grams)=>({post_item_id:id,calories:grams,protein_g:grams/10,
 const food=(id,grams,created_at=t)=>({id,name:'Toast',source:'model',portion_grams:grams,portion_text:`${grams} g`,created_at,not_eaten_grams:null,not_eaten_calories:null,box:null,mask_path:null,supersedes:null});
 const comment=(id,body,author='user',reverted_at=null)=>({id,body,author,created_at:t,reverted_at});
 
-async function fixture({comments=[],photos=[]}={}){
+async function fixture({comments=[],photos=[],reason='media_removed',commentId}={}){
  const calls={corrections:[],remainders:[],downloads:[],saved:null};let remainderIndex=0;
  const priorFetch=globalThis.fetch,priorKey=process.env.MODEL_API_KEY;process.env.MODEL_API_KEY='fixture';
  globalThis.fetch=async(_input,init)=>{
@@ -38,7 +38,7 @@ async function fixture({comments=[],photos=[]}={}){
   if(path.endsWith('/persist_removed_rebuild')){calls.saved=JSON.parse(init.body);return Response.json({message:'fixture captured atomic save',code:'40001'},{status:409});}
   throw Error(`Unexpected fixture request ${path}`);
  }}});
- try{await assert.rejects(recompute(db,{id:'job',post_id:'post',payload:{reason:'media_removed'}}));return calls;}
+ try{await assert.rejects(recompute(db,{id:'job',post_id:'post',payload:{reason,...(commentId?{comment_id:commentId}:{})}}));return calls;}
  finally{globalThis.fetch=priorFetch;if(priorKey===undefined)delete process.env.MODEL_API_KEY;else process.env.MODEL_API_KEY=priorKey;}
 }
 
@@ -61,4 +61,13 @@ test('foreign or traversal leftovers paths are refused before downloading or cal
  for(const path of ['victim/post/1.jpg','owner/other/1.jpg','owner/post/../other/1.jpg']){
   const calls=await fixture({photos:[{id:'foreign',storage_path:path}]});assert.deepEqual(calls.downloads,[]);assert.deepEqual(calls.remainders,[]);assert.equal(calls.saved,null);
  }
+});
+
+
+test('removal preserves quoted user words without treating them as generated claims',async()=>{
+ const text='Use the remaining half, not what was left.';
+ const calls=await fixture({reason:'correction_reverted',commentId:'removed',comments:[comment('removed',text,'user',t)]});
+ assert.ok(calls.saved,'quoted user language must not block the atomic rebuild');
+ assert.equal(calls.saved.p_reply,`Removed the correction "${text}". Consumed: 400 kcal.`);
+ assert.equal(calls.saved.p_items[0].portion_grams,400);
 });
