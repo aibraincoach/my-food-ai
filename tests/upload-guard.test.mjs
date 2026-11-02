@@ -1,6 +1,7 @@
 // node --import tsx --env-file=.env.local --test tests/upload-guard.test.mjs
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import {signShotUploads} from '../src/lib/media/storage.ts';
 import {PostUploadDraft} from '../src/lib/posts/create.ts';
 import {UploadManager} from '../src/lib/posts/upload-manager.ts';
 import {admin,user,checked} from './db/helpers.mjs';
@@ -35,11 +36,13 @@ test('a checkpoint for fewer photos cannot silently omit a selected photo after 
  const draft=new PostUploadDraft(async()=>{encoded++;return image},request,async()=>false,()=> 'fresh');draft.restore({id:'old',images:[image],completed:[]});await draft.stage('meal',[file,new File(['second'],'second.jpg')],null,null);assert.equal(encoded,2);assert.equal(manifest.shots.length,2);assert.equal(manifest.operation_id,'fresh');
 });
 test('two-shot reservation refuses publication with only one stored object (22023)',async()=>{
- const db=admin(),{user:owner}=await user(1),id=randomUUID();const base=`${owner.id}/${id}`;
+ const db=admin(),{user:owner,client}=await user(1),id=randomUUID();const base=`${owner.id}/${id}`;
  const shots=[0,1].map(position=>({position,width:10,height:10,phash:'1'}));
  try{
   checked(await db.rpc('reserve_post_upload_with_leftovers',{p_operation_id:id,p_user_id:owner.id,p_caption:'upload guard test',p_eaten_at:new Date().toISOString(),p_shots:shots,p_location:null,p_save_as_meal:false,p_render_zone:'UTC',p_not_eaten_positions:[]}));
   checked(await db.storage.from('media').upload(`${base}/0.jpg`,new Blob(['test-object'],{type:'image/jpeg'})));
+  // Staging must be able to refresh metadata/capabilities after an earlier PUT succeeded.
+  const renewed=await signShotUploads(client,owner.id,id,[0,1]);assert.equal(renewed.length,2);
   const result=await db.rpc('publish_uploaded_post',{p_operation_id:id,p_user_id:owner.id});assert.equal(result.error?.code,'22023');assert.match(result.error.message,/incomplete/i);
   const post=checked(await db.from('posts').select('status').eq('id',id).maybeSingle());assert.equal(post,null);
  }finally{await db.storage.from('media').remove([`${base}/0.jpg`]);await db.from('jobs').delete().contains('payload',{deleted_post_id:id});await db.from('post_upload_drafts').delete().eq('id',id);}
