@@ -1,5 +1,6 @@
 import DesktopWorkspace from "@/components/DesktopWorkspace";
 import PostDetail from "@/components/PostDetail";
+import ConnectAgentRow from '@/components/ConnectAgentRow';
 import { connection } from "next/server";
 import { redirect } from "next/navigation";
 import { ProfileGrid } from "@/components/ProfileGrid";
@@ -25,6 +26,7 @@ export default async function ProfilePage({searchParams}:{searchParams:Promise<{
         <h1 className="truncate text-title desktop:flex-1 desktop:text-[24px]">@{profile.handle}</h1>
         <SignOutButton />
       </header>
+      <ConnectAgentRow userId={user.id} />
       <ProfileGrid posts={posts} />
     </main></DesktopWorkspace>
   );

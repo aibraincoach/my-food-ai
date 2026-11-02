@@ -1,3 +1,5 @@
+import { foodCategory } from './food-category';
+export { foodCategory } from './food-category';
 import { recordCall } from "@/lib/trace/record";
 // USDA FoodData Central search with a Postgres cache (item 10).
 // Base https://api.nal.usda.gov/fdc/v1, api_key query parameter.
@@ -74,6 +76,7 @@ function normalizeQuery(query: string): string {
   return query.trim().toLowerCase();
 }
 
+
 function asFoods(payload: unknown): FdcFood[] {
   if (typeof payload !== "object" || payload === null) return [];
   const foods = (payload as { foods?: unknown }).foods;
@@ -115,7 +118,7 @@ function asFoods(payload: unknown): FdcFood[] {
       additionalDescriptions: typeof food.additionalDescriptions === "string" ? food.additionalDescriptions : undefined,
       dataType: food.dataType,
       foodNutrients: nutrients,
-      foodCategory: typeof food.foodCategory === "string" ? food.foodCategory : undefined,
+      foodCategory: foodCategory(food),
       brandOwner: typeof food.brandOwner === "string" ? food.brandOwner : undefined,
       servingSize:
         typeof food.servingSize === "number" ? food.servingSize : undefined,
@@ -193,6 +196,7 @@ export function parseFoodDetail(payload: unknown, expectedId: number): FdcFood {
     }
   }
   return {fdcId: expectedId, description: food.description, additionalDescriptions:typeof food.additionalDescriptions === "string" ? food.additionalDescriptions : undefined, dataType: food.dataType, foodNutrients: nutrients,
+    foodCategory: foodCategory(food),
     servingSize: typeof food.servingSize === "number" ? food.servingSize : undefined,
     servingSizeUnit: typeof food.servingSizeUnit === "string" ? food.servingSizeUnit : undefined,
     portions: portionsFromDetail(payload)};
