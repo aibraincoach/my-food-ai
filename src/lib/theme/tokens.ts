@@ -9,6 +9,7 @@ export const tokens = {
     surface: '#FAFAF9', text: '#1A1917', muted: '#7A766F', faint: '#B4AFA7',
     hairline: '#EDEAE4', line: '#E3E0DA', ring: '#D6D2CB', field: '#F1EEE8', card: '#F3F1EC',
     'shimmer-a': '#EFECE6', 'shimmer-b': '#F7F5F1', white: '#FFFFFF',
+    'accent-deep': 'oklch(0.52 0.17 25)',
     accent: 'oklch(0.62 0.15 25)', 'accent-halo': 'oklch(0.62 0.15 25 / 0.18)',
     camera: '#111111', 'camera-muted': '#9A958D', 'camera-field': 'rgba(255,255,255,0.10)',
     'camera-button': 'rgba(255,255,255,0.12)', scrim: 'rgba(26,25,23,0.40)',
@@ -46,6 +47,7 @@ export const tokens = {
     'tile-kcal': { size: 22, weight: 300, tracking: 0, leading: 1.3 },
   },
   spacing: {
+    'sidebar-w': 232, 'feed-w': 470, 'detail-w': 440, 'dialog-w': 760, 'grid-w': 616, 'cell-w': 76, 'results-w': 640, 'thumb-result': 140, 'profile-w': 760,
     inset: 16, 'blur-pill': 12,
     grid: 4, 'screen-x': 20, 'card-gap': 24, 'table-row': 30, 'item-row': 22,
     'field-h': 48, 'bar-h': 83, 'top-h': 48, tap: 44, phone: 390,

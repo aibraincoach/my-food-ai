@@ -291,8 +291,8 @@ export default function Feed() {
   return <div className="flex flex-col">
     {days.map(day => <section key={day} aria-label={day} className="relative pb-card-gap">
       <DayHeader day={day} zone={zone} empty={!groups.has(day)} total={totals.get(day)} />
-      {groups.has(day) ? <div className="flex flex-col gap-card-gap pt-sheet-top">{groups.get(day)!.map((post) => <RealtimePost key={post.id} initial={post} renderCard={(fresh) => <PostCard post={fresh}
-         />} />)}</div> : null}
+      {groups.has(day) ? <div className="flex flex-col gap-card-gap pt-sheet-top">{groups.get(day)!.map((post) => <div key={post.id} data-desktop-post={post.id} tabIndex={-1}><RealtimePost initial={post} renderCard={(fresh) => <PostCard post={fresh}
+         />} /></div>)}</div> : null}
     </section>)}
     {pageError ? <div className="px-screen-x text-detail text-muted" role="alert">
       <p>More meals could not be loaded.</p>

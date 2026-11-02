@@ -1,3 +1,5 @@
+import DesktopWorkspace from '@/components/DesktopWorkspace';
+import PostDetail from '@/components/PostDetail';
 import SavedMealsButton from '@/components/SavedMealsButton';
 import { connection } from "next/server";
 import { Suspense } from "react";
@@ -20,13 +22,14 @@ async function HomeDays() {
   return <DayRings days={days} totals={totals} today={today} zone={zone} zoneKnown={Boolean(cookieZone)} />;
 }
 
-export default function Home() {
-  return <main className="flex flex-1 flex-col">
+export default async function Home({searchParams}:{searchParams:Promise<{post?:string}>}) {
+  const {post}=await searchParams;
+  return <DesktopWorkspace detail={post?<PostDetail id={post}/>:undefined}><main className="flex flex-1 flex-col">
     <header className="sticky top-0 z-20 flex h-top-safe items-center bg-surface px-inset"><h1 className="flex-1 text-title">My Food AI</h1><SavedMealsButton/></header>
     <NeedsInputStrip />
     <Suspense fallback={<div className="h-bar-h" />}><HomeDays /></Suspense>
     <Suspense fallback={<p className="px-screen-x text-detail text-muted">Loading feed…</p>}>
       <Feed />
     </Suspense>
-  </main>;
+  </main></DesktopWorkspace>;
 }

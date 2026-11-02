@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { TopBar } from "@/components/ui/TopBar";
 import { Icon } from "@/components/ui/Icon";
 import { tokens } from "@/lib/theme/tokens";
+import { formatCalories } from "@/lib/nutrition/totals";
 import { shiftMonth, validDate, type LoggedDay, type MonthSummary } from "@/lib/posts/days";
 import MonthGrid, { monthName } from "@/components/MonthGrid";
 import GoToMonthSheet from "@/components/GoToMonthSheet";
@@ -17,6 +18,9 @@ export default function DaysView({ initialMonths, earliest, today, zone, initial
   const [months, setMonths] = useState(initialMonths);
   const monthsRef = useRef(initialMonths);
   const inFlight = useRef(new Map<string, Promise<void>>());
+  const [desktop,setDesktop]=useState(false);
+  useEffect(()=>{const query=matchMedia('(min-width:1024px)');const update=()=>setDesktop(query.matches);update();query.addEventListener('change',update);return()=>query.removeEventListener('change',update);},[]);
+  const [desktopStory,setDesktopStory]=useState(Boolean(initialDay));
   const [active, setActive] = useState<LoggedDay | null>(initialDay ?? null);
   const [selected, setSelected] = useState<string | undefined>(initialDay?.date);
   const [loadingDay, setLoadingDay] = useState(false);
@@ -69,8 +73,8 @@ export default function DaysView({ initialMonths, earliest, today, zone, initial
       const data: { day: LoggedDay } = await response.json();
       if (request !== dayRequest.current) return;
       setSelected(date); activeRef.current = data.day; setActive(data.day);
-      scrollMonth(date.slice(0, 7));
-      if (updateUrl) window.history.replaceState(null, "", url(`/days/${date}`));
+      if(!matchMedia("(min-width:1024px)").matches)scrollMonth(date.slice(0, 7));
+      if (updateUrl && !matchMedia("(min-width:1024px)").matches) window.history.replaceState(null, "", url(`/days/${date}`));
     } catch (failure) {
       if (request === dayRequest.current) {
         retry.current = () => { void requestDay(date, updateUrl); };
@@ -173,21 +177,26 @@ export default function DaysView({ initialMonths, earliest, today, zone, initial
     finally { setLoadingMonth(false); }
   };
   const close = () => {
-    dayRequest.current++; activeRef.current = null; setActive(null); setLoadingDay(false);
+    setDesktopStory(false);dayRequest.current++; activeRef.current = null; setActive(null); setLoadingDay(false);
     window.history.replaceState(null, "", url("/days"));
     if (selected) requestAnimationFrame(() => document.querySelector<HTMLElement>(`[data-day="${selected}"]`)?.focus({ preventScroll: true }));
   };
-  return <main className="flex flex-1 flex-col">
+  return <main className="flex flex-1 flex-col desktop:mx-auto desktop:w-full desktop:max-w-[1100px] desktop:px-4">
     <TopBar className="sticky top-0 z-10 bg-surface" title={<h1 className="text-month">Days</h1>}
       left={<Link href="/" className="flex min-h-tap items-center text-body" style={{ marginLeft: -tokens.spacing["tooltip-y"] }}><Icon name="back" size={tokens.radii.pill} strokeWidth={tokens.icon.strongStroke} />Feed</Link>}
       right={<button type="button" onClick={() => { void showMenu(); }} className="flex min-h-tap items-center gap-1 text-detail text-muted" style={{ marginRight: -tokens.spacing.grid * 2 }}>{top.slice(0, 4)}<Icon name="chevron-down" /></button>} />
-    <div className="flex flex-col pt-1" style={{ gap: tokens.spacing["icon-small"] + tokens.spacing.grid }}>
-      {displayed.map(month => <MonthGrid key={month} month={month} summary={months[month]} today={today} selected={selected} onDay={date => { void openDay(date); }} />)}
+    <div className="desktop:flex desktop:items-start desktop:justify-center desktop:gap-6"><div className="flex flex-col pt-1 desktop:w-[616px] desktop:min-w-0 desktop:flex-1" style={{ gap: tokens.spacing["icon-small"] + tokens.spacing.grid }}>
+      {displayed.map(month => <MonthGrid key={month} month={month} summary={months[month]} today={today} selected={selected} onDay={date => { if(activeRef.current?.date!==date)void openDay(date); }} />)}
       <div ref={tail} className="px-screen-x text-month text-faint" style={{ minHeight: tokens.spacing.tap }}>{monthName(shiftMonth(last, -1), true)}</div>
     </div>
+    <aside className="hidden desktop:sticky desktop:top-6 desktop:block desktop:w-[min(440px,40%)] desktop:shrink-0 desktop:py-5" aria-label="Selected day">
+      {active?<><h2 className="text-[17px] font-semibold">{new Date(`${active.date}T12:00:00Z`).toLocaleDateString('en',{weekday:'long',month:'short',day:'numeric',timeZone:'UTC'})}</h2><p className="mt-2 text-detail text-muted">Consumed: {formatCalories(active.totals.calories)} kcal · {active.posts.length} {active.posts.length===1?'post':'posts'}</p>
+      <div className="mt-5 space-y-4">{active.posts.map(post=><Link key={post.id} href={`/posts/${post.id}`} className="flex items-center gap-3">{post.photoUrl?<img src={post.photoUrl} alt={post.caption||'Meal'} className="size-10 rounded-thumb object-cover"/>:<span className="size-10 rounded-thumb bg-card"/>}<span className="min-w-0 flex-1"><span className="block truncate text-body">{post.caption||'Meal'}</span><span className="text-meta text-muted">{new Date(post.eatenAt).toLocaleTimeString('en',{hour:'numeric',minute:'2-digit',timeZone:zone})}</span></span><span className="text-meta text-muted">{formatCalories(post.totals.calories)} kcal</span></Link>)}</div>
+      <Link href={url(`/days/${active.date}`)} className="mt-5 block text-body" onClick={event=>{event.preventDefault();setDesktopStory(true);window.history.pushState(null,'',url(`/days/${active.date}`));}}>Open the day ›</Link></>:<p className="text-detail text-muted">Choose a day</p>}
+    </aside></div>
     {loadingMonth || loadingDay ? <p role="status" className="px-screen-x text-meta text-muted">{loadingDay ? "Loading day…" : "Loading months…"}</p> : null}
     {error ? <p role="alert" className="px-screen-x text-meta text-muted">{error}<button type="button" className="ml-2 min-h-tap text-text" onClick={() => { setError(""); if (retry.current) retry.current(); else router.refresh(); }}>Try again</button></p> : null}
     <GoToMonthSheet open={menu} months={allMonths} counts={counts} loading={menuLoading} error={menuError} onClose={() => setMenu(false)} onMonth={month => { void jump(month); }} />
-    {active ? <StoryPlayer key={active.date} day={active} zone={zone} onClose={close} onDay={date => { void openDay(date); }} cell={() => document.querySelector<HTMLElement>(`[data-day="${active.date}"]`)?.getBoundingClientRect()} /> : null}
+    {active && (!desktop||desktopStory) ? <StoryPlayer key={active.date} day={active} zone={zone} onClose={close} onDay={date => { void openDay(date); }} cell={() => document.querySelector<HTMLElement>(`[data-day="${active.date}"]`)?.getBoundingClientRect()} /> : null}
   </main>;
 }
