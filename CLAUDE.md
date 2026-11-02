@@ -13,11 +13,33 @@ Hackathon project: My Food AI. PM contract: [docs/pm-contract.md](docs/pm-contra
 
 Review tooling is ported from [naval-association-calgary](https://github.com/aibraincoach/naval-association-calgary) (PPLX runner, review policy shape) and burn-centre-translator / calgarysalutes-website (AGY delivery script, Firefox helper).
 
-## Current post–Run 5 handoff, November 1
+## Current state — November 1, 2026
 
-Production remains `14c83c746bef064946fc6a1d75cc32c7c5b42841`. [Owner report](docs/post-run5-owner-report.md) records the fresh 20/20 load pass (median 144.50 s, max 307.47 s), account counts, owner-meal audit, variable reference/portion explanations, retained 9/10 identification failure and uncorrelated reservation timeout. Closed under the latest owner order: #67, #172, #173, #185–#188, #191, #195, #213, #214, #219, #220. Reopened #11/#22; #212 stays open for physical-phone acceptance.
+Observed November 1, 2026, 15:19:11 UTC: main and production are `f095afe545a2be099ba6f2fca0b216d273db56e0`, READY, alias confirmed, health 200. #269 merged at the owner's exact head, then docs #266 merged last; #258 closed as superseded. The owner ordered the fleet closed and all subagents completed. [Final execution receipt](https://github.com/aibraincoach/my-food-ai/pull/266#issuecomment-6558350575).
 
-Fix #269 exact `c54525b1bd1c8985866f7fe840411be274822719` has build PASS, 353/353 tests across 127 files, and external Gemini BLOCKERS: NONE. It is **not merged or deployed** and awaits planner evaluation and a named exact-head merge order. Earlier #267/#268 merges relied on an overbroad interpretation of “authority for the whole job”; no separate named order existed. Do not repeat that interpretation. Docs #266 remains open and also needs its own merge order. The Wall row's original pushed commit is `fd4563ac87b68623117fbd931deea030beba2df1`.
+Fix #269 (`c54525b1bd1c8985866f7fe840411be274822719`) merged as `4d83d3c44428930a1cf1e21cf3add76c9d39c386`. Production build and all 353 tests in 127 files passed, zero failures/skips; external Gemini exact-head review returned BLOCKERS: NONE. Owner-meal recheck showed 87/40 kcal, two unavailable noodle-roll meals, and 3 known kcal with the pastry explicitly unavailable. The separate 0.3-kcal espresso now displays <1; its stored card was regenerated without changing nutrition or original photos. The initial latest-meal zero screen remains unreproduced. [Owner report](docs/post-run5-owner-report.md).
+
+The twenty-post speed check passed 20/20 on attempt one: median144.50 s, max307.47 s, all ready421.474 s from start; maximum job overlap one. Retain the 9/10 photo05 failure and uncorrelated reservation409; neither is proven fixed by the formatting change. Saved meals/Log again copy stored nutrition; fresh estimates can vary in portions and reference selection. Owner breakfast/curry acceptance remains outstanding.
+
+Closed by the owner’s explicit closure order: #67, #172, #173, #185–#188, #191, #195, #213, #214, #219, #220. Reopened #11/#22; physical-phone #212 stays open. The latest supplied BACKLOG.md is the PM’s **Nov2 08:26 WIB snapshot**, committed with its wording and three-part format preserved. It includes unfiled items and is not replaced by the obsolete bullet-only scripts/backlog.mjs output. Live GitHub open-issue references are separately indexed in docs/open-issue-index.md; a backlog item is not automatically removed on implementation evidence alone.
+
+New owner decisions in this session: every after-meal photograph should be markable as not eaten; the requested label is **“leftovers (not eaten)”**, replacing the old “Not eaten” ruling. These are backlog requests, not implemented behavior or an execution dispatch. A real half-eaten plate must be checked before this flow is included in the demo; the previous repeated-image fixture proves mechanics only. Preserve the standalone target-related “left” ban. The supplied zero-calorie item remains in the approved backlog; the subsequent #269 deployment/recheck evidence is in the owner report and needs PM reconciliation, not a claim that the original cause was established.
+
+Earlier #267/#268 merges relied on an overbroad interpretation of “authority for the whole job”; no separate named merge order existed. Subsequent #269/#266 merges used explicit owner orders with full heads. Follow docs/planner-contract.md’s superseding named-PR/head rule; the older plan-as-authorization lines do not authorize merges. No current code dispatch or merge order remains outstanding. This PM handover only reconciles documents and packages them; its draft docs PR is not a merge/deployment order.
+
+Remaining acceptance: physical camera/pack, installed sessions on two phones, mobile-data image timing, iPhone safe areas, background push, full Home-state comparison and owner meal estimates. Credits balance/end date and judging coverage are unverified; final narrated video/account choice remain the owner’s. Freeze: Nov3 23:59 WIB; no merge/deployment from recording start until submission. Public source contains fixture identifiers but private account mappings/session material are excluded from the handover. Wall row is already on main, original commit `fd4563ac87b68623117fbd931deea030beba2df1`.
+
+## PM gap follow-up — November 2
+
+The PM explicitly authorized the issue decisions and cleanup below while holding all merges. Closed after checking their own done conditions: #190 (published ten-photo production result table), #198/#210/#211 (delivered saved/label/hydration designer frames), #225 (known nutrition summed with the unknown food named). Closure comments carry immutable source/evidence links. This does not close #212 physical-phone capture or owner food-accuracy acceptance.
+
+The Nov2 read-only run created eight second-account test posts, all now removed under the follow-up order, including the two reservation checks and both rehearsal attempts. Their32 storage objects and two detached cleanup jobs were removed; original five posts remain (four ready, one needs_input). Six of the deleted posts were ready with no unavailable food; two were needs_input with no items. The fresh feed has the original four cards and one old question strip. Archived proof remains in ignored uploads; deleted IDs are no longer live acceptance targets.
+
+The verified current-interface rehearsal was60.420 s versus historical51.287 s. The largest growing interval was publication→ready:14.350→23.887 s (+9.537). The newer run uses another food, actual form sign-in and an extra Log again/Home step; this is not a controlled UI regression benchmark. The50.442 s candidate is retained but not accepted because its new-question visibility check was too broad.
+
+The PM supplied a newer **Nov2 08:26 WIB** backlog after being asked for rev280; that exact supplied text now replaces21:57 in this docs branch (50 three-part items). No new revision number is inferred from its timestamp. It adds a temperature comparison and preserving remainder fields on an added-photo correction as pending work; this follow-up does not run the trial or implement either feature. Future sync requires the full approved snapshot or an accessible exact-revision export, not a timestamp/GitHub issue list alone.
+
+Proposed changes to docs/pm-contract.md and the historical plan’s reference name are prepared only on this draft docs branch. Their text is not live on main until a PM order names the PR and exact head; no merge/deployment is authorized by this handover or gap report. Main/production remain f095afe545a2be099ba6f2fca0b216d273db56e0. One document branch is used; no product source changes or new PR are needed.
 
 ## Work
 
@@ -27,21 +49,15 @@ Code PRs: PPLX first (`skills/pplx-review/SKILL.md`), AGY second, Codex third pe
 
 Never commit secrets; use `.env.example` only. Prior Supabase wipe notes: [docs/database-before-wipe.md](docs/database-before-wipe.md).
 
-## Run 5 dispatch — built, not deployed
+## Run 5 record
 
-The owner-supplied Run 5 plan is preserved unchanged in [docs/plan.md](docs/plan.md), with Run 3 archived in [docs/plan-run3.md](docs/plan-run3.md). Code PRs #259–#265 are built and independently reviewed; [the execution report](docs/run5-execution.md) records exact heads, tests, page comparisons, false premises and remaining acceptance. Docs PR #266 is last. No new migration or Run 5 merge has been performed; the earlier #235-only execution order is historical. New-schema acceptance and item 7 wait for explicit PR-and-SHA orders and the plan's numeric migration sequence. The separate updated backlog is in PR #258. Do not treat this note or the plan as a standing merge order.
+The owner-supplied plan remains unchanged in [docs/plan.md](docs/plan.md); Run3 is archived in [docs/plan-run3.md](docs/plan-run3.md). #259–#265 and #267–#269 are merged; migrations0025–0027 are applied. Pre-merge reports and review captures retain their original cutoffs and are not current orders. No product code changes are authorized by this handover.
 
 ## PM handover
 
 Reconcile documents, commit on the document branch, then `skills/pm-handover/scripts/pack.sh`. The handover text is the reply; zip output goes under `uploads/` (gitignored). Dispatch shape and technical ownership follow the current PM and planner contracts linked above.
 
-## Current Run 5 outcome
-
-Observed 2026-11-01 after the owner-authorized migrations/merges and production acceptance. Main and the production alias are `14c83c746bef064946fc6a1d75cc32c7c5b42841`, READY/health200. #259–#265, #267 and production defect fix #268 are merged; migrations0025–0027 are applied. The full suite passed349/349 across126files with no skips, and production checks a–g plus photo attachment passed after the soup retrieval fix. [Current execution and evidence](docs/run5-merge-and-acceptance.md), [exact-head reviews](docs/reviews/run5-review-receipts.md).
-
-Docs #266 remains unmerged as ordered; backlog docs #258 also remains open. Do not treat historical awaiting-order statements below or in the pre-merge report as current. Issue closures still need the PM's explicit order. Physical-phone proof and owner acceptance of exact meal totals remain unclaimed; the additional unchanged-identification9/10 result and unexplained handled reservation409 are retained in the current report.
-
-## Historical session summary
+## Historical session summary — superseded by Current state above
 
 _Observed 2026-11-01T02:11:31+00:00. Main and the production alias were independently re-read for the owner's #235-only merge order. This is documentation state, not an additional execution order._
 

@@ -1,5 +1,7 @@
 # Closed-issue acceptance audit
 
+Current GitHub disposition, November1: the owner ordered **#11/#22 reopened** for unproven full Home-state/background-phone acceptance. The historic Feed implementation proof below does not close the Home-frame requirement. #67 and the ordered Run5 issues are closed with evidence; see [the owner report](post-run5-owner-report.md).
+
 Final disposition after the production checks through `4598a0ea51f9478ed6fc49d069ef6b5ff7eb7f81` and publication of this evidence: seven live GitHub issue conditions have supporting production evidence; three remain unproven. All associated implementation PRs below merged. The Home frame-restyling claim attached to backlog number #11 is a separate unproven claim.
 
 | Issue | Merged implementation | Final production disposition |

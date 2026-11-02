@@ -1,6 +1,6 @@
 # Run 5 build and verification report — historical pre-merge record
 
-**Current outcome:** see [merge and production acceptance](run5-merge-and-acceptance.md). The text below preserves the earlier pre-merge report and its limits; its awaiting-order status is historical.
+**Current outcome:** #259–#265 and #267–#269 merged; migrations0025–0027 are applied; docs #266 merged last. See [merge and production acceptance](run5-merge-and-acceptance.md) and [the owner report](post-run5-owner-report.md). The text below preserves the earlier pre-merge report and its limits; its awaiting-order status is historical.
 
 The build/review stage is finished. Seven code PRs are open against `main`, and each has a Gemini 3.8 Flash receipt stating **BLOCKERS: NONE** on its exact current head. All seven heads have successful Vercel checks and were mergeable against the observed `main` (`1510ed8f199adf8cad8241b61a8fa5f2e1744544`). Mergeability must be checked again after each preceding merge.
 

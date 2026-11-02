@@ -1,6 +1,8 @@
 # Post–Run 5 owner report — November 1, 2026
 
-Production inspected: `14c83c746bef064946fc6a1d75cc32c7c5b42841`, after #259–#265, #267 and #268. This report answers the owner's replacement order. No new application PR has been merged under this order.
+Observed November 1, 2026, 15:19:11 UTC: main and production are `f095afe545a2be099ba6f2fca0b216d273db56e0`, READY, alias confirmed, health 200. #269 merged at the owner's exact head, then docs #266 merged last; #258 closed as superseded. The owner ordered the fleet closed and all subagents completed. [Final execution receipt](https://github.com/aibraincoach/my-food-ai/pull/266#issuecomment-6558350575).
+
+#269 and #266 are now merged; the final receipt supersedes the earlier pending-state snapshot. The initial meal audit used `14c83c746bef064946fc6a1d75cc32c7c5b42841`; the post-deployment recheck used #269’s application tree. No fresh meal estimate was run for the owner.
 
 ## Owner meals and zero calories
 
@@ -20,11 +22,11 @@ A separate owner espresso stores **0.3 kcal** (30 g, selected reference FDC 1718
 
 Exact-head validation: production build passed; all **127 discovered test files** ran, **353 tests passed, zero failed, zero skipped**, in 256.758 seconds. Full log SHA-256: `f51c91ac4ea948f8a6e2f1fd5c02d0c5811bcd239b7d914808280a335409e8a3`. Four new regression tests cover empty/unavailable meals, unknown days, mixed-day omissions and sub-kcal formatting. Independent [Gemini review](https://github.com/aibraincoach/my-food-ai/pull/269#issuecomment-6558199300): **BLOCKERS: NONE**, [triage real findings: 0](https://github.com/aibraincoach/my-food-ai/pull/269#issuecomment-6558199451). Vercel preview checks passed and GitHub reported mergeable. A built-page check in native Chromium at 390×844 showed the espresso fixture summary as <1 kcal and the unavailable-food summary as dashes, both without horizontal overflow. Temporary posts were removed and their absence verified.
 
-Production still runs the preceding behavior until a named merge order is supplied; no deployed fix is claimed.
+After the owner supplied the exact-head order, #269 deployed at 13:03:07 UTC. The latest meal results remained 87/40 kcal, two unavailable noodle-roll meals, and 3 known kcal plus the unavailable pastry. The separate espresso displays <1 kcal; its stored PNG was regenerated model-free and inspected, with original photo rows and nutrition unchanged.
 
 ## Authority used for #267 and #268
 
-I relied on the earlier order's sentence: “You have authority for the whole job, including the migrations the plan names.” I interpreted it as authority to fix and deploy defects found during production acceptance. There was **no separate PM merge order naming #267/#268 and their exact heads**. That interpretation did not satisfy the superseding named-PR/head rule in [planner-contract.md](planner-contract.md). Both merges happened; I am recording the actual authority relied on rather than inventing a receipt. New #269 is prepared for evaluation and a named merge order.
+I relied on the earlier order's sentence: “You have authority for the whole job, including the migrations the plan names.” I interpreted it as authority to fix and deploy defects found during production acceptance. There was **no separate PM merge order naming #267/#268 and their exact heads**. That interpretation did not satisfy the superseding named-PR/head rule in [planner-contract.md](planner-contract.md). Both merges happened; I am recording the actual authority relied on rather than inventing a receipt. The later #269/#266 merges followed explicit owner orders naming their full heads.
 
 ## Failed photo gate and reservation 409
 
@@ -110,6 +112,6 @@ Unavailable-food counts mean current item rows with unknown calories, not all hi
 
 **Yes**, main's README still contained a historical quoted paragraph saying #202's plus menu was not on main and other Run 3 features/acceptance remained pending. It contradicted a later current-status paragraph. The evaluation-directory sentence also used future tense; the queue document's top generated results were an old failed run even though a later historical healthy run was recorded below it. Evaluation and two functional demo runs already exist; physical-phone acceptance and the owner's final recorded submission video remain separate.
 
-This docs branch removes the obsolete Run 3 quote from the start-here page, states the inspected Run 5 runtime, links completed evaluation/demo records, and records the fresh twenty-post result. **Those corrections are prepared in open docs PR #266 and are not on main until it is ordered merged.** The exact Wall of Stupid row remains preserved; its original pushed commit is `fd4563ac87b68623117fbd931deea030beba2df1`.
+This docs branch removes the obsolete Run 3 quote from the start-here page, states the inspected Run 5 runtime, links completed evaluation/demo records, and records the fresh twenty-post result. **Those corrections reached main when #266 merged last under the owner’s exact-head order.** The exact Wall of Stupid row remains preserved; its original pushed commit is `fd4563ac87b68623117fbd931deea030beba2df1`.
 
-Remaining concrete work: merge/deploy #269 after evaluation and an exact-head order, then repeat zero/unknown production checks; merge docs #266 only under its own applicable order; obtain physical-phone evidence for #212/#11/#22 and the phone checklist. Freeze remains **23:59 WIB Tuesday November 3**. No unproven phone or owner food acceptance has been closed by inference.
+Remaining acceptance: physical-phone evidence for #212/#22, the full Home-state comparison for #11, and the phone checklist, real half-eaten-plate accuracy, and owner acceptance of estimated meal weights/totals. #269 and docs #266 have merged/deployed; #258 closed as superseded. No PR was left open at fleet closeout. The new PM handover is a separate docs-only draft, not a reopened code fleet. Freeze remains **23:59 WIB Tuesday November 3**. The latest supplied 21:57 WIB backlog adds multiple after-meal photo marking and “leftovers (not eaten)” wording; those requests are pending and have not been implemented by this documentation update.
