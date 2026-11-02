@@ -4,6 +4,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import test from 'node:test';
 import { randomToken, hashToken, createToken, authenticateBearer, revokeToken } from '../src/lib/agents/tokens.ts';
+import { readAgentText } from '../src/lib/agents/request-body.ts';
 import { mealInput, getMeal, correctMeal } from '../src/lib/agents/ops.ts';
 const request = token => new Request('http://localhost/mcp', { headers: token ? { Authorization: `Bearer ${token}` } : {} });
 test('tokens have 32 random base62 characters, persist a digest and suffix only', async () => {
@@ -17,9 +18,9 @@ test('tokens have 32 random base62 characters, persist a digest and suffix only'
   for (const name of ['', ' ', 'x'.repeat(41), 'bad\0name']) await assert.rejects(createToken('owner', name, db));
 });
 function authDb(row, limit = 60) {
-  let calls = 0, writes = 0, hash;
-  const chain = { select() { return chain; }, eq(_, value) { hash = value; return chain; }, maybeSingle: async () => ({ data: row, error: null }), update() { writes++; return chain; }, is() { return chain; } };
-  return { from: () => chain, rpc: async (name, args) => { assert.equal(name, 'agent_hit'); assert.equal(args.p_limit, 60); return { data: ++calls <= limit, error: null }; }, stats: () => ({ calls, writes, hash }) };
+  let calls = 0, hits = 0, hash;
+  const chain = { select() { return chain; }, eq(_, value) { hash = value; return chain; }, maybeSingle: async () => ({ data: row, error: null }) };
+  return { from: () => chain, rpc: async (name, args) => { assert.equal(name, 'agent_hit'); assert.equal(args.p_limit, 60); assert.ok(args.p_increment >= 1 && args.p_increment <= 61); calls++; hits += args.p_increment; return { data: hits <= limit, error: null }; }, stats: () => ({ calls, hits, hash }) };
 }
 test('Bearer authentication refuses missing, unknown and revoked tokens and caps the 61st call', async () => {
   const token = randomToken(); const row = { id: 'token-id', user_id: 'owner', revoked_at: null };
@@ -28,14 +29,14 @@ test('Bearer authentication refuses missing, unknown and revoked tokens and caps
   await assert.rejects(authenticateBearer(request(token), 1, authDb(null)), e => e.status === 401);
   await assert.rejects(authenticateBearer(request(token), 1, authDb({ ...row, revoked_at: new Date().toISOString() })), e => e.status === 401);
   for (let i = 0; i < 60; i++) assert.deepEqual(await authenticateBearer(request(token), 1, db), { userId: 'owner', tokenId: 'token-id' });
-  assert.equal(db.stats().writes, 60);
+  assert.equal(db.stats().hits, 60);
   await assert.rejects(authenticateBearer(request(token), 1, db), e => e.status === 429);
-  assert.equal(db.stats().writes, 60);
+  assert.equal(db.stats().hits, 61);
 });
 test('JSON-RPC batches consume a hit for every call and refuse the whole over-limit batch', async () => {
   const token = randomToken(); const db = authDb({ id: 'id', user_id: 'owner', revoked_at: null }, 2);
   await assert.rejects(authenticateBearer(request(token), 3, db), e => e.status === 429);
-  assert.equal(db.stats().calls, 3); assert.equal(db.stats().writes, 0);
+  assert.equal(db.stats().calls, 1); assert.equal(db.stats().hits, 3);
 });
 test('meal input preserves a past eaten-at and rejects future times and invalid captions', () => {
   const now = Date.parse('2026-11-02T12:00:00Z'); const eaten = '2026-11-02T11:00:00.000Z';
@@ -58,4 +59,12 @@ test('0031 restricts token writes, activity and rate counters', () => {
     assert.match(sql, new RegExp(`alter table public\\.${name} enable row level security`));
   }
   for (const text of ['only_revoked_at_changes', 'agent_hit', 'agent_log_meal', 'protect_agent_attribution', "to_jsonb(new)-'revoked_at'", 'from public,anon,authenticated', 'token_hash text not null unique']) assert.ok(sql.includes(text), text);
+});
+
+test('agent request limits count bytes and reject a multibyte body above 64 KiB', async () => {
+  const request = body => new Request('http://localhost/mcp', { method: 'POST', body });
+  assert.equal(await readAgentText(request('a'.repeat(65536))), 'a'.repeat(65536));
+  const boundary = '😀'.repeat(16384);
+  assert.equal(await readAgentText(request(boundary)), boundary);
+  await assert.rejects(readAgentText(request(boundary + '😀')), error => error.status === 413);
 });

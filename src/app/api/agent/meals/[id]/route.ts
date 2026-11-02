@@ -1,3 +1,4 @@
+import { readAgentText } from '@/lib/agents/request-body';
 import { authenticateBearer, agentErrorResponse } from '@/lib/agents/tokens';
 import { correctMeal, getMeal } from '@/lib/agents/ops';
 import { kickoffAgentWork } from '@/lib/agents/kickoff';
@@ -9,7 +10,7 @@ export async function GET(request: Request, { params }: Context) {
 export async function POST(request: Request, { params }: Context) {
   try {
     const identity = await authenticateBearer(request);
-    const body = await request.json();
+    const body = JSON.parse(await readAgentText(request));
     const result = await correctMeal(identity, (await params).id, body?.text);
     kickoffAgentWork(request);
     return Response.json(result, { status: 201, headers: { 'Cache-Control': 'no-store' } });

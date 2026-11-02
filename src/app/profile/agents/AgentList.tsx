@@ -27,7 +27,7 @@ export default function AgentList({ tokens, activity }: { tokens: AgentListToken
         <p className="pt-2 text-meta tracking-wider text-muted">Activity</p>
         <ul className="flex flex-col gap-3">{activity.filter(row => row.token_id === token.id).map(row => {
           const caption = row.caption ? ` · ${row.caption}` : '';
-          const label = row.action === 'posted' ? `Posted a meal${caption}` : row.action === 'read' ? `Read a meal${caption}` : row.action === 'corrected' ? `Corrected a meal${caption}` : `Read ${row.meal_count ?? 0} meals`;
+          const label = row.action === 'posted' ? `Posted a meal${caption}` : row.action === 'read' ? `Read a meal${caption}` : row.action === 'corrected' ? `Corrected a meal${caption}` : `Read ${row.meal_count ?? 0} ${(row.meal_count ?? 0) === 1 ? 'meal' : 'meals'}`;
           return <li key={row.id} className="flex items-baseline justify-between gap-2 text-meta"><span className="min-w-0">{row.action === 'posted' && row.post_id ? <Link href={`/posts/${row.post_id}`} className="underline underline-offset-2">{label}</Link> : label}</span><time dateTime={row.created_at} className="shrink-0 text-[12px] text-muted">{local ? new Date(row.created_at).toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' }) : ''}</time></li>;
         })}</ul>
         {!token.revoked_at && <button className="min-h-tap self-start text-detail" style={{ color: 'oklch(0.52 0.17 25)' }} onClick={() => setSelected(token)}>Revoke token</button>}

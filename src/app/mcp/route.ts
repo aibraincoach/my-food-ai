@@ -1,3 +1,4 @@
+import { readAgentText } from '@/lib/agents/request-body';
 import { authenticateBearer, agentErrorResponse, AgentError } from '@/lib/agents/tokens';
 import { AGENT_TOOLS } from '@/lib/agents/mcp-tools';
 import { callTool, type AgentArgs } from '@/lib/agents/ops';
@@ -5,8 +6,7 @@ import { kickoffAgentWork } from '@/lib/agents/kickoff';
 const rpcError = (id: unknown, code: number, message: string) => ({ jsonrpc: '2.0', id: id ?? null, error: { code, message } });
 export async function POST(request: Request) {
   try {
-    const raw = await request.text();
-    if (raw.length > 65536) return Response.json({ error: 'Request too large' }, { status: 413 });
+    const raw = await readAgentText(request);
     let body: unknown;
     try { body = JSON.parse(raw); } catch {
       await authenticateBearer(request);

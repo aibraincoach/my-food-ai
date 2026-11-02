@@ -1,10 +1,11 @@
+import { readAgentText } from '@/lib/agents/request-body';
 import { authenticateBearer, agentErrorResponse } from '@/lib/agents/tokens';
 import { listMeals, logMeal } from '@/lib/agents/ops';
 import { kickoffAgentWork } from '@/lib/agents/kickoff';
 export async function POST(request: Request) {
   try {
     const identity = await authenticateBearer(request);
-    const result = await logMeal(identity, await request.json());
+    const result = await logMeal(identity, JSON.parse(await readAgentText(request)));
     kickoffAgentWork(request);
     return Response.json(result, { status: 201, headers: { 'Cache-Control': 'no-store' } });
   } catch (error) { return agentErrorResponse(error); }

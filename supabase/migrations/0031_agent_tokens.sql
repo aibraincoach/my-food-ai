@@ -42,20 +42,21 @@ create table public.agent_token_hits(
 alter table public.agent_token_hits enable row level security;
 -- No owner policy: only the server can count or reset calls.
 alter table public.posts add column agent_token_id uuid references public.agent_tokens(id) on delete set null;
-create function public.agent_hit(p_token_id uuid,p_limit integer) returns boolean
+create function public.agent_hit(p_token_id uuid,p_limit integer,p_increment integer default 1) returns boolean
 language plpgsql security definer set search_path=public,pg_temp as $$
 declare v_hits integer;
 begin
- if p_limit is null or p_limit<>60 then raise exception 'Invalid call limit' using errcode='22023'; end if;
- perform 1 from public.agent_tokens where id=p_token_id and revoked_at is null for share;
+ if p_limit is null or p_limit<>60 or p_increment is null or p_increment not between 1 and 61 then raise exception 'Invalid call limit' using errcode='22023'; end if;
+ perform 1 from public.agent_tokens where id=p_token_id and revoked_at is null for update;
  if not found then return false;end if;
- insert into public.agent_token_hits(token_id,minute,hits) values(p_token_id,date_trunc('minute',clock_timestamp()),1)
- on conflict(token_id,minute) do update set hits=public.agent_token_hits.hits+1 returning hits into v_hits;
+ insert into public.agent_token_hits(token_id,minute,hits) values(p_token_id,date_trunc('minute',clock_timestamp()),p_increment)
+ on conflict(token_id,minute) do update set hits=public.agent_token_hits.hits+p_increment returning hits into v_hits;
  delete from public.agent_token_hits where minute<clock_timestamp()-interval '1 hour';
+ if v_hits<=p_limit then update public.agent_tokens set last_used_at=clock_timestamp() where id=p_token_id;end if;
  return v_hits<=p_limit;
 end $$;
-revoke all on function public.agent_hit(uuid,integer) from public,anon,authenticated;
-grant execute on function public.agent_hit(uuid,integer) to service_role;
+revoke all on function public.agent_hit(uuid,integer,integer) from public,anon,authenticated;
+grant execute on function public.agent_hit(uuid,integer,integer) to service_role;
 
 -- Reuse the existing caption-only upload protocol, stamping provenance and
 -- activity in the same transaction as publication.

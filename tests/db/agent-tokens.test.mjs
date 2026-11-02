@@ -9,6 +9,9 @@ test('agent token RLS, revocation, attribution and rate gates', async () => {
   assert.ok(['localhost','127.0.0.1'].includes(new URL(process.env.SUPABASE_DB_URL).hostname), 'Disposable local database only');
   const first = { user: { id: '10000000-0000-4000-8000-000000000001' } }, second = { user: { id: '10000000-0000-4000-8000-000000000002' } };
   const source = readFileSync(new URL('../../supabase/migrations/0031_agent_tokens.sql', import.meta.url), 'utf8');
+  const counterStart = source.indexOf('create function public.agent_hit(');
+  const counterEnd = source.indexOf('grant execute on function public.agent_hit', counterStart);
+  const counter = source.slice(counterStart, source.indexOf(';', counterEnd) + 1);
   const migration = `select to_regclass('public.agent_tokens') is not null as migration_installed \\gset
 \\if :migration_installed
 \\else
@@ -17,6 +20,11 @@ ${source}
   const sql = `\\set ON_ERROR_STOP on
 begin;
 ${migration}
+-- Exercise the exact final counter definition even if this disposable database
+-- was loaded with an earlier draft of 0031. DDL and fixtures roll back.
+drop function if exists public.agent_hit(uuid,integer);
+drop function if exists public.agent_hit(uuid,integer,integer);
+${counter}
 insert into auth.users(id,email) values('${first.user.id}','run6-tokens-one.invalid'),('${second.user.id}','run6-tokens-two.invalid') on conflict(id) do nothing;
 insert into public.profiles(id,handle) values('${first.user.id}','run6_tokens_one'),('${second.user.id}','run6_tokens_two') on conflict(id) do nothing;
 insert into public.agent_tokens(user_id,name,token_hash,token_last4) values('${first.user.id}','Agent 1',encode(gen_random_bytes(32),'hex'),'abcd') returning id as token_id \\gset
@@ -29,6 +37,12 @@ do $$ begin
  if not exists(select 1 from public.agent_activity where token_id=current_setting('run6.token')::uuid and action='posted') then raise exception 'Missing activity';end if;
  for i in 1..60 loop if not public.agent_hit(current_setting('run6.token')::uuid,60) then raise exception 'Early limit';end if;end loop;
  if public.agent_hit(current_setting('run6.token')::uuid,60) then raise exception '61st call allowed';end if;
+ if (select last_used_at from public.agent_tokens where id=current_setting('run6.token')::uuid) is null then raise exception 'Atomic last use missing';end if;
+ delete from public.agent_token_hits where token_id=current_setting('run6.token')::uuid;
+ if not public.agent_hit(current_setting('run6.token')::uuid,60,60) then raise exception '60-call batch refused';end if;
+ if (select hits from public.agent_token_hits where token_id=current_setting('run6.token')::uuid)<>60 then raise exception 'Batch not counted atomically';end if;
+ if public.agent_hit(current_setting('run6.token')::uuid,60,1) then raise exception 'Batch call61 allowed';end if;
+ begin perform public.agent_hit(current_setting('run6.token')::uuid,60,0);raise exception 'Zero increment allowed';exception when invalid_parameter_value then null;end;
 end $$;
 set local role authenticated;
 select set_config('request.jwt.claims',json_build_object('sub','${second.user.id}','role','authenticated')::text,true);
