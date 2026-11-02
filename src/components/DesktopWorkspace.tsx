@@ -9,6 +9,19 @@ export default function DesktopWorkspace({children,detail,width=470}:{children:R
   const [focused,setFocused]=useState<string|null>(selected);
   const open=useCallback((id:string|null)=>{const url=new URL(window.location.href);if(id)url.searchParams.set('post',id);else url.searchParams.delete('post');router.push(url.pathname+url.search,{scroll:false});},[router]);
   useEffect(()=>{
+    const removed=(event:Event)=>{
+      const detail=(event as CustomEvent<{id?:string;reason?:string}>).detail;
+      if(!selected||detail?.id!==selected||(event.type==='post-unavailable'&&detail.reason!=='deleted'))return;
+      const url=new URL(window.location.href);url.searchParams.delete('post');
+      // Clear the canonical URL before the delete action refreshes this page.
+      // Otherwise the server would try to render the deleted selected post.
+      window.history.replaceState(null,'',url.pathname+url.search+url.hash);
+      setFocused(null);
+    };
+    window.addEventListener('post-deleted',removed);window.addEventListener('post-unavailable',removed);
+    return()=>{window.removeEventListener('post-deleted',removed);window.removeEventListener('post-unavailable',removed);};
+  },[selected]);
+  useEffect(()=>{
     const element=root.current;if(!element)return;
     const mark=()=>{for(const card of element.querySelectorAll<HTMLElement>('[data-desktop-post]')){if(card.dataset.desktopPost===focused)card.dataset.focused='true';else delete card.dataset.focused;}};
     mark();const observer=new MutationObserver(mark);observer.observe(element,{childList:true,subtree:true});return()=>observer.disconnect();
