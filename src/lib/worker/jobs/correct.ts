@@ -101,13 +101,13 @@ export async function replayCorrection(admin:import('@supabase/supabase-js').Sup
  for(const {old,region:sourceRegion} of resolutionItems){const region=old??sourceRegion;if(region?.not_eaten_grams!=null){if(protectedSources.has(region.id))throw new MetaApiError(500,'Correction duplicated a food with recorded leftovers.');protectedSources.add(region.id);}}
  const rows=await resolveNutritionItems(resolutionItems,resolutionBudget,async({item,old,region},_index,signal)=>{
   let nutrition;
-  if(old)nutrition={calories:old.calories,protein_g:old.protein_g,carbs_g:old.carbs_g,fat_g:old.fat_g,fibre_g:old.fibre_g,sugar_g:old.sugar_g,sodium_mg:old.sodium_mg,micronutrients:old.micronutrients,source_ref:old.source_ref};
+  if(old)nutrition={...('food_category' in old?{food_category:old.food_category}:{}),calories:old.calories,protein_g:old.protein_g,carbs_g:old.carbs_g,fat_g:old.fat_g,fibre_g:old.fibre_g,sugar_g:old.sugar_g,sodium_mg:old.sodium_mg,micronutrients:old.micronutrients,source_ref:old.source_ref};
   else {
    const retained=replaying&&region?.name===item.name?(await import('@/lib/nutrition/totals')).rescaleStoredNutrition({...retainedNutrition(region),post_item_id:region.id},region.portion_grams,item.portion_grams):region?.name===item.name?await resolvePortionNutrition(admin,postId!,region.id,item.name,item.portion_grams,item.portion_text,signal):null;
    if(retained)nutrition=retained;
    else {
    const n=scaleNutrition(await resolveFoodMatch(admin,item.name,context.caption??'',signal),item.portion_grams);
-   nutrition={calories:n.calories,protein_g:n.proteinG,carbs_g:n.carbsG,fat_g:n.fatG,fibre_g:n.fibreG,sugar_g:n.sugarG,sodium_mg:n.sodiumMg,micronutrients:n.micronutrients,source_ref:n.sourceRef};
+   nutrition={...('foodCategory' in n?{food_category:n.foodCategory}:{}),calories:n.calories,protein_g:n.proteinG,carbs_g:n.carbsG,fat_g:n.fatG,fibre_g:n.fibreG,sugar_g:n.sugarG,sodium_mg:n.sodiumMg,micronutrients:n.micronutrients,source_ref:n.sourceRef};
    }
   }
   if(old)await traceNutritionReuse(item.name,nutrition,"unchanged",old.id);

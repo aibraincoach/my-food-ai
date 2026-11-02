@@ -111,8 +111,10 @@ begin
   insert into public.post_items(post_id,name,portion_text,portion_grams,box,mask_path,source,gtin,not_eaten_grams,not_eaten_calories,count_text,not_eaten_count_text,supersedes)
    values(p_post_id,row->>'name',row->>'portion_text',(row->>'portion_grams')::numeric,row->'box',row->>'mask_path','model',row->>'gtin',(row->>'not_eaten_grams')::integer,(row->>'not_eaten_calories')::numeric,row->>'count_text',row->>'not_eaten_count_text',prior) returning id into new_id;
   n:=row->'nutrition';
-  insert into public.item_nutrition(post_item_id,calories,protein_g,carbs_g,fat_g,fibre_g,sugar_g,sodium_mg,micronutrients,source_ref)
-   values(new_id,(n->>'calories')::numeric,(n->>'protein_g')::numeric,(n->>'carbs_g')::numeric,(n->>'fat_g')::numeric,(n->>'fibre_g')::numeric,(n->>'sugar_g')::numeric,(n->>'sodium_mg')::numeric,coalesce(n->'micronutrients','[]'),n->>'source_ref');
+  -- Copy additive nutrition fields (including the independent drink category)
+  -- without depending on another Run 6 migration having been applied first.
+  insert into public.item_nutrition select (jsonb_populate_record(null::public.item_nutrition,
+   n||jsonb_build_object('post_item_id',new_id,'micronutrients',coalesce(n->'micronutrients','[]'::jsonb)))).*;
  end loop;
  insert into public.post_comments(post_id,author,body) values(p_post_id,'model',p_reply);
  update public.jobs set payload=payload||jsonb_build_object('removal_rebuilt',true) where id=p_job_id;

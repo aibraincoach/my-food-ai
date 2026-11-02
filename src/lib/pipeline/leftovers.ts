@@ -8,7 +8,7 @@ export function beforeLeftovers(item:CurrentItem):CurrentItem {
  return {...item,calories:item.calories==null||item.not_eaten_calories==null?null:toNumber(item.calories)+item.not_eaten_calories,portion_grams:grams,portion_text:`${grams} g`};
 }
 export function retainedNutrition(item:CurrentItem){
- return {calories:item.calories,protein_g:item.protein_g,carbs_g:item.carbs_g,fat_g:item.fat_g,fibre_g:item.fibre_g,sugar_g:item.sugar_g,sodium_mg:item.sodium_mg,micronutrients:item.micronutrients,source_ref:item.source_ref};
+ return {...('food_category' in item?{food_category:item.food_category}:{}),calories:item.calories,protein_g:item.protein_g,carbs_g:item.carbs_g,fat_g:item.fat_g,fibre_g:item.fibre_g,sugar_g:item.sugar_g,sodium_mg:item.sodium_mg,micronutrients:item.micronutrients,source_ref:item.source_ref};
 }
 export function carryLeftovers<T extends {portion_grams:number|null;portion_text:string|null;nutrition:NutritionLike & {micronutrients:unknown[];source_ref:string|null}}>(row:T,prior?:CurrentItem):T & {not_eaten_grams?:number|null;not_eaten_calories?:number|null;not_eaten_count_text?:string|null;count_text?:string|null} {
  if(prior?.not_eaten_grams==null)return row;
