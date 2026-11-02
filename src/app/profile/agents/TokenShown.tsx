@@ -38,7 +38,7 @@ export default function TokenShown({ token, name }: { token: string; name: strin
     <div className="flex flex-col gap-5 px-screen-x py-5">
       <h1 className="text-body font-semibold">Token created</h1>
       <p className="text-detail text-muted">Copy it and paste it into the agent&apos;s settings. For your security it is shown only this once.</p>
-      <input aria-label="Agent token" readOnly value={token} className="h-[48px] min-w-0 rounded-[12px] bg-field px-3 font-mono text-[13px]" onFocus={event => event.currentTarget.select()} />
+      <input aria-label="Agent token" readOnly onCopy={() => { setCopied(true); mayLeave.current = true; }} value={token} className="h-[48px] min-w-0 rounded-[12px] bg-field px-3 font-mono text-[13px]" onFocus={event => event.currentTarget.select()} />
       <Button onClick={async () => { try { await navigator.clipboard.writeText(token); setCopied(true); mayLeave.current = true; setCopyLabel(true); clearTimeout(timeout.current); timeout.current = setTimeout(() => setCopyLabel(false), 2000); } catch { setError('The token could not be copied. Select it and copy it.'); } }}>{copyLabel ? 'Copied' : 'Copy token'}</Button>
       {error && <p role="alert" className="text-meta text-muted">{error}</p>}
       <p className="text-meta text-muted">If you lose it, revoke this one and create another.</p>

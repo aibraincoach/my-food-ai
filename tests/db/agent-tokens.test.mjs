@@ -4,16 +4,21 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { spawnSync } from 'node:child_process';
 import test from 'node:test';
-import { user } from './helpers.mjs';
-import { absentMigration } from '../fixtures/absent-migration.mjs';
 test('agent token RLS, revocation, attribution and rate gates', async () => {
   assert.ok(process.env.SUPABASE_DB_URL);
-  const first = await user(1), second = await user(2);
-  assert.match(first.user.id, /^[0-9a-f-]{36}$/); assert.match(second.user.id, /^[0-9a-f-]{36}$/);
-  const migration = absentMigration(readFileSync(new URL('../../supabase/migrations/0031_agent_tokens.sql', import.meta.url), 'utf8'), '0031_agent_tokens.sql');
+  assert.ok(['localhost','127.0.0.1'].includes(new URL(process.env.SUPABASE_DB_URL).hostname), 'Disposable local database only');
+  const first = { user: { id: '10000000-0000-4000-8000-000000000001' } }, second = { user: { id: '10000000-0000-4000-8000-000000000002' } };
+  const source = readFileSync(new URL('../../supabase/migrations/0031_agent_tokens.sql', import.meta.url), 'utf8');
+  const migration = `select to_regclass('public.agent_tokens') is not null as migration_installed \\gset
+\\if :migration_installed
+\\else
+${source}
+\\endif`;
   const sql = `\\set ON_ERROR_STOP on
 begin;
 ${migration}
+insert into auth.users(id,email) values('${first.user.id}','run6-tokens-one.invalid'),('${second.user.id}','run6-tokens-two.invalid') on conflict(id) do nothing;
+insert into public.profiles(id,handle) values('${first.user.id}','run6_tokens_one'),('${second.user.id}','run6_tokens_two') on conflict(id) do nothing;
 insert into public.agent_tokens(user_id,name,token_hash,token_last4) values('${first.user.id}','Agent 1',encode(gen_random_bytes(32),'hex'),'abcd') returning id as token_id \\gset
 select set_config('run6.token',:'token_id',true);
 select public.agent_log_meal('${first.user.id}',:'token_id','coffee',now()-interval '1 hour') as post_id \\gset
@@ -48,8 +53,8 @@ do $$ begin
  begin perform public.agent_log_meal('${second.user.id}',current_setting('run6.token')::uuid,'stolen',now());raise exception 'Other user token accepted';exception when insufficient_privilege then null;end;
 end $$;
 rollback;`;
-  try {
+  {
     const result = spawnSync('psql', ['-X', '-qAt', '--dbname', process.env.SUPABASE_DB_URL], { input: sql, encoding: 'utf8', timeout: 90000 });
     assert.equal(result.status, 0, result.stderr);
-  } finally { await first.client.auth.signOut({ scope: 'local' }); await second.client.auth.signOut({ scope: 'local' }); }
+  }
 });

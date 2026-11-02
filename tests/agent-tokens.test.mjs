@@ -18,7 +18,7 @@ test('tokens have 32 random base62 characters, persist a digest and suffix only'
 });
 function authDb(row, limit = 60) {
   let calls = 0, writes = 0, hash;
-  const chain = { select() { return chain; }, eq(_, value) { hash = value; return chain; }, maybeSingle: async () => ({ data: row, error: null }), update() { writes++; return chain; }, is: async () => ({ error: null }) };
+  const chain = { select() { return chain; }, eq(_, value) { hash = value; return chain; }, maybeSingle: async () => ({ data: row, error: null }), update() { writes++; return chain; }, is() { return chain; } };
   return { from: () => chain, rpc: async (name, args) => { assert.equal(name, 'agent_hit'); assert.equal(args.p_limit, 60); return { data: ++calls <= limit, error: null }; }, stats: () => ({ calls, writes, hash }) };
 }
 test('Bearer authentication refuses missing, unknown and revoked tokens and caps the 61st call', async () => {

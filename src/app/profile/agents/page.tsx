@@ -2,6 +2,7 @@ import { connection } from 'next/server';
 import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import AgentList, { type AgentActivity } from './AgentList';
+export const instant = false;
 export default async function AgentsPage() {
   await connection(); const db = await createClient();
   const { data: { user } } = await db.auth.getUser(); if (!user) redirect('/sign-in');

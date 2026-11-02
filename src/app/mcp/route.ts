@@ -2,7 +2,6 @@ import { authenticateBearer, agentErrorResponse, AgentError } from '@/lib/agents
 import { AGENT_TOOLS } from '@/lib/agents/mcp-tools';
 import { callTool, type AgentArgs } from '@/lib/agents/ops';
 import { kickoffAgentWork } from '@/lib/agents/kickoff';
-export const runtime = 'nodejs';
 const rpcError = (id: unknown, code: number, message: string) => ({ jsonrpc: '2.0', id: id ?? null, error: { code, message } });
 export async function POST(request: Request) {
   try {
@@ -14,7 +13,7 @@ export async function POST(request: Request) {
       return Response.json(rpcError(null, -32700, 'Parse error'));
     }
     const batch = Array.isArray(body);
-    const requests: unknown[] = batch ? body : [body];
+    const requests: unknown[] = Array.isArray(body) ? body : [body];
     const identity = await authenticateBearer(request, requests.length);
     if (!requests.length) return Response.json(rpcError(null, -32600, 'Invalid Request'));
     let work = false;

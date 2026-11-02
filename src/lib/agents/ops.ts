@@ -7,8 +7,9 @@ import { validEatenAt } from '@/lib/posts/eaten-at';
 import { AgentError, type AgentIdentity } from './tokens';
 import type { SupabaseClient } from '@supabase/supabase-js';
 export type AgentArgs = Record<string, unknown>;
-const record = (post: FeedPost) => ({ id: post.id, caption: post.caption, eaten_at: post.eaten_at, status: post.status,
-  ...(post.status === 'ready' ? { totals: sumNutrition(post.items), summary: summaryLine(post, post.drink) } : {}) });
+type MealRecord = Pick<FeedPost, 'id' | 'caption' | 'eaten_at' | 'status' | 'items'> & Partial<FeedPost>;
+const record = (post: MealRecord) => ({ id: post.id, caption: post.caption, eaten_at: post.eaten_at, status: post.status,
+  ...(post.status === 'ready' ? { totals: sumNutrition(post.items), summary: summaryLine(post as FeedPost, post.drink) } : {}) });
 export function mealInput(input: AgentArgs, now = Date.now()): { caption: string; eaten_at: string } {
   if (!input || typeof input !== 'object' || typeof input.caption !== 'string' || !input.caption.trim() || input.caption.length > 2000 || input.caption.includes('\0')) throw new AgentError('Enter a meal up to 2000 characters');
   if (input.eaten_at !== undefined && (typeof input.eaten_at !== 'string' || !/^\d{4}-\d{2}-\d{2}T.*(?:Z|[+-]\d{2}:\d{2})$/.test(input.eaten_at))) throw new AgentError('Use an ISO time with a time-zone offset');
@@ -43,23 +44,26 @@ export async function listMeals(identity: AgentIdentity, input: AgentArgs, db: S
   const from = input.from === undefined ? undefined : date(input.from);
   const to = input.to === undefined ? undefined : date(input.to);
   if (from && to && from > to) throw new AgentError('Invalid date range');
-  let query = db.from('posts').select('id').eq('user_id', identity.userId).order('eaten_at', { ascending: false }).order('id', { ascending: false }).limit(Number(limit));
+  let query = db.from('posts').select('id,caption,eaten_at,status').eq('user_id', identity.userId).order('eaten_at', { ascending: false }).order('id', { ascending: false }).limit(Number(limit));
   if (from) query = query.gte('eaten_at', from);
   if (to) query = query.lt('eaten_at', to);
   const { data, error } = await query;
   if (error) throw new AgentError('Meals could not be read', 503);
   const posts = await getPostCards(db, (data ?? []).map(row => row.id), 'UTC');
-  await activity(db, identity, 'listed', undefined, posts.length);
-  return { meals: posts.map(record) };
+  const byId = new Map(posts.map(post => [post.id, post]));
+  const meals = (data ?? []).map(row => record(byId.get(row.id) ?? { ...row, items: [] }));
+  await activity(db, identity, 'listed', undefined, meals.length);
+  return { meals };
 }
 export async function getMeal(identity: AgentIdentity, id: unknown, db: SupabaseClient = createAdminClient()) {
   const postId = await owned(db, identity, id);
   const [post, detail, thread] = await Promise.all([getPostCard(db, postId, 'UTC'), getPostDetail(db, postId, 'UTC'),
     db.from('post_comments').select('id,author,body,created_at').eq('post_id', postId).order('created_at')]);
-  if (!post || !detail) throw new AgentError('Not found', 404);
+  if (!detail) throw new AgentError('Not found', 404);
   if (thread.error) throw new AgentError('The meal thread could not be read', 503);
   await activity(db, identity, 'read', postId);
-  return { ...record(post), items: detail.items.map(({ maskUrl: _maskUrl, ...item }) => item), thread: thread.data };
+  const meal = post ?? { ...detail.post, items: detail.items, drink: detail.drink, kind: detail.kind, dayHydration: detail.dayHydration, foodWaterMl: detail.foodWaterMl };
+  return { ...record(meal), items: detail.items, thread: thread.data };
 }
 export async function correctMeal(identity: AgentIdentity, id: unknown, text: unknown, db: SupabaseClient = createAdminClient()) {
   const postId = await owned(db, identity, id);

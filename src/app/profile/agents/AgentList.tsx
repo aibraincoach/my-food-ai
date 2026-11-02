@@ -2,16 +2,16 @@
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { useDeviceTimeZone } from '@/components/LocalTime';
 import { TopBar } from '@/components/ui/TopBar';
 import RevokeSheet from './RevokeSheet';
 export type AgentListToken = { id: string; name: string; token_last4: string; created_at: string; last_used_at: string | null; revoked_at: string | null };
 export type AgentActivity = { id: string; token_id: string; action: string; post_id: string | null; caption: string | null; meal_count: number | null; created_at: string };
 export default function AgentList({ tokens, activity }: { tokens: AgentListToken[]; activity: AgentActivity[] }) {
-  const router = useRouter(); const [selected, setSelected] = useState<AgentListToken | null>(null); const [toast, setToast] = useState(false); const [local, setLocal] = useState(false);
-  useEffect(() => setLocal(true), []);
+  const router = useRouter(); const [selected, setSelected] = useState<AgentListToken | null>(null); const [toast, setToast] = useState(false); const local = Boolean(useDeviceTimeZone());
   useEffect(() => { if (toast) { const timer = setTimeout(() => setToast(false), 3000); return () => clearTimeout(timer); } }, [toast]);
   const stamp = (value: string, withTime = false) => {
-    if (!local) return new Date(value).toISOString().slice(0, 10);
+    if (!local) return '';
     const date = new Date(value), today = date.toDateString() === new Date().toDateString();
     const day = today && withTime ? 'today' : date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
     return `${day}${withTime ? `, ${date.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' })}` : ''}`;

@@ -34,8 +34,9 @@ export async function authenticateBearer(request: Request, calls = 1, db: Supaba
     if (!allowed) throw new AgentError('Too many requests', 429);
   }
   if (calls > 60) throw new AgentError('Too many requests', 429);
-  const { error: updateError } = await db.from('agent_tokens').update({ last_used_at: new Date().toISOString() }).eq('id', data.id).is('revoked_at', null);
+  const { data: used, error: updateError } = await db.from('agent_tokens').update({ last_used_at: new Date().toISOString() }).eq('id', data.id).is('revoked_at', null).select('id').maybeSingle();
   if (updateError) throw new AgentError('Token activity could not be saved', 503);
+  if (!used) throw new AgentError('Token required', 401);
   return { userId: data.user_id, tokenId: data.id };
 }
 export async function revokeToken(db: SupabaseClient, id: string): Promise<void> {
