@@ -84,7 +84,7 @@ export async function editPostItem(admin: SupabaseClient, postId: string, userId
     if (!food || food.description !== edit.name) return { error: { code: "22023", message: "Food selection changed; search again." }, itemId: null };
     const n = scaleNutrition(food, edit.portion_grams ?? null);
     nutrition = { calories: n.calories, protein_g: n.proteinG, carbs_g: n.carbsG, fat_g: n.fatG,
-      fibre_g: n.fibreG, sugar_g: n.sugarG, sodium_mg: n.sodiumMg, micronutrients: n.micronutrients, source_ref: n.sourceRef };
+      fibre_g: n.fibreG, sugar_g: n.sugarG, sodium_mg: n.sodiumMg, micronutrients: n.micronutrients, source_ref: n.sourceRef, food_category: n.foodCategory ?? null };
   }
   const { data, error } = await admin.rpc(nutrition ? "edit_post_item_with_nutrition" : "edit_post_item", { p_post_id: postId, p_user_id: userId,
     p_action: edit.action, p_item_id: edit.item_id ?? null, p_name: edit.name ?? null,
@@ -124,6 +124,6 @@ export async function getPostDetail(supabase: SupabaseClient, postId: string, zo
     return { ...item, box: itemBox(item.box), maskUrl };
   }));
   const hydrated = (await getPostHydrationData(supabase, post.user_id, [{ id: postId, eaten_at: post.eaten_at, items }], zone))[postId];
-  return { post, photo, items, isDrink: hydrated.kind === "drink", ...hydrated,
+  return { post, photo, items, isDrink: hydrated.kind === "drink" && hydrated.drinkSource !== "item", ...hydrated,
     cardData: cardDataFromRow({ ...post, items, ...hydrated }) };
 }

@@ -66,7 +66,7 @@ export default function PostCard({ post, showDate = false }: { post: FeedPost; a
   const handle=usePostHandle(record.handle);
   const [slide,setSlide]=useState(0);
   const localClock=useLocalTime(post.eaten_at);const localDate=useLocalDate(post.eaten_at);
-  const hasDrink=record.kind==='drink'||Boolean(drink);
+  const hasDrink=(record.kind==='drink'||Boolean(drink)) && (record.drinkSource ?? drink?.source ?? 'sheet') === 'sheet';
   const displayRecord = drink ? { ...record, dayHydration: { totalMl: drink.totalMl, drinksMl: drink.drinksMl, foodMl: drink.foodMl, caffeineMg: drink.dayCaffeineMg ?? drink.caffeineMg } } : record;
   return <article className="flex flex-col" data-post-id={post.id} data-post-status={post.status}>
     <div className="flex h-[52px] items-center gap-[10px] px-inset">
@@ -78,8 +78,8 @@ export default function PostCard({ post, showDate = false }: { post: FeedPost; a
         {label:record.saved_meal_id?'Unsave':'Save meal',onSelect:()=>window.dispatchEvent(new CustomEvent('save-meal',{detail:{postId:post.id}}))},
       ]}/>
     </div>
-    {drink ? <Link href={`/posts/${post.id}`} aria-label="Open drink details" className="block"><CaptionCard post={post} drink={drink} /></Link> : post.slides?.length ? <Carousel canAddNotEaten={post.status==='ready'&&post.slides.some(s=>s.kind==='photo')} slides={post.slides} caption={post.caption} postId={post.id} href={`/posts/${post.id}`} modelCommentId={post.modelCommentId??null} fingerprint={post.analysisFingerprint??null} onIndexChange={setSlide} nutrition={post.status === "ready" ? <CaptionCard post={post} /> : <div className="flex aspect-square items-center justify-center bg-card text-detail text-muted">Processing…</div>} /> : post.status === "ready" && post.items.length ? <Link href={`/posts/${post.id}`} aria-label="Open meal details" className="block"><CaptionCard post={post} /></Link> : null}
-    <PostActions postId={post.id} modelCommentId={post.modelCommentId??null} fingerprint={post.analysisFingerprint??null} drink={hasDrink} saved={Boolean(record.saved_meal_id)} slides={drink?1:post.slides?.length??1} index={slide}/>
+    {drink && hasDrink ? <Link href={`/posts/${post.id}`} aria-label="Open drink details" className="block"><CaptionCard post={post} drink={drink} /></Link> : post.slides?.length ? <Carousel canAddNotEaten={post.status==='ready'&&post.slides.some(s=>s.kind==='photo')} slides={post.slides} caption={post.caption} postId={post.id} href={`/posts/${post.id}`} modelCommentId={post.modelCommentId??null} fingerprint={post.analysisFingerprint??null} onIndexChange={setSlide} nutrition={post.status === "ready" ? <CaptionCard post={post} drink={drink} /> : <div className="flex aspect-square items-center justify-center bg-card text-detail text-muted">Processing…</div>} /> : post.status === "ready" && post.items.length ? <Link href={`/posts/${post.id}`} aria-label="Open meal details" className="block"><CaptionCard post={post} drink={drink} /></Link> : null}
+    <PostActions postId={post.id} modelCommentId={post.modelCommentId??null} fingerprint={post.analysisFingerprint??null} drink={hasDrink} saved={Boolean(record.saved_meal_id)} slides={hasDrink?1:post.slides?.length??1} index={slide}/>
     <div className="flex flex-col gap-1 px-inset pt-[10px]">
       <PostCaption handle={handle} caption={post.caption}/>
       {post.status==='ready'&&post.items.length>0 ? <Link href={`/posts/${post.id}`} className="text-detail leading-[1.4] text-muted">{summaryLine(displayRecord,drink)} <span className="text-text">more</span></Link> : <StatusLine post={post}/>}

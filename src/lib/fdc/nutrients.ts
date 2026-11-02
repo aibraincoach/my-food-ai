@@ -30,6 +30,7 @@ export interface ScaledNutrition {
   sodiumMg: number | null;
   micronutrients: unknown[];
   sourceRef: string | null;
+  foodCategory?: string | null;
 }
 
 function rankOf(dataType: string): number {
@@ -113,6 +114,7 @@ export function scaleNutrition(
       sodiumMg: null,
       micronutrients: [],
       sourceRef: null,
+      foodCategory: null,
     };
   }
   const sourceRef = String(food.fdcId);
@@ -133,6 +135,7 @@ export function scaleNutrition(
       sodiumMg: null,
       micronutrients,
       sourceRef,
+      foodCategory: food.foodCategory ?? null,
     };
   }
   const scale = (
@@ -159,5 +162,6 @@ export function scaleNutrition(
           : unitToGrams(sodium.value, sodium.unit) * 1000 * factor,
     micronutrients,
     sourceRef,
+    foodCategory: food.foodCategory ?? null,
   };
 }

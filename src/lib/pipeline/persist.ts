@@ -1,3 +1,4 @@
+import { syncItemDrinks } from "@/lib/intake/drinks-from-items";
 import { sendPostPush } from "@/lib/push/send";
 import { ioError } from "@/lib/worker/errors";
 // One-RPC persist for a finished analysis (item 10). Inserts one
@@ -84,6 +85,7 @@ export async function persistAnalysis(
         sodium_mg: scaled.sodiumMg,
         micronutrients: scaled.micronutrients,
         source_ref: scaled.sourceRef,
+        food_category: scaled.foodCategory ?? null,
         ...(copied ?? {}),
       },
     };
@@ -108,6 +110,7 @@ export async function persistAnalysis(
 // a render or upload failure is logged and the meal is marked ready on its nutrition anyway; the live card
 // is the fallback. (An outdated card after a failed regeneration is tracked in the backlog.)
 export async function markReady(postId: string, admin: SupabaseClient = createAdminClient(), jobId?:string, options: { notify?: boolean;saveMeal?:boolean;timeZone?:string } = {}): Promise<boolean> {
+  await syncItemDrinks(admin, postId);
   let ready: boolean;
   try {
     ready = await renderResultsCard(admin, postId, jobId,undefined,options.timeZone);
