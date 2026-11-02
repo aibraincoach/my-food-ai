@@ -7,7 +7,7 @@ import type {CapturedLocation} from '@/lib/location/capture';
 import {PhotoUploadError,type UploadError} from '@/lib/media/put-with-progress';
 export interface UploadState {operationId:string;sent:number;total:number;state:'uploading'|'uploaded'|'failed';error?:UploadError;previewUrl:string;caption:string;eatenAt:string;posted:boolean;postId?:string}
 export interface DraftFields {caption:string;eatenAt:string|null;location:CapturedLocation|null;options:PostOptions}
-type Entry={data:StoredUpload;draft:PostUploadDraft;previewUrl:string;active:Promise<void>|null;version:number;deleted:boolean;finished:boolean};
+type Entry={data:StoredUpload;draft:PostUploadDraft;previewUrl:string;active:Promise<void>|null;version:number;deleted:boolean;finished:boolean;writing:Promise<unknown>};
 const pause=(ms:number)=>new Promise(resolve=>setTimeout(resolve,ms));
 /** Each mutation is persisted before network work. Only post() permits publication. */
 export class UploadManager {
@@ -19,7 +19,7 @@ export class UploadManager {
  list=()=>[...this.entries.values()].filter(e=>!e.deleted).map(e=>this.state(e));
  newest(){return [...this.entries.values()].filter(e=>!e.deleted&&!e.data.posted).sort((a,b)=>b.data.createdAt-a.data.createdAt)[0]?.data??null;}
  private attachSnapshot(entry:Entry){entry.draft.setSnapshotListener?.(async snapshot=>{if(entry.deleted||entry.finished)return;entry.data.snapshot=snapshot;await this.persist(entry);});}
- private make(data:StoredUpload){const entry:Entry={data,draft:this.makeDraft(),previewUrl:data.files[0]?URL.createObjectURL(data.files[0]):'',active:null,version:0,deleted:false,finished:false};if(data.snapshot)entry.draft.restore(data.snapshot);entry.draft.setProgress((sent,total)=>{if(entry.deleted)return;entry.data.sent=sent;entry.data.total=total;this.notify(entry,'upload-progress');});this.attachSnapshot(entry);return entry;}
+ private make(data:StoredUpload){const entry:Entry={data,draft:this.makeDraft(),previewUrl:data.files[0]?URL.createObjectURL(data.files[0]):'',active:null,version:0,deleted:false,finished:false,writing:Promise.resolve()};if(data.snapshot)entry.draft.restore(data.snapshot);entry.draft.setProgress((sent,total)=>{if(entry.deleted)return;entry.data.sent=sent;entry.data.total=total;this.notify(entry,'upload-progress');});this.attachSnapshot(entry);return entry;}
  async initialize(ownerId:string){
   if(this.ownerId===ownerId&&this.initializing)return this.initializing;
   if(this.ownerId&&this.ownerId!==ownerId)this.resetMemory();this.ownerId=ownerId;
@@ -34,11 +34,11 @@ export class UploadManager {
   entry.version++;this.attachSnapshot(entry);Object.assign(entry.data,fields);entry.data.state='uploading';entry.data.error=undefined;this.notify(entry,'upload-started');void this.run(entry);return entry.data.operationId;
  }
  update(id:string,fields:Partial<DraftFields>){const entry=this.entries.get(id);if(!entry||entry.deleted||entry.finished)return;Object.assign(entry.data,fields);entry.version++;void this.persist(entry);this.notify(entry,'upload-progress');}
- private async persist(entry:Entry){if(!entry.deleted)await this.store.put({...entry.data,files:[...entry.data.files]});}
+ private persist(entry:Entry){const snapshot={...entry.data,files:[...entry.data.files]};const writing=entry.writing.catch(()=>{}).then(()=>{if(!entry.deleted&&!entry.finished)return this.store.put(snapshot);});entry.writing=writing;return writing;}
  post(id:string){const entry=this.entries.get(id);if(!entry||entry.deleted)return;entry.data.posted=true;entry.version++;this.notify(entry,'upload-started');void this.run(entry);}
  retry(id:string){const entry=this.entries.get(id);if(!entry||entry.deleted||entry.finished)return;entry.data.state='uploading';entry.data.error=undefined;this.notify(entry,'upload-progress');void this.run(entry);}
  online=()=>{for(const entry of this.entries.values())if(entry.data.state==='failed')this.retry(entry.data.operationId);};
- async remove(id:string){const entry=this.entries.get(id);if(!entry)return;entry.deleted=true;this.entries.delete(id);if(entry.previewUrl)URL.revokeObjectURL(entry.previewUrl);await this.store.remove(id);this.notify();if(typeof window!=='undefined')window.dispatchEvent(new CustomEvent('upload-deleted',{detail:{operationId:id}}));}
+ async remove(id:string){const entry=this.entries.get(id);if(!entry)return;entry.deleted=true;this.entries.delete(id);if(entry.previewUrl)URL.revokeObjectURL(entry.previewUrl);await entry.writing.catch(()=>{});await this.store.remove(id);this.notify();if(typeof window!=='undefined')window.dispatchEvent(new CustomEvent('upload-deleted',{detail:{operationId:id}}));}
  private run(entry:Entry):Promise<void>{
   if(entry.active)return entry.active;
   const task=this.process(entry);entry.active=task;void task.finally(()=>{entry.active=null;if(!entry.deleted&&!entry.finished&&entry.data.posted&&entry.data.state==='uploaded')void this.run(entry);});return task;
@@ -63,7 +63,7 @@ export class UploadManager {
      const result=await entry.draft.submit(d.caption,d.files,d.location,d.eatenAt,d.files.length?'photo':'text',d.options);
      if(entry.deleted)return;
      d.snapshot=await entry.draft.snapshot();entry.finished=true;d.state='uploaded';d.sent=d.total;
-     await this.store.remove(d.operationId);this.notify(entry,'upload-finished');
+     await entry.writing.catch(()=>{});await this.store.remove(d.operationId);this.notify(entry,'upload-finished');
      if(typeof window!=='undefined')window.dispatchEvent(new CustomEvent('post-created',{detail:{id:result.postId}}));return;
     }catch(error){if(entry.deleted)return;if(attempt<2){await this.delay(attempt===0?2000:6000);continue;}entry.data.error=error instanceof PhotoUploadError?error.code:(typeof navigator!=='undefined'&&!navigator.onLine?'dropped':'no_response');throw error;}
    }
