@@ -89,7 +89,7 @@ test('all-drink photo aggregates the card, while mixed meal copy retains consume
 });
 test('0029 preserves categories in every SQL writer and restricts linked intake writes', () => {
   const sql = readFileSync(new URL('../supabase/migrations/0029_drinks_from_items.sql', import.meta.url), 'utf8');
-  for (const fragment of ['food_category text', "source in ('sheet','item')", 'intake_one_sheet_drink_per_post', 'intake_one_drink_per_item', "source='sheet'", 'sync_item_drinks', 'post_id is null', 'revoke all on function public.sync_item_drinks']) assert.ok(sql.includes(fragment), fragment);
+  for (const fragment of ['food_category text', "source in ('sheet','item')", 'intake_one_sheet_drink_per_post', 'intake_one_drink_per_item', "source='sheet'", 'sync_item_drinks', 'post_id is null', 'revoke all on function public.sync_item_drinks', 'intake_source_shape', "source='sheet' and post_item_id is null", "source='item' and post_id is not null and post_item_id is not null"]) assert.ok(sql.includes(fragment), fragment);
   for (const name of ['persist_analysis_initial', 'persist_correction', 'persist_photo_correction', 'apply_post_remainder', 'copy_owned_saved_meal', 'copy_owned_post', 'create_food_post_without_gtin', 'correct_barcode_item', 'edit_post_item_with_nutrition']) {
     const block = sql.slice(sql.indexOf(`function public.${name}(`));
     assert.match(block.slice(0, block.indexOf('$$;', block.indexOf('as $$') + 5) + 3) || block, /food_category/);
