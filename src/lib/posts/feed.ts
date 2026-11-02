@@ -37,6 +37,8 @@ export interface FeedPost {
   modelCommentId?: string | null;
   analysisFingerprint?: string | null;
   kind?: "meal" | "drink";
+  drinkSource?: "sheet" | "item";
+  itemDrinks?: import("@/lib/intake/hydration").ItemDrinkRecord[];
   foodWaterMl?: number;
   dayHydration?: HydrationRecord;
   drink?: DrinkCardData | null;

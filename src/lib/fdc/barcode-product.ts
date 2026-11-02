@@ -1,9 +1,11 @@
+import { foodCategory } from './food-category';
 // Pure product/portion data shared by the capture client and the server-only FDC resolver.
 export interface BarcodeNutrition {
   calories: number | null; protein_g: number | null; carbs_g: number | null; fat_g: number | null;
   fibre_g: number | null; sugar_g: number | null; sodium_mg: number | null;
 }
 export interface BarcodeProduct {
+  foodCategory?: string | null;
   fdcId: number; gtin: string; name: string; brand: string | null;
   // FDC standardises branded values to 100 g or 100 ml; no density conversion is made between them.
   basisUnit: "g" | "ml";
@@ -31,7 +33,7 @@ export function productFromFood(food: unknown, gtin: string): BarcodeProduct | n
   // A product with no energy and no macros is not usable nutrition.
   if (per100g.calories === null && per100g.protein_g === null && per100g.carbs_g === null && per100g.fat_g === null) return null;
   return {
-    fdcId: f.fdcId, gtin, name: f.description,
+    fdcId: f.fdcId, gtin, name: f.description, foodCategory: foodCategory(f),
     basisUnit: typeof f.servingSizeUnit === "string" && f.servingSizeUnit.toLowerCase() === "ml" ? "ml" : "g",
     brand: typeof f.brandOwner === "string" ? f.brandOwner : typeof f.brandName === "string" ? f.brandName : null,
     servingSize: typeof f.servingSize === "number" ? f.servingSize : null,
@@ -75,6 +77,7 @@ export function barcodeNutrition(product: BarcodeProduct, amount: number) {
     micronutrients: product.micronutrients.map((n) => ({ ...n, value: n.value * factor })),
     source_ref: "source" in product && product.source === "own" ? `barcode:${product.gtin}` : String(product.fdcId),
     portion_unit: product.basisUnit,
+    food_category: product.foodCategory ?? null,
   };
 }
 

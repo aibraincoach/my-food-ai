@@ -89,7 +89,7 @@ export default function OutlineOverlay({ initialized, readOnly = false, postId, 
     return () => { live = false; if (timer) clearInterval(timer); void supabase.removeChannel(channel); };
   }, [postId, status, waiting, router]);
 
-  const height=photo&&!drink?(expandedPhoto?width:230):width;
+  const height=photo&&(!drink||drink.source==='item')?(expandedPhoto?width:230):width;
   const scale = photo ? Math.max(width / photo.width, height / photo.height) : 1;
   const offsetX = photo ? (width - photo.width * scale) / 2 : 0;
   const offsetY = photo ? (height - photo.height * scale) / 2 : 0;
@@ -139,7 +139,7 @@ export default function OutlineOverlay({ initialized, readOnly = false, postId, 
         if (hit) setSelection({ item: hit, key: Date.now() });
         else setExpandedPhoto(value=>!value);
       }}>
-      {photo && !drink ? <>
+      {photo && (!drink || drink.source === 'item') ? <>
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src={photo.url} alt={caption || "Meal photo"} draggable={false} className="h-full w-full object-cover" />
         {outlines && items.map((item, index) => item.box ? <div key={item.id}>
