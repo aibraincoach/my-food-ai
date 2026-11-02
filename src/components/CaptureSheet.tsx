@@ -430,7 +430,7 @@ export default function CaptureSheet({ onClose, initialMode = "photo", forPost, 
   },[initialFiles]); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(()=>{
     const files=(event:Event)=>{const incoming=(event as CustomEvent<{files:File[]}>).detail?.files;if(incoming?.length)void addFiles(incoming);};
-    const key=(event:KeyboardEvent)=>{if(!desktop||composer||desktopTab!=='webcam'||event.code!=='Space'||(event.target as HTMLElement)?.closest('input,textarea,select,button,[contenteditable="true"]'))return;event.preventDefault();void takePhoto();};
+    const key=(event:KeyboardEvent)=>{if(!desktop||composer||desktopTab!=='webcam'||mode!=='photo'||barcodeState!=='idle'||labelState!=='idle'||event.code!=='Space'||(event.target as HTMLElement)?.closest('input,textarea,select,[contenteditable="true"]'))return;event.preventDefault();void takePhoto();};
     window.addEventListener('capture-files',files);window.addEventListener('keydown',key);
     return()=>{window.removeEventListener('capture-files',files);window.removeEventListener('keydown',key);};
   });
