@@ -35,6 +35,16 @@ test('a checkpoint for fewer photos cannot silently omit a selected photo after 
  const request=async(url,init)=>{if(init.method==='POST'){manifest=JSON.parse(init.body);return new Response(JSON.stringify({postId:'fresh',uploads:manifest.shots.map(shot=>({position:shot.position,originalPath:`owner/fresh/${shot.position}.jpg`,feedPath:`owner/fresh/${shot.position}.feed.jpg`,originalSignedUrl:`https://storage.invalid/${shot.position}/original`,feedSignedUrl:`https://storage.invalid/${shot.position}/feed`}))}),{status:200});}return new Response('{}',{status:200});};
  const draft=new PostUploadDraft(async()=>{encoded++;return image},request,async()=>false,()=> 'fresh');draft.restore({id:'old',images:[image],completed:[]});await draft.stage('meal',[file,new File(['second'],'second.jpg')],null,null);assert.equal(encoded,2);assert.equal(manifest.shots.length,2);assert.equal(manifest.operation_id,'fresh');
 });
+test('caption edits during a PUT do not restart staging and publication uses the latest text',async()=>{
+ let release,stages=0,caption='';const gate=new Promise(resolve=>release=resolve);
+ const draft={setProgress(){},snapshot:async()=>({id:'posted',images:[],completed:[]}),stage:async()=>{stages++;await gate;},submit:async value=>{caption=value;return{postId:'posted'}}};
+ const{manager}=harness(()=>draft);await manager.initialize('owner');const id=manager.stage([file],fields);await pause();for(let i=0;i<100;i++)manager.update(id,{caption:`caption ${i}`});manager.post(id);release();await until(()=>manager.list()[0]?.postId==='posted');assert.equal(stages,1);assert.equal(caption,'caption 99');
+});
+test('changing the photo manifest during staging starts one fresh pass after the previous pass settles',async()=>{
+ let release,passes=0;const gate=new Promise(resolve=>release=resolve);const sizes=[];
+ const make=()=>({setProgress(){},snapshot:async()=>null,stage:async(_caption,files)=>{sizes.push(files.length);if(++passes===1)await gate;},submit:async()=>({postId:'posted'})});
+ const{manager}=harness(make);await manager.initialize('owner');const id=manager.stage([file],fields);await pause();manager.stage([file,new File(['second'],'second.jpg')],fields,id);release();await until(()=>manager.list()[0]?.state==='uploaded');assert.deepEqual(sizes,[1,2]);
+});
 test('two-shot reservation refuses publication with only one stored object (22023)',async()=>{
  const db=admin(),{user:owner,client}=await user(1),id=randomUUID();const base=`${owner.id}/${id}`;
  const shots=[0,1].map(position=>({position,width:10,height:10,phash:'1'}));
@@ -43,6 +53,7 @@ test('two-shot reservation refuses publication with only one stored object (2202
   checked(await db.storage.from('media').upload(`${base}/0.jpg`,new Blob(['test-object'],{type:'image/jpeg'})));
   // Staging must be able to refresh metadata/capabilities after an earlier PUT succeeded.
   const renewed=await signShotUploads(client,owner.id,id,[0,1]);assert.equal(renewed.length,2);
+  const {client:other}=await user(2);await assert.rejects(signShotUploads(other,owner.id,id,[0]),/row.level security/i);
   const result=await db.rpc('publish_uploaded_post',{p_operation_id:id,p_user_id:owner.id});assert.equal(result.error?.code,'22023');assert.match(result.error.message,/incomplete/i);
   const post=checked(await db.from('posts').select('status').eq('id',id).maybeSingle());assert.equal(post,null);
  }finally{await db.storage.from('media').remove([`${base}/0.jpg`]);await db.from('jobs').delete().contains('payload',{deleted_post_id:id});await db.from('post_upload_drafts').delete().eq('id',id);}

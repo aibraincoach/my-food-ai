@@ -313,8 +313,62 @@ export default function Feed() {
   </div>;
 }
 
-function UploadHydratedCard({post,upload,header}:{post:FeedPost;upload:UploadState;header:import("react").ReactNode}){
- const [fresh,setFresh]=useState<FeedPost|null>(null);
- useEffect(()=>{if(!upload.postId)return;let live=true,timer:ReturnType<typeof setTimeout>|null=null;const db=createClient(),started=Date.now();let previousStatus=post.status,missing=0;const read=async()=>{try{const card=await getPostCard(db,upload.postId!);if(live&&(!card||card.status==='needs_input')){if(card||++missing>=3){void uploadManager.remove(upload.operationId);window.dispatchEvent(new CustomEvent('post-unavailable',{detail:{id:upload.postId}}));return;}}if(live&&card){missing=0;setFresh(card);if(card.status==='ready'&&previousStatus!=='ready')window.dispatchEvent(new CustomEvent('post-ready',{detail:{id:card.id}}));previousStatus=card.status;if((card.status==='ready'&&card.slides.some(slide=>slide.kind==='card'))||card.status==='failed')return;}}catch{}if(live&&Date.now()-started<120000)timer=setTimeout(()=>{void read();},2000);};void read();return()=>{live=false;if(timer)clearTimeout(timer);};},[post,upload.postId]);
- return <div>{header}<PostCard post={fresh??post} upload={upload}/></div>;
+function UploadHydratedCard({post,upload,header}:{post:FeedPost;upload:UploadState;header:import("react").ReactNode}) {
+  const [fresh,setFresh]=useState<FeedPost|null>(null);
+  const lastStatus=useRef(post.status);
+  useEffect(()=>{
+    const id=upload.postId;
+    if(!id)return;
+    const db=createClient();
+    let live=true,inFlight=false,again=false,missing=0,step=0;
+    let timer:ReturnType<typeof setTimeout>|null=null;
+    const delays=[2000,5000,10000,30000];
+    const read=async()=>{
+      if(!live)return;
+      if(inFlight){again=true;return;}
+      if(timer){clearTimeout(timer);timer=null;}
+      inFlight=true;
+      let unsettled=true;
+      try {
+        const card=await getPostCard(db,id);
+        if(!live)return;
+        if(!card||card.status==='needs_input'){
+          if(card||++missing>=3){
+            live=false;
+            void uploadManager.remove(upload.operationId);
+            window.dispatchEvent(new CustomEvent('post-unavailable',{detail:{id}}));
+            return;
+          }
+        } else {
+          missing=0;setFresh(card);
+          if(card.status==='ready'&&lastStatus.current!=='ready')window.dispatchEvent(new CustomEvent('post-ready',{detail:{id}}));
+          lastStatus.current=card.status;
+          unsettled=!((card.status==='ready'&&card.slides.some(slide=>slide.kind==='card'))||card.status==='failed');
+        }
+      } catch { /* Realtime or the bounded-rate fallback retries a transient read. */ }
+      finally {
+        inFlight=false;
+        if(live){
+          if(again){again=false;void read();}
+          else if(unsettled)timer=setTimeout(()=>{void read();},delays[Math.min(step++,delays.length-1)]);
+        }
+      }
+    };
+    const refresh=()=>{step=0;void read();};
+    const visible=()=>{if(!document.hidden)refresh();};
+    const changed=(event:Event)=>{if((event as CustomEvent<{id?:string}>).detail?.id===id)refresh();};
+    const channel=db.channel(`upload-post-${id}`).on('postgres_changes',{
+      event:'UPDATE',schema:'public',table:'posts',filter:`id=eq.${id}`,
+    },refresh).subscribe();
+    window.addEventListener('online',refresh);window.addEventListener('focus',refresh);
+    window.addEventListener('post-updated',changed);document.addEventListener('visibilitychange',visible);
+    void read();
+    return()=>{
+      live=false;if(timer)clearTimeout(timer);
+      window.removeEventListener('online',refresh);window.removeEventListener('focus',refresh);
+      window.removeEventListener('post-updated',changed);document.removeEventListener('visibilitychange',visible);
+      void db.removeChannel(channel);
+    };
+  },[post.id,upload.postId,upload.operationId]);
+  return <div>{header}<PostCard post={fresh??post} upload={upload}/></div>;
 }

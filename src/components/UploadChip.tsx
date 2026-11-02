@@ -7,10 +7,18 @@ import {uploadManager} from '@/lib/posts/upload-manager';
 import {useUploads} from './useUploads';
 import UploadBar from './UploadBar';
 export default function UploadChip({sidebar=false}:{sidebar?:boolean}){
- const [slot,setSlot]=useState<HTMLElement|null>(null);
- useEffect(()=>{if(sidebar)return;const media=window.matchMedia('(min-width:1024px)');const update=()=>setSlot(media.matches?document.getElementById('desktop-upload-slot'):null);update();const observer=new MutationObserver(update);observer.observe(document.body,{childList:true,subtree:true});media.addEventListener('change',update);return()=>{observer.disconnect();media.removeEventListener('change',update);};},[sidebar]);
- const inSidebar=sidebar||Boolean(slot);
  const pathname=usePathname(),router=useRouter(),uploads=useUploads().filter(upload=>upload.posted&&!upload.postId);
+ const [slot,setSlot]=useState<HTMLElement|null>(null);
+ useEffect(()=>{
+  if(sidebar)return;
+  const media=window.matchMedia('(min-width:1024px)');
+  const update=()=>setSlot(media.matches?document.getElementById('desktop-upload-slot'):null);
+  // Layout commits and pathname changes already provide the sidebar slot. Phone
+  // typing, progress bars and feed updates need no document-wide observation.
+  update();media.addEventListener('change',update);
+  return()=>media.removeEventListener('change',update);
+ },[pathname,sidebar]);
+ const inSidebar=sidebar||Boolean(slot);
  useEffect(()=>{const db=createClient();void db.auth.getUser().then(({data})=>{if(data.user)void uploadManager.initialize(data.user.id);});const {data:{subscription}}=db.auth.onAuthStateChange(event=>{if(event==='SIGNED_OUT')void uploadManager.clear();});const removed=(event:Event)=>{const id=(event as CustomEvent<{id?:string}>).detail?.id;for(const upload of uploadManager.list())if(upload.postId===id)void uploadManager.remove(upload.operationId);};window.addEventListener('post-deleted',removed);window.addEventListener('post-unavailable',removed);window.addEventListener('online',uploadManager.online);return()=>{subscription.unsubscribe();window.removeEventListener('post-deleted',removed);window.removeEventListener('post-unavailable',removed);window.removeEventListener('online',uploadManager.online);};},[]);
  if(!uploads.length||(!inSidebar&&pathname==='/'))return null;
  const first=uploads[0],failed=uploads.find(upload=>upload.state==='failed');const upload=failed??first;
