@@ -1,32 +1,36 @@
 # GitHub open-issue index
 
-Observed November2, 2026 after the PM gap-closure order. #190/#198/#210/#211/#225 closed with evidence; #11/#22/#212 remain open. This is the live GitHub index, separate from the supplied08:26 WIB [BACKLOG.md](../BACKLOG.md). Tracked findings remain labelled and are not silently promoted into the PM backlog. Implementation does not establish acceptance.
+Observed 2026-11-02 14:00:07 UTC during the Doc rev 358 reconciliation on docs PR #295: 110 issues open. This live GitHub index is separate from the PM-supplied Nov 2 20:50 WIB [BACKLOG.md](../BACKLOG.md). The supplied wording is preserved; only five newly assigned issue numbers were inserted into its headings. The “In flight” section is a PM snapshot, not a merge order.
+
+#276–#278 closed as completed by merged PR #271; #284 closed as not planned under the owner's removal order. #107/#108 were reopened because the supplied open-work list still includes their acceptance conditions. #303–#307 were filed from the five unnumbered entries. Existing issue titles/bodies were synchronized to their supplied entries; issue comments/history and labels were retained. No other issue was closed and no Run 6 PR was changed or merged by this reconciliation. Implementation alone does not establish acceptance.
 
 | Issue | Title | Tracked finding |
 | --- | --- | --- |
-| #2 | App shell and navigation | no |
-| #3 | Sign in and sign up | no |
+| #2 | Shell screen matches the designer's frame and installs as a PWA | no |
+| #3 | Sign-in and sign-up screens match the designer's frames | no |
 | #4 | Schema with row-level security | no |
 | #5 | Media upload | no |
-| #6 | Capture screen | no |
+| #6 | Capture screen matches the designer's frame | no |
 | #7 | Job queue and worker | no |
 | #8 | SAM 3.1 segmentation step | no |
 | #9 | Item naming and portions | no |
 | #10 | Nutrition lookup | no |
-| #11 | Feed | no |
-| #18 | Days | no |
-| #20 | Profile | no |
-| #22 | Push notifications | no |
-| #23 | First-run hints | no |
-| #26 | Demo video and submission | no |
+| #11 | Home screen matches the designer's frames | no |
+| #18 | Days stories row and month grid of past posts | no |
+| #20 | Profile grid of the user's post thumbnails with sign out | no |
+| #22 | Web Push when an analysis is ready or a question is waiting | no |
+| #23 | One-time hint tooltips for the + sheet, the thread and the thumbs | no |
+| #26 | The demo video and the submission | no |
 | #28 | Design system from the designer's style sheet | no |
-| #29 | Results card as a carousel slide | no |
+| #29 | Rendered results-card image added to each post's carousel | no |
 | #44 | Dedicated test account for browser checks of signed-in production app | no |
-| #60 | The public repository holds no personal names, account detail or internal history | no |
+| #60 | A judge-facing pass makes the public repository start-here ready | no |
 | #65 | The pipeline's tests run against an offline fake Meta Model API | no |
 | #66 | The Meta Model API client sets its retries and timeout explicitly | no |
-| #114 | Public sign-in with Facebook works in production mode | no |
-| #115 | Dark mode renders every screen from the same tokens | no |
+| #107 | Every card has a visible way to open post detail | no |
+| #108 | The app fits an iPhone screen when installed to the home screen | no |
+| #114 | Facebook Login in production mode | no |
+| #115 | Dark mode | no |
 | #116 | An abandoned job on a meal recovers within ten minutes even when no page is open | yes |
 | #117 | Meal detail refreshes when the thread's first load already sees a completed correction | yes |
 | #118 | A UTC browser's first Home visit saves its detected time zone so day links carry it | yes |
@@ -45,7 +49,7 @@ Observed November2, 2026 after the PM gap-closure order. #190/#198/#210/#211/#22
 | #131 | Flipping the camera requires the requested facing, so a flip can never silently keep the same camera | yes |
 | #134 | After a failed card regeneration the meal never shows an outdated card beside new nutrition | yes |
 | #138 | The pipeline integration tests run against a dedicated test Supabase project, not the shared database | yes |
-| #139 | Renewing the worker lease actually extends a lease its own holder still holds | no |
+| #139 | A held worker lease renews for its full time | no |
 | #140 | The SAM caller keeps terminal transport causes terminal instead of turning them into a retryable 500 | yes |
 | #141 | A voice recording that the worklet never acknowledges stops itself and unlocks the composer | yes |
 | #142 | Dictated text is never silently cut at the 4,000-character comment limit | yes |
@@ -64,27 +68,51 @@ Observed November2, 2026 after the PM gap-closure order. #190/#198/#210/#211/#22
 | #164 | A failed intake read in the day story shows as unavailable, not as zero | yes |
 | #166 | A barcode FDC does not hold costs up to nine sequential FDC requests | yes |
 | #167 | Successful barcode lookups are cached by GTIN | yes |
-| #168 | Desktop browser layout is usable at 1280x800 and 1920x1080 | no |
-| #169 | An MCP server and HTTP API let an agent log and read meals | no |
-| #174 | A post can be deleted after confirmation | no |
-| #175 | Days shows intake-only days | no |
+| #168 | Desktop browser layout | no |
+| #169 | Agent surface: an MCP server and documented HTTP API | no |
+| #174 | Delete a post | no |
+| #175 | Days shows days that hold only water or caffeine | no |
 | #180 | Household serving strings with parentheses or a leading weight parse to the right unit | yes |
 | #181 | A food with several cup or piece portions uses the right one | yes |
 | #182 | The servings stepper does not act on a stale value while the page refreshes | yes |
-| #189 | A logged Japanese breakfast shows toast, ham and coffee weights the owner accepts | no |
-| #192 | A processing post's photo loads once with no visible reload | no |
-| #193 | Every screen is compared to designer frames and differences are listed | no |
+| #189 | A meal's estimate matches what was eaten | no |
+| #192 | The photo does not reload while a post is being processed | no |
+| #193 | Page looks for every screen against the designer's frames | no |
 | #212 | The regular camera reads a barcode and a nutrition label | no |
 | #215 | Thumbs up and down respond at the tap | no |
 | #216 | Sign out finishes | no |
 | #217 | A smoothness audit of every screen | no |
 | #218 | Hydration as a share of daily intake | no |
-| #221 | Sign-in is kept on every phone | no |
+| #221 | The installed app keeps its sign-in on every phone | no |
 | #222 | Photos and cards load fast | no |
-| #223 | A user can edit a post caption | no |
-| #224 | Times use the user's time zone | no |
-| #226 | Japanese dishes match the right foods | no |
+| #223 | A post's caption can be edited | no |
+| #224 | Times on a card are in the user's own time zone | no |
+| #226 | Japanese dishes match the right foods in the food database | no |
 | #227 | A photo that does not upload never becomes a post without one | no |
 | #228 | A meal summary's numbers are the calculated totals | no |
 | #229 | Non-admin request to a trace page returns 200 with not-found content instead of 404. | no |
-| #230 | Breakfast matches toast to dried persimmons and coffee null blanks the meal total | no |
+| #230 | A coffee with no nutrition does not blank a breakfast, and toast does not match persimmons | no |
+| #272 | The food matcher gives the same answer for the same words | no |
+| #273 | Meals logged on production show zero calories | no |
+| #274 | Uploading a photo shows its progress | no |
+| #275 | A post uploads in the background while the user keeps using the app | no |
+| #279 | Sign-up and sign-in resist being hammered | no |
+| #280 | The installed app is accepted on two real phones | no |
+| #281 | A Meta open-weight model identifies the food (hackathon bonus) | no |
+| #282 | The live app keeps working while judges use it | no |
+| #283 | A saved card image shows its whole footer | no |
+| #285 | The owner's own checks before the recording | no |
+| #286 | Rulings waiting on the owner | no |
+| #287 | The README shows judges the three Meta models, the technical depth and what the app does not do | no |
+| #288 | The open-weights trial (#281) has a Baseten key | no |
+| #289 | Frames for logging a drink by photo, by tap or by caption | no |
+| #290 | Frames for the capture sheet's modes with Barcode as an obvious choice | no |
+| #291 | Frames for removing and redoing | no |
+| #292 | A photo of a drink adds its volume to hydration and shows its caffeine | no |
+| #293 | A user can remove a photo or correction they added and redo it | no |
+| #294 | The app's words read naturally everywhere | no |
+| #303 | Three things only the owner can do that sit inside other items | no |
+| #304 | The app opens on the last feed it showed and updates behind it | no |
+| #305 | The first card's photo loads first and the photos below it wait | no |
+| #306 | Every tap that saves shows its result at once | no |
+| #307 | A card shows the foods the app has found while the numbers are still being worked out | no |
