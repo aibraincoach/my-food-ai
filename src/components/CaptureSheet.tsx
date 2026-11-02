@@ -12,6 +12,7 @@ import { decodeBarcode, decodeBarcodeFile, loadBarcodeDecoder } from "@/componen
 import { barcodeAmounts, amountInBasis, packageAmount, type BarcodeProduct } from "@/lib/fdc/barcode-product";
 import { formatNutrition } from "@/lib/nutrition/totals";
 import FirstRunHint from "@/components/FirstRunHint";
+import ModeStrip, { useModeSwipe } from "@/components/ModeStrip";
 import FoodSearchPanel from "@/components/FoodSearchPanel";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -420,6 +421,7 @@ export default function CaptureSheet({ onClose, initialMode = "photo", forPost, 
   const latest = shots[shots.length - 1];
   const full = shots.length >= MAX_SHOTS;
   const switchMode = (next: CaptureMode) => { if (!postingRef.current && next !== mode) { dismissBarcode(); if ((mode === "text") !== (next === "text")) setStream(null); setMode(next);setComposer(next==="text"); } };
+  const modeSwipe = useModeSwipe(mode, switchMode, Boolean(forPost) || Boolean(labelForCode) || barcodeState !== "idle" || posting);
   const continueSelected = async () => {
     if (postingRef.current) return;
     if (mode === "barcode") switchMode("text");
@@ -456,7 +458,7 @@ export default function CaptureSheet({ onClose, initialMode = "photo", forPost, 
         <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain" aria-label="Capture content">
         <div className="px-screen-x"><FirstRunHint hint="capture" /></div>
         {forPost&&<div className="flex items-center justify-between gap-3 px-screen-x py-3"><span className="text-detail">leftovers (not eaten)</span><button type="button" role="switch" aria-label="leftovers (not eaten)" aria-checked={attachmentIsLeftovers} disabled={posting} onClick={()=>setAttachmentIsLeftovers(value=>!value)} className="min-h-11 rounded-pill bg-camera-field px-4 text-detail">{attachmentIsLeftovers?'On':'Off'}</button></div>}
-        {mode !== "text" && <><div className="relative flex shrink-0 items-center justify-center overflow-hidden bg-camera text-camera-muted" style={{ height: tokens.capture.previewHeight, marginTop: tokens.capture.previewTop }}>
+        {mode !== "text" && <><div {...modeSwipe} className="relative flex shrink-0 touch-pan-y items-center justify-center overflow-hidden bg-camera text-camera-muted" style={{ height: tokens.capture.previewHeight, marginTop: tokens.capture.previewTop }}>
           {labelState!=="idle"&&packPhoto ? <img src={packPhoto.previewUrl} alt="Photographed nutrition label" className="h-full w-full object-contain"/> : stream ? <video ref={videoRef} muted playsInline autoPlay aria-label="Live camera viewfinder" className="h-full w-full object-cover" /> : latest ? (
             // Local blob previews require no remote image transformation.
             // eslint-disable-next-line @next/next/no-img-element
@@ -473,10 +475,9 @@ export default function CaptureSheet({ onClose, initialMode = "photo", forPost, 
             <p className="absolute bottom-icon-small rounded-tile bg-overlay-dark px-tooltip-caret py-tooltip-offset text-detail text-surface">Hold the barcode inside the frame</p>
           </>}
         </div>
-        {!forPost&&<div className="flex justify-center pt-field-x">
-          <div className="flex rounded-pill bg-camera-field" style={{ padding: tokens.border.hairline * 3 }}>
-            {(["photo", "barcode"] as const).map((tab) => <button key={tab} type="button" disabled={posting} aria-pressed={mode === tab} onClick={() => switchMode(tab)} className={`text-comment ${mode === tab ? "bg-surface font-semibold text-text" : "text-camera-muted"}`} style={{ height: tokens.spacing['table-row'] + tokens.spacing.grid, paddingInline: tokens.spacing['screen-x'] - tokens.icon.strongStroke, borderRadius: tokens.radii.pill - tokens.border.hairline * 3 }}>{tab === "photo" ? "Photo" : "Barcode"}</button>)}
-          </div>
+        {!forPost&&<div className="relative pt-field-x">
+          {mode === "photo" && !labelForCode && barcodeState === "idle" && <div className="absolute inset-x-0 bottom-full flex justify-center"><FirstRunHint hint="modes" /></div>}
+          <ModeStrip mode={mode} onChange={switchMode} disabled={Boolean(forPost) || Boolean(labelForCode) || barcodeState !== "idle" || posting} />
         </div>}</>}
         <input ref={galleryRef} type="file" accept="image/*" multiple className="hidden" disabled={posting || full} onChange={(event) => { void addFiles(event.target.files); event.target.value = ""; }} />
         <input ref={cameraRef} type="file" accept="image/*" capture="environment" className="hidden" disabled={posting || full} onChange={(event) => { void addFiles(event.target.files); event.target.value = ""; }} />
