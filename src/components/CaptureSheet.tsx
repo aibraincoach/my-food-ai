@@ -21,30 +21,29 @@ import { Icon } from "@/components/ui/Icon";
 import { TopBar } from "@/components/ui/TopBar";
 import { requestLocation } from "@/lib/location/capture";
 import { openCamera, grabFrame, CameraFlipError, type Camera } from "@/lib/media/camera";
-import { createPost, PostUploadDraft } from "@/lib/posts/create";
+import {uploadManager} from "@/lib/posts/upload-manager";
+import {useUploads} from "@/components/useUploads";
 import { fromLocalInput, toLocalInput } from "@/lib/posts/eaten-at";
 import { tokens } from "@/lib/theme/tokens";
 
 type Shot = { file: File; previewUrl: string };
 const MAX_SHOTS = 8;
-// Files remain in this tab only. Signing out clears the retained draft.
-type RetainedDraft={files:File[];caption:string;when:string|null;notEaten:number[];location:CapturedLocation|null;locationEnabled:boolean;saveAsMeal:boolean;upload:PostUploadDraft|null};
-let retainedDraft:RetainedDraft|null=null;
-if(typeof window!=="undefined")createClient().auth.onAuthStateChange((event)=>{if(event==='SIGNED_OUT')retainedDraft=null;});
-
 const FLIP_ERROR = "Could not switch cameras. Try again.";
 
 export type CaptureMode = "photo" | "text" | "barcode";
 export default function CaptureSheet({ onClose, initialMode = "photo", forPost, attachNotEaten = false }: { onClose: () => void; initialMode?: CaptureMode; forPost?: string; attachNotEaten?: boolean }) {
   const router = useRouter();
-  const resumed=useRef(forPost?null:retainedDraft);
+  const resumed=useRef(forPost?null:uploadManager.newest());
+  const operationRef=useRef<string|null>(resumed.current?.operationId??null);
+  const uploads=useUploads();
+  const upload=uploads.find(value=>value.operationId===operationRef.current);
   const [composer,setComposer]=useState(initialMode==='text'||Boolean(resumed.current));
   const [photoIndex,setPhotoIndex]=useState(0);
-  const [notEaten,setNotEaten]=useState<number[]>(resumed.current?.notEaten??[]);
+  const [notEaten,setNotEaten]=useState<number[]>(resumed.current?.options.not_eaten_positions??[]);
   const [attachmentIsLeftovers,setAttachmentIsLeftovers]=useState(attachNotEaten);
   const [location,setLocation]=useState<CapturedLocation|null>(resumed.current?.location??null);
-  const [locationEnabled,setLocationEnabled]=useState(resumed.current?.locationEnabled??false);
-  const [saveAsMeal,setSaveAsMeal]=useState(resumed.current?.saveAsMeal??false);
+  const [locationEnabled,setLocationEnabled]=useState(Boolean(resumed.current?.location));
+  const [saveAsMeal,setSaveAsMeal]=useState(resumed.current?.options.save_as_meal??false);
   const [mode, setMode] = useState<CaptureMode>(initialMode);
   const [product, setProduct] = useState<BarcodeProduct | null>(null);
   const [barcodeState, setBarcodeState] = useState<"idle" | "looking" | "missing" | "found" | "error">("idle");
@@ -71,7 +70,6 @@ export default function CaptureSheet({ onClose, initialMode = "photo", forPost, 
   const cameraRef = useRef<HTMLInputElement>(null);
   const [initialShots]=useState<Shot[]>(()=>resumed.current?.files.map(file=>({file,previewUrl:URL.createObjectURL(file)}))??[]);
   const shotsRef = useRef<Shot[]>(initialShots);
-  const ordinaryUploadRef = useRef<PostUploadDraft | null>(resumed.current?.upload??null);
   const selectedPhotoRef = useRef(Boolean(resumed.current?.files.length));
   const pendingFilesRef = useRef<File[]>([]);
   const [pendingCount, setPendingCount] = useState(0);
@@ -85,16 +83,19 @@ export default function CaptureSheet({ onClose, initialMode = "photo", forPost, 
   const [shots, setShots] = useState<Shot[]>(initialShots);
   const [caption, setCaption] = useState(resumed.current?.caption??"");
   // null means Now; otherwise the datetime-local value (the reader's local wall-clock time) the meal was eaten.
-  const [when, setWhen] = useState<string | null>(resumed.current?.when??null);
+  const [when, setWhen] = useState<string | null>(resumed.current?.eatenAt?toLocalInput(new Date(resumed.current.eatenAt)):null);
   const [searchingFoods, setSearchingFoods] = useState(false);
   const [posting, setPosting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  useEffect(()=>{if(operationRef.current)uploadManager.update(operationRef.current,{caption,eatenAt:when===null?null:fromLocalInput(when),location:locationEnabled?location:null,options:{not_eaten_positions:notEaten,save_as_meal:saveAsMeal}});},[caption,when,location,locationEnabled,notEaten,saveAsMeal]);
   const closeDraft=useCallback(()=>{
     if(postingRef.current)return;
     if(forPost){onClose();return;}
-    if(resumed.current){retainedDraft=null;}
-    else if(shotsRef.current.length||caption.trim())retainedDraft={files:shotsRef.current.map(shot=>shot.file),caption,when,notEaten,location,locationEnabled,saveAsMeal,upload:ordinaryUploadRef.current};
+    if(shotsRef.current.length||caption.trim()){
+      const fields={caption,eatenAt:when===null?null:fromLocalInput(when),location:locationEnabled?location:null,options:{not_eaten_positions:notEaten,save_as_meal:saveAsMeal}};
+      operationRef.current=uploadManager.stage(shotsRef.current.map(shot=>shot.file),fields,operationRef.current??undefined);
+    }
     onClose();
   },[caption,when,notEaten,location,locationEnabled,saveAsMeal,onClose,forPost]);
   const closeDraftRef=useRef(closeDraft);closeDraftRef.current=closeDraft;
@@ -319,6 +320,7 @@ export default function CaptureSheet({ onClose, initialMode = "photo", forPost, 
         }
         shotsRef.current = [...shotsRef.current, { file, previewUrl: URL.createObjectURL(file) }];
         pendingFilesRef.current.shift(); setPendingCount(pendingFilesRef.current.length);
+        operationRef.current=uploadManager.stage(shotsRef.current.map(shot=>shot.file),{caption,eatenAt:when===null?null:fromLocalInput(when),location:locationEnabled?location:null,options:{not_eaten_positions:notEaten,save_as_meal:saveAsMeal}},operationRef.current??undefined);
         setShots(shotsRef.current);setPhotoIndex(shotsRef.current.length-1);setComposer(true);
       }
     } catch { if (mountedRef.current) setError("Could not read that photo. Choose another photo."); }
@@ -365,6 +367,7 @@ export default function CaptureSheet({ onClose, initialMode = "photo", forPost, 
     URL.revokeObjectURL(shot.previewUrl);
     shotsRef.current = shotsRef.current.filter((_, i) => i !== index);
     setShots(shotsRef.current);
+    if(operationRef.current){if(!shotsRef.current.length){void uploadManager.remove(operationRef.current);operationRef.current=null;}else operationRef.current=uploadManager.stage(shotsRef.current.map(shot=>shot.file),{caption,eatenAt:when===null?null:fromLocalInput(when),location:locationEnabled?location:null,options:{not_eaten_positions:notEaten.filter(value=>value!==index).map(value=>value>index?value-1:value).filter(value=>value>0),save_as_meal:saveAsMeal}},operationRef.current);}
     setNotEaten(values=>values.filter(value=>value!==index).map(value=>value>index?value-1:value).filter(value=>value>0));setPhotoIndex(value=>Math.max(0,Math.min(value,shotsRef.current.length-1)));
     if (!shotsRef.current.length && !pendingFilesRef.current.length) selectedPhotoRef.current = false;
   };
@@ -378,13 +381,8 @@ export default function CaptureSheet({ onClose, initialMode = "photo", forPost, 
       const chosenLocation = locationEnabled ? location : null;
       const eatenAt = when === null ? null : fromLocalInput(when);
       if (when !== null && !eatenAt) throw new Error("Choose a time that is not in the future.");
-      ordinaryUploadRef.current ??= new PostUploadDraft();
-      const { postId } = await createPost(caption, shotsRef.current.map((shot) => shot.file), chosenLocation, eatenAt, ordinaryUploadRef.current, selectedPhotoRef.current ? "photo" : "text", {not_eaten_positions:notEaten,save_as_meal:saveAsMeal});
-      // Uploads are complete. Home can fetch the complete card even if its
-      // Realtime INSERT event arrived before the files or was never delivered.
-      window.dispatchEvent(new CustomEvent("post-created", { detail: { id: postId } }));
-      retainedDraft=null;onClose();
-      router.refresh();
+      const id=uploadManager.stage(shotsRef.current.map(shot=>shot.file),{caption,location:chosenLocation,eatenAt,options:{not_eaten_positions:notEaten,save_as_meal:saveAsMeal}},operationRef.current??undefined);
+      operationRef.current=id;uploadManager.post(id);onClose();router.refresh();
     } catch (e) {
       setError(e instanceof Error ? e.message : "Posting failed.");
     } finally {
@@ -437,8 +435,8 @@ export default function CaptureSheet({ onClose, initialMode = "photo", forPost, 
 
 
   if(!forPost&&composer&&mode!=="barcode"&&barcodeState==="idle"&&labelState==="idle")return <div ref={dialogRef} role="dialog" aria-modal="true" aria-labelledby="capture-title" className="fixed inset-x-0 top-0 z-50 h-dvh overflow-hidden bg-surface" style={viewport?{height:viewport.height,top:viewport.top}:undefined}>
-    <div className="mx-auto h-full max-w-phone"><LightComposer shots={shots} caption={caption} setCaption={setCaption} index={photoIndex} setIndex={setPhotoIndex} notEaten={notEaten} setNotEaten={setNotEaten} when={when} setWhen={setWhen} locationEnabled={locationEnabled} setLocationEnabled={enableLocation} saveAsMeal={saveAsMeal} setSaveAsMeal={setSaveAsMeal} busy={posting||cameraBusy} error={error} pending={pendingCount} onBack={closeDraft} onPhoto={()=>{setSearchingFoods(false);setComposer(false);setMode("photo");setStream(null);}} onSearch={()=>setSearchingFoods(value=>!value)} onPost={()=>{void post();}} onRemove={removeShot}
-      searchPanel={searchingFoods?<div className="px-inset"><FoodSearchPanel eatenAt={when===null?null:fromLocalInput(when)} disabled={posting} onLogged={postId=>{retainedDraft=null;window.dispatchEvent(new CustomEvent('post-created',{detail:{id:postId}}));onClose();router.refresh();}} onDescribe={text=>{if(text&&!caption.trim())setCaption(text);setSearchingFoods(false);setError(null);}} onError={setError}/></div>:null}>
+    <div className="mx-auto h-full max-w-phone"><LightComposer upload={upload} shots={shots} caption={caption} setCaption={setCaption} index={photoIndex} setIndex={setPhotoIndex} notEaten={notEaten} setNotEaten={setNotEaten} when={when} setWhen={setWhen} locationEnabled={locationEnabled} setLocationEnabled={enableLocation} saveAsMeal={saveAsMeal} setSaveAsMeal={setSaveAsMeal} busy={posting||cameraBusy} error={error} pending={pendingCount} onBack={closeDraft} onPhoto={()=>{setSearchingFoods(false);setComposer(false);setMode("photo");setStream(null);}} onSearch={()=>setSearchingFoods(value=>!value)} onPost={()=>{void post();}} onRemove={removeShot}
+      searchPanel={searchingFoods?<div className="px-inset"><FoodSearchPanel eatenAt={when===null?null:fromLocalInput(when)} disabled={posting} onLogged={postId=>{if(operationRef.current)void uploadManager.remove(operationRef.current);window.dispatchEvent(new CustomEvent('post-created',{detail:{id:postId}}));onClose();router.refresh();}} onDescribe={text=>{if(text&&!caption.trim())setCaption(text);setSearchingFoods(false);setError(null);}} onError={setError}/></div>:null}>
       <input ref={galleryRef} type="file" accept="image/*" multiple className="hidden" onChange={event=>{void addFiles(event.target.files);event.target.value='';}}/>
     </LightComposer></div>
   </div>;

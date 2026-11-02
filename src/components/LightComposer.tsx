@@ -1,15 +1,19 @@
 'use client';
 import {useEffect,useRef,useState,type ReactNode} from 'react';
+import UploadBar from './UploadBar';
+import type {UploadState} from '@/lib/posts/upload-manager';
 import {Icon} from '@/components/ui/Icon';
 import {Button} from '@/components/ui/Button';
 import {usePostHandle} from '@/components/PostHandle';
 import {toLocalInput} from '@/lib/posts/eaten-at';
-type Props={shots:{previewUrl:string}[];caption:string;setCaption:(value:string)=>void;index:number;setIndex:(value:number)=>void;notEaten:number[];setNotEaten:(value:number[])=>void;when:string|null;setWhen:(value:string|null)=>void;locationEnabled:boolean;setLocationEnabled:(value:boolean)=>void;saveAsMeal:boolean;setSaveAsMeal:(value:boolean)=>void;busy:boolean;error:string|null;pending:number;onBack:()=>void;onPhoto:()=>void;onSearch:()=>void;onPost:()=>void;children?:ReactNode;searchPanel?:ReactNode;onRemove:(index:number)=>void};
+type Props={upload?:UploadState;shots:{previewUrl:string}[];caption:string;setCaption:(value:string)=>void;index:number;setIndex:(value:number)=>void;notEaten:number[];setNotEaten:(value:number[])=>void;when:string|null;setWhen:(value:string|null)=>void;locationEnabled:boolean;setLocationEnabled:(value:boolean)=>void;saveAsMeal:boolean;setSaveAsMeal:(value:boolean)=>void;busy:boolean;error:string|null;pending:number;onBack:()=>void;onPhoto:()=>void;onSearch:()=>void;onPost:()=>void;children?:ReactNode;searchPanel?:ReactNode;onRemove:(index:number)=>void};
 function Switch({label,on,disabled,onChange}:{label:string;on:boolean;disabled:boolean;onChange:()=>void}) {
  return <button type="button" role="switch" aria-label={label} aria-checked={on} disabled={disabled} onClick={onChange} className={`relative h-[26px] w-[44px] shrink-0 rounded-circle disabled:opacity-50 ${on?'bg-accent':'bg-ring'}`}><span className="absolute top-[3px] size-5 rounded-circle bg-white" style={{left:on?21:3,boxShadow:'var(--color-shadow-knob)'}}/></button>;
 }
 export default function LightComposer(p:Props) {
  const [whenOpen,setWhenOpen]=useState(false);
+ const [uploadedVisible,setUploadedVisible]=useState(false);
+ useEffect(()=>{if(p.upload?.state!=='uploaded'){setUploadedVisible(false);return;}setUploadedVisible(true);const timer=setTimeout(()=>setUploadedVisible(false),1000);return()=>clearTimeout(timer);},[p.upload?.state]);
  const handle=usePostHandle(),preview=useRef<HTMLDivElement>(null),caption=useRef<HTMLTextAreaElement>(null);
  const observedPhoto=useRef({index:-1,count:-1});
  useEffect(()=>{if(!p.shots.length)caption.current?.focus();},[p.shots.length]);
@@ -28,13 +32,16 @@ export default function LightComposer(p:Props) {
    {!!p.shots.length&&<div className="pt-3">
     {p.shots.length===1?<div className="relative mx-auto h-[276px] w-[220px] overflow-hidden rounded-card">
       {/* eslint-disable-next-line @next/next/no-img-element */}<img src={current.previewUrl} alt="Meal photo 1" className="size-full object-cover"/><button type="button" disabled={p.busy} onClick={()=>p.onRemove(0)} aria-label="Remove photo 1" className="absolute top-[10px] left-[10px] flex size-[22px] items-center justify-center rounded-circle bg-overlay text-surface"><Icon name="close" size={16}/></button><span className="absolute top-[10px] right-[10px] rounded-tile bg-overlay px-2 text-meta text-surface">1/1</span>
+      {p.upload&&(p.upload.state!=='uploaded'||uploadedVisible)&&<UploadBar upload={p.upload}/>}
     </div>:<div ref={preview} aria-label="Selected meal photos" className="flex snap-x snap-mandatory gap-[10px] overflow-x-auto px-[calc((100%-200px)/2)]" onScroll={event=>{const next=Math.round(event.currentTarget.scrollLeft/210);if(next<=p.shots.length){observedPhoto.current={index:next,count:p.shots.length};if(next!==p.index)p.setIndex(next);}}}>
      {p.shots.map((shot,index)=><div key={shot.previewUrl} className="relative h-[232px] w-[200px] shrink-0 snap-center overflow-hidden rounded-card">
        {/* eslint-disable-next-line @next/next/no-img-element */}<img src={shot.previewUrl} alt={`Meal photo ${index+1}`} className="size-full object-cover"/><button type="button" disabled={p.busy} onClick={()=>p.onRemove(index)} aria-label={`Remove photo ${index+1}`} className="absolute top-[10px] left-[10px] flex size-[22px] items-center justify-center rounded-circle bg-overlay text-surface"><Icon name="close" size={16}/></button><span className="absolute top-[10px] right-[10px] rounded-tile bg-overlay px-2 text-meta text-surface">{index+1}/{p.shots.length}</span>
        {p.notEaten.includes(index)&&<span className="absolute bottom-[10px] left-[10px] rounded-tile bg-text px-[10px] py-[5px] text-badge text-surface">leftovers (not eaten)</span>}
+       {p.upload&&(p.upload.state!=='uploaded'||uploadedVisible)&&<UploadBar upload={p.upload}/>}
       </div>)}
      {p.shots.length<8&&<button type="button" onClick={photo} disabled={p.busy} aria-label="Take another photo" className="flex h-[232px] w-[200px] shrink-0 snap-center items-center justify-center rounded-card border-[1.5px] border-dashed border-ring"><Icon name="plus" size={28}/></button>}
     </div>}
+    {p.upload&&(p.upload.state!=='uploaded'||uploadedVisible)&&<p className="mt-2 text-center text-meta text-muted" role="status">{p.upload.state==='failed'?'Upload failed':p.upload.state==='uploaded'?'Uploaded':p.shots.length>1?`Uploading ${p.shots.length} photos…`:'Uploading photo…'}</p>}
    </div>}
    {p.shots.length>1&&p.index>0&&p.index<p.shots.length&&<div className={`mx-inset mt-3 flex items-center gap-[14px] rounded-card px-inset py-3 ${on?'bg-text text-surface':'bg-card'}`}>
     <div className="min-w-0 flex-1"><p className="text-body">leftovers (not eaten)</p><p className={`mt-1 text-meta leading-[1.4] ${on?'text-faint':'text-muted'}`}>{on?'The photographed leftovers are subtracted from the meal. Each marked photo is recorded.':'Off: this photo shows the meal. On: this photo shows leftovers, subtracted once from the meal.'}</p></div>
