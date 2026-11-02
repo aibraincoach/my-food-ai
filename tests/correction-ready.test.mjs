@@ -45,7 +45,7 @@ test('the real recompute handler repairs an exhausted predecessor without creati
  const {default:recompute}=await import('../src/lib/worker/jobs/recompute.ts');
  const {loadCorrectionItems}=await import('../src/lib/pipeline/correction-ready.ts');
  const item={id:'edited',name:'rice',portion_grams:50,source:'user',supersedes:null};
- const secondItem={...item,id:'second-edit',portion_grams:25};let nutrition=[],publications=0,writes=0;let batch;
+ const secondItem={...item,id:'second-edit',portion_grams:25};let nutrition=[],publications=0,writes=0,drinkSyncs=0;let batch;
  const db=createClient('http://127.0.0.1:1','fixture',{global:{fetch:async(input,init)=>{
   const url=new URL(input);const path=url.pathname;
   if(path.endsWith('/current_post_items'))return Response.json([item,secondItem]);
@@ -55,6 +55,7 @@ test('the real recompute handler repairs an exhausted predecessor without creati
   }
   if(path.endsWith('/fdc_cache'))return Response.json({response:{kind:'fdc-search-v3',query:'rice',payload:{foods:[{fdcId:77,description:'rice',dataType:'Foundation',foodNutrients:[{nutrientId:1008,nutrientName:'Energy',unitName:'KCAL',value:200}]}]}}});
   if(path.endsWith('/posts'))return Response.json({status:'processing'});
+  if(path.endsWith('/rpc/sync_item_drinks')){drinkSyncs++;assert.deepEqual(JSON.parse(init.body),{p_post_id:'post',p_rows:[]});return new Response(null,{status:204});}
   if(path.endsWith('/rpc/results_card_snapshot')){publications++;return Response.json(null);}
   if(path.endsWith('/rpc/mark_post_ready')){publications++;return Response.json(false);}
 
@@ -62,7 +63,7 @@ test('the real recompute handler repairs an exhausted predecessor without creati
  }}});
  const job={id:'current-correction',post_id:'post',kind:'correct',status:'running',payload:{}};
  const items=await loadCorrectionItems(db,'post',()=>recompute(db,job));
- assert.equal(items[0].calories,100);assert.equal(items[1].calories,50);assert.equal(writes,1);assert.equal(publications,1);
+ assert.equal(items[0].calories,100);assert.equal(items[1].calories,50);assert.equal(writes,1);assert.equal(publications,1);assert.equal(drinkSyncs,1);
  assert.deepEqual(batch.map(row=>[row.post_item_id,row.calories]),[['edited',100],['second-edit',50]]);
  await loadCorrectionItems(db,'post',()=>recompute(db,job));assert.equal(writes,1);
 });

@@ -8,9 +8,9 @@ export type RetryResult = "queued" | "conflict" | "error";
 // worker simply runs; the reverse order stranded a queued post with no work.
 export async function enqueueRetry(
   admin: SupabaseClient,
-  { postId, userId, kind }: { postId: string; userId: string; kind: string }
+  { postId, userId, kind, payload }: { postId: string; userId: string; kind: string; payload?:Record<string,unknown> }
 ): Promise<RetryResult> {
-  const job = await admin.from("jobs").insert({ post_id: postId, kind, status: "queued", priority: 100 }).select("id").single();
+  const job = await admin.from("jobs").insert({ post_id: postId, kind, status: "queued", priority: 100,...(payload?{payload}:{}) }).select("id").single();
   if (job.error || !job.data) return "error";
   const withdraw = () => admin.from("jobs").delete().eq("id", job.data.id).eq("status", "queued");
   const post = await admin.from("posts").update({ status: "queued", fail_reason: null })

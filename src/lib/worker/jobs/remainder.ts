@@ -19,9 +19,20 @@ const remainder:JobHandler=async(admin,job)=>{
  if(!post||!photo||!isOwnedPhotoPath(photo.storage_path,post.user_id,job.post_id))throw Error('Not-eaten photo does not belong to this meal.');
  if(!post.analysis_initialized_at)throw new ApiError(503,'','The meal estimate is still being prepared.');
  const items=await getCurrentItems(admin,job.post_id,{requireNutrition:true});
+ const rows=await replayRemainder(admin,photo.storage_path,items);
+ const kcal=sumNutrition(rows.map(row=>({...row.nutrition,name:row.name}))).calories;
+ const omitted=rows.some(row=>row.notEatenKcal===null)?null:rows.reduce((total,row)=>total+(row.notEatenKcal??0),0);
+ const describe=(values:string[])=>values.length===1?values[0]:values.join(', ');
+ const reply=`leftovers (not eaten): ${describe(rows.map(row=>row.notEatenText))} · ${omitted===null?'unavailable':formatCalories(omitted,'en-US')} kcal. Consumed: ${describe(rows.map(row=>row.consumedText))} · ${kcal===null?'unavailable':formatCalories(kcal,'en-US')} kcal.`;
+ if(!checkWording(reply).ok)throw Error('Not-eaten reply contained unsupported wording.');
+ const {error,status}=await admin.rpc('apply_post_remainder',{p_post_id:job.post_id,p_job_id:job.id,p_photo_id:photo.id,p_expected:items.map(item=>item.id),p_items:rows,p_reply:reply});
+ if(error)throw ioError('Not-eaten estimate could not be saved.',error,status);
+ await markReady(job.post_id,admin,job.id);
+};
+export async function replayRemainder(admin:import('@supabase/supabase-js').SupabaseClient,storagePath:string,items:import('@/lib/nutrition/totals').CurrentItem[]){
  if(!items.length)throw Error('No foods were available for the not-eaten estimate.');
  if(items.some(item=>item.portion_grams==null))throw Error('A meal portion was unavailable for the not-eaten estimate.');
- const {data:blob,error:downloadError}=await admin.storage.from('media').download(photo.storage_path);
+ const {data:blob,error:downloadError}=await admin.storage.from('media').download(storagePath);
  if(downloadError||!blob)throw ioError('Not-eaten photo could not be opened.',downloadError);
  const estimates=await readRemainder(new Uint8Array(await blob.arrayBuffer()),items.map((item,index)=>({index,name:item.name,grams:toNumber(item.portion_grams)})));
  const rows=items.map((item,index)=>{
@@ -36,13 +47,7 @@ const remainder:JobHandler=async(admin,job)=>{
   const cumulativeKcal=((item.not_eaten_grams??0)>0&&item.not_eaten_calories==null)||incrementKcal==null?null:(item.not_eaten_calories??0)+incrementKcal;
   return {old_id:item.id,name:item.name,portion_grams:rule.consumedGrams,portion_text:rule.consumedText,box:item.box,mask_path:item.mask_path,gtin:item.gtin??null,not_eaten_grams:(item.not_eaten_grams??0)+rule.notEatenGrams,not_eaten_calories:cumulativeKcal,count_text:item.not_eaten_grams?null:rule.countText,not_eaten_count_text:item.not_eaten_grams?`${(item.not_eaten_grams??0)+rule.notEatenGrams} g`:rule.notEatenCountText,nutrition,notEatenKcal:incrementKcal,notEatenText:rule.notEatenText,consumedText:rule.consumedText};
  });
- const kcal=sumNutrition(rows.map(row=>({...row.nutrition,name:row.name}))).calories;
- const omitted=rows.some(row=>row.notEatenKcal===null)?null:rows.reduce((total,row)=>total+(row.notEatenKcal??0),0);
- const describe=(values:string[])=>values.length===1?values[0]:values.join(', ');
- const reply=`leftovers (not eaten): ${describe(rows.map(row=>row.notEatenText))} · ${omitted===null?'unavailable':formatCalories(omitted,'en-US')} kcal. Consumed: ${describe(rows.map(row=>row.consumedText))} · ${kcal===null?'unavailable':formatCalories(kcal,'en-US')} kcal.`;
- if(!checkWording(reply).ok)throw Error('Not-eaten reply contained unsupported wording.');
- const {error,status}=await admin.rpc('apply_post_remainder',{p_post_id:job.post_id,p_job_id:job.id,p_photo_id:photo.id,p_expected:items.map(item=>item.id),p_items:rows,p_reply:reply});
- if(error)throw ioError('Not-eaten estimate could not be saved.',error,status);
- await markReady(job.post_id,admin,job.id);
-};
+
+ return rows;
+}
 export default remainder;
