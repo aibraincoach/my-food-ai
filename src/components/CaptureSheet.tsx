@@ -466,7 +466,7 @@ export default function CaptureSheet({ onClose, initialMode = "photo", forPost, 
         <div className="shrink-0">
         <TopBar
           title={<span id="capture-title">{forPost?(attachmentIsLeftovers?"leftovers (not eaten)":"Add photo"):"New post"}</span>}
-          left={<button ref={closeRef} type="button" onClick={closeDraft} disabled={posting} aria-label="Back to Feed" className="flex size-tap items-center justify-center rounded-circle bg-field text-text disabled:opacity-50"><Icon name={mode==="barcode"||barcodeState!=="idle"||labelState!=="idle"?"close":"back"} size={22} /></button>}
+          left={<button ref={closeRef} type="button" onClick={closeDraft} disabled={posting} aria-label="Back to Feed" className="flex size-tap items-center justify-center rounded-circle bg-field text-text disabled:opacity-50"><Icon name={desktop||mode==="barcode"||barcodeState!=="idle"||labelState!=="idle"?"close":"back"} size={22} /></button>}
           right={<span className="w-tap" aria-hidden="true" />}
         />
         </div>
