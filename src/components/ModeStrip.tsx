@@ -26,6 +26,7 @@ export function useModeSwipe(mode: CaptureMode, onChange: (mode: CaptureMode) =>
       if (swiped.current) { event.preventDefault(); event.stopPropagation(); swiped.current = false; }
     },
     onPointerUp(event: PointerEvent<HTMLElement>) {
+      if (event.currentTarget.hasPointerCapture(event.pointerId)) event.currentTarget.releasePointerCapture(event.pointerId);
       const origin = start.current;
       start.current = null;
       if (disabled || !origin || origin.id !== event.pointerId) return;
@@ -37,7 +38,10 @@ export function useModeSwipe(mode: CaptureMode, onChange: (mode: CaptureMode) =>
       const index = Math.max(0, Math.min(modes.length - 1, modes.indexOf(mode) + (dx < 0 ? 1 : -1)));
       onChange(modes[index]);
     },
-    onPointerCancel() { start.current = null; },
+    onPointerCancel(event: PointerEvent<HTMLElement>) {
+      if (event.currentTarget.hasPointerCapture(event.pointerId)) event.currentTarget.releasePointerCapture(event.pointerId);
+      start.current = null; swiped.current = false;
+    },
   };
 }
 
@@ -46,6 +50,7 @@ export default function ModeStrip({ mode, onChange, disabled = false }: {
 }) {
   const track = useRef<HTMLDivElement>(null);
   const [offset, setOffset] = useState(0);
+  const [animate,setAnimate]=useState(false);
   const swipe = useModeSwipe(mode, onChange, disabled);
   useLayoutEffect(() => {
     const update = () => {
@@ -53,9 +58,10 @@ export default function ModeStrip({ mode, onChange, disabled = false }: {
       if (active) setOffset(active.offsetLeft + active.offsetWidth / 2);
     };
     update();
+    const frame=requestAnimationFrame(()=>setAnimate(true));
     const observer = new ResizeObserver(update);
     if (track.current) observer.observe(track.current);
-    return () => observer.disconnect();
+    return () => { cancelAnimationFrame(frame); observer.disconnect(); };
   }, [mode]);
   return <div role="tablist" aria-label="Capture mode" aria-orientation="horizontal"
     className="relative h-11 touch-pan-y overflow-hidden"
@@ -63,13 +69,14 @@ export default function ModeStrip({ mode, onChange, disabled = false }: {
     onKeyDown={event => {
       if (disabled || !["ArrowLeft", "ArrowRight", "Home", "End"].includes(event.key)) return;
       event.preventDefault();
-      const index = event.key === "Home" ? 0 : event.key === "End" ? 2
-        : Math.max(0, Math.min(2, modes.indexOf(mode) + (event.key === "ArrowRight" ? 1 : -1)));
+      const last=modes.length-1;
+      const index = event.key === "Home" ? 0 : event.key === "End" ? last
+        : Math.max(0, Math.min(last, modes.indexOf(mode) + (event.key === "ArrowRight" ? 1 : -1)));
       onChange(modes[index]);
       track.current?.querySelectorAll<HTMLButtonElement>("button")[index]?.focus();
     }}>
     <div ref={track} className="absolute left-1/2 top-1 flex w-max items-center gap-6 transition-transform duration-[180ms] motion-reduce:transition-none"
-      style={{ transform: `translateX(-${offset}px)` }}>
+      style={{ transform: `translateX(-${offset}px)`, transitionDuration:animate?undefined:"0ms" }}>
       {modes.map(tab => <button key={tab} type="button" role="tab" aria-selected={mode === tab}
         tabIndex={mode === tab ? 0 : -1} disabled={disabled} onClick={() => onChange(tab)}
         className={`h-9 shrink-0 rounded-pill px-[18px] text-[15px] font-semibold disabled:opacity-50 ${mode === tab ? "bg-surface text-text" : "text-camera-muted"}`}>
