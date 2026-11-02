@@ -13,6 +13,7 @@ export type PostStatus =
   | "failed";
 
 export interface FeedItem {
+  not_eaten_grams?:number|null;
   gtin?: string | null;
   id: string;
   name: string;

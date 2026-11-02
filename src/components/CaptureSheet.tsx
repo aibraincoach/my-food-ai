@@ -28,7 +28,7 @@ import { tokens } from "@/lib/theme/tokens";
 type Shot = { file: File; previewUrl: string };
 const MAX_SHOTS = 8;
 // Files remain in this tab only. Signing out clears the retained draft.
-type RetainedDraft={files:File[];caption:string;when:string|null;notEaten:number|null;location:CapturedLocation|null;locationEnabled:boolean;saveAsMeal:boolean;upload:PostUploadDraft|null};
+type RetainedDraft={files:File[];caption:string;when:string|null;notEaten:number[];location:CapturedLocation|null;locationEnabled:boolean;saveAsMeal:boolean;upload:PostUploadDraft|null};
 let retainedDraft:RetainedDraft|null=null;
 if(typeof window!=="undefined")createClient().auth.onAuthStateChange((event)=>{if(event==='SIGNED_OUT')retainedDraft=null;});
 
@@ -40,7 +40,8 @@ export default function CaptureSheet({ onClose, initialMode = "photo", forPost, 
   const resumed=useRef(forPost?null:retainedDraft);
   const [composer,setComposer]=useState(initialMode==='text'||Boolean(resumed.current));
   const [photoIndex,setPhotoIndex]=useState(0);
-  const [notEaten,setNotEaten]=useState<number|null>(resumed.current?.notEaten??null);
+  const [notEaten,setNotEaten]=useState<number[]>(resumed.current?.notEaten??[]);
+  const [attachmentIsLeftovers,setAttachmentIsLeftovers]=useState(attachNotEaten);
   const [location,setLocation]=useState<CapturedLocation|null>(resumed.current?.location??null);
   const [locationEnabled,setLocationEnabled]=useState(resumed.current?.locationEnabled??false);
   const [saveAsMeal,setSaveAsMeal]=useState(resumed.current?.saveAsMeal??false);
@@ -274,7 +275,7 @@ export default function CaptureSheet({ onClose, initialMode = "photo", forPost, 
     try{
       attachmentUpload.current??=new PackPhotoUpload();
       const photo=await attachmentUpload.current.prepare(file);
-      const response=await fetch(`/api/posts/${forPost}/media`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({photo,not_eaten:attachNotEaten})});
+      const response=await fetch(`/api/posts/${forPost}/media`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({photo,not_eaten:attachmentIsLeftovers})});
       const result=await response.json();if(!response.ok)throw Error(result.error??"The photo could not be attached. Your photo was kept; try again.");
       window.dispatchEvent(new CustomEvent("post-created",{detail:{id:forPost}}));
       onClose();router.refresh();return true;
@@ -364,7 +365,7 @@ export default function CaptureSheet({ onClose, initialMode = "photo", forPost, 
     URL.revokeObjectURL(shot.previewUrl);
     shotsRef.current = shotsRef.current.filter((_, i) => i !== index);
     setShots(shotsRef.current);
-    setNotEaten(value=>{const next=value===index?null:value!==null&&value>index?value-1:value;return next!==null&&next>0?next:null;});setPhotoIndex(value=>Math.max(0,Math.min(value,shotsRef.current.length-1)));
+    setNotEaten(values=>values.filter(value=>value!==index).map(value=>value>index?value-1:value).filter(value=>value>0));setPhotoIndex(value=>Math.max(0,Math.min(value,shotsRef.current.length-1)));
     if (!shotsRef.current.length && !pendingFilesRef.current.length) selectedPhotoRef.current = false;
   };
 
@@ -378,7 +379,7 @@ export default function CaptureSheet({ onClose, initialMode = "photo", forPost, 
       const eatenAt = when === null ? null : fromLocalInput(when);
       if (when !== null && !eatenAt) throw new Error("Choose a time that is not in the future.");
       ordinaryUploadRef.current ??= new PostUploadDraft();
-      const { postId } = await createPost(caption, shotsRef.current.map((shot) => shot.file), chosenLocation, eatenAt, ordinaryUploadRef.current, selectedPhotoRef.current ? "photo" : "text", {not_eaten_position:notEaten,save_as_meal:saveAsMeal});
+      const { postId } = await createPost(caption, shotsRef.current.map((shot) => shot.file), chosenLocation, eatenAt, ordinaryUploadRef.current, selectedPhotoRef.current ? "photo" : "text", {not_eaten_positions:notEaten,save_as_meal:saveAsMeal});
       // Uploads are complete. Home can fetch the complete card even if its
       // Realtime INSERT event arrived before the files or was never delivered.
       window.dispatchEvent(new CustomEvent("post-created", { detail: { id: postId } }));
@@ -447,13 +448,14 @@ export default function CaptureSheet({ onClose, initialMode = "photo", forPost, 
       <div className="mx-auto flex h-full w-full max-w-phone flex-col">
         <div className="shrink-0">
         <TopBar
-          title={<span id="capture-title">{forPost?(attachNotEaten?"Not eaten":"Add photo"):"New post"}</span>}
+          title={<span id="capture-title">{forPost?(attachmentIsLeftovers?"leftovers (not eaten)":"Add photo"):"New post"}</span>}
           left={<button ref={closeRef} type="button" onClick={closeDraft} disabled={posting} aria-label="Back to Feed" className="flex size-tap items-center justify-center rounded-circle bg-field text-text disabled:opacity-50"><Icon name={mode==="barcode"||barcodeState!=="idle"||labelState!=="idle"?"close":"back"} size={22} /></button>}
           right={<span className="w-tap" aria-hidden="true" />}
         />
         </div>
         <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain" aria-label="Capture content">
         <div className="px-screen-x"><FirstRunHint hint="capture" /></div>
+        {forPost&&<div className="flex items-center justify-between gap-3 px-screen-x py-3"><span className="text-detail">leftovers (not eaten)</span><button type="button" role="switch" aria-label="leftovers (not eaten)" aria-checked={attachmentIsLeftovers} disabled={posting} onClick={()=>setAttachmentIsLeftovers(value=>!value)} className="min-h-11 rounded-pill bg-camera-field px-4 text-detail">{attachmentIsLeftovers?'On':'Off'}</button></div>}
         {mode !== "text" && <><div className="relative flex shrink-0 items-center justify-center overflow-hidden bg-camera text-camera-muted" style={{ height: tokens.capture.previewHeight, marginTop: tokens.capture.previewTop }}>
           {labelState!=="idle"&&packPhoto ? <img src={packPhoto.previewUrl} alt="Photographed nutrition label" className="h-full w-full object-contain"/> : stream ? <video ref={videoRef} muted playsInline autoPlay aria-label="Live camera viewfinder" className="h-full w-full object-cover" /> : latest ? (
             // Local blob previews require no remote image transformation.

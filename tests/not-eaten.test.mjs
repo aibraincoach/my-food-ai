@@ -21,7 +21,7 @@ test('the stored-card snapshot preserves known uneaten calories when all of a fo
  const db={from(table){let chain;chain=new Proxy({}, {get(_target,key){if(key==='then')return resolve=>resolve({data:table==='post_items'?[parent]:[],error:null});return()=>chain;}});return chain;}};
  const data=await readCardData(db,'owner',{id:'copy',eaten_at:'2026-11-01T08:00:00Z',items:[{id:'current',name:'Food',portion_grams:0,calories:0,protein_g:0,carbs_g:0,fat_g:0,fibre_g:0,sugar_g:0,sodium_mg:0,micronutrients:[],supersedes:'original',not_eaten_grams:100,not_eaten_count_text:null}]});
  assert.equal(data.kcal,0);
- assert.equal(data.footer,'Not eaten: 100 g · 500 kcal');
+ assert.equal(data.footer,'leftovers (not eaten): 100 g · 500 kcal');
 });
 test('not-eaten revision keeps history, exact nutrition, retry idempotency and owner access',async()=>{
  assert.ok(process.env.SUPABASE_DB_URL,'SUPABASE_DB_URL is required');
@@ -40,6 +40,7 @@ insert into public.post_media(post_id,storage_path,position,width,height) values
 insert into public.post_media(post_id,storage_path,position,width,height,not_eaten) values(:'post_id',:'owner_id'||'/'||:'post_id'||'/1.jpg',1,100,100,true) returning id as photo_id \\gset
 insert into public.post_items(post_id,name,portion_grams,source) values(:'post_id','Meal',100,'model') returning id as item_id \\gset
 insert into public.item_nutrition(post_item_id,calories,protein_g,carbs_g,fat_g,micronutrients) values(:'item_id',200,10,20,5,'[]');
+update public.jobs set payload=payload||jsonb_build_object('remainder_photo_id',:'photo_id') where id=:'job_id';
 select jsonb_build_array(jsonb_build_object('old_id',:'item_id','portion_grams',60,'portion_text','60 g','not_eaten_grams',40,'count_text','3 of 5 pieces','not_eaten_count_text','2 pieces','nutrition',jsonb_build_object('calories',120,'protein_g',6,'carbs_g',12,'fat_g',3,'micronutrients','[]'::jsonb)))::text as replacement \\gset
 select public.apply_post_remainder(:'post_id',:'job_id',:'photo_id',array[:'item_id'::uuid],:'replacement'::jsonb,'Not eaten: 2 pieces · 80 kcal. Consumed: 3 of 5 pieces · 120 kcal.');
 select public.apply_post_remainder(:'post_id',:'job_id',:'photo_id',array[:'item_id'::uuid],:'replacement'::jsonb,'Duplicate reply must not appear.');

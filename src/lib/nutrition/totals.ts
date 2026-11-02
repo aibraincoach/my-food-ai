@@ -188,10 +188,16 @@ export class MissingNutritionError extends ApiError {
 // All detail/totals consumers use only current rows; superseded originals and
 // their nutrition remain in the database as immutable edit history.
 export async function getCurrentItems(supabase: SupabaseClient, postId: string, options: { requireNutrition?: boolean } = {}): Promise<CurrentItem[]> {
-  const { data, error, status } = await supabase.from("current_post_items")
-    .select("id,name,portion_text,portion_grams,box,mask_path,source,gtin,supersedes,not_eaten_grams,count_text,not_eaten_count_text").eq("post_id", postId)
-    .order("created_at", { ascending: true });
-  if (error) throw ioError("Current items could not be read.", error, status);
+  const columns="id,name,portion_text,portion_grams,box,mask_path,source,gtin,supersedes,not_eaten_grams,not_eaten_calories,count_text,not_eaten_count_text";
+  const read=(selection:string)=>supabase.from("current_post_items").select(selection).eq("post_id",postId).order("created_at",{ascending:true});
+  let snapshot=await read(columns);
+  // Permit a rolling deployment before the additive migration is installed.
+  // Only this one absent column is compatible; all other read errors surface.
+  if(snapshot.error?.code==='42703'&&snapshot.error.message.includes('not_eaten_calories'))snapshot=await read(columns.replace(',not_eaten_calories',''));
+  const {error,status}=snapshot;
+  type ItemSnapshot=Pick<CurrentItem,'id'|'name'|'portion_text'|'portion_grams'|'box'|'mask_path'|'source'|'gtin'|'supersedes'|'not_eaten_grams'|'not_eaten_calories'|'count_text'|'not_eaten_count_text'>;
+  const data=snapshot.data as unknown as ItemSnapshot[]|null;
+  if(error)throw ioError("Current items could not be read.",error,status);
   if (!data?.length) return [];
   const { data: nutrition, error: nutritionError, status: nutritionStatus } = await supabase.from("item_nutrition")
     .select("post_item_id,calories,protein_g,carbs_g,fat_g,fibre_g,sugar_g,sodium_mg,micronutrients,source_ref")
@@ -211,7 +217,7 @@ export async function getCurrentItems(supabase: SupabaseClient, postId: string, 
     const normalized = row ? normalizeStoredNutrition(row, item.portion_grams) : null;
     const originalCalories=priorCalories.get(item.supersedes??'');
     const originalGrams=toNumber(item.portion_grams)+Number(item.not_eaten_grams??0);
-    const notEatenCalories=item.not_eaten_grams==null?undefined:item.not_eaten_grams===0?0:originalCalories==null||originalGrams<=0?null:originalCalories*item.not_eaten_grams/originalGrams;
+    const notEatenCalories=item.not_eaten_calories!==undefined?item.not_eaten_calories:item.not_eaten_grams==null?undefined:item.not_eaten_grams===0?0:originalCalories==null||originalGrams<=0?null:originalCalories*item.not_eaten_grams/originalGrams;
     return { ...item,not_eaten_calories:notEatenCalories, source: item.source as "model" | "user", calories: normalized?.calories ?? null,
       protein_g: normalized?.protein_g ?? null, carbs_g: normalized?.carbs_g ?? null,
       fat_g: normalized?.fat_g ?? null, fibre_g: normalized?.fibre_g ?? null,

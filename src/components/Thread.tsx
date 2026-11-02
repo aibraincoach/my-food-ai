@@ -50,7 +50,7 @@ export default function Thread({postId,readOnly=false,sourcePostId}:{postId:stri
   <h2 className="mb-[10px] text-handle">Comments <span className="font-normal text-muted">{rows.length}</span></h2>
   <div aria-live="polite" className="flex flex-col gap-[10px]">{rows.map(row=><div key={row.id} className="flex items-start gap-[10px]">
     <span className={`flex size-7 shrink-0 items-center justify-center rounded-circle text-avatar-sm ${row.author==='model'?'bg-text text-surface':'bg-field text-text'}`}>{row.author==='model'?'AI':handle.slice(0,1).toUpperCase()}</span>
-    <p className="min-w-0 whitespace-pre-wrap break-words text-detail leading-[1.45]"><span className="font-semibold">{row.author==='model'?'AI':handle}</span> {row.body} <span className="whitespace-nowrap text-muted"><LocalTime value={row.created_at}/></span>{accepted===row.id?<span className="ml-2 text-meta text-muted">Accepted</span>:null}</p>
+    <p className="min-w-0 whitespace-pre-wrap break-words text-detail leading-[1.45]"><span className="font-semibold">{row.author==='model'?'AI':handle}</span> {row.author==='model'?row.body.replace(/\bnot eaten:/gi,'leftovers (not eaten):'):row.body} <span className="whitespace-nowrap text-muted"><LocalTime value={row.created_at}/></span>{accepted===row.id?<span className="ml-2 text-meta text-muted">Accepted</span>:null}</p>
   </div>)}</div>
   {waiting?<p role="status" className="py-grid text-meta text-muted">Updating the meal…</p>:null}
   {error?<p role="status" className="text-meta text-muted">{error}</p>:null}
