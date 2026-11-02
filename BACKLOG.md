@@ -1,28 +1,8 @@
 # My Food AI — Backlog†
 
-Last edited: Monday 2026-11-02 at 12:53 WIB (UTC+07:00) by Claude, PM
+Last edited: Monday 2026-11-02 at 14:38 WIB (UTC+07:00) by Claude, PM
 
 ## Backlog
-
-## For the designer
-
-### Frames for the desktop browser layout
-
-The app has frames only for a 390 px phone, so the desktop version (#168) cannot be built.
-
-\#168 asks for a centred feed column at 1024 px and wider, a side or top navigation in place of the bottom bar, post detail beside the feed, keyboard navigation, and capture by webcam or file upload. The same rules apply as on the phone: consumed wording, and no target, percentage, ring or the word "left". Done when frames at 1280x800 are delivered for the feed with post detail beside it, capture by webcam or file upload, Days, Search and Profile.
-
-### Frames for connecting an agent
-
-The agent surface (#169) lets an agent log and read meals, but a user has no screen to connect one.
-
-\#169 creates a per-user token from a "Connect an agent" row on Profile, and the user can revoke it. The row, creating a token, seeing it and revoking it have no frame. The MCP server and HTTP API need no frame. Records only, past tense, no targets. Done when frames at 390x844 are delivered for the Profile row, creating a token, a connected agent and revoking it.
-
-### Frames for the upload progress bar
-
-Nobody has drawn what a user sees while a photo uploads, so the progress bar cannot be built to a frame.
-
-The owner asked on Nov 1 for a progress bar during upload so people know the app is working, and on Nov 2 for people to keep working while a post uploads (see the two engineering items on uploading a photo). It shows the upload only, never nutrition, goals or any score. Done when frames at 390x844 are delivered for the capture sheet and the feed card while a photo uploads, for a failed upload, and for a post that keeps uploading while the user is on another screen.
 
 ## Straight to engineering
 
@@ -66,13 +46,13 @@ The breakfast logged again on Oct 30 still matched wrong foods and showed no tot
 
 The Oct 30 re-log matched the toast to dried Japanese persimmons, the salad to a fast-food side salad and the black coffee to an entry with no nutrition, so the total was unknown. The cause is shared with the Japanese-dish and totals items. On Nov 1 the breakfast on production matches a plain food for all five items, with no food unavailable, and totals 290.8 kcal in one run and 272.8 kcal in another. Done when the owner accepts the breakfast total.
 
-### The food matcher gives the same answer for the same words
+### #272 The food matcher gives the same answer for the same words
 
-The same food described in different capitals can match in one run and fail in another, and one miss turns a whole meal's total into unavailable.
+The same words for a food can match different references from one call to the next, and one miss turns a whole meal's total into unavailable.
 
-The planner reports, from the coder's report of Nov 2 at 09:33 WIB, that two identification answers differing only in capitals got different matches: a cheeseburger with lettuce, tomato, onion and pickle matched, and the same words in lowercase did not, so a total of 1,296 kcal became unavailable with a known subtotal of 467 kcal. The coder's harness did not keep the matcher's reason, so whether the matcher is sensitive to capitals or its model-based choice varies between runs is not known. The planner also reports that a dipping sauce matched "Dip, NFS" at 432 kcal per 100 g, about 130 kcal for 30 g. Ask first whether capitals change the match, and keep the matcher's reason. Done when the same words in any capitals give the same match, or the cause is reported and the owner decides.
+The coder's probes of Nov 2 (report of 14:05 WIB) kept the matcher's reason for every match and found that identical lowercase input selected different references across calls, so the variation is in the choice and not only in capital letters. The dipping sauce matched "Dip, NFS" at 432 kcal per 100 g, about 130 kcal for 30 g. Earlier the planner reported that a cheeseburger with lettuce, tomato, onion and pickle matched in one answer and not in another, so a total of 1,296 kcal became unavailable with a known subtotal of 467 kcal. No fix has been made. Done when the same words give the same match on repeated calls, or the owner decides to keep the variation and keep these foods out of the demo.
 
-### Meals logged on production show zero calories
+### #273 Meals logged on production show zero calories
 
 The owner's latest meals on production show 0 kcal instead of the nutrition of the foods in them.
 
@@ -110,31 +90,31 @@ A user cannot change the caption of a post, so a stray character stays on the ca
 
 The owner reported this on Oct 29 at 17:29 JST: his caption ends in a stray "R" that he does not want. The post menu has no edit for the caption, and the comment-or-correct thread of #14 changes the items, not the caption. Add "Edit caption" to the post menu; editing the caption does not re-run the estimate or change the items. Done when a caption edited from the post menu shows its new text on the feed card, post detail, Days and Search after a reload.
 
-### Uploading a photo shows its progress
+### #274 Uploading a photo shows its progress
 
 When a user posts a photo, nothing on the screen shows that the upload is under way, so people cannot tell whether anything is happening.
 
-The owner asked for this on Nov 1: a progress bar during the upload so people know the app is working. The bar shows the upload only, never nutrition, goals or any score, because the claims rule bans bars that read as progress toward a goal. No designer frame exists for it yet. It sits next to #227, which keeps a failed upload from becoming a post without a photo. Done when a post with a photo on a slow connection shows a progress bar from the start of the upload until it finishes, and the bar is gone once the post appears.
+The owner asked for this on Nov 1: a progress bar during the upload so people know the app is working. The bar shows the upload only, never nutrition, goals or any score, because the claims rule bans bars that read as progress toward a goal. The designer delivered frames 4l to 4o at 390x844 on Nov 2: the composer while a photo uploads, the feed card while it uploads, a failed upload with Try again, and a floating chip above the bottom bar when the user is on another screen. The bar shows only how far the upload has got, with no percentage or time estimate. It sits next to #227, which keeps a failed upload from becoming a post without a photo. Done when a post with a photo on a slow connection shows a progress bar from the start of the upload until it finishes, and the bar is gone once the post appears.
 
-### A post uploads in the background while the user keeps using the app
+### #275 A post uploads in the background while the user keeps using the app
 
 The app feels slow and clunky, and a user who posts a meal should be able to carry on using the app while the photo uploads and the analysis runs.
 
-The owner asked for this on Nov 2. What happens today when a person taps Post is not known: whether the capture sheet waits for the upload, whether the feed card appears at once, and whether an upload survives leaving the screen or a reload (a draft is held only in memory today, see #227). Observe first on a throttled phone-sized screen and report each. This sits with #217, #222 and the upload progress item; the progress bar and the failed-upload look wait for the designer's frames. Done when a user who taps Post can leave the capture sheet at once and keep using the app while the upload and analysis finish, a failed upload is shown and can be retried, and the coder has reported what each case above did before the change.
+The owner asked for this on Nov 2. What happens today when a person taps Post is not known: whether the capture sheet waits for the upload, whether the feed card appears at once, and whether an upload survives leaving the screen or a reload (a draft is held only in memory today, see #227). Observe first on a throttled phone-sized screen and report each. This sits with #217, #222 and the upload progress item; the progress bar, the failed-upload look and the chip shown on another screen are drawn in the designer's frames 4l to 4o. Done when a user who taps Post can leave the capture sheet at once and keep using the app while the upload and analysis finish, a failed upload is shown and can be retried, and the coder has reported what each case above did before the change.
 
-### Every after-meal photo of a meal can be marked as not eaten
+### #276 Every after-meal photo of a meal can be marked as not eaten
 
 When a meal has two plates, only one after-meal photo can be marked as not eaten. The second after-meal photo appears as additional food, and nothing lets you change it.
 
 The owner reported this on Nov 1. He logged two photos before eating as one meal, because there were two plates. After eating, he took one photo of each plate. The first counted as not eaten. The fourth photo of the meal appeared as additional food with no option to select not eaten. The coder reproduced the defect on Nov 2: a second after-meal photo added through ordinary Add photo is treated as additional food, and a second photo explicitly marked not eaten is rejected (his reports of 07:13 and 09:33 WIB). Whether logging two plates as one meal is a supported use is not known. Done when every after-meal photo in a meal can be marked as not eaten.
 
-### The label for food left on the plate reads "leftovers (not eaten)"
+### #277 The label for food left on the plate reads "leftovers (not eaten)"
 
 The label for food left on the plate reads "Not eaten", and the owner says that wording reads as wrong.
 
 The owner says people elsewhere call this "leftovers (not eaten)". This replaces the Oct 29 ruling that the label reads "Not eaten". The word "left" as a word for what remains of a target stays banned from the app, so the wording check must still pass. The coder reports that "leftovers" passes the check, which matches "left" as a whole word. Done when the label reads "leftovers (not eaten)" everywhere it appears: the composer, the carousel slide, the card footer, the summary line and the thread.
 
-### Adding a photo to a post keeps what a not-eaten photo recorded
+### #278 Adding a photo to a post keeps what a not-eaten photo recorded
 
 When a post has a not-eaten photo, adding a plain photo to it afterwards wipes the leftover quantities and the card footer.
 
@@ -222,7 +202,7 @@ The sign-in page and the sign-up page render unstyled.
 
 Restyle both from the designer's frames using the theme tokens and shared components: the brand mark, the email, handle and password fields, the primary button, the line that switches between the two screens, and the Facebook button only under the existing flag. Done when both pages match the frames at 390 px wide in light mode, built from tokens and shared components, and signing in and signing up still work.
 
-### Sign-up and sign-in resist being hammered
+### #279 Sign-up and sign-in resist being hammered
 
 Anyone can send sign-up and sign-in requests as fast as a script can, to guess passwords, create accounts in bulk or run up the email and model bills, and nobody has shown what stops them.
 
@@ -246,7 +226,7 @@ Installed to an iPhone home screen, the app collides with the system: the clock 
 
 The owner's screenshot shows the clipped bar. The installed app does not respect the status bar, the notch or the home indicator. Set viewport-fit=cover and pad the header, the bottom bar and every sheet with env(safe-area-inset-\*). Done when nothing overlaps the clock or the home indicator at 390x844 and 430x932.
 
-### The installed app is accepted on two real phones
+### #280 The installed app is accepted on two real phones
 
 Nothing has been proven on a phone: not the installed app, the camera, the notification or the iPhone fit, and the demo video is shot on a phone.
 
@@ -282,15 +262,15 @@ On the first visit to each, show a single dismissable tooltip in the style of a 
 
 The app is a phone-width column and is awkward in a desktop browser.
 
-At 1024 px and wider, use a centred feed column, replace the bottom bar with a side or top navigation, open post detail beside the feed, support keyboard navigation, and capture by webcam or file upload. It waits for the designer's desktop frames. Done when the feed, detail, capture, Days, Search and Profile are usable with a mouse and keyboard at 1280x800 and 1920x1080 with no horizontal scroll.
+At 1024 px and wider, use a centred feed column, replace the bottom bar with a side or top navigation, open post detail beside the feed, support keyboard navigation, and capture by webcam or file upload. The designer delivered desktop frames 4a to 4f at 1280x800 on Nov 2: the feed with post detail beside it and J and K to move between posts, capture by webcam, capture by file upload, Days, Search and Profile, with a sidebar that lists the keyboard keys. Their PNG export is pending. Done when the feed, detail, capture, Days, Search and Profile are usable with a mouse and keyboard at 1280x800 and 1920x1080 with no horizontal scroll.
 
 ### #169 Agent surface: an MCP server and documented HTTP API
 
 Agents cannot log or read meals; the app has no programmatic interface.
 
-Add a streamable-HTTP MCP at /mcp with log\_meal, list\_meals, get\_meal and correct\_meal, authenticated by a per-user revocable token created from a "Connect an agent" row on Profile and rate-limited. Records only, past tense, no targets, no weight or exercise tools. The Profile row waits for the designer's frames; the server and API do not. Done when an MCP client logs a caption-only "coffee" with a past eaten-at and reads it back, a second user's token cannot read it, a revoked token is refused, and docs/agents.md documents setup.
+Add a streamable-HTTP MCP at /mcp with log\_meal, list\_meals, get\_meal and correct\_meal, authenticated by a per-user revocable token created from a "Connect an agent" row on Profile and rate-limited. Records only, past tense, no targets, no weight or exercise tools. The designer delivered frames 4g to 4k at 390x844 on Nov 2: the Profile row, creating a token, the token shown once, a connected agent with its past-tense activity log, and revoking it. Their PNG export is pending. The server and API need no frame. Done when an MCP client logs a caption-only "coffee" with a past eaten-at and reads it back, a second user's token cannot read it, a revoked token is refused, and docs/agents.md documents setup.
 
-### A Meta open-weight model identifies the food (hackathon bonus)
+### #281 A Meta open-weight model identifies the food (hackathon bonus)
 
 The hackathon pays a $10,000 bonus for a build on a Meta open-weight model, and the app calls only the hosted Meta API.
 
@@ -310,7 +290,7 @@ The submission needs a public repo, a video, and a write-up that names what was 
 
 The owner records the video on Nov 4; the write-up goes in README.md. Script: open on the Cal AI timeline ("50 screens and 22 minutes before my first log, 11:45 to 12:07"), cut to sign-in → camera → post in ten seconds, show the SAM outlines on the detail, make a correction and show the thread keeping both versions, show the needs-input strip, close on Days. The write-up states everything was built Oct 26 to Nov 4 on the Meta Model API with SAM 3.1 and Muse Spark 1.3, lists the three Meta model calls, and says what the app does not do. The Most Viral prize ($20,000) counts likes, reposts and comments on X through the end of Nov 8, so the video goes on X as soon as it exists; whether the post must exist before the submission deadline is unconfirmed. No merges or deploys from the start of recording until the submission is in. The owner chooses the account to record on before recording. On Nov 1 the coder counted 146 posts and 83 unavailable foods on the first test account and 20 posts and 5 unavailable on the owner's account. The second test account holds 5 posts, 4 ready and 1 needing input, none with an unavailable food; the coder added eight test posts to it for the rehearsal on Nov 2 and removed all eight again by 08:41 WIB, so its feed has four cards and one question strip. A fresh estimate does not repeat exactly, so a same-meal-again moment uses Log again, and the script keeps out the cheeseburger-and-fries photo that failed the ten-photo identification gate on Nov 1. The coder timed the script on the current interface on Nov 2 at 60.420 seconds against 51.287 for the pre-Run 5 rehearsal; by his report the longest growing interval is the wait from publication to ready, 9.537 seconds longer, on a different food, while other intervals shortened. The script he timed is the one above; the planner notes it has no drink post, barcode or label, not-eaten photo or saved list, so none of the Run 5 screens beyond Log again are in it yet. Done when the video is under three minutes and the write-up is in README.md.
 
-### The live app keeps working while judges use it
+### #282 The live app keeps working while judges use it
 
 Judging runs Nov 4 to Nov 8, and if the Meta API credits run out first, a judge who posts a meal sees a failed analysis.
 
