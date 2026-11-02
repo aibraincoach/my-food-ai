@@ -36,15 +36,15 @@ export function ResultsCard({ data, drink, unavailable = [], time, calories = nu
   const macro = (value: number | null | undefined, word: string) => <div key={word} style={{ display: 'flex', gap: tokens.spacing.grid * scale }}>
     <span style={{ fontWeight: tokens.card.emphasisWeight }}>{formatNutrition(value)} g</span><span style={{ color: tokens.colors.muted }}>{word}</span>
   </div>;
-  const split = (value: number, word: string) => <div key={word} style={{ display: 'flex', gap: 4 * scale }}>
-    <span style={{ color: tokens.colors.text, fontWeight: tokens.card.emphasisWeight }}>{Math.round(value).toLocaleString('en-US')}{word === 'caffeine' ? ' mg' : ' ml'}</span><span>{word}</span>
-  </div>;
+  const split = (value: number, word: string) => <span key={word}>
+    <span style={{ color: tokens.colors.text, fontWeight: tokens.card.emphasisWeight }}>{Math.round(value).toLocaleString('en-US')}{word === 'caffeine' ? ' mg' : ' ml'}</span>{` ${word}`}
+  </span>;
   return <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between', width: size, height: size, padding: tokens.spacing['card-padding'] * scale, boxSizing: 'border-box', background: tokens.colors.card, color: tokens.colors.text, fontFamily }}>
     <div style={{ display: 'flex', ...text('meta'), color: tokens.colors.muted, letterSpacing: tokens.card.labelTracking * scale, textTransform: 'uppercase' }}>{isDrink ? 'DRANK' : 'CONSUMED'}{time ? ` · ${time}` : ''}</div>
     <div style={{ display: 'flex', flexDirection: 'column', gap: 4 * scale }}>
       <div style={{ display: 'flex', alignItems: 'baseline', gap: 10 * scale }}>
         <div style={{ display: 'flex', ...text('display-card') }}>{isDrink ? Math.round(card.amountMl ?? 0).toLocaleString('en-US') : card.kcal === null ? 'unavailable' : formatCalories(card.kcal)}</div>
-        {isDrink ? <div style={{ display: 'flex', ...text('month'), fontWeight: 400, color: tokens.colors.muted }}>ml</div> : null}
+        {isDrink ? <div style={{ display: 'flex', ...text('body'), fontSize: 17 * scale, fontWeight: 400, color: tokens.colors.muted }}>ml</div> : null}
       </div>
       <div style={{ display: 'flex', ...text('body'), fontWeight: 400, color: tokens.colors.muted }}>{isDrink ? card.drinkLine ?? '' : 'kcal'}</div>
     </div>
@@ -53,7 +53,7 @@ export function ResultsCard({ data, drink, unavailable = [], time, calories = nu
         <span style={text('day-macro')}>{Math.round(card.hydration?.totalMl ?? 0).toLocaleString('en-US')} ml</span>
         <span style={{ ...text('detail'), color: tokens.colors.muted }}>consumed today</span>
       </div>
-      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 24 * scale, ...text('detail'), color: tokens.colors.muted }}>
+      <div style={{ display: 'flex', gap: 24 * scale, ...text('detail'), color: tokens.colors.muted }}>
         {split(card.hydration?.drinksMl ?? 0, 'from drinks')}
         {split(card.hydration?.foodMl ?? 0, 'from food')}
         {(card.caffeineMg ?? 0) > 0 ? split(card.hydration?.caffeineMg ?? 0, 'caffeine') : null}
