@@ -34,6 +34,6 @@ export function drinksFromItems(items: readonly DrinkItem[]): ItemDrink[] {
 }
 export async function syncItemDrinks(db: SupabaseClient, postId: string): Promise<void> {
   const items = await getCurrentItems(db, postId, { requireNutrition: true });
-  const { error, status } = await db.rpc('sync_item_drinks', { p_post_id: postId, p_rows: drinksFromItems(items).map(({ caffeineMg: _caffeineMg, ...row }) => row) });
+  const { error, status } = await db.rpc('sync_item_drinks', { p_post_id: postId, p_rows: drinksFromItems(items).map(row => ({ post_item_id: row.post_item_id, kind: row.kind, amount: row.amount, ml: row.ml, label: row.label })) });
   if (error) throw ioError('Drink records could not be saved.', error, status);
 }
