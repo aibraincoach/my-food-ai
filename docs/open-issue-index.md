@@ -1,6 +1,6 @@
 # GitHub open-issue index
 
-Observed November2, 2026 after the PM gap-closure order. #190/#198/#210/#211/#225 closed with evidence; #11/#22/#212 remain open. This is the live GitHub index, separate from the supplied08:26 WIB [BACKLOG.md](../BACKLOG.md). Tracked findings remain labelled and are not silently promoted into the PM backlog. Implementation does not establish acceptance.
+Observed November 2, 2026 at 10:09 UTC (04:09 MDT) on docs PR #295: 107 issues open, #288–#294 filed from the 17:04 WIB backlog. Earlier note: after the PM gap-closure order. #190/#198/#210/#211/#225 closed with evidence; #11/#22/#212 remain open. This is the live GitHub index, separate from the supplied 17:04 WIB [BACKLOG.md](../BACKLOG.md). Tracked findings remain labelled and are not silently promoted into the PM backlog. Implementation does not establish acceptance.
 
 | Issue | Title | Tracked finding |
 | --- | --- | --- |
@@ -88,3 +88,26 @@ Observed November2, 2026 after the PM gap-closure order. #190/#198/#210/#211/#22
 | #228 | A meal summary's numbers are the calculated totals | no |
 | #229 | Non-admin request to a trace page returns 200 with not-found content instead of 404. | no |
 | #230 | Breakfast matches toast to dried persimmons and coffee null blanks the meal total | no |
+| #272 | The food matcher gives the same answer for the same words | no |
+| #273 | Meals logged on production show zero calories | no |
+| #274 | Uploading a photo shows its progress | no |
+| #275 | A post uploads in the background while the user keeps using the app | no |
+| #276 | Every after-meal photo of a meal can be marked as not eaten | no |
+| #277 | The label for food left on the plate reads "leftovers (not eaten)" | no |
+| #278 | Adding a photo to a post keeps what a not-eaten photo recorded | no |
+| #279 | Sign-up and sign-in resist being hammered | no |
+| #280 | The installed app is accepted on two real phones | no |
+| #281 | A Meta open-weight model identifies the food (hackathon bonus) | no |
+| #282 | The live app keeps working while judges use it | no |
+| #283 | Stored results-card PNGs clip the meal details and leftovers footer | no |
+| #284 | The Meta credit balance and end date are recorded | no |
+| #285 | The owner's own checks before the recording | no |
+| #286 | Rulings waiting on the owner | no |
+| #287 | The README shows judges the three Meta models, the technical depth and what the app does not do | no |
+| #288 | The open-weights trial (#281) has a Modal token | no |
+| #289 | Frames for logging a drink by photo, by tap or by caption | no |
+| #290 | Frames for the capture sheet's modes with Barcode as an obvious choice | no |
+| #291 | Frames for removing and redoing | no |
+| #292 | A photo of a drink adds its volume to hydration and shows its caffeine | no |
+| #293 | A user can remove a photo or correction they added and redo it | no |
+| #294 | The app's words read naturally everywhere | no |

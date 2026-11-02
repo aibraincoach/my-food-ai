@@ -41,6 +41,10 @@ The PM supplied a newer **Nov2 08:26 WIB** backlog after being asked for rev280;
 
 Proposed changes to docs/pm-contract.md and the historical plan’s reference name are prepared only on this draft docs branch. Their text is not live on main until a PM order names the PR and exact head; no merge/deployment is authorized by this handover or gap report. Main/production remain f095afe545a2be099ba6f2fca0b216d273db56e0. One document branch is used; no product source changes or new PR are needed.
 
+## Backlog update — November 2, 17:04 WIB
+
+The PM supplied a newer **Nov2 17:04 WIB** backlog; docs PR #295 (draft-of-record, unmerged, no merge order) commits it verbatim with numbers for seven previously unnumbered items: #288 Modal token, #289–#291 designer frames (drink, capture-sheet modes/Barcode, removing and redoing), #292 drink photo hydration/caffeine, #293 remove a photo or correction, #294 app wording review. PR #270 was already merged (main `487c7e791c794d702a8f4467476a3cba82f4a515`), so the #286 ruling about it is stale. The supplied snapshot omits #280, #284, #26 and #276–#278, which remain open on GitHub; #285 still cites #280. This supersedes the 08:26 snapshot; no code dispatch or merge order exists.
+
 ## Work
 
 Branch from `origin/main`; never commit directly on `main`. One PR per change. Docs-only PRs (only `docs/`, `skills/`, and root `*.md` policy files) need no PPLX/AGY/Codex review.
