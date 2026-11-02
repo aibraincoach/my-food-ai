@@ -1,6 +1,6 @@
 # My Food AI — Backlog†
 
-Last edited: Monday 2026-11-02 at 08:26 WIB (UTC+07:00) by Claude, PM
+Last edited: Monday 2026-11-02 at 12:53 WIB (UTC+07:00) by Claude, PM
 
 ## Backlog
 
@@ -22,7 +22,9 @@ The agent surface (#169) lets an agent log and read meals, but a user has no scr
 
 Nobody has drawn what a user sees while a photo uploads, so the progress bar cannot be built to a frame.
 
-The owner asked on Nov 1 for a progress bar during upload so people know the app is working (see the engineering item on uploading a photo). It shows the upload only, never nutrition, goals or any score. Done when frames at 390x844 are delivered for the capture sheet and the feed card while a photo uploads, and for a failed upload.
+The owner asked on Nov 1 for a progress bar during upload so people know the app is working, and on Nov 2 for people to keep working while a post uploads (see the two engineering items on uploading a photo). It shows the upload only, never nutrition, goals or any score. Done when frames at 390x844 are delivered for the capture sheet and the feed card while a photo uploads, for a failed upload, and for a post that keeps uploading while the user is on another screen.
+
+## Straight to engineering
 
 ## Build the designer's frames
 
@@ -64,6 +66,12 @@ The breakfast logged again on Oct 30 still matched wrong foods and showed no tot
 
 The Oct 30 re-log matched the toast to dried Japanese persimmons, the salad to a fast-food side salad and the black coffee to an entry with no nutrition, so the total was unknown. The cause is shared with the Japanese-dish and totals items. On Nov 1 the breakfast on production matches a plain food for all five items, with no food unavailable, and totals 290.8 kcal in one run and 272.8 kcal in another. Done when the owner accepts the breakfast total.
 
+### The food matcher gives the same answer for the same words
+
+The same food described in different capitals can match in one run and fail in another, and one miss turns a whole meal's total into unavailable.
+
+The planner reports, from the coder's report of Nov 2 at 09:33 WIB, that two identification answers differing only in capitals got different matches: a cheeseburger with lettuce, tomato, onion and pickle matched, and the same words in lowercase did not, so a total of 1,296 kcal became unavailable with a known subtotal of 467 kcal. The coder's harness did not keep the matcher's reason, so whether the matcher is sensitive to capitals or its model-based choice varies between runs is not known. The planner also reports that a dipping sauce matched "Dip, NFS" at 432 kcal per 100 g, about 130 kcal for 30 g. Ask first whether capitals change the match, and keep the matcher's reason. Done when the same words in any capitals give the same match, or the cause is reported and the owner decides.
+
 ### Meals logged on production show zero calories
 
 The owner's latest meals on production show 0 kcal instead of the nutrition of the foods in them.
@@ -88,12 +96,6 @@ A brief rate limit from the Meta Model API should not cost a job attempt, and to
 
 Meta's workshop client sets four retries and a 180-second timeout on the OpenAI SDK client, and the SDK waits as long as the API asks on a 429 or a 503. Set the retry count and the timeout on our client explicitly, in one file, within the serverless function's time limit, so the worker's own retry delay only handles failures that outlast the SDK's. Done when the settings sit in one file and a test through the fake API shows a 429 that carries a wait is retried inside one job attempt.
 
-### A fresh estimate of the same meal repeats more closely
-
-The same caption gives different totals on different runs, and nothing in the identification call tries to prevent it.
-
-On Nov 1 the breakfast came to 290.8 kcal and then 272.8 kcal, and the curry to 971.2 and then 1,229.5. The planner reads the coder's report of Nov 2 as saying that the Meta Model API rejects a seed with a 400 and documents temperature as accepted, confirmed with one live probe and no code change. Whether a lower temperature narrows the swing has not been measured. A client change needs the real-model gate, and the owner decides whether it ships before the Nov 3 freeze. Done when the coder reports the spread of three calls on the cheeseburger-and-fries photo at temperature 0 against three at the default, and the owner has decided.
-
 ## Logging and editing meals
 
 ### #174 Delete a post
@@ -114,11 +116,17 @@ When a user posts a photo, nothing on the screen shows that the upload is under 
 
 The owner asked for this on Nov 1: a progress bar during the upload so people know the app is working. The bar shows the upload only, never nutrition, goals or any score, because the claims rule bans bars that read as progress toward a goal. No designer frame exists for it yet. It sits next to #227, which keeps a failed upload from becoming a post without a photo. Done when a post with a photo on a slow connection shows a progress bar from the start of the upload until it finishes, and the bar is gone once the post appears.
 
+### A post uploads in the background while the user keeps using the app
+
+The app feels slow and clunky, and a user who posts a meal should be able to carry on using the app while the photo uploads and the analysis runs.
+
+The owner asked for this on Nov 2. What happens today when a person taps Post is not known: whether the capture sheet waits for the upload, whether the feed card appears at once, and whether an upload survives leaving the screen or a reload (a draft is held only in memory today, see #227). Observe first on a throttled phone-sized screen and report each. This sits with #217, #222 and the upload progress item; the progress bar and the failed-upload look wait for the designer's frames. Done when a user who taps Post can leave the capture sheet at once and keep using the app while the upload and analysis finish, a failed upload is shown and can be retried, and the coder has reported what each case above did before the change.
+
 ### Every after-meal photo of a meal can be marked as not eaten
 
 When a meal has two plates, only one after-meal photo can be marked as not eaten. The second after-meal photo appears as additional food, and nothing lets you change it.
 
-The owner reported this on Nov 1. He logged two photos before eating as one meal, because there were two plates. After eating, he took one photo of each plate. The first counted as not eaten. The fourth photo of the meal appeared as additional food with no option to select not eaten. The coder reproduced the defect on Nov 2 on the second test account (his report of 07:13 WIB). Whether logging two plates as one meal is a supported use is not known. Done when every after-meal photo in a meal can be marked as not eaten.
+The owner reported this on Nov 1. He logged two photos before eating as one meal, because there were two plates. After eating, he took one photo of each plate. The first counted as not eaten. The fourth photo of the meal appeared as additional food with no option to select not eaten. The coder reproduced the defect on Nov 2: a second after-meal photo added through ordinary Add photo is treated as additional food, and a second photo explicitly marked not eaten is rejected (his reports of 07:13 and 09:33 WIB). Whether logging two plates as one meal is a supported use is not known. Done when every after-meal photo in a meal can be marked as not eaten.
 
 ### The label for food left on the plate reads "leftovers (not eaten)"
 
@@ -130,7 +138,7 @@ The owner says people elsewhere call this "leftovers (not eaten)". This replaces
 
 When a post has a not-eaten photo, adding a plain photo to it afterwards wipes the leftover quantities and the card footer.
 
-The planner reports that the coder reproduced this on Nov 2 on the second test account: after the third photo is added, the leftover quantities and the footer are gone while the third photo still carries its "Not eaten" label. The planner reads the cause as the correction job replacing the items without carrying the leftover fields; the coder has not confirmed that. A post holds one leftover today. Done when a post with a not-eaten photo keeps its leftover quantities and footer after another photo is added, and a test proves it.
+The coder reproduced this on production on the second test account on Nov 2 (his report of 09:33 WIB): the meal's total went from 314 to 767 kcal, the leftover quantities became empty and the card footer disappeared, while the earlier photo's "Not eaten" label stayed. The correction worker and its SQL replacement leave out the leftover fields. A second after-meal photo added through ordinary Add photo takes the same path. A post holds one leftover today. Done when a post with a not-eaten photo keeps its leftover quantities and footer after another photo is added, and a test proves it.
 
 ## Meal screens and feed
 
@@ -214,6 +222,12 @@ The sign-in page and the sign-up page render unstyled.
 
 Restyle both from the designer's frames using the theme tokens and shared components: the brand mark, the email, handle and password fields, the primary button, the line that switches between the two screens, and the Facebook button only under the existing flag. Done when both pages match the frames at 390 px wide in light mode, built from tokens and shared components, and signing in and signing up still work.
 
+### Sign-up and sign-in resist being hammered
+
+Anyone can send sign-up and sign-in requests as fast as a script can, to guess passwords, create accounts in bulk or run up the email and model bills, and nobody has shown what stops them.
+
+Supabase Auth limits requests per IP address and supports the hCaptcha and Cloudflare Turnstile CAPTCHAs (Supabase docs), and some of its limits can be changed in the dashboard. Nobody has recorded what the production project has set, whether a CAPTCHA is on, or whether a new account's posts, which spend Meta credits, are limited. Observe first: report the Auth limits the production project has set, the CAPTCHA state, what a script that sends sign-ups and sign-ins faster than a person receives, and how many posts a new account can make. Done when those are reported and a script that hammers sign-up and sign-in is refused.
+
 ### #11 Home screen matches the designer's frames
 
 Home renders unstyled.
@@ -294,7 +308,7 @@ The coder's read-only assessment of main on 2026-10-28 found no committed secret
 
 The submission needs a public repo, a video, and a write-up that names what was built during the event.
 
-The owner records the video on Nov 4; the write-up goes in README.md. Script: open on the Cal AI timeline ("50 screens and 22 minutes before my first log, 11:45 to 12:07"), cut to sign-in → camera → post in ten seconds, show the SAM outlines on the detail, make a correction and show the thread keeping both versions, show the needs-input strip, close on Days. The write-up states everything was built Oct 26 to Nov 4 on the Meta Model API with SAM 3.1 and Muse Spark 1.3, lists the three Meta model calls, and says what the app does not do. The Most Viral prize ($20,000) counts likes, reposts and comments on X through the end of Nov 8, so the video goes on X as soon as it exists; whether the post must exist before the submission deadline is unconfirmed. No merges or deploys from the start of recording until the submission is in. The owner chooses the account to record on before recording. On Nov 1 the coder counted 146 posts and 83 unavailable foods on the first test account and 20 posts and 5 unavailable on the owner's account. The second test account was the cleanest on Nov 1 with 5 posts and none unavailable; by the coder's report of Nov 2 07:13 WIB it holds 13 posts, 10 ready, after eight test posts made for the rehearsal, and removing them is in the coder's current order. A fresh estimate does not repeat exactly, so a same-meal-again moment uses Log again, and the script keeps out the cheeseburger-and-fries photo that failed the ten-photo identification gate on Nov 1. The coder timed the script on the current interface on Nov 2 at 60.420 seconds (his report; the pre-Run 5 rehearsal took 51.287). The script he timed is the one above; the planner notes it has no drink post, barcode or label, not-eaten photo or saved list, so none of the Run 5 screens beyond Log again are in it yet. Done when the video is under three minutes and the write-up is in README.md.
+The owner records the video on Nov 4; the write-up goes in README.md. Script: open on the Cal AI timeline ("50 screens and 22 minutes before my first log, 11:45 to 12:07"), cut to sign-in → camera → post in ten seconds, show the SAM outlines on the detail, make a correction and show the thread keeping both versions, show the needs-input strip, close on Days. The write-up states everything was built Oct 26 to Nov 4 on the Meta Model API with SAM 3.1 and Muse Spark 1.3, lists the three Meta model calls, and says what the app does not do. The Most Viral prize ($20,000) counts likes, reposts and comments on X through the end of Nov 8, so the video goes on X as soon as it exists; whether the post must exist before the submission deadline is unconfirmed. No merges or deploys from the start of recording until the submission is in. The owner chooses the account to record on before recording. On Nov 1 the coder counted 146 posts and 83 unavailable foods on the first test account and 20 posts and 5 unavailable on the owner's account. The second test account holds 5 posts, 4 ready and 1 needing input, none with an unavailable food; the coder added eight test posts to it for the rehearsal on Nov 2 and removed all eight again by 08:41 WIB, so its feed has four cards and one question strip. A fresh estimate does not repeat exactly, so a same-meal-again moment uses Log again, and the script keeps out the cheeseburger-and-fries photo that failed the ten-photo identification gate on Nov 1. The coder timed the script on the current interface on Nov 2 at 60.420 seconds against 51.287 for the pre-Run 5 rehearsal; by his report the longest growing interval is the wait from publication to ready, 9.537 seconds longer, on a different food, while other intervals shortened. The script he timed is the one above; the planner notes it has no drink post, barcode or label, not-eaten photo or saved list, so none of the Run 5 screens beyond Log again are in it yet. Done when the video is under three minutes and the write-up is in README.md.
 
 ### The live app keeps working while judges use it
 
@@ -308,7 +322,7 @@ The owner was told the $150 hackathon credits do not extend through judging and 
 
 Public sign-in with Facebook needs the app submitted for Meta app review, which takes longer than the event.
 
-Blocked by Meta app review. Dev mode works for the developer's own and test accounts, which is enough for the demo.
+Blocked by Meta app review. Dev mode works for the developer's own and test accounts, which is enough for the demo. The owner wants the Facebook button on the sign-in page for show and does not intend it to go live for the hackathon. Facebook Login is the Meta sign-in that exists and Supabase supports it. While a Facebook app is in Development mode only people with a role on the app can sign in, and everyone else sees an "App Not Setup" error (Supabase docs), so a judge who taps the button would see an error. Instagram has no sign-in for consumer apps: Meta shut the Instagram Basic Display API on Dec 4, 2024 and tells developers to use Facebook Login for authentication, and its newer Instagram login serves business and creator accounts. No Instagram button is added, and no separate Meta-account sign-in was found. Whether the button shows today, and what a person without a role sees when tapping it, is not known. Done when the coder reports what the button shows and does today and the owner has decided what a judge who taps it sees.
 
 ### #115 Dark mode
 
