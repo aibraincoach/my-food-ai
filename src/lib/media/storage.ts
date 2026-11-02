@@ -25,8 +25,8 @@ export async function signShotUploads(
     const originalPath = `${userId}/${postId}/${position}.jpg`;
     const feedPath = `${userId}/${postId}/${position}.feed.jpg`;
     const [original, feed] = await Promise.all([
-      supabase.storage.from(BUCKET).createSignedUploadUrl(originalPath),
-      supabase.storage.from(BUCKET).createSignedUploadUrl(feedPath),
+      supabase.storage.from(BUCKET).createSignedUploadUrl(originalPath, { upsert: true }),
+      supabase.storage.from(BUCKET).createSignedUploadUrl(feedPath, { upsert: true }),
     ]);
     if (original.error || !original.data) {
       throw new Error(original.error?.message ?? "sign-upload: original URL failed.");

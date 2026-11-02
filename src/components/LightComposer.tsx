@@ -41,7 +41,7 @@ export default function LightComposer(p:Props) {
       </div>)}
      {p.shots.length<8&&<button type="button" onClick={photo} disabled={p.busy} aria-label="Take another photo" className="flex h-[232px] w-[200px] shrink-0 snap-center items-center justify-center rounded-card border-[1.5px] border-dashed border-ring"><Icon name="plus" size={28}/></button>}
     </div>}
-    {p.upload&&(p.upload.state!=='uploaded'||uploadedVisible)&&<p className="mt-2 text-center text-meta text-muted" role="status">{p.upload.state==='failed'?'Upload failed':p.upload.state==='uploaded'?'Uploaded':p.shots.length>1?`Uploading ${p.shots.length} photos…`:'Uploading photo…'}</p>}
+    {p.upload&&(p.upload.state!=='uploaded'||uploadedVisible)&&<p className="mt-2 text-center text-detail text-muted" role="status">{p.upload.state==='failed'?'Upload failed':p.upload.state==='uploaded'?'Uploaded':p.shots.length>1?`Uploading ${p.shots.length} photos…`:'Uploading photo…'}</p>}
    </div>}
    {p.shots.length>1&&p.index>0&&p.index<p.shots.length&&<div className={`mx-inset mt-3 flex items-center gap-[14px] rounded-card px-inset py-3 ${on?'bg-text text-surface':'bg-card'}`}>
     <div className="min-w-0 flex-1"><p className="text-body">leftovers (not eaten)</p><p className={`mt-1 text-meta leading-[1.4] ${on?'text-faint':'text-muted'}`}>{on?'The photographed leftovers are subtracted from the meal. Each marked photo is recorded.':'Off: this photo shows the meal. On: this photo shows leftovers, subtracted once from the meal.'}</p></div>

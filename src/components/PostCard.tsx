@@ -84,7 +84,7 @@ export default function PostCard({ post, showDate = false, upload }: { upload?:U
     <div inert={Boolean(upload&&!upload.postId)} className={upload&&!upload.postId?"pointer-events-none opacity-50":undefined}><PostActions postId={post.id} modelCommentId={post.modelCommentId??null} fingerprint={post.analysisFingerprint??null} drink={hasDrink} saved={Boolean(record.saved_meal_id)} slides={drink?1:post.slides?.length??1} index={slide}/></div>
     <div className="flex flex-col gap-1 px-inset pt-[10px]">
       <PostCaption handle={handle} caption={upload&&!upload.postId?upload.caption:post.caption}/>
-      {upload&&!upload.postId?<p className="text-meta text-muted">{upload.state==='failed'?'Not posted yet. The photo is kept on this phone.':'Uploading photo…'}</p>:post.status==='ready'&&post.items.length>0 ? <Link href={`/posts/${post.id}`} className="text-detail leading-[1.4] text-muted">{summaryLine(displayRecord,drink)} <span className="text-text">more</span></Link> : <StatusLine post={post}/>}
+      {upload&&!upload.postId?<p className="text-detail text-muted">{upload.state==='failed'?'Not posted yet. The photo is kept on this phone.':'Uploading photo…'}</p>:post.status==='ready'&&post.items.length>0 ? <Link href={`/posts/${post.id}`} className="text-detail leading-[1.4] text-muted">{summaryLine(displayRecord,drink)} <span className="text-text">more</span></Link> : <StatusLine post={post}/>}
       <time dateTime={post.eaten_at} className="text-meta text-muted">{upload&&!upload.postId?"Just now":showDate ? localDate : localClock}</time>
     </div>
   </article>;
