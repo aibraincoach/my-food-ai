@@ -185,7 +185,7 @@ export default function DaysView({ initialMonths, earliest, today, zone, initial
     <TopBar className="sticky top-0 z-10 bg-surface" title={<h1 className="text-month">Days</h1>}
       left={<Link href="/" className="flex min-h-tap items-center text-body" style={{ marginLeft: -tokens.spacing["tooltip-y"] }}><Icon name="back" size={tokens.radii.pill} strokeWidth={tokens.icon.strongStroke} />Feed</Link>}
       right={<button type="button" onClick={() => { void showMenu(); }} className="flex min-h-tap items-center gap-1 text-detail text-muted" style={{ marginRight: -tokens.spacing.grid * 2 }}>{top.slice(0, 4)}<Icon name="chevron-down" /></button>} />
-    <div className="desktop:flex desktop:items-start desktop:justify-center desktop:gap-6"><div className="flex flex-col pt-1 desktop:w-[616px] desktop:min-w-0 desktop:flex-1" style={{ gap: tokens.spacing["icon-small"] + tokens.spacing.grid }}>
+    <div className="desktop:flex desktop:items-start desktop:justify-center desktop:gap-6"><div className="flex flex-col pt-1 desktop:w-[616px] desktop:min-w-0 desktop:flex-1 desktop:max-w-[616px]" style={{ gap: tokens.spacing["icon-small"] + tokens.spacing.grid }}>
       {displayed.map(month => <MonthGrid key={month} month={month} summary={months[month]} today={today} selected={selected} onDay={date => { if(activeRef.current?.date!==date)void openDay(date); }} />)}
       <div ref={tail} className="px-screen-x text-month text-faint" style={{ minHeight: tokens.spacing.tap }}>{monthName(shiftMonth(last, -1), true)}</div>
     </div>

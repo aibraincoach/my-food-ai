@@ -35,5 +35,5 @@ body {
 
 @media (min-width: 1024px) {
   .desktop-capture { height:100dvh !important; top:0 !important; display:flex; align-items:center; justify-content:center; padding:24px; background:var(--color-scrim-32); }
-  .desktop-capture-inner { height:auto; max-height:calc(100dvh - 48px); width:760px; border-radius:14px; overflow-y:auto; }
+  .desktop-capture-inner { background:var(--color-surface); height:auto; max-height:calc(100dvh - 48px); width:760px; border-radius:14px; overflow-y:auto; }
 }
