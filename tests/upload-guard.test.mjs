@@ -1,6 +1,7 @@
 // node --import tsx --env-file=.env.local --test tests/upload-guard.test.mjs
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import {reserveUpload} from '../src/lib/posts/upload-draft.ts';
 import {signShotUploads} from '../src/lib/media/storage.ts';
 import {PostUploadDraft} from '../src/lib/posts/create.ts';
 import {UploadManager} from '../src/lib/posts/upload-manager.ts';
@@ -52,7 +53,7 @@ test('two-shot reservation refuses publication with only one stored object (2202
   checked(await db.rpc('reserve_post_upload_with_leftovers',{p_operation_id:id,p_user_id:owner.id,p_caption:'upload guard test',p_eaten_at:new Date().toISOString(),p_shots:shots,p_location:null,p_save_as_meal:false,p_render_zone:'UTC',p_not_eaten_positions:[]}));
   checked(await db.storage.from('media').upload(`${base}/0.jpg`,new Blob(['test-object'],{type:'image/jpeg'})));
   // Staging must be able to refresh metadata/capabilities after an earlier PUT succeeded.
-  const renewed=await signShotUploads(client,owner.id,id,[0,1]);assert.equal(renewed.length,2);
+  const renewed=await reserveUpload(db,client,owner.id,{operationId:id,caption:'upload guard test',eatenAt:new Date().toISOString(),shots,location:null,notEatenPositions:[],saveAsMeal:false,renderZone:'UTC'});assert.equal(renewed.uploads.length,2);
   const {client:other}=await user(2);await assert.rejects(signShotUploads(other,owner.id,id,[0]),/row.level security/i);
   const result=await db.rpc('publish_uploaded_post',{p_operation_id:id,p_user_id:owner.id});assert.equal(result.error?.code,'22023');assert.match(result.error.message,/incomplete/i);
   const post=checked(await db.from('posts').select('status').eq('id',id).maybeSingle());assert.equal(post,null);
