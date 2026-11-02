@@ -88,6 +88,15 @@ export default function DaysView({ initialMonths, earliest, today, zone, initial
     }
     finally { if (request === dayRequest.current) setLoadingDay(false); }
   }, [today, url, loadThrough, scrollMonth]);
+  useEffect(()=>{
+    const refresh=()=>{
+      router.refresh();
+      for(const month of Object.keys(monthsRef.current))void fetch(url(`/api/days?month=${month}`),{cache:'no-store'}).then(async response=>{if(!response.ok)return;const summary:MonthSummary=await response.json();monthsRef.current={...monthsRef.current,[month]:summary};setMonths(monthsRef.current);}).catch(()=>{});
+      if(activeRef.current)void openDay(activeRef.current.date,false);
+    };
+    window.addEventListener('post-deleted',refresh);
+    return()=>window.removeEventListener('post-deleted',refresh);
+  },[router,url,openDay]);
   // Readiness refreshes supply new server props without discarding months already read.
   useEffect(() => {
     monthsRef.current = { ...monthsRef.current, ...initialMonths };

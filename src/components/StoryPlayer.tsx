@@ -21,6 +21,7 @@ const readWidth = () => Math.min(tokens.spacing.phone, window.innerWidth);
 const serverWidth = () => tokens.spacing.phone;
 
 export default function StoryPlayer({ day, zone, onClose, onDay, cell }: { day: LoggedDay; zone: string; onClose: () => void; onDay: (date: string) => void; cell: () => DOMRect | undefined }) {
+  useEffect(()=>{const refresh=()=>onDay(day.date);window.addEventListener('post-deleted',refresh);return()=>window.removeEventListener('post-deleted',refresh);},[day.date,onDay]);
   const clockZone=useDeviceTimeZone();
   const width = useSyncExternalStore(subscribeWidth, readWidth, serverWidth);
   const dialog = useRef<HTMLDialogElement>(null);

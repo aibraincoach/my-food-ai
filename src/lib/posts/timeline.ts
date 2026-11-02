@@ -1,7 +1,7 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { ioError } from '../worker/errors';
 type Cursor = { id: string; created_at: string };
-export type TimelineComment = Cursor & { author: 'user' | 'model'; body: string };
+export type TimelineComment = Cursor & { author: 'user' | 'model'; body: string; reverted_at?:string|null };
 type Progress = Cursor & { payload: Record<string, unknown> };
 // Continue until an empty page, including when the server caps pages below our
 // requested size. Both columns are immutable and id breaks timestamp ties.
@@ -20,5 +20,5 @@ async function readTimeline<T extends Cursor>(client: SupabaseClient, table: str
   rows.push(...page);cursor=last;
  }
 }
-export const readPostComments=(client:SupabaseClient,postId:string)=>readTimeline<TimelineComment>(client,'post_comments','id,author,body,created_at',postId);
+export const readPostComments=(client:SupabaseClient,postId:string)=>readTimeline<TimelineComment>(client,'post_comments','id,author,body,created_at,reverted_at',postId);
 export const readCorrectionProgress=(client:SupabaseClient,postId:string)=>readTimeline<Progress>(client,'jobs','id,created_at,payload',postId,true);

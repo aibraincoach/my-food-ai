@@ -9,6 +9,15 @@ const cleanup: JobHandler = async (admin, job) => {
   const validPath = (path: unknown): path is string => typeof path === "string" && path.startsWith(`${prefix}/`) && !path.split("/").includes("..");
   if (!paths.every(validPath)) throw new Error("Invalid media cleanup paths.");
   if(job.payload.exact===true){
+    if(isUuid(job.payload.removed_media_id)){
+      if(paths.length!==2||!paths.every(path=>new RegExp(`^${prefix}/[0-9]+(?:[.]feed)?[.]jpg$`).test(path))||!paths.some(path=>!path.endsWith('.feed.jpg')&&paths.includes(path.replace(/\.jpg$/,'.feed.jpg'))))throw Error('Invalid removed-photo cleanup.');
+      const {data:claimed,error:claimError,status:claimStatus}=await admin.from('post_media').select('id').or(`id.eq.${job.payload.removed_media_id},storage_path.in.(${paths.join(',')})`).limit(1);
+      if(claimError)throw ioError('Removed photo references could not be checked.',claimError,claimStatus);
+      if(claimed?.length)return;
+      const {error}=await admin.storage.from('media').remove(paths);
+      if(error)throw ioError('Removed photo could not be deleted.',error);
+      return;
+    }
     // Added photos reserve only these two destinations before copying. Never
     // list or remove the rest of an existing meal's directory.
     if(!isUuid(job.payload.attachment_id)||paths.length!==2||!paths.every(path=>new RegExp(`^${prefix}/[0-9]+(?:[.]feed)?[.]jpg$`).test(path)))throw Error("Invalid attachment cleanup.");
