@@ -34,17 +34,19 @@ export default function TokenShown({ token, name }: { token: string; name: strin
   }, []);
   const leave = () => { mayLeave.current = true; router.replace(destination.current); };
   return <main className="mx-auto flex min-h-dvh w-full max-w-phone flex-col bg-surface text-text">
-    <TopBar title={name} />
-    <div className="flex flex-col gap-5 px-screen-x py-5">
-      <h1 className="text-body font-semibold">Token created</h1>
-      <p className="text-detail text-muted">Copy it and paste it into the agent&apos;s settings. For your security it is shown only this once.</p>
-      <input aria-label="Agent token" readOnly onCopy={() => { setCopied(true); mayLeave.current = true; }} value={token} className="h-[48px] min-w-0 rounded-[12px] bg-field px-3 font-mono text-[13px]" onFocus={event => event.currentTarget.select()} />
-      <Button onClick={async () => { try { await navigator.clipboard.writeText(token); setCopied(true); mayLeave.current = true; setCopyLabel(true); clearTimeout(timeout.current); timeout.current = setTimeout(() => setCopyLabel(false), 2000); } catch { setError('The token could not be copied. Select it and copy it.'); } }}>{copyLabel ? 'Copied' : 'Copy token'}</Button>
+    <TopBar title={name} className="[&>div:nth-child(2)]:min-w-0 [&>div:nth-child(2)]:truncate" />
+    <div className="flex flex-col gap-4 px-screen-x pt-7">
+      <h1 className="text-title">Token created</h1>
+      <p className="text-[15px] leading-[1.5] text-muted">Copy it and paste it into the agent&apos;s settings. For your security it is shown only this once.</p>
+      <div className="flex flex-col gap-[14px] rounded-[14px] bg-field p-4">
+      <textarea rows={2} aria-label="Agent token" readOnly onCopy={() => { setCopied(true); mayLeave.current = true; }} value={token} className="h-[48px] min-w-0 resize-none border-0 bg-transparent p-0 font-mono text-[13px] leading-[1.5] outline-none" onFocus={event => event.currentTarget.select()} />
+      <Button style={{ height: 44 }} onClick={async () => { try { await navigator.clipboard.writeText(token); setCopied(true); mayLeave.current = true; setCopyLabel(true); clearTimeout(timeout.current); timeout.current = setTimeout(() => setCopyLabel(false), 2000); } catch { setError('The token could not be copied. Select it and copy it.'); } }}><span className="flex items-center justify-center gap-2"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V5a1 1 0 0 0-1-1H5a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h3"/></svg>{copyLabel ? 'Copied' : 'Copy token'}</span></Button>
+      </div>
       {error && <p role="alert" className="text-meta text-muted">{error}</p>}
-      <p className="text-meta text-muted">If you lose it, revoke this one and create another.</p>
-      <Button variant="secondary" onClick={() => copied ? leave() : setLeaving(true)}>Done</Button>
+      <p className="text-[13px] leading-[1.5] text-muted">If you lose it, revoke this one and create another.</p>
     </div>
-    <Sheet open={leaving} onClose={() => setLeaving(false)} label="You won't see this token again">
+    <div className="mt-auto px-inset pt-6 pb-[calc(34px+env(safe-area-inset-bottom))]"><Button variant="secondary" style={{ borderColor: 'var(--color-text)', borderWidth: 1.5, height: 50, borderRadius: 14 }} onClick={() => copied ? leave() : setLeaving(true)}>Done</Button></div>
+    <Sheet hideClose panelStyle={{ gap: 14, paddingTop: 10, paddingBottom: 'calc(40px + env(safe-area-inset-bottom))' }} open={leaving} onClose={() => setLeaving(false)} label="You won't see this token again">
       <h2 className="text-sheet-head">You won&apos;t see this token again</h2>
       <Button onClick={leave}>Leave</Button><Button variant="secondary" onClick={() => setLeaving(false)}>Stay</Button>
     </Sheet>

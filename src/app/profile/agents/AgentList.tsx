@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useDeviceTimeZone } from '@/components/LocalTime';
+import { Icon } from '@/components/ui/Icon';
 import { TopBar } from '@/components/ui/TopBar';
 import RevokeSheet from './RevokeSheet';
 export type AgentListToken = { id: string; name: string; token_last4: string; created_at: string; last_used_at: string | null; revoked_at: string | null };
@@ -17,20 +18,20 @@ export default function AgentList({ tokens, activity }: { tokens: AgentListToken
     return `${day}${withTime ? `, ${date.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' })}` : ''}`;
   };
   return <main className="mx-auto flex min-h-dvh w-full max-w-phone flex-col bg-surface text-text">
-    <TopBar title="" left={<Link href="/profile" className="text-detail">‹ Profile</Link>} />
-    <div className="flex flex-col gap-5 px-screen-x pb-8"><h1 className="text-title">Agents</h1>
-      {tokens.map(token => <section key={token.id} className={`flex flex-col gap-3 rounded-[14px] border border-hairline p-4 ${token.revoked_at ? 'text-muted' : ''}`}>
-        <h2 className="text-body font-semibold">{token.name}</h2>
+    <TopBar title={<h1>Agents</h1>} left={<Link href="/profile" className="flex h-tap items-center text-[15px]"><Icon name="back" size={22}/>Profile</Link>} right={<span className="w-[70px]"/>} />
+    <div className="flex flex-col gap-5 px-inset pt-3 pb-8">
+      {tokens.map(token => <section key={token.id} className={`flex flex-col gap-3 rounded-[14px] border border-line bg-white p-4 ${token.revoked_at ? 'text-muted' : ''}`}>
+        <h2 className="break-words text-[17px] font-semibold">{token.name}</h2>
         <p className="text-meta text-muted">Connected {stamp(token.created_at)} · token ending {token.token_last4}</p>
         {token.last_used_at && <p className="text-meta text-muted">Last used {stamp(token.last_used_at, true)}</p>}
         {token.revoked_at && <p className="text-meta text-muted">Revoked {stamp(token.revoked_at, true)}</p>}
         <p className="pt-2 text-meta tracking-wider text-muted">Activity</p>
-        <ul className="flex flex-col gap-3">{activity.filter(row => row.token_id === token.id).map(row => {
+        <ul className="flex flex-col">{activity.filter(row => row.token_id === token.id).map(row => {
           const caption = row.caption ? ` · ${row.caption}` : '';
           const label = row.action === 'posted' ? `Posted a meal${caption}` : row.action === 'read' ? `Read a meal${caption}` : row.action === 'corrected' ? `Corrected a meal${caption}` : `Read ${row.meal_count ?? 0} ${(row.meal_count ?? 0) === 1 ? 'meal' : 'meals'}`;
-          return <li key={row.id} className="flex items-baseline justify-between gap-2 text-meta"><span className="min-w-0">{row.action === 'posted' && row.post_id ? <Link href={`/posts/${row.post_id}`} className="underline underline-offset-2">{label}</Link> : label}</span><time dateTime={row.created_at} className="shrink-0 text-[12px] text-muted">{local ? new Date(row.created_at).toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' }) : ''}</time></li>;
+          return <li key={row.id} className="flex min-h-[48px] items-center justify-between gap-3 border-b border-hairline text-[14px]"><span className="min-w-0 break-words">{row.action === 'posted' && row.post_id ? <Link href={`/posts/${row.post_id}`} className="underline underline-offset-2">{label}</Link> : label}</span><time dateTime={row.created_at} className="shrink-0 text-[12px] text-muted">{local ? new Date(row.created_at).toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' }) : ''}</time></li>;
         })}</ul>
-        {!token.revoked_at && <button className="min-h-tap self-start text-detail" style={{ color: 'oklch(0.52 0.17 25)' }} onClick={() => setSelected(token)}>Revoke token</button>}
+        {!token.revoked_at && <button className="min-h-[52px] self-start text-[15px]" style={{ color: 'oklch(0.52 0.17 25)' }} onClick={() => setSelected(token)}>Revoke token</button>}
       </section>)}
       <Link href="/profile/agents/new" className="flex h-field-h items-center justify-center rounded-field border border-line bg-white text-body font-semibold">Connect another agent</Link>
     </div>
