@@ -1,6 +1,6 @@
 # GitHub open-issue index
 
-Observed November1, 2026, 15:18 UTC. This is the live GitHub index, separate from the owner-supplied ordered [BACKLOG.md](../BACKLOG.md). Tracked findings remain labelled and are not silently promoted into the PM backlog. Implementation does not establish acceptance.
+Observed November2, 2026 after the PM gap-closure order. #190/#198/#210/#211/#225 closed with evidence; #11/#22/#212 remain open. This is the live GitHub index, separate from the supplied08:26 WIB [BACKLOG.md](../BACKLOG.md). Tracked findings remain labelled and are not silently promoted into the PM backlog. Implementation does not establish acceptance.
 
 | Issue | Title | Tracked finding |
 | --- | --- | --- |
@@ -72,12 +72,8 @@ Observed November1, 2026, 15:18 UTC. This is the live GitHub index, separate fro
 | #181 | A food with several cup or piece portions uses the right one | yes |
 | #182 | The servings stepper does not act on a stale value while the page refreshes | yes |
 | #189 | A logged Japanese breakfast shows toast, ham and coffee weights the owner accepts | no |
-| #190 | docs/eval.md records production results for ten licensed meal photos | no |
 | #192 | A processing post's photo loads once with no visible reload | no |
 | #193 | Every screen is compared to designer frames and differences are listed | no |
-| #198 | Saved meals and Log again have designer frames at 390×844 | no |
-| #210 | Frames for a nutrition label and for correcting a scanned product | no |
-| #211 | Frames for the day's hydration on a drink post's card | no |
 | #212 | The regular camera reads a barcode and a nutrition label | no |
 | #215 | Thumbs up and down respond at the tap | no |
 | #216 | Sign out finishes | no |
@@ -87,7 +83,6 @@ Observed November1, 2026, 15:18 UTC. This is the live GitHub index, separate fro
 | #222 | Photos and cards load fast | no |
 | #223 | A user can edit a post caption | no |
 | #224 | Times use the user's time zone | no |
-| #225 | One unmatched food does not blank a meal's totals | no |
 | #226 | Japanese dishes match the right foods | no |
 | #227 | A photo that does not upload never becomes a post without one | no |
 | #228 | A meal summary's numbers are the calculated totals | no |

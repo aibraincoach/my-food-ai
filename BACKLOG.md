@@ -1,6 +1,6 @@
 # My Food AI — Backlog†
 
-Last edited: Sunday 2026-11-01 at 21:57 WIB (UTC+07:00) by Claude, PM
+Last edited: Monday 2026-11-02 at 08:26 WIB (UTC+07:00) by Claude, PM
 
 ## Backlog
 
@@ -38,7 +38,7 @@ The scanner was merged in PR #165 on the Search tab and is untested on a phone. 
 
 The owner logged Japanese toast, a small slice of ham, a small salad, one scrambled egg and a coffee, and the app showed 725 kcal. It put the toast at 348 kcal, the ham at 50 g even after a correction, and the coffee at 180 g.
 
-The owner's breakfast showed 725 kcal on Oct 29 because the salad, coffee and egg matched dressing, soymilk and ketchup. Matching has been fixed since (#197, #236, #246 to #255). On Nov 1 the same breakfast and curry on production match every food, but the totals differ between runs. The breakfast came to 290.8 kcal and then 272.8 kcal, because the scrambled egg picked a different reference. The curry came to 971.2 kcal and then 1,229.5 kcal, because its portions changed. Portions are model estimates and generic references do not establish the exact recipe. The issue was closed by a keyword without the owner's acceptance and was reopened on Oct 31. Done when the owner accepts the totals and the weights of the meal logged again for a slice of toast, a small slice of ham and a coffee.
+The owner's breakfast showed 725 kcal on Oct 29 because the salad, coffee and egg matched dressing, soymilk and ketchup. Matching has been fixed since (#197, #236, #246 to #255). On Nov 1 the same breakfast and curry on production match every food, but the totals differ between runs. The coder explained both: the breakfast came to 290.8 kcal and then 272.8 kcal because the 50 g scrambled egg picked a different reference (92.5 kcal, then 74.5 kcal); the curry came to 971.2 kcal and then 1,229.5 kcal because the cutlet, sauce and rice portions rose and the cutlet's reference changed. A fresh estimate does not repeat exactly, while Saved meals and Log again copy stored quantities and nutrition. The issue was closed by a keyword without the owner's acceptance and was reopened on Oct 31. Done when the owner accepts the totals and the weights of the meal logged again for a slice of toast, a small slice of ham and a coffee.
 
 ### #226 Japanese dishes match the right foods in the food database
 
@@ -50,7 +50,7 @@ The coder's check of Oct 29 found the tonkatsu matched to a sauce, the Japanese 
 
 A post made with a photo can reach the server with no photo and be analysed as text only, and nobody is told.
 
-The owner photographed his meal and posted it on Oct 29 at 17:20 JST from his phone, on a slow roaming connection in Japan. The coder's check on production at 18:30 JST found no photo row and no photo in storage for that post, an analysis request with text and no image, no segmentation call and no storage request for a photo upload; the post's only image is the generated results card. The cause is not known: the camera image may never have been attached, or the upload may have failed on the slow connection while the post went ahead. Observe first: post from the capture sheet with a photo on a throttled connection and with the connection cut during the upload, and report what the app sends. Done when a post made with a photo either has its photo stored or shows the user that the upload failed and keeps the photo for a retry, and never becomes a caption-only post silently.
+The owner photographed his meal and posted it on Oct 29 at 17:20 JST from his phone, on a slow roaming connection in Japan. The coder's check on production at 18:30 JST found no photo row and no photo in storage for that post, an analysis request with text and no image, no segmentation call and no storage request for a photo upload; the post's only image is the generated results card. The cause is not known: the camera image may never have been attached, or the upload may have failed on the slow connection while the post went ahead. On Nov 1 a two-photo post failed with a 409 on its upload reservation. Nearby production logs show a reservation statement timeout that the route hides behind a generic 409, but the request carried no correlation evidence, so the cause is not proven. The failed submission created no post and kept both photos at first; a later navigation discarded the draft, which is held only in memory, and nobody has shown that retrying the original operation is safe. Observe first: post from the capture sheet with a photo on a throttled connection and with the connection cut during the upload, and report what the app sends. Done when a post made with a photo either has its photo stored or shows the user that the upload failed and keeps the photo for a retry, and never becomes a caption-only post silently.
 
 ### #228 A meal summary's numbers are the calculated totals
 
@@ -68,7 +68,7 @@ The Oct 30 re-log matched the toast to dried Japanese persimmons, the salad to a
 
 The owner's latest meals on production show 0 kcal instead of the nutrition of the foods in them.
 
-The owner reported this on Nov 1 at 17:45 WIB, after the speed fix (#256) and the matching fixes. The cause is not known. A meal in which every food is left unavailable may be adding up to zero instead of showing unknown, a total may be written as zero when the items are missing, or the analysis may have stored no items. Observe the owner's latest posts first and report what each one stored. Done when a meal shows its calories or names the foods it could not total, and no meal shows a bare zero for foods that have nutrition.
+The owner reported this on Nov 1 at 17:45 WIB, after the speed fix (#256) and the matching fixes. After #269 and #266 were deployed the coder rechecked his meals on production: they hold item rows, and the bare zeros did not reproduce, so the original cause is unproven. The coder fixed three zero-display defects: a positive value under 1 kcal rounded to zero (it now reads "<1 kcal"), an empty total became zero, and a Days total started from zero when a food's nutrition was unknown. Both shrimp rice noodle rolls and a pastry still show nutrition as unavailable, and no nutrition was invented. Done when the owner's meals on production show their calories or name the foods that could not be totalled, and no meal shows a bare zero for foods that have nutrition.
 
 ### #139 A held worker lease renews for its full time
 
@@ -87,6 +87,12 @@ Meta's workshop repository ships a scripted offline model for its tests: a real 
 A brief rate limit from the Meta Model API should not cost a job attempt, and today that depends on defaults nobody set.
 
 Meta's workshop client sets four retries and a 180-second timeout on the OpenAI SDK client, and the SDK waits as long as the API asks on a 429 or a 503. Set the retry count and the timeout on our client explicitly, in one file, within the serverless function's time limit, so the worker's own retry delay only handles failures that outlast the SDK's. Done when the settings sit in one file and a test through the fake API shows a 429 that carries a wait is retried inside one job attempt.
+
+### A fresh estimate of the same meal repeats more closely
+
+The same caption gives different totals on different runs, and nothing in the identification call tries to prevent it.
+
+On Nov 1 the breakfast came to 290.8 kcal and then 272.8 kcal, and the curry to 971.2 and then 1,229.5. The planner reads the coder's report of Nov 2 as saying that the Meta Model API rejects a seed with a 400 and documents temperature as accepted, confirmed with one live probe and no code change. Whether a lower temperature narrows the swing has not been measured. A client change needs the real-model gate, and the owner decides whether it ships before the Nov 3 freeze. Done when the coder reports the spread of three calls on the cheeseburger-and-fries photo at temperature 0 against three at the default, and the owner has decided.
 
 ## Logging and editing meals
 
@@ -112,13 +118,19 @@ The owner asked for this on Nov 1: a progress bar during the upload so people kn
 
 When a meal has two plates, only one after-meal photo can be marked as not eaten. The second after-meal photo appears as additional food, and nothing lets you change it.
 
-The owner reported this on Nov 1. He logged two photos before eating as one meal, because there were two plates. After eating, he took one photo of each plate. The first counted as not eaten. The fourth photo of the meal appeared as additional food with no option to select not eaten. Whether logging two plates as one meal is a supported use is not known. Done when every after-meal photo in a meal can be marked as not eaten.
+The owner reported this on Nov 1. He logged two photos before eating as one meal, because there were two plates. After eating, he took one photo of each plate. The first counted as not eaten. The fourth photo of the meal appeared as additional food with no option to select not eaten. The coder reproduced the defect on Nov 2 on the second test account (his report of 07:13 WIB). Whether logging two plates as one meal is a supported use is not known. Done when every after-meal photo in a meal can be marked as not eaten.
 
 ### The label for food left on the plate reads "leftovers (not eaten)"
 
 The label for food left on the plate reads "Not eaten", and the owner says that wording reads as wrong.
 
-The owner says people elsewhere call this "leftovers (not eaten)". This replaces the Oct 29 ruling that the label reads "Not eaten". The word "left" as a word for what remains of a target stays banned from the app, so the wording check must still pass. Done when the label reads "leftovers (not eaten)" everywhere it appears: the composer, the carousel slide, the card footer, the summary line and the thread.
+The owner says people elsewhere call this "leftovers (not eaten)". This replaces the Oct 29 ruling that the label reads "Not eaten". The word "left" as a word for what remains of a target stays banned from the app, so the wording check must still pass. The coder reports that "leftovers" passes the check, which matches "left" as a whole word. Done when the label reads "leftovers (not eaten)" everywhere it appears: the composer, the carousel slide, the card footer, the summary line and the thread.
+
+### Adding a photo to a post keeps what a not-eaten photo recorded
+
+When a post has a not-eaten photo, adding a plain photo to it afterwards wipes the leftover quantities and the card footer.
+
+The planner reports that the coder reproduced this on Nov 2 on the second test account: after the third photo is added, the leftover quantities and the footer are gone while the third photo still carries its "Not eaten" label. The planner reads the cause as the correction job replacing the items without carrying the leftover fields; the coder has not confirmed that. A post holds one leftover today. Done when a post with a not-eaten photo keeps its leftover quantities and footer after another photo is added, and a test proves it.
 
 ## Meal screens and feed
 
@@ -282,13 +294,13 @@ The coder's read-only assessment of main on 2026-10-28 found no committed secret
 
 The submission needs a public repo, a video, and a write-up that names what was built during the event.
 
-The owner records the video on Nov 4; the write-up goes in README.md. Script: open on the Cal AI timeline ("50 screens and 22 minutes before my first log, 11:45 to 12:07"), cut to sign-in → camera → post in ten seconds, show the SAM outlines on the detail, make a correction and show the thread keeping both versions, show the needs-input strip, close on Days. The write-up states everything was built Oct 26 to Nov 4 on the Meta Model API with SAM 3.1 and Muse Spark 1.3, lists the three Meta model calls, and says what the app does not do. The Most Viral prize ($20,000) counts likes, reposts and comments on X through the end of Nov 8, so the video goes on X as soon as it exists; whether the post must exist before the submission deadline is unconfirmed. No merges or deploys from the start of recording until the submission is in. The owner chooses the account to record on before recording; the first test account holds many test posts, including meals with unavailable foods. Done when the video is under three minutes and the write-up is in README.md.
+The owner records the video on Nov 4; the write-up goes in README.md. Script: open on the Cal AI timeline ("50 screens and 22 minutes before my first log, 11:45 to 12:07"), cut to sign-in → camera → post in ten seconds, show the SAM outlines on the detail, make a correction and show the thread keeping both versions, show the needs-input strip, close on Days. The write-up states everything was built Oct 26 to Nov 4 on the Meta Model API with SAM 3.1 and Muse Spark 1.3, lists the three Meta model calls, and says what the app does not do. The Most Viral prize ($20,000) counts likes, reposts and comments on X through the end of Nov 8, so the video goes on X as soon as it exists; whether the post must exist before the submission deadline is unconfirmed. No merges or deploys from the start of recording until the submission is in. The owner chooses the account to record on before recording. On Nov 1 the coder counted 146 posts and 83 unavailable foods on the first test account and 20 posts and 5 unavailable on the owner's account. The second test account was the cleanest on Nov 1 with 5 posts and none unavailable; by the coder's report of Nov 2 07:13 WIB it holds 13 posts, 10 ready, after eight test posts made for the rehearsal, and removing them is in the coder's current order. A fresh estimate does not repeat exactly, so a same-meal-again moment uses Log again, and the script keeps out the cheeseburger-and-fries photo that failed the ten-photo identification gate on Nov 1. The coder timed the script on the current interface on Nov 2 at 60.420 seconds (his report; the pre-Run 5 rehearsal took 51.287). The script he timed is the one above; the planner notes it has no drink post, barcode or label, not-eaten photo or saved list, so none of the Run 5 screens beyond Log again are in it yet. Done when the video is under three minutes and the write-up is in README.md.
 
 ### The live app keeps working while judges use it
 
 Judging runs Nov 4 to Nov 8, and if the Meta API credits run out first, a judge who posts a meal sees a failed analysis.
 
-The owner was told the $150 hackathon credits do not extend through judging and that spend alerts are not hard caps. Nobody has seen the balance, the end date, or what the drains, gates and re-logs have used; the 16-food gate alone made 38 model calls and 69,169 output tokens. Done when the balance and end date are known and either a payment method is attached or a fallback is chosen.
+The owner was told the $150 hackathon credits do not extend through judging and that spend alerts are not hard caps. Nobody has seen the balance, the end date, or what the drains, gates and re-logs have used; the 16-food gate alone made 38 model calls and 69,169 output tokens. USDA FoodData Central limits requests to 1,000 an hour. The twenty-post drain made 94 USDA requests, 4.7 per meal, so the limit allows roughly 200 meals an hour; the sushi photo needs up to 36 requests when cold. When USDA answers 429 the worker retries at 30 and 60 seconds, ignores Retry-After, and then fails the post (the planner's reading of the coder's report of Nov 2). Done when the balance and end date are known and either a payment method is attached or a fallback is chosen.
 
 ## Blocked
 
