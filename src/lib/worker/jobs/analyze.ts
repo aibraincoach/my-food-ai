@@ -19,7 +19,7 @@ const analyze: JobHandler = async (admin, job) => {
   if(post.analysis_initialized_at){await markReady(job.post_id,admin,job.id,{notify:!hasNotEaten,saveMeal:!hasNotEaten});await queueRemainder();return;}
   const prior = (photoCount??0)>1?null:await findPrior(admin,job.post_id);
   const reusable = prior?.named && certifiedPriorNutrition(prior.nutrition) ? prior : null;
-  const named = reusable?.named ?? await analyzePost(admin, job.post_id, prior?.hint);
+  const named = reusable?.named ?? await analyzePost(admin, job.post_id, prior?.hint,job.id);
   named.hasNotEaten=hasNotEaten;
   await persistAnalysis(admin, named, named.labelNutrition?[named.labelNutrition]:reusable?.nutrition, job.id);
   if (named.needsInput) await sendPostPush(admin, job.post_id, named.needsInput.question);

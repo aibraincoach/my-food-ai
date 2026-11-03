@@ -4,6 +4,9 @@ import { useEffect, useRef, useState, type ReactNode } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { getPostCard, isSettled, hasUnavailableFields, retainCompleteItems, type FeedPost } from "@/lib/posts/feed";
 
+import {readPendingItems,type PendingItem} from '@/lib/pipeline/pending-items';
+type PendingFeedPost=FeedPost&{pendingItems?:PendingItem[];fail_reason?:string|null};
+
 const POLL_INTERVAL_MS = 2000;
 const CARD_FAST_WINDOW_MS = 30_000;
 const CARD_POLL_BUDGET_MS = 120_000;
@@ -60,6 +63,12 @@ export default function RealtimePost({ initial, renderCard }: {
           const fresh = await getPostCard(supabase, initial.id);
           if(!live)return;
           if(!fresh||fresh.status==="needs_input"){retire(fresh?"needs_input":"deleted");return;}
+if(!isSettled(fresh.status)||fresh.status==='failed'){
+            const {data}=await supabase.from('posts').select('pending_items,fail_reason').eq('id',initial.id).abortSignal(AbortSignal.timeout(8000)).maybeSingle();
+            if(!live)return;
+            (fresh as PendingFeedPost).pendingItems=readPendingItems(data?.pending_items);
+            (fresh as PendingFeedPost).fail_reason=data?.fail_reason??null;
+          }
           setSnapshot(previous => ({ seed: initial, current: retainCompleteItems(previous.seed.id === fresh.id ? previous.current : undefined, fresh) }));
         } while (live && again && pageVisible());
       } catch {

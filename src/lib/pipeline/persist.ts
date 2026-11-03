@@ -1,3 +1,4 @@
+import {writePendingNames,writePendingKcal} from './pending-items';
 import { syncItemDrinks } from "@/lib/intake/drinks-from-items";
 import { sendPostPush } from "@/lib/push/send";
 import { ioError } from "@/lib/worker/errors";
@@ -60,6 +61,7 @@ export async function persistAnalysis(
     box: unknown; mask_path: string | null; confidence: number | null;
     nutrition: ConsumedTotals & { fibre_g: number | null; sugar_g: number | null; sodium_mg: number | null; micronutrients: unknown; source_ref: string | null };
   }[] = [];
+ await writePendingNames(admin,named.postId,rows.map(row=>row.name),jobId);
  const resolutionBudget=nutritionResolutionBudget();
   const {data:context,error:contextError,status:contextStatus}=await admin.from("posts").select("caption").eq("id",named.postId).abortSignal(resolutionBudget).single();
   if(contextError)throw ioError("Meal context could not be read.",contextError,resolutionBudget.aborted?503:contextStatus);
@@ -68,6 +70,8 @@ export async function persistAnalysis(
     if(copied)await traceNutritionReuse(row.name,copied,"copied",typeof copied.post_item_id==="string"?copied.post_item_id:undefined);
     const food=copied?null:await resolveFoodMatch(admin,row.name,context.caption??"",signal);
     const scaled = scaleNutrition(food, row.portionGrams);
+    const nutritionProgress=copied?.calories??scaled.calories;
+    await writePendingKcal(admin,named.postId,index,typeof nutritionProgress==='number'?nutritionProgress:null,jobId);
     return {
       name: row.name,
       portion_text: row.portionText,
