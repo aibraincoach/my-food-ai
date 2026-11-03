@@ -38,3 +38,20 @@ export async function DELETE(request:Request,{params}:{params:Promise<{id:string
  after(async()=>{try{await fetch(new URL('/api/jobs/tick',request.url),{cache:'no-store',signal:AbortSignal.timeout(10000)});}catch{/* Durable wake retries. */}});
  return new Response(null,{status:204});
 }
+
+export async function PATCH(request:Request,{params}:{params:Promise<{id:string}>}){
+ const client=await createClient();const {data:{user}}=await client.auth.getUser();
+ if(!user)return NextResponse.json({error:'Sign in required.'},{status:401});
+ const capped=await capUser(user.id,'correct');if(capped)return capped;
+ const {id}=await params;const mediaId=new URL(request.url).searchParams.get('media_id');
+ if(!isUuid(id)||!isUuid(mediaId))return new Response(null,{status:404});
+ const body=await request.json().catch(()=>null);
+ if(body?.not_eaten!==false)return NextResponse.json({error:'Choose a leftovers photo to unmark.'},{status:400});
+ const {data:photo,error:readError}=await client.from('post_media').select('id').eq('id',mediaId).eq('post_id',id).maybeSingle();
+ if(readError)return NextResponse.json({error:'The photo could not be read.'},{status:503});
+ if(!photo)return new Response(null,{status:404});
+ const {data:jobId,error}=await client.rpc('unmark_not_eaten',{p_media_id:mediaId});
+ if(error)return NextResponse.json({error:error.code==='55000'?'Wait for this meal to be ready.':'The photo could not be unmarked.'},{status:error.code==='42501'?404:error.code==='55000'?409:503});
+ after(async()=>{try{await fetch(new URL('/api/jobs/tick',request.url),{cache:'no-store',signal:AbortSignal.timeout(10000)});}catch{/* Durable wake retries. */}});
+ return NextResponse.json({job_id:jobId});
+}
