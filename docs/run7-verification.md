@@ -35,4 +35,8 @@ A separate fresh-profile visit automatically cached three decoded CORS photos wi
 
 One integration browser run initially blocked non-GET writes but missed the existing `GET /api/jobs/tick`, which can start a worker. The app logged a missing `renew_worker_lease` RPC against the unmigrated schema. Subsequent checks also intercept that GET. Read-only job/model-call checks found no new rows in the inspected interval, but the origin is still being reconciled; these browser checks are not described as wholly read-only. No production migration or worker retry was issued to investigate.
 
-Feed timing, final preview repetition and remaining browser checks are reported separately when complete. Real-phone acceptance and production checks remain outstanding.
+On the final combined source, an additional browser check held server reads for five seconds: four cached cards painted at 707 ms from navigation (755 ms wall time). After both server and client refresh failed, all four cached cards remained visible, no wrong-account marker appeared, and there were no hidden duplicate keyboard rows. Mocked sign-out cleared both account-cache keys. This is a functional delayed-server test, separate from the throttled network performance gate.
+
+The final source-equivalent #311 Vercel preview completed 100/100 feed API reads and 100/100 Home HTTP responses. API p50/p95/max were 1112.5/4260.5/8545.3 ms; Home 744.4/1834.5/8636.1 ms. These are HTTP repetitions, not 100 browser opens. The original production failure was not isolated.
+
+Throttled preview observations still fail the two-second photo target: cold card/photo 1994.2/5610.2 ms; warm card/photo 6116.3/6150.0 ms. Protected-preview overhead is being separated through an exact built-app local measurement. The remaining timing and mutation-persistence checks are reported when complete. Real-phone acceptance and production checks remain outstanding.
