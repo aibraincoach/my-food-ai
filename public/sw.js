@@ -1,4 +1,4 @@
-const SHELL_CACHE = "my-food-ai-shell-v2";
+const SHELL_CACHE = "my-food-ai-shell-v3";
 // Retire the previous media cache, which had no durable logout tombstones.
 const MEDIA_CACHE = "mfa-media-v2";
 const CONTROL_CACHE = "mfa-media-control-v1";
@@ -65,7 +65,7 @@ self.addEventListener("install", event => {
   self.skipWaiting();
   event.waitUntil((async () => {
     const cache = await caches.open(SHELL_CACHE);
-    for (const path of ["/", "/manifest.webmanifest"]) {
+    for (const path of ["/", "/shell", "/manifest.webmanifest"]) {
       const response = await fetch(new Request(new URL(path, self.location.origin), {credentials: "omit", cache: "reload"}));
       if (!response.ok) throw Error("App shell could not be cached.");
       const headers = new Headers(response.headers);
@@ -226,6 +226,23 @@ self.addEventListener("fetch", event => {
     return;
   }
   const sameOrigin = new URL(event.request.url).origin === self.location.origin;
+  const navUrl = new URL(event.request.url);
+  if (event.request.mode === "navigate" && navUrl.origin === self.location.origin && navUrl.pathname === "/" && !navUrl.searchParams.has("_")) {
+    event.respondWith((async () => {
+      const network = fetch(event.request).then(response => {
+        if (response.ok) event.waitUntil(navigationSession(event, response).catch(() => {}));
+        return response;
+      });
+      const timer = new Promise(resolve => setTimeout(() => resolve(null), 1500));
+      const first = await Promise.race([network.catch(() => null), timer]);
+      if (first) return first;
+      const state = await control;
+      const shell = !disabledImmediately && !state.locked && state.mode === "active" ? await (await caches.open(SHELL_CACHE)).match("/shell") : null;
+      if (shell && !disabledImmediately && state.mode === "active") { event.waitUntil(network.catch(() => {})); return shell; }
+      try { return await network; } catch { return (await (await caches.open(SHELL_CACHE)).match("/")) || Response.error(); }
+    })());
+    return;
+  }
   const rsc = event.request.method === "GET" && sameOrigin && event.request.headers?.get("RSC") === "1";
   if (event.request.mode !== "navigate" && !rsc) return;
   event.respondWith((async () => {

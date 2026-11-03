@@ -1,5 +1,6 @@
 'use client';
 import UndoToast from '@/components/UndoToast';
+import {delayAction} from '@/lib/posts/delayed-action';
 import FirstRunHint from '@/components/FirstRunHint';
 import {useRemovalMenus} from '@/components/useRemovalMenus';
 import {useCallback,useEffect,useRef,useState} from 'react';
@@ -47,19 +48,34 @@ export default function Thread({postId,readOnly=false,sourcePostId}:{postId:stri
   const timer=setInterval(()=>{if(document.visibilityState==='visible'&&(busy||Date.now()-lastLoad>15000))void load();},2000);
   return()=>{live=false;wake.current=()=>{};clearInterval(timer);void client.removeChannel(channel);};
  },[postId,router]);
- const [toast,setToast]=useState(0);
- const removeCorrection=async(commentId:string)=>{try{const response=await fetch(`/api/posts/${postId}/comments/${commentId}/revert`,{method:'POST'});if(!response.ok)throw Error('The correction could not be removed. Try again.');setRows(old=>old.map(row=>row.id===commentId?{...row,reverted_at:new Date().toISOString()}:row));setWaiting(true);setToast(value=>value+1);window.dispatchEvent(new CustomEvent('correction-reverted',{detail:{id:postId,commentId}}));router.refresh();wake.current();}catch(cause){setError(cause instanceof Error?cause.message:'The correction could not be removed.');}};
+ const [toast,setToast]=useState<{key:number;undo:()=>void}|null>(null);
+ const [pendingRemovals,setPendingRemovals]=useState<string[]>([]);
+ const pendingRemovalIds=useRef(new Set<string>());
+ const removeCorrection=(commentId:string)=>{
+  if(pendingRemovalIds.current.size)return;
+  pendingRemovalIds.current.add(commentId);setError('');setPendingRemovals(old=>[...old,commentId]);
+  const restore=()=>{pendingRemovalIds.current.delete(commentId);setPendingRemovals(old=>old.filter(id=>id!==commentId));};
+  const action=delayAction(6000,async keepalive=>{
+   try{
+    const response=await fetch(`/api/posts/${postId}/comments/${commentId}/revert`,{method:'POST',keepalive});
+    if(!response.ok)throw Error('The correction could not be removed. Try again.');
+    setRows(old=>old.map(row=>row.id===commentId?{...row,reverted_at:new Date().toISOString()}:row));restore();
+    setWaiting(true);window.dispatchEvent(new CustomEvent('correction-reverted',{detail:{id:postId,commentId}}));router.refresh();wake.current();
+   }catch(cause){restore();setError(cause instanceof Error?cause.message:'The correction could not be removed.');}
+  });
+  setToast(previous=>({key:(previous?.key??0)+1,undo:()=>{action.undo();restore();setToast(null);}}));
+ };
  const retry=async()=>{setRetrying(true);try{const response=await fetch(`/api/posts/${postId}/retry`,{method:'POST'});if(!response.ok)throw new Error('retry failed');setFailed(false);setError('');router.refresh();}catch{setError('Could not retry. Please try again.');}finally{setRetrying(false);}};
  return <section ref={menus} aria-label="Meal comments" className="relative px-inset pt-[14px]">
   {sourcePostId?<p className="mb-[10px] text-meta text-muted">Logged again</p>:null}
   <h2 className="mb-[10px] text-handle">Comments <span className="font-normal text-muted">{rows.length}</span></h2>
-  <div aria-live="polite" className="flex flex-col gap-[10px]">{rows.map(row=><div key={row.id} className="flex items-start gap-[10px]">
+  <div aria-live="polite" className="flex flex-col gap-[10px]">{rows.filter(row=>!pendingRemovals.includes(row.id)).map(row=><div key={row.id} className="flex items-start gap-[10px]">
     <span className={`flex size-7 shrink-0 items-center justify-center rounded-circle text-avatar-sm ${row.author==='model'?'bg-text text-surface':'bg-field text-text'}`}>{row.author==='model'?'AI':handle.slice(0,1).toUpperCase()}</span>
-    <p className={`min-w-0 flex-1 whitespace-pre-wrap break-words text-detail leading-[1.45] ${row.reverted_at?'text-muted':''}`}><span className="font-semibold">{row.author==='model'?'My Food AI':handle}</span> {row.author==='model'?row.body.replace(/\bnot eaten:/gi,'leftovers (not eaten):'):row.body} <span className="whitespace-nowrap text-muted"><LocalTime value={row.created_at}/></span>{row.reverted_at?<span className="block text-meta text-muted">Removed</span>:row.author==='user'&&!readOnly?<details data-removal-menu className="inline-block"><summary className="ml-2 cursor-pointer list-none text-meta text-muted underline">Remove</summary><div className="absolute right-4 z-30 w-[230px] rounded-card border border-hairline bg-surface p-[6px] text-[15px] text-text" style={{boxShadow:'var(--color-shadow-pill)'}}><button type="button" onClick={event=>{event.currentTarget.closest('details')?.removeAttribute('open');void removeCorrection(row.id);}} className="h-tap w-full border-b border-hairline px-[10px] text-left" style={{color:'oklch(0.52 0.17 25)'}}>Remove correction</button><span className="block px-[10px] py-2 text-meta text-muted">Removes your comment and the AI’s reply, and puts back what it changed.</span><button type="button" onClick={event=>event.currentTarget.closest('details')?.removeAttribute('open')} className="h-tap w-full px-[10px] text-left">Cancel</button></div></details>:null}{accepted===row.id?<span className="ml-2 text-meta text-muted">Accepted</span>:null}</p>
+    <p className={`min-w-0 flex-1 whitespace-pre-wrap break-words text-detail leading-[1.45] ${row.reverted_at?'text-muted':''}`}><span className="font-semibold">{row.author==='model'?'My Food AI':handle}</span> {row.author==='model'?row.body.replace(/\bnot eaten:/gi,'Leftovers · not eaten:'):row.body} <span className="whitespace-nowrap text-muted"><LocalTime value={row.created_at}/></span>{row.reverted_at?<span className="block text-meta text-muted">Removed</span>:row.author==='user'&&!readOnly?<details data-removal-menu className="inline-block"><summary className="ml-2 cursor-pointer list-none text-meta text-muted underline">Remove</summary><div className="absolute right-4 z-30 w-[230px] rounded-card border border-hairline bg-surface p-[6px] text-[15px] text-text" style={{boxShadow:'var(--color-shadow-pill)'}}><button type="button" onClick={event=>{event.currentTarget.closest('details')?.removeAttribute('open');void removeCorrection(row.id);}} className="h-tap w-full border-b border-hairline px-[10px] text-left" style={{color:'oklch(0.52 0.17 25)'}}>Remove correction</button><span className="block px-[10px] py-2 text-meta text-muted">Removes your comment and the AI’s reply, and puts back what it changed.</span><button type="button" onClick={event=>event.currentTarget.closest('details')?.removeAttribute('open')} className="h-tap w-full px-[10px] text-left">Cancel</button></div></details>:null}{accepted===row.id?<span className="ml-2 text-meta text-muted">Accepted</span>:null}</p>
   </div>)}</div>
   {waiting?<p role="status" className="py-grid text-meta text-muted">Updating the meal…</p>:null}
   {error?<p role="status" className="text-meta text-muted">{error}</p>:null}
-  {toast>0&&<UndoToast key={toast} text="Correction removed" ms={6000}/>}
+  {toast&&<UndoToast key={toast.key} text="Correction removed" onUndo={toast.undo} ms={6000}/>}
   <FirstRunHint hint="thread" />
   {failed?<button type="button" disabled={retrying} onClick={retry} className="min-h-tap text-meta text-text">{retrying?'Retrying…':'Try again'}</button>:null}
   {readOnly ? <p className="text-meta text-muted">Drink amounts were recorded when posted.</p> : <CommentComposer postId={postId} onPosted={append}/>}
