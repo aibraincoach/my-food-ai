@@ -28,7 +28,7 @@ begin
  if not found then raise exception 'Draft not found' using errcode='42501';end if;
  if d.published then
   if exists(select 1 from public.posts where id=d.id and user_id=p_user_id and deleted_at is null and analysis_initialized_at is not null) then return d.id;end if;
-  raise exception 'Draft is no longer available' using errcode='40001';
+  raise exception 'Draft is no longer available' using errcode='PT409';
  end if;
  if jsonb_typeof(p_readings) is distinct from 'array' or jsonb_array_length(p_readings) not between 1 and 8
   or p_caption is null or length(p_caption)>2000 or p_eaten_at is null or p_eaten_at>clock_timestamp()+interval '5 minutes'
@@ -37,7 +37,7 @@ begin
  for choice in select value from jsonb_array_elements(p_readings) loop
   select * into r from public.composer_drink_readings where id=(choice->>'reading_id')::uuid and user_id=p_user_id and upload_id=p_upload_id and state='ready' and all_drinks for update;
   if not found then raise exception 'Drink reading not found' using errcode='42501';end if;
-  if r.drinks is distinct from p_expected->r.id::text then raise exception 'Drink reading changed' using errcode='40001';end if;
+  if r.drinks is distinct from p_expected->r.id::text then raise exception 'Drink reading changed' using errcode='PT409';end if;
   if r.position=any(positions) then raise exception 'Duplicate photo selection' using errcode='22023';end if;
   positions:=array_append(positions,r.position); indexes:='{}';
   if jsonb_typeof(choice->'selections') is distinct from 'array' then raise exception 'Invalid drink portions' using errcode='22023';end if;
@@ -79,6 +79,8 @@ end $$;
 revoke all on function public.publish_composer_drinks(uuid,uuid,jsonb,text,timestamptz,jsonb,boolean,jsonb,text,jsonb) from public,anon,authenticated;
 grant execute on function public.publish_composer_drinks(uuid,uuid,jsonb,text,timestamptz,jsonb,boolean,jsonb,text,jsonb) to service_role;
 
+-- Business conflicts use PT409: PostgREST retries SQLSTATE40001 serialization
+-- failures automatically; retrying an unchanged stale request cannot succeed.
 -- Serialize correcting a prepared reading with publication, and reject stale
 -- edits instead of overwriting another tab's current reading.
 create function public.correct_composer_drinks(p_reading_id uuid,p_user_id uuid,p_expected jsonb,p_drinks jsonb)
@@ -89,10 +91,10 @@ begin
  if not found then raise exception 'Reading not found' using errcode='42501';end if;
  perform pg_advisory_xact_lock(hashtextextended(upload::text,0));
  select * into d from public.post_upload_drafts where id=upload and user_id=p_user_id for update;
- if not found or d.published then raise exception 'Photo already posted' using errcode='40001';end if;
+ if not found or d.published then raise exception 'Photo already posted' using errcode='PT409';end if;
  select * into r from public.composer_drink_readings where id=p_reading_id and user_id=p_user_id and state='ready' for update;
  if not found then raise exception 'Reading not found' using errcode='42501';end if;
- if r.drinks is distinct from p_expected then raise exception 'Drink reading changed' using errcode='40001';end if;
+ if r.drinks is distinct from p_expected then raise exception 'Drink reading changed' using errcode='PT409';end if;
  if jsonb_typeof(p_drinks) is distinct from 'array' or jsonb_array_length(p_drinks)<>jsonb_array_length(r.drinks) then raise exception 'Invalid correction' using errcode='22023';end if;
  update public.composer_drink_readings set drinks=p_drinks where id=r.id;
 end $$;

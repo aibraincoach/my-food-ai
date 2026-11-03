@@ -66,6 +66,6 @@ export async function PATCH(request:Request){
  if(caffeineMg!==null&&caffeineMg>1000)return NextResponse.json({error:'Choose a smaller drink portion.'},{status:400});
  drinks[body.index]={...previous,name:correction.name.trim(),ml,grams:previous.grams===null?null:previous.grams*ratio,caffeineMg,kcal:nutrition.calories,nutrition};
  const {error}=await admin.rpc('correct_composer_drinks',{p_reading_id:reading.id,p_user_id:user.id,p_expected:expected,p_drinks:drinks});
- if(error)return NextResponse.json({error:'The correction could not be saved. Reload the photo draft and try again.'},{status:error.code==='40001'?409:503});
+ if(error)return NextResponse.json({error:'The correction could not be saved. Reload the photo draft and try again.'},{status:['40001','PT409'].includes(error.code)?409:503});
  return NextResponse.json({id:reading.id,position:reading.position,drinks,allDrinks:reading.all_drinks});
 }

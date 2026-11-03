@@ -22,10 +22,20 @@ test('composer drink publication is owner-scoped, atomic, idempotent and scales 
  drink:=jsonb_build_object('name','Coca-Cola, can','ml',330,'grams',330,'kcal',139,'caffeineMg',29.7,'source','read from the can','nutrition',jsonb_build_object('calories',139,'protein_g',0,'carbs_g',35,'fat_g',0,'fibre_g',0,'sugar_g',35,'sodium_mg',10,'source_ref','test-usda','food_category','Soft drinks','micronutrients','[{"nutrientId":1057,"value":29.7,"basis":"portion","unitName":"MG"},{"nutrientId":1051,"value":330,"basis":"portion","unitName":"G"}]'::jsonb));
  insert into public.composer_drink_readings(user_id,upload_id,position,state,all_drinks,drinks)
  values(owner_id,stage,0,'ready',true,jsonb_build_array(drink,drink||'{"name":"Water, glass","ml":300,"grams":null,"nutrition":{"calories":0,"protein_g":0,"carbs_g":0,"fat_g":0,"micronutrients":[{"nutrientId":1051,"value":300,"basis":"portion","unitName":"G"}],"food_category":"Water","source_ref":null}}'::jsonb)) returning id into reading;
- begin perform public.correct_composer_drinks(reading,owner_id,'[]',jsonb_build_array(drink));raise exception 'Stale correction accepted';exception when serialization_failure then null;end;
+ begin perform public.correct_composer_drinks(reading,owner_id,'[]',jsonb_build_array(drink));raise exception 'Stale correction accepted';exception when sqlstate 'PT409' then if sqlerrm<>'Drink reading changed' then raise;end if;end;
  items:='[{"name":"Coca-Cola, can","portion_text":"165 ml","portion_grams":165,"nutrition":{"calories":69.5,"protein_g":0,"carbs_g":17.5,"fat_g":0,"micronutrients":[{"nutrientId":1057,"value":14.85,"basis":"portion","unitName":"MG"},{"nutrientId":1051,"value":165,"basis":"portion","unitName":"G"}],"food_category":"Soft drinks"}},{"name":"Water, glass","portion_text":"300 ml","portion_grams":null,"nutrition":{"calories":0,"protein_g":0,"carbs_g":0,"fat_g":0,"micronutrients":[{"nutrientId":1051,"value":300,"basis":"portion","unitName":"G"}],"food_category":"Water"}}]';
  expected:=jsonb_build_object(reading::text,(select drinks from public.composer_drink_readings where id=reading));
  selection:=jsonb_build_array(jsonb_build_object('reading_id',reading,'selections','[{"index":0,"ml":165},{"index":1,"ml":300}]'::jsonb));
+ begin perform public.publish_composer_drinks(stage,owner_id,selection,'x',now(),null,false,items,'Consumed: 70 kcal.','{}');raise exception 'Stale publication accepted';exception when sqlstate 'PT409' then if sqlerrm<>'Drink reading changed' then raise;end if;end;
+ if exists(select 1 from public.posts where id=stage) or (select published from public.post_upload_drafts where id=stage) then raise exception 'Stale publication changed draft';end if;
+ begin
+ perform public.publish_uploaded_post(stage,owner_id);
+ begin perform public.publish_composer_drinks(stage,owner_id,selection,'x',now(),null,false,items,'Consumed: 70 kcal.',expected);raise exception 'Unavailable draft accepted';exception when sqlstate 'PT409' then if sqlerrm<>'Draft is no longer available' then raise;end if;end;
+ begin perform public.correct_composer_drinks(reading,owner_id,expected->reading::text,expected->reading::text);raise exception 'Posted correction accepted';exception when sqlstate 'PT409' then if sqlerrm<>'Photo already posted' then raise;end if;end;
+ raise exception 'test rollback publication' using errcode='ZZ001';
+ exception when sqlstate 'ZZ001' then if sqlerrm<>'test rollback publication' then raise;end if;end;
+ if exists(select 1 from public.posts where id=stage) or (select published from public.post_upload_drafts where id=stage) then raise exception 'Conflict test did not restore draft';end if;
+
  begin perform public.publish_composer_drinks(stage,other_id,selection,'x',now(),null,false,items,'Consumed: 70 kcal.',expected);raise exception 'Other owner published';exception when insufficient_privilege then null;end;
  if exists(select 1 from public.posts where id=stage) then raise exception 'Refusal changed post';end if;
  result:=public.publish_composer_drinks(stage,owner_id,selection,'Cola and water',now(),null,false,items,'Consumed: 70 kcal.',expected);

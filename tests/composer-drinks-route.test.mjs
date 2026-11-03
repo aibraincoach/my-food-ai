@@ -5,9 +5,36 @@ import assert from 'node:assert/strict';
 import {createClient} from '@supabase/supabase-js';
 import {randomUUID} from 'node:crypto';
 import {readFile} from 'node:fs/promises';
-import {spawnSync} from 'node:child_process';
+import {spawn,spawnSync} from 'node:child_process';
 import {signInAsTestUser,signInTestClient} from '../scripts/lib/session.mjs';
 const checked=r=>{assert.ifError(r.error);return r.data;};
+const pause=ms=>new Promise(resolve=>setTimeout(resolve,ms));
+async function until(check){const end=Date.now()+8000;while(Date.now()<end){if(await check())return;await pause(25);}throw Error('Local RPC never reached the held draft lock');}
+// Hold the same draft lock used by both RPCs, wait until the real HTTP route
+// has read its expected revision and blocked in the RPC, then change the row.
+// A deterministic 40001 would loop in PostgREST14; PT409 must return promptly.
+async function staleReadingConflict(upload,reading,rpc,request){
+ assert.ok(['publish_composer_drinks','correct_composer_drinks'].includes(rpc));
+ const lock=spawn('psql',['-X','-qAt','--dbname',process.env.SUPABASE_DB_URL,'-v','ON_ERROR_STOP=1']);
+ let stdout='',stderr='';lock.stdout.on('data',b=>stdout+=b);lock.stderr.on('data',b=>stderr+=b);
+ const closed=new Promise(resolve=>lock.once('exit',code=>resolve(code)));
+ try{
+  lock.stdin.write(`begin;
+select pg_advisory_xact_lock(hashtextextended('${upload}',0));
+select 'LOCKED';
+`);
+  await until(()=>stdout.includes('LOCKED'));
+  const started=Date.now(),response=request();response.catch(()=>{});
+  await until(()=>{const r=spawnSync('psql',['-X','-qAt','--dbname',process.env.SUPABASE_DB_URL,'-v','ON_ERROR_STOP=1'],{input:`select exists(select 1 from pg_stat_activity where pid<>pg_backend_pid() and wait_event='advisory' and query like '%${rpc}%');`,encoding:'utf8'});assert.equal(r.status,0,r.stderr);return r.stdout.trim()==='t';});
+  lock.stdin.end(`update public.composer_drink_readings set drinks=jsonb_set(drinks,'{0,name}',to_jsonb('Water, concurrent revision'::text)) where id='${reading}';commit;`);
+  const result=await response;assert.equal(result.status,409,await result.text());
+  assert.ok(Date.now()-started<5000,'stale business conflict must return promptly, not retry forever');
+ }finally{
+  if(!lock.stdin.writableEnded)lock.stdin.end('rollback;');
+  const code=await closed;assert.equal(code,0,stderr);
+ }
+}
+
 
 test('composer identify enforces caps and ownership, caches one model call, and posts the chosen volume once',{timeout:90000},async()=>{
  for(const k of ['APP_URL','NEXT_PUBLIC_SUPABASE_URL','SUPABASE_DB_URL','MODEL_API_BASE_URL'])assert.ok(['localhost','127.0.0.1','[::1]'].includes(new URL(process.env[k]).hostname),`${k}: disposable local only`);
@@ -19,7 +46,7 @@ test('composer identify enforces caps and ownership, caches one model call, and 
  const cacheQuery='fdc-search-v3:coca cola';
  const priorCache=checked(await db.from('fdc_cache').select('*').eq('query',cacheQuery));
  const stages=[];
- const request=(path,body,session=cookie)=>fetch(origin+path,{method:'POST',headers:{Cookie:session,'Content-Type':'application/json'},body:JSON.stringify(body)});
+ const request=(path,body,session=cookie)=>fetch(origin+path,{method:'POST',headers:{Cookie:session,'Content-Type':'application/json'},body:JSON.stringify(body),signal:AbortSignal.timeout(15000)});
  const cap=hits=>db.from('user_call_hits').upsert({user_id:user.id,route:'post',hour:bucket,hits},{onConflict:'user_id,route,hour'}).then(checked);
  const count=()=>fetch(model+'/__calls').then(r=>r.json()).then(rows=>rows.filter(row=>row.name==='identify').length);
  async function stage(photo='01'){
@@ -39,10 +66,18 @@ test('composer identify enforces caps and ownership, caches one model call, and 
   await cap(0);const response=await request('/api/drinks/identify',{upload_id:id,position:0});const reading=await response.json();assert.equal(response.status,200,JSON.stringify(reading));assert.equal(reading.allDrinks,true);assert.equal(reading.drinks[0].ml,300);assert.equal(await count(),1);
   const cached=await request('/api/drinks/identify',{upload_id:id,position:0});assert.equal(cached.status,200);assert.equal((await cached.json()).id,reading.id);assert.equal(await count(),1);
   const correction={reading_id:reading.id,index:0,correction:{name:'Water, glass',pack_amount:360,pack_unit:'ml',per_100:{calories:0.1,protein_g:null,carbs_g:0,fat_g:0,fibre_g:0,sugar_g:0,sodium_mg:0}}};
-  const patch=session=>fetch(origin+'/api/drinks/identify',{method:'PATCH',headers:{Cookie:session,'Content-Type':'application/json'},body:JSON.stringify(correction)});
+  const patch=session=>fetch(origin+'/api/drinks/identify',{method:'PATCH',headers:{Cookie:session,'Content-Type':'application/json'},body:JSON.stringify(correction),signal:AbortSignal.timeout(15000)});
   assert.equal((await patch(other)).status,404);const corrected=await patch(cookie);assert.equal(corrected.status,200);assert.equal((await corrected.json()).drinks[0].ml,360);assert.equal(await count(),1);
   const body={items:[{nutrition:{calories:999999}}],upload_id:id,caption:'Water',save_as_meal:false,location:null,readings:[{reading_id:reading.id,selections:[{index:0,ml:150}]}]};
   assert.equal((await request('/api/drinks/post',body,other)).status,404);
+  await staleReadingConflict(id,reading.id,'correct_composer_drinks',()=>patch(cookie));
+  assert.equal(checked(await db.from('composer_drink_readings').select('drinks').eq('id',reading.id).single()).drinks[0].name,'Water, concurrent revision');
+  assert.equal((await patch(cookie)).status,200,'fresh correction can retry after conflict');
+  await staleReadingConflict(id,reading.id,'publish_composer_drinks',()=>request('/api/drinks/post',body));
+  assert.equal(checked(await db.from('post_upload_drafts').select('published').eq('id',id).single()).published,false);
+  assert.deepEqual(checked(await db.from('posts').select('id').eq('id',id)),[],'conflict leaves no partial meal');
+  assert.equal((await patch(cookie)).status,200,'reload/current reading remains correctable before publication');
+
   const post=await request('/api/drinks/post',body),posted=await post.json();assert.equal(post.status,201,JSON.stringify(posted));assert.equal(posted.post_id,id);
   assert.equal(checked(await db.from('posts').select('id,status').eq('id',id).single()).status,'ready');
   const items=checked(await db.from('current_post_items').select('id,portion_text').eq('post_id',id));assert.equal(items.length,1);assert.equal(items[0].portion_text,'150 ml');
