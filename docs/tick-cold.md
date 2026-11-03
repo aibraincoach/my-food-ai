@@ -10,7 +10,18 @@ The existing registry test prohibited every dynamic import, contrary to this pla
 
 ## Preview cold calls
 
-Pending deployment and six observations: first requested tick after deployment, followed by five requests separated by fifteen-minute idle gaps. These are wall-clock observations, not a guaranteed cold-instance classifier. Production has its own six-call series after merge. Calls may drain eligible work through the existing tick route; no additional job is created for this measurement.
+The owner replaced fifteen-minute idle gaps with **one-second gaps** during the run. The six-call preview and final production series below are rapid repeated observations; they do not classify or establish cold instances. No fifteen-minute wait was launched.
+
+| Call | Preview total ms | Production total ms |
+| --- | ---: | ---: |
+| 1 | 729.3 | 322.5 |
+| 2 | 339.9 | 195.1 |
+| 3 | 207.2 | 282.8 |
+| 4 | 251.6 | 109.5 |
+| 5 | 210.3 | 126.9 |
+| 6 | 153.6 | 176.2 |
+
+Every call returned 200. Preview queue was two future jobs/running zero; final production queue/running were both zero. Production revision is `6996817cec6aaf865357e9fee6550abf27cdfd0f`. Owner-authenticated page and model/worker behavior were checked separately. [Final report](run8-final-report.md).
 
 ## Local import checkpoint
 
