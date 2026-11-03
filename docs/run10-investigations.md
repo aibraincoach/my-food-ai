@@ -335,4 +335,4 @@ Read-only production measurements and designated test-account actions only. Unkn
 
 **Answer** — All15 visual issues have individual Fleet10 fix or reconciliation PRs. Fleet9 touched several shared screen/data paths but did not establish final visual acceptance.
 
-**Unknown** — Final production rendered checks and issue closures remain pending. Newer owner issue #413 refers to Round6 desktop frames unavailable in the supplied reference archives; no Round6 match is claimed. The original plan's rounds1–4 comparison remains the documented reference scope.
+**Unknown** — Final phone production checks and eligible closures remain pending. Latest user instruction explicitly excludes #413/Round6 and all superseded desktop-frame differences in #353–#367; those belong to the next design fleet. #360 and #363 are desktop-only and receive no further work here. The table retains historical Fleet9/merged Fleet10 changes for handoff; it is not authorization for more desktop work.
