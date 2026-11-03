@@ -1,3 +1,4 @@
+import { lookupOpenFoodFacts } from "./open-food-facts";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { gtinCandidates, lookupBarcode } from "./barcode";
 import { mergeProduct, type BarcodeCorrection } from "./barcode-product";
@@ -16,5 +17,7 @@ export async function resolveProduct(raw: string, userId: string, options: { wit
   if(options.withoutLookup)return mergeProduct(gtin,null,own,shared.data as string|null);
   let base = null;
   try { base = await lookupBarcode(gtin); } catch(error) { if (!(own?.source === "label" && own.per_100)) throw error; }
+  // USDA FDC holds mostly US packs; Open Food Facts covers the rest.
+  if (!base) { try { base = await lookupOpenFoodFacts(gtin); } catch { base = null; } }
   return mergeProduct(gtin,base,own,shared.data as string|null);
 }
