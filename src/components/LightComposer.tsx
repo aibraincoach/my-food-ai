@@ -14,7 +14,13 @@ export default function LightComposer(p:Props) {
  const [whenOpen,setWhenOpen]=useState(false);
  const [photoOptions,setPhotoOptions]=useState(false);
  const [uploadedVisible,setUploadedVisible]=useState(false);
- useEffect(()=>{if(p.upload?.state!=='uploaded'){const reset=setTimeout(()=>setUploadedVisible(false),0);return()=>clearTimeout(reset);}const show=setTimeout(()=>setUploadedVisible(true),0),hide=setTimeout(()=>setUploadedVisible(false),1000);return()=>{clearTimeout(show);clearTimeout(hide);};},[p.upload?.state]);
+ useEffect(()=>{
+  // Upload state is external. Defer its brief indicator until after commit,
+  // and cancel both callbacks if another upload transition supersedes it.
+  const frame=requestAnimationFrame(()=>setUploadedVisible(p.upload?.state==='uploaded'));
+  const timer=p.upload?.state==='uploaded'?setTimeout(()=>setUploadedVisible(false),1000):undefined;
+  return()=>{cancelAnimationFrame(frame);clearTimeout(timer);};
+ },[p.upload?.state]);
  const handle=usePostHandle(),preview=useRef<HTMLDivElement>(null),caption=useRef<HTMLTextAreaElement>(null);
  const observedPhoto=useRef({index:-1,count:-1});
  useEffect(()=>{if(!p.shots.length)caption.current?.focus();},[p.shots.length]);
