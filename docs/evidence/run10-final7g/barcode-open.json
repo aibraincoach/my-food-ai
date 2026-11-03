@@ -1,0 +1,54 @@
+{
+  "before": {
+    "state": "READY",
+    "sha": "789c2b7db3ac5a75f7c2b7271419a8a3176c9702",
+    "readyAt": "2026-11-03T13:17:40.362Z",
+    "createdAt": "2026-11-03T13:17:13.678Z",
+    "observedAt": "2026-11-03T13:26:55.513Z"
+  },
+  "profile": {
+    "offline": false,
+    "latency": 165,
+    "downloadThroughput": 1012500,
+    "uploadThroughput": 168750,
+    "connectionType": "cellular4g"
+  },
+  "cpu": 4,
+  "browser": "156.0.8078.4",
+  "method": "One genuine UPC canvas-camera decode and actual production barcode GET; no posting, no model stub",
+  "lookup": {
+    "status": 200,
+    "body": {
+      "product": {
+        "gtin": "00016000275683",
+        "name": "Run5 accepted cereal",
+        "source": "own"
+      }
+    }
+  },
+  "timing": {
+    "shutter": 3608.5,
+    "panel": 3923.6000003814697,
+    "found": 4763.200000286102,
+    "shutterToPanelMs": 315.1000003814697,
+    "shutterToFoundMs": 1154.7000002861023
+  },
+  "visibleProduct": "Found\n\nRun5 accepted cereal\n\nCorrect\n\nPer 100 g \u00b7 370 kcal \u00b7 4 g protein \u00b7 85 g carbs \u00b7 6 g fat\n\nHow much?\n\n100 g\n27 g\n54 g\n\nConsumed: 100 kcal \u00b7 1 g protein \u00b7 23 g carbs \u00b7 2 g fat",
+  "after": {
+    "state": "READY",
+    "sha": "789c2b7db3ac5a75f7c2b7271419a8a3176c9702",
+    "readyAt": "2026-11-03T13:17:40.362Z",
+    "createdAt": "2026-11-03T13:17:13.678Z",
+    "observedAt": "2026-11-03T13:27:01.229Z"
+  },
+  "cleanup": {
+    "at": "2026-11-03T13:27:02.861Z",
+    "postOperationCount": 1,
+    "standaloneIntakeCount": 0,
+    "copyOperationCount": 0,
+    "drinkOperationCount": 0,
+    "foodOperationCount": 0,
+    "preferencesRestored": true,
+    "issues": []
+  }
+}
