@@ -326,13 +326,13 @@ Final production follow-up (same columns; baseline failures above remain visible
 
 ## 7o. Terms (#294)
 
-**Method** — At11:05 UTC ran `git grep -n -F <term> origin/main -- src` for every requested term, the new leftovers label, fixed needs-input question/notices and Days names at e07423537d1bc0f54f1997845e86f014c885ef93. Full file/line/source inventory is [run10-terms.md](run10-terms.md); Recommended cells are deliberately empty.
+**Method** — At13:40 UTC ran `git grep -n -F <term> origin/main -- src` for every requested term, the new leftovers label, fixed needs-input question/notices and Days names at 3ce84730a33f6e5ce8163c80e454eb63b7d9998a. Full file/line/source inventory is [run10-terms.md](run10-terms.md); Recommended cells are deliberately empty.
 
 **Result**
 
 | Measurement | Result |
 | --- | --- |
-| Published inventory rows | 139 |
+| Matched file/line inventory rows | 139 |
 | Old exact leftovers label | 0 hits |
 | Wording tests | 2 passed,0 failed/skipped |
 
