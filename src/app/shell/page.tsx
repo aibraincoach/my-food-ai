@@ -1,5 +1,5 @@
-import {CachedFeedFallback} from "@/components/Feed";
-import ShellRefresh from "@/components/ShellRefresh";
+import TabsLayout from '../(tabs)/layout';
+import ShellHome from '@/components/ShellHome';
 export default function Shell() {
-  return <main className="mx-auto max-w-phone" data-shell><CachedFeedFallback /><ShellRefresh /></main>;
+  return <TabsLayout><ShellHome/></TabsLayout>;
 }
