@@ -127,6 +127,7 @@ export interface NamedRegion extends SegmentedRegion {
 }
 
 export interface NamedPost extends SegmentedPost {
+  identification?: IdentifiedMeal["identification"];
   hasNotEaten?:boolean;
   nutritionLabel?: boolean;
   labelNutrition?: Record<string,unknown>;
@@ -148,7 +149,8 @@ export async function identifyMeal(
   segmented: SegmentedPost,
   prior = "",
   additionalPhotos:Uint8Array[]=[],
-  additionalRegionHints=""
+  additionalRegionHints="",
+  provider: "meta" | "open" = "meta"
 ): Promise<NamedPost> {
   const meal: IdentifiedMeal = await identifyItems(
     photo,
@@ -161,7 +163,8 @@ export async function identifyMeal(
     })),
     prior,
     additionalPhotos,
-    additionalRegionHints
+    additionalRegionHints,
+    provider
   );
   const byRegion = new Map<number, IdentifiedItem>();
   const captionOnly: IdentifiedItem[] = [];
@@ -182,7 +185,7 @@ export async function identifyMeal(
     ...region,
     item: byRegion.get(region.index) ?? null,
   }));
-  return { ...segmented, nutritionLabel: meal.nutritionLabel, regions, captionOnly, summary: meal.summary, needsInput: meal.needsInput };
+  return { ...segmented, identification: meal.identification, nutritionLabel: meal.nutritionLabel, regions, captionOnly, summary: meal.summary, needsInput: meal.needsInput };
 }
 
 interface PostCaptionRow {
@@ -246,7 +249,14 @@ export async function analyzePost(
     additionalPhotos.push(bytes);
     additionalRegionHints.push(`Photo ${index+2}: ${regions.map(region=>`box [${region.box.left},${region.box.top},${region.box.right},${region.box.bottom}]`).join('; ')}`);
   }
-  const named = await identifyMeal(photo, "image/jpeg", post.caption, segmented, prior,additionalPhotos,additionalRegionHints.join('\n'));
+  // Older deployments before migration 0032 retain their normal Meta path.
+  let provider: "meta" | "open" = "meta";
+  try {
+    const {data: profile} = await supabase.from("profiles").select("identify_provider").eq("id",post.user_id)
+      .abortSignal(AbortSignal.timeout(3000)).maybeSingle();
+    if(profile?.identify_provider === "open")provider="open";
+  } catch { /* An unavailable optional setting retains the normal Meta path. */ }
+  const named = await identifyMeal(photo, "image/jpeg", post.caption, segmented, prior,additionalPhotos,additionalRegionHints.join('\n'),provider);
   if(named.nutritionLabel && !named.captionOnly.length && !named.regions.some(r=>r.item) && photo){
     const reading=await readNutritionLabel(photo);
     if(reading.is_label&&reading.serving&&reading.per_serving){

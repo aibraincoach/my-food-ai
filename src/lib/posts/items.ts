@@ -101,8 +101,12 @@ export async function editPostItem(admin: SupabaseClient, postId: string, userId
 }
 
 export async function getPostDetail(supabase: SupabaseClient, postId: string, zone = "UTC") {
-  const { data: post, error } = await supabase.from("posts").select("id,user_id,caption,eaten_at,status,analysis_initialized_at,servings,source_post_id")
-    .eq("id", postId).maybeSingle();
+  const baseFields = "id,user_id,caption,eaten_at,status,analysis_initialized_at,servings,source_post_id";
+  type PostRow = {id:string;user_id:string;caption:string;eaten_at:string;status:"queued"|"processing"|"needs_input"|"ready"|"failed";analysis_initialized_at:string|null;servings:number;source_post_id:string|null;identify_model?:string|null;identify_host?:string|null};
+  const read = (identity:boolean) => supabase.from("posts").select(identity?`${baseFields},identify_model,identify_host`:baseFields).eq("id",postId).maybeSingle<PostRow>();
+  let result=await read(true);
+  if(result.error&&["PGRST204","42703"].includes(result.error.code)&&/identify_(?:model|host)/.test(result.error.message))result=await read(false);
+  const {data:post,error}=result;
   if (error) throw new Error("Meal could not be loaded.");
   if (!post) return null;
   const current = await getCurrentItems(supabase, postId);
@@ -124,6 +128,11 @@ export async function getPostDetail(supabase: SupabaseClient, postId: string, zo
     return { ...item, box: itemBox(item.box), maskUrl };
   }));
   const hydrated = (await getPostHydrationData(supabase, post.user_id, [{ id: postId, eaten_at: post.eaten_at, items }], zone))[postId];
-  return { post, photo, items, isDrink: hydrated.kind === "drink" && hydrated.drinkSource !== "item", ...hydrated,
+  // Identity belongs to the same atomic initial-analysis commit as these
+  // items. Newer successful or failed attempts that never persisted cannot
+  // relabel the meal. Raw attempt traces remain admin-only.
+  const identification=post.identify_model&&post.identify_host
+    ? {model:post.identify_model,host:post.identify_host} : null;
+  return { post, photo, items, identification: identification ?? null, isDrink: hydrated.kind === "drink" && hydrated.drinkSource !== "item", ...hydrated,
     cardData: cardDataFromRow({ ...post, items, ...hydrated }) };
 }
