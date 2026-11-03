@@ -6,7 +6,6 @@ import { Field } from "@/components/ui/Field";
 import { Button } from "@/components/ui/Button";
 import { Icon } from "@/components/ui/Icon";
 import {uploadManager,type UploadState} from "@/lib/posts/upload-manager";
-import { createPost } from "@/lib/posts/create";
 import { DRINK_TILES, TILE_SIZES } from "@/lib/intake/intake";
 import type { DrinkRow } from "@/lib/intake/hydration";
 
@@ -80,8 +79,7 @@ export default function IntakeSheet({ embedded = false, onClose }: { initialKind
     if (!caption.trim() || captionPending.current) return;
     captionPending.current = true; setBusy(true); setError("");
     try {
-      const { postId } = await createPost(caption.trim(), []);
-      window.dispatchEvent(new CustomEvent("post-created", { detail: { id: postId } }));
+      await uploadManager.postCaption(caption.trim(),new Date().toISOString());
       setCaption(""); close();
     } catch (reason) { setError(reason instanceof Error ? reason.message : "The drink could not be saved."); }
     finally { captionPending.current = false; setBusy(false); }

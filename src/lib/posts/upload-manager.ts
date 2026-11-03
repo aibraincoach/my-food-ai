@@ -15,6 +15,7 @@ export interface UploadState {
 
     removing?: boolean;
     drinkTile?: boolean;
+    text?: boolean;
     message?: string;
     uploadId?: string;
     sent: number;
@@ -56,7 +57,7 @@ export class UploadManager {
     private notify(entry?: Entry, event?: string) { for (const listener of this.listeners)
         listener(); if (entry && event && typeof window !== 'undefined')
         window.dispatchEvent(new CustomEvent(event, { detail: this.state(entry) })); }
-    private state(entry: Entry): UploadState { const d = entry.data; return { operationId: d.operationId, uploadId:d.snapshot?.id, caption: d.caption, eatenAt: d.eatenAt ?? new Date(d.createdAt).toISOString(), previewUrl: entry.previewUrl, sent: d.sent, total: d.total, state: d.state, error: d.error, posted: d.posted, ...((d.food||d.copy||d.drink||d.photoDrinks)?{kind:d.copy?"copy" as const:d.food?"food" as const:"drink" as const,removing:d.cancelRequested,message:d.message}:{}), ...(d.drink?{drinkTile:true}:{}), ...(entry.finished ? { postId: d.resultPostId??d.snapshot?.id } : {}) }; }
+    private state(entry: Entry): UploadState { const d = entry.data; return { operationId: d.operationId, uploadId:d.snapshot?.id, caption: d.caption, eatenAt: d.eatenAt ?? new Date(d.createdAt).toISOString(), previewUrl: entry.previewUrl, sent: d.sent, total: d.total, state: d.state, error: d.error, posted: d.posted, ...((d.food||d.copy||d.drink||d.photoDrinks)?{kind:d.copy?"copy" as const:d.food?"food" as const:"drink" as const,removing:d.cancelRequested,message:d.message}:{}), ...(d.drink?{drinkTile:true}:{}), ...(!d.files.length&&!d.food&&!d.copy&&!d.drink&&!d.photoDrinks?{text:true}:{}), ...(entry.finished ? { postId: d.resultPostId??d.snapshot?.id } : {}) }; }
 
     list = () => [...this.entries.values()].filter(e => !e.deleted).sort((a, b) => b.data.createdAt - a.data.createdAt).map(e => this.state(e));
     fields(id:string):DraftFields|null { const data=this.entries.get(id)?.data; return data?{caption:data.caption,eatenAt:data.eatenAt,location:data.location,options:{...data.options}}:null; }
@@ -149,6 +150,14 @@ export class UploadManager {
         if(entry.active)entry.rerun=true;
         void this.run(entry);
         return entry.data.operationId;
+    }
+    async postCaption(caption:string,eatenAt:string){
+        if(!this.ownerId){const {data:{user}}=await createClient().auth.getUser();if(!user)throw new Error('Sign in to keep this caption.');this.ownerId=user.id;}
+        const now=Date.now(),id=crypto.randomUUID();
+        const entry=this.make({operationId:id,ownerId:this.ownerId,createdAt:now,reservedAt:now,caption,eatenAt,location:null,options:{},files:[],snapshot:null,posted:true,state:'uploading',sent:0,total:0});
+        this.entries.set(id,entry);try{await this.persist(entry);}catch(error){entry.deleted=true;this.entries.delete(id);throw error;}
+        if(entry.deleted||entry.data.ownerId!==this.ownerId)throw new Error('Sign-in changed. Your caption is kept for its original account.');
+        this.notify(entry,'upload-started');void this.run(entry);return id;
     }
     async postDrink(drink:TileDrinkRequest,label:string){
         drink={...drink};
