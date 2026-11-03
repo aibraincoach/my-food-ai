@@ -4,17 +4,22 @@ Read-only production measurements and designated test-account actions only. Unkn
 
 ## 7a. Sign-in addresses (#368)
 
-**Method** — Ran the exact auth.audit_log_entries query and curl-equivalent GET api.ipify.org at approximately 08:52 UTC. No production sign-up or live form probe was sent.
+**Method** — Ran the requested `auth.audit_log_entries` query and GET `https://api.ipify.org` at approximately08:52 UTC; no production sign-up or live form probe. At10:51–10:52 UTC queried the Management Logs API with explicit columns `timestamp,event_message,log_attributes`, each source separately, last24h. Follow-up filter: `log_attributes['path'] like '%token%' or log_attributes['path'] like '%verify%' or log_attributes['auth_audit_event.action']='login'`. Raw identifiers and addresses remain private.
 
 **Result**
 
 | Measurement | Result |
 | --- | --- |
-| Audit rows returned | 0 |
+| Requested SQL audit rows | 0 |
+| Latest Auth API log rows | 30; all GET /,8 distinct remote addresses |
+| Filtered token/verify Auth API rows | 0 |
+| Filtered audit login rows | 30, spanning10:38:59–10:52:16 UTC |
+| Address fields on those audit login rows | 0 |
+| Logs API status | 200; explicit-column queries accepted |
 
-**Answer** — Existing audit rows did not establish which address Supabase records for app sign-ins.
+**Answer** — Existing audit login records are readable but omit the address, and the API samples are root requests rather than sign-ins. Neither proves whether app sign-ins share a Vercel address.
 
-**Unknown** — Address-sharing hypothesis remains unproven; raw coder address and test identities stay private.
+**Unknown** — The address-sharing/rate-limit hypothesis remains unproven. The available existing records cannot be correlated to sign-in IPs; no live form probe was added to fill that gap.
 
 ## 7b. Empty claims (#374)
 
