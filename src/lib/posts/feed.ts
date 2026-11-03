@@ -1,3 +1,4 @@
+import { readPendingItems } from '@/lib/pipeline/pending-items';
 import { getPostHydrationData, type DrinkCardData, type HydrationRecord } from "@/lib/intake/hydration";
 import { dateInZone, getDayTotals, type FeedDayTotal } from "./days";
 import { encodeFeedCursor, parseFeedCursor } from "./feed-cursor";
@@ -375,4 +376,11 @@ export async function getPostCards(supabase: SupabaseClient, postIds: string[], 
     for (const post of owned) hydrated.set(post.id, { ...post, ...values[post.id], hydrationUnavailable: !values[post.id] });
   }
   return postIds.flatMap(id => { const post = hydrated.get(id); return post ? [post] : []; });
+}
+
+// Progress names and the failure reason are read separately so the card read stays small.
+export async function getPendingItems(db: SupabaseClient, id: string): Promise<{ pendingItems: ReturnType<typeof readPendingItems>; fail_reason: string | null }> {
+  const { data, error } = await db.from('posts').select('pending_items,fail_reason').eq('id', id).abortSignal(AbortSignal.timeout(8000)).maybeSingle();
+  if (error) throw error;
+  return { pendingItems: readPendingItems(data?.pending_items), fail_reason: (data?.fail_reason as string | null) ?? null };
 }
