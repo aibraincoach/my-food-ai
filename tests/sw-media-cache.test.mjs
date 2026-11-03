@@ -17,7 +17,7 @@ function worker({stores=new Map(),mediaPut}={}) {
   async keys(){return [...store.keys()].map(key=>new Request(new URL(key,'https://app.example')));},async delete(key){return store.delete(keyOf(key));}
  };},async keys(){return [...stores.keys()];},async delete(name){return stores.delete(name);}};
  const self={location:{origin:'https://app.example'},addEventListener:(name,fn)=>handlers.set(name,fn),skipWaiting(){},clients:{async claim(){}},registration:{}};
- vm.runInNewContext(source,{self,caches,fetch:request=>fetcher(request),URL,Request,Response,Headers,Promise,Date,setTimeout,clearTimeout});
+ vm.runInNewContext(source,{self,caches,fetch:(request,init)=>fetcher(request,init),URL,Request,Response,Headers,Promise,Date,setTimeout,clearTimeout});
  const waitUntil=value=>lifetimes.push(Promise.resolve(value));
  const flush=async()=>{while(lifetimes.length)await Promise.all(lifetimes.splice(0));};
  const event=async(name,data={})=>{let pending;handlers.get(name)({...data,waitUntil(value){pending=value;}});await pending;};
@@ -141,4 +141,31 @@ test('a validated new navigation epoch can cache its first response after logout
  const w=worker();await w.authenticate();await w.clear();
  w.setFetch(async request=>request.mode==='navigate'?new Response('new login',{headers:{'x-mfa-media-user':OWNER,'x-mfa-media-session':SECOND}}):new Response('new-session-image'));
  await w.navigate('https://app.example/');await w.request(image,{}, {clientId:'new-document'});assert.equal(w.stores.get(MEDIA).size,1);
+});
+
+
+test('logout and unbound clients bypass the browser HTTP cache as well as Cache API',async()=>{
+ for(const photo of [image,resized]) {
+  const w=worker();await w.authenticate();let signedIn=true,networkReads=0,httpCached;
+  w.setFetch(async(request,init)=>{
+   if(init?.cache!=="no-store"&&httpCached)return httpCached.clone();
+   networkReads++;
+   if(!signedIn)return new Response(null,{status:401});
+   const response=new Response('private meal',{headers:{'Cache-Control':'private, max-age=31536000, immutable'}});
+   if(init?.cache!=="no-store")httpCached=response.clone();
+   return response;
+  });
+  assert.equal(await(await w.request(photo)).text(),'private meal');assert.equal(networkReads,1);
+  await w.clear();signedIn=false;
+  assert.equal((await w.request(photo)).status,401,'logged-out client must reach origin even with a fresh private HTTP entry');
+  assert.equal(networkReads,2);
+ }
+});
+
+test('a different client cannot borrow a warm browser HTTP response from an active session',async()=>{
+ const w=worker();await w.authenticate();let mode;
+ w.setFetch(async(request,init)=>{mode=init?.cache;return new Response('origin checked');});
+ await w.request(resized,{}, {clientId:'unbound-client',settle:false});
+ assert.equal(mode,'no-store');
+ await w.clear();await w.flush();
 });
