@@ -6,7 +6,7 @@ const core: {name: string; key: keyof NutritionLike; unit: string}[] = [
   {name:'Sodium',key:'sodium_mg',unit:'mg'},
 ];
 const macroIds = new Set([1008,1062,2047,2048,1003,1004,1005,1079,2000,1093]);
-const macroNames = new Set(['energy','protein','total lipid fat','carbohydrate by difference','fiber total dietary','fibre','sugars total','sugars total including nlea','sugars total nlea','sodium na']);
+const macroNames = new Set([...core.map(row=>row.name.toLowerCase()),'energy','protein','total lipid fat','carbohydrate by difference','fiber total dietary','fibre','sugars total','sugars total including nlea','sugars total nlea','sodium na']);
 const names: Record<number,string> = {
   1051:'Water',1057:'Caffeine',1087:'Calcium',1089:'Iron',1090:'Magnesium',1091:'Phosphorus',1092:'Potassium',1095:'Zinc',1098:'Copper',1101:'Manganese',1103:'Selenium',
   1104:'Vitamin A (IU)',1105:'Retinol',1106:'Vitamin A',1109:'Vitamin E',1110:'Vitamin D (IU)',1114:'Vitamin D',
@@ -22,7 +22,7 @@ export function nutritionTableRows(items: CurrentItem[]) {
   const totals=sumNutrition(items);
   const nutrients=items.map(item=>({...item,micronutrients:item.micronutrients.filter(row=>{
     const name=(row.nutrientName??row.name??'').toLowerCase().replace(/[(),]/g,' ').replace(/\s+/g,' ').trim();
-    return row.nutrientId==null?!macroNames.has(name):!macroIds.has(row.nutrientId);
+    return !macroIds.has(row.nutrientId??-1)&&!macroNames.has(name);
   }).map(row=>({...row,nutrientName:names[row.nutrientId??-1]??row.nutrientName??row.name,unitName:unit(row.unitName??row.unit??'')}))}));
   const micros=sumMicronutrients(nutrients).sort((a,b)=>{
     const rank=(name:string)=>preferred.includes(name)?preferred.indexOf(name):preferred.length;
