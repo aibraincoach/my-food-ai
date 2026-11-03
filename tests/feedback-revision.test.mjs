@@ -65,7 +65,7 @@ do $t$ begin
  begin
   perform save_revision_feedback(current_setting('test.post')::uuid,current_setting('test.first')::uuid,current_setting('test.fingerprint'),'up');
   raise exception 'Stale manual-edit vote accepted';
- exception when serialization_failure then null;end;
+ exception when sqlstate 'PT409' then null;end;
  perform save_revision_feedback(current_setting('test.post')::uuid,current_setting('test.first')::uuid,feedback_revision(current_setting('test.post')::uuid)->>'fingerprint','up');
 end;$t$;
 reset role;
