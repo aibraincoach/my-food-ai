@@ -24,7 +24,7 @@ export function summaryLine(post: PostPresentation, drink: DrinkCardData | null 
   if ((post.kind === 'drink' || drink) && (post.drinkSource ?? drink?.source ?? 'sheet') === 'sheet') {
     const hydration = post.dayHydration;
     const amount = drink?.ml;
-    return `Drank: ${amount == null ? 'unavailable' : number(amount)} ml${drink?.caffeineMg ? ` · ${number(drink.caffeineMg)} mg caffeine` : ''}${hydration || drink ? ` · Consumed today: ${number(hydration?.totalMl ?? drink!.totalMl)} ml` : ''}${(hydration?.caffeineMg ?? drink?.dayCaffeineMg ?? 0) > 0 ? ` · ${number(hydration?.caffeineMg ?? drink!.dayCaffeineMg!)} mg caffeine` : ''}`;
+    return `Drank: ${amount == null ? 'unavailable' : number(amount)} ml${drink?.caffeineMg ? ` · ${number(drink.caffeineMg)} mg caffeine` : ''}${hydration || drink ? ` · Consumed today: ${number(hydration?.totalMl ?? drink!.totalMl)} ml` : ''}${drink?.caffeineMg && (hydration?.caffeineMg ?? drink?.dayCaffeineMg ?? 0) > 0 ? ` · ${number(hydration?.caffeineMg ?? drink!.dayCaffeineMg!)} mg caffeine today` : ''}`;
   }
   const drinkLine = drankMl > 0 ? ` · ${number(drankMl)} ml drank${caffeineMg > 0 ? ` · ${number(caffeineMg)} mg caffeine` : ''}` : '';
   const leftovers=post.items.filter(item=>item.not_eaten_grams!=null);
