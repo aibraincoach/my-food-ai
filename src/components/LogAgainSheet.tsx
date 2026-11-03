@@ -18,7 +18,7 @@ export default function LogAgainSheet({target,onClose,onPosted}:{target:LogTarge
  const close=()=>{if(!lock.current){setError('');setMode('now');setTime('');setDate('');onClose();}};
  async function post(){if(!target||target.loading||lock.current)return;lock.current=true;setBusy(true);setError('');
  try{const when=new Date(); if(mode!=='now'){if(!time||mode==='day'&&!date)throw new Error('Choose a date and time.');if(mode==='day'){const [y,m,d]=date.split('-').map(Number);when.setFullYear(y,m-1,d);}const[h,m]=time.split(':').map(Number);when.setHours(h,m,0,0);}
- await uploadManager.postCopy({id:target.id,saved:target.saved,eatenAt:when.toISOString()},target.name);setMode('now');setTime('');setDate('');onPosted();onClose();router.push('/');
+ onClose();void uploadManager.postCopy({id:target.id,saved:target.saved,eatenAt:when.toISOString()},target.name);setMode('now');setTime('');setDate('');onPosted();router.push('/');
  }catch(e){setError(e instanceof Error?e.message:'The meal could not be logged.');}finally{lock.current=false;setBusy(false);}}
  return <Sheet hideClose open={!!target} onClose={close} label="Log again" panelStyle={{overflow:'hidden'}}>
   <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto overscroll-contain" data-log-again-content>
