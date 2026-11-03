@@ -40,7 +40,8 @@ export async function logMeal(db:SupabaseClient,admin:SupabaseClient,id:string,e
  if(!time)throw new Error('Choose a valid time eaten.');
  const {data,error}=await db.rpc(saved?'log_saved_meal':'log_post_again',saved?{p_id:id,p_eaten_at:time}:{p_post_id:id,p_eaten_at:time});
  if(error||typeof data!=='string')throw new Error('The meal could not be logged.');
- // Both the copy and its durable drink_sync repair job committed together.
+ // Sheet intake commits atomically with its copy. Item copies also retain a
+ // durable drink_sync repair job.
  // Never turn a failed follow-up into a failed copy that the user repeats.
  try{await syncItemDrinks(admin,data);await renderResultsCard(admin,data,undefined,undefined,timeZone);}catch{console.error('Copied meal hydration/card repair remains queued.');}
  return {postId:data};

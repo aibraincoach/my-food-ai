@@ -45,8 +45,37 @@ begin
  update public.saved_meals set last_logged_at=clock_timestamp() where id=p_id;
  -- A retryable hydration/card repair is committed with the copy. Losing the
  -- following HTTP response or sync call cannot strand a successful meal copy.
- insert into public.jobs(post_id,kind,priority,status,payload)
- values(v_post,'recompute',100,'queued','{"reason":"drink_sync"}'::jsonb);
+ if not exists(select 1 from public.intake_logs where post_id=v_post and source='sheet') then
+  insert into public.jobs(post_id,kind,priority,status,payload)
+  values(v_post,'recompute',100,'queued','{"reason":"drink_sync"}'::jsonb);
+ end if;
  return v_post;
+end $$;
+
+create or replace function public.copy_owned_post(p_post_id uuid,p_eaten_at timestamptz) returns uuid
+language plpgsql security definer set search_path=public,pg_temp as $$
+declare v_source public.posts; v_copy uuid; v_item uuid; v_row record;
+begin
+ if p_eaten_at is null or p_eaten_at>now()+interval '5 minutes' then raise exception 'Invalid time eaten' using errcode='22023'; end if;
+ select * into v_source from public.posts where id=p_post_id and user_id=auth.uid() and status='ready' for update;
+ if not found then raise exception 'Meal not found' using errcode='42501'; end if;
+ if not exists(select 1 from public.current_post_items where post_id=p_post_id) then raise exception 'No meal items to copy' using errcode='22023'; end if;
+ insert into public.posts(user_id,caption,eaten_at,status,analysis_initialized_at,source_post_id)
+ values(auth.uid(),v_source.caption,p_eaten_at,'ready',clock_timestamp(),p_post_id) returning id into v_copy;
+ for v_row in select i.name,i.portion_grams,i.portion_text,n.* from public.current_post_items i left join public.item_nutrition n on n.post_item_id=i.id where i.post_id=p_post_id order by i.created_at,i.id loop
+  insert into public.post_items(post_id,name,portion_grams,portion_text,source) values(v_copy,v_row.name,v_row.portion_grams,v_row.portion_text,'user') returning id into v_item;
+  insert into public.item_nutrition(post_item_id,calories,protein_g,carbs_g,fat_g,fibre_g,sugar_g,sodium_mg,micronutrients,source_ref,food_category)
+  values(v_item,v_row.calories,v_row.protein_g,v_row.carbs_g,v_row.fat_g,v_row.fibre_g,v_row.sugar_g,v_row.sodium_mg,v_row.micronutrients,v_row.source_ref,v_row.food_category);
+ end loop;
+ insert into public.intake_logs(user_id,kind,amount,ml,label,post_id,logged_at)
+ select auth.uid(),kind,amount,ml,label,v_copy,p_eaten_at from public.intake_logs where post_id=p_post_id and user_id=auth.uid() and source='sheet';
+ update public.saved_meals set last_logged_at=clock_timestamp() where user_id=auth.uid() and source_post_id=p_post_id;
+ -- A retryable hydration/card repair is committed with the copy. Losing the
+ -- following HTTP response or sync call cannot strand a successful meal copy.
+ if not exists(select 1 from public.intake_logs where post_id=v_copy and source='sheet') then
+  insert into public.jobs(post_id,kind,priority,status,payload)
+  values(v_copy,'recompute',100,'queued','{"reason":"drink_sync"}'::jsonb);
+ end if;
+ return v_copy;
 end $$;
 commit;
