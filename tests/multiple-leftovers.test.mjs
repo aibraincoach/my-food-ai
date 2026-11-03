@@ -19,8 +19,8 @@ test('fully uneaten foods and cumulative footer keep their recorded calories aft
  const prior={...item,portion_grams:0,not_eaten_grams:100,not_eaten_calories:200,calories:0};
  const row=carryLeftovers({name:prior.name,portion_grams:100,portion_text:'100 g',nutrition:retainedNutrition(prior)},prior);
  assert.equal(row.nutrition.calories,0);assert.equal(row.portion_grams,0);assert.equal(row.not_eaten_calories,200);
- const card=cardDataFromRow({items:[{...prior,...row,not_eaten_count_text:'100 g'}]});assert.equal(card.footer,'leftovers (not eaten): 100 g · 200 kcal');
- assert.equal(checkWording(card.footer).ok,true);assert.equal(checkWording('leftovers (not eaten)').ok,true);assert.equal(checkWording('100 calories left').ok,false);
+ const card=cardDataFromRow({items:[{...prior,...row,not_eaten_count_text:'100 g'}]});assert.equal(card.footer,'Leftovers · not eaten: 100 g · 200 kcal');
+ assert.equal(checkWording(card.footer).ok,true);assert.equal(checkWording('Leftovers · not eaten').ok,true);assert.equal(checkWording('100 calories left').ok,false);
 });
 test('two independent leftovers photos accumulate, retry once, survive ordinary correction, and stay owner-scoped',async()=>{
  const owner=await user(1);const migration=readFileSync(new URL('../supabase/migrations/0028_multiple_leftovers.sql',import.meta.url),'utf8');
@@ -43,14 +43,14 @@ insert into public.item_nutrition(post_item_id,calories,protein_g,carbs_g,fat_g,
 insert into public.jobs(id,post_id,kind,status,payload) values(:'job1',:'post','remainder','running',jsonb_build_object('post_ownership',true,'remainder_photo_id',:'photo1'));
 update public.posts set active_job_id=:'job1' where id=:'post';
 select jsonb_build_array(jsonb_build_object('old_id',:'item','portion_grams',60,'portion_text','60 g','not_eaten_grams',40,'not_eaten_calories',80,'nutrition',jsonb_build_object('calories',120,'protein_g',6,'carbs_g',12,'fat_g',3,'micronutrients','[]'::jsonb)))::text as first \\gset
-select public.apply_post_remainder(:'post',:'job1',:'photo1',array[:'item'::uuid],:'first','leftovers (not eaten): 40 g · 80 kcal.');
+select public.apply_post_remainder(:'post',:'job1',:'photo1',array[:'item'::uuid],:'first','Leftovers · not eaten: 40 g · 80 kcal.');
 select public.apply_post_remainder(:'post',:'job1',:'photo1',array[:'item'::uuid],:'first','Duplicate must not appear');
 select id as next_item from public.current_post_items where post_id=:'post' \\gset
 update public.jobs set status='finished' where id=:'job1';
 insert into public.jobs(id,post_id,kind,status,payload) values(:'job2',:'post','remainder','running',jsonb_build_object('post_ownership',true,'remainder_photo_id',:'photo2'));
 update public.posts set active_job_id=:'job2' where id=:'post';
 select jsonb_build_array(jsonb_build_object('old_id',:'next_item','portion_grams',30,'portion_text','30 g','not_eaten_grams',70,'not_eaten_calories',140,'nutrition',jsonb_build_object('calories',60,'protein_g',3,'carbs_g',6,'fat_g',1.5,'micronutrients','[]'::jsonb)))::text as second \\gset
-select public.apply_post_remainder(:'post',:'job2',:'photo2',array[:'next_item'::uuid],:'second','leftovers (not eaten): 30 g · 60 kcal.');
+select public.apply_post_remainder(:'post',:'job2',:'photo2',array[:'next_item'::uuid],:'second','Leftovers · not eaten: 30 g · 60 kcal.');
 select public.apply_post_remainder(:'post',:'job2',:'photo2',array[:'next_item'::uuid],:'second','Duplicate must not appear');
 select id as last_item from public.current_post_items where post_id=:'post' \\gset
 update public.jobs set status='finished' where id=:'job2';
