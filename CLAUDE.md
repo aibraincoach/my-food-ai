@@ -13,6 +13,12 @@ Hackathon project: My Food AI. PM contract: [docs/pm-contract.md](docs/pm-contra
 
 Review tooling is ported from [naval-association-calgary](https://github.com/aibraincoach/naval-association-calgary) (PPLX runner, review policy shape) and burn-centre-translator / calgarysalutes-website (AGY delivery script, Firefox helper).
 
+## Run 8 current state — November 3, 2026
+
+[Run 8 final execution](docs/run8-final-report.md) supersedes the historical pre-merge sections below. Eight planned code PRs #334–#339/#341/#342 and defect follow-ups #340/#343 merged in ascending order at exact externally cleared heads. Production `6996817cec6aaf865357e9fee6550abf27cdfd0f` is READY; migration 0035 is applied. Actual browser reliability is 100/100; separate feed/Home probes are 100/100 each. Final emulated cold photos are 1480.2–1828.3 ms, warm 481.5–507.0 ms. Mean browser Supabase transfer fell 89.7%.
+
+CAPTCHA remains OFF by owner ruling; its production variable is absent, preview alone has the public test key, and no Auth setting changed. The final throwaway-only hammer observed 429s at sign-up31/sign-in32 and deleted all31 created accounts. The owner replaced 15-minute tick gaps with one-second rapid repeats; no cold-instance claim follows from those repeats. No further code/deployment order is outstanding. Docs PR #333 stays open for the owner and now includes the earlier #332 backlog/reconciliation changes. BACKLOG.md is the supplied 11:03 snapshot, not a claimed live Doc fetch; current implementation/acceptance is in the final report. Physical-phone checks and #279 CAPTCHA-on enforcement remain separate.
+
 ## Post–Run 7 reconciliation — November 3, 2026
 
 Run 7 is merged through `58d127b999163bfb8212fa8145482ae875ed2276`; #310 closed unmerged as superseded by #311. The [current reconciliation](docs/post-run7-backlog-reconciliation.md) supersedes older pre-merge status below and in the Part 1 reports. The final execution receipt records production migrations and the successful Open-model smoke. Only #139 of the eleven queried Run 7 issues is closed; implementation and remaining acceptance are listed separately in that report. The twelve owner-ordered issues are closed; #325 remains open pending region/timeout evidence and clarification of its unsupported earlier close-list inclusion.

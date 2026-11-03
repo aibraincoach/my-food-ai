@@ -122,4 +122,20 @@ Home's two streams share one request-scoped five-day totals promise. The initial
 
 On the built local app, one authenticated Home document GET returned HTTP 200 with the photo Link. Node undici diagnostics recorded exactly one outbound `/auth/v1/user` request, and the server recorded exactly one `feed read day-totals` line. The identity was absent as a browser response header. An unsigned request carrying a forged identity to Profile redirected to sign-in (307). These are actual built-app HTTP checks, in addition to the spoof/cookie and shared-totals regression tests.
 
-Preview measurements and preview document headers remain pending protected-deployment access. No cold-photo pass is claimed from source changes or unit tests. Physical-phone mobile-data and 100 controlled browser openings remain separate acceptance gates.
+At that pre-deployment checkpoint, preview access and measured acceptance were pending. Subsequent preview and final production results are below; no timing pass is inferred from source changes or unit tests. The final run also completed 100 actual controlled browser openings. Physical-phone mobile-data acceptance remains separate.
+
+## Final Run 8 production acceptance
+
+The final combined production revision is `6996817cec6aaf865357e9fee6550abf27cdfd0f` (#343). After batching the measured day-total fan-out, the same Chromium 1148/profile/read guard passed all five cold and warm pairs. These are emulated browser observations, not physical-phone acceptance.
+
+| Pair | Cold card ms | Cold photo ms | Warm card ms | Warm photo ms |
+| --- | ---: | ---: | ---: | ---: |
+| 1 | 1573.4 | 1828.3 | 496.3 | 496.3 |
+| 2 | 1160.6 | 1590.8 | 493.1 | 493.1 |
+| 3 | 1474.8 | 1487.0 | 481.3 | 481.5 |
+| 4 | 1391.3 | 1501.7 | 507.0 | 507.0 |
+| 5 | 1402.3 | 1480.2 | 490.4 | 490.5 |
+
+All ten documents returned 200 with the image Link. Cold photos transferred one 16,598-byte WebP each; all warm photos transferred zero network bytes. The prior #342 production series is retained as **partial: four of five cold photos passed, first 2,201.0 ms**. The five final passes do not erase that observation. Independent-preview attempts had worker/protection differences, so their warm-cache results are not treated as equivalent to production.
+
+The largest designated test account (147 posts) also passed 100 actual full browser openings: no digest, blank/error feed, sign-in redirect or page exception. A separate 100-run feed-reader/Home HTTP probe passed 100/100 on each boundary. These two reliability streams ran concurrently after the five photo pairs; the photo experiment was separate. Browser visibility was confirmed after DOMContentLoaded plus a one-second settle; it is not substituted for the animation-frame first-photo observer. [Full report](run8-final-report.md), [sanitized observations](evidence/run8-production/receipt.md). Physical-phone mobile-data checks and independent lower-photo competition isolation remain owner acceptance under #222/#305.
