@@ -1,4 +1,6 @@
 import type {TileDrinkRequest,PhotoDrinksRequest} from './drink-request';
+import type {CopyRequest} from './copy-request';
+
 import type {FoodRequest} from './food-request';
 import type { CapturedLocation } from '@/lib/location/capture';
 import type { PostOptions, UploadSnapshot } from './create';
@@ -18,6 +20,8 @@ export interface StoredUpload {
     food?: FoodRequest;
     drink?: TileDrinkRequest;
     photoDrinks?: PhotoDrinksRequest;
+    copy?: CopyRequest;
+
     cancelRequested?: boolean;
     resultPostId?: string;
     message?: string;

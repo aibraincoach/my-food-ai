@@ -1,0 +1,388 @@
+{
+  "baselineCommit": "ab3aff3b3127c509bbd3785b18a78db0a7b020de",
+  "runtimeCommit": "b734f88b29e3e863f51e3add3d310e0dbb2ca8d7",
+  "conditions": {
+    "name": "Slow4G",
+    "latencyMs": 562.5,
+    "downloadBps": 180000,
+    "uploadBps": 84375
+  },
+  "method": "Actual installed Chrome PWA via privileged CDP pipe;390x844; app windows closed between launches; existing browser profile/worker/cache primed. Network emulation applied to app worker before launch and new pages before resume. Root network response held until cached article visible, so fresh-first cannot falsely satisfy the last-feed condition.",
+  "scope": "Disposable local app3340/authRESTstorage60141; designated local test users. No production/model calls or app posts/settings submitted.",
+  "localAuthFixture": "GoTrue fixture lacks browser CORS headers. Verified owner checks forwarded actual local GoTrue status/body unchanged through a CDP transport bridge, adding CORS headers and562.5ms delay while throttled; no fake user/authorization result. Production repeat must use real Supabase without this bridge.",
+  "baseline": {
+    "at": "2026-11-03T11:26:02.065Z",
+    "trials": [
+      {
+        "trial": 1,
+        "epoch": 1793705177316,
+        "ms": 2368,
+        "source": "localStorage cache",
+        "id": "21e47208-771c-4504-824b-3a1e6f9c8b3d",
+        "standalone": true,
+        "imageReady": true,
+        "state": {
+          "url": "http://127.0.0.1:3340/",
+          "shell": false,
+          "standalone": true,
+          "cards": 2
+        },
+        "timeline": [
+          {
+            "epoch": 1793705177316,
+            "ms": 2368,
+            "source": "localStorage cache",
+            "id": "21e47208-771c-4504-824b-3a1e6f9c8b3d",
+            "standalone": true,
+            "imageReady": true
+          },
+          {
+            "epoch": 1793705177316,
+            "ms": 3335,
+            "source": "fresh server/client",
+            "id": "21e47208-771c-4504-824b-3a1e6f9c8b3d",
+            "standalone": true,
+            "imageReady": true
+          }
+        ]
+      },
+      {
+        "trial": 2,
+        "epoch": 1793705182819,
+        "ms": 1659,
+        "source": "localStorage cache",
+        "id": "21e47208-771c-4504-824b-3a1e6f9c8b3d",
+        "standalone": true,
+        "imageReady": true,
+        "state": {
+          "url": "http://127.0.0.1:3340/",
+          "shell": false,
+          "standalone": true,
+          "cards": 2
+        },
+        "timeline": [
+          {
+            "epoch": 1793705182819,
+            "ms": 1659,
+            "source": "localStorage cache",
+            "id": "21e47208-771c-4504-824b-3a1e6f9c8b3d",
+            "standalone": true,
+            "imageReady": true
+          },
+          {
+            "epoch": 1793705182819,
+            "ms": 2632,
+            "source": "fresh server/client",
+            "id": "21e47208-771c-4504-824b-3a1e6f9c8b3d",
+            "standalone": true,
+            "imageReady": true
+          }
+        ]
+      },
+      {
+        "trial": 3,
+        "epoch": 1793705187566,
+        "ms": 1643,
+        "source": "localStorage cache",
+        "id": "21e47208-771c-4504-824b-3a1e6f9c8b3d",
+        "standalone": true,
+        "imageReady": true,
+        "state": {
+          "url": "http://127.0.0.1:3340/",
+          "shell": false,
+          "standalone": true,
+          "cards": 2
+        },
+        "timeline": [
+          {
+            "epoch": 1793705187566,
+            "ms": 1643,
+            "source": "localStorage cache",
+            "id": "21e47208-771c-4504-824b-3a1e6f9c8b3d",
+            "standalone": true,
+            "imageReady": true
+          },
+          {
+            "epoch": 1793705187566,
+            "ms": 2601,
+            "source": "fresh server/client",
+            "id": "21e47208-771c-4504-824b-3a1e6f9c8b3d",
+            "standalone": true,
+            "imageReady": true
+          }
+        ]
+      }
+    ],
+    "cacheDeadlinePass": false
+  },
+  "beforeTransition": {
+    "commit": "0def4ab0e64369f72808c0edb8a1c3453bb10d3a",
+    "at": "2026-11-03T11:43:17.561Z",
+    "states": [
+      {
+        "ms": 1577,
+        "state": "no card",
+        "scrollY": 0
+      },
+      {
+        "ms": 1683,
+        "state": "cache",
+        "top": 53,
+        "scrollY": 0
+      },
+      {
+        "ms": 2374,
+        "state": "no card",
+        "scrollY": 0
+      },
+      {
+        "ms": 2414,
+        "state": "loading seed",
+        "scrollY": 0
+      },
+      {
+        "ms": 2697,
+        "state": "fresh",
+        "top": 187.390625,
+        "scrollY": 0
+      }
+    ],
+    "timeline": [
+      {
+        "epoch": 1793706213096,
+        "ms": 1683,
+        "source": "localStorage cache",
+        "id": "21e47208-771c-4504-824b-3a1e6f9c8b3d",
+        "standalone": true,
+        "top": 53,
+        "height": 571.765625,
+        "scrollY": 0,
+        "nav": false,
+        "imageReady": true
+      },
+      {
+        "epoch": 1793706213096,
+        "ms": 2697,
+        "source": "fresh server/client",
+        "id": "21e47208-771c-4504-824b-3a1e6f9c8b3d",
+        "standalone": true,
+        "top": 187.390625,
+        "height": 538.96875,
+        "scrollY": 0,
+        "nav": true,
+        "imageReady": true
+      }
+    ],
+    "note": "Precache-only intermediate0def4ab still had the unchanged old hard navigation. Compositor frames prove cached\u2192blank/loading\u2192fresh and top53\u2192187.390625."
+  },
+  "after": {
+    "at": "2026-11-03T12:27:03.667Z",
+    "trials": [
+      {
+        "trial": 1,
+        "epoch": 1793708838942,
+        "ms": 1721,
+        "source": "localStorage cache",
+        "id": "21e47208-771c-4504-824b-3a1e6f9c8b3d",
+        "standalone": true,
+        "imageReady": true,
+        "state": {
+          "url": "http://127.0.0.1:3340/",
+          "shell": true,
+          "standalone": true,
+          "cards": 2
+        },
+        "timeline": [
+          {
+            "epoch": 1793708838942,
+            "ms": 1721,
+            "source": "localStorage cache",
+            "id": "21e47208-771c-4504-824b-3a1e6f9c8b3d",
+            "standalone": true,
+            "imageReady": true
+          },
+          {
+            "epoch": 1793708838942,
+            "ms": 2302,
+            "source": "fresh server/client",
+            "id": "21e47208-771c-4504-824b-3a1e6f9c8b3d",
+            "standalone": true,
+            "imageReady": true
+          }
+        ]
+      },
+      {
+        "trial": 2,
+        "epoch": 1793708843359,
+        "ms": 1716,
+        "source": "localStorage cache",
+        "id": "21e47208-771c-4504-824b-3a1e6f9c8b3d",
+        "standalone": true,
+        "imageReady": true,
+        "state": {
+          "url": "http://127.0.0.1:3340/",
+          "shell": true,
+          "standalone": true,
+          "cards": 2
+        },
+        "timeline": [
+          {
+            "epoch": 1793708843359,
+            "ms": 1716,
+            "source": "localStorage cache",
+            "id": "21e47208-771c-4504-824b-3a1e6f9c8b3d",
+            "standalone": true,
+            "imageReady": true
+          },
+          {
+            "epoch": 1793708843359,
+            "ms": 2290,
+            "source": "fresh server/client",
+            "id": "21e47208-771c-4504-824b-3a1e6f9c8b3d",
+            "standalone": true,
+            "imageReady": true
+          }
+        ]
+      },
+      {
+        "trial": 3,
+        "epoch": 1793708847767,
+        "ms": 1700,
+        "source": "localStorage cache",
+        "id": "21e47208-771c-4504-824b-3a1e6f9c8b3d",
+        "standalone": true,
+        "imageReady": true,
+        "state": {
+          "url": "http://127.0.0.1:3340/",
+          "shell": true,
+          "standalone": true,
+          "cards": 2
+        },
+        "timeline": [
+          {
+            "epoch": 1793708847767,
+            "ms": 1700,
+            "source": "localStorage cache",
+            "id": "21e47208-771c-4504-824b-3a1e6f9c8b3d",
+            "standalone": true,
+            "imageReady": true
+          },
+          {
+            "epoch": 1793708847767,
+            "ms": 2285,
+            "source": "fresh server/client",
+            "id": "21e47208-771c-4504-824b-3a1e6f9c8b3d",
+            "standalone": true,
+            "imageReady": true
+          }
+        ]
+      }
+    ],
+    "privacyPass": true,
+    "logout": {
+      "url": "http://127.0.0.1:3340/sign-in",
+      "keys": [],
+      "ids": []
+    },
+    "loggedOutReopen": {
+      "url": "http://127.0.0.1:3340/sign-in",
+      "ids": [],
+      "keys": []
+    },
+    "account2": {
+      "url": "http://127.0.0.1:3340/",
+      "ids": [],
+      "keys": [
+        "mfa-feed:23ba5514-1894-4de9-9327-7fdc4bfa1744"
+      ],
+      "leak": null,
+      "standalone": true
+    },
+    "uninstalled": true,
+    "profileRemoved": true
+  },
+  "afterTransition": {
+    "at": "2026-11-03T12:23:53.543Z",
+    "states": [
+      {
+        "ms": 1575,
+        "state": "no card",
+        "scrollY": 0
+      },
+      {
+        "ms": 1761,
+        "state": "cache",
+        "top": 187.390625,
+        "scrollY": 0
+      },
+      {
+        "ms": 2299,
+        "state": "fresh",
+        "top": 187.390625,
+        "scrollY": 0
+      }
+    ],
+    "timeline": [
+      {
+        "epoch": 1793708649846,
+        "ms": 1761,
+        "source": "localStorage cache",
+        "id": "21e47208-771c-4504-824b-3a1e6f9c8b3d",
+        "standalone": true,
+        "top": 187.390625,
+        "height": 555.765625,
+        "scrollY": 0,
+        "nav": true,
+        "imageReady": true,
+        "sameCachedNode": true
+      },
+      {
+        "epoch": 1793708649846,
+        "ms": 2299,
+        "source": "fresh server/client",
+        "id": "21e47208-771c-4504-824b-3a1e6f9c8b3d",
+        "standalone": true,
+        "top": 187.390625,
+        "height": 555.765625,
+        "scrollY": 0,
+        "nav": true,
+        "imageReady": true,
+        "sameCachedNode": true
+      }
+    ],
+    "verifiedWeek": "2\nToday\nMon 2\nSun 1\nSat 31\nFri 30",
+    "authReads": [
+      {
+        "sid": "F8389E0495449B767377A7D183F86650",
+        "method": "OPTIONS",
+        "ms": 1708
+      },
+      {
+        "sid": "F8389E0495449B767377A7D183F86650",
+        "method": "GET",
+        "ms": 1728
+      }
+    ],
+    "genuineAuthBridge": [
+      {
+        "method": "GET",
+        "status": 200,
+        "bytes": 979,
+        "latencyDelayMs": 0
+      },
+      {
+        "method": "GET",
+        "status": 200,
+        "bytes": 979,
+        "latencyDelayMs": 562.5
+      }
+    ],
+    "visibilityRefreshDispatched": true,
+    "note": "Same article DOM node, top187.390625, height555.765625 andscrollY0 retained. Nav present throughout. No no-card/loading state after cached article, including verified readiness and dispatched visibility refresh."
+  },
+  "productionAcceptance": "Pending reviewed merge, stable production deployment and account release. Local proof does not close304/217.",
+  "sources": [
+    "https://chromium.googlesource.com/devtools/devtools-frontend/+/HEAD/front_end/core/sdk/NetworkManager.ts",
+    "https://chromium.googlesource.com/chromium/src/+/refs/tags/141.0.7390.132/docs/webapps/cdp-integration.md"
+  ]
+}

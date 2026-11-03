@@ -1,5 +1,7 @@
 'use client';
 import type {TileDrinkRequest,PhotoDrinksRequest} from './drink-request';
+import {copyEndpoint,type CopyRequest} from './copy-request';
+
 import type {FoodRequest} from './food-request';
 import { createClient } from '@/lib/supabase/client';
 import { PostUploadDraft, type PostOptions } from './create';
@@ -9,7 +11,8 @@ import type { CapturedLocation } from '@/lib/location/capture';
 import { PhotoUploadError, type UploadError } from '@/lib/media/put-with-progress';
 export interface UploadState {
     operationId: string;
-    kind?: "food"|"drink";
+    kind?: "food"|"copy"|"drink";
+
     removing?: boolean;
     drinkTile?: boolean;
     message?: string;
@@ -53,7 +56,8 @@ export class UploadManager {
     private notify(entry?: Entry, event?: string) { for (const listener of this.listeners)
         listener(); if (entry && event && typeof window !== 'undefined')
         window.dispatchEvent(new CustomEvent(event, { detail: this.state(entry) })); }
-    private state(entry: Entry): UploadState { const d = entry.data; return { operationId: d.operationId, uploadId:d.snapshot?.id, caption: d.caption, eatenAt: d.eatenAt ?? new Date(d.createdAt).toISOString(), previewUrl: entry.previewUrl, sent: d.sent, total: d.total, state: d.state, error: d.error, posted: d.posted, ...((d.food||d.drink||d.photoDrinks)?{kind:d.food?"food" as const:"drink" as const,removing:d.cancelRequested,message:d.message}:{}), ...(d.drink?{drinkTile:true}:{}), ...(entry.finished ? { postId: d.resultPostId??d.snapshot?.id } : {}) }; }
+    private state(entry: Entry): UploadState { const d = entry.data; return { operationId: d.operationId, uploadId:d.snapshot?.id, caption: d.caption, eatenAt: d.eatenAt ?? new Date(d.createdAt).toISOString(), previewUrl: entry.previewUrl, sent: d.sent, total: d.total, state: d.state, error: d.error, posted: d.posted, ...((d.food||d.copy||d.drink||d.photoDrinks)?{kind:d.copy?"copy" as const:d.food?"food" as const:"drink" as const,removing:d.cancelRequested,message:d.message}:{}), ...(d.drink?{drinkTile:true}:{}), ...(entry.finished ? { postId: d.resultPostId??d.snapshot?.id } : {}) }; }
+
     list = () => [...this.entries.values()].filter(e => !e.deleted).sort((a, b) => b.data.createdAt - a.data.createdAt).map(e => this.state(e));
     fields(id:string):DraftFields|null { const data=this.entries.get(id)?.data; return data?{caption:data.caption,eatenAt:data.eatenAt,location:data.location,options:{...data.options}}:null; }
     newest() { return [...this.entries.values()].filter(e => !e.deleted && !e.data.posted).sort((a, b) => b.data.createdAt - a.data.createdAt)[0]?.data ?? null; }
@@ -170,16 +174,28 @@ export class UploadManager {
         if(entry.deleted||entry.data.ownerId!==this.ownerId)return;
         this.notify(entry,'upload-progress');if(entry.active)entry.rerun=true;void this.run(entry);
     }
+    async postCopy(copy:CopyRequest,label:string) {
+        copy={...copy};
+        if(!this.ownerId){const {data:{user}}=await createClient().auth.getUser();if(!user)throw new Error('Sign in to keep this copy.');this.ownerId=user.id;}
+        const now=Date.now(),id=crypto.randomUUID();
+        const entry=this.make({operationId:id,ownerId:this.ownerId,createdAt:now,reservedAt:now,caption:label,eatenAt:copy.eatenAt,location:null,options:{},files:[],snapshot:null,posted:true,copy,state:'uploading',sent:0,total:0});
+        this.entries.set(id,entry);
+        try{await this.persist(entry);}catch(error){entry.deleted=true;this.entries.delete(id);throw error;}
+        if(entry.deleted||entry.data.ownerId!==this.ownerId)throw new Error('Sign-in changed. Your copy is kept for its original account.');
+        this.notify(entry,'upload-started');void this.run(entry);return id;
+    }
+
     post(id: string) { const entry = this.entries.get(id); if (!entry || entry.deleted)
         return; entry.data.posted = true; this.notify(entry, 'upload-started'); void this.run(entry); }
     async discardFood(id:string){
         const entry=this.entries.get(id);
-        if(!entry?.data.food||entry.deleted||entry.finished)return;
+        if((!entry?.data.food&&!entry?.data.copy)||entry.deleted||entry.finished)return;
         entry.data.cancelRequested=true;entry.data.state='uploading';entry.data.message=undefined;
         try{await this.persist(entry);}catch{entry.data.state='failed';entry.data.message='The removal could not be kept on this phone. Try again.';this.notify(entry,'upload-failed');return;}
         if(entry.deleted||entry.data.ownerId!==this.ownerId)return;
         this.notify(entry,'upload-progress');if(entry.active)entry.rerun=true;void this.run(entry);
     }
+    discardCopy(id:string){return this.discardFood(id);}
     retry(id: string) { const entry = this.entries.get(id); if (!entry || entry.deleted || entry.finished)
         return; entry.data.state = 'uploading'; entry.data.error = undefined; entry.data.message=undefined; this.notify(entry, 'upload-progress'); void this.run(entry); }
     online = () => { for (const entry of this.entries.values())
@@ -220,6 +236,15 @@ export class UploadManager {
         if(!response.ok||!result?.post_id){d.message=result?.error??'The drink save could not be confirmed. Your selection is kept.';throw new Error(d.message);}
         return{postId:result.post_id};
     }
+    private async submitCopy(entry:Entry):Promise<{postId:string}> {
+        const d=entry.data,copy=d.copy!;
+        const response=await this.foodRequest(copyEndpoint(copy),{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({operation_id:d.operationId,owner_id:d.ownerId,eaten_at:copy.eatenAt})});
+        const result=await response.json().catch(()=>null) as {postId?:string;post_id?:string;error?:string}|null;
+        const postId=result?.postId??result?.post_id;
+        if(!response.ok||!postId){d.message=typeof result?.error==='string'?result.error.slice(0,200):'The copy could not be confirmed. Your selection is kept.';throw new Error(d.message);}
+        return {postId};
+
+    }
     private async process(entry: Entry) {
         try {
             if(entry.deleted||(entry.data.ownerId&&this.ownerId&&entry.data.ownerId!==this.ownerId))return;
@@ -233,10 +258,11 @@ export class UploadManager {
             await this.persist(entry);
             if (entry.deleted)
                 return;
-            if((entry.data.food||entry.data.drink||entry.data.photoDrinks)&&entry.data.cancelRequested){
-                const response=await this.foodRequest(entry.data.photoDrinks?'/api/drinks/post':entry.data.drink?'/api/intake/post':'/api/posts/food',{method:'DELETE',headers:{'Content-Type':'application/json'},body:JSON.stringify({operation_id:entry.data.operationId,owner_id:entry.data.ownerId,...(entry.data.photoDrinks?{upload_id:entry.data.photoDrinks.upload_id}:{})})});
+            if((entry.data.food||entry.data.copy||entry.data.drink||entry.data.photoDrinks)&&entry.data.cancelRequested){
+                const response=await this.foodRequest(entry.data.copy?copyEndpoint(entry.data.copy):entry.data.photoDrinks?'/api/drinks/post':entry.data.drink?'/api/intake/post':'/api/posts/food',{method:'DELETE',headers:{'Content-Type':'application/json'},body:JSON.stringify({operation_id:entry.data.operationId,owner_id:entry.data.ownerId,...(entry.data.copy?{eaten_at:entry.data.copy.eatenAt}:{}),...(entry.data.photoDrinks?{upload_id:entry.data.photoDrinks.upload_id}:{})})});
+
                 const body=await response.json().catch(()=>null) as {post_id?:string;error?:string}|null;
-                if(!response.ok){entry.data.message=body?.error??'The pending food could not be removed. Your selection is kept.';throw new Error(entry.data.message);}
+                if(!response.ok){entry.data.message=body?.error??(entry.data.copy?'The pending copy could not be removed. Your selection is kept.':'The pending food could not be removed. Your selection is kept.');throw new Error(entry.data.message);}
                 if(entry.deleted)return;
                 await this.remove(entry.data.operationId);
                 if(body?.post_id&&typeof window!=='undefined')window.dispatchEvent(new CustomEvent('post-deleted',{detail:{id:body.post_id}}));
@@ -277,9 +303,11 @@ export class UploadManager {
                     await this.persist(entry);
                     if (entry.deleted)
                         return;
-                    const result = d.food ? await this.submitFood(entry) : (d.drink||d.photoDrinks)?await this.submitDrink(entry):await entry.draft.submit(d.caption, d.files, d.location, d.eatenAt, d.files.length ? 'photo' : 'text', d.options);
+                    const result = d.copy?await this.submitCopy(entry):d.food ? await this.submitFood(entry) : (d.drink||d.photoDrinks)?await this.submitDrink(entry):await entry.draft.submit(d.caption, d.files, d.location, d.eatenAt, d.files.length ? 'photo' : 'text', d.options);
+
                     if (entry.deleted)
                         return;
+                    if((d.copy||d.drink||d.photoDrinks)&&d.cancelRequested){d.resultPostId=result.postId;await this.persist(entry);entry.rerun=true;return;}
                     d.snapshot = await entry.draft.snapshot();
                     entry.finished = true;
                     d.resultPostId=result.postId;

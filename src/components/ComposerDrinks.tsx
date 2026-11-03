@@ -1,6 +1,5 @@
 'use client';
 import {useEffect,useRef,useState} from 'react';
-import {useRouter} from 'next/navigation';
 import CorrectProductSheet from './CorrectProductSheet';
 import type {BarcodeCorrection} from '@/lib/fdc/barcode-product';
 import {photoDrinkProduct,scalePhotoDrink,type PhotoDrinkReading} from '@/lib/intake/photo-drinks';
@@ -11,7 +10,6 @@ import {fromLocalInput} from '@/lib/posts/eaten-at';
 type Props={upload?:UploadState;shots:{previewUrl:string}[];notEaten:number[];caption:string;when:string|null;busy:boolean;saveAsMeal:boolean;locationEnabled:boolean};
 const amount=(value:number|null)=>value===null?'unavailable':new Intl.NumberFormat(undefined,{maximumFractionDigits:1}).format(value);
 export function useComposerDrinks(p:Props){
- const router=useRouter();
  const [readings,setReadings]=useState<Record<string,PhotoDrinkReading>>({});
  const [volumes,setVolumes]=useState<Record<string,number|null>>({});
  const [selected,setSelected]=useState<string|null>(null),[other,setOther]=useState<string|null>(null),[correcting,setCorrecting]=useState<string|null>(null);
