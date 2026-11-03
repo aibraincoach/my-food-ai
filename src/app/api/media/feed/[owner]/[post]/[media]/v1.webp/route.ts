@@ -22,7 +22,9 @@ async function readPhoto(request: Request, context: {params: Promise<{owner: str
   if (error || !data || data.kind !== 'photo') return fail(404);
   const path = feedPhotoPath(data.storage_path, owner, post);
   if (!path) return fail(404);
-  const cacheHeaders = {...headers, 'Cache-Control': 'private, max-age=31536000, immutable', ETag: `"${media}-v1"`, Vary: 'Cookie'};
+  // The URL is owner-scoped and ownership is checked on every request, including
+  // the 304 path. Varying on Cookie made every session-token refresh refetch.
+  const cacheHeaders = {...headers, 'Cache-Control': 'private, max-age=31536000, immutable', ETag: `"${media}-v1"`};
   // Authenticate and verify ownership even for conditional reads. No Storage
   // request or image work is needed when the browser already has this media.
   if (request.headers.get('if-none-match') === cacheHeaders.ETag) {
