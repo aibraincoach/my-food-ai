@@ -120,4 +120,6 @@ Home's two streams share one request-scoped five-day totals promise. The initial
 
 ### Run 8 after
 
-Preview measurements, real document headers and one-totals-read runtime verification are pending the preview deployment. No cold-photo pass is claimed from source changes or unit tests. Physical-phone mobile-data and 100 controlled browser openings remain separate acceptance gates.
+On the built local app, one authenticated Home document GET returned HTTP 200 with the photo Link. Node undici diagnostics recorded exactly one outbound `/auth/v1/user` request, and the server recorded exactly one `feed read day-totals` line. The identity was absent as a browser response header. An unsigned request carrying a forged identity to Profile redirected to sign-in (307). These are actual built-app HTTP checks, in addition to the spoof/cookie and shared-totals regression tests.
+
+Preview measurements and preview document headers remain pending protected-deployment access. No cold-photo pass is claimed from source changes or unit tests. Physical-phone mobile-data and 100 controlled browser openings remain separate acceptance gates.
