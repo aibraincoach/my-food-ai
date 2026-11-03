@@ -3,6 +3,7 @@ import {identifyItems} from '@/lib/meta/spark';
 import {resolveFoodMatch} from '@/lib/fdc/match';
 import {scaleNutrition} from '@/lib/fdc/nutrients';
 import {isDrinkItem} from './drinks-from-items';
+import {photoDrinkVolume} from './drink-volume';
 import type {PhotoDrink,DrinkNutrition} from './photo-drinks';
 import type {StoredNutrient} from '@/lib/nutrition/totals';
 export type {PhotoDrink} from './photo-drinks';
@@ -12,9 +13,7 @@ export async function identifyDrinks(admin:SupabaseClient,_userId:string,photo:U
  const meal=await identifyItems(photo,'image/jpeg',null,[],`For a beverage, put its volume in ml in portion_text as well as an independently estimated portion_grams. If an explicit package volume is visibly legible, append "read from the can" to portion_text; otherwise append "estimated from the photo". Do not infer a printed volume from a familiar package. Name every food as usual, including food that is not a drink. Plain water in a glass is named "Water". Do not invent nutrients.`);
  const drinks:PhotoDrink[]=[];
  for(const item of meal.items){
-  const volume=item.portionText?.match(/(?:^|\s)(\d+(?:\.\d+)?)\s*ml\b/i);
-  if(!volume)continue;
-  const ml=Math.round(Number(volume[1]));if(!Number.isFinite(ml)||ml<1||ml>5000)continue;
+  const ml=photoDrinkVolume(item.portionText);if(ml===null)continue;
   const plainWater=/^(?:plain |tap |bottled |sparkling )?water(?:,? (?:glass|bottle|can))?$/i.test(item.name.trim());
   const food=plainWater?null:await resolveFoodMatch(admin,item.name);
   if(!plainWater&&!isDrinkItem({name:item.name,food_category:food?.foodCategory}))continue;
