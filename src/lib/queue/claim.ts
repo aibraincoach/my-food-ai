@@ -21,7 +21,11 @@ export interface JobRow {
 export async function claimJob(admin: SupabaseClient): Promise<JobRow | null> {
   const { data, error, status } = await admin.rpc("claim_owned_job");
   if (error) throw ioError(`claim_job failed: ${error.message}`, error, status);
-  return (data ?? null) as JobRow | null;
+  // A SQL composite NULL can arrive through PostgREST as an object whose
+  // fields are all null. It is not a claimed job: treating it as truthy
+  // makes the drain spin through fail_job(null) until its time budget ends.
+  if (!data || typeof data !== "object" || !data.id) return null;
+  return data as JobRow;
 }
 
 export async function finishJob(admin: SupabaseClient, id: string): Promise<void> {

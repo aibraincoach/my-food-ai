@@ -1,3 +1,4 @@
+import { VERIFIED_USER_HEADER } from "@/lib/auth/verified-user-header";
 import { mediaSessionEpoch } from "@/lib/auth/media-session-epoch";
 import { NextResponse, type NextRequest } from "next/server";
 import { createServerClient } from "@supabase/ssr";
@@ -9,6 +10,7 @@ import { homePhotoPreload } from "@/lib/posts/home-photo-preload";
 const PROTECTED = ["/", "/search", "/days", "/profile"];
 
 export async function middleware(request: NextRequest) {
+  request.headers.delete(VERIFIED_USER_HEADER);
   const session = sessionCookieBridge(request);
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -20,6 +22,10 @@ export async function middleware(request: NextRequest) {
   const {
     data: { user },
   } = await supabase.auth.getUser();
+  if (user) {
+    request.headers.set(VERIFIED_USER_HEADER, user.id);
+    session.refreshRequestHeaders();
+  }
   const pathname = request.nextUrl.pathname;
   if (pathname === "/admin" || pathname.startsWith("/admin/")) {
     const allowed=await adminRequestAllowed(user?.id,async()=>supabase.from("profiles").select("role").eq("id",user!.id).maybeSingle());

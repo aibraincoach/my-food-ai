@@ -1,5 +1,5 @@
 import { cookies } from "next/headers";
-import { validZone } from "@/lib/posts/days";
+import { validDate, validZone } from "@/lib/posts/days";
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { getFeed, getPostCards, FEED_PAGE_SIZE } from "@/lib/posts/feed";
@@ -31,7 +31,11 @@ export async function GET(request: Request) {
       if(!ids.length||ids.length>50||ids.some(id=>!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id)))return NextResponse.json({error:'Invalid meal IDs.'},{status:400,headers});
       return NextResponse.json({posts:await getPostCards(db,ids,zone)},{headers});
     }
-    return NextResponse.json(await getFeed(db,user.id,before,zone,limit),{headers});
+    const knownDays = params.has('known_days') ? [...new Set(params.get('known_days')!.split(','))] : [];
+    if (knownDays.length > 120 || knownDays.some(day => !validDate(day))) return NextResponse.json({error:'Invalid known dates.'},{status:400,headers});
+    // These dates only omit optional totals already held by this browser.
+    // Ownership and all meal/hydration reads remain authenticated as above.
+    return NextResponse.json(await getFeed(db,user.id,before,zone,limit,{knownDays}),{headers});
   } catch {
     return NextResponse.json({error:'The feed could not be loaded.'},{status:503,headers});
   } finally { console.info(`feed read total ${Date.now() - started}`); }

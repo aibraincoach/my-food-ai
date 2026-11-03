@@ -28,6 +28,7 @@ async function serverHome(seedRead){
   if(name==='next/server')return{connection:async()=>{}};
   if(name==='next/link')return{default:({children})=>children};
   if(name==='next/headers')return{cookies:async()=>({get:()=>({value:'UTC'})})};
+  if(name==='@/lib/auth/verified-user')return{verifiedUserId:async()=> 'owner'};
   if(name==='@/lib/supabase/server')return{createClient:async()=>({auth:{getUser:async()=>({data:{user:{id:'owner'}}})}})};
   if(name==='@/lib/posts/feed')return{getFeed:seedRead,getFirstFeedPhoto:async()=>null};
   if(name==='@/lib/posts/days')return days;

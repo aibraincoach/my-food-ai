@@ -83,7 +83,7 @@ export default function Feed({initialPage, initialUserId, initialZone = "UTC", f
     }
     const supabase = createClient();
     const zone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-    const dayTotals = new Map<string, FeedDayTotal>((initialPage?.days ?? []).map(day => [day.day, day]));
+    const dayTotals = new Map<string, FeedDayTotal>((initialZone === zone ? initialPage?.days ?? [] : []).map(day => [day.day, day]));
     const uploadDaysToRead=new Set(uploadManager.list().filter(upload=>upload.posted).map(upload=>dateInZone(upload.eatenAt,zone)));
     const mergeDays = (days: FeedDayTotal[]) => { for (const day of days) dayTotals.set(day.day, day); };
     let live = true;
@@ -247,6 +247,8 @@ export default function Feed({initialPage, initialUserId, initialZone = "UTC", f
     const readPage = async (before: string | null, limit = FEED_PAGE_SIZE) => {
       const params = new URLSearchParams({tz: zone, limit: String(limit)});
       if (before) params.set('cursor', before);
+      const knownDays = [...dayTotals.keys()].slice(-120);
+      if (knownDays.length) params.set('known_days', knownDays.join(','));
       const response = await fetch(`/api/feed?${params}`, {signal: AbortSignal.timeout(15000), cache: 'no-store'});
       if (response.status === 401) { router.replace('/sign-in'); throw new Error('Sign in required.'); }
       if (!response.ok) throw new Error('Feed could not be loaded.');
@@ -387,7 +389,7 @@ export default function Feed({initialPage, initialUserId, initialZone = "UTC", f
       document.removeEventListener("visibilitychange", focus);
       void supabase.removeChannel(channel);
     };
-  }, [router, initialPage, initialUserId, fallbackOnly]);
+  }, [router, initialPage, initialUserId, initialZone, fallbackOnly]);
 
   useEffect(() => {
     const publish = () => window.dispatchEvent(new CustomEvent("feed-state", {
