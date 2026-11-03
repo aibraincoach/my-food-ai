@@ -33,6 +33,7 @@ test('soft delete hides owned records and drink totals, retains data, and restor
 });
 
 test('purge cascades 31-day records and queues storage cleanup, leaving 29-day records',async()=>{
+ assert.ok(['localhost','127.0.0.1','[::1]'].includes(new URL(process.env.NEXT_PUBLIC_SUPABASE_URL).hostname),'Purge integration requires the disposable local database.');
  const db=admin(),one=await user(1),old=randomUUID(),recent=randomUUID();
  try{
   checked(await db.from('posts').insert([{id:old,user_id:one.user.id,caption:'Expired delete',status:'ready',deleted_at:new Date(Date.now()-31*86400000).toISOString()},{id:recent,user_id:one.user.id,caption:'Retained delete',status:'ready',deleted_at:new Date(Date.now()-29*86400000).toISOString()}]));
