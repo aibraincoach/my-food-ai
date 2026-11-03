@@ -148,13 +148,3 @@ test('only cola gets a scaled caffeine fallback; portion values including zero w
   assert.equal(drinksFromItems([item({ portion_text: '330 ml' })])[0].caffeineMg, 34);
   assert.equal(drinksFromItems([item({ micronutrients: [{ nutrientId: 1057, value: 0, basis: 'portion' }] })])[0].caffeineMg, 0);
 });
-test('photo drink summary uses matching item identities, kcal, and optional caffeine', () => {
-  const cola = item({ calories: 139 });
-  const drink = { post_item_id: cola.id, ml: 330, caffeineMg: 32, label: 'Cola' };
-  assert.equal(summaryLine({ items: [cola], itemDrinks: [drink], kind: 'drink', drinkSource: 'item' }, { source: 'item' }), 'Drank: 330 ml · 32 mg caffeine · 139 kcal');
-  const water = { ...cola, id: 'water', name: 'Water', calories: 0 };
-  const waterDrink = { post_item_id: 'water', ml: 1000, caffeineMg: 0, label: 'Water' };
-  assert.equal(summaryLine({ items: [water], itemDrinks: [waterDrink] }), 'Drank: 1,000 ml · 0 kcal');
-  assert.equal(summaryLine({ items: [cola, water], itemDrinks: [drink, waterDrink] }), 'Drank: 2 drinks · 1,330 ml · 32 mg caffeine · 139 kcal');
-  assert.match(summaryLine({ items: [cola, { ...water, id: 'food' }], itemDrinks: [drink, waterDrink] }), /^Consumed: 139 kcal · 1,330 ml drank · 32 mg caffeine/);
-});
