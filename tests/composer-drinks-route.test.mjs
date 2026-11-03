@@ -16,14 +16,16 @@ test('composer identify enforces caps and ownership, caches one model call, and 
  const {user}=await signInTestClient(1),cookie=await signInAsTestUser(1),other=await signInAsTestUser(2);
  const hour=new Date();hour.setUTCMinutes(0,0,0);const bucket=hour.toISOString();
  const prior=checked(await db.from('user_call_hits').select('*').eq('user_id',user.id).eq('route','post').eq('hour',bucket));
+ const cacheQuery='fdc-search-v3:coca cola';
+ const priorCache=checked(await db.from('fdc_cache').select('*').eq('query',cacheQuery));
  const stages=[];
  const request=(path,body,session=cookie)=>fetch(origin+path,{method:'POST',headers:{Cookie:session,'Content-Type':'application/json'},body:JSON.stringify(body)});
  const cap=hits=>db.from('user_call_hits').upsert({user_id:user.id,route:'post',hour:bucket,hits},{onConflict:'user_id,route,hour'}).then(checked);
  const count=()=>fetch(model+'/__calls').then(r=>r.json()).then(rows=>rows.filter(row=>row.name==='identify').length);
- async function stage(){
+ async function stage(photo='01'){
   const id=randomUUID();stages.push(id);
   const response=await request('/api/posts',{operation_id:id,capture_intent:'photo',caption:'',eaten_at:new Date().toISOString(),shots:[{position:0,width:390,height:390}]});const data=await response.json();assert.equal(response.status,200,JSON.stringify(data));
-  const bytes=await readFile(new URL('../eval/photos/01.jpg',import.meta.url));
+  const bytes=await readFile(new URL(`../eval/photos/${photo}.jpg`,import.meta.url));
   for(const upload of data.uploads)for(const url of [upload.originalSignedUrl,upload.feedSignedUrl]){const put=await fetch(url,{method:'PUT',headers:{'Content-Type':'image/jpeg'},body:bytes});assert.equal(put.status,200);}
   return id;
  }
@@ -54,9 +56,16 @@ test('composer identify enforces caps and ownership, caches one model call, and 
   const simultaneous=await Promise.all([request('/api/drinks/identify',{upload_id:concurrentId,position:0}),request('/api/drinks/identify',{upload_id:changedManifestId,position:0})]);
   assert.ok(simultaneous.some(r=>r.status===200));assert.ok(simultaneous.every(r=>[200,409].includes(r.status)));assert.equal(await count(),before+1);
   const copied=await request('/api/drinks/identify',{upload_id:changedManifestId,position:0});assert.equal(copied.status,200);assert.equal(await count(),before+1);
+  // A reference with caffeine but no convertible portion stays unknown; it
+  // must never turn into the 32mg cola fallback or a guessed calorie number.
+  checked(await db.from('fdc_cache').upsert({query:cacheQuery,response:{kind:'fdc-search-v3',query:'coca cola',payload:{foods:[{fdcId:990040,description:'Beverages, carbonated, cola, regular',foodCategory:'Soft drinks',dataType:'SR Legacy',foodNutrients:[{nutrientId:1008,nutrientName:'Energy',unitName:'KCAL',value:42},{nutrientId:1003,nutrientName:'Protein',unitName:'G',value:0},{nutrientId:1004,nutrientName:'Fat',unitName:'G',value:0},{nutrientId:1005,nutrientName:'Carbohydrate',unitName:'G',value:10},{nutrientId:1057,nutrientName:'Caffeine',unitName:'MG',value:9}]}]}}},{onConflict:'query'}));
+  await fetch(model+'/__fixture',{method:'POST',headers:{'Content-Type':'application/json'},body:'{"mode":"cola-unknown"}'});
+  const unknownStage=await stage('02'),unknown=await request('/api/drinks/identify',{upload_id:unknownStage,position:0}),unknownReading=await unknown.json();assert.equal(unknown.status,200,JSON.stringify(unknownReading));assert.equal(unknownReading.drinks[0].caffeineMg,null);assert.equal(unknownReading.drinks[0].kcal,null);assert.equal(unknownReading.drinks[0].nutrition.micronutrients.find(n=>n.nutrientId===1057).value,null);assert.equal(await count(),1);
+
  }finally{
   if(stages.length){checked(await db.from('posts').delete().in('id',stages));checked(await db.from('post_upload_drafts').delete().in('id',stages));
    const result=spawnSync('psql',['-X','-qAt','--dbname',process.env.SUPABASE_DB_URL,'-v','ON_ERROR_STOP=1'],{input:`delete from public.jobs where payload->>'deleted_post_id' in (${stages.map(id=>`'${id}'`).join(',')});delete from storage.objects where ${stages.map(id=>`name like '${user.id}/${id}/%'`).join(' or ')};`,encoding:'utf8'});assert.equal(result.status,0,result.stderr);}
+  checked(await db.from('fdc_cache').delete().eq('query',cacheQuery));if(priorCache.length)checked(await db.from('fdc_cache').insert(priorCache));
   checked(await db.from('user_call_hits').delete().eq('user_id',user.id).eq('route','post').eq('hour',bucket));if(prior.length)checked(await db.from('user_call_hits').insert(prior));
  }
 });
