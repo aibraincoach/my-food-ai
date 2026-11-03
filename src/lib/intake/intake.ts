@@ -8,6 +8,16 @@ export const INTAKE = {
   caffeine: { label: "Caffeine", unit: "mg", preset: 95, max: 1000 },
 } as const;
 
+// Fixed defaults shared by the sheet and server; clients send only the tile index.
+export const DRINK_TILES = [
+  { name: "Water", size: "glass", ml: 250, kind: "water", caffeineMg: 0 },
+  { name: "Coffee", size: "cup", ml: 240, kind: "caffeine", caffeineMg: 95 },
+  { name: "Espresso", size: "double", ml: 60, kind: "caffeine", caffeineMg: 126 },
+  { name: "Tea", size: "mug", ml: 300, kind: "caffeine", caffeineMg: 45 },
+  { name: "Coca-Cola", size: "can", ml: 330, kind: "caffeine", caffeineMg: 32 },
+  { name: "Water", size: "bottle", ml: 500, kind: "water", caffeineMg: 0 },
+] as const;
+
 export const emptyIntake = (): IntakeTotals => ({ water: 0, caffeine: 0 });
 
 export const isIntakeKind = (kind: unknown): kind is IntakeKind => kind === "water" || kind === "caffeine";

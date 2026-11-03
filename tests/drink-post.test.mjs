@@ -15,6 +15,10 @@ const migration = readFileSync(new URL("../supabase/migrations/0019_intake_logs_
 test("drink data is bounded and caffeine/labels come from the server", () => {
   assert.deepEqual(parseDrinkInput({ kind: "water", ml: 330, label: "tampered", caffeineMg: 900 }), { kind: "water", ml: 330, label: "Water", caffeineMg: 0 });
   assert.deepEqual(parseDrinkInput({ kind: "caffeine", ml: 240 }), { kind: "caffeine", ml: 240, label: "Coffee, cup", caffeineMg: 95 });
+  assert.deepEqual(parseDrinkInput({ tile: 4, ml: 1, caffeineMg: 999 }), { kind: "caffeine", label: "Coca-Cola, can", ml: 330, caffeineMg: 32 });
+  assert.equal(parseDrinkInput({ tile: 9 }), null);
+  assert.equal(parseDrinkInput({ tile: -1 }), null);
+  assert.equal(parseDrinkInput({ tile: "4" }), null);
   assert.equal(parseDrinkInput({ kind: "caffeine", ml: 30 }).caffeineMg, 63);
   assert.equal(parseDrinkInput({ kind: "caffeine", ml: 30, custom: true }).caffeineMg, 12);
   for (const ml of [1,2,2527,2528]) {
@@ -34,6 +38,35 @@ test("a failed atomic drink save does not expose or compensate a partially commi
     from() { throw new Error("No separate post/intake writes are allowed."); } };
   await assert.rejects(postDrink(admin,"owner",parseDrinkInput({kind:"water",ml:330}),"UTC"),/could not be saved/);
   assert.equal(calls,1);
+});
+
+test("cola tile keeps cola nutrition and server caffeine in the atomic write", async () => {
+  let saved;
+  const admin = {
+    from(table) {
+      assert.equal(table, "fdc_cache");
+      let key;
+      return {
+        select() { return this; }, eq(_column, value) { key = value; return this; },
+        async maybeSingle() {
+          assert.equal(key, "fdc-search-v3:beverages, carbonated, cola, regular");
+          return { data: { response: { kind: "fdc-search-v3", query: "beverages, carbonated, cola, regular", payload: { foods: [{
+            fdcId: 1234, description: "Beverages, carbonated, cola, regular", dataType: "SR Legacy",
+            foodNutrients: [{ nutrientId: 1008, nutrientName: "Energy", unitName: "KCAL", value: 42 },
+              { nutrientId: 1057, nutrientName: "Caffeine", unitName: "MG", value: 10 }],
+          }] } } }, error: null };
+        },
+      };
+    },
+    async rpc(name, args) { assert.equal(name, "create_drink_post"); saved = args; return { data: "cola-post", error: null }; },
+  };
+  // Optional rendering is best-effort after the committed atomic save.
+  const originalError = console.error; console.error = () => {};
+  try { await postDrink(admin, "owner", parseDrinkInput({ tile: 4 }), "UTC"); }
+  finally { console.error = originalError; }
+  assert.equal(saved.p_ml, 330); assert.equal(saved.p_label, "Coca-Cola, can"); assert.equal(saved.p_caffeine_mg, 32);
+  assert.equal(saved.p_nutrition.calories, 138.6);
+  assert.equal(saved.p_nutrition.micronutrients.find(row => row.nutrientId === 1057).value, 32);
 });
 
 test("hydration counts food water once, old water rows and local-day cutoff", async () => {
@@ -190,6 +223,13 @@ test("real route logs 330 ml water and 240 ml coffee; hydration excludes drink i
     const after = await hydrationSoFar(admin,userId,dateInZone(new Date(),"UTC"),"UTC",new Date().toISOString());
     assert.equal(after.drinksMl-before.drinksMl,570); assert.equal(after.foodMl,before.foodMl);
     const card = await read(`/api/intake/post?post_id=${ids[1]}&tz=UTC`); assert.equal(card.drink.caffeineMg,95);
+    const colaResponse = await fetch(`${origin}/api/intake/post`, { method: "POST", headers: { Cookie: cookie, "Content-Type": "application/json" }, body: JSON.stringify({ tile: 4 }), signal: AbortSignal.timeout(90000) });
+    assert.equal(colaResponse.status, 201);
+    const cola = await colaResponse.json(); ids.push(cola.post_id);
+    const { data: colaIntake } = await admin.from("intake_logs").select("ml,amount,label").eq("post_id", cola.post_id).single();
+    assert.deepEqual(colaIntake, { ml: 330, amount: 32, label: "Coca-Cola, can" });
+    const invalid = await fetch(`${origin}/api/intake/post`, { method: "POST", headers: { Cookie: cookie, "Content-Type": "application/json" }, body: JSON.stringify({ tile: 9 }) });
+    assert.equal(invalid.status, 400);
   } finally {
     if (ids.length) {
       const {data: media} = await admin.from("post_media").select("storage_path").in("post_id",ids);
