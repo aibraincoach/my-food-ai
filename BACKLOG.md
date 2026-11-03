@@ -1,6 +1,6 @@
 # My Food AI — Backlog†
 
-Last edited: Tuesday 2026-11-03 at 15:12 WIB (UTC+07:00) by Claude, PM
+Last edited: Tuesday 2026-11-03 at 15:34 WIB (UTC+07:00) by Claude, PM
 
 ## Backlog for Owner
 
@@ -28,37 +28,11 @@ Nothing is submitted until the video is recorded and the submission is in. The d
 
 The submission needs the public repository, the video link and a list of everyone who worked on it. Judges stop watching at three minutes. Every feature built is in the video, the not-eaten plate included. Post the video to X as soon as it exists: the Most Viral prize ($20,000) counts likes, reposts and comments on X through the end of Nov 8. Whether the post must exist before the submission deadline is unconfirmed. No merges or deploys run from the start of recording until the submission is in. Done when a video under three minutes is on X and the submission is in.
 
-### #280 Phone checks of the installed app over mobile data
+### #379 Phone checks of the installed app over mobile data
 
 Every Run 7 and Run 8 timing check ran in emulation. No physical phone has tested the feed, the photos, installation or posting.
 
-Check on the owner's phone, installed from the home screen, over mobile data: the feed and the first photo show within two seconds (#222, #305); the last feed shows at once and fresh posts appear without jumping (#304); a warm revisit reuses cached photos and the photos look acceptable (#305); the clock, notch and home indicator clear the header, the bottom bar and the sheets (#108); the camera, the keyboard and a post from the phone work, with the right photo kept (#6); a post completes through the worker (#322). Done when each check passes and each failure is reported to the coder with its number.
-
-## Backlog for Designer
-
-### #289 Frames for logging a drink by photo, by tap or by caption
-
-The card for a drink does not show a can of cola's caffeine, and logging a drink does not feel smooth.
-
-The cola can counts as caffeine but its card shows none. No one is pushed down one flow: a photo of a coffee, a photo of a glass of water, a tap on the drink sheet and a caption must each work. A photo of water is estimated and added to hydration. A photo of a caffeine-forward drink is estimated, added and shows its caffeine on the card. One photo can hold several drinks, such as five lined up before a workout, and the card must show every drink and its caffeine. High Coffee is the reference for logging caffeine smoothly and WaterMinder for logging liquids. Records only, past tense, no targets, no ring or percentage. Done when frames at 390x844 are delivered for the drink card with its caffeine, a photo of water, a photo of a can, a photo with several drinks, a quick tap and the drink sheet.
-
-### #290 Frames for the capture sheet's modes with Barcode as an obvious choice
-
-People cannot tell that the app scans barcodes, because the Barcode choice is easy to miss.
-
-Keep a Barcode toggle, and reach the modes by swiping with Barcode an obvious option. That advertises the feature without forcing anyone down it. A photo is still a photo (#212). Done when frames at 390x844 are delivered for the capture sheet showing the swipe between modes, Barcode selected, and a first-time hint.
-
-### #291 Frames for removing and redoing
-
-A user cannot take back something added to a post, and nothing shows how to remove a post.
-
-People need to delete an item and its result so they can redo it. The small cases are a leftovers photo or a correction added by mistake. The large case is a whole post. #174 adds Delete to the post menu. Done when frames at 390x844 are delivered for deleting a post with its confirmation, removing a leftovers photo or a correction from a post, and the post after either.
-
-### #108 The installed app overlaps the iPhone clock and home indicator
-
-Installed to an iPhone home screen, the clock overlaps content and the bottom bar is clipped.
-
-The installed app does not respect the status bar, the notch or the home indicator. The designer draws the header, the bottom bar and every sheet inside the safe areas, so that nothing overlaps the clock or the home indicator. Engineering then builds it with viewport-fit=cover and env(safe-area-inset-\*) padding. Done when frames at 390x844 and 430x932 show the header, the bottom bar and every sheet inside the safe areas.
+Check on each of the owner's three phones, installed from the home screen, over mobile data: the feed and the first photo show within two seconds (#222, #305); the last feed shows at once and fresh posts appear without jumping (#304); a warm revisit reuses cached photos and the photos look acceptable (#305); the camera, the keyboard and a post from the phone work, with the right photo kept (#6); a post completes through the worker (#322). Done when each check passes on each of the three phones and each failure is reported to the coder with its number.
 
 ## Engineering backlog
 
@@ -182,13 +156,19 @@ Every app open, tab focus and once-a-minute database wake calls the tick route. 
 
 Run 8 merged lazy loading of the job modules in the tick route. Rapid tick calls passed, but they hit a warm function, so a cold start is unmeasured (docs/tick-cold.md), and a post from a real phone through the worker is untested. Done when a cold start of the tick route is timed on production, before and after, with the times in docs, and a post from a real phone completes through the worker.
 
+### #383 The Coffee tile on the drink sheet fails to post on production
+
+Tapping the Coffee tile on the drink sheet does not post a coffee on production.
+
+Fleet 9's production check of the Coffee tile failed. The Water tiles failed on a database guard that migration 0037 (#380) fixed, and they have not been retested. Observe the failing request and its response first. Done when the Coffee, Espresso, Tea, Coca-Cola and both Water tiles each post on production and Undo removes the post.
+
 ### #377 Existing photographed drink posts show no caffeine
 
 A photographed cola posted before Fleet 9 shows no caffeine on its card or in the day's total.
 
 The cola records hold 29.7 mg of USDA caffeine, but they have null beverage categories and no linked item-intake rows. #346 fixes new and re-analysed posts only, and no historical backfill ran. Done when existing photographed drink posts show their stored caffeine on the card and in the day's total.
 
-### #378 Regions and deployment timeouts are not declared in the repository
+### #325 Regions and deployment timeouts are not declared in the repository
 
 The function and database regions are set in the Vercel and Supabase dashboards, so the repository cannot reproduce the production deployment.
 
@@ -324,6 +304,6 @@ Blocked until after the hackathon, and blocked by the claims rule: the app shows
 
 ---
 
-† **What this backlog is.** The shared, ordered list of open work for My Food AI, shown live. GitHub issues in aibraincoach/my-food-ai are the record, and BACKLOG.md in the repository is a copy of this list that the PM supplies, so the coder and the planner read the same list. This Doc is private between the PM and the owner, and the coder cannot open it. The coder reads BACKLOG.md, which the owner copies from this Doc. This list usually runs a little ahead of the issues, because an item reaches them only after the PM has filed it. An item stays until its work is merged, its done condition is met and its issue is closed; the "Interdit (Not part of Hackathon)" section holds items that cannot be worked on and says why. Each section is for one role: Backlog for Owner, Backlog for Designer and Engineering backlog, ordered within a section by the pass that will work them together, not by issue number or date.
+† **What this backlog is.** The shared, ordered list of open work for My Food AI, shown live. GitHub issues in aibraincoach/my-food-ai are the record, and BACKLOG.md in the repository is a copy of this list that the PM supplies, so the coder and the planner read the same list. This Doc is private between the PM and the owner, and the coder cannot open it. The coder reads BACKLOG.md, which the owner copies from this Doc. This list usually runs a little ahead of the issues, because an item reaches them only after the PM has filed it. An item stays until its work is merged, its done condition is met and its issue is closed; the "Interdit (Not part of Hackathon)" section holds items that cannot be worked on and says why. Each section is for one role: Backlog for Owner and Engineering backlog, ordered within a section by the pass that will work them together, not by issue number or date.
 
 Every item is a title line and two paragraphs. The title line carries the GitHub issue number, assigned only once the issue exists, and the number is not one of the three parts. The three parts are: (1) a title a person can read; (2) a first paragraph that states the problem in plain language and in enough depth that a person could fix it; (3) a second paragraph with all the context that helps a person solve the problem, meaning what investigation, work or the owner's observations have established, ending in a done condition. Neither paragraph is a dump of everything known. Write short sentences in the active voice, as the Google developer documentation style guide asks. An item without all three parts is not on the backlog.
