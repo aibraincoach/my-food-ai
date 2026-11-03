@@ -151,7 +151,8 @@ Read-only production measurements and designated test-account actions only. Unkn
 | Direct repeated day-total read windows | 2 on every baseline opening; later same-time control2/0/2 |
 | Worker network hidden by page transfer0 in separate observer check | 134017 /143247 /222331 bytes, plus true diskcache0 repeats |
 | Vercel runtime access | 403 Forbidden |
-| Exact pre-#391 cache probe at11:45UTC, bf6d7f6 | Actual access token rotated;3 photos each memorycache0bytes at genuineFast4G |
+| Exact pre-#391 API-image probe at11:45UTC, bf6d7f6 | Actual access token rotated;3 API photos each memorycache0bytes at genuineFast4G |
+| Exact pre-#391 natural Home repeat, bf6d7f6 | Actual photos were legacy signed JPEGs; after token rotation3network200 bodies142754/161981/305103B (609838Btotal) |
 | Separate actual GET tick pair,11:09:48UTC, READYe074235 | HTTP200,0.612575s then0.218436s |
 | Natural production session refresh,12:42UTC, READY66f7f8e | Actual token rotated;3 natural rendered photos each memorycache0bytes, genuineFast4G |
 | Phone NeedsInputStrip origin diagnostic, READYf8b0324 | 3 actual40px thumbnails used signed JPEGs totaling497591B; source confirmed NeedsInputStrip, not prefetch |

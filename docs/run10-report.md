@@ -1,6 +1,6 @@
 # Fleet 10 execution report — in progress
 
-Observed 2026-11-03, 12:44 UTC. This is an execution ledger, not a completion claim. The full supplied scope remains [the plan](plan-run10.md). Physical-phone acceptance and owner-only settings remain with RT.
+Observed 2026-11-03, 13:08 UTC. This is an execution ledger, not a completion claim. The full supplied scope remains [the plan](plan-run10.md). Physical-phone acceptance and owner-only settings remain with RT.
 
 Latest user scope clarification: **#413 and Round6 belong to the next design fleet and are excluded. Only phone differences from #353–#367 remain in Fleet10; superseded desktop-frame differences are skipped.** Desktop changes already merged before this clarification are recorded for handoff and will not be expanded or rolled back as part of this run.
 
@@ -12,11 +12,11 @@ Latest user scope clarification: **#413 and Round6 belong to the next design fle
 | 1 | #392/#395 merged; disposable HTTP/DB suite24/24. Production stale409→retry204, up/down reload persistence, offline and double-tap single-error checks passed; original fresh baseline204 does not establish original cause. |
 | 2 | #390 merged; production feed cards on both designated accounts had exactly one Details link, correct destination, and none in post detail. |
 | 3 | README replacement and final-main counts/private-string search pending; no invented test counts published. |
-| 4 | #391 merged. Controlled session refresh3photos before/after both0networkbytes; original failure not reproduced. Earlier profile150ms/200kBps is custom, not Fast4G. #414 now routes every normal/realtime photo through the small endpoint; natural-scroll production repeat at12:42UTC on READY66f7f8e rotated the actual access token; all3 rendered photos used memory cache with0networkbytes. #436 records corrected methods. |
+| 4 | #391 merged. Controlled session refresh3photos before/after both0networkbytes; API-image probes did not reproduce header-related refetch; bounded natural old-Home repeat did refetch609838B via legacy signed JPEGs, a different rendering path. Earlier profile150ms/200kBps is custom, not Fast4G. #414 now routes every normal/realtime photo through the small endpoint; natural-scroll production repeat at12:42UTC on READY66f7f8e rotated the actual access token; all3 rendered photos used memory cache with0networkbytes. #436 records corrected methods. |
 | 5 | #393 merged; exact READY preview and production function configuration verified iad1. |
 | 6 | #386 and follow-up#409 merged. Controlled frozen-frame preview samples after409 were58.5–91.3ms versus222.2–1045.9ms before under customnetwork/CPU4. Final actualFast4G shutter/barcode repeat pending; no physical-camera claim. |
 | 7 | Investigation evidence below is being collected. Unmeasured sections remain unproven. |
-| 8 | #333 merged first at reviewed headb9068d081dea94075734ae5570c9129b53bfb1c5. 43 Fleet10 PRs merged through#437 including#436 documentation correction; later recovery/thumbnail PRs remain open. Full final acceptance/closures and cleanup remain pending. |
+| 8 | #333 merged first at reviewed headb9068d081dea94075734ae5570c9129b53bfb1c5. 45 Fleet10 PRs merged through#439; phone contrast#441 and drink recovery remain in verification. Full final acceptance/closures and cleanup remain pending. |
 
 ## Additional implementation lanes
 
@@ -33,7 +33,7 @@ Latest user scope clarification: **#413 and Round6 belong to the next design fle
 | 17 | #396 implements allowed sizes, hold, usage order and usual size; local HTTP/gesture acceptance passed. |
 | 18 | #398 changes leftovers labels throughout; wording tests 2/2, lint zero errors after fixing an existing indicator effect. Production acceptance pending. |
 | 19 | Existing pending-food-name feature needs actual production photo observation. |
-| 20 | All15 visual issues have individual PRs. Merged code#404–#418 except issue-specific docs#430–#432 pending; source/reference evidence and report table retained. Report discoveries also produced#422PNG,#424matcher,#425hints,#428Auth,#429dayreads. #433 durable food/barcode/label posting merged, migration0043 applied12:25:54UTC; copy recovery#438 merged with0044applied12:47:03UTC; drink recovery remains underway. #435 phone font correction merged. #437 PWA reconciliation merged; NeedsInputStrip#439 merged after actual matched3-photo497591→63720B proof; production repeat pending. |
+| 20 | All15 visual issues have individual PRs. Merged code#404–#418 except issue-specific docs#430–#432 pending; source/reference evidence and report table retained. Report discoveries also produced#422PNG,#424matcher,#425hints,#428Auth,#429dayreads. #433 durable food/barcode/label posting merged, migration0043 applied12:25:54UTC; copy recovery#438 merged with0044applied12:47:03UTC; drink recovery remains underway. #435 phone font correction merged. #437 PWA reconciliation merged; NeedsInputStrip#439 merged and guarded production repeat confirms actual matched3-photo497591→63720B. Phone CorrectProduct contrast#440/#441 found and being fixed. |
 | 21 | #387 merged. Feed and nested capture delete confirmation survived 10.5 seconds each in preview and production; Cancel worked. #382 closed. |
 
 ## Premises corrected or unproven
