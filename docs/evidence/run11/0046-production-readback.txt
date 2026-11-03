@@ -1,0 +1,21 @@
+CHECK ((route = ANY (ARRAY['label'::text, 'transcribe'::text, 'fdc_search'::text, 'fdc_barcode'::text, 'post'::text, 'correct'::text, 'drink_identify'::text])))
+CREATE OR REPLACE FUNCTION public.user_hit(p_user_id uuid, p_route text)
+ RETURNS boolean
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+declare v_limit integer; v_hits integer;
+begin
+ v_limit := case p_route when 'label' then 30 when 'transcribe' then 60
+  when 'fdc_search' then 300 when 'fdc_barcode' then 120
+  when 'post' then 40 when 'correct' then 100 when 'drink_identify' then 120 end;
+ if v_limit is null then raise exception 'Unknown call route' using errcode='22023';end if;
+ insert into public.user_call_hits(user_id,route,hour,hits)
+ values(p_user_id,p_route,date_trunc('hour',clock_timestamp()),1)
+ on conflict(user_id,route,hour) do update set hits=public.user_call_hits.hits+1
+ returning hits into v_hits;
+ delete from public.user_call_hits where user_id=p_user_id and hour<clock_timestamp()-interval '1 day';
+ return v_hits<=v_limit;
+end $function$
+
