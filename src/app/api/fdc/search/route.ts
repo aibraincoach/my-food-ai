@@ -1,3 +1,4 @@
+import { capUser } from "@/lib/limits/user-cap";
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -9,6 +10,7 @@ export async function GET(request: Request) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: "Sign in required." }, { status: 401 });
+ const capped = await capUser(user.id, "fdc_search"); if (capped) return capped;
   const query = new URL(request.url).searchParams.get("q")?.trim() ?? "";
   if (!query || query.length > 160) return NextResponse.json({ error: "Enter a food name up to 160 characters." }, { status: 400 });
   try {

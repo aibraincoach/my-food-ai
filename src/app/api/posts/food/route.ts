@@ -1,3 +1,4 @@
+import { capUser } from "@/lib/limits/user-cap";
 import {cookies} from "next/headers";
 import {validZone} from "@/lib/posts/days";
 import { NextResponse } from "next/server";
@@ -20,6 +21,7 @@ export async function POST(request: Request) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: "Sign in required." }, { status: 401 });
+ const capped = await capUser(user.id, "post"); if (capped) return capped;
   const timeZone=validZone((await cookies()).get("time-zone")?.value);
   const body = await request.json().catch(() => null) as { fdc_id?: unknown; query?: unknown; eaten_at?: unknown; gtin?: unknown; amount?: unknown; unit?: unknown; photo?: unknown; nutrition?: unknown; label_reading_id?: unknown; servings?: unknown; name?: unknown } | null;
   if (body && Object.hasOwn(body, "nutrition")) return NextResponse.json({ error: "Nutrition is resolved by the server." }, { status: 400 });

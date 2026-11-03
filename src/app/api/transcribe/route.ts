@@ -1,3 +1,4 @@
+import { capUser } from "@/lib/limits/user-cap";
 import {traceContext} from "@/lib/trace/context";
 import {NextResponse} from 'next/server';
 import {createClient} from '@/lib/supabase/server';
@@ -8,6 +9,7 @@ import {MAX_AUDIO_REQUEST_BYTES,MAX_WAV_BYTES} from '@/lib/audio/limits';
 export async function POST(request:Request){
  const client=await createClient();const {data:{user}}=await client.auth.getUser();
  if(!user)return NextResponse.json({error:'Sign in to transcribe.'},{status:401});
+ const capped = await capUser(user.id, "transcribe"); if (capped) return capped;
  const max=MAX_AUDIO_REQUEST_BYTES;const reader=request.body?.getReader();if(!reader)return NextResponse.json({error:'Audio is required.'},{status:400});
  let form:FormData;
  try{
