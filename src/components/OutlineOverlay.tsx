@@ -155,7 +155,7 @@ export default function OutlineOverlay({ initialized, readOnly = false, postId, 
       </> : showNutrition ? <ResultsCard data={displayCard} size={width} time={localTime} /> : <div role="status" className="flex h-full items-center justify-center px-screen-x text-body text-muted">{status === "failed" ? "This meal could not be analysed." : status === "needs_input" ? "Clarification needed" : "Processing, traffic low"}</div>}
     </div>
     <PostActions detail postId={postId} modelCommentId={modelCommentId} fingerprint={fingerprint} drink={readOnly} saved={saved}/>
-    <div className="px-inset"><PostCaption handle={handle} caption={caption}/></div>
+    <div className="px-inset"><PostCaption postId={postId} handle={handle} caption={caption}/></div>
     {showNutrition&&<>
       <NutritionSummary items={items}/>
       <button type="button" onClick={()=>setExpandedNutrition(value=>!value)} aria-expanded={expandedNutrition} aria-controls={`all-nutrients-${postId}`} className="flex min-h-tap w-full items-center justify-between gap-2 px-inset pt-[10px] text-detail">

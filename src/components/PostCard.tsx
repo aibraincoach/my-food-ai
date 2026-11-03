@@ -41,7 +41,7 @@ function StatusLine({ post }: { post: FeedPost }) {
     try {
       const response=await fetch(`/api/posts/${post.id}/retry`,{method:"POST"});
       if(!response.ok) throw new Error("Could not retry. Please try again.");
-      window.dispatchEvent(new CustomEvent("post-created",{detail:{id:post.id}}));
+      window.dispatchEvent(new CustomEvent("post-created",{detail:{id:post.id,post}}));
     } catch(error) {setError(error instanceof Error?error.message:"Could not retry.");}
     finally{setRetrying(false);}
   };
@@ -80,15 +80,15 @@ export default function PostCard({ post, showDate = false, upload, priority = fa
       <span className="min-w-0 flex-1 truncate text-handle">{handle}<AgentAttribution name={post.agentName}/></span>
       {upload&&!upload.postId?(upload.state==='failed'?<UploadMenu upload={upload}/>:<span aria-hidden="true" className="flex size-tap items-center justify-center text-xl">···</span>):<PostMenu postId={post.id} caption={post.caption} eatenAt={post.eaten_at} gtin={record.gtin} rows={[
         ...(post.status==='ready'&&!hasDrink?[{label:'Add photo',onSelect:()=>window.dispatchEvent(new CustomEvent('open-entry',{detail:{entry:'camera',forPost:post.id,notEaten:false}}))}]:[]),
-        {label:'Log again',onSelect:()=>window.dispatchEvent(new CustomEvent('log-again',{detail:{postId:post.id}}))},
-        {label:record.saved_meal_id?'Unsave':'Save meal',onSelect:()=>window.dispatchEvent(new CustomEvent('save-meal',{detail:{postId:post.id}}))},
-        {label:'Delete',muted:true,onSelect:()=>window.dispatchEvent(new CustomEvent('delete-post',{detail:{id:post.id}}))},
+        {label:'Log again',onSelect:()=>window.dispatchEvent(new CustomEvent('log-again',{detail:{postId:post.id,post,savedMealId:record.saved_meal_id??null}}))},
+        {label:record.saved_meal_id?'Unsave':'Save meal',onSelect:()=>window.dispatchEvent(new CustomEvent('save-meal',{detail:{postId:post.id,post,savedMealId:record.saved_meal_id??null}}))},
+        {label:'Delete',muted:true,onSelect:()=>window.dispatchEvent(new CustomEvent('delete-post',{detail:{id:post.id,post}}))},
       ]}/>}
     </div>
     {upload?.previewUrl?<UploadMedia upload={upload} post={post} onIndexChange={setSlide} nutrition={<CaptionCard post={post} drink={drink}/>}/>:drink && hasDrink ? <Link href={`/posts/${post.id}`} aria-label="Open drink details" className="block"><CaptionCard post={post} drink={drink} /></Link> : post.slides?.length ? <Carousel priority={priority} canAddNotEaten={post.status==='ready'&&post.slides.some(s=>s.kind==='photo')} slides={post.slides} caption={post.caption} postId={post.id} href={`/posts/${post.id}`} modelCommentId={post.modelCommentId??null} fingerprint={post.analysisFingerprint??null} onIndexChange={setSlide} nutrition={post.status === "ready" ? <CaptionCard post={post} drink={drink} /> : <div className="flex aspect-square items-center justify-center bg-card text-detail text-muted">Processing…</div>} /> : post.status === "ready" && post.items.length ? <Link href={`/posts/${post.id}`} aria-label="Open meal details" className="block"><CaptionCard post={post} drink={drink} /></Link> : null}
-    {!(upload&&!upload.postId&&upload.state==='failed')&&<div inert={Boolean(upload&&!upload.postId)} className={upload&&!upload.postId?"pointer-events-none opacity-50":undefined}><PostActions postId={post.id} modelCommentId={post.modelCommentId??null} fingerprint={post.analysisFingerprint??null} drink={hasDrink} saved={Boolean(record.saved_meal_id)} slides={hasDrink?1:post.slides?.length??1} index={slide}/></div>}
+    {!(upload&&!upload.postId&&upload.state==='failed')&&<div inert={Boolean(upload&&!upload.postId)} className={upload&&!upload.postId?"pointer-events-none opacity-50":undefined}><PostActions post={post} postId={post.id} modelCommentId={post.modelCommentId??null} fingerprint={post.analysisFingerprint??null} drink={hasDrink} saved={Boolean(record.saved_meal_id)} slides={hasDrink?1:post.slides?.length??1} index={slide}/></div>}
     <div className={`flex flex-col gap-1 px-inset ${upload&&!upload.postId&&upload.state==='failed'?'pt-3':'pt-[10px]'}`}>
-      <PostCaption handle={handle} caption={upload&&!upload.postId?upload.caption:post.caption}/>
+      <PostCaption postId={post.id} handle={handle} caption={upload&&!upload.postId?upload.caption:post.caption}/>
       {upload&&!upload.postId?<p className="text-detail text-muted">{upload.state==='failed'?'Not posted yet. The photo is kept on this phone.':'Uploading photo…'}</p>:post.status==='ready'&&post.items.length>0 ? <Link href={`/posts/${post.id}`} className="text-detail leading-[1.4] text-muted">{summaryLine(displayRecord,drink)} <span className="text-text">more</span></Link> : <StatusLine post={post}/>}
       {hasUnavailableFields(post) && post.items.length > 0 ? <p className="text-meta text-muted" role="status">Some meal details could not be refreshed. Retrying…</p> : null}
       <time dateTime={post.eaten_at} className="text-meta text-muted">{upload&&!upload.postId?"Just now":showDate ? localDate : localClock}</time>

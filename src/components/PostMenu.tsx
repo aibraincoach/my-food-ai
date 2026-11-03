@@ -13,7 +13,7 @@ export default function PostMenu({postId,caption,eatenAt,rows=[],gtin}:{postId:s
  const clock=useLocalTime(eatenAt??'');
  const dismiss=()=>{if(menu.current)menu.current.open=false;};
  const edit=()=>{dismiss();setValue(caption);setError('');setOpen(true);};
- const save=async()=>{if(savingRef.current)return;savingRef.current=true;setSaving(true);setError('');try{await updateCaption(postId,value);router.refresh();setOpen(false);}catch(e){setError(e instanceof Error?e.message:'The caption could not be saved.');}finally{savingRef.current=false;setSaving(false);}};
+ const save=async()=>{if(savingRef.current)return;savingRef.current=true;setSaving(true);setError('');window.dispatchEvent(new CustomEvent('post-caption',{detail:{id:postId,caption:value}}));setOpen(false);try{await updateCaption(postId,value);router.refresh();}catch(e){const message=e instanceof Error?e.message:'The caption could not be saved.';setError(message);window.dispatchEvent(new CustomEvent('post-caption',{detail:{id:postId,caption,error:message}}));setOpen(true);}finally{savingRef.current=false;setSaving(false);}};
  const options:PostMenuRow[]=[...rows.filter(row=>!row.muted),{label:'Edit caption',onSelect:edit},...(eatenAt?[{label:'Edit time',detail:clock,onSelect:()=>setTimeOpen(true)}]:[]),...(gtin?[{label:'Correct product',onSelect:()=>window.dispatchEvent(new CustomEvent('correct-product',{detail:{postId,gtin}}))}]:[]),...rows.filter(row=>row.muted)];
  return <>
   <details onKeyDown={event=>{if(event.key==='Escape'){event.preventDefault();dismiss();menu.current?.querySelector('summary')?.focus();}}} ref={menu} className="relative shrink-0">
