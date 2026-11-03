@@ -81,7 +81,7 @@ export async function openCamera(initialFacing: Facing): Promise<Camera> {
   return camera;
 }
 
-export async function grabFrame(video: HTMLVideoElement): Promise<Blob> {
+export async function grabFrame(video: HTMLVideoElement, onFrame?: (frame: HTMLCanvasElement) => void): Promise<Blob> {
   if (video.readyState < HTMLMediaElement.HAVE_CURRENT_DATA || !video.videoWidth || !video.videoHeight) {
     throw new Error("Camera is not ready yet.");
   }
@@ -91,6 +91,12 @@ export async function grabFrame(video: HTMLVideoElement): Promise<Blob> {
   const context = canvas.getContext("2d");
   if (!context) throw new Error("Camera capture unavailable.");
   context.drawImage(video, 0, 0);
+  if (onFrame) {
+    // A frozen frame can paint immediately while the full-quality JPEG is
+    // prepared. Yield a paint before starting the potentially expensive encode.
+    onFrame(canvas);
+    await new Promise<void>(resolve=>requestAnimationFrame(()=>requestAnimationFrame(()=>resolve())));
+  }
   return new Promise((resolve, reject) => canvas.toBlob(
     (blob) => blob ? resolve(blob) : reject(new Error("Camera capture failed.")), "image/jpeg", 0.95
   ));
