@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { connection } from "next/server";
 import { signUp } from "@/lib/auth/actions";
+import HCaptcha from "@/components/HCaptcha";
 import FacebookButton from "@/components/FacebookButton";
 import { BrandMark } from "@/components/BrandMark";
 import { Button } from "@/components/ui/Button";
@@ -25,6 +26,7 @@ export default async function SignUpPage({ searchParams }: { searchParams: Promi
         <Field name="email" type="email" required autoComplete="email" placeholder="Email" aria-label="Email" />
         <Field name="handle" type="text" required autoComplete="nickname" placeholder="Handle" aria-label="Handle" />
         <Field name="password" type="password" required autoComplete="new-password" placeholder="Password" aria-label="Password" />
+        <HCaptcha />
         <Button type="submit" className="mt-tooltip-offset">Sign up</Button>
         <p className="py-tooltip-y text-center text-comment text-muted">
           Have an account? <Link href="/sign-in" className="font-semibold text-text">Sign in</Link>

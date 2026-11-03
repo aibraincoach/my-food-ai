@@ -13,10 +13,12 @@ export async function signUp(formData: FormData): Promise<void> {
   const email = String(formData.get("email") ?? "");
   const handle = String(formData.get("handle") ?? "");
   const password = String(formData.get("password") ?? "");
+  const captchaToken = formData.get("h-captcha-response");
+  const options = typeof captchaToken === "string" && captchaToken.trim() ? { captchaToken: captchaToken.trim() } : undefined;
   const supabase = await createClient();
-  const { data, error } = await supabase.auth.signUp({ email, password });
+  const { data, error } = await supabase.auth.signUp({ email, password, ...(options ? { options } : {}) });
   if (error || !data.user) {
-    fail("/sign-up", error?.message ?? "Sign-up failed.");
+    fail("/sign-up", error?.message.toLowerCase().includes("captcha") ? "Complete the check and try again." : error?.message ?? "Sign-up failed.");
   }
   // The profiles table has no client insert policy, so the row is created
   // with the service-role client; the secret key never leaves the server.
@@ -47,9 +49,11 @@ export async function signUp(formData: FormData): Promise<void> {
 export async function signIn(formData: FormData): Promise<void> {
   const email = String(formData.get("email") ?? "");
   const password = String(formData.get("password") ?? "");
+  const captchaToken = formData.get("h-captcha-response");
+  const options = typeof captchaToken === "string" && captchaToken.trim() ? { captchaToken: captchaToken.trim() } : undefined;
   const supabase = await createClient();
-  const { error } = await supabase.auth.signInWithPassword({ email, password });
-  if (error) fail("/sign-in", error.message);
+  const { error } = await supabase.auth.signInWithPassword({ email, password, ...(options ? { options } : {}) });
+  if (error) fail("/sign-in", error.message.toLowerCase().includes("captcha") ? "Complete the check and try again." : error.message);
   redirect("/");
 }
 
