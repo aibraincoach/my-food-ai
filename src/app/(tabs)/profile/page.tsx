@@ -1,4 +1,5 @@
 import Link from "next/link";
+import SavedMealsButton from "@/components/SavedMealsButton";
 import { verifiedUserId } from "@/lib/auth/verified-user";
 import {openWeightsConfigured} from "@/lib/meta/open-weights";
 import IdentifyProviderSwitch from "./IdentifyProviderSwitch";
@@ -34,7 +35,7 @@ export default async function ProfilePage({searchParams}:{searchParams:Promise<{
     <DesktopWorkspace width={820} detail={post?<PostDetail id={post} desktopModal/>:undefined}><main className="flex flex-1 flex-col desktop:pt-4">
       <header className="flex h-top-safe shrink-0 items-center justify-between gap-3 px-screen-x desktop:h-[88px] desktop:gap-6 desktop:px-0">
         <span className="hidden desktop:flex desktop:size-[88px] desktop:shrink-0 desktop:items-center desktop:justify-center desktop:rounded-circle desktop:bg-text desktop:text-[32px] desktop:font-semibold desktop:text-surface" aria-hidden="true">{profile.handle.slice(0,1).toUpperCase()}</span>
-        <div className="min-w-0 desktop:flex-1"><h1 className="truncate text-title desktop:text-[24px]"><span className="desktop:hidden">@</span>{profile.handle}</h1><div className="hidden desktop:mt-3 desktop:flex desktop:gap-2"><ConnectAgentRow userId={user.id} desktopButton/><SignOutButton desktopButton/></div></div>
+        <div className="min-w-0 desktop:flex-1"><h1 className="truncate text-title desktop:text-[24px]"><span className="desktop:hidden">@</span>{profile.handle}</h1><div className="hidden desktop:mt-3 desktop:flex desktop:gap-2"><ConnectAgentRow userId={user.id} desktopButton/><SavedMealsButton/><SignOutButton desktopButton/></div></div>
         <div className="desktop:hidden"><SignOutButton /></div>
       </header>
       <div className="desktop:hidden"><ConnectAgentRow userId={user.id} /></div>
