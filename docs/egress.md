@@ -201,3 +201,13 @@ The fix sends ineligible media fetches with `cache: no-store`, covering logged-o
 Built-app browser verification also tested a page with no service worker: without `Vary: Cookie`, clearing authentication cookies still returned the cached 200/21,286-byte photo; with the partition header it returned 401/no-store/zero bytes. The final built-app controlled-worker case also returned 401/zero bytes. These tests change only isolated browser cookies/storage and never call production sign-out.
 
 Final follow-up checks: `node --import tsx --test tests/feed-photo.test.mjs` exits 0, 7/7 tests; `node --test tests/sw-media-cache.test.mjs` exits 0, 20/20 tests. TypeScript, changed-file ESLint, `npm run build` and whitespace checks pass on the follow-up source. No production migration or environment setting changed.
+
+## Follow-up: repeated day totals dominate actual browser egress
+
+The five exact-A preview openings transferred 6,264,195 / 5,781,481 / 5,156,996 / 5,540,662 / 6,309,256 Supabase wire bytes (20 cards each, ten-second settle, browser cache cleared only before the first). These figures show **no reduction** against the earlier production five-open baseline. The private optimized photo route was not requested in this caption-heavy first viewport, so its cache header cannot explain a saving here. Across the five previews, `/rest/v1/posts` accounted for 24,626,684 browser bytes; Storage paths accounted for 4,264,680.
+
+An additional diagnostic Home opening captured the PostgREST select text: 25 calls to the exact `getDayTotals` nested item/nutrition query transferred 4,219,412 bytes. Other post metadata selects transferred roughly 15 KB combined. `Feed.requestCard` called `refreshTotals` for each refreshed card; cards on the same day repeatedly fetched the entire day's nutrients.
+
+The follow-up batches those requests by day before starting a read and permits only one read at a time. Events that arrive mid-read keep a per-day revision and queue one fresh follow-up; older results for changed days cannot overwrite them. Cancellation suppresses late results. Nutrition queries and legacy normalization remain unchanged: micronutrients are still needed to normalize older stored per-100g rows correctly.
+
+Regression tests exercise twenty-card bursts, an edit arriving during a read, partial-day stale-response rejection, failure/retry and unmount cancellation. Actual combined-preview and post-merge production five-open measurements follow in the execution report; the byte reduction is not inferred from unit counts alone.
