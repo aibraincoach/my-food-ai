@@ -142,7 +142,7 @@ The largest designated test account (147 posts) also passed 100 actual full brow
 
 ## Session refresh (Fleet 10, #376)
 
-Observed 2026-11-03T09:16:01.168Z in Chromium390×844 with Fast4G (150ms,200kB/s down,93.75kB/s up), designated test account1. Three actual owner-scoped feed photo URLs were rendered in a temporary image probe on Home. Service workers were blocked to isolate browser HTTP cache; this is a photo-cache probe, not the plan’s complete scroll-based page timing. The auth cookie’s expires_at was moved into the past, then Profile and Home navigations let normal SSR refresh it. Both runs confirmed the session cookie changed. No production sign-up or live form probe was sent.
+Observed 2026-11-03T09:16:01.168Z in Chromium390×844 with a custom network profile (150ms,200kB/s down,93.75kB/s up), rather than the current DevTools Fast4G preset (165ms,1,012,500B/s down,168,750B/s up), designated test account1. Three actual owner-scoped feed photo URLs were rendered in a temporary image probe on Home. Service workers were blocked to isolate browser HTTP cache; this is a photo-cache probe, not the plan’s complete scroll-based page timing. The auth cookie’s expires_at was moved into the past, then Profile and Home navigations let normal SSR refresh it. Both runs confirmed the session cookie changed. No production sign-up or live form probe was sent.
 
 | Run | Photo | After refresh source | Network bytes |
 | --- | --- | --- | ---: |
@@ -153,4 +153,28 @@ Observed 2026-11-03T09:16:01.168Z in Chromium390×844 with Fast4G (150ms,200kB/s
 | after | 2 | memory cache | 0 |
 | after | 3 | memory cache | 0 |
 
-The old-header production run also transferred zero bytes, so this experiment does not reproduce Cookie-induced refetching or establish a measured improvement. The planned header change ships independently of the measurement. The preview after run measured head `721f3daa389f52c81319225a0a2cf391989e9b9a`. A repeat on the merged production revision remains required before issue closure.
+The old-header production run also transferred zero bytes, so this experiment does not reproduce Cookie-induced refetching or establish a measured improvement. The planned header change ships independently of the measurement. The preview after run measured head `721f3daa389f52c81319225a0a2cf391989e9b9a`. The merged-production natural-scroll repeat is recorded below.
+
+### Correct-preset pre-change repeat
+
+At2026-11-03T11:45:54.940Z, reran the three-image HTTP-cache probe against the exact pre-#391 immutable deployment at `bf6d7f6dd3659c54ba6a59ec2189bfe132c5d1ec`, READY. Chromium390×844, actual Fast4G165ms/1,012,500 B/s down/168,750 B/s up; service workers blocked. The deployment-protection bypass was used only for an own-origin bootstrap request, then an origin-scoped cookie; no global header or sign-in form probe. The normal Profile/Home session refresh changed the Auth cookie and rotated the actual access token; comparison was performed privately without logging token values.
+
+| Pre-change photo | Source after refresh | Network bytes |
+| --- | --- | ---: |
+| 1 | memory cache | 0 |
+| 2 | memory cache | 0 |
+| 3 | memory cache | 0 |
+
+This confirms the earlier failure-to-reproduce result at the correct requested preset. The images are real owner-scoped media URLs rendered in a temporary image probe; this is not a claim of a natural-scroll measurement. Final production natural-scroll measurements are recorded below. No cache improvement is inferred from these zero-byte pre-change observations.
+
+### Merged production natural-scroll repeat
+
+At 2026-11-03T12:42:09.127Z, Chromium 156 at 390×844 with Fast4G (165ms, 1,012,500 B/s down, 168,750 B/s up) naturally scrolled Home past three distinct post photos. Service workers were blocked to isolate HTTP caching. No temporary image probe or response stub was used. The auth cookie expires_at was moved into the past; normal Profile and Home navigations rotated the actual access token, verified privately. Production remained READY at `66f7f8e9470cd40e54e6fa87b2dd2446987792b1` before and after.
+
+| Natural feed photo | After refresh source | Network bytes |
+| --- | --- | ---: |
+| 1 | memory cache | 0 |
+| 2 | memory cache | 0 |
+| 3 | memory cache | 0 |
+
+All three actual rendered photos met #376’s zero-byte condition. This proves the current behavior; the pre-change zero-byte results mean no measured improvement can be attributed to removing Vary: Cookie. This read-only check created no test posts.
