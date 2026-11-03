@@ -1,5 +1,7 @@
 "use client";
 
+import {dayTotalRefreshDates} from "@/lib/posts/day-total-changes";
+
 import {createDayTotalsRefresh} from "@/lib/posts/day-totals-refresh";
 
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
@@ -109,6 +111,8 @@ export default function Feed({initialPage, initialUserId, initialZone = "UTC", f
     const deferred = new Map<string, number>();
     const timers = new Set<ReturnType<typeof setTimeout>>();
 
+    const reportTotals = () => { if(live&&userId)window.dispatchEvent(new CustomEvent("feed-day-totals",{detail:{userId,days:[...dayTotals.values()]}})); };
+    window.addEventListener("feed-day-totals-request",reportTotals);
     const publish = () => {
       if (!live) return;
       // A late initial load must not erase cards received while it was in flight.
@@ -116,6 +120,7 @@ export default function Feed({initialPage, initialUserId, initialZone = "UTC", f
       const posts = mergeFeedPosts(baseline, promoted).filter(post=>!unavailable.has(post.id)&&post.status!=="needs_input"&&(!answered.has(post.id)||post.status==="ready"||post.status==="failed"));
       if (loaded || promoted.length) {
         setState({ kind: "ready", posts, days: [...dayTotals.values()] });
+        reportTotals();
         if (userId && (hasFreshPage || cacheDirty)) {
           const prior = new Map((readFeedCache(userId)?.posts ?? cacheRef.current.cached ?? []).map(post=>[post.id,post]));
           const cachePosts = posts.filter(post=>!cacheInvalidated.has(post.id)).flatMap(post=>{
@@ -137,6 +142,7 @@ export default function Feed({initialPage, initialUserId, initialZone = "UTC", f
     const refreshTotals = (dates: string[]) => {
       if (userId) totalsRefresh.request(dates);
     };
+    const totalReceipts = () => new Map([...dayTotals.values()].flatMap(day => (day.posts ?? []).map(post => [post.id,post] as const)));
     const uploading=(event:Event)=>{const detail=(event as CustomEvent<UploadState>).detail;if(detail.posted){const day=dateInZone(detail.eatenAt,zone);if(!uploadDaysToRead.has(day)){uploadDaysToRead.add(day);void refreshTotals([day]);}}};
     window.addEventListener('upload-started',uploading);
     const readyEvent = (event:Event) => { const id=(event as CustomEvent<{id?:string}>).detail?.id;if(id)requestCard(id); };
@@ -201,7 +207,7 @@ export default function Feed({initialPage, initialUserId, initialZone = "UTC", f
           const previous = cards.get(id) ?? baseline.find(post => post.id === id);
           if(!hasUnavailableFields(card)){cacheInvalidated.delete(id);cacheDirty=true;}
           cards.set(id, retainCompleteItems(previous, card));
-          void refreshTotals([...new Set([card.eaten_at, ...(previous ? [previous.eaten_at] : [])].map(value => dateInZone(value, zone)))]);
+          void refreshTotals(dayTotalRefreshDates(previous, card, zone, new Set(dayTotals.keys()), local, totalReceipts()));
           publish();
           // A local completion event can arrive while the INSERT read still
           // sees unuploaded media. Always read again after that event.
@@ -281,6 +287,14 @@ export default function Feed({initialPage, initialUserId, initialZone = "UTC", f
         const page = await readPage(null,6);
         if(!live||loadGeneration!==generation)return;
         mergeDays(page.days);
+        // A fresh page can reveal an external edit even when its day was
+        // already supplied by SSR. Compare revisions before replacing seeds.
+        for (const post of page.posts) {
+          const previous = cards.get(post.id) ?? baseline.find(prior => prior.id === post.id);
+          if (!page.days.some(day => day.day === dateInZone(post.eaten_at, zone))) {
+            refreshTotals(dayTotalRefreshDates(previous, post, zone, new Set(dayTotals.keys()), false, totalReceipts()));
+          }
+        }
         baseline = page.posts.filter(post=>!unavailable.has(post.id)).map(post=>retainCompleteItems(baseline.find(prior=>prior.id===post.id),post));
         hasFreshPage = true;
         cursor = page.nextCursor;
@@ -369,6 +383,7 @@ export default function Feed({initialPage, initialUserId, initialZone = "UTC", f
     return () => {
       live = false;
       totalsRefresh.cancel();
+      window.removeEventListener("feed-day-totals-request",reportTotals);
       cachedListener.current = () => {};
       releaseCacheOwner?.();
       window.removeEventListener("post-restore", restore);
