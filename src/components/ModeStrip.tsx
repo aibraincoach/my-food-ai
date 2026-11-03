@@ -3,7 +3,7 @@
 import { useLayoutEffect, useRef, useState, type PointerEvent } from "react";
 import type { CaptureMode } from "@/components/CaptureSheet";
 
-const modes: CaptureMode[] = ["photo", "barcode", "text"];
+const modes: CaptureMode[] = ["text", "photo", "barcode"];
 const labels = { photo: "Photo", barcode: "Barcode", text: "Text" };
 
 export function useModeSwipe(mode: CaptureMode, onChange: (mode: CaptureMode) => void, disabled: boolean) {
@@ -45,8 +45,12 @@ export function useModeSwipe(mode: CaptureMode, onChange: (mode: CaptureMode) =>
   };
 }
 
-export default function ModeStrip({ mode, onChange, disabled = false }: {
-  mode: CaptureMode; onChange: (mode: CaptureMode) => void; disabled?: boolean;
+export function BarcodeGlyph({ className = "" }: { className?: string }) {
+  return <svg aria-hidden="true" width="14" height="14" viewBox="0 0 14 14" fill="currentColor" className={className}><path d="M1 1h1v12H1zm2 0h2v12H3zm3 0h1v12H6zm3 0h1v12H9zm2 0h2v12h-2z" /></svg>;
+}
+
+export default function ModeStrip({ mode, onChange, disabled = false, highlightBarcode = false }: {
+  mode: CaptureMode; onChange: (mode: CaptureMode) => void; disabled?: boolean; highlightBarcode?: boolean;
 }) {
   const track = useRef<HTMLDivElement>(null);
   const [offset, setOffset] = useState(0);
@@ -79,9 +83,15 @@ export default function ModeStrip({ mode, onChange, disabled = false }: {
       style={{ transform: `translateX(-${offset}px)`, transitionDuration:animate?undefined:"0ms" }}>
       {modes.map(tab => <button key={tab} type="button" role="tab" aria-selected={mode === tab}
         tabIndex={mode === tab ? 0 : -1} disabled={disabled} onClick={() => onChange(tab)}
-        className={`h-9 shrink-0 rounded-pill px-[18px] text-[15px] font-semibold disabled:opacity-50 ${mode === tab ? "bg-surface text-text" : "text-camera-muted"}`}>
-        {labels[tab]}
+        className={`relative flex h-9 shrink-0 items-center gap-1.5 rounded-pill px-[18px] text-[15px] disabled:opacity-50 ${mode === tab ? "font-semibold text-white" : "font-normal text-white/60"} ${tab === "barcode" && highlightBarcode ? "barcode-hint-ring ring-[1.5px] ring-white" : ""}`}>
+        {tab === "barcode" && <BarcodeGlyph />}{labels[tab]}
+        {mode === tab && <span aria-hidden="true" className="absolute bottom-0 left-1/2 size-1 -translate-x-1/2 rounded-full bg-accent" />}
       </button>)}
     </div>
+    <style jsx>{`
+      @keyframes barcode-hint-nudge { 0%, 100% { transform: translateX(0); } 50% { transform: translateX(-8px); } }
+      .barcode-hint-ring { animation: barcode-hint-nudge 700ms ease-in-out 2; }
+      @media (prefers-reduced-motion: reduce) { .barcode-hint-ring { animation: none; } }
+    `}</style>
   </div>;
 }
