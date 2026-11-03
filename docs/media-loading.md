@@ -157,7 +157,7 @@ The old-header production run also transferred zero bytes, so this experiment do
 
 ### Correct-preset pre-change repeat
 
-At2026-11-03T11:36:34.950Z, reran the three-image HTTP-cache probe against the exact pre-#391 immutable deployment at `bf6d7f6dd3659c54ba6a59ec2189bfe132c5d1ec`, READY. Chromium390×844, actual Fast4G165ms/1,012,500 B/s down/168,750 B/s up; service workers blocked. The deployment-protection bypass was used only for an own-origin bootstrap request, then an origin-scoped cookie; no global header or sign-in form probe. The normal Profile/Home session refresh changed the Auth cookie.
+At2026-11-03T11:45:54.940Z, reran the three-image HTTP-cache probe against the exact pre-#391 immutable deployment at `bf6d7f6dd3659c54ba6a59ec2189bfe132c5d1ec`, READY. Chromium390×844, actual Fast4G165ms/1,012,500 B/s down/168,750 B/s up; service workers blocked. The deployment-protection bypass was used only for an own-origin bootstrap request, then an origin-scoped cookie; no global header or sign-in form probe. The normal Profile/Home session refresh changed the Auth cookie and rotated the actual access token; comparison was performed privately without logging token values.
 
 | Pre-change photo | Source after refresh | Network bytes |
 | --- | --- | ---: |
