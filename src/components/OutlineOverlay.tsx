@@ -1,5 +1,5 @@
 "use client";
-import { sumMicronutrients } from "@/lib/nutrition/totals";
+import { nutritionTableRows } from "@/lib/nutrition/table";
 
 import {LocalTime,useLocalTime} from "@/components/LocalTime";
 import { useEffect, useRef, useState, type CSSProperties, type PointerEvent } from "react";
@@ -159,7 +159,7 @@ export default function OutlineOverlay({ initialized, readOnly = false, postId, 
     {showNutrition&&<>
       <NutritionSummary items={items}/>
       <button type="button" onClick={()=>setExpandedNutrition(value=>!value)} aria-expanded={expandedNutrition} aria-controls={`all-nutrients-${postId}`} className="flex min-h-tap w-full items-center justify-between gap-2 px-inset pt-[10px] text-detail">
-        <span className="text-muted">Consumed · all nutrients</span><span className="flex items-center gap-1 font-medium">{expandedNutrition?'Show less':`Show all ${7+sumMicronutrients(items).length}`} <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" className={expandedNutrition?'rotate-180':''} aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></span>
+        <span className="text-muted">Consumed · all nutrients</span><span className="flex items-center gap-1 font-medium">{expandedNutrition?'Show less':`Show all ${nutritionTableRows(items).length}`} <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" className={expandedNutrition?'rotate-180':''} aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></span>
       </button>
       {children}
       {expandedNutrition&&<div id={`all-nutrients-${postId}`}>
