@@ -1,6 +1,6 @@
 # My Food AI — Backlog†
 
-Last edited: Tuesday 2026-11-03 at 11:03 WIB (UTC+07:00) by Claude, PM
+Last edited: Tuesday 2026-11-03 at 13:23 WIB (UTC+07:00) by Claude, PM
 
 ## Backlog for Owner
 
@@ -56,11 +56,29 @@ The installed app does not respect the status bar, the notch or the home indicat
 
 ## Engineering backlog
 
+### The camera view stays open for a long time after a photo is taken
+
+After a photo is taken, the camera view stays on screen for a long time before the post shows in the feed. People will not wait that long.
+
+The capture sheet sends its post-created event and closes only after a successful post, so it waits on the upload and the server. The owner reports the wait on his phone. Observe first: time the tap to the sheet closing and to the new post showing, on a phone over mobile data, and record the size in bytes of each photo the phone uploads. Then close the sheet at the tap and show the new post at the top of the feed in its processing state while the upload finishes. Done when the sheet closes within one second of the tap on a throttled connection, the post appears at the top of the feed in its processing state, and a failed upload is shown on that post.
+
+### Thumbs show "Feedback could not be saved." on production
+
+Tapping a thumb on a production post shows "Feedback could not be saved." The message appears twice, once over the photo and once under the buttons.
+
+Seen on the owner's phone after the Run 7 merges, where #314 shows an error and reverts when a verdict save fails. The cause of the failed save is unknown. Observe the verdict request and its response on production first. Done when a tap on either thumb saves on production, the saved verdict survives a reload, and a failed save shows one message.
+
+### Feed photos are too large for a phone on mobile data
+
+A feed photo downloads at a size far larger than a phone card shows, so the first photo arrives late and every revisit pays for it again.
+
+The sampled feed image is 152,193 bytes and its response carries no Cache-Control header (docs/media-loading.md). Several cards cost megabytes on mobile data, and the cold first photo measured 2.10 s against the 2 s target. The feed photo route (src/app/api/media/feed/\[owner\]/\[post\]/\[media\]/v1.webp/route.ts) reads the original from Storage on every request. Find the largest size a feed card needs on a phone and serve that instead of the original. Keep the original where post detail needs it. Done when the bytes per feed photo before and after are in docs, the first photo of the feed shows within two seconds on mobile data, and the photos look the same on a phone.
+
 ### The app reads more from the production database than it needs
 
 The app's reads drove egress to 8.66 GB and log ingestion to 1.10 GB in one billing cycle, against 5 GB and 1 GB on Supabase's free plan, and the project was depleting its Disk IO budget. The organization is now on Pro, which includes 250 GB of egress per cycle, but the same reads still cost bandwidth and database load while judges use the app.
 
-Suspected sources, none measured: one feed opening fires 120 to 160 requests and the day-totals refresh re-reads every loaded day (#222); the tick route wakes the database on every app open, tab focus and once a minute (#322); the Days reader runs two queries per post plus a signed address per photo (#327); feed images carry no Cache-Control header, so every revisit downloads them again (#305). Load tests against production count toward the same quota. The Infrastructure page shows 31 of 60 connections and 70% RAM on the Micro instance; find what holds them. Find what drives egress and log ingestion, and cut it. Done when the usage page shows which requests dominate egress and log ingestion, and the egress of one feed opening is measured before and after the cuts and is in docs.
+Suspected sources, none measured: one feed opening fires 120 to 160 requests and the day-totals refresh re-reads every loaded day (#222); the tick route wakes the database on every app open, tab focus and once a minute (#322); the Days reader runs two queries per post plus a signed address per photo (#327); feed images carry no Cache-Control header, so every revisit downloads them again (#305). Load tests against production count toward the same quota. The Infrastructure page shows 31 of 60 connections and 70% RAM on the Micro instance; find what holds them. Supabase's Pro welcome email recommends the dedicated pooler over the shared pooler for performance and latency; find which connection mode the app and the worker use. Find what drives egress and log ingestion, and cut it. Done when the usage page shows which requests dominate egress and log ingestion, and the egress of one feed opening is measured before and after the cuts and is in docs.
 
 ### #222 The feed fails to open, and photos and cards take too long to appear
 
@@ -84,7 +102,7 @@ The sampled feed image is 152,193 bytes and its response carries no Cache-Contro
 
 The hackathon pays a $10,000 bonus for a build on a Meta open-weight model, and the app calls only the hosted Meta API.
 
-Use Muse Spark Open (meta-models/muse-spark-open-1026) through Baseten's OpenAI-compatible endpoint, https://inference.baseten.co/v1, for the identify-and-portions call. The key works only with that model and never goes in the repository, an issue or this backlog. Confirm the coder can sign in to Baseten with the key before the trial. The model always reasons, so check output caps that include reasoning. The Meta client hardcodes model names, and the ten-photo harness cannot choose a model host. Trial first in a throwaway clone that swaps only that call, and spend at most 5 US dollars. SAM and transcription stay on the Meta API, and the USDA lookup is unchanged. Compare the ten meal photos and one caption, "I ate half the rice", against the current path. A qualifying step must be a real, switchable path on main that a judge can reproduce, with the model ID logged. Done when a real, switchable path on main runs the identify-and-portions step on Muse Spark Open through Baseten, the model ID is logged, the results against the ten photos are in docs, and the owner has seen it work on production.
+Use Muse Spark Open (meta-models/muse-spark-open-1026) through Baseten's OpenAI-compatible endpoint, https://inference.baseten.co/v1, for the identify-and-portions call. The key works only with that model and never goes in the repository, an issue or this backlog. Confirm the coder can sign in to Baseten with the key before the trial. The model always reasons, so check output caps that include reasoning. The Meta client hardcodes model names, and the ten-photo harness cannot choose a model host. Trial first in a throwaway clone that swaps only that call, and spend at most 5 US dollars. SAM and transcription stay on the Meta API, and the USDA lookup is unchanged. Compare the ten meal photos and one caption, "I ate half the rice", against the current path. A qualifying step must be a real, switchable path on main that a judge can reproduce, with the model ID logged. Done when a real, switchable path on main runs the identify-and-portions step on Muse Spark Open through Baseten, the model ID is logged, the results against the ten photos are in docs, and the owner has switched it on in Profile, logged a meal, and seen the Muse Spark Open line in that meal's post detail on production.
 
 ### #316 The Facebook button is shown grayed out and does nothing
 
@@ -114,7 +132,7 @@ USDA FoodData Central allows 1,000 requests an hour. A meal takes about 4.7 requ
 
 A judge reads the repository and watches the video, and the README does not yet put in front of them the evidence the four scoring criteria ask for.
 
-Show evidence for each scoring criterion: Impact 30%, Use of Meta AI Tooling 25%, Demo 25% and Technical Depth 20%. Name SAM 3.1, Muse Spark 1.3 and Muse Voice Transcribe 1.0, the job each does and where its model ID is logged, and add Muse Spark Open if #281 lands. Summarise what was built from Oct 26 to Nov 4. The evidence is the test count, the ten-photo evaluation with its stated limits, the real-model gates, the worker timing and the item history that keeps every correction. State plainly that the app records what was eaten, never advises, sets no targets and makes no health claims. State only what the coder's reports prove, and carry no private account detail. Done when the README has those parts and each claim links to its evidence.
+Show evidence for each scoring criterion: Impact 30%, Use of Meta AI Tooling 25%, Demo 25% and Technical Depth 20%. Name SAM 3.1, Muse Spark 1.3 and Muse Voice Transcribe 1.0, the job each does and where its model ID is logged, and add Muse Spark Open, with how a judge switches it on: Profile, then the switch under the handle. Summarise what was built from Oct 26 to Nov 4. The evidence is the test count, the ten-photo evaluation with its stated limits, the real-model gates, the worker timing and the item history that keeps every correction. State plainly that the app records what was eaten, never advises, sets no targets and makes no health claims. State only what the coder's reports prove, and carry no private account detail. Done when the README has those parts and each claim links to its evidence.
 
 ### #60 A judge-facing pass makes the public repository start-here ready
 
@@ -198,7 +216,7 @@ A ChatGPT code review claims the model-written summary is checked for wording bu
 
 The same words for a food can match different references from one call to the next, and one miss turns a whole meal's total into unavailable.
 
-The coder's probes recorded the matcher's reason for every match. Identical lowercase input selected different references across calls, so the variation is in the choice, not only in capital letters. The dipping sauce matched "Dip, NFS" at 432 kcal per 100 g, about 130 kcal for 30 g. A cheeseburger with lettuce, tomato, onion and pickle matched in one answer and not in another; its total of 1,296 kcal became unavailable, with a known subtotal of 467 kcal. Done when the same words give the same match on repeated calls.
+The coder's probes recorded the matcher's reason for every match. Identical lowercase input selected different references across calls, so the variation is in the choice, not only in capital letters. The dipping sauce matched "Dip, NFS" at 432 kcal per 100 g, about 130 kcal for 30 g. A cheeseburger with lettuce, tomato, onion and pickle matched in one answer and not in another; its total of 1,296 kcal became unavailable, with a known subtotal of 467 kcal. A beef tenderloin steak topped with butter returned "Nutrition unavailable" on a production post, so the meal's total counted only its other foods. Sauteed spinach with corn returned "Nutrition unavailable" on another production post. Done when the same words give the same match on repeated calls.
 
 ### #65 The pipeline's tests cannot run offline
 
@@ -330,6 +348,6 @@ Blocked until after the hackathon, and blocked by the claims rule: the app shows
 
 ---
 
-† **What this backlog is.** The shared, ordered list of open work for My Food AI, shown live. GitHub issues in aibraincoach/my-food-ai are the record, and BACKLOG.md in the repository is a copy of this list that the PM supplies, so the coder and the planner read the same list. This list usually runs a little ahead of the issues, because an item reaches them only after the PM has filed it. An item stays until its issue is closed by a merged pull request; the "Interdit (Not part of Hackathon)" section holds items that cannot be worked on and says why. Each section is for one role: Backlog for Owner, Backlog for Designer and Engineering backlog, ordered within a section by the pass that will work them together, not by issue number or date.
+† **What this backlog is.** The shared, ordered list of open work for My Food AI, shown live. GitHub issues in aibraincoach/my-food-ai are the record, and BACKLOG.md in the repository is a copy of this list that the PM supplies, so the coder and the planner read the same list. This Doc is private between the PM and the owner, and the coder cannot open it. The coder reads BACKLOG.md, which the owner copies from this Doc. This list usually runs a little ahead of the issues, because an item reaches them only after the PM has filed it. An item stays until its issue is closed by a merged pull request; the "Interdit (Not part of Hackathon)" section holds items that cannot be worked on and says why. Each section is for one role: Backlog for Owner, Backlog for Designer and Engineering backlog, ordered within a section by the pass that will work them together, not by issue number or date.
 
 Every item is a title line and two paragraphs. The title line carries the GitHub issue number, assigned only once the issue exists, and the number is not one of the three parts. The three parts are: (1) a title a person can read; (2) a first paragraph that states the problem in plain language and in enough depth that a person could fix it; (3) a second paragraph with all the context that helps a person solve the problem, meaning what investigation, work or the owner's observations have established, ending in a done condition. Neither paragraph is a dump of everything known. Write short sentences in the active voice, as the Google developer documentation style guide asks. An item without all three parts is not on the backlog.
