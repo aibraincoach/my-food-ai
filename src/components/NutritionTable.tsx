@@ -1,3 +1,4 @@
+import OpenFoodFactsAttribution from './OpenFoodFactsAttribution';
 import { NUTRIENT_KEYS, unavailableFoods, formatCalories, formatNutrition, sumNutrition, type CurrentItem } from "@/lib/nutrition/totals";
 
 import {nutritionTableRows, formatTableNutrient} from "@/lib/nutrition/table";
@@ -18,5 +19,6 @@ export default function NutritionTable({ items }: { items: CurrentItem[] }) {
       </tr>)}</tbody>
     </table>
     <p className="pt-sheet-top text-label text-muted">Nutrition values from USDA FoodData Central.</p>
+    {items.some(item=>item.source_ref?.startsWith("off:")) && <OpenFoodFactsAttribution/>}
   </section>;
 }
