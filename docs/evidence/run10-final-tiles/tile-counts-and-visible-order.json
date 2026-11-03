@@ -1,0 +1,36 @@
+{
+  "counts": {
+    "counts": [
+      0,
+      2,
+      0,
+      0,
+      0,
+      0
+    ],
+    "usualMl": [
+      250,
+      240,
+      60,
+      300,
+      330,
+      500
+    ]
+  },
+  "expectedOrder": [
+    1,
+    0,
+    2,
+    3,
+    4,
+    5
+  ],
+  "buttons": [
+    "Coffeecup240 ml95 mg",
+    "Waterglass250 ml",
+    "Espressodouble60 ml126 mg",
+    "Teamug300 ml45 mg",
+    "Coca-Colacan330 ml32 mg",
+    "Waterbottle500 ml"
+  ]
+}
