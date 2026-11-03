@@ -136,17 +136,27 @@ Read-only production measurements and designated test-account actions only. Unkn
 
 ## 7h. Feed opening (#222/#372/#322/#323/#324)
 
-**Method** — Not yet completed on the final production revision; prior Run8 tables remain historical.
+**Method** — Account1, Chromium131390×844 Asia/Jakarta, CPU1, Fast4G165ms/1,012,500 B/s down/168,750 B/s up. Ten fresh contexts with browser cache cleared; workers allowed; jobs/tick alone intercepted with a no-work200 to isolate openings. All10 runs recorded stable READY424bf0e5260be9527b66118571b441fb6f994bfd. Session preparation outside clock. Corrected `uploads/run10-performance/baseline-fast4g-v2/cold-open.json` is authoritative; v1 missed `.feed.jpg` and its photo metrics are discarded. Deliberate scroll starts5s after first card. Explicit later workerCDP observer distinguishes worker network from page transfer0. Vercel runtime endpoint `/v1/observability/events` attempted for the actual deployment/window.
 
 **Result**
 
 | Measurement | Result |
 | --- | --- |
-| New ten-opening series completed | 0 |
+| Real first-card latency,10 opens | 405.5–1333.1ms; upper median717.5ms |
+| Blank feeds / page errors / photo failures | 0 /0 /0 |
+| Initial visible photo | None: top card caption/drink only |
+| First visible photo after deliberate5s-later scroll | 5708.9–6630.9ms from navigation |
+| First5 distinct JPEG bodies | 142087 /133353 /142579 /221659 /161312 bytes; total800990 |
+| Browser verified Auth reads | 6 on every baseline opening |
+| Direct repeated day-total read windows | 2 on every baseline opening; later same-time control2/0/2 |
+| Worker network hidden by page transfer0 in separate observer check | 134017 /143247 /222331 bytes, plus true diskcache0 repeats |
+| Vercel runtime access | 403 Forbidden |
+| Exact Auth-only preview | 1 Auth request/page in3 opens |
+| Exact day-read preview | 0 direct day reads,1 document/0RSC refreshes in5 opens;20 regressions pass |
 
-**Answer** — No new cold-open or cold-tick acceptance is claimed.
+**Answer** — Controlled opening was reliable, but it repeated identity/day reads and used about801KB of first-five JPEG body data. #414 fixes legacy photo routing, #428 shares verified browser Auth reads, and #429 reuses verified per-post day contributions while preserving mutation/readiness refreshes.
 
-**Unknown** — Final READY-deploy cold/warm tick, first-card/photo bytes, server calls, auth/day-read counts and ten cold opens remain required.
+**Unknown** — Photo body bytes are not total billed egress; page transfer0 does not establish zero worker traffic, and the worker observer can miss pre-attach traffic. Browser cold cache does not prove a cold function instance; runtime correlation was refused. Final stable production repeat, ordinary tick call counts, real post-READY first/subsequent GET timings and natural small-route photo/session-refresh bytes remain pending. The baseline intercepted tick and must not be represented as an unmodified production opening.
 
 ## 7i. Last feed (#304)
 
