@@ -9,7 +9,7 @@ const BEVERAGE_CATEGORIES = new Set(['beverages', 'water', 'soft drinks', 'coffe
   'citrus juice', 'apple juice', 'other fruit juice', 'beer', 'wine', 'liquor and cocktails',
   'milk, whole', 'milk, reduced fat', 'milk, lowfat', 'milk, nonfat', 'flavored milk, whole', 'flavored milk, reduced fat', 'flavored milk, lowfat', 'flavored milk, nonfat',
   'milk shakes and other dairy drinks', 'plant-based milk', 'soy milk', 'baby juice', 'baby water']);
-const PLAIN_DRINKS = new Set(['water', 'sparkling water', 'coffee', 'black coffee', 'espresso', 'americano', 'tea', 'green tea', 'black tea', 'cola', 'coca-cola', 'coca cola', 'cocacola', 'coke', 'pepsi', 'diet cola', 'diet coke', 'coke zero', 'coca-cola zero', 'diet pepsi', 'pepsi max']);
+const PLAIN_DRINKS = new Set(['water', 'sparkling water', 'coffee', 'black coffee', 'espresso', 'americano', 'tea', 'green tea', 'black tea', 'cola', 'coca-cola', 'coca cola', 'cocacola', 'coke', 'pepsi', 'diet cola', 'diet coke', 'coke zero', 'coca-cola zero', 'diet pepsi', 'pepsi max', 'pepsi zero', 'evian bottled water']);
 export type DrinkItem = { id: string; name: string; portion_text?: string | null; portion_grams: Numeric; food_category?: string | null; micronutrients?: StoredNutrient[] };
 export type ItemDrink = { post_item_id: string; kind: 'water' | 'caffeine'; amount: number; ml: number; label: string; caffeineMg: number };
 // SR Legacy puts liquid milk and solid cheese in the same category. This

@@ -148,3 +148,13 @@ test('only cola gets a scaled caffeine fallback; portion values including zero w
   assert.equal(drinksFromItems([item({ portion_text: '330 ml' })])[0].caffeineMg, 34);
   assert.equal(drinksFromItems([item({ micronutrients: [{ nutrientId: 1057, value: 0, basis: 'portion' }] })])[0].caffeineMg, 0);
 });
+
+test('historical Pepsi Zero and Evian water without categories receive item intake',()=>{
+ const base={id:'drink',portion_grams:330,food_category:null,micronutrients:[]};
+ assert.equal(isDrinkItem({...base,name:'Pepsi Zero'}),true);
+ assert.equal(drinksFromItems([{...base,name:'Pepsi Zero',portion_text:'one can'}])[0].ml,330);
+ assert.equal(drinksFromItems([{...base,name:'Pepsi Zero',portion_text:'one can'}])[0].caffeineMg,32);
+ assert.equal(drinksFromItems([{...base,name:'Evian bottled water',portion_grams:500,portion_text:'1 x 500 mL bottle'}])[0].ml,500);
+ assert.equal(isDrinkItem({...base,name:'Pepsi Zero cake'}),false);
+ assert.equal(isDrinkItem({...base,name:'Evian bottled water biscuit'}),false);
+});
