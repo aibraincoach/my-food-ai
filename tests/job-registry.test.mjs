@@ -28,10 +28,14 @@ test("a test passes its own handlers explicitly", async () => {
   assert.equal(ran, true);
 });
 
-test("the worker has no dynamic import and no test handler in its production folder", () => {
+test("the worker has no caller-selected module imports or production test handlers", () => {
   const files = readdirSync(new URL("../src/lib/worker/jobs/", import.meta.url));
   assert.ok(!files.some((name) => name.startsWith("test_")), files.join(","));
-  for (const name of ["handlers.ts", "drain.ts"]) {
+  const registry = readFileSync(new URL("../src/lib/worker/handlers.ts", import.meta.url), "utf8");
+  const imports = [...registry.matchAll(/\bimport\s*\(([^)]*)\)/g)].map(match => match[1]);
+  assert.equal(imports.length, 6);
+  assert.ok(imports.every(value => /^"@\/lib\/worker\/jobs\/[a-z_]+"$/.test(value)));
+  for (const name of ["drain.ts"]) {
     assert.doesNotMatch(readFileSync(new URL(`../src/lib/worker/${name}`, import.meta.url), "utf8"), /\bimport\s*\(/, name);
   }
 });
