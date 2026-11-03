@@ -5,6 +5,7 @@ import vm from 'node:vm';
 import {readFileSync} from 'node:fs';
 import ts from 'typescript';
 import {retainCompleteItems,hasUnavailableFields} from '../src/lib/posts/feed.ts';
+import {dayTotalRefreshDates} from '../src/lib/posts/day-total-changes.ts';
 import {createDayTotalsRefresh} from '../src/lib/posts/day-totals-refresh.ts';
 import {mergeFeedPosts,discoveryLostOverlap} from '../src/lib/posts/feed-order.ts';
 import {readFeedCache,writeFeedCache,clearFeedCache} from '../src/lib/posts/feed-cache.ts';
@@ -32,6 +33,7 @@ async function serverHome(seedRead){
   if(name==='@/lib/auth/verified-user')return{verifiedUserId:async()=> 'owner'};
   if(name==='@/lib/supabase/server')return{createClient:async()=>({auth:{getUser:async()=>({data:{user:{id:'owner'}}})}})};
   if(name==='@/lib/posts/day-totals-refresh')return{createDayTotalsRefresh};
+  if(name==='@/lib/posts/day-total-changes')return{dayTotalRefreshDates};
    if(name==='@/lib/posts/feed')return{getFeed:seedRead,getFirstFeedPhoto:async()=>null};
   if(name==='@/lib/posts/days')return days;
   if(name==='@/components/DesktopWorkspace')return{default:({children})=>children};
@@ -60,6 +62,7 @@ function fallbackFor(tree){
   if(name==='react')return{useSyncExternalStore:(_subscribe,snapshot)=>snapshot()};
   if(name==='react/jsx-runtime')return{jsx,jsxs:jsx};
   if(name==='@/lib/posts/day-totals-refresh')return{createDayTotalsRefresh};
+  if(name==='@/lib/posts/day-total-changes')return{dayTotalRefreshDates};
    if(name==='@/lib/posts/feed')return{retainCompleteItems,hasUnavailableFields};
   return{};
  }});
@@ -100,6 +103,7 @@ async function mountedFeed(initialPosts,{cachedPosts,failPage=false}={}){
    if(name==='next/navigation')return{useRouter:()=>({replace(){}})};
    if(name==='@/lib/supabase/client')return{createClient:()=>({auth:{getSession:async()=>({data:{session:{user:{id:'owner'}}}})},channel:()=>channel,removeChannel(){}})};
    if(name==='@/lib/posts/day-totals-refresh')return{createDayTotalsRefresh};
+  if(name==='@/lib/posts/day-total-changes')return{dayTotalRefreshDates};
    if(name==='@/lib/posts/feed')return{FEED_PAGE_SIZE:20,retainCompleteItems,hasUnavailableFields,getPostCard:async()=>current};
    if(name==='@/lib/posts/feed-order')return{mergeFeedPosts,discoveryLostOverlap};
    if(name==='@/lib/posts/feed-cache')return{readFeedCache,writeFeedCache,clearFeedCache};
