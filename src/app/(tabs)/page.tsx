@@ -1,4 +1,5 @@
 /* eslint-disable @next/next/no-img-element -- Private signed photos bypass paid optimization. */
+import { verifiedUserId } from "@/lib/auth/verified-user";
 import DesktopWorkspace from '@/components/DesktopWorkspace';
 import PostDetail from '@/components/PostDetail';
 import SavedMealsButton from '@/components/SavedMealsButton';
@@ -19,7 +20,8 @@ import { dateInZone, getDayTotals, getLoggedDates, shiftDay, validZone } from "@
 // check and one cancellable owner client, never another visitor's session.
 const homeReader = cache(async () => {
   const db=await createClient(AbortSignal.timeout(8000));
-  const {data:{user}}=await db.auth.getUser();
+  const verified = await verifiedUserId();
+  const user = verified ? {id: verified} : (await db.auth.getUser()).data.user;
   return {db,user};
 });
 
@@ -28,6 +30,19 @@ async function homeDeadline<T>(read: Promise<T>): Promise<T> {
   try { return await Promise.race([read, new Promise<T>((_, reject) => {timer = setTimeout(() => reject(new Error('Home read timed out.')), 8000);})]); }
   finally { if (timer) clearTimeout(timer); }
 }
+
+// Both streams await the same request-scoped totals promise. Failed optional
+// totals remain unavailable and are not cached across visitors or navigations.
+const homeDayTotals = cache(async () => {
+  const zone = validZone((await cookies()).get("time-zone")?.value);
+  const today = dateInZone(new Date(), zone);
+  const {db, user} = await homeReader();
+  if (!user) return [];
+  const started = Date.now();
+  try {
+    return await homeDeadline(getDayTotals(db, user.id, zone, Array.from({length: 5}, (_, index) => shiftDay(today, -index))));
+  } finally { console.info(`feed read day-totals ${Date.now() - started}`); }
+});
 
 async function HomeDays() {
   await connection();
@@ -41,7 +56,7 @@ async function HomeDays() {
       const {db:supabase,user} = await homeReader();
       return user ? await Promise.all([
         getLoggedDates(supabase, user.id, zone, shiftDay(today, -4), today),
-        getDayTotals(supabase,user.id,zone,Array.from({length:5},(_,index)=>shiftDay(today,-index))),
+        homeDayTotals(),
       ]) : [[], []] as [{date: string}[], import('@/lib/posts/days').FeedDayTotal[]];
     })());
   } catch { /* Optional day reads must not take down Home. */ }
@@ -84,7 +99,11 @@ async function HomeFeed() {
       const {db,user} = await homeReader();
       if (!user) return undefined;
       const zone = validZone((await cookies()).get('time-zone')?.value);
-      const page = await getFeed(db, user.id, null, zone, 6, {summaries: false, onFirstPhoto: url => preload(url, {as:'image',fetchPriority:'high',crossOrigin:'anonymous'})});
+      const [page, days] = await Promise.all([
+        getFeed(db, user.id, null, zone, 6, {summaries: false, onFirstPhoto: url => preload(url, {as:'image',fetchPriority:'high',crossOrigin:'anonymous'})}),
+        homeDayTotals().catch(() => []),
+      ]);
+      page.days = days;
       return {page, userId: user.id, zone};
     })());
     initialPage = seed?.page;
