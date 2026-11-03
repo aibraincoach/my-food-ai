@@ -4,7 +4,7 @@ import { searchFoods } from "@/lib/fdc/client";
 import { scaleNutrition } from "@/lib/fdc/nutrients";
 import { dateInZone, validZone } from "@/lib/posts/days";
 import { hydrationSoFar, type DrinkCardData } from "./hydration";
-import { customCoffeeCaffeine, DRINK_TILES } from "./intake";
+import { customCoffeeCaffeine, DRINK_TILES, TILE_SIZES } from "./intake";
 import { renderResultsCard } from "@/lib/pipeline/results-card";
 
 export interface DrinkInput { kind: "water" | "caffeine"; label: string; ml: number; caffeineMg: number }
@@ -16,7 +16,10 @@ export function parseDrinkInput(body: unknown): DrinkInput | null {
   if ("tile" in value) {
     if (typeof value.tile !== "number" || !Number.isInteger(value.tile) || value.tile < 0 || value.tile >= DRINK_TILES.length) return null;
     const tile = DRINK_TILES[value.tile];
-    return { kind: tile.kind, label: `${tile.name}, ${tile.size}`, ml: tile.ml, caffeineMg: tile.caffeineMg };
+    const ml = "ml" in value ? value.ml : tile.ml;
+    const size = TILE_SIZES[value.tile].find(size => size.ml === ml);
+    if (!size) return null;
+    return { kind: tile.kind, label: `${tile.name}, ${size.word}`, ml: size.ml, caffeineMg: size.caffeineMg ?? Math.round(tile.caffeineMg * size.ml / tile.ml) };
   }
   if ((value.kind !== "water" && value.kind !== "caffeine") || !Number.isInteger(value.ml) || (value.ml as number) < 1 || (value.ml as number) > 5000) return null;
   const ml = value.ml as number;
