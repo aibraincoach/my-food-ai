@@ -1,0 +1,619 @@
+[
+  {
+    "deployment": {
+      "id": "dpl_9Bk1TGXRghBjmZ1TTay5tBx28Fbo",
+      "state": "READY",
+      "sha": "b65ccb9fc1240e72f11cafff8d24d8a960f75c23",
+      "readyAt": "2026-11-03T13:28:14.402Z",
+      "createdAt": "2026-11-03T13:27:52.632Z",
+      "url": "my-food-r7gdtnufw-aibraincoachs-projects.vercel.app",
+      "observedAt": "2026-11-03T13:32:27.732Z"
+    },
+    "result": {
+      "mode": "water",
+      "file": "water.jpg",
+      "at": "2026-11-03T13:32:44.033Z",
+      "initial": "Drink \u00b7 estimated from the photo\n\nWater, glass\n\n150ml\n\nHow much did you drink?\n\nAll of it\nHalf\nOther\n\nAdds 150 ml to today",
+      "reading": {
+        "id": "67dc5733-0cce-4879-84c5-0ad0073bf09d",
+        "position": 0,
+        "drinks": [
+          {
+            "name": "Water, glass",
+            "ml": 150,
+            "caffeineMg": 0,
+            "kcal": 0,
+            "source": "estimated from the photo",
+            "grams": null,
+            "nutrition": {
+              "calories": 0,
+              "protein_g": 0,
+              "carbs_g": 0,
+              "fat_g": 0,
+              "fibre_g": 0,
+              "sugar_g": 0,
+              "sodium_mg": 0,
+              "micronutrients": [
+                {
+                  "nutrientId": 1057,
+                  "nutrientName": "Caffeine",
+                  "unitName": "MG",
+                  "value": 0,
+                  "basis": "portion"
+                },
+                {
+                  "nutrientId": 1051,
+                  "nutrientName": "Water",
+                  "unitName": "G",
+                  "value": 150,
+                  "basis": "portion"
+                }
+              ],
+              "source_ref": null,
+              "food_category": "Water"
+            }
+          }
+        ],
+        "allDrinks": true
+      },
+      "identifyRequests": 2,
+      "readingReused": true,
+      "intake": [
+        {
+          "kind": "water",
+          "amount": 150,
+          "ml": 150,
+          "source": "item"
+        }
+      ],
+      "items": [
+        {
+          "id": "a5b2e7ad-29c1-4b1c-aaf2-b1922bb329a0",
+          "name": "Water, glass",
+          "portion_text": "150 ml"
+        }
+      ],
+      "feed": "T\ntestkitchen\n\u00b7\u00b7\u00b7\nDRANK \u00b7 10:32 PM\n150\nml\nWater, glass \u00b7 0 kcal\n190 ml\nconsumed today\n150 ml from drinks\n40 ml from food\n+\nAdd a photo\nLeftovers \u00b7 not eaten\nDetails \u203a\nDrank: 150 ml \u00b7 0 kcal more\n10:32 PM",
+      "drinkCardVisible": true
+    },
+    "cleanup": {
+      "at": "2026-11-03T13:33:20.757Z",
+      "postOperationCount": 2,
+      "standaloneIntakeCount": 0,
+      "copyOperationCount": 0,
+      "drinkOperationCount": 1,
+      "foodOperationCount": 0,
+      "preferencesRestored": true,
+      "issues": []
+    }
+  },
+  {
+    "deployment": {
+      "id": "dpl_6K6JoUwhsFXtp4y8nAXmnFbhrh4H",
+      "state": "READY",
+      "sha": "3ce84730a33f6e5ce8163c80e454eb63b7d9998a",
+      "readyAt": "2026-11-03T13:42:08.811Z",
+      "createdAt": "2026-11-03T13:41:47.701Z",
+      "url": "my-food-kur3bv3aw-aibraincoachs-projects.vercel.app",
+      "observedAt": "2026-11-03T13:43:11.889Z"
+    },
+    "result": {
+      "mode": "cola",
+      "file": "cola-single.jpg",
+      "at": "2026-11-03T13:43:48.482Z",
+      "initial": "Drink \u00b7 read from the can\n\nCoca-Cola, can\nCorrect\n\n330\nml\n\n30\nmg caffeine\n\n139\nkcal\n\nHow much did you drink?\n\nThe whole can\nHalf\nOther\n\nAdds 330 ml and 30 mg caffeine to today",
+      "reading": {
+        "id": "374a036a-fd9b-47d3-aed3-09a47385c88f",
+        "position": 0,
+        "drinks": [
+          {
+            "name": "Coca-Cola, can",
+            "ml": 330,
+            "caffeineMg": 29.7,
+            "kcal": 138.6,
+            "source": "read from the can",
+            "grams": 330,
+            "nutrition": {
+              "calories": 138.6,
+              "protein_g": 0,
+              "carbs_g": 34.187999999999995,
+              "fat_g": 0.825,
+              "fibre_g": 0,
+              "sugar_g": 32.802,
+              "sodium_mg": 9.899999999999999,
+              "micronutrients": [
+                {
+                  "nutrientId": 1003,
+                  "nutrientName": "Protein",
+                  "unitName": "G",
+                  "value": 0,
+                  "basis": "portion"
+                },
+                {
+                  "nutrientId": 1004,
+                  "nutrientName": "Total lipid (fat)",
+                  "unitName": "G",
+                  "value": 0.825,
+                  "basis": "portion"
+                },
+                {
+                  "nutrientId": 1005,
+                  "nutrientName": "Carbohydrate, by difference",
+                  "unitName": "G",
+                  "value": 34.187999999999995,
+                  "basis": "portion"
+                },
+                {
+                  "nutrientId": 1008,
+                  "nutrientName": "Energy",
+                  "unitName": "KCAL",
+                  "value": 138.6,
+                  "basis": "portion"
+                },
+                {
+                  "nutrientId": 1018,
+                  "nutrientName": "Alcohol, ethyl",
+                  "unitName": "G",
+                  "value": 0,
+                  "basis": "portion"
+                },
+                {
+                  "nutrientId": 1057,
+                  "nutrientName": "Caffeine",
+                  "unitName": "MG",
+                  "value": 29.7,
+                  "basis": "portion"
+                },
+                {
+                  "nutrientId": 1058,
+                  "nutrientName": "Theobromine",
+                  "unitName": "MG",
+                  "value": 0,
+                  "basis": "portion"
+                },
+                {
+                  "nutrientId": 2000,
+                  "nutrientName": "Total Sugars",
+                  "unitName": "G",
+                  "value": 32.802,
+                  "basis": "portion"
+                },
+                {
+                  "nutrientId": 1079,
+                  "nutrientName": "Fiber, total dietary",
+                  "unitName": "G",
+                  "value": 0,
+                  "basis": "portion"
+                },
+                {
+                  "nutrientId": 1087,
+                  "nutrientName": "Calcium, Ca",
+                  "unitName": "MG",
+                  "value": 3.3,
+                  "basis": "portion"
+                },
+                {
+                  "nutrientId": 1089,
+                  "nutrientName": "Iron, Fe",
+                  "unitName": "MG",
+                  "value": 0.066,
+                  "basis": "portion"
+                },
+                {
+                  "nutrientId": 1090,
+                  "nutrientName": "Magnesium, Mg",
+                  "unitName": "MG",
+                  "value": 0,
+                  "basis": "portion"
+                },
+                {
+                  "nutrientId": 1091,
+                  "nutrientName": "Phosphorus, P",
+                  "unitName": "MG",
+                  "value": 29.7,
+                  "basis": "portion"
+                },
+                {
+                  "nutrientId": 1092,
+                  "nutrientName": "Potassium, K",
+                  "unitName": "MG",
+                  "value": 16.5,
+                  "basis": "portion"
+                },
+                {
+                  "nutrientId": 1093,
+                  "nutrientName": "Sodium, Na",
+                  "unitName": "MG",
+                  "value": 9.899999999999999,
+                  "basis": "portion"
+                },
+                {
+                  "nutrientId": 1095,
+                  "nutrientName": "Zinc, Zn",
+                  "unitName": "MG",
+                  "value": 0.297,
+                  "basis": "portion"
+                },
+                {
+                  "nutrientId": 1098,
+                  "nutrientName": "Copper, Cu",
+                  "unitName": "MG",
+                  "value": 0.0231,
+                  "basis": "portion"
+                },
+                {
+                  "nutrientId": 1103,
+                  "nutrientName": "Selenium, Se",
+                  "unitName": "UG",
+                  "value": 0.33,
+                  "basis": "portion"
+                },
+                {
+                  "nutrientId": 1105,
+                  "nutrientName": "Retinol",
+                  "unitName": "UG",
+                  "value": 0,
+                  "basis": "portion"
+                },
+                {
+                  "nutrientId": 1106,
+                  "nutrientName": "Vitamin A, RAE",
+                  "unitName": "UG",
+                  "value": 0,
+                  "basis": "portion"
+                },
+                {
+                  "nutrientId": 1107,
+                  "nutrientName": "Carotene, beta",
+                  "unitName": "UG",
+                  "value": 0,
+                  "basis": "portion"
+                },
+                {
+                  "nutrientId": 1108,
+                  "nutrientName": "Carotene, alpha",
+                  "unitName": "UG",
+                  "value": 0,
+                  "basis": "portion"
+                },
+                {
+                  "nutrientId": 1109,
+                  "nutrientName": "Vitamin E (alpha-tocopherol)",
+                  "unitName": "MG",
+                  "value": 0,
+                  "basis": "portion"
+                },
+                {
+                  "nutrientId": 1114,
+                  "nutrientName": "Vitamin D (D2 + D3)",
+                  "unitName": "UG",
+                  "value": 0,
+                  "basis": "portion"
+                },
+                {
+                  "nutrientId": 1120,
+                  "nutrientName": "Cryptoxanthin, beta",
+                  "unitName": "UG",
+                  "value": 0,
+                  "basis": "portion"
+                },
+                {
+                  "nutrientId": 1122,
+                  "nutrientName": "Lycopene",
+                  "unitName": "UG",
+                  "value": 0,
+                  "basis": "portion"
+                },
+                {
+                  "nutrientId": 1123,
+                  "nutrientName": "Lutein + zeaxanthin",
+                  "unitName": "UG",
+                  "value": 0,
+                  "basis": "portion"
+                },
+                {
+                  "nutrientId": 1162,
+                  "nutrientName": "Vitamin C, total ascorbic acid",
+                  "unitName": "MG",
+                  "value": 0,
+                  "basis": "portion"
+                },
+                {
+                  "nutrientId": 1165,
+                  "nutrientName": "Thiamin",
+                  "unitName": "MG",
+                  "value": 0,
+                  "basis": "portion"
+                },
+                {
+                  "nutrientId": 1166,
+                  "nutrientName": "Riboflavin",
+                  "unitName": "MG",
+                  "value": 0,
+                  "basis": "portion"
+                },
+                {
+                  "nutrientId": 1167,
+                  "nutrientName": "Niacin",
+                  "unitName": "MG",
+                  "value": 0,
+                  "basis": "portion"
+                },
+                {
+                  "nutrientId": 1175,
+                  "nutrientName": "Vitamin B-6",
+                  "unitName": "MG",
+                  "value": 0,
+                  "basis": "portion"
+                },
+                {
+                  "nutrientId": 1177,
+                  "nutrientName": "Folate, total",
+                  "unitName": "UG",
+                  "value": 0,
+                  "basis": "portion"
+                },
+                {
+                  "nutrientId": 1178,
+                  "nutrientName": "Vitamin B-12",
+                  "unitName": "UG",
+                  "value": 0,
+                  "basis": "portion"
+                },
+                {
+                  "nutrientId": 1180,
+                  "nutrientName": "Choline, total",
+                  "unitName": "MG",
+                  "value": 0.9899999999999999,
+                  "basis": "portion"
+                },
+                {
+                  "nutrientId": 1185,
+                  "nutrientName": "Vitamin K (phylloquinone)",
+                  "unitName": "UG",
+                  "value": 0,
+                  "basis": "portion"
+                },
+                {
+                  "nutrientId": 1186,
+                  "nutrientName": "Folic acid",
+                  "unitName": "UG",
+                  "value": 0,
+                  "basis": "portion"
+                },
+                {
+                  "nutrientId": 1187,
+                  "nutrientName": "Folate, food",
+                  "unitName": "UG",
+                  "value": 0,
+                  "basis": "portion"
+                },
+                {
+                  "nutrientId": 1190,
+                  "nutrientName": "Folate, DFE",
+                  "unitName": "UG",
+                  "value": 0,
+                  "basis": "portion"
+                },
+                {
+                  "nutrientId": 1242,
+                  "nutrientName": "Vitamin E, added",
+                  "unitName": "MG",
+                  "value": 0,
+                  "basis": "portion"
+                },
+                {
+                  "nutrientId": 1246,
+                  "nutrientName": "Vitamin B-12, added",
+                  "unitName": "UG",
+                  "value": 0,
+                  "basis": "portion"
+                },
+                {
+                  "nutrientId": 1253,
+                  "nutrientName": "Cholesterol",
+                  "unitName": "MG",
+                  "value": 0,
+                  "basis": "portion"
+                },
+                {
+                  "nutrientId": 1258,
+                  "nutrientName": "Fatty acids, total saturated",
+                  "unitName": "G",
+                  "value": 0,
+                  "basis": "portion"
+                },
+                {
+                  "nutrientId": 1259,
+                  "nutrientName": "SFA 4:0",
+                  "unitName": "G",
+                  "value": 0,
+                  "basis": "portion"
+                },
+                {
+                  "nutrientId": 1260,
+                  "nutrientName": "SFA 6:0",
+                  "unitName": "G",
+                  "value": 0,
+                  "basis": "portion"
+                },
+                {
+                  "nutrientId": 1261,
+                  "nutrientName": "SFA 8:0",
+                  "unitName": "G",
+                  "value": 0,
+                  "basis": "portion"
+                },
+                {
+                  "nutrientId": 1262,
+                  "nutrientName": "SFA 10:0",
+                  "unitName": "G",
+                  "value": 0,
+                  "basis": "portion"
+                },
+                {
+                  "nutrientId": 1263,
+                  "nutrientName": "SFA 12:0",
+                  "unitName": "G",
+                  "value": 0,
+                  "basis": "portion"
+                },
+                {
+                  "nutrientId": 1264,
+                  "nutrientName": "SFA 14:0",
+                  "unitName": "G",
+                  "value": 0,
+                  "basis": "portion"
+                },
+                {
+                  "nutrientId": 1265,
+                  "nutrientName": "SFA 16:0",
+                  "unitName": "G",
+                  "value": 0,
+                  "basis": "portion"
+                },
+                {
+                  "nutrientId": 1266,
+                  "nutrientName": "SFA 18:0",
+                  "unitName": "G",
+                  "value": 0,
+                  "basis": "portion"
+                },
+                {
+                  "nutrientId": 1268,
+                  "nutrientName": "MUFA 18:1",
+                  "unitName": "G",
+                  "value": 0,
+                  "basis": "portion"
+                },
+                {
+                  "nutrientId": 1269,
+                  "nutrientName": "PUFA 18:2",
+                  "unitName": "G",
+                  "value": 0,
+                  "basis": "portion"
+                },
+                {
+                  "nutrientId": 1270,
+                  "nutrientName": "PUFA 18:3",
+                  "unitName": "G",
+                  "value": 0,
+                  "basis": "portion"
+                },
+                {
+                  "nutrientId": 1271,
+                  "nutrientName": "PUFA 20:4",
+                  "unitName": "G",
+                  "value": 0,
+                  "basis": "portion"
+                },
+                {
+                  "nutrientId": 1272,
+                  "nutrientName": "PUFA 22:6 n-3 (DHA)",
+                  "unitName": "G",
+                  "value": 0,
+                  "basis": "portion"
+                },
+                {
+                  "nutrientId": 1275,
+                  "nutrientName": "MUFA 16:1",
+                  "unitName": "G",
+                  "value": 0,
+                  "basis": "portion"
+                },
+                {
+                  "nutrientId": 1276,
+                  "nutrientName": "PUFA 18:4",
+                  "unitName": "G",
+                  "value": 0,
+                  "basis": "portion"
+                },
+                {
+                  "nutrientId": 1277,
+                  "nutrientName": "MUFA 20:1",
+                  "unitName": "G",
+                  "value": 0,
+                  "basis": "portion"
+                },
+                {
+                  "nutrientId": 1278,
+                  "nutrientName": "PUFA 20:5 n-3 (EPA)",
+                  "unitName": "G",
+                  "value": 0,
+                  "basis": "portion"
+                },
+                {
+                  "nutrientId": 1279,
+                  "nutrientName": "MUFA 22:1",
+                  "unitName": "G",
+                  "value": 0,
+                  "basis": "portion"
+                },
+                {
+                  "nutrientId": 1280,
+                  "nutrientName": "PUFA 22:5 n-3 (DPA)",
+                  "unitName": "G",
+                  "value": 0,
+                  "basis": "portion"
+                },
+                {
+                  "nutrientId": 1292,
+                  "nutrientName": "Fatty acids, total monounsaturated",
+                  "unitName": "G",
+                  "value": 0,
+                  "basis": "portion"
+                },
+                {
+                  "nutrientId": 1293,
+                  "nutrientName": "Fatty acids, total polyunsaturated",
+                  "unitName": "G",
+                  "value": 0,
+                  "basis": "portion"
+                },
+                {
+                  "nutrientId": 1051,
+                  "nutrientName": "Water",
+                  "unitName": "G",
+                  "value": 330,
+                  "basis": "portion"
+                }
+              ],
+              "source_ref": "2710541",
+              "food_category": "soft drinks"
+            }
+          }
+        ],
+        "allDrinks": true
+      },
+      "identifyRequests": 2,
+      "readingReused": true,
+      "intake": [
+        {
+          "kind": "caffeine",
+          "amount": 30,
+          "ml": 330,
+          "source": "item"
+        }
+      ],
+      "items": [
+        {
+          "id": "24338d99-e496-41a4-95ae-d34cb8678864",
+          "name": "Coca-Cola, can",
+          "portion_text": "330 ml"
+        }
+      ],
+      "feed": "T\ntestkitchen\n\u00b7\u00b7\u00b7\nDRANK \u00b7 10:43 PM\n330\nml\nCoca-Cola, can \u00b7 30 mg caffeine \u00b7 139 kcal\n370 ml\nconsumed today\n330 ml from drinks\n40 ml from food\n30 mg caffeine\n+\nAdd a photo\nLeftovers \u00b7 not eaten\nDetails \u203a\nDrank: 330 ml \u00b7 30 mg caffeine \u00b7 139 kcal more\n10:43 PM",
+      "drinkCardVisible": true
+    },
+    "cleanup": {
+      "at": "2026-11-03T13:43:57.449Z",
+      "postOperationCount": 1,
+      "standaloneIntakeCount": 0,
+      "copyOperationCount": 0,
+      "drinkOperationCount": 1,
+      "foodOperationCount": 0,
+      "preferencesRestored": true,
+      "issues": []
+    }
+  }
+]
