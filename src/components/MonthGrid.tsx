@@ -13,6 +13,7 @@ export function postedLabel(count: number) { return count === 0 ? "No days poste
 
 export default function MonthGrid({ month, summary, today, selected, onDay, onOpenDay }: { month: string; summary: MonthSummary; today: string; selected?: string; onDay: (date: string, cell: HTMLElement) => void; onOpenDay?: (date:string)=>void }) {
   const desktop=useDesktop();
+  const unavailable=[...new Set(summary.days.flatMap(day=>day.missing??[]))];
   const first = new Date(`${month}-01T12:00:00Z`);
   const count = new Date(Date.UTC(first.getUTCFullYear(), first.getUTCMonth() + 1, 0)).getUTCDate();
   return <section aria-label={monthName(month, true)} data-month={month} id={`month-${month}`} className="desktop:w-full" onKeyDown={event=>{
@@ -27,7 +28,7 @@ export default function MonthGrid({ month, summary, today, selected, onDay, onOp
     <div className="flex items-baseline justify-between px-screen-x" style={{ paddingBottom: tokens.spacing.grid + tokens.spacing.grid / 2 }}>
       <h2 className="text-month desktop:text-[22px]">{monthName(month, true)}</h2><span className="text-meta text-muted tabular-nums">{postedLabel(summary.posted)}</span>
     </div>
-    {summary.days.some(day=>day.missing?.length) ? <p className="px-screen-x text-meta text-muted">* Known nutrition shown. Nutrition unavailable: {[...new Set(summary.days.flatMap(day=>day.missing??[]))].join(", ")}</p> : null}
+    {unavailable.length ? <details data-nutrition-disclosure className="px-screen-x text-meta text-muted"><summary className="cursor-pointer">* Known nutrition shown · Unavailable foods</summary><p className="mt-2">Nutrition unavailable: {unavailable.join(", ")}</p></details> : null}
     <div style={{ paddingInline: tokens.spacing["tooltip-x"] }}>
       <div className="grid grid-cols-7 gap-1 pb-1" aria-hidden="true">{["S", "M", "T", "W", "T", "F", "S"].map((label, index) => <span key={index} className="text-center text-bubble text-faint">{label}</span>)}</div>
       <div className="grid grid-cols-7 gap-1">
