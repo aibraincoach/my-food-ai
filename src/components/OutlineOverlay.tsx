@@ -1,8 +1,9 @@
+/* eslint-disable @next/next/no-img-element -- Private signed photos bypass public image optimization. */
 "use client";
 import { nutritionTableRows } from "@/lib/nutrition/table";
 
 import {LocalTime,useLocalTime} from "@/components/LocalTime";
-import { useEffect, useRef, useState, type CSSProperties, type PointerEvent } from "react";
+import { Fragment, useEffect, useRef, useState, type CSSProperties, type PointerEvent } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import type { DetailItem, DetailPhoto, ItemBox } from "@/lib/posts/items";
@@ -43,17 +44,21 @@ function Mask({ url, photo, color, frame, fallback }: {
     : <div className="pointer-events-none absolute rounded-field" style={{ ...fallback, border: `${tokens.detail.outlineWidth}px solid ${color}` }} />;
 }
 
-export default function OutlineOverlay({ initialized, readOnly = false, postId, caption, eatenAt, status, photo, items, modelCommentId=null, fingerprint=null, saved=false, handle:providedHandle, cardData, initialDrink, children }: {
+export default function OutlineOverlay({ desktopModal=false, desktopHeader, desktopThread, slides=[], initialized, readOnly = false, postId, caption, eatenAt, status, photo, items, modelCommentId=null, fingerprint=null, saved=false, handle:providedHandle, cardData, initialDrink, children }: {
+  desktopModal?:boolean; desktopHeader?:ReactNode; desktopThread?:ReactNode; slides?:import('@/lib/posts/feed').FeedPost['slides'];
   cardData?: CardData; initialDrink?: DrinkCardData|null;
   initialized: boolean; readOnly?: boolean; postId: string; caption: string; eatenAt: string; status: string; photo: DetailPhoto | null; items: DetailItem[]; modelCommentId?:string|null; fingerprint?:string|null; saved?:boolean; handle?:string; children?:ReactNode;
 }) {
   const router = useRouter();
   const handle=usePostHandle(providedHandle);
+  const [slide,setSlide]=useState(0);
+  useEffect(()=>{if(!desktopModal)return;const key=(event:KeyboardEvent)=>{if(event.defaultPrevented||((event.target as HTMLElement)?.closest('input,textarea,select,[contenteditable="true"]')||((event.target as HTMLElement)?.closest('[role="dialog"]')&&!((event.target as HTMLElement).closest('[role="dialog"]')?.classList.contains('desktop-post-dialog')))))return;const step=event.key==='ArrowRight'?1:event.key==='ArrowLeft'?-1:0;if(step){event.preventDefault();setSlide(value=>Math.max(0,Math.min(Math.max(0,slides.length-1),value+step)));}};window.addEventListener('keydown',key);return()=>window.removeEventListener('keydown',key);},[desktopModal,slides.length]);
   const [expandedPhoto,setExpandedPhoto]=useState(false);
   const [expandedNutrition,setExpandedNutrition]=useState(false);
   const drink = useDrinkCard(postId, status, eatenAt, initialDrink);
   const localTime = useLocalTime(eatenAt);
   const ref = useRef<HTMLDivElement>(null);
+  const [frameHeight,setFrameHeight]=useState(640);
   const [width, setWidth] = useState<number>(tokens.spacing.phone);
   const [outlines, setOutlines] = useState(true);
   const [selection, setSelection] = useState<{ item: DetailItem | null; box?: ItemBox; key: number } | null>(null);
@@ -63,10 +68,10 @@ export default function OutlineOverlay({ initialized, readOnly = false, postId, 
   const [waiting, setWaiting] = useState(false);
   useEffect(() => {
     if (!ref.current) return;
-    const observer = new ResizeObserver(([entry]) => { if (entry.contentRect.width) setWidth(entry.contentRect.width); });
+    const observer = new ResizeObserver(([entry]) => { if (entry.contentRect.width) setWidth(entry.contentRect.width); if(desktopModal&&entry.contentRect.height)setFrameHeight(entry.contentRect.height); });
     observer.observe(ref.current);
     return () => observer.disconnect();
-  }, []);
+  }, [desktopModal]);
   useEffect(() => {
     const supabase = createClient();
     let live = true;
@@ -89,7 +94,7 @@ export default function OutlineOverlay({ initialized, readOnly = false, postId, 
     return () => { live = false; if (timer) clearInterval(timer); void supabase.removeChannel(channel); };
   }, [postId, status, waiting, router]);
 
-  const height=photo&&(!drink||drink.source==='item')?(expandedPhoto?width:230):width;
+  const height=desktopModal?frameHeight:photo&&(!drink||drink.source==='item')?(expandedPhoto?width:230):width;
   const scale = photo ? Math.max(width / photo.width, height / photo.height) : 1;
   const offsetX = photo ? (width - photo.width * scale) / 2 : 0;
   const offsetY = photo ? (height - photo.height * scale) / 2 : 0;
@@ -126,11 +131,13 @@ export default function OutlineOverlay({ initialized, readOnly = false, postId, 
   const displayCard = drink ? { ...cardDataFromRow({ items, eatenAt, drink }), footer: cardData?.footer }
     : cardData ?? cardDataFromRow({ items, eatenAt });
   const showNutrition = initialized && (items.length > 0 || status === "ready");
-  return <>
+  const Container=desktopModal?"div":Fragment;
+  return <Container {...(desktopModal?{className:"desktop-post-content"}:{})}>
     <div ref={ref} className="relative w-full overflow-hidden bg-card" style={{ height, touchAction: drawing ? "none" : "auto" }}
       onPointerDown={pointerDown} onPointerMove={pointerMove} onPointerUp={pointerUp}
       onPointerCancel={() => { start.current = null; setDrawBox(null); }}
       onClick={(event) => {
+        if(desktopModal&&slide>0)return;
         if (drawing || selection) return;
         if(readOnly || !initialized || !outlines){setExpandedPhoto(value=>!value);return;}
         const p = point(event); if (!p) return;
@@ -139,8 +146,7 @@ export default function OutlineOverlay({ initialized, readOnly = false, postId, 
         if (hit) setSelection({ item: hit, key: Date.now() });
         else setExpandedPhoto(value=>!value);
       }}>
-      {photo && (!drink || drink.source === 'item') ? <>
-        {/* eslint-disable-next-line @next/next/no-img-element */}
+      {desktopModal&&slide>0 ? slides[slide]?.kind==='photo'?<img src={slides[slide].url} alt={`Meal photo ${slide+1}`} className="size-full object-cover"/>:<ResultsCard data={displayCard} size={width} time={localTime}/> : photo && (!drink || drink.source === 'item') ? <>
         <img src={photo.url} alt={caption || "Meal photo"} draggable={false} className="h-full w-full object-cover" />
         {outlines && items.map((item, index) => item.box ? <div key={item.id}>
           <Mask url={item.maskUrl} photo={photo} color={outlineColor(index)} frame={frame} fallback={boxStyle(item.box)} />
@@ -153,27 +159,35 @@ export default function OutlineOverlay({ initialized, readOnly = false, postId, 
         {drawBox ? <div className="pointer-events-none absolute rounded-field border-2 border-text" style={boxStyle(drawBox)} /> : null}
         <span className="pointer-events-none absolute bottom-3 right-3 rounded-field bg-overlay px-[10px] py-[5px] text-meta text-white">Outlines · tap one to edit</span>
       </> : showNutrition ? <ResultsCard data={displayCard} size={width} time={localTime} /> : <div role="status" className="flex h-full items-center justify-center px-screen-x text-body text-muted">{status === "failed" ? "This meal could not be analysed." : status === "needs_input" ? "Clarification needed" : "Processing, traffic low"}</div>}
+      {desktopModal&&<><button type="button" aria-label="Previous slide" disabled={slide===0} onClick={event=>{event.stopPropagation();setSlide(value=>Math.max(0,value-1));}} className="absolute left-3 top-1/2 size-9 rounded-circle bg-white/90 text-[24px] text-text disabled:invisible">‹</button><button type="button" aria-label="Next slide" disabled={slide>=slides.length-1} onClick={event=>{event.stopPropagation();setSlide(value=>Math.min(Math.max(0,slides.length-1),value+1));}} className="absolute right-3 top-1/2 size-9 rounded-circle bg-white/90 text-[24px] text-text disabled:invisible">›</button><span className="absolute right-3 top-3 rounded-pill bg-overlay px-2 py-1 text-meta text-white">{slide+1}/{Math.max(1,slides.length)}</span></>}
     </div>
-    <PostActions detail postId={postId} modelCommentId={modelCommentId} fingerprint={fingerprint} drink={readOnly} saved={saved}/>
+    <Container {...(desktopModal?{className:"desktop-post-record"}:{})}>
+    {desktopModal&&desktopHeader}
+    <Container {...(desktopModal?{className:"desktop-post-scroll"}:{})}>
+    <Container {...(desktopModal?{className:"desktop-post-actions"}:{})}><PostActions detail postId={postId} modelCommentId={modelCommentId} fingerprint={fingerprint} drink={readOnly} saved={saved}/></Container>
     <div className="px-inset"><PostCaption postId={postId} handle={handle} caption={caption}/></div>
     {showNutrition&&<>
       <NutritionSummary items={items}/>
+      {desktopModal&&<ItemRows disabled={!initialized||readOnly} items={items} onSelect={item=>setSelection({item,key:Date.now()})} onAdd={add}/>}
       <button type="button" onClick={()=>setExpandedNutrition(value=>!value)} aria-expanded={expandedNutrition} aria-controls={`all-nutrients-${postId}`} className="flex min-h-tap w-full items-center justify-between gap-2 px-inset pt-[10px] text-detail">
         <span className="text-muted">Consumed · all nutrients</span><span className="flex items-center gap-1 font-medium">{expandedNutrition?'Show less':`Show all ${nutritionTableRows(items).length}`} <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" className={expandedNutrition?'rotate-180':''} aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></span>
       </button>
       {children}
       {expandedNutrition&&<div id={`all-nutrients-${postId}`}>
         {drawing&&<div className="flex justify-between px-inset text-comment"><button className="min-h-tap" onClick={()=>{setDrawing(false);setDrawBox(null);setSelection(current=>current?{...current,box:undefined}:null);}}>Continue without a box</button><button className="min-h-tap text-muted" onClick={()=>{setDrawing(false);setDrawBox(null);}}>Cancel</button></div>}
-        <ItemRows disabled={!initialized||readOnly} items={items} onSelect={item=>setSelection({item,key:Date.now()})} onAdd={add}/>
+        {!desktopModal&&<ItemRows disabled={!initialized||readOnly} items={items} onSelect={item=>setSelection({item,key:Date.now()})} onAdd={add}/>}
         <NutritionTable items={items}/>
       </div>}
     </>}
     {waiting || ["queued", "processing"].includes(status) ? <p role="status" className="px-screen-x text-meta text-muted">Updating nutrition…</p> : null}
     {status === "failed" ? <p role="status" className="px-screen-x text-meta text-muted">Nutrition could not be updated.</p> : null}
+    </Container>
+    {desktopModal&&desktopThread}
+    </Container>
     {selection ? <ItemEditSheet key={selection.key} postId={postId} item={selection.item} box={selection.box} open={!drawing}
       color={outlineColor(selection.item ? Math.max(0, items.findIndex((item) => item.id === selection.item!.id)) : items.length)}
       onClose={() => setSelection(null)} onAdd={add}
       onDraw={photo ? () => { setOutlines(true); setDrawing(true); } : undefined}
       onSaved={() => { setSelection(null); setWaiting(true); router.refresh(); void fetch("/api/jobs/tick").catch(() => {}); }} /> : null}
-  </>;
+  </Container>;
 }

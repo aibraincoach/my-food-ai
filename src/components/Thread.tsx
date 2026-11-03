@@ -4,7 +4,7 @@ import UndoToast from '@/components/UndoToast';
 import {delayAction} from '@/lib/posts/delayed-action';
 import FirstRunHint from '@/components/FirstRunHint';
 import {useRemovalMenus} from '@/components/useRemovalMenus';
-import {useCallback,useEffect,useRef,useState} from 'react';
+import {useCallback,useEffect,useRef,useState,type ReactNode} from 'react';
 import {readPostComments} from '@/lib/posts/timeline';
 import {useRouter} from 'next/navigation';
 import {correctionFeedback} from '@/lib/posts/correction-feedback';
@@ -13,7 +13,7 @@ import CommentComposer,{type CommentRow} from '@/components/CommentComposer';
 import {LocalTime} from '@/components/LocalTime';
 import {usePostHandle} from '@/components/PostHandle';
 const sort=(rows:CommentRow[])=>rows.toSorted((a,b)=>a.created_at.localeCompare(b.created_at)||a.id.localeCompare(b.id));
-export default function Thread({postId,readOnly=false,sourcePostId}:{postId:string;readOnly?:boolean;sourcePostId?:string|null}){
+export default function Thread({postId,readOnly=false,sourcePostId,desktopActions}:{desktopActions?:ReactNode;postId:string;readOnly?:boolean;sourcePostId?:string|null}){
  const menus=useRef<HTMLElement>(null);useRemovalMenus(menus);
  const handle=usePostHandle();
  const [accepted,setAccepted]=useState<string|null>(null);
@@ -79,6 +79,7 @@ export default function Thread({postId,readOnly=false,sourcePostId}:{postId:stri
   {toast&&<UndoToast key={toast.key} text="Correction removed" onUndo={toast.undo} ms={6000}/>}
   <FirstRunHint hint="thread" />
   {failed?<button type="button" disabled={retrying} onClick={retry} className="min-h-tap text-meta text-text">{retrying?'Retrying…':'Try again'}</button>:null}
+  {desktopActions}
   {readOnly ? <p className="text-meta text-muted">Drink amounts were recorded when posted.</p> : <CommentComposer postId={postId} onPosted={append}/>}
  </section>;
 }

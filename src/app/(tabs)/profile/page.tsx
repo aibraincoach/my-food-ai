@@ -31,13 +31,13 @@ export default async function ProfilePage({searchParams}:{searchParams:Promise<{
     ? await supabase.from("profiles").select("identify_provider").eq("id",user.id).maybeSingle()
     : {data:null};
   return (
-    <DesktopWorkspace width={760} detail={post?<PostDetail id={post}/>:undefined}><main className="flex flex-1 flex-col desktop:pt-2">
-      <header className="flex h-top-safe shrink-0 items-center justify-between gap-3 px-screen-x desktop:h-[72px] desktop:gap-5 desktop:px-0">
-        <span className="hidden desktop:flex desktop:size-[72px] desktop:shrink-0 desktop:items-center desktop:justify-center desktop:rounded-circle desktop:bg-text desktop:text-[26px] desktop:font-semibold desktop:text-surface" aria-hidden="true">{profile.handle.slice(0,1).toUpperCase()}</span>
-        <h1 className="truncate text-title desktop:flex-1 desktop:text-[24px]">@{profile.handle}</h1>
-        <SignOutButton />
+    <DesktopWorkspace width={820} detail={post?<PostDetail id={post} desktopModal/>:undefined}><main className="flex flex-1 flex-col desktop:pt-4">
+      <header className="flex h-top-safe shrink-0 items-center justify-between gap-3 px-screen-x desktop:h-[88px] desktop:gap-6 desktop:px-0">
+        <span className="hidden desktop:flex desktop:size-[88px] desktop:shrink-0 desktop:items-center desktop:justify-center desktop:rounded-circle desktop:bg-text desktop:text-[32px] desktop:font-semibold desktop:text-surface" aria-hidden="true">{profile.handle.slice(0,1).toUpperCase()}</span>
+        <div className="min-w-0 desktop:flex-1"><h1 className="truncate text-title desktop:text-[24px]"><span className="desktop:hidden">@</span>{profile.handle}</h1><div className="hidden desktop:mt-3 desktop:flex desktop:gap-2"><ConnectAgentRow userId={user.id} desktopButton/><SignOutButton desktopButton/></div></div>
+        <div className="desktop:hidden"><SignOutButton /></div>
       </header>
-      <ConnectAgentRow userId={user.id} />
+      <div className="desktop:hidden"><ConnectAgentRow userId={user.id} /></div>
       {openWeightsConfigured()?<IdentifyProviderSwitch initial={preference.data?.identify_provider==='open'?'open':'meta'}/>:null}
       <Link href="/profile/deleted" className="flex min-h-tap items-center px-screen-x text-detail desktop:px-0">Recently deleted</Link>
       <ProfileGrid posts={posts} />
