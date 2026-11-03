@@ -238,7 +238,7 @@ Read-only production measurements and designated test-account actions only. Unkn
 
 ## 7m. Secondary-account checks
 
-**Method** — Designated test account2 on production at10:14–10:17 and10:26–10:28 UTC, before final Fleet10 deployment. Chromium390×844, CPU4×, actual DevTools Fast4G165ms/1,012,500 B/s down/168,750 B/s up. Explicit Asia/Tokyo timezone verified separately from geolocation. Real spaghetti fixture; synthetic camera used only for controls/hints. Stored instants, current item amounts and actual downloaded PNG rasters were inspected.
+**Method** — Designated account2, Chromium156ARM390×844, CPU4×, Fast4G165ms/1,012,500B/s down/168,750B/s up. Browser and CDP explicitly set Asia/Tokyo plus Tokyo geolocation. Real production responses; no sign-up or auth-form probe. Initial baseline10:14–10:28UTC is retained below. Follow-up12:57–12:59 and13:01–13:02 ran on READY6f857ac; affected copy/phone checks13:18–13:21 ran on final READY789c2b7db3ac5a75f7c2b7271419a8a3176c9702. Later code changed durable copy/drink saves and contrast; unaffected cases are not presented as a fresh full rerun. Original hints/provider restored exactly after all same-fixture checks.
 
 **Result**
 
@@ -254,10 +254,23 @@ Read-only production measurements and designated test-account actions only. Unkn
 | #23 capture/thread/thumbs | Each first appeared inviewport, dismissal persisted, revisits0. | Pass for these three. |
 | #23 modes | Current deployed “Swipe to scan a barcode” tip appeared. Got it hid it, DBseenkeys never gainedmodes; revisitcount1. | Real failure#423. Migration0013 rejects modes;0042fixPR pending. Oldcopy mismatch initially hid this from driver. |
 
+Final production follow-up (same columns; baseline failures above remain visible):
 
-**Answer** — Caption propagation, tested clocks, results cards and three hint dismissals passed these baseline observations. Standalone intake dates, PNG clipping and modes-hint persistence exposed concrete defects addressed by #400, #422 and #425. The same spaghetti image marked as leftovers exercises footer mechanics only; it does not establish portion-estimation accuracy.
+|#23 four hints|Reset designated account2 hints only. Thumbs12:57:04–07; capture+modes12:57:07–09; thread12:57:30–37. All four visible in viewport and persisted. Revisit counts thumbs/capture/modes/thread all0; stored array contains exactly allfour keys. Modes copy is current “Swipe to scan a barcode.” Original array restored at cleanup.Final production check passed; fixture cleanup0issues.|
+|#224 Tokyo|Caption meal eaten_at11:27:00Z: card/detail/Days8:27PM; thread model comment created12:57:25Z renders9:57PM. Intl resolvesAsia/Tokyo; rendered time values independently converted from their own ISO. Meal clock and comment clock are correctly different.Final production check passed; fixture cleanup0issues.|
+|#223 caption|Edited through actual sheet/PATCH200, reloaded; exact new caption found on Feed, post detail, selected Days story and Search12:57:42–48.Final production check passed; fixture cleanup0issues.|
+|#175 Water date|Water tile then Edit time→Oct22 12:34Tokyo on a date with no other post: Days enabled, label1post/0kcal, story Water250ml. Stronger standalone intake-only Oct19:0posts, enabled calendar label “drank”.Final production check passed; fixture cleanup0issues.|
+|#29 caption card|Caption-only rice displays CONSUMED card with129kcal/3gprotein/28gcarb/0gfat.Final production check passed; fixture cleanup0issues.|
+|#29 photo/card/correction|Real repository spaghetti photo produced photo then card then leftovers-add slide. Genuine CDP touch swipe selected slide1 atscrollLeft390/width390. Actual “I ate half the spaghetti.” correction changed current portion200→100g. Immutable card PNG hashes differ before/after.Final production check passed; fixture cleanup0issues.|
+|#283 exported PNGs|Downloaded actual owner-authorized Storage PNGs,1080×1080. Onephoto65181B SHA7650c49cd704c28b460fce76f3b25c51356a31abc7f39db630a5382ba2ec8067; corrected64670B SHA55d22ee9303a98044c4faf1e251d2373594b867686a5d9b6346338e6ad492fb4; leftovers56584B SHAbe6972b01d3ef8b61ad91b6a64440aa67d90acf877a5ee5fa619cd35a0f408c1. Onephoto and leftovers PNGs literally viewed: complete footer, not DOM-only.Final production check passed; fixture cleanup0issues.|
+|15 Replace|New leftovers attachment POST13:01:29.040; response13:01:29.808; oldphoto DELETE first13:01:29.913, bounded ready retries followed. Newphoto remains, oldphoto removed after attachment. Same image intentionally tests mechanics, not physical portion accuracy.Final production check passed; fixture cleanup0issues.|
+|15 Unmark|Same replacement photo retained; not_eaten becomesfalse; actual reanalysis changed currentitem0g eaten/100g leftover→100g eaten/not_eaten null, ready13:02:30.Final production check passed; fixture cleanup0issues.|
+|16 photo Undo|Remove→Undo418ms, waited beyond6sec; no DELETE, exact photo rows unchanged.Final production check passed; fixture cleanup0issues.|
+|16 correction Undo|Remove→Undo154ms, waited beyond6sec; no revertHTTP, comment still active.Final production check passed; fixture cleanup0issues.|
 
-**Unknown** — Final production repeat after all fixes remains required. Initial premature hydration reads and a Days summary-slide selection were driver errors; corrected observations above supersede them. Both runs removed only their tracked fixture posts/media/intake, restored prior preferences/hints, and verified cleanup with no issues. Private receipts are retained under ignored `uploads/run10-coffee-acceptance/`.
+**Answer** — Caption propagation, independent Tokyo clocks, water-only calendar dates, actual photo/card swipe and changed correction cards now pass. Actual downloaded one-photo and leftovers PNGs were viewed with complete footers; all four hints appeared once and persisted. Same-fixture Replace/Unmark and both six-second Undo paths passed; final copy and named optimistic saving controls also passed their held/failure/reload cases. Full receipts/images and precise instants are retained with the production evidence.
+
+**Unknown** — Desktop Chrome emulation is not physical-phone acceptance. Identical spaghetti leftovers inputs test mechanics rather than portion-estimation accuracy. #307 remains unproven here: the first observer matched caption text, so its screenshot is excluded; replacement Processing-only samples do not prove original identification streaming. Driver selector/schema mistakes were corrected before the affected checks. Final cleanup13:21:24.866UTC removed9exact owner-bound post/stage IDs,1standalone intake,4copy receipts,1saved snapshot and exact-prefix objects, with no running owned job removed; preferences restored and verified,0issues. No nonfixture records were removed.
 
 ## 7n. Real matcher (#272)
 
