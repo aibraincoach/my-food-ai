@@ -1,4 +1,4 @@
-import {alcoholGrams,isAlcoholic} from './alcohol';
+import {alcoholGrams,isAlcoholic,keepsCaffeine} from './alcohol';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { getCurrentItems, toNumber, type Numeric, type StoredNutrient } from '@/lib/nutrition/totals';
 import { ioError } from '@/lib/worker/errors';
@@ -42,7 +42,7 @@ export function drinksFromItems(items: readonly DrinkItem[]): ItemDrink[] {
     const ml = Math.min(5000, Math.round(volume ? Number(volume[1]) : toNumber(item.portion_grams)));
     // A fully uneaten drink contributes no intake, rather than one phantom ml.
     if (!Number.isFinite(ml) || ml < 1) return [];
-    const nutrient = item.micronutrients?.find(n => n.nutrientId === 1057 && n.basis === 'portion');
+    const nutrient = keepsCaffeine(item) ? item.micronutrients?.find(n => n.nutrientId === 1057 && n.basis === 'portion') : undefined;
     const fallback = !nutrient && /\b(coca[- ]?cola|coke|cola|pepsi)\b/i.test(item.name) ? 32 * ml / 330 : 0;
     const caffeineMg = Math.min(1000, Math.max(0, Math.round(nutrient ? toNumber(nutrient.value) : fallback)));
     if(isAlcoholic(item))return [{post_item_id:item.id,kind:'alcohol' as const,amount:Math.max(1,Math.round(alcoholGrams(item.micronutrients))),ml,label:item.name.trim().slice(0,40)||'Drink',caffeineMg,alcoholG:alcoholGrams(item.micronutrients)}];
