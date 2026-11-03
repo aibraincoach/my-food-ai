@@ -228,6 +228,7 @@ export default function CaptureSheet({ onClose, initialMode = "photo", forPost, 
 
   useEffect(() => () => {
     lookupRef.current += 1;
+    if(packOperationRef.current){void uploadManager.remove(packOperationRef.current);packOperationRef.current=null;}
     if (packPhotoRef.current) URL.revokeObjectURL(packPhotoRef.current.previewUrl);
     for (const shot of shotsRef.current) URL.revokeObjectURL(shot.previewUrl);
   }, []);
@@ -280,9 +281,10 @@ export default function CaptureSheet({ onClose, initialMode = "photo", forPost, 
     if(postingRef.current||!labelReading||!labelPhotoRef.current)return;
     postingRef.current=true;setPosting(true);setError(null);
     try{
-      const response=await fetch("/api/posts/food",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({label_reading_id:labelReading.reading_id,servings:labelServings,name:labelName,photo:labelPhotoRef.current,...(labelForCode?{gtin:labelForCode}:{}),...(when===null?{}:{eaten_at:fromLocalInput(when)})})});
-      const result=await response.json();if(!response.ok)throw Error(result.error??"The meal could not be saved.");
-      window.dispatchEvent(new CustomEvent("post-created",{detail:{id:result.post_id}}));onClose();router.refresh();
+      const eatenAt=when===null?new Date().toISOString():fromLocalInput(when);
+      if(!eatenAt||!packPhotoRef.current)throw new Error("Keep the label photo and choose a valid time eaten.");
+      await uploadManager.postFood({label_reading_id:labelReading.reading_id,servings:labelServings,name:labelName,photo:{...labelPhotoRef.current},...(labelForCode?{gtin:labelForCode}:{}),eaten_at:eatenAt},labelName.trim()||"Packaged food",[packPhotoRef.current.file]);
+      onClose();
     }catch(e){setError(e instanceof Error?e.message:"The meal could not be saved.");}finally{postingRef.current=false;setPosting(false);}
   };
   const attachmentUpload=useRef<PackPhotoUpload|null>(null);
@@ -494,7 +496,6 @@ export default function CaptureSheet({ onClose, initialMode = "photo", forPost, 
         </div>:mode !== "text" && <><div {...(!desktop?modeSwipe:{})} className={`relative flex touch-pan-y items-center justify-center overflow-hidden bg-camera text-camera-muted ${labelState==="read"?"min-h-[180px] shrink":"shrink-0"} desktop:mx-6 desktop:!mt-0 ${labelState==="read"?"":"desktop:!h-[400px]"} desktop:rounded-card`} style={{ height: labelState==="read"?300:tokens.capture.previewHeight, marginTop: tokens.capture.previewTop }}>
           {labelState!=="idle"&&packPhoto ? <img src={packPhoto.previewUrl} alt="Photographed nutrition label" className="h-full w-full object-contain"/> : stream ? <video ref={videoRef} muted playsInline autoPlay aria-label="Live camera viewfinder" className="h-full w-full object-cover" /> : latest ? (
             // Local blob previews require no remote image transformation.
-            // eslint-disable-next-line @next/next/no-img-element
             <img src={latest.previewUrl} alt="Latest meal photo" className="h-full w-full object-cover" />
           ) : <Icon name="camera" />}
           {desktop&&devices.length>0&&<select aria-label="Camera" value={deviceId||stream?.getVideoTracks()[0]?.getSettings().deviceId||''} onChange={event=>setDeviceId(event.target.value)} className="absolute left-[14px] top-[14px] h-[29px] max-w-[80%] rounded-field bg-overlay px-[10px] text-meta text-surface">{devices.map((device,index)=><option key={device.deviceId} value={device.deviceId}>{device.label||`Camera ${index+1}`}</option>)}</select>}

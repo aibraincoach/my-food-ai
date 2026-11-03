@@ -27,10 +27,18 @@ test('food receipts are atomic, owner-only, idempotent and tombstone removed pos
  if retried<>result or not exists(select 1 from public.posts where id=result and deleted_at is not null) then raise exception 'Committed lost response was not hidden';end if;
  if public.cancel_food_operation(operation,owner_id)<>result then raise exception 'Cancellation replay changed';end if;
  begin perform public.publish_food_operation(operation,owner_id,key,now(),'Cancelled retry',100,nutrition);raise exception 'Cancelled post resurrected';exception when sqlstate 'PT410' then null;end;
- if has_function_privilege('authenticated','public.cancel_food_operation(uuid,uuid)','execute') or has_table_privilege('authenticated','public.food_post_operations','insert') or has_function_privilege('authenticated','public.publish_food_operation(uuid,uuid,text,timestamptz,text,numeric,jsonb,jsonb)','execute') then raise exception 'Client can forge resolved nutrition or receipts';end if;
+ operation:=gen_random_uuid();
+ nutrition:=nutrition||'{"calories":60,"gtin":"00016000275683"}'::jsonb;
+ result:=public.publish_food_operation(operation,owner_id,key,now(),'Verified cereal',15,nutrition,null,'{"gtin":"00016000275683","serving_amount":30,"serving_unit":"g","per_100":{"calories":400,"protein_g":8,"carbs_g":75,"fat_g":6,"fibre_g":3,"sugar_g":20,"sodium_mg":100}}');
+ if not exists(select 1 from public.barcode_corrections where user_id=owner_id and gtin='00016000275683' and source='label' and (per_100->>'calories')::numeric=400) then raise exception 'Verified correction not committed with post';end if;
+ if not exists(select 1 from public.current_post_items i join public.item_nutrition n on n.post_item_id=i.id where i.post_id=result and n.calories=60) then raise exception 'Chosen label serving not retained';end if;
+ select count(*) into before_count from public.posts where user_id=owner_id;bad_operation:=gen_random_uuid();
+ begin perform public.publish_food_operation(bad_operation,owner_id,key,now(),'Bad correction',15,nutrition,null,'{"gtin":"00016000275683","serving_amount":30,"serving_unit":"g","per_100":"invalid"}');raise exception 'Malformed correction accepted';exception when invalid_parameter_value then null;end;
+ if exists(select 1 from public.food_post_operations where operation_id=bad_operation) or (select count(*) from public.posts where user_id=owner_id)<>before_count then raise exception 'Correction failure left partial publication';end if;
+ if has_function_privilege('authenticated','public.cancel_food_operation(uuid,uuid)','execute') or has_table_privilege('authenticated','public.food_post_operations','insert') or has_function_privilege('authenticated','public.publish_food_operation(uuid,uuid,text,timestamptz,text,numeric,jsonb,jsonb,jsonb)','execute') then raise exception 'Client can forge resolved nutrition or receipts';end if;
  end $test$;
  `+rollback+String.raw`
- do $test$ begin if to_regclass('public.food_post_operations') is not null or to_regprocedure('public.publish_food_operation(uuid,uuid,text,timestamptz,text,numeric,jsonb,jsonb)') is not null then raise exception 'Rollback incomplete';end if;end $test$;
+ do $test$ begin if to_regclass('public.food_post_operations') is not null or to_regprocedure('public.publish_food_operation(uuid,uuid,text,timestamptz,text,numeric,jsonb,jsonb,jsonb)') is not null then raise exception 'Rollback incomplete';end if;end $test$;
  select 'food-operations: passed';rollback;`;
  const result=spawnSync('psql',['-X','-qAt','--dbname',process.env.SUPABASE_DB_URL,'-v','ON_ERROR_STOP=1'],{input:sql,encoding:'utf8',timeout:25000});assert.ifError(result.error);assert.equal(result.status,0,result.stderr);assert.match(result.stdout,/food-operations: passed/);
 });

@@ -11,7 +11,7 @@ create table public.food_post_operations (
 alter table public.food_post_operations enable row level security;
 revoke all on public.food_post_operations from public,anon,authenticated;
 grant all on public.food_post_operations to service_role;
-create function public.publish_food_operation(p_operation_id uuid,p_user_id uuid,p_request_key text,p_eaten_at timestamptz,p_name text,p_grams numeric,p_nutrition jsonb,p_photo jsonb default null)
+create function public.publish_food_operation(p_operation_id uuid,p_user_id uuid,p_request_key text,p_eaten_at timestamptz,p_name text,p_grams numeric,p_nutrition jsonb,p_photo jsonb default null,p_barcode_correction jsonb default null)
 returns uuid language plpgsql security definer set search_path=public,pg_temp as $$
 declare receipt public.food_post_operations;result uuid;
 begin
@@ -26,11 +26,17 @@ begin
   return receipt.post_id;
  end if;
  result:=public.create_food_post(p_user_id,p_eaten_at,p_name,p_grams,p_nutrition,p_photo);
+ if p_barcode_correction is not null then
+  if jsonb_typeof(p_barcode_correction)<>'object' or coalesce(p_barcode_correction->>'gtin','')!~'^[0-9]{14}$' or p_barcode_correction->>'gtin' is distinct from p_nutrition->>'gtin' or jsonb_typeof(p_barcode_correction->'per_100')<>'object' then raise exception 'Invalid verified label correction' using errcode='22023';end if;
+  insert into public.barcode_corrections(gtin,user_id,name,source,serving_amount,serving_unit,per_100,updated_at)
+  values(p_barcode_correction->>'gtin',p_user_id,p_name,'label',(p_barcode_correction->>'serving_amount')::numeric,p_barcode_correction->>'serving_unit',p_barcode_correction->'per_100',now())
+  on conflict(gtin,user_id) do update set name=excluded.name,source=excluded.source,serving_amount=excluded.serving_amount,serving_unit=excluded.serving_unit,per_100=excluded.per_100,updated_at=excluded.updated_at;
+ end if;
  insert into public.food_post_operations(operation_id,user_id,request_key,post_id)values(p_operation_id,p_user_id,p_request_key,result);
  return result;
 end $$;
-revoke all on function public.publish_food_operation(uuid,uuid,text,timestamptz,text,numeric,jsonb,jsonb) from public,anon,authenticated;
-grant execute on function public.publish_food_operation(uuid,uuid,text,timestamptz,text,numeric,jsonb,jsonb) to service_role;
+revoke all on function public.publish_food_operation(uuid,uuid,text,timestamptz,text,numeric,jsonb,jsonb,jsonb) from public,anon,authenticated;
+grant execute on function public.publish_food_operation(uuid,uuid,text,timestamptz,text,numeric,jsonb,jsonb,jsonb) to service_role;
 create function public.cancel_food_operation(p_operation_id uuid,p_user_id uuid)
 returns uuid language plpgsql security definer set search_path=public,pg_temp as $$
 declare receipt public.food_post_operations;

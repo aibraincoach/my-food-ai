@@ -45,3 +45,11 @@ test('failed removal is durable and reload retries cancellation rather than post
  const restored=new UploadManager(db,makeDraft,async()=>{},async(_url,options)=>{assert.equal(options.method,'DELETE');const body=JSON.parse(options.body);assert.equal(body.operation_id,id);assert.equal(body.owner_id,'owner');return Response.json({post_id:'unacknowledged-post'},{status:200});});
  await restored.initialize('owner');restored.retry(id);await until(()=>restored.list().length===0);assert.equal(db.rows.size,0);assert.equal(posts,3);
 });
+test('a verified label keeps its prepared photo and chosen servings without reuploading',async()=>{
+ const db=store(),gate=deferred(),file=new File(['label'],'label.jpg',{type:'image/jpeg'});let body;
+ const draft={...makeDraft(),stage:async()=>{throw Error('Prepared label must not be uploaded again');}};
+ const manager=new UploadManager(db,()=>draft,async()=>{},async(_url,options)=>{body=JSON.parse(options.body);return gate.promise;});await manager.initialize('owner');
+ const input={label_reading_id:'verified-reading',servings:0.5,name:'Cereal',gtin:'00016000275683',eaten_at:food.eaten_at,photo:{path:'owner/prepared/0.jpg',width:390,height:390}};
+ const id=await manager.postFood(input,'Cereal',[file]);await until(()=>Boolean(body));assert.equal(body.label_reading_id,input.label_reading_id);assert.equal(body.servings,0.5);assert.deepEqual(body.photo,input.photo);assert.equal(db.rows.get(id).files.length,1);assert.equal(manager.list()[0].total,0);
+ gate.resolve(Response.json({post_id:'label-post'},{status:201}));await until(()=>manager.list()[0].postId==='label-post');
+});

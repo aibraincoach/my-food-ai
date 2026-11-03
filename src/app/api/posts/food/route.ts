@@ -30,7 +30,10 @@ export async function POST(request: Request) {
   const operationId=body?.operation_id;
   if(operationId!==undefined&&(typeof operationId!=="string"||!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(operationId)))return NextResponse.json({error:"Invalid food operation."},{status:400});
   const requestKey=body?foodRequestKey(body as Record<string,unknown>):'';
-  const publish=(admin:ReturnType<typeof createAdminClient>,args:Record<string,unknown>)=>admin.rpc(operationId?'publish_food_operation':'create_food_post',operationId?{...args,p_operation_id:operationId,p_request_key:requestKey}:args);
+  const publish=(admin:ReturnType<typeof createAdminClient>,args:Record<string,unknown>)=>{
+    const {p_barcode_correction:correction,...legacy}=args;
+    return admin.rpc(operationId?'publish_food_operation':'create_food_post',operationId?{...legacy,p_operation_id:operationId,p_request_key:requestKey,...(correction?{p_barcode_correction:correction}:{})}:legacy);
+  };
   const finish=async(id:string,admin:ReturnType<typeof createAdminClient>)=>{try{await markReady(id,admin,undefined,{notify:false,timeZone});}catch{console.error('Food card repair remains queued.');}};
   if(operationId){
     const admin=createAdminClient();
@@ -59,9 +62,11 @@ export async function POST(request: Request) {
       const reading=parseLabelReading(stored.reading);const nutrition=labelNutrition(reading,body.servings);
       const name=typeof body.name==="string"&&body.name.trim()?body.name.trim():"Packaged food";
       const admin=createAdminClient();
-      const {data,error}=await publish(admin,{p_user_id:user.id,p_eaten_at:eatenAt,p_name:name,p_grams:reading.serving!.amount*body.servings,p_nutrition:{...nutrition,source_ref:`label:${body.label_reading_id}`,...(gtin?{gtin}:{})},p_photo:photo});
+      const per100=labelNutrition(reading,100/reading.serving!.amount);
+      const correction=gtin?{gtin,name,serving_amount:reading.serving!.amount,serving_unit:reading.serving!.unit,per_100:Object.fromEntries(["calories","protein_g","carbs_g","fat_g","fibre_g","sugar_g","sodium_mg"].map(key=>[key,per100[key as keyof typeof per100]]))}:null;
+      const {data,error}=await publish(admin,{p_user_id:user.id,p_eaten_at:eatenAt,p_name:name,p_grams:reading.serving!.amount*body.servings,p_nutrition:{...nutrition,source_ref:`label:${body.label_reading_id}`,...(gtin?{gtin}:{})},p_photo:photo,...(correction?{p_barcode_correction:correction}:{})});
       if(error)return NextResponse.json({error:"The label post could not be saved."},{status:error.code?.startsWith("PT")?Number(error.code.slice(2)):error.code?.startsWith("22")?400:500});
-      if(gtin){
+      if(gtin&&!operationId){
         const perServing=labelNutrition(reading,100/reading.serving!.amount);const {calories,...rest}=perServing;
         const {error:saveError}=await admin.from("barcode_corrections").upsert({gtin,user_id:user.id,name,source:"label",serving_amount:reading.serving!.amount,serving_unit:reading.serving!.unit,per_100:{calories,...Object.fromEntries(["protein_g","carbs_g","fat_g","fibre_g","sugar_g","sodium_mg"].map(key=>[key,rest[key as keyof typeof rest]]))},updated_at:new Date().toISOString()},{onConflict:"gtin,user_id"});
         if(saveError)return NextResponse.json({error:"The post was saved, but the barcode correction could not be kept. Retry to keep it."},{status:503});
