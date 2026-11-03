@@ -35,3 +35,22 @@ test('backdated discovery reuses its SSR contribution, but inserted or edited me
  assert.deepEqual(check({...ready,itemsUnavailable:true}),['2026-11-02']);
  assert.deepEqual(check({...ready,eaten_at:'2026-11-03T12:00:00Z'}),['2026-11-03','2026-11-02']);
 });
+
+test('the existing owner day query supplies normalized receipts without an extra database read',async()=>{
+ const {createClient}=await import('@supabase/supabase-js');
+ const {getDayTotals}=await import('../src/lib/posts/days.ts');
+ const reads=[];
+ const db=createClient('https://fixture.invalid','fixture',{global:{fetch:async input=>{
+  const url=new URL(input instanceof Request?input.url:String(input));reads.push(url);
+  return Response.json([{id:'meal',eaten_at:meal.eaten_at,current_post_items:[
+   {name:'rice',portion_grams:50,item_nutrition:{calories:120,source_ref:{basis:'per_100g'}}},
+   {name:'sauce',portion_grams:null,item_nutrition:null},
+  ]}]);
+ }}});
+ const days=await getDayTotals(db,'owned-user','UTC',['2026-11-02']);
+ assert.equal(reads.length,1);assert.equal(reads[0].searchParams.get('user_id'),'eq.owned-user');
+ assert.equal(days[0].posts.length,1);assert.equal(days[0].posts[0].known,1);assert.deepEqual(days[0].posts[0].missing,['sauce']);
+ assert.equal(days[0].posts[0].kcal,days[0].kcal);
+ const card={...meal,items:[{name:'rice',calories:days[0].kcal},{name:'sauce',calories:null}]};
+ assert.deepEqual(dayTotalRefreshDates(undefined,card,'UTC',known,false,new Map(days[0].posts.map(p=>[p.id,p]))),[]);
+});
