@@ -15,7 +15,7 @@ Review tooling is ported from [naval-association-calgary](https://github.com/aib
 
 ## Run 7 dispatch — November 3, 2026
 
-The owner dispatched [Run 7](docs/plan-run7.md), with Part 1 building/reviewing the feature PRs and Part 2 held for the named-head merge order after evaluation. This is active coding, not a handover. Baseten authentication has been verified successfully (models, image chat completion and Responses all HTTP 200), and all eleven paired trial cases used the actual open model. The key remains in ignored .env.local as BASETEN_API_KEY and IDENTIFY_OPEN_API_KEY; no credential value is committed or published. Production schema, preference and environment changes remain held for Part 2. The local owner-supplied Wall entries, coder access rule and Nov3 07:10 WIB backlog are preserved on the Run 7 docs branch.
+The owner dispatched [Run 7](docs/plan-run7.md), with Part 1 building/reviewing the feature PRs and Part 2 held for the named-head merge order after evaluation. This is active coding, not a handover. The owner subsequently assigned Run 7 code reviews to Muse; coders do not launch PPLX, AGY or Codex reviews and instead fix findings delivered on GitHub or by the owner. Baseten authentication has been verified successfully (models, image chat completion and Responses all HTTP 200), and all eleven paired trial cases used the actual open model. The key remains in ignored .env.local as BASETEN_API_KEY and IDENTIFY_OPEN_API_KEY; no credential value is committed or published. Production schema, preference and environment changes remain held for Part 2. The local owner-supplied Wall entries, coder access rule and Nov3 07:10 WIB backlog are preserved on the Run 7 docs branch.
 
 ## Prior reconciliation — November 3, 2026
 
