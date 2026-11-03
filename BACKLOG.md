@@ -1,6 +1,6 @@
 # My Food AI — Backlog†
 
-Last edited: Tuesday 2026-11-03 at 10:42 WIB (UTC+07:00) by Claude, PM
+Last edited: Tuesday 2026-11-03 at 11:03 WIB (UTC+07:00) by Claude, PM
 
 ## Backlog for Owner
 
@@ -56,11 +56,11 @@ The installed app does not respect the status bar, the notch or the home indicat
 
 ## Engineering backlog
 
-### The production database is over its free egress and log quota
+### The app reads more from the production database than it needs
 
-The Supabase free plan shows egress at 8.66 of 5 GB and log ingestion at 1.10 of 1 GB, the grace period is over, and the project is depleting its Disk IO budget. Supabase restricts a project that exceeds its quota after the grace period, so the app can stop answering requests while judges use it.
+The app's reads drove egress to 8.66 GB and log ingestion to 1.10 GB in one billing cycle, against 5 GB and 1 GB on Supabase's free plan, and the project was depleting its Disk IO budget. The organization is now on Pro, which includes 250 GB of egress per cycle, but the same reads still cost bandwidth and database load while judges use the app.
 
-Usage already spent stays counted until the billing cycle resets (Supabase billing FAQ), so cutting reads only stops further growth. Suspected sources, none measured: one feed opening fires 120 to 160 requests and the day-totals refresh re-reads every loaded day (#222); the tick route wakes the database on every app open, tab focus and once a minute (#322); the Days reader runs two queries per post plus a signed address per photo (#327); feed images carry no Cache-Control header, so every revisit downloads them again (#305). Load tests against production count toward the same quota. The Infrastructure page shows 31 of 60 connections and 70% RAM on the Micro instance; find what holds them. Find what drives egress and log ingestion, and cut it. Done when the usage page shows which requests dominate egress and log ingestion, and the egress of one feed opening is measured before and after the cuts and is in docs.
+Suspected sources, none measured: one feed opening fires 120 to 160 requests and the day-totals refresh re-reads every loaded day (#222); the tick route wakes the database on every app open, tab focus and once a minute (#322); the Days reader runs two queries per post plus a signed address per photo (#327); feed images carry no Cache-Control header, so every revisit downloads them again (#305). Load tests against production count toward the same quota. The Infrastructure page shows 31 of 60 connections and 70% RAM on the Micro instance; find what holds them. Find what drives egress and log ingestion, and cut it. Done when the usage page shows which requests dominate egress and log ingestion, and the egress of one feed opening is measured before and after the cuts and is in docs.
 
 ### #222 The feed fails to open, and photos and cards take too long to appear
 
@@ -103,12 +103,6 @@ The thumbs (#215) are one case. The bookmark, Save meal, Log again and Edit capt
 A new post shows a shimmer for most of its wait, though the app knows what the foods are long before it knows their nutrition.
 
 Identification finishes in 3.3 to 8.1 seconds while the active worker time of the whole job is 16.5 to 25.2 seconds (docs/production-performance.md), so for most of the wait the foods are known and only their nutrition is missing. Show the food names as soon as identification finishes, fill in each food's nutrition as it lands, and keep the total unavailable until all of it is in. Every wording and claims rule stays. Done when a post made on production shows its food names before its totals are ready, and no total appears until all of its foods are calculated.
-
-### #139 A held worker lease renews for its full time
-
-A worker that renews its lease does not actually extend it, so a long job can lose the lease while it is still running.
-
-The lease SQL does not extend the lease when a worker renews it. A 300-second time-to-live against about 60 seconds of work hides the defect today. Fix the renewal and add a test. Done when a lease held past its first term is still held and a test proves it.
 
 ### #282 The live app keeps working while judges use it
 
