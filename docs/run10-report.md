@@ -55,7 +55,7 @@ Observed 2026-11-03, 11:07 UTC. This is an execution ledger, not a completion cl
 
 ## Issues
 
-Production evidence closed #382, #381/#383, #107, #316, #228, #325/#378, #371/#215/#389, #65 and #66. Remaining issues stay open until their required final evidence is inspected; the canonical investigation marks pending acceptance explicitly. Additional discoveries include #407 copied-drink jobs, #420 matcher, #421 PNG footer, #423 modes hint, #426 Auth reads and #427 day reads. Their PRs are tracked below.
+Evidence closed #382, #381/#383, #107, #316, #228, #325/#378, #371/#215/#389, #65/#66, #305 (already built under Facts), and #377 (all residual IDs/errors listed under the explicit plan condition). Remaining issues stay open until their required final evidence is inspected; the canonical investigation marks pending acceptance explicitly. Additional discoveries include #407 copied-drink jobs, #420 matcher, #421 PNG footer, #423 modes hint, #426 Auth reads and #427 day reads. Their PRs are tracked below.
 
 ## PR ledger at this observation
 

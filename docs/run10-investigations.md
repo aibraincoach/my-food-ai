@@ -191,7 +191,7 @@ Read-only production measurements and designated test-account actions only. Unkn
 | Distinct posts synchronized | 24 |
 | Remaining unmatched item rows | 10 |
 
-**Answer** — The script synchronized sequentially and lists every remaining post with an explicit unresolved-match error. Remaining names include steak/chocolate, legacy Coffee tiles and Pepsi Zero; do not infer caffeine by name.
+**Answer** — The script synchronized sequentially and lists every remaining post with an explicit unresolved-match error. #377 was closed under item13’s explicit residual-ID/error completion condition, with all10 residual IDs included in the closing evidence. Remaining names include steak/chocolate, legacy Coffee tiles and Pepsi Zero; do not infer caffeine by name.
 
 **Unknown** — Broad anti-join is not a drink classifier. Current classification and existing atomic tile rows require per-post interpretation; no guessed nutrients were added.
 
