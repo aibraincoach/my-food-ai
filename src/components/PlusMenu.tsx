@@ -11,6 +11,8 @@ const entries: { entry: PostEntry; label: string; icon: IconName; angle: number 
   { entry: "coffee", label: "Coffee", icon: "entry-coffee", angle: 55 },
   { entry: "saved", label: "Saved", icon: "bookmark", angle: 20 },
 ];
+// The pill becomes non-inert when the close state commits. Restore focus after it.
+const focusToggle=()=>{requestAnimationFrame(()=>document.getElementById("post-menu-toggle")?.focus());};
 export default function PlusMenu({ open, onClose }: { open: boolean; onClose: () => void }) {
   const ref = useRef<HTMLDivElement>(null);
   const [visible, setVisible] = useState(false);
@@ -25,7 +27,7 @@ export default function PlusMenu({ open, onClose }: { open: boolean; onClose: ()
     const previousOverflow = document.body.style.overflow;
     if (open) document.body.style.overflow = "hidden";
     const key = (event: KeyboardEvent) => {
-      if(event.key === "Escape") {event.preventDefault();onClose();document.getElementById("post-menu-toggle")?.focus();}
+      if(event.key === "Escape") {event.preventDefault();onClose();focusToggle();}
       if(event.key === "Tab" && open) {
         const buttons = [...(ref.current?.querySelectorAll<HTMLButtonElement>('button:not([tabindex="-1"])') ?? [])];
         const first = buttons[0], last = buttons.at(-1);
@@ -37,7 +39,7 @@ export default function PlusMenu({ open, onClose }: { open: boolean; onClose: ()
     return () => {cancelAnimationFrame(frame);window.removeEventListener("keydown",key);if(open)document.body.style.overflow=previousOverflow;};
   }, [open,onClose]);
   useEffect(() => { if(open) {const timer=setTimeout(()=>{if(document.activeElement === document.getElementById("post-menu-toggle") || document.activeElement === document.body)ref.current?.querySelector<HTMLButtonElement>("button[data-entry]")?.focus();},360);return()=>clearTimeout(timer);} },[open]);
-  const dismiss = () => {onClose();document.getElementById("post-menu-toggle")?.focus();};
+  const dismiss = () => {onClose();focusToggle();};
   return <div ref={ref} id="post-menu" role="group" aria-label="New post" aria-hidden={!open} inert={!open} className="fixed inset-0 z-40" style={{pointerEvents:open?"auto":"none"}}>
     <button tabIndex={-1} aria-label="Close post menu" onClick={dismiss} className="absolute inset-0 h-full w-full" style={{background:tokens.colors['scrim-light'],opacity:visible?1:0,transition:`opacity ${open?160:220}ms`}} />
     <button aria-label="Close post menu" onClick={dismiss} className="fixed flex h-tap w-tap items-center justify-center rounded-circle bg-text text-surface" style={{left:centre.x-tokens.spacing.tap/2,top:centre.y-tokens.spacing.tap/2,opacity:visible?1:0,transition:"opacity 160ms"}}><Icon name="plus" style={{transform:"rotate(45deg)"}} /></button>
