@@ -14,7 +14,7 @@ Images
 Share
 6:02 PM
 
-code review 
+code review
  aibraincoach/my-food-ai#311
 
 Finished
@@ -113,7 +113,7 @@ Batch signing returns one per-object error	The failed photo is retried on a late
 
 The PR description reports passing targeted tests, changed-file ESLint, and TypeScript checking, while preview stress tests and physical-phone evidence remain pending. The check-run response I retrieved listed only a successful “Vercel Preview Comments” check; that does not independently verify the reported test or build results.
 
-Source: 
+Source:
  #311 — reviewed changes and validation notes.
 
 Automated code review: deep security audit and architecture check for pull request #311 on aibraincoach/my-food-ai
