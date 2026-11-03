@@ -42,7 +42,7 @@ A1 includes the exact hook/cache/Carousel files from A2 source commit f23efc554c
 
 ### Final preview browser evidence — runtime e2c74b1
 
-On November 2, native Chrome CDP opened the authenticated Vercel preview at 390×844 with 1.6 Mbit/s downstream, 0.75 Mbit/s upstream and 150 ms latency. The cold navigation cleared HTTP, local-storage and service-worker caches; HTTP caching remained enabled so the second navigation used actual browser cache state. Both navigations waited another twelve seconds after the first decoded photo to allow hydration and cache persistence. The interceptor blocked every non-GET/HEAD/OPTIONS request and `/api/jobs/tick`, including requests in attached worker targets. This intentionally blocks client storage-signature POSTs; the server-provided photo still decoded. No post, correction, retry or model call was created.
+On November 3 (approximately 02:10 UTC / 09:10 WIB), native Chrome CDP opened the authenticated Vercel preview at 390×844 with 1.6 Mbit/s downstream, 0.75 Mbit/s upstream and 150 ms latency. The cold navigation cleared HTTP, local-storage and service-worker caches; HTTP caching remained enabled so the second navigation used actual browser cache state. Both navigations waited another twelve seconds after the first decoded photo to allow hydration and cache persistence. The interceptor blocked every non-GET/HEAD/OPTIONS request and `/api/jobs/tick`, including requests in attached worker targets. This intentionally blocks client storage-signature POSTs; the server-provided photo still decoded. No post, correction, retry or model call was created.
 
 | Navigation | First visible card ms | First decoded photo ms | Bytes through hydration settle | Saved first-page cache |
 | --- | ---: | ---: | ---: | --- |
