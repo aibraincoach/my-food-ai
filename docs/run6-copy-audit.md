@@ -71,3 +71,7 @@ No prohibited claim was identified in the authored literal UI copy and templates
 - Unchanged application copy outside these six diffs and their directly examined shared record renderers is outside this audit. #294 remains open for the planner's full terminology review, AGY opinion, owner rulings and subsequent wording changes.
 
 No product string was changed by this audit. The six reviewed code heads remain unchanged.
+
+## Subsequent merge evidence — November 3 reconciliation
+
+The six feature PRs are now merged, including refreshed #299 head `eb10b1e1543c4e2d5078b0678b542bb7deea8768` and #301 head `7affd872dd0eee32ceb66419b52739d0488164de`. Their later exact-head external confirmations are on their PR threads; the audit above retains its original cutoff and is not a new whole-runtime wording audit. Production checks and final docs merges are recorded in the [final receipt](https://github.com/aibraincoach/my-food-ai/pull/302#issuecomment-6583475674). #294 remains open.

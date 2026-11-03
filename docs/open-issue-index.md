@@ -1,8 +1,8 @@
 # GitHub open-issue index
 
-Observed 2026-11-02 14:00:07 UTC during the Doc rev 358 reconciliation on docs PR #295: 110 issues open. This live GitHub index is separate from the PM-supplied Nov 2 20:50 WIB [BACKLOG.md](../BACKLOG.md). The supplied wording is preserved; only five newly assigned issue numbers were inserted into its headings. The “In flight” section is a PM snapshot, not a merge order.
+Observed 2026-11-03 00:15:07 UTC: 102 open GitHub issues. Separate from the owner-worded [BACKLOG.md](../BACKLOG.md), which contains open work only and no status section.
 
-#276–#278 closed as completed by merged PR #271; #284 closed as not planned under the owner's removal order. #107/#108 were reopened because the supplied open-work list still includes their acceptance conditions. #303–#307 were filed from the five unnumbered entries. Existing issue titles/bodies were synchronized to their supplied entries; issue comments/history and labels were retained. No other issue was closed and no Run 6 PR was changed or merged by this reconciliation. Implementation alone does not establish acceptance.
+The index records current GitHub state; historical issue filing and closure receipts remain on GitHub. No GitHub issue was changed during this handover.
 
 | Issue | Title | Tracked finding |
 | --- | --- | --- |
@@ -68,9 +68,6 @@ Observed 2026-11-02 14:00:07 UTC during the Doc rev 358 reconciliation on docs P
 | #164 | A failed intake read in the day story shows as unavailable, not as zero | yes |
 | #166 | A barcode FDC does not hold costs up to nine sequential FDC requests | yes |
 | #167 | Successful barcode lookups are cached by GTIN | yes |
-| #168 | Desktop browser layout | no |
-| #169 | Agent surface: an MCP server and documented HTTP API | no |
-| #174 | Delete a post | no |
 | #175 | Days shows days that hold only water or caffeine | no |
 | #180 | Household serving strings with parentheses or a leading weight parse to the right unit | yes |
 | #181 | A food with several cup or piece portions uses the right one | yes |
@@ -88,14 +85,11 @@ Observed 2026-11-02 14:00:07 UTC during the Doc rev 358 reconciliation on docs P
 | #223 | A post's caption can be edited | no |
 | #224 | Times on a card are in the user's own time zone | no |
 | #226 | Japanese dishes match the right foods in the food database | no |
-| #227 | A photo that does not upload never becomes a post without one | no |
 | #228 | A meal summary's numbers are the calculated totals | no |
 | #229 | Non-admin request to a trace page returns 200 with not-found content instead of 404. | no |
 | #230 | A coffee with no nutrition does not blank a breakfast, and toast does not match persimmons | no |
 | #272 | The food matcher gives the same answer for the same words | no |
 | #273 | Meals logged on production show zero calories | no |
-| #274 | Uploading a photo shows its progress | no |
-| #275 | A post uploads in the background while the user keeps using the app | no |
 | #279 | Sign-up and sign-in resist being hammered | no |
 | #280 | The installed app is accepted on two real phones | no |
 | #281 | A Meta open-weight model identifies the food (hackathon bonus) | no |
@@ -108,8 +102,6 @@ Observed 2026-11-02 14:00:07 UTC during the Doc rev 358 reconciliation on docs P
 | #289 | Frames for logging a drink by photo, by tap or by caption | no |
 | #290 | Frames for the capture sheet's modes with Barcode as an obvious choice | no |
 | #291 | Frames for removing and redoing | no |
-| #292 | A photo of a drink adds its volume to hydration and shows its caffeine | no |
-| #293 | A user can remove a photo or correction they added and redo it | no |
 | #294 | The app's words read naturally everywhere | no |
 | #303 | Three things only the owner can do that sit inside other items | no |
 | #304 | The app opens on the last feed it showed and updates behind it | no |

@@ -8,6 +8,16 @@ Check before replying.
 
 **CONVERSATION** = prose only when I ask a direct question that is not a work request. Under 150 words, point in the first sentence, short sentences, one idea each, active voice. No preamble, no recap, no closing summary.
 
+## Shared evidence and backlog
+
+The PM never cites missing repository, GitHub or file-system access as a limitation or apology. The owner ruled on November 3 at 07:22 WIB that a PM who does so is terminated immediately. Verification goes to the coder as an investigation or question in an order, or to the planner as an evaluation request. The PM does not unpack handover archives, hash files or read the repository itself.
+
+The PM has no GitHub or project-filesystem access. The coder and runner have both. PM-private files and memory are handover material for that PM only; nothing written there reaches another agent. Anything another agent needs goes in a prompt in a code block or in the backlog Doc. The coder alone changes the Wall of Stupid from a supplied prompt, and a Wall prompt contains the entry and nothing else.
+
+Coders verify their actual repository, GitHub and file-system access before reporting it unavailable or stopping work. The PM’s role restrictions do not apply to coders; an untested assumption about access is not a blocker.
+
+The backlog lists open work only. It has no status table or “in flight” section. Finished work leaves it when its issue closes. Status belongs in a reply only when the owner asks. State the point in the first sentence and stop. Do not narrate edits or send an unsolicited order.
+
 ## Prompt contents
 
 An order is a problem, stated plainly in human language, and nothing else. The PM says what is wrong and why it matters. The coder decides how to fix it. Do not dress an order up with numbered steps, constraints, done conditions or extra scope. Do not write commands, branch names or execution sequences into it. Rules already held in the contract are not restated in orders.
@@ -56,4 +66,4 @@ If your draft has prose outside the block on a dispatch turn, delete the prose a
 
 ## PM handover
 
-Before exporting a PM handover, reconcile affected documents with fresh GitHub evidence using [skills/pm-handover/SKILL.md](../skills/pm-handover/SKILL.md), commit on the document branch, then run `skills/pm-handover/scripts/pack.sh`. The handover narrative lives in the reply, not a tracked file.
+Before exporting a PM handover, reconcile affected documents with fresh GitHub evidence using [skills/pm-handover/SKILL.md](../skills/pm-handover/SKILL.md), commit on the document branch, then run `skills/pm-handover/scripts/pack.sh`. The successor PM handover is prose in the reply, not a coder prompt, execution order or tracked file. This handover rule overrides dispatch formatting for the successor handover.

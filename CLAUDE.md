@@ -13,7 +13,27 @@ Hackathon project: My Food AI. PM contract: [docs/pm-contract.md](docs/pm-contra
 
 Review tooling is ported from [naval-association-calgary](https://github.com/aibraincoach/naval-association-calgary) (PPLX runner, review policy shape) and burn-centre-translator / calgarysalutes-website (AGY delivery script, Firefox helper).
 
-## Current state — November 1, 2026
+## Run 7 dispatch — November 3, 2026
+
+The owner dispatched [Run 7](docs/plan-run7.md), with Part 1 building/reviewing the feature PRs and Part 2 held for the named-head merge order after evaluation. This is active coding, not a handover. The owner subsequently assigned Run 7 code reviews to Muse; coders do not launch PPLX, AGY or Codex reviews and instead fix findings delivered on GitHub or by the owner. Baseten authentication has been verified successfully (models, image chat completion and Responses all HTTP 200), and all eleven paired trial cases used the actual open model. The key remains in ignored .env.local as BASETEN_API_KEY and IDENTIFY_OPEN_API_KEY; no credential value is committed or published. Production schema, preference and environment changes remain held for Part 2. The local owner-supplied Wall entries, coder access rule and Nov3 07:10 WIB backlog are preserved on the Run 7 docs branch.
+
+## Prior reconciliation — November 3, 2026
+
+Observed 2026-11-03 00:15:07 UTC (2026-11-02T18:15:07.453950-06:00): fetched origin/main is `26242040e5b657e2fec20eb4af4efb682fc94a3c`; GitHub has no open pull requests. Run 6 #296–#301 and docs #295/#302 are all merged. The final merge was #302 at 2026-11-02 17:12:40 UTC. The [final execution receipt](https://github.com/aibraincoach/my-food-ai/pull/302#issuecomment-6583475674) reports this same production revision READY, alias assigned and health 200; production was not independently queried during this handover. Successful PR-head Vercel checks were read once; they do not establish current production health.
+
+GitHub now shows #168/#169/#227/#274/#275/#292 closed; their completed entries and the entire stale status section have been removed from BACKLOG.md. The remaining three-part owner wording and item numbers are preserved. The live backlog Doc is not accessible in this coder checkout; this is a repository reconciliation of the supplied rev409 snapshot, not a claim to have fetched the PM’s later Doc edits. The open-issue index is refreshed separately.
+
+The owner supplied three verbatim Wall entries dated Nov3 07:08, 07:11 and 07:13 WIB. PM-private files are not shared project truth. The PM has no GitHub or project-filesystem access; the coder and runner do. Agent instructions travel in prompts or the backlog Doc. The backlog contains open work only, without a status table or an “in flight” section. The PM sends no unsolicited order; a Wall prompt contains only its entry. A fourth owner-reported incident records that the PM sent its successor a coder-style prompt: a successor handover must be prose, not an execution order.
+
+The Baseten key supplied by the owner is saved as `BASETEN_API_KEY` in ignored `.env.local`. Its value is excluded from Git and handover exports. Authentication, credit balance and the open-weights trial remain unverified. No paid trial, new dispatch, merge, deployment or database write is authorized by this handover. The existing requested trial scope remains #281 and the inert Facebook button; this handover does not establish that work has started.
+
+Remaining acceptance includes physical-phone camera/pack, installed-session persistence, mobile-data timing, iPhone fit, background push, full Home comparison and owner meal-estimate acceptance. The intermittent feed error remains undiagnosed. Freeze is Nov3 23:59 WIB; preserve the recording-to-submission deployment hold. The owner rules every built feature into the video, including the not-eaten plate, and requests no PM script.
+
+## Prior session observations — historical cutoffs
+
+All dated sections below retain their original observations; their PR, issue and deployment states are superseded by the current state above.
+
+## Historical state — November 1, 2026
 
 Observed November 1, 2026, 15:19:11 UTC: main and production are `f095afe545a2be099ba6f2fca0b216d273db56e0`, READY, alias confirmed, health 200. #269 merged at the owner's exact head, then docs #266 merged last; #258 closed as superseded. The owner ordered the fleet closed and all subagents completed. [Final execution receipt](https://github.com/aibraincoach/my-food-ai/pull/266#issuecomment-6558350575).
 
@@ -50,6 +70,8 @@ Under the explicit reconciliation order, #276/#277/#278 are closed as completed 
 [Run 6 copy audit](docs/run6-copy-audit.md) records the exact #296–#301 heads, the additional static claims-rule review and the runtime strings/states not exhaustively checked. Passing the existing two wording tests is not whole-UI coverage. #294 stays open for the planner's AGY terminology review and owner rulings. The six feature heads and #302 remain unchanged; no merge order, production migration or deployment is supplied here. Docs PR #295 remains unmerged.
 
 ## Work
+
+Coders check their actual repository, GitHub and file-system access before claiming access is missing or stopping work. Use a local read and a read-only repository request to establish what is available; report the specific failure only if a check fails. The PM’s access restrictions apply to the PM role, not to coders. Do not assume the PM role or wait idle on an untested access assumption.
 
 Branch from `origin/main`; never commit directly on `main`. One PR per change. Docs-only PRs (only `docs/`, `skills/`, and root `*.md` policy files) need no PPLX/AGY/Codex review.
 

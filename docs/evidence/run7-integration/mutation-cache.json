@@ -1,0 +1,20 @@
+[
+  {
+    "name": "delete-updates-cache-before-response",
+    "domRemoved": true,
+    "cacheRemoved": true
+  },
+  {
+    "name": "corrected-food-updates-cache",
+    "domChanged": true,
+    "cacheChanged": true,
+    "deletedStillAbsent": true
+  },
+  {
+    "name": "reopen-keeps-delete-and-correction",
+    "fresh": true,
+    "corrected": true,
+    "deletedAbsent": true,
+    "ms": 342
+  }
+]

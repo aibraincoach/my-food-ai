@@ -1,0 +1,20 @@
+[
+  {
+    "name": "automatic-first-visit-cache",
+    "cacheKeys": 3,
+    "decoded": true,
+    "cors": "anonymous",
+    "controlMode": "active",
+    "manualWarmFetch": false
+  },
+  {
+    "name": "actual-second-navigation-invalid-token-photo",
+    "controlled": true,
+    "decoded": true,
+    "width": 960,
+    "srcHasInvalidToken": true,
+    "cachedResponseStillHasOriginalToken": true,
+    "cachedBytes": 110498,
+    "cacheKeyQueryIndependent": true
+  }
+]

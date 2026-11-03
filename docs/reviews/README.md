@@ -1,4 +1,4 @@
-# Current review index — November 1
+# Current review index — Run 7
 
 Run5 exact-head receipts and confirmations: [Run5 review index](run5-review-receipts.md). Final #269 exact `c54525b1bd1c8985866f7fe840411be274822719`: [Gemini BLOCKERS: NONE](post-run5-pr269-c54525b-receipt.md), [triage real0](post-run5-pr269-c54525b-triage.md). #269 and docs #266 are merged; no code PR is open at this cutoff. Historical records below retain their original heads and are not new review requests.
 
@@ -50,3 +50,18 @@ These live heads/merges were re-read for #235 reconciliation. Existing main revi
 | [#255](https://github.com/aibraincoach/my-food-ai/pull/255) | `134b01c7da7528a427cda0f1e1e2adcc51824e13` | `4598a0ea51f9478ed6fc49d069ef6b5ff7eb7f81` |
 | [#256](https://github.com/aibraincoach/my-food-ai/pull/256) | `591a4e3344a49add185a7eb6217eb5de9b50cd23` | `44576592955ce576b2a66f875518d18a4ebb8bd4` |
 | [#257](https://github.com/aibraincoach/my-food-ai/pull/257) | `9197b77247d74dbeddf5fd6ebe5c882e08144d6a` | `c392a30ae170ec4f7a7cc48e5b8ff9b1d4d597a5` |
+
+## Run 7 review evidence
+
+These are independent external reviews: Gemini 3.8 Flash through PPLX, or explicitly labelled AGY fallback with Gemini 3.8 Flash High. They are not coder self-reviews. Initial captures and finding triage are on each feature branch. Each final confirmation names its full source head; later source changes require applicable review evidence.
+
+- [#309 disabled Facebook sign-in](mfa-pplx-pr309-f84c689-confirmation.md).
+- [#310 cache and CORS correction, final AGY receipt](mfa-agy-pr310-2d4142b-receipt.md) and [triage](mfa-agy-pr310-2d4142b-triage.md). Earlier [PPLX confirmation](mfa-pplx-pr310-41343ac-confirmation.md) predates the CORS correction.
+- [#312 worker lease, Retry-After and visible deferred retry, final AGY receipt](mfa-agy-pr312-9e5877b-receipt.md) and [triage](mfa-agy-pr312-9e5877b-triage.md). Earlier [PPLX confirmation](mfa-pplx-pr312-3155f64-confirmation.md) predates the waiting-state change.
+- [#314 immediate meal-save and edit feedback](mfa-pplx-pr314-1c4d72a-confirmation.md).
+- [#313 food names before final nutrition](mfa-pplx-pr313-ff221a7-confirmation.md).
+- [#315 Muse Spark Open identification](mfa-pplx-pr315-67e40d4-confirmation.md).
+
+PPLX attempts that selected an actual GPT answer model despite the requested Gemini preference were rejected. Their source-verification notes do not count as independent release reviews. The owner subsequently assigned code reviews to Muse. Coders do not launch PPLX, AGY or Codex reviews; they fix findings Muse posts. Existing completed receipts remain evidence only for their named heads.
+
+The owner has accepted Muse's exact-head watch comments as Run 7 code reviews. See the [API-verified Muse receipt table](run7-muse-receipts.md). #310 retains a dependency blocker until #311 supplies the hook and first-photo wiring; its verdict is not relabelled clean. Other listed current heads received BLOCKERS: NONE. Every later head requires a fresh Muse receipt. Earlier PPLX/AGY receipts remain historical for their own heads.
