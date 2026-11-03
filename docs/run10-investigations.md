@@ -275,18 +275,19 @@ Read-only production measurements and designated test-account actions only. Unkn
 
 ## 7o. Terms (#294)
 
-**Method** — #398 replaces the exact old leftovers label throughout current src files and runs wording tests. Full requested term listing pending.
+**Method** — At11:05 UTC ran `git grep -n -F <term> origin/main -- src` for every requested term, the new leftovers label, fixed needs-input question/notices and Days names at e07423537d1bc0f54f1997845e86f014c885ef93. Full file/line/source inventory is [run10-terms.md](run10-terms.md); Recommended cells are deliberately empty.
 
 **Result**
 
 | Measurement | Result |
 | --- | --- |
-| Wording tests passed | 2 |
-| Failed/skipped | 0 |
+| Published inventory rows | 139 |
+| Old exact leftovers label | 0 hits |
+| Wording tests | 2 passed,0 failed/skipped |
 
-**Answer** — The instructed leftovers label change is built; other term recommendations remain with RT.
+**Answer** — The instructed leftovers wording is implemented, and all matches at the recorded commit are listed for RT. Generated needs-input questions and localized month/weekday names are identified as dynamic rather than presented as missing fixed strings.
 
-**Unknown** — The requested file/line term inventory and empty Recommended column still need publication.
+**Unknown** — Final code-merge repeat remains required. No additional terminology recommendation or owner ruling is inferred.
 
 ## 7p. Visual reconciliation (#193/#353–#367)
 
