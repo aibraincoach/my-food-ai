@@ -42,4 +42,13 @@ body {
   .desktop-capture button[aria-label="Take a photo"] { border-color:var(--color-text); }
   .desktop-capture button[aria-label="Take a photo"] > span { background:var(--color-text); }
   .desktop-capture-inner { background:var(--color-surface); height:auto; max-height:calc(100dvh - 48px); width:760px; border-radius:14px; overflow-y:auto; }
+  .desktop-camera-inner { border-radius:20px; }
+  .desktop-camera-inner > div:first-child > header { height:56px; }
+  .desktop-camera-inner [aria-label="Capture content"] { flex:none; }
+  .desktop-camera-inner .desktop-photo-source { flex-shrink:0; }
+  .desktop-camera-inner button[aria-label="Back to Feed"] { border-radius:0; }
+  .desktop-camera-inner .desktop-shutter-row { height:104px !important; }
+  .desktop-camera-inner .desktop-shutter { width:64px !important; height:64px !important; border-width:3px !important; }
+  .desktop-camera-inner .desktop-shutter > span { width:50px !important; height:50px !important; }
+
 }

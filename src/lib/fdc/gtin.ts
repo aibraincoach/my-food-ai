@@ -38,3 +38,11 @@ export function expandUpcE(code: string): string | null {
   const expanded = `${system}${body}${check}`;
   return validGtin(expanded) ? expanded : null;
 }
+
+// Presentation groups the check digit separately, retaining every decoded digit.
+export function formatGtin(code:string):string {
+ if(code.length===13)return code.replace(/^(\d)(\d{6})(\d{5})(\d)$/,'$1 $2 $3 $4');
+ if(code.length===12)return code.replace(/^(\d)(\d{5})(\d{5})(\d)$/,'$1 $2 $3 $4');
+ if(code.length===14)return code.replace(/^(\d{2})(\d{6})(\d{5})(\d)$/,'$1 $2 $3 $4');
+ return code;
+}
