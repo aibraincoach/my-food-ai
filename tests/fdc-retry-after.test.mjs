@@ -37,3 +37,12 @@ test('a provider wait that exceeds the worker budget is deferred, not waited out
   await assert.rejects(traceContext.run({postId:null,deadlineAt:Date.now()+5000},()=>fdcFetch(url)),FdcRateLimited);assert.equal(calls,1);
  });
 });
+
+test('missing or malformed Retry-After uses a durable default without consuming a failed attempt',async()=>{
+ for(const header of [null,'not-a-date']) {
+  let calls=0;
+  await server((_request,response)=>{calls++;response.writeHead(429,header?{'Retry-After':header}:{});response.end();},async url=>{
+   const before=Date.now();await assert.rejects(fdcFetch(url),error=>error instanceof FdcRateLimited&&error.retryAt>=before+60000);assert.equal(calls,1);
+  });
+ }
+});

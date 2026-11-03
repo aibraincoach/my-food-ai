@@ -41,7 +41,13 @@ export async function fdcFetch(input: string | URL, init: RequestInit = {}): Pro
     catch (error) { throw ioError("fdc: food database request failed.", error); }
     if (response.status !== 429) return response;
     const seconds = fdcRetryAfter(response.headers.get("retry-after"));
-    if (seconds === null) return response;
+    if (seconds === null) {
+      // A missing/invalid hint still represents rate limiting, not a failed
+      // analysis attempt. Use a conservative durable default, without waiting
+      // a full minute inside this invocation.
+      await response.body?.cancel().catch(() => {});
+      throw new FdcRateLimited(60);
+    }
     const limited = new FdcRateLimited(seconds);
     await response.body?.cancel().catch(() => {});
     const available = (traceContext.getStore()?.deadlineAt ?? Infinity) - Date.now();
