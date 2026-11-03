@@ -1,29 +1,9 @@
-// Run after applying 0030 on the test database:
+// Run after applying 0036 on the test database:
 // node --env-file=.env.local --test --test-concurrency=1 tests/db/delete-and-remove.test.mjs
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {randomUUID} from 'node:crypto';
 import {admin,user,checked} from './helpers.mjs';
-
-test('owner delete cascades records, queues durable cleanup, and refuses a second user',async()=>{
- const db=admin(),one=await user(1),two=await user(2),id=randomUUID(),path=`${one.user.id}/${id}/0.jpg`;
- let cleanupId;
- try{
-  checked(await db.from('posts').insert({id,user_id:one.user.id,caption:'Removal fixture',status:'ready'}));
-  const item=checked(await db.from('post_items').insert({post_id:id,name:'Water',source:'model',portion_grams:250}).select('id').single());
-  checked(await db.from('item_nutrition').insert({post_item_id:item.id,calories:0}));
-  checked(await db.from('post_media').insert([{post_id:id,kind:'photo',storage_path:path,position:0,width:1,height:1},{post_id:id,kind:'card',storage_path:`${one.user.id}/${id}/cards/${randomUUID()}/card.png`,position:1,width:1080,height:1080}]));
-  checked(await db.from('intake_logs').insert({user_id:one.user.id,kind:'water',amount:250,ml:250,label:'Water',post_id:id}));
-  assert.equal(checked(await two.client.rpc('delete_post',{p_post_id:id,p_paths:[path]})),false);
-  assert.ok(checked(await one.client.from('posts').select('id').eq('id',id).maybeSingle()));
-  assert.equal(checked(await one.client.rpc('delete_post',{p_post_id:id,p_paths:[path]})),true);
-  for(const [table,column] of [['posts','id'],['post_items','post_id'],['post_media','post_id'],['intake_logs','post_id']])assert.deepEqual(checked(await db.from(table).select('*').eq(column,id)),[]);
-  assert.deepEqual(checked(await db.from('item_nutrition').select('*').eq('post_item_id',item.id)),[]);
-  const cleanup=checked(await db.from('jobs').select('id,post_id,payload').eq('kind','media_cleanup').eq('payload->>deleted_post_id',id).single());cleanupId=cleanup.id;
-  assert.equal(cleanup.post_id,null);assert.equal(cleanup.payload.owner_id,one.user.id);assert.deepEqual(cleanup.payload.paths,[path]);
-  assert.equal(checked(await two.client.rpc('delete_post',{p_post_id:id,p_paths:[]})),false);
- }finally{await db.from('posts').delete().eq('id',id);if(cleanupId)await db.from('jobs').delete().eq('id',cleanupId);}
-});
 
 test('correction and leftovers removal enforce ownership and photo type',async()=>{
  const db=admin(),one=await user(1),two=await user(2),id=randomUUID();let exactJob;

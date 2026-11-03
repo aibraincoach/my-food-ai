@@ -252,7 +252,7 @@ export const VISIBLE_MEAL_FILTER="needs_input.is.null,status.eq.failed";
 // The critical first-photo path does not wait for six meals' nutrition and
 // feedback fences. Embedded media remains authorized by the caller's RLS.
 export async function getFirstFeedPhoto(db: SupabaseClient, userId: string) {
-  const {data, error} = await db.from('posts').select('id,user_id,caption,eaten_at,post_media(id,storage_path,kind,position)')
+  const {data, error} = await db.from('posts').select('id,user_id,caption,eaten_at,post_media(id,storage_path,kind,position)').is("deleted_at", null)
     .eq('user_id',userId).neq('status','needs_input').or(VISIBLE_MEAL_FILTER)
     .order('eaten_at',{ascending:false}).order('id',{ascending:false}).limit(1).abortSignal(AbortSignal.timeout(8000)).maybeSingle();
   if(error)throw new Error('The first meal could not be read.');
@@ -277,7 +277,7 @@ export async function getFeed(
   limit = Math.max(1, Math.min(FEED_PAGE_SIZE, Math.trunc(limit) || FEED_PAGE_SIZE));
   let query = supabase
     .from("posts")
-    .select("id,user_id,caption,eaten_at,status,created_at,fail_reason,agent_token_id,agent_tokens(name)")
+    .select("id,user_id,caption,eaten_at,status,created_at,fail_reason,agent_token_id,agent_tokens(name)").is("deleted_at", null)
     .eq("user_id", userId).neq("status","needs_input")
     .order("eaten_at", { ascending: false })
     .order("id", { ascending: false })
@@ -338,7 +338,7 @@ export async function getPostCard(
   if (typeof window !== 'undefined') return queueBrowserCard(supabase, postId, zone);
   const { data, error } = await supabase
     .from("posts")
-    .select("id,user_id,caption,eaten_at,status,created_at,fail_reason,agent_token_id,agent_tokens(name)")
+    .select("id,user_id,caption,eaten_at,status,created_at,fail_reason,agent_token_id,agent_tokens(name)").is("deleted_at", null)
     .eq("id", postId).or(VISIBLE_MEAL_FILTER)
     .maybeSingle<PostRow>();
   if (error) {
@@ -354,7 +354,7 @@ export async function getPostCard(
 // every result on a page, just like the Home feed.
 export async function getPostCards(supabase: SupabaseClient, postIds: string[], zone = "UTC"): Promise<FeedPost[]> {
   if (!postIds.length) return [];
-  const { data, error } = await supabase.from("posts").select("id,user_id,caption,eaten_at,status,created_at,fail_reason,agent_token_id,agent_tokens(name)")
+  const { data, error } = await supabase.from("posts").select("id,user_id,caption,eaten_at,status,created_at,fail_reason,agent_token_id,agent_tokens(name)").is("deleted_at", null)
     .in("id", postIds).or(VISIBLE_MEAL_FILTER).abortSignal(AbortSignal.timeout(8000));
   if (error) throw new Error("Meals could not be loaded.");
   const rows = (data ?? []) as PostRow[];

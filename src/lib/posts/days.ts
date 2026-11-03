@@ -1,3 +1,4 @@
+import {visibleDrinkRows} from '@/lib/intake/hydration';
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { groupIntakeByDay, emptyIntake, type IntakeRow, type IntakeTotals } from "@/lib/intake/intake";
 import { CURRENT_ITEM_COLUMNS, CURRENT_NUTRITION_COLUMNS, mapCurrentItems, normalizeStoredNutrition, sumNutrition, type CurrentItem, type MealTotals, type NutritionRow } from "@/lib/nutrition/totals";
@@ -42,7 +43,7 @@ export async function getDays(supabase: SupabaseClient, userId: string, zone: st
   const photos: {post: DayPost; path: string}[] = [];
   for (let offset = 0; ; offset += 100) {
     const { data, error } = await supabase.from("posts")
-      .select(`id,caption,eaten_at,post_media(storage_path,position),current_post_items(${CURRENT_ITEM_COLUMNS},created_at,item_nutrition(${CURRENT_NUTRITION_COLUMNS}))`)
+      .select(`id,caption,eaten_at,post_media(storage_path,position),current_post_items(${CURRENT_ITEM_COLUMNS},created_at,item_nutrition(${CURRENT_NUTRITION_COLUMNS}))`).is("deleted_at", null)
       .eq("user_id", userId).eq("status", "ready").gte("eaten_at", lower).lt("eaten_at", upper)
       .eq("post_media.kind", "photo").order("position", { referencedTable: "post_media", ascending: true })
       .limit(1, { referencedTable: "post_media" })
@@ -82,10 +83,10 @@ export async function getDays(supabase: SupabaseClient, userId: string, zone: st
   // Water and caffeine logged on a day that has meals appear as that day's intake totals (never a target).
   if (groups.size) {
     // Every row, in a fixed order, a page at a time: a capped response must never pass for the full total.
-    const intake: IntakeRow[] = [];
+    const intake: (IntakeRow & {post_id?:string|null})[] = [];
     let intakeError = false;
     for (let offset = 0; ; offset += 1000) {
-      const { data, error } = await supabase.from("intake_logs").select("kind,amount,logged_at")
+      const { data, error } = await supabase.from("intake_logs").select("kind,amount,logged_at,post_id")
         .eq("user_id", userId).gte("logged_at", lower).lt("logged_at", upper)
         .order("logged_at", { ascending: true }).order("id", { ascending: true }).range(offset, offset + 999);
       if (error) { intakeError = true; break; }
@@ -93,7 +94,7 @@ export async function getDays(supabase: SupabaseClient, userId: string, zone: st
       if ((data?.length ?? 0) < 1000) break;
     }
     if (!intakeError) {
-      const byDay = groupIntakeByDay(intake, (instant) => dateInZone(instant, zone));
+      const byDay = groupIntakeByDay(await visibleDrinkRows(supabase,userId,intake), (instant) => dateInZone(instant, zone));
       for (const day of groups.values()) day.intake = byDay.get(day.date) ?? emptyIntake();
     }
   }
@@ -111,7 +112,7 @@ export async function getLoggedDates(supabase: SupabaseClient, userId: string, z
   const lower = `${shiftDay(from, -1)}T00:00:00Z`;
   const upper = `${shiftDay(through, 2)}T00:00:00Z`;
   for (let offset = 0; ; offset += 100) {
-    const { data, error } = await supabase.from("posts").select("id,eaten_at")
+    const { data, error } = await supabase.from("posts").select("id,eaten_at").is("deleted_at", null)
       .eq("user_id", userId).in("status", LOGGED_STATUSES).gte("eaten_at", lower).lt("eaten_at", upper)
       .order("eaten_at", { ascending: true }).order("id", { ascending: true }).range(offset, offset + 99);
     if (error) throw new Error("Days could not be loaded.");
@@ -145,7 +146,7 @@ export async function getDayTotals(db: SupabaseClient, userId: string, zone: str
   const upper = `${shiftDay(window.through, 2)}T00:00:00Z`;
   for (let offset = 0; ; offset += 1000) {
     const { data, error } = await db.from('posts')
-      .select('id,eaten_at,current_post_items(name,portion_grams,item_nutrition(post_item_id,calories,protein_g,carbs_g,fat_g,fibre_g,sugar_g,sodium_mg,micronutrients,source_ref))')
+      .select('id,eaten_at,current_post_items(name,portion_grams,item_nutrition(post_item_id,calories,protein_g,carbs_g,fat_g,fibre_g,sugar_g,sodium_mg,micronutrients,source_ref))').is("deleted_at", null)
       .eq('user_id', userId).eq('status', 'ready').or('needs_input.is.null,status.eq.failed')
       .gte('eaten_at', lower).lt('eaten_at', upper).order('eaten_at').order('id').range(offset, offset + 999).abortSignal(AbortSignal.timeout(8000));
     if (error) throw new Error('Day totals could not be loaded.');
@@ -174,7 +175,7 @@ export function shiftMonth(month: string, offset: number): string {
   return date.toISOString().slice(0, 7);
 }
 export async function getEarliestPostDate(supabase: SupabaseClient, userId: string, zone: string): Promise<string | null> {
-  const { data, error } = await supabase.from("posts").select("eaten_at").eq("user_id", userId)
+  const { data, error } = await supabase.from("posts").select("eaten_at").is("deleted_at", null).eq("user_id", userId)
     .order("eaten_at", { ascending: true }).order("id", { ascending: true }).limit(1).maybeSingle();
   if (error) throw new Error("The first posted day could not be read.");
   return data ? dateInZone(data.eaten_at, zone) : null;
@@ -188,7 +189,7 @@ export async function getMonthSummary(supabase: SupabaseClient, userId: string, 
   const groups = new Map<string, MonthDay>();
   for (let offset = 0; ; offset += 100) {
     const { data, error } = await supabase.from("posts")
-      .select("id,eaten_at,status,current_post_items(id,name,portion_grams,item_nutrition(post_item_id,calories,protein_g,carbs_g,fat_g,fibre_g,sugar_g,sodium_mg,micronutrients,source_ref))")
+      .select("id,eaten_at,status,current_post_items(id,name,portion_grams,item_nutrition(post_item_id,calories,protein_g,carbs_g,fat_g,fibre_g,sugar_g,sodium_mg,micronutrients,source_ref))").is("deleted_at", null)
       .eq("user_id", userId).in("status", LOGGED_STATUSES)
       .gte("eaten_at", `${shiftDay(from, -1)}T00:00:00Z`).lt("eaten_at", `${shiftDay(through, 2)}T00:00:00Z`)
       .order("eaten_at", { ascending: true }).order("id", { ascending: true }).range(offset, offset + 99);
@@ -217,7 +218,7 @@ export async function getMonthSummary(supabase: SupabaseClient, userId: string, 
 export async function getPostedMonthCounts(supabase: SupabaseClient, userId: string, zone: string): Promise<Record<string, number>> {
   const dates = new Set<string>();
   for (let offset = 0; ; offset += 1000) {
-    const { data, error } = await supabase.from("posts").select("id,eaten_at").eq("user_id", userId).in("status", LOGGED_STATUSES)
+    const { data, error } = await supabase.from("posts").select("id,eaten_at").is("deleted_at", null).eq("user_id", userId).in("status", LOGGED_STATUSES)
       .order("eaten_at", { ascending: true }).order("id", { ascending: true }).range(offset, offset + 999);
     if (error) throw new Error("Posted months could not be loaded.");
     for (const post of data ?? []) dates.add(dateInZone(post.eaten_at, zone));

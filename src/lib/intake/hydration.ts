@@ -36,6 +36,16 @@ export function itemWaterMl(item: WaterItem, isDrink = false): number {
 }
 export function foodWaterMl(items: WaterItem[]): number { return roundWaterMl(items.reduce((sum, item) => sum + itemWaterMl(item), 0)); }
 
+// Service clients bypass intake RLS; retain legacy unlinked entries while
+// excluding any drink whose parent post is retained in the deleted archive.
+export async function visibleDrinkRows<T extends {post_id?:string|null}>(db:SupabaseClient,userId:string,rows:T[]):Promise<T[]>{
+ const ids=[...new Set(rows.flatMap(row=>row.post_id?[row.post_id]:[]))];
+ if(!ids.length)return rows;
+ const active=new Set<string>();
+ for(let offset=0;offset<ids.length;offset+=100){const {data,error}=await db.from('posts').select('id').eq('user_id',userId).is('deleted_at',null).in('id',ids.slice(offset,offset+100));if(error)throw new Error('Drink records could not be read.');for(const post of data??[])active.add(post.id);}
+ return rows.filter(row=>!row.post_id||active.has(row.post_id));
+}
+
 export async function drinksForDay(db: SupabaseClient, userId: string, day: string, zone: string): Promise<DrinkRow[]> {
   const rows: DrinkRow[] = [];
   for (let offset = 0; ; offset += 1000) {
@@ -47,7 +57,7 @@ export async function drinksForDay(db: SupabaseClient, userId: string, day: stri
     rows.push(...((data ?? []) as DrinkRow[]).filter(row => dateInZone(row.logged_at, validZone(zone)) === day));
     if ((data?.length ?? 0) < 1000) break;
   }
-  return rows;
+  return visibleDrinkRows(db,userId,rows);
 }
 
 type HydrationTimeline = { drinks: DrinkRow[]; foods: { postId: string; eatenAt: string; waterMl: number }[] };
@@ -69,13 +79,13 @@ async function hydrationTimelines(db: SupabaseClient, userId: string, latestByDa
       drinks.push(...(data ?? []) as DrinkRow[]); if ((data?.length ?? 0) < 1000) break;
     } })(),
     (async () => { for (let offset = 0; ; offset += 1000) {
-      const {data, error} = await db.from('posts').select('id,eaten_at').eq('user_id', userId).eq('status', 'ready')
+      const {data, error} = await db.from('posts').select('id,eaten_at').is("deleted_at", null).eq('user_id', userId).eq('status', 'ready')
         .or(ranges('eaten_at')).order('eaten_at').order('id').range(offset, offset + 999).abortSignal(AbortSignal.timeout(8000));
       if (error) throw new Error('Food hydration could not be read.');
       posts.push(...(data ?? [])); if ((data?.length ?? 0) < 1000) break;
     } })(),
   ]);
-  for (const drink of drinks) timelines.get(dateInZone(drink.logged_at, zone))?.drinks.push(drink);
+  for (const drink of await visibleDrinkRows(db,userId,drinks)) timelines.get(dateInZone(drink.logged_at, zone))?.drinks.push(drink);
   const candidates = posts.filter(post => {
     const cutoff = latestByDay.get(dateInZone(post.eaten_at, zone));
     return cutoff && new Date(post.eaten_at).getTime() <= new Date(cutoff).getTime();
@@ -179,7 +189,7 @@ export async function getPostHydrationData(db: SupabaseClient, userId: string, p
 export async function getDrinkCardsData(db: SupabaseClient, userId: string, postIds: string[], tz: string): Promise<Record<string, DrinkCardData | null>> {
   const output: Record<string, DrinkCardData | null> = Object.fromEntries(postIds.map(id => [id, null]));
   if (!postIds.length) return output;
-  const { data: posts, error } = await db.from("posts").select("id,eaten_at").eq("user_id", userId).in("id", postIds);
+  const { data: posts, error } = await db.from("posts").select("id,eaten_at").is("deleted_at", null).eq("user_id", userId).in("id", postIds);
   if (error) throw new Error("Drink times could not be read.");
   const cards = await getPostHydrationData(db, userId, posts ?? [], tz);
   for (const post of posts ?? []) output[post.id] = cards[post.id]?.drink ?? null;

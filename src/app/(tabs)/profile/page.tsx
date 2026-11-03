@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { verifiedUserId } from "@/lib/auth/verified-user";
 import {openWeightsConfigured} from "@/lib/meta/open-weights";
 import IdentifyProviderSwitch from "./IdentifyProviderSwitch";
@@ -38,6 +39,7 @@ export default async function ProfilePage({searchParams}:{searchParams:Promise<{
       </header>
       <ConnectAgentRow userId={user.id} />
       {openWeightsConfigured()?<IdentifyProviderSwitch initial={preference.data?.identify_provider==='open'?'open':'meta'}/>:null}
+      <Link href="/profile/deleted" className="flex min-h-tap items-center px-screen-x text-detail desktop:px-0">Recently deleted</Link>
       <ProfileGrid posts={posts} />
     </main></DesktopWorkspace>
   );
