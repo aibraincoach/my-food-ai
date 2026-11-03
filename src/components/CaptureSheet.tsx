@@ -1,5 +1,6 @@
 /* eslint-disable @next/next/no-img-element -- Private owner images bypass paid optimization. */
 "use client";
+import OpenFoodFactsAttribution from './OpenFoodFactsAttribution';
 import {useDesktop} from "@/lib/ui/use-desktop";
 import {lockBodyScroll} from '@/lib/ui/scroll-lock';
 import {formatGtin} from "@/lib/fdc/gtin";
@@ -563,6 +564,7 @@ export default function CaptureSheet({ onClose, initialMode = "photo", forPost, 
               
               {packPhoto && <img src={packPhoto.previewUrl} alt="Scanned pack" className="shrink-0 rounded-thumb object-cover" style={{ width: tokens.capture.thumbSize, height: tokens.capture.thumbSize }} />}
             </div>
+            {product.attribution === "off" && <OpenFoodFactsAttribution/>}
             <p className="text-meta text-faint" style={{ marginTop: tokens.spacing['screen-x'] - tokens.icon.strongStroke }}>How much?</p>
             <div className="mt-tooltip-y flex flex-wrap gap-2">{barcodeAmounts(product).map((amount) => <button key={amount} type="button" disabled={posting} aria-pressed={portion === amount} onClick={() => setPortion(amount)} style={{ height: tokens.brand.barHeight }} className={`rounded-field border px-tooltip-caret text-comment font-medium ${portion === amount ? "border-surface bg-surface text-text" : "border-ring-on-ink text-surface"}`}>{pack === amount ? `Pack · ${amountLabel(amount)}` : amountLabel(amount)}</button>)}</div>
             <p className="text-body" style={{ marginTop: tokens.spacing['screen-x'] - tokens.icon.strongStroke }}>Consumed: {value("calories", portion)} kcal <span className="text-detail font-normal text-faint">· {macros(portion).split(" · ").slice(1).join(" · ")}</span></p>

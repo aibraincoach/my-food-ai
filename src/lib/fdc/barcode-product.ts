@@ -5,6 +5,7 @@ export interface BarcodeNutrition {
   fibre_g: number | null; sugar_g: number | null; sodium_mg: number | null;
 }
 export interface BarcodeProduct {
+  attribution?: "off";
   foodCategory?: string | null;
   fdcId: number; gtin: string; name: string; brand: string | null;
   // FDC standardises branded values to 100 g or 100 ml; no density conversion is made between them.
@@ -75,7 +76,7 @@ export function barcodeNutrition(product: BarcodeProduct, amount: number) {
   return {
     ...Object.fromEntries(Object.entries(product.per100g).map(([key, value]) => [key, value === null ? null : value * factor])),
     micronutrients: product.micronutrients.map((n) => ({ ...n, value: n.value * factor })),
-    source_ref: "source" in product && product.source === "own" ? `barcode:${product.gtin}` : String(product.fdcId),
+    source_ref: "source" in product && product.source === "own" ? `barcode:${product.gtin}` : product.attribution === "off" ? `off:${product.gtin}` : String(product.fdcId),
     portion_unit: product.basisUnit,
     food_category: product.foodCategory ?? null,
   };

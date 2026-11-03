@@ -10,6 +10,9 @@ Built for the Meta hackathon, October 26 to November 4, 2026.
 | --- | --- | --- | --- |
 | SAM 3.1 (`sam-3.1`) | Outlines each food in a meal photo. | [sam.ts](src/lib/meta/sam.ts) | `model_calls.model` |
 | Muse Spark 1.3 (`muse-spark-1.3`) | Names the foods and their portions, reads nutrition labels, interprets corrections and picks the matching USDA reference. | [spark.ts](src/lib/meta/spark.ts), [match.ts](src/lib/fdc/match.ts) | `model_calls.model` |
+
+Packaged foods that USDA FoodData Central does not hold are looked up in Open Food Facts. Contains data from [Open Food Facts](https://world.openfoodfacts.org), available under the [Open Database License](https://opendatacommons.org/licenses/odbl/1-0/).
+
 | Muse Voice Transcribe 1.0 (`muse-voice-transcribe-1.0`) | Turns a spoken correction into text for the user to confirm. | [transcribe.ts](src/lib/meta/transcribe.ts) | `model_calls.model` |
 | Muse Spark Open (`meta-models/muse-spark-open-1026`), Meta's open-weight model served by Baseten | An optional path for naming foods and portions. SAM and transcription stay on the Meta API. | [open-weights.ts](src/lib/meta/open-weights.ts) | `model_calls.model` and `model_calls.host`; post detail names the model that succeeded |
 
