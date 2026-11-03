@@ -306,7 +306,11 @@ function queueBrowserCard(db: SupabaseClient, postId: string, zone: string): Pro
       const group = waiting, ownerZones = zones;
       setTimeout(() => {
         ownerZones.delete(zone);
-        void getPostCards(db, [...group.keys()], zone).then(cards => {
+        const params = new URLSearchParams({ids: [...group.keys()].join(','), tz: zone});
+        void fetch(`/api/feed?${params}`, {cache:'no-store',signal:AbortSignal.timeout(15000)}).then(async response=>{
+          if(!response.ok)throw new Error('Meal details could not be loaded.');
+          return (await response.json() as {posts:FeedPost[]}).posts;
+        }).then(cards => {
           const byId = new Map(cards.map(card => [card.id, card]));
           for (const [id, waiters] of group) for (const waiter of waiters) waiter.resolve(byId.get(id) ?? null);
         }).catch(error => { for (const waiters of group.values()) for (const waiter of waiters) waiter.reject(error); });

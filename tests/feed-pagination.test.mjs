@@ -129,22 +129,13 @@ test('first page limit is six and optional field failures do not hide posts', as
   assert.equal(calls.find(url=>url.pathname.endsWith('/current_post_items')).searchParams.get('post_id'),`in.(${rows.slice(0,6).map(row=>row.id).join(',')})`);
 });
 
-test('same-tick browser card refreshes share batches instead of restarting per-card request bursts', async () => {
-  const rows=[1,2].map(n=>({id:uuid(n),user_id:uuid(99),caption:'meal',status:'ready',created_at:timestamp,eaten_at:timestamp}));
-  const calls=[];
-  const db=createClient('https://fixture.invalid','fixture',{auth:{persistSession:false,detectSessionInUrl:false,autoRefreshToken:false},global:{fetch:async input=>{
-    const url=new URL(input instanceof Request?input.url:String(input));calls.push(url);
-    if(url.pathname.endsWith('/rpc/feedback_revision'))return Response.json({modelCommentId:null,fingerprint:'unchanged'});
-    if(url.pathname.endsWith('/posts'))return Response.json(url.searchParams.get('status')==='eq.ready'?[]:rows);
-    return Response.json([]);
-  }}});
-  const previous=globalThis.window;globalThis.window={};
+test('same-tick browser card refreshes share one cancellable server request', async () => {
+  const rows=[1,2].map(n=>({id:uuid(n),user_id:uuid(99),caption:'meal',status:'ready',created_at:timestamp,eaten_at:timestamp,items:[],slides:[]}));
+  const db=createClient('https://fixture.invalid','fixture',{auth:{persistSession:false,detectSessionInUrl:false,autoRefreshToken:false},global:{fetch:async()=>{throw Error('Browser cards must use the server boundary.');}}});
+  const previous=globalThis.window,originalFetch=globalThis.fetch;globalThis.window={};const calls=[];
+  globalThis.fetch=async(input,init)=>{const url=new URL(input,'https://app.invalid');calls.push(url);assert.ok(init.signal);assert.equal(init.cache,'no-store');assert.equal(url.pathname,'/api/feed');assert.equal(url.searchParams.get('ids'),[uuid(1),uuid(2)].join(','));return Response.json({posts:rows});};
   try {
     const result=await Promise.all([getPostCard(db,uuid(1),'UTC'),getPostCard(db,uuid(2),'UTC'),getPostCard(db,uuid(1),'UTC')]);
-    assert.deepEqual(result.map(post=>post.id),[uuid(1),uuid(2),uuid(1)]);
-    assert.equal(calls.filter(url=>url.pathname.endsWith('/posts')&&!url.searchParams.has('status')).length,1);
-    assert.equal(calls.filter(url=>url.pathname.endsWith('/post_media')).length,1);
-    assert.equal(calls.filter(url=>url.pathname.endsWith('/current_post_items')).length,1);
-    assert.equal(calls.filter(url=>url.pathname.endsWith('/saved_meals')).length,1);
-  } finally {if(previous===undefined)delete globalThis.window;else globalThis.window=previous;}
+    assert.deepEqual(result.map(post=>post.id),[uuid(1),uuid(2),uuid(1)]);assert.equal(calls.length,1);
+  } finally {globalThis.fetch=originalFetch;if(previous===undefined)delete globalThis.window;else globalThis.window=previous;}
 });
