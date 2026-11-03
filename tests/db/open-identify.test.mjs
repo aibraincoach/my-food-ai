@@ -8,7 +8,11 @@ test('identify preference defaults off and is scoped to the authenticated owner 
  const migration=readFileSync(new URL('../../supabase/migrations/0032_identify_provider.sql',import.meta.url),'utf8');
  const sql=`\\set ON_ERROR_STOP on
 begin;
+select exists(select 1 from information_schema.columns where table_schema='public' and table_name='profiles' and column_name='identify_provider') as identify_provider_installed \\gset
+\\if :identify_provider_installed
+\\else
 ${migration}
+\\endif
 grant select,update on public.profiles to authenticated;
 insert into auth.users(id,email) values ('10000000-0000-4000-8000-000000000001','open-one.invalid'),('10000000-0000-4000-8000-000000000002','open-two.invalid');
 insert into public.profiles(id,handle) values ('10000000-0000-4000-8000-000000000001','open_one'),('10000000-0000-4000-8000-000000000002','open_two');
