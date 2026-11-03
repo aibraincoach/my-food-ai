@@ -158,3 +158,11 @@ test('historical Pepsi Zero and Evian water without categories receive item inta
  assert.equal(isDrinkItem({...base,name:'Pepsi Zero cake'}),false);
  assert.equal(isDrinkItem({...base,name:'Evian bottled water biscuit'}),false);
 });
+
+test('alcohol keeps caffeine only when its name contains a caffeine source',()=>{
+ const make=(name,category,value)=>({id:'drink',name,food_category:category,portion_text:'220 ml',portion_grams:220,micronutrients:[{nutrientId:1057,nutrientName:'Caffeine',unitName:'MG',basis:'portion',value}]});
+ const [tiki]=drinksFromItems([make('Lime and rum tiki cocktail','Liquor and cocktails',15)]);
+ assert.equal(tiki.caffeineMg,0);assert.notEqual(tiki.kind,'caffeine');
+ assert.equal(drinksFromItems([make('Rum and coke','Liquor and cocktails',20)])[0].caffeineMg,20);
+ assert.equal(drinksFromItems([make('Coffee','Coffee',95)])[0].caffeineMg,95);
+});
