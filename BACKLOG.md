@@ -1,6 +1,6 @@
 # My Food AI — Backlog†
 
-Last edited: Tuesday 2026-11-03 at 21:46 WIB (UTC+07:00) by Claude, PM
+Last edited: Tuesday 2026-11-03 at 22:54 WIB (UTC+07:00) by Claude, PM
 
 ## Backlog for Owner
 
@@ -34,19 +34,39 @@ Every Run 7 and Run 8 timing check ran in emulation. No physical phone has teste
 
 Check on each of the owner's three phones, installed from the home screen, over mobile data: the feed and the first photo show within two seconds (#222, #305); the last feed shows at once and fresh posts appear without jumping (#304); a warm revisit reuses cached photos and the photos look acceptable (#305); the camera, the keyboard and a post from the phone work, with the right photo kept (#6); a post completes through the worker (#322). Done when each check passes on each of the three phones and each failure is reported to the coder with its number.
 
-## In Flight (Fleet 10)
+## In Flight
 
-### #382 The delete confirmation can disappear before the user confirms
+### #450 The README's test results are wrong and lint fails
 
-On production, the delete confirmation sometimes disappears when the page rerenders, before the user confirms.
+The judge-facing README reports 148 failing unit tests that came from a wrong command, and the coder now counts 56 unit failures and 2 lint errors on main.
 
-It happened without a DELETE request, and a local reproduction confirmed it. The likely cause is that the shared Sheet portal selects its own modal as its container. A local prototype exists and is unmerged. Done when the confirmation stays open through a rerender, and a delete, Undo and restore completes on production.
+The README (#444) shows the unit tests as 153 passed, 148 failed and 2 skipped. The command behind it runs the test files without "--import tsx", so each file fails at its first import; with it, nutrition-scaling.test.mjs gave 4 passed and 0 failed. Lint on main has 2 errors, both React rules, and the README publishes them. Done when the README's test row uses the command that loads the app's code, the false failure list is gone, lint has no errors, and the counts match a fresh run that does not touch the production database or the live USDA service.
 
-### #383 The Coffee tile on the drink sheet fails to post on production
+### #468 Big numbers lose their thousands separator on the desktop Days and Today
 
-Tapping the Coffee tile on the drink sheet does not post a coffee on production.
+The same total reads "34,811" in one place and "34811" in another on the desktop screens.
 
-Coffee returns 502 on production. The tile's food selector expects a USDA name containing "from grounds", but the cached food is "Beverages, coffee, brewed, prepared with tap water", so the valid food is rejected. The Water tiles also returned 502 on a database guard that migration 0037 (#380) fixed, and the tile tap was not repeated afterwards. Local checks missed both cases because they used synthetic nutrition fixtures. Done when the Coffee, Espresso, Tea, Coca-Cola and both Water tiles each post on production and Undo removes the post.
+In the PR #460 screenshots, the Days panel shows "Consumed: 34811 kcal" while its calendar cell shows "34,811", and the Today column uses the same formatter, so it would show "2118" beside the feed's "2,118". Done when every kcal total on desktop Days and Today is written the way the feed writes it.
+
+### #469 The desktop Home and New post are likely to break below 1280 by 800
+
+The layout was only tested at 1280 by 800, and the CSS suggests two other sizes break.
+
+Between 1024 and 1147 px wide, the feed and the Today column need 844 px of room and the layout gives them less, so the Today column should overflow or force sideways scrolling. The New post window is a fixed 620 px tall with padding, so a laptop browser about 650 px high, such as 1366 by 768, clips the top or the shutter. This comes from reading the CSS and was not run. Done when Home and New post are checked at 1024 by 700 and 1366 by 650 and nothing is clipped or scrolls sideways.
+
+### #470 On desktop, adding a photo to an existing post has no file picker
+
+Adding a photo to an existing post, including a not-eaten plate, gives a desktop user no way to choose a file.
+
+That flow keeps the old window, where "Choose from library" is hidden on desktop, so without a webcam the user sees only the camera area and nothing says that drag and drop or paste works. This predates PR #460. Done when, on desktop with no webcam, a photo can be added to an existing post from a file picker.
+
+### #473 The desktop Today column may not shrink at 1100 px wide
+
+The Today column beside the feed may keep a fixed width where it should shrink, so Home overflows sideways on a narrower window.
+
+In PR #462 the Today column sets a fixed width of 280 px and also a flexible width, and the review flagged that the fixed width may win. Nobody has checked the column at 1100 px. Done when Home at 1100 by 800 shows the feed and the Today column with no sideways scrolling.
+
+## Engineering backlog
 
 ### #368 Sign-ins through the app may share one rate limit across every user
 
@@ -65,12 +85,6 @@ All Run 8 evidence and the updated CLAUDE.md are in open docs PR #333, and the F
 After a photo is taken, the camera view stays on screen for a long time before the post shows in the feed. People will not wait that long.
 
 The capture sheet sends its post-created event and closes only after a successful post, so it waits on the upload and the server. The owner reports the wait on his phone. Observe first: time the tap to the sheet closing and to the new post showing, on a phone over mobile data, and record the size in bytes of each photo the phone uploads. Then close the sheet at the tap and show the new post at the top of the feed in its processing state while the upload finishes. Done when the sheet closes within one second of the tap on a throttled connection, the post appears at the top of the feed in its processing state, and a failed upload is shown on that post.
-
-### #371 Thumbs show "Feedback could not be saved." on production
-
-Tapping a thumb on a production post shows "Feedback could not be saved." The message appears twice, once over the photo and once under the buttons.
-
-Seen on the owner's phone after the Run 7 merges, where #314 shows an error and reverts when a verdict save fails. The cause of the failed save is unknown. Observe the verdict request and its response on production first. Done when a tap on either thumb saves on production, the saved verdict survives a reload, and a failed save shows one message.
 
 ### #372 Feed photos are too large for a phone on mobile data
 
@@ -96,41 +110,17 @@ In the 24 hours before Run 8, Supabase Storage served 2.99 GB across 35,048 requ
 
 docs/egress.md attributes the bytes to browser-class agents but not to which files (feed JPEGs, card PNGs or originals) or which clients. Much of it may be the coder's own 100-opening measurement runs. Log-ingestion bytes were never measured; only row counts were. Done when Storage egress is broken down by file kind and by client (test automation or real users), log-ingestion bytes are measured, and the largest real-user source is cut or shown to be small.
 
-### #376 Feed photos may download again after every session refresh
-
-Feed photos are cached for a year, but the cache varies by cookie, and Supabase's session cookie changes on every token refresh. The browser may download every photo again after each refresh.
-
-The service worker's own cache may cover this; nobody has checked it after a refresh. Done when a photo opened before a token refresh loads with no network bytes after it, or the cause is fixed.
-
 ### #222 The feed fails to open, and photos and cards take too long to appear
 
 On a large account the feed sometimes shows an error or never appears. When it opens, photos and cards take a long time to show, so the app feels broken and slow.
 
 Run 8 merged the cold-open fixes (#322, #323, #324, #326). In emulation, 100 of 100 browser openings passed and the five final cold photos took 1.48 to 1.83 seconds. The original failures (3 server errors and 15 blank feeds in 100 openings on the largest test account, 146 posts) never reproduced on Run 7's baseline, so their cause is not isolated; the worker's empty-claim loop is a suspect (separate item). The runtime logs return 403 for the coder, so the stack for digest 3642131196 exists only in the Vercel console. Done when the feed and the first photo show within two seconds on the owner's phone over mobile data.
 
-### #304 The app opens on the last feed it showed and updates behind it
-
-Opening the app shows a blank screen until the server answers. The owner sees ten seconds with nothing on it.
-
-The service worker (public/sw.js) loads each page from the network first. It never shows the last signed-in feed while it waits, and it falls back to a cached anonymous page only when the request fails outright. Show the last feed the phone received at once, then replace it with fresh posts when they arrive. Nothing the user taps waits for the refresh. Done when opening the installed app on a throttled connection shows the last feed within two seconds and the new posts appear behind it without the page jumping.
-
-### #305 The first card's photo loads first and the photos below it wait
-
-On a slow connection the first card's photo arrives late, and nobody has shown whether the photos below it are the reason.
-
-The sampled feed image is 152,193 bytes and its response carries no Cache-Control header (docs/media-loading.md), so several cards cost megabytes on mobile data and a revisit downloads them again. Load the first card's photo with priority, load the others as the user scrolls toward them, and let the phone keep photos between visits. Whether the feed already loads lazily is not known, so observe first. Done when the first photo of the feed shows within two seconds on mobile data, the photos below it do not delay it, and a second visit loads the same photos from the phone.
-
 ### #281 A Meta open-weight model identifies the food (hackathon bonus)
 
 The hackathon pays a $10,000 bonus for a build on a Meta open-weight model, and the app calls only the hosted Meta API.
 
 Use Muse Spark Open (meta-models/muse-spark-open-1026) through Baseten's OpenAI-compatible endpoint, https://inference.baseten.co/v1, for the identify-and-portions call. The key works only with that model and never goes in the repository, an issue or this backlog. Confirm the coder can sign in to Baseten with the key before the trial. The model always reasons, so check output caps that include reasoning. The Meta client hardcodes model names, and the ten-photo harness cannot choose a model host. Trial first in a throwaway clone that swaps only that call, and spend at most 5 US dollars. SAM and transcription stay on the Meta API, and the USDA lookup is unchanged. Compare the ten meal photos and one caption, "I ate half the rice", against the current path. A qualifying step must be a real, switchable path on main that a judge can reproduce, with the model ID logged. Cerebral Valley answered on Nov 3 that Muse Spark Open counts however it runs, including through Baseten. Done when a real, switchable path on main runs the identify-and-portions step on Muse Spark Open through Baseten, the model ID is logged, the results against the ten photos are in docs, and the owner has switched it on in Profile, logged a meal, and seen the Muse Spark Open line in that meal's post detail on production.
-
-### #316 The Facebook button is shown grayed out and does nothing
-
-A judge who taps the Facebook button on the sign-in page would see an error, because the Facebook app is in Development mode.
-
-Meta's app review takes longer than the event, so Facebook sign-in cannot go live (#114). Show the Facebook button on the sign-in and sign-up pages, grayed out, and do nothing when it is tapped. Done when the Facebook button on the sign-in and sign-up pages is grayed out, tapping it does nothing, and no error shows.
 
 ### #306 Every tap that saves shows its result at once
 
@@ -174,12 +164,6 @@ A photographed cola posted before Fleet 9 shows no caffeine on its card or in th
 
 The cola records hold 29.7 mg of USDA caffeine, but they have null beverage categories and no linked item-intake rows. #346 fixes new and re-analysed posts only, and no historical backfill ran. Done when existing photographed drink posts show their stored caffeine on the card and in the day's total.
 
-### #325 Regions and deployment timeouts are not declared in the repository
-
-The function and database regions are set in the Vercel and Supabase dashboards, so the repository cannot reproduce the production deployment.
-
-Vercel functions run in iad1 (Northern Virginia) and the database in us-east-2 (Ohio). The project's default function timeout is 300 seconds. The repository declares 300 seconds for the tick route and 20 seconds for the feed route, and vercel.json holds only its ignore rule, with no region. Done when both regions are documented and the repository's deployment and route declarations reproduce the intended production regions and timeouts.
-
 ### #323 Every protected page checks sign-in twice (part of #222)
 
 The middleware calls Supabase to verify the user. The home page then calls Supabase to verify the user again. That is two round trips on every page open, on top of the cold function boot.
@@ -192,77 +176,11 @@ The server renders the row of day bubbles with totals for the last 5 days. The b
 
 Run 8 merged one shared server read of today's totals. Final browser windows still made one or two day-total reads, so a single read across the server and the browser together is unproved. Done when a home open queries today's totals once across the server and the browser together.
 
-### #223 Check that an edited caption shows everywhere
-
-A caption could not be changed after posting; a stray "R" stayed on the owner's caption.
-
-"Edit caption" is in the post menu (PostMenu.tsx). Editing the caption does not re-run the estimate or change the items. Check it on production with a test account. Done when an edited caption shows its new text on the feed card, post detail, Days and Search after a reload on production.
-
-### #228 A meal summary may state numbers that differ from the calculated totals
-
-Written text on a card could state calorie or macro numbers that differ from the calculated totals.
-
-A ChatGPT code review claims the model-written summary is checked for wording but not compared with the calculated totals, and that a formatter that works from the totals already exists. Nobody has verified either claim. Read the summary code and try to produce a summary whose number differs from the totals, then report. If it can differ, publish only nutrition text formatted from the totals, leave the caption's own numbers (such as "two eggs") alone, and make every screen that shows these numbers agree after rounding. Done when a model summary saying 900 kcal against calculated totals of 600 kcal publishes 600 everywhere, or the report shows it cannot happen.
-
-### #272 The food matcher gives different answers for the same words
-
-The same words for a food can match different references from one call to the next, and one miss turns a whole meal's total into unavailable.
-
-The coder's probes recorded the matcher's reason for every match. Identical lowercase input selected different references across calls, so the variation is in the choice, not only in capital letters. The dipping sauce matched "Dip, NFS" at 432 kcal per 100 g, about 130 kcal for 30 g. A cheeseburger with lettuce, tomato, onion and pickle matched in one answer and not in another; its total of 1,296 kcal became unavailable, with a known subtotal of 467 kcal. A beef tenderloin steak topped with butter returned "Nutrition unavailable" on a production post, so the meal's total counted only its other foods. Sauteed spinach with corn returned "Nutrition unavailable" on another production post. Done when the same words give the same match on repeated calls.
-
-### #65 The pipeline's tests cannot run offline
-
-Nothing exercises the analysis pipeline without a live key and live credit.
-
-Meta's workshop repository ships a scripted offline model: a real OpenAI client whose requests never leave the machine. It answers from recorded outputs, including recorded SAM outputs, and it can refuse a request with a 400. A fake already exists in tests/fake-meta and MODEL\_API\_BASE\_URL is already wired into the client. Add the tests that use the fake. Done when the path from a posted meal to ready, a correction, a 400 failing a job at once and a 429 retrying all run in the test suite with no network and no key.
-
-### #66 Nothing tests that a brief Meta rate limit is retried
-
-A brief rate limit from the Meta Model API should not cost a job attempt, and no test shows that it does not.
-
-Meta's workshop client sets four retries and a 180-second timeout on the OpenAI SDK client, and the SDK waits as long as the API asks on a 429 or a 503. Our client already sets its retry count and timeout explicitly in client.ts. Add the missing test. Done when a test through the fake API shows that a 429 which carries a wait is retried inside one job attempt.
-
 ### #294 The app's words read naturally everywhere
 
 The leftovers label reads awkwardly, and nobody has reviewed the words in the rest of the app.
 
 The label "leftovers (not eaten)" reads awkwardly. The planner reviews the app's terms with AGY as a second opinion and lists each term, where it appears and a recommended replacement. The terms include the leftovers label, "Consumed", "Log again", "Saved meals", "Additional food", the needs-input question and the Days names. Every rule stays: consumed past tense, no target, goal, ring or percentage, and no "left" as a word for a remaining amount. Done when the list is reviewed, the owner has ruled on each term, and the wording is changed everywhere it appears.
-
-### #107 Every card has a visible way to open post detail
-
-A new user has to guess that tapping a card's text opens the meal's detail view. Nothing on the card says so.
-
-The detail view is where the SAM outlines, the full nutrition table and item editing live, so a user who never finds it never sees where the numbers came from. Add a "Details ›" control on every card, and make the photo and the analysis block tappable too. Done when a new user opens detail without being told how.
-
-### #175 Days shows days that hold only water or caffeine
-
-A day on which only water or caffeine was logged shows nothing on Days.
-
-Water and caffeine are intake entries and are allowed; weight and exercise are not. Done when such a day appears on Days with a marker.
-
-### #224 Times on a card are in the user's own time zone
-
-A post shows its time twice in two different zones, one labelled UTC and one in local time.
-
-Show every time in the device's time zone: card header, post detail, the thread and the Days stories. The current card and detail components show no UTC label, so the cause may have moved; observe first. Done when a post made at 5:20 PM in Japan reads 5:20 PM everywhere a time shows, and no screen labels a time UTC.
-
-### #215 Thumbs up and down respond at the tap
-
-The thumbs-up and thumbs-down buttons look dead when tapped, the change shows up some time later, and they feel clunky.
-
-The cause is unknown; a likely one is that the button waits for the server before it shows anything, so verify by observation. Show the pressed state at the tap, settle when the verdict is saved, and show an error and revert if the save fails. Done when a tap on either thumb changes the button visibly before the server answers on production, the saved verdict survives a reload, and a failed save is shown.
-
-### #29 Rendered results-card image added to each post's carousel
-
-Not every post has a photo, and a photo post loses its numbers once the analysis is one line of small type.
-
-results-card.tsx renders the card from the stored items and totals and stores it as a post\_media row of kind card. Caption-only posts use the card as their image. The card is a clean square with item names, portions and totals in the app's type and colours. Code renders it from data, not an image-generation model, because this build is limited to SAM 3.1, Muse Spark 1.3 and Muse Voice Transcribe 1.0 (plus Muse Spark Open if #281 lands). It uses consumed wording only, with no goal, rings or percentages, and is regenerated when a correction supersedes the items. Done when a logged photo shows the photo and then the card as swipeable slides, a caption-only post shows the card as its image, and a correction changes the numbers on the card.
-
-### #283 A saved card image shows its whole footer
-
-A results card saved as a PNG cuts off its footer.
-
-The clipping was seen after PR #271. Which footers clip, on which cards, and whether the card image shown in the feed clips too are not known. Observe first, then fix. Done when a saved card's PNG shows its footer in full for a meal with one photo and for a meal with leftovers photos.
 
 ### #193 Page looks for every screen against the designer's frames
 
@@ -276,19 +194,29 @@ Some controls feel dead or clunky, and nobody has measured how the app responds 
 
 The thumbs above are the first case the owner found. List every tappable control on each screen at 390x844, and for each record the time from the tap to a visible change, whether it shows a pressed state at once, whether it jumps or flickers while it loads, and whether it can be tapped twice. The coder measures in Chrome device emulation with the processor slowed and needs the production sign-in of #196. Done when the table lists every control with those four findings, the slow or dead ones are fixed or filed as items.
 
-### #23 One-time hint tooltips for the + sheet, the thread and the thumbs
+### #449 The food names do not show before the numbers on a new upload
 
-The three things a new user has never seen are the + sheet, the thread label and the thumbs, and nothing tells them what these are.
+A new upload shows no food names while its numbers are still being worked out.
 
-On the first visit to each, show a single dismissable tooltip in the style of a photo app's one-time hints, stored as seen in `profiles`. Never shown again, never a tour. Capture modes added a fourth hint type, so the count is no longer three. Done when a fresh account sees each hint exactly once across its first session.
+On a new upload, the card's reader drops the pending food names, so #307 fails there. Done when a new upload shows the foods the app has found while the numbers are still being worked out, on the owner's three phones.
 
-## Engineering backlog
+### #471 The recording account can hit the hourly model cap on camera
 
-### #450 The README tells judges that 148 unit tests fail
+A recording with several photos on one account can run into the model's hourly limit while the video runs.
 
-The judge-facing README states a test result that fails, so a judge opens a project that reads as broken.
+Photo drink identification adds one model call per staged photo, counted against the account's hourly cap, and the last audit on production got "You have made a lot of requests this hour." Done when a recording-length session of several photos on one account runs with no cap message, or the account's cap is raised before recording.
 
-The merged README (#444) reports the database tests as 32 passed, the unit tests as 153 passed, 148 failed and 2 skipped, and lint as 2 errors and 6 warnings. Done when the unit suite runs with no failures and lint has no errors, and the README's counts match a fresh run.
+### #348 A photographed drink's card was not proven on production
+
+The card for a photographed drink was closed without the production check its done condition asked for.
+
+The Fleet 10 report says the selected drink card on screen remains unproven. Done when a photographed drink shows the right drink card on production, on the owner's three phones.
+
+### #351 The drink tile sizes and order were closed on a local test only
+
+The tile sizes and order on the drink sheet were not checked on production.
+
+Only a local test backs the closure. Done when the drink sheet shows its tiles in the right sizes and order on production, on the owner's three phones.
 
 ### #451 Every barcode scan comes back as not in the database
 
@@ -342,7 +270,7 @@ On an iPhone with the keyboard up, the screen shows the photo and the Post butto
 
 The desktop app follows the old Round 4 frames, which the designer has replaced, so it no longer matches the design.
 
-The designer delivered Round 6 at 1280x800 and removed the old desktop frames 4a to 4f. Frame 6a, Home: the same left sidebar on every screen, with New post as its one dark button and Profile at the bottom; the keyboard shortcut list leaves the sidebar and opens with the ? key; a Today column beside the feed shows today's totals and posts, and a dated line with each day's total separates the days. Frame 6b, a post open: the post opens in a window over the dimmed feed, with the photo on the left and the totals, items, comments and comment field on the right, in place of the narrow side panel. Frame 6c, New post: one window holds both the webcam and the photo drop area, with no Webcam and Upload switch, and the same Text, Photo and Barcode modes as the phone. Frame 6d, Days: a bigger month calendar, with the chosen day's posts in a full-height panel on the right. Frames 6e and 6f, Search and Profile: the same centred column, with "Connect an agent" as a button under the user's name. The desktop differences in the earlier visual-difference issues (#353 to #367) are superseded by these frames. Done when the app at 1280x800 matches frames 6a to 6f and the phone layout is unchanged.
+The designer delivered Round 6 at 1280x800 and removed the old desktop frames 4a to 4f. Frame 6a, Home: the same left sidebar on every screen, with New post as its one dark button and Profile at the bottom; the keyboard shortcut list leaves the sidebar and opens with the ? key; a Today column beside the feed shows today's totals and posts, and a dated line with each day's total separates the days. Frame 6b, a post open: the post opens in a window over the dimmed feed, with the photo on the left and the totals, items, comments and comment field on the right, in place of the narrow side panel. Frame 6c, New post: one window holds both the webcam and the photo drop area, with no Webcam and Upload switch, and the same Text, Photo and Barcode modes as the phone. Frame 6d, Days: a bigger month calendar, with the chosen day's posts in a full-height panel on the right. Frames 6e and 6f, Search and Profile: the same centred column, with "Connect an agent" as a button under the user's name. The desktop differences in the earlier visual-difference issues (#353 to #367) are superseded by these frames. The first build (PR #460, merged) still differs from the frames: on Days the ‹ › buttons sit at the right instead of beside the month title, the search field is filled grey where the frame's is white with an ink border, and the focus outline on search rows and the Profile grid is wider than its row or tile. Done when the app at 1280x800 matches frames 6a to 6f and the phone layout is unchanged.
 
 ### #279 Sign-up and sign-in resist being hammered
 
