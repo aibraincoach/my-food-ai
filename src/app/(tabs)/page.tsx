@@ -15,10 +15,16 @@ async function HomeDays() {
   const cookieZone = (await cookies()).get("time-zone")?.value;
   const zone = validZone(cookieZone);
   const today = dateInZone(new Date(), zone);
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  const days = user ? await getLoggedDates(supabase, user.id, zone, shiftDay(today, -4), today) : [];
-  const totals = user ? await getDayTotals(supabase,user.id,zone,Array.from({length:5},(_,index)=>shiftDay(today,-index))) : [];
+  let days: {date: string}[] = [];
+  let totals: import("@/lib/posts/days").FeedDayTotal[] = [];
+  try {
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    [days, totals] = user ? await Promise.all([
+      getLoggedDates(supabase, user.id, zone, shiftDay(today, -4), today),
+      getDayTotals(supabase,user.id,zone,Array.from({length:5},(_,index)=>shiftDay(today,-index))),
+    ]) : [[], []];
+  } catch { /* Optional day reads must not take down Home. */ }
   return <DayRings days={days} totals={totals} today={today} zone={zone} zoneKnown={Boolean(cookieZone)} />;
 }
 

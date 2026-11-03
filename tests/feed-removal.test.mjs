@@ -9,14 +9,17 @@ test('retiring the last meal clears feed state and rejects an older hydration re
  const channel={on(){return this;},subscribe(){return this;}};
  const exports={};
  const code=ts.transpileModule(readFileSync(new URL('../src/components/Feed.tsx',import.meta.url),'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,jsx:ts.JsxEmit.ReactJSX,target:ts.ScriptTarget.ES2022}}).outputText;
- vm.runInNewContext(code,{exports,document:{hidden:false,addEventListener(){},removeEventListener(){}},CustomEvent:class{constructor(type,init){this.type=type;this.detail=init?.detail;}},
+ vm.runInNewContext(code,{exports,URLSearchParams,AbortSignal,fetch:async()=>({ok:true,json:async()=>forceReset?new Promise(resolve=>{resolvePage=resolve;}):({posts:[post],nextCursor:null,days:[]})}),document:{hidden:false,addEventListener(){},removeEventListener(){}},CustomEvent:class{constructor(type,init){this.type=type;this.detail=init?.detail;}},
  window:{addEventListener(type,fn){listeners.set(type,fn);},removeEventListener(){},dispatchEvent(){}},setInterval:fn=>{discoverTick=fn;return 1;},clearInterval(){},setTimeout:fn=>{retryTimers.push(fn);return retryTimers.length;},clearTimeout(){},
  require(name){
   if(name==='react')return{useEffect:fn=>effects.push(fn),useRef:current=>({current}),useState:initial=>[initial,state=>states.push(state)]};
   if(name==='react/jsx-runtime')return{jsx:()=>null,jsxs:()=>null};
   if(name==='next/navigation')return{useRouter:()=>({replace(){}})};
-  if(name==='@/lib/supabase/client')return{createClient:()=>({auth:{getUser:async()=>({data:{user:{id:'owner'}}})},channel:()=>channel,removeChannel(){},from(){return{select(){return this;},eq(){return this;},neq(){return this;},or(){return this;},order(){return this;},limit:async()=>({data:[{id:'new-page-meal'}],error:null})};}})};
+  if(name==='@/lib/supabase/client')return{createClient:()=>({auth:{getSession:async()=>({data:{session:{user:{id:'owner'}}}})},channel:()=>channel,removeChannel(){},from(){return{select(){return this;},eq(){return this;},neq(){return this;},or(){return this;},order(){return this;},limit:async()=>({data:[{id:'new-page-meal'}],error:null})};}})};
   if(name==='@/lib/posts/feed')return{FEED_PAGE_SIZE:20,getFeed:async()=>forceReset?new Promise(resolve=>{resolvePage=resolve;}):({posts:[post],nextCursor:null,days:[]}),getPostCard:(_db,id)=>new Promise((resolve,reject)=>{resolveCard=resolve;resolvers.set(id,resolve);rejectors.set(id,reject);})};
+  if(name==='@/lib/posts/upload-manager')return{uploadManager:{list:()=>[]}};
+  if(name==='@/components/useUploads')return{useUploads:()=>[]};
+  if(name==='@/components/useCachedFeed')return{useCachedFeed:()=>({cached:null,save(){}})};
   if(name==='@/lib/posts/feed-order')return{mergeFeedPosts:(baseline,promoted)=>[...new Map([...baseline,...promoted].map(row=>[row.id,row])).values()],discoveryLostOverlap:()=>forceReset};
   if(name==='@/lib/posts/days')return{dateInZone:value=>value.slice(0,10),shiftDay:day=>day,getDayTotals:async()=>[]};
   if(name==='@/lib/theme/tokens')return{tokens:{spacing:{'sheet-bottom':1}}};

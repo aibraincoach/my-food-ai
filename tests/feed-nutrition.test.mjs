@@ -14,3 +14,17 @@ test('feed and detail normalize the same legacy branded row',async()=>{
  assert.equal(card.items[0].calories,100);assert.equal(card.items[0].calories,detail[0].calories);
  assert.equal(card.items[0].protein_g,null);
 });
+
+test('batch nutrition preserves post ownership, legacy scaling and remainder fallback',async()=>{
+ const {createClient}=await import('@supabase/supabase-js');
+ const {getCurrentItemsForPosts}=await import('../src/lib/nutrition/totals.ts');
+ const calls=[];const db=createClient('https://fixture.invalid','fixture',{global:{fetch:async input=>{
+  const url=new URL(input instanceof Request?input.url:String(input));calls.push(url);
+  if(url.pathname.endsWith('/post_items'))return Response.json([{id:'parent',post_id:'post-a',portion_grams:100,item_nutrition:{post_item_id:'parent',calories:200,micronutrients:[]}}]);
+  return Response.json([{id:'a',post_id:'post-a',name:'Food A',portion_grams:50,not_eaten_grams:50,supersedes:'parent',item_nutrition:{post_item_id:'a',calories:333,micronutrients:[{nutrientId:1008,nutrientName:'Energy',unitName:'KCAL',value:200}]}},{id:'b',post_id:'post-b',name:'Food B',portion_grams:20,item_nutrition:null}]);
+ }}});
+ const result=await getCurrentItemsForPosts(db,['post-a','post-b']);
+ assert.equal(result.get('post-a')[0].calories,100);assert.equal(result.get('post-a')[0].not_eaten_calories,100);
+ assert.equal(result.get('post-b')[0].calories,null);assert.equal(result.get('post-b')[0].name,'Food B');
+ assert.equal(calls.length,2);assert.equal(calls[1].searchParams.get('post_id'),'in.(post-a,post-b)');
+});

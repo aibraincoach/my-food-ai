@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
-import { FEED_PAGE_SIZE, VISIBLE_MEAL_FILTER, getFeed, getPostCard, type FeedPost } from "@/lib/posts/feed";
+import { FEED_PAGE_SIZE, VISIBLE_MEAL_FILTER, getPostCard, type FeedPost } from "@/lib/posts/feed";
 import { tokens } from "@/lib/theme/tokens";
 import DayHeader from "@/components/DayHeader";
 import { dateInZone, shiftDay, getDayTotals, type FeedDayTotal } from "@/lib/posts/days";
@@ -13,6 +13,8 @@ import PostCard from "@/components/PostCard";
 import RealtimePost from "@/components/RealtimePost";
 import { mergeFeedPosts, discoveryLostOverlap } from "@/lib/posts/feed-order";
 
+import {useCachedFeed} from "@/components/useCachedFeed";
+
 type State = { kind: "loading" } | { kind: "error" } | { kind: "ready"; posts: FeedPost[]; days: FeedDayTotal[] };
 const DISCOVERY_INTERVAL_MS = 2000;
 const RETRY_INTERVAL_MS = 1000;
@@ -21,6 +23,13 @@ const RETRY_INTERVAL_MS = 1000;
 // Per-card refreshes remain in RealtimePost, so discovery fetches only IDs.
 export default function Feed() {
   const router = useRouter();
+  const [cacheUserId, setCacheUserId] = useState<string | null>(null);
+  const cache = useCachedFeed(cacheUserId);
+  const cacheRef = useRef(cache);
+  useEffect(() => { cacheRef.current = cache; }, [cache]);
+  const retryInitial = useRef<() => void>(() => {});
+  const cachedListener = useRef<(posts: FeedPost[]) => void>(() => {});
+  useEffect(() => { if (cache.cached) cachedListener.current(cache.cached); }, [cache.cached]);
   const uploads=useUploads().filter(upload=>upload.posted);
   const sentinel = useRef<HTMLDivElement>(null);
   const loadMore = useRef<() => void>(()=>{});
@@ -59,22 +68,22 @@ export default function Feed() {
       if (loaded || promoted.length) setState({ kind: "ready", posts, days: [...dayTotals.values()] });
     };
 
-    const refreshTotals = async () => {
+    const refreshTotals = async (dates: string[]) => {
       if (!userId) return;
       const version = ++totalsGeneration;
-      const dates = [...uploadDaysToRead,...[...baseline, ...cards.values()].filter(post => !unavailable.has(post.id)).map(post => dateInZone(post.eaten_at, zone))];
       try {
         const days = await getDayTotals(supabase, userId, zone, dates);
         if (!live || version !== totalsGeneration) return;
         mergeDays(days); publish();
       } catch { /* Keep the last complete totals; the next readiness event retries. */ }
     };
-    const uploading=(event:Event)=>{const detail=(event as CustomEvent<UploadState>).detail;if(detail.posted){const day=dateInZone(detail.eatenAt,zone);if(!uploadDaysToRead.has(day)){uploadDaysToRead.add(day);void refreshTotals();}}};
+    const uploading=(event:Event)=>{const detail=(event as CustomEvent<UploadState>).detail;if(detail.posted){const day=dateInZone(detail.eatenAt,zone);if(!uploadDaysToRead.has(day)){uploadDaysToRead.add(day);void refreshTotals([day]);}}};
     window.addEventListener('upload-started',uploading);
-    const readyEvent = (event:Event) => { void refreshTotals();const id=(event as CustomEvent<{id?:string}>).detail?.id;if(id)requestCard(id); };
+    const readyEvent = (event:Event) => { const id=(event as CustomEvent<{id?:string}>).detail?.id;if(id)requestCard(id); };
     window.addEventListener("post-ready", readyEvent);
     const removeCard = (id:string) => {
       const interrupted=[...pending.keys()].filter(other=>other!==id);
+      const removed = cards.get(id) ?? baseline.find(post => post.id === id);
       deferred.delete(id);
       unavailable.add(id);generation++;
       baseline=baseline.filter(post=>post.id!==id);cards.delete(id);
@@ -82,7 +91,7 @@ export default function Feed() {
       // Old pages cannot resurrect a hidden card. Restart unrelated reads:
       // settled meals may be older than the bounded discovery window.
       pending.clear();for(const retry of timers)clearTimeout(retry);timers.clear();
-      loadingMore=false;publish();void refreshTotals();
+      loadingMore=false;publish();if(removed)void refreshTotals([dateInZone(removed.eaten_at,zone)]);
       for(const other of interrupted)requestCard(other);
     };
     const unavailableEvent=(event:Event)=>{
@@ -91,6 +100,17 @@ export default function Feed() {
     };
     window.addEventListener("post-unavailable",unavailableEvent);
     window.addEventListener("post-deleted",unavailableEvent);
+
+    const restore = (event: Event) => {
+      const detail = (event as CustomEvent<{id?: string; post?: FeedPost}>).detail;
+      if (!detail?.id) return;
+      if (!detail.post) { unavailable.delete(detail.id); requestCard(detail.id); return; }
+      if (detail.id !== detail.post.id) return;
+      unavailable.delete(detail.id); cards.set(detail.id, detail.post);
+      baseline = mergeFeedPosts(baseline, [detail.post]); publish();
+      void refreshTotals([dateInZone(detail.post.eaten_at, zone)]);
+    };
+    window.addEventListener('post-restore', restore);
 
     const requestCard = (id: string, local = false) => {
       if (!live) return;
@@ -118,8 +138,9 @@ export default function Feed() {
           if(card.status==="ready"||card.status==="failed")answered.delete(id);
           unavailable.delete(id);
           card.day = dateInZone(card.eaten_at, zone);
+          const previous = cards.get(id) ?? baseline.find(post => post.id === id);
           cards.set(id, card);
-          void refreshTotals();
+          void refreshTotals([...new Set([card.eaten_at, ...(previous ? [previous.eaten_at] : [])].map(value => dateInZone(value, zone)))]);
           publish();
           // A local completion event can arrive while the INSERT read still
           // sees unuploaded media. Always read again after that event.
@@ -158,35 +179,52 @@ export default function Feed() {
     window.addEventListener("post-answer-resume",resume);
     window.addEventListener("post-settled",created);
 
+    const readPage = async (before: string | null, limit = FEED_PAGE_SIZE) => {
+      const params = new URLSearchParams({tz: zone, limit: String(limit)});
+      if (before) params.set('cursor', before);
+      const response = await fetch(`/api/feed?${params}`, {signal: AbortSignal.timeout(15000), cache: 'no-store'});
+      if (response.status === 401) { router.replace('/sign-in'); throw new Error('Sign in required.'); }
+      if (!response.ok) throw new Error('Feed could not be loaded.');
+      return await response.json() as {posts: FeedPost[]; nextCursor: string | null; days: FeedDayTotal[]};
+    };
+    cachedListener.current = posts => {
+      if (!live || loaded || !userId) return;
+      baseline = posts; loaded = true; publish();
+      // Cached cards are visible, but the fresh first load still owns pagination.
+      loaded = false;
+    };
     const load = async () => {
       initialLoading = true;
       const loadGeneration=generation;
       try {
-        const { data: { user } } = await supabase.auth.getUser();
+        const { data: {session} } = await supabase.auth.getSession();
+        userId = session?.user.id ?? null;
+        setCacheUserId(userId);
+        const user = session?.user;
         if (!live) return;
         if (!user) { router.replace("/sign-in"); return; }
         userId = user.id;
-        const page = await getFeed(supabase,user.id,null,zone);
+        const page = await readPage(null,6);
         if(!live||loadGeneration!==generation)return;
         mergeDays(page.days);
         baseline = page.posts.filter(post=>!unavailable.has(post.id));
+        cacheRef.current.save(baseline);
         cursor = page.nextCursor;
         loaded = true;
         publish();
-        if(uploadDaysToRead.size)void refreshTotals();
+        if(uploadDaysToRead.size)void refreshTotals([...uploadDaysToRead]);
       } catch {
-        if (live && !cards.size) setState({ kind: "error" });
+        if (live && !cards.size && !baseline.length) setState({ kind: "error" });
       } finally { initialLoading = false; }
     };
 
+    retryInitial.current = () => { void load(); };
     loadMore.current = () => {
       if(!cursor || loadingMore || !live) return;
       loadingMore=true;
       const pageGeneration = generation;
       setPageError(false);
-      void fetch(`/api/feed?cursor=${encodeURIComponent(cursor)}&tz=${encodeURIComponent(zone)}`).then(async response=>{
-        if(!response.ok) throw new Error("Feed page failed.");
-        const page = await response.json() as {posts:FeedPost[];nextCursor:string|null;days:FeedDayTotal[]};
+      void readPage(cursor).then(page=>{
         if(!live || pageGeneration !== generation) return;
         mergeDays(page.days);
         baseline = mergeFeedPosts(baseline, page.posts.filter(post=>!unavailable.has(post.id)));
@@ -213,7 +251,7 @@ export default function Feed() {
         // Discovery lists the newest-created meals while the baseline is ordered by when they were eaten, so a
         // hydrated back-dated card counts as known: overlap is judged against baseline and cards together.
         if (discoveryLostOverlap([...baseline, ...cards.values()], data ?? [], FEED_PAGE_SIZE)) {
-          const page = await getFeed(supabase, userId,null,zone);
+          const page = await readPage(null,6);
           if (!live || discoveryGeneration!==generation) return;
           // A promoted read may have completed while the page was loading.
           // Refresh it after installing the page too, even outside this window.
@@ -255,6 +293,8 @@ export default function Feed() {
 
     return () => {
       live = false;
+      cachedListener.current = () => {};
+      window.removeEventListener("post-restore", restore);
       window.removeEventListener("post-ready", readyEvent);
       window.removeEventListener('upload-started',uploading);
       clearInterval(timer);
@@ -294,7 +334,7 @@ export default function Feed() {
   const localCards=uploads.map(upload=>{const server=state.kind==='ready'?state.posts.find(post=>post.id===upload.postId):undefined;const seed:FeedPost=server??{id:upload.postId??upload.operationId,caption:upload.caption,eaten_at:upload.eatenAt,created_at:upload.eatenAt,status:"queued",photoUrl:upload.previewUrl,slides:[],items:[]};const zone=Intl.DateTimeFormat().resolvedOptions().timeZone;const day=dateInZone(seed.eaten_at,zone);const header=!uploadDays.has(day);const measured=state.kind==='ready'?state.days.find(value=>value.day===day):undefined;const measuredTotal=measured?{...measured,ready:measured.ready||measured.kcal===0}:undefined;if(header)uploadDays.add(day);return <UploadHydratedCard key={upload.operationId} post={seed} upload={upload} header={header?<DayHeader day={day} zone={zone} empty={false} total={measuredTotal}/>:null}/>;});
   if (state.kind === "loading"&&localCards.length)return <div>{localCards}{null}</div>;
   if (state.kind === "loading") return <p className="px-screen-x text-detail text-muted" role="status">Loading feed…</p>;
-  if (state.kind === "error") return <div>{localCards}<p className="px-screen-x text-detail text-muted" role="alert">Could not load meals.</p></div>;
+  if (state.kind === "error") return <div>{localCards}<p className="px-screen-x text-detail text-muted" role="alert">The feed could not be loaded.</p><button type="button" className="min-h-tap px-screen-x text-text" onClick={() => retryInitial.current()}>Try again</button></div>;
   if (!state.posts.length&&localCards.length)return <div>{localCards}{null}</div>;
   if (!state.posts.length) return <div className="flex flex-1 items-center justify-center" style={{ paddingBottom: tokens.spacing['sheet-bottom'] * 3 }}>
     <p className="text-sheet-title font-normal text-muted">Post your first meal</p>
@@ -313,7 +353,7 @@ export default function Feed() {
     {localCards}
     {days.map(day => <section key={day} aria-label={day} className="relative pb-card-gap">
       {!uploadDays.has(day)&&<DayHeader day={day} zone={zone} empty={!groups.has(day)} total={totals.get(day)} />}
-      {groups.has(day) ? <div className="flex flex-col gap-card-gap pt-sheet-top">{groups.get(day)!.map((post) => <div key={uploads.find(upload=>upload.postId===post.id)?.operationId??post.id} data-desktop-post={post.id} tabIndex={-1}><RealtimePost initial={post} renderCard={(fresh) => <PostCard post={fresh} upload={uploads.find(upload=>upload.postId===post.id)}
+      {groups.has(day) ? <div className="flex flex-col gap-card-gap pt-sheet-top">{groups.get(day)!.map((post) => <div key={uploads.find(upload=>upload.postId===post.id)?.operationId??post.id} data-desktop-post={post.id} tabIndex={-1}><RealtimePost initial={post} renderCard={(fresh) => <PostCard priority={state.posts[0]?.id === post.id} post={fresh} upload={uploads.find(upload=>upload.postId===post.id)}
          />} /></div>)}</div> : null}
     </section>)}
     {pageError ? <div className="px-screen-x text-detail text-muted" role="alert">

@@ -3,7 +3,7 @@ import { dateInZone, getDayTotals, type FeedDayTotal } from "./days";
 import { encodeFeedCursor, parseFeedCursor } from "./feed-cursor";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { feedCopyUrl } from "@/lib/media/media-url";
-import { getCurrentItems, type Numeric } from "@/lib/nutrition/totals";
+import { getCurrentItems, getCurrentItemsForPosts, type Numeric, type CurrentItem } from "@/lib/nutrition/totals";
 
 export type PostStatus =
   | "queued"
@@ -30,6 +30,7 @@ export interface FeedItem {
 }
 
 export interface FeedPost {
+  fail_reason?: string | null;
   agentName?: string | null;
   agent_token_id?: string | null;
   saved_meal_id?:string|null;
@@ -72,6 +73,7 @@ function feedPathFor(storagePath: string): string {
 }
 
 interface PostRow {
+  fail_reason?: string | null;
   agent_token_id?: string | null;
   agent_tokens?: { name: string } | { name: string }[] | null;
   user_id: string;
@@ -110,6 +112,7 @@ async function toFeedPost(
   if(savedError)throw new Error('Saved meal state could not be read.');
   const revisionAfter=row.status==="ready"?await latestRevision(supabase,row.id):null;
   return {
+    fail_reason: row.fail_reason ?? null,
     agentName: (Array.isArray(row.agent_tokens) ? row.agent_tokens[0] : row.agent_tokens)?.name ?? null,
     agent_token_id: row.agent_token_id ?? null,
     saved_meal_id:saved?.id??null,
@@ -129,6 +132,61 @@ async function toFeedPost(
   };
 }
 
+// Batch optional card fields by page; a failed auxiliary read never strands Home.
+async function optionalRead<T>(stage: string, read: () => PromiseLike<T>, fallback: T): Promise<T> {
+  const started = Date.now();
+  let timeout: ReturnType<typeof setTimeout> | undefined;
+  try {
+    return await Promise.race([Promise.resolve().then(read), new Promise<T>((_, reject) => {
+      timeout = setTimeout(() => reject(new Error('Feed read timed out.')), 8000);
+    })]);
+  } catch { return fallback; }
+  finally { if (timeout) clearTimeout(timeout); if (typeof window === 'undefined') console.info(`feed read ${stage} ${Date.now() - started}`); }
+}
+
+export async function toFeedPosts(db: SupabaseClient, rows: PostRow[], zone = "UTC"): Promise<FeedPost[]> {
+  if (!rows.length) return [];
+  const ids = rows.map(row => row.id), ready = rows.filter(row => row.status === 'ready');
+  const revisions = () => Promise.all(ready.map(row => optionalRead('revision', () => latestRevision(db, row.id), null)));
+  // Preserve the revision snapshot fence around nutrition reads, so a concurrent
+  // correction cannot attach feedback to nutrition from another revision.
+  const before = await revisions();
+  const [media, nutrition, saved] = await Promise.all([
+    optionalRead('media', async () => {
+      const result = await db.from('post_media').select('id,post_id,storage_path,kind,not_eaten,position').in('post_id', ids).order('position').abortSignal(AbortSignal.timeout(8000));
+      if (result.error) throw result.error; return result.data ?? [];
+    }, []),
+    optionalRead('items', () => getCurrentItemsForPosts(db, ready.map(row => row.id)), new Map<string, CurrentItem[]>()),
+    optionalRead('saved', async () => {
+      const result = await db.from('saved_meals').select('id,source_post_id').in('source_post_id', ids).abortSignal(AbortSignal.timeout(8000));
+      if (result.error) throw result.error; return result.data ?? [];
+    }, []),
+  ]);
+  const paths = [...new Set(media.map(entry => entry.kind === 'card' ? entry.storage_path : feedPathFor(entry.storage_path)))];
+  const urls = await optionalRead('signed-urls', async () => {
+    if (!paths.length) return new Map<string, string>();
+    const result = await db.storage.from('media').createSignedUrls(paths, 3600);
+    if (result.error) throw result.error;
+    return new Map((result.data ?? []).filter(entry => entry.signedUrl && !entry.error).map(entry => [entry.path!, entry.signedUrl]));
+  }, new Map<string, string>());
+  const after = await revisions();
+  const revisionById = new Map(ready.map((row, index) => [row.id, before[index] && JSON.stringify(before[index]) === JSON.stringify(after[index]) ? after[index] : null]));
+  return rows.map(row => {
+    const items = nutrition.get(row.id) ?? [];
+    const slides = media.filter(entry => entry.post_id === row.id).flatMap(entry => {
+      const url = urls.get(entry.kind === 'card' ? entry.storage_path : feedPathFor(entry.storage_path));
+      return url ? [{ id: entry.id, url, kind: entry.kind as 'photo' | 'card', not_eaten: Boolean(entry.not_eaten) }] : [];
+    });
+    const revision = revisionById.get(row.id);
+    return { fail_reason: row.fail_reason ?? null, agentName: (Array.isArray(row.agent_tokens) ? row.agent_tokens[0] : row.agent_tokens)?.name ?? null,
+      agent_token_id: row.agent_token_id ?? null, saved_meal_id: saved.find(entry => entry.source_post_id === row.id)?.id ?? null,
+      modelCommentId: revision?.modelCommentId ?? null, analysisFingerprint: revision?.fingerprint ?? null,
+      day: dateInZone(row.eaten_at, zone), gtin: items.find(item => item.gtin)?.gtin,
+      id: row.id, caption: row.caption, eaten_at: row.eaten_at, status: row.status, created_at: row.created_at,
+      photoUrl: slides[0]?.url ?? null, slides, items, count_text: items[0]?.count_text ?? null };
+  });
+}
+
 export const VISIBLE_MEAL_FILTER="needs_input.is.null,status.eq.failed";
 
 // Stable keyset pagination by eaten_at (when the meal was eaten): the ID breaks ties between equal timestamps.
@@ -136,26 +194,31 @@ export async function getFeed(
   supabase: SupabaseClient,
   userId: string,
   before: string | null = null,
-  zone = "UTC"
+  zone = "UTC",
+  limit = FEED_PAGE_SIZE
 ): Promise<{posts: FeedPost[]; nextCursor:string|null; days: FeedDayTotal[]}> {
   const cursor = before === null ? null : parseFeedCursor(before);
+  limit = Math.max(1, Math.min(FEED_PAGE_SIZE, Math.trunc(limit) || FEED_PAGE_SIZE));
   let query = supabase
     .from("posts")
-    .select("id,user_id,caption,eaten_at,status,created_at,agent_token_id,agent_tokens(name)")
+    .select("id,user_id,caption,eaten_at,status,created_at,fail_reason,agent_token_id,agent_tokens(name)")
     .eq("user_id", userId).neq("status","needs_input")
     .order("eaten_at", { ascending: false })
     .order("id", { ascending: false })
-    .limit(FEED_PAGE_SIZE + 1);
+    .limit(limit + 1);
   query = cursor ? query.or(`and(or(${VISIBLE_MEAL_FILTER}),or(eaten_at.lt.${cursor.eaten_at},and(eaten_at.eq.${cursor.eaten_at},id.lt.${cursor.id})))`) : query.or(VISIBLE_MEAL_FILTER);
-  const {data,error} = await query;
+  const {data,error} = await query.abortSignal(AbortSignal.timeout(8000));
   if (error) {
     throw new Error(error.message);
   }
   const rows = (data ?? []) as PostRow[];
-  const page = rows.slice(0,FEED_PAGE_SIZE);
-  const posts = await Promise.all(page.map((row)=>toFeedPost(supabase,row,zone)));
-  const hydration = await getPostHydrationData(supabase, userId, posts.map(post => ({...post,items:post.items.map(item=>({...item,micronutrients:item.micronutrients??[]}))})), zone);
-  return {posts:posts.map(post => ({ ...post, ...hydration[post.id] })), days:await getDayTotals(supabase,userId,zone,page.map(row=>dateInZone(row.eaten_at,zone))), nextCursor: rows.length>FEED_PAGE_SIZE ? encodeFeedCursor(page.at(-1)!) : null};
+  const page = rows.slice(0,limit);
+  const posts = await toFeedPosts(supabase,page,zone);
+  const [hydration, days] = await Promise.all([
+    optionalRead('hydration', () => getPostHydrationData(supabase, userId, posts.map(post => ({...post,items:post.items.map(item=>({...item,micronutrients:item.micronutrients??[]}))})), zone), {}),
+    optionalRead('day-totals', () => getDayTotals(supabase,userId,zone,page.map(row=>dateInZone(row.eaten_at,zone))), []),
+  ]);
+  return {posts:posts.map(post => ({ ...post, ...hydration[post.id] })), days, nextCursor: rows.length>limit ? encodeFeedCursor(page.at(-1)!) : null};
 }
 
 // One card's worth of data, used for realtime refreshes and polling.
@@ -168,7 +231,7 @@ export async function getPostCard(
 ): Promise<FeedPost | null> {
   const { data, error } = await supabase
     .from("posts")
-    .select("id,user_id,caption,eaten_at,status,created_at,agent_token_id,agent_tokens(name)")
+    .select("id,user_id,caption,eaten_at,status,created_at,fail_reason,agent_token_id,agent_tokens(name)")
     .eq("id", postId).or(VISIBLE_MEAL_FILTER)
     .maybeSingle<PostRow>();
   if (error) {
@@ -176,7 +239,7 @@ export async function getPostCard(
   }
   if (!data) return null;
   const post = await toFeedPost(supabase, data, zone);
-  const hydration = await getPostHydrationData(supabase, data.user_id, [{...post,items:post.items.map(item=>({...item,micronutrients:item.micronutrients??[]}))}], zone);
+  const hydration = await optionalRead('hydration', () => getPostHydrationData(supabase, data.user_id, [{...post,items:post.items.map(item=>({...item,micronutrients:item.micronutrients??[]}))}], zone), {});
   return { ...post, ...hydration[post.id] };
 }
 
@@ -184,7 +247,7 @@ export async function getPostCard(
 // every result on a page, just like the Home feed.
 export async function getPostCards(supabase: SupabaseClient, postIds: string[], zone = "UTC"): Promise<FeedPost[]> {
   if (!postIds.length) return [];
-  const { data, error } = await supabase.from("posts").select("id,user_id,caption,eaten_at,status,created_at,agent_token_id,agent_tokens(name)")
+  const { data, error } = await supabase.from("posts").select("id,user_id,caption,eaten_at,status,created_at,fail_reason,agent_token_id,agent_tokens(name)")
     .in("id", postIds).or(VISIBLE_MEAL_FILTER);
   if (error) throw new Error("Meals could not be loaded.");
   const rows = (data ?? []) as PostRow[];

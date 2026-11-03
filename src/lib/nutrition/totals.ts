@@ -227,3 +227,57 @@ export async function getCurrentItems(supabase: SupabaseClient, postId: string, 
       micronutrients: normalized?.micronutrients ?? [], source_ref: normalized?.source_ref ?? null, food_category: normalized?.food_category ?? null };
   });
 }
+
+export const CURRENT_ITEM_COLUMNS = "id,post_id,name,portion_text,portion_grams,box,mask_path,source,gtin,supersedes,not_eaten_grams,not_eaten_calories,count_text,not_eaten_count_text";
+export const CURRENT_NUTRITION_COLUMNS = "post_item_id,calories,protein_g,carbs_g,fat_g,fibre_g,sugar_g,sodium_mg,micronutrients,source_ref,food_category";
+type BatchedItem = Omit<CurrentItem, keyof NutritionLike | 'micronutrients' | 'source_ref'> & {
+  post_id: string; item_nutrition?: NutritionRow | NutritionRow[] | null;
+};
+
+// The same normalization and remainder fallback as getCurrentItems, with owner
+// RLS retained on the embedded item_nutrition relationship.
+export function mapCurrentItems(data: BatchedItem[], priorCalories = new Map<string, number | null>()): CurrentItem[] {
+  return data.map(item => {
+    const row = Array.isArray(item.item_nutrition) ? item.item_nutrition[0] : item.item_nutrition;
+    const normalized = row ? normalizeStoredNutrition(row, item.portion_grams) : null;
+    const original = priorCalories.get(item.supersedes ?? '');
+    const originalGrams = toNumber(item.portion_grams) + Number(item.not_eaten_grams ?? 0);
+    const notEatenCalories = item.not_eaten_calories !== undefined ? item.not_eaten_calories : item.not_eaten_grams == null ? undefined : item.not_eaten_grams === 0 ? 0 : original == null || originalGrams <= 0 ? null : original * item.not_eaten_grams / originalGrams;
+    return { ...item, not_eaten_calories: notEatenCalories, calories: normalized?.calories ?? null,
+      protein_g: normalized?.protein_g ?? null, carbs_g: normalized?.carbs_g ?? null, fat_g: normalized?.fat_g ?? null,
+      fibre_g: normalized?.fibre_g ?? null, sugar_g: normalized?.sugar_g ?? null, sodium_mg: normalized?.sodium_mg ?? null,
+      micronutrients: normalized?.micronutrients ?? [], source_ref: normalized?.source_ref ?? null, food_category: normalized?.food_category ?? null };
+  });
+}
+
+export async function getCurrentItemsForPosts(db: SupabaseClient, ids: string[]): Promise<Map<string, CurrentItem[]>> {
+  const result = new Map<string, CurrentItem[]>(ids.map(id => [id, []]));
+  if (!ids.length) return result;
+  const items: BatchedItem[] = [];
+  for (let offset = 0; ; offset += 1000) {
+    const read = (columns: string) => db.from('current_post_items').select(`${columns},item_nutrition(${CURRENT_NUTRITION_COLUMNS})`)
+      .in('post_id', ids).order('created_at').order('id').range(offset, offset + 999).abortSignal(AbortSignal.timeout(8000));
+    let snapshot = await read(CURRENT_ITEM_COLUMNS);
+    if (snapshot.error?.code === '42703' && snapshot.error.message.includes('not_eaten_calories')) snapshot = await read(CURRENT_ITEM_COLUMNS.replace(',not_eaten_calories', ''));
+    if (snapshot.error) throw ioError('Current meal nutrition could not be read.', snapshot.error, snapshot.status);
+    items.push(...(snapshot.data ?? []) as unknown as BatchedItem[]);
+    if ((snapshot.data?.length ?? 0) < 1000) break;
+  }
+  const ancestors = [...new Set(items.filter(item => item.not_eaten_grams != null && item.not_eaten_calories === undefined && item.supersedes).map(item => item.supersedes!))];
+  const prior = new Map<string, number | null>();
+  if (ancestors.length) {
+    const { data, error, status } = await db.from('post_items').select(`id,post_id,portion_grams,item_nutrition(${CURRENT_NUTRITION_COLUMNS})`)
+      .in('id', ancestors).in('post_id', ids).abortSignal(AbortSignal.timeout(8000));
+    if (error) throw ioError('Original meal nutrition could not be read.', error, status);
+    for (const parent of data ?? []) {
+      const row = Array.isArray(parent.item_nutrition) ? parent.item_nutrition[0] : parent.item_nutrition;
+      const calories = row ? normalizeStoredNutrition(row as NutritionRow, parent.portion_grams).calories : null;
+      prior.set(parent.id, calories == null ? null : toNumber(calories));
+    }
+  }
+  for (const item of mapCurrentItems(items, prior)) {
+    const postId = (item as CurrentItem & { post_id: string }).post_id;
+    result.get(postId)?.push(item);
+  }
+  return result;
+}
