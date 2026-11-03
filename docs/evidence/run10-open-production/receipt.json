@@ -1,0 +1,65 @@
+{
+  "before": {
+    "id": "dpl_FQqdV7yjPrGgfiR7MkGujdNnkNgX",
+    "state": "READY",
+    "sha": "6f857ac4bb8e906cf6b24f0ab3227158236e69ef",
+    "readyAt": "2026-11-03T12:47:56.081Z",
+    "createdAt": "2026-11-03T12:47:27.008Z",
+    "url": "my-food-m4x33u5nq-aibraincoachs-projects.vercel.app",
+    "observedAt": "2026-11-03T12:56:02.530Z"
+  },
+  "after": {
+    "id": "dpl_FQqdV7yjPrGgfiR7MkGujdNnkNgX",
+    "state": "READY",
+    "sha": "6f857ac4bb8e906cf6b24f0ab3227158236e69ef",
+    "readyAt": "2026-11-03T12:47:56.081Z",
+    "createdAt": "2026-11-03T12:47:27.008Z",
+    "url": "my-food-m4x33u5nq-aibraincoachs-projects.vercel.app",
+    "observedAt": "2026-11-03T12:56:28.013Z"
+  },
+  "provider": {
+    "identity": {
+      "identify_model": "meta-models/muse-spark-open-1026",
+      "identify_host": "baseten"
+    },
+    "calls": [
+      {
+        "kind": "spark_identify",
+        "model": "meta-models/muse-spark-open-1026",
+        "host": "baseten",
+        "error": null,
+        "duration_ms": 4031
+      },
+      {
+        "kind": "fdc",
+        "model": null,
+        "host": "meta",
+        "error": null,
+        "duration_ms": 8581
+      },
+      {
+        "kind": "fdc",
+        "model": null,
+        "host": "meta",
+        "error": null,
+        "duration_ms": 1
+      },
+      {
+        "kind": "spark_search",
+        "model": "muse-spark-1.3",
+        "host": "meta",
+        "error": null,
+        "duration_ms": 8379
+      }
+    ]
+  },
+  "cleanup": {
+    "at": "2026-11-03T12:56:28.962Z",
+    "postOperationCount": 1,
+    "standaloneIntakeCount": 0,
+    "copyOperationCount": 0,
+    "drinkOperationCount": 0,
+    "preferencesRestored": true,
+    "issues": []
+  }
+}
