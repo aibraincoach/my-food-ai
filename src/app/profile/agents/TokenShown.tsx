@@ -1,10 +1,12 @@
 'use client';
+import {useDesktop} from '@/lib/ui/use-desktop';
 import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { TopBar } from '@/components/ui/TopBar';
 import { Button } from '@/components/ui/Button';
 import { Sheet } from '@/components/ui/Sheet';
 export default function TokenShown({ token, name }: { token: string; name: string }) {
+  const desktop=useDesktop();
   const router = useRouter();
   const [copied, setCopied] = useState(false);
   const [copyLabel, setCopyLabel] = useState(false);
@@ -46,7 +48,7 @@ export default function TokenShown({ token, name }: { token: string; name: strin
       <p className="text-[13px] leading-[1.5] text-muted">If you lose it, revoke this one and create another.</p>
     </div>
     <div className="mt-auto px-inset pt-6 pb-[calc(34px+env(safe-area-inset-bottom))]"><Button variant="secondary" style={{ borderColor: 'var(--color-text)', borderWidth: 1.5, height: 50, borderRadius: 14 }} onClick={() => copied ? leave() : setLeaving(true)}>Done</Button></div>
-    <Sheet hideClose panelStyle={{ gap: 14, paddingTop: 10, paddingBottom: 'calc(40px + env(safe-area-inset-bottom))' }} open={leaving} onClose={() => setLeaving(false)} label="You won't see this token again">
+    <Sheet hideClose panelStyle={{ maxWidth: desktop ? 480 : undefined, gap: 14, paddingTop: 10, paddingBottom: 'calc(40px + env(safe-area-inset-bottom))' }} open={leaving} onClose={() => setLeaving(false)} label="You won't see this token again">
       <h2 className="text-sheet-head">You won&apos;t see this token again</h2>
       <Button onClick={leave}>Leave</Button><Button variant="secondary" onClick={() => setLeaving(false)}>Stay</Button>
     </Sheet>
