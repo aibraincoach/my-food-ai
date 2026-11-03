@@ -38,6 +38,26 @@ Service time: median 1964.4 ms, p95 4170.9 ms, max 6723.9 ms. First failing run:
 
 The plan gives conflicting read recipes (embedded versus separate batches, and one versus paired feedback revision reads). The implementation uses one core post page, one media batch, one current-items batch with embedded nutrition, one saved-meal batch, one batch URL signing call and paired per-ready-post revision fences. This preserves feedback consistency around nutrition reads while removing per-post media, item and saved reads. Hydration timelines share reads across the requested days. Day totals group only contiguous requested dates, and card events refresh only touched dates. Each optional family has an eight-second timeout; first-page HTTP fetch has a fifteen-second deadline. A failed optional field does not hide the entire page or manufacture nutrition. The initial page contains six posts; later pages retain twenty.
 
-A1 includes the exact hook/cache/Carousel files from A2 source commit b0aeb7bec4dc2d015407b46e2fe42cc32f1a15c0 so its independent preview can compile. Both branches still start from main; identical dependency files merge without introducing a second implementation.
+A1 includes the exact hook/cache/Carousel files from A2 source commit f23efc554c3f17b229a9f502eafc23f9f5833f2e so its independent preview can compile. Both branches still start from main; identical dependency files merge without introducing a second implementation.
 
-The preview 100-run result and throttled decoded-image/cached-reopen measurements are pending and are not claimed by this baseline. Physical-phone mobile-data acceptance remains separate.
+### Final preview browser evidence — runtime e2c74b1
+
+On November 2, native Chrome CDP opened the authenticated Vercel preview at 390×844 with 1.6 Mbit/s downstream, 0.75 Mbit/s upstream and 150 ms latency. The cold navigation cleared HTTP, local-storage and service-worker caches; HTTP caching remained enabled so the second navigation used actual browser cache state. Both navigations waited another twelve seconds after the first decoded photo to allow hydration and cache persistence. The interceptor blocked every non-GET/HEAD/OPTIONS request and `/api/jobs/tick`, including requests in attached worker targets. This intentionally blocks client storage-signature POSTs; the server-provided photo still decoded. No post, correction, retry or model call was created.
+
+| Navigation | First visible card ms | First decoded photo ms | Bytes through hydration settle | Saved first-page cache |
+| --- | ---: | ---: | ---: | --- |
+| Cold | 1994.2 | 5610.2 | 1355474 | 6 posts / 33518 bytes |
+| Warm second visit | 6116.3 | 6150.0 | 503617 | Same persisted 6-post cache; cached fallback visible |
+
+Both displayed six cards without horizontal overflow; the first photo had high fetch priority. The warm visit consumed the actual saved feed cache, but neither warm card nor either decoded photo met two seconds. The cold visible card narrowly met two seconds. These are single observations under browser emulation, not percentile or physical-phone acceptance. The earlier short-window probe (cold card 1540.9 ms/photo 5728.7 ms, warm card/photo 4789.6 ms) ended before feed-cache persistence and cannot establish cached first-page acceptance. Its byte windows also excluded the twelve-second settle and must not be compared directly with the table.
+
+Physical-phone first-photo acceptance over mobile data remains unproven. The slow warm cache presentation and photo decode results remain failed performance gates; no runtime optimization is claimed from this measurement.
+
+
+### Final 100 authenticated HTTP opens
+
+The exact e2c74b1 preview completed 100/100 six-post Feed API reads and 100/100 Home HTTP 200 responses without a server digest or first failure, using the designated 146-post account. API duration includes the probe's authenticated getUser read before the API call. API p50/p95/max: 1112.5/4260.5/8545.3 ms. Home p50/p95/max: 744.4/1834.5/8636.1 ms. These sequential HTTP reads establish this preview's response reliability; they are not 100 browser opens or proof that the original production failure's cause was isolated.
+
+Batching and bounded reads reduce request fan-out and make optional-family failures settle independently. The original production no-feed/digest cause remains unisolated. Earlier local 96/100 results remain failed historical attempts. The final runtime passed 25 focused regression cases, TypeScript checking and the production build. No production deployment, merge, schema change or environment change was performed.
+
+The warm preview's cached scripts began at 5927 ms and finished at 5988 ms with zero transferred script bytes; the cached card appeared at 6116 ms. A subsequent navigation-timing snapshot recorded requestStart 5010.8 ms and responseStart 5897.3 ms. Thus the cached UI appeared roughly 219 ms after the document began arriving; the substantial earlier delay remains unexplained. Follow-up navigation inspection crossed a document transition and was inconclusive. This does not establish a feed-cache implementation defect or a full-open performance pass.
