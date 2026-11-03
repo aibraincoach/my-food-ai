@@ -1,5 +1,7 @@
 "use client";
 
+import {dayTotalRefreshDates} from "@/lib/posts/day-total-changes";
+
 import {createDayTotalsRefresh} from "@/lib/posts/day-totals-refresh";
 
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
@@ -201,7 +203,7 @@ export default function Feed({initialPage, initialUserId, initialZone = "UTC", f
           const previous = cards.get(id) ?? baseline.find(post => post.id === id);
           if(!hasUnavailableFields(card)){cacheInvalidated.delete(id);cacheDirty=true;}
           cards.set(id, retainCompleteItems(previous, card));
-          void refreshTotals([...new Set([card.eaten_at, ...(previous ? [previous.eaten_at] : [])].map(value => dateInZone(value, zone)))]);
+          void refreshTotals(dayTotalRefreshDates(previous, card, zone, new Set(dayTotals.keys()), local));
           publish();
           // A local completion event can arrive while the INSERT read still
           // sees unuploaded media. Always read again after that event.
@@ -281,6 +283,14 @@ export default function Feed({initialPage, initialUserId, initialZone = "UTC", f
         const page = await readPage(null,6);
         if(!live||loadGeneration!==generation)return;
         mergeDays(page.days);
+        // A fresh page can reveal an external edit even when its day was
+        // already supplied by SSR. Compare revisions before replacing seeds.
+        for (const post of page.posts) {
+          const previous = cards.get(post.id) ?? baseline.find(prior => prior.id === post.id);
+          if (!page.days.some(day => day.day === dateInZone(post.eaten_at, zone))) {
+            refreshTotals(dayTotalRefreshDates(previous, post, zone, new Set(dayTotals.keys())));
+          }
+        }
         baseline = page.posts.filter(post=>!unavailable.has(post.id)).map(post=>retainCompleteItems(baseline.find(prior=>prior.id===post.id),post));
         hasFreshPage = true;
         cursor = page.nextCursor;
