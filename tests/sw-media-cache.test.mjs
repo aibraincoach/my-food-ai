@@ -58,3 +58,12 @@ test('install caches only credential-free anonymous shell reads',async()=>{
  assert.ok(requests.every(request=>request.credentials==='omit'));
  assert.equal(w.stores.get('my-food-ai-shell-v2').size,2);
 });
+
+test('opaque cross-origin images remain uncached; readable CORS images can be retained',async()=>{
+ const w=worker();
+ // Browser no-cors cross-origin responses are opaque and cannot be inspected.
+ w.setFetch(async()=>new Proxy(new Response('opaque bytes'),{get(target,key){if(key==='type')return 'opaque';const value=Reflect.get(target,key,target);return typeof value==='function'?value.bind(target):value;}}));
+ await w.request(image);assert.equal(w.stores.get('mfa-media-v1').size,0);
+ w.setFetch(async request=>{assert.equal(request.mode,'cors');return new Response('readable bytes',{headers:{'Access-Control-Allow-Origin':'*'}});});
+ await w.request(image,{mode:'cors',credentials:'omit'});assert.equal(w.stores.get('mfa-media-v1').size,1);
+});
