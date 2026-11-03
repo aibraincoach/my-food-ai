@@ -6,7 +6,7 @@ import { Field } from "@/components/ui/Field";
 import { Button } from "@/components/ui/Button";
 import { Icon } from "@/components/ui/Icon";
 import { createPost } from "@/lib/posts/create";
-import { DRINK_TILES } from "@/lib/intake/intake";
+import { DRINK_TILES, TILE_SIZES } from "@/lib/intake/intake";
 import type { DrinkRow } from "@/lib/intake/hydration";
 
 type Posted = { id: string; label: string; expires: number };
@@ -23,10 +23,17 @@ export default function IntakeSheet({ embedded = false, onClose }: { initialKind
   const [posted, setPosted] = useState<Posted[]>([]);
   const [undoing, setUndoing] = useState<string | null>(null);
   const captionPending = useRef(false);
+  const [tileCounts, setTileCounts] = useState<number[]>(DRINK_TILES.map(() => 0));
+  const [usualMl, setUsualMl] = useState<number[]>(DRINK_TILES.map(tile => tile.ml));
+  const [sizeTile, setSizeTile] = useState<number | null>(null);
+  const hold = useRef<{timer: ReturnType<typeof setTimeout>; x: number; y: number} | null>(null);
+  const held = useRef(false);
+  const cancelHold = () => { if (hold.current) clearTimeout(hold.current.timer); hold.current = null; };
+  useEffect(() => () => { if (hold.current) clearTimeout(hold.current.timer); }, []);
   useEffect(() => {
     const receive = (event: Event) => {
       const entry = (event as CustomEvent<{ entry?: string }>).detail?.entry;
-      if (entry === "drink" || entry === "coffee") { setError(""); setCaption(""); setOpen(true); }
+      if (entry === "drink" || entry === "coffee") { setError(""); setCaption(""); setSizeTile(null); setOpen(true); }
       else if (entry) setOpen(false);
     };
     window.addEventListener("open-entry", receive);
@@ -41,6 +48,12 @@ export default function IntakeSheet({ embedded = false, onClose }: { initialKind
       const data = await response.json();
       setRows(data.rows); setReadError(false);
     }).catch(() => { if (!controller.signal.aborted) { setRows([]); setReadError(true); } });
+    void fetch("/api/intake/tile-counts", {signal: controller.signal}).then(async response => {
+      if (!response.ok) return;
+      const data = await response.json();
+      if (Array.isArray(data.counts) && data.counts.length === DRINK_TILES.length && data.counts.every((count: unknown) => typeof count === "number" && Number.isFinite(count) && count >= 0)) setTileCounts(data.counts);
+      if (Array.isArray(data.usualMl) && data.usualMl.length === DRINK_TILES.length && data.usualMl.every((ml: unknown, index: number) => TILE_SIZES[index].some(size => size.ml === ml))) setUsualMl(data.usualMl);
+    }).catch(() => {});
     return () => controller.abort();
   }, [open]);
   useEffect(() => {
@@ -48,18 +61,18 @@ export default function IntakeSheet({ embedded = false, onClose }: { initialKind
     const timeout = window.setTimeout(() => setPosted(previous => previous.filter(row => row.expires > Date.now())), Math.max(0, Math.min(...posted.map(row => row.expires)) - Date.now()));
     return () => window.clearTimeout(timeout);
   }, [posted]);
-  const close = () => { setOpen(false); onClose?.(); window.dispatchEvent(new Event("entry-closed")); };
+  const close = () => { cancelHold(); setSizeTile(null); setOpen(false); onClose?.(); window.dispatchEvent(new Event("entry-closed")); };
   // Each tap is a separate request, including two taps before the first settles.
-  const postTile = async (tile: number) => {
+  const postTile = async (tile: number, ml = usualMl[tile]) => {
     setError("");
     try {
       const response = await fetch(`/api/intake/post?tz=${encodeURIComponent(Intl.DateTimeFormat().resolvedOptions().timeZone)}`, {
-        method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ tile }),
+        method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ tile, ml }),
       });
       const data = await response.json();
       if (!response.ok) throw new Error(data.error ?? "The drink could not be saved.");
       const choice = DRINK_TILES[tile];
-      setPosted(previous => [...previous, { id: data.post_id, label: `${choice.name}, ${choice.size}`, expires: Date.now() + 4000 }]);
+      setPosted(previous => [...previous, { id: data.post_id, label: `${choice.name}, ${TILE_SIZES[tile].find(size => size.ml === ml)?.word ?? choice.size}`, expires: Date.now() + 4000 }]);
       window.dispatchEvent(new CustomEvent("post-created", { detail: { id: data.post_id } }));
       close();
     } catch (reason) { setError(reason instanceof Error ? reason.message : "The drink could not be saved."); }
@@ -87,16 +100,37 @@ export default function IntakeSheet({ embedded = false, onClose }: { initialKind
   };
   const ml = rows.reduce((total, row) => total + (row.ml ?? (row.kind === "water" ? row.amount : 0)), 0);
   const caffeine = rows.reduce((total, row) => total + (row.kind === "caffeine" ? row.amount : 0), 0);
+  const tileOrder = DRINK_TILES.map((_, index) => index).sort((a, b) => tileCounts[b] - tileCounts[a] || a - b);
   const content = <div className="flex flex-col gap-[14px] pb-2">
     <div className="flex items-center justify-between gap-2"><h2 className="text-sheet-head">Drink</h2>
-      <span className="text-[13px] text-muted tabular-nums">{readError ? "Drinks could not be read." : `Today: ${number(ml)} ml${caffeine > 0 ? ` · ${number(caffeine)} mg caffeine` : ""}`}</span>
+      <span className="text-[13px] text-muted tabular-nums">{readError ? "Drinks could not be read." : `Today: ${number(ml)} ml · ${number(caffeine)} mg caffeine`}</span>
     </div>
-    <div className="grid grid-cols-3 gap-2">{DRINK_TILES.map((tile, index) => <button key={index} type="button" disabled={busy} onClick={() => { void postTile(index); }}
-      aria-label={`Post ${tile.name}, ${tile.size}`} className="flex h-[92px] flex-col justify-between rounded-[14px] border border-line bg-white px-3 py-[10px] text-left active:bg-field disabled:opacity-50">
-      <span className="flex flex-col"><span className="text-[14px] font-semibold">{tile.name}</span><span className="text-[12px] text-muted">{tile.size}</span></span>
-      <span className="flex justify-between gap-1 text-[12px] tabular-nums"><span>{tile.ml} ml</span>{tile.caffeineMg > 0 && <span className="text-muted">{tile.caffeineMg} mg</span>}</span>
-    </button>)}</div>
-    <p className="-mt-1 text-[12px] text-muted">Tap to post.</p>
+    <div className="grid grid-cols-3 gap-2">{tileOrder.map(index => {
+      const tile = DRINK_TILES[index];
+      const size = TILE_SIZES[index].find(size => size.ml === usualMl[index])!;
+      const caffeineMg = size.caffeineMg ?? Math.round(tile.caffeineMg * size.ml / tile.ml);
+      return <button key={index} type="button" disabled={busy} onClick={() => { if (held.current) { held.current = false; return; } void postTile(index); }}
+        onPointerDown={event => {
+          if (!event.isPrimary || event.button !== 0) return;
+          cancelHold(); held.current = false;
+          const x = event.clientX, y = event.clientY;
+          hold.current = {x, y, timer: setTimeout(() => { held.current = true; setSizeTile(index); hold.current = null; }, 500)};
+        }}
+        onPointerMove={event => { if (hold.current && Math.hypot(event.clientX - hold.current.x, event.clientY - hold.current.y) > 8) cancelHold(); }}
+        onPointerUp={cancelHold} onPointerLeave={cancelHold} onPointerCancel={cancelHold} onContextMenu={event => event.preventDefault()}
+        onKeyDown={event => { if (event.key === "Enter" || event.key === " ") held.current = false; if (event.key === "ArrowDown") { event.preventDefault(); setSizeTile(index); } }}
+        aria-label={`Post ${tile.name}, ${size.word}`} aria-expanded={sizeTile === index} aria-controls={sizeTile === index ? "drink-tile-sizes" : undefined}
+        className="flex h-[92px] touch-manipulation flex-col justify-between rounded-[14px] border border-line bg-white px-3 py-[10px] text-left active:bg-field disabled:opacity-50">
+        <span className="flex flex-col"><span className="text-[14px] font-semibold">{tile.name}</span><span className="text-[12px] text-muted">{size.word}</span></span>
+        <span className="flex justify-between gap-1 text-[12px] tabular-nums"><span>{size.ml} ml</span>{caffeineMg > 0 && <span className="text-muted">{caffeineMg} mg</span>}</span>
+      </button>;
+    })}</div>
+    {sizeTile !== null && <div id="drink-tile-sizes" role="group" aria-label={`${DRINK_TILES[sizeTile].name} sizes`} className="flex flex-wrap gap-2">
+      {TILE_SIZES[sizeTile].map(size => <button key={size.ml} type="button" disabled={busy} className="min-h-tap rounded-field border border-line px-3 py-2 text-detail active:bg-field" onClick={() => { held.current = false; void postTile(sizeTile, size.ml); }}>
+        {size.word} · {size.ml} ml
+      </button>)}
+    </div>}
+    <p className="-mt-1 text-[12px] text-muted">Tap to post. Hold to change the size.</p>
     <form onSubmit={event => { event.preventDefault(); void postCaption(); }} className="flex flex-col gap-2">
       <div className="flex items-center gap-2"><Field className="min-w-0 flex-1" aria-label="Drink description" placeholder="Type a drink, e.g. oat latte, large" maxLength={1000} value={caption} disabled={busy} onChange={event => setCaption(event.target.value)} />
         <button type="button" aria-label="Photograph a drink" disabled={busy} className="flex size-12 shrink-0 items-center justify-center rounded-field bg-text text-surface" onClick={() => { close(); window.dispatchEvent(new CustomEvent("open-entry", { detail: { entry: "camera" } })); }}><Icon name="camera" size={22} /></button>
