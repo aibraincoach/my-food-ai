@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { queueStagedPhotoCleanup } from "@/lib/media/staged-photo";
+import { validUploadShots } from "@/lib/posts/upload-draft";
 import { signShotUploads } from "@/lib/media/storage";
 
 interface ShotSpec {
@@ -34,8 +35,11 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Signing upload URLs failed." }, { status: 500 });
     }
   }
-  if (!body.postId || !Array.isArray(body.shots) || body.shots.length === 0) {
-    return NextResponse.json({ error: "postId and shots are required." }, { status: 400 });
+  if (!body.postId) {
+    return NextResponse.json({ error: "postId is required." }, { status: 400 });
+  }
+  if (!validUploadShots(body.shots) || body.shots.length === 0) {
+    return NextResponse.json({ error: "Each photo needs its position in order and a size from 1 to 4096 pixels." }, { status: 400 });
   }
 
   const { data: post, error: postError } = await supabase

@@ -15,6 +15,11 @@ export function sessionCookieBridge(request: NextRequest) {
   return {
     get response() { return response; },
     apply,
+    // NextResponse.next snapshots request headers. Rebuild after Auth writes
+    // the verified identity, retaining cookies emitted during token refresh.
+    refreshRequestHeaders() {
+      response = apply(NextResponse.next({ request: { headers: request.headers } }));
+    },
     cookies: {
       getAll: () => request.cookies.getAll(),
       setAll: (cookies: SessionCookie[]) => {

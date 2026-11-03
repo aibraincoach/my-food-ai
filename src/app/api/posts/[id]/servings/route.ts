@@ -1,3 +1,4 @@
+import { capUser } from "@/lib/limits/user-cap";
 import { after, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -8,6 +9,7 @@ export async function POST(request: Request, context: { params: Promise<{ id: st
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: "Sign in required." }, { status: 401 });
+ const capped = await capUser(user.id, "correct"); if (capped) return capped;
   const { id } = await context.params;
   if (!isUuid(id)) return NextResponse.json({ error: "Post not found." }, { status: 404 });
   const body = await request.json().catch(() => null) as { servings?: unknown } | null;

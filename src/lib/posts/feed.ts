@@ -271,7 +271,7 @@ export async function getFeed(
   before: string | null = null,
   zone = "UTC",
   limit = FEED_PAGE_SIZE,
-  options: { summaries?: boolean; onFirstPhoto?: (url: string) => void } = {}
+  options: { summaries?: boolean; knownDays?: readonly string[]; onFirstPhoto?: (url: string) => void } = {}
 ): Promise<{posts: FeedPost[]; nextCursor:string|null; days: FeedDayTotal[]}> {
   const cursor = before === null ? null : parseFeedCursor(before);
   limit = Math.max(1, Math.min(FEED_PAGE_SIZE, Math.trunc(limit) || FEED_PAGE_SIZE));
@@ -292,9 +292,11 @@ export async function getFeed(
   const rows = (data ?? []) as PostRow[];
   const page = rows.slice(0,limit);
   const posts = await toFeedPosts(supabase,page,zone,options.onFirstPhoto);
+  const knownDays = new Set(options.knownDays ?? []);
+  const missingDays = [...new Set(page.map(row => dateInZone(row.eaten_at, zone)))].filter(day => !knownDays.has(day));
   const [hydration, days] = options.summaries === false ? [{}, []] as [Record<string, import('@/lib/intake/hydration').PostHydrationData>, FeedDayTotal[]] : await Promise.all([
     optionalRead('hydration', () => getPostHydrationData(supabase, userId, posts.map(post => ({...post,items:post.items.map(item=>({...item,micronutrients:item.micronutrients??[]}))})), zone), {}),
-    optionalRead('day-totals', () => getDayTotals(supabase,userId,zone,page.map(row=>dateInZone(row.eaten_at,zone))), []),
+    missingDays.length ? optionalRead('day-totals', () => getDayTotals(supabase,userId,zone,missingDays), []) : Promise.resolve([]),
   ]);
   return {posts:posts.map(post => ({ ...post, ...hydration[post.id], hydrationUnavailable: options.summaries !== false && !hydration[post.id], summariesDeferred: options.summaries === false })), days, nextCursor: rows.length>limit ? encodeFeedCursor(page.at(-1)!) : null};
 }

@@ -5,6 +5,7 @@ import vm from 'node:vm';
 import {readFileSync} from 'node:fs';
 import ts from 'typescript';
 import {retainCompleteItems,hasUnavailableFields} from '../src/lib/posts/feed.ts';
+import {createDayTotalsRefresh} from '../src/lib/posts/day-totals-refresh.ts';
 import {mergeFeedPosts,discoveryLostOverlap} from '../src/lib/posts/feed-order.ts';
 import {readFeedCache,writeFeedCache,clearFeedCache} from '../src/lib/posts/feed-cache.ts';
 
@@ -28,8 +29,10 @@ async function serverHome(seedRead){
   if(name==='next/server')return{connection:async()=>{}};
   if(name==='next/link')return{default:({children})=>children};
   if(name==='next/headers')return{cookies:async()=>({get:()=>({value:'UTC'})})};
+  if(name==='@/lib/auth/verified-user')return{verifiedUserId:async()=> 'owner'};
   if(name==='@/lib/supabase/server')return{createClient:async()=>({auth:{getUser:async()=>({data:{user:{id:'owner'}}})}})};
-  if(name==='@/lib/posts/feed')return{getFeed:seedRead,getFirstFeedPhoto:async()=>null};
+  if(name==='@/lib/posts/day-totals-refresh')return{createDayTotalsRefresh};
+   if(name==='@/lib/posts/feed')return{getFeed:seedRead,getFirstFeedPhoto:async()=>null};
   if(name==='@/lib/posts/days')return days;
   if(name==='@/components/DesktopWorkspace')return{default:({children})=>children};
   if(name==='@/components/Feed')return{default:noop,CachedFeedFallback:noop};
@@ -56,7 +59,8 @@ function fallbackFor(tree){
  vm.runInNewContext(compile('../src/components/Feed.tsx'),{exports:exported,document:{querySelector(selector){return selector.split(',').some(part=>{const name=/^\[([^\]]+)\]$/.exec(part.trim())?.[1];return name&&attribute(tree,name);})?{}:null;}},require(name){
   if(name==='react')return{useSyncExternalStore:(_subscribe,snapshot)=>snapshot()};
   if(name==='react/jsx-runtime')return{jsx,jsxs:jsx};
-  if(name==='@/lib/posts/feed')return{retainCompleteItems,hasUnavailableFields};
+  if(name==='@/lib/posts/day-totals-refresh')return{createDayTotalsRefresh};
+   if(name==='@/lib/posts/feed')return{retainCompleteItems,hasUnavailableFields};
   return{};
  }});
  return exported.CachedFeedFallback();
@@ -95,6 +99,7 @@ async function mountedFeed(initialPosts,{cachedPosts,failPage=false}={}){
    if(name==='react/jsx-runtime')return{jsx,jsxs:jsx};
    if(name==='next/navigation')return{useRouter:()=>({replace(){}})};
    if(name==='@/lib/supabase/client')return{createClient:()=>({auth:{getSession:async()=>({data:{session:{user:{id:'owner'}}}})},channel:()=>channel,removeChannel(){}})};
+   if(name==='@/lib/posts/day-totals-refresh')return{createDayTotalsRefresh};
    if(name==='@/lib/posts/feed')return{FEED_PAGE_SIZE:20,retainCompleteItems,hasUnavailableFields,getPostCard:async()=>current};
    if(name==='@/lib/posts/feed-order')return{mergeFeedPosts,discoveryLostOverlap};
    if(name==='@/lib/posts/feed-cache')return{readFeedCache,writeFeedCache,clearFeedCache};
