@@ -1,0 +1,13 @@
+# Production phone final repeat: #439 thumbnails / 7h
+
+Production stayed READY at `6f857ac4bb8e906cf6b24f0ab3227158236e69ef` throughout the guarded thumbnail repeat and all ten natural opens. The same three actual needs-input strip photos now render successfully through owner-authorized WebP URLs at20656 +21286 +21778 = **63720 bytes**, down from497591 bytes (**87.19%**). No signed `.feed.jpg` image requests remained. [Actual production page](strip-production.png), [per-photo receipt](strip-production.json).
+
+The first observed consecutive public tick GETs after READY returned200 in **0.178652 /0.297646 seconds**. First observation was about47 seconds after deployment READY; this is not proof of a cold function instance. [Exact pair and deployment guards](tick-pair.json).
+
+Ten natural phone opens passed10/10 on genuine Fast4G (165ms,1012500B/s down,168750B/s up),390×844,CPU1, fresh browser context and cleared HTTP cache per run. Service workers and real jobs ticks/Auth/reads were allowed; **zero requests were intercepted**. First actual cards appeared in443.2–894.6ms, median754.55ms. Every run made one browser Auth GET and zero browser day-total reads; no page/photo failures or worker-observer errors occurred. Five natural feed photos decoded after scrolling in every run. Browsers and contexts closed at completion.
+
+The initial card is text-only. No feed photo was present in the initial viewport during the five-second observation, so initial photo timing is null. First visible feed photos occurred at5762.9–5973.6ms after the intentional five-second wait and scroll. These results do **not** assert a two-second initial-feed-photo acceptance for this fixture.
+
+The five foreground feed-photo payloads total **116762 bytes per run**; the separate three strip-photo payloads total **63720 bytes per run**. Page response transfer counters alone show zeros for worker-served images. The receipt therefore retains context-filtered worker transfers separately: strip network transfer64083–64184B and the first-five feed worker transfer95950–96044B, plus first-five page transfer21499–21532B. These include HTTP overhead and are not interchangeable with decoded response payload bytes; no zero-egress claim is made from cached page deliveries. Other image identities and router-prefetch activity remain separate in the raw record. This does not attribute the historical aggregate Storage volume or ingestion bytes.
+
+[Ten-run sanitized detailed receipt](cold-open.json), [compact per-run summary](summary.json). No source edits or new posts/settings/model calls were made by these measurement scripts; normal authorized job advancement remained enabled.

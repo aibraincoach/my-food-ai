@@ -1,0 +1,11 @@
+=== firefox (mfa-pplx) processes ===
+none
+=== mfa-pplx profiles ===
+none
+=== git worktree list ===
+/home/opc/Projects/my-food-ai                3ce8473 [main]
+/home/opc/Projects/my-food-ai-wt/run10-docs  9ede089 [run10/docs]
+
+=== after verified push and docs worktree removal ===
+/home/opc/Projects/my-food-ai  5213820 [run10/docs]
+Docs worktree removed without force after clean status and remote SHA 5213820448f142ad18fb38ffedfc6f1ce5ff9151 verified. Primary checkout returns to main after this receipt is pushed.

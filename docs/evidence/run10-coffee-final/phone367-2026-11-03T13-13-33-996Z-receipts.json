@@ -1,0 +1,46 @@
+{
+  "steps": [
+    {
+      "name": "367 found barcode and Correct product actual phone view",
+      "at": "2026-11-03T13:13:35.191Z",
+      "finished": "2026-11-03T13:13:42.293Z",
+      "ok": true,
+      "result": {
+        "text": "Found\n\nFROSTED CORN PUFFS\n\nCorrect\n\nPer 100 g \u00b7 370 kcal \u00b7 4 g protein \u00b7 85 g carbs \u00b7 6 g fat\n\nHow much?\n\n100 g\n27 g\n54 g\n\nConsumed: 100 kcal \u00b7 1 g protein \u00b7 23 g carbs \u00b7 2 g fat",
+        "colors": {
+          "panel": "rgb(26, 25, 23)",
+          "background": "rgb(250, 250, 249)",
+          "heading": "rgb(26, 25, 23)",
+          "calories": "rgb(26, 25, 23)"
+        },
+        "correctionText": "Correct this product\n\nBarcode 00 016000 27568 3 \u00b7 from the database\n\nName\n\nWas \u201cFROSTED CORN PUFFS\u201d Undo\n\nPack\ng\nml\nServing\ng\n\nPer 100 g\n\nCalories\nkcal\nProtein\ng\nCarbs\ng\nFat\ng\nFibre\ng\nSugar\ng\nSodium\nmg\n\nKept for this barcode and used the next time you scan it. Corrections start as yours alone; a name correction is offered to everyone once three people make the same one.\n\nSave and use for this post",
+        "saveBox": {
+          "x": 20,
+          "y": 684,
+          "width": 350,
+          "height": 48
+        },
+        "saveInInitialViewport": true,
+        "posted": false,
+        "mutation": false
+      }
+    }
+  ],
+  "apiResponses": [
+    {
+      "at": "2026-11-03T13:13:39.766Z",
+      "path": "/api/fdc/barcode",
+      "status": 200
+    }
+  ],
+  "readingIds": [],
+  "cleanup": {
+    "at": "2026-11-03T13:13:43.283Z",
+    "postOperationCount": 1,
+    "standaloneIntakeCount": 0,
+    "copyOperationCount": 0,
+    "drinkOperationCount": 0,
+    "preferencesRestored": true,
+    "issues": []
+  }
+}

@@ -1,0 +1,124 @@
+[
+  {
+    "name": "feed",
+    "issues": [
+      354
+    ],
+    "at": "2026-11-03T13:18:33.624Z",
+    "text": "My Food AI\n286\nToday\nMon 2\n1,515\nSun 1\n327\nSat 31\nFri 30\nToday\nTuesday, Nov 3\nConsumed: 286 kcal\n\u00b7\u00b7\u00b7\nCONSUMED\n157\nkcal\n6 g\nprotein\n31 g\ncarbs\n1 g\nfat\nplain cooked spaghetti 100 g\n+\nAdd a photo\nLeftovers \u00b7 not eaten\n1/3\nDetails \u203a\n\n Plain spaghetti\n\nConsumed: 157 kcal \u00b7 6 g protein \u00b7 31 g carbs \u00b7 1 g fat more\n\u00b7\u00b7\u00b7\nCONSUMED\n129\nkcal\n3 g\nprotein\n28 g\ncarbs\n0 g\nfat\ncooked white rice 100 g\nDetails \u203a\n\n 100 g cooked white rice \u00b7 Tokyo audit 662858\n\nConsumed: 129 kcal \u00b7 3 g protein \u00b7 28 g carbs \u00b7 0 g fat more\nYesterday\nMonday, Nov 2\nNo posts\nSunday, Nov 1\nConsumed: 1,515 kcal\n\u00b7\u00b7\u00b7\nCONSUMED\n332\nkcal\n17 g\nprotein\n28 g\ncarbs\n17 g\nfat\ntoasted bread 50 g \u00b7 scrambled eggs 100 g\n+\nAdd a photo\nLeftovers \u00b7 not eaten\n1/2\nDetails \u203a\n\n Scrambled eggs on toast\n\nConsumed: 332 kcal \u00b7 17 g protein \u00b7 28 g carbs \u00b7 17 g fat more\n\u00b7\u00b7\u00b7\nCONSUMED\n1183\nkcal\n53 g\nprotein\n77 g\ncarbs\n73 g\nfat\nDipping sauce 30 g \u00b7 Hamburger with cheese, lettuce, tomato, onion and pickle 280 g \u00b7 French fries 100 g\n+\nAdd a photo\nLeftovers \u00b7 not eaten\n1/2\nDetails \u203a\n\n Hamburger and french fries\n\nConsumed: 1183 kcal \u00b7 53 g protein \u00b7 77 g carbs \u00b7 73 g fat more\nSaturday, Oct 31\nConsumed: 327 kcal\n\u00b7\u00b7\u00b7\nCONSUMED\n325\nkcal\n16 g\nprotein\n34 g\ncarbs\n13 g\nfat\nscrambled eggs 100 g \u00b7 toasted bread 60 g\n+\nAdd a photo\nLeftovers \u00b7 not eaten\n1/2\nDetails \u203a\nConsumed: 325 kcal \u00b7 16 g protein \u00b7 34 g carbs \u00b7 13 g fat more\n\u00b7\u00b7\u00b7\nCONSUMED\n2\nkcal\n0 g\nprotein\n0 g\ncarbs\n0 g\nfat\nBlack coffee 240 g\nDetails \u203a\n\n Black coffee\n\nConsumed: 2 kcal \u00b7 0 g protein \u00b7 0 g carbs \u00b7 0 g fat more\nCamera\nText\nDrink\nCoffee\nSaved",
+    "network": {
+      "status": 200,
+      "vercelId": "iad1::rc8s8-1793711911304-fb7e9289a256",
+      "date": "Tue, 03 Nov 2026 13:18:31 GMT"
+    }
+  },
+  {
+    "name": "detail-nutrients",
+    "issues": [
+      355
+    ],
+    "at": "2026-11-03T13:18:36.517Z",
+    "text": "Feed\nPost\nT\n\ntestkitchen2\n\nTue, Nov 3 \u00b7 9:58 PM\n\n\u00b7\u00b7\u00b7\nplain cooked spaghetti \u00b7 100 g\nOutlines \u00b7 tap one to edit\n\ntestkitchen2 Plain spaghetti\n\n157\nkcal\n6 g\nprotein\n31 g\ncarbs\n1 g\nfat\nConsumed \u00b7 all nutrients\nShow less\n\nIdentified by Muse Spark 1.3\n\nServings\n\u2212\n1\n+\nplain cooked spaghetti\n100 g \u00b7 157 kcal\nAdd another item\nConsumed nutrition from USDA FoodData Central\nCalories\t157 kcal\nProtein\t6 g\nCarbs\t31 g\nFat\t1 g\nFibre\t2 g\nSugar\t1 g\nSodium\t232 mg\nPotassium\t44 mg\nCalcium\t7 mg\nIron\t1.27 mg\nMagnesium\t18 mg\nZinc\t0.51 mg\nVitamin A\t0 \u00b5g\nVitamin C\t0 mg\nVitamin D\t0 \u00b5g\nVitamin B12\t0 \u00b5g\nFolate\t73 \u00b5g\nCholesterol\t0 mg\nAlcohol, ethyl\t0 g\nWater\t61.76 g\nCaffeine\t0 mg\nTheobromine\t0 mg\nPhosphorus\t58 mg\nCopper\t0.1 mg\nSelenium\t26.2 \u00b5g\nRetinol\t0 \u00b5g\nCarotene, beta\t0 \u00b5g\nCarotene, alpha\t0 \u00b5g\nVitamin E\t0.06 mg\nCryptoxanthin, beta\t0 \u00b5g\nLycopene\t0 \u00b5g\nLutein + zeaxanthin\t7 \u00b5g\nThiamin (B1)\t0.27 mg\nRiboflavin (B2)\t0.14 mg\nNiacin (B3)\t1.68 mg\nVitamin B6\t0.05 mg\nCholine\t6.4 mg\nVitamin K\t0 \u00b5g\nFolate (DFE)\t66 \u00b5g\nFolate, food\t7 \u00b5g\nFolate, DFE\t118 \u00b5g\nVitamin E, added\t0 mg\nVitamin B-12, added\t0 \u00b5g\nSaturated fat\t0.18 g\nSFA 4:0\t0 g\nSFA 6:0\t0 g\nSFA 8:0\t0 g\nSFA 10:0\t0 g\nSFA 12:0\t<0.01 g\nSFA 14:0\t<0.01 g\nSFA 16:0\t0.15 g\nSFA 18:0\t0.01 g\nMUFA 18:1\t0.13 g\nPUFA 18:2\t0.29 g\nPUFA 18:3\t0.02 g\nPUFA 20:4\t0 g\nPUFA 22:6 n-3 (DHA)\t0 g\nMUFA 16:1\t0 g\nPUFA 18:4\t0 g\nMUFA 20:1\t0 g\nPUFA 20:5 n-3 (EPA)\t0 g\nMUFA 22:1\t0 g\nPUFA 22:5 n-3 (DPA)\t0 g\nMonounsaturated fat\t0.13 g\nPolyunsaturated fat\t0.32 g\n\nNutrition values from USDA FoodData Central.\n\nComments 7\nAI\n\nMy Food AI Consumed: 314 kcal \u00b7 12 g protein \u00b7 61 g carbs \u00b7 2 g fat. 9:58 PM\n\nT\n\ntestkitchen2 I ate half the spaghetti. 9:58 PM\nRemove\n\nAI\n\nMy Food AI Consumed: 157 kcal \u00b7 6 g protein \u00b7 31 g carbs \u00b7 1 g fat. 9:58 PM\n\nAI\n\nMy Food AI Leftovers \u00b7 Leftovers \u00b7 not eaten: 100 g \u00b7 157 kcal. Consumed: 0 g \u00b7 0 kcal. 9:59 PM\n\nAI\n\nMy Food AI Leftovers \u00b7 Leftovers \u00b7 not eaten: 0 g \u00b7 0 kcal. Consumed: 0 g \u00b7 0 kcal. 10:01 PM\n\nAI\n\nMy Food AI Removed the Leftovers \u00b7 not eaten photo. Consumed: 0 kcal. 10:01 PM\n\nAI\n\nMy Food AI Unmarked the leftovers photo. Consumed: 157 kcal. 10:02 PM\n\nT\nT\nCamera\nText\nDrink\nCoffee\nSaved"
+  },
+  {
+    "name": "detail-comments",
+    "issues": [
+      355
+    ],
+    "at": "2026-11-03T13:18:36.812Z",
+    "text": "Feed\nPost\nT\n\ntestkitchen2\n\nTue, Nov 3 \u00b7 9:58 PM\n\n\u00b7\u00b7\u00b7\nplain cooked spaghetti \u00b7 100 g\nOutlines \u00b7 tap one to edit\n\ntestkitchen2 Plain spaghetti\n\n157\nkcal\n6 g\nprotein\n31 g\ncarbs\n1 g\nfat\nConsumed \u00b7 all nutrients\nShow less\n\nIdentified by Muse Spark 1.3\n\nServings\n\u2212\n1\n+\nplain cooked spaghetti\n100 g \u00b7 157 kcal\nAdd another item\nConsumed nutrition from USDA FoodData Central\nCalories\t157 kcal\nProtein\t6 g\nCarbs\t31 g\nFat\t1 g\nFibre\t2 g\nSugar\t1 g\nSodium\t232 mg\nPotassium\t44 mg\nCalcium\t7 mg\nIron\t1.27 mg\nMagnesium\t18 mg\nZinc\t0.51 mg\nVitamin A\t0 \u00b5g\nVitamin C\t0 mg\nVitamin D\t0 \u00b5g\nVitamin B12\t0 \u00b5g\nFolate\t73 \u00b5g\nCholesterol\t0 mg\nAlcohol, ethyl\t0 g\nWater\t61.76 g\nCaffeine\t0 mg\nTheobromine\t0 mg\nPhosphorus\t58 mg\nCopper\t0.1 mg\nSelenium\t26.2 \u00b5g\nRetinol\t0 \u00b5g\nCarotene, beta\t0 \u00b5g\nCarotene, alpha\t0 \u00b5g\nVitamin E\t0.06 mg\nCryptoxanthin, beta\t0 \u00b5g\nLycopene\t0 \u00b5g\nLutein + zeaxanthin\t7 \u00b5g\nThiamin (B1)\t0.27 mg\nRiboflavin (B2)\t0.14 mg\nNiacin (B3)\t1.68 mg\nVitamin B6\t0.05 mg\nCholine\t6.4 mg\nVitamin K\t0 \u00b5g\nFolate (DFE)\t66 \u00b5g\nFolate, food\t7 \u00b5g\nFolate, DFE\t118 \u00b5g\nVitamin E, added\t0 mg\nVitamin B-12, added\t0 \u00b5g\nSaturated fat\t0.18 g\nSFA 4:0\t0 g\nSFA 6:0\t0 g\nSFA 8:0\t0 g\nSFA 10:0\t0 g\nSFA 12:0\t<0.01 g\nSFA 14:0\t<0.01 g\nSFA 16:0\t0.15 g\nSFA 18:0\t0.01 g\nMUFA 18:1\t0.13 g\nPUFA 18:2\t0.29 g\nPUFA 18:3\t0.02 g\nPUFA 20:4\t0 g\nPUFA 22:6 n-3 (DHA)\t0 g\nMUFA 16:1\t0 g\nPUFA 18:4\t0 g\nMUFA 20:1\t0 g\nPUFA 20:5 n-3 (EPA)\t0 g\nMUFA 22:1\t0 g\nPUFA 22:5 n-3 (DPA)\t0 g\nMonounsaturated fat\t0.13 g\nPolyunsaturated fat\t0.32 g\n\nNutrition values from USDA FoodData Central.\n\nComments 7\nAI\n\nMy Food AI Consumed: 314 kcal \u00b7 12 g protein \u00b7 61 g carbs \u00b7 2 g fat. 9:58 PM\n\nT\n\ntestkitchen2 I ate half the spaghetti. 9:58 PM\nRemove\n\nAI\n\nMy Food AI Consumed: 157 kcal \u00b7 6 g protein \u00b7 31 g carbs \u00b7 1 g fat. 9:58 PM\n\nAI\n\nMy Food AI Leftovers \u00b7 Leftovers \u00b7 not eaten: 100 g \u00b7 157 kcal. Consumed: 0 g \u00b7 0 kcal. 9:59 PM\n\nAI\n\nMy Food AI Leftovers \u00b7 Leftovers \u00b7 not eaten: 0 g \u00b7 0 kcal. Consumed: 0 g \u00b7 0 kcal. 10:01 PM\n\nAI\n\nMy Food AI Removed the Leftovers \u00b7 not eaten photo. Consumed: 0 kcal. 10:01 PM\n\nAI\n\nMy Food AI Unmarked the leftovers photo. Consumed: 157 kcal. 10:02 PM\n\nT\nT\nCamera\nText\nDrink\nCoffee\nSaved",
+    "note": "Actual retained spaghetti correction and reanalysis replies; no fabricated comment."
+  },
+  {
+    "name": "days",
+    "issues": [
+      357
+    ],
+    "at": "2026-11-03T13:18:38.472Z",
+    "text": "Feed\nDays\n2026\nNovember 2026\n2 days posted\nS\nM\nT\nW\nT\nF\nS\n1\n1,515\n2\n3\n286\n4\n5\n6\n7\n8\n9\n10\n11\n12\n13\n14\n15\n16\n17\n18\n19\n20\n21\n22\n23\n24\n25\n26\n27\n28\n29\n30\nOctober 2026\n3 days posted\nS\nM\nT\nW\nT\nF\nS\n1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n13\n14\n15\n16\n17\n18\n19\ndrank\n20\n21\n22\n0\n23\n24\n25\n26\n27\n28\n29\n30\n31\n327\nSeptember 2026\nT\nCamera\nText\nDrink\nCoffee\nSaved"
+  },
+  {
+    "name": "caption-story",
+    "issues": [
+      357
+    ],
+    "at": "2026-11-03T13:18:40.700Z",
+    "text": "Feed\nDays\n2026\nNovember 2026\n2 days posted\nS\nM\nT\nW\nT\nF\nS\n1\n1,515\n2\n3\n286\n4\n5\n6\n7\n8\n9\n10\n11\n12\n13\n14\n15\n16\n17\n18\n19\n20\n21\n22\n23\n24\n25\n26\n27\n28\n29\n30\nOctober 2026\n3 days posted\nS\nM\nT\nW\nT\nF\nS\n1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n13\n14\n15\n16\n17\n18\n19\ndrank\n20\n21\n22\n0\n23\n24\n25\n26\n27\n28\n29\n30\n31\n327\nSeptember 2026\nNovember\nTuesday, Nov 3\nCONSUMED \u00b7 8:27 PM\n129\nkcal\n3 g\nprotein\n28 g\ncarbs\n0 g\nfat\ncooked white rice 100 g\n\n100 g cooked white rice \u00b7 Tokyo audit 662858\n\n8:27 PM\n\n\u2039 Mon, Nov 2\nSwipe down to close\nWed \u203a\nT\nCamera\nText\nDrink\nCoffee\nSaved"
+  },
+  {
+    "name": "profile",
+    "issues": [
+      358
+    ],
+    "at": "2026-11-03T13:18:42.662Z",
+    "text": "@testkitchen2\nSign out\nConnect an agent\nLets an assistant post and read your meals\n\u203a\nIdentify food with Muse Spark Open\nOff\n\nMeta's open-weight model, served by Baseten. Built with Muse Spark Open.\n\nRecently deleted\nCONSUMED \u00b7 8:27 PM\n129\nkcal\n3 g\nprotein\n28 g\ncarbs\n0 g\nfat\ncooked white rice 100 g\nDrank\nDrank\nT\nCamera\nText\nDrink\nCoffee\nSaved"
+  },
+  {
+    "name": "agent-create",
+    "issues": [
+      359
+    ],
+    "at": "2026-11-03T13:18:44.115Z",
+    "text": "Profile\nConnect an agent\n\nAn agent such as Claude can use a token to post meals for you and read what you have posted.\n\nName\n\nOnly you see this. It labels the agent's posts and its activity.\n\nThe token can\n\nPost meals as you\nRead your posts\nAdd corrections to your meals\nCannot change your account or see your password\nCreate token",
+    "typography": [
+      {
+        "text": "An agent such as Claude can use a token to post meals for you and read what you have posted.",
+        "fontSize": "15px"
+      },
+      {
+        "text": "Only you see this. It labels the agent's posts and its activity.",
+        "fontSize": "12px"
+      },
+      {
+        "text": "The token can",
+        "fontSize": "13px"
+      }
+    ],
+    "tokenCreated": false
+  },
+  {
+    "name": "search",
+    "issues": [
+      361
+    ],
+    "at": "2026-11-03T13:18:47.279Z",
+    "text": "Search\n\nT\ntestkitchen2\n\u00b7\u00b7\u00b7\nDRANK \u00b7 10:30 PM\n240\nml\nBlack coffee \u00b7 96 mg caffeine \u00b7 2 kcal\n240 ml\nconsumed today\n240 ml from drinks\n0 ml from food\n96 mg caffeine\nDetails \u203a\n\ntestkitchen2 Black coffee\n\nDrank: 240 ml \u00b7 96 mg caffeine \u00b7 2 kcal more\nSat, Oct 31\nT\nCamera\nText\nDrink\nCoffee\nSaved",
+    "scope": "Mobile full-card composition retained; original desktop4b frame excluded."
+  },
+  {
+    "name": "fan",
+    "issues": [
+      364
+    ],
+    "at": "2026-11-03T13:18:50.442Z",
+    "text": "My Food AI\n286\nToday\nMon 2\n1,515\nSun 1\n327\nSat 31\nFri 30\nToday\nTuesday, Nov 3\nConsumed: 286 kcal\nT\ntestkitchen2\n\u00b7\u00b7\u00b7\nCONSUMED \u00b7 9:58 PM\n157\nkcal\n6 g\nprotein\n31 g\ncarbs\n1 g\nfat\nplain cooked spaghetti 100 g\nWater in this meal: 50 ml \u00b7 Consumed today: 100 ml\n+\nAdd a photo\nLeftovers \u00b7 not eaten\n1/3\nDetails \u203a\n\ntestkitchen2 Plain spaghetti\n\nConsumed: 157 kcal \u00b7 6 g protein \u00b7 31 g carbs \u00b7 1 g fat \u00b7 50 ml water more\n9:58 PM\nT\ntestkitchen2\n\u00b7\u00b7\u00b7\nCONSUMED \u00b7 8:27 PM\n129\nkcal\n3 g\nprotein\n28 g\ncarbs\n0 g\nfat\ncooked white rice 100 g\nWater in this meal: 50 ml \u00b7 Consumed today: 50 ml\nDetails \u203a\n\ntestkitchen2 100 g cooked white rice \u00b7 Tokyo audit 662858\n\nConsumed: 129 kcal \u00b7 3 g protein \u00b7 28 g carbs \u00b7 0 g fat \u00b7 50 ml water more\n8:27 PM\nYesterday\nMonday, Nov 2\nNo posts\nSunday, Nov 1\nConsumed: 1,515 kcal\nT\ntestkitchen2\n\u00b7\u00b7\u00b7\nCONSUMED \u00b7 10:10 AM\n332\nkcal\n17 g\nprotein\n28 g\ncarbs\n17 g\nfat\ntoasted bread 50 g \u00b7 scrambled eggs 100 g\nWater in this meal: 70 ml \u00b7 Consumed today: 230 ml\n+\nAdd a photo\nLeftovers \u00b7 not eaten\n1/2\nDetails \u203a\n\ntestkitchen2 Scrambled eggs on toast\n\nConsumed: 332 kcal \u00b7 17 g protein \u00b7 28 g carbs \u00b7 17 g fat \u00b7 70 ml water more\n10:10 AM\nT\ntestkitchen2\n\u00b7\u00b7\u00b7\nCONSUMED \u00b7 10:06 AM\n1183\nkcal\n53 g\nprotein\n77 g\ncarbs\n73 g\nfat\nDipping sauce 30 g \u00b7 Hamburger with cheese, lettuce, tomato, onion and pickle 280 g \u00b7 French fries 100 g\nWater in this meal: 160 ml \u00b7 Consumed today: 160 ml\n+\nAdd a photo\nLeftovers \u00b7 not eaten\n1/2\nDetails \u203a\n\ntestkitchen2 Hamburger and french fries\n\nConsumed: 1183 kcal \u00b7 53 g protein \u00b7 77 g carbs \u00b7 73 g fat \u00b7 160 ml water more\n10:06 AM\nSaturday, Oct 31\nConsumed: 327 kcal\nT\ntestkitchen2\n\u00b7\u00b7\u00b7\nCONSUMED \u00b7 11:00 PM\n325\nkcal\n16 g\nprotein\n34 g\ncarbs\n13 g\nfat\nscrambled eggs 100 g \u00b7 toasted bread 60 g\nWater in this meal: 80 ml \u00b7 Consumed today: 320 ml\n+\nAdd a photo\nLeftovers \u00b7 not eaten\n1/2\nDetails \u203a\nConsumed: 325 kcal \u00b7 16 g protein \u00b7 34 g carbs \u00b7 13 g fat \u00b7 80 ml water more\n11:00 PM\nT\ntestkitchen2\n\u00b7\u00b7\u00b7\nDRANK \u00b7 10:30 PM\n240\nml\nBlack coffee \u00b7 96 mg caffeine \u00b7 2 kcal\n240 ml\nconsumed today\n240 ml from drinks\n0 ml from food\n96 mg caffeine\nDetails \u203a\n\ntestkitchen2 Black coffee\n\nDrank: 240 ml \u00b7 96 mg caffeine \u00b7 2 kcal more\n10:30 PM\nT\nCamera\nText\nDrink\nCoffee\nSaved"
+  },
+  {
+    "name": "log-again-earlier",
+    "issues": [
+      365
+    ],
+    "at": "2026-11-03T13:18:52.935Z",
+    "text": "Feed\nPost\nT\n\ntestkitchen2\n\nTue, Nov 3 \u00b7 8:27 PM\n\n\u00b7\u00b7\u00b7\nCONSUMED \u00b7 8:27 PM\n129\nkcal\n3 g\nprotein\n28 g\ncarbs\n0 g\nfat\ncooked white rice 100 g\nWater in this meal: 50 ml \u00b7 Consumed today: 50 ml\n\ntestkitchen2 100 g cooked white rice \u00b7 Tokyo audit 662858\n\n129\nkcal\n3 g\nprotein\n28 g\ncarbs\n0 g\nfat\nConsumed \u00b7 all nutrients\nShow all 65\n\nIdentified by Muse Spark 1.3\n\nServings\n\u2212\n1\n+\nComments 1\nAI\n\nMy Food AI Consumed: 129 kcal \u00b7 3 g protein \u00b7 28 g carbs \u00b7 0 g fat. 9:57 PM\n\nT\nT\nCamera\nText\nDrink\nCoffee\nSaved\nLog again\n\u00d7\n\n100 g cooked white rice \u00b7 Tokyo audit 662858\n\ncooked white rice 100 g \u00b7 129 kcal\n\nWhen?\n\nNow\n10:18 PM\nEarlier today\npick a time\nAnother day\npick a date and time\n\nEarlier today\n\n20:00\n20:30\n21:00\n21:30\n22:00\nOther time\nPost \u00b7 100 g cooked white rice \u00b7 Tokyo audit 662858",
+    "posted": false
+  },
+  {
+    "name": "composer-four-photos",
+    "issues": [
+      362
+    ],
+    "at": "2026-11-03T13:19:04.844Z",
+    "text": "My Food AI\nClarification needed\nYour caption says grilled salmon but the photo shows plain pasta, what did you eat?\n286\nToday\nMon 2\n1,515\nSun 1\n327\nSat 31\nFri 30\nToday\nTuesday, Nov 3\nConsumed: 286 kcal\nT\ntestkitchen2\n\u00b7\u00b7\u00b7\nCONSUMED \u00b7 9:58 PM\n157\nkcal\n6 g\nprotein\n31 g\ncarbs\n1 g\nfat\nplain cooked spaghetti 100 g\nWater in this meal: 50 ml \u00b7 Consumed today: 100 ml\n+\nAdd a photo\nLeftovers \u00b7 not eaten\n1/3\nDetails \u203a\n\ntestkitchen2 Plain spaghetti\n\nConsumed: 157 kcal \u00b7 6 g protein \u00b7 31 g carbs \u00b7 1 g fat \u00b7 50 ml water more\n9:58 PM\nT\ntestkitchen2\n\u00b7\u00b7\u00b7\nCONSUMED \u00b7 8:27 PM\n129\nkcal\n3 g\nprotein\n28 g\ncarbs\n0 g\nfat\ncooked white rice 100 g\nWater in this meal: 50 ml \u00b7 Consumed today: 50 ml\nDetails \u203a\n\ntestkitchen2 100 g cooked white rice \u00b7 Tokyo audit 662858\n\nConsumed: 129 kcal \u00b7 3 g protein \u00b7 28 g carbs \u00b7 0 g fat \u00b7 50 ml water more\n8:27 PM\nYesterday\nMonday, Nov 2\nNo posts\nSunday, Nov 1\nConsumed: 1,515 kcal\nT\ntestkitchen2\n\u00b7\u00b7\u00b7\nCONSUMED \u00b7 10:10 AM\n332\nkcal\n17 g\nprotein\n28 g\ncarbs\n17 g\nfat\ntoasted bread 50 g \u00b7 scrambled eggs 100 g\nWater in this meal: 70 ml \u00b7 Consumed today: 230 ml\n+\nAdd a photo\nLeftovers \u00b7 not eaten\n1/2\nDetails \u203a\n\ntestkitchen2 Scrambled eggs on toast\n\nConsumed: 332 kcal \u00b7 17 g protein \u00b7 28 g carbs \u00b7 17 g fat \u00b7 70 ml water more\n10:10 AM\nT\ntestkitchen2\n\u00b7\u00b7\u00b7\nCONSUMED \u00b7 10:06 AM\n1183\nkcal\n53 g\nprotein\n77 g\ncarbs\n73 g\nfat\nDipping sauce 30 g \u00b7 Hamburger with cheese, lettuce, tomato, onion and pickle 280 g \u00b7 French fries 100 g\nWater in this meal: 160 ml \u00b7 Consumed today: 160 ml\n+\nAdd a photo\nLeftovers \u00b7 not eaten\n1/2\nDetails \u203a\n\ntestkitchen2 Hamburger and french fries\n\nConsumed: 1183 kcal \u00b7 53 g protein \u00b7 77 g carbs \u00b7 73 g fat \u00b7 160 ml water more\n10:06 AM\nSaturday, Oct 31\nConsumed: 327 kcal\nT\ntestkitchen2\n\u00b7\u00b7\u00b7\nCONSUMED \u00b7 11:00 PM\n325\nkcal\n16 g\nprotein\n34 g\ncarbs\n13 g\nfat\nscrambled eggs 100 g \u00b7 toasted bread 60 g\nWater in this meal: 80 ml \u00b7 Consumed today: 320 ml\n+\nAdd a photo\nLeftovers \u00b7 not eaten\n1/2\nDetails \u203a\nConsumed: 325 kcal \u00b7 16 g protein \u00b7 34 g carbs \u00b7 13 g fat \u00b7 80 ml water more\n11:00 PM\nT\ntestkitchen2\n\u00b7\u00b7\u00b7\nDRANK \u00b7 10:30 PM\n240\nml\nBlack coffee \u00b7 96 mg caffeine \u00b7 2 kcal\n240 ml\nconsumed today\n240 ml from drinks\n0 ml from food\n96 mg caffeine\nDetails \u203a\n\ntestkitchen2 Black coffee\n\nDrank: 240 ml \u00b7 96 mg caffeine \u00b7 2 kcal more\n10:30 PM\nFriday, Oct 30\nNo posts\nThursday, Oct 29\nNo posts\nWednesday, Oct 28\nNo posts\nTuesday, Oct 27\nNo posts\nMonday, Oct 26\nNo posts\nSunday, Oct 25\nNo posts\nSaturday, Oct 24\nNo posts\nFriday, Oct 23\nNo posts\nThursday, Oct 22\nConsumed: 0 kcal\nT\ntestkitchen2\n\u00b7\u00b7\u00b7\nDRANK \u00b7 12:34 PM\n250\nml\nWater, glass\n250 ml\nconsumed today\n250 ml from drinks\n0 ml from food\nDetails \u203a\n\ntestkitchen2 Water, glass\n\nDrank: 250 ml \u00b7 Consumed today: 250 ml more\n12:34 PM\nT\nCamera\nText\nDrink\nCoffee\nSaved\nNew post\nPhotos 1, 2\n1/4\n2/4\nPhotos 3, 4\n3/4\n4/4\n\nUploading 4 photos\u2026\n\ntestkitchen2\nAnother photo\nSearch foods\nEaten at\nNow\nLeftovers \u00b7 not eaten\nAdd a photo of what remained\nOff\nLocation\nOnly you see it\nSave as meal\nPost",
+    "method": "Actual library file selection; paired identical images are mechanics fixtures, no model call or meal publication."
+  },
+  {
+    "name": "composer-paired-leftovers",
+    "issues": [
+      362
+    ],
+    "at": "2026-11-03T13:19:07.305Z",
+    "text": "My Food AI\nClarification needed\nYour caption says grilled salmon but the photo shows plain pasta, what did you eat?\n286\nToday\nMon 2\n1,515\nSun 1\n327\nSat 31\nFri 30\nToday\nTuesday, Nov 3\nConsumed: 286 kcal\nT\ntestkitchen2\n\u00b7\u00b7\u00b7\nCONSUMED \u00b7 9:58 PM\n157\nkcal\n6 g\nprotein\n31 g\ncarbs\n1 g\nfat\nplain cooked spaghetti 100 g\nWater in this meal: 50 ml \u00b7 Consumed today: 100 ml\n+\nAdd a photo\nLeftovers \u00b7 not eaten\n1/3\nDetails \u203a\n\ntestkitchen2 Plain spaghetti\n\nConsumed: 157 kcal \u00b7 6 g protein \u00b7 31 g carbs \u00b7 1 g fat \u00b7 50 ml water more\n9:58 PM\nT\ntestkitchen2\n\u00b7\u00b7\u00b7\nCONSUMED \u00b7 8:27 PM\n129\nkcal\n3 g\nprotein\n28 g\ncarbs\n0 g\nfat\ncooked white rice 100 g\nWater in this meal: 50 ml \u00b7 Consumed today: 50 ml\nDetails \u203a\n\ntestkitchen2 100 g cooked white rice \u00b7 Tokyo audit 662858\n\nConsumed: 129 kcal \u00b7 3 g protein \u00b7 28 g carbs \u00b7 0 g fat \u00b7 50 ml water more\n8:27 PM\nYesterday\nMonday, Nov 2\nNo posts\nSunday, Nov 1\nConsumed: 1,515 kcal\nT\ntestkitchen2\n\u00b7\u00b7\u00b7\nCONSUMED \u00b7 10:10 AM\n332\nkcal\n17 g\nprotein\n28 g\ncarbs\n17 g\nfat\ntoasted bread 50 g \u00b7 scrambled eggs 100 g\nWater in this meal: 70 ml \u00b7 Consumed today: 230 ml\n+\nAdd a photo\nLeftovers \u00b7 not eaten\n1/2\nDetails \u203a\n\ntestkitchen2 Scrambled eggs on toast\n\nConsumed: 332 kcal \u00b7 17 g protein \u00b7 28 g carbs \u00b7 17 g fat \u00b7 70 ml water more\n10:10 AM\nT\ntestkitchen2\n\u00b7\u00b7\u00b7\nCONSUMED \u00b7 10:06 AM\n1183\nkcal\n53 g\nprotein\n77 g\ncarbs\n73 g\nfat\nDipping sauce 30 g \u00b7 Hamburger with cheese, lettuce, tomato, onion and pickle 280 g \u00b7 French fries 100 g\nWater in this meal: 160 ml \u00b7 Consumed today: 160 ml\n+\nAdd a photo\nLeftovers \u00b7 not eaten\n1/2\nDetails \u203a\n\ntestkitchen2 Hamburger and french fries\n\nConsumed: 1183 kcal \u00b7 53 g protein \u00b7 77 g carbs \u00b7 73 g fat \u00b7 160 ml water more\n10:06 AM\nSaturday, Oct 31\nConsumed: 327 kcal\nT\ntestkitchen2\n\u00b7\u00b7\u00b7\nCONSUMED \u00b7 11:00 PM\n325\nkcal\n16 g\nprotein\n34 g\ncarbs\n13 g\nfat\nscrambled eggs 100 g \u00b7 toasted bread 60 g\nWater in this meal: 80 ml \u00b7 Consumed today: 320 ml\n+\nAdd a photo\nLeftovers \u00b7 not eaten\n1/2\nDetails \u203a\nConsumed: 325 kcal \u00b7 16 g protein \u00b7 34 g carbs \u00b7 13 g fat \u00b7 80 ml water more\n11:00 PM\nT\ntestkitchen2\n\u00b7\u00b7\u00b7\nDRANK \u00b7 10:30 PM\n240\nml\nBlack coffee \u00b7 96 mg caffeine \u00b7 2 kcal\n240 ml\nconsumed today\n240 ml from drinks\n0 ml from food\n96 mg caffeine\nDetails \u203a\n\ntestkitchen2 Black coffee\n\nDrank: 240 ml \u00b7 96 mg caffeine \u00b7 2 kcal more\n10:30 PM\nFriday, Oct 30\nNo posts\nThursday, Oct 29\nNo posts\nWednesday, Oct 28\nNo posts\nTuesday, Oct 27\nNo posts\nMonday, Oct 26\nNo posts\nSunday, Oct 25\nNo posts\nSaturday, Oct 24\nNo posts\nFriday, Oct 23\nNo posts\nThursday, Oct 22\nConsumed: 0 kcal\nT\ntestkitchen2\n\u00b7\u00b7\u00b7\nDRANK \u00b7 12:34 PM\n250\nml\nWater, glass\n250 ml\nconsumed today\n250 ml from drinks\n0 ml from food\nDetails \u203a\n\ntestkitchen2 Water, glass\n\nDrank: 250 ml \u00b7 Consumed today: 250 ml more\n12:34 PM\nT\nCamera\nText\nDrink\nCoffee\nSaved\nNew post\nPlate 1\n1/4\n2/4\nLeftovers \u00b7 not eaten\nPlate 2\n3/4\n4/4\nLeftovers \u00b7 not eaten\n\nUploading 4 photos\u2026\n\ntestkitchen2\nAnother photo\nSearch foods\nEaten at\nNow\nLeftovers \u00b7 not eaten\nAdd a photo of what remained\nPhotos 2, 4\nLocation\nOnly you see it\nSave as meal\nPost",
+    "posted": false,
+    "scope": "Phone only; desktop4d/4e excluded."
+  }
+]

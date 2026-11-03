@@ -1,0 +1,82 @@
+{
+  "main": "6f857ac4bb8e906cf6b24f0ab3227158236e69ef",
+  "results": [
+    {
+      "caption": "beef tenderloin steak topped with butter",
+      "started": "2026-11-03T12:51:28.460Z",
+      "finished": "2026-11-03T12:52:02.262Z",
+      "identity": {
+        "identify_model": "muse-spark-1.3",
+        "identify_host": "meta"
+      },
+      "items": [
+        {
+          "id": "57cd8ba6-b982-4880-8c2c-13399592dd73",
+          "name": "beef tenderloin steak",
+          "portion_grams": 180
+        },
+        {
+          "id": "0b076ef8-8a1c-4656-97a4-f9b5444e1519",
+          "name": "butter",
+          "portion_grams": 10
+        }
+      ],
+      "nutrients": [
+        {
+          "post_item_id": "0b076ef8-8a1c-4656-97a4-f9b5444e1519",
+          "calories": 74.3,
+          "source_ref": "2710154"
+        },
+        {
+          "post_item_id": "57cd8ba6-b982-4880-8c2c-13399592dd73",
+          "calories": 352.8,
+          "source_ref": "2705841"
+        }
+      ],
+      "detailLine": "Identified by Muse Spark 1.3"
+    },
+    {
+      "caption": "sauteed spinach with corn",
+      "started": "2026-11-03T12:52:02.270Z",
+      "finished": "2026-11-03T12:53:05.611Z",
+      "identity": {
+        "identify_model": "muse-spark-1.3",
+        "identify_host": "meta"
+      },
+      "items": [
+        {
+          "id": "846b24b3-e2b2-4c01-b77f-277b36cb718f",
+          "name": "sauteed spinach",
+          "portion_grams": 90
+        },
+        {
+          "id": "3bb9d9cd-ca2d-4c11-840c-7cf6dace4d71",
+          "name": "corn",
+          "portion_grams": 40
+        }
+      ],
+      "nutrients": [
+        {
+          "post_item_id": "3bb9d9cd-ca2d-4c11-840c-7cf6dace4d71",
+          "calories": 43.6,
+          "source_ref": "2709917"
+        },
+        {
+          "post_item_id": "846b24b3-e2b2-4c01-b77f-277b36cb718f",
+          "calories": 56.7,
+          "source_ref": "2709618"
+        }
+      ],
+      "detailLine": "Identified by Muse Spark 1.3"
+    }
+  ],
+  "cleanup": {
+    "at": "2026-11-03T12:53:59.517Z",
+    "postOperationCount": 3,
+    "standaloneIntakeCount": 0,
+    "copyOperationCount": 0,
+    "drinkOperationCount": 0,
+    "preferencesRestored": true,
+    "issues": []
+  }
+}

@@ -1,0 +1,78 @@
+{
+  "steps": [
+    {
+      "name": "367 found barcode and Correct product actual phone view",
+      "at": "2026-11-03T13:02:31.662Z",
+      "finished": "2026-11-03T13:03:06.486Z",
+      "ok": false,
+      "error": "locator.boundingBox: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('dialog', { name: 'Correct this product', exact: true }).getByRole('button', { name: 'Save', exact: true })\u001b[22m\n"
+    },
+    {
+      "name": "367 genuine missing barcode then real FDA sample OCR",
+      "at": "2026-11-03T13:03:06.488Z",
+      "finished": "2026-11-03T13:03:20.623Z",
+      "ok": true,
+      "result": {
+        "missingCode": "0999999999986",
+        "missingText": "Not in the database\n\n9 99999 99998 6\n\nNo product for this code yet. Photograph the nutrition label and the pack becomes a post the same way.\n\nPhotograph the nutrition label\nType it insteadTry the code again\n\n1 other selected photo is waiting. Post this product or dismiss it to continue.",
+        "oneServingText": "Label read \u00b7 per serving 55 g\n\n230 kcal \u00b7 3 g protein \u00b7 37 g carbs \u00b7 8 g fat \u00b7 4 g fibre \u00b7 12 g sugar \u00b7 160 mg sodium\n\nHow much?\n\n1 serving\n2 servings\n\u00bd serving\nOther\n\nConsumed: 230 kcal \u00b7 3 g protein \u00b7 37 g carbs \u00b7 8 g fat\n\nRead by the model from the label. Values you change are kept with the post.",
+        "fractionalText": "Label read \u00b7 per serving 55 g\n\n230 kcal \u00b7 3 g protein \u00b7 37 g carbs \u00b7 8 g fat \u00b7 4 g fibre \u00b7 12 g sugar \u00b7 160 mg sodium\n\nHow much?\n\n1 serving\n2 servings\n\u00bd serving\nOther\n\nConsumed: 805 kcal \u00b7 10.5 g protein \u00b7 129.5 g carbs \u00b7 28 g fat\n\nRead by the model from the label. Values you change are kept with the post.",
+        "reading": {
+          "box": {
+            "h": 0.86,
+            "w": 0.69,
+            "x": 0.16,
+            "y": 0.04
+          },
+          "is_label": true,
+          "per_serving": {
+            "carbs_g": 37,
+            "fat_g": 8,
+            "fibre_g": 4,
+            "kcal": 230,
+            "protein_g": 3,
+            "sodium_mg": 160,
+            "sugar_g": 12
+          },
+          "product_name": null,
+          "serving": {
+            "amount": 55,
+            "unit": "g"
+          }
+        },
+        "readingId": "3e832249-fb53-404d-a0a4-d55e511d74d8",
+        "source": "Unchanged public FDA educational label example, not a photographed physical package; actual production Meta OCR response, no stub.",
+        "posted": false
+      }
+    }
+  ],
+  "apiResponses": [
+    {
+      "at": "2026-11-03T13:02:35.456Z",
+      "path": "/api/fdc/barcode",
+      "status": 200
+    },
+    {
+      "at": "2026-11-03T13:03:10.069Z",
+      "path": "/api/fdc/barcode",
+      "status": 404
+    },
+    {
+      "at": "2026-11-03T13:03:20.227Z",
+      "path": "/api/label/read",
+      "status": 200
+    }
+  ],
+  "readingIds": [
+    "3e832249-fb53-404d-a0a4-d55e511d74d8"
+  ],
+  "cleanup": {
+    "at": "2026-11-03T13:03:23.169Z",
+    "postOperationCount": 4,
+    "standaloneIntakeCount": 0,
+    "copyOperationCount": 0,
+    "drinkOperationCount": 0,
+    "preferencesRestored": true,
+    "issues": []
+  }
+}
