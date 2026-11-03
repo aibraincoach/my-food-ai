@@ -10,6 +10,7 @@ Account1, Chromium131 at390×844, actual current DevTools Fast4G165ms/1012500B/s
 |---|---|---|---|
 | Barcode |4653.7 /3766.0 /3700.7ms|176.5 /75.6 /92.2ms|39940B in4 PUTs →19970B in2 PUTs|
 | Food search |2606.7 /3735.8 /3763.2ms|170.1 /106.8 /131.1ms|0 →0|
+| Verified label |Prior code awaited server; no timed baseline|105.8 /107.9 /125.7ms|0 additional PUTs after Post|
 
 These after values are local, not final production acceptance. Server host timings differ; the new close boundary is the durable local checkpoint and does not await a server response.
 
@@ -20,6 +21,8 @@ Actual disposable browser failures also passed:
 - Refuse all three attempts: selection survives reload and is hidden from account2; returning account1 retries the same operation successfully.
 - Lose all three successful responses: Remove pending post atomically hides the already committed post; replay returns410 and cannot resurrect it.
 
+The label renderer uses a scripted missing-barcode response and scripted owned stored label, then real authenticated publication. Every half-serving post was ready at15g/60kcal; the personal400kcal/100g correction commits atomically. This is not a claim of real AI label recognition.
+
 The screenshots are the exact0e70ecd preview renderer with POST intercepted before backend, not a claim of production SQL success. Its search-result tap→close was176.2ms; three scripted503 replies retained the selection. Real backend behavior is separately covered by disposable HTTP/DB/browser checks.
 
 ![Pending before backend](pending.png)
@@ -27,8 +30,10 @@ The screenshots are the exact0e70ecd preview renderer with POST intercepted befo
 
 ## Answer
 
-Barcode and food-search taps now publish a pending result after durable IndexedDB storage. Retry and reload retain identity, portion, time and pack file. Server acknowledgement supplies the actual post ID; nutrition stays server-resolved. Safe removal uses the publication lock and a tombstone instead of silently discarding a possibly committed operation.
+Barcode and food-search taps now publish a pending result after durable IndexedDB storage. Retry and reload retain identity, portion, time and pack file. Server acknowledgement supplies the actual post ID; nutrition stays server-resolved, including labels read from the authenticated owner’s stored reading. Verified label correction and publication share one transaction. Safe removal uses the publication lock and a tombstone instead of silently discarding a possibly committed operation.
 
 ## Unknown and release boundary
+
+Migration0043 exposes publish_food_operation(uuid,uuid,text,timestamptz,text,numeric,jsonb,jsonb,jsonb), with final photo/correction arguments optional; legacy8argument calls remain valid. The correction argument is server-derived and service-only.
 
 Migration0043 is required before the new client reaches production. This agent applied it only to disposable local Postgres. Final merged production trials remain required. These are browser simulations, not physical-camera measurements. Pending/failure screenshots deliberately use intercepted writes; they create no production food post. Private raw receipts are under uploads/run10-performance/fix306-{local-after,local-failures-v3}-posting and fix306-preview-renderer.
