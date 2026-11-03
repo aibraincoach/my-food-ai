@@ -1,5 +1,7 @@
 "use client";
 
+import {createDayTotalsRefresh} from "@/lib/posts/day-totals-refresh";
+
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
@@ -83,8 +85,6 @@ export default function Feed({initialPage, initialUserId, initialZone = "UTC", f
     const zone = Intl.DateTimeFormat().resolvedOptions().timeZone;
     const dayTotals = new Map<string, FeedDayTotal>((initialPage?.days ?? []).map(day => [day.day, day]));
     const uploadDaysToRead=new Set(uploadManager.list().filter(upload=>upload.posted).map(upload=>dateInZone(upload.eatenAt,zone)));
-    let totalsGeneration = 0;
-    const dayTotalVersions = new Map<string, number>();
     const mergeDays = (days: FeedDayTotal[]) => { for (const day of days) dayTotals.set(day.day, day); };
     let live = true;
     let userId: string | null = initialUserId ?? null;
@@ -130,15 +130,12 @@ export default function Feed({initialPage, initialUserId, initialZone = "UTC", f
       }
     };
 
-    const refreshTotals = async (dates: string[]) => {
-      if (!userId) return;
-      const version = ++totalsGeneration;
-      for (const day of dates) dayTotalVersions.set(day, version);
-      try {
-        const days = await getDayTotals(supabase, userId, zone, dates);
-        if (!live) return;
-        mergeDays(days.filter(day => dayTotalVersions.get(day.day) === version)); publish();
-      } catch { /* Keep the last complete totals; the next readiness event retries. */ }
+    const totalsRefresh = createDayTotalsRefresh<FeedDayTotal>({
+      read: dates => userId ? getDayTotals(supabase, userId, zone, dates) : Promise.resolve([]),
+      commit: days => { if (live) { mergeDays(days); publish(); } },
+    });
+    const refreshTotals = (dates: string[]) => {
+      if (userId) totalsRefresh.request(dates);
     };
     const uploading=(event:Event)=>{const detail=(event as CustomEvent<UploadState>).detail;if(detail.posted){const day=dateInZone(detail.eatenAt,zone);if(!uploadDaysToRead.has(day)){uploadDaysToRead.add(day);void refreshTotals([day]);}}};
     window.addEventListener('upload-started',uploading);
@@ -369,6 +366,7 @@ export default function Feed({initialPage, initialUserId, initialZone = "UTC", f
 
     return () => {
       live = false;
+      totalsRefresh.cancel();
       cachedListener.current = () => {};
       releaseCacheOwner?.();
       window.removeEventListener("post-restore", restore);
