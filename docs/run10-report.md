@@ -1,6 +1,6 @@
-# Fleet 10 execution report — in progress
+# Fleet 10 execution report — reconciled handoff
 
-Observed 2026-11-03, 13:32 UTC. This is an execution ledger, not a completion claim. The full supplied scope remains [the plan](plan-run10.md). Physical-phone acceptance and owner-only settings remain with RT.
+Reconciled 2026-11-03 after the 14:37 UTC handoff. This report separates completed implementation from incomplete acceptance. The full supplied scope remains [the plan](plan-run10.md). Physical-phone acceptance and owner-only settings remain with RT.
 
 Latest user scope clarification: **#413 and Round6 belong to the next design fleet and are excluded. Only phone differences from #353–#367 remain in Fleet10; superseded desktop-frame differences are skipped.** Desktop changes already merged before this clarification are recorded for handoff and will not be expanded or rolled back as part of this run.
 
@@ -15,8 +15,8 @@ Latest user scope clarification: **#413 and Round6 belong to the next design fle
 | 4 | #391 merged. Controlled session refresh3photos before/after both0networkbytes; API-image probes did not reproduce header-related refetch; bounded natural old-Home repeat did refetch609838B via legacy signed JPEGs, a different rendering path. Earlier profile150ms/200kBps is custom, not Fast4G. #414 now routes every normal/realtime photo through the small endpoint; natural-scroll production repeat at12:42UTC on READY66f7f8e rotated the actual access token; all3 rendered photos used memory cache with0networkbytes. #436 records corrected methods. |
 | 5 | #393 merged; exact READY preview and production function configuration verified iad1. |
 | 6 | #386 and follow-up#409 merged. Controlled frozen-frame preview samples after409 were58.5–91.3ms versus222.2–1045.9ms before under customnetwork/CPU4. Final actualFast4G+CPU4 compositor87.21–104.54ms,5/5<=300; realbarcodeFound1154.7ms. Final9postsready/clean0; barcodePost-close1136.6msoutlierretained. #370closed; no physical-camera claim. |
-| 7 | Investigation evidence below is being collected. Unmeasured sections remain unproven. |
-| 8 | #333 merged first at reviewed headb9068d081dea94075734ae5570c9129b53bfb1c5. 49 Fleet10 PRs merged through#444; phone label normalization follow-up remains in verification. Full final acceptance/closures and cleanup remain pending. |
+| 7 | Investigation evidence is preserved in run10-investigations.md and the final evidence folders. Remaining measurements are listed below. |
+| 8 | #333 merged first at reviewed headb9068d081dea94075734ae5570c9129b53bfb1c5. Code PRs through #448 are merged, including phone label normalization #446. Only documentation PRs #344/#384/#385 remain open. Acceptance limits and cleanup are recorded below. |
 
 ## Additional implementation lanes
 
@@ -27,13 +27,13 @@ Latest user scope clarification: **#413 and Round6 belong to the next design fle
 | 11 | #397 and#437 merged. The latter fixes measured cached-startup delay and blank transition: local installed Slow4G cached1721/1716/1700ms→fresh2302/2290/2285ms, compositor no gap/jump and privacy checks pass. Production installed repeat passed1880/1860/1770ms cached→fresh2996/2855/2737ms, no-gap/privacy; #304closed. |
 | 12 | #394 merged; #424 follow-up real matcher/reference integrity+identify components merged. Real report trials and costUS$0.62730425 documented; exact two production caption meals passed12:51–12:53UTC, both2components each with actual USDA source refs, cleanup0; #272closed. |
 | 13 | #401 backfill executed; 25 matching item gaps became 10. Every remaining post is explicitly reported; broad name query includes non-drinks and existing atomic tiles. |
-| 14 | #419 combined photographed drinks merged after disposable runtime proof; production migration0040 applied11:15:58UTC with PT409 conflicts verified. Actual production water/cola composer+201/storedintake passed12:58–12:59UTC with cachedreadingreuse and cleanup0; visible hydrated second-slide drinkcard still pending. |
+| 14 | #419 combined photographed drinks merged after disposable runtime proof; production migration0040 applied11:15:58UTC with PT409 conflicts verified. Actual production water/cola composer+201/storedintake passed12:58–12:59UTC with cachedreadingreuse and cleanup0; hydrated DRANK150/330ml output verified; screenshots overshot the second slide, so visible selected drink-card acceptance remains unproven (evidence/run10-drink-photo-final/README.md). |
 | 15 | #402 merged; production0038applied10:47:59UTC, owner/privilege readback passed. LocalDBtest1/1 and combinedintegration checks passed; productionReplace attachesnewbeforeoldDELETE; Unmark retainsphoto andrealreanalysis100g eaten; cleanup0; #349closed. |
 | 16 | #399 delays destructive requests for six seconds and flushes once on pagehide; timer/undo/pagehide regression passes. Production photoUndo418ms/correctionUndo154ms, wait>6s zero destructiveHTTP, rowsunchanged, cleanup0; #350closed. |
 | 17 | #396 implements allowed sizes, hold, usage order and usual size; local HTTP/gesture acceptance passed. |
-| 18 | #398 changes leftovers labels throughout; wording tests 2/2, lint zero errors after fixing an existing indicator effect. Production acceptance pending. |
-| 19 | Existing pending-food-name feature needs actual production photo observation. |
-| 20 | All15 visual issues have individual PRs. Merged code#404–#418 except issue-specific docs#430–#432 pending; source/reference evidence and report table retained. Report discoveries also produced#422PNG,#424matcher,#425hints,#428Auth,#429dayreads. #433 durable food/barcode/label posting merged, migration0043 applied12:25:54UTC; copy recovery#438 merged with0044applied12:47:03UTC; #443drink recovery merged with0045applied13:17:08UTC. Final controlledcopyproofs and9realpostingtrials passed, cleanup0. #435 phone font correction merged. #437 PWA reconciliation merged; NeedsInputStrip#439 merged and guarded production repeat confirms actual matched3-photo497591→63720B. Phone CorrectProduct contrast#440/#441 fixed andactualproductionforeground verified; furtherlabeldouble-prefixfixunderway. |
+| 18 | #398 changes leftovers labels throughout; wording tests 2/2, lint zero errors after fixing an existing indicator effect. Production source inventory confirms the requested wording; #446 fixes duplicate prefixes. Physical-phone acceptance remains outstanding. |
+| 19 | Actual new-upload observation captured no food names before totals. Gap #449 remains open with #307; the upload-card reader omits pending_items. No successful streaming claim. |
+| 20 | All15 visual issues have individual PRs. Merged code#404–#418 including issue-specific docs #430–#432 merged; source/reference evidence and report table retained. Report discoveries also produced#422PNG,#424matcher,#425hints,#428Auth,#429dayreads. #433 durable food/barcode/label posting merged, migration0043 applied12:25:54UTC; copy recovery#438 merged with0044applied12:47:03UTC; #443drink recovery merged with0045applied13:17:08UTC. Final controlledcopyproofs and9realpostingtrials passed, cleanup0. #435 phone font correction merged. #437 PWA reconciliation merged; NeedsInputStrip#439 merged and guarded production repeat confirms actual matched3-photo497591→63720B. Phone CorrectProduct contrast#440/#441 fixed andactualproductionforeground verified; duplicate-prefix fix #446 merged. Parenthesized drink volume fix #448 merged. |
 | 21 | #387 merged. Feed and nested capture delete confirmation survived 10.5 seconds each in preview and production; Cancel worked. #382 closed. |
 
 ## Premises corrected or unproven
@@ -59,7 +59,9 @@ Latest user scope clarification: **#413 and Round6 belong to the next design fle
 
 Evidence closed #382, #381/#383, #107, #316, #228, #325/#378, #371/#215/#389, #65/#66, #305 (already built under Facts), and #377 (all residual IDs/errors listed under the explicit plan condition). Remaining issues stay open until their required final evidence is inspected; the canonical investigation marks pending acceptance explicitly. Additional discoveries include #407 copied-drink jobs, #420 matcher, #421 PNG footer, #423 modes hint, #426 Auth reads and #427 day reads. Their PRs are tracked below.
 
-## PR ledger at this observation
+## Historical PR review ledger, with final merge states
+
+Reviewed-head values record earlier review observations, not review approval for the latest docs head. #385 remains open; pushed evidence at takeover was 9ede089.
 
 | PR | Branch | State | Reviewed head | Merge commit |
 | --- | --- | --- | --- | --- |
@@ -114,10 +116,26 @@ Evidence closed #382, #381/#383, #107, #316, #228, #325/#378, #371/#215/#389, #6
 | #442 | run10/media-natural-evidence | MERGED | `9d88e9ab6b8502413dfda6f408c929586c6d5383` | `effea0c43b369c43082439d5be5b6d8154526ec6` |
 | #443 | run10/fix-306-drinks | MERGED | `57d016ab4b89b01967007ecf3fe491e5c0221503` | `789c2b7db3ac5a75f7c2b7271419a8a3176c9702` |
 | #444 | run10/readme | MERGED | `e8ad173eed4eebca7df32b6df4ec3d5bddb1e722` | `b65ccb9fc1240e72f11cafff8d24d8a960f75c23` |
-| #446 | run10/fix-294-leftovers-label | OPEN | `f401dbf4a1d17ac30e86d605cede8dbee3aef9ea` | — |
+| #446 | run10/fix-294-leftovers-label | MERGED | `f401dbf4a1d17ac30e86d605cede8dbee3aef9ea` | `7de510781af7b75ab50610f0a43eeee6e80d7da4` |
+| #448 | run10/fix-348-volume | MERGED | `81d70c321a0c5b3ae6f6f187fd7f9c5ae6975aaa` | `3ce84730a33f6e5ce8163c80e454eb63b7d9998a` |
 
 Production closure update12:45UTC: #376 closed after actual token rotation and three natural photos each memorycache0bytes. Evidence and method correction merged in#436.
 
 Evidence update12:51UTC: final7h ten natural production opens on stable6f857ac passed10/10, firstcard443.2–894.6ms median754.55,1browserAuth/0directdayreads each. Five natural feed photos total116762B; strip photos separately63720B (497591B before). Worker wire bytes are separately retained. No initial-photo latency claim because initialcard is text-only. Tickpair firstobserved47safterREADY0.178652/0.297646s is not cold-instance evidence. #368/#374/#373/#375/#372 received report-answer comments; #304/#376 are closed with production evidence.
 
 12:56UTC: coder #281 check passed actual MuseSparkOpen/Baseten trace and full visible detail line; switch returnedoff, fixture removed, prefs restored, zero cleanup issues. Owner acceptance remains open. Two prior overly strict exact-text driver checks are disclosed in the committed evidence.
+
+
+## Final acceptance limits
+
+Production recorded READY at `3ce84730a33f6e5ce8163c80e454eb63b7d9998a`; this reconciliation performs no deployment. #413, Revision 6 and superseded desktop-frame work remain excluded.
+
+- Tap audit: [144 records, 131 traced gestures](evidence/run10-taps-final/README.md). 111 gestures have a captured changed control region after release; 20 remain unknown. Observed frame bounds: median 47.537ms, p95 816.108ms, maximum 1267.521ms. Five changes during contact do not prove pressed styling. Per-control pressed-state and jump/flicker inspection remains incomplete; no blanket smoothness pass.
+- Confirmed-photo Post: not measured in the final audit. Actual identify returned 429, “You have made a lot of requests this hour. Try again later.” The proposed 15:00 UTC / 22:00 WIB retry was cancelled. No quota override, synthetic success or retry is claimed.
+- Food names before totals: failed observation on a genuine new upload; #449 records the transport gap related to #307. Existing-card/reload evidence does not satisfy new-upload acceptance.
+- Photo-top: two completed emulated openings observed first photos at 777.7ms and 916.8ms. The third run recorded a preliminary 911.1ms, then failed when its browser was closed; exclude it from completed trials. The earlier copy-only setup had no photo and cannot support photo timing. Qualified photo-tap measurement was cancelled. Physical-phone acceptance remains with the owner and does not block report/cleanup.
+- README #444 remains merged: DB 32 passed; unit 153 passed / 148 failed / 2 skipped; lint 2 errors / 6 warnings. These are reported failures, not a green suite.
+
+## Cleanup reconciliation
+
+The predecessor removed 30 completed worktrees and 28 merged remote branches, stopped local test servers, revoked preview bypass, and cleaned owned test fixtures. This session preserves the untracked `docs/reviews/mfa-pplx-pr311-e7ece5c.md`, retains open docs branches/PRs #344/#384/#385, and records final cleanup output in `docs/evidence/run10-cleanup/cleanup.txt`. The docs worktree is removed only after its commits are pushed and their remote SHA is checked. Raw signed-URL traces remain private in ignored uploads.
