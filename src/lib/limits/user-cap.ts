@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 
-export type CapRoute = "label" | "transcribe" | "fdc_search" | "fdc_barcode" | "post" | "correct";
+export type CapRoute = "label" | "transcribe" | "fdc_search" | "fdc_barcode" | "post" | "correct" | "drink_identify";
 
 /** The owner chose availability when the counter itself is unavailable. */
 export async function capUser(userId: string, route: CapRoute, db = createAdminClient()): Promise<NextResponse | null> {
