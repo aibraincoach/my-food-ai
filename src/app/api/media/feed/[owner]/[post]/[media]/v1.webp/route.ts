@@ -22,6 +22,12 @@ async function readPhoto(request: Request, context: {params: Promise<{owner: str
   if (error || !data || data.kind !== 'photo') return fail(404);
   const path = feedPhotoPath(data.storage_path, owner, post);
   if (!path) return fail(404);
+  const cacheHeaders = {...headers, 'Cache-Control': 'private, max-age=31536000, immutable', ETag: `"${media}-v1"`};
+  // Authenticate and verify ownership even for conditional reads. No Storage
+  // request or image work is needed when the browser already has this media.
+  if (request.headers.get('if-none-match') === cacheHeaders.ETag) {
+    return new Response(null, {status: 304, headers: cacheHeaders});
+  }
   // Only called after the owning user's RLS lookup, including on overload/failure.
   const original = async () => {
     try {
@@ -44,9 +50,9 @@ async function readPhoto(request: Request, context: {params: Promise<{owner: str
     try {
       const output = await resizeFeedPhoto(source);
       if (signal.aborted) return fail(503);
-      return new Response(new Uint8Array(output), {headers: {...headers, 'Content-Type': 'image/webp'}});
+      return new Response(new Uint8Array(output), {headers: {...cacheHeaders, 'Content-Type': 'image/webp'}});
     } catch {
-      return new Response(new Uint8Array(source), {headers: {...headers, 'Content-Type': 'image/jpeg'}});
+      return new Response(new Uint8Array(source), {headers: {...cacheHeaders, 'Content-Type': 'image/jpeg'}});
     }
   } catch { return original(); }
   finally { release(); }
