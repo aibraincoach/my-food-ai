@@ -18,31 +18,42 @@ Read-only production measurements and designated test-account actions only. Unkn
 
 ## 7b. Empty claims (#374)
 
-**Method** — git log --format='%h %ad %s' --date=iso origin/main -- src/lib/queue src/lib/jobs src/app/api/jobs; gh issue view 222 --comments at 09:04 UTC; daily read-only log windows.
+**Method** — At09:04 UTC ran `git log --format='%h %ad %s' --date=iso origin/main -- src/lib/queue src/lib/jobs src/app/api/jobs`, `git show c8dd4ec:src/lib/queue/claim.ts`, `git show 7e73cd1 -- src/lib/queue/claim.ts`, `git show 1118e0f -- src/lib/queue/claim.ts`, `gh issue view222 --comments`, and GitHub commit→PR lookups. Management Logs API queried seven adjacent daily windows spanning2026-10-27T08:58:50.308Z–2026-11-03T08:58:50.308Z with SQL `select toDate(timestamp) as day,count(*) as calls from logs where source='edge_logs' and log_attributes['request.path'] like '%/rpc/claim_owned_job%' group by day order by day`. A single seven-day request truncates to its first24h; initial429 queries were retried sequentially until every daily query returned200.
 
 **Result**
 
-| Measurement | Result |
-| --- | --- |
-| Daily windows requested | 7 |
+| UTC date | claim_owned_job calls in observed window |
+| --- | ---: |
+| 2026-10-28 | 7731 |
+| 2026-10-29 | 2417 |
+| 2026-10-30 | 9773 |
+| 2026-10-31 | 6909 |
+| 2026-11-01 | 43325 |
+| 2026-11-02 | 66933 |
+| 2026-11-03 | 24089 |
 
-**Answer** — The fixing commit is 1118e0f (#340). The originating commit/merge and first sustained one-per-second day are still being correlated.
+**Answer** — The truthy empty-composite handling is already in `c8dd4ec`, merged in #37 onOct27 at06:10:10 UTC; `7e73cd1`, merged in #86 onOct28 at08:19:23, changes the RPC name to claim_owned_job while retaining the same missing-ID check. #340 (`1118e0f`) fixes that check. Nov2 is the first fully observed UTC day near one call per second (66,933/86,400 ≈0.775/s); #222 reports failures fromOct29 andNov2, within the observed period, but daily traffic does not establish causality.
 
-**Unknown** — Several daily queries initially returned429 and remain under retry; no causal conclusion about #222.
+**Unknown** — The original claim_job traffic before the retained window is not measured by this RPC-name query. Exact first sustained one-per-second onset and why any particular feed request failed remain unproven. #222 was createdOct30 but describes anOct29 report; its datedNov2 observations precede the Run8 fix. Do not equate temporal overlap with diagnosis.
 
 ## 7c. Storage egress (#375)
 
-**Method** — Supabase Management /analytics/endpoints/logs, seven separate UTC daily windows. SQL uses log_attributes request.path, user_agent and reported content_length, grouping file kind/client. Initial seven-day request only returned the first day, verified by min/max timestamp.
+**Method** — Read-only Management Logs API, the same seven daily windows as7b, completed by09:20 UTC. Query groups request.path into feed copy/card/original and user_agent into automation (headless/node/undici/curl/python) or browser; sums `toUInt64OrZero(log_attributes['response.headers.content_length'])` and counts zero/missing lengths. SQL window min/max timestamps were inspected. Initial429s were retried, all seven final queries200. No raw object paths or account addresses are published here.
 
 **Result**
 
-| Measurement | Result |
-| --- | --- |
-| Requested daily windows | 7 |
+| File kind | Client class | Requests | Reported bytes | Missing/zero lengths |
+| --- | --- | ---: | ---: | ---: |
+| card | automation | 8596 | 108881189 | 1011 |
+| card | browser | 1891 | 43678883 | 35 |
+| feed copy | automation | 20134 | 2379064156 | 1027 |
+| feed copy | browser | 4283 | 387772572 | 37 |
+| original | automation | 47666 | 4296289493 | 299 |
+| original | browser | 788 | 162825965 | 8 |
 
-**Answer** — A full seven-day aggregate is not yet complete. Reported Content-Length is a lower bound, not billed Storage egress.
+**Answer** — Browser-class feed copies are the largest browser-class source:387,772,572 reported bytes over seven days (55,396,082 bytes/day averaged across this window). Automation originals are larger overall at4,296,289,493 bytes. This changes the interpretation: automated acceptance/fixture activity is a major measured Storage source. The session-refresh cache change is #391; new feed/photo timing remains to be measured after it reaches production.
 
-**Unknown** — Missing/zero lengths and user-agent classification cannot prove unique real users or complete billed bytes.
+**Unknown** — User-agent classification is not identity and cannot prove that every browser-class request is a real user. Content-Length is a lower bound, not billed egress, and this week includes older code. Current-deploy savings cannot be inferred from the seven-day aggregate; no unconditional new compression is justified from this table alone.
 
 ## 7d. Billed log ingestion (#373)
 
