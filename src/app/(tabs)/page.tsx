@@ -52,16 +52,18 @@ async function HomeDays() {
   const today = dateInZone(new Date(), zone);
   let days: {date: string}[] = [];
   let totals: import("@/lib/posts/days").FeedDayTotal[] = [];
+  let ownerId: string | null = null;
   try {
-    [days, totals] = await homeDeadline((async () => {
+    [days, totals, ownerId] = await homeDeadline((async () => {
       const {db:supabase,user} = await homeReader();
-      return user ? await Promise.all([
+      const [logged,readTotals] = user ? await Promise.all([
         getLoggedDates(supabase, user.id, zone, shiftDay(today, -4), today),
         homeDayTotals(),
       ]) : [[], []] as [{date: string}[], import('@/lib/posts/days').FeedDayTotal[]];
+      return [logged,readTotals,user?.id??null] as [{date:string}[],import('@/lib/posts/days').FeedDayTotal[],string|null];
     })());
   } catch { /* Optional day reads must not take down Home. */ }
-  return <DayRings days={days} totals={totals} today={today} zone={zone} zoneKnown={Boolean(cookieZone)} />;
+  return <DayRings ownerId={ownerId} days={days} totals={totals} today={today} zone={zone} zoneKnown={Boolean(cookieZone)} />;
 }
 
 // A separately streamed owner snapshot paints before the full nutrition
