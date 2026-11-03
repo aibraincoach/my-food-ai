@@ -1,3 +1,4 @@
+import {alcoholGrams} from '@/lib/intake/alcohol';
 import { formatCalories, formatNutrition, sumNutrition, unavailableFoods } from '@/lib/nutrition/totals';
 import type { FeedPost } from '@/lib/posts/feed';
 import type { DrinkCardData } from '@/lib/intake/hydration';
@@ -15,10 +16,14 @@ export type PostPresentation = FeedPost & {
 const number = (value: number) => Math.round(value).toLocaleString('en-US');
 export function summaryLine(post: PostPresentation, drink: DrinkCardData | null | undefined = post.drink): string {
   const drinks = post.itemDrinks ?? [];
-  const drankMl = drinks.reduce((sum, row) => sum + row.ml, 0);
+  const drankMl = drinks.reduce((sum, row) => sum + (row.kind==='alcohol'?0:row.ml), 0);
   const caffeineMg = drinks.reduce((sum, row) => sum + row.caffeineMg, 0);
   const totals = sumNutrition(post.items);
   if (drinks.length && post.items.length && post.items.every(item => drinks.some(row => row.post_item_id === item.id))) {
+    if(drinks.some(row=>row.kind==='alcohol')){
+      const g=post.items.reduce((sum,item)=>sum+alcoholGrams(item.micronutrients),0);
+      return `Drank: ${g>0?`${number(g)} g alcohol · ${(g/14).toFixed(1)} standard drinks`:'alcohol unavailable'} · ${formatCalories(totals.calories)} kcal`;
+    }
     return `Drank: ${drinks.length > 1 ? `${number(drinks.length)} drinks · ` : ''}${number(drankMl)} ml${caffeineMg > 0 ? ` · ${number(caffeineMg)} mg caffeine` : ''} · ${formatCalories(totals.calories)} kcal`;
   }
   if ((post.kind === 'drink' || drink) && (post.drinkSource ?? drink?.source ?? 'sheet') === 'sheet') {
