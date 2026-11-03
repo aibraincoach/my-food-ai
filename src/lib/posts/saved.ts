@@ -1,3 +1,4 @@
+import {copyOperation} from './copy-operation';
 import { syncItemDrinks } from '@/lib/intake/drinks-from-items';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { renderResultsCard } from '@/lib/pipeline/results-card';
@@ -35,11 +36,11 @@ export async function savePost(db:SupabaseClient,postId:string) {
  if(error||typeof data!=='string')throw new Error('The meal could not be saved.');
  return {id:data,name};
 }
-export async function logMeal(db:SupabaseClient,admin:SupabaseClient,id:string,eatenAt:unknown,saved:boolean,timeZone?:string) {
+export async function logMeal(db:SupabaseClient,admin:SupabaseClient,id:string,eatenAt:unknown,saved:boolean,timeZone?:string,operationId?:string) {
  const time=validEatenAt(eatenAt);
  if(!time)throw new Error('Choose a valid time eaten.');
- const {data,error}=await db.rpc(saved?'log_saved_meal':'log_post_again',saved?{p_id:id,p_eaten_at:time}:{p_post_id:id,p_eaten_at:time});
- if(error||typeof data!=='string')throw new Error('The meal could not be logged.');
+ const result=operationId?{data:await copyOperation(db,operationId,id,saved,time),error:null}:await db.rpc(saved?'log_saved_meal':'log_post_again',saved?{p_id:id,p_eaten_at:time}:{p_post_id:id,p_eaten_at:time});
+ const {data,error}=result;if(error||typeof data!=='string')throw new Error('The meal could not be logged.');
  // Sheet intake commits atomically with its copy. Item copies also retain a
  // durable drink_sync repair job.
  // Never turn a failed follow-up into a failed copy that the user repeats.

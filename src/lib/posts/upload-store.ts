@@ -1,3 +1,4 @@
+import type {CopyRequest} from './copy-request';
 import type {FoodRequest} from './food-request';
 import type { CapturedLocation } from '@/lib/location/capture';
 import type { PostOptions, UploadSnapshot } from './create';
@@ -15,6 +16,7 @@ export interface StoredUpload {
     posted: boolean;
     publishStarted?: boolean;
     food?: FoodRequest;
+    copy?: CopyRequest;
     cancelRequested?: boolean;
     resultPostId?: string;
     message?: string;
