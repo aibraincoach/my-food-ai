@@ -1,0 +1,41 @@
+{
+  "deployment": {
+    "id": "dpl_FQqdV7yjPrGgfiR7MkGujdNnkNgX",
+    "state": "READY",
+    "sha": "6f857ac4bb8e906cf6b24f0ab3227158236e69ef",
+    "readyAt": "2026-11-03T12:47:56.081Z",
+    "createdAt": "2026-11-03T12:47:27.008Z",
+    "url": "my-food-m4x33u5nq-aibraincoachs-projects.vercel.app",
+    "observedAt": "2026-11-03T12:48:43.151Z"
+  },
+  "after": {
+    "id": "dpl_FQqdV7yjPrGgfiR7MkGujdNnkNgX",
+    "state": "READY",
+    "sha": "6f857ac4bb8e906cf6b24f0ab3227158236e69ef",
+    "readyAt": "2026-11-03T12:47:56.081Z",
+    "createdAt": "2026-11-03T12:47:27.008Z",
+    "url": "my-food-m4x33u5nq-aibraincoachs-projects.vercel.app",
+    "observedAt": "2026-11-03T12:48:44.088Z"
+  },
+  "method": "Plan7h public GET via curl -s -o /dev/null -w %{time_total}\\n twice consecutively; -D additionally records response headers without another request. Cold label means first observed tick after READY, not proven cold function instance. No network/CPU throttling applies to this exact curl measurement.",
+  "rows": [
+    {
+      "ordinal": 1,
+      "startedAt": "2026-11-03T12:48:43.151Z",
+      "endedAt": "2026-11-03T12:48:43.346Z",
+      "seconds": 0.178652,
+      "exit": 0,
+      "status": 200,
+      "vercelId": "iad1::iad1::rdp96-1793710123188-1c28dae3cdfa"
+    },
+    {
+      "ordinal": 2,
+      "startedAt": "2026-11-03T12:48:43.346Z",
+      "endedAt": "2026-11-03T12:48:43.657Z",
+      "seconds": 0.297646,
+      "exit": 0,
+      "status": 200,
+      "vercelId": "iad1::iad1::crdxx-1793710123376-43f696e27288"
+    }
+  ]
+}

@@ -1,0 +1,50 @@
+{
+  "deploymentBefore": {
+    "id": "dpl_FQqdV7yjPrGgfiR7MkGujdNnkNgX",
+    "state": "READY",
+    "sha": "6f857ac4bb8e906cf6b24f0ab3227158236e69ef",
+    "readyAt": "2026-11-03T12:47:56.081Z",
+    "createdAt": "2026-11-03T12:47:27.008Z",
+    "url": "my-food-m4x33u5nq-aibraincoachs-projects.vercel.app",
+    "observedAt": "2026-11-03T12:48:45.108Z"
+  },
+  "deploymentAfter": {
+    "id": "dpl_FQqdV7yjPrGgfiR7MkGujdNnkNgX",
+    "state": "READY",
+    "sha": "6f857ac4bb8e906cf6b24f0ab3227158236e69ef",
+    "readyAt": "2026-11-03T12:47:56.081Z",
+    "createdAt": "2026-11-03T12:47:27.008Z",
+    "url": "my-food-m4x33u5nq-aibraincoachs-projects.vercel.app",
+    "observedAt": "2026-11-03T12:48:55.736Z"
+  },
+  "at": "2026-11-03T12:48:55.736Z",
+  "method": "Actual production deployed app; unchanged designated account1 fixtures; fresh390x844 phone context, SW blocked, real requests. Read-only.",
+  "rows": [
+    {
+      "loaded": true,
+      "width": 44,
+      "height": 44,
+      "status": 200,
+      "bytes": 20656,
+      "path": "/api/media/feed/fe79cc4a-aab6-47b7-a72e-d7e274e1da3e/e43ac7dc-128a-4032-b530-f5463a37618b/7701ba92-8778-4862-b70f-0ccadcc9046b/v1.webp"
+    },
+    {
+      "loaded": true,
+      "width": 44,
+      "height": 44,
+      "status": 200,
+      "bytes": 21286,
+      "path": "/api/media/feed/fe79cc4a-aab6-47b7-a72e-d7e274e1da3e/72cc166e-d9c4-4620-96f5-0e4435a4eb15/ca0c2530-e653-40c5-a2d4-f2e9822fa5e7/v1.webp"
+    },
+    {
+      "loaded": true,
+      "width": 44,
+      "height": 44,
+      "status": 200,
+      "bytes": 21778,
+      "path": "/api/media/feed/fe79cc4a-aab6-47b7-a72e-d7e274e1da3e/99760494-3c0a-4192-85a8-107f2c7b5a5e/d1daa92c-fc15-41fe-88e5-9d49bdac592e/v1.webp"
+    }
+  ],
+  "totalBytes": 63720,
+  "signedFeedRequests": 0
+}
