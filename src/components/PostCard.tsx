@@ -95,7 +95,7 @@ export default function PostCard({ post, showDate = false, upload, priority = fa
       {upload?.kind&&!upload.postId&&upload.state==='failed'&&!upload.previewUrl&&<><p role="alert" className="text-detail text-muted">{upload.message||'The server did not respond.'}</p><button type="button" onClick={()=>uploadManager.retry(upload.operationId)} className="min-h-tap self-start text-detail text-accent">Try again</button></>}
       {upload?.kind&&!upload.postId&&upload.state==='failed'&&<button type="button" onClick={()=>{void (upload.kind==='copy'?uploadManager.discardCopy(upload.operationId):uploadManager.discardFood(upload.operationId));}} className="min-h-tap self-start text-detail text-muted">Remove pending post</button>}
       {hasUnavailableFields(post) && post.items.length > 0 ? <p className="text-meta text-muted" role="status">Some meal details could not be refreshed. Retrying…</p> : null}
-      <time dateTime={post.eaten_at} className="text-meta text-muted">{upload&&!upload.postId?"Just now":showDate ? localDate : localClock}</time>
+      <time dateTime={post.eaten_at} className="text-meta text-muted">{upload&&!upload.postId?(upload.kind==='copy'?localClock:"Just now"):showDate ? localDate : localClock}</time>
     </div>
   </article>;
 }
