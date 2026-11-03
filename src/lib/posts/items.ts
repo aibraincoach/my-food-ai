@@ -103,7 +103,7 @@ export async function editPostItem(admin: SupabaseClient, postId: string, userId
 export async function getPostDetail(supabase: SupabaseClient, postId: string, zone = "UTC") {
   const baseFields = "id,user_id,caption,eaten_at,status,analysis_initialized_at,servings,source_post_id";
   type PostRow = {id:string;user_id:string;caption:string;eaten_at:string;status:"queued"|"processing"|"needs_input"|"ready"|"failed";analysis_initialized_at:string|null;servings:number;source_post_id:string|null;identify_model?:string|null;identify_host?:string|null};
-  const read = (identity:boolean) => supabase.from("posts").select(identity?`${baseFields},identify_model,identify_host`:baseFields).eq("id",postId).maybeSingle<PostRow>();
+  const read = (identity:boolean) => supabase.from("posts").select(identity?`${baseFields},identify_model,identify_host`:baseFields).is("deleted_at", null).eq("id",postId).maybeSingle<PostRow>();
   let result=await read(true);
   if(result.error&&["PGRST204","42703"].includes(result.error.code)&&/identify_(?:model|host)/.test(result.error.message))result=await read(false);
   const {data:post,error}=result;

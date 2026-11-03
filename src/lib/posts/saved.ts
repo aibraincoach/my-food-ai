@@ -26,7 +26,7 @@ export async function listSaved(db:SupabaseClient):Promise<SavedMeal[]> {
  return rows.map(row=>{const media=firstMedia.get(row.source_post_id);const path=media?(media.kind==='card'?media.storage_path:media.storage_path.replace(/\.[^.]+$/,'.feed.jpg')):null;return {...row,thumbnail:path?urls.get(path)??null:null} as SavedMeal;});
 }
 export async function savePost(db:SupabaseClient,postId:string) {
- const {data:post,error:postError}=await db.from('posts').select('caption').eq('id',postId).maybeSingle();
+ const {data:post,error:postError}=await db.from('posts').select('caption').is("deleted_at", null).eq('id',postId).maybeSingle();
  if(postError||!post)throw new Error('Meal not found.');
  const {data:first}=await db.from('current_post_items').select('name').eq('post_id',postId).order('created_at').limit(1).maybeSingle();
  const name=(post.caption.trim()||first?.name||'Meal').slice(0,80);

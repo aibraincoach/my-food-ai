@@ -19,7 +19,7 @@ export function mealInput(input: AgentArgs, now = Date.now()): { caption: string
 }
 async function owned(db: SupabaseClient, identity: AgentIdentity, id: unknown) {
   if (!isUuid(id)) throw new AgentError('Not found', 404);
-  const { data, error } = await db.from('posts').select('id').eq('id', id).eq('user_id', identity.userId).maybeSingle();
+  const { data, error } = await db.from('posts').select('id').is("deleted_at", null).eq('id', id).eq('user_id', identity.userId).maybeSingle();
   if (error) throw new AgentError('The meal could not be read', 503);
   if (!data) throw new AgentError('Not found', 404);
   return id as string;
@@ -44,7 +44,7 @@ export async function listMeals(identity: AgentIdentity, input: AgentArgs, db: S
   const from = input.from === undefined ? undefined : date(input.from);
   const to = input.to === undefined ? undefined : date(input.to);
   if (from && to && from > to) throw new AgentError('Invalid date range');
-  let query = db.from('posts').select('id,caption,eaten_at,status').eq('user_id', identity.userId).order('eaten_at', { ascending: false }).order('id', { ascending: false }).limit(Number(limit));
+  let query = db.from('posts').select('id,caption,eaten_at,status').is("deleted_at", null).eq('user_id', identity.userId).order('eaten_at', { ascending: false }).order('id', { ascending: false }).limit(Number(limit));
   if (from) query = query.gte('eaten_at', from);
   if (to) query = query.lt('eaten_at', to);
   const { data, error } = await query;

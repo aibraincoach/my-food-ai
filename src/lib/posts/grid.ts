@@ -52,7 +52,7 @@ async function gridNutrition(db: SupabaseClient, postIds: string[]): Promise<Map
 export async function getProfileGrid(db: SupabaseClient, userId: string): Promise<GridPost[]> {
   const posts: GridPost[] = [];
   for (let offset = 0;; offset += 100) {
-    const { data, error } = await db.from("posts").select("id,caption,status,eaten_at,post_media(position,storage_path,kind)")
+    const { data, error } = await db.from("posts").select("id,caption,status,eaten_at,post_media(position,storage_path,kind)").is("deleted_at", null)
       .eq("user_id", userId).order("eaten_at", { ascending: false }).order("id", { ascending: false }).range(offset, offset + 99);
     if (error) throw new Error("Profile posts could not be loaded.");
     const rows = (data ?? []) as unknown as GridRow[];

@@ -19,7 +19,7 @@ export default async function PostDetail({id}:{id:string}) {
  const row=card as PostPresentation|null;
  return <>
   <LocalTimeZone zone={zone} explicit={Boolean(cookieZone)}/>
-  <PostDetailHeader readOnly={detail.isDrink} status={detail.post.status} postId={id} caption={detail.post.caption} eatenAt={detail.post.eaten_at} gtin={row?.gtin} saved={Boolean(row?.saved_meal_id)}/>
+  <PostDetailHeader post={card??undefined} readOnly={detail.isDrink} status={detail.post.status} postId={id} caption={detail.post.caption} eatenAt={detail.post.eaten_at} gtin={row?.gtin} saved={Boolean(row?.saved_meal_id)}/>
   <OutlineOverlay key={id} initialized={detail.post.analysis_initialized_at!=null} readOnly={detail.isDrink} postId={id} caption={detail.post.caption} eatenAt={detail.post.eaten_at} status={detail.post.status} photo={detail.photo} items={detail.items} cardData={detail.cardData} initialDrink={detail.drink} modelCommentId={card?.modelCommentId??null} fingerprint={card?.analysisFingerprint??null} saved={Boolean(row?.saved_meal_id)}>
    {detail.identification?.model?<p className="px-inset text-[12px] text-muted">{detail.identification.host==='baseten'?`Identified by Muse Spark Open (${detail.identification.model}) · Built with Muse Spark Open`:'Identified by Muse Spark 1.3'}</p>:null}
    {detail.post.analysis_initialized_at!=null&&!detail.isDrink?<ServingsControl key={`${id}:${detail.post.servings}`} postId={id} servings={Number(detail.post.servings)}/>:null}

@@ -19,7 +19,7 @@ export async function homePhotoPreload(db: SupabaseClient, pathname: string, use
   });
   try {
     const read = async () => {
-      const { data, error } = await db.from('posts').select('id,user_id,post_media(id,kind,position)')
+      const { data, error } = await db.from('posts').select('id,user_id,post_media(id,kind,position)').is("deleted_at", null)
         .eq('user_id', userId).neq('status', 'needs_input').or('needs_input.is.null,status.eq.failed')
         .order('eaten_at', { ascending: false }).order('id', { ascending: false }).limit(1)
         .abortSignal(controller.signal).maybeSingle();

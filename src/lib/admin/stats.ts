@@ -9,7 +9,7 @@ export async function getQueueStats(admin: SupabaseClient, now = new Date()) {
     admin.from("jobs").select("created_at").eq("status", "queued").order("created_at").limit(1).maybeSingle(),
     admin.from("jobs").select("id", { count: "exact", head: true }).eq("status", "error").gte("finished_at", dayAgo.toISOString()).lte("finished_at", now.toISOString()),
     admin.from("jobs").select("id,error,started_at,finished_at").not("error", "is", null).order("started_at", { ascending: false, nullsFirst: false }).order("id").limit(10),
-    admin.from("posts").select("id,created_at").order("created_at", { ascending: false }).order("id").limit(20),
+    admin.from("posts").select("id,created_at").is("deleted_at", null).order("created_at", { ascending: false }).order("id").limit(20),
   ]);
   if ([depth, oldest, failures, errors, posts].some((result) => result.error)) throw new Error("Queue statistics could not be read.");
   const perMinute = Array.from({ length: 60 }, (_, i) => ({
