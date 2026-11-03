@@ -25,9 +25,9 @@ Latest user scope clarification: **#413 and Round6 belong to the next design fle
 | 9 | Coffee #388 merged; production six-tile check passed. |
 | 10 | #400 merged; disposable-local owner-isolation test passed. Final standalone-intake calendar repeat pending. |
 | 11 | #397 and#437 merged. The latter fixes measured cached-startup delay and blank transition: local installed Slow4G cached1721/1716/1700ms→fresh2302/2290/2285ms, compositor no gap/jump and privacy checks pass. Production installed repeat passed1880/1860/1770ms cached→fresh2996/2855/2737ms, no-gap/privacy; #304closed. |
-| 12 | #394 merged; #424 follow-up real matcher/reference integrity+identify components merged. Real report trials and costUS$0.62730425 documented; final two production meals pending. |
+| 12 | #394 merged; #424 follow-up real matcher/reference integrity+identify components merged. Real report trials and costUS$0.62730425 documented; exact two production caption meals passed12:51–12:53UTC, both2components each with actual USDA source refs, cleanup0; #272closed. |
 | 13 | #401 backfill executed; 25 matching item gaps became 10. Every remaining post is explicitly reported; broad name query includes non-drinks and existing atomic tiles. |
-| 14 | #419 combined photographed drinks merged after disposable runtime proof; production migration0040 applied11:15:58UTC with PT409 conflicts verified. Actual production drink-photo acceptance pending. |
+| 14 | #419 combined photographed drinks merged after disposable runtime proof; production migration0040 applied11:15:58UTC with PT409 conflicts verified. Actual production water/cola composer+201/storedintake passed12:58–12:59UTC with cachedreadingreuse and cleanup0; visible hydrated second-slide drinkcard still pending. |
 | 15 | #402 merged; production0038applied10:47:59UTC, owner/privilege readback passed. LocalDBtest1/1 and combinedintegration checks passed; final production flows pending. |
 | 16 | #399 delays destructive requests for six seconds and flushes once on pagehide; timer/undo/pagehide regression passes. Production acceptance pending. |
 | 17 | #396 implements allowed sizes, hold, usage order and usual size; local HTTP/gesture acceptance passed. |
@@ -114,3 +114,5 @@ Evidence closed #382, #381/#383, #107, #316, #228, #325/#378, #371/#215/#389, #6
 Production closure update12:45UTC: #376 closed after actual token rotation and three natural photos each memorycache0bytes. Evidence and method correction merged in#436.
 
 Evidence update12:51UTC: final7h ten natural production opens on stable6f857ac passed10/10, firstcard443.2–894.6ms median754.55,1browserAuth/0directdayreads each. Five natural feed photos total116762B; strip photos separately63720B (497591B before). Worker wire bytes are separately retained. No initial-photo latency claim because initialcard is text-only. Tickpair firstobserved47safterREADY0.178652/0.297646s is not cold-instance evidence. #368/#374/#373/#375/#372 received report-answer comments; #304/#376 are closed with production evidence.
+
+12:56UTC: coder #281 check passed actual MuseSparkOpen/Baseten trace and full visible detail line; switch returnedoff, fixture removed, prefs restored, zero cleanup issues. Owner acceptance remains open. Two prior overly strict exact-text driver checks are disclosed in the committed evidence.
