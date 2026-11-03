@@ -187,17 +187,20 @@ Read-only production measurements and designated test-account actions only. Unkn
 
 ## 7l. Refusals (#282)
 
-**Method** — Initial source read of src/lib/meta/client.ts retryable/fetchWithRetry, src/lib/fdc/client.ts fdcRetryAfter/retry path, src/components/PostCard.tsx failure/retry UI.
+**Method** — At10:54 UTC read current-main paths with `nl -ba` and `rg -n '429|400|Retry|p_retriable|requeue_rate_limited'`. Inspected `src/lib/meta/client.ts:17`,`:94`, `src/lib/worker/errors.ts:21`, `src/lib/worker/drain.ts:28`, `src/lib/fdc/client.ts:34`, `supabase/migrations/0007b_comment_corrections.sql:62`, `0034_renew_lease.sql:20`, `src/lib/worker/failure-message.ts:2`, and `src/components/PostCard.tsx:39`. Offline real local pipeline/retry tests ran through scripted responses using disposable Auth/REST/Postgres/Storage; production refusals were not injected.
 
 **Result**
 
-| Measurement | Result |
-| --- | --- |
-| Complete production refusal acceptance sequences | 0 |
+| Condition | Boundary and user-visible result | Retry control |
+| --- | --- | --- |
+| Meta HTTP400 | client throws without retry; worker classifies non-retriable and fail_job marks failed. Fixed public message: “The analysis service refused this request. Try again.” | “Try again” on failed card; POST /api/posts/id/retry |
+| Meta HTTP429 | At most1 in-call retry when Retry-After≤10s (or absent); otherwise retriable job failure/requeue. Third retriable worker attempt is final; final failed card uses same fixed public message. | Automatic while queued; manual “Try again” once failed |
+| USDA HTTP429 | At most1 in-call wait/retry when delay≤60s and deadline permits; otherwise requeue_rate_limited_job schedules durable retry without burning an analysis attempt. SQL stores fdc: rate limited; processing card says “The food database was busy. Retrying automatically.” | Automatic while processing; ordinary failed-state control exists if a different terminal failure occurs |
+| Offline pipeline + client retry tests | 2 passed,0 failed | Short429 finishes inside one attempt;400 terminal path and longer requeue covered |
 
-**Answer** — The code has bounded retries and a Try again control for failed meals; final detailed line citations and current offline regression execution remain to be recorded.
+**Answer** — Provider bodies are not rendered to users; fixed public text explains failure or automatic retry. A terminal failed meal exposes “Try again”, while USDA rate limiting remains a scheduled processing state.
 
-**Unknown** — No production refusal was induced; do not claim production refusal acceptance from source alone.
+**Unknown** — These are current source paths plus disposable-local runtime checks, not an induced production outage. No customer or production provider refusal was created for this report.
 
 ## 7m. Secondary-account checks
 
