@@ -8,6 +8,7 @@ const OWNER='10000000-0000-4000-8000-000000000001',OTHER='20000000-0000-4000-800
 const FIRST='30000000-0000-4000-8000-000000000003',SECOND='40000000-0000-4000-8000-000000000004';
 const MEDIA='mfa-media-v2',CONTROL='mfa-media-control-v1';
 const image=`https://storage.example/storage/v1/object/sign/media/${OWNER}/post/photo.feed.jpg`;
+const resized=`https://app.example/api/media/feed/${OWNER}/${FIRST}/${SECOND}/v1.webp`;
 function worker({stores=new Map(),mediaPut}={}) {
  const handlers=new Map(),lifetimes=[];let fetched=0,fetcher=async()=>new Response(`image-${++fetched}`,{status:200});
  const keyOf=key=>typeof key==='string'?key:key.url;
@@ -31,6 +32,36 @@ test('authenticated feed photos reuse bytes across signatures; cards bypass the 
  const w=worker();await w.authenticate();assert.equal(await(await w.request(image+'?token=one')).text(),'image-1');
  assert.equal(await(await w.request(image+'?token=two')).text(),'image-1');assert.equal(w.fetches(),1);
  assert.equal(await w.request(image.replace('.feed.jpg','.png')),null);assert.equal(await w.request(image,{method:'POST'}),null);assert.equal(w.stores.get(MEDIA).size,1);
+});
+test('immutable resized feed photos match only the exact same-origin UUID route without query aliases',async()=>{
+ const w=worker();await w.authenticate();
+ assert.equal(await(await w.request(resized)).text(),'image-1');
+ assert.equal(await(await w.request(resized)).text(),'image-1');assert.equal(w.fetches(),1);
+ for(const invalid of [resized.replace('app.example','foreign.example'),resized+'?token=capability',resized+'?width=50',resized+'/',resized.replace('/v1.webp','/v2.webp'),resized.replace(FIRST,'not-a-post'),resized.replace(SECOND,'not-a-media'),resized.replace(OWNER,'not-an-owner'),resized.replace('/feed/','/feed/extra/')])assert.equal(await w.request(invalid),null,invalid);
+ assert.equal(await w.request(resized,{method:'POST'}),null);
+ assert.equal(w.stores.get(MEDIA).size,1);
+});
+test('resized routes cannot borrow another owner or revive a durable logged-out epoch',async()=>{
+ const stores=new Map(),w=worker({stores});await w.authenticate();await w.request(resized);
+ await w.request(resized.replace(OWNER,OTHER),{}, {settle:false});assert.equal(stores.get(MEDIA).size,1);
+ await w.clear();await w.flush();assert.equal(stores.has(MEDIA),false);
+ const restarted=worker({stores});await restarted.authenticate(FIRST,{transition:'SIGNED_IN'});await restarted.request(resized);assert.equal(stores.has(MEDIA),false);
+ await restarted.authenticate(SECOND);await restarted.request(resized);assert.equal(stores.has(MEDIA),false);
+ await restarted.authenticate(SECOND,{transition:'SIGNED_IN',clientId:'new-client'});
+ await restarted.request(resized,{}, {clientId:'new-client'});assert.equal(stores.get(MEDIA).size,1);
+});
+test('a resize finishing after logout cannot persist bytes into a new session',async()=>{
+ const w=worker();await w.authenticate();let finish;
+ w.setFetch(()=>new Promise(resolve=>{finish=resolve;}));
+ const pending=w.request(resized,{}, {settle:false});while(!finish)await new Promise(resolve=>setImmediate(resolve));
+ await w.clear();await w.authenticate(SECOND,{transition:'SIGNED_IN',clientId:'new-client'});
+ finish(new Response('late-private-resize'));assert.equal(await(await pending).text(),'late-private-resize');await w.flush();
+ assert.equal(w.stores.has(MEDIA),false);
+});
+test('first resized SSR image binds after hydration and validated navigation reuses it',async()=>{
+ const w=worker();await w.request(resized,{}, {settle:false});await w.authenticate();await w.flush();
+ w.setFetch(async request=>request.mode==='navigate'?new Response('HTML',{headers:{'x-mfa-media-user':OWNER,'x-mfa-media-session':FIRST}}):new Response('unexpected resize'));
+ await w.navigate('https://app.example/');assert.equal(await(await w.request(resized,{}, {clientId:'new-document'})).text(),'image-1');
 });
 test('only successful readable images are cached and entries stay bounded',async()=>{
  const w=worker();await w.authenticate();w.setFetch(async()=>new Response('denied',{status:403}));await w.request(image);assert.equal(w.stores.get(MEDIA)?.size??0,0);
@@ -61,14 +92,16 @@ test('requests started before or after logout cannot recreate private bytes when
  }
 });
 test('network delivery does not wait for stalled Cache.put or eviction',async()=>{
+ for(const photo of [image,resized]){
  let release,started;const began=new Promise(resolve=>{started=resolve;});
  const w=worker({mediaPut:()=>new Promise(resolve=>{release=resolve;started();})});await w.authenticate();
- const delivered=w.request(image,{}, {settle:false});let timer;
+ const delivered=w.request(photo,{}, {settle:false});let timer;
  try{
   const response=await Promise.race([delivered,new Promise((_,reject)=>{timer=setTimeout(()=>reject(Error('network response blocked on disk persistence')),300);})]);
   assert.equal(await response.text(),'image-1');await began;assert.equal(w.stores.get(MEDIA).size,0);
  }finally{clearTimeout(timer);release?.();await w.flush();}
  assert.equal(w.stores.get(MEDIA).size,1);
+ }
 });
 test('the first SSR image can be persisted after hydration registers its authenticated client',async()=>{
  const w=worker();const response=await w.request(image,{}, {settle:false});assert.equal(await response.text(),'image-1');

@@ -20,11 +20,14 @@ function warmLoadedPhotos(identity: Epoch) {
     try {
       const url = new URL(image.currentSrc || image.src, location.href);
       const marker = `/storage/v1/object/sign/media/${identity.userId}/`;
-      if (!url.pathname.includes(marker) || !url.pathname.endsWith('.feed.jpg')) continue;
+      const resized = url.pathname.match(/^\/api\/media\/feed\/([^/]+)\/([^/]+)\/([^/]+)\/v1\.webp$/);
+      const ownedResize = resized && url.origin === new URL(location.href).origin && !url.search && resized.slice(1).every(value => UUID.test(value)) && resized[1] === identity.userId;
+      const ownedStorage = url.pathname.includes(marker) && url.pathname.endsWith('.feed.jpg');
+      if (!ownedResize && !ownedStorage) continue;
       const key = `${identity.epoch}:${url.origin}${url.pathname}`;
       if (warmed.has(key)) continue;
       warmed.add(key);
-      void fetch(url, {mode: 'cors', credentials: 'omit', cache: 'force-cache'}).then(async response => {
+      void fetch(url, {mode: 'cors', credentials: ownedResize ? 'same-origin' : 'omit', cache: 'force-cache'}).then(async response => {
         if (!response.ok) throw Error('Photo cache warming failed');
         await response.arrayBuffer();
       }).catch(() => warmed.delete(key));

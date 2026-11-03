@@ -4,6 +4,8 @@ import { createServerClient } from "@supabase/ssr";
 import { adminRequestAllowed, adminNotFoundResponse } from "@/lib/auth/admin-access";
 import { sessionCookieBridge } from "@/lib/auth/session-cookies";
 
+import { homePhotoPreload } from "@/lib/posts/home-photo-preload";
+
 const PROTECTED = ["/", "/search", "/days", "/profile"];
 
 export async function middleware(request: NextRequest) {
@@ -38,6 +40,13 @@ export async function middleware(request: NextRequest) {
         session.response.headers.set("x-mfa-media-session", identity.epoch);
       }
     } catch { /* Unknown identity leaves private caching disabled. */ }
+  }
+  if (pathname === "/" && user) {
+    const preload = await homePhotoPreload(supabase, pathname, user.id);
+    if (preload) {
+      session.response.headers.append("Link", preload);
+      session.response.headers.set("Cache-Control", "private, no-store");
+    }
   }
   return session.response;
 }

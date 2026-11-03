@@ -3,6 +3,7 @@ import { dateInZone, getDayTotals, type FeedDayTotal } from "./days";
 import { encodeFeedCursor, parseFeedCursor } from "./feed-cursor";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { feedCopyUrl } from "@/lib/media/media-url";
+import {smallFeedPhotoUrl} from '@/lib/posts/feed-photo-url';
 import { getCurrentItems, getCurrentItemsForPosts, type Numeric, type CurrentItem } from "@/lib/nutrition/totals";
 
 export type PostStatus =
@@ -198,19 +199,23 @@ export async function toFeedPosts(db: SupabaseClient, rows: PostRow[], zone = "U
     const paths = [...new Set((media ?? []).map(entry => entry.kind === 'card' ? entry.storage_path : feedPathFor(entry.storage_path)))];
     const first = media?.find(entry => entry.post_id === rows[0].id);
     const firstPath = first && first.kind !== 'card' ? feedPathFor(first.storage_path) : null;
-    // Fast SSR photo and full-page snapshot share this owner/path promise, so
-    // nutrition completion does not replace a successfully loaded signature.
-    const firstRead = firstPath ? optionalRead('first-photo', () => feedCopyUrl(db, firstPath, rows[0].user_id), null) : Promise.resolve(null);
+    const smallFirst = firstPath && first ? smallFeedPhotoUrl(rows[0].user_id, rows[0].id, first.id) : null;
+    if (smallFirst) onFirstPhoto?.(smallFirst);
+    // Fast SSR and the full page share one immutable private photo URL.
+    // Legacy identifiers retain the shared owner/path signing fallback.
+    const firstRead = smallFirst ? Promise.resolve(smallFirst) : firstPath ? optionalRead('first-photo', () => feedCopyUrl(db, firstPath, rows[0].user_id), null) : Promise.resolve(null);
     const batchRead = optionalRead('signed-urls', async () => {
       if (!paths.length) return new Map<string, string>();
-      const result = await db.storage.from('media').createSignedUrls(paths, 3600);
+      const signedPaths = smallFirst ? paths.filter(path => path !== firstPath) : paths;
+      if (!signedPaths.length) return new Map<string, string>();
+      const result = await db.storage.from('media').createSignedUrls(signedPaths, 3600);
       if (result.error) throw result.error;
       return new Map((result.data ?? []).filter(entry => entry.signedUrl && !entry.error).map(entry => [entry.path!, entry.signedUrl]));
     }, new Map<string, string>());
     const [urls, firstUrl] = await Promise.all([batchRead, firstRead]);
     if (firstPath && firstUrl) urls.set(firstPath, firstUrl);
     const url = first && urls.get(first.kind === 'card' ? first.storage_path : feedPathFor(first.storage_path));
-    if (url) onFirstPhoto?.(url);
+    if (url && !smallFirst) onFirstPhoto?.(url);
     return urls;
   });
   const beforeRead = revisions();
@@ -247,14 +252,14 @@ export const VISIBLE_MEAL_FILTER="needs_input.is.null,status.eq.failed";
 // The critical first-photo path does not wait for six meals' nutrition and
 // feedback fences. Embedded media remains authorized by the caller's RLS.
 export async function getFirstFeedPhoto(db: SupabaseClient, userId: string) {
-  const {data, error} = await db.from('posts').select('id,user_id,caption,eaten_at,post_media(storage_path,kind,position)')
+  const {data, error} = await db.from('posts').select('id,user_id,caption,eaten_at,post_media(id,storage_path,kind,position)')
     .eq('user_id',userId).neq('status','needs_input').or(VISIBLE_MEAL_FILTER)
     .order('eaten_at',{ascending:false}).order('id',{ascending:false}).limit(1).abortSignal(AbortSignal.timeout(8000)).maybeSingle();
   if(error)throw new Error('The first meal could not be read.');
   if(!data)return null;
   if(data.user_id!==userId)throw new Error('The first meal owner did not match.');
   const photo=[...(data.post_media??[])].filter(row=>row.kind==='photo').sort((a,b)=>a.position-b.position)[0];
-  const photoUrl=photo?await feedCopyUrl(db,feedPathFor(photo.storage_path),data.user_id):null;
+  const photoUrl=photo?(smallFeedPhotoUrl(data.user_id,data.id,photo.id)??await feedCopyUrl(db,feedPathFor(photo.storage_path),data.user_id)):null;
   return {id:data.id,caption:data.caption??'',eaten_at:data.eaten_at,photoUrl};
 }
 
