@@ -10,7 +10,7 @@ import { Icon } from "@/components/ui/Icon";
 import { tokens } from "@/lib/theme/tokens";
 import { formatCalories } from "@/lib/nutrition/totals";
 import { shiftMonth, validDate, type LoggedDay, type MonthSummary } from "@/lib/posts/days";
-import MonthGrid, { monthName } from "@/components/MonthGrid";
+import PhoneCalendar from "@/components/PhoneCalendar";
 import GoToMonthSheet from "@/components/GoToMonthSheet";
 import StoryPlayer,{dayPostName} from "@/components/StoryPlayer";
 
@@ -36,8 +36,6 @@ export default function DaysView({ initialMonths, earliest, today, zone, initial
   const retry = useRef<(() => void) | null>(null);
   const activeRef = useRef<LoggedDay | null>(initialDay ?? null);
   const previousInitialMonths = useRef(initialMonths);
-  const tail = useRef<HTMLDivElement>(null);
-  const desktopTail=useRef<HTMLDivElement>(null);
   const monthScroll=useRef<HTMLDivElement>(null);
   useEffect(()=>{if(desktop&&monthScroll.current)monthScroll.current.scrollTop=monthScroll.current.scrollHeight;},[desktop]);
   const top = today.slice(0, 7), floor = earliest.slice(0, 7);
@@ -147,23 +145,6 @@ export default function DaysView({ initialMonths, earliest, today, zone, initial
     return () => window.removeEventListener("popstate", reconcile);
   }, [openDay]);
   useEffect(() => {
-    if (last <= floor) return;
-    const sentinel = desktop?desktopTail.current:tail.current;
-    if (!sentinel) return;
-    const observer = new IntersectionObserver(entries => {
-      if (!entries.some(entry => entry.isIntersecting)) return;
-      observer.disconnect(); setLoadingMonth(true); setError("");
-      const nextMonth = shiftMonth(last, -1);
-      const attempt = () => {
-        setLoadingMonth(true); setError("");
-        void loadMonth(nextMonth).catch(failure => { retry.current = attempt; setError(failure.message); }).finally(() => setLoadingMonth(false));
-      };
-      attempt();
-    });
-    observer.observe(sentinel);
-    return () => observer.disconnect();
-  }, [last, floor, loadMonth,desktop]);
-  useEffect(() => {
     const refresh = () => {
       const date = window.location.pathname.match(/^\/days\/(2\d{3}-\d{2}-\d{2})$/)?.[1];
       if (date) void openDay(date, false);
@@ -206,9 +187,9 @@ export default function DaysView({ initialMonths, earliest, today, zone, initial
       left={<Link href="/" className="flex min-h-tap items-center text-body" style={{ marginLeft: -tokens.spacing["tooltip-y"] }}><Icon name="back" size={tokens.radii.pill} strokeWidth={tokens.icon.strongStroke} />Feed</Link>}
       right={<button type="button" onClick={() => { void showMenu(); }} className="flex min-h-tap items-center gap-1 text-detail text-muted" style={{ marginRight: -tokens.spacing.grid * 2 }}>{top.slice(0, 4)}<Icon name="chevron-down" /></button>} />
     <div className="desktop:flex desktop:items-start desktop:justify-center desktop:gap-6"><div ref={monthScroll} className="flex flex-col pt-1 desktop:max-h-[calc(100dvh-96px)] desktop:overflow-y-auto desktop:w-[616px] desktop:min-w-0 desktop:flex-1 desktop:max-w-[616px]" style={{ gap: tokens.spacing["icon-small"] + tokens.spacing.grid }}>
-      <div ref={desktopTail} className="hidden desktop:block desktop:h-1 desktop:shrink-0"/>
-      {(desktop?[...displayed].reverse():displayed).map(month => <MonthGrid key={month} month={month} summary={months[month]} today={today} selected={selected} onDay={date => { if(activeRef.current?.date!==date)void openDay(date); }} onOpenDay={date=>{void openDay(date,false).then(()=>{if(activeRef.current?.date===date){setDesktopStory(true);window.history.pushState(null,'',url(`/days/${date}`));}});}} />)}
-      <div ref={tail} className="desktop:hidden px-screen-x text-month text-faint" style={{ minHeight: tokens.spacing.tap }}>{monthName(shiftMonth(last, -1), true)}</div>
+      <PhoneCalendar months={months} today={today} selected={selected} onDay={date=>{if(activeRef.current?.date!==date)void openDay(date);}} onOlder={last>floor?()=>{
+        const attempt=()=>{setLoadingMonth(true);setError('');void loadMonth(shiftMonth(last,-1)).catch(failure=>{retry.current=attempt;setError(failure.message);}).finally(()=>setLoadingMonth(false));};attempt();
+      }:undefined}/>
     </div>
     <aside className="hidden desktop:sticky desktop:top-6 desktop:block desktop:w-[440px] desktop:max-w-[44%] desktop:shrink-0 desktop:overflow-hidden desktop:rounded-[16px] desktop:border desktop:border-line desktop:bg-white" aria-label="Selected day">
       {active?<><div className="border-b border-hairline px-4 pb-3 pt-4"><h2 className="text-[17px] font-semibold">{new Date(`${active.date}T12:00:00Z`).toLocaleDateString('en',{weekday:'long',month:'short',day:'numeric',timeZone:'UTC'})}</h2><p className="mt-2 text-detail text-muted">Consumed: {formatCalories(active.totals.calories)} kcal · {active.posts.length} {active.posts.length===1?'post':'posts'}</p></div>
