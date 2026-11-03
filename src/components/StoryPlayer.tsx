@@ -8,7 +8,7 @@ import Link from "next/link";
 import { formatCalories, formatNutrition } from "@/lib/nutrition/totals";
 import { intakeLine } from "@/lib/intake/intake";
 import { tokens } from "@/lib/theme/tokens";
-import { dateInZone, shiftDay, type LoggedDay } from "@/lib/posts/days";
+import { dateInZone, shiftDay, type DayPost, type LoggedDay } from "@/lib/posts/days";
 import { ResultsCard } from "@/components/ResultsCard";
 import { Icon } from "@/components/ui/Icon";
 import { formatDayKcal } from "@/components/MonthGrid";
@@ -19,6 +19,11 @@ function subscribeWidth(listener: () => void) {
 }
 const readWidth = () => Math.min(tokens.spacing.phone, window.innerWidth);
 const serverWidth = () => tokens.spacing.phone;
+
+export function dayPostName(post:Pick<DayPost,'items'|'caption'>):string {
+  const names=[...new Set(post.items.map(item=>item.name.trim()).filter(Boolean))];
+  return names.join(' · ')||post.caption.trim()||'Meal';
+}
 
 export default function StoryPlayer({ day, zone, onClose, onDay, cell }: { day: LoggedDay; zone: string; onClose: () => void; onDay: (date: string) => void; cell: () => DOMRect | undefined }) {
   useEffect(()=>{const refresh=()=>onDay(day.date);window.addEventListener('post-deleted',refresh);return()=>window.removeEventListener('post-deleted',refresh);},[day.date,onDay]);
@@ -142,7 +147,7 @@ export default function StoryPlayer({ day, zone, onClose, onDay, cell }: { day: 
               {photo(entry) ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img src={photo(entry)!} onError={() => photoFailed(entry.photoUrl)} alt={entry.caption || "Meal"} className="h-full w-full object-cover" />
-              ) : <span className="text-detail tabular-nums">{formatCalories(entry.totals.calories)} kcal</span>}
+              ) : <span className="line-clamp-3 px-2 text-center text-detail">{dayPostName(entry)}</span>}
             </div>
             <p className="mt-1 flex justify-between gap-1 text-label text-faint tabular-nums"><span>{time(entry.eatenAt)}</span><span>{formatCalories(entry.totals.calories)} kcal</span></p>
           </Link>)}</div>
