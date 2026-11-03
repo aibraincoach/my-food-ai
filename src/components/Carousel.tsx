@@ -42,17 +42,20 @@ export default function Carousel({slides,caption,postId,href,modelCommentId,fing
    try{
     // Attaching a photo first sets processing; removal becomes legal at ready.
     const response=await fetch(`/api/posts/${postId}/media?media_id=${pending.id}`,{method:'DELETE'});
-    if(response.status===404&&pending.attempts++<120){if(live)retry=setTimeout(()=>{void finish();},2000);return;}
+    if(response.status===404&&pending.attempts++<120){retry=setTimeout(()=>{void finish();},2000);return;}
     if(!response.ok)throw Error('The new photo was added, but the previous photo could not be removed. Try removing it again.');
-    replacement.current=null;setRemoved(old=>[...old,pending.id]);window.dispatchEvent(new CustomEvent('media-removed',{detail:{id:postId,mediaId:pending.id}}));router.refresh();
-   }catch(cause){replacement.current=null;setError(cause instanceof Error?cause.message:'The previous photo could not be removed.');}
-   finally{pending.busy=false;}
+    replacement.current=null;if(live)setRemoved(old=>[...old,pending.id]);window.dispatchEvent(new CustomEvent('media-removed',{detail:{id:postId,mediaId:pending.id}}));router.refresh();
+   }catch(cause){replacement.current=null;if(live)setError(cause instanceof Error?cause.message:'The previous photo could not be removed.');}
+   finally{pending.busy=false;if(!live&&!replacement.current)detach();}
   };
   const created=(event:Event)=>{if((event as CustomEvent).detail?.id===postId&&replacement.current){replacement.current.attached=true;void finish();}};
   const ready=(event:Event)=>{if((event as CustomEvent).detail?.id===postId)void finish();};
   const closed=()=>{if(replacement.current&&!replacement.current.attached)replacement.current=null;};
+  const detach=()=>{clearTimeout(retry);window.removeEventListener('post-created',created);window.removeEventListener('post-ready',ready);window.removeEventListener('entry-closed',closed);};
   window.addEventListener('post-created',created);window.addEventListener('post-ready',ready);window.addEventListener('entry-closed',closed);
-  return()=>{live=false;clearTimeout(retry);window.removeEventListener('post-created',created);window.removeEventListener('post-ready',ready);window.removeEventListener('entry-closed',closed);};
+  // Closing capture can navigate Search back to Feed. Complete an already
+  // attached replacement across that client navigation, then release listeners.
+  return()=>{live=false;if(!replacement.current?.attached)detach();};
  },[postId,router]);
  const shown=slides.filter(slide=>!slide.id||!removed.includes(slide.id));
  useEffect(()=>{const receive=(event:Event)=>{const detail=(event as CustomEvent<{id:string;mediaId:string}>).detail;if(detail.id===postId)setRemoved(old=>[...old,detail.mediaId]);};window.addEventListener('media-removed',receive);return()=>window.removeEventListener('media-removed',receive);},[postId]);
