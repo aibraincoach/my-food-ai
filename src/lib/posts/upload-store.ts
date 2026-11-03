@@ -1,3 +1,4 @@
+import type {TileDrinkRequest,PhotoDrinksRequest} from './drink-request';
 import type {FoodRequest} from './food-request';
 import type { CapturedLocation } from '@/lib/location/capture';
 import type { PostOptions, UploadSnapshot } from './create';
@@ -15,6 +16,8 @@ export interface StoredUpload {
     posted: boolean;
     publishStarted?: boolean;
     food?: FoodRequest;
+    drink?: TileDrinkRequest;
+    photoDrinks?: PhotoDrinksRequest;
     cancelRequested?: boolean;
     resultPostId?: string;
     message?: string;

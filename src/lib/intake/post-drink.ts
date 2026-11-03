@@ -30,8 +30,8 @@ export function parseDrinkInput(body: unknown): DrinkInput | null {
   return { kind: "caffeine", label: preset?.label ?? "Coffee", ml, caffeineMg };
 }
 
-export async function postDrink(admin: SupabaseClient, userId: string, input: DrinkInput, tz: string): Promise<{ postId: string; drink: DrinkCardData | null }> {
-  const eatenAt = new Date().toISOString();
+export async function postDrink(admin: SupabaseClient, userId: string, input: DrinkInput, tz: string, operation?:{id:string;key:string;eatenAt:string}): Promise<{ postId: string; drink: DrinkCardData | null }> {
+  const eatenAt = operation?.eatenAt??new Date().toISOString();
   let nutrition: Record<string, unknown> = { calories: 0, protein_g: 0, carbs_g: 0, fat_g: 0, fibre_g: 0, sugar_g: 0, sodium_mg: 0,
     micronutrients: [{ nutrientId: 1051, nutrientName: "Water", unitName: "G", value: input.ml, basis: "portion" }], source_ref: null };
   if (input.kind === "caffeine") {
@@ -53,9 +53,10 @@ export async function postDrink(admin: SupabaseClient, userId: string, input: Dr
       micronutrients: [...n.micronutrients.filter(row => (row as { nutrientId?: number }).nutrientId !== 1057),
         { nutrientId: 1057, nutrientName: "Caffeine", unitName: "MG", value: input.caffeineMg, basis: "portion" }], source_ref: n.sourceRef };
   }
-  const { data, error } = await admin.rpc("create_drink_post", { p_user_id: userId, p_eaten_at: eatenAt,
+  const { data, error } = await admin.rpc(operation?"publish_drink_operation":"create_drink_post", { ...(operation?{p_operation_id:operation.id,p_request_key:operation.key}:{}),p_user_id: userId, p_eaten_at: eatenAt,
     p_kind: input.kind, p_ml: input.ml, p_label: input.label, p_caffeine_mg: input.caffeineMg, p_nutrition: nutrition });
-  if (error || typeof data !== "string") throw new Error("The drink could not be saved.");
+  if(error)throw Object.assign(new Error("The drink could not be saved."),{code:error.code});
+  if(typeof data!=="string")throw new Error("The drink could not be confirmed.");
   const postId = data;
   const zone = validZone(tz);
   let drink: DrinkCardData | null = null;

@@ -44,16 +44,17 @@ export function useComposerDrinks(p:Props){
  const rows=all.filter(row=>volumes[row.key]!==null).map(row=>({...row,chosen:scalePhotoDrink(row.drink,volumes[row.key]??row.drink.ml)}));
  const row=rows.find(r=>r.key===selected)??(rows.length===1?rows[0]:undefined);
  const sum=(key:'ml'|'caffeineMg'|'kcal')=>rows.some(r=>r.chosen[key]===null)?null:rows.reduce((n,r)=>n+Number(r.chosen[key]),0);
+ const queueing=useRef(false);
  const busy=p.busy||saving;
  const setVolume=(key:string,ml:number)=>{if(Number.isFinite(ml)&&ml>=1&&ml<=5000)setVolumes(previous=>({...previous,[key]:ml}));};
  async function post(){
-  if(!ready||busy||!rows.length)return;setSaving(true);setError({identity,message:''});
+  if(!ready||busy||!rows.length||queueing.current)return;queueing.current=true;setSaving(true);setError({identity,message:''});
   try{
-   const response=await fetch('/api/drinks/post',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({upload_id:uploadId,caption:p.caption,save_as_meal:p.saveAsMeal,location:p.locationEnabled&&p.upload?uploadManager.fields(p.upload.operationId)?.location??null:null,...(p.when?{eaten_at:fromLocalInput(p.when)}:{}),readings:p.shots.map((_,position)=>({reading_id:readingAt(position).id,selections:rows.filter(r=>r.position===position).map(r=>({index:r.index,ml:r.chosen.ml}))}))})});
-   const result=await response.json();if(!response.ok)throw Error(result.error??'The drinks could not be posted.');
-   if(p.upload)await uploadManager.remove(p.upload.operationId);
-   window.dispatchEvent(new CustomEvent('post-created',{detail:{id:result.post_id}}));window.dispatchEvent(new Event('close-sheets'));router.refresh();
-  }catch(failure){setError({identity,message:failure instanceof Error?failure.message:'The drinks could not be posted.'});}finally{setSaving(false);}
+   if(!p.upload||!uploadId)throw Error('Keep the uploaded drink photo and try again.');
+   const eatenAt=p.when?fromLocalInput(p.when):new Date().toISOString();if(!eatenAt)throw Error('Choose a valid time eaten.');
+   await uploadManager.postPhotoDrinks({upload_id:uploadId,caption:p.caption,save_as_meal:p.saveAsMeal,location:p.locationEnabled?uploadManager.fields(p.upload.operationId)?.location??null:null,eaten_at:eatenAt,readings:p.shots.map((_,position)=>({reading_id:readingAt(position).id,selections:rows.filter(r=>r.position===position).map(r=>({index:r.index,ml:r.chosen.ml}))}))},p.caption.trim()||(rows.length===1?rows[0].chosen.name:rows.length+' drinks'),p.upload.operationId);
+   window.dispatchEvent(new Event('close-sheets'));
+  }catch(failure){setError({identity,message:failure instanceof Error?failure.message:'The drinks could not be posted.'});}finally{queueing.current=false;setSaving(false);}
  }
  const correction=all.find(r=>r.key===correcting);
  async function saveCorrection(value:BarcodeCorrection){

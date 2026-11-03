@@ -5,6 +5,7 @@ import { Sheet } from "@/components/ui/Sheet";
 import { Field } from "@/components/ui/Field";
 import { Button } from "@/components/ui/Button";
 import { Icon } from "@/components/ui/Icon";
+import {uploadManager,type UploadState} from "@/lib/posts/upload-manager";
 import { createPost } from "@/lib/posts/create";
 import { DRINK_TILES, TILE_SIZES } from "@/lib/intake/intake";
 import type { DrinkRow } from "@/lib/intake/hydration";
@@ -66,17 +67,15 @@ export default function IntakeSheet({ embedded = false, onClose }: { initialKind
   const postTile = async (tile: number, ml = usualMl[tile]) => {
     setError("");
     try {
-      const response = await fetch(`/api/intake/post?tz=${encodeURIComponent(Intl.DateTimeFormat().resolvedOptions().timeZone)}`, {
-        method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ tile, ml }),
-      });
-      const data = await response.json();
-      if (!response.ok) throw new Error(data.error ?? "The drink could not be saved.");
-      const choice = DRINK_TILES[tile];
-      setPosted(previous => [...previous, { id: data.post_id, label: `${choice.name}, ${TILE_SIZES[tile].find(size => size.ml === ml)?.word ?? choice.size}`, expires: Date.now() + 4000 }]);
-      window.dispatchEvent(new CustomEvent("post-created", { detail: { id: data.post_id } }));
+      const choice=DRINK_TILES[tile],size=TILE_SIZES[tile].find(size=>size.ml===ml);
+      await uploadManager.postDrink({tile,ml,eaten_at:new Date().toISOString(),time_zone:Intl.DateTimeFormat().resolvedOptions().timeZone},choice.name+', '+(size?.word??choice.size)+' · '+ml+' ml');
       close();
     } catch (reason) { setError(reason instanceof Error ? reason.message : "The drink could not be saved."); }
   };
+  useEffect(()=>{
+    const finished=(event:Event)=>{const drink=(event as CustomEvent<UploadState>).detail;if(drink?.drinkTile&&drink.postId)setPosted(previous=>[...previous,{id:drink.postId!,label:drink.caption,expires:Date.now()+4000}]);};
+    window.addEventListener('upload-finished',finished);return()=>window.removeEventListener('upload-finished',finished);
+  },[]);
   const postCaption = async () => {
     if (!caption.trim() || captionPending.current) return;
     captionPending.current = true; setBusy(true); setError("");

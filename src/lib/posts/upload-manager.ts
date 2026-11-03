@@ -1,4 +1,5 @@
 'use client';
+import type {TileDrinkRequest,PhotoDrinksRequest} from './drink-request';
 import type {FoodRequest} from './food-request';
 import { createClient } from '@/lib/supabase/client';
 import { PostUploadDraft, type PostOptions } from './create';
@@ -8,8 +9,9 @@ import type { CapturedLocation } from '@/lib/location/capture';
 import { PhotoUploadError, type UploadError } from '@/lib/media/put-with-progress';
 export interface UploadState {
     operationId: string;
-    kind?: "food";
+    kind?: "food"|"drink";
     removing?: boolean;
+    drinkTile?: boolean;
     message?: string;
     uploadId?: string;
     sent: number;
@@ -51,7 +53,7 @@ export class UploadManager {
     private notify(entry?: Entry, event?: string) { for (const listener of this.listeners)
         listener(); if (entry && event && typeof window !== 'undefined')
         window.dispatchEvent(new CustomEvent(event, { detail: this.state(entry) })); }
-    private state(entry: Entry): UploadState { const d = entry.data; return { operationId: d.operationId, uploadId:d.snapshot?.id, caption: d.caption, eatenAt: d.eatenAt ?? new Date(d.createdAt).toISOString(), previewUrl: entry.previewUrl, sent: d.sent, total: d.total, state: d.state, error: d.error, posted: d.posted, ...(d.food?{kind:"food" as const,removing:d.cancelRequested,message:d.message}:{}), ...(entry.finished ? { postId: d.resultPostId??d.snapshot?.id } : {}) }; }
+    private state(entry: Entry): UploadState { const d = entry.data; return { operationId: d.operationId, uploadId:d.snapshot?.id, caption: d.caption, eatenAt: d.eatenAt ?? new Date(d.createdAt).toISOString(), previewUrl: entry.previewUrl, sent: d.sent, total: d.total, state: d.state, error: d.error, posted: d.posted, ...((d.food||d.drink||d.photoDrinks)?{kind:d.food?"food" as const:"drink" as const,removing:d.cancelRequested,message:d.message}:{}), ...(d.drink?{drinkTile:true}:{}), ...(entry.finished ? { postId: d.resultPostId??d.snapshot?.id } : {}) }; }
     list = () => [...this.entries.values()].filter(e => !e.deleted).sort((a, b) => b.data.createdAt - a.data.createdAt).map(e => this.state(e));
     fields(id:string):DraftFields|null { const data=this.entries.get(id)?.data; return data?{caption:data.caption,eatenAt:data.eatenAt,location:data.location,options:{...data.options}}:null; }
     newest() { return [...this.entries.values()].filter(e => !e.deleted && !e.data.posted).sort((a, b) => b.data.createdAt - a.data.createdAt)[0]?.data ?? null; }
@@ -144,6 +146,30 @@ export class UploadManager {
         void this.run(entry);
         return entry.data.operationId;
     }
+    async postDrink(drink:TileDrinkRequest,label:string){
+        drink={...drink};
+        if(!this.ownerId){const {data:{user}}=await createClient().auth.getUser();if(!user)throw new Error('Sign in to keep this drink.');this.ownerId=user.id;}
+        const now=Date.now(),id=crypto.randomUUID();
+        const entry=this.make({operationId:id,ownerId:this.ownerId,createdAt:now,reservedAt:now,caption:label,eatenAt:drink.eaten_at,location:null,options:{},files:[],snapshot:null,posted:true,drink,state:'uploading',sent:0,total:0});
+        this.entries.set(id,entry);await this.persist(entry);
+        if(entry.deleted||entry.data.ownerId!==this.ownerId)throw new Error('Sign-in changed. Your drink is kept for its original account.');
+        this.notify(entry,'upload-started');void this.run(entry);return id;
+    }
+    async postPhotoDrinks(photoDrinks:PhotoDrinksRequest,label:string,id:string){
+        const entry=this.entries.get(id);
+        if(!entry||entry.deleted||entry.finished||entry.data.posted||entry.data.ownerId!==this.ownerId||entry.data.snapshot?.id!==photoDrinks.upload_id||!entry.data.files.length)throw new Error('Keep the uploaded drink photo and try again.');
+        entry.data.photoDrinks=structuredClone(photoDrinks);entry.data.posted=true;entry.data.caption=label;entry.data.eatenAt=photoDrinks.eaten_at;entry.data.state='uploading';entry.data.message=undefined;
+        await this.persist(entry);
+        if(entry.deleted||entry.data.ownerId!==this.ownerId)throw new Error('Sign-in changed. Your photo is kept for its original account.');
+        this.notify(entry,'upload-started');if(entry.active)entry.rerun=true;void this.run(entry);return id;
+    }
+    async discardDrink(id:string){
+        const entry=this.entries.get(id);if(!entry||( !entry.data.drink&&!entry.data.photoDrinks)||entry.deleted||entry.finished)return;
+        entry.data.cancelRequested=true;entry.data.state='uploading';entry.data.message=undefined;
+        try{await this.persist(entry);}catch{entry.data.state='failed';entry.data.message='The removal could not be kept on this phone. Try again.';this.notify(entry,'upload-failed');return;}
+        if(entry.deleted||entry.data.ownerId!==this.ownerId)return;
+        this.notify(entry,'upload-progress');if(entry.active)entry.rerun=true;void this.run(entry);
+    }
     post(id: string) { const entry = this.entries.get(id); if (!entry || entry.deleted)
         return; entry.data.posted = true; this.notify(entry, 'upload-started'); void this.run(entry); }
     async discardFood(id:string){
@@ -186,6 +212,14 @@ export class UploadManager {
         }
         return {postId:result.post_id};
     }
+    private async submitDrink(entry:Entry):Promise<{postId:string}>{
+        const d=entry.data,photo=d.photoDrinks,tile=d.drink;
+        const endpoint=photo?'/api/drinks/post':'/api/intake/post?tz='+encodeURIComponent(tile!.time_zone);
+        const response=await this.foodRequest(endpoint,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({...photo??tile,operation_id:d.operationId,owner_id:d.ownerId})});
+        const result=await response.json().catch(()=>null) as {post_id?:string;error?:string}|null;
+        if(!response.ok||!result?.post_id){d.message=result?.error??'The drink save could not be confirmed. Your selection is kept.';throw new Error(d.message);}
+        return{postId:result.post_id};
+    }
     private async process(entry: Entry) {
         try {
             if(entry.deleted||(entry.data.ownerId&&this.ownerId&&entry.data.ownerId!==this.ownerId))return;
@@ -199,8 +233,8 @@ export class UploadManager {
             await this.persist(entry);
             if (entry.deleted)
                 return;
-            if(entry.data.food&&entry.data.cancelRequested){
-                const response=await this.foodRequest('/api/posts/food',{method:'DELETE',headers:{'Content-Type':'application/json'},body:JSON.stringify({operation_id:entry.data.operationId,owner_id:entry.data.ownerId})});
+            if((entry.data.food||entry.data.drink||entry.data.photoDrinks)&&entry.data.cancelRequested){
+                const response=await this.foodRequest(entry.data.photoDrinks?'/api/drinks/post':entry.data.drink?'/api/intake/post':'/api/posts/food',{method:'DELETE',headers:{'Content-Type':'application/json'},body:JSON.stringify({operation_id:entry.data.operationId,owner_id:entry.data.ownerId,...(entry.data.photoDrinks?{upload_id:entry.data.photoDrinks.upload_id}:{})})});
                 const body=await response.json().catch(()=>null) as {post_id?:string;error?:string}|null;
                 if(!response.ok){entry.data.message=body?.error??'The pending food could not be removed. Your selection is kept.';throw new Error(entry.data.message);}
                 if(entry.deleted)return;
@@ -219,7 +253,7 @@ export class UploadManager {
                         this.attachSnapshot(entry);
                     }
                     const d = entry.data;
-                    if (d.files.length&&!(d.food&&'photo' in d.food))
+                    if (d.files.length&&!d.photoDrinks&&!(d.food&&'photo' in d.food))
                         await entry.draft.stage(d.caption, d.files, d.location, d.eatenAt, d.options);
                     if (entry.deleted)
                         return;
@@ -243,7 +277,7 @@ export class UploadManager {
                     await this.persist(entry);
                     if (entry.deleted)
                         return;
-                    const result = d.food ? await this.submitFood(entry) : await entry.draft.submit(d.caption, d.files, d.location, d.eatenAt, d.files.length ? 'photo' : 'text', d.options);
+                    const result = d.food ? await this.submitFood(entry) : (d.drink||d.photoDrinks)?await this.submitDrink(entry):await entry.draft.submit(d.caption, d.files, d.location, d.eatenAt, d.files.length ? 'photo' : 'text', d.options);
                     if (entry.deleted)
                         return;
                     d.snapshot = await entry.draft.snapshot();
