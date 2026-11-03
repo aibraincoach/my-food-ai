@@ -151,6 +151,7 @@ Read-only production measurements and designated test-account actions only. Unkn
 | Direct repeated day-total read windows | 2 on every baseline opening; later same-time control2/0/2 |
 | Worker network hidden by page transfer0 in separate observer check | 134017 /143247 /222331 bytes, plus true diskcache0 repeats |
 | Vercel runtime access | 403 Forbidden |
+| Exact pre-#391 cache probe at11:45UTC, bf6d7f6 | Actual access token rotated;3 photos each memorycache0bytes at genuineFast4G |
 | Separate actual GET tick pair,11:09:48UTC, READYe074235 | HTTP200,0.612575s then0.218436s |
 | Exact Auth-only preview | 1 Auth request/page in3 opens |
 | Exact day-read preview | 0 direct day reads,1 document/0RSC refreshes in5 opens;20 regressions pass |
