@@ -10,6 +10,7 @@ export interface UploadState {
     operationId: string;
     kind?: "food";
     message?: string;
+    uploadId?: string;
     sent: number;
     total: number;
     state: 'uploading' | 'uploaded' | 'failed';
@@ -49,8 +50,9 @@ export class UploadManager {
     private notify(entry?: Entry, event?: string) { for (const listener of this.listeners)
         listener(); if (entry && event && typeof window !== 'undefined')
         window.dispatchEvent(new CustomEvent(event, { detail: this.state(entry) })); }
-    private state(entry: Entry): UploadState { const d = entry.data; return { operationId: d.operationId, caption: d.caption, eatenAt: d.eatenAt ?? new Date(d.createdAt).toISOString(), previewUrl: entry.previewUrl, sent: d.sent, total: d.total, state: d.state, error: d.error, posted: d.posted, ...(d.food?{kind:"food" as const,message:d.message}:{}), ...(entry.finished ? { postId: d.resultPostId??d.snapshot?.id } : {}) }; }
+    private state(entry: Entry): UploadState { const d = entry.data; return { operationId: d.operationId, uploadId:d.snapshot?.id, caption: d.caption, eatenAt: d.eatenAt ?? new Date(d.createdAt).toISOString(), previewUrl: entry.previewUrl, sent: d.sent, total: d.total, state: d.state, error: d.error, posted: d.posted, ...(d.food?{kind:"food" as const,message:d.message}:{}), ...(entry.finished ? { postId: d.resultPostId??d.snapshot?.id } : {}) }; }
     list = () => [...this.entries.values()].filter(e => !e.deleted).sort((a, b) => b.data.createdAt - a.data.createdAt).map(e => this.state(e));
+    fields(id:string):DraftFields|null { const data=this.entries.get(id)?.data; return data?{caption:data.caption,eatenAt:data.eatenAt,location:data.location,options:{...data.options}}:null; }
     newest() { return [...this.entries.values()].filter(e => !e.deleted && !e.data.posted).sort((a, b) => b.data.createdAt - a.data.createdAt)[0]?.data ?? null; }
     private attachSnapshot(entry: Entry) { const draft = entry.draft; draft.setProgress((sent, total) => { if (entry.deleted || entry.draft !== draft)
         return; entry.data.sent = sent; entry.data.total = total; this.notify(entry, 'upload-progress'); }); draft.setSnapshotListener?.(async (snapshot) => { if (entry.deleted || entry.finished || entry.draft !== draft)
