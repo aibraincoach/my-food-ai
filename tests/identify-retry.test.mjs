@@ -49,3 +49,16 @@ test("parseable truncated identification is never accepted at the final ceiling"
   await assert.rejects(identifyItems(null,"image/jpeg","rice",[]),/status incomplete/);assert.equal(calls(),1);
  });
 });
+
+test('independently portioned additions sharing a region survive identification without a duplicate combined item',async()=>{
+ const {identifyMeal}=await import('../src/lib/pipeline/analyze.ts');
+ const items=[{region_index:0,name:'cooked beef tenderloin steak',portion_text:'one steak, excluding topping',portion_grams:170,confidence:0.85},{region_index:0,name:'butter',portion_text:'one pat',portion_grams:10,confidence:0.8}];
+ const box={left:0,top:0,right:10,bottom:10};
+ await withFetch([()=>identifyResponse('completed',{items,summary:'Steak with butter',needs_input:null,nutrition_label:false})],async(calls)=>{
+  const meal=await identifyMeal(null,'image/jpeg','steak topped with butter',{postId:'test',userId:'owner',photoWidth:10,photoHeight:10,regions:[{index:0,box,areaFraction:1,maskPath:'mask'}]});
+  assert.equal(calls(),1,'decomposition uses the existing identify call');
+  assert.deepEqual(meal.regions.map(r=>[r.item.name,r.item.portionGrams]),[['cooked beef tenderloin steak',170]]);
+  assert.deepEqual(meal.captionOnly.map(item=>[item.name,item.portionGrams]),[['butter',10]]);
+  assert.equal(meal.regions.length+meal.captionOnly.length,2,'no food is dropped or duplicated');
+ });
+});

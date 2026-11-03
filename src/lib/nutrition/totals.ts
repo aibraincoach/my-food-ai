@@ -41,7 +41,7 @@ export function toNumber(value: Numeric): number {
 
 // Unknown is distinct from measured zero. Keep known nutrients independent:
 // missing calories do not erase a measured protein amount, for example.
-function nutritionNumber(value: Numeric): number | null {
+export function nutritionNumber(value: Numeric): number | null {
   if (value == null || (typeof value === "string" && !value.trim())) return null;
   const parsed = Number(value);
   return Number.isFinite(parsed) ? parsed : null;
