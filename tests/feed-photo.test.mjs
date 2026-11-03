@@ -40,7 +40,7 @@ test('authorized route binds both media and post, uses fixed storage origin and 
  const source=await sharp({create:{width:1080,height:1080,channels:3,background:'#a44c32'}}).jpeg().toBuffer();
  const r=route({sourceFetch:async(url,init)=>{assert.equal(url.origin,'https://storage.example');assert.equal(url.pathname,`/storage/v1/object/authenticated/media/${owner}/${post}/0.feed.jpg`);assert.equal(init.redirect,'error');assert.equal(init.headers.Authorization,'Bearer offline-token');return new Response(source);}});
  const response=await r.get(),body=Buffer.from(await response.arrayBuffer());
- assert.equal(response.status,200);assert.equal(response.headers.get('vary'),'Cookie');assert.equal(response.headers.get('cache-control'),'private, max-age=31536000, immutable');assert.equal(response.headers.get('content-type'),'image/webp');assert.equal(response.headers.get('x-content-type-options'),'nosniff');
+ assert.equal(response.status,200);assert.equal(response.headers.get('vary'),null);assert.equal(response.headers.get('cache-control'),'private, max-age=31536000, immutable');assert.equal(response.headers.get('content-type'),'image/webp');assert.equal(response.headers.get('x-content-type-options'),'nosniff');
  assert.deepEqual(r.filters,[['id',media],['post_id',post]]);assert.equal(r.calls.fetch,1);assert.equal(r.calls.sign,0);
  const info=await sharp(body).metadata();assert.equal(info.width,512);assert.equal(info.height,512);assert.ok(body.length<=50_000);
 });
@@ -69,7 +69,7 @@ test('native work is limited to four concurrent requests and release is idempote
  finally {releases.forEach(release=>release?.());}
 });
 
-test('SSR seed and first batch slide use the same private identity; only other photos are signed',async()=>{
+test('SSR seed and every batch slide use immutable owner-scoped private identities',async()=>{
  const nextPost='44444444-4444-4444-8444-444444444444',nextMedia='55555555-5555-4555-8555-555555555555';
  const rows=[post,nextPost].map((id,index)=>({id,user_id:owner,status:'queued',caption:'Meal',created_at:'2026-11-03T01:00:00Z',eaten_at:`2026-11-0${3-index}T01:00:00Z`}));
  const pictures=[{id:media,post_id:post,storage_path:path,kind:'photo',position:0},{id:nextMedia,post_id:nextPost,storage_path:`${owner}/${nextPost}/0.jpg`,kind:'photo',position:0}];
@@ -87,15 +87,15 @@ test('SSR seed and first batch slide use the same private identity; only other p
  }}});
  const preloads=[],page=await getFeed(db,owner,null,'UTC',6,{summaries:false,onFirstPhoto:url=>preloads.push(url)}),seed=await getFirstFeedPhoto(db,owner);
  assert.equal(page.posts[0].photoUrl,smallFeedPhotoUrl(owner,post,media));assert.equal(seed.photoUrl,page.posts[0].photoUrl);assert.deepEqual(preloads,[seed.photoUrl]);
- assert.match(page.posts[1].photoUrl,/0\.feed\.jpg/);assert.equal(signed,1);
+ assert.equal(page.posts[1].photoUrl,smallFeedPhotoUrl(owner,nextPost,nextMedia));assert.equal(signed,0);
 });
 
 
-test('matching ETag revalidates ownership before 304 and partitions browser cache by cookies',async()=>{
+test('matching ETag revalidates ownership before 304 without varying immutable identity on refreshed cookies',async()=>{
  const r=route({sourceFetch:async()=>{throw Error('Conditional read must not fetch Storage');}});
  const response=await r.get({owner,post,media},'',{'If-None-Match':`"${media}-v1"`});
  assert.equal(response.status,304);assert.equal(response.headers.get('etag'),`"${media}-v1"`);
- assert.equal(response.headers.get('vary'),'Cookie');assert.equal(response.headers.get('cache-control'),'private, max-age=31536000, immutable');
+ assert.equal(response.headers.get('vary'),null);assert.equal(response.headers.get('cache-control'),'private, max-age=31536000, immutable');
  assert.equal(r.calls.auth,1);assert.equal(r.calls.select,1);assert.equal(r.calls.fetch,0);assert.equal(r.calls.sign,0);
  const unsigned=route({user:null});const denied=await unsigned.get({owner,post,media},'',{'If-None-Match':`"${media}-v1"`});
  assert.equal(denied.status,401);assert.equal(denied.headers.get('cache-control'),'private, no-store');
