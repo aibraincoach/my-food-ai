@@ -108,7 +108,7 @@ export default function IntakeSheet({ embedded = false, onClose }: { initialKind
     <div className="grid grid-cols-3 gap-2">{tileOrder.map(index => {
       const tile = DRINK_TILES[index];
       const size = TILE_SIZES[index].find(size => size.ml === usualMl[index])!;
-      const caffeineMg = Math.round(tile.caffeineMg * size.ml / tile.ml);
+      const caffeineMg = size.caffeineMg ?? Math.round(tile.caffeineMg * size.ml / tile.ml);
       return <button key={index} type="button" disabled={busy} onClick={() => { if (held.current) { held.current = false; return; } void postTile(index); }}
         onPointerDown={event => {
           if (!event.isPrimary || event.button !== 0) return;

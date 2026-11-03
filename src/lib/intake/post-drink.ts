@@ -19,7 +19,7 @@ export function parseDrinkInput(body: unknown): DrinkInput | null {
     const ml = "ml" in value ? value.ml : tile.ml;
     const size = TILE_SIZES[value.tile].find(size => size.ml === ml);
     if (!size) return null;
-    return { kind: tile.kind, label: `${tile.name}, ${size.word}`, ml: size.ml, caffeineMg: Math.round(tile.caffeineMg * size.ml / tile.ml) };
+    return { kind: tile.kind, label: `${tile.name}, ${size.word}`, ml: size.ml, caffeineMg: size.caffeineMg ?? Math.round(tile.caffeineMg * size.ml / tile.ml) };
   }
   if ((value.kind !== "water" && value.kind !== "caffeine") || !Number.isInteger(value.ml) || (value.ml as number) < 1 || (value.ml as number) > 5000) return null;
   const ml = value.ml as number;

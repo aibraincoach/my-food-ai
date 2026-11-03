@@ -19,9 +19,10 @@ export const DRINK_TILES = [
 ] as const;
 
 // Labels are server-owned. Water labels remain compatible with migration 0037.
-export const TILE_SIZES: ReadonlyArray<ReadonlyArray<{ml: number; word: string}>> = [
+export const TILE_SIZES: ReadonlyArray<ReadonlyArray<{ml: number; word: string; caffeineMg?: number}>> = [
   [{ml: 250, word: "glass"}, {ml: 500, word: "glass"}, {ml: 750, word: "glass"}],
-  [{ml: 240, word: "cup"}, {ml: 350, word: "large"}],
+  // The Fleet 10 specification fixes large Coffee at 138 mg.
+  [{ml: 240, word: "cup"}, {ml: 350, word: "large", caffeineMg: 138}],
   [{ml: 30, word: "single"}, {ml: 60, word: "double"}],
   [{ml: 300, word: "mug"}, {ml: 450, word: "large"}],
   [{ml: 330, word: "can"}, {ml: 500, word: "bottle"}],
