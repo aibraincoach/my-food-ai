@@ -14,13 +14,17 @@ test('hourly account caps enforce each boundary, isolate accounts/routes, expire
   declare owner_id uuid:=gen_random_uuid(); other_id uuid:=gen_random_uuid(); i integer; bucket text; cap integer;
   begin
    insert into auth.users(id) values(owner_id),(other_id);
-   for bucket,cap in select * from (values ('label',30),('transcribe',60),('fdc_search',300),('fdc_barcode',120),('post',40),('correct',100)) as limits(route,cap) loop
+   for bucket,cap in select * from (values ('label',30),('transcribe',60),('fdc_search',300),('fdc_barcode',120),('post',40),('correct',100),('drink_identify',120)) as limits(route,cap) loop
     for i in 1..cap loop
      if not public.user_hit(owner_id,bucket) then raise exception 'Early refusal: % hit %',bucket,i;end if;
     end loop;
     if public.user_hit(owner_id,bucket) then raise exception 'Cap bypass: %',bucket;end if;
     if not public.user_hit(other_id,bucket) then raise exception 'Other account blocked: %',bucket;end if;
    end loop;
+   for i in 1..41 loop
+    if not public.user_hit(other_id,'drink_identify') then raise exception 'Independent drink bucket refused';end if;
+   end loop;
+   if (select hits from public.user_call_hits where user_id=other_id and route='post' and hour=date_trunc('hour',clock_timestamp())) <> 1 then raise exception 'Drink changed post count';end if;
    insert into public.user_call_hits(user_id,route,hour,hits) values(owner_id,'post',date_trunc('hour',clock_timestamp())-interval '2 days',40),(other_id,'post',date_trunc('hour',clock_timestamp())-interval '2 days',40);
    perform public.user_hit(owner_id,'post');
    if exists(select 1 from public.user_call_hits where user_id=owner_id and hour<clock_timestamp()-interval '1 day') then raise exception 'Own old rows retained';end if;
