@@ -130,7 +130,7 @@ Read-only production measurements and designated test-account actions only. Unkn
 | Isolated before#409 frozen pixels,5 trials | 222.2 /258.7 /290.3 /413.4 /1045.9 ms |
 | Isolated after#409 frozen pixels,5 trials | 91.3 /63.9 /58.5 /76.7 /69.9 ms |
 
-**Answer** — #409 removes JPEG encoding from the first-visible-preview path; all five controlled after samples were below300ms. Barcode and search still await database-backed publication in this baseline, causing seconds of delay; #306 durable pending publication is being built rather than reporting them as instant.
+**Answer** — #409 removes JPEG encoding from the first-visible-preview path; all five controlled after samples were below300ms. Barcode and search still await database-backed publication in this baseline, causing seconds of delay; #433 durable pending publication has merged, with migration0043 applied12:25:54UTC. Disposable after timings are barcode176.5/75.6/92.2ms, search170.1/106.8/131.1ms and verifiedlabel105.8/107.9/125.7ms; these do not substitute for final production timing. [Methods and limits](evidence/run10-fix306/README.md).
 
 **Unknown** — Isolated rendering used a custom network profile, not the DevTools Fast4G preset; final genuine-preset shutter/barcode and post-close repeat remain required. The barcode pack fixture is small, and cached model/data services may be warm. Baseline search crossed a deployment; no stable-head final acceptance is inferred. Initial diagnostic runs and incomplete search setup are retained separately, never substituted for accepted trials.
 
@@ -299,7 +299,7 @@ Read-only production measurements and designated test-account actions only. Unkn
 
 **Answer** — A supplied compatible generic reference was discarded across searches and a distinct retry refinement ignored; #424 retains eligible candidates and honors that refinement. Separately portionable steak/butter and spinach/corn now resolve as separate estimated components with genuine USDA references, preserving the rule against guessing missing nutrients.
 
-**Unknown** — Five consistent repeats do not guarantee deterministic future model decisions. Final designated-account production meals after #424 remain required; the real in-memory experiments do not establish that acceptance.
+**Unknown** — Five consistent repeats do not guarantee deterministic future model decisions. Exact designated-account production meals passed12:51–12:53UTC on READY6f857ac: steak180g2705841+butter10g2710154 and spinach90g2709618+corn40g2709917, every component has an actual reference. [Receipt and actual detail images](evidence/run10-matcher-production/README.md). Fixtures cleaned with0issues; #272closed. This does not guarantee future model decisions.
 
 ## 7o. Terms (#294)
 
