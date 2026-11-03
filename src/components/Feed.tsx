@@ -309,6 +309,8 @@ export default function Feed({initialPage, initialUserId, initialZone = "UTC", f
     };
 
     retryInitial.current = () => { void load(); };
+    const revalidate=()=>{if(!initialLoading)void load();};
+    window.addEventListener('feed-revalidate',revalidate);
     loadMore.current = () => {
       if(!cursor || loadingMore || !live) return;
       loadingMore=true;
@@ -383,6 +385,7 @@ export default function Feed({initialPage, initialUserId, initialZone = "UTC", f
 
     return () => {
       live = false;
+      window.removeEventListener('feed-revalidate',revalidate);
       totalsRefresh.cancel();
       window.removeEventListener("feed-day-totals-request",reportTotals);
       cachedListener.current = () => {};
