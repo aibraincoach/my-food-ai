@@ -13,3 +13,73 @@ A separate native Chrome probe at 390x844, emulating 1.6 Mbit/s downstream, 0.75
 Still required before closing #222: a successful authenticated cold/warm page measurement, before/after decoded first-image time and transferred bytes under the same network profile, and the first feed photo within two seconds on a real phone over mobile data. Real-device acceptance remains unproven.
 
 Stored nutrition PNGs now retain the time zone recorded when the post was captured or logged. Worker completion, corrections and remainder processing reuse that zone, so a meal logged near UTC midnight includes the same local-day hydration as its live card at logging. Legacy posts without a recorded zone use an explicit UTC fallback. A PNG is a static capture-zone snapshot: if the viewer later travels to another zone, live cards use that device's local day while the existing PNG retains the original day context. Stored card images continue to omit clocks.
+
+## Run 7 — bounded batched feed reads
+
+The read-only baseline on November 3 used the larger designated test account (146 posts), a Node Supabase client calling getUser then the unchanged main getFeed (20 posts), and 100 authenticated production Home GETs. No post, correction or model request was created. The prior browser failures did not reproduce: 100/100 service reads completed and 100/100 Home requests returned 200 without a digest. This does not establish that the old browser feed promises always settle; cause not isolated. The reported earlier 3 server digests and 15 browser no-feed results are retained as separate evidence.
+
+### Before: main 2624204
+
+| Request family | Count over 100 opens | p50 ms | p95 ms | Max ms | HTTP failures |
+| --- | ---: | ---: | ---: | ---: | --- |
+| user | 100 | 50.9 | 104.8 | 820.3 | none |
+| posts | 300 | 65.2 | 409.9 | 580.8 | none |
+| rpc/feedback_revision | 4000 | 87.8 | 188.3 | 3818.5 | none |
+| post_media | 2000 | 62.6 | 148.9 | 3213.9 | none |
+| object/sign | 80 | 471.3 | 601.6 | 813.9 | none |
+| current_post_items | 2300 | 63.5 | 135.0 | 2569.2 | none |
+| item_nutrition | 2300 | 75.4 | 149.5 | 2667.6 | none |
+| saved_meals | 2000 | 57.2 | 112.2 | 270.0 | none |
+| intake_logs | 200 | 54.4 | 81.0 | 144.3 | none |
+
+Service time: median 1964.4 ms, p95 4170.9 ms, max 6723.9 ms. First failing run: none. The one in-process media URL cache retained signed URLs after the initial 80 signing reads; this is a warm server-client observation, not browser cache proof.
+
+### Implementation and remaining preview evidence
+
+The plan gives conflicting read recipes (embedded versus separate batches, and one versus paired feedback revision reads). The implementation uses one core post page, one media batch, one current-items batch with embedded nutrition, one saved-meal batch, one batch URL signing call and paired per-ready-post revision fences. This preserves feedback consistency around nutrition reads while removing per-post media, item and saved reads. Hydration timelines share reads across the requested days. Day totals group only contiguous requested dates, and card events refresh only touched dates. Each optional family has an eight-second timeout; first-page HTTP fetch has a fifteen-second deadline. A failed optional field does not hide the entire page or manufacture nutrition. The initial page contains six posts; later pages retain twenty.
+
+A1 includes the exact hook/cache/Carousel files from A2 source commit f23efc554c3f17b229a9f502eafc23f9f5833f2e so its independent preview can compile. Both branches still start from main; identical dependency files merge without introducing a second implementation.
+
+### Final preview browser evidence — runtime e2c74b1
+
+On November 3 (approximately 02:10 UTC / 09:10 WIB), native Chrome CDP opened the authenticated Vercel preview at 390×844 with 1.6 Mbit/s downstream, 0.75 Mbit/s upstream and 150 ms latency. The cold navigation cleared HTTP, local-storage and service-worker caches; HTTP caching remained enabled so the second navigation used actual browser cache state. Both navigations waited another twelve seconds after the first decoded photo to allow hydration and cache persistence. The interceptor blocked every non-GET/HEAD/OPTIONS request and `/api/jobs/tick`, including requests in attached worker targets. This intentionally blocks client storage-signature POSTs; the server-provided photo still decoded. No post, correction, retry or model call was created.
+
+| Navigation | First visible card ms | First decoded photo ms | Bytes through hydration settle | Saved first-page cache |
+| --- | ---: | ---: | ---: | --- |
+| Cold | 1994.2 | 5610.2 | 1355474 | 6 posts / 33518 bytes |
+| Warm second visit | 6116.3 | 6150.0 | 503617 | Same persisted 6-post cache; cached fallback visible |
+
+Both displayed six cards without horizontal overflow; the first photo had high fetch priority. The warm visit consumed the actual saved feed cache, but neither warm card nor either decoded photo met two seconds. The cold visible card narrowly met two seconds. These are single observations under browser emulation, not percentile or physical-phone acceptance. The earlier short-window probe (cold card 1540.9 ms/photo 5728.7 ms, warm card/photo 4789.6 ms) ended before feed-cache persistence and cannot establish cached first-page acceptance. Its byte windows also excluded the twelve-second settle and must not be compared directly with the table.
+
+Physical-phone first-photo acceptance over mobile data remains unproven. The slow warm cache presentation and photo decode results remain failed performance gates; no runtime optimization is claimed from this measurement.
+
+
+### Final 100 authenticated HTTP opens
+
+The exact e2c74b1 preview completed 100/100 six-post Feed API reads and 100/100 Home HTTP 200 responses without a server digest or first failure, using the designated 146-post account. API duration includes the probe's authenticated getUser read before the API call. API p50/p95/max: 1112.5/4260.5/8545.3 ms. Home p50/p95/max: 744.4/1834.5/8636.1 ms. These sequential HTTP reads establish this preview's response reliability; they are not 100 browser opens or proof that the original production failure's cause was isolated.
+
+Batching and bounded reads reduce request fan-out and make optional-family failures settle independently. The original production no-feed/digest cause remains unisolated. Earlier local 96/100 results remain failed historical attempts. The final runtime passed 25 focused regression cases, TypeScript checking and the production build. No production deployment, merge, schema change or environment change was performed.
+
+The warm preview's cached scripts began at 5927 ms and finished at 5988 ms with zero transferred script bytes; the cached card appeared at 6116 ms. A subsequent navigation-timing snapshot recorded requestStart 5010.8 ms and responseStart 5897.3 ms, but did not retain its navigation identity, so it cannot prove the cause of the initial delay. Follow-up navigation inspection crossed a document transition and was inconclusive; a bounded follow-up was stopped without a usable result. This does not establish a feed-cache implementation defect or a full-open performance pass.
+
+
+The cold first-photo preload began at 1215.4 ms and completed at 5609.2 ms (4393.8 ms duration); the decoded observation followed about 1 ms later. CSS completed at 367.8/621.6 ms, while the four font reads completed at 1402.4–3389.1 ms. The photo request duration dominates this cold observation; no significant decode delay is demonstrated. Cross-origin Resource Timing reported zero transferSize for the photo, and individual encoded image bytes were not retained, so zero is not evidence of a zero-byte download. The warm first-image request ran from 6116.6 to 6119.7 ms, with the decoded observation at 6150 ms.
+
+
+### Local built-app control, same runtime
+
+A separate native Chrome run against the exact local production build at `http://localhost:3116` removed Vercel protection/SSO navigation from the measurement. Under the strict read guard, the visible desktop-card row appeared at 2491.5 ms and its photo decoded at 6205.5 ms cold; the actual cached second visit appeared at 518.4 ms and decoded at 567.2 ms. The cold first photo transferred 142775 encoded bytes; the warm photo was served by the service worker/browser cache with zero encoded network bytes. This observer did not include the earlier server first-photo seed, so its cold card timing is not the earliest content timing.
+
+A subsequent control included the first server seed, required a changed document `performance.timeOrigin` before sampling, and allowed only two verified read-only POST operations: the exact `getHintState` action (Auth plus profile SELECT), and `/storage/v1/object/sign/media` URL signing. All other POSTs and `/api/jobs/tick` remained blocked. Cold first visible seed/card: 880.6 ms; decoded photo: 3537.5 ms. Warm actual cached second visit: 364.3/406.4 ms. Both persisted the six-post cache. These are distinct single observations with different guard/observer protocols, not interchangeable before/after claims. The local cached second visit passes two seconds, while the cold photo still fails; the protected-preview warm delay did not reproduce locally.
+
+In the latter cold control the high-priority first photo took about 130 ms to first response headers and about 2.55 seconds after headers to completion, transferring 142745 encoded bytes. Three low-priority later photos began only about 124 ms before the first finished. This establishes a small overlap; it does not isolate those photos as the main source of the earlier download delay. Full navigation and sanitized network timestamps were retained for separate diagnosis. The exact temporary preview bypass was revoked with HTTP 200 and verified absent by a subsequent HTTP 200 project read; SSO protection remained enabled.
+
+## Current pass: partial completion
+
+The final candidate adds an authenticated, first-photo-only resize endpoint. Its immutable same-origin URL contains owner, post and media UUIDs; the endpoint validates the signed-in owner and selects the matching photo through RLS before any Storage access. It downloads a bounded JPEG, transforms at most two megapixels with Sharp, limits native work to four requests, and emits a private, no-store WebP of at most 50,000 bytes. An authorized original remains available on resize failure. Other photos keep their existing URLs, and post detail keeps its full-resolution photo. No source image or Storage object is changed. The service worker recognizes only the exact same-origin private route and retains its session epochs, durable logout tombstones and write barriers.
+
+Home can publish an early image Link header after a 350 ms bounded owner-scoped read. The same URL is used by the SSR seed and first feed slide, and that slide no longer needs a signed-URL request. Offscreen photo URLs remain unset until within 100 px of the viewport.
+
+A normal, unmodified 390×844 local production-build test at 1.6 Mbit/s down, 0.75 Mbit/s up and 150 ms latency returned the first image as HTTP 200 image/webp: **21,610 encoded bytes**, rather than roughly 143 KB. Cold first card/photo were **910.2/2096.9 ms**; the actual cached reopen was **620.4/620.4 ms** after verifying cache persistence. **The cold two-second photo gate still fails.** The initial cold Home response did not carry the private-photo Link hint; later responses did. Its initial absence was not isolated. These are single browser observations, not percentiles or a real-phone pass.
+
+Live access checks returned 401 without cookies and 404 for the wrong owner, both private/no-store. Sixty-seven focused regressions, TypeScript, changed-file lint and the production build pass. The private-route logout/new-tab/browser-restart matrix is covered by worker unit tests; the actual-browser matrix was previously run against legacy signed JPEGs and was **not rerun against the new private route** after the owner stopped further optimization. That live case remains unverified. The owner requested closing this pass with partial completion rather than continuing to chase the cold threshold. No more performance tuning is included in this pass.

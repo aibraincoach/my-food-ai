@@ -25,5 +25,9 @@ export async function renewLease(
   holder: string,
   ttlSeconds = 300
 ): Promise<void> {
-  await tryAcquireLease(admin, holder, ttlSeconds);
+  const { data, error, status } = await admin.rpc("renew_worker_lease", {
+    p_holder: holder, ttl_seconds: ttlSeconds,
+  });
+  if (error) throw ioError(`renew lease failed: ${error.message}`, error, status);
+  if (data !== true) throw ioError("Worker lease is no longer held.", null);
 }

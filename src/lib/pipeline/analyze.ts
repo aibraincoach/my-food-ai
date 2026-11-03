@@ -1,3 +1,4 @@
+import {writePendingNames} from './pending-items';
 import { readNutritionLabel, labelNutrition } from "@/lib/meta/label";
 import { ApiError, ioError } from "@/lib/worker/errors";
 import { isOwnedPhotoPath } from "@/lib/media/paths";
@@ -194,7 +195,8 @@ interface PostCaptionRow {
 export async function analyzePost(
   supabase: SupabaseClient,
   postId: string,
-  prior = ""
+  prior = "",
+  progressJobId?:string
 ): Promise<NamedPost> {
   const { data: post, error: postError, status: postStatus } = await supabase
     .from("posts")
@@ -253,6 +255,7 @@ export async function analyzePost(
       named.needsInput=null;
     }
   }
+  await writePendingNames(supabase,postId,[...named.regions.flatMap(region=>region.item?[region.item.name]:[]),...named.captionOnly.map(item=>item.name)],progressJobId);
   await uploadSelectedMasks(supabase, named.regions, named.photoWidth, named.photoHeight);
   return named;
 }

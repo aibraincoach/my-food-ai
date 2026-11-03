@@ -52,53 +52,58 @@ export async function drinksForDay(db: SupabaseClient, userId: string, day: stri
 
 type HydrationTimeline = { drinks: DrinkRow[]; foods: { postId: string; eatenAt: string; waterMl: number }[] };
 
-// All cards on a page share one timeline read per local day, not one per card.
-async function hydrationTimeline(db: SupabaseClient, userId: string, day: string, tz: string, upToEatenAt: string): Promise<HydrationTimeline> {
-  const zone = validZone(tz);
-  if (!Number.isFinite(new Date(upToEatenAt).getTime())) throw new Error("Invalid hydration time.");
-  const drinks = await drinksForDay(db, userId, day, zone);
-  const foods: HydrationTimeline["foods"] = [];
-  for (let offset = 0; ; offset += 100) {
-    const { data: posts, error } = await db.from("posts").select("id,eaten_at").eq("user_id", userId).eq("status", "ready")
-      .gte("eaten_at", `${shiftDay(day, -1)}T00:00:00Z`).lte("eaten_at", upToEatenAt)
-      .order("eaten_at").order("id").range(offset, offset + 99);
-    if (error) throw new Error("Food hydration could not be read.");
-    const candidates = (posts ?? []).filter(post => dateInZone(post.eaten_at, zone) === day);
-    if (candidates.length) {
-      // Exclude linked drink items regardless of when that drink was moved.
-      const { data: links, error: linkError } = await db.from("intake_logs").select("post_id,source,post_item_id")
-        .eq("user_id", userId).in("post_id", candidates.map(post => post.id));
-      if (linkError) throw new Error("Drink links could not be read.");
-      const drinkIds = new Set((links ?? []).filter(row => row.source === "sheet" || row.source == null).map(row => row.post_id));
-      const drinkItemIds = new Set((links ?? []).filter(row => row.source === "item").map(row => row.post_item_id));
-      const meals = candidates.filter(post => !drinkIds.has(post.id));
-      const byPost = new Map(meals.map(post => [post.id, { postId: post.id as string, eatenAt: post.eaten_at as string, waterMl: 0 }]));
-      if (meals.length) {
-        for (let itemOffset = 0; ; itemOffset += 100) {
-          const { data: items, error: itemError } = await db.from("current_post_items").select("id,post_id,portion_grams,portion_text")
-            .in("post_id", meals.map(post => post.id)).order("id").range(itemOffset, itemOffset + 99);
-          if (itemError) throw new Error("Food hydration items could not be read.");
-          if (items?.length) {
-            const { data: nutrition, error: nutritionError } = await db.from("item_nutrition")
-              .select("post_item_id,calories,protein_g,carbs_g,fat_g,fibre_g,sugar_g,sodium_mg,micronutrients,source_ref")
-              .in("post_item_id", items.map(item => item.id));
-            if (nutritionError) throw new Error("Food water could not be read.");
-            const byItem = new Map((nutrition as NutritionRow[] | null ?? []).map(row => [row.post_item_id, row]));
-            for (const item of items) {
-              const stored = byItem.get(item.id);
-              const contribution = byPost.get(item.post_id);
-              if (!stored || !contribution) continue;
-              contribution.waterMl += itemWaterMl({ ...item, micronutrients: normalizeStoredNutrition(stored, item.portion_grams).micronutrients }, drinkItemIds.has(item.id));
-            }
-          }
-          if ((items?.length ?? 0) < 100) break;
-        }
-      }
-      foods.push(...byPost.values());
+// One set of reads for every requested local day on a feed page. Bounds are
+// padded for IANA offsets and filtered locally; gaps are excluded in PostgREST.
+async function hydrationTimelines(db: SupabaseClient, userId: string, latestByDay: Map<string, string>, tz: string): Promise<Map<string, HydrationTimeline>> {
+  const zone = validZone(tz), days = [...latestByDay.keys()].sort();
+  const timelines = new Map(days.map(day => [day, {drinks: [], foods: []} as HydrationTimeline]));
+  if (!days.length) return timelines;
+  const ranges = (column: string) => days.map(day => `and(${column}.gte.${shiftDay(day, -1)}T00:00:00Z,${column}.lt.${shiftDay(day, 2)}T00:00:00Z)`).join(',');
+  const drinks: DrinkRow[] = [];
+  const posts: {id: string; eaten_at: string}[] = [];
+  await Promise.all([
+    (async () => { for (let offset = 0; ; offset += 1000) {
+      const {data, error} = await db.from('intake_logs').select('kind,amount,logged_at,ml,label,post_id,source,post_item_id')
+        .eq('user_id', userId).or(ranges('logged_at')).order('logged_at').order('id').range(offset, offset + 999).abortSignal(AbortSignal.timeout(8000));
+      if (error) throw new Error('Drinks could not be read.');
+      drinks.push(...(data ?? []) as DrinkRow[]); if ((data?.length ?? 0) < 1000) break;
+    } })(),
+    (async () => { for (let offset = 0; ; offset += 1000) {
+      const {data, error} = await db.from('posts').select('id,eaten_at').eq('user_id', userId).eq('status', 'ready')
+        .or(ranges('eaten_at')).order('eaten_at').order('id').range(offset, offset + 999).abortSignal(AbortSignal.timeout(8000));
+      if (error) throw new Error('Food hydration could not be read.');
+      posts.push(...(data ?? [])); if ((data?.length ?? 0) < 1000) break;
+    } })(),
+  ]);
+  for (const drink of drinks) timelines.get(dateInZone(drink.logged_at, zone))?.drinks.push(drink);
+  const candidates = posts.filter(post => {
+    const cutoff = latestByDay.get(dateInZone(post.eaten_at, zone));
+    return cutoff && new Date(post.eaten_at).getTime() <= new Date(cutoff).getTime();
+  });
+  if (!candidates.length) return timelines;
+  const {data: links, error: linkError} = await db.from('intake_logs').select('post_id,source,post_item_id').eq('user_id', userId)
+    .in('post_id', candidates.map(post => post.id)).abortSignal(AbortSignal.timeout(8000));
+  if (linkError) throw new Error('Drink links could not be read.');
+  const drinkPosts = new Set((links ?? []).filter(row => row.source === 'sheet' || row.source == null).map(row => row.post_id));
+  const drinkItems = new Set((links ?? []).filter(row => row.source === 'item').map(row => row.post_item_id));
+  const foods = new Map(candidates.filter(post => !drinkPosts.has(post.id)).map(post => [post.id, {postId: post.id, eatenAt: post.eaten_at, waterMl: 0}]));
+  if (foods.size) for (let offset = 0; ; offset += 1000) {
+    const {data, error} = await db.from('current_post_items').select('id,post_id,portion_grams,portion_text,item_nutrition(post_item_id,calories,protein_g,carbs_g,fat_g,fibre_g,sugar_g,sodium_mg,micronutrients,source_ref)')
+      .in('post_id', [...foods.keys()]).order('id').range(offset, offset + 999).abortSignal(AbortSignal.timeout(8000));
+    if (error) throw new Error('Food water could not be read.');
+    for (const item of data ?? []) {
+      const stored = Array.isArray(item.item_nutrition) ? item.item_nutrition[0] : item.item_nutrition;
+      const food = foods.get(item.post_id);
+      if (stored && food) food.waterMl += itemWaterMl({...item, micronutrients: normalizeStoredNutrition(stored as NutritionRow, item.portion_grams).micronutrients}, drinkItems.has(item.id));
     }
-    if ((posts?.length ?? 0) < 100) break;
+    if ((data?.length ?? 0) < 1000) break;
   }
-  return { drinks, foods };
+  for (const food of foods.values()) timelines.get(dateInZone(food.eatenAt, zone))?.foods.push(food);
+  return timelines;
+}
+async function hydrationTimeline(db: SupabaseClient, userId: string, day: string, tz: string, upToEatenAt: string): Promise<HydrationTimeline> {
+  if (!Number.isFinite(new Date(upToEatenAt).getTime())) throw new Error('Invalid hydration time.');
+  return (await hydrationTimelines(db, userId, new Map([[day, upToEatenAt]]), tz)).get(day)!;
 }
 
 function hydrationAt(timeline: HydrationTimeline, upToEatenAt: string): HydrationRecord {
@@ -125,9 +130,10 @@ export async function getPostHydrationData(db: SupabaseClient, userId: string, p
     const day = dateInZone(post.eaten_at, zone);
     byDay.set(day, [...(byDay.get(day) ?? []), post]);
   }
+  const latestByDay = new Map([...byDay].map(([day, dayPosts]) => [day, dayPosts.reduce((a, b) => new Date(a.eaten_at) > new Date(b.eaten_at) ? a : b).eaten_at]));
+  const timelines = await hydrationTimelines(db, userId, latestByDay, zone);
   for (const [day, dayPosts] of byDay) {
-    const latest = dayPosts.reduce((a, b) => new Date(a.eaten_at) > new Date(b.eaten_at) ? a : b).eaten_at;
-    const timeline = await hydrationTimeline(db, userId, day, zone, latest);
+    const timeline = timelines.get(day)!;
     const drinksByPost = new Map<string, DrinkRow[]>();
     for (const row of timeline.drinks.filter(row => row.post_id && row.ml != null && row.label)) {
       drinksByPost.set(row.post_id!, [...(drinksByPost.get(row.post_id!) ?? []), row]);
