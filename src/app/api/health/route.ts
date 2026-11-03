@@ -1,3 +1,4 @@
+import { probeHealth } from "@/lib/health/probe";
 import { NextResponse } from "next/server";
 
 const NAMES = [
@@ -9,10 +10,11 @@ const NAMES = [
 ] as const;
 
 // Returns which production variable names are set (never values).
-export function GET() {
+export async function GET() {
   const result: Record<string, boolean> = {};
   for (const name of NAMES) {
     result[name] = (process.env[name] ?? "").length > 0;
   }
-  return NextResponse.json(result);
+  const {database, model} = await probeHealth();
+  return NextResponse.json({config:result, database, model}, {status:database.ok && model.ok ? 200 : 503, headers:{"Cache-Control":"no-store"}});
 }
