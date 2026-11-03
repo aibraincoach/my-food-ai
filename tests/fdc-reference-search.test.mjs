@@ -65,3 +65,16 @@ test('strict generic aliases augment all thirty broad identities and replace nei
   assert.deepEqual(await searchFoods(db,'butternut squash soup'),foods);assert.equal(calls,2,'v3 merged cache is reused, v2 is ignored');
  }finally{globalThis.fetch=old;if(key===undefined)delete process.env.FDC_API_KEY;else process.env.FDC_API_KEY=key;}
 });
+
+
+test('a third search tries the base food before declaring nutrition unavailable',async()=>{
+ const queries=[];
+ const steak={fdcId:42,description:'Beef steak, cooked',dataType:'Survey (FNDDS)',foodNutrients:[{nutrientId:1008,value:200}]};
+ const result=await matchFood('beef tenderloin steak topped with butter','',{
+  search:async query=>{queries.push(query);return query==='beef'?[steak]:[]},
+  choose:async(_name,_caption,foods)=>foods.length?{id:42,query:null,query_food:null,reason:'Compatible steak'}:{id:null,query:'beef steak',query_food:'beef',reason:'Try a broader reference'},
+ });
+ assert.deepEqual(queries,['beef tenderloin steak topped with butter','+beef steak','beef']);
+ assert.equal(result.food.fdcId,42);
+ assert.equal(result.searches,3);
+});
