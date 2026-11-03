@@ -151,12 +151,13 @@ Read-only production measurements and designated test-account actions only. Unkn
 | Direct repeated day-total read windows | 2 on every baseline opening; later same-time control2/0/2 |
 | Worker network hidden by page transfer0 in separate observer check | 134017 /143247 /222331 bytes, plus true diskcache0 repeats |
 | Vercel runtime access | 403 Forbidden |
+| Separate actual GET tick pair,11:09:48UTC, READYe074235 | HTTP200,0.612575s then0.218436s |
 | Exact Auth-only preview | 1 Auth request/page in3 opens |
 | Exact day-read preview | 0 direct day reads,1 document/0RSC refreshes in5 opens;20 regressions pass |
 
 **Answer** — Controlled opening was reliable, but it repeated identity/day reads and used about801KB of first-five JPEG body data. #414 fixes legacy photo routing, #428 shares verified browser Auth reads, and #429 reuses verified per-post day contributions while preserving mutation/readiness refreshes.
 
-**Unknown** — Photo body bytes are not total billed egress; page transfer0 does not establish zero worker traffic, and the worker observer can miss pre-attach traffic. Browser cold cache does not prove a cold function instance; runtime correlation was refused. Final stable production repeat, ordinary tick call counts, real post-READY first/subsequent GET timings and natural small-route photo/session-refresh bytes remain pending. The baseline intercepted tick and must not be represented as an unmodified production opening.
+**Unknown** — Photo body bytes are not total billed egress; page transfer0 does not establish zero worker traffic, and the worker observer can miss pre-attach traffic. Browser cold cache does not prove a cold function instance; runtime correlation was refused. The separate tick pair was not immediate post-READY and does not prove a cold instance. Final stable production repeat, ordinary tick call counts, real post-READY first/subsequent GET timings and natural small-route photo/session-refresh bytes remain pending. The baseline intercepted tick and must not be represented as an unmodified production opening.
 
 ## 7i. Last feed (#304)
 
