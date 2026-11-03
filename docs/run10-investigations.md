@@ -177,10 +177,12 @@ Read-only production measurements and designated test-account actions only. Unkn
 | Same browser account2 | 4 own posts; account2-only cache;0 observed account1 IDs |
 | Owned app/profile cleanup | Complete |
 | Pre-#397 immutable installed baseline | Install failed; no timing |
+| Post-#437 production, stable READYafbb18e, ~12:46UTC | Cached1880/1860/1770ms→fresh2996/2855/2737ms; all3 same-node/top/height/nav, no gap |
+| Post-#437 production privacy/cleanup | Real Auth without bridge; UIlogout and account2 isolation pass; own app/profile removed |
 
-**Answer** — Ordinary fresh-feed opens were below2s, and logout/account separation passed, but the cached last-feed path first appeared at2660ms under held-root conditions. That does not satisfy the literal last-feed-within2s condition; #437 startup/in-place reconciliation fix has merged; local installed Slow4G cached1721/1716/1700ms→fresh2302/2290/2285ms passes deadline and actual compositor no-gap/no-jump checks. Production repeat remains pending.
+**Answer** — Ordinary fresh-feed opens were below2s, and logout/account separation passed, but the cached last-feed path first appeared at2660ms under held-root conditions. That does not satisfy the literal last-feed-within2s condition; #437 startup/in-place reconciliation fix has merged; local installed Slow4G cached1721/1716/1700ms→fresh2302/2290/2285ms passes deadline and actual compositor no-gap/no-jump checks. Production repeat passed on stable READYafbb18efe317d6a0981b45a160dc9dc015642bbe; #304 closed.
 
-**Unknown** — The protected pre-#397 deployment loaded its authenticated feed but Chrome PWA.install could not fetch install info; protection as cause is an inference, and no tab timing substitutes for installed baseline. Final deployment repeat remains pending; this is not physical-phone or full-process cold-boot evidence. Raw summary `/tmp/run10-thumbs-pwa-acceptance.json` preserves each assertion separately.
+**Unknown** — The protected pre-#397 deployment loaded its authenticated feed but Chrome PWA.install could not fetch install info; protection as cause is an inference, and no tab timing substitutes for installed baseline. Production repeat is preserved in [the receipt](evidence/run10-fix304-production/README.md); this is not physical-phone or full-process cold-boot evidence. Raw summary `/tmp/run10-thumbs-pwa-acceptance.json` preserves each assertion separately.
 
 ## 7j. Drink backfill (#377)
 

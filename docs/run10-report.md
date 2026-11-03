@@ -24,7 +24,7 @@ Latest user scope clarification: **#413 and Round6 belong to the next design fle
 | --- | --- |
 | 9 | Coffee #388 merged; production six-tile check passed. |
 | 10 | #400 merged; disposable-local owner-isolation test passed. Final standalone-intake calendar repeat pending. |
-| 11 | #397 and#437 merged. The latter fixes measured cached-startup delay and blank transition: local installed Slow4G cached1721/1716/1700ms→fresh2302/2290/2285ms, compositor no gap/jump and privacy checks pass. Production repeat pending. |
+| 11 | #397 and#437 merged. The latter fixes measured cached-startup delay and blank transition: local installed Slow4G cached1721/1716/1700ms→fresh2302/2290/2285ms, compositor no gap/jump and privacy checks pass. Production installed repeat passed1880/1860/1770ms cached→fresh2996/2855/2737ms, no-gap/privacy; #304closed. |
 | 12 | #394 merged; #424 follow-up real matcher/reference integrity+identify components merged. Real report trials and costUS$0.62730425 documented; final two production meals pending. |
 | 13 | #401 backfill executed; 25 matching item gaps became 10. Every remaining post is explicitly reported; broad name query includes non-drinks and existing atomic tiles. |
 | 14 | #419 combined photographed drinks merged after disposable runtime proof; production migration0040 applied11:15:58UTC with PT409 conflicts verified. Actual production drink-photo acceptance pending. |
@@ -33,7 +33,7 @@ Latest user scope clarification: **#413 and Round6 belong to the next design fle
 | 17 | #396 implements allowed sizes, hold, usage order and usual size; local HTTP/gesture acceptance passed. |
 | 18 | #398 changes leftovers labels throughout; wording tests 2/2, lint zero errors after fixing an existing indicator effect. Production acceptance pending. |
 | 19 | Existing pending-food-name feature needs actual production photo observation. |
-| 20 | All15 visual issues have individual PRs. Merged code#404–#418 except issue-specific docs#430–#432 pending; source/reference evidence and report table retained. Report discoveries also produced#422PNG,#424matcher,#425hints,#428Auth,#429dayreads. #433 durable food/barcode/label posting merged, migration0043 applied12:25:54UTC; copy and drink recovery follow-ups remain underway. #435 phone font correction merged. #437 PWA reconciliation merged; measured NeedsInputStrip JPEG download497591B is receiving a bounded small-route fix. |
+| 20 | All15 visual issues have individual PRs. Merged code#404–#418 except issue-specific docs#430–#432 pending; source/reference evidence and report table retained. Report discoveries also produced#422PNG,#424matcher,#425hints,#428Auth,#429dayreads. #433 durable food/barcode/label posting merged, migration0043 applied12:25:54UTC; copy recovery#438 merged with0044applied12:47:03UTC; drink recovery remains underway. #435 phone font correction merged. #437 PWA reconciliation merged; NeedsInputStrip#439 merged after actual matched3-photo497591→63720B proof; production repeat pending. |
 | 21 | #387 merged. Feed and nested capture delete confirmation survived 10.5 seconds each in preview and production; Cancel worked. #382 closed. |
 
 ## Premises corrected or unproven
