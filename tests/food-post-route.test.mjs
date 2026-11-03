@@ -8,6 +8,7 @@ test('actual food HTTP publishing keeps Auth/caps, resolves nutrition and retrie
  const query='croissant',cacheKey='fdc-search-v3:'+query,cachePrior=checked(await admin.from('fdc_cache').select('*').eq('query',cacheKey));
  const food={fdcId:990043,description:'Croissant fixture',foodCategory:'Baked Products',dataType:'SR Legacy',foodNutrients:[{nutrientId:1008,nutrientName:'Energy',unitName:'KCAL',value:406},{nutrientId:1003,nutrientName:'Protein',unitName:'G',value:8}]};
  const request=(body,auth=cookie)=>fetch(origin+'/api/posts/food',{method:'POST',headers:{Cookie:auth,'Content-Type':'application/json'},body:JSON.stringify(body)});
+ const cancel=(body,auth=cookie)=>fetch(origin+'/api/posts/food',{method:'DELETE',headers:{Cookie:auth,'Content-Type':'application/json'},body:JSON.stringify(body)});
  const base=()=>({operation_id:randomUUID(),owner_id:user.id,fdc_id:food.fdcId,query,eaten_at:new Date().toISOString()});
  try{
   checked(await admin.from('fdc_cache').upsert({query:cacheKey,response:{kind:'fdc-search-v3',query,payload:{foods:[food]}}},{onConflict:'query'}));
@@ -28,6 +29,17 @@ test('actual food HTTP publishing keeps Auth/caps, resolves nutrition and retrie
   const foreign={...body};delete foreign.owner_id;assert.equal((await request(foreign,otherCookie)).status,404);
   assert.equal((await request({...body,fdc_id:990044})).status,409);
   checked(await admin.from('posts').delete().eq('id',id).eq('user_id',user.id));assert.equal((await request(body)).status,410);
+  checked(await admin.from('fdc_cache').upsert({query:cacheKey,response:{kind:'fdc-search-v3',query,payload:{foods:[food]}}},{onConflict:'query'}));
+  const cancelled=base();operations.push(cancelled.operation_id);
+  assert.equal((await cancel(cancelled,otherCookie)).status,404);
+  assert.equal((await cancel(cancelled)).status,200);
+  assert.equal((await request(cancelled)).status,410);
+  const racing=base();operations.push(racing.operation_id);
+  const [publishRace,cancelRace]=await Promise.all([request(racing),cancel(racing)]);
+  assert.ok([201,410].includes(publishRace.status));assert.equal(cancelRace.status,200);
+  const receipt=checked(await admin.from('food_post_operations').select('post_id,cancelled').eq('operation_id',racing.operation_id).single());assert.equal(receipt.cancelled,true);
+  if(receipt.post_id){posts.push(receipt.post_id);assert.ok(checked(await admin.from('posts').select('deleted_at').eq('id',receipt.post_id).single()).deleted_at);}
+  assert.equal((await request(racing)).status,410);
  }finally{
   if(posts.length)checked(await admin.from('posts').delete().eq('user_id',user.id).in('id',posts));
   if(operations.length)checked(await admin.from('food_post_operations').delete().in('user_id',owners).in('operation_id',operations));

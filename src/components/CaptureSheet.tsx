@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-img-element -- Private owner images bypass paid optimization. */
 "use client";
 import {useDesktop} from "@/lib/ui/use-desktop";
 import {lockBodyScroll} from '@/lib/ui/scroll-lock';
@@ -415,7 +416,6 @@ export default function CaptureSheet({ onClose, initialMode = "photo", forPost, 
     }
   };
 
-  const packUploadRef = useRef<PackPhotoUpload | null>(null);
   const postBarcode = async () => {
     if (postingRef.current || !product || !packPhotoRef.current) return;
     postingRef.current = true; setPosting(true); setError(null);
@@ -533,7 +533,7 @@ export default function CaptureSheet({ onClose, initialMode = "photo", forPost, 
         {!forPost&&(mode === "text" || mode === "photo") && barcodeState === "idle" && labelState === "idle" && <div className="desktop:hidden flex shrink-0 overflow-x-auto px-screen-x" style={{ gap: tokens.capture.thumbGap }} aria-label="Meal photos">
           {shots.map((shot, i) => (
             <button key={shot.previewUrl} type="button" aria-label={`Remove photo ${i + 1}`} disabled={posting} onClick={() => removeShot(i)} className="relative shrink-0 overflow-hidden rounded-thumb disabled:opacity-50" style={{ width: tokens.capture.thumbSize, height: tokens.capture.thumbSize }}>
-              {/* eslint-disable-next-line @next/next/no-img-element */}
+              
               <img src={shot.previewUrl} alt={`Photo ${i + 1}`} className="h-full w-full object-cover" />
               <span className="absolute right-0 top-0 rounded-bl-chip bg-overlay p-grid"><Icon name="close" size={tokens.spacing['icon-small']} /></span>
             </button>
@@ -559,7 +559,7 @@ export default function CaptureSheet({ onClose, initialMode = "photo", forPost, 
           {product && <>
             <div className="flex gap-sheet-top pr-tap">
               <div className="min-w-0 flex-1"><p className="text-meta text-faint">Found</p><p className="text-month">{product.name}</p><button type="button" onClick={()=>setCorrecting(true)} className="text-detail underline">Correct</button><p className="text-detail text-faint">Per 100 {product.basisUnit} · {macros(100)}</p></div>
-              {/* eslint-disable-next-line @next/next/no-img-element */}
+              
               {packPhoto && <img src={packPhoto.previewUrl} alt="Scanned pack" className="shrink-0 rounded-thumb object-cover" style={{ width: tokens.capture.thumbSize, height: tokens.capture.thumbSize }} />}
             </div>
             <p className="text-meta text-faint" style={{ marginTop: tokens.spacing['screen-x'] - tokens.icon.strongStroke }}>How much?</p>

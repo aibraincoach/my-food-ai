@@ -18,7 +18,16 @@ test('food receipts are atomic, owner-only, idempotent and tombstone removed pos
  if exists(select 1 from public.food_post_operations where operation_id=bad_operation) or (select count(*) from public.posts where user_id=owner_id)<>before_count then raise exception 'Failed publication left partial receipt/post';end if;
  delete from public.posts where id=result;
  begin perform public.publish_food_operation(operation,owner_id,key,now(),'Deleted retry',100,nutrition);raise exception 'Deleted post resurrected';exception when sqlstate 'PT410' then null;end;
- if has_table_privilege('authenticated','public.food_post_operations','insert') or has_function_privilege('authenticated','public.publish_food_operation(uuid,uuid,text,timestamptz,text,numeric,jsonb,jsonb)','execute') then raise exception 'Client can forge resolved nutrition or receipts';end if;
+ operation:=gen_random_uuid();
+ perform public.cancel_food_operation(operation,owner_id);
+ begin perform public.publish_food_operation(operation,owner_id,key,now(),'Arrived after cancel',100,nutrition);raise exception 'Cancelled operation published';exception when sqlstate 'PT410' then null;end;
+ operation:=gen_random_uuid();result:=public.publish_food_operation(operation,owner_id,key,now(),'Lost response',100,nutrition);
+ begin perform public.cancel_food_operation(operation,other_id);raise exception 'Foreign cancellation accepted';exception when insufficient_privilege then null;end;
+ retried:=public.cancel_food_operation(operation,owner_id);
+ if retried<>result or not exists(select 1 from public.posts where id=result and deleted_at is not null) then raise exception 'Committed lost response was not hidden';end if;
+ if public.cancel_food_operation(operation,owner_id)<>result then raise exception 'Cancellation replay changed';end if;
+ begin perform public.publish_food_operation(operation,owner_id,key,now(),'Cancelled retry',100,nutrition);raise exception 'Cancelled post resurrected';exception when sqlstate 'PT410' then null;end;
+ if has_function_privilege('authenticated','public.cancel_food_operation(uuid,uuid)','execute') or has_table_privilege('authenticated','public.food_post_operations','insert') or has_function_privilege('authenticated','public.publish_food_operation(uuid,uuid,text,timestamptz,text,numeric,jsonb,jsonb)','execute') then raise exception 'Client can forge resolved nutrition or receipts';end if;
  end $test$;
  `+rollback+String.raw`
  do $test$ begin if to_regclass('public.food_post_operations') is not null or to_regprocedure('public.publish_food_operation(uuid,uuid,text,timestamptz,text,numeric,jsonb,jsonb)') is not null then raise exception 'Rollback incomplete';end if;end $test$;

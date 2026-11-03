@@ -37,3 +37,11 @@ test('an account switch during the durable checkpoint cannot send the prior acco
  const posting=manager.postFood(food,'Private selection');await until(()=>pending);await manager.initialize('other');gate.resolve();
  await assert.rejects(posting,/Sign-in changed/);assert.equal(sent,0);assert.deepEqual(manager.list(),[]);assert.equal([...db.rows.values()][0].ownerId,'owner');
 });
+test('failed removal is durable and reload retries cancellation rather than posting the selection again',async()=>{
+ const db=store();let deletes=0,posts=0;
+ const request=async(_url,options)=>{if(options.method==='DELETE'){deletes++;throw Error('cancel response dropped');}posts++;return Response.json({error:'Offline fixture'},{status:503});};
+ const manager=new UploadManager(db,makeDraft,async()=>{},request);await manager.initialize('owner');const id=await manager.postFood(food,'Kept selection');await until(()=>manager.list()[0].state==='failed');assert.equal(posts,3);
+ await manager.discardFood(id);await until(()=>deletes===1&&manager.list()[0].state==='failed');assert.equal(db.rows.get(id).cancelRequested,true);
+ const restored=new UploadManager(db,makeDraft,async()=>{},async(_url,options)=>{assert.equal(options.method,'DELETE');const body=JSON.parse(options.body);assert.equal(body.operation_id,id);assert.equal(body.owner_id,'owner');return Response.json({post_id:'unacknowledged-post'},{status:200});});
+ await restored.initialize('owner');restored.retry(id);await until(()=>restored.list().length===0);assert.equal(db.rows.size,0);assert.equal(posts,3);
+});

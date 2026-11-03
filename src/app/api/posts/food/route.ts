@@ -34,10 +34,11 @@ export async function POST(request: Request) {
   const finish=async(id:string,admin:ReturnType<typeof createAdminClient>)=>{try{await markReady(id,admin,undefined,{notify:false,timeZone});}catch{console.error('Food card repair remains queued.');}};
   if(operationId){
     const admin=createAdminClient();
-    const {data:receipt,error}=await admin.from('food_post_operations').select('user_id,request_key,post_id').eq('operation_id',operationId).maybeSingle();
+    const {data:receipt,error}=await admin.from('food_post_operations').select('user_id,request_key,post_id,cancelled').eq('operation_id',operationId).maybeSingle();
     if(error)return NextResponse.json({error:"The food operation could not be confirmed. Retry your kept selection."},{status:503});
     if(receipt){
       if(receipt.user_id!==user.id)return NextResponse.json({error:"Food operation not found."},{status:404});
+      if(receipt.cancelled)return NextResponse.json({error:"This pending food post was removed."},{status:410});
       if(receipt.request_key!==requestKey)return NextResponse.json({error:"This selection changed. Start a new food post."},{status:409});
       const {data:post,error:postError}=receipt.post_id?await admin.from('posts').select('id').eq('id',receipt.post_id).eq('user_id',user.id).is('deleted_at',null).maybeSingle():{data:null,error:null};
       if(postError)return NextResponse.json({error:"The saved food could not be confirmed. Retry your kept selection."},{status:503});
@@ -118,4 +119,19 @@ export async function POST(request: Request) {
   } catch (error) {
     return NextResponse.json({ error: "Food search is temporarily unavailable." }, { status: error instanceof ApiError && error.status === 429 ? 429 : 502 });
   }
+}
+
+
+// Cancel shares the publication lock: an already committed lost response is
+// hidden, and a request arriving later cannot publish a discarded selection.
+export async function DELETE(request:Request){
+ const db=await createClient();const {data:{user}}=await db.auth.getUser();
+ if(!user)return NextResponse.json({error:"Sign in required."},{status:401});
+ const capped=await capUser(user.id,"post");if(capped)return capped;
+ const body=await request.json().catch(()=>null) as {operation_id?:unknown;owner_id?:unknown}|null;
+ if(body?.owner_id!==user.id)return NextResponse.json({error:"This selection belongs to another sign-in."},{status:404});
+ if(typeof body.operation_id!=="string"||!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(body.operation_id))return NextResponse.json({error:"Invalid food operation."},{status:400});
+ const {data,error}=await createAdminClient().rpc("cancel_food_operation",{p_operation_id:body.operation_id,p_user_id:user.id});
+ if(error)return NextResponse.json({error:"The pending food could not be removed. Your selection is kept."},{status:error.code==='42501'?404:error.code?.startsWith('PT')?Number(error.code.slice(2)):503});
+ return NextResponse.json({post_id:data},{status:200});
 }

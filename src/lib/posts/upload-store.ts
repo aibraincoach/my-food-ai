@@ -15,6 +15,7 @@ export interface StoredUpload {
     posted: boolean;
     publishStarted?: boolean;
     food?: FoodRequest;
+    cancelRequested?: boolean;
     resultPostId?: string;
     message?: string;
     state: 'uploading' | 'uploaded' | 'failed';
