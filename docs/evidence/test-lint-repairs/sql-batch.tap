@@ -1,0 +1,241 @@
+TAP version 13
+# Subtest: committed analysis replay preserves edits and markers (already installed: false)
+ok 1 - committed analysis replay preserves edits and markers (already installed: false)
+  ---
+  duration_ms: 60.986628
+  type: 'test'
+  ...
+# Subtest: committed analysis replay preserves edits and markers (already installed: true)
+ok 2 - committed analysis replay preserves edits and markers (already installed: true)
+  ---
+  duration_ms: 70.66283
+  type: 'test'
+  ...
+# Subtest: card publication waits for corrections and failed maintenance preserves the meal
+ok 3 - card publication waits for corrections and failed maintenance preserves the meal
+  ---
+  duration_ms: 48.668767
+  type: 'test'
+  ...
+# Subtest: privileged photo reads reject historical metadata outside the meal namespace
+ok 4 - privileged photo reads reject historical metadata outside the meal namespace
+  ---
+  duration_ms: 29.170405
+  type: 'test'
+  ...
+# Subtest: privileged card cleanup never deletes a forged foreign or traversing path
+ok 5 - privileged card cleanup never deletes a forged foreign or traversing path
+  ---
+  duration_ms: 95.179512
+  type: 'test'
+  ...
+# Subtest: clients cannot forge generated card pointers and old forged pointers are never returned for cleanup
+ok 6 - clients cannot forge generated card pointers and old forged pointers are never returned for cleanup
+  ---
+  duration_ms: 59.042964
+  type: 'test'
+  ...
+# Subtest: a question preserves queued follow-up work and cannot publish its stale card
+ok 7 - a question preserves queued follow-up work and cannot publish its stale card
+  ---
+  duration_ms: 68.404688
+  type: 'test'
+  ...
+# Subtest: comments are owner-authored and immutable; corrections preserve history atomically
+ok 8 - comments are owner-authored and immutable; corrections preserve history atomically
+  ---
+  duration_ms: 59.592359
+  type: 'test'
+  ...
+# Subtest: discard commits durable cleanup atomically and retries survive post cascade
+ok 9 - discard commits durable cleanup atomically and retries survive post cascade
+  ---
+  duration_ms: 30.455994
+  type: 'test'
+  ...
+# Subtest: cleanup retries partial storage removal using durable paths and stays within the deleted meal
+ok 10 - cleanup retries partial storage removal using durable paths and stays within the deleted meal
+  ---
+  duration_ms: 3.620531
+  type: 'test'
+  ...
+# Subtest: the feed's keyset pagination has a (user_id, eaten_at desc, id desc) index
+ok 11 - the feed's keyset pagination has a (user_id, eaten_at desc, id desc) index
+  ---
+  duration_ms: 19.593922
+  type: 'test'
+  ...
+# feed read hydration 4
+# feed read hydration 3
+# feed read hydration 1
+# Subtest: feedback sends and broadcasts the displayed immutable revision
+ok 12 - feedback sends and broadcasts the displayed immutable revision
+  ---
+  duration_ms: 26.911983
+  type: 'test'
+  ...
+# Subtest: feedback revision belongs to owned model comment and never follows later replies
+ok 13 - feedback revision belongs to owned model comment and never follows later replies
+  ---
+  duration_ms: 47.862654
+  type: 'test'
+  ...
+# Subtest: feed never binds a new revision to data hydrated across a correction commit
+ok 14 - feed never binds a new revision to data hydrated across a correction commit
+  ---
+  duration_ms: 333.872666
+  type: 'test'
+  ...
+# Subtest: intake rows belong to their owner, have limits, and cannot be edited
+ok 15 - intake rows belong to their owner, have limits, and cannot be edited
+  ---
+  duration_ms: 40.339035
+  type: 'test'
+  ...
+# Subtest: a second user cannot read or discard a clarification post
+ok 16 - a second user cannot read or discard a clarification post
+  ---
+  duration_ms: 39.212564
+  type: 'test'
+  ...
+# Subtest: not-eaten difference clamps the photographed amount and preserves count records
+ok 17 - not-eaten difference clamps the photographed amount and preserves count records
+  ---
+  duration_ms: 1.759226
+  type: 'test'
+  ...
+# Subtest: the stored-card snapshot preserves known uneaten calories when all of a food was not eaten
+ok 18 - the stored-card snapshot preserves known uneaten calories when all of a food was not eaten
+  ---
+  duration_ms: 27.815336
+  type: 'test'
+  ...
+# Subtest: not-eaten revision keeps history, exact nutrition, retry idempotency and owner access
+ok 19 - not-eaten revision keeps history, exact nutrition, retry idempotency and owner access
+  ---
+  duration_ms: 313.689188
+  type: 'test'
+  ...
+# Subtest: analysis persistence follows the initialisation marker and preserves history
+ok 20 - analysis persistence follows the initialisation marker and preserves history
+  ---
+  duration_ms: 48.226091
+  type: 'test'
+  ...
+# Subtest: locations are append-only and private to the post owner
+ok 21 - locations are append-only and private to the post owner
+  ---
+  duration_ms: 27.872255
+  type: 'test'
+  ...
+# Subtest: candidate SQL distinguishes absent signals from genuine mismatches
+ok 22 - candidate SQL distinguishes absent signals from genuine mismatches
+  ---
+  duration_ms: 38.802287
+  type: 'test'
+  ...
+# Subtest: an ordinary account cannot provision or promote itself as admin
+ok 23 - an ordinary account cannot provision or promote itself as admin
+  ---
+  duration_ms: 31.718504
+  type: 'test'
+  ...
+# Subtest: logout waits for registration then removes only the current endpoint before unsubscribe
+ok 24 - logout waits for registration then removes only the current endpoint before unsubscribe
+  ---
+  duration_ms: 35.193796
+  type: 'test'
+  ...
+# Subtest: authenticated logout cannot remove other devices or another account endpoint
+ok 25 - authenticated logout cannot remove other devices or another account endpoint
+  ---
+  duration_ms: 32.743696
+  type: 'test'
+  ...
+# Subtest: a sign-out started in another tab blocks registration here until the marker expires or fails
+ok 26 - a sign-out started in another tab blocks registration here until the marker expires or fails
+  ---
+  duration_ms: 1.22623
+  type: 'test'
+  ...
+# Subtest: registration and logout share one origin-wide Web Lock
+ok 27 - registration and logout share one origin-wide Web Lock
+  ---
+  duration_ms: 0.349477
+  type: 'test'
+  ...
+# Subtest: a failed server detach still unsubscribes the browser, then reports the failure
+ok 28 - a failed server detach still unsubscribes the browser, then reports the failure
+  ---
+  duration_ms: 1.822786
+  type: 'test'
+  ...
+# Subtest: a hanging server detach is aborted at its deadline so the lifecycle lock is released
+ok 29 - a hanging server detach is aborted at its deadline so the lifecycle lock is released
+  ---
+  duration_ms: 24.413803
+  type: 'test'
+  ...
+# Subtest: starting a sign-out aborts a stalled registration request so it cannot hold the lock
+ok 30 - starting a sign-out aborts a stalled registration request so it cannot hold the lock
+  ---
+  duration_ms: 9.98048
+  type: 'test'
+  ...
+# Subtest: a subscription without a matching owner marker is dropped; a matching one is kept
+ok 31 - a subscription without a matching owner marker is dropped; a matching one is kept
+  ---
+  duration_ms: 0.941232
+  type: 'test'
+  ...
+# Subtest: classified failures, delayed claims, third-attempt limit and worker-only access
+ok 32 - classified failures, delayed claims, third-attempt limit and worker-only access
+  ---
+  duration_ms: 280.637775
+  type: 'test'
+  ...
+# Subtest: saved meals retain exact nutrition, time and owner access in one transaction
+ok 33 - saved meals retain exact nutrition, time and owner access in one transaction
+  ---
+  duration_ms: 432.43847
+  type: 'test'
+  ...
+# Subtest: the search index follows item inserts and moves, and locks the post before reading
+ok 34 - the search index follows item inserts and moves, and locks the post before reading
+  ---
+  duration_ms: 36.551865
+  type: 'test'
+  ...
+# Subtest: the search migration parses alternatives and exclusions with websearch syntax
+ok 35 - the search migration parses alternatives and exclusions with websearch syntax
+  ---
+  duration_ms: 20.739033
+  type: 'test'
+  ...
+# Subtest: search uses consumed known meals and eaten-time ordering on fresh and installed schemas
+ok 36 - search uses consumed known meals and eaten-time ordering on fresh and installed schemas
+  ---
+  duration_ms: 43.970405
+  type: 'test'
+  ...
+# Subtest: set_post_servings scales items, queues a recompute and notes it in the thread
+ok 37 - set_post_servings scales items, queues a recompute and notes it in the thread
+  ---
+  duration_ms: 38.349691
+  type: 'test'
+  ...
+# Subtest: edits preserve immutable history, ownership and atomic readiness
+ok 38 - edits preserve immutable history, ownership and atomic readiness
+  ---
+  duration_ms: 50.206196
+  type: 'test'
+  ...
+1..38
+# tests 38
+# suites 0
+# pass 38
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 7419.436333

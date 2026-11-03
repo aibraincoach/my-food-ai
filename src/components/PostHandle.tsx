@@ -19,8 +19,8 @@ function loadHandle() {
 }
 export function usePostHandle(handle?:string) {
  const [value,setValue]=useState(handle??'');
- useEffect(()=>{let live=true;if(handle){setValue(handle);return;}void loadHandle().then(value=>{if(live)setValue(value);}).catch(()=>{if(live)setValue('');});return()=>{live=false;};},[handle]);
- return value;
+ useEffect(()=>{let live=true;if(handle)return;void loadHandle().then(value=>{if(live)setValue(value);}).catch(()=>{if(live)setValue('');});return()=>{live=false;};},[handle]);
+ return handle||value;
 }
 
 export function AgentAttribution({ name }: { name?: string | null }) {

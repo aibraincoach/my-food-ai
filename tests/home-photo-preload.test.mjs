@@ -11,7 +11,7 @@ const row={id:post,user_id:owner,post_media:[{id:post,kind:'photo',position:3},{
 function database(result={data:row,error:null},hang=false) {
  const calls=[];let signal;
  const query={};
- for(const method of ['select','eq','neq','or','order','limit'])query[method]=(...args)=>{calls.push([method,...args]);return query;};
+ for(const method of ['select','is','eq','neq','or','order','limit'])query[method]=(...args)=>{calls.push([method,...args]);return query;};
  query.abortSignal=value=>{signal=value;return query;};
  query.maybeSingle=async()=>{if(hang)return new Promise(()=>{});if(result instanceof Error)throw result;return result;};
  return {db:{from(table){calls.push(['from',table]);return query;}},calls,get signal(){return signal;}};
@@ -19,7 +19,7 @@ function database(result={data:row,error:null},hang=false) {
 test('home hint matches the SSR private URL and selects the first ordered photo with feed visibility filters',async()=>{
  const mock=database();
  assert.equal(await homePhotoPreload(mock.db,'/',owner),`<${smallFeedPhotoUrl(owner,post,media)}>; rel=preload; as=image; fetchpriority=high; crossorigin=anonymous`);
- assert.deepEqual(mock.calls,[['from','posts'],['select','id,user_id,post_media(id,kind,position)'],['eq','user_id',owner],['neq','status','needs_input'],['or','needs_input.is.null,status.eq.failed'],['order','eaten_at',{ascending:false}],['order','id',{ascending:false}],['limit',1]]);
+ assert.deepEqual(mock.calls,[['from','posts'],['select','id,user_id,post_media(id,kind,position)'],['is','deleted_at',null],['eq','user_id',owner],['neq','status','needs_input'],['or','needs_input.is.null,status.eq.failed'],['order','eaten_at',{ascending:false}],['order','id',{ascending:false}],['limit',1]]);
 });
 test('owner mismatch, no row, no photo, invalid identity and read failures fail open',async()=>{
  for(const result of [{data:null},{data:{...row,user_id:post}},{data:{...row,post_media:[]}},{data:{...row,id:'bad'}},{data:{...row,post_media:[{id:'bad',kind:'photo',position:0}]}},{data:row,error:{message:'private diagnostic'}},new Error('private diagnostic')]) {

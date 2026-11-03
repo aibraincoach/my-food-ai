@@ -22,14 +22,10 @@ const signIn = read("src/app/(auth)/sign-in/page.tsx");
 assert(signIn.includes('type="email"'), "sign-in has an email field");
 assert(signIn.includes('type="password"'), "sign-in has a password field");
 assert(signIn.includes("/sign-up"), "sign-in links to sign-up");
-assert(
-  signIn.includes("NEXT_PUBLIC_FACEBOOK_LOGIN"),
-  "Facebook button is gated behind NEXT_PUBLIC_FACEBOOK_LOGIN=1"
-);
-assert(
-  !signIn.includes("Continue with Facebook") || signIn.includes("FACEBOOK_LOGIN ?"),
-  "no visitor sees a Facebook button that errors"
-);
+const facebook=read('src/components/FacebookButton.tsx');
+assert(signIn.includes('<FacebookButton'), 'sign-in uses the shared Facebook control');
+assert(facebook.includes('disabled') && facebook.includes('Facebook'), 'Facebook is visibly disabled while app review is unavailable');
+assert(!facebook.includes('signInWithOAuth'), 'disabled Facebook never starts OAuth');
 assert(existsSync(join(root, "src/app/auth/callback/route.ts")), "OAuth/PKCE callback exists");
 assert(existsSync(join(root, "src/middleware.ts")), "auth middleware exists");
 

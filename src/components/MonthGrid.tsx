@@ -17,7 +17,7 @@ export default function MonthGrid({ month, summary, today, selected, onDay, onOp
   const first = new Date(`${month}-01T12:00:00Z`);
   const count = new Date(Date.UTC(first.getUTCFullYear(), first.getUTCMonth() + 1, 0)).getUTCDate();
   return <section aria-label={monthName(month, true)} data-month={month} id={`month-${month}`} className="desktop:w-full" onKeyDown={event=>{
-    if(!matchMedia('(min-width:1024px)').matches)return;
+    if(!matchMedia('(min-width:1024px)').matches||event.defaultPrevented||event.metaKey||event.ctrlKey||event.altKey||(event.target as HTMLElement).closest('input,textarea,select,[contenteditable="true"],[role="combobox"]')||!(event.target as HTMLElement).closest('button[data-day]'))return;
     if(event.key==='Enter'&&onOpenDay){const cell=(event.target as HTMLElement).closest<HTMLButtonElement>('button[data-day]');if(cell?.dataset.day){event.preventDefault();onOpenDay(cell.dataset.day);}return;}
     const step=event.key==='ArrowRight'?1:event.key==='ArrowLeft'?-1:event.key==='ArrowDown'?7:event.key==='ArrowUp'?-7:0;
     if(!step)return;event.preventDefault();

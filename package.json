@@ -9,8 +9,11 @@
     "lint": "eslint",
     "predev": "node scripts/build-tokens.mjs",
     "prebuild": "node scripts/build-tokens.mjs",
-    "test:db": "node --env-file=.env.local --test --test-concurrency=1 tests/db/*.test.mjs",
-    "check": "node --env-file=.env.local scripts/check.mjs"
+    "test:db": "node scripts/test.mjs --db",
+    "check": "node --env-file=.env.local scripts/check.mjs",
+    "test": "node scripts/test.mjs",
+    "test:stack": "node scripts/test-stack.mjs",
+    "test:app": "node scripts/test-app.mjs"
   },
   "dependencies": {
     "@meta-sam/parser": "^0.1.0",

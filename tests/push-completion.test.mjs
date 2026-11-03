@@ -21,10 +21,10 @@ test('push follows persisted waiting state and maintenance publication stays sil
   for(const name of names)process.env[name]='fixture';
   let post={user_id:'owner',status:'queued',needs_input:{question:'Which food?'}};
   const saves=[];
-  const admin={async rpc(name,args){assert.equal(name,'save_ready_meal');assert.equal(args.p_post_id,'meal');saves.push(args);return {error:null};},from(table){
-    const data=table==='posts'?post:table==='post_media'?null:
+  const admin={async rpc(name,args){if(name==='sync_item_drinks'){assert.deepEqual(args.p_rows,[]);return{error:null};}assert.equal(name,'save_ready_meal');assert.equal(args.p_post_id,'meal');saves.push(args);return {error:null};},from(table){
+    const data=table==='current_post_items'?[]:table==='posts'?post:table==='post_media'?null:
       [{id:'subscription',endpoint:'https://fcm.googleapis.com/fixture',keys:{p256dh:'A'.repeat(87),auth:'A'.repeat(22)}}];
-    const q={select(){return q;},eq(){return q;},order(){return q;},limit(){return q;},maybeSingle(){return q;},then(resolve){return Promise.resolve({data,error:null}).then(resolve);}};
+    const q={select(){return q;},in(){return q;},eq(){return q;},order(){return q;},limit(){return q;},maybeSingle(){return q;},then(resolve){return Promise.resolve({data,error:null}).then(resolve);}};
     return q;
   }};
   try{

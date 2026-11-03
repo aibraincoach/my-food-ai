@@ -15,7 +15,11 @@ Account-name text is made invisible in committed screenshots, preserving its lay
 
 Two existing controls are deliberately retained and flagged for the owner: Saved meals remains beside the sidebar title although the reference omits it, as the setup asks to preserve it; the Muse Spark Open setting remains below the Profile buttons, since removing it would remove the judge's model switch. Recently deleted remains available as well.
 
-## Verification and limits
+## Historical verification at PR #460
+
+These results describe the original reviewed desktop head. The separate #450 follow-up repairs the test/lint gate and records current commands and limits in [testing.md](../../testing.md) and [review triage](../../reviews/desktop-round6-followup.md).
+
+### Verification and limits
 
 - TypeScript `npx tsc --noEmit`: passed.
 - Focused real regressions: `node --import tsx --test tests/feed-cache-lifecycle.test.mjs tests/feed-photo.test.mjs tests/camera-frame.test.mjs tests/camera-flip.test.mjs tests/comment-label.test.mjs tests/nutrition-table.test.mjs tests/search-drink-summary.test.mjs`: **23 passed, 0 failed, 0 skipped**.
@@ -33,3 +37,5 @@ Reproduce keyboard/layout checks with `scripts/verify-desktop-round6.mjs`, a loc
 Production build: `npm run build` passed (exit 0). The final code additionally keeps the chosen day and its panel when Escape returns from a desktop day story. The global baseline unit/lint gates remain unmet and tracked separately.
 
 The rebuilt production app passed the targeted Days regression: arrows selected the intended day, Enter opened its story, and Escape returned with the selected day panel still available ([receipt](calendar-checks.json)). `scripts/cleanup.sh` was run after stopping both local servers ([output](cleanup.txt)); the open feature worktree is retained for review. The primary checkout stays on main and its pre-existing untracked review note is unchanged. All fifteen comments on #353–#367 were posted after PR #460 opened, without changing any issue state. Initial PR head `785110081ff82811f3dfa14f337633016f2ecadc` has Vercel success; the final PR head must be checked independently after this documentation receipt is pushed. Muse review/merge approval is not claimed.
+
+PR #460 was merged by the owner’s exact-head order: reviewed head `3eaa72fe6c184abca91b6b0f5d1db7e578e7fcec`, merge commit `618cf7e8bbadf4e020b9590eeb66e6368591f8db`. GitHub reported CLEAN/MERGEABLE and both reported checks passed; no required checks were configured. Follow-up repairs are on a separate branch from that merged main.
