@@ -227,17 +227,41 @@ Read-only production measurements and designated test-account actions only. Unkn
 
 ## 7n. Real matcher (#272)
 
-**Method** — #394 offline third-search regression passed; paid five-by-two real matcher run not yet performed.
+**Method** — Real Muse Spark1.3→USDA calls through imported matchFood with in-memory USDA cache and trace sink; no production DB writes. Read actual receipts at10:59 UTC from `docs/evidence/run10-272/real-matcher.json` on #424. Original baseline head b7b2b118b0176cdf09f9cabad3d59c3005c55f8a; exact-wording follow-up code3d8dfca3ea3304cac424c9dbf8d29ebe2cd07ad2. A persisted conservative per-request cost reservation bounded all experiments; cached input discounted by0. Official rates and source commits are retained in the receipt.
 
 **Result**
 
-| Measurement | Result |
+| Series | Input | Trial | USDA fdcId | Provider decision reason |
+| --- | --- | --- | --- | --- |
+| Before | cheeseburger with lettuce, tomato, onion and pickle | 1 | unavailable | All candidates incompatible for cheeseburger with lettuce, tomato, onion and pickle: Burger King Cheeseburger/Whopper/Double records are identifiable proprietary chain recipes, not generic collection settings and cannot proxy; veggie/soy burgers are different food category, turkey/chicken burgers are different species, branded BURGER hits are condiment/other meats. New search seeks unbranded whole-dish cheeseburger reference with compatible components. |
+| Before | cheeseburger with lettuce, tomato, onion and pickle | 2 | unavailable | All candidates are incompatible: bread/bun records, pickle relish/sauce, and hamburger (no cheese) records including named-chain proprietary hamburgers, all missing cheese and thus missing a named substantial component of the cheeseburger with lettuce, tomato, onion and pickle; no generic whole-dish cheeseburger covering patty+cheese+bun+vegetables was retrieved by 'hamburger'. |
+| Before | cheeseburger with lettuce, tomato, onion and pickle | 3 | unavailable | All candidates incompatible for cheeseburger with lettuce, tomato, onion and pickle. Branded BURGER records are sauce/other meats, veggie/soy records are different food category, turkey/chicken burgers are different species. All Burger King Cheeseburger/Whopper/Hamburger/Double records in Survey FNDDS and SR Legacy are identifiable proprietary chain recipes, not merely a collection setting, and cannot proxy the generic dish. No unbranded generic whole-dish cheeseburger reference present. New search for generic whole-dish reference. |
+| Before | cheeseburger with lettuce, tomato, onion and pickle | 4 | unavailable | All candidates incompatible with beef cheeseburger with lettuce, tomato, onion and pickle. All BURGER KING / Burger King items are identifiable proprietary chain recipes, not generic collection setting, and cannot proxy the target. Veggie/soy burgers and turkey/chicken burgers are different food category/species. Branded BURGER ketchup/sauce is a condiment, not the dish. Fries, onion rings, chicken strips, fish/chicken sandwiches, croissants etc. are different foods. No generic unbranded whole-dish beef cheeseburger reference present. New search for generic whole-dish form. |
+| Before | cheeseburger with lettuce, tomato, onion and pickle | 5 | 2706888 | Selected Survey (FNDDS) Cheeseburger, NFS as a generic reference for the assembled whole dish; it covers bun, beef patty, and cheese as main components with typical toppings, compatible with known lettuce, tomato, onion, and pickle, with no explicit exclusion or incompatible proprietary recipe. |
+| Before | dipping sauce | 1 | 2705618 | Target is unspecified 'dipping sauce' with no known ingredients or preparation. 'Dip, NFS - NS as to kind of dip' is the compatible generic Survey (FNDDS) reference as a broader version of the target dip/dipping sauce, without assuming a specific flavor. |
+| Before | dipping sauce | 2 | 2705618 | Target is unspecified 'dipping sauce' with no ingredients or preparation given. Dip, NFS (NS as to kind of dip) is a generic Survey reference for an unspecified dip, compatible as a generic reference for the unknown kind. |
+| Before | dipping sauce | 3 | 2705618 | Target is unspecified 'dipping sauce' with no known ingredients or preparation. Selected Dip, NFS as a generic reference for an unspecified dip/dipping sauce, which is compatible in physical form with no conflicting components. |
+| Before | dipping sauce | 4 | 2705618 | Target is unspecified dipping sauce with no known components. Selected Dip, NFS is a compatible generic Survey (FNDDS) reference for dip NS as to kind, which covers the generic target. |
+| Before | dipping sauce | 5 | 2705618 | Target is unspecified dipping sauce with no known components. Selected Dip, NFS as generic reference covering any kind of dip per NS as to kind. |
+| After | cheeseburger with lettuce, tomato, onion and pickle | 1 | 2706888 | Generic Survey FNDDS whole-dish reference Cheeseburger, NFS is a broader generic version of the target assembled cooked burger, covering bun, beef patty, and cheese with typical vegetable toppings including lettuce, tomato, onion and pickle in the same physical form. |
+| After | cheeseburger with lettuce, tomato, onion and pickle | 2 | 2706888 | Selected generic Survey (FNDDS) Cheeseburger, NFS as compatible whole-dish reference. It is a generic reference for the broader cheeseburger category with same assembled form (beef patty, cheese, bun) and can cover the known substantial vegetable additions lettuce, tomato, onion and pickle; absence of topping words in NFS title is not an explicit exclusion. Named-chain recipes (McDonalds, Burger King) rejected as identifiable proprietary recipes. |
+| After | cheeseburger with lettuce, tomato, onion and pickle | 3 | 2706888 | Selected generic Survey (FNDDS) whole-dish reference 'Cheeseburger, NFS' in burgers category. It is a generic reference for the same assembled food and preparation (beef patty + cheese on bun, cooked), covering the main components including bun, meat, cheese with typical lettuce/tomato/onion/pickle toppings; absence of topping words is not an explicit exclusion and there is no 'without' conflict. |
+| After | cheeseburger with lettuce, tomato, onion and pickle | 4 | 2706888 | Target is assembled cheeseburger with bun, beef patty, cheese, lettuce, tomato, onion, pickle. Cheeseburger, NFS is a Survey (FNDDS) generic whole-dish burgers reference with compatible base, cooking process and assembled form; absence of topping words is not an explicit exclusion, so it serves as a broader generic reference covering the burger including vegetables. Named-chain McDonalds/Burger King recipes rejected as proprietary. |
+| After | cheeseburger with lettuce, tomato, onion and pickle | 5 | 2706888 | Selected Cheeseburger, NFS as generic reference for the assembled whole dish: bun + beef patty + cheese with lettuce, tomato, onion and pickle. It is a generic broader version with compatible known ingredients, cooked beef patty and assembled burger form; absence of topping words from NFS description is not an explicit exclusion. Preferred over identifiable named-chain proprietary recipes. |
+| After | cheeseburger with lettuce, tomato, onion and pickle | 1 | unavailable | Only candidate 900001 is 'Hamburger on bun, without cheese' which explicitly excludes cheese and therefore conflicts with target cheeseburger with lettuce, tomato, onion and pickle; it is not a whole-dish cheeseburger reference covering cheese plus toppings. |
+
+| Additional measurement | Result |
 | --- | --- |
-| Third-search regression passed | 1 |
+| Baseline chosen references | Burger1/5; dipping sauce5/5 |
+| Exact-wording follow-up | Burger5/5; dipping sauce5/5 |
+| Existing real reference gate | 16/16 |
+| Explicit no-cheese synthetic foil rejected | 3/3; foil is test-only, never a production reference |
+| Combined upper model cost | US$0.62730425, below US$1 |
+| Focused tests | 32 passed |
 
-**Answer** — The bounded third search is built. No real reference resolution is inferred from the stub.
+**Answer** — A supplied compatible generic reference was discarded across searches and a distinct retry refinement ignored; #424 retains eligible candidates and honors that refinement. Separately portionable steak/butter and spinach/corn now resolve as separate estimated components with genuine USDA references, preserving the rule against guessing missing nutrients.
 
-**Unknown** — UnderUS$1 real API choices/reasons and both designated-account production meals remain required.
+**Unknown** — Five consistent repeats do not guarantee deterministic future model decisions. Final designated-account production meals after #424 remain required; the real in-memory experiments do not establish that acceptance.
 
 ## 7o. Terms (#294)
 
