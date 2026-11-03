@@ -16,7 +16,7 @@ Latest user scope clarification: **#413 and Round6 belong to the next design fle
 | 5 | #393 merged; exact READY preview and production function configuration verified iad1. |
 | 6 | #386 and follow-up#409 merged. Controlled frozen-frame preview samples after409 were58.5–91.3ms versus222.2–1045.9ms before under customnetwork/CPU4. Final actualFast4G shutter/barcode repeat pending; no physical-camera claim. |
 | 7 | Investigation evidence below is being collected. Unmeasured sections remain unproven. |
-| 8 | #333 merged first at reviewed headb9068d081dea94075734ae5570c9129b53bfb1c5. 42 implementation PRs merged through#437; #436 documentation correction awaits review. Full final acceptance/closures and cleanup remain pending. |
+| 8 | #333 merged first at reviewed headb9068d081dea94075734ae5570c9129b53bfb1c5. 43 Fleet10 PRs merged through#437 including#436 documentation correction; later recovery/thumbnail PRs remain open. Full final acceptance/closures and cleanup remain pending. |
 
 ## Additional implementation lanes
 
@@ -95,12 +95,20 @@ Evidence closed #382, #381/#383, #107, #316, #228, #325/#378, #371/#215/#389, #6
 | #416 | run10/fix-359 | MERGED | `d4099c1622115ed2d586a6b0b51eea738a50a2a0` |
 | #417 | run10/fix-357 | MERGED | `4c27b2ed750ed0e410483c5b6995172b078aa8e1` |
 | #418 | run10/fix-362 | MERGED | `f76bc4c4c17bfc80b8a6adb15e134387665ea865` |
-| #419 | run10/composer-drink | OPEN | `f8d2ba7a4d5517c4aedad7f5f447bd4d53602bf0` |
-| #422 | run10/fix-283 | OPEN | `a73aa5ef734fc7db733bd41951d2caa15fa31fb6` |
-| #424 | run10/fix-272 | OPEN | `23ffaa2911c6a8f40d00fb26c9611151ff64c878` |
-| #425 | run10/fix-23 | OPEN | `a331220535bd03f16af212a11c95db9092832c72` |
-| #428 | run10/fix-323 | OPEN | `e1bb47c331437382249ed934e6f8125d917af72a` |
-| #429 | run10/fix-324 | OPEN | `fa75d2afc750e48dfd8337cf0afd36c750a2e311` |
-| #430 | run10/fix-358 | OPEN | `b2cbc7a72ede1a436574afd786567c4c640be950` |
-| #431 | run10/fix-354 | OPEN | `03d18866ebcf588d972784cb6edba1f37df9d549` |
-| #432 | run10/fix-353 | OPEN | `e7d353253fdc079effd52a93b60aa3365b593759` |
+| #419 | run10/composer-drink | MERGED | `4fd7ea0770def9bdfc81b834b703b546a7450d5d` |
+| #422 | run10/fix-283 | MERGED | `ab9961ce72a27d44140d44e13c6cf23ddc3f005d` |
+| #424 | run10/fix-272 | MERGED | `2a7016aaf10a751487a59bb9e92728f7776a65ba` |
+| #425 | run10/fix-23 | MERGED | `6730725e12d8d87819f3b37e8fb08223ad014973` |
+| #428 | run10/fix-323 | MERGED | `fedd11ca406c0e0e44fadfc6c4a3688d70b02ae5` |
+| #429 | run10/fix-324 | MERGED | `2cba097c166acef9d29c77ab3ea2458c95363103` |
+| #430 | run10/fix-358 | MERGED | `f8f8079b9c78c1f97d180ad6c65cad46245b3c33` |
+| #431 | run10/fix-354 | MERGED | `7b5866de83ed301db720653ef78295bedd45f4a7` |
+| #432 | run10/fix-353 | MERGED | `620930528aa3a5cb3bf6ba1cff302df90997cd6c` |
+| #433 | run10/fix-306 | MERGED | `2e9acb405d0b8182be64135a87dfae6892945892` |
+| #435 | run10/fix-359-typography | MERGED | `4f0116c24c79e0f427f8b630863df7f221f34efe` |
+| #436 | run10/media-evidence | MERGED | `903ad66c01815623b08cfa34be97ebf7d169da50` |
+| #437 | run10/fix-304 | MERGED | `f5e81ea36ec1b92d793943a6d8588033c1479fa2` |
+| #438 | run10/fix-306-copy | OPEN | `bcfc3d5e0cd5691ea33098f64b198d785deb7aea` |
+| #439 | run10/fix-372 | OPEN | `18b0f71f81d579d176fe7085734885ef9a808633` |
+
+Production closure update12:45UTC: #376 closed after actual token rotation and three natural photos each memorycache0bytes. Evidence and method correction merged in#436.
