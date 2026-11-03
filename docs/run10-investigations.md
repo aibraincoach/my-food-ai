@@ -57,33 +57,41 @@ Read-only production measurements and designated test-account actions only. Unkn
 
 ## 7d. Billed log ingestion (#373)
 
-**Method** — Read-only Management project /usage request at approximately 08:55 UTC.
+**Method** — Read-only Management project `/usage` request at08:55 UTC; inspected the official Studio `org-usage-query.ts` and tried its organization usage route at10:46 UTC using the available Management token. Checked [Supabase Logs Ingest documentation](https://supabase.com/docs/guides/platform/manage-your-usage/logs-ingest), updated October29.
 
 **Result**
 
 | Measurement | Result |
 | --- | --- |
-| HTTP status | 404 |
+| Management project /usage | 404 |
+| Management organization /usage | 404 |
+| Studio platform organization /usage | 401, Unsupported access token |
+| Current published billing status | Not yet billed; grace period through the start of2027 |
 
-**Answer** — The attempted endpoint did not expose billed log-ingestion bytes. Source row counts are not ingestion bytes.
+**Answer** — The premise of current billed log-ingestion cost is false under the published grace period. Usage is measured by ingested bytes across services; source row counts do not establish those bytes. The available token cannot read the Studio usage endpoint.
 
-**Unknown** — Supabase dashboard usage page source-byte figures remain unmeasured.
+**Unknown** — Current-cycle ingested bytes and their service breakdown remain unavailable. No source-byte or bill estimate is substituted for them.
 
 ## 7e. Connections and memory (#373)
 
-**Method** — psql "$SUPABASE_DB_URL" -c queries at 08:49:17 UTC: pg_stat_activity grouped by user/application/state; show shared_buffers; sum pg_shmem_allocations.
+**Method** — Read-only SQL at08:49:17 UTC: `pg_stat_activity` grouped by user/application/state, `show shared_buffers`, and `sum(pg_shmem_allocations)`. At10:45:59 UTC successfully scraped the [official Metrics API](https://supabase.com/docs/guides/observability/metrics/vendor-agnostic) (HTTP200); raw output remains private. Memory percentage below uses `(MemTotal-MemAvailable)/MemTotal`, not virtual memory or summed backend RSS.
 
 **Result**
 
 | Measurement | Result |
 | --- | --- |
-| PostgREST idle connections | 17 |
+| PostgREST idle connections (08:49) | 17 |
 | shared_buffers | 256 MB |
 | Shared-memory allocations | 307 MB |
+| Node MemTotal / MemAvailable (10:45) | 950,153,216 / 260,251,648 bytes |
+| Used via available-memory calculation | 689,901,568 bytes;72.61% |
+| Page cache / buffers | 252,702,720 / 3,842,048 bytes |
+| Swap total / free | 1,073,737,728 / 763,342,848 bytes |
+| Pooler waiting / active server connections | 0 / 0 at the scrape |
 
-**Answer** — The observed connections include 17 idle PostgREST14.5 connections and separate Auth, Storage, Realtime, exporter, cron, pg_net and pooler sessions.
+**Answer** — The approximately70% memory observation is reproducible by an available-memory calculation. The SQL sessions include PostgREST, Auth, Storage, Realtime, exporter, cron, pg_net and pooler services; idle sessions do not establish active-query load. Shared buffers, other shared allocations, the OS and service processes all contribute. The measured cache is substantial and cannot simply be treated as permanently unavailable memory.
 
-**Unknown** — Dashboard memory/connection values at the same time are absent, so the reported70% RAM cannot be attributed completely.
+**Unknown** — These snapshots do not attribute every byte to a process or prove a leak, and SQL and metrics snapshots were taken at different times. Exporter `process_resident_memory_bytes` is not the sum of all Postgres backend memory; it is not used as such. No configuration reduction is justified solely by these readings.
 
 ## 7f. Published summaries (#228)
 
