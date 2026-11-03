@@ -1,5 +1,6 @@
 /* eslint-disable @next/next/no-img-element -- Private signed photos bypass paid optimization. */
 import { verifiedUserId } from "@/lib/auth/verified-user";
+import CleanFreshMarker from "@/components/CleanFreshMarker";
 import DesktopWorkspace from '@/components/DesktopWorkspace';
 import PostDetail from '@/components/PostDetail';
 import SavedMealsButton from '@/components/SavedMealsButton';
@@ -115,7 +116,7 @@ async function HomeFeed() {
 
 export default async function Home({searchParams}:{searchParams:Promise<{post?:string}>}) {
   const {post}=await searchParams;
-  return <DesktopWorkspace detail={post?<PostDetail id={post}/>:undefined}><main className="flex flex-1 flex-col">
+  return <DesktopWorkspace detail={post?<PostDetail id={post}/>:undefined}><main className="flex flex-1 flex-col"><CleanFreshMarker />
     <header className="desktop:hidden sticky top-0 z-20 flex h-top-safe items-center bg-surface px-inset"><h1 className="flex-1 text-title">My Food AI</h1><SavedMealsButton/></header>
     <NeedsInputStrip />
     <Suspense fallback={<div className="h-bar-h" />}><HomeDays /></Suspense>
