@@ -69,6 +69,7 @@ export default function CaptureSheet({ onClose, initialMode = "photo", forPost, 
   const labelPhotoRef=useRef<{path:string;width:number;height:number}|null>(null);
   const [packPhoto, setPackPhoto] = useState<Shot | null>(null);
   const packPhotoRef = useRef<Shot | null>(null);
+  const packOperationRef=useRef<string|null>(null);
   const [portion, setPortion] = useState(100);
   const lookupRef = useRef(0);
   const scanBusy = useRef(false);
@@ -150,6 +151,7 @@ export default function CaptureSheet({ onClose, initialMode = "photo", forPost, 
   const dismissBarcode = () => {
     if (postingRef.current) return;
     lookupRef.current += 1;
+    if(packOperationRef.current){void uploadManager.remove(packOperationRef.current);packOperationRef.current=null;}
     setProduct(null); setBarcodeState("idle"); setPackPhoto(null); setError(null); setLabelState("idle");setLabelReading(null);setLabelForCode(null);
     if (packPhotoRef.current) URL.revokeObjectURL(packPhotoRef.current.previewUrl);
     packPhotoRef.current = null;
@@ -336,6 +338,7 @@ export default function CaptureSheet({ onClose, initialMode = "photo", forPost, 
             if (!code || !mountedRef.current || postingRef.current) return;
             const index = shotsRef.current.indexOf(shot);
             if (index < 0) return;
+            if(shotsRef.current.length===1&&operationRef.current){packOperationRef.current=operationRef.current;operationRef.current=null;setOperationId(null);}
             removeShot(index);
             if (!shotsRef.current.length) setComposer(false);
             void findBarcode(code, file);
@@ -417,19 +420,16 @@ export default function CaptureSheet({ onClose, initialMode = "photo", forPost, 
     if (postingRef.current || !product || !packPhotoRef.current) return;
     postingRef.current = true; setPosting(true); setError(null);
     try {
-      packUploadRef.current ??= new PackPhotoUpload();
-      const photo = await packUploadRef.current.prepare(packPhotoRef.current.file);
-      const response = await fetch("/api/posts/food", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ gtin: product.gtin, amount: portion, unit: product.basisUnit,
-        ...(when === null ? {} : { eaten_at: fromLocalInput(when) }), photo }) });
-      const result = await response.json();
-      if (!response.ok) throw new Error(result.error ?? "The meal could not be saved.");
-      window.dispatchEvent(new CustomEvent("post-created", { detail: { id: result.post_id } }));
+      const eatenAt=when===null?new Date().toISOString():fromLocalInput(when);
+      if(!eatenAt)throw new Error("Choose a valid time eaten.");
+      await uploadManager.postFood({gtin:product.gtin,amount:portion,unit:product.basisUnit,eaten_at:eatenAt},product.name,[packPhotoRef.current.file],packOperationRef.current??undefined);
+      packOperationRef.current=null;
       if (pendingFilesRef.current.length || shotsRef.current.length) {
         // A multi-selection is retained until the user explicitly continues it.
         postingRef.current = false; dismissBarcode(); setStream(null); setMode("text");setComposer(true);
         window.setTimeout(() => document.getElementById("capture-caption")?.focus(), 0);
       } else onClose();
-      router.refresh();
+
     } catch (error) { if (mountedRef.current) setError(error instanceof Error ? error.message : "The meal could not be saved."); }
     finally { postingRef.current = false; if (mountedRef.current) setPosting(false); }
   };
@@ -470,7 +470,7 @@ export default function CaptureSheet({ onClose, initialMode = "photo", forPost, 
 
   if(!forPost&&composer&&mode!=="barcode"&&barcodeState==="idle"&&labelState==="idle")return <div ref={dialogRef} role="dialog" aria-modal="true" aria-labelledby="capture-title" className="desktop-capture fixed inset-x-0 top-0 z-50 h-dvh overflow-hidden bg-surface" style={viewport?{height:viewport.height,top:viewport.top}:undefined}>
     <div className="desktop-capture-inner mx-auto h-full max-w-phone desktop:max-w-[760px]"><LightComposer cameraPreview={cameraPreview} upload={upload} shots={shots} caption={caption} setCaption={setCaption} index={photoIndex} setIndex={setPhotoIndex} notEaten={notEaten} setNotEaten={setNotEaten} when={when} setWhen={setWhen} locationEnabled={locationEnabled} setLocationEnabled={enableLocation} saveAsMeal={saveAsMeal} setSaveAsMeal={setSaveAsMeal} busy={posting||cameraBusy} error={error} pending={pendingCount} onBack={closeDraft} onPhoto={()=>{setSearchingFoods(false);setComposer(false);setMode("photo");setStream(null);}} onSearch={()=>setSearchingFoods(value=>!value)} onPost={()=>{void post();}} onRemove={removeShot}
-      searchPanel={searchingFoods?<div className="px-inset"><FoodSearchPanel eatenAt={when===null?null:fromLocalInput(when)} disabled={posting} onLogged={postId=>{if(operationRef.current)void uploadManager.remove(operationRef.current);window.dispatchEvent(new CustomEvent('post-created',{detail:{id:postId}}));onClose();router.refresh();}} onDescribe={text=>{if(text&&!caption.trim())setCaption(text);setSearchingFoods(false);setError(null);}} onError={setError}/></div>:null}>
+      searchPanel={searchingFoods?<div className="px-inset"><FoodSearchPanel eatenAt={when===null?null:fromLocalInput(when)} disabled={posting} onQueued={()=>{if(operationRef.current)void uploadManager.remove(operationRef.current);onClose();}} onDescribe={text=>{if(text&&!caption.trim())setCaption(text);setSearchingFoods(false);setError(null);}} onError={setError}/></div>:null}>
       <input ref={galleryRef} type="file" accept="image/*" multiple className="hidden" onChange={event=>{void addFiles(event.target.files);event.target.value='';}}/>
     </LightComposer></div>
   </div>;
@@ -578,7 +578,7 @@ export default function CaptureSheet({ onClose, initialMode = "photo", forPost, 
             </span>
           </div>
           {searchingFoods ? <FoodSearchPanel eatenAt={when === null ? null : fromLocalInput(when)} disabled={posting}
-            onLogged={(postId) => { window.dispatchEvent(new CustomEvent("post-created", { detail: { id: postId } })); onClose(); router.refresh(); }}
+            onQueued={() => {  onClose(); }}
             onDescribe={(text) => { if (text && !caption.trim()) setCaption(text); setSearchingFoods(false); setError(null); }} onError={setError} /> : <>
           <Field variant="camera" id="capture-caption" aria-label="Caption" value={caption} onChange={(event) => setCaption(event.target.value)} disabled={posting} placeholder="What did you eat?" />
           <button type="button" disabled={posting} onClick={() => { setSearchingFoods(true); setError(null); }} className="min-h-tap self-start px-grid text-detail text-surface disabled:opacity-50">Search foods</button>

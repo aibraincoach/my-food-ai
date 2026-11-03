@@ -1,14 +1,15 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import {uploadManager} from "@/lib/posts/upload-manager";
 import { Field } from "@/components/ui/Field";
 
 type Match = { id: number; description: string; serving_g: number; calories: number | null };
 
 // "Search foods" in the + sheet: an FDC text search with calories per serving. Picking a result logs a ready post
 // straight away (no model call); "Describe it instead" hands back to the caption and the model.
-export default function FoodSearchPanel({ eatenAt, disabled, onLogged, onDescribe, onError }: {
-  eatenAt: string | null; disabled: boolean; onLogged: (postId: string) => void; onDescribe: (text: string) => void; onError: (message: string | null) => void;
+export default function FoodSearchPanel({ eatenAt, disabled, onQueued, onDescribe, onError }: {
+  eatenAt: string | null; disabled: boolean; onQueued: (postId: string) => void; onDescribe: (text: string) => void; onError: (message: string | null) => void;
 }) {
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<{ query: string; foods: Match[]; failed?: boolean } | null>(null);
@@ -34,11 +35,8 @@ export default function FoodSearchPanel({ eatenAt, disabled, onLogged, onDescrib
     if (pickingRef.current || !results) return;
     pickingRef.current = true; setPicking(true); onError(null);
     try {
-      const response = await fetch("/api/posts/food", { method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ fdc_id: food.id, query: results.query, ...(eatenAt ? { eaten_at: eatenAt } : {}) }) });
-      const body = await response.json().catch(() => ({})) as { post_id?: string; error?: string };
-      if (!response.ok || !body.post_id) throw new Error(body.error ?? "The meal could not be saved.");
-      onLogged(body.post_id);
+      const operationId=await uploadManager.postFood({fdc_id:food.id,query:results.query,eaten_at:eatenAt??new Date().toISOString()},food.description);
+      onQueued(operationId);
     } catch (e) { onError(e instanceof Error ? e.message : "The meal could not be saved."); }
     finally { pickingRef.current = false; setPicking(false); }
   };
