@@ -32,7 +32,7 @@ Implementation began October 26 for the November 4 submission. The source includ
 | Evidence | What it establishes |
 | --- | --- |
 | [Run 7 PR and execution receipts](https://github.com/aibraincoach/my-food-ai/pull/308) | Exact feature heads, test commands and counts, review results, false premises and remaining gates. A green build alone does not prove production acceptance. |
-| [Combined database gate](https://github.com/aibraincoach/my-food-ai/pull/308#issuecomment-6592882021) | `npm run test:db`: 15 passed, zero failures or skips against disposable local Auth, REST, PostgreSQL and the built app with scripted model responses. This includes the post-to-ready path; local storage upload falls back to the live nutrition card. |
+| [Combined database gate](https://github.com/aibraincoach/my-food-ai/pull/308#issuecomment-6593384089) | `npm run test:db`: 17 passed, zero failures or skips against disposable local Auth, REST, PostgreSQL and the built app with scripted model responses. This includes the post-to-ready path, atomic model provenance and the API-to-worker-to-detail identity check; local storage upload falls back to the live nutrition card. |
 | [Ten-photo evaluation](docs/eval.md) | Licensed fixtures, name scoring, visual checks and their limits. Visual portion estimates are not measured nutritional ground truth. |
 | [Open-weight comparison](docs/open-weights.md) | Eleven paired cases using the same region inputs and existing USDA resolver. One run per case; unavailable results remain visible. |
 | [Production performance](docs/production-performance.md) | Measured worker phases and food-reference outcomes, with the tested revision and conditions. |

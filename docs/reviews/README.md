@@ -1,4 +1,4 @@
-# Current review index — November 1
+# Current review index — Run 7
 
 Run5 exact-head receipts and confirmations: [Run5 review index](run5-review-receipts.md). Final #269 exact `c54525b1bd1c8985866f7fe840411be274822719`: [Gemini BLOCKERS: NONE](post-run5-pr269-c54525b-receipt.md), [triage real0](post-run5-pr269-c54525b-triage.md). #269 and docs #266 are merged; no code PR is open at this cutoff. Historical records below retain their original heads and are not new review requests.
 
@@ -51,7 +51,7 @@ These live heads/merges were re-read for #235 reconciliation. Existing main revi
 | [#256](https://github.com/aibraincoach/my-food-ai/pull/256) | `591a4e3344a49add185a7eb6217eb5de9b50cd23` | `44576592955ce576b2a66f875518d18a4ebb8bd4` |
 | [#257](https://github.com/aibraincoach/my-food-ai/pull/257) | `9197b77247d74dbeddf5fd6ebe5c882e08144d6a` | `c392a30ae170ec4f7a7cc48e5b8ff9b1d4d597a5` |
 
-## Run 7 exact-head confirmations
+## Run 7 review evidence
 
 These are independent external reviews: Gemini 3.8 Flash through PPLX, or explicitly labelled AGY fallback with Gemini 3.8 Flash High. They are not coder self-reviews. Initial captures and finding triage are on each feature branch. Each final confirmation names its full source head; later source changes require applicable review evidence.
 
@@ -62,4 +62,6 @@ These are independent external reviews: Gemini 3.8 Flash through PPLX, or explic
 - [#313 food names before final nutrition](mfa-pplx-pr313-ff221a7-confirmation.md).
 - [#315 Muse Spark Open identification](mfa-pplx-pr315-67e40d4-confirmation.md).
 
-PPLX attempts that selected an actual GPT answer model despite the requested Gemini preference were rejected. Their source-verification notes do not count as independent release reviews. The owner subsequently assigned all new review runs to a separate runner; coder agents monitor GitHub findings and fix source. Existing completed AGY receipts remain exact-head evidence.
+PPLX attempts that selected an actual GPT answer model despite the requested Gemini preference were rejected. Their source-verification notes do not count as independent release reviews. The owner subsequently assigned code reviews to Muse. Coders do not launch PPLX, AGY or Codex reviews; they fix findings Muse posts. Existing completed receipts remain evidence only for their named heads.
+
+Current changed heads awaiting Muse review: #310 `f23efc554c3f17b229a9f502eafc23f9f5833f2e`, #311 `e2c74b1c7ff73e6b0ce38a27fa19286e2c7b57b9`, and #315 `2e55916ba1039901f5acd43d62f89b568ded5318`. Earlier #310 and #315 receipts above are historical; they do not approve these new heads.
