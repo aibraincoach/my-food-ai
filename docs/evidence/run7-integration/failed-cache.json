@@ -1,0 +1,26 @@
+[
+  {
+    "name": "warm-cached-feed-during-5s-server-hold",
+    "cachePosts": 4,
+    "accountCacheKeys": 2,
+    "paint": {
+      "ms": 707,
+      "wallMs": 755,
+      "cards": 4
+    },
+    "wrongAccountEverRendered": false
+  },
+  {
+    "name": "cache-retained-after-server-and-client-failure",
+    "cached": true,
+    "wrong": false,
+    "allRows": 4,
+    "visibleRows": 4
+  },
+  {
+    "name": "signout-clears-account-caches-before-mocked-server-action",
+    "before": 2,
+    "after": 0,
+    "productionAuthActionExecuted": false
+  }
+]

@@ -1,0 +1,9 @@
+{
+  "waitingCopy": true,
+  "rice": true,
+  "egg": true,
+  "knownKcal": true,
+  "noManualRetry": true,
+  "noTotal": true,
+  "noOverflow": true
+}
