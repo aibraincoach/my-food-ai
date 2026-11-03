@@ -1,3 +1,4 @@
+import { FdcRateLimited } from "@/lib/fdc/client";
 import { traceContext } from "@/lib/trace/context";
 import { ioError } from "@/lib/worker/errors";
 import type { SupabaseClient } from "@supabase/supabase-js";
@@ -25,11 +26,18 @@ export async function drainOnce(admin: SupabaseClient, handlers: JobHandlers = j
     await finishJob(admin, job.id);
     return { processed: 1, failed: false };
   } catch (e) {
+    if (e instanceof FdcRateLimited) {
+      const { error, status } = await admin.rpc("requeue_rate_limited_job", {
+        p_job_id: job.id, p_retry_at: new Date(e.retryAt).toISOString(), p_message: e.message,
+      });
+      if (error) throw ioError("Rate-limited job could not be rescheduled.", error, status);
+      return { processed: 1, failed: false };
+    }
     // The database locks the running job and commits job/post failure together.
     // attempts was incremented by claim_job; the third retriable error is final.
     const { error, status } = await admin.rpc("fail_job", {
       p_job_id: job.id,
-      p_message: e instanceof Error ? e.message : "worker error.",
+      p_message: e instanceof Error && e.name === "MetaApiError" ? "meta: analysis request failed." : e instanceof Error ? e.message : "worker error.",
       p_retriable: isRetriable(e),
     });
     if (error) throw ioError(`fail_job failed: ${error.message}`, error, status);
@@ -55,7 +63,7 @@ export async function runWorker(
         if (Date.now() - startedAt > WORK_MS) break;
         const { processed } = await drainOnce(admin);
         if (processed === 0) break;
-        await renewLease(admin, holder).catch(() => {});
+        await renewLease(admin, holder);
       }
     })));
     const failed = lanes.find((lane) => lane.status === "rejected");

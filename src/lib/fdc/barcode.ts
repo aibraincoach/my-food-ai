@@ -1,6 +1,7 @@
 // Barcode lookup against FDC Branded Foods by gtin_upc.
 // FDC stores the code as printed on the package (UPC-A is 12 digits, with its leading zero) and matches it
 // exactly, so a scanned EAN-13 that is a UPC-A with a leading 0 must be trimmed back to 12 digits.
+import { fdcFetch } from "./client";
 import { recordCall } from "@/lib/trace/record";
 import { ApiError } from "@/lib/worker/errors";
 import { gtinCandidates, sameGtin } from "@/lib/fdc/gtin";
@@ -25,7 +26,7 @@ export async function lookupBarcode(raw: string): Promise<BarcodeProduct | null>
       // The search is a text search: page through it (bounded) until the exact gtinUpc turns up with usable nutrition.
       for (let page = 1; page <= MAX_PAGES; page += 1) {
         const params = new URLSearchParams({ query: gtin, dataType: "Branded", pageSize: "50", pageNumber: String(page), api_key: key });
-        const response = await fetch(`${FDC_BASE_URL}/foods/search?${params}`);
+        const response = await fdcFetch(`${FDC_BASE_URL}/foods/search?${params}`);
         if (!response.ok) throw new ApiError(response.status, await response.text(), `fdc: barcode search failed with ${response.status}.`);
         const payload = (await response.json()) as { foods?: unknown; totalPages?: unknown };
         const foods = Array.isArray(payload.foods) ? payload.foods : [];

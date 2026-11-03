@@ -1,5 +1,6 @@
 "use client";
 
+import { failureMessage } from "@/lib/worker/failure-message";
 import Link from "next/link";
 import type {UploadState} from "@/lib/posts/upload-manager";
 import {UploadMedia,UploadMenu} from "./UploadingPost";
@@ -45,7 +46,7 @@ function StatusLine({ post }: { post: FeedPost }) {
   };
   if (post.itemsUnavailable && !post.items.length) return <p className="text-detail text-muted" role="status">Meal details could not be loaded. Retrying…</p>;
   if (post.status === "failed") return <div className="flex flex-col gap-0.5 text-detail">
-    <p className="text-muted">This photo could not be analysed.</p>
+    <p className="text-muted">{failureMessage((post as FeedPost & { fail_reason?: string | null }).fail_reason)}</p>
     <button type="button" disabled={retrying} onClick={retry} className="min-h-tap self-start text-text">{retrying?"Retrying…":"Try again"}</button>
     {error&&<p role="alert">{error}</p>}
   </div>;
@@ -59,6 +60,7 @@ function StatusLine({ post }: { post: FeedPost }) {
   return <div className="flex flex-col gap-2" role="status" aria-label="Processing">
     <Shimmer width={tokens.spacing.tap * 5} />
     <Shimmer width={tokens.spacing['table-row'] * 10} />
+    {(post as FeedPost & { fail_reason?: string | null }).fail_reason==='fdc: rate limited'&&<p className="text-detail text-muted">The food database was busy. Retrying automatically.</p>}
     <p className="text-meta text-faint">Processing, traffic {traffic}</p>
   </div>;
 }
