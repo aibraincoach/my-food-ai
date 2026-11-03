@@ -175,7 +175,7 @@ Read-only production measurements and designated test-account actions only. Unkn
 | Owned app/profile cleanup | Complete |
 | Pre-#397 immutable installed baseline | Install failed; no timing |
 
-**Answer** — Ordinary installed Slow4G opens met2s in all3 observed trials; cache-to-fresh replacement and logout/account separation also worked. The deliberately delayed root experiment proves that lifecycle separately and is not counted toward ordinary timing acceptance.
+**Answer** — Ordinary fresh-feed opens were below2s, and logout/account separation passed, but the cached last-feed path first appeared at2660ms under held-root conditions. That does not satisfy the literal last-feed-within2s condition; a follow-up #304 startup fix is being built and measured.
 
 **Unknown** — The protected pre-#397 deployment loaded its authenticated feed but Chrome PWA.install could not fetch install info; protection as cause is an inference, and no tab timing substitutes for installed baseline. Final deployment repeat remains pending; this is not physical-phone or full-process cold-boot evidence. Raw summary `/tmp/run10-thumbs-pwa-acceptance.json` preserves each assertion separately.
 
