@@ -1,0 +1,7 @@
+=== firefox (mfa-pplx) processes ===
+none
+=== mfa-pplx profiles ===
+none
+=== git worktree list ===
+/home/opc/Projects/my-food-ai                    63f9e81 [main]
+/home/opc/Projects/my-food-ai-wt/desktop-round6  7851100 [run10/desktop-round6]
