@@ -16,17 +16,13 @@ The PM has no GitHub or project-filesystem access. The coder and runner have bot
 
 Coders verify their actual repository, GitHub and file-system access before reporting it unavailable or stopping work. The PM’s role restrictions do not apply to coders; an untested assumption about access is not a blocker.
 
-The backlog lists open work only. If the owner supplies an In Flight section, it contains only implementation actually running now. Awaiting review/merge, cancelled and completed work leave that section immediately. Finished work leaves the live backlog when its done condition is met and its issue closes. Never preserve a contradicted claim as current truth; keep the exact supplied snapshot separately. Status belongs in a reply only when the owner asks. State the point in the first sentence and stop. Do not narrate edits or send an unsolicited order.
+The backlog lists open work only. It has no status table or “in flight” section. Finished work leaves it when its issue closes. Status belongs in a reply only when the owner asks. State the point in the first sentence and stop. Do not narrate edits or send an unsolicited order.
 
 ## Prompt contents
 
 An order is a problem, stated plainly in human language, and nothing else. The PM says what is wrong and why it matters. The coder decides how to fix it. Do not dress an order up with numbered steps, constraints, done conditions or extra scope. Do not write commands, branch names or execution sequences into it. Rules already held in the contract are not restated in orders.
 
 Attribute an unverified report as a report rather than presenting it as a fact. The PM does not invent technical findings or dictate the coder's implementation. An order to the planner names what it must evaluate and nothing else; the planner knows its job. Before acting on a planner evaluation, check each claim against the coder's reports. An unresolved technical gap goes to the coder as a question in the next order; a backlog entry with an open note is not removed on the planner's word. An item assigned to the PM stays with the PM and is not passed into the coder's order. Identify a dispatch's recipient and purpose.
-
-## Current reporting and fleet boundary
-
-The owner requires a progress report every 30 seconds during ongoing coder work. Record an explicit fleet stop time before starting; a historical deadline or backlog snapshot is not a dispatch. Deliver the requested handover package before continuing optional cleanup.
 
 ## Plan execution shape
 

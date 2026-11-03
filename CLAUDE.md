@@ -13,17 +13,7 @@ Hackathon project: My Food AI. PM contract: [docs/pm-contract.md](docs/pm-contra
 
 Review tooling is ported from [naval-association-calgary](https://github.com/aibraincoach/naval-association-calgary) (PPLX runner, review policy shape) and burn-centre-translator / calgarysalutes-website (AGY delivery script, Firefox helper).
 
-## Current state — November 3, 2026, PM replacement
-
-Observed main is `9e685f152151e5a4dae12a409933bd48ca6df5ad`; the production API reports that exact SHA READY. #459, #460, #461 and #463 are merged. #462 remains open at `905b47414efd119ba27b22782af647aa2059619f`, with successful preview checks; it needs fresh review and a new exact-head merge order. Its local 1100px width check exists and does not show overflow. No implementation fleet is active. Upcoming-fleet docs and this PM handover belong to open draft #474, never the completed #463. Keep #474 unmerged.
-
-#450 closed after fresh clean-main verification: 567 passed / 0 failed / 6 existing skips, DB 32/32, lint 0 errors / 6 warnings. See docs/evidence/issue450-main/README.md. The old 148-failure bare-Node count and 56-failure intermediate count are historical, not current gates. Owner phone use exposed real defects; no complete three-phone acceptance matrix exists. Food names before totals (#449/#307), quota-limited confirmed-photo Post, incomplete tap audit and qualified phone timing remain unresolved. No CAPTCHA change or next fleet is authorized by a handover.
-
-The supplied 23:06 backlog is archived verbatim; the live BACKLOG.md corrects contradicted statements and removes completed closed items. Only actually running implementation belongs in In Flight. Awaiting review, waiting for an order, completed and cancelled work do not. Preserve owner wording where accurate and attribute unverified claims. The owner requires progress reports every 30 seconds. A fleet needs an explicit stop time before starting; physical-phone acceptance does not block independent work.
-
-All earlier dated state sections below are historical and superseded where this section differs. Their old heads, open PRs and proposed orders are not current authority.
-
-## Historical Run 8 state — November 3, 2026
+## Run 8 current state — November 3, 2026
 
 [Run 8 final execution](docs/run8-final-report.md) supersedes the historical pre-merge sections below. Eight planned code PRs #334–#339/#341/#342 and defect follow-ups #340/#343 merged in ascending order at exact externally cleared heads. Production `6996817cec6aaf865357e9fee6550abf27cdfd0f` is READY; migration 0035 is applied. Actual browser reliability is 100/100; separate feed/Home probes are 100/100 each. Final emulated cold photos are 1480.2–1828.3 ms, warm 481.5–507.0 ms. Mean browser Supabase transfer fell 89.7%.
 
@@ -35,7 +25,7 @@ Run 7 is merged through `58d127b999163bfb8212fa8145482ae875ed2276`; #310 closed 
 
 BACKLOG.md uses the owner's pasted 11:03 WIB snapshot, with closed #139 removed. The Claude artifact could not be read; no live-Doc fetch is claimed. Other open items retain the supplied wording until PM reconciliation and issue closure. No merge or deployment is authorized by this docs PR.
 
-## Historical Run 7 dispatch — November 3, 2026
+## Run 7 dispatch — November 3, 2026
 
 The owner dispatched [Run 7](docs/plan-run7.md), with Part 1 building/reviewing the feature PRs and Part 2 held for the named-head merge order after evaluation. This is active coding, not a handover. The owner subsequently assigned Run 7 code reviews to Muse; coders do not launch PPLX, AGY or Codex reviews and instead fix findings delivered on GitHub or by the owner. Baseten authentication has been verified successfully (models, image chat completion and Responses all HTTP 200), and all eleven paired trial cases used the actual open model. The key remains in ignored .env.local as BASETEN_API_KEY and IDENTIFY_OPEN_API_KEY; no credential value is committed or published. Production schema, preference and environment changes remain held for Part 2. The local owner-supplied Wall entries, coder access rule and Nov3 07:10 WIB backlog are preserved on the Run 7 docs branch.
 

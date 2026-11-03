@@ -49,7 +49,3 @@ Quota exhaustion stops that route; record the message and time. Move to the next
 Use the original authenticated Firefox on display :10 through BiDi. Never copy its profile or substitute a fresh browser, Playwright or Chromium for PPLX. Attach to its listener; if necessary restart the same profile with session restoration and BiDi enabled.
 
 Inspect the page every second before and after submission. PPLX normally starts answering within two or three seconds. If the input or answer is absent, inspect the actual page, title, authentication and selected model immediately. A selector failure is an automation failure, not a PPLX response timeout or proof that PPLX is unavailable. Never spend 120 seconds blindly waiting for an input.
-
-## Explicit owner exception — November 3, 2026
-
-The owner explicitly requested AGY review of docs PR #463. AGY Gemini 3.8 Flash High reviewed exact head `dec5f82c35c36d74874a74698d60d6fb90ffae92`, complete coverage 4/4 paths and parts, BLOCKERS: NONE, receipt https://github.com/aibraincoach/my-food-ai/pull/463#issuecomment-6608958569. The earlier 4dec1ed run was cancelled after the head moved and is not a valid final-head receipt. This exception does not authorize unrelated coder-launched reviews or merges. #463 subsequently merged under a separate explicit exact-head order; upcoming-fleet docs #474 must remain open.

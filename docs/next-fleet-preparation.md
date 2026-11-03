@@ -1,7 +1,5 @@
 # Next fleet preparation
 
-Historical cutoff: this document retains its original run observations. Current main/production, open PRs, test counts and upcoming-fleet authority are in CLAUDE.md. #474 is the open upcoming-fleet docs PR; #463 is merged. Old "in progress", pending and excluded-scope statements do not establish current execution.
-
 This is the handoff after the owner's ordered merges on November 3, 2026. It prepares the next fleet's documentation; it does not start a fleet or assign an execution scope. The owner is supplying a newer backlog. The owner-supplied historical 22:48 WIB snapshot is preserved verbatim in [the snapshot archive](backlog-snapshots/2026-11-03-2248.md). A concurrent watch-agent update moved BACKLOG.md to a 22:54 WIB version; that remote work is preserved. The owner will supply a newer version later; neither snapshot starts a fleet.
 
 ## Confirmed repository and production baseline
