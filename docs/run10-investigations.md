@@ -114,17 +114,25 @@ Read-only production measurements and designated test-account actions only. Unkn
 
 ## 7g. Capture timing (#370)
 
-**Method** — Chromium390×844 CPU4× simulated camera with recurring canvas video frames; production before and exact preview after #386; barcode fixture uses actual decode. Detailed private timing receipts uploads/run10-capture/.
+**Method** — Baseline three each actual production Photo Post, Barcode Post and food-search result taps, account1, Chromium131390×844 CPU4×, genuine Fast4G165ms/1,012,500 B/s down/168,750 B/s up. Capture-phase click clock through next animation frame after CaptureDialog removal; Blob upload bodies measured without altering requests. Canvas MediaStream supplied meal JPEG or synthetic UPC016000275683; no physical camera claim. Photo baseline10:49UTC atade5269; barcode10:52UTC atad8bf79; search10:54UTC atadf3d71, last search crossed deployment to6f6fe5f. Each actual trial's before/after full SHA is retained privately. Separately, #409 isolated shutter→visible frozen-pixel comparison used custom150ms/200000/93750network CPU4 with identical1280×960 source frames; Post publication blocked to isolate rendering.
 
 **Result**
 
 | Measurement | Result |
 | --- | --- |
-| After camera encode samples | 2154.1 ms; 1877 ms |
+| Photo Post→close,3 trials | 48.4 /810.7 /238.7 ms |
+| Photo successful upload bytes per trial | 234,533 original+152,525 feed=387,058;2 bodies |
+| Barcode Post→close,3 trials | 4653.7 /3766.0 /3700.7 ms |
+| Barcode successful upload bytes per trial | 39,940;4 bodies(normal photo stage and pack stage) |
+| Food-search result→close,3 trials | 2606.7 /3735.8 /3763.2 ms;0 image upload bytes |
+| All nine created posts | Ready; all removed |
+| Baseline cleanup audit including diagnostics | 16 tracked roots;0 remaining posts/jobs;0 cleanup issues |
+| Isolated before#409 frozen pixels,5 trials | 222.2 /258.7 /290.3 /413.4 /1045.9 ms |
+| Isolated after#409 frozen pixels,5 trials | 91.3 /63.9 /58.5 /76.7 /69.9 ms |
 
-**Answer** — The camera encode outside addFiles dominates shutter timing. Composer state now precedes barcode work and a barcode photo still opens the scanned-product result.
+**Answer** — #409 removes JPEG encoding from the first-visible-preview path; all five controlled after samples were below300ms. Barcode and search still await database-backed publication in this baseline, causing seconds of delay; #306 durable pending publication is being built rather than reporting them as instant.
 
-**Unknown** — 300 ms shutter acceptance not met. Photo/barcode/food-search tap-to-close Fast4G tables and upload bytes still pending.
+**Unknown** — Isolated rendering used a custom network profile, not the DevTools Fast4G preset; final genuine-preset shutter/barcode and post-close repeat remain required. The barcode pack fixture is small, and cached model/data services may be warm. Baseline search crossed a deployment; no stable-head final acceptance is inferred. Initial diagnostic runs and incomplete search setup are retained separately, never substituted for accepted trials.
 
 ## 7h. Feed opening (#222/#372/#322/#323/#324)
 
