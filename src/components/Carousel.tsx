@@ -4,6 +4,7 @@ import Link from 'next/link';
 import {useRouter} from 'next/navigation';
 import DoubleTap from '@/components/DoubleTap';
 import {imageIdentity,retainedImageUrl} from '@/lib/media/retained-image';
+import {observeNearViewport} from '@/lib/media/near-viewport';
 import {useRemovalMenus} from '@/components/useRemovalMenus';
 export type Slide={id?:string;url:string;kind?:'photo'|'card';not_eaten?:boolean};
 export default function Carousel({slides,caption,postId,href,modelCommentId,fingerprint,nutrition,onIndexChange,canAddNotEaten=false,priority=false}:{priority?:boolean;slides:Slide[];caption:string;postId:string;href?:string;modelCommentId:string|null;fingerprint:string|null;nutrition:ReactNode;onIndexChange?:(index:number)=>void;canAddNotEaten?:boolean}) {
@@ -34,9 +35,15 @@ export default function Carousel({slides,caption,postId,href,modelCommentId,fing
 
 function MealPhoto({url,priority,alt}:{url:string;priority:boolean;alt:string}) {
  const [read,setRead]=useState({path:imageIdentity(url),url,failed:false});
+ const image=useRef<HTMLImageElement>(null);
+ const [nearViewport,setNearViewport]=useState(false);
+ useEffect(()=>{
+  if(priority||nearViewport||!image.current)return;
+  return observeNearViewport(image.current,()=>setNearViewport(true));
+ },[priority,nearViewport]);
  const active=retainedImageUrl(read,url);
  // eslint-disable-next-line @next/next/no-img-element
- return <img src={active} crossOrigin="anonymous" width={1080} height={1080} fetchPriority={priority?"high":undefined} loading={priority?"eager":"lazy"} decoding="async" alt={alt} className="h-full w-full object-cover"
+ return <img ref={image} src={priority||nearViewport?active:undefined} crossOrigin="anonymous" width={1080} height={1080} fetchPriority={priority?"high":undefined} loading={priority?"eager":"lazy"} decoding="async" alt={alt} className="h-full w-full object-cover"
   onError={()=>setRead({path:imageIdentity(active),url:active,failed:true})}
   onLoad={()=>{if(read.failed||read.url!==active||read.path!==imageIdentity(active))setRead({path:imageIdentity(active),url:active,failed:false});}}/>;
 }
