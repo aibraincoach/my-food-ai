@@ -3,6 +3,8 @@ import test from 'node:test';
 import vm from 'node:vm';
 import {readFileSync} from 'node:fs';
 import ts from 'typescript';
+import {readPendingItems} from '../src/lib/pipeline/pending-items.ts';
+import {hasUnavailableFields,retainCompleteItems} from '../src/lib/posts/feed.ts';
 
 // Run the real component's effects against a clock and a counted data source.
 // No React DOM/layout snapshots; this checks its network/resource behavior.
@@ -20,13 +22,14 @@ function harness(status, hidden = false) {
     require(name){
       if(name==='react')return {useState:initial=>[initial,()=>{}],useRef:initial=>{const ref={current:initial};refs.push(ref);return ref;},useEffect:fn=>effects.push(fn)};
       if(name==='react/jsx-runtime')return {jsx:()=>null,Fragment:()=>null};
-      if(name==='@/lib/supabase/client')return {createClient:()=>({channel:()=>channel,removeChannel(){}})};
-      if(name==='@/lib/posts/feed')return {isSettled:s=>!['queued','processing','needs_input'].includes(s),getPostCard:async()=>{reads++;return post;}};
+      if(name==='@/lib/supabase/client')return {createClient:()=>({channel:()=>channel,removeChannel(){},from(){const q={select(){return q},eq(){return q},abortSignal(){return q},async maybeSingle(){return{data:{pending_items:[]},error:null}}};return q;}})};
+      if(name==='@/lib/pipeline/pending-items')return{readPendingItems};
+      if(name==='@/lib/posts/feed')return {hasUnavailableFields,retainCompleteItems,isSettled:s=>!['queued','processing','needs_input'].includes(s),getPostCard:async()=>{reads++;return post;}};
       throw Error(name);
     }});
   exports.default({initial:post,renderCard:()=>null});
   const cleanups=effects.map(fn=>fn());
-  return {doc,post,retired,remove:()=>deletion({old:{id:post.id}}),reads:()=>reads,update:()=>update(),async tick(ms){now+=ms;for(const cb of intervals)cb();await Promise.resolve();await Promise.resolve();},cleanup(){for(const fn of cleanups)fn?.();}};
+  return {doc,post,retired,remove:()=>deletion({old:{id:post.id}}),reads:()=>reads,update:()=>update(),async tick(ms){now+=ms;for(const cb of intervals)cb();await new Promise(resolve=>setImmediate(resolve));},cleanup(){for(const fn of cleanups)fn?.();}};
 }
 test('missing optional cards back off and stop automatic hydration, but realtime still updates',async()=>{
  const h=harness('ready');
@@ -41,7 +44,7 @@ test('hidden pages make no reads; active analysis retains two-second fallback',a
 });
 
 test('clarification and deleted meals retire instead of polling invisibly',async()=>{
- const h=harness('processing');await Promise.resolve();h.post.status='needs_input';h.update();await Promise.resolve();await Promise.resolve();
+ const h=harness('processing');await Promise.resolve();h.post.status='needs_input';h.update();await new Promise(resolve=>setImmediate(resolve));
  assert.equal(h.retired.at(-1).type,'post-unavailable');assert.equal(h.retired.at(-1).detail.reason,'needs_input');
  const reads=h.reads();for(let i=0;i<20;i++)await h.tick(2000);assert.equal(h.reads(),reads);h.cleanup();
  const deleted=harness('processing');await Promise.resolve();deleted.remove();const before=deleted.reads();await deleted.tick(2000);assert.equal(deleted.reads(),before);assert.equal(deleted.retired.at(-1).detail.reason,'deleted');deleted.cleanup();

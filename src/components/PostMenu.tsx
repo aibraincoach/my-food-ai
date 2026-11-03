@@ -19,7 +19,7 @@ export default function PostMenu({postId,caption,eatenAt,rows=[],gtin}:{postId:s
   <details onKeyDown={event=>{if(event.key==='Escape'){event.preventDefault();dismiss();menu.current?.querySelector('summary')?.focus();}}} ref={menu} className="relative shrink-0">
    <summary aria-label="Meal menu" className="flex min-h-tap min-w-tap cursor-pointer list-none items-center justify-center text-[18px] tracking-[1px]">···</summary>
    <div className="absolute right-0 z-30 w-[230px] rounded-card border border-hairline bg-surface p-[6px]" style={{boxShadow:'var(--color-shadow-pill)'}}>
-    {options.map((row,index)=><button key={`${row.label}-${index}`} type="button" onClick={()=>{dismiss();(row.onSelect??row.onClick)?.();}} className={`flex h-tap w-full items-center justify-between gap-2 border-b border-hairline px-[10px] text-left text-[15px] last:border-b-0 active:bg-field ${row.muted?'text-muted':''}`}><span>{row.label}</span>{row.detail&&<span className="text-meta text-muted">{row.detail}</span>}</button>)}
+    <MenuOptions rows={options} onDismiss={dismiss}/>
    </div>
   </details>
   <Sheet open={open} onClose={()=>{if(!savingRef.current)setOpen(false);}} label="Edit caption">
@@ -32,3 +32,5 @@ export default function PostMenu({postId,caption,eatenAt,rows=[],gtin}:{postId:s
   {eatenAt&&<Sheet open={timeOpen} onClose={()=>setTimeOpen(false)} label="Edit time"><h2 className="text-sheet-head">Edit time</h2><EatenAtEditor key={`${postId}:${eatenAt}`} postId={postId} eatenAt={eatenAt}/></Sheet>}
  </>;
 }
+
+function MenuOptions({rows,onDismiss}:{rows:PostMenuRow[];onDismiss:()=>void}){return <>{rows.map((row,index)=><button key={`${row.label}-${index}`} type="button" onClick={()=>{onDismiss();(row.onSelect??row.onClick)?.();}} className={`flex h-tap w-full items-center justify-between gap-2 border-b border-hairline px-[10px] text-left text-[15px] last:border-b-0 active:bg-field ${row.muted?'text-muted':''}`}><span>{row.label}</span>{row.detail&&<span className="text-meta text-muted">{row.detail}</span>}</button>)}</>;}

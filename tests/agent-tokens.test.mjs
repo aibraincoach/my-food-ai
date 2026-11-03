@@ -19,7 +19,7 @@ test('tokens have 32 random base62 characters, persist a digest and suffix only'
 });
 function authDb(row, limit = 60) {
   let calls = 0, hits = 0, hash;
-  const chain = { select() { return chain; }, eq(_, value) { hash = value; return chain; }, maybeSingle: async () => ({ data: row, error: null }) };
+  const chain = { select() { return chain; }, is(key,value){constraints.push([key,value]);return chain;}, eq(_, value) { hash = value; return chain; }, maybeSingle: async () => ({ data: row, error: null }) };
   return { from: () => chain, rpc: async (name, args) => { assert.equal(name, 'agent_hit'); assert.equal(args.p_limit, 60); assert.ok(args.p_increment >= 1 && args.p_increment <= 61); calls++; hits += args.p_increment; return { data: hits <= limit, error: null }; }, stats: () => ({ calls, hits, hash }) };
 }
 test('Bearer authentication refuses missing, unknown and revoked tokens and caps the 61st call', async () => {
@@ -45,7 +45,7 @@ test('meal input preserves a past eaten-at and rejects future times and invalid 
 });
 test('a second owner cannot get or correct another owner meal through the service', async () => {
   const constraints = [];
-  const chain = { select() { return chain; }, eq(key, value) { constraints.push([key, value]); return chain; }, maybeSingle: async () => ({ data: null, error: null }) };
+  const chain = { select() { return chain; }, is(key,value){constraints.push([key,value]);return chain;}, eq(key, value) { constraints.push([key, value]); return chain; }, maybeSingle: async () => ({ data: null, error: null }) };
   const db = { from(table) { assert.equal(table, 'posts'); return chain; }, rpc() { throw new Error('No write after an ownership refusal'); } };
   const identity = { userId: 'second-owner', tokenId: 'second-token' }; const id = '11111111-1111-4111-8111-111111111111';
   await assert.rejects(getMeal(identity, id, db), e => e.status === 404 && e.message === 'Not found');

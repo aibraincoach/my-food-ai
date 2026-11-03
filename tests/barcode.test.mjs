@@ -51,7 +51,7 @@ test("the JavaScript decoder reads a UPC-A barcode image", () => {
   assert.ok(gtinCandidates(text).includes("016000275683"), text);
 });
 
-test("a live FDC Branded Foods lookup by gtin_upc returns usable nutrition", { skip: !process.env.FDC_API_KEY }, async () => {
+test("an FDC HTTP Branded Foods lookup by gtin_upc returns usable nutrition", { skip: !process.env.FDC_API_KEY }, async () => {
   const product = await lookupBarcode("016000275683");
   assert.ok(product, "FDC returned no product");
   assert.equal(product.gtin, "016000275683");
@@ -61,7 +61,7 @@ test("a live FDC Branded Foods lookup by gtin_upc returns usable nutrition", { s
   assert.equal(await lookupBarcode("0016000275683").then((p) => p?.fdcId), product.fdcId, "EAN-13 form finds the same product");
 });
 
-test("a product FDC stores zero-padded is found live, and a valid code FDC does not hold finds nothing", { skip: !process.env.FDC_API_KEY }, async () => {
+test("a product FDC stores zero-padded is found through HTTP, and a valid code FDC does not hold finds nothing", { skip: !process.env.FDC_API_KEY }, async () => {
   assert.match((await lookupBarcode("038000138416"))?.name ?? "", /pringles/i);
   assert.equal(await lookupBarcode("012345678912"), null);
 });

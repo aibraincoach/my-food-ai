@@ -15,7 +15,8 @@ const migration = readFileSync(new URL("../supabase/migrations/0019_intake_logs_
 test("drink data is bounded and caffeine/labels come from the server", () => {
   assert.deepEqual(parseDrinkInput({ kind: "water", ml: 330, label: "tampered", caffeineMg: 900 }), { kind: "water", ml: 330, label: "Water", caffeineMg: 0 });
   assert.deepEqual(parseDrinkInput({ kind: "caffeine", ml: 240 }), { kind: "caffeine", ml: 240, label: "Coffee, cup", caffeineMg: 95 });
-  assert.deepEqual(parseDrinkInput({ tile: 4, ml: 1, caffeineMg: 999 }), { kind: "caffeine", label: "Coca-Cola, can", ml: 330, caffeineMg: 32 });
+  assert.deepEqual(parseDrinkInput({ tile: 4, caffeineMg: 999 }), { kind: "caffeine", label: "Coca-Cola, can", ml: 330, caffeineMg: 32 });
+  assert.equal(parseDrinkInput({ tile: 4, ml: 1 }), null, "unsupported tile sizes cannot silently become a default");
   assert.equal(parseDrinkInput({ tile: 9 }), null);
   assert.equal(parseDrinkInput({ tile: -1 }), null);
   assert.equal(parseDrinkInput({ tile: "4" }), null);

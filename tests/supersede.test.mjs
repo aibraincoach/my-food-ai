@@ -122,15 +122,18 @@ begin
  exception when insufficient_privilege then null; end;
  insert into post_items(post_id,name,source) values(current_setting('test.post')::uuid,'Own item','user');
  update post_items set superseded_at=now() where id=current_setting('test.item')::uuid;
- if exists(select 1 from current_post_items where id=current_setting('test.item')::uuid) then raise exception 'owner supersede failed'; end if;
+ if exists(select 1 from current_post_items where id=current_setting('test.item')::uuid) then raise exception 'superseded item remains current'; end if;
+ if not exists(select 1 from post_items where id=current_setting('test.item')::uuid and superseded_at is not null) then raise exception 'supersede lost immutable history'; end if;
 end;
 $test$;
 select set_config('request.jwt.claims',jsonb_build_object('sub',:'other','role','authenticated')::text,true);
 do $test$
 begin
  if exists(select 1 from current_post_items where post_id=current_setting('test.post')::uuid) then raise exception 'view leaks another owner'; end if;
- update post_items set superseded_at=now() where post_id=current_setting('test.post')::uuid;
- if found then raise exception 'other owner mutated item'; end if;
+ begin
+  update post_items set superseded_at=now() where post_id=current_setting('test.post')::uuid;
+  if found then raise exception 'other owner mutated item'; end if;
+ exception when insufficient_privilege then null; end;
 end;
 $test$;
 select 'supersede: passed';

@@ -6,8 +6,10 @@ function fakeAdmin({ snapshotFails = true, ready = true } = {}) {
   const calls = [];
   return {
     calls,
+    from(table){assert.equal(table,'current_post_items');const q={select(){return q},eq(){return q},order(){return q},then(resolve){return Promise.resolve({data:[],error:null}).then(resolve)}};return q;},
     rpc: async (name, args) => {
       calls.push(name);
+      if(name==='sync_item_drinks'){assert.deepEqual(args.p_rows,[]);return{data:null,error:null};}
       if (name === "results_card_snapshot") return snapshotFails ? { data: null, error: { message: "render unavailable" }, status: 503 } : { data: null, error: null };
       if (name === "mark_post_ready") { assert.equal(args.p_job_id, "job"); return { data: ready, error: null }; }
       if (name === "save_ready_meal") { assert.equal(args.p_post_id,"post"); assert.equal(ready,true,"an unpublished meal cannot be saved"); return {data:null,error:null}; }
@@ -24,7 +26,7 @@ test("a card failure is logged and the meal is marked ready anyway", async () =>
   try {
     const admin = fakeAdmin();
     assert.equal(await markReady("post", admin, "job"), true);
-    assert.deepEqual(admin.calls, ["results_card_snapshot", "mark_post_ready", "save_ready_meal"]);
+    assert.deepEqual(admin.calls, ["sync_item_drinks", "results_card_snapshot", "mark_post_ready", "save_ready_meal"]);
     assert.match(logged.join("\n"), /results card failed.*Card snapshot failed/s);
   } finally { console.error = original; }
 });
@@ -36,7 +38,7 @@ test("a meal that cannot be completed still reports not ready", async () => {
   try {
     const admin=fakeAdmin({ready:false});
     assert.equal(await markReady("post",admin,"job"),false);
-    assert.deepEqual(admin.calls,["results_card_snapshot","mark_post_ready"],"a failed publication must not save a meal");
+    assert.deepEqual(admin.calls,["sync_item_drinks","results_card_snapshot","mark_post_ready"],"a failed publication must not save a meal");
   } finally { console.error = original; }
 });
 
@@ -44,7 +46,7 @@ test("a failure to save readiness still surfaces (and retries) rather than being
   const { markReady } = await import("../src/lib/pipeline/persist.ts");
   const original = console.error;
   console.error = () => {};
-  const admin = { rpc: async (name) => name === "results_card_snapshot" ? { data: null, error: { message: "x" }, status: 503 } : { data: null, error: { message: "down" }, status: 503 } };
+  const admin = { ...fakeAdmin(), rpc: async (name) => name==="sync_item_drinks"?{data:null,error:null}: name === "results_card_snapshot" ? { data: null, error: { message: "x" }, status: 503 } : { data: null, error: { message: "down" }, status: 503 } };
   try { await assert.rejects(markReady("post", admin, "job"), (error) => error.status === 503); } finally { console.error = original; }
 });
 

@@ -1,0 +1,69 @@
+{
+  "base": "618cf7e8bbadf4e020b9590eeb66e6368591f8db",
+  "database": {
+    "host": "127.0.0.1",
+    "port": 55449,
+    "database": "postgres",
+    "dataDirectory": "/tmp/mfa460-fresh2/pg",
+    "origin": "fresh initdb plus repository migrations except external scheduling 0024"
+  },
+  "fullSuite": {
+    "command": "TEST_ENV_FILE=/tmp/mfa460-fresh2.env npm test",
+    "tests": 573,
+    "passed": 567,
+    "failed": 0,
+    "skipped": 6,
+    "durationMs": 231348.027621
+  },
+  "databaseGate": {
+    "command": "TEST_ENV_FILE=/tmp/mfa460-fresh2.env npm run test:db",
+    "passed": 32,
+    "failed": 0,
+    "skipped": 0
+  },
+  "lint": {
+    "command": "npm run lint",
+    "errors": 0,
+    "warnings": 6
+  },
+  "typescript": {
+    "command": "npx tsc --noEmit",
+    "exitCode": 0
+  },
+  "sqlBatch": {
+    "tests": 38,
+    "passed": 38,
+    "failed": 0,
+    "skipped": 0,
+    "durationMs": 7419.436333,
+    "files": [
+      "tests/analysis-replay.test.mjs",
+      "tests/card-backfill-failure.test.mjs",
+      "tests/card-cleanup.test.mjs",
+      "tests/clarification-order.test.mjs",
+      "tests/comments-policy.test.mjs",
+      "tests/discard-cleanup.test.mjs",
+      "tests/eaten-at-index.test.mjs",
+      "tests/feedback-revision.test.mjs",
+      "tests/intake-rls.test.mjs",
+      "tests/needs-input.test.mjs",
+      "tests/not-eaten.test.mjs",
+      "tests/persist-idempotent.test.mjs",
+      "tests/post-locations.test.mjs",
+      "tests/prior-signals.test.mjs",
+      "tests/profile-role.test.mjs",
+      "tests/push-lifecycle.test.mjs",
+      "tests/retry-policy.test.mjs",
+      "tests/saved-meals.test.mjs",
+      "tests/search-index.test.mjs",
+      "tests/search-or.test.mjs",
+      "tests/search-size.test.mjs",
+      "tests/servings-sql.test.mjs",
+      "tests/supersede.test.mjs"
+    ]
+  },
+  "build": {
+    "command": "TEST_ENV_FILE=/tmp/mfa460-fresh2.env npm run test:app -- build",
+    "exitCode": 0
+  }
+}

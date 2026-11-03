@@ -51,9 +51,10 @@ test('privileged card cleanup never deletes a forged foreign or traversing path'
       from(table){
         assert.ok(['posts','intake_logs'].includes(table));let columns;const filters={};
         const query={select(value){columns=value;return query},eq(key,value){filters[key]=value;return query},
-          gte(){return query},lt(){return query},lte(){return query},order(){return query},
+          is(){return query},or(value){filters.or=value;return query},gte(){return query},lt(){return query},lte(){return query},order(){return query},
           async maybeSingle(){assert.equal(table,'posts');assert.equal(columns,'render_time_zone');assert.equal(filters.id,post);return{data:{render_time_zone:'UTC'},error:null}},
-          async range(from,through){assert.equal(filters.user_id,user);assert.equal(from,0);assert.ok(through>=from);if(table==='posts')assert.equal(filters.status,'ready');return{data:[],error:null}},
+          range(from,through){query.page=[from,through];return query},abortSignal(){return query},
+          then(resolve){assert.equal(filters.user_id,user);assert.equal(query.page[0],0);if(table==='posts')assert.equal(filters.status,'ready');return Promise.resolve({data:[],error:null}).then(resolve)},
         };return query;
       },
       storage: {from: () => ({upload:async()=>({error:null}),remove:async paths=>{removed.push(...paths);return {error:null};}})},

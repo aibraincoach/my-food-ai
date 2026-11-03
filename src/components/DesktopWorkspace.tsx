@@ -7,6 +7,7 @@ import {useRouter,useSearchParams} from 'next/navigation';
 export default function DesktopWorkspace({children,detail,width=500}:{children:ReactNode;detail?:ReactNode;width?:number}) {
   const desktop=useDesktop();
   const dialog=useRef<HTMLDialogElement>(null);
+  const backdropStart=useRef(false);
   const router=useRouter(), params=useSearchParams();
   const root=useRef<HTMLDivElement>(null);
   const selected=params.get('post');
@@ -56,7 +57,7 @@ export default function DesktopWorkspace({children,detail,width=500}:{children:R
     <div ref={root} className="min-w-0 desktop:shrink-0" style={{'--workspace-width':`${width}px`, '--detail-space':'0px'} as React.CSSProperties} data-desktop-workspace>
       {children}
     </div>
-    {selected&&desktop&&<dialog ref={dialog} role="dialog" aria-modal="true" aria-label="Post detail" className="desktop-post-dialog fixed inset-0 m-auto overflow-visible rounded-[10px] bg-white p-0 text-text shadow-2xl backdrop:bg-scrim-32" onCancel={event=>{event.preventDefault();open(null);}} onClick={event=>{if(event.target===event.currentTarget){const rect=event.currentTarget.getBoundingClientRect();if(event.clientX<rect.left||event.clientX>rect.right||event.clientY<rect.top||event.clientY>rect.bottom)open(null);}}} onKeyDown={event=>{
+    {selected&&desktop&&<dialog ref={dialog} role="dialog" aria-modal="true" aria-label="Post detail" className="desktop-post-dialog fixed inset-0 m-auto overflow-visible rounded-[10px] bg-white p-0 text-text shadow-2xl backdrop:bg-scrim-32" onCancel={event=>{event.preventDefault();open(null);}} onPointerDown={event=>{const rect=event.currentTarget.getBoundingClientRect();backdropStart.current=event.target===event.currentTarget&&(event.clientX<rect.left||event.clientX>rect.right||event.clientY<rect.top||event.clientY>rect.bottom);}} onPointerCancel={()=>{backdropStart.current=false;}} onClick={event=>{if(backdropStart.current&&event.target===event.currentTarget){backdropStart.current=false;const rect=event.currentTarget.getBoundingClientRect();if(event.clientX<rect.left||event.clientX>rect.right||event.clientY<rect.top||event.clientY>rect.bottom)open(null);}}} onKeyDown={event=>{
       if(event.defaultPrevented||(event.target as HTMLElement).closest('input,textarea,select,[contenteditable="true"]')||(event.target as HTMLElement).closest('[role="dialog"]')!==event.currentTarget)return;
       const step=event.key.toLowerCase()==='j'?1:event.key.toLowerCase()==='k'?-1:0;
       if(step){event.preventDefault();const cards=Array.from(root.current?.querySelectorAll<HTMLElement>('[data-desktop-post]')??[]);const index=cards.findIndex(card=>card.dataset.desktopPost===selected);const next=cards[index+step];if(next){setFocused(next.dataset.desktopPost!);open(next.dataset.desktopPost!);}}

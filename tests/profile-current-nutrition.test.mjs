@@ -12,7 +12,7 @@ function fixture({signFails=false}={}){
   from(table){
    const filters=[];let offset=0,upper=199;
    const chain={
-    select(){return chain},eq(k,v){filters.push([k,v]);return chain},order(){return chain},
+    select(){return chain},is(k,v){filters.push([k,v]);return chain},eq(k,v){filters.push([k,v]);return chain},order(){return chain},
     in(k,v){filters.push([k,v]);return chain},range(a,b){offset=a;upper=b;return chain},
     then(resolve){
      calls.push({table,filters});
@@ -36,7 +36,7 @@ test('caption-only grid uses current known nutrition and identifies omissions, n
  assert.equal(posts.find(p=>p.id==='photo').photoUrl,'signed:owner/photo/1.feed.jpg');
  assert.deepEqual(calls.find(c=>c.sign).sign,['owner/photo/1.feed.jpg']);
  assert.equal(calls.filter(c=>c.table==='current_post_items').length,1);assert.equal(calls.filter(c=>c.table==='item_nutrition').length,1);assert.equal(calls.filter(c=>c.table==='intake_logs').length,1);
- assert.deepEqual(calls.find(c=>c.table==='posts').filters,[['user_id','owner']]);
+ assert.deepEqual(calls.find(c=>c.table==='posts').filters,[['deleted_at',null],['user_id','owner']]);
 });
 test('failed photo signing uses current nutrition fallback instead of old generated card',async()=>{
  const {db}=fixture({signFails:true});const posts=await getProfileGrid(db,'owner');const post=posts.find(p=>p.id==='photo');assert.equal(post.photoUrl,null);assert.equal(post.calories,130);assert.equal(sumNutrition(post.items).calories,130);

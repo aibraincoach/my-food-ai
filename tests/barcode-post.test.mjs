@@ -32,7 +32,7 @@ test("barcode portions stay in their declared mass or volume basis, with dedupli
   assert.deepEqual(barcodeAmounts({ ...product, servingSize: null, packageWeight: null }), [100, 200, 250]);
 });
 
-test("live GTIN nutrition creates an atomic ready photo post; old RPC calls work and RLS hides every row", { skip: !process.env.SUPABASE_DB_URL || !process.env.FDC_API_KEY }, async () => {
+test("GTIN HTTP nutrition creates an atomic ready photo post; old RPC calls work and RLS hides every row", { skip: !process.env.SUPABASE_DB_URL || !process.env.FDC_API_KEY }, async () => {
   const product = await lookupBarcode("016000275683");
   assert.ok(product); assert.match(product.name, /corn puffs/i);
   const nutrition = barcodeNutrition(product, 27);

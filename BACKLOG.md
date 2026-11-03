@@ -1,6 +1,6 @@
 # My Food AI — Backlog†
 
-Last edited: Tuesday 2026-11-03 at 15:41 WIB (UTC+07:00) by Claude, PM
+Last edited: Tuesday 2026-11-03 at 21:46 WIB (UTC+07:00) by Claude, PM
 
 ## Backlog for Owner
 
@@ -26,7 +26,7 @@ The README (#287) is written in Run 7. Read it after it merges. Done when the RE
 
 Nothing is submitted until the video is recorded and the submission is in. The deadline is Nov 4 at 9 PM EST (Nov 5 at 09:00 WIB).
 
-The submission needs the public repository, the video link and a list of everyone who worked on it. Judges stop watching at three minutes. Every feature built is in the video, the not-eaten plate included. Post the video to X as soon as it exists: the Most Viral prize ($20,000) counts likes, reposts and comments on X through the end of Nov 8. Whether the post must exist before the submission deadline is unconfirmed. No merges or deploys run from the start of recording until the submission is in. Done when a video under three minutes is on X and the submission is in.
+The submission needs the public repository, the video link and a list of everyone who worked on it. Judges stop watching at three minutes, and the video must show the feature working with live Meta model calls and say which open Meta model it uses and where it runs, Muse Spark Open on Baseten (Cerebral Valley, Nov 3). Every feature built is in the video, the not-eaten plate included. Post the video to X as soon as it exists: the Most Viral prize ($20,000) counts likes, reposts and comments on X through the end of Nov 8. Whether the post must exist before the submission deadline is unconfirmed. No merges or deploys run from the start of recording until the submission is in. Done when a video under three minutes is on X and the submission is in.
 
 ### #379 Phone checks of the installed app over mobile data
 
@@ -34,7 +34,7 @@ Every Run 7 and Run 8 timing check ran in emulation. No physical phone has teste
 
 Check on each of the owner's three phones, installed from the home screen, over mobile data: the feed and the first photo show within two seconds (#222, #305); the last feed shows at once and fresh posts appear without jumping (#304); a warm revisit reuses cached photos and the photos look acceptable (#305); the camera, the keyboard and a post from the phone work, with the right photo kept (#6); a post completes through the worker (#322). Done when each check passes on each of the three phones and each failure is reported to the coder with its number.
 
-## Engineering backlog
+## In Flight (Fleet 10)
 
 ### #382 The delete confirmation can disappear before the user confirms
 
@@ -124,13 +124,19 @@ The sampled feed image is 152,193 bytes and its response carries no Cache-Contro
 
 The hackathon pays a $10,000 bonus for a build on a Meta open-weight model, and the app calls only the hosted Meta API.
 
-Use Muse Spark Open (meta-models/muse-spark-open-1026) through Baseten's OpenAI-compatible endpoint, https://inference.baseten.co/v1, for the identify-and-portions call. The key works only with that model and never goes in the repository, an issue or this backlog. Confirm the coder can sign in to Baseten with the key before the trial. The model always reasons, so check output caps that include reasoning. The Meta client hardcodes model names, and the ten-photo harness cannot choose a model host. Trial first in a throwaway clone that swaps only that call, and spend at most 5 US dollars. SAM and transcription stay on the Meta API, and the USDA lookup is unchanged. Compare the ten meal photos and one caption, "I ate half the rice", against the current path. A qualifying step must be a real, switchable path on main that a judge can reproduce, with the model ID logged. Done when a real, switchable path on main runs the identify-and-portions step on Muse Spark Open through Baseten, the model ID is logged, the results against the ten photos are in docs, and the owner has switched it on in Profile, logged a meal, and seen the Muse Spark Open line in that meal's post detail on production.
+Use Muse Spark Open (meta-models/muse-spark-open-1026) through Baseten's OpenAI-compatible endpoint, https://inference.baseten.co/v1, for the identify-and-portions call. The key works only with that model and never goes in the repository, an issue or this backlog. Confirm the coder can sign in to Baseten with the key before the trial. The model always reasons, so check output caps that include reasoning. The Meta client hardcodes model names, and the ten-photo harness cannot choose a model host. Trial first in a throwaway clone that swaps only that call, and spend at most 5 US dollars. SAM and transcription stay on the Meta API, and the USDA lookup is unchanged. Compare the ten meal photos and one caption, "I ate half the rice", against the current path. A qualifying step must be a real, switchable path on main that a judge can reproduce, with the model ID logged. Cerebral Valley answered on Nov 3 that Muse Spark Open counts however it runs, including through Baseten. Done when a real, switchable path on main runs the identify-and-portions step on Muse Spark Open through Baseten, the model ID is logged, the results against the ten photos are in docs, and the owner has switched it on in Profile, logged a meal, and seen the Muse Spark Open line in that meal's post detail on production.
 
 ### #316 The Facebook button is shown grayed out and does nothing
 
 A judge who taps the Facebook button on the sign-in page would see an error, because the Facebook app is in Development mode.
 
 Meta's app review takes longer than the event, so Facebook sign-in cannot go live (#114). Show the Facebook button on the sign-in and sign-up pages, grayed out, and do nothing when it is tapped. Done when the Facebook button on the sign-in and sign-up pages is grayed out, tapping it does nothing, and no error shows.
+
+### #306 Every tap that saves shows its result at once
+
+Some taps that save something look dead until the server answers, so the app feels slow.
+
+The thumbs (#215) are one case. The bookmark, Save meal, Log again and Edit caption (#223) may also wait for the server; observe which do. Each should show its new state at the tap, settle when the save lands, and show an error and revert if it fails. #217 measures every control; this item fixes the ones that wait. Done when each of those taps changes the screen before the server answers on a throttled connection, the saved state survives a reload, and a failed save is shown.
 
 ### #307 A card shows the foods the app has found while the numbers are still being worked out
 
@@ -148,7 +154,7 @@ USDA FoodData Central allows 1,000 requests an hour. A meal takes about 4.7 requ
 
 A judge reads the repository and watches the video, and the README does not yet put in front of them the evidence the four scoring criteria ask for.
 
-Show evidence for each scoring criterion: Impact 30%, Use of Meta AI Tooling 25%, Demo 25% and Technical Depth 20%. Name SAM 3.1, Muse Spark 1.3 and Muse Voice Transcribe 1.0, the job each does and where its model ID is logged, and add Muse Spark Open, with how a judge switches it on: Profile, then the switch under the handle. Summarise what was built from Oct 26 to Nov 4. The evidence is the test count, the ten-photo evaluation with its stated limits, the real-model gates, the worker timing and the item history that keeps every correction. State plainly that the app records what was eaten, never advises, sets no targets and makes no health claims. State only what the coder's reports prove, and carry no private account detail. Done when the README has those parts and each claim links to its evidence.
+Show evidence for each scoring criterion: Impact 30%, Use of Meta AI Tooling 25%, Demo 25% and Technical Depth 20%. Name SAM 3.1, Muse Spark 1.3 and Muse Voice Transcribe 1.0, the job each does and where its model ID is logged, and add Muse Spark Open, with how a judge switches it on: Profile, then the switch under the handle. Summarise what was built from Oct 26 to Nov 4. The evidence is the test count, the ten-photo evaluation with its stated limits, the real-model gates, the worker timing and the item history that keeps every correction. State plainly that the app records what was eaten, never advises, sets no targets and makes no health claims. State only what the coder's reports prove, and carry no private account detail. Explain how a judge supplies the open-model endpoint and key through environment values, with an example env file (.env.example names IDENTIFY\_OPEN\_API\_KEY, IDENTIFY\_OPEN\_BASE\_URL and IDENTIFY\_OPEN\_MODEL), and state that the open model, Muse Spark Open, runs on Baseten. Follow the model's own license and link it from the README. Never put the endpoint address, a key or a credential in the README (Cerebral Valley, Nov 3). Done when the README has those parts and each claim links to its evidence.
 
 ### #60 A judge-facing pass makes the public repository start-here ready
 
@@ -185,12 +191,6 @@ Run 8 merged one sign-in check per page: the server makes one Auth call, and a f
 The server renders the row of day bubbles with totals for the last 5 days. The browser feed then computes totals again for the feed's days. Today's totals are queried twice on every home open.
 
 Run 8 merged one shared server read of today's totals. Final browser windows still made one or two day-total reads, so a single read across the server and the browser together is unproved. Done when a home open queries today's totals once across the server and the browser together.
-
-### #279 Sign-up and sign-in resist being hammered
-
-Anyone can send sign-up and sign-in requests as fast as a script can, to guess passwords, create accounts in bulk or run up the email and model bills, and nobody has shown what stops them.
-
-CAPTCHA stays off until the app goes public. Run 8 merged a dormant hCaptcha widget and token path (#336). Called directly from the coder's machine, Supabase refused the hammer at sign-up 31 and sign-in 32, and the 31 throwaway accounts were deleted. The owner holds the site key and the secret. The secret lives only in Supabase Auth and never goes into the repository, an issue, an order or this backlog. To turn CAPTCHA on, set NEXT\_PUBLIC\_HCAPTCHA\_SITE\_KEY in Vercel production and redeploy, then enable CAPTCHA in Supabase Auth, never the reverse. Done when CAPTCHA is on for sign-up and sign-in on production and a script that hammers sign-up and sign-in is refused.
 
 ### #223 Check that an edited caption shows everywhere
 
@@ -282,6 +282,74 @@ The three things a new user has never seen are the + sheet, the thread label and
 
 On the first visit to each, show a single dismissable tooltip in the style of a photo app's one-time hints, stored as seen in `profiles`. Never shown again, never a tour. Capture modes added a fourth hint type, so the count is no longer three. Done when a fresh account sees each hint exactly once across its first session.
 
+## Engineering backlog
+
+### #450 The README tells judges that 148 unit tests fail
+
+The judge-facing README states a test result that fails, so a judge opens a project that reads as broken.
+
+The merged README (#444) reports the database tests as 32 passed, the unit tests as 153 passed, 148 failed and 2 skipped, and lint as 2 errors and 6 warnings. Done when the unit suite runs with no failures and lint has no errors, and the README's counts match a fresh run.
+
+### #451 Every barcode scan comes back as not in the database
+
+The owner has scanned several packs on a phone and every scan has failed: the scanner reads the code and the lookup finds no product.
+
+The scanner read 7 622300 76136 3 from an Oreo pack and showed "Not in the database. No product for this code yet." The owner finds the same code with an ordinary web search, at barcodelookup.com/7622300761363. Done when this pack gives a product card with its name and nutrition, a second pack from the same shelf does too, and the planner has recorded which source the lookup asks and why it had no entry for this code, on the owner's three phones.
+
+### #452 A plainly visible nutrition label is reported as not found
+
+A photo of a pack whose nutrition table can be read is rejected with "No nutrition label found".
+
+The photo of a Goldfish cracker pack, with the label printed in Indonesian and the table fully in the frame, gave "No nutrition label found" with "Take the photo again" and "Type it instead". Done when that photo gives a card with the numbers printed on the label, and a label in English does the same, on the owner's three phones.
+
+### #453 The barcode prompt is printed over the live camera picture
+
+On the Barcode screen, the line "Point at the barcode. It reads on its own." runs across the camera picture and cannot be read against a busy shelf.
+
+With the camera pointed at a shelf of packs and price labels, the line sits on top of them and the words blend into the picture. Done when the prompt is readable over any camera picture, on the owner's three phones.
+
+### #454 The Days page is not one continuous calendar
+
+Days cuts the calendar into separate month blocks, which no calendar app does, so the user cannot scroll through time as one run of weeks.
+
+On the phone, Days shows November 2026 and October 2026 as two separate blocks, each with its own heading, and the newest month sits on top. Days becomes one continuous calendar: the weeks run on from one to the next in time order with no break, the month name marks where each month starts, and Days opens with today in view. Done when scrolling Days moves through unbroken weeks from October into November, the month names mark where each month starts, and Days opens on today, on the owner's three phones.
+
+### #455 The card you swipe to on a drink's photo shows a number and not what the drink is
+
+Swiping right on a drink's photo opens a card with one big millilitre number, so the card does not say what the drink is or why it exists.
+
+The swiped card for the tiki cocktail shows "220 ml" in large type, a line of text and "1,200 ml consumed today" split into drinks and food. A card for a drink leads with its kind as a picture: a coffee cup for coffee with its caffeine, a water cup for water with one cup for every 250 ml drunk, and a cocktail glass or a wine glass for those with their alcohol, and the day's drinks are drawn as the same cups. Done when a coffee, a 500 ml water (two cups), a cocktail and a glass of wine each show their own picture on the swiped card, and a card that holds only liquid reads as a drink at a glance, on the owner's three phones.
+
+### #456 A rum cocktail is logged with 15 mg caffeine
+
+The tiki cocktail post states caffeine that the drink does not contain.
+
+The drink card for the lime and rum tiki cocktail reads "15 mg caffeine" next to 196 kcal, and the day's caffeine total reads 110 mg. Done when a cocktail or any drink with no caffeine source logs no caffeine, the card shows none, and the day's total leaves it out, checked on the tiki cocktail and a glass of wine.
+
+### #457 An alcoholic drink shows its alcohol, not its liquid
+
+A cocktail post shows how much liquid it holds and nothing about the alcohol, so the user cannot tell how much they have drunk.
+
+The post for a lime and rum tiki cocktail shows "220 g" on the photo and 196 kcal, 0 g protein, 17 g carbs and 0 g fat under it, with no alcohol anywhere. For a drink that holds alcohol, the post shows the grams of alcohol and the standard drinks in place of the liquid amount, the drink's liquid is not added to the water total, and Today shows the day's alcohol so far. Done when a photographed cocktail and a typed beer each show their alcohol on the post and in Today, and neither adds to the water tile, on the owner's three phones.
+
+### #458 The text box on New post is hidden behind the keyboard
+
+On New post on the phone, the caption box is not visible when the keyboard is open, so the user types without seeing the words.
+
+On an iPhone with the keyboard up, the screen shows the photo and the Post button and no caption box. After a tap into the caption, the page scrolls so the box sits under the photo with the "Another photo" and "Search foods" buttons and other rows crowded around it. Done when, with the keyboard open, the caption box is fully visible above the keyboard together with the Post button, and nothing overlaps it, on the owner's three phones.
+
+### #413 The desktop layout is rebuilt to the new frames 6a to 6f
+
+The desktop app follows the old Round 4 frames, which the designer has replaced, so it no longer matches the design.
+
+The designer delivered Round 6 at 1280x800 and removed the old desktop frames 4a to 4f. Frame 6a, Home: the same left sidebar on every screen, with New post as its one dark button and Profile at the bottom; the keyboard shortcut list leaves the sidebar and opens with the ? key; a Today column beside the feed shows today's totals and posts, and a dated line with each day's total separates the days. Frame 6b, a post open: the post opens in a window over the dimmed feed, with the photo on the left and the totals, items, comments and comment field on the right, in place of the narrow side panel. Frame 6c, New post: one window holds both the webcam and the photo drop area, with no Webcam and Upload switch, and the same Text, Photo and Barcode modes as the phone. Frame 6d, Days: a bigger month calendar, with the chosen day's posts in a full-height panel on the right. Frames 6e and 6f, Search and Profile: the same centred column, with "Connect an agent" as a button under the user's name. The desktop differences in the earlier visual-difference issues (#353 to #367) are superseded by these frames. Done when the app at 1280x800 matches frames 6a to 6f and the phone layout is unchanged.
+
+### #279 Sign-up and sign-in resist being hammered
+
+Anyone can send sign-up and sign-in requests as fast as a script can, to guess passwords, create accounts in bulk or run up the email and model bills, and nobody has shown what stops them.
+
+CAPTCHA stays off until the app goes public. Run 8 merged a dormant hCaptcha widget and token path (#336). Called directly from the coder's machine, Supabase refused the hammer at sign-up 31 and sign-in 32, and the 31 throwaway accounts were deleted. The owner holds the site key and the secret. The secret lives only in Supabase Auth and never goes into the repository, an issue, an order or this backlog. To turn CAPTCHA on, set NEXT\_PUBLIC\_HCAPTCHA\_SITE\_KEY in Vercel production and redeploy, then enable CAPTCHA in Supabase Auth, never the reverse. Done when CAPTCHA is on for sign-up and sign-in on production and a script that hammers sign-up and sign-in is refused.
+
 ## Interdit (Not part of Hackathon)
 
 ### #114 Facebook Login in production mode
@@ -304,6 +372,6 @@ Blocked until after the hackathon, and blocked by the claims rule: the app shows
 
 ---
 
-† **What this backlog is.** The shared, ordered list of open work for My Food AI, shown live. GitHub issues in aibraincoach/my-food-ai are the record, and BACKLOG.md in the repository is a copy of this list that the PM supplies, so the coder and the planner read the same list. This Doc is private between the PM and the owner, and the coder cannot open it. The coder reads BACKLOG.md, which the owner copies from this Doc. This list usually runs a little ahead of the issues, because an item reaches them only after the PM has filed it. An item stays until its work is merged, its done condition is met and its issue is closed; the "Interdit (Not part of Hackathon)" section holds items that cannot be worked on and says why. Each section is for one role: Backlog for Owner and Engineering backlog, ordered within a section by the pass that will work them together, not by issue number or date.
+† **What this backlog is.** The shared, ordered list of open work for My Food AI, shown live. GitHub issues in aibraincoach/my-food-ai are the record, and BACKLOG.md in the repository is a copy of this list that the PM supplies, so the coder and the planner read the same list. This Doc is private between the PM and the owner, and the coder cannot open it. The coder reads BACKLOG.md, which the owner copies from this Doc. This list usually runs a little ahead of the issues, because an item reaches them only after the PM has filed it. An item stays until its work is merged, its done condition is met and its issue is closed; the "Interdit (Not part of Hackathon)" section holds items that cannot be worked on and says why. Each section is for one role or one state: Backlog for Owner, In Flight (the items the running fleet builds) and Engineering backlog (open work outside it), ordered within a section by the pass that will work them together, not by issue number or date.
 
 Every item is a title line and two paragraphs. The title line carries the GitHub issue number, assigned only once the issue exists, and the number is not one of the three parts. The three parts are: (1) a title a person can read; (2) a first paragraph that states the problem in plain language and in enough depth that a person could fix it; (3) a second paragraph with all the context that helps a person solve the problem, meaning what investigation, work or the owner's observations have established, ending in a done condition. Neither paragraph is a dump of everything known. Write short sentences in the active voice, as the Google developer documentation style guide asks. An item without all three parts is not on the backlog.

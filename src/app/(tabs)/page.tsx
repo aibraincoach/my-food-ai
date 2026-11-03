@@ -117,6 +117,8 @@ async function HomeFeed() {
   return <div data-server-feed-ready={initialPage ? true : undefined}><Feed key={initialUserId ?? 'anonymous'} initialPage={initialPage} initialUserId={initialUserId} initialZone={initialZone} /></div>;
 }
 
+async function HomeToday(){await connection();const zone=(await cookies()).get('time-zone')?.value;return <DesktopToday zone={zone}/>;}
+
 export default async function Home({searchParams}:{searchParams:Promise<{post?:string}>}) {
   const {post}=await searchParams;
   return <DesktopWorkspace width={844} detail={post?<PostDetail id={post} desktopModal/>:undefined}><div className="desktop-home-layout desktop:flex desktop:items-start"><main className="flex flex-1 flex-col desktop:w-[500px] desktop:min-w-0 desktop:flex-none"><CleanFreshMarker />
@@ -131,5 +133,5 @@ export default async function Home({searchParams}:{searchParams:Promise<{post?:s
       <Suspense fallback={null}><HomeFirstPhoto /></Suspense>
       <Suspense fallback={null}><HomeFeed /></Suspense>
     </div>
-  </main><DesktopToday/></div></DesktopWorkspace>;
+  </main><Suspense fallback={null}><HomeToday/></Suspense></div></DesktopWorkspace>;
 }
