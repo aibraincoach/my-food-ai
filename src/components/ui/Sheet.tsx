@@ -1,15 +1,18 @@
 'use client';
-import {useEffect,useRef,useState,type ReactNode,type CSSProperties} from 'react';
+import {useEffect,useRef,useState,useSyncExternalStore,type ReactNode,type CSSProperties} from 'react';
 import {createPortal} from 'react-dom';
 import {lockBodyScroll} from '@/lib/ui/scroll-lock';
 import {Icon} from '@/components/ui/Icon';
 type Props={open:boolean;onClose:()=>void;children:ReactNode;label:string;hideClose?:boolean;confirmation?:boolean;panelStyle?:CSSProperties};
 const mountedSheets:HTMLDivElement[]=[];
+const subscribeMounted=()=>()=>{};
 /** A portal below the navigation pill, with focus retained in the sheet or pill. */
 export function Sheet({open,onClose,children,label,hideClose=false,confirmation=false,panelStyle}:Props) {
-  const panel=useRef<HTMLDivElement>(null);const close=useRef(onClose);const swipe=useRef<number|null>(null);const [mounted,setMounted]=useState(false);
-  close.current=onClose;
-  useEffect(()=>{setMounted(true);},[]);
+  const panel=useRef<HTMLDivElement>(null);const close=useRef(onClose);const swipe=useRef<number|null>(null);const mounted=useSyncExternalStore(subscribeMounted,()=>true,()=>false);
+  useEffect(()=>{close.current=onClose;},[onClose]);
+  // Chosen once, before this sheet's own aria-modal panel exists: a confirmation
+  // must never become its own portal host on a rerender.
+  const [portalHost]=useState<HTMLElement|null>(()=>typeof document==='undefined'?null:document.querySelector<HTMLElement>('[role="dialog"][aria-modal="true"]'));
   useEffect(()=>{
     if(!open||!mounted||!panel.current)return;
     const element=panel.current;const previous=document.activeElement as HTMLElement|null;
@@ -50,5 +53,5 @@ export function Sheet({open,onClose,children,label,hideClose=false,confirmation=
       </div>
       {children}
     </div>
-  </div>,document.querySelector<HTMLElement>('[role="dialog"][aria-modal="true"]')??document.body);
+  </div>,(portalHost&&portalHost.isConnected?portalHost:document.body));
 }
