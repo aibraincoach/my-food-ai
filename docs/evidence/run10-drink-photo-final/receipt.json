@@ -74,7 +74,8 @@
         }
       ],
       "feed": "T\ntestkitchen\n\u00b7\u00b7\u00b7\nDRANK \u00b7 10:32 PM\n150\nml\nWater, glass \u00b7 0 kcal\n190 ml\nconsumed today\n150 ml from drinks\n40 ml from food\n+\nAdd a photo\nLeftovers \u00b7 not eaten\nDetails \u203a\nDrank: 150 ml \u00b7 0 kcal more\n10:32 PM",
-      "drinkCardVisible": true
+      "hydratedDrinkCardTextVerified": true,
+      "feedScreenshotLimit": "Carousel scrolled to last add-photo tile, not selected drink card; actual hydrated DRANK/volume/nutrients text is retained in feed field."
     },
     "cleanup": {
       "at": "2026-11-03T13:33:20.757Z",
@@ -603,7 +604,8 @@
         }
       ],
       "feed": "T\ntestkitchen\n\u00b7\u00b7\u00b7\nDRANK \u00b7 10:43 PM\n330\nml\nCoca-Cola, can \u00b7 30 mg caffeine \u00b7 139 kcal\n370 ml\nconsumed today\n330 ml from drinks\n40 ml from food\n30 mg caffeine\n+\nAdd a photo\nLeftovers \u00b7 not eaten\nDetails \u203a\nDrank: 330 ml \u00b7 30 mg caffeine \u00b7 139 kcal more\n10:43 PM",
-      "drinkCardVisible": true
+      "hydratedDrinkCardTextVerified": true,
+      "feedScreenshotLimit": "Carousel scrolled to last add-photo tile, not selected drink card; actual hydrated DRANK/volume/nutrients text is retained in feed field."
     },
     "cleanup": {
       "at": "2026-11-03T13:43:57.449Z",
