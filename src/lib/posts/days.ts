@@ -1,7 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { feedCopyUrl } from "@/lib/media/media-url";
 import { groupIntakeByDay, emptyIntake, type IntakeRow, type IntakeTotals } from "@/lib/intake/intake";
-import { getCurrentItems, normalizeStoredNutrition, sumNutrition, type CurrentItem, type MealTotals, type NutritionRow } from "@/lib/nutrition/totals";
+import { CURRENT_ITEM_COLUMNS, CURRENT_NUTRITION_COLUMNS, mapCurrentItems, normalizeStoredNutrition, sumNutrition, type CurrentItem, type MealTotals, type NutritionRow } from "@/lib/nutrition/totals";
 
 export interface DayPost { id: string; caption: string; eatenAt: string; photoUrl: string | null; items: CurrentItem[]; totals: MealTotals }
 export interface LoggedDay { date: string; posts: DayPost[]; totals: MealTotals; intake: IntakeTotals }
@@ -40,44 +39,45 @@ export async function getDays(supabase: SupabaseClient, userId: string, zone: st
   // local date check below removes the padding without DST assumptions.
   const lower = `${shiftDay(from, -1)}T00:00:00Z`;
   const upper = `${shiftDay(through, 2)}T00:00:00Z`;
+  const photos: {post: DayPost; path: string}[] = [];
   for (let offset = 0; ; offset += 100) {
-    const { data, error } = await supabase.from("posts").select("id,caption,eaten_at")
+    const { data, error } = await supabase.from("posts")
+      .select(`id,caption,eaten_at,post_media(storage_path,position),current_post_items(${CURRENT_ITEM_COLUMNS},created_at,item_nutrition(${CURRENT_NUTRITION_COLUMNS}))`)
       .eq("user_id", userId).eq("status", "ready").gte("eaten_at", lower).lt("eaten_at", upper)
+      .eq("post_media.kind", "photo").order("position", { referencedTable: "post_media", ascending: true })
+      .limit(1, { referencedTable: "post_media" })
+      .order("created_at", { referencedTable: "current_post_items", ascending: true })
       .order("eaten_at", { ascending: true }).order("id", { ascending: true }).range(offset, offset + 99);
     if (error) throw new Error("Days could not be loaded.");
-    const rows = data ?? [];
-    // Keep latency bounded without issuing every month's request at once.
-    for (let start = 0; start < rows.length; start += 8) {
-      const loaded = await Promise.all(rows.slice(start, start + 8).map(async (row) => {
-        const date = dateInZone(row.eaten_at, zone);
-        if (date < from || date > through) return null;
-        const [items, media] = await Promise.all([
-          getCurrentItems(supabase, row.id),
-          supabase.from("post_media").select("storage_path").eq("kind","photo").eq("post_id", row.id).order("position", { ascending: true }).limit(1).maybeSingle(),
-        ]);
-        const path = media.error ? undefined : media.data?.storage_path as string | undefined;
-        let photoUrl: string | null = null;
-        if (path) {
-          try {
-            photoUrl = await feedCopyUrl(supabase, path.endsWith("/card.png") ? path : `${path.replace(/\.[^/.]+$/, "")}.feed.jpg`,userId);
-          } catch {
-            // A missing optional feed copy must not hide meals or their totals.
-          }
-        }
-        const totals = sumNutrition(items);
-        const post: DayPost = { id: row.id, caption: row.caption, eatenAt: row.eaten_at, photoUrl, items, totals };
-        return { date, post };
-      }));
-      // Promise.all retains source order, including within each local day.
-      for (const entry of loaded) {
-        if (!entry) continue;
-        const { date, post } = entry;
-        const day = groups.get(date);
-        if (day) { day.posts.push(post); day.totals = sumNutrition([day.totals, post.totals]); }
-        else groups.set(date, { date, posts: [post], totals: post.totals, intake: emptyIntake() });
-      }
+    for (const row of data ?? []) {
+      const date = dateInZone(row.eaten_at, zone);
+      if (date < from || date > through) continue;
+      // Use the shared current-item mapper, including unknown nutrition and
+      // consumed-portion normalization; retain every item field and its order.
+      const items = mapCurrentItems((row.current_post_items ?? []).map(({created_at: _created, ...item}) => {
+        void _created;
+        return item;
+      }) as Parameters<typeof mapCurrentItems>[0]);
+      const post: DayPost = { id: row.id, caption: row.caption, eatenAt: row.eaten_at, photoUrl: null, items, totals: sumNutrition(items) };
+      const path = row.post_media?.[0]?.storage_path;
+      if (path) photos.push({post, path: path.endsWith("/card.png") ? path : `${path.replace(/\.[^/.]+$/, "")}.feed.jpg`});
+      const day = groups.get(date);
+      if (day) { day.posts.push(post); day.totals = sumNutrition([day.totals, post.totals]); }
+      else groups.set(date, { date, posts: [post], totals: post.totals, intake: emptyIntake() });
     }
     if ((data?.length ?? 0) < 100) break;
+  }
+  if (photos.length) {
+    try {
+      const paths = [...new Set(photos.map(photo => photo.path))];
+      const {data, error} = await supabase.storage.from("media").createSignedUrls(paths, 3600);
+      if (!error) {
+        const urls = new Map((data ?? []).filter(row => !row.error && row.signedUrl).map(row => [row.path, row.signedUrl]));
+        for (const photo of photos) photo.post.photoUrl = urls.get(photo.path) ?? null;
+      }
+    } catch {
+      // Optional missing photos must never hide a meal or its nutrition.
+    }
   }
   // Water and caffeine logged on a day that has meals appear as that day's intake totals (never a target).
   if (groups.size) {
