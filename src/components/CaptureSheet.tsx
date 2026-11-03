@@ -473,7 +473,7 @@ export default function CaptureSheet({ onClose, initialMode = "photo", forPost, 
 
   return (
     <div ref={dialogRef} role="dialog" aria-modal="true" aria-labelledby="capture-title" className="desktop-capture fixed inset-x-0 top-0 z-50 h-dvh overflow-hidden bg-camera text-surface" style={viewport ? { height: viewport.height, top: viewport.top } : undefined}>
-      <div className="desktop-capture-inner mx-auto flex h-full w-full max-w-phone flex-col desktop:max-w-[760px] desktop:bg-surface desktop:text-text">
+      <div className="desktop-capture-inner desktop-camera-inner mx-auto flex h-full w-full max-w-phone flex-col desktop:max-w-[760px] desktop:bg-surface desktop:text-text">
         <div className="shrink-0">
         <TopBar
           title={<span id="capture-title">{forPost?(attachmentIsLeftovers?"leftovers (not eaten)":"Add photo"):"New post"}</span>}
@@ -481,11 +481,11 @@ export default function CaptureSheet({ onClose, initialMode = "photo", forPost, 
           right={<span className="w-tap" aria-hidden="true" />}
         />
         </div>
-        {desktop&&!composer&&!forPost&&<div className="flex justify-center pb-[14px]"><div className="flex gap-[2px] rounded-field bg-field p-[3px]" role="tablist" aria-label="Photo source">{(['webcam','upload'] as const).map(tab=><button type="button" key={tab} role="tab" aria-selected={desktopTab===tab} onClick={()=>{setDesktopTab(tab);setMode('photo');}} className={`h-[34px] rounded-[9px] px-4 text-detail ${desktopTab===tab?'bg-surface font-semibold shadow-[0_1px_3px_rgba(26,25,23,0.08)]':'font-medium text-muted'}`}>{tab==='webcam'?'Webcam':'Upload a file'}</button>)}</div></div>}
+        {desktop&&!composer&&!forPost&&<div className="desktop-photo-source flex justify-center pb-[14px]"><div className="flex gap-[2px] rounded-field bg-field p-[3px]" role="tablist" aria-label="Photo source">{(['webcam','upload'] as const).map(tab=><button type="button" key={tab} role="tab" aria-selected={desktopTab===tab} onClick={()=>{setDesktopTab(tab);setMode('photo');}} className={`h-[34px] rounded-[9px] px-4 text-detail ${desktopTab===tab?'bg-surface font-semibold shadow-[0_1px_3px_rgba(26,25,23,0.08)]':'font-medium text-muted'}`}>{tab==='webcam'?'Webcam':'Upload a file'}</button>)}</div></div>}
         <div className="flex min-h-0 flex-1 flex-col overflow-y-auto overscroll-contain" aria-label="Capture content">
         <div className="px-screen-x"><FirstRunHint hint="capture" /></div>
         {forPost&&<div className="flex items-center justify-between gap-3 px-screen-x py-3"><span className="text-detail">leftovers (not eaten)</span><button type="button" role="switch" aria-label="leftovers (not eaten)" aria-checked={attachmentIsLeftovers} disabled={posting} onClick={()=>setAttachmentIsLeftovers(value=>!value)} className="min-h-11 rounded-pill bg-camera-field px-4 text-detail">{attachmentIsLeftovers?'On':'Off'}</button></div>}
-        {desktop&&desktopTab==='upload'&&!forPost?<div className={`mx-6 flex h-[400px] flex-col items-center justify-center gap-4 rounded-card border border-dashed ${dragging?'border-text bg-field':'border-ring'}`} onDragEnter={()=>setDragging(true)} onDragLeave={()=>setDragging(false)} onDrop={()=>setDragging(false)}>
+        {desktop&&desktopTab==='upload'&&!forPost?<div className={`desktop-drop-zone mx-6 mb-6 flex h-[480px] shrink-0 flex-col items-center justify-center gap-[14px] rounded-card border border-dashed ${dragging?'border-text bg-field':'border-ring'}`} onDragEnter={()=>setDragging(true)} onDragLeave={()=>setDragging(false)} onDrop={()=>setDragging(false)}>
           <Icon name="photo-add" size={36}/><p className="text-[17px] font-semibold">Drop meal photos here</p><p className="text-detail text-muted">or paste one with ⌘V</p><Button style={{width:"auto",paddingInline:20}} onClick={()=>galleryRef.current?.click()}>Choose files</Button><button className="text-detail text-muted" onClick={()=>{setMode('text');setComposer(true);}}>or write a caption without a photo</button>
         </div>:mode !== "text" && <><div {...(!desktop?modeSwipe:{})} className={`relative flex touch-pan-y items-center justify-center overflow-hidden bg-camera text-camera-muted ${labelState==="read"?"min-h-[180px] shrink":"shrink-0"} desktop:mx-6 desktop:!mt-0 ${labelState==="read"?"":"desktop:!h-[400px]"} desktop:rounded-card`} style={{ height: labelState==="read"?300:tokens.capture.previewHeight, marginTop: tokens.capture.previewTop }}>
           {labelState!=="idle"&&packPhoto ? <img src={packPhoto.previewUrl} alt="Photographed nutrition label" className="h-full w-full object-contain"/> : stream ? <video ref={videoRef} muted playsInline autoPlay aria-label="Live camera viewfinder" className="h-full w-full object-cover" /> : latest ? (
@@ -493,7 +493,7 @@ export default function CaptureSheet({ onClose, initialMode = "photo", forPost, 
             // eslint-disable-next-line @next/next/no-img-element
             <img src={latest.previewUrl} alt="Latest meal photo" className="h-full w-full object-cover" />
           ) : <Icon name="camera" />}
-          {desktop&&devices.length>0&&<select aria-label="Camera" value={deviceId||stream?.getVideoTracks()[0]?.getSettings().deviceId||''} onChange={event=>setDeviceId(event.target.value)} className="absolute bottom-3 left-3 h-9 max-w-[80%] rounded-pill bg-overlay px-3 text-detail text-surface">{devices.map((device,index)=><option key={device.deviceId} value={device.deviceId}>{device.label||`Camera ${index+1}`}</option>)}</select>}
+          {desktop&&devices.length>0&&<select aria-label="Camera" value={deviceId||stream?.getVideoTracks()[0]?.getSettings().deviceId||''} onChange={event=>setDeviceId(event.target.value)} className="absolute left-[14px] top-[14px] h-[29px] max-w-[80%] rounded-field bg-overlay px-[10px] text-meta text-surface">{devices.map((device,index)=><option key={device.deviceId} value={device.deviceId}>{device.label||`Camera ${index+1}`}</option>)}</select>}
           {labelState==="read"&&<div aria-hidden="true" className="pointer-events-none absolute rounded-thumb border-2 border-accent" style={{left:`${(labelReading?.reading.box?.x??0)*100}%`,top:`${(labelReading?.reading.box?.y??0)*100}%`,width:`${(labelReading?.reading.box?.w??1)*100}%`,height:`${(labelReading?.reading.box?.h??1)*100}%`,boxShadow:`0 0 12px ${tokens.colors["accent-glow"]}`}}/>}
           {mode === "barcode" && <>
             <div className="pointer-events-none absolute left-1/2 top-1/2 h-[160px] w-[240px] -translate-x-1/2 -translate-y-1/2">
@@ -518,14 +518,14 @@ export default function CaptureSheet({ onClose, initialMode = "photo", forPost, 
         </div>}</>}
         <input ref={galleryRef} type="file" accept="image/*" multiple className="hidden" disabled={posting || full} onChange={(event) => { void addFiles(event.target.files); event.target.value = ""; }} />
         <input ref={cameraRef} type="file" accept="image/*" capture="environment" className="hidden" disabled={posting || full} onChange={(event) => { void addFiles(event.target.files); event.target.value = ""; }} />
-        {(mode === "photo" || mode === "barcode") && barcodeState === "idle" && labelState === "idle" && (!desktop||desktopTab==='webcam') && <div className="flex shrink-0 items-center justify-center" style={{ height: tokens.capture.controlsHeight, gap: tokens.capture.controlsGap }}>
+        {(mode === "photo" || mode === "barcode") && barcodeState === "idle" && labelState === "idle" && (!desktop||desktopTab==='webcam') && <div className="desktop-shutter-row relative flex shrink-0 items-center justify-center" style={{ height: tokens.capture.controlsHeight, gap: tokens.capture.controlsGap }}>
           <button type="button" aria-label="Choose from library" disabled={posting || full} onClick={() => galleryRef.current?.click()} className="desktop:hidden flex size-tap items-center justify-center rounded-circle bg-camera-button disabled:opacity-50"><Icon name="camera" size={tokens.capture.galleryIcon} /></button>
-          <button type="button" aria-label="Take a photo" disabled={posting || full || cameraBusy} onClick={takePhoto} className="flex items-center justify-center rounded-circle border-surface disabled:opacity-50" style={{ width: tokens.capture.shutterSize, height: tokens.capture.shutterSize, borderWidth: tokens.capture.shutterBorder }}>
+          <button type="button" aria-label="Take a photo" disabled={posting || full || cameraBusy} onClick={takePhoto} className="desktop-shutter flex items-center justify-center rounded-circle border-surface disabled:opacity-50" style={{ width: tokens.capture.shutterSize, height: tokens.capture.shutterSize, borderWidth: tokens.capture.shutterBorder }}>
             {mode === "barcode" ? <BarcodeGlyph className="size-7 text-white opacity-50" /> : <span className="block rounded-circle bg-surface" style={{ width: tokens.capture.shutterDisc, height: tokens.capture.shutterDisc }} />}
           </button>
           {stream ? <button type="button" aria-label="Flip camera" disabled={posting || cameraBusy} onClick={flipCamera} className="desktop:hidden flex size-tap items-center justify-center rounded-circle bg-camera-button disabled:opacity-50"><Icon name="flip" size={tokens.capture.galleryIcon} /></button> : <span className="size-tap" aria-hidden="true" />}
+          {desktop&&desktopTab==='webcam'&&!composer&&labelState==='idle'&&<p className="absolute left-[calc(50%+48px)] flex items-center gap-2 whitespace-nowrap text-meta text-muted"><kbd className="flex h-[22px] items-center rounded-chip border border-line bg-white px-2 font-sans text-[11px] font-semibold text-text">Space</kbd>takes the photo</p>}
         </div>}
-        {desktop&&desktopTab==='webcam'&&!composer&&labelState==='idle'&&<p className="mb-4 text-center text-meta text-muted"><kbd className="mr-2 rounded-chip border border-line bg-white px-2 py-1 font-mono text-meta text-text">Space</kbd>takes the photo</p>}
         {!forPost&&(mode === "text" || mode === "photo") && barcodeState === "idle" && labelState === "idle" && <div className="desktop:hidden flex shrink-0 overflow-x-auto px-screen-x" style={{ gap: tokens.capture.thumbGap }} aria-label="Meal photos">
           {shots.map((shot, i) => (
             <button key={shot.previewUrl} type="button" aria-label={`Remove photo ${i + 1}`} disabled={posting} onClick={() => removeShot(i)} className="relative shrink-0 overflow-hidden rounded-thumb disabled:opacity-50" style={{ width: tokens.capture.thumbSize, height: tokens.capture.thumbSize }}>
@@ -536,7 +536,7 @@ export default function CaptureSheet({ onClose, initialMode = "photo", forPost, 
           ))}
           {!full && <button type="button" aria-label="Add another photo" disabled={posting} onClick={() => galleryRef.current?.click()} className="flex shrink-0 items-center justify-center rounded-thumb border border-dashed border-camera-muted text-camera-muted disabled:opacity-50" style={{ width: tokens.capture.thumbSize, height: tokens.capture.thumbSize }}><Icon name="plus" size={tokens.capture.addIcon} /></button>}
         </div>}
-        <div className="min-h-card-gap flex-1" />
+        <div className="min-h-card-gap flex-1 desktop:hidden" />
         {forPost?<div className="px-screen-x pb-card-safe text-detail">
           {posting&&<p role="status">Adding photo…</p>}{error&&<p role="alert">{error}</p>}
           {!posting&&pendingCount>0&&<button type="button" disabled={cameraBusy} onClick={()=>{void addFiles([]);}} className="min-h-tap underline">Retry adding photo</button>}
