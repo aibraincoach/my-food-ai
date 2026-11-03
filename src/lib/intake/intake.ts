@@ -8,7 +8,7 @@ export const INTAKE = {
   caffeine: { label: "Caffeine", unit: "mg", preset: 95, max: 1000 },
 } as const;
 
-// Fixed defaults shared by the sheet and server; clients send only the tile index.
+// Defaults shared by the sheet and server; clients send a tile index and an optional allowed size.
 export const DRINK_TILES = [
   { name: "Water", size: "glass", ml: 250, kind: "water", caffeineMg: 0 },
   { name: "Coffee", size: "cup", ml: 240, kind: "caffeine", caffeineMg: 95 },
@@ -17,6 +17,16 @@ export const DRINK_TILES = [
   { name: "Coca-Cola", size: "can", ml: 330, kind: "caffeine", caffeineMg: 32 },
   { name: "Water", size: "bottle", ml: 500, kind: "water", caffeineMg: 0 },
 ] as const;
+
+// Labels are server-owned. Water labels remain compatible with migration 0037.
+export const TILE_SIZES: ReadonlyArray<ReadonlyArray<{ml: number; word: string}>> = [
+  [{ml: 250, word: "glass"}, {ml: 500, word: "glass"}, {ml: 750, word: "glass"}],
+  [{ml: 240, word: "cup"}, {ml: 350, word: "large"}],
+  [{ml: 30, word: "single"}, {ml: 60, word: "double"}],
+  [{ml: 300, word: "mug"}, {ml: 450, word: "large"}],
+  [{ml: 330, word: "can"}, {ml: 500, word: "bottle"}],
+  [{ml: 500, word: "bottle"}, {ml: 1000, word: "bottle"}],
+];
 
 export const emptyIntake = (): IntakeTotals => ({ water: 0, caffeine: 0 });
 
