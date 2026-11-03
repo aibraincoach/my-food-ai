@@ -1,6 +1,6 @@
 # My Food AI — Backlog†
 
-Last edited: Tuesday 2026-11-03 at 10:42 WIB (UTC+07:00) by Claude, PM
+Last edited: Tuesday 2026-11-03 at 15:41 WIB (UTC+07:00) by Claude, PM
 
 ## Backlog for Owner
 
@@ -28,45 +28,85 @@ Nothing is submitted until the video is recorded and the submission is in. The d
 
 The submission needs the public repository, the video link and a list of everyone who worked on it. Judges stop watching at three minutes. Every feature built is in the video, the not-eaten plate included. Post the video to X as soon as it exists: the Most Viral prize ($20,000) counts likes, reposts and comments on X through the end of Nov 8. Whether the post must exist before the submission deadline is unconfirmed. No merges or deploys run from the start of recording until the submission is in. Done when a video under three minutes is on X and the submission is in.
 
-## Backlog for Designer
+### #379 Phone checks of the installed app over mobile data
 
-### #289 Frames for logging a drink by photo, by tap or by caption
+Every Run 7 and Run 8 timing check ran in emulation. No physical phone has tested the feed, the photos, installation or posting.
 
-The card for a drink does not show a can of cola's caffeine, and logging a drink does not feel smooth.
-
-The cola can counts as caffeine but its card shows none. No one is pushed down one flow: a photo of a coffee, a photo of a glass of water, a tap on the drink sheet and a caption must each work. A photo of water is estimated and added to hydration. A photo of a caffeine-forward drink is estimated, added and shows its caffeine on the card. One photo can hold several drinks, such as five lined up before a workout, and the card must show every drink and its caffeine. High Coffee is the reference for logging caffeine smoothly and WaterMinder for logging liquids. Records only, past tense, no targets, no ring or percentage. Done when frames at 390x844 are delivered for the drink card with its caffeine, a photo of water, a photo of a can, a photo with several drinks, a quick tap and the drink sheet.
-
-### #290 Frames for the capture sheet's modes with Barcode as an obvious choice
-
-People cannot tell that the app scans barcodes, because the Barcode choice is easy to miss.
-
-Keep a Barcode toggle, and reach the modes by swiping with Barcode an obvious option. That advertises the feature without forcing anyone down it. A photo is still a photo (#212). Done when frames at 390x844 are delivered for the capture sheet showing the swipe between modes, Barcode selected, and a first-time hint.
-
-### #291 Frames for removing and redoing
-
-A user cannot take back something added to a post, and nothing shows how to remove a post.
-
-People need to delete an item and its result so they can redo it. The small cases are a leftovers photo or a correction added by mistake. The large case is a whole post. #174 adds Delete to the post menu. Done when frames at 390x844 are delivered for deleting a post with its confirmation, removing a leftovers photo or a correction from a post, and the post after either.
-
-### #108 The installed app overlaps the iPhone clock and home indicator
-
-Installed to an iPhone home screen, the clock overlaps content and the bottom bar is clipped.
-
-The installed app does not respect the status bar, the notch or the home indicator. The designer draws the header, the bottom bar and every sheet inside the safe areas, so that nothing overlaps the clock or the home indicator. Engineering then builds it with viewport-fit=cover and env(safe-area-inset-\*) padding. Done when frames at 390x844 and 430x932 show the header, the bottom bar and every sheet inside the safe areas.
+Check on each of the owner's three phones, installed from the home screen, over mobile data: the feed and the first photo show within two seconds (#222, #305); the last feed shows at once and fresh posts appear without jumping (#304); a warm revisit reuses cached photos and the photos look acceptable (#305); the camera, the keyboard and a post from the phone work, with the right photo kept (#6); a post completes through the worker (#322). Done when each check passes on each of the three phones and each failure is reported to the coder with its number.
 
 ## Engineering backlog
 
-### The production database is over its free egress and log quota
+### #382 The delete confirmation can disappear before the user confirms
 
-The Supabase free plan shows egress at 8.66 of 5 GB and log ingestion at 1.10 of 1 GB, the grace period is over, and the project is depleting its Disk IO budget. Supabase restricts a project that exceeds its quota after the grace period, so the app can stop answering requests while judges use it.
+On production, the delete confirmation sometimes disappears when the page rerenders, before the user confirms.
 
-Usage already spent stays counted until the billing cycle resets (Supabase billing FAQ), so cutting reads only stops further growth. Suspected sources, none measured: one feed opening fires 120 to 160 requests and the day-totals refresh re-reads every loaded day (#222); the tick route wakes the database on every app open, tab focus and once a minute (#322); the Days reader runs two queries per post plus a signed address per photo (#327); feed images carry no Cache-Control header, so every revisit downloads them again (#305). Load tests against production count toward the same quota. The Infrastructure page shows 31 of 60 connections and 70% RAM on the Micro instance; find what holds them. Find what drives egress and log ingestion, and cut it. Done when the usage page shows which requests dominate egress and log ingestion, and the egress of one feed opening is measured before and after the cuts and is in docs.
+It happened without a DELETE request, and a local reproduction confirmed it. The likely cause is that the shared Sheet portal selects its own modal as its container. A local prototype exists and is unmerged. Done when the confirmation stays open through a rerender, and a delete, Undo and restore completes on production.
+
+### #383 The Coffee tile on the drink sheet fails to post on production
+
+Tapping the Coffee tile on the drink sheet does not post a coffee on production.
+
+Coffee returns 502 on production. The tile's food selector expects a USDA name containing "from grounds", but the cached food is "Beverages, coffee, brewed, prepared with tap water", so the valid food is rejected. The Water tiles also returned 502 on a database guard that migration 0037 (#380) fixed, and the tile tap was not repeated afterwards. Local checks missed both cases because they used synthetic nutrition fixtures. Done when the Coffee, Espresso, Tea, Coca-Cola and both Water tiles each post on production and Undo removes the post.
+
+### #368 Sign-ins through the app may share one rate limit across every user
+
+Supabase limits sign-up and sign-in requests per IP address. If it counts the app's requests against Vercel's address, one script hammering the app's forms could lock every judge out.
+
+Unverified planner finding. The app's sign-up and sign-in run as server actions on Vercel, and the middleware refreshes sessions from Vercel. The Run 8 hammer was refused at request 31, but it called Supabase directly from the coder's machine, so it did not test the app's path (docs/auth-protection.md). Nobody has checked which IP address Supabase records for a server-action sign-in, or whether the server client forwards the user's address. Observe first: send 35 sign-ups through the production sign-up form from one machine, then sign in from a second machine. Use throwaway @example.com accounts only. Done when the report states which IP address Supabase counts for app sign-ins, and a refusal triggered from one machine does not block sign-in from another.
+
+### #369 The public repository does not show Run 8, and its test claims are stale
+
+Judges read the README and the evidence on main, and main still shows Run 7.
+
+All Run 8 evidence and the updated CLAUDE.md are in open docs PR #333, and the Fleet 9 evidence is in open docs PR #344. The README still describes Run 7 and says 17 database tests passed. The database gate now passes 20 of 20. The touched barcode test file fails with a fake USDA key (two failures, reproduced on the original main), and the full lint run shows 34 errors and 20 warnings (docs/run8-final-report.md). Done when #333 and #344 are merged, the README states the current test counts with the known failures, and every README evidence link points at a current document on main.
+
+### #370 The camera view stays open for a long time after a photo is taken
+
+After a photo is taken, the camera view stays on screen for a long time before the post shows in the feed. People will not wait that long.
+
+The capture sheet sends its post-created event and closes only after a successful post, so it waits on the upload and the server. The owner reports the wait on his phone. Observe first: time the tap to the sheet closing and to the new post showing, on a phone over mobile data, and record the size in bytes of each photo the phone uploads. Then close the sheet at the tap and show the new post at the top of the feed in its processing state while the upload finishes. Done when the sheet closes within one second of the tap on a throttled connection, the post appears at the top of the feed in its processing state, and a failed upload is shown on that post.
+
+### #371 Thumbs show "Feedback could not be saved." on production
+
+Tapping a thumb on a production post shows "Feedback could not be saved." The message appears twice, once over the photo and once under the buttons.
+
+Seen on the owner's phone after the Run 7 merges, where #314 shows an error and reverts when a verdict save fails. The cause of the failed save is unknown. Observe the verdict request and its response on production first. Done when a tap on either thumb saves on production, the saved verdict survives a reload, and a failed save shows one message.
+
+### #372 Feed photos are too large for a phone on mobile data
+
+A feed photo downloads at a size far larger than a phone card shows, so the first photo arrives late and every revisit pays for it again.
+
+The sampled feed image is 152,193 bytes and its response carries no Cache-Control header (docs/media-loading.md). Several cards cost megabytes on mobile data, and the cold first photo measured 2.10 s against the 2 s target. The feed photo route (src/app/api/media/feed/\[owner\]/\[post\]/\[media\]/v1.webp/route.ts) reads the original from Storage on every request. Find the largest size a feed card needs on a phone and serve that instead of the original. Keep the original where post detail needs it. Done when the bytes per feed photo before and after are in docs, the first photo of the feed shows within two seconds on mobile data, and the photos look the same on a phone.
+
+### #373 The app reads more from the production database than it needs
+
+The app's reads drove egress to 8.66 GB and log ingestion to 1.10 GB in one billing cycle, against 5 GB and 1 GB on Supabase's free plan, and the project was depleting its Disk IO budget. The organization is now on Pro, which includes 250 GB of egress per cycle, but the same reads still cost bandwidth and database load while judges use the app.
+
+Run 8 cut the feed's Supabase traffic per opening from 5.06 MB to 0.523 MB, 89.7%, by reading day totals once. The app and the worker use Supabase's HTTPS APIs, not SQL connections, so the pooler setting does not apply. Managed services (PostgREST, Storage, Realtime) account for many of the connections the Infrastructure page counts, and the historical 31 of 60 is unexplained, as is the 70% RAM on the Micro instance. Log-ingestion bytes are unattributed, since only row counts exist. Done when the billed log-ingestion bytes are attributed to their sources on the usage page and the RAM use on the Micro instance is explained.
+
+### #374 Find when the worker's empty-claim loop started and whether it caused the feed failures
+
+Until #340, the worker treated an empty job claim as work, about once a second. The intermittent feed errors, the 31 of 60 database connections and the Disk IO drain may all come from it.
+
+In 24 hours the loop produced 74,736 empty claims, 74,698 failures and 70,155 lease grabs. Production now shows zero. Run 7's baseline on the old code also opened 100/100, so the original 3 server errors and 15 blank feeds were never reproduced. Run 8's 100/100 ran unthrottled at low concurrency. Read the logs back day by day for the first day the claim-and-fail pattern appears, and compare it with the dates of the feed-error reports and the merges. Done when the start date and the merge that introduced the loop are named, and the report says whether the loop explains #222's original failures.
+
+### #375 Storage egress is the largest source and was not cut
+
+In the 24 hours before Run 8, Supabase Storage served 2.99 GB across 35,048 requests, almost all to browsers. The Run 8 cut measured the feed's posts reads, not Storage.
+
+docs/egress.md attributes the bytes to browser-class agents but not to which files (feed JPEGs, card PNGs or originals) or which clients. Much of it may be the coder's own 100-opening measurement runs. Log-ingestion bytes were never measured; only row counts were. Done when Storage egress is broken down by file kind and by client (test automation or real users), log-ingestion bytes are measured, and the largest real-user source is cut or shown to be small.
+
+### #376 Feed photos may download again after every session refresh
+
+Feed photos are cached for a year, but the cache varies by cookie, and Supabase's session cookie changes on every token refresh. The browser may download every photo again after each refresh.
+
+The service worker's own cache may cover this; nobody has checked it after a refresh. Done when a photo opened before a token refresh loads with no network bytes after it, or the cause is fixed.
 
 ### #222 The feed fails to open, and photos and cards take too long to appear
 
 On a large account the feed sometimes shows an error or never appears. When it opens, photos and cards take a long time to show, so the app feels broken and slow.
 
-In 100 openings on the largest test account (146 posts), 3 showed a server error (digest 3642131196) and 15 showed no feed after 45 seconds. A cold start takes about a minute. Causes found in the code: one opening fires 120 to 160 concurrent requests; the day-totals refresh re-reads every loaded day, so its cost grows with the feed; the server render of Home's last-five-days totals throws the digest errors; the blank openings are client requests that never settle. The per-day read from #296 and the service worker are cleared as causes. The cold-open causes in #322, #323, #324 and #326 are part of this item. The runtime logs return 403 for the coder, so the stack for the digest exists only in the Vercel console. Done when the feed opens every time in 100 controlled openings on the largest test account, the first photo shows within two seconds on a phone over mobile data, the feed shows something within two seconds of opening the app, and the sizes and times before and after are in docs.
+Run 8 merged the cold-open fixes (#322, #323, #324, #326). In emulation, 100 of 100 browser openings passed and the five final cold photos took 1.48 to 1.83 seconds. The original failures (3 server errors and 15 blank feeds in 100 openings on the largest test account, 146 posts) never reproduced on Run 7's baseline, so their cause is not isolated; the worker's empty-claim loop is a suspect (separate item). The runtime logs return 403 for the coder, so the stack for digest 3642131196 exists only in the Vercel console. Done when the feed and the first photo show within two seconds on the owner's phone over mobile data.
 
 ### #304 The app opens on the last feed it showed and updates behind it
 
@@ -84,7 +124,7 @@ The sampled feed image is 152,193 bytes and its response carries no Cache-Contro
 
 The hackathon pays a $10,000 bonus for a build on a Meta open-weight model, and the app calls only the hosted Meta API.
 
-Use Muse Spark Open (meta-models/muse-spark-open-1026) through Baseten's OpenAI-compatible endpoint, https://inference.baseten.co/v1, for the identify-and-portions call. The key works only with that model and never goes in the repository, an issue or this backlog. Confirm the coder can sign in to Baseten with the key before the trial. The model always reasons, so check output caps that include reasoning. The Meta client hardcodes model names, and the ten-photo harness cannot choose a model host. Trial first in a throwaway clone that swaps only that call, and spend at most 5 US dollars. SAM and transcription stay on the Meta API, and the USDA lookup is unchanged. Compare the ten meal photos and one caption, "I ate half the rice", against the current path. A qualifying step must be a real, switchable path on main that a judge can reproduce, with the model ID logged. Done when a real, switchable path on main runs the identify-and-portions step on Muse Spark Open through Baseten, the model ID is logged, the results against the ten photos are in docs, and the owner has seen it work on production.
+Use Muse Spark Open (meta-models/muse-spark-open-1026) through Baseten's OpenAI-compatible endpoint, https://inference.baseten.co/v1, for the identify-and-portions call. The key works only with that model and never goes in the repository, an issue or this backlog. Confirm the coder can sign in to Baseten with the key before the trial. The model always reasons, so check output caps that include reasoning. The Meta client hardcodes model names, and the ten-photo harness cannot choose a model host. Trial first in a throwaway clone that swaps only that call, and spend at most 5 US dollars. SAM and transcription stay on the Meta API, and the USDA lookup is unchanged. Compare the ten meal photos and one caption, "I ate half the rice", against the current path. A qualifying step must be a real, switchable path on main that a judge can reproduce, with the model ID logged. Done when a real, switchable path on main runs the identify-and-portions step on Muse Spark Open through Baseten, the model ID is logged, the results against the ten photos are in docs, and the owner has switched it on in Profile, logged a meal, and seen the Muse Spark Open line in that meal's post detail on production.
 
 ### #316 The Facebook button is shown grayed out and does nothing
 
@@ -92,23 +132,11 @@ A judge who taps the Facebook button on the sign-in page would see an error, bec
 
 Meta's app review takes longer than the event, so Facebook sign-in cannot go live (#114). Show the Facebook button on the sign-in and sign-up pages, grayed out, and do nothing when it is tapped. Done when the Facebook button on the sign-in and sign-up pages is grayed out, tapping it does nothing, and no error shows.
 
-### #306 Every tap that saves shows its result at once
-
-Some taps that save something look dead until the server answers, so the app feels slow.
-
-The thumbs (#215) are one case. The bookmark, Save meal, Log again and Edit caption (#223) may also wait for the server; observe which do. Each should show its new state at the tap, settle when the save lands, and show an error and revert if it fails. #217 measures every control; this item fixes the ones that wait. Done when each of those taps changes the screen before the server answers on a throttled connection, the saved state survives a reload, and a failed save is shown.
-
 ### #307 A card shows the foods the app has found while the numbers are still being worked out
 
 A new post shows a shimmer for most of its wait, though the app knows what the foods are long before it knows their nutrition.
 
 Identification finishes in 3.3 to 8.1 seconds while the active worker time of the whole job is 16.5 to 25.2 seconds (docs/production-performance.md), so for most of the wait the foods are known and only their nutrition is missing. Show the food names as soon as identification finishes, fill in each food's nutrition as it lands, and keep the total unavailable until all of it is in. Every wording and claims rule stays. Done when a post made on production shows its food names before its totals are ready, and no total appears until all of its foods are calculated.
-
-### #139 A held worker lease renews for its full time
-
-A worker that renews its lease does not actually extend it, so a long job can lose the lease while it is still running.
-
-The lease SQL does not extend the lease when a worker renews it. A 300-second time-to-live against about 60 seconds of work hides the defect today. Fix the renewal and add a test. Done when a lease held past its first term is still held and a test proves it.
 
 ### #282 The live app keeps working while judges use it
 
@@ -120,7 +148,7 @@ USDA FoodData Central allows 1,000 requests an hour. A meal takes about 4.7 requ
 
 A judge reads the repository and watches the video, and the README does not yet put in front of them the evidence the four scoring criteria ask for.
 
-Show evidence for each scoring criterion: Impact 30%, Use of Meta AI Tooling 25%, Demo 25% and Technical Depth 20%. Name SAM 3.1, Muse Spark 1.3 and Muse Voice Transcribe 1.0, the job each does and where its model ID is logged, and add Muse Spark Open if #281 lands. Summarise what was built from Oct 26 to Nov 4. The evidence is the test count, the ten-photo evaluation with its stated limits, the real-model gates, the worker timing and the item history that keeps every correction. State plainly that the app records what was eaten, never advises, sets no targets and makes no health claims. State only what the coder's reports prove, and carry no private account detail. Done when the README has those parts and each claim links to its evidence.
+Show evidence for each scoring criterion: Impact 30%, Use of Meta AI Tooling 25%, Demo 25% and Technical Depth 20%. Name SAM 3.1, Muse Spark 1.3 and Muse Voice Transcribe 1.0, the job each does and where its model ID is logged, and add Muse Spark Open, with how a judge switches it on: Profile, then the switch under the handle. Summarise what was built from Oct 26 to Nov 4. The evidence is the test count, the ten-photo evaluation with its stated limits, the real-model gates, the worker timing and the item history that keeps every correction. State plainly that the app records what was eaten, never advises, sets no targets and makes no health claims. State only what the coder's reports prove, and carry no private account detail. Done when the README has those parts and each claim links to its evidence.
 
 ### #60 A judge-facing pass makes the public repository start-here ready
 
@@ -132,61 +160,37 @@ After the last feature merges, one pass replaces the default README with a short
 
 Every app open, tab focus and once-a-minute database wake calls the tick route. It answers three numbers: queued, running and traffic. A cold tick function must first load the whole food-analysis pipeline, so every cold open waits for that.
 
-Unverified review finding. The tick route statically imports the worker drain. The drain statically imports all six job modules. Those pull in the food-analysis pipeline, the Meta model SDK, the SAM parser, the PNG library and the push library. The files are src/app/api/jobs/tick/route.ts, src/lib/worker/handlers.ts and src/components/QueueTicker.tsx. The suggested fix loads each job module with a dynamic import inside the job runner, keyed by job kind, so tick boots with only the queue code. Tests pass their own job table and are untouched. This change touches the worker path, so it needs a deploy and a real phone check before the demo. Done when a cold tick call answers without loading the job modules, and the cold open times before and after are in docs.
+Run 8 merged lazy loading of the job modules in the tick route. Rapid tick calls passed, but they hit a warm function, so a cold start is unmeasured (docs/tick-cold.md), and a post from a real phone through the worker is untested. Done when a cold start of the tick route is timed on production, before and after, with the times in docs, and a post from a real phone completes through the worker.
+
+### #377 Existing photographed drink posts show no caffeine
+
+A photographed cola posted before Fleet 9 shows no caffeine on its card or in the day's total.
+
+The cola records hold 29.7 mg of USDA caffeine, but they have null beverage categories and no linked item-intake rows. #346 fixes new and re-analysed posts only, and no historical backfill ran. Done when existing photographed drink posts show their stored caffeine on the card and in the day's total.
+
+### #325 Regions and deployment timeouts are not declared in the repository
+
+The function and database regions are set in the Vercel and Supabase dashboards, so the repository cannot reproduce the production deployment.
+
+Vercel functions run in iad1 (Northern Virginia) and the database in us-east-2 (Ohio). The project's default function timeout is 300 seconds. The repository declares 300 seconds for the tick route and 20 seconds for the feed route, and vercel.json holds only its ignore rule, with no region. Done when both regions are documented and the repository's deployment and route declarations reproduce the intended production regions and timeouts.
 
 ### #323 Every protected page checks sign-in twice (part of #222)
 
 The middleware calls Supabase to verify the user. The home page then calls Supabase to verify the user again. That is two round trips on every page open, on top of the cold function boot.
 
-Unverified review finding. Files: src/middleware.ts, src/app/(tabs)/page.tsx. Fix: the middleware writes the verified user id into a request header that it overwrites unconditionally. Pages read that header and skip the second check. The middleware still validates the token, so a client cannot fake the header. API routes are not matched by the middleware, so they keep their own check. Done when a page open makes one sign-in call, and an unsigned request still cannot reach a protected page.
+Run 8 merged one sign-in check per page: the server makes one Auth call, and a forged header is refused. Recorded browser windows still contained 10 and six /auth/v1/user requests, so the whole opening is not yet attributed. API authentication stays intact. Done when a page open makes one sign-in call across the server and the browser together, and an unsigned request still cannot reach a protected page.
 
 ### #324 Home computes the day totals twice on every open (part of #222)
 
 The server renders the row of day bubbles with totals for the last 5 days. The browser feed then computes totals again for the feed's days. Today's totals are queried twice on every home open.
 
-Unverified review finding. Files: src/app/(tabs)/page.tsx, src/components/Feed.tsx. Fix: pass the server's totals into the feed and skip the feed's own call for days already covered. It overlaps the Run 7 change that bounds refreshTotals. Done when a home open queries today's totals once.
-
-### #326 Fonts ship as four full TrueType files, about 390KB (part of #222)
-
-First paint on a phone downloads up to 390KB of font files. Four Manrope weights, about 97KB each, are served as they are.
-
-Unverified review finding. Files: src/lib/theme/font.ts, src/assets/fonts/. The font loader does not convert the files to the smaller web format or trim unused characters. Fix: convert them to the web format and trim them to the Latin character set. Done when first paint downloads the fonts at a much smaller size, the text looks the same, and the sizes before and after are in docs.
-
-### #327 The Days page runs a query for every meal
-
-The Days reader fetches the month's posts. Then it runs an items query and a photo query for each post, in batches of 8. A month with 40 meals costs about 80 extra queries, plus a signed web address call per photo. The page gets slower the more the app is used.
-
-Unverified review finding. File: src/lib/posts/days.ts. The month summary in the same file does the same job in one joined query. Fix: give the Days reader the same shape. Done when the Days page for a month loads with a fixed number of queries, however many meals it holds.
-
-### #328 The spending routes have no per-user call cap
-
-Only the agent-token routes cap calls, at 60. The label reader, voice transcription, food search and post creation routes have no per-user cap. A stuck loop calling the label reader burns one Meta model call per hit with nothing to stop it. The same holds for transcription and food search quota.
-
-Unverified review finding. Files: src/lib/agents/tokens.ts, src/app/api/label/read/route.ts, src/app/api/transcribe/route.ts. These routes require sign-in, so the risk is a runaway client, not anonymous abuse. Fix: reuse the agent-token call-count pattern as a per-user cap on the spending routes. Done when a loop calling each of those routes is refused after the cap.
-
-### #329 Upload signing accepts invalid shot sizes and positions
-
-The upload route writes the caller's position, width and height straight into the media rows. A caller can store position -1 or 9999, width 0, or duplicate positions. Later code assumes sane values for ordering and display, so crafted uploads can order or display oddly.
-
-Unverified review finding. File: src/app/api/media/sign-upload/route.ts. Fix: reject negative positions, zero sizes and duplicate positions. Done when each of those uploads is refused.
-
-### #330 No loading screen appears when you move between screens
-
-When you move between screens, nothing shows until the next screen is ready. On a slow open this looks like a frozen app.
-
-Unverified review finding. Done when each tab shows a loading state at once while its page loads.
-
-### #331 The health endpoint cannot tell whether the app works
-
-The health endpoint reports only whether the configuration names are set. It does not tell whether the database or the model path works.
-
-Unverified review finding. Done when the health endpoint reports whether the database and the model path answer.
+Run 8 merged one shared server read of today's totals. Final browser windows still made one or two day-total reads, so a single read across the server and the browser together is unproved. Done when a home open queries today's totals once across the server and the browser together.
 
 ### #279 Sign-up and sign-in resist being hammered
 
 Anyone can send sign-up and sign-in requests as fast as a script can, to guess passwords, create accounts in bulk or run up the email and model bills, and nobody has shown what stops them.
 
-Supabase Auth limits requests per IP address and supports the hCaptcha and Cloudflare Turnstile CAPTCHAs (Supabase docs), and some of its limits can be changed in the dashboard. Nobody has recorded what the production project has set, whether a CAPTCHA is on, or whether a new account's posts, which spend Meta credits, are limited. The owner chose hCaptcha: turn it on for sign-up and sign-in through Supabase Auth's CAPTCHA protection. The owner holds the site key and the secret. The secret goes only into the Supabase dashboard, never into the repository, an issue, an order or this backlog. Observe first: report the Auth limits the production project has set, the CAPTCHA state, what a script that sends sign-ups and sign-ins faster than a person receives, and how many posts a new account can make. A hammering test against production could lock out the demo accounts, so the test must not use the demo accounts and no limit may lock them out. Done when those are reported, hCaptcha is on for sign-up and sign-in, and a script that hammers sign-up and sign-in is refused.
+CAPTCHA stays off until the app goes public. Run 8 merged a dormant hCaptcha widget and token path (#336). Called directly from the coder's machine, Supabase refused the hammer at sign-up 31 and sign-in 32, and the 31 throwaway accounts were deleted. The owner holds the site key and the secret. The secret lives only in Supabase Auth and never goes into the repository, an issue, an order or this backlog. To turn CAPTCHA on, set NEXT\_PUBLIC\_HCAPTCHA\_SITE\_KEY in Vercel production and redeploy, then enable CAPTCHA in Supabase Auth, never the reverse. Done when CAPTCHA is on for sign-up and sign-in on production and a script that hammers sign-up and sign-in is refused.
 
 ### #223 Check that an edited caption shows everywhere
 
@@ -204,7 +208,7 @@ A ChatGPT code review claims the model-written summary is checked for wording bu
 
 The same words for a food can match different references from one call to the next, and one miss turns a whole meal's total into unavailable.
 
-The coder's probes recorded the matcher's reason for every match. Identical lowercase input selected different references across calls, so the variation is in the choice, not only in capital letters. The dipping sauce matched "Dip, NFS" at 432 kcal per 100 g, about 130 kcal for 30 g. A cheeseburger with lettuce, tomato, onion and pickle matched in one answer and not in another; its total of 1,296 kcal became unavailable, with a known subtotal of 467 kcal. Done when the same words give the same match on repeated calls.
+The coder's probes recorded the matcher's reason for every match. Identical lowercase input selected different references across calls, so the variation is in the choice, not only in capital letters. The dipping sauce matched "Dip, NFS" at 432 kcal per 100 g, about 130 kcal for 30 g. A cheeseburger with lettuce, tomato, onion and pickle matched in one answer and not in another; its total of 1,296 kcal became unavailable, with a known subtotal of 467 kcal. A beef tenderloin steak topped with butter returned "Nutrition unavailable" on a production post, so the meal's total counted only its other foods. Sauteed spinach with corn returned "Nutrition unavailable" on another production post. Done when the same words give the same match on repeated calls.
 
 ### #65 The pipeline's tests cannot run offline
 
@@ -260,42 +264,6 @@ A results card saved as a PNG cuts off its footer.
 
 The clipping was seen after PR #271. Which footers clip, on which cards, and whether the card image shown in the feed clips too are not known. Observe first, then fix. Done when a saved card's PNG shows its footer in full for a meal with one photo and for a meal with leftovers photos.
 
-### #18 Days stories row and month grid of past posts
-
-A user cannot look back over what they ate on earlier days.
-
-The row at the top of Home is seven day bubbles, today on the right, each showing the day's first photo or a blank ring if nothing was eaten. Tapping a day plays that day's posts full screen in sequence with tap-to-advance and swipe-left/right between days, and the last card shows "Consumed on Tuesday: 1,840 kcal" with the macro line. A sum of what was eaten is a record, not a goal; no comparison to any other day, no average, no target. The Days tab in the bottom bar opens a month grid that scrolls back. Done when a week with three logged days plays as three stories and the bubbles match.
-
-### #20 Profile grid of the user's post thumbnails with sign out
-
-Profile gives a user no overview of their own posts.
-
-Show a grid of post thumbnails, newest first, three across; tapping one opens the detail. Above it the handle and a Sign out button. Nothing else: no weight, no streak, no badge, no count of anything beyond posts. Done when the grid loads the user's posts and nothing on the screen suggests progress toward anything.
-
-### #2 Shell screen matches the designer's frame and installs as a PWA
-
-The bottom bar and the three placeholder tabs (Search, Days, Profile) render unstyled, and the app cannot be installed to a phone.
-
-The frame, the bottom bar and the five routes are merged and live. Restyle the bar and the three placeholder tabs from the designer's frame using the theme tokens and shared components, and add the PWA remainder: a manifest named "My Food AI" with the designer's icons, a service worker that caches the shell and serves navigations network-first, and the meta tags iPhone Safari needs to install it. No onboarding, no interstitials, no splash beyond the browser's. Done when the bar and the placeholder tabs match the frame at 390 px wide in light mode and the PWA installs on a phone.
-
-### #3 Sign-in and sign-up screens match the designer's frames
-
-The sign-in page and the sign-up page render unstyled.
-
-Restyle both from the designer's frames using the theme tokens and shared components: the brand mark, the email, handle and password fields, the primary button, the line that switches between the two screens, and the Facebook button only under the existing flag. Done when both pages match the frames at 390 px wide in light mode, built from tokens and shared components, and signing in and signing up still work.
-
-### #11 Home screen matches the designer's frames
-
-Home renders unstyled.
-
-Restyle it from the frames using the theme tokens and shared components: the title bar, the seven day bubbles as an empty row drawn from today's date, the card at rest, the expanded analysis block, the shimmer with its traffic line, the no-food card, the could-not-be-analysed card, the caption-only card drawn with the results card component, and the empty state with the one-time tooltip over the +. The analysis block from #12 is on main, and this item restyles it to the frame. Done when every state matches the frames at 390 px wide in light mode from tokens and shared components, and a new post still fills in without a refresh.
-
-### #6 Capture screen matches the designer's frame
-
-The capture sheet renders unstyled.
-
-Restyle it from the frame using the theme tokens and shared components: the dark sheet, the top bar, the camera area, the shutter and gallery buttons, the thumbnail strip, the caption field, the location line as static copy, and the Post button. After a successful post the sheet sends a post-created event before it closes, which later items listen for. Done when the sheet matches the frame at 390 px wide and a post still completes.
-
 ### #193 Page looks for every screen against the designer's frames
 
 No screen has been compared with the designer's frames, and the intake control and the barcode scanner have no frame at all.
@@ -312,7 +280,7 @@ The thumbs above are the first case the owner found. List every tappable control
 
 The three things a new user has never seen are the + sheet, the thread label and the thumbs, and nothing tells them what these are.
 
-On the first visit to each, show a single dismissable tooltip in the style of a photo app's one-time hints, stored as seen in `profiles`. Never shown again, never a tour. Done when a fresh account sees exactly three tooltips across its first session.
+On the first visit to each, show a single dismissable tooltip in the style of a photo app's one-time hints, stored as seen in `profiles`. Never shown again, never a tour. Capture modes added a fourth hint type, so the count is no longer three. Done when a fresh account sees each hint exactly once across its first session.
 
 ## Interdit (Not part of Hackathon)
 
@@ -336,6 +304,6 @@ Blocked until after the hackathon, and blocked by the claims rule: the app shows
 
 ---
 
-† **What this backlog is.** The shared, ordered list of open work for My Food AI, shown live. GitHub issues in aibraincoach/my-food-ai are the record, and BACKLOG.md in the repository is a copy of this list that the PM supplies, so the coder and the planner read the same list. This list usually runs a little ahead of the issues, because an item reaches them only after the PM has filed it. An item stays until its issue is closed by a merged pull request; the "Interdit (Not part of Hackathon)" section holds items that cannot be worked on and says why. Each section is for one role: Backlog for Owner, Backlog for Designer and Engineering backlog, ordered within a section by the pass that will work them together, not by issue number or date.
+† **What this backlog is.** The shared, ordered list of open work for My Food AI, shown live. GitHub issues in aibraincoach/my-food-ai are the record, and BACKLOG.md in the repository is a copy of this list that the PM supplies, so the coder and the planner read the same list. This Doc is private between the PM and the owner, and the coder cannot open it. The coder reads BACKLOG.md, which the owner copies from this Doc. This list usually runs a little ahead of the issues, because an item reaches them only after the PM has filed it. An item stays until its work is merged, its done condition is met and its issue is closed; the "Interdit (Not part of Hackathon)" section holds items that cannot be worked on and says why. Each section is for one role: Backlog for Owner and Engineering backlog, ordered within a section by the pass that will work them together, not by issue number or date.
 
 Every item is a title line and two paragraphs. The title line carries the GitHub issue number, assigned only once the issue exists, and the number is not one of the three parts. The three parts are: (1) a title a person can read; (2) a first paragraph that states the problem in plain language and in enough depth that a person could fix it; (3) a second paragraph with all the context that helps a person solve the problem, meaning what investigation, work or the owner's observations have established, ending in a done condition. Neither paragraph is a dump of everything known. Write short sentences in the active voice, as the Google developer documentation style guide asks. An item without all three parts is not on the backlog.
