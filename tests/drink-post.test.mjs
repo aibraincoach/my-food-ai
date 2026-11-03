@@ -109,7 +109,7 @@ test("batched cards share a day read, preserve legacy food water, and apply each
   assert.equal(result.c.drinksMl,570);assert.equal(result.c.foodMl,420);assert.equal(result.c.totalMl,990);
   assert.equal(result.w.dayCaffeineMg,0);assert.equal(result.c.dayCaffeineMg,95);
   assert.equal(result["non-drink"],null);
-  assert.equal(calls.filter(([table])=>table === "current_post_items").length,1,"current items are shared across cards");
+  assert.equal(calls.filter(([table,columns])=>table === "current_post_items" && columns.includes("item_nutrition(")).length,1,"food-water items and nutrition are shared across cards");
   assert.equal(calls.filter(([table])=>table === "item_nutrition").length,0,"nutrition is embedded in the shared current-item read");
 });
 

@@ -3,6 +3,8 @@ import PostDetail from '@/components/PostDetail';
 import SavedMealsButton from '@/components/SavedMealsButton';
 import { connection } from "next/server";
 import { Suspense } from "react";
+import {preload} from "react-dom";
+import {getFeed} from "@/lib/posts/feed";
 import NeedsInputStrip from "@/components/NeedsInputStrip";
 import Feed from "@/components/Feed";
 import DayRings from "@/components/DayRings";
@@ -28,6 +30,26 @@ async function HomeDays() {
   return <DayRings days={days} totals={totals} today={today} zone={zone} zoneKnown={Boolean(cookieZone)} />;
 }
 
+// Stream real first-card markup before downloading and hydrating the client
+// bundle. Optional day/hydration summaries are filled by the HTTP revalidation.
+async function HomeFeed() {
+  await connection();
+  let initialPage: Awaited<ReturnType<typeof getFeed>> | undefined;
+  let initialUserId: string | undefined;
+  try {
+    const db = await createClient();
+    const {data: {user}} = await db.auth.getUser();
+    if (user) {
+      initialUserId = user.id;
+      const zone = validZone((await cookies()).get('time-zone')?.value);
+      initialPage = await getFeed(db, user.id, null, zone, 6, {summaries: false});
+      const photo = initialPage.posts[0]?.photoUrl;
+      if (photo) preload(photo, {as: 'image', fetchPriority: 'high'});
+    }
+  } catch { /* The client boundary can retry while the shell stays visible. */ }
+  return <Feed initialPage={initialPage} initialUserId={initialUserId} />;
+}
+
 export default async function Home({searchParams}:{searchParams:Promise<{post?:string}>}) {
   const {post}=await searchParams;
   return <DesktopWorkspace detail={post?<PostDetail id={post}/>:undefined}><main className="flex flex-1 flex-col">
@@ -35,7 +57,7 @@ export default async function Home({searchParams}:{searchParams:Promise<{post?:s
     <NeedsInputStrip />
     <Suspense fallback={<div className="h-bar-h" />}><HomeDays /></Suspense>
     <Suspense fallback={<p className="px-screen-x text-detail text-muted">Loading feed…</p>}>
-      <Feed />
+      <HomeFeed />
     </Suspense>
   </main></DesktopWorkspace>;
 }

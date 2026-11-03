@@ -14,6 +14,10 @@ export type PostStatus =
 
 export interface FeedItem {
   not_eaten_grams?:number|null;
+  not_eaten_calories?:number|null;
+  not_eaten_count_text?:string|null;
+  count_text?:string|null;
+  supersedes?:string|null;
   gtin?: string | null;
   id: string;
   name: string;
@@ -172,7 +176,14 @@ export async function toFeedPosts(db: SupabaseClient, rows: PostRow[], zone = "U
   const after = await revisions();
   const revisionById = new Map(ready.map((row, index) => [row.id, before[index] && JSON.stringify(before[index]) === JSON.stringify(after[index]) ? after[index] : null]));
   return rows.map(row => {
-    const items = nutrition.get(row.id) ?? [];
+    const items: FeedItem[] = (nutrition.get(row.id) ?? []).map(item => ({
+      id: item.id, name: item.name, gtin: item.gtin, portion_text: item.portion_text, portion_grams: item.portion_grams,
+      not_eaten_grams: item.not_eaten_grams, not_eaten_calories: item.not_eaten_calories, not_eaten_count_text: item.not_eaten_count_text,
+      count_text: item.count_text, supersedes: item.supersedes, calories: item.calories, protein_g: item.protein_g, carbs_g: item.carbs_g,
+      fat_g: item.fat_g, fibre_g: item.fibre_g, sugar_g: item.sugar_g, sodium_mg: item.sodium_mg,
+      // Feed cards need water only; full micronutrients belong to post detail.
+      micronutrients: item.micronutrients.filter(entry => entry.nutrientId === 1051),
+    }));
     const slides = media.filter(entry => entry.post_id === row.id).flatMap(entry => {
       const url = urls.get(entry.kind === 'card' ? entry.storage_path : feedPathFor(entry.storage_path));
       return url ? [{ id: entry.id, url, kind: entry.kind as 'photo' | 'card', not_eaten: Boolean(entry.not_eaten) }] : [];
@@ -195,7 +206,8 @@ export async function getFeed(
   userId: string,
   before: string | null = null,
   zone = "UTC",
-  limit = FEED_PAGE_SIZE
+  limit = FEED_PAGE_SIZE,
+  options: { summaries?: boolean } = {}
 ): Promise<{posts: FeedPost[]; nextCursor:string|null; days: FeedDayTotal[]}> {
   const cursor = before === null ? null : parseFeedCursor(before);
   limit = Math.max(1, Math.min(FEED_PAGE_SIZE, Math.trunc(limit) || FEED_PAGE_SIZE));
@@ -207,14 +219,16 @@ export async function getFeed(
     .order("id", { ascending: false })
     .limit(limit + 1);
   query = cursor ? query.or(`and(or(${VISIBLE_MEAL_FILTER}),or(eaten_at.lt.${cursor.eaten_at},and(eaten_at.eq.${cursor.eaten_at},id.lt.${cursor.id})))`) : query.or(VISIBLE_MEAL_FILTER);
-  const {data,error} = await query.abortSignal(AbortSignal.timeout(8000));
+  const postStarted = Date.now();
+  const {data,error,status} = await query.abortSignal(AbortSignal.timeout(8000));
+  if (typeof window === 'undefined') console.info(`feed read posts ${Date.now() - postStarted} status ${status}`);
   if (error) {
     throw new Error(error.message);
   }
   const rows = (data ?? []) as PostRow[];
   const page = rows.slice(0,limit);
   const posts = await toFeedPosts(supabase,page,zone);
-  const [hydration, days] = await Promise.all([
+  const [hydration, days] = options.summaries === false ? [{}, []] as [Record<string, import('@/lib/intake/hydration').PostHydrationData>, FeedDayTotal[]] : await Promise.all([
     optionalRead('hydration', () => getPostHydrationData(supabase, userId, posts.map(post => ({...post,items:post.items.map(item=>({...item,micronutrients:item.micronutrients??[]}))})), zone), {}),
     optionalRead('day-totals', () => getDayTotals(supabase,userId,zone,page.map(row=>dateInZone(row.eaten_at,zone))), []),
   ]);

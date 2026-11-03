@@ -243,7 +243,9 @@ export function mapCurrentItems(data: BatchedItem[], priorCalories = new Map<str
     const original = priorCalories.get(item.supersedes ?? '');
     const originalGrams = toNumber(item.portion_grams) + Number(item.not_eaten_grams ?? 0);
     const notEatenCalories = item.not_eaten_calories !== undefined ? item.not_eaten_calories : item.not_eaten_grams == null ? undefined : item.not_eaten_grams === 0 ? 0 : original == null || originalGrams <= 0 ? null : original * item.not_eaten_grams / originalGrams;
-    return { ...item, not_eaten_calories: notEatenCalories, calories: normalized?.calories ?? null,
+    const {item_nutrition: _embedded, post_id: _postId, ...fields} = item;
+    void _embedded; void _postId;
+    return { ...fields, not_eaten_calories: notEatenCalories, calories: normalized?.calories ?? null,
       protein_g: normalized?.protein_g ?? null, carbs_g: normalized?.carbs_g ?? null, fat_g: normalized?.fat_g ?? null,
       fibre_g: normalized?.fibre_g ?? null, sugar_g: normalized?.sugar_g ?? null, sodium_mg: normalized?.sodium_mg ?? null,
       micronutrients: normalized?.micronutrients ?? [], source_ref: normalized?.source_ref ?? null, food_category: normalized?.food_category ?? null };
@@ -275,9 +277,8 @@ export async function getCurrentItemsForPosts(db: SupabaseClient, ids: string[])
       prior.set(parent.id, calories == null ? null : toNumber(calories));
     }
   }
-  for (const item of mapCurrentItems(items, prior)) {
-    const postId = (item as CurrentItem & { post_id: string }).post_id;
-    result.get(postId)?.push(item);
+  for (const [index, item] of mapCurrentItems(items, prior).entries()) {
+    result.get(items[index].post_id)?.push(item);
   }
   return result;
 }

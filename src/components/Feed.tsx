@@ -21,9 +21,9 @@ const RETRY_INTERVAL_MS = 1000;
 
 // Home discovers new rows independently of the optional Realtime connection.
 // Per-card refreshes remain in RealtimePost, so discovery fetches only IDs.
-export default function Feed() {
+export default function Feed({initialPage, initialUserId}: {initialPage?: {posts: FeedPost[]; days: FeedDayTotal[]; nextCursor: string | null}; initialUserId?: string} = {}) {
   const router = useRouter();
-  const [cacheUserId, setCacheUserId] = useState<string | null>(null);
+  const [cacheUserId, setCacheUserId] = useState<string | null>(initialUserId ?? null);
   const cache = useCachedFeed(cacheUserId);
   const cacheRef = useRef(cache);
   useEffect(() => { cacheRef.current = cache; }, [cache]);
@@ -33,23 +33,23 @@ export default function Feed() {
   const uploads=useUploads().filter(upload=>upload.posted);
   const sentinel = useRef<HTMLDivElement>(null);
   const loadMore = useRef<() => void>(()=>{});
-  const [state, setState] = useState<State>({ kind: "loading" });
+  const [state, setState] = useState<State>(initialPage ? {kind: "ready", posts: initialPage.posts, days: initialPage.days} : { kind: "loading" });
   const [pageError, setPageError] = useState(false);
 
   useEffect(() => {
     const supabase = createClient();
     const zone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-    const dayTotals = new Map<string, FeedDayTotal>();
+    const dayTotals = new Map<string, FeedDayTotal>((initialPage?.days ?? []).map(day => [day.day, day]));
     const uploadDaysToRead=new Set(uploadManager.list().filter(upload=>upload.posted).map(upload=>dateInZone(upload.eatenAt,zone)));
     let totalsGeneration = 0;
     const mergeDays = (days: FeedDayTotal[]) => { for (const day of days) dayTotals.set(day.day, day); };
     let live = true;
-    let userId: string | null = null;
+    let userId: string | null = initialUserId ?? null;
     let discovering = false;
-    let baseline: FeedPost[] = [];
-    let loaded = false;
+    let baseline: FeedPost[] = initialPage?.posts ?? [];
+    let loaded = Boolean(initialPage);
     let initialLoading = true;
-    let cursor: string | null = null;
+    let cursor: string | null = initialPage?.nextCursor ?? null;
     let loadingMore = false;
     let generation = 0;
     const unavailable = new Set<string>();
@@ -312,7 +312,7 @@ export default function Feed() {
       document.removeEventListener("visibilitychange", focus);
       void supabase.removeChannel(channel);
     };
-  }, [router]);
+  }, [router, initialPage, initialUserId]);
 
   useEffect(() => {
     const publish = () => window.dispatchEvent(new CustomEvent("feed-state", {
