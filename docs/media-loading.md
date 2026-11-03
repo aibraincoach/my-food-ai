@@ -139,3 +139,18 @@ The final combined production revision is `6996817cec6aaf865357e9fee6550abf27cdf
 All ten documents returned 200 with the image Link. Cold photos transferred one 16,598-byte WebP each; all warm photos transferred zero network bytes. The prior #342 production series is retained as **partial: four of five cold photos passed, first 2,201.0 ms**. The five final passes do not erase that observation. Independent-preview attempts had worker/protection differences, so their warm-cache results are not treated as equivalent to production.
 
 The largest designated test account (147 posts) also passed 100 actual full browser openings: no digest, blank/error feed, sign-in redirect or page exception. A separate 100-run feed-reader/Home HTTP probe passed 100/100 on each boundary. These two reliability streams ran concurrently after the five photo pairs; the photo experiment was separate. Browser visibility was confirmed after DOMContentLoaded plus a one-second settle; it is not substituted for the animation-frame first-photo observer. [Full report](run8-final-report.md), [sanitized observations](evidence/run8-production/receipt.md). Physical-phone mobile-data checks and independent lower-photo competition isolation remain owner acceptance under #222/#305.
+
+## Session refresh (Fleet 10, #376)
+
+Observed 2026-11-03T09:16:01.168Z in Chromium390×844 with Fast4G (150ms,200kB/s down,93.75kB/s up), designated test account1. Three actual owner-scoped feed photo URLs were rendered in a temporary image probe on Home. Service workers were blocked to isolate browser HTTP cache; this is a photo-cache probe, not the plan’s complete scroll-based page timing. The auth cookie’s expires_at was moved into the past, then Profile and Home navigations let normal SSR refresh it. Both runs confirmed the session cookie changed. No production sign-up or live form probe was sent.
+
+| Run | Photo | After refresh source | Network bytes |
+| --- | --- | --- | ---: |
+| before | 1 | memory cache | 0 |
+| before | 2 | memory cache | 0 |
+| before | 3 | memory cache | 0 |
+| after | 1 | memory cache | 0 |
+| after | 2 | memory cache | 0 |
+| after | 3 | memory cache | 0 |
+
+The old-header production run also transferred zero bytes, so this experiment does not reproduce Cookie-induced refetching or establish a measured improvement. The planned header change ships independently of the measurement. The preview after run measured head `721f3daa389f52c81319225a0a2cf391989e9b9a`. A repeat on the merged production revision remains required before issue closure.
