@@ -142,7 +142,7 @@ The largest designated test account (147 posts) also passed 100 actual full brow
 
 ## Session refresh (Fleet 10, #376)
 
-Observed 2026-11-03T09:16:01.168Z in Chromium390×844 with Fast4G (150ms,200kB/s down,93.75kB/s up), designated test account1. Three actual owner-scoped feed photo URLs were rendered in a temporary image probe on Home. Service workers were blocked to isolate browser HTTP cache; this is a photo-cache probe, not the plan’s complete scroll-based page timing. The auth cookie’s expires_at was moved into the past, then Profile and Home navigations let normal SSR refresh it. Both runs confirmed the session cookie changed. No production sign-up or live form probe was sent.
+Observed 2026-11-03T09:16:01.168Z in Chromium390×844 with a custom network profile (150ms,200kB/s down,93.75kB/s up), rather than the current DevTools Fast4G preset (165ms,1,012,500B/s down,168,750B/s up), designated test account1. Three actual owner-scoped feed photo URLs were rendered in a temporary image probe on Home. Service workers were blocked to isolate browser HTTP cache; this is a photo-cache probe, not the plan’s complete scroll-based page timing. The auth cookie’s expires_at was moved into the past, then Profile and Home navigations let normal SSR refresh it. Both runs confirmed the session cookie changed. No production sign-up or live form probe was sent.
 
 | Run | Photo | After refresh source | Network bytes |
 | --- | --- | --- | ---: |
