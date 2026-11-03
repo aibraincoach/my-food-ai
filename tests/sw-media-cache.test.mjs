@@ -119,16 +119,16 @@ test('opaque images remain uncached while readable CORS responses can be retaine
  await w.request(image,{mode:'cors',credentials:'omit'});assert.equal(w.stores.get(MEDIA).size,1);
 });
 test('activation retains privacy metadata and retires the old authorization-free media cache',async()=>{
- const w=worker();await w.caches.open('my-food-ai-shell-v1');await w.caches.open('mfa-media-v1');await w.caches.open('my-food-ai-shell-v2');await w.caches.open(MEDIA);
- await w.event('activate');assert.deepEqual([...w.stores.keys()].sort(),[CONTROL,MEDIA,'my-food-ai-shell-v2'].sort());
+ const w=worker();await w.caches.open('my-food-ai-shell-v1');await w.caches.open('mfa-media-v1');await w.caches.open('my-food-ai-shell-v3');await w.caches.open(MEDIA);
+ await w.event('activate');assert.deepEqual([...w.stores.keys()].sort(),[CONTROL,MEDIA,'my-food-ai-shell-v3'].sort());
 });
 test('signed-in navigation HTML is never added to a shared cache',async()=>{
  const w=worker();w.setFetch(async()=>new Response('private HTML'));assert.equal(await(await w.navigate('https://app.example/')).text(),'private HTML');
- assert.equal(w.stores.get(CONTROL).size,0);assert.equal(w.stores.has('my-food-ai-shell-v2'),false);
+ assert.equal(w.stores.get(CONTROL).size,0);assert.equal(w.stores.has('my-food-ai-shell-v3'),false);
 });
 test('install stores only anonymous shell responses with credentials omitted',async()=>{
  const w=worker(),requests=[];w.setFetch(async request=>{requests.push(request);return new Response('anonymous');});await w.event('install');
- assert.equal(requests.length,2);assert.ok(requests.every(request=>request.credentials==='omit'));assert.equal(w.stores.get('my-food-ai-shell-v2').size,2);
+ assert.equal(requests.length,3);assert.ok(requests.every(request=>request.credentials==='omit'));assert.equal(w.stores.get('my-food-ai-shell-v3').size,3);
 });
 
 test('validated navigation UUID headers authorize the second visit before JavaScript registration',async()=>{
