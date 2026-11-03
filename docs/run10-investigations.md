@@ -1,5 +1,7 @@
 # Fleet 10 investigations — in progress
 
+Historical cutoff: this document retains its original run observations. Current main/production, open PRs, test counts and upcoming-fleet authority are in CLAUDE.md. #474 is the open upcoming-fleet docs PR; #463 is merged. Old "in progress", pending and excluded-scope statements do not establish current execution.
+
 Read-only production measurements and designated test-account actions only. Unknown means unproven; local tests never substitute for production acceptance.
 
 ## 7a. Sign-in addresses (#368)

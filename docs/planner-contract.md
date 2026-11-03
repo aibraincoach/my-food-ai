@@ -21,11 +21,11 @@ A plan is handed to a coder who has none of the planner's context. Every decisio
 
 ## Run shape
 
-The whole plan is written, and it runs on one prompt to the end. No stops, no pauses, no stages that wait on the PM, no blank for the PM to fill in, no report-and-wait between items, no mid-plan re-planning. The plan is its own merge order: it names the sequence and the coder reads each head SHA itself. The plan states at the top how many times it stops; for an unattended plan the answer is zero. If one coder cannot do a step, such as browser work without a browser, the plan says how the hand-off happens without a person relaying it. Every item has a number, and the coder's final report lists every number as done or not done. RT, 2026-10-01, verbatim: "A plan should run all the way 100% to the end. All testing, all browser testing, all fucking AGY, all fucking everything happens at the very fucking end after all the fucking code is built."
+The whole plan is written, and it runs on one prompt to the end. No stops, no pauses, no stages that wait on the PM, no blank for the PM to fill in, no report-and-wait between items, no mid-plan re-planning. A plan is not a merge order. Each merge needs an explicit owner order naming its PR and full head after the required evaluation/review. The plan states at the top how many times it stops; for an unattended plan the answer is zero. If one coder cannot do a step, such as browser work without a browser, the plan says how the hand-off happens without a person relaying it. Every item has a number, and the coder's final report lists every number as done or not done. RT, 2026-10-01, verbatim: "A plan should run all the way 100% to the end. All testing, all browser testing, all fucking AGY, all fucking everything happens at the very fucking end after all the fucking code is built."
 
 ## Review and testing
 
-All the code is built first. Reviews run in a sub-agent beside the build and never block building. Testing, the page look and the merges come at the very end. One external reviewer per PR, one pass per head, run to zero blockers; the same reviewer confirms the fixes only. Bringing main into a branch earns no new review. A plan whose first item invokes a reviewer is malformed.
+All the code is built first. Reviews run in a sub-agent beside the build and never block building. Testing, the page look and the merges come at the very end. One external reviewer per PR, one pass per head, run to zero blockers; the same reviewer confirms the fixes only. A changed head needs fresh applicable review, including a conflict-resolution merge from main. A plan whose first item invokes a reviewer is malformed.
 
 ## Legal halts only
 
@@ -47,7 +47,7 @@ What you checked yourself today is a fact. State it with the check beside it: th
 
 ## Authorization
 
-A plan authorizes nothing until RT approves it and it is dispatched. Then it is the merge order for the PRs it names. Where a plan has more than one migration, it states the apply and merge order by number. Merges come last, in ascending PR number, with the docs PR never merged unless RT says so.
+A plan authorizes nothing until RT approves it and it is dispatched. A dispatched plan still does not replace a later explicit named-PR/full-head merge order. Where a plan has more than one migration, it states the apply and merge order by number. Merges come last, in ascending PR number, with the docs PR never merged unless RT says so.
 
 ## Customer contact
 

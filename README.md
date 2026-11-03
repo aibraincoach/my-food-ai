@@ -21,7 +21,7 @@ USDA FoodData Central supplies nutrition references. It is a database, not a mod
 
 **Impact.** Food logging is abandoned because it is slow and its numbers are opaque. Here a photo is the whole entry, every number traces to the USDA reference it came from, and a correction in plain words ("I ate half the rice") changes the record while keeping the earlier version. [Demo record](docs/demo.md).
 
-**Use of Meta AI tooling.** Three Meta models run in production on every photo meal, and Meta's open-weight Muse Spark Open is a real, switchable path. [Ten-photo evaluation and its limits](docs/eval.md), [open-weight comparison](docs/open-weights.md).
+**Use of Meta AI tooling.** Three Meta models are integrated in production; voice transcription runs for spoken corrections, and Meta's open-weight Muse Spark Open is a real, switchable path. [Ten-photo evaluation and its limits](docs/eval.md), [open-weight comparison](docs/open-weights.md).
 
 **Demo.** A photo becomes an outlined, calculated meal; a spoken correction changes it; a leftovers photo is marked "not eaten"; Days and Search find it again. [Demo record](docs/demo.md).
 
@@ -29,7 +29,7 @@ USDA FoodData Central supplies nutrition references. It is a database, not a mod
 
 ## What was built
 
-From Run 1 to Fleet 10: capture by photo, caption, barcode and nutrition label; outlined food detail; editable item history and corrections; Saved meals and Log again; drinks with water and caffeine; Days and Search; a desktop layout; durable uploads; delete with Undo and Recently deleted; and revocable meal-agent access. Each run's plan and report are in [docs](docs/), for example the [Run 8 report](docs/run8-final-report.md).
+Across the completed runs: capture by photo, caption, barcode and nutrition label; outlined food detail; editable item history and corrections; Saved meals and Log again; drinks with water and caffeine; Days and Search; a desktop layout; durable uploads; delete with Undo and Recently deleted; and revocable meal-agent access. Each run's plan and report are in [docs](docs/), for example the [Run 8 report](docs/run8-final-report.md).
 
 ## Tests
 

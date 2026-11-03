@@ -31,3 +31,7 @@ See `docs/codex-review-procedure.md` and `skills/codex-review/SKILL.md`.
 ## Triage
 
 Every review gets a separate triage comment and file. Mark each finding Real, Not real, or Cannot tell. Last line: `Real findings: <n>`.
+
+## Explicit owner exception — November 3, 2026
+
+The owner explicitly requested AGY review of docs PR #463. AGY Gemini 3.8 Flash High reviewed exact head `dec5f82c35c36d74874a74698d60d6fb90ffae92`, complete coverage 4/4 paths and parts, BLOCKERS: NONE, receipt https://github.com/aibraincoach/my-food-ai/pull/463#issuecomment-6608958569. The earlier 4dec1ed run was cancelled after the head moved and is not a valid final-head receipt. This exception does not authorize unrelated coder-launched reviews or merges. #463 subsequently merged under a separate explicit exact-head order; upcoming-fleet docs #474 must remain open.

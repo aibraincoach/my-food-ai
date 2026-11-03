@@ -1,5 +1,7 @@
 # Fleet 10 execution report — reconciled handoff
 
+Historical cutoff: this document retains its original run observations. Current main/production, open PRs, test counts and upcoming-fleet authority are in CLAUDE.md. #474 is the open upcoming-fleet docs PR; #463 is merged. Old "in progress", pending and excluded-scope statements do not establish current execution.
+
 Reconciled 2026-11-03 after the 14:37 UTC handoff. This report separates completed implementation from incomplete acceptance. The full supplied scope remains [the plan](plan-run10.md). Physical-phone acceptance and owner-only settings remain with RT.
 
 Latest user scope clarification: **#413 and Round6 belong to the next design fleet and are excluded. Only phone differences from #353–#367 remain in Fleet10; superseded desktop-frame differences are skipped.** Desktop changes already merged before this clarification are recorded for handoff and will not be expanded or rolled back as part of this run.
