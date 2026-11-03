@@ -20,7 +20,7 @@ export async function POST(request:Request,{params}:{params:Promise<{id:string}>
   const code=(error as {code?:string}).code;
   if(code==='42501')return NextResponse.json({error:'Meal not found.'},{status:404});
   if(code==='22023')return NextResponse.json({error:'Choose an analysis revision.'},{status:400});
-  if(code==='40001'){
+  if(code==='40001'||code==='PT409'){
    const {data:current}=await client.rpc('feedback_revision',{p_post_id:id});
    return NextResponse.json({error:'Feedback could not be saved.',revision:current??null},{status:409});
   }
