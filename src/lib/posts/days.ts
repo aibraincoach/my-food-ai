@@ -80,8 +80,8 @@ export async function getDays(supabase: SupabaseClient, userId: string, zone: st
       // Optional missing photos must never hide a meal or its nutrition.
     }
   }
-  // Water and caffeine logged on a day that has meals appear as that day's intake totals (never a target).
-  if (groups.size) {
+  // Water and caffeine appear on their day, including a day with no meal (never a target).
+  {
     // Every row, in a fixed order, a page at a time: a capped response must never pass for the full total.
     const intake: (IntakeRow & {post_id?:string|null})[] = [];
     let intakeError = false;
@@ -95,7 +95,12 @@ export async function getDays(supabase: SupabaseClient, userId: string, zone: st
     }
     if (!intakeError) {
       const byDay = groupIntakeByDay(await visibleDrinkRows(supabase,userId,intake), (instant) => dateInZone(instant, zone));
-      for (const day of groups.values()) day.intake = byDay.get(day.date) ?? emptyIntake();
+      for (const [date, totals] of byDay) {
+        if (date < from || date > through) continue;
+        const day = groups.get(date);
+        if (day) day.intake = totals;
+        else groups.set(date, {date, posts: [], totals: sumNutrition([]), intake: totals});
+      }
     }
   }
   return [...groups.values()].sort((a, b) => a.date.localeCompare(b.date));
@@ -181,7 +186,7 @@ export async function getDayTotals(db: SupabaseClient, userId: string, zone: str
   return [...groups.values()].map(group=>({...group,missing:[...new Set(group.missing)],kcal:group.known===0&&group.missing.length?null:group.kcal}));
 }
 
-export interface MonthDay { day: string; kcal: number | null; posts: number; ready: boolean; missing?:string[]; known?:number }
+export interface MonthDay { intake?: boolean; day: string; kcal: number | null; posts: number; ready: boolean; missing?:string[]; known?:number }
 export interface MonthSummary { days: MonthDay[]; posted: number }
 export function shiftMonth(month: string, offset: number): string {
   const date = new Date(`${month}-01T12:00:00Z`);
@@ -225,6 +230,19 @@ export async function getMonthSummary(supabase: SupabaseClient, userId: string, 
       groups.set(date, day);
     }
     if ((data?.length ?? 0) < 100) break;
+  }
+  for (let offset = 0; ; offset += 1000) {
+    const { data, error } = await supabase.from("intake_logs").select("logged_at,post_id")
+      .eq("user_id", userId).is("post_id", null)
+      .gte("logged_at", `${shiftDay(from, -1)}T00:00:00Z`).lt("logged_at", `${shiftDay(through, 2)}T00:00:00Z`)
+      .order("logged_at", { ascending: true }).order("id", {ascending: true}).range(offset, offset + 999);
+    if (error) break;
+    for (const row of data ?? []) {
+      const date = dateInZone(row.logged_at, zone);
+      if (date < from || date > through || groups.has(date)) continue;
+      groups.set(date, {day: date, kcal: null, posts: 0, ready: false, missing: [], known: 0, intake: true});
+    }
+    if ((data?.length ?? 0) < 1000) break;
   }
   return { days: [...groups.values()].map(day => ({ ...day, missing:[...new Set(day.missing??[])], kcal: day.ready && !((day.known??0)===0&&day.missing?.length) ? day.kcal : null })).sort((a, b) => a.day.localeCompare(b.day)), posted: groups.size };
 }
