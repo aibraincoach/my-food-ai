@@ -9,7 +9,7 @@ const entries: { entry: PostEntry; label: string; icon: IconName; angle: number 
   { entry: "text", label: "Text", icon: "entry-text", angle: 125 },
   { entry: "drink", label: "Drink", icon: "entry-drink", angle: 90 },
   { entry: "coffee", label: "Coffee", icon: "entry-coffee", angle: 55 },
-  { entry: "saved", label: "Saved", icon: "plus", angle: 20 },
+  { entry: "saved", label: "Saved", icon: "bookmark", angle: 20 },
 ];
 export default function PlusMenu({ open, onClose }: { open: boolean; onClose: () => void }) {
   const ref = useRef<HTMLDivElement>(null);
@@ -49,7 +49,7 @@ export default function PlusMenu({ open, onClose }: { open: boolean; onClose: ()
       const y=visible?-Math.sin(radians)*radius:0;
       return <button key={entry} data-entry={entry} aria-label={label} onClick={()=>{onClose();window.dispatchEvent(new CustomEvent("open-entry",{detail:{entry}}));}}
         className="fixed flex flex-col items-center justify-center rounded-circle"
-        style={{left:centre.x-size/2,top:centre.y-size/2,width:size,height:size,background:entry==="saved"?"transparent":tokens.colors.white,border:entry==="saved"?`${tokens.border.hairline}px dashed ${tokens.colors.ring}`:undefined,boxShadow:entry==="saved"?undefined:tokens.colors['shadow-entry'],color:entry==="saved"?tokens.colors.muted:tokens.colors.text,opacity:visible?1:0,transform:`translate(${x}px,${y}px) scale(${visible?1:0.7}) rotate(${visible?0:-60}deg)`,transition:`transform ${open?360:220}ms cubic-bezier(0.34,1.3,0.64,1), opacity ${open?160:220}ms`,transitionDelay:open?`${index*30}ms`:"0ms"}}>
+        style={{left:centre.x-size/2,top:centre.y-size/2,width:size,height:size,background:tokens.colors.white,boxShadow:tokens.colors['shadow-entry'],color:tokens.colors.text,opacity:visible?1:0,transform:`translate(${x}px,${y}px) scale(${visible?1:0.7}) rotate(${visible?0:-60}deg)`,transition:`transform ${open?360:220}ms cubic-bezier(0.34,1.3,0.64,1), opacity ${open?160:220}ms`,transitionDelay:open?`${index*30}ms`:"0ms"}}>
         <span className="absolute bottom-full mb-2 whitespace-nowrap text-meta font-medium text-text" style={{opacity:visible?1:0,transition:"opacity 100ms",transitionDelay:open?`${260+index*30}ms`:"0ms"}}>{label}</span>
         <Icon name={icon} size={tokens.spacing['item-row']} />
       </button>;
