@@ -72,7 +72,7 @@ test('a third search tries the base food before declaring nutrition unavailable'
  const steak={fdcId:42,description:'Beef steak, cooked',dataType:'Survey (FNDDS)',foodNutrients:[{nutrientId:1008,value:200}]};
  const result=await matchFood('beef tenderloin steak topped with butter','',{
   search:async query=>{queries.push(query);return query==='beef'?[steak]:[]},
-  choose:async(_name,_caption,foods)=>foods.length?{id:42,query:null,query_food:null,reason:'Compatible steak'}:{id:null,query:'beef steak',query_food:'beef',reason:'Try a broader reference'},
+  choose:async(_name,_caption,foods,retry)=>foods.length?{id:42,query:null,query_food:null,reason:'Compatible steak'}:retry?{id:null,query:null,query_food:null,reason:'No compatible refined result'}:{id:null,query:'beef steak',query_food:'beef',reason:'Try a broader reference'},
  });
  assert.deepEqual(queries,['beef tenderloin steak topped with butter','+beef steak','beef']);
  assert.equal(result.food.fdcId,42);

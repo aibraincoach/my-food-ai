@@ -57,6 +57,7 @@ async function choose(name: string, caption: string, foods: FdcFood[], retry: bo
 // At most three searches: the name, the model's improved query, then its base food. A valid rejection stays unknown; provider errors remain retryable errors.
 export async function matchFood(name: string, caption: string, dependencies: MatchDependencies, signal?:AbortSignal): Promise<{food:FdcFood|null; reason:string; searches:number}> {
   let query=foodSearchQuery(name);
+  let baseQuery:string|null=null;
   if(!query)return {food:null,reason:"The item has no searchable food name.",searches:0};
   for(let attempt=0;attempt<3;attempt++){
     if(signal?.aborted)throw new MetaApiError(503,"Food resolution budget was exhausted.");
@@ -66,8 +67,10 @@ export async function matchFood(name: string, caption: string, dependencies: Mat
     if(decision.id!==null&&!food)throw new Error("Food decision selected an ineligible candidate.");
     if(food)return {food,reason:decision.reason,searches:attempt+1};
     const improved=decision.query?(decision.query_food?requiredFoodSearchQuery(decision.query,decision.query_food):foodSearchQuery(decision.query)):null;
-    const base=decision.query_food?foodSearchQuery(decision.query_food):null;
-    const next=attempt===0?improved:base;
+    // Retry decisions intentionally return no further query. Retain the
+    // first refinement's category so a second rejection can still use it.
+    if(attempt===0&&decision.query_food)baseQuery=foodSearchQuery(decision.query_food);
+    const next=attempt===0?improved:baseQuery;
     if(attempt===2||!next||next.toLowerCase()===query.toLowerCase())return {food:null,reason:decision.reason,searches:attempt+1};
     query=next;
   }
