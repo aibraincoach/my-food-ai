@@ -112,3 +112,5 @@ Evidence closed #382, #381/#383, #107, #316, #228, #325/#378, #371/#215/#389, #6
 | #439 | run10/fix-372 | OPEN | `18b0f71f81d579d176fe7085734885ef9a808633` |
 
 Production closure update12:45UTC: #376 closed after actual token rotation and three natural photos each memorycache0bytes. Evidence and method correction merged in#436.
+
+Evidence update12:51UTC: final7h ten natural production opens on stable6f857ac passed10/10, firstcard443.2–894.6ms median754.55,1browserAuth/0directdayreads each. Five natural feed photos total116762B; strip photos separately63720B (497591B before). Worker wire bytes are separately retained. No initial-photo latency claim because initialcard is text-only. Tickpair firstobserved47safterREADY0.178652/0.297646s is not cold-instance evidence. #368/#374/#373/#375/#372 received report-answer comments; #304/#376 are closed with production evidence.

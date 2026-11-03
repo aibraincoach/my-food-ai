@@ -56,7 +56,7 @@ Read-only production measurements and designated test-account actions only. Unkn
 | original | automation | 47666 | 4296289493 | 299 |
 | original | browser | 788 | 162825965 | 8 |
 
-**Answer** — Browser-class feed copies are the largest browser-class source:387,772,572 reported bytes over seven days (55,396,082 bytes/day averaged across this window). Automation originals are larger overall at4,296,289,493 bytes. This changes the interpretation: automated acceptance/fixture activity is a major measured Storage source. The session-refresh cache change is #391; new feed/photo timing remains to be measured after it reaches production.
+**Answer** — Browser-class feed copies are the largest browser-class source:387,772,572 reported bytes over seven days (55,396,082 bytes/day averaged across this window). Automation originals are larger overall at4,296,289,493 bytes. This changes the interpretation: automated acceptance/fixture activity is a major measured Storage source. The session-refresh cache change is #391; current-production #439 strip-photo repeat confirms497591→63720B for the same3photos, with no project-wide billed-savings claim.
 
 **Unknown** — User-agent classification is not identity and cannot prove that every browser-class request is a real user. Content-Length is a lower bound, not billed egress, and this week includes older code. Current-deploy savings cannot be inferred from the seven-day aggregate; no unconditional new compression is justified from this table alone.
 
@@ -155,12 +155,16 @@ Read-only production measurements and designated test-account actions only. Unkn
 | Separate actual GET tick pair,11:09:48UTC, READYe074235 | HTTP200,0.612575s then0.218436s |
 | Natural production session refresh,12:42UTC, READY66f7f8e | Actual token rotated;3 natural rendered photos each memorycache0bytes, genuineFast4G |
 | Phone NeedsInputStrip origin diagnostic, READYf8b0324 | 3 actual40px thumbnails used signed JPEGs totaling497591B; source confirmed NeedsInputStrip, not prefetch |
+| Final natural10opens, READY6f857ac,12:48:57–12:50:42UTC | Firstcard443.2–894.6ms, median754.55;10/10 pass,0intercepts/pageerrors |
+| Final natural per-open browser reads | 1 Auth,0direct day reads each |
+| Final first5 actual natural feed bodies | 116762B; NeedsInputStrip separate63720B; actual worker wire separately accounted |
+| Final tickpair firstobserved47s afterREADY | HTTP200,0.178652s/0.297646s; no cold-instance claim |
 | Exact Auth-only preview | 1 Auth request/page in3 opens |
 | Exact day-read preview | 0 direct day reads,1 document/0RSC refreshes in5 opens;20 regressions pass |
 
 **Answer** — Controlled opening was reliable, but it repeated identity/day reads and used about801KB of first-five JPEG body data. #414 fixes legacy photo routing, #428 shares verified browser Auth reads, and #429 reuses verified per-post day contributions while preserving mutation/readiness refreshes.
 
-**Unknown** — Photo body bytes are not total billed egress; page transfer0 does not establish zero worker traffic, and the worker observer can miss pre-attach traffic. Browser cold cache does not prove a cold function instance; runtime correlation was refused. The separate tick pair was not immediate post-READY and does not prove a cold instance. Final stable production repeat, ordinary tick call counts, real post-READY first/subsequent GET timings and final first-five natural photo bytes remain pending; the separate12:42 natural session-refresh check passed3/3 memorycache0bytes. The baseline intercepted tick and must not be represented as an unmodified production opening.
+**Unknown** — Photo body bytes are not total billed egress; page transfer0 does not establish zero worker traffic, and the worker observer can miss pre-attach traffic. Browser cold cache does not prove a cold function instance; runtime correlation was refused. The separate tick pair was not immediate post-READY and does not prove a cold instance. Final natural repeat is preserved in [the production receipt](evidence/run10-final-7h/README.md). Initial viewport is text-only, so it does not prove initial-photo latency; firstphoto5762.9–5973.6ms includes intentional5s wait before scrolling. Tick pair was first observed47s afterREADY and does not prove a cold function. The separate12:42 natural session-refresh check passed3/3 memorycache0bytes. The baseline intercepted tick and must not be represented as an unmodified production opening.
 
 ## 7i. Last feed (#304)
 
