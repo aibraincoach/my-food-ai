@@ -98,7 +98,7 @@ async function rebuildRemoved(admin:SupabaseClient,job:JobRow){
  }
  const summary=formatConsumed(sumNutrition(items));
  const removed=thread.find(comment=>comment.id===job.payload.comment_id);
- const reply=job.payload.reason==='media_removed'?`Removed the leftovers (not eaten) photo. ${summary}.`:`Removed the correction "${(removed?.body??'').slice(0,60)}". ${summary}.`;
+ const reply=job.payload.reason==='media_removed'?`Removed the Leftovers · not eaten photo. ${summary}.`:`Removed the correction "${(removed?.body??'').slice(0,60)}". ${summary}.`;
  // Quoted user words are retained verbatim; only generated commentary makes
  // claims. A user's 'remaining half' must not prevent removing a correction.
  const generated=job.payload.reason==='media_removed'?reply:`Removed the correction. ${summary}.`;
