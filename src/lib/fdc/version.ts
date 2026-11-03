@@ -1,1 +1,1 @@
-export const FOOD_MATCH_VERSION = "fdc-reference-v5";
+export const FOOD_MATCH_VERSION = "fdc-reference-v6";
