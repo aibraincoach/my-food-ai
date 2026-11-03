@@ -20,3 +20,18 @@ test('unknown revision never claims unchanged nutrition; moves refresh both loca
  assert.deepEqual(dates({...meal,analysisFingerprint:null},{...meal,analysisFingerprint:null}),['2026-11-02']);
  assert.deepEqual(dates(meal,{...meal,eaten_at:'2026-11-03T12:00:00Z'}),['2026-11-03','2026-11-02']);
 });
+
+test('backdated discovery reuses its SSR contribution, but inserted or edited meals refresh',async()=>{
+ const {dayPostReceipt}=await import('../src/lib/posts/days.ts');
+ const ready={...meal,items:[{name:'rice',calories:120},{name:'sauce',calories:null}]};
+ const receipt=dayPostReceipt(ready.id,ready.eaten_at,ready.items);
+ const receipts=new Map([[receipt.id,receipt]]);
+ const check=card=>dayTotalRefreshDates(undefined,card,'Asia/Jakarta',known,false,receipts);
+ assert.deepEqual(receipt,{id:'meal',eatenAt:meal.eaten_at,kcal:120,missing:['sauce'],known:1});
+ assert.deepEqual(check(ready),[]);
+ assert.deepEqual(check({...ready,items:[{name:'rice',calories:130},{name:'sauce',calories:null}]}),['2026-11-02']);
+ assert.deepEqual(check({...ready,items:[{name:'rice',calories:120},{name:'different unknown',calories:null}]}),['2026-11-02']);
+ assert.deepEqual(check({...ready,id:'new meal'}),['2026-11-02']);
+ assert.deepEqual(check({...ready,itemsUnavailable:true}),['2026-11-02']);
+ assert.deepEqual(check({...ready,eaten_at:'2026-11-03T12:00:00Z'}),['2026-11-03','2026-11-02']);
+});

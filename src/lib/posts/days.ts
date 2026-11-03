@@ -1,7 +1,7 @@
 import {visibleDrinkRows} from '@/lib/intake/hydration';
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { groupIntakeByDay, emptyIntake, type IntakeRow, type IntakeTotals } from "@/lib/intake/intake";
-import { CURRENT_ITEM_COLUMNS, CURRENT_NUTRITION_COLUMNS, mapCurrentItems, normalizeStoredNutrition, sumNutrition, type CurrentItem, type MealTotals, type NutritionRow } from "@/lib/nutrition/totals";
+import { CURRENT_ITEM_COLUMNS, CURRENT_NUTRITION_COLUMNS, mapCurrentItems, normalizeStoredNutrition, nutritionNumber, sumNutrition, type CurrentItem, type MealTotals, type NutritionRow } from "@/lib/nutrition/totals";
 
 export interface DayPost { id: string; caption: string; eatenAt: string; photoUrl: string | null; items: CurrentItem[]; totals: MealTotals }
 export interface LoggedDay { date: string; posts: DayPost[]; totals: MealTotals; intake: IntakeTotals }
@@ -125,14 +125,25 @@ export async function getLoggedDates(supabase: SupabaseClient, userId: string, z
   return [...dates].sort().map((date) => ({ date }));
 }
 
-export interface FeedDayTotal { day: string; kcal: number | null; ready: boolean; missing?:string[]; known?:number }
+export interface DayPostReceipt { id: string; eatenAt: string; kcal: number; missing: string[]; known: number }
+export interface FeedDayTotal { day: string; kcal: number | null; ready: boolean; missing?:string[]; known?:number; posts?: DayPostReceipt[] }
+// A compact contribution receipt from the same owner/RLS read as the total.
+// It lets discovery recognize an older meal already included by SSR.
+export function dayPostReceipt(id: string, eatenAt: string, items: {name:string;calories:import('@/lib/nutrition/totals').Numeric}[]): DayPostReceipt {
+  const receipt: DayPostReceipt = {id,eatenAt,kcal:0,missing:[],known:0};
+  for (const item of items) {
+    const value=nutritionNumber(item.calories);
+    if(value===null)receipt.missing.push(item.name);else{receipt.kcal+=value;receipt.known++;}
+  }
+  receipt.missing=[...new Set(receipt.missing)].sort();return receipt;
+}
 
 // Read all current nutrition for the touched days together, never one query per card.
 // The relationships are inferred from the view's underlying post_items foreign keys.
 export async function getDayTotals(db: SupabaseClient, userId: string, zone: string, dates: string[]): Promise<FeedDayTotal[]> {
   const wanted = [...new Set(dates)].sort();
   if (!wanted.length) return [];
-  const groups = new Map(wanted.map(day => [day, { day, kcal: 0 as number | null, ready: false, missing:[] as string[], known:0 }]));
+  const groups = new Map(wanted.map(day => [day, { day, kcal: 0 as number | null, ready: false, missing:[] as string[], known:0, posts:[] as DayPostReceipt[] }]));
   // Group contiguous requested days only; widely separated card events must
   // not rescan every meal between the two days.
   const windows: {from: string; through: string}[] = [];
@@ -154,12 +165,15 @@ export async function getDayTotals(db: SupabaseClient, userId: string, zone: str
       const group = groups.get(dateInZone(row.eaten_at, zone));
       if (!group || group.day < window.from || group.day > window.through) continue;
       group.ready = true;
+      const contributions: {name:string;calories:number|null}[]=[];
       for (const item of row.current_post_items ?? []) {
         const nutrients = Array.isArray(item.item_nutrition) ? item.item_nutrition : [item.item_nutrition];
         const nutrition = nutrients[0];
         const value = nutrition ? normalizeStoredNutrition(nutrition as NutritionRow, item.portion_grams).calories : null;
+        contributions.push({name:item.name,calories:nutritionNumber(value)});
         if(value==null)group.missing.push(item.name); else {group.kcal=(group.kcal??0)+Number(value);group.known++;}
       }
+      group.posts.push(dayPostReceipt(row.id,row.eaten_at,contributions));
     }
     if ((data?.length ?? 0) < 1000) break;
   }

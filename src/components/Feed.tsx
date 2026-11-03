@@ -139,6 +139,7 @@ export default function Feed({initialPage, initialUserId, initialZone = "UTC", f
     const refreshTotals = (dates: string[]) => {
       if (userId) totalsRefresh.request(dates);
     };
+    const totalReceipts = () => new Map([...dayTotals.values()].flatMap(day => (day.posts ?? []).map(post => [post.id,post] as const)));
     const uploading=(event:Event)=>{const detail=(event as CustomEvent<UploadState>).detail;if(detail.posted){const day=dateInZone(detail.eatenAt,zone);if(!uploadDaysToRead.has(day)){uploadDaysToRead.add(day);void refreshTotals([day]);}}};
     window.addEventListener('upload-started',uploading);
     const readyEvent = (event:Event) => { const id=(event as CustomEvent<{id?:string}>).detail?.id;if(id)requestCard(id); };
@@ -203,7 +204,7 @@ export default function Feed({initialPage, initialUserId, initialZone = "UTC", f
           const previous = cards.get(id) ?? baseline.find(post => post.id === id);
           if(!hasUnavailableFields(card)){cacheInvalidated.delete(id);cacheDirty=true;}
           cards.set(id, retainCompleteItems(previous, card));
-          void refreshTotals(dayTotalRefreshDates(previous, card, zone, new Set(dayTotals.keys()), local));
+          void refreshTotals(dayTotalRefreshDates(previous, card, zone, new Set(dayTotals.keys()), local, totalReceipts()));
           publish();
           // A local completion event can arrive while the INSERT read still
           // sees unuploaded media. Always read again after that event.
@@ -288,7 +289,7 @@ export default function Feed({initialPage, initialUserId, initialZone = "UTC", f
         for (const post of page.posts) {
           const previous = cards.get(post.id) ?? baseline.find(prior => prior.id === post.id);
           if (!page.days.some(day => day.day === dateInZone(post.eaten_at, zone))) {
-            refreshTotals(dayTotalRefreshDates(previous, post, zone, new Set(dayTotals.keys())));
+            refreshTotals(dayTotalRefreshDates(previous, post, zone, new Set(dayTotals.keys()), false, totalReceipts()));
           }
         }
         baseline = page.posts.filter(post=>!unavailable.has(post.id)).map(post=>retainCompleteItems(baseline.find(prior=>prior.id===post.id),post));
