@@ -314,25 +314,31 @@ export default function CaptureSheet({ onClose, initialMode = "photo", forPost, 
           pendingFilesRef.current.shift();setPendingCount(pendingFilesRef.current.length);
           await readLabelFile(file);return;
         }
-        // A single bounded decode precedes all uploads, including library photos in text mode.
-        let deadline: ReturnType<typeof setTimeout> | undefined;
-        let code: string | null;
-        try {
-          code = await Promise.race([decodeBarcodeFile(file), new Promise<null>((resolve) => { deadline = setTimeout(() => resolve(null), 900); })]).finally(() => clearTimeout(deadline));
-        } catch {
-          if (mountedRef.current) setError("Could not read that photo. Your selected photos were kept; try again.");
-          return;
-        }
-        if (!mountedRef.current) return;
-        if (code) {
-          pendingFilesRef.current.shift(); setPendingCount(pendingFilesRef.current.length);
-          await findBarcode(code, file);
-          return;
-        }
+        // Show the photo in the composer at once. A barcode in it is read
+        // afterwards; when one is found the photo leaves the draft and the
+        // barcode result opens, as before.
         shotsRef.current = [...shotsRef.current, { file, previewUrl: URL.createObjectURL(file) }];
         pendingFilesRef.current.shift(); setPendingCount(pendingFilesRef.current.length);
         operationRef.current=uploadManager.stage(shotsRef.current.map(shot=>shot.file),{caption,eatenAt:when===null?null:fromLocalInput(when),location:locationEnabled?location:null,options:{not_eaten_positions:notEaten,save_as_meal:saveAsMeal}},operationRef.current??undefined);setOperationId(operationRef.current);
         setShots(shotsRef.current);setPhotoIndex(shotsRef.current.length-1);setComposer(true);
+        const shot = shotsRef.current[shotsRef.current.length - 1];
+        let deadline: ReturnType<typeof setTimeout> | undefined;
+        // Give React and the browser a paint before the decoder's CPU work.
+        void new Promise<void>(resolve => requestAnimationFrame(() => requestAnimationFrame(() => resolve())))
+          .then(() => {
+            if (!mountedRef.current || postingRef.current || !shotsRef.current.includes(shot)) return null;
+            return Promise.race([decodeBarcodeFile(file), new Promise<null>((resolve) => { deadline = setTimeout(() => resolve(null), 900); })]);
+          })
+          .finally(() => clearTimeout(deadline))
+          .then((code) => {
+            if (!code || !mountedRef.current || postingRef.current) return;
+            const index = shotsRef.current.indexOf(shot);
+            if (index < 0) return;
+            removeShot(index);
+            if (!shotsRef.current.length) setComposer(false);
+            void findBarcode(code, file);
+          })
+          .catch(() => {});
       }
     } catch { if (mountedRef.current) setError("Could not read that photo. Choose another photo."); }
     finally { scanBusy.current = false; if (mountedRef.current) setCameraBusy(false); }
