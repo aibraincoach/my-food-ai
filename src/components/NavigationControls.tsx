@@ -18,7 +18,7 @@ export default function NavigationControls() {
   const [entry,setEntry]=useState<PostEntry|null>(null);
   const closeMenu=useCallback(()=>setMenuOpen(false),[]);
   const closeEntry=useCallback(()=>{setEntry(null);setAttachment(null);setInitialFiles(undefined);},[]);
-  const closeCapture=useCallback(()=>{closeEntry();router.push('/');},[closeEntry,router]);
+  const closeCapture=useCallback(()=>{window.dispatchEvent(new Event('entry-closed'));closeEntry();router.push('/');},[closeEntry,router]);
   useEffect(()=>{
     const open=(event:Event)=>{const detail=(event as CustomEvent<{entry?:PostEntry;forPost?:string;notEaten?:boolean}>).detail;const value=detail?.entry;if(value&&['camera','text','drink','coffee'].includes(value)){setMenuOpen(false);setAttachment(value==='camera'&&typeof detail?.forPost==='string'?{postId:detail.forPost,notEaten:detail.notEaten===true}:null);setEntry(value);}};
     const close=()=>{setEntry(null);setAttachment(null);setMenuOpen(false);};
