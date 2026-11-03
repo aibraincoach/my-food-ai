@@ -4,6 +4,7 @@ import type {FeedPost} from "@/lib/posts/feed";
 import {tokens} from "@/lib/theme/tokens";
 import {Icon} from "@/components/ui/Icon";
 import Link from "next/link";
+import {formatCalories, formatGrams, formatNutrition} from "@/lib/nutrition/totals";
 import {summaryLine} from "@/lib/posts/summary-line";
 import PostCard from "@/components/PostCard";
 export default function SearchBox(){
@@ -25,7 +26,7 @@ export default function SearchBox(){
     if(event.key==='Escape'){event.preventDefault();field.current?.focus();}
   }}>{posts.map(post=><Link key={post.id} data-desktop-post={post.id} href={`/posts/${post.id}`} className="flex min-h-[140px] gap-4 border-b border-hairline pb-4 outline-offset-2 focus-visible:outline-2 focus-visible:outline-text">
     {post.photoUrl?<img src={post.photoUrl} alt={post.caption||'Meal'} className="size-[140px] shrink-0 rounded-thumb object-cover"/>:<div className="size-[140px] shrink-0 rounded-thumb bg-card"/>}
-    <div className="min-w-0 flex-1"><div className="flex items-baseline justify-between gap-3"><p className="text-body font-semibold">{post.caption||'Meal'}</p><p className="shrink-0 whitespace-nowrap text-meta text-muted">{new Date(post.eaten_at).toLocaleDateString('en',{weekday:'short',month:'short',day:'numeric'})}</p></div><p className="mt-[6px] text-detail text-muted">{post.items.map(item=>item.name).join(' · ')}</p><p className="mt-[6px] text-detail">{summaryLine(post)}</p></div>
+    <div className="min-w-0 flex-1"><div className="flex items-baseline justify-between gap-3"><p className="text-body font-semibold">{post.caption||'Meal'}</p><p className="shrink-0 whitespace-nowrap text-meta text-muted">{new Date(post.eaten_at).toLocaleDateString('en',{weekday:'short',month:'short',day:'numeric'})}</p></div><div className="mt-[6px] text-detail text-muted">{post.items.map(item=><p key={item.id}>{item.name} · {post.kind==='drink' ? post.items.length===1&&post.drink ? `${formatNutrition(post.drink.ml)} ml` : item.portion_grams==null ? 'volume unavailable' : `${formatNutrition(item.portion_grams)} ml` : item.portion_grams==null ? 'portion unavailable' : formatGrams(item.portion_grams)} · {item.calories==null?'nutrition unavailable':`${formatCalories(item.calories)} kcal`}</p>)}</div><p className="mt-[6px] text-detail">{summaryLine(post)}</p></div>
   </Link>)}</div>
   {truncated?<p className="px-screen-x pt-sheet-top text-detail text-muted" role="status">Showing the most recently eaten matches. Narrow the search to see older ones.</p>:null}</>;
 }
