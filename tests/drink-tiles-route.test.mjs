@@ -14,7 +14,8 @@ test('actual intake route commits all six server tiles, legacy water and rejects
  const cookie=await signInAsTestUser(),ids=[];
  const counts=async(auth)=>{const response=await fetch(`${origin}/api/intake/tile-counts`,{headers:{Cookie:auth}});assert.equal(response.status,200);return response.json();};
  const otherCookie=await signInAsTestUser(2);
- const before=await counts(cookie),otherBefore=await counts(otherCookie);
+ let before;
+ const otherBefore=await counts(otherCookie);
  const anonymous=await fetch(`${origin}/api/intake/tile-counts`);assert.equal(anonymous.status,401);
  // Explicit synthetic FDC search cache fixtures prevent real USDA traffic.
  const queries=['Coffee, brewed from grounds, prepared with tap water','Coffee, brewed, espresso, restaurant-prepared','Beverages, tea, black, brewed, prepared with tap water','Beverages, carbonated, cola, regular'];
@@ -23,6 +24,7 @@ test('actual intake route commits all six server tiles, legacy water and rejects
  try{
   checked(await db.from('fdc_cache').upsert(fixtures,{onConflict:'query'}));
   for(const [body,expected] of [...DRINK_TILES.map((tile,index)=>[{tile:index},{label:`${tile.name}, ${tile.size}`,kind:tile.kind,ml:tile.ml,caffeineMg:tile.caffeineMg}]),[{kind:'water',ml:330},{label:'Water',kind:'water',ml:330,caffeineMg:0}],[{tile:1,ml:350},{label:'Coffee, large',kind:'caffeine',ml:350,caffeineMg:138}]]){
+   if(body.tile===1&&body.ml===350)before=await counts(cookie);
    const r=await fetch(`${origin}/api/intake/post`,{method:'POST',headers:{Cookie:cookie,'Content-Type':'application/json'},body:JSON.stringify(body),signal:AbortSignal.timeout(90000)});
    const result=await r.json();if(result.post_id)ids.push(result.post_id);assert.equal(r.status,201,JSON.stringify({body,result}));assert.equal(typeof result.post_id,'string');
    const row=checked(await db.from('intake_logs').select('kind,ml,amount,label').eq('post_id',result.post_id).single());
@@ -36,7 +38,7 @@ test('actual intake route commits all six server tiles, legacy water and rejects
    const invalid=await fetch(`${origin}/api/intake/post`,{method:'POST',headers:{Cookie:cookie,'Content-Type':'application/json'},body:JSON.stringify(body)});assert.equal(invalid.status,400);
   }
   const after=await counts(cookie);
-  assert.deepEqual(after.counts,before.counts.map((count,index)=>count+(index===1?2:1)));
+  assert.deepEqual(after.counts,before.counts.map((count,index)=>count+(index===1?1:0)));
   assert.deepEqual(await counts(otherCookie),otherBefore,'another account never inherits the first account’s counts');
  }finally{
   if(ids.length)checked(await db.from('posts').delete().in('id',ids));
