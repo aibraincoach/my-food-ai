@@ -1,0 +1,81 @@
+{
+  "rows": 144,
+  "measuredGestures": 131,
+  "regionChangeCaptured": 111,
+  "regionChangeUnknown": 20,
+  "pressedCaptured": 5,
+  "afterReleaseMs": {
+    "min": 13.898,
+    "median": 47.537,
+    "p95": 816.108,
+    "max": 1267.521
+  },
+  "unavailable": [
+    {
+      "screen": "Feed saved",
+      "name": "Own saved row",
+      "disabled": false
+    },
+    {
+      "screen": "Feed saved",
+      "name": "Own Log now",
+      "disabled": false
+    },
+    {
+      "screen": "Detail Log again",
+      "name": "Post copy",
+      "disabled": true
+    },
+    {
+      "screen": "Capture",
+      "name": "Flip camera",
+      "disabled": false
+    },
+    {
+      "screen": "Capture",
+      "name": "Add another photo",
+      "disabled": false
+    },
+    {
+      "screen": "Capture",
+      "name": "/^Now/",
+      "disabled": false
+    },
+    {
+      "screen": "Days",
+      "name": "Year picker",
+      "disabled": false
+    },
+    {
+      "screen": "Days",
+      "name": "Nonempty day",
+      "disabled": false
+    },
+    {
+      "screen": "Days story",
+      "name": "/ ›$/",
+      "disabled": true
+    },
+    {
+      "screen": "Profile",
+      "name": "Connect an agent",
+      "disabled": false
+    },
+    {
+      "screen": "Profile",
+      "name": "Identify provider switch",
+      "disabled": false
+    },
+    {
+      "screen": "Feed photo",
+      "name": "Photo details link",
+      "disabled": false
+    },
+    {
+      "screen": "Days story settled",
+      "name": "Next historical day",
+      "disabled": true
+    }
+  ],
+  "scope": "Observed compositor-frame bounds in a control rectangle, not exact paint latency. Viewport candidates and layout shifts are not standalone flicker evidence."
+}
