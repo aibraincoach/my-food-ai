@@ -1,6 +1,6 @@
 # My Food AI — Backlog†
 
-Last edited: Tuesday 2026-11-03 at 15:34 WIB (UTC+07:00) by Claude, PM
+Last edited: Tuesday 2026-11-03 at 15:41 WIB (UTC+07:00) by Claude, PM
 
 ## Backlog for Owner
 
@@ -35,6 +35,18 @@ Every Run 7 and Run 8 timing check ran in emulation. No physical phone has teste
 Check on each of the owner's three phones, installed from the home screen, over mobile data: the feed and the first photo show within two seconds (#222, #305); the last feed shows at once and fresh posts appear without jumping (#304); a warm revisit reuses cached photos and the photos look acceptable (#305); the camera, the keyboard and a post from the phone work, with the right photo kept (#6); a post completes through the worker (#322). Done when each check passes on each of the three phones and each failure is reported to the coder with its number.
 
 ## Engineering backlog
+
+### #382 The delete confirmation can disappear before the user confirms
+
+On production, the delete confirmation sometimes disappears when the page rerenders, before the user confirms.
+
+It happened without a DELETE request, and a local reproduction confirmed it. The likely cause is that the shared Sheet portal selects its own modal as its container. A local prototype exists and is unmerged. Done when the confirmation stays open through a rerender, and a delete, Undo and restore completes on production.
+
+### #383 The Coffee tile on the drink sheet fails to post on production
+
+Tapping the Coffee tile on the drink sheet does not post a coffee on production.
+
+Coffee returns 502 on production. The tile's food selector expects a USDA name containing "from grounds", but the cached food is "Beverages, coffee, brewed, prepared with tap water", so the valid food is rejected. The Water tiles also returned 502 on a database guard that migration 0037 (#380) fixed, and the tile tap was not repeated afterwards. Local checks missed both cases because they used synthetic nutrition fixtures. Done when the Coffee, Espresso, Tea, Coca-Cola and both Water tiles each post on production and Undo removes the post.
 
 ### #368 Sign-ins through the app may share one rate limit across every user
 
@@ -120,12 +132,6 @@ A judge who taps the Facebook button on the sign-in page would see an error, bec
 
 Meta's app review takes longer than the event, so Facebook sign-in cannot go live (#114). Show the Facebook button on the sign-in and sign-up pages, grayed out, and do nothing when it is tapped. Done when the Facebook button on the sign-in and sign-up pages is grayed out, tapping it does nothing, and no error shows.
 
-### #306 Every tap that saves shows its result at once
-
-Some taps that save something look dead until the server answers, so the app feels slow.
-
-The thumbs (#215) are one case. The bookmark, Save meal, Log again and Edit caption (#223) may also wait for the server; observe which do. Each should show its new state at the tap, settle when the save lands, and show an error and revert if it fails. #217 measures every control; this item fixes the ones that wait. Done when each of those taps changes the screen before the server answers on a throttled connection, the saved state survives a reload, and a failed save is shown.
-
 ### #307 A card shows the foods the app has found while the numbers are still being worked out
 
 A new post shows a shimmer for most of its wait, though the app knows what the foods are long before it knows their nutrition.
@@ -155,12 +161,6 @@ After the last feature merges, one pass replaces the default README with a short
 Every app open, tab focus and once-a-minute database wake calls the tick route. It answers three numbers: queued, running and traffic. A cold tick function must first load the whole food-analysis pipeline, so every cold open waits for that.
 
 Run 8 merged lazy loading of the job modules in the tick route. Rapid tick calls passed, but they hit a warm function, so a cold start is unmeasured (docs/tick-cold.md), and a post from a real phone through the worker is untested. Done when a cold start of the tick route is timed on production, before and after, with the times in docs, and a post from a real phone completes through the worker.
-
-### #383 The Coffee tile on the drink sheet fails to post on production
-
-Tapping the Coffee tile on the drink sheet does not post a coffee on production.
-
-Fleet 9's production check of the Coffee tile failed. The Water tiles failed on a database guard that migration 0037 (#380) fixed, and they have not been retested. Observe the failing request and its response first. Done when the Coffee, Espresso, Tea, Coca-Cola and both Water tiles each post on production and Undo removes the post.
 
 ### #377 Existing photographed drink posts show no caffeine
 
