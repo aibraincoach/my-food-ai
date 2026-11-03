@@ -1,6 +1,6 @@
 # Run 7 combined verification
 
-This records coder verification, not independent code-review approval or production acceptance. Muse owns the current reviews. No Run 7 PR has been merged or production migration applied by this run.
+This records coder verification, not independent code-review approval or production acceptance. The [current partial-completion report](run7-part1-report.md) includes the final first-photo follow-up; the source table below identifies the earlier combined browser checkpoint. Muse owns the current reviews. No Run 7 PR has been merged or production migration applied by this run.
 
 ## Combined source
 

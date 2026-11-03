@@ -7,7 +7,7 @@ The owner accepts Muse's watch reviews as the Run 7 code reviews. These API-veri
 | #308 | `45a92e39ee536a7edc4efed3df98f9c9a8bf4639` | [Review](https://github.com/aibraincoach/my-food-ai/pull/308#pullrequestreview-5746386410) | BLOCKERS: NONE |
 | #309 | `f84c68909e951139a195dd3885433eb0aabc50ac` | [Review](https://github.com/aibraincoach/my-food-ai/pull/309#pullrequestreview-5745966922) | BLOCKERS: NONE |
 | #310 | `f23efc554c3f17b229a9f502eafc23f9f5833f2e` | [Review](https://github.com/aibraincoach/my-food-ai/pull/310#pullrequestreview-5746240837) | Dependency blocker: #311 wiring |
-| #311 | `4345c6de5d69e6b1b767e829e948f4e27cfac1f6` | [Review](https://github.com/aibraincoach/my-food-ai/pull/311#pullrequestreview-5746409402) | BLOCKERS: NONE |
+| #311 | `f32ba1c92d05fbe6e4ffce9803398ccd5cc41a4e` | [Review](https://github.com/aibraincoach/my-food-ai/pull/311#pullrequestreview-5746773020) | BLOCKERS: NONE |
 | #312 | `9e5877b1ac67c5d195bf5f6887dde7ec66fb6519` | [Review](https://github.com/aibraincoach/my-food-ai/pull/312#pullrequestreview-5745990151) | BLOCKERS: NONE |
 | #313 | `ff221a7591ebc69d2011ad9910f7057bb32577a3` | [Review](https://github.com/aibraincoach/my-food-ai/pull/313#pullrequestreview-5745994813) | BLOCKERS: NONE |
 | #314 | `1c4d72ab4b30a52b999944781974a3db6683fd16` | [Review](https://github.com/aibraincoach/my-food-ai/pull/314#pullrequestreview-5746003111) | BLOCKERS: NONE |
