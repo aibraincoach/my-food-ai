@@ -132,7 +132,7 @@ export class UploadManager {
         if(entry&&(entry.finished||entry.data.posted||entry.data.ownerId!==this.ownerId||entry.data.files.length!==files.length||files.some((file,index)=>entry!.data.files[index]!==file)))entry=undefined;
         if(!entry){
             const now=Date.now(),id=crypto.randomUUID();
-            entry=this.make({operationId:id,ownerId:this.ownerId,createdAt:now,reservedAt:now,caption:label,eatenAt:food.eaten_at,location:null,options:{},files:[...files],snapshot:null,posted:true,food,state:'uploading',sent:0,total:files.reduce((sum,file)=>sum+file.size,0)});
+            entry=this.make({operationId:id,ownerId:this.ownerId,createdAt:now,reservedAt:now,caption:label,eatenAt:food.eaten_at,location:null,options:{},files:[...files],snapshot:null,posted:true,food,state:'uploading',sent:0,total:'photo' in food?0:files.reduce((sum,file)=>sum+file.size,0)});
             this.entries.set(id,entry);
         }else{
             Object.assign(entry.data,{food,caption:label,eatenAt:food.eaten_at,posted:true,state:'uploading',message:undefined});
@@ -175,8 +175,9 @@ export class UploadManager {
     }
     private async submitFood(entry: Entry): Promise<{postId:string}> {
         const d=entry.data;
-        const photo=d.files.length?d.snapshot?.images[0]:null;
-        if(d.files.length&&(!photo||!d.snapshot))throw new Error('The pack photo is not ready. Your selection is kept.');
+        const prepared=Boolean(d.food&&'photo' in d.food);
+        const photo=prepared?null:d.files.length?d.snapshot?.images[0]:null;
+        if(d.files.length&&!prepared&&(!photo||!d.snapshot))throw new Error('The pack photo is not ready. Your selection is kept.');
         const response=await this.foodRequest('/api/posts/food',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({...d.food,operation_id:d.operationId,owner_id:d.ownerId,...(photo&&d.snapshot?{photo:{path:this.ownerId+'/'+d.snapshot.id+'/0.jpg',width:photo.width,height:photo.height}}:{})})});
         const result=await response.json().catch(()=>null) as {post_id?:string;error?:string}|null;
         if(!response.ok||!result?.post_id){
@@ -218,7 +219,7 @@ export class UploadManager {
                         this.attachSnapshot(entry);
                     }
                     const d = entry.data;
-                    if (d.files.length)
+                    if (d.files.length&&!(d.food&&'photo' in d.food))
                         await entry.draft.stage(d.caption, d.files, d.location, d.eatenAt, d.options);
                     if (entry.deleted)
                         return;

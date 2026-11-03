@@ -281,9 +281,10 @@ export default function CaptureSheet({ onClose, initialMode = "photo", forPost, 
     if(postingRef.current||!labelReading||!labelPhotoRef.current)return;
     postingRef.current=true;setPosting(true);setError(null);
     try{
-      const response=await fetch("/api/posts/food",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({label_reading_id:labelReading.reading_id,servings:labelServings,name:labelName,photo:labelPhotoRef.current,...(labelForCode?{gtin:labelForCode}:{}),...(when===null?{}:{eaten_at:fromLocalInput(when)})})});
-      const result=await response.json();if(!response.ok)throw Error(result.error??"The meal could not be saved.");
-      window.dispatchEvent(new CustomEvent("post-created",{detail:{id:result.post_id}}));onClose();router.refresh();
+      const eatenAt=when===null?new Date().toISOString():fromLocalInput(when);
+      if(!eatenAt||!packPhotoRef.current)throw new Error("Keep the label photo and choose a valid time eaten.");
+      await uploadManager.postFood({label_reading_id:labelReading.reading_id,servings:labelServings,name:labelName,photo:{...labelPhotoRef.current},...(labelForCode?{gtin:labelForCode}:{}),eaten_at:eatenAt},labelName.trim()||"Packaged food",[packPhotoRef.current.file]);
+      onClose();
     }catch(e){setError(e instanceof Error?e.message:"The meal could not be saved.");}finally{postingRef.current=false;setPosting(false);}
   };
   const attachmentUpload=useRef<PackPhotoUpload|null>(null);
