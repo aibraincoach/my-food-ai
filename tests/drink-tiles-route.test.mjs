@@ -7,7 +7,7 @@ import {signInAsTestUser} from '../scripts/lib/session.mjs';
 import {DRINK_TILES} from '../src/lib/intake/intake.ts';
 
 const checked=result=>{assert.ifError(result.error);return result.data;};
-test('actual intake route commits all six server tiles, legacy water and rejects an invalid tile',async()=>{
+test('actual intake route commits all six server tiles, legacy water and rejects an invalid tile',async(t)=>{
  const origin=process.env.APP_URL;
  for(const endpoint of [origin,process.env.NEXT_PUBLIC_SUPABASE_URL])assert.ok(['localhost','127.0.0.1','[::1]'].includes(new URL(endpoint).hostname),'Disposable local stack required.');
  const db=createClient(process.env.NEXT_PUBLIC_SUPABASE_URL,process.env.SUPABASE_SECRET_KEY,{auth:{persistSession:false}});
@@ -18,6 +18,26 @@ test('actual intake route commits all six server tiles, legacy water and rejects
  const prior=checked(await db.from('fdc_cache').select('*').in('query',fixtures.map(x=>x.query)));
  try{
   checked(await db.from('fdc_cache').upsert(fixtures,{onConflict:'query'}));
+  await t.test('Coffee accepts USDA 171890 without from grounds and stores 95 mg caffeine',async()=>{
+   const coffeeQuery=fixtures[0].query;
+   const coffee=structuredClone(fixtures[0]);
+   coffee.response.payload.foods[0].fdcId=171890;
+   coffee.response.payload.foods[0].description='Beverages, coffee, brewed, prepared with tap water';
+   checked(await db.from('fdc_cache').upsert(coffee,{onConflict:'query'}));
+   try{
+    const response=await fetch(`${origin}/api/intake/post`,{method:'POST',headers:{Cookie:cookie,'Content-Type':'application/json'},body:JSON.stringify({tile:1}),signal:AbortSignal.timeout(90000)});
+    const result=await response.json();if(result.post_id)ids.push(result.post_id);
+    assert.equal(response.status,201,JSON.stringify(result));
+    const intake=checked(await db.from('intake_logs').select('amount,ml').eq('post_id',result.post_id).single());
+    assert.deepEqual(intake,{amount:95,ml:240});
+    const item=checked(await db.from('post_items').select('id').eq('post_id',result.post_id).single());
+    const nutrition=checked(await db.from('item_nutrition').select('micronutrients,source_ref').eq('post_item_id',item.id).single());
+    assert.equal(nutrition.micronutrients.find(row=>row.nutrientId===1057).value,95);
+    assert.equal(nutrition.source_ref,'171890');
+   }finally{
+    checked(await db.from('fdc_cache').upsert(fixtures.find(row=>row.query===coffeeQuery),{onConflict:'query'}));
+   }
+  });
   for(const [body,expected] of [...DRINK_TILES.map((tile,index)=>[{tile:index},{label:`${tile.name}, ${tile.size}`,kind:tile.kind,ml:tile.ml,caffeineMg:tile.caffeineMg}]),[{kind:'water',ml:330},{label:'Water',kind:'water',ml:330,caffeineMg:0}]]){
    const r=await fetch(`${origin}/api/intake/post`,{method:'POST',headers:{Cookie:cookie,'Content-Type':'application/json'},body:JSON.stringify(body),signal:AbortSignal.timeout(90000)});
    const result=await r.json();if(result.post_id)ids.push(result.post_id);assert.equal(r.status,201,JSON.stringify({body,result}));assert.equal(typeof result.post_id,'string');
