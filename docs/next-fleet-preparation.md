@@ -14,7 +14,7 @@ GitHub reported no configured required checks for #461 or #462; both reported pr
 
 Production deployment `dpl_4PcCexAaa5eRo4agNPWDHKnDE1yL` is READY for main `65ac905d95f71b3e9fa93de16ffcf67ef3614381`. Vercel reports alias assignment complete; the alias API confirms `my-food-ai-ten.vercel.app` points at that deployment. This verifies deployment identity, not physical-phone acceptance.
 
-Neither merged PR closed any issues: their GitHub closing-issue references are empty. #450 and #413 remain open. No issue was manually closed.
+Neither merged PR automatically closed any issues: their GitHub closing-issue references are empty. After a separate owner instruction, #450 was verified on main and manually closed with fresh-run evidence. #413 remains open.
 
 ## Evidence available to the next fleet
 
@@ -34,7 +34,7 @@ No fleet has started from this document. No new deadline, design revision or exc
 
 ## Historical snapshot issue mapping
 
-BACKLOG.md preserves the supplied text, including four unnumbered headings and stale completion claims. Issue numbers are recorded here so its text is not altered.
+BACKLOG.md preserves the supplied text, including four unnumbered headings and stale completion claims. Its UTF-8 bytes were compared against the supplied message body (backlog heading through the final backlog paragraph, with a terminal newline): exact match. SHA-256: `2b51c1029979950352dfb49d72760d481319e8b943bda047aab63974df249e2d`. Issue numbers are recorded here so its text is not altered.
 
 | Supplied unnumbered title | Issue |
 | --- | --- |
@@ -43,4 +43,4 @@ BACKLOG.md preserves the supplied text, including four unnumbered headings and s
 | On desktop, adding a photo to an existing post has no file picker | #466 |
 | The recording account can hit the hourly model cap on camera | #467 |
 
-The first three relate to unmerged #462 and remain open. The recording-cap issue is recorded for planning; no production limit was changed. Existing #348/#351 and other historical entries were not reopened or treated as new execution orders. The fresh-main #450 acceptance result will be recorded separately from the verbatim snapshot.
+The first three relate to unmerged #462 and remain open. The recording-cap issue is recorded for planning; no production limit was changed. Existing #348/#351 and other historical entries were not reopened or treated as new execution orders. The fresh-main #450 acceptance result is [recorded separately](evidence/issue450-main/README.md): 567 passed / 0 failed / 6 existing skips, DB 32/32 and lint 0 errors / 6 warnings, all matching README. #450 is now closed. Its historical backlog text remains verbatim as the owner requested.
