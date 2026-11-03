@@ -93,13 +93,28 @@ export async function persistAnalysis(
   items.push(...resolved);
   const totals = sumNutrition(items.map(item=>({...item.nutrition,name:item.name})));
   const summary = await safeSummary(named.summary, totals);
-  const { error, status } = await admin.rpc(named.labelNutrition ? "persist_owned_label" : "persist_owned_analysis", {
+  const args = {
     p_job_id: jobId ?? null,
     p_post_id: named.postId,
     p_items: items,
     p_summary: summary,
     p_needs_input: named.needsInput ?? null,
-  });
+  };
+  const legacyRpc = named.labelNutrition ? "persist_owned_label" : "persist_owned_analysis";
+  let result = named.identification
+    ? await admin.rpc("persist_identified_analysis", {...args,
+      // Label-derived item names have no food-identify provenance to claim.
+      p_identify_model: named.labelNutrition ? null : named.identification.model,
+      p_identify_host: named.labelNutrition ? null : named.identification.host,
+      p_is_label: Boolean(named.labelNutrition),
+    })
+    : await admin.rpc(legacyRpc,args);
+  if(result.error && ["PGRST202","42883"].includes(result.error.code) && /persist_identified_analysis/.test(result.error.message)) {
+    // Migration-before-merge is the deployment order; older previews retain
+    // ordinary persistence without inventing unavailable model provenance.
+    result = await admin.rpc(legacyRpc,args);
+  }
+  const {error,status} = result;
   if (error) {
     throw ioError(`persist: analysis transaction failed: ${error.message}`, error, status);
   }

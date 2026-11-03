@@ -126,6 +126,7 @@ export interface NamedRegion extends SegmentedRegion {
 }
 
 export interface NamedPost extends SegmentedPost {
+  identification?: IdentifiedMeal["identification"];
   hasNotEaten?:boolean;
   nutritionLabel?: boolean;
   labelNutrition?: Record<string,unknown>;
@@ -183,7 +184,7 @@ export async function identifyMeal(
     ...region,
     item: byRegion.get(region.index) ?? null,
   }));
-  return { ...segmented, nutritionLabel: meal.nutritionLabel, regions, captionOnly, summary: meal.summary, needsInput: meal.needsInput };
+  return { ...segmented, identification: meal.identification, nutritionLabel: meal.nutritionLabel, regions, captionOnly, summary: meal.summary, needsInput: meal.needsInput };
 }
 
 interface PostCaptionRow {

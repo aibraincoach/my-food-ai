@@ -3,7 +3,7 @@
 // Server-only: reads MODEL_API_KEY from the environment.
 import { readNeedsInput, type NeedsInput } from "@/lib/pipeline/needs-input";
 import { MetaApiError } from "./client";
-import { createOpenResponse, openWeightsConfigured } from "./open-weights";
+import { createOpenResponse, openIdentifyModel, openWeightsConfigured } from "./open-weights";
 import { createResponseRetrying404 } from "./retry404";
 import { identifyPrompt, identifySchema } from "@/lib/prompts";
 
@@ -21,7 +21,10 @@ export interface IdentifiedItem {
   confidence: number | null;
 }
 
+export interface Identification {model:string;host:"meta"|"baseten"}
+
 export interface IdentifiedMeal {
+  identification?: Identification;
   nutritionLabel?: boolean;
   items: IdentifiedItem[];
   summary: string;
@@ -153,24 +156,18 @@ export async function identifyItems(
       },
       max_output_tokens: maxTokens,
     };
+  const parseOutput = (out: import('./client').ResponseOutput):IdentifiedMeal => {
+    if(out.refusal)throw new MetaApiError(500,"spark: model refused the identify call.");
+    if(out.status!=="completed"||out.outputText===null)throw new MetaApiError(500,`spark: identify ended with status ${out.status}.`);
+    return parseIdentifiedMeal(out.outputText,known);
+  };
+  const validate = (out:import('./client').ResponseOutput) => { parseOutput(out); };
   if (provider === "open" && openWeightsConfigured()) {
     try {
-      const out = await createOpenResponse(body, value => {
-        if (value.refusal || value.status !== "completed" || value.outputText === null) throw invalidIdentify();
-        parseIdentifiedMeal(value.outputText, known);
-      });
-      return parseIdentifiedMeal(out.outputText!, known);
+      const out = await createOpenResponse(body, validate);
+      return {...parseOutput(out),identification:{model:openIdentifyModel(),host:"baseten"}};
     } catch { console.warn("open identify failed; using Meta"); }
   }
-  const out = await createResponseRetrying404(body);
-  if (out.refusal) {
-    throw new MetaApiError(500, "spark: model refused the identify call.");
-  }
-  if (out.status !== "completed" || out.outputText === null) {
-    throw new MetaApiError(
-      500,
-      `spark: identify ended with status ${out.status}.`
-    );
-  }
-  return parseIdentifiedMeal(out.outputText, known);
+  const out = await createResponseRetrying404(body,4,{validate});
+  return {...parseOutput(out),identification:{model:"muse-spark-1.3",host:"meta"}};
 }

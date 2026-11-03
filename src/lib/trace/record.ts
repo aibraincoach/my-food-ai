@@ -56,16 +56,22 @@ export async function recordCall<T>(kind: CallKind, requestText: unknown, fn: ()
     try {
       const finite = (value?: number) => typeof value === "number" && Number.isFinite(value) && value >= 0 ? Math.round(value) : null;
       // The write has its own deadline: a stalled trace store must never hold back a finished model call.
-      const { error } = await createAdminClient().from("model_calls").insert({
+      const legacy = {
         post_id: traceContext.getStore()?.postId ?? null, kind, started_at: startedAt,
-        model: identity?.model ?? (typeof (requestText as {model?:unknown})?.model === "string" ? (requestText as {model:string}).model : kind === "sam" ? "sam-3.1" : null),
-        host: identity?.host ?? "meta",
         duration_ms: Math.min(2147483647, Date.now() - started),
         input_tokens: finite(details.usage?.input_tokens), output_tokens: finite(details.usage?.output_tokens),
         request_text: traceText(requestText), response_text: details.text === undefined ? null : traceText(details.text),
         fdc_id: finite(details.fdcId ?? undefined), error: failure,
-      }).abortSignal(AbortSignal.timeout(TRACE_WRITE_TIMEOUT_MS));
-      if (error) console.error("Model trace could not be stored.");
+      };
+      const db=createAdminClient(), deadline=AbortSignal.timeout(TRACE_WRITE_TIMEOUT_MS);
+      let result=await db.from("model_calls").insert({...legacy,
+        model: identity?.model ?? (typeof (requestText as {model?:unknown})?.model === "string" ? (requestText as {model:string}).model : kind === "sam" ? "sam-3.1" : null),
+        host: identity?.host ?? "meta",
+      }).abortSignal(deadline);
+      if(result.error&&["PGRST204","42703"].includes(result.error.code)&&/\b(?:model|host)\b/.test(result.error.message)) {
+        result=await db.from("model_calls").insert(legacy).abortSignal(deadline);
+      }
+      if (result.error) console.error("Model trace could not be stored.");
     } catch { console.error("Model trace could not be stored."); }
   }
 }

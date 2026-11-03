@@ -199,7 +199,7 @@ export function readResponseOutput(payload: unknown): ResponseOutput {
 
 export async function createResponse(
   body: Record<string, unknown>,
-  options: {signal?:AbortSignal} = {}
+  options: {signal?:AbortSignal; validate?:(out:ResponseOutput)=>void} = {}
 ): Promise<ResponseOutput> {
   const format = (body.text as { format?: { name?: string } } | undefined)?.format?.name;
   const kind: CallKind = format === "label" ? "spark_label" : format === "remainder" ? "spark_remainder" : format === "correct" ? "spark_correct" : format === "same_meal" ? "spark_same_meal" : (format === "search" || format === "search_query") ? "spark_search" : "spark_identify";
@@ -207,6 +207,8 @@ export async function createResponse(
     const response = await metaFetch("/responses", {
       method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body), signal:options.signal,
     }, format === "identify" ? IDENTIFY_TIMEOUT_MS : TIMEOUT_MS);
-    return readResponseOutput(await response.json());
+    const out = readResponseOutput(await response.json());
+    options.validate?.(out);
+    return out;
   }, (out) => ({ text: out.outputText, usage: out.usage }));
 }
