@@ -8,7 +8,6 @@ import BottomBar from '@/components/BottomBar';
 import PlusMenu,{type PostEntry} from '@/components/PlusMenu';
 import CaptureSheet from '@/components/CaptureSheet';
 import IntakeBar from '@/components/IntakeBar';
-import {Sheet} from '@/components/ui/Sheet';
 
 /** The same navigation and entry surface is mounted on tabs and post detail. */
 export default function NavigationControls() {
@@ -39,6 +38,6 @@ export default function NavigationControls() {
     <div className="desktop:hidden"><BottomBar onPlus={()=>setMenuOpen(value=>!value)} menuOpen={menuOpen}/>
     <PlusMenu open={menuOpen} onClose={closeMenu}/></div>
     {entry==='camera'||entry==='text'?<CaptureSheet initialFiles={initialFiles} key={`${entry}:${attachment?.postId??"new"}:${attachment?.notEaten??false}`} forPost={attachment?.postId} attachNotEaten={attachment?.notEaten} initialMode={entry==='camera'?'photo':'text'} onClose={closeCapture}/>:null}
-    {entry==='drink'||entry==='coffee'?<Sheet hideClose open onClose={closeEntry} label="Drink"><IntakeBar key={entry} initialKind={entry==='coffee'?'caffeine':'water'} embedded onClose={closeEntry}/></Sheet>:null}
+    <IntakeBar onClose={closeEntry}/>
   </>;
 }

@@ -34,7 +34,7 @@ export async function POST(request: Request) {
   const { data: { user } } = await db.auth.getUser();
   if (!user) return NextResponse.json({ error: "Sign in required." }, { status: 401 });
   const input = parseDrinkInput(await request.json().catch(() => null));
-  if (!input) return NextResponse.json({ error: "Choose a whole amount from 1 to 5000 ml (coffee up to 1000 mg caffeine)." }, { status: 400 });
+  if (!input) return NextResponse.json({ error: "Choose a drink tile or a whole amount from 1 to 5000 ml (coffee up to 1000 mg caffeine)." }, { status: 400 });
   const zone = validZone(new URL(request.url).searchParams.get("tz") ?? (await cookies()).get("time-zone")?.value);
   try {
     const result = await postDrink(createAdminClient(), user.id, input, zone);
