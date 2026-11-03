@@ -5,12 +5,15 @@ create table public.composer_drink_readings (
  user_id uuid not null references public.profiles(id) on delete cascade,
  upload_id uuid not null references public.post_upload_drafts(id) on delete cascade,
  position integer not null check(position between 0 and 7),
+ photo_hash text check(photo_hash is null or photo_hash ~ '^[0-9a-f]{64}$'),
  state text not null default 'pending' check(state in ('pending','ready','failed')),
  drinks jsonb not null default '[]' check(jsonb_typeof(drinks)='array'),
  all_drinks boolean not null default false,
  created_at timestamptz not null default clock_timestamp(),
  unique(upload_id,position)
 );
+create index composer_drink_readings_photo on public.composer_drink_readings(user_id,photo_hash);
+create unique index composer_drink_readings_one_pending_photo on public.composer_drink_readings(user_id,photo_hash) where state='pending' and photo_hash is not null;
 alter table public.composer_drink_readings enable row level security;
 revoke all on public.composer_drink_readings from public,anon,authenticated;
 grant all on public.composer_drink_readings to service_role;

@@ -1,3 +1,4 @@
+import {createHash} from 'node:crypto';
 import {NextResponse} from 'next/server';
 import {createClient} from '@/lib/supabase/server';
 import {createAdminClient} from '@/lib/supabase/admin';
@@ -16,17 +17,29 @@ export async function POST(request:Request){
  if(!draft||draft.published||!Array.isArray(draft.shots)||body.position>=draft.shots.length)return NextResponse.json({error:'Photo draft not found.'},{status:404});
  const {data:existing,error:existingError}=await admin.from('composer_drink_readings').select('id,position,drinks,all_drinks,state').eq('upload_id',body.upload_id).eq('position',body.position).eq('user_id',user.id).maybeSingle();
  if(existingError)return NextResponse.json({error:'Drinks could not be checked. You can still post the photo.'},{status:503});
- if(existing)return existing.state==='ready'?NextResponse.json({id:existing.id,position:existing.position,drinks:existing.drinks,allDrinks:existing.all_drinks}):NextResponse.json({error:'This photo has already been checked.'},{status:409});
- const capped=await capUser(user.id,'post');if(capped)return capped;
+ if(existing)return existing.state==='ready'?NextResponse.json({id:existing.id,position:existing.position,drinks:existing.drinks,allDrinks:existing.all_drinks}):NextResponse.json({error:existing.state==='pending'?'This photo is being checked.':'Drinks could not be checked. You can still post the photo.'},{status:existing.state==='pending'?409:502});
  const path=`${user.id}/${body.upload_id}/${body.position}.jpg`;
  const {data:photo,error:photoError}=await admin.storage.from('media').download(path);
  if(photoError||!photo||photo.size>20*1024*1024)return NextResponse.json({error:'The photo could not be opened.'},{status:400});
- // Unique claim prevents concurrent rerenders/retries from making two model calls.
- const {data:claimed,error:claimError}=await admin.from('composer_drink_readings').insert({user_id:user.id,upload_id:body.upload_id,position:body.position}).select('id').single();
+ const bytes=new Uint8Array(await photo.arrayBuffer()),hash=createHash('sha256').update(bytes).digest('hex');
+ // Adding/removing another photo gives the upload manifest a fresh ID. Reuse
+ // this owner's exact photo reading so unchanged photos never spend twice.
+ const {data:cached,error:cacheError}=await admin.from('composer_drink_readings').select('drinks,all_drinks').eq('user_id',user.id).eq('photo_hash',hash).eq('state','ready').gte('created_at',new Date(Date.now()-3_600_000).toISOString()).limit(1).maybeSingle();
+ if(cacheError)return NextResponse.json({error:'Drinks could not be checked. You can still post the photo.'},{status:503});
+ if(cached){
+  const {data:copy,error}=await admin.from('composer_drink_readings').insert({user_id:user.id,upload_id:body.upload_id,position:body.position,photo_hash:hash,state:'ready',drinks:cached.drinks,all_drinks:cached.all_drinks}).select('id').single();
+  if(error)return NextResponse.json({error:'This photo is being checked.'},{status:error.code==='23505'?409:503});
+  return NextResponse.json({id:copy.id,position:body.position,drinks:cached.drinks,allDrinks:cached.all_drinks});
+ }
+ const capped=await capUser(user.id,'post');if(capped)return capped;
+ // Unique claims prevent concurrent rerenders and changed manifests from making two model calls.
+ const {data:claimed,error:claimError}=await admin.from('composer_drink_readings').insert({user_id:user.id,upload_id:body.upload_id,position:body.position,photo_hash:hash}).select('id').single();
  if(claimError)return NextResponse.json({error:claimError.code==='23505'?'This photo has already been checked.':'Drinks could not be checked. You can still post the photo.'},{status:claimError.code==='23505'?409:503});
  try{
-  const bytes=new Uint8Array(await photo.arrayBuffer());
-  const result=await traceContext.run({postId:null},()=>identifyDrinks(admin,user.id,bytes));
+  // A prior pending claim may have finished between our cache lookup and insert.
+  const {data:finished,error:finishedError}=await admin.from('composer_drink_readings').select('drinks,all_drinks').eq('user_id',user.id).eq('photo_hash',hash).eq('state','ready').gte('created_at',new Date(Date.now()-3_600_000).toISOString()).limit(1).maybeSingle();
+  if(finishedError)throw Error('Reading cache could not be read.');
+  const result=finished?{drinks:finished.drinks,allDrinks:finished.all_drinks}:await traceContext.run({postId:null},()=>identifyDrinks(admin,user.id,bytes));
   const {error}=await admin.from('composer_drink_readings').update({state:'ready',drinks:result.drinks,all_drinks:result.allDrinks}).eq('id',claimed.id);
   if(error)throw Error('Reading could not be stored.');
   return NextResponse.json({id:claimed.id,position:body.position,...result});

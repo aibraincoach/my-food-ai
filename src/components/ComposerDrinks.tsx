@@ -26,8 +26,13 @@ export function useComposerDrinks(p:Props){
   for(let position=0;position<p.shots.length;position++){
    const key=`${uploadId}:${position}`;
    if(attempted.current.has(key))continue;attempted.current.add(key);
-   void fetch('/api/drinks/identify',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({upload_id:uploadId,position})})
-    .then(async response=>{const result=await response.json();if(!response.ok)throw Error(result.error??'Drinks could not be checked.');return result as PhotoDrinkReading;})
+   const identify=async()=>{for(let attempt=0;attempt<90;attempt++){
+    const response=await fetch('/api/drinks/identify',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({upload_id:uploadId,position})});
+    const result=await response.json();
+    if(response.status===409){await new Promise(resolve=>setTimeout(resolve,1000));continue;}
+    if(!response.ok)throw Error(result.error??'Drinks could not be checked.');return result as PhotoDrinkReading;
+   }throw Error('Drinks could not be checked. You can still post the photo.');};
+   void identify()
     .then(result=>setReadings(previous=>({...previous,[key]:result})))
     .catch(failure=>setError({identity:mine,message:failure instanceof Error?failure.message:'Drinks could not be checked.'}));
   }

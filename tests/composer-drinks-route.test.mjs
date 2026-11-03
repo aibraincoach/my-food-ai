@@ -49,8 +49,10 @@ test('composer identify enforces caps and ownership, caches one model call, and 
   const retry=await request('/api/drinks/post',body);assert.equal(retry.status,201);assert.equal((await retry.json()).post_id,id);assert.equal(checked(await db.from('current_post_items').select('id').eq('post_id',id)).length,1);
   assert.equal(await count(),1);
   await cap(0);const concurrentId=await stage();const before=await count();
-  const simultaneous=await Promise.all([request('/api/drinks/identify',{upload_id:concurrentId,position:0}),request('/api/drinks/identify',{upload_id:concurrentId,position:0})]);
+  const changedManifestId=await stage();
+  const simultaneous=await Promise.all([request('/api/drinks/identify',{upload_id:concurrentId,position:0}),request('/api/drinks/identify',{upload_id:changedManifestId,position:0})]);
   assert.ok(simultaneous.some(r=>r.status===200));assert.ok(simultaneous.every(r=>[200,409].includes(r.status)));assert.equal(await count(),before+1);
+  const copied=await request('/api/drinks/identify',{upload_id:changedManifestId,position:0});assert.equal(copied.status,200);assert.equal(await count(),before+1);
  }finally{
   if(stages.length){checked(await db.from('posts').delete().in('id',stages));checked(await db.from('post_upload_drafts').delete().in('id',stages));
    const result=spawnSync('psql',['-X','-qAt','--dbname',process.env.SUPABASE_DB_URL,'-v','ON_ERROR_STOP=1'],{input:`delete from public.jobs where payload->>'deleted_post_id' in (${stages.map(id=>`'${id}'`).join(',')});delete from storage.objects where ${stages.map(id=>`name like '${user.id}/${id}/%'`).join(' or ')};`,encoding:'utf8'});assert.equal(result.status,0,result.stderr);}
