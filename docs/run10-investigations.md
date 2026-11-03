@@ -142,18 +142,23 @@ Read-only production measurements and designated test-account actions only. Unkn
 
 ## 7i. Last feed (#304)
 
-**Method** — Built #397 static shell and ran existing worker privacy suite.
+**Method** — Actual installed Chrome PWA on production,10:48 UTC. Privileged CDP pipe installed/launched the app; standalone media query verified. Pages closed between trials, browser process/profile and caches primed. Official Slow4G562.5ms/180,000 B/s down/84,375 B/s up acknowledged by the existing app worker before launch; new pages throttled before debugger resume. Clock starts before PWA.launch and samples visible real articles/images at animation frames. This is a cold app window, not a full browser-process cold boot.
 
 **Result**
 
 | Measurement | Result |
 | --- | --- |
-| Worker tests passed | 20 |
-| Failed/skipped | 0 |
+| Installed opens1/2/3, first visible feed with image ready | 1477 /1944 /1367 ms |
+| Source on ordinary opens | Fresh server/client,6 cards each |
+| Additional deliberately held-root lifecycle | Cached feed2660ms→fresh replacement3842ms |
+| Actual UI logout / logged-out reopen | /sign-in;0 old articles and0 mfa-feed keys |
+| Same browser account2 | 4 own posts; account2-only cache;0 observed account1 IDs |
+| Owned app/profile cleanup | Complete |
+| Pre-#397 immutable installed baseline | Install failed; no timing |
 
-**Answer** — Build and worker checks support implementation; they do not establish installed-app timing.
+**Answer** — Ordinary installed Slow4G opens met2s in all3 observed trials; cache-to-fresh replacement and logout/account separation also worked. The deliberately delayed root experiment proves that lifecycle separately and is not counted toward ordinary timing acceptance.
 
-**Unknown** — Actual Slow4G installed browser, sign-out and second-account page looks/timing remain required.
+**Unknown** — The protected pre-#397 deployment loaded its authenticated feed but Chrome PWA.install could not fetch install info; protection as cause is an inference, and no tab timing substitutes for installed baseline. Final deployment repeat remains pending; this is not physical-phone or full-process cold-boot evidence. Raw summary `/tmp/run10-thumbs-pwa-acceptance.json` preserves each assertion separately.
 
 ## 7j. Drink backfill (#377)
 
