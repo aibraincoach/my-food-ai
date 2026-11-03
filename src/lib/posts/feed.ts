@@ -34,6 +34,7 @@ export interface FeedItem {
 }
 
 export interface FeedPost {
+  itemsUnavailable?: boolean;
   fail_reason?: string | null;
   agentName?: string | null;
   agent_token_id?: string | null;
@@ -58,6 +59,14 @@ export interface FeedPost {
   count_text?: string | null;
   created_at: string;
   items: FeedItem[];
+}
+
+// Only an identical revision can reuse its previously read nutrition. A new
+// revision with an unavailable item read must never display the old totals.
+export function retainCompleteItems(previous: FeedPost | undefined, fresh: FeedPost): FeedPost {
+  return fresh.itemsUnavailable && previous?.id === fresh.id && previous.status === 'ready'
+    && previous.items.length > 0 && fresh.analysisFingerprint
+    && fresh.analysisFingerprint === previous.analysisFingerprint ? {...fresh, items: previous.items} : fresh;
 }
 
 export const FEED_PAGE_SIZE = 20;
@@ -148,32 +157,37 @@ async function optionalRead<T>(stage: string, read: () => PromiseLike<T>, fallba
   finally { if (timeout) clearTimeout(timeout); if (typeof window === 'undefined') console.info(`feed read ${stage} ${Date.now() - started}`); }
 }
 
-export async function toFeedPosts(db: SupabaseClient, rows: PostRow[], zone = "UTC"): Promise<FeedPost[]> {
+export async function toFeedPosts(db: SupabaseClient, rows: PostRow[], zone = "UTC", onFirstPhoto?: (url: string) => void): Promise<FeedPost[]> {
   if (!rows.length) return [];
   const ids = rows.map(row => row.id), ready = rows.filter(row => row.status === 'ready');
   const revisions = () => Promise.all(ready.map(row => optionalRead('revision', () => latestRevision(db, row.id), null)));
-  // Preserve the revision snapshot fence around nutrition reads, so a concurrent
-  // correction cannot attach feedback to nutrition from another revision.
-  const before = await revisions();
-  const [media, nutrition, saved] = await Promise.all([
-    optionalRead('media', async () => {
-      const result = await db.from('post_media').select('id,post_id,storage_path,kind,not_eaten,position').in('post_id', ids).order('position').abortSignal(AbortSignal.timeout(8000));
-      if (result.error) throw result.error; return result.data ?? [];
-    }, []),
-    optionalRead('items', () => getCurrentItemsForPosts(db, ready.map(row => row.id)), new Map<string, CurrentItem[]>()),
-    optionalRead('saved', async () => {
-      const result = await db.from('saved_meals').select('id,source_post_id').in('source_post_id', ids).abortSignal(AbortSignal.timeout(8000));
-      if (result.error) throw result.error; return result.data ?? [];
-    }, []),
-  ]);
-  const paths = [...new Set(media.map(entry => entry.kind === 'card' ? entry.storage_path : feedPathFor(entry.storage_path)))];
-  const urls = await optionalRead('signed-urls', async () => {
-    if (!paths.length) return new Map<string, string>();
-    const result = await db.storage.from('media').createSignedUrls(paths, 3600);
-    if (result.error) throw result.error;
-    return new Map((result.data ?? []).filter(entry => entry.signedUrl && !entry.error).map(entry => [entry.path!, entry.signedUrl]));
-  }, new Map<string, string>());
-  const after = await revisions();
+  // Start immutable media and its signed URLs immediately. SSR can emit the
+  // first-photo preload while the revision-fenced nutrition is still reading.
+  const mediaRead = optionalRead('media', async () => {
+    const result = await db.from('post_media').select('id,post_id,storage_path,kind,not_eaten,position').in('post_id', ids).order('position').abortSignal(AbortSignal.timeout(8000));
+    if (result.error) throw result.error; return result.data ?? [];
+  }, []);
+  const savedRead = optionalRead('saved', async () => {
+    const result = await db.from('saved_meals').select('id,source_post_id').in('source_post_id', ids).abortSignal(AbortSignal.timeout(8000));
+    if (result.error) throw result.error; return result.data ?? [];
+  }, []);
+  const urlRead = mediaRead.then(async media => {
+    const paths = [...new Set(media.map(entry => entry.kind === 'card' ? entry.storage_path : feedPathFor(entry.storage_path)))];
+    const urls = await optionalRead('signed-urls', async () => {
+      if (!paths.length) return new Map<string, string>();
+      const result = await db.storage.from('media').createSignedUrls(paths, 3600);
+      if (result.error) throw result.error;
+      return new Map((result.data ?? []).filter(entry => entry.signedUrl && !entry.error).map(entry => [entry.path!, entry.signedUrl]));
+    }, new Map<string, string>());
+    const first = media.find(entry => entry.post_id === rows[0].id);
+    const url = first && urls.get(first.kind === 'card' ? first.storage_path : feedPathFor(first.storage_path));
+    if (url) onFirstPhoto?.(url);
+    return urls;
+  });
+  const beforeRead = revisions();
+  const nutritionRead = beforeRead.then(() => optionalRead('items', () => getCurrentItemsForPosts(db, ready.map(row => row.id)), new Map<string, CurrentItem[]>()));
+  const afterRead = nutritionRead.then(() => revisions());
+  const [media, nutrition, saved, urls, before, after] = await Promise.all([mediaRead, nutritionRead, savedRead, urlRead, beforeRead, afterRead]);
   const revisionById = new Map(ready.map((row, index) => [row.id, before[index] && JSON.stringify(before[index]) === JSON.stringify(after[index]) ? after[index] : null]));
   return rows.map(row => {
     const items: FeedItem[] = (nutrition.get(row.id) ?? []).map(item => ({
@@ -189,7 +203,7 @@ export async function toFeedPosts(db: SupabaseClient, rows: PostRow[], zone = "U
       return url ? [{ id: entry.id, url, kind: entry.kind as 'photo' | 'card', not_eaten: Boolean(entry.not_eaten) }] : [];
     });
     const revision = revisionById.get(row.id);
-    return { fail_reason: row.fail_reason ?? null, agentName: (Array.isArray(row.agent_tokens) ? row.agent_tokens[0] : row.agent_tokens)?.name ?? null,
+    return { itemsUnavailable: row.status === 'ready' && !nutrition.has(row.id), fail_reason: row.fail_reason ?? null, agentName: (Array.isArray(row.agent_tokens) ? row.agent_tokens[0] : row.agent_tokens)?.name ?? null,
       agent_token_id: row.agent_token_id ?? null, saved_meal_id: saved.find(entry => entry.source_post_id === row.id)?.id ?? null,
       modelCommentId: revision?.modelCommentId ?? null, analysisFingerprint: revision?.fingerprint ?? null,
       day: dateInZone(row.eaten_at, zone), gtin: items.find(item => item.gtin)?.gtin,
@@ -207,7 +221,7 @@ export async function getFeed(
   before: string | null = null,
   zone = "UTC",
   limit = FEED_PAGE_SIZE,
-  options: { summaries?: boolean } = {}
+  options: { summaries?: boolean; onFirstPhoto?: (url: string) => void } = {}
 ): Promise<{posts: FeedPost[]; nextCursor:string|null; days: FeedDayTotal[]}> {
   const cursor = before === null ? null : parseFeedCursor(before);
   limit = Math.max(1, Math.min(FEED_PAGE_SIZE, Math.trunc(limit) || FEED_PAGE_SIZE));
@@ -227,7 +241,7 @@ export async function getFeed(
   }
   const rows = (data ?? []) as PostRow[];
   const page = rows.slice(0,limit);
-  const posts = await toFeedPosts(supabase,page,zone);
+  const posts = await toFeedPosts(supabase,page,zone,options.onFirstPhoto);
   const [hydration, days] = options.summaries === false ? [{}, []] as [Record<string, import('@/lib/intake/hydration').PostHydrationData>, FeedDayTotal[]] : await Promise.all([
     optionalRead('hydration', () => getPostHydrationData(supabase, userId, posts.map(post => ({...post,items:post.items.map(item=>({...item,micronutrients:item.micronutrients??[]}))})), zone), {}),
     optionalRead('day-totals', () => getDayTotals(supabase,userId,zone,page.map(row=>dateInZone(row.eaten_at,zone))), []),

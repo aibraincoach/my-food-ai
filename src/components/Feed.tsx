@@ -1,9 +1,9 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
-import { FEED_PAGE_SIZE, VISIBLE_MEAL_FILTER, getPostCard, type FeedPost } from "@/lib/posts/feed";
+import { FEED_PAGE_SIZE, VISIBLE_MEAL_FILTER, retainCompleteItems, getPostCard, type FeedPost } from "@/lib/posts/feed";
 import { tokens } from "@/lib/theme/tokens";
 import DayHeader from "@/components/DayHeader";
 import { dateInZone, shiftDay, getDayTotals, type FeedDayTotal } from "@/lib/posts/days";
@@ -19,6 +19,21 @@ type State = { kind: "loading" } | { kind: "error" } | { kind: "ready"; posts: F
 const DISCOVERY_INTERVAL_MS = 2000;
 const RETRY_INTERVAL_MS = 1000;
 
+const noServerSeed = () => false;
+const hasServerSeed = () => typeof document !== 'undefined' && Boolean(document.querySelector('[data-server-feed-ready]'));
+function subscribeServerSeed(listener: () => void) {
+  const observer = new MutationObserver(listener);
+  observer.observe(document, {childList: true, subtree: true});
+  return () => observer.disconnect();
+}
+// Outside the server Suspense boundary so cache hydration never waits for a
+// server request. Retire its DOM as soon as the real seed arrives, including
+// keyboard-selectable rows; CSS alone would leave hidden duplicates behind.
+export function CachedFeedFallback() {
+  const ready = useSyncExternalStore(subscribeServerSeed, hasServerSeed, noServerSeed);
+  return ready ? null : <Feed fallbackOnly />;
+}
+
 // Home discovers new rows independently of the optional Realtime connection.
 // Per-card refreshes remain in RealtimePost, so discovery fetches only IDs.
 export default function Feed({initialPage, initialUserId, fallbackOnly = false}: {fallbackOnly?: boolean; initialPage?: {posts: FeedPost[]; days: FeedDayTotal[]; nextCursor: string | null}; initialUserId?: string} = {}) {
@@ -30,7 +45,7 @@ export default function Feed({initialPage, initialUserId, fallbackOnly = false}:
   const retryInitial = useRef<() => void>(() => {});
   const cachedListener = useRef<(posts: FeedPost[]) => void>(() => {});
   useEffect(() => { if (cache.cached) cachedListener.current(cache.cached); }, [cache.cached]);
-  const uploads=useUploads().filter(upload=>upload.posted);
+  const uploads=useUploads().filter(upload=>!fallbackOnly&&upload.posted);
   const sentinel = useRef<HTMLDivElement>(null);
   const loadMore = useRef<() => void>(()=>{});
   const [state, setState] = useState<State>(initialPage ? {kind: "ready", posts: initialPage.posts, days: initialPage.days} : { kind: "loading" });
@@ -39,7 +54,6 @@ export default function Feed({initialPage, initialUserId, fallbackOnly = false}:
   useEffect(() => {
     if (fallbackOnly) {
       let live = true;
-      cachedListener.current = posts => { if (live) setState({kind: 'ready', posts, days: []}); };
       void createClient().auth.getSession().then(({data: {session}}) => {
         if (live) setCacheUserId(session?.user.id ?? null);
       }).catch(() => {});
@@ -50,6 +64,7 @@ export default function Feed({initialPage, initialUserId, fallbackOnly = false}:
     const dayTotals = new Map<string, FeedDayTotal>((initialPage?.days ?? []).map(day => [day.day, day]));
     const uploadDaysToRead=new Set(uploadManager.list().filter(upload=>upload.posted).map(upload=>dateInZone(upload.eatenAt,zone)));
     let totalsGeneration = 0;
+    const dayTotalVersions = new Map<string, number>();
     const mergeDays = (days: FeedDayTotal[]) => { for (const day of days) dayTotals.set(day.day, day); };
     let live = true;
     let userId: string | null = initialUserId ?? null;
@@ -79,10 +94,11 @@ export default function Feed({initialPage, initialUserId, fallbackOnly = false}:
     const refreshTotals = async (dates: string[]) => {
       if (!userId) return;
       const version = ++totalsGeneration;
+      for (const day of dates) dayTotalVersions.set(day, version);
       try {
         const days = await getDayTotals(supabase, userId, zone, dates);
-        if (!live || version !== totalsGeneration) return;
-        mergeDays(days); publish();
+        if (!live) return;
+        mergeDays(days.filter(day => dayTotalVersions.get(day.day) === version)); publish();
       } catch { /* Keep the last complete totals; the next readiness event retries. */ }
     };
     const uploading=(event:Event)=>{const detail=(event as CustomEvent<UploadState>).detail;if(detail.posted){const day=dateInZone(detail.eatenAt,zone);if(!uploadDaysToRead.has(day)){uploadDaysToRead.add(day);void refreshTotals([day]);}}};
@@ -147,11 +163,12 @@ export default function Feed({initialPage, initialUserId, fallbackOnly = false}:
           unavailable.delete(id);
           card.day = dateInZone(card.eaten_at, zone);
           const previous = cards.get(id) ?? baseline.find(post => post.id === id);
-          cards.set(id, card);
+          cards.set(id, retainCompleteItems(previous, card));
           void refreshTotals([...new Set([card.eaten_at, ...(previous ? [previous.eaten_at] : [])].map(value => dateInZone(value, zone)))]);
           publish();
           // A local completion event can arrive while the INSERT read still
           // sees unuploaded media. Always read again after that event.
+          if (card.itemsUnavailable) throw new Error('Meal details are unavailable.');
           if (request.again) { void fetchCard(); return; }
           pending.delete(id);
         } catch {
@@ -215,11 +232,12 @@ export default function Feed({initialPage, initialUserId, fallbackOnly = false}:
         const page = await readPage(null,6);
         if(!live||loadGeneration!==generation)return;
         mergeDays(page.days);
-        baseline = page.posts.filter(post=>!unavailable.has(post.id));
-        cacheRef.current.save(baseline);
+        baseline = page.posts.filter(post=>!unavailable.has(post.id)).map(post=>retainCompleteItems(baseline.find(prior=>prior.id===post.id),post));
+        if (!baseline.some(post=>post.itemsUnavailable)) cacheRef.current.save(baseline);
         cursor = page.nextCursor;
         loaded = true;
         publish();
+        for (const post of baseline) if (post.itemsUnavailable) requestCard(post.id);
         if(uploadDaysToRead.size)void refreshTotals([...uploadDaysToRead]);
       } catch {
         if (live && !cards.size && !baseline.length) setState({ kind: "error" });
@@ -338,30 +356,31 @@ export default function Feed({initialPage, initialUserId, fallbackOnly = false}:
     return ()=>observer.disconnect();
   },[state]);
 
+  const visibleState: State = fallbackOnly ? cache.cached ? {kind: 'ready', posts: cache.cached, days: []} : {kind: 'loading'} : state;
   const uploadDays=new Set<string>();
-  const localCards=uploads.map(upload=>{const server=state.kind==='ready'?state.posts.find(post=>post.id===upload.postId):undefined;const seed:FeedPost=server??{id:upload.postId??upload.operationId,caption:upload.caption,eaten_at:upload.eatenAt,created_at:upload.eatenAt,status:"queued",photoUrl:upload.previewUrl,slides:[],items:[]};const zone=Intl.DateTimeFormat().resolvedOptions().timeZone;const day=dateInZone(seed.eaten_at,zone);const header=!uploadDays.has(day);const measured=state.kind==='ready'?state.days.find(value=>value.day===day):undefined;const measuredTotal=measured?{...measured,ready:measured.ready||measured.kcal===0}:undefined;if(header)uploadDays.add(day);return <UploadHydratedCard key={upload.operationId} post={seed} upload={upload} header={header?<DayHeader day={day} zone={zone} empty={false} total={measuredTotal}/>:null}/>;});
-  if (state.kind === "loading"&&localCards.length)return <div>{localCards}{null}</div>;
-  if (state.kind === "loading") return <p className="px-screen-x text-detail text-muted" role="status">Loading feed…</p>;
-  if (state.kind === "error") return <div>{localCards}<p className="px-screen-x text-detail text-muted" role="alert">The feed could not be loaded.</p><button type="button" className="min-h-tap px-screen-x text-text" onClick={() => retryInitial.current()}>Try again</button></div>;
-  if (!state.posts.length&&localCards.length)return <div>{localCards}{null}</div>;
-  if (!state.posts.length) return <div className="flex flex-1 items-center justify-center" style={{ paddingBottom: tokens.spacing['sheet-bottom'] * 3 }}>
+  const localCards=uploads.map(upload=>{const server=visibleState.kind==='ready'?visibleState.posts.find(post=>post.id===upload.postId):undefined;const seed:FeedPost=server??{id:upload.postId??upload.operationId,caption:upload.caption,eaten_at:upload.eatenAt,created_at:upload.eatenAt,status:"queued",photoUrl:upload.previewUrl,slides:[],items:[]};const zone=Intl.DateTimeFormat().resolvedOptions().timeZone;const day=dateInZone(seed.eaten_at,zone);const header=!uploadDays.has(day);const measured=visibleState.kind==='ready'?visibleState.days.find(value=>value.day===day):undefined;const measuredTotal=measured?{...measured,ready:measured.ready||measured.kcal===0}:undefined;if(header)uploadDays.add(day);return <UploadHydratedCard key={upload.operationId} post={seed} upload={upload} header={header?<DayHeader day={day} zone={zone} empty={false} total={measuredTotal}/>:null}/>;});
+  if (visibleState.kind === "loading"&&localCards.length)return <div>{localCards}{null}</div>;
+  if (visibleState.kind === "loading") return <p className="px-screen-x text-detail text-muted" role="status">Loading feed…</p>;
+  if (visibleState.kind === "error") return <div>{localCards}<p className="px-screen-x text-detail text-muted" role="alert">The feed could not be loaded.</p><button type="button" className="min-h-tap px-screen-x text-text" onClick={() => retryInitial.current()}>Try again</button></div>;
+  if (!visibleState.posts.length&&localCards.length)return <div>{localCards}{null}</div>;
+  if (!visibleState.posts.length) return <div className="flex flex-1 items-center justify-center" style={{ paddingBottom: tokens.spacing['sheet-bottom'] * 3 }}>
     <p className="text-sheet-title font-normal text-muted">Post your first meal</p>
   </div>;
   const zone = Intl.DateTimeFormat().resolvedOptions().timeZone;
   const groups = new Map<string, FeedPost[]>();
-  for (const post of state.posts.filter(post=>!uploads.some(upload=>upload.postId===post.id))) {
+  for (const post of visibleState.posts.filter(post=>!uploads.some(upload=>upload.postId===post.id))) {
     const day = dateInZone(post.eaten_at, zone);
     groups.set(day, [...(groups.get(day) ?? []), post]);
   }
   const listed = [...groups.keys()].sort().reverse();
   const days: string[] = [];
   if(listed.length)for (let day = listed[0]; day >= listed.at(-1)!; day = shiftDay(day, -1)) days.push(day);
-  const totals = new Map(state.days.map(day => [day.day, day]));
+  const totals = new Map(visibleState.days.map(day => [day.day, day]));
   return <div className="flex flex-col">
     {localCards}
     {days.map(day => <section key={day} aria-label={day} className="relative pb-card-gap">
       {!uploadDays.has(day)&&<DayHeader day={day} zone={zone} empty={!groups.has(day)} total={totals.get(day)} />}
-      {groups.has(day) ? <div className="flex flex-col gap-card-gap pt-sheet-top">{groups.get(day)!.map((post) => <div key={uploads.find(upload=>upload.postId===post.id)?.operationId??post.id} data-desktop-post={post.id} tabIndex={-1}>{fallbackOnly ? <PostCard priority={state.posts[0]?.id === post.id} post={post} /> : <RealtimePost initial={post} renderCard={(fresh) => <PostCard priority={state.posts[0]?.id === post.id} post={fresh} upload={uploads.find(upload=>upload.postId===post.id)}
+      {groups.has(day) ? <div className="flex flex-col gap-card-gap pt-sheet-top">{groups.get(day)!.map((post) => <div key={uploads.find(upload=>upload.postId===post.id)?.operationId??post.id} data-desktop-post={post.id} tabIndex={-1}>{fallbackOnly ? <PostCard priority={visibleState.posts[0]?.id === post.id} post={post} /> : <RealtimePost initial={post} renderCard={(fresh) => <PostCard priority={visibleState.posts[0]?.id === post.id} post={fresh} upload={uploads.find(upload=>upload.postId===post.id)}
          />} />}</div>)}</div> : null}
     </section>)}
     {pageError ? <div className="px-screen-x text-detail text-muted" role="alert">

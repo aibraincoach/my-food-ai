@@ -29,3 +29,15 @@ test('batch nutrition preserves post ownership, legacy scaling and remainder fal
  assert.equal(result.get('post-b')[0].calories,null);assert.equal(result.get('post-b')[0].name,'Food B');
  assert.equal(calls.length,2);assert.equal(calls[1].searchParams.get('post_id'),'in.(post-a,post-b)');
 });
+
+
+test('only a matching analysis revision may retain previously read nutrition',async()=>{
+ const {retainCompleteItems}=await import('../src/lib/posts/feed.ts');
+ const previous={id:'meal',status:'ready',analysisFingerprint:'revision-a',items:[{id:'item',name:'Food',calories:100}]};
+ const unavailable={...previous,items:[],itemsUnavailable:true};
+ assert.deepEqual(retainCompleteItems(previous,unavailable).items,previous.items);
+ assert.equal(retainCompleteItems(previous,unavailable).itemsUnavailable,true,'retained nutrition still exposes the failed read and keeps retrying');
+ assert.deepEqual(retainCompleteItems(previous,{...unavailable,analysisFingerprint:'revision-b'}).items,[],'a changed revision cannot borrow stale totals');
+ assert.deepEqual(retainCompleteItems(previous,{...unavailable,analysisFingerprint:null}).items,[]);
+ assert.deepEqual(retainCompleteItems(previous,{...unavailable,itemsUnavailable:false}).items,[],'a successful empty read is genuine, not overwritten by history');
+});

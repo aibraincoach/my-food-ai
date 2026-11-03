@@ -9,8 +9,12 @@ export async function GET(request: Request) {
   const started = Date.now();
   const headers = {"Cache-Control":"private, no-store"};
   try {
-    const db = await createClient(AbortSignal.timeout(15000));
-    const {data:{user}, error} = await db.auth.getUser();
+    const db = await createClient(AbortSignal.timeout(12000));
+    let authTimer: ReturnType<typeof setTimeout> | undefined;
+    let auth;
+    try { auth = await Promise.race([db.auth.getUser(), new Promise<never>((_,reject)=>{authTimer=setTimeout(()=>reject(new Error('Authentication timed out.')),8000);})]); }
+    finally { if (authTimer) clearTimeout(authTimer); }
+    const {data:{user}, error} = auth;
     console.info(`feed read auth ${Date.now() - started}`);
     if(error || !user) return NextResponse.json({error:"Sign in required."},{status:401,headers});
     const params = new URL(request.url).searchParams;

@@ -11,10 +11,12 @@ export default function NeedsInputStrip(){
     const db=createClient();let live=true,busy=false;
     let owner: string | null = null, lastQuestions = '';
     let authGeneration = 0;
+    let auxiliaryFailed = false;
+    let lastMediaPaths: string[] = [], signRetryAt = 0, signFailures = 0;
     const signed = new Map<string, {url: string; until: number}>();
     const auth = db.auth.onAuthStateChange((_event, session) => {
       if (owner !== (session?.user.id ?? null)) {
-        authGeneration++; owner = session?.user.id ?? null; lastQuestions = ''; signed.clear();
+        authGeneration++; owner = session?.user.id ?? null; lastQuestions = ''; signed.clear(); auxiliaryFailed = false; lastMediaPaths = []; signRetryAt = 0; signFailures = 0;
         if (live) { setPosts([]); setSelected(null); }
       }
     });
@@ -36,16 +38,18 @@ export default function NeedsInputStrip(){
           return question ? [{...post,needs_input:question}] : [];
         });
         const identity = JSON.stringify(questions);
-        if(identity === lastQuestions)return;
+        if(identity === lastQuestions && (!auxiliaryFailed && lastMediaPaths.every(path=>(signed.get(path)?.until??0)>Date.now()) || Date.now()<signRetryAt))return;
         const media = questions.length ? await db.from('post_media').select('post_id,storage_path,position').in('post_id',questions.map(post=>post.id)).eq('kind','photo').order('position').abortSignal(AbortSignal.timeout(8000)) : {data:[],error:null};
-        if(media.error)throw media.error;
+
         const first = new Map<string, string>();
         for(const row of media.data??[])if(!first.has(row.post_id))first.set(row.post_id,`${row.storage_path.replace(/\.[^/.]+$/, '')}.feed.jpg`);
-        const needed = [...new Set(first.values())].filter(path => (signed.get(path)?.until??0) <= Date.now());
-        let signingFailed = false;
+        lastMediaPaths = [...new Set(first.values())];
+        const needed = lastMediaPaths.filter(path => (signed.get(path)?.until??0) <= Date.now());
+        let signingFailed = Boolean(media.error);
         if(needed.length){
           // Storage SDK batching has no per-call abort option. Its documented
           // signing endpoint is a read; use fetch so the request really cancels.
+          try {
           const response = await fetch(`${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/sign/media`, {
             method:'POST',headers:{'Content-Type':'application/json',apikey:process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!,Authorization:`Bearer ${session.access_token}`},
             body:JSON.stringify({paths:needed,expiresIn:3600}),signal:AbortSignal.timeout(8000),
@@ -55,10 +59,15 @@ export default function NeedsInputStrip(){
             const rows=await response.json() as {path:string;signedURL?:string;error?:string|null}[];
             for(const row of rows)if(!row.error&&row.signedURL)signed.set(row.path,{url:`${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1${row.signedURL}`,until:Date.now()+300000});
           }
+          } catch { signingFailed = true; }
+          signingFailed ||= needed.some(path=>(signed.get(path)?.until??0)<=Date.now());
         }
+        auxiliaryFailed = signingFailed;
+        signRetryAt = signingFailed ? Date.now()+Math.min(60000,2000*2**Math.min(signFailures++,5)) : 0;
+        if (!signingFailed) signFailures = 0;
         if(live&&owner===userId&&generation===authGeneration){
-          setPosts(questions.map(post=>({...post,photoUrl:signed.get(first.get(post.id)??'')?.url??null})));
-          lastQuestions=signingFailed ? '' : identity;
+          setPosts(questions.map(post=>{const photo=signed.get(first.get(post.id)??'');return {...post,photoUrl:photo&&photo.until>Date.now()?photo.url:null};}));
+          lastQuestions=identity;
         }
       }catch{/* Keep last good questions; the next visible tick retries a failed read. */}finally{busy=false;}
     };
@@ -68,7 +77,7 @@ export default function NeedsInputStrip(){
   const remove=(id:string)=>{setPosts(rows=>rows.filter(row=>row.id!==id));setSelected(null);};
   return <>{posts.map(post=><div key={post.id} className="flex min-h-brand items-center gap-sheet-top border-b border-hairline px-screen-x">
     <button type="button" onClick={()=>setSelected(post)} className="flex min-w-0 flex-1 items-center gap-sheet-top text-left">
-      {post.photoUrl?<img src={post.photoUrl} loading="lazy" decoding="async" width={40} height={40} alt="" className="size-tap shrink-0 rounded-thumb object-cover"/>:<span className="size-tap shrink-0 rounded-thumb bg-card"/>}
+      {post.photoUrl?<img crossOrigin="anonymous" src={post.photoUrl} loading="lazy" decoding="async" width={40} height={40} alt="" className="size-tap shrink-0 rounded-thumb object-cover"/>:<span className="size-tap shrink-0 rounded-thumb bg-card"/>}
       <span className="min-w-0"><span className="block text-body">{post.needs_input.short}</span><span className="block truncate text-meta text-muted">{post.needs_input.short==="No food found"?"Add a caption to log it":post.needs_input.question}</span></span>
     </button>
     <button type="button" aria-label="Discard meal" className="flex size-tap items-center justify-center" onClick={async()=>{const response=await fetch(`/api/posts/${post.id}/discard`,{method:"POST"});if(response.ok)remove(post.id);else setError("Meal could not be discarded.");}}><Icon name="close"/></button>

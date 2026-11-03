@@ -123,7 +123,7 @@ test('first page limit is six and optional field failures do not hide posts', as
   const page=await getFeed(db,uuid(99),null,'UTC',6);
   assert.equal(page.posts.length,6);assert.ok(page.nextCursor);
   assert.deepEqual(page.days,[]);
-  for(const post of page.posts){assert.equal(post.photoUrl,null);assert.equal(post.saved_meal_id,null);assert.equal(post.analysisFingerprint,null);assert.deepEqual(post.items,[]);}
+  for(const post of page.posts){assert.equal(post.itemsUnavailable,true);assert.equal(post.photoUrl,null);assert.equal(post.saved_meal_id,null);assert.equal(post.analysisFingerprint,null);assert.deepEqual(post.items,[]);}
   assert.equal(calls.filter(url=>url.pathname.endsWith('/saved_meals')).length,1);
   assert.equal(calls.filter(url=>url.pathname.endsWith('/post_media')).length,1);
   assert.equal(calls.find(url=>url.pathname.endsWith('/current_post_items')).searchParams.get('post_id'),`in.(${rows.slice(0,6).map(row=>row.id).join(',')})`);
