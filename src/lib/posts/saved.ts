@@ -2,15 +2,16 @@ import { syncItemDrinks } from '@/lib/intake/drinks-from-items';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { renderResultsCard } from '@/lib/pipeline/results-card';
 import { validEatenAt } from './eaten-at';
-export type SavedNutrition = {calories:number|null;protein_g:number|null;carbs_g:number|null;fat_g:number|null};
+export type SavedNutrition = {calories:number|null;protein_g:number|null;carbs_g:number|null;fat_g:number|null;food_category?:string|null;micronutrients?:import('@/lib/nutrition/totals').StoredNutrient[]};
 export type SavedItem = {name:string;portion_grams:number|null;portion_text:string|null;nutrition:SavedNutrition};
-export type SavedMeal = {id:string;name:string;source_post_id:string|null;items:SavedItem[];last_logged_at:string|null;thumbnail?:string|null};
+export type SavedDrink = {kind:"water"|"caffeine";amount:number;ml:number|null;label:string|null;source?:"sheet"|"item";item_name?:string|null};
+export type SavedMeal = {id:string;name:string;source_post_id:string|null;items:SavedItem[];drinks?:SavedDrink[];last_logged_at:string|null;thumbnail?:string|null};
 export function savedName(value:unknown):string {
  if(typeof value!=='string'||!value.trim()||value.trim().length>80||value.includes('\0'))throw new Error('Enter a name up to 80 characters.');
  return value.trim();
 }
 export async function listSaved(db:SupabaseClient):Promise<SavedMeal[]> {
- const {data,error}=await db.from('saved_meals').select('id,name,source_post_id,items,last_logged_at').order('created_at',{ascending:false});
+ const {data,error}=await db.from('saved_meals').select('id,name,source_post_id,items,drinks,last_logged_at').order('created_at',{ascending:false});
  if(error)throw new Error('Saved meals could not be loaded.');
  const rows=data??[];
  const ids=rows.map(row=>row.source_post_id).filter((id):id is string=>typeof id==='string');
