@@ -139,7 +139,8 @@ test("the signed-in food route accepts server-resolved GTIN/photo, rejects suppl
 test("a label reading belonging to a second user cannot become the signed-in user's post",{skip:!process.env.SUPABASE_DB_URL},async(t)=>{
  const installed=sql("select to_regclass('public.label_readings') is not null;").trim()==='t';
  if(!installed){t.skip('Migration 0025 awaits its merge order.');return;}
- const origin='http://127.0.0.1:3104';try{await fetch(origin+'/api/health');}catch{t.skip('Local built application is not running.');return;}
+ const origin='http://127.0.0.1:3104';let healthResponse;try{healthResponse=await fetch(origin+'/api/health');}catch{t.skip('Local built application is not running.');return;}
+ const health=await healthResponse.json();assert.equal(typeof health.config.MODEL_API_KEY,'boolean');assert.equal(typeof health.database.ok,'boolean');assert.equal(typeof health.model.ok,'boolean');
  const cookie=await signInAsTestUser();
  const admin=createClient(process.env.NEXT_PUBLIC_SUPABASE_URL,process.env.SUPABASE_SECRET_KEY,{auth:{persistSession:false,autoRefreshToken:false}});
  const other=createClient(process.env.NEXT_PUBLIC_SUPABASE_URL,process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY,{auth:{persistSession:false,autoRefreshToken:false}});
