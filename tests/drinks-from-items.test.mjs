@@ -41,7 +41,7 @@ test('actual WWEIA categories include waters, juices, milk, diet drinks and alco
 test('drink limits, missing caffeine, grams fallback and fully uneaten drinks', () => {
   const large = drinksFromItems([item({ portion_text: '6000 ml', micronutrients: [{ nutrientId: 1057, value: 1300, basis: 'portion' }] })])[0];
   assert.equal(large.ml, 5000); assert.equal(large.amount, 1000);
-  const grams = drinksFromItems([item({ portion_text: 'one cup', portion_grams: 240, micronutrients: [{ nutrientId: 1057, value: 95, basis: '100g' }] })])[0];
+  const grams = drinksFromItems([item({ name: 'Coffee', portion_text: 'one cup', portion_grams: 240, micronutrients: [{ nutrientId: 1057, value: 95, basis: '100g' }] })])[0];
   assert.equal(grams.ml, 240); assert.equal(grams.caffeineMg, 0);
   assert.equal(drinksFromItems([item({ portion_text: '0 ml', portion_grams: 0 })]).length, 0);
   assert.equal(drinksFromItems([item({ portion_text: null, portion_grams: null })]).length, 0);
@@ -77,7 +77,7 @@ test('mixed meals retain food water while beverages count exactly once', async (
   const hydrated = (await getPostHydrationData(mockDb(true), 'owner', [{ id: 'post', eaten_at }], 'UTC')).post;
   assert.equal(hydrated.kind, 'meal'); assert.equal(hydrated.drink, null);
   assert.equal(hydrated.foodWaterMl, 80); assert.deepEqual(hydrated.dayHydration, { drinksMl: 355, foodMl: 80, totalMl: 435, caffeineMg: 34 });
-  assert.deepEqual(hydrated.itemDrinks, [{ label: 'Cola', ml: 355, caffeineMg: 34 }]);
+  assert.deepEqual(hydrated.itemDrinks, [{ post_item_id: 'cola', label: 'Cola', ml: 355, caffeineMg: 34 }]);
   assert.equal(itemWaterMl({ portion_grams: 100, micronutrients: [nutrient] }, true), 0);
 });
 test('all-drink photo aggregates the card, while mixed meal copy retains consumed totals', async () => {
@@ -86,7 +86,7 @@ test('all-drink photo aggregates the card, while mixed meal copy retains consume
   const mixed = { items: [{ name: 'Meal', portion_grams: 100, calories: 200, protein_g: 10, carbs_g: 20, fat_g: 8 }],
     itemDrinks: hydrated.itemDrinks, kind: 'meal' };
   assert.equal(cardDataFromRow(mixed).mealDrinkLine, 'Drank in this meal: 355 ml Cola · 34 mg caffeine');
-  assert.match(summaryLine(mixed), /355 ml drank · 34 mg caffeine$/);
+  assert.match(summaryLine(mixed), /Consumed: 200 kcal · 355 ml drank · 34 mg caffeine · 10 g protein/);
 });
 test('0029 preserves categories in every SQL writer and restricts linked intake writes', () => {
   const sql = readFileSync(new URL('../supabase/migrations/0029_drinks_from_items.sql', import.meta.url), 'utf8');
@@ -134,4 +134,27 @@ test('a glass of milk adds drink volume while its calories stay on the drink car
   assert.equal(card.kind, 'drink'); assert.equal(card.amountMl, 250); assert.equal(card.kcal, 150);
   assert.equal(card.drinkLine, 'Whole milk · 150 kcal'); assert.deepEqual(card.macros, { protein: 8, carbs: 12, fat: 8 });
   assert.deepEqual(milk, snapshot);
+});
+
+
+test('only cola gets a scaled caffeine fallback; portion values including zero win', () => {
+  for (const name of ['Cola', 'Coca-Cola', 'Coca Cola', 'Coke', 'Pepsi']) {
+    assert.equal(drinksFromItems([item({ name, portion_text: '330 ml', micronutrients: [] })])[0].caffeineMg, 32);
+    assert.equal(drinksFromItems([item({ name, portion_text: '165 ml', micronutrients: [] })])[0].caffeineMg, 16);
+  }
+  assert.equal(drinksFromItems([item({ name: 'Cola', food_category: null, portion_text: '330 ml', micronutrients: [] })])[0].caffeineMg, 32);
+  assert.equal(drinksFromItems([item({ name: 'Cola cake', food_category: null })]).length, 0);
+  assert.equal(drinksFromItems([item({ name: 'Water', micronutrients: [] })])[0].caffeineMg, 0);
+  assert.equal(drinksFromItems([item({ portion_text: '330 ml' })])[0].caffeineMg, 34);
+  assert.equal(drinksFromItems([item({ micronutrients: [{ nutrientId: 1057, value: 0, basis: 'portion' }] })])[0].caffeineMg, 0);
+});
+test('photo drink summary uses matching item identities, kcal, and optional caffeine', () => {
+  const cola = item({ calories: 139 });
+  const drink = { post_item_id: cola.id, ml: 330, caffeineMg: 32, label: 'Cola' };
+  assert.equal(summaryLine({ items: [cola], itemDrinks: [drink], kind: 'drink', drinkSource: 'item' }, { source: 'item' }), 'Drank: 330 ml · 32 mg caffeine · 139 kcal');
+  const water = { ...cola, id: 'water', name: 'Water', calories: 0 };
+  const waterDrink = { post_item_id: 'water', ml: 1000, caffeineMg: 0, label: 'Water' };
+  assert.equal(summaryLine({ items: [water], itemDrinks: [waterDrink] }), 'Drank: 1,000 ml · 0 kcal');
+  assert.equal(summaryLine({ items: [cola, water], itemDrinks: [drink, waterDrink] }), 'Drank: 2 drinks · 1,330 ml · 32 mg caffeine · 139 kcal');
+  assert.match(summaryLine({ items: [cola, { ...water, id: 'food' }], itemDrinks: [drink, waterDrink] }), /^Consumed: 139 kcal · 1,330 ml drank · 32 mg caffeine/);
 });
