@@ -54,7 +54,7 @@ test('food water shares use the recorded unit and round the meal sum once',()=>{
  const item=(water,portion_text)=>({portion_grams:100,portion_text,micronutrients:[{nutrientId:1051,unitName:'G',value:water,basis:'portion'}]});
  assert.equal(itemWaterMl(item(420,'100 g')),336);
  assert.equal(itemWaterMl(item(420,'400 ml')),420);
- assert.equal(itemWaterMl(item(420,'100 g'),true),420);
+ assert.equal(itemWaterMl(item(420,'100 g'),true),0,'linked drink water is already recorded as intake and must not be counted again');
  assert.equal(foodWaterMl([item(30,'100 g'),item(30,'100 g')]),50);
  assert.equal(foodWaterMl([item(30,'100 ml'),item(30,'100 ml')]),60);
  assert.equal(roundWaterMl(44),40);assert.equal(roundWaterMl(45),50);

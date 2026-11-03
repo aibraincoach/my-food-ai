@@ -10,14 +10,14 @@ import {readCardData} from '../src/lib/pipeline/card-data.ts';
 const eatenAt='2026-11-01T00:30:00Z';
 const item={name:'Soup',portion_grams:100,portion_text:'100 g',calories:30,protein_g:1,carbs_g:4,fat_g:1,fibre_g:1,sugar_g:1,sodium_mg:10,micronutrients:[{nutrientId:1051,unitName:'G',value:100,basis:'portion'}]};
 function hydrationFixture(zone){
- const post={id:'meal',user_id:'owner',eaten_at:eatenAt,status:'processing',render_time_zone:zone};
+ const post={id:'meal',user_id:'owner',eaten_at:eatenAt,status:'processing',deleted_at:null,render_time_zone:zone};
  const tables={posts:[post],intake_logs:[
   {user_id:'owner',kind:'water',amount:330,ml:330,label:'Water',post_id:null,logged_at:'2026-10-31T23:50:00Z'},
   {user_id:'owner',kind:'water',amount:240,ml:240,label:'Water',post_id:null,logged_at:'2026-11-01T00:20:00Z'},
   {user_id:'owner',kind:'water',amount:999,ml:999,label:'Water',post_id:null,logged_at:'2026-11-01T01:00:00Z'},
  ],current_post_items:[],item_nutrition:[]};
- return {post,from(table){assert.ok(table in tables,`unexpected table ${table}`);const predicates=[];let update;const result=()=>{const rows=tables[table].filter(row=>predicates.every(fn=>fn(row)));if(update)for(const row of rows)Object.assign(row,update);return rows;};const chain={
-  select(){return chain},update(value){update=value;return chain},eq(key,value){predicates.push(row=>row[key]===value);return chain},is(key,value){predicates.push(row=>row[key]===value);return chain},in(key,values){predicates.push(row=>values.includes(row[key]));return chain},gte(key,value){predicates.push(row=>row[key]>=value);return chain},lte(key,value){predicates.push(row=>row[key]<=value);return chain},lt(key,value){predicates.push(row=>row[key]<value);return chain},order(){return chain},async range(from,through){return{data:result().slice(from,through+1),error:null}},async maybeSingle(){return{data:result()[0]??null,error:null}},then(resolve){return Promise.resolve({data:result(),error:null}).then(resolve)},
+ return {post,from(table){assert.ok(table in tables,`unexpected table ${table}`);const predicates=[];let update,bounds;const result=()=>{const rows=tables[table].filter(row=>predicates.every(fn=>fn(row)));if(update)for(const row of rows)Object.assign(row,update);return rows;};const chain={
+  abortSignal(){return chain},or(){return chain},select(){return chain},update(value){update=value;return chain},eq(key,value){predicates.push(row=>row[key]===value);return chain},is(key,value){predicates.push(row=>row[key]===value);return chain},in(key,values){predicates.push(row=>values.includes(row[key]));return chain},gte(key,value){predicates.push(row=>row[key]>=value);return chain},lte(key,value){predicates.push(row=>row[key]<=value);return chain},lt(key,value){predicates.push(row=>row[key]<value);return chain},order(){return chain},range(from,through){bounds=[from,through];return chain},async maybeSingle(){return{data:result()[0]??null,error:null}},then(resolve){return Promise.resolve({data:bounds?result().slice(bounds[0],bounds[1]+1):result(),error:null}).then(resolve)},
  };return chain;}};
 }
 

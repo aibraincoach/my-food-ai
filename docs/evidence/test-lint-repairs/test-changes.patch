@@ -1,0 +1,402 @@
+diff --git a/tests/agent-tokens.test.mjs b/tests/agent-tokens.test.mjs
+index cc60abf..f67ac8e 100644
+--- a/tests/agent-tokens.test.mjs
++++ b/tests/agent-tokens.test.mjs
+@@ -19,7 +19,7 @@ test('tokens have 32 random base62 characters, persist a digest and suffix only'
+ });
+ function authDb(row, limit = 60) {
+   let calls = 0, hits = 0, hash;
+-  const chain = { select() { return chain; }, eq(_, value) { hash = value; return chain; }, maybeSingle: async () => ({ data: row, error: null }) };
++  const chain = { select() { return chain; }, is(key,value){constraints.push([key,value]);return chain;}, eq(_, value) { hash = value; return chain; }, maybeSingle: async () => ({ data: row, error: null }) };
+   return { from: () => chain, rpc: async (name, args) => { assert.equal(name, 'agent_hit'); assert.equal(args.p_limit, 60); assert.ok(args.p_increment >= 1 && args.p_increment <= 61); calls++; hits += args.p_increment; return { data: hits <= limit, error: null }; }, stats: () => ({ calls, hits, hash }) };
+ }
+ test('Bearer authentication refuses missing, unknown and revoked tokens and caps the 61st call', async () => {
+@@ -45,7 +45,7 @@ test('meal input preserves a past eaten-at and rejects future times and invalid
+ });
+ test('a second owner cannot get or correct another owner meal through the service', async () => {
+   const constraints = [];
+-  const chain = { select() { return chain; }, eq(key, value) { constraints.push([key, value]); return chain; }, maybeSingle: async () => ({ data: null, error: null }) };
++  const chain = { select() { return chain; }, is(key,value){constraints.push([key,value]);return chain;}, eq(key, value) { constraints.push([key, value]); return chain; }, maybeSingle: async () => ({ data: null, error: null }) };
+   const db = { from(table) { assert.equal(table, 'posts'); return chain; }, rpc() { throw new Error('No write after an ownership refusal'); } };
+   const identity = { userId: 'second-owner', tokenId: 'second-token' }; const id = '11111111-1111-4111-8111-111111111111';
+   await assert.rejects(getMeal(identity, id, db), e => e.status === 404 && e.message === 'Not found');
+diff --git a/tests/answer-readiness.test.mjs b/tests/answer-readiness.test.mjs
+index c61a294..c0a0e8e 100644
+--- a/tests/answer-readiness.test.mjs
++++ b/tests/answer-readiness.test.mjs
+@@ -3,12 +3,13 @@ import assert from 'node:assert/strict';
+ import vm from 'node:vm';
+ import {readFileSync} from 'node:fs';
+ import ts from 'typescript';
++import {refreshAfterReadinessSeed,refreshAfterReady} from '../src/lib/posts/readiness-refresh.ts';
+ test('answered old IDs remain tracked through delayed processing and repeated questions',async()=>{
+  let now=1000,status='processing',tick;const effects=[],listeners=new Map(),events=[];
+  const code=ts.transpileModule(readFileSync(new URL('../src/components/PostReadinessListener.tsx',import.meta.url),'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,jsx:ts.JsxEmit.ReactJSX,target:ts.ScriptTarget.ES2022}}).outputText;
+  const channel={on(){return this;},subscribe(){return this;}};
+  const db={auth:{getUser:async()=>({data:{user:{id:'owner'}}})},channel:()=>channel,removeChannel(){},from(){let selection;const q={select(s){selection=s;return q;},eq(){return q;},in(){return q;},then(resolve){return Promise.resolve({data:selection==='id,status'?[{id:'older-meal',status}]:[]}).then(resolve);}};return q;}};
+- const exports={};vm.runInNewContext(code,{exports,Date:class extends Date{static now(){return now;}},document:{visibilityState:'visible',addEventListener(){},removeEventListener(){}},CustomEvent:class{constructor(type,init){this.type=type;this.detail=init.detail;}},setInterval:fn=>{tick=fn;return 1;},clearInterval(){},window:{addEventListener(n,fn){listeners.set(n,fn);},removeEventListener(){},dispatchEvent(event){events.push(event);listeners.get(event.type)?.(event);}},require(name){if(name==='react')return{useEffect:fn=>effects.push(fn)};if(name==='next/navigation')return{useRouter:()=>({refresh(){}})};if(name==='@/lib/supabase/client')return{createClient:()=>db};throw Error(name);}});
++ const exports={};vm.runInNewContext(code,{exports,location:{pathname:'/'},Date:class extends Date{static now(){return now;}},document:{querySelector:()=>null,visibilityState:'visible',addEventListener(){},removeEventListener(){}},CustomEvent:class{constructor(type,init){this.type=type;this.detail=init.detail;}},setInterval:fn=>{tick=fn;return 1;},clearInterval(){},window:{addEventListener(n,fn){listeners.set(n,fn);},removeEventListener(){},dispatchEvent(event){events.push(event);listeners.get(event.type)?.(event);}},require(name){if(name==='@/lib/posts/readiness-refresh')return{refreshAfterReadinessSeed,refreshAfterReady};if(name==='react')return{useEffect:fn=>effects.push(fn)};if(name==='next/navigation')return{useRouter:()=>({refresh(){}})};if(name==='@/lib/supabase/client')return{createClient:()=>db};throw Error(name);}});
+  exports.default();const cleanup=effects[0]();await new Promise(resolve=>setImmediate(resolve));
+  listeners.get('post-answer-resume')({detail:{id:'older-meal'}});
+  for(let i=0;i<400;i++){now+=3000;await tick();}assert.equal(events.length,0,'queued answer must not reappear');
+diff --git a/tests/auth.test.mjs b/tests/auth.test.mjs
+index 9914c9a..a5cd962 100644
+--- a/tests/auth.test.mjs
++++ b/tests/auth.test.mjs
+@@ -22,14 +22,10 @@ const signIn = read("src/app/(auth)/sign-in/page.tsx");
+ assert(signIn.includes('type="email"'), "sign-in has an email field");
+ assert(signIn.includes('type="password"'), "sign-in has a password field");
+ assert(signIn.includes("/sign-up"), "sign-in links to sign-up");
+-assert(
+-  signIn.includes("NEXT_PUBLIC_FACEBOOK_LOGIN"),
+-  "Facebook button is gated behind NEXT_PUBLIC_FACEBOOK_LOGIN=1"
+-);
+-assert(
+-  !signIn.includes("Continue with Facebook") || signIn.includes("FACEBOOK_LOGIN ?"),
+-  "no visitor sees a Facebook button that errors"
+-);
++const facebook=read('src/components/FacebookButton.tsx');
++assert(signIn.includes('<FacebookButton'), 'sign-in uses the shared Facebook control');
++assert(facebook.includes('disabled') && facebook.includes('Facebook'), 'Facebook is visibly disabled while app review is unavailable');
++assert(!facebook.includes('signInWithOAuth'), 'disabled Facebook never starts OAuth');
+ assert(existsSync(join(root, "src/app/auth/callback/route.ts")), "OAuth/PKCE callback exists");
+ assert(existsSync(join(root, "src/middleware.ts")), "auth middleware exists");
+ 
+diff --git a/tests/barcode-post.test.mjs b/tests/barcode-post.test.mjs
+index ecff1b0..d0c7431 100644
+--- a/tests/barcode-post.test.mjs
++++ b/tests/barcode-post.test.mjs
+@@ -32,7 +32,7 @@ test("barcode portions stay in their declared mass or volume basis, with dedupli
+   assert.deepEqual(barcodeAmounts({ ...product, servingSize: null, packageWeight: null }), [100, 200, 250]);
+ });
+ 
+-test("live GTIN nutrition creates an atomic ready photo post; old RPC calls work and RLS hides every row", { skip: !process.env.SUPABASE_DB_URL || !process.env.FDC_API_KEY }, async () => {
++test("GTIN HTTP nutrition creates an atomic ready photo post; old RPC calls work and RLS hides every row", { skip: !process.env.SUPABASE_DB_URL || !process.env.FDC_API_KEY }, async () => {
+   const product = await lookupBarcode("016000275683");
+   assert.ok(product); assert.match(product.name, /corn puffs/i);
+   const nutrition = barcodeNutrition(product, 27);
+diff --git a/tests/barcode.test.mjs b/tests/barcode.test.mjs
+index 1be3ecb..68a3ec3 100644
+--- a/tests/barcode.test.mjs
++++ b/tests/barcode.test.mjs
+@@ -51,7 +51,7 @@ test("the JavaScript decoder reads a UPC-A barcode image", () => {
+   assert.ok(gtinCandidates(text).includes("016000275683"), text);
+ });
+ 
+-test("a live FDC Branded Foods lookup by gtin_upc returns usable nutrition", { skip: !process.env.FDC_API_KEY }, async () => {
++test("an FDC HTTP Branded Foods lookup by gtin_upc returns usable nutrition", { skip: !process.env.FDC_API_KEY }, async () => {
+   const product = await lookupBarcode("016000275683");
+   assert.ok(product, "FDC returned no product");
+   assert.equal(product.gtin, "016000275683");
+@@ -61,7 +61,7 @@ test("a live FDC Branded Foods lookup by gtin_upc returns usable nutrition", { s
+   assert.equal(await lookupBarcode("0016000275683").then((p) => p?.fdcId), product.fdcId, "EAN-13 form finds the same product");
+ });
+ 
+-test("a product FDC stores zero-padded is found live, and a valid code FDC does not hold finds nothing", { skip: !process.env.FDC_API_KEY }, async () => {
++test("a product FDC stores zero-padded is found through HTTP, and a valid code FDC does not hold finds nothing", { skip: !process.env.FDC_API_KEY }, async () => {
+   assert.match((await lookupBarcode("038000138416"))?.name ?? "", /pringles/i);
+   assert.equal(await lookupBarcode("012345678912"), null);
+ });
+diff --git a/tests/card-cleanup.test.mjs b/tests/card-cleanup.test.mjs
+index 02f8669..14327bf 100644
+--- a/tests/card-cleanup.test.mjs
++++ b/tests/card-cleanup.test.mjs
+@@ -51,9 +51,10 @@ test('privileged card cleanup never deletes a forged foreign or traversing path'
+       from(table){
+         assert.ok(['posts','intake_logs'].includes(table));let columns;const filters={};
+         const query={select(value){columns=value;return query},eq(key,value){filters[key]=value;return query},
+-          gte(){return query},lt(){return query},lte(){return query},order(){return query},
++          is(){return query},or(value){filters.or=value;return query},gte(){return query},lt(){return query},lte(){return query},order(){return query},
+           async maybeSingle(){assert.equal(table,'posts');assert.equal(columns,'render_time_zone');assert.equal(filters.id,post);return{data:{render_time_zone:'UTC'},error:null}},
+-          async range(from,through){assert.equal(filters.user_id,user);assert.equal(from,0);assert.ok(through>=from);if(table==='posts')assert.equal(filters.status,'ready');return{data:[],error:null}},
++          range(from,through){query.page=[from,through];return query},abortSignal(){return query},
++          then(resolve){assert.equal(filters.user_id,user);assert.equal(query.page[0],0);if(table==='posts')assert.equal(filters.status,'ready');return Promise.resolve({data:[],error:null}).then(resolve)},
+         };return query;
+       },
+       storage: {from: () => ({upload:async()=>({error:null}),remove:async paths=>{removed.push(...paths);return {error:null};}})},
+diff --git a/tests/card-failure-ready.test.mjs b/tests/card-failure-ready.test.mjs
+index b52b1a3..093ba96 100644
+--- a/tests/card-failure-ready.test.mjs
++++ b/tests/card-failure-ready.test.mjs
+@@ -6,8 +6,10 @@ function fakeAdmin({ snapshotFails = true, ready = true } = {}) {
+   const calls = [];
+   return {
+     calls,
++    from(table){assert.equal(table,'current_post_items');const q={select(){return q},eq(){return q},order(){return q},then(resolve){return Promise.resolve({data:[],error:null}).then(resolve)}};return q;},
+     rpc: async (name, args) => {
+       calls.push(name);
++      if(name==='sync_item_drinks'){assert.deepEqual(args.p_rows,[]);return{data:null,error:null};}
+       if (name === "results_card_snapshot") return snapshotFails ? { data: null, error: { message: "render unavailable" }, status: 503 } : { data: null, error: null };
+       if (name === "mark_post_ready") { assert.equal(args.p_job_id, "job"); return { data: ready, error: null }; }
+       if (name === "save_ready_meal") { assert.equal(args.p_post_id,"post"); assert.equal(ready,true,"an unpublished meal cannot be saved"); return {data:null,error:null}; }
+@@ -24,7 +26,7 @@ test("a card failure is logged and the meal is marked ready anyway", async () =>
+   try {
+     const admin = fakeAdmin();
+     assert.equal(await markReady("post", admin, "job"), true);
+-    assert.deepEqual(admin.calls, ["results_card_snapshot", "mark_post_ready", "save_ready_meal"]);
++    assert.deepEqual(admin.calls, ["sync_item_drinks", "results_card_snapshot", "mark_post_ready", "save_ready_meal"]);
+     assert.match(logged.join("\n"), /results card failed.*Card snapshot failed/s);
+   } finally { console.error = original; }
+ });
+@@ -36,7 +38,7 @@ test("a meal that cannot be completed still reports not ready", async () => {
+   try {
+     const admin=fakeAdmin({ready:false});
+     assert.equal(await markReady("post",admin,"job"),false);
+-    assert.deepEqual(admin.calls,["results_card_snapshot","mark_post_ready"],"a failed publication must not save a meal");
++    assert.deepEqual(admin.calls,["sync_item_drinks","results_card_snapshot","mark_post_ready"],"a failed publication must not save a meal");
+   } finally { console.error = original; }
+ });
+ 
+@@ -44,7 +46,7 @@ test("a failure to save readiness still surfaces (and retries) rather than being
+   const { markReady } = await import("../src/lib/pipeline/persist.ts");
+   const original = console.error;
+   console.error = () => {};
+-  const admin = { rpc: async (name) => name === "results_card_snapshot" ? { data: null, error: { message: "x" }, status: 503 } : { data: null, error: { message: "down" }, status: 503 } };
++  const admin = { ...fakeAdmin(), rpc: async (name) => name==="sync_item_drinks"?{data:null,error:null}: name === "results_card_snapshot" ? { data: null, error: { message: "x" }, status: 503 } : { data: null, error: { message: "down" }, status: 503 } };
+   try { await assert.rejects(markReady("post", admin, "job"), (error) => error.status === 503); } finally { console.error = original; }
+ });
+ 
+diff --git a/tests/card-polling.test.mjs b/tests/card-polling.test.mjs
+index d0cbeab..be30093 100644
+--- a/tests/card-polling.test.mjs
++++ b/tests/card-polling.test.mjs
+@@ -3,6 +3,8 @@ import test from 'node:test';
+ import vm from 'node:vm';
+ import {readFileSync} from 'node:fs';
+ import ts from 'typescript';
++import {readPendingItems} from '../src/lib/pipeline/pending-items.ts';
++import {hasUnavailableFields,retainCompleteItems} from '../src/lib/posts/feed.ts';
+ 
+ // Run the real component's effects against a clock and a counted data source.
+ // No React DOM/layout snapshots; this checks its network/resource behavior.
+@@ -20,13 +22,14 @@ function harness(status, hidden = false) {
+     require(name){
+       if(name==='react')return {useState:initial=>[initial,()=>{}],useRef:initial=>{const ref={current:initial};refs.push(ref);return ref;},useEffect:fn=>effects.push(fn)};
+       if(name==='react/jsx-runtime')return {jsx:()=>null,Fragment:()=>null};
+-      if(name==='@/lib/supabase/client')return {createClient:()=>({channel:()=>channel,removeChannel(){}})};
+-      if(name==='@/lib/posts/feed')return {isSettled:s=>!['queued','processing','needs_input'].includes(s),getPostCard:async()=>{reads++;return post;}};
++      if(name==='@/lib/supabase/client')return {createClient:()=>({channel:()=>channel,removeChannel(){},from(){const q={select(){return q},eq(){return q},abortSignal(){return q},async maybeSingle(){return{data:{pending_items:[]},error:null}}};return q;}})};
++      if(name==='@/lib/pipeline/pending-items')return{readPendingItems};
++      if(name==='@/lib/posts/feed')return {hasUnavailableFields,retainCompleteItems,isSettled:s=>!['queued','processing','needs_input'].includes(s),getPostCard:async()=>{reads++;return post;}};
+       throw Error(name);
+     }});
+   exports.default({initial:post,renderCard:()=>null});
+   const cleanups=effects.map(fn=>fn());
+-  return {doc,post,retired,remove:()=>deletion({old:{id:post.id}}),reads:()=>reads,update:()=>update(),async tick(ms){now+=ms;for(const cb of intervals)cb();await Promise.resolve();await Promise.resolve();},cleanup(){for(const fn of cleanups)fn?.();}};
++  return {doc,post,retired,remove:()=>deletion({old:{id:post.id}}),reads:()=>reads,update:()=>update(),async tick(ms){now+=ms;for(const cb of intervals)cb();await new Promise(resolve=>setImmediate(resolve));},cleanup(){for(const fn of cleanups)fn?.();}};
+ }
+ test('missing optional cards back off and stop automatic hydration, but realtime still updates',async()=>{
+  const h=harness('ready');
+@@ -41,7 +44,7 @@ test('hidden pages make no reads; active analysis retains two-second fallback',a
+ });
+ 
+ test('clarification and deleted meals retire instead of polling invisibly',async()=>{
+- const h=harness('processing');await Promise.resolve();h.post.status='needs_input';h.update();await Promise.resolve();await Promise.resolve();
++ const h=harness('processing');await Promise.resolve();h.post.status='needs_input';h.update();await new Promise(resolve=>setImmediate(resolve));
+  assert.equal(h.retired.at(-1).type,'post-unavailable');assert.equal(h.retired.at(-1).detail.reason,'needs_input');
+  const reads=h.reads();for(let i=0;i<20;i++)await h.tick(2000);assert.equal(h.reads(),reads);h.cleanup();
+  const deleted=harness('processing');await Promise.resolve();deleted.remove();const before=deleted.reads();await deleted.tick(2000);assert.equal(deleted.reads(),before);assert.equal(deleted.retired.at(-1).detail.reason,'deleted');deleted.cleanup();
+diff --git a/tests/correction-ready.test.mjs b/tests/correction-ready.test.mjs
+index 96ae366..a864dda 100644
+--- a/tests/correction-ready.test.mjs
++++ b/tests/correction-ready.test.mjs
+@@ -34,14 +34,15 @@ test('terminal recompute failure can be repaired in the correction attempt; expl
+  await assert.rejects(loadCorrectionItems(db,'post',async()=>{throw io;}),error=>error===io&&isRetriable(error));
+ });
+ test('the real recompute handler repairs an exhausted predecessor without creating another job',async(t)=>{
+- const savedFetch=globalThis.fetch,savedKey=process.env.MODEL_API_KEY;
++ const savedFetch=globalThis.fetch,savedKey=process.env.MODEL_API_KEY,savedBase=process.env.MODEL_API_BASE_URL;
++ process.env.MODEL_API_BASE_URL='http://127.0.0.1:9/v1';
+  process.env.MODEL_API_KEY='fixture-only';
+  globalThis.fetch=async input=>{
+   const url=typeof input==='string'?input:input instanceof URL?input.href:input.url;
+-  if(!url.startsWith('https://api.meta.ai/v1/responses'))throw Error('Unexpected model-test request');
++  if(!url.startsWith('http://127.0.0.1:9/v1/responses'))throw Error('Unexpected model-test request');
+   return Response.json({status:'completed',output:[{type:'message',content:[{type:'output_text',text:JSON.stringify({id:77,query:null,reason:'same food'})}]}]});
+  };
+- t.after(()=>{globalThis.fetch=savedFetch;if(savedKey===undefined)delete process.env.MODEL_API_KEY;else process.env.MODEL_API_KEY=savedKey;});
++ t.after(()=>{globalThis.fetch=savedFetch;if(savedBase===undefined)delete process.env.MODEL_API_BASE_URL;else process.env.MODEL_API_BASE_URL=savedBase;if(savedKey===undefined)delete process.env.MODEL_API_KEY;else process.env.MODEL_API_KEY=savedKey;});
+  const {default:recompute}=await import('../src/lib/worker/jobs/recompute.ts');
+  const {loadCorrectionItems}=await import('../src/lib/pipeline/correction-ready.ts');
+  const item={id:'edited',name:'rice',portion_grams:50,source:'user',supersedes:null};
+diff --git a/tests/drink-consistency.test.mjs b/tests/drink-consistency.test.mjs
+index c625930..84af228 100644
+--- a/tests/drink-consistency.test.mjs
++++ b/tests/drink-consistency.test.mjs
+@@ -54,7 +54,7 @@ test('food water shares use the recorded unit and round the meal sum once',()=>{
+  const item=(water,portion_text)=>({portion_grams:100,portion_text,micronutrients:[{nutrientId:1051,unitName:'G',value:water,basis:'portion'}]});
+  assert.equal(itemWaterMl(item(420,'100 g')),336);
+  assert.equal(itemWaterMl(item(420,'400 ml')),420);
+- assert.equal(itemWaterMl(item(420,'100 g'),true),420);
++ assert.equal(itemWaterMl(item(420,'100 g'),true),0,'linked drink water is already recorded as intake and must not be counted again');
+  assert.equal(foodWaterMl([item(30,'100 g'),item(30,'100 g')]),50);
+  assert.equal(foodWaterMl([item(30,'100 ml'),item(30,'100 ml')]),60);
+  assert.equal(roundWaterMl(44),40);assert.equal(roundWaterMl(45),50);
+diff --git a/tests/drink-post.test.mjs b/tests/drink-post.test.mjs
+index bbe1540..7c9e460 100644
+--- a/tests/drink-post.test.mjs
++++ b/tests/drink-post.test.mjs
+@@ -15,7 +15,8 @@ const migration = readFileSync(new URL("../supabase/migrations/0019_intake_logs_
+ test("drink data is bounded and caffeine/labels come from the server", () => {
+   assert.deepEqual(parseDrinkInput({ kind: "water", ml: 330, label: "tampered", caffeineMg: 900 }), { kind: "water", ml: 330, label: "Water", caffeineMg: 0 });
+   assert.deepEqual(parseDrinkInput({ kind: "caffeine", ml: 240 }), { kind: "caffeine", ml: 240, label: "Coffee, cup", caffeineMg: 95 });
+-  assert.deepEqual(parseDrinkInput({ tile: 4, ml: 1, caffeineMg: 999 }), { kind: "caffeine", label: "Coca-Cola, can", ml: 330, caffeineMg: 32 });
++  assert.deepEqual(parseDrinkInput({ tile: 4, caffeineMg: 999 }), { kind: "caffeine", label: "Coca-Cola, can", ml: 330, caffeineMg: 32 });
++  assert.equal(parseDrinkInput({ tile: 4, ml: 1 }), null, "unsupported tile sizes cannot silently become a default");
+   assert.equal(parseDrinkInput({ tile: 9 }), null);
+   assert.equal(parseDrinkInput({ tile: -1 }), null);
+   assert.equal(parseDrinkInput({ tile: "4" }), null);
+diff --git a/tests/feed-removal.test.mjs b/tests/feed-removal.test.mjs
+index b3aa3ac..5936a51 100644
+--- a/tests/feed-removal.test.mjs
++++ b/tests/feed-removal.test.mjs
+@@ -4,8 +4,9 @@ import assert from 'node:assert/strict';
+ import vm from 'node:vm';
+ import {readFileSync} from 'node:fs';
+ import ts from 'typescript';
+-import {retainCompleteItems,hasUnavailableFields} from '../src/lib/posts/feed.ts';
++import {dayTotalRefreshDates} from '../src/lib/posts/day-total-changes.ts';
+ import {createDayTotalsRefresh} from '../src/lib/posts/day-totals-refresh.ts';
++import {retainCompleteItems,hasUnavailableFields} from '../src/lib/posts/feed.ts';
+ test('retiring the last meal clears feed state and rejects an older hydration result',async()=>{
+  const effects=[],listeners=new Map(),states=[],resolvers=new Map(),rejectors=new Map(),retryTimers=[];let resolveCard,resolvePage,discoverTick;let forceReset=false,deferTotals=false;const dayWaiters=[];
+  const post={id:'meal',status:'processing',created_at:'2026-10-01',eaten_at:'2026-10-01T12:00:00Z',items:[],slides:[]};
+@@ -15,10 +16,10 @@ test('retiring the last meal clears feed state and rejects an older hydration re
+  vm.runInNewContext(code,{exports,URLSearchParams,AbortSignal,fetch:async()=>({ok:true,json:async()=>forceReset?new Promise(resolve=>{resolvePage=resolve;}):({posts:[post],nextCursor:null,days:[]})}),document:{hidden:false,addEventListener(){},removeEventListener(){}},CustomEvent:class{constructor(type,init){this.type=type;this.detail=init?.detail;}},
+  window:{addEventListener(type,fn){listeners.set(type,fn);},removeEventListener(){},dispatchEvent(){}},setInterval:fn=>{discoverTick=fn;return 1;},clearInterval(){},setTimeout:fn=>{retryTimers.push(fn);return retryTimers.length;},clearTimeout(){},
+  require(name){
+-  if(name==='react')return{useEffect:fn=>effects.push(fn),useRef:current=>({current}),useState:initial=>[initial,state=>states.push(state)]};
++  if(name==='@/lib/posts/day-total-changes')return{dayTotalRefreshDates};if(name==='@/lib/posts/day-totals-refresh')return{createDayTotalsRefresh};if(name==='react')return{useEffect:fn=>effects.push(fn),useRef:current=>({current}),useState:initial=>[initial,state=>states.push(state)]};
+   if(name==='react/jsx-runtime')return{jsx:()=>null,jsxs:()=>null};
+   if(name==='next/navigation')return{useRouter:()=>({replace(){}})};
+-  if(name==='@/lib/supabase/client')return{createClient:()=>({auth:{getSession:async()=>({data:{session:{user:{id:'owner'}}}})},channel:()=>channel,removeChannel(){},from(){return{select(){return this;},eq(){return this;},neq(){return this;},or(){return this;},order(){return this;},limit:async()=>({data:[{id:'new-page-meal'}],error:null})};}})};
++  if(name==='@/lib/supabase/client')return{createClient:()=>({auth:{getSession:async()=>({data:{session:{user:{id:'owner'}}}})},channel:()=>channel,removeChannel(){},from(){return{select(){return this;},is(){return this;},eq(){return this;},neq(){return this;},or(){return this;},order(){return this;},limit:async()=>({data:[{id:'new-page-meal'}],error:null})};}})};
+   if(name==='@/lib/posts/day-totals-refresh')return{createDayTotalsRefresh};
+    if(name==='@/lib/posts/feed')return{FEED_PAGE_SIZE:20,retainCompleteItems,hasUnavailableFields,getFeed:async()=>forceReset?new Promise(resolve=>{resolvePage=resolve;}):({posts:[post],nextCursor:null,days:[]}),getPostCard:(_db,id)=>new Promise((resolve,reject)=>{resolveCard=resolve;resolvers.set(id,resolve);rejectors.set(id,reject);})};
+   if(name==='@/lib/posts/upload-manager')return{uploadManager:{list:()=>[]}};
+diff --git a/tests/home-photo-preload.test.mjs b/tests/home-photo-preload.test.mjs
+index 999712c..8e1dbc9 100644
+--- a/tests/home-photo-preload.test.mjs
++++ b/tests/home-photo-preload.test.mjs
+@@ -11,7 +11,7 @@ const row={id:post,user_id:owner,post_media:[{id:post,kind:'photo',position:3},{
+ function database(result={data:row,error:null},hang=false) {
+  const calls=[];let signal;
+  const query={};
+- for(const method of ['select','eq','neq','or','order','limit'])query[method]=(...args)=>{calls.push([method,...args]);return query;};
++ for(const method of ['select','is','eq','neq','or','order','limit'])query[method]=(...args)=>{calls.push([method,...args]);return query;};
+  query.abortSignal=value=>{signal=value;return query;};
+  query.maybeSingle=async()=>{if(hang)return new Promise(()=>{});if(result instanceof Error)throw result;return result;};
+  return {db:{from(table){calls.push(['from',table]);return query;}},calls,get signal(){return signal;}};
+@@ -19,7 +19,7 @@ function database(result={data:row,error:null},hang=false) {
+ test('home hint matches the SSR private URL and selects the first ordered photo with feed visibility filters',async()=>{
+  const mock=database();
+  assert.equal(await homePhotoPreload(mock.db,'/',owner),`<${smallFeedPhotoUrl(owner,post,media)}>; rel=preload; as=image; fetchpriority=high; crossorigin=anonymous`);
+- assert.deepEqual(mock.calls,[['from','posts'],['select','id,user_id,post_media(id,kind,position)'],['eq','user_id',owner],['neq','status','needs_input'],['or','needs_input.is.null,status.eq.failed'],['order','eaten_at',{ascending:false}],['order','id',{ascending:false}],['limit',1]]);
++ assert.deepEqual(mock.calls,[['from','posts'],['select','id,user_id,post_media(id,kind,position)'],['is','deleted_at',null],['eq','user_id',owner],['neq','status','needs_input'],['or','needs_input.is.null,status.eq.failed'],['order','eaten_at',{ascending:false}],['order','id',{ascending:false}],['limit',1]]);
+ });
+ test('owner mismatch, no row, no photo, invalid identity and read failures fail open',async()=>{
+  for(const result of [{data:null},{data:{...row,user_id:post}},{data:{...row,post_media:[]}},{data:{...row,id:'bad'}},{data:{...row,post_media:[{id:'bad',kind:'photo',position:0}]}},{data:row,error:{message:'private diagnostic'}},new Error('private diagnostic')]) {
+diff --git a/tests/profile-current-nutrition.test.mjs b/tests/profile-current-nutrition.test.mjs
+index 9a75cc6..68aa97c 100644
+--- a/tests/profile-current-nutrition.test.mjs
++++ b/tests/profile-current-nutrition.test.mjs
+@@ -12,7 +12,7 @@ function fixture({signFails=false}={}){
+   from(table){
+    const filters=[];let offset=0,upper=199;
+    const chain={
+-    select(){return chain},eq(k,v){filters.push([k,v]);return chain},order(){return chain},
++    select(){return chain},is(k,v){filters.push([k,v]);return chain},eq(k,v){filters.push([k,v]);return chain},order(){return chain},
+     in(k,v){filters.push([k,v]);return chain},range(a,b){offset=a;upper=b;return chain},
+     then(resolve){
+      calls.push({table,filters});
+@@ -36,7 +36,7 @@ test('caption-only grid uses current known nutrition and identifies omissions, n
+  assert.equal(posts.find(p=>p.id==='photo').photoUrl,'signed:owner/photo/1.feed.jpg');
+  assert.deepEqual(calls.find(c=>c.sign).sign,['owner/photo/1.feed.jpg']);
+  assert.equal(calls.filter(c=>c.table==='current_post_items').length,1);assert.equal(calls.filter(c=>c.table==='item_nutrition').length,1);assert.equal(calls.filter(c=>c.table==='intake_logs').length,1);
+- assert.deepEqual(calls.find(c=>c.table==='posts').filters,[['user_id','owner']]);
++ assert.deepEqual(calls.find(c=>c.table==='posts').filters,[['deleted_at',null],['user_id','owner']]);
+ });
+ test('failed photo signing uses current nutrition fallback instead of old generated card',async()=>{
+  const {db}=fixture({signFails:true});const posts=await getProfileGrid(db,'owner');const post=posts.find(p=>p.id==='photo');assert.equal(post.photoUrl,null);assert.equal(post.calories,130);assert.equal(sumNutrition(post.items).calories,130);
+diff --git a/tests/push-completion.test.mjs b/tests/push-completion.test.mjs
+index 437a67f..d8f5dde 100644
+--- a/tests/push-completion.test.mjs
++++ b/tests/push-completion.test.mjs
+@@ -21,10 +21,10 @@ test('push follows persisted waiting state and maintenance publication stays sil
+   for(const name of names)process.env[name]='fixture';
+   let post={user_id:'owner',status:'queued',needs_input:{question:'Which food?'}};
+   const saves=[];
+-  const admin={async rpc(name,args){assert.equal(name,'save_ready_meal');assert.equal(args.p_post_id,'meal');saves.push(args);return {error:null};},from(table){
+-    const data=table==='posts'?post:table==='post_media'?null:
++  const admin={async rpc(name,args){if(name==='sync_item_drinks'){assert.deepEqual(args.p_rows,[]);return{error:null};}assert.equal(name,'save_ready_meal');assert.equal(args.p_post_id,'meal');saves.push(args);return {error:null};},from(table){
++    const data=table==='current_post_items'?[]:table==='posts'?post:table==='post_media'?null:
+       [{id:'subscription',endpoint:'https://fcm.googleapis.com/fixture',keys:{p256dh:'A'.repeat(87),auth:'A'.repeat(22)}}];
+-    const q={select(){return q;},eq(){return q;},order(){return q;},limit(){return q;},maybeSingle(){return q;},then(resolve){return Promise.resolve({data,error:null}).then(resolve);}};
++    const q={select(){return q;},in(){return q;},eq(){return q;},order(){return q;},limit(){return q;},maybeSingle(){return q;},then(resolve){return Promise.resolve({data,error:null}).then(resolve);}};
+     return q;
+   }};
+   try{
+diff --git a/tests/render-zone.test.mjs b/tests/render-zone.test.mjs
+index adc8e01..01eedb1 100644
+--- a/tests/render-zone.test.mjs
++++ b/tests/render-zone.test.mjs
+@@ -10,14 +10,14 @@ import {readCardData} from '../src/lib/pipeline/card-data.ts';
+ const eatenAt='2026-11-01T00:30:00Z';
+ const item={name:'Soup',portion_grams:100,portion_text:'100 g',calories:30,protein_g:1,carbs_g:4,fat_g:1,fibre_g:1,sugar_g:1,sodium_mg:10,micronutrients:[{nutrientId:1051,unitName:'G',value:100,basis:'portion'}]};
+ function hydrationFixture(zone){
+- const post={id:'meal',user_id:'owner',eaten_at:eatenAt,status:'processing',render_time_zone:zone};
++ const post={id:'meal',user_id:'owner',eaten_at:eatenAt,status:'processing',deleted_at:null,render_time_zone:zone};
+  const tables={posts:[post],intake_logs:[
+   {user_id:'owner',kind:'water',amount:330,ml:330,label:'Water',post_id:null,logged_at:'2026-10-31T23:50:00Z'},
+   {user_id:'owner',kind:'water',amount:240,ml:240,label:'Water',post_id:null,logged_at:'2026-11-01T00:20:00Z'},
+   {user_id:'owner',kind:'water',amount:999,ml:999,label:'Water',post_id:null,logged_at:'2026-11-01T01:00:00Z'},
+  ],current_post_items:[],item_nutrition:[]};
+- return {post,from(table){assert.ok(table in tables,`unexpected table ${table}`);const predicates=[];let update;const result=()=>{const rows=tables[table].filter(row=>predicates.every(fn=>fn(row)));if(update)for(const row of rows)Object.assign(row,update);return rows;};const chain={
+-  select(){return chain},update(value){update=value;return chain},eq(key,value){predicates.push(row=>row[key]===value);return chain},is(key,value){predicates.push(row=>row[key]===value);return chain},in(key,values){predicates.push(row=>values.includes(row[key]));return chain},gte(key,value){predicates.push(row=>row[key]>=value);return chain},lte(key,value){predicates.push(row=>row[key]<=value);return chain},lt(key,value){predicates.push(row=>row[key]<value);return chain},order(){return chain},async range(from,through){return{data:result().slice(from,through+1),error:null}},async maybeSingle(){return{data:result()[0]??null,error:null}},then(resolve){return Promise.resolve({data:result(),error:null}).then(resolve)},
++ return {post,from(table){assert.ok(table in tables,`unexpected table ${table}`);const predicates=[];let update,bounds;const result=()=>{const rows=tables[table].filter(row=>predicates.every(fn=>fn(row)));if(update)for(const row of rows)Object.assign(row,update);return rows;};const chain={
++  abortSignal(){return chain},or(){return chain},select(){return chain},update(value){update=value;return chain},eq(key,value){predicates.push(row=>row[key]===value);return chain},is(key,value){predicates.push(row=>row[key]===value);return chain},in(key,values){predicates.push(row=>values.includes(row[key]));return chain},gte(key,value){predicates.push(row=>row[key]>=value);return chain},lte(key,value){predicates.push(row=>row[key]<=value);return chain},lt(key,value){predicates.push(row=>row[key]<value);return chain},order(){return chain},range(from,through){bounds=[from,through];return chain},async maybeSingle(){return{data:result()[0]??null,error:null}},then(resolve){return Promise.resolve({data:bounds?result().slice(bounds[0],bounds[1]+1):result(),error:null}).then(resolve)},
+  };return chain;}};
+ }
+ 
+diff --git a/tests/supersede.test.mjs b/tests/supersede.test.mjs
+index c06e655..8cc349e 100644
+--- a/tests/supersede.test.mjs
++++ b/tests/supersede.test.mjs
+@@ -122,15 +122,18 @@ begin
+  exception when insufficient_privilege then null; end;
+  insert into post_items(post_id,name,source) values(current_setting('test.post')::uuid,'Own item','user');
+  update post_items set superseded_at=now() where id=current_setting('test.item')::uuid;
+- if exists(select 1 from current_post_items where id=current_setting('test.item')::uuid) then raise exception 'owner supersede failed'; end if;
++ if exists(select 1 from current_post_items where id=current_setting('test.item')::uuid) then raise exception 'superseded item remains current'; end if;
++ if not exists(select 1 from post_items where id=current_setting('test.item')::uuid and superseded_at is not null) then raise exception 'supersede lost immutable history'; end if;
+ end;
+ $test$;
+ select set_config('request.jwt.claims',jsonb_build_object('sub',:'other','role','authenticated')::text,true);
+ do $test$
+ begin
+  if exists(select 1 from current_post_items where post_id=current_setting('test.post')::uuid) then raise exception 'view leaks another owner'; end if;
+- update post_items set superseded_at=now() where post_id=current_setting('test.post')::uuid;
+- if found then raise exception 'other owner mutated item'; end if;
++ begin
++  update post_items set superseded_at=now() where post_id=current_setting('test.post')::uuid;
++  if found then raise exception 'other owner mutated item'; end if;
++ exception when insufficient_privilege then null; end;
+ end;
+ $test$;
+ select 'supersede: passed';
+diff --git a/tests/unknown-meal-totals.test.mjs b/tests/unknown-meal-totals.test.mjs
+index 66af586..e4e3d93 100644
+--- a/tests/unknown-meal-totals.test.mjs
++++ b/tests/unknown-meal-totals.test.mjs
+@@ -6,7 +6,10 @@ test('empty or unavailable meal cannot publish an invented zero in shared card o
+  for(const items of [[],[unknown]]){assert.equal(sumNutrition(items).calories,null);assert.equal(cardDataFromRow({items}).kcal,null);assert.doesNotMatch(summaryLine({items}),/Consumed: 0 kcal/);}
+  const water={...unknown,name:'Water',calories:0,protein_g:0,carbs_g:0,fat_g:0};assert.equal(sumNutrition([water]).calories,0);assert.equal(formatConsumed(sumNutrition([water])),'Consumed: 0 kcal');
+ });
+-function db(calories){const posts=calories.map((_,i)=>({id:`post${i}`,caption:'Meal',eaten_at:'2026-11-01T12:00:00Z'}));return{from(table){let id,ids;const q={select(){return q},eq(k,v){if(k==='post_id')id=v;return q},gte(){return q},lt(){return q},order(){return q},limit(){return q},in(k,v){ids=v;return q},async range(){return{data:table==='posts'?posts:[],error:null}},async maybeSingle(){return{data:null,error:null}},then(resolve){let data=[];if(table==='current_post_items')data=[{id:`item${id.slice(4)}`,post_id:id,name:`Food ${id.slice(4)}`,portion_grams:100,source:'model'}];if(table==='item_nutrition')data=ids.map(key=>({...unknown,name:undefined,post_item_id:key,calories:calories[Number(key.slice(4))],micronutrients:[],source_ref:null}));return Promise.resolve({data,error:null}).then(resolve)}};return q}};}
++function db(calories){
++ const posts=calories.map((value,i)=>({id:`post${i}`,caption:'Meal',eaten_at:'2026-11-01T12:00:00Z',post_media:[],current_post_items:[{id:`item${i}`,post_id:`post${i}`,name:`Food ${i}`,portion_grams:100,source:'model',created_at:'2026-11-01T12:00:00Z',item_nutrition:{...unknown,name:undefined,calories:value,micronutrients:[],source_ref:null}}]}));
++ return{from(table){const q={select(){return q},is(){return q},eq(){return q},gte(){return q},lt(){return q},order(){return q},limit(){return q},in(){return q},async range(offset,end){return{data:table==='posts'?posts.slice(offset,end+1):[],error:null}},async maybeSingle(){return{data:null,error:null}},then(resolve){return Promise.resolve({data:[],error:null}).then(resolve)}};return q}};
++}
+ test('a day of entirely unavailable foods stays unknown instead of adding to a zero seed',async()=>{
+  const [day]=await getDays(db([null,null]),'owner','UTC','2026-11-01','2026-11-01');assert.equal(day.totals.calories,null);assert.deepEqual(day.totals.missing.calories,['Food 0','Food 1']);assert.ok(day.posts.every(p=>p.totals.calories===null));
+ });

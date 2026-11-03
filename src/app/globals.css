@@ -44,7 +44,7 @@ body {
   .desktop-capture button[aria-label="Take a photo"] > span { background:var(--color-text); }
   .desktop-capture-inner { background:var(--color-surface); height:auto; max-height:calc(100dvh - 48px); width:760px; border-radius:14px; overflow-y:auto; }
   .desktop-camera-inner { border-radius:20px; }
-  .desktop-camera-inner > div:first-child > header { height:56px; }
+  .desktop-camera-inner > .desktop-capture-heading > header { height:56px; }
   .desktop-camera-inner [aria-label="Capture content"] { flex:none; }
   .desktop-camera-inner button[aria-label="Back to Feed"] { border-radius:0; }
   .desktop-camera-inner .desktop-shutter-row { height:104px !important; }
@@ -66,11 +66,11 @@ body {
  .desktop-days [data-month] button { padding:10px; border-radius:8px; }
  .desktop-capture-inner:not(.desktop-camera-inner), .desktop-camera-inner[data-round6-capture] { width:960px; max-width:960px; height:620px; border-radius:10px; overflow:hidden; }
  .desktop-camera-inner[data-round6-capture] { position:relative; display:block; }
- .desktop-camera-inner[data-round6-capture] > div:first-child { position:absolute; top:0; right:0; width:360px; height:56px; }
- .desktop-camera-inner[data-round6-capture] > div:first-child header { padding-inline:20px; }
- .desktop-camera-inner[data-round6-capture] > div:first-child header { justify-content:flex-start; }
+ .desktop-camera-inner[data-round6-capture] > .desktop-capture-heading { position:absolute; top:0; right:0; width:360px; height:56px; }
+ .desktop-camera-inner[data-round6-capture] .desktop-capture-header { padding-inline:20px; }
+ .desktop-camera-inner[data-round6-capture] .desktop-capture-header { justify-content:flex-start; }
  .desktop-camera-inner[data-round6-capture] [aria-label="Capture content"] { width:600px; height:620px; background:var(--color-camera); color:var(--color-surface); overflow-y:auto; }
- .desktop-camera-inner[data-round6-capture] [aria-label="Capture content"] > div:first-child { display:none; }
+ .desktop-camera-inner[data-round6-capture] [aria-label="Capture content"] > .capture-hint { display:none; }
  .desktop-camera-inner[data-round6-capture] [aria-label="Capture content"] > .desktop-viewfinder { margin:0; height:450px !important; border-radius:0; width:600px; }
  .desktop-drop-side { position:absolute; top:56px; right:0; bottom:0; width:360px; display:flex; flex-direction:column; padding:0 20px 20px; }
  .desktop-mode-strip { padding-top:10px; height:66px; flex-shrink:0; }
@@ -83,12 +83,12 @@ body {
  .desktop-camera-inner[data-round6-capture] section[aria-label="Scanned product"], .desktop-camera-inner[data-round6-capture] section[aria-label="Nutrition label"] { position:absolute; top:56px; right:0; width:360px; max-height:470px; overflow:auto; border-radius:0; z-index:2; }
  .desktop-camera-inner[data-round6-capture] [aria-label="Capture actions"] { position:absolute; bottom:0; right:0; width:360px; z-index:3; }
  .desktop-camera-inner[data-round6-capture] button[aria-label="Back to Feed"] { position:absolute; right:12px; top:6px; }
- .desktop-camera-inner[data-round6-capture] > div:first-child header > :first-child { width:0; }
- .desktop-camera-inner[data-round6-capture] > div:first-child header > :last-child { display:none; }
- .desktop-camera-inner[data-round6-capture] > div:first-child header { gap:0; }
+ .desktop-camera-inner[data-round6-capture] .desktop-capture-header [data-slot="topbar-left"] { width:0; }
+ .desktop-camera-inner[data-round6-capture] .desktop-capture-header [data-slot="topbar-right"] { display:none; }
+ .desktop-camera-inner[data-round6-capture] .desktop-capture-header { gap:0; }
  .desktop-post-dialog [role="dialog"] { top:50%; bottom:auto; transform:translateY(-50%); max-width:480px; max-height:calc(100dvh - 96px); border-radius:14px; padding-bottom:24px; }
  [data-feed-client-ready] > section:first-of-type > .desktop-day-rule { display:none; }
  .desktop-composer > div:first-child > div { padding:0; height:100%; }
  .desktop-composer > div:first-child > div > div { width:100%; height:100%; border-radius:0; }
- .desktop-camera-inner[data-round6-capture] > div:first-child header > :first-child { min-width:0; }
+ .desktop-camera-inner[data-round6-capture] .desktop-capture-header [data-slot="topbar-left"] { min-width:0; }
 }

@@ -34,14 +34,15 @@ test('terminal recompute failure can be repaired in the correction attempt; expl
  await assert.rejects(loadCorrectionItems(db,'post',async()=>{throw io;}),error=>error===io&&isRetriable(error));
 });
 test('the real recompute handler repairs an exhausted predecessor without creating another job',async(t)=>{
- const savedFetch=globalThis.fetch,savedKey=process.env.MODEL_API_KEY;
+ const savedFetch=globalThis.fetch,savedKey=process.env.MODEL_API_KEY,savedBase=process.env.MODEL_API_BASE_URL;
+ process.env.MODEL_API_BASE_URL='http://127.0.0.1:9/v1';
  process.env.MODEL_API_KEY='fixture-only';
  globalThis.fetch=async input=>{
   const url=typeof input==='string'?input:input instanceof URL?input.href:input.url;
-  if(!url.startsWith('https://api.meta.ai/v1/responses'))throw Error('Unexpected model-test request');
+  if(!url.startsWith('http://127.0.0.1:9/v1/responses'))throw Error('Unexpected model-test request');
   return Response.json({status:'completed',output:[{type:'message',content:[{type:'output_text',text:JSON.stringify({id:77,query:null,reason:'same food'})}]}]});
  };
- t.after(()=>{globalThis.fetch=savedFetch;if(savedKey===undefined)delete process.env.MODEL_API_KEY;else process.env.MODEL_API_KEY=savedKey;});
+ t.after(()=>{globalThis.fetch=savedFetch;if(savedBase===undefined)delete process.env.MODEL_API_BASE_URL;else process.env.MODEL_API_BASE_URL=savedBase;if(savedKey===undefined)delete process.env.MODEL_API_KEY;else process.env.MODEL_API_KEY=savedKey;});
  const {default:recompute}=await import('../src/lib/worker/jobs/recompute.ts');
  const {loadCorrectionItems}=await import('../src/lib/pipeline/correction-ready.ts');
  const item={id:'edited',name:'rice',portion_grams:50,source:'user',supersedes:null};
