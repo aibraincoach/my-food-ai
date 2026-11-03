@@ -27,7 +27,9 @@ export async function identifyDrinks(admin:SupabaseClient,_userId:string,photo:U
   if(caffeineMg!==null&&!caffeine)nutrition.micronutrients.push({nutrientId:1057,nutrientName:'Caffeine',unitName:'MG',value:caffeineMg,basis:'portion'});
   nutrition.micronutrients=nutrition.micronutrients.filter(n=>n.nutrientId!==1051);
   nutrition.micronutrients.push({nutrientId:1051,nutrientName:'Water',unitName:'G',value:ml,basis:'portion'});
-  drinks.push({name:plainWater?'Water, glass':item.name,ml,caffeineMg,kcal:nutrition.calories,source:/read from the can/i.test(item.portionText??'')?'read from the can':'estimated from the photo',grams:plainWater?null:item.portionGrams,nutrition});
+  const fromCan=/read from the can/i.test(item.portionText??'');
+  const name=plainWater?(/bottl/i.test(item.name)?'Water, bottle':'Water, glass'):fromCan&&!/\b(?:can|bottle)\b/i.test(item.name)?`${item.name}, can`:item.name;
+  drinks.push({name,ml,caffeineMg,kcal:nutrition.calories,source:fromCan?'read from the can':'estimated from the photo',grams:plainWater?null:item.portionGrams,nutrition});
  }
  return {drinks,allDrinks:meal.items.length>0&&drinks.length===meal.items.length};
 }

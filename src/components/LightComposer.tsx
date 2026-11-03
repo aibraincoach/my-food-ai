@@ -14,6 +14,7 @@ function Switch({label,on,disabled,onChange}:{label:string;on:boolean;disabled:b
 export default function LightComposer(p:Props) {
  const drinks=useComposerDrinks(p);
  const busy=p.busy||drinks.saving;
+ const [drinkDetails,setDrinkDetails]=useState(false);
  const [whenOpen,setWhenOpen]=useState(false);
  const [uploadedVisible,setUploadedVisible]=useState(false);
  useEffect(()=>{const show=setTimeout(()=>setUploadedVisible(p.upload?.state==='uploaded'),0);const hide=setTimeout(()=>setUploadedVisible(false),1000);return()=>{clearTimeout(show);clearTimeout(hide);};},[p.upload?.state]);
@@ -28,9 +29,22 @@ export default function LightComposer(p:Props) {
  const current=p.shots[Math.min(p.index,p.shots.length-1)],on=p.notEaten.includes(p.index);
  const when=p.when?new Date(p.when).toLocaleString(undefined,{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'}):'Now';
  const photo=()=>{if(!busy)p.onPhoto();};
+ if(drinks.active&&!drinkDetails)return <div className="flex h-full flex-col bg-camera text-surface">
+  <header className="flex h-top-safe shrink-0 items-center justify-between px-5"><button type="button" aria-label="Back to Feed" disabled={busy} onClick={p.onBack} className="flex size-tap items-center justify-center"><Icon name="close"/></button><h1 id="capture-title" className="text-body font-semibold">New post</h1><button type="button" disabled={busy} onClick={()=>setDrinkDetails(true)} className="min-h-tap text-meta">Post details</button></header>
+  <div className="relative min-h-[140px] flex-1 overflow-hidden">
+   {/* eslint-disable-next-line @next/next/no-img-element */}
+   <img src={current?.previewUrl} alt="Photographed drinks" className="size-full object-contain"/>
+  </div>
+  <div className="max-h-[70%] shrink-0 overflow-y-auto rounded-t-sheet bg-text">{drinks.card}
+   <footer className="px-5 pt-4 pb-[calc(34px+env(safe-area-inset-bottom))]">
+    {drinks.error&&<p role="alert" className="mb-2 text-detail text-faint">{drinks.error}</p>}
+    <Button variant="camera" style={{height:48,borderRadius:12,fontSize:15}} disabled={busy||drinks.disabled} onClick={()=>{void drinks.post();}}>{busy?'Posting…':drinks.button}</Button>
+   </footer>
+  </div>{drinks.editor}{p.children}
+ </div>;
  return <div className="flex h-full flex-col bg-surface text-text" style={{animation:'composer-in 220ms ease-out'}}>
   <style>{'@keyframes composer-in {from {transform:translateX(30px);opacity:.5}to {transform:translateX(0);opacity:1}}'}</style>
-  <header className="flex h-top-safe shrink-0 items-center justify-between px-inset"><button type="button" aria-label="Back to Feed" disabled={busy} onClick={p.onBack} className="flex size-tap items-center justify-center rounded-circle bg-field"><Icon name="back" size={22}/></button><h1 id="capture-title" className="text-sheet-title">New post</h1><span className="size-tap"/></header>
+  <header className="flex h-top-safe shrink-0 items-center justify-between px-inset"><button type="button" aria-label="Back to Feed" disabled={busy} onClick={drinks.active?()=>setDrinkDetails(false):p.onBack} className="flex size-tap items-center justify-center rounded-circle bg-field"><Icon name="back" size={22}/></button><h1 id="capture-title" className="text-sheet-title">{drinks.active?'Post details':'New post'}</h1><span className="size-tap"/></header>
   <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain pb-2">
    {!!p.shots.length&&<div className="pt-3">
     {p.shots.length===1?<div className="relative mx-auto h-[276px] w-[220px] overflow-hidden rounded-card">
@@ -48,7 +62,7 @@ export default function LightComposer(p:Props) {
     </div>}
     {p.upload&&(p.upload.state!=='uploaded'||uploadedVisible)&&<p className="mt-2 text-center text-detail text-muted" role="status">{p.upload.state==='failed'?'Upload failed':p.upload.state==='uploaded'?'Uploaded':p.shots.length>1?`Uploading ${p.shots.length} photos…`:'Uploading photo…'}</p>}
    </div>}
-   {drinks.card}
+   {!drinks.active&&drinks.card}
    {p.shots.length>1&&p.index>0&&p.index<p.shots.length&&<div className={`mx-inset mt-3 flex items-center gap-[14px] rounded-card px-inset py-3 ${on?'bg-text text-surface':'bg-card'}`}>
     <div className="min-w-0 flex-1"><p className="text-body">leftovers (not eaten)</p><p className={`mt-1 text-meta leading-[1.4] ${on?'text-faint':'text-muted'}`}>{on?'The photographed leftovers are subtracted from the meal. Each marked photo is recorded.':'Off: this photo shows the meal. On: this photo shows leftovers, subtracted once from the meal.'}</p></div>
     <button type="button" role="switch" aria-label="leftovers (not eaten)" aria-checked={on} disabled={busy} onClick={()=>p.setNotEaten(on?p.notEaten.filter(index=>index!==p.index):[...p.notEaten,p.index].sort((a,b)=>a-b))} className={`relative h-[30px] w-[50px] shrink-0 rounded-circle ${on?'bg-accent':'bg-ring'}`}><span className="absolute top-[3px] size-6 rounded-circle bg-white" style={{left:on?23:3,boxShadow:'var(--color-shadow-knob)'}}/></button>
