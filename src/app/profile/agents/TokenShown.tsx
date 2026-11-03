@@ -33,7 +33,7 @@ export default function TokenShown({ token, name }: { token: string; name: strin
     return () => { window.removeEventListener('popstate', pop); window.removeEventListener('beforeunload', unload); document.removeEventListener('click', click, true); clearTimeout(timeout.current); };
   }, []);
   const leave = () => { mayLeave.current = true; router.replace(destination.current); };
-  return <main className="mx-auto flex min-h-dvh w-full max-w-phone flex-col bg-surface text-text">
+  return <main className="mx-auto flex min-h-dvh w-full max-w-phone flex-col bg-surface text-text desktop:my-8 desktop:min-h-[640px] desktop:max-w-[480px] desktop:rounded-[24px] desktop:border desktop:border-line desktop:shadow-lg">
     <TopBar title={name} className="[&>div:nth-child(2)]:min-w-0 [&>div:nth-child(2)]:truncate" />
     <div className="flex flex-col gap-4 px-screen-x pt-7">
       <h1 className="text-title">Token created</h1>

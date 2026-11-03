@@ -17,7 +17,7 @@ export default function AgentList({ tokens, activity }: { tokens: AgentListToken
     const day = today && withTime ? 'today' : date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
     return `${day}${withTime ? `, ${date.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' })}` : ''}`;
   };
-  return <main className="mx-auto flex min-h-dvh w-full max-w-phone flex-col bg-surface text-text">
+  return <main className="mx-auto flex min-h-dvh w-full max-w-phone flex-col bg-surface text-text desktop:my-8 desktop:min-h-[640px] desktop:max-w-[480px] desktop:rounded-[24px] desktop:border desktop:border-line desktop:shadow-lg">
     <TopBar title={<h1>Agents</h1>} left={<Link href="/profile" className="flex h-tap items-center text-[15px]"><Icon name="back" size={22}/>Profile</Link>} right={<span className="w-[70px]"/>} />
     <div className="flex flex-col gap-5 px-inset pt-3 pb-8">
       {tokens.map(token => <section key={token.id} className={`flex flex-col gap-3 rounded-[14px] border border-line bg-white p-4 ${token.revoked_at ? 'text-muted' : ''}`}>
