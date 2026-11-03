@@ -21,7 +21,7 @@ const RETRY_INTERVAL_MS = 1000;
 
 // Home discovers new rows independently of the optional Realtime connection.
 // Per-card refreshes remain in RealtimePost, so discovery fetches only IDs.
-export default function Feed({initialPage, initialUserId}: {initialPage?: {posts: FeedPost[]; days: FeedDayTotal[]; nextCursor: string | null}; initialUserId?: string} = {}) {
+export default function Feed({initialPage, initialUserId, fallbackOnly = false}: {fallbackOnly?: boolean; initialPage?: {posts: FeedPost[]; days: FeedDayTotal[]; nextCursor: string | null}; initialUserId?: string} = {}) {
   const router = useRouter();
   const [cacheUserId, setCacheUserId] = useState<string | null>(initialUserId ?? null);
   const cache = useCachedFeed(cacheUserId);
@@ -37,6 +37,14 @@ export default function Feed({initialPage, initialUserId}: {initialPage?: {posts
   const [pageError, setPageError] = useState(false);
 
   useEffect(() => {
+    if (fallbackOnly) {
+      let live = true;
+      cachedListener.current = posts => { if (live) setState({kind: 'ready', posts, days: []}); };
+      void createClient().auth.getSession().then(({data: {session}}) => {
+        if (live) setCacheUserId(session?.user.id ?? null);
+      }).catch(() => {});
+      return () => { live = false; cachedListener.current = () => {}; };
+    }
     const supabase = createClient();
     const zone = Intl.DateTimeFormat().resolvedOptions().timeZone;
     const dayTotals = new Map<string, FeedDayTotal>((initialPage?.days ?? []).map(day => [day.day, day]));
@@ -312,7 +320,7 @@ export default function Feed({initialPage, initialUserId}: {initialPage?: {posts
       document.removeEventListener("visibilitychange", focus);
       void supabase.removeChannel(channel);
     };
-  }, [router, initialPage, initialUserId]);
+  }, [router, initialPage, initialUserId, fallbackOnly]);
 
   useEffect(() => {
     const publish = () => window.dispatchEvent(new CustomEvent("feed-state", {
@@ -353,8 +361,8 @@ export default function Feed({initialPage, initialUserId}: {initialPage?: {posts
     {localCards}
     {days.map(day => <section key={day} aria-label={day} className="relative pb-card-gap">
       {!uploadDays.has(day)&&<DayHeader day={day} zone={zone} empty={!groups.has(day)} total={totals.get(day)} />}
-      {groups.has(day) ? <div className="flex flex-col gap-card-gap pt-sheet-top">{groups.get(day)!.map((post) => <div key={uploads.find(upload=>upload.postId===post.id)?.operationId??post.id} data-desktop-post={post.id} tabIndex={-1}><RealtimePost initial={post} renderCard={(fresh) => <PostCard priority={state.posts[0]?.id === post.id} post={fresh} upload={uploads.find(upload=>upload.postId===post.id)}
-         />} /></div>)}</div> : null}
+      {groups.has(day) ? <div className="flex flex-col gap-card-gap pt-sheet-top">{groups.get(day)!.map((post) => <div key={uploads.find(upload=>upload.postId===post.id)?.operationId??post.id} data-desktop-post={post.id} tabIndex={-1}>{fallbackOnly ? <PostCard priority={state.posts[0]?.id === post.id} post={post} /> : <RealtimePost initial={post} renderCard={(fresh) => <PostCard priority={state.posts[0]?.id === post.id} post={fresh} upload={uploads.find(upload=>upload.postId===post.id)}
+         />} />}</div>)}</div> : null}
     </section>)}
     {pageError ? <div className="px-screen-x text-detail text-muted" role="alert">
       <p>More meals could not be loaded.</p>

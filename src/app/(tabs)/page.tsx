@@ -20,7 +20,7 @@ async function HomeDays() {
   let days: {date: string}[] = [];
   let totals: import("@/lib/posts/days").FeedDayTotal[] = [];
   try {
-    const supabase = await createClient();
+    const supabase = await createClient(AbortSignal.timeout(8000));
     const { data: { user } } = await supabase.auth.getUser();
     [days, totals] = user ? await Promise.all([
       getLoggedDates(supabase, user.id, zone, shiftDay(today, -4), today),
@@ -37,7 +37,7 @@ async function HomeFeed() {
   let initialPage: Awaited<ReturnType<typeof getFeed>> | undefined;
   let initialUserId: string | undefined;
   try {
-    const db = await createClient();
+    const db = await createClient(AbortSignal.timeout(8000));
     const {data: {user}} = await db.auth.getUser();
     if (user) {
       initialUserId = user.id;
@@ -47,7 +47,7 @@ async function HomeFeed() {
       if (photo) preload(photo, {as: 'image', fetchPriority: 'high'});
     }
   } catch { /* The client boundary can retry while the shell stays visible. */ }
-  return <Feed initialPage={initialPage} initialUserId={initialUserId} />;
+  return <Feed key={initialUserId ?? 'anonymous'} initialPage={initialPage} initialUserId={initialUserId} />;
 }
 
 export default async function Home({searchParams}:{searchParams:Promise<{post?:string}>}) {
@@ -56,7 +56,7 @@ export default async function Home({searchParams}:{searchParams:Promise<{post?:s
     <header className="desktop:hidden sticky top-0 z-20 flex h-top-safe items-center bg-surface px-inset"><h1 className="flex-1 text-title">My Food AI</h1><SavedMealsButton/></header>
     <NeedsInputStrip />
     <Suspense fallback={<div className="h-bar-h" />}><HomeDays /></Suspense>
-    <Suspense fallback={<p className="px-screen-x text-detail text-muted">Loading feed…</p>}>
+    <Suspense fallback={<Feed fallbackOnly />}>
       <HomeFeed />
     </Suspense>
   </main></DesktopWorkspace>;

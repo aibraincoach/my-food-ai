@@ -9,7 +9,7 @@ export async function GET(request: Request) {
   const started = Date.now();
   const headers = {"Cache-Control":"private, no-store"};
   try {
-    const db = await createClient();
+    const db = await createClient(AbortSignal.timeout(15000));
     const {data:{user}, error} = await db.auth.getUser();
     console.info(`feed read auth ${Date.now() - started}`);
     if(error || !user) return NextResponse.json({error:"Sign in required."},{status:401,headers});

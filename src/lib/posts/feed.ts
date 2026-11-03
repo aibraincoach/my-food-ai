@@ -90,7 +90,7 @@ interface PostRow {
 
 
 async function latestRevision(client:SupabaseClient,postId:string):Promise<{modelCommentId:string|null;fingerprint:string}|null> {
- const {data,error}=await client.rpc('feedback_revision',{p_post_id:postId});
+ const {data,error}=await client.rpc('feedback_revision',{p_post_id:postId}).abortSignal(AbortSignal.timeout(8000));
  if(error)throw new Error('Analysis revision could not be read.');
  return data;
 }
@@ -235,6 +235,28 @@ export async function getFeed(
   return {posts:posts.map(post => ({ ...post, ...hydration[post.id] })), days, nextCursor: rows.length>limit ? encodeFeedCursor(page.at(-1)!) : null};
 }
 
+type CardWaiter = {resolve: (card: FeedPost | null) => void; reject: (error: unknown) => void};
+const browserCardBatches = new WeakMap<SupabaseClient, Map<string, Map<string, CardWaiter[]>>>();
+function queueBrowserCard(db: SupabaseClient, postId: string, zone: string): Promise<FeedPost | null> {
+  return new Promise((resolve, reject) => {
+    let zones = browserCardBatches.get(db);
+    if (!zones) { zones = new Map(); browserCardBatches.set(db, zones); }
+    let waiting = zones.get(zone);
+    if (!waiting) {
+      waiting = new Map(); zones.set(zone, waiting);
+      const group = waiting, ownerZones = zones;
+      setTimeout(() => {
+        ownerZones.delete(zone);
+        void getPostCards(db, [...group.keys()], zone).then(cards => {
+          const byId = new Map(cards.map(card => [card.id, card]));
+          for (const [id, waiters] of group) for (const waiter of waiters) waiter.resolve(byId.get(id) ?? null);
+        }).catch(error => { for (const waiters of group.values()) for (const waiter of waiters) waiter.reject(error); });
+      }, 0);
+    }
+    waiting.set(postId, [...(waiting.get(postId) ?? []), {resolve, reject}]);
+  });
+}
+
 // One card's worth of data, used for realtime refreshes and polling.
 export async function getPostCard(
   supabase: SupabaseClient,
@@ -243,6 +265,7 @@ export async function getPostCard(
   // Server entry points pass the request's explicit/cookie zone.
   zone = Intl.DateTimeFormat().resolvedOptions().timeZone
 ): Promise<FeedPost | null> {
+  if (typeof window !== 'undefined') return queueBrowserCard(supabase, postId, zone);
   const { data, error } = await supabase
     .from("posts")
     .select("id,user_id,caption,eaten_at,status,created_at,fail_reason,agent_token_id,agent_tokens(name)")
@@ -262,18 +285,15 @@ export async function getPostCard(
 export async function getPostCards(supabase: SupabaseClient, postIds: string[], zone = "UTC"): Promise<FeedPost[]> {
   if (!postIds.length) return [];
   const { data, error } = await supabase.from("posts").select("id,user_id,caption,eaten_at,status,created_at,fail_reason,agent_token_id,agent_tokens(name)")
-    .in("id", postIds).or(VISIBLE_MEAL_FILTER);
+    .in("id", postIds).or(VISIBLE_MEAL_FILTER).abortSignal(AbortSignal.timeout(8000));
   if (error) throw new Error("Meals could not be loaded.");
   const rows = (data ?? []) as PostRow[];
-  const cards: FeedPost[] = [];
-  for (let offset = 0; offset < rows.length; offset += 4) {
-    cards.push(...await Promise.all(rows.slice(offset, offset + 4).map(row => toFeedPost(supabase, row, zone))));
-  }
+  const cards = await toFeedPosts(supabase, rows, zone);
   const hydrated = new Map<string, FeedPost>();
   for (const userId of new Set(rows.map(row => row.user_id))) {
     const ids = new Set(rows.filter(row => row.user_id === userId).map(row => row.id));
     const owned = cards.filter(post => ids.has(post.id));
-    const values = await getPostHydrationData(supabase, userId, owned.map(post => ({ ...post, items: post.items.map(item => ({ ...item, micronutrients: item.micronutrients ?? [] })) })), zone);
+    const values = await optionalRead('hydration', () => getPostHydrationData(supabase, userId, owned.map(post => ({ ...post, items: post.items.map(item => ({ ...item, micronutrients: item.micronutrients ?? [] })) })), zone), {});
     for (const post of owned) hydrated.set(post.id, { ...post, ...values[post.id] });
   }
   return postIds.flatMap(id => { const post = hydrated.get(id); return post ? [post] : []; });

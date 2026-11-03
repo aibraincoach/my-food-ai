@@ -5,7 +5,7 @@ import {getCurrentItems} from '../src/lib/nutrition/totals.ts';
 test('feed and detail normalize the same legacy branded row',async()=>{
  const item={id:'item',name:'Food',portion_grams:50,portion_text:'50g',source:'model'};
  const row={post_item_id:'item',calories:333,protein_g:16,source_ref:'123',micronutrients:[{nutrientId:1008,nutrientName:'Energy',unitName:'KCAL',value:200}]};
- const client={rpc:async()=>({data:{modelCommentId:null,fingerprint:'fixture'},error:null}),from(table){
+ const client={rpc:()=>({abortSignal:async()=>({data:{modelCommentId:null,fingerprint:'fixture'},error:null})}),from(table){
   let ranged=false;
   const data=table==='posts'?{id:'post',status:'ready',eaten_at:'2026-10-27T12:00:00Z'}:['post_media','saved_meals'].includes(table)?null:table==='current_post_items'?[item]:[row];
   const q={select(columns){if(table==='item_nutrition')assert.ok(columns.includes('micronutrients')&&columns.includes('source_ref'));return q;},or(filter){assert.equal(filter,'needs_input.is.null,status.eq.failed');return q;},eq(){return q;},order(){return q;},gte(){return q;},lte(){return q;},lt(){return q;},range(){ranged=true;return q;},limit(){return q;},in(){return q;},maybeSingle(){return q;},then(resolve){return Promise.resolve({data:ranged?[]:data,error:null}).then(resolve);}};return q;
