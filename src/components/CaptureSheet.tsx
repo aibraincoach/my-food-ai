@@ -501,7 +501,7 @@ export default function CaptureSheet({ onClose, initialMode = "photo", forPost, 
           {labelState==="read"&&<div aria-hidden="true" className="pointer-events-none absolute rounded-thumb border-2 border-accent" style={{left:`${(labelReading?.reading.box?.x??0)*100}%`,top:`${(labelReading?.reading.box?.y??0)*100}%`,width:`${(labelReading?.reading.box?.w??1)*100}%`,height:`${(labelReading?.reading.box?.h??1)*100}%`,boxShadow:`0 0 12px ${tokens.colors["accent-glow"]}`}}/>}
           {mode === "barcode" && <>
             <div className="pointer-events-none absolute left-1/2 top-1/2 h-[160px] w-[240px] -translate-x-1/2 -translate-y-1/2">
-              <p className="absolute bottom-full left-1/2 mb-6 w-[320px] -translate-x-1/2 text-center text-[15px] text-white">Point at the barcode. It reads on its own.</p>
+              <p className="absolute bottom-full left-1/2 mb-6 w-max max-w-[320px] -translate-x-1/2 rounded-pill bg-overlay px-[14px] py-[6px] text-center text-[15px] text-surface">Point at the barcode. It reads on its own.</p>
               {(["tl", "tr", "bl", "br"] as const).map(corner => <span key={corner} className="absolute size-6 border-white" style={{
                 ...(corner.includes("t") ? { top: 0, borderTopWidth: 2 } : { bottom: 0, borderBottomWidth: 2 }),
                 ...(corner.includes("l") ? { left: 0, borderLeftWidth: 2 } : { right: 0, borderRightWidth: 2 }),
