@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-img-element -- Private owner images bypass paid optimization. */
 "use client";
 import {useDesktop} from "@/lib/ui/use-desktop";
 import {lockBodyScroll} from '@/lib/ui/scroll-lock';
@@ -69,6 +70,7 @@ export default function CaptureSheet({ onClose, initialMode = "photo", forPost, 
   const labelPhotoRef=useRef<{path:string;width:number;height:number}|null>(null);
   const [packPhoto, setPackPhoto] = useState<Shot | null>(null);
   const packPhotoRef = useRef<Shot | null>(null);
+  const packOperationRef=useRef<string|null>(null);
   const [portion, setPortion] = useState(100);
   const lookupRef = useRef(0);
   const scanBusy = useRef(false);
@@ -150,6 +152,7 @@ export default function CaptureSheet({ onClose, initialMode = "photo", forPost, 
   const dismissBarcode = () => {
     if (postingRef.current) return;
     lookupRef.current += 1;
+    if(packOperationRef.current){void uploadManager.remove(packOperationRef.current);packOperationRef.current=null;}
     setProduct(null); setBarcodeState("idle"); setPackPhoto(null); setError(null); setLabelState("idle");setLabelReading(null);setLabelForCode(null);
     if (packPhotoRef.current) URL.revokeObjectURL(packPhotoRef.current.previewUrl);
     packPhotoRef.current = null;
@@ -225,6 +228,7 @@ export default function CaptureSheet({ onClose, initialMode = "photo", forPost, 
 
   useEffect(() => () => {
     lookupRef.current += 1;
+    if(packOperationRef.current){void uploadManager.remove(packOperationRef.current);packOperationRef.current=null;}
     if (packPhotoRef.current) URL.revokeObjectURL(packPhotoRef.current.previewUrl);
     for (const shot of shotsRef.current) URL.revokeObjectURL(shot.previewUrl);
   }, []);
@@ -277,9 +281,10 @@ export default function CaptureSheet({ onClose, initialMode = "photo", forPost, 
     if(postingRef.current||!labelReading||!labelPhotoRef.current)return;
     postingRef.current=true;setPosting(true);setError(null);
     try{
-      const response=await fetch("/api/posts/food",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({label_reading_id:labelReading.reading_id,servings:labelServings,name:labelName,photo:labelPhotoRef.current,...(labelForCode?{gtin:labelForCode}:{}),...(when===null?{}:{eaten_at:fromLocalInput(when)})})});
-      const result=await response.json();if(!response.ok)throw Error(result.error??"The meal could not be saved.");
-      window.dispatchEvent(new CustomEvent("post-created",{detail:{id:result.post_id}}));onClose();router.refresh();
+      const eatenAt=when===null?new Date().toISOString():fromLocalInput(when);
+      if(!eatenAt||!packPhotoRef.current)throw new Error("Keep the label photo and choose a valid time eaten.");
+      await uploadManager.postFood({label_reading_id:labelReading.reading_id,servings:labelServings,name:labelName,photo:{...labelPhotoRef.current},...(labelForCode?{gtin:labelForCode}:{}),eaten_at:eatenAt},labelName.trim()||"Packaged food",[packPhotoRef.current.file]);
+      onClose();
     }catch(e){setError(e instanceof Error?e.message:"The meal could not be saved.");}finally{postingRef.current=false;setPosting(false);}
   };
   const attachmentUpload=useRef<PackPhotoUpload|null>(null);
@@ -336,6 +341,7 @@ export default function CaptureSheet({ onClose, initialMode = "photo", forPost, 
             if (!code || !mountedRef.current || postingRef.current) return;
             const index = shotsRef.current.indexOf(shot);
             if (index < 0) return;
+            if(shotsRef.current.length===1&&operationRef.current){packOperationRef.current=operationRef.current;operationRef.current=null;setOperationId(null);}
             removeShot(index);
             if (!shotsRef.current.length) setComposer(false);
             void findBarcode(code, file);
@@ -412,24 +418,20 @@ export default function CaptureSheet({ onClose, initialMode = "photo", forPost, 
     }
   };
 
-  const packUploadRef = useRef<PackPhotoUpload | null>(null);
   const postBarcode = async () => {
     if (postingRef.current || !product || !packPhotoRef.current) return;
     postingRef.current = true; setPosting(true); setError(null);
     try {
-      packUploadRef.current ??= new PackPhotoUpload();
-      const photo = await packUploadRef.current.prepare(packPhotoRef.current.file);
-      const response = await fetch("/api/posts/food", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ gtin: product.gtin, amount: portion, unit: product.basisUnit,
-        ...(when === null ? {} : { eaten_at: fromLocalInput(when) }), photo }) });
-      const result = await response.json();
-      if (!response.ok) throw new Error(result.error ?? "The meal could not be saved.");
-      window.dispatchEvent(new CustomEvent("post-created", { detail: { id: result.post_id } }));
+      const eatenAt=when===null?new Date().toISOString():fromLocalInput(when);
+      if(!eatenAt)throw new Error("Choose a valid time eaten.");
+      await uploadManager.postFood({gtin:product.gtin,amount:portion,unit:product.basisUnit,eaten_at:eatenAt},product.name,[packPhotoRef.current.file],packOperationRef.current??undefined);
+      packOperationRef.current=null;
       if (pendingFilesRef.current.length || shotsRef.current.length) {
         // A multi-selection is retained until the user explicitly continues it.
         postingRef.current = false; dismissBarcode(); setStream(null); setMode("text");setComposer(true);
         window.setTimeout(() => document.getElementById("capture-caption")?.focus(), 0);
       } else onClose();
-      router.refresh();
+
     } catch (error) { if (mountedRef.current) setError(error instanceof Error ? error.message : "The meal could not be saved."); }
     finally { postingRef.current = false; if (mountedRef.current) setPosting(false); }
   };
@@ -470,7 +472,7 @@ export default function CaptureSheet({ onClose, initialMode = "photo", forPost, 
 
   if(!forPost&&composer&&mode!=="barcode"&&barcodeState==="idle"&&labelState==="idle")return <div ref={dialogRef} role="dialog" aria-modal="true" aria-labelledby="capture-title" className="desktop-capture fixed inset-x-0 top-0 z-50 h-dvh overflow-hidden bg-surface" style={viewport?{height:viewport.height,top:viewport.top}:undefined}>
     <div className="desktop-capture-inner mx-auto h-full max-w-phone desktop:max-w-[760px]"><LightComposer cameraPreview={cameraPreview} upload={upload} shots={shots} caption={caption} setCaption={setCaption} index={photoIndex} setIndex={setPhotoIndex} notEaten={notEaten} setNotEaten={setNotEaten} when={when} setWhen={setWhen} locationEnabled={locationEnabled} setLocationEnabled={enableLocation} saveAsMeal={saveAsMeal} setSaveAsMeal={setSaveAsMeal} busy={posting||cameraBusy} error={error} pending={pendingCount} onBack={closeDraft} onPhoto={()=>{setSearchingFoods(false);setComposer(false);setMode("photo");setStream(null);}} onSearch={()=>setSearchingFoods(value=>!value)} onPost={()=>{void post();}} onRemove={removeShot}
-      searchPanel={searchingFoods?<div className="px-inset"><FoodSearchPanel eatenAt={when===null?null:fromLocalInput(when)} disabled={posting} onLogged={postId=>{if(operationRef.current)void uploadManager.remove(operationRef.current);window.dispatchEvent(new CustomEvent('post-created',{detail:{id:postId}}));onClose();router.refresh();}} onDescribe={text=>{if(text&&!caption.trim())setCaption(text);setSearchingFoods(false);setError(null);}} onError={setError}/></div>:null}>
+      searchPanel={searchingFoods?<div className="px-inset"><FoodSearchPanel eatenAt={when===null?null:fromLocalInput(when)} disabled={posting} onQueued={()=>{if(operationRef.current)void uploadManager.remove(operationRef.current);onClose();}} onDescribe={text=>{if(text&&!caption.trim())setCaption(text);setSearchingFoods(false);setError(null);}} onError={setError}/></div>:null}>
       <input ref={galleryRef} type="file" accept="image/*" multiple className="hidden" onChange={event=>{void addFiles(event.target.files);event.target.value='';}}/>
     </LightComposer></div>
   </div>;
@@ -494,7 +496,6 @@ export default function CaptureSheet({ onClose, initialMode = "photo", forPost, 
         </div>:mode !== "text" && <><div {...(!desktop?modeSwipe:{})} className={`relative flex touch-pan-y items-center justify-center overflow-hidden bg-camera text-camera-muted ${labelState==="read"?"min-h-[180px] shrink":"shrink-0"} desktop:mx-6 desktop:!mt-0 ${labelState==="read"?"":"desktop:!h-[400px]"} desktop:rounded-card`} style={{ height: labelState==="read"?300:tokens.capture.previewHeight, marginTop: tokens.capture.previewTop }}>
           {labelState!=="idle"&&packPhoto ? <img src={packPhoto.previewUrl} alt="Photographed nutrition label" className="h-full w-full object-contain"/> : stream ? <video ref={videoRef} muted playsInline autoPlay aria-label="Live camera viewfinder" className="h-full w-full object-cover" /> : latest ? (
             // Local blob previews require no remote image transformation.
-            // eslint-disable-next-line @next/next/no-img-element
             <img src={latest.previewUrl} alt="Latest meal photo" className="h-full w-full object-cover" />
           ) : <Icon name="camera" />}
           {desktop&&devices.length>0&&<select aria-label="Camera" value={deviceId||stream?.getVideoTracks()[0]?.getSettings().deviceId||''} onChange={event=>setDeviceId(event.target.value)} className="absolute left-[14px] top-[14px] h-[29px] max-w-[80%] rounded-field bg-overlay px-[10px] text-meta text-surface">{devices.map((device,index)=><option key={device.deviceId} value={device.deviceId}>{device.label||`Camera ${index+1}`}</option>)}</select>}
@@ -533,7 +534,7 @@ export default function CaptureSheet({ onClose, initialMode = "photo", forPost, 
         {!forPost&&(mode === "text" || mode === "photo") && barcodeState === "idle" && labelState === "idle" && <div className="desktop:hidden flex shrink-0 overflow-x-auto px-screen-x" style={{ gap: tokens.capture.thumbGap }} aria-label="Meal photos">
           {shots.map((shot, i) => (
             <button key={shot.previewUrl} type="button" aria-label={`Remove photo ${i + 1}`} disabled={posting} onClick={() => removeShot(i)} className="relative shrink-0 overflow-hidden rounded-thumb disabled:opacity-50" style={{ width: tokens.capture.thumbSize, height: tokens.capture.thumbSize }}>
-              {/* eslint-disable-next-line @next/next/no-img-element */}
+              
               <img src={shot.previewUrl} alt={`Photo ${i + 1}`} className="h-full w-full object-cover" />
               <span className="absolute right-0 top-0 rounded-bl-chip bg-overlay p-grid"><Icon name="close" size={tokens.spacing['icon-small']} /></span>
             </button>
@@ -559,7 +560,7 @@ export default function CaptureSheet({ onClose, initialMode = "photo", forPost, 
           {product && <>
             <div className="flex gap-sheet-top pr-tap">
               <div className="min-w-0 flex-1"><p className="text-meta text-faint">Found</p><p className="text-month">{product.name}</p><button type="button" onClick={()=>setCorrecting(true)} className="text-detail underline">Correct</button><p className="text-detail text-faint">Per 100 {product.basisUnit} · {macros(100)}</p></div>
-              {/* eslint-disable-next-line @next/next/no-img-element */}
+              
               {packPhoto && <img src={packPhoto.previewUrl} alt="Scanned pack" className="shrink-0 rounded-thumb object-cover" style={{ width: tokens.capture.thumbSize, height: tokens.capture.thumbSize }} />}
             </div>
             <p className="text-meta text-faint" style={{ marginTop: tokens.spacing['screen-x'] - tokens.icon.strongStroke }}>How much?</p>
@@ -578,7 +579,7 @@ export default function CaptureSheet({ onClose, initialMode = "photo", forPost, 
             </span>
           </div>
           {searchingFoods ? <FoodSearchPanel eatenAt={when === null ? null : fromLocalInput(when)} disabled={posting}
-            onLogged={(postId) => { window.dispatchEvent(new CustomEvent("post-created", { detail: { id: postId } })); onClose(); router.refresh(); }}
+            onQueued={() => {  onClose(); }}
             onDescribe={(text) => { if (text && !caption.trim()) setCaption(text); setSearchingFoods(false); setError(null); }} onError={setError} /> : <>
           <Field variant="camera" id="capture-caption" aria-label="Caption" value={caption} onChange={(event) => setCaption(event.target.value)} disabled={posting} placeholder="What did you eat?" />
           <button type="button" disabled={posting} onClick={() => { setSearchingFoods(true); setError(null); }} className="min-h-tap self-start px-grid text-detail text-surface disabled:opacity-50">Search foods</button>
