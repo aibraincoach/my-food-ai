@@ -1,10 +1,12 @@
 "use client";
-import { useCallback, useLayoutEffect, useMemo, useRef, useSyncExternalStore } from "react";
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useSyncExternalStore } from "react";
+import { connectMediaSession } from "@/lib/posts/media-session";
 import type { FeedPost } from "@/lib/posts/feed";
 import { feedCacheGeneration, readFeedCache, subscribeFeedCache, writeFeedCache } from "@/lib/posts/feed-cache";
 
 const noCache = () => null;
 export function useCachedFeed(userId: string | null): { cached: FeedPost[] | null; save(posts: FeedPost[]): void } {
+  useEffect(connectMediaSession, []);
   const currentUser = useRef<string | null>(null);
   useLayoutEffect(() => {
     currentUser.current = userId;

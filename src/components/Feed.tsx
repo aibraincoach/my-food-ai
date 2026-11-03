@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
-import { FEED_PAGE_SIZE, VISIBLE_MEAL_FILTER, retainCompleteItems, getPostCard, type FeedPost } from "@/lib/posts/feed";
+import { FEED_PAGE_SIZE, VISIBLE_MEAL_FILTER, hasUnavailableFields, retainCompleteItems, getPostCard, type FeedPost } from "@/lib/posts/feed";
 import { tokens } from "@/lib/theme/tokens";
 import DayHeader from "@/components/DayHeader";
 import { dateInZone, shiftDay, getDayTotals, type FeedDayTotal } from "@/lib/posts/days";
@@ -13,6 +13,9 @@ import PostCard from "@/components/PostCard";
 import RealtimePost from "@/components/RealtimePost";
 import { mergeFeedPosts, discoveryLostOverlap } from "@/lib/posts/feed-order";
 
+import {claimFeedCacheEvents} from "@/lib/posts/feed-cache-mutations";
+import {readFeedCache} from "@/lib/posts/feed-cache";
+import {useDeviceTimeZone} from "@/components/LocalTime";
 import {useCachedFeed} from "@/components/useCachedFeed";
 
 type State = { kind: "loading" } | { kind: "error" } | { kind: "ready"; posts: FeedPost[]; days: FeedDayTotal[] };
@@ -20,7 +23,7 @@ const DISCOVERY_INTERVAL_MS = 2000;
 const RETRY_INTERVAL_MS = 1000;
 
 const noServerSeed = () => false;
-const hasServerSeed = () => typeof document !== 'undefined' && Boolean(document.querySelector('[data-server-feed-ready]'));
+const hasServerSeed = () => typeof document !== 'undefined' && Boolean(document.querySelector('[data-server-feed-ready], [data-feed-client-ready]'));
 function subscribeServerSeed(listener: () => void) {
   const observer = new MutationObserver(listener);
   observer.observe(document, {childList: true, subtree: true});
@@ -36,8 +39,10 @@ export function CachedFeedFallback() {
 
 // Home discovers new rows independently of the optional Realtime connection.
 // Per-card refreshes remain in RealtimePost, so discovery fetches only IDs.
-export default function Feed({initialPage, initialUserId, fallbackOnly = false}: {fallbackOnly?: boolean; initialPage?: {posts: FeedPost[]; days: FeedDayTotal[]; nextCursor: string | null}; initialUserId?: string} = {}) {
+export default function Feed({initialPage, initialUserId, initialZone = "UTC", fallbackOnly = false}: {initialZone?: string; fallbackOnly?: boolean; initialPage?: {posts: FeedPost[]; days: FeedDayTotal[]; nextCursor: string | null}; initialUserId?: string} = {}) {
   const router = useRouter();
+  const deviceZone=useDeviceTimeZone();
+  const renderZone=deviceZone||initialZone;
   const [cacheUserId, setCacheUserId] = useState<string | null>(initialUserId ?? null);
   const cache = useCachedFeed(cacheUserId);
   const cacheRef = useRef(cache);
@@ -45,7 +50,8 @@ export default function Feed({initialPage, initialUserId, fallbackOnly = false}:
   const retryInitial = useRef<() => void>(() => {});
   const cachedListener = useRef<(posts: FeedPost[]) => void>(() => {});
   useEffect(() => { if (cache.cached) cachedListener.current(cache.cached); }, [cache.cached]);
-  const uploads=useUploads().filter(upload=>!fallbackOnly&&upload.posted);
+  const [fallbackRetired, setFallbackRetired] = useState<Set<string>>(new Set());
+  const uploads=useUploads().filter(upload=>upload.posted);
   const sentinel = useRef<HTMLDivElement>(null);
   const loadMore = useRef<() => void>(()=>{});
   const [state, setState] = useState<State>(initialPage ? {kind: "ready", posts: initialPage.posts, days: initialPage.days} : { kind: "loading" });
@@ -54,10 +60,24 @@ export default function Feed({initialPage, initialUserId, fallbackOnly = false}:
   useEffect(() => {
     if (fallbackOnly) {
       let live = true;
+      const retire = (event: Event) => {
+        const id = (event as CustomEvent<{id?: unknown}>).detail?.id;
+        if (typeof id === 'string') setFallbackRetired(previous => new Set([...previous, id]));
+      };
+      const restore = (event: Event) => {
+        const id = (event as CustomEvent<{id?: unknown}>).detail?.id;
+        if (typeof id === 'string') setFallbackRetired(previous => {const next = new Set(previous); next.delete(id); return next;});
+      };
+      for (const name of ['post-deleted','post-unavailable','post-answer-resume']) window.addEventListener(name,retire);
+      window.addEventListener('post-restore',restore);
       void createClient().auth.getSession().then(({data: {session}}) => {
         if (live) setCacheUserId(session?.user.id ?? null);
       }).catch(() => {});
-      return () => { live = false; cachedListener.current = () => {}; };
+      return () => {
+        live = false; cachedListener.current = () => {};
+        for (const name of ['post-deleted','post-unavailable','post-answer-resume']) window.removeEventListener(name,retire);
+        window.removeEventListener('post-restore',restore);
+      };
     }
     const supabase = createClient();
     const zone = Intl.DateTimeFormat().resolvedOptions().timeZone;
@@ -68,6 +88,9 @@ export default function Feed({initialPage, initialUserId, fallbackOnly = false}:
     const mergeDays = (days: FeedDayTotal[]) => { for (const day of days) dayTotals.set(day.day, day); };
     let live = true;
     let userId: string | null = initialUserId ?? null;
+    let claimedUser: string | null = null;
+    let releaseCacheOwner: (()=>void) | undefined;
+    if (userId) {claimedUser=userId;releaseCacheOwner=claimFeedCacheEvents(userId);}
     let discovering = false;
     let baseline: FeedPost[] = initialPage?.posts ?? [];
     let loaded = Boolean(initialPage);
@@ -75,6 +98,9 @@ export default function Feed({initialPage, initialUserId, fallbackOnly = false}:
     let cursor: string | null = initialPage?.nextCursor ?? null;
     let loadingMore = false;
     let generation = 0;
+    let hasFreshPage = false;
+    let cacheDirty = false;
+    const cacheInvalidated = new Set<string>();
     const unavailable = new Set<string>();
     const answered = new Set<string>();
     const cards = new Map<string, FeedPost>();
@@ -88,7 +114,20 @@ export default function Feed({initialPage, initialUserId, fallbackOnly = false}:
       // A late initial load must not erase cards received while it was in flight.
       const promoted = newest.flatMap((id) => cards.has(id) ? [cards.get(id)!] : []);
       const posts = mergeFeedPosts(baseline, promoted).filter(post=>!unavailable.has(post.id)&&post.status!=="needs_input"&&(!answered.has(post.id)||post.status==="ready"||post.status==="failed"));
-      if (loaded || promoted.length) setState({ kind: "ready", posts, days: [...dayTotals.values()] });
+      if (loaded || promoted.length) {
+        setState({ kind: "ready", posts, days: [...dayTotals.values()] });
+        if (userId && (hasFreshPage || cacheDirty)) {
+          const prior = new Map((readFeedCache(userId)?.posts ?? cacheRef.current.cached ?? []).map(post=>[post.id,post]));
+          const cachePosts = posts.filter(post=>!cacheInvalidated.has(post.id)).flatMap(post=>{
+            if (!hasUnavailableFields(post) && !post.summariesDeferred) return [post];
+            const old=prior.get(post.id);
+            const sameRevision=post.status!=='ready'||Boolean(post.analysisFingerprint&&post.analysisFingerprint===old?.analysisFingerprint);
+            const sameMedia=!post.expectedMediaIds||JSON.stringify(post.expectedMediaIds)===JSON.stringify(old?.slides.map(slide=>slide.id));
+            return old&&old.status===post.status&&old.caption===post.caption&&old.eaten_at===post.eaten_at&&sameRevision&&sameMedia?[old]:[];
+          });
+          cacheRef.current.save(cachePosts); cacheDirty = false;
+        }
+      }
     };
 
     const refreshTotals = async (dates: string[]) => {
@@ -109,7 +148,7 @@ export default function Feed({initialPage, initialUserId, fallbackOnly = false}:
       const interrupted=[...pending.keys()].filter(other=>other!==id);
       const removed = cards.get(id) ?? baseline.find(post => post.id === id);
       deferred.delete(id);
-      unavailable.add(id);generation++;
+      unavailable.add(id);cacheInvalidated.delete(id);cacheDirty=true;generation++;
       baseline=baseline.filter(post=>post.id!==id);cards.delete(id);
       const index=newest.indexOf(id);if(index>=0)newest.splice(index,1);
       // Old pages cannot resurrect a hidden card. Restart unrelated reads:
@@ -130,7 +169,7 @@ export default function Feed({initialPage, initialUserId, fallbackOnly = false}:
       if (!detail?.id) return;
       if (!detail.post) { unavailable.delete(detail.id); requestCard(detail.id); return; }
       if (detail.id !== detail.post.id) return;
-      unavailable.delete(detail.id); cards.set(detail.id, detail.post);
+      unavailable.delete(detail.id); cacheInvalidated.delete(detail.id);cacheDirty=true;cards.set(detail.id, detail.post);
       baseline = mergeFeedPosts(baseline, [detail.post]); publish();
       void refreshTotals([dateInZone(detail.post.eaten_at, zone)]);
     };
@@ -163,12 +202,13 @@ export default function Feed({initialPage, initialUserId, fallbackOnly = false}:
           unavailable.delete(id);
           card.day = dateInZone(card.eaten_at, zone);
           const previous = cards.get(id) ?? baseline.find(post => post.id === id);
+          if(!hasUnavailableFields(card)){cacheInvalidated.delete(id);cacheDirty=true;}
           cards.set(id, retainCompleteItems(previous, card));
           void refreshTotals([...new Set([card.eaten_at, ...(previous ? [previous.eaten_at] : [])].map(value => dateInZone(value, zone)))]);
           publish();
           // A local completion event can arrive while the INSERT read still
           // sees unuploaded media. Always read again after that event.
-          if (card.itemsUnavailable) throw new Error('Meal details are unavailable.');
+          if (hasUnavailableFields(card)) throw new Error('Meal details are unavailable.');
           if (request.again) { void fetchCard(); return; }
           pending.delete(id);
         } catch {
@@ -188,7 +228,10 @@ export default function Feed({initialPage, initialUserId, fallbackOnly = false}:
 
     const created = (event: Event) => {
       const id = (event as CustomEvent<{ id?: unknown }>).detail?.id;
-      if (typeof id === "string" && id) requestCard(id, true);
+      if (typeof id === "string" && id) {
+        if (cards.has(id)||baseline.some(post=>post.id===id)) {cacheInvalidated.add(id);cacheDirty=true;publish();}
+        requestCard(id, true);
+      }
     };
     // Register before starting the initial asynchronous load.
     window.addEventListener("post-created", created);
@@ -215,8 +258,7 @@ export default function Feed({initialPage, initialUserId, fallbackOnly = false}:
     cachedListener.current = posts => {
       if (!live || loaded || !userId) return;
       baseline = posts; loaded = true; publish();
-      // Cached cards are visible, but the fresh first load still owns pagination.
-      loaded = false;
+      // Display is loaded; hasFreshPage separately controls HTTP revalidation.
     };
     const load = async () => {
       initialLoading = true;
@@ -229,15 +271,23 @@ export default function Feed({initialPage, initialUserId, fallbackOnly = false}:
         if (!live) return;
         if (!user) { router.replace("/sign-in"); return; }
         userId = user.id;
+        // A cache notification can precede user initialization. Consume the
+        // current owner snapshot explicitly instead of waiting for another event.
+        const cached = readFeedCache(userId)?.posts ?? cacheRef.current.cached;
+        if (cached) {
+          if (!loaded) cachedListener.current(cached);
+          else if (baseline.some(hasUnavailableFields)) {baseline=baseline.map(post=>retainCompleteItems(cached.find(old=>old.id===post.id),post));publish();}
+        }
+        if (claimedUser!==userId) {releaseCacheOwner?.();claimedUser=userId;releaseCacheOwner=claimFeedCacheEvents(userId);}
         const page = await readPage(null,6);
         if(!live||loadGeneration!==generation)return;
         mergeDays(page.days);
         baseline = page.posts.filter(post=>!unavailable.has(post.id)).map(post=>retainCompleteItems(baseline.find(prior=>prior.id===post.id),post));
-        if (!baseline.some(post=>post.itemsUnavailable)) cacheRef.current.save(baseline);
+        hasFreshPage = true;
         cursor = page.nextCursor;
         loaded = true;
         publish();
-        for (const post of baseline) if (post.itemsUnavailable) requestCard(post.id);
+        for (const post of baseline) if (hasUnavailableFields(post)) requestCard(post.id);
         if(uploadDaysToRead.size)void refreshTotals([...uploadDaysToRead]);
       } catch {
         if (live && !cards.size && !baseline.length) setState({ kind: "error" });
@@ -264,7 +314,7 @@ export default function Feed({initialPage, initialUserId, fallbackOnly = false}:
       const discoveryGeneration=generation;
       try {
         for(const [id,due] of deferred)if(retryNow||due<=Date.now())requestCard(id);
-        if (!loaded) { await load(); return; }
+        if (!hasFreshPage) { await load(); return; }
         if (!userId) return;
         const { data, error } = await supabase.from("posts").select("id")
           .eq("user_id", userId).neq("status", "needs_input").or(VISIBLE_MEAL_FILTER).order("created_at", { ascending: false })
@@ -320,6 +370,7 @@ export default function Feed({initialPage, initialUserId, fallbackOnly = false}:
     return () => {
       live = false;
       cachedListener.current = () => {};
+      releaseCacheOwner?.();
       window.removeEventListener("post-restore", restore);
       window.removeEventListener("post-ready", readyEvent);
       window.removeEventListener('upload-started',uploading);
@@ -356,17 +407,17 @@ export default function Feed({initialPage, initialUserId, fallbackOnly = false}:
     return ()=>observer.disconnect();
   },[state]);
 
-  const visibleState: State = fallbackOnly ? cache.cached ? {kind: 'ready', posts: cache.cached, days: []} : {kind: 'loading'} : state;
+  const visibleState: State = fallbackOnly ? cache.cached ? {kind: 'ready', posts: cache.cached.filter(post=>!fallbackRetired.has(post.id)), days: []} : {kind: 'loading'} : state;
   const uploadDays=new Set<string>();
-  const localCards=uploads.map(upload=>{const server=visibleState.kind==='ready'?visibleState.posts.find(post=>post.id===upload.postId):undefined;const seed:FeedPost=server??{id:upload.postId??upload.operationId,caption:upload.caption,eaten_at:upload.eatenAt,created_at:upload.eatenAt,status:"queued",photoUrl:upload.previewUrl,slides:[],items:[]};const zone=Intl.DateTimeFormat().resolvedOptions().timeZone;const day=dateInZone(seed.eaten_at,zone);const header=!uploadDays.has(day);const measured=visibleState.kind==='ready'?visibleState.days.find(value=>value.day===day):undefined;const measuredTotal=measured?{...measured,ready:measured.ready||measured.kcal===0}:undefined;if(header)uploadDays.add(day);return <UploadHydratedCard key={upload.operationId} post={seed} upload={upload} header={header?<DayHeader day={day} zone={zone} empty={false} total={measuredTotal}/>:null}/>;});
+  const localCards=uploads.map(upload=>{const server=visibleState.kind==='ready'?visibleState.posts.find(post=>post.id===upload.postId):undefined;const seed:FeedPost=server??{id:upload.postId??upload.operationId,caption:upload.caption,eaten_at:upload.eatenAt,created_at:upload.eatenAt,status:"queued",photoUrl:upload.previewUrl,slides:[],items:[]};const zone=renderZone;const day=dateInZone(seed.eaten_at,zone);const header=!uploadDays.has(day);const measured=visibleState.kind==='ready'?visibleState.days.find(value=>value.day===day):undefined;const measuredTotal=measured?{...measured,ready:measured.ready||measured.kcal===0}:undefined;if(header)uploadDays.add(day);return <UploadHydratedCard key={upload.operationId} post={seed} upload={upload} header={header?<DayHeader day={day} zone={zone} empty={false} total={measuredTotal}/>:null}/>;});
   if (visibleState.kind === "loading"&&localCards.length)return <div>{localCards}{null}</div>;
   if (visibleState.kind === "loading") return <p className="px-screen-x text-detail text-muted" role="status">Loading feed…</p>;
   if (visibleState.kind === "error") return <div>{localCards}<p className="px-screen-x text-detail text-muted" role="alert">The feed could not be loaded.</p><button type="button" className="min-h-tap px-screen-x text-text" onClick={() => retryInitial.current()}>Try again</button></div>;
   if (!visibleState.posts.length&&localCards.length)return <div>{localCards}{null}</div>;
-  if (!visibleState.posts.length) return <div className="flex flex-1 items-center justify-center" style={{ paddingBottom: tokens.spacing['sheet-bottom'] * 3 }}>
+  if (!visibleState.posts.length) return <div data-feed-client-ready={!fallbackOnly ? true : undefined} data-cached-feed-ready={fallbackOnly ? true : undefined} className="flex flex-1 items-center justify-center" style={{ paddingBottom: tokens.spacing['sheet-bottom'] * 3 }}>
     <p className="text-sheet-title font-normal text-muted">Post your first meal</p>
   </div>;
-  const zone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+  const zone = renderZone;
   const groups = new Map<string, FeedPost[]>();
   for (const post of visibleState.posts.filter(post=>!uploads.some(upload=>upload.postId===post.id))) {
     const day = dateInZone(post.eaten_at, zone);
@@ -376,7 +427,7 @@ export default function Feed({initialPage, initialUserId, fallbackOnly = false}:
   const days: string[] = [];
   if(listed.length)for (let day = listed[0]; day >= listed.at(-1)!; day = shiftDay(day, -1)) days.push(day);
   const totals = new Map(visibleState.days.map(day => [day.day, day]));
-  return <div className="flex flex-col">
+  return <div data-feed-client-ready={!fallbackOnly ? true : undefined} data-cached-feed-ready={fallbackOnly ? true : undefined} className="flex flex-col">
     {localCards}
     {days.map(day => <section key={day} aria-label={day} className="relative pb-card-gap">
       {!uploadDays.has(day)&&<DayHeader day={day} zone={zone} empty={!groups.has(day)} total={totals.get(day)} />}

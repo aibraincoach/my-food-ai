@@ -1,11 +1,13 @@
 "use client";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { signOut } from "@/lib/auth/actions";
 import { detachCurrentPushDevice, withPushLock } from "@/lib/push/lifecycle";
+import { blockMediaSession, connectMediaSession } from "@/lib/posts/media-session";
 import { clearFeedCache } from "@/lib/posts/feed-cache";
 import { leaveSession } from "@/lib/push/leave";
 
 export function SignOutButton() {
+  useEffect(connectMediaSession, []);
   const leaving = useRef(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState(false);
@@ -15,6 +17,7 @@ export function SignOutButton() {
     setBusy(true); setError(false);
     // A redirect from signOut leaves the page; reaching the next line means the sign-out itself failed.
     try {
+      const mediaPrivacy = blockMediaSession();
       clearFeedCache();
       if ("serviceWorker" in navigator && navigator.serviceWorker.controller) {
         // Bound the acknowledgement so a stopped worker cannot block sign-out.
@@ -24,7 +27,7 @@ export function SignOutButton() {
           const done = () => { clearTimeout(timer); channel.port1.close(); channel.port2.close(); resolve(); };
           const timer = setTimeout(done, 1500);
           channel.port1.onmessage = done;
-          try { navigator.serviceWorker.controller!.postMessage({ type: "clear-media" }, [channel.port2]); }
+          try { navigator.serviceWorker.controller!.postMessage({ type: "clear-media", ...mediaPrivacy }, [channel.port2]); }
           catch { done(); }
         });
       }

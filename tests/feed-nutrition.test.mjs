@@ -41,3 +41,32 @@ test('only a matching analysis revision may retain previously read nutrition',as
  assert.deepEqual(retainCompleteItems(previous,{...unavailable,analysisFingerprint:null}).items,[]);
  assert.deepEqual(retainCompleteItems(previous,{...unavailable,itemsUnavailable:false}).items,[],'a successful empty read is genuine, not overwritten by history');
 });
+
+test('transient auxiliary failures retain known fields and recovery still applies genuine removals',async()=>{
+ const {retainCompleteItems,hasUnavailableFields}=await import('../src/lib/posts/feed.ts');
+ const prior={id:'meal',eaten_at:'2026-11-03T00:00:00Z',day:'2026-11-03',status:'ready',items:[],slides:[{id:'photo',url:'https://fixture.invalid/known',kind:'photo'}],photoUrl:'https://fixture.invalid/known',saved_meal_id:'saved',kind:'meal',dayHydration:{totalMl:100}};
+ const incomplete={...prior,slides:[],photoUrl:null,saved_meal_id:null,dayHydration:undefined,mediaUnavailable:true,savedStateUnavailable:true,hydrationUnavailable:true};
+ const kept=retainCompleteItems(prior,incomplete);
+ assert.equal(kept.slides.length,1);assert.equal(kept.saved_meal_id,'saved');assert.equal(kept.dayHydration.totalMl,100);assert.equal(hasUnavailableFields(kept),true);
+ const changedMedia=retainCompleteItems(prior,{...incomplete,expectedMediaIds:['new-photo']});
+ assert.deepEqual(changedMedia.slides,[],'known removal must not revive an old image even when another signing read fails');
+ const recovered=retainCompleteItems(kept,{...prior,slides:[],photoUrl:null,saved_meal_id:null,dayHydration:{totalMl:200},mediaUnavailable:false,savedStateUnavailable:false,hydrationUnavailable:false});
+ assert.deepEqual(recovered.slides,[]);assert.equal(recovered.saved_meal_id,null);assert.equal(recovered.dayHydration.totalMl,200);assert.equal(hasUnavailableFields(recovered),false);
+});
+
+test('fast first-photo read and full snapshot share the same owner-scoped capability',async()=>{
+ const {createClient}=await import('@supabase/supabase-js');const {getFirstFeedPhoto,toFeedPosts}=await import('../src/lib/posts/feed.ts');
+ const post={id:'first-photo-post',user_id:'first-owner',caption:'Food',eaten_at:'2026-11-03T00:00:00Z',created_at:'2026-11-03T00:00:00Z',status:'queued'};
+ const media={id:'first-photo',post_id:post.id,storage_path:'first-owner/first-photo-post/photo.jpg',kind:'photo',position:0};let single=0;
+ const db=createClient('https://photo-fixture.invalid','fixture',{global:{fetch:async(input,init)=>{
+  const url=new URL(input instanceof Request?input.url:String(input));
+  if(url.pathname.endsWith('/posts')){assert.equal(url.searchParams.get('user_id'),'eq.first-owner');return Response.json({...post,post_media:[media]});}
+  if(url.pathname.endsWith('/post_media'))return Response.json([media]);
+  if(url.pathname.endsWith('/saved_meals'))return Response.json([]);
+  if(url.pathname.endsWith('/object/sign/media'))return Response.json([{path:'first-owner/first-photo-post/photo.feed.jpg',signedURL:'/object/sign/media/first-owner/first-photo-post/photo.feed.jpg?token=batch'}]);
+  if(url.pathname.endsWith('/photo.feed.jpg')){single++;return Response.json({signedURL:'/object/sign/media/first-owner/first-photo-post/photo.feed.jpg?token=first'});}
+  throw Error('Unexpected fixture request');
+ }}});
+ const first=await getFirstFeedPhoto(db,'first-owner');const full=await toFeedPosts(db,[post]);
+ assert.equal(first.id,post.id);assert.equal(first.photoUrl,full[0].photoUrl);assert.equal(single,1,'the first-photo promise is reused rather than replacing its signing token');
+});

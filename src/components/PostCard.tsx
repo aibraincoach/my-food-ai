@@ -5,7 +5,7 @@ import type {UploadState} from "@/lib/posts/upload-manager";
 import {UploadMedia,UploadMenu} from "./UploadingPost";
 import {useLocalDate,useLocalTime} from "@/components/LocalTime";
 import { useEffect, useState, type ReactNode } from "react";
-import type { FeedPost } from "@/lib/posts/feed";
+import {hasUnavailableFields, type FeedPost} from "@/lib/posts/feed";
 import {summaryLine,type PostPresentation} from "@/lib/posts/summary-line";
 import PostActions from "@/components/PostActions";
 import PostCaption from "@/components/PostCaption";
@@ -87,7 +87,7 @@ export default function PostCard({ post, showDate = false, upload, priority = fa
     <div className={`flex flex-col gap-1 px-inset ${upload&&!upload.postId&&upload.state==='failed'?'pt-3':'pt-[10px]'}`}>
       <PostCaption handle={handle} caption={upload&&!upload.postId?upload.caption:post.caption}/>
       {upload&&!upload.postId?<p className="text-detail text-muted">{upload.state==='failed'?'Not posted yet. The photo is kept on this phone.':'Uploading photo…'}</p>:post.status==='ready'&&post.items.length>0 ? <Link href={`/posts/${post.id}`} className="text-detail leading-[1.4] text-muted">{summaryLine(displayRecord,drink)} <span className="text-text">more</span></Link> : <StatusLine post={post}/>}
-      {post.itemsUnavailable && post.items.length > 0 ? <p className="text-meta text-muted" role="status">Meal details could not be refreshed. Retrying…</p> : null}
+      {hasUnavailableFields(post) && post.items.length > 0 ? <p className="text-meta text-muted" role="status">Some meal details could not be refreshed. Retrying…</p> : null}
       <time dateTime={post.eaten_at} className="text-meta text-muted">{upload&&!upload.postId?"Just now":showDate ? localDate : localClock}</time>
     </div>
   </article>;

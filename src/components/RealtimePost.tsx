@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { createClient } from "@/lib/supabase/client";
-import { getPostCard, isSettled, retainCompleteItems, type FeedPost } from "@/lib/posts/feed";
+import { getPostCard, isSettled, hasUnavailableFields, retainCompleteItems, type FeedPost } from "@/lib/posts/feed";
 
 const POLL_INTERVAL_MS = 2000;
 const CARD_FAST_WINDOW_MS = 30_000;
@@ -21,7 +21,7 @@ export default function RealtimePost({ initial, renderCard }: {
   // Initial analysis publishes ready before the stored card finishes rendering.
   // A bounded fallback covers missed publication events without repeatedly
   // hydrating a ready meal forever when optional card maintenance failed.
-  const awaitingItems = Boolean(post.itemsUnavailable);
+  const awaitingItems = hasUnavailableFields(post);
   const awaitingCard = post.status === "ready" && post.items.length > 0
     && !post.slides.some((slide) => slide.kind === "card");
 
@@ -75,7 +75,7 @@ export default function RealtimePost({ initial, renderCard }: {
     void refresh();
     timer = isSettled(post.status) && !awaitingCard && !awaitingItems ? null : setInterval(() => {
       if (!live || !pageVisible()) return;
-      if (awaitingCard) {
+      if (awaitingCard && !awaitingItems) {
         const now = Date.now(), state = cardPolling.current;
         const elapsed = now - state.started;
         if (elapsed >= CARD_POLL_BUDGET_MS || now < state.next) return;
