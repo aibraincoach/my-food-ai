@@ -20,7 +20,7 @@ function route({user={id:owner},row={storage_path:path,kind:'photo'},authThrows=
  const db={auth:{async getUser(){calls.auth++;if(authThrows)throw Error('private diagnostic');return {data:{user},error:null};},async getSession(){return {data:{session:{access_token:'offline-token'}}};}},from(){return query;},storage:{from(){return {async createSignedUrl(){calls.sign++;return {data:{signedUrl:'https://storage.example/storage/v1/object/sign/media/owned'},error:null};}};}}};
  const exports={};
  vm.runInNewContext(compiled,{exports,require(name){if(name==='@/lib/supabase/server')return {createClient:async()=>db};if(name==='@/lib/posts/feed-photo')return {...photo,resizeFeedPhoto:transform};throw Error(name);},Response,Request,URL,AbortSignal,Uint8Array,process:{env:{NEXT_PUBLIC_SUPABASE_URL:'https://storage.example',NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY:'offline'}},fetch:async(...args)=>{calls.fetch++;return sourceFetch(...args);}});
- return {get:async(params={owner,post,media},search='')=>exports.GET(new Request(`https://app.example${smallFeedPhotoUrl(owner,post,media)}${search}`),{params:Promise.resolve(params)}),calls,filters};
+ return {get:async(params={owner,post,media},search='',requestHeaders={})=>exports.GET(new Request(`https://app.example${smallFeedPhotoUrl(owner,post,media)}${search}`,{headers:requestHeaders}),{params:Promise.resolve(params)}),calls,filters};
 }
 
 test('route rejects invalid, signed-out, cross-owner, deleted and foreign-path media before storage',async()=>{
@@ -40,7 +40,7 @@ test('authorized route binds both media and post, uses fixed storage origin and 
  const source=await sharp({create:{width:1080,height:1080,channels:3,background:'#a44c32'}}).jpeg().toBuffer();
  const r=route({sourceFetch:async(url,init)=>{assert.equal(url.origin,'https://storage.example');assert.equal(url.pathname,`/storage/v1/object/authenticated/media/${owner}/${post}/0.feed.jpg`);assert.equal(init.redirect,'error');assert.equal(init.headers.Authorization,'Bearer offline-token');return new Response(source);}});
  const response=await r.get(),body=Buffer.from(await response.arrayBuffer());
- assert.equal(response.status,200);assert.equal(response.headers.get('content-type'),'image/webp');assert.equal(response.headers.get('x-content-type-options'),'nosniff');
+ assert.equal(response.status,200);assert.equal(response.headers.get('vary'),'Cookie');assert.equal(response.headers.get('cache-control'),'private, max-age=31536000, immutable');assert.equal(response.headers.get('content-type'),'image/webp');assert.equal(response.headers.get('x-content-type-options'),'nosniff');
  assert.deepEqual(r.filters,[['id',media],['post_id',post]]);assert.equal(r.calls.fetch,1);assert.equal(r.calls.sign,0);
  const info=await sharp(body).metadata();assert.equal(info.width,512);assert.equal(info.height,512);assert.ok(body.length<=50_000);
 });
@@ -88,4 +88,15 @@ test('SSR seed and first batch slide use the same private identity; only other p
  const preloads=[],page=await getFeed(db,owner,null,'UTC',6,{summaries:false,onFirstPhoto:url=>preloads.push(url)}),seed=await getFirstFeedPhoto(db,owner);
  assert.equal(page.posts[0].photoUrl,smallFeedPhotoUrl(owner,post,media));assert.equal(seed.photoUrl,page.posts[0].photoUrl);assert.deepEqual(preloads,[seed.photoUrl]);
  assert.match(page.posts[1].photoUrl,/0\.feed\.jpg/);assert.equal(signed,1);
+});
+
+
+test('matching ETag revalidates ownership before 304 and partitions browser cache by cookies',async()=>{
+ const r=route({sourceFetch:async()=>{throw Error('Conditional read must not fetch Storage');}});
+ const response=await r.get({owner,post,media},'',{'If-None-Match':`"${media}-v1"`});
+ assert.equal(response.status,304);assert.equal(response.headers.get('etag'),`"${media}-v1"`);
+ assert.equal(response.headers.get('vary'),'Cookie');assert.equal(response.headers.get('cache-control'),'private, max-age=31536000, immutable');
+ assert.equal(r.calls.auth,1);assert.equal(r.calls.select,1);assert.equal(r.calls.fetch,0);assert.equal(r.calls.sign,0);
+ const unsigned=route({user:null});const denied=await unsigned.get({owner,post,media},'',{'If-None-Match':`"${media}-v1"`});
+ assert.equal(denied.status,401);assert.equal(denied.headers.get('cache-control'),'private, no-store');
 });

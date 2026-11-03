@@ -197,7 +197,10 @@ async function feedImage(event, generation) {
       if (cached && await eligible(event.clientId, request, generation)) return cached;
     } catch { /* Storage failure cannot prevent a network image. */ }
   }
-  const response = await fetch(request);
+  // Logout clears Cache API entries, but cannot erase the browser HTTP cache.
+  // Unbound, foreign and logged-out clients must reauthenticate at the origin
+  // instead of receiving a year-fresh private response from that second cache.
+  const response = await fetch(request, await eligible(event.clientId, request, generation) ? undefined : {cache: "no-store"});
   if (response.status === 200 && response.type !== "opaque") {
     const copy = response.clone();
     const persistence = waitForBinding(event.clientId, request, context).then(allowed => {

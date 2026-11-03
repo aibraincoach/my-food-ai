@@ -124,7 +124,7 @@ In these recent caption-heavy feed openings, the optimized photo route was not r
 
 ## Changes and After status
 
-Successful first-photo responses now carry `private, max-age=31536000, immutable` and a quoted `<media-id>-v1` ETag. Authentication, owning-user comparison, RLS media/post lookup and safe storage path checks still run before a conditional 304; that response does not read Storage. All errors and fallback redirects retain `private, no-store`. This is **private browser caching**, not public Vercel edge caching: P8's public `s-maxage` premise is not used for private meal photos. The service worker already has its own account/epoch-scoped cache; this change does not modify its logout fences.
+Successful first-photo responses now carry `private, max-age=31536000, immutable` and a quoted `<media-id>-v1` ETag. `Vary: Cookie` partitions HTTP-cache entries by the current session cookies, including on 304 responses. Authentication, owning-user comparison, RLS media/post lookup and safe storage path checks still run before a conditional 304; that response does not read Storage. All errors and fallback redirects retain `private, no-store`. This is **private browser caching**, not public Vercel edge caching: P8's public `s-maxage` premise is not used for private meal photos. The service worker retains its account/epoch-scoped Cache API checks. A browser regression exposed a second cache: a year-fresh HTTP response could survive logout even after Cache API clearing. Ineligible image clients now fetch with `cache: no-store`, forcing the origin ownership check; eligible sessions retain ordinary HTTP caching.
 
 Queue ticks still run on mount and focus, and now wake after post creation and upload start/finish. Only a response reporting positive queued+running work schedules another tick after 60 seconds. Concurrent wake events coalesce, requests time out after ten seconds, and teardown removes listeners/timers. The database cron wake is unchanged.
 
@@ -189,3 +189,15 @@ The matched window includes 405 successful `claim_owned_job` responses (HTTP 200
 - Local VM regression: authorized matching ETag returns 304 with no Storage access; signed-out conditional request returns 401/no-store: passed.
 - Local effect/timer regression: idle mount does not poll, work schedules 60 s, focus clears an idle timer, post/upload events wake, teardown removes listeners: passed.
 - `node --check scripts/egress-report.mjs`, `git diff --check`: exit 0.
+
+## Browser HTTP-cache privacy follow-up
+
+The initial year-cache candidate reproduced a leak in an actual Chromium/local-app check: warm an authenticated private photo, send/acknowledge the worker’s clear-media transition, remove media Cache API/local storage entries and auth cookies, then fetch the same URL. The disabled worker’s network fallback returned the old HTTP-cached 200 and all 21,286 bytes. No production sign-out ran.
+
+The fix sends ineligible media fetches with `cache: no-store`, covering logged-out, unbound and foreign-owner clients. A fresh actual-browser check, with the owning client explicitly bound before warming its eligible cache, returns 401/no-store/zero bytes after the same simulated logout. The normal authorized response remains private/immutable for a year. The service-worker regression suite now models a separate HTTP cache and proves logout cannot borrow its bytes; 20/20 tests pass. A separate unbound-client regression verifies no-store at that boundary.
+
+`Vary: Cookie` additionally prevents an uncontrolled browser page from borrowing a photo cached under previous authentication cookies. This covers the boundary before a service worker controls the page. A cookie refresh can require another HTTP read, while the eligible account-scoped service-worker cache remains reusable.
+
+Built-app browser verification also tested a page with no service worker: without `Vary: Cookie`, clearing authentication cookies still returned the cached 200/21,286-byte photo; with the partition header it returned 401/no-store/zero bytes. The final built-app controlled-worker case also returned 401/zero bytes. These tests change only isolated browser cookies/storage and never call production sign-out.
+
+Final follow-up checks: `node --import tsx --test tests/feed-photo.test.mjs` exits 0, 7/7 tests; `node --test tests/sw-media-cache.test.mjs` exits 0, 20/20 tests. TypeScript, changed-file ESLint, `npm run build` and whitespace checks pass on the follow-up source. No production migration or environment setting changed.
