@@ -3,22 +3,29 @@ import assert from 'node:assert/strict';
 import vm from 'node:vm';
 import {readFileSync} from 'node:fs';
 import ts from 'typescript';
+import {retainCompleteItems,hasUnavailableFields} from '../src/lib/posts/feed.ts';
 test('retiring the last meal clears feed state and rejects an older hydration result',async()=>{
- const effects=[],listeners=new Map(),states=[],resolvers=new Map(),rejectors=new Map(),retryTimers=[];let resolveCard,resolvePage,discoverTick;let forceReset=false;
+ const effects=[],listeners=new Map(),states=[],resolvers=new Map(),rejectors=new Map(),retryTimers=[];let resolveCard,resolvePage,discoverTick;let forceReset=false,deferTotals=false;const dayWaiters=[];
  const post={id:'meal',status:'processing',created_at:'2026-10-01',eaten_at:'2026-10-01T12:00:00Z',items:[],slides:[]};
  const channel={on(){return this;},subscribe(){return this;}};
  const exports={};
  const code=ts.transpileModule(readFileSync(new URL('../src/components/Feed.tsx',import.meta.url),'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,jsx:ts.JsxEmit.ReactJSX,target:ts.ScriptTarget.ES2022}}).outputText;
- vm.runInNewContext(code,{exports,document:{hidden:false,addEventListener(){},removeEventListener(){}},CustomEvent:class{constructor(type,init){this.type=type;this.detail=init?.detail;}},
+ vm.runInNewContext(code,{exports,URLSearchParams,AbortSignal,fetch:async()=>({ok:true,json:async()=>forceReset?new Promise(resolve=>{resolvePage=resolve;}):({posts:[post],nextCursor:null,days:[]})}),document:{hidden:false,addEventListener(){},removeEventListener(){}},CustomEvent:class{constructor(type,init){this.type=type;this.detail=init?.detail;}},
  window:{addEventListener(type,fn){listeners.set(type,fn);},removeEventListener(){},dispatchEvent(){}},setInterval:fn=>{discoverTick=fn;return 1;},clearInterval(){},setTimeout:fn=>{retryTimers.push(fn);return retryTimers.length;},clearTimeout(){},
  require(name){
   if(name==='react')return{useEffect:fn=>effects.push(fn),useRef:current=>({current}),useState:initial=>[initial,state=>states.push(state)]};
   if(name==='react/jsx-runtime')return{jsx:()=>null,jsxs:()=>null};
   if(name==='next/navigation')return{useRouter:()=>({replace(){}})};
-  if(name==='@/lib/supabase/client')return{createClient:()=>({auth:{getUser:async()=>({data:{user:{id:'owner'}}})},channel:()=>channel,removeChannel(){},from(){return{select(){return this;},eq(){return this;},neq(){return this;},or(){return this;},order(){return this;},limit:async()=>({data:[{id:'new-page-meal'}],error:null})};}})};
-  if(name==='@/lib/posts/feed')return{FEED_PAGE_SIZE:20,getFeed:async()=>forceReset?new Promise(resolve=>{resolvePage=resolve;}):({posts:[post],nextCursor:null,days:[]}),getPostCard:(_db,id)=>new Promise((resolve,reject)=>{resolveCard=resolve;resolvers.set(id,resolve);rejectors.set(id,reject);})};
+  if(name==='@/lib/supabase/client')return{createClient:()=>({auth:{getSession:async()=>({data:{session:{user:{id:'owner'}}}})},channel:()=>channel,removeChannel(){},from(){return{select(){return this;},eq(){return this;},neq(){return this;},or(){return this;},order(){return this;},limit:async()=>({data:[{id:'new-page-meal'}],error:null})};}})};
+  if(name==='@/lib/posts/feed')return{FEED_PAGE_SIZE:20,retainCompleteItems,hasUnavailableFields,getFeed:async()=>forceReset?new Promise(resolve=>{resolvePage=resolve;}):({posts:[post],nextCursor:null,days:[]}),getPostCard:(_db,id)=>new Promise((resolve,reject)=>{resolveCard=resolve;resolvers.set(id,resolve);rejectors.set(id,reject);})};
+  if(name==='@/lib/posts/upload-manager')return{uploadManager:{list:()=>[]}};
+  if(name==='@/components/useUploads')return{useUploads:()=>[]};
+  if(name==='@/components/LocalTime')return{useDeviceTimeZone:()=> 'UTC'};
+  if(name==='@/components/useCachedFeed')return{useCachedFeed:()=>({cached:null,save(){}})};
+  if(name==='@/lib/posts/feed-cache-mutations')return{claimFeedCacheEvents:()=>()=>{}};
+  if(name==='@/lib/posts/feed-cache')return{readFeedCache:()=>null};
   if(name==='@/lib/posts/feed-order')return{mergeFeedPosts:(baseline,promoted)=>[...new Map([...baseline,...promoted].map(row=>[row.id,row])).values()],discoveryLostOverlap:()=>forceReset};
-  if(name==='@/lib/posts/days')return{dateInZone:value=>value.slice(0,10),shiftDay:day=>day,getDayTotals:async()=>[]};
+  if(name==='@/lib/posts/days')return{dateInZone:value=>value.slice(0,10),shiftDay:day=>day,getDayTotals:async(_db,_owner,_zone,dates)=>deferTotals?new Promise(resolve=>dayWaiters.push({dates,resolve})):[]};
   if(name==='@/lib/theme/tokens')return{tokens:{spacing:{'sheet-bottom':1}}};
   if(name.startsWith('@/components/'))return{default:()=>null};
   throw Error(name);
@@ -81,5 +88,13 @@ test('retiring the last meal clears feed state and rejects an older hydration re
  assert.ok(states.at(-1).posts.some(row=>row.id==='settled-after-network-recovery'),'a transient outage cannot permanently strand the older settled meal');
  listeners.get('focus')();await new Promise(resolve=>setImmediate(resolve));
  assert.equal(resolvers.get('settled-after-network-recovery'),recovered,'an accepted card leaves deferred recovery tracking');
+ deferTotals=true;
+ listeners.get('post-created')({detail:{id:'day-a'}});resolvers.get('day-a')({...post,id:'day-a',status:'ready',eaten_at:'2026-10-01T12:00:00Z'});await new Promise(resolve=>setImmediate(resolve));
+ listeners.get('post-created')({detail:{id:'day-b'}});resolvers.get('day-b')({...post,id:'day-b',status:'ready',eaten_at:'2026-11-01T12:00:00Z'});await new Promise(resolve=>setImmediate(resolve));
+ const a=dayWaiters.find(wait=>wait.dates.includes('2026-10-01')),b=dayWaiters.find(wait=>wait.dates.includes('2026-11-01'));
+ b.resolve([{day:'2026-11-01',kcal:200,ready:true}]);await new Promise(resolve=>setImmediate(resolve));
+ a.resolve([{day:'2026-10-01',kcal:100,ready:true}]);await new Promise(resolve=>setImmediate(resolve));
+ assert.ok(states.at(-1).days.some(day=>day.day==='2026-10-01'&&day.kcal===100),'a slower disjoint-day result must not be invalidated by the newer other-day read');
+ assert.ok(states.at(-1).days.some(day=>day.day==='2026-11-01'&&day.kcal===200));
  for(const cleanup of cleanups)cleanup?.();
 });

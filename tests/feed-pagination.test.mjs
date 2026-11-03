@@ -110,3 +110,32 @@ test('persisted questions remain hidden while queued but failed answers stay rec
  assert.equal(await getPostCard(db,uuid(1)),null);
  status='failed';assert.equal((await getPostCard(db,uuid(1))).status,'failed');
 });
+
+test('first page limit is six and optional field failures do not hide posts', async () => {
+  const rows = Array.from({length: 8}, (_, i) => ({id:uuid(i+1),user_id:uuid(99),eaten_at:timestamp,created_at:timestamp,caption:'meal',status:'ready'}));
+  const calls=[];
+  const db=createClient('https://fixture.invalid','fixture-key',{global:{fetch:async input=>{
+    const url=new URL(input instanceof Request?input.url:String(input)); calls.push(url);
+    if(url.pathname.endsWith('/rpc/feedback_revision'))return Response.json({message:'unavailable'},{status:400});
+    if(url.pathname.endsWith('/posts')&&url.searchParams.get('status')==='neq.needs_input')return Response.json(rows.slice(0,Number(url.searchParams.get('limit'))));
+    return Response.json({message:'auxiliary field unavailable'},{status:400});
+  }}});
+  const page=await getFeed(db,uuid(99),null,'UTC',6);
+  assert.equal(page.posts.length,6);assert.ok(page.nextCursor);
+  assert.deepEqual(page.days,[]);
+  for(const post of page.posts){assert.equal(post.itemsUnavailable,true);assert.equal(post.photoUrl,null);assert.equal(post.saved_meal_id,null);assert.equal(post.analysisFingerprint,null);assert.deepEqual(post.items,[]);}
+  assert.equal(calls.filter(url=>url.pathname.endsWith('/saved_meals')).length,1);
+  assert.equal(calls.filter(url=>url.pathname.endsWith('/post_media')).length,1);
+  assert.equal(calls.find(url=>url.pathname.endsWith('/current_post_items')).searchParams.get('post_id'),`in.(${rows.slice(0,6).map(row=>row.id).join(',')})`);
+});
+
+test('same-tick browser card refreshes share one cancellable server request', async () => {
+  const rows=[1,2].map(n=>({id:uuid(n),user_id:uuid(99),caption:'meal',status:'ready',created_at:timestamp,eaten_at:timestamp,items:[],slides:[]}));
+  const db=createClient('https://fixture.invalid','fixture',{auth:{persistSession:false,detectSessionInUrl:false,autoRefreshToken:false},global:{fetch:async()=>{throw Error('Browser cards must use the server boundary.');}}});
+  const previous=globalThis.window,originalFetch=globalThis.fetch;globalThis.window={};const calls=[];
+  globalThis.fetch=async(input,init)=>{const url=new URL(input,'https://app.invalid');calls.push(url);assert.ok(init.signal);assert.equal(init.cache,'no-store');assert.equal(url.pathname,'/api/feed');assert.equal(url.searchParams.get('ids'),[uuid(1),uuid(2)].join(','));return Response.json({posts:rows});};
+  try {
+    const result=await Promise.all([getPostCard(db,uuid(1),'UTC'),getPostCard(db,uuid(2),'UTC'),getPostCard(db,uuid(1),'UTC')]);
+    assert.deepEqual(result.map(post=>post.id),[uuid(1),uuid(2),uuid(1)]);assert.equal(calls.length,1);
+  } finally {globalThis.fetch=originalFetch;if(previous===undefined)delete globalThis.window;else globalThis.window=previous;}
+});

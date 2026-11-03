@@ -57,7 +57,7 @@ test("hydration counts food water once, old water rows and local-day cutoff", as
         let data = [];
         if (table === "intake_logs") data = columns === "post_id" ? intake.filter(row => ids.includes(row.post_id)) : intake;
         if (table === "posts") data = posts.filter(row => !cutoff || row.eaten_at <= cutoff);
-        if (table === "current_post_items") data = [{id:"meal-item",post_id:"meal",portion_grams:100}].filter(item => ids.includes(item.post_id));
+        if (table === "current_post_items") data = [{id:"meal-item",post_id:"meal",portion_grams:100,item_nutrition:{post_item_id:"meal-item",micronutrients:[{nutrientId:1051,unitName:"G",value:420,basis:"portion"}]}}].filter(item => ids.includes(item.post_id));
         if (table === "item_nutrition") data = [{post_item_id:"meal-item",micronutrients:[{nutrientId:1051,unitName:"G",value:420,basis:"portion"}]}];
         resolve({data:data.slice(from,through+1),error:null});
       };
@@ -92,7 +92,7 @@ test("batched cards share a day read, preserve legacy food water, and apply each
     const chain = new Proxy({}, {get:(_,method)=>{
       if(method === "then") return resolve=>{
         calls.push([table,columns]);
-        let data = table === "posts" ? posts : table === "intake_logs" ? drinks : table === "current_post_items" ? items : nutrition;
+        let data = table === "posts" ? posts : table === "intake_logs" ? drinks : table === "current_post_items" ? items.map(item=>({...item,item_nutrition:nutrition.find(row=>row.post_item_id===item.id)})) : nutrition;
         if(filter)data=data.filter(row=>filter[1].includes(row[filter[0]]));
         if(cutoff)data=data.filter(row=>row.eaten_at <= cutoff);
         resolve({data:data.slice(offset,end+1),error:null});
@@ -109,8 +109,8 @@ test("batched cards share a day read, preserve legacy food water, and apply each
   assert.equal(result.c.drinksMl,570);assert.equal(result.c.foodMl,420);assert.equal(result.c.totalMl,990);
   assert.equal(result.w.dayCaffeineMg,0);assert.equal(result.c.dayCaffeineMg,95);
   assert.equal(result["non-drink"],null);
-  assert.equal(calls.filter(([table])=>table === "current_post_items").length,1,"current items are shared across cards");
-  assert.equal(calls.filter(([table])=>table === "item_nutrition").length,1,"nutrition is shared across cards");
+  assert.equal(calls.filter(([table,columns])=>table === "current_post_items" && columns.includes("item_nutrition(")).length,1,"food-water items and nutrition are shared across cards");
+  assert.equal(calls.filter(([table])=>table === "item_nutrition").length,0,"nutrition is embedded in the shared current-item read");
 });
 
 test("migration 0019 enforces bounds and preserves owner-only access in a rolled-back database transaction", () => {

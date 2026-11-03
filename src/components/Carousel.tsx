@@ -3,9 +3,11 @@ import {useEffect,useRef,useState,type ReactNode} from 'react';
 import Link from 'next/link';
 import {useRouter} from 'next/navigation';
 import DoubleTap from '@/components/DoubleTap';
+import {imageIdentity,retainedImageUrl} from '@/lib/media/retained-image';
+import {observeNearViewport} from '@/lib/media/near-viewport';
 import {useRemovalMenus} from '@/components/useRemovalMenus';
 export type Slide={id?:string;url:string;kind?:'photo'|'card';not_eaten?:boolean};
-export default function Carousel({slides,caption,postId,href,modelCommentId,fingerprint,nutrition,onIndexChange,canAddNotEaten=false}:{slides:Slide[];caption:string;postId:string;href?:string;modelCommentId:string|null;fingerprint:string|null;nutrition:ReactNode;onIndexChange?:(index:number)=>void;canAddNotEaten?:boolean}) {
+export default function Carousel({slides,caption,postId,href,modelCommentId,fingerprint,nutrition,onIndexChange,canAddNotEaten=false,priority=false}:{priority?:boolean;slides:Slide[];caption:string;postId:string;href?:string;modelCommentId:string|null;fingerprint:string|null;nutrition:ReactNode;onIndexChange?:(index:number)=>void;canAddNotEaten?:boolean}) {
  const menus=useRef<HTMLDivElement>(null);useRemovalMenus(menus);
  const [index,setIndex]=useState(0);const [removed,setRemoved]=useState<string[]>([]),[removing,setRemoving]=useState(false),[error,setError]=useState('');const router=useRouter();
  const shown=slides.filter(slide=>!slide.id||!removed.includes(slide.id));
@@ -16,9 +18,9 @@ export default function Carousel({slides,caption,postId,href,modelCommentId,fing
  const move=(step:number)=>{const element=rail.current;if(!element)return;const next=Math.max(0,Math.min(lastSlide,index+step));element.scrollTo({left:next*element.clientWidth,behavior:'smooth'});};
  return <div ref={menus} className="group relative">
   <div ref={rail} onKeyDown={event=>{if(!matchMedia("(min-width:1024px)").matches)return;if(event.key==="ArrowLeft"||event.key==="ArrowRight"){event.preventDefault();move(event.key==="ArrowRight"?1:-1);}}} className="flex snap-x snap-mandatory overflow-x-auto" onScroll={event=>{const element=event.currentTarget;const next=Math.round(element.scrollLeft/element.clientWidth);setIndex(next);onIndexChange?.(Math.min(next,shown.length-1));}} aria-label="Meal photos" tabIndex={0}>
-   {shown.map((slide,i)=><div key={slide.kind==='card'?`card-${i}`:`${slide.url}-${i}`} className="relative aspect-square w-full shrink-0 snap-center">
+   {shown.map((slide,i)=><div key={slide.id??`${postId}-${slide.kind??"photo"}-${i}`} className="relative aspect-square w-full shrink-0 snap-center">
     {slide.kind!=='card'?<DoubleTap postId={postId} href={href} modelCommentId={modelCommentId} fingerprint={fingerprint}>
-      {/* eslint-disable-next-line @next/next/no-img-element */}<img src={slide.url} alt={caption||`Meal photo ${i+1}`} className="h-full w-full object-cover"/>
+      <MealPhoto url={slide.url} priority={priority&&i===0} alt={caption||`Meal photo ${i+1}`} />
      </DoubleTap>:href?<Link href={href} aria-label="Open meal details" className="block size-full">{nutrition}</Link>:nutrition}
     {slide.not_eaten&&slide.id&&<details data-removal-menu className="absolute right-3 top-3 z-20"><summary aria-label="Leftovers photo menu" className="flex size-7 cursor-pointer list-none items-center justify-center rounded-circle bg-overlay text-surface">···</summary><div className="absolute right-0 w-[230px] rounded-card border border-hairline bg-surface p-[6px] text-[15px] text-text" style={{boxShadow:'var(--color-shadow-pill)'}}><button type="button" disabled={removing} onClick={event=>{event.currentTarget.closest('details')?.removeAttribute('open');void remove(slide.id!);}} className="h-tap w-full border-b border-hairline px-[10px] text-left text-muted">Remove this photo</button><button type="button" onClick={event=>{event.currentTarget.closest('details')?.removeAttribute('open');}} className="h-tap w-full px-[10px] text-left">Cancel</button></div></details>}
     {slide.not_eaten&&<span className="absolute bottom-3 left-3 rounded-field bg-text px-3 py-[6px] text-slide-label text-surface">leftovers (not eaten)</span>}
@@ -29,4 +31,19 @@ export default function Carousel({slides,caption,postId,href,modelCommentId,fing
   {error&&<p role="alert" className="px-inset text-meta text-muted">{error}</p>}
   {shown.length>1&&index<shown.length&&<span className="absolute left-3 top-3 w-fit rounded-tile bg-overlay px-2 text-meta text-surface" aria-live="polite">{Math.min(index+1,shown.length)}/{shown.length}</span>}
  </div>;
+}
+
+function MealPhoto({url,priority,alt}:{url:string;priority:boolean;alt:string}) {
+ const [read,setRead]=useState({path:imageIdentity(url),url,failed:false});
+ const image=useRef<HTMLImageElement>(null);
+ const [nearViewport,setNearViewport]=useState(false);
+ useEffect(()=>{
+  if(priority||nearViewport||!image.current)return;
+  return observeNearViewport(image.current,()=>setNearViewport(true));
+ },[priority,nearViewport]);
+ const active=retainedImageUrl(read,url);
+ // eslint-disable-next-line @next/next/no-img-element
+ return <img ref={image} src={priority||nearViewport?active:undefined} crossOrigin="anonymous" width={1080} height={1080} fetchPriority={priority?"high":undefined} loading={priority?"eager":"lazy"} decoding="async" alt={alt} className="h-full w-full object-cover"
+  onError={()=>setRead({path:imageIdentity(active),url:active,failed:true})}
+  onLoad={()=>{if(read.failed||read.url!==active||read.path!==imageIdentity(active))setRead({path:imageIdentity(active),url:active,failed:false});}}/>;
 }

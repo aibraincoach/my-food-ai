@@ -132,17 +132,26 @@ export async function getDayTotals(db: SupabaseClient, userId: string, zone: str
   const wanted = [...new Set(dates)].sort();
   if (!wanted.length) return [];
   const groups = new Map(wanted.map(day => [day, { day, kcal: 0 as number | null, ready: false, missing:[] as string[], known:0 }]));
-  const lower = `${shiftDay(wanted[0], -1)}T00:00:00Z`;
-  const upper = `${shiftDay(wanted.at(-1)!, 2)}T00:00:00Z`;
+  // Group contiguous requested days only; widely separated card events must
+  // not rescan every meal between the two days.
+  const windows: {from: string; through: string}[] = [];
+  for (const day of wanted) {
+    const last = windows.at(-1);
+    if (last && shiftDay(last.through, 1) === day) last.through = day;
+    else windows.push({from: day, through: day});
+  }
+  for (const window of windows) {
+  const lower = `${shiftDay(window.from, -1)}T00:00:00Z`;
+  const upper = `${shiftDay(window.through, 2)}T00:00:00Z`;
   for (let offset = 0; ; offset += 1000) {
     const { data, error } = await db.from('posts')
       .select('id,eaten_at,current_post_items(name,portion_grams,item_nutrition(post_item_id,calories,protein_g,carbs_g,fat_g,fibre_g,sugar_g,sodium_mg,micronutrients,source_ref))')
       .eq('user_id', userId).eq('status', 'ready').or('needs_input.is.null,status.eq.failed')
-      .gte('eaten_at', lower).lt('eaten_at', upper).order('eaten_at').order('id').range(offset, offset + 999);
+      .gte('eaten_at', lower).lt('eaten_at', upper).order('eaten_at').order('id').range(offset, offset + 999).abortSignal(AbortSignal.timeout(8000));
     if (error) throw new Error('Day totals could not be loaded.');
     for (const row of data ?? []) {
       const group = groups.get(dateInZone(row.eaten_at, zone));
-      if (!group) continue;
+      if (!group || group.day < window.from || group.day > window.through) continue;
       group.ready = true;
       for (const item of row.current_post_items ?? []) {
         const nutrients = Array.isArray(item.item_nutrition) ? item.item_nutrition : [item.item_nutrition];
@@ -152,6 +161,7 @@ export async function getDayTotals(db: SupabaseClient, userId: string, zone: str
       }
     }
     if ((data?.length ?? 0) < 1000) break;
+  }
   }
   return [...groups.values()].map(group=>({...group,missing:[...new Set(group.missing)],kcal:group.known===0&&group.missing.length?null:group.kcal}));
 }
