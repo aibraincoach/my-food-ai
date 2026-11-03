@@ -1,6 +1,6 @@
 # My Food AI — Backlog†
 
-Last edited: Tuesday 2026-11-03 at 22:54 WIB (UTC+07:00) by Claude, PM
+Last edited: Tuesday 2026-11-03 at 23:06 WIB (UTC+07:00) by Claude, PM
 
 ## Backlog for Owner
 
@@ -36,12 +36,6 @@ Check on each of the owner's three phones, installed from the home screen, over 
 
 ## In Flight
 
-### #450 The README's test results are wrong and lint fails
-
-The judge-facing README reports 148 failing unit tests that came from a wrong command, and the coder now counts 56 unit failures and 2 lint errors on main.
-
-The README (#444) shows the unit tests as 153 passed, 148 failed and 2 skipped. The command behind it runs the test files without "--import tsx", so each file fails at its first import; with it, nutrition-scaling.test.mjs gave 4 passed and 0 failed. Lint on main has 2 errors, both React rules, and the README publishes them. Done when the README's test row uses the command that loads the app's code, the false failure list is gone, lint has no errors, and the counts match a fresh run that does not touch the production database or the live USDA service.
-
 ### #468 Big numbers lose their thousands separator on the desktop Days and Today
 
 The same total reads "34,811" in one place and "34811" in another on the desktop screens.
@@ -60,13 +54,13 @@ Adding a photo to an existing post, including a not-eaten plate, gives a desktop
 
 That flow keeps the old window, where "Choose from library" is hidden on desktop, so without a webcam the user sees only the camera area and nothing says that drag and drop or paste works. This predates PR #460. Done when, on desktop with no webcam, a photo can be added to an existing post from a file picker.
 
+## Engineering backlog
+
 ### #473 The desktop Today column may not shrink at 1100 px wide
 
 The Today column beside the feed may keep a fixed width where it should shrink, so Home overflows sideways on a narrower window.
 
 In PR #462 the Today column sets a fixed width of 280 px and also a flexible width, and the review flagged that the fixed width may win. Nobody has checked the column at 1100 px. Done when Home at 1100 by 800 shows the feed and the Today column with no sideways scrolling.
-
-## Engineering backlog
 
 ### #368 Sign-ins through the app may share one rate limit across every user
 
