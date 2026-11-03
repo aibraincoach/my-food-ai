@@ -1,7 +1,6 @@
 // node --import tsx --env-file=.env.local scripts/feed-probe.mjs --runs 100 --user 1
 // Read-only: designated test accounts, feed reads and authenticated Home GETs.
-import {createClient} from '@supabase/supabase-js';
-import {signInAsTestUser} from './lib/session.mjs';
+import {signInAsTestUser,signInTestClient} from './lib/session.mjs';
 import {getFeed} from '../src/lib/posts/feed.ts';
 import {writeFile,readFile} from 'node:fs/promises';
 const arg=(name,fallback)=>process.argv.find(a=>a.startsWith(`--${name}=`))?.split('=').slice(1).join('=')??(process.argv.includes(`--${name}`)?process.argv[process.argv.indexOf(`--${name}`)+1]:fallback);
@@ -11,7 +10,7 @@ let samples=[],runNumber=0;
 const safeError=value=>String(value??'').replace(/https?:\/\/[^\s"']+/g,'[url]').replace(/[a-zA-Z0-9_.+-]+@[a-zA-Z0-9.-]+/g,'[account]').replace(/[0-9a-f]{8}-[0-9a-f-]{27,}/gi,'[id]').slice(0,140);
 const tracedFetch=async(input,init)=>{const url=new URL(input instanceof Request?input.url:String(input));const table=url.pathname.match(/\/(?:rest\/v1|auth\/v1|storage\/v1)\/(.*)/)?.[1]?.split('/').slice(0,2).join('/')??'other';const start=performance.now();try{const response=await fetch(input,{...init,signal:AbortSignal.timeout(8000)});samples.push({run:runNumber,name:table,ms:performance.now()-start,status:response.status,error:response.ok?null:safeError((await response.clone().text()))});return response;}catch(error){samples.push({run:runNumber,name:table,ms:performance.now()-start,status:0,error:safeError(error.message)});throw error;}};
 const accounts=[];
-for(const which of [1,2]){const db=createClient(process.env.NEXT_PUBLIC_SUPABASE_URL,process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY,{auth:{persistSession:false,autoRefreshToken:false},global:{fetch:tracedFetch}});const prefix=which===1?'TEST_USER':'TEST_USER2';const{data,error}=await db.auth.signInWithPassword({email:process.env[`${prefix}_EMAIL`],password:process.env[`${prefix}_PASSWORD`]});if(error)throw new Error(`Test account ${which} sign-in failed`);const count=await db.from('posts').select('id',{count:'exact',head:true}).eq('user_id',data.user.id);if(count.error)throw new Error('Post count failed');accounts.push({which,db,id:data.user.id,count:count.count??0});}
+for(const which of [1,2]){const {client:db,user}=await signInTestClient(which,{fetch:tracedFetch});const count=await db.from('posts').select('id',{count:'exact',head:true}).eq('user_id',user.id);if(count.error)throw new Error('Post count failed');accounts.push({which,db,id:user.id,count:count.count??0});}
 const account=accounts.sort((a,b)=>b.count-a.count)[0];const cookie=await signInAsTestUser(account.which);console.log(JSON.stringify({event:'start',runs,account:account.which,postCount:account.count,mode:arg('label','probe')}));samples=[];
 const bypassFile=arg('bypass-file',null);
 const previewHeaders=bypassFile?{'x-vercel-protection-bypass':JSON.parse(await readFile(bypassFile,'utf8')).entries[0][0]}:{};
