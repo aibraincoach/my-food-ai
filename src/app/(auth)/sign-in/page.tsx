@@ -9,7 +9,6 @@ import { font } from "@/lib/theme/font";
 import { tokens } from "@/lib/theme/tokens";
 
 export const instant = false;
-const FACEBOOK_LOGIN = process.env.NEXT_PUBLIC_FACEBOOK_LOGIN === "1";
 
 export default async function SignInPage({ searchParams }: { searchParams: Promise<{ error?: string }> }) {
   await connection();
@@ -29,7 +28,7 @@ export default async function SignInPage({ searchParams }: { searchParams: Promi
         <p className="py-tooltip-y text-center text-comment text-muted">
           No account? <Link href="/sign-up" className="font-semibold text-text">Sign up</Link>
         </p>
-        {FACEBOOK_LOGIN ? <FacebookButton /> : null}
+        <FacebookButton />
       </form>
     </main>
   );

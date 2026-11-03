@@ -10,6 +10,53 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { ApiError, ioError } from "@/lib/worker/errors";
 import { portionsFromDetail, type FoodPortion } from "@/lib/nutrition/units";
 
+import { workerDeadlineSignal } from "@/lib/worker/budget";
+import { traceContext } from "@/lib/trace/context";
+import { setTimeout as wait } from "node:timers/promises";
+
+export class FdcRateLimited extends ApiError {
+  readonly retryAt: number;
+  constructor(seconds: number) {
+    super(429, "", "fdc: food database rate limited.");
+    this.name = "FdcRateLimited";
+    this.retryAt = Date.now() + Math.max(0, seconds) * 1000;
+  }
+}
+
+export function fdcRetryAfter(value: string | null, now = Date.now()): number | null {
+  if (!value?.trim()) return null;
+  const seconds = Number(value);
+  if (Number.isFinite(seconds)) return Math.max(0, seconds);
+  const date = Date.parse(value);
+  return Number.isFinite(date) ? Math.max(0, (date - now) / 1000) : null;
+}
+
+// At most one in-call retry. Longer waits survive the invocation through the
+// durable queue instead of consuming a worker attempt or the serverless budget.
+export async function fdcFetch(input: string | URL, init: RequestInit = {}): Promise<Response> {
+  const signal = workerDeadlineSignal(init.signal ?? undefined);
+  for (let attempt = 0; ; attempt++) {
+    let response: Response;
+    try { response = await fetch(input, { ...init, signal }); }
+    catch (error) { throw ioError("fdc: food database request failed.", error); }
+    if (response.status !== 429) return response;
+    const seconds = fdcRetryAfter(response.headers.get("retry-after"));
+    if (seconds === null) {
+      // A missing/invalid hint still represents rate limiting, not a failed
+      // analysis attempt. Use a conservative durable default, without waiting
+      // a full minute inside this invocation.
+      await response.body?.cancel().catch(() => {});
+      throw new FdcRateLimited(60);
+    }
+    const limited = new FdcRateLimited(seconds);
+    await response.body?.cancel().catch(() => {});
+    const available = (traceContext.getStore()?.deadlineAt ?? Infinity) - Date.now();
+    if (attempt > 0 || seconds > 60 || seconds * 1000 + 5000 > available) throw limited;
+    try { await wait(Math.ceil(seconds * 1000), undefined, { signal }); }
+    catch { throw limited; }
+  }
+}
+
 const FDC_BASE_URL = "https://api.nal.usda.gov/fdc/v1";
 // Cache the broad plus strict-generic candidate protocol, including USDA aliases.
 export const FDC_SEARCH_CACHE_KIND = "fdc-search-v3";
@@ -153,7 +200,7 @@ export async function searchFoods(
   return recordCall("fdc", { query, source:"network" }, async () => {
   const params = new URLSearchParams({ api_key: fdcApiKey() });
   const fetchCandidates = async (searchQuery: string, dataType: string[]) => {
-    const response = await fetch(`${FDC_BASE_URL}/foods/search?${params.toString()}`, {
+    const response = await fdcFetch(`${FDC_BASE_URL}/foods/search?${params.toString()}`, {
       method: "POST", headers: {"Content-Type":"application/json"},
       body: JSON.stringify({query:searchQuery,dataType,pageSize:FDC_SEARCH_PAGE_SIZE}), signal,
     });
@@ -218,8 +265,8 @@ export async function getFoodById(admin: SupabaseClient, id: number, signal?:Abo
   }
   return recordCall("fdc", { fdcId: id, source:"network" }, async () => {
   const params = new URLSearchParams({format: "full", api_key: fdcApiKey()});
-  const response = await fetch(`${FDC_BASE_URL}/food/${id}?${params}`, {signal: signal?AbortSignal.any([signal,AbortSignal.timeout(30000)]):AbortSignal.timeout(30000)});
-  if (!response.ok) throw new ApiError(response.status, await response.text(), "Retained food could not be loaded.");
+  const response = await fdcFetch(`${FDC_BASE_URL}/food/${id}?${params}`, {signal: signal?AbortSignal.any([signal,AbortSignal.timeout(30000)]):AbortSignal.timeout(30000)});
+  if (!response.ok) throw new ApiError(response.status, await response.text(), "fdc: retained food could not be loaded.");
   const payload: unknown = await response.json();
   const food = parseFoodDetail(payload, id);
   const save=admin.from("fdc_cache").upsert({query:key,response:{kind:"fdc-detail-v1",fdcId:id,payload}},{onConflict:"query"});

@@ -1,11 +1,12 @@
 "use client";
 
+import { failureMessage } from "@/lib/worker/failure-message";
 import Link from "next/link";
 import type {UploadState} from "@/lib/posts/upload-manager";
 import {UploadMedia,UploadMenu} from "./UploadingPost";
 import {useLocalDate,useLocalTime} from "@/components/LocalTime";
 import { useEffect, useState, type ReactNode } from "react";
-import type { FeedPost } from "@/lib/posts/feed";
+import {hasUnavailableFields, type FeedPost} from "@/lib/posts/feed";
 import {summaryLine,type PostPresentation} from "@/lib/posts/summary-line";
 import PostActions from "@/components/PostActions";
 import PostCaption from "@/components/PostCaption";
@@ -44,8 +45,9 @@ function StatusLine({ post }: { post: FeedPost }) {
     } catch(error) {setError(error instanceof Error?error.message:"Could not retry.");}
     finally{setRetrying(false);}
   };
+  if (post.itemsUnavailable && !post.items.length) return <p className="text-detail text-muted" role="status">Meal details could not be loaded. Retrying…</p>;
   if (post.status === "failed") return <div className="flex flex-col gap-0.5 text-detail">
-    <p className="text-muted">This photo could not be analysed.</p>
+    <p className="text-muted">{failureMessage((post as FeedPost & { fail_reason?: string | null }).fail_reason)}</p>
     <button type="button" disabled={retrying} onClick={retry} className="min-h-tap self-start text-text">{retrying?"Retrying…":"Try again"}</button>
     {error&&<p role="alert">{error}</p>}
   </div>;
@@ -58,12 +60,13 @@ function StatusLine({ post }: { post: FeedPost }) {
   }
   const pending=readPendingItems((post as FeedPost&{pendingItems?:unknown}).pendingItems);
   return <div className="flex flex-col gap-2" role="status" aria-label="Processing">
-    {pending.length?pending.map((item,index)=><div key={`${post.id}-${item.name}-${index}`} className="flex items-center justify-between gap-3"><span className="text-[15px]">{item.name}</span>{item.kcal===null?<Shimmer width={44}/>:<span className="text-[13px] text-muted">{item.kcal>0&&item.kcal<1?'<1':Math.round(item.kcal)} kcal</span>}</div>):<><Shimmer width={tokens.spacing.tap * 5} /><Shimmer width={tokens.spacing['table-row'] * 10} /></>}
+{pending.length?pending.map((item,index)=><div key={`${post.id}-${item.name}-${index}`} className="flex items-center justify-between gap-3"><span className="text-[15px]">{item.name}</span>{item.kcal===null?<Shimmer width={44}/>:<span className="text-[13px] text-muted">{item.kcal>0&&item.kcal<1?'<1':Math.round(item.kcal)} kcal</span>}</div>):<><Shimmer width={tokens.spacing.tap * 5} /><Shimmer width={tokens.spacing['table-row'] * 10} /></>}
+    {(post as FeedPost & { fail_reason?: string | null }).fail_reason==='fdc: rate limited'&&<p className="text-detail text-muted">The food database was busy. Retrying automatically.</p>}
     <p className="text-meta text-faint">Processing, traffic {traffic}</p>
   </div>;
 }
 
-export default function PostCard({ post, showDate = false, upload }: { upload?:UploadState;post: FeedPost; analysis?: ReactNode; showDate?: boolean }) {
+export default function PostCard({ post, showDate = false, upload, priority = false }: { priority?: boolean; upload?:UploadState;post: FeedPost; analysis?: ReactNode; showDate?: boolean }) {
   const record=post as PostPresentation;
   const drink = useDrinkCard(post.id, post.status, post.eaten_at, post.drink);
   const handle=usePostHandle(record.handle);
@@ -82,11 +85,12 @@ export default function PostCard({ post, showDate = false, upload }: { upload?:U
         {label:'Delete',muted:true,onSelect:()=>window.dispatchEvent(new CustomEvent('delete-post',{detail:{id:post.id}}))},
       ]}/>}
     </div>
-    {upload?.previewUrl?<UploadMedia upload={upload} post={post} onIndexChange={setSlide} nutrition={<CaptionCard post={post} drink={drink}/>}/>:drink && hasDrink ? <Link href={`/posts/${post.id}`} aria-label="Open drink details" className="block"><CaptionCard post={post} drink={drink} /></Link> : post.slides?.length ? <Carousel canAddNotEaten={post.status==='ready'&&post.slides.some(s=>s.kind==='photo')} slides={post.slides} caption={post.caption} postId={post.id} href={`/posts/${post.id}`} modelCommentId={post.modelCommentId??null} fingerprint={post.analysisFingerprint??null} onIndexChange={setSlide} nutrition={post.status === "ready" ? <CaptionCard post={post} drink={drink} /> : <div className="flex aspect-square items-center justify-center bg-card text-detail text-muted">Processing…</div>} /> : post.status === "ready" && post.items.length ? <Link href={`/posts/${post.id}`} aria-label="Open meal details" className="block"><CaptionCard post={post} drink={drink} /></Link> : null}
+    {upload?.previewUrl?<UploadMedia upload={upload} post={post} onIndexChange={setSlide} nutrition={<CaptionCard post={post} drink={drink}/>}/>:drink && hasDrink ? <Link href={`/posts/${post.id}`} aria-label="Open drink details" className="block"><CaptionCard post={post} drink={drink} /></Link> : post.slides?.length ? <Carousel priority={priority} canAddNotEaten={post.status==='ready'&&post.slides.some(s=>s.kind==='photo')} slides={post.slides} caption={post.caption} postId={post.id} href={`/posts/${post.id}`} modelCommentId={post.modelCommentId??null} fingerprint={post.analysisFingerprint??null} onIndexChange={setSlide} nutrition={post.status === "ready" ? <CaptionCard post={post} drink={drink} /> : <div className="flex aspect-square items-center justify-center bg-card text-detail text-muted">Processing…</div>} /> : post.status === "ready" && post.items.length ? <Link href={`/posts/${post.id}`} aria-label="Open meal details" className="block"><CaptionCard post={post} drink={drink} /></Link> : null}
     {!(upload&&!upload.postId&&upload.state==='failed')&&<div inert={Boolean(upload&&!upload.postId)} className={upload&&!upload.postId?"pointer-events-none opacity-50":undefined}><PostActions postId={post.id} modelCommentId={post.modelCommentId??null} fingerprint={post.analysisFingerprint??null} drink={hasDrink} saved={Boolean(record.saved_meal_id)} slides={hasDrink?1:post.slides?.length??1} index={slide}/></div>}
     <div className={`flex flex-col gap-1 px-inset ${upload&&!upload.postId&&upload.state==='failed'?'pt-3':'pt-[10px]'}`}>
       <PostCaption handle={handle} caption={upload&&!upload.postId?upload.caption:post.caption}/>
       {upload&&!upload.postId?<p className="text-detail text-muted">{upload.state==='failed'?'Not posted yet. The photo is kept on this phone.':'Uploading photo…'}</p>:post.status==='ready'&&post.items.length>0 ? <Link href={`/posts/${post.id}`} className="text-detail leading-[1.4] text-muted">{summaryLine(displayRecord,drink)} <span className="text-text">more</span></Link> : <StatusLine post={post}/>}
+      {hasUnavailableFields(post) && post.items.length > 0 ? <p className="text-meta text-muted" role="status">Some meal details could not be refreshed. Retrying…</p> : null}
       <time dateTime={post.eaten_at} className="text-meta text-muted">{upload&&!upload.postId?"Just now":showDate ? localDate : localClock}</time>
     </div>
   </article>;

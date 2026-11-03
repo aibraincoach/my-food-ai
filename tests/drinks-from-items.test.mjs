@@ -66,7 +66,7 @@ const mockDb = (mixed) => {
   return { from(table) {
     let start = 0, end = 999, ids, column;
     const chain = new Proxy({}, { get(_, key) {
-      if (key === 'then') return resolve => resolve({ data: tables[table].filter(row => !ids || ids.includes(row[column])).slice(start, end + 1), error: null });
+      if (key === 'then') return resolve => resolve({ data: tables[table].filter(row => !ids || ids.includes(row[column])).slice(start, end + 1).map(row => table==='current_post_items'?{...row,item_nutrition:tables.item_nutrition.find(n=>n.post_item_id===row.id)}:row), error: null });
       if (key === 'in') return (key, value) => { column = key; ids = value; return chain; };
       if (key === 'range') return (a, b) => { start = a; end = b; return chain; };
       return () => chain;
