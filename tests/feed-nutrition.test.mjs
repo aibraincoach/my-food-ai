@@ -8,7 +8,7 @@ test('feed and detail normalize the same legacy branded row',async()=>{
  const client={rpc:()=>({abortSignal:async()=>({data:{modelCommentId:null,fingerprint:'fixture'},error:null})}),from(table){
   let ranged=false;
   const data=table==='posts'?{id:'post',status:'ready',eaten_at:'2026-10-27T12:00:00Z'}:['post_media','saved_meals'].includes(table)?null:table==='current_post_items'?[item]:[row];
-  const q={select(columns){if(table==='item_nutrition')assert.ok(columns.includes('micronutrients')&&columns.includes('source_ref'));return q;},or(filter){assert.equal(filter,'needs_input.is.null,status.eq.failed');return q;},eq(){return q;},order(){return q;},gte(){return q;},lte(){return q;},lt(){return q;},range(){ranged=true;return q;},limit(){return q;},in(){return q;},maybeSingle(){return q;},then(resolve){return Promise.resolve({data:ranged?[]:data,error:null}).then(resolve);}};return q;
+  const q={select(columns){if(table==='item_nutrition')assert.ok(columns.includes('micronutrients')&&columns.includes('source_ref'));return q;},is(){return q;},or(filter){assert.equal(filter,'needs_input.is.null,status.eq.failed');return q;},eq(){return q;},order(){return q;},gte(){return q;},lte(){return q;},lt(){return q;},range(){ranged=true;return q;},limit(){return q;},in(){return q;},maybeSingle(){return q;},then(resolve){return Promise.resolve({data:ranged?[]:data,error:null}).then(resolve);}};return q;
  }};
  const card=await getPostCard(client,'post');const detail=await getCurrentItems(client,'post');
  assert.equal(card.items[0].calories,100);assert.equal(card.items[0].calories,detail[0].calories);
@@ -69,4 +69,27 @@ test('fast first-photo read and full snapshot share the same owner-scoped capabi
  }}});
  const first=await getFirstFeedPhoto(db,'first-owner');const full=await toFeedPosts(db,[post]);
  assert.equal(first.id,post.id);assert.equal(first.photoUrl,full[0].photoUrl);assert.equal(single,1,'the first-photo promise is reused rather than replacing its signing token');
+});
+
+
+test('all feed and refreshed photos use small owner URLs while only card PNGs are signed',async()=>{
+ const {createClient}=await import('@supabase/supabase-js');const {toFeedPosts}=await import('../src/lib/posts/feed.ts');
+ const uuid=n=>`00000000-0000-4000-8000-${String(n).padStart(12,'0')}`;
+ const owner=uuid(99),posts=[1,2].map(n=>({id:uuid(n),user_id:owner,caption:'Food',eaten_at:'2026-11-03T00:00:00Z',created_at:'2026-11-03T00:00:00Z',status:'queued'}));
+ const media=[{id:uuid(10),post_id:posts[0].id,kind:'photo',position:0},{id:uuid(11),post_id:posts[0].id,kind:'photo',position:1},{id:uuid(12),post_id:posts[0].id,kind:'card',position:2},{id:uuid(13),post_id:posts[1].id,kind:'photo',position:0}].map(m=>({...m,storage_path:`${owner}/${m.post_id}/${m.kind==='card'?'card.png':m.id+'.jpg'}`,not_eaten:false}));
+ const signed=[];
+ const db=createClient('https://all-photos.invalid','fixture',{global:{fetch:async(input,init)=>{
+  const url=new URL(input instanceof Request?input.url:String(input));
+  if(url.pathname.endsWith('/posts'))return Response.json(posts[0]);
+  if(url.pathname.endsWith('/post_media'))return Response.json(url.searchParams.get('post_id')?.startsWith('eq.')?media.filter(m=>m.post_id===posts[0].id):media);
+  if(url.pathname.endsWith('/saved_meals'))return Response.json([]);
+  if(url.pathname.endsWith('/object/sign/media')){const body=JSON.parse(init.body);signed.push(...body.paths);return Response.json(body.paths.map(path=>({path,signedURL:'/object/sign/media/'+path+'?token=fixture'})));}
+  if(url.pathname.endsWith('/card.png'))return Response.json({signedURL:'/object/sign/media/'+media[2].storage_path+'?token=fixture'});
+  throw Error('Unexpected fixture request '+url.pathname);
+ }}});
+ const batch=await toFeedPosts(db,posts);
+ for(const post of batch)for(const slide of post.slides.filter(s=>s.kind==='photo'))assert.equal(slide.url,`/api/media/feed/${owner}/${post.id}/${slide.id}/v1.webp`);
+ assert.deepEqual(signed,[media[2].storage_path],'photo signing is eliminated, not duplicated beside small URLs');
+ const refreshed=await getPostCard(db,posts[0].id);
+ assert.deepEqual(refreshed.slides.filter(s=>s.kind==='photo').map(s=>s.url),batch[0].slides.filter(s=>s.kind==='photo').map(s=>s.url),'realtime refresh cannot restore the old large Storage paths');
 });
