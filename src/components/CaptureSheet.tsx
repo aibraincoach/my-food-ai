@@ -46,6 +46,7 @@ export default function CaptureSheet({ onClose, initialMode = "photo", forPost, 
   const upload=uploads.find(value=>value.operationId===operationId);
   const [composer,setComposer]=useState(initialMode==='text'||Boolean(resumed));
   const [photoIndex,setPhotoIndex]=useState(0);
+  const [cameraPreview,setCameraPreview]=useState<HTMLCanvasElement|null>(null);
   const [notEaten,setNotEaten]=useState<number[]>(resumed?.options.not_eaten_positions??[]);
   const [attachmentIsLeftovers,setAttachmentIsLeftovers]=useState(attachNotEaten);
   const [location,setLocation]=useState<CapturedLocation|null>(resumed?.location??null);
@@ -350,11 +351,13 @@ export default function CaptureSheet({ onClose, initialMode = "photo", forPost, 
     setCameraBusy(true);
     try {
       selectedPhotoRef.current = true;
-      const blob = await grabFrame(videoRef.current);
+      const blob = await grabFrame(videoRef.current,!forPost&&mode==='photo'?frame=>{
+        if(mountedRef.current){setCameraPreview(frame);setComposer(true);}
+      }:undefined);
       if (mountedRef.current) await addFiles([new File([blob], "meal.jpg", { type: "image/jpeg" })]);
     } catch {
-      if (mountedRef.current) setError("Could not capture a photo. Try again or choose one from the gallery.");
-    } finally { if (mountedRef.current) setCameraBusy(false); }
+      if (mountedRef.current) {setError("Could not capture a photo. Try again or choose one from the gallery.");if(!forPost&&mode==='photo')setComposer(shotsRef.current.length>0);}
+    } finally { if (mountedRef.current) {setCameraPreview(null);setCameraBusy(false);} }
   };
 
   const flipCamera = async () => {
@@ -465,7 +468,7 @@ export default function CaptureSheet({ onClose, initialMode = "photo", forPost, 
 
 
   if(!forPost&&composer&&mode!=="barcode"&&barcodeState==="idle"&&labelState==="idle")return <div ref={dialogRef} role="dialog" aria-modal="true" aria-labelledby="capture-title" className="desktop-capture fixed inset-x-0 top-0 z-50 h-dvh overflow-hidden bg-surface" style={viewport?{height:viewport.height,top:viewport.top}:undefined}>
-    <div className="desktop-capture-inner mx-auto h-full max-w-phone desktop:max-w-[760px]"><LightComposer upload={upload} shots={shots} caption={caption} setCaption={setCaption} index={photoIndex} setIndex={setPhotoIndex} notEaten={notEaten} setNotEaten={setNotEaten} when={when} setWhen={setWhen} locationEnabled={locationEnabled} setLocationEnabled={enableLocation} saveAsMeal={saveAsMeal} setSaveAsMeal={setSaveAsMeal} busy={posting||cameraBusy} error={error} pending={pendingCount} onBack={closeDraft} onPhoto={()=>{setSearchingFoods(false);setComposer(false);setMode("photo");setStream(null);}} onSearch={()=>setSearchingFoods(value=>!value)} onPost={()=>{void post();}} onRemove={removeShot}
+    <div className="desktop-capture-inner mx-auto h-full max-w-phone desktop:max-w-[760px]"><LightComposer cameraPreview={cameraPreview} upload={upload} shots={shots} caption={caption} setCaption={setCaption} index={photoIndex} setIndex={setPhotoIndex} notEaten={notEaten} setNotEaten={setNotEaten} when={when} setWhen={setWhen} locationEnabled={locationEnabled} setLocationEnabled={enableLocation} saveAsMeal={saveAsMeal} setSaveAsMeal={setSaveAsMeal} busy={posting||cameraBusy} error={error} pending={pendingCount} onBack={closeDraft} onPhoto={()=>{setSearchingFoods(false);setComposer(false);setMode("photo");setStream(null);}} onSearch={()=>setSearchingFoods(value=>!value)} onPost={()=>{void post();}} onRemove={removeShot}
       searchPanel={searchingFoods?<div className="px-inset"><FoodSearchPanel eatenAt={when===null?null:fromLocalInput(when)} disabled={posting} onLogged={postId=>{if(operationRef.current)void uploadManager.remove(operationRef.current);window.dispatchEvent(new CustomEvent('post-created',{detail:{id:postId}}));onClose();router.refresh();}} onDescribe={text=>{if(text&&!caption.trim())setCaption(text);setSearchingFoods(false);setError(null);}} onError={setError}/></div>:null}>
       <input ref={galleryRef} type="file" accept="image/*" multiple className="hidden" onChange={event=>{void addFiles(event.target.files);event.target.value='';}}/>
     </LightComposer></div>
