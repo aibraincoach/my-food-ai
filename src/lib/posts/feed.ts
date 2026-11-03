@@ -138,7 +138,7 @@ async function toFeedPost(
     .select("id,storage_path,kind,not_eaten").eq("post_id",row.id).order("position");
   if(mediaError) throw new Error(mediaError.message);
   const slides = (await Promise.all((media ?? []).map(async (entry) => {
-    try { return {id:entry.id,url: await feedCopyUrl(supabase, entry.kind === "card" ? entry.storage_path : feedPathFor(entry.storage_path),row.user_id),kind:entry.kind as "photo"|"card",not_eaten:Boolean(entry.not_eaten)}; }
+    try { return {id:entry.id,url: (entry.kind === "photo" ? smallFeedPhotoUrl(row.user_id,row.id,entry.id) : null) ?? await feedCopyUrl(supabase, entry.kind === "card" ? entry.storage_path : feedPathFor(entry.storage_path),row.user_id),kind:entry.kind as "photo"|"card",not_eaten:Boolean(entry.not_eaten)}; }
     catch { return null; }
   }))).filter((entry): entry is {id:string;url:string;kind:"photo"|"card";not_eaten:boolean} => entry !== null);
   const photoUrl = slides[0]?.url ?? null;
@@ -197,22 +197,30 @@ export async function toFeedPosts(db: SupabaseClient, rows: PostRow[], zone = "U
   }, null);
   const urlRead = mediaRead.then(async media => {
     const paths = [...new Set((media ?? []).map(entry => entry.kind === 'card' ? entry.storage_path : feedPathFor(entry.storage_path)))];
+    const owners=new Map(rows.map(row=>[row.id,row.user_id]));
+    const smallPhotos=new Map<string,string>();
+    for(const entry of media??[]){
+      const owner=owners.get(entry.post_id);
+      const url=entry.kind==='photo'&&owner?smallFeedPhotoUrl(owner,entry.post_id,entry.id):null;
+      if(url)smallPhotos.set(feedPathFor(entry.storage_path),url);
+    }
     const first = media?.find(entry => entry.post_id === rows[0].id);
     const firstPath = first && first.kind !== 'card' ? feedPathFor(first.storage_path) : null;
-    const smallFirst = firstPath && first ? smallFeedPhotoUrl(rows[0].user_id, rows[0].id, first.id) : null;
+    const smallFirst = firstPath ? smallPhotos.get(firstPath)??null : null;
     if (smallFirst) onFirstPhoto?.(smallFirst);
     // Fast SSR and the full page share one immutable private photo URL.
     // Legacy identifiers retain the shared owner/path signing fallback.
     const firstRead = smallFirst ? Promise.resolve(smallFirst) : firstPath ? optionalRead('first-photo', () => feedCopyUrl(db, firstPath, rows[0].user_id), null) : Promise.resolve(null);
     const batchRead = optionalRead('signed-urls', async () => {
       if (!paths.length) return new Map<string, string>();
-      const signedPaths = smallFirst ? paths.filter(path => path !== firstPath) : paths;
+      const signedPaths = paths.filter(path => !smallPhotos.has(path));
       if (!signedPaths.length) return new Map<string, string>();
       const result = await db.storage.from('media').createSignedUrls(signedPaths, 3600);
       if (result.error) throw result.error;
       return new Map((result.data ?? []).filter(entry => entry.signedUrl && !entry.error).map(entry => [entry.path!, entry.signedUrl]));
     }, new Map<string, string>());
     const [urls, firstUrl] = await Promise.all([batchRead, firstRead]);
+    for(const [path,url]of smallPhotos)urls.set(path,url);
     if (firstPath && firstUrl) urls.set(firstPath, firstUrl);
     const url = first && urls.get(first.kind === 'card' ? first.storage_path : feedPathFor(first.storage_path));
     if (url && !smallFirst) onFirstPhoto?.(url);
