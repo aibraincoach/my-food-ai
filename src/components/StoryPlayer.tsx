@@ -48,6 +48,7 @@ export default function StoryPlayer({ day, zone, onClose, onDay, cell }: { day: 
   const today = dateInZone(new Date(), zone);
   const previous = shiftDay(day.date, -1), next = shiftDay(day.date, 1);
   const post = day.posts[slide];
+  const unavailable=unavailableFoods(day.totals);
   const time = (value: string) => clockZone ? formatLocalTime(value,clockZone) : "";
   const title = new Date(`${day.date}T12:00:00Z`).toLocaleDateString("en", { timeZone: "UTC", weekday: "long", month: "short", day: "numeric" });
   const weekday = new Date(`${day.date}T12:00:00Z`).toLocaleDateString("en", { timeZone: "UTC", weekday: "long" });
@@ -122,7 +123,7 @@ export default function StoryPlayer({ day, zone, onClose, onDay, cell }: { day: 
       </header>
       <div ref={content} className="flex min-h-0 flex-1 flex-col gap-7 overflow-y-auto" style={{ paddingBottom: tokens.spacing.tap, touchAction: "none" }}
         onClick={event => {
-          if (gesture.current || (event.target as HTMLElement).closest("a,button")) return;
+          if (gesture.current || (event.target as HTMLElement).closest("a,button,summary")) return;
           const rect = event.currentTarget.getBoundingClientRect(), fraction = (event.clientX - rect.left) / rect.width;
           if (fraction < 1 / 3) adjacent(previous);
           else if (fraction > 2 / 3) adjacent(next);
@@ -141,6 +142,7 @@ export default function StoryPlayer({ day, zone, onClose, onDay, cell }: { day: 
           <div className="grid grid-cols-3 pt-4" style={{ borderTop: `${tokens.border.hairline}px solid ${tokens.colors.surface}`, borderTopColor: `color-mix(in srgb, ${tokens.colors.surface} 14%, transparent)` }}>
             {([[day.totals.protein_g, "protein"], [day.totals.carbs_g, "carbs"], [day.totals.fat_g, "fat"]] as const).map(([value, word]) => <div key={word}><p className="text-day-macro tabular-nums">{formatNutrition(value)} g</p><p className="text-meta text-faint">{word}</p></div>)}
           </div>
+          {unavailable.length>0&&<details data-day-nutrition-disclosure className="text-meta text-faint"><summary className="cursor-pointer">Known nutrition shown · Unavailable foods</summary><p className="mt-2">Nutrition unavailable: {unavailable.join(', ')}</p></details>}
           {intakeLine(day.intake) ? <p className="text-meta text-faint tabular-nums">{intakeLine(day.intake)}</p> : null}
           <div className="grid grid-cols-3 gap-2">{day.posts.map(entry => <Link key={entry.id} href={`/posts/${entry.id}`} className="min-w-0">
             <div className="flex aspect-square items-center justify-center overflow-hidden rounded-thumb bg-card text-text">
