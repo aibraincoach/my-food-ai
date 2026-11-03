@@ -338,32 +338,34 @@ Final production follow-up (same columns; baseline failures above remain visible
 
 **Answer** — The instructed leftovers wording is implemented, and all matches at the recorded commit are listed for RT. Generated needs-input questions and localized month/weekday names are identified as dynamic rather than presented as missing fixed strings.
 
-**Unknown** — Final code-merge repeat remains required. No additional terminology recommendation or owner ruling is inferred.
+**Unknown** — Inventory is measured at the stated final code SHA; model-generated questions and localized names vary at runtime. No additional terminology recommendation or owner ruling is inferred.
 
 ## 7p. Visual reconciliation (#193/#353–#367)
 
 **Method** — At11:01 UTC inspected `gh issue list --state all --limit200 --json number,title,state`, file lists for Fleet9 PRs345/346/347/352, and `git show origin/run9/docs:docs/design/visual-pass.md`. The latter is explicitly a partial pre-Fleet9 rendered comparison; changed paths below do not prove a rendered fix. Each Fleet10 fix/reconciliation has its own PR with reference/current evidence.
 
+Final named-phone reconciliation used41 rendered reference frames and actual production phone views at390×844 on789c2b7 (13:18–13:19UTC), genuine barcode/label states13:03–13:13 and subsequent contrast/label fixes on5681c3e/7de5107. [Per-issue current view, accepted later authority, exact cleanup and limits](evidence/run10-coffee-final/phone-reconciliation.md). GitHub issue states below refreshed after eligible closures at13:55UTC.
+
 **Result**
 
 | Issue | Title | Issue state | Fleet9 screen/path change | Fleet10 PR |
 | --- | --- | --- | --- | --- |
-| #353 | Reconcile auth screen differences with rounds 1–4 | open | No auth-screen file changed | #432 |
-| #354 | Reconcile feed notices and week strip with rounds 1–4 | open | Yes — #346 PostCard/summary | #431 |
-| #355 | Normalize post-detail nutrient rows and reconcile attribution/servings | open | Yes — #347 PostDetail/Thread | #412 |
-| #356 | Show drink volume and caffeine in saved meals | open | Data paths only — #347 saved filtering; no Saved layout fix | #410 |
-| #357 | Reconcile Days nutrition notice and story entry labels | open | Yes — #347 Days data filtering | #417 |
-| #358 | Reconcile additional Profile settings with the design | open | Yes — #347 Profile/Recently deleted | #430 |
-| #359 | Reconcile agent capability copy and desktop presentation | open | No agent-screen file changed; #347 agent operations changed | #416 |
+| #353 | Reconcile auth screen differences with rounds 1–4 | closed | No auth-screen file changed | #432 |
+| #354 | Reconcile feed notices and week strip with rounds 1–4 | closed | Yes — #346 PostCard/summary | #431 |
+| #355 | Normalize post-detail nutrient rows and reconcile attribution/servings | closed | Yes — #347 PostDetail/Thread | #412 |
+| #356 | Show drink volume and caffeine in saved meals | closed | Data paths only — #347 saved filtering; no Saved layout fix | #410 |
+| #357 | Reconcile Days nutrition notice and story entry labels | closed | Yes — #347 Days data filtering | #417 |
+| #358 | Reconcile additional Profile settings with the design | closed | Yes — #347 Profile/Recently deleted | #430 |
+| #359 | Reconcile agent capability copy and desktop presentation | closed | No agent-screen file changed; #347 agent operations changed | #416 |
 | #360 | Use screen-specific desktop shortcut legends | open | No Sidebar change | #415 |
-| #361 | Fix desktop drink search summaries and reconcile result composition | open | Shared summary helper changed by #346; no SearchBox layout change | #411 |
-| #362 | Reconcile composer photo grouping and upload states with rounds 3–4 | open | Yes — #345 capture hints/modes | #418 |
+| #361 | Fix desktop drink search summaries and reconcile result composition | closed | Shared summary helper changed by #346; no SearchBox layout change | #411 |
+| #362 | Reconcile composer photo grouping and upload states with rounds 3–4 | closed | Yes — #345 capture hints/modes | #418 |
 | #363 | Reconcile desktop webcam and file-upload geometry with round 4 | open | Yes — #345 CaptureSheet, not desktop geometry | #404 |
-| #364 | Reconcile plus fan controls and pill treatment with round 2 | open | No plus-menu change | #405 |
-| #365 | Reconcile Log again picker layout with round 2 | open | No LogAgainSheet change | #406 |
-| #366 | Reconcile clarification sheet close and navigation treatment | open | No clarification presentation change | #403 |
-| #367 | Reconcile barcode and label result layouts with round 3 | open | Yes — #345 CaptureSheet hints/modes, not result layouts | #408 |
+| #364 | Reconcile plus fan controls and pill treatment with round 2 | closed | No plus-menu change | #405 |
+| #365 | Reconcile Log again picker layout with round 2 | closed | No LogAgainSheet change | #406 |
+| #366 | Reconcile clarification sheet close and navigation treatment | closed | No clarification presentation change | #403 |
+| #367 | Reconcile barcode and label result layouts with round 3 | closed | Yes — #345 CaptureSheet hints/modes, not result layouts | #408 |
 
-**Answer** — All15 visual issues have individual Fleet10 fix or reconciliation PRs. Fleet9 touched several shared screen/data paths but did not establish final visual acceptance.
+**Answer** — All13 eligible named phone issues are fixed or reconciled against explicitly accepted later scope, with production views and individual PRs. The2desktop-only issues360/363 remain open and excluded by the owner. Fleet9 shared-path edits alone were not used as rendered proof.
 
-**Unknown** — Final phone production checks and eligible closures remain pending. Latest user instruction explicitly excludes #413/Round6 and all superseded desktop-frame differences in #353–#367; those belong to the next design fleet. #360 and #363 are desktop-only and receive no further work here. The table retains historical Fleet9/merged Fleet10 changes for handoff; it is not authorization for more desktop work.
+**Unknown** — Full pixel equivalence, every conditional data state and physical-device smoothness are not claimed. Some earlier genuine clarification/history views are retained where the final dataset no longer presents that state; no state was fabricated. Latest user instruction explicitly excludes #413/Round6 and all superseded desktop-frame differences in #353–#367; those belong to the next design fleet. #360 and #363 are desktop-only and receive no further work here. The table retains historical Fleet9/merged Fleet10 changes for handoff; it is not authorization for more desktop work.
