@@ -1,0 +1,44 @@
+import test from'node:test';import assert from'node:assert/strict';import{readFileSync}from'node:fs';import{spawnSync}from'node:child_process';
+test('drink intent receipts preserve owner, two taps, atomic intake/photo publication and cancellation',()=>{
+ assert.ok(process.env.SUPABASE_DB_URL);assert.ok(['localhost','127.0.0.1','[::1]'].includes(new URL(process.env.SUPABASE_DB_URL).hostname));
+ const migration=readFileSync(new URL('../../supabase/migrations/0045_drink_post_operations.sql',import.meta.url),'utf8'),rollback=readFileSync(new URL('../../supabase/rollback/0045_drink_post_operations.sql',import.meta.url),'utf8');
+ const sql='begin;set local statement_timeout=\'20s\';'+rollback+migration+String.raw`
+ do $test$ declare owner_id uuid:=gen_random_uuid();other_id uuid:=gen_random_uuid();op uuid:=gen_random_uuid();op2 uuid:=gen_random_uuid();photo_op uuid:=gen_random_uuid();second_photo_op uuid:=gen_random_uuid();cancel_op uuid:=gen_random_uuid();upload uuid:=gen_random_uuid();cancel_upload uuid:=gen_random_uuid();result uuid;result2 uuid;reading uuid;drinks jsonb;choices jsonb;expected jsonb;items jsonb;key text:=repeat('a',64);before_count bigint;nutrition jsonb:='{"calories":0,"protein_g":0,"carbs_g":0,"fat_g":0,"fibre_g":0,"sugar_g":0,"sodium_mg":0,"micronutrients":[{"nutrientId":1051,"value":300,"basis":"portion","unitName":"G"}]}';
+ begin
+ insert into auth.users(id)values(owner_id),(other_id);insert into public.profiles(id,handle)values(owner_id,'drink-'||owner_id),(other_id,'drink-'||other_id);
+ result:=public.publish_drink_operation(op,owner_id,key,now(),'water',300,'Water, glass',0,nutrition);
+ if public.publish_drink_operation(op,owner_id,key,now(),'water',300,'Water, glass',0,nutrition)<>result then raise exception 'Replay duplicated tile';end if;
+ result2:=public.publish_drink_operation(op2,owner_id,key,now(),'water',300,'Water, glass',0,nutrition);
+ if result=result2 or (select count(*) from public.intake_logs where user_id=owner_id)<>2 then raise exception 'Two taps coalesced or intake duplicated';end if;
+ begin perform public.publish_drink_operation(op,other_id,key,now(),'water',300,'Water, glass',0,nutrition);raise exception 'Other owner replay accepted';exception when insufficient_privilege then null;end;
+ begin perform public.publish_drink_operation(op,owner_id,repeat('b',64),now(),'water',300,'Water, glass',0,nutrition);raise exception 'Changed tile choice accepted';exception when sqlstate 'PT409' then null;end;
+ perform public.cancel_drink_operation(op,owner_id);
+ if not exists(select 1 from public.posts where id=result and deleted_at is not null) then raise exception 'Unknown committed tile not hidden';end if;
+ begin perform public.publish_drink_operation(op,owner_id,key,now(),'water',300,'Water, glass',0,nutrition);raise exception 'Cancelled tile resurrected';exception when sqlstate 'PT410' then null;end;
+ perform public.cancel_drink_operation(cancel_op,owner_id);
+ begin perform public.publish_drink_operation(cancel_op,owner_id,key,now(),'water',300,'Water, glass',0,nutrition);raise exception 'Late tile survived cancellation';exception when sqlstate 'PT410' then null;end;
+ perform public.reserve_post_upload_with_leftovers(upload,owner_id,'Water',now(),'[{"position":0,"width":390,"height":390}]',null,'{}',false,'Asia/Jakarta');
+ insert into storage.objects(bucket_id,name,metadata)values('media',owner_id||'/'||upload||'/0.jpg','{"size":100}'),('media',owner_id||'/'||upload||'/0.feed.jpg','{"size":50}');
+ drinks:=jsonb_build_array(jsonb_build_object('name','Water, glass','ml',300,'grams',null,'kcal',0,'caffeineMg',0,'source','photo estimate','nutrition',nutrition));
+ insert into public.composer_drink_readings(user_id,upload_id,position,state,all_drinks,drinks)values(owner_id,upload,0,'ready',true,drinks)returning id into reading;
+ choices:=jsonb_build_array(jsonb_build_object('reading_id',reading,'selections','[{"index":0,"ml":150}]'::jsonb));expected:=jsonb_build_object(reading::text,drinks);
+ items:=jsonb_build_array(jsonb_build_object('name','Water, glass','portion_text','150 ml','portion_grams',null,'nutrition',nutrition||'{"micronutrients":[{"nutrientId":1051,"value":150,"basis":"portion","unitName":"G"}]}'::jsonb));
+ begin perform public.publish_photo_drink_operation(photo_op,other_id,key,upload,choices,'Water',now(),null,false,items,'Consumed: 0 kcal.',expected);raise exception 'Other owner photo accepted';exception when insufficient_privilege then null;end;
+ result:=public.publish_photo_drink_operation(photo_op,owner_id,key,upload,choices,'Water',now(),null,false,items,'Consumed: 0 kcal.',expected);
+ if result<>upload or (select status from public.posts where id=result)<>'ready' or (select ml from public.intake_logs where post_id=result)<>150 then raise exception 'Photo/intake was not atomic at chosen volume';end if;
+ if exists(select 1 from public.jobs where post_id=result and kind='analyze') or exists(select 1 from public.composer_drink_readings where upload_id=upload) then raise exception 'Re-identification or analyze remains after commit';end if;
+ if public.publish_photo_drink_operation(photo_op,owner_id,key,upload,choices,'Water',now(),null,false,'[]','Consumed: 0 kcal.','{}')<>result or (select count(*) from public.current_post_items where post_id=result)<>1 then raise exception 'Lost response photo retry duplicated or needed reading again';end if;
+ begin perform public.publish_photo_drink_operation(second_photo_op,owner_id,key,upload,choices,'Changed intent',now(),null,false,items,'x',expected);raise exception 'Distinct intent silently reused photo';exception when sqlstate 'PT409' then null;end;
+ perform public.cancel_drink_operation(second_photo_op,owner_id,upload);
+ if (select deleted_at from public.posts where id=upload) is not null then raise exception 'Failed second intent deleted first post';end if;
+ perform public.cancel_drink_operation(photo_op,owner_id,upload);
+ if (select deleted_at from public.posts where id=upload) is null then raise exception 'Unknown committed photo not hidden';end if;
+ perform public.reserve_post_upload_with_leftovers(cancel_upload,owner_id,'Cancel',now(),'[{"position":0,"width":390,"height":390}]',null,'{}',false,'Asia/Jakarta');
+ cancel_op:=gen_random_uuid();perform public.cancel_drink_operation(cancel_op,owner_id,cancel_upload);
+ begin perform public.publish_photo_drink_operation(cancel_op,owner_id,key,cancel_upload,'[]','Cancel',now(),null,false,'[]','x','{}');raise exception 'Late photo survived cancellation';exception when sqlstate 'PT410' then null;end;
+ if exists(select 1 from public.posts where id=cancel_upload) then raise exception 'Cancelled photo has a phantom post';end if;
+ if has_table_privilege('authenticated','public.drink_post_operations','select') or has_function_privilege('authenticated','public.publish_drink_operation(uuid,uuid,text,timestamptz,text,integer,text,integer,jsonb)','execute') or has_function_privilege('authenticated','public.publish_photo_drink_operation(uuid,uuid,text,uuid,jsonb,text,timestamptz,jsonb,boolean,jsonb,text,jsonb)','execute') or has_function_privilege('authenticated','public.cancel_drink_operation(uuid,uuid,uuid)','execute') then raise exception 'Client can forge resolved drinks';end if;
+ end $test$;
+ `+rollback+"select 'drink-operations: passed';rollback;";
+ const r=spawnSync('psql',['-X','-qAt','--dbname',process.env.SUPABASE_DB_URL,'-v','ON_ERROR_STOP=1'],{input:sql,encoding:'utf8',timeout:25000});assert.ifError(r.error);assert.equal(r.status,0,r.stderr);assert.match(r.stdout,/drink-operations: passed/);
+});
