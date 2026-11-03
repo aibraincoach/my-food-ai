@@ -13,7 +13,7 @@ export type PostPresentation = FeedPost & {
   gtin?: string | null;
 };
 const number = (value: number) => Math.round(value).toLocaleString('en-US');
-export function summaryLine(post: PostPresentation, drink?: DrinkCardData | null): string {
+export function summaryLine(post: PostPresentation, drink: DrinkCardData | null | undefined = post.drink): string {
   const drinks = post.itemDrinks ?? [];
   const drankMl = drinks.reduce((sum, row) => sum + row.ml, 0);
   const caffeineMg = drinks.reduce((sum, row) => sum + row.caffeineMg, 0);
