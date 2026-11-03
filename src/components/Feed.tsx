@@ -48,6 +48,7 @@ export default function Feed({initialPage, initialUserId, initialZone = "UTC", f
   const deviceZone=useDeviceTimeZone();
   const renderZone=deviceZone||initialZone;
   const [cacheUserId, setCacheUserId] = useState<string | null>(initialUserId ?? null);
+  const [freshResponse,setFreshResponse]=useState(Boolean(initialPage));
   const cache = useCachedFeed(cacheUserId);
   const cacheRef = useRef(cache);
   useEffect(() => { cacheRef.current = cache; }, [cache]);
@@ -111,7 +112,7 @@ export default function Feed({initialPage, initialUserId, initialZone = "UTC", f
     const deferred = new Map<string, number>();
     const timers = new Set<ReturnType<typeof setTimeout>>();
 
-    const reportTotals = () => { if(live&&userId)window.dispatchEvent(new CustomEvent("feed-day-totals",{detail:{userId,days:[...dayTotals.values()]}})); };
+    const reportTotals = () => { if(live&&userId)window.dispatchEvent(new CustomEvent("feed-day-totals",{detail:{userId,days:[...dayTotals.values()],fresh:hasFreshPage||Boolean(initialPage)}})); };
     window.addEventListener("feed-day-totals-request",reportTotals);
     const publish = () => {
       if (!live) return;
@@ -296,7 +297,7 @@ export default function Feed({initialPage, initialUserId, initialZone = "UTC", f
           }
         }
         baseline = page.posts.filter(post=>!unavailable.has(post.id)).map(post=>retainCompleteItems(baseline.find(prior=>prior.id===post.id),post));
-        hasFreshPage = true;
+        hasFreshPage = true; setFreshResponse(true);
         cursor = page.nextCursor;
         loaded = true;
         publish();
@@ -429,7 +430,7 @@ export default function Feed({initialPage, initialUserId, initialZone = "UTC", f
   if (visibleState.kind === "loading") return <p className="px-screen-x text-detail text-muted" role="status">Loading feed…</p>;
   if (visibleState.kind === "error") return <div>{localCards}<p className="px-screen-x text-detail text-muted" role="alert">The feed could not be loaded.</p><button type="button" className="min-h-tap px-screen-x text-text" onClick={() => retryInitial.current()}>Try again</button></div>;
   if (!visibleState.posts.length&&localCards.length)return <div>{localCards}{null}</div>;
-  if (!visibleState.posts.length) return <div data-feed-client-ready={!fallbackOnly ? true : undefined} data-cached-feed-ready={fallbackOnly ? true : undefined} className="flex flex-1 items-center justify-center" style={{ paddingBottom: tokens.spacing['sheet-bottom'] * 3 }}>
+  if (!visibleState.posts.length) return <div data-feed-source={fallbackOnly||!freshResponse?"cache":"fresh"} data-feed-client-ready={!fallbackOnly ? true : undefined} data-cached-feed-ready={fallbackOnly ? true : undefined} className="flex flex-1 items-center justify-center" style={{ paddingBottom: tokens.spacing['sheet-bottom'] * 3 }}>
     <p className="text-sheet-title font-normal text-muted">Post your first meal</p>
   </div>;
   const zone = renderZone;
@@ -442,7 +443,7 @@ export default function Feed({initialPage, initialUserId, initialZone = "UTC", f
   const days: string[] = [];
   if(listed.length)for (let day = listed[0]; day >= listed.at(-1)!; day = shiftDay(day, -1)) days.push(day);
   const totals = new Map(visibleState.days.map(day => [day.day, day]));
-  return <div data-feed-client-ready={!fallbackOnly ? true : undefined} data-cached-feed-ready={fallbackOnly ? true : undefined} className="flex flex-col">
+  return <div data-feed-source={fallbackOnly||!freshResponse?"cache":"fresh"} data-feed-client-ready={!fallbackOnly ? true : undefined} data-cached-feed-ready={fallbackOnly ? true : undefined} className="flex flex-col">
     {localCards}
     {days.map(day => <section key={day} aria-label={day} className="relative pb-card-gap">
       {!uploadDays.has(day)&&<DayHeader day={day} zone={zone} empty={!groups.has(day)} total={totals.get(day)} />}
