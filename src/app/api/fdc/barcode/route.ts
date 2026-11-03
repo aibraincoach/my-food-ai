@@ -1,3 +1,4 @@
+import { capUser } from "@/lib/limits/user-cap";
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { gtinCandidates } from "@/lib/fdc/barcode";
@@ -8,6 +9,7 @@ export async function GET(request: Request) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: "Sign in required." }, { status: 401 });
+ const capped = await capUser(user.id, "fdc_barcode"); if (capped) return capped;
   const code = new URL(request.url).searchParams.get("code")?.trim() ?? "";
   if (!gtinCandidates(code).length) return NextResponse.json({ error: "That is not a valid product barcode." }, { status: 400 });
   try {

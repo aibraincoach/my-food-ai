@@ -1,3 +1,4 @@
+import { capUser } from "@/lib/limits/user-cap";
 import {cookies} from "next/headers";
 import {validZone} from "@/lib/posts/days";
 import { randomUUID } from "node:crypto";
@@ -19,6 +20,7 @@ export async function POST(request: Request) {
   const db = await createClient();
   const { data: { user } } = await db.auth.getUser();
   if (!user) return NextResponse.json({ error: "Sign in required." }, { status: 401 });
+ const capped = await capUser(user.id, "post"); if (capped) return capped;
   const body = await request.json().catch(() => null);
   if (!body || typeof body.caption !== "string" || body.caption.length > 2000 || body.caption.includes("\u0000")) return NextResponse.json({ error: "Invalid caption." }, { status: 400 });
   if(body.save_as_meal!==undefined&&typeof body.save_as_meal!=='boolean')return NextResponse.json({error:'Invalid save choice.'},{status:400});

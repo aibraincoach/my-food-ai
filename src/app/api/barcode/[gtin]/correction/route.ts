@@ -1,9 +1,11 @@
+import { capUser } from "@/lib/limits/user-cap";
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { canonicalGtin, parseBarcodeCorrection } from "@/lib/posts/barcode-correction";
 export async function PUT(request:Request,context:{params:Promise<{gtin:string}>}){
  const client=await createClient();const {data:{user}}=await client.auth.getUser();
  if(!user)return NextResponse.json({error:"Sign in required."},{status:401});
+ const capped = await capUser(user.id, "correct"); if (capped) return capped;
  const gtin=canonicalGtin((await context.params).gtin);if(!gtin)return NextResponse.json({error:"Invalid barcode."},{status:400});
  try{
   const correction=parseBarcodeCorrection(await request.json());
