@@ -6,6 +6,9 @@ The application source uses the MIT licence in [LICENSE](LICENSE). Third-party w
 
 - Manrope: SIL Open Font License 1.1. Font licence and copyright notices remain with the bundled font files.
 - USDA FoodData Central: public-domain nutrition data. Nutrition values in the application come from this data source.
+
+Packaged foods that USDA FoodData Central does not hold are looked up in Open Food Facts. Contains data from [Open Food Facts](https://world.openfoodfacts.org), available under the [Open Database License](https://opendatacommons.org/licenses/odbl/1-0/).
+
 - Meta Muse Spark 1.3, SAM 3.1 and Muse Voice Transcribe 1.0: accessed as hosted services under Meta's applicable Model API terms. Their models are not distributed under this repository's MIT licence.
 - Photo fixtures: see [fixture attributions](scripts/fixtures/ATTRIBUTION.md) for individual source and licence notices.
 
