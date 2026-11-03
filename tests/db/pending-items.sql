@@ -2,9 +2,9 @@
 begin;
 insert into auth.users(id) values('70000000-0000-0000-0000-000000000001'),('70000000-0000-0000-0000-000000000002');
 insert into public.profiles(id,handle) values('70000000-0000-0000-0000-000000000001','pending-test1'),('70000000-0000-0000-0000-000000000002','pending-test2');
-insert into public.posts(id,user_id,status) values('70000000-0000-0000-0000-000000000003','70000000-0000-0000-0000-000000000001','processing');
-select public.write_pending_names('70000000-0000-0000-0000-000000000003',null,'[{"name":"Rice","kcal":null},{"name":"Egg","kcal":null}]');
-select public.write_pending_kcal('70000000-0000-0000-0000-000000000003',null,1,80);
+insert into public.posts(id,user_id,status,active_job_id) values('70000000-0000-0000-0000-000000000003','70000000-0000-0000-0000-000000000001','processing','70000000-0000-0000-0000-000000000008');
+select public.write_pending_names('70000000-0000-0000-0000-000000000003','70000000-0000-0000-0000-000000000008','[{"name":"Rice","kcal":null},{"name":"Egg","kcal":null}]');
+select public.write_pending_kcal('70000000-0000-0000-0000-000000000003','70000000-0000-0000-0000-000000000008',1,80);
 do $$begin if (select pending_items->1->>'kcal' from posts where id='70000000-0000-0000-0000-000000000003')<>'80' then raise exception 'progress lost';end if;end$$;
 select public.write_pending_kcal('70000000-0000-0000-0000-000000000003','70000000-0000-0000-0000-000000000009',0,100);
 do $$begin if (select pending_items->0->>'kcal' from posts where id='70000000-0000-0000-0000-000000000003') is not null then raise exception 'stale job progress accepted';end if;end$$;
