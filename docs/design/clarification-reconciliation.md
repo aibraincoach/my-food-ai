@@ -2,7 +2,7 @@
 
 The older frame 1-05 omits both the close control and the floating navigation pill. These omissions do not override the later approved navigation contract in [the round 3 plan, item 1](../plan.md): the pill sits above sheet scrims, and tapping it closes the sheet and navigates. Removing it from clarification would restore an older frame while breaking that explicit way home.
 
-The current shared `Sheet` already renders an unboxed close icon: its button has a transparent background, no border, a 44 px hit area and a 22 px close glyph. `NeedsInputSheet` uses that shared control. The originally reported boxed background is absent from the current page. No product change is needed for either reported difference.
+The current shared `Sheet` already renders an unboxed close icon: its button has a transparent background, no border, a 44 px hit area and a 22 px close glyph. `NeedsInputSheet` uses that shared control. A browser focus outline can surround its hit area while focused; this keyboard-navigation indicator is retained and is distinct from a filled close-button background. The originally reported boxed background is absent from the current page. No product change is needed for either reported difference.
 
 ## Actual page checks
 
