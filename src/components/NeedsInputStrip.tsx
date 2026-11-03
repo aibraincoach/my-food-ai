@@ -1,8 +1,9 @@
-/* eslint-disable @next/next/no-img-element -- Private signed images bypass paid optimization. */
+/* eslint-disable @next/next/no-img-element -- Owner-authorized thumbnails bypass paid optimization. */
 "use client";
 import {useEffect,useState} from "react";
 import {createClient} from "@/lib/supabase/client";
 import {Icon} from "@/components/ui/Icon";
+import {smallFeedPhotoUrl} from "@/lib/posts/feed-photo-url";
 import {readNeedsInput} from "@/lib/pipeline/needs-input";
 import NeedsInputSheet,{type QuestionPost} from "@/components/NeedsInputSheet";
 export default function NeedsInputStrip(){
@@ -12,11 +13,10 @@ export default function NeedsInputStrip(){
     let owner: string | null = null, lastQuestions = '';
     let authGeneration = 0;
     let auxiliaryFailed = false;
-    let lastMediaPaths: string[] = [], signRetryAt = 0, signFailures = 0;
-    const signed = new Map<string, {url: string; until: number}>();
+    let mediaRetryAt = 0, mediaFailures = 0;
     const auth = db.auth.onAuthStateChange((_event, session) => {
       if (owner !== (session?.user.id ?? null)) {
-        authGeneration++; owner = session?.user.id ?? null; lastQuestions = ''; signed.clear(); auxiliaryFailed = false; lastMediaPaths = []; signRetryAt = 0; signFailures = 0;
+        authGeneration++; owner = session?.user.id ?? null; lastQuestions = ''; auxiliaryFailed = false; mediaRetryAt = 0; mediaFailures = 0;
         if (live) { setPosts([]); setSelected(null); }
       }
     });
@@ -30,7 +30,7 @@ export default function NeedsInputStrip(){
         if (!live || generation !== authGeneration) return;
         if(!session){if(live)setPosts([]);return;}
         const userId = session.user.id;
-        if (owner !== userId) { owner = userId; signed.clear(); lastQuestions = ''; }
+        if (owner !== userId) { owner = userId; lastQuestions = ''; auxiliaryFailed = false; mediaRetryAt = 0; mediaFailures = 0; }
         const {data,error}=await db.from("posts").select("id,eaten_at,needs_input").eq("user_id",userId).eq("status","needs_input").order("created_at",{ascending:false}).abortSignal(AbortSignal.timeout(8000));
         if(error)throw error;
         const questions = (data??[]).flatMap(post => {
@@ -38,35 +38,20 @@ export default function NeedsInputStrip(){
           return question ? [{...post,needs_input:question}] : [];
         });
         const identity = JSON.stringify(questions);
-        if(identity === lastQuestions && (!auxiliaryFailed && lastMediaPaths.every(path=>(signed.get(path)?.until??0)>Date.now()) || Date.now()<signRetryAt))return;
-        const media = questions.length ? await db.from('post_media').select('post_id,storage_path,position').in('post_id',questions.map(post=>post.id)).eq('kind','photo').order('position').abortSignal(AbortSignal.timeout(8000)) : {data:[],error:null};
-
+        if(identity === lastQuestions && (!auxiliaryFailed || Date.now()<mediaRetryAt))return;
+        const media = questions.length ? await db.from('post_media').select('id,post_id,position').in('post_id',questions.map(post=>post.id)).eq('kind','photo').order('position').abortSignal(AbortSignal.timeout(8000)) : {data:[],error:null};
         const first = new Map<string, string>();
-        for(const row of media.data??[])if(!first.has(row.post_id))first.set(row.post_id,`${row.storage_path.replace(/\.[^/.]+$/, '')}.feed.jpg`);
-        lastMediaPaths = [...new Set(first.values())];
-        const needed = lastMediaPaths.filter(path => (signed.get(path)?.until??0) <= Date.now());
-        let signingFailed = Boolean(media.error);
-        if(needed.length){
-          // Storage SDK batching has no per-call abort option. Its documented
-          // signing endpoint is a read; use fetch so the request really cancels.
-          try {
-          const response = await fetch(`${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/sign/media`, {
-            method:'POST',headers:{'Content-Type':'application/json',apikey:process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!,Authorization:`Bearer ${session.access_token}`},
-            body:JSON.stringify({paths:needed,expiresIn:3600}),signal:AbortSignal.timeout(8000),
-          });
-          if (!response.ok) signingFailed = true;
-          if(response.ok){
-            const rows=await response.json() as {path:string;signedURL?:string;error?:string|null}[];
-            for(const row of rows)if(!row.error&&row.signedURL)signed.set(row.path,{url:`${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1${row.signedURL}`,until:Date.now()+300000});
-          }
-          } catch { signingFailed = true; }
-          signingFailed ||= needed.some(path=>(signed.get(path)?.until??0)<=Date.now());
+        for(const row of media.data??[])if(!first.has(row.post_id)){
+          const url = smallFeedPhotoUrl(userId,row.post_id,row.id);
+          if(url)first.set(row.post_id,url);
         }
-        auxiliaryFailed = signingFailed;
-        signRetryAt = signingFailed ? Date.now()+Math.min(60000,2000*2**Math.min(signFailures++,5)) : 0;
-        if (!signingFailed) signFailures = 0;
+        // A missing/failed auxiliary read must not hide the questions or become
+        // permanent: media may finish arriving after the needs-input update.
+        auxiliaryFailed = Boolean(media.error) || questions.some(post=>!first.has(post.id));
+        mediaRetryAt = auxiliaryFailed ? Date.now()+Math.min(60000,2000*2**Math.min(mediaFailures++,5)) : 0;
+        if (!auxiliaryFailed) mediaFailures = 0;
         if(live&&owner===userId&&generation===authGeneration){
-          setPosts(questions.map(post=>{const photo=signed.get(first.get(post.id)??'');return {...post,photoUrl:photo&&photo.until>Date.now()?photo.url:null};}));
+          setPosts(questions.map(post=>({...post,photoUrl:first.get(post.id)??null})));
           lastQuestions=identity;
         }
       }catch{/* Keep last good questions; the next visible tick retries a failed read. */}finally{busy=false;}

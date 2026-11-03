@@ -1,0 +1,55 @@
+{
+  "baselineSha": "f8b0324cd8e18c0a18109e22930eb622ec634f7e",
+  "before": [
+    {
+      "path": "/storage/v1/object/sign/media/fe79cc4a-aab6-47b7-a72e-d7e274e1da3e/e43ac7dc-128a-4032-b530-f5463a37618b/0.feed.jpg",
+      "bytes": 133353,
+      "status": 200
+    },
+    {
+      "path": "/storage/v1/object/sign/media/fe79cc4a-aab6-47b7-a72e-d7e274e1da3e/72cc166e-d9c4-4620-96f5-0e4435a4eb15/0.feed.jpg",
+      "bytes": 142579,
+      "status": 200
+    },
+    {
+      "path": "/storage/v1/object/sign/media/fe79cc4a-aab6-47b7-a72e-d7e274e1da3e/99760494-3c0a-4192-85a8-107f2c7b5a5e/0.feed.jpg",
+      "bytes": 221659,
+      "status": 200
+    }
+  ],
+  "beforeBytes": 497591,
+  "after": {
+    "at": "2026-11-03T12:43:29.560Z",
+    "method": "actual built local app, unchanged production designated account1 read-only fixtures; fresh phone context SW blocked",
+    "rows": [
+      {
+        "url": "http://127.0.0.1:3341/api/media/feed/fe79cc4a-aab6-47b7-a72e-d7e274e1da3e/e43ac7dc-128a-4032-b530-f5463a37618b/7701ba92-8778-4862-b70f-0ccadcc9046b/v1.webp",
+        "loaded": true,
+        "width": 44,
+        "height": 44,
+        "status": 200,
+        "bytes": 20656
+      },
+      {
+        "url": "http://127.0.0.1:3341/api/media/feed/fe79cc4a-aab6-47b7-a72e-d7e274e1da3e/72cc166e-d9c4-4620-96f5-0e4435a4eb15/ca0c2530-e653-40c5-a2d4-f2e9822fa5e7/v1.webp",
+        "loaded": true,
+        "width": 44,
+        "height": 44,
+        "status": 200,
+        "bytes": 21286
+      },
+      {
+        "url": "http://127.0.0.1:3341/api/media/feed/fe79cc4a-aab6-47b7-a72e-d7e274e1da3e/99760494-3c0a-4192-85a8-107f2c7b5a5e/d1daa92c-fc15-41fe-88e5-9d49bdac592e/v1.webp",
+        "loaded": true,
+        "width": 44,
+        "height": 44,
+        "status": 200,
+        "bytes": 21778
+      }
+    ],
+    "totalBytes": 63720,
+    "signedFeedRequests": 0
+  },
+  "reductionPercent": 87.19,
+  "scope": "Three unchanged NeedsInputStrip photos only. Not a new first-feed-photo latency acceptance or aggregate Storage/client attribution claim."
+}
