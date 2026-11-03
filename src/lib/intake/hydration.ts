@@ -1,3 +1,4 @@
+import {drinkGlyph,type DrinkGlyph} from './drink-glyph';
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { dateInZone, shiftDay, validZone } from "@/lib/posts/days";
 import { normalizeStoredNutrition, toNumber, type NutritionRow, type Numeric, type StoredNutrient } from "@/lib/nutrition/totals";
@@ -10,7 +11,7 @@ export const ROUND_ML = 10;
 export const roundWaterMl = (ml: number) => Math.round(ml / ROUND_ML) * ROUND_ML;
 
 export interface DrinkRow {
-  kind: "water" | "caffeine";
+  kind: "water" | "caffeine" | "alcohol";
   amount: number;
   logged_at: string;
   ml: number | null;
@@ -23,8 +24,8 @@ export interface HydrationRecord { drinksMl: number; foodMl: number; totalMl: nu
 // caffeineMg remains the drink's own amount for existing consumers. The day's
 // caffeine is separate, and dayHydration exposes it as caffeineMg.
 export interface DrinkCardData extends Omit<HydrationRecord, "caffeineMg"> { source?: "sheet" | "item"; ml: number; label: string; caffeineMg: number; dayCaffeineMg?: number }
-export interface ItemDrinkRecord { post_item_id?: string | null; label: string; ml: number; caffeineMg: number }
-export interface PostHydrationData { itemDrinks: ItemDrinkRecord[]; drinkSource?: "sheet" | "item"; kind: "meal" | "drink"; foodWaterMl: number; dayHydration: HydrationRecord; drink: DrinkCardData | null }
+export interface ItemDrinkRecord { kind?:"water"|"caffeine"|"alcohol"; post_item_id?: string | null; label: string; ml: number; caffeineMg: number }
+export interface PostHydrationData { dayDrinks?:{glyph:DrinkGlyph;ml:number}[]; itemDrinks: ItemDrinkRecord[]; drinkSource?: "sheet" | "item"; kind: "meal" | "drink"; foodWaterMl: number; dayHydration: HydrationRecord; drink: DrinkCardData | null }
 type WaterItem = { id?: string; portion_text?: string | null; portion_grams: Numeric; micronutrients: StoredNutrient[] };
 export function itemWaterMl(item: WaterItem, isDrink = false): number {
   if (isDrink) return 0;
@@ -173,12 +174,12 @@ export async function getPostHydrationData(db: SupabaseClient, userId: string, p
     for (const post of dayPosts) {
       const links = drinksByPost.get(post.id) ?? [];
       const source = links.some(row => row.source !== "item") ? "sheet" as const : "item" as const;
-      const itemDrinks = links.filter(row => row.source === "item").map(row => ({ post_item_id: row.post_item_id, label: row.label!, ml: toNumber(row.ml), caffeineMg: row.kind === "caffeine" ? toNumber(row.amount) : 0 }));
+      const itemDrinks = links.filter(row => row.source === "item").map(row => ({ post_item_id: row.post_item_id, ...(row.kind==='alcohol'?{kind:row.kind}:{}), label: row.label!, ml: toNumber(row.ml), caffeineMg: row.kind === "caffeine" ? toNumber(row.amount) : 0 }));
       const currentIds = post.items ? post.items.map(item => item.id) : itemIds.get(post.id) ?? [];
       const linkedIds = new Set(links.map(row => row.post_item_id));
       const isDrink = links.length > 0 && (source === "sheet" || currentIds.length > 0 && currentIds.every(id => id && linkedIds.has(id)));
       const hydration = hydrationAt(timeline, post.eaten_at);
-      output[post.id] = { kind: isDrink ? "drink" : "meal", itemDrinks, drinkSource: links.length ? source : undefined, dayHydration: hydration,
+      output[post.id] = { dayDrinks:timeline.drinks.filter(row=>new Date(row.logged_at).getTime()<=new Date(post.eaten_at).getTime()).map(row=>({glyph:drinkGlyph(row.label??'Drink',row.kind),ml:toNumber(row.ml??(row.kind==='water'?row.amount:0))})), kind: isDrink ? "drink" : "meal", itemDrinks, drinkSource: links.length ? source : undefined, dayHydration: hydration,
         foodWaterMl: isDrink ? 0 : roundWaterMl(timeline.foods.find(row => row.postId === post.id)?.waterMl ?? 0),
         drink: isDrink ? { ...hydration, source, ml: links.reduce((sum, row) => sum + toNumber(row.ml), 0), label: links.map(row => row.label!).join(" · "), caffeineMg: links.reduce((sum, row) => sum + (row.kind === "caffeine" ? toNumber(row.amount) : 0), 0), dayCaffeineMg: hydration.caffeineMg } : null };
     }
