@@ -111,6 +111,8 @@ export default function Feed({initialPage, initialUserId, initialZone = "UTC", f
     const deferred = new Map<string, number>();
     const timers = new Set<ReturnType<typeof setTimeout>>();
 
+    const reportTotals = () => { if(live&&userId)window.dispatchEvent(new CustomEvent("feed-day-totals",{detail:{userId,days:[...dayTotals.values()]}})); };
+    window.addEventListener("feed-day-totals-request",reportTotals);
     const publish = () => {
       if (!live) return;
       // A late initial load must not erase cards received while it was in flight.
@@ -118,6 +120,7 @@ export default function Feed({initialPage, initialUserId, initialZone = "UTC", f
       const posts = mergeFeedPosts(baseline, promoted).filter(post=>!unavailable.has(post.id)&&post.status!=="needs_input"&&(!answered.has(post.id)||post.status==="ready"||post.status==="failed"));
       if (loaded || promoted.length) {
         setState({ kind: "ready", posts, days: [...dayTotals.values()] });
+        reportTotals();
         if (userId && (hasFreshPage || cacheDirty)) {
           const prior = new Map((readFeedCache(userId)?.posts ?? cacheRef.current.cached ?? []).map(post=>[post.id,post]));
           const cachePosts = posts.filter(post=>!cacheInvalidated.has(post.id)).flatMap(post=>{
@@ -380,6 +383,7 @@ export default function Feed({initialPage, initialUserId, initialZone = "UTC", f
     return () => {
       live = false;
       totalsRefresh.cancel();
+      window.removeEventListener("feed-day-totals-request",reportTotals);
       cachedListener.current = () => {};
       releaseCacheOwner?.();
       window.removeEventListener("post-restore", restore);
