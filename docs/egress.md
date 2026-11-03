@@ -211,3 +211,57 @@ An additional diagnostic Home opening captured the PostgREST select text: 25 cal
 The follow-up batches those requests by day before starting a read and permits only one read at a time. Events that arrive mid-read keep a per-day revision and queue one fresh follow-up; older results for changed days cannot overwrite them. Cancellation suppresses late results. Nutrition queries and legacy normalization remain unchanged: micronutrients are still needed to normalize older stored per-100g rows correctly.
 
 Regression tests exercise twenty-card bursts, an edit arriving during a read, partial-day stale-response rejection, failure/retry and unmount cancellation. Actual combined-preview and post-merge production five-open measurements follow in the execution report; the byte reduction is not inferred from unit counts alone.
+
+## Final production acceptance — Run 8
+
+# Run 8 egress and log results
+
+Production after PR #343: `6996817cec6aaf865357e9fee6550abf27cdfd0f`.
+
+## Five-opening comparisons
+
+| Opening | Original production bytes | Initial cache preview bytes | Coalescer preview bytes | Final production bytes | Final day-total queries |
+| --- | --- | --- | --- | --- | --- |
+| 1 | 4,367,543 | 6,264,195 | 1,224,054 | 531,829 | 2 |
+| 2 | 4,373,262 | 5,781,481 | 1,321,313 | 535,913 | 1 |
+| 3 | 5,518,553 | 5,156,996 | 1,122,930 | 529,103 | 1 |
+| 4 | 5,518,552 | 5,540,662 | 1,121,509 | 537,279 | 1 |
+| 5 | 5,515,733 | 6,309,256 | 1,122,856 | 480,426 | 1 |
+
+Mean direct browser Supabase traffic fell from **5,058,728.6 bytes to 522,910 bytes**, 89.7% below the original baseline. The initial cache preview averaged 5,810,518 bytes and showed no reduction; that failed result remains in the table. The coalescer preview averaged 1,182,532.4 bytes.
+
+Every series used the same designated larger account, 20 rendered cards, 390×844 viewport, unthrottled network, cache cleared only before opening 1, and a ten-second settle after cards appeared. CDP encodedDataLength includes response headers. These are observed browser transfers, not billed egress; server-to-Supabase traffic is separate. The caption-heavy first viewport did not request the optimized first-photo route, so the reduction is not attributed to its cache header.
+
+A diagnostic identified the actual repeated query: getDayTotals fetched nested nutrition/micronutrients 25 times, transferring 4,219,412 bytes in one opening. A second diagnostic on all-nine-PR production `3e4f23b`, immediately before #343, still made 28 such reads / 5,370,521 bytes and transferred 5,660,156 bytes overall. Final production made only 1–2 reads / about 383.6 KB per opening. PR #343 coalesces refreshed days without dropping nutrition fields or changing legacy calorie normalization.
+
+## Queue and log observations
+
+| RPC | Original 54.969 s window | Fixed preview 55.343 s window | Final production 55.488 s window |
+| --- | --- | --- | --- |
+| claim_owned_job | 405 | 6 | 0 |
+| fail_job | 404 | 0 | 0 |
+| renew_worker_lease | 404 | 0 | 0 |
+| try_acquire_worker_lease | 5 | 6 | 0 |
+| release_worker_lease | 0 | 6 | 0 |
+
+Windows, November 3 UTC:
+
+- Original: 04:14:11.934–04:15:06.903.
+- Fixed preview: 04:48:16.242–04:49:11.585.
+- Final production: 04:54:49.186–04:55:44.674.
+
+The original hundreds of claim/fail pairs occurred with no running or due jobs. The fixed preview still had the two future cleanup jobs pending, yet showed six empty-queue checks and no fail/renewal loop. Those jobs' single real attempts completed at 04:52; the final production window afterward had an empty queue. This distinction avoids attributing the entire final-zero count to code alone. PR #340's regression independently proves null-composite normalization. Window counts include concurrent project activity and are not isolated billing measurements.
+
+Final matching log totals were 2,206 edge rows, 389 Auth rows, 67 Storage rows, 57 pooler rows, two AuthAudit rows and two Postgres rows. Logged Content-Length sums were 1,106,586 browser-class bytes and 457,194 server-runtime bytes. Many compressed REST responses lack Content-Length; those sums are lower bounds and cannot replace the actual browser transfer measurements or quantify billed log-ingestion bytes.
+
+The 24-hour Before tables identify Storage as the largest reported byte source (2,986,275,217 bytes / 35,048 requests), and edge requests as the largest log-row source (430,845 rows). The legacy logs.all API returned HTTP 410; the replacement /logs API supplied the reported aggregate tables.
+
+## Connection ownership
+
+A read-only snapshot observed 45 connections including the monitor: 15 idle PostgREST, 11 idle Storage, seven idle unlabelled connections (three Auth service and four other system/service roles), plus Realtime pools/replication, exporter, cron and pg_net. The only active SQL client was the monitor. Most connections were service pools waiting for client input. This does not establish a leak or explain the earlier 70% RAM reading.
+
+## Receipt locations
+
+Private raw observations and sanitized tables are retained under uploads/run8-egress. Relevant files: browser-before.json, browser-preview-after.json, browser-totals-preview.json, browser-allnine-before.json, browser-production-after.json; log-before-window.md, log-preview-window.md, log-totals-preview-window.md, log-production-after-window.md; connections.txt and queue-after.txt. Session cookies and bypass tokens are not included in these committed summaries. All browser contexts owned by this lane are closed; no local server or worktree remains.
+
+Source: production `6996817cec6aaf865357e9fee6550abf27cdfd0f`. The [final execution report](run8-final-report.md) and [sanitized raw receipt](evidence/run8-production/receipt.md) record the deployment and other acceptance gates.

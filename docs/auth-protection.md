@@ -10,7 +10,7 @@ The hammer script rechecks only that auto-confirm is enabled before creating any
 
 ## Hammer observation
 
-Pending Part 2, **after all other production checks**: `node --env-file=.env.local scripts/auth-hammer.mjs --signups 35 --signins 35`. Record the first refusal's request number, status and error code for each flow, or `not refused within 35`, plus created/deleted totals. No production hammer run has been performed in Part 1. An isolated mocked-HTTP check passed independent sign-up/sign-in refusal handling, wrong-password continuation, cleanup of all three created fixtures and the auto-confirm safety guard. The original #279 enforcement condition remains open while CAPTCHA is off.
+Completed in Part 2 **after all other production checks** (results below): `node --env-file=.env.local scripts/auth-hammer.mjs --signups 35 --signins 35`. Record the first refusal's request number, status and error code for each flow, or `not refused within 35`, plus created/deleted totals. No production hammer run was performed in Part 1; final observations are recorded below. An isolated mocked-HTTP check passed independent sign-up/sign-in refusal handling, wrong-password continuation, cleanup of all three created fixtures and the auto-confirm safety guard. The original #279 enforcement condition remains open while CAPTCHA is off.
 
 ## Dormant frontend and server path
 
@@ -20,10 +20,18 @@ All script password sign-ins now pass through the shared helper, including feed-
 
 ## Preview and production acceptance
 
-Local Chromium page looks at 390×844 with the public test key passed: one rendered checkbox and one SDK script on each auth page, 390px document width, 844px document height, no page exceptions; sign-up → sign-in client navigation rendered exactly one widget without an exception. Both layouts fit the viewport. The test widget displays its expected red testing notice, and sign-up is taller by one field. Screenshots remain in ignored local evidence. Pending: repeat these looks on the Vercel preview, solve its check and sign in, and confirm production has no widget and password sign-in remains successful. No production variable is changed to obtain preview evidence. Test-key responses require the matching hCaptcha test secret when actually verified; the production project's stored secret is not replaced for this run.
+Local Chromium page looks at 390×844 with the public test key passed: one rendered checkbox and one SDK script on each auth page, 390px document width, 844px document height, no page exceptions; sign-up → sign-in client navigation rendered exactly one widget without an exception. Both layouts fit the viewport. The test widget displays its expected red testing notice, and sign-up is taller by one field. Screenshots remain in ignored local evidence. Part 2 repeated the preview looks, solved its check and signed in, and confirmed production has no widget and password sign-in remains successful; see final observations below. No production variable is changed to obtain preview evidence. Test-key responses require the matching hCaptcha test secret when actually verified; the production project's stored secret is not replaced for this run.
 
 ## Turn-on order for launch
 
 CAPTCHA is built and off by the owner's ruling (10:57 WIB). To turn it on when the app goes public: set `NEXT_PUBLIC_HCAPTCHA_SITE_KEY` in Vercel production, redeploy, then set `security_captcha_enabled true` in Supabase Auth. Never in the other order. Do not set the public test key in production and never put the secret in Vercel or the repository.
 
 References: [hCaptcha readiness and explicit rendering](https://docs.hcaptcha.com/configuration), [test integration keys](https://docs.hcaptcha.com/#integration-testing-test-keys), [Supabase CAPTCHA token option](https://supabase.com/docs/guides/auth/auth-captcha).
+
+## Final production hammer observation
+
+Run last after all other production checks: `node --env-file=.env.local scripts/auth-hammer.mjs --signups 35 --signins 35`, exit 0. Sign-up first hit a rate refusal at request **31**, HTTP **429**, code **over_request_rate_limit**. Wrong-password sign-in first hit a rate refusal at request **32**, HTTP **429**, same code; preceding invalid_credentials responses were expected wrong-password failures, not counted as rate-limit refusals. The script stopped each series at that refusal, as specified.
+
+Exactly **31** throwaway accounts were created and **31** deleted, with **zero cleanup failures**. No test/demo account was used for hammering and no email was sent. Production settings were independently rechecked before this final test: CAPTCHA false, hcaptcha provider, secret present (boolean only), auto-confirm true, before-user-created hook false. Preview alone has the public test site key; production has no site key or widget. The dormant preview checkbox/token sign-in and ordinary production no-widget sign-in both passed.
+
+These observations show what the current per-IP protection refused from this machine; they are not a global account-creation cap or proof of CAPTCHA enforcement while disabled. Each account's post cap is 40 per clock hour. The CAPTCHA-on portion of #279 remains deliberately open by the owner's ruling. [Final execution report](run8-final-report.md).
