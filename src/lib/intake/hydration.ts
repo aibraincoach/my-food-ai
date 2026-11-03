@@ -23,7 +23,7 @@ export interface HydrationRecord { drinksMl: number; foodMl: number; totalMl: nu
 // caffeineMg remains the drink's own amount for existing consumers. The day's
 // caffeine is separate, and dayHydration exposes it as caffeineMg.
 export interface DrinkCardData extends Omit<HydrationRecord, "caffeineMg"> { source?: "sheet" | "item"; ml: number; label: string; caffeineMg: number; dayCaffeineMg?: number }
-export interface ItemDrinkRecord { label: string; ml: number; caffeineMg: number }
+export interface ItemDrinkRecord { post_item_id?: string | null; label: string; ml: number; caffeineMg: number }
 export interface PostHydrationData { itemDrinks: ItemDrinkRecord[]; drinkSource?: "sheet" | "item"; kind: "meal" | "drink"; foodWaterMl: number; dayHydration: HydrationRecord; drink: DrinkCardData | null }
 type WaterItem = { id?: string; portion_text?: string | null; portion_grams: Numeric; micronutrients: StoredNutrient[] };
 export function itemWaterMl(item: WaterItem, isDrink = false): number {
@@ -163,7 +163,7 @@ export async function getPostHydrationData(db: SupabaseClient, userId: string, p
     for (const post of dayPosts) {
       const links = drinksByPost.get(post.id) ?? [];
       const source = links.some(row => row.source !== "item") ? "sheet" as const : "item" as const;
-      const itemDrinks = links.filter(row => row.source === "item").map(row => ({ label: row.label!, ml: toNumber(row.ml), caffeineMg: row.kind === "caffeine" ? toNumber(row.amount) : 0 }));
+      const itemDrinks = links.filter(row => row.source === "item").map(row => ({ post_item_id: row.post_item_id, label: row.label!, ml: toNumber(row.ml), caffeineMg: row.kind === "caffeine" ? toNumber(row.amount) : 0 }));
       const currentIds = post.items ? post.items.map(item => item.id) : itemIds.get(post.id) ?? [];
       const linkedIds = new Set(links.map(row => row.post_item_id));
       const isDrink = links.length > 0 && (source === "sheet" || currentIds.length > 0 && currentIds.every(id => id && linkedIds.has(id)));
