@@ -13,6 +13,12 @@ Hackathon project: My Food AI. PM contract: [docs/pm-contract.md](docs/pm-contra
 
 Review tooling is ported from [naval-association-calgary](https://github.com/aibraincoach/naval-association-calgary) (PPLX runner, review policy shape) and burn-centre-translator / calgarysalutes-website (AGY delivery script, Firefox helper).
 
+## Post–Run 7 reconciliation — November 3, 2026
+
+Run 7 is merged through `58d127b999163bfb8212fa8145482ae875ed2276`; #310 closed unmerged as superseded by #311. The [current reconciliation](docs/post-run7-backlog-reconciliation.md) supersedes older pre-merge status below and in the Part 1 reports. The final execution receipt records production migrations and the successful Open-model smoke. Only #139 of the eleven queried Run 7 issues is closed; implementation and remaining acceptance are listed separately in that report. The twelve owner-ordered issues are closed; #325 remains open pending region/timeout evidence and clarification of its unsupported earlier close-list inclusion.
+
+BACKLOG.md uses the owner's pasted 11:03 WIB snapshot, with closed #139 removed. The Claude artifact could not be read; no live-Doc fetch is claimed. Other open items retain the supplied wording until PM reconciliation and issue closure. No merge or deployment is authorized by this docs PR.
+
 ## Run 7 dispatch — November 3, 2026
 
 The owner dispatched [Run 7](docs/plan-run7.md), with Part 1 building/reviewing the feature PRs and Part 2 held for the named-head merge order after evaluation. This is active coding, not a handover. The owner subsequently assigned Run 7 code reviews to Muse; coders do not launch PPLX, AGY or Codex reviews and instead fix findings delivered on GitHub or by the owner. Baseten authentication has been verified successfully (models, image chat completion and Responses all HTTP 200), and all eleven paired trial cases used the actual open model. The key remains in ignored .env.local as BASETEN_API_KEY and IDENTIFY_OPEN_API_KEY; no credential value is committed or published. Production schema, preference and environment changes remain held for Part 2. The local owner-supplied Wall entries, coder access rule and Nov3 07:10 WIB backlog are preserved on the Run 7 docs branch.
