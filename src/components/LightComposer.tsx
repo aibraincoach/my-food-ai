@@ -1,12 +1,13 @@
 'use client';
 import {useEffect,useRef,useState,type ReactNode} from 'react';
 import UploadBar from './UploadBar';
+import CameraPreview from './CameraPreview';
 import type {UploadState} from '@/lib/posts/upload-manager';
 import {Icon} from '@/components/ui/Icon';
 import {Button} from '@/components/ui/Button';
 import {usePostHandle} from '@/components/PostHandle';
 import {toLocalInput} from '@/lib/posts/eaten-at';
-type Props={upload?:UploadState;shots:{previewUrl:string}[];caption:string;setCaption:(value:string)=>void;index:number;setIndex:(value:number)=>void;notEaten:number[];setNotEaten:(value:number[])=>void;when:string|null;setWhen:(value:string|null)=>void;locationEnabled:boolean;setLocationEnabled:(value:boolean)=>void;saveAsMeal:boolean;setSaveAsMeal:(value:boolean)=>void;busy:boolean;error:string|null;pending:number;onBack:()=>void;onPhoto:()=>void;onSearch:()=>void;onPost:()=>void;children?:ReactNode;searchPanel?:ReactNode;onRemove:(index:number)=>void};
+type Props={cameraPreview?:HTMLCanvasElement|null;upload?:UploadState;shots:{previewUrl:string}[];caption:string;setCaption:(value:string)=>void;index:number;setIndex:(value:number)=>void;notEaten:number[];setNotEaten:(value:number[])=>void;when:string|null;setWhen:(value:string|null)=>void;locationEnabled:boolean;setLocationEnabled:(value:boolean)=>void;saveAsMeal:boolean;setSaveAsMeal:(value:boolean)=>void;busy:boolean;error:string|null;pending:number;onBack:()=>void;onPhoto:()=>void;onSearch:()=>void;onPost:()=>void;children?:ReactNode;searchPanel?:ReactNode;onRemove:(index:number)=>void};
 function Switch({label,on,disabled,onChange}:{label:string;on:boolean;disabled:boolean;onChange:()=>void}) {
  return <button type="button" role="switch" aria-label={label} aria-checked={on} disabled={disabled} onClick={onChange} className={`relative h-[26px] w-[44px] shrink-0 rounded-circle disabled:opacity-50 ${on?'bg-accent':'bg-ring'}`}><span className="absolute top-[3px] size-5 rounded-circle bg-white" style={{left:on?21:3,boxShadow:'var(--color-shadow-knob)'}}/></button>;
 }
@@ -22,7 +23,7 @@ export default function LightComposer(p:Props) {
  },[p.upload?.state]);
  const handle=usePostHandle(),preview=useRef<HTMLDivElement>(null),caption=useRef<HTMLTextAreaElement>(null);
  const observedPhoto=useRef({index:-1,count:-1});
- useEffect(()=>{if(!p.shots.length)caption.current?.focus();},[p.shots.length]);
+ useEffect(()=>{if(!p.shots.length&&!p.cameraPreview)caption.current?.focus();},[p.shots.length,p.cameraPreview]);
  useEffect(()=>{
   const observed=observedPhoto.current;
   if(p.shots.length>1&&(observed.index!==p.index||observed.count!==p.shots.length))preview.current?.scrollTo({left:p.index*210,behavior:'auto'});
@@ -35,7 +36,8 @@ export default function LightComposer(p:Props) {
   <style>{'@keyframes composer-in {from {transform:translateX(30px);opacity:.5}to {transform:translateX(0);opacity:1}}'}</style>
   <header className="flex h-top-safe shrink-0 items-center justify-between px-inset"><button type="button" aria-label="Back to Feed" disabled={p.busy} onClick={p.onBack} className="flex size-tap items-center justify-center rounded-circle bg-field"><Icon name="back" size={22}/></button><h1 id="capture-title" className="text-sheet-title">New post</h1><span className="size-tap"/></header>
   <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain pb-2">
-   {!!p.shots.length&&<div className="pt-3">
+   {p.cameraPreview&&<CameraPreview frame={p.cameraPreview}/>}
+   {!p.cameraPreview&&!!p.shots.length&&<div className="pt-3">
     {p.shots.length===1?<div className="relative mx-auto h-[276px] w-[220px] overflow-hidden rounded-card">
       {/* eslint-disable-next-line @next/next/no-img-element */}<img src={current.previewUrl} alt="Meal photo 1" className="size-full object-cover"/><button type="button" disabled={p.busy} onClick={()=>p.onRemove(0)} aria-label="Remove photo 1" className="absolute top-[10px] left-[10px] flex size-[22px] items-center justify-center rounded-circle bg-overlay text-surface"><Icon name="close" size={16}/></button><span className="absolute top-[10px] right-[10px] rounded-tile bg-overlay px-2 text-meta text-surface">1/1</span>
       {p.upload&&(p.upload.state!=='uploaded'||uploadedVisible)&&<UploadBar upload={p.upload}/>}
@@ -70,7 +72,7 @@ export default function LightComposer(p:Props) {
   <div className="shrink-0 px-inset pt-2 pb-[calc(30px+env(safe-area-inset-bottom))]">
    {p.error&&<p role="alert" className="mb-2 text-detail text-muted">{p.error}</p>}
    {p.pending>0&&<p role="status" className="mb-2 text-meta text-muted">Preparing selected photos…</p>}
-   <Button style={{height:50,borderRadius:14,fontSize:16}} disabled={p.busy||p.pending>0||(!p.caption.trim()&&!p.shots.length)} onClick={p.onPost}>{p.busy?'Posting…':'Post'}</Button>
+   <Button style={{height:50,borderRadius:14,fontSize:16}} disabled={p.busy||p.pending>0||(!p.caption.trim()&&!p.shots.length)} onClick={p.onPost}>{p.busy&&!p.cameraPreview?'Posting…':'Post'}</Button>
   </div>
   {p.children}
  </div>;
