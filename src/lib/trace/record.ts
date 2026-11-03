@@ -40,7 +40,7 @@ export function traceText(value: unknown): string {
   return (safe ?? "").slice(0, 60000);
 }
 
-export async function recordCall<T>(kind: CallKind, requestText: unknown, fn: () => Promise<T>, describe: (value: T) => Details = (value) => ({ text: value })): Promise<T> {
+export async function recordCall<T>(kind: CallKind, requestText: unknown, fn: () => Promise<T>, describe: (value: T) => Details = (value) => ({ text: value }), identity?: { model: string | null; host: string }): Promise<T> {
   const started = Date.now();
   const startedAt = new Date(started).toISOString();
   let details: Details = {};
@@ -58,6 +58,8 @@ export async function recordCall<T>(kind: CallKind, requestText: unknown, fn: ()
       // The write has its own deadline: a stalled trace store must never hold back a finished model call.
       const { error } = await createAdminClient().from("model_calls").insert({
         post_id: traceContext.getStore()?.postId ?? null, kind, started_at: startedAt,
+        model: identity?.model ?? (typeof (requestText as {model?:unknown})?.model === "string" ? (requestText as {model:string}).model : kind === "sam" ? "sam-3.1" : null),
+        host: identity?.host ?? "meta",
         duration_ms: Math.min(2147483647, Date.now() - started),
         input_tokens: finite(details.usage?.input_tokens), output_tokens: finite(details.usage?.output_tokens),
         request_text: traceText(requestText), response_text: details.text === undefined ? null : traceText(details.text),

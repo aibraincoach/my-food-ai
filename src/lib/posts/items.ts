@@ -124,6 +124,16 @@ export async function getPostDetail(supabase: SupabaseClient, postId: string, zo
     return { ...item, box: itemBox(item.box), maskUrl };
   }));
   const hydrated = (await getPostHydrationData(supabase, post.user_id, [{ id: postId, eaten_at: post.eaten_at, items }], zone))[postId];
-  return { post, photo, items, isDrink: hydrated.kind === "drink" && hydrated.drinkSource !== "item", ...hydrated,
+  // post was first authorized through the caller's RLS-scoped read. Expose
+  // identity only, never the admin-only prompt/result trace to meal owners.
+  const { createAdminClient } = await import("@/lib/supabase/admin");
+  let identification: {model:string|null;host:string|null}|null = null;
+  try {
+    const {data} = await createAdminClient().from("model_calls").select("model,host")
+      .eq("post_id",postId).eq("kind","spark_identify").is("error",null)
+      .order("started_at",{ascending:false}).limit(1).abortSignal(AbortSignal.timeout(3000)).maybeSingle();
+    identification=data;
+  } catch { /* Optional model provenance never takes down an existing meal. */ }
+  return { post, photo, items, identification: identification ?? null, isDrink: hydrated.kind === "drink" && hydrated.drinkSource !== "item", ...hydrated,
     cardData: cardDataFromRow({ ...post, items, ...hydrated }) };
 }

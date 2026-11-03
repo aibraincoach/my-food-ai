@@ -1,3 +1,5 @@
+import {openWeightsConfigured} from "@/lib/meta/open-weights";
+import IdentifyProviderSwitch from "./IdentifyProviderSwitch";
 import DesktopWorkspace from "@/components/DesktopWorkspace";
 import PostDetail from "@/components/PostDetail";
 import ConnectAgentRow from '@/components/ConnectAgentRow';
@@ -19,6 +21,12 @@ export default async function ProfilePage({searchParams}:{searchParams:Promise<{
     getProfileGrid(supabase, user.id),
   ]);
   if (error) throw new Error("Profile could not be loaded.");
+  // During configuration/rollout the optional preference column may not yet
+  // exist. Keep the ordinary Profile usable; the setting endpoint reports a
+  // failed save until its migration is present.
+  const preference = openWeightsConfigured()
+    ? await supabase.from("profiles").select("identify_provider").eq("id",user.id).maybeSingle()
+    : {data:null};
   return (
     <DesktopWorkspace width={760} detail={post?<PostDetail id={post}/>:undefined}><main className="flex flex-1 flex-col desktop:pt-2">
       <header className="flex h-top-safe shrink-0 items-center justify-between gap-3 px-screen-x desktop:h-[72px] desktop:gap-5 desktop:px-0">
@@ -27,6 +35,7 @@ export default async function ProfilePage({searchParams}:{searchParams:Promise<{
         <SignOutButton />
       </header>
       <ConnectAgentRow userId={user.id} />
+      {openWeightsConfigured()?<IdentifyProviderSwitch initial={preference.data?.identify_provider==='open'?'open':'meta'}/>:null}
       <ProfileGrid posts={posts} />
     </main></DesktopWorkspace>
   );

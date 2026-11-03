@@ -3,6 +3,7 @@
 // Server-only: reads MODEL_API_KEY from the environment.
 import { readNeedsInput, type NeedsInput } from "@/lib/pipeline/needs-input";
 import { MetaApiError } from "./client";
+import { createOpenResponse, openWeightsConfigured } from "./open-weights";
 import { createResponseRetrying404 } from "./retry404";
 import { identifyPrompt, identifySchema } from "@/lib/prompts";
 
@@ -112,7 +113,8 @@ export async function identifyItems(
   regions: IdentifyRegion[],
   prior = "",
   additionalPhotos:Uint8Array[]=[],
-  additionalRegionHints=""
+  additionalRegionHints="",
+  provider: "meta" | "open" = "meta"
 ): Promise<IdentifiedMeal> {
   // Caption-only posts have no photo: the call is text-only and every
   // returned item lands in captionOnly (region_index null).
@@ -130,7 +132,7 @@ export async function identifyItems(
   const known = new Set(regions.map((r) => r.index));
   // Output allowance is not a work target; low effort avoids discarded warm-up calls.
   const maxTokens = 8192;
-  const out = await createResponseRetrying404({
+  const body = {
       model: "muse-spark-1.3",
       reasoning: { effort: "low" },
       instructions: identifyPrompt + (prior ? `\n${prior}` : ""),
@@ -150,7 +152,17 @@ export async function identifyItems(
         },
       },
       max_output_tokens: maxTokens,
-    });
+    };
+  if (provider === "open" && openWeightsConfigured()) {
+    try {
+      const out = await createOpenResponse(body, value => {
+        if (value.refusal || value.status !== "completed" || value.outputText === null) throw invalidIdentify();
+        parseIdentifiedMeal(value.outputText, known);
+      });
+      return parseIdentifiedMeal(out.outputText!, known);
+    } catch { console.warn("open identify failed; using Meta"); }
+  }
+  const out = await createResponseRetrying404(body);
   if (out.refusal) {
     throw new MetaApiError(500, "spark: model refused the identify call.");
   }

@@ -91,9 +91,10 @@ export function createMetaClient(): OpenAI {
   });
 }
 
-export async function metaFetch(path: string, init: RequestInit = {}, timeoutMs = TIMEOUT_MS): Promise<Response> {
+export async function fetchWithRetry(url: string, init: RequestInit, timeoutMs: number, key: string): Promise<Response> {
+  const path = new URL(url).pathname;
   const headers = new Headers(init.headers);
-  headers.set("Authorization", `Bearer ${metaApiKey()}`);
+  headers.set("Authorization", `Bearer ${key}`);
   const callerSignal = workerDeadlineSignal(init.signal ?? undefined);
   for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
     let response: Response | undefined;
@@ -101,7 +102,7 @@ export async function metaFetch(path: string, init: RequestInit = {}, timeoutMs 
     const signal = callerSignal ? AbortSignal.any([callerSignal, timeout]) : timeout;
     try {
       signal.throwIfAborted();
-      response = await fetch(`${META_API_BASE_URL}${path}`, { ...init, headers, signal });
+      response = await fetch(url, { ...init, headers, signal });
       const wait = retryAfterSeconds(response.headers);
       // Retryable error responses can be cancelled immediately below; all
       // success/final bodies must finish within this attempt's timeout.
@@ -138,6 +139,10 @@ export async function metaFetch(path: string, init: RequestInit = {}, timeoutMs 
     throw new MetaApiError(response.status, `meta: ${path} failed with ${response.status}.`, code, body);
   }
   throw new MetaApiError(503, "meta: retry limit reached.");
+}
+
+export async function metaFetch(path: string, init: RequestInit = {}, timeoutMs = TIMEOUT_MS): Promise<Response> {
+  return fetchWithRetry(`${META_API_BASE_URL}${path}`, init, timeoutMs, metaApiKey());
 }
 
 export interface ResponseOutput {
