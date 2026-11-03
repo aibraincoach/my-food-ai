@@ -323,7 +323,12 @@ export default function CaptureSheet({ onClose, initialMode = "photo", forPost, 
         setShots(shotsRef.current);setPhotoIndex(shotsRef.current.length-1);setComposer(true);
         const shot = shotsRef.current[shotsRef.current.length - 1];
         let deadline: ReturnType<typeof setTimeout> | undefined;
-        void Promise.race([decodeBarcodeFile(file), new Promise<null>((resolve) => { deadline = setTimeout(() => resolve(null), 900); })])
+        // Give React and the browser a paint before the decoder's CPU work.
+        void new Promise<void>(resolve => requestAnimationFrame(() => requestAnimationFrame(() => resolve())))
+          .then(() => {
+            if (!mountedRef.current || postingRef.current || !shotsRef.current.includes(shot)) return null;
+            return Promise.race([decodeBarcodeFile(file), new Promise<null>((resolve) => { deadline = setTimeout(() => resolve(null), 900); })]);
+          })
           .finally(() => clearTimeout(deadline))
           .then((code) => {
             if (!code || !mountedRef.current || postingRef.current) return;
