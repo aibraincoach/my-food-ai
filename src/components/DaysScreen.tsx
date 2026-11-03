@@ -1,3 +1,4 @@
+import { verifiedUserId } from "@/lib/auth/verified-user";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import LocalTimeZone from "@/components/LocalTimeZone";
@@ -12,7 +13,8 @@ export default async function DaysScreen({ tz, date }: { tz?: string; date?: str
   const zone = validZone(tz || cookieZone);
   const today = dateInZone(new Date(), zone);
   const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const verified = await verifiedUserId();
+  const user = verified ? {id: verified} : (await supabase.auth.getUser()).data.user;
   if (!user) redirect("/sign-in");
   const earliestPosted = await getEarliestPostDate(supabase, user.id, zone);
   const earliest = [earliestPosted ?? today, date ?? today, today].sort()[0];

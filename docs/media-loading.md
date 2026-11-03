@@ -83,3 +83,41 @@ Home can publish an early image Link header after a 350 ms bounded owner-scoped 
 A normal, unmodified 390×844 local production-build test at 1.6 Mbit/s down, 0.75 Mbit/s up and 150 ms latency returned the first image as HTTP 200 image/webp: **21,610 encoded bytes**, rather than roughly 143 KB. Cold first card/photo were **910.2/2096.9 ms**; the actual cached reopen was **620.4/620.4 ms** after verifying cache persistence. **The cold two-second photo gate still fails.** The initial cold Home response did not carry the private-photo Link hint; later responses did. Its initial absence was not isolated. These are single browser observations, not percentiles or a real-phone pass.
 
 Live access checks returned 401 without cookies and 404 for the wrong owner, both private/no-store. Sixty-seven focused regressions, TypeScript, changed-file lint and the production build pass. The private-route logout/new-tab/browser-restart matrix is covered by worker unit tests; the actual-browser matrix was previously run against legacy signed JPEGs and was **not rerun against the new private route** after the owner stopped further optimization. That live case remains unverified. The owner requested closing this pass with partial completion rather than continuing to chase the cold threshold. No more performance tuning is included in this pass.
+
+## Run 8 — first-paint follow-up
+
+### Run 8 before (production `58d127b`)
+
+Five independent cold/warm pairs on November 3 used the second designated test account, whose newest card has a photograph. The larger account's newest card is the caption-only Run 7 Open-model smoke; it is unsuitable for a first-visible-photo comparison without scrolling. The private-photo preload intentionally emits no image hint when the first card has no photo. No existing post was modified for this measurement.
+
+Native Chromium at 390×844, Asia/Jakarta, 1.6 Mbit/s down, 0.75 Mbit/s up and 150 ms latency: each pair starts with a fresh context and cleared HTTP cache, then retains real browser/service-worker cache for the warm navigation. Each navigation waits 12 seconds after the photo before recording the final transfer window. CDP request interception blocks tick and non-read requests except Storage URL signing; the same guard is required for After. No Playwright route interception is used, since that disables browser HTTP caching. These are guarded emulated openings, not unmodified phone acceptance. The observer samples the first visible loaded/renderable image (`complete` and positive `naturalWidth`) on an animation frame, consistently before and after.
+
+| Pair | Cold card ms | Cold photo ms | Warm card ms | Warm photo ms |
+| --- | ---: | ---: | ---: | ---: |
+| 1 | 1542.7 | 2244.3 | 556.9 | 556.9 |
+| 2 | 1070.1 | 2107.0 | 566.2 | 566.3 |
+| 3 | 1115.5 | 2138.7 | 503.3 | 503.4 |
+| 4 | 1335.2 | 2037.8 | 425.4 | 441.9 |
+| 5 | 1114.6 | 2098.8 | 474.1 | 492.1 |
+
+Every document returned HTTP 200 and carried the correct first-photo `Link`. Cold private WebP network responses were 33,457–33,458 bytes; every warm first-photo response used zero encoded network bytes. Thus the earlier missing-Link symptom does **not** reproduce on this current photo-first dataset. Missing Link for the larger account is expected for its caption-only first card; the unexplained historical Run 7 initial absence is not retroactively attributed to that newer post. Private exact-header/network evidence stays in ignored local receipts; published values contain no session or signed capability.
+
+### Implementation and font bytes
+
+Middleware removes every incoming `x-mfa-verified-user` value before Auth, then forwards only Auth's real user ID on the server request. The cookie bridge explicitly rebuilds `NextResponse.next` after setting that ID, retaining refreshed cookies. Pages still create owner-scoped Supabase clients, and fall back to `getUser` if no verified ID exists; API routes retain their own Auth checks. Days' redundant check actually lives in `DaysScreen`, and Search has no second server `getUser` call to replace.
+
+Home's two streams share one request-scoped five-day totals promise. The initial Feed receives that snapshot; subsequent page reads supply validated known dates so `/api/feed` reads only missing totals. This also requires a narrow `getFeed` option and API boundary change: only changing Feed's own refresh function would leave the existing API's duplicate read intact. Nutrition/hydration refreshes and mutation-driven totals updates remain active, and dates from another device time zone are not reused.
+
+| Font | Before bytes | After bytes |
+| --- | ---: | ---: |
+| Manrope 300 | 31,140 | 13,960 |
+| Manrope 400 | 31,228 | 13,928 |
+| Manrope 500 | 30,648 | 13,872 |
+| Manrope 600 | 31,196 | 13,968 |
+| Total | 124,212 | 55,728 |
+
+`scripts/font-codepoints.mjs` scans literal/template/JSX text above U+00FF; its output supplements the specified Latin/punctuation subset. Each resulting font retains all 226 originally available requested codepoints and identical advance widths. FontTools/Brotli installation required `python -m ensurepip --user` first because pip was absent, then `python -m pip install --user fonttools brotli`. The four files were already WOFF2; the backlog's old 390 KB TrueType premise is stale.
+
+### Run 8 after
+
+Preview measurements, real document headers and one-totals-read runtime verification are pending the preview deployment. No cold-photo pass is claimed from source changes or unit tests. Physical-phone mobile-data and 100 controlled browser openings remain separate acceptance gates.

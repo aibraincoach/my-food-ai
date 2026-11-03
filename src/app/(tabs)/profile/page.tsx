@@ -1,3 +1,4 @@
+import { verifiedUserId } from "@/lib/auth/verified-user";
 import {openWeightsConfigured} from "@/lib/meta/open-weights";
 import IdentifyProviderSwitch from "./IdentifyProviderSwitch";
 import DesktopWorkspace from "@/components/DesktopWorkspace";
@@ -14,7 +15,8 @@ export default async function ProfilePage({searchParams}:{searchParams:Promise<{
   const {post}=await searchParams;
   await connection();
   const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const verified = await verifiedUserId();
+  const user = verified ? {id: verified} : (await supabase.auth.getUser()).data.user;
   if (!user) redirect("/sign-in");
   const [{ data: profile, error }, posts] = await Promise.all([
     supabase.from("profiles").select("handle").eq("id", user.id).single(),

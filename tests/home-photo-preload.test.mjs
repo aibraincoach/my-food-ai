@@ -42,15 +42,16 @@ test('actual middleware calls hint only for authenticated home and appends it to
   const response=new Response(null,{headers:{Link:'</existing>; rel=preconnect'}});let hints=0;
   const exports={};
   vm.runInNewContext(compiled,{exports,process:{env:{}},URL,require(name){
+   if(name==='@/lib/auth/verified-user-header')return {VERIFIED_USER_HEADER:'x-mfa-verified-user'};
    if(name==='@/lib/auth/media-session-epoch')return {mediaSessionEpoch:()=>null};
    if(name==='next/server')return {NextResponse:{redirect:()=>new Response(null,{status:307})}};
    if(name==='@supabase/ssr')return {createServerClient:()=>({auth:{getUser:async()=>({data:{user}}),getSession:async()=>({data:{session:null}})}})};
    if(name==='@/lib/auth/admin-access')return {};
-   if(name==='@/lib/auth/session-cookies')return {sessionCookieBridge:()=>({response,cookies:{},apply:r=>r})};
+   if(name==='@/lib/auth/session-cookies')return {sessionCookieBridge:()=>({response,cookies:{},apply:r=>r,refreshRequestHeaders:()=>{}})};
    if(name==='@/lib/posts/home-photo-preload')return {homePhotoPreload:async()=>{hints++;return '<test>; rel=preload';}};
    throw Error(name);
   }});
-  const result=await exports.middleware({url:`https://app.example${pathname}`,nextUrl:{pathname}});
+  const result=await exports.middleware({url:`https://app.example${pathname}`,nextUrl:{pathname},headers:new Headers()});
   assert.equal(hints,pathname==='/'&&user?1:0);
   if(hints){assert.equal(result.headers.get('link'),'</existing>; rel=preconnect, <test>; rel=preload');assert.equal(result.headers.get('cache-control'),'private, no-store');}
  }
