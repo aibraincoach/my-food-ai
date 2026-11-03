@@ -36,15 +36,16 @@ test('composer identify enforces caps and ownership, caches one model call, and 
   await cap(40);const denied=await request('/api/drinks/identify',{upload_id:id,position:0});assert.equal(denied.status,429);assert.ok(Number(denied.headers.get('Retry-After'))>=1);assert.equal(await count(),0);
   await cap(0);const response=await request('/api/drinks/identify',{upload_id:id,position:0});const reading=await response.json();assert.equal(response.status,200,JSON.stringify(reading));assert.equal(reading.allDrinks,true);assert.equal(reading.drinks[0].ml,300);assert.equal(await count(),1);
   const cached=await request('/api/drinks/identify',{upload_id:id,position:0});assert.equal(cached.status,200);assert.equal((await cached.json()).id,reading.id);assert.equal(await count(),1);
-  const correction={reading_id:reading.id,index:0,correction:{name:'Water, glass',pack_amount:360,pack_unit:'ml',per_100:{calories:0,protein_g:0,carbs_g:0,fat_g:0,fibre_g:0,sugar_g:0,sodium_mg:0}}};
+  const correction={reading_id:reading.id,index:0,correction:{name:'Water, glass',pack_amount:360,pack_unit:'ml',per_100:{calories:0.1,protein_g:null,carbs_g:0,fat_g:0,fibre_g:0,sugar_g:0,sodium_mg:0}}};
   const patch=session=>fetch(origin+'/api/drinks/identify',{method:'PATCH',headers:{Cookie:session,'Content-Type':'application/json'},body:JSON.stringify(correction)});
   assert.equal((await patch(other)).status,404);const corrected=await patch(cookie);assert.equal(corrected.status,200);assert.equal((await corrected.json()).drinks[0].ml,360);assert.equal(await count(),1);
-  const body={upload_id:id,caption:'Water',save_as_meal:false,location:null,readings:[{reading_id:reading.id,selections:[{index:0,ml:150}]}]};
+  const body={items:[{nutrition:{calories:999999}}],upload_id:id,caption:'Water',save_as_meal:false,location:null,readings:[{reading_id:reading.id,selections:[{index:0,ml:150}]}]};
   assert.equal((await request('/api/drinks/post',body,other)).status,404);
   const post=await request('/api/drinks/post',body),posted=await post.json();assert.equal(post.status,201,JSON.stringify(posted));assert.equal(posted.post_id,id);
   assert.equal(checked(await db.from('posts').select('id,status').eq('id',id).single()).status,'ready');
   const items=checked(await db.from('current_post_items').select('id,portion_text').eq('post_id',id));assert.equal(items.length,1);assert.equal(items[0].portion_text,'150 ml');
   assert.equal(checked(await db.from('intake_logs').select('ml').eq('post_id',id).single()).ml,150);
+  const nutrition=checked(await db.from('item_nutrition').select('calories').eq('post_item_id',items[0].id).single());assert.ok(Math.abs(Number(nutrition.calories)-0.15)<1e-9);const summary=checked(await db.from('post_comments').select('body').eq('post_id',id).eq('author','model').single()).body;assert.match(summary,/Consumed: <1 kcal/);assert.match(summary,/Nutrition unavailable: Water, glass/);
   assert.equal(checked(await db.from('post_media').select('position').eq('post_id',id).eq('kind','photo').single()).position,0);
   const retry=await request('/api/drinks/post',body);assert.equal(retry.status,201);assert.equal((await retry.json()).post_id,id);assert.equal(checked(await db.from('current_post_items').select('id').eq('post_id',id)).length,1);
   assert.equal(await count(),1);
