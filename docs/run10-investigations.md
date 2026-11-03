@@ -285,15 +285,28 @@ Read-only production measurements and designated test-account actions only. Unkn
 
 ## 7p. Visual reconciliation (#193/#353–#367)
 
-**Method** — gh issue list --state all --limit200 --json number,title,body,state and git show origin/run9/docs:docs/design/visual-pass.md at approximately09:00 UTC.
+**Method** — At11:01 UTC inspected `gh issue list --state all --limit200 --json number,title,state`, file lists for Fleet9 PRs345/346/347/352, and `git show origin/run9/docs:docs/design/visual-pass.md`. The latter is explicitly a partial pre-Fleet9 rendered comparison; changed paths below do not prove a rendered fix. Each Fleet10 fix/reconciliation has its own PR with reference/current evidence.
 
 **Result**
 
-| Measurement | Result |
-| --- | --- |
-| Visual issues initially open | 15 |
+| Issue | Title | Issue state | Fleet9 screen/path change | Fleet10 PR |
+| --- | --- | --- | --- | --- |
+| #353 | Reconcile auth screen differences with rounds 1–4 | open | No auth-screen file changed | #432 |
+| #354 | Reconcile feed notices and week strip with rounds 1–4 | open | Yes — #346 PostCard/summary | #431 |
+| #355 | Normalize post-detail nutrient rows and reconcile attribution/servings | open | Yes — #347 PostDetail/Thread | #412 |
+| #356 | Show drink volume and caffeine in saved meals | open | Data paths only — #347 saved filtering; no Saved layout fix | #410 |
+| #357 | Reconcile Days nutrition notice and story entry labels | open | Yes — #347 Days data filtering | #417 |
+| #358 | Reconcile additional Profile settings with the design | open | Yes — #347 Profile/Recently deleted | #430 |
+| #359 | Reconcile agent capability copy and desktop presentation | open | No agent-screen file changed; #347 agent operations changed | #416 |
+| #360 | Use screen-specific desktop shortcut legends | open | No Sidebar change | #415 |
+| #361 | Fix desktop drink search summaries and reconcile result composition | open | Shared summary helper changed by #346; no SearchBox layout change | #411 |
+| #362 | Reconcile composer photo grouping and upload states with rounds 3–4 | open | Yes — #345 capture hints/modes | #418 |
+| #363 | Reconcile desktop webcam and file-upload geometry with round 4 | open | Yes — #345 CaptureSheet, not desktop geometry | #404 |
+| #364 | Reconcile plus fan controls and pill treatment with round 2 | open | No plus-menu change | #405 |
+| #365 | Reconcile Log again picker layout with round 2 | open | No LogAgainSheet change | #406 |
+| #366 | Reconcile clarification sheet close and navigation treatment | open | No clarification presentation change | #403 |
+| #367 | Reconcile barcode and label result layouts with round 3 | open | Yes — #345 CaptureSheet hints/modes, not result layouts | #408 |
 
-**Answer** — The full visual backlog remains in scope; Fleet9 partial observations are not acceptance for Fleet10.
+**Answer** — All15 visual issues have individual Fleet10 fix or reconciliation PRs. Fleet9 touched several shared screen/data paths but did not establish final visual acceptance.
 
-**Unknown** — Per-issue current rendered comparison, separate fix PR and before/after page look remain required.
-
+**Unknown** — Final production rendered checks and issue closures remain pending. Newer owner issue #413 refers to Round6 desktop frames unavailable in the supplied reference archives; no Round6 match is claimed. The original plan's rounds1–4 comparison remains the documented reference scope.
