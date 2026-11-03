@@ -196,17 +196,26 @@ Read-only production measurements and designated test-account actions only. Unkn
 
 ## 7m. Secondary-account checks
 
-**Method** — Not yet completed. Local #400 test used disposable Supabase and removed its water row.
+**Method** — Designated test account2 on production at10:14–10:17 and10:26–10:28 UTC, before final Fleet10 deployment. Chromium390×844, CPU4×, actual DevTools Fast4G165ms/1,012,500 B/s down/168,750 B/s up. Explicit Asia/Tokyo timezone verified separately from geolocation. Real spaghetti fixture; synthetic camera used only for controls/hints. Stored instants, current item amounts and actual downloaded PNG rasters were inspected.
 
 **Result**
 
-| Measurement | Result |
-| --- | --- |
-| Local water-only reader regressions passed | 1 |
+| Check | Actual observation | Answer / remaining work |
+|---|---|---|
+| #175 Water tile | Water glass posted201, Edit time moved it to an otherwise empty Oct22. Days enabled that date, accessible label “2026-10-22, 1 post, 0 kcal”. | Exact plan date-visibility case passes. Dialog body was sampled before it appeared; no claim about its water total from that sample. Final runner now waits for the dialog. |
+| #175 stronger standalone intake | Owner-scoped250ml water row on otherwise emptyOct19, no post. Days button disabled, no drank label. | Baseline failure of standalone intake handling before#400; distinct from Water tile, which creates a post. |
+| #224 Tokyo clocks | Caption meal eaten_at08:57Z: feed/card/detail/Days5:57PM. Model comment created10:27:17Z: thread7:27PM. Each observed clock matched its own stored instant inTokyo. | Pass for these actual surfaces/instants. Initial run sampled clocks before hydration; that empty sample was a driver issue, not evidence of a clock defect. |
+| #223 edited caption | PATCH200; reload; exact edited caption visible on feed, detail, actual meal slide inDays andSearch. | Pass. Initial falseDays result inspected the summary slide; follow-up selected the meal. |
+| #29 caption-only | Actual CONSUMED129kcal card visible. | Pass. |
+| #29 photo/carousel/correction | Real photo ready; carousel contained photo, live314kcal results card and add-leftovers slide. Real touch gesture changed scroll position. “I ate half the spaghetti.” correction changed current item200g→100g and downloadedPNG314→157kcal. | Card update verified from actual changed raster, not stable mediaID. Swipe overshot the card to the add slide; final driver will target one slide precisely. |
+| #283 PNG | Actual signedStorage downloads were1080×1080. One-photo PNG55,276B, corrected55,408B, leftovers51,251B. Food/water/leftovers footer clipped horizontally beyond canvas in all three. | Real failure#421, fixPR#422. Before/after actual ImageResponse PNG and raster regression supplied. Final production download still required afterdeploy. |
+| #23 capture/thread/thumbs | Each first appeared inviewport, dismissal persisted, revisits0. | Pass for these three. |
+| #23 modes | Current deployed “Swipe to scan a barcode” tip appeared. Got it hid it, DBseenkeys never gainedmodes; revisitcount1. | Real failure#423. Migration0013 rejects modes;0042fixPR pending. Oldcopy mismatch initially hid this from driver. |
 
-**Answer** — Local water-only day data/owner isolation is proven; the production six-part matrix remains open.
 
-**Unknown** — Production #175/#224/#223/#29/#283/#23 checks, hint reset and exact test-post cleanup remain required.
+**Answer** — Caption propagation, tested clocks, results cards and three hint dismissals passed these baseline observations. Standalone intake dates, PNG clipping and modes-hint persistence exposed concrete defects addressed by #400, #422 and #425. The same spaghetti image marked as leftovers exercises footer mechanics only; it does not establish portion-estimation accuracy.
+
+**Unknown** — Final production repeat after all fixes remains required. Initial premature hydration reads and a Days summary-slide selection were driver errors; corrected observations above supersede them. Both runs removed only their tracked fixture posts/media/intake, restored prior preferences/hints, and verified cleanup with no issues. Private receipts are retained under ignored `uploads/run10-coffee-acceptance/`.
 
 ## 7n. Real matcher (#272)
 
