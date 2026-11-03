@@ -1,3 +1,4 @@
+import type {FoodRequest} from './food-request';
 import type { CapturedLocation } from '@/lib/location/capture';
 import type { PostOptions, UploadSnapshot } from './create';
 export interface StoredUpload {
@@ -13,6 +14,10 @@ export interface StoredUpload {
     snapshot: UploadSnapshot | null;
     posted: boolean;
     publishStarted?: boolean;
+    food?: FoodRequest;
+    cancelRequested?: boolean;
+    resultPostId?: string;
+    message?: string;
     state: 'uploading' | 'uploaded' | 'failed';
     error?: 'dropped' | 'too_large' | 'no_response';
     sent: number;

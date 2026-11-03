@@ -1,4 +1,5 @@
 'use client';
+import type {FoodRequest} from './food-request';
 import { createClient } from '@/lib/supabase/client';
 import { PostUploadDraft, type PostOptions } from './create';
 import { uploadStore, type StoredUpload } from './upload-store';
@@ -7,6 +8,9 @@ import type { CapturedLocation } from '@/lib/location/capture';
 import { PhotoUploadError, type UploadError } from '@/lib/media/put-with-progress';
 export interface UploadState {
     operationId: string;
+    kind?: "food";
+    removing?: boolean;
+    message?: string;
     uploadId?: string;
     sent: number;
     total: number;
@@ -42,12 +46,12 @@ export class UploadManager {
     private listeners = new Set<() => void>();
     private ownerId = '';
     private initializing: Promise<void> | null = null;
-    constructor(private store = uploadStore, private makeDraft = () => new PostUploadDraft(), private delay = pause) { }
+    constructor(private store = uploadStore, private makeDraft = () => new PostUploadDraft(), private delay = pause, private foodRequest: typeof fetch = (...args) => fetch(...args)) { }
     subscribe = (listener: () => void) => { this.listeners.add(listener); return () => { this.listeners.delete(listener); }; };
     private notify(entry?: Entry, event?: string) { for (const listener of this.listeners)
         listener(); if (entry && event && typeof window !== 'undefined')
         window.dispatchEvent(new CustomEvent(event, { detail: this.state(entry) })); }
-    private state(entry: Entry): UploadState { const d = entry.data; return { operationId: d.operationId, uploadId:d.snapshot?.id, caption: d.caption, eatenAt: d.eatenAt ?? new Date(d.createdAt).toISOString(), previewUrl: entry.previewUrl, sent: d.sent, total: d.total, state: d.state, error: d.error, posted: d.posted, ...(entry.finished ? { postId: d.snapshot?.id } : {}) }; }
+    private state(entry: Entry): UploadState { const d = entry.data; return { operationId: d.operationId, uploadId:d.snapshot?.id, caption: d.caption, eatenAt: d.eatenAt ?? new Date(d.createdAt).toISOString(), previewUrl: entry.previewUrl, sent: d.sent, total: d.total, state: d.state, error: d.error, posted: d.posted, ...(d.food?{kind:"food" as const,removing:d.cancelRequested,message:d.message}:{}), ...(entry.finished ? { postId: d.resultPostId??d.snapshot?.id } : {}) }; }
     list = () => [...this.entries.values()].filter(e => !e.deleted).sort((a, b) => b.data.createdAt - a.data.createdAt).map(e => this.state(e));
     fields(id:string):DraftFields|null { const data=this.entries.get(id)?.data; return data?{caption:data.caption,eatenAt:data.eatenAt,location:data.location,options:{...data.options}}:null; }
     newest() { return [...this.entries.values()].filter(e => !e.deleted && !e.data.posted).sort((a, b) => b.data.createdAt - a.data.createdAt)[0]?.data ?? null; }
@@ -115,10 +119,43 @@ export class UploadManager {
         return; Object.assign(entry.data, fields); void this.persist(entry); this.notify(entry, 'upload-progress'); }
     private persist(entry: Entry) { const snapshot = { ...entry.data, files: [...entry.data.files] }; const writing = entry.writing.catch(() => { }).then(() => { if (!entry.deleted && !entry.finished)
         return this.store.put(snapshot); }); entry.writing = writing; return writing; }
+    /** Close only after the owner selection/files are durable, then publish in
+     * the background. The same operation survives reload and a lost response. */
+    async postFood(food: FoodRequest, label: string, files: File[] = [], stagedId?: string) {
+        food={...food};
+        if (!this.ownerId) {
+            const {data:{user}}=await createClient().auth.getUser();
+            if(!user)throw new Error('Sign in to keep this food selection.');
+            this.ownerId=user.id;
+        }
+        let entry=stagedId?this.entries.get(stagedId):undefined;
+        if(entry&&(entry.finished||entry.data.posted||entry.data.ownerId!==this.ownerId||entry.data.files.length!==files.length||files.some((file,index)=>entry!.data.files[index]!==file)))entry=undefined;
+        if(!entry){
+            const now=Date.now(),id=crypto.randomUUID();
+            entry=this.make({operationId:id,ownerId:this.ownerId,createdAt:now,reservedAt:now,caption:label,eatenAt:food.eaten_at,location:null,options:{},files:[...files],snapshot:null,posted:true,food,state:'uploading',sent:0,total:'photo' in food?0:files.reduce((sum,file)=>sum+file.size,0)});
+            this.entries.set(id,entry);
+        }else{
+            Object.assign(entry.data,{food,caption:label,eatenAt:food.eaten_at,posted:true,state:'uploading',message:undefined});
+        }
+        await this.persist(entry);
+        if(entry.deleted||entry.data.ownerId!==this.ownerId)throw new Error('Sign-in changed. Your selection is kept for its original account.');
+        this.notify(entry,'upload-started');
+        if(entry.active)entry.rerun=true;
+        void this.run(entry);
+        return entry.data.operationId;
+    }
     post(id: string) { const entry = this.entries.get(id); if (!entry || entry.deleted)
         return; entry.data.posted = true; this.notify(entry, 'upload-started'); void this.run(entry); }
+    async discardFood(id:string){
+        const entry=this.entries.get(id);
+        if(!entry?.data.food||entry.deleted||entry.finished)return;
+        entry.data.cancelRequested=true;entry.data.state='uploading';entry.data.message=undefined;
+        try{await this.persist(entry);}catch{entry.data.state='failed';entry.data.message='The removal could not be kept on this phone. Try again.';this.notify(entry,'upload-failed');return;}
+        if(entry.deleted||entry.data.ownerId!==this.ownerId)return;
+        this.notify(entry,'upload-progress');if(entry.active)entry.rerun=true;void this.run(entry);
+    }
     retry(id: string) { const entry = this.entries.get(id); if (!entry || entry.deleted || entry.finished)
-        return; entry.data.state = 'uploading'; entry.data.error = undefined; this.notify(entry, 'upload-progress'); void this.run(entry); }
+        return; entry.data.state = 'uploading'; entry.data.error = undefined; entry.data.message=undefined; this.notify(entry, 'upload-progress'); void this.run(entry); }
     online = () => { for (const entry of this.entries.values())
         if (entry.data.state === 'failed')
             this.retry(entry.data.operationId); };
@@ -136,8 +173,22 @@ export class UploadManager {
         void task.then(settled, settled);
         return task;
     }
+    private async submitFood(entry: Entry): Promise<{postId:string}> {
+        const d=entry.data;
+        const prepared=Boolean(d.food&&'photo' in d.food);
+        const photo=prepared?null:d.files.length?d.snapshot?.images[0]:null;
+        if(d.files.length&&!prepared&&(!photo||!d.snapshot))throw new Error('The pack photo is not ready. Your selection is kept.');
+        const response=await this.foodRequest('/api/posts/food',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({...d.food,operation_id:d.operationId,owner_id:d.ownerId,...(photo&&d.snapshot?{photo:{path:this.ownerId+'/'+d.snapshot.id+'/0.jpg',width:photo.width,height:photo.height}}:{})})});
+        const result=await response.json().catch(()=>null) as {post_id?:string;error?:string}|null;
+        if(!response.ok||!result?.post_id){
+            d.message=typeof result?.error==='string'?result.error.slice(0,200):'The server did not respond. Your selection is kept.';
+            throw new Error(d.message);
+        }
+        return {postId:result.post_id};
+    }
     private async process(entry: Entry) {
         try {
+            if(entry.deleted||(entry.data.ownerId&&this.ownerId&&entry.data.ownerId!==this.ownerId))return;
             if (!this.ownerId) {
                 const { data: { user } } = await createClient().auth.getUser();
                 if (!user)
@@ -148,6 +199,15 @@ export class UploadManager {
             await this.persist(entry);
             if (entry.deleted)
                 return;
+            if(entry.data.food&&entry.data.cancelRequested){
+                const response=await this.foodRequest('/api/posts/food',{method:'DELETE',headers:{'Content-Type':'application/json'},body:JSON.stringify({operation_id:entry.data.operationId,owner_id:entry.data.ownerId})});
+                const body=await response.json().catch(()=>null) as {post_id?:string;error?:string}|null;
+                if(!response.ok){entry.data.message=body?.error??'The pending food could not be removed. Your selection is kept.';throw new Error(entry.data.message);}
+                if(entry.deleted)return;
+                await this.remove(entry.data.operationId);
+                if(body?.post_id&&typeof window!=='undefined')window.dispatchEvent(new CustomEvent('post-deleted',{detail:{id:body.post_id}}));
+                return;
+            }
             for (let attempt = 0; attempt < 3; attempt++) {
                 const version = entry.version;
                 try {
@@ -159,7 +219,7 @@ export class UploadManager {
                         this.attachSnapshot(entry);
                     }
                     const d = entry.data;
-                    if (d.files.length)
+                    if (d.files.length&&!(d.food&&'photo' in d.food))
                         await entry.draft.stage(d.caption, d.files, d.location, d.eatenAt, d.options);
                     if (entry.deleted)
                         return;
@@ -183,11 +243,12 @@ export class UploadManager {
                     await this.persist(entry);
                     if (entry.deleted)
                         return;
-                    const result = await entry.draft.submit(d.caption, d.files, d.location, d.eatenAt, d.files.length ? 'photo' : 'text', d.options);
+                    const result = d.food ? await this.submitFood(entry) : await entry.draft.submit(d.caption, d.files, d.location, d.eatenAt, d.files.length ? 'photo' : 'text', d.options);
                     if (entry.deleted)
                         return;
                     d.snapshot = await entry.draft.snapshot();
                     entry.finished = true;
+                    d.resultPostId=result.postId;
                     d.state = 'uploaded';
                     d.sent = d.total;
                     await entry.writing.catch(() => { });
