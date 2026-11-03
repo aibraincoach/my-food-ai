@@ -43,7 +43,10 @@ export async function postDrink(admin: SupabaseClient, userId: string, input: Dr
           ? { query: "Coffee, brewed, espresso, restaurant-prepared", match: /coffee.*espresso/i }
           : { query: "Coffee, brewed from grounds, prepared with tap water", match: /coffee,? brewed from grounds,? prepared with tap water/i };
     const foods = await searchFoods(admin, source.query);
-    const food = foods.find(f => source.match.test(f.description) && !/decaffeinated|diet|sugar.free/i.test(f.description));
+    const plain = (f: {description: string}) => !/decaffeinated|diet|sugar.free|milk|creamer|substitute|instant/i.test(f.description);
+    const kind = input.label.startsWith("Coca-Cola") ? /cola/i : input.label.startsWith("Tea") ? /\btea\b/i : input.label.startsWith("Espresso") ? /espresso/i : /coffee/i;
+    // Exact reference first; otherwise the first plain search result of the same drink (pre-Fleet 9 behaviour for coffee).
+    const food = foods.find(f => source.match.test(f.description) && plain(f)) ?? foods.find(f => kind.test(f.description) && plain(f));
     if (!food) throw new Error("Drink nutrition could not be found.");
     const n = scaleNutrition(food, input.ml);
     nutrition = { calories: n.calories, protein_g: n.proteinG, carbs_g: n.carbsG, fat_g: n.fatG, fibre_g: n.fibreG, sugar_g: n.sugarG, sodium_mg: n.sodiumMg,
