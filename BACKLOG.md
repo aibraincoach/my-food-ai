@@ -60,6 +60,12 @@ Adding a photo to an existing post, including a not-eaten plate, gives a desktop
 
 That flow keeps the old window, where "Choose from library" is hidden on desktop, so without a webcam the user sees only the camera area and nothing says that drag and drop or paste works. This predates PR #460. Done when, on desktop with no webcam, a photo can be added to an existing post from a file picker.
 
+### #473 The desktop Today column may not shrink at 1100 px wide
+
+The Today column beside the feed may keep a fixed width where it should shrink, so Home overflows sideways on a narrower window.
+
+In PR #462 the Today column sets a fixed width of 280 px and also a flexible width, and the review flagged that the fixed width may win. Nobody has checked the column at 1100 px. Done when Home at 1100 by 800 shows the feed and the Today column with no sideways scrolling.
+
 ## Engineering backlog
 
 ### #368 Sign-ins through the app may share one rate limit across every user
