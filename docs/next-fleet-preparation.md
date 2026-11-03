@@ -1,6 +1,6 @@
 # Next fleet preparation
 
-This is the handoff after the owner's ordered merges on November 3, 2026. It prepares the next fleet's documentation; it does not start a fleet or assign an execution scope. The owner is supplying a newer backlog. BACKLOG.md now holds the owner-supplied historical 22:48 WIB snapshot, copied without editing its wording or inserting issue numbers. The owner will supply a newer version later; this snapshot is not an execution order.
+This is the handoff after the owner's ordered merges on November 3, 2026. It prepares the next fleet's documentation; it does not start a fleet or assign an execution scope. The owner is supplying a newer backlog. The owner-supplied historical 22:48 WIB snapshot is preserved verbatim in [the snapshot archive](backlog-snapshots/2026-11-03-2248.md). A concurrent watch-agent update moved BACKLOG.md to a 22:54 WIB version; that remote work is preserved. The owner will supply a newer version later; neither snapshot starts a fleet.
 
 ## Confirmed repository and production baseline
 
@@ -34,7 +34,7 @@ No fleet has started from this document. No new deadline, design revision or exc
 
 ## Historical snapshot issue mapping
 
-BACKLOG.md preserves the supplied text, including four unnumbered headings and stale completion claims. Its UTF-8 bytes were compared against the supplied message body (backlog heading through the final backlog paragraph, with a terminal newline): exact match. SHA-256: `2b51c1029979950352dfb49d72760d481319e8b943bda047aab63974df249e2d`. Issue numbers are recorded here so its text is not altered.
+The archived 22:48 snapshot preserves the supplied text, including four unnumbered headings and stale completion claims. Its UTF-8 bytes were compared against the supplied message body (backlog heading through the final backlog paragraph, with a terminal newline): exact match. SHA-256: `2b51c1029979950352dfb49d72760d481319e8b943bda047aab63974df249e2d`. Issue numbers are recorded here so the archived text is not altered.
 
 | Supplied unnumbered title | Issue |
 | --- | --- |
@@ -44,3 +44,9 @@ BACKLOG.md preserves the supplied text, including four unnumbered headings and s
 | The recording account can hit the hourly model cap on camera | #467 |
 
 The first three relate to unmerged #462 and remain open. The recording-cap issue is recorded for planning; no production limit was changed. Existing #348/#351 and other historical entries were not reopened or treated as new execution orders. The fresh-main #450 acceptance result is [recorded separately](evidence/issue450-main/README.md): 567 passed / 0 failed / 6 existing skips, DB 32/32 and lint 0 errors / 6 warnings, all matching README. #450 is now closed. Its historical backlog text remains verbatim as the owner requested.
+
+### Concurrent update preserved
+
+While the fresh-main acceptance ran, watch-agent pushed commit `21e57fd0f326ff293a74b76c0fb732cf6581f453` to this same docs branch. It supplies a 22:54 BACKLOG.md with #468–#471. The coder merged that remote commit without overwriting it and archived the exact owner-supplied 22:48 version separately. The archive hash above still matches the supplied message.
+
+The four later issues duplicate the four earlier ones: #468/#464 (kcal grouping), #469/#465 (desktop dimensions), #470/#466 (attachment picker), #471/#467 (recording cap). All remain open for PM reconciliation; only #450 had an explicit closure order. No new scope or fleet start is inferred from the concurrent update.
