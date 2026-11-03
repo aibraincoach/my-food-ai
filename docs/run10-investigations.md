@@ -116,6 +116,8 @@ Read-only production measurements and designated test-account actions only. Unkn
 
 **Method** — Baseline three each actual production Photo Post, Barcode Post and food-search result taps, account1, Chromium131390×844 CPU4×, genuine Fast4G165ms/1,012,500 B/s down/168,750 B/s up. Capture-phase click clock through next animation frame after CaptureDialog removal; Blob upload bodies measured without altering requests. Canvas MediaStream supplied meal JPEG or synthetic UPC016000275683; no physical camera claim. Photo baseline10:49UTC atade5269; barcode10:52UTC atad8bf79; search10:54UTC atadf3d71, last search crossed deployment to6f6fe5f. Each actual trial's before/after full SHA is retained privately. Separately, #409 isolated shutter→visible frozen-pixel comparison used custom150ms/200000/93750network CPU4 with identical1280×960 source frames; Post publication blocked to isolate rendering.
 
+Final production follow-up used stable READY789c2b7 with before/after guards on every trial. Posting browser156; actual compositor camera browser131. GenuineFast4G+CPU4; allownedfixtures/receipts removed and prefs restored. [Final receipts, five real compositor PNGs and limits](evidence/run10-final7g/README.md).
+
 **Result**
 
 | Measurement | Result |
@@ -129,10 +131,17 @@ Read-only production measurements and designated test-account actions only. Unkn
 | Baseline cleanup audit including diagnostics | 16 tracked roots;0 remaining posts/jobs;0 cleanup issues |
 | Isolated before#409 frozen pixels,5 trials | 222.2 /258.7 /290.3 /413.4 /1045.9 ms |
 | Isolated after#409 frozen pixels,5 trials | 91.3 /63.9 /58.5 /76.7 /69.9 ms |
+| Final production PhotoPost close | 154.9 /46.3 /126.8ms;387058B/trial |
+| Final production BarcodePost close | 128.3 /151.8 /1136.6ms;19970B/trial,2PUTs |
+| Final production Foodsearch close | 169.1 /164.8 /135.1ms;0B |
+| Final actual shutter first-meal raster | 104.54 /87.21 /88.19 /91.27 /94.97ms,5/5<=300 |
+| Separately JPEG encoded | 551.2 /251.8 /415 /360.5 /412.9ms |
+| Real barcode panel / Found-product | 315.1ms /1154.7ms, genuinecachedlookup200 |
+| Final cleanup | 9posts+6foodreceipts absent; separatebarcode1stage absent;0issues |
 
-**Answer** — #409 removes JPEG encoding from the first-visible-preview path; all five controlled after samples were below300ms. Barcode and search still await database-backed publication in this baseline, causing seconds of delay; #433 durable pending publication has merged, with migration0043 applied12:25:54UTC. Disposable after timings are barcode176.5/75.6/92.2ms, search170.1/106.8/131.1ms and verifiedlabel105.8/107.9/125.7ms; these do not substitute for final production timing. [Methods and limits](evidence/run10-fix306/README.md).
+**Answer** — The actual compositor showed meal pixels before JPEG encoding completed, passing #370’s300ms first-photo condition5/5. All nine actual production posts reached ready and cleaned successfully. Barcode upload bodies fell from39940B/fourPUTs to19970B/twoPUTs; final Post-close ranges are photo46–155ms, barcode128–1137ms and search135–169ms.
 
-**Unknown** — Isolated rendering used a custom network profile, not the DevTools Fast4G preset; final genuine-preset shutter/barcode and post-close repeat remain required. The barcode pack fixture is small, and cached model/data services may be warm. Baseline search crossed a deployment; no stable-head final acceptance is inferred. Initial diagnostic runs and incomplete search setup are retained separately, never substituted for accepted trials.
+**Unknown** — The1136.6ms barcode-close outlier is retained and unexplained; no every-Post-below300ms claim. Item6’s explicit300ms threshold concerns first photo pixels, not Post-close. Posting156 and camera131 differ, and baseline-versus-final comparisons are descriptive rather than a same-browser causal benchmark. Physical cameras remain unproven. Product resolution latency is separate from panel opening. Baseline search crossed a deployment and is not substituted for stable-head final acceptance.
 
 ## 7h. Feed opening (#222/#372/#322/#323/#324)
 
