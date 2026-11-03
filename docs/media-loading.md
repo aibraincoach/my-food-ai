@@ -154,3 +154,15 @@ Observed 2026-11-03T09:16:01.168Z in Chromium390×844 with a custom network prof
 | after | 3 | memory cache | 0 |
 
 The old-header production run also transferred zero bytes, so this experiment does not reproduce Cookie-induced refetching or establish a measured improvement. The planned header change ships independently of the measurement. The preview after run measured head `721f3daa389f52c81319225a0a2cf391989e9b9a`. A repeat on the merged production revision remains required before issue closure.
+
+### Correct-preset pre-change repeat
+
+At2026-11-03T11:36:34.950Z, reran the three-image HTTP-cache probe against the exact pre-#391 immutable deployment at `bf6d7f6dd3659c54ba6a59ec2189bfe132c5d1ec`, READY. Chromium390×844, actual Fast4G165ms/1,012,500 B/s down/168,750 B/s up; service workers blocked. The deployment-protection bypass was used only for an own-origin bootstrap request, then an origin-scoped cookie; no global header or sign-in form probe. The normal Profile/Home session refresh changed the Auth cookie.
+
+| Pre-change photo | Source after refresh | Network bytes |
+| --- | --- | ---: |
+| 1 | memory cache | 0 |
+| 2 | memory cache | 0 |
+| 3 | memory cache | 0 |
+
+This confirms the earlier failure-to-reproduce result at the correct requested preset. The images are real owner-scoped media URLs rendered in a temporary image probe; this is not a claim of a natural-scroll measurement. Final production natural-scroll measurements are still pending in this draft. No cache improvement is inferred from these zero-byte pre-change observations.
