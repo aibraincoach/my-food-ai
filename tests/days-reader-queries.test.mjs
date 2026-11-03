@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import {createClient} from '@supabase/supabase-js';
 import {getDays} from '../src/lib/posts/days.ts';
+import {getCurrentItems} from '../src/lib/nutrition/totals.ts';
 
 const nutrients={calories:100,protein_g:5,carbs_g:10,fat_g:4,fibre_g:2,sugar_g:1,sodium_mg:20};
 function rows(count) {
@@ -57,4 +58,33 @@ test('photo signing failure retains meals and unknown nutrition remains unavaila
  assert.equal(days[0].posts[0].photoUrl,null);
  assert.equal(days[0].totals.calories,null);
  assert.deepEqual(days[0].totals.missing.calories,['Rice']);
+});
+
+
+test('caption-only meals retain their day and nutrition without a photo',async()=>{
+ const data=rows(1);data[0].post_media=[];
+ const {db,calls}=client(data);
+ const days=await getDays(db,'u','UTC','2026-11-01','2026-11-30');
+ assert.equal(days[0].posts.length,1);assert.equal(days[0].posts[0].photoUrl,null);
+ assert.equal(days[0].totals.calories,100);
+ assert.ok(!calls.some(call=>call.path.startsWith('/storage/')));
+});
+
+test('explicit NULL leftover calories match the legacy reader rather than inventing an ancestor value',async()=>{
+ const data=rows(1),item=data[0].current_post_items[0];
+ item.not_eaten_grams=100;item.not_eaten_calories=null;item.supersedes='original';
+ const old=createClient('https://fixture.invalid','fixture',{global:{fetch:async input=>{
+  const url=new URL(input instanceof Request?input.url:String(input));
+  if(url.pathname==='/rest/v1/current_post_items'){
+   const {post_id:_post,item_nutrition:_nutrition,created_at:_created,...fields}=item;
+   void _post;void _nutrition;void _created;return Response.json([fields]);
+  }
+  if(url.pathname==='/rest/v1/item_nutrition')return Response.json(item.item_nutrition);
+  if(url.pathname==='/rest/v1/post_items')return Response.json([{id:'original',portion_grams:200,item_nutrition:[{...item.item_nutrition[0],calories:200}]}]);
+  throw Error('unexpected legacy read');
+ }}});
+ const legacy=await getCurrentItems(old,'p0');
+ const {db}=client(data);const days=await getDays(db,'u','UTC','2026-11-01','2026-11-30');
+ assert.equal(legacy[0].not_eaten_calories,null);
+ assert.deepEqual(days[0].posts[0].items,legacy);
 });
