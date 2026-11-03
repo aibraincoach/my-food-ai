@@ -58,7 +58,7 @@ export function ResultsCard({ data, drink, unavailable = [], time, calories = nu
         {split(card.hydration?.foodMl ?? 0, 'from food')}
         {(card.caffeineMg ?? 0) > 0 ? split(card.hydration?.caffeineMg ?? 0, 'caffeine') : null}
       </div>
-    </div> : <>
+    </div> : <div style={{ display: 'flex', flexDirection: 'column', gap: 16 * scale }}>
       <div style={{ display: 'flex', gap: tokens.spacing['macro-gap'] * scale, ...text('body') }}>
         {macro(card.macros?.protein, 'protein')}{macro(card.macros?.carbs, 'carbs')}{macro(card.macros?.fat, 'fat')}
       </div>
@@ -69,6 +69,6 @@ export function ResultsCard({ data, drink, unavailable = [], time, calories = nu
         {card.waterLine ? <div style={{ display: 'flex' }}>{card.waterLine}</div> : null}
         {card.footer ? <div style={{ display: 'flex' }}>{card.footer}</div> : null}
       </div>
-    </>}
+    </div>}
   </div>;
 }
