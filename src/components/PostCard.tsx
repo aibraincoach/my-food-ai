@@ -59,6 +59,7 @@ function StatusLine({ post }: { post: FeedPost }) {
   return <div className="flex flex-col gap-2" role="status" aria-label="Processing">
     <Shimmer width={tokens.spacing.tap * 5} />
     <Shimmer width={tokens.spacing['table-row'] * 10} />
+    {(post as FeedPost & { fail_reason?: string | null }).fail_reason==='fdc: rate limited'&&<p className="text-detail text-muted">The food database was busy. Retrying automatically.</p>}
     <p className="text-meta text-faint">Processing, traffic {traffic}</p>
   </div>;
 }

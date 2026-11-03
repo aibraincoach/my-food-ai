@@ -34,6 +34,11 @@ begin
   update public.jobs set status='finished',finished_at=clock_timestamp(),error='Superseded rate-limited job' where id=p_job_id;
   return;
  end if;
+ if owns and current_job.kind<>'card_backfill' then
+  -- Fixed public state, never provider diagnostics. claim_post_job clears it
+  -- when the deferred attempt actually becomes eligible and starts again.
+  update public.posts set fail_reason='fdc: rate limited' where id=current_job.post_id;
+ end if;
  update public.jobs set status='queued',started_at=null,finished_at=null,error=p_message,
   attempts=greatest(attempts-1,0),run_after=greatest(p_retry_at,clock_timestamp()+interval '1 second') where id=p_job_id;
 end $$;
