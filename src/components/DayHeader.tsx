@@ -17,8 +17,9 @@ export default function DayHeader({ day, zone, empty, total }: { day: string; zo
   const older = new Date(`${day}T12:00:00Z`) < new Date(`${Number(today.slice(0,4))-1}${today.slice(4)}T12:00:00Z`);
   const label = new Intl.DateTimeFormat("en-US", { timeZone: "UTC", weekday: "long", month: "short", day: "numeric", ...(older ? {year: "numeric"} : {}) }).format(new Date(`${day}T12:00:00Z`));
   return <>
+    <div className="desktop-day-rule hidden desktop:flex desktop:items-center desktop:gap-3 desktop:pt-8 desktop:pb-1 desktop:text-[13px]"><span className="font-semibold">{label}</span><span className="h-px flex-1 bg-hairline"/><span className="text-muted tabular-nums">{empty?'No posts':total?.ready?`Consumed: ${total.kcal===null?'unavailable':Math.round(total.kcal).toLocaleString('en-US')} kcal${total.missing?.length?'*':''}`:''}</span></div>
     <div ref={sentinel} aria-hidden="true" style={{height: tokens.border.hairline}} />
-    <header className={`sticky z-10 flex h-10 items-center justify-between border-y border-hairline bg-surface px-inset ${empty ? "text-faint" : "text-text"} ${stuck ? "stuck" : ""}`}
+    <header className={`desktop:hidden sticky z-10 flex h-10 items-center justify-between border-y border-hairline bg-surface px-inset ${empty ? "text-faint" : "text-text"} ${stuck ? "stuck" : ""}`}
       style={{top: `calc(${tokens.spacing['top-h']}px + env(safe-area-inset-top))`, boxShadow: stuck ? tokens.colors['shadow-stuck'] : undefined}}>
       <div className="flex items-baseline gap-2"><span className="text-handle">{relative ?? label}</span>{relative ? <span className={`text-meta ${empty ? "text-faint" : "text-muted"}`}>{label}</span> : null}</div>
       <span className={`text-meta tabular-nums ${empty ? "text-faint" : "text-muted"}`}>{empty ? "No posts" : total?.ready ? `Consumed: ${total.kcal === null ? "unavailable" : Math.round(total.kcal).toLocaleString("en-US")} kcal${total.missing?.length?"*":""}` : ""}</span>

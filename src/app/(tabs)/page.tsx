@@ -1,6 +1,7 @@
 /* eslint-disable @next/next/no-img-element -- Private signed photos bypass paid optimization. */
 import { verifiedUserId } from "@/lib/auth/verified-user";
 import CleanFreshMarker from "@/components/CleanFreshMarker";
+import DesktopToday from '@/components/DesktopToday';
 import DesktopWorkspace from '@/components/DesktopWorkspace';
 import PostDetail from '@/components/PostDetail';
 import SavedMealsButton from '@/components/SavedMealsButton';
@@ -118,7 +119,7 @@ async function HomeFeed() {
 
 export default async function Home({searchParams}:{searchParams:Promise<{post?:string}>}) {
   const {post}=await searchParams;
-  return <DesktopWorkspace detail={post?<PostDetail id={post}/>:undefined}><main className="flex flex-1 flex-col"><CleanFreshMarker />
+  return <DesktopWorkspace width={844} detail={post?<PostDetail id={post} desktopModal/>:undefined}><div className="desktop:flex desktop:items-start desktop:gap-16"><main className="flex flex-1 flex-col desktop:w-[500px] desktop:min-w-0 desktop:shrink-0"><CleanFreshMarker />
     <header className="desktop:hidden sticky top-0 z-20 flex h-top-safe items-center bg-surface px-inset"><h1 className="flex-1 text-title">My Food AI</h1><SavedMealsButton/></header>
     <NeedsInputStrip />
     <Suspense fallback={<div className="h-bar-h" />}><HomeDays /></Suspense>
@@ -130,5 +131,5 @@ export default async function Home({searchParams}:{searchParams:Promise<{post?:s
       <Suspense fallback={null}><HomeFirstPhoto /></Suspense>
       <Suspense fallback={null}><HomeFeed /></Suspense>
     </div>
-  </main></DesktopWorkspace>;
+  </main><DesktopToday/></div></DesktopWorkspace>;
 }

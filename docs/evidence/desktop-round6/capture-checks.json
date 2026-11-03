@@ -1,0 +1,27 @@
+{
+  "report": [
+    {
+      "kind": "no-camera",
+      "passed": true
+    },
+    {
+      "kind": "space",
+      "passed": true
+    },
+    {
+      "kind": "files",
+      "passed": true
+    },
+    {
+      "kind": "drop",
+      "passed": true
+    },
+    {
+      "kind": "paste",
+      "passed": true
+    }
+  ],
+  "controlledPostRefusals": 4,
+  "modelRequestsBlocked": 0,
+  "backendPostsCreated": 0
+}

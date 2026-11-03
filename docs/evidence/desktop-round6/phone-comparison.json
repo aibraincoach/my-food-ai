@@ -1,0 +1,42 @@
+{
+  "main": "63f9e817e4d8055ab7c7c336a9edf99706875ebf",
+  "viewport": {
+    "width": 390,
+    "height": 844
+  },
+  "timezone": "Asia/Tokyo",
+  "cameraVideoMasked": true,
+  "rows": [
+    {
+      "route": "Home",
+      "changedPixels": 0,
+      "pixels": 329160
+    },
+    {
+      "route": "Days",
+      "changedPixels": 0,
+      "pixels": 329160
+    },
+    {
+      "route": "Search",
+      "changedPixels": 0,
+      "pixels": 329160
+    },
+    {
+      "route": "Profile",
+      "changedPixels": 0,
+      "pixels": 329160
+    },
+    {
+      "route": "Post detail",
+      "changedPixels": 0,
+      "pixels": 329160
+    },
+    {
+      "route": "Capture",
+      "changedPixels": 0,
+      "pixels": 329160
+    }
+  ],
+  "method": "Same designated account, local main and branch; worker tick stubbed; SW blocked; fonts settled; dev indicator hidden. Home repeated with the same time-zone cookie after its first capture raced zone reconciliation."
+}

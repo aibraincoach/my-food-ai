@@ -1,4 +1,5 @@
 "use client";
+import DesktopDays from '@/components/DesktopDays';
 import {useDesktop} from "@/lib/ui/use-desktop";
 
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -31,6 +32,7 @@ export default function DaysView({ initialMonths, earliest, today, zone, initial
   const [menuError, setMenuError] = useState("");
   const [menuLoading, setMenuLoading] = useState(false);
   const dayRequest = useRef(0);
+  const openingDay=useRef<string|null>(null);
   const retry = useRef<(() => void) | null>(null);
   const activeRef = useRef<LoggedDay | null>(initialDay ?? null);
   const previousInitialMonths = useRef(initialMonths);
@@ -70,6 +72,8 @@ export default function DaysView({ initialMonths, earliest, today, zone, initial
   }, []);
   const openDay = useCallback(async function requestDay(date: string, updateUrl = true): Promise<void> {
     if (!validDate(date) || date > today) return;
+    if(matchMedia('(min-width:1024px)').matches&&openingDay.current===date)return;
+    openingDay.current=date;
     const request = ++dayRequest.current;
     setLoadingDay(true); setError("");
     try {
@@ -86,7 +90,7 @@ export default function DaysView({ initialMonths, earliest, today, zone, initial
         setError(failure instanceof Error ? failure.message : "The day could not be loaded.");
       }
     }
-    finally { if (request === dayRequest.current) setLoadingDay(false); }
+    finally { if (request === dayRequest.current) {openingDay.current=null;setLoadingDay(false);} }
   }, [today, url, loadThrough, scrollMonth]);
   useEffect(()=>{
     const refresh=()=>{
@@ -191,10 +195,12 @@ export default function DaysView({ initialMonths, earliest, today, zone, initial
     finally { setLoadingMonth(false); }
   };
   const close = () => {
+    if(matchMedia('(min-width:1024px)').matches){setDesktopStory(false);window.history.replaceState(null,'',url('/days'));if(selected)requestAnimationFrame(()=>document.querySelector<HTMLElement>(`[data-day="${selected}"]`)?.focus({preventScroll:true}));return;}
     setDesktopStory(false);dayRequest.current++; activeRef.current = null; setActive(null); setLoadingDay(false);
     window.history.replaceState(null, "", url("/days"));
     if (selected) requestAnimationFrame(() => document.querySelector<HTMLElement>(`[data-day="${selected}"]`)?.focus({ preventScroll: true }));
   };
+  if(desktop)return <main className="flex flex-1 flex-col"><DesktopDays months={months} today={today} earliest={earliest} zone={zone} selected={selected} active={active} onDay={date=>{if(activeRef.current?.date!==date)void openDay(date);}} onMonth={loadMonth} onOpen={date=>{void openDay(date,false).then(()=>{if(activeRef.current?.date===date){setDesktopStory(true);window.history.pushState(null,'',url(`/days/${date}`));}});}}/>{loadingDay?<p role="status" className="px-8">Loading day…</p>:null}{error?<p role="alert" className="px-8">{error}</p>:null}{active&&desktopStory?<StoryPlayer key={active.date} day={active} zone={zone} onClose={close} onDay={date=>void openDay(date)} cell={()=>document.querySelector<HTMLElement>(`[data-day="${active.date}"]`)?.getBoundingClientRect()}/>:null}</main>;
   return <main className="flex flex-1 flex-col desktop:mx-auto desktop:w-full desktop:max-w-[1112px] desktop:px-4 desktop:pt-8">
     <TopBar className="sticky top-0 z-10 bg-surface desktop:hidden" title={<h1 className="text-month">Days</h1>}
       left={<Link href="/" className="flex min-h-tap items-center text-body" style={{ marginLeft: -tokens.spacing["tooltip-y"] }}><Icon name="back" size={tokens.radii.pill} strokeWidth={tokens.icon.strongStroke} />Feed</Link>}

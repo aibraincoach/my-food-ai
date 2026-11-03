@@ -1,0 +1,86 @@
+{
+  "rows": [
+    {
+      "frame": "6a",
+      "box": {
+        "x": 338,
+        "y": 24,
+        "width": 500,
+        "height": 4224.6875
+      },
+      "viewportOverflow": false
+    },
+    {
+      "frame": "6b",
+      "box": {
+        "x": 140,
+        "y": 60,
+        "width": 1000,
+        "height": 680
+      },
+      "viewportOverflow": false
+    },
+    {
+      "frame": "6b-edit",
+      "box": {
+        "x": 400,
+        "y": 142.15625,
+        "width": 480,
+        "height": 515.6875
+      },
+      "viewportOverflow": false
+    },
+    {
+      "frame": "6c",
+      "box": {
+        "x": 160,
+        "y": 90,
+        "width": 960,
+        "height": 620
+      },
+      "viewportOverflow": false
+    },
+    {
+      "frame": "6d",
+      "box": {
+        "x": 240,
+        "y": 0,
+        "width": 1040,
+        "height": 800
+      },
+      "viewportOverflow": false
+    },
+    {
+      "frame": "6e",
+      "box": {
+        "x": 400,
+        "y": 24,
+        "width": 720,
+        "height": 1046.890625
+      },
+      "viewportOverflow": false
+    },
+    {
+      "frame": "6f",
+      "box": {
+        "x": 350,
+        "y": 24,
+        "width": 820,
+        "height": 13732.421875
+      },
+      "viewportOverflow": false
+    },
+    {
+      "frame": "agent",
+      "box": {
+        "x": 400,
+        "y": 108.5,
+        "width": 480,
+        "height": 583
+      },
+      "viewportOverflow": false
+    }
+  ],
+  "errors": [],
+  "identityMasked": "Account-name text made invisible before capture; geometry retained. No token was created."
+}

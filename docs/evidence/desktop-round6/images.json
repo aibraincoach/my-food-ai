@@ -1,0 +1,42 @@
+[
+  {
+    "file": "6a.png",
+    "bytes": 52446,
+    "sha256": "ebd6f8b9540b6b76e33e7eef35922cacd1b67b1ba045f157b86ec7c2d819e39b"
+  },
+  {
+    "file": "6b-edit.png",
+    "bytes": 440398,
+    "sha256": "3b0d75ff12cd984d65a22bb64daec3ee1be78ce8ebc91b70ee3605d5fba47e76"
+  },
+  {
+    "file": "6b.png",
+    "bytes": 782175,
+    "sha256": "c11aa39776c83a5d69cd3e39c90cc4fed138f5afb90c1cb3378f4d51c7a1c4f8"
+  },
+  {
+    "file": "6c.png",
+    "bytes": 186942,
+    "sha256": "7e9547afb70723cfb6d6e79c78ac6439122d45a2f365c7b7c2060370fb6bac45"
+  },
+  {
+    "file": "6d.png",
+    "bytes": 108926,
+    "sha256": "9cdc108171081178cd73797ba2dc632bdc419805d92028bfd8f40eeac14ad262"
+  },
+  {
+    "file": "6e.png",
+    "bytes": 112967,
+    "sha256": "f946813139278ff61724beebd926355fdeba3ac3994e5ec1cbf53a15d6a952b4"
+  },
+  {
+    "file": "6f.png",
+    "bytes": 704267,
+    "sha256": "8ac8e0e82f98e4552690842ce32b9bdd4d345bc79129096d24758b8a05a3dfff"
+  },
+  {
+    "file": "agent.png",
+    "bytes": 40041,
+    "sha256": "0ed23113a0c6a22df43e2a07194c3c90f7011708ab82242aa89b7cf8e97bbbeb"
+  }
+]
