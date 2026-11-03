@@ -1,0 +1,206 @@
+
+> my-food-ai@0.1.0 test:db
+> node scripts/test.mjs --db
+
+TAP version 13
+# Subtest: post response starts analysis without a manual worker call
+ok 1 - post response starts analysis without a manual worker call
+  ---
+  duration_ms: 1534.129664
+  type: 'test'
+  ...
+# Subtest: agent token RLS, revocation, attribution and rate gates
+ok 2 - agent token RLS, revocation, attribution and rate gates
+  ---
+  duration_ms: 141.754497
+  type: 'test'
+  ...
+# Subtest: ordinary account signs in and reads its profile
+ok 3 - ordinary account signs in and reads its profile
+  ---
+  duration_ms: 220.998617
+  type: 'test'
+  ...
+# Subtest: composer drink publication is owner-scoped, atomic, idempotent and scales the chosen item nutrients
+ok 4 - composer drink publication is owner-scoped, atomic, idempotent and scales the chosen item nutrients
+  ---
+  duration_ms: 264.760864
+  type: 'test'
+  ...
+# Subtest: copy receipts keep one owned drink snapshot across retry, source deletion and cancellation
+ok 5 - copy receipts keep one owned drink snapshot across retry, source deletion and cancellation
+  ---
+  duration_ms: 56.625343
+  type: 'test'
+  ...
+# Subtest: water without a meal appears in day and month readers
+ok 6 - water without a meal appears in day and month readers
+  ---
+  duration_ms: 581.500949
+  type: 'test'
+  ...
+# Subtest: correction and leftovers removal enforce ownership and photo type
+ok 7 - correction and leftovers removal enforce ownership and photo type
+  ---
+  duration_ms: 361.840561
+  type: 'test'
+  ...
+# Subtest: drink intent receipts preserve owner, two taps, atomic intake/photo publication and cancellation
+ok 8 - drink intent receipts preserve owner, two taps, atomic intake/photo publication and cancellation
+  ---
+  duration_ms: 229.946065
+  type: 'test'
+  ...
+# Subtest: all six server drink tiles and legacy Water commit matching posts and intake rows atomically
+ok 9 - all six server drink tiles and legacy Water commit matching posts and intake rows atomically
+  ---
+  duration_ms: 536.379913
+  type: 'test'
+  ...
+# Subtest: water guard rejects arbitrary or null labels, caffeine and out-of-bounds inputs before any write
+ok 10 - water guard rejects arbitrary or null labels, caffeine and out-of-bounds inputs before any write
+  ---
+  duration_ms: 176.619415
+  type: 'test'
+  ...
+# Subtest: feedback route conceals other owners, returns current stale revision and saves current feedback
+ok 11 - feedback route conceals other owners, returns current stale revision and saves current feedback
+  ---
+  duration_ms: 755.520705
+  type: 'test'
+  ...
+# Subtest: food receipts are atomic, owner-only, idempotent and tombstone removed posts
+ok 12 - food receipts are atomic, owner-only, idempotent and tombstone removed posts
+  ---
+  duration_ms: 53.012452
+  type: 'test'
+  ...
+# Subtest: all four hint dismissals persist once, retain existing keys and stay owner scoped
+ok 13 - all four hint dismissals persist once, retain existing keys and stay owner scoped
+  ---
+  duration_ms: 25.290196
+  type: 'test'
+  ...
+# Subtest: a fresh local scripted-Meta meal commits its model with nutrition and exposes that identity to its owner
+ok 14 - a fresh local scripted-Meta meal commits its model with nutrition and exposes that identity to its owner
+  ---
+  duration_ms: 1216.723544
+  type: 'test'
+  ...
+# Subtest: committed model identity is atomic, replay-safe, job-fenced and service-managed
+ok 15 - committed model identity is atomic, replay-safe, job-fenced and service-managed
+  ---
+  duration_ms: 42.502578
+  type: 'test'
+  ...
+# Subtest: manual intake cannot reserve another owners item link; worker sync remains authoritative
+ok 16 - manual intake cannot reserve another owners item link; worker sync remains authoritative
+  ---
+  duration_ms: 45.589272
+  type: 'test'
+  ...
+# Subtest: live renewal extends the lease past its original expiry and rejects wrong/expired owners
+ok 17 - live renewal extends the lease past its original expiry and rejects wrong/expired owners
+  ---
+  duration_ms: 3021.218947
+  type: 'test'
+  ...
+# Subtest: rate-limit requeue preserves Retry-After and does not consume a failed attempt
+ok 18 - rate-limit requeue preserves Retry-After and does not consume a failed attempt
+  ---
+  duration_ms: 16.995742
+  type: 'test'
+  ...
+# Subtest: a superseded job cannot requeue itself over newer post work
+ok 19 - a superseded job cannot requeue itself over newer post work
+  ---
+  duration_ms: 24.90268
+  type: 'test'
+  ...
+# Subtest: identify preference defaults off and is scoped to the authenticated owner without role escalation
+ok 20 - identify preference defaults off and is scoped to the authenticated owner without role escalation
+  ---
+  duration_ms: 29.439723
+  type: 'test'
+  ...
+# Subtest: SQL progress is job-fenced, terminal-cleared, service-only and owner-readable
+ok 21 - SQL progress is job-fenced, terminal-cleared, service-only and owner-readable
+  ---
+  duration_ms: 27.25042
+  type: 'test'
+  ...
+# Subtest: concurrent nutrition completions preserve each other and NULL jobs cannot write
+ok 22 - concurrent nutrition completions preserve each other and NULL jobs cannot write
+  ---
+  duration_ms: 309.289584
+  type: 'test'
+  ...
+# Subtest: claim_job orders eligible rows by priority, age and ID
+ok 23 - claim_job orders eligible rows by priority, age and ID
+  ---
+  duration_ms: 26.219508
+  type: 'test'
+  ...
+# Subtest: drainOnce finishes ten isolated fixture jobs without claiming other work
+ok 24 - drainOnce finishes ten isolated fixture jobs without claiming other work
+  ---
+  duration_ms: 706.60334
+  type: 'test'
+  ...
+# Subtest: second ordinary user cannot read another user’s post or child rows
+ok 25 - second ordinary user cannot read another user’s post or child rows
+  ---
+  duration_ms: 587.809938
+  type: 'test'
+  ...
+# Subtest: saved Coffee preserves original intake after source deletion and rejects another owner
+ok 26 - saved Coffee preserves original intake after source deletion and rejects another owner
+  ---
+  duration_ms: 496.757673
+  type: 'test'
+  ...
+# Subtest: soft delete hides owned records and drink totals, retains data, and restores only within the owner window
+ok 27 - soft delete hides owned records and drink totals, retains data, and restores only within the owner window
+  ---
+  duration_ms: 486.509036
+  type: 'test'
+  ...
+# Subtest: purge cascades 31-day records and queues storage cleanup, leaving 29-day records
+ok 28 - purge cascades 31-day records and queues storage cleanup, leaving 29-day records
+  ---
+  duration_ms: 160.708104
+  type: 'test'
+  ...
+# Subtest: unmark retains the owned photo and queues one rebuild; other users cannot unmark
+ok 29 - unmark retains the owned photo and queues one rebuild; other users cannot unmark
+  ---
+  duration_ms: 609.994919
+  type: 'test'
+  ...
+# Subtest: hourly account caps enforce each boundary, isolate accounts/routes, expire old rows, and deny client access
+ok 30 - hourly account caps enforce each boundary, isolate accounts/routes, expire old rows, and deny client access
+  ---
+  duration_ms: 69.735877
+  type: 'test'
+  ...
+# Subtest: cap response carries the next-hour wait and fails open without exposing diagnostics
+ok 31 - cap response carries the next-hour wait and fails open without exposing diagnostics
+  ---
+  duration_ms: 5.623274
+  type: 'test'
+  ...
+# Subtest: each spending route allows its final slot then refuses before invalid input can spend credit
+ok 32 - each spending route allows its final slot then refuses before invalid input can spend credit
+  ---
+  duration_ms: 2537.41969
+  type: 'test'
+  ...
+1..32
+# tests 32
+# suites 0
+# pass 32
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 22071.191385
