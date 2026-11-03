@@ -153,12 +153,14 @@ Read-only production measurements and designated test-account actions only. Unkn
 | Vercel runtime access | 403 Forbidden |
 | Exact pre-#391 cache probe at11:45UTC, bf6d7f6 | Actual access token rotated;3 photos each memorycache0bytes at genuineFast4G |
 | Separate actual GET tick pair,11:09:48UTC, READYe074235 | HTTP200,0.612575s then0.218436s |
+| Natural production session refresh,12:42UTC, READY66f7f8e | Actual token rotated;3 natural rendered photos each memorycache0bytes, genuineFast4G |
+| Phone NeedsInputStrip origin diagnostic, READYf8b0324 | 3 actual40px thumbnails used signed JPEGs totaling497591B; source confirmed NeedsInputStrip, not prefetch |
 | Exact Auth-only preview | 1 Auth request/page in3 opens |
 | Exact day-read preview | 0 direct day reads,1 document/0RSC refreshes in5 opens;20 regressions pass |
 
 **Answer** — Controlled opening was reliable, but it repeated identity/day reads and used about801KB of first-five JPEG body data. #414 fixes legacy photo routing, #428 shares verified browser Auth reads, and #429 reuses verified per-post day contributions while preserving mutation/readiness refreshes.
 
-**Unknown** — Photo body bytes are not total billed egress; page transfer0 does not establish zero worker traffic, and the worker observer can miss pre-attach traffic. Browser cold cache does not prove a cold function instance; runtime correlation was refused. The separate tick pair was not immediate post-READY and does not prove a cold instance. Final stable production repeat, ordinary tick call counts, real post-READY first/subsequent GET timings and natural small-route photo/session-refresh bytes remain pending. The baseline intercepted tick and must not be represented as an unmodified production opening.
+**Unknown** — Photo body bytes are not total billed egress; page transfer0 does not establish zero worker traffic, and the worker observer can miss pre-attach traffic. Browser cold cache does not prove a cold function instance; runtime correlation was refused. The separate tick pair was not immediate post-READY and does not prove a cold instance. Final stable production repeat, ordinary tick call counts, real post-READY first/subsequent GET timings and final first-five natural photo bytes remain pending; the separate12:42 natural session-refresh check passed3/3 memorycache0bytes. The baseline intercepted tick and must not be represented as an unmodified production opening.
 
 ## 7i. Last feed (#304)
 
@@ -176,7 +178,7 @@ Read-only production measurements and designated test-account actions only. Unkn
 | Owned app/profile cleanup | Complete |
 | Pre-#397 immutable installed baseline | Install failed; no timing |
 
-**Answer** — Ordinary fresh-feed opens were below2s, and logout/account separation passed, but the cached last-feed path first appeared at2660ms under held-root conditions. That does not satisfy the literal last-feed-within2s condition; a follow-up #304 startup fix is being built and measured.
+**Answer** — Ordinary fresh-feed opens were below2s, and logout/account separation passed, but the cached last-feed path first appeared at2660ms under held-root conditions. That does not satisfy the literal last-feed-within2s condition; #437 startup/in-place reconciliation fix has merged; local installed Slow4G cached1721/1716/1700ms→fresh2302/2290/2285ms passes deadline and actual compositor no-gap/no-jump checks. Production repeat remains pending.
 
 **Unknown** — The protected pre-#397 deployment loaded its authenticated feed but Chrome PWA.install could not fetch install info; protection as cause is an inference, and no tab timing substitutes for installed baseline. Final deployment repeat remains pending; this is not physical-phone or full-process cold-boot evidence. Raw summary `/tmp/run10-thumbs-pwa-acceptance.json` preserves each assertion separately.
 

@@ -1,6 +1,6 @@
 # Fleet 10 execution report — in progress
 
-Observed 2026-11-03, 11:07 UTC. This is an execution ledger, not a completion claim. The full supplied scope remains [the plan](plan-run10.md). Physical-phone acceptance and owner-only settings remain with RT.
+Observed 2026-11-03, 12:44 UTC. This is an execution ledger, not a completion claim. The full supplied scope remains [the plan](plan-run10.md). Physical-phone acceptance and owner-only settings remain with RT.
 
 Latest user scope clarification: **#413 and Round6 belong to the next design fleet and are excluded. Only phone differences from #353–#367 remain in Fleet10; superseded desktop-frame differences are skipped.** Desktop changes already merged before this clarification are recorded for handoff and will not be expanded or rolled back as part of this run.
 
@@ -12,11 +12,11 @@ Latest user scope clarification: **#413 and Round6 belong to the next design fle
 | 1 | #392/#395 merged; disposable HTTP/DB suite24/24. Production stale409→retry204, up/down reload persistence, offline and double-tap single-error checks passed; original fresh baseline204 does not establish original cause. |
 | 2 | #390 merged; production feed cards on both designated accounts had exactly one Details link, correct destination, and none in post detail. |
 | 3 | README replacement and final-main counts/private-string search pending; no invented test counts published. |
-| 4 | #391 merged. Controlled session refresh3photos before/after both0networkbytes; original failure not reproduced. Earlier profile150ms/200kBps is custom, not Fast4G. #414 now routes every normal/realtime photo through the small endpoint; final natural-photo repeat pending. |
+| 4 | #391 merged. Controlled session refresh3photos before/after both0networkbytes; original failure not reproduced. Earlier profile150ms/200kBps is custom, not Fast4G. #414 now routes every normal/realtime photo through the small endpoint; natural-scroll production repeat at12:42UTC on READY66f7f8e rotated the actual access token; all3 rendered photos used memory cache with0networkbytes. #436 records corrected methods. |
 | 5 | #393 merged; exact READY preview and production function configuration verified iad1. |
 | 6 | #386 and follow-up#409 merged. Controlled frozen-frame preview samples after409 were58.5–91.3ms versus222.2–1045.9ms before under customnetwork/CPU4. Final actualFast4G shutter/barcode repeat pending; no physical-camera claim. |
 | 7 | Investigation evidence below is being collected. Unmeasured sections remain unproven. |
-| 8 | #333 merged first at reviewed headb9068d081dea94075734ae5570c9129b53bfb1c5. Ordered implementation merges through#418 completed. Full final acceptance/closures and cleanup remain pending. |
+| 8 | #333 merged first at reviewed headb9068d081dea94075734ae5570c9129b53bfb1c5. 42 implementation PRs merged through#437; #436 documentation correction awaits review. Full final acceptance/closures and cleanup remain pending. |
 
 ## Additional implementation lanes
 
@@ -24,16 +24,16 @@ Latest user scope clarification: **#413 and Round6 belong to the next design fle
 | --- | --- |
 | 9 | Coffee #388 merged; production six-tile check passed. |
 | 10 | #400 merged; disposable-local owner-isolation test passed. Final standalone-intake calendar repeat pending. |
-| 11 | #397 merged; worker20/20; installed Slow4G3opens1477/1944/1367ms and logout/account isolation passed. Final deployment repeat pending. |
-| 12 | #394 merged; #424 follow-up real matcher/reference integrity+identify components ready, unmerged. Real report trials and costUS$0.62730425 documented; final two production meals pending. |
+| 11 | #397 and#437 merged. The latter fixes measured cached-startup delay and blank transition: local installed Slow4G cached1721/1716/1700ms→fresh2302/2290/2285ms, compositor no gap/jump and privacy checks pass. Production repeat pending. |
+| 12 | #394 merged; #424 follow-up real matcher/reference integrity+identify components merged. Real report trials and costUS$0.62730425 documented; final two production meals pending. |
 | 13 | #401 backfill executed; 25 matching item gaps became 10. Every remaining post is explicitly reported; broad name query includes non-drinks and existing atomic tiles. |
-| 14 | #419 combined photographed drinks, paired photos and frozen preview passed static/build. Disposable-local runtime checks ongoing; deterministic SQL conflicts being changed toPT409 before merge. Migration0040 not applied. |
+| 14 | #419 combined photographed drinks merged after disposable runtime proof; production migration0040 applied11:15:58UTC with PT409 conflicts verified. Actual production drink-photo acceptance pending. |
 | 15 | #402 merged; production0038applied10:47:59UTC, owner/privilege readback passed. LocalDBtest1/1 and combinedintegration checks passed; final production flows pending. |
 | 16 | #399 delays destructive requests for six seconds and flushes once on pagehide; timer/undo/pagehide regression passes. Production acceptance pending. |
 | 17 | #396 implements allowed sizes, hold, usage order and usual size; local HTTP/gesture acceptance passed. |
 | 18 | #398 changes leftovers labels throughout; wording tests 2/2, lint zero errors after fixing an existing indicator effect. Production acceptance pending. |
 | 19 | Existing pending-food-name feature needs actual production photo observation. |
-| 20 | All15 visual issues have individual PRs. Merged code#404–#418 except issue-specific docs#430–#432 pending; source/reference evidence and report table retained. Report discoveries also produced#422PNG,#424matcher,#425hints,#428Auth,#429dayreads. #306durablebarcode/searchposting now being built from measuredmulti-secondclose delays. |
+| 20 | All15 visual issues have individual PRs. Merged code#404–#418 except issue-specific docs#430–#432 pending; source/reference evidence and report table retained. Report discoveries also produced#422PNG,#424matcher,#425hints,#428Auth,#429dayreads. #433 durable food/barcode/label posting merged, migration0043 applied12:25:54UTC; copy and drink recovery follow-ups remain underway. #435 phone font correction merged. #437 PWA reconciliation merged; measured NeedsInputStrip JPEG download497591B is receiving a bounded small-route fix. |
 | 21 | #387 merged. Feed and nested capture delete confirmation survived 10.5 seconds each in preview and production; Cancel worked. #382 closed. |
 
 ## Premises corrected or unproven
