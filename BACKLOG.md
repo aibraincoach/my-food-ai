@@ -1,6 +1,6 @@
 # My Food AI — Backlog†
 
-Last edited: Tuesday 2026-11-03 at 22:48 WIB (UTC+07:00) by Claude, PM
+Last edited: Tuesday 2026-11-03 at 22:54 WIB (UTC+07:00) by Claude, PM
 
 ## Backlog for Owner
 
@@ -34,7 +34,33 @@ Every Run 7 and Run 8 timing check ran in emulation. No physical phone has teste
 
 Check on each of the owner's three phones, installed from the home screen, over mobile data: the feed and the first photo show within two seconds (#222, #305); the last feed shows at once and fresh posts appear without jumping (#304); a warm revisit reuses cached photos and the photos look acceptable (#305); the camera, the keyboard and a post from the phone work, with the right photo kept (#6); a post completes through the worker (#322). Done when each check passes on each of the three phones and each failure is reported to the coder with its number.
 
-## In Flight (Fleet 10)
+## In Flight
+
+### #450 The README's test results are wrong and lint fails
+
+The judge-facing README reports 148 failing unit tests that came from a wrong command, and the coder now counts 56 unit failures and 2 lint errors on main.
+
+The README (#444) shows the unit tests as 153 passed, 148 failed and 2 skipped. The command behind it runs the test files without "--import tsx", so each file fails at its first import; with it, nutrition-scaling.test.mjs gave 4 passed and 0 failed. Lint on main has 2 errors, both React rules, and the README publishes them. Done when the README's test row uses the command that loads the app's code, the false failure list is gone, lint has no errors, and the counts match a fresh run that does not touch the production database or the live USDA service.
+
+### #468 Big numbers lose their thousands separator on the desktop Days and Today
+
+The same total reads "34,811" in one place and "34811" in another on the desktop screens.
+
+In the PR #460 screenshots, the Days panel shows "Consumed: 34811 kcal" while its calendar cell shows "34,811", and the Today column uses the same formatter, so it would show "2118" beside the feed's "2,118". Done when every kcal total on desktop Days and Today is written the way the feed writes it.
+
+### #469 The desktop Home and New post are likely to break below 1280 by 800
+
+The layout was only tested at 1280 by 800, and the CSS suggests two other sizes break.
+
+Between 1024 and 1147 px wide, the feed and the Today column need 844 px of room and the layout gives them less, so the Today column should overflow or force sideways scrolling. The New post window is a fixed 620 px tall with padding, so a laptop browser about 650 px high, such as 1366 by 768, clips the top or the shutter. This comes from reading the CSS and was not run. Done when Home and New post are checked at 1024 by 700 and 1366 by 650 and nothing is clipped or scrolls sideways.
+
+### #470 On desktop, adding a photo to an existing post has no file picker
+
+Adding a photo to an existing post, including a not-eaten plate, gives a desktop user no way to choose a file.
+
+That flow keeps the old window, where "Choose from library" is hidden on desktop, so without a webcam the user sees only the camera area and nothing says that drag and drop or paste works. This predates PR #460. Done when, on desktop with no webcam, a photo can be added to an existing post from a file picker.
+
+## Engineering backlog
 
 ### #368 Sign-ins through the app may share one rate limit across every user
 
@@ -162,33 +188,13 @@ Some controls feel dead or clunky, and nobody has measured how the app responds 
 
 The thumbs above are the first case the owner found. List every tappable control on each screen at 390x844, and for each record the time from the tap to a visible change, whether it shows a pressed state at once, whether it jumps or flickers while it loads, and whether it can be tapped twice. The coder measures in Chrome device emulation with the processor slowed and needs the production sign-in of #196. Done when the table lists every control with those four findings, the slow or dead ones are fixed or filed as items.
 
-## Engineering backlog
-
-### Big numbers lose their thousands separator on the desktop Days and Today
-
-The same total reads "34,811" in one place and "34811" in another on the desktop screens.
-
-In the PR #460 screenshots, the Days panel shows "Consumed: 34811 kcal" while its calendar cell shows "34,811", and the Today column uses the same formatter, so it would show "2118" beside the feed's "2,118". Done when every kcal total on desktop Days and Today is written the way the feed writes it.
-
-### The desktop Home and New post are likely to break below 1280 by 800
-
-The layout was only tested at 1280 by 800, and the CSS suggests two other sizes break.
-
-Between 1024 and 1147 px wide, the feed and the Today column need 844 px of room and the layout gives them less, so the Today column should overflow or force sideways scrolling. The New post window is a fixed 620 px tall with padding, so a laptop browser about 650 px high, such as 1366 by 768, clips the top or the shutter. This comes from reading the CSS and was not run. Done when Home and New post are checked at 1024 by 700 and 1366 by 650 and nothing is clipped or scrolls sideways.
-
-### On desktop, adding a photo to an existing post has no file picker
-
-Adding a photo to an existing post, including a not-eaten plate, gives a desktop user no way to choose a file.
-
-That flow keeps the old window, where "Choose from library" is hidden on desktop, so without a webcam the user sees only the camera area and nothing says that drag and drop or paste works. This predates PR #460. Done when, on desktop with no webcam, a photo can be added to an existing post from a file picker.
-
 ### #449 The food names do not show before the numbers on a new upload
 
 A new upload shows no food names while its numbers are still being worked out.
 
 On a new upload, the card's reader drops the pending food names, so #307 fails there. Done when a new upload shows the foods the app has found while the numbers are still being worked out, on the owner's three phones.
 
-### The recording account can hit the hourly model cap on camera
+### #471 The recording account can hit the hourly model cap on camera
 
 A recording with several photos on one account can run into the model's hourly limit while the video runs.
 
@@ -205,12 +211,6 @@ The Fleet 10 report says the selected drink card on screen remains unproven. Don
 The tile sizes and order on the drink sheet were not checked on production.
 
 Only a local test backs the closure. Done when the drink sheet shows its tiles in the right sizes and order on production, on the owner's three phones.
-
-### #450 The README's test results are wrong and lint fails
-
-The judge-facing README reports 148 failing unit tests that came from a wrong command, and the coder now counts 56 unit failures and 2 lint errors on main.
-
-The README (#444) shows the unit tests as 153 passed, 148 failed and 2 skipped. The command behind it runs the test files without "--import tsx", so each file fails at its first import; with it, nutrition-scaling.test.mjs gave 4 passed and 0 failed. Lint on main has 2 errors, both React rules, and the README publishes them. Done when the README's test row uses the command that loads the app's code, the false failure list is gone, lint has no errors, and the counts match a fresh run that does not touch the production database or the live USDA service.
 
 ### #451 Every barcode scan comes back as not in the database
 
