@@ -178,3 +178,16 @@ At 2026-11-03T12:42:09.127Z, Chromium 156 at 390×844 with Fast4G (165ms, 1,012,
 | 3 | memory cache | 0 |
 
 All three actual rendered photos met #376’s zero-byte condition. This proves the current behavior; the pre-change zero-byte results mean no measured improvement can be attributed to removing Vary: Cookie. This read-only check created no test posts.
+
+### Natural pre-change feed versus current feed
+
+A bounded natural-scroll repeat on the exact pre-#391 deployment `bf6d7f6dd3659c54ba6a59ec2189bfe132c5d1ec` found an important distinction from the API-image probes above: its actual Home photos used legacy signed Storage JPEG URLs. After a verified real access-token rotation and normal Home return, all three natural photos downloaded again. Both deployment guards were READY at that same SHA. Chromium156,390×844,genuine Fast4G; no temporary image probes, interception, model calls or data writes. The deployment-protection bypass was limited to an own-origin cookie bootstrap; no global bypass header.
+
+| Natural pre-change photo | After refresh source | Network bytes |
+| --- | --- | ---: |
+| 1 | network, HTTP200 | 142754 |
+| 2 | network, HTTP200 | 161981 |
+| 3 | network, HTTP200 | 305103 |
+| Total | | 609838 |
+
+The current natural-scroll check above used the immutable owner-authorized API route and transferred zero bytes for its three photos. These are different rendering paths and photo sets, not an isolated Cookie-header experiment. The pre-change API-image probes also used zero bytes; the natural legacy JPEG refetch instead supports the route-coverage fix in #414. No project-wide billed-egress reduction is inferred. [Exact old-deployment natural receipt and limitations](https://github.com/aibraincoach/my-food-ai/tree/run10/docs/docs/evidence/run10-cache-before-natural).
