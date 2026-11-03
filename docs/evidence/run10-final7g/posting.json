@@ -1,0 +1,396 @@
+{
+  "startedAt": "2026-11-03T13:22:25.113Z",
+  "method": {
+    "account": 1,
+    "profile": {
+      "offline": false,
+      "latency": 165,
+      "downloadThroughput": 1012500,
+      "uploadThroughput": 168750,
+      "connectionType": "cellular4g"
+    },
+    "presetSource": "https://github.com/ChromeDevTools/devtools-frontend/blob/main/front_end/core/sdk/NetworkManager.ts#L668-L678",
+    "cpuRate": 4,
+    "camera": "eval/photos/01.jpg meal or UPC016000275683 PNG supplied through a real canvas MediaStream; Chromium browser simulation, not physical camera"
+  },
+  "rows": [
+    {
+      "mode": "photo",
+      "run": 1,
+      "startedAt": "2026-11-03T13:22:25.125Z",
+      "deploymentBefore": {
+        "state": "READY",
+        "sha": "789c2b7db3ac5a75f7c2b7271419a8a3176c9702",
+        "readyAt": "2026-11-03T13:17:40.362Z",
+        "createdAt": "2026-11-03T13:17:13.678Z",
+        "observedAt": "2026-11-03T13:22:25.805Z"
+      },
+      "stage": "tap",
+      "timing": {
+        "tapMs": 5406.099999904633,
+        "closeMs": 5561,
+        "tapToCloseMs": 154.90000009536743
+      },
+      "terminal": "ready",
+      "uploads": [
+        {
+          "kind": "original",
+          "method": "PUT",
+          "bodyBytes": 234533,
+          "start": 7334,
+          "status": 200,
+          "end": 9892.700000286102
+        },
+        {
+          "kind": "feed copy",
+          "method": "PUT",
+          "bodyBytes": 152525,
+          "start": 7338.200000286102,
+          "status": 200,
+          "end": 9571.700000286102
+        }
+      ],
+      "deploymentAfter": {
+        "state": "READY",
+        "sha": "789c2b7db3ac5a75f7c2b7271419a8a3176c9702",
+        "readyAt": "2026-11-03T13:17:40.362Z",
+        "createdAt": "2026-11-03T13:17:13.678Z",
+        "observedAt": "2026-11-03T13:22:57.913Z"
+      },
+      "finishedAt": "2026-11-03T13:22:57.913Z"
+    },
+    {
+      "mode": "photo",
+      "run": 2,
+      "startedAt": "2026-11-03T13:22:58.014Z",
+      "deploymentBefore": {
+        "state": "READY",
+        "sha": "789c2b7db3ac5a75f7c2b7271419a8a3176c9702",
+        "readyAt": "2026-11-03T13:17:40.362Z",
+        "createdAt": "2026-11-03T13:17:13.678Z",
+        "observedAt": "2026-11-03T13:22:58.421Z"
+      },
+      "stage": "tap",
+      "timing": {
+        "tapMs": 4673.299999713898,
+        "closeMs": 4719.599999904633,
+        "tapToCloseMs": 46.30000019073486
+      },
+      "terminal": "ready",
+      "uploads": [
+        {
+          "kind": "original",
+          "method": "PUT",
+          "bodyBytes": 234533,
+          "start": 6247.299999713898,
+          "status": 200,
+          "end": 8850.5
+        },
+        {
+          "kind": "feed copy",
+          "method": "PUT",
+          "bodyBytes": 152525,
+          "start": 6250,
+          "status": 200,
+          "end": 8352.299999713898
+        }
+      ],
+      "deploymentAfter": {
+        "state": "READY",
+        "sha": "789c2b7db3ac5a75f7c2b7271419a8a3176c9702",
+        "readyAt": "2026-11-03T13:17:40.362Z",
+        "createdAt": "2026-11-03T13:17:13.678Z",
+        "observedAt": "2026-11-03T13:23:29.182Z"
+      },
+      "finishedAt": "2026-11-03T13:23:29.182Z"
+    },
+    {
+      "mode": "photo",
+      "run": 3,
+      "startedAt": "2026-11-03T13:23:29.265Z",
+      "deploymentBefore": {
+        "state": "READY",
+        "sha": "789c2b7db3ac5a75f7c2b7271419a8a3176c9702",
+        "readyAt": "2026-11-03T13:17:40.362Z",
+        "createdAt": "2026-11-03T13:17:13.678Z",
+        "observedAt": "2026-11-03T13:23:29.826Z"
+      },
+      "stage": "tap",
+      "timing": {
+        "tapMs": 5217.400000095367,
+        "closeMs": 5344.199999809265,
+        "tapToCloseMs": 126.7999997138977
+      },
+      "terminal": "ready",
+      "uploads": [
+        {
+          "kind": "original",
+          "method": "PUT",
+          "bodyBytes": 234533,
+          "start": 6278.400000095367,
+          "status": 200,
+          "end": 8865.900000095367
+        },
+        {
+          "kind": "feed copy",
+          "method": "PUT",
+          "bodyBytes": 152525,
+          "start": 6281.199999809265,
+          "status": 200,
+          "end": 8439
+        }
+      ],
+      "deploymentAfter": {
+        "state": "READY",
+        "sha": "789c2b7db3ac5a75f7c2b7271419a8a3176c9702",
+        "readyAt": "2026-11-03T13:17:40.362Z",
+        "createdAt": "2026-11-03T13:17:13.678Z",
+        "observedAt": "2026-11-03T13:24:00.473Z"
+      },
+      "finishedAt": "2026-11-03T13:24:00.473Z"
+    },
+    {
+      "mode": "barcode",
+      "run": 1,
+      "startedAt": "2026-11-03T13:24:00.563Z",
+      "deploymentBefore": {
+        "state": "READY",
+        "sha": "789c2b7db3ac5a75f7c2b7271419a8a3176c9702",
+        "readyAt": "2026-11-03T13:17:40.362Z",
+        "createdAt": "2026-11-03T13:17:13.678Z",
+        "observedAt": "2026-11-03T13:24:01.120Z"
+      },
+      "stage": "tap",
+      "barcodeOpening": {
+        "shutterToProductMs": 274.6000003814697,
+        "method": "First animation frame with visible scanned-product panel; does not time resolved Found product"
+      },
+      "timing": {
+        "tapMs": 5290.699999809265,
+        "closeMs": 5419,
+        "tapToCloseMs": 128.30000019073486
+      },
+      "terminal": "ready",
+      "uploads": [
+        {
+          "kind": "original",
+          "method": "PUT",
+          "bodyBytes": 9985,
+          "start": 4497.900000095367,
+          "status": 200,
+          "end": 4906.599999904633
+        },
+        {
+          "kind": "feed copy",
+          "method": "PUT",
+          "bodyBytes": 9985,
+          "start": 4502,
+          "status": 200,
+          "end": 4830.400000095367
+        }
+      ],
+      "deploymentAfter": {
+        "state": "READY",
+        "sha": "789c2b7db3ac5a75f7c2b7271419a8a3176c9702",
+        "readyAt": "2026-11-03T13:17:40.362Z",
+        "createdAt": "2026-11-03T13:17:13.678Z",
+        "observedAt": "2026-11-03T13:24:09.939Z"
+      },
+      "finishedAt": "2026-11-03T13:24:09.939Z"
+    },
+    {
+      "mode": "barcode",
+      "run": 2,
+      "startedAt": "2026-11-03T13:24:10.005Z",
+      "deploymentBefore": {
+        "state": "READY",
+        "sha": "789c2b7db3ac5a75f7c2b7271419a8a3176c9702",
+        "readyAt": "2026-11-03T13:17:40.362Z",
+        "createdAt": "2026-11-03T13:17:13.678Z",
+        "observedAt": "2026-11-03T13:24:10.398Z"
+      },
+      "stage": "tap",
+      "barcodeOpening": {
+        "shutterToProductMs": 273.09999990463257,
+        "method": "First animation frame with visible scanned-product panel; does not time resolved Found product"
+      },
+      "timing": {
+        "tapMs": 5249.10000038147,
+        "closeMs": 5400.900000095367,
+        "tapToCloseMs": 151.7999997138977
+      },
+      "terminal": "ready",
+      "uploads": [
+        {
+          "kind": "original",
+          "method": "PUT",
+          "bodyBytes": 9985,
+          "start": 4719.10000038147,
+          "status": 200,
+          "end": 5084.10000038147
+        },
+        {
+          "kind": "feed copy",
+          "method": "PUT",
+          "bodyBytes": 9985,
+          "start": 4722.300000190735,
+          "status": 200,
+          "end": 5016
+        }
+      ],
+      "deploymentAfter": {
+        "state": "READY",
+        "sha": "789c2b7db3ac5a75f7c2b7271419a8a3176c9702",
+        "readyAt": "2026-11-03T13:17:40.362Z",
+        "createdAt": "2026-11-03T13:17:13.678Z",
+        "observedAt": "2026-11-03T13:24:19.150Z"
+      },
+      "finishedAt": "2026-11-03T13:24:19.150Z"
+    },
+    {
+      "mode": "barcode",
+      "run": 3,
+      "startedAt": "2026-11-03T13:24:19.258Z",
+      "deploymentBefore": {
+        "state": "READY",
+        "sha": "789c2b7db3ac5a75f7c2b7271419a8a3176c9702",
+        "readyAt": "2026-11-03T13:17:40.362Z",
+        "createdAt": "2026-11-03T13:17:13.678Z",
+        "observedAt": "2026-11-03T13:24:19.662Z"
+      },
+      "stage": "tap",
+      "barcodeOpening": {
+        "shutterToProductMs": 282.90000009536743,
+        "method": "First animation frame with visible scanned-product panel; does not time resolved Found product"
+      },
+      "timing": {
+        "tapMs": 4401.299999713898,
+        "closeMs": 5537.900000095367,
+        "tapToCloseMs": 1136.6000003814697
+      },
+      "terminal": "ready",
+      "uploads": [
+        {
+          "kind": "original",
+          "method": "PUT",
+          "bodyBytes": 9985,
+          "start": 4118,
+          "status": 200,
+          "end": 4421.699999809265
+        },
+        {
+          "kind": "feed copy",
+          "method": "PUT",
+          "bodyBytes": 9985,
+          "start": 4120.400000095367,
+          "status": 200,
+          "end": 4523.900000095367
+        }
+      ],
+      "deploymentAfter": {
+        "state": "READY",
+        "sha": "789c2b7db3ac5a75f7c2b7271419a8a3176c9702",
+        "readyAt": "2026-11-03T13:17:40.362Z",
+        "createdAt": "2026-11-03T13:17:13.678Z",
+        "observedAt": "2026-11-03T13:24:28.469Z"
+      },
+      "finishedAt": "2026-11-03T13:24:28.469Z"
+    },
+    {
+      "mode": "search",
+      "run": 1,
+      "startedAt": "2026-11-03T13:24:28.594Z",
+      "deploymentBefore": {
+        "state": "READY",
+        "sha": "789c2b7db3ac5a75f7c2b7271419a8a3176c9702",
+        "readyAt": "2026-11-03T13:17:40.362Z",
+        "createdAt": "2026-11-03T13:17:13.678Z",
+        "observedAt": "2026-11-03T13:24:29.029Z"
+      },
+      "stage": "tap",
+      "timing": {
+        "tapMs": 4164.699999809265,
+        "closeMs": 4333.799999713898,
+        "tapToCloseMs": 169.09999990463257
+      },
+      "terminal": "ready",
+      "uploads": [],
+      "deploymentAfter": {
+        "state": "READY",
+        "sha": "789c2b7db3ac5a75f7c2b7271419a8a3176c9702",
+        "readyAt": "2026-11-03T13:17:40.362Z",
+        "createdAt": "2026-11-03T13:17:13.678Z",
+        "observedAt": "2026-11-03T13:24:36.113Z"
+      },
+      "finishedAt": "2026-11-03T13:24:36.113Z"
+    },
+    {
+      "mode": "search",
+      "run": 2,
+      "startedAt": "2026-11-03T13:24:36.177Z",
+      "deploymentBefore": {
+        "state": "READY",
+        "sha": "789c2b7db3ac5a75f7c2b7271419a8a3176c9702",
+        "readyAt": "2026-11-03T13:17:40.362Z",
+        "createdAt": "2026-11-03T13:17:13.678Z",
+        "observedAt": "2026-11-03T13:24:36.579Z"
+      },
+      "stage": "tap",
+      "timing": {
+        "tapMs": 4563.299999713898,
+        "closeMs": 4728.099999904633,
+        "tapToCloseMs": 164.80000019073486
+      },
+      "terminal": "ready",
+      "uploads": [],
+      "deploymentAfter": {
+        "state": "READY",
+        "sha": "789c2b7db3ac5a75f7c2b7271419a8a3176c9702",
+        "readyAt": "2026-11-03T13:17:40.362Z",
+        "createdAt": "2026-11-03T13:17:13.678Z",
+        "observedAt": "2026-11-03T13:24:43.749Z"
+      },
+      "finishedAt": "2026-11-03T13:24:43.749Z"
+    },
+    {
+      "mode": "search",
+      "run": 3,
+      "startedAt": "2026-11-03T13:24:43.806Z",
+      "deploymentBefore": {
+        "state": "READY",
+        "sha": "789c2b7db3ac5a75f7c2b7271419a8a3176c9702",
+        "readyAt": "2026-11-03T13:17:40.362Z",
+        "createdAt": "2026-11-03T13:17:13.678Z",
+        "observedAt": "2026-11-03T13:24:44.583Z"
+      },
+      "stage": "tap",
+      "timing": {
+        "tapMs": 4619.099999904633,
+        "closeMs": 4754.199999809265,
+        "tapToCloseMs": 135.09999990463257
+      },
+      "terminal": "ready",
+      "uploads": [],
+      "deploymentAfter": {
+        "state": "READY",
+        "sha": "789c2b7db3ac5a75f7c2b7271419a8a3176c9702",
+        "readyAt": "2026-11-03T13:17:40.362Z",
+        "createdAt": "2026-11-03T13:17:13.678Z",
+        "observedAt": "2026-11-03T13:24:51.802Z"
+      },
+      "finishedAt": "2026-11-03T13:24:51.802Z"
+    }
+  ],
+  "cleanup": {
+    "at": "2026-11-03T13:24:59.839Z",
+    "postOperationCount": 9,
+    "standaloneIntakeCount": 0,
+    "copyOperationCount": 0,
+    "drinkOperationCount": 0,
+    "foodOperationCount": 6,
+    "preferencesRestored": true,
+    "issues": []
+  },
+  "browserVersion": "156.0.8078.4",
+  "endedAt": "2026-11-03T13:24:59.842Z"
+}

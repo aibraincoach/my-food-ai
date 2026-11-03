@@ -1,0 +1,26 @@
+{
+  "main": {
+    "at": "2026-11-03T14:13:26.958Z",
+    "postOperationCount": 29,
+    "standaloneIntakeCount": 0,
+    "copyOperationCount": 3,
+    "drinkOperationCount": 21,
+    "foodOperationCount": 0,
+    "preferencesRestored": true,
+    "issues": []
+  },
+  "readOnlySupplement": {
+    "at": "2026-11-03T14:19:42.928Z",
+    "postOperationCount": 0,
+    "standaloneIntakeCount": 0,
+    "copyOperationCount": 0,
+    "drinkOperationCount": 0,
+    "foodOperationCount": 0,
+    "preferencesRestored": true,
+    "issues": []
+  },
+  "composerReadingCascadeVerified": 1,
+  "cancelledBeforeStarting": "15:00 confirmed-photo probe; never started",
+  "ownedPhotoGestureDriver": "Stopped without completed gesture; no fixtures created, cleanup zero",
+  "noProductionRateLimitOverride": true
+}

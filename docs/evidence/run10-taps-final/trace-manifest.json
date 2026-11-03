@@ -1,0 +1,657 @@
+[
+  {
+    "file": "pointer/Capture-Post-text-meal.trace.json",
+    "bytes": 705780,
+    "sha256": "d5bc38c67648a54e6d78329d58104405c44c4565912e1ca49e19949a0beae623"
+  },
+  {
+    "file": "pointer/Feed-bottom-Home.trace.json",
+    "bytes": 754767,
+    "sha256": "cc5fcb2bc8dba7e148adf787903eea3ccad9f62dcfc7a26867dea2d78d2ea5f1"
+  },
+  {
+    "file": "pointer/Feed-bottom-Search.trace.json",
+    "bytes": 655971,
+    "sha256": "e21f4b4de5dca237d072e68327cce13c004d037b14242a8f6db172600fb1d319"
+  },
+  {
+    "file": "pointer/Feed-bottom-Days.trace.json",
+    "bytes": 351289,
+    "sha256": "824095c0ccaee9f9416401bf4591adc72c5850f07dbf7b2644bc3d498416b87f"
+  },
+  {
+    "file": "pointer/Feed-bottom-Profile.trace.json",
+    "bytes": 1685384,
+    "sha256": "62d39957691d1e5b94cc68305256a27cf180587f8deb0bc086ce231ecda1b61d"
+  },
+  {
+    "file": "pointer/Feed-Post-a-meal.trace.json",
+    "bytes": 1005611,
+    "sha256": "1dec8476634bcab08e57ff5458cd3f584cc85cdb491f195c1b8ed5ce767adea6"
+  },
+  {
+    "file": "pointer/Feed-entry-Camera.trace.json",
+    "bytes": 1127262,
+    "sha256": "77963591c7cfd8caf10bc0fada7f5e1bdcc6f4d0df5cbb99bb619858be58792f"
+  },
+  {
+    "file": "pointer/Feed-entry-Text.trace.json",
+    "bytes": 937060,
+    "sha256": "3320f5c63d63a4b1d727389e2ab667f8272c8c8017e13964b054f3d9cb11879f"
+  },
+  {
+    "file": "pointer/Feed-entry-Drink.trace.json",
+    "bytes": 1134957,
+    "sha256": "57365ead0bdffa37a3b34730f6aa921527a2a486bd4fc95e6b5c7a4fc8cfb3f4"
+  },
+  {
+    "file": "pointer/Feed-entry-Saved.trace.json",
+    "bytes": 1114651,
+    "sha256": "ee1a55cfee28a2d487699570ea6e6b5deb37c76c7315d507c502a9c25c22212d"
+  },
+  {
+    "file": "pointer/Feed-Saved-meals.trace.json",
+    "bytes": 637950,
+    "sha256": "92425f72043f797b821788f95e49bab46c3d17f59eaf7217cb6360823bb06a13"
+  },
+  {
+    "file": "pointer/Feed-Meal-menu.trace.json",
+    "bytes": 382172,
+    "sha256": "4c2b0bb76719e98916ff47ea12d164e6983b19680a3e07d4b6e03899c6f8f29a"
+  },
+  {
+    "file": "pointer/Feed-Open-results-card.trace.json",
+    "bytes": 536585,
+    "sha256": "90441ba904ae6dd7475579289a8d3f3be6fab734c4ff8362840d7cecafbb5043"
+  },
+  {
+    "file": "pointer/Feed-Accept-analysis.trace.json",
+    "bytes": 399010,
+    "sha256": "527083dea554d8bba1517e54886a9320602f3c807c502d0b03b9059764b3d57b"
+  },
+  {
+    "file": "pointer/Feed-Correct-analysis.trace.json",
+    "bytes": 540725,
+    "sha256": "236e50cebb9ad90aa1c08f4ef4a47d8643f6ad468f50815a9d378f0193016fa0"
+  },
+  {
+    "file": "pointer/Feed-Log-again.trace.json",
+    "bytes": 736570,
+    "sha256": "18819a9466c87f09e3a649770b2ae29ca893f9ae97102189fbb9a781cec039bb"
+  },
+  {
+    "file": "pointer/Feed-Save-meal.trace.json",
+    "bytes": 494795,
+    "sha256": "99c0bb3f1ff497eb9fa05235f2c18f0759ffe018b7d3642caee74257c7593ba1"
+  },
+  {
+    "file": "pointer/Feed-Comment-or-correct.trace.json",
+    "bytes": 657000,
+    "sha256": "bfcd4a79045402d2797c10e47479d5318c6cf6e9e732c191b413955209956bb1"
+  },
+  {
+    "file": "pointer/Feed-Details-.trace.json",
+    "bytes": 598918,
+    "sha256": "7069bb645bc2047595772c54bad5cf12543225120c1a54e1a266f46dcf5003cb"
+  },
+  {
+    "file": "pointer/Feed-Unsave-meal.trace.json",
+    "bytes": 518646,
+    "sha256": "e13e65cb134585f0358531fac2fefff5debd5b9aa010ab63d5588a69e9a2ac0c"
+  },
+  {
+    "file": "pointer/Feed-saved-toast-Rename.trace.json",
+    "bytes": 504317,
+    "sha256": "b993de31afdd0d62a40f31f3fc5562109941fae5a2a7ce19e15f6a151d701399"
+  },
+  {
+    "file": "pointer/Feed-rename-Name-field.trace.json",
+    "bytes": 284131,
+    "sha256": "d99a69f41734a3d09a0f55c03950b6528d3714810ef00bc490b390eb92066fca"
+  },
+  {
+    "file": "pointer/Feed-rename-Save.trace.json",
+    "bytes": 467091,
+    "sha256": "cc8a7a6019ff02f6b07290aeb073764eb5cef98dfd041faac7a02561bd1c4387"
+  },
+  {
+    "file": "pointer/Feed-saved-Search-saved-meals.trace.json",
+    "bytes": 731785,
+    "sha256": "4b71fd3a1ae2a7ea2d146d1b23b7a78d299c583c96a6f5faaae6b76ca5817fee"
+  },
+  {
+    "file": "pointer/Feed-saved-Close-saved-meals.trace.json",
+    "bytes": 428398,
+    "sha256": "409cfc5d05c22fae0833b3e99810a57cf88044c881ee22d0112501d384e5df64"
+  },
+  {
+    "file": "pointer/Detail-Back-to-Feed.trace.json",
+    "bytes": 722720,
+    "sha256": "1e025706096543885af50fd4b7290c7310d5a34b6c159762de46e481398147d3"
+  },
+  {
+    "file": "pointer/Detail-menu-Add-photo.trace.json",
+    "bytes": 456033,
+    "sha256": "e57310caa9dd2f98644270f19f76680ff8dc3d11fe5e549e50dda60e30286373"
+  },
+  {
+    "file": "pointer/Detail-menu-Log-again.trace.json",
+    "bytes": 219552,
+    "sha256": "a0ecd8bc42d17ea7c4609c98da0475c8883798affc8c3490d1905ff660979a7f"
+  },
+  {
+    "file": "pointer/Detail-menu-Edit-caption.trace.json",
+    "bytes": 316007,
+    "sha256": "3fd35f40e952c425c030301abf78e60938d60d95aa77d49416798ffca87f75a3"
+  },
+  {
+    "file": "pointer/Detail-menu-Edit-time-.trace.json",
+    "bytes": 198306,
+    "sha256": "e83bee92e198d76fd9452d79c0c131b2565ab65c1c9252d9e228b465a2e8bb27"
+  },
+  {
+    "file": "pointer/Detail-menu-Delete.trace.json",
+    "bytes": 194276,
+    "sha256": "2c3c8e52bcdc8aacd182878e5914927bd5e18913bf710e5640405f63cfda6ce9"
+  },
+  {
+    "file": "pointer/Detail-All-nutrients.trace.json",
+    "bytes": 221842,
+    "sha256": "9c37e319ba2a09b2b244375e7775ad694dfdb12a759ff74ec5555870d2a021c3"
+  },
+  {
+    "file": "pointer/Detail-Fewer-servings.trace.json",
+    "bytes": 529690,
+    "sha256": "99bec7064ebf8519665a5c28e1a8320c4fbf227e0ddaa6d999aabf9726ec6445"
+  },
+  {
+    "file": "pointer/Detail-More-servings.trace.json",
+    "bytes": 430931,
+    "sha256": "cda7199a8cb871e668b6d8ee815eac587f9f56cd614ea8a6532e4ecd5e4d48a9"
+  },
+  {
+    "file": "pointer/Detail-Comment-field.trace.json",
+    "bytes": 288949,
+    "sha256": "27312ceccd4e6c2456f9461266ff42f8b30900f0a9f30746ec5cb77db127a1db"
+  },
+  {
+    "file": "pointer/Detail-Record-correction.trace.json",
+    "bytes": 1131370,
+    "sha256": "490e007abae4ecc685579210b1b2b0d9fe741e88be3d38b4b274c2fe4802b372"
+  },
+  {
+    "file": "pointer/Detail-Stop-recording.trace.json",
+    "bytes": 265407,
+    "sha256": "d0a3618749cfbfa03e838661f04d73cbb8487311230575d6fc05ff2d942780a6"
+  },
+  {
+    "file": "pointer/Detail-Caption-field.trace.json",
+    "bytes": 205053,
+    "sha256": "1b70b0c33117852f1aaf1d101a3a286289c084fdf44f46d8d20685f07b3a67a7"
+  },
+  {
+    "file": "pointer/Detail-Save-caption.trace.json",
+    "bytes": 317442,
+    "sha256": "960fe4c4de6837cb813a67df1cfa1cc683af44b7ee97b2409488e43b213e43b9"
+  },
+  {
+    "file": "pointer/Detail-Edit-time-field.trace.json",
+    "bytes": 220715,
+    "sha256": "6e0fa469a83216198c55c65dcc3d63bbd487d3bd5e46471b8e5599672c8549a7"
+  },
+  {
+    "file": "pointer/Detail-Save-time.trace.json",
+    "bytes": 328667,
+    "sha256": "16094351b609ba1523c961273e896878be3e905c748f8f561eb2e41bb821fecd"
+  },
+  {
+    "file": "pointer/Detail-Log-again-Now-.trace.json",
+    "bytes": 182753,
+    "sha256": "c22923545474212415b7a24d285263faa85fb9491d3689b3269735add95fc015"
+  },
+  {
+    "file": "pointer/Detail-Log-again-Earlier-today-.trace.json",
+    "bytes": 229973,
+    "sha256": "402242d62bebe3df520ae300ad449d5ec9851252a3adff978e15942717a11daf"
+  },
+  {
+    "file": "pointer/Detail-Log-again-Another-day-.trace.json",
+    "bytes": 218777,
+    "sha256": "164a2b45bc082b6ee6ff62b513a3c143059c0d523aecea49a7e2036ea4f28576"
+  },
+  {
+    "file": "pointer/Detail-Log-again-Close-Log-again.trace.json",
+    "bytes": 209801,
+    "sha256": "cf8680b4bdf8755d949b5e0d9d9604ce1c8c4d33f8c785642bd511e15779d099"
+  },
+  {
+    "file": "pointer/Detail-item-Name.trace.json",
+    "bytes": 217807,
+    "sha256": "c7159fa23a27a31348563be6c41eb0beaa92e15f8d2a8f7a17a449b65fd23fa8"
+  },
+  {
+    "file": "pointer/Detail-item-Portion.trace.json",
+    "bytes": 238481,
+    "sha256": "857e7a243eab7f74adf9e934d1e1cdba8b4691d45dc01d8f85f0f21f3f957a99"
+  },
+  {
+    "file": "pointer/Detail-item-g.trace.json",
+    "bytes": 172405,
+    "sha256": "11f9344de43f73b924a55e30265756829eac6a159ad67c6d4929f87a6c83f3db"
+  },
+  {
+    "file": "pointer/Detail-item-oz.trace.json",
+    "bytes": 186246,
+    "sha256": "e120cb3caadc98d15870560c54ae8403e41936089b016654bf83e2d07453de67"
+  },
+  {
+    "file": "pointer/Detail-item-piece.trace.json",
+    "bytes": 223778,
+    "sha256": "d9b9bac5bcddfba064830c6f63e1b1154b596c9fff7c793e90cb9e1fa26ac9f8"
+  },
+  {
+    "file": "pointer/Detail-item-cup.trace.json",
+    "bytes": 185459,
+    "sha256": "ff4a4316c5db475938f2065f7b6df8217e44283e4e9b4a0b24347795bb7d02ca"
+  },
+  {
+    "file": "pointer/Detail-item-80-g.trace.json",
+    "bytes": 186003,
+    "sha256": "0e00bf9f843b25625a0c36cba3b570f047379e159208eb62376b39f03712e401"
+  },
+  {
+    "file": "pointer/Detail-item-120-g.trace.json",
+    "bytes": 185520,
+    "sha256": "ee2fd57c48f021bfc7a55e571d3ea2a282d2ee9446a064e0018891470bf2c24e"
+  },
+  {
+    "file": "pointer/Detail-item-160-g.trace.json",
+    "bytes": 186056,
+    "sha256": "914d32073bae56c439a9ae1ea48ead9e7243b1feadf8c5e269d6c95252b86ca6"
+  },
+  {
+    "file": "pointer/Detail-item-200-g.trace.json",
+    "bytes": 186225,
+    "sha256": "6a0094ae0e79b7b2abab92b424e47c9d329d0a7260ad636009adc53edf644470"
+  },
+  {
+    "file": "pointer/Detail-item-Save-portion.trace.json",
+    "bytes": 421302,
+    "sha256": "c1ae2947d78fd73dbaca6df703de34b1e4ecdb96a687f7d743d2e8fc0e215e41"
+  },
+  {
+    "file": "pointer/Detail-item-Add-another-item.trace.json",
+    "bytes": 337743,
+    "sha256": "80272ebdedd9a641b1cdf8a0325755d7cbafda3cff3e2fbe02ebd7bd1cb2074f"
+  },
+  {
+    "file": "pointer/Detail-Send-correction.trace.json",
+    "bytes": 2493324,
+    "sha256": "bd7de91ef8a421366736c1198df623d5f96d6bce559a9c07a0e7d8e3eaf04816"
+  },
+  {
+    "file": "pointer/Capture-Text.trace.json",
+    "bytes": 799713,
+    "sha256": "830264e948dd7c834f51828fd3e7fafff027a6e148bb9d323b6f13565638d773"
+  },
+  {
+    "file": "pointer/Capture-Photo.trace.json",
+    "bytes": 2463706,
+    "sha256": "e6b5cf33b740f2b5e512f2ea427d8b8d621cb00be38e004c1fef650b7dc16201"
+  },
+  {
+    "file": "pointer/Capture-Barcode.trace.json",
+    "bytes": 2991820,
+    "sha256": "c2f7d27b1f6efbd4165dd6745aa3f7bc66a199a5ad038945eafc0525d7dd2fec"
+  },
+  {
+    "file": "pointer/Capture-Choose-from-library.trace.json",
+    "bytes": 1943763,
+    "sha256": "c930cd01bc9e3beaf3ed5236aa24f40bccbfa695904d597df07fbf7f83e7969a"
+  },
+  {
+    "file": "pointer/Capture-Take-a-photo.trace.json",
+    "bytes": 1602942,
+    "sha256": "540b4c00dfd82b4792774f891c95815ea9e3f4444d45bb5b873b056f99f3defb"
+  },
+  {
+    "file": "pointer/Capture-Caption-field.trace.json",
+    "bytes": 639805,
+    "sha256": "035cda9d62007211c7c7f34ae8bafc866f0b8cb3a56a63634e07b18995882dd6"
+  },
+  {
+    "file": "pointer/Capture-Search-foods.trace.json",
+    "bytes": 366812,
+    "sha256": "5ef440b26c8ee33c920ebf7e750cfa31e43551be6c3a4846405e86b7b59408be"
+  },
+  {
+    "file": "pointer/Capture-Back-to-Feed.trace.json",
+    "bytes": 651123,
+    "sha256": "e86d87b0f8be228f29e6deb191c23463607ed80fd57e03a690e322c2fe4f82ad"
+  },
+  {
+    "file": "pointer/Drink-Description-field.trace.json",
+    "bytes": 296826,
+    "sha256": "69d4d62f9a53aa19252932af6a9a03304ecfcc14854895f80d3935c9277cadf0"
+  },
+  {
+    "file": "pointer/Drink-Photograph-a-drink.trace.json",
+    "bytes": 787809,
+    "sha256": "f636ee5fa445bcfda8896988be7c714026e9b44d19fe78730b929108d1af9f39"
+  },
+  {
+    "file": "pointer/Drink-Post-Water-glass.trace.json",
+    "bytes": 557654,
+    "sha256": "b320c7f6c0f5457fd652f1f5fc72fb5d3488f48a0e45a2084015c9847bdcb425"
+  },
+  {
+    "file": "pointer/Drink-Post-Coffee-.trace.json",
+    "bytes": 936431,
+    "sha256": "5a9ad33cfd09d390edfd10e364574041e3c1b811a4a9bd7d511e0a7bd6f06a64"
+  },
+  {
+    "file": "pointer/Drink-Post-Espresso-.trace.json",
+    "bytes": 532249,
+    "sha256": "3b70ff37529453abec13ca79f4a72bd6d29ae07306c4b0642e30fd676c375651"
+  },
+  {
+    "file": "pointer/Drink-Post-Tea-.trace.json",
+    "bytes": 745495,
+    "sha256": "8a297fcb6f3cdb8c9c37427f089ad1bdb6ee08443fbb22e863c82be7c13209a3"
+  },
+  {
+    "file": "pointer/Drink-Post-Coca-Cola-.trace.json",
+    "bytes": 925440,
+    "sha256": "235a81834247a3618ea30cf0bb850f2751ce5ced8db416d0cdc459bd0308002e"
+  },
+  {
+    "file": "pointer/Drink-Post-Water-bottle.trace.json",
+    "bytes": 587097,
+    "sha256": "30b7099e03220b5b6d09fdab251f8e63d49ae53acc5a17ceeaf2a6f0eae5a830"
+  },
+  {
+    "file": "pointer/Drink-Post-drink.trace.json",
+    "bytes": 1229916,
+    "sha256": "1605d736db66a64d8d629d30ef14284051b0a75fbe9a512c350e576484cb052d"
+  },
+  {
+    "file": "pointer/Drink-Undo.trace.json",
+    "bytes": 1967413,
+    "sha256": "1d65f5a7d104543f6604cdce678237d93b68ee8c9a0ce7a0a4303cba15b26e75"
+  },
+  {
+    "file": "pointer/Drink-Hold-Coffee-for-sizes.trace.json",
+    "bytes": 262027,
+    "sha256": "557881eae55734e2237a685f270261c3557655b348495e1a3227ded6d84392fa"
+  },
+  {
+    "file": "pointer/Drink-size-Post-Water-glass-glass-250-ml.trace.json",
+    "bytes": 744090,
+    "sha256": "0102c4d076606caeb53d07adb988ab76aa8e2d1163908f43b5e93b413132263a"
+  },
+  {
+    "file": "pointer/Drink-size-Post-Water-glass-glass-500-ml.trace.json",
+    "bytes": 635302,
+    "sha256": "3090677728a4844b8e2ea2221e6023f1ca534f16dc274fd31882a188571cfbf6"
+  },
+  {
+    "file": "pointer/Drink-size-Post-Water-glass-glass-750-ml.trace.json",
+    "bytes": 669179,
+    "sha256": "badf5f5c83ea63595b04a4b6b5b75e193d5671d494c708c4f4191301ec5552d5"
+  },
+  {
+    "file": "pointer/Drink-size-Post-Coffee-cup-240-ml.trace.json",
+    "bytes": 884893,
+    "sha256": "adeeada793ace497c2c90dee67bf04df4b7a07c49665f426227d68dce61219d6"
+  },
+  {
+    "file": "pointer/Drink-size-Post-Coffee-large-350-ml.trace.json",
+    "bytes": 582640,
+    "sha256": "f70e3bd7defca81dd634654e4d0220ec4567d514eb64dc40977c98a789027043"
+  },
+  {
+    "file": "pointer/Drink-size-Post-Espresso-single-30-ml.trace.json",
+    "bytes": 744569,
+    "sha256": "4f59d4879d3882e8463c955ae28f99a038948b9ab9eb1dd5516e6189abf8fcf2"
+  },
+  {
+    "file": "pointer/Drink-size-Post-Espresso-double-60-ml.trace.json",
+    "bytes": 722646,
+    "sha256": "a5e760aac224db1cc731c0287ec82839cb8d6622dd25e27fa1e06f9eb7ee6aa0"
+  },
+  {
+    "file": "pointer/Drink-size-Post-Tea-mug-300-ml.trace.json",
+    "bytes": 1347023,
+    "sha256": "c6b09cc110471d86d0286f832f49db12da162b8a8b20b414856afa242dd83ff7"
+  },
+  {
+    "file": "pointer/Drink-size-Post-Tea-large-450-ml.trace.json",
+    "bytes": 715170,
+    "sha256": "52df04420df8cee310bd01c8d4e356021a67b16065b564687d48b3de29d1be98"
+  },
+  {
+    "file": "pointer/Drink-size-Post-Coca-Cola-can-330-ml.trace.json",
+    "bytes": 673548,
+    "sha256": "4bf0a99bb367fd20da218b073761817b0c92cc1ce1db1faa7dec22a409216b2f"
+  },
+  {
+    "file": "pointer/Drink-size-Post-Coca-Cola-bottle-500-ml.trace.json",
+    "bytes": 1074037,
+    "sha256": "2fe3f7d3c260eb9c366d1bd7b2447d23a698c9d09f83b5635ddc52764da3ddb5"
+  },
+  {
+    "file": "pointer/Drink-size-Post-Water-bottle-bottle-500-ml.trace.json",
+    "bytes": 677734,
+    "sha256": "b05e462bd2c1709558e2c7d6c529f1bf26e114a65afa3b734a06ce99e691b089"
+  },
+  {
+    "file": "pointer/Drink-size-Post-Water-bottle-bottle-1000-ml.trace.json",
+    "bytes": 668441,
+    "sha256": "139b4edabee5e796f17d47108f8743cb22e3284ee4727961fa3c9143b808d526"
+  },
+  {
+    "file": "pointer/Drink-Close-Drink.trace.json",
+    "bytes": 534241,
+    "sha256": "c421edc4ebbf7669390dc37c84b503fdd36df3e9db327b4cc397999c305f172b"
+  },
+  {
+    "file": "pointer/Days-story-Show-slide-1.trace.json",
+    "bytes": 165786,
+    "sha256": "d9dea02fe101829f298b8974854295269adcc1bbfe0ff98cd1c6cc152729de65"
+  },
+  {
+    "file": "pointer/Days-story-Close-day.trace.json",
+    "bytes": 498536,
+    "sha256": "7766429a43bd9927b765bafd772ce4780b9dc3b40ffefb6de27eae68b673640b"
+  },
+  {
+    "file": "pointer/Days-story-Summary-slide.trace.json",
+    "bytes": 179925,
+    "sha256": "1348c761f66005f68c1eef008863465abb66f18ac33e41d35092287fdb7917f4"
+  },
+  {
+    "file": "pointer/Days-story-.trace.json",
+    "bytes": 268231,
+    "sha256": "175f1f219c5fa7c98e1371a4deba0418ecb342c8b2fe9e443ca9a76e14d7303e"
+  },
+  {
+    "file": "pointer/Days-Close-month-list.trace.json",
+    "bytes": 305403,
+    "sha256": "208597c62a2592305497139d9a15218f580df018bdb283ac650b7f9e0c0b5b11"
+  },
+  {
+    "file": "pointer/Days-Posted-month.trace.json",
+    "bytes": 185243,
+    "sha256": "5d3ca21e172ccb8efd06c1684b6b8452b9d6ac3a93dfd9bd3d9c77dbe294b11f"
+  },
+  {
+    "file": "pointer/Search-Search-meals-field.trace.json",
+    "bytes": 315094,
+    "sha256": "fb8a6c711a985f43d5cc308ab4759ec90671e5655d5bb9b77fad0e6df30aa67b"
+  },
+  {
+    "file": "pointer/Search-Own-result.trace.json",
+    "bytes": 351543,
+    "sha256": "035d0eb06c8f6cc3e29e07984c3366289d48dac872545bdd4116c843861935f0"
+  },
+  {
+    "file": "pointer/Profile-Recently-deleted.trace.json",
+    "bytes": 271746,
+    "sha256": "178b837237ec8f05452755ab69749a9e638e493b1914649f2bc11a467d2f0904"
+  },
+  {
+    "file": "pointer/Profile-Own-grid-post.trace.json",
+    "bytes": 454000,
+    "sha256": "9150e1ad47e9381eb62958805a98740fe0f7fda9c6b3df82a77150171c59a5aa"
+  },
+  {
+    "file": "pointer/Detail-delete-Cancel.trace.json",
+    "bytes": 187838,
+    "sha256": "85e86956391ef8c7f239ba7ea093d0f8ac5a77cc44976baef1fd057ece4e0baa"
+  },
+  {
+    "file": "pointer/Detail-delete-Delete-post.trace.json",
+    "bytes": 628307,
+    "sha256": "44bde14375eb64286e2e686a011f13bef584c3cde28ae2808500c1d9b0b80c79"
+  },
+  {
+    "file": "pointer/Detail-delete-Undo.trace.json",
+    "bytes": 803290,
+    "sha256": "d5419a996725494bd25bd0b7a05c530b70c432795680f6ed8de8f678a2b18846"
+  },
+  {
+    "file": "pointer/Feed-saved-Own-saved-row-settled.trace.json",
+    "bytes": 419935,
+    "sha256": "3e1e984efe0179e92a1e9e0574e9e104a542a78ce5c1a2f209466e180f391a79"
+  },
+  {
+    "file": "pointer/Feed-saved-Own-Log-now-settled.trace.json",
+    "bytes": 523572,
+    "sha256": "f1753948fa65124a8a571c099c50a22573542f328a036060ce95fe135f468e42"
+  },
+  {
+    "file": "pointer/Detail-Log-again-Post-copy-settled.trace.json",
+    "bytes": 1183764,
+    "sha256": "8dea25a4ee7eba091347e996f9d399d520e5820882ebfe508482215cbbb9011b"
+  },
+  {
+    "file": "pointer/Detail-Log-again-Half-hour-time-chip.trace.json",
+    "bytes": 253513,
+    "sha256": "ff79b3770f9034bb130d0292f3b43b344ef6c16cc00fc56598a251abe352b5fd"
+  },
+  {
+    "file": "pointer/Detail-Log-again-Other-time-native-field.trace.json",
+    "bytes": 188580,
+    "sha256": "5215b7e40af9576c51eeab043a6d418e0973a19710758c3f78a864b78dc4f88d"
+  },
+  {
+    "file": "pointer/Detail-Log-again-Another-day-native-date.trace.json",
+    "bytes": 196803,
+    "sha256": "43576d93f4bb3e33e34bf6b93e576aec8ef15d8bc3cc0e611985de6b4d85028e"
+  },
+  {
+    "file": "pointer/Detail-sheets-Close-caption.trace.json",
+    "bytes": 182485,
+    "sha256": "0f7aed977e4bb3f86a48f47dd044f06629ce044eebac3f99296125adbd6d9de3"
+  },
+  {
+    "file": "pointer/Detail-sheets-Close-time.trace.json",
+    "bytes": 183781,
+    "sha256": "8bfe32d79c76b04d1854c9fa18cb5bb9e4864cd623dfa0cba18412e790412021"
+  },
+  {
+    "file": "pointer/Detail-sheets-Close-item-editor.trace.json",
+    "bytes": 196409,
+    "sha256": "3dc65932ab5feabd716cd5452087c6367ecde8a6c8be73ae0ca2f99be0e5c6de"
+  },
+  {
+    "file": "pointer/Detail-menu-Save-meal.trace.json",
+    "bytes": 229388,
+    "sha256": "12eb891374d7fc66cb93d82cb02a5eee311d48ffc3b55186e3489adcc499ef2c"
+  },
+  {
+    "file": "pointer/Detail-menu-Unsave-meal.trace.json",
+    "bytes": 204529,
+    "sha256": "52a7647e41ecf4ccf626c74914282b1a84a48072c8438dee7b6717b5475ad12b"
+  },
+  {
+    "file": "pointer/Capture-text-Eaten-at-row.trace.json",
+    "bytes": 404402,
+    "sha256": "2f131ab54f8b1358804d2225159dcda8473367361f8392501d1f2c85ab16ef4b"
+  },
+  {
+    "file": "pointer/Capture-text-Eaten-at-native-datetime.trace.json",
+    "bytes": 361172,
+    "sha256": "c17a4e0bc0f9618b6d4aedfafb0c25e0d25c6487deaadf8669772243716afbba"
+  },
+  {
+    "file": "pointer/Capture-text-Save-location.trace.json",
+    "bytes": 441468,
+    "sha256": "5992f4fcdd3dd4f6fcb85ad4da01353017af12f110b556ffa11499510c581584"
+  },
+  {
+    "file": "pointer/Capture-text-Save-as-meal.trace.json",
+    "bytes": 336144,
+    "sha256": "b876a0e55f0d8a0548006dac915bc141125d8af71355edcbbfd8aa690ef70173"
+  },
+  {
+    "file": "pointer/Capture-text-Another-photo.trace.json",
+    "bytes": 1668767,
+    "sha256": "0e2ccc01c6b5be99d36f75b34f3efdb236b073f39bc410521d55dedfb6f18e85"
+  },
+  {
+    "file": "pointer/Capture-text-Search-foods.trace.json",
+    "bytes": 464652,
+    "sha256": "3521e5f276905733e35acb8b297df0ddef1ef70e13de79726ae68115abbbc009"
+  },
+  {
+    "file": "pointer/Detail-menu-Save-meal-scoped-actual-menu-row.trace.json",
+    "bytes": 286675,
+    "sha256": "cf52088c28ccd53060abd222b6092f51bf3032fce183cc747f038a90f84cfa8b"
+  },
+  {
+    "file": "pointer/Drink-controlled-Water-Post-while-backend-held.trace.json",
+    "bytes": 770697,
+    "sha256": "4c6efc2fbdfef80b3da512d5798a74fe326fb7b6c9687baa8b15523c61a4be5b"
+  },
+  {
+    "file": "pointer/Pending-drink-Tile-Try-again.trace.json",
+    "bytes": 1497650,
+    "sha256": "f96d6c76b92df262e86da0d5ac90f3585740166596ffe328030ca051f6816f54"
+  },
+  {
+    "file": "pointer/Pending-drink-Tile-Remove-pending.trace.json",
+    "bytes": 560806,
+    "sha256": "41de1d1f7ac5ca08d8feb49174a9b3bc115d2b0b4c111942ef6549cade996c02"
+  },
+  {
+    "file": "../readonly7k-2026-11-03T14-18-58-007Z/pointer/Days-settled-Year-picker.trace.json",
+    "bytes": 215647,
+    "sha256": "a66c5fffb0539edc5175584e19a76d8a7ee6e3225996329e9f1bd1e841210c4e"
+  },
+  {
+    "file": "../readonly7k-2026-11-03T14-18-58-007Z/pointer/Days-settled-Nonempty-existing-day.trace.json",
+    "bytes": 287709,
+    "sha256": "a7635ee8416224c7c4869dcd02646e524463750a01f862a579d6f6e936effd7f"
+  },
+  {
+    "file": "../readonly7k-2026-11-03T14-18-58-007Z/pointer/Profile-settled-Actual-agent-entry.trace.json",
+    "bytes": 296424,
+    "sha256": "c5c8d0d408553980ee694ba73b2662299954a1c1c440eb8f25a2cfa1a5570461"
+  },
+  {
+    "file": "../readonly7k-2026-11-03T14-18-58-007Z/pointer/Profile-settled-Identify-provider-switch.trace.json",
+    "bytes": 1643296,
+    "sha256": "d68f40132920f0378ea03a86312a475dd915dee9d65ab7be9e64174b385f17e9"
+  },
+  {
+    "file": "../readonly7k-2026-11-03T14-18-58-007Z/pointer/Capture-settled-Flip-camera.trace.json",
+    "bytes": 2121342,
+    "sha256": "9e1735063b826ea7e52e69a713725713d6c1f2a136a23d02a7e179392061f538"
+  },
+  {
+    "file": "../readonly7k-2026-11-03T14-18-58-007Z/pointer/Capture-settled-Add-another-photo.trace.json",
+    "bytes": 2477784,
+    "sha256": "1fa683a2aabac64cc1481230e6d985c741e896a4ba3729cbdde9904f64483dbe"
+  }
+]

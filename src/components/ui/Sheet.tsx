@@ -1,15 +1,18 @@
 'use client';
-import {useEffect,useRef,useState,type ReactNode,type CSSProperties} from 'react';
+import {useEffect,useRef,useState,useSyncExternalStore,type ReactNode,type CSSProperties} from 'react';
 import {createPortal} from 'react-dom';
 import {lockBodyScroll} from '@/lib/ui/scroll-lock';
 import {Icon} from '@/components/ui/Icon';
-type Props={open:boolean;onClose:()=>void;children:ReactNode;label:string;hideClose?:boolean;confirmation?:boolean;panelStyle?:CSSProperties};
+type Props={open:boolean;onClose:()=>void;children:ReactNode;label:string;hideClose?:boolean;confirmation?:boolean;panelStyle?:CSSProperties;initialFocus?:string};
 const mountedSheets:HTMLDivElement[]=[];
+const subscribeMounted=()=>()=>{};
 /** A portal below the navigation pill, with focus retained in the sheet or pill. */
-export function Sheet({open,onClose,children,label,hideClose=false,confirmation=false,panelStyle}:Props) {
-  const panel=useRef<HTMLDivElement>(null);const close=useRef(onClose);const swipe=useRef<number|null>(null);const [mounted,setMounted]=useState(false);
-  close.current=onClose;
-  useEffect(()=>{setMounted(true);},[]);
+export function Sheet({open,onClose,children,label,hideClose=false,confirmation=false,panelStyle,initialFocus}:Props) {
+  const panel=useRef<HTMLDivElement>(null);const close=useRef(onClose);const swipe=useRef<number|null>(null);const mounted=useSyncExternalStore(subscribeMounted,()=>true,()=>false);
+  useEffect(()=>{close.current=onClose;},[onClose]);
+  // Chosen once, before this sheet's own aria-modal panel exists: a confirmation
+  // must never become its own portal host on a rerender.
+  const [portalHost]=useState<HTMLElement|null>(()=>typeof document==='undefined'?null:document.querySelector<HTMLElement>('[role="dialog"][aria-modal="true"]'));
   useEffect(()=>{
     if(!open||!mounted||!panel.current)return;
     const element=panel.current;const previous=document.activeElement as HTMLElement|null;
@@ -18,7 +21,7 @@ export function Sheet({open,onClose,children,label,hideClose=false,confirmation=
     document.documentElement.setAttribute('data-mfa-sheet-open','');
     const top=()=>mountedSheets.at(-1)===element;
     const focusables=()=>[...element.querySelectorAll<HTMLElement>('button:not(:disabled),a[href],input:not(:disabled),textarea:not(:disabled),select:not(:disabled),[tabindex="0"]'),...(!confirmation?[...document.querySelectorAll<HTMLElement>('nav[data-pill] a,nav[data-pill] button')]:[])].filter(node=>node.getClientRects().length>0);
-    const focus=()=>{(element.querySelector<HTMLElement>('[autofocus]')??focusables()[0]??element).focus();};
+    const focus=()=>{((initialFocus?element.querySelector<HTMLElement>(initialFocus):null)??element.querySelector<HTMLElement>('[autofocus]')??focusables()[0]??element).focus();};
     const frame=requestAnimationFrame(focus);
     const key=(event:KeyboardEvent)=>{
       if(!top())return;
@@ -39,7 +42,7 @@ export function Sheet({open,onClose,children,label,hideClose=false,confirmation=
     const dismiss=()=>close.current();
     window.addEventListener('keydown',key,true);window.addEventListener('close-sheets',dismiss);document.addEventListener('focusin',contain);
     return()=>{cancelAnimationFrame(frame);mountedSheets.splice(mountedSheets.indexOf(element),1);if(mountedSheets.length===0)document.documentElement.removeAttribute('data-mfa-sheet-open');releaseScroll();window.removeEventListener('keydown',key,true);window.removeEventListener('close-sheets',dismiss);document.removeEventListener('focusin',contain);previous?.focus();};
-  },[open,mounted,confirmation]);
+  },[open,mounted,confirmation,initialFocus]);
   if(!open||!mounted)return null;
   return createPortal(<div className={`pointer-events-none fixed inset-0 ${confirmation?'z-[80]':'z-40'}`}>
     <button type="button" tabIndex={-1} aria-label={`Close ${label}`} onClick={onClose} className={`pointer-events-auto absolute inset-0 size-full ${confirmation?'bg-scrim':'bg-scrim-32'}`}/>
@@ -50,5 +53,5 @@ export function Sheet({open,onClose,children,label,hideClose=false,confirmation=
       </div>
       {children}
     </div>
-  </div>,document.querySelector<HTMLElement>('[role="dialog"][aria-modal="true"]')??document.body);
+  </div>,(portalHost&&portalHost.isConnected?portalHost:document.body));
 }

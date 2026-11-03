@@ -1,0 +1,25 @@
+{
+  "steps": [
+    {
+      "name": "445 actual phone after",
+      "at": "2026-11-03T13:35:44.215Z",
+      "finished": "2026-11-03T13:35:48.167Z",
+      "ok": true,
+      "result": {
+        "at": "2026-11-03T13:35:48.167Z",
+        "text": "Comments 3\nAI\n\nMy Food AI Leftovers · not eaten: 100 g · 157 kcal. Consumed: 0 g · 0 kcal. 10:35 PM\n\nAI\n\nMy Food AI The food was not eaten: it was shared. 10:35 PM\n\nAI\n\nMy Food AI Leftovers · not eaten: 100 g · 157 kcal. Consumed: 0 g · 0 kcal. 10:35 PM\n\nT",
+        "fixture": "Explicitly stored display-regression text, not a model response; no nutritional inference or model call."
+      }
+    }
+  ],
+  "cleanup": {
+    "at": "2026-11-03T13:35:48.885Z",
+    "postOperationCount": 1,
+    "standaloneIntakeCount": 0,
+    "copyOperationCount": 0,
+    "drinkOperationCount": 0,
+    "foodOperationCount": 0,
+    "preferencesRestored": true,
+    "issues": []
+  }
+}

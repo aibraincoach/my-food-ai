@@ -65,3 +65,46 @@ test('strict generic aliases augment all thirty broad identities and replace nei
   assert.deepEqual(await searchFoods(db,'butternut squash soup'),foods);assert.equal(calls,2,'v3 merged cache is reused, v2 is ignored');
  }finally{globalThis.fetch=old;if(key===undefined)delete process.env.FDC_API_KEY;else process.env.FDC_API_KEY=key;}
 });
+
+
+test('a third search tries the base food before declaring nutrition unavailable',async()=>{
+ const queries=[];
+ const steak={fdcId:42,description:'Beef steak, cooked',dataType:'Survey (FNDDS)',foodNutrients:[{nutrientId:1008,value:200}]};
+ const result=await matchFood('beef tenderloin steak','',{
+  search:async query=>{queries.push(query);return query==='beef'?[steak]:[]},
+  choose:async(_name,_caption,foods,retry)=>foods.length?{id:42,query:null,query_food:null,reason:'Compatible steak'}:retry?{id:null,query:null,query_food:null,reason:'No compatible refined result'}:{id:null,query:'beef steak',query_food:'beef',reason:'Try a broader reference'},
+ });
+ assert.deepEqual(queries,['beef tenderloin steak','+beef steak','beef']);
+ assert.equal(result.food.fdcId,42);
+ assert.equal(result.searches,3);
+});
+
+
+test('distinct second refinement retains earlier eligible identities and original nutrients',async()=>{
+ const original={fdcId:81,description:'Whole dish, NFS',foodNutrients:[{nutrientId:1008,value:180}]};
+ const other={fdcId:82,description:'Other dish',foodNutrients:[{nutrientId:1008,value:220}]};
+ const queries=[],remaining=[];
+ const result=await matchFood('assembled dish','',{
+  search:async query=>{queries.push(query);return queries.length===1?[original]:queries.length===2?[{...original,foodNutrients:[{nutrientId:1008,value:999}]},other]:[other]},
+  choose:async(_name,_caption,foods,_retry,_query,left)=>{
+   remaining.push(left);
+   assert.equal(foods[0],original,'a later duplicate cannot replace original reference values');
+   if(left===2)return {id:null,query:'whole dish',query_food:'dish',reason:'Refine'};
+   if(left===1)return {id:null,query:'assembled food',query_food:'food',reason:'Different refinement'};
+   assert.deepEqual(foods.map(f=>f.fdcId),[81,82]);
+   return {id:81,query:null,query_food:null,reason:'Reconsidered compatible whole-dish reference'};
+  },
+ });
+ assert.deepEqual(queries,['assembled dish','whole +dish','assembled +food']);
+ assert.deepEqual(remaining,[2,1,0]);assert.equal(result.food,original);
+});
+
+test('repeated refinements cannot loop and rejected compound foods remain unavailable',async()=>{
+ const queries=[];
+ const result=await matchFood('mixed dish','',{
+  search:async query=>{queries.push(query);return []},
+  choose:async()=>({id:null,query:'mixed dish',query_food:'dish',reason:'No complete component coverage'}),
+ });
+ assert.deepEqual(queries,['mixed dish','mixed +dish','dish']);
+ assert.equal(result.food,null);assert.equal(result.searches,3);
+});

@@ -1,0 +1,29 @@
+{
+  "at": "2026-11-03T13:21:24.866Z",
+  "postOperationCount": 9,
+  "standaloneIntakeCount": 1,
+  "copyOperationCount": 4,
+  "drinkOperationCount": 0,
+  "foodOperationCount": 0,
+  "preferencesRestored": true,
+  "issues": [],
+  "savedSnapshotCount": 1,
+  "fixturePostAndStageIds": [
+    "1eca31a2-4252-4249-a376-5de7b32cc46a",
+    "813f4a41-5f81-42ed-84c3-e34455f48e31",
+    "d5ac3304-db55-45fd-a2a3-d62bf7f32058",
+    "765e3123-a4f3-487e-be16-698e481aaa34",
+    "bc80a51d-9006-4e47-a674-69abd741be45",
+    "e05fc320-7b4a-4313-856f-c2d5809d9aeb",
+    "498bb88d-558f-4173-ab4b-923b5f211e6d",
+    "0589fcbd-9568-4f69-b36d-77ed67fa2eae",
+    "c0375c0c-f479-4424-a7fc-77b1db9d12a7"
+  ],
+  "copyOperationIds": [
+    "b331b86f-f5ab-4157-9947-4ea0d92d3f15",
+    "d4baca43-f436-4116-a216-4d2a98107a8d",
+    "ddf33d02-5ebb-40ed-92be-3efbf35fc316",
+    "07b426fd-244b-48ec-b1a0-44f1f521fa6f"
+  ],
+  "noNonfixtureJobRemoved": true
+}

@@ -4,7 +4,7 @@ import { searchFoods } from "@/lib/fdc/client";
 import { scaleNutrition } from "@/lib/fdc/nutrients";
 import { dateInZone, validZone } from "@/lib/posts/days";
 import { hydrationSoFar, type DrinkCardData } from "./hydration";
-import { customCoffeeCaffeine, DRINK_TILES } from "./intake";
+import { customCoffeeCaffeine, DRINK_TILES, TILE_SIZES } from "./intake";
 import { renderResultsCard } from "@/lib/pipeline/results-card";
 
 export interface DrinkInput { kind: "water" | "caffeine"; label: string; ml: number; caffeineMg: number }
@@ -16,7 +16,10 @@ export function parseDrinkInput(body: unknown): DrinkInput | null {
   if ("tile" in value) {
     if (typeof value.tile !== "number" || !Number.isInteger(value.tile) || value.tile < 0 || value.tile >= DRINK_TILES.length) return null;
     const tile = DRINK_TILES[value.tile];
-    return { kind: tile.kind, label: `${tile.name}, ${tile.size}`, ml: tile.ml, caffeineMg: tile.caffeineMg };
+    const ml = "ml" in value ? value.ml : tile.ml;
+    const size = TILE_SIZES[value.tile].find(size => size.ml === ml);
+    if (!size) return null;
+    return { kind: tile.kind, label: `${tile.name}, ${size.word}`, ml: size.ml, caffeineMg: size.caffeineMg ?? Math.round(tile.caffeineMg * size.ml / tile.ml) };
   }
   if ((value.kind !== "water" && value.kind !== "caffeine") || !Number.isInteger(value.ml) || (value.ml as number) < 1 || (value.ml as number) > 5000) return null;
   const ml = value.ml as number;
@@ -27,8 +30,8 @@ export function parseDrinkInput(body: unknown): DrinkInput | null {
   return { kind: "caffeine", label: preset?.label ?? "Coffee", ml, caffeineMg };
 }
 
-export async function postDrink(admin: SupabaseClient, userId: string, input: DrinkInput, tz: string): Promise<{ postId: string; drink: DrinkCardData | null }> {
-  const eatenAt = new Date().toISOString();
+export async function postDrink(admin: SupabaseClient, userId: string, input: DrinkInput, tz: string, operation?:{id:string;key:string;eatenAt:string}): Promise<{ postId: string; drink: DrinkCardData | null }> {
+  const eatenAt = operation?.eatenAt??new Date().toISOString();
   let nutrition: Record<string, unknown> = { calories: 0, protein_g: 0, carbs_g: 0, fat_g: 0, fibre_g: 0, sugar_g: 0, sodium_mg: 0,
     micronutrients: [{ nutrientId: 1051, nutrientName: "Water", unitName: "G", value: input.ml, basis: "portion" }], source_ref: null };
   if (input.kind === "caffeine") {
@@ -40,16 +43,20 @@ export async function postDrink(admin: SupabaseClient, userId: string, input: Dr
           ? { query: "Coffee, brewed, espresso, restaurant-prepared", match: /coffee.*espresso/i }
           : { query: "Coffee, brewed from grounds, prepared with tap water", match: /coffee,? brewed from grounds,? prepared with tap water/i };
     const foods = await searchFoods(admin, source.query);
-    const food = foods.find(f => source.match.test(f.description) && !/decaffeinated|diet|sugar.free/i.test(f.description));
+    const plain = (f: {description: string}) => !/decaffeinated|diet|sugar.free|milk|creamer|substitute|instant/i.test(f.description);
+    const kind = input.label.startsWith("Coca-Cola") ? /cola/i : input.label.startsWith("Tea") ? /\btea\b/i : input.label.startsWith("Espresso") ? /espresso/i : /coffee/i;
+    // Exact reference first; otherwise the first plain search result of the same drink (pre-Fleet 9 behaviour for coffee).
+    const food = foods.find(f => source.match.test(f.description) && plain(f)) ?? foods.find(f => kind.test(f.description) && plain(f));
     if (!food) throw new Error("Drink nutrition could not be found.");
     const n = scaleNutrition(food, input.ml);
     nutrition = { calories: n.calories, protein_g: n.proteinG, carbs_g: n.carbsG, fat_g: n.fatG, fibre_g: n.fibreG, sugar_g: n.sugarG, sodium_mg: n.sodiumMg,
       micronutrients: [...n.micronutrients.filter(row => (row as { nutrientId?: number }).nutrientId !== 1057),
         { nutrientId: 1057, nutrientName: "Caffeine", unitName: "MG", value: input.caffeineMg, basis: "portion" }], source_ref: n.sourceRef };
   }
-  const { data, error } = await admin.rpc("create_drink_post", { p_user_id: userId, p_eaten_at: eatenAt,
+  const { data, error } = await admin.rpc(operation?"publish_drink_operation":"create_drink_post", { ...(operation?{p_operation_id:operation.id,p_request_key:operation.key}:{}),p_user_id: userId, p_eaten_at: eatenAt,
     p_kind: input.kind, p_ml: input.ml, p_label: input.label, p_caffeine_mg: input.caffeineMg, p_nutrition: nutrition });
-  if (error || typeof data !== "string") throw new Error("The drink could not be saved.");
+  if(error)throw Object.assign(new Error("The drink could not be saved."),{code:error.code});
+  if(typeof data!=="string")throw new Error("The drink could not be confirmed.");
   const postId = data;
   const zone = validZone(tz);
   let drink: DrinkCardData | null = null;

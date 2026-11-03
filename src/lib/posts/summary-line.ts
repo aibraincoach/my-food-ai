@@ -13,7 +13,7 @@ export type PostPresentation = FeedPost & {
   gtin?: string | null;
 };
 const number = (value: number) => Math.round(value).toLocaleString('en-US');
-export function summaryLine(post: PostPresentation, drink?: DrinkCardData | null): string {
+export function summaryLine(post: PostPresentation, drink: DrinkCardData | null | undefined = post.drink): string {
   const drinks = post.itemDrinks ?? [];
   const drankMl = drinks.reduce((sum, row) => sum + row.ml, 0);
   const caffeineMg = drinks.reduce((sum, row) => sum + row.caffeineMg, 0);
@@ -28,7 +28,7 @@ export function summaryLine(post: PostPresentation, drink?: DrinkCardData | null
   }
   const drinkLine = drankMl > 0 ? ` · ${number(drankMl)} ml drank${caffeineMg > 0 ? ` · ${number(caffeineMg)} mg caffeine` : ''}` : '';
   const leftovers=post.items.filter(item=>item.not_eaten_grams!=null);
-  const leftoverLine=leftovers.length?` · leftovers (not eaten): ${number(leftovers.reduce((total,item)=>total+(item.not_eaten_grams??0),0))} g`:'';
+  const leftoverLine=leftovers.length?` · Leftovers · not eaten: ${number(leftovers.reduce((total,item)=>total+(item.not_eaten_grams??0),0))} g`:'';
   const prefix = post.count_text ? `${post.count_text} · ` : '';
   const missing = unavailableFoods(totals);
   return `Consumed: ${prefix}${formatCalories(totals.calories)} kcal${drinkLine} · ${formatNutrition(totals.protein_g)} g protein · ${formatNutrition(totals.carbs_g)} g carbs · ${formatNutrition(totals.fat_g)} g fat${(post.foodWaterMl ?? 0) >= 50 ? ` · ${number(post.foodWaterMl!)} ml water` : ''}${missing.length ? ` · Nutrition unavailable: ${missing.join(', ')}` : ''}${leftoverLine}`;

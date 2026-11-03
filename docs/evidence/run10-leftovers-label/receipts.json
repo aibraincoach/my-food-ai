@@ -1,0 +1,33 @@
+{
+  "steps": [
+    {
+      "name": "445 actual phone before",
+      "at": "2026-11-03T13:31:06.687Z",
+      "finished": "2026-11-03T13:31:37.513Z",
+      "ok": false,
+      "error": "locator.waitFor: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('region', { name: 'Meal comments' }).getByText('The food was not eaten: it was shared.') to be visible\u001b[22m\n"
+    },
+    {
+      "name": "445 actual phone after",
+      "at": "2026-11-03T13:31:37.514Z",
+      "finished": "2026-11-03T13:31:41.312Z",
+      "ok": true,
+      "result": {
+        "at": "2026-11-03T13:31:41.312Z",
+        "text": "Comments 3\nAI\n\nMy Food AI Leftovers \u00b7 not eaten: 100 g \u00b7 157 kcal. Consumed: 0 g \u00b7 0 kcal. 10:31 PM\n\nAI\n\nMy Food AI Leftovers \u00b7 not eaten: 100 g \u00b7 157 kcal. Consumed: 0 g \u00b7 0 kcal. 10:31 PM\n\nAI\n\nMy Food AI The food was not eaten: it was shared. 10:31 PM\n\nT",
+        "fixture": "Explicitly stored display-regression text, not a model response; no nutritional inference or model call."
+      }
+    }
+  ],
+  "cleanup": {
+    "at": "2026-11-03T13:31:42.376Z",
+    "postOperationCount": 1,
+    "standaloneIntakeCount": 0,
+    "copyOperationCount": 0,
+    "drinkOperationCount": 0,
+    "foodOperationCount": 0,
+    "preferencesRestored": true,
+    "issues": []
+  },
+  "method": "After proof uses actual built phone UI with disclosed owner-bound stored display text, not a model response. No model call. Original before image is actual production leftover model replies from final7m."
+}

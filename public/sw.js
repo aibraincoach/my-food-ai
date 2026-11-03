@@ -1,9 +1,29 @@
-const SHELL_CACHE = "my-food-ai-shell-v2";
+const SHELL_CACHE = "my-food-ai-shell-v4";
 // Retire the previous media cache, which had no durable logout tombstones.
 const MEDIA_CACHE = "mfa-media-v2";
 const CONTROL_CACHE = "mfa-media-control-v1";
 const CONTROL_URL = new URL("/__mfa_media_control__", self.location.origin).href;
 const MAX_MEDIA = 300;
+const PUBLIC_ASSET = /^\/_next\/static\/(?:immutable\/)?(?:chunks|media)\//;
+// Cache only the public hashed files named by the anonymous shell. Flight
+// references omit /_next/, while script/link attributes include it.
+function shellAssets(html) {
+  const matches = html.matchAll(/["']((?:(?:https?:)?\/\/[^/"'\\\s]+)?\/_next\/static\/(?:immutable\/)?(?:chunks|media)\/[a-zA-Z0-9._/-]+\.(?:js|css|woff2?)\b|static\/(?:immutable\/)?(?:chunks|media)\/[a-zA-Z0-9._/-]+\.(?:js|css|woff2?)\b)/g);
+  const urls = new Set();
+  for (const [, value] of matches) {
+    if (value.includes('/../')) continue;
+    const url = new URL(value.startsWith('static/') ? '/_next/' + value : value, self.location.origin);
+    if (url.origin === self.location.origin && PUBLIC_ASSET.test(url.pathname) && !url.search) urls.add(url.href);
+    if (urls.size === 64) break;
+  }
+  return [...urls];
+}
+async function putDecoded(cache, key, response) {
+  const headers = new Headers(response.headers);
+  headers.delete('content-encoding'); headers.delete('content-length');
+  await cache.put(key, new Response(await response.arrayBuffer(), {status: response.status, statusText: response.statusText, headers}));
+}
+
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 let mediaGeneration = 0;
 let logoutGeneration = 0;
@@ -65,13 +85,21 @@ self.addEventListener("install", event => {
   self.skipWaiting();
   event.waitUntil((async () => {
     const cache = await caches.open(SHELL_CACHE);
-    for (const path of ["/", "/manifest.webmanifest"]) {
+    let shell = "";
+    for (const path of ["/", "/shell", "/manifest.webmanifest"]) {
       const response = await fetch(new Request(new URL(path, self.location.origin), {credentials: "omit", cache: "reload"}));
       if (!response.ok) throw Error("App shell could not be cached.");
-      const headers = new Headers(response.headers);
-      headers.delete("content-encoding"); headers.delete("content-length");
-      await cache.put(path, new Response(await response.arrayBuffer(), {status: response.status, statusText: response.statusText, headers}));
+      if (path === "/shell") shell = await response.clone().text();
+      await putDecoded(cache, path, response);
     }
+    // The first fallback must not download a new client bundle before showing
+    // the last feed. No authenticated HTML, API result or private media enters
+    // this public cache; a failed optional asset retains the normal network path.
+    await Promise.allSettled(shellAssets(shell).map(async url => {
+      const response = await fetch(new Request(url, {credentials: "omit", cache: "force-cache"}));
+      const policy = response.headers.get("cache-control") ?? "";
+      if (response.ok && /\bpublic\b/i.test(policy) && /\bimmutable\b/i.test(policy) && !/\bprivate\b|no-store/i.test(policy)) await putDecoded(cache, url, response);
+    }));
   })());
 });
 self.addEventListener("activate", event => {
@@ -221,11 +249,33 @@ async function feedImage(event, generation) {
   return response;
 }
 self.addEventListener("fetch", event => {
+  const publicUrl = new URL(event.request.url);
+  if (event.request.method === "GET" && publicUrl.origin === self.location.origin && PUBLIC_ASSET.test(publicUrl.pathname) && !publicUrl.search) {
+    event.respondWith((async () => (await (await caches.open(SHELL_CACHE)).match(publicUrl.href)) || fetch(event.request))());
+    return;
+  }
   if (mediaOwner(event.request)) {
     event.respondWith(feedImage(event, mediaGeneration));
     return;
   }
   const sameOrigin = new URL(event.request.url).origin === self.location.origin;
+  const navUrl = new URL(event.request.url);
+  if (event.request.mode === "navigate" && navUrl.origin === self.location.origin && navUrl.pathname === "/" && !navUrl.searchParams.has("_")) {
+    event.respondWith((async () => {
+      const network = fetch(event.request).then(response => {
+        if (response.ok) event.waitUntil(navigationSession(event, response).catch(() => {}));
+        return response;
+      });
+      const timer = new Promise(resolve => setTimeout(() => resolve(null), 1500));
+      const first = await Promise.race([network.catch(() => null), timer]);
+      if (first) return first;
+      const state = await control;
+      const shell = !disabledImmediately && !state.locked && state.mode === "active" ? await (await caches.open(SHELL_CACHE)).match("/shell") : null;
+      if (shell && !disabledImmediately && state.mode === "active") { event.waitUntil(network.catch(() => {})); return shell; }
+      try { return await network; } catch { return (await (await caches.open(SHELL_CACHE)).match("/")) || Response.error(); }
+    })());
+    return;
+  }
   const rsc = event.request.method === "GET" && sameOrigin && event.request.headers?.get("RSC") === "1";
   if (event.request.mode !== "navigate" && !rsc) return;
   event.respondWith((async () => {

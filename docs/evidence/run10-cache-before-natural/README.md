@@ -1,0 +1,7 @@
+# Natural pre-change Home cache baseline (#376)
+
+One actual Home-scroll attempt on immutable pre-change deployment `bf6d7f6dd3659c54ba6a59ec2189bfe132c5d1ec` found **legacy signed Storage feed JPEGs**, rather than owner-API WebP URLs. Independent deployment API reads before and after confirmed the same READY deployment. The private preview bypass was supplied only to an explicit request on that project's origin to establish its bypass cookie; it was not a global browser header.
+
+At390×844 using genuine Fast4G (165ms,1012500B/s down,168750B/s up), with service workers blocked to isolate browser HTTP cache, natural Home scrolling decoded three actual post photos. After actual session/access-token rotation through normal SSR refresh, another natural Home scroll downloaded all three from the network again: **142754 +161981 +305103 =609838 transferred bytes**, each200. The receipt's `pass:false` is the zero-transfer cache-reuse predicate, which this old implementation fails; collection itself completed normally. Browser/context closed afterward. No image probe elements, API-photo substitution, posts, settings or model calls were used.
+
+[Sanitized receipt](receipt.json) includes each real path, source, phase, transfer count and token-rotation booleans, without signed query tokens or credentials. This is a natural pre-change product baseline. Because its sources are signed JPEGs, it does **not** establish an apples-to-apples before/after owner-API-header comparison; the separate temporary API-image probe must retain its own narrower description.

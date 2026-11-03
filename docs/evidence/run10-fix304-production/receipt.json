@@ -1,0 +1,255 @@
+{
+  "at": "2026-11-03T12:45:13.096Z",
+  "finishedAt": "2026-11-03T12:46:03.310Z",
+  "deploymentBefore": {
+    "id": "dpl_8Uk8mHumB9XEsE7UgpyHQ5ZnbNQ4",
+    "state": "READY",
+    "sha": "afbb18efe317d6a0981b45a160dc9dc015642bbe",
+    "readyAt": "2026-11-03T12:44:09.377Z",
+    "createdAt": "2026-11-03T12:43:49.937Z",
+    "url": "my-food-62f1zhhaf-aibraincoachs-projects.vercel.app",
+    "observedAt": "2026-11-03T12:45:12.556Z"
+  },
+  "deploymentAfter": {
+    "id": "dpl_8Uk8mHumB9XEsE7UgpyHQ5ZnbNQ4",
+    "state": "READY",
+    "sha": "afbb18efe317d6a0981b45a160dc9dc015642bbe",
+    "readyAt": "2026-11-03T12:44:09.377Z",
+    "createdAt": "2026-11-03T12:43:49.937Z",
+    "url": "my-food-62f1zhhaf-aibraincoachs-projects.vercel.app",
+    "observedAt": "2026-11-03T12:46:16.411Z"
+  },
+  "stableDeployment": true,
+  "method": "Actual installed standalone Chrome, 390x844 phone viewport; primed browser profile, app windows closed between launches. Primary Slow4G applied to worker before first navigation and autoattached page before resume; original root response held until actual cached article visible; then released. Real production Auth; no bridge. Read/logout only, fresh designated test-account helper cookies.",
+  "conditions": {
+    "name": "Slow4G",
+    "latencyMs": 562.5,
+    "downloadBps": 180000,
+    "uploadBps": 84375
+  },
+  "trials": [
+    {
+      "trial": 1,
+      "epoch": 1793709931184,
+      "ms": 1880,
+      "source": "localStorage cache",
+      "id": "07a4304e-ce11-4830-80a4-bad685db7fb2",
+      "standalone": true,
+      "top": 187.390625,
+      "height": 537.578125,
+      "scrollY": 0,
+      "nav": true,
+      "imageReady": true,
+      "sameCachedNode": true,
+      "state": {
+        "url": "https://my-food-ai-ten.vercel.app/",
+        "shell": true,
+        "standalone": true,
+        "cards": 6
+      },
+      "timeline": [
+        {
+          "epoch": 1793709931184,
+          "ms": 1880,
+          "source": "localStorage cache",
+          "id": "07a4304e-ce11-4830-80a4-bad685db7fb2",
+          "standalone": true,
+          "top": 187.390625,
+          "height": 537.578125,
+          "scrollY": 0,
+          "nav": true,
+          "imageReady": true,
+          "sameCachedNode": true
+        },
+        {
+          "epoch": 1793709931184,
+          "ms": 2996,
+          "source": "fresh server/client",
+          "id": "07a4304e-ce11-4830-80a4-bad685db7fb2",
+          "standalone": true,
+          "top": 187.390625,
+          "height": 537.578125,
+          "scrollY": 0,
+          "nav": true,
+          "imageReady": true,
+          "sameCachedNode": true
+        }
+      ],
+      "paintStates": [
+        {
+          "ms": 1605,
+          "state": "no card",
+          "scrollY": 0
+        },
+        {
+          "ms": 1880,
+          "state": "cache",
+          "top": 187.390625,
+          "scrollY": 0
+        },
+        {
+          "ms": 2996,
+          "state": "fresh",
+          "top": 187.390625,
+          "scrollY": 0
+        }
+      ],
+      "noGap": true
+    },
+    {
+      "trial": 2,
+      "epoch": 1793709936340,
+      "ms": 1860,
+      "source": "localStorage cache",
+      "id": "07a4304e-ce11-4830-80a4-bad685db7fb2",
+      "standalone": true,
+      "top": 187.390625,
+      "height": 537.578125,
+      "scrollY": 0,
+      "nav": true,
+      "imageReady": true,
+      "sameCachedNode": true,
+      "state": {
+        "url": "https://my-food-ai-ten.vercel.app/",
+        "shell": true,
+        "standalone": true,
+        "cards": 6
+      },
+      "timeline": [
+        {
+          "epoch": 1793709936340,
+          "ms": 1860,
+          "source": "localStorage cache",
+          "id": "07a4304e-ce11-4830-80a4-bad685db7fb2",
+          "standalone": true,
+          "top": 187.390625,
+          "height": 537.578125,
+          "scrollY": 0,
+          "nav": true,
+          "imageReady": true,
+          "sameCachedNode": true
+        },
+        {
+          "epoch": 1793709936340,
+          "ms": 2855,
+          "source": "fresh server/client",
+          "id": "07a4304e-ce11-4830-80a4-bad685db7fb2",
+          "standalone": true,
+          "top": 187.390625,
+          "height": 537.578125,
+          "scrollY": 0,
+          "nav": true,
+          "imageReady": true,
+          "sameCachedNode": true
+        }
+      ],
+      "paintStates": [
+        {
+          "ms": 1641,
+          "state": "no card",
+          "scrollY": 0
+        },
+        {
+          "ms": 1860,
+          "state": "cache",
+          "top": 187.390625,
+          "scrollY": 0
+        },
+        {
+          "ms": 2855,
+          "state": "fresh",
+          "top": 187.390625,
+          "scrollY": 0
+        }
+      ],
+      "noGap": true
+    },
+    {
+      "trial": 3,
+      "epoch": 1793709941234,
+      "ms": 1770,
+      "source": "localStorage cache",
+      "id": "07a4304e-ce11-4830-80a4-bad685db7fb2",
+      "standalone": true,
+      "top": 187.390625,
+      "height": 537.578125,
+      "scrollY": 0,
+      "nav": true,
+      "imageReady": true,
+      "sameCachedNode": true,
+      "state": {
+        "url": "https://my-food-ai-ten.vercel.app/",
+        "shell": true,
+        "standalone": true,
+        "cards": 6
+      },
+      "timeline": [
+        {
+          "epoch": 1793709941234,
+          "ms": 1770,
+          "source": "localStorage cache",
+          "id": "07a4304e-ce11-4830-80a4-bad685db7fb2",
+          "standalone": true,
+          "top": 187.390625,
+          "height": 537.578125,
+          "scrollY": 0,
+          "nav": true,
+          "imageReady": true,
+          "sameCachedNode": true
+        },
+        {
+          "epoch": 1793709941234,
+          "ms": 2737,
+          "source": "fresh server/client",
+          "id": "07a4304e-ce11-4830-80a4-bad685db7fb2",
+          "standalone": true,
+          "top": 187.390625,
+          "height": 537.578125,
+          "scrollY": 0,
+          "nav": true,
+          "imageReady": true,
+          "sameCachedNode": true
+        }
+      ],
+      "paintStates": [
+        {
+          "ms": 1575,
+          "state": "no card",
+          "scrollY": 0
+        },
+        {
+          "ms": 1771,
+          "state": "cache",
+          "top": 187.390625,
+          "scrollY": 0
+        },
+        {
+          "ms": 2737,
+          "state": "fresh",
+          "top": 187.390625,
+          "scrollY": 0
+        }
+      ],
+      "noGap": true
+    }
+  ],
+  "privacy": {
+    "logout": {
+      "url": "https://my-food-ai-ten.vercel.app/sign-in",
+      "keys": [],
+      "ids": []
+    },
+    "loggedOutReopen": {
+      "url": "https://my-food-ai-ten.vercel.app/sign-in",
+      "ids": [],
+      "keys": []
+    },
+    "sameBrowserAccount2Standalone": true,
+    "noOldAccountArticleObserved": true,
+    "noOldAccountCacheKeys": true,
+    "pass": true
+  },
+  "uninstalled": true,
+  "profileRemoved": true,
+  "pass": true
+}

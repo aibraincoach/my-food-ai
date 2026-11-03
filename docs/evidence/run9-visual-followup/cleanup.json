@@ -1,0 +1,48 @@
+{
+  "observedAt": "2026-11-03T07:47:08.211Z",
+  "testAccount": 1,
+  "records": [
+    {
+      "id": "863773ac-8762-4cda-a1ed-74e76bc16b59",
+      "remainingPosts": 0,
+      "remainingDrafts": 0,
+      "remainingStorage": 0
+    },
+    {
+      "id": "9f12d801-b006-435e-b1d5-af6a90b1961a",
+      "remainingPosts": 0,
+      "remainingDrafts": 0,
+      "remainingStorage": 0
+    },
+    {
+      "id": "9d09333e-c472-41c3-9349-5e7791774a0f",
+      "remainingPosts": 0,
+      "remainingDrafts": 0,
+      "remainingStorage": 0
+    },
+    {
+      "id": "f0f4ad30-b8de-44bd-a9f3-bae937528c4b",
+      "remainingPosts": 0,
+      "remainingDrafts": 0,
+      "remainingStorage": 0
+    },
+    {
+      "id": "09c21074-36ba-493b-b5aa-5f9117920ca0",
+      "remainingPosts": 0,
+      "remainingDrafts": 0,
+      "remainingStorage": 0
+    },
+    {
+      "id": "84147263-7a04-4770-9ec5-7d2788de7d7f",
+      "remainingPosts": 0,
+      "remainingDrafts": 0,
+      "remainingStorage": 0
+    }
+  ],
+  "remainingOwnedLabelReadings": 0,
+  "visualTokenRevoked": true,
+  "notes": "Delayed idempotent media cleanup jobs remain for signed capability expiry. No token value or secret is recorded.",
+  "remainingTemporarySavedRiceRows": 0,
+  "finalObservedAt": "2026-11-03T07:59:08.570Z",
+  "browserStoppedBeforeFinalAudit": true
+}

@@ -1,0 +1,88 @@
+{
+  "at": "2026-11-03T13:06:46.543Z",
+  "account": 1,
+  "deploymentBefore": {
+    "id": "dpl_DgNH16aH6ZyQwR8N9WcyHqefYJrN",
+    "state": "READY",
+    "sha": "bf6d7f6dd3659c54ba6a59ec2189bfe132c5d1ec",
+    "url": "my-food-1v2sye5x9-aibraincoachs-projects.vercel.app",
+    "observedAt": "2026-11-03T13:06:44.990Z"
+  },
+  "method": "Natural Home scroll; genuine Fast4G165/1012500/168750;390x844; SW blocked to isolate HTTPcache; actual token rotation; no image probes",
+  "sessionCookieChanged": true,
+  "accessTokenRotated": true,
+  "photos": [
+    {
+      "postId": "455e2791-aa6e-4f9b-91c1-204b56f15be7",
+      "path": "/storage/v1/object/sign/media/fe79cc4a-aab6-47b7-a72e-d7e274e1da3e/455e2791-aa6e-4f9b-91c1-204b56f15be7/0.feed.jpg",
+      "kind": "legacy signed Storage",
+      "events": [
+        {
+          "path": "/storage/v1/object/sign/media/fe79cc4a-aab6-47b7-a72e-d7e274e1da3e/455e2791-aa6e-4f9b-91c1-204b56f15be7/0.feed.jpg",
+          "phase": "initial",
+          "source": "network",
+          "status": 200,
+          "bytes": 142738
+        },
+        {
+          "path": "/storage/v1/object/sign/media/fe79cc4a-aab6-47b7-a72e-d7e274e1da3e/455e2791-aa6e-4f9b-91c1-204b56f15be7/0.feed.jpg",
+          "phase": "after-refresh",
+          "source": "network",
+          "status": 200,
+          "bytes": 142754
+        }
+      ]
+    },
+    {
+      "postId": "fc24c2b0-aece-4604-bf9d-418a4df58c27",
+      "path": "/storage/v1/object/sign/media/fe79cc4a-aab6-47b7-a72e-d7e274e1da3e/fc24c2b0-aece-4604-bf9d-418a4df58c27/0.feed.jpg",
+      "kind": "legacy signed Storage",
+      "events": [
+        {
+          "path": "/storage/v1/object/sign/media/fe79cc4a-aab6-47b7-a72e-d7e274e1da3e/fc24c2b0-aece-4604-bf9d-418a4df58c27/0.feed.jpg",
+          "phase": "initial",
+          "source": "network",
+          "status": 200,
+          "bytes": 161965
+        },
+        {
+          "path": "/storage/v1/object/sign/media/fe79cc4a-aab6-47b7-a72e-d7e274e1da3e/fc24c2b0-aece-4604-bf9d-418a4df58c27/0.feed.jpg",
+          "phase": "after-refresh",
+          "source": "network",
+          "status": 200,
+          "bytes": 161981
+        }
+      ]
+    },
+    {
+      "postId": "3de45c10-4d60-408b-8fc9-c2a609d3b973",
+      "path": "/storage/v1/object/sign/media/fe79cc4a-aab6-47b7-a72e-d7e274e1da3e/3de45c10-4d60-408b-8fc9-c2a609d3b973/0.feed.jpg",
+      "kind": "legacy signed Storage",
+      "events": [
+        {
+          "path": "/storage/v1/object/sign/media/fe79cc4a-aab6-47b7-a72e-d7e274e1da3e/3de45c10-4d60-408b-8fc9-c2a609d3b973/0.feed.jpg",
+          "phase": "initial",
+          "source": "network",
+          "status": 200,
+          "bytes": 305096
+        },
+        {
+          "path": "/storage/v1/object/sign/media/fe79cc4a-aab6-47b7-a72e-d7e274e1da3e/3de45c10-4d60-408b-8fc9-c2a609d3b973/0.feed.jpg",
+          "phase": "after-refresh",
+          "source": "network",
+          "status": 200,
+          "bytes": 305103
+        }
+      ]
+    }
+  ],
+  "pass": false,
+  "interpretation": "Natural old Home uses legacy signed Storage images; not matching owner-API headers.",
+  "deploymentAfter": {
+    "id": "dpl_DgNH16aH6ZyQwR8N9WcyHqefYJrN",
+    "state": "READY",
+    "sha": "bf6d7f6dd3659c54ba6a59ec2189bfe132c5d1ec",
+    "url": "my-food-1v2sye5x9-aibraincoachs-projects.vercel.app",
+    "observedAt": "2026-11-03T13:06:56.481Z"
+  }
+}

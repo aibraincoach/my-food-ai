@@ -9,7 +9,7 @@ const FIRST='30000000-0000-4000-8000-000000000003',SECOND='40000000-0000-4000-80
 const MEDIA='mfa-media-v2',CONTROL='mfa-media-control-v1';
 const image=`https://storage.example/storage/v1/object/sign/media/${OWNER}/post/photo.feed.jpg`;
 const resized=`https://app.example/api/media/feed/${OWNER}/${FIRST}/${SECOND}/v1.webp`;
-function worker({stores=new Map(),mediaPut}={}) {
+function worker({stores=new Map(),mediaPut,setTimer=setTimeout}={}) {
  const handlers=new Map(),lifetimes=[];let fetched=0,fetcher=async()=>new Response(`image-${++fetched}`,{status:200});
  const keyOf=key=>typeof key==='string'?key:key.url;
  const caches={async open(name){if(!stores.has(name))stores.set(name,new Map());const store=stores.get(name);return {
@@ -17,7 +17,7 @@ function worker({stores=new Map(),mediaPut}={}) {
   async keys(){return [...store.keys()].map(key=>new Request(new URL(key,'https://app.example')));},async delete(key){return store.delete(keyOf(key));}
  };},async keys(){return [...stores.keys()];},async delete(name){return stores.delete(name);}};
  const self={location:{origin:'https://app.example'},addEventListener:(name,fn)=>handlers.set(name,fn),skipWaiting(){},clients:{async claim(){}},registration:{}};
- vm.runInNewContext(source,{self,caches,fetch:(request,init)=>fetcher(request,init),URL,Request,Response,Headers,Promise,Date,setTimeout,clearTimeout});
+ vm.runInNewContext(source,{self,caches,fetch:(request,init)=>fetcher(request,init),URL,Request,Response,Headers,Promise,Date,setTimeout:setTimer,clearTimeout});
  const waitUntil=value=>lifetimes.push(Promise.resolve(value));
  const flush=async()=>{while(lifetimes.length)await Promise.all(lifetimes.splice(0));};
  const event=async(name,data={})=>{let pending;handlers.get(name)({...data,waitUntil(value){pending=value;}});await pending;};
@@ -119,16 +119,16 @@ test('opaque images remain uncached while readable CORS responses can be retaine
  await w.request(image,{mode:'cors',credentials:'omit'});assert.equal(w.stores.get(MEDIA).size,1);
 });
 test('activation retains privacy metadata and retires the old authorization-free media cache',async()=>{
- const w=worker();await w.caches.open('my-food-ai-shell-v1');await w.caches.open('mfa-media-v1');await w.caches.open('my-food-ai-shell-v2');await w.caches.open(MEDIA);
- await w.event('activate');assert.deepEqual([...w.stores.keys()].sort(),[CONTROL,MEDIA,'my-food-ai-shell-v2'].sort());
+ const w=worker();await w.caches.open('my-food-ai-shell-v1');await w.caches.open('my-food-ai-shell-v3');await w.caches.open('mfa-media-v1');await w.caches.open('my-food-ai-shell-v4');await w.caches.open(MEDIA);
+ await w.event('activate');assert.deepEqual([...w.stores.keys()].sort(),[CONTROL,MEDIA,'my-food-ai-shell-v4'].sort());
 });
 test('signed-in navigation HTML is never added to a shared cache',async()=>{
  const w=worker();w.setFetch(async()=>new Response('private HTML'));assert.equal(await(await w.navigate('https://app.example/')).text(),'private HTML');
- assert.equal(w.stores.get(CONTROL).size,0);assert.equal(w.stores.has('my-food-ai-shell-v2'),false);
+ assert.equal(w.stores.get(CONTROL).size,0);assert.equal(w.stores.has('my-food-ai-shell-v4'),false);
 });
 test('install stores only anonymous shell responses with credentials omitted',async()=>{
  const w=worker(),requests=[];w.setFetch(async request=>{requests.push(request);return new Response('anonymous');});await w.event('install');
- assert.equal(requests.length,2);assert.ok(requests.every(request=>request.credentials==='omit'));assert.equal(w.stores.get('my-food-ai-shell-v2').size,2);
+ assert.equal(requests.length,3);assert.ok(requests.every(request=>request.credentials==='omit'));assert.equal(w.stores.get('my-food-ai-shell-v4').size,3);
 });
 
 test('validated navigation UUID headers authorize the second visit before JavaScript registration',async()=>{
@@ -168,4 +168,46 @@ test('a different client cannot borrow a warm browser HTTP response from an acti
  await w.request(resized,{}, {clientId:'unbound-client',settle:false});
  assert.equal(mode,'no-store');
  await w.clear();await w.flush();
+});
+
+
+test('install warms only anonymous same-origin immutable shell assets, including Flight references',async()=>{
+ const w=worker(),requests=[];
+ w.setFetch(async request=>{
+  requests.push(request);
+  const path=new URL(request.url).pathname;
+  if(path==='/shell')return new Response(`<script src="/_next/static/chunks/shell.js"></script><link href="/_next/static/immutable/chunks/shell.css">\\"static/chunks/flight.js\\"<script src="https://foreign.example/_next/static/chunks/foreign.js"></script><script src="/_next/static/chunks/private.js"></script><script src="/api/private.js"></script>`);
+  return new Response(path,{headers:path.endsWith('/private.js')?{'Cache-Control':'private, immutable'}:{'Cache-Control':'public, max-age=31536000, immutable'}});
+ });
+ await w.event('install');
+ assert.ok(requests.every(r=>r.credentials==='omit'));
+ const shell='https://app.example/_next/static/chunks/shell.js',flight='https://app.example/_next/static/chunks/flight.js';
+ assert.ok(w.stores.get('my-food-ai-shell-v4').has(shell));assert.ok(w.stores.get('my-food-ai-shell-v4').has(flight));
+ assert.equal(requests.some(r=>new URL(r.url).origin!=='https://app.example'),false);
+ assert.equal(requests.some(r=>new URL(r.url).pathname==='/api/private.js'),false);
+ assert.equal(w.stores.get('my-food-ai-shell-v4').has('https://app.example/_next/static/chunks/private.js'),false);
+ w.setFetch(async()=>{throw Error('Public shell bundle should already be cached');});
+ assert.equal(await(await w.request(shell)).text(),'/_next/static/chunks/shell.js');
+ await w.clear();assert.equal(await(await w.request(flight)).text(),'/_next/static/chunks/flight.js','logout clears private data while public code remains available');
+});
+
+
+test('cached public shell stays available to an active session and never stores the late private response',async()=>{
+ const timers=[],w=worker({setTimer:fn=>{timers.push(fn);return 1;}});await w.authenticate();
+ await(await w.caches.open('my-food-ai-shell-v4')).put('/shell',new Response('public shell'));
+ let release;w.setFetch(()=>new Promise(resolve=>{release=resolve;}));
+ const pending=w.navigate('https://app.example/');timers.forEach(fn=>fn());
+ assert.equal(await(await pending).text(),'public shell');
+ release(new Response('late private feed',{headers:{'x-mfa-media-user':OWNER,'x-mfa-media-session':FIRST}}));await w.flush();
+ assert.equal(await(await(await w.caches.open('my-food-ai-shell-v4')).match('/shell')).text(),'public shell');
+});
+
+test('logout while navigation waits prevents serving the cached shell after its fallback timer',async()=>{
+ const timers=[],w=worker({setTimer:fn=>{timers.push(fn);return 1;}});await w.authenticate();
+ await(await w.caches.open('my-food-ai-shell-v4')).put('/shell',new Response('public shell'));
+ let release,result;w.setFetch(()=>new Promise(resolve=>{release=resolve;}));
+ const pending=w.navigate('https://app.example/').then(response=>{result=response;return response;});
+ await w.clear();timers.forEach(fn=>fn());await new Promise(resolve=>setImmediate(resolve));
+ assert.equal(result,undefined,'signed-out navigation must wait for its origin response');
+ release(new Response('signed-out page'));assert.equal(await(await pending).text(),'signed-out page');await w.flush();
 });

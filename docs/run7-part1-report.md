@@ -1,5 +1,7 @@
 # Run 7 — current pass partially complete
 
+Historical pre-merge report. For merged/deployed state, issue dispositions and remaining checks, see [post–Run 7 reconciliation](post-run7-backlog-reconciliation.md).
+
 The implementation is built and pushed. Item 1 remains partial: the final cold photo observation is 2,096.9 ms against a 2,000 ms target. The owner stopped further optimization so this pass could close with its remaining work stated explicitly. Nothing has been merged or deployed by this run; production migrations, provider environment values and owner acceptance remain Part 2.
 
 ## Items 0–7

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import {refreshAfterReadinessSeed,refreshAfterReady} from "@/lib/posts/readiness-refresh";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 
@@ -9,16 +10,22 @@ export default function PostReadinessListener() {
   const router = useRouter();
   useEffect(() => {
     const db = createClient();
+    // The installed shell owns an in-place client reader. A route refresh
+    // would replace that cached page with a blank server Suspense boundary.
+    const refreshView=()=>{if(document.querySelector('[data-shell]'))window.dispatchEvent(new Event('feed-revalidate'));else router.refresh();};
     const pending = new Map<string, { started: number; nextCheck: number }>();
+    const known = new Map<string, string>();
     let live = true;
     let polling = false;
     const settle = (id: string, status: string, announce=true) => {
       if (!["ready", "failed", "needs_input"].includes(status)) return;
+      const refresh=refreshAfterReady(announce,pending.has(id),known.get(id));
+      known.set(id,status);
       pending.delete(id);
       if (live) {
         if(announce&&status!=="needs_input")window.dispatchEvent(new CustomEvent("post-settled",{detail:{id,status}}));
         if(status==="ready"&&announce)window.dispatchEvent(new CustomEvent("post-ready",{detail:{id}}));
-        router.refresh();
+        if(refresh)refreshView();
       }
     };
     const created = (event: Event) => {
@@ -41,14 +48,13 @@ export default function PostReadinessListener() {
         }
         // Covers a meal that became ready before this pending-status read,
         // including the gap before the realtime subscription is established.
-        router.refresh();
+        if(refreshAfterReadinessSeed(location.pathname,Boolean(document.querySelector("[data-home-feed]"))))refreshView();
       } catch {
-        if (live) router.refresh();
+        if (live && refreshAfterReadinessSeed(location.pathname,Boolean(document.querySelector("[data-home-feed]")))) refreshView();
       }
     };
     // Meals created elsewhere are never in `pending`; look at the newest few posts now and then
     // so a disconnected channel cannot leave Days or a story stale until the next focus.
-    const known = new Map<string, string>();
     let discovered = false;
     const discover = async () => {
       try {
@@ -60,7 +66,7 @@ export default function PostReadinessListener() {
           known.set(row.id, row.status);
         }
         discovered = true;
-        if (changed) router.refresh();
+        if (changed) refreshView();
       } catch {
         // The next visible check retries.
       }
@@ -69,8 +75,8 @@ export default function PostReadinessListener() {
     void discover();
     // A visible page re-renders once a minute: this covers an update to an older meal that
     // `discover` cannot see and carries "today" across local midnight (the server derives it).
-    const reconcileTimer = setInterval(() => { if (document.visibilityState === "visible" && live) router.refresh(); }, 60_000);
-    const visible = () => { if (document.visibilityState === "visible" && live) router.refresh(); };
+    const reconcileTimer = setInterval(() => { if (document.visibilityState === "visible" && live) refreshView(); }, 60_000);
+    const visible = () => { if (document.visibilityState === "visible" && live) refreshView(); };
     document.addEventListener("visibilitychange", visible);
     const focus = () => { void seedPending(); void discover(); };
     const channel = db.channel("tab-post-readiness").on("postgres_changes", {

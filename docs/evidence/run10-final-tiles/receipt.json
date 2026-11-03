@@ -1,0 +1,207 @@
+[
+  {
+    "case": "six tiles",
+    "rows": [
+      {
+        "name": "Water, glass",
+        "ml": 250,
+        "mg": 0,
+        "at": "2026-11-03T13:18:39.666Z",
+        "status": 201,
+        "request": {
+          "tile": 0,
+          "ml": 250,
+          "eaten_at": "2026-11-03T13:18:33.137Z",
+          "time_zone": "Asia/Tokyo",
+          "operation_id": "f8daf230-1e84-4cb1-ab5f-fc2357667ca9",
+          "owner_id": "fe79cc4a-aab6-47b7-a72e-d7e274e1da3e"
+        },
+        "intake": [
+          {
+            "kind": "water",
+            "amount": 250,
+            "ml": 250,
+            "label": "Water, glass"
+          }
+        ],
+        "feed": "T\ntestkitchen\n\u00b7\u00b7\u00b7\nCONSUMED \u00b7 10:18 PM\n0\nkcal\n0 g\nprotein\n0 g\ncarbs\n0 g\nfat\nWater, glass 250 g\nDetails \u203a\n\ntestkitchen Water, glass\n\nConsumed: 0 kcal \u00b7 0 g protein \u00b7 0 g carbs \u00b7 0 g fat more\n10:18 PM",
+        "postId": "96af10e1-362d-4278-a577-1cc23343aa9d"
+      },
+      {
+        "name": "Coffee, cup",
+        "ml": 240,
+        "mg": 95,
+        "at": "2026-11-03T13:18:46.827Z",
+        "status": 201,
+        "request": {
+          "tile": 1,
+          "ml": 240,
+          "eaten_at": "2026-11-03T13:18:42.469Z",
+          "time_zone": "Asia/Tokyo",
+          "operation_id": "633006d3-5b8c-4e77-b2a9-0815e4f27875",
+          "owner_id": "fe79cc4a-aab6-47b7-a72e-d7e274e1da3e"
+        },
+        "intake": [
+          {
+            "kind": "caffeine",
+            "amount": 95,
+            "ml": 240,
+            "label": "Coffee, cup"
+          }
+        ],
+        "feed": "\u00b7\u00b7\u00b7\nCONSUMED\n2\nkcal\n0 g\nprotein\n0 g\ncarbs\n0 g\nfat\nCoffee, cup 240 g\nDetails \u203a\n\n Coffee, cup\n\nConsumed: 2 kcal \u00b7 0 g protein \u00b7 0 g carbs \u00b7 0 g fat more",
+        "postId": "f66ab956-030f-4c19-9bf1-fcd5bd44d39b"
+      },
+      {
+        "name": "Espresso, double",
+        "ml": 60,
+        "mg": 126,
+        "at": "2026-11-03T13:18:54.169Z",
+        "status": 201,
+        "request": {
+          "tile": 2,
+          "ml": 60,
+          "eaten_at": "2026-11-03T13:18:49.590Z",
+          "time_zone": "Asia/Tokyo",
+          "operation_id": "3f411057-f705-4658-8a95-f13f5b756d65",
+          "owner_id": "fe79cc4a-aab6-47b7-a72e-d7e274e1da3e"
+        },
+        "intake": [
+          {
+            "kind": "caffeine",
+            "amount": 126,
+            "ml": 60,
+            "label": "Espresso, double"
+          }
+        ],
+        "feed": "\u00b7\u00b7\u00b7\nCONSUMED \u00b7 10:18 PM\n5\nkcal\n0 g\nprotein\n1 g\ncarbs\n0 g\nfat\nEspresso, double 60 g\nDetails \u203a\n\n Espresso, double\n\nConsumed: 5 kcal \u00b7 0 g protein \u00b7 1 g carbs \u00b7 0 g fat more\n10:18 PM",
+        "postId": "84f1f36b-a8ce-4f5d-a258-5510664e7d24"
+      },
+      {
+        "name": "Tea, mug",
+        "ml": 300,
+        "mg": 45,
+        "at": "2026-11-03T13:19:06.131Z",
+        "status": 201,
+        "request": {
+          "tile": 3,
+          "ml": 300,
+          "eaten_at": "2026-11-03T13:18:58.996Z",
+          "time_zone": "Asia/Tokyo",
+          "operation_id": "5719a51f-90d9-4dcb-b39f-644e34394b22",
+          "owner_id": "fe79cc4a-aab6-47b7-a72e-d7e274e1da3e"
+        },
+        "intake": [
+          {
+            "kind": "caffeine",
+            "amount": 45,
+            "ml": 300,
+            "label": "Tea, mug"
+          }
+        ],
+        "feed": "\u00b7\u00b7\u00b7\nCONSUMED \u00b7 10:18 PM\n3\nkcal\n0 g\nprotein\n1 g\ncarbs\n0 g\nfat\nTea, mug 300 g\nDetails \u203a\n\n Tea, mug\n\nConsumed: 3 kcal \u00b7 0 g protein \u00b7 1 g carbs \u00b7 0 g fat more\n10:18 PM",
+        "postId": "15a814f5-57f9-4a33-a1f5-ecb989dad921"
+      },
+      {
+        "name": "Coca-Cola, can",
+        "ml": 330,
+        "mg": 32,
+        "at": "2026-11-03T13:19:13.344Z",
+        "status": 201,
+        "request": {
+          "tile": 4,
+          "ml": 330,
+          "eaten_at": "2026-11-03T13:19:09.590Z",
+          "time_zone": "Asia/Tokyo",
+          "operation_id": "9ef86870-5d6f-4f3b-a938-f6d22ceafa12",
+          "owner_id": "fe79cc4a-aab6-47b7-a72e-d7e274e1da3e"
+        },
+        "intake": [
+          {
+            "kind": "caffeine",
+            "amount": 32,
+            "ml": 330,
+            "label": "Coca-Cola, can"
+          }
+        ],
+        "feed": "\u00b7\u00b7\u00b7\nCONSUMED \u00b7 10:19 PM\n139\nkcal\n0 g\nprotein\n34 g\ncarbs\n1 g\nfat\nCoca-Cola, can 330 g\nDetails \u203a\n\n Coca-Cola, can\n\nConsumed: 139 kcal \u00b7 0 g protein \u00b7 34 g carbs \u00b7 1 g fat more\n10:19 PM",
+        "postId": "b625c949-f34c-4482-8bf1-c0903e8540e0"
+      },
+      {
+        "name": "Water, bottle",
+        "ml": 500,
+        "mg": 0,
+        "at": "2026-11-03T13:19:19.062Z",
+        "status": 201,
+        "request": {
+          "tile": 5,
+          "ml": 500,
+          "eaten_at": "2026-11-03T13:19:15.629Z",
+          "time_zone": "Asia/Tokyo",
+          "operation_id": "e4d82e98-3b4a-4122-8a6b-3ae9439016b2",
+          "owner_id": "fe79cc4a-aab6-47b7-a72e-d7e274e1da3e"
+        },
+        "intake": [
+          {
+            "kind": "water",
+            "amount": 500,
+            "ml": 500,
+            "label": "Water, bottle"
+          }
+        ],
+        "feed": "T\ntestkitchen\n\u00b7\u00b7\u00b7\nDRANK \u00b7 10:19 PM\n500\nml\nWater, bottle\n1,720 ml\nconsumed today\n1,680 ml from drinks\n40 ml from food\nDetails \u203a\n\ntestkitchen Water, bottle\n\nDrank: 500 ml \u00b7 Consumed today: 1,720 ml \u00b7 298 mg caffeine more\n10:19 PM",
+        "postId": "2b8fad86-60bc-4490-b927-671243dfbaa7"
+      }
+    ],
+    "cleanup": {
+      "at": "2026-11-03T13:19:55.551Z",
+      "postOperationCount": 6,
+      "standaloneIntakeCount": 0,
+      "copyOperationCount": 0,
+      "drinkOperationCount": 6,
+      "foodOperationCount": 0,
+      "preferencesRestored": true,
+      "issues": []
+    }
+  },
+  {
+    "case": "Coffee hold",
+    "rows": [
+      {
+        "name": "Coffee, large",
+        "ml": 350,
+        "mg": 138,
+        "at": "2026-11-03T13:29:09.880Z",
+        "status": 201,
+        "request": {
+          "tile": 1,
+          "ml": 350,
+          "eaten_at": "2026-11-03T13:29:04.915Z",
+          "time_zone": "Asia/Tokyo",
+          "operation_id": "f03f5308-676e-4b92-9174-b137eb5d1e02",
+          "owner_id": "fe79cc4a-aab6-47b7-a72e-d7e274e1da3e"
+        },
+        "intake": [
+          {
+            "kind": "caffeine",
+            "amount": 138,
+            "ml": 350,
+            "label": "Coffee, large"
+          }
+        ],
+        "feed": "\u00b7\u00b7\u00b7\nCONSUMED \u00b7 10:29 PM\n4\nkcal\n0 g\nprotein\n0 g\ncarbs\n0 g\nfat\nCoffee, large 350 g\nDetails \u203a\n\n Coffee, large\n\nConsumed: 4 kcal \u00b7 0 g protein \u00b7 0 g carbs \u00b7 0 g fat more\n10:29 PM",
+        "postId": "84f8a5f8-45d7-4c3a-b462-26a9a182beb7"
+      }
+    ],
+    "cleanup": {
+      "at": "2026-11-03T13:29:15.293Z",
+      "postOperationCount": 1,
+      "standaloneIntakeCount": 0,
+      "copyOperationCount": 0,
+      "drinkOperationCount": 1,
+      "foodOperationCount": 0,
+      "preferencesRestored": true,
+      "issues": []
+    }
+  }
+]
