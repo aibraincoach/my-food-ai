@@ -8,6 +8,7 @@ test('direct post metadata must identify the authenticated owner; malformed IDs 
  for(const result of [{data:null,error:null},{data:{id:post,user_id:post},error:null},{data:{id:owner,user_id:owner},error:null},{data:{id:post,user_id:owner},error:{message:'outage'}}])assert.equal(await postRequestAllowed(owner,post,async()=>result),false);
  assert.equal(await postRequestAllowed(owner,post,async()=>{throw Error('network');}),false);
  assert.equal(await postRequestAllowed(owner,post,async()=>({data:{id:post,user_id:owner},error:null})),true);
+ const upper='ABCDEF00-0000-4000-8000-ABCDEF000002';assert.equal(await postRequestAllowed(owner,upper,async()=>({data:{id:upper.toLowerCase(),user_id:owner},error:null})),true);
 });
 test('actual middleware refuses foreign post links with404 before streaming, preserving Auth and owner access',async()=>{
  const {middleware}=await import('../src/middleware.ts');const prior={fetch:globalThis.fetch,url:process.env.NEXT_PUBLIC_SUPABASE_URL,key:process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY};

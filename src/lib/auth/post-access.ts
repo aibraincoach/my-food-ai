@@ -8,7 +8,7 @@ export async function postRequestAllowed(
   if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(postId)) return false;
   try {
     const {data, error} = await readPost();
-    return !error && data?.id === postId && data.user_id === userId;
+    return !error && data?.id.toLowerCase() === postId.toLowerCase() && data.user_id === userId;
   } catch {
     return false;
   }
