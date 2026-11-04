@@ -53,6 +53,7 @@ export interface FeedPost {
   analysisFingerprint?: string | null;
   kind?: "meal" | "drink";
   drinkSource?: "sheet" | "item";
+  dayDrinks?: {glyph:import("@/lib/intake/drink-glyph").DrinkGlyph;ml:number}[];
   itemDrinks?: import("@/lib/intake/hydration").ItemDrinkRecord[];
   foodWaterMl?: number;
   dayHydration?: HydrationRecord;
@@ -89,7 +90,7 @@ export function retainCompleteItems(previous: FeedPost | undefined, fresh: FeedP
   }
   if (fresh.hydrationUnavailable && previous.eaten_at === fresh.eaten_at && previous.day === fresh.day) {
     next.kind=previous.kind;next.drink=previous.drink;next.drinkSource=previous.drinkSource;
-    next.itemDrinks=previous.itemDrinks;next.foodWaterMl=previous.foodWaterMl;next.dayHydration=previous.dayHydration;
+    next.dayDrinks=previous.dayDrinks;next.itemDrinks=previous.itemDrinks;next.foodWaterMl=previous.foodWaterMl;next.dayHydration=previous.dayHydration;
   }
   return next;
 }
