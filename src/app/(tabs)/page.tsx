@@ -1,4 +1,5 @@
 /* eslint-disable @next/next/no-img-element -- Private signed photos bypass paid optimization. */
+import {feedPhotoSrcSet} from '@/lib/posts/feed-photo-url';
 import { todayFromPage } from "@/lib/posts/today-view";
 import { verifiedUserId } from "@/lib/auth/verified-user";
 import CleanFreshMarker from "@/components/CleanFreshMarker";
@@ -84,12 +85,12 @@ async function HomeFirstPhoto() {
   } catch { /* The normal feed boundary and cache remain available. */ }
   if(!first)return null;
   const zone=validZone((await cookies()).get('time-zone')?.value);
-  if(first.photoUrl)preload(first.photoUrl,{as:'image',fetchPriority:'high',crossOrigin:'anonymous'});
+  if(first.photoUrl)preload(first.photoUrl,{as:'image',fetchPriority:'high',crossOrigin:'anonymous',imageSrcSet:feedPhotoSrcSet(first.photoUrl)});
   return <div data-fast-feed-seed className="relative pb-card-gap">
     <DayHeader day={dateInZone(first.eaten_at,zone)} zone={zone} empty={false}/><div className="pt-sheet-top">
     <div className="flex h-[52px] items-center gap-[10px] px-inset" aria-hidden="true"><span className="size-8 rounded-circle bg-card"/><span className="h-3 w-24 rounded-field bg-card"/></div>
     {first.photoUrl?<Link href={`/posts/${first.id}`} aria-label="Open meal details" className="block aspect-square">
-      <img crossOrigin="anonymous" src={first.photoUrl} width={1080} height={1080} fetchPriority="high" loading="eager" decoding="async" alt={first.caption||'Meal photo'} className="size-full object-cover"/>
+      <img crossOrigin="anonymous" src={first.photoUrl} srcSet={feedPhotoSrcSet(first.photoUrl)} width={1080} height={1080} fetchPriority="high" loading="eager" decoding="async" alt={first.caption||'Meal photo'} className="size-full object-cover"/>
     </Link>:null}
     <div className="px-inset py-sheet-top">{first.caption?<p className="text-body">{first.caption}</p>:null}<p className="text-detail text-muted" role="status">Loading meal details…</p></div></div>
   </div>;
@@ -99,7 +100,7 @@ async function HomeFirstPhoto() {
 const homeSeed=cache(async()=>{
  const {db,user}=await homeReader();if(!user)return undefined;
  const zone=validZone((await cookies()).get('time-zone')?.value);
- const page=await getFeed(db,user.id,null,zone,6,{knownDays:Array.from({length:5},(_,i)=>shiftDay(dateInZone(new Date(),zone),-i)),onFirstPhoto:url=>preload(url,{as:'image',fetchPriority:'high',crossOrigin:'anonymous'})});
+ const page=await getFeed(db,user.id,null,zone,6,{knownDays:Array.from({length:5},(_,i)=>shiftDay(dateInZone(new Date(),zone),-i)),onFirstPhoto:url=>preload(url,{as:'image',fetchPriority:'high',crossOrigin:'anonymous',imageSrcSet:feedPhotoSrcSet(url)})});
  return {page,userId:user.id,zone};
 });
 async function HomeFeed(){

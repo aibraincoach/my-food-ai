@@ -1,4 +1,6 @@
 'use client';
+import {imageIdentity} from '@/lib/media/retained-image';
+import {feedPhotoSrcSet} from '@/lib/posts/feed-photo-url';
 import {useLayoutEffect,useRef,useState} from 'react';
 import {recallPost} from '@/lib/posts/open-frame';
 import type {FeedPost} from '@/lib/posts/feed';
@@ -26,12 +28,13 @@ function Photo({post,square}:{post:FeedPost;square:boolean}) {
  const url=post.slides.find(slide=>slide.kind!=='card')?.url??post.photoUrl;
  const image=useRef<HTMLImageElement>(null);
  const [ratio,setRatio]=useState<string|null>(null);
+ const [failedSharp,setFailedSharp]=useState<string|null>(null);
  // The feed webp is already in the browser cache, so its natural size is
  // known at once; the detail frame uses the same ratio, so nothing moves.
  useLayoutEffect(()=>{const element=image.current;if(!element)return;const read=()=>{if(element.naturalWidth&&element.naturalHeight)setRatio(`${element.naturalWidth} / ${element.naturalHeight}`);};if(element.complete)read();else element.addEventListener('load',read,{once:true});return()=>element.removeEventListener('load',read);},[url]);
  if(!url)return <div className="aspect-square w-full bg-card"/>;
  // eslint-disable-next-line @next/next/no-img-element
- return <div className="relative w-full overflow-hidden bg-card" style={square?{aspectRatio:'1 / 1'}:{aspectRatio:ratio??'1 / 1',maxHeight:'80dvh'}}><img ref={image} src={url} crossOrigin="anonymous" alt={post.caption||'Meal photo'} draggable={false} className={`h-full w-full ${square?'object-cover':'object-contain'}`}/></div>;
+ return <div className="relative w-full overflow-hidden bg-card" style={square?{aspectRatio:'1 / 1'}:{aspectRatio:ratio??'1 / 1',maxHeight:'80dvh'}}><img ref={image} src={url} srcSet={failedSharp!==imageIdentity(url)?feedPhotoSrcSet(url):undefined} onError={()=>setFailedSharp(imageIdentity(url))} crossOrigin="anonymous" alt={post.caption||'Meal photo'} draggable={false} className={`h-full w-full ${square?'object-cover':'object-contain'}`}/></div>;
 }
 
 function Rows() {

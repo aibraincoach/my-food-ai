@@ -1,6 +1,10 @@
 import sharp from 'sharp';
 
 export const MAX_FEED_SOURCE_BYTES = 4 * 1024 * 1024;
+// Chosen limit for original downloads; larger files use the signed-original fallback.
+export const MAX_ORIGINAL_SOURCE_BYTES = 8 * 1024 * 1024;
+export const SHARP_FEED_BOXES = {'v2-1040.webp': 1040, 'v2-1560.webp': 1560} as const;
+export type SharpVariant = keyof typeof SHARP_FEED_BOXES;
 let active = 0;
 // Bound both downloads and native transforms; overload keeps the authorized original usable.
 export function reserveFeedPhoto(): (() => void) | null {
@@ -15,10 +19,10 @@ export function feedPhotoPath(path: unknown, owner: string, post: string): strin
   if (!/^[a-zA-Z0-9_-]+\.jpg$/.test(name)) return null;
   return path.replace(/\.jpg$/, '.feed.jpg');
 }
-export async function readFeedSource(response: Response): Promise<Buffer> {
+export async function readFeedSource(response: Response, limit = MAX_FEED_SOURCE_BYTES): Promise<Buffer> {
   if (!response.ok || !response.body) throw new Error('Source unavailable');
   const length = Number(response.headers.get('content-length'));
-  if (length > MAX_FEED_SOURCE_BYTES) { await response.body.cancel(); throw new Error('Source too large'); }
+  if (length > limit) { await response.body.cancel(); throw new Error('Source too large'); }
   const reader = response.body.getReader();
   const chunks: Uint8Array[] = [];
   let bytes = 0;
@@ -27,7 +31,7 @@ export async function readFeedSource(response: Response): Promise<Buffer> {
       const {done, value} = await reader.read();
       if (done) break;
       bytes += value.byteLength;
-      if (bytes > MAX_FEED_SOURCE_BYTES) throw new Error('Source too large');
+      if (bytes > limit) throw new Error('Source too large');
       chunks.push(value);
     }
   } catch (error) { await reader.cancel().catch(() => {}); throw error; }
@@ -54,4 +58,13 @@ export async function resizeFeedPhoto(source: Buffer, version: 1 | 2 = 1): Promi
     .webp({quality: 50, effort: 3}).toBuffer();
   if (smaller.length > 50_000) throw new Error('Preview too large');
   return smaller;
+}
+
+// Density-specific copies read the original, independently of the legacy feed JPEG.
+export async function resizeSharpPhoto(source: Buffer, box: number): Promise<Buffer> {
+  const output = await sharp(source, {limitInputPixels: 16_777_216, failOn: 'error'})
+    .timeout({seconds: 3}).rotate().resize({width: box, height: box, fit: 'inside', withoutEnlargement: true})
+    .webp({quality: 68, effort: 3}).toBuffer();
+  if (output.length > 600_000) throw new Error('Sharp copy too large');
+  return output;
 }
