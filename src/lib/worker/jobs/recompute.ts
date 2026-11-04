@@ -1,4 +1,5 @@
 import { approximationLabels } from "@/lib/fdc/approximation-metadata";
+import { nutritionUnavailable } from "@/lib/nutrition/available";
 import { resolvePortionNutrition } from "@/lib/nutrition/portion";
 import { ioError } from "@/lib/worker/errors";
 import type { SupabaseClient } from "@supabase/supabase-js";
@@ -26,17 +27,18 @@ export default async function recompute(admin: SupabaseClient, job: JobRow): Pro
   if(contextError)throw ioError("Recompute context could not be read.",contextError,resolutionBudget.aborted?503:contextStatus);
   if (items?.length) {
     const { data: existing, error: nutritionError, status: nutritionStatus } = await admin.from("item_nutrition")
-      .select("post_item_id,source_ref").in("post_item_id", items.map((item) => item.id)).abortSignal(resolutionBudget);
+      .select("post_item_id,source_ref,calories,protein_g,carbs_g,fat_g").in("post_item_id", items.map((item) => item.id)).abortSignal(resolutionBudget);
     if (nutritionError) throw ioError(`recompute nutrition: ${nutritionError.message}`, nutritionError, nutritionStatus);
     const complete = new Map((existing ?? []).map((row) => [row.post_item_id,row]));
     const resolved = await resolveNutritionItems(items,resolutionBudget,async (item,_index,signal) => {
-      if (complete.has(item.id)) {
-        await traceNutritionReuse(item.name,complete.get(item.id)!,"existing_item",item.id);
+      const prior = complete.get(item.id);
+      if (prior && !nutritionUnavailable(prior)) {
+        await traceNutritionReuse(item.name,prior,"existing_item",item.id);
         return null;
       }
       // Resolve all item data before issuing the one atomic nutrition write.
       const retained = await resolvePortionNutrition(admin, job.post_id!, item.supersedes, item.name, item.portion_grams, item.portion_text,signal);
-      if (retained) return {...retained,post_item_id:item.id};
+      if (retained && !nutritionUnavailable(retained)) return {...retained,post_item_id:item.id};
       const match = await resolveFoodMatchDetailed(admin,item.name,context.caption??"",signal,{approximate:true});
       const n = scaleNutrition(match.food, item.portion_grams == null ? null : toNumber(item.portion_grams), match.unavailable);
       return {
@@ -48,7 +50,7 @@ export default async function recompute(admin: SupabaseClient, job: JobRow): Pro
     const writes=resolved.filter(row=>row!==null);
     if(writes.length){
       const {error:writeError,status:writeStatus}=await admin.from("item_nutrition")
-        .upsert(writes,{onConflict:"post_item_id",ignoreDuplicates:true});
+        .upsert(writes,{onConflict:"post_item_id"});
       if(writeError)throw ioError(`recompute save: ${writeError.message}`,writeError,writeStatus);
     }
   }
