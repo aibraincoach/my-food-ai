@@ -38,7 +38,7 @@ Check on each of the owner's three phones, installed from the home screen, over 
 
 ## Engineering backlog
 
-### Opening a meal's detail takes 14 seconds
+### #494 Opening a meal's detail takes 14 seconds
 
 The owner reports 14 seconds from tapping a meal to its detail page opening. He calls it not acceptable.
 
@@ -272,31 +272,31 @@ The tile sizes and order on the drink sheet were not checked on production.
 
 Only a local test backs the closure. Done when the drink sheet shows its tiles in the right sizes and order on production, on the owner's three phones.
 
-### Tapping a meal shows nothing until the whole detail loads
+### #495 Tapping a meal shows nothing until the whole detail loads
 
 A tap on a meal card looks dead until the server finishes the whole detail. On phone and on desktop, no loading screen appears, so the tap gives no feedback until the server answers.
 
 Unverified audit finding, read at head 618cf7e, which is older than main. The audit assumed a viewer in Jakarta. The judges are in North America. The phone page (src/app/posts/\[id\]/page.tsx) has no loading screen. The home page passes the desktop detail with no placeholder around it (src/app/(tabs)/page.tsx, src/components/DesktopWorkspace.tsx), so the dialog cannot open until the server finishes. The audit proposes a loading screen for the phone page and a placeholder with a photo and item-row skeleton on desktop. That would also let the browser prefetch the shell. Observe first: re-read those files on current main, and time the tap to the first visible change on a throttled connection. Done when a tap on a meal card shows a skeleton within one second on phone and on desktop, on a throttled connection, and the full detail replaces it when it loads.
 
-### Opening a meal's detail reads the same meal twice
+### #496 Opening a meal's detail reads the same meal twice
 
 Opening a meal's detail reads the post, its items and its media twice, so every open pays about double the database work before anything shows.
 
 Unverified audit finding, read at head 618cf7e. The audit says the detail component fetches the full detail and the feed card for the same meal in parallel (src/components/PostDetail.tsx, src/lib/posts/items.ts, src/lib/posts/feed.ts, src/lib/nutrition/totals.ts). The items read is three queries (current items, nutrition rows, parent items), so items alone cost six round trips. The card adds two revision calls and a saved-meal query. The audit counts about fifteen database round trips per detail open. It proposes one detail loader that reads the post, items, media, saved state and revision data once. A smaller version shares the reads within one request. Observe first: count the database requests of one detail open on current main. Done when one detail open reads each of post, items, media, saved state and revision data once, and the request count before and after is in docs.
 
-### Opening a meal's detail downloads the full original photo again
+### #497 Opening a meal's detail downloads the full original photo again
 
 Opening a meal's detail downloads the full original photo although a small copy is already on screen from the feed. The browser cannot reuse what it already holds, so every open pays a large download.
 
 Unverified audit finding, read at head 618cf7e. The audit says the detail image uses a fresh signed address minted at every render, which skips the five-minute address cache the feed uses, and that it points at the original file and not the cached feed copy (src/components/OutlineOverlay.tsx, src/lib/posts/items.ts, src/app/api/media/feed/\[owner\]/\[post\]/\[media\]/v1.webp/route.ts). It proposes showing the cached feed copy first, then the original after it loads or on zoom, and keeping the original for the outline editor. Nobody has measured the original photo sizes. Related: #372. Done when a detail open shows the cached feed copy at once, the original loads only after it or on zoom, and the bytes downloaded per detail open before and after are in docs.
 
-### The feed reads once per meal and fires about 100 requests on a cold load
+### #498 The feed reads once per meal and fires about 100 requests on a cold load
 
 A first load or a deep scroll of the feed fires about 100 browser requests for one 20-post page, because each meal costs its own set of reads.
 
 Unverified audit finding, read at head 618cf7e. Per meal, the audit lists two revision calls, a media query, a saved-meal query and the three-query item read (src/lib/posts/feed.ts). The home mitigations cover repeat visits to the top of the feed only: the first six posts render on the server, six posts stay in a browser cache, photo addresses are stable, and the first photo preloads. The audit proposes batching the per-meal reads the way the days reader now uses one joined query. Related: #222 and #373. Observe first: count the requests of a cold 20-post feed on current main. Done when a cold 20-post feed page makes a fixed small number of reads instead of one set per meal, and the request count before and after is in docs.
 
-### Several pages export an instant flag that nothing reads
+### #499 Several pages export an instant flag that nothing reads
 
 Several pages export a flag called instant set to false, and nothing reads it. Every reader has to wonder what it does.
 
