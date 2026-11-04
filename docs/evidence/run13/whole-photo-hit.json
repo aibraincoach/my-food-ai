@@ -1,0 +1,30 @@
+[
+  {
+    "viewport": [
+      390,
+      844
+    ],
+    "point": {
+      "x": 231.25,
+      "y": 487.5,
+      "tag": "IMG",
+      "label": null
+    },
+    "selected": "thick toast",
+    "editorOpened": true
+  },
+  {
+    "viewport": [
+      1280,
+      800
+    ],
+    "point": {
+      "x": 517.0039682539682,
+      "y": 582.8174603174604,
+      "tag": "IMG",
+      "label": null
+    },
+    "selected": "thick toast",
+    "editorOpened": true
+  }
+]

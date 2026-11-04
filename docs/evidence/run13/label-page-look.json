@@ -1,0 +1,117 @@
+{
+  "head": "8b0c0d4cb8b83e2bcc4fa43c36fc7b79144f8abf",
+  "driver": "/tmp/run13-e-look-driver.mjs",
+  "browser": "Firefox native WebDriver BiDi",
+  "results": [
+    {
+      "viewport": [
+        390,
+        844
+      ],
+      "message": {
+        "text": "The serving weight or volume could not be read",
+        "rect": [
+          20,
+          759,
+          350,
+          21
+        ],
+        "visible": true,
+        "display": "block",
+        "fontSize": "15px"
+      },
+      "buttons": [
+        {
+          "text": "Take the photo again",
+          "rect": [
+            20,
+            780,
+            124.91667175292969,
+            44
+          ],
+          "visible": true,
+          "display": "inline-block",
+          "fontSize": "13px"
+        },
+        {
+          "text": "Type it instead",
+          "rect": [
+            160.9166717529297,
+            780,
+            87.34999084472656,
+            44
+          ],
+          "visible": true,
+          "display": "inline-block",
+          "fontSize": "13px"
+        }
+      ],
+      "photoFit": "contain",
+      "labelReadPaths": [
+        "fdb30913-64fc-4a44-9572-8daa522a9d42/c6fc7c7e-aa38-4f9d-bc5a-22302b3973d8/0.jpg"
+      ],
+      "stubbed": [
+        "/api/label/read"
+      ],
+      "screenshotsStored": false,
+      "retryWorks": true,
+      "typeInsteadWorks": true,
+      "labelReadCalls": 2
+    },
+    {
+      "viewport": [
+        1280,
+        800
+      ],
+      "message": {
+        "text": "The serving weight or volume could not be read",
+        "rect": [
+          780,
+          166,
+          320,
+          42
+        ],
+        "visible": true,
+        "display": "block",
+        "fontSize": "15px"
+      },
+      "buttons": [
+        {
+          "text": "Take the photo again",
+          "rect": [
+            780,
+            208,
+            124.91667175292969,
+            44
+          ],
+          "visible": true,
+          "display": "inline-block",
+          "fontSize": "13px"
+        },
+        {
+          "text": "Type it instead",
+          "rect": [
+            920.9166870117188,
+            208,
+            87.34999084472656,
+            44
+          ],
+          "visible": true,
+          "display": "inline-block",
+          "fontSize": "13px"
+        }
+      ],
+      "photoFit": "contain",
+      "labelReadPaths": [
+        "fdb30913-64fc-4a44-9572-8daa522a9d42/6c383367-c9b0-4f41-95be-671641d26f82/0.jpg"
+      ],
+      "stubbed": [
+        "/api/label/read"
+      ],
+      "screenshotsStored": false,
+      "retryWorks": true,
+      "typeInsteadWorks": true,
+      "labelReadCalls": 2
+    }
+  ]
+}

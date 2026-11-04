@@ -1,0 +1,8 @@
+=== firefox (mfa-pplx) processes ===
+none
+=== mfa-pplx profiles ===
+none
+=== git worktree list ===
+/home/opc/Projects/my-food-ai  5383869e [run13/docs]
+
+Confirmed no listeners on run ports3143/19413/19414/19415/60380/60385-60388/60410/60415-60418/55471/55472. Five merged feature remote branches deleted. Original untracked review file preserved.

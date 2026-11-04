@@ -1,0 +1,12 @@
+Coder triage for Fleet13 PR #549. PPLX captures show GPT-6.1 Sol; the owner expressly accepts ChatGPT answers for this run. All real findings are addressed before merging; prior-head receipts are not current-head approval.
+
+Old113c1e2 P1: updating a first model comment outside persistence could publish mismatched summaries/expired-job writes. Fixed by service-only0051 transactional persistence wrapper and post-locked, ownership/snapshot-checked recompute RPC. Regression covers stale jobs, retry, mismatched sources, ACL and rollback.
+
+Old113c1e2 P1: retained/copied/rescaled nutrition lost approximation provenance. Fixed by validated metadata on actual USDA nutrient JSON entries; all final contributing rows produce labels. Copy/rescale/refetch paths preserve metadata; trusted re-analysis reuse explicitly excludes it. Manual data smoke passes.
+
+Final6d580040 P2: removing the final approximate food left an old disclosure. Fixed by refreshing into and out of approximation; new/old disclosure detection lives inside the owned SQL transaction. Ordinary exact-only historical comments stay untouched. Regression and failure/retry smokes cover exact replacement and removal of the only approximate food.
+
+Old09724d2 P2: recompute refreshed the first comment even when a later correction was the current model revision. Fixed: resolve feedback_revision.modelCommentId under the same post lock and item/source checks, refresh that comment, and preserve earlier historical comments. Multi-comment failed-write/retry smoke and migration regression pass.
+
+Final c068dbf9d2461f44de04d3d261a668f18f2cc91f same-thread PPLX confirmation explicitly states BLOCKERS: NONE. Its test-only delta models the new RPC while retaining owner/snapshot/no-repeat assertions. Earlier non-blocking observations (identify-model coverage, distinct USDA sources on repeated names, redundant same-transaction UPDATE) were confirmed already covered, intentional, or optional optimizations. No issue is required for those non-defects. Full-suite totals are recorded in the run report. The clean suite then caught an unrelated extra-macro wording change in removal replay; final1e90fc6713c22a24e0f51d4a95345752ddb9908f restores the prior format and appends only provenance sentences. Existing4/4removal tests pass unchanged, and the same external reviewer confirms BLOCKERS: NONE on that exact delta/head. No unresolved blocker is accepted by this triage.
+Real findings: 4 (fixed)

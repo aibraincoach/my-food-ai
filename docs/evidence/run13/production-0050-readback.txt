@@ -1,0 +1,45 @@
+{"migration":"0050","reviewedHead":"8bff5d10d7267c1f88ea3d463c6cc386e8017bec","sha256":"f5586ec821530d0c271d62ba4795cddfce4df04bc75fb4c667ffb69a69eb134a","exitCode":0}
+BEGIN
+SET
+SET
+SELECT 676
+CREATE TABLE
+ALTER TABLE
+REVOKE
+DROP TRIGGER
+UPDATE 6
+CREATE FUNCTION
+REVOKE
+CREATE TRIGGER
+            name            |      sugar_g       
+----------------------------+--------------------
+ rolled chicken ham slices  | 0.8800000000000001
+ scrambled egg with ketchup |               10.9
+ pineapple chunks           |  9.120000000000001
+ scrambled egg with ketchup |               8.72
+ pineapple chunks           |  7.752000000000001
+ pineapple chunks           |               8.55
+(6 rows)
+
+ changed_sugar_rows 
+--------------------
+                  6
+(1 row)
+
+ changed_calorie_rows 
+----------------------
+                    0
+(1 row)
+
+ ledger_rows 
+-------------
+           6
+(1 row)
+
+                tgname                
+--------------------------------------
+ invalidate_sugar_total_backfill_0050
+(1 row)
+
+COMMIT
+

@@ -1,0 +1,19 @@
+{"migration":"0051","reviewedHead":"1e90fc6713c22a24e0f51d4a95345752ddb9908f","sha256":"db333556b52d1c9c243e4e7128e4ea5cd711fa032a5f7a2168b1faf2f2dc1e82","exitCode":0}
+BEGIN
+SET
+SET
+CREATE FUNCTION
+REVOKE
+GRANT
+CREATE FUNCTION
+REVOKE
+GRANT
+NOTIFY
+               proname               | anon_can_execute | user_can_execute | service_can_execute 
+-------------------------------------+------------------+------------------+---------------------
+ persist_approximated_analysis       | f                | f                | t
+ refresh_owned_approximation_summary | f                | f                | t
+(2 rows)
+
+COMMIT
+
