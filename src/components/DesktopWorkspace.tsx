@@ -15,7 +15,6 @@ export default function DesktopWorkspace({children,detail,width=500}:{children:R
   const selected=params.get('post');
   const [focused,setFocused]=useState<string|null>(selected);
   const [outlined,setOutlined]=useState(false);
-  const keyboard=useRef(false);
   // Pending selection paints before the server navigation completes.
   const [pending,setPending]=useState<{id:string|null;from:string|null;preview?:boolean}|null>(null);
   // Retire completed navigation state; history returning to its old source
@@ -58,10 +57,20 @@ export default function DesktopWorkspace({children,detail,width=500}:{children:R
     const mark=()=>{const target=outlined?focused:null;for(const card of element.querySelectorAll<HTMLElement>('[data-desktop-post]')){if(target&&card.dataset.desktopPost===target)card.dataset.focused='true';else delete card.dataset.focused;}};
     mark();const observer=new MutationObserver(mark);observer.observe(element,{childList:true,subtree:true});return()=>observer.disconnect();
   },[focused,outlined]);
-  useEffect(()=>{const hide=()=>{keyboard.current=false;setOutlined(false);};window.addEventListener('pointerdown',hide,{passive:true});return()=>window.removeEventListener('pointerdown',hide);},[]);
+  useEffect(()=>{const hide=()=>setOutlined(false);window.addEventListener('pointerdown',hide,{passive:true});return()=>window.removeEventListener('pointerdown',hide);},[]);
+  useEffect(()=>{
+    const element=root.current;if(!element||!desktop)return;
+    const onFocusIn=(event:FocusEvent)=>{
+      const card=(event.target as HTMLElement).closest<HTMLElement>('[data-desktop-post]');
+      if(!card?.dataset.desktopPost||!card.matches(':focus-visible'))return;
+      setFocused(card.dataset.desktopPost);
+      setOutlined(true);
+    };
+    element.addEventListener('focusin',onFocusIn);
+    return()=>element.removeEventListener('focusin',onFocusIn);
+  },[desktop]);
   useEffect(()=>{
     const key=(event:KeyboardEvent)=>{
-      if(event.key==='Tab')keyboard.current=true;
       if(!matchMedia('(min-width:1024px)').matches || event.defaultPrevented || event.metaKey || event.ctrlKey || event.altKey || (event.target as HTMLElement)?.closest('input,textarea,select,[contenteditable="true"],[role="dialog"]'))return;
       if(event.key==='Escape'&&selected){event.preventDefault();open(null);return;}
       const cards=Array.from(root.current?.querySelectorAll<HTMLElement>('[data-desktop-post]')??[]);
@@ -74,7 +83,7 @@ export default function DesktopWorkspace({children,detail,width=500}:{children:R
     };
     window.addEventListener('keydown',key);return()=>window.removeEventListener('keydown',key);
   },[focused,outlined,selected,open]);
-  return <div onFocusCapture={event=>{if(!desktop)return;const card=(event.target as HTMLElement).closest<HTMLElement>('[data-desktop-post]');if(card?.dataset.desktopPost){setFocused(card.dataset.desktopPost);if(keyboard.current)setOutlined(true);}}} className="desktop:flex desktop:justify-center desktop:gap-6 desktop:py-6" onClickCapture={event=>{
+  return <div className="desktop:flex desktop:justify-center desktop:gap-6 desktop:py-6" onClickCapture={event=>{
     if(!matchMedia('(min-width:1024px)').matches || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey)return;
     const target=(event.target as HTMLElement).closest<HTMLAnchorElement>('a[href^="/posts/"]');
     const id=target?.getAttribute('href')?.match(/^\/posts\/([0-9a-f-]{36})(?:\?|$)/i)?.[1];
