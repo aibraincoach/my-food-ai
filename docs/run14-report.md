@@ -184,3 +184,13 @@ The native six-photo trace’s [request-phase extraction](evidence/run14/native-
 Resource collector verified live after its third sample:07:40:46,08:40:46,09:40:46UTC, all HTTP200. This is3of7, not the full six-hour series. [Partial raw metric series](evidence/run14/metrics-hourly-partial.json).
 
 Strict failures and state-check limits are now posted directly on [#553](https://github.com/aibraincoach/my-food-ai/issues/553#issuecomment-6627647649) and [#552](https://github.com/aibraincoach/my-food-ai/issues/552#issuecomment-6627647901); both remain open. [Local eight-path receipt](evidence/run14/native-local-entry-paths.json).
+
+### Partial hourly memory table
+
+Three observed samples; the remaining four have not occurred. Values are bytes from the named node_memory metrics. Available memory already accounts for reclaimable memory; cache and active-file figures must not be summed as independent allocations.
+
+| UTC sample | Total | Available | Cached | Active file |
+|---|---:|---:|---:|---:|
+| 2026-11-04T07:40:46.086Z | 950153216 | 484290560 | 427454464 | 134029312 |
+| 2026-11-04T08:40:46.184Z | 950153216 | 502616064 | 420143104 | 230297600 |
+| 2026-11-04T09:40:46.184Z | 950153216 | 496422912 | 373358592 | 230637568 |
