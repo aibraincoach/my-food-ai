@@ -1,10 +1,8 @@
 # GitHub open-issue index
 
-Observed2026-11-04 09:37:57UTC: 109 open GitHub issues. This is a GitHub state index; the owner-worded [BACKLOG.md](../BACKLOG.md) retains its role/state ordering and three-part item format.
+Observed 2026-11-04T13:49:06Z: 118 open issues. This is live GitHub issue state, separate from the preserved owner-worded [BACKLOG.md](../BACKLOG.md). The complete later Doc rev1168 is unavailable in this session. No issue was created, closed or reopened by this handover.
 
-Existing tracked-finding flags are retained where present; `unclassified` means this refresh did not assign a new classification. Issue filing and closure evidence remains on GitHub.
-
-| Issue | Title | Tracked finding |
+| Issue | Title | Tracked finding label |
 |---|---|---|
 | [#4](https://github.com/aibraincoach/my-food-ai/issues/4) | Schema with row-level security | no |
 | [#5](https://github.com/aibraincoach/my-food-ai/issues/5) | Media upload | no |
@@ -72,46 +70,55 @@ Existing tracked-finding flags are retained where present; `unclassified` means 
 | [#290](https://github.com/aibraincoach/my-food-ai/issues/290) | Frames for the capture sheet's modes with Barcode as an obvious choice | no |
 | [#291](https://github.com/aibraincoach/my-food-ai/issues/291) | Frames for removing and redoing | no |
 | [#303](https://github.com/aibraincoach/my-food-ai/issues/303) | Three things only the owner can do that sit inside other items | no |
-| [#318](https://github.com/aibraincoach/my-food-ai/issues/318) | Read the README before recording | unclassified |
-| [#322](https://github.com/aibraincoach/my-food-ai/issues/322) | The tick function loads the whole worker before it answers (part of #222) | unclassified |
-| [#323](https://github.com/aibraincoach/my-food-ai/issues/323) | Every protected page checks sign-in twice (part of #222) | unclassified |
-| [#324](https://github.com/aibraincoach/my-food-ai/issues/324) | Home computes the day totals twice on every open (part of #222) | unclassified |
-| [#348](https://github.com/aibraincoach/my-food-ai/issues/348) | Add composer drink cards before posting (round 5 frames 5b–5d) | unclassified |
-| [#351](https://github.com/aibraincoach/my-food-ai/issues/351) | Add drink tile ordering by use and hold-for-sizes (frame 5f) | unclassified |
-| [#368](https://github.com/aibraincoach/my-food-ai/issues/368) | Sign-ins through the app may share one rate limit across every user | unclassified |
-| [#370](https://github.com/aibraincoach/my-food-ai/issues/370) | The camera view stays open for a long time after a photo is taken | unclassified |
-| [#372](https://github.com/aibraincoach/my-food-ai/issues/372) | Feed photos are too large for a phone on mobile data | unclassified |
-| [#373](https://github.com/aibraincoach/my-food-ai/issues/373) | The app reads more from the production database than it needs | unclassified |
-| [#375](https://github.com/aibraincoach/my-food-ai/issues/375) | Storage egress is the largest source and was not cut | unclassified |
-| [#377](https://github.com/aibraincoach/my-food-ai/issues/377) | Existing photographed drink posts show no caffeine | unclassified |
-| [#379](https://github.com/aibraincoach/my-food-ai/issues/379) | Phone checks of the installed app over mobile data | unclassified |
-| [#449](https://github.com/aibraincoach/my-food-ai/issues/449) | New-upload food names were not observed before totals (#307) | unclassified |
-| [#451](https://github.com/aibraincoach/my-food-ai/issues/451) | Every barcode scan comes back as not in the database | unclassified |
-| [#452](https://github.com/aibraincoach/my-food-ai/issues/452) | A plainly visible nutrition label is reported as not found | unclassified |
-| [#453](https://github.com/aibraincoach/my-food-ai/issues/453) | The barcode prompt is printed over the live camera picture | unclassified |
-| [#454](https://github.com/aibraincoach/my-food-ai/issues/454) | The Days page is not one continuous calendar | unclassified |
-| [#471](https://github.com/aibraincoach/my-food-ai/issues/471) | The recording account can hit the hourly model cap on camera | unclassified |
-| [#494](https://github.com/aibraincoach/my-food-ai/issues/494) | Opening a meal's detail takes 14 seconds | unclassified |
-| [#512](https://github.com/aibraincoach/my-food-ai/issues/512) | The phone calendar can show the wrong month summary and jump when older months load | unclassified |
-| [#520](https://github.com/aibraincoach/my-food-ai/issues/520) | Every Home open reads the first feed page twice | unclassified |
-| [#523](https://github.com/aibraincoach/my-food-ai/issues/523) | A meal shows every nutrition value as unavailable | unclassified |
-| [#525](https://github.com/aibraincoach/my-food-ai/issues/525) | The meal detail photo is cropped and does not show the whole image | unclassified |
-| [#550](https://github.com/aibraincoach/my-food-ai/issues/550) | The desktop feed fills the whole window and the Today column is missing | unclassified |
-| [#552](https://github.com/aibraincoach/my-food-ai/issues/552) | The buttons under each post are 24 px tall and show no pressed or turned-off state | unclassified |
-| [#553](https://github.com/aibraincoach/my-food-ai/issues/553) | Thumbs up and down look the same when turned off and thumbs down waits for the server | unclassified |
-| [#554](https://github.com/aibraincoach/my-food-ai/issues/554) | Tapping a meal shows nothing until the server answers | unclassified |
-| [#555](https://github.com/aibraincoach/my-food-ai/issues/555) | The controls on Days, Search, Profile and the capture modes have not been audited | unclassified |
-| [#557](https://github.com/aibraincoach/my-food-ai/issues/557) | An incomplete saved label can hide a barcode provider outage | unclassified |
-| [#567](https://github.com/aibraincoach/my-food-ai/issues/567) | The owner has no admin surface | unclassified |
-| [#568](https://github.com/aibraincoach/my-food-ai/issues/568) | Judges have no page that shows how the app works | unclassified |
-| [#569](https://github.com/aibraincoach/my-food-ai/issues/569) | The row of day circles at the top of Home is cut off at the right edge | unclassified |
-| [#570](https://github.com/aibraincoach/my-food-ai/issues/570) | A leftovers photo takes several seconds to post while a regular photo is fast | unclassified |
-| [#571](https://github.com/aibraincoach/my-food-ai/issues/571) | A post started while another is going up breaks the other post with "The meal could not be saved" | unclassified |
-| [#572](https://github.com/aibraincoach/my-food-ai/issues/572) | The closest-food fallback never runs when the model stops after one search | unclassified |
-| [#573](https://github.com/aibraincoach/my-food-ai/issues/573) | The closest-record label is stored on every nutrient entry | unclassified |
-| [#574](https://github.com/aibraincoach/my-food-ai/issues/574) | The Days calendar and the day summary count a different number of posts | unclassified |
-| [#575](https://github.com/aibraincoach/my-food-ai/issues/575) | A meal with unavailable nutrition does not say why | unclassified |
-| [#576](https://github.com/aibraincoach/my-food-ai/issues/576) | The desktop New post window scrolls by 18 px at 1366x650 | unclassified |
-| [#578](https://github.com/aibraincoach/my-food-ai/issues/578) | The leftovers photo and the regular photo post through different code | unclassified |
-| [#579](https://github.com/aibraincoach/my-food-ai/issues/579) | Photos are captured at 480 × 640 and look blurry on high-density phones | unclassified |
-| [#580](https://github.com/aibraincoach/my-food-ai/issues/580) | Nine measured controls remain below 44px hit-area target | unclassified |
+| [#318](https://github.com/aibraincoach/my-food-ai/issues/318) | Read the README before recording | no |
+| [#322](https://github.com/aibraincoach/my-food-ai/issues/322) | The tick function loads the whole worker before it answers (part of #222) | no |
+| [#323](https://github.com/aibraincoach/my-food-ai/issues/323) | Every protected page checks sign-in twice (part of #222) | no |
+| [#324](https://github.com/aibraincoach/my-food-ai/issues/324) | Home computes the day totals twice on every open (part of #222) | no |
+| [#348](https://github.com/aibraincoach/my-food-ai/issues/348) | Add composer drink cards before posting (round 5 frames 5b–5d) | no |
+| [#351](https://github.com/aibraincoach/my-food-ai/issues/351) | Add drink tile ordering by use and hold-for-sizes (frame 5f) | no |
+| [#368](https://github.com/aibraincoach/my-food-ai/issues/368) | Sign-ins through the app may share one rate limit across every user | no |
+| [#370](https://github.com/aibraincoach/my-food-ai/issues/370) | The camera view stays open for a long time after a photo is taken | no |
+| [#372](https://github.com/aibraincoach/my-food-ai/issues/372) | Feed photos are too large for a phone on mobile data | no |
+| [#373](https://github.com/aibraincoach/my-food-ai/issues/373) | The app reads more from the production database than it needs | no |
+| [#375](https://github.com/aibraincoach/my-food-ai/issues/375) | Storage egress is the largest source and was not cut | no |
+| [#377](https://github.com/aibraincoach/my-food-ai/issues/377) | Existing photographed drink posts show no caffeine | no |
+| [#379](https://github.com/aibraincoach/my-food-ai/issues/379) | Phone checks of the installed app over mobile data | no |
+| [#449](https://github.com/aibraincoach/my-food-ai/issues/449) | New-upload food names were not observed before totals (#307) | no |
+| [#451](https://github.com/aibraincoach/my-food-ai/issues/451) | Every barcode scan comes back as not in the database | no |
+| [#452](https://github.com/aibraincoach/my-food-ai/issues/452) | A plainly visible nutrition label is reported as not found | no |
+| [#453](https://github.com/aibraincoach/my-food-ai/issues/453) | The barcode prompt is printed over the live camera picture | no |
+| [#454](https://github.com/aibraincoach/my-food-ai/issues/454) | The Days page is not one continuous calendar | no |
+| [#471](https://github.com/aibraincoach/my-food-ai/issues/471) | The recording account can hit the hourly model cap on camera | no |
+| [#494](https://github.com/aibraincoach/my-food-ai/issues/494) | Opening a meal's detail takes 14 seconds | no |
+| [#512](https://github.com/aibraincoach/my-food-ai/issues/512) | The phone calendar can show the wrong month summary and jump when older months load | no |
+| [#520](https://github.com/aibraincoach/my-food-ai/issues/520) | Every Home open reads the first feed page twice | no |
+| [#523](https://github.com/aibraincoach/my-food-ai/issues/523) | A meal shows every nutrition value as unavailable | no |
+| [#525](https://github.com/aibraincoach/my-food-ai/issues/525) | The meal detail photo is cropped and does not show the whole image | no |
+| [#550](https://github.com/aibraincoach/my-food-ai/issues/550) | The desktop feed fills the whole window and the Today column is missing | no |
+| [#552](https://github.com/aibraincoach/my-food-ai/issues/552) | The buttons under each post are 24 px tall and show no pressed or turned-off state | no |
+| [#553](https://github.com/aibraincoach/my-food-ai/issues/553) | Thumbs up and down look the same when turned off and thumbs down waits for the server | no |
+| [#554](https://github.com/aibraincoach/my-food-ai/issues/554) | Tapping a meal shows nothing until the server answers | no |
+| [#555](https://github.com/aibraincoach/my-food-ai/issues/555) | The controls on Days, Search, Profile and the capture modes have not been audited | no |
+| [#557](https://github.com/aibraincoach/my-food-ai/issues/557) | An incomplete saved label can hide a barcode provider outage | no |
+| [#567](https://github.com/aibraincoach/my-food-ai/issues/567) | The owner has no admin surface | no |
+| [#568](https://github.com/aibraincoach/my-food-ai/issues/568) | Judges have no page that shows how the app works | no |
+| [#569](https://github.com/aibraincoach/my-food-ai/issues/569) | The row of day circles at the top of Home is cut off at the right edge | no |
+| [#570](https://github.com/aibraincoach/my-food-ai/issues/570) | A leftovers photo takes several seconds to post while a regular photo is fast | no |
+| [#571](https://github.com/aibraincoach/my-food-ai/issues/571) | A post started while another is going up breaks the other post with "The meal could not be saved" | no |
+| [#572](https://github.com/aibraincoach/my-food-ai/issues/572) | The closest-food fallback never runs when the model stops after one search | no |
+| [#573](https://github.com/aibraincoach/my-food-ai/issues/573) | The closest-record label is stored on every nutrient entry | no |
+| [#574](https://github.com/aibraincoach/my-food-ai/issues/574) | The Days calendar and the day summary count a different number of posts | no |
+| [#575](https://github.com/aibraincoach/my-food-ai/issues/575) | A meal with unavailable nutrition does not say why | no |
+| [#576](https://github.com/aibraincoach/my-food-ai/issues/576) | The desktop New post window scrolls by 18 px at 1366x650 | no |
+| [#578](https://github.com/aibraincoach/my-food-ai/issues/578) | The leftovers photo and the regular photo post through different code | no |
+| [#579](https://github.com/aibraincoach/my-food-ai/issues/579) | Photos are captured at 480 × 640 and look blurry on high-density phones | no |
+| [#580](https://github.com/aibraincoach/my-food-ai/issues/580) | Nine measured controls remain below 44px hit-area target | no |
+| [#591](https://github.com/aibraincoach/my-food-ai/issues/591) | Confirm the desktop layout and see one real labelled estimate | no |
+| [#592](https://github.com/aibraincoach/my-food-ai/issues/592) | The round left arrow covers the start of the word kcal on a meal's second slide | no |
+| [#593](https://github.com/aibraincoach/my-food-ai/issues/593) | The first post on desktop Home has a black outline when the page loads | no |
+| [#594](https://github.com/aibraincoach/my-food-ai/issues/594) | Let the user choose where a photo is saved: the in-app camera with manual saving, or the native camera with every photo saved | no |
+| [#595](https://github.com/aibraincoach/my-food-ai/issues/595) | The Fleet 14 plan document must carry no instruction to revoke the bypass secret | no |
+| [#596](https://github.com/aibraincoach/my-food-ai/issues/596) | A Caesar salad photo matched a no-dressing Caesar record | no |
+| [#597](https://github.com/aibraincoach/my-food-ai/issues/597) | Five new lint warnings sit in merged Fleet 14 code | no |
+| [#598](https://github.com/aibraincoach/my-food-ai/issues/598) | A returning visitor keeps seeing the old build until a hard refresh | no |
+| [#599](https://github.com/aibraincoach/my-food-ai/issues/599) | The Today summary on the right of desktop Home is missing when the page opens and appears late | no |

@@ -1,5 +1,9 @@
 # PPLX review procedure (My Food AI)
 
+Owner Fleet 15 override, November 4, 2026: AGY may be run when needed and its complete exact-head receipts count. PPLX may use ChatGPT, including GPT-6.1 Sol, under the owner's explicit quota override. Record the actual model and submit exactly `code review <PR URL>`; no extra instruction is submitted. This supersedes the older Muse-only route restriction and Gemini-only PPLX restriction for Fleet 15. Existing deviation and truncation labels remain part of the record; a finding is checked against source, and changed code needs a fresh receipt at its new head. Review clearance is not a merge order.
+
+Fleet15 resource isolation: do not use or restart Fleet14's Firefox endpoint/profile. Use a separately owned browser on a different port. Do not close the owner's review tabs.
+
 Policy: `REVIEW_POLICY.md`. Mechanics: `skills/pplx-review/SKILL.md`. Firefox BiDi runner ported from naval-association-calgary / calgarysalutes-website (2026-10-14).
 
 ## Prerequisites
