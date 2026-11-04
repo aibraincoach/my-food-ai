@@ -1,0 +1,18 @@
+{
+  "status": "completed",
+  "output": [
+    {
+      "type": "message",
+      "content": [
+        {
+          "type": "output_text",
+          "text": "{\"food\": true, \"basis\": \"scripted food estimate\", \"calories\": 200, \"protein_g\": 10, \"carbs_g\": 20, \"fat_g\": 9, \"fibre_g\": 2, \"sugar_g\": 1, \"sodium_mg\": 100}"
+        }
+      ]
+    }
+  ],
+  "usage": {
+    "input_tokens": 1,
+    "output_tokens": 1
+  }
+}

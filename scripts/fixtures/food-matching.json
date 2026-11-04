@@ -277,5 +277,20 @@
       "salad",
       "shrimp"
     ]
+  },
+  {
+    "name": "cendol",
+    "caption": "Indonesian iced dessert drink with pandan jelly, coconut milk and palm sugar",
+    "requires": [
+      [
+        "cendol",
+        "pandan",
+        "coconut",
+        "jelly",
+        "dessert",
+        "palm"
+      ]
+    ],
+    "rejects": []
   }
 ]

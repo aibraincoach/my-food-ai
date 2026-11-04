@@ -3,6 +3,7 @@ import { verifiedUserId } from "@/lib/auth/verified-user";
 import CleanFreshMarker from "@/components/CleanFreshMarker";
 import DesktopToday from '@/components/DesktopToday';
 import DesktopWorkspace from '@/components/DesktopWorkspace';
+import DesktopHomeFrame from '@/components/DesktopHomeFrame';
 import PostDetail from '@/components/PostDetail';
 import PostOpenFrame from '@/components/PostOpenFrame';
 import SavedMealsButton from '@/components/SavedMealsButton';
@@ -122,7 +123,7 @@ async function HomeToday(){await connection();const zone=(await cookies()).get('
 
 export default async function Home({searchParams}:{searchParams:Promise<{post?:string}>}) {
   const {post}=await searchParams;
-  return <DesktopWorkspace width={844} detail={post?<Suspense key={post} fallback={<PostOpenFrame id={post} desktopModal/>}><PostDetail id={post} desktopModal/></Suspense>:undefined}><div className="desktop-home-layout desktop:flex desktop:items-start"><main className="flex flex-1 flex-col desktop:w-[500px] desktop:min-w-0 desktop:flex-none"><CleanFreshMarker />
+  return <DesktopWorkspace width={844} detail={post?<Suspense key={post} fallback={<PostOpenFrame id={post} desktopModal/>}><PostDetail id={post} desktopModal/></Suspense>:undefined}><DesktopHomeFrame today={<Suspense fallback={null}><HomeToday/></Suspense>}><CleanFreshMarker />
     <header className="desktop:hidden sticky top-0 z-20 flex h-top-safe items-center bg-surface px-inset"><h1 className="flex-1 text-title">My Food AI</h1><SavedMealsButton/></header>
     <NeedsInputStrip />
     <Suspense fallback={<div className="h-bar-h" />}><HomeDays /></Suspense>
@@ -134,5 +135,5 @@ export default async function Home({searchParams}:{searchParams:Promise<{post?:s
       <Suspense fallback={null}><HomeFirstPhoto /></Suspense>
       <Suspense fallback={null}><HomeFeed /></Suspense>
     </div>
-  </main><Suspense fallback={null}><HomeToday/></Suspense></div></DesktopWorkspace>;
+  </DesktopHomeFrame></DesktopWorkspace>;
 }
