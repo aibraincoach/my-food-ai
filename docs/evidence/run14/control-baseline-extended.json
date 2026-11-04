@@ -1,0 +1,350 @@
+{
+  "observedAt": "2026-11-04T08:12:00.711Z",
+  "app": "https://my-food-ai-ten.vercel.app",
+  "engine": "Firefox native BiDi touch actions (no CPU throttling available)",
+  "viewport": {
+    "width": 390,
+    "height": 844
+  },
+  "limitations": [
+    "Firefox fallback cannot satisfy requested CDP CPU4x throttle.",
+    "CLS null means this engine did not expose layout-shift; never treat it as zero.",
+    "Visible-mutation latency includes the actual global pressed-state mutation; it is not server completion time.",
+    "Geometry, physical touch and double-tap outcomes are observed; unexercised rows are explicitly incomplete."
+  ],
+  "rows": [
+    {
+      "control": "Capture Text entry",
+      "hitArea": {
+        "width": 52.5333251953125,
+        "height": 52.5333251953125
+      },
+      "disabled": false,
+      "pressed": true,
+      "timeToVisibleMutationMs": 0,
+      "cumulativeLayoutShift": null,
+      "doubleTap": {
+        "first": {
+          "path": "/",
+          "dialogs": 1
+        },
+        "second": {
+          "path": "/",
+          "dialogs": 1
+        },
+        "pointerdowns": 2
+      },
+      "scope": "production interface",
+      "verdict": "pass"
+    },
+    {
+      "control": "Capture Photo mode",
+      "hitArea": {
+        "width": 78.88333129882812,
+        "height": 36
+      },
+      "disabled": false,
+      "pressed": true,
+      "timeToVisibleMutationMs": 1,
+      "cumulativeLayoutShift": null,
+      "doubleTap": {
+        "first": {
+          "path": "/",
+          "dialogs": 1
+        },
+        "second": {
+          "path": "/",
+          "dialogs": 1
+        },
+        "pointerdowns": 2
+      },
+      "scope": "production interface",
+      "verdict": "pass"
+    },
+    {
+      "control": "Capture Text mode",
+      "hitArea": {
+        "width": 66.11666870117188,
+        "height": 36
+      },
+      "disabled": false,
+      "pressed": true,
+      "timeToVisibleMutationMs": 1,
+      "cumulativeLayoutShift": null,
+      "doubleTap": {
+        "first": {
+          "path": "/",
+          "dialogs": 1
+        },
+        "second": {
+          "path": "/",
+          "dialogs": 1
+        },
+        "pointerdowns": 2
+      },
+      "scope": "production interface",
+      "verdict": "pass"
+    },
+    {
+      "control": "Capture Barcode mode",
+      "hitArea": {
+        "width": 113.38333129882812,
+        "height": 36
+      },
+      "disabled": false,
+      "pressed": true,
+      "timeToVisibleMutationMs": 0,
+      "cumulativeLayoutShift": null,
+      "doubleTap": {
+        "first": {
+          "path": "/",
+          "dialogs": 1
+        },
+        "second": {
+          "path": "/",
+          "dialogs": 1
+        },
+        "pointerdowns": 2
+      },
+      "scope": "production interface",
+      "verdict": "pass"
+    },
+    {
+      "control": "Capture Caption field",
+      "hitArea": {
+        "width": 358,
+        "height": 42
+      },
+      "disabled": false,
+      "pressed": true,
+      "timeToVisibleMutationMs": 0,
+      "cumulativeLayoutShift": null,
+      "doubleTap": {
+        "first": {
+          "path": "/",
+          "dialogs": 1
+        },
+        "second": {
+          "path": "/",
+          "dialogs": 1
+        },
+        "pointerdowns": 2
+      },
+      "scope": "production interface",
+      "verdict": "pass"
+    },
+    {
+      "control": "Capture Post empty draft",
+      "hitArea": {
+        "width": 358,
+        "height": 50
+      },
+      "disabled": true,
+      "pressed": false,
+      "timeToVisibleMutationMs": 53,
+      "cumulativeLayoutShift": null,
+      "doubleTap": {
+        "first": {
+          "path": "/",
+          "dialogs": 1
+        },
+        "second": {
+          "path": "/",
+          "dialogs": 1
+        },
+        "pointerdowns": 2
+      },
+      "scope": "actual disabled empty-draft state; populated Post measured with the dedicated post fixture",
+      "verdict": "not available"
+    },
+    {
+      "control": "Capture shutter",
+      "hitArea": {
+        "width": 72,
+        "height": 72
+      },
+      "disabled": false,
+      "pressed": true,
+      "timeToVisibleMutationMs": 0,
+      "cumulativeLayoutShift": null,
+      "doubleTap": {
+        "first": {
+          "path": "/",
+          "dialogs": 1
+        },
+        "second": {
+          "path": "/",
+          "dialogs": 1
+        },
+        "pointerdowns": 2
+      },
+      "scope": "actual camera availability on this browser; fake-camera publication measured separately",
+      "verdict": "pass"
+    },
+    {
+      "control": "Drink sheet entry",
+      "hitArea": {
+        "width": 53.333343505859375,
+        "height": 53.33332824707031
+      },
+      "disabled": false,
+      "pressed": true,
+      "timeToVisibleMutationMs": 1,
+      "cumulativeLayoutShift": null,
+      "doubleTap": {
+        "first": {
+          "path": "/",
+          "dialogs": 1
+        },
+        "second": {
+          "path": "/",
+          "dialogs": 1
+        },
+        "pointerdowns": 2
+      },
+      "scope": "production interface",
+      "verdict": "pass"
+    },
+    {
+      "control": "Drink description",
+      "hitArea": {
+        "width": 260,
+        "height": 21
+      },
+      "disabled": false,
+      "pressed": true,
+      "timeToVisibleMutationMs": 1,
+      "cumulativeLayoutShift": null,
+      "doubleTap": {
+        "first": {
+          "path": "/",
+          "dialogs": 1
+        },
+        "second": {
+          "path": "/",
+          "dialogs": 1
+        },
+        "pointerdowns": 2
+      },
+      "scope": "production interface",
+      "verdict": "pass"
+    },
+    {
+      "control": "Drink photograph action",
+      "hitArea": {
+        "width": 48,
+        "height": 48
+      },
+      "disabled": false,
+      "pressed": true,
+      "timeToVisibleMutationMs": 0,
+      "cumulativeLayoutShift": null,
+      "doubleTap": {
+        "first": {
+          "path": "/",
+          "dialogs": 1
+        },
+        "second": {
+          "path": "/",
+          "dialogs": 1
+        },
+        "pointerdowns": 2
+      },
+      "scope": "production interface",
+      "verdict": "pass"
+    },
+    {
+      "control": "Days month list selection",
+      "hitArea": {
+        "width": 350,
+        "height": 48
+      },
+      "disabled": false,
+      "pressed": true,
+      "timeToVisibleMutationMs": 0,
+      "cumulativeLayoutShift": null,
+      "doubleTap": {
+        "first": {
+          "path": "/days",
+          "dialogs": 0
+        },
+        "second": {
+          "path": "/days",
+          "dialogs": 0
+        },
+        "pointerdowns": 2
+      },
+      "scope": "production interface",
+      "verdict": "pass"
+    },
+    {
+      "control": "Days day panel",
+      "hitArea": {
+        "width": 48.28334045410156,
+        "height": 44
+      },
+      "disabled": false,
+      "pressed": false,
+      "timeToVisibleMutationMs": 93,
+      "cumulativeLayoutShift": null,
+      "doubleTap": {
+        "first": {
+          "path": "/days/2026-10-31",
+          "dialogs": 1
+        },
+        "second": {
+          "path": "/days/2026-10-31",
+          "dialogs": 1
+        },
+        "pointerdowns": 2
+      },
+      "scope": "production interface",
+      "verdict": "needs follow-up"
+    },
+    {
+      "control": "Profile Sign out",
+      "hitArea": {
+        "width": 53.5,
+        "height": 44
+      },
+      "disabled": false,
+      "pressed": true,
+      "timeToVisibleMutationMs": 1,
+      "cumulativeLayoutShift": null,
+      "doubleTap": {
+        "first": {
+          "path": "/profile",
+          "dialogs": 0
+        },
+        "second": {
+          "path": "/sign-in",
+          "dialogs": 0
+        },
+        "pointerdowns": 2
+      },
+      "scope": "production interface",
+      "verdict": "pass"
+    },
+    {
+      "control": "Capture Post populated draft",
+      "verdict": "not exercised",
+      "reason": "Requires the named post-merge photo fixture; empty-state Post is a separate measured row."
+    },
+    {
+      "control": "Saved meals Log now offline",
+      "verdict": "not exercised",
+      "reason": "Requires offline fixture with verified queued-operation cleanup; online click would create an extra test post."
+    },
+    {
+      "control": "Drink tile double tap",
+      "verdict": "not exercised",
+      "reason": "Requires tracked drink fixture and cleanup; measured sheet entry/description/photo action do not prove tile posting."
+    },
+    {
+      "control": "Edit caption Save",
+      "verdict": "not exercised",
+      "reason": "Requires a reversible caption-edit fixture or an intercepted failure; opening its sheet is a separate measured row."
+    }
+  ],
+  "driverCorrection": "The Days day panel row hit an underlying date cell while its story dialog was open. Its pressed=false/93ms result is not a product finding. The driver now targets the actual Close day control for that row."
+}
