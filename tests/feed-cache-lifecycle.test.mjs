@@ -16,7 +16,7 @@ const turn=()=>new Promise(resolve=>setImmediate(resolve));
 const compile=path=>ts.transpileModule(readFileSync(new URL(path,import.meta.url),'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,jsx:ts.JsxEmit.ReactJSX,target:ts.ScriptTarget.ES2022}}).outputText;
 const meal=(id='meal',calories=100)=>({id,caption:'Rice',status:'ready',created_at:'2026-11-03T00:00:00Z',eaten_at:'2026-11-03T00:00:00Z',photoUrl:null,slides:[],items:[{id:'food',name:'Rice',calories}],analysisFingerprint:`revision-${calories}`});
 const nextDay=(day,step)=>{const date=new Date(day+'T12:00:00Z');date.setUTCDate(date.getUTCDate()+step);return date.toISOString().slice(0,10);};
-const days={dateInZone:value=>new Date(value).toISOString().slice(0,10),shiftDay:nextDay,validZone:()=> 'UTC',getDayTotals:async()=>[],getLoggedDates:async()=>[]};
+const days={dateInZone:value=>new Date(value).toISOString().slice(0,10),shiftDay:nextDay,validZone:()=> 'UTC',getDayTotals:async()=>[],getEarliestPostDate:async()=>null,getLoggedDates:async()=>[]};
 
 // Render the actual async Home/Suspense children, retaining DOM attributes.
 // Only browser leaf components are stubbed; HomeFeed's success/failure policy
@@ -26,7 +26,8 @@ async function serverHome(seedRead){
  const noop=()=>null;
  const require=name=>{
   if(name==='react')return{Suspense:({children})=>children,cache:fn=>fn};
-  if(name==='react-dom')return{preload(){}};
+  if(name==='@/lib/posts/feed-photo-url')return{feedPhotoSrcSet:()=>undefined};
+    if(name==='react-dom')return{preload(){}};
   if(name==='react/jsx-runtime')return{jsx,jsxs:jsx};
   if(name==='next/server')return{connection:async()=>{}};
   if(name==='next/link')return{default:({children})=>children};
