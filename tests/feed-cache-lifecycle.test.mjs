@@ -39,6 +39,7 @@ async function serverHome(seedRead){
    if(name==='@/lib/posts/feed')return{getFeed:seedRead,getFirstFeedPhoto:async()=>null};
   if(name==='@/lib/posts/days')return days;
   if(name==='@/lib/posts/today-view')return{todayFromPage};
+  if(name==='@/lib/nutrition/totals')return{sumNutrition:()=>({})};
   if(name==='@/components/DesktopWorkspace'||name==='@/components/DesktopHomeFrame')return{default:({children})=>children};
   if(name==='@/components/Feed')return{default:noop,CachedFeedFallback:noop};
   if(name.startsWith('@/components/'))return{default:noop};

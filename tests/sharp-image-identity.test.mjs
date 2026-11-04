@@ -5,6 +5,7 @@ import vm from 'node:vm';
 import ts from 'typescript';
 import {feedPhotoSrcSet} from '../src/lib/posts/feed-photo-url.ts';
 import {imageIdentity,retainedImageUrl} from '../src/lib/media/retained-image.ts';
+import {photoBoxStyle,desktopPhotoVars} from '../src/lib/media/photo-box.ts';
 const first='/api/media/feed/owner/post/first/v2.webp',second='/api/media/feed/owner/post/second/v2.webp';
 function component(file,name){
  const slots=[],images=[];let cursor=0,effects=[];
@@ -16,6 +17,7 @@ function component(file,name){
   if(dependency==='react/jsx-runtime')return{jsx:(type,props)=>({type,props}),jsxs:(type,props)=>({type,props})};
   if(dependency==='@/lib/posts/feed-photo-url')return{feedPhotoSrcSet};
   if(dependency==='@/lib/media/retained-image')return{imageIdentity,retainedImageUrl};
+  if(dependency==='@/lib/media/photo-box')return{photoBoxStyle,desktopPhotoVars};
   return{};
  }});
  return{images,render(props){cursor=0;effects=[];const tree=exports[name](props);for(const effect of effects)effect();const find=node=>!node?undefined:node.type==='img'?node.props:Array.isArray(node)?node.map(find).find(Boolean):find(node.props?.children);return find(tree);}};

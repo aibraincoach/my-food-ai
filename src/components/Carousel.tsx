@@ -11,7 +11,7 @@ import UndoToast from '@/components/UndoToast';
 import type {FeedItem} from '@/lib/posts/feed';
 import {formatCalories,toNumber} from '@/lib/nutrition/totals';
 import {delayAction} from '@/lib/posts/delayed-action';
-export type Slide={id?:string;url:string;kind?:'photo'|'card';not_eaten?:boolean};
+export type Slide={id?:string;url:string;kind?:'photo'|'card';not_eaten?:boolean;width?:number;height?:number};
 export default function Carousel({slides,caption,postId,href,modelCommentId,fingerprint,nutrition,items=[],onIndexChange,canAddNotEaten=false,priority=false}:{priority?:boolean;items?:FeedItem[];slides:Slide[];caption:string;postId:string;href?:string;modelCommentId:string|null;fingerprint:string|null;nutrition:ReactNode;onIndexChange?:(index:number)=>void;canAddNotEaten?:boolean}) {
  const menus=useRef<HTMLDivElement>(null);useRemovalMenus(menus);
  const [index,setIndex]=useState(0);const [removed,setRemoved]=useState<string[]>([]),[removing,setRemoving]=useState(false),[error,setError]=useState('');const router=useRouter();

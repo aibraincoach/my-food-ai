@@ -46,6 +46,7 @@ export default function PostOpenTransition() {
  },[opening]);
  if(!opening||(path!==opening.from&&path!==`/posts/${opening.id}`))return null;
  return <div className={`fixed inset-0 z-40 overflow-hidden bg-surface desktop:hidden ${opening.committed?'pointer-events-auto':'pointer-events-none'}`} aria-hidden={opening.committed?undefined:true} aria-busy="true">
+  {/* eslint-disable-next-line @next/next/no-location-assign-relative-destination -- A full load abandons the pending post navigation; a router push would queue behind it. */}
   <PostPageShell onBack={event=>{event.preventDefault();setOpening(null);window.location.assign('/');}}><div inert><PostOpenFrame id={opening.id}/></div></PostPageShell>
  </div>;
 }
