@@ -91,6 +91,27 @@ export function hasNutrition(food: FdcFood): boolean {
   return food.foodNutrients.some(n => [1008, 2047, 2048, 1003, 1004, 1005].includes(n.nutrientId) && Number.isFinite(n.value));
 }
 
+/** Weighted blend of generic references into one per-100 g food. */
+export function blendFoodsPer100(parts: { food: FdcFood; share: number }[], description: string): FdcFood {
+  const total = parts.reduce((sum, part) => sum + part.share, 0);
+  const merged = new Map<number, { value: number; unitName: string; nutrientName: string }>();
+  for (const { food, share } of parts) {
+    const weight = share / total;
+    for (const nutrient of food.foodNutrients) {
+      const prior = merged.get(nutrient.nutrientId);
+      if (!prior) merged.set(nutrient.nutrientId, { value: nutrient.value * weight, unitName: nutrient.unitName, nutrientName: nutrient.nutrientName });
+      else if (prior.unitName === nutrient.unitName) prior.value += nutrient.value * weight;
+    }
+  }
+  return {
+    fdcId: 0,
+    description,
+    dataType: "Survey (FNDDS)",
+    foodNutrients: [...merged.entries()].map(([nutrientId, nutrient]) => ({ nutrientId, nutrientName: nutrient.nutrientName, unitName: nutrient.unitName, value: nutrient.value })),
+    approximation: { kind: "closest", basis: description },
+  };
+}
+
 export function chooseBestMatch(foods: FdcFood[], query?: string): FdcFood | null {
   const eligible = foods.filter(food => gramBasis(food) && hasNutrition(food));
   if (!query?.trim()) return eligible.sort((a,b) => rankOf(a.dataType)-rankOf(b.dataType))[0] ?? null;

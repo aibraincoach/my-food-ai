@@ -4,6 +4,8 @@ import { gramBasis, hasNutrition } from "./nutrients";
 import { createResponse, MetaApiError } from "@/lib/meta/client";
 import { recordCall } from "@/lib/trace/record";
 import { excludedComponents } from "./exclusions";
+import { itemProteinTerm, referenceProteinMismatch } from "./protein-reference";
+import { blendFoodsPer100 } from "./nutrients";
 
 // Generic USDA record types only; Branded stays out so a manufacturer is never presented as a plain food.
 const GENERIC = new Set(["Foundation", "SR Legacy", "Survey (FNDDS)"]);
@@ -33,7 +35,7 @@ async function choose(name: string, caption: string, found: FdcFood[], signal?: 
 // A rejected reference retains its reason for the item and meal comment.
 export async function closestGenericFood(admin: SupabaseClient, name: string, caption: string, baseFood: string, signal?: AbortSignal): Promise<{food: FdcFood | null; reason: string}> {
   const result=await recordCall("fdc", { event: "food_approximation", name, query: baseFood }, async () => {
-    const found = (await searchFoods(admin, baseFood, signal)).filter(f => GENERIC.has(f.dataType) && gramBasis(f) && hasNutrition(f) && !excludedComponents(f.description, `${name} ${caption}`).length).slice(0, 30);
+    const found = (await searchFoods(admin, baseFood, signal)).filter(f => GENERIC.has(f.dataType) && gramBasis(f) && hasNutrition(f) && !excludedComponents(f.description, `${name} ${caption}`).length && !referenceProteinMismatch(name, f.description)).slice(0, 30);
     if (!found.length) return {food:null,reason:"No generic USDA record with nutrition was found for this food."};
     const decision = await choose(name, caption, found, signal);
     if (decision.id === null) return {food:null,reason:decision.reason};
@@ -42,4 +44,20 @@ export async function closestGenericFood(admin: SupabaseClient, name: string, ca
     return {food:{ ...food, approximation: { kind: "closest" as const, basis: food.description } },reason:decision.reason};
   }, result => ({ text: { source: result.food ? "closest" : "unavailable", basis: result.food?.description ?? null, reason:result.reason }, fdcId: result.food?.fdcId ?? null }));
   return result;
+}
+
+// When a whole-dish NFS reference names the wrong topping protein, combine a
+// generic cooked rice with a protein-specific generic record.
+export async function composeRiceWithProtein(admin: SupabaseClient, name: string, caption: string, signal?: AbortSignal): Promise<{ food: FdcFood | null; reason: string }> {
+  const proteinTerm = itemProteinTerm(name);
+  if (!proteinTerm) return { food: null, reason: "No protein term to combine with rice." };
+  const eligible = (foods: FdcFood[]) => foods.filter(f => GENERIC.has(f.dataType) && gramBasis(f) && hasNutrition(f) && !excludedComponents(f.description, `${name} ${caption}`).length && !referenceProteinMismatch(name, f.description));
+  const proteins = eligible(await searchFoods(admin, proteinTerm, signal));
+  const rices = eligible(await searchFoods(admin, "rice cooked", signal));
+  if (!proteins.length || !rices.length) return { food: null, reason: "No rice and protein pair could be composed." };
+  const food = blendFoodsPer100([
+    { food: rices[0], share: 0.55 },
+    { food: proteins[0], share: 0.45 },
+  ], `Combined ${rices[0].description} with ${proteins[0].description} for ${name}.`);
+  return { food, reason: food.description };
 }
