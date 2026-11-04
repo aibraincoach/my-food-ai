@@ -117,3 +117,5 @@ All seven formerly missing control rows now have explicitly scoped evidence. Loc
 The hourly collector process3230892 was verified live during this follow-up. Its full series remains pending; its worktree and private protection-bypass access are retained.
 
 Issue reconciliation posted19 commit-pinned evidence comments for the owner/window acceptance items in section9. Their ledger is [final-comments.json](evidence/run14/final-comments.json). Previously closed348/351/449/453/454/370 are reopened for the outstanding owner-phone acceptance explicitly required by that section; delivered implementation is retained.
+
+Remote cleanup verified with `git ls-remote`: all seven merged Fleet14 feature branches and the closed probe branch are absent; run14/docs is retained. [Deletion ledger](evidence/run14/remote-cleanup.json). Local worktrees remain while evidence/services are reconciled; the live metrics collector and new579 work are preserved.
