@@ -8,6 +8,7 @@ import {readNeedsInput} from "@/lib/pipeline/needs-input";
 import NeedsInputSheet,{type QuestionPost} from "@/components/NeedsInputSheet";
 const POLL_START_MS = 2000;
 const POLL_MAX_MS = 30000;
+const DISCOVERY_IDLE_MS = 60000;
 export default function NeedsInputStrip(){
   const [posts,setPosts]=useState<QuestionPost[]>([]),[selected,setSelected]=useState<QuestionPost|null>(null),[error,setError]=useState("");
   useEffect(()=>{
@@ -28,8 +29,9 @@ export default function NeedsInputStrip(){
     });
     const schedulePoll = () => {
       clearTimeout(pollTimer);
-      if (!live || !hasPending || document.hidden) return;
-      pollTimer = setTimeout(() => { void refresh(true); }, pollBackoffMs);
+      if (!live || document.hidden) return;
+      const delay = hasPending ? pollBackoffMs : DISCOVERY_IDLE_MS;
+      pollTimer = setTimeout(() => { void refresh(true); }, delay);
     };
     const refresh=async(fromPoll=false)=>{
       if(busy||document.hidden)return;busy=true;
@@ -70,12 +72,20 @@ export default function NeedsInputStrip(){
         if (fromPoll && hasPending) pollBackoffMs = Math.min(pollBackoffMs * 2, POLL_MAX_MS);
         else if (!fromPoll) pollBackoffMs = POLL_START_MS;
         schedulePoll();
-      }catch{/* Keep last good questions; the next visible tick retries a failed read. */}finally{busy=false;}
+      }catch{/* Keep last good questions; schedule the next visible retry. */ if(live)schedulePoll();}finally{busy=false;}
     };
-    const visible = () => { if (document.visibilityState === "visible" && hasPending) schedulePoll(); else clearTimeout(pollTimer); };
+    const visible = () => {
+      if (document.visibilityState === "visible") {
+        void refresh();
+        schedulePoll();
+      } else clearTimeout(pollTimer);
+    };
+    const onFocus = () => { if (live) void refresh(); };
     document.addEventListener("visibilitychange", visible);
+    window.addEventListener("focus", onFocus);
     void refresh();
-    return()=>{live=false;clearTimeout(pollTimer);document.removeEventListener("visibilitychange", visible);auth.data.subscription.unsubscribe();};
+    schedulePoll();
+    return()=>{live=false;clearTimeout(pollTimer);document.removeEventListener("visibilitychange", visible);window.removeEventListener("focus", onFocus);auth.data.subscription.unsubscribe();};
   },[]);
   const remove=(id:string)=>{setPosts(rows=>rows.filter(row=>row.id!==id));setSelected(null);};
   return <>{posts.map(post=><div key={post.id} className="flex min-h-brand items-center gap-sheet-top border-b border-hairline px-screen-x">
