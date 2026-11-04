@@ -19,6 +19,6 @@ test('mixed days retain known calories and name the unavailable food without a p
 
 test('positive sub-kcal energy is never displayed as a measured zero',()=>{
  for(const n of [.01,.3,.49,'0.3'])assert.equal(formatCalories(n),'<1');
- assert.equal(formatCalories(0),'0');assert.equal(formatCalories(null),'—');assert.equal(formatCalories(.5),'1');
+ assert.equal(formatCalories(0),'0');assert.equal(formatCalories(34811),'34,811');assert.equal(formatCalories(2118.4),'2,118');assert.equal(formatCalories(null),'—');assert.equal(formatCalories(.5),'1');
  const items=[{...unknown,name:'Espresso',calories:.3}];assert.match(summaryLine({items}),/Consumed: <1 kcal/);assert.equal(formatConsumed(sumNutrition(items)),'Consumed: <1 kcal · Nutrition unavailable: Espresso');
 });
