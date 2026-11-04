@@ -4,6 +4,7 @@ import CleanFreshMarker from "@/components/CleanFreshMarker";
 import DesktopToday from '@/components/DesktopToday';
 import DesktopWorkspace from '@/components/DesktopWorkspace';
 import PostDetail from '@/components/PostDetail';
+import PostDetailSkeleton from '@/components/PostDetailSkeleton';
 import SavedMealsButton from '@/components/SavedMealsButton';
 import { connection } from "next/server";
 import { cache, Suspense } from "react";
@@ -121,7 +122,7 @@ async function HomeToday(){await connection();const zone=(await cookies()).get('
 
 export default async function Home({searchParams}:{searchParams:Promise<{post?:string}>}) {
   const {post}=await searchParams;
-  return <DesktopWorkspace width={844} detail={post?<PostDetail id={post} desktopModal/>:undefined}><div className="desktop-home-layout desktop:flex desktop:items-start"><main className="flex flex-1 flex-col desktop:w-[500px] desktop:min-w-0 desktop:flex-none"><CleanFreshMarker />
+  return <DesktopWorkspace width={844} detail={post?<Suspense key={post} fallback={<PostDetailSkeleton/>}><PostDetail id={post} desktopModal/></Suspense>:undefined}><div className="desktop-home-layout desktop:flex desktop:items-start"><main className="flex flex-1 flex-col desktop:w-[500px] desktop:min-w-0 desktop:flex-none"><CleanFreshMarker />
     <header className="desktop:hidden sticky top-0 z-20 flex h-top-safe items-center bg-surface px-inset"><h1 className="flex-1 text-title">My Food AI</h1><SavedMealsButton/></header>
     <NeedsInputStrip />
     <Suspense fallback={<div className="h-bar-h" />}><HomeDays /></Suspense>
