@@ -6,6 +6,7 @@ import {uploadManager,type UploadState} from "@/lib/posts/upload-manager";
 import {UploadMedia,UploadMenu} from "./UploadingPost";
 import {useLocalDate,useLocalTime} from "@/components/LocalTime";
 import { useEffect, useState, type ReactNode } from "react";
+import { rememberPost } from "@/lib/posts/open-frame";
 import {hasUnavailableFields, type FeedPost} from "@/lib/posts/feed";
 import {summaryLine,type PostPresentation} from "@/lib/posts/summary-line";
 import PostActions from "@/components/PostActions";
@@ -70,6 +71,7 @@ export default function PostCard({ post, showDate = false, upload, priority = fa
   const record=post as PostPresentation;
   const drink = useDrinkCard(post.id, post.status, post.eaten_at, post.drink);
   const handle=usePostHandle(record.handle);
+  useEffect(()=>{rememberPost(post);},[post]);
   const [slide,setSlide]=useState(0);
   const localClock=useLocalTime(post.eaten_at);const localDate=useLocalDate(post.eaten_at);
   const hasDrink=(record.kind==='drink'||Boolean(drink)) && (record.drinkSource ?? drink?.source ?? 'sheet') === 'sheet';

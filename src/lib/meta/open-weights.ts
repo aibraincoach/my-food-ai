@@ -2,7 +2,7 @@
 import {fetchWithRetry, MetaApiError, type ResponseOutput} from './client';
 import {recordCall} from '@/lib/trace/record';
 // shortcut: one 75 s try and then Meta; the slowest trial call took 50.5 s (docs/open-weights.md). Raise it if Baseten's normal latency grows.
-const OPEN_IDENTIFY_TIMEOUT_MS = 75_000;
+const OPEN_IDENTIFY_TIMEOUT_MS = Number(process.env.IDENTIFY_OPEN_TIMEOUT_MS) || 75_000;
 export const openWeightsConfigured = () => Boolean(process.env.IDENTIFY_OPEN_API_KEY);
 export function openIdentifyModel():string {
  const model=process.env.IDENTIFY_OPEN_MODEL || 'meta-models/muse-spark-open-1026';
@@ -31,7 +31,9 @@ export async function createOpenResponse(body:Record<string,unknown>,validate?:(
  return recordCall('spark_identify',body,async()=>{
   const key=process.env.IDENTIFY_OPEN_API_KEY;if(!key)throw Error('Open identify is not configured.');
   let response:Response;
-  const send=(jsonObject:boolean)=>fetchWithRetry(`${openBaseUrl()}/chat/completions`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(openRequest(body,jsonObject))},OPEN_IDENTIFY_TIMEOUT_MS,key,0);
+  // Both format attempts share this deadline; a rejection never resets the budget.
+  const deadline=AbortSignal.timeout(OPEN_IDENTIFY_TIMEOUT_MS);
+  const send=(jsonObject:boolean)=>fetchWithRetry(`${openBaseUrl()}/chat/completions`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(openRequest(body,jsonObject)),signal:deadline},OPEN_IDENTIFY_TIMEOUT_MS,key,0);
   try {response=await send(false);} catch(error) {
    // Only a structured-format rejection warrants a JSON-object retry.
    if(!(error instanceof MetaApiError)||![400,422].includes(error.status)||!/response_format|json_schema|structured/i.test(error.body))throw error;

@@ -19,14 +19,14 @@ export const TAP_MOVE_PX = 8;
 
 // Owns the pointer sequence and the one pending "open" timer of a tappable photo. A new press, a cancelled
 // pointer, a drag or an unmount all cancel a queued navigation, so scrolling or swiping can never open the meal.
-export function createTapController(deps: { now: () => number; open: (href: string) => void; vote: () => void }) {
+export function createTapController(deps: { now: () => number; open: (href: string) => void; vote: () => void; preview?: (href:string) => void; cancelPreview?: () => void }) {
   let start: { x: number; y: number } | null = null;
   let previous: TapPoint | null = null;
   let timer: ReturnType<typeof setTimeout> | null = null;
   const clearTimer = () => { if (timer !== null) { clearTimeout(timer); timer = null; } };
   return {
-    down(x: number, y: number) { clearTimer(); start = { x, y }; },
-    cancel() { clearTimer(); start = null; previous = null; },
+    down(x: number, y: number) { deps.cancelPreview?.(); clearTimer(); start = { x, y }; },
+    cancel() { deps.cancelPreview?.(); clearTimer(); start = null; previous = null; },
     dispose() { clearTimer(); },
     up(x: number, y: number, options: { canVote: boolean; href?: string }) {
       const from = start;
@@ -38,6 +38,7 @@ export function createTapController(deps: { now: () => number; open: (href: stri
       if (decision.action === "open") {
         clearTimer();
         const href = options.href!;
+        deps.preview?.(href);
         timer = setTimeout(() => { timer = null; deps.open(href); }, decision.afterMs);
         return;
       }

@@ -101,6 +101,8 @@ body {
 
 @media (min-width:1024px) { .desktop-home-layout { gap:16px; } }
 @media (min-width:1148px) { .desktop-home-layout { gap:64px; } }
+/* Round 7: below 1148 px hide Today and centre the 500 px feed. */
+@media (min-width:1024px) and (max-width:1147px) { .desktop-home-layout { justify-content:center; } .desktop-home-layout > aside[aria-label="Today"] { display:none !important; } }
 
 /* Pointer contact remains visible through the next paint, including touch taps. */
 [data-tap-pressed] { opacity: .55 !important; transition: none !important; }

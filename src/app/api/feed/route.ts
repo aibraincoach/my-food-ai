@@ -14,6 +14,7 @@ export async function GET(request: Request) {
     let auth;
     try { auth = await Promise.race([db.auth.getUser(), new Promise<never>((_,reject)=>{authTimer=setTimeout(()=>reject(new Error('Authentication timed out.')),8000);})]); }
     finally { if (authTimer) clearTimeout(authTimer); }
+    console.info("auth verify api/feed");
     const {data:{user}, error} = auth;
     console.info(`feed read auth ${Date.now() - started}`);
     if(error || !user) return NextResponse.json({error:"Sign in required."},{status:401,headers});

@@ -5,6 +5,7 @@ import vm from 'node:vm';
 import {readFileSync} from 'node:fs';
 import ts from 'typescript';
 import {retainCompleteItems,hasUnavailableFields} from '../src/lib/posts/feed.ts';
+import {todayFromPage} from '../src/lib/posts/today-view.ts';
 import {dayTotalRefreshDates} from '../src/lib/posts/day-total-changes.ts';
 import {createDayTotalsRefresh} from '../src/lib/posts/day-totals-refresh.ts';
 import {mergeFeedPosts,discoveryLostOverlap} from '../src/lib/posts/feed-order.ts';
@@ -36,7 +37,8 @@ async function serverHome(seedRead){
   if(name==='@/lib/posts/day-total-changes')return{dayTotalRefreshDates};
    if(name==='@/lib/posts/feed')return{getFeed:seedRead,getFirstFeedPhoto:async()=>null};
   if(name==='@/lib/posts/days')return days;
-  if(name==='@/components/DesktopWorkspace')return{default:({children})=>children};
+  if(name==='@/lib/posts/today-view')return{todayFromPage};
+  if(name==='@/components/DesktopWorkspace'||name==='@/components/DesktopHomeFrame')return{default:({children})=>children};
   if(name==='@/components/Feed')return{default:noop,CachedFeedFallback:noop};
   if(name.startsWith('@/components/'))return{default:noop};
   throw Error('Unexpected page dependency '+name);

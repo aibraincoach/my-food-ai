@@ -1,3 +1,4 @@
+import './fixtures/async-local-storage.mjs';
 // node --import tsx --test tests/verified-user.test.mjs
 import assert from 'node:assert/strict';
 import test from 'node:test';
