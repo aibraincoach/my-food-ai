@@ -1,0 +1,445 @@
+{
+  "observedMain": "a24587a1ec3b57a7b2bdfb5f69cce4e0e73602db",
+  "phase": "after",
+  "navigationAt": "2026-11-04T08:41:57.780Z",
+  "detailAt": "2026-11-04T08:47:44.549Z",
+  "browser": "Firefox WebDriver BiDi; isolated user context",
+  "account": "designated test account 2",
+  "navigation": [
+    {
+      "width": 390,
+      "postInventory": [
+        {
+          "post": "e20a5590",
+          "status": "ready"
+        },
+        {
+          "post": "105ba6bf",
+          "status": "ready"
+        },
+        {
+          "post": "cbad4665",
+          "status": "ready"
+        },
+        {
+          "post": "db0b132d",
+          "status": "ready"
+        },
+        {
+          "post": "f1737bd7",
+          "status": "ready"
+        },
+        {
+          "post": "48d4e1b2",
+          "status": "ready"
+        }
+      ],
+      "route": "/",
+      "zonePresent": true,
+      "idleObserved": true,
+      "requests": 84,
+      "apiFeedFirstPage": 0,
+      "apiFeedIds": 2,
+      "apiDays": 0,
+      "serverActionPosts": 2,
+      "feedPhotoRequests": 2,
+      "proxyPhoto": {
+        "status": 200,
+        "bytes": 21286,
+        "ms": 224.41815000000042,
+        "scope": "Separate authenticated read outside browser; not included in navigation request counts."
+      },
+      "browserAuthGet": 0,
+      "browserAuthOptions": 0,
+      "firstPhotoDecoded": false,
+      "shell": false
+    },
+    {
+      "width": 390,
+      "postInventory": [
+        {
+          "post": "e20a5590",
+          "status": "ready"
+        },
+        {
+          "post": "105ba6bf",
+          "status": "ready"
+        },
+        {
+          "post": "cbad4665",
+          "status": "ready"
+        },
+        {
+          "post": "db0b132d",
+          "status": "ready"
+        },
+        {
+          "post": "f1737bd7",
+          "status": "ready"
+        },
+        {
+          "post": "48d4e1b2",
+          "status": "ready"
+        }
+      ],
+      "route": "/",
+      "zonePresent": false,
+      "idleObserved": true,
+      "requests": 95,
+      "apiFeedFirstPage": 1,
+      "apiFeedIds": 3,
+      "apiDays": 0,
+      "serverActionPosts": 6,
+      "feedPhotoRequests": 2,
+      "proxyPhoto": {
+        "status": 200,
+        "bytes": 21286,
+        "ms": 218.2729190000009,
+        "scope": "Separate authenticated read outside browser; not included in navigation request counts."
+      },
+      "browserAuthGet": 0,
+      "browserAuthOptions": 0,
+      "firstPhotoDecoded": false,
+      "shell": false
+    },
+    {
+      "width": 390,
+      "postInventory": [],
+      "route": "/days",
+      "zonePresent": true,
+      "idleObserved": true,
+      "requests": 44,
+      "apiFeedFirstPage": 0,
+      "apiFeedIds": 0,
+      "apiDays": 0,
+      "serverActionPosts": 0,
+      "feedPhotoRequests": 0,
+      "proxyPhoto": null,
+      "browserAuthGet": 0,
+      "browserAuthOptions": 0,
+      "firstPhotoDecoded": false,
+      "shell": false
+    },
+    {
+      "width": 390,
+      "postInventory": [],
+      "route": "/profile",
+      "zonePresent": true,
+      "idleObserved": true,
+      "requests": 66,
+      "apiFeedFirstPage": 0,
+      "apiFeedIds": 0,
+      "apiDays": 0,
+      "serverActionPosts": 0,
+      "feedPhotoRequests": 0,
+      "proxyPhoto": null,
+      "browserAuthGet": 0,
+      "browserAuthOptions": 0,
+      "firstPhotoDecoded": false,
+      "shell": false
+    },
+    {
+      "width": 1280,
+      "postInventory": [
+        {
+          "post": "e20a5590",
+          "status": "ready"
+        },
+        {
+          "post": "105ba6bf",
+          "status": "ready"
+        },
+        {
+          "post": "cbad4665",
+          "status": "ready"
+        },
+        {
+          "post": "db0b132d",
+          "status": "ready"
+        },
+        {
+          "post": "f1737bd7",
+          "status": "ready"
+        },
+        {
+          "post": "48d4e1b2",
+          "status": "ready"
+        }
+      ],
+      "route": "/",
+      "zonePresent": true,
+      "idleObserved": true,
+      "requests": 78,
+      "apiFeedFirstPage": 0,
+      "apiFeedIds": 2,
+      "apiDays": 0,
+      "serverActionPosts": 4,
+      "feedPhotoRequests": 2,
+      "proxyPhoto": {
+        "status": 200,
+        "bytes": 21286,
+        "ms": 227.48632500000167,
+        "scope": "Separate authenticated read outside browser; not included in navigation request counts."
+      },
+      "browserAuthGet": 0,
+      "browserAuthOptions": 0,
+      "firstPhotoDecoded": false,
+      "shell": false
+    }
+  ],
+  "photoDetailTrials": [
+    {
+      "post": "f1737bd7",
+      "width": 1280,
+      "ready": true,
+      "trigger": "photo",
+      "itemsVisibleMs": 1787,
+      "firstFrameMs": 25,
+      "frameTop": 60,
+      "finalPhotoTop": 60,
+      "modal": true,
+      "rsc": [
+        {
+          "ttfbMs": 1,
+          "fullMs": 538,
+          "fromCache": true,
+          "contentBytes": 53701
+        },
+        {
+          "ttfbMs": 1,
+          "fullMs": 490,
+          "fromCache": true,
+          "contentBytes": 62384
+        },
+        {
+          "ttfbMs": 1,
+          "fullMs": 3,
+          "fromCache": true,
+          "contentBytes": 5836
+        }
+      ],
+      "originalResponsesInObservationWindow": [
+        {
+          "bytes": 236806,
+          "ms": 150,
+          "fromCache": false
+        },
+        {
+          "bytes": 236806,
+          "ms": 177,
+          "fromCache": false
+        }
+      ]
+    },
+    {
+      "post": "48d4e1b2",
+      "width": 1280,
+      "ready": true,
+      "trigger": "photo",
+      "itemsVisibleMs": 1689,
+      "firstFrameMs": 15,
+      "frameTop": 60,
+      "finalPhotoTop": 60,
+      "modal": true,
+      "rsc": [
+        {
+          "ttfbMs": 1,
+          "fullMs": 649,
+          "fromCache": true,
+          "contentBytes": 62920
+        },
+        {
+          "ttfbMs": 2,
+          "fullMs": 11,
+          "fromCache": true,
+          "contentBytes": 5836
+        }
+      ],
+      "originalResponsesInObservationWindow": [
+        {
+          "bytes": 110498,
+          "ms": 323,
+          "fromCache": false
+        },
+        {
+          "bytes": 110498,
+          "ms": 120,
+          "fromCache": false
+        }
+      ]
+    },
+    {
+      "post": "88dfce5d",
+      "width": 1280,
+      "ready": false,
+      "trigger": "photo",
+      "itemsVisibleMs": null,
+      "firstFrameMs": 18,
+      "frameTop": 60,
+      "finalPhotoTop": null,
+      "modal": true,
+      "rsc": [],
+      "originalResponsesInObservationWindow": []
+    },
+    {
+      "post": "f1737bd7",
+      "width": 390,
+      "ready": true,
+      "trigger": "photo",
+      "itemsVisibleMs": 1370,
+      "firstFrameMs": 10,
+      "frameTop": 100,
+      "finalPhotoTop": 100,
+      "modal": false,
+      "rsc": [
+        {
+          "ttfbMs": 0,
+          "fullMs": 544,
+          "fromCache": true,
+          "contentBytes": 31809
+        },
+        {
+          "ttfbMs": 0,
+          "fullMs": 1,
+          "fromCache": true,
+          "contentBytes": 5836
+        },
+        {
+          "ttfbMs": 0,
+          "fullMs": 2,
+          "fromCache": true,
+          "contentBytes": 5836
+        }
+      ],
+      "originalResponsesInObservationWindow": [
+        {
+          "bytes": 236806,
+          "ms": 276,
+          "fromCache": false
+        },
+        {
+          "bytes": 236806,
+          "ms": 366,
+          "fromCache": false
+        }
+      ]
+    },
+    {
+      "post": "48d4e1b2",
+      "width": 390,
+      "ready": true,
+      "trigger": "photo",
+      "itemsVisibleMs": 1706,
+      "firstFrameMs": 14,
+      "frameTop": 100,
+      "finalPhotoTop": 100,
+      "modal": false,
+      "rsc": [
+        {
+          "ttfbMs": 0,
+          "fullMs": 529,
+          "fromCache": true,
+          "contentBytes": 40998
+        },
+        {
+          "ttfbMs": 1,
+          "fullMs": 545,
+          "fromCache": true,
+          "contentBytes": 45948
+        },
+        {
+          "ttfbMs": 1,
+          "fullMs": 2,
+          "fromCache": true,
+          "contentBytes": 5836
+        },
+        {
+          "ttfbMs": 1,
+          "fullMs": 2,
+          "fromCache": true,
+          "contentBytes": 5836
+        }
+      ],
+      "originalResponsesInObservationWindow": [
+        {
+          "bytes": 110498,
+          "ms": 248,
+          "fromCache": false
+        },
+        {
+          "bytes": 110498,
+          "ms": 148,
+          "fromCache": false
+        }
+      ]
+    },
+    {
+      "post": "88dfce5d",
+      "width": 390,
+      "ready": true,
+      "trigger": "photo",
+      "itemsVisibleMs": 1030,
+      "firstFrameMs": 11,
+      "frameTop": 100,
+      "finalPhotoTop": 100,
+      "modal": false,
+      "rsc": [
+        {
+          "ttfbMs": 1,
+          "fullMs": 448,
+          "fromCache": true,
+          "contentBytes": 37191
+        },
+        {
+          "ttfbMs": 0,
+          "fullMs": 1,
+          "fromCache": true,
+          "contentBytes": 5836
+        },
+        {
+          "ttfbMs": 1,
+          "fullMs": 3,
+          "fromCache": true,
+          "contentBytes": 5836
+        }
+      ],
+      "originalResponsesInObservationWindow": [
+        {
+          "bytes": 239273,
+          "ms": 241,
+          "fromCache": false
+        },
+        {
+          "bytes": 239273,
+          "ms": 133,
+          "fromCache": false
+        }
+      ]
+    }
+  ],
+  "limits": [
+    "Firefox driver does not apply the planned CDP CPU4x or Fast3G; these observations are unthrottled.",
+    "Network counts include activity observed inside the recorded navigation window, including prefetches and server actions; request classes are reported separately.",
+    "Stream response starts can be service-worker/cache-mediated and must not be called uncached server TTFB.",
+    "Missing completed original-image response receipts are not inferred from earlier runs.",
+    "Photo byte proxy receipts are separate authenticated reads and are not part of browser navigation counts."
+  ],
+  "thirdDesktopFollowup": {
+    "at": "2026-11-04T08:52:53.311Z",
+    "receipt": "navigation-after-third-desktop-followup.json",
+    "url": "/?post=88dfce5d-857b-4dbe-a7cc-7d21748f1046",
+    "actualModal": true,
+    "consumedSummaryPresent": true,
+    "editableItems": 4,
+    "observationAfterTapMs": 2500,
+    "alerts": [],
+    "classification": "Earlier 20-second non-completion was not reproduced; retained as an observed incomplete trial, with no verified cause."
+  },
+  "countsScope": {
+    "countWindowsFinishedBefore": "2026-11-04T08:42:15Z",
+    "siblingFirstPostReserved": "2026-11-04T08:43:48Z",
+    "siblingSecondPostReserved": "2026-11-04T08:44:12Z",
+    "siblingTwoPostCleanupApprox": "2026-11-04T08:44:40Z",
+    "note": "Count windows preceded sibling post mutations. Earlier interrupted detail attempts are excluded; final detail set followed both post deletions. One sibling feedback mutation was reported during coordination, not on a measured photo post."
+  }
+}

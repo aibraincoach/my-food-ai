@@ -1,0 +1,81 @@
+{
+  "observedAt": "2026-11-04T07:53:59.945307+00:00",
+  "codeHead": "30b574601998dceb0073c64636e7a43396a3bb36",
+  "scope": "Lane H isolated disposable backend60466/PostgreSQL55469/default production app60460; no production writes",
+  "typeScript": "npx tsc --noEmit passed",
+  "lint": "Focused ESLint on all changed TypeScript passed, zero diagnostics",
+  "build": "TEST_ENV_FILE=.env.test.run14-h.local npm run test:app -- build: default Turbopack production build passed",
+  "estimateDataTests": {
+    "command": "node --import tsx --test tests/food-estimate.test.mjs",
+    "passed": 3,
+    "failed": 0
+  },
+  "database": {
+    "command": "TEST_ENV_FILE=.env.test.run14-h.local npm run test:db",
+    "passed": 39,
+    "failed": 0,
+    "skipped": 0,
+    "durationMs": 131647.162102,
+    "log": "/tmp/run14-h-db-final2.log"
+  },
+  "application": {
+    "command": "TEST_ENV_FILE=.env.test.run14-h.local npm test",
+    "passed": 587,
+    "failed": 0,
+    "skipped": 6,
+    "totalIncludingNested": 593,
+    "durationMs": 291167.90572,
+    "log": "/tmp/run14-h-test.log"
+  },
+  "realProviders": {
+    "receipt": "food-match-real.json",
+    "passed": 17,
+    "total": 18,
+    "durationMs": 76623,
+    "usdaRequests": 54,
+    "cendolSource": "closest; USDA2710310 Gelatin dessert",
+    "ceramicPlate": "unavailable; real model-estimate refusal",
+    "failedCase": "Existing Grilled chicken Caesar salad with croutons strict matcher chose no-dressing Caesar reference; retained as actual provider quality failure."
+  },
+  "realEstimatePersistence": {
+    "receipt": "estimate-reanalysis.json",
+    "scope": "Real Meta, forced-empty USDA fixture, real disposable PostgREST and card storage; not live USDA absence proof",
+    "pass": true,
+    "cleanup": "test post/generated card removed, post absence verified"
+  },
+  "rejectedIntermediateRuns": [
+    "Initial DB gate before app listening:34pass/5HTTP connection failures; not counted.",
+    "First app build with external node_modules symlink rejected by Turbopack; resolved with local hardlinked dependencies.",
+    "DB gate restarted after adding required scripted nutrition_estimate transport support; final complete results above supersede it."
+  ],
+  "productionMigration0052": "Not applied by lane H; root must apply after exact-head counting review and before merge, with service-role-only privilege readback.",
+  "supplementaryReview": "Lane C static source review, exact head30b574601998dceb0073c64636e7a43396a3bb36, BLOCKERS NONE. Not external counting review or independent runtime evidence.",
+  "followUp": {
+    "head": "377df937",
+    "fixes": [
+      "unknown/zero grams\u2192known grams reconstructs retained model reference",
+      "known\u2192unknown\u2192known survives both normal edits and replay",
+      "volume-only edits use known consumed-amount ratios, never treat ml as g"
+    ],
+    "focusedCommand": "node --import tsx --test tests/food-estimate.test.mjs tests/portion-identity.test.mjs tests/nutrition-scaling.test.mjs",
+    "passed": 13,
+    "failed": 0,
+    "durationMs": 1262.629963,
+    "typeScript": "pass",
+    "focusedESLint": "pass",
+    "fullSuiteScope": "587/0/6 and DB39/39 above predate follow-up; final combined integration suite must cover revised head",
+    "cleanup": "H localapp, restarted scriptedmodel, PostgREST/Auth/PostgreSQL stack stopped after laneA released backend"
+  },
+  "finalReplayFollowUp": {
+    "head": "e5d4f660ac4d9ab3c352dbd7709b1335c2db446e",
+    "fix": "Shared quantity-basis dispatcher used by ordinary portion resolution and actual correction replay",
+    "focusedCommand": "node --import tsx --test tests/food-estimate.test.mjs tests/portion-identity.test.mjs tests/nutrition-scaling.test.mjs tests/removal-replay.test.mjs",
+    "passed": 18,
+    "failed": 0,
+    "durationMs": 1624.756239,
+    "typeScript": "pass",
+    "focusedESLint": "pass",
+    "supplementaryReview": "root and independent lane C: BLOCKERS NONE (source only)",
+    "fullSuiteScope": "Final combined integration suite pending; original full-suite/DB figures above predate follow-ups"
+  }
+}

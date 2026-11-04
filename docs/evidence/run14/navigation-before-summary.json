@@ -1,0 +1,252 @@
+{
+  "observedMain": "299f13a49af5320cb81d4cdf4e9de14263214a96",
+  "phase": "before",
+  "navigationAt": "2026-11-04T08:11:19.837Z",
+  "detailAt": "2026-11-04T08:21:06.564Z",
+  "browser": "Firefox WebDriver BiDi; isolated user context",
+  "account": "designated test account 2",
+  "navigation": [
+    {
+      "width": 390,
+      "postInventory": null,
+      "route": "/",
+      "zonePresent": true,
+      "idleObserved": true,
+      "requests": 64,
+      "apiFeedFirstPage": 0,
+      "apiFeedIds": 1,
+      "apiDays": 0,
+      "serverActionPosts": 2,
+      "feedPhotoRequests": 0,
+      "proxyPhoto": null,
+      "browserAuthGet": 1,
+      "browserAuthOptions": 1,
+      "firstPhotoDecoded": false,
+      "shell": false
+    },
+    {
+      "width": 390,
+      "postInventory": null,
+      "route": "/",
+      "zonePresent": false,
+      "idleObserved": true,
+      "requests": 79,
+      "apiFeedFirstPage": 1,
+      "apiFeedIds": 3,
+      "apiDays": 0,
+      "serverActionPosts": 6,
+      "feedPhotoRequests": 2,
+      "proxyPhoto": {
+        "status": 200,
+        "bytes": 21286,
+        "ms": 320.5842510000002,
+        "scope": "Separate authenticated read outside browser; not included in navigation request counts."
+      },
+      "browserAuthGet": 1,
+      "browserAuthOptions": 0,
+      "firstPhotoDecoded": false,
+      "shell": false
+    },
+    {
+      "width": 390,
+      "postInventory": null,
+      "route": "/days",
+      "zonePresent": true,
+      "idleObserved": true,
+      "requests": 47,
+      "apiFeedFirstPage": 0,
+      "apiFeedIds": 0,
+      "apiDays": 0,
+      "serverActionPosts": 0,
+      "feedPhotoRequests": 0,
+      "proxyPhoto": null,
+      "browserAuthGet": 1,
+      "browserAuthOptions": 0,
+      "firstPhotoDecoded": false,
+      "shell": false
+    },
+    {
+      "width": 390,
+      "postInventory": null,
+      "route": "/profile",
+      "zonePresent": true,
+      "idleObserved": true,
+      "requests": 69,
+      "apiFeedFirstPage": 0,
+      "apiFeedIds": 0,
+      "apiDays": 0,
+      "serverActionPosts": 0,
+      "feedPhotoRequests": 0,
+      "proxyPhoto": null,
+      "browserAuthGet": 1,
+      "browserAuthOptions": 0,
+      "firstPhotoDecoded": false,
+      "shell": false
+    }
+  ],
+  "photoDetailTrials": [
+    {
+      "post": "f1737bd7",
+      "width": 390,
+      "ready": true,
+      "trigger": "photo",
+      "itemsVisibleMs": 1112,
+      "firstFrameMs": null,
+      "frameTop": null,
+      "finalPhotoTop": 100,
+      "modal": false,
+      "rsc": [
+        {
+          "ttfbMs": 1,
+          "fullMs": 665,
+          "fromCache": true,
+          "contentBytes": 30924
+        }
+      ],
+      "originalResponsesInObservationWindow": [
+        {
+          "bytes": 236806,
+          "ms": 349,
+          "fromCache": false
+        }
+      ]
+    },
+    {
+      "post": "48d4e1b2",
+      "width": 390,
+      "ready": true,
+      "trigger": "photo",
+      "itemsVisibleMs": 1195,
+      "firstFrameMs": null,
+      "frameTop": null,
+      "finalPhotoTop": 100,
+      "modal": false,
+      "rsc": [
+        {
+          "ttfbMs": 1,
+          "fullMs": 601,
+          "fromCache": true,
+          "contentBytes": 40113
+        }
+      ],
+      "originalResponsesInObservationWindow": [
+        {
+          "bytes": 110498,
+          "ms": 294,
+          "fromCache": false
+        }
+      ]
+    },
+    {
+      "post": "88dfce5d",
+      "width": 390,
+      "ready": true,
+      "trigger": "photo",
+      "itemsVisibleMs": 1122,
+      "firstFrameMs": null,
+      "frameTop": null,
+      "finalPhotoTop": 100,
+      "modal": false,
+      "rsc": [
+        {
+          "ttfbMs": 3,
+          "fullMs": 564,
+          "fromCache": true,
+          "contentBytes": 36306
+        }
+      ],
+      "originalResponsesInObservationWindow": [
+        {
+          "bytes": 239273,
+          "ms": 437,
+          "fromCache": false
+        }
+      ]
+    },
+    {
+      "post": "f1737bd7",
+      "width": 1280,
+      "ready": true,
+      "trigger": "photo",
+      "itemsVisibleMs": 994,
+      "firstFrameMs": null,
+      "frameTop": null,
+      "finalPhotoTop": 100,
+      "modal": false,
+      "rsc": [
+        {
+          "ttfbMs": 1,
+          "fullMs": 549,
+          "fromCache": true,
+          "contentBytes": 30924
+        }
+      ],
+      "originalResponsesInObservationWindow": [
+        {
+          "bytes": 236806,
+          "ms": 170,
+          "fromCache": false
+        }
+      ]
+    },
+    {
+      "post": "48d4e1b2",
+      "width": 1280,
+      "ready": true,
+      "trigger": "photo",
+      "itemsVisibleMs": 1055,
+      "firstFrameMs": null,
+      "frameTop": null,
+      "finalPhotoTop": 100,
+      "modal": false,
+      "rsc": [
+        {
+          "ttfbMs": 1,
+          "fullMs": 576,
+          "fromCache": true,
+          "contentBytes": 40113
+        }
+      ],
+      "originalResponsesInObservationWindow": [
+        {
+          "bytes": 110498,
+          "ms": 197,
+          "fromCache": false
+        }
+      ]
+    },
+    {
+      "post": "88dfce5d",
+      "width": 1280,
+      "ready": true,
+      "trigger": "photo",
+      "itemsVisibleMs": 983,
+      "firstFrameMs": null,
+      "frameTop": null,
+      "finalPhotoTop": 100,
+      "modal": false,
+      "rsc": [
+        {
+          "ttfbMs": 0,
+          "fullMs": 540,
+          "fromCache": true,
+          "contentBytes": 36306
+        }
+      ],
+      "originalResponsesInObservationWindow": [
+        {
+          "bytes": 239273,
+          "ms": 242,
+          "fromCache": false
+        }
+      ]
+    }
+  ],
+  "limits": [
+    "Firefox driver does not apply the planned CDP CPU4x or Fast3G; these observations are unthrottled.",
+    "Network counts include activity observed inside the recorded navigation window, including prefetches and server actions; request classes are reported separately.",
+    "Stream response starts can be service-worker/cache-mediated and must not be called uncached server TTFB.",
+    "Missing completed original-image response receipts are not inferred from earlier runs.",
+    "Photo byte proxy receipts are separate authenticated reads and are not part of browser navigation counts."
+  ]
+}

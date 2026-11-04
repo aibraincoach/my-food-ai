@@ -1,0 +1,160 @@
+{
+  "observedAt": "2026-11-04T08:43:40.999Z",
+  "engine": "Firefox native BiDi,390x844,no CPU throttle available",
+  "checks": {
+    "renderedCola": {
+      "scrollLeft": 0,
+      "slideWidth": 378,
+      "text": "DRANK · 1:43 AMtumblerCoca-Cola Original Taste330 mlTodaytumbler330 mlconsumed today330 ml from drinks0 ml from food30 mg caffeine+Add a photoLeftovers",
+      "svgLabels": [
+        null,
+        "tumbler",
+        "tumbler",
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "svgCount": 8
+    },
+    "photographedDrink": {
+      "status": "ready",
+      "caffeineRows": [
+        {
+          "kind": "caffeine",
+          "amount": 30,
+          "label": "Coca-Cola Original Taste"
+        }
+      ],
+      "scope": "Real pipeline and persisted drink intake; rendered second-slide picture still separately inspected"
+    },
+    "earlyFoodNames": {
+      "backendObserved": true,
+      "renderedObserved": true,
+      "rows": [
+        {
+          "name": "savory stuffing",
+          "kcal": 141.6
+        },
+        {
+          "name": "brown gravy",
+          "kcal": 31.799999999999997
+        },
+        {
+          "name": "sliced roast beef",
+          "kcal": null
+        },
+        {
+          "name": "Yorkshire pudding",
+          "kcal": 160.79999999999998
+        }
+      ],
+      "rendered": {
+        "text": "savory stuffing142 kcalbrown gravy32 kcalsliced roast beefYorkshire pudding161 kcalProcessing, traffic low",
+        "observedAt": "2026-11-04T08:44:36.419Z"
+      }
+    }
+  },
+  "posts": [
+    {
+      "fixture": "fleet14-cola.png",
+      "idPrefix": "8e346237",
+      "status": "ready",
+      "closeMs": 390,
+      "postTap": {
+        "firstMutationMs": 0,
+        "pressed": true
+      },
+      "pendingNames": [
+        {
+          "name": "Coca-Cola Original Taste",
+          "kcal": null
+        }
+      ],
+      "pendingNamesRendered": {
+        "text": "Coca-Cola Original TasteProcessing, traffic low",
+        "observedAt": "2026-11-04T08:44:05.638Z"
+      },
+      "items": [
+        {
+          "name": "Coca-Cola Original Taste",
+          "item_nutrition": {
+            "calories": 138.6
+          }
+        }
+      ],
+      "intake": [
+        {
+          "kind": "caffeine",
+          "amount": 30,
+          "label": "Coca-Cola Original Taste"
+        }
+      ]
+    },
+    {
+      "fixture": "fleet14-meal.jpg",
+      "idPrefix": "62d5fe3c",
+      "status": "ready",
+      "closeMs": 388,
+      "postTap": {
+        "firstMutationMs": 0,
+        "pressed": true
+      },
+      "pendingNames": [
+        {
+          "name": "savory stuffing",
+          "kcal": 141.6
+        },
+        {
+          "name": "brown gravy",
+          "kcal": 31.799999999999997
+        },
+        {
+          "name": "sliced roast beef",
+          "kcal": null
+        },
+        {
+          "name": "Yorkshire pudding",
+          "kcal": 160.79999999999998
+        }
+      ],
+      "pendingNamesRendered": {
+        "text": "savory stuffing142 kcalbrown gravy32 kcalsliced roast beefYorkshire pudding161 kcalProcessing, traffic low",
+        "observedAt": "2026-11-04T08:44:36.419Z"
+      },
+      "items": [
+        {
+          "name": "savory stuffing",
+          "item_nutrition": {
+            "calories": 141.6
+          }
+        },
+        {
+          "name": "brown gravy",
+          "item_nutrition": {
+            "calories": 31.799999999999997
+          }
+        },
+        {
+          "name": "sliced roast beef",
+          "item_nutrition": {
+            "calories": 208.8
+          }
+        },
+        {
+          "name": "Yorkshire pudding",
+          "item_nutrition": {
+            "calories": 160.79999999999998
+          }
+        }
+      ],
+      "intake": []
+    }
+  ],
+  "error": "Error: NS_BINDING_ABORTED",
+  "cleanup": {
+    "created": 2,
+    "verifiedAbsent": 2
+  }
+}

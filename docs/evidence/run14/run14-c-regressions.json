@@ -1,0 +1,31 @@
+[
+  {
+    "name": "desktop open complete Back",
+    "pass": true
+  },
+  {
+    "name": "desktop Forward restores modal",
+    "pass": true
+  },
+  {
+    "name": "desktop close complete Back restores modal",
+    "pass": true
+  },
+  {
+    "name": "mobile committed cover intercepts hidden feed input",
+    "pass": true,
+    "hiddenFeedClicks": 0
+  },
+  {
+    "name": "mobile deliberate Feed cancel",
+    "pass": true
+  },
+  {
+    "name": "mobile doubletap votes without opening",
+    "pass": true
+  },
+  {
+    "name": "keyboard Enter opens detail",
+    "pass": true
+  }
+]

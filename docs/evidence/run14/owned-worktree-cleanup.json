@@ -1,0 +1,181 @@
+{
+  "startedAtUtc": "2026-11-04T09:42:29.898930+00:00",
+  "authorization": "Root scoped completed owned Fleet14 cleanup; A released a/b/integration. C/F/G/main/579/original13 and external owner worktrees preserved.",
+  "targets": [
+    {
+      "worktree": "/home/opc/Projects/my-food-ai-wt/run14-a",
+      "head": "fbb6d50916cb907313c2a2374e3bc9410f9f1b1e",
+      "branch": "refs/heads/run14/desktop-shell",
+      "archivedFiles": [],
+      "excludedEphemeralOrPrivateFiles": 31487,
+      "exclusionPolicy": "No env/browser/session/private files, dependencies, build cache, PostgreSQL, object fixtures or test-stack service files.",
+      "archive": "uploads/cleanup-evidence/run14-a-evidence.tar.gz",
+      "archiveSha256": "67eb1f601a612beb6b90f1087690e8c469b0b2de8005fd0265b5a2e373fb52b4",
+      "worktreeRemoved": true,
+      "localBranchRemoved": true
+    },
+    {
+      "worktree": "/home/opc/Projects/my-food-ai-wt/run14-b",
+      "head": "45fddaf62f3932e48f054013c30773fadd2e7059",
+      "branch": "refs/heads/run14/action-row",
+      "archivedFiles": [],
+      "excludedEphemeralOrPrivateFiles": 31537,
+      "exclusionPolicy": "No env/browser/session/private files, dependencies, build cache, PostgreSQL, object fixtures or test-stack service files.",
+      "archive": "uploads/cleanup-evidence/run14-b-evidence.tar.gz",
+      "archiveSha256": "af0088df2f96aa6235ad3881f471692164d25d1df2028e03f54bb137c05f6fdf",
+      "worktreeRemoved": true,
+      "localBranchRemoved": true
+    },
+    {
+      "worktree": "/home/opc/Projects/my-food-ai-wt/run14-d",
+      "head": "83f8a4b7c702e8069a2ddf6773c2653de55058ca",
+      "branch": "refs/heads/run14/capture-fixes",
+      "archivedFiles": [
+        {
+          "path": "uploads/run14-d-build-final.log",
+          "bytes": 2641,
+          "sha256": "fe85b9d508da535963f83e76f25663849766386cb5394012de9518bf95b7e9d1"
+        },
+        {
+          "path": "uploads/run14-d-test.log",
+          "bytes": 141683,
+          "sha256": "853f4d2024ef51aa116dd374c8c89f9d2786cb43e688f2642e1afbb702e29a08"
+        },
+        {
+          "path": "uploads/run14-d-upload.log",
+          "bytes": 2917,
+          "sha256": "8e2ccd08aaba6dd088380c6e8b7fc73fcc53a12657efe00c181f28d3aeb02ff1"
+        }
+      ],
+      "excludedEphemeralOrPrivateFiles": 32888,
+      "exclusionPolicy": "No env/browser/session/private files, dependencies, build cache, PostgreSQL, object fixtures or test-stack service files.",
+      "archive": "uploads/cleanup-evidence/run14-d-evidence.tar.gz",
+      "archiveSha256": "65d2de9b54651e208581465bb738d4d72862ea0f3a8129407f77d7474d80cf9d",
+      "worktreeRemoved": true,
+      "localBranchRemoved": true
+    },
+    {
+      "worktree": "/home/opc/Projects/my-food-ai-wt/run14-e",
+      "head": "148d9ab2158734cf849274660c38e7841054be17",
+      "branch": "refs/heads/run14/auth-once",
+      "archivedFiles": [],
+      "excludedEphemeralOrPrivateFiles": 31543,
+      "exclusionPolicy": "No env/browser/session/private files, dependencies, build cache, PostgreSQL, object fixtures or test-stack service files.",
+      "archive": "uploads/cleanup-evidence/run14-e-evidence.tar.gz",
+      "archiveSha256": "2b4527e9f467af824fd7a278466fbeeffba715c7cd77c1ca945dbb35f1c998dc",
+      "worktreeRemoved": true,
+      "localBranchRemoved": true
+    },
+    {
+      "worktree": "/home/opc/Projects/my-food-ai-wt/run14-h",
+      "head": "e5d4f660ac4d9ab3c352dbd7709b1335c2db446e",
+      "branch": "refs/heads/run14/food-estimate",
+      "archivedFiles": [
+        {
+          "path": "docs/evidence/run14/estimate-reanalysis.json",
+          "bytes": 3573,
+          "sha256": "ebfad3d1f137a278c1bd648f2238a8761a5ab0be870def960e7af156014a2a65"
+        }
+      ],
+      "excludedEphemeralOrPrivateFiles": 34217,
+      "exclusionPolicy": "No env/browser/session/private files, dependencies, build cache, PostgreSQL, object fixtures or test-stack service files.",
+      "archive": "uploads/cleanup-evidence/run14-h-evidence.tar.gz",
+      "archiveSha256": "8b4bf61dfa0e715e2a1869442d9017d82a4bbde140be26e0502f139729b4d8ac",
+      "worktreeRemoved": true,
+      "localBranchRemoved": true
+    },
+    {
+      "worktree": "/home/opc/Projects/my-food-ai-wt/run14-integration",
+      "head": "ea1a33fa135bfa411791774b0c47947aba2ec520",
+      "branch": "refs/heads/run14/integration",
+      "archivedFiles": [],
+      "excludedEphemeralOrPrivateFiles": 32964,
+      "exclusionPolicy": "No env/browser/session/private files, dependencies, build cache, PostgreSQL, object fixtures or test-stack service files.",
+      "archive": "uploads/cleanup-evidence/run14-integration-evidence.tar.gz",
+      "archiveSha256": "7c5fdf2c2f95a0027a6f0e6b1c22fee0adf84d2957e04b2c0bb214074e92df05",
+      "worktreeRemoved": true,
+      "localBranchRemoved": true
+    },
+    {
+      "worktree": "/home/opc/Projects/my-food-ai-wt/run14-probe",
+      "head": "ad58f67a36ce6a6f65935178fbc46f8566234da3",
+      "branch": "refs/heads/probe/tick-eager",
+      "archivedFiles": [],
+      "excludedEphemeralOrPrivateFiles": 0,
+      "exclusionPolicy": "No env/browser/session/private files, dependencies, build cache, PostgreSQL, object fixtures or test-stack service files.",
+      "archive": "uploads/cleanup-evidence/run14-probe-evidence.tar.gz",
+      "archiveSha256": "e1bf458bf244cd5afce77b44bd6034bc01bcf8b1538e3d02b6a7287fc491962d",
+      "worktreeRemoved": true,
+      "localBranchRemoved": true
+    }
+  ],
+  "preservedWorktrees": [
+    {
+      "worktree": "/home/opc/Projects/my-food-ai",
+      "HEAD": "7b439b5ab3cf7c00fa7c06a09bc0a466f08f0608",
+      "branch": "refs/heads/run13/docs"
+    },
+    {
+      "worktree": "/home/opc/Projects/my-food-ai-wt/issue579",
+      "HEAD": "a24587a1ec3b57a7b2bdfb5f69cce4e0e73602db",
+      "branch": "refs/heads/fix/sharper-photos-579"
+    },
+    {
+      "worktree": "/home/opc/Projects/my-food-ai-wt/main",
+      "HEAD": "a24587a1ec3b57a7b2bdfb5f69cce4e0e73602db",
+      "branch": "refs/heads/main"
+    },
+    {
+      "worktree": "/home/opc/Projects/my-food-ai-wt/run14-c",
+      "HEAD": "b59be8e8659ba426e8ead2fbadecb68a069c398b",
+      "branch": "refs/heads/run14/tap-frame"
+    },
+    {
+      "worktree": "/home/opc/Projects/my-food-ai-wt/run14-f",
+      "HEAD": "e142d52ccf962a4ab9f808675e208afa545401f9",
+      "branch": "refs/heads/run14/measure"
+    },
+    {
+      "worktree": "/home/opc/Projects/my-food-ai-wt/run14-g",
+      "HEAD": "3bb83ed897cbbc492d5ee36e2c3a828ce17c9720",
+      "branch": "refs/heads/run14/docs"
+    },
+    {
+      "worktree": "/home/opc/Projects/my-food-ai/.qwen/tmp/review-pr-566",
+      "HEAD": "e142d52ccf962a4ab9f808675e208afa545401f9",
+      "branch": "refs/heads/qwen-review/pr-566"
+    },
+    {
+      "worktree": "/home/opc/Projects/my-food-ai/.qwen/tmp/review-pr-566-base",
+      "HEAD": "299f13a49af5320cb81d4cdf4e9de14263214a96",
+      "detached": ""
+    },
+    {
+      "worktree": "/home/opc/Projects/my-food-ai/.qwen/tmp/review-pr-566-scratch-verify--00f6710c768f",
+      "HEAD": "e142d52ccf962a4ab9f808675e208afa545401f9",
+      "detached": ""
+    },
+    {
+      "worktree": "/home/opc/Projects/my-food-ai/.qwen/tmp/review-pr-566-scratch-verify--d553f473ffad",
+      "HEAD": "e142d52ccf962a4ab9f808675e208afa545401f9",
+      "detached": ""
+    },
+    {
+      "worktree": "/home/opc/Projects/my-food-ai/.qwen/tmp/review-pr-566-scratch-verify--f8e72aa06435",
+      "HEAD": "e142d52ccf962a4ab9f808675e208afa545401f9",
+      "detached": ""
+    },
+    {
+      "worktree": "/tmp/my-food-ai-backlog-docs",
+      "HEAD": "684e7b54483218006db9ecf2784b074764a5124f",
+      "detached": ""
+    },
+    {
+      "worktree": "/tmp/my-food-ai-speed-audit",
+      "HEAD": "a24587a1ec3b57a7b2bdfb5f69cce4e0e73602db",
+      "detached": ""
+    }
+  ],
+  "finishedAtUtc": "2026-11-04T09:42:39.033390+00:00",
+  "preservedVerification": "Every non-target registered worktree still exists; every non-G HEAD equals pre-operation snapshot. G is concurrently maintained by root."
+}

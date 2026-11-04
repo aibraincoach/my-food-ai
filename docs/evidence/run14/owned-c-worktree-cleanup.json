@@ -1,0 +1,82 @@
+{
+  "startedAtUtc": "2026-11-04T09:48:06.938532+00:00",
+  "authorization": "Root scoped completed owned Fleet14 cleanup; C released final native audits and all contexts; shared stack already stopped. C/F/G/main/579/original13 and external owner worktrees preserved.",
+  "targets": [
+    {
+      "worktree": "/home/opc/Projects/my-food-ai-wt/run14-c",
+      "head": "b59be8e8659ba426e8ead2fbadecb68a069c398b",
+      "branch": "refs/heads/run14/tap-frame",
+      "archivedFiles": [],
+      "excludedEphemeralOrPrivateFiles": 32875,
+      "exclusionPolicy": "No env/browser/session/private files, dependencies, build cache, PostgreSQL, object fixtures or test-stack service files.",
+      "archive": "uploads/cleanup-evidence/run14-c-evidence.tar.gz",
+      "archiveSha256": "114fbf9abd66c0b2adb1ebfaea696dd44a77d2ac76d91cee043f317ad06f0cac",
+      "worktreeRemoved": true,
+      "localBranchRemoved": true
+    }
+  ],
+  "preservedWorktrees": [
+    {
+      "worktree": "/home/opc/Projects/my-food-ai",
+      "HEAD": "7b439b5ab3cf7c00fa7c06a09bc0a466f08f0608",
+      "branch": "refs/heads/run13/docs"
+    },
+    {
+      "worktree": "/home/opc/Projects/my-food-ai-wt/issue579",
+      "HEAD": "6d3d63b4088a72cb67803fe75f93b27d19151072",
+      "branch": "refs/heads/fix/sharper-photos-579"
+    },
+    {
+      "worktree": "/home/opc/Projects/my-food-ai-wt/main",
+      "HEAD": "a24587a1ec3b57a7b2bdfb5f69cce4e0e73602db",
+      "branch": "refs/heads/main"
+    },
+    {
+      "worktree": "/home/opc/Projects/my-food-ai-wt/run14-f",
+      "HEAD": "e142d52ccf962a4ab9f808675e208afa545401f9",
+      "branch": "refs/heads/run14/measure"
+    },
+    {
+      "worktree": "/home/opc/Projects/my-food-ai-wt/run14-g",
+      "HEAD": "1ba655b7704957b273c820186c1be80cf19f5941",
+      "branch": "refs/heads/run14/docs"
+    },
+    {
+      "worktree": "/home/opc/Projects/my-food-ai/.qwen/tmp/review-pr-566-base",
+      "HEAD": "299f13a49af5320cb81d4cdf4e9de14263214a96",
+      "detached": ""
+    },
+    {
+      "worktree": "/home/opc/Projects/my-food-ai/.qwen/tmp/review-pr-566-scratch-verify--00f6710c768f",
+      "HEAD": "e142d52ccf962a4ab9f808675e208afa545401f9",
+      "detached": ""
+    },
+    {
+      "worktree": "/home/opc/Projects/my-food-ai/.qwen/tmp/review-pr-566-scratch-verify--2d6f304b92ab",
+      "HEAD": "e142d52ccf962a4ab9f808675e208afa545401f9",
+      "detached": ""
+    },
+    {
+      "worktree": "/home/opc/Projects/my-food-ai/.qwen/tmp/review-pr-566-scratch-verify--d553f473ffad",
+      "HEAD": "e142d52ccf962a4ab9f808675e208afa545401f9",
+      "detached": ""
+    },
+    {
+      "worktree": "/home/opc/Projects/my-food-ai/.qwen/tmp/review-pr-566-scratch-verify--f8e72aa06435",
+      "HEAD": "e142d52ccf962a4ab9f808675e208afa545401f9",
+      "detached": ""
+    },
+    {
+      "worktree": "/tmp/my-food-ai-backlog-docs",
+      "HEAD": "684e7b54483218006db9ecf2784b074764a5124f",
+      "detached": ""
+    },
+    {
+      "worktree": "/tmp/my-food-ai-speed-audit",
+      "HEAD": "a24587a1ec3b57a7b2bdfb5f69cce4e0e73602db",
+      "detached": ""
+    }
+  ],
+  "finishedAtUtc": "2026-11-04T09:48:08.299328+00:00",
+  "preservedVerification": "Every non-target registered worktree still exists; every non-G HEAD equals pre-operation snapshot. G is concurrently maintained by root."
+}

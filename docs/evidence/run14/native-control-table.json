@@ -1,0 +1,1822 @@
+{
+  "browser": "Chrome/151.0.7922.173",
+  "scope": "New isolated browser context only; CPU4x/Fast3G. Every unsafe HTTP method deliberately returns503, including server actions. GET HEAD OPTIONS allowed. Thus state-changing controls measure scoped failure behavior, not successful persistence.",
+  "blocked": [
+    {
+      "control": "setup",
+      "method": "POST",
+      "path": "/"
+    },
+    {
+      "control": "setup",
+      "method": "POST",
+      "path": "/"
+    },
+    {
+      "control": "Bottom bar Home",
+      "method": "POST",
+      "path": "/"
+    },
+    {
+      "control": "Bottom bar Home",
+      "method": "POST",
+      "path": "/"
+    },
+    {
+      "control": "Bottom bar Home",
+      "method": "POST",
+      "path": "/"
+    },
+    {
+      "control": "Bottom bar Home",
+      "method": "POST",
+      "path": "/"
+    },
+    {
+      "control": "Bottom bar Search",
+      "method": "POST",
+      "path": "/"
+    },
+    {
+      "control": "Bottom bar Search",
+      "method": "POST",
+      "path": "/"
+    },
+    {
+      "control": "Bottom bar Days",
+      "method": "POST",
+      "path": "/"
+    },
+    {
+      "control": "Bottom bar Days",
+      "method": "POST",
+      "path": "/"
+    },
+    {
+      "control": "Bottom bar Profile",
+      "method": "POST",
+      "path": "/"
+    },
+    {
+      "control": "Bottom bar Profile",
+      "method": "POST",
+      "path": "/"
+    },
+    {
+      "control": "Bottom bar +",
+      "method": "POST",
+      "path": "/"
+    },
+    {
+      "control": "Bottom bar +",
+      "method": "POST",
+      "path": "/"
+    },
+    {
+      "control": "Bottom bar +",
+      "method": "POST",
+      "path": "/"
+    },
+    {
+      "control": "Bottom bar +",
+      "method": "POST",
+      "path": "/"
+    },
+    {
+      "control": "Saved meals header",
+      "method": "POST",
+      "path": "/"
+    },
+    {
+      "control": "Saved meals header",
+      "method": "POST",
+      "path": "/"
+    },
+    {
+      "control": "Saved meals header",
+      "method": "POST",
+      "path": "/"
+    },
+    {
+      "control": "Saved meals header",
+      "method": "POST",
+      "path": "/"
+    },
+    {
+      "control": "Saved meals header",
+      "method": "POST",
+      "path": "/"
+    },
+    {
+      "control": "Saved meals header",
+      "method": "POST",
+      "path": "/"
+    },
+    {
+      "control": "Today ring",
+      "method": "POST",
+      "path": "/"
+    },
+    {
+      "control": "Today ring",
+      "method": "POST",
+      "path": "/"
+    },
+    {
+      "control": "Today ring",
+      "method": "POST",
+      "path": "/"
+    },
+    {
+      "control": "Today ring",
+      "method": "POST",
+      "path": "/"
+    },
+    {
+      "control": "Today ring",
+      "method": "POST",
+      "path": "/"
+    },
+    {
+      "control": "Today ring",
+      "method": "POST",
+      "path": "/"
+    },
+    {
+      "control": "Past-day ring",
+      "method": "POST",
+      "path": "/"
+    },
+    {
+      "control": "Past-day ring",
+      "method": "POST",
+      "path": "/"
+    },
+    {
+      "control": "Past-day ring",
+      "method": "POST",
+      "path": "/"
+    },
+    {
+      "control": "Past-day ring",
+      "method": "POST",
+      "path": "/"
+    },
+    {
+      "control": "Meal menu",
+      "method": "POST",
+      "path": "/"
+    },
+    {
+      "control": "Meal menu",
+      "method": "POST",
+      "path": "/"
+    },
+    {
+      "control": "Meal menu",
+      "method": "POST",
+      "path": "/"
+    },
+    {
+      "control": "Meal menu",
+      "method": "POST",
+      "path": "/"
+    },
+    {
+      "control": "Menu Edit caption",
+      "method": "POST",
+      "path": "/"
+    },
+    {
+      "control": "Menu Edit caption",
+      "method": "POST",
+      "path": "/"
+    },
+    {
+      "control": "Menu Edit caption",
+      "method": "POST",
+      "path": "/"
+    },
+    {
+      "control": "Menu Edit caption",
+      "method": "POST",
+      "path": "/"
+    },
+    {
+      "control": "Thumbs up",
+      "method": "POST",
+      "path": "/"
+    },
+    {
+      "control": "Thumbs up",
+      "method": "POST",
+      "path": "/"
+    },
+    {
+      "control": "Thumbs up",
+      "method": "POST",
+      "path": "/api/posts/f1737bd7-7214-42c6-8e6a-0d1080a87e60/feedback"
+    },
+    {
+      "control": "Thumbs up",
+      "method": "POST",
+      "path": "/api/posts/f1737bd7-7214-42c6-8e6a-0d1080a87e60/feedback"
+    },
+    {
+      "control": "Thumbs up",
+      "method": "POST",
+      "path": "/"
+    },
+    {
+      "control": "Thumbs up",
+      "method": "POST",
+      "path": "/"
+    },
+    {
+      "control": "Thumbs down",
+      "method": "POST",
+      "path": "/"
+    },
+    {
+      "control": "Thumbs down",
+      "method": "POST",
+      "path": "/"
+    },
+    {
+      "control": "Thumbs down",
+      "method": "POST",
+      "path": "/api/posts/f1737bd7-7214-42c6-8e6a-0d1080a87e60/feedback"
+    },
+    {
+      "control": "Thumbs down",
+      "method": "POST",
+      "path": "/posts/f1737bd7-7214-42c6-8e6a-0d1080a87e60"
+    },
+    {
+      "control": "Thumbs down",
+      "method": "POST",
+      "path": "/api/posts/f1737bd7-7214-42c6-8e6a-0d1080a87e60/feedback"
+    },
+    {
+      "control": "Thumbs down",
+      "method": "POST",
+      "path": "/posts/f1737bd7-7214-42c6-8e6a-0d1080a87e60"
+    },
+    {
+      "control": "Thumbs down",
+      "method": "POST",
+      "path": "/posts/f1737bd7-7214-42c6-8e6a-0d1080a87e60"
+    },
+    {
+      "control": "Thumbs down",
+      "method": "POST",
+      "path": "/posts/f1737bd7-7214-42c6-8e6a-0d1080a87e60"
+    },
+    {
+      "control": "Thumbs down",
+      "method": "POST",
+      "path": "/rest/v1/rpc/feedback_revision"
+    },
+    {
+      "control": "Comment",
+      "method": "POST",
+      "path": "/"
+    },
+    {
+      "control": "Comment",
+      "method": "POST",
+      "path": "/"
+    },
+    {
+      "control": "Comment",
+      "method": "POST",
+      "path": "/"
+    },
+    {
+      "control": "Comment",
+      "method": "POST",
+      "path": "/posts/e20a5590-9281-436b-900e-2afec24d2567"
+    },
+    {
+      "control": "Comment",
+      "method": "POST",
+      "path": "/posts/e20a5590-9281-436b-900e-2afec24d2567"
+    },
+    {
+      "control": "Comment",
+      "method": "POST",
+      "path": "/posts/e20a5590-9281-436b-900e-2afec24d2567"
+    },
+    {
+      "control": "Comment",
+      "method": "POST",
+      "path": "/rest/v1/rpc/feedback_revision"
+    },
+    {
+      "control": "Log again row",
+      "method": "POST",
+      "path": "/"
+    },
+    {
+      "control": "Log again row",
+      "method": "POST",
+      "path": "/"
+    },
+    {
+      "control": "Log again row",
+      "method": "POST",
+      "path": "/"
+    },
+    {
+      "control": "Log again row",
+      "method": "POST",
+      "path": "/"
+    },
+    {
+      "control": "Details",
+      "method": "POST",
+      "path": "/"
+    },
+    {
+      "control": "Details",
+      "method": "POST",
+      "path": "/"
+    },
+    {
+      "control": "Details",
+      "method": "POST",
+      "path": "/"
+    },
+    {
+      "control": "Details",
+      "method": "POST",
+      "path": "/posts/e20a5590-9281-436b-900e-2afec24d2567"
+    },
+    {
+      "control": "Details",
+      "method": "POST",
+      "path": "/posts/e20a5590-9281-436b-900e-2afec24d2567"
+    },
+    {
+      "control": "Details",
+      "method": "POST",
+      "path": "/posts/e20a5590-9281-436b-900e-2afec24d2567"
+    },
+    {
+      "control": "Details",
+      "method": "POST",
+      "path": "/rest/v1/rpc/feedback_revision"
+    },
+    {
+      "control": "Photo",
+      "method": "POST",
+      "path": "/"
+    },
+    {
+      "control": "Photo",
+      "method": "POST",
+      "path": "/"
+    },
+    {
+      "control": "Photo",
+      "method": "POST",
+      "path": "/"
+    },
+    {
+      "control": "Photo",
+      "method": "POST",
+      "path": "/posts/f1737bd7-7214-42c6-8e6a-0d1080a87e60"
+    },
+    {
+      "control": "Photo",
+      "method": "POST",
+      "path": "/posts/f1737bd7-7214-42c6-8e6a-0d1080a87e60"
+    },
+    {
+      "control": "Photo",
+      "method": "POST",
+      "path": "/posts/f1737bd7-7214-42c6-8e6a-0d1080a87e60"
+    },
+    {
+      "control": "Photo",
+      "method": "POST",
+      "path": "/posts/f1737bd7-7214-42c6-8e6a-0d1080a87e60"
+    },
+    {
+      "control": "Photo",
+      "method": "POST",
+      "path": "/rest/v1/rpc/feedback_revision"
+    },
+    {
+      "control": "More",
+      "method": "POST",
+      "path": "/"
+    },
+    {
+      "control": "More",
+      "method": "POST",
+      "path": "/"
+    },
+    {
+      "control": "Bookmark",
+      "method": "POST",
+      "path": "/"
+    },
+    {
+      "control": "Bookmark",
+      "method": "POST",
+      "path": "/"
+    },
+    {
+      "control": "Bookmark",
+      "method": "POST",
+      "path": "/api/saved"
+    },
+    {
+      "control": "Bookmark",
+      "method": "POST",
+      "path": "/api/saved"
+    },
+    {
+      "control": "Bookmark",
+      "method": "POST",
+      "path": "/"
+    },
+    {
+      "control": "Bookmark",
+      "method": "POST",
+      "path": "/"
+    },
+    {
+      "control": "Try again failed post",
+      "method": "POST",
+      "path": "/"
+    },
+    {
+      "control": "Try again failed post",
+      "method": "POST",
+      "path": "/"
+    },
+    {
+      "control": "Profile grid post",
+      "method": "POST",
+      "path": "/posts/4e6e7dca-0c5d-4139-8881-9ca3fbc05186"
+    },
+    {
+      "control": "Profile grid post",
+      "method": "POST",
+      "path": "/posts/4e6e7dca-0c5d-4139-8881-9ca3fbc05186"
+    },
+    {
+      "control": "Profile grid post",
+      "method": "POST",
+      "path": "/rest/v1/rpc/feedback_revision"
+    },
+    {
+      "control": "Profile model setting",
+      "method": "PATCH",
+      "path": "/api/profile/identify-provider"
+    },
+    {
+      "control": "Profile model setting",
+      "method": "PATCH",
+      "path": "/api/profile/identify-provider"
+    },
+    {
+      "control": "Detail action row",
+      "method": "POST",
+      "path": "/posts/f1737bd7-7214-42c6-8e6a-0d1080a87e60"
+    },
+    {
+      "control": "Detail action row",
+      "method": "POST",
+      "path": "/posts/f1737bd7-7214-42c6-8e6a-0d1080a87e60"
+    },
+    {
+      "control": "Detail action row",
+      "method": "POST",
+      "path": "/rest/v1/rpc/feedback_revision"
+    },
+    {
+      "control": "Detail action row",
+      "method": "POST",
+      "path": "/api/posts/f1737bd7-7214-42c6-8e6a-0d1080a87e60/feedback"
+    },
+    {
+      "control": "Detail action row",
+      "method": "POST",
+      "path": "/api/posts/f1737bd7-7214-42c6-8e6a-0d1080a87e60/feedback"
+    },
+    {
+      "control": "Capture Text entry",
+      "method": "POST",
+      "path": "/"
+    },
+    {
+      "control": "Capture Text entry",
+      "method": "POST",
+      "path": "/"
+    },
+    {
+      "control": "Capture Text entry",
+      "method": "POST",
+      "path": "/"
+    },
+    {
+      "control": "Capture Text entry",
+      "method": "POST",
+      "path": "/"
+    },
+    {
+      "control": "Capture Text entry",
+      "method": "POST",
+      "path": "/"
+    },
+    {
+      "control": "Capture Text entry",
+      "method": "POST",
+      "path": "/"
+    },
+    {
+      "control": "Capture Photo mode",
+      "method": "POST",
+      "path": "/"
+    },
+    {
+      "control": "Capture Photo mode",
+      "method": "POST",
+      "path": "/"
+    },
+    {
+      "control": "Capture Photo mode",
+      "method": "POST",
+      "path": "/"
+    },
+    {
+      "control": "Capture Photo mode",
+      "method": "POST",
+      "path": "/"
+    },
+    {
+      "control": "Capture Photo mode",
+      "method": "POST",
+      "path": "/"
+    },
+    {
+      "control": "Capture Photo mode",
+      "method": "POST",
+      "path": "/"
+    },
+    {
+      "control": "Capture Text mode",
+      "method": "POST",
+      "path": "/"
+    },
+    {
+      "control": "Capture Text mode",
+      "method": "POST",
+      "path": "/"
+    },
+    {
+      "control": "Capture Text mode",
+      "method": "POST",
+      "path": "/"
+    },
+    {
+      "control": "Capture Text mode",
+      "method": "POST",
+      "path": "/"
+    },
+    {
+      "control": "Capture Text mode",
+      "method": "POST",
+      "path": "/"
+    },
+    {
+      "control": "Capture Text mode",
+      "method": "POST",
+      "path": "/"
+    },
+    {
+      "control": "Capture Barcode mode",
+      "method": "POST",
+      "path": "/"
+    },
+    {
+      "control": "Capture Barcode mode",
+      "method": "POST",
+      "path": "/"
+    },
+    {
+      "control": "Capture Barcode mode",
+      "method": "POST",
+      "path": "/"
+    },
+    {
+      "control": "Capture Barcode mode",
+      "method": "POST",
+      "path": "/"
+    },
+    {
+      "control": "Capture Barcode mode",
+      "method": "POST",
+      "path": "/"
+    },
+    {
+      "control": "Capture Barcode mode",
+      "method": "POST",
+      "path": "/"
+    },
+    {
+      "control": "Capture Caption field",
+      "method": "POST",
+      "path": "/"
+    },
+    {
+      "control": "Capture Caption field",
+      "method": "POST",
+      "path": "/"
+    },
+    {
+      "control": "Capture Caption field",
+      "method": "POST",
+      "path": "/"
+    },
+    {
+      "control": "Capture Caption field",
+      "method": "POST",
+      "path": "/"
+    },
+    {
+      "control": "Capture Caption field",
+      "method": "POST",
+      "path": "/"
+    },
+    {
+      "control": "Capture Caption field",
+      "method": "POST",
+      "path": "/"
+    },
+    {
+      "control": "Capture Post empty draft",
+      "method": "POST",
+      "path": "/"
+    },
+    {
+      "control": "Capture Post empty draft",
+      "method": "POST",
+      "path": "/"
+    },
+    {
+      "control": "Capture Post empty draft",
+      "method": "POST",
+      "path": "/"
+    },
+    {
+      "control": "Capture Post empty draft",
+      "method": "POST",
+      "path": "/"
+    },
+    {
+      "control": "Capture Post empty draft",
+      "method": "POST",
+      "path": "/"
+    },
+    {
+      "control": "Capture Post empty draft",
+      "method": "POST",
+      "path": "/"
+    },
+    {
+      "control": "Capture shutter",
+      "method": "POST",
+      "path": "/"
+    },
+    {
+      "control": "Capture shutter",
+      "method": "POST",
+      "path": "/"
+    },
+    {
+      "control": "Capture shutter",
+      "method": "POST",
+      "path": "/"
+    },
+    {
+      "control": "Capture shutter",
+      "method": "POST",
+      "path": "/"
+    },
+    {
+      "control": "Capture shutter",
+      "method": "POST",
+      "path": "/"
+    },
+    {
+      "control": "Capture shutter",
+      "method": "POST",
+      "path": "/"
+    },
+    {
+      "control": "Capture shutter",
+      "method": "POST",
+      "path": "/"
+    },
+    {
+      "control": "Capture shutter",
+      "method": "POST",
+      "path": "/"
+    },
+    {
+      "control": "Drink sheet entry",
+      "method": "POST",
+      "path": "/"
+    },
+    {
+      "control": "Drink sheet entry",
+      "method": "POST",
+      "path": "/"
+    },
+    {
+      "control": "Drink sheet entry",
+      "method": "POST",
+      "path": "/"
+    },
+    {
+      "control": "Drink sheet entry",
+      "method": "POST",
+      "path": "/api/intake/post"
+    },
+    {
+      "control": "Drink sheet entry",
+      "method": "POST",
+      "path": "/"
+    },
+    {
+      "control": "Drink sheet entry",
+      "method": "POST",
+      "path": "/"
+    },
+    {
+      "control": "Drink description",
+      "method": "POST",
+      "path": "/api/intake/post"
+    },
+    {
+      "control": "Drink description",
+      "method": "POST",
+      "path": "/"
+    },
+    {
+      "control": "Drink description",
+      "method": "POST",
+      "path": "/"
+    },
+    {
+      "control": "Drink description",
+      "method": "POST",
+      "path": "/"
+    },
+    {
+      "control": "Drink description",
+      "method": "POST",
+      "path": "/api/intake/post"
+    },
+    {
+      "control": "Drink description",
+      "method": "POST",
+      "path": "/"
+    },
+    {
+      "control": "Drink description",
+      "method": "POST",
+      "path": "/"
+    },
+    {
+      "control": "Drink photograph action",
+      "method": "POST",
+      "path": "/api/intake/post"
+    },
+    {
+      "control": "Drink photograph action",
+      "method": "POST",
+      "path": "/"
+    },
+    {
+      "control": "Drink photograph action",
+      "method": "POST",
+      "path": "/"
+    },
+    {
+      "control": "Drink photograph action",
+      "method": "POST",
+      "path": "/"
+    },
+    {
+      "control": "Drink photograph action",
+      "method": "POST",
+      "path": "/api/intake/post"
+    },
+    {
+      "control": "Drink photograph action",
+      "method": "POST",
+      "path": "/"
+    },
+    {
+      "control": "Drink photograph action",
+      "method": "POST",
+      "path": "/"
+    },
+    {
+      "control": "Drink photograph action",
+      "method": "POST",
+      "path": "/"
+    },
+    {
+      "control": "Drink photograph action",
+      "method": "POST",
+      "path": "/"
+    },
+    {
+      "control": "Days month list selection",
+      "method": "POST",
+      "path": "/api/intake/post"
+    },
+    {
+      "control": "Days month list selection",
+      "method": "POST",
+      "path": "/api/intake/post"
+    },
+    {
+      "control": "Days day panel",
+      "method": "POST",
+      "path": "/api/intake/post"
+    },
+    {
+      "control": "Days day panel",
+      "method": "POST",
+      "path": "/api/intake/post"
+    },
+    {
+      "control": "Profile Sign out",
+      "method": "POST",
+      "path": "/api/intake/post"
+    },
+    {
+      "control": "Profile Sign out",
+      "method": "POST",
+      "path": "/profile"
+    },
+    {
+      "control": "Profile Sign out",
+      "method": "POST",
+      "path": "/profile"
+    },
+    {
+      "control": "Profile Sign out",
+      "method": "POST",
+      "path": "/api/intake/post"
+    }
+  ],
+  "observedAt": "2026-11-04T09:44:19.260Z",
+  "app": "https://my-food-ai-ten.vercel.app",
+  "engine": "Chromium native CDP touch actions, CPU4x",
+  "viewport": {
+    "width": 390,
+    "height": 844
+  },
+  "limitations": [
+    "CLS null means this engine did not expose layout-shift; never treat it as zero.",
+    "Visible-mutation latency includes the actual global pressed-state mutation; it is not server completion time.",
+    "Geometry, physical touch and double-tap outcomes are observed; unexercised rows are explicitly incomplete.",
+    "Original per-row pass labels assess only global pressed and mutation response; they do not prove semantic action or successful persistence.",
+    "All-layout-shift sum includes hadRecentInput and is NOT standardized CLS.",
+    "CPU4 setup animations may remain unsettled at350ms; main control activation outcomes must be reviewed individually."
+  ],
+  "rows": [
+    {
+      "control": "Bottom bar Home",
+      "hitArea": {
+        "width": 66,
+        "height": 46
+      },
+      "disabled": false,
+      "pressed": true,
+      "timeToVisibleMutationMs": 0.40000009536743164,
+      "cumulativeLayoutShift": 0,
+      "doubleTap": {
+        "first": {
+          "path": "/",
+          "dialogs": 0
+        },
+        "second": {
+          "path": "/",
+          "dialogs": 0
+        },
+        "pointerdowns": 2
+      },
+      "scope": "production interface",
+      "verdict": "pass"
+    },
+    {
+      "control": "Bottom bar Search",
+      "hitArea": {
+        "width": 66,
+        "height": 46
+      },
+      "disabled": false,
+      "pressed": true,
+      "timeToVisibleMutationMs": 1.299999713897705,
+      "cumulativeLayoutShift": 0,
+      "doubleTap": {
+        "first": {
+          "path": "/search",
+          "dialogs": 0
+        },
+        "second": {
+          "path": "/search",
+          "dialogs": 0
+        },
+        "pointerdowns": 2
+      },
+      "scope": "production interface",
+      "verdict": "pass"
+    },
+    {
+      "control": "Bottom bar Days",
+      "hitArea": {
+        "width": 66,
+        "height": 46
+      },
+      "disabled": false,
+      "pressed": true,
+      "timeToVisibleMutationMs": 1.5999999046325684,
+      "cumulativeLayoutShift": 0,
+      "doubleTap": {
+        "first": {
+          "path": "/days",
+          "dialogs": 0
+        },
+        "second": {
+          "path": "/days",
+          "dialogs": 0
+        },
+        "pointerdowns": 2
+      },
+      "scope": "production interface",
+      "verdict": "pass"
+    },
+    {
+      "control": "Bottom bar Profile",
+      "hitArea": {
+        "width": 66,
+        "height": 46
+      },
+      "disabled": false,
+      "pressed": true,
+      "timeToVisibleMutationMs": 2.5,
+      "cumulativeLayoutShift": 0,
+      "doubleTap": {
+        "first": {
+          "path": "/profile",
+          "dialogs": 0
+        },
+        "second": {
+          "path": "/profile",
+          "dialogs": 0
+        },
+        "pointerdowns": 2
+      },
+      "scope": "production interface",
+      "verdict": "pass"
+    },
+    {
+      "control": "Bottom bar +",
+      "hitArea": {
+        "width": 34,
+        "height": 34
+      },
+      "disabled": false,
+      "pressed": true,
+      "timeToVisibleMutationMs": 0.39999961853027344,
+      "cumulativeLayoutShift": 0,
+      "doubleTap": {
+        "first": {
+          "path": "/",
+          "dialogs": 0
+        },
+        "second": {
+          "path": "/",
+          "dialogs": 0
+        },
+        "pointerdowns": 2
+      },
+      "scope": "production interface",
+      "verdict": "pass"
+    },
+    {
+      "control": "Saved meals header",
+      "hitArea": {
+        "width": 44,
+        "height": 44
+      },
+      "disabled": false,
+      "pressed": true,
+      "timeToVisibleMutationMs": 1.3999996185302734,
+      "cumulativeLayoutShift": 0,
+      "doubleTap": {
+        "first": {
+          "path": "/",
+          "dialogs": 1
+        },
+        "second": {
+          "path": "/",
+          "dialogs": 0
+        },
+        "pointerdowns": 2
+      },
+      "scope": "production interface",
+      "verdict": "pass"
+    },
+    {
+      "control": "Today ring",
+      "hitArea": {
+        "width": 66,
+        "height": 76.390625
+      },
+      "disabled": false,
+      "pressed": true,
+      "timeToVisibleMutationMs": 1.6999998092651367,
+      "cumulativeLayoutShift": 0,
+      "doubleTap": {
+        "first": {
+          "path": "/",
+          "dialogs": 1
+        },
+        "second": {
+          "path": "/",
+          "dialogs": 1
+        },
+        "pointerdowns": 2
+      },
+      "scope": "production interface",
+      "verdict": "pass"
+    },
+    {
+      "control": "Past-day ring",
+      "hitArea": {
+        "width": 66,
+        "height": 76.390625
+      },
+      "disabled": false,
+      "pressed": true,
+      "timeToVisibleMutationMs": 2.0999999046325684,
+      "cumulativeLayoutShift": 0,
+      "doubleTap": {
+        "first": {
+          "path": "/",
+          "dialogs": 0
+        },
+        "second": {
+          "path": "/days/2026-11-03",
+          "dialogs": 1
+        },
+        "pointerdowns": 2
+      },
+      "scope": "production interface",
+      "verdict": "pass"
+    },
+    {
+      "control": "Meal menu",
+      "hitArea": {
+        "width": 44,
+        "height": 44
+      },
+      "disabled": false,
+      "pressed": true,
+      "timeToVisibleMutationMs": 2,
+      "cumulativeLayoutShift": 0,
+      "doubleTap": {
+        "first": {
+          "path": "/",
+          "dialogs": 1
+        },
+        "second": {
+          "path": "/",
+          "dialogs": 0
+        },
+        "pointerdowns": 2
+      },
+      "scope": "production interface",
+      "verdict": "pass"
+    },
+    {
+      "control": "Menu Edit caption",
+      "hitArea": {
+        "width": 216,
+        "height": 44
+      },
+      "disabled": false,
+      "pressed": true,
+      "timeToVisibleMutationMs": 11.900000095367432,
+      "cumulativeLayoutShift": 0,
+      "doubleTap": {
+        "first": {
+          "path": "/",
+          "dialogs": 1
+        },
+        "second": {
+          "path": "/",
+          "dialogs": 0
+        },
+        "pointerdowns": 2
+      },
+      "scope": "production interface",
+      "verdict": "pass"
+    },
+    {
+      "control": "Thumbs up",
+      "hitArea": {
+        "width": 44,
+        "height": 44
+      },
+      "disabled": false,
+      "pressed": true,
+      "timeToVisibleMutationMs": 1.0999999046325684,
+      "cumulativeLayoutShift": 0.06975506804913154,
+      "doubleTap": {
+        "first": {
+          "path": "/",
+          "dialogs": 0
+        },
+        "second": {
+          "path": "/",
+          "dialogs": 0
+        },
+        "pointerdowns": 2
+      },
+      "scope": "production interface",
+      "verdict": "pass"
+    },
+    {
+      "control": "Thumbs down",
+      "hitArea": {
+        "width": 44,
+        "height": 44
+      },
+      "disabled": false,
+      "pressed": true,
+      "timeToVisibleMutationMs": 3.3999996185302734,
+      "cumulativeLayoutShift": 0.06975506804913154,
+      "doubleTap": {
+        "first": {
+          "path": "/posts/f1737bd7-7214-42c6-8e6a-0d1080a87e60",
+          "dialogs": 0
+        },
+        "second": {
+          "path": "/posts/f1737bd7-7214-42c6-8e6a-0d1080a87e60",
+          "dialogs": 0
+        },
+        "pointerdowns": 2
+      },
+      "scope": "production interface",
+      "verdict": "pass"
+    },
+    {
+      "control": "Comment",
+      "hitArea": {
+        "width": 44,
+        "height": 44
+      },
+      "disabled": false,
+      "pressed": true,
+      "timeToVisibleMutationMs": 2.5,
+      "cumulativeLayoutShift": 0,
+      "doubleTap": {
+        "first": {
+          "path": "/posts/e20a5590-9281-436b-900e-2afec24d2567",
+          "dialogs": 0
+        },
+        "second": {
+          "path": "/posts/e20a5590-9281-436b-900e-2afec24d2567",
+          "dialogs": 0
+        },
+        "pointerdowns": 2
+      },
+      "scope": "production interface",
+      "verdict": "pass"
+    },
+    {
+      "control": "Log again row",
+      "hitArea": {
+        "width": 44,
+        "height": 44
+      },
+      "disabled": false,
+      "pressed": true,
+      "timeToVisibleMutationMs": 1.700000286102295,
+      "cumulativeLayoutShift": 0,
+      "doubleTap": {
+        "first": {
+          "path": "/",
+          "dialogs": 1
+        },
+        "second": {
+          "path": "/",
+          "dialogs": 1
+        },
+        "pointerdowns": 2
+      },
+      "scope": "production interface",
+      "verdict": "pass"
+    },
+    {
+      "control": "Details",
+      "hitArea": {
+        "width": 52.25,
+        "height": 44
+      },
+      "disabled": false,
+      "pressed": true,
+      "timeToVisibleMutationMs": 1,
+      "cumulativeLayoutShift": 0.0020930223606304486,
+      "doubleTap": {
+        "first": {
+          "path": "/",
+          "dialogs": 0
+        },
+        "second": {
+          "path": "/posts/e20a5590-9281-436b-900e-2afec24d2567",
+          "dialogs": 0
+        },
+        "pointerdowns": 2
+      },
+      "scope": "production interface",
+      "verdict": "pass"
+    },
+    {
+      "control": "Photo",
+      "hitArea": {
+        "width": 390,
+        "height": 390
+      },
+      "disabled": false,
+      "pressed": true,
+      "timeToVisibleMutationMs": 1.6000003814697266,
+      "cumulativeLayoutShift": 0,
+      "doubleTap": {
+        "first": {
+          "path": "/posts/f1737bd7-7214-42c6-8e6a-0d1080a87e60",
+          "dialogs": 0
+        },
+        "second": {
+          "path": "/posts/f1737bd7-7214-42c6-8e6a-0d1080a87e60",
+          "dialogs": 0
+        },
+        "pointerdowns": 2
+      },
+      "scope": "production interface",
+      "verdict": "pass"
+    },
+    {
+      "control": "More",
+      "verdict": "not exercised",
+      "reason": "Control absent in this test account/state"
+    },
+    {
+      "control": "Bookmark",
+      "hitArea": {
+        "width": 44,
+        "height": 44
+      },
+      "disabled": false,
+      "pressed": true,
+      "timeToVisibleMutationMs": 0.40000009536743164,
+      "cumulativeLayoutShift": 0,
+      "doubleTap": {
+        "first": {
+          "path": "/",
+          "dialogs": 0
+        },
+        "second": {
+          "path": "/",
+          "dialogs": 0
+        },
+        "pointerdowns": 2
+      },
+      "scope": "production interface",
+      "verdict": "pass"
+    },
+    {
+      "control": "Try again failed post",
+      "verdict": "not exercised",
+      "reason": "Control absent in this test account/state"
+    },
+    {
+      "control": "Days month navigation",
+      "hitArea": {
+        "width": 48.828125,
+        "height": 44
+      },
+      "disabled": false,
+      "pressed": true,
+      "timeToVisibleMutationMs": 0.3000001907348633,
+      "cumulativeLayoutShift": 0,
+      "doubleTap": {
+        "first": {
+          "path": "/days",
+          "dialogs": 1
+        },
+        "second": {
+          "path": "/days",
+          "dialogs": 0
+        },
+        "pointerdowns": 2
+      },
+      "scope": "production interface",
+      "verdict": "pass"
+    },
+    {
+      "control": "Days day cell",
+      "hitArea": {
+        "width": 48.28125,
+        "height": 44
+      },
+      "disabled": false,
+      "pressed": true,
+      "timeToVisibleMutationMs": 0.2999997138977051,
+      "cumulativeLayoutShift": 0,
+      "doubleTap": {
+        "first": {
+          "path": "/days",
+          "dialogs": 0
+        },
+        "second": {
+          "path": "/days/2026-10-31",
+          "dialogs": 1
+        },
+        "pointerdowns": 2
+      },
+      "scope": "production interface",
+      "verdict": "pass"
+    },
+    {
+      "control": "Search field",
+      "hitArea": {
+        "width": 294,
+        "height": 21
+      },
+      "disabled": false,
+      "pressed": true,
+      "timeToVisibleMutationMs": 1.1999998092651367,
+      "cumulativeLayoutShift": 0,
+      "doubleTap": {
+        "first": {
+          "path": "/search",
+          "dialogs": 0
+        },
+        "second": {
+          "path": "/search",
+          "dialogs": 0
+        },
+        "pointerdowns": 2
+      },
+      "scope": "production interface",
+      "verdict": "pass"
+    },
+    {
+      "control": "Search result",
+      "verdict": "not exercised",
+      "reason": "Control absent in this test account/state"
+    },
+    {
+      "control": "Profile grid post",
+      "hitArea": {
+        "width": 128.65625,
+        "height": 128.65625
+      },
+      "disabled": false,
+      "pressed": true,
+      "timeToVisibleMutationMs": 11.800000190734863,
+      "cumulativeLayoutShift": 0,
+      "doubleTap": {
+        "first": {
+          "path": "/profile",
+          "dialogs": 0
+        },
+        "second": {
+          "path": "/posts/4e6e7dca-0c5d-4139-8881-9ca3fbc05186",
+          "dialogs": 0
+        },
+        "pointerdowns": 2
+      },
+      "scope": "production interface",
+      "verdict": "pass"
+    },
+    {
+      "control": "Profile Connect an agent",
+      "hitArea": {
+        "width": 358,
+        "height": 64
+      },
+      "disabled": false,
+      "pressed": true,
+      "timeToVisibleMutationMs": 1.1999998092651367,
+      "cumulativeLayoutShift": 0,
+      "doubleTap": {
+        "first": {
+          "path": "/profile",
+          "dialogs": 0
+        },
+        "second": {
+          "path": "/profile/agents/new",
+          "dialogs": 0
+        },
+        "pointerdowns": 2
+      },
+      "scope": "production interface",
+      "verdict": "pass"
+    },
+    {
+      "control": "Profile model setting",
+      "hitArea": {
+        "width": 44.03125,
+        "height": 44
+      },
+      "disabled": false,
+      "pressed": true,
+      "timeToVisibleMutationMs": 0.2999997138977051,
+      "cumulativeLayoutShift": 0.05536223020510632,
+      "doubleTap": {
+        "first": {
+          "path": "/profile",
+          "dialogs": 0
+        },
+        "second": {
+          "path": "/profile",
+          "dialogs": 0
+        },
+        "pointerdowns": 2
+      },
+      "scope": "production interface",
+      "verdict": "pass"
+    },
+    {
+      "control": "Detail action row",
+      "hitArea": {
+        "width": 44,
+        "height": 44
+      },
+      "disabled": false,
+      "pressed": true,
+      "timeToVisibleMutationMs": 2.1999998092651367,
+      "cumulativeLayoutShift": 0.09098255339762595,
+      "doubleTap": {
+        "first": {
+          "path": "/posts/f1737bd7-7214-42c6-8e6a-0d1080a87e60",
+          "dialogs": 0
+        },
+        "second": {
+          "path": "/posts/f1737bd7-7214-42c6-8e6a-0d1080a87e60",
+          "dialogs": 0
+        },
+        "pointerdowns": 2
+      },
+      "scope": "production interface",
+      "verdict": "pass"
+    },
+    {
+      "control": "Capture Text entry",
+      "hitArea": {
+        "width": 53.39710998535156,
+        "height": 53.39715576171875
+      },
+      "disabled": false,
+      "pressed": true,
+      "timeToVisibleMutationMs": 1.5999999046325684,
+      "cumulativeLayoutShift": 0,
+      "doubleTap": {
+        "first": {
+          "path": "/",
+          "dialogs": 1
+        },
+        "second": {
+          "path": "/",
+          "dialogs": 1
+        },
+        "pointerdowns": 2
+      },
+      "scope": "production interface",
+      "verdict": "pass"
+    },
+    {
+      "control": "Capture Photo mode",
+      "hitArea": {
+        "width": 78.890625,
+        "height": 36
+      },
+      "disabled": false,
+      "pressed": true,
+      "timeToVisibleMutationMs": 2.0999999046325684,
+      "cumulativeLayoutShift": 0.1430336245816581,
+      "doubleTap": {
+        "first": {
+          "path": "/",
+          "dialogs": 1
+        },
+        "second": {
+          "path": "/",
+          "dialogs": 1
+        },
+        "pointerdowns": 2
+      },
+      "scope": "production interface",
+      "verdict": "pass"
+    },
+    {
+      "control": "Capture Text mode",
+      "hitArea": {
+        "width": 66.140625,
+        "height": 36
+      },
+      "disabled": false,
+      "pressed": true,
+      "timeToVisibleMutationMs": 1.799999713897705,
+      "cumulativeLayoutShift": 0,
+      "doubleTap": {
+        "first": {
+          "path": "/",
+          "dialogs": 1
+        },
+        "second": {
+          "path": "/",
+          "dialogs": 1
+        },
+        "pointerdowns": 2
+      },
+      "scope": "production interface",
+      "verdict": "pass"
+    },
+    {
+      "control": "Capture Barcode mode",
+      "hitArea": {
+        "width": 113.390625,
+        "height": 36
+      },
+      "disabled": false,
+      "pressed": true,
+      "timeToVisibleMutationMs": 1.700000286102295,
+      "cumulativeLayoutShift": 0.1430336245816581,
+      "doubleTap": {
+        "first": {
+          "path": "/",
+          "dialogs": 1
+        },
+        "second": {
+          "path": "/",
+          "dialogs": 1
+        },
+        "pointerdowns": 2
+      },
+      "scope": "production interface",
+      "verdict": "pass"
+    },
+    {
+      "control": "Capture Caption field",
+      "hitArea": {
+        "width": 358,
+        "height": 42
+      },
+      "disabled": false,
+      "pressed": true,
+      "timeToVisibleMutationMs": 2.0999999046325684,
+      "cumulativeLayoutShift": 0,
+      "doubleTap": {
+        "first": {
+          "path": "/",
+          "dialogs": 1
+        },
+        "second": {
+          "path": "/",
+          "dialogs": 1
+        },
+        "pointerdowns": 2
+      },
+      "scope": "production interface",
+      "verdict": "pass"
+    },
+    {
+      "control": "Capture Post empty draft",
+      "hitArea": {
+        "width": 358,
+        "height": 50
+      },
+      "disabled": true,
+      "pressed": false,
+      "timeToVisibleMutationMs": 79.90000009536743,
+      "cumulativeLayoutShift": 0.0025942813503739806,
+      "doubleTap": {
+        "first": {
+          "path": "/",
+          "dialogs": 1
+        },
+        "second": {
+          "path": "/",
+          "dialogs": 1
+        },
+        "pointerdowns": 2
+      },
+      "scope": "actual disabled empty-draft state; populated Post measured with the dedicated post fixture",
+      "verdict": "not available"
+    },
+    {
+      "control": "Capture shutter",
+      "hitArea": {
+        "width": 72,
+        "height": 72
+      },
+      "disabled": false,
+      "pressed": true,
+      "timeToVisibleMutationMs": 1.5,
+      "cumulativeLayoutShift": 0,
+      "doubleTap": {
+        "first": {
+          "path": "/",
+          "dialogs": 1
+        },
+        "second": {
+          "path": "/",
+          "dialogs": 1
+        },
+        "pointerdowns": 2
+      },
+      "scope": "actual camera availability on this browser; fake-camera publication measured separately",
+      "verdict": "pass"
+    },
+    {
+      "control": "Drink sheet entry",
+      "hitArea": {
+        "width": 53.71337890625,
+        "height": 53.71343994140625
+      },
+      "disabled": false,
+      "pressed": true,
+      "timeToVisibleMutationMs": 1.5,
+      "cumulativeLayoutShift": 0,
+      "doubleTap": {
+        "first": {
+          "path": "/",
+          "dialogs": 1
+        },
+        "second": {
+          "path": "/",
+          "dialogs": 0
+        },
+        "pointerdowns": 2
+      },
+      "scope": "production interface",
+      "verdict": "pass"
+    },
+    {
+      "control": "Drink description",
+      "hitArea": {
+        "width": 260,
+        "height": 21
+      },
+      "disabled": false,
+      "pressed": true,
+      "timeToVisibleMutationMs": 1.9000000953674316,
+      "cumulativeLayoutShift": 0.1430336245816581,
+      "doubleTap": {
+        "first": {
+          "path": "/",
+          "dialogs": 1
+        },
+        "second": {
+          "path": "/",
+          "dialogs": 1
+        },
+        "pointerdowns": 2
+      },
+      "scope": "production interface",
+      "verdict": "pass"
+    },
+    {
+      "control": "Drink photograph action",
+      "hitArea": {
+        "width": 48,
+        "height": 48
+      },
+      "disabled": false,
+      "pressed": true,
+      "timeToVisibleMutationMs": 2,
+      "cumulativeLayoutShift": 0,
+      "doubleTap": {
+        "first": {
+          "path": "/",
+          "dialogs": 1
+        },
+        "second": {
+          "path": "/",
+          "dialogs": 1
+        },
+        "pointerdowns": 2
+      },
+      "scope": "production interface",
+      "verdict": "pass"
+    },
+    {
+      "control": "Days month list selection",
+      "hitArea": {
+        "width": 350,
+        "height": 48
+      },
+      "disabled": false,
+      "pressed": true,
+      "timeToVisibleMutationMs": 1.9000000953674316,
+      "cumulativeLayoutShift": 0,
+      "doubleTap": {
+        "first": {
+          "path": "/days",
+          "dialogs": 0
+        },
+        "second": {
+          "path": "/days",
+          "dialogs": 0
+        },
+        "pointerdowns": 2
+      },
+      "scope": "production interface",
+      "verdict": "pass"
+    },
+    {
+      "control": "Days day panel",
+      "hitArea": {
+        "width": 44,
+        "height": 44
+      },
+      "disabled": false,
+      "pressed": true,
+      "timeToVisibleMutationMs": 0.5999999046325684,
+      "cumulativeLayoutShift": 0,
+      "doubleTap": {
+        "first": {
+          "path": "/days/2026-10-31",
+          "dialogs": 1
+        },
+        "second": {
+          "path": "/days",
+          "dialogs": 0
+        },
+        "pointerdowns": 2
+      },
+      "scope": "production interface",
+      "verdict": "pass"
+    },
+    {
+      "control": "Profile Sign out",
+      "hitArea": {
+        "width": 53.515625,
+        "height": 44
+      },
+      "disabled": false,
+      "pressed": true,
+      "timeToVisibleMutationMs": 1.9000000953674316,
+      "cumulativeLayoutShift": 0.002781305055407445,
+      "doubleTap": {
+        "first": {
+          "path": "/profile",
+          "dialogs": 0
+        },
+        "second": {
+          "path": "/profile",
+          "dialogs": 0
+        },
+        "pointerdowns": 2
+      },
+      "scope": "production interface",
+      "verdict": "pass"
+    },
+    {
+      "control": "Capture Post populated draft",
+      "verdict": "not exercised",
+      "reason": "Requires the named post-merge photo fixture; empty-state Post is a separate measured row."
+    },
+    {
+      "control": "Saved meals Log now offline",
+      "verdict": "not exercised",
+      "reason": "Requires offline fixture with verified queued-operation cleanup; online click would create an extra test post."
+    },
+    {
+      "control": "Drink tile double tap",
+      "verdict": "not exercised",
+      "reason": "Requires tracked drink fixture and cleanup; measured sheet entry/description/photo action do not prove tile posting."
+    },
+    {
+      "control": "Edit caption Save",
+      "verdict": "not exercised",
+      "reason": "Requires a reversible caption-edit fixture or an intercepted failure; opening its sheet is a separate measured row."
+    }
+  ],
+  "isolatedContextDisposed": true
+}

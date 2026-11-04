@@ -745,7 +745,7 @@ Each section states the command, the result, and the unknown that remains.
 - **13f (#322).** Cold tick before/after:
   - Push a throwaway branch `run11/tick-eager`, cut from main, whose `handlers.ts` imports every job module statically (the pre-#322 form). Leave main's lazy form as the after case.
   - Each fresh preview deployment's first request is a cold instance. For each deployment, record `curl -w '%{time_total}'` on `/api/jobs/tick` three times: the first, then two more 1 s apart.
-  - Use the preview bypass Fleet 10 used, and revoke it afterwards.
+  - Use the retained preview bypass for reviewer/coder access. Preserve it permanently (owner ruling, November4).
   - Put the times in `docs/tick-cold.md`, then delete the throwaway branch and close its PR without merging (it is never reviewed).
   - The phone post through the worker is RT (#379).
 - **13g (#323).** On the preview with a fresh test-account session, open Home once. Count `auth_logs` rows for `/user` in that minute and browser `/auth/v1/user` requests together. Repeat for Days and Profile. Then confirm an unsigned request with a forged `x-mfa-verified-user` header to `/profile` still returns 307. Close #323 when the total is one per page open.
@@ -830,7 +830,7 @@ Each closure comment links its evidence by commit-pinned URL.
    - Each worktree and local branch is removed once its PR is pushed.
    - Each remote branch is deleted after its merge.
    - The throwaway `run11/tick-eager` deployment branch is deleted.
-   - Preview bypass tokens are revoked.
+   - Protection-bypass access remains in place permanently (owner ruling, November4).
    - Local servers are stopped, and `scripts/cleanup.sh` is run.
    - At the end only the main checkout remains, with its untracked files as found, and nothing temporary is running.
 

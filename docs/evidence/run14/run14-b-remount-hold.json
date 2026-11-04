@@ -1,0 +1,55 @@
+{
+  "utc": "2026-11-04T08:16:15.819Z",
+  "head": "45fddaf62f3932e48f054013c30773fadd2e7059",
+  "originalTime": 1793780170039,
+  "timeline": [
+    {
+      "event": "feedback-request",
+      "n": 1,
+      "ms": 5664
+    },
+    {
+      "event": "after-down-click",
+      "ms": 5661,
+      "requests": 0,
+      "dom": {
+        "url": "/",
+        "busy": "true"
+      }
+    },
+    {
+      "event": "detail-mounted",
+      "ms": 6660,
+      "requests": 1,
+      "dom": {
+        "url": "/posts/3b98582b-599e-4473-9171-260d6e86fc50",
+        "busy": "true",
+        "origin": 1793780170039
+      }
+    },
+    {
+      "event": "after-second-click",
+      "ms": 6914,
+      "requests": 1
+    },
+    {
+      "event": "failure",
+      "dom": {
+        "busy": "false",
+        "alert": "Feedback could not be saved. Try again."
+      }
+    },
+    {
+      "event": "feedback-request",
+      "n": 2,
+      "ms": 7462
+    },
+    {
+      "event": "retry-success",
+      "requests": 2,
+      "dom": {
+        "chosen": "true"
+      }
+    }
+  ]
+}

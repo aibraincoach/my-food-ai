@@ -1,0 +1,59 @@
+{
+  "head": "6d3d63b4088a72cb67803fe75f93b27d19151072",
+  "localFixtureOnly": true,
+  "checks": [
+    {
+      "width": 390,
+      "before": {
+        "title": "My Food AI",
+        "images": [
+          {
+            "alt": "Sharpness local fixture",
+            "width": 1280,
+            "height": 1327,
+            "original": true
+          }
+        ],
+        "text": "Feed\nPost\nL\n\nlocal_test_2\n\nWed, Nov 4 · 2:50 AM\n\n···\nOutlines · tap one to edit\n›\n1/2\n\nlocal_test_2 Sharpness local fixture\n\nComments 0\nL\nL\nCamera\nText\nDrink\nCoffee\nSaved"
+      },
+      "after": {
+        "images": [
+          {
+            "alt": "Leftovers",
+            "width": 1280,
+            "height": 1280,
+            "original": true
+          }
+        ],
+        "text": "Feed\nPost\nL\n\nlocal_test_2\n\nWed, Nov 4 · 2:50 AM\n\n···\n‹\n2/2\nWas this estimate right?\n\nlocal_test_2 Sharpness local fixture\n\nComments 0\nReply here to fix the estimate\nL\nL\nCamera\nText\nDrink\nCoffee\nSaved"
+      }
+    },
+    {
+      "width": 1280,
+      "before": {
+        "title": "My Food AI",
+        "images": [
+          {
+            "alt": "Sharpness local fixture",
+            "width": 1280,
+            "height": 1327,
+            "original": true
+          }
+        ],
+        "text": "My Food AI\nNew post\nN\nHome\nSearch\n/\nDays\nD\nL\nlocal_test_2\nProfile\n?\nKeyboard shortcuts\nFeed\nPost\nL\n\nlocal_test_2\n\nWed, Nov 4 · 2:50 AM\n\n···\nOutlines · tap one to edit\n›\n1/2\nWas this estimate right?\n\nlocal_test_2 Sharpness local fixture\n\nComments 0\nL"
+      },
+      "after": {
+        "images": [
+          {
+            "alt": "Leftovers",
+            "width": 1280,
+            "height": 1280,
+            "original": true
+          }
+        ],
+        "text": "My Food AI\nNew post\nN\nHome\nSearch\n/\nDays\nD\nL\nlocal_test_2\nProfile\n?\nKeyboard shortcuts\nFeed\nPost\nL\n\nlocal_test_2\n\nWed, Nov 4 · 2:50 AM\n\n···\n‹\n2/2\nWas this estimate right?\n\nlocal_test_2 Sharpness local fixture\n\nComments 0\nReply here to fix the estimate\nL"
+      }
+    }
+  ],
+  "pass": true
+}

@@ -138,4 +138,4 @@ Production recorded READY at `3ce84730a33f6e5ce8163c80e454eb63b7d9998a`; this re
 
 ## Cleanup reconciliation
 
-The predecessor removed 30 completed worktrees and 28 merged remote branches, stopped local test servers, revoked preview bypass, and cleaned owned test fixtures. This session preserves the untracked `docs/reviews/mfa-pplx-pr311-e7ece5c.md`, retains open docs branches/PRs #344/#384/#385, and records final cleanup output in `docs/evidence/run10-cleanup/cleanup.txt`. The docs worktree is removed only after its commits are pushed and their remote SHA is checked. Raw signed-URL traces remain private in ignored uploads.
+The predecessor removed 30 completed worktrees and 28 merged remote branches, stopped local test servers, and cleaned owned test fixtures. This session preserves the untracked `docs/reviews/mfa-pplx-pr311-e7ece5c.md`, retains open docs branches/PRs #344/#384/#385, and records final cleanup output in `docs/evidence/run10-cleanup/cleanup.txt`. The docs worktree is removed only after its commits are pushed and their remote SHA is checked. Raw signed-URL traces remain private in ignored uploads.

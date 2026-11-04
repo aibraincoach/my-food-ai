@@ -1,5 +1,9 @@
 # Auth protection — Run 8
 
+## Fleet14 identity-read scope — November 4, 2026
+
+The server now sets a browser-readable UI identity hint after verification. Browser identity reuse never authorizes data; real session/RLS boundaries remain. Final local/prod request counts distinguish a document from prefetch and refresh requests. Browser Auth round trips were removed, but local navigation windows still observed7/9/14 server verifications due prefetch/refresh traffic; #323 stays open. This run does not change CAPTCHA or perform another signup hammer.
+
 CAPTCHA is built and **off** by the owner's ruling at 10:57 WIB on November 3, 2026. This run changes no Supabase Auth setting and sets no production site key. No new-account cap is added. The spending-cap lane separately limits each account to 40 new posts per clock hour.
 
 ## Observed configuration

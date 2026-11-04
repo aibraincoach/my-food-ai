@@ -1,0 +1,80 @@
+{
+  "observedAt": "2026-11-04T08:08:51.190Z",
+  "app": "https://my-food-ai-ten.vercel.app",
+  "engine": "Firefox native BiDi touch actions (no CPU throttling available)",
+  "viewport": {
+    "width": 390,
+    "height": 844
+  },
+  "limitations": [
+    "Firefox fallback cannot satisfy requested CDP CPU4x throttle.",
+    "CLS null means this engine did not expose layout-shift; never treat it as zero.",
+    "Visible-mutation latency includes the actual global pressed-state mutation; it is not server completion time.",
+    "Geometry, physical touch and double-tap outcomes are observed; unexercised rows are explicitly incomplete."
+  ],
+  "rows": [
+    {
+      "control": "More",
+      "verdict": "not exercised",
+      "reason": "Control absent in this test account/state"
+    },
+    {
+      "control": "Try again failed post",
+      "verdict": "not exercised",
+      "reason": "Control absent in this test account/state"
+    },
+    {
+      "control": "Days month navigation",
+      "hitArea": {
+        "width": 48.83332824707031,
+        "height": 44
+      },
+      "disabled": false,
+      "pressed": true,
+      "timeToVisibleMutationMs": 1,
+      "cumulativeLayoutShift": null,
+      "doubleTap": {
+        "first": {
+          "path": "/days",
+          "dialogs": 1
+        },
+        "second": {
+          "path": "/days",
+          "dialogs": 0
+        },
+        "pointerdowns": 2
+      },
+      "scope": "production interface",
+      "verdict": "pass"
+    },
+    {
+      "control": "Search result",
+      "verdict": "not exercised",
+      "reason": "Control absent in this test account/state"
+    },
+    {
+      "control": "Profile Connect an agent",
+      "hitArea": {
+        "width": 358,
+        "height": 64
+      },
+      "disabled": false,
+      "pressed": true,
+      "timeToVisibleMutationMs": 2,
+      "cumulativeLayoutShift": null,
+      "doubleTap": {
+        "first": {
+          "path": "/profile",
+          "dialogs": 0
+        },
+        "second": {
+          "path": "/profile/agents/new",
+          "dialogs": 0
+        },
+        "pointerdowns": 2
+      },
+      "scope": "production interface",
+      "verdict": "pass"
+    }
+  ]
+}

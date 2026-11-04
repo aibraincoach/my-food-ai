@@ -1,0 +1,75 @@
+{
+  "observedAt": "2026-11-04T08:51:11.386Z",
+  "scope": "Production readonly; Firefox390x844;virtual camera stream only; no photo posted",
+  "barcode": {
+    "background": "rgb(26, 25, 23)",
+    "text": "Looking for a barcode…Hold the code steady in the frame",
+    "videoReadyState": 4,
+    "videoWidth": 640,
+    "videoHeight": 480
+  },
+  "calendarInitial": {
+    "summary": "October 2026 · 1 day posted",
+    "scrollY": 0,
+    "viewport": 844,
+    "scrollHeight": 844,
+    "markers": [
+      {
+        "month": "2026-10",
+        "top": 87.80000305175781
+      },
+      {
+        "month": "2026-11",
+        "top": 327.79998779296875
+      }
+    ]
+  },
+  "calendarMonthChoice": {
+    "summary": "October 2026 · 1 day posted",
+    "scrollY": 0,
+    "viewport": 844,
+    "scrollHeight": 844,
+    "markers": [
+      {
+        "month": "2026-10",
+        "top": 87.80000305175781
+      },
+      {
+        "month": "2026-11",
+        "top": 327.79998779296875
+      }
+    ]
+  },
+  "2026-10": {
+    "summary": "October 2026 · 1 day posted",
+    "scrollY": 0,
+    "viewport": 844,
+    "scrollHeight": 844,
+    "markers": [
+      {
+        "month": "2026-10",
+        "top": 87.80000305175781
+      },
+      {
+        "month": "2026-11",
+        "top": 327.79998779296875
+      }
+    ]
+  },
+  "2026-11": {
+    "summary": "October 2026 · 1 day posted",
+    "scrollY": 0,
+    "viewport": 844,
+    "scrollHeight": 844,
+    "markers": [
+      {
+        "month": "2026-10",
+        "top": 87.80000305175781
+      },
+      {
+        "month": "2026-11",
+        "top": 327.79998779296875
+      }
+    ]
+  }
+}
