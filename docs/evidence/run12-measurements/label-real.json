@@ -1,0 +1,101 @@
+{
+  "head": "39c3e0e71c903c0a1fba639e15f277ad33db14ca",
+  "calls": [
+    {
+      "status": 200
+    },
+    {
+      "status": 200
+    },
+    {
+      "status": 200
+    }
+  ],
+  "results": [
+    {
+      "name": "portion30-per100",
+      "ms": 6815,
+      "reading": {
+        "box": {
+          "h": 0.83,
+          "w": 0.87,
+          "x": 0.045,
+          "y": 0.025
+        },
+        "is_label": true,
+        "per_serving": {
+          "carbs_g": 60,
+          "fat_g": 20,
+          "fibre_g": null,
+          "kcal": 480,
+          "protein_g": 10,
+          "sodium_mg": 300,
+          "sugar_g": 25
+        },
+        "product_name": null,
+        "serving": {
+          "amount": 100,
+          "unit": "g"
+        }
+      },
+      "pass": true
+    },
+    {
+      "name": "english-fda",
+      "ms": 4842,
+      "reading": {
+        "box": {
+          "h": 0.87,
+          "w": 0.67,
+          "x": 0.165,
+          "y": 0.04
+        },
+        "is_label": true,
+        "per_serving": {
+          "carbs_g": 37,
+          "fat_g": 8,
+          "fibre_g": 4,
+          "kcal": 230,
+          "protein_g": 3,
+          "sodium_mg": 160,
+          "sugar_g": 12
+        },
+        "product_name": null,
+        "serving": {
+          "amount": 55,
+          "unit": "g"
+        }
+      },
+      "pass": true
+    },
+    {
+      "name": "indonesian",
+      "ms": 9402,
+      "reading": {
+        "box": {
+          "h": 0.365,
+          "w": 0.33,
+          "x": 0.515,
+          "y": 0.215
+        },
+        "is_label": true,
+        "per_serving": {
+          "carbs_g": 30,
+          "fat_g": 5,
+          "fibre_g": null,
+          "kcal": 200,
+          "protein_g": 8,
+          "sodium_mg": 55,
+          "sugar_g": 23
+        },
+        "product_name": null,
+        "serving": {
+          "amount": 250,
+          "unit": "ml"
+        }
+      },
+      "pass": true
+    }
+  ],
+  "scope": "Real model service call with changed prompt; no HTTP label route or production account/session. Synthetic per100 label generated in memory; existing FDA and Commons fixtures reused."
+}
