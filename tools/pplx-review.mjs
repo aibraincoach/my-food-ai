@@ -312,9 +312,29 @@ function submissionExpired(tab) {
   return true;
 }
 
+const ASK_INPUT_PROBE = `(function(){
+  const el = document.querySelector('#ask-input')
+    || document.querySelector('[aria-label="Ask anything…"]')
+    || document.querySelector('main [role="textbox"]')
+    || document.querySelector('main [contenteditable="true"]');
+  return !!el && el.getBoundingClientRect().width > 40;
+})()`;
+
+const ASK_INPUT_FOCUS = `(function(){
+  const el = document.querySelector('#ask-input')
+    || document.querySelector('[aria-label="Ask anything…"]')
+    || document.querySelector('main [role="textbox"]')
+    || document.querySelector('main [contenteditable="true"]');
+  if (!el || el.getBoundingClientRect().width <= 40) return false;
+  el.focus();
+  document.execCommand('selectAll', false, null);
+  document.execCommand('insertText', false, PROMPT_PLACEHOLDER);
+  return true;
+})()`;
+
 async function waitAskInput(tab) {
   for (let second = 1; second <= 5 && tab.timeLeft() > 0; second++) {
-    const snapshot = await evalScript(tab.context, `JSON.stringify({title:document.title, ready:document.readyState, ask:!!document.querySelector('#ask-input'), main:(document.querySelector('main')?.innerText||'').slice(0,300)})`);
+    const snapshot = await evalScript(tab.context, `JSON.stringify({title:document.title, ready:document.readyState, ask:${ASK_INPUT_PROBE}, main:(document.querySelector('main')?.innerText||'').slice(0,300)})`);
     console.error(`${tab.prUrl}: page inspection ${second}s: ${snapshot}`);
     if (JSON.parse(snapshot).ask) return true;
     await new Promise(resolve => setTimeout(resolve, 1000));
@@ -337,6 +357,12 @@ async function ensureModel(tab) {
   const MODEL_BUTTON = `(document.querySelector('button[aria-label="Model"]') || [...document.querySelectorAll('button')].find((b) => /^(Gemini|GPT|Claude|Kimi|GLM|Grok|Nemotron|Best)/.test(b.getAttribute('aria-label') || '')))`;
   const modelLabel = () =>
     evalScript(tab.context, `((${MODEL_BUTTON}) || { getAttribute: () => '' }).getAttribute('aria-label')`);
+  for (let wait = 0; wait < 8; wait++) {
+    const label = await modelLabel();
+    if (label === WANT) break;
+    if (label) break;
+    await new Promise((r) => setTimeout(r, 500));
+  }
   if ((await modelLabel()) !== WANT) {
     const opened = await pointerClick(tab.context, MODEL_BUTTON);
     await new Promise((r) => setTimeout(r, 1500));
@@ -375,19 +401,22 @@ async function installFetchHook(tab) {
 }
 
 async function typePrompt(tab) {
-  await evalScript(
+  const typed = await evalScript(
     tab.context,
-    `(function(){
-      const el = document.querySelector('#ask-input');
-      el.focus();
-      document.execCommand('selectAll', false, null);
-      document.execCommand('insertText', false, ${JSON.stringify(tab.prompt)});
-      return true;
-    })()`,
+    ASK_INPUT_FOCUS.replace("PROMPT_PLACEHOLDER", JSON.stringify(tab.prompt)),
   );
+  if (!typed) {
+    return { ok: false, code: 2, message: "ask input not found for typing" };
+  }
   const boxText = await evalScript(
     tab.context,
-    `(document.querySelector('#ask-input').innerText || document.querySelector('#ask-input').textContent || '').trim()`,
+    `(function(){
+      const el = document.querySelector('#ask-input')
+        || document.querySelector('[aria-label="Ask anything…"]')
+        || document.querySelector('main [role="textbox"]')
+        || document.querySelector('main [contenteditable="true"]');
+      return (el?.innerText || el?.textContent || '').trim();
+    })()`,
   );
   if (boxText !== tab.prompt) {
     return { ok: false, code: 2, message: `box mismatch: ${JSON.stringify(boxText)}` };

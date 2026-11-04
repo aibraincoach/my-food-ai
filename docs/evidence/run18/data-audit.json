@@ -1,0 +1,15 @@
+{
+  "generatedAt": "2026-11-04T18:20:00Z",
+  "readOnlyCounts": {
+    "drink_posts_missing_intake": 12,
+    "ready_unavailable_macros": 40
+  },
+  "actions": {
+    "syncItemDrinks": "scripts/backfill-item-drinks.ts run after PR #633 merge; 8 posts ok, 12 name-matched rows remain without item-linked intake (classification/tile false positives per script)",
+    "recomputeUnavailable": "not automated in repo; 40 ready posts with incomplete macros logged for follow-up fleet"
+  },
+  "migrationsAppliedBeforeMerge": {
+    "0057": "before #638",
+    "0058": "before #647"
+  }
+}
