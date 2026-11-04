@@ -121,3 +121,54 @@ Issue reconciliation posted19 commit-pinned evidence comments for the owner/wind
 Remote cleanup verified with `git ls-remote`: all seven merged Fleet14 feature branches and the closed probe branch are absent; run14/docs is retained. [Deletion ledger](evidence/run14/remote-cleanup.json). Local worktrees remain while evidence/services are reconciled; the live metrics collector and new579 work are preserved.
 
 Native Chrome151 CPU4×/Fast3G evidence now verified from the completed artifact: six detail entries (three posts at390px and1280px), all immediate frames23.3–45.4ms and photo-top shift0px. Items became ready1162.3–2443.4ms, with two trials above2seconds; no blanket2second completion claim. All three Home windows recorded browser Auth GET0 and api/days0; ids refreshes remain. These are isolated-context emulation results, not physical phones. [Sanitized summary](evidence/run14/native-cpu-summary.json).
+
+## Measured control table
+
+Firefox production touch observations at390×844. Mutation timing includes pressed feedback; it is not completion latency. CLS was unavailable, so every unavailable value remains unmeasured. Initial verdicts below cover feedback only; sub44 geometry is separately failed in#580. Rows originally unexercised have scoped follow-up evidence in [control-scope-final.md](evidence/run14/control-scope-final.md). Native CPU4× acceptance is separate.
+
+| Control | Hit area px | Pressed | Visible mutation ms | CLS | Double tap outcome | Feedback verdict |
+|---|---:|---|---:|---|---|---|
+| Bottom bar Home | 63.6×46.0 | True | 1 | unmeasured | {"first":{"path":"/","dialogs":0},"second":{"path":"/","dialogs":0},"pointerdowns":2} | pass |
+| Bottom bar Search | 63.6×46.0 | True | 0 | unmeasured | {"first":{"path":"/search","dialogs":0},"second":{"path":"/search","dialogs":0},"pointerdowns":2} | pass |
+| Bottom bar Days | 63.6×46.0 | True | 0 | unmeasured | {"first":{"path":"/days","dialogs":0},"second":{"path":"/days","dialogs":0},"pointerdowns":2} | pass |
+| Bottom bar Profile | 63.6×46.0 | True | 1 | unmeasured | {"first":{"path":"/profile","dialogs":0},"second":{"path":"/profile","dialogs":0},"pointerdowns":2} | pass |
+| Bottom bar + | 34.0×34.0 | True | 0 | unmeasured | {"first":{"path":"/","dialogs":0},"second":{"path":"/","dialogs":0},"pointerdowns":2} | pass; target below44 |
+| Saved meals header | 44.0×44.0 | True | 0 | unmeasured | {"first":{"path":"/","dialogs":1},"second":{"path":"/","dialogs":0},"pointerdowns":2} | pass |
+| Today ring | 66.0×76.4 | True | 0 | unmeasured | {"first":{"path":"/","dialogs":1},"second":{"path":"/","dialogs":1},"pointerdowns":2} | pass |
+| Past-day ring | 66.0×76.4 | True | 1 | unmeasured | {"first":{"path":"/","dialogs":0},"second":{"path":"/days/2026-11-03","dialogs":1},"pointerdowns":2} | pass |
+| Meal menu | 44.0×44.0 | True | 0 | unmeasured | {"first":{"path":"/","dialogs":1},"second":{"path":"/","dialogs":0},"pointerdowns":2} | pass |
+| Menu Edit caption | 216.0×44.0 | True | 0 | unmeasured | {"first":{"path":"/","dialogs":1},"second":{"path":"/","dialogs":0},"pointerdowns":2} | pass |
+| Thumbs up | 44.0×44.0 | True | 0 | unmeasured | {"first":{"path":"/","dialogs":0},"second":{"path":"/","dialogs":0},"pointerdowns":2} | pass |
+| Thumbs down | 44.0×44.0 | True | 0 | unmeasured | {"first":{"path":"/posts/f1737bd7-7214-42c6-8e6a-0d1080a87e60","dialogs":0},"second":{"path":"/posts/f1737bd7-7214-42c6-8e6a-0d1080a87e60","dialogs":0},"pointerdowns":2} | pass |
+| Comment | 44.0×44.0 | True | 0 | unmeasured | {"first":{"path":"/posts/e20a5590-9281-436b-900e-2afec24d2567","dialogs":0},"second":{"path":"/posts/e20a5590-9281-436b-900e-2afec24d2567","dialogs":0},"pointerdowns":2} | pass |
+| Log again row | 44.0×44.0 | True | 0 | unmeasured | {"first":{"path":"/","dialogs":1},"second":{"path":"/","dialogs":1},"pointerdowns":2} | pass |
+| Details | 52.2×44.0 | True | 0 | unmeasured | {"first":{"path":"/","dialogs":0},"second":{"path":"/posts/e20a5590-9281-436b-900e-2afec24d2567","dialogs":0},"pointerdowns":2} | pass |
+| Photo | 378.0×378.0 | True | 1 | unmeasured | {"first":{"path":"/posts/f1737bd7-7214-42c6-8e6a-0d1080a87e60","dialogs":0},"second":{"path":"/posts/f1737bd7-7214-42c6-8e6a-0d1080a87e60","dialogs":0},"pointerdowns":2} | pass |
+| More | unmeasured | unmeasured | unmeasured | unmeasured | unmeasured | not exercised |
+| Bookmark | 44.0×44.0 | True | 1 | unmeasured | {"first":{"path":"/","dialogs":0},"second":{"path":"/","dialogs":0},"pointerdowns":2} | pass |
+| Try again failed post | unmeasured | unmeasured | unmeasured | unmeasured | unmeasured | not exercised |
+| Days month navigation | 48.8×44.0 | True | 1 | unmeasured | {"first":{"path":"/days","dialogs":1},"second":{"path":"/days","dialogs":0},"pointerdowns":2} | pass |
+| Days day cell | 48.3×44.0 | True | 1 | unmeasured | {"first":{"path":"/days","dialogs":0},"second":{"path":"/days/2026-10-31","dialogs":1},"pointerdowns":2} | pass |
+| Search field | 294.0×21.0 | True | 0 | unmeasured | {"first":{"path":"/search","dialogs":0},"second":{"path":"/search","dialogs":0},"pointerdowns":2} | pass; target below44 |
+| Search result | unmeasured | unmeasured | unmeasured | unmeasured | unmeasured | not exercised |
+| Profile grid post | 128.7×128.7 | True | 1 | unmeasured | {"first":{"path":"/posts/e20a5590-9281-436b-900e-2afec24d2567","dialogs":0},"second":{"path":"/posts/e20a5590-9281-436b-900e-2afec24d2567","dialogs":0},"pointerdowns":2} | pass |
+| Profile Connect an agent | 358.0×64.0 | True | 0 | unmeasured | {"first":{"path":"/profile","dialogs":0},"second":{"path":"/profile/agents/new","dialogs":0},"pointerdowns":2} | pass |
+| Profile model setting | 44.0×44.0 | True | 0 | unmeasured | {"first":{"path":"/profile","dialogs":0},"second":{"path":"/profile","dialogs":0},"pointerdowns":2} | pass |
+| Detail action row | 44.0×44.0 | True | 0 | unmeasured | {"first":{"path":"/posts/f1737bd7-7214-42c6-8e6a-0d1080a87e60","dialogs":0},"second":{"path":"/posts/f1737bd7-7214-42c6-8e6a-0d1080a87e60","dialogs":0},"pointerdowns":2} | pass |
+| Capture Text entry | 52.0×52.0 | True | 0 | unmeasured | {"first":{"path":"/","dialogs":1},"second":{"path":"/","dialogs":1},"pointerdowns":2} | pass |
+| Capture Photo mode | 78.9×36.0 | True | 1 | unmeasured | {"first":{"path":"/","dialogs":1},"second":{"path":"/","dialogs":1},"pointerdowns":2} | pass; target below44 |
+| Capture Text mode | 66.1×36.0 | True | 1 | unmeasured | {"first":{"path":"/","dialogs":1},"second":{"path":"/","dialogs":1},"pointerdowns":2} | pass; target below44 |
+| Capture Barcode mode | 113.4×36.0 | True | 0 | unmeasured | {"first":{"path":"/","dialogs":1},"second":{"path":"/","dialogs":1},"pointerdowns":2} | pass; target below44 |
+| Capture Caption field | 358.0×42.0 | True | 0 | unmeasured | {"first":{"path":"/","dialogs":1},"second":{"path":"/","dialogs":1},"pointerdowns":2} | pass; target below44 |
+| Capture Post empty draft | 358.0×50.0 | False | 48 | unmeasured | {"first":{"path":"/","dialogs":1},"second":{"path":"/","dialogs":1},"pointerdowns":2} | not available |
+| Capture shutter | 72.0×72.0 | True | 0 | unmeasured | {"first":{"path":"/","dialogs":1},"second":{"path":"/","dialogs":1},"pointerdowns":2} | pass |
+| Drink sheet entry | 53.3×53.3 | True | 1 | unmeasured | {"first":{"path":"/","dialogs":1},"second":{"path":"/","dialogs":1},"pointerdowns":2} | pass |
+| Drink description | 260.0×21.0 | True | 0 | unmeasured | {"first":{"path":"/","dialogs":1},"second":{"path":"/","dialogs":1},"pointerdowns":2} | pass; target below44 |
+| Drink photograph action | 48.0×48.0 | True | 0 | unmeasured | {"first":{"path":"/","dialogs":1},"second":{"path":"/","dialogs":1},"pointerdowns":2} | pass |
+| Days month list selection | 350.0×48.0 | True | 0 | unmeasured | {"first":{"path":"/days","dialogs":0},"second":{"path":"/days","dialogs":0},"pointerdowns":2} | pass |
+| Days day panel | 44.0×44.0 | True | 1 | unmeasured | {"first":{"path":"/days/2026-10-31","dialogs":1},"second":{"path":"/days","dialogs":0},"pointerdowns":2} | pass |
+| Profile Sign out | 53.5×44.0 | True | 0 | unmeasured | {"first":{"path":"/profile","dialogs":0},"second":{"path":"/sign-in","dialogs":0},"pointerdowns":2} | pass |
+| Capture Post populated draft | unmeasured | unmeasured | unmeasured | unmeasured | unmeasured | not exercised |
+| Saved meals Log now offline | unmeasured | unmeasured | unmeasured | unmeasured | unmeasured | not exercised |
+| Drink tile double tap | unmeasured | unmeasured | unmeasured | unmeasured | unmeasured | not exercised |
+| Edit caption Save | unmeasured | unmeasured | unmeasured | unmeasured | unmeasured | not exercised |
