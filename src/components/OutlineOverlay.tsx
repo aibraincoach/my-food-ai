@@ -59,17 +59,22 @@ function Mask({ url, photo, color, frame, fallback }: {
 }
 
 export default function OutlineOverlay({ desktopModal=false, desktopHeader, desktopThread, slides=[], initialized, readOnly = false, postId, caption, eatenAt, status, photo, items, modelCommentId=null, fingerprint=null, saved=false, handle:providedHandle, cardData, initialDrink, children }: {
-  desktopModal?:boolean; desktopHeader?:ReactNode; desktopThread?:ReactNode; slides?:import('@/lib/posts/feed').FeedPost['slides'];
+  desktopModal?:boolean; desktopHeader?:ReactNode; desktopThread?:ReactNode; slides?:import('@/lib/posts/items').DetailSlide[];
   cardData?: CardData; initialDrink?: DrinkCardData|null;
   initialized: boolean; readOnly?: boolean; postId: string; caption: string; eatenAt: string; status: string; photo: DetailPhoto | null; items: DetailItem[]; modelCommentId?:string|null; fingerprint?:string|null; saved?:boolean; handle?:string; children?:ReactNode;
 }) {
   const router = useRouter();
   const handle=usePostHandle(providedHandle);
   const [slide,setSlide]=useState(0);
+  const visibleSlides=desktopModal?slides:slides.filter(entry=>entry.kind==='photo');
+  const selectedIndex=Math.min(slide,Math.max(0,visibleSlides.length-1));
+  const selectedSlide=visibleSlides[selectedIndex];
+  const activePhoto:DetailPhoto|null=selectedIndex>0&&selectedSlide?.kind==='photo'
+    ? {id:selectedSlide.id,url:selectedSlide.url,previewUrl:selectedSlide.previewUrl,width:selectedSlide.width??1,height:selectedSlide.height??1,not_eaten:selectedSlide.not_eaten}:photo;
   useEffect(()=>{if(!desktopModal)return;const key=(event:KeyboardEvent)=>{if(event.defaultPrevented||((event.target as HTMLElement)?.closest('input,textarea,select,[contenteditable="true"]')||((event.target as HTMLElement)?.closest('[role="dialog"]')&&!((event.target as HTMLElement).closest('[role="dialog"]')?.classList.contains('desktop-post-dialog')))))return;const step=event.key==='ArrowRight'?1:event.key==='ArrowLeft'?-1:0;if(step){event.preventDefault();setSlide(value=>Math.max(0,Math.min(Math.max(0,slides.length-1),value+step)));}};window.addEventListener('keydown',key);return()=>window.removeEventListener('keydown',key);},[desktopModal,slides.length]);
   const [expandedNutrition,setExpandedNutrition]=useState(false);
   const drink = useDrinkCard(postId, status, eatenAt, initialDrink);
-  const wholePhoto = Boolean(photo) && !desktopModal && (!drink || drink.source === 'item');
+  const wholePhoto = Boolean(activePhoto) && !desktopModal && (!drink || drink.source === 'item');
   const localTime = useLocalTime(eatenAt);
   const ref = useRef<HTMLDivElement>(null);
   const [frameHeight,setFrameHeight]=useState(photo?Math.round(tokens.spacing.phone*photo.height/photo.width):640);
@@ -147,11 +152,11 @@ export default function OutlineOverlay({ desktopModal=false, desktopHeader, desk
   const showNutrition = initialized && (items.length > 0 || status === "ready");
   const Container=desktopModal?"div":Fragment;
   return <Container {...(desktopModal?{className:"desktop-post-content"}:{})}>
-    <div ref={ref} className="relative w-full overflow-hidden bg-card" style={{ ...(wholePhoto&&photo?{aspectRatio:`${photo.width} / ${photo.height}`,maxHeight:"80dvh"}:{height}), touchAction: drawing ? "none" : "auto" }}
+    <div ref={ref} className="relative w-full overflow-hidden bg-card" style={{ ...(wholePhoto&&activePhoto?{aspectRatio:`${activePhoto.width} / ${activePhoto.height}`,maxHeight:"80dvh"}:{height}), touchAction: drawing ? "none" : "auto" }}
       onPointerDown={pointerDown} onPointerMove={pointerMove} onPointerUp={pointerUp}
       onPointerCancel={() => { start.current = null; setDrawBox(null); }}
       onClick={(event) => {
-        if(desktopModal&&slide>0)return;
+        if(selectedIndex>0)return;
         if (drawing || selection) return;
         if(readOnly || !initialized || !outlines)return;
         const p = point(event); if (!p) return;
@@ -159,7 +164,7 @@ export default function OutlineOverlay({ desktopModal=false, desktopHeader, desk
           .sort((a, b) => (a.box!.right - a.box!.left) * (a.box!.bottom - a.box!.top) - (b.box!.right - b.box!.left) * (b.box!.bottom - b.box!.top))[0];
         if (hit) setSelection({ item: hit, key: Date.now() });
       }}>
-      {desktopModal&&slide>0 ? slides[slide]?.kind==='photo'?<img src={slides[slide].url} alt={`Meal photo ${slide+1}`} className="size-full object-contain"/>:<ResultsCard data={displayCard} size={width} time={localTime}/> : photo && (!drink || drink.source === 'item') ? <>
+      {selectedIndex>0 ? selectedSlide?.kind==='photo'&&activePhoto?<DetailImage key={selectedSlide.id??selectedSlide.url} photo={activePhoto} alt={selectedSlide.not_eaten?'Leftovers':`Meal photo ${selectedIndex+1}`}/>:<ResultsCard data={displayCard} size={width} time={localTime}/> : photo && (!drink || drink.source === 'item') ? <>
         <DetailImage photo={photo} alt={caption || "Meal photo"} />
         {outlines && items.map((item, index) => item.box ? <div key={item.id}>
           <Mask url={item.maskUrl} photo={photo} color={outlineColor(index)} frame={frame} fallback={boxStyle(item.box)} />
@@ -172,7 +177,7 @@ export default function OutlineOverlay({ desktopModal=false, desktopHeader, desk
         {drawBox ? <div className="pointer-events-none absolute rounded-field border-2 border-text" style={boxStyle(drawBox)} /> : null}
         <span className="pointer-events-none absolute bottom-3 right-3 rounded-field bg-overlay px-[10px] py-[5px] text-meta text-white">Outlines · tap one to edit</span>
       </> : showNutrition ? <ResultsCard data={displayCard} size={width} time={localTime} /> : <div role="status" className="flex h-full items-center justify-center px-screen-x text-body text-muted">{status === "failed" ? "This meal could not be analysed." : status === "needs_input" ? "A question about this meal" : "Processing, traffic low"}</div>}
-      {desktopModal&&<><button type="button" aria-label="Previous slide" disabled={slide===0} onClick={event=>{event.stopPropagation();setSlide(value=>Math.max(0,value-1));}} className="absolute left-3 top-1/2 size-9 rounded-circle bg-white/90 text-[24px] text-text disabled:invisible">‹</button><button type="button" aria-label="Next slide" disabled={slide>=slides.length-1} onClick={event=>{event.stopPropagation();setSlide(value=>Math.min(Math.max(0,slides.length-1),value+1));}} className="absolute right-3 top-1/2 size-9 rounded-circle bg-white/90 text-[24px] text-text disabled:invisible">›</button><span className="absolute right-3 top-3 rounded-pill bg-overlay px-2 py-1 text-meta text-white">{slide+1}/{Math.max(1,slides.length)}</span></>}
+      {visibleSlides.length>1&&<><button type="button" aria-label="Previous slide" disabled={selectedIndex===0} onClick={event=>{event.stopPropagation();setSlide(Math.max(0,selectedIndex-1));}} className="absolute left-3 top-1/2 size-9 rounded-circle bg-white/90 text-[24px] text-text disabled:invisible">‹</button><button type="button" aria-label="Next slide" disabled={selectedIndex>=visibleSlides.length-1} onClick={event=>{event.stopPropagation();setSlide(Math.min(Math.max(0,visibleSlides.length-1),selectedIndex+1));}} className="absolute right-3 top-1/2 size-9 rounded-circle bg-white/90 text-[24px] text-text disabled:invisible">›</button><span className="absolute right-3 top-3 rounded-pill bg-overlay px-2 py-1 text-meta text-white">{selectedIndex+1}/{Math.max(1,visibleSlides.length)}</span></>}
     </div>
     <Container {...(desktopModal?{className:"desktop-post-record"}:{})}>
     {desktopModal&&desktopHeader}

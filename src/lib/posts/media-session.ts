@@ -20,7 +20,7 @@ function warmLoadedPhotos(identity: Epoch) {
     try {
       const url = new URL(image.currentSrc || image.src, location.href);
       const marker = `/storage/v1/object/sign/media/${identity.userId}/`;
-      const resized = url.pathname.match(/^\/api\/media\/feed\/([^/]+)\/([^/]+)\/([^/]+)\/v1\.webp$/);
+      const resized = url.pathname.match(/^\/api\/media\/feed\/([^/]+)\/([^/]+)\/([^/]+)\/v[12]\.webp$/);
       const ownedResize = resized && url.origin === new URL(location.href).origin && !url.search && resized.slice(1).every(value => UUID.test(value)) && resized[1] === identity.userId;
       const ownedStorage = url.pathname.includes(marker) && url.pathname.endsWith('.feed.jpg');
       if (!ownedResize && !ownedStorage) continue;

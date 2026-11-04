@@ -37,9 +37,11 @@ test('immutable resized feed photos match only the exact same-origin UUID route 
  const w=worker();await w.authenticate();
  assert.equal(await(await w.request(resized)).text(),'image-1');
  assert.equal(await(await w.request(resized)).text(),'image-1');assert.equal(w.fetches(),1);
- for(const invalid of [resized.replace('app.example','foreign.example'),resized+'?token=capability',resized+'?width=50',resized+'/',resized.replace('/v1.webp','/v2.webp'),resized.replace(FIRST,'not-a-post'),resized.replace(SECOND,'not-a-media'),resized.replace(OWNER,'not-an-owner'),resized.replace('/feed/','/feed/extra/')])assert.equal(await w.request(invalid),null,invalid);
+ for(const invalid of [resized.replace('app.example','foreign.example'),resized+'?token=capability',resized+'?width=50',resized+'/',resized.replace('/v1.webp','/v3.webp'),resized.replace(FIRST,'not-a-post'),resized.replace(SECOND,'not-a-media'),resized.replace(OWNER,'not-an-owner'),resized.replace('/feed/','/feed/extra/')])assert.equal(await w.request(invalid),null,invalid);
  assert.equal(await w.request(resized,{method:'POST'}),null);
- assert.equal(w.stores.get(MEDIA).size,1);
+ assert.equal(await(await w.request(resized.replace('/v1.webp','/v2.webp'))).text(),'image-2');
+ assert.equal(await(await w.request(resized)).text(),'image-1');
+ assert.equal(w.stores.get(MEDIA).size,2,'immutable versions never alias each other');
 });
 test('resized routes cannot borrow another owner or revive a durable logged-out epoch',async()=>{
  const stores=new Map(),w=worker({stores});await w.authenticate();await w.request(resized);

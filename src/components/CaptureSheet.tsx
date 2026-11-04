@@ -24,7 +24,7 @@ import { Field } from "@/components/ui/Field";
 import { Icon } from "@/components/ui/Icon";
 import { TopBar } from "@/components/ui/TopBar";
 import { requestLocation } from "@/lib/location/capture";
-import { openCamera, grabFrame, CameraFlipError, type Camera } from "@/lib/media/camera";
+import { openCamera, grabFrame, cameraVideoConstraints, CameraFlipError, type Camera } from "@/lib/media/camera";
 import {uploadManager} from "@/lib/posts/upload-manager";
 import {useUploads} from "@/components/useUploads";
 import { fromLocalInput, toLocalInput } from "@/lib/posts/eaten-at";
@@ -91,6 +91,7 @@ export default function CaptureSheet({ onClose, initialMode = "photo", forPost, 
   const mountedRef = useRef(false);
   const [stream, setStream] = useState<MediaStream | null>(null);
   const [cameraBusy, setCameraBusy] = useState(false);
+  const [takingPhoto,setTakingPhoto]=useState(false);
   const [cameraUnavailable, setCameraUnavailable] = useState(false);
   const postingRef = useRef(false);
   const [shots, setShots] = useState<Shot[]>(initialShots);
@@ -160,13 +161,13 @@ export default function CaptureSheet({ onClose, initialMode = "photo", forPost, 
     if (!shotsRef.current.length && !pendingFilesRef.current.length) selectedPhotoRef.current = false;
   };
 
-  const cameraEnabled = mode !== "text" && !composer;
+  const cameraEnabled = mode !== "text" && (!composer || takingPhoto);
   useEffect(() => {
     mountedRef.current = true;
     let cancelled = false;
     if (!cameraEnabled) return () => { cancelled = true; mountedRef.current = false; };
     void loadBarcodeDecoder();
-    const acquire=desktop&&deviceId?navigator.mediaDevices.getUserMedia({video:{deviceId:{exact:deviceId}},audio:false}).then(stream=>({stream,close(){stream.getTracks().forEach(track=>track.stop());},async flip(){return stream;}})):openCamera(desktop?'user':'environment');
+    const acquire=desktop&&deviceId?navigator.mediaDevices.getUserMedia({video:cameraVideoConstraints('user',deviceId),audio:false}).then(stream=>({stream,close(){stream.getTracks().forEach(track=>track.stop());},async flip(){return stream;}})):openCamera(desktop?'user':'environment');
     void acquire.then((camera) => {
       if (cancelled) { camera.close(); return; }
       liveCameraRef.current = camera;
@@ -357,16 +358,16 @@ export default function CaptureSheet({ onClose, initialMode = "photo", forPost, 
   const takePhoto = async () => {
     if (postingRef.current || cameraBusy || shotsRef.current.length >= MAX_SHOTS) return;
     if (!stream || !videoRef.current) { cameraRef.current?.click(); return; }
-    setCameraBusy(true);
+    setCameraBusy(true);setTakingPhoto(true);
     try {
       selectedPhotoRef.current = true;
       const blob = await grabFrame(videoRef.current,!forPost&&mode==='photo'?frame=>{
         if(mountedRef.current){setCameraPreview(frame);setComposer(true);}
-      }:undefined);
-      if (mountedRef.current) await addFiles([new File([blob], "meal.jpg", { type: "image/jpeg" })]);
+      }:undefined,true);
+      if (mountedRef.current) await addFiles([new File([blob], "meal.jpg", { type: blob.type || "image/jpeg" })]);
     } catch {
       if (mountedRef.current) {setError("Could not capture a photo. Try again or choose one from the gallery.");if(!forPost&&mode==='photo')setComposer(shotsRef.current.length>0);}
-    } finally { if (mountedRef.current) {setCameraPreview(null);setCameraBusy(false);} }
+    } finally { if (mountedRef.current) {setCameraPreview(null);setCameraBusy(false);setTakingPhoto(false);} }
   };
 
   const flipCamera = async () => {
