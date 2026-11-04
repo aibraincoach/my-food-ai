@@ -1,5 +1,7 @@
 /* eslint-disable @next/next/no-img-element -- Private signed photos bypass paid optimization. */
 import {feedPhotoSrcSet} from '@/lib/posts/feed-photo-url';
+import { sumNutrition } from "@/lib/nutrition/totals";
+import type { TodayView } from "@/lib/posts/today-view";
 import { todayFromPage } from "@/lib/posts/today-view";
 import { verifiedUserId } from "@/lib/auth/verified-user";
 import CleanFreshMarker from "@/components/CleanFreshMarker";
@@ -20,7 +22,7 @@ import DayHeader from "@/components/DayHeader";
 import DayRings from "@/components/DayRings";
 import { cookies } from "next/headers";
 import { createClient } from "@/lib/supabase/server";
-import { dateInZone, getDayTotals, getEarliestPostDate, getLoggedDates, shiftDay, validZone } from "@/lib/posts/days";
+import { dateInZone, getDays, getDayTotals, getEarliestPostDate, getLoggedDates, shiftDay, validZone } from "@/lib/posts/days";
 
 // React's server cache is request-scoped: all Home streams share one Auth
 // check and one cancellable owner client, never another visitor's session.
@@ -110,11 +112,23 @@ async function HomeFeed(){
  try{const [seed,days]=await homeDeadline(Promise.all([homeSeed(),homeDayTotals().catch(()=>[])]));if(seed){initialPage={...seed.page,days:[...days,...seed.page.days]};initialUserId=seed.userId;initialZone=seed.zone;}}catch{/* The client can retry while the shell stays visible. */}
  return <div data-server-feed-ready={initialPage?true:undefined}><Feed key={initialUserId??'anonymous'} initialPage={initialPage} initialUserId={initialUserId} initialZone={initialZone}/></div>;
 }
-async function HomeToday(){await connection();const cookieZone=(await cookies()).get('time-zone')?.value;let initial;try{const seed=await homeDeadline(homeSeed());initial=seed&&cookieZone?todayFromPage(seed.page,seed.zone)??undefined:undefined;}catch{/* Preserve the client fallback. */}return <DesktopToday zone={cookieZone} initial={initial}/>;}
+async function HomeToday(){
+ await connection();const cookieZone=(await cookies()).get('time-zone')?.value;let initial:TodayView|undefined;
+ try{
+  const seed=await homeDeadline(homeSeed());
+  if(seed&&cookieZone){
+   // An incomplete first page cannot prove today's totals. Read today on the
+   // server so its numbers stream with the page, before client hydration.
+   initial=todayFromPage(seed.page,seed.zone)??undefined;
+   if(!initial){const {db,user}=await homeReader();const today=dateInZone(new Date(),seed.zone);const days=user?await homeDeadline(getDays(db,user.id,seed.zone,today,today)):[];initial=days[0]??{date:today,posts:[],totals:sumNutrition([])};}
+  }
+ }catch{/* Preserve the client fallback. */}
+ return <DesktopToday zone={cookieZone} initial={initial}/>;
+}
 
 export default async function Home({searchParams}:{searchParams:Promise<{post?:string}>}) {
   const {post}=await searchParams;
-  return <DesktopWorkspace width={844} detail={post?<Suspense key={post} fallback={<PostOpenFrame id={post} desktopModal/>}><PostDetail id={post} desktopModal/></Suspense>:undefined}><DesktopHomeFrame today={<Suspense fallback={null}><HomeToday/></Suspense>}><CleanFreshMarker />
+  return <DesktopWorkspace width={844} detail={post?<Suspense key={post} fallback={<PostOpenFrame id={post} desktopModal/>}><PostDetail id={post} desktopModal/></Suspense>:undefined}><DesktopHomeFrame today={<Suspense fallback={<DesktopToday placeholder/>}><HomeToday/></Suspense>}><CleanFreshMarker />
     <header className="desktop:hidden sticky top-0 z-20 flex h-top-safe items-center bg-surface px-inset"><h1 className="flex-1 text-title">My Food AI</h1><SavedMealsButton/></header>
     <NeedsInputStrip />
     <Suspense fallback={<div className="h-bar-h" />}><HomeDays /></Suspense>
