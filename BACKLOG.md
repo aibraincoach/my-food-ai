@@ -1,6 +1,6 @@
 # My Food AI — Backlog†
 
-Last edited: Wednesday 2026-11-04 at 15:27 WIB (UTC+07:00) by Claude, PM
+Last edited: Wednesday 2026-11-04 at 15:54 WIB (UTC+07:00) by Claude, PM
 
 The only job of the PM is to maintain this backlog and keep it completely up to date. Failing to do so is immediately terminable.
 
@@ -228,7 +228,7 @@ The cola records hold 29.7 mg of USDA caffeine, but they have null beverage cate
 
 Supabase limits sign-up and sign-in requests per IP address. If it counts the app's requests against Vercel's address, one script hammering the app's forms could lock every judge out.
 
-Unverified planner finding. The app's sign-up and sign-in run as server actions on Vercel, and the middleware refreshes sessions from Vercel. The Run 8 hammer was refused at request 31, but it called Supabase directly from the coder's machine, so it did not test the app's path (docs/auth-protection.md). Nobody has checked which IP address Supabase records for a server-action sign-in, or whether the server client forwards the user's address. A browser agent reported that on Nov 4 between 13:12 and 13:27 WIB it signed up 35 accounts through the production form, one about every 22 seconds. It saw no rate-limit message, no 429 and no CAPTCHA, and it skipped the second-network sign-in because it had no second network. The question is still open, since the earlier direct hammer was refused at request 31 at a faster pace. A second browser run between 14:57 and 15:06 WIB sent 40 more sign-ups about 10 seconds apart, and none was refused. A browser cannot sign up fast enough to reach the earlier limit. The accounts clearchoice+probe01 to clearchoice+probe75 still exist on production. Observe first: read which address Supabase's Auth logs recorded for those sign-ups. If the logs do not show it, send sign-ups through the form faster than a browser can and sign in from the owner's phone on mobile data. Use throwaway @example.com accounts only. Done when the report states which IP address Supabase counts for app sign-ins, and a refusal triggered from one machine does not block sign-in from another.
+Unverified planner finding. The app's sign-up and sign-in run as server actions on Vercel, and the middleware refreshes sessions from Vercel. The Run 8 hammer was refused at request 31, but it called Supabase directly from the coder's machine, so it did not test the app's path (docs/auth-protection.md). A browser agent reported that on Nov 4 between 13:12 and 13:27 WIB it signed up 35 accounts through the production form, one about every 22 seconds. It saw no rate-limit message, no 429 and no CAPTCHA, and it skipped the second-network sign-in because it had no second network. The question is still open, since the earlier direct hammer was refused at request 31 at a faster pace. A second browser run between 14:57 and 15:06 WIB sent 40 more sign-ups about 10 seconds apart, and none was refused. A browser cannot sign up fast enough to reach the earlier limit. The coder deleted all 75 probe accounts and verified them absent. The coder read the Auth logs for all 75 sign-ups: each recorded one of seven app-server addresses, one of them for 36 sign-ups, and never the caller's address, because the sign-up server action does not forward the browser's address. So Supabase counts the app server's addresses. Why no sign-up was refused is unexplained. Observe first: send sign-ups through the form faster than a browser can, then sign in from the owner's phone on mobile data. Use throwaway @example.com accounts only. Done when the report states which IP address Supabase counts for app sign-ins, and a refusal triggered from one machine does not block sign-in from another.
 
 ### #523 A meal shows every nutrition value as unavailable
 
@@ -238,43 +238,49 @@ The owner's screenshot of the post (86634d46-b0e3-421a-9b67-1a4e8f5e8e78 on prod
 
 ## Engineering backlog
 
-### The owner has no admin surface
+### The leftovers photo and the regular photo post through different code
 
-The owner cannot see what is happening in the app (how many people signed up, how many meals were posted, which model calls failed) without an agent reading the database.
+The app has at least two code paths that post a photo, and the leftovers one is slower and blocks the camera. Other jobs may be done twice in different ways, and nobody has listed them.
 
-The owner asked for a surface for himself at 15:26 WIB on Nov 4. The middleware matcher names /admin and an admin account was chosen on Oct 29, so something may exist, but when the owner opened /admin on production at 15:27 WIB it showed Not found. Observe first: find what /admin serves today and which account may open it. Done when the admin account signs in and sees app-wide counts of users, posts, model calls and failures, no other user's photos, captions or email addresses appear on it, and a non-admin account that opens it is refused.
+The owner asked for a DRY audit and a service-level architecture audit at 15:42 WIB on Nov 4, aimed at making the app faster. The first known case is the leftovers photo: the coder reported that it waits for image encoding, two uploads and the attachment steps before it closes the camera, while a regular post hands the work to the upload manager at once. The coder delivered the audit of main at a24587a with 26 ranked findings and changed no code. Fix sizes describe scope, not time. The top ranks are two photo-upload workflows (large), several components that each refresh on one meal completion (large), the meal detail waiting for optional services (medium), the same photo delivered under several identities (medium to large) and nutrition read twice by feed hydration (large). The smallest fixes are the profile handle read by separate readers (rank 26, small), serial drink nutrition lookups (rank 16, small to medium), a photo reloaded in prior matching (rank 14, small to medium), repeated queue counts (rank 25, small to medium) and a repeated search interpretation (rank 24, small to medium). Done when the owner has ruled on each of the 26 findings and each one he accepts is filed as its own item.
 
-### Judges have no page that shows how the app works
+### #567 The admin dashboard shows no counts of users and posts
+
+The admin dashboard at /admin shows queue depth, the oldest waiting job, failures, throughput, recent errors and links to per-post model traces. It does not show how many people signed up or how many meals were posted.
+
+The owner asked for a surface for himself at 15:26 WIB on Nov 4. The owner opened /admin on production at 15:27 WIB and saw Not found. The coder reported on Nov 4 that production has one admin account, the owner's meal account has the role user, and /admin refuses every non-admin with that Not found by design, so it is not a missing page. Observe first: find where the dashboard reads its figures and what read gives user and post totals without exposing any one user's content. Done when the admin account signs in and sees app-wide counts of users, posts, model calls and failures, no other user's photos, captions or email addresses appear on it, and a non-admin account that opens it is refused.
+
+### #568 Judges have no page that shows how the app works
 
 A judge who signs up starts with an empty account and nothing that says what the app does or which models it runs. A judge must never see another user's data.
 
-The owner asked for a surface for the judges at 15:26 WIB on Nov 4 and has not said what it shows. The default here is the models the app runs plus the judge's own meals. The Fleet 14 plan states that reads run under row-level security and that the feed photo route returns not found for another owner's post, so a judge should already see only his own posts, but no test has tried it with two accounts. Observe first: with two test accounts, open the first account's post, photo and profile from the second. Done when a judge account sees a page showing the models in use and the meals he logged himself, and a second test account cannot read the first account's posts, photos or profile.
+The owner asked for a surface for the judges at 15:26 WIB on Nov 4 and has not said what it shows. The default here is the models the app runs plus the judge's own meals. The coder tested two fresh production accounts on Nov 4. The second account could not read the first one's posts, profile, comments, intake, saved meals or photos through any route tried, and no dedicated judge page exists. One exception: a signed photo URL issued to the first account works for anyone who holds it until it expires, and the second account could not obtain one. Observe first: find where a judge account would reach the page, such as Profile. Done when a judge account sees a page showing the models in use and the meals he logged himself, and a second test account cannot read the first account's posts, photos or profile.
 
-### The row of day circles at the top of Home is cut off at the right edge
+### #569 The row of day circles at the top of Home is cut off at the right edge
 
 On the phone, the row of day circles above the feed shows four whole circles and a fifth cut off by the screen edge. The owner wants the row either to scroll or never to show a partly drawn circle.
 
-The owner's phone screenshot at 2:34 PM on Wed Nov 4 shows Today, Tue 3, Mon 2 and Sun 1 whole, and Sat 31 cut off at the right edge. The cause is unknown. Observe first: measure the row and its circles at 390x844 and on a phone, and record whether the row scrolls. Done when the row scrolls sideways or never shows a partly drawn circle, at 390x844 and on the owner's three phones.
+The owner's phone screenshot at 2:34 PM on Wed Nov 4 shows Today, Tue 3, Mon 2 and Sun 1 whole, and Sat 31 cut off at the right edge. The designer reported the cause: the rings use five 66 px columns with 14 px gaps, which need 386 px, and the phone leaves 358 px after the side padding, while DayRings.tsx clips the row instead of scrolling it. The owner ruled that the row scrolls sideways back in time. The designer redrew it as Round 7 frames 7c and 7d and updated the Round 3 and Round 5 phone frames. Today comes first with five whole rings and the edge of a sixth showing, and each swipe stops on a ring. The feed stays on today while the row scrolls. Tapping a ring with posts opens that day, and rings without posts are grey and cannot be tapped. The row starts with 30 days, loads 30 more near the end and stops at the first post, so the last ring is whole. Tapping Home while on Home returns the row to Today. The designer's spec for DayRings.tsx is in the Round 7 hit list. Done when the row matches 7c and 7d at 390x844 and on the owner's three phones.
 
-### A leftovers photo takes several seconds to post while a regular photo is fast
+### #570 A leftovers photo takes several seconds to post while a regular photo is fast
 
 Posting a photo of leftovers takes several seconds to show, while a regular meal photo shows at once. The owner says the leftovers photo is not snappy and that this is not acceptable.
 
-The owner reported it on Nov 4 at about 14:46 WIB from his phone. The owner timed adding a leftover at about 11 seconds on his phone at about 14:52 WIB. The cause is unknown and the coder has not timed it. Observe first: on a phone over mobile data, time a regular photo and a leftovers photo from the tap to the post showing in the feed, and record where the extra seconds go. Done when a leftovers photo shows in the feed as quickly as a regular photo, on the owner's three phones.
+The owner reported it on Nov 4 at about 14:46 WIB from his phone. The owner timed adding a leftover at about 11 seconds on his phone at about 14:52 WIB. The coder read production records for that post. The leftovers path waits for image encoding, upload signing, two uploads one after the other (about 1.3 s and 1.2 s), the attachment reservation and the attachment completion before it closes the camera, while a regular post hands the work to the upload manager and closes at once. The owner wants the leftovers photo to post in the background the same way, and believes the two paths are separate functions. The logged time from staging to attachment was about 4.9 seconds, so most of the 11 seconds is unaccounted for without a device trace. The queue wait before processing (24.9 s) and the processing (12.5 s, of which a 9.9 s model call) delay the updated result, not the camera. The coder's audit of main at a24587a names two causes: two photo-upload workflows (rank 1, a large fix) and one worker lane shared by analysis and maintenance (rank 11, a large fix), which explains the queue wait. Observe first: on a phone over mobile data, time a regular photo and a leftovers photo from the tap to the post showing in the feed, and record where the extra seconds go. Done when a leftovers photo shows in the feed as quickly as a regular photo, on the owner's three phones.
 
-### A post started while another is going up breaks the other post with "The meal could not be saved"
+### #571 A post started while another is going up breaks the other post with "The meal could not be saved"
 
 Starting a second post while an earlier post is still going up can end with "The meal could not be saved.", and the owner has to press Post again to get the meal saved.
 
 The owner's phone screenshot at 2:19 PM on Wed Nov 4 shows the toast "The meal could not be saved." with a Dismiss button over the feed. The first post in the feed, "Beef noodle", shows a grey placeholder bar under its caption where the analysis would be. The owner reports posting one photo, then taking a photo of another food while the first post was going up. When the first post completed, the interface stopped working for one of the two posts. The owner pressed Post again and the meal then appeared in the feed. The owner has not said which of the two posts stopped working, and the screenshot does not show which raised the error, and whether the two overlap in the capture sheet, the upload or the save is not confirmed. Observe first: on a phone, start a second post while the first is still going up, and record which request raises the error and why. Done when one post finishing never stops the screen of the other, and both meals save on the first press of Post, on the owner's phone.
 
-### The closest-food fallback never runs when the model stops after one search
+### #572 The closest-food fallback never runs when the model stops after one search
 
 Some foods still show nutrition as unavailable because the new closest-food fallback never runs for them. Pickled ginger is one example.
 
 The planner measured in production that 12 of 119 unavailable results in 14 days stopped after one search, about 10%. The fallback (PR #549) fires only when the model's first decision names a base food, and in these cases it names none. Done when a food whose first decision names no base food gets its own bare name searched, and a regression test covers that case.
 
-### The closest-record label is stored on every nutrient entry
+### #573 The closest-record label is stored on every nutrient entry
 
 The note that a food's numbers come from a similar USDA record is saved inside every nutrient entry of the food's micronutrients JSON, not once per food. This adds bytes to every row that uses the fallback.
 
@@ -286,13 +292,13 @@ A barcode lookup can report that a product is missing when a provider is down an
 
 Fleet 13's review found that the resolver suppresses provider errors for corrections that may lack the name or serving unit needed to produce a card. No production failure is claimed. Done when incomplete corrections preserve the provider error, complete corrections still work during outages, and regression tests cover both.
 
-### The Days calendar and the day summary count a different number of posts
+### #574 The Days calendar and the day summary count a different number of posts
 
 For October 31 on a test account, the Days calendar says 5 posts and the day summary says 4 posts. Both show 1,842 kcal.
 
 An OpenClaw production check on Nov 4 read the calendar's accessibility label as "2026-10-31, 5 posts, 1,842 kcal" and the day summary as "Consumed: 1,842 kcal · 4 posts". The cause is unknown. One of the two may count a post the other leaves out, such as a drink, a leftovers post or a superseded one. Done when both places count the same posts for that day, or the screen says why they differ, checked on production against the account's October 31 posts.
 
-### A meal with unavailable nutrition does not say why
+### #575 A meal with unavailable nutrition does not say why
 
 When a food shows nutrition as unavailable, an ordinary user cannot find out why. The owner could not learn why the macaroni failed without an agent reading the database traces.
 
@@ -348,7 +354,7 @@ CAPTCHA stays off until the app goes public. Run 8 merged a dormant hCaptcha wid
 
 ## Engineering backlog - design
 
-### The desktop New post window scrolls by 18 px at 1366x650
+### #576 The desktop New post window scrolls by 18 px at 1366x650
 
 At 1366x650 the New post window holds 668 px of content in a 650 px window, so it scrolls 18 px.
 
@@ -373,6 +379,12 @@ Blocked by scope. The first design pass is light mode only. Dark mode is designe
 The owner wants the app eventually to show how much of the user's daily intake is hydration.
 
 Blocked until after the hackathon, and blocked by the claims rule: the app shows no percentage that reads as progress, and a share of intake is a percentage. The owner decides whether this one figure may break that rule. Done when the owner has lifted the rule for this figure and its design is drawn.
+
+### Photos are captured at 480 × 640 and look blurry on high-density phones
+
+The app stores each photo at 480 × 640 pixels, the size the browser chose for the live camera, and the feed shows a smaller 384 × 512 copy. On a phone with a three-times screen a full-width card needs about 1,170 pixels, so every photo looks soft. The owner finds the blur painful.
+
+The coder measured the owner's Beef noodle post on production at a24587a. The live camera path asks for the rear camera with no width or height and draws one video frame, and the stored originals are 480 × 640, 0.31 megapixels (126,407 bytes), so the meal detail cannot show detail that never reached the upload. The phone's feed copy is byte for byte the same file, so it saves nothing. The feed route then shrinks it to a 384 × 512 WebP of 22,118 bytes. Feed copies are cached for a year with the immutable flag, so a sharper derivative needs a new path or a cache bust. The phone detail upgrades only the first meal photo, not the leftovers original. Photos already captured stay at 480 × 640. The owner reported the blur on Nov 4 at about 15:46 WIB. A sharper photo costs more Storage egress, which #375 names as the largest egress source. Blocked until the app is otherwise done, at the owner's call, as a polish item. Observe first: find what resolution the camera can deliver on the owner's three phones, and the bytes of a photo at each size. Done when a photo captured on the owner's three phones is stored at a sharper resolution, the feed and the meal detail show it sharp on a three-times phone, the first photo still shows within two seconds on mobile data, and the bytes per photo before and after are in docs.
 
 ---
 
