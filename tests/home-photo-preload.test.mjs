@@ -23,6 +23,7 @@ test('middleware makes no photo query or HTTP image preload while preserving aut
    if(name==='next/server')return{NextResponse:{redirect:()=>new Response(null,{status:307})}};
    if(name==='@supabase/ssr')return{createServerClient:()=>({auth:{getUser:async()=>({data:{user}}),getSession:async()=>({data:{session:null}})},from(){photoReads++;throw Error('No photo read belongs in middleware');}})};
    if(name==='@/lib/auth/admin-access')return{};
+   if(name==='@/lib/auth/post-access')return{};
    if(name==='@/lib/auth/session-cookies')return{sessionCookieBridge:()=>({response,cookies:{setAll(){}},apply:r=>r,refreshRequestHeaders:()=>{}})};
    throw Error(name);
   }});
