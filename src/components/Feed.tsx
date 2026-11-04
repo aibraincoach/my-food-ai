@@ -53,8 +53,8 @@ export default function Feed({initialPage, initialUserId, initialZone = "UTC", f
   const cacheRef = useRef(cache);
   useEffect(() => { cacheRef.current = cache; }, [cache]);
   const retryInitial = useRef<() => void>(() => {});
-  const cachedListener = useRef<(posts: FeedPost[]) => void>(() => {});
-  useEffect(() => { if (cache.cached) cachedListener.current(cache.cached); }, [cache.cached]);
+  const cachedListener = useRef<(posts: FeedPost[], ownerId: string | null) => void>(() => {});
+  useEffect(() => { if (cache.cached) cachedListener.current(cache.cached, cache.userId); }, [cache.cached, cache.userId]);
   const [fallbackRetired, setFallbackRetired] = useState<Set<string>>(new Set());
   const uploads=useUploads().filter(upload=>upload.posted);
   const sentinel = useRef<HTMLDivElement>(null);
@@ -97,6 +97,7 @@ export default function Feed({initialPage, initialUserId, initialZone = "UTC", f
     let discovering = false;
     let baseline: FeedPost[] = initialPage?.posts ?? [];
     let loaded = Boolean(initialPage);
+    let usedServerPage = false;
     let initialLoading = true;
     let cursor: string | null = initialPage?.nextCursor ?? null;
     let loadingMore = false;
@@ -112,7 +113,7 @@ export default function Feed({initialPage, initialUserId, initialZone = "UTC", f
     const deferred = new Map<string, number>();
     const timers = new Set<ReturnType<typeof setTimeout>>();
 
-    const reportTotals = () => { if(live&&userId)window.dispatchEvent(new CustomEvent("feed-day-totals",{detail:{userId,days:[...dayTotals.values()],fresh:hasFreshPage||Boolean(initialPage)}})); };
+    const reportTotals = () => { if(live&&userId)window.dispatchEvent(new CustomEvent("feed-day-totals",{detail:{userId,days:[...dayTotals.values()],fresh:hasFreshPage||Boolean(initialPage&&initialUserId===userId)}})); };
     window.addEventListener("feed-day-totals-request",reportTotals);
     const publish = () => {
       if (!live) return;
@@ -123,7 +124,7 @@ export default function Feed({initialPage, initialUserId, initialZone = "UTC", f
         setState({ kind: "ready", posts, days: [...dayTotals.values()] });
         reportTotals();
         if (userId && (hasFreshPage || cacheDirty)) {
-          const prior = new Map((readFeedCache(userId)?.posts ?? cacheRef.current.cached ?? []).map(post=>[post.id,post]));
+          const prior = new Map((readFeedCache(userId)?.posts ?? (cacheRef.current.userId===userId?cacheRef.current.cached:null) ?? []).map(post=>[post.id,post]));
           const cachePosts = posts.filter(post=>!cacheInvalidated.has(post.id)).flatMap(post=>{
             if (!hasUnavailableFields(post) && !post.summariesDeferred) return [post];
             const old=prior.get(post.id);
@@ -131,15 +132,16 @@ export default function Feed({initialPage, initialUserId, initialZone = "UTC", f
             const sameMedia=!post.expectedMediaIds||JSON.stringify(post.expectedMediaIds)===JSON.stringify(old?.slides.map(slide=>slide.id));
             return old&&old.status===post.status&&old.caption===post.caption&&old.eaten_at===post.eaten_at&&sameRevision&&sameMedia?[old]:[];
           });
-          if (cachePosts.length || !posts.length) cacheRef.current.save(cachePosts); cacheDirty = false;
+          if(cacheRef.current.userId===userId&&(cachePosts.length||!posts.length))cacheRef.current.save(cachePosts); cacheDirty = false;
         }
       }
     };
 
-    const totalsRefresh = createDayTotalsRefresh<FeedDayTotal>({
+    const makeTotalsRefresh = () => createDayTotalsRefresh<FeedDayTotal>({
       read: dates => userId ? getDayTotals(supabase, userId, zone, dates) : Promise.resolve([]),
       commit: days => { if (live) { mergeDays(days); publish(); } },
     });
+    let totalsRefresh = makeTotalsRefresh();
     const refreshTotals = (dates: string[]) => {
       if (userId) totalsRefresh.request(dates);
     };
@@ -261,31 +263,40 @@ export default function Feed({initialPage, initialUserId, initialZone = "UTC", f
       if (!response.ok) throw new Error('Feed could not be loaded.');
       return await response.json() as {posts: FeedPost[]; nextCursor: string | null; days: FeedDayTotal[]};
     };
-    cachedListener.current = posts => {
-      if (!live || loaded || !userId) return;
+    cachedListener.current = (posts, ownerId) => {
+      if (!live || loaded || !userId || ownerId!==userId) return;
       baseline = posts; loaded = true; publish();
       // Display is loaded; hasFreshPage separately controls HTTP revalidation.
     };
     const load = async () => {
       initialLoading = true;
-      const loadGeneration=generation;
+      let loadGeneration=generation;
       try {
         const { data: {session} } = await supabase.auth.getSession();
-        userId = session?.user.id ?? null;
-        setCacheUserId(userId);
-        const user = session?.user;
         if (!live) return;
-        if (!user) { router.replace("/sign-in"); return; }
-        userId = user.id;
+        const nextUserId = session?.user.id ?? null;
+        if(nextUserId!==userId){
+          generation++;loadGeneration=generation;
+          releaseCacheOwner?.();releaseCacheOwner=undefined;claimedUser=null;
+          baseline=[];dayTotals.clear();cards.clear();newest.length=0;
+          pending.clear();deferred.clear();unavailable.clear();answered.clear();cacheInvalidated.clear();uploadDaysToRead.clear();
+          for(const retry of timers)clearTimeout(retry);timers.clear();
+          totalsRefresh.cancel();totalsRefresh=makeTotalsRefresh();
+          cursor=null;loadingMore=false;discovering=false;loaded=false;hasFreshPage=false;cacheDirty=false;usedServerPage=true;
+          setState({kind:"loading"});setPageError(false);setFreshResponse(false);
+        }
+        userId=nextUserId;
+        setCacheUserId(userId);
+        if (!userId) { router.replace("/sign-in"); return; }
         // A cache notification can precede user initialization. Consume the
         // current owner snapshot explicitly instead of waiting for another event.
-        const cached = readFeedCache(userId)?.posts ?? cacheRef.current.cached;
+        const cached = readFeedCache(userId)?.posts ?? (cacheRef.current.userId===userId?cacheRef.current.cached:null);
         if (cached) {
-          if (!loaded) cachedListener.current(cached);
+          if (!loaded) cachedListener.current(cached,userId);
           else if (baseline.some(hasUnavailableFields)) {baseline=baseline.map(post=>retainCompleteItems(cached.find(old=>old.id===post.id),post));publish();}
         }
         if (claimedUser!==userId) {releaseCacheOwner?.();claimedUser=userId;releaseCacheOwner=claimFeedCacheEvents(userId);}
-        const page = await readPage(null,6);
+        const page = !usedServerPage && initialPage && initialUserId===userId && initialZone === zone ? (usedServerPage = true, initialPage) : await readPage(null,6);
         if(!live||loadGeneration!==generation)return;
         mergeDays(page.days);
         // A fresh page can reveal an external edit even when its day was
@@ -304,8 +315,8 @@ export default function Feed({initialPage, initialUserId, initialZone = "UTC", f
         for (const post of baseline) if (hasUnavailableFields(post)) requestCard(post.id);
         if(uploadDaysToRead.size)void refreshTotals([...uploadDaysToRead]);
       } catch {
-        if (live && !cards.size && !baseline.length) setState({ kind: "error" });
-      } finally { initialLoading = false; }
+        if (live && loadGeneration===generation && !cards.size && !baseline.length) setState({ kind: "error" });
+      } finally { if(loadGeneration===generation)initialLoading = false; }
     };
 
     retryInitial.current = () => { void load(); };

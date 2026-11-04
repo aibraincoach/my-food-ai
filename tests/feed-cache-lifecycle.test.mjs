@@ -80,20 +80,22 @@ test('an authoritative empty server feed retires an obsolete cached snapshot',as
  assert.equal(fallbackFor(tree),null,'a genuinely empty current feed must replace the old cached meals');
 });
 
-async function mountedFeed(initialPosts,{cachedPosts,failPage=false}={}){
+async function mountedFeed(initialPosts,{cachedPosts,failPage=false,initialPage,initialUserId,sessionUserId="owner",hookCachedPosts=null}={}){
  const listeners=new Map(),effects=[],states=[];const storage=new Map();
  const priorStorage=Object.getOwnPropertyDescriptor(globalThis,'localStorage'),priorWindow=Object.getOwnPropertyDescriptor(globalThis,'window');
  const events=new EventTarget();
  Object.defineProperty(globalThis,'localStorage',{configurable:true,value:{get length(){return storage.size;},key:index=>[...storage.keys()][index]??null,getItem:key=>storage.get(key)??null,setItem:(key,value)=>storage.set(key,value),removeItem:key=>storage.delete(key)}});
  Object.defineProperty(globalThis,'window',{configurable:true,value:events});
  clearFeedCache();
- if(cachedPosts)writeFeedCache('owner',{posts:cachedPosts,savedAt:Date.now()});
+ if(cachedPosts)writeFeedCache(sessionUserId,{posts:cachedPosts,savedAt:Date.now()});
  let current=initialPosts[0];
- const cache={cached:null,save:posts=>writeFeedCache('owner',{posts,savedAt:Date.now()})};
+ const hookOwner=initialUserId??sessionUserId;
+ const pageReads=[];
+ const cache={userId:hookOwner,cached:hookCachedPosts,save:posts=>writeFeedCache(hookOwner,{posts,savedAt:Date.now()})};
  const channel={on(){return this;},subscribe(){return this;}};
  const exported={};
  vm.runInNewContext(compile('../src/components/Feed.tsx'),{exports:exported,URLSearchParams,AbortSignal,Date,
-  fetch:async()=>{if(failPage)throw Error('temporary server failure');return{ok:true,status:200,json:async()=>({posts:initialPosts,days:[],nextCursor:null})};},
+  fetch:async url=>{pageReads.push(url);if(failPage)throw Error('temporary server failure');return{ok:true,status:200,json:async()=>({posts:initialPosts,days:[],nextCursor:null})};},
   document:{hidden:false,addEventListener(){},removeEventListener(){}},
   window:{addEventListener:(type,fn)=>listeners.set(type,fn),removeEventListener:type=>listeners.delete(type),dispatchEvent(){}},
   CustomEvent:class{constructor(type,init){this.type=type;this.detail=init?.detail;}},setInterval:()=>1,clearInterval(){},setTimeout:()=>1,clearTimeout(){},
@@ -101,7 +103,7 @@ async function mountedFeed(initialPosts,{cachedPosts,failPage=false}={}){
    if(name==='react')return{useEffect:fn=>effects.push(fn),useRef:value=>({current:value}),useState:initial=>{let value=initial;return[initial,next=>{value=typeof next==='function'?next(value):next;states.push(value);}];}};
    if(name==='react/jsx-runtime')return{jsx,jsxs:jsx};
    if(name==='next/navigation')return{useRouter:()=>({replace(){}})};
-   if(name==='@/lib/supabase/client')return{createClient:()=>({auth:{getSession:async()=>({data:{session:{user:{id:'owner'}}}})},channel:()=>channel,removeChannel(){}})};
+   if(name==='@/lib/supabase/client')return{createClient:()=>({auth:{getSession:async()=>({data:{session:{user:{id:sessionUserId}}}})},channel:()=>channel,removeChannel(){}})};
    if(name==='@/lib/posts/day-totals-refresh')return{createDayTotalsRefresh};
   if(name==='@/lib/posts/day-total-changes')return{dayTotalRefreshDates};
    if(name==='@/lib/posts/feed')return{FEED_PAGE_SIZE:20,retainCompleteItems,hasUnavailableFields,getPostCard:async()=>current};
@@ -117,8 +119,8 @@ async function mountedFeed(initialPosts,{cachedPosts,failPage=false}={}){
    if(name.startsWith('@/components/'))return{default:()=>null};
    throw Error('Unexpected feed dependency '+name);
   }});
- exported.default();const cleanups=effects.map(fn=>fn());await turn();await turn();
- return{setCard(value){current=value;},emit(type,id,extra={}){assert.ok(listeners.has(type),'real feed listener must be mounted');listeners.get(type)({detail:{id,...extra}});},snapshot:()=>readFeedCache('owner')?.posts,readyState:()=>states.findLast(state=>state?.kind==='ready'),cleanup(){for(const cleanup of cleanups)cleanup?.();clearFeedCache();if(priorStorage)Object.defineProperty(globalThis,'localStorage',priorStorage);else delete globalThis.localStorage;if(priorWindow)Object.defineProperty(globalThis,'window',priorWindow);else delete globalThis.window;}};
+ exported.default({initialPage,initialUserId,initialZone:Intl.DateTimeFormat().resolvedOptions().timeZone});const cleanups=effects.map(fn=>fn());await turn();await turn();
+ return{setCard(value){current=value;},emit(type,id,extra={}){assert.ok(listeners.has(type),'real feed listener must be mounted');listeners.get(type)({detail:{id,...extra}});},pageReads,snapshotFor:id=>readFeedCache(id)?.posts,snapshot:()=>readFeedCache(sessionUserId)?.posts,readyState:()=>states.findLast(state=>state?.kind==='ready'),cleanup(){for(const cleanup of cleanups)cleanup?.();clearFeedCache();if(priorStorage)Object.defineProperty(globalThis,'localStorage',priorStorage);else delete globalThis.localStorage;if(priorWindow)Object.defineProperty(globalThis,'window',priorWindow);else delete globalThis.window;}};
 }
 
 test('deleting a cached meal persists its removal and a failed delete can restore it',async()=>{
@@ -148,5 +150,39 @@ test('the unseeded main feed keeps the owner cache when fresh loading fails',asy
  try{
   assert.equal(app.readyState()?.posts[0]?.id,prior.id,'a missed hook notification cannot strand the main feed after the server boundary retires');
   assert.equal(app.snapshot()[0].items[0].calories,150,'failed revalidation must leave the valid saved snapshot intact');
+ }finally{app.cleanup();}
+});
+
+
+test('matching browser and SSR owners reuse the server page without another first-page read',async()=>{
+ const server=meal('owner-a-server');
+ const app=await mountedFeed([meal('unexpected-http-page')],{initialUserId:'owner-a',sessionUserId:'owner-a',initialPage:{posts:[server],days:[],nextCursor:null}});
+ try{
+  assert.equal(app.pageReads.length,0);
+  assert.equal(app.readyState().posts[0].id,server.id);
+  assert.equal(app.snapshotFor('owner-a')[0].id,server.id);
+ }finally{app.cleanup();}
+});
+
+test('an SSR owner mismatch clears foreign posts and totals and ignores the old hook cache',async()=>{
+ const server=meal('owner-a-server'),browser=meal('owner-b-http'),foreignCache=meal('owner-a-cache');
+ const app=await mountedFeed([browser],{initialUserId:'owner-a',sessionUserId:'owner-b',initialPage:{posts:[server],days:[{day:'2026-11-03',kcal:9999}],nextCursor:'owner-a-cursor'},hookCachedPosts:[foreignCache]});
+ try{
+  assert.equal(app.pageReads.length,1,'the new owner must fetch its own first page');
+  assert.equal(app.readyState().posts.length,1);
+  assert.equal(app.readyState().posts[0].id,browser.id);
+  assert.equal(app.readyState().days.length,0,'SSR totals belong only to their verified owner');
+  assert.equal(app.snapshotFor('owner-a'),undefined,'the stale hook cannot save B results into A cache');
+  assert.equal(app.snapshotFor('owner-b'),undefined,'the stale hook cannot save A data into B cache before the owner rerenders');
+ }finally{app.cleanup();}
+});
+
+test('a failed fresh read after an owner mismatch cannot keep foreign SSR or hook-cache meals visible',async()=>{
+ const foreign=meal('foreign-owner');
+ const app=await mountedFeed([],{failPage:true,initialUserId:'owner-a',sessionUserId:'owner-b',initialPage:{posts:[foreign],days:[],nextCursor:null},hookCachedPosts:[foreign]});
+ try{
+  assert.equal(app.pageReads.length,1);
+  assert.equal(app.readyState(),undefined,'foreign data must not publish as B fallback when the B page fails');
+  assert.equal(app.snapshotFor('owner-b'),undefined);
  }finally{app.cleanup();}
 });
