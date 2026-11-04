@@ -1,0 +1,7 @@
+{
+  "at": "2026-11-04T01:01:27.058Z",
+  "http": 200,
+  "revoked": true,
+  "remainingBypassCount": 0,
+  "documentation": "https://vercel.com/docs/rest-api/projects/update-protection-bypass-for-automation"
+}
