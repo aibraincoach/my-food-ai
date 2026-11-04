@@ -35,6 +35,7 @@ body {
 
 /* Round 6 desktop shell and windows. Phone rules above and component classes stay intact. */
 @media (min-width: 1024px) {
+  html:has(.desktop-capture) { height:100dvh; overflow:hidden; }
   body:has(.desktop-capture) { height:100dvh; overflow:hidden; }
   [data-agent-row] { margin-inline:0; margin-top:20px; margin-bottom:0; }
   #desktop-upload-slot:empty { padding-top:0; }
