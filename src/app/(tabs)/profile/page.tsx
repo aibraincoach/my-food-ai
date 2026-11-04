@@ -5,6 +5,7 @@ import SavedMealsButton from "@/components/SavedMealsButton";
 import { verifiedUserId } from "@/lib/auth/verified-user";
 import {openWeightsConfigured} from "@/lib/meta/open-weights";
 import IdentifyProviderSwitch from "./IdentifyProviderSwitch";
+import CameraModeSwitch from "./CameraModeSwitch";
 import DesktopWorkspace from "@/components/DesktopWorkspace";
 import PostDetail from "@/components/PostDetail";
 import ConnectAgentRow from '@/components/ConnectAgentRow';
@@ -41,6 +42,7 @@ export default async function ProfilePage({searchParams}:{searchParams:Promise<{
         <div className="desktop:hidden"><SignOutButton /></div>
       </header>
       <div className="desktop:hidden"><ConnectAgentRow userId={user.id} /></div>
+      <CameraModeSwitch/>
       {openWeightsConfigured()?<IdentifyProviderSwitch initial={preference.data?.identify_provider==='open'?'open':'meta'}/>:null}
       <Link href="/profile/about" className="flex min-h-tap items-center px-screen-x text-detail desktop:px-0">How My Food AI works</Link>
       <Link href="/profile/deleted" className="flex min-h-tap items-center px-screen-x text-detail desktop:px-0">Recently deleted</Link>
