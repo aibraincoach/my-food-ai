@@ -27,7 +27,10 @@ export async function GET(
     const viewerId = session?.user?.id;
     if (!viewerId) return fail(401);
 
-    const adminAllowed = await adminRequestAllowed(viewerId, () => db.from('profiles').select('role').eq('id', viewerId).maybeSingle());
+    const adminAllowed = await adminRequestAllowed(viewerId, async () => {
+      const {data, error} = await db.from('profiles').select('role').eq('id', viewerId).maybeSingle();
+      return {data, error};
+    });
     if (viewerId !== owner && !adminAllowed) return fail(404);
 
     const profileClient = viewerId === owner ? db : createAdminClient();
