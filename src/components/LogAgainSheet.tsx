@@ -17,8 +17,9 @@ export default function LogAgainSheet({target,onClose}:{target:LogTarget|null;on
  const chips:string[]=[]; const first=target?.firstPostAt?new Date(target.firstPostAt):null;
  const start=first?first.getHours()*60+Math.floor(first.getMinutes()/30)*30:0;
  for(let m=start;m<=Math.floor((now.getHours()*60+now.getMinutes())/30)*30;m+=30)chips.push(`${String(Math.floor(m/60)).padStart(2,'0')}:${String(m%60).padStart(2,'0')}`);
+ const sent=useRef<LogTarget|null>(null);
  const close=()=>{if(!lock.current){setError('');setMode('now');setTime('');setDate('');onClose();}};
- async function post(){if(!target||target.loading||lock.current)return;lock.current=true;setBusy(true);setError('');
+ async function post(){if(!target||target.loading||lock.current||sent.current===target)return;sent.current=target;lock.current=true;setBusy(true);setError('');
  try{const when=new Date(); if(mode!=='now'){if(!time||mode==='day'&&!date)throw new Error('Choose a date and time.');if(mode==='day'){const [y,m,d]=date.split('-').map(Number);when.setFullYear(y,m-1,d);}const[h,m]=time.split(':').map(Number);when.setHours(h,m,0,0);}
  onClose();void uploadManager.postCopy({id:target.id,saved:target.saved,eatenAt:when.toISOString()},target.name).catch(reason=>setCopyError({message:reason instanceof Error?reason.message:'The meal could not be logged.',key:Date.now()}));setMode('now');setTime('');setDate('');if(pathname!=='/')router.push('/');
  }catch(e){setError(e instanceof Error?e.message:'The meal could not be logged.');}finally{lock.current=false;setBusy(false);}}
