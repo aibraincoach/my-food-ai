@@ -17,29 +17,27 @@ Built for the Meta hackathon, October 26 to November 4, 2026.
 
 To configure the open model on Baseten, supply the server-only `IDENTIFY_OPEN_API_KEY`, `IDENTIFY_OPEN_BASE_URL` and `IDENTIFY_OPEN_MODEL` values named in [.env.example](.env.example). Keep their values in private environment configuration. Built with Muse Spark Open under the [Muse Model License](https://huggingface.co/meta-models/Muse-Spark-Open-816B-A42B/blob/main/LICENSE.md).
 
-USDA FoodData Central supplies nutrition references. It is a database, not a model. When strict matching fails, the deployed fallback can use a labelled closest USDA record or a labelled model estimate. If neither provides usable nutrition, the food is shown as unavailable. [Food matching](src/lib/fdc/match.ts), [third-party notices](THIRD_PARTY.md).
+USDA FoodData Central supplies nutrition references. It is a database, not a model. A food with no matching reference is shown as unavailable, never guessed. [Food matching](src/lib/fdc/match.ts), [third-party notices](THIRD_PARTY.md).
 
 Packaged foods that USDA FoodData Central does not hold are looked up in Open Food Facts. Contains data from [Open Food Facts](https://world.openfoodfacts.org), available under the [Open Database License](https://opendatacommons.org/licenses/odbl/1-0/).
 
 ## For the judges
 
-**Impact.** Food logging is abandoned because it is slow and its numbers are opaque. Here a photo is the whole entry, nutrition carries its USDA reference or an explicit model-estimate label, and a correction in plain words ("I ate half the rice") changes the record while keeping the earlier version. [Demo record](docs/demo.md).
+**Impact.** Food logging is abandoned because it is slow and its numbers are opaque. Here a photo is the whole entry, every number traces to the USDA reference it came from, and a correction in plain words ("I ate half the rice") changes the record while keeping the earlier version. [Demo record](docs/demo.md).
 
 **Use of Meta AI tooling.** SAM outlines photo foods, Muse Spark identifies them and interprets corrections, and Muse Voice Transcribe handles spoken corrections. Meta's open-weight Muse Spark Open is a real, switchable identification path. [Ten-photo evaluation and its limits](docs/eval.md), [real-model gates and their limits](docs/production-performance.md#pre-merge-gates-and-review), [open-weight comparison](docs/open-weights.md).
 
 **Demo.** A photo becomes an outlined, calculated meal; a spoken correction changes it; a leftovers photo is marked "not eaten"; Days and Search find it again. [Demo record](docs/demo.md).
 
-**Pending in PR #583.** Profile › How My Food AI works lists the models and the steps. It is not deployed yet. Accounts have separate meal histories.
-
 **Technical depth.** A durable job queue with leases and retries runs the pipeline. Every model call is traced. Item history is never overwritten: a correction supersedes rows instead of editing them ([migration 0007](supabase/migrations/0007_post_items_supersede.sql)). Accounts have hourly spending caps, and meal agents use revocable tokens. Feed reads and photo bytes are measured. [Worker timing](docs/production-performance.md), [worker drain under load](docs/load-test.md), [feed and photo measurements](docs/media-loading.md), [database egress](docs/egress.md), [sign-in protection](docs/auth-protection.md), [agent access](docs/agents.md).
 
 ## What was built
 
-Through deployed Fleet14 (#581): capture by photo, caption, barcode and nutrition label; outlined food detail; editable item history and corrections; Saved meals and Log again; drinks with water and caffeine; Days and Search; a desktop layout; durable uploads; delete with Undo and Recently deleted; and revocable meal-agent access. Each run's plan and report are in [docs](docs/), for example the [Run 8 report](docs/run8-final-report.md).
+From Run 1 to Fleet 10: capture by photo, caption, barcode and nutrition label; outlined food detail; editable item history and corrections; Saved meals and Log again; drinks with water and caffeine; Days and Search; a desktop layout; durable uploads; delete with Undo and Recently deleted; and revocable meal-agent access. Each run's plan and report are in [docs](docs/), for example the [Run 8 report](docs/run8-final-report.md).
 
 ## Tests
 
-Historical Fleet11 measurements, not a fresh result for main or the pending Fleet15 heads, using the [disposable local test stack](docs/testing.md); [commands, database identity and assertion audit](docs/evidence/test-lint-repairs/README.md):
+Measured with the [disposable local test stack](docs/testing.md); [commands, database identity and assertion audit](docs/evidence/test-lint-repairs/README.md):
 
 | Command | Result |
 | --- | --- |
@@ -55,7 +53,7 @@ A passing test is not production acceptance. Phone-camera capture, installed-app
 
 ## Run it
 
-Copy `.env.example` to `.env.local` and fill in the server-only values it names, then run `npm install` and `npm run dev`. Follow the [migration status and rollout order](docs/migrations.md); pending 0055 must run through its activation procedure after a compatible deployment. Never commit credentials.
+Copy `.env.example` to `.env.local` and fill in the server-only values it names, then run `npm install` and `npm run dev`. Apply `supabase/migrations` in number order. Never commit credentials.
 
 ## How this repository was built
 

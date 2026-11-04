@@ -13,17 +13,7 @@ Hackathon project: My Food AI. PM contract: [docs/pm-contract.md](docs/pm-contra
 
 Review tooling is ported from [naval-association-calgary](https://github.com/aibraincoach/naval-association-calgary) (PPLX runner, review policy shape) and burn-centre-translator / calgarysalutes-website (AGY delivery script, Firefox helper).
 
-## Current state — Fleet15 authorized closeout, November4,2026
-
-Production is main `05a38bd3894a1186ce77e518d565d977a2246fb9`, READY deployment `dpl_GdXzNdRfDJVVY6mNuADCL72qhBi7`, at `https://my-food-ai-ten.vercel.app`. #585/#587/#588/#589/#590 merged at the exact authorized heads. #582/#583/#584/#586 remain explicitly held, green and reviewed at unchanged heads. All migrations through0055 are accounted for in production;0055 was activated only after verifying #588's reader deployment. The owner accepted0054 and the extra read in held #583. [The full report](docs/run15-report.md) records merge SHAs, readbacks, bytes and the remaining foreign-page HTTP200 limitation.
-
-The owner-supplied20:42WIB BACKLOG.md from exact commit28294447 is preserved and included in the docs branch's history. Its text is not silently edited to turn merged code into acceptance. Docs #600/#577/#558 remain open and unmerged. All six owned production fixtures are verified absent, with0drafts/jobs/Storage objects. Own code/integration worktrees, merged branches, private scratch and test resources are removed; protected handover files remain. The planner's root run16/docs checkout, Fleet16 plan, other fleets, authenticated Firefox9223 and permanent bypass access are untouched. No fleet or merge order is inferred for the held four or Fleet16.
-
-Current reviews permit AGY and ChatGPT/GPT-6.1 Sol inside PPLX under the owner's quota override. Submission remains exactly `code review <PR URL>`. Current-head review copies are in docs/reviews/run15-pr*-current.md. Historical quota failures, truncation/model labels and superseded heads remain history, not missing reviews.
-
-## Historical session records
-
-## Run 8 historical state — November 3, 2026
+## Run 8 current state — November 3, 2026
 
 [Run 8 final execution](docs/run8-final-report.md) supersedes the historical pre-merge sections below. Eight planned code PRs #334–#339/#341/#342 and defect follow-ups #340/#343 merged in ascending order at exact externally cleared heads. Production `6996817cec6aaf865357e9fee6550abf27cdfd0f` is READY; migration 0035 is applied. Actual browser reliability is 100/100; separate feed/Home probes are 100/100 each. Final emulated cold photos are 1480.2–1828.3 ms, warm 481.5–507.0 ms. Mean browser Supabase transfer fell 89.7%.
 
