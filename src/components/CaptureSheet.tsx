@@ -9,6 +9,7 @@ import CorrectProductSheet from "@/components/CorrectProductSheet";
 import type { LabelReading } from "@/lib/meta/label";
 import type { ResolvedProduct } from "@/lib/fdc/barcode-product";
 import LightComposer from "@/components/LightComposer";
+import { iosNeedsSaveHint, SavePhotoPrompt, shareOrDownloadPhoto } from "@/components/SavePhoto";
 import type {CapturedLocation} from "@/lib/location/capture";
 import { PackPhotoUpload } from "@/lib/media/pack-photo-upload";
 
@@ -102,6 +103,7 @@ export default function CaptureSheet({ onClose, initialMode = "photo", forPost, 
   const [when, setWhen] = useState<string | null>(resumed?.eatenAt?toLocalInput(new Date(resumed.eatenAt)):null);
   const [searchingFoods, setSearchingFoods] = useState(false);
   const [posting, setPosting] = useState(false);
+  const [savePhotoUrl, setSavePhotoUrl] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(()=>{if(operationRef.current)uploadManager.update(operationRef.current,{caption,eatenAt:when===null?null:fromLocalInput(when),location:locationEnabled?location:null,options:{not_eaten_positions:notEaten,save_as_meal:saveAsMeal}});},[caption,when,location,locationEnabled,notEaten,saveAsMeal]);
@@ -402,12 +404,11 @@ export default function CaptureSheet({ onClose, initialMode = "photo", forPost, 
   const savePhoto = async () => {
     const shot = shotsRef.current[photoIndex];
     if (!shot) return;
-    try {
-      if (typeof navigator.share === "function" && typeof navigator.canShare === "function" && navigator.canShare({ files: [shot.file] })) {
-        await navigator.share({ files: [shot.file] }); return;
-      }
-      const link = document.createElement("a"); link.href = shot.previewUrl; link.download = "meal.jpg"; link.click();
-    } catch { /* The user can dismiss the share sheet. */ }
+    if (iosNeedsSaveHint()) {
+      setSavePhotoUrl(shot.previewUrl);
+      return;
+    }
+    await shareOrDownloadPhoto(shot.file, shot.previewUrl);
   };
 
   const post = async () => {
@@ -485,7 +486,7 @@ export default function CaptureSheet({ onClose, initialMode = "photo", forPost, 
     <div className="desktop-capture-inner mx-auto h-full max-w-phone desktop:max-w-[760px]"><LightComposer cameraPreview={cameraPreview} upload={upload} shots={shots} caption={caption} setCaption={setCaption} index={photoIndex} setIndex={setPhotoIndex} notEaten={notEaten} setNotEaten={setNotEaten} when={when} setWhen={setWhen} locationEnabled={locationEnabled} setLocationEnabled={enableLocation} saveAsMeal={saveAsMeal} setSaveAsMeal={setSaveAsMeal} busy={posting||cameraBusy} error={error} pending={pendingCount} onBack={closeDraft} onPhoto={()=>{setSearchingFoods(false);setComposer(false);setMode("photo");setStream(null);}} onSearch={()=>setSearchingFoods(value=>!value)} onPost={()=>{void post();}} onRemove={removeShot} onSavePhoto={phoneCamera?undefined:()=>{void savePhoto();}}
       searchPanel={searchingFoods?<div className="px-inset"><FoodSearchPanel eatenAt={when===null?null:fromLocalInput(when)} disabled={posting} onQueued={()=>{if(operationRef.current)void uploadManager.remove(operationRef.current);onClose();}} onDescribe={text=>{if(text&&!caption.trim())setCaption(text);setSearchingFoods(false);setError(null);}} onError={setError}/></div>:null}>
       <input ref={galleryRef} type="file" accept="image/*" multiple className="hidden" onChange={event=>{void addFiles(event.target.files);event.target.value='';}}/>
-    </LightComposer></div>
+    </LightComposer><SavePhotoPrompt open={savePhotoUrl!==null} previewUrl={savePhotoUrl??""} onClose={()=>setSavePhotoUrl(null)}/></div>
   </div>;
 
   return (
