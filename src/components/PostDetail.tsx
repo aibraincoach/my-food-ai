@@ -21,6 +21,7 @@ export default async function PostDetail({id,desktopModal=false}:{id:string;desk
  const header=<PostDetailHeader post={card??undefined} readOnly={detail.isDrink} status={detail.post.status} postId={id} caption={detail.post.caption} eatenAt={detail.post.eaten_at} gtin={row?.gtin} saved={Boolean(row?.saved_meal_id)}/>;
  const thread=<Thread desktopActions={desktopModal?<PostActions detail postId={id} modelCommentId={card?.modelCommentId??null} fingerprint={card?.analysisFingerprint??null} drink={detail.isDrink} saved={Boolean(row?.saved_meal_id)}/>:undefined} sourcePostId={detail.post.source_post_id} key={id} postId={id} readOnly={detail.isDrink}/>;
  return <>
+  <span hidden data-post-detail-ready={id}/>
   <LocalTimeZone zone={zone} explicit={Boolean(cookieZone)}/>
   {!desktopModal&&header}
   <OutlineOverlay desktopModal={desktopModal} desktopHeader={header} desktopThread={thread} slides={card?.slides} key={id} initialized={detail.post.analysis_initialized_at!=null} readOnly={detail.isDrink} postId={id} caption={detail.post.caption} eatenAt={detail.post.eaten_at} status={detail.post.status} photo={detail.photo} items={detail.items} cardData={detail.cardData} initialDrink={detail.drink} modelCommentId={card?.modelCommentId??null} fingerprint={card?.analysisFingerprint??null} saved={Boolean(row?.saved_meal_id)}>
