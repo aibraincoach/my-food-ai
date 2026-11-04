@@ -88,7 +88,8 @@ async function rebuildRemoved(admin:SupabaseClient,job:JobRow){
  const {replayCorrection}=await import('./correct');
  const {replayRemainder}=await import('./remainder');
  const {readPostComments}=await import('@/lib/posts/timeline');
- const {getCurrentItems,normalizeStoredNutrition,formatConsumed,sumNutrition}=await import('@/lib/nutrition/totals');
+ const {getCurrentItems,normalizeStoredNutrition,sumNutrition}=await import('@/lib/nutrition/totals');
+ const {safeSummary}=await import('@/lib/pipeline/wording');
  const {checkWording}=await import('@/lib/pipeline/wording-check');
  const current=await getCurrentItems(admin,postId,{requireNutrition:true});
  const {data:original,error:originalError,status:originalStatus}=await admin.from('post_items').select('*,item_nutrition(*)').eq('post_id',postId).eq('source','model').order('created_at').order('id');
@@ -111,17 +112,20 @@ async function rebuildRemoved(admin:SupabaseClient,job:JobRow){
  const {isOwnedPhotoPath}=await import('@/lib/media/paths');
  type RebuiltRow=Pick<CurrentItem,'name'|'portion_text'|'portion_grams'|'box'|'mask_path'> & Partial<Pick<CurrentItem,'gtin'|'not_eaten_grams'|'not_eaten_calories'|'count_text'|'not_eaten_count_text'>> & {supersedes?:string|null;nutrition:NutritionLike & {micronutrients:StoredNutrient[];source_ref:string|null}};
  let rows:RebuiltRow[]=items.map(item=>({...item,nutrition:{...item}}));
+ const approximations:{name:string;basis:string;sourceRef:string}[]=[];
  const install=(next:RebuiltRow[])=>{rows=next;items=next.map(row=>({...row,...row.nutrition,id:typeof row.supersedes==='string'?row.supersedes:crypto.randomUUID(),source:'model' as const,name:row.name,portion_text:row.portion_text??null,portion_grams:row.portion_grams??null,box:row.box??null,mask_path:row.mask_path??null,micronutrients:row.nutrition.micronutrients??[],source_ref:row.nutrition.source_ref??null}));};
  for(const [index,comment] of comments.entries()){
   const result=await replayCorrection(admin,postId,items,[comment],comments.slice(0,index),false,true);
   if(result.result.needs_input)throw Error('The remaining correction needs clarification before the meal can be rebuilt.');
+  approximations.push(...result.approximations);
   install(result.rows as unknown as RebuiltRow[]);
  }
  for(const photo of photos??[]){
   if(!isOwnedPhotoPath(photo.storage_path,post.user_id,postId))throw Error('Leftovers photo does not belong to this meal.');
   install(await replayRemainder(admin,photo.storage_path,items) as unknown as RebuiltRow[]);
  }
- const summary=formatConsumed(sumNutrition(items));
+ const labels=approximations.filter(label=>items.some(item=>item.name===label.name&&item.source_ref===label.sourceRef));
+ const summary=(await safeSummary('',sumNutrition(items),labels)).replace(/[.]$/,'');
  const removed=thread.find(comment=>comment.id===job.payload.comment_id);
  const reply=job.payload.reason==='media_removed'?`${job.payload.media_unmarked===true?'Unmarked the leftovers photo.':'Removed the leftovers photo.'} ${summary}.`:`Removed the correction "${(removed?.body??'').slice(0,60)}". ${summary}.`;
  // Quoted user words are retained verbatim; only generated commentary makes

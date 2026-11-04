@@ -82,7 +82,7 @@ export async function replayCorrection(admin:import('@supabase/supabase-js').Sup
  if(response.status!=='completed'||!response.outputText||response.refusal)throw new MetaApiError(500,'Correction did not finish.');
  const result=parse(response.outputText);
  const resolutionBudget=nutritionResolutionBudget();
- const approximations:{name:string;basis:string}[]=[];
+ const approximations:{name:string;basis:string;sourceRef:string}[]=[];
  const {data:context,error:contextError,status:contextStatus}=await admin.from("posts").select("caption").eq("id",postId).abortSignal(resolutionBudget).single();
  if(contextError)throw ioError("Correction context could not be read.",contextError,resolutionBudget.aborted?503:contextStatus);
  const kept=new Set<string>();
@@ -108,7 +108,7 @@ export async function replayCorrection(admin:import('@supabase/supabase-js').Sup
    if(retained)nutrition=retained;
    else {
    const food=await resolveFoodMatch(admin,item.name,context.caption??'',signal,{approximate:true});
-   if(food?.approximation)approximations.push({name:item.name,basis:food.approximation.basis});
+   if(food?.approximation)approximations.push({name:item.name,basis:food.approximation.basis,sourceRef:String(food.fdcId)});
    const n=scaleNutrition(food,item.portion_grams);
    nutrition={calories:n.calories,protein_g:n.proteinG,carbs_g:n.carbsG,fat_g:n.fatG,fibre_g:n.fibreG,sugar_g:n.sugarG,sodium_mg:n.sodiumMg,micronutrients:n.micronutrients,source_ref:n.sourceRef,food_category:n.foodCategory ?? null};
    }
