@@ -91,12 +91,12 @@ export function createMetaClient(): OpenAI {
   });
 }
 
-export async function fetchWithRetry(url: string, init: RequestInit, timeoutMs: number, key: string): Promise<Response> {
+export async function fetchWithRetry(url: string, init: RequestInit, timeoutMs: number, key: string, retries = MAX_RETRIES): Promise<Response> {
   const path = new URL(url).pathname;
   const headers = new Headers(init.headers);
   headers.set("Authorization", `Bearer ${key}`);
   const callerSignal = workerDeadlineSignal(init.signal ?? undefined);
-  for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
+  for (let attempt = 0; attempt <= retries; attempt++) {
     let response: Response | undefined;
     const timeout = AbortSignal.timeout(timeoutMs);
     const signal = callerSignal ? AbortSignal.any([callerSignal, timeout]) : timeout;
@@ -106,7 +106,7 @@ export async function fetchWithRetry(url: string, init: RequestInit, timeoutMs: 
       const wait = retryAfterSeconds(response.headers);
       // Retryable error responses can be cancelled immediately below; all
       // success/final bodies must finish within this attempt's timeout.
-      const willRetry = !response.ok && attempt < MAX_RETRIES && retryable(response.status)
+      const willRetry = !response.ok && attempt < retries && retryable(response.status)
         && (wait === null || wait <= MAX_RETRY_AFTER_S);
       if (!willRetry) response = await bufferedResponse(response);
     } catch (error) {
@@ -117,13 +117,13 @@ export async function fetchWithRetry(url: string, init: RequestInit, timeoutMs: 
           throw new MetaApiError(response.status, `meta: ${path} failed with ${response.status}.`);
       }
       if (!timeout.aborted && !isRetriable(error)) throw error;
-      if (attempt < MAX_RETRIES) continue;
+      if (attempt < retries) continue;
       // Preserve the timeout/transport cause for the worker classifier.
       throw error;
     }
     if (response.ok) return response;
     const wait = retryAfterSeconds(response.headers);
-    if (attempt < MAX_RETRIES && retryable(response.status) && (wait === null || wait <= MAX_RETRY_AFTER_S)) {
+    if (attempt < retries && retryable(response.status) && (wait === null || wait <= MAX_RETRY_AFTER_S)) {
       await response.body?.cancel();
       await new Promise<void>((resolve, reject) => {
         const abort = () => { clearTimeout(timer); reject(callerSignal?.reason); };
