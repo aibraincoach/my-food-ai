@@ -1,0 +1,76 @@
+[
+  {
+    "route": "/",
+    "width": 390,
+    "apiFeedUrls": [
+      "http://127.0.0.1:60661/api/feed?ids=eddea94a-11b6-4401-9381-535769f67ab8%2Ccaea4bc1-2f23-4c87-b51a-d857fb84284b%2C678f73e6-0784-485f-a047-2a7269cf9a2c&tz=America%2FEdmonton"
+    ],
+    "zone": "America/Edmonton",
+    "browserAuth": 0,
+    "apiFeed": 1,
+    "apiDays": 0,
+    "verifiedCookie": true,
+    "today": null
+  },
+  {
+    "route": "/days",
+    "width": 390,
+    "apiFeedUrls": [],
+    "zone": "America/Edmonton",
+    "browserAuth": 0,
+    "apiFeed": 0,
+    "apiDays": 0,
+    "verifiedCookie": true,
+    "today": null
+  },
+  {
+    "route": "/profile",
+    "width": 390,
+    "apiFeedUrls": [],
+    "zone": "America/Edmonton",
+    "browserAuth": 0,
+    "apiFeed": 0,
+    "apiDays": 0,
+    "verifiedCookie": true,
+    "today": null
+  },
+  {
+    "route": "/",
+    "width": 1280,
+    "apiFeedUrls": [
+      "http://127.0.0.1:60661/api/feed?ids=eddea94a-11b6-4401-9381-535769f67ab8%2Ccaea4bc1-2f23-4c87-b51a-d857fb84284b%2C678f73e6-0784-485f-a047-2a7269cf9a2c&tz=America%2FEdmonton",
+      "http://127.0.0.1:60661/api/feed?ids=eddea94a-11b6-4401-9381-535769f67ab8%2Ccaea4bc1-2f23-4c87-b51a-d857fb84284b%2C678f73e6-0784-485f-a047-2a7269cf9a2c&tz=America%2FEdmonton"
+    ],
+    "zone": "America/Edmonton",
+    "browserAuth": 0,
+    "apiFeed": 2,
+    "apiDays": 0,
+    "verifiedCookie": true,
+    "today": "Today · Wednesday, Nov 4\n\n300\nkcal consumed\n\n6 g\n\nprotein\n\n60 g\n\ncarbs\n\n3 g\n\nfat\n\nPosted today\nLocal first-frame meal\n12:45 AM\n100 kcal\nLocal first-frame meal\n12:45 AM\n100 kcal\nLocal first-frame meal\n12:45 AM\n100 kcal\n\nKnown nutrition shown. Nutrition unavailable: rice"
+  },
+  {
+    "route": "/days",
+    "width": 1280,
+    "apiFeedUrls": [],
+    "zone": "America/Edmonton",
+    "browserAuth": 0,
+    "apiFeed": 0,
+    "apiDays": 0,
+    "verifiedCookie": true,
+    "today": null
+  },
+  {
+    "route": "/profile",
+    "width": 1280,
+    "apiFeedUrls": [],
+    "zone": "America/Edmonton",
+    "browserAuth": 0,
+    "apiFeed": 0,
+    "apiDays": 0,
+    "verifiedCookie": true,
+    "today": null
+  },
+  {
+    "unsignedRedirects": true
+  }
+]
