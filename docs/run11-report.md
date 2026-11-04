@@ -1,80 +1,83 @@
 # Fleet 11 execution report
 
-Plan: [plan-run11.md](plan-run11.md). Baseline: `e9bea0aed7cd12dd9093d2e30212c85eb57382a2` (current origin/main at start). This is an in-progress evidence record; no item is complete merely because its code is built.
+Plan: [plan-run11.md](plan-run11.md). Baseline `e9bea0aed7cd12dd9093d2e30212c85eb57382a2`. PR #475 remains open and unmerged. This report distinguishes shipped code, observed acceptance, and owner-only or unavailable evidence.
 
-## Current state
+## Items 0–18
 
-- Item 0: unchanged plan preserved in PR #475. This docs PR stays open.
-- Item 1: PR #476, head `ed4904e`, production webpack build passed. Review and genuine production upload observation pending. The existing boundary excludes needs_input before the new read, so its redundant comparison was removed after TypeScript rejected it. The helper throws database errors to preserve the previous card.
-- Item 2: production read-only constraint query returned `user_call_hits_route_check`. Migration 0046 and rollback written on run11/drink-cap. Applied only to disposable local PostgreSQL; boundary/isolation and cap-response tests passed (2/2). Production application, review and recording-session check pending.
-- Item 3: fresh disposable stack created from baseline migrations; fresh database suite running. README audit and full suite pending.
-- Item 4: not done.
-- Item 5: multilingual prompt and distinct failed state implemented on run11/label-any-language; eslint passed. Provider/photo observations and build pending.
-- Item 6: specified overlay tokens implemented on run11/barcode-prompt. Build and visual check pending.
-- Items 7–10: not done.
-- Item 11: not done.
-- Item 12: draft implementation on run11/log-again-instant; not yet validated or pushed.
-- Items 13–18: not done. Item 17 baseline changed: #462 is already merged at the baseline SHA above.
+| Item | Result and evidence |
+|---|---|
+| 0 | Done: verbatim plan and this report on the open docs PR #475. |
+| 1 | Done: #476; eight genuine production uploads reached ready, with eight correctly scoped names-before-total observations. [Session and cleanup](evidence/run11-eight-photos/session.json). |
+| 2 | Done: #477; migration0046 applied and [read back](evidence/run11/0046-production-readback.txt). Eight-photo session had zero cap messages. Two additional real drink photos deliberately awaited identify200, proving independent drink_identify2 versus post26 buckets. [Additional session](evidence/run11-drink-bucket/session.json). |
+| 3 | Final verification pending: #490 repairs model/evidence tables, links and uploads lint ignore. Fresh final build/full suite/database counts will replace baseline claims before merge. README private-string search found159hits/49files, all contextualized in PR body; no actual credentials identified. Owner keep-list/read remains RT. |
+| 4 | Done in emulation on production: #480, codes7622300761363 and8992760221028, OFF product/nutrition and attribution links in capture and expanded detail. [Receipt](evidence/run11-barcodes/checks.json). Owner three-phone/shelf acceptance remains#379. |
+| 5 | Code and replacement-fixture production acceptance done: #478. Genuine Indonesian and English reads became cards with printed values. [Cards and cleanup](evidence/run11-labels/cards.json), [before/after responses](evidence/run11-labels/responses.json). Original Goldfish photo unavailable; exact original failure and owner phones remain unverified, so#452 stays open. |
+| 6 | Done: #479, production busy-camera white prompt on rgba(26,25,23,.7) rounded22 scrim. [Screenshot](evidence/run11-barcodes/prompt-busy.png). Owner phones remain#379. |
+| 7 | Done: #482, production61 continuous dates, month markers, visible today, October jump and Oct27 deep link. [Production geometry](evidence/run11-phone-production/checks.json). |
+| 8 | Done code: #485; six shared PNG renderer outputs and actual production drink cards. [PNG receipts](evidence/run11-drink-png/receipts.json). Alcohol summary follow-up#493 is under final review. |
+| 9 | Done code/repair: #481; tiki source1057 really15.4mg, repaired caffeine0. [Final tiki projection](evidence/run11/tiki-repair.json). Genuine wine acceptance is being verified with item10. |
+| 10 | #486 shipped; migration0047 applied and [read back](evidence/run11/0047-production-readback.txt). Cocktail photo showed15g alcohol/1.1standards and0water. [Session](evidence/run11-alcohol-photo/session.json). #493 fixes a discovered feed summary disagreement. Settled typed Bintang/wine acceptance pending final receipt. |
+| 11 | Done: #483; production450px viewport shows focused captiony170–212,72px thumbnail, Posty370–420 without overlap. [Production check](evidence/run11-phone-production/checks.json). Physical keyboard checks remain RT. |
+| 12 | #487 and offline follow-up#492 shipped. Ten Slow4G Log-again trials closed/inserted before response; ten copies persisted. [Timings](evidence/run11-saving/timings.json). Bookmark/menu/caption each changed before response and persisted reload: [trials](evidence/run11-saving/other-saves.json). Menu/caption visibly failed offline. Matched settled old build hard-navigated offline; fixed build retained failed card/Tryagain: [old](evidence/run11-saving/offline-before-settled.json), [fixed](evidence/run11-saving/offline-settled.json). Final production offline receipt pending. |
+| 13 | Measurements recorded below; unavailable attribution/usage and240fps limits are not claimed complete. |
+| 14 | Done: #488 scripted Meta refusal→failed card→owner Tryagain→ready; USDA429 requeued with RetryAfter120 and attempts0. [Integration](evidence/run11-recovery/integration.txt), [actual local UI](evidence/run11-recovery/ui.json). Scripted providers were isolated locally; no live provider was fault-injected. |
+| 15 | Evidence-backed closures listed below; RT-only issues stay open. |
+| 16 | Reviews and merge records below. Final verification and cleanup pending. |
+| 17 | Done at exact#462head905b47414efd119ba27b22782af647aa2059619f: Today right1068≤1100, no horizontal overflow or overflowing children. [Geometry](evidence/run11-today/geometry.json). No LaneN needed. |
+| 18 | Done code and two scoped repairs, owner UI acceptance incomplete: #484. All ten inspected; PepsiZero now330ml/32mg, Evian500ml beside espresso30ml/64mg. [Before](evidence/run11/drink-gaps-before.json), [repair](evidence/run11/drink-gaps-repair.json), [after](evidence/run11/drink-gaps-after.json). Owners are neither designated test account, so no impersonation;#377 remains open. |
 
 ## Premises
 
-P1–P5: unverified. No conclusion recorded yet.
+| Premise | Finding |
+|---|---|
+| P1 | Supported for the two tested products; insufficient to establish “most Indonesian packs.” Both real codes returned usable OFF products. |
+| P2 | True: tiki USDA2710626, categoryliquor and cocktails, nutrient1057=15.400000000000002mg, previously stored15mg caffeine. |
+| P3 | Unproven: original Goldfish fixture/response unavailable. Unchanged Indonesian replacement succeeded both before and after, so it does not establish the original cause. |
+| P4 | True: minute-filtered Management Logs queries work. Attribution to one browser opening remains unresolved because global traffic overlaps. |
+| P5 | False at card-data.ts boundary: hydration recognized complete linked drink items, but standalone builder trusted supplied kind/drink. #485 adds recognition and retains hydrated drink metadata. |
 
-## Reviews, merges and closures
+## Measurements and practical limits
 
-No Fleet 11 code merge, production migration or issue closure performed yet. PR #476 has its ready-for-review comment. Full reviewed heads and merge commits will be recorded as they become available.
+- 13a/#368: [management summary](evidence/run11-measurements/management-summary.json). Address fields present.24h query:419token records,337password logins,3actors,6addresses. Logs do not distinguish direct SDK probes from server actions; shared-rate-limit causality unknown. No production sign-in/sign-up form submitted.
+- 13b/#372: [media-loading.md](media-loading.md). Matched strip bytes497591→63720 (87.19% reduction). Natural-feed cache0-byte reopen used different images/path and is not a controlled compression comparison. Real phone/mobile-data acceptance remains RT.
+- 13c/13e/#373/#375: usage API404; dashboard Usage required an authenticated dashboard session. [Dashboard receipt](evidence/run11-measurements/dashboard-usage.json). Log-ingestion bytes/storage egress attribution unavailable; issues stay open.
+- 13d/#374: empty-claim loop began37c8dd4ec (Oct27), subsequently replaced by retained7e73cd1. This history does not prove#222causality. Issue closed with pinned history.
+- 13f/#322: [tick-cold.md](tick-cold.md). Eager0.809013/0.230098/0.164041s; lazy0.531299/0.256762/0.178981s, all200. These are first observed fresh-preview requests, not platform-instrumented cold-process distributions. Throwaway#489closed without merge; both branches/worktrees removed.
+- 13g/13h/#323/#324: [isolated browser minutes](evidence/run11-measurements/page-open-counts.json). Browser auth1 per Home/Days/Profile; browser direct daytotals0. Global auth35/18/20 and daytotals4/0/0 include unrelated traffic; combined per-opening counts unproved. Forged unsigned verified-user header307→sign-in. Issues remain open.
+- 13i/#217: [144-row extension](evidence/run10-taps-final/fleet11-control-table-extension.md), [method](evidence/run10-taps-final/fleet11-runtime-method.md).129 distinct valid targets showed pressed feedback0.8–46.6ms at390×844 CPU4.19 historical rows had observed movement, including expected dismissal/navigation. #491 adds12lines of shared pressed feedback. [Production smoke](evidence/run10-taps-final/fleet11-production-touch-smoke.md): five controls5.2–10.6ms. Actual rAF7.2–108.2Hz (median52); requested240fps was not achieved. Whole-viewport subframe flicker and physical-phone feel remain unverified. Exact three posts/one object removed and preferences restored. No further product defects established by sweep.
 
-## Environment and cleanup
+## Review and merge ledger
 
-Original checkout untracked file: `docs/reviews/mfa-pplx-pr311-e7ece5c.md`; preserved. No leftover worktrees existed at start. Design ZIP exists in uploads; extracted round6 reference also exists. Separate lane worktrees created from baseline. Disposable stack uses `.env.run11.test.local` and `uploads/run11-test-stack`; no production credentials loaded into the test runner. Active handles and worktrees remain while execution continues; final cleanup is pending.
+All merged product heads have successful checks and an independent non-OpenAI zero-blocker verdict for the exact SHA. Receipts distinguish preliminary/incomplete captures from actual clearances; see [review ledger](reviews/run11-review-ledger.json) and PR comments. Each merge was followed by merging current main into remaining open Fleet11 code branches.
 
-## Verified progress after initial report
+| PR | Reviewed head | Merge commit/state |
+|---|---|---|
+| #476 | `ed4904e300c780cd8efbdb9e92da204bddc0bd10` | `153e83b56b07382cb1d96eca43746b667c1debfd` |
+| #477 | `1822af0c76888e745c52c807dfdb78d63f8c1a50` | `c4a2e0f112faaa592ab248cb7773e1cbb9081aca` |
+| #478 | `765eb4751e7103464d826626bf281013c427d571` | `eca1a5de84768961b658fb6a7e760454e4690662` |
+| #479 | `8d8e92cb013bf6c29c9976bba4bc39eaac8431bb` | `a22ffade4f0e138c1f30380c6c3bf7c15b2263d5` |
+| #480 | `321d5de102241a1a99fd04de28d9b6c2c2d9f4ef` | `cfb86aa72c671b11cb77a836a499b210335b771b` |
+| #481 | `86281731c68bd517a6b2ff6bfd216c8adf176632` | `db73ad2b4953005d165d8a4ae9ed7c05ce4d7c27` |
+| #482 | `8911dc11ba5d75c055e232c718a59daf91306e3c` | `cf18bd6b69453751431fa2915fac5ca3dd5d5075` |
+| #483 | `7e53660bbf9cfd1f9d006913d3d868dcc798032b` | `a005f7a02c618e0cf37861bf325759af5778ad6c` |
+| #484 | `b1454d9291acef9e5478816c4a645178f0b948ac` | `f81987f9ffccd09cc701acbdd40ccf87732dd48a` |
+| #485 | `0f0b11b8ef21d92119ef02efdfaba64d0f48a4f0` | `2224eeb1313fd1677cc0b6aba77947f9bb05b8e3` |
+| #486 | `722bf3e76e6c22e0f0b658da0ff5709fab9d5422` | `373864093db4d538dad282bd3d6f0403ab7697a3` |
+| #487 | `1d74990b882fe6726cd4c8f1cff51703cb413a05` | `a6ccc853463e3bd1307e65f6be404a414d8d8b4e` |
+| #488 | `900d2890a0845fe2c6b442b366f59f00ecf69058` | `55dc564f53f91cdde1d4ec188e656b439137011f` |
+| #490 | `607bf1303554ec0ac42a9c4a6b175fdb18006622` | `OPEN` |
+| #491 | `9cb34b7749bd62d8790416d0dec2da2d8ce9ccd8` | `4083f1a57138ce2b98a060339363b810894e4540` |
+| #492 | `82eef7d97d72c6b25f12c3d0b840fe83c97094b9` | `504de467557692530e6a11b9b4b2e3e89f991ac6` |
+| #493 | `1fd7327626ae096ff7d0c4fadd82c626aa554236` | `OPEN` |
 
-- #476 merged as `153e83b56b07382cb1d96eca43746b667c1debfd`; Muse cleared exact head `ed4904e300c780cd8efbdb9e92da204bddc0bd10`, Vercel succeeded. Production new-upload observation remains pending.
-- #477 merged as `c4a2e0f112faaa592ab248cb7773e1cbb9081aca`; Muse cleared exact refreshed head `1822af0c76888e745c52c807dfdb78d63f8c1a50`. Migration 0046 applied transactionally to production immediately before merge and [read back](evidence/run11/0046-production-readback.txt). Recording-length session pending.
-- #478 merged as `eca1a5de84768961b658fb6a7e760454e4690662`; Muse cleared exact refreshed head `765eb4751e7103464d826626bf281013c427d571`. Provider fixture and UI acceptance pending.
-- #479 barcode prompt, #480 OFF fallback, #481 alcohol caffeine, #482 continuous calendar, #483 caption keyboard, #484 historical gaps are open. Each has its full ready-for-review SHA in the PR comments; refreshes require current-head confirmation.
-- Item 3 fresh disposable baseline run: [database 32 passed / 0 failed / 0 skipped](evidence/run11/baseline-db.txt); [full suite 567 passed / 0 failed / 6 skipped](evidence/run11/baseline-tests.txt). Initial four HTTP failures occurred before starting the local app; the corrected complete run is retained above. Plain main lint still scanned uploads and failed there; the missing uploads ignore is being restored on run11/readme-tests (0 errors / 6 warnings there). This contradicts the plan premise that all lint changes were already landed.
-- P2 true: tiki post `8535b793-9222-44f8-b8ce-6d80d580ea92`, USDA `2710626`, category `liquor and cocktails`, nutrient 1057 `15.400000000000002 MG`, intake caffeine 15 mg / 220 ml. Scoped repair awaits merge of #481.
-- Item 10: production constraint names confirmed read-only as `intake_logs_kind_check` and `intake_amount_range`. 0047 applied only on the disposable stack. New DB test accepts 16 g / 220 ml, rejects 600 g, proves zero hydration and Bintang 13.9 g -> amount 14. All 13 selected alcohol/drink checks passed. Production migration remains pending review.
-- Item 17 **passed** at #462's exact head `905b47414efd119ba27b22782af647aa2059619f`: viewport 1100×800, Today right edge 1068 <= 1100, no document horizontal overflow, no overflowing children. [Geometry](evidence/run11-today/geometry.json), [screenshot](evidence/run11-today/1100x800.png). No Lane N needed.
-- Item 18: all ten posts inspected read-only through getCurrentItems and isDrinkItem. [Full per-item record](evidence/run11/drink-gaps-before.json). Two real gaps: Pepsi Zero in `38de279e-2764-44f7-a224-f67f5f77da08` (no intake), Evian bottled water in `d06d4d29-b532-470e-a930-e285f4180123` (espresso has 64 mg / 30 ml; water missing). #377 reopened. Remaining eight posts are foods or sheet/tile posts with authoritative post-linked caffeine. #484 pins the two exact missing names and excludes similarly named food. Backfill awaits merge and will target only those two posts.
-- Temporary Fleet11 preview access created for acceptance; private token retained outside the repository and must be revoked at final cleanup.
+## Closures and remaining owner work
 
-## Product build checkpoint
+Closed with evidence: #374,#413,#360,#363,#449,#307,#451,#453,#454,#458,#322. #193 was already closed. #379 holds real-phone/mobile-data acceptance, camera dismissal#370 and owner three-phone checks. README closures#450/#369/#287 await final checks/merge. #306 awaits final production save proof. #282 awaits final isolated regression run. #455/#456/#457 await final settled alcohol evidence. #452 remains for original Goldfish fixture/phones; #377 remains for actual-owner card/day totals. #368/#372/#373/#375/#323/#324 retain stated evidence gaps.
 
-- #479 merged at `a22ffade4f0e138c1f30380c6c3bf7c15b2263d5`, reviewed current head `8d8e92cb013bf6c29c9976bba4bc39eaac8431bb` with zero blockers and successful Vercel checks. Busy-camera visual acceptance remains pending.
-- #480 merged at `cfb86aa72c671b11cb77a836a499b210335b771b`, reviewed current head `321d5de102241a1a99fd04de28d9b6c2c2d9f4ef` with zero blockers and successful Vercel checks. Both live barcode lookups, attribution UI and product-post cleanup remain pending.
-- #481–#487 are open product PRs. #485 is drink glyphs; #486 alcohol records; #487 immediate Log again. Their PR comments record current full heads after refresh. #486 must refresh after #481; #485 must refresh after #486. Every refreshed head still needs its reviewer confirmation.
-- Item 8 pure glyph + existing drink tests passed (13 selected tests); webpack build and targeted eslint passed. P5: getPostHydrationData already detects all-item drink posts, while cardDataFromRow itself only trusted supplied kind/drink. #485 adds recognition of complete item links at that boundary.
-- Item 10 expanded DB test also proves that 20 mg caffeine from Rum and coke survives hydration reads while its alcohol adds zero water. Alcohol rows store grams in amount, so a bounded read of their current item nutrition preserves that independent caffeine measure. Unknown alcohol remains unavailable. No production 0047 application yet.
-- Item 11 (#483) and item 12 (#487) passed webpack production builds and targeted eslint. Keyboard emulation and Slow 4G/offline/reload acceptance remain pending.
-- Five merged lane worktrees, local branches and remote branches removed: A, B, D, E, F. Main checkout's original untracked review remains preserved.
-- Current baseline complete-suite results remain 567 passed / 0 failed / 6 existing skips, and DB 32/0/0. A final current-main run after remaining merges is required; intermediate lane checks do not substitute for it.
+RT-only scope preserved: #285,#318,#26,#379,#281,#348,#351,#294,#60 keep list. CAPTCHA/Auth settings,#114Facebook,#115dark mode,#218hydration share were untouched. No recording hold was received.
 
-Next acceptance work: genuine production new upload; eight-photo cap session; Indonesian/English label probes; barcode fallback and attribution; phone calendar; keyboard and Log again; drink-card PNGs and alcohol; scoped tiki/two-gap backfills after their respective merges. Items 13–16 measurements, permitted closures and final cleanup remain open. Item 17 is already verified and reported on #462 with commit-pinned links.
+## Cleanup
 
-## Runtime acceptance and investigations
+Original main untracked `docs/reviews/mfa-pplx-pr311-e7ece5c.md` preserved. Each runtime receipt counts its exact fixtures. [Draft cleanup](evidence/run11/fixture-draft-cleanup.json) additionally removed13 scoped published upload receipts; zero matching drafts remain. Historical production repairs were limited to the three authorized posts. Existing backfill script has no scoped ID arguments, so its same syncItemDrinks helper was invoked directly for those exact IDs; no broad backfill ran.
 
-- #481 merged at `db73ad2` after exact-head zero-blocker review. Scoped tiki repair changed caffeine 15 mg / 220 ml to water 220 ml / caffeine 0, and its summary now contains no caffeine. [Before/after](evidence/run11/tiki-repair.json). It must be resynchronized once more after item 10 to receive its alcohol kind. The repository backfill script has no scoped arguments despite the plan premise, so the same syncItemDrinks service was invoked directly for the one authorized post.
-- #482 (continuous calendar) merged at `cf18bd6`; #483 (keyboard) merged at `a005f7a`; #484 (historical gaps) merged at `f81987f`. Exact reviewed heads are in their GitHub reviews. [Phone geometry and navigation](evidence/run11-phone/checks.json), [calendar screenshot](evidence/run11-phone/calendar-today.png), [keyboard at 450 px](evidence/run11-phone/keyboard-450.png). Calendar has 61 consecutive dates Oct 1–Nov 30, opens today visibly, marks Oct/Nov 1, jumps to October and opens the Oct 27 deep link. Keyboard geometry: caption y170–212, thumbnail 72×72, Post y370–420 in a 450 px viewport. Upload/identify were disabled only for that layout-only probe; it created no backend fixture.
-- Historical-gap repair ran only for the two authorized post IDs. [Repair rows](evidence/run11/drink-gaps-repair.json), [all ten current records](evidence/run11/drink-gaps-after.json). Pepsi Zero now has 330 ml / 32 mg caffeine; Evian has 500 ml water beside the pre-existing 30 ml / 64 mg espresso. Their owners are neither designated test account, so a signed-in production UI acceptance has not been claimed or attempted through another person's session. #377 remains open until the card/day-total acceptance is established.
-- Indonesian probe before and after returned 200 with the visible right-hand panel: 250 ml serving, 200 kcal, fat 5 g, protein 8 g, carbs 30 g, sugar 23 g, sodium 55 mg. English after returned 200: 55 g serving, 230 kcal, fat 8 g, protein 3 g, carbs 37 g, fibre 4 g, sugar 12 g, sodium 160 mg. [Responses and zero remaining photos/readings](evidence/run11-labels/responses.json). P3 remains unproven: the Indonesian baseline succeeded, and this does not reconstruct the owner's original Goldfish failure. Indonesian fixture is [Rantemario's unchanged Commons image](https://commons.wikimedia.org/wiki/File:Informasi_Nilai_Gizi.jpg), CC BY-SA 4.0.
-- Item 13a: [management summary](evidence/run11-measurements/management-summary.json). Address fields are present. The 24-hour query found 419 token records, including 337 password login events across 3 actors and 6 distinct addresses. This does not label server-action calls versus direct SDK probes, so shared sign-in rate-limit attribution is still unknown; #368 stays open. No production sign-in/sign-up form submitted.
-- Item 13c: usage API returned 404; [dashboard route](evidence/run11-measurements/dashboard-usage.json) opened Usage but required an authenticated dashboard session. Log-ingestion bytes remain unavailable; #373 and #375 stay open for that gap.
-- Items 13g/h: [three isolated browser-open minutes and log query](evidence/run11-measurements/page-open-counts.json). Browser auth count is one for each page; browser direct totals count zero. Project-wide log counts were Home 35 auth / 4 totals, Days 18 / 0, Profile 20 / 0. Those include unrelated project traffic and cannot establish the combined per-opening count; #323/#324 remain open. Forged unsigned verified-user header still returns 307 to sign-in. P4 true for minute-filtered API access, but attribution remains unresolved.
-- Item 14: new test-only PR #488. Scripted refusal reaches failed and owner retry returns 204 then ready. USDA Retry-After 120 queues run_after 120246 ms later with attempts 0. Integration passed in 92 seconds. Local tick polling simulates the managed cron omitted from the disposable stack; retry timestamps and attempt counts were never changed. UI evidence capture is running separately.
-- Fallback external review is running in a sub-agent for #485–#488 because refreshed heads lack recent confirmations. The agent orchestrates PPLX; it does not review OpenAI-written code itself. Original authenticated Firefox restored; a changed Perplexity textbox selector was diagnosed and retried via a temporary runner copy. No product branch receipt-only commits will invalidate reviewed heads.
-
-## Completed acceptance checkpoint
-
-- Item 1 passed on a genuine production cohort: eight new photo posts all reached ready, with eight observed processing updates containing food names before any kcal. [Scoped observer/session receipt](evidence/run11-eight-photos/session.json). The photos were submitted through the real UI; no model/worker response was stubbed. Cleanup removed 8 posts and 45 objects, with zero remaining.
-- Item 2: the same eight-photo cohort (six meals, coffee, cola) showed zero cap messages. An additional two-photo composer check deliberately waited for drink identification; [receipt](evidence/run11-drink-bucket/session.json) records two independent drink_identify hits and two ordinary post-stage hits, both resulting posts ready, no cap message, cleanup zero. The first cohort posted before composer checks, so it alone is not claimed to exercise the new identification bucket.
-- Items 4/6 passed on production for both `7622300761363` and Indonesian `8992760221028`: real generated EAN-13 images were decoded by the installed scanner; lookup returned OFF products; capture and expanded post nutrition showed both attribution links. [Receipt and cleanup](evidence/run11-barcodes/checks.json), [busy-camera prompt](evidence/run11-barcodes/prompt-busy.png). Two posts and six objects removed, zero remaining. P1 is supported for these two packs only, not a claim of broad Indonesian-pack coverage.
-- Migration 0047 applied transactionally and [read back](evidence/run11/0047-production-readback.txt), then #486 merged at `3738640` after Gemini cleared exact head `722bf3e76e6c22e0f0b658da0ff5709fab9d5422`. Today excludes unknown-alcohol sentinel values and explicitly labels unavailable alcohol. The drink-glyph integration awaits confirmation after its refresh.
-- Tiki resynchronization now records alcohol 18 g / 220 ml with zero caffeine; summary is `Drank: 18 g alcohol · 1.3 standard drinks · 196 kcal`. The day's water drops by 220 ml and caffeine remains 95 mg from the other drink. [Final repair](evidence/run11/tiki-repair.json).
-- Item 12: [five production-before and five preview-after Slow 4G / CPU4 trials](evidence/run11-saving/timings.json) all showed the sheet closing and local card before response. Ten copied server rows survived reload. Offline acceptance is still under diagnosis; the failed offline probe is retained as a failure, not a pass. #487 merged after exact-head Gemini confirmation at `1d74990b882fe6726cd4c8f1cff51703cb413a05`.
-- Item 13b: per-photo Fleet10 feed/cache and matched strip byte tables added to [media-loading.md](media-loading.md). Phone/mobile-data acceptance stays RT under #379.
-- Item 13f: [fresh eager/lazy tick observations](tick-cold.md) are 0.809013/0.230098/0.164041 s versus 0.531299/0.256762/0.178981 s. All HTTP200. Throwaway PR #489 closed without merge; eager/lazy remote branches and worktrees removed. Temporary preview bypass remains until all acceptance is complete.
-- Item 14: [integration output](evidence/run11-recovery/integration.txt) and [actual local browser state/copy](evidence/run11-recovery/ui.json), [refusal screenshot](evidence/run11-recovery/meta-refusal.png), [429 screenshot](evidence/run11-recovery/usda-429.png). Clicking Try again reached ready; both local fixtures removed. Tests are in PR #488; final merge/review and closure pending.
-- Authorized closures completed: #374, #413, #360, #363. #193 was already closed. #379 received the retained owner-only #370 and three-phone checks. No RT-only issue closed.
+Final token revocation, local stack shutdown, worktree/branch cleanup and cleanup.sh output pending. Private credentials/raw logs remain outside tracked artifacts. Report PR475 and pre-existing owner docs PR474 stay open.
