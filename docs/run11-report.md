@@ -2,6 +2,9 @@
 
 Plan: [plan-run11.md](plan-run11.md). Baseline `e9bea0aed7cd12dd9093d2e30212c85eb57382a2`. PR #475 remains open and unmerged. This report distinguishes shipped code, observed acceptance, and owner-only or unavailable evidence.
 
+
+**PM acceptance reconciliation:** [actual backlog/production state](run11-production-state.md) is the strict done-condition matrix. The historical “Done” labels below refer to coder scope and must not be read as missing owner-device sign-off. [Current detail-open measurements](detail-open-audit.md) are tracked separately in future-fleet issue[#500](https://github.com/aibraincoach/my-food-ai/issues/500); no product fix was made.
+
 ## Items 0–18
 
 | Item | Result and evidence |
