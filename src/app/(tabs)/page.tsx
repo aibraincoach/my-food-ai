@@ -127,7 +127,7 @@ export default async function Home({searchParams}:{searchParams:Promise<{post?:s
     <Suspense fallback={<div className="h-bar-h" />}><HomeDays /></Suspense>
     <div data-home-feed>
       <style>{`[data-home-feed]:has([data-server-feed-ready], [data-feed-client-ready]) > [data-cached-feed] { display: none; }
-[data-home-feed]:has([data-server-feed-ready], [data-feed-client-ready], [data-cached-feed-ready]) [data-fast-feed-seed] { display: none; }
+[data-home-feed]:has([data-server-feed-ready], [data-feed-client-ready], [data-cached-feed-ready], [data-feed-error]) [data-fast-feed-seed] { display: none; }
 [data-home-feed]:has([data-fast-feed-seed]) > [data-cached-feed]:not(:has([data-cached-feed-ready])) { display: none; }`}</style>
       <div data-cached-feed><CachedFeedFallback /></div>
       <Suspense fallback={null}><HomeFirstPhoto /></Suspense>
