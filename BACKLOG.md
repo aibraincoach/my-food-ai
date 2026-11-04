@@ -262,7 +262,7 @@ With Muse Spark Open on, a late structured-format rejection followed by a hangin
 
 Found after #507 merged. Each send() in createOpenResponse gets its own 75-second timeout, and a 400 or 422 format rejection runs send(false) and then send(true). The hanging-first-request check passed (75,003 ms, then ready at 76,397 ms). Done when both format attempts share one 75-second deadline.
 
-### An incomplete saved label can hide a barcode provider outage
+### #557 An incomplete saved label can hide a barcode provider outage
 
 A barcode lookup can report that a product is missing when a provider is down and the account holds an incomplete saved label correction.
 
