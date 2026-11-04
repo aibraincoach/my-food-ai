@@ -1,0 +1,14 @@
+[
+  {
+    "account": 1,
+    "scopedIds": 48,
+    "cleanupJobsRemoved": 0,
+    "cleanupJobsRemaining": 0
+  },
+  {
+    "account": 2,
+    "scopedIds": 48,
+    "cleanupJobsRemoved": 0,
+    "cleanupJobsRemaining": 0
+  }
+]
