@@ -49,6 +49,7 @@ test('composer identify enforces caps and ownership, caches one model call, and 
  const request=(path,body,session=cookie)=>fetch(origin+path,{method:'POST',headers:{Cookie:session,'Content-Type':'application/json'},body:JSON.stringify(body),signal:AbortSignal.timeout(15000)});
  const cap=(hits,route='drink_identify')=>db.from('user_call_hits').upsert({user_id:user.id,route,hour:bucket,hits},{onConflict:'user_id,route,hour'}).then(checked);
  const count=()=>fetch(model+'/__calls').then(r=>r.json()).then(rows=>rows.filter(row=>row.name==='identify').length);
+ const hits=async()=>checked(await db.from('user_call_hits').select('hits').eq('user_id',user.id).eq('route','drink_identify').eq('hour',bucket).single()).hits;
  async function stage(photo='01'){
   const id=randomUUID();stages.push(id);
   const response=await request('/api/posts',{operation_id:id,capture_intent:'photo',caption:'',eaten_at:new Date().toISOString(),shots:[{position:0,width:390,height:390}]});const data=await response.json();assert.equal(response.status,200,JSON.stringify(data));
@@ -62,9 +63,21 @@ test('composer identify enforces caps and ownership, caches one model call, and 
   await cap(0);await cap(0,'post');const id=await stage();
   assert.equal((await request('/api/drinks/identify',{upload_id:id,position:0},other)).status,404);
   assert.equal(await count(),0);
-  await cap(120);const denied=await request('/api/drinks/identify',{upload_id:id,position:0});assert.equal(denied.status,429);assert.ok(Number(denied.headers.get('Retry-After'))>=1);assert.equal(await count(),0);
+  await cap(120);const denied=await request('/api/drinks/identify',{upload_id:id,position:0});assert.equal(denied.status,429);assert.ok(Number(denied.headers.get('Retry-After'))>=1);assert.equal(await count(),0);assert.deepEqual(checked(await db.from('composer_drink_readings').select('id').eq('upload_id',id)),[],'cap refusal releases the photo claim for a later retry');
   await cap(0);await cap(40,'post');const response=await request('/api/drinks/identify',{upload_id:id,position:0});const reading=await response.json();assert.equal(response.status,200,JSON.stringify(reading));assert.equal(reading.allDrinks,true);assert.equal(reading.drinks[0].ml,300);assert.equal(await count(),1);assert.equal(checked(await db.from('user_call_hits').select('hits').eq('user_id',user.id).eq('route','post').eq('hour',bucket).single()).hits,40,'identify does not spend the full post bucket');await cap(0,'post');
-  const cached=await request('/api/drinks/identify',{upload_id:id,position:0});assert.equal(cached.status,200);assert.equal((await cached.json()).id,reading.id);assert.equal(await count(),1);
+  assert.equal(await hits(),1,'one model call spends exactly one identify hit');
+  await cap(120);
+  const cached=await request('/api/drinks/identify',{upload_id:id,position:0});assert.equal(cached.status,200);assert.equal((await cached.json()).id,reading.id);assert.equal(await count(),1);assert.equal(await hits(),120,'a ready reading remains reusable at the cap without spending');
+  for(const [state,status] of [['pending',409],['failed',502]]){
+   checked(await db.from('composer_drink_readings').update({state}).eq('id',reading.id));
+   const duplicate=await request('/api/drinks/identify',{upload_id:id,position:0});
+   assert.equal(duplicate.status,status);assert.equal(await hits(),120,`${state} duplicate does not spend cap`);assert.equal(await count(),1);
+  }
+  checked(await db.from('composer_drink_readings').update({state:'ready'}).eq('id',reading.id));
+  const reusedId=await stage();
+  const reused=await request('/api/drinks/identify',{upload_id:reusedId,position:0});assert.equal(reused.status,200);assert.notEqual((await reused.json()).id,reading.id);assert.equal(await hits(),120,'same photo in a changed manifest reuses the reading without spending');assert.equal(await count(),1);
+  checked(await db.from('post_upload_drafts').delete().eq('id',reusedId));
+  await cap(1);
   const correction={reading_id:reading.id,index:0,correction:{name:'Water, glass',pack_amount:360,pack_unit:'ml',per_100:{calories:0.1,protein_g:null,carbs_g:0,fat_g:0,fibre_g:0,sugar_g:0,sodium_mg:0}}};
   const patch=session=>fetch(origin+'/api/drinks/identify',{method:'PATCH',headers:{Cookie:session,'Content-Type':'application/json'},body:JSON.stringify(correction),signal:AbortSignal.timeout(15000)});
   assert.equal((await patch(other)).status,404);const corrected=await patch(cookie);assert.equal(corrected.status,200);assert.equal((await corrected.json()).drinks[0].ml,360);assert.equal(await count(),1);
@@ -89,8 +102,8 @@ test('composer identify enforces caps and ownership, caches one model call, and 
   await cap(0);const concurrentId=await stage();const before=await count();
   const changedManifestId=await stage();
   const simultaneous=await Promise.all([request('/api/drinks/identify',{upload_id:concurrentId,position:0}),request('/api/drinks/identify',{upload_id:changedManifestId,position:0})]);
-  assert.ok(simultaneous.some(r=>r.status===200));assert.ok(simultaneous.every(r=>[200,409].includes(r.status)));assert.equal(await count(),before+1);
-  const copied=await request('/api/drinks/identify',{upload_id:changedManifestId,position:0});assert.equal(copied.status,200);assert.equal(await count(),before+1);
+  assert.ok(simultaneous.some(r=>r.status===200));assert.ok(simultaneous.every(r=>[200,409].includes(r.status)));assert.equal(await count(),before+1);assert.equal(await hits(),1,'competing claims for one photo spend only for the model call');
+  const copied=await request('/api/drinks/identify',{upload_id:changedManifestId,position:0});assert.equal(copied.status,200);assert.equal(await count(),before+1);assert.equal(await hits(),1,'retrying a competing claim reuses the result without spending');
   // A reference with caffeine but no convertible portion stays unknown; it
   // must never turn into the 32mg cola fallback or a guessed calorie number.
   checked(await db.from('fdc_cache').upsert({query:cacheQuery,response:{kind:'fdc-search-v3',query:'coca cola',payload:{foods:[{fdcId:990040,description:'Beverages, carbonated, cola, regular',foodCategory:'Soft drinks',dataType:'SR Legacy',foodNutrients:[{nutrientId:1008,nutrientName:'Energy',unitName:'KCAL',value:42},{nutrientId:1003,nutrientName:'Protein',unitName:'G',value:0},{nutrientId:1004,nutrientName:'Fat',unitName:'G',value:0},{nutrientId:1005,nutrientName:'Carbohydrate',unitName:'G',value:10},{nutrientId:1057,nutrientName:'Caffeine',unitName:'MG',value:9}]}]}}},{onConflict:'query'}));
