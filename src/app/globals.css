@@ -1,6 +1,8 @@
 @import "tailwindcss";
 @import "../lib/theme/tokens.css";
 
+:root { --detail-photo-cap: 80dvh; }
+
 @custom-variant desktop (@media (min-width: 1024px));
 
 @theme inline {
@@ -35,6 +37,7 @@ body {
 
 /* Round 6 desktop shell and windows. Phone rules above and component classes stay intact. */
 @media (min-width: 1024px) {
+  :root { --detail-photo-cap: min(680px, 80dvh); }
   html:has(.desktop-capture) { height:100dvh; overflow:hidden; }
   body:has(.desktop-capture) { height:100dvh; overflow:hidden; }
   [data-agent-row] { margin-inline:0; margin-top:20px; margin-bottom:0; }
