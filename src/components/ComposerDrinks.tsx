@@ -80,5 +80,5 @@ export function useComposerDrinks(p:Props){
   {!rows.length&&<p className="mt-3 text-detail text-faint">All drinks were removed. Add another photo to make a new post.</p>}
  </section>:null;
  const editor=correction?<CorrectProductSheet product={photoDrinkProduct(correction.drink)} onSave={saveCorrection} onSaved={()=>setCorrecting(null)} onClose={()=>setCorrecting(null)}/>:null;
- return {active:ready,card,editor,error:ready&&error.identity===identity?error.message:'',saving,post,button:rows.length===1?`Post · ${amount(rows[0].chosen.ml)} ml`:`Post ${rows.length} drinks`,disabled:!rows.length};
+ return {active:ready,card,editor,error:error.identity===identity?error.message:'',saving,post,button:rows.length===1?`Post · ${amount(rows[0].chosen.ml)} ml`:`Post ${rows.length} drinks`,disabled:!rows.length};
 }
