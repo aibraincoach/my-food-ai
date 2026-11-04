@@ -1,0 +1,28 @@
+{
+  "observedAtUtc": "2026-11-04T10:03:00.051516+00:00",
+  "worktree": "/home/opc/Projects/my-food-ai-wt/issue579",
+  "head": "6d3d63b4088a72cb67803fe75f93b27d19151072",
+  "mergedMain": "376e3306942161a5e659e8d99c85154c8ac26a35",
+  "reviewArchive": "uploads/review-evidence/issue579-agy-6d3d63b.tar.gz",
+  "reviewArchiveSha256": "d99bf562e5de94338c3c977347c2f7ae36021f5adfd30253ad6f097837566669",
+  "reviewArchiveFiles": 47,
+  "byteVerification": "Every regular file of entire requested review-state directory matches archived bytes",
+  "reviewManifest": "uploads/review-evidence/issue579-agy-6d3d63b-manifest.json",
+  "existingTrackedEvidence": [
+    "docs/reviews/issue579-agy-review.md",
+    "docs/evidence/issue579"
+  ],
+  "untrackedEvidence": "No untracked evidence/scripts; private envs and disposable backend/cache files excluded",
+  "worktreeRemoved": true,
+  "localFeatureBranchRemoved": true,
+  "remoteFeatureBranchAbsent": true,
+  "preserved": [
+    "main",
+    "run14-f live collector",
+    "run14-g docs",
+    "original run13 worktree",
+    "all external worktrees",
+    "private-access and protection bypass"
+  ],
+  "noBuildOrDocPush": true
+}
