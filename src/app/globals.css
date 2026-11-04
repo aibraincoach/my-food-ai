@@ -51,8 +51,9 @@ body {
   .desktop-camera-inner .desktop-shutter { width:64px !important; height:64px !important; border-width:3px !important; }
   .desktop-camera-inner .desktop-shutter > span { width:50px !important; height:50px !important; }
 
-  .desktop-post-dialog { width:min(1000px,calc(100vw - 112px)); }
-  .desktop-post-content { display:grid; grid-template-columns:minmax(0,640px) minmax(320px,360px); height:min(680px,calc(100dvh - 96px)); border-radius:10px; overflow:hidden; }
+  .desktop-post-dialog { width:fit-content; max-width:calc(100vw - 112px); }
+  /* The photo column keeps its stored aspect ratio within the available window. */
+  .desktop-post-content { --photo-w:1; --photo-h:1; --photo-box-h:min(680px,calc(100dvh - 96px),calc(640px * var(--photo-h) / var(--photo-w)),calc((100vw - 472px) * var(--photo-h) / var(--photo-w))); display:grid; grid-template-columns:calc(var(--photo-box-h) * var(--photo-w) / var(--photo-h)) 360px; height:var(--photo-box-h); border-radius:10px; overflow:hidden; }
   .desktop-post-content > div:first-child { height:100% !important; }
   .desktop-post-record { display:flex; flex-direction:column; min-height:0; background:white; }
   .desktop-post-record > div:first-child { flex-shrink:0; border-bottom:1px solid var(--color-hairline); height:56px; }
