@@ -1,4 +1,4 @@
-import {foodApproximation} from "@/lib/fdc/approximation-metadata";
+import {foodApproximation,storedEstimateFood} from "@/lib/fdc/approximation-metadata";
 import {traceNutritionReuse} from "@/lib/fdc/match";
 import type {SupabaseClient} from '@supabase/supabase-js';
 import {getFoodById} from '@/lib/fdc/client';
@@ -42,6 +42,9 @@ export async function resolvePortionNutrition(admin: SupabaseClient, postId: str
     const approximation=foodApproximation(nutrition);
     return storedNutrition(scaleNutrition(approximation&&food?{...food,approximation}:food,grams==null?null:toNumber(grams)),priorId);
    }
+   // Legacy estimates without a retained reference must re-resolve rather than
+   // reuse null amounts when a portion becomes known.
+   if(foodApproximation(nutrition)?.kind==='estimate'&&toNumber(grams)>0&&(toNumber(prior.portion_grams)<=0||!hasAmounts)&&!storedEstimateFood(nutrition))return null;
    return rescaleStoredNutrition(nutrition,prior.portion_grams,grams);
   }
   priorId=prior.supersedes;

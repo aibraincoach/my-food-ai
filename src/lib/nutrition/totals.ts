@@ -1,3 +1,4 @@
+import {storedEstimateFood} from "@/lib/fdc/approximation-metadata";
 import { ApiError, ioError } from "@/lib/worker/errors";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { scaleNutrition } from "@/lib/fdc/nutrients";
@@ -173,6 +174,11 @@ export function normalizeStoredNutrition(row: NutritionRow, grams: Numeric): Nut
 
 // Portion-only revisions retain the already selected USDA identity and density.
 export function rescaleStoredNutrition(row: NutritionRow, oldGrams: Numeric, newGrams: Numeric): NutritionRow {
+  const reference=storedEstimateFood(row);
+  if(reference){
+    const n=scaleNutrition(reference,newGrams==null?null:toNumber(newGrams));
+    return {...row,calories:n.calories,protein_g:n.proteinG,carbs_g:n.carbsG,fat_g:n.fatG,fibre_g:n.fibreG,sugar_g:n.sugarG,sodium_mg:n.sodiumMg,micronutrients:n.micronutrients as StoredNutrient[]};
+  }
   const normalized = normalizeStoredNutrition(row, oldGrams);
   const old = toNumber(oldGrams), next = toNumber(newGrams);
   const factor = old > 0 && next > 0 ? next / old : null;

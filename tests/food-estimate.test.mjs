@@ -11,3 +11,20 @@ async function withPayload(payload,fn){const original=globalThis.fetch;globalThi
 test('non-food refuses a model estimate',async()=>withPayload({...valid,food:false,calories:null},async()=>{assert.equal(await estimateFood('ceramic plate','not food'),null);}));
 test('model estimate scales, names its non-USDA source and discloses provenance',async()=>withPayload(valid,async()=>{const food=await estimateFood('kerupuk','fried cassava cracker');const n=scaleNutrition(food,50);assert.equal(n.calories,250);assert.equal(n.proteinG,1);assert.equal(n.sodiumMg,300);assert.match(n.sourceRef,/^estimate:/);const row={name:'kerupuk',source_ref:n.sourceRef,micronutrients:n.micronutrients};assert.deepEqual(foodApproximation(row),{kind:'estimate',basis:valid.basis});assert.match(plainConsumed({calories:n.calories,protein_g:n.proteinG,carbs_g:n.carbsG,fat_g:n.fatG},approximationLabels([row])),/Nutrition for kerupuk is a model estimate, fried cassava cracker\./);}));
 test('out-of-range or malformed model nutrition is a provider error',async()=>{for(const bad of [{calories:5000},{protein_g:'2'},{sodium_mg:-1},{fat_g:undefined}])await withPayload({...valid,...bad},async()=>{await assert.rejects(()=>estimateFood('kerupuk',''),error=>error.status===502);});});
+const {resolvePortionNutrition,storedNutrition}=await import('../src/lib/nutrition/portion.ts');
+const {rescaleStoredNutrition}=await import('../src/lib/nutrition/totals.ts');
+function storedDb(row,grams){return{from(table){const q={select(){return q},eq(){return q},abortSignal(){return q},async maybeSingle(){return{data:table==='post_items'?{id:'prior',name:'kerupuk',portion_grams:grams,supersedes:null}:row,error:null,status:200}}};return q;}};}
+test('estimated nutrition recovers from unknown to known portions without a USDA request or another model call',async()=>withPayload(valid,async()=>{
+ const food=await estimateFood('kerupuk','');
+ for(const initialGrams of [null,0,100]){
+  let row=storedNutrition(scaleNutrition(food,initialGrams),'prior');
+  if(initialGrams===100)row=rescaleStoredNutrition(row,100,null);
+  assert.equal(row.calories,null);
+  const restored=await resolvePortionNutrition(storedDb(row,null),'post','prior','kerupuk',50);
+  assert.equal(restored.calories,250);assert.equal(restored.protein_g,1);assert.equal(restored.sodium_mg,300);
+  assert.equal(restored.source_ref,'estimate:'+valid.basis);
+  const labels=approximationLabels([{name:'kerupuk',...restored}]);assert.match(plainConsumed(restored,labels),/is a model estimate/);
+  // The direct replay rescaling path must recover the same reference too.
+  assert.equal(rescaleStoredNutrition(row,null,50).calories,250);
+ }
+}));
