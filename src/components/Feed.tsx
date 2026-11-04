@@ -448,9 +448,10 @@ export default function Feed({initialPage, initialUserId, initialZone = "UTC", f
   if(listed.length)for (let day = listed[0]; day >= listed.at(-1)!; day = shiftDay(day, -1)) days.push(day);
   const totals = new Map(visibleState.days.map(day => [day.day, day]));
   return <div data-feed-source={fallbackOnly||!freshResponse?"cache":"fresh"} data-feed-client-ready={!fallbackOnly ? true : undefined} data-cached-feed-ready={fallbackOnly ? true : undefined} className="flex flex-col">
-    {localCards}
+    {localCards.filter((_,index)=>!days.includes(localDay[index]))}
     {days.map(day => <section key={day} aria-label={day} className="relative pb-card-gap">
       {!uploadDays.has(day)&&<DayHeader day={day} zone={zone} empty={!groups.has(day)} total={totals.get(day)} />}
+      {localCards.filter((_,index)=>localDay[index]===day)}
       {groups.has(day) ? <div className="flex flex-col gap-card-gap pt-sheet-top">{groups.get(day)!.map((post) => <div key={uploads.find(upload=>upload.postId===post.id)?.operationId??post.id} data-desktop-post={post.id} tabIndex={-1}>{fallbackOnly ? <PostCard priority={visibleState.posts[0]?.id === post.id} post={post} /> : <RealtimePost initial={post} renderCard={(fresh) => <PostCard priority={visibleState.posts[0]?.id === post.id} post={fresh} upload={uploads.find(upload=>upload.postId===post.id)}
          />} />}</div>)}</div> : null}
     </section>)}
@@ -491,9 +492,9 @@ function UploadHydratedCard({post,upload,header}:{post:FeedPost;upload:UploadSta
         } else {
           missing=0;
           if(card.status!=='ready'){
-            const pending=await getPendingItems(db,id);
+            const pending=await getPendingItems(db,id).catch(()=>null);
             if(!live)return;
-            Object.assign(card,{pendingItems:pending.pendingItems,fail_reason:pending.fail_reason});
+            if(pending)Object.assign(card,{pendingItems:pending.pendingItems,fail_reason:pending.fail_reason??card.fail_reason});
           }
           setFresh(card);
           if(card.status==='ready'&&lastStatus.current!=='ready')window.dispatchEvent(new CustomEvent('post-ready',{detail:{id}}));
