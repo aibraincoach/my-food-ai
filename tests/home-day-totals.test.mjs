@@ -27,6 +27,7 @@ test('parallel Home streams share one totals read and pass that snapshot into Fe
     if(name==='@/lib/supabase/server')return{createClient:async()=>({auth:{getUser:async()=>{authCalls++;throw Error('second Auth read');}}})};
     if(name==='@/lib/posts/days')return{validZone:()=> 'UTC',dateInZone:()=> '2026-11-03',shiftDay:(_,n)=>String(n),getEarliestPostDate:async()=>null,getLoggedDates:async()=>[],getDayTotals:async()=>{totalCalls++;await new Promise(resolve=>setImmediate(resolve));return days;}};
     if(name==='@/lib/posts/today-view')return{todayFromPage};
+    if(name==='@/lib/nutrition/totals')return{sumNutrition:()=>({})};
     if(name==='@/lib/posts/feed')return{getFeed:async()=>({posts:[],days:[],nextCursor:null})};
     if(name==='next/link'||name.startsWith('@/components/'))return{default:name};
     throw Error(name);
