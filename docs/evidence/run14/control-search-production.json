@@ -1,0 +1,41 @@
+{
+  "observedAt": "2026-11-04T09:18:48.837Z",
+  "app": "https://my-food-ai-ten.vercel.app",
+  "engine": "Firefox native BiDi touch actions (no CPU throttling available)",
+  "viewport": {
+    "width": 390,
+    "height": 844
+  },
+  "limitations": [
+    "Firefox fallback cannot satisfy requested CDP CPU4x throttle.",
+    "CLS null means this engine did not expose layout-shift; never treat it as zero.",
+    "Visible-mutation latency includes the actual global pressed-state mutation; it is not server completion time.",
+    "Geometry, physical touch and double-tap outcomes are observed; unexercised rows are explicitly incomplete."
+  ],
+  "rows": [
+    {
+      "control": "Search result",
+      "hitArea": {
+        "width": 390,
+        "height": 390
+      },
+      "disabled": false,
+      "pressed": true,
+      "timeToVisibleMutationMs": 1,
+      "cumulativeLayoutShift": null,
+      "doubleTap": {
+        "first": {
+          "path": "/posts/87a62bb2-69cb-42cb-80c0-b7cd7becf921",
+          "dialogs": 0
+        },
+        "second": {
+          "path": "/posts/87a62bb2-69cb-42cb-80c0-b7cd7becf921",
+          "dialogs": 0
+        },
+        "pointerdowns": 2
+      },
+      "scope": "production interface",
+      "verdict": "pass"
+    }
+  ]
+}

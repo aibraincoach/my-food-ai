@@ -5,7 +5,7 @@
     "renderedCola": {
       "scrollLeft": 0,
       "slideWidth": 378,
-      "text": "DRANK \u00b7 1:43 AMtumblerCoca-Cola Original Taste330 mlTodaytumbler330 mlconsumed today330 ml from drinks0 ml from food30 mg caffeine+Add a photoLeftovers",
+      "text": "DRANK · 1:43 AMtumblerCoca-Cola Original Taste330 mlTodaytumbler330 mlconsumed today330 ml from drinks0 ml from food30 mg caffeine+Add a photoLeftovers",
       "svgLabels": [
         null,
         "tumbler",
@@ -156,11 +156,5 @@
   "cleanup": {
     "created": 2,
     "verifiedAbsent": 2
-  },
-  "limits": [
-    "The physical swipe did not move the cola carousel: the captured live view still showed1/2 original photograph. Persisted30mg caffeine is proved; rendered second-slide picture is not proved by this receipt.",
-    "Firefox navigation after the second settled post returned NS_BINDING_ABORTED; later tile/calendar/control stages did not run in that attempt.",
-    "Both own fixtures, drafts, detached cleanup jobs and Storage prefixes were verified absent in finally.",
-    "Postclose388/390ms includes the driver300ms settle pause; first visible DOMmutation0ms and pressedtrue were observed. No CPU4x or Fast3G was available in this Firefox fallback."
-  ]
+  }
 }

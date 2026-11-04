@@ -1,0 +1,50 @@
+{
+  "observedAt": "2026-11-04T08:55:26.952Z",
+  "engine": "Firefox native BiDi,390x844,no CPU throttle available",
+  "checks": {
+    "photographedDrink": {
+      "status": "ready",
+      "intake": [
+        {
+          "kind": "caffeine",
+          "amount": 30,
+          "label": "Coca-Cola"
+        }
+      ]
+    }
+  },
+  "posts": [
+    {
+      "fixture": "fleet14-cola-render-final.png",
+      "idPrefix": "cbd5974b",
+      "status": "ready",
+      "closeMs": 421,
+      "pendingNames": [
+        {
+          "name": "Coca-Cola",
+          "kcal": null
+        }
+      ],
+      "items": [
+        {
+          "name": "Coca-Cola",
+          "item_nutrition": {
+            "calories": 138.6
+          }
+        }
+      ],
+      "intake": [
+        {
+          "kind": "caffeine",
+          "amount": 30,
+          "label": "Coca-Cola"
+        }
+      ]
+    }
+  ],
+  "error": "Browser condition did not settle",
+  "cleanup": {
+    "created": 1,
+    "verifiedAbsent": 1
+  }
+}

@@ -1,0 +1,114 @@
+{
+  "observedAt": "2026-11-04T09:15:52.751Z",
+  "engine": "Firefox native BiDi,390x844,no CPU throttle available",
+  "checks": {
+    "photographedDrink": {
+      "status": "ready",
+      "intake": [
+        {
+          "kind": "caffeine",
+          "amount": 30,
+          "label": "Coca-Cola Original Taste"
+        }
+      ]
+    },
+    "intakeSource": [
+      {
+        "source": "item",
+        "kind": "caffeine",
+        "amount": 30,
+        "label": "Coca-Cola Original Taste"
+      }
+    ],
+    "apiFeed": {
+      "present": true,
+      "status": "ready",
+      "kind": "drink",
+      "drinkSource": "item",
+      "drink": {
+        "source": "item",
+        "label": "Coca-Cola Original Taste",
+        "caffeineMg": 30
+      },
+      "slides": [
+        {
+          "kind": "photo"
+        },
+        {
+          "kind": "card"
+        }
+      ],
+      "items": [
+        {
+          "name": "Coca-Cola Original Taste"
+        }
+      ]
+    },
+    "before": {
+      "article": true,
+      "text": "Ttestkitchen2···Add photoLog againSave mealEdit captionEdit time2:15 AMDeleteDRANK · 2:15 AMtumblerCoca-Cola Original Taste330 mlTodaytumbler330 mlconsumed today330 ml from drinks0 ml from food30 mg caffeine+Add a photoLeftovers‹›1/2Details ›testkitchen2 Fleet14 final photographed cola fixture.Drank: 330 ml · 30 mg caffeine · 139 kcal more2:15 AM",
+      "rail": true,
+      "directDrinkLink": false,
+      "labels": [
+        "tumbler",
+        "tumbler"
+      ]
+    },
+    "rendered": {
+      "path": "carousel",
+      "slideIndex": 1,
+      "scrollLeft": 378,
+      "slideWidth": 378,
+      "text": "DRANK · 2:15 AMtumblerCoca-Cola Original Taste330 mlTodaytumbler330 mlconsumed today330 ml from drinks0 ml from food30 mg caffeine",
+      "glyph": "tumbler",
+      "glyphRect": {
+        "x": 31.01666259765625,
+        "y": 317.75,
+        "width": 69.78334045410156,
+        "height": 69.78334045410156
+      },
+      "glyphVisible": true,
+      "pass": true
+    }
+  },
+  "posts": [
+    {
+      "fixture": "fleet14-cola-settled-proof.png",
+      "idPrefix": "26be1227",
+      "status": "ready",
+      "closeMs": 409,
+      "pendingNames": [
+        {
+          "name": "Coca-Cola Original Taste",
+          "kcal": null
+        }
+      ],
+      "items": [
+        {
+          "name": "Coca-Cola Original Taste",
+          "item_nutrition": {
+            "calories": 138.6
+          }
+        }
+      ],
+      "intake": [
+        {
+          "kind": "caffeine",
+          "amount": 30,
+          "label": "Coca-Cola Original Taste"
+        }
+      ],
+      "settledJobs": [
+        {
+          "kind": "analyze",
+          "status": "finished",
+          "error": null
+        }
+      ]
+    }
+  ],
+  "cleanup": {
+    "created": 1,
+    "verifiedAbsent": 1
+  }
+}

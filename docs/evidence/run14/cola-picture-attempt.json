@@ -1,0 +1,56 @@
+{
+  "observedAt": "2026-11-04T09:07:00.069Z",
+  "engine": "Firefox native BiDi,390x844,no CPU throttle available",
+  "checks": {
+    "photographedDrink": {
+      "status": "ready",
+      "intake": []
+    },
+    "intakeSource": [],
+    "before": {
+      "article": true,
+      "text": "Ttestkitchen2···Log againSave mealEdit captionEdit time2:07 AMDeleteDetails ›testkitchen2 One 330 ml Coca-Cola can. Fleet14 focused rendered picture proof.Coca-Cola can Original TasteProcessing, traffic low2:07 AM",
+      "rail": true,
+      "directDrinkLink": false,
+      "labels": []
+    },
+    "rendered": {
+      "path": "carousel",
+      "slideIndex": 0,
+      "scrollLeft": 0,
+      "slideWidth": 378,
+      "text": "",
+      "glyphRect": null,
+      "glyphVisible": false,
+      "pass": false
+    }
+  },
+  "posts": [
+    {
+      "fixture": "fleet14-cola-picture-proof.png",
+      "idPrefix": "7c081da8",
+      "status": "ready",
+      "closeMs": 412,
+      "pendingNames": [
+        {
+          "name": "Coca-Cola can Original Taste",
+          "kcal": null
+        }
+      ],
+      "items": [
+        {
+          "name": "Coca-Cola can Original Taste",
+          "item_nutrition": {
+            "calories": 138.6
+          }
+        }
+      ],
+      "intake": []
+    }
+  ],
+  "error": "Actual rendered card did not prove visible drink glyph and caffeine",
+  "cleanup": {
+    "created": 1,
+    "verifiedAbsent": 1
+  }
+}
