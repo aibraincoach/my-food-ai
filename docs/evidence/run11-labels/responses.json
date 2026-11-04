@@ -1,0 +1,121 @@
+{
+  "fixtureCredits": {
+    "indonesian": "Rantemario, Informasi Nilai Gizi.jpg, Wikimedia Commons, CC BY-SA 4.0; unchanged original",
+    "english": "FDA Nutrition Facts educational label, retained /tmp/mfa-fda-label.jpg fixture"
+  },
+  "probes": [
+    {
+      "name": "indonesian-before",
+      "head": "905b47414efd119ba27b22782af647aa2059619f",
+      "status": 200,
+      "ms": 7347,
+      "body": {
+        "reading_id": "76e65ea4-256d-46bc-92cc-8e2a02753074",
+        "reading": {
+          "box": {
+            "h": 0.74,
+            "w": 0.32,
+            "x": 0.51,
+            "y": 0.217
+          },
+          "is_label": true,
+          "per_serving": {
+            "carbs_g": 30,
+            "fat_g": 5,
+            "fibre_g": null,
+            "kcal": 200,
+            "protein_g": 8,
+            "sodium_mg": 55,
+            "sugar_g": 23
+          },
+          "product_name": null,
+          "serving": {
+            "amount": 250,
+            "unit": "ml"
+          }
+        }
+      }
+    },
+    {
+      "name": "indonesian-after",
+      "head": "765eb4751e7103464d826626bf281013c427d571",
+      "status": 200,
+      "ms": 12511,
+      "body": {
+        "reading_id": "bfee1139-bfb9-4f5d-b11e-86553849e712",
+        "reading": {
+          "box": {
+            "h": 0.505,
+            "w": 0.325,
+            "x": 0.508,
+            "y": 0.203
+          },
+          "is_label": true,
+          "per_serving": {
+            "carbs_g": 30,
+            "fat_g": 5,
+            "fibre_g": null,
+            "kcal": 200,
+            "protein_g": 8,
+            "sodium_mg": 55,
+            "sugar_g": 23
+          },
+          "product_name": null,
+          "serving": {
+            "amount": 250,
+            "unit": "ml"
+          }
+        }
+      }
+    },
+    {
+      "name": "english-after",
+      "head": "765eb4751e7103464d826626bf281013c427d571",
+      "status": 200,
+      "ms": 6237,
+      "body": {
+        "reading_id": "b8421c35-922c-462f-a2db-ce15b18e5098",
+        "reading": {
+          "box": {
+            "h": 0.82,
+            "w": 0.69,
+            "x": 0.16,
+            "y": 0.04
+          },
+          "is_label": true,
+          "per_serving": {
+            "carbs_g": 37,
+            "fat_g": 8,
+            "fibre_g": 4,
+            "kcal": 230,
+            "protein_g": 3,
+            "sodium_mg": 160,
+            "sugar_g": 12
+          },
+          "product_name": null,
+          "serving": {
+            "amount": 55,
+            "unit": "g"
+          }
+        }
+      }
+    }
+  ],
+  "cleanup": [
+    {
+      "name": "indonesian-before",
+      "readingsRemaining": 0,
+      "photosRemaining": 0
+    },
+    {
+      "name": "indonesian-after",
+      "readingsRemaining": 0,
+      "photosRemaining": 0
+    },
+    {
+      "name": "english-after",
+      "readingsRemaining": 0,
+      "photosRemaining": 0
+    }
+  ]
+}

@@ -1,0 +1,230 @@
+{
+  "startedAt": "2026-11-04T00:54:32.063Z",
+  "account": 2,
+  "viewport": {
+    "width": 390,
+    "height": 844
+  },
+  "zone": "Asia/Jakarta",
+  "posts": [
+    {
+      "name": "bintang",
+      "caption": "a can of Bintang beer",
+      "id": "a4a7c8fa-1114-4d23-86b6-5b2e482f086d",
+      "postHttp": 200,
+      "status": "ready",
+      "fail_reason": null,
+      "items": [
+        {
+          "name": "Bintang beer",
+          "food_category": "beer",
+          "portion_text": "1 can",
+          "portion_grams": 330,
+          "source_ref": "2710616",
+          "micronutrients": [
+            {
+              "basis": "portion",
+              "value": 12.87,
+              "unitName": "G",
+              "nutrientId": 1018,
+              "nutrientName": "Alcohol, ethyl"
+            },
+            {
+              "basis": "portion",
+              "value": 303.46799999999996,
+              "unitName": "G",
+              "nutrientId": 1051,
+              "nutrientName": "Water"
+            },
+            {
+              "basis": "portion",
+              "value": 0,
+              "unitName": "MG",
+              "nutrientId": 1057,
+              "nutrientName": "Caffeine"
+            }
+          ]
+        }
+      ],
+      "intake": [
+        {
+          "kind": "alcohol",
+          "amount": 13,
+          "ml": 330,
+          "label": "Bintang beer",
+          "source": "item"
+        }
+      ],
+      "resolvedDrink": {
+        "drinksMl": 750,
+        "foodMl": 0,
+        "totalMl": 750,
+        "caffeineMg": 0,
+        "kind": "alcohol",
+        "alcoholG": 12.87,
+        "dayDrinks": [
+          {
+            "glyph": "water",
+            "ml": 250
+          },
+          {
+            "glyph": "water",
+            "ml": 250
+          },
+          {
+            "glyph": "water",
+            "ml": 250
+          },
+          {
+            "glyph": "beer",
+            "ml": 330
+          }
+        ],
+        "source": "item",
+        "ml": 0,
+        "label": "Bintang beer",
+        "dayCaffeineMg": 0
+      },
+      "settledAsAlcohol": true,
+      "cardText": "T\ntestkitchen2\n···\nDRANK · 7:54\nBintang beer\n13 g alcohol · 0.9 standard drinks\nToday\n750 ml\nconsumed today\n750 ml from drinks\n0 ml from food\nDetails ›\n\ntestkitchen2 a can of Bintang beer\n\nDrank: alcohol unavailable · 142 kcal more\n7:54",
+      "glyphs": [
+        "beer",
+        "water",
+        "water",
+        "water",
+        "beer"
+      ]
+    },
+    {
+      "name": "wine",
+      "caption": "150 ml red wine",
+      "id": "d021e647-853d-47ee-9f26-95badeaac11c",
+      "postHttp": 200,
+      "status": "ready",
+      "fail_reason": null,
+      "items": [
+        {
+          "name": "red wine",
+          "food_category": "wine",
+          "portion_text": "150 ml",
+          "portion_grams": 150,
+          "source_ref": "2710688",
+          "micronutrients": [
+            {
+              "basis": "portion",
+              "value": 15.899999999999999,
+              "unitName": "G",
+              "nutrientId": 1018,
+              "nutrientName": "Alcohol, ethyl"
+            },
+            {
+              "basis": "portion",
+              "value": 129.73499999999999,
+              "unitName": "G",
+              "nutrientId": 1051,
+              "nutrientName": "Water"
+            },
+            {
+              "basis": "portion",
+              "value": 0,
+              "unitName": "MG",
+              "nutrientId": 1057,
+              "nutrientName": "Caffeine"
+            }
+          ]
+        }
+      ],
+      "intake": [
+        {
+          "kind": "alcohol",
+          "amount": 16,
+          "ml": 150,
+          "label": "red wine",
+          "source": "item"
+        }
+      ],
+      "resolvedDrink": {
+        "drinksMl": 750,
+        "foodMl": 0,
+        "totalMl": 750,
+        "caffeineMg": 0,
+        "kind": "alcohol",
+        "alcoholG": 15.899999999999999,
+        "dayDrinks": [
+          {
+            "glyph": "water",
+            "ml": 250
+          },
+          {
+            "glyph": "water",
+            "ml": 250
+          },
+          {
+            "glyph": "water",
+            "ml": 250
+          },
+          {
+            "glyph": "beer",
+            "ml": 330
+          },
+          {
+            "glyph": "wine",
+            "ml": 150
+          }
+        ],
+        "source": "item",
+        "ml": 0,
+        "label": "red wine",
+        "dayCaffeineMg": 0
+      },
+      "settledAsAlcohol": true,
+      "cardText": "T\ntestkitchen2\n···\nDRANK · 7:54\nred wine\n16 g alcohol · 1.1 standard drinks\nToday\n750 ml\nconsumed today\n750 ml from drinks\n0 ml from food\nDetails ›\n\ntestkitchen2 150 ml red wine\n\nDrank: alcohol unavailable · 128 kcal more\n7:54",
+      "glyphs": [
+        "wine",
+        "water",
+        "water",
+        "water",
+        "beer",
+        "wine"
+      ]
+    }
+  ],
+  "before": {
+    "water": 750,
+    "caffeine": 0,
+    "alcohol": 0
+  },
+  "after": {
+    "water": 1000,
+    "caffeine": 0,
+    "alcohol": 29
+  },
+  "fixtureRows": [
+    {
+      "kind": "alcohol",
+      "amount": 13,
+      "ml": 330,
+      "label": "Bintang beer",
+      "alcoholG": 12.87,
+      "caffeineMg": 0
+    },
+    {
+      "kind": "alcohol",
+      "amount": 16,
+      "ml": 150,
+      "label": "red wine",
+      "alcoholG": 15.899999999999999,
+      "caffeineMg": 0
+    }
+  ],
+  "fixtureWater": 0,
+  "todayText": "Today: 1,000 ml · 0 mg caffeine · 29 g alcohol",
+  "finishedAt": "2026-11-04T00:55:08.396Z",
+  "cleanup": {
+    "created": 2,
+    "postsRemaining": 0,
+    "draftsRemaining": 0,
+    "objectsRemoved": 2,
+    "objectsRemaining": 0
+  }
+}

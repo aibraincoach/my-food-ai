@@ -1,0 +1,12 @@
+diff --git a/tests/fixtures/local-model.mjs b/tests/fixtures/local-model.mjs
+index 8870f2c..4a6de44 100644
+--- a/tests/fixtures/local-model.mjs
++++ b/tests/fixtures/local-model.mjs
+@@ -7,6 +7,6 @@ if(url.pathname.endsWith('/__fixture')){mode=json().mode;calls=[];return send(20
+ const body=json(),name=body.text?.format?.name;calls.push({name,path:url.pathname});
+ if(name==='search_query'&&body.text?.format?.schema?.properties?.id){const data=JSON.parse(body.input[0].content[0].text);const result=structuredClone(fixture);for(const output of result.output)for(const text of output.content??[])if(text.type==='output_text')text.text=JSON.stringify({id:data.candidates?.[0]?.id??null,query:null,query_food:null,reason:'Scripted candidate chosen'});return send(200,result);}
+ if(mode==='meta-refusal'&&name==='identify')return send(200,{status:'completed',output:[{type:'message',content:[{type:'refusal',refusal:'Scripted refusal'}]}],usage:{input_tokens:1,output_tokens:1}});
+-if(mode&&name==='identify'){const response=structuredClone(fixture),water=mode==='water',unknown=mode==='cola-unknown';const meal={items:[{confidence:1,name:water?'Water':'Coca cola',portion_grams:unknown?null:water?300:330,portion_text:water?'300 ml, estimated from the photo':'330 ml, read from the can',region_index:null}],needs_input:null,summary:water?'Water in a glass.':'Cola in a can.',nutrition_label:false};for(const output of response.output)for(const text of output.content??[])if(text.type==='output_text')text.text=JSON.stringify(meal);return send(200,response);}
++if(mode&&name==='identify'){const response=structuredClone(fixture),water=mode==='water',unknown=mode==='cola-unknown';const meal={items:[{confidence:1,name:mode==='fdc-429'?'USDA rate-limit fixture '+crypto.randomUUID():water?'Water':'Coca cola',portion_grams:unknown?null:water?300:330,portion_text:water?'300 ml, estimated from the photo':'330 ml, read from the can',region_index:null}],needs_input:null,summary:water?'Water in a glass.':'Cola in a can.',nutrition_label:false};for(const output of response.output)for(const text of output.content??[])if(text.type==='output_text')text.text=JSON.stringify(meal);return send(200,response);}
+ const up=http.request(new URL(req.url,fake.origin),{method:req.method,headers:req.headers},r=>{res.writeHead(r.statusCode,r.headers);r.pipe(res);});up.on('error',()=>send(502,{}));up.end(bytes);
+ }).listen(Number(process.env.TEST_MODEL_PORT||60165),'127.0.0.1',()=>console.log('Scripted isolated model ready'));

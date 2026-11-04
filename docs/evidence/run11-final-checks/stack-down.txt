@@ -1,0 +1,5 @@
+
+> my-food-ai@0.1.0 test:stack
+> node scripts/test-stack.mjs down
+
+Disposable test stack stopped.

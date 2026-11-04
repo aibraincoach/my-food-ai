@@ -1,0 +1,126 @@
+{
+  "startedAt": "2026-11-04T00:37:49.165Z",
+  "photos": [
+    {
+      "name": "coffee",
+      "tap": 1793752720249,
+      "closedAt": 1793752721438,
+      "newIds": []
+    },
+    {
+      "name": "cola",
+      "tap": 1793752737799,
+      "closedAt": 1793752740127,
+      "newIds": []
+    }
+  ],
+  "progress": [
+    {
+      "id": "7353fc0f-5d5a-47d4-b20b-9d018c15e9c5",
+      "at": 1793752720404,
+      "status": "queued",
+      "names": [],
+      "text": "",
+      "hasKcal": false
+    },
+    {
+      "id": "7353fc0f-5d5a-47d4-b20b-9d018c15e9c5",
+      "at": 1793752723175,
+      "status": "ready",
+      "names": [],
+      "text": "",
+      "hasKcal": false
+    },
+    {
+      "id": "3cf6c64f-98a8-42dd-b347-0eb584ebcee9",
+      "at": 1793752738825,
+      "status": "queued",
+      "names": [],
+      "text": "",
+      "hasKcal": false
+    },
+    {
+      "id": "3cf6c64f-98a8-42dd-b347-0eb584ebcee9",
+      "at": 1793752741841,
+      "status": "ready",
+      "names": [],
+      "text": "",
+      "hasKcal": false
+    }
+  ],
+  "cleanup": {
+    "created": 2,
+    "postsRemaining": 0,
+    "objectsRemoved": 6,
+    "objectsRemaining": 0
+  },
+  "credits": "Meals: eval/SOURCES.md. Coffee cup (1).jpg: Jon Sullivan, public domain, Wikimedia Commons. Coca-cola.jpg: 些細な日常, CC BY-SA4.0, Wikimedia Commons. Originals supplied to normal client reencoding.",
+  "capBefore": [
+    {
+      "route": "fdc_barcode",
+      "hour": "2026-11-04T00:00:00+00:00",
+      "hits": 3
+    },
+    {
+      "route": "post",
+      "hour": "2026-11-04T00:00:00+00:00",
+      "hits": 24
+    }
+  ],
+  "readings": [
+    {
+      "name": "coffee",
+      "allDrinks": true,
+      "drinks": [
+        {
+          "name": "Coffee with milk",
+          "ml": 240,
+          "caffeineMg": 86.39999999999999
+        }
+      ]
+    },
+    {
+      "name": "cola",
+      "allDrinks": true,
+      "drinks": [
+        {
+          "name": "Coca-Cola",
+          "ml": 280,
+          "caffeineMg": 25.2
+        }
+      ]
+    }
+  ],
+  "statuses": [
+    {
+      "id": "33611c69-669e-42fb-a6e2-b81c4719400c",
+      "status": "ready",
+      "fail_reason": null
+    },
+    {
+      "id": "8a6d1e94-c931-460d-aacd-30b6be3b7236",
+      "status": "ready",
+      "fail_reason": null
+    }
+  ],
+  "capAfter": [
+    {
+      "route": "fdc_barcode",
+      "hour": "2026-11-04T00:00:00+00:00",
+      "hits": 3
+    },
+    {
+      "route": "post",
+      "hour": "2026-11-04T00:00:00+00:00",
+      "hits": 26
+    },
+    {
+      "route": "drink_identify",
+      "hour": "2026-11-04T00:00:00+00:00",
+      "hits": 2
+    }
+  ],
+  "capMessages": 0,
+  "namesBeforeTotals": [],
+  "finishedAt": "2026-11-04T00:39:06.241Z"
+}

@@ -1,0 +1,81 @@
+{
+  "origin": "https://my-food-ai-ten.vercel.app",
+  "products": [
+    {
+      "code": "7622300761363",
+      "status": 200,
+      "product": {
+        "attribution": "off",
+        "fdcId": 0,
+        "gtin": "07622300761363",
+        "name": "Oreo Chocolate Minis Cup",
+        "brand": "Oreo",
+        "foodCategory": null,
+        "basisUnit": "g",
+        "servingSize": null,
+        "servingSizeUnit": null,
+        "servingText": null,
+        "packageWeight": null,
+        "micronutrients": [],
+        "per100g": {
+          "calories": 489,
+          "protein_g": 5,
+          "carbs_g": 70,
+          "fat_g": 21,
+          "fibre_g": null,
+          "sugar_g": 36,
+          "sodium_mg": 400
+        },
+        "source": "database",
+        "originalName": "Oreo Chocolate Minis Cup"
+      },
+      "captureAttribution": true,
+      "post_id": "0a37be7f-63cc-47c1-834e-3eea01d8602b",
+      "detailAttribution": true
+    },
+    {
+      "code": "8992760221028",
+      "status": 200,
+      "product": {
+        "attribution": "off",
+        "fdcId": 0,
+        "gtin": "08992760221028",
+        "name": "17000725 Oreo Original (Vanilla)",
+        "brand": "BABYMONSTER OREO",
+        "foodCategory": null,
+        "basisUnit": "g",
+        "servingSize": 27.6,
+        "servingSizeUnit": "g",
+        "servingText": "27.6 g",
+        "packageWeight": "123g g",
+        "micronutrients": [],
+        "per100g": {
+          "calories": 471.014492753623,
+          "protein_g": 3.6231884057971,
+          "carbs_g": 72.463768115942,
+          "fat_g": 21.7391304347826,
+          "fibre_g": 3.6231884057971,
+          "sugar_g": 39.8550724637681,
+          "sodium_mg": 507.246376811594
+        },
+        "source": "database",
+        "originalName": "17000725 Oreo Original (Vanilla)"
+      },
+      "captureAttribution": true,
+      "post_id": "0d82503c-21d2-417c-ae36-acb392bbb19b",
+      "detailAttribution": true
+    }
+  ],
+  "cleanup": {
+    "postsCreated": 2,
+    "postsRemaining": 0,
+    "objectsRemoved": 6,
+    "objectsRemaining": 0,
+    "receiptsCreated": 2
+  },
+  "prompt": {
+    "background": "rgba(26, 25, 23, 0.7)",
+    "color": "rgb(250, 250, 249)",
+    "borderRadius": "22px"
+  }
+}

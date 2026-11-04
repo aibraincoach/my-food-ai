@@ -1,0 +1,16 @@
+TAP version 13
+# Subtest: composer identify enforces caps and ownership, caches one model call, and posts the chosen volume once
+ok 1 - composer identify enforces caps and ownership, caches one model call, and posts the chosen volume once
+  ---
+  duration_ms: 3623.043746
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 3975.575703

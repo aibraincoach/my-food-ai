@@ -1,0 +1,35 @@
+{
+  "productBuildMain": "6614fe29a8d2cf78b701e23f163a5acab2362988",
+  "fullSuiteBranchHead": "0b2c1900ff34ed2179b71ae0047b0d736321c9b4",
+  "productSourceDifference": [],
+  "branchOnlyFiles": [
+    "README.md",
+    "eslint.config.mjs",
+    "tests/composer-drinks-route.test.mjs",
+    "tests/fixtures/local-model.mjs"
+  ],
+  "testEnvironment": "disposable local .env.run11.test.local, MFA_TEST_DISPOSABLE=1",
+  "origins": {
+    "app": "http://127.0.0.1:60260",
+    "gateway": "http://127.0.0.1:60266",
+    "model": "http://127.0.0.1:60265",
+    "postgresPort": 55449
+  },
+  "tests": {
+    "pass": 573,
+    "fail": 0,
+    "skip": 6
+  },
+  "lint": {
+    "errors": 0,
+    "warnings": 6
+  },
+  "build": "passed",
+  "database": {
+    "pass": 34,
+    "fail": 0,
+    "skip": 0,
+    "branchHead": "0086f2cad4f56d3d54d915fffc6c288907dc68c7"
+  },
+  "subsequentFixtureChange": "After the full top-level suite, the forced USDA429 fixture alone received a unique food name to avoid cached answers. The complete database suite passed with this fix; targeted ESLint passed. Product source is unchanged."
+}

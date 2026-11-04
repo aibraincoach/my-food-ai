@@ -1,0 +1,14 @@
+Independent code-quality review (NOT a security review). Pull request: https://github.com/aibraincoach/my-food-ai/pull/490
+EXACT_REVIEW_HEAD=89840003183bff259a10fa40587c1a6e0421b3aa
+BASE=0086f2cad4f56d3d54d915fffc6c288907dc68c7
+
+The working directory contains only this review packet. Start by reading MANIFEST.md with the native file viewer (view_file).
+Then read EVERY part listed under patches/ with view_file, one part per call, in full. There are 1 changed paths and 1 patch parts.
+Deleted files carry their complete removed content in the patch; read them too.
+Files under context/ hold exact-head surrounding source and explicitly supplied dependency context; read them with view_file when needed. Missing context is not evidence that a dependency export is absent. Report uncertainty if the packet cannot establish a claim.
+
+READING RULE, NOT NEGOTIABLE: use only the native file viewer for review content. Do not use run_command, cat, sed, head, tail, grep -A, git show, git diff or any shell output capture to read review content; shell output is clipped to an 8,192-byte tail and previous reviews lost content that way. If the viewer ever returns a partial read, read the remainder with the offset it reports before continuing.
+
+Assess through three lenses, in order: (1) runtime correctness (crashes, hangs, wrong output in real conditions); (2) My Food AI data and privacy requirements: owner isolation and server-side authorization, secrets only in server environment, no image/audio bytes or credentials in model-call traces. The explicitly authorized item33 feature records request text, returned text, timing and token usage in an admin-only database trace, including transcription text; that authorized content is not itself a blocker. Evaluate its access controls and sanitization. Do not import another repository's policy or API paths; (3) cross-PR integration with the supplied exact-head source. Ground every finding in a quoted line from the packet. Do not edit, post, browse, run tests or delegate.
+
+Your final answer must be JSON matching the supplied schema and nothing else. In files[], list every path from MANIFEST.md with the same status, and for each part record read_method ("view_file"), bytes_read exactly as delivered, and complete=true only when the whole part was read. If any part could not be read completely, set verdict "REVIEW INCOMPLETE" and say which. Use "BLOCKERS: FOUND" when any grounded blocker exists, otherwise "BLOCKERS: NONE".

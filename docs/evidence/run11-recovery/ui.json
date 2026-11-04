@@ -1,0 +1,21 @@
+{
+  "refusal": {
+    "failed": true,
+    "text": "L\nlocal_test_1\n···\nDetails ›\n\nlocal_test_1 Provider recovery UI fixture\n\nThe analysis service refused this request. Try again.\n\nTry again\n18:17"
+  },
+  "retry": {
+    "clicked": true,
+    "state": "ready"
+  },
+  "usda": {
+    "text": "L\nlocal_test_1\n···\nWas this estimate right?\nDetails ›\n\nlocal_test_1 Provider recovery UI fixture\n\nThe food database was busy. Retrying automatically.\n\nProcessing, traffic low\n\n18:19",
+    "state": {
+      "status": "processing",
+      "fail_reason": "fdc: rate limited"
+    }
+  },
+  "cleanup": {
+    "created": 2,
+    "remaining": 0
+  }
+}

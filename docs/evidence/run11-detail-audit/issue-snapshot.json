@@ -1,0 +1,303 @@
+{
+  "i26": {
+    "number": 26,
+    "title": "The demo video and the submission",
+    "body": "Nothing is submitted until the owner records the video on Nov 4 and submits by Nov 5 at 09:00 WIB, and no other item stands in for either.\n\nThe submission needs the public repository, the video link and a list of everyone who worked on it, by Nov 4 at 9 PM EST, which is Nov 5 at 09:00 WIB. Judges stop at three minutes. The script opens on the Exemplar's timeline (\"50 screens and 22 minutes before my first log, 11:45 to 12:07\"), then sign-in, camera, a post in ten seconds, the SAM outlines on the detail, a correction with the thread keeping both versions, the needs-input strip, and Days to close. A same-meal-again moment uses Log again, because a fresh estimate does not repeat exactly, and the cheeseburger-and-fries photo stays out because it failed the ten-photo identification gate once on Nov 1. The Most Viral prize ($20,000) counts likes, reposts and comments on X through the end of Nov 8, so the video goes on X as soon as it exists; whether the post must exist before the submission deadline is unconfirmed. No merges or deploys run from the start of recording until the submission is in. Done when a video under three minutes is on X and the submission is in with the repository, the video link and the list of everyone who worked on it.",
+    "state": "OPEN",
+    "url": "https://github.com/aibraincoach/my-food-ai/issues/26"
+  },
+  "i60": {
+    "number": 60,
+    "title": "A judge-facing pass makes the public repository start-here ready",
+    "body": "The submission requires a public repository, and it still carries the default README.\n\nThe coder's read-only assessment of main on 2026-10-28 found no committed secret, and the owner ruled that nothing is removed or scrubbed during the build. After the last feature merges, one pass replaces the default README with a short start-here page and the owner records which working files (the agents' contracts, the Wall of Stupid file, the review policy and the review tools) stay on main. Done when the README is the start-here page, the owner has recorded which files stay, and a search of main for host names, account identifiers and billing detail returns only what the owner chose to keep.",
+    "state": "CLOSED",
+    "url": "https://github.com/aibraincoach/my-food-ai/issues/60"
+  },
+  "i114": {
+    "number": 114,
+    "title": "Facebook Login in production mode",
+    "body": "Public sign-in with Facebook needs the app submitted for Meta app review, which takes longer than the event.\n\nBlocked by Meta app review. Dev mode works for the developer's own and test accounts, which is enough for the demo. The owner wants the Facebook button on the sign-in page for show and does not intend it to go live for the hackathon. Facebook Login is the Meta sign-in that exists and Supabase supports it. While a Facebook app is in Development mode only people with a role on the app can sign in, and everyone else sees an \"App Not Setup\" error (Supabase docs), so a judge who taps the button would see an error. Instagram has no sign-in for consumer apps: Meta shut the Instagram Basic Display API on Dec 4, 2024 and tells developers to use Facebook Login for authentication, and its newer Instagram login serves business and creator accounts. No Instagram button is added, and no separate Meta-account sign-in was found. Whether the button shows today, and what a person without a role sees when tapping it, is not known. Done when the coder reports what the button shows and does today and the owner has decided what a judge who taps it sees.",
+    "state": "OPEN",
+    "url": "https://github.com/aibraincoach/my-food-ai/issues/114"
+  },
+  "i115": {
+    "number": 115,
+    "title": "Dark mode",
+    "body": "The app has no dark mode.\n\nBlocked by scope. The first design pass is light mode only. Dark mode is designed after the ten screens are built, and the colour tokens in the design system item are named by role so a dark set can be added without touching components.",
+    "state": "OPEN",
+    "url": "https://github.com/aibraincoach/my-food-ai/issues/115"
+  },
+  "i193": {
+    "number": 193,
+    "title": "Page looks for every screen against the designer's frames",
+    "body": "No screen has been compared with the designer's frames, and the intake control and the barcode scanner have no frame at all.\n\nCapture every screen at 390x844 on production and list the differences per screen, and check the intake and barcode copy against the banned wording (past tense, no budget, no progress, no \"left\"). Done when the differences are listed per screen and the fixes are merged.",
+    "state": "CLOSED",
+    "url": "https://github.com/aibraincoach/my-food-ai/issues/193"
+  },
+  "i212": {
+    "number": 212,
+    "title": "The regular camera reads a barcode and a nutrition label",
+    "body": "A user has to switch to a separate scanner to log a packaged food, and the scanner has not been tried on a phone.\n\nThe scanner was merged in PR #165 on the Search tab and is untested on a phone. The owner ruled on Oct 29 that a photo is a photo, whether it shows food, a barcode or a package's nutrition label, so the capture sheet identifies which whether or not the Barcode toggle of frame 2i is used; the owner ruled to keep the toggle so users can see that a scanner exists. On Nov 2 the owner added that Barcode must stay an obvious choice on the capture sheet, reached by swiping between modes, so that people learn scanning exists and are not pushed down that route; a photo is still a photo, and a barcode photographed in Photo mode is still read. The owner prefers a deterministic read: decode the barcode from the image first and look the digits up, and use the model only when no code is found and for the label. A barcode becomes a post whose card identifies the product with its nutrition and the pack photo; a label is read into the same kind of card. The look comes from frame 2i and the designer's frames for the label and the correction. First try the existing scanner on a phone with a real pack and report what it reads. Done when a real pack's barcode, photographed through the capture sheet on a phone, posts a card with the product's name and nutrition, and a nutrition label does the same.",
+    "state": "OPEN",
+    "url": "https://github.com/aibraincoach/my-food-ai/issues/212"
+  },
+  "i217": {
+    "number": 217,
+    "title": "A smoothness audit of every screen",
+    "body": "Some controls feel dead or clunky, and nobody has measured how the app responds to touch.\n\nThe thumbs above are the first case the owner found. List every tappable control on each screen at 390x844, and for each record the time from the tap to a visible change, whether it shows a pressed state at once, whether it jumps or flickers while it loads, and whether it can be tapped twice. The coder measures in Chrome device emulation with the processor slowed and needs the production sign-in of #196; the owner adds what he feels on his phone, because emulation cannot show that. Done when the table lists every control with those four findings, the slow or dead ones are fixed or filed as items, and the owner's own list has no open entry.",
+    "state": "OPEN",
+    "url": "https://github.com/aibraincoach/my-food-ai/issues/217"
+  },
+  "i218": {
+    "number": 218,
+    "title": "Hydration as a share of daily intake",
+    "body": "The owner wants the app eventually to show how much of the user's daily intake is hydration.\n\nBlocked until after the hackathon, and blocked by the claims rule: the app shows no percentage that reads as progress, and a share of intake is a percentage. The owner decides whether this one figure may break that rule. Done when the owner has lifted the rule for this figure and its design is drawn.",
+    "state": "OPEN",
+    "url": "https://github.com/aibraincoach/my-food-ai/issues/218"
+  },
+  "i222": {
+    "number": 222,
+    "title": "Photos and cards load fast",
+    "body": "Photos and cards take a long time to appear, so the app feels slow.\n\nThe owner reported this on Oct 29 while using the app. The cause is not known, so measure first: the size and format of what a card downloads, whether the feed uses thumbnails, whether images are cached between visits, and the time to the first picture on a phone. The owner reported on Nov 2 at about 17:00 WIB that ten seconds after opening the app nothing had shown up, and said waiting that long is not acceptable; the device and the connection are not known, so measure a cold open first. Done when the first photo of the feed shows within two seconds on a phone over mobile data, the feed shows something within two seconds of opening the app, and the sizes and times before and after are in docs.",
+    "state": "OPEN",
+    "url": "https://github.com/aibraincoach/my-food-ai/issues/222"
+  },
+  "i279": {
+    "number": 279,
+    "title": "Sign-up and sign-in resist being hammered",
+    "body": "Anyone can send sign-up and sign-in requests as fast as a script can, to guess passwords, create accounts in bulk or run up the email and model bills, and nobody has shown what stops them.\n\nSupabase Auth limits requests per IP address and supports the hCaptcha and Cloudflare Turnstile CAPTCHAs (Supabase docs), and some of its limits can be changed in the dashboard. Nobody has recorded what the production project has set, whether a CAPTCHA is on, or whether a new account's posts, which spend Meta credits, are limited. Observe first: report the Auth limits the production project has set, the CAPTCHA state, what a script that sends sign-ups and sign-ins faster than a person receives, and how many posts a new account can make. Done when those are reported and a script that hammers sign-up and sign-in is refused.\n",
+    "state": "OPEN",
+    "url": "https://github.com/aibraincoach/my-food-ai/issues/279"
+  },
+  "i281": {
+    "number": 281,
+    "title": "A Meta open-weight model identifies the food (hackathon bonus)",
+    "body": "The hackathon pays a $10,000 bonus for a build on a Meta open-weight model, and the app calls only the hosted Meta API.\n\nThe owner ruled on Oct 31 that this waits until the fleet work is done and is not part of Run 4. What is known: the bonus names Muse Spark Open and Muse Glimmer; no key for any open-model host exists in the coder's environment or in production (see #288). The model names are hardcoded in the Meta client and the ten-photo harness cannot choose a model host, so a trial needs a throwaway clone that swaps only the identify-and-portions call and leaves SAM and transcription on the Meta API. Runtime models stay Meta models only. The trial compares the ten meal photos and one \"I ate half the rice\" caption against the current path with the USDA lookup unchanged, spends at most 5 US dollars, and changes nothing in production. Credits: Baseten selected the owner on Oct 28 with $100 and up to 2M tokens per minute on meta-models/muse-spark-open-1026 through an OpenAI-compatible endpoint at https://inference.baseten.co/v1, and says Muse Spark Open always reasons, so output caps that include reasoning need checking. Modal's $100 code failed on Nov 2 (\"maximum number of redemptions\"), and Modal's dashboard shows $30.00 of credit instead. The owner chose Baseten for now. Fireworks is unconfirmed. A throwaway clone proves the model only; a qualifying step must be a real, switchable path on main that a judge can reproduce, with the model ID logged. Done when the results are in docs and the owner decides whether any open-model feature ships before the Nov 3 freeze.",
+    "state": "OPEN",
+    "url": "https://github.com/aibraincoach/my-food-ai/issues/281"
+  },
+  "i282": {
+    "number": 282,
+    "title": "The live app keeps working while judges use it",
+    "body": "Judging runs Nov 4 to Nov 8, and if the Meta API credits run out first, a judge who posts a meal sees a failed analysis.\n\nThe owner was told the $150 hackathon credits do not extend through judging and that spend alerts are not hard caps. Nobody has seen the balance, the end date, or what the drains, gates and re-logs have used; the 16-food gate alone made 38 model calls and 69,169 output tokens. USDA FoodData Central limits requests to 1,000 an hour. The twenty-post drain made 94 USDA requests, 4.7 per meal, so the limit allows roughly 200 meals an hour; the sushi photo needs up to 36 requests when cold. When USDA answers 429 the worker retries at 30 and 60 seconds, ignores Retry-After, and then fails the post (the planner's reading of the coder's report of Nov 2). The owner's console of Nov 2 shows $134.29 of free credits remaining and two payment methods on file, so usage after the free credits end should bill a card instead of failing; that is not yet confirmed, and the end date of the free credits is not shown. Done when a post made while the Meta Model API refuses a call, or while USDA answers 429, shows the user a clear message and can be retried, and a USDA 429 waits as USDA asks.",
+    "state": "CLOSED",
+    "url": "https://github.com/aibraincoach/my-food-ai/issues/282"
+  },
+  "i285": {
+    "number": 285,
+    "title": "The owner's own checks before the recording",
+    "body": "Several things only the owner can do stand between the app and the recording on Nov 4.\n\nThey are the phone checklist (#280, including a real half-eaten plate); choosing the account to record on (the second test account has 5 posts and no unavailable foods, the owner's has 20 with 5 unavailable); accepting or rejecting the breakfast and curry totals (#189); deciding what the video shows from round 3 and Run 5, such as a drink, saved meals, a not-eaten plate or a scan; and reading the README before recording. Done when each is done or ruled out.\n",
+    "state": "OPEN",
+    "url": "https://github.com/aibraincoach/my-food-ai/issues/285"
+  },
+  "i287": {
+    "number": 287,
+    "title": "The README shows judges the three Meta models, the technical depth and what the app does not do",
+    "body": "A judge reads the repository and watches the video, and the README does not yet put in front of them the evidence the four scoring criteria ask for.\n\nThe Guide's section 8 scores Impact 30%, Use of Meta AI Tooling 25%, Demo 25% and Technical Depth 20% (from the hackathon rules reference; the PM has not read the Guide first-hand). The README should name SAM 3.1, Muse Spark 1.3 and Muse Voice Transcribe 1.0 with the job each does and where its model ID is logged. It should summarise what was built from Oct 26 to Nov 4 with the evidence that already exists: the test count, the ten-photo evaluation with its stated limits, the real-model gates, the worker timing and the item history that keeps every correction. It should say plainly that the app records what was eaten and never advises, sets no targets and makes no health claims, because the hackathon's anti-project list names nutrition coaching. It states only what the coder's reports prove and carries no private account detail. Done when the README has those parts, each claim links to its evidence, and the owner has read it before the recording.\n",
+    "state": "CLOSED",
+    "url": "https://github.com/aibraincoach/my-food-ai/issues/287"
+  },
+  "i294": {
+    "number": 294,
+    "title": "The app's words read naturally everywhere",
+    "body": "The leftovers label reads awkwardly, and nobody has reviewed the words in the rest of the app.\n\nThe owner said on Nov 2 that \"leftovers (not eaten)\" is janky. The planner reviews the app's terms with AGY as a second opinion and lists each term, where it appears and a recommended replacement. The terms include the leftovers label, \"Consumed\", \"Log again\", \"Saved meals\", \"Additional food\", the needs-input question and the Days names. Every rule stays: consumed past tense, no target, goal, ring or percentage, and no \"left\" as a word for a remaining amount. Done when the list is reviewed, the owner has ruled on each term, and the wording is changed everywhere it appears.",
+    "state": "CLOSED",
+    "url": "https://github.com/aibraincoach/my-food-ai/issues/294"
+  },
+  "i306": {
+    "number": 306,
+    "title": "Every tap that saves shows its result at once",
+    "body": "Some taps that save something look dead until the server answers, so the app feels slow.\n\nThe thumbs (#215) are the first case the owner found, and he reports the same clunk across the app. The bookmark, Save meal, Log again and Edit caption (#223) are the likely others; which of them wait for the server is not known, so observe first. Each should show its new state at the tap, settle when the save lands, and show an error and revert if it fails. #217 measures every control; this item fixes the ones that wait. Done when each of those taps changes the screen before the server answers on a throttled connection, the saved state survives a reload, and a failed save is shown.",
+    "state": "CLOSED",
+    "url": "https://github.com/aibraincoach/my-food-ai/issues/306"
+  },
+  "i307": {
+    "number": 307,
+    "title": "A card shows the foods the app has found while the numbers are still being worked out",
+    "body": "A new post shows a shimmer for most of its wait, though the app knows what the foods are long before it knows their nutrition.\n\nProduction timings of Nov 1 show identification finishing in 3.3 to 8.1 seconds while the active worker time of the whole job was 16.5 to 25.2 seconds (docs/production-performance.md), so for most of the wait the foods are known and only their nutrition is missing. Show the food names as soon as identification finishes, fill in each food's nutrition as it lands, and keep the total unavailable until all of it is in. Every wording and claims rule stays. Done when a post made on production shows its food names before its totals are ready, and no total appears until all of its foods are calculated.",
+    "state": "CLOSED",
+    "url": "https://github.com/aibraincoach/my-food-ai/issues/307"
+  },
+  "i318": {
+    "number": 318,
+    "title": "Read the README before recording",
+    "body": "Judges read the README first. The owner has not read it yet.\n\nThe coder writes it in Run 7 (#287). Read it after it merges.\n\nDone when the owner has read it and listed anything wrong.",
+    "state": "OPEN",
+    "url": "https://github.com/aibraincoach/my-food-ai/issues/318"
+  },
+  "i322": {
+    "number": 322,
+    "title": "The tick function loads the whole worker before it answers (part of #222)",
+    "body": "Every app open, tab focus and once-a-minute database wake calls the tick route. It answers three numbers: queued, running and traffic. A cold tick function must first load the whole food-analysis pipeline, so every cold open waits for that.\n\nA code review of Nov 3 found this. It is a report that the coder has not verified. The tick route statically imports the worker drain. The drain statically imports all six job modules. Those pull in the food-analysis pipeline, the Meta model SDK, the SAM parser, the PNG library and the push library. The files are src/app/api/jobs/tick/route.ts, src/lib/worker/handlers.ts and src/components/QueueTicker.tsx. The suggested fix loads each job module with a dynamic import inside the job runner, keyed by job kind, so tick boots with only the queue code. Tests pass their own job table and are untouched. This change touches the worker path, so it needs a deploy and a real phone check before the demo. Done when a cold tick call answers without loading the job modules, and the cold open times before and after are in docs.",
+    "state": "CLOSED",
+    "url": "https://github.com/aibraincoach/my-food-ai/issues/322"
+  },
+  "i323": {
+    "number": 323,
+    "title": "Every protected page checks sign-in twice (part of #222)",
+    "body": "The middleware calls Supabase to verify the user. The home page then calls Supabase to verify the user again. That is two round trips on every page open, on top of the cold function boot.\n\nThe code review of Nov 3 found this (src/middleware.ts, src/app/(tabs)/page.tsx). The suggested fix has the middleware write the verified user id into a request header that it overwrites unconditionally. Pages read that header and skip the second check. The middleware still validates the token, so a client cannot fake the header. API routes are not matched by the middleware, so they keep their own check. Done when a page open makes one sign-in call, and an unsigned request still cannot reach a protected page.",
+    "state": "OPEN",
+    "url": "https://github.com/aibraincoach/my-food-ai/issues/323"
+  },
+  "i324": {
+    "number": 324,
+    "title": "Home computes the day totals twice on every open (part of #222)",
+    "body": "The server renders the row of day bubbles with totals for the last 5 days. The browser feed then computes totals again for the feed's days. Today's totals are queried twice on every home open.\n\nThe code review of Nov 3 found this (src/app/(tabs)/page.tsx, src/components/Feed.tsx). The suggested fix passes the server's totals into the feed and skips the feed's own call for days already covered. It overlaps the Run 7 change that bounds refreshTotals. Done when a home open queries today's totals once.",
+    "state": "OPEN",
+    "url": "https://github.com/aibraincoach/my-food-ai/issues/324"
+  },
+  "i348": {
+    "number": 348,
+    "title": "Add composer drink cards before posting (round 5 frames 5b\u20135d)",
+    "body": "Implement the designer\u2019s drink card in the composer before posting for frames 5b, 5c and 5d. Deferred from Fleet 9 by the approved plan. Preserve past-tense record wording and consistent volume/caffeine data.\n",
+    "state": "CLOSED",
+    "url": "https://github.com/aibraincoach/my-food-ai/issues/348"
+  },
+  "i351": {
+    "number": 351,
+    "title": "Add drink tile ordering by use and hold-for-sizes (frame 5f)",
+    "body": "Implement drink tile ordering by usage and holding a tile to choose its size. Fleet 9 uses six fixed server-defined tiles and quick tap to post. The unavailable hold instruction is omitted from the shipped sheet to avoid promising an unimplemented action.\n",
+    "state": "CLOSED",
+    "url": "https://github.com/aibraincoach/my-food-ai/issues/351"
+  },
+  "i368": {
+    "number": 368,
+    "title": "Sign-ins through the app may share one rate limit across every user",
+    "body": "Supabase limits sign-up and sign-in requests per IP address. If it counts the app's requests against Vercel's address, one script hammering the app's forms could lock every judge out.\n\nUnverified planner finding. The app's sign-up and sign-in run as server actions on Vercel, and the middleware refreshes sessions from Vercel. The Run 8 hammer was refused at request 31, but it called Supabase directly from the coder's machine, so it did not test the app's path (docs/auth-protection.md). Nobody has checked which IP address Supabase records for a server-action sign-in, or whether the server client forwards the user's address. Observe first: send 35 sign-ups through the production sign-up form from one machine, then sign in from a second machine. Use throwaway @example.com accounts only. Done when the report states which IP address Supabase counts for app sign-ins, and a refusal triggered from one machine does not block sign-in from another.\n",
+    "state": "OPEN",
+    "url": "https://github.com/aibraincoach/my-food-ai/issues/368"
+  },
+  "i369": {
+    "number": 369,
+    "title": "The public repository does not show Run 8, and its test claims are stale",
+    "body": "Judges read the README and the evidence on main, and main still shows Run 7.\n\nAll Run 8 evidence and the updated CLAUDE.md are in open docs PR #333, and the Fleet 9 evidence is in open docs PR #344. The README still describes Run 7 and says 17 database tests passed. The database gate now passes 20 of 20. The touched barcode test file fails with a fake USDA key (two failures, reproduced on the original main), and the full lint run shows 34 errors and 20 warnings (docs/run8-final-report.md). Done when #333 and #344 are merged, the README states the current test counts with the known failures, and every README evidence link points at a current document on main.\n",
+    "state": "CLOSED",
+    "url": "https://github.com/aibraincoach/my-food-ai/issues/369"
+  },
+  "i370": {
+    "number": 370,
+    "title": "The camera view stays open for a long time after a photo is taken",
+    "body": "After a photo is taken, the camera view stays on screen for a long time before the post shows in the feed. People will not wait that long.\n\nThe capture sheet sends its post-created event and closes only after a successful post, so it waits on the upload and the server. The owner reports the wait on his phone. Observe first: time the tap to the sheet closing and to the new post showing, on a phone over mobile data, and record the size in bytes of each photo the phone uploads. Then close the sheet at the tap and show the new post at the top of the feed in its processing state while the upload finishes. Done when the sheet closes within one second of the tap on a throttled connection, the post appears at the top of the feed in its processing state, and a failed upload is shown on that post.\n",
+    "state": "CLOSED",
+    "url": "https://github.com/aibraincoach/my-food-ai/issues/370"
+  },
+  "i372": {
+    "number": 372,
+    "title": "Feed photos are too large for a phone on mobile data",
+    "body": "A feed photo downloads at a size far larger than a phone card shows, so the first photo arrives late and every revisit pays for it again.\n\nThe sampled feed image is 152,193 bytes and its response carries no Cache-Control header (docs/media-loading.md). Several cards cost megabytes on mobile data, and the cold first photo measured 2.10 s against the 2 s target. The feed photo route (src/app/api/media/feed/[owner]/[post]/[media]/v1.webp/route.ts) reads the original from Storage on every request. Find the largest size a feed card needs on a phone and serve that instead of the original. Keep the original where post detail needs it. Done when the bytes per feed photo before and after are in docs, the first photo of the feed shows within two seconds on mobile data, and the photos look the same on a phone.\n",
+    "state": "OPEN",
+    "url": "https://github.com/aibraincoach/my-food-ai/issues/372"
+  },
+  "i373": {
+    "number": 373,
+    "title": "The app reads more from the production database than it needs",
+    "body": "The app's reads drove egress to 8.66 GB and log ingestion to 1.10 GB in one billing cycle, against 5 GB and 1 GB on Supabase's free plan, and the project was depleting its Disk IO budget. The organization is now on Pro, which includes 250 GB of egress per cycle, but the same reads still cost bandwidth and database load while judges use the app.\n\nRun 8 cut the feed's Supabase traffic per opening from 5.06 MB to 0.523 MB, 89.7%, by reading day totals once. The app and the worker use Supabase's HTTPS APIs, not SQL connections, so the pooler setting does not apply. Managed services (PostgREST, Storage, Realtime) account for many of the connections the Infrastructure page counts, and the historical 31 of 60 is unexplained, as is the 70% RAM on the Micro instance. Log-ingestion bytes are unattributed, since only row counts exist. Done when the billed log-ingestion bytes are attributed to their sources on the usage page and the RAM use on the Micro instance is explained.\n",
+    "state": "OPEN",
+    "url": "https://github.com/aibraincoach/my-food-ai/issues/373"
+  },
+  "i374": {
+    "number": 374,
+    "title": "Find when the worker's empty-claim loop started and whether it caused the feed failures",
+    "body": "Until #340, the worker treated an empty job claim as work, about once a second. The intermittent feed errors, the 31 of 60 database connections and the Disk IO drain may all come from it.\n\nIn 24 hours the loop produced 74,736 empty claims, 74,698 failures and 70,155 lease grabs. Production now shows zero. Run 7's baseline on the old code also opened 100/100, so the original 3 server errors and 15 blank feeds were never reproduced. Run 8's 100/100 ran unthrottled at low concurrency. Read the logs back day by day for the first day the claim-and-fail pattern appears, and compare it with the dates of the feed-error reports and the merges. Done when the start date and the merge that introduced the loop are named, and the report says whether the loop explains #222's original failures.\n",
+    "state": "CLOSED",
+    "url": "https://github.com/aibraincoach/my-food-ai/issues/374"
+  },
+  "i375": {
+    "number": 375,
+    "title": "Storage egress is the largest source and was not cut",
+    "body": "In the 24 hours before Run 8, Supabase Storage served 2.99 GB across 35,048 requests, almost all to browsers. The Run 8 cut measured the feed's posts reads, not Storage.\n\ndocs/egress.md attributes the bytes to browser-class agents but not to which files (feed JPEGs, card PNGs or originals) or which clients. Much of it may be the coder's own 100-opening measurement runs. Log-ingestion bytes were never measured; only row counts were. Done when Storage egress is broken down by file kind and by client (test automation or real users), log-ingestion bytes are measured, and the largest real-user source is cut or shown to be small.\n",
+    "state": "OPEN",
+    "url": "https://github.com/aibraincoach/my-food-ai/issues/375"
+  },
+  "i377": {
+    "number": 377,
+    "title": "Existing photographed drink posts show no caffeine",
+    "body": "A photographed cola posted before Fleet 9 shows no caffeine on its card or in the day's total.\n\nThe cola records hold 29.7 mg of USDA caffeine, but they have null beverage categories and no linked item-intake rows. #346 fixes new and re-analysed posts only, and no historical backfill ran. Done when existing photographed drink posts show their stored caffeine on the card and in the day's total.\n",
+    "state": "OPEN",
+    "url": "https://github.com/aibraincoach/my-food-ai/issues/377"
+  },
+  "i379": {
+    "number": 379,
+    "title": "Phone checks of the installed app over mobile data",
+    "body": "Every Run 7 and Run 8 timing check ran in emulation. No physical phone has tested the feed, the photos, installation or posting.\n\nCheck on the owner's three phones, installed from the home screen, over mobile data: the feed and the first photo show within two seconds (#222, #305); the last feed shows at once and fresh posts appear without jumping (#304); a warm revisit reuses cached photos and the photos look acceptable (#305); the clock, notch and home indicator clear the header, the bottom bar and the sheets (#108); the camera, the keyboard and a post from the phone work, with the right photo kept (#6); a post completes through the worker (#322). Done when each check passes and each failure is reported to the coder with its number.\n",
+    "state": "OPEN",
+    "url": "https://github.com/aibraincoach/my-food-ai/issues/379"
+  },
+  "i413": {
+    "number": 413,
+    "title": "The desktop layout is rebuilt to the new frames 6a to 6f",
+    "body": "The desktop app follows the old Round 4 frames, which the designer has replaced, so it no longer matches the design.\n\nThe designer delivered Round 6 at 1280x800 and removed the old desktop frames 4a to 4f. Frame 6a, Home: the same left sidebar on every screen, with New post as its one dark button and Profile at the bottom; the keyboard shortcut list leaves the sidebar and opens with the ? key; a Today column beside the feed shows today's totals and posts, and a dated line with each day's total separates the days. Frame 6b, a post open: the post opens in a window over the dimmed feed, with the photo on the left and the totals, items, comments and comment field on the right, in place of the narrow side panel. Frame 6c, New post: one window holds both the webcam and the photo drop area, with no Webcam and Upload switch, and the same Text, Photo and Barcode modes as the phone. Frame 6d, Days: a bigger month calendar, with the chosen day's posts in a full-height panel on the right. Frames 6e and 6f, Search and Profile: the same centred column, with \"Connect an agent\" as a button under the user's name. The desktop differences in the earlier visual-difference issues (#353 to #367) are superseded by these frames. Done when the app at 1280x800 matches frames 6a to 6f and the phone layout is unchanged.\n",
+    "state": "CLOSED",
+    "url": "https://github.com/aibraincoach/my-food-ai/issues/413"
+  },
+  "i449": {
+    "number": 449,
+    "title": "New-upload food names were not observed before totals (#307)",
+    "body": "Fleet10 item19 explicitly asks for a production check and an observed-gap issue if names are not seen before totals. This records that gap; it is not a claim of a provider outage or a new production mutation.\n\nOn stable production `3ce84730a33f6e5ce8163c80e454eb63b7d9998a`, designated account1,390\u00d7844,CPU4\u00d7,genuine Fast4G, the final7k fixture \u201c100 g cooked white rice and 50 g steamed broccoli\u201d reached ready at13:45:58UTC. A correctly scoped observer of `[role=status][aria-label=Processing]` children captured no food names before totals. An earlier spaghetti observation incorrectly matched its caption and is explicitly excluded from positive proof. No extra model fixture was created to chase this observation.\n\nRead-only source boundary: newly acknowledged uploads render `UploadHydratedCard` in `src/components/Feed.tsx`. Its polling/realtime read uses `getPostCard`; `src/lib/posts/feed.ts` selects/maps no `pending_items`/`pendingItems`. The normal `RealtimePost` path separately selects and maps `pending_items` while unsettled. Therefore the existing pipeline write and normal-card reader do not by themselves prove that newly posted upload cards receive progress names.\n\nRemaining unknown: the exact database `pending_items` interval was not sampled during that real post, so this issue does not claim a measured interval length or provider causality. Reconcile the specialized upload-card transport, preserve owner checks and bounded reads, and demonstrate names-before-totals on a genuine processing new post. A reload-only existing-card result would not prove the new-upload path.\n\nReport: https://github.com/aibraincoach/my-food-ai/blob/run10/docs/docs/run10-investigations.md (7k/7m, exact limits). Final tap evidence will retain the empty proper-observer result and exclude the earlier caption match.\n",
+    "state": "CLOSED",
+    "url": "https://github.com/aibraincoach/my-food-ai/issues/449"
+  },
+  "i450": {
+    "number": 450,
+    "title": "The README tells judges that 148 unit tests fail",
+    "body": "The judge-facing README states a test result that fails, so a judge opens a project that reads as broken.\n\nThe merged README (#444) reports the database tests as 32 passed, the unit tests as 153 passed, 148 failed and 2 skipped, and lint as 2 errors and 6 warnings. Done when the unit suite runs with no failures and lint has no errors, and the README's counts match a fresh run.",
+    "state": "CLOSED",
+    "url": "https://github.com/aibraincoach/my-food-ai/issues/450"
+  },
+  "i451": {
+    "number": 451,
+    "title": "Every barcode scan comes back as not in the database",
+    "body": "The owner has scanned several packs on a phone and every scan has failed: the scanner reads the code and the lookup finds no product.\n\nThe scanner read 7 622300 76136 3 from an Oreo pack and showed \"Not in the database. No product for this code yet.\" The owner finds the same code with an ordinary web search, at barcodelookup.com/7622300761363. Done when this pack gives a product card with its name and nutrition, a second pack from the same shelf does too, and the planner has recorded which source the lookup asks and why it had no entry for this code, on the owner's three phones.",
+    "state": "CLOSED",
+    "url": "https://github.com/aibraincoach/my-food-ai/issues/451"
+  },
+  "i452": {
+    "number": 452,
+    "title": "A plainly visible nutrition label is reported as not found",
+    "body": "A photo of a pack whose nutrition table can be read is rejected with \"No nutrition label found\".\n\nThe photo of a Goldfish cracker pack, with the label printed in Indonesian and the table fully in the frame, gave \"No nutrition label found\" with \"Take the photo again\" and \"Type it instead\". Done when that photo gives a card with the numbers printed on the label, and a label in English does the same, on the owner's three phones.",
+    "state": "OPEN",
+    "url": "https://github.com/aibraincoach/my-food-ai/issues/452"
+  },
+  "i453": {
+    "number": 453,
+    "title": "The barcode prompt is printed over the live camera picture",
+    "body": "On the Barcode screen, the line \"Point at the barcode. It reads on its own.\" runs across the camera picture and cannot be read against a busy shelf.\n\nWith the camera pointed at a shelf of packs and price labels, the line sits on top of them and the words blend into the picture. Done when the prompt is readable over any camera picture, on the owner's three phones.",
+    "state": "CLOSED",
+    "url": "https://github.com/aibraincoach/my-food-ai/issues/453"
+  },
+  "i454": {
+    "number": 454,
+    "title": "The Days page is not one continuous calendar",
+    "body": "Days cuts the calendar into separate month blocks, which no calendar app does, so the user cannot scroll through time as one run of weeks.\n\nOn the phone, Days shows November 2026 and October 2026 as two separate blocks, each with its own heading, and the newest month sits on top. Days becomes one continuous calendar: the weeks run on from one to the next in time order with no break, the month name marks where each month starts, and Days opens with today in view. Done when scrolling Days moves through unbroken weeks from October into November, the month names mark where each month starts, and Days opens on today, on the owner's three phones.",
+    "state": "CLOSED",
+    "url": "https://github.com/aibraincoach/my-food-ai/issues/454"
+  },
+  "i455": {
+    "number": 455,
+    "title": "The card you swipe to on a drink's photo shows a number and not what the drink is",
+    "body": "Swiping right on a drink's photo opens a card with one big millilitre number, so the card does not say what the drink is or why it exists.\n\nThe swiped card for the tiki cocktail shows \"220 ml\" in large type, a line of text and \"1,200 ml consumed today\" split into drinks and food. A card for a drink leads with its kind as a picture: a coffee cup for coffee with its caffeine, a water cup for water with one cup for every 250 ml drunk, and a cocktail glass or a wine glass for those with their alcohol, and the day's drinks are drawn as the same cups. Done when a coffee, a 500 ml water (two cups), a cocktail and a glass of wine each show their own picture on the swiped card, and a card that holds only liquid reads as a drink at a glance, on the owner's three phones.",
+    "state": "CLOSED",
+    "url": "https://github.com/aibraincoach/my-food-ai/issues/455"
+  },
+  "i456": {
+    "number": 456,
+    "title": "A rum cocktail is logged with 15 mg caffeine",
+    "body": "The tiki cocktail post states caffeine that the drink does not contain.\n\nThe drink card for the lime and rum tiki cocktail reads \"15 mg caffeine\" next to 196 kcal, and the day's caffeine total reads 110 mg. Done when a cocktail or any drink with no caffeine source logs no caffeine, the card shows none, and the day's total leaves it out, checked on the tiki cocktail and a glass of wine.",
+    "state": "CLOSED",
+    "url": "https://github.com/aibraincoach/my-food-ai/issues/456"
+  },
+  "i457": {
+    "number": 457,
+    "title": "An alcoholic drink shows its alcohol, not its liquid",
+    "body": "A cocktail post shows how much liquid it holds and nothing about the alcohol, so the user cannot tell how much they have drunk.\n\nThe post for a lime and rum tiki cocktail shows \"220 g\" on the photo and 196 kcal, 0 g protein, 17 g carbs and 0 g fat under it, with no alcohol anywhere. For a drink that holds alcohol, the post shows the grams of alcohol and the standard drinks in place of the liquid amount, the drink's liquid is not added to the water total, and Today shows the day's alcohol so far. Done when a photographed cocktail and a typed beer each show their alcohol on the post and in Today, and neither adds to the water tile, on the owner's three phones.",
+    "state": "CLOSED",
+    "url": "https://github.com/aibraincoach/my-food-ai/issues/457"
+  },
+  "i458": {
+    "number": 458,
+    "title": "The text box on New post is hidden behind the keyboard",
+    "body": "On New post on the phone, the caption box is not visible when the keyboard is open, so the user types without seeing the words.\n\nOn an iPhone with the keyboard up, the screen shows the photo and the Post button and no caption box. After a tap into the caption, the page scrolls so the box sits under the photo with the \"Another photo\" and \"Search foods\" buttons and other rows crowded around it. Done when, with the keyboard open, the caption box is fully visible above the keyboard together with the Post button, and nothing overlaps it, on the owner's three phones.",
+    "state": "CLOSED",
+    "url": "https://github.com/aibraincoach/my-food-ai/issues/458"
+  }
+}

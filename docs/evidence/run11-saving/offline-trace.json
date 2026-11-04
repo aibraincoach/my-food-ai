@@ -1,0 +1,79 @@
+{
+  "head": "308d4b53948177c18ccc36bebf55fa016cb48a3d",
+  "transportActuallyOffline": true,
+  "beforeOfflineUrl": "https://my-food-do2gog2e0-aibraincoachs-projects.vercel.app/",
+  "beforeTap": {
+    "html": "<button type=\"button\" class=\"h-field-h w-full rounded-field text-body font-semibold disabled:opacity-50 disabled:cursor-not-allowed bg-text text-surface shrink-0\">Post · Water, glass</button>",
+    "nav": [
+      {
+        "k": "replaceState",
+        "args": [
+          {
+            "__NA": true,
+            "__PRIVATE_NEXTJS_INTERNALS_TREE": {
+              "tree": [
+                "",
+                {
+                  "children": [
+                    "(tabs)",
+                    {
+                      "children": [
+                        "__PAGE__",
+                        {},
+                        null,
+                        null,
+                        16546,
+                        ""
+                      ]
+                    },
+                    null,
+                    null,
+                    16482
+                  ]
+                },
+                null,
+                null,
+                16466
+              ],
+              "renderedSearch": ""
+            }
+          },
+          "",
+          "/"
+        ],
+        "stack": "Error\n    at history.<computed> [as replaceState] (<anonymous>:2:154)\n    at https://my-food-do2gog2e0-aibraincoachs-projects.vercel.app/_next/static/immutable/chunks/2hkkedb2_wgum.js:1:8715\n    at iE (https://my-food-do2gog2e0-aibraincoachs-projects.vercel.app/_next/static/immutable/chunks/2hkkedb2_wgum.js:1:112810)\n    at up (https://my-food-do2gog2e0-aibraincoachs-projects.vercel.app/_next/static/immutable/chunks/2hkkedb2_wgum.js:1:129387)\n    at uf (https://my-food-do2gog2e0-aibraincoachs-projects.vercel.app/_next/static/immutable/chunks/2hkkedb2_wgum.js:1:129103)\n    at up (https://my-food-do2gog2e0-aibraincoachs-projects.vercel.app/_next/static/immutable/chunks/2hkkedb2_wgum.js:1:129348)\n    at uf (https://my-food-do2gog2e0-aibraincoachs-projects.vercel.app/_next/static/immutable/chunks/2hkkedb2_wgum.js:1:129103)\n    at up (https://my-food-do2gog2e0-aibraincoachs-projects.vercel.app/_next/static/immutable/chunks/2hkkedb2_wgum.js:1:129426)\n    at uf (https://my-food-do2gog2e0-aibraincoachs-projects.vercel.app/_next/static/immutable/chunks/2hkkedb2_wgum.js:1:129103)\n    at up (https://my-food-do2gog2e0-aibraincoachs-projects.vercel.app/_next/static/immutable/chunks/2hkkedb2_wgum.js:1:129348)"
+      },
+      {
+        "click": "<svg viewBox=\"0 0 24 24\" width=\"24\" height=\"24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.7\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M17 2l4 4-4 4M3 11V9a4 4 0 0 1 4-4h14M7 22l-4-4 4-4M21 13v2a4 4 0 0 1-4 4H3\"></path></svg>"
+      }
+    ]
+  },
+  "nav": [
+    {
+      "url": "https://my-food-do2gog2e0-aibraincoachs-projects.vercel.app/",
+      "method": "GET"
+    },
+    {
+      "url": "https://my-food-do2gog2e0-aibraincoachs-projects.vercel.app/",
+      "method": "GET"
+    },
+    {
+      "url": "https://my-food-do2gog2e0-aibraincoachs-projects.vercel.app/",
+      "method": "GET"
+    },
+    {
+      "url": "https://my-food-do2gog2e0-aibraincoachs-projects.vercel.app/",
+      "method": "GET"
+    }
+  ],
+  "error": "locator.tap: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('dialog', { name: 'Log again', exact: true }).getByRole('button', { name: /^Post ·/ })\u001b[22m\n\u001b[2m    - locator resolved to <button type=\"button\" class=\"h-field-h w-full rounded-field text-body font-semibold disabled:opacity-50 disabled:cursor-not-allowed bg-text text-surface shrink-0\">Post · Water, glass</button>\u001b[22m\n\u001b[2m  - attempting tap action\u001b[22m\n\u001b[2m    - waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m    - element is visible, enabled and stable\u001b[22m\n\u001b[2m    - scrolling into view if needed\u001b[22m\n\u001b[2m    - done scrolling\u001b[22m\n\u001b[2m  - element was detached from the DOM, retrying\u001b[22m\n",
+  "url": "chrome-error://chromewebdata/",
+  "dom": {
+    "text": "Tap the dino to play\n\nTry:\n\nChecking the network cables, modem and router\nReconnecting to Wi-Fi\nERR_INTERNET_DISCONNECTED",
+    "articles": []
+  },
+  "cleanup": {
+    "sourceRemaining": 0,
+    "objectsRemoved": 1
+  }
+}

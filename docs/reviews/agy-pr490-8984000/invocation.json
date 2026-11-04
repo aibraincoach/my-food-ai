@@ -1,0 +1,23 @@
+{
+  "argv": [
+    "agy",
+    "--model",
+    "gemini-3.8-flash-high",
+    "--effort",
+    "high",
+    "--sandbox",
+    "--dangerously-skip-permissions",
+    "--disable-slash-commands",
+    "--output-format",
+    "json",
+    "--json-schema",
+    "/home/opc/Projects/my-food-ai-wt/run11-docs/docs/reviews/agy-pr490-8984000/schema.json",
+    "--print-timeout",
+    "10m",
+    "--print"
+  ],
+  "cwd": "/home/opc/Projects/my-food-ai-wt/run11-docs/docs/reviews/agy-pr490-8984000",
+  "started": "2026-11-04T01:12:45.623Z",
+  "finished": "2026-11-04T01:13:51.092Z",
+  "exit": 0
+}

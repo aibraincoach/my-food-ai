@@ -1,0 +1,14 @@
+{
+  "head": "308d4b53948177c18ccc36bebf55fa016cb48a3d",
+  "transportActuallyOffline": true,
+  "error": "locator.waitFor: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('article[data-upload-id]').filter({ has: getByRole('button', { name: 'Try again', exact: true }) }).first() to be visible\u001b[22m\n",
+  "url": "chrome-error://chromewebdata/",
+  "dom": {
+    "text": "Tap the dino to play\n\nTry:\n\nChecking the network cables, modem and router\nReconnecting to Wi-Fi\nERR_INTERNET_DISCONNECTED",
+    "articles": []
+  },
+  "cleanup": {
+    "sourceRemaining": 0,
+    "objectsRemoved": 1
+  }
+}

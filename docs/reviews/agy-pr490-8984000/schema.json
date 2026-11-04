@@ -1,0 +1,111 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "head",
+    "base",
+    "verdict",
+    "files",
+    "blockers",
+    "summary"
+  ],
+  "properties": {
+    "head": {
+      "type": "string"
+    },
+    "base": {
+      "type": "string"
+    },
+    "verdict": {
+      "type": "string",
+      "enum": [
+        "BLOCKERS: NONE",
+        "BLOCKERS: FOUND",
+        "REVIEW INCOMPLETE"
+      ]
+    },
+    "summary": {
+      "type": "string"
+    },
+    "blockers": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "path",
+          "summary",
+          "evidence"
+        ],
+        "properties": {
+          "path": {
+            "type": "string"
+          },
+          "line": {
+            "type": "integer"
+          },
+          "summary": {
+            "type": "string"
+          },
+          "evidence": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "files": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "path",
+          "status",
+          "parts",
+          "findings"
+        ],
+        "properties": {
+          "path": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "parts": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "name",
+                "read_method",
+                "bytes_read",
+                "complete"
+              ],
+              "properties": {
+                "name": {
+                  "type": "string"
+                },
+                "read_method": {
+                  "type": "string"
+                },
+                "bytes_read": {
+                  "type": "integer"
+                },
+                "complete": {
+                  "type": "boolean"
+                }
+              }
+            }
+          },
+          "findings": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,647 @@
+{
+  "phase": "preview-after",
+  "at": "2026-11-04T00:48:48.644Z",
+  "origin": "https://my-food-qv7jml7tc-aibraincoachs-projects.vercel.app",
+  "account": 2,
+  "viewport": {
+    "width": 390,
+    "height": 844
+  },
+  "cpu": 4,
+  "targetSamplingHz": 240,
+  "network": "Unthrottled; selected model/post transports held or refused to isolate feedback, not backend latency.",
+  "controls": [
+    {
+      "name": "Drink size-Post Water, glass glass · 250 ml",
+      "box": {
+        "x": 20,
+        "y": 590,
+        "width": 105.296875,
+        "height": 44
+      },
+      "observation": {
+        "start": 5718.5,
+        "initial": "1|rgba(0, 0, 0, 0)|rgb(26, 25, 23)|rgb(227, 224, 218)|none|none|none|rgb(26, 25, 23)|3px",
+        "samples": [
+          {
+            "t": 5719.5,
+            "connected": true,
+            "active": false,
+            "style": "1|rgba(0, 0, 0, 0)|rgb(26, 25, 23)|rgb(227, 224, 218)|none|none|none|rgb(26, 25, 23)|3px",
+            "rect": {
+              "x": 20,
+              "y": 590,
+              "w": 105.296875,
+              "h": 44
+            },
+            "focused": false
+          },
+          {
+            "t": 5736.599999904633,
+            "connected": true,
+            "active": false,
+            "style": "1|rgba(0, 0, 0, 0)|rgb(26, 25, 23)|rgb(227, 224, 218)|none|none|none|rgb(26, 25, 23)|3px",
+            "rect": {
+              "x": 20,
+              "y": 590,
+              "w": 105.296875,
+              "h": 44
+            },
+            "focused": false
+          },
+          {
+            "t": 5761.199999809265,
+            "connected": true,
+            "active": false,
+            "style": "1|rgba(0, 0, 0, 0)|rgb(26, 25, 23)|rgb(227, 224, 218)|none|none|none|rgb(26, 25, 23)|3px",
+            "rect": {
+              "x": 20,
+              "y": 590,
+              "w": 105.296875,
+              "h": 44
+            },
+            "focused": false
+          },
+          {
+            "t": 5799.299999713898,
+            "connected": true,
+            "active": false,
+            "style": "1|rgba(0, 0, 0, 0)|rgb(26, 25, 23)|rgb(227, 224, 218)|none|none|none|rgb(26, 25, 23)|3px",
+            "rect": {
+              "x": 20,
+              "y": 590,
+              "w": 105.296875,
+              "h": 44
+            },
+            "focused": false
+          },
+          {
+            "t": 5812.099999904633,
+            "connected": true,
+            "active": false,
+            "style": "1|rgba(0, 0, 0, 0)|rgb(26, 25, 23)|rgb(227, 224, 218)|none|none|none|rgb(26, 25, 23)|3px",
+            "rect": {
+              "x": 20,
+              "y": 590,
+              "w": 105.296875,
+              "h": 44
+            },
+            "focused": false
+          },
+          {
+            "t": 5816.799999713898,
+            "connected": true,
+            "active": false,
+            "style": "1|rgba(0, 0, 0, 0)|rgb(26, 25, 23)|rgb(227, 224, 218)|none|none|none|rgb(26, 25, 23)|3px",
+            "rect": {
+              "x": 20,
+              "y": 590,
+              "w": 105.296875,
+              "h": 44
+            },
+            "focused": false
+          },
+          {
+            "t": 5821.299999713898,
+            "connected": true,
+            "active": false,
+            "style": "1|rgba(0, 0, 0, 0)|rgb(26, 25, 23)|rgb(227, 224, 218)|none|none|none|rgb(26, 25, 23)|3px",
+            "rect": {
+              "x": 20,
+              "y": 590,
+              "w": 105.296875,
+              "h": 44
+            },
+            "focused": false
+          },
+          {
+            "t": 5839,
+            "connected": true,
+            "active": false,
+            "style": "1|rgba(0, 0, 0, 0)|rgb(26, 25, 23)|rgb(227, 224, 218)|none|none|none|rgb(26, 25, 23)|3px",
+            "rect": {
+              "x": 20,
+              "y": 590,
+              "w": 105.296875,
+              "h": 44
+            },
+            "focused": false
+          },
+          {
+            "t": 5847.799999713898,
+            "connected": true,
+            "active": false,
+            "style": "1|rgba(0, 0, 0, 0)|rgb(26, 25, 23)|rgb(227, 224, 218)|none|none|none|rgb(26, 25, 23)|3px",
+            "rect": {
+              "x": 20,
+              "y": 590,
+              "w": 105.296875,
+              "h": 44
+            },
+            "focused": false
+          },
+          {
+            "t": 5869.799999713898,
+            "connected": true,
+            "active": false,
+            "style": "1|rgba(0, 0, 0, 0)|rgb(26, 25, 23)|rgb(227, 224, 218)|none|none|none|rgb(26, 25, 23)|3px",
+            "rect": {
+              "x": 20,
+              "y": 590,
+              "w": 105.296875,
+              "h": 44
+            },
+            "focused": false
+          },
+          {
+            "t": 5887.099999904633,
+            "connected": true,
+            "active": false,
+            "style": "1|rgba(0, 0, 0, 0)|rgb(26, 25, 23)|rgb(227, 224, 218)|none|none|none|rgb(26, 25, 23)|3px",
+            "rect": {
+              "x": 20,
+              "y": 590,
+              "w": 105.296875,
+              "h": 44
+            },
+            "focused": false
+          },
+          {
+            "t": 5905.299999713898,
+            "connected": true,
+            "active": false,
+            "style": "1|rgba(0, 0, 0, 0)|rgb(26, 25, 23)|rgb(227, 224, 218)|none|none|none|rgb(26, 25, 23)|3px",
+            "rect": {
+              "x": 20,
+              "y": 590,
+              "w": 105.296875,
+              "h": 44
+            },
+            "focused": false
+          },
+          {
+            "t": 5914.699999809265,
+            "connected": true,
+            "active": false,
+            "style": "1|rgba(0, 0, 0, 0)|rgb(26, 25, 23)|rgb(227, 224, 218)|none|none|none|rgb(26, 25, 23)|3px",
+            "rect": {
+              "x": 20,
+              "y": 590,
+              "w": 105.296875,
+              "h": 44
+            },
+            "focused": false
+          },
+          {
+            "t": 5942.299999713898,
+            "connected": true,
+            "active": false,
+            "style": "0.55|rgba(0, 0, 0, 0)|rgb(26, 25, 23)|rgb(227, 224, 218)|none|none|none|rgb(26, 25, 23)|3px",
+            "rect": {
+              "x": 20,
+              "y": 590,
+              "w": 105.296875,
+              "h": 44
+            },
+            "focused": false
+          },
+          {
+            "t": 5965.099999904633,
+            "connected": true,
+            "active": false,
+            "style": "0.55|rgba(0, 0, 0, 0)|rgb(26, 25, 23)|rgb(227, 224, 218)|none|none|none|rgb(26, 25, 23)|3px",
+            "rect": {
+              "x": 20,
+              "y": 590,
+              "w": 105.296875,
+              "h": 44
+            },
+            "focused": false
+          },
+          {
+            "t": 5974,
+            "connected": true,
+            "active": false,
+            "style": "0.55|rgba(0, 0, 0, 0)|rgb(26, 25, 23)|rgb(227, 224, 218)|none|none|none|rgb(26, 25, 23)|3px",
+            "rect": {
+              "x": 20,
+              "y": 590,
+              "w": 105.296875,
+              "h": 44
+            },
+            "focused": false
+          },
+          {
+            "t": 5977.5,
+            "connected": true,
+            "active": false,
+            "style": "0.55|rgba(0, 0, 0, 0)|rgb(26, 25, 23)|rgb(227, 224, 218)|none|none|none|rgb(26, 25, 23)|3px",
+            "rect": {
+              "x": 20,
+              "y": 590,
+              "w": 105.296875,
+              "h": 44
+            },
+            "focused": false
+          },
+          {
+            "t": 5998.299999713898,
+            "connected": true,
+            "active": false,
+            "style": "0.55|rgba(0, 0, 0, 0)|rgb(26, 25, 23)|rgb(227, 224, 218)|none|none|none|rgb(26, 25, 23)|3px",
+            "rect": {
+              "x": 20,
+              "y": 590,
+              "w": 105.296875,
+              "h": 44
+            },
+            "focused": false
+          },
+          {
+            "t": 6012.799999713898,
+            "connected": true,
+            "active": false,
+            "style": "0.55|rgba(0, 0, 0, 0)|rgb(26, 25, 23)|rgb(227, 224, 218)|none|none|none|rgb(26, 25, 23)|3px",
+            "rect": {
+              "x": 20,
+              "y": 590,
+              "w": 105.296875,
+              "h": 44
+            },
+            "focused": false
+          },
+          {
+            "t": 6029.900000095367,
+            "connected": true,
+            "active": false,
+            "style": "0.55|rgba(0, 0, 0, 0)|rgb(26, 25, 23)|rgb(227, 224, 218)|none|none|none|rgb(26, 25, 23)|3px",
+            "rect": {
+              "x": 20,
+              "y": 590,
+              "w": 105.296875,
+              "h": 44
+            },
+            "focused": false
+          },
+          {
+            "t": 6039.5,
+            "connected": true,
+            "active": false,
+            "style": "0.55|rgba(0, 0, 0, 0)|rgb(26, 25, 23)|rgb(227, 224, 218)|none|none|none|rgb(26, 25, 23)|3px",
+            "rect": {
+              "x": 20,
+              "y": 590,
+              "w": 105.296875,
+              "h": 44
+            },
+            "focused": false
+          },
+          {
+            "t": 6061,
+            "connected": true,
+            "active": false,
+            "style": "0.55|rgba(0, 0, 0, 0)|rgb(26, 25, 23)|rgb(227, 224, 218)|none|none|none|rgb(26, 25, 23)|3px",
+            "rect": {
+              "x": 20,
+              "y": 590,
+              "w": 105.296875,
+              "h": 44
+            },
+            "focused": false
+          },
+          {
+            "t": 6109.699999809265,
+            "connected": true,
+            "active": false,
+            "style": "0.55|rgba(0, 0, 0, 0)|rgb(26, 25, 23)|rgb(227, 224, 218)|none|none|none|rgb(26, 25, 23)|3px",
+            "rect": {
+              "x": 20,
+              "y": 590,
+              "w": 105.296875,
+              "h": 44
+            },
+            "focused": false
+          },
+          {
+            "t": 6163.699999809265,
+            "connected": true,
+            "active": false,
+            "style": "0.55|rgba(0, 0, 0, 0)|rgb(26, 25, 23)|rgb(227, 224, 218)|none|none|none|rgb(26, 25, 23)|3px",
+            "rect": {
+              "x": 20,
+              "y": 590,
+              "w": 105.296875,
+              "h": 44
+            },
+            "focused": false
+          },
+          {
+            "t": 6171.900000095367,
+            "connected": true,
+            "active": false,
+            "style": "0.55|rgba(0, 0, 0, 0)|rgb(26, 25, 23)|rgb(227, 224, 218)|none|none|none|rgb(26, 25, 23)|3px",
+            "rect": {
+              "x": 20,
+              "y": 590,
+              "w": 105.296875,
+              "h": 44
+            },
+            "focused": false
+          },
+          {
+            "t": 6221.199999809265,
+            "connected": true,
+            "active": false,
+            "style": "0.55|rgba(0, 0, 0, 0)|rgb(26, 25, 23)|rgb(227, 224, 218)|none|none|none|rgb(26, 25, 23)|3px",
+            "rect": {
+              "x": 20,
+              "y": 590,
+              "w": 105.296875,
+              "h": 44
+            },
+            "focused": false
+          },
+          {
+            "t": 6230.5,
+            "connected": true,
+            "active": false,
+            "style": "0.55|rgba(0, 0, 0, 0)|rgb(26, 25, 23)|rgb(227, 224, 218)|none|none|none|rgb(26, 25, 23)|3px",
+            "rect": {
+              "x": 20,
+              "y": 590,
+              "w": 105.296875,
+              "h": 44
+            },
+            "focused": false
+          },
+          {
+            "t": 6240.799999713898,
+            "connected": true,
+            "active": false,
+            "style": "0.55|rgba(0, 0, 0, 0)|rgb(26, 25, 23)|rgb(227, 224, 218)|none|none|none|rgb(26, 25, 23)|3px",
+            "rect": {
+              "x": 20,
+              "y": 590,
+              "w": 105.296875,
+              "h": 44
+            },
+            "focused": false
+          },
+          {
+            "t": 6250.299999713898,
+            "connected": true,
+            "active": false,
+            "style": "0.55|rgba(0, 0, 0, 0)|rgb(26, 25, 23)|rgb(227, 224, 218)|none|none|none|rgb(26, 25, 23)|3px",
+            "rect": {
+              "x": 20,
+              "y": 590,
+              "w": 105.296875,
+              "h": 44
+            },
+            "focused": false
+          },
+          {
+            "t": 6276,
+            "connected": true,
+            "active": true,
+            "style": "0.55|rgb(241, 238, 232)|rgb(26, 25, 23)|rgb(227, 224, 218)|none|none|none|rgb(26, 25, 23)|3px",
+            "rect": {
+              "x": 20,
+              "y": 590,
+              "w": 105.296875,
+              "h": 44
+            },
+            "focused": true
+          },
+          {
+            "t": 6286.799999713898,
+            "connected": true,
+            "active": true,
+            "style": "0.55|rgb(241, 238, 232)|rgb(26, 25, 23)|rgb(227, 224, 218)|none|none|none|rgb(26, 25, 23)|3px",
+            "rect": {
+              "x": 20,
+              "y": 590,
+              "w": 105.296875,
+              "h": 44
+            },
+            "focused": true
+          },
+          {
+            "t": 6302.699999809265,
+            "connected": true,
+            "active": true,
+            "style": "0.55|rgb(241, 238, 232)|rgb(26, 25, 23)|rgb(227, 224, 218)|none|none|none|rgb(26, 25, 23)|3px",
+            "rect": {
+              "x": 20,
+              "y": 590,
+              "w": 105.296875,
+              "h": 44
+            },
+            "focused": true
+          },
+          {
+            "t": 6317.099999904633,
+            "connected": true,
+            "active": true,
+            "style": "0.55|rgb(241, 238, 232)|rgb(26, 25, 23)|rgb(227, 224, 218)|none|none|none|rgb(26, 25, 23)|3px",
+            "rect": {
+              "x": 20,
+              "y": 590,
+              "w": 105.296875,
+              "h": 44
+            },
+            "focused": true
+          },
+          {
+            "t": 6659,
+            "connected": true,
+            "active": true,
+            "style": "0.55|rgb(241, 238, 232)|rgb(26, 25, 23)|rgb(227, 224, 218)|none|none|none|rgb(26, 25, 23)|3px",
+            "rect": {
+              "x": 20,
+              "y": 590,
+              "w": 105.296875,
+              "h": 44
+            },
+            "focused": true
+          },
+          {
+            "t": 6797.900000095367,
+            "connected": true,
+            "active": true,
+            "style": "0.55|rgb(241, 238, 232)|rgb(26, 25, 23)|rgb(227, 224, 218)|none|none|none|rgb(26, 25, 23)|3px",
+            "rect": {
+              "x": 20,
+              "y": 590,
+              "w": 105.296875,
+              "h": 44
+            },
+            "focused": true
+          },
+          {
+            "t": 6904.699999809265,
+            "connected": true,
+            "active": false,
+            "style": "1|rgba(0, 0, 0, 0)|rgb(26, 25, 23)|rgb(227, 224, 218)|none|none|none|rgb(26, 25, 23)|3px",
+            "rect": {
+              "x": 20,
+              "y": 590,
+              "w": 105.296875,
+              "h": 44
+            },
+            "focused": true
+          },
+          {
+            "t": 7080.699999809265,
+            "connected": false,
+            "active": false,
+            "style": null,
+            "rect": null,
+            "focused": false
+          },
+          {
+            "t": 7256.400000095367,
+            "connected": false,
+            "active": false,
+            "style": null,
+            "rect": null,
+            "focused": false
+          },
+          {
+            "t": 7327.699999809265,
+            "connected": false,
+            "active": false,
+            "style": null,
+            "rect": null,
+            "focused": false
+          },
+          {
+            "t": 7351.699999809265,
+            "connected": false,
+            "active": false,
+            "style": null,
+            "rect": null,
+            "focused": false
+          },
+          {
+            "t": 7359,
+            "connected": false,
+            "active": false,
+            "style": null,
+            "rect": null,
+            "focused": false
+          },
+          {
+            "t": 7394.299999713898,
+            "connected": false,
+            "active": false,
+            "style": null,
+            "rect": null,
+            "focused": false
+          },
+          {
+            "t": 7401.599999904633,
+            "connected": false,
+            "active": false,
+            "style": null,
+            "rect": null,
+            "focused": false
+          },
+          {
+            "t": 7405.599999904633,
+            "connected": false,
+            "active": false,
+            "style": null,
+            "rect": null,
+            "focused": false
+          },
+          {
+            "t": 7435.400000095367,
+            "connected": false,
+            "active": false,
+            "style": null,
+            "rect": null,
+            "focused": false
+          }
+        ],
+        "down": 5928.799999713898,
+        "up": 6245.699999809265
+      },
+      "trace": {
+        "file": "001-Drink-size-Post-Water-glass-glass-250-ml.trace.json",
+        "bytes": 791198,
+        "sha256": "bf35436ba31ae6bef275a98a46658356644e10704f7ccb9c7b87817a27cde26a",
+        "screenshotFrames": 16,
+        "frameIntervalsMs": [
+          40.9060001373291,
+          72.1089997291565,
+          35.700000286102295,
+          41.69199991226196,
+          82.23600006103516,
+          84.13000011444092,
+          23.96399974822998,
+          27.611999988555908,
+          113.82100009918213,
+          402.53700017929077,
+          224.83500003814697,
+          201.15099954605103,
+          182.53400039672852,
+          56.86800003051758,
+          39.1899995803833
+        ]
+      },
+      "pressedStateAtOnce": "yes",
+      "pressedChangeMs": 13.5,
+      "layoutCandidate": false,
+      "jumpOrFlicker": "no",
+      "jumpMethod": "Selected-control rectangle per actual rAF while connected; expected navigation/unmount recorded. Screenshot trace retained for candidate inspection; no240fps claim.",
+      "rafIntervalsMs": [
+        17.09999990463257,
+        24.59999990463257,
+        38.09999990463257,
+        12.800000190734863,
+        4.699999809265137,
+        4.5,
+        17.700000286102295,
+        8.799999713897705,
+        22,
+        17.300000190734863,
+        18.199999809265137,
+        9.400000095367432,
+        27.59999990463257,
+        22.800000190734863,
+        8.900000095367432,
+        3.5,
+        20.799999713897705,
+        14.5,
+        17.100000381469727,
+        9.599999904632568,
+        21.5,
+        48.69999980926514,
+        54,
+        8.200000286102295,
+        49.299999713897705,
+        9.300000190734863,
+        10.299999713897705,
+        9.5,
+        25.700000286102295,
+        10.799999713897705,
+        15.900000095367432,
+        14.400000095367432,
+        341.90000009536743,
+        138.90000009536743,
+        106.7999997138977,
+        176,
+        175.7000002861023,
+        71.2999997138977,
+        24,
+        7.300000190734863,
+        35.299999713897705,
+        7.300000190734863,
+        4,
+        29.800000190734863
+      ],
+      "actualRafHz": 25.642519958945474
+    }
+  ]
+}
