@@ -1,0 +1,57 @@
+[
+  {
+    "name": "calendar",
+    "head": "7d24c9b46e241d4e5ce975a45ee2bd67027d202e",
+    "preview": "https://my-food-8j66v79vy-aibraincoachs-projects.vercel.app",
+    "today": {
+      "day": "2026-11-03",
+      "top": 344.59375,
+      "bottom": 388.59375,
+      "visible": true
+    },
+    "continuity": {
+      "count": 61,
+      "oldest": "2026-10-01",
+      "latest": "2026-11-30",
+      "unbroken": true,
+      "oct": "Oct 1",
+      "nov": "Nov 121,319"
+    },
+    "goToMonth": {
+      "top": 104.59375
+    },
+    "deepLink": {
+      "date": "2026-10-27",
+      "opened": true
+    }
+  },
+  {
+    "name": "keyboard",
+    "head": "076f104affc98e06539580b25cbae08996ba5279",
+    "preview": "https://my-food-5ods49lb1-aibraincoachs-projects.vercel.app",
+    "geometry": {
+      "height": 450,
+      "caption": {
+        "top": 170,
+        "bottom": 212,
+        "width": 358,
+        "height": 42
+      },
+      "post": {
+        "top": 370,
+        "bottom": 420,
+        "width": 358,
+        "height": 50
+      },
+      "thumbnail": {
+        "top": 60,
+        "bottom": 132,
+        "width": 72,
+        "height": 72
+      },
+      "focused": true,
+      "captionText": "Caption remains visible above the keyboard"
+    },
+    "noBackendFixture": true
+  }
+]

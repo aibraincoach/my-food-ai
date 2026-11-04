@@ -1,0 +1,427 @@
+[
+  {
+    "post_id": "157b0829-bb9e-469a-9fee-543e6b315d4e",
+    "items": [
+      {
+        "name": "Coffee",
+        "food_category": null,
+        "portion_text": "240 g",
+        "nutrients": [
+          {
+            "basis": "portion",
+            "value": 238.56,
+            "unitName": "G",
+            "nutrientId": 1051,
+            "nutrientName": "Water"
+          },
+          {
+            "basis": "portion",
+            "value": 95,
+            "unitName": "MG",
+            "nutrientId": 1057,
+            "nutrientName": "Caffeine"
+          }
+        ],
+        "isDrinkItem": true
+      }
+    ],
+    "intake": [
+      {
+        "source": "sheet",
+        "kind": "caffeine",
+        "ml": 240,
+        "amount": 95
+      }
+    ]
+  },
+  {
+    "post_id": "38de279e-2764-44f7-a224-f67f5f77da08",
+    "items": [
+      {
+        "name": "lamb curry with rice",
+        "food_category": null,
+        "portion_text": "one airline meal tray",
+        "nutrients": [
+          {
+            "basis": "portion",
+            "value": 177.23999999999998,
+            "unitName": "G",
+            "nutrientId": 1051,
+            "nutrientName": "Water"
+          }
+        ],
+        "isDrinkItem": false
+      },
+      {
+        "name": "Pepsi Zero",
+        "food_category": null,
+        "portion_text": "one can",
+        "nutrients": [
+          {
+            "basis": "portion",
+            "value": 330,
+            "unitName": "G",
+            "nutrientId": 1051,
+            "nutrientName": "Water"
+          }
+        ],
+        "isDrinkItem": false
+      }
+    ],
+    "intake": []
+  },
+  {
+    "post_id": "45d7e3df-70f0-4e3b-b41a-c64a55ef3c00",
+    "items": [
+      {
+        "name": "roasted baby potatoes",
+        "food_category": "white potatoes, baked or boiled",
+        "portion_text": "150 g",
+        "nutrients": [
+          {
+            "basis": "portion",
+            "value": 108.135,
+            "unitName": "G",
+            "nutrientId": 1051,
+            "nutrientName": "Water"
+          },
+          {
+            "basis": "portion",
+            "value": 0,
+            "unitName": "MG",
+            "nutrientId": 1057,
+            "nutrientName": "Caffeine"
+          }
+        ],
+        "isDrinkItem": false
+      },
+      {
+        "name": "beef tenderloin steak topped with butter",
+        "food_category": null,
+        "portion_text": "200 g",
+        "nutrients": [],
+        "isDrinkItem": false
+      },
+      {
+        "name": "romaine lettuce",
+        "food_category": "vegetables and vegetable products",
+        "portion_text": "15 g",
+        "nutrients": [
+          {
+            "basis": "portion",
+            "value": 14.145,
+            "unitName": "G",
+            "nutrientId": 1051,
+            "nutrientName": "Water"
+          }
+        ],
+        "isDrinkItem": false
+      },
+      {
+        "name": "creamy pepper sauce",
+        "food_category": "dips, gravies, other sauces",
+        "portion_text": "40 g",
+        "nutrients": [
+          {
+            "basis": "portion",
+            "value": 31.747999999999998,
+            "unitName": "G",
+            "nutrientId": 1051,
+            "nutrientName": "Water"
+          },
+          {
+            "basis": "portion",
+            "value": 0,
+            "unitName": "MG",
+            "nutrientId": 1057,
+            "nutrientName": "Caffeine"
+          }
+        ],
+        "isDrinkItem": false
+      },
+      {
+        "name": "brown gravy",
+        "food_category": "dips, gravies, other sauces",
+        "portion_text": "10 g",
+        "nutrients": [
+          {
+            "basis": "portion",
+            "value": 8.748000000000001,
+            "unitName": "G",
+            "nutrientId": 1051,
+            "nutrientName": "Water"
+          },
+          {
+            "basis": "portion",
+            "value": 0,
+            "unitName": "MG",
+            "nutrientId": 1057,
+            "nutrientName": "Caffeine"
+          }
+        ],
+        "isDrinkItem": false
+      },
+      {
+        "name": "roasted cherry tomatoes",
+        "food_category": "pre-packaged fruit & vegetables",
+        "portion_text": "60 g",
+        "nutrients": [],
+        "isDrinkItem": false
+      }
+    ],
+    "intake": []
+  },
+  {
+    "post_id": "5c802394-7014-4432-8fb9-1279c290d22b",
+    "items": [
+      {
+        "name": "Coffee, cup",
+        "food_category": null,
+        "portion_text": "240 g",
+        "nutrients": [
+          {
+            "basis": "portion",
+            "value": 238.56,
+            "unitName": "G",
+            "nutrientId": 1051,
+            "nutrientName": "Water"
+          },
+          {
+            "basis": "portion",
+            "value": 95,
+            "unitName": "MG",
+            "nutrientId": 1057,
+            "nutrientName": "Caffeine"
+          }
+        ],
+        "isDrinkItem": false
+      }
+    ],
+    "intake": [
+      {
+        "source": "sheet",
+        "kind": "caffeine",
+        "ml": 240,
+        "amount": 95
+      }
+    ]
+  },
+  {
+    "post_id": "6ab18054-dd4e-4be8-ac5f-6f7a2116fab6",
+    "items": [
+      {
+        "name": "Coffee",
+        "food_category": null,
+        "portion_text": "240 g",
+        "nutrients": [
+          {
+            "basis": "portion",
+            "value": 238.56,
+            "unitName": "G",
+            "nutrientId": 1051,
+            "nutrientName": "Water"
+          },
+          {
+            "basis": "portion",
+            "value": 95,
+            "unitName": "MG",
+            "nutrientId": 1057,
+            "nutrientName": "Caffeine"
+          }
+        ],
+        "isDrinkItem": true
+      }
+    ],
+    "intake": [
+      {
+        "source": "sheet",
+        "kind": "caffeine",
+        "ml": 240,
+        "amount": 95
+      }
+    ]
+  },
+  {
+    "post_id": "7ebd062b-909b-4768-9548-cb8c98218b51",
+    "items": [
+      {
+        "name": "Coffee, cup",
+        "food_category": null,
+        "portion_text": "240 g",
+        "nutrients": [
+          {
+            "basis": "portion",
+            "value": 238.56,
+            "unitName": "G",
+            "nutrientId": 1051,
+            "nutrientName": "Water"
+          },
+          {
+            "basis": "portion",
+            "value": 95,
+            "unitName": "MG",
+            "nutrientId": 1057,
+            "nutrientName": "Caffeine"
+          }
+        ],
+        "isDrinkItem": false
+      }
+    ],
+    "intake": [
+      {
+        "source": "sheet",
+        "kind": "caffeine",
+        "ml": 240,
+        "amount": 95
+      }
+    ]
+  },
+  {
+    "post_id": "8771c651-ce6d-4381-b9dc-879350e05840",
+    "items": [
+      {
+        "name": "Pain au chocolat",
+        "food_category": null,
+        "portion_text": "1 piece",
+        "nutrients": [],
+        "isDrinkItem": false
+      }
+    ],
+    "intake": []
+  },
+  {
+    "post_id": "d06d4d29-b532-470e-a930-e285f4180123",
+    "items": [
+      {
+        "name": "Famous Amos chocolate chip cookie",
+        "food_category": null,
+        "portion_text": "1 large cookie",
+        "nutrients": [
+          {
+            "basis": "portion",
+            "value": 1.75,
+            "unitName": "G",
+            "nutrientId": 1051,
+            "nutrientName": "Water"
+          }
+        ],
+        "isDrinkItem": false
+      },
+      {
+        "name": "Espresso",
+        "food_category": null,
+        "portion_text": "1 single shot",
+        "nutrients": [
+          {
+            "basis": "portion",
+            "value": 29.339999999999996,
+            "unitName": "G",
+            "nutrientId": 1051,
+            "nutrientName": "Water"
+          },
+          {
+            "basis": "portion",
+            "value": 63.599999999999994,
+            "unitName": "MG",
+            "nutrientId": 1057,
+            "nutrientName": "Caffeine"
+          }
+        ],
+        "isDrinkItem": true
+      },
+      {
+        "name": "Evian bottled water",
+        "food_category": null,
+        "portion_text": "1 x 500 mL bottle",
+        "nutrients": [
+          {
+            "basis": "portion",
+            "value": 500,
+            "unitName": "G",
+            "nutrientId": 1051,
+            "nutrientName": "Water"
+          }
+        ],
+        "isDrinkItem": false
+      }
+    ],
+    "intake": [
+      {
+        "source": "item",
+        "kind": "caffeine",
+        "ml": 30,
+        "amount": 64
+      }
+    ]
+  },
+  {
+    "post_id": "ef87b543-0fba-4c5c-8335-d1316981fe6e",
+    "items": [
+      {
+        "name": "Coffee, espresso",
+        "food_category": null,
+        "portion_text": "30 g",
+        "nutrients": [
+          {
+            "basis": "portion",
+            "value": 29.82,
+            "unitName": "G",
+            "nutrientId": 1051,
+            "nutrientName": "Water"
+          },
+          {
+            "basis": "portion",
+            "value": 63,
+            "unitName": "MG",
+            "nutrientId": 1057,
+            "nutrientName": "Caffeine"
+          }
+        ],
+        "isDrinkItem": false
+      }
+    ],
+    "intake": [
+      {
+        "source": "sheet",
+        "kind": "caffeine",
+        "ml": 30,
+        "amount": 63
+      }
+    ]
+  },
+  {
+    "post_id": "f2155f09-17d9-4522-8bf7-e95f77e6494e",
+    "items": [
+      {
+        "name": "Coffee",
+        "food_category": null,
+        "portion_text": "240 g",
+        "nutrients": [
+          {
+            "basis": "portion",
+            "value": 238.56,
+            "unitName": "G",
+            "nutrientId": 1051,
+            "nutrientName": "Water"
+          },
+          {
+            "basis": "portion",
+            "value": 95,
+            "unitName": "MG",
+            "nutrientId": 1057,
+            "nutrientName": "Caffeine"
+          }
+        ],
+        "isDrinkItem": true
+      }
+    ],
+    "intake": [
+      {
+        "source": "sheet",
+        "kind": "caffeine",
+        "ml": 240,
+        "amount": 95
+      }
+    ]
+  }
+]

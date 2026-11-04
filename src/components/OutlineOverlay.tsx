@@ -1,5 +1,6 @@
 /* eslint-disable @next/next/no-img-element -- Private signed photos bypass public image optimization. */
 "use client";
+import {alcoholGrams,isAlcoholic} from '@/lib/intake/alcohol';
 import { nutritionTableRows } from "@/lib/nutrition/table";
 
 import {LocalTime,useLocalTime} from "@/components/LocalTime";
@@ -153,7 +154,7 @@ export default function OutlineOverlay({ desktopModal=false, desktopHeader, desk
           <button type="button" disabled={!initialized || readOnly} aria-label={`Edit ${item.name}`} className="absolute max-w-full rounded-chip py-grid text-label font-semibold text-white"
             style={{ left: offsetX + item.box.left * scale, top: offsetY + item.box.top * scale, paddingLeft: tokens.detail.chipX, paddingRight: tokens.detail.chipX, background: outlineColor(index) }}
             onClick={(event) => { event.stopPropagation(); setSelection({ item, key: Date.now() }); }}>
-            {item.name}{item.portion_grams == null ? "" : ` · ${formatGrams(item.portion_grams)}`}
+            {item.name}{isAlcoholic(item) ? (alcoholGrams(item.micronutrients)>0 ? ` · ${Math.round(alcoholGrams(item.micronutrients))} g alcohol` : " · alcohol unavailable") : item.portion_grams == null ? "" : ` · ${formatGrams(item.portion_grams)}`}
           </button>
         </div> : null)}
         {drawBox ? <div className="pointer-events-none absolute rounded-field border-2 border-text" style={boxStyle(drawBox)} /> : null}

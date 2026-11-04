@@ -1,0 +1,15 @@
+{
+  "trials": [
+    {
+      "kind": "bookmark",
+      "id": "36b213a5-0dda-42f5-b91c-36c9eaf7627f",
+      "tap": 12869.099999904633,
+      "visible": 12901.199999809265,
+      "response": 13254.39999961853,
+      "beforeResponse": true,
+      "persisted": true,
+      "failureVisible": "Failed to fetchDismiss"
+    }
+  ],
+  "cleanup": 0
+}

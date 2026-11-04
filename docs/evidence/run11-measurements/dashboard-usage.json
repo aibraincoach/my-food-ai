@@ -1,0 +1,9 @@
+{
+  "command": "Browser GET https://supabase.com/dashboard/org/{organization}/usage",
+  "http": 200,
+  "finalPath": "/dashboard/org/{organization}/usage",
+  "title": "Usage | Supabase",
+  "requiresLogin": true,
+  "logIngestionBytes": null,
+  "remainingUnknown": "No authenticated dashboard session was available; usage bytes could not be read."
+}

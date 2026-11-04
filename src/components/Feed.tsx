@@ -7,7 +7,7 @@ import {createDayTotalsRefresh} from "@/lib/posts/day-totals-refresh";
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
-import { FEED_PAGE_SIZE, VISIBLE_MEAL_FILTER, hasUnavailableFields, retainCompleteItems, getPostCard, type FeedPost } from "@/lib/posts/feed";
+import { FEED_PAGE_SIZE, VISIBLE_MEAL_FILTER, hasUnavailableFields, retainCompleteItems, getPostCard, getPendingItems, type FeedPost } from "@/lib/posts/feed";
 import { tokens } from "@/lib/theme/tokens";
 import DayHeader from "@/components/DayHeader";
 import { dateInZone, shiftDay, getDayTotals, type FeedDayTotal } from "@/lib/posts/days";
@@ -488,7 +488,13 @@ function UploadHydratedCard({post,upload,header}:{post:FeedPost;upload:UploadSta
             return;
           }
         } else {
-          missing=0;setFresh(card);
+          missing=0;
+          if(card.status!=='ready'){
+            const pending=await getPendingItems(db,id);
+            if(!live)return;
+            Object.assign(card,{pendingItems:pending.pendingItems,fail_reason:pending.fail_reason});
+          }
+          setFresh(card);
           if(card.status==='ready'&&lastStatus.current!=='ready')window.dispatchEvent(new CustomEvent('post-ready',{detail:{id}}));
           lastStatus.current=card.status;
           unsettled=!((card.status==='ready'&&card.slides.some(slide=>slide.kind==='card'))||card.status==='failed');

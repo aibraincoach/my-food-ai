@@ -1,5 +1,6 @@
 /* eslint-disable @next/next/no-img-element -- Private owner images bypass paid optimization. */
 "use client";
+import OpenFoodFactsAttribution from './OpenFoodFactsAttribution';
 import {useDesktop} from "@/lib/ui/use-desktop";
 import {lockBodyScroll} from '@/lib/ui/scroll-lock';
 import {formatGtin} from "@/lib/fdc/gtin";
@@ -60,7 +61,7 @@ export default function CaptureSheet({ onClose, initialMode = "photo", forPost, 
   const [barcodeState, setBarcodeState] = useState<"idle" | "looking" | "missing" | "found" | "error">("idle");
   const [scannedCode,setScannedCode]=useState("");
   const [labelForCode,setLabelForCode]=useState<string|null>(null);
-  const [labelState,setLabelState]=useState<"idle"|"reading"|"read"|"missing">("idle");
+  const [labelState,setLabelState]=useState<"idle"|"reading"|"read"|"missing"|"failed">("idle");
   const [labelReading,setLabelReading]=useState<{reading_id:string;reading:LabelReading}|null>(null);
   const [labelName,setLabelName]=useState("");
   const [labelServings,setLabelServings]=useState(1);
@@ -269,7 +270,7 @@ export default function CaptureSheet({ onClose, initialMode = "photo", forPost, 
       if(!result.reading.is_label||!result.reading.serving||!result.reading.per_serving){setLabelState("missing");return;}
       setLabelReading(result);setLabelName("");setLabelServings(1);setLabelState("read");
       window.setTimeout(()=>document.getElementById("label-name")?.focus(),0);
-    }catch(e){if(mountedRef.current){setLabelState("missing");setError(e instanceof Error?e.message:"The label could not be read.");}}
+    }catch(e){if(mountedRef.current){setLabelState("failed");setError(e instanceof Error?e.message:"The label could not be read.");}}
   };
   const typePackInstead=()=>{
     const kept=packPhotoRef.current;
@@ -501,7 +502,7 @@ export default function CaptureSheet({ onClose, initialMode = "photo", forPost, 
           {labelState==="read"&&<div aria-hidden="true" className="pointer-events-none absolute rounded-thumb border-2 border-accent" style={{left:`${(labelReading?.reading.box?.x??0)*100}%`,top:`${(labelReading?.reading.box?.y??0)*100}%`,width:`${(labelReading?.reading.box?.w??1)*100}%`,height:`${(labelReading?.reading.box?.h??1)*100}%`,boxShadow:`0 0 12px ${tokens.colors["accent-glow"]}`}}/>}
           {mode === "barcode" && <>
             <div className="pointer-events-none absolute left-1/2 top-1/2 h-[160px] w-[240px] -translate-x-1/2 -translate-y-1/2">
-              <p className="absolute bottom-full left-1/2 mb-6 w-[320px] -translate-x-1/2 text-center text-[15px] text-white">Point at the barcode. It reads on its own.</p>
+              <p className="absolute bottom-full left-1/2 mb-6 w-max max-w-[320px] -translate-x-1/2 rounded-pill bg-overlay px-[14px] py-[6px] text-center text-[15px] text-surface">Point at the barcode. It reads on its own.</p>
               {(["tl", "tr", "bl", "br"] as const).map(corner => <span key={corner} className="absolute size-6 border-white" style={{
                 ...(corner.includes("t") ? { top: 0, borderTopWidth: 2 } : { bottom: 0, borderBottomWidth: 2 }),
                 ...(corner.includes("l") ? { left: 0, borderLeftWidth: 2 } : { right: 0, borderRightWidth: 2 }),
@@ -524,7 +525,7 @@ export default function CaptureSheet({ onClose, initialMode = "photo", forPost, 
         <input ref={galleryRef} type="file" accept="image/*" multiple className="hidden" disabled={posting || full} onChange={(event) => { void addFiles(event.target.files); event.target.value = ""; }} />
         <input ref={cameraRef} type="file" accept="image/*" capture="environment" className="hidden" disabled={posting || full} onChange={(event) => { void addFiles(event.target.files); event.target.value = ""; }} />
         {(mode === "photo" || mode === "barcode") && barcodeState === "idle" && labelState === "idle" && <div className="desktop-shutter-row relative flex shrink-0 items-center justify-center" style={{ height: tokens.capture.controlsHeight, gap: tokens.capture.controlsGap }}>
-          <button type="button" aria-label="Choose from library" disabled={posting || full} onClick={() => galleryRef.current?.click()} className="desktop:hidden flex size-tap items-center justify-center rounded-circle bg-camera-button disabled:opacity-50"><Icon name="camera" size={tokens.capture.galleryIcon} /></button>
+          <button type="button" aria-label="Choose from library" disabled={posting || full} onClick={() => galleryRef.current?.click()} className={`${forPost?"":"desktop:hidden"} flex size-tap items-center justify-center rounded-circle bg-camera-button disabled:opacity-50`}><Icon name="camera" size={tokens.capture.galleryIcon} /></button>
           <button type="button" aria-label="Take a photo" disabled={posting || full || cameraBusy} onClick={takePhoto} className="desktop-shutter flex items-center justify-center rounded-circle border-surface disabled:opacity-50" style={{ width: tokens.capture.shutterSize, height: tokens.capture.shutterSize, borderWidth: tokens.capture.shutterBorder }}>
             {mode === "barcode" ? <BarcodeGlyph className="size-7 text-white opacity-50" /> : <span className="block rounded-circle bg-surface" style={{ width: tokens.capture.shutterDisc, height: tokens.capture.shutterDisc }} />}
           </button>
@@ -546,7 +547,7 @@ export default function CaptureSheet({ onClose, initialMode = "photo", forPost, 
           {posting&&<p role="status">Adding photo…</p>}{error&&<p role="alert">{error}</p>}
           {!posting&&pendingCount>0&&<button type="button" disabled={cameraBusy} onClick={()=>{void addFiles([]);}} className="min-h-tap underline">Retry adding photo</button>}
         </div>:<>{labelState!=="idle" ? <section aria-label="Nutrition label" className="shrink-0 rounded-t-sheet bg-text px-screen-x py-5 text-surface">
-          {labelState==="reading"?<p role="status" className="text-body">Reading the label…</p>:labelState==="missing"?<><p className="text-body">No nutrition label found</p><button type="button" onClick={()=>{setLabelState("idle");}} className="min-h-tap text-detail underline">Take the photo again</button><button type="button" onClick={typePackInstead} className="ml-4 min-h-tap text-detail underline">Type it instead</button></>:labelReading&&<>
+          {labelState==="reading"?<p role="status" className="text-body">Reading the label…</p>:labelState==="missing"||labelState==="failed"?<><p className="text-body">{labelState==="failed"?"The label could not be read. Try again.":"No nutrition label found"}</p><button type="button" onClick={()=>{setLabelState("idle");}} className="min-h-tap text-detail underline">Take the photo again</button><button type="button" onClick={typePackInstead} className="ml-4 min-h-tap text-detail underline">Type it instead</button></>:labelReading&&<>
           <div className="flex gap-3"><div className="min-w-0 flex-1"><p className="text-meta text-faint">Label read · per serving {labelReading.reading.serving?.amount} {labelReading.reading.serving?.unit}</p><Field id="label-name" variant="camera" autoFocus placeholder="Name this food" value={labelName} maxLength={80} onChange={e=>setLabelName(e.target.value)} disabled={posting}/><p className="mt-1.5 text-detail text-faint">{labelMacros(1)} · {labelNumber("fibre_g",1)} g fibre · {labelNumber("sugar_g",1)} g sugar · {labelNumber("sodium_mg",1)} mg sodium</p></div>{packPhoto&&<img src={packPhoto.previewUrl} alt="Nutrition label" className="size-14 rounded-thumb object-cover"/>}</div>
           <p className="mt-[18px] text-meta text-faint">How much?</p><div className="mt-2.5 flex flex-wrap gap-2">{[1,2,0.5].map(n=><button key={n} type="button" disabled={posting} onClick={()=>{setLabelServings(n);setOtherServings(false);}} aria-pressed={!otherServings&&labelServings===n} className={`h-10 rounded-field border px-3 text-comment font-medium ${!otherServings&&labelServings===n?"border-surface bg-surface text-text":"border-ring-on-ink"}`}>{n===0.5?"½ serving":`${n} ${n===1?"serving":"servings"}`}</button>)}<button type="button" onClick={()=>setOtherServings(true)} className="h-10 rounded-field border border-ring-on-ink px-3 text-comment">Other</button></div>
           {otherServings&&<Field variant="camera" aria-label="Number of servings" type="number" min="0.25" max="50" step="0.1" value={labelServings} onChange={e=>setLabelServings(Number(e.target.value))} disabled={posting}/>}
@@ -563,6 +564,7 @@ export default function CaptureSheet({ onClose, initialMode = "photo", forPost, 
               
               {packPhoto && <img src={packPhoto.previewUrl} alt="Scanned pack" className="shrink-0 rounded-thumb object-cover" style={{ width: tokens.capture.thumbSize, height: tokens.capture.thumbSize }} />}
             </div>
+            {product.attribution === "off" && <OpenFoodFactsAttribution/>}
             <p className="text-meta text-faint" style={{ marginTop: tokens.spacing['screen-x'] - tokens.icon.strongStroke }}>How much?</p>
             <div className="mt-tooltip-y flex flex-wrap gap-2">{barcodeAmounts(product).map((amount) => <button key={amount} type="button" disabled={posting} aria-pressed={portion === amount} onClick={() => setPortion(amount)} style={{ height: tokens.brand.barHeight }} className={`rounded-field border px-tooltip-caret text-comment font-medium ${portion === amount ? "border-surface bg-surface text-text" : "border-ring-on-ink text-surface"}`}>{pack === amount ? `Pack · ${amountLabel(amount)}` : amountLabel(amount)}</button>)}</div>
             <p className="text-body" style={{ marginTop: tokens.spacing['screen-x'] - tokens.icon.strongStroke }}>Consumed: {value("calories", portion)} kcal <span className="text-detail font-normal text-faint">· {macros(portion).split(" · ").slice(1).join(" · ")}</span></p>

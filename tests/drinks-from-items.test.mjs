@@ -12,9 +12,9 @@ import { summaryLine } from '../src/lib/posts/summary-line.ts';
 const item = (changes = {}) => ({ id: 'cola', name: 'Cola', food_category: 'soft drinks', portion_text: '355 ml', portion_grams: 355,
   micronutrients: [{ nutrientId: 1057, value: 34, unitName: 'MG', basis: 'portion' }], ...changes });
 test('cola and water keep their volume, reference caffeine and separate identities', () => {
-  assert.deepEqual(drinksFromItems([item()]), [{ post_item_id: 'cola', kind: 'caffeine', amount: 34, ml: 355, label: 'Cola', caffeineMg: 34 }]);
+  assert.deepEqual(drinksFromItems([item()]), [{ post_item_id: 'cola', kind: 'caffeine', amount: 34, ml: 355, label: 'Cola', caffeineMg: 34, alcoholG:0 }]);
   assert.deepEqual(drinksFromItems([item({ id: 'water', name: 'Water', food_category: 'water', portion_text: '250 ml', portion_grams: 250, micronutrients: [] })]),
-    [{ post_item_id: 'water', kind: 'water', amount: 250, ml: 250, label: 'Water', caffeineMg: 0 }]);
+    [{ post_item_id: 'water', kind: 'water', amount: 250, ml: 250, label: 'Water', caffeineMg: 0, alcoholG:0 }]);
   const five = drinksFromItems(Array.from({ length: 5 }, (_, i) => item({ id: `bottle-${i}` })));
   assert.equal(five.length, 5);
   assert.equal(new Set(five.map(row => row.post_item_id)).size, 5);
@@ -147,4 +147,22 @@ test('only cola gets a scaled caffeine fallback; portion values including zero w
   assert.equal(drinksFromItems([item({ name: 'Water', micronutrients: [] })])[0].caffeineMg, 0);
   assert.equal(drinksFromItems([item({ portion_text: '330 ml' })])[0].caffeineMg, 34);
   assert.equal(drinksFromItems([item({ micronutrients: [{ nutrientId: 1057, value: 0, basis: 'portion' }] })])[0].caffeineMg, 0);
+});
+
+test('historical Pepsi Zero and Evian water without categories receive item intake',()=>{
+ const base={id:'drink',portion_grams:330,food_category:null,micronutrients:[]};
+ assert.equal(isDrinkItem({...base,name:'Pepsi Zero'}),true);
+ assert.equal(drinksFromItems([{...base,name:'Pepsi Zero',portion_text:'one can'}])[0].ml,330);
+ assert.equal(drinksFromItems([{...base,name:'Pepsi Zero',portion_text:'one can'}])[0].caffeineMg,32);
+ assert.equal(drinksFromItems([{...base,name:'Evian bottled water',portion_grams:500,portion_text:'1 x 500 mL bottle'}])[0].ml,500);
+ assert.equal(isDrinkItem({...base,name:'Pepsi Zero cake'}),false);
+ assert.equal(isDrinkItem({...base,name:'Evian bottled water biscuit'}),false);
+});
+
+test('alcohol keeps caffeine only when its name contains a caffeine source',()=>{
+ const make=(name,category,value)=>({id:'drink',name,food_category:category,portion_text:'220 ml',portion_grams:220,micronutrients:[{nutrientId:1057,nutrientName:'Caffeine',unitName:'MG',basis:'portion',value}]});
+ const [tiki]=drinksFromItems([make('Lime and rum tiki cocktail','Liquor and cocktails',15)]);
+ assert.equal(tiki.caffeineMg,0);assert.notEqual(tiki.kind,'caffeine');
+ assert.equal(drinksFromItems([make('Rum and coke','Liquor and cocktails',20)])[0].caffeineMg,20);
+ assert.equal(drinksFromItems([make('Coffee','Coffee',95)])[0].caffeineMg,95);
 });

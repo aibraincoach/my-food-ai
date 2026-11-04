@@ -1,0 +1,44 @@
+[
+  {
+    "name": "coffee",
+    "bytes": 67824,
+    "glyph": "coffee",
+    "label": "Coffee",
+    "detail": "95 mg caffeine"
+  },
+  {
+    "name": "water",
+    "bytes": 65168,
+    "glyph": "water",
+    "label": "Water, bottle",
+    "detail": "500 ml"
+  },
+  {
+    "name": "cocktail",
+    "bytes": 68392,
+    "glyph": "cocktail",
+    "label": "Mai Tai cocktail",
+    "detail": "18 g alcohol · 1.3 standard drinks"
+  },
+  {
+    "name": "wine",
+    "bytes": 67060,
+    "glyph": "wine",
+    "label": "Red wine",
+    "detail": "14 g alcohol · 1.0 standard drinks"
+  },
+  {
+    "name": "beer",
+    "bytes": 69279,
+    "glyph": "beer",
+    "label": "Bintang",
+    "detail": "14 g alcohol · 1.0 standard drinks"
+  },
+  {
+    "name": "tumbler",
+    "bytes": 66612,
+    "glyph": "tumbler",
+    "label": "Coca-Cola",
+    "detail": "330 ml"
+  }
+]

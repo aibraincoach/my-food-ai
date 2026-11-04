@@ -1,0 +1,36 @@
+{
+  "post_id": "8535b793-9222-44f8-b8ce-6d80d580ea92",
+  "before": [
+    {
+      "kind": "water",
+      "amount": 220,
+      "ml": 220,
+      "source": "item"
+    }
+  ],
+  "after": [
+    {
+      "kind": "alcohol",
+      "amount": 18,
+      "ml": 220,
+      "source": "item"
+    }
+  ],
+  "itemDrinks": [
+    {
+      "post_item_id": "c6d600b5-05ef-40df-a6d4-54ef88cb8f09",
+      "label": "Lime and rum tiki cocktail",
+      "kind": "alcohol",
+      "alcoholG": 18.26,
+      "ml": 220,
+      "caffeineMg": 0
+    }
+  ],
+  "summary": "Drank: 18 g alcohol · 1.3 standard drinks · 196 kcal",
+  "dayHydration": {
+    "drinksMl": 240,
+    "foodMl": 740,
+    "totalMl": 980,
+    "caffeineMg": 95
+  }
+}

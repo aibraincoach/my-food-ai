@@ -15,13 +15,17 @@ Built for the Meta hackathon, October 26 to November 4, 2026.
 
 **Switch on Muse Spark Open:** sign in, open **Profile**, and turn on **Identify food with Muse Spark Open** under your handle. New meals use it, and post detail reads "Identified by Muse Spark Open". If it fails or returns an invalid result, the meal falls back to Muse Spark 1.3. [Setup and paired comparison](docs/open-weights.md).
 
+To configure the open model on Baseten, supply the server-only `IDENTIFY_OPEN_API_KEY`, `IDENTIFY_OPEN_BASE_URL` and `IDENTIFY_OPEN_MODEL` values named in [.env.example](.env.example). Keep their values in private environment configuration. Built with Muse Spark Open under the [Muse Model License](https://huggingface.co/meta-models/Muse-Spark-Open-816B-A42B/blob/main/LICENSE.md).
+
 USDA FoodData Central supplies nutrition references. It is a database, not a model. A food with no matching reference is shown as unavailable, never guessed. [Food matching](src/lib/fdc/match.ts), [third-party notices](THIRD_PARTY.md).
+
+Packaged foods that USDA FoodData Central does not hold are looked up in Open Food Facts. Contains data from [Open Food Facts](https://world.openfoodfacts.org), available under the [Open Database License](https://opendatacommons.org/licenses/odbl/1-0/).
 
 ## For the judges
 
 **Impact.** Food logging is abandoned because it is slow and its numbers are opaque. Here a photo is the whole entry, every number traces to the USDA reference it came from, and a correction in plain words ("I ate half the rice") changes the record while keeping the earlier version. [Demo record](docs/demo.md).
 
-**Use of Meta AI tooling.** Three Meta models run in production on every photo meal, and Meta's open-weight Muse Spark Open is a real, switchable path. [Ten-photo evaluation and its limits](docs/eval.md), [open-weight comparison](docs/open-weights.md).
+**Use of Meta AI tooling.** SAM outlines photo foods, Muse Spark identifies them and interprets corrections, and Muse Voice Transcribe handles spoken corrections. Meta's open-weight Muse Spark Open is a real, switchable identification path. [Ten-photo evaluation and its limits](docs/eval.md), [real-model gates and their limits](docs/production-performance.md#pre-merge-gates-and-review), [open-weight comparison](docs/open-weights.md).
 
 **Demo.** A photo becomes an outlined, calculated meal; a spoken correction changes it; a leftovers photo is marked "not eaten"; Days and Search find it again. [Demo record](docs/demo.md).
 
@@ -37,9 +41,11 @@ Measured with the [disposable local test stack](docs/testing.md); [commands, dat
 
 | Command | Result |
 | --- | --- |
-| `npm run test:db` | 32 passed, 0 failed, 0 skipped |
-| `npm test` (complete top-level suite with TypeScript loading) | 567 passed, 0 failed, 6 existing optional integration skips |
+| `npm run test:db` | 34 passed, 0 failed, 0 skipped |
+| `npm test` (complete top-level suite with TypeScript loading) | 573 passed, 0 failed, 6 existing optional integration skips |
 | `npm run lint` | 0 errors, 6 warnings |
+
+[Fleet 11 validation logs and exact tested versions](https://github.com/aibraincoach/my-food-ai/blob/ccb1465/docs/evidence/run11-final-checks/verification.json).
 
 The local stack runs real PostgreSQL, Auth, REST and app routes with scripted provider/Storage transports. It does not prove live provider availability or food accuracy.
 

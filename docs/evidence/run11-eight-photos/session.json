@@ -1,0 +1,879 @@
+{
+  "startedAt": "2026-11-04T00:29:33.155Z",
+  "photos": [
+    {
+      "name": "roast",
+      "tap": 1793752176657,
+      "closedAt": 1793752177805,
+      "newIds": [
+        "82c4c14f-2308-4a6f-a8d5-fa3f28093606"
+      ]
+    },
+    {
+      "name": "sushi",
+      "tap": 1793752178287,
+      "closedAt": 1793752179415,
+      "newIds": [
+        "d626a6f9-b876-43fb-ab9d-101e9aee3544"
+      ]
+    },
+    {
+      "name": "pasta",
+      "tap": 1793752179985,
+      "closedAt": 1793752181220,
+      "newIds": [
+        "c0550e89-cc15-4b52-9e31-11fd638502c4"
+      ]
+    },
+    {
+      "name": "pizza",
+      "tap": 1793752181685,
+      "closedAt": 1793752182859,
+      "newIds": [
+        "4b136488-46e1-46a5-a6c3-992967f057f5"
+      ]
+    },
+    {
+      "name": "salad",
+      "tap": 1793752183155,
+      "closedAt": 1793752184299,
+      "newIds": [
+        "22f10ed8-4598-40d2-8fab-1b856025321f"
+      ]
+    },
+    {
+      "name": "pancakes",
+      "tap": 1793752184782,
+      "closedAt": 1793752185984,
+      "newIds": [
+        "66c8e750-68a6-48ff-91bb-7eea79e2e3e7"
+      ]
+    },
+    {
+      "name": "coffee",
+      "tap": 1793752186511,
+      "closedAt": 1793752187665,
+      "newIds": [
+        "3f962b63-9b00-41b2-92be-af86b47df3f9"
+      ]
+    },
+    {
+      "name": "cola",
+      "tap": 1793752188885,
+      "closedAt": 1793752190401,
+      "newIds": [
+        "164c7411-c50e-412f-baf2-906f91ce8a93"
+      ]
+    }
+  ],
+  "progress": [
+    {
+      "id": "16664e71-dd9f-444e-96ed-330865adda3c",
+      "at": 1793752176767,
+      "status": "queued",
+      "names": [],
+      "text": "",
+      "hasKcal": false
+    },
+    {
+      "id": "587c8a40-c354-4810-bc55-25085c1153e6",
+      "at": 1793752178370,
+      "status": "queued",
+      "names": [],
+      "text": "",
+      "hasKcal": false
+    },
+    {
+      "id": "16664e71-dd9f-444e-96ed-330865adda3c",
+      "at": 1793752179432,
+      "status": "queued",
+      "names": [],
+      "text": "Processing, traffic low",
+      "hasKcal": false
+    },
+    {
+      "id": "09f45591-d263-4e49-b2a2-f5e1f7a66db2",
+      "at": 1793752180099,
+      "status": "queued",
+      "names": [],
+      "text": "",
+      "hasKcal": false
+    },
+    {
+      "id": "587c8a40-c354-4810-bc55-25085c1153e6",
+      "at": 1793752180495,
+      "status": "queued",
+      "names": [],
+      "text": "Processing, traffic low",
+      "hasKcal": false
+    },
+    {
+      "id": "16664e71-dd9f-444e-96ed-330865adda3c",
+      "at": 1793752180563,
+      "status": "processing",
+      "names": [],
+      "text": "Processing, traffic low",
+      "hasKcal": false
+    },
+    {
+      "id": "8b3181da-c3d5-4380-9055-b1dc05c3156a",
+      "at": 1793752181786,
+      "status": "queued",
+      "names": [],
+      "text": "",
+      "hasKcal": false
+    },
+    {
+      "id": "09f45591-d263-4e49-b2a2-f5e1f7a66db2",
+      "at": 1793752181853,
+      "status": "queued",
+      "names": [],
+      "text": "Processing, traffic low",
+      "hasKcal": false
+    },
+    {
+      "id": "e54a06da-ecbf-4520-baa5-a000a1f6b31e",
+      "at": 1793752183275,
+      "status": "queued",
+      "names": [],
+      "text": "",
+      "hasKcal": false
+    },
+    {
+      "id": "8b3181da-c3d5-4380-9055-b1dc05c3156a",
+      "at": 1793752183350,
+      "status": "queued",
+      "names": [],
+      "text": "Processing, traffic low",
+      "hasKcal": false
+    },
+    {
+      "id": "e54a06da-ecbf-4520-baa5-a000a1f6b31e",
+      "at": 1793752184873,
+      "status": "queued",
+      "names": [],
+      "text": "Processing, traffic low",
+      "hasKcal": false
+    },
+    {
+      "id": "8c308c80-9b97-4d32-b42a-dd3a3870cf05",
+      "at": 1793752184956,
+      "status": "queued",
+      "names": [],
+      "text": "",
+      "hasKcal": false
+    },
+    {
+      "id": "8c308c80-9b97-4d32-b42a-dd3a3870cf05",
+      "at": 1793752186416,
+      "status": "queued",
+      "names": [],
+      "text": "Processing, traffic low",
+      "hasKcal": false
+    },
+    {
+      "id": "a299e3ac-344a-4eba-b3fc-0cbf08fdfa42",
+      "at": 1793752186630,
+      "status": "queued",
+      "names": [],
+      "text": "",
+      "hasKcal": false
+    },
+    {
+      "id": "a299e3ac-344a-4eba-b3fc-0cbf08fdfa42",
+      "at": 1793752188883,
+      "status": "queued",
+      "names": [],
+      "text": "Processing, traffic low",
+      "hasKcal": false
+    },
+    {
+      "id": "cb339647-ca29-46d6-9f77-f8a7d12bed0c",
+      "at": 1793752189027,
+      "status": "queued",
+      "names": [],
+      "text": "",
+      "hasKcal": false
+    },
+    {
+      "id": "cb339647-ca29-46d6-9f77-f8a7d12bed0c",
+      "at": 1793752191288,
+      "status": "queued",
+      "names": [],
+      "text": "Processing, traffic low",
+      "hasKcal": false
+    },
+    {
+      "id": "16664e71-dd9f-444e-96ed-330865adda3c",
+      "at": 1793752194369,
+      "status": "processing",
+      "names": [
+        "savory stuffing",
+        "sliced roast beef",
+        "Yorkshire pudding",
+        "brown gravy"
+      ],
+      "text": "savory stuffing\nsliced roast beef\nYorkshire pudding\nbrown gravy\n\nProcessing, traffic low",
+      "hasKcal": false
+    },
+    {
+      "id": "16664e71-dd9f-444e-96ed-330865adda3c",
+      "at": 1793752199097,
+      "status": "processing",
+      "names": [
+        "savory stuffing",
+        "sliced roast beef",
+        "Yorkshire pudding",
+        "brown gravy"
+      ],
+      "text": "savory stuffing\nsliced roast beef\nYorkshire pudding\n268 kcal\nbrown gravy\n\nProcessing, traffic low",
+      "hasKcal": true
+    },
+    {
+      "id": "16664e71-dd9f-444e-96ed-330865adda3c",
+      "at": 1793752200787,
+      "status": "processing",
+      "names": [
+        "savory stuffing",
+        "sliced roast beef",
+        "Yorkshire pudding",
+        "brown gravy"
+      ],
+      "text": "savory stuffing\n142 kcal\nsliced roast beef\nYorkshire pudding\n268 kcal\nbrown gravy\n\nProcessing, traffic low",
+      "hasKcal": true
+    },
+    {
+      "id": "16664e71-dd9f-444e-96ed-330865adda3c",
+      "at": 1793752202595,
+      "status": "processing",
+      "names": [
+        "savory stuffing",
+        "sliced roast beef",
+        "Yorkshire pudding",
+        "brown gravy"
+      ],
+      "text": "savory stuffing\n142 kcal\nsliced roast beef\nYorkshire pudding\n268 kcal\nbrown gravy\n32 kcal\n\nProcessing, traffic low",
+      "hasKcal": true
+    },
+    {
+      "id": "16664e71-dd9f-444e-96ed-330865adda3c",
+      "at": 1793752204968,
+      "status": "ready",
+      "names": [],
+      "text": "",
+      "hasKcal": false
+    },
+    {
+      "id": "587c8a40-c354-4810-bc55-25085c1153e6",
+      "at": 1793752207504,
+      "status": "processing",
+      "names": [],
+      "text": "Processing, traffic low",
+      "hasKcal": false
+    },
+    {
+      "id": "587c8a40-c354-4810-bc55-25085c1153e6",
+      "at": 1793752232010,
+      "status": "processing",
+      "names": [
+        "cooked eel and kohada nigiri sushi",
+        "tuna nigiri sushi",
+        "squid white fish nigiri sushi",
+        "cooked shrimp nigiri sushi",
+        "cucumber hosomaki sushi rolls",
+        "tuna hosomaki sushi rolls",
+        "pickled ginger",
+        "octopus nigiri sushi",
+        "surf clam nigiri sushi",
+        "gunkan sushi with salmon roe and minced tuna",
+        "tamago nigiri sushi",
+        "salmon nigiri sushi",
+        "white fish and shellfish nigiri sushi"
+      ],
+      "text": "cooked eel and kohada nigiri sushi\ntuna nigiri sushi\nsquid white fish nigiri sushi\ncooked shrimp nigiri sushi\ncucumber hosomaki sushi rolls\ntuna hosomaki sushi rolls\npickled ginger\noctopus nigiri sushi\nsurf clam nigiri sushi\ngunkan sushi with salmon roe and minced tuna\ntamago nigiri sushi\nsalmon nigiri sushi\nwhite fish and shellfish nigiri sushi\n\nProcessing, traffic low",
+      "hasKcal": false
+    },
+    {
+      "id": "587c8a40-c354-4810-bc55-25085c1153e6",
+      "at": 1793752239781,
+      "status": "processing",
+      "names": [
+        "cooked eel and kohada nigiri sushi",
+        "tuna nigiri sushi",
+        "squid white fish nigiri sushi",
+        "cooked shrimp nigiri sushi",
+        "cucumber hosomaki sushi rolls",
+        "tuna hosomaki sushi rolls",
+        "pickled ginger",
+        "octopus nigiri sushi",
+        "surf clam nigiri sushi",
+        "gunkan sushi with salmon roe and minced tuna",
+        "tamago nigiri sushi",
+        "salmon nigiri sushi",
+        "white fish and shellfish nigiri sushi"
+      ],
+      "text": "cooked eel and kohada nigiri sushi\ntuna nigiri sushi\n120 kcal\nsquid white fish nigiri sushi\ncooked shrimp nigiri sushi\ncucumber hosomaki sushi rolls\ntuna hosomaki sushi rolls\npickled ginger\noctopus nigiri sushi\nsurf clam nigiri sushi\ngunkan sushi with salmon roe and minced tuna\ntamago nigiri sushi\nsalmon nigiri sushi\nwhite fish and shellfish nigiri sushi\n\nProcessing, traffic low",
+      "hasKcal": true
+    },
+    {
+      "id": "587c8a40-c354-4810-bc55-25085c1153e6",
+      "at": 1793752240991,
+      "status": "processing",
+      "names": [
+        "cooked eel and kohada nigiri sushi",
+        "tuna nigiri sushi",
+        "squid white fish nigiri sushi",
+        "cooked shrimp nigiri sushi",
+        "cucumber hosomaki sushi rolls",
+        "tuna hosomaki sushi rolls",
+        "pickled ginger",
+        "octopus nigiri sushi",
+        "surf clam nigiri sushi",
+        "gunkan sushi with salmon roe and minced tuna",
+        "tamago nigiri sushi",
+        "salmon nigiri sushi",
+        "white fish and shellfish nigiri sushi"
+      ],
+      "text": "cooked eel and kohada nigiri sushi\ntuna nigiri sushi\n120 kcal\nsquid white fish nigiri sushi\ncooked shrimp nigiri sushi\n93 kcal\ncucumber hosomaki sushi rolls\ntuna hosomaki sushi rolls\npickled ginger\noctopus nigiri sushi\nsurf clam nigiri sushi\ngunkan sushi with salmon roe and minced tuna\ntamago nigiri sushi\nsalmon nigiri sushi\nwhite fish and shellfish nigiri sushi\n\nProcessing, traffic low",
+      "hasKcal": true
+    },
+    {
+      "id": "587c8a40-c354-4810-bc55-25085c1153e6",
+      "at": 1793752241990,
+      "status": "processing",
+      "names": [
+        "cooked eel and kohada nigiri sushi",
+        "tuna nigiri sushi",
+        "squid white fish nigiri sushi",
+        "cooked shrimp nigiri sushi",
+        "cucumber hosomaki sushi rolls",
+        "tuna hosomaki sushi rolls",
+        "pickled ginger",
+        "octopus nigiri sushi",
+        "surf clam nigiri sushi",
+        "gunkan sushi with salmon roe and minced tuna",
+        "tamago nigiri sushi",
+        "salmon nigiri sushi",
+        "white fish and shellfish nigiri sushi"
+      ],
+      "text": "cooked eel and kohada nigiri sushi\ntuna nigiri sushi\n120 kcal\nsquid white fish nigiri sushi\n85 kcal\ncooked shrimp nigiri sushi\n93 kcal\ncucumber hosomaki sushi rolls\ntuna hosomaki sushi rolls\npickled ginger\noctopus nigiri sushi\nsurf clam nigiri sushi\ngunkan sushi with salmon roe and minced tuna\ntamago nigiri sushi\nsalmon nigiri sushi\nwhite fish and shellfish nigiri sushi\n\nProcessing, traffic low",
+      "hasKcal": true
+    },
+    {
+      "id": "587c8a40-c354-4810-bc55-25085c1153e6",
+      "at": 1793752244478,
+      "status": "processing",
+      "names": [
+        "cooked eel and kohada nigiri sushi",
+        "tuna nigiri sushi",
+        "squid white fish nigiri sushi",
+        "cooked shrimp nigiri sushi",
+        "cucumber hosomaki sushi rolls",
+        "tuna hosomaki sushi rolls",
+        "pickled ginger",
+        "octopus nigiri sushi",
+        "surf clam nigiri sushi",
+        "gunkan sushi with salmon roe and minced tuna",
+        "tamago nigiri sushi",
+        "salmon nigiri sushi",
+        "white fish and shellfish nigiri sushi"
+      ],
+      "text": "cooked eel and kohada nigiri sushi\ntuna nigiri sushi\n120 kcal\nsquid white fish nigiri sushi\n85 kcal\ncooked shrimp nigiri sushi\n93 kcal\ncucumber hosomaki sushi rolls\n112 kcal\ntuna hosomaki sushi rolls\n136 kcal\npickled ginger\noctopus nigiri sushi\nsurf clam nigiri sushi\ngunkan sushi with salmon roe and minced tuna\ntamago nigiri sushi\nsalmon nigiri sushi\nwhite fish and shellfish nigiri sushi\n\nProcessing, traffic low",
+      "hasKcal": true
+    },
+    {
+      "id": "587c8a40-c354-4810-bc55-25085c1153e6",
+      "at": 1793752245187,
+      "status": "processing",
+      "names": [
+        "cooked eel and kohada nigiri sushi",
+        "tuna nigiri sushi",
+        "squid white fish nigiri sushi",
+        "cooked shrimp nigiri sushi",
+        "cucumber hosomaki sushi rolls",
+        "tuna hosomaki sushi rolls",
+        "pickled ginger",
+        "octopus nigiri sushi",
+        "surf clam nigiri sushi",
+        "gunkan sushi with salmon roe and minced tuna",
+        "tamago nigiri sushi",
+        "salmon nigiri sushi",
+        "white fish and shellfish nigiri sushi"
+      ],
+      "text": "cooked eel and kohada nigiri sushi\n85 kcal\ntuna nigiri sushi\n120 kcal\nsquid white fish nigiri sushi\n85 kcal\ncooked shrimp nigiri sushi\n93 kcal\ncucumber hosomaki sushi rolls\n112 kcal\ntuna hosomaki sushi rolls\n136 kcal\npickled ginger\noctopus nigiri sushi\nsurf clam nigiri sushi\ngunkan sushi with salmon roe and minced tuna\ntamago nigiri sushi\nsalmon nigiri sushi\nwhite fish and shellfish nigiri sushi\n\nProcessing, traffic low",
+      "hasKcal": true
+    },
+    {
+      "id": "587c8a40-c354-4810-bc55-25085c1153e6",
+      "at": 1793752245819,
+      "status": "processing",
+      "names": [
+        "cooked eel and kohada nigiri sushi",
+        "tuna nigiri sushi",
+        "squid white fish nigiri sushi",
+        "cooked shrimp nigiri sushi",
+        "cucumber hosomaki sushi rolls",
+        "tuna hosomaki sushi rolls",
+        "pickled ginger",
+        "octopus nigiri sushi",
+        "surf clam nigiri sushi",
+        "gunkan sushi with salmon roe and minced tuna",
+        "tamago nigiri sushi",
+        "salmon nigiri sushi",
+        "white fish and shellfish nigiri sushi"
+      ],
+      "text": "cooked eel and kohada nigiri sushi\n85 kcal\ntuna nigiri sushi\n120 kcal\nsquid white fish nigiri sushi\n85 kcal\ncooked shrimp nigiri sushi\n93 kcal\ncucumber hosomaki sushi rolls\n112 kcal\ntuna hosomaki sushi rolls\n136 kcal\npickled ginger\n4 kcal\noctopus nigiri sushi\nsurf clam nigiri sushi\ngunkan sushi with salmon roe and minced tuna\ntamago nigiri sushi\nsalmon nigiri sushi\nwhite fish and shellfish nigiri sushi\n\nProcessing, traffic low",
+      "hasKcal": true
+    },
+    {
+      "id": "587c8a40-c354-4810-bc55-25085c1153e6",
+      "at": 1793752251028,
+      "status": "processing",
+      "names": [
+        "cooked eel and kohada nigiri sushi",
+        "tuna nigiri sushi",
+        "squid white fish nigiri sushi",
+        "cooked shrimp nigiri sushi",
+        "cucumber hosomaki sushi rolls",
+        "tuna hosomaki sushi rolls",
+        "pickled ginger",
+        "octopus nigiri sushi",
+        "surf clam nigiri sushi",
+        "gunkan sushi with salmon roe and minced tuna",
+        "tamago nigiri sushi",
+        "salmon nigiri sushi",
+        "white fish and shellfish nigiri sushi"
+      ],
+      "text": "cooked eel and kohada nigiri sushi\n85 kcal\ntuna nigiri sushi\n120 kcal\nsquid white fish nigiri sushi\n85 kcal\ncooked shrimp nigiri sushi\n93 kcal\ncucumber hosomaki sushi rolls\n112 kcal\ntuna hosomaki sushi rolls\n136 kcal\npickled ginger\n4 kcal\noctopus nigiri sushi\nsurf clam nigiri sushi\ngunkan sushi with salmon roe and minced tuna\n141 kcal\ntamago nigiri sushi\nsalmon nigiri sushi\nwhite fish and shellfish nigiri sushi\n\nProcessing, traffic low",
+      "hasKcal": true
+    },
+    {
+      "id": "587c8a40-c354-4810-bc55-25085c1153e6",
+      "at": 1793752252059,
+      "status": "processing",
+      "names": [
+        "cooked eel and kohada nigiri sushi",
+        "tuna nigiri sushi",
+        "squid white fish nigiri sushi",
+        "cooked shrimp nigiri sushi",
+        "cucumber hosomaki sushi rolls",
+        "tuna hosomaki sushi rolls",
+        "pickled ginger",
+        "octopus nigiri sushi",
+        "surf clam nigiri sushi",
+        "gunkan sushi with salmon roe and minced tuna",
+        "tamago nigiri sushi",
+        "salmon nigiri sushi",
+        "white fish and shellfish nigiri sushi"
+      ],
+      "text": "cooked eel and kohada nigiri sushi\n85 kcal\ntuna nigiri sushi\n120 kcal\nsquid white fish nigiri sushi\n85 kcal\ncooked shrimp nigiri sushi\n93 kcal\ncucumber hosomaki sushi rolls\n112 kcal\ntuna hosomaki sushi rolls\n136 kcal\npickled ginger\n4 kcal\noctopus nigiri sushi\n56 kcal\nsurf clam nigiri sushi\n85 kcal\ngunkan sushi with salmon roe and minced tuna\n141 kcal\ntamago nigiri sushi\nsalmon nigiri sushi\nwhite fish and shellfish nigiri sushi\n\nProcessing, traffic low",
+      "hasKcal": true
+    },
+    {
+      "id": "587c8a40-c354-4810-bc55-25085c1153e6",
+      "at": 1793752254323,
+      "status": "processing",
+      "names": [
+        "cooked eel and kohada nigiri sushi",
+        "tuna nigiri sushi",
+        "squid white fish nigiri sushi",
+        "cooked shrimp nigiri sushi",
+        "cucumber hosomaki sushi rolls",
+        "tuna hosomaki sushi rolls",
+        "pickled ginger",
+        "octopus nigiri sushi",
+        "surf clam nigiri sushi",
+        "gunkan sushi with salmon roe and minced tuna",
+        "tamago nigiri sushi",
+        "salmon nigiri sushi",
+        "white fish and shellfish nigiri sushi"
+      ],
+      "text": "cooked eel and kohada nigiri sushi\n85 kcal\ntuna nigiri sushi\n120 kcal\nsquid white fish nigiri sushi\n85 kcal\ncooked shrimp nigiri sushi\n93 kcal\ncucumber hosomaki sushi rolls\n112 kcal\ntuna hosomaki sushi rolls\n136 kcal\npickled ginger\n4 kcal\noctopus nigiri sushi\n56 kcal\nsurf clam nigiri sushi\n85 kcal\ngunkan sushi with salmon roe and minced tuna\n141 kcal\ntamago nigiri sushi\n143 kcal\nsalmon nigiri sushi\nwhite fish and shellfish nigiri sushi\n\nProcessing, traffic low",
+      "hasKcal": true
+    },
+    {
+      "id": "587c8a40-c354-4810-bc55-25085c1153e6",
+      "at": 1793752255885,
+      "status": "processing",
+      "names": [
+        "cooked eel and kohada nigiri sushi",
+        "tuna nigiri sushi",
+        "squid white fish nigiri sushi",
+        "cooked shrimp nigiri sushi",
+        "cucumber hosomaki sushi rolls",
+        "tuna hosomaki sushi rolls",
+        "pickled ginger",
+        "octopus nigiri sushi",
+        "surf clam nigiri sushi",
+        "gunkan sushi with salmon roe and minced tuna",
+        "tamago nigiri sushi",
+        "salmon nigiri sushi",
+        "white fish and shellfish nigiri sushi"
+      ],
+      "text": "cooked eel and kohada nigiri sushi\n85 kcal\ntuna nigiri sushi\n120 kcal\nsquid white fish nigiri sushi\n85 kcal\ncooked shrimp nigiri sushi\n93 kcal\ncucumber hosomaki sushi rolls\n112 kcal\ntuna hosomaki sushi rolls\n136 kcal\npickled ginger\n4 kcal\noctopus nigiri sushi\n56 kcal\nsurf clam nigiri sushi\n85 kcal\ngunkan sushi with salmon roe and minced tuna\n141 kcal\ntamago nigiri sushi\n143 kcal\nsalmon nigiri sushi\n64 kcal\nwhite fish and shellfish nigiri sushi\n\nProcessing, traffic low",
+      "hasKcal": true
+    },
+    {
+      "id": "587c8a40-c354-4810-bc55-25085c1153e6",
+      "at": 1793752258219,
+      "status": "ready",
+      "names": [],
+      "text": "",
+      "hasKcal": false
+    },
+    {
+      "id": "09f45591-d263-4e49-b2a2-f5e1f7a66db2",
+      "at": 1793752261356,
+      "status": "processing",
+      "names": [],
+      "text": "Processing, traffic low",
+      "hasKcal": false
+    },
+    {
+      "id": "09f45591-d263-4e49-b2a2-f5e1f7a66db2",
+      "at": 1793752267007,
+      "status": "processing",
+      "names": [
+        "plain cooked spaghetti"
+      ],
+      "text": "plain cooked spaghetti\n\nProcessing, traffic low",
+      "hasKcal": false
+    },
+    {
+      "id": "09f45591-d263-4e49-b2a2-f5e1f7a66db2",
+      "at": 1793752281954,
+      "status": "ready",
+      "names": [],
+      "text": "",
+      "hasKcal": false
+    },
+    {
+      "id": "8b3181da-c3d5-4380-9055-b1dc05c3156a",
+      "at": 1793752283613,
+      "status": "processing",
+      "names": [],
+      "text": "Processing, traffic low",
+      "hasKcal": false
+    },
+    {
+      "id": "8b3181da-c3d5-4380-9055-b1dc05c3156a",
+      "at": 1793752291331,
+      "status": "processing",
+      "names": [
+        "margherita pizza with mozzarella, tomato and basil"
+      ],
+      "text": "margherita pizza with mozzarella, tomato and basil\n\nProcessing, traffic low",
+      "hasKcal": false
+    },
+    {
+      "id": "8b3181da-c3d5-4380-9055-b1dc05c3156a",
+      "at": 1793752313487,
+      "status": "ready",
+      "names": [],
+      "text": "",
+      "hasKcal": false
+    },
+    {
+      "id": "e54a06da-ecbf-4520-baa5-a000a1f6b31e",
+      "at": 1793752314490,
+      "status": "processing",
+      "names": [],
+      "text": "Processing, traffic low",
+      "hasKcal": false
+    },
+    {
+      "id": "e54a06da-ecbf-4520-baa5-a000a1f6b31e",
+      "at": 1793752325074,
+      "status": "processing",
+      "names": [
+        "caesar salad with romaine lettuce, croutons, parmesan and dressing",
+        "grilled chicken breast"
+      ],
+      "text": "caesar salad with romaine lettuce, croutons, parmesan and dressing\ngrilled chicken breast\n\nProcessing, traffic low",
+      "hasKcal": false
+    },
+    {
+      "id": "e54a06da-ecbf-4520-baa5-a000a1f6b31e",
+      "at": 1793752333044,
+      "status": "processing",
+      "names": [
+        "caesar salad with romaine lettuce, croutons, parmesan and dressing",
+        "grilled chicken breast"
+      ],
+      "text": "caesar salad with romaine lettuce, croutons, parmesan and dressing\ngrilled chicken breast\n151 kcal\n\nProcessing, traffic low",
+      "hasKcal": true
+    },
+    {
+      "id": "e54a06da-ecbf-4520-baa5-a000a1f6b31e",
+      "at": 1793752345808,
+      "status": "ready",
+      "names": [],
+      "text": "",
+      "hasKcal": false
+    },
+    {
+      "id": "8c308c80-9b97-4d32-b42a-dd3a3870cf05",
+      "at": 1793752348899,
+      "status": "processing",
+      "names": [],
+      "text": "Processing, traffic low",
+      "hasKcal": false
+    },
+    {
+      "id": "8c308c80-9b97-4d32-b42a-dd3a3870cf05",
+      "at": 1793752362070,
+      "status": "processing",
+      "names": [
+        "pancakes"
+      ],
+      "text": "pancakes\n\nProcessing, traffic low",
+      "hasKcal": false
+    },
+    {
+      "id": "8c308c80-9b97-4d32-b42a-dd3a3870cf05",
+      "at": 1793752370233,
+      "status": "ready",
+      "names": [],
+      "text": "",
+      "hasKcal": false
+    },
+    {
+      "id": "a299e3ac-344a-4eba-b3fc-0cbf08fdfa42",
+      "at": 1793752372367,
+      "status": "processing",
+      "names": [],
+      "text": "Processing, traffic low",
+      "hasKcal": false
+    },
+    {
+      "id": "a299e3ac-344a-4eba-b3fc-0cbf08fdfa42",
+      "at": 1793752385956,
+      "status": "processing",
+      "names": [
+        "black coffee",
+        "milk"
+      ],
+      "text": "black coffee\nmilk\n\nProcessing, traffic low",
+      "hasKcal": false
+    },
+    {
+      "id": "a299e3ac-344a-4eba-b3fc-0cbf08fdfa42",
+      "at": 1793752391522,
+      "status": "processing",
+      "names": [
+        "black coffee",
+        "milk"
+      ],
+      "text": "black coffee\n2 kcal\nmilk\n\nProcessing, traffic low",
+      "hasKcal": true
+    },
+    {
+      "id": "a299e3ac-344a-4eba-b3fc-0cbf08fdfa42",
+      "at": 1793752393769,
+      "status": "ready",
+      "names": [],
+      "text": "",
+      "hasKcal": false
+    },
+    {
+      "id": "cb339647-ca29-46d6-9f77-f8a7d12bed0c",
+      "at": 1793752395291,
+      "status": "processing",
+      "names": [],
+      "text": "Processing, traffic low",
+      "hasKcal": false
+    },
+    {
+      "id": "cb339647-ca29-46d6-9f77-f8a7d12bed0c",
+      "at": 1793752404900,
+      "status": "processing",
+      "names": [
+        "cola"
+      ],
+      "text": "cola\n\nProcessing, traffic low",
+      "hasKcal": false
+    },
+    {
+      "id": "cb339647-ca29-46d6-9f77-f8a7d12bed0c",
+      "at": 1793752410434,
+      "status": "ready",
+      "names": [],
+      "text": "",
+      "hasKcal": false
+    }
+  ],
+  "cleanup": {
+    "created": 8,
+    "postsRemaining": 0,
+    "objectsRemoved": 45,
+    "objectsRemaining": 0
+  },
+  "credits": "Meals: eval/SOURCES.md. Coffee cup (1).jpg: Jon Sullivan, public domain, Wikimedia Commons. Coca-cola.jpg: 些細な日常, CC BY-SA4.0, Wikimedia Commons. Originals supplied to normal client reencoding.",
+  "capBefore": [
+    {
+      "route": "fdc_barcode",
+      "hour": "2026-11-04T00:00:00+00:00",
+      "hits": 3
+    },
+    {
+      "route": "post",
+      "hour": "2026-11-04T00:00:00+00:00",
+      "hits": 8
+    }
+  ],
+  "statuses": [
+    {
+      "id": "c0550e89-cc15-4b52-9e31-11fd638502c4",
+      "status": "ready",
+      "fail_reason": null
+    },
+    {
+      "id": "4b136488-46e1-46a5-a6c3-992967f057f5",
+      "status": "ready",
+      "fail_reason": null
+    },
+    {
+      "id": "66c8e750-68a6-48ff-91bb-7eea79e2e3e7",
+      "status": "ready",
+      "fail_reason": null
+    },
+    {
+      "id": "d626a6f9-b876-43fb-ab9d-101e9aee3544",
+      "status": "ready",
+      "fail_reason": null
+    },
+    {
+      "id": "164c7411-c50e-412f-baf2-906f91ce8a93",
+      "status": "ready",
+      "fail_reason": null
+    },
+    {
+      "id": "82c4c14f-2308-4a6f-a8d5-fa3f28093606",
+      "status": "ready",
+      "fail_reason": null
+    },
+    {
+      "id": "3f962b63-9b00-41b2-92be-af86b47df3f9",
+      "status": "ready",
+      "fail_reason": null
+    },
+    {
+      "id": "22f10ed8-4598-40d2-8fab-1b856025321f",
+      "status": "ready",
+      "fail_reason": null
+    }
+  ],
+  "capAfter": [
+    {
+      "route": "fdc_barcode",
+      "hour": "2026-11-04T00:00:00+00:00",
+      "hits": 3
+    },
+    {
+      "route": "post",
+      "hour": "2026-11-04T00:00:00+00:00",
+      "hits": 24
+    }
+  ],
+  "capMessages": 0,
+  "namesBeforeTotals": [
+    {
+      "id": "16664e71-dd9f-444e-96ed-330865adda3c",
+      "at": 1793752194369,
+      "status": "processing",
+      "names": [
+        "savory stuffing",
+        "sliced roast beef",
+        "Yorkshire pudding",
+        "brown gravy"
+      ],
+      "text": "savory stuffing\nsliced roast beef\nYorkshire pudding\nbrown gravy\n\nProcessing, traffic low",
+      "hasKcal": false
+    },
+    {
+      "id": "587c8a40-c354-4810-bc55-25085c1153e6",
+      "at": 1793752232010,
+      "status": "processing",
+      "names": [
+        "cooked eel and kohada nigiri sushi",
+        "tuna nigiri sushi",
+        "squid white fish nigiri sushi",
+        "cooked shrimp nigiri sushi",
+        "cucumber hosomaki sushi rolls",
+        "tuna hosomaki sushi rolls",
+        "pickled ginger",
+        "octopus nigiri sushi",
+        "surf clam nigiri sushi",
+        "gunkan sushi with salmon roe and minced tuna",
+        "tamago nigiri sushi",
+        "salmon nigiri sushi",
+        "white fish and shellfish nigiri sushi"
+      ],
+      "text": "cooked eel and kohada nigiri sushi\ntuna nigiri sushi\nsquid white fish nigiri sushi\ncooked shrimp nigiri sushi\ncucumber hosomaki sushi rolls\ntuna hosomaki sushi rolls\npickled ginger\noctopus nigiri sushi\nsurf clam nigiri sushi\ngunkan sushi with salmon roe and minced tuna\ntamago nigiri sushi\nsalmon nigiri sushi\nwhite fish and shellfish nigiri sushi\n\nProcessing, traffic low",
+      "hasKcal": false
+    },
+    {
+      "id": "09f45591-d263-4e49-b2a2-f5e1f7a66db2",
+      "at": 1793752267007,
+      "status": "processing",
+      "names": [
+        "plain cooked spaghetti"
+      ],
+      "text": "plain cooked spaghetti\n\nProcessing, traffic low",
+      "hasKcal": false
+    },
+    {
+      "id": "8b3181da-c3d5-4380-9055-b1dc05c3156a",
+      "at": 1793752291331,
+      "status": "processing",
+      "names": [
+        "margherita pizza with mozzarella, tomato and basil"
+      ],
+      "text": "margherita pizza with mozzarella, tomato and basil\n\nProcessing, traffic low",
+      "hasKcal": false
+    },
+    {
+      "id": "e54a06da-ecbf-4520-baa5-a000a1f6b31e",
+      "at": 1793752325074,
+      "status": "processing",
+      "names": [
+        "caesar salad with romaine lettuce, croutons, parmesan and dressing",
+        "grilled chicken breast"
+      ],
+      "text": "caesar salad with romaine lettuce, croutons, parmesan and dressing\ngrilled chicken breast\n\nProcessing, traffic low",
+      "hasKcal": false
+    },
+    {
+      "id": "8c308c80-9b97-4d32-b42a-dd3a3870cf05",
+      "at": 1793752362070,
+      "status": "processing",
+      "names": [
+        "pancakes"
+      ],
+      "text": "pancakes\n\nProcessing, traffic low",
+      "hasKcal": false
+    },
+    {
+      "id": "a299e3ac-344a-4eba-b3fc-0cbf08fdfa42",
+      "at": 1793752385956,
+      "status": "processing",
+      "names": [
+        "black coffee",
+        "milk"
+      ],
+      "text": "black coffee\nmilk\n\nProcessing, traffic low",
+      "hasKcal": false
+    },
+    {
+      "id": "cb339647-ca29-46d6-9f77-f8a7d12bed0c",
+      "at": 1793752404900,
+      "status": "processing",
+      "names": [
+        "cola"
+      ],
+      "text": "cola\n\nProcessing, traffic low",
+      "hasKcal": false
+    }
+  ],
+  "finishedAt": "2026-11-04T00:33:41.036Z"
+}

@@ -1,0 +1,109 @@
+{
+  "previewHead": "1d74990b882fe6726cd4c8f1cff51703cb413a05",
+  "slow4G": {
+    "latency": 150,
+    "downloadBytesPerSec": 200000,
+    "uploadBytesPerSec": 93750,
+    "cpu": 4
+  },
+  "trials": [
+    {
+      "label": "before",
+      "index": 1,
+      "operationId": "ea27a6ff-c83f-45e3-b36b-878209c305ea",
+      "closeMs": 322,
+      "cardMs": 322,
+      "responseMs": 2327.7999997138977,
+      "beforeResponse": true
+    },
+    {
+      "label": "before",
+      "index": 2,
+      "operationId": "fe1e3925-450e-4880-9774-8f767d00a9d6",
+      "closeMs": 186.59999990463257,
+      "cardMs": 186.59999990463257,
+      "responseMs": 2007.5,
+      "beforeResponse": true
+    },
+    {
+      "label": "before",
+      "index": 3,
+      "operationId": "55f0ca24-8152-4b4e-9269-da8d675cb8e2",
+      "closeMs": 239.10000038146973,
+      "cardMs": 239.10000038146973,
+      "responseMs": 1787.1000003814697,
+      "beforeResponse": true
+    },
+    {
+      "label": "before",
+      "index": 4,
+      "operationId": "a814e129-d004-4666-a9b9-301a7674723b",
+      "closeMs": 166.2999997138977,
+      "cardMs": 166.2999997138977,
+      "responseMs": 2351,
+      "beforeResponse": true
+    },
+    {
+      "label": "before",
+      "index": 5,
+      "operationId": "d68b3291-202b-480c-8971-6f12f034dca6",
+      "closeMs": 468.5,
+      "cardMs": 468.5,
+      "responseMs": 1616.5,
+      "beforeResponse": true
+    },
+    {
+      "label": "after",
+      "index": 1,
+      "operationId": "e39c3326-f7f1-491b-9da1-bd8366df820f",
+      "closeMs": 216.39999961853027,
+      "cardMs": 216.39999961853027,
+      "responseMs": 2254.199999809265,
+      "beforeResponse": true
+    },
+    {
+      "label": "after",
+      "index": 2,
+      "operationId": "4381e3f7-c19f-4e4f-ad02-cab759ba83db",
+      "closeMs": 169.40000009536743,
+      "cardMs": 169.40000009536743,
+      "responseMs": 1830.5999999046326,
+      "beforeResponse": true
+    },
+    {
+      "label": "after",
+      "index": 3,
+      "operationId": "ba49001c-6e96-466a-8378-1d88778ea326",
+      "closeMs": 173.2000002861023,
+      "cardMs": 173.2000002861023,
+      "responseMs": 1558.2000002861023,
+      "beforeResponse": true
+    },
+    {
+      "label": "after",
+      "index": 4,
+      "operationId": "11d19c74-b1f7-426e-a774-b155b48b1f92",
+      "closeMs": 214.19999980926514,
+      "cardMs": 214.19999980926514,
+      "responseMs": 1568.5999999046326,
+      "beforeResponse": true
+    },
+    {
+      "label": "after",
+      "index": 5,
+      "operationId": "a36605c5-5729-4f25-8ecc-1d42a9614626",
+      "closeMs": 243,
+      "cardMs": 243.09999990463257,
+      "responseMs": 1752.5,
+      "beforeResponse": true
+    }
+  ],
+  "serverCopiesAfterReload": 10,
+  "reloadPersisted": true,
+  "error": "locator.waitFor: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('article[data-upload-id]').filter({ has: getByRole('button', { name: 'Try again', exact: true }) }).first() to be visible\u001b[22m\n",
+  "cleanup": {
+    "postsCreated": 12,
+    "postsRemaining": 0,
+    "objectsRemoved": 12
+  }
+}

@@ -1,3 +1,4 @@
+import { readPendingItems } from '@/lib/pipeline/pending-items';
 import { getPostHydrationData, type DrinkCardData, type HydrationRecord } from "@/lib/intake/hydration";
 import { dateInZone, getDayTotals, type FeedDayTotal } from "./days";
 import { encodeFeedCursor, parseFeedCursor } from "./feed-cursor";
@@ -52,6 +53,7 @@ export interface FeedPost {
   analysisFingerprint?: string | null;
   kind?: "meal" | "drink";
   drinkSource?: "sheet" | "item";
+  dayDrinks?: {glyph:import("@/lib/intake/drink-glyph").DrinkGlyph;ml:number}[];
   itemDrinks?: import("@/lib/intake/hydration").ItemDrinkRecord[];
   foodWaterMl?: number;
   dayHydration?: HydrationRecord;
@@ -88,7 +90,7 @@ export function retainCompleteItems(previous: FeedPost | undefined, fresh: FeedP
   }
   if (fresh.hydrationUnavailable && previous.eaten_at === fresh.eaten_at && previous.day === fresh.day) {
     next.kind=previous.kind;next.drink=previous.drink;next.drinkSource=previous.drinkSource;
-    next.itemDrinks=previous.itemDrinks;next.foodWaterMl=previous.foodWaterMl;next.dayHydration=previous.dayHydration;
+    next.dayDrinks=previous.dayDrinks;next.itemDrinks=previous.itemDrinks;next.foodWaterMl=previous.foodWaterMl;next.dayHydration=previous.dayHydration;
   }
   return next;
 }
@@ -184,7 +186,13 @@ async function optionalRead<T>(stage: string, read: () => PromiseLike<T>, fallba
 export async function toFeedPosts(db: SupabaseClient, rows: PostRow[], zone = "UTC", onFirstPhoto?: (url: string) => void): Promise<FeedPost[]> {
   if (!rows.length) return [];
   const ids = rows.map(row => row.id), ready = rows.filter(row => row.status === 'ready');
-  const revisions = () => Promise.all(ready.map(row => optionalRead('revision', () => latestRevision(db, row.id), null)));
+  const revisions = () => optionalRead('revision', async () => {
+  if (!ready.length) return ready.map(() => null);
+  const {data, error} = await db.rpc('feedback_revisions', {p_post_ids: ready.map(row => row.id)}).abortSignal(AbortSignal.timeout(8000));
+  if (error) throw new Error('Analysis revisions could not be read.');
+  const byId = new Map((data as {post_id: string; revision: {modelCommentId: string|null; fingerprint: string}|null}[]).map(entry => [entry.post_id, entry.revision]));
+  return ready.map(row => byId.get(row.id) ?? null);
+}, ready.map(() => null));
   // Start immutable media and its signed URLs immediately. SSR can emit the
   // first-photo preload while the revision-fenced nutrition is still reading.
   const mediaRead = optionalRead<null | {id:string;post_id:string;storage_path:string;kind:string;not_eaten:boolean;position:number}[]>('media', async () => {
@@ -375,4 +383,11 @@ export async function getPostCards(supabase: SupabaseClient, postIds: string[], 
     for (const post of owned) hydrated.set(post.id, { ...post, ...values[post.id], hydrationUnavailable: !values[post.id] });
   }
   return postIds.flatMap(id => { const post = hydrated.get(id); return post ? [post] : []; });
+}
+
+// Progress names and the failure reason are read separately so the card read stays small.
+export async function getPendingItems(db: SupabaseClient, id: string): Promise<{ pendingItems: ReturnType<typeof readPendingItems>; fail_reason: string | null }> {
+  const { data, error } = await db.from('posts').select('pending_items,fail_reason').eq('id', id).abortSignal(AbortSignal.timeout(8000)).maybeSingle();
+  if (error) throw error;
+  return { pendingItems: readPendingItems(data?.pending_items), fail_reason: (data?.fail_reason as string | null) ?? null };
 }

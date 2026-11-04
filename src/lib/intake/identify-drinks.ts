@@ -1,3 +1,4 @@
+import {isAlcoholic,keepsCaffeine} from './alcohol';
 import type {SupabaseClient} from '@supabase/supabase-js';
 import {identifyItems} from '@/lib/meta/spark';
 import {resolveFoodMatch} from '@/lib/fdc/match';
@@ -18,8 +19,10 @@ export async function identifyDrinks(admin:SupabaseClient,_userId:string,photo:U
   const food=plainWater?null:await resolveFoodMatch(admin,item.name);
   if(!plainWater&&!isDrinkItem({name:item.name,food_category:food?.foodCategory}))continue;
   const scaled=scaleNutrition(food,item.portionGrams);
+  if(!plainWater&&isAlcoholic({food_category:food?.foodCategory,micronutrients:scaled.micronutrients as StoredNutrient[]}))continue;
   const nutrition:DrinkNutrition=plainWater?{calories:0,protein_g:0,carbs_g:0,fat_g:0,fibre_g:0,sugar_g:0,sodium_mg:0,micronutrients:[],source_ref:null,food_category:'Water'}:
    {calories:scaled.calories,protein_g:scaled.proteinG,carbs_g:scaled.carbsG,fat_g:scaled.fatG,fibre_g:scaled.fibreG,sugar_g:scaled.sugarG,sodium_mg:scaled.sodiumMg,micronutrients:scaled.micronutrients as StoredNutrient[],source_ref:scaled.sourceRef,food_category:scaled.foodCategory??null};
+  if(!keepsCaffeine({name:item.name,food_category:nutrition.food_category,micronutrients:nutrition.micronutrients}))nutrition.micronutrients=nutrition.micronutrients.filter(n=>n.nutrientId!==1057);
   const caffeine=nutrition.micronutrients.find(n=>n.nutrientId===1057);
   const caffeineMg=caffeine?(caffeine.value===null?null:Number(caffeine.value)):plainWater?0:/\b(?:coca[- ]?cola|coke|cola|pepsi)\b/i.test(item.name)?32*ml/330:null;
   // Preserve a measured USDA value (e.g. 29.7 mg) before considering the disclosed cola fallback.

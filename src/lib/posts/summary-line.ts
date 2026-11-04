@@ -1,3 +1,4 @@
+import {alcoholGrams} from '@/lib/intake/alcohol';
 import { formatCalories, formatNutrition, sumNutrition, unavailableFoods } from '@/lib/nutrition/totals';
 import type { FeedPost } from '@/lib/posts/feed';
 import type { DrinkCardData } from '@/lib/intake/hydration';
@@ -15,16 +16,22 @@ export type PostPresentation = FeedPost & {
 const number = (value: number) => Math.round(value).toLocaleString('en-US');
 export function summaryLine(post: PostPresentation, drink: DrinkCardData | null | undefined = post.drink): string {
   const drinks = post.itemDrinks ?? [];
-  const drankMl = drinks.reduce((sum, row) => sum + row.ml, 0);
+  const drankMl = drinks.reduce((sum, row) => sum + (row.kind==='alcohol'?0:row.ml), 0);
   const caffeineMg = drinks.reduce((sum, row) => sum + row.caffeineMg, 0);
   const totals = sumNutrition(post.items);
   if (drinks.length && post.items.length && post.items.every(item => drinks.some(row => row.post_item_id === item.id))) {
+    if(drinks.some(row=>row.kind==='alcohol')){
+      // Feed items retain water only; hydration owns the consumed alcohol amount.
+      const g=drink?.kind==='alcohol'&&drink.alcoholG!=null ? drink.alcoholG : drinks.filter(row=>row.kind==='alcohol')
+        .reduce((sum,row)=>sum+(row.alcoholG??alcoholGrams(post.items.find(item=>item.id===row.post_item_id)?.micronutrients)),0);
+      return `Drank: ${g>0?`${number(g)} g alcohol · ${(g/14).toFixed(1)} standard drinks`:'alcohol unavailable'} · ${formatCalories(totals.calories)} kcal`;
+    }
     return `Drank: ${drinks.length > 1 ? `${number(drinks.length)} drinks · ` : ''}${number(drankMl)} ml${caffeineMg > 0 ? ` · ${number(caffeineMg)} mg caffeine` : ''} · ${formatCalories(totals.calories)} kcal`;
   }
   if ((post.kind === 'drink' || drink) && (post.drinkSource ?? drink?.source ?? 'sheet') === 'sheet') {
     const hydration = post.dayHydration;
     const amount = drink?.ml;
-    return `Drank: ${amount == null ? 'unavailable' : number(amount)} ml${drink?.caffeineMg ? ` · ${number(drink.caffeineMg)} mg caffeine` : ''}${hydration || drink ? ` · Consumed today: ${number(hydration?.totalMl ?? drink!.totalMl)} ml` : ''}${(hydration?.caffeineMg ?? drink?.dayCaffeineMg ?? 0) > 0 ? ` · ${number(hydration?.caffeineMg ?? drink!.dayCaffeineMg!)} mg caffeine` : ''}`;
+    return `Drank: ${amount == null ? 'unavailable' : number(amount)} ml${drink?.caffeineMg ? ` · ${number(drink.caffeineMg)} mg caffeine` : ''}${hydration || drink ? ` · Consumed today: ${number(hydration?.totalMl ?? drink!.totalMl)} ml` : ''}${drink?.caffeineMg && (hydration?.caffeineMg ?? drink?.dayCaffeineMg ?? 0) > 0 ? ` · ${number(hydration?.caffeineMg ?? drink!.dayCaffeineMg!)} mg caffeine today` : ''}`;
   }
   const drinkLine = drankMl > 0 ? ` · ${number(drankMl)} ml drank${caffeineMg > 0 ? ` · ${number(caffeineMg)} mg caffeine` : ''}` : '';
   const leftovers=post.items.filter(item=>item.not_eaten_grams!=null);

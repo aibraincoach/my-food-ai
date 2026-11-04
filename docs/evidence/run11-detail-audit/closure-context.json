@@ -1,0 +1,148 @@
+{
+  "i60": {
+    "closedAt": "2026-11-03T13:28:31Z",
+    "comments": {
+      "nodes": [
+        {
+          "body": "Reviewed README#444 merged withtheexact supplied start-here template. All25relative links resolve onmain; #333 was mergedfirst. Exactrequested private-string search againstmeasuredorigin/main returned24hits, everyone listedinPRbody, none removed; RTdecides. Exactcommandtestcounts/148failingnames andphysicalphonecaveat arepublishedtruthfully. ReviewBLOCKERS:NONE onexacte8ad173eed4eebca7df32b6df4ec3d5bddb1e722.",
+          "author": {
+            "login": "aibraincoach"
+          },
+          "createdAt": "2026-11-03T13:28:30Z"
+        }
+      ]
+    }
+  },
+  "i294": {
+    "closedAt": "2026-11-03T13:53:25Z",
+    "comments": {
+      "nodes": [
+        {
+          "body": "Claims-rule coverage clarification from the coder, under the PM's Doc rev 358 reconciliation:\n\nThe two existing wording tests exercise model summaries and the unavailable-nutrition fallback; they do not cover every UI string. A new source audit of the current #296\u2013#301 heads is recorded in docs PR #295 at `f52197a`: https://github.com/aibraincoach/my-food-ai/blob/f52197a/docs/run6-copy-audit.md . It records the exact heads, authored UI/accessible labels, templates, API errors and contextual exceptions checked. No prohibited nutrition claim was found in the authored copy reviewed.\n\nThe audit explicitly does not exhaustively check arbitrary user captions/quoted corrections/agent names, external food or device names, every upstream error, every assembled runtime state or unchanged UI outside the reviewed scope. This is not the planner's full terminology review, contains no AGY terminology opinion and supplies no owner wording ruling. #294 stays open. No product copy or #296\u2013#302 head changed.\n",
+          "author": {
+            "login": "aibraincoach"
+          },
+          "createdAt": "2026-11-02T14:01:31Z"
+        },
+        {
+          "body": "Required Leftovers \u00b7 not eaten wording shows inactualcomposer/carousel/detail. Finalwording inventory at3ce8473 lists139matchedfile/lines, oldexactlabel0hits, Recommendedempty. Realmodelreply revealeddoubleprefix;446fixesidempotentdisplaynormalization,3regressions/tsc/lint/buildpassed. Actualproduction7de3storedvariants:legacy/already-prefixed eachoneprefix, ordinaryproseunchanged; noMLcall, fixtureclean0. Actualimages/productionreceipt andperphoneauthority: https://github.com/aibraincoach/my-food-ai/tree/run10/docs/docs/evidence/run10-coffee-final . Finalinventory: https://github.com/aibraincoach/my-food-ai/blob/run10/docs/docs/run10-terms.md .",
+          "author": {
+            "login": "aibraincoach"
+          },
+          "createdAt": "2026-11-03T13:53:25Z"
+        }
+      ]
+    }
+  },
+  "i348": {
+    "closedAt": "2026-11-03T11:16:06Z",
+    "comments": {
+      "nodes": [
+        {
+          "body": "Actual production acceptance: unchanged reference water photograph showed estimated150ml beforePost, actual201/ready produced hydrated DRANK150ml water-card output; unchanged330ml cola can showed branded card, real201/ready and hydrated DRANK330ml/30mg/139kcal output (storedUSDA29.7mg preserved). Half/Other/whole reuse sameownedreading, noadditionalidentify. Waterb65/cola3ce; waterformunchanged byparenthesisfix. Actualcomposerimages+exacthydratedarticletext+intake+cleanup0: https://github.com/aibraincoach/my-food-ai/tree/run10/docs/docs/evidence/run10-drink-photo-final . FeedimagesovershottolastAddphoto tile, so theyarenotclaimedselected-cardvisualproof; rendereddrink-cardtext is separatelyretained. Genericphotocardtouchselectionprovedin7m. Everyownedpost/stage/receipt/objectcleaned,prefsrestored. Failedlegitimateparenthesizedmodeloutputwasrecorded/fixedin447/448, notsilentlyrerolled.",
+          "author": {
+            "login": "aibraincoach"
+          },
+          "createdAt": "2026-11-03T13:53:23Z"
+        }
+      ]
+    }
+  },
+  "i351": {
+    "closedAt": "2026-11-03T13:39:47Z",
+    "comments": {
+      "nodes": [
+        {
+          "body": "Actual productionUI Coffeehold650ms offerscup240ml+large350ml; largeposted201 andstored350ml/138mg, appearedfirst/survivedreload. Actualtile-counts showedmost-usedtilefirst. Code789c2b7/README-onlyb65ccb9, Fast4GCPU4x390x844. Finalsixdefaults alsoall201correctvalues. All7ownedposts/7drinkreceipts cleaned,originalpreferencesrestored,0issues. Initialholdgeometrydriverfailureexcluded; correctedmethodwaitsrealcountsresponsebeforehold. Actualreceipts/images: https://github.com/aibraincoach/my-food-ai/tree/run10/docs/docs/evidence/run10-final-tiles .",
+          "author": {
+            "login": "aibraincoach"
+          },
+          "createdAt": "2026-11-03T13:39:46Z"
+        }
+      ]
+    }
+  },
+  "i370": {
+    "closedAt": "2026-11-03T13:32:28Z",
+    "comments": {
+      "nodes": [
+        {
+          "body": "Final production789c2b7db3ac5a75f7c2b7271419a8a3176c9702: five actual frozen-photo compositor raster observations104.54/87.21/88.19/91.27/94.97ms fromshutter, all<=300ms at390x844,CPU4x,genuineFast4G. ActualChrome131 forcamera,156forposting (versionsdisclosed). JPEGencode551.2/251.8/415/360.5/412.9ms occursafterfirstpaint, separatelymeasured. ActualPhoto-modebarcode stillopenedthepanel andgenuinecachedproductresult. 3eachproductionphoto/barcode/search postsallReady andcleaned; barcodePost-close128.3/151.8/1136.6msincludesanoutlier,notmasked. Baselinesandlimits,source-correlatedPNGframes,all9post/6foodreceiptcleanup0: https://github.com/aibraincoach/my-food-ai/tree/run10/docs/docs/evidence/run10-final7g . Thisprovesemulatedbrowserbehavior,notaphysicalcamera.",
+          "author": {
+            "login": "aibraincoach"
+          },
+          "createdAt": "2026-11-03T13:30:57Z"
+        }
+      ]
+    }
+  },
+  "i287": {
+    "closedAt": "2026-11-03T13:28:29Z",
+    "comments": {
+      "nodes": [
+        {
+          "body": "Reviewed README#444 merged: explicit Meta model/call-site/trace table, switchable MuseSparkOpen, linked evaluation/openweight/demo evidence and honest measuredtestfailures. Actual coder productionOpen/Baseten detail check12:56UTC and cleanup0: https://github.com/aibraincoach/my-food-ai/tree/run10/docs/docs/evidence/run10-open-production . Owner281acceptance remains separate.",
+          "author": {
+            "login": "aibraincoach"
+          },
+          "createdAt": "2026-11-03T13:28:28Z"
+        },
+        {
+          "body": "#490 mergedca07be7: README model table namesSAM3.1,MuseSpark1.3,MuseVoiceTranscribe1.0 and their jobs/model_calls.model evidence; optionalOpenWeightpath, config variable names,officiallicense, real-model gates, ten-photo limits, worker timings and immutable corrections are linked. Judge criteria and record-only/noadvice/nohealthclaims statement retained. Actual tests573/34 and lint0errors/6warnings. README: https://github.com/aibraincoach/my-food-ai/blob/ca07be7014431d492039dafdda80186a2c697fb7/README.md . This closes the repository implementation part; owner reading before recording remains explicitlyRT/#318.\n",
+          "author": {
+            "login": "aibraincoach"
+          },
+          "createdAt": "2026-11-04T01:15:47Z"
+        }
+      ]
+    }
+  },
+  "i318": {
+    "closedAt": null,
+    "comments": {
+      "nodes": []
+    }
+  },
+  "i379": {
+    "closedAt": null,
+    "comments": {
+      "nodes": [
+        {
+          "body": "Fleet 11 owner checks to retain: #370 \u2014 camera/capture sheet closes within one second of the tap on mobile data (only emulation proved so far). Also retain the three-phone acceptance portions of #449\u2013#458 and #372: streaming names, barcode and multilingual label reading, barcode prompt, continuous Days, drink glyphs and alcohol/caffeine, caption keyboard, instant saving and photo quality. Coder emulation/production evidence will be linked in the Fleet 11 report; it does not substitute for these installed-phone checks.",
+          "author": {
+            "login": "aibraincoach"
+          },
+          "createdAt": "2026-11-04T00:23:20Z"
+        }
+      ]
+    }
+  },
+  "i193": {
+    "closedAt": "2026-11-03T13:57:35Z",
+    "comments": {
+      "nodes": [
+        {
+          "body": "Fleet10 owner-restricted phone reconciliation complete: all13eligible353\u2013367phoneissues fixed/reconciled withindividualPRs andactualproductionviews; lateraccepted feature authority isexplicit. Desktop-only360/363remainopen/excluded, previouslymergeddesktopworkretainedforhandoff. #413/Revision6wasnotinspected,exported,builtormodified. Actual41referenceframes, dated390x844phoneviews, realbarcode/FDA OCR/contrast/labelrepairs, cleanupsandlimits: https://github.com/aibraincoach/my-food-ai/blob/run10/docs/docs/evidence/run10-coffee-final/phone-reconciliation.md . Refreshedtitle/state/Fleet9pathtable7p: https://github.com/aibraincoach/my-food-ai/blob/run10/docs/docs/run10-investigations.md#7p-visual-reconciliation-193353367 . No fullpixelidentity/allconditionalstates/physicalphoneclaim; smoothnesstapmeasurementremains7k andownerphones280/379.",
+          "author": {
+            "login": "aibraincoach"
+          },
+          "createdAt": "2026-11-03T13:57:35Z"
+        }
+      ]
+    }
+  },
+  "i413": {
+    "closedAt": "2026-11-04T00:23:15Z",
+    "comments": {
+      "nodes": [
+        {
+          "body": "Fleet 11 item 15: completed by the Round 6 rebuild in merged #460 and follow-up #462. The exact #462 head also passed the outstanding 1100\u00d7800 Today-column check: https://github.com/aibraincoach/my-food-ai/blob/b083b23/docs/evidence/run11-today/geometry.json . The frames 6a\u20136f supersede the old desktop differences as specified in this issue. Physical-phone checks remain with RT under #379.",
+          "author": {
+            "login": "aibraincoach"
+          },
+          "createdAt": "2026-11-04T00:23:15Z"
+        }
+      ]
+    }
+  }
+}

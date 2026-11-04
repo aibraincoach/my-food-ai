@@ -1,0 +1,69 @@
+[
+  {
+    "check": "Home fits",
+    "width": 1024,
+    "feedWidth": 500,
+    "todayWidth": 204,
+    "todayRight": 992,
+    "scrollWidth": 1024,
+    "viewport": 1024
+  },
+  {
+    "check": "Home fits",
+    "width": 1100,
+    "feedWidth": 500,
+    "todayWidth": 280,
+    "todayRight": 1068,
+    "scrollWidth": 1100,
+    "viewport": 1100
+  },
+  {
+    "check": "Home fits",
+    "width": 1147,
+    "feedWidth": 500,
+    "todayWidth": 280,
+    "todayRight": 1068,
+    "scrollWidth": 1147,
+    "viewport": 1147
+  },
+  {
+    "check": "Home fits",
+    "width": 1148,
+    "feedWidth": 500,
+    "todayWidth": 280,
+    "todayRight": 1116,
+    "scrollWidth": 1148,
+    "viewport": 1148
+  },
+  {
+    "check": "Home fits",
+    "width": 1280,
+    "feedWidth": 500,
+    "todayWidth": 280,
+    "todayRight": 1182,
+    "scrollWidth": 1280,
+    "viewport": 1280
+  },
+  {
+    "check": "Today grouped 34,811",
+    "passed": true
+  },
+  {
+    "check": "Days grouped 34,811",
+    "passed": true
+  },
+  {
+    "check": "Profile keeps Saved meals, model switch and Recently deleted",
+    "passed": true
+  },
+  {
+    "check": "650px capture scrolls without clipping controls",
+    "client": 650,
+    "scroll": 668,
+    "overflow": "auto"
+  },
+  {
+    "check": "Existing-post attachment opens file picker without webcam",
+    "passed": true
+  }
+]

@@ -1,0 +1,35 @@
+{
+  "trials": [
+    {
+      "kind": "bookmark",
+      "id": "149e8e7a-580f-430b-8345-29550a6d09ea",
+      "tap": 5133.900000095367,
+      "visible": 5201,
+      "response": 5577.5,
+      "beforeResponse": true,
+      "persisted": true,
+      "failureVisible": ""
+    },
+    {
+      "kind": "menu",
+      "id": "c6f37d40-651e-4cdb-957f-f4cefb8b284e",
+      "tap": 7788.799999713898,
+      "visible": 7839.5,
+      "response": 8160.299999713898,
+      "beforeResponse": true,
+      "persisted": true,
+      "failureVisible": "Failed to fetchDismiss"
+    },
+    {
+      "kind": "caption",
+      "id": "823dccf8-2949-48b4-9776-717c9fdf13f2",
+      "tap": 5331.099999904633,
+      "visible": 5457.599999904633,
+      "response": 5609.400000095367,
+      "beforeResponse": true,
+      "persisted": true,
+      "failureVisible": "Failed to fetch"
+    }
+  ],
+  "cleanup": 0
+}

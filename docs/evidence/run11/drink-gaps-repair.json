@@ -1,0 +1,30 @@
+[
+  {
+    "post_id": "38de279e-2764-44f7-a224-f67f5f77da08",
+    "rows": [
+      {
+        "source": "item",
+        "kind": "caffeine",
+        "ml": 330,
+        "amount": 32
+      }
+    ]
+  },
+  {
+    "post_id": "d06d4d29-b532-470e-a930-e285f4180123",
+    "rows": [
+      {
+        "source": "item",
+        "kind": "caffeine",
+        "ml": 30,
+        "amount": 64
+      },
+      {
+        "source": "item",
+        "kind": "water",
+        "ml": 500,
+        "amount": 500
+      }
+    ]
+  }
+]

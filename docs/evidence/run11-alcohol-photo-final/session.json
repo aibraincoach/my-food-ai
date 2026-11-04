@@ -1,0 +1,81 @@
+{
+  "startedAt": "2026-11-04T00:57:41.405Z",
+  "photos": [
+    {
+      "name": "cocktail",
+      "tap": 1793753878936,
+      "closedAt": 1793753880095,
+      "newIds": []
+    }
+  ],
+  "progress": [],
+  "cleanup": {
+    "created": 1,
+    "postsRemaining": 0,
+    "objectsRemoved": 4,
+    "objectsRemaining": 0
+  },
+  "credits": "Meals: eval/SOURCES.md. Coffee cup (1).jpg: Jon Sullivan, public domain, Wikimedia Commons. Coca-cola.jpg: 些細な日常, CC BY-SA4.0, Wikimedia Commons. Originals supplied to normal client reencoding.",
+  "capBefore": [
+    {
+      "route": "drink_identify",
+      "hour": "2026-11-04T00:00:00+00:00",
+      "hits": 3
+    },
+    {
+      "route": "label",
+      "hour": "2026-11-04T00:00:00+00:00",
+      "hits": 4
+    },
+    {
+      "route": "post",
+      "hour": "2026-11-04T00:00:00+00:00",
+      "hits": 36
+    },
+    {
+      "route": "fdc_barcode",
+      "hour": "2026-11-04T00:00:00+00:00",
+      "hits": 3
+    }
+  ],
+  "readings": [
+    {
+      "name": "cocktail",
+      "allDrinks": false,
+      "drinks": []
+    }
+  ],
+  "statuses": [
+    {
+      "id": "3cebf2fd-42b7-4f17-b9d4-c6a4cfc24ed6",
+      "status": "ready",
+      "fail_reason": null
+    }
+  ],
+  "cardText": "T\ntestkitchen\n···\nDRANK · 7:57\nFleet 11 acceptance cocktail with lime a\n15 g alcohol · 1.1 standard drinks\nToday\n0 ml\nconsumed today\n0 ml from drinks\n0 ml from food\n+\nAdd a photo\nLeftovers · not eaten\n1/2\nDetails ›\n\ntestkitchen Fleet 11 acceptance cocktail\n\nDrank: 15 g alcohol · 1.1 standard drinks · 160 kcal more\n7:57",
+  "capAfter": [
+    {
+      "route": "label",
+      "hour": "2026-11-04T00:00:00+00:00",
+      "hits": 4
+    },
+    {
+      "route": "drink_identify",
+      "hour": "2026-11-04T00:00:00+00:00",
+      "hits": 4
+    },
+    {
+      "route": "post",
+      "hour": "2026-11-04T00:00:00+00:00",
+      "hits": 39
+    },
+    {
+      "route": "fdc_barcode",
+      "hour": "2026-11-04T00:00:00+00:00",
+      "hits": 3
+    }
+  ],
+  "capMessages": 0,
+  "error": "Cannot read properties of undefined (reading 'filter')",
+  "finishedAt": "2026-11-04T00:58:29.456Z"
+}
