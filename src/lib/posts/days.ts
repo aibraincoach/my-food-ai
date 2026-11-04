@@ -4,7 +4,8 @@ import { groupIntakeByDay, emptyIntake, type IntakeRow, type IntakeTotals } from
 import { CURRENT_ITEM_COLUMNS, CURRENT_NUTRITION_COLUMNS, mapCurrentItems, normalizeStoredNutrition, nutritionNumber, sumNutrition, type CurrentItem, type MealTotals, type NutritionRow } from "@/lib/nutrition/totals";
 
 export interface DayPost { id: string; caption: string; eatenAt: string; photoUrl: string | null; items: CurrentItem[]; totals: MealTotals }
-export interface LoggedDay { date: string; posts: DayPost[]; totals: MealTotals; intake: IntakeTotals }
+// pending: meals of that day still being analysed or waiting for a reply; they are listed nowhere yet and are counted apart.
+export interface LoggedDay { date: string; posts: DayPost[]; totals: MealTotals; intake: IntakeTotals; pending: number }
 export function validZone(zone?: string | null): string {
   try { if (zone) { zone = decodeURIComponent(zone); new Intl.DateTimeFormat("en", { timeZone: zone }); return zone; } } catch {}
   return "UTC";
@@ -43,8 +44,8 @@ export async function getDays(supabase: SupabaseClient, userId: string, zone: st
   const photos: {post: DayPost; path: string}[] = [];
   for (let offset = 0; ; offset += 100) {
     const { data, error } = await supabase.from("posts")
-      .select(`id,caption,eaten_at,post_media(storage_path,position),current_post_items(${CURRENT_ITEM_COLUMNS},created_at,item_nutrition(${CURRENT_NUTRITION_COLUMNS}))`).is("deleted_at", null)
-      .eq("user_id", userId).eq("status", "ready").gte("eaten_at", lower).lt("eaten_at", upper)
+      .select(`id,caption,eaten_at,status,post_media(storage_path,position),current_post_items(${CURRENT_ITEM_COLUMNS},created_at,item_nutrition(${CURRENT_NUTRITION_COLUMNS}))`).is("deleted_at", null)
+      .eq("user_id", userId).in("status", LOGGED_STATUSES).gte("eaten_at", lower).lt("eaten_at", upper)
       .eq("post_media.kind", "photo").order("position", { referencedTable: "post_media", ascending: true })
       .limit(1, { referencedTable: "post_media" })
       .order("created_at", { referencedTable: "current_post_items", ascending: true })
@@ -53,6 +54,7 @@ export async function getDays(supabase: SupabaseClient, userId: string, zone: st
     for (const row of data ?? []) {
       const date = dateInZone(row.eaten_at, zone);
       if (date < from || date > through) continue;
+      if (row.status !== "ready") { const day = groups.get(date); if (day) day.pending++; else groups.set(date, { date, posts: [], totals: sumNutrition([]), intake: emptyIntake(), pending: 1 }); continue; }
       // Use the shared current-item mapper, including unknown nutrition and
       // consumed-portion normalization; retain every item field and its order.
       const items = mapCurrentItems((row.current_post_items ?? []).map(({created_at: _created, ...item}) => {
@@ -64,7 +66,7 @@ export async function getDays(supabase: SupabaseClient, userId: string, zone: st
       if (path) photos.push({post, path: path.endsWith("/card.png") ? path : `${path.replace(/\.[^/.]+$/, "")}.feed.jpg`});
       const day = groups.get(date);
       if (day) { day.posts.push(post); day.totals = sumNutrition([day.totals, post.totals]); }
-      else groups.set(date, { date, posts: [post], totals: post.totals, intake: emptyIntake() });
+      else groups.set(date, { date, posts: [post], totals: post.totals, intake: emptyIntake(), pending: 0 });
     }
     if ((data?.length ?? 0) < 100) break;
   }
@@ -99,7 +101,7 @@ export async function getDays(supabase: SupabaseClient, userId: string, zone: st
         if (date < from || date > through) continue;
         const day = groups.get(date);
         if (day) day.intake = totals;
-        else groups.set(date, {date, posts: [], totals: sumNutrition([]), intake: totals});
+        else groups.set(date, {date, posts: [], totals: sumNutrition([]), intake: totals, pending: 0});
       }
     }
   }
@@ -186,7 +188,7 @@ export async function getDayTotals(db: SupabaseClient, userId: string, zone: str
   return [...groups.values()].map(group=>({...group,missing:[...new Set(group.missing)],kcal:group.known===0&&group.missing.length?null:group.kcal}));
 }
 
-export interface MonthDay { intake?: boolean; day: string; kcal: number | null; posts: number; ready: boolean; missing?:string[]; known?:number }
+export interface MonthDay { intake?: boolean; day: string; kcal: number | null; posts: number; pending: number; ready: boolean; missing?:string[]; known?:number }
 export interface MonthSummary { days: MonthDay[]; posted: number }
 export function shiftMonth(month: string, offset: number): string {
   const date = new Date(`${month}-01T12:00:00Z`);
@@ -216,8 +218,8 @@ export async function getMonthSummary(supabase: SupabaseClient, userId: string, 
     for (const row of data ?? []) {
       const date = dateInZone(row.eaten_at, zone);
       if (date < from || date > through) continue;
-      const day = groups.get(date) ?? { day: date, kcal: 0, posts: 0, ready: false, missing:[],known:0 };
-      day.posts++;
+      const day = groups.get(date) ?? { day: date, kcal: 0, posts: 0, pending: 0, ready: false, missing:[],known:0 };
+      if (row.status === "ready") day.posts++; else day.pending++;
       if (row.status === "ready") {
         day.ready = true;
         for (const item of row.current_post_items ?? []) {
@@ -240,7 +242,7 @@ export async function getMonthSummary(supabase: SupabaseClient, userId: string, 
     for (const row of data ?? []) {
       const date = dateInZone(row.logged_at, zone);
       if (date < from || date > through || groups.has(date)) continue;
-      groups.set(date, {day: date, kcal: null, posts: 0, ready: false, missing: [], known: 0, intake: true});
+      groups.set(date, {day: date, kcal: null, posts: 0, pending: 0, ready: false, missing: [], known: 0, intake: true});
     }
     if ((data?.length ?? 0) < 1000) break;
   }
