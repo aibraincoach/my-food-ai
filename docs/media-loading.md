@@ -1,5 +1,9 @@
 # Media-loading measurement
 
+## #579 sharper photos — November4
+
+Deployed main376e3306 adds HD camera ideals/native still capture with frame fallback,1920px feed JPEGs, immutable v2 WebP URLs with v1 compatibility, and original URLs for every detail photo including leftovers. Previously captured low-resolution photos cannot gain missing pixels. Three fixture v2 responses measured178682/257098/26428bytes versus21778/39424/5758 for v1; the higher resolution costs more bytes. These are fixture transforms, not physical-phone encoder/mobile-data measurements. One existing authenticated production v2 read returned60016bytes at1080×810. [Measured scope](evidence/issue579/validation.md). Three-phone sharpness and first-photo timing remain unverified. All later sections retain their original dates and source revisions.
+
 Read-only investigation on 2026-10-31 used the first configured test account's licensed evaluation image. No post, upload, job retry or analysis was created. Credentials and signed URLs stayed in memory.
 
 The existing feed requests the `.feed.jpg` derivative rather than the original. For the sampled derivative, two independently signed URLs 1.1 seconds apart differed even though both returned the same 152,193 bytes with HTTP 200. Signing took 151 ms and 54 ms; the subsequent image requests took 331 ms and 94 ms from this server. The GET responses did not include a Cache-Control header. These are server observations, not phone or mobile-data timings.

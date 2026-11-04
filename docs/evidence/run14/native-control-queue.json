@@ -1,0 +1,404 @@
+{
+  "observedAt": "2026-11-04T09:45:50.320Z",
+  "meta": {
+    "browser": "Chrome/151.0.7922.173",
+    "scope": "New isolated context CPU4x Fast3G390; unsafe HTTP deliberately503; OPTIONS allowed",
+    "blocked": [],
+    "cls": 1.7625532205271612,
+    "disposed": true,
+    "limitations": [
+      "Input dispatch uses native mouse pointer in mobile390 viewport after2sec setup settlement.",
+      "meta.cls is all-layout-shift sum including recent input, not standardized CLS."
+    ]
+  },
+  "rows": [
+    {
+      "control": "Capture Post populated draft",
+      "hitArea": {
+        "x": 195,
+        "y": 789,
+        "width": 358,
+        "height": 50,
+        "disabled": false,
+        "feedback": {
+          "firstMutation": 0.8000001907348633,
+          "pressed": true
+        }
+      },
+      "doubleTap": true,
+      "queue": [
+        {
+          "operationId": "636badde-8462-4ea2-b2bf-b32030372f25",
+          "caption": "Scoped queued caption fixture",
+          "state": "failed",
+          "copy": false,
+          "drink": false,
+          "snapshot": {
+            "id": "47764765-2946-490d-80a8-6272fe57dd64",
+            "images": [],
+            "completed": []
+          }
+        }
+      ],
+      "sheetClosed": true,
+      "scope": "Actual production handler, all unsafe HTTP blocked before network; durable local queue only"
+    },
+    {
+      "control": "Try again failed post",
+      "hitArea": {
+        "x": 43.03125,
+        "y": 421.65625,
+        "width": 54.0625,
+        "height": 44,
+        "disabled": false,
+        "feedback": {
+          "firstMutation": 0.7999997138977051,
+          "pressed": true
+        }
+      },
+      "doubleTap": true,
+      "queue": [
+        {
+          "operationId": "636badde-8462-4ea2-b2bf-b32030372f25",
+          "caption": "Scoped queued caption fixture",
+          "state": "failed",
+          "copy": false,
+          "drink": false,
+          "snapshot": {
+            "id": "47764765-2946-490d-80a8-6272fe57dd64",
+            "images": [],
+            "completed": []
+          }
+        }
+      ],
+      "scope": "Actual failed local queued caption; retries blocked before network"
+    },
+    {
+      "control": "Saved meals Log now offline",
+      "hitArea": {
+        "x": 330.4375,
+        "y": 601.5,
+        "width": 79.125,
+        "height": 34,
+        "disabled": false,
+        "feedback": {
+          "firstMutation": 1.8999996185302734,
+          "pressed": true
+        }
+      },
+      "doubleTap": true,
+      "queue": [
+        {
+          "operationId": "636badde-8462-4ea2-b2bf-b32030372f25",
+          "caption": "Scoped queued caption fixture",
+          "state": "failed",
+          "copy": false,
+          "drink": false,
+          "snapshot": {
+            "id": "47764765-2946-490d-80a8-6272fe57dd64",
+            "images": [],
+            "completed": []
+          }
+        },
+        {
+          "operationId": "b7a533fd-3700-438f-a9cc-88015a2e2770",
+          "caption": "Scoped saved render fixture",
+          "state": "failed",
+          "copy": true,
+          "drink": false,
+          "snapshot": null
+        }
+      ],
+      "scope": "Scripted saved GET fixture, actual production offline copy handler, unsafe requests blocked"
+    },
+    {
+      "control": "Drink tile double tap",
+      "hitArea": {
+        "x": 75.6640625,
+        "y": 488,
+        "width": 111.328125,
+        "height": 92,
+        "disabled": false,
+        "feedback": {
+          "firstMutation": 2.700000286102295,
+          "pressed": true
+        }
+      },
+      "doubleTap": true,
+      "queue": [
+        {
+          "operationId": "44132efb-4dc2-4435-80a0-c59d1ecb4bc7",
+          "caption": "Water, glass \u00b7 250 ml",
+          "state": "failed",
+          "copy": false,
+          "drink": true,
+          "snapshot": null
+        },
+        {
+          "operationId": "636badde-8462-4ea2-b2bf-b32030372f25",
+          "caption": "Scoped queued caption fixture",
+          "state": "failed",
+          "copy": false,
+          "drink": false,
+          "snapshot": {
+            "id": "47764765-2946-490d-80a8-6272fe57dd64",
+            "images": [],
+            "completed": []
+          }
+        },
+        {
+          "operationId": "b7a533fd-3700-438f-a9cc-88015a2e2770",
+          "caption": "Scoped saved render fixture",
+          "state": "failed",
+          "copy": true,
+          "drink": false,
+          "snapshot": null
+        }
+      ],
+      "scope": "Actual production Water tile; unsafe requests blocked before network"
+    },
+    {
+      "cleanup": {
+        "removedLocalOperationIds": [
+          "44132efb-4dc2-4435-80a0-c59d1ecb4bc7",
+          "636badde-8462-4ea2-b2bf-b32030372f25",
+          "b7a533fd-3700-438f-a9cc-88015a2e2770"
+        ],
+        "remaining": [],
+        "unsafeRequests": [
+          {
+            "url": "/",
+            "method": "POST",
+            "body": [
+              "thumbs"
+            ]
+          },
+          {
+            "url": "/",
+            "method": "POST",
+            "body": [
+              "thumbs"
+            ]
+          },
+          {
+            "url": "/",
+            "method": "POST",
+            "body": [
+              "thumbs"
+            ]
+          },
+          {
+            "url": "/",
+            "method": "POST",
+            "body": [
+              "thumbs"
+            ]
+          },
+          {
+            "url": "/",
+            "method": "POST",
+            "body": [
+              "thumbs"
+            ]
+          },
+          {
+            "url": "/",
+            "method": "POST",
+            "body": [
+              "thumbs"
+            ]
+          },
+          {
+            "url": "/",
+            "method": "POST",
+            "body": [
+              "thumbs"
+            ]
+          },
+          {
+            "url": "/api/posts",
+            "method": "POST",
+            "body": {
+              "operation_id": "47764765-2946-490d-80a8-6272fe57dd64",
+              "capture_intent": "text",
+              "not_eaten_positions": [],
+              "save_as_meal": false,
+              "caption": "Scoped queued caption fixture",
+              "location": null,
+              "eaten_at": "2026-11-04T09:44:54.813Z",
+              "shots": []
+            }
+          },
+          {
+            "url": "/api/posts",
+            "method": "POST",
+            "body": {
+              "operation_id": "47764765-2946-490d-80a8-6272fe57dd64",
+              "capture_intent": "text",
+              "not_eaten_positions": [],
+              "save_as_meal": false,
+              "caption": "Scoped queued caption fixture",
+              "location": null,
+              "eaten_at": "2026-11-04T09:44:56.826Z",
+              "shots": []
+            }
+          },
+          {
+            "url": "/",
+            "method": "POST",
+            "body": [
+              "thumbs"
+            ]
+          },
+          {
+            "url": "/",
+            "method": "POST",
+            "body": [
+              "thumbs"
+            ]
+          },
+          {
+            "url": "/api/posts",
+            "method": "POST",
+            "body": {
+              "operation_id": "47764765-2946-490d-80a8-6272fe57dd64",
+              "capture_intent": "text",
+              "not_eaten_positions": [],
+              "save_as_meal": false,
+              "caption": "Scoped queued caption fixture",
+              "location": null,
+              "eaten_at": "2026-11-04T09:45:02.846Z",
+              "shots": []
+            }
+          },
+          {
+            "url": "/",
+            "method": "POST",
+            "body": [
+              "thumbs"
+            ]
+          },
+          {
+            "url": "/api/posts",
+            "method": "POST",
+            "body": {
+              "operation_id": "47764765-2946-490d-80a8-6272fe57dd64",
+              "capture_intent": "text",
+              "not_eaten_positions": [],
+              "save_as_meal": false,
+              "caption": "Scoped queued caption fixture",
+              "location": null,
+              "eaten_at": "2026-11-04T09:45:07.104Z",
+              "shots": []
+            }
+          },
+          {
+            "url": "/api/posts",
+            "method": "POST",
+            "body": {
+              "operation_id": "47764765-2946-490d-80a8-6272fe57dd64",
+              "capture_intent": "text",
+              "not_eaten_positions": [],
+              "save_as_meal": false,
+              "caption": "Scoped queued caption fixture",
+              "location": null,
+              "eaten_at": "2026-11-04T09:45:09.150Z",
+              "shots": []
+            }
+          },
+          {
+            "url": "/api/posts",
+            "method": "POST",
+            "body": {
+              "operation_id": "47764765-2946-490d-80a8-6272fe57dd64",
+              "capture_intent": "text",
+              "not_eaten_positions": [],
+              "save_as_meal": false,
+              "caption": "Scoped queued caption fixture",
+              "location": null,
+              "eaten_at": "2026-11-04T09:45:15.164Z",
+              "shots": []
+            }
+          },
+          {
+            "url": "/",
+            "method": "POST",
+            "body": [
+              "thumbs"
+            ]
+          },
+          {
+            "url": "/api/saved/11111111-1111-4111-8111-111111111111/log",
+            "method": "POST",
+            "body": {
+              "operation_id": "b7a533fd-3700-438f-a9cc-88015a2e2770",
+              "owner_id": "[owner]",
+              "eaten_at": "2026-11-04T09:45:22.058Z"
+            }
+          },
+          {
+            "url": "/api/saved/11111111-1111-4111-8111-111111111111/log",
+            "method": "POST",
+            "body": {
+              "operation_id": "b7a533fd-3700-438f-a9cc-88015a2e2770",
+              "owner_id": "[owner]",
+              "eaten_at": "2026-11-04T09:45:22.058Z"
+            }
+          },
+          {
+            "url": "/api/saved/11111111-1111-4111-8111-111111111111/log",
+            "method": "POST",
+            "body": {
+              "operation_id": "b7a533fd-3700-438f-a9cc-88015a2e2770",
+              "owner_id": "[owner]",
+              "eaten_at": "2026-11-04T09:45:22.058Z"
+            }
+          },
+          {
+            "url": "/",
+            "method": "POST",
+            "body": [
+              "thumbs"
+            ]
+          },
+          {
+            "url": "/api/intake/post?tz=America%2FEdmonton",
+            "method": "POST",
+            "body": {
+              "tile": 0,
+              "ml": 250,
+              "eaten_at": "2026-11-04T09:45:40.464Z",
+              "time_zone": "America/Edmonton",
+              "operation_id": "44132efb-4dc2-4435-80a0-c59d1ecb4bc7",
+              "owner_id": "[owner]"
+            }
+          },
+          {
+            "url": "/api/intake/post?tz=America%2FEdmonton",
+            "method": "POST",
+            "body": {
+              "tile": 0,
+              "ml": 250,
+              "eaten_at": "2026-11-04T09:45:40.464Z",
+              "time_zone": "America/Edmonton",
+              "operation_id": "44132efb-4dc2-4435-80a0-c59d1ecb4bc7",
+              "owner_id": "[owner]"
+            }
+          },
+          {
+            "url": "/api/intake/post?tz=America%2FEdmonton",
+            "method": "POST",
+            "body": {
+              "tile": 0,
+              "ml": 250,
+              "eaten_at": "2026-11-04T09:45:40.464Z",
+              "time_zone": "America/Edmonton",
+              "operation_id": "44132efb-4dc2-4435-80a0-c59d1ecb4bc7",
+              "owner_id": "[owner]"
+            }
+          }
+        ]
+      }
+    }
+  ]
+}

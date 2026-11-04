@@ -1,10 +1,16 @@
 # My Food AI — Backlog†
 
-Last edited: Wednesday 2026-11-04 at 16:35 WIB (UTC+07:00) by Codex, coder reconciliation from the owner-supplied 15:54 WIB copy
+Last edited: Wednesday 2026-11-04 at 17:05 WIB (UTC+07:00), coder reconciliation after #581 deployment
 
 The only job of the PM is to maintain this backlog and keep it completely up to date. Failing to do so is immediately terminable.
 
 ## Backlog for Owner
+
+### #579 Photos are captured at 480 × 640 and look blurry on high-density phones
+
+The app stores each photo at 480 × 640 pixels, the size the browser chose for the live camera, and the feed shows a smaller 384 × 512 copy. On a phone with a three-times screen a full-width card needs about 1,170 pixels, so every photo looks soft. The owner finds the blur painful.
+
+The coder measured the owner's Beef noodle post on production at a24587a. PR#581 has since merged and deployed at376e3306 with sharper capture, immutable v2 feed images and all-photo originals; build,23 final targeted tests and both external reviews passed. Existing low-resolution images cannot be restored. Three-phone sharpness/mobile-data acceptance remains the owner's check. The live camera path asks for the rear camera with no width or height and draws one video frame, and the stored originals are 480 × 640, 0.31 megapixels (126,407 bytes), so the meal detail cannot show detail that never reached the upload. The phone's feed copy is byte for byte the same file, so it saves nothing. The feed route then shrinks it to a 384 × 512 WebP of 22,118 bytes. Feed copies are cached for a year with the immutable flag, so a sharper derivative needs a new path or a cache bust. The phone detail upgrades only the first meal photo, not the leftovers original. Photos already captured stay at 480 × 640. The owner reported the blur on Nov 4 at about 15:46 WIB. A sharper photo costs more Storage egress, which #375 names as the largest egress source. The owner unblocked this work at 15:56 WIB on Nov 4 and assigned it for implementation; the former polish hold no longer applies. Observe first: find what resolution the camera can deliver on the owner's three phones, and the bytes of a photo at each size. Done when a photo captured on the owner's three phones is stored at a sharper resolution, the feed and the meal detail show it sharp on a three-times phone, the first photo still shows within two seconds on mobile data, and the bytes per photo before and after are in docs.
 
 ### #452 A plainly visible nutrition label is reported as not found
 
@@ -78,37 +84,12 @@ A cocktail post shows how much liquid it holds and nothing about the alcohol, so
 
 The post for a lime and rum tiki cocktail shows "220 g" on the photo and 196 kcal, 0 g protein, 17 g carbs and 0 g fat under it, with no alcohol anywhere. For a drink that holds alcohol, the post shows the grams of alcohol and the standard drinks in place of the liquid amount, the drink's liquid is not added to the water total, and Today shows the day's alcohol so far. Done when a photographed cocktail and a typed beer each show their alcohol on the post and in Today, and neither adds to the water tile, on the owner's three phones.
 
-## In Flight
-
-### #579 Photos are captured at 480 × 640 and look blurry on high-density phones
-
-The app stores each photo at 480 × 640 pixels, the size the browser chose for the live camera, and the feed shows a smaller 384 × 512 copy. On a phone with a three-times screen a full-width card needs about 1,170 pixels, so every photo looks soft. The owner finds the blur painful.
-
-The coder measured the owner's Beef noodle post on production at a24587a. The live camera path asks for the rear camera with no width or height and draws one video frame, and the stored originals are 480 × 640, 0.31 megapixels (126,407 bytes), so the meal detail cannot show detail that never reached the upload. The phone's feed copy is byte for byte the same file, so it saves nothing. The feed route then shrinks it to a 384 × 512 WebP of 22,118 bytes. Feed copies are cached for a year with the immutable flag, so a sharper derivative needs a new path or a cache bust. The phone detail upgrades only the first meal photo, not the leftovers original. Photos already captured stay at 480 × 640. The owner reported the blur on Nov 4 at about 15:46 WIB. A sharper photo costs more Storage egress, which #375 names as the largest egress source. The owner unblocked this work at 15:56 WIB on Nov 4 and assigned it for implementation; the former polish hold no longer applies. Observe first: find what resolution the camera can deliver on the owner's three phones, and the bytes of a photo at each size. Done when a photo captured on the owner's three phones is stored at a sharper resolution, the feed and the meal detail show it sharp on a three-times phone, the first photo still shows within two seconds on mobile data, and the bytes per photo before and after are in docs.
 
 ### #550 The desktop feed fills the whole window and the Today column is missing
 
 On desktop the feed runs edge to edge and the photo touches the window edge. The Today column does not appear.
 
 The Round 6 design (6a) and the code on main both centre a 500 px feed column beside a 280 px Today column. Production deploys from main. An OpenClaw check on Nov 4 found the Today column present at 1024 to 1366 px wide, so the owner's screenshot may predate a deploy. The feed's own width was not measured. Measure the feed column on the live page at 1280x800. Done when production shows the centred 500 px feed with the Today column as 6a draws it, checked on the live page at 1280x800.
-
-### #512 The phone calendar can show the wrong month summary and jump when older months load
-
-On the phone Days screen, the sticky month summary can stay on the wrong month, and the scroll position can jump when an older month loads.
-
-Reviewer findings on merged PR #482, both reproduced by the coder in isolated component checks with synthetic months, not on the owner's device. The sticky summary can stay on the previous month while November scrolls in (src/components/PhoneCalendar.tsx lines 27 to 38). The anchoring that keeps the view still when an older month loads restores a stale scroll position if the user scrolls while the request is pending (lines 18 to 22 and 40 to 46). The review reported a third issue, but its text was cut off. Observe first: scroll Days across the October and November boundary, and scroll while an older month loads. Done when the summary names the month nearest the top and the view stays still while an older month loads.
-
-### #552 The buttons under each post are 24 px tall and show no pressed or turned-off state
-
-The buttons under a post are too small to hit and look the same at rest, while saving and when turned off.
-
-Design 7a (Round 7) gives 44 px tap areas and every state: rest, pressed, saving, turned off and failed. Done when each button matches 7a on production at 390x844.
-
-### #553 Thumbs up and down look the same when turned off and thumbs down waits for the server
-
-The thumbs turn themselves off while a vote saves and before the analysis exists, with no visible difference. Thumbs down opens nothing until the vote has saved.
-
-This is the first case the owner found for #217. Done when a thumb shows its pressed state at once, looks different when turned off, and thumbs down opens at once, checked on production at 390x844 with the processor slowed.
 
 ### #554 Tapping a meal shows nothing until the server answers
 
@@ -122,59 +103,17 @@ The owner reports 14 seconds from tapping a meal to its detail page opening. He 
 
 The owner reported it on Nov 4 at about 07:38 WIB. He measured on an iPhone with the app installed from the home screen, on XL Axiata Prioritas 5G in Indonesia. He gave no meal URL because the installed app shows none. The coder's Chromium audit on production (docs/detail-open-audit.md in PR #475) found useful content at 0.9 to 3.4 seconds, the original photo decoded at 1.2 to 3.7 seconds, 24 to 25 requests with eight repeated, and a 142 KB original downloaded although the feed copy was on screen. It did not measure the iPhone on XL Axiata, so the 14 seconds is unexplained. The audit items below name three suspects: no loading screen on the tap, the same meal read twice, and the full original photo downloaded again. Nobody has timed the detail on current main. Observe first: time the tap to a usable detail on a phone over mobile data and on desktop, and record where the seconds go (server render, database reads, photo download). Done when the detail opens within two seconds on the owner's phone over mobile data, and the report states where the 14 seconds went.
 
-### #323 Every protected page checks sign-in twice (part of #222)
-
-The middleware calls Supabase to verify the user. The home page then calls Supabase to verify the user again. That is two round trips on every page open, on top of the cold function boot.
-
-Run 8 merged one sign-in check per page: the server makes one Auth call, and a forged header is refused. Recorded browser windows still contained 10 and six /auth/v1/user requests, so the whole opening is not yet attributed. API authentication stays intact. Fleet 11 could not close it: minute totals from the logs cannot isolate one opening. Measure with spans tied to one navigation, and count the middleware call, the server helper call and the browser call. Done when a page open makes one sign-in call across the server and the browser together, and an unsigned request still cannot reach a protected page.
-
-### #324 Home computes the day totals twice on every open (part of #222)
-
-The server renders the row of day bubbles with totals for the last 5 days. The browser feed then computes totals again for the feed's days. Today's totals are queried twice on every home open.
-
-Run 8 merged one shared server read of today's totals. Final browser windows still made one or two day-total reads, so a single read across the server and the browser together is unproved. Fleet 11 could not close it for the same reason. Measure with spans tied to one navigation, and count every read that returns today's totals, batch reads included. Done when a home open queries today's totals once across the server and the browser together.
-
-### #520 Every Home open reads the first feed page twice
-
-Home reads the first page of the feed in the server render and again from the browser, so every open pays for both reads.
-
-Planner finding from reading main on Nov 4, not yet measured. The client component always calls its load function after the server render (src/components/Feed.tsx). Related: #373 and #498. Observe first: count the first-page reads of one Home open on current main. Done when one Home open reads the first feed page once, and the request count before and after is in docs.
-
 ### #322 The tick function loads the whole worker before it answers (part of #222)
 
 Every app open, tab focus and once-a-minute database wake calls the tick route. It answers three numbers: queued, running and traffic. A cold tick function must first load the whole food-analysis pipeline, so every cold open waits for that.
 
 Run 8 merged lazy loading of the job modules in the tick route. Rapid tick calls passed, but they hit a warm function, so a cold start is unmeasured (docs/tick-cold.md), and a post from a real phone through the worker is untested. Fleet 11 timed one first request per deployment, which does not establish a cold start, and reopened the issue. PR #536 adds an x-tick-cold header and a tick cold log line, and no value has been read yet. Lazy loading is delivered by #334. Done when a cold start of the tick route is timed on production, before and after, with the times in docs, and a post from a real phone completes through the worker.
 
-### #373 The app reads more from the production database than it needs
-
-The app's reads drove egress to 8.66 GB and log ingestion to 1.10 GB in one billing cycle, against 5 GB and 1 GB on Supabase's free plan, and the project was depleting its Disk IO budget. The organization is now on Pro, which includes 250 GB of egress per cycle, but the same reads still cost bandwidth and database load while judges use the app.
-
-Run 8 cut the feed's Supabase traffic per opening from 5.06 MB to 0.523 MB, 89.7%, by reading day totals once. The app and the worker use Supabase's HTTPS APIs, not SQL connections, so the pooler setting does not apply. Managed services (PostgREST, Storage, Realtime) account for many of the connections the Infrastructure page counts, and the historical 31 of 60 is unexplained, as is the 70% RAM on the Micro instance. Log-ingestion bytes are unattributed, since only row counts exist. Done when the billed log-ingestion bytes are attributed to their sources on the usage page and the RAM use on the Micro instance is explained.
-
-### #375 Storage egress is the largest source and was not cut
-
-In the 24 hours before Run 8, Supabase Storage served 2.99 GB across 35,048 requests, almost all to browsers. The Run 8 cut measured the feed's posts reads, not Storage.
-
-docs/egress.md attributes the bytes to browser-class agents but not to which files (feed JPEGs, card PNGs or originals) or which clients. Much of it may be the coder's own 100-opening measurement runs. Log-ingestion bytes were never measured; only row counts were. Done when Storage egress is broken down by file kind and by client (test automation or real users), log-ingestion bytes are measured, and the largest real-user source is cut or shown to be small.
-
 ### #471 The recording account can hit the hourly model cap on camera
 
 A recording with several photos on one account can run into the model's hourly limit while the video runs.
 
 Photo drink identification adds one model call per staged photo, counted against the account's hourly cap, and the last audit on production got "You have made a lot of requests this hour." Done when a recording-length session of several photos on one account runs with no cap message, or the account's cap is raised before recording.
-
-### #217 A smoothness audit of every screen
-
-Some controls feel dead or clunky, and nobody has measured how the app responds to touch.
-
-The thumbs above are the first case the owner found. List every tappable control on each screen at 390x844, and for each record the time from the tap to a visible change, whether it shows a pressed state at once, whether it jumps or flickers while it loads, and whether it can be tapped twice. The coder measures in Chrome device emulation with the processor slowed and needs the production sign-in of #196. Done when the table lists every control with those four findings, the slow or dead ones are fixed or filed as items.
-
-### #555 The controls on Days, Search, Profile and the capture modes have not been audited
-
-The Round 7 control table covers the feed, the post and the capture sheet. Days, Search, Profile and the Text, Photo and Barcode modes are not in it.
-
-The designer has not read their controls yet. Add them to the table with the four findings of #217: time to a visible change, pressed state, jump or flicker, and double tap. Done when every control on those screens is in the table and the dead ones are fixed or filed as items.
 
 ### #348 A photographed drink's card was not proven on production
 
@@ -248,7 +187,69 @@ A feed photo downloads at a size far larger than a phone card shows, so the firs
 
 The sampled feed image is 152,193 bytes and its response carries no Cache-Control header (docs/media-loading.md). Several cards cost megabytes on mobile data, and the cold first photo measured 2.10 s against the 2 s target. The feed photo route (src/app/api/media/feed/\[owner\]/\[post\]/\[media\]/v1.webp/route.ts) reads the original from Storage on every request. Find the largest size a feed card needs on a phone and serve that instead of the original. Keep the original where post detail needs it. Done when the bytes per feed photo before and after are in docs, the first photo of the feed shows within two seconds on mobile data, and the photos look the same on a phone.
 
+## In Flight
+
+### #373 The app reads more from the production database than it needs
+
+The app's reads drove egress to 8.66 GB and log ingestion to 1.10 GB in one billing cycle, against 5 GB and 1 GB on Supabase's free plan, and the project was depleting its Disk IO budget. The organization is now on Pro, which includes 250 GB of egress per cycle, but the same reads still cost bandwidth and database load while judges use the app.
+
+Run 8 cut the feed's Supabase traffic per opening from 5.06 MB to 0.523 MB, 89.7%, by reading day totals once. The app and the worker use Supabase's HTTPS APIs, not SQL connections, so the pooler setting does not apply. Managed services (PostgREST, Storage, Realtime) account for many of the connections the Infrastructure page counts, and the historical 31 of 60 is unexplained, as is the 70% RAM on the Micro instance. Log-ingestion bytes are unattributed, since only row counts exist. Done when the billed log-ingestion bytes are attributed to their sources on the usage page and the RAM use on the Micro instance is explained.
+
 ## Engineering backlog
+
+### #512 The phone calendar can show the wrong month summary and jump when older months load
+
+On the phone Days screen, the sticky month summary can stay on the wrong month, and the scroll position can jump when an older month loads.
+
+Reviewer findings on merged PR #482, both reproduced by the coder in isolated component checks with synthetic months, not on the owner's device. The sticky summary can stay on the previous month while November scrolls in (src/components/PhoneCalendar.tsx lines 27 to 38). The anchoring that keeps the view still when an older month loads restores a stale scroll position if the user scrolls while the request is pending (lines 18 to 22 and 40 to 46). The review reported a third issue, but its text was cut off. Observe first: scroll Days across the October and November boundary, and scroll while an older month loads. Done when the summary names the month nearest the top and the view stays still while an older month loads.
+
+### #552 The buttons under each post are 24 px tall and show no pressed or turned-off state
+
+The buttons under a post are too small to hit and look the same at rest, while saving and when turned off.
+
+Design 7a (Round 7) gives 44 px tap areas and every state: rest, pressed, saving, turned off and failed. Done when each button matches 7a on production at 390x844.
+
+### #553 Thumbs up and down look the same when turned off and thumbs down waits for the server
+
+The thumbs turn themselves off while a vote saves and before the analysis exists, with no visible difference. Thumbs down opens nothing until the vote has saved.
+
+This is the first case the owner found for #217. Done when a thumb shows its pressed state at once, looks different when turned off, and thumbs down opens at once, checked on production at 390x844 with the processor slowed.
+
+### #323 Every protected page checks sign-in twice (part of #222)
+
+The middleware calls Supabase to verify the user. The home page then calls Supabase to verify the user again. That is two round trips on every page open, on top of the cold function boot.
+
+Run 8 merged one sign-in check per page: the server makes one Auth call, and a forged header is refused. Recorded browser windows still contained 10 and six /auth/v1/user requests, so the whole opening is not yet attributed. API authentication stays intact. Fleet 11 could not close it: minute totals from the logs cannot isolate one opening. Measure with spans tied to one navigation, and count the middleware call, the server helper call and the browser call. Done when a page open makes one sign-in call across the server and the browser together, and an unsigned request still cannot reach a protected page.
+
+### #324 Home computes the day totals twice on every open (part of #222)
+
+The server renders the row of day bubbles with totals for the last 5 days. The browser feed then computes totals again for the feed's days. Today's totals are queried twice on every home open.
+
+Run 8 merged one shared server read of today's totals. Final browser windows still made one or two day-total reads, so a single read across the server and the browser together is unproved. Fleet 11 could not close it for the same reason. Measure with spans tied to one navigation, and count every read that returns today's totals, batch reads included. Done when a home open queries today's totals once across the server and the browser together.
+
+### #520 Every Home open reads the first feed page twice
+
+Home reads the first page of the feed in the server render and again from the browser, so every open pays for both reads.
+
+Planner finding from reading main on Nov 4, not yet measured. The client component always calls its load function after the server render (src/components/Feed.tsx). Related: #373 and #498. Observe first: count the first-page reads of one Home open on current main. Done when one Home open reads the first feed page once, and the request count before and after is in docs.
+
+### #375 Storage egress is the largest source and was not cut
+
+In the 24 hours before Run 8, Supabase Storage served 2.99 GB across 35,048 requests, almost all to browsers. The Run 8 cut measured the feed's posts reads, not Storage.
+
+docs/egress.md attributes the bytes to browser-class agents but not to which files (feed JPEGs, card PNGs or originals) or which clients. Much of it may be the coder's own 100-opening measurement runs. Log-ingestion bytes were never measured; only row counts were. Done when Storage egress is broken down by file kind and by client (test automation or real users), log-ingestion bytes are measured, and the largest real-user source is cut or shown to be small.
+
+### #217 A smoothness audit of every screen
+
+Some controls feel dead or clunky, and nobody has measured how the app responds to touch.
+
+The thumbs above are the first case the owner found. List every tappable control on each screen at 390x844, and for each record the time from the tap to a visible change, whether it shows a pressed state at once, whether it jumps or flickers while it loads, and whether it can be tapped twice. The coder measures in Chrome device emulation with the processor slowed and needs the production sign-in of #196. Done when the table lists every control with those four findings, the slow or dead ones are fixed or filed as items.
+
+### #555 The controls on Days, Search, Profile and the capture modes have not been audited
+
+The Round 7 control table covers the feed, the post and the capture sheet. Days, Search, Profile and the Text, Photo and Barcode modes are not in it.
+
+The designer has not read their controls yet. Add them to the table with the four findings of #217: time to a visible change, pressed state, jump or flicker, and double tap. Done when every control on those screens is in the table and the dead ones are fixed or filed as items.
 
 ### #580 Nine controls have touch targets smaller than 44 pixels
 

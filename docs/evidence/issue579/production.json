@@ -1,0 +1,53 @@
+{
+  "at": "2026-11-04T10:00:27.575Z",
+  "expectedMain": "376e3306942161a5e659e8d99c85154c8ac26a35",
+  "alias": "my-food-ai-ten.vercel.app",
+  "deployment": {
+    "id": "dpl_Df6AGNF8r9vBjiNF2Jh4ghNNYimM",
+    "url": "my-food-qg1vnzrez-aibraincoachs-projects.vercel.app",
+    "readyState": "READY",
+    "source": "376e3306942161a5e659e8d99c85154c8ac26a35"
+  },
+  "businessWrites": false,
+  "health": {
+    "status": 200,
+    "body": {
+      "config": {
+        "MODEL_API_KEY": true,
+        "FDC_API_KEY": true,
+        "NEXT_PUBLIC_SUPABASE_URL": true,
+        "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY": true,
+        "SUPABASE_SECRET_KEY": true
+      },
+      "database": {
+        "ok": true,
+        "ms": 122
+      },
+      "model": {
+        "ok": true,
+        "ms": 582
+      }
+    }
+  },
+  "home": {
+    "status": 200,
+    "v2IdentityFound": true
+  },
+  "v2": {
+    "status": 200,
+    "type": "image/webp",
+    "cache": "private, max-age=31536000, immutable",
+    "etagVersion": true,
+    "bytes": 60016,
+    "width": 1080,
+    "height": 810
+  },
+  "readPass": true,
+  "pass": true,
+  "localCleanup": {
+    "appStopped": true,
+    "disposableBackendStopped": true,
+    "sourceAndReviewPackRetained": true,
+    "bypassPreserved": true
+  }
+}

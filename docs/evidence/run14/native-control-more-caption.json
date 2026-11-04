@@ -1,0 +1,82 @@
+{
+  "observedAt": "2026-11-04T09:45:38.260Z",
+  "meta": {
+    "browser": "Chrome/151.0.7922.173",
+    "scope": "New isolated context CPU4x Fast3G390; unsafe HTTP deliberately503; OPTIONS allowed",
+    "blocked": [
+      {
+        "method": "POST",
+        "path": "/"
+      },
+      {
+        "method": "POST",
+        "path": "/"
+      },
+      {
+        "method": "POST",
+        "path": "/"
+      },
+      {
+        "method": "POST",
+        "path": "/"
+      },
+      {
+        "method": "POST",
+        "path": "/"
+      },
+      {
+        "method": "POST",
+        "path": "/"
+      }
+    ],
+    "cls": 0.30690920245196157,
+    "disposed": true,
+    "limitations": [
+      "Input dispatch uses native mouse pointer in mobile390 viewport after2sec setup settlement.",
+      "meta.cls is all-layout-shift sum including recent input, not standardized CLS."
+    ]
+  },
+  "rows": [
+    {
+      "control": "More",
+      "scope": "Actual production React PostCaption; local post-caption render fixture only, no saved caption mutation",
+      "hitArea": {
+        "x": 355.3984375,
+        "y": 422.09375,
+        "width": 37.203125,
+        "height": 19.59375,
+        "feedback": {
+          "firstMutation": 1.5,
+          "pressed": true
+        }
+      },
+      "remainingMore": [
+        ""
+      ],
+      "verdict": "exercised"
+    },
+    {
+      "control": "Edit caption Save",
+      "scope": "Actual production React handler; own-tab PATCH interception returns500; no server write",
+      "hitArea": {
+        "x": 195,
+        "y": 708,
+        "width": 350,
+        "height": 48,
+        "feedback": {
+          "firstMutation": 1.0999999046325684,
+          "pressed": true
+        }
+      },
+      "requests": [
+        {
+          "url": "/api/posts/e20a5590-9281-436b-900e-2afec24d2567/caption",
+          "method": "PATCH"
+        }
+      ],
+      "errorVisible": true,
+      "sheetRetained": true,
+      "verdict": "exercised"
+    }
+  ]
+}

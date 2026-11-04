@@ -45,7 +45,7 @@ Measured with the [disposable local test stack](docs/testing.md); [commands, dat
 | `npm test` (complete top-level suite with TypeScript loading) | 603 passed, 0 failed, 6 existing optional integration skips |
 | `npm run lint` | 0 errors, 11 warnings (6 existing, 5 new) |
 
-[Fleet 14 validation, exact tested tree and acceptance limits](docs/run14-report.md).
+[Fleet 14 validation, exact tested tree and acceptance limits](docs/run14-report.md). The table records original Fleet14 maina24587a. The subsequent sharper-photo fix#581 adds23 final targeted passes, successful build/typecheck and complete PPLX/AGY reviews; no new full-suite result is claimed. [Latest fix validation](docs/evidence/issue579/validation.md).
 
 The local stack runs real PostgreSQL, Auth, REST and app routes with scripted provider/Storage transports. It does not prove live provider availability or food accuracy.
 

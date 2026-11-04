@@ -1,3 +1,5 @@
+Fleet14’s seven code PRs were deployed at15:38WIB; the added #579 fix is now deployed at main376e3306.
+
 # Fleet 14 execution report
 
 Fleet14’s seven code PRs merged and deployed at15:38WIB on November4; post-deployment acceptance gaps remain open.
@@ -206,3 +208,13 @@ The sequence of previews was caused by the coder pushing individual evidence/doc
 A fresh read-only Vercel project GET verified the retained Fleet14 protection-bypass secret key is still present, with identical creation metadata and identical secret set. It has not been revoked or regenerated. All remaining old bypass-removal instructions in the Fleet11 plan were replaced with permanent retention; older cleanup prose was cleared of revoked-bypass lines. The owner-supplied Wall account remains verbatim.
 
 Native control audit has now ended and all own browser contexts are disposed. It does not fully pass section6.4: Search result was absent and standardized CLS was not captured (raw post-input shift sums are not CLS). Scoped native queue/More/caption receipts retain their actual outcomes; no new production posts were made. The owner’s no-small-push ruling is in the verbatim16:46Wall entry. The docs build correction passes local TypeScript checking; no full build or preview was run for it.
+
+## #579 delivered, observed10:02UTC
+
+#581 merged at09:59:27UTC, exact reviewed feature head6d3d63b4, merge/main376e3306. Production READY dpl_Df6AGNF8r9vBjiNF2Jh4ghNNYimM, alias verified, health200 and authenticated immutable v2 image200. PPLX and supplementary AGY both returned BLOCKERS:NONE on all19changed files.23 final targeted tests, typecheck/focusedlint/singlebuild and local phone/desktop original+leftovers navigation passed. Earlier45 focused checks overlap; they are not68unique tests. Physical-phone quality/mobile-data acceptance remains open; sharper fixture responses cost more bytes. [Validation](evidence/issue579/validation.md), [production](evidence/issue579/production.json), [PPLX](reviews/mfa-pplx-pr581-6d3d63b.md), [AGY](reviews/issue579-agy-review.md). No docs push was performed for these follow-up records.
+
+Backlog role reconciliation after delivery: only#373’s live hourly collector remains InFlight. Completed-fleet items awaiting owner checks are under Backlog for Owner; software/measurement gaps awaiting future work are under Engineering. Item numbers and three-part text remain retained; no open acceptance issue was silently closed. #579 is deployed and remains under Owner for real-phone acceptance.
+
+Final feature cleanup is verified: eight completed original code/probe/integration worktrees plus the added#579 worktree and their completed branches are removed. Unique evidence and the47-file#579review packet were archived and hash-verified first. The original run13 checkout, clean main, all external worktrees, private bypass access, F’s live collector and G’s held documentation batch remain. No new preview was triggered by these local records.
+
+The required scripts/cleanup.sh was run after verifying there were no matching shared review profiles/processes and only protected or still-needed worktrees remained. It completed successfully, found no mfa-pplx profiles/processes, and retained main/run13/F/G plus the two detached owner worktrees. [Exact output](evidence/run14/cleanup-script-final.txt). F and G remain solely for the live collector and held final documentation batch.
