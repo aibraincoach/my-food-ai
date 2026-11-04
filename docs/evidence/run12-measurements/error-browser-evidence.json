@@ -1,0 +1,33 @@
+{
+  "runtime": "local production build with temporary conditional probe; source restored after verification",
+  "results": [
+    {
+      "route": "/days",
+      "before": {
+        "text": "My Food AI\n\nThis page could not be loaded.\n\nTry again\nCamera\nText\nDrink\nCoffee\nSaved",
+        "overflow": false,
+        "button": true
+      },
+      "after": {
+        "text": "Feed\nDays\n\nLoading…\n\nR\nCamera\nText\nDrink\nCoffee\nSaved",
+        "overflow": false
+      }
+    },
+    {
+      "route": "/posts/[owned-fixture-id]",
+      "before": {
+        "text": "My Food AI\n\nThis page could not be loaded.\n\nTry again\nBack to the feed",
+        "overflow": false,
+        "button": true
+      },
+      "after": {
+        "text": "Feed\nPost\n\nTue, Nov 3 · 8:56 PM\n\n···\nCONSUMED · 8:56 PM\n1200\nkcal\n20 g\nprotein\n50 g\ncarbs\n40 g\nfat\nScripted retry meal 100 g\n\n Run12 retry fixture\n\n1200\nkcal\n20 g\nprotein\n50 g\ncarbs\n40 g\nfat\nConsumed · all nutrients\nShow all 7\nServings\n−\n1\n+\nComments 0\nCamera\nText\nDrink\nCoffee\nSaved",
+        "overflow": false
+      }
+    },
+    {
+      "route": "/days/2099-01-01",
+      "text": "My Food AI\n\nThis page does not exist.\n\nBack to the feed"
+    }
+  ]
+}

@@ -1,0 +1,4 @@
+Coder triage: Codex; head 192e4e1d5d0533184427cabb72b242d380955cc9
+Not real — src/app/(tabs)/error.tsx:7: the installed Next.js 16.4.3 error boundary passes `retry: this.retry` at `node_modules/next/dist/client/components/error-boundary.js:114`; its retry method calls router refresh and reset. The callback exists in this pinned framework version.
+Not real — src/app/error.tsx:7: same installed framework implementation passes retry to this component. `node_modules/next/dist/client/components/error-boundary.d.ts:6` declares `retry: () => void`; bundled `node_modules/next/dist/docs/01-app/03-api-reference/03-file-conventions/error.md` documents retry at lines 30, 131 and 177. The reviewer used an older API premise. This triage does not substitute for external reviewer confirmation.
+Real findings: 0

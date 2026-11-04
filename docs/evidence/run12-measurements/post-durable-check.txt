@@ -1,0 +1,8 @@
+Item3 local production-build check at390x844, native Chromium/CDP, Fast4G:latency60ms/download1,125,000Bps/upload187,500Bps.
+Selected existing plate1/plate2/plate3/plate1 JPEG fixtures as4 photos. Used unique synthetic local account.
+Local scripted drink reader returns cola for fixture images; browser-only transport intercepted that optional drink check as allDrinks:false/drinks[] so this exercises ordinary UploadManager.post, not photo-drink publication. Worker/provider remained real local scripted pipeline. Existing files had completed upload before tap; test proves publication durability, not mid-transfer restoration.
+100ms after Post, IndexedDB mfa-uploads/drafts persisted files4,posted:true,caption Fleet12 durable four photos. Target closed247ms after Post, then reopened actual new tab.
+Authoritative Supabase read found exactly1 ready post with that caption and4 original photos plus1 generated card. Reopened browser IndexedDB drafts[]; no unposted draft remained.
+Deleted post through application DELETE endpoint204. Need final shared-fixture/storage cleanup after remaining local checks.
+No screenshots stored, no production requests.
+Final synthetic cleanup also harddeleted softdeleted durable fixture; all user-owned Storageobjects/reservations/cleanupjobs removed andreadback0. See/tmp/run12-ah-cleanup.log.

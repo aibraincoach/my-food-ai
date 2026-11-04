@@ -1,0 +1,3 @@
+Coder triage: Codex; head 03ca5a9ca3845b7efc91eaf1b0b847df727607df
+Not real — src/components/LogAgainSheet.tsx:22: sent.current compares the target object by reference, not the meal id. The sole caller, src/components/SavedMealListeners.tsx, creates a new target object literal for each saved-meal selection and each log-again event (lines24/29), and onClose sets target to null. Reopening the same meal therefore permits a new submission. Input validation throws before sent assignment, so a corrected invalid date/time choice can retry. Asynchronous copy failures belong to the durable upload/card retry flow after the sheet closes. Confirmation must include exact-head parent source; this triage does not substitute for the external review.
+Real findings: 0

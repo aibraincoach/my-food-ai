@@ -1,0 +1,99 @@
+{
+  "viewport": "390x844",
+  "method": "CDP paused original request until immutable preview had loaded, then resumed original.",
+  "initial": {
+    "src": "/api/media/feed/687da258-506f-41b5-8ab7-ebe38bdf1eda/b4265b7b-b8f0-4d72-b3bc-e30f4aaffd97/e824e17c-f969-4ff2-8e9b-3450226eb846/v1.webp",
+    "naturalWidth": 512,
+    "naturalHeight": 384,
+    "probe": [
+      {
+        "time": 336.5,
+        "src": "/api/media/feed/687da258-506f-41b5-8ab7-ebe38bdf1eda/b4265b7b-b8f0-4d72-b3bc-e30f4aaffd97/e824e17c-f969-4ff2-8e9b-3450226eb846/v1.webp"
+      }
+    ]
+  },
+  "final": {
+    "src": "http://127.0.0.1:60266/storage/v1/object/sign/media/687da258-506f-41b5-8ab7-ebe38bdf1eda/b4265b7b-b8f0-4d72-b3bc-e30f4aaffd97/0.jpg",
+    "naturalWidth": 1280,
+    "naturalHeight": 960,
+    "probe": [
+      {
+        "time": 336.5,
+        "src": "/api/media/feed/687da258-506f-41b5-8ab7-ebe38bdf1eda/b4265b7b-b8f0-4d72-b3bc-e30f4aaffd97/e824e17c-f969-4ff2-8e9b-3450226eb846/v1.webp"
+      },
+      {
+        "time": 837.2999997138977,
+        "src": "http://127.0.0.1:60266/storage/v1/object/sign/media/687da258-506f-41b5-8ab7-ebe38bdf1eda/b4265b7b-b8f0-4d72-b3bc-e30f4aaffd97/0.jpg"
+      }
+    ]
+  },
+  "responses": [
+    {
+      "url": "http://127.0.0.1:60261/api/media/feed/687da258-506f-41b5-8ab7-ebe38bdf1eda/b4265b7b-b8f0-4d72-b3bc-e30f4aaffd97/e824e17c-f969-4ff2-8e9b-3450226eb846/v1.webp",
+      "status": 200,
+      "mime": "image/webp"
+    },
+    {
+      "url": "http://127.0.0.1:60266/storage/v1/object/sign/media/687da258-506f-41b5-8ab7-ebe38bdf1eda/b4265b7b-b8f0-4d72-b3bc-e30f4aaffd97/0.jpg",
+      "status": 200,
+      "mime": "image/jpeg"
+    },
+    {
+      "url": "http://127.0.0.1:60266/storage/v1/object/sign/media/687da258-506f-41b5-8ab7-ebe38bdf1eda/b4265b7b-b8f0-4d72-b3bc-e30f4aaffd97/0.jpg",
+      "status": 200,
+      "mime": "image/jpeg"
+    }
+  ],
+  "originalRequests": 1,
+  "originalTraffic": [
+    {
+      "method": "Network.requestWillBeSent",
+      "id": "3070879.580",
+      "url": "http://127.0.0.1:60266/storage/v1/object/sign/media/687da258-506f-41b5-8ab7-ebe38bdf1eda/b4265b7b-b8f0-4d72-b3bc-e30f4aaffd97/0.jpg",
+      "initiator": "parser",
+      "headers": {
+        "sec-ch-ua-platform": "\"Linux\"",
+        "Referer": "http://127.0.0.1:60261/",
+        "User-Agent": "Mozilla/5.0 (X11; Linux aarch64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/151.0.0.0 Safari/537.36",
+        "sec-ch-ua": "\"Chromium\";v=\"151\", \"Not=A?Brand\";v=\"99\"",
+        "sec-ch-ua-mobile": "?0"
+      }
+    },
+    {
+      "method": "Network.responseReceived",
+      "id": "3070879.580",
+      "url": "http://127.0.0.1:60266/storage/v1/object/sign/media/687da258-506f-41b5-8ab7-ebe38bdf1eda/b4265b7b-b8f0-4d72-b3bc-e30f4aaffd97/0.jpg",
+      "cache": false
+    },
+    {
+      "method": "Network.requestWillBeSent",
+      "id": "3070879.597",
+      "url": "http://127.0.0.1:60266/storage/v1/object/sign/media/687da258-506f-41b5-8ab7-ebe38bdf1eda/b4265b7b-b8f0-4d72-b3bc-e30f4aaffd97/0.jpg",
+      "initiator": "script",
+      "headers": {
+        "Origin": "http://127.0.0.1:60261",
+        "sec-ch-ua-platform": "\"Linux\"",
+        "Referer": "http://127.0.0.1:60261/",
+        "User-Agent": "Mozilla/5.0 (X11; Linux aarch64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/151.0.0.0 Safari/537.36",
+        "sec-ch-ua": "\"Chromium\";v=\"151\", \"Not=A?Brand\";v=\"99\"",
+        "sec-ch-ua-mobile": "?0"
+      }
+    },
+    {
+      "method": "Network.responseReceived",
+      "id": "3070879.597",
+      "url": "http://127.0.0.1:60266/storage/v1/object/sign/media/687da258-506f-41b5-8ab7-ebe38bdf1eda/b4265b7b-b8f0-4d72-b3bc-e30f4aaffd97/0.jpg",
+      "cache": false
+    }
+  ],
+  "originalTransfers": [
+    {
+      "id": "3070879.580",
+      "encodedDataLength": 264446
+    },
+    {
+      "id": "3070879.597",
+      "encodedDataLength": 264446
+    }
+  ]
+}

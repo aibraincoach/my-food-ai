@@ -1,0 +1,12 @@
+Number-format local built-page check (2026-11-04 WIB)
+App: http://127.0.0.1:60262, disposable local Supabase; native Chromium CDP60302, no Playwright.
+Fixture: one unique synthetic local account; one ready caption-only meal, 2,118 kcal and 1,000g macros. This is a scripted display fixture, not food accuracy evidence.
+Built application rendered and inspected at desktop1280x800 and phone390x844. Screenshots viewed from CDP response in memory only; no image file saved.
+Compared rendered desktop Home with rendered uploads/design-round6/My Food AI.dc.html frame6a.
+Verified: feed live card 2,118; feed summary Consumed:2,118kcal; full detail 2,118; desktop Today2,118 and1,000g macros; Days calendar2,118 and selected-day Consumed:2,118kcal; phone ring2,118 and day header Consumed:2,118kcal. No clipped comma glyphs.
+Home overflow false:1024x700,1100x800,1366x650,1280x800.
+Today geometry:1024 =>x780.5,width204,right984.5;1100=>x780.5,width280,right1060.5;1280=>x894.5,width280,right1174.5;1366=>x937.5,width280,right1217.5.
+Frame comparison:240px sidebar,500px feed and280px Today match at1280; font/colors/navigation positioning visually consistent. Fixture uses nutrition panel instead of frame's meal-photo placeholder, and synthetic name/caption/data differ. Existing keyboard focus outline is square while frame6a outline is rounded. Synthetic1000g macros wrap their g unit below on card, but remain within card bounds. No unrelated code changed.
+Production checks remain unperformed; these local results do not prove production acceptance.
+Build was fea2450 (runtime code);342bffd adds only VM harness formatter loading. Root subsequently refreshed main via5cba1e81e1cf72285846eb1be202f81c5c26f9a6, adding merged0048 index migration and DB gate; runtime code inspected unchanged.
+Cleanup:one synthetic meal/profile/auth account removed, plus one auth-only account from initial failed fixture setup; zero storage objects created. Own Chromium60302 closed cleanly.

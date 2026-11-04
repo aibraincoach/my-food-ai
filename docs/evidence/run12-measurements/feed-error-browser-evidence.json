@@ -1,0 +1,25 @@
+{
+  "events": [
+    {
+      "type": "seed",
+      "time": 769.5,
+      "text": "Tuesday, Nov 3TodayTuesday, Nov 3Synthetic local detail mealLoading meal details…"
+    },
+    {
+      "type": "error",
+      "time": 8548.200000286102,
+      "text": "The feed could not be loaded.\n\nTry again",
+      "seedDisplay": "none"
+    }
+  ],
+  "error": "The feed could not be loaded.\n\nTry again",
+  "seedDisplay": "none",
+  "loadingVisible": false,
+  "overflow": false,
+  "requests": [
+    {
+      "url": "http://127.0.0.1:60261/api/feed?tz=America%2FEdmonton&limit=6",
+      "reason": "InternetDisconnected"
+    }
+  ]
+}

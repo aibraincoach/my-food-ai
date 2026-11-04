@@ -1,0 +1,225 @@
+[
+  {
+    "headRefName": "run12/detail-open",
+    "headRefOid": "fc2dcb14504e3e75d388c146d6700209aea852ab",
+    "mergeCommit": null,
+    "number": 541,
+    "state": "OPEN",
+    "title": "perf: stream meal detail and reuse its reads and photo preview",
+    "url": "https://github.com/aibraincoach/my-food-ai/pull/541"
+  },
+  {
+    "headRefName": "run12/drink-cap",
+    "headRefOid": "54a8c65a93eefd46e8bb90f0846f91a06d7878e6",
+    "mergeCommit": null,
+    "number": 540,
+    "state": "OPEN",
+    "title": "fix: count photo drink checks only when calling the model",
+    "url": "https://github.com/aibraincoach/my-food-ai/pull/540"
+  },
+  {
+    "headRefName": "run12/phone-calendar",
+    "headRefOid": "d3202554e5c0c625d4d4a8cffd15a9eae5e2365b",
+    "mergeCommit": null,
+    "number": 539,
+    "state": "OPEN",
+    "title": "fix: stabilize phone calendar month tracking and older loads",
+    "url": "https://github.com/aibraincoach/my-food-ai/pull/539"
+  },
+  {
+    "headRefName": "run12/terms",
+    "headRefOid": "2416bcba1978794ab1b29fd9e6cf22f7c4094b0d",
+    "mergeCommit": null,
+    "number": 538,
+    "state": "OPEN",
+    "title": "fix: apply the owner's Leftovers and meal-question wording",
+    "url": "https://github.com/aibraincoach/my-food-ai/pull/538"
+  },
+  {
+    "headRefName": "run12/log-again-once",
+    "headRefOid": "b287106b4ca01f384014457d745dc72ee4230581",
+    "mergeCommit": null,
+    "number": 537,
+    "state": "OPEN",
+    "title": "fix: prevent duplicate Log again submission for one target",
+    "url": "https://github.com/aibraincoach/my-food-ai/pull/537"
+  },
+  {
+    "headRefName": "run12/tick-cold",
+    "headRefOid": "5c2536b59266321e75cad5c98612a380e2696aea",
+    "mergeCommit": null,
+    "number": 536,
+    "state": "OPEN",
+    "title": "chore: expose whether a tick request starts a cold instance",
+    "url": "https://github.com/aibraincoach/my-food-ai/pull/536"
+  },
+  {
+    "headRefName": "run12/saved-offline",
+    "headRefOid": "bc7636096962fff34fc633ee548198ffdd311087",
+    "mergeCommit": null,
+    "number": 535,
+    "state": "OPEN",
+    "title": "fix: keep Saved meals Log now on Home while offline",
+    "url": "https://github.com/aibraincoach/my-food-ai/pull/535"
+  },
+  {
+    "headRefName": "run12/upload-card",
+    "headRefOid": "a1912520a884a312d19460bfd6c20fc4fa38b319",
+    "mergeCommit": null,
+    "number": 534,
+    "state": "OPEN",
+    "title": "fix: retain upload failure reasons and group cards by eaten day",
+    "url": "https://github.com/aibraincoach/my-food-ai/pull/534"
+  },
+  {
+    "headRefName": "run12/drink-rules",
+    "headRefOid": "46fba1d1ce87c992d0a566d7fff2ca15f4d351f2",
+    "mergeCommit": null,
+    "number": 533,
+    "state": "OPEN",
+    "title": "fix: preserve caffeine exclusions and cap alcohol intake amounts",
+    "url": "https://github.com/aibraincoach/my-food-ai/pull/533"
+  },
+  {
+    "headRefName": "run12/composer-photo",
+    "headRefOid": "d433163a50027e1e9137828f1e02ee314278dcf4",
+    "mergeCommit": null,
+    "number": 532,
+    "state": "OPEN",
+    "title": "fix: keep the selected composer photo after caption editing",
+    "url": "https://github.com/aibraincoach/my-food-ai/pull/532"
+  },
+  {
+    "headRefName": "run12/off-liquids",
+    "headRefOid": "ebf8869f6cd7711dd66bd99e327f7bc461b7c2d5",
+    "mergeCommit": null,
+    "number": 531,
+    "state": "OPEN",
+    "title": "fix: recognize compact liquid quantities from Open Food Facts",
+    "url": "https://github.com/aibraincoach/my-food-ai/pull/531"
+  },
+  {
+    "headRefName": "run12/label-per-100",
+    "headRefOid": "02129cc060cf21b529148286563f3bdf956289e7",
+    "mergeCommit": null,
+    "number": 530,
+    "state": "OPEN",
+    "title": "fix: retain per-100 label values when a portion is also printed",
+    "url": "https://github.com/aibraincoach/my-food-ai/pull/530"
+  },
+  {
+    "headRefName": "run12/card-cache-expiry",
+    "headRefOid": "1cd5e376192ede8a3dad0aeee5891e37b0e8e25e",
+    "mergeCommit": null,
+    "number": 529,
+    "state": "OPEN",
+    "title": "fix: drop expired signed card slides from cached feed",
+    "url": "https://github.com/aibraincoach/my-food-ai/pull/529"
+  },
+  {
+    "headRefName": "run12/home-one-read",
+    "headRefOid": "909bdf61744fb2c4f349dd5aacd8850c59f04c93",
+    "mergeCommit": null,
+    "number": 528,
+    "state": "OPEN",
+    "title": "perf: reuse Home's first server feed page",
+    "url": "https://github.com/aibraincoach/my-food-ai/pull/528"
+  },
+  {
+    "headRefName": "run12/drink-sheets",
+    "headRefOid": "626d9e1ffed471487a85a2ec0eb05750d0679157",
+    "mergeCommit": {
+      "oid": "6ff51a957d36239ca2799fb53b71bb89616361e1"
+    },
+    "number": 527,
+    "state": "MERGED",
+    "title": "fix: show drink-check failures and reveal sorted tiles once",
+    "url": "https://github.com/aibraincoach/my-food-ai/pull/527"
+  },
+  {
+    "headRefName": "run12/number-format",
+    "headRefOid": "5ce73f8e0079abe39b4863677411c9c9a138e5a2",
+    "mergeCommit": {
+      "oid": "0980b3233ebd37827a3ec7528aa63e5b758f05ac"
+    },
+    "number": 526,
+    "state": "MERGED",
+    "title": "fix: use grouped nutrition numbers throughout the app",
+    "url": "https://github.com/aibraincoach/my-food-ai/pull/526"
+  },
+  {
+    "headRefName": "run12/open-timeout",
+    "headRefOid": "f189b536649ac075f72731e382c8c15ea7a6ea2b",
+    "mergeCommit": {
+      "oid": "2fdb53e50bd774e602ab80a670e10359424164b2"
+    },
+    "number": 507,
+    "state": "MERGED",
+    "title": "fix: bound Muse Spark Open to one 75-second attempt",
+    "url": "https://github.com/aibraincoach/my-food-ai/pull/507"
+  },
+  {
+    "headRefName": "run12/feed-recovery",
+    "headRefOid": "e5bbc4730d85de019dff115019191937e91ea96d",
+    "mergeCommit": {
+      "oid": "f5108a61b67722ccf5f068d5d80719bdec98584d"
+    },
+    "number": 506,
+    "state": "MERGED",
+    "title": "fix: recover failed pages and retain usable feed cache",
+    "url": "https://github.com/aibraincoach/my-food-ai/pull/506"
+  },
+  {
+    "headRefName": "run12/post-durable",
+    "headRefOid": "f2b0f35becac7cfeb296f58b3fd0fde118b6324a",
+    "mergeCommit": {
+      "oid": "05a774521a87eb7834a73bea8922ed7e64c92bf7"
+    },
+    "number": 505,
+    "state": "MERGED",
+    "title": "fix: persist the Post action before upload work",
+    "url": "https://github.com/aibraincoach/my-food-ai/pull/505"
+  },
+  {
+    "headRefName": "run12/desktop-attach",
+    "headRefOid": "651cfc2942d1d9e2cdcb09b54d5f3844cc867442",
+    "mergeCommit": {
+      "oid": "9fb10ee1dd853157d3388e3f46f6177108e85a5c"
+    },
+    "number": 504,
+    "state": "MERGED",
+    "title": "fix: fit desktop photo capture and offer file attachment",
+    "url": "https://github.com/aibraincoach/my-food-ai/pull/504"
+  },
+  {
+    "headRefName": "run12/revision-batch",
+    "headRefOid": "a5415aa4ea5570996603daeca8df75be2cb3d50f",
+    "mergeCommit": {
+      "oid": "99a91f72717dee86c7c8ee4ce1dbd012c80927d2"
+    },
+    "number": 503,
+    "state": "MERGED",
+    "title": "perf: batch feed revision reads",
+    "url": "https://github.com/aibraincoach/my-food-ai/pull/503"
+  },
+  {
+    "headRefName": "run12/feed-indexes",
+    "headRefOid": "7338ea3c2e4d0fe08ed9c5760f424a26d95e7533",
+    "mergeCommit": {
+      "oid": "8eeb0bcea2f673c5ebb351760f2ea30c7396add8"
+    },
+    "number": 502,
+    "state": "MERGED",
+    "title": "perf: index feed media and comment reads",
+    "url": "https://github.com/aibraincoach/my-food-ai/pull/502"
+  },
+  {
+    "headRefName": "run12/docs",
+    "headRefOid": "4d8681397fb1c48dae31305cf398651f60110ff1",
+    "mergeCommit": null,
+    "number": 501,
+    "state": "OPEN",
+    "title": "docs: Fleet 12 plan and report",
+    "url": "https://github.com/aibraincoach/my-food-ai/pull/501"
+  }
+]

@@ -1,0 +1,43 @@
+{
+  "scope": "disposable local caption-only post, hanging local Baseten and scripted Meta",
+  "ms": 76397,
+  "status": "ready",
+  "identify_host": "meta",
+  "calls": [
+    {
+      "host": "baseten",
+      "kind": "spark_identify",
+      "error": "TimeoutError",
+      "duration_ms": 75003,
+      "started_at": "2026-11-03T22:02:50.062-06:00"
+    },
+    {
+      "host": "meta",
+      "kind": "spark_identify",
+      "error": null,
+      "duration_ms": 9,
+      "started_at": "2026-11-03T22:04:05.076-06:00"
+    },
+    {
+      "host": "meta",
+      "kind": "fdc",
+      "error": null,
+      "duration_ms": 29,
+      "started_at": "2026-11-03T22:04:05.113-06:00"
+    },
+    {
+      "host": "meta",
+      "kind": "fdc",
+      "error": null,
+      "duration_ms": 0,
+      "started_at": "2026-11-03T22:04:05.121-06:00"
+    },
+    {
+      "host": "meta",
+      "kind": "spark_search",
+      "error": null,
+      "duration_ms": 4,
+      "started_at": "2026-11-03T22:04:05.128-06:00"
+    }
+  ]
+}
