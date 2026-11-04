@@ -1,0 +1,37 @@
+{
+  "app": "https://my-food-ai-ten.vercel.app",
+  "scope": "Production read-only M2 and M4; designated test account 2; no posts created or edited",
+  "viewport": {
+    "width": 1280,
+    "height": 800
+  },
+  "observedAt": "2026-11-04T15:09:21.953Z",
+  "m2": {
+    "onLoadFocused": 0,
+    "jSelectsFirst": true,
+    "afterPointerFocused": 0,
+    "tabPresses": 13,
+    "tabOutlinesFeed": true,
+    "pass": true,
+    "tabScope": "Actual Tab events from fresh document body into feed; browser address-bar chrome cannot be automated by page API."
+  },
+  "m4": {
+    "normalReload": {
+      "firstDigitMs": 849.6999998092651,
+      "kcal": "0"
+    },
+    "hardReload": {
+      "firstDigitMs": 996.0999999046326,
+      "kcal": "0"
+    },
+    "serverHtmlKcalSpans": [
+      "—",
+      "0"
+    ],
+    "serverHtmlContainsKcal": true,
+    "pass": true
+  },
+  "errors": [],
+  "build": "7e0c7898688089cdb875632d7f13b9f65223b817",
+  "pass": true
+}

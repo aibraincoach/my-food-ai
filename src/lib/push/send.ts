@@ -21,12 +21,15 @@ export async function sendPostPush(admin: SupabaseClient, postId: string, questi
   const subject = process.env.VAPID_SUBJECT;
   if (!publicKey || !privateKey || !subject) return;
   try {
-    const { data: post, error } = await admin.from("posts").select("user_id,status,needs_input").eq("id", postId).maybeSingle();
+    const { data: post, error } = await admin.from("posts").select("user_id,status,needs_input,question").eq("id", postId).maybeSingle();
     if (error || !post) return;
     // Persistence may have queued an answer submitted during the model call.
     // Notify only the state that actually survived that transaction.
     if (question !== undefined) {
-      if (post.status !== "needs_input" || post.needs_input?.question !== question) return;
+      // Held: the meal waits for the answer. Beside: the meal is published and the question sits next to it.
+      const held = post.status === "needs_input" && post.needs_input?.question === question;
+      const beside = post.status === "ready" && post.question?.question === question;
+      if (!held && !beside) return;
     } else if (post.status !== "ready") return;
     const { data: subscriptions, error: subscriptionError } = await admin.from("push_subscriptions")
       .select("id,endpoint,keys").eq("user_id", post.user_id);

@@ -22,7 +22,7 @@ const analyze: JobHandler = async (admin, job) => {
   const named = reusable?.named ?? await analyzePost(admin, job.post_id, prior?.hint,job.id);
   named.hasNotEaten=hasNotEaten;
   await persistAnalysis(admin, named, named.labelNutrition?[named.labelNutrition]:reusable?.nutrition, job.id);
-  if (named.needsInput) await sendPostPush(admin, job.post_id, named.needsInput.question);
+  if (named.needsInput && !named.questionShown) await sendPostPush(admin, job.post_id, named.needsInput.question);
   else await queueRemainder();
 };
 

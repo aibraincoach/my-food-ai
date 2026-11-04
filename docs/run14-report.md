@@ -1,3 +1,5 @@
+> Source snapshot: open docs PR #577, commit `eeba864c8e54c562f9a76cf90872187d172564ab`, read November4,2026. This is that fleet's report, not a new deployment receipt. Fleet15 and current production facts are in [run15-report.md](run15-report.md) and [migrations.md](migrations.md). Historical intermediate states below retain their dated cutoffs.
+
 Fleet14’s seven code PRs were deployed at15:38WIB; the added #579 fix is now deployed at main376e3306.
 
 Owner-directed final delivery,10:30:29UTC: resource collection is **three of seven**; collector stopped. The six-hour window is incomplete and is not a delivery gate. All code, counting reviews and feature cleanup are complete; acceptance gaps below remain explicitly open.

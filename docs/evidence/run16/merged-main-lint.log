@@ -1,0 +1,25 @@
+
+> my-food-ai@0.1.0 lint
+> eslint
+
+
+/home/opc/Projects/my-food-ai/src/components/DaysView.tsx
+  196:174  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+/home/opc/Projects/my-food-ai/src/components/LogAgainSheet.tsx
+  29:103  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+/home/opc/Projects/my-food-ai/src/components/SavedMealsSheet.tsx
+  10:820  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+/home/opc/Projects/my-food-ai/src/components/SearchBox.tsx
+  28:20  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+/home/opc/Projects/my-food-ai/tests/feed-nutrition.test.mjs
+  61:93  warning  'init' is defined but never used  @typescript-eslint/no-unused-vars
+
+/home/opc/Projects/my-food-ai/tests/food-estimate.test.mjs
+  66:86  warning  '_label' is defined but never used  @typescript-eslint/no-unused-vars
+
+✖ 6 problems (0 errors, 6 warnings)
+

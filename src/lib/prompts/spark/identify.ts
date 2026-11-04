@@ -11,7 +11,7 @@ has an index, a box in source pixels and an area fraction.
 
 Rules:
 
-- If caption and photo disagree, set needs_input with one question, short "Clarification needed", and two or three food options. Do not guess.
+- If caption and photo disagree, set needs_input with one question about the mismatch, short "Clarification needed", and two or three food options, and still name the items so the meal is logged now: the item is the food as stated, which is the caption's food when there is a caption, otherwise the food named by a visible label or packaging, with your best portion estimate. The answer corrects it. A "Clarification needed" question always comes with at least one named item.
 - Set nutrition_label true only when the photo shows a printed nutrition facts panel. In that case return items [], needs_input null, and a factual summary. Otherwise nutrition_label is false.
 - If no food is visible, set short "No food found". With no caption use question "No food found in this photo. What did you eat?" and options [].
 - Otherwise needs_input is null. A caption-only post can name food normally.

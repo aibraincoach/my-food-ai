@@ -1,0 +1,4211 @@
+
+> my-food-ai@0.1.0 test
+> node scripts/test.mjs
+
+TAP version 13
+# Subtest: an owner attaches verified staged media once and a no-text photo correction preserves history without a forged user comment
+ok 1 - an owner attaches verified staged media once and a no-text photo correction preserves history without a forged user comment
+  ---
+  duration_ms: 330.95361
+  type: 'test'
+  ...
+# auth verify middleware /admin/posts/00000000-0000-4000-8000-000000000002
+# auth verify middleware /admin/posts/00000000-0000-4000-8000-000000000002
+# auth verify middleware /admin/posts/00000000-0000-4000-8000-000000000002
+# Subtest: signed-out, ordinary and failed-role requests are denied before page rendering
+ok 2 - signed-out, ordinary and failed-role requests are denied before page rendering
+  ---
+  duration_ms: 1.187831
+  type: 'test'
+  ...
+# Subtest: denied HTTP response is 404 with no trace payload and preserves session cleanup cookies
+ok 3 - denied HTTP response is 404 with no trace payload and preserves session cleanup cookies
+  ---
+  duration_ms: 4.730842
+  type: 'test'
+  ...
+# Subtest: actual middleware returns HTTP 404 for signed-out and non-admin trace requests
+ok 4 - actual middleware returns HTTP 404 for signed-out and non-admin trace requests
+  ---
+  duration_ms: 193.719877
+  type: 'test'
+  ...
+# Subtest: tokens have 32 random base62 characters, persist a digest and suffix only
+ok 5 - tokens have 32 random base62 characters, persist a digest and suffix only
+  ---
+  duration_ms: 9.843001
+  type: 'test'
+  ...
+# Subtest: Bearer authentication refuses missing, unknown and revoked tokens and caps the 61st call
+ok 6 - Bearer authentication refuses missing, unknown and revoked tokens and caps the 61st call
+  ---
+  duration_ms: 65.883148
+  type: 'test'
+  ...
+# Subtest: JSON-RPC batches consume a hit for every call and refuse the whole over-limit batch
+ok 7 - JSON-RPC batches consume a hit for every call and refuse the whole over-limit batch
+  ---
+  duration_ms: 0.551796
+  type: 'test'
+  ...
+# Subtest: meal input preserves a past eaten-at and rejects future times and invalid captions
+ok 8 - meal input preserves a past eaten-at and rejects future times and invalid captions
+  ---
+  duration_ms: 0.681275
+  type: 'test'
+  ...
+# Subtest: a second owner cannot get or correct another owner meal through the service
+ok 9 - a second owner cannot get or correct another owner meal through the service
+  ---
+  duration_ms: 1.027512
+  type: 'test'
+  ...
+# Subtest: 0031 restricts token writes, activity and rate counters
+ok 10 - 0031 restricts token writes, activity and rate counters
+  ---
+  duration_ms: 0.473956
+  type: 'test'
+  ...
+# Subtest: agent request limits count bytes and reject a multibyte body above 64 KiB
+ok 11 - agent request limits count bytes and reject a multibyte body above 64 KiB
+  ---
+  duration_ms: 7.784617
+  type: 'test'
+  ...
+# Subtest: unrelated shared adjective and incompatible volume never become a gram match
+ok 12 - unrelated shared adjective and incompatible volume never become a gram match
+  ---
+  duration_ms: 1.663627
+  type: 'test'
+  ...
+# Subtest: a rejected first search permits one refined search and no third attempt
+ok 13 - a rejected first search permits one refined search and no third attempt
+  ---
+  duration_ms: 2.848537
+  type: 'test'
+  ...
+# Subtest: selection is restricted to eligible candidate ids, provider failures are not false unknowns
+ok 14 - selection is restricted to eligible candidate ids, provider failures are not false unknowns
+  ---
+  duration_ms: 0.841953
+  type: 'test'
+  ...
+# Subtest: partial nutrients retain known sums and names through day aggregation
+ok 15 - partial nutrients retain known sums and names through day aggregation
+  ---
+  duration_ms: 20.294076
+  type: 'test'
+  ...
+# Subtest: summary cannot publish model numbers and uses identical display rounding
+ok 16 - summary cannot publish model numbers and uses identical display rounding
+  ---
+  duration_ms: 0.556196
+  type: 'test'
+  ...
+# Subtest: micronutrients keep available contributions, flag unavailable foods, preserve genuine zero
+ok 17 - micronutrients keep available contributions, flag unavailable foods, preserve genuine zero
+  ---
+  duration_ms: 0.779914
+  type: 'test'
+  ...
+# Subtest: primary card omissions describe its displayed nutrients while detail retains optional omissions
+ok 18 - primary card omissions describe its displayed nutrients while detail retains optional omissions
+  ---
+  duration_ms: 0.570755
+  type: 'test'
+  ...
+# Subtest: exhausted shared resolution budget rejects before another lookup, never publishes an unknown match
+ok 19 - exhausted shared resolution budget rejects before another lookup, never publishes an unknown match
+  ---
+  duration_ms: 0.909713
+  type: 'test'
+  ...
+# Subtest: ingredient qualification is case-insensitive before rejection scoring
+ok 20 - ingredient qualification is case-insensitive before rejection scoring
+  ---
+  duration_ms: 0.730234
+  type: 'test'
+  ...
+# Subtest: conflicting duplicate nutrient values remain unknown without an arbitrary epsilon
+ok 21 - conflicting duplicate nutrient values remain unknown without an arbitrary epsilon
+  ---
+  duration_ms: 1.185951
+  type: 'test'
+  ...
+# Subtest: committed analysis replay preserves edits and markers (already installed: false)
+ok 22 - committed analysis replay preserves edits and markers (already installed: false)
+  ---
+  duration_ms: 43.863206
+  type: 'test'
+  ...
+# Subtest: committed analysis replay preserves edits and markers (already installed: true)
+ok 23 - committed analysis replay preserves edits and markers (already installed: true)
+  ---
+  duration_ms: 43.159771
+  type: 'test'
+  ...
+# Subtest: answered old IDs remain tracked through delayed processing and repeated questions
+ok 24 - answered old IDs remain tracked through delayed processing and repeated questions
+  ---
+  duration_ms: 130.15279
+  type: 'test'
+  ...
+# Subtest: expired unreserved stage gives an explicit renewal signal
+ok 25 - expired unreserved stage gives an explicit renewal signal
+  ---
+  duration_ms: 2.794257
+  type: 'test'
+  ...
+# Subtest: expired pending reservation reconciles under completion locks before allowing renewal
+ok 26 - expired pending reservation reconciles under completion locks before allowing renewal
+  ---
+  duration_ms: 0.453357
+  type: 'test'
+  ...
+# Subtest: expired lease observation racing a committed attachment returns its existing media
+ok 27 - expired lease observation racing a committed attachment returns its existing media
+  ---
+  duration_ms: 0.327277
+  type: 'test'
+  ...
+# Subtest: already committed stage stays idempotent after cleanup
+ok 28 - already committed stage stays idempotent after cleanup
+  ---
+  duration_ms: 0.214358
+  type: 'test'
+  ...
+# Subtest: a failed lease read never authorizes a fresh stage
+ok 29 - a failed lease read never authorizes a fresh stage
+  ---
+  duration_ms: 0.592115
+  type: 'test'
+  ...
+# Subtest: expiry while copying is reported as renewable by the locked completion result
+ok 30 - expiry while copying is reported as renewable by the locked completion result
+  ---
+  duration_ms: 0.538236
+  type: 'test'
+  ...
+# ok: sign-in has an email field
+# ok: sign-in has a password field
+# ok: sign-in links to sign-up
+# ok: sign-in uses the shared Facebook control
+# ok: Facebook is visibly disabled while app review is unavailable
+# ok: disabled Facebook never starts OAuth
+# ok: OAuth/PKCE callback exists
+# ok: auth middleware exists
+# live auth flow: keys present — full sign-up/sign-in check not yet wired to test users, skipped.
+# auth static checks passed
+# Subtest: tests/auth.test.mjs
+ok 8 - tests/auth.test.mjs
+  ---
+  duration_ms: 115.29175
+  type: 'test'
+  ...
+# Subtest: volume servings recompute preserves selected nutrition through pending revisions without FDC
+ok 32 - volume servings recompute preserves selected nutrition through pending revisions without FDC
+  ---
+  duration_ms: 59.60356
+  type: 'test'
+  ...
+# Subtest: failed save retry reuses uploaded photo; a partial upload retries only its unfinished PUT
+ok 33 - failed save retry reuses uploaded photo; a partial upload retries only its unfinished PUT
+  ---
+  duration_ms: 4.764762
+  type: 'test'
+  ...
+# Subtest: lost PUT responses reconcile stored bytes instead of re-uploading or orphaning another stage
+ok 34 - lost PUT responses reconcile stored bytes instead of re-uploading or orphaning another stage
+  ---
+  duration_ms: 1.358389
+  type: 'test'
+  ...
+# Subtest: expired partial and completed stages renew before upload and cleanup expiry
+ok 35 - expired partial and completed stages renew before upload and cleanup expiry
+  ---
+  duration_ms: 2.718898
+  type: 'test'
+  ...
+# Subtest: a cleanup record is durable before upload, delayed past capability expiry, and scheduling failure is fatal
+ok 36 - a cleanup record is durable before upload, delayed past capability expiry, and scheduling failure is fatal
+  ---
+  duration_ms: 0.429756
+  type: 'test'
+  ...
+# Subtest: orphan cleanup removes both copies and only an unpublished owner draft; committed stages bypass every deletion
+ok 37 - orphan cleanup removes both copies and only an unpublished owner draft; committed stages bypass every deletion
+  ---
+  duration_ms: 1.24799
+  type: 'test'
+  ...
+# Subtest: attachment cleanup removes only reserved unclaimed copies and preserves an attached photo without scanning the meal
+ok 38 - attachment cleanup removes only reserved unclaimed copies and preserves an attached photo without scanning the meal
+  ---
+  duration_ms: 1.023672
+  type: 'test'
+  ...
+# Subtest: servings RPC scales volume labels and gram portions and claims a staged photo idempotently
+ok 39 - servings RPC scales volume labels and gram portions and claims a staged photo idempotently # SKIP
+  ---
+  duration_ms: 0.085479
+  type: 'test'
+  ...
+# Subtest: own correction takes precedence over corroborated name and FDC, including a stored label for an unknown product
+ok 40 - own correction takes precedence over corroborated name and FDC, including a stored label for an unknown product
+  ---
+  duration_ms: 2.161223
+  type: 'test'
+  ...
+# Subtest: label nutrition scales only the server-held reading and preserves unknown nutrients
+ok 41 - label nutrition scales only the server-held reading and preserves unknown nutrients
+  ---
+  duration_ms: 0.481796
+  type: 'test'
+  ...
+# Subtest: barcode corrections and label readings enforce owner access and withhold names with fewer than three authors
+ok 42 - barcode corrections and label readings enforce owner access and withhold names with fewer than three authors
+  ---
+  duration_ms: 405.172331
+  type: 'test'
+  ...
+# Subtest: a label correction stands in for a provider only when complete
+ok 43 - a label correction stands in for a provider only when complete
+  ---
+  duration_ms: 0.467717
+  type: 'test'
+  ...
+# Subtest: empty label nutrition cannot replace a provider or erase usable provider nutrition
+ok 44 - empty label nutrition cannot replace a provider or erase usable provider nutrition
+  ---
+  duration_ms: 1.284349
+  type: 'test'
+  ...
+# Subtest: barcode portions stay in their declared mass or volume basis, with deduplicated serving and pack choices
+ok 45 - barcode portions stay in their declared mass or volume basis, with deduplicated serving and pack choices
+  ---
+  duration_ms: 2.4683
+  type: 'test'
+  ...
+# Subtest: GTIN HTTP nutrition creates an atomic ready photo post; old RPC calls work and RLS hides every row
+ok 46 - GTIN HTTP nutrition creates an atomic ready photo post; old RPC calls work and RLS hides every row
+  ---
+  duration_ms: 117.382733
+  type: 'test'
+  ...
+# Subtest: the signed-in food route accepts server-resolved GTIN/photo, rejects supplied nutrition, and hides the post from the second user
+ok 47 - the signed-in food route accepts server-resolved GTIN/photo, rejects supplied nutrition, and hides the post from the second user # SKIP Start the built item 4 app on port 3104 to run the real HTTP route check.
+  ---
+  duration_ms: 22.015302
+  type: 'test'
+  ...
+# Subtest: a label reading belonging to a second user cannot become the signed-in user's post
+ok 48 - a label reading belonging to a second user cannot become the signed-in user's post # SKIP Local built application is not running.
+  ---
+  duration_ms: 19.890439
+  type: 'test'
+  ...
+# Model trace could not be stored.
+# Model trace could not be stored.
+# Model trace could not be stored.
+# Model trace could not be stored.
+# Subtest: provider outage rejects incomplete labels but a complete own label still makes a card
+ok 49 - provider outage rejects incomplete labels but a complete own label still makes a card
+  ---
+  duration_ms: 51.931101
+  type: 'test'
+  ...
+# Subtest: check digits are verified and EAN-13 forms of a UPC-A are mapped back to 12 digits
+ok 50 - check digits are verified and EAN-13 forms of a UPC-A are mapped back to 12 digits
+  ---
+  duration_ms: 1.963064
+  type: 'test'
+  ...
+# Subtest: a product needs usable nutrition, and values come from the per-100 g nutrient ids
+ok 51 - a product needs usable nutrition, and values come from the per-100 g nutrient ids
+  ---
+  duration_ms: 0.674915
+  type: 'test'
+  ...
+# Subtest: the JavaScript decoder reads a UPC-A barcode image
+ok 52 - the JavaScript decoder reads a UPC-A barcode image
+  ---
+  duration_ms: 11.776345
+  type: 'test'
+  ...
+# Subtest: an FDC HTTP Branded Foods lookup by gtin_upc returns usable nutrition
+ok 53 - an FDC HTTP Branded Foods lookup by gtin_upc returns usable nutrition
+  ---
+  duration_ms: 81.71138
+  type: 'test'
+  ...
+# Subtest: a product FDC stores zero-padded is found through HTTP, and a valid code FDC does not hold finds nothing
+ok 54 - a product FDC stores zero-padded is found through HTTP, and a valid code FDC does not hold finds nothing
+  ---
+  duration_ms: 35.688552
+  type: 'test'
+  ...
+# Subtest: a UPC-E expands to its UPC-A; anything that does not expand to a valid UPC-A is left alone
+ok 55 - a UPC-E expands to its UPC-A; anything that does not expand to a valid UPC-A is left alone
+  ---
+  duration_ms: 0.577476
+  type: 'test'
+  ...
+# Subtest: a usable exact match on a later results page is still found
+ok 56 - a usable exact match on a later results page is still found
+  ---
+  duration_ms: 23.660169
+  type: 'test'
+  ...
+# Subtest: a product given per millilitre keeps that basis
+ok 57 - a product given per millilitre keeps that basis
+  ---
+  duration_ms: 0.345517
+  type: 'test'
+  ...
+# Subtest: a record stored zero-padded to 14 digits is found by the 12-digit scan, and the reverse
+ok 58 - a record stored zero-padded to 14 digits is found by the 12-digit scan, and the reverse
+  ---
+  duration_ms: 31.315387
+  type: 'test'
+  ...
+# Subtest: six browser callers and later reads share one server-verified user response
+ok 59 - six browser callers and later reads share one server-verified user response
+  ---
+  duration_ms: 6.712626
+  type: 'test'
+  ...
+# Subtest: token changes and user updates reverify; a late old-account response cannot escape
+ok 60 - token changes and user updates reverify; a late old-account response cannot escape
+  ---
+  duration_ms: 11.066871
+  type: 'test'
+  ...
+# Subtest: sign-out during verification discards the prior user and returns the current missing session
+ok 61 - sign-out during verification discards the prior user and returns the current missing session
+  ---
+  duration_ms: 2.925496
+  type: 'test'
+  ...
+# Subtest: explicit-token lookups do not reuse or replace the current session user
+ok 62 - explicit-token lookups do not reuse or replace the current session user
+  ---
+  duration_ms: 3.508492
+  type: 'test'
+  ...
+# Subtest: a refused or rejected verification is retryable rather than a permanent cached failure
+ok 63 - a refused or rejected verification is retryable rather than a permanent cached failure
+  ---
+  duration_ms: 0.942193
+  type: 'test'
+  ...
+# Subtest: today with a meal is filled; today without one keeps the plain ring
+ok 64 - today with a meal is filled; today without one keeps the plain ring
+  ---
+  duration_ms: 0.998872
+  type: 'test'
+  ...
+# Subtest: an empty feed does not hide a logged day, e.g. today's only meal is waiting for a reply
+ok 65 - an empty feed does not hide a logged day, e.g. today's only meal is waiting for a reply
+  ---
+  duration_ms: 0.214958
+  type: 'test'
+  ...
+# Subtest: an empty feed still dashes days with nothing logged
+ok 66 - an empty feed still dashes days with nothing logged
+  ---
+  duration_ms: 0.158039
+  type: 'test'
+  ...
+# Subtest: a device that needs the old camera released switches after the fallback
+ok 67 - a device that needs the old camera released switches after the fallback
+  ---
+  duration_ms: 105.931945
+  type: 'test'
+  ...
+# Subtest: when the switch cannot succeed the previous camera is reopened and the error is retryable
+ok 68 - when the switch cannot succeed the previous camera is reopened and the error is retryable
+  ---
+  duration_ms: 1.693827
+  type: 'test'
+  ...
+# Subtest: if the previous camera cannot be reopened either, the failure is not a retryable flip error
+ok 69 - if the previous camera cannot be reopened either, the failure is not a retryable flip error
+  ---
+  duration_ms: 1.072071
+  type: 'test'
+  ...
+# Subtest: a failure that releasing cannot fix leaves the working camera running
+ok 70 - a failure that releasing cannot fix leaves the working camera running
+  ---
+  duration_ms: 0.845073
+  type: 'test'
+  ...
+# Subtest: frozen preview receives drawn pixels before full-quality JPEG encoding begins
+ok 71 - frozen preview receives drawn pixels before full-quality JPEG encoding begins
+  ---
+  duration_ms: 2.36726
+  type: 'test'
+  ...
+# Subtest: successful caption update refreshes the existing record without new-post side effects
+ok 72 - successful caption update refreshes the existing record without new-post side effects
+  ---
+  duration_ms: 24.74928
+  type: 'test'
+  ...
+# Subtest: failed save and invalid text dispatch no refresh or enrollment event
+ok 73 - failed save and invalid text dispatch no refresh or enrollment event
+  ---
+  duration_ms: 0.818994
+  type: 'test'
+  ...
+# Subtest: transport failure preserves the draft path without announcing a successful update
+ok 74 - transport failure preserves the draft path without announcing a successful update
+  ---
+  duration_ms: 0.270877
+  type: 'test'
+  ...
+# Subtest: caption validation preserves text, permits clearing and rejects invalid data
+ok 75 - caption validation preserves text, permits clearing and rejects invalid data
+  ---
+  duration_ms: 0.862233
+  type: 'test'
+  ...
+# Subtest: caption save updates only caption and explicitly scopes ownership
+ok 76 - caption save updates only caption and explicitly scopes ownership
+  ---
+  duration_ms: 1.121631
+  type: 'test'
+  ...
+# Subtest: missing or inaccessible post is not saved, and failures remain failures
+ok 77 - missing or inaccessible post is not saved, and failures remain failures
+  ---
+  duration_ms: 0.610275
+  type: 'test'
+  ...
+# Subtest: card publication waits for corrections and failed maintenance preserves the meal
+ok 78 - card publication waits for corrections and failed maintenance preserves the meal
+  ---
+  duration_ms: 42.787815
+  type: 'test'
+  ...
+# Subtest: privileged photo reads reject historical metadata outside the meal namespace
+ok 79 - privileged photo reads reject historical metadata outside the meal namespace
+  ---
+  duration_ms: 24.232804
+  type: 'test'
+  ...
+# Subtest: privileged card cleanup never deletes a forged foreign or traversing path
+ok 80 - privileged card cleanup never deletes a forged foreign or traversing path
+  ---
+  duration_ms: 115.670466
+  type: 'test'
+  ...
+# Subtest: clients cannot forge generated card pointers and old forged pointers are never returned for cleanup
+ok 81 - clients cannot forge generated card pointers and old forged pointers are never returned for cleanup
+  ---
+  duration_ms: 34.477762
+  type: 'test'
+  ...
+# Subtest: a card failure is logged and the meal is marked ready anyway
+ok 82 - a card failure is logged and the meal is marked ready anyway
+  ---
+  duration_ms: 556.273952
+  type: 'test'
+  ...
+# Subtest: a meal that cannot be completed still reports not ready
+ok 83 - a meal that cannot be completed still reports not ready
+  ---
+  duration_ms: 0.885352
+  type: 'test'
+  ...
+# Subtest: a failure to save readiness still surfaces (and retries) rather than being swallowed
+ok 84 - a failure to save readiness still surfaces (and retries) rather than being swallowed
+  ---
+  duration_ms: 0.907633
+  type: 'test'
+  ...
+# Subtest: the card_backfill job stays strict: a card failure fails the job so it retries
+ok 85 - the card_backfill job stays strict: a card failure fails the job so it retries
+  ---
+  duration_ms: 9.350204
+  type: 'test'
+  ...
+# Subtest: card snapshot and backfill reads retain database retry classification
+ok 86 - card snapshot and backfill reads retain database retry classification
+  ---
+  duration_ms: 7023.560655
+  type: 'test'
+  ...
+# Subtest: missing optional cards back off and stop automatic hydration, but realtime still updates
+ok 87 - missing optional cards back off and stop automatic hydration, but realtime still updates
+  ---
+  duration_ms: 137.196773
+  type: 'test'
+  ...
+# Subtest: hidden pages make no reads; active analysis retains two-second fallback
+ok 88 - hidden pages make no reads; active analysis retains two-second fallback
+  ---
+  duration_ms: 68.499967
+  type: 'test'
+  ...
+# Subtest: clarification and deleted meals retire instead of polling invisibly
+ok 89 - clarification and deleted meals retire instead of polling invisibly
+  ---
+  duration_ms: 58.568047
+  type: 'test'
+  ...
+# Subtest: a question preserves queued follow-up work and cannot publish its stale card
+ok 90 - a question preserves queued follow-up work and cannot publish its stale card
+  ---
+  duration_ms: 68.319208
+  type: 'test'
+  ...
+# Subtest: stored clarification comments cannot bypass the model wording guard
+ok 91 - stored clarification comments cannot bypass the model wording guard
+  ---
+  duration_ms: 3.087775
+  type: 'test'
+  ...
+# Subtest: raw and SDK calls retry a real HTTP body stall inside one 30-second attempt
+ok 92 - raw and SDK calls retry a real HTTP body stall inside one 30-second attempt
+  ---
+  duration_ms: 31053.751783
+  type: 'test'
+  ...
+# Subtest: blank retry headers use fallback delay and cannot mask a longer wait
+ok 93 - blank retry headers use fallback delay and cannot mask a longer wait
+  ---
+  duration_ms: 1513.495149
+  type: 'test'
+  ...
+# Subtest: HTTP 408/409 and terminal transport causes are never turned into retryable server errors
+ok 94 - HTTP 408/409 and terminal transport causes are never turned into retryable server errors
+  ---
+  duration_ms: 31.726024
+  type: 'test'
+  ...
+# Subtest: a short 429 retries inside one job attempt; long waits leave the attempt
+ok 95 - a short 429 retries inside one job attempt; long waits leave the attempt
+  ---
+  duration_ms: 2972.157781
+  type: 'test'
+  ...
+# Subtest: legacy heading normalizes without changing the recorded quantity or consumed summary
+ok 96 - legacy heading normalizes without changing the recorded quantity or consumed summary
+  ---
+  duration_ms: 1.116271
+  type: 'test'
+  ...
+# Subtest: actual already-prefixed model reply remains identical and normalization is idempotent
+ok 97 - actual already-prefixed model reply remains identical and normalization is idempotent
+  ---
+  duration_ms: 0.204758
+  type: 'test'
+  ...
+# Subtest: ordinary sentences and user wording are not rewritten as display headings
+ok 98 - ordinary sentences and user wording are not rewritten as display headings
+  ---
+  duration_ms: 0.185239
+  type: 'test'
+  ...
+# Subtest: comments are owner-authored and immutable; corrections preserve history atomically
+ok 99 - comments are owner-authored and immutable; corrections preserve history atomically
+  ---
+  duration_ms: 57.04322
+  type: 'test'
+  ...
+# Subtest: composer identify enforces caps and ownership, caches one model call, and posts the chosen volume once
+ok 100 - composer identify enforces caps and ownership, caches one model call, and posts the chosen volume once
+  ---
+  duration_ms: 4248.509324
+  type: 'test'
+  ...
+# Subtest: actual copy routes deduplicate concurrent/retried copies, bind owners and cancel late publication
+ok 101 - actual copy routes deduplicate concurrent/retried copies, bind owners and cancel late publication
+  ---
+  duration_ms: 2636.576809
+  type: 'test'
+  ...
+# Subtest: copy selection is durable and visible as a new pending entry before its response
+ok 102 - copy selection is durable and visible as a new pending entry before its response
+  ---
+  duration_ms: 40.050277
+  type: 'test'
+  ...
+# Subtest: lost committed response retries one frozen operation without duplicating the copy
+ok 103 - lost committed response retries one frozen operation without duplicating the copy
+  ---
+  duration_ms: 4.553564
+  type: 'test'
+  ...
+# Subtest: saved copy survives reload and cannot be replayed by another signed-in owner
+ok 104 - saved copy survives reload and cannot be replayed by another signed-in owner
+  ---
+  duration_ms: 6.456908
+  type: 'test'
+  ...
+# Subtest: a failed durable checkpoint keeps a visible failed copy without a network mutation
+ok 105 - a failed durable checkpoint keeps a visible failed copy without a network mutation
+  ---
+  duration_ms: 0.679274
+  type: 'test'
+  ...
+# Subtest: sign-in change during persistence preserves the original selection without sending it as the new owner
+ok 106 - sign-in change during persistence preserves the original selection without sending it as the new owner
+  ---
+  duration_ms: 2.921256
+  type: 'test'
+  ...
+# Subtest: cancellation after a lost commit stays durable and reload only retries DELETE
+ok 107 - cancellation after a lost commit stays durable and reload only retries DELETE
+  ---
+  duration_ms: 6.312589
+  type: 'test'
+  ...
+# Subtest: a cancellation requested while publication is pending is not replaced by its late success
+ok 108 - a cancellation requested while publication is pending is not replaced by its late success
+  ---
+  duration_ms: 6.054991
+  type: 'test'
+  ...
+# Subtest: all comments and applied progress survive server caps and timestamp ties
+ok 109 - all comments and applied progress survive server caps and timestamp ties
+  ---
+  duration_ms: 95.157792
+  type: 'test'
+  ...
+# Model trace could not be stored.
+# Subtest: caption-only correction never sends a generated nutrition card as a meal photo
+ok 110 - caption-only correction never sends a generated nutrition card as a meal photo
+  ---
+  duration_ms: 37.425939
+  type: 'test'
+  ...
+# Subtest: corrections never download historical photo pointers outside the owning meal
+ok 111 - corrections never download historical photo pointers outside the owning meal
+  ---
+  duration_ms: 26.205028
+  type: 'test'
+  ...
+# Model trace could not be stored.
+# Model trace could not be stored.
+# Model trace could not be stored.
+# Model trace could not be stored.
+# Model trace could not be stored.
+# Model trace could not be stored.
+# Subtest: delayed initial analysis defers correction; terminal uninitialized failure cannot consume comments
+ok 112 - delayed initial analysis defers correction; terminal uninitialized failure cannot consume comments
+  ---
+  duration_ms: 41.295387
+  type: 'test'
+  ...
+# Subtest: terminal failure replaces progress even if latest comment remains user-authored
+ok 113 - terminal failure replaces progress even if latest comment remains user-authored
+  ---
+  duration_ms: 0.317358
+  type: 'test'
+  ...
+# Subtest: terminal recompute failure can be repaired in the correction attempt; explicit unknown rows are complete
+ok 114 - terminal recompute failure can be repaired in the correction attempt; explicit unknown rows are complete
+  ---
+  duration_ms: 9.243685
+  type: 'test'
+  ...
+# Subtest: the real recompute handler repairs an exhausted predecessor without creating another job
+ok 115 - the real recompute handler repairs an exhausted predecessor without creating another job
+  ---
+  duration_ms: 413.383465
+  type: 'test'
+  ...
+# Subtest: a first clarification with no existing items cannot refer to a photo region as an item
+ok 116 - a first clarification with no existing items cannot refer to a photo region as an item
+  ---
+  duration_ms: 1.669586
+  type: 'test'
+  ...
+# Subtest: correction source indices refer only to the current item snapshot
+ok 117 - correction source indices refer only to the current item snapshot
+  ---
+  duration_ms: 0.370677
+  type: 'test'
+  ...
+# Subtest: invalid or oversized correction snapshots fail before requesting a model
+ok 118 - invalid or oversized correction snapshots fail before requesting a model
+  ---
+  duration_ms: 0.559595
+  type: 'test'
+  ...
+# Subtest: all pending relative instructions are consumed once across distinct jobs and timestamp ties
+ok 119 - all pending relative instructions are consumed once across distinct jobs and timestamp ties
+  ---
+  duration_ms: 1.857785
+  type: 'test'
+  ...
+# Subtest: reply uses resolved USDA totals and preserves unavailable nutrients
+ok 120 - reply uses resolved USDA totals and preserves unavailable nutrients
+  ---
+  duration_ms: 20.064199
+  type: 'test'
+  ...
+# Subtest: actual PostgREST HTTP errors retain retry classification in current item reader
+ok 121 - actual PostgREST HTTP errors retain retry classification in current item reader
+  ---
+  duration_ms: 7044.986682
+  type: 'test'
+  ...
+# Subtest: pending nutrition defers correction but explicitly unknown nutrition is resolved
+ok 122 - pending nutrition defers correction but explicitly unknown nutrition is resolved
+  ---
+  duration_ms: 9.248765
+  type: 'test'
+  ...
+# Subtest: rings consume the mounted owner feed snapshot, preserve measured zero and refuse another account
+ok 123 - rings consume the mounted owner feed snapshot, preserve measured zero and refuse another account
+  ---
+  duration_ms: 47.591056
+  type: 'test'
+  ...
+# Subtest: a new server seed supersedes an old snapshot; deletion clears the former logged-day ring
+ok 124 - a new server seed supersedes an old snapshot; deletion clears the former logged-day ring
+  ---
+  duration_ms: 12.760097
+  type: 'test'
+  ...
+# Subtest: fallback rings stay neutral until this verified owner supplies a fresh whole-day snapshot
+ok 125 - fallback rings stay neutral until this verified owner supplies a fresh whole-day snapshot
+  ---
+  duration_ms: 33.264772
+  type: 'test'
+  ...
+# Subtest: SSR, fresh page and metadata hydration share the known day total
+ok 126 - SSR, fresh page and metadata hydration share the known day total
+  ---
+  duration_ms: 23.699088
+  type: 'test'
+  ...
+# Subtest: nutrition revision, readiness and forced mutation events invalidate totals
+ok 127 - nutrition revision, readiness and forced mutation events invalidate totals
+  ---
+  duration_ms: 0.945392
+  type: 'test'
+  ...
+# Subtest: unknown revision never claims unchanged nutrition; moves refresh both local days
+ok 128 - unknown revision never claims unchanged nutrition; moves refresh both local days
+  ---
+  duration_ms: 1.106471
+  type: 'test'
+  ...
+# Subtest: backdated discovery reuses its SSR contribution, but inserted or edited meals refresh
+ok 129 - backdated discovery reuses its SSR contribution, but inserted or edited meals refresh
+  ---
+  duration_ms: 10.647234
+  type: 'test'
+  ...
+# Subtest: the existing owner day query supplies normalized receipts without an extra database read
+ok 130 - the existing owner day query supplies normalized receipts without an extra database read
+  ---
+  duration_ms: 219.175192
+  type: 'test'
+  ...
+# Subtest: twenty card refreshes for the same days produce one nutrition read
+ok 131 - twenty card refreshes for the same days produce one nutrition read
+  ---
+  duration_ms: 8.765929
+  type: 'test'
+  ...
+# Subtest: an edit during a read supersedes only its day and queues one fresh follow-up
+ok 132 - an edit during a read supersedes only its day and queues one fresh follow-up
+  ---
+  duration_ms: 18.048655
+  type: 'test'
+  ...
+# Subtest: failed reads preserve the last totals and another event can retry
+ok 133 - failed reads preserve the last totals and another event can retry
+  ---
+  duration_ms: 9.92696
+  type: 'test'
+  ...
+# Subtest: unmount cancels queued work and prevents a late response from publishing
+ok 134 - unmount cancels queued work and prevents a late response from publishing
+  ---
+  duration_ms: 15.456516
+  type: 'test'
+  ...
+# Subtest: only years 2000-2999 are accepted for months and days
+ok 135 - only years 2000-2999 are accepted for months and days
+  ---
+  duration_ms: 2.642019
+  type: 'test'
+  ...
+# Subtest: shifting a supported day across a year boundary stays a valid date
+ok 136 - shifting a supported day across a year boundary stays a valid date
+  ---
+  duration_ms: 0.206838
+  type: 'test'
+  ...
+# Subtest: two requested days a month apart read separate windows rather than the gap
+ok 137 - two requested days a month apart read separate windows rather than the gap
+  ---
+  duration_ms: 173.338082
+  type: 'test'
+  ...
+# Subtest: 40 meals and 2 meals use the same two reads and one batch signing call
+ok 138 - 40 meals and 2 meals use the same two reads and one batch signing call
+  ---
+  duration_ms: 76.84138
+  type: 'test'
+  ...
+# Subtest: fixed fixture preserves the legacy day/post/item values, first-photo URL and totals
+ok 139 - fixed fixture preserves the legacy day/post/item values, first-photo URL and totals
+  ---
+  duration_ms: 6.074951
+  type: 'test'
+  ...
+# Subtest: photo signing failure retains meals and unknown nutrition remains unavailable
+ok 140 - photo signing failure retains meals and unknown nutrition remains unavailable
+  ---
+  duration_ms: 3.953368
+  type: 'test'
+  ...
+# Subtest: caption-only meals retain their day and nutrition without a photo
+ok 141 - caption-only meals retain their day and nutrition without a photo
+  ---
+  duration_ms: 3.73349
+  type: 'test'
+  ...
+# Subtest: explicit NULL leftover calories match the legacy reader rather than inventing an ancestor value
+ok 142 - explicit NULL leftover calories match the legacy reader rather than inventing an ancestor value
+  ---
+  duration_ms: 5.868793
+  type: 'test'
+  ...
+# Subtest: Home bubbles read only post dates, never items, media or photo URLs
+ok 143 - Home bubbles read only post dates, never items, media or photo URLs
+  ---
+  duration_ms: 22.612818
+  type: 'test'
+  ...
+# Subtest: a post outside the local range does not count
+ok 144 - a post outside the local range does not count
+  ---
+  duration_ms: 0.622915
+  type: 'test'
+  ...
+# Subtest: a meal still being analysed or waiting for a reply marks its day; a failed one does not
+ok 145 - a meal still being analysed or waiting for a reply marks its day; a failed one does not
+  ---
+  duration_ms: 0.462437
+  type: 'test'
+  ...
+# Subtest: calendar and day panel count ready meals and unfinished meals separately
+ok 146 - calendar and day panel count ready meals and unfinished meals separately
+  ---
+  duration_ms: 162.650488
+  type: 'test'
+  ...
+# Subtest: an earlier unfinished meal does not add unknown nutrition to a fully known ready meal
+ok 147 - an earlier unfinished meal does not add unknown nutrition to a fully known ready meal
+  ---
+  duration_ms: 15.346757
+  type: 'test'
+  ...
+# (node:3526285) ExperimentalWarning: The MockTimers API is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: delayed action waits, undo cancels, and pagehide commits once
+ok 148 - delayed action waits, undo cancels, and pagehide commits once
+  ---
+  duration_ms: 3.198774
+  type: 'test'
+  ...
+# Subtest: removal migration preserves cascade, access boundaries and transactional leftovers reset
+ok 149 - removal migration preserves cascade, access boundaries and transactional leftovers reset
+  ---
+  duration_ms: 1.22003
+  type: 'test'
+  ...
+# Subtest: Today uses the active zone and ignores older responses even when aborted transport still resolves
+ok 150 - Today uses the active zone and ignores older responses even when aborted transport still resolves
+  ---
+  duration_ms: 141.517178
+  type: 'test'
+  ...
+# Subtest: calendar arrow handling leaves rich inputs and controls outside its date grid alone
+ok 151 - calendar arrow handling leaves rich inputs and controls outside its date grid alone
+  ---
+  duration_ms: 39.453881
+  type: 'test'
+  ...
+# Subtest: post modal dismisses only a click that both starts and ends on its backdrop
+ok 152 - post modal dismisses only a click that both starts and ends on its backdrop
+  ---
+  duration_ms: 61.056107
+  type: 'test'
+  ...
+# Subtest: detail signs both initial and leftovers originals in one batch and retains versioned previews
+ok 153 - detail signs both initial and leftovers originals in one batch and retains versioned previews
+  ---
+  duration_ms: 67.334217
+  type: 'test'
+  ...
+# Subtest: discard commits durable cleanup atomically and retries survive post cascade
+ok 154 - discard commits durable cleanup atomically and retries survive post cascade
+  ---
+  duration_ms: 36.167388
+  type: 'test'
+  ...
+# Subtest: cleanup retries partial storage removal using durable paths and stays within the deleted meal
+ok 155 - cleanup retries partial storage removal using durable paths and stays within the deleted meal
+  ---
+  duration_ms: 2.998815
+  type: 'test'
+  ...
+# Subtest: drink time moves atomically and generic item/servings/correction edits cannot contradict intake
+ok 156 - drink time moves atomically and generic item/servings/correction edits cannot contradict intake # SKIP
+  ---
+  duration_ms: 0.782114
+  type: 'test'
+  ...
+# Subtest: food water shares use the recorded unit and round the meal sum once
+ok 157 - food water shares use the recorded unit and round the meal sum once
+  ---
+  duration_ms: 0.678075
+  type: 'test'
+  ...
+# Subtest: drink pictures distinguish the kind and preserve water cup counts
+ok 158 - drink pictures distinguish the kind and preserve water cup counts
+  ---
+  duration_ms: 1.24331
+  type: 'test'
+  ...
+# Subtest: a tile is durable and pending before backend; two identical taps are separate intents
+ok 159 - a tile is durable and pending before backend; two identical taps are separate intents
+  ---
+  duration_ms: 40.516913
+  type: 'test'
+  ...
+# Subtest: tile failure survives reload and account isolation, retry keeps operation and eaten-at
+ok 160 - tile failure survives reload and account isolation, retry keeps operation and eaten-at
+  ---
+  duration_ms: 5.564075
+  type: 'test'
+  ...
+# Subtest: confirmed photo drinks retain chosen portions and uploaded bytes without identify or restage
+ok 161 - confirmed photo drinks retain chosen portions and uploaded bytes without identify or restage
+  ---
+  duration_ms: 3.227574
+  type: 'test'
+  ...
+# Subtest: unknown photo commit removal survives a dropped cancel response and reload
+ok 162 - unknown photo commit removal survives a dropped cancel response and reload
+  ---
+  duration_ms: 7.813977
+  type: 'test'
+  ...
+# Subtest: typed drink caption uses the durable ordinary text pipeline before close and survives failure/reload
+ok 163 - typed drink caption uses the durable ordinary text pipeline before close and survives failure/reload
+  ---
+  duration_ms: 2.41418
+  type: 'test'
+  ...
+# Subtest: real drink HTTP intents are owner-scoped, atomic and cancel safely after unknown commits
+ok 164 - real drink HTTP intents are owner-scoped, atomic and cancel safely after unknown commits
+  ---
+  duration_ms: 2305.536799
+  type: 'test'
+  ...
+# Subtest: drink data is bounded and caffeine/labels come from the server
+ok 165 - drink data is bounded and caffeine/labels come from the server
+  ---
+  duration_ms: 1.963824
+  type: 'test'
+  ...
+# Subtest: a failed atomic drink save does not expose or compensate a partially committed post
+ok 166 - a failed atomic drink save does not expose or compensate a partially committed post
+  ---
+  duration_ms: 1.24471
+  type: 'test'
+  ...
+# Subtest: cola tile keeps cola nutrition and server caffeine in the atomic write
+ok 167 - cola tile keeps cola nutrition and server caffeine in the atomic write
+  ---
+  duration_ms: 66.012868
+  type: 'test'
+  ...
+# Subtest: hydration counts food water once, old water rows and local-day cutoff
+ok 168 - hydration counts food water once, old water rows and local-day cutoff
+  ---
+  duration_ms: 3.843169
+  type: 'test'
+  ...
+# Subtest: batched cards share a day read, preserve legacy food water, and apply each drink's own cutoff
+ok 169 - batched cards share a day read, preserve legacy food water, and apply each drink's own cutoff
+  ---
+  duration_ms: 3.841649
+  type: 'test'
+  ...
+# Subtest: migration 0019 enforces bounds and preserves owner-only access in a rolled-back database transaction
+ok 170 - migration 0019 enforces bounds and preserves owner-only access in a rolled-back database transaction
+  ---
+  duration_ms: 37.22746
+  type: 'test'
+  ...
+# Subtest: real route logs 330 ml water and 240 ml coffee; hydration excludes drink items and another user sees neither
+ok 171 - real route logs 330 ml water and 240 ml coffee; hydration excludes drink items and another user sees neither # SKIP serve the production build on localhost:3000 for the live route proof
+  ---
+  duration_ms: 22.074702
+  type: 'test'
+  ...
+# Subtest: actual intake route commits all six server tiles, legacy water and rejects an invalid tile
+    # Subtest: Coffee accepts USDA 171890 without from grounds and stores 95 mg caffeine
+    ok 1 - Coffee accepts USDA 171890 without from grounds and stores 95 mg caffeine
+      ---
+      duration_ms: 260.716297
+      type: 'test'
+      ...
+    1..1
+ok 172 - actual intake route commits all six server tiles, legacy water and rejects an invalid tile
+  ---
+  duration_ms: 2499.612393
+  type: 'test'
+  ...
+# Subtest: explicit ml accepts the observed parenthesized model text and existing forms without inferring volume
+ok 173 - explicit ml accepts the observed parenthesized model text and existing forms without inferring volume
+  ---
+  duration_ms: 1.350629
+  type: 'test'
+  ...
+# Subtest: the actual cola identify text produces the drink card, source, volume and hydration nutrient offline
+ok 174 - the actual cola identify text produces the drink card, source, volume and hydration nutrient offline
+  ---
+  duration_ms: 427.175394
+  type: 'test'
+  ...
+# Copied meal hydration/card repair remains queued.
+# Subtest: cola and water keep their volume, reference caffeine and separate identities
+ok 175 - cola and water keep their volume, reference caffeine and separate identities
+  ---
+  duration_ms: 3.023215
+  type: 'test'
+  ...
+# Subtest: millilitres and words in a food name cannot classify food as a drink
+ok 176 - millilitres and words in a food name cannot classify food as a drink
+  ---
+  duration_ms: 0.697874
+  type: 'test'
+  ...
+# Subtest: actual WWEIA categories include waters, juices, milk, diet drinks and alcohol
+ok 177 - actual WWEIA categories include waters, juices, milk, diet drinks and alcohol
+  ---
+  duration_ms: 0.770513
+  type: 'test'
+  ...
+# Subtest: drink limits, missing caffeine, grams fallback and fully uneaten drinks
+ok 178 - drink limits, missing caffeine, grams fallback and fully uneaten drinks
+  ---
+  duration_ms: 0.384557
+  type: 'test'
+  ...
+# Subtest: reference category parsing retains FDC search, SR/Foundation, Survey and Branded shapes
+ok 179 - reference category parsing retains FDC search, SR/Foundation, Survey and Branded shapes
+  ---
+  duration_ms: 0.590635
+  type: 'test'
+  ...
+# Subtest: mixed meals retain food water while beverages count exactly once
+ok 180 - mixed meals retain food water while beverages count exactly once
+  ---
+  duration_ms: 24.029247
+  type: 'test'
+  ...
+# Subtest: all-drink photo aggregates the card, while mixed meal copy retains consumed totals
+ok 181 - all-drink photo aggregates the card, while mixed meal copy retains consumed totals
+  ---
+  duration_ms: 7.543699
+  type: 'test'
+  ...
+# Subtest: 0029 preserves categories in every SQL writer and restricts linked intake writes
+ok 182 - 0029 preserves categories in every SQL writer and restricts linked intake writes
+  ---
+  duration_ms: 0.562875
+  type: 'test'
+  ...
+# Subtest: a committed Log again copy survives a failed follow-up hydration read
+ok 183 - a committed Log again copy survives a failed follow-up hydration read
+  ---
+  duration_ms: 2.136983
+  type: 'test'
+  ...
+# Subtest: ambiguous SR dairy category permits anchored milk beverages and excludes solid names
+ok 184 - ambiguous SR dairy category permits anchored milk beverages and excludes solid names
+  ---
+  duration_ms: 2.263222
+  type: 'test'
+  ...
+# Subtest: a glass of milk adds drink volume while its calories stay on the drink card
+ok 185 - a glass of milk adds drink volume while its calories stay on the drink card
+  ---
+  duration_ms: 0.437117
+  type: 'test'
+  ...
+# Subtest: only cola gets a scaled caffeine fallback; portion values including zero win
+ok 186 - only cola gets a scaled caffeine fallback; portion values including zero win
+  ---
+  duration_ms: 0.280678
+  type: 'test'
+  ...
+# Subtest: historical Pepsi Zero and Evian water without categories receive item intake
+ok 187 - historical Pepsi Zero and Evian water without categories receive item intake
+  ---
+  duration_ms: 0.227278
+  type: 'test'
+  ...
+# Subtest: alcohol keeps caffeine only when its name contains a caffeine source
+ok 188 - alcohol keeps caffeine only when its name contains a caffeine source
+  ---
+  duration_ms: 0.438876
+  type: 'test'
+  ...
+# Subtest: alcohol respects caffeine exclusions and zero measurements while capping intake only
+ok 189 - alcohol respects caffeine exclusions and zero measurements while capping intake only
+  ---
+  duration_ms: 0.456356
+  type: 'test'
+  ...
+# Subtest: the feed's keyset pagination has a (user_id, eaten_at desc, id desc) index
+ok 190 - the feed's keyset pagination has a (user_id, eaten_at desc, id desc) index
+  ---
+  duration_ms: 19.404723
+  type: 'test'
+  ...
+# Subtest: a time earlier today is accepted; the future and the distant past are not
+ok 191 - a time earlier today is accepted; the future and the distant past are not
+  ---
+  duration_ms: 1.822065
+  type: 'test'
+  ...
+# Subtest: a picker value round-trips through local wall-clock time
+ok 192 - a picker value round-trips through local wall-clock time
+  ---
+  duration_ms: 0.441156
+  type: 'test'
+  ...
+# Subtest: a meal logged now for 8:30 this morning sits by its eaten time in the feed, not its creation time
+ok 193 - a meal logged now for 8:30 this morning sits by its eaten time in the feed, not its creation time
+  ---
+  duration_ms: 0.886033
+  type: 'test'
+  ...
+# Subtest: it appears at 8:30 on today's bubble (Days groups by eaten_at in the reader's zone)
+ok 194 - it appears at 8:30 on today's bubble (Days groups by eaten_at in the reader's zone)
+  ---
+  duration_ms: 21.10031
+  type: 'test'
+  ...
+# Subtest: hydrated back-dated cards count as known, so discovery does not reset pagination every poll
+ok 195 - hydrated back-dated cards count as known, so discovery does not reset pagination every poll
+  ---
+  duration_ms: 0.607155
+  type: 'test'
+  ...
+# Subtest: empty SQL composite stops the worker after a single claim with no failure or renewal
+ok 196 - empty SQL composite stops the worker after a single claim with no failure or renewal
+  ---
+  duration_ms: 2.563179
+  type: 'test'
+  ...
+# Subtest: null claims stop and genuine claimed jobs preserve their identity
+ok 197 - null claims stop and genuine claimed jobs preserve their identity
+  ---
+  duration_ms: 0.314518
+  type: 'test'
+  ...
+# Subtest: sign-out revokes only the current session and keeps other devices signed in
+ok 198 - sign-out revokes only the current session and keeps other devices signed in
+  ---
+  duration_ms: 1.434349
+  type: 'test'
+  ...
+# Subtest: SDK authentication errors fail instead of being redirected as success
+ok 199 - SDK authentication errors fail instead of being redirected as success
+  ---
+  duration_ms: 0.795194
+  type: 'test'
+  ...
+# Subtest: default-off writer stays readable by the actual old and dual readers during reader rollout
+ok 200 - default-off writer stays readable by the actual old and dual readers during reader rollout
+  ---
+  duration_ms: 2.685498
+  type: 'test'
+  ...
+# Subtest: explicit compact writer stores one label and requires the reader-compatible rollback floor
+ok 201 - explicit compact writer stores one label and requires the reader-compatible rollback floor
+  ---
+  duration_ms: 0.418077
+  type: 'test'
+  ...
+# Subtest: worker claims advertise the reader version without relying on a deployment URL
+ok 202 - worker claims advertise the reader version without relying on a deployment URL
+  ---
+  duration_ms: 8.240054
+  type: 'test'
+  ...
+# Subtest: forced failures remain until explicitly cleared for queue-recovery tests
+ok 203 - forced failures remain until explicitly cleared for queue-recovery tests
+  ---
+  duration_ms: 56.481744
+  type: 'test'
+  ...
+# Subtest: user search strings cannot poison typed exact-food cache entries
+ok 204 - user search strings cannot poison typed exact-food cache entries
+  ---
+  duration_ms: 50.920189
+  type: 'test'
+  ...
+# Subtest: four independent food lookups retain the original item order
+ok 205 - four independent food lookups retain the original item order
+  ---
+  duration_ms: 7.380061
+  type: 'test'
+  ...
+# Subtest: failure cancels all peers and waits for them before returning without publication
+ok 206 - failure cancels all peers and waits for them before returning without publication
+  ---
+  duration_ms: 2.42302
+  type: 'test'
+  ...
+# Subtest: one shared deadline cancels four in-flight lookups and never starts queued work
+ok 207 - one shared deadline cancels four in-flight lookups and never starts queued work
+  ---
+  duration_ms: 0.882193
+  type: 'test'
+  ...
+# Subtest: expired budgets do no work and empty meals do no lookup
+ok 208 - expired budgets do no work and empty meals do no lookup
+  ---
+  duration_ms: 0.890953
+  type: 'test'
+  ...
+# Subtest: food decisions reserve output capacity for reasoning and still reject incomplete responses
+ok 209 - food decisions reserve output capacity for reasoning and still reject incomplete responses
+  ---
+  duration_ms: 39.71352
+  type: 'test'
+  ...
+# Subtest: an unqualified green salad does not accept a dressing or a restaurant side salad
+ok 210 - an unqualified green salad does not accept a dressing or a restaurant side salad
+  ---
+  duration_ms: 1.344669
+  type: 'test'
+  ...
+# Subtest: black coffee prefers zero-cal branded black coffee over soymilk
+ok 211 - black coffee prefers zero-cal branded black coffee over soymilk
+  ---
+  duration_ms: 0.321558
+  type: 'test'
+  ...
+# Subtest: scrambled egg with ketchup prefers egg over ketchup
+ok 212 - scrambled egg with ketchup prefers egg over ketchup
+  ---
+  duration_ms: 0.380597
+  type: 'test'
+  ...
+# Subtest: egg salad is not penalized when the query names egg salad
+ok 213 - egg salad is not penalized when the query names egg salad
+  ---
+  duration_ms: 0.237718
+  type: 'test'
+  ...
+# Subtest: without a query, data-type rank still decides
+ok 214 - without a query, data-type rank still decides
+  ---
+  duration_ms: 1.071151
+  type: 'test'
+  ...
+# Subtest: both portion prompts bind caption count and size to one single serving
+ok 215 - both portion prompts bind caption count and size to one single serving
+  ---
+  duration_ms: 0.572515
+  type: 'test'
+  ...
+# Subtest: explicitly requested soymilk coffee is not replaced by black coffee
+ok 216 - explicitly requested soymilk coffee is not replaced by black coffee
+  ---
+  duration_ms: 0.409716
+  type: 'test'
+  ...
+# Subtest: new catalog includes prepared-food references and never reads old five-hit caches
+ok 217 - new catalog includes prepared-food references and never reads old five-hit caches
+  ---
+  duration_ms: 19.164486
+  type: 'test'
+  ...
+# Subtest: target query is explicit on refinement; punctuation is not USDA search syntax
+ok 218 - target query is explicit on refinement; punctuation is not USDA search syntax
+  ---
+  duration_ms: 2.218622
+  type: 'test'
+  ...
+# Subtest: gram portions reject volume and unsupported activity units while accepting USDA gram codes
+ok 219 - gram portions reject volume and unsupported activity units while accepting USDA gram codes
+  ---
+  duration_ms: 0.211798
+  type: 'test'
+  ...
+# Subtest: all sixty candidate identities and core values survive long escaped descriptions and aliases
+ok 220 - all sixty candidate identities and core values survive long escaped descriptions and aliases
+  ---
+  duration_ms: 8.842848
+  type: 'test'
+  ...
+# Subtest: refined queries require the translated base food and normalize preparation across dishes
+ok 221 - refined queries require the translated base food and normalize preparation across dishes
+  ---
+  duration_ms: 0.736554
+  type: 'test'
+  ...
+# Subtest: strict generic words escape search operators and punctuation without food special cases
+ok 222 - strict generic words escape search operators and punctuation without food special cases
+  ---
+  duration_ms: 0.220598
+  type: 'test'
+  ...
+# Subtest: strict generic aliases augment all thirty broad identities and replace neither order nor nutrition
+ok 223 - strict generic aliases augment all thirty broad identities and replace neither order nor nutrition
+  ---
+  duration_ms: 6.137191
+  type: 'test'
+  ...
+# Subtest: a third search tries the base food before declaring nutrition unavailable
+ok 224 - a third search tries the base food before declaring nutrition unavailable
+  ---
+  duration_ms: 0.419557
+  type: 'test'
+  ...
+# Subtest: distinct second refinement retains earlier eligible identities and original nutrients
+ok 225 - distinct second refinement retains earlier eligible identities and original nutrients
+  ---
+  duration_ms: 1.342229
+  type: 'test'
+  ...
+# Subtest: repeated refinements cannot loop and rejected compound foods remain unavailable
+ok 226 - repeated refinements cannot loop and rejected compound foods remain unavailable
+  ---
+  duration_ms: 1.080832
+  type: 'test'
+  ...
+# Subtest: a first decision that names no base food still yields the bare name for the closest-record step
+ok 227 - a first decision that names no base food still yields the bare name for the closest-record step
+  ---
+  duration_ms: 0.511876
+  type: 'test'
+  ...
+# Subtest: references cannot silently omit a component such as Caesar dressing
+ok 228 - references cannot silently omit a component such as Caesar dressing
+  ---
+  duration_ms: 0.438716
+  type: 'test'
+  ...
+# Subtest: explicit target exclusions and preparation notes stay eligible
+ok 229 - explicit target exclusions and preparation notes stay eligible
+  ---
+  duration_ms: 1.756586
+  type: 'test'
+  ...
+# Subtest: multiword excluded components cannot collide on their first adjective
+ok 230 - multiword excluded components cannot collide on their first adjective
+  ---
+  duration_ms: 0.517556
+  type: 'test'
+  ...
+# Subtest: candidate matching rejects a missing multiword component despite a different target exclusion
+ok 231 - candidate matching rejects a missing multiword component despite a different target exclusion
+  ---
+  duration_ms: 0.403677
+  type: 'test'
+  ...
+# Subtest: network lookup, cache reuse and copied nutrition each write labelled provenance without extra lookup
+ok 232 - network lookup, cache reuse and copied nutrition each write labelled provenance without extra lookup
+  ---
+  duration_ms: 22.241621
+  type: 'test'
+  ...
+# Subtest: Retry-After accepts seconds and HTTP dates, rejects malformed values
+ok 233 - Retry-After accepts seconds and HTTP dates, rejects malformed values
+  ---
+  duration_ms: 1.32739
+  type: 'test'
+  ...
+# Subtest: a real local 429 Retry-After:2 waits before the successful retry
+ok 234 - a real local 429 Retry-After:2 waits before the successful retry
+  ---
+  duration_ms: 2043.931349
+  type: 'test'
+  ...
+# Subtest: long waits and repeat 429s carry a durable retry time instead of a short ladder
+ok 235 - long waits and repeat 429s carry a durable retry time instead of a short ladder
+  ---
+  duration_ms: 19.606402
+  type: 'test'
+  ...
+# Subtest: a provider wait that exceeds the worker budget is deferred, not waited out
+ok 236 - a provider wait that exceeds the worker budget is deferred, not waited out
+  ---
+  duration_ms: 6.24875
+  type: 'test'
+  ...
+# Subtest: missing or malformed Retry-After uses a durable default without consuming a failed attempt
+ok 237 - missing or malformed Retry-After uses a durable default without consuming a failed attempt
+  ---
+  duration_ms: 8.265413
+  type: 'test'
+  ...
+# Subtest: a failed server seed does not retire the independently hydrated cached feed
+ok 238 - a failed server seed does not retire the independently hydrated cached feed
+  ---
+  duration_ms: 310.811052
+  type: 'test'
+  ...
+# Subtest: an authoritative empty server feed retires an obsolete cached snapshot
+ok 239 - an authoritative empty server feed retires an obsolete cached snapshot
+  ---
+  duration_ms: 121.382621
+  type: 'test'
+  ...
+# Subtest: deleting a cached meal persists its removal and a failed delete can restore it
+ok 240 - deleting a cached meal persists its removal and a failed delete can restore it
+  ---
+  duration_ms: 110.086712
+  type: 'test'
+  ...
+# Subtest: accepted corrections invalidate stale cached nutrition and persist the later ready revision
+ok 241 - accepted corrections invalidate stale cached nutrition and persist the later ready revision
+  ---
+  duration_ms: 73.730486
+  type: 'test'
+  ...
+# Subtest: the unseeded main feed keeps the owner cache when fresh loading fails
+ok 242 - the unseeded main feed keeps the owner cache when fresh loading fails
+  ---
+  duration_ms: 69.475439
+  type: 'test'
+  ...
+# Subtest: matching browser and SSR owners reuse the server page without another first-page read
+ok 243 - matching browser and SSR owners reuse the server page without another first-page read
+  ---
+  duration_ms: 117.646051
+  type: 'test'
+  ...
+# Subtest: an SSR owner mismatch clears foreign posts and totals and ignores the old hook cache
+ok 244 - an SSR owner mismatch clears foreign posts and totals and ignores the old hook cache
+  ---
+  duration_ms: 74.563798
+  type: 'test'
+  ...
+# Subtest: a failed fresh read after an owner mismatch cannot keep foreign SSR or hook-cache meals visible
+ok 245 - a failed fresh read after an owner mismatch cannot keep foreign SSR or hook-cache meals visible
+  ---
+  duration_ms: 47.817855
+  type: 'test'
+  ...
+# Subtest: known off-feed mutations update caption and saved status, and invalidate stale nutrition
+ok 246 - known off-feed mutations update caption and saved status, and invalidate stale nutrition
+  ---
+  duration_ms: 4.169486
+  type: 'test'
+  ...
+# Subtest: foreign IDs, wrong owner hints, malformed values and event post payloads cannot inject data
+ok 247 - foreign IDs, wrong owner hints, malformed values and event post payloads cannot inject data
+  ---
+  duration_ms: 1.132431
+  type: 'test'
+  ...
+# Subtest: bootstrap cannot select ambiguous owners or an owner-mismatched stored envelope
+ok 248 - bootstrap cannot select ambiguous owners or an owner-mismatched stored envelope
+  ---
+  duration_ms: 0.452397
+  type: 'test'
+  ...
+# Subtest: rollback restores the captured original and logout invalidates pending rollback
+ok 249 - rollback restores the captured original and logout invalidates pending rollback
+  ---
+  duration_ms: 1.969304
+  type: 'test'
+  ...
+# Subtest: mounted feed owns writes while root retains rollback for navigation away
+ok 250 - mounted feed owns writes while root retains rollback for navigation away
+  ---
+  duration_ms: 0.441356
+  type: 'test'
+  ...
+# Subtest: account cache is isolated, bounded to the first page, and stable for React snapshots
+ok 251 - account cache is isolated, bounded to the first page, and stable for React snapshots
+  ---
+  duration_ms: 1.520108
+  type: 'test'
+  ...
+# Subtest: expired, future, oversized and malformed data cannot become a feed
+ok 252 - expired, future, oversized and malformed data cannot become a feed
+  ---
+  duration_ms: 0.481796
+  type: 'test'
+  ...
+# Subtest: sign-out clears every account cache, leaves unrelated storage, and invalidates old saves
+ok 253 - sign-out clears every account cache, leaves unrelated storage, and invalidates old saves
+  ---
+  duration_ms: 0.472556
+  type: 'test'
+  ...
+# Subtest: disabled storage cannot block reading, saving or clearing the feed
+ok 254 - disabled storage cannot block reading, saving or clearing the feed
+  ---
+  duration_ms: 0.678795
+  type: 'test'
+  ...
+# Subtest: a write-primed snapshot drops expired card slides on its first read
+ok 255 - a write-primed snapshot drops expired card slides on its first read
+  ---
+  duration_ms: 1.323229
+  type: 'test'
+  ...
+# Subtest: unchanged raw cache data is rechecked when card tokens age while snapshots stay stable otherwise
+ok 256 - unchanged raw cache data is rechecked when card tokens age while snapshots stay stable otherwise
+  ---
+  duration_ms: 0.556155
+  type: 'test'
+  ...
+# feed read hydration 14
+# feed read revision 1
+# feed read items 1
+# feed read revision 0
+# feed read media 2
+# feed read saved 2
+# feed read first-photo 1
+# feed read signed-urls 1
+# feed read revision 0
+# feed read items 0
+# feed read revision 0
+# feed read media 4
+# feed read saved 4
+# feed read signed-urls 1
+# feed read hydration 2
+# Subtest: feed and detail normalize the same legacy branded row
+ok 257 - feed and detail normalize the same legacy branded row
+  ---
+  duration_ms: 39.169884
+  type: 'test'
+  ...
+# Subtest: batch nutrition preserves post ownership, legacy scaling and remainder fallback
+ok 258 - batch nutrition preserves post ownership, legacy scaling and remainder fallback
+  ---
+  duration_ms: 168.988516
+  type: 'test'
+  ...
+# Subtest: only a matching analysis revision may retain previously read nutrition
+ok 259 - only a matching analysis revision may retain previously read nutrition
+  ---
+  duration_ms: 1.381949
+  type: 'test'
+  ...
+# Subtest: transient auxiliary failures retain known fields and recovery still applies genuine removals
+ok 260 - transient auxiliary failures retain known fields and recovery still applies genuine removals
+  ---
+  duration_ms: 0.794434
+  type: 'test'
+  ...
+# Subtest: fast first-photo read and full snapshot share the same owner-scoped capability
+ok 261 - fast first-photo read and full snapshot share the same owner-scoped capability
+  ---
+  duration_ms: 10.084359
+  type: 'test'
+  ...
+# Subtest: all feed and refreshed photos use small owner URLs while only card PNGs are signed
+ok 262 - all feed and refreshed photos use small owner URLs while only card PNGs are signed
+  ---
+  duration_ms: 12.849537
+  type: 'test'
+  ...
+# feed read posts 17 status 200
+# feed read revision 1
+# feed read items 1
+# feed read revision 1
+# feed read media 3
+# feed read saved 3
+# feed read signed-urls 0
+# feed read day-totals 7
+# feed read hydration 8
+# feed read posts 1 status 200
+# feed read revision 1
+# feed read items 1
+# feed read revision 2
+# feed read media 4
+# feed read saved 4
+# feed read signed-urls 0
+# feed read day-totals 3
+# feed read hydration 3
+# feed read posts 0 status 200
+# feed read revision 1
+# feed read items 1
+# feed read revision 0
+# feed read media 2
+# feed read saved 2
+# feed read signed-urls 0
+# feed read day-totals 4
+# feed read hydration 5
+# feed read posts 1 status 200
+# feed read revision 1
+# feed read items 0
+# feed read revision 0
+# feed read media 2
+# feed read saved 2
+# feed read signed-urls 0
+# feed read day-totals 3
+# feed read hydration 4
+# feed read posts 1 status 200
+# feed read revision 0
+# feed read items 1
+# feed read revision 0
+# feed read media 1
+# feed read saved 1
+# feed read signed-urls 0
+# feed read day-totals 2
+# feed read hydration 2
+# feed read hydration 2
+# feed read posts 0 status 200
+# feed read media 1
+# feed read saved 1
+# feed read revision 1
+# feed read signed-urls 1
+# feed read items 1
+# feed read revision 1
+# feed read day-totals 3
+# feed read hydration 3
+# Subtest: retrying edited meals does not restart the initial analysis
+ok 263 - retrying edited meals does not restart the initial analysis
+  ---
+  duration_ms: 1.30867
+  type: 'test'
+  ...
+# Subtest: refreshing or retrying an older meal preserves chronological order
+ok 264 - refreshing or retrying an older meal preserves chronological order
+  ---
+  duration_ms: 0.879113
+  type: 'test'
+  ...
+# Subtest: 21 posts created together all appear once across pages
+ok 265 - 21 posts created together all appear once across pages
+  ---
+  duration_ms: 111.721979
+  type: 'test'
+  ...
+# Subtest: invalid cursor data is rejected before any database request
+ok 266 - invalid cursor data is rejected before any database request
+  ---
+  duration_ms: 2.303662
+  type: 'test'
+  ...
+# Subtest: uninitialized failure retries initial analysis before pending correction; initialized replay recomputes
+ok 267 - uninitialized failure retries initial analysis before pending correction; initialized replay recomputes
+  ---
+  duration_ms: 0.157799
+  type: 'test'
+  ...
+# Subtest: persisted questions remain hidden while queued but failed answers stay recoverable
+ok 268 - persisted questions remain hidden while queued but failed answers stay recoverable
+  ---
+  duration_ms: 5.708114
+  type: 'test'
+  ...
+# Subtest: first page limit is six and optional field failures do not hide posts
+ok 269 - first page limit is six and optional field failures do not hide posts
+  ---
+  duration_ms: 9.130766
+  type: 'test'
+  ...
+# Subtest: same-tick browser card refreshes share one cancellable server request
+ok 270 - same-tick browser card refreshes share one cancellable server request
+  ---
+  duration_ms: 9.350924
+  type: 'test'
+  ...
+# Subtest: route rejects invalid, signed-out, cross-owner, deleted and foreign-path media before storage
+ok 271 - route rejects invalid, signed-out, cross-owner, deleted and foreign-path media before storage
+  ---
+  duration_ms: 33.024533
+  type: 'test'
+  ...
+# Subtest: authorized route binds both media and post, uses fixed storage origin and emits a small private WebP
+ok 272 - authorized route binds both media and post, uses fixed storage origin and emits a small private WebP
+  ---
+  duration_ms: 93.387847
+  type: 'test'
+  ...
+# Subtest: authorized transform failure retains bounded JPEG; download failure redirects only after ownership lookup
+ok 273 - authorized transform failure retains bounded JPEG; download failure redirects only after ownership lookup
+  ---
+  duration_ms: 6.518267
+  type: 'test'
+  ...
+# feed read posts 3 status 200
+# feed read revision 1
+# feed read items 1
+# feed read revision 0
+# feed read media 3
+# feed read saved 3
+# feed read signed-urls 0
+# Subtest: stream byte and decoded pixel limits are enforced; owner paths cannot traverse
+ok 274 - stream byte and decoded pixel limits are enforced; owner paths cannot traverse
+  ---
+  duration_ms: 27.851176
+  type: 'test'
+  ...
+# Subtest: native work is limited to four concurrent requests and release is idempotent
+ok 275 - native work is limited to four concurrent requests and release is idempotent
+  ---
+  duration_ms: 0.541595
+  type: 'test'
+  ...
+# Subtest: SSR seed and every batch slide use immutable owner-scoped private identities
+ok 276 - SSR seed and every batch slide use immutable owner-scoped private identities
+  ---
+  duration_ms: 34.6632
+  type: 'test'
+  ...
+# Subtest: matching ETag revalidates ownership before 304 without varying immutable identity on refreshed cookies
+ok 277 - matching ETag revalidates ownership before 304 without varying immutable identity on refreshed cookies
+  ---
+  duration_ms: 2.078543
+  type: 'test'
+  ...
+# Subtest: v2 preserves dense-phone pixels under a new immutable identity and still verifies ownership
+ok 278 - v2 preserves dense-phone pixels under a new immutable identity and still verifies ownership
+  ---
+  duration_ms: 258.062358
+  type: 'test'
+  ...
+# Subtest: retiring the last meal clears feed state and rejects an older hydration result
+ok 279 - retiring the last meal clears feed state and rejects an older hydration result
+  ---
+  duration_ms: 357.519876
+  type: 'test'
+  ...
+# Subtest: a ready card with an unavailable item snapshot keeps polling and recovers its actual nutrition
+ok 280 - a ready card with an unavailable item snapshot keeps polling and recovers its actual nutrition
+  ---
+  duration_ms: 124.496635
+  type: 'test'
+  ...
+# Subtest: selection is visible before the save resolves
+ok 281 - selection is visible before the save resolves
+  ---
+  duration_ms: 1.072471
+  type: 'test'
+  ...
+# Subtest: failed save restores the previous saved selection
+ok 282 - failed save restores the previous saved selection
+  ---
+  duration_ms: 1.291189
+  type: 'test'
+  ...
+# Subtest: stale revision failure does not roll back a newer revision
+ok 283 - stale revision failure does not roll back a newer revision
+  ---
+  duration_ms: 0.255158
+  type: 'test'
+  ...
+# Subtest: stale success cannot navigate to the old correction revision
+ok 284 - stale success cannot navigate to the old correction revision
+  ---
+  duration_ms: 0.224558
+  type: 'test'
+  ...
+# feed read hydration 4
+# feed read hydration 2
+# feed read hydration 1
+# Subtest: feedback sends and broadcasts the displayed immutable revision
+ok 285 - feedback sends and broadcasts the displayed immutable revision
+  ---
+  duration_ms: 23.925167
+  type: 'test'
+  ...
+# Subtest: feedback revision belongs to owned model comment and never follows later replies
+ok 286 - feedback revision belongs to owned model comment and never follows later replies
+  ---
+  duration_ms: 44.215003
+  type: 'test'
+  ...
+# Subtest: feed never binds a new revision to data hydrated across a correction commit
+ok 287 - feed never binds a new revision to data hydrated across a correction commit
+  ---
+  duration_ms: 245.4233
+  type: 'test'
+  ...
+# Subtest: a remounted feedback row cannot race a pending vote and a successful retry clears its failure
+ok 288 - a remounted feedback row cannot race a pending vote and a successful retry clears its failure
+  ---
+  duration_ms: 1.636147
+  type: 'test'
+  ...
+# Subtest: fixture cleanup collects every nested card version and paginated masks within one post
+ok 289 - fixture cleanup collects every nested card version and paginated masks within one post
+  ---
+  duration_ms: 4.818961
+  type: 'test'
+  ...
+# Subtest: non-food refuses a model estimate
+ok 290 - non-food refuses a model estimate
+  ---
+  duration_ms: 122.270973
+  type: 'test'
+  ...
+# Subtest: model estimate scales, names its non-USDA source and discloses provenance
+ok 291 - model estimate scales, names its non-USDA source and discloses provenance
+  ---
+  duration_ms: 24.80912
+  type: 'test'
+  ...
+# Subtest: out-of-range or malformed model nutrition is a provider error
+ok 292 - out-of-range or malformed model nutrition is a provider error
+  ---
+  duration_ms: 18.728089
+  type: 'test'
+  ...
+# Subtest: estimated nutrition recovers from unknown to known portions without a USDA request or another model call
+ok 293 - estimated nutrition recovers from unknown to known portions without a USDA request or another model call
+  ---
+  duration_ms: 6.333029
+  type: 'test'
+  ...
+# Subtest: volume-only estimate edits never turn milliliters into a gram reference
+ok 294 - volume-only estimate edits never turn milliliters into a gram reference
+  ---
+  duration_ms: 6.029672
+  type: 'test'
+  ...
+# Subtest: actual correction replay shares volume dispatch and preserves known consumed estimates after removal rebuild
+ok 295 - actual correction replay shares volume dispatch and preserves known consumed estimates after removal rebuild
+  ---
+  duration_ms: 8.272654
+  type: 'test'
+  ...
+# Subtest: a food answer without numbers is a 502 marked noEstimate
+ok 296 - a food answer without numbers is a 502 marked noEstimate
+  ---
+  duration_ms: 2.171823
+  type: 'test'
+  ...
+# Subtest: stored estimates read both repeated legacy tags and single-label nutrient bases
+ok 297 - stored estimates read both repeated legacy tags and single-label nutrient bases
+  ---
+  duration_ms: 3.317653
+  type: 'test'
+  ...
+# Subtest: selection becomes durable and visible pending before the server replies, then uses the acknowledged post ID
+ok 298 - selection becomes durable and visible pending before the server replies, then uses the acknowledged post ID
+  ---
+  duration_ms: 41.401586
+  type: 'test'
+  ...
+# Subtest: a committed response lost in transit retries the same operation without a duplicate save
+ok 299 - a committed response lost in transit retries the same operation without a duplicate save
+  ---
+  duration_ms: 2.749818
+  type: 'test'
+  ...
+# Subtest: failed input survives reload, stays private to its owner and explicit retry retains the original operation
+ok 300 - failed input survives reload, stays private to its owner and explicit retry retains the original operation
+  ---
+  duration_ms: 4.852961
+  type: 'test'
+  ...
+# Subtest: a staged barcode photo reuses acknowledged bytes rather than a second pack upload
+ok 301 - a staged barcode photo reuses acknowledged bytes rather than a second pack upload
+  ---
+  duration_ms: 3.868449
+  type: 'test'
+  ...
+# Subtest: an account switch during the durable checkpoint cannot send the prior account selection
+ok 302 - an account switch during the durable checkpoint cannot send the prior account selection
+  ---
+  duration_ms: 1.663227
+  type: 'test'
+  ...
+# Subtest: failed removal is durable and reload retries cancellation rather than posting the selection again
+ok 303 - failed removal is durable and reload retries cancellation rather than posting the selection again
+  ---
+  duration_ms: 6.375148
+  type: 'test'
+  ...
+# Subtest: a verified label keeps its prepared photo and chosen servings without reuploading
+ok 304 - a verified label keeps its prepared photo and chosen servings without reuploading
+  ---
+  duration_ms: 2.248902
+  type: 'test'
+  ...
+# Subtest: actual food HTTP publishing keeps Auth/caps, resolves nutrition and retries one committed operation
+ok 305 - actual food HTTP publishing keeps Auth/caps, resolves nutrition and retries one committed operation
+  ---
+  duration_ms: 2260.396483
+  type: 'test'
+  ...
+# Subtest: one-search rejection enters closest matching and retains the selected generic food
+ok 306 - one-search rejection enters closest matching and retains the selected generic food
+  ---
+  duration_ms: 27.295099
+  type: 'test'
+  ...
+# Subtest: non-food and unusable estimate outcomes have distinct durable reasons
+ok 307 - non-food and unusable estimate outcomes have distinct durable reasons
+  ---
+  duration_ms: 24.430283
+  type: 'test'
+  ...
+# Subtest: a serving is the label's gram serving, else 100 g, and calories follow it
+ok 308 - a serving is the label's gram serving, else 100 g, and calories follow it
+  ---
+  duration_ms: 1.073831
+  type: 'test'
+  ...
+# Subtest: searching croissant and picking one logs a ready post in under 3 seconds, with no model call
+ok 309 - searching croissant and picking one logs a ready post in under 3 seconds, with no model call
+  ---
+  duration_ms: 132.559931
+  type: 'test'
+  ...
+# Subtest: create_food_post refuses a missing user, an empty name and an absurd portion
+ok 310 - create_food_post refuses a missing user, an empty name and an absurd portion
+  ---
+  duration_ms: 26.07663
+  type: 'test'
+  ...
+# Subtest: concurrent health calls share probes and completed values expire in a minute
+ok 311 - concurrent health calls share probes and completed values expire in a minute
+  ---
+  duration_ms: 2.235502
+  type: 'test'
+  ...
+# Subtest: failed probes return only booleans and timings, without diagnostics
+ok 312 - failed probes return only booleans and timings, without diagnostics
+  ---
+  duration_ms: 0.654475
+  type: 'test'
+  ...
+# Subtest: a short history is sent whole and in order
+ok 313 - a short history is sent whole and in order
+  ---
+  duration_ms: 1.428509
+  type: 'test'
+  ...
+# Subtest: an oversized history keeps the most recent messages that fit, in order
+ok 314 - an oversized history keeps the most recent messages that fit, in order
+  ---
+  duration_ms: 0.926993
+  type: 'test'
+  ...
+# Subtest: the newest message is always kept even if it alone exceeds the budget
+ok 315 - the newest message is always kept even if it alone exceeds the budget
+  ---
+  duration_ms: 0.435316
+  type: 'test'
+  ...
+# feed read day-totals 4
+# feed read posts 6 status 200
+# feed read revision 1
+# feed read items 1
+# feed read revision 0
+# feed read media 4
+# feed read saved 4
+# feed read signed-urls 0
+# feed read hydration 4
+# feed read posts 1 status 200
+# feed read revision 1
+# feed read items 0
+# feed read revision 1
+# feed read media 2
+# feed read saved 2
+# feed read signed-urls 0
+# feed read day-totals 6
+# feed read hydration 6
+# auth verify api/feed
+# feed read auth 1
+# feed read total 1
+# auth verify api/feed
+# feed read auth 0
+# feed read total 1
+# Subtest: parallel Home streams share one totals read and pass that snapshot into Feed
+ok 316 - parallel Home streams share one totals read and pass that snapshot into Feed
+  ---
+  duration_ms: 149.432714
+  type: 'test'
+  ...
+# Subtest: feed refresh skips known days without removing meal or hydration reads; missing dates still load
+ok 317 - feed refresh skips known days without removing meal or hydration reads; missing dates still load
+  ---
+  duration_ms: 66.055427
+  type: 'test'
+  ...
+# Subtest: feed API validates the known-date boundary and retains its independent Auth check
+ok 318 - feed API validates the known-date boundary and retains its independent Auth check
+  ---
+  duration_ms: 26.292747
+  type: 'test'
+  ...
+# Subtest: middleware makes no photo query or HTTP image preload while preserving auth and cache headers
+ok 319 - middleware makes no photo query or HTTP image preload while preserving auth and cache headers
+  ---
+  duration_ms: 120.674146
+  type: 'test'
+  ...
+# Subtest: Home HTML preload and first image expose identical density candidates without a second base-only hint
+ok 320 - Home HTML preload and first image expose identical density candidates without a second base-only hint
+  ---
+  duration_ms: 77.338016
+  type: 'test'
+  ...
+# Subtest: React emits one responsive HTML preload and no base image Link header for duplicated stream hints
+ok 321 - React emits one responsive HTML preload and no base image Link header for duplicated stream hints
+  ---
+  duration_ms: 10.621914
+  type: 'test'
+  ...
+# open identify failed; using Meta
+# Subtest: pre-0032 trace rejection retries only legacy identity fields within the same deadline
+ok 322 - pre-0032 trace rejection retries only legacy identity fields within the same deadline
+  ---
+  duration_ms: 13.560571
+  type: 'test'
+  ...
+# Subtest: unrelated trace schema errors do not silently downgrade payloads
+ok 323 - unrelated trace schema errors do not silently downgrade payloads
+  ---
+  duration_ms: 4.734121
+  type: 'test'
+  ...
+# Subtest: failed and uncommitted reanalysis cannot relabel a committed open-model meal
+ok 324 - failed and uncommitted reanalysis cannot relabel a committed open-model meal
+  ---
+  duration_ms: 48.036252
+  type: 'test'
+  ...
+# Subtest: incomplete and refused HTTP-200 Meta identification are failed traces
+ok 325 - incomplete and refused HTTP-200 Meta identification are failed traces
+  ---
+  duration_ms: 5.347076
+  type: 'test'
+  ...
+# Subtest: missing new persistence RPC alone allows a legacy rollout fallback; ownership failures never do
+ok 326 - missing new persistence RPC alone allows a legacy rollout fallback; ownership failures never do
+  ---
+  duration_ms: 67.397416
+  type: 'test'
+  ...
+# Subtest: identify can finish a real response beyond the ordinary thirty-second timeout without a second request
+ok 327 - identify can finish a real response beyond the ordinary thirty-second timeout without a second request
+  ---
+  duration_ms: 35584.794507
+  type: 'test'
+  ...
+# Subtest: a transient empty-body 404 is retried: the second response is the one that gets parsed
+ok 328 - a transient empty-body 404 is retried: the second response is the one that gets parsed
+  ---
+  duration_ms: 1419.918824
+  type: 'test'
+  ...
+# Subtest: a 400 is terminal at once and is not retried here
+ok 329 - a 400 is terminal at once and is not retried here
+  ---
+  duration_ms: 4.127686
+  type: 'test'
+  ...
+# Subtest: identification gets completion capacity on its first low-effort request
+ok 330 - identification gets completion capacity on its first low-effort request
+  ---
+  duration_ms: 4.212126
+  type: 'test'
+  ...
+# Subtest: parseable truncated identification is never accepted at the final ceiling
+ok 331 - parseable truncated identification is never accepted at the final ceiling
+  ---
+  duration_ms: 4.183687
+  type: 'test'
+  ...
+# Subtest: independently portioned additions sharing a region survive identification without a duplicate combined item
+ok 332 - independently portioned additions sharing a region survive identification without a duplicate combined item
+  ---
+  duration_ms: 40.559073
+  type: 'test'
+  ...
+# Subtest: intake rows belong to their owner, have limits, and cannot be edited
+ok 333 - intake rows belong to their owner, have limits, and cannot be edited
+  ---
+  duration_ms: 24.052166
+  type: 'test'
+  ...
+# Subtest: only whole amounts inside each kind's limits are intake
+ok 334 - only whole amounts inside each kind's limits are intake
+  ---
+  duration_ms: 0.945512
+  type: 'test'
+  ...
+# Subtest: totals add up what was logged, ignoring anything invalid
+ok 335 - totals add up what was logged, ignoring anything invalid
+  ---
+  duration_ms: 0.930353
+  type: 'test'
+  ...
+# Subtest: logged intake is grouped by the reader's local day
+ok 336 - logged intake is grouped by the reader's local day
+  ---
+  duration_ms: 20.305596
+  type: 'test'
+  ...
+# Subtest: the line shows totals only; a day with nothing logged shows nothing
+ok 337 - the line shows totals only; a day with nothing logged shows nothing
+  ---
+  duration_ms: 0.295997
+  type: 'test'
+  ...
+# Subtest: no intake text or code mentions a target, a goal or what is left
+ok 338 - no intake text or code mentions a target, a goal or what is left
+  ---
+  duration_ms: 1.005632
+  type: 'test'
+  ...
+# Subtest: the day story adds up every intake row across pages, not just the first page
+ok 339 - the day story adds up every intake row across pages, not just the first page
+  ---
+  duration_ms: 271.523449
+  type: 'test'
+  ...
+# Subtest: transport failures are retriable, including when wrapped by fetch
+ok 340 - transport failures are retriable, including when wrapped by fetch
+  ---
+  duration_ms: 17.282461
+  type: 'test'
+  ...
+# Subtest: selected FDC identity wins over first/ranked food and client nutrient forgery
+ok 341 - selected FDC identity wins over first/ranked food and client nutrient forgery
+  ---
+  duration_ms: 100.555469
+  type: 'test'
+  ...
+# Subtest: a portion edit with no name still notes the item by its current name
+ok 342 - a portion edit with no name still notes the item by its current name
+  ---
+  duration_ms: 0.627155
+  type: 'test'
+  ...
+# Subtest: claims serialize one meal, parallelize different meals and retain completion ownership
+ok 343 - claims serialize one meal, parallelize different meals and retain completion ownership
+  ---
+  duration_ms: 4358.244678
+  type: 'test'
+  ...
+# Subtest: the production registry lists exactly the real job kinds, and no fixture kind
+ok 344 - the production registry lists exactly the real job kinds, and no fixture kind
+  ---
+  duration_ms: 1.504868
+  type: 'test'
+  ...
+# Subtest: every handler file in the worker's jobs folder is registered (an omission would fail its jobs)
+ok 345 - every handler file in the worker's jobs folder is registered (an omission would fail its jobs)
+  ---
+  duration_ms: 0.413956
+  type: 'test'
+  ...
+# Subtest: an unknown or inherited job kind is rejected before anything runs
+ok 346 - an unknown or inherited job kind is rejected before anything runs
+  ---
+  duration_ms: 0.749474
+  type: 'test'
+  ...
+# Subtest: a test passes its own handlers explicitly
+ok 347 - a test passes its own handlers explicitly
+  ---
+  duration_ms: 0.433917
+  type: 'test'
+  ...
+# Subtest: the worker has no caller-selected module imports or production test handlers
+ok 348 - the worker has no caller-selected module imports or production test handlers
+  ---
+  duration_ms: 0.771674
+  type: 'test'
+  ...
+# Subtest: emergency pause preserves two accepted leftovers and resumes queued work without blocking ordinary meals
+ok 349 - emergency pause preserves two accepted leftovers and resumes queued work without blocking ordinary meals # SKIP
+  ---
+  duration_ms: 0.826993
+  type: 'test'
+  ...
+# Subtest: an on-pace schedule inside the window is met
+ok 350 - an on-pace schedule inside the window is met
+  ---
+  duration_ms: 1.218031
+  type: 'test'
+  ...
+# Subtest: a stalled event loop that pushes the last start past the window is not met
+ok 351 - a stalled event loop that pushes the last start past the window is not met
+  ---
+  duration_ms: 1.013391
+  type: 'test'
+  ...
+# Subtest: twenty starts at once meet the deadline but not the pacing
+ok 352 - twenty starts at once meet the deadline but not the pacing
+  ---
+  duration_ms: 0.188119
+  type: 'test'
+  ...
+# Subtest: a burst released late inside the window is not the intended workload
+ok 353 - a burst released late inside the window is not the intended workload
+  ---
+  duration_ms: 0.403757
+  type: 'test'
+  ...
+# Subtest: posts that never started also miss the schedule
+ok 354 - posts that never started also miss the schedule
+  ---
+  duration_ms: 0.285198
+  type: 'test'
+  ...
+# Subtest: one instant is formatted in each viewing zone without a UTC suffix
+ok 355 - one instant is formatted in each viewing zone without a UTC suffix
+  ---
+  duration_ms: 22.709136
+  type: 'test'
+  ...
+# Subtest: local midnight changes its display date without mutating the instant
+ok 356 - local midnight changes its display date without mutating the instant
+  ---
+  duration_ms: 0.593155
+  type: 'test'
+  ...
+# Subtest: DST repeated hour maps distinct instants to the correct local clock
+ok 357 - DST repeated hour maps distinct instants to the correct local clock
+  ---
+  duration_ms: 0.549875
+  type: 'test'
+  ...
+# Subtest: invalid instants never print an invalid clock
+ok 358 - invalid instants never print an invalid clock
+  ---
+  duration_ms: 0.146998
+  type: 'test'
+  ...
+# Subtest: repeated reads share one capability before expiry and renew before storage expiry
+ok 359 - repeated reads share one capability before expiry and renew before storage expiry
+  ---
+  duration_ms: 1.056632
+  type: 'test'
+  ...
+# Subtest: another owner cannot retrieve a cached capability
+ok 360 - another owner cannot retrieve a cached capability
+  ---
+  duration_ms: 0.664795
+  type: 'test'
+  ...
+# Subtest: concurrent reads deduplicate signing and a failed request is retryable
+ok 361 - concurrent reads deduplicate signing and a failed request is retryable
+  ---
+  duration_ms: 1.062712
+  type: 'test'
+  ...
+# Subtest: bounded cache evicts old entries and immutable correction paths never alias
+ok 362 - bounded cache evicts old entries and immutable correction paths never alias
+  ---
+  duration_ms: 0.522316
+  type: 'test'
+  ...
+# Subtest: session identity requires an unexpired matching sub/session UUID and never returns the JWT
+ok 363 - session identity requires an unexpired matching sub/session UUID and never returns the JWT
+  ---
+  duration_ms: 3.438733
+  type: 'test'
+  ...
+# Subtest: overlapping feed/profile boundaries share one listener and logout blocks the old initial session
+ok 364 - overlapping feed/profile boundaries share one listener and logout blocks the old initial session
+  ---
+  duration_ms: 14.068527
+  type: 'test'
+  ...
+# Subtest: a genuinely new server-cookie session is distinguished from an old INITIAL_SESSION
+ok 365 - a genuinely new server-cookie session is distinguished from an old INITIAL_SESSION
+  ---
+  duration_ms: 5.279917
+  type: 'test'
+  ...
+# Subtest: SIGNED_OUT preserves the known blocked UUID instead of losing it with the null session
+ok 366 - SIGNED_OUT preserves the known blocked UUID instead of losing it with the null session
+  ---
+  duration_ms: 1.590307
+  type: 'test'
+  ...
+# Subtest: controller replacement rereads shared logout history instead of replaying a stale activation
+ok 367 - controller replacement rereads shared logout history instead of replaying a stale activation
+  ---
+  duration_ms: 1.907264
+  type: 'test'
+  ...
+# Subtest: a newly controlling worker warms a photo already loaded before installation, without sending tokens
+ok 368 - a newly controlling worker warms a photo already loaded before installation, without sending tokens
+  ---
+  duration_ms: 2.255702
+  type: 'test'
+  ...
+# Subtest: resized photos warm only exact owned same-origin routes and retain cookie authentication
+ok 369 - resized photos warm only exact owned same-origin routes and retain cookie authentication
+  ---
+  duration_ms: 2.49226
+  type: 'test'
+  ...
+# Subtest: micronutrient totals preserve order/units and label partial totals
+ok 370 - micronutrient totals preserve order/units and label partial totals
+  ---
+  duration_ms: 2.128303
+  type: 'test'
+  ...
+# Subtest: duplicate micronutrients count once and conflicting measurements stay unknown
+ok 371 - duplicate micronutrients count once and conflicting measurements stay unknown
+  ---
+  duration_ms: 0.301357
+  type: 'test'
+  ...
+# Subtest: photo correction subtracts existing leftovers exactly once and retains exact consumed nutrition
+ok 372 - photo correction subtracts existing leftovers exactly once and retains exact consumed nutrition
+  ---
+  duration_ms: 1.908744
+  type: 'test'
+  ...
+# Subtest: fully uneaten foods and cumulative footer keep their recorded calories after more revisions
+ok 373 - fully uneaten foods and cumulative footer keep their recorded calories after more revisions
+  ---
+  duration_ms: 21.677305
+  type: 'test'
+  ...
+# Subtest: two independent leftovers photos accumulate, retry once, survive ordinary correction, and stay owner-scoped
+ok 374 - two independent leftovers photos accumulate, retry once, survive ordinary correction, and stay owner-scoped
+  ---
+  duration_ms: 205.109146
+  type: 'test'
+  ...
+# Subtest: second-plate remainder targets its own photo and preserves the first plate deduction
+ok 375 - second-plate remainder targets its own photo and preserves the first plate deduction
+  ---
+  duration_ms: 390.166613
+  type: 'test'
+  ...
+# Subtest: photos reveal once near the viewport and ignore observer callbacks after cleanup
+ok 376 - photos reveal once near the viewport and ignore observer callbacks after cleanup
+  ---
+  duration_ms: 0.923712
+  type: 'test'
+  ...
+# Subtest: browsers without IntersectionObserver can still load meal photos
+ok 377 - browsers without IntersectionObserver can still load meal photos
+  ---
+  duration_ms: 0.172239
+  type: 'test'
+  ...
+# Subtest: questions share immutable thumbnail identities; missing media retries and account changes discard old reads
+ok 378 - questions share immutable thumbnail identities; missing media retries and account changes discard old reads
+  ---
+  duration_ms: 19.019007
+  type: 'test'
+  ...
+# Subtest: a second user cannot read or discard a clarification post
+ok 379 - a second user cannot read or discard a clarification post
+  ---
+  duration_ms: 23.469451
+  type: 'test'
+  ...
+# Subtest: not-eaten difference clamps the photographed amount and preserves count records
+ok 380 - not-eaten difference clamps the photographed amount and preserves count records
+  ---
+  duration_ms: 1.842185
+  type: 'test'
+  ...
+# Subtest: the stored-card snapshot preserves known uneaten calories when all of a food was not eaten
+ok 381 - the stored-card snapshot preserves known uneaten calories when all of a food was not eaten
+  ---
+  duration_ms: 29.126325
+  type: 'test'
+  ...
+# Subtest: not-eaten revision keeps history, exact nutrition, retry idempotency and owner access
+ok 382 - not-eaten revision keeps history, exact nutrition, retry idempotency and owner access
+  ---
+  duration_ms: 303.211754
+  type: 'test'
+  ...
+# Subtest: FDC search values scale from 100 grams, preserving order and units
+ok 383 - FDC search values scale from 100 grams, preserving order and units
+  ---
+  duration_ms: 2.005864
+  type: 'test'
+  ...
+# Subtest: unknown portions and volume basis never masquerade as consumed amounts
+ok 384 - unknown portions and volume basis never masquerade as consumed amounts
+  ---
+  duration_ms: 0.314478
+  type: 'test'
+  ...
+# Subtest: legacy read normalization corrects macros and does not double-scale versioned arrays
+ok 385 - legacy read normalization corrects macros and does not double-scale versioned arrays
+  ---
+  duration_ms: 0.563876
+  type: 'test'
+  ...
+# Subtest: portion changes retain exact selected identity and normalized density
+ok 386 - portion changes retain exact selected identity and normalized density
+  ---
+  duration_ms: 0.683955
+  type: 'test'
+  ...
+# Subtest: sugar falls back to Sugars, Total 1063 and preserves 2000 precedence
+ok 387 - sugar falls back to Sugars, Total 1063 and preserves 2000 precedence
+  ---
+  duration_ms: 0.278638
+  type: 'test'
+  ...
+# Subtest: expanded nutrients show core macros once and normalize micronutrient labels and units
+ok 388 - expanded nutrients show core macros once and normalize micronutrient labels and units
+  ---
+  duration_ms: 22.1905
+  type: 'test'
+  ...
+# Subtest: missing micronutrients retain their unavailable-food attribution rather than becoming zero
+ok 389 - missing micronutrients retain their unavailable-food attribution rather than becoming zero
+  ---
+  duration_ms: 0.593995
+  type: 'test'
+  ...
+# Subtest: an unknown item preserves available meal and day sums with omissions
+ok 390 - an unknown item preserves available meal and day sums with omissions
+  ---
+  duration_ms: 21.07195
+  type: 'test'
+  ...
+# Subtest: empty meals are unknown while genuine zero and numeric database strings retain valid totals
+ok 391 - empty meals are unknown while genuine zero and numeric database strings retain valid totals
+  ---
+  duration_ms: 1.32355
+  type: 'test'
+  ...
+# Subtest: micronutrient totals preserve order/units and label partial totals
+ok 392 - micronutrient totals preserve order/units and label partial totals
+  ---
+  duration_ms: 0.901993
+  type: 'test'
+  ...
+# Subtest: duplicate micronutrients count once and conflicting measurements stay unknown
+ok 393 - duplicate micronutrients count once and conflicting measurements stay unknown
+  ---
+  duration_ms: 0.282358
+  type: 'test'
+  ...
+# Subtest: OFF Oreo pack maps printed per-100 nutrition and retains its attribution/source
+ok 394 - OFF Oreo pack maps printed per-100 nutrition and retains its attribution/source
+  ---
+  duration_ms: 1.251749
+  type: 'test'
+  ...
+# Subtest: OFF missing and nutritionally empty products are unusable
+ok 395 - OFF missing and nutritionally empty products are unusable
+  ---
+  duration_ms: 0.219999
+  type: 'test'
+  ...
+# Subtest: OFF liquid package quantities use ml and solid quantities use g
+ok 396 - OFF liquid package quantities use ml and solid quantities use g
+  ---
+  duration_ms: 0.634475
+  type: 'test'
+  ...
+# Subtest: OFF unavailable responses reject; only missing products return null
+ok 397 - OFF unavailable responses reject; only missing products return null
+  ---
+  duration_ms: 34.429243
+  type: 'test'
+  ...
+# Subtest: maps identify messages and structured output to the open provider
+ok 398 - maps identify messages and structured output to the open provider
+  ---
+  duration_ms: 2.009463
+  type: 'test'
+  ...
+# Subtest: strips reasoning and fences; maps incomplete, refusal and usage
+ok 399 - strips reasoning and fences; maps incomplete, refusal and usage
+  ---
+  duration_ms: 0.607755
+  type: 'test'
+  ...
+# open identify failed; using Meta
+# open identify failed; using Meta
+# Subtest: a local provider 500 falls back to Meta and records actual identities
+ok 400 - a local provider 500 falls back to Meta and records actual identities
+  ---
+  duration_ms: 84.593158
+  type: 'test'
+  ...
+# Subtest: migration defaults to Meta and the setting RPC changes only the authenticated owner
+ok 401 - migration defaults to Meta and the setting RPC changes only the authenticated owner
+  ---
+  duration_ms: 0.537955
+  type: 'test'
+  ...
+# open identify failed; using Meta
+# Subtest: a late format rejection shares the total deadline and falls back to Meta
+ok 402 - a late format rejection shares the total deadline and falls back to Meta
+  ---
+  duration_ms: 610.900631
+  type: 'test'
+  ...
+# Subtest: pending names retain order and keep unavailable nutrition unknown
+ok 403 - pending names retain order and keep unavailable nutrition unknown
+  ---
+  duration_ms: 1.400189
+  type: 'test'
+  ...
+# Subtest: progress writes include the owning job fence, and unknown kcal is not zero
+ok 404 - progress writes include the owning job fence, and unknown kcal is not zero
+  ---
+  duration_ms: 0.705995
+  type: 'test'
+  ...
+# Subtest: analysis persistence follows the initialisation marker and preserves history
+ok 405 - analysis persistence follows the initialisation marker and preserves history
+  ---
+  duration_ms: 46.263267
+  type: 'test'
+  ...
+# Subtest: the retry window always outlasts the parking delay by a full minute
+ok 406 - the retry window always outlasts the parking delay by a full minute
+  ---
+  duration_ms: 1.083112
+  type: 'test'
+  ...
+# Subtest: a missing object is the upload still in flight only inside the grace window
+ok 407 - a missing object is the upload still in flight only inside the grace window
+  ---
+  duration_ms: 0.748394
+  type: 'test'
+  ...
+# Subtest: the worker retries a photo that is not readable right after creation
+ok 408 - the worker retries a photo that is not readable right after creation
+  ---
+  duration_ms: 13.551691
+  type: 'test'
+  ...
+# Subtest: a photo that is still missing after the grace period fails for good
+ok 409 - a photo that is still missing after the grace period fails for good
+  ---
+  duration_ms: 3.75977
+  type: 'test'
+  ...
+# Subtest: offline model responses drive a real meal, correction and error transitions
+ok 410 - offline model responses drive a real meal, correction and error transitions
+  ---
+  duration_ms: 3125.070668
+  type: 'test'
+  ...
+# Subtest: rapid pending revisions retain exact identity and original density
+ok 411 - rapid pending revisions retain exact identity and original density
+  ---
+  duration_ms: 37.440578
+  type: 'test'
+  ...
+# Model trace could not be stored.
+# Subtest: unknown portion becomes known using exact retained food reference
+ok 412 - unknown portion becomes known using exact retained food reference
+  ---
+  duration_ms: 19.598682
+  type: 'test'
+  ...
+# Subtest: exact identity endpoint validates response and never searches by name
+ok 413 - exact identity endpoint validates response and never searches by name
+  ---
+  duration_ms: 15.331396
+  type: 'test'
+  ...
+# auth verify middleware /posts/00000000-0000-4000-8000-000000000002
+# auth verify middleware /posts/00000000-0000-4000-8000-000000000002
+# auth verify middleware /posts/00000000-0000-4000-8000-000000000002
+# Subtest: direct post metadata must identify the authenticated owner; malformed IDs never query
+ok 414 - direct post metadata must identify the authenticated owner; malformed IDs never query
+  ---
+  duration_ms: 1.479708
+  type: 'test'
+  ...
+# Subtest: actual middleware refuses foreign post links with404 before streaming, preserving Auth and owner access
+ok 415 - actual middleware refuses foreign post links with404 before streaming, preserving Auth and owner access
+  ---
+  duration_ms: 175.370705
+  type: 'test'
+  ...
+# Subtest: locations are append-only and private to the post owner
+ok 416 - locations are append-only and private to the post owner
+  ---
+  duration_ms: 25.144397
+  type: 'test'
+  ...
+# Subtest: a changed caption reaches confirmation before prior nutrition can be copied
+ok 417 - a changed caption reaches confirmation before prior nutrition can be copied
+  ---
+  duration_ms: 30.872671
+  type: 'test'
+  ...
+# Subtest: captionless identical photos reach confirmation but never copy without its approval
+ok 418 - captionless identical photos reach confirmation but never copy without its approval
+  ---
+  duration_ms: 20.078718
+  type: 'test'
+  ...
+# Subtest: a weak prior is only historical reference and never tells the model to keep portions
+ok 419 - a weak prior is only historical reference and never tells the model to keep portions
+  ---
+  duration_ms: 417.280914
+  type: 'test'
+  ...
+# Subtest: a caption-only meal with a strong prior falls back to the neutral hint
+ok 420 - a caption-only meal with a strong prior falls back to the neutral hint
+  ---
+  duration_ms: 1.548548
+  type: 'test'
+  ...
+# Subtest: a retryable photo metadata failure reaches the worker instead of becoming a hint
+ok 421 - a retryable photo metadata failure reaches the worker instead of becoming a hint
+  ---
+  duration_ms: 1.24463
+  type: 'test'
+  ...
+# Subtest: an empty top-ranked prior does not hide a usable runner-up
+ok 422 - an empty top-ranked prior does not hide a usable runner-up
+  ---
+  duration_ms: 3.652971
+  type: 'test'
+  ...
+# Subtest: same-meal confirmation retries the gateway's transient 404 like identification does
+ok 423 - same-meal confirmation retries the gateway's transient 404 like identification does
+  ---
+  duration_ms: 1019.058659
+  type: 'test'
+  ...
+# Subtest: only complete current-version nutrition with selected matching provenance is reusable
+ok 424 - only complete current-version nutrition with selected matching provenance is reusable
+  ---
+  duration_ms: 1.684746
+  type: 'test'
+  ...
+# Subtest: validated copied provenance chains retain the exact food source and latest decisions win
+ok 425 - validated copied provenance chains retain the exact food source and latest decisions win
+  ---
+  duration_ms: 0.509035
+  type: 'test'
+  ...
+# Subtest: candidate SQL distinguishes absent signals from genuine mismatches
+ok 426 - candidate SQL distinguishes absent signals from genuine mismatches
+  ---
+  duration_ms: 31.760624
+  type: 'test'
+  ...
+# Subtest: legacy or mixed-version prior producers cannot bypass fresh analysis during rollout
+ok 427 - legacy or mixed-version prior producers cannot bypass fresh analysis during rollout
+  ---
+  duration_ms: 0.830833
+  type: 'test'
+  ...
+# Subtest: caption-only grid uses current known nutrition and identifies omissions, never old card pixels
+ok 428 - caption-only grid uses current known nutrition and identifies omissions, never old card pixels
+  ---
+  duration_ms: 3.259494
+  type: 'test'
+  ...
+# Subtest: failed photo signing uses current nutrition fallback instead of old generated card
+ok 429 - failed photo signing uses current nutrition fallback instead of old generated card
+  ---
+  duration_ms: 0.461676
+  type: 'test'
+  ...
+# Subtest: an ordinary account cannot provision or promote itself as admin
+ok 430 - an ordinary account cannot provision or promote itself as admin
+  ---
+  duration_ms: 23.362092
+  type: 'test'
+  ...
+# Subtest: push follows persisted waiting state and maintenance publication stays silent
+ok 431 - push follows persisted waiting state and maintenance publication stays silent
+  ---
+  duration_ms: 398.525784
+  type: 'test'
+  ...
+# Subtest: a failing device cleanup does not stop the session from ending
+ok 432 - a failing device cleanup does not stop the session from ending
+  ---
+  duration_ms: 2.096823
+  type: 'test'
+  ...
+# Subtest: a hanging device cleanup is abandoned after the timeout and sign-out still runs
+ok 433 - a hanging device cleanup is abandoned after the timeout and sign-out still runs
+  ---
+  duration_ms: 50.626472
+  type: 'test'
+  ...
+# Subtest: a failed sign-out action restores the tab and reports failure instead of staying busy
+ok 434 - a failed sign-out action restores the tab and reports failure instead of staying busy
+  ---
+  duration_ms: 0.638955
+  type: 'test'
+  ...
+# Subtest: a stalled sign-out action is bounded and restores the tab for retry
+ok 435 - a stalled sign-out action is bounded and restores the tab for retry
+  ---
+  duration_ms: 26.974102
+  type: 'test'
+  ...
+# Subtest: a redirect remains navigation and is never converted into a failed-sign-out result
+ok 436 - a redirect remains navigation and is never converted into a failed-sign-out result
+  ---
+  duration_ms: 0.987632
+  type: 'test'
+  ...
+# Subtest: logout waits for registration then removes only the current endpoint before unsubscribe
+ok 437 - logout waits for registration then removes only the current endpoint before unsubscribe
+  ---
+  duration_ms: 28.649168
+  type: 'test'
+  ...
+# Subtest: authenticated logout cannot remove other devices or another account endpoint
+ok 438 - authenticated logout cannot remove other devices or another account endpoint
+  ---
+  duration_ms: 21.443267
+  type: 'test'
+  ...
+# Subtest: a sign-out started in another tab blocks registration here until the marker expires or fails
+ok 439 - a sign-out started in another tab blocks registration here until the marker expires or fails
+  ---
+  duration_ms: 1.105671
+  type: 'test'
+  ...
+# Subtest: registration and logout share one origin-wide Web Lock
+ok 440 - registration and logout share one origin-wide Web Lock
+  ---
+  duration_ms: 1.684867
+  type: 'test'
+  ...
+# Subtest: a failed server detach still unsubscribes the browser, then reports the failure
+ok 441 - a failed server detach still unsubscribes the browser, then reports the failure
+  ---
+  duration_ms: 1.571028
+  type: 'test'
+  ...
+# Subtest: a hanging server detach is aborted at its deadline so the lifecycle lock is released
+ok 442 - a hanging server detach is aborted at its deadline so the lifecycle lock is released
+  ---
+  duration_ms: 20.820232
+  type: 'test'
+  ...
+# Subtest: starting a sign-out aborts a stalled registration request so it cannot hold the lock
+ok 443 - starting a sign-out aborts a stalled registration request so it cannot hold the lock
+  ---
+  duration_ms: 2.762177
+  type: 'test'
+  ...
+# Subtest: a subscription without a matching owner marker is dropped; a matching one is kept
+ok 444 - a subscription without a matching owner marker is dropped; a matching one is kept
+  ---
+  duration_ms: 0.860713
+  type: 'test'
+  ...
+# Subtest: a push carries generic text only: no question, image or meal content
+ok 445 - a push carries generic text only: no question, image or meal content
+  ---
+  duration_ms: 10.275357
+  type: 'test'
+  ...
+# ok: drain claims jobs
+# ok: drain handles failures
+# ok: drain stops after 60 s of work
+# ok: drain releases the lease
+# ok: tick acquires the lease only when work waits
+# ok: tick reports traffic
+# live queue drain: keys present — full ten-job order check needs seeded users, skipped.
+# queue static checks passed
+# Subtest: tests/queue.test.mjs
+ok 137 - tests/queue.test.mjs
+  ---
+  duration_ms: 112.695771
+  type: 'test'
+  ...
+# Subtest: Home reconciliation avoids both redundant seed RSC refreshes; other tabs and absent feed still retry
+ok 447 - Home reconciliation avoids both redundant seed RSC refreshes; other tabs and absent feed still retry
+  ---
+  duration_ms: 0.938712
+  type: 'test'
+  ...
+# Subtest: ready metadata hydration does not refresh SSR; pending completion and unknown/real updates still do
+ok 448 - ready metadata hydration does not refresh SSR; pending completion and unknown/real updates still do
+  ---
+  duration_ms: 0.360397
+  type: 'test'
+  ...
+# Subtest: mounted readiness observer skips initial Home reloads but still refreshes an observed completion and other tabs
+ok 449 - mounted readiness observer skips initial Home reloads but still refreshes an observed completion and other tabs
+  ---
+  duration_ms: 1093.791775
+  type: 'test'
+  ...
+# Subtest: upload confirmation releases only a never-claimed, queued analyze job of that post
+ok 450 - upload confirmation releases only a never-claimed, queued analyze job of that post
+  ---
+  duration_ms: 2.275262
+  type: 'test'
+  ...
+# Subtest: a database error is returned to the caller
+ok 451 - a database error is returned to the caller
+  ---
+  duration_ms: 0.296718
+  type: 'test'
+  ...
+# Model trace could not be stored.
+# Model trace could not be stored.
+# Model trace could not be stored.
+# Model trace could not be stored.
+# Subtest: removal replays each retained correction once from identify, then retained leftovers in position order
+ok 452 - removal replays each retained correction once from identify, then retained leftovers in position order
+  ---
+  duration_ms: 119.843713
+  type: 'test'
+  ...
+# Subtest: removing the only correction restores identify without reusing the corrected current revision
+ok 453 - removing the only correction restores identify without reusing the corrected current revision
+  ---
+  duration_ms: 12.712217
+  type: 'test'
+  ...
+# Subtest: foreign or traversal leftovers paths are refused before downloading or calling the remainder model
+ok 454 - foreign or traversal leftovers paths are refused before downloading or calling the remainder model
+  ---
+  duration_ms: 21.13507
+  type: 'test'
+  ...
+# Subtest: removal preserves quoted user words without treating them as generated claims
+ok 455 - removal preserves quoted user words without treating them as generated claims
+  ---
+  duration_ms: 5.979032
+  type: 'test'
+  ...
+# Subtest: removed-photo cleanup removes exactly its original/feed pair and does not list the meal prefix
+ok 456 - removed-photo cleanup removes exactly its original/feed pair and does not list the meal prefix
+  ---
+  duration_ms: 32.559217
+  type: 'test'
+  ...
+# Subtest: a path claimed by another media row is never deleted
+ok 457 - a path claimed by another media row is never deleted
+  ---
+  duration_ms: 2.266422
+  type: 'test'
+  ...
+# Subtest: foreign, mismatched and traversal paths fail before storage access
+ok 458 - foreign, mismatched and traversal paths fail before storage access
+  ---
+  duration_ms: 2.345261
+  type: 'test'
+  ...
+# Subtest: stored meal card uses its recorded local day across UTC midnight, matching the live card at capture
+ok 459 - stored meal card uses its recorded local day across UTC midnight, matching the live card at capture
+  ---
+  duration_ms: 32.411939
+  type: 'test'
+  ...
+# Subtest: model-free posts record their first explicit render zone and subsequent corrections retain it
+ok 460 - model-free posts record their first explicit render zone and subsequent corrections retain it
+  ---
+  duration_ms: 1.127351
+  type: 'test'
+  ...
+# Subtest: upload reservation carries a validated capture zone into the published post atomically and clears the tombstone
+ok 461 - upload reservation carries a validated capture zone into the published post atomically and clears the tombstone
+  ---
+  duration_ms: 417.799269
+  type: 'test'
+  ...
+# Subtest: actual PNG puts meal details and leftovers below macros inside the left margin
+ok 462 - actual PNG puts meal details and leftovers below macros inside the left margin
+  ---
+  duration_ms: 549.425927
+  type: 'test'
+  ...
+# Subtest: new signing tokens keep the working immutable image while failures use the fresh capability
+ok 463 - new signing tokens keep the working immutable image while failures use the fresh capability
+  ---
+  duration_ms: 0.927712
+  type: 'test'
+  ...
+# Subtest: a failed job insert leaves the post untouched
+ok 464 - a failed job insert leaves the post untouched
+  ---
+  duration_ms: 1.944305
+  type: 'test'
+  ...
+# Subtest: losing the compare-and-set withdraws the inserted job
+ok 465 - losing the compare-and-set withdraws the inserted job
+  ---
+  duration_ms: 0.359557
+  type: 'test'
+  ...
+# Subtest: a failed post update withdraws the job and reports an error
+ok 466 - a failed post update withdraws the job and reports an error
+  ---
+  duration_ms: 0.326278
+  type: 'test'
+  ...
+# Subtest: a successful retry queues the job and the post once
+ok 467 - a successful retry queues the job and the post once
+  ---
+  duration_ms: 0.418637
+  type: 'test'
+  ...
+# Subtest: recovery after a lost discovery overlap keeps loaded history
+ok 468 - recovery after a lost discovery overlap keeps loaded history
+  ---
+  duration_ms: 0.595915
+  type: 'test'
+  ...
+# Subtest: retry retains removal reason and completion marker instead of publishing stale nutrition
+ok 469 - retry retains removal reason and completion marker instead of publishing stale nutrition
+  ---
+  duration_ms: 0.308758
+  type: 'test'
+  ...
+# Subtest: classified failures, delayed claims, third-attempt limit and worker-only access
+ok 470 - classified failures, delayed claims, third-attempt limit and worker-only access
+  ---
+  duration_ms: 201.700933
+  type: 'test'
+  ...
+# ok: RLS enabled on profiles
+# ok: RLS enabled on posts
+# ok: RLS enabled on post_media
+# ok: RLS enabled on post_items
+# ok: RLS enabled on item_nutrition
+# ok: RLS enabled on post_comments
+# ok: RLS enabled on post_feedback
+# ok: RLS enabled on jobs
+# ok: RLS enabled on worker_lease
+# ok: post_items.box exists
+# ok: lease acquire function exists
+# ok: lease release function exists
+# ok: claim_job function exists
+# ok: realtime publication exists
+# ok: private media bucket exists
+# ok: jobs has no client policy
+# ok: post_comments has no update/delete policy
+# ok: profiles update policy pins role to 'user'
+# ok: profiles has owner-only insert policy
+# DB live check skipped: no test users provisioned in this run.
+# rls static checks passed
+# Subtest: tests/rls.test.mjs
+ok 147 - tests/rls.test.mjs
+  ---
+  duration_ms: 118.917641
+  type: 'test'
+  ...
+# Subtest: same-meal confirmation budgets reasoning, rejects incomplete booleans and validates the final type
+ok 472 - same-meal confirmation budgets reasoning, rejects incomplete booleans and validates the final type
+  ---
+  duration_ms: 43.648368
+  type: 'test'
+  ...
+# Subtest: PostCard: processing saves are faded and inert, then ready saves dispatch
+ok 473 - PostCard: processing saves are faded and inert, then ready saves dispatch
+  ---
+  duration_ms: 508.819335
+  type: 'test'
+  ...
+# Subtest: PostDetailHeader: processing saves are faded and inert, then ready saves dispatch
+ok 474 - PostDetailHeader: processing saves are faded and inert, then ready saves dispatch
+  ---
+  duration_ms: 89.386479
+  type: 'test'
+  ...
+# Subtest: OutlineOverlay: processing saves are faded and inert, then ready saves dispatch
+ok 475 - OutlineOverlay: processing saves are faded and inert, then ready saves dispatch
+  ---
+  duration_ms: 259.709505
+  type: 'test'
+  ...
+# Subtest: PostDetail: processing saves are faded and inert, then ready saves dispatch
+ok 476 - PostDetail: processing saves are faded and inert, then ready saves dispatch
+  ---
+  duration_ms: 318.185833
+  type: 'test'
+  ...
+# Subtest: an already-saved processing meal can still be unsaved from actions or menus
+ok 477 - an already-saved processing meal can still be unsaved from actions or menus
+  ---
+  duration_ms: 158.517441
+  type: 'test'
+  ...
+# Subtest: standalone actions with no known status cannot save an unfinished meal
+ok 478 - standalone actions with no known status cannot save an unfinished meal
+  ---
+  duration_ms: 8.59313
+  type: 'test'
+  ...
+# Subtest: save selection changes synchronously and blocks a repeated tap
+ok 479 - save selection changes synchronously and blocks a repeated tap
+  ---
+  duration_ms: 0.774433
+  type: 'test'
+  ...
+# Subtest: failed save returns previous selection, successful save retains server id
+ok 480 - failed save returns previous selection, successful save retains server id
+  ---
+  duration_ms: 0.728354
+  type: 'test'
+  ...
+# Subtest: saved meals retain exact nutrition, time and owner access in one transaction
+ok 481 - saved meals retain exact nutrition, time and owner access in one transaction
+  ---
+  duration_ms: 364.064383
+  type: 'test'
+  ...
+# Subtest: saved sheet intake supplies volume and caffeine independently of item mass
+ok 482 - saved sheet intake supplies volume and caffeine independently of item mass
+  ---
+  duration_ms: 20.773193
+  type: 'test'
+  ...
+# Subtest: no intake snapshot means no guessed ml or caffeine; missing calories stay unavailable
+ok 483 - no intake snapshot means no guessed ml or caffeine; missing calories stay unavailable
+  ---
+  duration_ms: 0.248118
+  type: 'test'
+  ...
+# Subtest: both legacy and owned claim names stay fixture-scoped and assign execution ownership
+ok 484 - both legacy and owned claim names stay fixture-scoped and assign execution ownership
+  ---
+  duration_ms: 3.550692
+  type: 'test'
+  ...
+# Subtest: actual SDK timeout is retryable despite its generic name and absent cause
+ok 485 - actual SDK timeout is retryable despite its generic name and absent cause
+  ---
+  duration_ms: 1.16967
+  type: 'test'
+  ...
+# Subtest: SDK terminal TLS/configuration causes remain terminal and HTTP client errors win
+ok 486 - SDK terminal TLS/configuration causes remain terminal and HTTP client errors win
+  ---
+  duration_ms: 0.466557
+  type: 'test'
+  ...
+# Subtest: the configured SDK client emits a timeout that the worker can retry
+ok 487 - the configured SDK client emits a timeout that the worker can retry
+  ---
+  duration_ms: 1236.953541
+  type: 'test'
+  ...
+# Subtest: Saturday includes the user's evening after UTC has crossed into Sunday
+ok 488 - Saturday includes the user's evening after UTC has crossed into Sunday
+  ---
+  duration_ms: 58.894164
+  type: 'test'
+  ...
+# Subtest: today follows the local calendar in a positive-offset zone
+ok 489 - today follows the local calendar in a positive-offset zone
+  ---
+  duration_ms: 256.422771
+  type: 'test'
+  ...
+# Subtest: local day bounds retain the DST spring and autumn day lengths
+ok 490 - local day bounds retain the DST spring and autumn day lengths
+  ---
+  duration_ms: 12.298981
+  type: 'test'
+  ...
+# Subtest: model local date bounds and invalid zones are handled explicitly
+ok 491 - model local date bounds and invalid zones are handled explicitly
+  ---
+  duration_ms: 4.091726
+  type: 'test'
+  ...
+# Subtest: search summaries use the post’s resolved drink rather than losing its volume and caffeine
+ok 492 - search summaries use the post’s resolved drink rather than losing its volume and caffeine
+  ---
+  duration_ms: 20.857432
+  type: 'test'
+  ...
+# Subtest: feed alcohol summaries use the same hydrated grams as their result card
+ok 493 - feed alcohol summaries use the same hydrated grams as their result card
+  ---
+  duration_ms: 1.045792
+  type: 'test'
+  ...
+# Subtest: the search index follows item inserts and moves, and locks the post before reading
+ok 494 - the search index follows item inserts and moves, and locks the post before reading
+  ---
+  duration_ms: 30.97459
+  type: 'test'
+  ...
+# Subtest: meal, size and recency words are semantic operators
+ok 495 - meal, size and recency words are semantic operators
+  ---
+  duration_ms: 1.491028
+  type: 'test'
+  ...
+# Subtest: plain food searches are literal
+ok 496 - plain food searches are literal
+  ---
+  duration_ms: 0.203478
+  type: 'test'
+  ...
+# Subtest: question filler is stripped outside quotes and kept inside them
+ok 497 - question filler is stripped outside quotes and kept inside them
+  ---
+  duration_ms: 0.572155
+  type: 'test'
+  ...
+# Subtest: the search migration parses alternatives and exclusions with websearch syntax
+ok 498 - the search migration parses alternatives and exclusions with websearch syntax
+  ---
+  duration_ms: 19.052766
+  type: 'test'
+  ...
+# Subtest: search uses consumed known meals and eaten-time ordering on fresh and installed schemas
+ok 499 - search uses consumed known meals and eaten-time ordering on fresh and installed schemas
+  ---
+  duration_ms: 45.557033
+  type: 'test'
+  ...
+# Subtest: seed local breakfast and Saturday America/Edmonton 2026-10-27T12:00:00Z
+ok 500 - seed local breakfast and Saturday America/Edmonton 2026-10-27T12:00:00Z
+  ---
+  duration_ms: 23.422492
+  type: 'test'
+  ...
+# Subtest: seed local breakfast and Saturday America/Edmonton 2026-11-03T12:00:00Z
+ok 501 - seed local breakfast and Saturday America/Edmonton 2026-11-03T12:00:00Z
+  ---
+  duration_ms: 2.099303
+  type: 'test'
+  ...
+# Subtest: seed local breakfast and Saturday America/Edmonton 2026-03-10T12:00:00Z
+ok 502 - seed local breakfast and Saturday America/Edmonton 2026-03-10T12:00:00Z
+  ---
+  duration_ms: 2.120943
+  type: 'test'
+  ...
+# Subtest: seed local breakfast and Saturday Asia/Tokyo 2026-10-27T23:00:00Z
+ok 503 - seed local breakfast and Saturday Asia/Tokyo 2026-10-27T23:00:00Z
+  ---
+  duration_ms: 1.909585
+  type: 'test'
+  ...
+# Subtest: timezone must be explicit and valid
+ok 504 - timezone must be explicit and valid
+  ---
+  duration_ms: 0.492836
+  type: 'test'
+  ...
+# Subtest: only referenced masks are stored and source region indices are preserved
+ok 505 - only referenced masks are stored and source region indices are preserved
+  ---
+  duration_ms: 5.222278
+  type: 'test'
+  ...
+# Subtest: mask buffers/uploads are bounded and completion waits for every referenced mask
+ok 506 - mask buffers/uploads are bounded and completion waits for every referenced mask
+  ---
+  duration_ms: 10.053519
+  type: 'test'
+  ...
+# Subtest: a failed mask prevents publication and drains started peers before returning
+ok 507 - a failed mask prevents publication and drains started peers before returning
+  ---
+  duration_ms: 3.639171
+  type: 'test'
+  ...
+# Subtest: typed servings accepts fractions and decimal commas on the quarter grid
+ok 508 - typed servings accepts fractions and decimal commas on the quarter grid
+  ---
+  duration_ms: 1.116271
+  type: 'test'
+  ...
+# Subtest: invalid servings cannot cross the stored bounds or coerce arbitrary text
+ok 509 - invalid servings cannot cross the stored bounds or coerce arbitrary text
+  ---
+  duration_ms: 0.378997
+  type: 'test'
+  ...
+# Subtest: stepping retains half increments and stored bounds
+ok 510 - stepping retains half increments and stored bounds
+  ---
+  duration_ms: 0.182279
+  type: 'test'
+  ...
+# Subtest: set_post_servings scales items, queues a recompute and notes it in the thread
+ok 511 - set_post_servings scales items, queues a recompute and notes it in the thread
+  ---
+  duration_ms: 43.095412
+  type: 'test'
+  ...
+# Subtest: grams and ounces convert exactly; cups and pieces need a stated weight
+ok 512 - grams and ounces convert exactly; cups and pieces need a stated weight
+  ---
+  duration_ms: 0.976872
+  type: 'test'
+  ...
+# Subtest: FDC portions: foundation foods give pieces and cups, branded foods give their household serving
+ok 513 - FDC portions: foundation foods give pieces and cups, branded foods give their household serving
+  ---
+  duration_ms: 2.084743
+  type: 'test'
+  ...
+# Subtest: an item edit in ounces becomes grams; cups and pieces wait for the food's weight; grams cannot be doubled up
+ok 514 - an item edit in ounces becomes grams; cups and pieces wait for the food's weight; grams cannot be doubled up
+  ---
+  duration_ms: 0.875233
+  type: 'test'
+  ...
+# Subtest: servings step by half on the quarter grid and stay within 0.25 to 50
+ok 515 - servings step by half on the quarter grid and stay within 0.25 to 50
+  ---
+  duration_ms: 0.264278
+  type: 'test'
+  ...
+# Subtest: 2 servings doubles the totals: every item's portion doubles and its stored nutrition rescales with it
+ok 516 - 2 servings doubles the totals: every item's portion doubles and its stored nutrition rescales with it
+  ---
+  duration_ms: 1.045152
+  type: 'test'
+  ...
+# Subtest: 80 g recomputes an item's nutrition from its per-100 g values
+ok 517 - 80 g recomputes an item's nutrition from its per-100 g values
+  ---
+  duration_ms: 0.292118
+  type: 'test'
+  ...
+# auth verify middleware /
+# auth verify middleware /profile
+# AuthApiError: Invalid refresh token
+#     at handleError (/home/opc/Projects/my-food-ai-wt/run16-final-suite/node_modules/@supabase/auth-js/src/lib/fetch.ts:145:9)
+#     at async _handleRequest (/home/opc/Projects/my-food-ai-wt/run16-final-suite/node_modules/@supabase/auth-js/src/lib/fetch.ts:239:5)
+#     at async _request (/home/opc/Projects/my-food-ai-wt/run16-final-suite/node_modules/@supabase/auth-js/src/lib/fetch.ts:200:16)
+#     at async <anonymous> (/home/opc/Projects/my-food-ai-wt/run16-final-suite/node_modules/@supabase/auth-js/src/GoTrueClient.ts:4790:18)
+#     at async <anonymous> (/home/opc/Projects/my-food-ai-wt/run16-final-suite/node_modules/@supabase/auth-js/src/lib/helpers.ts:242:26) {
+#   __isAuthError: true,
+#   status: 400,
+#   code: undefined
+# }
+# AuthApiError: Invalid refresh token
+#     at handleError (/home/opc/Projects/my-food-ai-wt/run16-final-suite/node_modules/@supabase/auth-js/src/lib/fetch.ts:145:9)
+#     at async _handleRequest (/home/opc/Projects/my-food-ai-wt/run16-final-suite/node_modules/@supabase/auth-js/src/lib/fetch.ts:239:5)
+#     at async _request (/home/opc/Projects/my-food-ai-wt/run16-final-suite/node_modules/@supabase/auth-js/src/lib/fetch.ts:200:16)
+#     at async <anonymous> (/home/opc/Projects/my-food-ai-wt/run16-final-suite/node_modules/@supabase/auth-js/src/GoTrueClient.ts:4790:18)
+#     at async <anonymous> (/home/opc/Projects/my-food-ai-wt/run16-final-suite/node_modules/@supabase/auth-js/src/lib/helpers.ts:242:26) {
+#   __isAuthError: true,
+#   status: 400,
+#   code: undefined
+# }
+# auth verify middleware /profile
+# Subtest: session renewal is visible to the current server render and persists for the next visit
+ok 518 - session renewal is visible to the current server render and persists for the next visit
+  ---
+  duration_ms: 25.146157
+  type: 'test'
+  ...
+# Subtest: expired session cleanup survives the redirect to sign-in
+ok 519 - expired session cleanup survives the redirect to sign-in
+  ---
+  duration_ms: 23.108094
+  type: 'test'
+  ...
+# Subtest: multiple cookie chunks and expired chunks survive every response path
+ok 520 - multiple cookie chunks and expired chunks survive every response path
+  ---
+  duration_ms: 4.639562
+  type: 'test'
+  ...
+# Subtest: density variants read the original and retain owner-scoped cache identities
+ok 521 - density variants read the original and retain owner-scoped cache identities
+  ---
+  duration_ms: 330.267776
+  type: 'test'
+  ...
+# Subtest: invalid variants and unowned photos perform no storage access
+ok 522 - invalid variants and unowned photos perform no storage access
+  ---
+  duration_ms: 6.23443
+  type: 'test'
+  ...
+# Subtest: resize, download and abort failures redirect through a fresh signing deadline
+ok 523 - resize, download and abort failures redirect through a fresh signing deadline
+  ---
+  duration_ms: 31.236548
+  type: 'test'
+  ...
+# Subtest: legacy v1 and current v2 URLs select the same density candidates
+ok 524 - legacy v1 and current v2 URLs select the same density candidates
+  ---
+  duration_ms: 0.685195
+  type: 'test'
+  ...
+# Subtest: MealPhoto: a failed density candidate affects that image only across mounted rerenders
+ok 525 - MealPhoto: a failed density candidate affects that image only across mounted rerenders
+  ---
+  duration_ms: 167.884326
+  type: 'test'
+  ...
+# Subtest: Photo: a failed density candidate affects that image only across mounted rerenders
+ok 526 - Photo: a failed density candidate affects that image only across mounted rerenders
+  ---
+  duration_ms: 23.508931
+  type: 'test'
+  ...
+# Subtest: DetailImage: a failed density candidate affects that image only across mounted rerenders
+ok 527 - DetailImage: a failed density candidate affects that image only across mounted rerenders
+  ---
+  duration_ms: 85.377791
+  type: 'test'
+  ...
+# Subtest: DetailImage switches from a loaded original to the new photo preview immediately
+ok 528 - DetailImage switches from a loaded original to the new photo preview immediately
+  ---
+  duration_ms: 67.281737
+  type: 'test'
+  ...
+# Subtest: camera resolution is an ideal and explicit desktop device selection stays exact
+ok 529 - camera resolution is an ideal and explicit desktop device selection stays exact
+  ---
+  duration_ms: 1.565147
+  type: 'test'
+  ...
+# Subtest: shutter prefers native still bytes and falls back to the available video pixels
+ok 530 - shutter prefers native still bytes and falls back to the available video pixels
+  ---
+  duration_ms: 1.144991
+  type: 'test'
+  ...
+# Subtest: legacy upload shots reject invalid ordering and dimensions
+ok 531 - legacy upload shots reject invalid ordering and dimensions
+  ---
+  duration_ms: 1.21347
+  type: 'test'
+  ...
+# Subtest: edits preserve immutable history, ownership and atomic readiness
+ok 532 - edits preserve immutable history, ownership and atomic readiness
+  ---
+  duration_ms: 54.56532
+  type: 'test'
+  ...
+# Subtest: authenticated feed photos reuse bytes across signatures; cards bypass the cache
+ok 533 - authenticated feed photos reuse bytes across signatures; cards bypass the cache
+  ---
+  duration_ms: 33.52249
+  type: 'test'
+  ...
+# Subtest: immutable resized feed photos match only the exact same-origin UUID route without query aliases
+ok 534 - immutable resized feed photos match only the exact same-origin UUID route without query aliases
+  ---
+  duration_ms: 7.043783
+  type: 'test'
+  ...
+# Subtest: resized routes cannot borrow another owner or revive a durable logged-out epoch
+ok 535 - resized routes cannot borrow another owner or revive a durable logged-out epoch
+  ---
+  duration_ms: 8.815568
+  type: 'test'
+  ...
+# Subtest: a resize finishing after logout cannot persist bytes into a new session
+ok 536 - a resize finishing after logout cannot persist bytes into a new session
+  ---
+  duration_ms: 13.124854
+  type: 'test'
+  ...
+# Subtest: first resized SSR image binds after hydration and validated navigation reuses it
+ok 537 - first resized SSR image binds after hydration and validated navigation reuses it
+  ---
+  duration_ms: 3.317053
+  type: 'test'
+  ...
+# Subtest: only successful readable images are cached and entries stay bounded
+ok 538 - only successful readable images are cached and entries stay bounded
+  ---
+  duration_ms: 327.294119
+  type: 'test'
+  ...
+# Subtest: logout rejects requests starting after acknowledgement and cannot be undone by the old session
+ok 539 - logout rejects requests starting after acknowledgement and cannot be undone by the old session
+  ---
+  duration_ms: 3.022895
+  type: 'test'
+  ...
+# Subtest: logout tombstones survive a service-worker restart; only a new explicit epoch reenables caching
+ok 540 - logout tombstones survive a service-worker restart; only a new explicit epoch reenables caching
+  ---
+  duration_ms: 6.397828
+  type: 'test'
+  ...
+# Subtest: requests started before or after logout cannot recreate private bytes when they finish late
+ok 541 - requests started before or after logout cannot recreate private bytes when they finish late
+  ---
+  duration_ms: 11.566507
+  type: 'test'
+  ...
+# Subtest: network delivery does not wait for stalled Cache.put or eviction
+ok 542 - network delivery does not wait for stalled Cache.put or eviction
+  ---
+  duration_ms: 4.563363
+  type: 'test'
+  ...
+# Subtest: the first SSR image can be persisted after hydration registers its authenticated client
+ok 543 - the first SSR image can be persisted after hydration registers its authenticated client
+  ---
+  duration_ms: 2.050904
+  type: 'test'
+  ...
+# Subtest: unknown session IDs and foreign-owner paths never authorize cached private media
+ok 544 - unknown session IDs and foreign-owner paths never authorize cached private media
+  ---
+  duration_ms: 15011.252251
+  type: 'test'
+  ...
+# Subtest: opaque images remain uncached while readable CORS responses can be retained
+ok 545 - opaque images remain uncached while readable CORS responses can be retained
+  ---
+  duration_ms: 2.283422
+  type: 'test'
+  ...
+# Subtest: activation retains privacy metadata and retires the old authorization-free media cache
+ok 546 - activation retains privacy metadata and retires the old authorization-free media cache
+  ---
+  duration_ms: 1.932105
+  type: 'test'
+  ...
+# Subtest: signed-in navigation HTML is never added to a shared cache
+ok 547 - signed-in navigation HTML is never added to a shared cache
+  ---
+  duration_ms: 1.536028
+  type: 'test'
+  ...
+# Subtest: install stores only anonymous shell responses with credentials omitted
+ok 548 - install stores only anonymous shell responses with credentials omitted
+  ---
+  duration_ms: 6.367468
+  type: 'test'
+  ...
+# Subtest: validated navigation UUID headers authorize the second visit before JavaScript registration
+ok 549 - validated navigation UUID headers authorize the second visit before JavaScript registration
+  ---
+  duration_ms: 10.369636
+  type: 'test'
+  ...
+# Subtest: a validated new navigation epoch can cache its first response after logout without reviving the old epoch
+ok 550 - a validated new navigation epoch can cache its first response after logout without reviving the old epoch
+  ---
+  duration_ms: 2.557259
+  type: 'test'
+  ...
+# Subtest: logout and unbound clients bypass the browser HTTP cache as well as Cache API
+ok 551 - logout and unbound clients bypass the browser HTTP cache as well as Cache API
+  ---
+  duration_ms: 3.922888
+  type: 'test'
+  ...
+# Subtest: a different client cannot borrow a warm browser HTTP response from an active session
+ok 552 - a different client cannot borrow a warm browser HTTP response from an active session
+  ---
+  duration_ms: 1.536227
+  type: 'test'
+  ...
+# Subtest: install warms only anonymous same-origin immutable shell assets, including Flight references
+ok 553 - install warms only anonymous same-origin immutable shell assets, including Flight references
+  ---
+  duration_ms: 7.852817
+  type: 'test'
+  ...
+# Subtest: cached public shell stays available to an active session and never stores the late private response
+ok 554 - cached public shell stays available to an active session and never stores the late private response
+  ---
+  duration_ms: 2.023064
+  type: 'test'
+  ...
+# Subtest: logout while navigation waits prevents serving the cached shell after its fallback timer
+ok 555 - logout while navigation waits prevents serving the cached shell after its fallback timer
+  ---
+  duration_ms: 8.432212
+  type: 'test'
+  ...
+# Subtest: density-specific copies remain distinct and owner-scoped in the private cache
+ok 556 - density-specific copies remain distinct and owner-scoped in the private cache
+  ---
+  duration_ms: 6.263469
+  type: 'test'
+  ...
+# Subtest: an updated worker reloads same-origin windows after an install-to-activate restart
+ok 557 - an updated worker reloads same-origin windows after an install-to-activate restart
+  ---
+  duration_ms: 3.435772
+  type: 'test'
+  ...
+# Subtest: a first install never reloads windows even if its worker restarts before activate
+ok 558 - a first install never reloads windows even if its worker restarts before activate
+  ---
+  duration_ms: 2.718098
+  type: 'test'
+  ...
+# (node:3529100) ExperimentalWarning: The MockTimers API is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: a single tap on a photo that can take a vote waits out a possible second tap, then opens the meal
+ok 559 - a single tap on a photo that can take a vote waits out a possible second tap, then opens the meal
+  ---
+  duration_ms: 1.989504
+  type: 'test'
+  ...
+# Subtest: a single tap on a photo that cannot take a vote opens the meal at once
+ok 560 - a single tap on a photo that cannot take a vote opens the meal at once
+  ---
+  duration_ms: 0.229918
+  type: 'test'
+  ...
+# Subtest: a quick, close second tap votes and does not open the meal
+ok 561 - a quick, close second tap votes and does not open the meal
+  ---
+  duration_ms: 0.206359
+  type: 'test'
+  ...
+# Subtest: a second tap with nothing to vote on does nothing
+ok 562 - a second tap with nothing to vote on does nothing
+  ---
+  duration_ms: 0.167559
+  type: 'test'
+  ...
+# Subtest: a slow or distant second tap is a new first tap
+ok 563 - a slow or distant second tap is a new first tap
+  ---
+  duration_ms: 0.407957
+  type: 'test'
+  ...
+# Subtest: without a destination a first tap is ignored
+ok 564 - without a destination a first tap is ignored
+  ---
+  duration_ms: 0.168599
+  type: 'test'
+  ...
+# Subtest: controller: an ordinary single tap opens the meal exactly once
+ok 565 - controller: an ordinary single tap opens the meal exactly once
+  ---
+  duration_ms: 1.24335
+  type: 'test'
+  ...
+# Subtest: controller: an ordinary double tap votes once and never opens
+ok 566 - controller: an ordinary double tap votes once and never opens
+  ---
+  duration_ms: 0.583635
+  type: 'test'
+  ...
+# Subtest: controller: starting a swipe or a cancelled pointer before the wait ends opens nothing
+ok 567 - controller: starting a swipe or a cancelled pointer before the wait ends opens nothing
+  ---
+  duration_ms: 1.007712
+  type: 'test'
+  ...
+# Subtest: controller: a second press inside the window holds the navigation; released inside the window it is a double tap
+ok 568 - controller: a second press inside the window holds the navigation; released inside the window it is a double tap
+  ---
+  duration_ms: 0.962752
+  type: 'test'
+  ...
+# Subtest: controller: a second press held past the window and released is a new single tap that opens once, after the wait
+ok 569 - controller: a second press held past the window and released is a new single tap that opens once, after the wait
+  ---
+  duration_ms: 0.596795
+  type: 'test'
+  ...
+# Subtest: controller: disposing with a navigation queued opens nothing later
+ok 570 - controller: disposing with a navigation queued opens nothing later
+  ---
+  duration_ms: 0.287117
+  type: 'test'
+  ...
+# Subtest: complete first page derives Today from ready posts without manufacturing intake
+ok 571 - complete first page derives Today from ready posts without manufacturing intake
+  ---
+  duration_ms: 27.26362
+  type: 'test'
+  ...
+# Subtest: unsettled food is not counted and failed item reads retain the server fallback
+ok 572 - unsettled food is not counted and failed item reads retain the server fallback
+  ---
+  duration_ms: 0.607235
+  type: 'test'
+  ...
+# Subtest: Today uses the same chronological order before and after the server refresh, including equal-time ties
+ok 573 - Today uses the same chronological order before and after the server refresh, including equal-time ties
+  ---
+  duration_ms: 0.771074
+  type: 'test'
+  ...
+# Subtest: credentials typed into free text are redacted and ordinary meal text stays readable
+ok 574 - credentials typed into free text are redacted and ordinary meal text stays readable
+  ---
+  duration_ms: 3.282094
+  type: 'test'
+  ...
+# Subtest: a JSON reply string is inspected as a structure
+ok 575 - a JSON reply string is inspected as a structure
+  ---
+  duration_ms: 0.380797
+  type: 'test'
+  ...
+# Subtest: sensitive keys, binaries and URLs are still removed
+ok 576 - sensitive keys, binaries and URLs are still removed
+  ---
+  duration_ms: 0.319958
+  type: 'test'
+  ...
+# Subtest: a stalled trace store never holds back a finished call, and a failing call rethrows its own error
+ok 577 - a stalled trace store never holds back a finished call, and a failing call rethrows its own error
+  ---
+  duration_ms: 6058.004605
+  type: 'test'
+  ...
+# Subtest: passwords are redacted as keys, in serialized JSON, in quoted assignments and when multi-word
+ok 578 - passwords are redacted as keys, in serialized JSON, in quoted assignments and when multi-word
+  ---
+  duration_ms: 1.112031
+  type: 'test'
+  ...
+# Subtest: shared transcription retry preserves audio and session without a nested retry loop
+ok 579 - shared transcription retry preserves audio and session without a nested retry loop
+  ---
+  duration_ms: 22.137901
+  type: 'test'
+  ...
+# Subtest: unavailable reasons survive nutrition storage and reject unrelated source identities
+ok 580 - unavailable reasons survive nutrition storage and reject unrelated source identities
+  ---
+  duration_ms: 1.800985
+  type: 'test'
+  ...
+# Subtest: empty or unavailable meal cannot publish an invented zero in shared card or summary data
+ok 581 - empty or unavailable meal cannot publish an invented zero in shared card or summary data
+  ---
+  duration_ms: 21.961943
+  type: 'test'
+  ...
+# Subtest: a day of entirely unavailable foods stays unknown instead of adding to a zero seed
+ok 582 - a day of entirely unavailable foods stays unknown instead of adding to a zero seed
+  ---
+  duration_ms: 7.37494
+  type: 'test'
+  ...
+# Subtest: mixed days retain known calories and name the unavailable food without a phantom item
+ok 583 - mixed days retain known calories and name the unavailable food without a phantom item
+  ---
+  duration_ms: 0.689995
+  type: 'test'
+  ...
+# Subtest: positive sub-kcal energy is never displayed as a measured zero
+ok 584 - positive sub-kcal energy is never displayed as a measured zero
+  ---
+  duration_ms: 0.552436
+  type: 'test'
+  ...
+# Subtest: shot-zero cleanup payload discovers and removes every copy of a four-photo stage
+ok 585 - shot-zero cleanup payload discovers and removes every copy of a four-photo stage
+  ---
+  duration_ms: 3.071455
+  type: 'test'
+  ...
+# Subtest: a claimed photo prevents all object and draft cleanup, including pack photos
+ok 586 - a claimed photo prevents all object and draft cleanup, including pack photos
+  ---
+  duration_ms: 0.670355
+  type: 'test'
+  ...
+# Subtest: a storage deletion failure keeps retry metadata intact
+ok 587 - a storage deletion failure keeps retry metadata intact
+  ---
+  duration_ms: 1.489308
+  type: 'test'
+  ...
+# Subtest: a failed later listing page deletes no paths and retains draft metadata for retry
+ok 588 - a failed later listing page deletes no paths and retains draft metadata for retry
+  ---
+  duration_ms: 1.18935
+  type: 'test'
+  ...
+# Subtest: photo intent without a selected file never reaches the server
+ok 589 - photo intent without a selected file never reaches the server
+  ---
+  duration_ms: 2.090263
+  type: 'test'
+  ...
+# Subtest: completion failure keeps the same operation and successful uploads for retry
+ok 590 - completion failure keeps the same operation and successful uploads for retry
+  ---
+  duration_ms: 26.00403
+  type: 'test'
+  ...
+# Subtest: lost upload response is reconciled through exact byte verification
+ok 591 - lost upload response is reconciled through exact byte verification
+  ---
+  duration_ms: 1.094791
+  type: 'test'
+  ...
+# Subtest: an incomplete derivative cannot publish and retry uploads only the missing copy
+ok 592 - an incomplete derivative cannot publish and retry uploads only the missing copy
+  ---
+  duration_ms: 3.813529
+  type: 'test'
+  ...
+# Subtest: a lost publication response returns the already published post on retry
+ok 593 - a lost publication response returns the already published post on retry
+  ---
+  duration_ms: 1.511388
+  type: 'test'
+  ...
+# Subtest: shot manifests are bounded, ordered and valid before reservation
+ok 594 - shot manifests are bounded, ordered and valid before reservation
+  ---
+  duration_ms: 0.404877
+  type: 'test'
+  ...
+# Subtest: publication service delegates only an owner-scoped atomic RPC and propagates failure
+ok 595 - publication service delegates only an owner-scoped atomic RPC and propagates failure
+  ---
+  duration_ms: 0.634075
+  type: 'test'
+  ...
+# Subtest: an expired stage keeps the selected file but starts a fresh operation on explicit retry
+ok 596 - an expired stage keeps the selected file but starts a fresh operation on explicit retry
+  ---
+  duration_ms: 2.382541
+  type: 'test'
+  ...
+# Subtest: four photos upload with at most two concurrent PUT requests
+ok 597 - four photos upload with at most two concurrent PUT requests
+  ---
+  duration_ms: 32.041661
+  type: 'test'
+  ...
+# Subtest: failure waits for all in-flight PUTs before permitting retry
+ok 598 - failure waits for all in-flight PUTs before permitting retry
+  ---
+  duration_ms: 10.852272
+  type: 'test'
+  ...
+# Subtest: posting before PUT completion waits; three failures never publish; online retries safely
+ok 599 - posting before PUT completion waits; three failures never publish; online retries safely
+  ---
+  duration_ms: 13.952408
+  type: 'test'
+  ...
+# Subtest: a reload restores the persisted photo and failed draft, then explicit retry can publish
+ok 600 - a reload restores the persisted photo and failed draft, then explicit retry can publish
+  ---
+  duration_ms: 2.850857
+  type: 'test'
+  ...
+# Subtest: another signed-in owner cannot restore the first owner's photos
+ok 601 - another signed-in owner cannot restore the first owner's photos
+  ---
+  duration_ms: 1.847145
+  type: 'test'
+  ...
+# Subtest: deleting a draft waits for a pending checkpoint so it cannot reappear after reload
+ok 602 - deleting a draft waits for a pending checkpoint so it cannot reappear after reload
+  ---
+  duration_ms: 2.355581
+  type: 'test'
+  ...
+# Subtest: an old ambiguous publication retries the same reservation instead of duplicating the meal
+ok 603 - an old ambiguous publication retries the same reservation instead of duplicating the meal
+  ---
+  duration_ms: 1.893625
+  type: 'test'
+  ...
+# Subtest: a checkpoint for fewer photos cannot silently omit a selected photo after reload
+ok 604 - a checkpoint for fewer photos cannot silently omit a selected photo after reload
+  ---
+  duration_ms: 21.913024
+  type: 'test'
+  ...
+# Subtest: caption edits during a PUT do not restart staging and publication uses the latest text
+ok 605 - caption edits during a PUT do not restart staging and publication uses the latest text
+  ---
+  duration_ms: 6.18103
+  type: 'test'
+  ...
+# Subtest: changing the photo manifest during staging starts one fresh pass after the previous pass settles
+ok 606 - changing the photo manifest during staging starts one fresh pass after the previous pass settles
+  ---
+  duration_ms: 4.028247
+  type: 'test'
+  ...
+# Subtest: two-shot reservation refuses publication with only one stored object (22023)
+ok 607 - two-shot reservation refuses publication with only one stored object (22023)
+  ---
+  duration_ms: 519.649168
+  type: 'test'
+  ...
+# Subtest: posting acknowledges a delayed durable flag while the upload runs
+ok 608 - posting acknowledges a delayed durable flag while the upload runs
+  ---
+  duration_ms: 52.00002
+  type: 'test'
+  ...
+# Subtest: posting reports a rejected durable flag without stopping the upload
+ok 609 - posting reports a rejected durable flag without stopping the upload
+  ---
+  duration_ms: 1.613787
+  type: 'test'
+  ...
+# Subtest: retrying after a completed background post reuses its operation without publishing twice
+ok 610 - retrying after a completed background post reuses its operation without publishing twice
+  ---
+  duration_ms: 3.417212
+  type: 'test'
+  ...
+# Subtest: an uninitialized post waits for its owner-bound checkpoint and can recover after reload
+ok 611 - an uninitialized post waits for its owner-bound checkpoint and can recover after reload
+  ---
+  duration_ms: 2.4413
+  type: 'test'
+  ...
+# Subtest: a post checkpoint cannot acknowledge an entry deleted or switched to another account while writing
+ok 612 - a post checkpoint cannot acknowledge an entry deleted or switched to another account while writing
+  ---
+  duration_ms: 4.722041
+  type: 'test'
+  ...
+# Subtest: a late authentication response cannot revive an operation after its manager was cleared
+ok 613 - a late authentication response cannot revive an operation after its manager was cleared
+  ---
+  duration_ms: 2.321421
+  type: 'test'
+  ...
+# Subtest: an attachment is durable before the sheet may close, then uploads and attaches in the background
+ok 614 - an attachment is durable before the sheet may close, then uploads and attaches in the background
+  ---
+  duration_ms: 9.268285
+  type: 'test'
+  ...
+# Subtest: a failed attachment keeps the photo and retries from the chip
+ok 615 - a failed attachment keeps the photo and retries from the chip
+  ---
+  duration_ms: 21.877143
+  type: 'test'
+  ...
+# Subtest: an attachment is not a feed card
+ok 616 - an attachment is not a feed card
+  ---
+  duration_ms: 7.925536
+  type: 'test'
+  ...
+# Subtest: reloading a failed attachment reuses its durable stage after an ambiguous response
+ok 617 - reloading a failed attachment reuses its durable stage after an ambiguous response
+  ---
+  duration_ms: 22.572458
+  type: 'test'
+  ...
+# Subtest: a rejected attachment checkpoint leaves only the sheet owning a retry, even when the write committed
+ok 618 - a rejected attachment checkpoint leaves only the sheet owning a retry, even when the write committed
+  ---
+  duration_ms: 9.519444
+  type: 'test'
+  ...
+# Subtest: a persisted expired stage is reconciled before renewal and its kept photo uploads after reload
+ok 619 - a persisted expired stage is reconciled before renewal and its kept photo uploads after reload
+  ---
+  duration_ms: 10.910312
+  type: 'test'
+  ...
+# Subtest: an old committed attachment with a lost response is not renewed merely because time passed
+ok 620 - an old committed attachment with a lost response is not renewed merely because time passed
+  ---
+  duration_ms: 5.191518
+  type: 'test'
+  ...
+# Subtest: upload publication is atomic, owner scoped, idempotent and gated on storage objects
+ok 621 - upload publication is atomic, owner scoped, idempotent and gated on storage objects
+  ---
+  duration_ms: 1630.625085
+  type: 'test'
+  ...
+# Subtest: shared signing stays write-once for legacy/staged callers
+ok 622 - shared signing stays write-once for legacy/staged callers
+  ---
+  duration_ms: 3.297093
+  type: 'test'
+  ...
+# Subtest: an owned active unpublished reservation explicitly enables scoped renewal of existing copies
+ok 623 - an owned active unpublished reservation explicitly enables scoped renewal of existing copies
+  ---
+  duration_ms: 0.890833
+  type: 'test'
+  ...
+# Subtest: published reservations return completed without issuing any upload capability
+ok 624 - published reservations return completed without issuing any upload capability
+  ---
+  duration_ms: 1.28439
+  type: 'test'
+  ...
+# Subtest: an arbitrary owned ready ID or another owner rejected by the reservation cannot reach signing
+ok 625 - an arbitrary owned ready ID or another owner rejected by the reservation cannot reach signing
+  ---
+  duration_ms: 0.509275
+  type: 'test'
+  ...
+# Subtest: malformed reservation results never turn into overwrite capabilities
+ok 626 - malformed reservation results never turn into overwrite capabilities
+  ---
+  duration_ms: 0.410677
+  type: 'test'
+  ...
+# Subtest: storage ownership remains checked even after a successful reservation
+ok 627 - storage ownership remains checked even after a successful reservation
+  ---
+  duration_ms: 0.391436
+  type: 'test'
+  ...
+# Subtest: existing single-leftovers rollout fallback preserves the verified owner and guard
+ok 628 - existing single-leftovers rollout fallback preserves the verified owner and guard
+  ---
+  duration_ms: 0.664555
+  type: 'test'
+  ...
+# Subtest: expired reservations never receive renewed capabilities
+ok 629 - expired reservations never receive renewed capabilities
+  ---
+  duration_ms: 0.369677
+  type: 'test'
+  ...
+# Subtest: text-only reservations do not mint photo capabilities
+ok 630 - text-only reservations do not mint photo capabilities
+  ---
+  duration_ms: 1.027832
+  type: 'test'
+  ...
+# Subtest: missing multi-leftovers support cannot fall back to an unmarked reservation
+ok 631 - missing multi-leftovers support cannot fall back to an unmarked reservation
+  ---
+  duration_ms: 1.25887
+  type: 'test'
+  ...
+# Subtest: actual draft staging then submit can renew existing paths without uploading acknowledged bytes twice
+ok 632 - actual draft staging then submit can renew existing paths without uploading acknowledged bytes twice
+  ---
+  duration_ms: 25.512874
+  type: 'test'
+  ...
+# Subtest: verified cookie parses UUID identity hints and clears explicitly
+ok 633 - verified cookie parses UUID identity hints and clears explicitly
+  ---
+  duration_ms: 1.074912
+  type: 'test'
+  ...
+# Subtest: browser identity hint is used only when it matches the real session account
+ok 634 - browser identity hint is used only when it matches the real session account
+  ---
+  duration_ms: 8.386412
+  type: 'test'
+  ...
+# auth verify middleware /profile
+# auth verify middleware /profile
+# auth verify middleware /posts
+# auth verify middleware /posts/10000000-0000-4000-8000-000000000001
+# auth verify middleware /posts/10000000-0000-4000-8000-000000000001/edit
+# auth verify middleware /posts/10000000-0000-4000-8000-000000000001
+# Subtest: a forged verified ID cannot authenticate a protected request with no user
+ok 635 - a forged verified ID cannot authenticate a protected request with no user
+  ---
+  duration_ms: 12.370021
+  type: 'test'
+  ...
+# Subtest: middleware replaces a forged header with the Auth-verified ID on the forwarded request only
+ok 636 - middleware replaces a forged header with the Auth-verified ID on the forwarded request only
+  ---
+  duration_ms: 8.392572
+  type: 'test'
+  ...
+# Subtest: the forwarding refresh preserves changed session cookies and their attributes
+ok 637 - the forwarding refresh preserves changed session cookies and their attributes
+  ---
+  duration_ms: 1.601547
+  type: 'test'
+  ...
+# Subtest: the real matcher runs the trust boundary for forged standalone post requests without a session
+ok 638 - the real matcher runs the trust boundary for forged standalone post requests without a session
+  ---
+  duration_ms: 14.84384
+  type: 'test'
+  ...
+# Subtest: a matched standalone detail forwards only the verified session identity with one Auth check
+ok 639 - a matched standalone detail forwards only the verified session identity with one Auth check
+  ---
+  duration_ms: 6.27987
+  type: 'test'
+  ...
+# Subtest: late stop still produces a capped WAV and multipart body below deployment limit
+ok 640 - late stop still produces a capped WAV and multipart body below deployment limit
+  ---
+  duration_ms: 95.286271
+  type: 'test'
+  ...
+# Subtest: native 44100 Hz capture becomes one second of mono PCM16 at 16 kHz
+ok 641 - native 44100 Hz capture becomes one second of mono PCM16 at 16 kHz
+  ---
+  duration_ms: 10.144998
+  type: 'test'
+  ...
+# Subtest: native 48000 Hz capture becomes one second of mono PCM16 at 16 kHz
+ok 642 - native 48000 Hz capture becomes one second of mono PCM16 at 16 kHz
+  ---
+  duration_ms: 0.749914
+  type: 'test'
+  ...
+# Subtest: model summaries reject coaching and remaining-target language
+ok 643 - model summaries reject coaching and remaining-target language
+  ---
+  duration_ms: 3.116495
+  type: 'test'
+  ...
+# Subtest: fallback preserves unavailable nutrition rather than inventing zero
+ok 644 - fallback preserves unavailable nutrition rather than inventing zero
+  ---
+  duration_ms: 20.503795
+  type: 'test'
+  ...
+# Subtest: worker concurrency accepts only a small positive integer
+ok 645 - worker concurrency accepts only a small positive integer
+  ---
+  duration_ms: 0.819473
+  type: 'test'
+  ...
+# Subtest: nutrition uses remaining invocation time and reserves persistence plus the global tail
+ok 646 - nutrition uses remaining invocation time and reserves persistence plus the global tail
+  ---
+  duration_ms: 0.911553
+  type: 'test'
+  ...
+# Subtest: raw Meta requests stop at the invocation deadline without a transport retry
+ok 647 - raw Meta requests stop at the invocation deadline without a transport retry
+  ---
+  duration_ms: 21.728425
+  type: 'test'
+  ...
+# Subtest: expired invocation cannot start an SDK request or extend an existing caller signal
+ok 648 - expired invocation cannot start an SDK request or extend an existing caller signal
+  ---
+  duration_ms: 465.899241
+  type: 'test'
+  ...
+# Subtest: late worker handoff skips both the timer and request so the durable wake can take over
+ok 649 - late worker handoff skips both the timer and request so the durable wake can take over
+  ---
+  duration_ms: 2.006064
+  type: 'test'
+  ...
+# Subtest: a handoff timer that resumes late cannot launch a request
+ok 650 - a handoff timer that resumes late cannot launch a request
+  ---
+  duration_ms: 0.551955
+  type: 'test'
+  ...
+# Subtest: a lone abandoned running job can acquire a recovery worker
+ok 651 - a lone abandoned running job can acquire a recovery worker
+  ---
+  duration_ms: 1.939984
+  type: 'test'
+  ...
+# Subtest: blocked due work waits for eligibility instead of immediately self-ticking
+ok 652 - blocked due work waits for eligibility instead of immediately self-ticking
+  ---
+  duration_ms: 1.928225
+  type: 'test'
+  ...
+# Subtest: renewal checks the dedicated ownership RPC and refuses a lost lease
+ok 653 - renewal checks the dedicated ownership RPC and refuses a lost lease
+  ---
+  duration_ms: 1.505907
+  type: 'test'
+  ...
+# Subtest: a USDA retry time reaches the durable queue unchanged instead of fail_job
+ok 654 - a USDA retry time reaches the durable queue unchanged instead of fail_job
+  ---
+  duration_ms: 2.024544
+  type: 'test'
+  ...
+# Subtest: a lost lease stops the worker before it claims another job
+ok 655 - a lost lease stops the worker before it claims another job
+  ---
+  duration_ms: 0.879073
+  type: 'test'
+  ...
+# Subtest: public failure messages use fixed copy and never echo raw provider diagnostics
+ok 656 - public failure messages use fixed copy and never echo raw provider diagnostics
+  ---
+  duration_ms: 0.258198
+  type: 'test'
+  ...
+# Subtest: fetch timeout causes remain retryable through SDK wrappers
+ok 657 - fetch timeout causes remain retryable through SDK wrappers
+  ---
+  duration_ms: 1.21971
+  type: 'test'
+  ...
+# Analysis progress could not be saved.
+# Subtest: native fetch AbortSignal timeout is retryable
+ok 658 - native fetch AbortSignal timeout is retryable
+  ---
+  duration_ms: 42.058621
+  type: 'test'
+  ...
+# Subtest: pipeline preserves real Supabase Storage HTTP and timeout metadata
+ok 659 - pipeline preserves real Supabase Storage HTTP and timeout metadata
+  ---
+  duration_ms: 353.835145
+  type: 'test'
+  ...
+# Analysis progress could not be saved.
+# Analysis progress could not be saved.
+# Subtest: database HTTP and serialized transport errors survive persist and finish boundaries
+ok 660 - database HTTP and serialized transport errors survive persist and finish boundaries
+  ---
+  duration_ms: 14087.964821
+  type: 'test'
+  ...
+# Subtest: PostgREST transaction conflicts retry despite HTTP409; constraints do not
+ok 661 - PostgREST transaction conflicts retry despite HTTP409; constraints do not
+  ---
+  duration_ms: 8.63193
+  type: 'test'
+  ...
+# Subtest: durable scheduler is dormant, due-only, repeatable and service-restricted
+ok 662 - durable scheduler is dormant, due-only, repeatable and service-restricted
+  ---
+  duration_ms: 1060.657323
+  type: 'test'
+  ...
+# Subtest: a time zone from the UTC fallback is not written into links
+ok 663 - a time zone from the UTC fallback is not written into links
+  ---
+  duration_ms: 0.829153
+  type: 'test'
+  ...
+# Subtest: a time zone the reader chose or the cookie holds is carried in links
+ok 664 - a time zone the reader chose or the cookie holds is carried in links
+  ---
+  duration_ms: 0.182158
+  type: 'test'
+  ...
+1..664
+# tests 665
+# suites 0
+# pass 659
+# fail 0
+# cancelled 0
+# skipped 6
+# todo 0
+# duration_ms 267988.128229

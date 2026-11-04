@@ -1,0 +1,73 @@
+{
+  "base": "http://127.0.0.1:60261",
+  "observedAt": "2026-11-04T14:30:00.181Z",
+  "m8": {
+    "persistsAcrossReload": true,
+    "phoneModeVideoCount": 0,
+    "nativeCaptureClicks": 1,
+    "shares": [
+      [
+        {
+          "name": "meal.jpg",
+          "type": "image/jpeg",
+          "size": 40909
+        }
+      ]
+    ],
+    "download": "meal.jpg"
+  },
+  "m11": [
+    {
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "requests": [
+        {
+          "servings": 1.5
+        },
+        {
+          "servings": 0.5
+        },
+        {
+          "servings": 2
+        },
+        {
+          "servings": 1
+        }
+      ],
+      "invalidRestores": "0.5",
+      "repeatedInvalidSendsNoRequest": true,
+      "failedSaveRestores": "0.5",
+      "stepAfterFailure": 1,
+      "restored": 1
+    },
+    {
+      "viewport": {
+        "width": 1280,
+        "height": 800
+      },
+      "requests": [
+        {
+          "servings": 1.5
+        },
+        {
+          "servings": 0.5
+        },
+        {
+          "servings": 2
+        },
+        {
+          "servings": 1
+        }
+      ],
+      "invalidRestores": "0.5",
+      "repeatedInvalidSendsNoRequest": true,
+      "failedSaveRestores": "0.5",
+      "stepAfterFailure": 1,
+      "restored": 1
+    }
+  ],
+  "errors": [],
+  "pass": true
+}

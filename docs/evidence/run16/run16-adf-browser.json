@@ -1,0 +1,310 @@
+{
+  "base": "http://127.0.0.1:60261",
+  "observedAt": "2026-11-04T14:31:41.125Z",
+  "engine": "Chromium driven by Playwright; DOM Range/getBoundingClientRect readings",
+  "m1": [
+    {
+      "viewport": {
+        "width": 1100,
+        "height": 800
+      },
+      "texts": {
+        "number": {
+          "x": 485.015625,
+          "y": 295.5625,
+          "width": 127.96875,
+          "height": 126,
+          "top": 295.5625,
+          "right": 612.984375,
+          "bottom": 421.5625,
+          "left": 485.015625
+        },
+        "kcal": {
+          "x": 485.015625,
+          "y": 410,
+          "width": 35.078125,
+          "height": 26,
+          "top": 410,
+          "right": 520.09375,
+          "bottom": 436,
+          "left": 485.015625
+        }
+      },
+      "arrows": [
+        {
+          "label": "Previous slide",
+          "rect": {
+            "x": 432,
+            "y": 384.171875,
+            "width": 32,
+            "height": 32,
+            "top": 384.171875,
+            "right": 464,
+            "bottom": 416.171875,
+            "left": 432
+          }
+        },
+        {
+          "label": "Next slide",
+          "rect": {
+            "x": 876,
+            "y": 384.171875,
+            "width": 32,
+            "height": 32,
+            "top": 384.171875,
+            "right": 908,
+            "bottom": 416.171875,
+            "left": 876
+          }
+        }
+      ],
+      "overlaps": [],
+      "pass": true
+    },
+    {
+      "viewport": {
+        "width": 1280,
+        "height": 800
+      },
+      "texts": {
+        "number": {
+          "x": 403.015625,
+          "y": 295.5625,
+          "width": 127.96875,
+          "height": 126,
+          "top": 295.5625,
+          "right": 530.984375,
+          "bottom": 421.5625,
+          "left": 403.015625
+        },
+        "kcal": {
+          "x": 403.015625,
+          "y": 410,
+          "width": 35.078125,
+          "height": 26,
+          "top": 410,
+          "right": 438.09375,
+          "bottom": 436,
+          "left": 403.015625
+        }
+      },
+      "arrows": [
+        {
+          "label": "Previous slide",
+          "rect": {
+            "x": 350,
+            "y": 384.171875,
+            "width": 32,
+            "height": 32,
+            "top": 384.171875,
+            "right": 382,
+            "bottom": 416.171875,
+            "left": 350
+          }
+        },
+        {
+          "label": "Next slide",
+          "rect": {
+            "x": 794,
+            "y": 384.171875,
+            "width": 32,
+            "height": 32,
+            "top": 384.171875,
+            "right": 826,
+            "bottom": 416.171875,
+            "left": 794
+          }
+        }
+      ],
+      "overlaps": [],
+      "pass": true
+    },
+    {
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "texts": {
+        "number": {
+          "x": 483.015625,
+          "y": 345.5625,
+          "width": 127.96875,
+          "height": 126,
+          "top": 345.5625,
+          "right": 610.984375,
+          "bottom": 471.5625,
+          "left": 483.015625
+        },
+        "kcal": {
+          "x": 483.015625,
+          "y": 460,
+          "width": 35.078125,
+          "height": 26,
+          "top": 460,
+          "right": 518.09375,
+          "bottom": 486,
+          "left": 483.015625
+        }
+      },
+      "arrows": [
+        {
+          "label": "Previous slide",
+          "rect": {
+            "x": 430,
+            "y": 434.171875,
+            "width": 32,
+            "height": 32,
+            "top": 434.171875,
+            "right": 462,
+            "bottom": 466.171875,
+            "left": 430
+          }
+        },
+        {
+          "label": "Next slide",
+          "rect": {
+            "x": 874,
+            "y": 434.171875,
+            "width": 32,
+            "height": 32,
+            "top": 434.171875,
+            "right": 906,
+            "bottom": 466.171875,
+            "left": 874
+          }
+        }
+      ],
+      "overlaps": [],
+      "pass": true
+    },
+    {
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "limitation": "Phone detail has photo-only slides since Fleet15; measured actual kcal text against visible photo arrows.",
+      "texts": [
+        {
+          "text": "kcal",
+          "rect": {
+            "x": 51.453125,
+            "y": 742.28125,
+            "width": 20.078125,
+            "height": 15,
+            "top": 742.28125,
+            "right": 71.53125,
+            "bottom": 757.28125,
+            "left": 51.453125
+          }
+        }
+      ],
+      "arrows": [],
+      "overlaps": [],
+      "pass": true
+    }
+  ],
+  "m5": [
+    {
+      "control": "Bottom bar +",
+      "rect": {
+        "x": 173,
+        "y": 769,
+        "width": 44,
+        "height": 44
+      },
+      "pass": true
+    },
+    {
+      "control": "Caption more",
+      "rect": {
+        "x": 330,
+        "y": 1268.75,
+        "width": 44,
+        "height": 44
+      },
+      "pass": true
+    },
+    {
+      "control": "Saved meals Log now",
+      "rect": {
+        "x": 290.875,
+        "y": 579.5,
+        "width": 79.125,
+        "height": 44
+      },
+      "pass": true
+    },
+    {
+      "control": "Search field",
+      "rect": {
+        "x": 62,
+        "y": 6,
+        "width": 294,
+        "height": 44
+      },
+      "pass": true
+    },
+    {
+      "control": "Capture Photo mode",
+      "rect": {
+        "x": 155.640625,
+        "y": 402,
+        "width": 78.890625,
+        "height": 44
+      },
+      "pass": true
+    },
+    {
+      "control": "Capture Text mode",
+      "rect": {
+        "x": 65.5,
+        "y": 402,
+        "width": 66.140625,
+        "height": 44
+      },
+      "pass": true
+    },
+    {
+      "control": "Capture Barcode mode",
+      "rect": {
+        "x": 258.53125,
+        "y": 402,
+        "width": 113.390625,
+        "height": 44
+      },
+      "pass": true
+    },
+    {
+      "control": "Capture Caption field",
+      "rect": {
+        "x": 15.95418930053711,
+        "y": 98,
+        "width": 358.00000381469727,
+        "height": 44
+      },
+      "pass": true
+    },
+    {
+      "control": "Drink description",
+      "rect": {
+        "x": 37,
+        "y": 677,
+        "width": 260,
+        "height": 46
+      },
+      "pass": true
+    }
+  ],
+  "m2": {
+    "onLoad": 0,
+    "afterJ": {
+      "focused": "bb5c0c94-df49-4f7d-b92c-0ebcace8ff0d",
+      "first": "bb5c0c94-df49-4f7d-b92c-0ebcace8ff0d"
+    },
+    "afterPointer": 0,
+    "tabPresses": 13,
+    "afterTab": 1,
+    "scope": "Local production build at1280x800; production acceptance pending",
+    "pass": true
+  }
+}

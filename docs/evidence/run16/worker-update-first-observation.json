@@ -1,0 +1,342 @@
+{
+  "origin": "https://my-food-ai-ten.vercel.app",
+  "startedAt": "2026-11-04T14:53:57.870Z",
+  "expectedX": "5e59de98b453642c6fba7e6bea0a91672547f5ee",
+  "profile": "/tmp/run16-m3-production-profile",
+  "engine": "Dedicated persistent Chromium; actual Network.emulateNetworkConditions on page AND all related service-worker targets",
+  "throttleReceipts": [
+    {
+      "time": 1793804039052,
+      "phase": "X-install",
+      "target": "F9BF249E696FB19B5D862186EA24D21F",
+      "accepted": true,
+      "latency": 0
+    },
+    {
+      "time": 1793804039336,
+      "phase": "X-install",
+      "target": "F9BF249E696FB19B5D862186EA24D21F",
+      "accepted": true,
+      "latency": 0
+    },
+    {
+      "time": 1793804041240,
+      "phase": "X-stale-shell",
+      "target": "page",
+      "accepted": true,
+      "latency": 2500
+    },
+    {
+      "time": 1793804041242,
+      "phase": "X-stale-shell",
+      "target": "F9BF249E696FB19B5D862186EA24D21F",
+      "accepted": true,
+      "latency": 2500
+    }
+  ],
+  "workerSnapshots": [
+    {
+      "time": 1793804041238,
+      "phase": "X-install",
+      "label": "X installed",
+      "target": "F9BF249E696FB19B5D862186EA24D21F",
+      "build": "5e59de98b453642c6fba7e6bea0a91672547f5ee",
+      "scriptURL": "https://my-food-ai-ten.vercel.app/sw.js",
+      "activeState": "activated"
+    },
+    {
+      "time": 1793804043006,
+      "phase": "X-stale-shell",
+      "label": "X cached-shell reading",
+      "target": "F9BF249E696FB19B5D862186EA24D21F",
+      "build": "5e59de98b453642c6fba7e6bea0a91672547f5ee",
+      "scriptURL": "https://my-food-ai-ten.vercel.app/sw.js",
+      "activeState": "activated"
+    },
+    {
+      "time": 1793804167879,
+      "phase": "Y-one-normal-reload",
+      "label": "Y after automatic navigation",
+      "target": "F9BF249E696FB19B5D862186EA24D21F",
+      "build": "5e59de98b453642c6fba7e6bea0a91672547f5ee",
+      "scriptURL": "https://my-food-ai-ten.vercel.app/sw.js",
+      "activeState": "activated"
+    }
+  ],
+  "documents": [
+    {
+      "time": 1793804039202,
+      "phase": "X-install",
+      "url": "https://my-food-ai-ten.vercel.app/",
+      "status": 200,
+      "fromServiceWorker": true,
+      "fromDiskCache": false
+    },
+    {
+      "time": 1793804040373,
+      "phase": "X-install",
+      "url": "https://my-food-ai-ten.vercel.app/",
+      "status": 200,
+      "fromServiceWorker": true,
+      "fromDiskCache": false
+    },
+    {
+      "time": 1793804042754,
+      "phase": "X-stale-shell",
+      "url": "https://my-food-ai-ten.vercel.app/",
+      "status": 200,
+      "fromServiceWorker": true,
+      "fromDiskCache": true
+    },
+    {
+      "time": 1793804045679,
+      "phase": "await-next-deployment",
+      "url": "https://my-food-ai-ten.vercel.app/?_=1793804043146",
+      "status": 200,
+      "fromServiceWorker": true,
+      "fromDiskCache": false
+    },
+    {
+      "time": 1793804164826,
+      "phase": "Y-one-normal-reload",
+      "url": "https://my-food-ai-ten.vercel.app/",
+      "status": 200,
+      "fromServiceWorker": true,
+      "fromDiskCache": true
+    },
+    {
+      "time": 1793804167692,
+      "phase": "Y-one-normal-reload",
+      "url": "https://my-food-ai-ten.vercel.app/?_=1793804165138",
+      "status": 200,
+      "fromServiceWorker": true,
+      "fromDiskCache": false
+    }
+  ],
+  "domObservations": [
+    {
+      "received": 1793804039285,
+      "phase": "X-install",
+      "time": 1793804039227,
+      "timeOrigin": 1793804039005,
+      "elapsed": 222.80000019073486,
+      "build": "5e59de98b453642c6fba7e6bea0a91672547f5ee",
+      "shell": false,
+      "url": "https://my-food-ai-ten.vercel.app/"
+    },
+    {
+      "received": 1793804040447,
+      "phase": "X-install",
+      "time": 1793804040422,
+      "timeOrigin": 1793804040167.7,
+      "elapsed": 254.69999980926514,
+      "build": "5e59de98b453642c6fba7e6bea0a91672547f5ee",
+      "shell": false,
+      "url": "https://my-food-ai-ten.vercel.app/"
+    },
+    {
+      "received": 1793804042819,
+      "phase": "X-stale-shell",
+      "time": 1793804042805,
+      "timeOrigin": 1793804041247.1,
+      "elapsed": 1558.9000000953674,
+      "build": "5e59de98b453642c6fba7e6bea0a91672547f5ee",
+      "shell": false,
+      "url": "https://my-food-ai-ten.vercel.app/"
+    },
+    {
+      "received": 1793804042822,
+      "phase": "X-stale-shell",
+      "time": 1793804042813,
+      "timeOrigin": 1793804041247.1,
+      "elapsed": 1566.9000000953674,
+      "build": "5e59de98b453642c6fba7e6bea0a91672547f5ee",
+      "shell": true,
+      "url": "https://my-food-ai-ten.vercel.app/"
+    },
+    {
+      "received": 1793804045768,
+      "phase": "await-next-deployment",
+      "time": 1793804045742,
+      "timeOrigin": 1793804043148.2,
+      "elapsed": 2594.8999996185303,
+      "build": "5e59de98b453642c6fba7e6bea0a91672547f5ee",
+      "shell": false,
+      "url": "https://my-food-ai-ten.vercel.app/?_=1793804043146"
+    },
+    {
+      "received": 1793804164942,
+      "phase": "Y-one-normal-reload",
+      "time": 1793804164938,
+      "timeOrigin": 1793804163312.6,
+      "elapsed": 1626.2000002861023,
+      "build": "5e59de98b453642c6fba7e6bea0a91672547f5ee",
+      "shell": false,
+      "url": "https://my-food-ai-ten.vercel.app/"
+    },
+    {
+      "received": 1793804164951,
+      "phase": "Y-one-normal-reload",
+      "time": 1793804164950,
+      "timeOrigin": 1793804163312.6,
+      "elapsed": 1637.8000001907349,
+      "build": "5e59de98b453642c6fba7e6bea0a91672547f5ee",
+      "shell": true,
+      "url": "https://my-food-ai-ten.vercel.app/"
+    },
+    {
+      "received": 1793804167809,
+      "phase": "Y-one-normal-reload",
+      "time": 1793804167783,
+      "timeOrigin": 1793804165140.2,
+      "elapsed": 2643.5,
+      "build": "3de232f7e8dbf416db44d8d30985d264bed03a30",
+      "shell": false,
+      "url": "https://my-food-ai-ten.vercel.app/?_=1793804165138"
+    }
+  ],
+  "navigations": [
+    {
+      "time": 1793804039233,
+      "phase": "X-install",
+      "url": "https://my-food-ai-ten.vercel.app/"
+    },
+    {
+      "time": 1793804039519,
+      "phase": "X-install",
+      "url": "https://my-food-ai-ten.vercel.app/"
+    },
+    {
+      "time": 1793804040429,
+      "phase": "X-install",
+      "url": "https://my-food-ai-ten.vercel.app/"
+    },
+    {
+      "time": 1793804040577,
+      "phase": "X-install",
+      "url": "https://my-food-ai-ten.vercel.app/"
+    },
+    {
+      "time": 1793804042791,
+      "phase": "X-stale-shell",
+      "url": "https://my-food-ai-ten.vercel.app/"
+    },
+    {
+      "time": 1793804042914,
+      "phase": "X-stale-shell",
+      "url": "https://my-food-ai-ten.vercel.app/"
+    },
+    {
+      "time": 1793804045724,
+      "phase": "await-next-deployment",
+      "url": "https://my-food-ai-ten.vercel.app/?_=1793804043146"
+    },
+    {
+      "time": 1793804045862,
+      "phase": "await-next-deployment",
+      "url": "https://my-food-ai-ten.vercel.app/?_=1793804043146"
+    },
+    {
+      "time": 1793804048380,
+      "phase": "await-next-deployment",
+      "url": "https://my-food-ai-ten.vercel.app/"
+    },
+    {
+      "time": 1793804053673,
+      "phase": "await-next-deployment",
+      "url": "https://my-food-ai-ten.vercel.app/"
+    },
+    {
+      "time": 1793804065840,
+      "phase": "await-next-deployment",
+      "url": "https://my-food-ai-ten.vercel.app/"
+    },
+    {
+      "time": 1793804078014,
+      "phase": "await-next-deployment",
+      "url": "https://my-food-ai-ten.vercel.app/"
+    },
+    {
+      "time": 1793804090221,
+      "phase": "await-next-deployment",
+      "url": "https://my-food-ai-ten.vercel.app/"
+    },
+    {
+      "time": 1793804102393,
+      "phase": "await-next-deployment",
+      "url": "https://my-food-ai-ten.vercel.app/"
+    },
+    {
+      "time": 1793804114561,
+      "phase": "await-next-deployment",
+      "url": "https://my-food-ai-ten.vercel.app/"
+    },
+    {
+      "time": 1793804126756,
+      "phase": "await-next-deployment",
+      "url": "https://my-food-ai-ten.vercel.app/"
+    },
+    {
+      "time": 1793804138925,
+      "phase": "await-next-deployment",
+      "url": "https://my-food-ai-ten.vercel.app/"
+    },
+    {
+      "time": 1793804151092,
+      "phase": "await-next-deployment",
+      "url": "https://my-food-ai-ten.vercel.app/"
+    },
+    {
+      "time": 1793804163275,
+      "phase": "await-next-deployment",
+      "url": "https://my-food-ai-ten.vercel.app/"
+    },
+    {
+      "time": 1793804164907,
+      "phase": "Y-one-normal-reload",
+      "url": "https://my-food-ai-ten.vercel.app/"
+    },
+    {
+      "time": 1793804165047,
+      "phase": "Y-one-normal-reload",
+      "url": "https://my-food-ai-ten.vercel.app/"
+    },
+    {
+      "time": 1793804167770,
+      "phase": "Y-one-normal-reload",
+      "url": "https://my-food-ai-ten.vercel.app/?_=1793804165138"
+    }
+  ],
+  "errors": [],
+  "initial": {
+    "build": "5e59de98b453642c6fba7e6bea0a91672547f5ee",
+    "controller": "https://my-food-ai-ten.vercel.app/sw.js",
+    "path": "/"
+  },
+  "cachedX": {
+    "build": "5e59de98b453642c6fba7e6bea0a91672547f5ee",
+    "shell": true,
+    "controller": "https://my-food-ai-ten.vercel.app/sw.js"
+  },
+  "expectedY": "3de232f7e8dbf416db44d8d30985d264bed03a30",
+  "yReloadStartedAt": 1793804163307,
+  "firstDocumentAfterReload": {
+    "received": 1793804164942,
+    "phase": "Y-one-normal-reload",
+    "time": 1793804164938,
+    "timeOrigin": 1793804163312.6,
+    "elapsed": 1626.2000002861023,
+    "build": "5e59de98b453642c6fba7e6bea0a91672547f5ee",
+    "shell": false,
+    "url": "https://my-food-ai-ten.vercel.app/"
+  },
+  "final": {
+    "build": "3de232f7e8dbf416db44d8d30985d264bed03a30",
+    "shell": false,
+    "controller": "https://my-food-ai-ten.vercel.app/sw.js"
+  },
+  "workerYObserved": false,
+  "windowNavigatedItself": true,
+  "pass": false,
+  "finishedAt": "2026-11-04T14:56:07.882Z"
+}

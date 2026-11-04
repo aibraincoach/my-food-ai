@@ -5,6 +5,10 @@ description: Run the PPLX code review (Gemini 3.8 Flash on Perplexity, Firefox h
 
 # PPLX review runner
 
+Owner Fleet 15 override, November 4, 2026: AGY may be run when needed and its complete exact-head receipts count. PPLX may use ChatGPT, including GPT-6.1 Sol, under the owner's explicit quota override. Record the actual model and submit exactly `code review <PR URL>`; no extra instruction is submitted. This supersedes the older Muse-only route restriction and Gemini-only PPLX restriction for Fleet 15. Existing deviation and truncation labels remain part of the record; a finding is checked against source, and changed code needs a fresh receipt at its new head. Review clearance is not a merge order.
+
+For Fleet15, the owner's isolation instruction supersedes the shared-browser steps below: use a separately owned Firefox endpoint/profile on another port; leave Fleet14 and the owner's tabs alone.
+
 Policy lives in `REVIEW_POLICY.md` and `docs/pplx-review-procedure.md`. Ported from naval-association-calgary / calgarysalutes-website (2026-10-14). This skill is the mechanics.
 
 1. Attach to the original authenticated Firefox on display :10 through BiDi. Never copy its profile. Restart that same profile with session restoration if BiDi needs enabling. Inspect the page every second, and diagnose missing input immediately. A selector failure is an automation failure, not PPLX response latency. Run the memory guard for `PPLX_TABS` tabs:
