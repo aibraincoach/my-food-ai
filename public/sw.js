@@ -1,5 +1,4 @@
 importScripts("/build.js");
-let updating = false;
 const SHELL_CACHE = "my-food-ai-shell-v4";
 // Retire the previous media cache, which had no durable logout tombstones.
 const MEDIA_CACHE = "mfa-media-v2";
@@ -84,7 +83,7 @@ async function disableMedia(state, data = {}) {
 }
 
 self.addEventListener("install", event => {
-  updating = Boolean(self.registration.active);
+  const updating = Boolean(self.registration.active);
   self.skipWaiting();
   event.waitUntil((async () => {
     const cache = await caches.open(SHELL_CACHE);
@@ -93,7 +92,13 @@ self.addEventListener("install", event => {
       const response = await fetch(new Request(new URL(path, self.location.origin), {credentials: "omit", cache: "reload"}));
       if (!response.ok) throw Error("App shell could not be cached.");
       if (path === "/shell") shell = await response.clone().text();
-      await putDecoded(cache, path, response);
+      // Persist update identity in an existing public cache entry: a worker
+      // can restart between install and activate, losing every global variable.
+      if (path === "/manifest.webmanifest") {
+        const headers = new Headers(response.headers);
+        headers.set("x-mfa-update-build", updating ? self.BUILD : "");
+        await putDecoded(cache, path, new Response(response.body, {status: response.status, statusText: response.statusText, headers}));
+      } else await putDecoded(cache, path, response);
     }
     // The first fallback must not download a new client bundle before showing
     // the last feed. No authenticated HTML, API result or private media enters
@@ -115,7 +120,8 @@ self.addEventListener("activate", event => {
     await self.clients.claim();
     // An update replaces old cached documents without requiring a hard refresh.
     // First installation leaves the current page alone.
-    if (updating) for (const client of await self.clients.matchAll({type: "window"})) {
+    const manifest = await (await caches.open(SHELL_CACHE)).match("/manifest.webmanifest");
+    if (manifest?.headers.get("x-mfa-update-build") === self.BUILD) for (const client of await self.clients.matchAll({type: "window"})) {
       if (new URL(client.url).origin === self.location.origin) await client.navigate(client.url).catch(() => {});
     }
   })());
