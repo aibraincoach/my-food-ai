@@ -49,6 +49,7 @@ test('actual middleware calls hint only for authenticated home and appends it to
    if(name==='next/server')return {NextResponse:{redirect:()=>new Response(null,{status:307})}};
    if(name==='@supabase/ssr')return {createServerClient:()=>({auth:{getUser:async()=>({data:{user}}),getSession:async()=>({data:{session:null}})}})};
    if(name==='@/lib/auth/admin-access')return {};
+   if(name==='@/lib/auth/post-access')return {};
    if(name==='@/lib/auth/session-cookies')return {sessionCookieBridge:()=>({response,cookies:{setAll(){}},apply:r=>r,refreshRequestHeaders:()=>{}})};
    if(name==='@/lib/posts/home-photo-preload')return {homePhotoPreload:async()=>{hints++;return '<test>; rel=preload';}};
    throw Error(name);
