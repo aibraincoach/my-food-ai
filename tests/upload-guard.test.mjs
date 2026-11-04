@@ -102,3 +102,55 @@ test('a late authentication response cannot revive an operation after its manage
  const draft={setProgress(){},snapshot:async()=>null,stage:async()=>{throw Error('must not stage')},submit:async()=>{throw Error('must not publish')}};
  const manager=new UploadManager(store,()=>draft,async()=>{},fetch,()=>auth);const id=manager.stage([file],fields);const ack=manager.post(id);await manager.clear();authenticate('owner');assert.equal(await ack,false);await pause();assert.deepEqual(manager.list(),[]);assert.equal(rows.size,0);
 });
+
+function attachHarness(media){
+ const rows=new Map(),calls=[];
+ const store={all:async()=>[...rows.values()],put:async row=>{await pause();rows.set(row.operationId,structuredClone(row));},remove:async id=>{rows.delete(id);},clear:async()=>rows.clear()};
+ const request=async(url,init)=>{
+  const path=typeof url==='string'?url:url.url;calls.push(path);
+  if(path.endsWith('/api/media/sign-upload'))return Response.json({uploads:[{position:0,originalPath:'owner/stage/0.jpg',feedPath:'owner/stage/0.feed.jpg',originalSignedUrl:'https://storage.invalid/o',feedSignedUrl:'https://storage.invalid/f'}]});
+  if(path.startsWith('https://storage.invalid/'))return new Response(null,{status:200});
+  if(path.endsWith('/media'))return media(init);
+  throw Error('unexpected '+path);
+ };
+ const encode=async()=>({original:new Blob(['o']),feed:new Blob(['f']),phash:'1',width:10,height:10});
+ const makeDraft=()=>({setProgress(){},restore(){},snapshot:async()=>null,stage:async()=>{throw Error('attachments never stage a draft')},submit:async()=>{throw Error('attachments never submit a draft')}});
+ const make=()=>new UploadManager(store,makeDraft,async()=>{},request,async()=>'owner',encode);
+ return{manager:make(),make,store,rows,calls};
+}
+test('an attachment is durable before the sheet may close, then uploads and attaches in the background',async()=>{
+ const {manager,store,rows,calls}=attachHarness(()=>Response.json({post_id:'post-1'},{status:201}));
+ await manager.initialize('owner');const id=await manager.postAttachment(file,{postId:'post-1',notEaten:true});
+ assert.equal(rows.get(id).posted,true);assert.equal(rows.get(id).attachment.notEaten,true);
+ assert.equal(calls.filter(c=>c.endsWith('/media')).length,0);
+ await until(()=>manager.list()[0]?.postId==='post-1');
+ assert.deepEqual(calls,['/api/media/sign-upload','https://storage.invalid/o','https://storage.invalid/f','/api/posts/post-1/media']);
+ assert.equal((await store.all()).length,0);
+});
+test('a failed attachment keeps the photo and retries from the chip',async()=>{
+ let succeed=false;
+ const {manager,rows,calls}=attachHarness(()=>succeed?Response.json({post_id:'post-1'},{status:201}):Response.json({error:'The photo could not be attached.'},{status:503}));
+ await manager.initialize('owner');const id=await manager.postAttachment(file,{postId:'post-1',notEaten:true});
+ await until(()=>manager.list()[0]?.state==='failed');
+ assert.equal(manager.list()[0].message,'The photo could not be attached.');assert.equal(manager.list()[0].attachment.postId,'post-1');assert.equal(rows.get(id).files[0].size,file.size);
+ succeed=true;manager.retry(id);await until(()=>manager.list()[0]?.postId==='post-1');
+ assert.equal(calls.filter(c=>c==='/api/media/sign-upload').length,1);
+});
+test('an attachment is not a feed card',async()=>{
+ const {manager}=attachHarness(()=>Response.json({post_id:'post-1'},{status:201}));
+ await manager.initialize('owner');await manager.postAttachment(file,{postId:'post-1',notEaten:false});
+ assert.ok(manager.list()[0].attachment);assert.equal(manager.list()[0].kind,undefined);
+ await until(()=>manager.list()[0]?.postId==='post-1');
+});
+test('reloading a failed attachment reuses its durable stage after an ambiguous response',async()=>{
+ let succeed=false;const photos=[];
+ const {manager,make,calls,rows}=attachHarness(init=>{photos.push(JSON.parse(init.body).photo);if(!succeed)throw Error('response lost');return Response.json({post_id:'post-1'},{status:201});});
+ await manager.initialize('owner');const id=await manager.postAttachment(file,{postId:'post-1',notEaten:true});await until(()=>rows.get(id)?.state==='failed');
+ const restored=make();await restored.initialize('owner');assert.equal(restored.list()[0].state,'failed');succeed=true;restored.retry(id);await until(()=>restored.list()[0]?.postId==='post-1');
+ assert.equal(calls.filter(c=>c==='/api/media/sign-upload').length,1);assert.ok(photos.every(photo=>photo.path==='owner/stage/0.jpg'));
+});
+test('a rejected attachment checkpoint keeps the sheet open and sends no network request',async()=>{
+ const {manager,store,calls}=attachHarness(()=>{throw Error('must not attach')});await manager.initialize('owner');store.put=async()=>{throw Error('disk full')};
+ await assert.rejects(()=>manager.postAttachment(file,{postId:'post-1',notEaten:true}),/could not be kept/);
+ assert.deepEqual(calls,[]);assert.equal(manager.list()[0].state,'failed');
+});

@@ -33,7 +33,7 @@ export async function savePost(db:SupabaseClient,postId:string) {
  const {data:first}=await db.from('current_post_items').select('name').eq('post_id',postId).order('created_at').limit(1).maybeSingle();
  const name=(post.caption.trim()||first?.name||'Meal').slice(0,80);
  const {data,error}=await db.rpc('save_meal_from_post',{p_post_id:postId,p_name:name});
- if(error||typeof data!=='string')throw new Error('The meal could not be saved.');
+ if(error||typeof data!=='string')throw Object.assign(new Error(error?.code==='42501'?'This meal is still being analysed. Save it once its nutrition shows.':'The meal could not be saved.'),{code:error?.code});
  return {id:data,name};
 }
 export async function logMeal(db:SupabaseClient,admin:SupabaseClient,id:string,eatenAt:unknown,saved:boolean,timeZone?:string,operationId?:string) {
