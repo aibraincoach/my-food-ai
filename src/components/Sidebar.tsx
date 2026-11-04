@@ -5,7 +5,8 @@ import {useEffect,useState} from 'react';
 import SavedMealsButton from '@/components/SavedMealsButton';
 import ShortcutsDialog from '@/components/ShortcutsDialog';
 import {useDesktop} from '@/lib/ui/use-desktop';
-import {usePostHandle} from '@/components/PostHandle';
+import {useProfileIdentity} from '@/components/PostHandle';
+import Avatar from '@/components/Avatar';
 import {Icon,type IconName} from '@/components/ui/Icon';
 export default function Sidebar(){
  const path=usePathname(),router=useRouter(),desktop=useDesktop();
@@ -31,4 +32,4 @@ export default function Sidebar(){
  </aside>;
 }
 
-function SidebarProfile({path}:{path:string}){const handle=usePostHandle();return <Link href="/profile" aria-current={path.startsWith('/profile')?'page':undefined} className={`flex h-[52px] items-center gap-3 rounded-field px-3 ${path.startsWith('/profile')?'bg-hairline':''}`}><span className="flex size-8 items-center justify-center rounded-circle bg-text text-[13px] font-semibold text-surface">{handle.slice(0,1).toUpperCase()}</span><span><span className="block text-[14px] font-semibold">{handle}</span><span className="block text-[12px] text-muted">Profile</span></span></Link>;}
+function SidebarProfile({path}:{path:string}){const {handle,userId,avatarMediaId}=useProfileIdentity();return <Link href="/profile" aria-current={path.startsWith('/profile')?'page':undefined} className={`flex h-[52px] items-center gap-3 rounded-field px-3 ${path.startsWith('/profile')?'bg-hairline':''}`}><Avatar handle={handle} userId={userId} mediaId={avatarMediaId} sizePx={32} textClassName="text-[13px] font-semibold"/><span><span className="block text-[14px] font-semibold">{handle}</span><span className="block text-[12px] text-muted">Profile</span></span></Link>;}

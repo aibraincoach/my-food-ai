@@ -11,7 +11,8 @@ import {hasUnavailableFields, type FeedPost} from "@/lib/posts/feed";
 import {summaryLine,type PostPresentation} from "@/lib/posts/summary-line";
 import PostActions from "@/components/PostActions";
 import PostCaption from "@/components/PostCaption";
-import {usePostHandle,AgentAttribution} from "@/components/PostHandle";
+import {usePostHandle,useProfileIdentity,AgentAttribution} from "@/components/PostHandle";
+import Avatar from "@/components/Avatar";
 import { formatCalories, formatConsumed, sumNutrition } from "@/lib/nutrition/totals";
 import { tokens } from "@/lib/theme/tokens";
 import LiveNutritionCard from "@/components/LiveNutritionCard";
@@ -71,6 +72,7 @@ export default function PostCard({ post, showDate = false, upload, priority = fa
   const record=post as PostPresentation;
   const drink = useDrinkCard(post.id, post.status, post.eaten_at, post.drink);
   const handle=usePostHandle(record.handle);
+  const identity=useProfileIdentity(record.handle?{handle:record.handle}:undefined);
   useEffect(()=>{rememberPost(post);},[post]);
   const [slide,setSlide]=useState(0);
   const localClock=useLocalTime(post.eaten_at);const localDate=useLocalDate(post.eaten_at);
@@ -78,7 +80,7 @@ export default function PostCard({ post, showDate = false, upload, priority = fa
   const displayRecord = drink ? { ...record, dayHydration: { totalMl: drink.totalMl, drinksMl: drink.drinksMl, foodMl: drink.foodMl, caffeineMg: drink.dayCaffeineMg ?? drink.caffeineMg } } : record;
   return <article className="flex flex-col" data-post-id={post.id} data-post-status={post.status} data-upload-id={upload?.operationId}>
     <div className="flex h-[52px] items-center gap-[10px] px-inset">
-      <span className="flex size-8 shrink-0 items-center justify-center rounded-circle bg-text text-avatar text-surface">{handle.slice(0,1).toUpperCase()}</span>
+      <Avatar handle={handle} userId={identity.userId} mediaId={identity.avatarMediaId} sizePx={32} textClassName="text-avatar"/>
       <span className="min-w-0 flex-1 truncate text-handle">{handle}<AgentAttribution name={post.agentName}/></span>
       {upload&&!upload.postId?(upload.state==='failed'&&!upload.kind?<UploadMenu upload={upload}/>:<span aria-hidden="true" className="flex size-tap items-center justify-center text-xl">···</span>):<PostMenu postId={post.id} caption={post.caption} eatenAt={post.eaten_at} gtin={record.gtin} rows={[
         ...(post.status==='ready'&&!hasDrink?[{label:'Add photo',onSelect:()=>window.dispatchEvent(new CustomEvent('open-entry',{detail:{entry:'camera',forPost:post.id,notEaten:false}}))}]:[]),
