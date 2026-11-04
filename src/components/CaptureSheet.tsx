@@ -411,7 +411,7 @@ export default function CaptureSheet({ onClose, initialMode = "photo", forPost, 
       const eatenAt = when === null ? null : fromLocalInput(when);
       if (when !== null && !eatenAt) throw new Error("Choose a time that is not in the future.");
       const id=uploadManager.stage(shotsRef.current.map(shot=>shot.file),{caption,location:chosenLocation,eatenAt,options:{not_eaten_positions:notEaten,save_as_meal:saveAsMeal}},operationRef.current??undefined);
-      operationRef.current=id;setOperationId(id);uploadManager.post(id);onClose();router.refresh();
+      operationRef.current=id;setOperationId(id);await uploadManager.post(id);onClose();router.refresh();
     } catch (e) {
       setError(e instanceof Error ? e.message : "Posting failed.");
     } finally {
@@ -444,7 +444,7 @@ export default function CaptureSheet({ onClose, initialMode = "photo", forPost, 
     if(initialFiles?.length)void addFiles(initialFiles);
   },[initialFiles]); // eslint-disable-line react-hooks/exhaustive-deps
   const handleCaptureFiles=useEffectEvent((event:Event)=>{const incoming=(event as CustomEvent<{files:File[]}>).detail?.files;if(incoming?.length)void addFiles(incoming);});
-  const handleCaptureKey=useEffectEvent((event:KeyboardEvent)=>{if(!desktop||composer||mode!=='photo'||barcodeState!=='idle'||labelState!=='idle'||event.code!=='Space'||(event.target as HTMLElement)?.closest('input,textarea,select,[contenteditable="true"]'))return;event.preventDefault();void takePhoto();});
+  const handleCaptureKey=useEffectEvent((event:KeyboardEvent)=>{if(!desktop||composer||mode!=='photo'||barcodeState!=='idle'||labelState!=='idle'||event.code!=='Space'||(event.target as HTMLElement)?.closest('input,textarea,select,button,a[href],summary,[contenteditable="true"]'))return;event.preventDefault();void takePhoto();});
   useEffect(()=>{
     const files=(event:Event)=>handleCaptureFiles(event);
     const key=(event:KeyboardEvent)=>handleCaptureKey(event);

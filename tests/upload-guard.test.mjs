@@ -59,3 +59,14 @@ test('two-shot reservation refuses publication with only one stored object (2202
   const post=checked(await db.from('posts').select('status').eq('id',id).maybeSingle());assert.equal(post,null);
  }finally{await db.storage.from('media').remove([`${base}/0.jpg`]);await db.from('jobs').delete().contains('payload',{deleted_post_id:id});await db.from('post_upload_drafts').delete().eq('id',id);}
 });
+
+test('posting acknowledges a delayed durable flag while the upload runs',async()=>{
+ const {manager,store}=harness(()=>({setProgress(){},snapshot:async()=>null,stage:async()=>new Promise(()=>{}),submit:async()=>({postId:'posted'})}));
+ await manager.initialize('owner');const id=manager.stage([file],fields);await pause();
+ const original=store.put;let saved=false;store.put=async row=>{await new Promise(resolve=>setTimeout(resolve,50));await original(row);if(row.posted)saved=true;};
+ let resolved=false;const ack=manager.post(id).then(result=>{resolved=true;assert.equal(saved,true);return result;});await pause();assert.equal(resolved,false);assert.equal(manager.list()[0].state,'uploading');assert.equal(await ack,true);
+});
+test('posting reports a rejected durable flag without stopping the upload',async()=>{
+ const {manager,store}=harness(()=>({setProgress(){},snapshot:async()=>null,stage:async()=>new Promise(()=>{}),submit:async()=>({postId:'posted'})}));
+ await manager.initialize('owner');const id=manager.stage([file],fields);await pause();store.put=async()=>{throw Error('disk failed')};assert.equal(await manager.post(id),false);assert.equal(manager.list()[0].posted,true);assert.equal(manager.list()[0].state,'uploading');
+});

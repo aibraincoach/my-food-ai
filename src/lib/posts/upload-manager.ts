@@ -195,8 +195,9 @@ export class UploadManager {
         void this.run(entry);return id;
     }
 
-    post(id: string) { const entry = this.entries.get(id); if (!entry || entry.deleted)
-        return; entry.data.posted = true; void this.persist(entry); this.notify(entry, 'upload-started'); void this.run(entry); }
+    /** Acknowledge the posted flag's durable write before the sheet closes. Uploads keep running on failure. */
+    async post(id: string): Promise<boolean> { const entry = this.entries.get(id); if (!entry || entry.deleted)
+        return false; entry.data.posted = true; const durable = this.persist(entry); this.notify(entry, 'upload-started'); void this.run(entry); try { await durable; return true; } catch { return false; } }
     async discardFood(id:string){
         const entry=this.entries.get(id);
         if((!entry?.data.food&&!entry?.data.copy)||entry.deleted||entry.finished)return;
