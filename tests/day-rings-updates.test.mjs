@@ -7,10 +7,10 @@ import {formatCalories} from '../src/lib/nutrition/totals.ts';
 const source=readFileSync(new URL('../src/components/DayRings.tsx',import.meta.url),'utf8');
 const code=ts.transpileModule(source,{compilerOptions:{module:ts.ModuleKind.CommonJS,jsx:ts.JsxEmit.ReactJSX,target:ts.ScriptTarget.ES2022}}).outputText;
 function mount(overrides={}){
- const events=new EventTarget(),effects=[],exports={},jsx=(type,props)=>({type,props});let state,tree;
+ const events=new EventTarget(),effects=[],exports={},jsx=(type,props)=>({type,props}),slots=[];let cursor=0,tree;
  const dates={shiftDay:(date,n)=>{const d=new Date(date+'T12:00:00Z');d.setUTCDate(d.getUTCDate()+n);return d.toISOString().slice(0,10);},withZone:x=>x};
- vm.runInNewContext(code,{exports,Date,Intl,Boolean,Array,CustomEvent,window:events,document:{cookie:''},require(name){
-  if(name==='react')return{useState:initial=>{state??=initial;return[state,value=>{state=value;}];},useEffect:run=>effects.push(run)};
+ vm.runInNewContext(code,{exports,Date,Intl,Boolean,Array,CustomEvent,window:events,document:{cookie:''},fetch:async()=>{throw Error('no network in test');},require(name){
+  if(name==='react')return{useState:initial=>{const slot=cursor++;if(!(slot in slots))slots[slot]=initial;return[slots[slot],value=>{slots[slot]=typeof value==='function'?value(slots[slot]):value;}];},useEffect:run=>effects.push(run),useRef:initial=>({current:initial}),useCallback:fn=>fn};
   if(name==='react/jsx-runtime')return{jsx,jsxs:jsx};
   if(name==='next/navigation')return{useRouter:()=>({refresh(){}})};
   if(name==='next/link')return{default:'a'};
@@ -21,7 +21,7 @@ function mount(overrides={}){
   throw Error(name);
  }});
  const props={ownerId:'owner',days:[{date:'2026-11-02'}],totals:[{day:'2026-11-02',ready:true,kcal:600}],today:'2026-11-03',zone:Intl.DateTimeFormat().resolvedOptions().timeZone,zoneKnown:true,...overrides};
- const render=next=>{tree=exports.default(next??props);return JSON.stringify(tree);};
+ const render=next=>{cursor=0;tree=exports.default(next??props);return JSON.stringify(tree);};
  render();const cleanups=effects.splice(0).map(run=>run());
  return{events,props,render,close:()=>cleanups.forEach(fn=>fn?.())};
 }
