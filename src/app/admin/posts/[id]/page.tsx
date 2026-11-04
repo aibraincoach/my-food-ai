@@ -1,15 +1,18 @@
 import Link from "next/link";
-import { connection } from "next/server";
+import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { isUuid } from "@/lib/posts/items";
 import { font } from "@/lib/theme/font";
 
-export const instant = false;
-
 type Call = { id: string; kind: string; started_at: string; duration_ms: number; input_tokens: number | null; output_tokens: number | null; request_text: string | null; response_text: string | null; fdc_id: number | null; error: string | null };
 
-export default async function PostTrace({ params }: { params: Promise<{ id: string }> }) {
+export default function PostTrace({ params }: { params: Promise<{ id: string }> }) {
+  return <Suspense fallback={null}><PostTraceContent params={params} /></Suspense>;
+}
+
+async function PostTraceContent({ params }: { params: Promise<{ id: string }> }) {
+  const { connection } = await import("next/server");
   await connection();
   const client = await createClient();
   const { data: { user } } = await client.auth.getUser();

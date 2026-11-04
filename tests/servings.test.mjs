@@ -43,15 +43,15 @@ test("an item edit in ounces becomes grams; cups and pieces wait for the food's 
   ]) assert.throws(() => parseItemEdit(bad), JSON.stringify(bad));
 });
 
-test("servings step by half on the quarter grid and stay within 0.25 to 50", () => {
+test("servings step by half and stay within 0.1 to 50", () => {
   assert.equal(stepServings(1, 1), 1.5);
   assert.equal(stepServings(1, -1), 0.5);
-  assert.equal(stepServings(0.5, -1), 0.25);
-  assert.equal(stepServings(0.25, -1), 0.25);
+  assert.equal(stepServings(0.5, -1), 0.1);
+  assert.equal(stepServings(0.1, -1), 0.1);
   assert.equal(stepServings(50, 1), 50);
-  assert.equal(servingsLabel(1.5), "1.5");
+  assert.equal(servingsLabel(1.5), "1½");
   assert.equal(servingsLabel(2), "2");
-  assert.equal(validServings(0.24), false); assert.equal(validServings(51), false); assert.equal(validServings("2"), false); assert.equal(validServings(2), true);
+  assert.equal(validServings(0.09), false); assert.equal(validServings(51), false); assert.equal(validServings("2"), false); assert.equal(validServings(2), true);
 });
 
 test("2 servings doubles the totals: every item's portion doubles and its stored nutrition rescales with it", () => {

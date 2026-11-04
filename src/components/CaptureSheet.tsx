@@ -9,6 +9,7 @@ import CorrectProductSheet from "@/components/CorrectProductSheet";
 import type { LabelReading } from "@/lib/meta/label";
 import type { ResolvedProduct } from "@/lib/fdc/barcode-product";
 import LightComposer from "@/components/LightComposer";
+import { iosNeedsSaveHint, SavePhotoPrompt, shareOrDownloadPhoto } from "@/components/SavePhoto";
 import type {CapturedLocation} from "@/lib/location/capture";
 import { PackPhotoUpload } from "@/lib/media/pack-photo-upload";
 
@@ -102,6 +103,7 @@ export default function CaptureSheet({ onClose, initialMode = "photo", forPost, 
   const [when, setWhen] = useState<string | null>(resumed?.eatenAt?toLocalInput(new Date(resumed.eatenAt)):null);
   const [searchingFoods, setSearchingFoods] = useState(false);
   const [posting, setPosting] = useState(false);
+  const [savePhotoUrl, setSavePhotoUrl] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(()=>{if(operationRef.current)uploadManager.update(operationRef.current,{caption,eatenAt:when===null?null:fromLocalInput(when),location:locationEnabled?location:null,options:{not_eaten_positions:notEaten,save_as_meal:saveAsMeal}});},[caption,when,location,locationEnabled,notEaten,saveAsMeal]);
@@ -271,7 +273,6 @@ export default function CaptureSheet({ onClose, initialMode = "photo", forPost, 
       const result=await response.json();if(!response.ok)throw Error(result.error??"The label could not be read.");
       if(!mountedRef.current)return;
       if(!result.reading.is_label||!result.reading.per_serving){setLabelState("missing");return;}
-      if(!result.reading.serving){setLabelState("noServing");return;}
       setLabelReading(result);setLabelName("");setLabelServings(1);setLabelState("read");
       window.setTimeout(()=>document.getElementById("label-name")?.focus(),0);
     }catch(e){if(mountedRef.current){setLabelState("failed");setError(e instanceof Error?e.message:"The label could not be read.");}}
@@ -403,12 +404,11 @@ export default function CaptureSheet({ onClose, initialMode = "photo", forPost, 
   const savePhoto = async () => {
     const shot = shotsRef.current[photoIndex];
     if (!shot) return;
-    try {
-      if (typeof navigator.share === "function" && typeof navigator.canShare === "function" && navigator.canShare({ files: [shot.file] })) {
-        await navigator.share({ files: [shot.file] }); return;
-      }
-      const link = document.createElement("a"); link.href = shot.previewUrl; link.download = "meal.jpg"; link.click();
-    } catch { /* The user can dismiss the share sheet. */ }
+    if (iosNeedsSaveHint()) {
+      setSavePhotoUrl(shot.previewUrl);
+      return;
+    }
+    await shareOrDownloadPhoto(shot.file, shot.previewUrl);
   };
 
   const post = async () => {
@@ -486,7 +486,7 @@ export default function CaptureSheet({ onClose, initialMode = "photo", forPost, 
     <div className="desktop-capture-inner mx-auto h-full max-w-phone desktop:max-w-[760px]"><LightComposer cameraPreview={cameraPreview} upload={upload} shots={shots} caption={caption} setCaption={setCaption} index={photoIndex} setIndex={setPhotoIndex} notEaten={notEaten} setNotEaten={setNotEaten} when={when} setWhen={setWhen} locationEnabled={locationEnabled} setLocationEnabled={enableLocation} saveAsMeal={saveAsMeal} setSaveAsMeal={setSaveAsMeal} busy={posting||cameraBusy} error={error} pending={pendingCount} onBack={closeDraft} onPhoto={()=>{setSearchingFoods(false);setComposer(false);setMode("photo");setStream(null);}} onSearch={()=>setSearchingFoods(value=>!value)} onPost={()=>{void post();}} onRemove={removeShot} onSavePhoto={phoneCamera?undefined:()=>{void savePhoto();}}
       searchPanel={searchingFoods?<div className="px-inset"><FoodSearchPanel eatenAt={when===null?null:fromLocalInput(when)} disabled={posting} onQueued={()=>{if(operationRef.current)void uploadManager.remove(operationRef.current);onClose();}} onDescribe={text=>{if(text&&!caption.trim())setCaption(text);setSearchingFoods(false);setError(null);}} onError={setError}/></div>:null}>
       <input ref={galleryRef} type="file" accept="image/*" multiple className="hidden" onChange={event=>{void addFiles(event.target.files);event.target.value='';}}/>
-    </LightComposer></div>
+    </LightComposer><SavePhotoPrompt open={savePhotoUrl!==null} previewUrl={savePhotoUrl??""} onClose={()=>setSavePhotoUrl(null)}/></div>
   </div>;
 
   return (
@@ -563,7 +563,7 @@ export default function CaptureSheet({ onClose, initialMode = "photo", forPost, 
           {!posting&&pendingCount>0&&<button type="button" disabled={cameraBusy} onClick={()=>{void addFiles([]);}} className="min-h-tap underline">Retry adding photo</button>}
         </div>:<>{labelState!=="idle" ? <section aria-label="Nutrition label" className="shrink-0 rounded-t-sheet bg-text px-screen-x py-5 text-surface">
           {labelState==="reading"?<p role="status" className="text-body">Reading the label…</p>:labelState==="missing"||labelState==="noServing"||labelState==="failed"?<><p className="text-body">{labelState==="failed"?"The label could not be read. Try again.":labelState==="noServing"?"The serving weight or volume could not be read":"No nutrition label found"}</p><button type="button" onClick={()=>{setLabelState("idle");}} className="min-h-tap text-detail underline">Take the photo again</button><button type="button" onClick={typePackInstead} className="ml-4 min-h-tap text-detail underline">Type it instead</button></>:labelReading&&<>
-          <div className="flex gap-3"><div className="min-w-0 flex-1"><p className="text-meta text-faint">Label read · per serving {labelReading.reading.serving?.amount} {labelReading.reading.serving?.unit}</p><Field id="label-name" variant="camera" autoFocus placeholder="Name this food" value={labelName} maxLength={80} onChange={e=>setLabelName(e.target.value)} disabled={posting}/><p className="mt-1.5 text-detail text-faint">{labelMacros(1)} · {labelNumber("fibre_g",1)} g fibre · {labelNumber("sugar_g",1)} g sugar · {labelNumber("sodium_mg",1)} mg sodium</p></div>{packPhoto&&<img src={packPhoto.previewUrl} alt="Nutrition label" className="size-14 rounded-thumb object-cover"/>}</div>
+          <div className="flex gap-3"><div className="min-w-0 flex-1"><p className="text-meta text-faint">Label read · per serving{labelReading.reading.serving?` ${labelReading.reading.serving.amount} ${labelReading.reading.serving.unit}`:""}</p><Field id="label-name" variant="camera" autoFocus placeholder="Name this food" value={labelName} maxLength={80} onChange={e=>setLabelName(e.target.value)} disabled={posting}/><p className="mt-1.5 text-detail text-faint">{labelMacros(1)} · {labelNumber("fibre_g",1)} g fibre · {labelNumber("sugar_g",1)} g sugar · {labelNumber("sodium_mg",1)} mg sodium</p></div>{packPhoto&&<img src={packPhoto.previewUrl} alt="Nutrition label" className="size-14 rounded-thumb object-cover"/>}</div>
           <p className="mt-[18px] text-meta text-faint">How much?</p><div className="mt-2.5 flex flex-wrap gap-2">{[1,2,0.5].map(n=><button key={n} type="button" disabled={posting} onClick={()=>{setLabelServings(n);setOtherServings(false);}} aria-pressed={!otherServings&&labelServings===n} className={`h-10 rounded-field border px-3 text-comment font-medium ${!otherServings&&labelServings===n?"border-surface bg-surface text-text":"border-ring-on-ink"}`}>{n===0.5?"½ serving":`${n} ${n===1?"serving":"servings"}`}</button>)}<button type="button" onClick={()=>setOtherServings(true)} className="h-10 rounded-field border border-ring-on-ink px-3 text-comment">Other</button></div>
           {otherServings&&<Field variant="camera" aria-label="Number of servings" type="number" min="0.25" max="50" step="0.1" value={labelServings} onChange={e=>setLabelServings(Number(e.target.value))} disabled={posting}/>}
           <p className="mt-[18px] text-body">Consumed: {labelNumber("kcal")} kcal <span className="text-detail text-faint">· {labelMacros().split(" · ").slice(1).join(" · ")}</span></p><p className="mt-2.5 text-meta text-muted">Read by the model from the label. Values you change are kept with the post.</p>

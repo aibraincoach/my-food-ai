@@ -13,6 +13,7 @@ import DayHeader from "@/components/DayHeader";
 import { dateInZone, shiftDay, getDayTotals, type FeedDayTotal } from "@/lib/posts/days";
 import {useUploads} from "@/components/useUploads";
 import {uploadManager,type UploadState} from "@/lib/posts/upload-manager";
+import {uploadTargetsPost} from "@/lib/posts/upload-target";
 import PostCard from "@/components/PostCard";
 import RealtimePost from "@/components/RealtimePost";
 import { mergeFeedPosts, discoveryLostOverlap } from "@/lib/posts/feed-order";
@@ -24,6 +25,8 @@ import {useCachedFeed} from "@/components/useCachedFeed";
 
 type State = { kind: "loading" } | { kind: "error" } | { kind: "ready"; posts: FeedPost[]; days: FeedDayTotal[] };
 const DISCOVERY_INTERVAL_MS = 2000;
+const DISCOVERY_BACKOFF_START_MS = 5000;
+const DISCOVERY_BACKOFF_MAX_MS = 60000;
 const RETRY_INTERVAL_MS = 1000;
 
 const noServerSeed = () => false;
@@ -56,7 +59,9 @@ export default function Feed({initialPage, initialUserId, initialZone = "UTC", f
   const cachedListener = useRef<(posts: FeedPost[], ownerId: string | null) => void>(() => {});
   useEffect(() => { if (cache.cached) cachedListener.current(cache.cached, cache.userId); }, [cache.cached, cache.userId]);
   const [fallbackRetired, setFallbackRetired] = useState<Set<string>>(new Set());
-  const uploads=useUploads().filter(upload=>upload.posted&&!upload.attachment);
+  const allUploads=useUploads().filter(upload=>upload.posted);
+  const uploads=allUploads.filter(upload=>!upload.attachment);
+  const attachmentUploads=allUploads.filter(upload=>upload.attachment);
   const sentinel = useRef<HTMLDivElement>(null);
   const loadMore = useRef<() => void>(()=>{});
   const [state, setState] = useState<State>(initialPage ? {kind: "ready", posts: initialPage.posts, days: initialPage.days} : { kind: "loading" });
@@ -104,6 +109,10 @@ export default function Feed({initialPage, initialUserId, initialZone = "UTC", f
     let generation = 0;
     let hasFreshPage = false;
     let cacheDirty = false;
+    let trustServerSeed = Boolean(initialPage && initialUserId && initialZone === zone);
+    let realtimeSubscribed = false;
+    let discoverBackoffMs = DISCOVERY_BACKOFF_START_MS;
+    let discoverPoll: ReturnType<typeof setTimeout> | undefined;
     const cacheInvalidated = new Set<string>();
     const unavailable = new Set<string>();
     const answered = new Set<string>();
@@ -384,15 +393,38 @@ export default function Feed({initialPage, initialUserId, initialZone = "UTC", f
         // A transient discovery failure is retried on the next visible tick.
       } finally { discovering = false; }
     };
+    const scheduleDiscoverPoll = (immediate = false) => {
+      if (!live || realtimeSubscribed || document.hidden) return;
+      clearTimeout(discoverPoll);
+      const delay = immediate ? 0 : trustServerSeed ? DISCOVERY_INTERVAL_MS : discoverBackoffMs;
+      if (trustServerSeed) trustServerSeed = false;
+      discoverPoll = setTimeout(() => {
+        void discover().finally(() => {
+          if (live && !realtimeSubscribed && !document.hidden) {
+            discoverBackoffMs = Math.min(discoverBackoffMs * 2, DISCOVERY_BACKOFF_MAX_MS);
+            scheduleDiscoverPoll();
+          }
+        });
+      }, delay);
+    };
     void load();
-    const timer = setInterval(() => { void discover(); }, DISCOVERY_INTERVAL_MS);
-    const focus = () => { void discover(true); };
+    scheduleDiscoverPoll();
+    const focus = () => { if (!document.hidden) void discover(true); };
     window.addEventListener("focus", focus);
     document.addEventListener("visibilitychange", focus);
     const channel = supabase.channel("feed-inserts").on("postgres_changes",
       { event: "INSERT", schema: "public", table: "posts" },
       (payload) => { const id = (payload.new as { id?: string }).id; if (id) requestCard(id); }
-    ).subscribe();
+    ).subscribe((status) => {
+      if (status === "SUBSCRIBED") {
+        realtimeSubscribed = true;
+        clearTimeout(discoverPoll);
+      } else if (status === "CHANNEL_ERROR" || status === "TIMED_OUT" || status === "CLOSED") {
+        realtimeSubscribed = false;
+        discoverBackoffMs = DISCOVERY_BACKOFF_START_MS;
+        scheduleDiscoverPoll();
+      }
+    });
 
     return () => {
       live = false;
@@ -404,7 +436,7 @@ export default function Feed({initialPage, initialUserId, initialZone = "UTC", f
       window.removeEventListener("post-restore", restore);
       window.removeEventListener("post-ready", readyEvent);
       window.removeEventListener('upload-started',uploading);
-      clearInterval(timer);
+      clearTimeout(discoverPoll);
       for (const retry of timers) clearTimeout(retry);
       window.removeEventListener("post-created", created);
       window.removeEventListener("upload-finished",finished);
@@ -463,7 +495,7 @@ export default function Feed({initialPage, initialUserId, initialZone = "UTC", f
     {days.map(day => <section key={day} aria-label={day} className="relative pb-card-gap">
       {!uploadDays.has(day)&&<DayHeader day={day} zone={zone} empty={!groups.has(day)} total={totals.get(day)} />}
       {localCards.filter((_,index)=>localDay[index]===day)}
-      {groups.has(day) ? <div className="flex flex-col gap-card-gap pt-sheet-top">{groups.get(day)!.map((post) => <div key={uploads.find(upload=>upload.postId===post.id)?.operationId??post.id} data-desktop-post={post.id} tabIndex={-1}>{fallbackOnly ? <PostCard priority={visibleState.posts[0]?.id === post.id} post={post} /> : <RealtimePost initial={post} renderCard={(fresh) => <PostCard priority={visibleState.posts[0]?.id === post.id} post={fresh} upload={uploads.find(upload=>upload.postId===post.id)}
+      {groups.has(day) ? <div className="flex flex-col gap-card-gap pt-sheet-top">{groups.get(day)!.map((post) => <div key={attachmentUploads.find(upload=>uploadTargetsPost(upload,post.id))?.operationId??uploads.find(upload=>upload.postId===post.id)?.operationId??post.id} data-desktop-post={post.id} tabIndex={-1}>{fallbackOnly ? <PostCard priority={visibleState.posts[0]?.id === post.id} post={post} upload={attachmentUploads.find(upload=>uploadTargetsPost(upload,post.id))} /> : <RealtimePost initial={post} renderCard={(fresh) => <PostCard priority={visibleState.posts[0]?.id === post.id} post={fresh} upload={attachmentUploads.find(upload=>uploadTargetsPost(upload,post.id))??uploads.find(upload=>upload.postId===post.id)}
          />} />}</div>)}</div> : null}
     </section>)}
     {pageError ? <div className="px-screen-x text-detail text-muted" role="alert">

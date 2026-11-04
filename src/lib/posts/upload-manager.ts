@@ -5,15 +5,14 @@ import {copyEndpoint,type CopyRequest} from './copy-request';
 import type {FoodRequest} from './food-request';
 import { createClient } from '@/lib/supabase/client';
 import { PostUploadDraft, type PostOptions } from './create';
-import { uploadStore, type StoredUpload } from './upload-store';
+import { uploadStore, type PublishIntent, type StoredUpload } from './upload-store';
 import { UPLOAD_PARK_MS, UPLOAD_GRACE_MS } from '@/lib/media/upload-window';
 import type { CapturedLocation } from '@/lib/location/capture';
 import { PhotoUploadError, type UploadError } from '@/lib/media/put-with-progress';
 import { PackPhotoUpload } from '@/lib/media/pack-photo-upload';
 import { reencodeShot } from '@/lib/media/reencode';
-// #370: the capture sheet closes within a second of the Post tap. The durable
-// acknowledgement waits at most this long; the write and the upload go on behind it.
-const CLOSE_WAIT_MS = 700;
+
+const RETAKE_ATTACHMENT_MESSAGE = 'This photo was not kept. Take it again.';
 export interface UploadState {
     operationId: string;
     kind?: "food"|"copy"|"drink";
@@ -22,6 +21,7 @@ export interface UploadState {
     drinkTile?: boolean;
     text?: boolean;
     attachment?: {postId: string; notEaten: boolean};
+    photoLost?: boolean;
     message?: string;
     uploadId?: string;
     sent: number;
@@ -61,7 +61,7 @@ export class UploadManager {
     private initializing: Promise<void> | null = null;
     private ownerEpoch = 0;
     private ownerPending: Promise<string> | null = null;
-    constructor(private store = uploadStore, private makeDraft = () => new PostUploadDraft(), private delay = pause, private foodRequest: typeof fetch = (...args) => fetch(...args), private readOwner: () => Promise<string | null> = async () => (await createClient().auth.getUser()).data.user?.id ?? null, private encodeShot = reencodeShot) { }
+    constructor(private store = uploadStore, private makeDraft = () => new PostUploadDraft(), private delay = pause, private foodRequest: typeof fetch = (...args) => fetch(...args), private readOwner: () => Promise<string | null> = async () => (await createClient().auth.getSession()).data.session?.user.id ?? null, private encodeShot = reencodeShot) { }
     private resolveOwner(): Promise<string> {
         if (this.ownerId) return Promise.resolve(this.ownerId);
         if (this.ownerPending) return this.ownerPending;
@@ -80,7 +80,10 @@ export class UploadManager {
     private notify(entry?: Entry, event?: string) { for (const listener of this.listeners)
         listener(); if (entry && event && typeof window !== 'undefined')
         window.dispatchEvent(new CustomEvent(event, { detail: this.state(entry) })); }
-    private state(entry: Entry): UploadState { const d = entry.data; return { operationId: d.operationId, uploadId:d.snapshot?.id, caption: d.caption, eatenAt: d.eatenAt ?? new Date(d.createdAt).toISOString(), previewUrl: entry.previewUrl, sent: d.sent, total: d.total, state: d.state, error: d.error, posted: d.posted, ...(d.attachment?{attachment:d.attachment,message:d.message}:{}), ...((d.food||d.copy||d.drink||d.photoDrinks)?{kind:d.copy?"copy" as const:d.food?"food" as const:"drink" as const,removing:d.cancelRequested,message:d.message}:{}), ...(d.drink?{drinkTile:true}:{}), ...(!d.files.length&&!d.food&&!d.copy&&!d.drink&&!d.photoDrinks?{text:true}:{}), ...(entry.finished ? { postId: d.resultPostId??d.snapshot?.id } : {}) }; }
+    private state(entry: Entry): UploadState { const d = entry.data; const photoLost=Boolean(d.attachment&&!d.files.length&&d.message===RETAKE_ATTACHMENT_MESSAGE); return { operationId: d.operationId, uploadId:d.snapshot?.id, caption: d.caption, eatenAt: d.eatenAt ?? new Date(d.createdAt).toISOString(), previewUrl: entry.previewUrl, sent: d.sent, total: d.total, state: d.state, error: d.error, posted: d.posted, ...(d.attachment?{attachment:d.attachment,message:d.message,...(photoLost?{photoLost:true}:{})}:{}), ...((d.food||d.copy||d.drink||d.photoDrinks)?{kind:d.copy?"copy" as const:d.food?"food" as const:"drink" as const,removing:d.cancelRequested,message:d.message}:{}), ...(d.drink?{drinkTile:true}:{}), ...(!d.files.length&&!d.food&&!d.copy&&!d.drink&&!d.photoDrinks&&!d.attachment?{text:true}:{}), ...(entry.finished ? { postId: d.resultPostId??d.snapshot?.id } : {}) }; }
+    private intentFor(entry: Entry, ownerId: string): PublishIntent { const d=entry.data,attachment=d.attachment; return {operationId:d.operationId,ownerId,createdAt:d.createdAt,postId:attachment?.postId??null,notEaten:attachment?.notEaten??false}; }
+    private applyIntent(data: StoredUpload, intent: PublishIntent) { data.posted=true; data.ownerId=intent.ownerId; if(intent.postId&&!data.attachment)data.attachment={postId:intent.postId,notEaten:intent.notEaten}; if(data.attachment&&!data.files.length){data.state='failed';data.message=RETAKE_ATTACHMENT_MESSAGE;} }
+    private attachmentFromIntent(intent: PublishIntent): StoredUpload { return {operationId:intent.operationId,ownerId:intent.ownerId,createdAt:intent.createdAt,reservedAt:intent.createdAt,caption:intent.notEaten?'Leftovers':'Added photo',eatenAt:null,location:null,options:{},files:[],snapshot:null,posted:true,attachment:{postId:intent.postId!,notEaten:intent.notEaten},state:'failed',message:RETAKE_ATTACHMENT_MESSAGE,sent:0,total:0}; }
 
     list = () => [...this.entries.values()].filter(e => !e.deleted).sort((a, b) => b.data.createdAt - a.data.createdAt).map(e => this.state(e));
     fields(id:string):DraftFields|null { const data=this.entries.get(id)?.data; return data?{caption:data.caption,eatenAt:data.eatenAt,location:data.location,options:{...data.options}}:null; }
@@ -98,20 +101,36 @@ export class UploadManager {
             this.resetMemory();
         if(this.ownerId !== ownerId){this.ownerEpoch++;this.ownerPending=null;}
         this.ownerId = ownerId;
-        return this.initializing = (async () => { for (const data of await this.store.all()) {
-            if (this.ownerId !== ownerId)
-                return;
-            if (data.ownerId !== ownerId)
-                continue;
-            if (this.entries.has(data.operationId))
-                continue;
-            data.files = data.files.map((file, index) => new File([file], file.name ?? `meal-${index}.jpg`, { type: file.type }));
-            const entry = this.make(data);
-            this.entries.set(data.operationId, entry);
-            this.notify(entry, 'upload-started');
-            if (data.state !== 'failed')
-                void this.run(entry);
-        } this.notify(); })();
+        return this.initializing = (async () => {
+            const intents = await this.store.allIntents();
+            const intentById = new Map(intents.filter(intent => intent.ownerId === ownerId).map(intent => [intent.operationId, intent]));
+            for (const data of await this.store.all()) {
+                if (this.ownerId !== ownerId)
+                    return;
+                if (data.ownerId !== ownerId)
+                    continue;
+                if (this.entries.has(data.operationId))
+                    continue;
+                const intent = intentById.get(data.operationId);
+                if (intent)
+                    this.applyIntent(data, intent);
+                data.files = data.files.map((file, index) => new File([file], file.name ?? `meal-${index}.jpg`, { type: file.type }));
+                const entry = this.make(data);
+                this.entries.set(data.operationId, entry);
+                intentById.delete(data.operationId);
+                this.notify(entry, 'upload-started');
+                if (data.state !== 'failed' && !(data.attachment && !data.files.length))
+                    void this.run(entry);
+            }
+            for (const intent of intentById.values()) {
+                if (this.ownerId !== ownerId || !intent.postId || this.entries.has(intent.operationId))
+                    continue;
+                const entry = this.make(this.attachmentFromIntent(intent));
+                this.entries.set(intent.operationId, entry);
+                this.notify(entry, 'upload-started');
+            }
+            this.notify();
+        })();
     }
     private resetMemory() { for (const entry of this.entries.values()) {
         entry.deleted = true;
@@ -220,21 +239,21 @@ export class UploadManager {
         void this.run(entry);return id;
     }
 
-    /** Resolve only once the photo is durable; network work continues after the sheet closes. */
+    /** The sheet closes once publish intent is durable; photo bytes and upload follow. */
     async postAttachment(file: File, attachment: {postId: string; notEaten: boolean}): Promise<string> {
         const owner = await this.resolveOwner();
         const now=Date.now(),id=crypto.randomUUID();
         const entry=this.make({operationId:id,ownerId:owner,createdAt:now,reservedAt:now,caption:attachment.notEaten?'Leftovers':'Added photo',eatenAt:null,location:null,options:{},files:[file],snapshot:null,posted:true,attachment:{...attachment},state:'uploading',sent:0,total:file.size});
         this.entries.set(id,entry);
         this.notify(entry,'upload-started');
-        try{await this.persist(entry);}catch{
-            // The sheet keeps its file when this acknowledgement fails. Drop this
-            // operation so a sheet retry cannot race a second retry from the chip.
+        try{await this.store.putIntent(this.intentFor(entry,owner));}catch{
             await this.remove(id);
             throw new Error('The photo could not be kept on this phone. Try again.');
         }
         if(entry.deleted||this.ownerId!==owner)throw new Error('Sign-in changed. Your photo is kept for its original account.');
-        void this.run(entry);return id;
+        void this.persist(entry);
+        void this.run(entry);
+        return id;
     }
     private async submitAttachment(entry:Entry):Promise<{postId:string}> {
         const d=entry.data,attachment=d.attachment!;
@@ -265,17 +284,16 @@ export class UploadManager {
         if (entry.finished) return Boolean(entry.data.resultPostId);
         entry.data.posted = true;
         this.notify(entry, 'upload-started');
+        if (entry.active)
+            entry.rerun = true;
         void this.run(entry);
         try {
             const owner = await this.resolveOwner();
             const current = () => !entry.deleted && this.entries.get(id) === entry && this.ownerId === owner && entry.data.ownerId === owner;
             if (entry.deleted || this.entries.get(id) !== entry || this.ownerId !== owner || (entry.data.ownerId && entry.data.ownerId !== owner)) return false;
             entry.data.ownerId = owner;
-            // The write is queued behind earlier snapshot writes that carry the camera
-            // still and both encoded copies (several MB on a phone). The entry is already
-            // at the top of the feed from memory and run() has started; when the write
-            // takes longer than CLOSE_WAIT_MS the sheet closes and the write lands behind it.
-            await Promise.race([this.persist(entry), new Promise<void>(resolve => setTimeout(resolve, CLOSE_WAIT_MS))]);
+            await this.store.putIntent(this.intentFor(entry, owner));
+            void this.persist(entry);
             return current();
         } catch {
             return !entry.deleted && this.entries.get(id) === entry && Boolean(this.ownerId) && entry.data.ownerId === this.ownerId && entry.finished && Boolean(entry.data.resultPostId);
@@ -345,6 +363,8 @@ export class UploadManager {
             const owner = await this.resolveOwner();
             if (entry.deleted || this.entries.get(entry.data.operationId) !== entry || this.ownerId !== owner || (entry.data.ownerId && entry.data.ownerId !== owner)) return;
             entry.data.ownerId = owner;
+            if (entry.data.attachment && !entry.data.files.length)
+                return;
             await this.persist(entry);
             if (entry.deleted || this.ownerId !== owner || entry.data.ownerId !== owner)
                 return;

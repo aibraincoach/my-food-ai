@@ -3,11 +3,8 @@ import { NextResponse } from "next/server";
 import { after } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { queueTick } from "@/lib/queue/tick";
-import { runWorker } from "@/lib/worker/drain";
 
-// Public, idempotent tick: starts the worker in the background with after()
-// if work waits and none runs. Returns depth and traffic.
-// Allows the 60 s drain window plus the largest (60 s) retry delay.
+// Public, idempotent tick: queues work and hands draining to /api/jobs/drain.
 export const maxDuration = 300;
 
 const bootAt = Date.now();
@@ -27,13 +24,10 @@ export async function GET(request: Request) {
     const holder = randomUUID();
     const status = await queueTick(admin, holder);
     if (status.started) {
-      after(() => runWorker(admin, holder, async () => {
-        const response = await fetch(new URL("/api/jobs/tick", request.url), {
-          cache: "no-store",
-          signal: AbortSignal.timeout(10_000),
-        });
-        if (!response.ok) throw new Error(`Worker re-tick failed: ${response.status}`);
-      }));
+      const drainUrl = new URL("/api/jobs/drain", request.url);
+      drainUrl.searchParams.set("holder", holder);
+      after(() => fetch(drainUrl, { cache: "no-store", signal: AbortSignal.timeout(290_000) })
+        .then((response) => { if (!response.ok) throw new Error(`Drain failed: ${response.status}`); }));
     }
     return NextResponse.json({
       queued: status.queued,

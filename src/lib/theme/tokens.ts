@@ -6,7 +6,7 @@ export const tokens = {
     'shadow-pill': '0 0 0 1px #E3E0DA, 0 8px 24px rgba(26,25,23,0.12)',
     'shadow-knob': '0 1px 3px rgba(26,25,23,0.20)',
 
-    surface: '#FAFAF9', text: '#1A1917', muted: '#7A766F', faint: '#B4AFA7',
+    surface: '#FAFAF9', text: '#1A1917', muted: '#7A766F', faint: '#B4AFA7', off: '#C9C5BD',
     hairline: '#EDEAE4', line: '#E3E0DA', ring: '#D6D2CB', field: '#F1EEE8', card: '#F3F1EC',
     'shimmer-a': '#EFECE6', 'shimmer-b': '#F7F5F1', white: '#FFFFFF',
     'accent-deep': 'oklch(0.52 0.17 25)',

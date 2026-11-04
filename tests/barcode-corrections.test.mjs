@@ -24,7 +24,9 @@ test('label nutrition scales only the server-held reading and preserves unknown 
  const reading=parseLabelReading({is_label:true,serving:{amount:55,unit:'g'},per_serving:{kcal:230,protein_g:3,carbs_g:37,fat_g:8,fibre_g:4,sugar_g:12,sodium_mg:160},product_name:null,box:null});
  assert.equal(labelNutrition(reading,2).calories,460);assert.equal(labelNutrition(reading,0.5).protein_g,1.5);
  assert.throws(()=>parseLabelReading({...reading,per_serving:{...reading.per_serving,kcal:-1}}));
- assert.throws(()=>labelNutrition({...reading,serving:null},1));
+ const perServingOnly=parseLabelReading({is_label:true,serving:null,per_serving:{kcal:130,protein_g:2,carbs_g:24,fat_g:4,fibre_g:null,sugar_g:null,sodium_mg:null},product_name:null,box:null});
+ assert.equal(labelNutrition(perServingOnly,2).calories,260);
+ assert.equal(labelNutrition(perServingOnly,2).portion_unit,'serving');
 });
 test('barcode corrections and label readings enforce owner access and withhold names with fewer than three authors',{skip:!process.env.SUPABASE_DB_URL},async()=>{
  const users=[];

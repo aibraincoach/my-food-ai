@@ -20,9 +20,9 @@ export default function Thread({postId,readOnly=false,sourcePostId,desktopAction
  const router=useRouter();
  const [rows,setRows]=useState<CommentRow[]>([]);const [error,setError]=useState('');const [waiting,setWaiting]=useState(false);const [failed,setFailed]=useState(false);const [retrying,setRetrying]=useState(false);
  const wake=useRef<()=>void>(()=>{});
- const append=useCallback((row:CommentRow)=>{setRows(old=>sort([...old.filter(r=>r.id!==row.id),row]));setWaiting(row.author==='user');router.refresh();wake.current();},[router]);
+ const append=useCallback((row:CommentRow)=>{setRows(old=>sort([...old.filter(r=>r.id!==row.id),row]));setWaiting(row.author==='user');wake.current();},[]);
  useEffect(()=>{
-  const client=createClient();let live=true;let inFlight=false;let initialized=false;let busy=true;let lastLoad=0;let knownStatus:string|null=null;const knownModels=new Set<string>();
+  const client=createClient();let live=true;let inFlight=false;let knownStatus:string|null=null;
   // Always a full, ordered read: a comment can commit with an earlier timestamp than one already seen.
   const load=async()=>{if(inFlight)return;inFlight=true;try{
    const {data:verdict}=await client.from('post_feedback').select('verdict,model_comment_id,item_fingerprint').eq('post_id',postId).maybeSingle();
@@ -33,22 +33,25 @@ export default function Thread({postId,readOnly=false,sourcePostId,desktopAction
     client.from('posts').select('status').eq('id',postId).maybeSingle(),
    ]);
    if(!live)return;if(postError||!post){setError('Comments could not be loaded.');return;}
-   lastLoad=Date.now();busy=!['ready','failed','needs_input'].includes(post.status);
    const models=(data??[]).filter(row=>row.author==='model');
-   if(initialized&&models.some(row=>!knownModels.has(row.id)))router.refresh();
-   for(const model of models)knownModels.add(model.id);initialized=true;
+   void models;
    if(knownStatus&&knownStatus!==post.status)router.refresh();knownStatus=post.status;
    const feedback=correctionFeedback(post.status);
    setFailed(feedback==='failed');setError(feedback==='failed'?'The meal could not be updated.':'');setRows(old=>sort([...new Map([...old,...(data??[])].map(row=>[row.id,row as CommentRow])).values()]));
    setWaiting(feedback==='waiting');
   }catch{if(live)setError('Comments could not be loaded.');}finally{inFlight=false;}};
   const channel=client.channel(`thread-${postId}`).on('postgres_changes',{event:'INSERT',schema:'public',table:'post_comments',filter:`post_id=eq.${postId}`},()=>{void load();}).on('postgres_changes',{event:'UPDATE',schema:'public',table:'post_comments',filter:`post_id=eq.${postId}`},()=>{void load();}).subscribe((status)=>{if(status==='SUBSCRIBED')void load();});
-  wake.current=()=>{busy=true;void load();};
+  wake.current=()=>{void load();};
   void load();
-  // Poll quickly while work is pending; an idle meal is only rechecked every 15 seconds.
-  const timer=setInterval(()=>{if(document.visibilityState==='visible'&&(busy||Date.now()-lastLoad>15000))void load();},2000);
-  return()=>{live=false;wake.current=()=>{};clearInterval(timer);void client.removeChannel(channel);};
+  return()=>{live=false;wake.current=()=>{};void client.removeChannel(channel);};
  },[postId,router]);
+ useEffect(()=>{
+  if(!waiting)return;
+  let live=true;let delay=2000;let timer:ReturnType<typeof setTimeout>;
+  const tick=()=>{if(!live)return;if(document.visibilityState==='visible')void wake.current();delay=Math.min(30000,delay*2);timer=setTimeout(tick,delay);};
+  timer=setTimeout(tick,delay);
+  return()=>{live=false;clearTimeout(timer);};
+ },[waiting]);
  const [toast,setToast]=useState<{key:number;undo:()=>void}|null>(null);
  const [pendingRemovals,setPendingRemovals]=useState<string[]>([]);
  const pendingRemovalIds=useRef(new Set<string>());

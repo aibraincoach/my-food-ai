@@ -2,8 +2,9 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { createClient } from "@/lib/supabase/client";
 import { Icon, type IconName } from "@/components/ui/Icon";
+import Avatar from "@/components/Avatar";
+import { useProfileIdentity } from "@/components/PostHandle";
 import { Tooltip } from "@/components/ui/Tooltip";
 const SLOTS: { href: string; label: string; icon: IconName }[] = [
   { href: "/", label: "Home", icon: "home" }, { href: "/search", label: "Search", icon: "search" },
@@ -13,21 +14,16 @@ export function dismissSheets() { window.dispatchEvent(new Event('close-sheets')
 export default function BottomBar({ onPlus, menuOpen = false }: { onPlus: () => void; menuOpen?: boolean }) {
   const pathname = usePathname();
   const [feedEmpty,setFeedEmpty]=useState(false);
-  const [initial,setInitial]=useState('');
+  const identity=useProfileIdentity();
   useEffect(()=>{
-    let live=true;const client=createClient();
-    void client.auth.getUser().then(async({data:{user}})=>{
-      if(!user)return;const {data}=await client.from('profiles').select('handle').eq('id',user.id).maybeSingle();
-      if(live)setInitial(String(data?.handle??'').slice(0,1).toUpperCase());
-    });
     const state=(event:Event)=>{const empty=(event as CustomEvent).detail?.empty;if(typeof empty==='boolean')setFeedEmpty(empty);};
     window.addEventListener('feed-state',state);window.dispatchEvent(new Event('feed-state-request'));
-    return()=>{live=false;window.removeEventListener('feed-state',state);};
+    return()=>window.removeEventListener('feed-state',state);
   },[]);
   const link=(slot:typeof SLOTS[number])=>{
     const active=slot.href==='/'?pathname==='/':pathname.startsWith(slot.href);
     return <Link key={slot.href} href={slot.href} onClick={()=>{dismissSheets();if(slot.href==='/'&&pathname==='/'){window.dispatchEvent(new Event('home-reset'));window.scrollTo({top:0,behavior:'smooth'});}}} aria-label={slot.label} aria-current={active?'page':undefined} className={`flex h-[46px] min-w-0 items-center justify-center rounded-[23px] text-text active:opacity-50 ${active?'bg-hairline':''}`}>
-      {slot.href==='/profile'?<span className="flex size-[26px] items-center justify-center rounded-circle bg-text text-avatar-sm text-surface">{initial||<Icon name="profile" size={18}/>}</span>:<Icon name={slot.icon} active={active} size={24}/>}
+      {slot.href==='/profile'?identity.handle?<Avatar handle={identity.handle} userId={identity.userId} mediaId={identity.avatarMediaId} sizePx={26} textClassName="text-avatar-sm"/>:<Icon name="profile" size={18}/>:<Icon name={slot.icon} active={active} size={24}/>}
     </Link>;
   };
   return <nav aria-label="Primary" aria-hidden={menuOpen||undefined} inert={menuOpen} data-pill className="fixed left-1/2 z-50 [[data-mfa-sheet-open]_&]:z-[70] grid h-[58px] w-[calc(100%-48px)] max-w-[342px] -translate-x-1/2 grid-cols-5 items-center rounded-[29px] bg-surface-94 px-[6px]" style={{opacity:menuOpen?0:1,pointerEvents:menuOpen?'none':undefined,transition:'opacity 160ms',bottom:'calc(24px + env(safe-area-inset-bottom))',boxShadow:'var(--color-shadow-pill)',backdropFilter:'blur(var(--spacing-blur-pill))'}}>

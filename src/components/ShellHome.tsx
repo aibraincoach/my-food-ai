@@ -25,7 +25,7 @@ export default function ShellHome(){
  const [owner,setOwner]=useState<string|null>(null);
  useEffect(()=>{
   const db=createClient();let live=true,generation=0,verified:string|null=null;
-  const verify=async()=>{const current=++generation;try{const {data:{user},error}=await db.auth.getUser();if(live&&current===generation){verified=error?null:user?.id??null;setOwner(verified);}}catch{if(live&&current===generation){verified=null;setOwner(null);}}};
+  const verify=async()=>{const current=++generation;try{const {data:{session}}=await db.auth.getSession();if(live&&current===generation){verified=session?.user?.id??null;setOwner(verified);}}catch{if(live&&current===generation){verified=null;setOwner(null);}}};
   void verify();
   const {data:{subscription}}=db.auth.onAuthStateChange((event,session)=>{
    if(event==='INITIAL_SESSION')return;

@@ -108,32 +108,42 @@ export async function getPostDetail(supabase: SupabaseClient, postId: string, zo
   const baseFields = "id,user_id,caption,eaten_at,status,analysis_initialized_at,servings,source_post_id,created_at,fail_reason,agent_token_id,agent_tokens(name),needs_input";
   type PostRow = FeedRow & {analysis_initialized_at:string|null;servings:number;source_post_id:string|null;needs_input:unknown;identify_model?:string|null;identify_host?:string|null};
   const read = (identity:boolean) => supabase.from("posts").select(identity?`${baseFields},identify_model,identify_host`:baseFields).is("deleted_at", null).eq("id",postId).maybeSingle<PostRow>();
-  let result=await read(true);
-  if(result.error&&["PGRST204","42703"].includes(result.error.code)&&/identify_(?:model|host)/.test(result.error.message))result=await read(false);
-  const {data:post,error}=result;
+  const loadPost = async () => {
+    let result = await read(true);
+    if (result.error && ["PGRST204", "42703"].includes(result.error.code) && /identify_(?:model|host)/.test(result.error.message)) result = await read(false);
+    return result;
+  };
+  const postResult = await loadPost();
+  const { data: post, error } = postResult;
   if (error) throw new Error("Meal could not be loaded.");
   if (!post) return null;
-  // The card's revision fence must be read before the items it guards.
   const revisionBefore = post.status === "ready" ? await latestRevision(supabase, postId) : null;
-  const [current, { data: mediaRows, error: mediaError }] = await Promise.all([
-    getCurrentItems(supabase, postId),
+  const [mediaResult, current] = await Promise.all([
     supabase.from("post_media").select("id,storage_path,kind,not_eaten,width,height").eq("post_id", postId).order("position"),
+    getCurrentItems(supabase, postId),
   ]);
+  const { data: mediaRows, error: mediaError } = mediaResult;
   if (mediaError) throw new Error("Meal photo could not be loaded.");
-  const photoRows = (mediaRows??[]).filter(entry => entry.kind === "photo");
+  const photoRows = (mediaRows ?? []).filter(entry => entry.kind === "photo");
   const media = photoRows[0];
-  const [signed, items] = await Promise.all([
-    media ? supabase.storage.from("media").createSignedUrls(photoRows.map(row=>row.storage_path),3600) : Promise.resolve(null),
-    Promise.all(current.map(async (item): Promise<DetailItem> => {
-      let maskUrl: string | null = null;
-      if (item.mask_path) {
-        const mask = await supabase.storage.from("media").createSignedUrl(item.mask_path, 3600);
-        maskUrl = mask.data?.signedUrl ?? null;
-      }
-      return { ...item, box: itemBox(item.box), maskUrl };
-    })),
+  const maskPaths = current.map(item => item.mask_path).filter((path): path is string => Boolean(path));
+  const signPaths = [...photoRows.map(row => row.storage_path), ...maskPaths];
+  const identification = post.identify_model && post.identify_host ? { model: post.identify_model, host: post.identify_host } : null;
+  const openFailurePromise = identification?.host === "meta"
+    ? createAdminClient().from("model_calls").select("id").eq("post_id", postId).eq("host", "baseten").eq("kind", "spark_identify").not("error", "is", null).limit(1).abortSignal(AbortSignal.timeout(8000)).maybeSingle()
+    : Promise.resolve({ data: null, error: null });
+  const [signed, openFailureResult] = await Promise.all([
+    signPaths.length ? supabase.storage.from("media").createSignedUrls(signPaths, 3600) : Promise.resolve(null),
+    openFailurePromise,
   ]);
-  const originalUrls = new Map((signed?.data??[]).filter(entry=>entry.signedUrl).map(entry=>[entry.path,entry.signedUrl]));
+  const { data: openFailure, error: openFailureError } = openFailureResult;
+  if (openFailureError) throw new Error("Meal identification could not be loaded.");
+  const originalUrls = new Map((signed?.data ?? []).filter(entry => entry.signedUrl).map(entry => [entry.path, entry.signedUrl]));
+  const items: DetailItem[] = current.map(item => ({
+    ...item,
+    box: itemBox(item.box),
+    maskUrl: item.mask_path ? originalUrls.get(item.mask_path) ?? null : null,
+  }));
   const photos: DetailPhoto[] = photoRows.map(entry=>{
     const previewUrl=smallFeedPhotoUrl(post.user_id,postId,entry.id)??undefined;
     const url=originalUrls.get(entry.storage_path);
@@ -142,14 +152,6 @@ export async function getPostDetail(supabase: SupabaseClient, postId: string, zo
   });
   const photo=photos[0]??null;
   const hydrated = (await getPostHydrationData(supabase, post.user_id, [{ id: postId, eaten_at: post.eaten_at, items }], zone))[postId];
-  // Identity belongs to the same atomic initial-analysis commit as these
-  // items. Newer successful or failed attempts that never persisted cannot
-  // relabel the meal. Raw attempt traces remain admin-only.
-  const identification=post.identify_model&&post.identify_host
-    ? {model:post.identify_model,host:post.identify_host} : null;
-  // shortcut: a failed Baseten trace for this post means Muse Spark Open was requested; a later failed retry can also set it.
-  const {data:openFailure,error:openFailureError}=identification?.host==='meta'?await createAdminClient().from('model_calls').select('id').eq('post_id',postId).eq('host','baseten').eq('kind','spark_identify').not('error','is',null).limit(1).abortSignal(AbortSignal.timeout(8000)).maybeSingle():{data:null,error:null};
-  if(openFailureError)throw new Error('Meal identification could not be loaded.');
   const card = post.needs_input == null || post.status === "failed"
     ? { ...(await toFeedPost(supabase, post, zone, { items: current, revisionBefore, media: mediaRows ?? [] })), ...hydrated } : null;
   const byId=new Map(photos.map(entry=>[entry.id,entry]));

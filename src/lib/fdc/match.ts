@@ -6,7 +6,8 @@ import { createResponse, MetaApiError } from "@/lib/meta/client";
 import { recordCall } from "@/lib/trace/record";
 import { nutritionBudgetMs, NUTRITION_MAX_MS } from "@/lib/worker/budget";
 import { FOOD_MATCH_VERSION } from "./version";
-import { closestGenericFood } from "./approximate";
+import { closestGenericFood, composeRiceWithProtein } from "./approximate";
+import { referenceProteinMismatch } from "./protein-reference";
 import { estimateFood } from "./estimate";
 import { type UnavailableReason } from "./unavailable";
 
@@ -69,12 +70,13 @@ export async function matchFood(name: string, caption: string, dependencies: Mat
     if(signal?.aborted)throw new MetaApiError(503,"Food resolution budget was exhausted.");
     searched.add(query.toLowerCase());
     for(const food of await dependencies.search(query)){
-      if(gramBasis(food)&&hasNutrition(food)&&!eligible.has(food.fdcId)&&!excludedComponents(food.description,`${name} ${caption}`).length)eligible.set(food.fdcId,food);
+      if(gramBasis(food)&&hasNutrition(food)&&!eligible.has(food.fdcId)&&!excludedComponents(food.description,`${name} ${caption}`).length&&!referenceProteinMismatch(name,food.description))eligible.set(food.fdcId,food);
     }
     const candidates=[...eligible.values()];
     const decision=await dependencies.choose(name,caption,candidates,attempt>0,query,2-attempt);
-    const food=decision.id===null?null:candidates.find(f=>f.fdcId===decision.id)??null;
+    let food=decision.id===null?null:candidates.find(f=>f.fdcId===decision.id)??null;
     if(decision.id!==null&&!food)throw new Error("Food decision selected an ineligible candidate.");
+    if(food&&referenceProteinMismatch(name,food.description))food=null;
     if(food)return {food,reason:decision.reason,searches:attempt+1,baseFood:baseQuery??query};
     const improved=decision.query?(decision.query_food?requiredFoodSearchQuery(decision.query,decision.query_food):foodSearchQuery(decision.query)):null;
     // Retain the first category if the next decision has no distinct refinement.
@@ -93,7 +95,12 @@ export async function resolveFoodMatchDetailed(admin:SupabaseClient,name:string,
     if(result.food)return {food:result.food,unavailable:null};
     if(!options.approximate)return {food:null,unavailable:{code:'no_match',detail:result.reason}};
     const closest=result.baseFood?await closestGenericFood(admin,name,caption,result.baseFood,signal):{food:null,reason:result.reason};
-    if(closest.food)return {food:closest.food,unavailable:null};
+    if(closest.food&&!referenceProteinMismatch(name,closest.food.description))return {food:closest.food,unavailable:null};
+    const dishSuggestsRice=/\b(rice|sushi|nigiri|donburi)\b/i.test(name);
+    if(dishSuggestsRice){
+      const composed=await composeRiceWithProtein(admin,name,caption,signal);
+      if(composed.food)return {food:composed.food,unavailable:null};
+    }
     let estimate:FdcFood|null=null;
     try{estimate=await estimateFood(name,caption,signal);}
     catch(error){if(!(error as {noEstimate?:boolean})?.noEstimate)throw error;return {food:null,unavailable:{code:'no_estimate',detail:closest.reason}};}

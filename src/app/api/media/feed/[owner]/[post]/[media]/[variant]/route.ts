@@ -40,7 +40,7 @@ async function readPhoto(request: Request, context: {params: Promise<{owner: str
       if (result.error || !result.data?.signedUrl) return fail(502);
       const target = new URL(result.data.signedUrl);
       if (target.origin !== new URL(process.env.NEXT_PUBLIC_SUPABASE_URL!).origin) return fail(502);
-      return new Response(null, {status: 302, headers: {...headers, Location: target.href}});
+      return new Response(null, {status: 302, headers: {...cacheHeaders, Location: target.href}});
     } catch { return fail(502); }
   };
   const release = reserveFeedPhoto();
