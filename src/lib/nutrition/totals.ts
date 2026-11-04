@@ -49,15 +49,15 @@ export function nutritionNumber(value: Numeric): number | null {
 
 export function formatNutrition(value: Numeric): string {
   const amount = nutritionNumber(value);
-  return amount === null ? "—" : String(Math.round(amount));
+  return amount === null ? "—" : Math.round(amount).toLocaleString("en-US");
 }
 
 // Preserve positive energy below the whole-kcal display precision; zero is a measured value.
-export function formatCalories(value: Numeric, locale?: string): string {
+export function formatCalories(value: Numeric): string {
   const amount = nutritionNumber(value);
   if (amount === null) return "—";
   if (amount > 0 && Math.round(amount) === 0) return "<1";
-  return locale ? Math.round(amount).toLocaleString(locale) : String(Math.round(amount));
+  return Math.round(amount).toLocaleString("en-US");
 }
 
 export function sumNutrition(items: (NutritionLike & {name?:string;missing?:MissingNutrition})[]): MealTotals {
