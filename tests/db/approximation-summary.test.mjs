@@ -13,7 +13,7 @@ test('closest-record reanalysis refreshes its summary atomically behind job owne
  ${migration}
  do $test$
  declare u uuid:=gen_random_uuid();p uuid:=gen_random_uuid();j uuid:=gen_random_uuid();new_job uuid:=gen_random_uuid();
- expected jsonb;
+ expected jsonb;initial_comment uuid;correction_comment uuid:=gen_random_uuid();
  label text:='Nutrition for macaroni is taken from the closest USDA record, Pasta, cooked.';
  payload jsonb:='[{"name":"macaroni","portion_grams":50,"nutrition":{"calories":78.5,"protein_g":2,"carbs_g":15,"fat_g":0.5,"micronutrients":[],"source_ref":"2708357"}}]';
  begin
@@ -51,6 +51,20 @@ test('closest-record reanalysis refreshes its summary atomically behind job owne
  update posts set status='processing',analysis_initialized_at=null where id=p;
  perform persist_approximated_analysis(p,j,payload,'Ordinary historical summary must not be rewritten.');
  if (select body from post_comments where post_id=p and author='model')<>'New exact reanalysis.' then raise exception 'Exact-only historical summary was rewritten';end if;
+ -- Recompute updates feedback's current model revision, never old history.
+ select id into initial_comment from post_comments where post_id=p and author='model';
+ update post_comments set body='Original exact initial summary.' where id=initial_comment;
+ insert into post_comments(id,post_id,author,body,created_at)values(correction_comment,p,'model',label,clock_timestamp()+interval '1 second');
+ if (feedback_revision(p)->>'modelCommentId')::uuid<>correction_comment then raise exception 'Fixture correction is not current feedback revision';end if;
+ select jsonb_agg(jsonb_build_object('id',i.id,'source_ref',n.source_ref)) into expected from current_post_items i join item_nutrition n on n.post_item_id=i.id where i.post_id=p;
+ perform refresh_owned_approximation_summary(p,j,'Current exact correction summary.',expected);
+ if (select body from post_comments where id=initial_comment)<>'Original exact initial summary.'
+ or (select body from post_comments where id=correction_comment)<>'Current exact correction summary.' then raise exception 'Recompute rewrote historical initial summary or kept current approximation label';end if;
+ -- A second exact-only repair leaves both historical and current exact text.
+ perform refresh_owned_approximation_summary(p,j,'Do not rewrite ordinary correction history.',expected);
+ if (select body from post_comments where id=initial_comment)<>'Original exact initial summary.'
+ or (select body from post_comments where id=correction_comment)<>'Current exact correction summary.' then raise exception 'Exact-only recompute rewrote revision history';end if;
+ delete from post_comments where id=correction_comment;
  update post_comments set body=label where post_id=p and author='model';
  select jsonb_agg(jsonb_build_object('id',i.id,'source_ref',n.source_ref)) into expected from current_post_items i join item_nutrition n on n.post_item_id=i.id where i.post_id=p;
  insert into jobs(id,post_id,kind,status,payload)values(new_job,p,'analyze','running','{"post_ownership":true}');

@@ -33,7 +33,7 @@ grant execute on function public.persist_approximated_analysis(uuid,uuid,jsonb,t
 create or replace function public.refresh_owned_approximation_summary(
  p_post_id uuid,p_job_id uuid,p_summary text,p_expected jsonb
 ) returns void language plpgsql security definer set search_path=public,pg_temp as $$
-declare changed integer; expected_count integer; current_count integer; matched_count integer;
+declare changed integer; expected_count integer; current_count integer; matched_count integer; revision_comment uuid;
 begin
  perform 1 from public.posts where id=p_post_id for update;
  if not found or not public.post_work_matches(p_post_id,p_job_id) then
@@ -49,13 +49,15 @@ begin
  if current_count<>expected_count or matched_count<>expected_count then
   raise exception 'Nutrition summary items changed' using errcode='PT409';
  end if;
- -- Exact-only historical summaries stay untouched. Refresh on either side
+ -- Resolve the same current model revision used by feedback, under the post lock.
+ revision_comment:=(public.feedback_revision(p_post_id)->>'modelCommentId')::uuid;
+ -- Older initial/correction comments stay untouched. Refresh on either side
  -- of the transition so removing the last approximate food clears its label.
  if position(' is taken from the closest USDA record, ' in p_summary)=0
-  and not exists(select 1 from public.post_comments where id=(select id from public.post_comments where post_id=p_post_id and author='model' order by created_at,id limit 1)
+  and not exists(select 1 from public.post_comments where id=revision_comment
    and position(' is taken from the closest USDA record, ' in body)>0) then return;end if;
  update public.post_comments set body=p_summary
- where id=(select id from public.post_comments where post_id=p_post_id and author='model' order by created_at,id limit 1);
+ where id=revision_comment;
  get diagnostics changed=row_count;
  if changed<>1 then raise exception 'Nutrition summary is missing' using errcode='22023';end if;
 end $$;
