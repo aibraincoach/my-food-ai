@@ -1,10 +1,15 @@
+import {drinkGlyph,type DrinkGlyph} from '@/lib/intake/drink-glyph';
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { getPostHydrationData, type DrinkCardData, type HydrationRecord } from "@/lib/intake/hydration";
 import { formatCalories, sumNutrition, toNumber, unavailableFoods, normalizeStoredNutrition, type NutritionRow, type Numeric, type NutritionLike, type StoredNutrient } from "@/lib/nutrition/totals";
 
-export type CardItem = NutritionLike & { name: string; portion_grams: Numeric; portion_text?: string | null; micronutrients?: StoredNutrient[]; not_eaten_grams?:number|null;not_eaten_count_text?:string|null;not_eaten_calories?:number|null;supersedes?:string|null };
+export type CardItem = NutritionLike & { id?:string; name: string; portion_grams: Numeric; portion_text?: string | null; micronutrients?: StoredNutrient[]; not_eaten_grams?:number|null;not_eaten_count_text?:string|null;not_eaten_calories?:number|null;supersedes?:string|null };
 export interface CardData {
   kind: "meal" | "drink";
+  glyph?:DrinkGlyph;
+  drinkLabel?:string;
+  drinkDetail?:string;
+  dayDrinks?:{glyph:DrinkGlyph;ml:number}[];
   /** An instant, formatted in the viewing device's zone by the live wrapper. */
   time?: string;
   amountMl?: number;
@@ -20,6 +25,7 @@ export interface CardData {
   footer?: string;
 }
 export interface CardSource {
+  dayDrinks?:{glyph:DrinkGlyph;ml:number}[];
   items: CardItem[];
   eaten_at?: string;
   eatenAt?: string;
@@ -36,8 +42,15 @@ export function cardDataFromRow(source: CardSource): CardData {
   const totals = sumNutrition(source.items);
   const drink = source.drink;
   const hydration = source.dayHydration ?? (drink ? { totalMl: drink.totalMl, drinksMl: drink.drinksMl, foodMl: drink.foodMl, caffeineMg: drink.dayCaffeineMg ?? drink.caffeineMg } : undefined);
+  const alcoholic=drink?.kind==='alcohol'||Boolean(source.itemDrinks?.some(row=>row.kind==='alcohol'))||source.items.some(item=>item.micronutrients?.some(n=>n.nutrientId===1018&&n.basis==='portion'&&Number(n.value)>=0.5));
+  const linkedAlcohol=source.itemDrinks?.filter(row=>row.kind==='alcohol');
+  const alcoholG=drink?.kind==='alcohol'?(drink.alcoholG??0):linkedAlcohol?.length?linkedAlcohol.reduce((sum,row)=>sum+(row.alcoholG??0),0):source.items.reduce((total,item)=>total+(Number(item.micronutrients?.find(n=>n.nutrientId===1018&&n.basis==='portion')?.value)||0),0);
+  const label=drink?.label??source.items.map(item=>item.name).join(' · ');
+  const glyph=drinkGlyph(label,alcoholic?'alcohol':(drink?.caffeineMg??0)>0?'caffeine':'water');
   return {
-    kind: drink || source.kind === "drink" ? "drink" : "meal",
+    glyph,drinkLabel:label,dayDrinks:drink?.dayDrinks??source.dayDrinks,
+    drinkDetail:alcoholic?(alcoholG>0?`${Math.round(alcoholG)} g alcohol · ${(alcoholG/14).toFixed(1)} standard drinks`:'alcohol unavailable'):glyph==='coffee'?`${Math.round(drink?.caffeineMg??0)} mg caffeine`:`${Math.round(drink?.ml??0)} ml`,
+    kind: drink || source.kind === "drink" || (source.items.length>0&&source.items.every(item=>item.id&&source.itemDrinks?.some(row=>row.post_item_id===item.id))) ? "drink" : "meal",
     time: source.eaten_at ?? source.eatenAt,
     amountMl: drink?.ml,
     caffeineMg: drink?.caffeineMg,
