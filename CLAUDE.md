@@ -1,5 +1,15 @@
 # Agent rules — My Food AI
 
+## Current project state — November 4, 2026 (22:09 WIB)
+
+Observed 2026-11-04T15:09:52Z (22:09 WIB): `origin/main` is `7e0c7898` (Fleet 16 PR #614 merged). Fleet 15 is fully merged (#582–#590); the four held PRs merged at the exact ordered heads #582 `dc07c47f`→`13784fca`, #583 `e7db5cee`→`f190965d`, #584 `7279ca38`→`4c31d1ff`, #586 `4b8ebcf5`→`14ad9de0`. A post-merge push `a8b238eb` sits on branch `run15/judges-page` only and is not on main. Fleet 16 (Codex coder, in flight) has merged #605–#614; open PRs are docs #604 (this branch), #600, #577, #558.
+
+Production: the Fleet 15 merge deployments are READY (`f190965d`, `14ad9de0` included); the alias has rolled forward onto Fleet 16 builds. Verified live this session: the owner's meal account (first id chars `02b7a48c`, latest non-deleted "Beef noodle" post) reads back role `admin`; a second account requesting a foreign post page gets HTTP 404 `Not found`, not a 200 with a not-found body. Migrations 0053–0055 applied per the merge-order premise (not re-probed). #583's 626-pass evidence sits two commits below its merged head; its merged deployment is READY and the foreign-post fix is proven live above.
+
+Reviews: #582 holds two PPLX no-blocker reviews at head `dc07c47f` and a Codex zero-finding triage; AGY failed once on a denied network request and a retry is running, with its receipt to post on #582. #583/#584/#586 hold exact-head PPLX, AGY (BLOCKERS: NONE) and Codex triage.
+
+BACKLOG.md on this branch is the owner-supplied 21:07 WIB snapshot with the beer item filed as #615. WALL_OF_STUPID.md carries the 21:12 and 21:56 entries. The PM was fired; this handover is for the successor. Codex's Fleet 16 coder shares the repo: new code branches only, no docs-branch writes, no merges without the owner's exact-head order. No code prompt or merge order is outstanding in this session.
+
 Hackathon project: My Food AI. PM contract: [docs/pm-contract.md](docs/pm-contract.md). Planner contract: [docs/planner-contract.md](docs/planner-contract.md). Backlog: [BACKLOG.md](BACKLOG.md). Review: [REVIEW_POLICY.md](REVIEW_POLICY.md), [docs/review.md](docs/review.md).
 
 ## Skills (Cursor / Claude)
