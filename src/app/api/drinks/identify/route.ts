@@ -31,7 +31,6 @@ export async function POST(request:Request){
   if(error)return NextResponse.json({error:'This photo is being checked.'},{status:error.code==='23505'?409:503});
   return NextResponse.json({id:copy.id,position:body.position,drinks:cached.drinks,allDrinks:cached.all_drinks});
  }
- const capped=await capUser(user.id,'drink_identify');if(capped)return capped;
  // Unique claims prevent concurrent rerenders and changed manifests from making two model calls.
  const {data:claimed,error:claimError}=await admin.from('composer_drink_readings').insert({user_id:user.id,upload_id:body.upload_id,position:body.position,photo_hash:hash}).select('id').single();
  if(claimError)return NextResponse.json({error:claimError.code==='23505'?'This photo has already been checked.':'Drinks could not be checked. You can still post the photo.'},{status:claimError.code==='23505'?409:503});
@@ -39,6 +38,9 @@ export async function POST(request:Request){
   // A prior pending claim may have finished between our cache lookup and insert.
   const {data:finished,error:finishedError}=await admin.from('composer_drink_readings').select('drinks,all_drinks').eq('user_id',user.id).eq('photo_hash',hash).eq('state','ready').gte('created_at',new Date(Date.now()-3_600_000).toISOString()).limit(1).maybeSingle();
   if(finishedError)throw Error('Reading cache could not be read.');
+  if(!finished){
+   const capped=await capUser(user.id,'drink_identify');if(capped){await admin.from('composer_drink_readings').delete().eq('id',claimed.id);return capped;}
+  }
   const result=finished?{drinks:finished.drinks,allDrinks:finished.all_drinks}:await traceContext.run({postId:null},()=>identifyDrinks(admin,user.id,bytes));
   const {error}=await admin.from('composer_drink_readings').update({state:'ready',drinks:result.drinks,all_drinks:result.allDrinks}).eq('id',claimed.id);
   if(error)throw Error('Reading could not be stored.');
