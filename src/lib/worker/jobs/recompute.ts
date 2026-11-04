@@ -21,7 +21,12 @@ export default async function recompute(admin: SupabaseClient, job: JobRow): Pro
     .select("id,name,portion_grams,portion_text,supersedes").eq("post_id", job.post_id);
   if (error) throw ioError(`recompute items: ${error.message}`, error, itemsStatus);
  const resolutionBudget=nutritionResolutionBudget();
- const approximations:{name:string;basis:string}[]=[];
+ const approximations:{itemId:string;name:string;basis:string;sourceRef:string}[]=[];
+ // Acknowledge provenance before nutrition writes, so a later summary failure
+ // cannot lose the label when a retry skips already-written nutrition rows.
+ for(const value of Array.isArray(job.payload.nutrition_approximations)?job.payload.nutrition_approximations:[]){
+   if(value&&typeof value==='object'&&typeof value.itemId==='string'&&typeof value.name==='string'&&typeof value.basis==='string'&&typeof value.sourceRef==='string')approximations.push(value);
+ }
   const {data:context,error:contextError,status:contextStatus}=await admin.from("posts").select("caption").eq("id",job.post_id).abortSignal(resolutionBudget).single();
   if(contextError)throw ioError("Recompute context could not be read.",contextError,resolutionBudget.aborted?503:contextStatus);
   if (items?.length) {
@@ -38,7 +43,7 @@ export default async function recompute(admin: SupabaseClient, job: JobRow): Pro
       const retained = await resolvePortionNutrition(admin, job.post_id!, item.supersedes, item.name, item.portion_grams, item.portion_text,signal);
       if (retained) return {...retained,post_item_id:item.id};
       const food = await resolveFoodMatch(admin,item.name,context.caption??"",signal,{approximate:true});
-      if(food?.approximation)approximations.push({name:item.name,basis:food.approximation.basis});
+      if(food?.approximation)approximations.push({itemId:item.id,name:item.name,basis:food.approximation.basis,sourceRef:String(food.fdcId)});
       const n = scaleNutrition(food, item.portion_grams == null ? null : toNumber(item.portion_grams));
       return {
         post_item_id: item.id, calories: n.calories, protein_g: n.proteinG,
@@ -48,6 +53,11 @@ export default async function recompute(admin: SupabaseClient, job: JobRow): Pro
     });
     const writes=resolved.filter(row=>row!==null);
     if(writes.length){
+      if(approximations.length){
+        const {data:saved,error:provenanceError,status:provenanceStatus}=await admin.from('jobs').update({payload:{...job.payload,nutrition_approximations:approximations}}).eq('id',job.id).eq('status','running').select('id').maybeSingle();
+        if(provenanceError)throw ioError('Nutrition provenance could not be saved.',provenanceError,provenanceStatus);
+        if(!saved)throw new Error('Nutrition provenance was not acknowledged.');
+      }
       const {error:writeError,status:writeStatus}=await admin.from("item_nutrition")
         .upsert(writes,{onConflict:"post_item_id",ignoreDuplicates:true});
       if(writeError)throw ioError(`recompute save: ${writeError.message}`,writeError,writeStatus);
@@ -57,7 +67,8 @@ export default async function recompute(admin: SupabaseClient, job: JobRow): Pro
     const {getCurrentItems,sumNutrition}=await import('@/lib/nutrition/totals');
     const {safeSummary}=await import('@/lib/pipeline/wording');
     const current=await getCurrentItems(admin,job.post_id,{requireNutrition:true});
-    const body=await safeSummary('',sumNutrition(current),approximations);
+    const labels=approximations.filter(label=>current.some(item=>item.id===label.itemId&&item.name===label.name&&item.source_ref===label.sourceRef));
+    const body=await safeSummary('',sumNutrition(current),labels);
     // Repair the original nutrition summary so approximated values are never unlabeled.
     const {data:summary,error:readError,status:readStatus}=await admin.from('post_comments').select('id').eq('post_id',job.post_id).eq('author','model').order('created_at').limit(1).maybeSingle();
     if(readError)throw ioError('Nutrition summary could not be read.',readError,readStatus);
