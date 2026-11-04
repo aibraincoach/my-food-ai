@@ -36,7 +36,7 @@ export async function resolvePortionNutrition(admin: SupabaseClient, postId: str
     const oldMl = volume(prior.portion_text), newMl = volume(portionText);
     if (oldMl !== null && newMl !== null) return rescaleStoredNutrition(nutrition, oldMl, newMl);
    }
-   if(nutrition.source_ref && (toNumber(prior.portion_grams)<=0 || !hasAmounts)) {
+   if(nutrition.source_ref && Number.isSafeInteger(Number(nutrition.source_ref)) && Number(nutrition.source_ref)>0 && (toNumber(prior.portion_grams)<=0 || !hasAmounts)) {
     const id=Number(nutrition.source_ref);
     const food=await getFoodById(admin,id,signal);
     const approximation=foodApproximation(nutrition);

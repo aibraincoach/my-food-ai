@@ -117,7 +117,8 @@ export function scaleNutrition(
       foodCategory: null,
     };
   }
-  const sourceRef = String(food.fdcId);
+  // An estimate has no USDA id; its ref names the basis.
+  const sourceRef = food.approximation?.kind === "estimate" ? `estimate:${food.approximation.basis}` : String(food.fdcId);
   const factor = portionGrams !== null && Number.isFinite(portionGrams) && portionGrams > 0 && gramBasis(food)
     ? portionGrams / 100 : null;
   const micronutrients = food.foodNutrients.map((nutrient) => ({

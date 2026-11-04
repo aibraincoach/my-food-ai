@@ -120,7 +120,7 @@ export async function persistAnalysis(
     // that must clear an existing approximation disclosure without its fence.
     const {data:previous,error:previousError,status:previousStatus}=await admin.from('post_comments').select('body').eq('post_id',named.postId).eq('author','model').order('created_at').limit(1).maybeSingle();
     if(previousError)throw ioError('Prior nutrition summary could not be read.',previousError,previousStatus);
-    if(!previous?.body?.includes(' is taken from the closest USDA record, ')){
+    if(!previous?.body?.includes(' is taken from the closest USDA record, ')&&!previous?.body?.includes(' is a model estimate, ')){
       const legacyRpc=named.labelNutrition?'persist_owned_label':'persist_owned_analysis';
       result=named.identification?await admin.rpc('persist_identified_analysis',identificationArgs):await admin.rpc(legacyRpc,args);
       if(missing('persist_identified_analysis'))result=await admin.rpc(legacyRpc,args);

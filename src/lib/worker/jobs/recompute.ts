@@ -111,7 +111,7 @@ async function rebuildRemoved(admin:SupabaseClient,job:JobRow){
   install(await replayRemainder(admin,photo.storage_path,items) as unknown as RebuiltRow[]);
  }
  const labels=approximationLabels(items);
- const summary=[formatConsumed(sumNutrition(items)),...labels.map(label=>`Nutrition for ${label.name} is taken from the closest USDA record, ${label.basis}`)].join('. ');
+ const summary=[formatConsumed(sumNutrition(items)),...labels.map(label=>label.kind==='estimate'?`Nutrition for ${label.name} is a model estimate, ${label.basis}`:`Nutrition for ${label.name} is taken from the closest USDA record, ${label.basis}`)].join('. ');
  const removed=thread.find(comment=>comment.id===job.payload.comment_id);
  const reply=job.payload.reason==='media_removed'?`${job.payload.media_unmarked===true?'Unmarked the leftovers photo.':'Removed the leftovers photo.'} ${summary}.`:`Removed the correction "${(removed?.body??'').slice(0,60)}". ${summary}.`;
  // Quoted user words are retained verbatim; only generated commentary makes
