@@ -178,7 +178,7 @@ function mediaOwner(request) {
   try {
     if (request.method !== "GET") return null;
     const url = new URL(request.url);
-    const resized = url.pathname.match(/^\/api\/media\/feed\/([^/]+)\/([^/]+)\/([^/]+)\/v1\.webp$/);
+    const resized = url.pathname.match(/^\/api\/media\/feed\/([^/]+)\/([^/]+)\/([^/]+)\/v[12]\.webp$/);
     if (resized) return url.origin === self.location.origin && !url.search && resized.slice(1).every(value => UUID.test(value)) ? resized[1] : null;
     if (!/^https?:$/.test(url.protocol) || !url.pathname.endsWith(".feed.jpg")) return null;
     const marker = "/storage/v1/object/sign/media/", index = url.pathname.indexOf(marker);

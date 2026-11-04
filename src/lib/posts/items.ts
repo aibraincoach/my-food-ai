@@ -5,13 +5,14 @@ import { isUnit, OZ_G, roundGrams, toGrams, type Unit } from "@/lib/nutrition/un
 import { scaleNutrition } from "@/lib/fdc/nutrients";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { getCurrentItems, type CurrentItem } from "@/lib/nutrition/totals";
-import { latestRevision, toFeedPost, type PostRow as FeedRow } from "@/lib/posts/feed";
+import { latestRevision, toFeedPost, type PostRow as FeedRow, type FeedPost } from "@/lib/posts/feed";
 import { smallFeedPhotoUrl } from "@/lib/posts/feed-photo-url";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 export type ItemBox = { left: number; top: number; right: number; bottom: number };
 export type DetailItem = Omit<CurrentItem, "box"> & { box: ItemBox | null; maskUrl: string | null };
-export type DetailPhoto = { url: string; previewUrl?: string; width: number; height: number };
+export type DetailPhoto = { id?:string; url: string; previewUrl?: string; width: number; height: number; not_eaten?:boolean };
+export type DetailSlide = FeedPost["slides"][number] & {previewUrl?:string;width?:number;height?:number};
 export type ItemEdit = { action: "rename" | "portion" | "remove" | "add"; item_id?: string; name?: string; portion_grams?: number; portion_amount?: number; portion_unit?: Unit; box?: ItemBox; fdc_selection?: { id: number; query: string } };
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 export const isUuid = (value: unknown): value is string => typeof value === "string" && UUID.test(value);
@@ -119,9 +120,10 @@ export async function getPostDetail(supabase: SupabaseClient, postId: string, zo
     supabase.from("post_media").select("id,storage_path,kind,not_eaten,width,height").eq("post_id", postId).order("position"),
   ]);
   if (mediaError) throw new Error("Meal photo could not be loaded.");
-  const media = mediaRows?.find(entry => entry.kind === "photo");
+  const photoRows = (mediaRows??[]).filter(entry => entry.kind === "photo");
+  const media = photoRows[0];
   const [signed, items] = await Promise.all([
-    media ? supabase.storage.from("media").createSignedUrl(media.storage_path, 3600) : Promise.resolve(null),
+    media ? supabase.storage.from("media").createSignedUrls(photoRows.map(row=>row.storage_path),3600) : Promise.resolve(null),
     Promise.all(current.map(async (item): Promise<DetailItem> => {
       let maskUrl: string | null = null;
       if (item.mask_path) {
@@ -131,11 +133,14 @@ export async function getPostDetail(supabase: SupabaseClient, postId: string, zo
       return { ...item, box: itemBox(item.box), maskUrl };
     })),
   ]);
-  let photo: DetailPhoto | null = null;
-  if (media) {
-    if (!signed || signed.error || !signed.data) throw new Error("Meal photo could not be opened.");
-    photo = { url: signed.data.signedUrl, previewUrl: smallFeedPhotoUrl(post.user_id, postId, media.id) ?? undefined, width: media.width || 1, height: media.height || 1 };
-  }
+  const originalUrls = new Map((signed?.data??[]).filter(entry=>entry.signedUrl).map(entry=>[entry.path,entry.signedUrl]));
+  const photos: DetailPhoto[] = photoRows.map(entry=>{
+    const previewUrl=smallFeedPhotoUrl(post.user_id,postId,entry.id)??undefined;
+    const url=originalUrls.get(entry.storage_path);
+    if(!url&&entry===media)throw new Error("Meal photo could not be opened.");
+    return{id:entry.id,url:url??previewUrl??'',previewUrl,width:entry.width||1,height:entry.height||1,not_eaten:Boolean(entry.not_eaten)};
+  });
+  const photo=photos[0]??null;
   const hydrated = (await getPostHydrationData(supabase, post.user_id, [{ id: postId, eaten_at: post.eaten_at, items }], zone))[postId];
   // Identity belongs to the same atomic initial-analysis commit as these
   // items. Newer successful or failed attempts that never persisted cannot
@@ -147,6 +152,11 @@ export async function getPostDetail(supabase: SupabaseClient, postId: string, zo
   if(openFailureError)throw new Error('Meal identification could not be loaded.');
   const card = post.needs_input == null || post.status === "failed"
     ? { ...(await toFeedPost(supabase, post, zone, { items: current, revisionBefore, media: mediaRows ?? [] })), ...hydrated } : null;
-  return { post, photo, items, identification: identification ?? null, openFallback: Boolean(openFailure), card, isDrink: hydrated.kind === "drink" && hydrated.drinkSource !== "item", ...hydrated,
+  const byId=new Map(photos.map(entry=>[entry.id,entry]));
+  const slides:DetailSlide[]=(card?.slides??[]).map(slide=>{
+    const original=slide.kind==='photo'?byId.get(slide.id):null;
+    return original?{...slide,url:original.url,previewUrl:original.previewUrl,width:original.width,height:original.height}:slide;
+  });
+  return { post, photo, photos, slides, items, identification: identification ?? null, openFallback: Boolean(openFailure), card, isDrink: hydrated.kind === "drink" && hydrated.drinkSource !== "item", ...hydrated,
     cardData: cardDataFromRow({ ...post, items, ...hydrated }) };
 }

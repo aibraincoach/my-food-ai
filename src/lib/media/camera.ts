@@ -1,5 +1,10 @@
 export type Facing = "environment" | "user";
 
+// Ideals improve capture pixels without rejecting cameras that deliver less.
+export function cameraVideoConstraints(facing: Facing, deviceId?: string): MediaTrackConstraints {
+  return {width:{ideal:2560},height:{ideal:1920},...(deviceId?{deviceId:{exact:deviceId}}:{facingMode:facing})};
+}
+
 export interface Camera {
   stream: MediaStream;
   flip(): Promise<MediaStream>;
@@ -27,7 +32,7 @@ export async function openCamera(initialFacing: Facing): Promise<Camera> {
   let facing = initialFacing;
   let closed = false;
   let generation = 0;
-  const open = (mode: Facing) => navigator.mediaDevices.getUserMedia({ video: { facingMode: mode }, audio: false });
+  const open = (mode: Facing) => navigator.mediaDevices.getUserMedia({ video: cameraVideoConstraints(mode), audio: false });
   const stop = (stream: MediaStream) => stream.getTracks().forEach((track) => track.stop());
   const first = await open(facing);
   const camera: Camera = {
@@ -81,7 +86,7 @@ export async function openCamera(initialFacing: Facing): Promise<Camera> {
   return camera;
 }
 
-export async function grabFrame(video: HTMLVideoElement, onFrame?: (frame: HTMLCanvasElement) => void): Promise<Blob> {
+export async function grabFrame(video: HTMLVideoElement, onFrame?: (frame: HTMLCanvasElement) => void, preferStill = false): Promise<Blob> {
   if (video.readyState < HTMLMediaElement.HAVE_CURRENT_DATA || !video.videoWidth || !video.videoHeight) {
     throw new Error("Camera is not ready yet.");
   }
@@ -96,6 +101,18 @@ export async function grabFrame(video: HTMLVideoElement, onFrame?: (frame: HTMLC
     // prepared. Yield a paint before starting the potentially expensive encode.
     onFrame(canvas);
     await new Promise<void>(resolve=>requestAnimationFrame(()=>requestAnimationFrame(()=>resolve())));
+  }
+  if (preferStill) {
+    const track = (video.srcObject as MediaStream | null)?.getVideoTracks?.()[0];
+    const Capture = (globalThis as unknown as {ImageCapture?: new(track: MediaStreamTrack) => {takePhoto(): Promise<Blob>}}).ImageCapture;
+    if (track && Capture) {
+      let timer: ReturnType<typeof setTimeout> | undefined;
+      try {
+        const still = await Promise.race([new Capture(track).takePhoto(),new Promise<never>((_,reject)=>{timer=setTimeout(()=>reject(new Error("Still capture timed out.")),3000);})]);
+        if (still.size && still.type.startsWith('image/')) return still;
+      } catch { /* HD video frame remains a supported fallback. */ }
+      finally { if (timer) clearTimeout(timer); }
+    }
   }
   return new Promise((resolve, reject) => canvas.toBlob(
     (blob) => blob ? resolve(blob) : reject(new Error("Camera capture failed.")), "image/jpeg", 0.95
