@@ -52,7 +52,23 @@ export class UploadManager {
     private listeners = new Set<() => void>();
     private ownerId = '';
     private initializing: Promise<void> | null = null;
-    constructor(private store = uploadStore, private makeDraft = () => new PostUploadDraft(), private delay = pause, private foodRequest: typeof fetch = (...args) => fetch(...args)) { }
+    private ownerEpoch = 0;
+    private ownerPending: Promise<string> | null = null;
+    constructor(private store = uploadStore, private makeDraft = () => new PostUploadDraft(), private delay = pause, private foodRequest: typeof fetch = (...args) => fetch(...args), private readOwner: () => Promise<string | null> = async () => (await createClient().auth.getUser()).data.user?.id ?? null) { }
+    private resolveOwner(): Promise<string> {
+        if (this.ownerId) return Promise.resolve(this.ownerId);
+        if (this.ownerPending) return this.ownerPending;
+        const epoch = this.ownerEpoch;
+        const pending = this.readOwner().then(owner => {
+            if (!owner || epoch !== this.ownerEpoch || (this.ownerId && this.ownerId !== owner)) throw new Error('Sign-in changed. Keep this screen open and try again.');
+            this.ownerId = owner;
+            return owner;
+        });
+        this.ownerPending = pending;
+        const settled = () => { if (this.ownerPending === pending) this.ownerPending = null; };
+        void pending.then(settled, settled);
+        return pending;
+    }
     subscribe = (listener: () => void) => { this.listeners.add(listener); return () => { this.listeners.delete(listener); }; };
     private notify(entry?: Entry, event?: string) { for (const listener of this.listeners)
         listener(); if (entry && event && typeof window !== 'undefined')
@@ -73,6 +89,7 @@ export class UploadManager {
             return this.initializing;
         if (this.ownerId && this.ownerId !== ownerId)
             this.resetMemory();
+        if(this.ownerId !== ownerId){this.ownerEpoch++;this.ownerPending=null;}
         this.ownerId = ownerId;
         return this.initializing = (async () => { for (const data of await this.store.all()) {
             if (this.ownerId !== ownerId)
@@ -94,7 +111,7 @@ export class UploadManager {
         if (entry.previewUrl)
             URL.revokeObjectURL(entry.previewUrl);
     } this.entries.clear(); this.notify(); }
-    async clear() { const writes = [...this.entries.values()].map(entry => entry.writing.catch(() => { })); this.resetMemory(); this.ownerId = ''; this.initializing = null; await Promise.all(writes); await this.store.clear(); }
+    async clear() { const writes = [...this.entries.values()].map(entry => entry.writing.catch(() => { })); this.resetMemory(); this.ownerId = ''; this.ownerEpoch++; this.ownerPending=null; this.initializing = null; await Promise.all(writes); await this.store.clear(); }
     stage(files: File[], fields: DraftFields, operationId?: string) {
         let entry = operationId ? this.entries.get(operationId) : undefined;
         if(entry?.finished)return entry.data.operationId;
@@ -196,9 +213,26 @@ export class UploadManager {
         void this.run(entry);return id;
     }
 
-    /** Acknowledge the posted flag's durable write before the sheet closes. Uploads keep running on failure. */
-    async post(id: string): Promise<boolean> { const entry = this.entries.get(id); if (!entry || entry.deleted)
-        return false; if(entry.finished)return true; entry.data.posted = true; const durable = this.persist(entry); this.notify(entry, 'upload-started'); void this.run(entry); try { await durable; return true; } catch { return false; } }
+    /** Acknowledge only an owner-bound recoverable draft, or confirmed publication.
+     * Upload work keeps running when the durable acknowledgement fails. */
+    async post(id: string): Promise<boolean> {
+        const entry = this.entries.get(id);
+        if (!entry || entry.deleted) return false;
+        if (entry.finished) return Boolean(entry.data.resultPostId);
+        entry.data.posted = true;
+        this.notify(entry, 'upload-started');
+        void this.run(entry);
+        try {
+            const owner = await this.resolveOwner();
+            const current = () => !entry.deleted && this.entries.get(id) === entry && this.ownerId === owner && entry.data.ownerId === owner;
+            if (entry.deleted || this.entries.get(id) !== entry || this.ownerId !== owner || (entry.data.ownerId && entry.data.ownerId !== owner)) return false;
+            entry.data.ownerId = owner;
+            await this.persist(entry);
+            return current();
+        } catch {
+            return !entry.deleted && this.entries.get(id) === entry && Boolean(this.ownerId) && entry.data.ownerId === this.ownerId && entry.finished && Boolean(entry.data.resultPostId);
+        }
+    }
     async discardFood(id:string){
         const entry=this.entries.get(id);
         if((!entry?.data.food&&!entry?.data.copy)||entry.deleted||entry.finished)return;
@@ -260,15 +294,11 @@ export class UploadManager {
     private async process(entry: Entry) {
         try {
             if(entry.deleted||(entry.data.ownerId&&this.ownerId&&entry.data.ownerId!==this.ownerId))return;
-            if (!this.ownerId) {
-                const { data: { user } } = await createClient().auth.getUser();
-                if (!user)
-                    throw new Error('Sign in required.');
-                this.ownerId = user.id;
-            }
-            entry.data.ownerId = this.ownerId;
+            const owner = await this.resolveOwner();
+            if (entry.deleted || this.entries.get(entry.data.operationId) !== entry || this.ownerId !== owner || (entry.data.ownerId && entry.data.ownerId !== owner)) return;
+            entry.data.ownerId = owner;
             await this.persist(entry);
-            if (entry.deleted)
+            if (entry.deleted || this.ownerId !== owner || entry.data.ownerId !== owner)
                 return;
             if((entry.data.food||entry.data.copy||entry.data.drink||entry.data.photoDrinks)&&entry.data.cancelRequested){
                 const response=await this.foodRequest(entry.data.copy?copyEndpoint(entry.data.copy):entry.data.photoDrinks?'/api/drinks/post':entry.data.drink?'/api/intake/post':'/api/posts/food',{method:'DELETE',headers:{'Content-Type':'application/json'},body:JSON.stringify({operation_id:entry.data.operationId,owner_id:entry.data.ownerId,...(entry.data.copy?{eaten_at:entry.data.copy.eatenAt}:{}),...(entry.data.photoDrinks?{upload_id:entry.data.photoDrinks.upload_id}:{})})});
