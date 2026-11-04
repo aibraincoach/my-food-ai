@@ -1,0 +1,107 @@
+{
+  "pass": true,
+  "scope": "Disposable PostgREST reanalysis; real Meta; forced-empty USDA fixture (not a claim of live USDA absence)",
+  "food": "cendol",
+  "postStatus": "ready",
+  "nutrition": {
+    "fat_g": 3.2,
+    "carbs_g": 14,
+    "calories": 90,
+    "protein_g": 0.8,
+    "source_ref": "estimate:coconut milk iced drink with rice pandan jelly, palm sugar",
+    "micronutrients": [
+      {
+        "basis": "portion",
+        "value": 90,
+        "unitName": "KCAL",
+        "nutrientId": 1008,
+        "nutrientName": "Energy",
+        "approximation": {
+          "kind": "estimate",
+          "basis": "coconut milk iced drink with rice pandan jelly, palm sugar",
+          "sourceRef": "estimate:coconut milk iced drink with rice pandan jelly, palm sugar"
+        }
+      },
+      {
+        "basis": "portion",
+        "value": 0.8,
+        "unitName": "G",
+        "nutrientId": 1003,
+        "nutrientName": "Protein",
+        "approximation": {
+          "kind": "estimate",
+          "basis": "coconut milk iced drink with rice pandan jelly, palm sugar",
+          "sourceRef": "estimate:coconut milk iced drink with rice pandan jelly, palm sugar"
+        }
+      },
+      {
+        "basis": "portion",
+        "value": 14,
+        "unitName": "G",
+        "nutrientId": 1005,
+        "nutrientName": "Carbohydrate, by difference",
+        "approximation": {
+          "kind": "estimate",
+          "basis": "coconut milk iced drink with rice pandan jelly, palm sugar",
+          "sourceRef": "estimate:coconut milk iced drink with rice pandan jelly, palm sugar"
+        }
+      },
+      {
+        "basis": "portion",
+        "value": 3.2,
+        "unitName": "G",
+        "nutrientId": 1004,
+        "nutrientName": "Total lipid (fat)",
+        "approximation": {
+          "kind": "estimate",
+          "basis": "coconut milk iced drink with rice pandan jelly, palm sugar",
+          "sourceRef": "estimate:coconut milk iced drink with rice pandan jelly, palm sugar"
+        }
+      },
+      {
+        "basis": "portion",
+        "value": 0.5,
+        "unitName": "G",
+        "nutrientId": 1079,
+        "nutrientName": "Fiber, total dietary",
+        "approximation": {
+          "kind": "estimate",
+          "basis": "coconut milk iced drink with rice pandan jelly, palm sugar",
+          "sourceRef": "estimate:coconut milk iced drink with rice pandan jelly, palm sugar"
+        }
+      },
+      {
+        "basis": "portion",
+        "value": 11,
+        "unitName": "G",
+        "nutrientId": 2000,
+        "nutrientName": "Sugars, total including NLEA",
+        "approximation": {
+          "kind": "estimate",
+          "basis": "coconut milk iced drink with rice pandan jelly, palm sugar",
+          "sourceRef": "estimate:coconut milk iced drink with rice pandan jelly, palm sugar"
+        }
+      },
+      {
+        "basis": "portion",
+        "value": 15,
+        "unitName": "MG",
+        "nutrientId": 1093,
+        "nutrientName": "Sodium, Na",
+        "approximation": {
+          "kind": "estimate",
+          "basis": "coconut milk iced drink with rice pandan jelly, palm sugar",
+          "sourceRef": "estimate:coconut milk iced drink with rice pandan jelly, palm sugar"
+        }
+      }
+    ]
+  },
+  "comments": [
+    {
+      "author": "model",
+      "body": "Consumed: 90 kcal · 1 g protein · 14 g carbs · 3 g fat. Nutrition for cendol is a model estimate, coconut milk iced drink with rice pandan jelly, palm sugar."
+    }
+  ],
+  "usdaEmptyRequests": 8,
+  "cleanup": "post and generated media removed, post absence verified"
+}
