@@ -186,7 +186,13 @@ async function optionalRead<T>(stage: string, read: () => PromiseLike<T>, fallba
 export async function toFeedPosts(db: SupabaseClient, rows: PostRow[], zone = "UTC", onFirstPhoto?: (url: string) => void): Promise<FeedPost[]> {
   if (!rows.length) return [];
   const ids = rows.map(row => row.id), ready = rows.filter(row => row.status === 'ready');
-  const revisions = () => Promise.all(ready.map(row => optionalRead('revision', () => latestRevision(db, row.id), null)));
+  const revisions = () => optionalRead('revision', async () => {
+  if (!ready.length) return ready.map(() => null);
+  const {data, error} = await db.rpc('feedback_revisions', {p_post_ids: ready.map(row => row.id)}).abortSignal(AbortSignal.timeout(8000));
+  if (error) throw new Error('Analysis revisions could not be read.');
+  const byId = new Map((data as {post_id: string; revision: {modelCommentId: string|null; fingerprint: string}|null}[]).map(entry => [entry.post_id, entry.revision]));
+  return ready.map(row => byId.get(row.id) ?? null);
+}, ready.map(() => null));
   // Start immutable media and its signed URLs immediately. SSR can emit the
   // first-photo preload while the revision-fenced nutrition is still reading.
   const mediaRead = optionalRead<null | {id:string;post_id:string;storage_path:string;kind:string;not_eaten:boolean;position:number}[]>('media', async () => {
