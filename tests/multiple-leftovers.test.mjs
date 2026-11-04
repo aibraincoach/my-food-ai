@@ -19,8 +19,8 @@ test('fully uneaten foods and cumulative footer keep their recorded calories aft
  const prior={...item,portion_grams:0,not_eaten_grams:100,not_eaten_calories:200,calories:0};
  const row=carryLeftovers({name:prior.name,portion_grams:100,portion_text:'100 g',nutrition:retainedNutrition(prior)},prior);
  assert.equal(row.nutrition.calories,0);assert.equal(row.portion_grams,0);assert.equal(row.not_eaten_calories,200);
- const card=cardDataFromRow({items:[{...prior,...row,not_eaten_count_text:'100 g'}]});assert.equal(card.footer,'Leftovers · not eaten: 100 g · 200 kcal');
- assert.equal(checkWording(card.footer).ok,true);assert.equal(checkWording('Leftovers · not eaten').ok,true);assert.equal(checkWording('100 calories left').ok,false);
+ const card=cardDataFromRow({items:[{...prior,...row,not_eaten_count_text:'100 g'}]});assert.equal(card.footer,'Leftovers: 100 g · 200 kcal');
+ assert.equal(checkWording(card.footer).ok,true);assert.equal(checkWording('Leftovers').ok,true);assert.equal(checkWording('100 calories left').ok,false);
 });
 test('two independent leftovers photos accumulate, retry once, survive ordinary correction, and stay owner-scoped',async()=>{
  const owner=await user(1);const migration=readFileSync(new URL('../supabase/migrations/0028_multiple_leftovers.sql',import.meta.url),'utf8');
@@ -94,5 +94,5 @@ test('second-plate remainder targets its own photo and preserves the first plate
   if(path.endsWith('/apply_post_remainder')){applied=JSON.parse(init.body);return Response.json({message:'captured fixture save',code:'40001'},{status:409});}
   throw Error('Unexpected worker fixture route '+path);
  }}});
- try{await assert.rejects(remainder(db,{id:'job',post_id:'post',payload:{remainder_photo_id:'photo2'}}));assert.equal(photoQuery,'eq.photo2');assert.ok(applied);const row=applied.p_items[0];assert.equal(row.portion_grams,60);assert.equal(row.not_eaten_grams,40);assert.equal(row.not_eaten_calories,80);assert.equal(row.nutrition.calories,120);const second=applied.p_items[1];assert.equal(second.portion_grams,100);assert.equal(second.not_eaten_grams,100);assert.equal(second.not_eaten_calories,157);assert.equal(second.nutrition.calories,157);assert.match(applied.p_reply,/^Leftovers · not eaten:/);}finally{globalThis.fetch=saved;if(priorKey===undefined)delete process.env.MODEL_API_KEY;else process.env.MODEL_API_KEY=priorKey;}
+ try{await assert.rejects(remainder(db,{id:'job',post_id:'post',payload:{remainder_photo_id:'photo2'}}));assert.equal(photoQuery,'eq.photo2');assert.ok(applied);const row=applied.p_items[0];assert.equal(row.portion_grams,60);assert.equal(row.not_eaten_grams,40);assert.equal(row.not_eaten_calories,80);assert.equal(row.nutrition.calories,120);const second=applied.p_items[1];assert.equal(second.portion_grams,100);assert.equal(second.not_eaten_grams,100);assert.equal(second.not_eaten_calories,157);assert.equal(second.nutrition.calories,157);assert.match(applied.p_reply,/^Leftovers:/);}finally{globalThis.fetch=saved;if(priorKey===undefined)delete process.env.MODEL_API_KEY;else process.env.MODEL_API_KEY=priorKey;}
 });
