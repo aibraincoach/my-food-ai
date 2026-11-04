@@ -189,9 +189,10 @@ export class UploadManager {
         const now=Date.now(),id=crypto.randomUUID();
         const entry=this.make({operationId:id,ownerId:this.ownerId,createdAt:now,reservedAt:now,caption:label,eatenAt:copy.eatenAt,location:null,options:{},files:[],snapshot:null,posted:true,copy,state:'uploading',sent:0,total:0});
         this.entries.set(id,entry);
-        try{await this.persist(entry);}catch(error){entry.deleted=true;this.entries.delete(id);throw error;}
+        this.notify(entry,'upload-started');
+        try{await this.persist(entry);}catch{entry.data.state='failed';entry.data.message='The copy could not be kept on this phone. Try again.';this.notify(entry,'upload-failed');return id;}
         if(entry.deleted||entry.data.ownerId!==this.ownerId)throw new Error('Sign-in changed. Your copy is kept for its original account.');
-        this.notify(entry,'upload-started');void this.run(entry);return id;
+        void this.run(entry);return id;
     }
 
     post(id: string) { const entry = this.entries.get(id); if (!entry || entry.deleted)
