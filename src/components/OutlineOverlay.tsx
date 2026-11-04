@@ -2,6 +2,7 @@
 "use client";
 import {imageIdentity} from '@/lib/media/retained-image';
 import {feedPhotoSrcSet} from '@/lib/posts/feed-photo-url';
+import {desktopPhotoVars,photoBoxStyle} from '@/lib/media/photo-box';
 import {alcoholGrams,isAlcoholic} from '@/lib/intake/alcohol';
 import { nutritionTableRows } from "@/lib/nutrition/table";
 
@@ -156,8 +157,8 @@ export default function OutlineOverlay({ desktopModal=false, desktopHeader, desk
     : cardData ?? cardDataFromRow({ items, eatenAt });
   const showNutrition = initialized && (items.length > 0 || status === "ready");
   const Container=desktopModal?"div":Fragment;
-  return <Container {...(desktopModal?{className:"desktop-post-content"}:{})}>
-    <div ref={ref} className="relative w-full overflow-hidden bg-card" style={{ ...(wholePhoto&&activePhoto?{aspectRatio:`${activePhoto.width} / ${activePhoto.height}`,maxHeight:"80dvh"}:{height}), touchAction: drawing ? "none" : "auto" }}
+  return <Container {...(desktopModal?{className:"desktop-post-content",style:desktopPhotoVars(activePhoto)}:{})}>
+    <div ref={ref} className="relative w-full overflow-hidden bg-card" style={{ ...(wholePhoto&&activePhoto?photoBoxStyle(activePhoto):{height}), touchAction: drawing ? "none" : "auto" }}
       onPointerDown={pointerDown} onPointerMove={pointerMove} onPointerUp={pointerUp}
       onPointerCancel={() => { start.current = null; setDrawBox(null); }}
       onClick={(event) => {

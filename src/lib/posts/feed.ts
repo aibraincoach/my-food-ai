@@ -63,7 +63,7 @@ export interface FeedPost {
   eaten_at: string;
   status: PostStatus;
   photoUrl: string | null;
-  slides: {id?:string;url:string;kind?:"photo"|"card";not_eaten?:boolean}[];
+  slides: {id?:string;url:string;kind?:"photo"|"card";not_eaten?:boolean;width?:number;height?:number}[];
   count_text?: string | null;
   created_at: string;
   items: FeedItem[];
@@ -134,16 +134,16 @@ export async function toFeedPost(
   supabase: SupabaseClient,
   row: PostRow,
   zone?: string,
-  known?: {items: FeedItem[]; revisionBefore: Awaited<ReturnType<typeof latestRevision>>; media?: {id:string;storage_path:string;kind:string;not_eaten:boolean}[]}
+  known?: {items: FeedItem[]; revisionBefore: Awaited<ReturnType<typeof latestRevision>>; media?: {id:string;storage_path:string;kind:string;not_eaten:boolean;width?:number|null;height?:number|null}[]}
 ): Promise<FeedPost> {
   const revisionBefore=known?known.revisionBefore:row.status==="ready"?await latestRevision(supabase,row.id):null;
   const { data: media, error: mediaError } = known?.media ? {data:known.media,error:null} : await supabase.from("post_media")
-    .select("id,storage_path,kind,not_eaten").eq("post_id",row.id).order("position");
+    .select("id,storage_path,kind,not_eaten,width,height").eq("post_id",row.id).order("position");
   if(mediaError) throw new Error(mediaError.message);
   const slides = (await Promise.all((media ?? []).map(async (entry) => {
-    try { return {id:entry.id,url: (entry.kind === "photo" ? smallFeedPhotoUrl(row.user_id,row.id,entry.id) : null) ?? await feedCopyUrl(supabase, entry.kind === "card" ? entry.storage_path : feedPathFor(entry.storage_path),row.user_id),kind:entry.kind as "photo"|"card",not_eaten:Boolean(entry.not_eaten)}; }
+    try { return {id:entry.id,url: (entry.kind === "photo" ? smallFeedPhotoUrl(row.user_id,row.id,entry.id) : null) ?? await feedCopyUrl(supabase, entry.kind === "card" ? entry.storage_path : feedPathFor(entry.storage_path),row.user_id),kind:entry.kind as "photo"|"card",not_eaten:Boolean(entry.not_eaten),width:entry.width??undefined,height:entry.height??undefined}; }
     catch { return null; }
-  }))).filter((entry): entry is {id:string;url:string;kind:"photo"|"card";not_eaten:boolean} => entry !== null);
+  }))).filter((entry): entry is NonNullable<typeof entry> => entry !== null);
   const photoUrl = slides[0]?.url ?? null;
 
   const items: FeedItem[] = row.status === "ready" ? known?.items ?? await getCurrentItems(supabase, row.id) : [];
@@ -196,8 +196,8 @@ export async function toFeedPosts(db: SupabaseClient, rows: PostRow[], zone = "U
 }, ready.map(() => null));
   // Start immutable media and its signed URLs immediately. SSR can emit the
   // first-photo preload while the revision-fenced nutrition is still reading.
-  const mediaRead = optionalRead<null | {id:string;post_id:string;storage_path:string;kind:string;not_eaten:boolean;position:number}[]>('media', async () => {
-    const result = await db.from('post_media').select('id,post_id,storage_path,kind,not_eaten,position').in('post_id', ids).order('position').abortSignal(AbortSignal.timeout(8000));
+  const mediaRead = optionalRead<null | {id:string;post_id:string;storage_path:string;kind:string;not_eaten:boolean;position:number;width:number|null;height:number|null}[]>('media', async () => {
+    const result = await db.from('post_media').select('id,post_id,storage_path,kind,not_eaten,position,width,height').in('post_id', ids).order('position').abortSignal(AbortSignal.timeout(8000));
     if (result.error) throw result.error; return result.data ?? [];
   }, null);
   const savedRead = optionalRead<null | {id:string;source_post_id:string}[]>('saved', async () => {
@@ -252,7 +252,7 @@ export async function toFeedPosts(db: SupabaseClient, rows: PostRow[], zone = "U
     const ownMedia = media?.filter(entry => entry.post_id === row.id);
     const slides = (ownMedia ?? []).flatMap(entry => {
       const url = urls.get(entry.kind === 'card' ? entry.storage_path : feedPathFor(entry.storage_path));
-      return url ? [{ id: entry.id, url, kind: entry.kind as 'photo' | 'card', not_eaten: Boolean(entry.not_eaten) }] : [];
+      return url ? [{ id: entry.id, url, kind: entry.kind as 'photo' | 'card', not_eaten: Boolean(entry.not_eaten), width: entry.width ?? undefined, height: entry.height ?? undefined }] : [];
     });
     const revision = revisionById.get(row.id);
     return { mediaUnavailable: media === null || slides.length !== (ownMedia?.length ?? 0), expectedMediaIds: ownMedia?.map(entry=>entry.id), savedStateUnavailable: saved === null, itemsUnavailable: row.status === 'ready' && !nutrition.has(row.id), fail_reason: row.fail_reason ?? null, agentName: (Array.isArray(row.agent_tokens) ? row.agent_tokens[0] : row.agent_tokens)?.name ?? null,
