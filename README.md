@@ -41,9 +41,11 @@ Measured with the [disposable local test stack](docs/testing.md); [commands, dat
 
 | Command | Result |
 | --- | --- |
-| `npm run test:db` | 32 passed, 0 failed, 0 skipped |
-| `npm test` (complete top-level suite with TypeScript loading) | 567 passed, 0 failed, 6 existing optional integration skips |
+| `npm run test:db` | 34 passed, 0 failed, 0 skipped |
+| `npm test` (complete top-level suite with TypeScript loading) | 573 passed, 0 failed, 6 existing optional integration skips |
 | `npm run lint` | 0 errors, 6 warnings |
+
+[Fleet 11 validation logs and exact tested versions](https://github.com/aibraincoach/my-food-ai/blob/ccb1465/docs/evidence/run11-final-checks/verification.json).
 
 The local stack runs real PostgreSQL, Auth, REST and app routes with scripted provider/Storage transports. It does not prove live provider availability or food accuracy.
 
