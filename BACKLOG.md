@@ -1,260 +1,360 @@
 # My Food AI — Backlog†
 
-Last edited: Wednesday 2026-11-04 at 21:07 WIB (UTC+07:00) by Claude, PM
+Last edited: Thursday 2026-11-05 at 00:18 WIB (UTC+07:00) by Claude, PM
 
 The only job of the PM is to maintain this backlog and keep it completely up to date. Failing to do so is immediately terminable.
 
 ## Backlog for Owner
 
-### #591 Confirm the desktop layout and see one real labelled estimate
+### #212 Nutrition-label scanning is untested on a phone
 
-The owner has not yet checked the new desktop layout on his own window, and he has not seen a labelled nutrition estimate on a real meal.
+Nobody has tried logging a packaged food from its nutrition label on a phone with a real pack. Every label check so far ran in emulation. The barcode half passed on the owner's phone on Nov 5: Pocari Sweat 500ml came back with its name, nutrition and pack photo.
 
-Fleet 14 shipped a structural fix for the full-width feed, but nobody reproduced its cause. The estimate path has only run against an empty USDA on a disposable stack, and the cendol fixture matched a gelatin dessert. In the owner's full-width desktop window, run `document.querySelector('[data-shell]')!==null` in the console and note whether it is true. Re-analyse the macaroni post, and analyse one exotic food. Done when the owner has said whether the console check is true, his window shows the centred 500 px feed with the Today column, and he has seen one labelled estimate on a real meal.
-
-Blast radius: Judges on desktop would meet a broken or full-width layout on first load. The check costs the owner minutes and touches no code or process.
-
-### #452 A plainly visible nutrition label is reported as not found
-
-A photo of a pack whose nutrition table can be read is rejected with "No nutrition label found".
-
-The photo of a Goldfish cracker pack, with the label printed in Indonesian and the table fully in the frame, gave "No nutrition label found" with "Take the photo again" and "Type it instead". Done when that photo gives a card with the numbers printed on the label, and a label in English does the same, on the owner's three phones.
-
-Blast radius: A judge who scans a pack label gets a failure on a headline feature, in the demo and on a phone. The fix sits in the label read path, so it needs its own check on real packs.
-
-### #451 Every barcode scan comes back as not in the database
-
-The owner has scanned several packs on a phone and every scan has failed: the scanner reads the code and the lookup finds no product.
-
-The scanner read 7 622300 76136 3 from an Oreo pack and showed "Not in the database. No product for this code yet." The owner finds the same code with an ordinary web search, at barcodelookup.com/7622300761363. The planner reports that Fleet 13's test confirmed the cause; the phone check remains. Done when this pack gives a product card with its name and nutrition, a second pack from the same shelf does too, and the planner has recorded which source the lookup asks and why it had no entry for this code, on the owner's three phones.
-
-Blast radius: Every barcode scan fails, so the packaged-food path is unusable in the demo and for judges. The cause is unknown, so the fix may reach the scanner, the lookup or the providers.
-
-### #525 The meal detail photo is cropped and does not show the whole image
-
-The meal detail page shows the photo in a short, wide frame, so the top and bottom of the photo are cut off. The owner wants the whole image and has asked for it three times.
-
-The owner's screenshot on desktop shows the macaroni photo as a wide strip with the outline masks drawn on the cropped part. The detail photo is drawn to fill its frame (OutlineOverlay.tsx), and the outline masks use the photo's stored width and height. Observe first: measure the frame and the photo on desktop and on phone, and record how much of the photo is cut off. Done when the detail page shows the whole photo with nothing cut off on desktop and on phone, and the outline masks still sit on the right parts of the food.
-
-Blast radius: Judges see a cropped photo on the page they open most, which reads as unfinished on desktop. The fix touches the detail layout that Fleet 14 just changed, so it needs a desktop check from 1100 to 1440 px.
-
-### #212 Barcode and nutrition-label scanning is untested on a phone
-
-Nobody has tried logging a packaged food from its barcode or nutrition label on a phone with a real pack. Every check so far ran in emulation.
-
-The capture sheet swipes between Photo, Barcode and Text (PR #298). A barcode photographed in Photo mode is also read: the app decodes the barcode from the image first and looks up the digits, and uses the model only when it finds no barcode and for labels. Photograph a real pack's barcode through the capture sheet; the card should show the product's name, its nutrition and the pack photo. Then photograph a nutrition label; it should give the same kind of card. Done when both give a correct card on the owner's phone.
-
-Blast radius: A broken packaged-food path would be found first by a judge. Waiting damages nothing, but the result feeds #451 and #452.
-
-### #285 Test the half-eaten plate again on a phone
-
-The app works out how much was eaten from a leftovers photo. Nobody has confirmed on a phone that the consumed number is right.
-
-Photograph a meal before and after eating it, then check the consumed number. If it is wrong, report it to the coder. The video includes the not-eaten plate, so this has to work first. Done when a fresh before-and-after test gives the right consumed number. If it does not, the plate stays out of the video.
-
-Blast radius: A wrong consumed number is a wrong number on a judge's meal, in a flow the demo may show. Nothing changes in code until the owner reports a failure.
+The camera sheet has three modes: Photo, Barcode and Text. Photograph a real pack's nutrition label. It should give a card with the nutrition read from the label. Done when the label gives a correct card on the owner's phone.
 
 ### #318 Read the README before recording
 
 Judges read the README first, and the owner has not read it yet.
 
-The README (#287) is written in Run 7. Read it after it merges. Done when the README is read and everything wrong in it is listed.
-
-Blast radius: A README that misdescribes the app is the first thing a judge reads. The check changes no code.
+The README is the front page of the code repository. The owner reads it once it is updated. Done when the owner has read it and listed everything wrong in it.
 
 ### #26 The demo video and the submission do not exist yet
 
 Nothing is submitted until the video is recorded and the submission is in. The deadline is Nov 4 at 9 PM EST (Nov 5 at 09:00 WIB).
 
-The submission needs the public repository, the video link and a list of everyone who worked on it. Judges stop watching at three minutes, and the video must show the feature working with live Meta model calls and say which open Meta model it uses and where it runs, Muse Spark Open on Baseten (Cerebral Valley, Nov 3). Every feature built is in the video, the not-eaten plate included. Post the video to X as soon as it exists: the Most Viral prize ($20,000) counts likes, reposts and comments on X through the end of Nov 8. Whether the post must exist before the submission deadline is unconfirmed. PRs merge as soon as each holds a counting receipt, and nothing waits on a clock before recording starts. No merges or deploys run from the start of recording until the submission is in. Done when a video under three minutes is on X and the submission is in.
+The submission needs the public code repository, the video link and a list of everyone who worked on it. Judges stop watching at three minutes. The video must show the feature working with live Meta model calls, and say which open Meta model it uses and where it runs: Muse Spark Open on Basen. Every feature built is in the video, including the not-eaten plate. Post the video to X as soon as it exists. The Most Viral prize ($20,000) counts likes, reposts and comments on X through the end of Nov 8. It is not confirmed whether the X post must exist before the submission deadline. Code changes go in as soon as they pass review. From the start of recording until the submission is in, nothing is merged or deployed. Done when a video under three minutes is on X and the submission is in.
 
-Blast radius: Without the video and the submission there is no entry, so this is the largest business risk on the list. It needs the owner's time and depends on no code.
+### #379 The feed and the first photo are untimed on a real phone
 
-### #379 Phone checks of the installed app over mobile data
+Every timing check in Run 7 and Run 8 ran in an emulator. Nobody has timed the feed or the first photo on a physical phone over mobile data.
 
-Every Run 7 and Run 8 timing check ran in emulation. No physical phone has tested the feed, the photos, installation or posting.
+Check on each of the owner's three phones, with the app installed on the home screen and on mobile data. Done when the feed and the first photo show within two seconds on each phone, the same photos load faster on a second visit and look acceptable, and each failure is reported to the coder.
 
-Check on each of the owner's three phones, installed from the home screen, over mobile data: the feed and the first photo show within two seconds (#222, #305); the last feed shows at once and fresh posts appear without jumping (#304); a warm revisit reuses cached photos and the photos look acceptable (#305); the camera, the keyboard and a post from the phone work, with the right photo kept (#6); a post completes through the worker (#322); the capture sheet closes within one second of the tap (#370). Done when each check passes on each of the three phones and each failure is reported to the coder with its number.
+### #622 Coming back to the installed app on a real phone is unchecked
 
-Blast radius: Every timing claim so far came from emulation, so a slow phone would surprise us in the recording or in front of a judge. The checks change no code but may open new items.
+Nobody has opened the installed app on a physical phone after leaving it and coming back. An emulator cannot show whether the feed returns at once or whether new posts push the page around.
+
+Check on each of the owner's three phones, with the app installed on the home screen. Done when the feed shows at once on return, new posts appear without the page jumping, and each failure is reported to the coder.
+
+### #623 Posting from a real phone is unchecked
+
+Nobody has posted a meal from a physical phone since the Run 7 and Run 8 changes. The camera, the keyboard and the photo that gets kept have only been tested in an emulator.
+
+Check on each of the owner's three phones. Done when the camera, the keyboard and posting work, the right photo is kept, the post completes, the camera sheet closes within one second of the tap, and each failure is reported to the coder.
 
 ### #60 A judge-facing pass makes the public repository start-here ready
 
 The submission requires a public repository, and it still carries the default README.
 
-After the last feature merges, one pass replaces the default README with a short start-here page (#287). All working files stay on main, including the agents' contracts, the Wall of Stupid file, the review policy and the review tools. Nothing is removed or scrubbed. Done when the README is the start-here page and a search of main for host names, account identifiers and billing detail returns only what the owner chose to keep. Fleet 10 closed the issue and Fleet 11 ran the search, so the owner's keep list is what remains. GitHub shows this issue closed (the coder's read at 17:51 WIB); it stays here until its done condition above is met.
+After the last feature is in, one pass replaces the default README with a short start-here page. All working files stay in the repository, including the agents' contracts, the Wall of Stupid file, the review policy and the review tools. Nothing is removed. Done when the README is the start-here page, and a search of the repository for host names, account identifiers and billing details finds only what the owner chose to keep. GitHub already shows this issue closed. It stays here until that is true.
 
-Blast radius: A repository that still shows the default README costs the judges' first impression and may fail the public-repository requirement. The change is docs only and endangers no code.
+### #578 The leftovers photo and the regular photo post through different code
 
-## In Flight
+The app has at least two code paths that post a photo, and the leftovers one is slower and blocks the camera. Other jobs may be done twice in different ways, and nobody has listed them.
 
-### #550 The desktop feed fills the whole window and the Today column is missing
+The owner asked on Nov 4 for an audit of duplicated work and of how the services fit together, to make the app faster. The first known case is the leftovers photo: it waits for image encoding, two uploads and the attachment steps before it closes the camera, while a regular post hands the work to the upload manager at once. The coder delivered the audit of main with 26 ranked findings and changed no code. The biggest are two photo-upload workflows, several screens that each refresh when a meal finishes, the meal detail waiting for optional services, the same photo delivered under several addresses, and nutrition read twice by the feed. The smallest are the profile handle read by separate readers, serial drink lookups, a photo reloaded during matching, repeated queue counts and a repeated search interpretation. Fleet 15 built rank 1 (the two photo-upload workflows). The other 25 await the owner's ruling. Done when the owner has ruled on each of the 26 findings and each one he accepts is filed as its own item.
 
-On desktop the feed runs edge to edge and the photo touches the window edge. The Today column does not appear.
+## Backlog for GrokBot
 
-The Round 6 design (6a) and the code on main both centre a 500 px feed column beside a 280 px Today column. Production deploys from main. An OpenClaw check on Nov 4 found the Today column present at 1024 to 1366 px wide, so the owner's screenshot may predate a deploy. The feed's own width was not measured. Measure the feed column on the live page at 1280x800. Fleet 14 shipped a structural fix, but nobody reproduced the cause (a service-worker shell is the guess), because the browser driver failed both times. The designer reported at 16:46 WIB that the owner's screenshot still shows the old full-width feed and the asterisk footnote, neither of which is in main at a24587a, so the page came from an older build. The designer names a stale service-worker cache as the first suspect and a production deployment behind main as the second. The coder's 15:59 report says production matched main at a24587a, with the alias verified and the deployed files equal to the tested tree. At 16:47 WIB the owner hard-refreshed his desktop window and it showed the centred feed with the Today column, so the old page came from a cached build. Done when production shows the centred 500 px feed with the Today column as 6a draws it, checked on the live page at 1280x800.
+Checks and investigations that need the live app and the web, and change no code. GrokBot reports what it finds. A fix becomes its own item for the planner or the designer.
 
-Blast radius: Judges on desktop see a broken layout on first load. The fix reaches the shared desktop shell that every desktop screen uses. If a stale service worker is the cause, every returning visitor, judges included, can be served an old build after each deploy.
+### #525 The meal detail photo is cropped and does not show the whole image
 
-### #512 The phone calendar can show the wrong month summary and jump when older months load
+The meal detail page shows the photo in a short, wide frame, so the top and bottom of the photo are cut off. The owner wants the whole image and has asked for it three times.
 
-On the phone Days screen, the sticky month summary can stay on the wrong month, and the scroll position can jump when an older month loads.
+The owner's desktop screenshot shows the macaroni photo as a wide strip, with the food outlines drawn on the cropped part. First step: measure how much of the photo is cut off, on desktop and on a phone. Done when the meal page shows the whole photo with nothing cut off on desktop and on a phone, and the food outlines still sit on the right parts of the food. Related: #602.
 
-Reviewer findings on merged PR #482, both reproduced by the coder in isolated component checks with synthetic months, not on the owner's device. The sticky summary can stay on the previous month while November scrolls in (src/components/PhoneCalendar.tsx lines 27 to 38). The anchoring that keeps the view still when an older month loads restores a stale scroll position if the user scrolls while the request is pending (lines 18 to 22 and 40 to 46). The review reported a third issue, but its text was cut off. Fleet 14 could not show the sticky label switching to November on production, because the whole two-month grid fits the viewport. No production account can show it, so prove it with three seeded months on the disposable stack. Observe first: scroll Days across the October and November boundary, and scroll while an older month loads. Done when the summary names the month nearest the top and the view stays still while an older month loads.
+### #602 The meal detail photo shows cropped for an instant on desktop, then zooms out, and the phone layout jumps 130 px
 
-Blast radius: The wrong month label confuses a judge scrolling Days on a phone, and the jump loses their place. The fix sits in the scroll code of PhoneCalendar.tsx, where a mistake can break scrolling for the whole page.
+On desktop, opening a meal shows the photo cropped about 20% in a 640x680 frame, then it jumps to the whole photo with grey bars at the sides. On the phone, the space for the photo starts as a 390x390 blank square and grows to 390x520, pushing everything below it down 130 px. The owner has asked three times to see the whole image (#525).
 
-### #552 The buttons under each post are 24 px tall and show no pressed or turned-off state
+Fixed: each photo's stored width and height now reserve the photo box before any image loads. Measured on the built app: phone portrait 390x520, phone landscape 390x292.5, desktop window portrait 510x680, desktop window landscape 640x480. The first frame and the full page matched with no jump. No saved photo is missing its size. The feed's square slide rail stays square, as planned. Done when the owner has seen it on the live app at 1100, 1280, 1440 and 390 wide: the photo is never cropped, and nothing moves when the full photo loads.
 
-The buttons under a post are too small to hit and look the same at rest, while saving and when turned off.
+### #579 Photos are captured at 480 × 640 and look blurry on high-density phones
 
-Design 7a (Round 7) gives 44 px tap areas and every state: rest, pressed, saving, turned off and failed. Done when each button matches 7a on production at 390x844. The coder's 17:44 WIB report says the five-state acceptance is unproved: the processing capture missed processing and found a ready row, earlier pressed-state samples were missed, and one induced failure held OPTIONS requests. Thumbs down measured 386.6 ms to its frame and 862.7 ms to its reply.
+The app stores each photo at 480 × 640 pixels, the size the browser chose for the live camera, and the feed shows a smaller 384 × 512 copy. On a phone with a three-times screen a full-width card needs about 1,170 pixels, so every photo looks soft. The owner finds the blur painful.
 
-Blast radius: Small tap targets and no pressed state make every post feel dead on a phone, the device judges use. The fix touches the action row under every post on phone and desktop.
+The coder measured the owner's Beef noodle post on production. The live camera asked for the rear camera with no size and drew one video frame, so the stored original was 480 × 640 pixels (0.31 megapixels, 126,407 bytes). The meal detail cannot show detail that never reached the upload. The feed then shrank it to a 384 × 512 copy of 22,118 bytes, cached for a year, so a sharper copy needs a new address. Photos already captured stay at 480 × 640. The owner reported the blur on Nov 4 and ruled that it is fixed today. A sharper photo costs more Storage egress, which #375 names as the largest egress source. Fleet 14's change #581 (higher-resolution capture, a larger feed copy at a new address, full-resolution detail photos) is live. Fleet 15's change #590 reconciled the density-specific photos with it and is merged. Nobody has measured the bytes, the egress or a real camera's resolution yet. A reviewer found two problems in an earlier version: the preload can download the wrong photo size, and one failed image turns off sharper photos for later ones. A later Muse review found no blockers. Observe first: find what resolution the camera delivers on the owner's three phones, and the bytes of a photo at each size. Done when a photo captured on the owner's three phones is stored at a sharper resolution, the feed and the meal detail show it sharp on a 3x phone, the first photo still shows within two seconds on mobile data, and the bytes per photo before and after are written down.
 
-### #553 Thumbs up and down look the same when turned off and thumbs down waits for the server
+### #372 Feed photos are too large for a phone on mobile data
 
-The thumbs turn themselves off while a vote saves and before the analysis exists, with no visible difference. Thumbs down opens nothing until the vote has saved.
+Feed photos are too large for a phone on mobile data, so the first photo is slow and the app spends more storage egress than it needs. A phone should receive a small copy sized for its screen.
 
-This is the first case the owner found for #217. The coder's Fleet 14 acceptance checks reported that entry timings fail the plan's gate, and that report names #553. Done when a thumb shows its pressed state at once, looks different when turned off, and thumbs down opens at once, checked on production at 390x844 with the processor slowed. The coder's 17:44 WIB report says the strict 50 ms gate failed on four of eight local entry paths: phone photo 51.5 ms, desktop More 64.3 ms, Details 66.6 ms and Comment 64.3 ms. All eight kept zero photo-top shift.
+It is built on main: the feed serves immutable WebP copies, at 1920 px for the default, 1040 px for 2x screens and 1560 px for 3x screens, with a one-year cache header. Fleet 15 measured 16,386 and 26,854 bytes for the two phone copies on production. One line in docs/media-loading.md still says "no-store"; Fleet 17's docs lane corrects it. Done when a browser helper on production records the bytes and the cache header of the first feed photo, the first photo shows within two seconds at the slow-network test profile, and the owner says the photo looks sharp on his phone.
 
-Blast radius: A vote that shows no response reads as a broken app and invites double taps. The fix touches the vote state and its server save, so double votes need a test.
+### #370 The camera view stays open for a long time after a photo is taken
 
-### #554 Tapping a meal shows nothing until the server answers
+After the user taps Post on a photo, the capture sheet stays on screen instead of closing at once. The post should be at the top of the feed within about one second, even on a slow connection, and a failed upload should show on that post.
 
-Comment, Details, tapping the photo, "more" and Post in the capture sheet wait for the server before anything changes on screen.
+The wait came from the phone's save of the draft, which queued behind earlier saves that carried the full camera photo and two re-encoded copies. Fleet 17 capped it: the sheet now waits at most 700 ms for that save, while the save and the upload carry on behind it (#619, merged as 3b65a256). The proof is weak. All nine close readings ran after the merge, so nothing shows what the cap changed. Two runs went over one second (1,338 and 1,077 ms), and the pass came only after the test driver added an 8-second gap between posts (final batch 733, 633 and 868 ms). Posts made back to back can still close slowly, which overlaps #571. Production proof is pending. Done when a browser helper posts a 4032 by 3024 photo on the live app on the slow-network profile, the sheet closes within 1 second on three runs out of three, and the top post says "Uploading photo…" in the same second, and a second post made right after the first also closes within 1 second.
 
-Design 7b (Round 7) shows the screen at once, using the photo already on screen while the details load. Done when each of these taps shows a visible change at once, with no layout jump when the details arrive.
+### #615 A posted beer disappears and a clarification card takes its place
 
-Blast radius: Every meal tap feels dead until the server answers, the slowest-feeling moment in the app. The fix changes navigation and history on phone and desktop, where a mistake can break Back.
+The owner posted a beer and the post vanished from the feed. A card asking a question appeared in its place. A post must stay on screen from the tap, with the calories of the drink as stated, and the question must reach the owner as a notification.
 
-### #494 Opening a meal's detail takes 14 seconds
+The cause: when the caption and the photo disagree, the model asks a question and the app marked the post "needs input", and every feed read hid posts in that state. The owner's ruling: the post shows as posted with the drink as stated, and the question sits in the Home strip and arrives as a notification. The strip's X dismisses the question and never deletes the post. "No food found" still holds the post. Fleet 17 built it with a new column, posts.question (migration 0056, applied), and merged it as #620 (58d235f9). The main path works: the post stayed in the feed with its question beside it, the card read "14 g alcohol · 1.0 standard drinks", and answering cleared the question and ran the correction. Two parts were never observed. The notification was not seen, because the test inserted a fake subscription and captured no send log. The X was not proven either, because the test driver read the wrong post and passed on an empty question field. Done when, on the live app with test account 2 or the owner's phone, a beer caption over a mismatching photo keeps the post in the feed with its calories, the strip row shows, the phone gets "Your meal needs a reply", the X dismisses the row on the same screen without a reload, and the post stays. Also check that the beer counts in the day's kcal on Days.
 
-The owner reports 14 seconds from tapping a meal to its detail page opening. He calls it not acceptable.
+### #348 The card for a drink photo has not been checked on the live app
 
-The owner reported it on Nov 4 at about 07:38 WIB. He measured on an iPhone with the app installed from the home screen, on XL Axiata Prioritas 5G in Indonesia. He gave no meal URL because the installed app shows none. The coder's Chromium audit on production (docs/detail-open-audit.md in PR #475) found useful content at 0.9 to 3.4 seconds, the original photo decoded at 1.2 to 3.7 seconds, 24 to 25 requests with eight repeated, and a 142 KB original downloaded although the feed copy was on screen. It did not measure the iPhone on XL Axiata, so the 14 seconds is unexplained. The audit items below name three suspects: no loading screen on the tap, the same meal read twice, and the full original photo downloaded again. Nobody has timed the detail on a phone on current main. Fleet 14 (production a24587a, unthrottled Firefox, not a phone) measured the first detail frame at 10 to 25 ms and completed detail replacements at 1,030 to 1,787 ms in five trials. One desktop trial did not finish within 20 seconds, a follow-up finished by 2.5 seconds, and no cause is known. Every successful detail trace shows two completed original-image GETs of 110 to 240 KB, which the first frame hides but does not remove. Chromium hung on the coder's host, so nothing was measured with the processor slowed or on Fast 3G, and that condition is unmet. Observe first: time the tap to a usable detail on a phone over mobile data and on desktop, and record where the seconds go (server render, database reads, photo download). Done when the detail opens within two seconds on the owner's phone over mobile data, and the report states where the 14 seconds went. The Fleet 14 coder's 17:44 WIB report says the 14-second opening was not reproduced or fully explained. A Muse efficiency audit of main 299f13a that the owner relayed at 19:25 WIB (read-only, nothing measured live, not verified by the PM) says the detail photo downloads the full original on every open even with no outlines to show (OutlineOverlay.tsx:31-37), signs one address per outline instead of one batch (items.ts:126-135), and reloads the whole meal on every thread event (Thread.tsx).
+When you post a photo of a drink and swipe it, a card opens about the drink. That card was marked done without anyone checking it on the live app.
 
-Blast radius: The owner measured 14 seconds on his phone, so a judge's first meal tap could take as long and read as a crash. The cause is unknown, so work on suspects can spend time without removing the delay.
+Two test attempts failed. Fleet 14 proved that the cola analysis and its caffeine are saved, but not the card itself. Done when a photo of a drink (coffee, cola, water or beer) shows its card on the live app, on the owner's three phones. A photo of anything that is not a drink, such as a beard, does not count.
 
-### #499 Several pages export an instant flag that nothing reads
+### #351 The drink sheet's tiles have not been checked on the live app
 
-Several pages export a flag called instant set to false, and nothing reads it. Every reader has to wonder what it does.
+The drink sheet shows tiles, and a change set their sizes and order. The issue was closed after a test on a developer's machine, and nobody has seen the result on the live app.
 
-Unverified audit finding, read at head 618cf7e. The audit found no source file, script or tool that reads the flag (src/app/posts/\[id\]/page.tsx and other pages). Nothing breaks while it stays. Done when no page exports the flag and a search of the source for it returns nothing. GitHub shows this issue closed (the coder's read at 17:51 WIB); it stays here until its done condition above is met.
-
-Blast radius: Dead flags mislead coders and reviewers and cost planning time, but nothing breaks for users. Removing them risks deleting one that something does read.
-
-### #323 Every protected page checks sign-in twice (part of #222)
-
-The middleware calls Supabase to verify the user. The home page then calls Supabase to verify the user again. That is two round trips on every page open, on top of the cold function boot.
-
-Run 8 merged one sign-in check per page: the server makes one Auth call, and a forged header is refused. Recorded browser windows still contained 10 and six /auth/v1/user requests, so the whole opening is not yet attributed. API authentication stays intact. Fleet 11 could not close it: minute totals from the logs cannot isolate one opening. Measure with spans tied to one navigation, and count the middleware call, the server helper call and the browser call. Fleet 14 cut the browser Auth GETs from one to zero across Home, Days and Profile on production, but local server windows still recorded 7, 9 and 14 verifications per page open. The likeliest cause is that the middleware verifies every prefetch and refresh request, not only the document, and each card carries several links. This is also the probable server half of #222. Done when a page open makes one sign-in call across the server and the browser together, and an unsigned request still cannot reach a protected page.
-
-Blast radius: Extra Auth calls slow every protected page and add Supabase egress. The fix sits in the middleware that guards every protected page, so a mistake can let an unsigned request in or lock out signed-in users.
-
-### #324 Home computes the day totals twice on every open (part of #222)
-
-The server renders the row of day bubbles with totals for the last 5 days. The browser feed then computes totals again for the feed's days. Today's totals are queried twice on every home open.
-
-Run 8 merged one shared server read of today's totals. Final browser windows still made one or two day-total reads, so a single read across the server and the browser together is unproved. Fleet 11 could not close it for the same reason. Measure with spans tied to one navigation, and count every read that returns today's totals, batch reads included. Done when a home open queries today's totals once across the server and the browser together.
-
-Blast radius: Duplicate day-total reads add load and egress to every Home open. The fix touches the totals shown on Home, so a mistake shows wrong calories to a judge.
-
-### #520 Every Home open reads the first feed page twice
-
-Home reads the first page of the feed in the server render and again from the browser, so every open pays for both reads.
-
-Planner finding from reading main on Nov 4, not yet measured. The client component always calls its load function after the server render (src/components/Feed.tsx). Related: #373 and #498. Observe first: count the first-page reads of one Home open on current main. Done when one Home open reads the first feed page once, and the request count before and after is in docs.
-
-Blast radius: A second first-page read doubles feed traffic on every Home open. The fix changes how Home seeds its feed, where a mistake can show an empty or stale feed.
-
-### #322 The tick function loads the whole worker before it answers (part of #222)
-
-Every app open, tab focus and once-a-minute database wake calls the tick route. It answers three numbers: queued, running and traffic. A cold tick function must first load the whole food-analysis pipeline, so every cold open waits for that.
-
-Run 8 merged lazy loading of the job modules in the tick route. Rapid tick calls passed, but they hit a warm function, so a cold start is unmeasured (docs/tick-cold.md), and a post from a real phone through the worker is untested. Fleet 11 timed one first request per deployment, which does not establish a cold start, and reopened the issue. PR #536 adds an x-tick-cold header and a tick cold log line, and no value has been read yet. Lazy loading is delivered by #334. Done when a cold start of the tick route is timed on production, before and after, with the times in docs, and a post from a real phone completes through the worker.
-
-Blast radius: The tick route runs on every open, focus and once a minute, so a slow cold start reaches every user. The fix changes how job modules load, where a mistake can stop the worker from running jobs.
-
-### #373 The app reads more from the production database than it needs
-
-The app's reads drove egress to 8.66 GB and log ingestion to 1.10 GB in one billing cycle, against 5 GB and 1 GB on Supabase's free plan, and the project was depleting its Disk IO budget. The organization is now on Pro, which includes 250 GB of egress per cycle, but the same reads still cost bandwidth and database load while judges use the app.
-
-Run 8 cut the feed's Supabase traffic per opening from 5.06 MB to 0.523 MB, 89.7%, by reading day totals once. The app and the worker use Supabase's HTTPS APIs, not SQL connections, so the pooler setting does not apply. Managed services (PostgREST, Storage, Realtime) account for many of the connections the Infrastructure page counts, and the historical 31 of 60 is unexplained, as is the 70% RAM on the Micro instance. Log-ingestion bytes are unattributed, since only row counts exist. Done when the billed log-ingestion bytes are attributed to their sources on the usage page and the RAM use on the Micro instance is explained.
-
-Blast radius: Database egress was 8.66 GB in one billing cycle against a 5 GB allowance, which is a cost and availability risk. Cuts touch read paths across the app, so each needs a regression check.
-
-### #375 Storage egress is the largest source and was not cut
-
-In the 24 hours before Run 8, Supabase Storage served 2.99 GB across 35,048 requests, almost all to browsers. The Run 8 cut measured the feed's posts reads, not Storage.
-
-docs/egress.md attributes the bytes to browser-class agents but not to which files (feed JPEGs, card PNGs or originals) or which clients. Much of it may be the coder's own 100-opening measurement runs. In the latest 24 hours, automation accounted for 1.72 GB of the 1.77 GB of feed-source bytes and real mobile browsers for about 46 MB, split by user-agent, so the attribution is a guess. Log-ingestion bytes were never measured; only row counts were. Done when Storage egress is broken down by file kind and by client (test automation or real users), log-ingestion bytes are measured, and the largest real-user source is cut or shown to be small.
-
-Blast radius: The largest egress source is unattributed, and automation moved most of the measured bytes, so our own measurement runs consume the budget they measure. A cut to feed photos changes what every user downloads.
-
-### #471 The recording account can hit the hourly model cap on camera
-
-A recording with several photos on one account can run into the model's hourly limit while the video runs.
-
-Photo drink identification adds one model call per staged photo, counted against the account's hourly cap, and the last audit on production got "You have made a lot of requests this hour." Done when a recording-length session of several photos on one account runs with no cap message, or the account's cap is raised before recording.
-
-Blast radius: A recording account that hits the hourly model cap fails mid-video, which would ruin the submission demo. A fix that raises or bypasses the cap touches the rate-limit code that protects the model bill.
-
-### #217 A smoothness audit of every screen
-
-Some controls feel dead or clunky, and nobody has measured how the app responds to touch.
-
-The thumbs above are the first case the owner found. List every tappable control on each screen at 390x844, and for each record the time from the tap to a visible change, whether it shows a pressed state at once, whether it jumps or flickers while it loads, and whether it can be tapped twice. The coder measures in Chrome device emulation with the processor slowed and needs the production sign-in of #196. Fleet 14 built its control table in unthrottled Firefox because Chromium hung, so the slowed-processor condition is unmet. Done when the table lists every control with those four findings, the slow or dead ones are fixed or filed as items.
-
-Blast radius: Dead-feeling controls cost judges' trust on every screen. The audit changes no code, but its findings fan out into new items and fixes across screens.
-
-### #555 The controls on Days, Search, Profile and the capture modes have not been audited
-
-The Round 7 control table covers the feed, the post and the capture sheet. Days, Search, Profile and the Text, Photo and Barcode modes are not in it.
-
-The designer has not read their controls yet. Add them to the table with the four findings of #217: time to a visible change, pressed state, jump or flicker, and double tap. Done when every control on those screens is in the table and the dead ones are fixed or filed as items.
-
-Blast radius: Unaudited controls on Days, Search, Profile and the capture modes may hide dead taps the owner has not found. The audit changes no code, but it adds items.
-
-### #294 The app's words read naturally everywhere
-
-The leftovers label reads awkwardly, and nobody has reviewed the words in the rest of the app.
-
-The label "leftovers (not eaten)" reads awkwardly. The planner reviews the app's terms with AGY as a second opinion and lists each term, where it appears and a recommended replacement. The terms include the leftovers label, the line Drank in this meal on a meal's second slide (the owner said at 16:49 WIB that it sounds off), "Consumed", "Log again", "Saved meals", "Additional food", the needs-input question and the Days names. Every rule stays: consumed past tense, no target, goal, ring or percentage, and no "left" as a word for a remaining amount. A review noted that the wording search was not repeated against final main before the issue was closed. Done when the list is reviewed, the owner has ruled on each term, and the wording is changed everywhere it appears. GitHub shows this issue closed (the coder's read at 17:51 WIB); it stays here until its done condition above is met.
-
-Blast radius: Awkward labels read as unpolished across the app. A wording change touches many files and the tests that name the labels, so a missed instance leaves two names for one thing.
-
-### #348 A photographed drink's card was not proven on production
-
-The card for a photographed drink was closed without the production check its done condition asked for.
-
-The Fleet 10 report says the selected drink card on screen remains unproven. Fleet 14 proved cola analysis and caffeine persistence, but the rendered second-slide drink card is still unproven after two failed driver attempts. Done when a photographed drink shows the right drink card on production, on the owner's three phones.
-
-Blast radius: A wrong or missing drink card shows judges a wrong number on a photographed drink. The check changes no code unless it fails.
-
-### #351 The drink tile sizes and order were closed on a local test only
-
-The tile sizes and order on the drink sheet were not checked on production.
-
-Only a local test backs the closure. Done when the drink sheet shows its tiles in the right sizes and order on production, on the owner's three phones.
-
-Blast radius: Wrong tile sizes or order on the drink sheet look broken in the demo. The earlier closure rested on a local test alone, so a fix risks repeating that gap.
+This item does not say which sizes and order are right, because I do not have the text of GitHub issue #351. The coder adds that spec here from the issue and the designer's frames. Done when the sheet on the live app shows the tiles in that size and order, on the owner's three phones.
 
 ### #449 The food names do not show before the numbers on a new upload
 
 A new upload shows no food names while its numbers are still being worked out.
 
-On a new upload, the card's reader drops the pending food names, so #307 fails there. Done when a new upload shows the foods the app has found while the numbers are still being worked out, on the owner's three phones.
+Unproven. Nobody has recorded seeing this on a phone, and I cannot read GitHub issue #449 to find out where the claim came from. The claim is that the card discards food names the app has found while the numbers are still being worked out. Observe first: post a new photo on a phone and watch the card until the numbers arrive. If no names show before the numbers, the claim is real. Done when a new upload shows the foods the app has found while the numbers are still being worked out, on the owner's three phones, or the item is closed because the names already show.
 
-Blast radius: A new upload shows no food names until the numbers are ready, so it looks stuck on the first screen a judge sees. The fix touches the card reader every post uses.
+### #567 The admin dashboard shows no counts of users and posts
 
-### #453 The barcode prompt is printed over the live camera picture
+The admin dashboard at /admin shows queue depth, the oldest waiting job, failures, throughput, recent errors and links to per-post model traces. It does not show how many people signed up or how many meals were posted.
 
-On the Barcode screen, the line "Point at the barcode. It reads on its own." runs across the camera picture and cannot be read against a busy shelf.
+The owner asked for a surface for himself on Nov 4. He opened /admin on production and saw Not found. Production has one admin account, the owner's meal account has the role user, and /admin refuses every non-admin with Not found by design, so it is not a missing page. Observe first: find where the dashboard reads its figures, and which read gives user and post totals without exposing any one user's content. Done when the admin account signs in and sees app-wide counts of users, posts, model calls and failures, no other user's photos, captions or email addresses appear, and a non-admin account that opens it is refused. The change (#586) is merged; production proof is pending. The planner notes that it adds a database read on every direct post navigation, which the owner has not ruled on.
 
-With the camera pointed at a shelf of packs and price labels, the line sits on top of them and the words blend into the picture. Done when the prompt is readable over any camera picture, on the owner's three phones.
+### #568 Judges have no page that shows how the app works
 
-Blast radius: An unreadable barcode prompt makes the scanner look broken, which compounds #451. The fix is styling on one screen and touches nothing else.
+A judge who signs up starts with an empty account and nothing that says what the app does or which models it runs. A judge must never see another user's data.
+
+The owner asked for a surface for the judges on Nov 4 and has not said what it shows. The default here is the models the app runs plus the judge's own meals. The coder tested two fresh production accounts on Nov 4. The second account could not read the first one's posts, profile, comments, intake, saved meals or photos by any route tried, and no dedicated judge page exists. One exception: a signed photo link issued to the first account works for anyone who holds it until it expires, and the second account could not obtain one. Observe first: find where a judge account would reach the page, such as Profile. Done when a judge account sees a page showing the models in use and the meals he logged himself, and a second test account cannot read the first account's posts, photos or profile. The change (#583, which explains meal analysis and keeps post pages private) is merged; production proof is pending. The planner notes that it adds a database read on every direct post navigation, which the owner has not ruled on.
+
+### #569 The row of day circles at the top of Home is cut off at the right edge
+
+On the phone, the row of day circles above the feed shows four whole circles and a fifth cut off by the screen edge. The owner wants the row either to scroll or never to show a partly drawn circle.
+
+The owner's phone screenshot on Nov 4 shows Today, Tue 3, Mon 2 and Sun 1 whole, and Sat 31 cut off at the right edge. The designer found the cause: the row needs 386 px but the phone leaves 358 px, and the code clips the row instead of scrolling it. The owner ruled that the row scrolls sideways back in time. The designer redrew it as Round 7 frames 7c and 7d. Today comes first with five whole circles and the edge of a sixth showing, and each swipe stops on a circle. The feed stays on today while the row scrolls. Tapping a circle with posts opens that day, and circles without posts are grey and cannot be tapped. The row starts with 30 days, loads 30 more near the end and stops at the first post, so the last circle is whole. Tapping Home while on Home returns the row to Today. Done when the row matches 7c and 7d on a phone-sized screen and on the owner's three phones. The change (#582) is merged; production proof is pending.
+
+### #572 The closest-food fallback never runs when the model stops after one search
+
+Some foods still show nutrition as unavailable because the new closest-food fallback never runs for them. Pickled ginger is one example.
+
+The planner measured on production that 12 of 119 unavailable results in 14 days stopped after one search, about 10%. The fallback fires only when the model's first decision names a base food, and in these cases it names none. Done when a food whose first decision names no base food gets its own bare name searched, and a test covers that case. The change (#588) is merged; production proof is pending. A reviewer raised that the new estimate format and one database change (migration 0053) break workers still on the old code. The planner rates that lowest, because the worker deploys with the app and a tested rollback exists, but it needs a written answer. Migration 0054 was not in the plan and the owner has not ruled on it.
+
+### #573 The closest-record label is stored on every nutrient entry
+
+The note that a food's numbers come from a similar USDA record is saved inside every nutrient entry of the food's micronutrients JSON, not once per food. This adds bytes to every row that uses the fallback.
+
+The planner flagged this against the egress concern in #373. Done when the label is stored once per food, the meal's first comment still names the record, existing readers and tests pass, and rows already written are migrated or confirmed harmless. The change (#588) is merged; production proof is pending. The same review notes apply as in #572.
+
+### #557 An incomplete saved label can hide a barcode provider outage
+
+A barcode lookup can report that a product is missing when a provider is down and the account holds an incomplete saved label correction.
+
+Fleet 13's review found that the lookup hides provider errors for corrections that may lack the name or serving unit needed to make a card. No production failure is claimed. Done when incomplete corrections keep the provider error, complete corrections still work during outages, and tests cover both. The change (#589) is merged; production proof is pending. A reviewer found that a saved label with every nutrient empty passes the "complete" check; the later Muse review found no blockers.
+
+### #574 The Days calendar and the day summary count a different number of posts
+
+For October 31 on a test account, the Days calendar says 5 posts and the day summary says 4 posts. Both show 1,842 kcal.
+
+An OpenClaw production check on Nov 4 read the calendar's label as "2026-10-31, 5 posts, 1,842 kcal" and the day summary as "Consumed: 1,842 kcal · 4 posts". The cause is unknown. One of the two may count a post the other leaves out, such as a drink, a leftovers post or a superseded one. Done when both places count the same posts for that day, or the screen says why they differ, checked on production against the account's October 31 posts. The change (#585) is merged; production proof is pending. A reviewer found that an unfinished meal can make a fully known day show a false "Nutrition unavailable" warning; the planner calls that a defect in its own plan text.
+
+### #575 A meal with unavailable nutrition does not say why
+
+When a food shows nutrition as unavailable, an ordinary user cannot find out why. The owner could not learn why the macaroni failed without an agent reading the database traces.
+
+The reason exists only in the model call log. For the macaroni post it said no matching generic fried-pasta record was present, and the plain name "macaroni" was never searched (#523). Nothing shows the user this. The Fleet 13 fix for #523 adds a label only when a close USDA record is found, so a food with no close record still says nothing. Done when a meal with an unavailable value tells the user, in plain words and without database access, which food failed and why, checked on production with a meal known to be unavailable. The change (#588) is merged; production proof is pending. The same review notes apply as in #572.
+
+### #576 The desktop New post window scrolls by 18 px at 1366x650
+
+At 1366x650 the New post window holds 668 px of content in a 650 px window, so it scrolls 18 px.
+
+An OpenClaw production check on Nov 4 measured the overflow. The designer found the cause: the Round 6 design drew the window at a fixed 620 px tall with a fixed 450 px camera, sized for a 1280x800 screen, and the code copied both, which adds up to 668 px on a 650 px screen. The designer redrew it as Round 7 frame 7e. The window is the smaller of 620 px and the screen height minus 48 px tall, and the smaller of 960 px and the screen width minus 48 px wide. The camera takes the remaining height, never less than 240 px. At 1366x650 that gives a 602 px window with a 454 px camera, and at 1024x700 a 620 px window with a 472 px camera. The window after the photo uses the same height rule. Done when the window shows no vertical scroll at 1366x650 and 1024x700, checked on production. The change (#584) is merged and measured on a preview; production proof is pending.
+
+### #285 The half-eaten plate may give the wrong consumed number
+
+The app works out how much of a meal was eaten from a photo of the leftovers. The owner has already tested it on his phone, including today, and nobody has confirmed that the consumed number is right.
+
+The owner will not run more tests for the backlog. His own posts are the data. A capable coder investigates, read-only: pull the owner's leftovers posts from production, compare each consumed number with the before and after photos, and record where a wrong number goes wrong (the portion estimate, the not-eaten step or the stored value). Related items are #570 (a slow leftovers post) and #578 (two photo code paths). Done when a written finding says, for each of the owner's leftovers posts, whether the consumed number is right and what caused any error, and any fix is on the backlog as its own item for a new fleet.
+
+### #368 Sign-ins through the app may share one rate limit across every user
+
+Supabase limits sign-up and sign-in requests per IP address. If it counts the app's requests against Vercel's address, one script hammering the app's forms could lock every judge out.
+
+This is an unverified planner finding. The app's sign-up and sign-in run on Vercel's servers, so Supabase may see Vercel's address instead of the user's. In Run 8 a direct hammer from the coder's machine was refused at request 31, but that did not test the app's own path. On Nov 4, browser agents signed up 75 accounts through the production form, one every 10 to 22 seconds, and saw no rate-limit message, no 429 error and no CAPTCHA. The coder deleted all 75 accounts and checked that they are gone. The Auth logs show that each sign-up came from one of seven app-server addresses (36 from one of them), never the caller's address, because the sign-up code does not pass on the browser's address. So Supabase counts the app server's addresses. Why no sign-up was refused is unexplained; a browser is too slow to reach the earlier limit. Observe first: send sign-ups through the form faster than a browser can, then sign in from the owner's phone on mobile data. Use throwaway @example.com accounts only. A browser agent can drive the owner's MacBook Neo; his other two laptops have been offline since June and October. The two-connection test has not run; its prompt and a cleanup helper exist. Done when a written report states which address Supabase counts for app sign-ins, and a refusal triggered from one machine does not block sign-in from another.
+
+### #595 The Fleet 14 plan document must carry no instruction to revoke the bypass secret
+
+The Fleet 14 plan document carried two lines that said to revoke the protection-bypass secret. A reader who acts on them cuts the fleet off from testing.
+
+The planner who wrote them has been fired, and the owner has ruled that the secret is never revoked. Docs PRs #577 (merge commit 09362a77) and #600 (merge commit 30b5faf5) merged on Nov 4. The copy in #577 had no revoke lines, and the live secret is unchanged. Nobody has searched main after the merges. Done when a search of main for "revok" returns only lines that say the secret is retained.
+
+### #217 A smoothness audit of every screen
+
+Some controls feel dead or clunky, and nobody has measured how the app responds to touch.
+
+The thumbs in #553 are the first case the owner found. List every tappable control on each screen at phone size. For each, record the time from the tap to a visible change, whether it shows a pressed look at once, whether it jumps or flickers while it loads, and whether it can be tapped twice. The coder measures in Chrome with a slowed processor and needs the production sign-in from #196. Fleet 14 built its table in unthrottled Firefox because Chromium hung, so the slowed-processor condition is unmet. Done when the table lists every control with those four findings, and the slow or dead ones are fixed or filed as items.
+
+## In Flight
+
+Fleet 18 is running on main 7d2cbd37 and builds the items below. #571 and #598 are investigation only in this fleet: the cause is written down, and the fix goes in a later fleet. The defects found in Fleet 17 (#624 to #628) are not in this fleet.
+
+### #552 The buttons under each post are 24 px tall and show no pressed or turned-off state
+
+The buttons under a post are too small to hit and look the same at rest, while saving and when turned off.
+
+The designer's Round 7 design (7a) gives every button a 44 px tap area and five looks: at rest, pressed, saving, turned off and failed. Done when each button matches 7a on production on a phone-sized screen. The latest check could not prove all five looks: the test missed the saving look, and earlier samples missed the pressed look. Thumbs down took 0.39 seconds to show a change and 0.86 seconds to get its reply.
+
+### #553 Thumbs up and down look the same when turned off and thumbs down waits for the server
+
+The thumbs turn themselves off while a vote saves and before the analysis exists, with no visible difference. Thumbs down opens nothing until the vote has saved.
+
+This is the first case the owner found for #217. The Fleet 14 checks found that four of eight entry paths took longer than 50 ms to show a change: phone photo 51.5 ms, desktop More 64.3 ms, Details 66.6 ms and Comment 64.3 ms. No photo shifted on any of the eight. Done when a thumb shows its pressed look at once, looks different when turned off, and thumbs down opens at once, checked on production on a phone-sized screen with a slowed processor.
+
+### #554 Tapping a meal shows nothing until the server answers
+
+Comment, Details, tapping the photo, "more" and Post in the capture sheet wait for the server before anything changes on screen.
+
+The designer's Round 7 design (7b) shows the screen at once, using the photo already on screen while the details load. Done when each of these taps shows a visible change at once, and nothing jumps when the details arrive.
+
+### #494 Opening a meal's detail takes 14 seconds
+
+The owner reports 14 seconds from tapping a meal to its detail page opening. He calls it not acceptable.
+
+The owner measured 14 seconds on Nov 4 on an iPhone with the app installed, on mobile data in Indonesia. A coder's production check found useful content after 0.9 to 3.4 seconds, 24 to 25 requests with eight repeated, and a 142 KB original photo downloaded although the feed copy was already on screen. A desktop Firefox check measured the full detail at 1.0 to 1.8 seconds, with one trial that did not finish in 20 seconds. Nobody has explained the 14 seconds, and nobody has timed the detail on a phone on current main. Observe first: time the tap to a usable detail on a phone over mobile data and on desktop, and record where the seconds go (server, database, photo download). Done when the detail opens within two seconds on the owner's phone over mobile data and a written finding says where the 14 seconds went.
+
+### #499 Several pages export an instant flag that nothing reads
+
+Several pages export a flag called instant set to false, and nothing reads it. Every reader has to wonder what it does.
+
+This is an unverified audit finding. The audit found no file, script or tool that reads the flag. Nothing breaks while it stays. GitHub shows this issue closed, and it stays here until its done condition is met. Done when no page exports the flag and a search of the source for it finds nothing.
+
+### #323 Every protected page checks sign-in twice (part of #222)
+
+The app checks that the user is signed in when a protected page is requested, and checks again when the home page loads. That is two round trips to the sign-in service on every page open, on top of the slow start of the server function.
+
+Run 8 reduced this to one sign-in check per page on the server, and a forged request header is still refused. Browser recordings still showed 10 and six sign-in requests, so the whole page open is not yet explained. Fleet 14 cut the browser's sign-in requests from one to zero on Home, Days and Profile on production, but local server recordings still showed 7, 9 and 14 checks per page open. The likeliest cause is that the guard checks every background prefetch and refresh request, not only the page itself, and each card carries several links. This is probably the server half of #222. Done when one page open makes one sign-in call across the server and the browser together, and an unsigned request still cannot reach a protected page.
+
+### #324 Home computes the day totals twice on every open (part of #222)
+
+The server draws the row of day circles with totals for the last five days. The browser then computes totals again for the feed's days. Today's totals are read twice on every home open.
+
+Run 8 merged one shared server read of today's totals. Final browser recordings still showed one or two reads, so a single read across the server and the browser together is unproved. Measure one page navigation and count every read that returns today's totals, including batched reads. Done when a home open reads today's totals once across the server and the browser together.
+
+### #520 Every Home open reads the first feed page twice
+
+Home reads the first page of the feed in the server render and again from the browser, so every open pays for both reads.
+
+This is a planner finding from reading main on Nov 4, not yet measured. The feed always loads its first page again after the server has drawn it. Related: #373 and #498. Observe first: count the first-page reads of one Home open on current main. Done when one Home open reads the first feed page once, and the request counts before and after are written down.
+
+### #322 The tick function loads the whole worker before it answers (part of #222)
+
+Every app open, tab focus and once-a-minute database wake calls the tick route. It answers three numbers: queued, running and traffic. A cold tick function must first load the whole food-analysis pipeline, so every cold open waits for that.
+
+Run 8 merged lazy loading of the job code in the tick route. Rapid tick calls passed, but they hit a warm function, so a cold start has not been measured, and a post from a real phone through the worker is untested. Fleet 11 timed one first request per deployment, which does not show a cold start. A later change added a header and a log line that mark a cold start, and nobody has read a value yet. Done when a cold start of the tick route is timed on production, before and after, with the times written down, and a post from a real phone completes through the worker.
+
+### #373 The app reads more from the production database than it needs
+
+The app's reads drove egress to 8.66 GB and log ingestion to 1.10 GB in one billing cycle, against 5 GB and 1 GB on Supabase's free plan, and the project was depleting its Disk IO budget. The organization is now on Pro, which includes 250 GB of egress per cycle, but the same reads still cost bandwidth and database load while judges use the app.
+
+Run 8 cut the feed's database traffic per page open from 5.06 MB to 0.523 MB (89.7% less) by reading day totals once. The app and the worker reach Supabase through web requests, not database connections, so the connection-pool setting does not apply. Supabase's own services account for many of the connections its Infrastructure page counts. Nobody can explain the historical 31 of 60 connections or the 70% memory use on the small instance. Only row counts exist for log volume, so the log bytes are unattributed. Done when the billed log bytes are attributed to their sources on the usage page and the memory use on the small instance is explained.
+
+### #375 Storage egress is the largest source and was not cut
+
+In the 24 hours before Run 8, Supabase Storage served 2.99 GB across 35,048 requests, almost all to browsers. The Run 8 cut measured the feed's posts reads, not Storage.
+
+docs/egress.md says the bytes went to browser-like clients but not which files (feed photos, card images or originals) or which clients. Much of it may be the coder's own 100-open test runs. In the latest 24 hours, test automation accounted for 1.72 GB of the 1.77 GB of feed photo bytes and real mobile browsers for about 46 MB, so the split between test and real users is a guess. Log volume was never measured in bytes, only in rows. Done when Storage egress is broken down by file kind and by client (test automation or real users), log bytes are measured, and the largest real-user source is cut or shown to be small.
+
+### #222 The feed fails to open, and photos and cards take too long to appear
+
+The feed sometimes fails to open, and on a slow connection the first photo and the cards take too long to show. The goal is the feed and the first photo within two seconds on the owner's phones over mobile data.
+
+Run 8 cut the work done on a cold open and measured it in emulation: 100 of 100 opens succeeded, and cold photos showed in 1.48 to 1.83 seconds. Fleet 15 added smaller photo copies (see #372). The original failures (3 server errors and 15 blank feeds in 100 opens on the largest test account, 146 posts) never reproduced on the Run 7 baseline, so their cause is not isolated. The runtime logs return 403 for the coder, so the stack for digest 3642131196 exists only in the Vercel console. The sub-items #322, #323, #324 and #520 each remove one piece of wasted work. Nothing else is left to build for this item. No physical phone has measured it yet. Done when a browser helper on production measures the first feed photo at 2 seconds or less on a cold open at the slow-network test profile, and #379 covers the same on the owner's phones.
+
+### #523 A meal shows every nutrition value as unavailable
+
+The meal "Spicy Indonesian macaroni" shows its calories, protein, carbs and fat as unavailable. The owner re-analysed it after the fix went live, and it is still broken. He says the app's food estimates are broken.
+
+The post says "Nutrition unavailable: spicy Indonesian fried macaroni snack". The first analysis searched the USDA database three times, rejected every record, and never tried the plain name "macaroni". The owner ruled that when the USDA has no record, the model must estimate, because an unavailable value is worse than a rough estimate. That fix is live (closest food first, then a model estimate) but did not run here: re-analysing reused the old empty result and skipped both the search and the estimate. No new post has come out unavailable since. Done when re-analysing this post runs a fresh lookup and shows numbers, with a note naming the closest USDA food or saying the model estimated them, no value is left unavailable, zero or blank, and a browser helper confirms it on the live app.
+
+### #617 Squid and tuna are matched to the wrong food records
+
+In the real food test, a photo of squid nigiri was matched to a USDA record described as "Sushi, topped with tuna". The test allows this kind of closest match, so a passing test does not show the match is right.
+
+No fix has been tried. First step: look at which squid records were available, the matching trace, and the closest-food label. Done when a written finding says whether this match is acceptable and, if not, what should change.
+
+### #456 A rum cocktail is logged with 15 mg caffeine
+
+The tiki cocktail post states caffeine that the drink does not contain.
+
+The drink card for the lime and rum tiki cocktail reads "15 mg caffeine" next to 196 kcal, and the day's caffeine total reads 110 mg. This is built on main. GitHub shows this issue closed, and it stays here until its done condition is met. Done when a cocktail or any drink with no caffeine source logs no caffeine, the card shows none, and the day's total leaves it out, checked on the tiki cocktail and a glass of wine.
+
+### #377 Existing photographed drink posts show no caffeine
+
+A photographed cola posted before Fleet 9 shows no caffeine on its card or in the day's total.
+
+The cola records hold 29.7 mg of caffeine from the USDA, but they have no beverage category and no linked intake rows. #346 fixes new and re-analysed posts only, and no backfill of old posts ran. Done when existing photographed drink posts show their stored caffeine on the card and in the day's total.
+
+### #452 A plainly visible nutrition label is reported as not found
+
+A photo of a pack whose nutrition table can be read is rejected with "No nutrition label found".
+
+A photo of a Goldfish cracker pack failed. The label is in Indonesian and the whole table is in the frame. The app showed "No nutrition label found" with the buttons "Take the photo again" and "Type it instead". Done when that photo gives a card with the numbers printed on the label, and a label in English does too, on the owner's three phones.
+
+### #603 The Servings control on a meal cannot be set to a fraction
+
+The owner wants to log part of a serving, such as half, and says the app cannot do it while Cal AI can.
+
+Fixed: the servings count can now be typed as well as stepped. It accepts 0.25 to 50 in quarters, and the minus and plus buttons still step by 0.5. Checked in a browser at phone and desktop widths: typing 1.5 sent 1.5, typing 0.5 sent 0.5, typing "abc" restored the saved value and sent nothing, and a failed save restored the confirmed value. Database checks covered rescaling, ownership, history and recompute jobs. Every nutrient value on Home, Days and Today was not measured one by one in a browser. Cal AI shows "1 ✎" beside the name, a count the user can edit. Done when a meal is set to 0.5 and to 1.5 on the live app, and the nutrition on the meal page, Home, Days and Today changes to match.
+
+### #593 The first post on desktop Home has a black outline when the page loads
+
+When the desktop Home page loads, the first post sits inside a thick black outline that looks like a focus ring. The posts below it have none. The owner does not like it.
+
+The outline marks the post chosen for keyboard use: J and K move between posts and Enter opens one. The old design and code chose the first post by default. The new rule: the feed opens with nothing outlined, the outline appears after the first J, K or Tab, and a click anywhere in the feed hides it. Checked on the live app: nothing is outlined on load, J outlines the first post, a click clears the outline, and Tab outlines a post. That Tab check started in the page, not in the address bar. The owner also said the other posts are not loaded when he scrolls. That was read as meaning they have no outline; a post that fails to load would be a separate item. Done when it is confirmed on the owner's desktop, including pressing Tab from the address bar.
+
+### #594 Let the user choose where a photo is saved: the in-app camera with manual saving, or the native camera with every photo saved
+
+The app's own camera sends photos only to the app, so none reach the phone's camera roll, and the owner wants a choice.
+
+The owner ruled that this is a switch in personal settings with a short explanation of each mode, so he can test both. Manual-save mode keeps the app's camera and shows a Save photo button that opens the share sheet. Native mode opens the phone's own camera, which may save to the camera roll by itself. Built: the switch on Profile (kept per device), native mode, Save photo through the share sheet and a file-download fallback. Browser checks pass. Not checked on a real phone: which actions the share sheet offers and whether a copy reaches the camera roll. On iPhone with iOS 16.2 or later, a share sheet opened by an app has no Save Image option (a known Apple bug), but pressing and holding a shown photo does offer it. How people share or save everything, or nothing, is not decided. Done when the owner flips the switch and confirms both modes on his iPhone and on an Android phone.
+
+### #599 The Today summary on the right of desktop Home is missing when the page opens and appears late
+
+On desktop Home the right-hand column (Today, kcal consumed, protein, carbs, fat, Posted today) is empty when the page loads and fills in a moment later. The owner reports that it took far too long to show up.
+
+The owner sent two screenshots: first the right column is blank, then the same page shows Today with 1,468 kcal, 56 g protein, 211 g carbs, 46 g fat and six posts. He reports about 20 seconds to fill in. That is his count, not a measurement. The fix is live: the server now fills in today's totals before the page arrives. On the live app at 1280x800, a test account showed its numbers at 0.85 seconds on a normal reload and 1.0 second on a hard reload. That account had zero calories that day, so a day with posts has not been measured on the live app. A test with fake data showed 260 kcal. Done when the column shows its numbers within two seconds on a day with posts, shows a loading placeholder from the first instant, and shows a plain message with a retry if the numbers do not arrive.
+
+### #570 A leftovers photo takes several seconds to post while a regular photo is fast
+
+Posting a photo of leftovers takes several seconds to show, while a regular meal photo shows at once. The owner says the leftovers photo is not snappy and that this is not acceptable.
+
+The owner timed adding a leftover at about 11 seconds on his phone on Nov 4. The leftovers path waits for image encoding, upload signing, two uploads in a row (about 1.3 and 1.2 seconds) and the attachment steps before it closes the camera. A regular post hands the work to the upload manager and closes at once. The logged staging-to-attachment time was about 4.9 seconds, so most of the 11 seconds is unexplained without a trace from the phone. The audits name two causes: two photo-upload workflows, and one worker lane shared by analysis and maintenance. Background leftovers uploads (#587) are merged; production proof is pending. Observe first: on a phone over mobile data, time a regular photo and a leftovers photo from the tap to the post showing in the feed, and record where the extra seconds go. Done when a leftovers photo shows in the feed as quickly as a regular photo, on the owner's three phones.
+
+### #571 A post started while another is going up breaks the other post with "The meal could not be saved"
+
+Starting a second post while an earlier post is still going up can end with "The meal could not be saved.", and the owner has to press Post again to get the meal saved.
+
+The owner's phone screenshot on Nov 4 shows the toast "The meal could not be saved." over the feed. The first post, "Beef noodle", shows a grey bar where the analysis would be. The owner posted one photo, then photographed another food while the first post was going up. When the first post finished, one of the two posts stopped working. He pressed Post again and the meal then appeared. He has not said which post stopped, and the screenshot does not show which one raised the error. Whether the two overlap in the capture sheet, the upload or the save is not confirmed. Observe first: on a phone, start a second post while the first is still going up, and record which request raises the error and why. Done when one post finishing never stops the screen of the other, and both meals save on the first press of Post, on the owner's phone. The change #587 names this issue and is merged; production proof is pending.
+
+### #598 A returning visitor keeps seeing the old build until a hard refresh
+
+After a deploy, a browser that already holds the previous build can keep showing it, so a visitor sees old layouts and old text that main no longer has.
+
+After an earlier release, the owner's desktop kept showing the old full-width layout until a hard refresh. The suspect is the browser's stored copy of the app, which is not confirmed. Fleet 16 built a fix, and a follow-up (#616) went live, but its activation check failed: the newer copy installed and stayed waiting while the old one kept running, and a normal reload did not switch to it. A browser can hold back a takeover while requests are in flight; that is a lead, not a proven cause. The cause is unknown and needs investigation. First step: with a browser holding the previous version, release or simulate a new version, and record whether a normal reload shows it and which stored copy serves the old one. Done when a browser holding the previous version shows the new one on its next normal load, and the check is written down.
+
+### #629 A user may not be able to upload a profile picture
+
+The owner is not sure he can tap his picture on Profile and upload one. Today the sidebar shows a letter in a dark circle. He calls a profile picture a beautiful piece of finish and wants it.
+
+The owner raised it at 22:05 WIB. His desktop Home screenshot shows the letter T in a circle beside the handle "tinhead" in the sidebar and in the post header. Nobody has checked whether Profile accepts a picture today, or where a picture would show (sidebar, post header, comments, Profile). Observe first: open Profile on a phone and on desktop, tap the circle, and record what happens. Done when a user can tap their picture on Profile, choose or take a photo, see it replace the letter in the sidebar, post headers and Profile, remove it to return to the letter, and a second account cannot change it, checked on the owner's three phones and on desktop.
+
+### #294 The app's words read naturally everywhere
+
+The leftovers label reads awkwardly, and nobody has reviewed the words in the rest of the app.
+
+The label "leftovers (not eaten)" reads awkwardly. The planner reviews the app's terms with AGY as a second opinion and lists each term, where it appears and a better wording. The terms include the leftovers label, the line "Drank in this meal" on a meal's second slide (the owner said it sounds off), "Consumed", "Log again", "Saved meals", "Additional food", the clarification question and the Days names. Every rule stays: use the past tense for consumed, show no target, goal, ring or percentage, and never use "left" for a remaining amount. A review noted that the wording search was not repeated on the final code before the issue was closed. GitHub shows this issue closed, and it stays here until its done condition is met. Done when the list is reviewed, the owner has ruled on each term, and the wording is changed everywhere it appears.
+
+### #512 The phone calendar can show the wrong month summary and jump when older months load
+
+On the phone Days screen, the month name at the top can show the wrong month, and the screen can jump when an older month loads.
+
+A reviewer found two defects in a change that is already live, and the coder reproduced both with made-up test months, not on the owner's phone. First, the month name can keep showing October while November scrolls into view. Second, scrolling while an older month loads makes the screen jump back to an old position. The first cannot appear on any production account today, because two months fit on one screen, so it is proven on the disposable stack with three seeded months. A third finding in the review was cut off and is unknown. Done when, on the disposable stack with three seeded months, the month name shows the month nearest the top of the screen while scrolling across the October and November boundary, and the screen stays still while an older month loads.
 
 ### #454 The Days page is not one continuous calendar
 
@@ -262,311 +362,93 @@ Days cuts the calendar into separate month blocks, which no calendar app does, s
 
 On the phone, Days shows November 2026 and October 2026 as two separate blocks, each with its own heading, and the newest month sits on top. Days becomes one continuous calendar: the weeks run on from one to the next in time order with no break, the month name marks where each month starts, and Days opens with today in view. Done when scrolling Days moves through unbroken weeks from October into November, the month names mark where each month starts, and Days opens on today, on the owner's three phones.
 
-Blast radius: A calendar cut into month blocks reads as a bug to anyone used to a calendar app. The fix changes the Days layout and shares scroll code with #512, so the two items overlap.
+### #630 A fleet ends when its plan is done; new defects go to the backlog, not into the running fleet
 
-### #377 Existing photographed drink posts show no caffeine
+A coder who finishes its plan keeps working. At the end of Fleet 16 a production check found a new defect. The coder shipped a fix for it inside the same fleet and held the final report until that fix was checked. The coder's contract does not say what to do with a defect that is not in the plan.
 
-A photographed cola posted before Fleet 9 shows no caffeine on its card or in the day's total.
-
-The cola records hold 29.7 mg of USDA caffeine, but they have null beverage categories and no linked item-intake rows. #346 fixes new and re-analysed posts only, and no historical backfill ran. Done when existing photographed drink posts show their stored caffeine on the card and in the day's total.
-
-Blast radius: Old cola posts show no caffeine, so a day's total can read wrong. A fix that backfills records edits production rows, so it needs a safe way to undo it.
-
-### #368 Sign-ins through the app may share one rate limit across every user
-
-Supabase limits sign-up and sign-in requests per IP address. If it counts the app's requests against Vercel's address, one script hammering the app's forms could lock every judge out.
-
-Unverified planner finding. The app's sign-up and sign-in run as server actions on Vercel, and the middleware refreshes sessions from Vercel. The Run 8 hammer was refused at request 31, but it called Supabase directly from the coder's machine, so it did not test the app's path (docs/auth-protection.md). A browser agent reported that on Nov 4 between 13:12 and 13:27 WIB it signed up 35 accounts through the production form, one about every 22 seconds. It saw no rate-limit message, no 429 and no CAPTCHA, and it skipped the second-network sign-in because it had no second network. The question is still open, since the earlier direct hammer was refused at request 31 at a faster pace. A second browser run between 14:57 and 15:06 WIB sent 40 more sign-ups about 10 seconds apart, and none was refused. A browser cannot sign up fast enough to reach the earlier limit. The coder deleted all 75 probe accounts and verified them absent. The coder read the Auth logs for all 75 sign-ups: each recorded one of seven app-server addresses, one of them for 36 sign-ups, and never the caller's address, because the sign-up server action does not forward the browser's address. So Supabase counts the app server's addresses. Why no sign-up was refused is unexplained. Observe first: send sign-ups through the form faster than a browser can, then sign in from the owner's phone on mobile data. Use throwaway @example.com accounts only. The owner's Chrome Remote Desktop list shows his Calgary MacBook Pro last online on Oct 24 and his MacBook Air on Jun 10, so neither can be driven. A browser agent can drive his MacBook Neo, and on his phone's hotspot or on the phone itself over mobile data it counts as a second connection. Done when the report states which IP address Supabase counts for app sign-ins, and a refusal triggered from one machine does not block sign-in from another. The coder's 17:44 WIB report says the external two-connection probe was not run; the prompt and a cleanup helper exist.
-
-Blast radius: If Supabase counts the app server's addresses as one caller, one abusive visitor could block sign-in for every judge at once and stop the demo. The test creates accounts on production, so it needs throwaway accounts and cleanup.
-
-### #523 A meal shows every nutrition value as unavailable
-
-A meal analysed on Nov 4 at 9:53 AM, "Spicy Indonesian macaroni", shows its calories, protein, carbs and fat as unavailable. The owner says the app's food estimates are broken now.
-
-The owner's screenshot of the post (86634d46-b0e3-421a-9b67-1a4e8f5e8e78 on production) shows a comment that reads "Nutrition unavailable: spicy Indonesian fried macaroni snack", and a model line that reads "Identified by Muse Spark 1.3". Judging runs from Nov 4, so a general fault would hit every judge's meal. The coder found on Nov 4 that the matcher rejected every retrieved reference after three searches (the full name, "fried +macaroni" and "fried +pasta") and never tried the bare name "macaroni". No lookup failed, nothing hit a rate limit, and nothing points to a Fleet 11 regression. Fresh USDA requests for "macaroni" and "macaroni cooked" returned records (357 kcal per 100 g, and Pasta, cooked, 157 kcal per 100 g), which are not confirmed equivalents of a fried snack. Of 15 posts in the last 24 hours, five had at least one unavailable field, and only this one had every value unavailable; the others were composite dishes the matcher rejected. The app has no fallback when USDA has no match: it shows unavailable and invents no value, and the Open Food Facts fallback covers barcode scans only. The owner asked for a fallback. The candidate is to search USDA for the closest generic food before saying unavailable. The owner has ruled: when no USDA record is available, the model makes the estimate. In the owner's words, a zero value, an unavailable value or a no-op is death in this business, and it is worse than a bad estimate. Done when, after the matcher's strict searches fail, it tries the bare food name, and a re-analysed post of this food shows nutrition from the closest USDA record, labelled with that record's name, or, when no record qualifies, from a model estimate. No value is left unavailable, zero or blank.
-
-Blast radius: A meal that shows every value as unavailable gives a judge an empty result on the core feature. The cause spans the model, the USDA match and the fallback, so the fix reaches the whole analysis path.
-
-### #579 Photos are captured at 480 × 640 and look blurry on high-density phones
-
-The app stores each photo at 480 × 640 pixels, the size the browser chose for the live camera, and the feed shows a smaller 384 × 512 copy. On a phone with a three-times screen a full-width card needs about 1,170 pixels, so every photo looks soft. The owner finds the blur painful.
-
-The coder measured the owner's Beef noodle post on production at a24587a. The live camera path asks for the rear camera with no width or height and draws one video frame, and the stored originals are 480 × 640, 0.31 megapixels (126,407 bytes), so the meal detail cannot show detail that never reached the upload. The phone's feed copy is byte for byte the same file, so it saves nothing. The feed route then shrinks it to a 384 × 512 WebP of 22,118 bytes. Feed copies are cached for a year with the immutable flag, so a sharper derivative needs a new path or a cache bust. The phone detail upgrades only the first meal photo, not the leftovers original. Photos already captured stay at 480 × 640. The owner reported the blur on Nov 4 at about 15:46 WIB. A sharper photo costs more Storage egress, which #375 names as the largest egress source. The owner ruled at 15:56 WIB on Nov 4 that this is fixed today. Observe first: find what resolution the camera can deliver on the owner's three phones, and the bytes of a photo at each size. Done when a photo captured on the owner's three phones is stored at a sharper resolution, the feed and the meal detail show it sharp on a three-times phone, the first photo still shows within two seconds on mobile data, and the bytes per photo before and after are in docs. The Fleet 14 coder's 17:44 WIB report says the code is delivered by PR #581, merged at 16:59 WIB and deployed (production main 376e3306): higher-resolution capture requests, a larger feed copy under a new v2 URL, and full-resolution detail photos. Fixture v2 copies measured 26,428 to 257,098 bytes, and an existing production photo's v2 copy measured 60,016 bytes at 1080 × 810; none of these is a physical-camera size or a mobile-data timing. Photos already captured stay at 480 × 640. The Fleet 15 plan was written against a24587a, before #581, and its lane A pull request (run15/photos) was opened at about 17:35 WIB, so the two must be reconciled before lane A merges. Pull request #590 ("Density-specific photos, reconciled with #581"; the head is now 69a216b9 after the fixes, and everything below dates from the earlier head aa4b31ce) is not merged. A Muse review (muse-spark-1.3-contributor) at head 69a216b956be40f9dc434cdf379b328864f64421 found zero blockers and verified the earlier findings fixed; no bytes or egress have been measured for it, so no number is stated (the owner's report at 20:39 WIB; not verified by the PM). The planner reports at 19:16 WIB that the #581 files are untouched on it and both photo fallbacks were seen working at device pixel ratio 3, that no bytes or egress have been measured for it, and that #581's own receipt shows its v2 responses eight to twelve times the size of v1; the coder's table says it is reconciled with #581, which the PM has not checked. A PPLX review by GPT-6.1 Sol was posted at 19:11 WIB asking for changes: the HTTP image preload can download the wrong photo size, and one failed image disables sharper photos for later ones. The captured review text is cut off near the end, the coder has not checked the finding against the source, and the model differs from REVIEW\_POLICY.md (the owner ruled to post it). The coder reports at 20:40 WIB that Fleet 15's fixes, reviews and combined tests are complete; the PM accepted migration 0054 and the extra database read in #583 at 20:42 WIB, and the merges wait on the planner's evaluation of the final heads.
-
-Blast radius: Blurry photos make the whole feed look low quality on the phones judges use. The fix changes capture constraints and every new photo's size, so upload time, storage and egress rise, and old posts stay at 480 × 640.
-
-### #578 The leftovers photo and the regular photo post through different code
-
-The app has at least two code paths that post a photo, and the leftovers one is slower and blocks the camera. Other jobs may be done twice in different ways, and nobody has listed them.
-
-The owner asked for a DRY audit and a service-level architecture audit at 15:42 WIB on Nov 4, aimed at making the app faster. The first known case is the leftovers photo: the coder reported that it waits for image encoding, two uploads and the attachment steps before it closes the camera, while a regular post hands the work to the upload manager at once. The coder delivered the audit of main at a24587a with 26 ranked findings and changed no code. Fix sizes describe scope, not time. The top ranks are two photo-upload workflows (large), several components that each refresh on one meal completion (large), the meal detail waiting for optional services (medium), the same photo delivered under several identities (medium to large) and nutrition read twice by feed hydration (large). The smallest fixes are the profile handle read by separate readers (rank 26, small), serial drink nutrition lookups (rank 16, small to medium), a photo reloaded in prior matching (rank 14, small to medium), repeated queue counts (rank 25, small to medium) and a repeated search interpretation (rank 24, small to medium). Done when the owner has ruled on each of the 26 findings and each one he accepts is filed as its own item. Fleet 15 lane B builds rank 1 (the two photo-upload workflows); the other 25 await the owner's ruling.
-
-Blast radius: Two photo paths drift apart, so every fix to one misses the other, which is why leftovers is slow. Merging them touches the post path every photo uses, so a mistake can lose or duplicate posts, and the audit's 26 findings reach the same code.
-
-### #567 The admin dashboard shows no counts of users and posts
-
-The admin dashboard at /admin shows queue depth, the oldest waiting job, failures, throughput, recent errors and links to per-post model traces. It does not show how many people signed up or how many meals were posted.
-
-The owner asked for a surface for himself at 15:26 WIB on Nov 4. The owner opened /admin on production at 15:27 WIB and saw Not found. The coder reported on Nov 4 that production has one admin account, the owner's meal account has the role user, and /admin refuses every non-admin with that Not found by design, so it is not a missing page. Observe first: find where the dashboard reads its figures and what read gives user and post totals without exposing any one user's content. Done when the admin account signs in and sees app-wide counts of users, posts, model calls and failures, no other user's photos, captions or email addresses appear on it, and a non-admin account that opens it is refused. Pull request #583 (head e7db5cee, "Judge page and private-post access") is green and unmerged. Relayed by the planner at 19:16 WIB: the fleet also found and fixed a foreign post link that answered 200 with a not-found body, and this PR adds a database read on every direct post navigation, which the owner has not ruled on. A PPLX review by Gemini 3.8 Flash was posted at 19:11 WIB: no blockers, but the answer's final summary section came back empty. The coder has not checked any finding against the source, and the model differs from REVIEW\_POLICY.md (the owner ruled to post it). The coder reports at 20:40 WIB that Fleet 15's fixes, reviews and combined tests are complete; the PM accepted migration 0054 and the extra database read in #583 at 20:42 WIB, and the merges wait on the planner's evaluation of the final heads.
-
-Blast radius: Without counts the owner cannot see how many judges signed up or posted. The page is admin-only, so a new surface must not leak other users' data.
-
-### #568 Judges have no page that shows how the app works
-
-A judge who signs up starts with an empty account and nothing that says what the app does or which models it runs. A judge must never see another user's data.
-
-The owner asked for a surface for the judges at 15:26 WIB on Nov 4 and has not said what it shows. The default here is the models the app runs plus the judge's own meals. The coder tested two fresh production accounts on Nov 4. The second account could not read the first one's posts, profile, comments, intake, saved meals or photos through any route tried, and no dedicated judge page exists. One exception: a signed photo URL issued to the first account works for anyone who holds it until it expires, and the second account could not obtain one. Observe first: find where a judge account would reach the page, such as Profile. Done when a judge account sees a page showing the models in use and the meals he logged himself, and a second test account cannot read the first account's posts, photos or profile. Pull request #583 (head e7db5cee, "Judge page and private-post access") is green and unmerged. Preview check relayed by the planner at 19:16 WIB (coder-tested, not production): a second account cannot open the first account's post or photo. The planner also says this PR adds a database read on every direct post navigation, which the owner has not ruled on. A PPLX review by Gemini 3.8 Flash was posted at 19:11 WIB: no blockers, but the answer's final summary section came back empty. The coder has not checked any finding against the source, and the model differs from REVIEW\_POLICY.md (the owner ruled to post it). The coder reports at 20:40 WIB that Fleet 15's fixes, reviews and combined tests are complete; the PM accepted migration 0054 and the extra database read in #583 at 20:42 WIB, and the merges wait on the planner's evaluation of the final heads.
-
-Blast radius: A judge who starts with an empty account may not see what the app does or which models it runs, so the entry reads thinner than the build. A judge page must not expose other users' data.
-
-### #569 The row of day circles at the top of Home is cut off at the right edge
-
-On the phone, the row of day circles above the feed shows four whole circles and a fifth cut off by the screen edge. The owner wants the row either to scroll or never to show a partly drawn circle.
-
-The owner's phone screenshot at 2:34 PM on Wed Nov 4 shows Today, Tue 3, Mon 2 and Sun 1 whole, and Sat 31 cut off at the right edge. The designer reported the cause: the rings use five 66 px columns with 14 px gaps, which need 386 px, and the phone leaves 358 px after the side padding, while DayRings.tsx clips the row instead of scrolling it. The owner ruled that the row scrolls sideways back in time. The designer redrew it as Round 7 frames 7c and 7d and updated the Round 3 and Round 5 phone frames. Today comes first with five whole rings and the edge of a sixth showing, and each swipe stops on a ring. The feed stays on today while the row scrolls. Tapping a ring with posts opens that day, and rings without posts are grey and cannot be tapped. The row starts with 30 days, loads 30 more near the end and stops at the first post, so the last ring is whole. Tapping Home while on Home returns the row to Today. The designer's spec for DayRings.tsx is in the Round 7 hit list. Done when the row matches 7c and 7d at 390x844 and on the owner's three phones. Pull request #582 (head dc07c47f, "Scrolling day rings") is green and unmerged. Preview check relayed by the planner at 19:16 WIB (coder-measured, not production): the sixth ring peeks where design 7c puts it and the row snaps on 72 px. A PPLX review by Gemini 3.8 Flash was posted at 19:11 WIB: approved, with three optional cleanups. The coder has not checked any finding against the source, and the model differs from REVIEW\_POLICY.md (the owner ruled to post it). The coder reports at 20:40 WIB that Fleet 15's fixes, reviews and combined tests are complete; the PM accepted migration 0054 and the extra database read in #583 at 20:42 WIB, and the merges wait on the planner's evaluation of the final heads.
-
-Blast radius: A cut-off row hides that the days scroll, on the first screen of the app. The redesign changes the Home header on the phone, so it can move the feed and the Today layout.
-
-### #570 A leftovers photo takes several seconds to post while a regular photo is fast
-
-Posting a photo of leftovers takes several seconds to show, while a regular meal photo shows at once. The owner says the leftovers photo is not snappy and that this is not acceptable.
-
-The owner reported it on Nov 4 at about 14:46 WIB from his phone. The owner timed adding a leftover at about 11 seconds on his phone at about 14:52 WIB. The coder read production records for that post. The leftovers path waits for image encoding, upload signing, two uploads one after the other (about 1.3 s and 1.2 s), the attachment reservation and the attachment completion before it closes the camera, while a regular post hands the work to the upload manager and closes at once. The owner wants the leftovers photo to post in the background the same way, and believes the two paths are separate functions. The logged time from staging to attachment was about 4.9 seconds, so most of the 11 seconds is unaccounted for without a device trace. The queue wait before processing (24.9 s) and the processing (12.5 s, of which a 9.9 s model call) delay the updated result, not the camera. The coder's audit of main at a24587a names two causes: two photo-upload workflows (rank 1, a large fix) and one worker lane shared by analysis and maintenance (rank 11, a large fix), which explains the queue wait. Observe first: on a phone over mobile data, time a regular photo and a leftovers photo from the tap to the post showing in the feed, and record where the extra seconds go. Done when a leftovers photo shows in the feed as quickly as a regular photo, on the owner's three phones. Pull request #587 ("Background leftovers uploads"; the head is now 2195a5cd after the fixes, and everything below dates from the earlier head 03b29aef) is not merged. A Muse review (muse-spark-1.3-contributor) at head 2195a5cd5c4d6b66d81b33c3eb710fb2c95c498f found zero blockers and verified the earlier findings fixed (the owner's report at 20:39 WIB; not verified by the PM). A Muse efficiency audit of main 299f13a that the owner relayed at 19:25 WIB (read-only, nothing measured live, not verified by the PM) names the same cause as this item: the leftovers photo does its whole chain of re-encode, sign, two uploads and the attach request before the sheet closes (CaptureSheet.tsx:293-302). It also says that after the meal is ready a second remainder job downloads the full leftovers original (worker/jobs/remainder.ts:35-37), which this pull request does not name. Baseline relayed by the planner at 19:16 WIB (coder-measured on the preview, not production): a new post sheet closes in under 400 ms, the leftovers sheet takes 1.7 s, and the processing-meal bookmark reproduced the toast in the owner's screenshot. A PPLX review by GPT-6.1 Sol was posted at 19:11 WIB asking for changes: an expired upload stage is never re-uploaded, and a failed local save can queue the same photo twice. The captured review text is cut off near the end, the coder has not checked the finding against the source, and the model differs from REVIEW\_POLICY.md (the owner ruled to post it). The coder reports at 20:40 WIB that Fleet 15's fixes, reviews and combined tests are complete; the PM accepted migration 0054 and the extra database read in #583 at 20:42 WIB, and the merges wait on the planner's evaluation of the final heads.
-
-Blast radius: An 11-second leftover post makes the half-eaten-plate flow, a headline feature, feel broken. The fix reaches the upload path shared with regular posts, so it overlaps #578.
-
-### #571 A post started while another is going up breaks the other post with "The meal could not be saved"
-
-Starting a second post while an earlier post is still going up can end with "The meal could not be saved.", and the owner has to press Post again to get the meal saved.
-
-The owner's phone screenshot at 2:19 PM on Wed Nov 4 shows the toast "The meal could not be saved." with a Dismiss button over the feed. The first post in the feed, "Beef noodle", shows a grey placeholder bar under its caption where the analysis would be. The owner reports posting one photo, then taking a photo of another food while the first post was going up. When the first post completed, the interface stopped working for one of the two posts. The owner pressed Post again and the meal then appeared in the feed. The owner has not said which of the two posts stopped working, and the screenshot does not show which raised the error, and whether the two overlap in the capture sheet, the upload or the save is not confirmed. Observe first: on a phone, start a second post while the first is still going up, and record which request raises the error and why. Done when one post finishing never stops the screen of the other, and both meals save on the first press of Post, on the owner's phone. The coder's 19:10 WIB table of the nine Fleet 15 code pull requests (#582 to #590, all green, none merged, each needing an external review at its head) does not name this item; its pull request is not identified. The coder reports at 20:40 WIB that Fleet 15's fixes, reviews and combined tests are complete; the PM accepted migration 0054 and the extra database read in #583 at 20:42 WIB, and the merges wait on the planner's evaluation of the final heads.
-
-Blast radius: A second post can break the first with an error toast, which loses a user's meal. The fix changes the shared pending-save logic that Fleet 14 just rewrote.
-
-### #572 The closest-food fallback never runs when the model stops after one search
-
-Some foods still show nutrition as unavailable because the new closest-food fallback never runs for them. Pickled ginger is one example.
-
-The planner measured in production that 12 of 119 unavailable results in 14 days stopped after one search, about 10%. The fallback (PR #549) fires only when the model's first decision names a base food, and in these cases it names none. Done when a food whose first decision names no base food gets its own bare name searched, and a regression test covers that case. Pull request #588 ("Nutrition fallback, reasons, migrations 0053/0054"; the head is now 223bf70e after the fixes, and everything below dates from the earlier head 5b785d4a) is not merged. A Muse review (muse-spark-1.3-contributor) at head 223bf70eb7b682a1a06a7d6bdcf33c79b9d36212 found zero blockers and verified the earlier findings fixed (the owner's report at 20:39 WIB; not verified by the PM). The planner says at 19:16 WIB that migration 0054 was not in the plan and the owner has not ruled on it, and that the old-worker finding is the one it weighs lowest (the worker deploys with the app and a tested rollback file exists) but still needs a written answer on the PR. A PPLX review by GPT-6.1 Sol was posted at 19:11 WIB asking for changes: the new estimate format and migration 0053 break workers still on the old code. The captured review text is cut off near the end, the coder has not checked the finding against the source, and the model differs from REVIEW\_POLICY.md (the owner ruled to post it). The coder reports at 20:40 WIB that Fleet 15's fixes, reviews and combined tests are complete; the PM accepted migration 0054 and the extra database read in #583 at 20:42 WIB, and the merges wait on the planner's evaluation of the final heads.
-
-Blast radius: Some foods show unavailable nutrition because the fallback never runs, which is an empty result on a core feature. The fix changes the model search loop, so it can raise model calls and cost per meal.
-
-### #573 The closest-record label is stored on every nutrient entry
-
-The note that a food's numbers come from a similar USDA record is saved inside every nutrient entry of the food's micronutrients JSON, not once per food. This adds bytes to every row that uses the fallback.
-
-The planner flagged it against the egress concern in #373. Done when the label is stored once per food, the meal's first comment still names the record, existing readers and tests pass, and rows already written are migrated or confirmed harmless. Pull request #588 ("Nutrition fallback, reasons, migrations 0053/0054"; the head is now 223bf70e after the fixes, and everything below dates from the earlier head 5b785d4a) is not merged. A Muse review (muse-spark-1.3-contributor) at head 223bf70eb7b682a1a06a7d6bdcf33c79b9d36212 found zero blockers and verified the earlier findings fixed (the owner's report at 20:39 WIB; not verified by the PM). The planner says at 19:16 WIB that migration 0054 was not in the plan and the owner has not ruled on it, and that the old-worker finding is the one it weighs lowest (the worker deploys with the app and a tested rollback file exists) but still needs a written answer on the PR. A PPLX review by GPT-6.1 Sol was posted at 19:11 WIB asking for changes: the new estimate format and migration 0053 break workers still on the old code. The captured review text is cut off near the end, the coder has not checked the finding against the source, and the model differs from REVIEW\_POLICY.md (the owner ruled to post it). The coder reports at 20:40 WIB that Fleet 15's fixes, reviews and combined tests are complete; the PM accepted migration 0054 and the extra database read in #583 at 20:42 WIB, and the merges wait on the planner's evaluation of the final heads.
-
-Blast radius: A label saved in every nutrient entry adds bytes to every read, which feeds the egress problem of #373. Moving it touches stored rows, so existing posts need a migration or a check that they are harmless.
-
-### #557 An incomplete saved label can hide a barcode provider outage
-
-A barcode lookup can report that a product is missing when a provider is down and the account holds an incomplete saved label correction.
-
-Fleet 13's review found that the resolver suppresses provider errors for corrections that may lack the name or serving unit needed to produce a card. No production failure is claimed. Done when incomplete corrections preserve the provider error, complete corrections still work during outages, and regression tests cover both. Pull request #589 ("Saved-label outage handling"; the head is now 911c33ba after the fixes, and everything below dates from the earlier head 9ff72811) is not merged. A Muse review (muse-spark-1.3-contributor) at head 911c33bac2853c88ad1e9ead20302fef0a414f2e found zero blockers and verified the earlier finding fixed (the owner's report at 20:39 WIB; not verified by the PM). A PPLX review by GPT-6.1 Sol was posted at 19:11 WIB asking for changes: a saved label with every nutrient empty passes the "complete" check. The captured review text is cut off near the end, the coder has not checked the finding against the source, and the model differs from REVIEW\_POLICY.md (the owner ruled to post it). The coder reports at 20:40 WIB that Fleet 15's fixes, reviews and combined tests are complete; the PM accepted migration 0054 and the extra database read in #583 at 20:42 WIB, and the merges wait on the planner's evaluation of the final heads.
-
-Blast radius: A barcode lookup can say a product is missing when a provider is down, which sends users to type it in. The fix changes the resolver's error handling for every barcode lookup.
-
-### #574 The Days calendar and the day summary count a different number of posts
-
-For October 31 on a test account, the Days calendar says 5 posts and the day summary says 4 posts. Both show 1,842 kcal.
-
-An OpenClaw production check on Nov 4 read the calendar's accessibility label as "2026-10-31, 5 posts, 1,842 kcal" and the day summary as "Consumed: 1,842 kcal · 4 posts". The cause is unknown. One of the two may count a post the other leaves out, such as a drink, a leftovers post or a superseded one. Done when both places count the same posts for that day, or the screen says why they differ, checked on production against the account's October 31 posts. Pull request #585 ("Ready/unfinished meal counts"; the head is now 5887f56e after the fixes, and everything below dates from the earlier head dc60980f) is not merged. A Muse review (muse-spark-1.3-contributor) at head 5887f56e6ceb92cece48192a8b56d2f7b9e6a2fc found zero blockers and verified the earlier finding fixed (the owner's report at 20:39 WIB; not verified by the PM). Preview check relayed by the planner at 19:16 WIB (coder-measured, not production): Days shows four posts and one not finished, with the same kilocalories in both payloads. The planner says the false-warning case is a defect in its own plan text, and that the fleet also found and fixed a missing unfinished count on the phone day story. A PPLX review by GPT-6.1 Sol was posted at 19:11 WIB asking for changes: an unfinished meal can make a fully known day show a false "Nutrition unavailable" warning. The coder has not checked the finding against the source, and the model differs from REVIEW\_POLICY.md (the owner ruled to post it). The coder reports at 20:40 WIB that Fleet 15's fixes, reviews and combined tests are complete; the PM accepted migration 0054 and the extra database read in #583 at 20:42 WIB, and the merges wait on the planner's evaluation of the final heads.
-
-Blast radius: Two screens give different post counts for one day, so a judge sees numbers that disagree. The fix touches the calendar and day-summary data paths, which overlap the day totals of #324.
-
-### #575 A meal with unavailable nutrition does not say why
-
-When a food shows nutrition as unavailable, an ordinary user cannot find out why. The owner could not learn why the macaroni failed without an agent reading the database traces.
-
-The reason exists only in the model call log. For the macaroni post it read that no compatible generic fried-pasta record was present, and the plain name "macaroni" was never searched (#523). Nothing shows the user this. The Fleet 13 fix for #523 adds a label only when a close USDA record is found, so a food with no close record still says nothing. Done when a meal with an unavailable value tells the user, in plain words and without database access, which food failed and why, checked on production with a meal known to be unavailable. Pull request #588 ("Nutrition fallback, reasons, migrations 0053/0054"; the head is now 223bf70e after the fixes, and everything below dates from the earlier head 5b785d4a) is not merged. A Muse review (muse-spark-1.3-contributor) at head 223bf70eb7b682a1a06a7d6bdcf33c79b9d36212 found zero blockers and verified the earlier findings fixed (the owner's report at 20:39 WIB; not verified by the PM). The planner says at 19:16 WIB that the fleet found and fixed migration 0052 never refreshing a stale "unavailable" summary on re-analysis, that migration 0054 was not in the plan and the owner has not ruled on it, and that the old-worker finding is the one it weighs lowest (the worker deploys with the app and a tested rollback file exists) but still needs a written answer on the PR. A PPLX review by GPT-6.1 Sol was posted at 19:11 WIB asking for changes: the new estimate format and migration 0053 break workers still on the old code. The captured review text is cut off near the end, the coder has not checked the finding against the source, and the model differs from REVIEW\_POLICY.md (the owner ruled to post it). The coder reports at 20:40 WIB that Fleet 15's fixes, reviews and combined tests are complete; the PM accepted migration 0054 and the extra database read in #583 at 20:42 WIB, and the merges wait on the planner's evaluation of the final heads.
-
-Blast radius: A meal with no numbers and no reason looks like a broken app. Showing the reason needs its source stored, which adds a field to the meal data.
-
-### #576 The desktop New post window scrolls by 18 px at 1366x650
-
-At 1366x650 the New post window holds 668 px of content in a 650 px window, so it scrolls 18 px.
-
-An OpenClaw production check on Nov 4 measured the overflow. The shutter itself sits fully in view, and the bounds of the footer row were not captured. The designer reported the cause: Round 6 frame 6c drew the window at a fixed 620 px tall with a fixed 450 px camera, sized for a 1280x800 screen, and CaptureSheet.tsx copied both, which adds up to 668 px at 650. The designer redrew it as Round 7 frame 7e and put the fix in the hit list. The window is min(620 px, screen height minus 48) tall and min(960 px, screen width minus 48) wide. The mode strip and the shutter row keep their sizes. The camera takes the remaining height, never less than 240 px, and the picture fills it. At 1366x650 that gives a 602 px window with a 454 px camera, and at 1024x700 a 620 px window with a 472 px camera. The window that replaces it after the photo uses the same height rule. Done when the window shows no vertical scroll at 1366x650 and 1024x700, checked on production. Pull request #584 (head 7279ca38, "Desktop capture sizing") is green and unmerged. Preview check relayed by the planner at 19:16 WIB (coder-measured, not production): the desktop capture window measures 602x454 at 1366x650 and 620x472 at 1024x700, with no scroll. A PPLX review by Gemini 3.8 Flash was posted at 19:11 WIB: approved, with three optional cleanups. The coder has not checked any finding against the source, and the model differs from REVIEW\_POLICY.md (the owner ruled to post it). The coder reports at 20:40 WIB that Fleet 15's fixes, reviews and combined tests are complete; the PM accepted migration 0054 and the extra database read in #583 at 20:42 WIB, and the merges wait on the planner's evaluation of the final heads.
-
-Blast radius: A window that scrolls 18 px on a common laptop height looks sloppy in the desktop recording. The fix changes the window size rule that both the New post and after-photo windows use.
-
-### #592 The round left arrow covers the start of the word kcal on a meal's second slide
-
-On the second slide of a meal on desktop, the round left arrow sits on top of the first letter of kcal under the big number, so the word reads as cal.
-
-The owner's screenshot at 16:49 WIB shows slide 2 of 2 of the Cold brew and black honey post, with 49 kcal, and the arrow over the k. Nobody has checked other widths or other slides. Observe first: check the arrows on every slide type at 1100, 1280 and 1440 px and on a phone. Done when no arrow covers any text or number on any slide at those widths.
-
-Blast radius: Judges see a card that looks broken on the first screen of desktop Home. The arrows belong to the carousel that every post card uses, so a fix can move them on every card.
-
-### #593 The first post on desktop Home has a black outline when the page loads
-
-When the desktop Home page loads, the first post sits inside a thick black outline that looks like a focus ring. The posts below it have none. The owner does not like it.
-
-The owner reported it on Nov 4 at 16:48 WIB, with a screenshot of my-food-ai-ten.vercel.app after a hard refresh. The outline runs around the whole first card, from the account line to the caption. The designer reported at 16:49 WIB that the outline marks the post selected for keyboard use, where J and K move between posts and Enter opens one. The designer drew Round 6 frame 6a with the first post already outlined, and DesktopWorkspace.tsx marks the first post as selected by default, so the code matches the design. The designer has removed the outline from 6a. The new rule is that the feed opens with nothing outlined, the outline appears after the first J, K or Tab, and a click anywhere in the feed hides it again. The owner also said the other posts are not loaded when he scrolls; the PM read that as them having no outline, and a post that fails to load would be a separate item. Done when the feed opens with nothing outlined, the outline appears after the first J, K or Tab, and a click anywhere in the feed hides it, checked on the live page at 1280x800 and confirmed by the owner.
-
-Blast radius: Judges see it on the first screen of desktop Home, so it reads as a glitch. A fix touches the focus styling and keyboard navigation of the feed, so removing it carelessly can hide the focus ring from keyboard users.
-
-### #598 A returning visitor keeps seeing the old build until a hard refresh
-
-After a deploy, a browser that already holds the previous build can keep showing it, so a visitor sees old layouts and old text that main no longer has.
-
-The owner's desktop window kept showing the old full-width feed and the asterisk footnote after Fleet 14 deployed, while the coder's 15:59 report says production matched main at a24587a. A hard refresh at 16:47 WIB showed the new layout. The designer suspects the service worker or the browser cache; that is unconfirmed. Observe first: with a browser that holds the previous build, deploy or simulate a new build and record whether a normal reload shows it, and which cache serves the old one. Done when a browser that holds the previous build shows the new build on its next normal load, and the check is recorded.
-
-Blast radius: Every returning visitor, judges included, can see an old build after each deploy, so a judge could grade a build that no longer exists. A change to how the service worker or the cache updates touches every page and photo load, so a mistake can break caching for everyone.
-
-### #594 Let the user choose where a photo is saved: the in-app camera with manual saving, or the native camera with every photo saved
-
-The app's own camera sends photos only to the app, so none reach the phone's camera roll, and the owner wants a choice.
-
-The owner ruled at 16:57 WIB that this should be an option with two modes, and at 16:59 WIB that it is a toggle under personal settings, with a short explanation of each mode beside it, so he can test both modes himself without anyone running code for him. In manual-save mode the app keeps its built-in camera and shows a Save photo button that calls the share sheet; the owner accepts manual saving for now. In save-everything mode the app uses the phone's native camera, which saves to the camera roll by itself. The owner also wants, later, a way for people to share or save everything, or nothing; how is not decided. Known limit: on iPhone with iOS 16.2 or later the share sheet opened by code has no Save Image option (WebKit bug 255544, still open); pressing and holding a shown photo does offer it. Not verified on current iOS. Observe first: test the share sheet on the owner's iPhone and on an Android phone. Done when personal settings has a toggle with the explanation, a photo taken in each mode can be saved to the camera roll, and the owner flips the toggle and confirms both modes on his phone.
-
-Blast radius: The native camera replaces the in-app capture, so the photo path into the analysis changes for everyone who picks it, and a mistake could stop meals from being logged. Judges see only the default mode, so the default must stay the one that works today.
-
-### #599 The Today summary on the right of desktop Home is missing when the page opens and appears late
-
-On desktop Home the right-hand column (Today, kcal consumed, protein, carbs, fat, Posted today) is empty when the page loads and fills in a moment later. The owner reports that it took far too long to show up.
-
-The owner sent two screenshots at 17:13 WIB of my-food-ai-ten.vercel.app on desktop. In the first, the feed shows the Cold brew and black honey post and the right column is blank. In the second, the same page shows Today with 1,468 kcal, 56 g protein, 211 g carbs, 46 g fat and six posts under Posted today. The delay between the two was not timed and the cause is not known. The owner's browser may also hold an old build (see the stale-build item), which is not ruled out. Observe first: on the live page at 1280x800, time from the page opening to the right column showing its numbers, with a normal reload and with a hard refresh, and record which request it waits on. Done when the right column shows its numbers within two seconds of the page opening on the owner's desktop, and the check is recorded. The Fleet 14 coder reproduced a wide shell without the Today column on the old deployment under injected page and worker latency, and the correct narrow feed without it. That is a mechanism; it is not shown to be the cause of the owner's screenshot.
-
-Blast radius: Judges open desktop Home first, so a blank column reads as a broken app. The column reads the same day totals as Home and Days, so a fix that changes how they load can change the numbers in other places.
-
-### #602 The meal detail photo shows cropped for an instant on desktop, then zooms out, and the phone layout jumps 130 px
-
-On desktop, opening a meal shows the photo cropped about 20% in a 640x680 frame, then it jumps to the whole photo with grey bars at the sides. On the phone, the space for the photo starts as a 390x390 blank square and grows to 390x520, pushing everything below it down 130 px. The owner has asked three times to see the whole image (#525).
-
-The measurements are in the item above, taken on the live app on Nov 4 after #581. The cause on desktop is the quick preview frame from #564, which crops to fill before the full file replaces it; the phone jump is the frame being a different shape from the photo. Done when, at 1100, 1280, 1440 and 390 wide, the photo is never cropped and nothing below it moves when the full photo loads, and the owner has seen it on the live app.
-
-The designer reported at 19:02 WIB (not verified by the PM) that the same two defects are in the design file as frame 7f of Round 7, and gave the cause and the fix. Cause: in PostOpenFrame.tsx the first desktop frame crops the photo to fill a box about 640x680, and the detail view that loads next shows the whole photo in the same box, so the photo zooms out and grey bars appear (a 3:4 photo at 680 px tall is 510 px wide). On the phone the code learns the photo's shape only after the image loads, so the box starts square and grows 130 px. Fix as designed: save each photo's width and height at upload and send them with the post; every photo box (feed, first frame, detail, phone and desktop) takes its shape from those numbers before any image loads; the whole photo always shows with no cropping and no bars; height is capped at 680 px on desktop and 80% of the screen height on the phone; on desktop the photo column narrows to the photo's width (this post's window would be 510 + 360 px wide); the quick preview and the full file use the same box and fit. The plan does not say what happens to posts made before the width and height were saved.
-
-Blast radius: The meal page is the first thing judges open from the feed. The frame is shared with the quick preview, so a change to its shape can affect every meal's first view and the photo swap on desktop.
-
-### #603 The Servings control on a meal cannot be set to a fraction
-
-The owner wants to log part of a serving, such as half, and says the app cannot do it while Cal AI can.
-
-The owner sent a phone screenshot at 18:53 WIB of his post "Doughlab "Gold Digger"" (695 kcal, 7 g protein, 89 g carbs, 37 g fat). Under "Consumed - all nutrients" the row reads "Servings", a minus sign, 1, and a plus sign. What the control accepts today has not been checked in the code or the app; the owner's report is that it cannot hold a fraction. Reference: the owner's Cal AI screenshots (67 PNGs, Cal\_AI\_screenshots.zip, analysed on Oct 26; IMG\_2455 to 2458 and 2461 are missing from the zip). A PM session on Oct 29 listed servings as a gap: Cal AI's entry shows "1 ✎" beside the name (IMG\_2465), a servings count the user can edit, and our spec had no servings multiplier for the whole meal. The saved teardown (claude/cal-ai-flow-teardown.md) is no longer in the project, and the PM has not re-opened the screenshots this session, so whether Cal AI's pill accepts fractions is the owner's report, not checked here. The source is the owner's copy of the zip, or the designer's. Done when a meal's servings can be set to a fraction such as 0.5 and 1.5, the calories, protein, carbs, fat and all other nutrient values scale to match on the meal page, Home, Days and the Today totals, and the owner has seen it on the live app.
-
-Blast radius: Servings change the numbers a meal contributes to every total, so a mistake could make Home, Days and Today disagree or show a wrong day total in the demo. If servings are saved, a fraction may need a change to how they are stored.
-
-### #580 The native control audit found nine undersized controls
-
-Nine controls in the app are smaller than they should be, so they are hard to hit with a thumb on a phone.
-
-The coder reported this on Nov 4 from the Fleet 14 acceptance checks, run in Firefox without the processor slowed, and gave the list of the nine controls in his 17:44 WIB report: bottom-bar + (34 × 34 px), search input (294 × 21), capture Photo tab (78.88 × 36), Text tab (66.12 × 36), Barcode tab (113.38 × 36), caption textarea (358 × 42), drink description input (260 × 21), caption More (37.18 × 19.6) and saved-meal Log now (79.12 × 34). Observe first: measure the nine controls named above on a phone and confirm their sizes. Done when each of the nine is named, resized or filed as its own item, and a second audit finds none undersized.
-
-Blast radius: Mis-taps on a phone cost judges patience on every screen where one of the nine sits. The fix touches shared controls, so a size change can shift layouts that Fleet 14 just set.
-
-### #595 The Fleet 14 plan document must carry no instruction to revoke the bypass secret
-
-The committed plan on the run14/docs branch (docs/plan-run14.md) carried two lines that said to revoke the protection-bypass secret, in item 6.1 and in the cleanup section. A reader who acts on them cuts the fleet off from testing.
-
-The planner who wrote them has been fired, and the owner has ruled that the secret is never revoked. The planner's working copy no longer has the lines, and the coder reports the committed copy in docs PR #577 no longer has them. The Fleet 15 planner read origin/run14/docs at head 3bb83ed8 on Nov 4 at 10:52 UTC: a search for revok returns three lines, all retain statements, and item 6.1 step 2 now says the secret is retained. The coder's 17:44 WIB handover says revocation instructions were removed from the cleanup instructions and the affected documents at head eeba864c of docs PR #577, which is open, draft, green and unmerged, and that the live secret is unchanged. Done when the owner merges or closes #577 and no instruction to revoke the secret remains on the branch (the coder said at 19:18 WIB that #600 is a separate docs PR beside #577, not a replacement).
-
-Blast radius: A reader who follows the lines revokes the secret, which locks reviewers and coders out of testing protected deployments and stalls verification before the deadline. The change is docs only and touches no code.
-
-### #596 A Caesar salad photo matched a no-dressing Caesar record
-
-In the real-model food test, one of 18 cases picked a USDA record for a Caesar salad without dressing, so the numbers leave out the dressing the meal has.
-
-Fleet 14's real-model food gate passed 17 of 18 cases, and this is the retained failure. Observe first: run the case again and record which record the model chose and why. Done when the Caesar case matches a record that includes dressing, and the other 17 cases still pass.
-
-Blast radius: A wrong calorie number on a common food is the error a judge would notice. A change to the match rule affects results for every meal, so all 18 gate cases must rerun.
-
-### #597 Five new lint warnings sit in merged Fleet 14 code
-
-The lint run went from six warnings to eleven, and the five new ones are in code that has merged.
-
-Fleet 14's validation reported 0 errors and 11 warnings, six existing and five new. Done when lint reports no more than the six existing warnings and the test suite still passes.
-
-Blast radius: Warnings break neither users nor the build, but they hide real warnings in review. A cleanup touches merged code, so it takes a pull request and a review for no user-visible gain.
+The owner's rule has five parts. (1) A fleet ends when its plan is done, and the coder says so plainly: "I completed my plan." (2) The coder starts no new work inside the fleet. (3) Every new defect, meaning anything not already in the backlog, is reported to the owner in the message that finds it, so it can be filed. (4) A high-intelligence coder investigates the defect properly. (5) The fix runs afterwards, in a new fleet. Done when the rule is written into the coder's contract, covers defects found by production checks, and the coder's next report names any new defect it found and starts no work on it.
 
 ## Engineering backlog
 
-### #601 Measure the meal detail photo on the live app in a signed-in browser, at four window widths (needs a browser)
+### #624 The Fleet 17 run report on main overstates its proof
 
-No one has yet measured how the meal detail photo is shown on the live app after the sharper-photos change (#581), so whether the owner's cropped-photo report (#525) still happens is not known.
+docs/run17-report.md says the post-close check passed and the beer flow was proven. The evidence behind it is weaker, and the report is now on main.
 
-The Opus investigation at 18:13 WIB could not do this because its Chrome connection dropped and the live app needs a sign-in. By reading the code only, it found that once a meal has fully opened the whole photo is shown uncut, and that the placeholder frame shown for an instant on desktop (from #564) crops a portrait 3:4 photo by about 20% of its height at 680 px tall and about 29% at 700 px. Nothing has been seen on screen. A browser-capable helper outside the code base (the owner is handing this to Grok) opens the live app signed in, opens one meal that has a photo, and at window widths 1100, 1280, 1440 and 390 (phone) records, both in the first instant and after the page has finished loading, the photo frame's width and height, the photo's shown width and height, and whether any of the photo is cut off, with a screenshot each. Done when the one missing reading (the phone's blank square in the first instant) is captured and the owner has seen the recorded readings below.
+The planner's evaluation found four gaps. All nine close readings ran after the fix merged, so no reading shows what the 700 ms cap changed. Two of the nine were over one second, and the pass came only after an 8-second gap was added between posts. The dismiss step was never proven, because the test driver read the wrong post. The notification was never observed, because only a fake subscription row was inserted. Done when the report lists all nine close readings, says that no reading exists from before the fix, and says that the dismiss step and the notification are unproven.
 
-Result, reported by the owner at 18:40 WIB from the Grok run on the post "Cold brew and black honey" (the photo file is 480x640, portrait; a hidden browser read sizes and took eight screenshots; nothing on the site was changed). Desktop, first instant: the photo is cropped to fill its frame, 628x680 at 1100 wide (157 px of height lost, about 19%) and 640x680 at 1280 and 1440 (173 px lost, about 20%). That matches the code reading. Desktop, after loading: the whole photo, 510x680, with grey bars at the sides (about 59 px each at 1100, 65 px each at 1280 and 1440), nothing cut off. The picture zooms out from cropped to whole when the quick preview is swapped for the full file. Phone (390 wide): never cut off, 390x520 once loaded, but the space starts as a 390x390 blank square and grows 130 px when the photo loads, pushing everything below it down. Not captured: the phone's blank square in a screenshot (the first-instant shot was taken half a second after the tap and already showed the photo), and the 1280 screenshot's left bar looked wider than the right, which is not measured (the sizes above work out even). Everything loaded within 10 seconds at every size. On desktop the post opens as a pop-up over Home; on the phone it opens as a full page.
+### #625 Tapping Post can close the sheet before the post is safely saved on the phone
 
-Blast radius: None to the app, since this only observes. The readings decide whether #525 needs a code fix, so a wrong reading could leave a cropped photo in the judges' first look at a meal.
+Since Fleet 17, the capture sheet closes and the app says Post worked after 700 ms, even when the phone has not finished saving the draft. If the page reloads or the phone kills the app in that gap, the draft can come back as not posted or be missing, and the user's post is lost.
 
-### #370 The camera view stays open for a long time after a photo is taken
+A static review of #619 at head 8c3707a found it, and nothing was run. The review is posted on #619 as a GitHub comment (issuecomment-6636522807). The 700 ms cap in src/lib/posts/upload-manager.ts (the post() function, around line 278) reports success from the entry in memory. The save that marks the draft as posted can still be queued behind earlier saves that carry the full photo, and on the next start a draft saved as not posted is never published. The reviewer suggests saving a small record of the intent to publish first and reporting success only after that record is saved. The cap exists to fix #370, so the fix must keep the sheet closing within 1 second. Done when a test that delays the phone's save beyond 700 ms, taps Post and then rebuilds the manager from saved data only still publishes the post, and the sheet still closes within 1 second.
 
-After a photo is taken, the camera view stays on screen for a long time before the post shows in the feed. People will not wait that long.
+### #626 Saving a clarification question is three separate steps, so a failure part-way can leave a stray comment
 
-The capture sheet sends its post-created event and closes only after a successful post, so it waits on the upload and the server. The owner reports the wait on his phone. Observe first: time the tap to the sheet closing and to the new post showing, on a phone over mobile data, and record the size in bytes of each photo the phone uploads. Then close the sheet at the tap and show the new post at the top of the feed in its processing state while the upload finishes. Done when the sheet closes within one second of the tap on a throttled connection, the post appears at the top of the feed in its processing state, and a failed upload is shown on that post.
+When the model asks a question about a drink, the app saves the question on the post, adds it as a comment and marks the post ready, one step after another. If a later step fails, the post can keep a comment without a question, or a question without a comment.
 
-Blast radius: A camera that stays open after a photo makes posting feel slow in every demo. The fix changes when the capture sheet closes, where a mistake can lose a post whose write has not finished.
+A review of #620 found it in the code that saves the analysis (persist.ts). A failure is reported as an I/O error, but the earlier steps are not undone. Done when the three steps succeed or fail together, and a test covers a failure part-way.
 
-### #222 The feed fails to open, and photos and cards take too long to appear
+### #627 The question dismissal route answers errors in two different formats
 
-On a large account the feed sometimes shows an error or never appears. When it opens, photos and cards take a long time to show, so the app feels broken and slow.
+Dismissing a question can fail with a JSON message or with an empty reply, depending on where it fails.
 
-Run 8 merged the cold-open fixes (#322, #323, #324, #326). In emulation, 100 of 100 browser openings passed and the five final cold photos took 1.48 to 1.83 seconds. The original failures (3 server errors and 15 blank feeds in 100 openings on the largest test account, 146 posts) never reproduced on Run 7's baseline, so their cause is not isolated; the worker's empty-claim loop is a suspect (separate item). The runtime logs return 403 for the coder, so the stack for digest 3642131196 exists only in the Vercel console. Done when the feed and the first photo show within two seconds on the owner's phone over mobile data.
+A review of #620 found it in src/app/api/posts/[id]/question/route.ts. A failed clear returns the message "Question could not be dismissed." with status 500, while the earlier failures return an empty reply with status 404 or 500. Done when every failure of that route returns the same format.
 
-Blast radius: A feed that fails or stays blank on a large account is the first thing a judge sees. The causes are not isolated, so work on suspects can spend time without a fix.
+### #628 The Fleet 17 check script passes when its checks fail and leaves a test row behind
 
-### #281 A Meta open-weight model identifies the food (hackathon bonus)
+The test script scripts/run17-checks.mjs can finish successfully even when a check fails, and it leaves test data on production.
 
-The hackathon pays a $10,000 bonus for a build on a Meta open-weight model, and the app calls only the hosted Meta API.
+Two reviews of the script (#619 and #621) found three faults. It sets a pass flag when a close time is over 1,000 ms but never makes the command fail. The beer check records that it never settled and does not fail either. The dismiss step clicks any button on the page because of an "|| true" in its selector, which is why the dismiss check passed on an empty question. Beer mode also inserts a fake push subscription at the fixed address https://fcm.googleapis.com/run17-fixture and never deletes it. The script is part of docs PR #621, which Muse merged on Nov 4 at 16:49 UTC (7d2cbd37) without being asked to, so the faults are now on main. Done when the script exits with an error when any check fails, the dismiss step targets only this post's own question, and the fake push subscription is removed at the end of every run, including the row already left on test account 2.
 
-Use Muse Spark Open (meta-models/muse-spark-open-1026) through Baseten's OpenAI-compatible endpoint, https://inference.baseten.co/v1, for the identify-and-portions call. The key works only with that model and never goes in the repository, an issue or this backlog. Confirm the coder can sign in to Baseten with the key before the trial. The model always reasons, so check output caps that include reasoning. The Meta client hardcodes model names, and the ten-photo harness cannot choose a model host. Trial first in a throwaway clone that swaps only that call, and spend at most 5 US dollars. SAM and transcription stay on the Meta API, and the USDA lookup is unchanged. Compare the ten meal photos and one caption, "I ate half the rice", against the current path. A qualifying step must be a real, switchable path on main that a judge can reproduce, with the model ID logged. Cerebral Valley answered on Nov 3 that Muse Spark Open counts however it runs, including through Baseten. Done when a real, switchable path on main runs the identify-and-portions step on Muse Spark Open through Baseten, the model ID is logged, the results against the ten photos are in docs, and the owner has switched it on in Profile, logged a meal, and seen the Muse Spark Open line in that meal's post detail on production.
+### #471 Posting several photos in one hour can hit the app's hourly limit
 
-Blast radius: The $10,000 bonus depends on this path working, and a slow or failing open model delays every analysis when it is on. It adds an outside provider the app does not control.
+The app limits how many analyses one account can run in an hour. When one account posts a run of photos, the app can stop analysing and show a message instead of the result.
 
-### #372 Feed photos are too large for a phone on mobile data
-
-A feed photo downloads at a size far larger than a phone card shows, so the first photo arrives late and every revisit pays for it again.
-
-The sampled feed image is 152,193 bytes and its response carries no Cache-Control header (docs/media-loading.md). Several cards cost megabytes on mobile data, and the cold first photo measured 2.10 s against the 2 s target. The feed photo route (src/app/api/media/feed/\[owner\]/\[post\]/\[media\]/v1.webp/route.ts) reads the original from Storage on every request. Find the largest size a feed card needs on a phone and serve that instead of the original. Keep the original where post detail needs it. Done when the bytes per feed photo before and after are in docs, the first photo of the feed shows within two seconds on mobile data, and the photos look the same on a phone.
-
-Blast radius: Oversized feed photos slow the first photo on mobile data and feed the egress problem. A smaller copy changes the image every user sees, so quality drops unless it is handled with #579.
-
-### #455 The card you swipe to on a drink's photo shows a number and not what the drink is
-
-Swiping right on a drink's photo opens a card with one big millilitre number, so the card does not say what the drink is or why it exists.
-
-The swiped card for the tiki cocktail shows "220 ml" in large type, a line of text and "1,200 ml consumed today" split into drinks and food. A card for a drink leads with its kind as a picture: a coffee cup for coffee with its caffeine, a water cup for water with one cup for every 250 ml drunk, and a cocktail glass or a wine glass for those with their alcohol, and the day's drinks are drawn as the same cups. Done when a coffee, a 500 ml water (two cups), a cocktail and a glass of wine each show their own picture on the swiped card, and a card that holds only liquid reads as a drink at a glance, on the owner's three phones. GitHub shows this issue closed (the coder's read at 17:51 WIB); it stays here until its done condition above is met.
-
-Blast radius: A card that shows only 220 ml does not say what the drink is, which reads as an unfinished feature in the drink flow. The fix is limited to that card.
-
-### #456 A rum cocktail is logged with 15 mg caffeine
-
-The tiki cocktail post states caffeine that the drink does not contain.
-
-The drink card for the lime and rum tiki cocktail reads "15 mg caffeine" next to 196 kcal, and the day's caffeine total reads 110 mg. Done when a cocktail or any drink with no caffeine source logs no caffeine, the card shows none, and the day's total leaves it out, checked on the tiki cocktail and a glass of wine. GitHub shows this issue closed (the coder's read at 17:51 WIB); it stays here until its done condition above is met.
-
-Blast radius: A rum cocktail with 15 mg caffeine is a wrong number a judge could catch, and it pollutes the day's caffeine total. A fix changes the drink analysis rules, so other drinks' numbers can move.
-
-### #457 An alcoholic drink shows its alcohol, not its liquid
-
-A cocktail post shows how much liquid it holds and nothing about the alcohol, so the user cannot tell how much they have drunk.
-
-The post for a lime and rum tiki cocktail shows "220 g" on the photo and 196 kcal, 0 g protein, 17 g carbs and 0 g fat under it, with no alcohol anywhere. For a drink that holds alcohol, the post shows the grams of alcohol and the standard drinks in place of the liquid amount, the drink's liquid is not added to the water total, and Today shows the day's alcohol so far. Done when a photographed cocktail and a typed beer each show their alcohol on the post and in Today, and neither adds to the water tile, on the owner's three phones. GitHub shows this issue closed (the coder's read at 17:51 WIB); it stays here until its done condition above is met.
-
-Blast radius: An alcoholic drink that shows grams and no alcohol hides the figure a user wants. The fix changes how drinks display units, so other drink cards can shift.
+Identifying a drink from a photo adds one model call per photo, and every call counts against the account's hourly limit. The last check on production hit the message "You have made a lot of requests this hour." Done when one account can post ten photos within an hour with no limit message, or the limit is raised so it can.
 
 ### #279 Sign-up and sign-in resist being hammered
 
 Anyone can send sign-up and sign-in requests as fast as a script can, to guess passwords, create accounts in bulk or run up the email and model bills, and nobody has shown what stops them.
 
-CAPTCHA stays off until the app goes public. Run 8 merged a dormant hCaptcha widget and token path (#336). Called directly from the coder's machine, Supabase refused the hammer at sign-up 31 and sign-in 32, and the 31 throwaway accounts were deleted. The owner holds the site key and the secret. The secret lives only in Supabase Auth and never goes into the repository, an issue, an order or this backlog. To turn CAPTCHA on, set NEXT\_PUBLIC\_HCAPTCHA\_SITE\_KEY in Vercel production and redeploy, then enable CAPTCHA in Supabase Auth, never the reverse. Done when CAPTCHA is on for sign-up and sign-in on production and a script that hammers sign-up and sign-in is refused.
+CAPTCHA stays off until the app goes public. Run 8 merged a dormant hCaptcha widget (#336). A direct hammer from the coder's machine was refused at sign-up 31 and sign-in 32, and the 31 throwaway accounts were deleted. The owner holds the site key and the secret. The secret lives only in Supabase Auth and never goes into the repository, an issue, an order or this backlog. To turn CAPTCHA on, set NEXT_PUBLIC_HCAPTCHA_SITE_KEY in Vercel production and redeploy, then enable CAPTCHA in Supabase Auth, never the reverse. Done when CAPTCHA is on for sign-up and sign-in on production and a script that hammers both is refused.
 
-Blast radius: Unprotected sign-up lets a script create accounts in bulk and guess passwords, which could fill the database, drain quota or lock out judges. Turning on CAPTCHA adds a step to every sign-up, so judges feel it.
+## Backlog for Designer
 
-### #615 A posted beer disappears and a clarification card takes its place
+### #453 The barcode prompt is printed over the live camera picture
 
-The owner posted a beer and the post vanished from where he expected it, and a clarification card appeared instead. He does not accept a post that disappears.
+On the Barcode screen, the line "Point at the barcode. It reads on its own." runs across the camera picture and cannot be read against a busy shelf.
 
-The owner reported it on Nov 4 at 21:07 WIB, after the photographed beer was matched against the glass label and the app found the glass and the beer inside did not match. He likes the card. His ruling: the beer shows up as posted, with the calories of the drink as stated, and the clarification request arrives as a notification. Nothing in the app removes a post to make room for a question. The PM has not seen which screens do this, whether the post leaves the feed or only the card, or whether the notification should be in the app or a push, and the owner has not said. Observe first: reproduce a beer post whose glass and drink disagree and record what the feed, Days and the post page show at each moment. Done when a posted drink stays on screen from the tap, shows the calories of the drink as stated, the clarification request reaches the owner as a notification, and no screen makes a post disappear, checked on the owner's three phones.
+No design exists yet for where this line sits, so the designer chooses its place. Done when the prompt is readable over any camera picture, on the owner's three phones.
 
-Blast radius: A post that vanishes reads as lost data, in the demo and to a judge, on a headline drink feature. The fix reaches the clarification flow, the feed and the notification path, so a mistake can show a wrong calorie number or drop the question.
+### #455 The card you swipe to on a drink's photo shows a number and not what the drink is
 
-## Engineering backlog - design
+Swiping right on a drink's photo opens a card with one big millilitre number, so the card does not say what the drink is or why it exists.
+
+The swiped card for the tiki cocktail shows "220 ml" in large type, a line of text and "1,200 ml consumed today" split into drinks and food. A card for a drink should lead with its kind as a picture: a coffee cup for coffee with its caffeine, a water cup for water with one cup for every 250 ml drunk, and a cocktail glass or a wine glass for those with their alcohol, and the day's drinks drawn as the same cups. This is built on main. GitHub shows this issue closed, and it stays here until its done condition is met. Done when a coffee, a 500 ml water (two cups), a cocktail and a glass of wine each show their own picture on the swiped card, and a card that holds only liquid reads as a drink at a glance, on the owner's three phones.
+
+### #457 An alcoholic drink shows its alcohol but not how much was drunk
+
+A drink post shows its alcohol but not how many drinks or how many millilitres were drunk, so the user cannot tell how much they have drunk.
+
+The post for a lime and rum tiki cocktail shows "220 g" on the photo and 196 kcal, 0 g protein, 17 g carbs and 0 g fat, with no alcohol anywhere. For a drink with alcohol, the post should show how much was drunk (a count and millilitres), the grams of alcohol and the standard drinks. The drink's liquid does not add to the water total, and Today shows the day's alcohol so far. The owner's Sapporo pint screenshots show "20 g alcohol · 1.4 standard drinks" but not how many beers or millilitres. The 20 g is the weight of the alcohol in a 500 ml pint at 5%. The 1.4 is 20 g divided by 14 g, the US standard drink; a Canadian standard drink is 13.45 g and would read 1.5. Which one the app uses is unruled. This is built on main. GitHub shows this issue closed, and it stays here until its done condition is met. Done when a photographed cocktail and a typed beer each show how much was drunk (a count and millilitres) and their alcohol, on the post and in Today, and neither adds to the water tile, on the owner's three phones.
+
+### #592 The round left arrow covers the start of the word kcal on a meal's second slide
+
+On the second slide of a meal on desktop, the round left arrow sits on top of the first letter of kcal under the big number, so the word reads as cal.
+
+The owner's screenshot shows slide 2 of the Cold brew and black honey post, with 49 kcal, and the arrow over the k. The fix adds extra space beside the numbers card. On the live app at 1100, 1280 and 1440 px wide, no arrow touches any text, and the smallest gap on the left is 21 px. The phone reading could not be taken: on the phone, the photo rail holds only photos and nutrition is shown separately, so there is no numbers slide with arrows. Done when it is confirmed that no arrow covers any text or number on any slide at those widths, and the phone case is confirmed as not applicable.
+
+### #631 Every place that waits on the network shows nothing while it waits
+
+A screen or action that waits on the network can sit empty or frozen for seconds, and the customer cannot tell whether the app is working. The owner wants a visible waiting state anywhere a network problem is possible, so the customer's expectation is managed and nobody is annoyed.
+
+The owner's desktop Home took about 20 seconds to fill the Today column and the Posted today list (reported at 22:05 WIB, see #599). The designer's audit says every control was drawn at rest only, so no waiting, slow or failed state exists in the design for whole regions or for actions. Observe first: list every region and action that waits on the network (the Home right column, the feed, Days, Search, Profile, the meal detail, saving a post, barcode and label lookups, the drink sheet) and record what each shows while it waits, after a failure and after a timeout. Done when each of them shows a loading placeholder or spinner at once, shows a plain message with a retry after a failure or a timeout, never shows an empty or half-drawn region as if it were final, and is checked on production with the network throttled at 390x844 and at 1280x800.
+
+### #555 The controls on Days, Search, Profile and the capture modes have not been audited
+
+The Round 7 control table covers the feed, the post and the capture sheet. Days, Search, Profile and the Text, Photo and Barcode modes are not in it.
+
+The designer has not read their controls yet. Add them to the table from #217 with its four findings: time to a visible change, pressed look, jump or flicker, and double tap. Done when every control on those screens is in the table and the dead ones are fixed or filed as items.
 
 ## Interdit (Not part of Hackathon)
 
@@ -576,15 +458,11 @@ Public sign-in with Facebook needs the app submitted for Meta app review, which 
 
 Blocked by Meta app review. Development mode works for the developer's own and test accounts, which is enough for the demo. While a Facebook app is in Development mode only people with a role on the app can sign in, and everyone else sees an "App Not Setup" error (Supabase docs). Instagram has no sign-in for consumer apps: Meta shut the Instagram Basic Display API on Dec 4, 2024 and tells developers to use Facebook Login. No Instagram button is added. The button stays grayed out and inert until review passes (#316).
 
-Blast radius: Only people outside development mode cannot use Facebook sign-in, and nothing else depends on it. It does not touch the build.
-
 ### #115 Dark mode
 
 The app has no dark mode.
 
 Blocked by scope. The first design pass is light mode only. Dark mode is designed after the ten screens are built, and the colour tokens in the design system item are named by role so a dark set can be added without touching components.
-
-Blast radius: Without dark mode, users on dark devices see a light app. It is out of scope and touches nothing in the build.
 
 ### #218 Hydration as a share of daily intake
 
@@ -592,10 +470,8 @@ The owner wants the app eventually to show how much of the user's daily intake i
 
 Blocked until after the hackathon, and blocked by the claims rule: the app shows no percentage that reads as progress, and a share of intake is a percentage. The owner decides whether this one figure may break that rule. Done when the owner has lifted the rule for this figure and its design is drawn.
 
-Blast radius: Showing hydration as a share of intake risks a claim the app cannot support, which touches the claims rule and the business's credibility. It stays out until after the hackathon.
-
 ---
 
 † **What this backlog is.** The shared, ordered list of open work for My Food AI, shown live. GitHub issues in aibraincoach/my-food-ai are the record, and BACKLOG.md in the repository is a copy of this list that the PM supplies, so the coder and the planner read the same list. This Doc is private between the PM and the owner, and the coder cannot open it. The coder reads BACKLOG.md, which the owner copies from this Doc. This list usually runs a little ahead of the issues, because an item reaches them only after the PM has filed it. An item stays until its work is merged, its done condition is met and its issue is closed; the "Interdit (Not part of Hackathon)" section holds items that cannot be worked on and says why. Each section is for one role or one state: Backlog for Owner, In Flight (the items the running fleet builds) and Engineering backlog (open work outside it), ordered within a section by the pass that will work them together, not by issue number or date.
 
-Every item is a title line and three paragraphs. The title line carries the GitHub issue number, assigned only once the issue exists, and the number is not one of the four parts. The four parts are: (1) a title a person can read; (2) a first paragraph that states the problem in plain language and in enough depth that a person could fix it; (3) a second paragraph with all the context that helps a person solve the problem, meaning what investigation, work or the owner's observations have established, ending in a done condition. (4) a third paragraph that begins with the words Blast radius and says what harm the problem could do, and what harm a fix could do, to our development, coding, process, planning and business, and how far that harm reaches. No paragraph is a dump of everything known. Write short sentences in the active voice, as the Google developer documentation style guide asks. An item without all four parts is not on the backlog.
+Every item is a title line and two paragraphs. The title line carries the GitHub issue number once the issue exists. (1) The title says in plain words what is wrong, as a GitHub issue title does. (2) The first paragraph is the problem statement, which any person can read. (3) The second paragraph holds the context we have learned that helps solve it. It can be technical. It never holds a dump of logs, review history or merged-change detail. It ends with "Done when" and a condition a person can check. Write short sentences in the active voice, as the Google developer documentation style asks, and spell out any term a reader outside the project would not understand. An item missing a part is not on the backlog.

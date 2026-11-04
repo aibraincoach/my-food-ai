@@ -93,6 +93,8 @@ Under the explicit reconciliation order, #276/#277/#278 are closed as completed 
 
 ## Work
 
+Coder contract: [docs/coder-contract.md](docs/coder-contract.md). Planner contract (run shape, halts, merge order): [docs/planner-contract.md](docs/planner-contract.md).
+
 Coders check their actual repository, GitHub and file-system access before claiming access is missing or stopping work. Use a local read and a read-only repository request to establish what is available; report the specific failure only if a check fails. The PM’s access restrictions apply to the PM role, not to coders. Do not assume the PM role or wait idle on an untested access assumption.
 
 Branch from `origin/main`; never commit directly on `main`. One PR per change. Docs-only PRs (only `docs/`, `skills/`, and root `*.md` policy files) need no PPLX/AGY/Codex review.
