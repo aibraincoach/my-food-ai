@@ -58,8 +58,8 @@ test('a newly controlling worker warms a photo already loaded before installatio
 });
 test('resized photos warm only exact owned same-origin routes and retain cookie authentication',async()=>{
  const url=`https://app.example/api/media/feed/${OWNER}/${FIRST}/${SECOND}/v1.webp`;
- const invalid=[url.replace('app.example','foreign.example'),url.replace(OWNER,SECOND),url+'?token=alias',url.replace(FIRST,'bad-post'),url.replace(SECOND,'bad-media'),url+'/',url.replace('/v1.webp','/v2.webp')];
- const c=client({images:[url,...invalid].map(currentSrc=>({complete:true,naturalWidth:640,currentSrc}))}),leave=c.api.connectMediaSession();await c.turn();await c.turn();
- assert.equal(c.warmFetches.length,1);assert.equal(c.warmFetches[0].url,url);assert.equal(c.warmFetches[0].init.credentials,'same-origin');assert.equal(c.warmFetches[0].init.mode,'cors');assert.equal(c.warmFetches[0].init.cache,'force-cache');
- c.auth('SIGNED_OUT',null);c.controller();await c.turn();assert.equal(c.warmFetches.length,1);leave();
+ const invalid=[url.replace('app.example','foreign.example'),url.replace(OWNER,SECOND),url+'?token=alias',url.replace(FIRST,'bad-post'),url.replace(SECOND,'bad-media'),url+'/',url.replace('/v1.webp','/v3.webp')];
+ const c=client({images:[url,url.replace('/v1.webp','/v2.webp'),...invalid].map(currentSrc=>({complete:true,naturalWidth:640,currentSrc}))}),leave=c.api.connectMediaSession();await c.turn();await c.turn();
+ assert.equal(c.warmFetches.length,2);assert.equal(c.warmFetches[0].url,url);assert.match(c.warmFetches[1].url,/\/v2\.webp$/);assert.equal(c.warmFetches[0].init.credentials,'same-origin');assert.equal(c.warmFetches[0].init.mode,'cors');assert.equal(c.warmFetches[0].init.cache,'force-cache');
+ c.auth('SIGNED_OUT',null);c.controller();await c.turn();assert.equal(c.warmFetches.length,2);leave();
 });
