@@ -1,4 +1,4 @@
-import { keepsCaffeine } from './alcohol';
+import {alcoholGrams,isAlcoholic,keepsCaffeine} from './alcohol';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { getCurrentItems, toNumber, type Numeric, type StoredNutrient } from '@/lib/nutrition/totals';
 import { ioError } from '@/lib/worker/errors';
@@ -12,7 +12,7 @@ const BEVERAGE_CATEGORIES = new Set(['beverages', 'water', 'soft drinks', 'coffe
   'milk shakes and other dairy drinks', 'plant-based milk', 'soy milk', 'baby juice', 'baby water']);
 const PLAIN_DRINKS = new Set(['water', 'sparkling water', 'coffee', 'black coffee', 'espresso', 'americano', 'tea', 'green tea', 'black tea', 'cola', 'coca-cola', 'coca cola', 'cocacola', 'coke', 'pepsi', 'diet cola', 'diet coke', 'coke zero', 'coca-cola zero', 'diet pepsi', 'pepsi max', 'pepsi zero', 'evian bottled water']);
 export type DrinkItem = { id: string; name: string; portion_text?: string | null; portion_grams: Numeric; food_category?: string | null; micronutrients?: StoredNutrient[] };
-export type ItemDrink = { post_item_id: string; kind: 'water' | 'caffeine'; amount: number; ml: number; label: string; caffeineMg: number };
+export type ItemDrink = { post_item_id: string; kind: 'water' | 'caffeine' | 'alcohol'; amount: number; ml: number; label: string; caffeineMg: number; alcoholG: number };
 // SR Legacy puts liquid milk and solid cheese in the same category. This
 // owner-approved fallback is limited to that proven ambiguous category and
 // complete beverage nouns. It never treats "milk chocolate" as "chocolate milk",
@@ -36,7 +36,7 @@ export function isDrinkItem(item: Pick<DrinkItem, 'name' | 'food_category'>): bo
 /** A volume alone never makes food a beverage. Nutrients are already scaled to
  * the consumed portion. Cola alone has a disclosed typical-value fallback. */
 export function drinksFromItems(items: readonly DrinkItem[]): ItemDrink[] {
-  return items.flatMap(item => {
+  return items.flatMap<ItemDrink>(item => {
     if (!isDrinkItem(item)) return [];
     const volume = item.portion_text?.match(/(?:^|\s)(\d+(?:\.\d+)?)\s*ml\b/i);
     const ml = Math.min(5000, Math.round(volume ? Number(volume[1]) : toNumber(item.portion_grams)));
@@ -45,8 +45,9 @@ export function drinksFromItems(items: readonly DrinkItem[]): ItemDrink[] {
     const nutrient = keepsCaffeine(item) ? item.micronutrients?.find(n => n.nutrientId === 1057 && n.basis === 'portion') : undefined;
     const fallback = !nutrient && /\b(coca[- ]?cola|coke|cola|pepsi)\b/i.test(item.name) ? 32 * ml / 330 : 0;
     const caffeineMg = Math.min(1000, Math.max(0, Math.round(nutrient ? toNumber(nutrient.value) : fallback)));
+    if(isAlcoholic(item))return [{post_item_id:item.id,kind:'alcohol' as const,amount:Math.max(1,Math.round(alcoholGrams(item.micronutrients))),ml,label:item.name.trim().slice(0,40)||'Drink',caffeineMg,alcoholG:alcoholGrams(item.micronutrients)}];
     return [{ post_item_id: item.id, kind: caffeineMg >= 1 ? 'caffeine' as const : 'water' as const,
-      amount: caffeineMg >= 1 ? caffeineMg : ml, ml, label: item.name.trim().slice(0, 40) || 'Drink', caffeineMg }];
+      amount: caffeineMg >= 1 ? caffeineMg : ml, ml, label: item.name.trim().slice(0, 40) || 'Drink', caffeineMg, alcoholG:0 }];
   });
 }
 export async function syncItemDrinks(db: SupabaseClient, postId: string): Promise<void> {

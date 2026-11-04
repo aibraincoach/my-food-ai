@@ -12,9 +12,9 @@ import { summaryLine } from '../src/lib/posts/summary-line.ts';
 const item = (changes = {}) => ({ id: 'cola', name: 'Cola', food_category: 'soft drinks', portion_text: '355 ml', portion_grams: 355,
   micronutrients: [{ nutrientId: 1057, value: 34, unitName: 'MG', basis: 'portion' }], ...changes });
 test('cola and water keep their volume, reference caffeine and separate identities', () => {
-  assert.deepEqual(drinksFromItems([item()]), [{ post_item_id: 'cola', kind: 'caffeine', amount: 34, ml: 355, label: 'Cola', caffeineMg: 34 }]);
+  assert.deepEqual(drinksFromItems([item()]), [{ post_item_id: 'cola', kind: 'caffeine', amount: 34, ml: 355, label: 'Cola', caffeineMg: 34, alcoholG:0 }]);
   assert.deepEqual(drinksFromItems([item({ id: 'water', name: 'Water', food_category: 'water', portion_text: '250 ml', portion_grams: 250, micronutrients: [] })]),
-    [{ post_item_id: 'water', kind: 'water', amount: 250, ml: 250, label: 'Water', caffeineMg: 0 }]);
+    [{ post_item_id: 'water', kind: 'water', amount: 250, ml: 250, label: 'Water', caffeineMg: 0, alcoholG:0 }]);
   const five = drinksFromItems(Array.from({ length: 5 }, (_, i) => item({ id: `bottle-${i}` })));
   assert.equal(five.length, 5);
   assert.equal(new Set(five.map(row => row.post_item_id)).size, 5);
