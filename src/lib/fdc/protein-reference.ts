@@ -17,7 +17,8 @@ export function referenceProteinMismatch(itemName: string, description: string):
     const topping = topped[1];
     if (topping !== itemProtein && !itemName.toLowerCase().includes(topping)) return true;
   }
-  for (const word of desc.match(/\b(squid|octopus|tuna|salmon|shrimp|chicken|beef|pork)\b/g) ?? []) {
+  const descProteins = desc.match(new RegExp(PROTEIN_WORDS.source, "gi")) ?? [];
+  for (const word of descProteins.map((w) => w.toLowerCase())) {
     if (word !== itemProtein && !itemName.toLowerCase().includes(word)) {
       if (desc.includes("topped with") || desc.includes("with " + word)) return true;
     }

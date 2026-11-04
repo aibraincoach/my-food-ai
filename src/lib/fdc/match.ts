@@ -96,8 +96,11 @@ export async function resolveFoodMatchDetailed(admin:SupabaseClient,name:string,
     if(!options.approximate)return {food:null,unavailable:{code:'no_match',detail:result.reason}};
     const closest=result.baseFood?await closestGenericFood(admin,name,caption,result.baseFood,signal):{food:null,reason:result.reason};
     if(closest.food&&!referenceProteinMismatch(name,closest.food.description))return {food:closest.food,unavailable:null};
-    const composed=await composeRiceWithProtein(admin,name,caption,signal);
-    if(composed.food)return {food:composed.food,unavailable:null};
+    const dishSuggestsRice=/\b(rice|sushi|nigiri|donburi|bowl)\b/i.test(`${name} ${caption}`);
+    if(dishSuggestsRice){
+      const composed=await composeRiceWithProtein(admin,name,caption,signal);
+      if(composed.food)return {food:composed.food,unavailable:null};
+    }
     let estimate:FdcFood|null=null;
     try{estimate=await estimateFood(name,caption,signal);}
     catch(error){if(!(error as {noEstimate?:boolean})?.noEstimate)throw error;return {food:null,unavailable:{code:'no_estimate',detail:closest.reason}};}
