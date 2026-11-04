@@ -1,0 +1,430 @@
+{
+  "observedAt": "2026-11-04T23:04:12.017Z",
+  "url": "https://my-food-ai-ten.vercel.app",
+  "hour": "2026-11-04T23:00:00.000Z",
+  "before": {},
+  "calls": [
+    {
+      "label": "photo 1 reserve 1",
+      "method": "POST",
+      "path": "/api/posts",
+      "status": 200
+    },
+    {
+      "label": "photo 1 reserve 2",
+      "method": "POST",
+      "path": "/api/posts",
+      "status": 200
+    },
+    {
+      "label": "photo 1 reserve 3",
+      "method": "POST",
+      "path": "/api/posts",
+      "status": 200
+    },
+    {
+      "label": "photo 1 drinks",
+      "method": "POST",
+      "path": "/api/drinks/identify",
+      "status": 200
+    },
+    {
+      "label": "photo 1 publish",
+      "method": "PUT",
+      "path": "/api/posts",
+      "status": 200
+    },
+    {
+      "label": "photo 2 reserve 1",
+      "method": "POST",
+      "path": "/api/posts",
+      "status": 200
+    },
+    {
+      "label": "photo 2 reserve 2",
+      "method": "POST",
+      "path": "/api/posts",
+      "status": 200
+    },
+    {
+      "label": "photo 2 reserve 3",
+      "method": "POST",
+      "path": "/api/posts",
+      "status": 200
+    },
+    {
+      "label": "photo 2 drinks",
+      "method": "POST",
+      "path": "/api/drinks/identify",
+      "status": 200
+    },
+    {
+      "label": "photo 2 publish",
+      "method": "PUT",
+      "path": "/api/posts",
+      "status": 200
+    },
+    {
+      "label": "photo 3 reserve 1",
+      "method": "POST",
+      "path": "/api/posts",
+      "status": 200
+    },
+    {
+      "label": "photo 3 reserve 2",
+      "method": "POST",
+      "path": "/api/posts",
+      "status": 200
+    },
+    {
+      "label": "photo 3 reserve 3",
+      "method": "POST",
+      "path": "/api/posts",
+      "status": 200
+    },
+    {
+      "label": "photo 3 drinks",
+      "method": "POST",
+      "path": "/api/drinks/identify",
+      "status": 200
+    },
+    {
+      "label": "photo 3 publish",
+      "method": "PUT",
+      "path": "/api/posts",
+      "status": 200
+    },
+    {
+      "label": "photo 4 reserve 1",
+      "method": "POST",
+      "path": "/api/posts",
+      "status": 200
+    },
+    {
+      "label": "photo 4 reserve 2",
+      "method": "POST",
+      "path": "/api/posts",
+      "status": 200
+    },
+    {
+      "label": "photo 4 reserve 3",
+      "method": "POST",
+      "path": "/api/posts",
+      "status": 200
+    },
+    {
+      "label": "photo 4 drinks",
+      "method": "POST",
+      "path": "/api/drinks/identify",
+      "status": 200
+    },
+    {
+      "label": "photo 4 publish",
+      "method": "PUT",
+      "path": "/api/posts",
+      "status": 200
+    },
+    {
+      "label": "photo 5 reserve 1",
+      "method": "POST",
+      "path": "/api/posts",
+      "status": 200
+    },
+    {
+      "label": "photo 5 reserve 2",
+      "method": "POST",
+      "path": "/api/posts",
+      "status": 200
+    },
+    {
+      "label": "photo 5 reserve 3",
+      "method": "POST",
+      "path": "/api/posts",
+      "status": 200
+    },
+    {
+      "label": "photo 5 drinks",
+      "method": "POST",
+      "path": "/api/drinks/identify",
+      "status": 200
+    },
+    {
+      "label": "photo 5 publish",
+      "method": "PUT",
+      "path": "/api/posts",
+      "status": 200
+    },
+    {
+      "label": "photo 6 reserve 1",
+      "method": "POST",
+      "path": "/api/posts",
+      "status": 200
+    },
+    {
+      "label": "photo 6 reserve 2",
+      "method": "POST",
+      "path": "/api/posts",
+      "status": 200
+    },
+    {
+      "label": "photo 6 reserve 3",
+      "method": "POST",
+      "path": "/api/posts",
+      "status": 200
+    },
+    {
+      "label": "photo 6 drinks",
+      "method": "POST",
+      "path": "/api/drinks/identify",
+      "status": 200
+    },
+    {
+      "label": "photo 6 publish",
+      "method": "PUT",
+      "path": "/api/posts",
+      "status": 200
+    },
+    {
+      "label": "photo 7 reserve 1",
+      "method": "POST",
+      "path": "/api/posts",
+      "status": 200
+    },
+    {
+      "label": "photo 7 reserve 2",
+      "method": "POST",
+      "path": "/api/posts",
+      "status": 200
+    },
+    {
+      "label": "photo 7 reserve 3",
+      "method": "POST",
+      "path": "/api/posts",
+      "status": 200
+    },
+    {
+      "label": "photo 7 drinks",
+      "method": "POST",
+      "path": "/api/drinks/identify",
+      "status": 200
+    },
+    {
+      "label": "photo 7 publish",
+      "method": "PUT",
+      "path": "/api/posts",
+      "status": 200
+    },
+    {
+      "label": "photo 8 reserve 1",
+      "method": "POST",
+      "path": "/api/posts",
+      "status": 200
+    },
+    {
+      "label": "photo 8 reserve 2",
+      "method": "POST",
+      "path": "/api/posts",
+      "status": 200
+    },
+    {
+      "label": "photo 8 reserve 3",
+      "method": "POST",
+      "path": "/api/posts",
+      "status": 200
+    },
+    {
+      "label": "photo 8 drinks",
+      "method": "POST",
+      "path": "/api/drinks/identify",
+      "status": 200
+    },
+    {
+      "label": "photo 8 publish",
+      "method": "PUT",
+      "path": "/api/posts",
+      "status": 200
+    },
+    {
+      "label": "photo 9 reserve 1",
+      "method": "POST",
+      "path": "/api/posts",
+      "status": 200
+    },
+    {
+      "label": "photo 9 reserve 2",
+      "method": "POST",
+      "path": "/api/posts",
+      "status": 200
+    },
+    {
+      "label": "photo 9 reserve 3",
+      "method": "POST",
+      "path": "/api/posts",
+      "status": 200
+    },
+    {
+      "label": "photo 9 drinks",
+      "method": "POST",
+      "path": "/api/drinks/identify",
+      "status": 200
+    },
+    {
+      "label": "photo 9 publish",
+      "method": "PUT",
+      "path": "/api/posts",
+      "status": 200
+    },
+    {
+      "label": "photo 10 reserve 1",
+      "method": "POST",
+      "path": "/api/posts",
+      "status": 200
+    },
+    {
+      "label": "photo 10 reserve 2",
+      "method": "POST",
+      "path": "/api/posts",
+      "status": 200
+    },
+    {
+      "label": "photo 10 reserve 3",
+      "method": "POST",
+      "path": "/api/posts",
+      "status": 200
+    },
+    {
+      "label": "photo 10 drinks",
+      "method": "POST",
+      "path": "/api/drinks/identify",
+      "status": 200
+    },
+    {
+      "label": "photo 10 publish",
+      "method": "PUT",
+      "path": "/api/posts",
+      "status": 200
+    }
+  ],
+  "limited": [],
+  "posts": [
+    {
+      "n": 1,
+      "id": "88c451a7-bdca-4c76-b9ba-0f967464413a",
+      "drinks": 200,
+      "status": "ready",
+      "fail_reason": null
+    },
+    {
+      "n": 2,
+      "id": "95b20308-cfb2-4422-bd43-4febb21ec15f",
+      "drinks": 200,
+      "status": "ready",
+      "fail_reason": null
+    },
+    {
+      "n": 3,
+      "id": "dafb8b33-e0a2-4a27-a4cc-db26ea33dcc7",
+      "drinks": 200,
+      "status": "ready",
+      "fail_reason": null
+    },
+    {
+      "n": 4,
+      "id": "033875a3-dc80-4c11-b278-2f128e784313",
+      "drinks": 200,
+      "status": "ready",
+      "fail_reason": null
+    },
+    {
+      "n": 5,
+      "id": "ef08a9a2-e6df-4c8e-bdec-962ceab81ef3",
+      "drinks": 200,
+      "status": "ready",
+      "fail_reason": null
+    },
+    {
+      "n": 6,
+      "id": "3e2a3469-fb37-4c72-a5ff-7a54fc2a44a8",
+      "drinks": 200,
+      "status": "ready",
+      "fail_reason": null
+    },
+    {
+      "n": 7,
+      "id": "f667a464-cfdf-4477-a047-f4ee4559919f",
+      "drinks": 200,
+      "status": "ready",
+      "fail_reason": null
+    },
+    {
+      "n": 8,
+      "id": "cf2a83ea-2063-4438-b381-fd5c9f27183f",
+      "drinks": 200,
+      "status": "ready",
+      "fail_reason": null
+    },
+    {
+      "n": 9,
+      "id": "d4b9e756-19ec-4f4f-b3c9-7079482e7b6c",
+      "drinks": 200,
+      "status": "ready",
+      "fail_reason": null
+    },
+    {
+      "n": 10,
+      "id": "a78f72c5-4528-4162-893a-2a303f19275b",
+      "drinks": 200,
+      "status": "ready",
+      "fail_reason": null
+    }
+  ],
+  "seconds": 345,
+  "after": {
+    "post": 10,
+    "drink_identify": 10
+  },
+  "cleanup": [
+    {
+      "id": "88c451a7-bdca-4c76-b9ba-0f967464413a",
+      "absent": true
+    },
+    {
+      "id": "95b20308-cfb2-4422-bd43-4febb21ec15f",
+      "absent": true
+    },
+    {
+      "id": "dafb8b33-e0a2-4a27-a4cc-db26ea33dcc7",
+      "absent": true
+    },
+    {
+      "id": "033875a3-dc80-4c11-b278-2f128e784313",
+      "absent": true
+    },
+    {
+      "id": "ef08a9a2-e6df-4c8e-bdec-962ceab81ef3",
+      "absent": true
+    },
+    {
+      "id": "3e2a3469-fb37-4c72-a5ff-7a54fc2a44a8",
+      "absent": true
+    },
+    {
+      "id": "f667a464-cfdf-4477-a047-f4ee4559919f",
+      "absent": true
+    },
+    {
+      "id": "cf2a83ea-2063-4438-b381-fd5c9f27183f",
+      "absent": true
+    },
+    {
+      "id": "d4b9e756-19ec-4f4f-b3c9-7079482e7b6c",
+      "absent": true
+    },
+    {
+      "id": "a78f72c5-4528-4162-893a-2a303f19275b",
+      "absent": true
+    }
+  ],
+  "pass": true,
+  "error": null
+}
