@@ -27,7 +27,7 @@ export async function POST(request: Request) {
   const shots = body.shots ?? [];
   if (!validUploadShots(shots) || (body.capture_intent !== undefined && !["photo", "text"].includes(body.capture_intent)) || (body.capture_intent === "photo" && shots.length === 0) || (shots.length === 0 && !body.caption.trim())) return NextResponse.json({ error: "The selected photo is not ready. Your draft was kept." }, { status: 400 });
   const notEatenPositions=body.not_eaten_positions??(body.not_eaten_position==null?[]:[body.not_eaten_position]);
-  if(!Array.isArray(notEatenPositions)||new Set(notEatenPositions).size!==notEatenPositions.length||notEatenPositions.some((position:unknown)=>!Number.isInteger(position)||Number(position)<1||Number(position)>=shots.length))return NextResponse.json({error:'Only photos after the first can be marked Leftovers · not eaten.'}, {status:400});
+  if(!Array.isArray(notEatenPositions)||new Set(notEatenPositions).size!==notEatenPositions.length||notEatenPositions.some((position:unknown)=>!Number.isInteger(position)||Number(position)<1||Number(position)>=shots.length))return NextResponse.json({error:'Only photos after the first can be marked as leftovers.'}, {status:400});
   const operationId = body.operation_id ?? randomUUID();
   if (!isUuid(operationId)) return NextResponse.json({ error: "Invalid draft." }, { status: 400 });
   const eatenAt = body.eaten_at === undefined ? new Date().toISOString() : validEatenAt(body.eaten_at);

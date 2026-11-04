@@ -63,7 +63,7 @@ export default function NeedsInputStrip(){
   return <>{posts.map(post=><div key={post.id} className="flex min-h-brand items-center gap-sheet-top border-b border-hairline px-screen-x">
     <button type="button" onClick={()=>setSelected(post)} className="flex min-w-0 flex-1 items-center gap-sheet-top text-left">
       {post.photoUrl?<img crossOrigin="anonymous" src={post.photoUrl} loading="lazy" decoding="async" width={40} height={40} alt="" className="size-tap shrink-0 rounded-thumb object-cover"/>:<span className="size-tap shrink-0 rounded-thumb bg-card"/>}
-      <span className="min-w-0"><span className="block text-body">{post.needs_input.short}</span><span className="block truncate text-meta text-muted">{post.needs_input.short==="No food found"?"Add a caption to log it":post.needs_input.question}</span></span>
+      <span className="min-w-0"><span className="block text-body">{post.needs_input.short==="Clarification needed"?"A question about this meal":post.needs_input.short}</span><span className="block truncate text-meta text-muted">{post.needs_input.short==="No food found"?"Add a caption to log it":post.needs_input.question}</span></span>
     </button>
     <button type="button" aria-label="Discard meal" className="flex size-tap items-center justify-center" onClick={async()=>{const response=await fetch(`/api/posts/${post.id}/discard`,{method:"POST"});if(response.ok)remove(post.id);else setError("Meal could not be discarded.");}}><Icon name="close"/></button>
   </div>)}{error&&<p role="alert">{error}</p>}{selected&&<NeedsInputSheet post={selected} onClose={()=>setSelected(null)} onAnswered={()=>remove(selected.id)}/>}</>;

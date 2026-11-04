@@ -88,5 +88,5 @@ function remainderFooter(items:CardItem[]):string|undefined {
  const texts=omitted.map(item=>item.not_eaten_count_text??`${Math.round(item.not_eaten_grams!)} g`);
  const calories=omitted.map(item=>{const consumed=toNumber(item.portion_grams),rest=item.not_eaten_grams!;return item.not_eaten_calories!==undefined?item.not_eaten_calories:rest===0?0:consumed>0&&item.calories!=null?toNumber(item.calories)*rest/consumed:null;});
  const kcal=calories.some(value=>value===null)?'unavailable':formatCalories(calories.reduce<number>((sum,value)=>sum+(value??0),0),'en-US');
- return `Leftovers · not eaten: ${texts.join(', ')} · ${kcal} kcal`;
+ return `Leftovers: ${texts.join(', ')} · ${kcal} kcal`;
 }
