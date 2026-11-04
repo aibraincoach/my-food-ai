@@ -7,7 +7,7 @@ import {getCurrentItems} from '../src/lib/nutrition/totals.ts';
 
 const nutrients={calories:100,protein_g:5,carbs_g:10,fat_g:4,fibre_g:2,sugar_g:1,sodium_mg:20};
 function rows(count) {
-  return Array.from({length:count},(_,i)=>({id:`p${i}`,caption:`Meal ${i}`,eaten_at:`2026-11-02T${String(8+Math.floor(i/60)).padStart(2,'0')}:${String(i%60).padStart(2,'0')}:00Z`,
+  return Array.from({length:count},(_,i)=>({id:`p${i}`,caption:`Meal ${i}`,status:"ready",eaten_at:`2026-11-02T${String(8+Math.floor(i/60)).padStart(2,'0')}:${String(i%60).padStart(2,'0')}:00Z`,
     post_media:[{position:0,storage_path:`u/p${i}/0.jpg`}],
     current_post_items:[{id:`i${i}`,post_id:`p${i}`,name:'Rice',portion_text:'100 g',portion_grams:100,box:null,mask_path:null,source:'model',gtin:null,supersedes:null,not_eaten_grams:null,not_eaten_calories:null,count_text:null,not_eaten_count_text:null,created_at:'2026-11-02T08:00:00Z',item_nutrition:[{post_item_id:`i${i}`,...nutrients,micronutrients:[],source_ref:'123',food_category:null}]}]}));
 }
@@ -48,7 +48,7 @@ test('40 meals and 2 meals use the same two reads and one batch signing call',as
 test('fixed fixture preserves the legacy day/post/item values, first-photo URL and totals',async()=>{
  const {db}=client(rows(1),{intake:[{kind:'water',amount:250,logged_at:'2026-11-02T09:00:00Z'}]});
  const days=await getDays(db,'u','UTC','2026-11-01','2026-11-30');
- assert.deepEqual(days,[{date:'2026-11-02',posts:[{id:'p0',caption:'Meal 0',eatenAt:'2026-11-02T08:00:00Z',photoUrl:'https://fixture.invalid/storage/v1/object/sign/media/u/p0/0.feed.jpg?token=fixture',items:[{id:'i0',name:'Rice',portion_text:'100 g',portion_grams:100,box:null,mask_path:null,source:'model',gtin:null,supersedes:null,not_eaten_grams:null,not_eaten_calories:null,count_text:null,not_eaten_count_text:null,...nutrients,micronutrients:[],source_ref:'123',food_category:null}],totals:nutrients}],totals:nutrients,intake:{water:250,caffeine:0}}]);
+ assert.deepEqual(days,[{date:'2026-11-02',posts:[{id:'p0',caption:'Meal 0',eatenAt:'2026-11-02T08:00:00Z',photoUrl:'https://fixture.invalid/storage/v1/object/sign/media/u/p0/0.feed.jpg?token=fixture',items:[{id:'i0',name:'Rice',portion_text:'100 g',portion_grams:100,box:null,mask_path:null,source:'model',gtin:null,supersedes:null,not_eaten_grams:null,not_eaten_calories:null,count_text:null,not_eaten_count_text:null,...nutrients,micronutrients:[],source_ref:'123',food_category:null}],totals:nutrients}],totals:nutrients,intake:{water:250,caffeine:0},pending:0}]);
 });
 
 test('photo signing failure retains meals and unknown nutrition remains unavailable',async()=>{

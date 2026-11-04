@@ -22,6 +22,6 @@ export default async function DaysScreen({ tz, date }: { tz?: string; date?: str
   const initialMonths: Record<string, MonthSummary> = {};
   const names = [currentMonth, ...(previousMonth >= earliest.slice(0, 7) ? [previousMonth] : [])];
   await Promise.all(names.map(async month => { initialMonths[month] = await getMonthSummary(supabase, user.id, zone, month); }));
-  const initialDay = date ? (await getDays(supabase, user.id, zone, date, date))[0] ?? { date, posts: [], totals: sumNutrition([]), intake: emptyIntake() } : undefined;
+  const initialDay = date ? (await getDays(supabase, user.id, zone, date, date))[0] ?? { date, posts: [], totals: sumNutrition([]), intake: emptyIntake(), pending: 0 } : undefined;
   return <><LocalTimeZone zone={zone} explicit={Boolean(tz)} /><DaysView key={zone} initialMonths={initialMonths} earliest={earliest} today={today} zone={zone} initialDay={initialDay} /></>;
 }
