@@ -13,6 +13,7 @@ test('closest-record reanalysis refreshes its summary atomically behind job owne
  ${migration}
  do $test$
  declare u uuid:=gen_random_uuid();p uuid:=gen_random_uuid();j uuid:=gen_random_uuid();new_job uuid:=gen_random_uuid();
+ expected jsonb;
  label text:='Nutrition for macaroni is taken from the closest USDA record, Pasta, cooked.';
  payload jsonb:='[{"name":"macaroni","portion_grams":50,"nutrition":{"calories":78.5,"protein_g":2,"carbs_g":15,"fat_g":0.5,"micronutrients":[],"source_ref":"2708357"}}]';
  begin
@@ -28,6 +29,13 @@ test('closest-record reanalysis refreshes its summary atomically behind job owne
  or not exists(select 1 from posts where id=p and status='ready' and identify_model='muse-spark-1.3') then raise exception 'Reanalysis did not commit source, label and ready together';end if;
  perform persist_approximated_analysis(p,j,payload,'Retry must not replace the committed label');
  if (select body from post_comments where post_id=p and author='model')<>label then raise exception 'Retry replaced committed summary';end if;
+ select jsonb_agg(jsonb_build_object('id',i.id,'source_ref',n.source_ref)) into expected from current_post_items i join item_nutrition n on n.post_item_id=i.id where i.post_id=p;
+ perform refresh_owned_approximation_summary(p,j,label,expected);
+ begin
+ perform refresh_owned_approximation_summary(p,j,'Wrong source must not replace summary','[]');
+ raise exception 'Changed current items unexpectedly succeeded';
+ exception when sqlstate 'PT409' then null;
+ end;
  insert into jobs(id,post_id,kind,status,payload)values(new_job,p,'analyze','running','{"post_ownership":true}');
  update posts set active_job_id=new_job,status='processing',analysis_initialized_at=null where id=p;
  begin
@@ -35,13 +43,20 @@ test('closest-record reanalysis refreshes its summary atomically behind job owne
  raise exception 'Stale job unexpectedly succeeded';
  exception when serialization_failure then null;
  end;
+ begin
+ perform refresh_owned_approximation_summary(p,j,'Stale recompute must not replace summary',expected);
+ raise exception 'Stale recompute unexpectedly succeeded';
+ exception when sqlstate 'PT409' then null;
+ end;
  if (select body from post_comments where post_id=p and author='model')<>label then raise exception 'Stale job changed summary';end if;
  if has_function_privilege('anon','public.persist_approximated_analysis(uuid,uuid,jsonb,text,jsonb,text,text,boolean)','EXECUTE')
- or has_function_privilege('authenticated','public.persist_approximated_analysis(uuid,uuid,jsonb,text,jsonb,text,text,boolean)','EXECUTE') then raise exception 'App clients may invoke approximation persistence';end if;
+ or has_function_privilege('authenticated','public.persist_approximated_analysis(uuid,uuid,jsonb,text,jsonb,text,text,boolean)','EXECUTE') or has_function_privilege('anon','public.refresh_owned_approximation_summary(uuid,uuid,text,jsonb)','EXECUTE')
+ or has_function_privilege('authenticated','public.refresh_owned_approximation_summary(uuid,uuid,text,jsonb)','EXECUTE') then raise exception 'App clients may invoke approximation persistence';end if;
  end $test$;
  ${rollback}
  do $test$begin
  if to_regprocedure('public.persist_approximated_analysis(uuid,uuid,jsonb,text,jsonb,text,text,boolean)') is not null
+ or to_regprocedure('public.refresh_owned_approximation_summary(uuid,uuid,text,jsonb)') is not null
  or to_regprocedure('public.persist_owned_analysis(uuid,uuid,jsonb,text,jsonb)') is null
  or to_regprocedure('public.persist_identified_analysis(uuid,uuid,jsonb,text,jsonb,text,text,boolean)') is null then raise exception 'Rollback changed original analysis entrypoints';end if;
  end $test$;

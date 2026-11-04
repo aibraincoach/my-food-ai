@@ -69,11 +69,11 @@ export default async function recompute(admin: SupabaseClient, job: JobRow): Pro
     const current=await getCurrentItems(admin,job.post_id,{requireNutrition:true});
     const labels=approximations.filter(label=>current.some(item=>item.id===label.itemId&&item.name===label.name&&item.source_ref===label.sourceRef));
     const body=await safeSummary('',sumNutrition(current),labels);
-    // Repair the original nutrition summary so approximated values are never unlabeled.
-    const {data:summary,error:readError,status:readStatus}=await admin.from('post_comments').select('id').eq('post_id',job.post_id).eq('author','model').order('created_at').limit(1).maybeSingle();
-    if(readError)throw ioError('Nutrition summary could not be read.',readError,readStatus);
-    if(!summary)throw new Error('Nutrition summary is missing.');
-    const {error:summaryError,status:summaryStatus}=await admin.from('post_comments').update({body}).eq('id',summary.id);
+    // Post lock, job ownership and current source refs are rechecked together.
+    const {error:summaryError,status:summaryStatus}=await admin.rpc('refresh_owned_approximation_summary',{
+      p_post_id:job.post_id,p_job_id:job.id,p_summary:body,
+      p_expected:current.map(item=>({id:item.id,source_ref:item.source_ref})),
+    });
     if(summaryError)throw ioError('Nutrition summary could not be saved.',summaryError,summaryStatus);
   }
   await markReady(job.post_id, admin,job.id);
