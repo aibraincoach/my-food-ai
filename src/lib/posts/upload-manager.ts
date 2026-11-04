@@ -11,6 +11,9 @@ import type { CapturedLocation } from '@/lib/location/capture';
 import { PhotoUploadError, type UploadError } from '@/lib/media/put-with-progress';
 import { PackPhotoUpload } from '@/lib/media/pack-photo-upload';
 import { reencodeShot } from '@/lib/media/reencode';
+// #370: the capture sheet closes within a second of the Post tap. The durable
+// acknowledgement waits at most this long; the write and the upload go on behind it.
+const CLOSE_WAIT_MS = 700;
 export interface UploadState {
     operationId: string;
     kind?: "food"|"copy"|"drink";
@@ -268,7 +271,11 @@ export class UploadManager {
             const current = () => !entry.deleted && this.entries.get(id) === entry && this.ownerId === owner && entry.data.ownerId === owner;
             if (entry.deleted || this.entries.get(id) !== entry || this.ownerId !== owner || (entry.data.ownerId && entry.data.ownerId !== owner)) return false;
             entry.data.ownerId = owner;
-            await this.persist(entry);
+            // The write is queued behind earlier snapshot writes that carry the camera
+            // still and both encoded copies (several MB on a phone). The entry is already
+            // at the top of the feed from memory and run() has started; when the write
+            // takes longer than CLOSE_WAIT_MS the sheet closes and the write lands behind it.
+            await Promise.race([this.persist(entry), new Promise<void>(resolve => setTimeout(resolve, CLOSE_WAIT_MS))]);
             return current();
         } catch {
             return !entry.deleted && this.entries.get(id) === entry && Boolean(this.ownerId) && entry.data.ownerId === this.ownerId && entry.finished && Boolean(entry.data.resultPostId);
