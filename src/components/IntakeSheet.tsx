@@ -24,6 +24,7 @@ export default function IntakeSheet({ embedded = false, onClose }: { initialKind
   const [undoing, setUndoing] = useState<string | null>(null);
   const captionPending = useRef(false);
   const [tileCounts, setTileCounts] = useState<number[]>(DRINK_TILES.map(() => 0));
+  const [countsReady, setCountsReady] = useState(false);
   const [usualMl, setUsualMl] = useState<number[]>(DRINK_TILES.map(tile => tile.ml));
   const [sizeTile, setSizeTile] = useState<number | null>(null);
   const hold = useRef<{timer: ReturnType<typeof setTimeout>; x: number; y: number} | null>(null);
@@ -48,12 +49,12 @@ export default function IntakeSheet({ embedded = false, onClose }: { initialKind
       const data = await response.json();
       setRows(data.rows); setReadError(false);
     }).catch(() => { if (!controller.signal.aborted) { setRows([]); setReadError(true); } });
-    void fetch("/api/intake/tile-counts", {signal: controller.signal}).then(async response => {
+    void fetch("/api/intake/tile-counts", {signal: AbortSignal.any([controller.signal, AbortSignal.timeout(1500)])}).then(async response => {
       if (!response.ok) return;
       const data = await response.json();
       if (Array.isArray(data.counts) && data.counts.length === DRINK_TILES.length && data.counts.every((count: unknown) => typeof count === "number" && Number.isFinite(count) && count >= 0)) setTileCounts(data.counts);
       if (Array.isArray(data.usualMl) && data.usualMl.length === DRINK_TILES.length && data.usualMl.every((ml: unknown, index: number) => TILE_SIZES[index].some(size => size.ml === ml))) setUsualMl(data.usualMl);
-    }).catch(() => {});
+    }).catch(() => {}).finally(() => { if (!controller.signal.aborted) setCountsReady(true); });
     return () => controller.abort();
   }, [open]);
   useEffect(() => {
@@ -104,7 +105,7 @@ export default function IntakeSheet({ embedded = false, onClose }: { initialKind
     <div className="flex items-center justify-between gap-2"><h2 className="text-sheet-head">Drink</h2>
       <span className="text-[13px] text-muted tabular-nums">{readError ? "Drinks could not be read." : `Today: ${number(ml)} ml · ${number(caffeine)} mg caffeine${alcohol>0?` · ${number(alcohol)} g alcohol`:''}${alcoholUnavailable?' · alcohol unavailable':''}`}</span>
     </div>
-    <div className="grid grid-cols-3 gap-2">{tileOrder.map(index => {
+    <div className={`grid grid-cols-3 gap-2 ${countsReady?'':'invisible'}`} aria-busy={!countsReady}>{tileOrder.map(index => {
       const tile = DRINK_TILES[index];
       const size = TILE_SIZES[index].find(size => size.ml === usualMl[index])!;
       const caffeineMg = size.caffeineMg ?? Math.round(tile.caffeineMg * size.ml / tile.ml);
