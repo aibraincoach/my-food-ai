@@ -25,7 +25,8 @@ function macroCompleteness(reading: LabelReading): number {
  return [panel.protein_g, panel.carbs_g, panel.fat_g].filter(value => value !== null).length;
 }
 async function cropLabelBox(image: Uint8Array, box: NonNullable<LabelReading["box"]>, mime: string): Promise<Uint8Array> {
- const meta = await sharp(image).metadata();
+ const oriented = sharp(image).rotate();
+ const meta = await oriented.metadata();
  const width = meta.width ?? 0;
  const height = meta.height ?? 0;
  if (!width || !height) return image;
@@ -35,8 +36,21 @@ async function cropLabelBox(image: Uint8Array, box: NonNullable<LabelReading["bo
  const top = Math.max(0, Math.floor((box.y - padY) * height));
  const right = Math.min(width, Math.ceil((box.x + box.w + padX) * width));
  const bottom = Math.min(height, Math.ceil((box.y + box.h + padY) * height));
- const output = await sharp(image).extract({ left, top, width: Math.max(1, right - left), height: Math.max(1, bottom - top) }).toBuffer();
+ const output = await oriented.extract({ left, top, width: Math.max(1, right - left), height: Math.max(1, bottom - top) }).toBuffer();
  return new Uint8Array(output);
+}
+export function mergeLabelReading(first: LabelReading, retry: LabelReading): LabelReading {
+ const merged: LabelReading = { ...first, box: first.box };
+ if (retry.per_serving && first.per_serving) {
+  const panel = { ...first.per_serving };
+  for (const key of ["kcal", "protein_g", "carbs_g", "fat_g", "fibre_g", "sugar_g", "sodium_mg"] as const) {
+    if (retry.per_serving[key] !== null) panel[key] = retry.per_serving[key];
+  }
+  merged.per_serving = panel;
+ } else if (retry.per_serving) merged.per_serving = retry.per_serving;
+ merged.product_name = first.product_name ?? retry.product_name;
+ merged.serving = first.serving ?? retry.serving;
+ return merged;
 }
 async function readLabelOnce(image: Uint8Array, mime: string, effort: "low" | "medium"): Promise<LabelReading> {
  const out=await createResponseRetrying404({model:"muse-spark-1.3",reasoning:{effort},instructions:labelPrompt,input:[{type:"message",role:"user",content:[{type:"input_image",image_url:`data:${mime};base64,${Buffer.from(image).toString("base64")}`}]}],text:{format:{type:"json_schema",name:"label",strict:true,schema}},max_output_tokens:2048});
@@ -51,7 +65,7 @@ export async function readNutritionLabel(image:Uint8Array,mime="image/jpeg"):Pro
   try{
    const cropped=await cropLabelBox(image,reading.box,mime);
    const retry=await readLabelOnce(cropped,mime,"medium");
-   if(macroCompleteness(retry)>macroCompleteness(reading))reading=retry;
+   if(macroCompleteness(retry)>macroCompleteness(reading))reading=mergeLabelReading(reading,retry);
   }catch{/* Keep the first reading when the crop retry fails. */}
  }
  return reading;
