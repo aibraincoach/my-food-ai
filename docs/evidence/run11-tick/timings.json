@@ -1,0 +1,59 @@
+{
+  "baseline": "f81987f",
+  "cases": [
+    {
+      "name": "eager",
+      "head": "85b52cf2ca3f190f392dac82061f9c498b5b6b07",
+      "uid": "dpl_C4K6USUsRXUE7gSK6EQ3GagQhq3M",
+      "url": "https://my-food-g02oh1w1y-aibraincoachs-projects.vercel.app",
+      "readyAt": 1793751965483,
+      "samples": [
+        {
+          "index": 1,
+          "startedAt": "2026-11-04T00:26:08.107Z",
+          "http": 200,
+          "seconds": 0.809013
+        },
+        {
+          "index": 2,
+          "startedAt": "2026-11-04T00:26:09.932Z",
+          "http": 200,
+          "seconds": 0.230098
+        },
+        {
+          "index": 3,
+          "startedAt": "2026-11-04T00:26:11.174Z",
+          "http": 200,
+          "seconds": 0.164041
+        }
+      ]
+    },
+    {
+      "name": "lazy",
+      "head": "b0a901a88f0a28f74a2e3f40fd79be54765663cc",
+      "uid": "dpl_GSB2Ujrx7v5A2HzPh56jxUAF9obk",
+      "url": "https://my-food-95nuw9mgc-aibraincoachs-projects.vercel.app",
+      "readyAt": 1793751963885,
+      "samples": [
+        {
+          "index": 1,
+          "startedAt": "2026-11-04T00:26:11.522Z",
+          "http": 200,
+          "seconds": 0.531299
+        },
+        {
+          "index": 2,
+          "startedAt": "2026-11-04T00:26:13.065Z",
+          "http": 200,
+          "seconds": 0.256762
+        },
+        {
+          "index": 3,
+          "startedAt": "2026-11-04T00:26:14.336Z",
+          "http": 200,
+          "seconds": 0.178981
+        }
+      ]
+    }
+  ]
+}

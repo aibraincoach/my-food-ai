@@ -1,0 +1,62 @@
+{
+  "auth": {
+    "start": "2026-11-02T16:56:33.128Z",
+    "end": "2026-11-03T16:56:33.128Z",
+    "query": "select timestamp,event_message,log_attributes from logs where source='auth_logs' order by timestamp desc limit 1000",
+    "status": 200,
+    "rows": 1000,
+    "fieldNames": [
+      "event_message",
+      "log_attributes",
+      "log_attributes._RUNTIME_SCOPE",
+      "log_attributes.__SEQNUM",
+      "log_attributes.__SEQNUM_ID",
+      "log_attributes.action",
+      "log_attributes.auth_event.action",
+      "log_attributes.auth_event.actor_id",
+      "log_attributes.auth_event.actor_username",
+      "log_attributes.auth_event.actor_via_sso",
+      "log_attributes.auth_event.log_type",
+      "log_attributes.auth_event.traits.provider",
+      "log_attributes.component",
+      "log_attributes.duration",
+      "log_attributes.env",
+      "log_attributes.grant_type",
+      "log_attributes.host",
+      "log_attributes.identifier",
+      "log_attributes.instance_id",
+      "log_attributes.level",
+      "log_attributes.login_method",
+      "log_attributes.metering",
+      "log_attributes.method",
+      "log_attributes.msg",
+      "log_attributes.path",
+      "log_attributes.project",
+      "log_attributes.provider",
+      "log_attributes.referer",
+      "log_attributes.region",
+      "log_attributes.remote_addr",
+      "log_attributes.request_id",
+      "log_attributes.source_type",
+      "log_attributes.status",
+      "log_attributes.user_id",
+      "timestamp"
+    ],
+    "addressFieldNames": [
+      "log_attributes.remote_addr"
+    ],
+    "remainingUnknown": "Whether server-action sign-ins share a rate-limit address; logs must identify client addresses and the caller origin to establish it.",
+    "loginQuery": "select timestamp,event_message,log_attributes from logs where source='auth_logs' and JSONExtractString(event_message,'path')='/token' order by timestamp desc limit 1000",
+    "tokenRows": 419,
+    "loginEvents": 337,
+    "loginRowsWithAddress": 337,
+    "distinctLoginAddresses": 6,
+    "distinctLoginActors": 3,
+    "originLimit": "Referer and a remote address exist, but the logs do not label app server-action calls versus SDK test probes. No production form was submitted."
+  },
+  "usage": {
+    "command": "GET /v1/projects/{ref}/usage",
+    "status": 404,
+    "body": "{\"message\":\"Cannot GET /v1/projects/{ref}/usage\"}"
+  }
+}

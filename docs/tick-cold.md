@@ -1,31 +1,12 @@
-# Run 8 tick startup
+# Fleet 11 cold tick comparison
 
-The production registry uses fixed lazy module imports. Tick can inspect the queue without importing any job; only a dispatched job loads its module. `runJob`, drain and test-supplied tables retain their behavior.
+Fresh preview deployments cut from the same main source, `f81987f`: one restores eager imports and one is a source-identical lazy form (empty deployment commit). No request was sent to either tick endpoint before the first curl below. Preview protection was bypassed using a temporary own-project token. These are first-observed request timings, not a platform-instrumented proof of a cold process or a repeated distribution.
 
-The planned `grep -c "pngjs\|web-push" .next/server/app/api/jobs/tick/route.js` reports **0 on main and 0 on this change**. The bundled entrypoint delegates to chunks, so this count does not establish dependency loading. Both builds passed. No improvement is inferred from this grep.
+Command: `curl --config <private-bypass-config> -sS -o <response> -w '%{http_code} %{time_total}' <fresh-preview>/api/jobs/tick`, three calls per deployment, one second apart.
 
-A direct Node/tsx import checkpoint compares the original main registry with the lazy registry in separate processes. This is local module initialization, not a cold Vercel invocation; measurements and Vercel timings are recorded below as they become available.
+| Form | Head | First request seconds | Second | Third |
+| --- | --- | ---: | ---: | ---: |
+| eager | `85b52cf2ca3f190f392dac82061f9c498b5b6b07` | 0.809013 | 0.230098 | 0.164041 |
+| lazy | `b0a901a88f0a28f74a2e3f40fd79be54765663cc` | 0.531299 | 0.256762 | 0.178981 |
 
-The existing registry test prohibited every dynamic import, contrary to this plan. It now checks that imports use six fixed literal module paths and that drain contains no dynamic import. Its unknown-kind, inherited-kind, frozen-table and test-supplied dispatch assertions are retained.
-
-## Preview cold calls
-
-The owner replaced fifteen-minute idle gaps with **one-second gaps** during the run. The six-call preview and final production series below are rapid repeated observations; they do not classify or establish cold instances. No fifteen-minute wait was launched.
-
-| Call | Preview total ms | Production total ms |
-| --- | ---: | ---: |
-| 1 | 729.3 | 322.5 |
-| 2 | 339.9 | 195.1 |
-| 3 | 207.2 | 282.8 |
-| 4 | 251.6 | 109.5 |
-| 5 | 210.3 | 126.9 |
-| 6 | 153.6 | 176.2 |
-
-Every call returned 200. Preview queue was two future jobs/running zero; final production queue/running were both zero. Production revision is `6996817cec6aaf865357e9fee6550abf27cdfd0f`. Owner-authenticated page and model/worker behavior were checked separately. [Final report](run8-final-report.md).
-
-## Local import checkpoint
-
-```json
-{"kind":"main","ms":928.051111,"pngjs":22,"webPush":7}
-{"kind":"head","ms":28.84728700000001,"pngjs":0,"webPush":0}
-```
+All six calls returned HTTP 200. The single first-request observation is lower with lazy loading; the warm samples overlap. [Immutable deployment IDs, times and response bodies](evidence/run11-tick/). Phone posting through the worker remains RT under #379. Both throwaway branches/deployments are measurement artifacts and never merge; cleanup is tracked in the execution report.

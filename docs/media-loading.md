@@ -191,3 +191,26 @@ A bounded natural-scroll repeat on the exact pre-#391 deployment `bf6d7f6dd3659c
 | Total | | 609838 |
 
 The current natural-scroll check above used the immutable owner-authorized API route and transferred zero bytes for its three photos. These are different rendering paths and photo sets, not an isolated Cookie-header experiment. The pre-change API-image probes also used zero bytes; the natural legacy JPEG refetch instead supports the route-coverage fix in #414. No project-wide billed-egress reduction is inferred. [Exact old-deployment natural receipt and limitations](https://github.com/aibraincoach/my-food-ai/tree/run10/docs/docs/evidence/run10-cache-before-natural).
+
+
+## Fleet 11 evidence reconciliation (#372)
+
+Fleet 10 fixed the actual feed route in [#414](https://github.com/aibraincoach/my-food-ai/pull/414) and the needs-input strip in [#439](https://github.com/aibraincoach/my-food-ai/pull/439). Their measurements answer different questions.
+
+| Photo | Legacy natural-feed bytes after session refresh | Current natural-feed bytes after session refresh |
+| --- | ---: | ---: |
+| 1 | 142754 | 0 (memory cache) |
+| 2 | 161981 | 0 (memory cache) |
+| 3 | 305103 | 0 (memory cache) |
+| Total | 609838 | 0 |
+
+The feed rows above use different photo sets and rendering paths. They establish route coverage/cache behavior, not a controlled per-image size reduction. [Before evidence](https://github.com/aibraincoach/my-food-ai/tree/0003f3a16342f43af8574e13b1bfac9fec938bbf/docs/evidence/run10-cache-before-natural), [method and current result](https://github.com/aibraincoach/my-food-ai/blob/9d88e9ab6b8502413dfda6f408c929586c6d5383/docs/media-loading.md).
+
+| Same needs-input strip photo | Signed JPEG bytes before | Small endpoint bytes after |
+| --- | ---: | ---: |
+| 1 | 133353 | 20656 |
+| 2 | 142579 | 21286 |
+| 3 | 221659 | 21778 |
+| Total | 497591 | 63720 |
+
+The matched strip comparison reduced downloaded bytes by 87.19%. [Per-photo receipt](https://github.com/aibraincoach/my-food-ai/blob/1069cd3aa181919f9171dcb05c98ae1639a6181e/docs/evidence/run10-strip-thumbnails/receipt.json). The phone/mobile-data two-second and visual-equivalence acceptance remains RT's check under #379; #372 remains open for those parts. No billed-egress or log-ingestion-byte reduction is inferred.

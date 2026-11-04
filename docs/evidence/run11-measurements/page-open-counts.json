@@ -1,0 +1,49 @@
+{
+  "head": "cf18bd6b69453751431fa2915fac5ca3dd5d5075",
+  "preview": "https://my-food-7b9ztvitm-aibraincoachs-projects.vercel.app",
+  "pages": [
+    {
+      "name": "Home",
+      "start": "2026-11-03T17:01:00.000Z",
+      "end": "2026-11-03T17:02:00.000Z",
+      "browserAuth": 1,
+      "browserDayTotals": 0,
+      "logsHttp": 200,
+      "query": "select timestamp,event_message,log_attributes from logs where source in ('auth_logs','edge_logs') order by timestamp limit 2000",
+      "authLogRows": 35,
+      "dayTotalLogRows": 4,
+      "logsRows": 252,
+      "completeWindow": true
+    },
+    {
+      "name": "Days",
+      "start": "2026-11-03T17:02:00.000Z",
+      "end": "2026-11-03T17:03:00.000Z",
+      "browserAuth": 1,
+      "browserDayTotals": 0,
+      "logsHttp": 200,
+      "query": "select timestamp,event_message,log_attributes from logs where source in ('auth_logs','edge_logs') order by timestamp limit 2000",
+      "authLogRows": 18,
+      "dayTotalLogRows": 0,
+      "logsRows": 75,
+      "completeWindow": true
+    },
+    {
+      "name": "Profile",
+      "start": "2026-11-03T17:03:00.000Z",
+      "end": "2026-11-03T17:04:00.000Z",
+      "browserAuth": 1,
+      "browserDayTotals": 0,
+      "logsHttp": 200,
+      "query": "select timestamp,event_message,log_attributes from logs where source in ('auth_logs','edge_logs') order by timestamp limit 2000",
+      "authLogRows": 20,
+      "dayTotalLogRows": 0,
+      "logsRows": 313,
+      "completeWindow": true
+    }
+  ],
+  "forgedHeader": {
+    "status": 307,
+    "locationPath": "/sign-in"
+  }
+}

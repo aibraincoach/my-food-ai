@@ -1,0 +1,17 @@
+TAP version 13
+# {"refusal":{"status":"failed","text":"The analysis service refused this request. Try again."},"retry":{"http":204,"status":"ready"},"usda":{"status":"queued","attempts":0,"run_after":"2026-11-03T18:18:17.288-06:00","minimum_delay_ms":120246,"postReason":"fdc: rate limited"}}
+# Subtest: scripted Meta refusal fails a post and the owner retry reaches ready; USDA 429 requeues 120s without an attempt
+ok 1 - scripted Meta refusal fails a post and the owner retry reaches ready; USDA 429 requeues 120s without an attempt
+  ---
+  duration_ms: 92280.399407
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 92617.435453

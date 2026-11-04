@@ -1,0 +1,2 @@
+intake_amount_range|CHECK ((((kind = 'water'::text) AND ((amount >= 1) AND (amount <= 5000))) OR ((kind = 'caffeine'::text) AND ((amount >= 1) AND (amount <= 1000))) OR ((kind = 'alcohol'::text) AND ((amount >= 1) AND (amount <= 500)))))
+intake_logs_kind_check|CHECK ((kind = ANY (ARRAY['water'::text, 'caffeine'::text, 'alcohol'::text])))
