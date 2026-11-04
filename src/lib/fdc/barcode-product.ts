@@ -89,6 +89,11 @@ export interface BarcodeCorrection {
 }
 export type ResolvedProduct = BarcodeProduct & { source: "database" | "own" | "shared"; originalName?: string };
 
+// A saved label can replace a provider only when it can make a card by itself.
+export function completeLabelCorrection(own: BarcodeCorrection | null | undefined): boolean {
+  return Boolean(own && own.source === "label" && own.per_100 && own.name && own.serving_unit);
+}
+
 // Pure precedence rule is also used by access tests; no server module enters the camera bundle.
 export function mergeProduct(gtin: string, base: BarcodeProduct | null, own: BarcodeCorrection | null, sharedName: string | null): ResolvedProduct | null {
   if (!base && !(own?.per_100 && own.name && own.serving_unit)) return null;
