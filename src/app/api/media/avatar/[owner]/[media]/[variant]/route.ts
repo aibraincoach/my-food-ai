@@ -5,7 +5,7 @@ import {avatarPathAllowed, avatarStoragePath, parseAvatarVariant} from '@/lib/pr
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const privateHeaders = {
-  'Cache-Control': 'private, max-age=3600',
+  'Cache-Control': 'private, max-age=31536000, immutable',
   'Vary': 'Cookie',
   'X-Content-Type-Options': 'nosniff',
 };

@@ -37,8 +37,9 @@ export function useProfileIdentity(seed?:Partial<ProfileIdentity>) {
  return value;
 }
 export function usePostAuthor(row?:PostAuthorRow|null){
+ const profile=useProfileIdentity();
  if(row?.userId&&row.handle)return {handle:row.handle,userId:row.userId,avatarMediaId:row.avatarMediaId??null};
- return useProfileIdentity();
+ return profile;
 }
 export function usePostHandle(handle?:string,author?:PostAuthorRow|null) {
  if(author?.handle)return author.handle;
