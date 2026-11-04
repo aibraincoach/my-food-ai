@@ -113,14 +113,15 @@ export async function getPostDetail(supabase: SupabaseClient, postId: string, zo
     if (result.error && ["PGRST204", "42703"].includes(result.error.code) && /identify_(?:model|host)/.test(result.error.message)) result = await read(false);
     return result;
   };
-  const [postResult, mediaResult, current] = await Promise.all([
-    loadPost(),
-    supabase.from("post_media").select("id,storage_path,kind,not_eaten,width,height").eq("post_id", postId).order("position"),
-    getCurrentItems(supabase, postId),
-  ]);
+  const postResult = await loadPost();
   const { data: post, error } = postResult;
   if (error) throw new Error("Meal could not be loaded.");
   if (!post) return null;
+  const revisionBefore = post.status === "ready" ? await latestRevision(supabase, postId) : null;
+  const [mediaResult, current] = await Promise.all([
+    supabase.from("post_media").select("id,storage_path,kind,not_eaten,width,height").eq("post_id", postId).order("position"),
+    getCurrentItems(supabase, postId),
+  ]);
   const { data: mediaRows, error: mediaError } = mediaResult;
   if (mediaError) throw new Error("Meal photo could not be loaded.");
   const photoRows = (mediaRows ?? []).filter(entry => entry.kind === "photo");
@@ -131,8 +132,7 @@ export async function getPostDetail(supabase: SupabaseClient, postId: string, zo
   const openFailurePromise = identification?.host === "meta"
     ? createAdminClient().from("model_calls").select("id").eq("post_id", postId).eq("host", "baseten").eq("kind", "spark_identify").not("error", "is", null).limit(1).abortSignal(AbortSignal.timeout(8000)).maybeSingle()
     : Promise.resolve({ data: null, error: null });
-  const [revisionBefore, signed, openFailureResult] = await Promise.all([
-    post.status === "ready" ? latestRevision(supabase, postId) : Promise.resolve(null),
+  const [signed, openFailureResult] = await Promise.all([
     signPaths.length ? supabase.storage.from("media").createSignedUrls(signPaths, 3600) : Promise.resolve(null),
     openFailurePromise,
   ]);
