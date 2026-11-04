@@ -6,6 +6,7 @@ import { recordCall } from "@/lib/trace/record";
 import { nutritionBudgetMs, NUTRITION_MAX_MS } from "@/lib/worker/budget";
 import { FOOD_MATCH_VERSION } from "./version";
 import { closestGenericFood } from "./approximate";
+import { estimateFood } from "./estimate";
 
 export const NUTRITION_RESOLUTION_MS = NUTRITION_MAX_MS;
 export const nutritionResolutionBudget = () => AbortSignal.timeout(nutritionBudgetMs());
@@ -86,8 +87,9 @@ export async function matchFood(name: string, caption: string, dependencies: Mat
 export async function resolveFoodMatch(admin:SupabaseClient,name:string,caption="",signal:AbortSignal=nutritionResolutionBudget(),options:{approximate?:boolean}={}):Promise<FdcFood|null>{
   try {
     const result=await recordCall("fdc",{event:"food_resolution",name,matcherVersion:FOOD_MATCH_VERSION},()=>matchFood(name,caption,{search:query=>searchFoods(admin,query,signal),choose:(item,context,foods,retry,query,remaining)=>choose(item,context,foods,retry,signal,query,remaining)},signal),r=>({text:{source:r.food?"selected":"unavailable",reason:r.reason,searches:r.searches},fdcId:r.food?.fdcId??null}));
-    if(result.food||!options.approximate||!result.baseFood)return result.food;
-    return await closestGenericFood(admin,name,caption,result.baseFood,signal);
+    if(result.food||!options.approximate)return result.food;
+    const closest=result.baseFood?await closestGenericFood(admin,name,caption,result.baseFood,signal):null;
+    return closest??await estimateFood(name,caption,signal);
   } catch(error) {
     if(signal.aborted)throw new MetaApiError(503,"Food resolution budget was exhausted.");
     throw error;
