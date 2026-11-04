@@ -1,16 +1,23 @@
 "use client";
 import {useEffect,useLayoutEffect,useRef,useState} from 'react';
 import {formatCalories} from '@/lib/nutrition/totals';
+import {visibleMonth} from '@/lib/posts/visible-month';
 import {tokens} from '@/lib/theme/tokens';
 import type {MonthSummary} from '@/lib/posts/days';
 import {formatDayKcal,monthName,postedLabel} from './MonthGrid';
 
 type Props={months:Record<string,MonthSummary>;today:string;selected?:string;onDay:(date:string,cell:HTMLElement)=>void;onOlder?:()=>void};
+
+const DISCLOSURE_ROW=24;
+const HEADER_H=tokens.spacing.grid+18+tokens.spacing.grid/2+18+DISCLOSURE_ROW+4;
+
+function documentOffset(el:HTMLElement){return el.getBoundingClientRect().top+window.scrollY;}
+
 export default function PhoneCalendar({months,today,selected,onDay,onOlder}:Props){
  const ordered=Object.keys(months).sort();
  const key=ordered.join(',');
- const root=useRef<HTMLDivElement>(null),sentinel=useRef<HTMLDivElement>(null);
- const anchor=useRef<{height:number;top:number}|null>(null),opened=useRef(false);
+ const root=useRef<HTMLDivElement>(null),sentinel=useRef<HTMLDivElement>(null),headerRef=useRef<HTMLDivElement>(null);
+ const anchor=useRef<{day:string;offset:number}|null>(null),opened=useRef(false);
  const [visible,setVisible]=useState(today.slice(0,7));
  const olderRef=useRef(onOlder);
  useEffect(()=>{olderRef.current=onOlder;});
@@ -18,9 +25,11 @@ export default function PhoneCalendar({months,today,selected,onDay,onOlder}:Prop
  const current=months[visible]??months[today.slice(0,7)];
  const unavailable=[...new Set(current?.days.flatMap(day=>day.missing??[])??[])];
  useLayoutEffect(()=>{
-  if(!anchor.current)return;
-  const old=anchor.current;anchor.current=null;
-  window.scrollTo({top:window.scrollY+(document.documentElement.scrollHeight-old.height),behavior:'instant'});
+  const saved=anchor.current;if(!saved)return;anchor.current=null;
+  const cell=root.current?.querySelector<HTMLElement>('[data-day="'+saved.day+'"]');
+  if(!cell)return;
+  const delta=documentOffset(cell)-saved.offset;
+  if(delta)window.scrollBy({top:delta,behavior:'instant'});
  },[key]);
  useEffect(()=>{
   const frame=requestAnimationFrame(()=>{
@@ -30,23 +39,32 @@ export default function PhoneCalendar({months,today,selected,onDay,onOlder}:Prop
   return()=>cancelAnimationFrame(frame);
  },[today]);
  useEffect(()=>{
-  const elements=root.current?.querySelectorAll<HTMLElement>('[data-month-start]');
-  if(!elements?.length)return;
-  const observer=new IntersectionObserver(()=>{
-   const line=tokens.spacing['top-h'];
-   const positions=Array.from(elements).map(el=>({month:el.dataset.monthStart!,top:el.getBoundingClientRect().top}));
-   const past=positions.filter(p=>p.top<=line+60).at(-1);
-   const nearest=past??positions.reduce((a,b)=>Math.abs(a.top-line)<Math.abs(b.top-line)?a:b);
-   setVisible(nearest.month);
-  },{rootMargin:`-${tokens.spacing['top-h']+60}px 0px 0px 0px`});
-  elements.forEach(el=>observer.observe(el));return()=>observer.disconnect();
- },[key]);
+  let raf=0;
+  const update=()=>{
+   raf=0;
+   const line=headerRef.current?.getBoundingClientRect().bottom??0;
+   const elements=root.current?.querySelectorAll<HTMLElement>('[data-month-start]');
+   if(!elements?.length)return;
+   const starts=Array.from(elements).map(el=>({month:el.dataset.monthStart!,top:el.getBoundingClientRect().top}));
+   const next=visibleMonth(starts,line,today.slice(0,7));
+   setVisible(prev=>prev===next?prev:next);
+  };
+  const schedule=()=>{cancelAnimationFrame(raf);raf=requestAnimationFrame(update);};
+  window.addEventListener('scroll',schedule,{passive:true});
+  window.addEventListener('resize',schedule,{passive:true});
+  schedule();
+  return()=>{window.removeEventListener('scroll',schedule);window.removeEventListener('resize',schedule);cancelAnimationFrame(raf);};
+ },[key,today]);
  useEffect(()=>{
   if(!hasOlder||!sentinel.current)return;
   const older=olderRef;
   const observer=new IntersectionObserver(entries=>{
    if(!opened.current||!entries.some(entry=>entry.isIntersecting))return;
-   observer.disconnect();anchor.current={height:document.documentElement.scrollHeight,top:window.scrollY};older.current?.();
+   observer.disconnect();
+   const day=ordered[0]+'-01';
+   const cell=root.current?.querySelector<HTMLElement>('[data-day="'+day+'"]');
+   if(cell)anchor.current={day,offset:documentOffset(cell)};
+   older.current?.();
   });
   observer.observe(sentinel.current);return()=>observer.disconnect();
  },[key,hasOlder]);
@@ -54,10 +72,12 @@ export default function PhoneCalendar({months,today,selected,onDay,onOlder}:Prop
  const dates:string[]=[];
  if(first){const end=new Date(today.slice(0,7)+'-01T12:00:00Z');end.setUTCMonth(end.getUTCMonth()+1);for(const d=new Date(first);d<end;d.setUTCDate(d.getUTCDate()+1))dates.push(d.toISOString().slice(0,10));}
  return <div ref={root} style={{overflowAnchor:'none'}}>
-  <div className="sticky z-10 bg-surface pb-1" style={{top:'calc(var(--spacing-top-h) + env(safe-area-inset-top))'}}>
+  <div ref={headerRef} className="sticky z-10 bg-surface pb-1" style={{top:'calc(var(--spacing-top-h) + env(safe-area-inset-top))',height:HEADER_H}}>
    <div className="grid grid-cols-7 gap-1 px-tooltip-x" aria-hidden="true">{['S','M','T','W','T','F','S'].map((label,index)=><span key={index} className="text-center text-bubble text-faint">{label}</span>)}</div>
    <p className="px-screen-x text-meta text-muted" aria-live="polite">{monthName(visible,true)} · {postedLabel(current?.posted??0)}</p>
-   {unavailable.length?<details data-nutrition-disclosure className="px-screen-x text-meta text-muted"><summary className="cursor-pointer">Known nutrition shown · Unavailable foods</summary><p className="mt-2">Nutrition unavailable: {unavailable.join(', ')}</p></details>:null}
+   <div className="relative px-screen-x" style={{height:DISCLOSURE_ROW}}>
+    {unavailable.length?<details data-nutrition-disclosure className="absolute inset-x-0 top-0 z-10 bg-surface text-meta text-muted"><summary className="cursor-pointer">Known nutrition shown · Unavailable foods</summary><p className="mt-2">Nutrition unavailable: {unavailable.join(', ')}</p></details>:null}
+   </div>
   </div>
   <div ref={sentinel} className="h-px" aria-hidden="true"/>
   <div className="grid grid-cols-7 gap-1 px-tooltip-x">
