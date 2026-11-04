@@ -20,7 +20,7 @@ import DayHeader from "@/components/DayHeader";
 import DayRings from "@/components/DayRings";
 import { cookies } from "next/headers";
 import { createClient } from "@/lib/supabase/server";
-import { dateInZone, getDayTotals, getLoggedDates, shiftDay, validZone } from "@/lib/posts/days";
+import { dateInZone, getDayTotals, getEarliestPostDate, getLoggedDates, shiftDay, validZone } from "@/lib/posts/days";
 
 // React's server cache is request-scoped: all Home streams share one Auth
 // check and one cancellable owner client, never another visitor's session.
@@ -47,7 +47,7 @@ const homeDayTotals = cache(async () => {
   if (!user) return [];
   const started = Date.now();
   try {
-    return await homeDeadline(getDayTotals(db, user.id, zone, Array.from({length: 5}, (_, index) => shiftDay(today, -index))));
+    return await homeDeadline(getDayTotals(db, user.id, zone, Array.from({length: 6}, (_, index) => shiftDay(today, -index))));
   } finally { console.info(`feed read day-totals ${Date.now() - started}`); }
 });
 
@@ -59,17 +59,19 @@ async function HomeDays() {
   let days: {date: string}[] = [];
   let totals: import("@/lib/posts/days").FeedDayTotal[] = [];
   let ownerId: string | null = null;
+  let earliest: string | null = null;
   try {
-    [days, totals, ownerId] = await homeDeadline((async () => {
+    [days, totals, ownerId, earliest] = await homeDeadline((async () => {
       const {db:supabase,user} = await homeReader();
-      const [logged,readTotals] = user ? await Promise.all([
-        getLoggedDates(supabase, user.id, zone, shiftDay(today, -4), today),
+      const [logged,readTotals,first] = user ? await Promise.all([
+        getLoggedDates(supabase, user.id, zone, shiftDay(today, -29), today),
         homeDayTotals(),
-      ]) : [[], []] as [{date: string}[], import('@/lib/posts/days').FeedDayTotal[]];
-      return [logged,readTotals,user?.id??null] as [{date:string}[],import('@/lib/posts/days').FeedDayTotal[],string|null];
+        getEarliestPostDate(supabase, user.id, zone).catch(() => null),
+      ]) : [[], [], null] as [{date: string}[], import('@/lib/posts/days').FeedDayTotal[], string | null];
+      return [logged,readTotals,user?.id??null,first] as [{date:string}[],import('@/lib/posts/days').FeedDayTotal[],string|null,string|null];
     })());
   } catch { /* Optional day reads must not take down Home. */ }
-  return <DayRings ownerId={ownerId} days={days} totals={totals} today={today} zone={zone} zoneKnown={Boolean(cookieZone)} />;
+  return <DayRings ownerId={ownerId} days={days} totals={totals} today={today} zone={zone} zoneKnown={Boolean(cookieZone)} earliest={earliest} />;
 }
 
 // A separately streamed owner snapshot paints before the full nutrition
