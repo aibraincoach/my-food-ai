@@ -340,17 +340,17 @@ Anyone can send sign-up and sign-in requests as fast as a script can, to guess p
 
 CAPTCHA stays off until the app goes public. Run 8 merged a dormant hCaptcha widget (#336). A direct hammer from the coder's machine was refused at sign-up 31 and sign-in 32, and the 31 throwaway accounts were deleted. The owner holds the site key and the secret. The secret lives only in Supabase Auth and never goes into the repository, an issue, an order or this backlog. To turn CAPTCHA on, set NEXT_PUBLIC_HCAPTCHA_SITE_KEY in Vercel production and redeploy, then enable CAPTCHA in Supabase Auth, never the reverse. Done when CAPTCHA is on for sign-up and sign-in on production and a script that hammers both is refused.
 
-### The README says a food with no match is shown as unavailable, but the app now estimates it
+### #657 The README says a food with no match is shown as unavailable, but the app now estimates it
 
 The README tells a reader that a food with no matching reference is shown as unavailable and never guessed. The app now returns a model estimate instead, so the README describes behaviour the app no longer has. Judges read the README first.
 
-The coder's audit found it at README.md line 20. The matcher in src/lib/fdc/match.ts (lines 97 to 100) calls the estimate step and returns the estimate, since #588 merged. The issue is not filed yet. Related: #60 and #318. Done when the README describes what the app does when no reference food matches, and it agrees with the code.
+The coder's audit found it at README.md line 20. The matcher in src/lib/fdc/match.ts (lines 97 to 100) calls the estimate step and returns the estimate, since #588 merged. Related: #60 and #318. Done when the README describes what the app does when no reference food matches, and it agrees with the code.
 
-### A single tap on a meal waits up to 320 ms before it opens
+### #658 A single tap on a meal waits up to 320 ms before it opens
 
 The app waits up to 320 ms after a single tap on a meal before it opens the meal, in case the tap is the first half of a double tap.
 
-The coder's audit found the wait in the tap logic (SINGLE_TAP_WAIT_MS). It is separate from the server wait in #554, and no done line counts it. The issue is not filed yet. Related: #554. Done when a single tap on a meal shows a visible change at once and a double tap still works, or the owner rules that the 320 ms stays.
+The coder's audit found the wait in the tap logic (SINGLE_TAP_WAIT_MS). It is separate from the server wait in #554, and no done line counts it. Related: #554. Done when a single tap on a meal shows a visible change at once and a double tap still works, or the owner rules that the 320 ms stays.
 
 ### #578 The leftovers photo and the regular photo post through different code
 
@@ -364,11 +364,11 @@ The submission requires a public repository, and it still carries the default RE
 
 After the last feature is in, one pass replaces the default README with a short start-here page. All working files stay in the repository, including the agents' contracts, the Wall of Stupid file, the review policy and the review tools. Nothing is removed. Done when the README is the start-here page, and a search of the repository for host names, account identifiers and billing details finds only what the owner chose to keep. GitHub already shows this issue closed. It stays here until that is true.
 
-### Review findings on the merged Fleet 18 PRs have not been checked on main
+### #659 Review findings on the merged Fleet 18 PRs have not been checked on main
 
 Codex and AGY reviewed the Fleet 18 PRs and raised problems in code that is now merged. The planner confirmed four of them on main 7d64f4c8; they are the four items below. The rest have not been checked.
 
-A read-only check on main 7d64f4c8 reproduced 11 of the review findings; each is its own item below. It dismissed two with proof: the #633 recompute upsert (line 53 of recompute.ts has no ignoreDuplicates, so recomputed nutrition is written) and the #633 rice-with-protein composition (it only runs for a rice or sushi dish). Still unchecked: the #641 portion_unit "serving" that the database does not accept; on #638, the Feed discovery polling that stops when the tab is hidden and today_summary disagreeing with the legacy totals; on #639, NeedsInputStrip never finding new questions after an empty first poll, and RealtimePost not refreshing on visibility; the #637 Thread retry polling; and the #643 header text cut off. AGY found blockers on #647 (head b1c55245) and #648 (head 9c04984b), and their text is not in anything I hold. AGY ran on #646 (head 05b0ba50) and found none. The issue is not filed yet. Observe first: check each unchecked finding on main and reproduce it or dismiss it with proof. Done when each unchecked finding is reproduced or dismissed with proof, the blockers on #647 and #648 are copied from the AGY receipts and each is checked on main, and each one reproduced is filed as its own item.
+A read-only check on main 7d64f4c8 reproduced 11 of the review findings; each is its own item below. It dismissed two with proof: the #633 recompute upsert (line 53 of recompute.ts has no ignoreDuplicates, so recomputed nutrition is written) and the #633 rice-with-protein composition (it only runs for a rice or sushi dish). Still unchecked: the #641 portion_unit "serving" that the database does not accept; on #638, the Feed discovery polling that stops when the tab is hidden and today_summary disagreeing with the legacy totals; on #639, NeedsInputStrip never finding new questions after an empty first poll, and RealtimePost not refreshing on visibility; the #637 Thread retry polling; and the #643 header text cut off. AGY found blockers on #647 (head b1c55245) and #648 (head 9c04984b), and their text is not in anything I hold. AGY ran on #646 (head 05b0ba50) and found none. Observe first: check each unchecked finding on main and reproduce it or dismiss it with proof. Done when each unchecked finding is reproduced or dismissed with proof, the blockers on #647 and #648 are copied from the AGY receipts and each is checked on main, and each one reproduced is filed as its own item.
 
 ### The jobs drain route runs the worker for anyone and without holding the lease (#640)
 
