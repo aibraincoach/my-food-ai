@@ -1,20 +1,24 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { JobRow } from "@/lib/queue/claim";
+import analyze from "@/lib/worker/jobs/analyze";
+import correct from "@/lib/worker/jobs/correct";
+import remainder from "@/lib/worker/jobs/remainder";
+import recompute from "@/lib/worker/jobs/recompute";
+import cardBackfill from "@/lib/worker/jobs/card_backfill";
+import mediaCleanup from "@/lib/worker/jobs/media_cleanup";
+
 export type JobHandler = (admin: SupabaseClient, job: JobRow) => Promise<void>;
 export type JobHandlers = Readonly<Record<string, JobHandler>>;
 
-// Fixed module paths keep dispatch explicit while tick can boot without loading
-// food analysis, image parsing or push dependencies until a job actually runs.
-const lazy = (load: () => Promise<{ default: JobHandler }>): JobHandler =>
-  async (admin, job) => (await load()).default(admin, job);
-
+// Every job kind the worker runs is listed here, explicitly. A kind that is not in this table is rejected;
+// nothing is imported by name at run time, and no test fixture handler lives in the production folder.
 export const jobHandlers: JobHandlers = Object.freeze({
-  analyze: lazy(() => import("@/lib/worker/jobs/analyze")),
-  correct: lazy(() => import("@/lib/worker/jobs/correct")),
-  recompute: lazy(() => import("@/lib/worker/jobs/recompute")),
-  remainder: lazy(() => import("@/lib/worker/jobs/remainder")),
-  card_backfill: lazy(() => import("@/lib/worker/jobs/card_backfill")),
-  media_cleanup: lazy(() => import("@/lib/worker/jobs/media_cleanup")),
+  analyze,
+  correct,
+  recompute,
+  remainder,
+  card_backfill: cardBackfill,
+  media_cleanup: mediaCleanup,
 });
 
 // Tests pass their own table (including fixture kinds); production always uses the one above.
