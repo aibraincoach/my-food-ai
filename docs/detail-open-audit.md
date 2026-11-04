@@ -1,5 +1,9 @@
 # Detail open: current-production latency audit
 
+## Fleet14 first-frame work — November 4, 2026
+
+Fleet14 adds same-event remembered post frames and preserves desktop modal navigation. The after-phase is being compared with three real production photo posts using native Firefox. Those observations are unthrottled; failed Chromium drivers do not establish the requested CPU4×/Fast3G result or the owner phone two-second condition. Exact timing scopes and residual14-second gap are in [run14-report.md](run14-report.md).
+
 Measured 2026-11-04 UTC against current main and production `ca07be7014431d492039dafdda80186a2c697fb7`; [deployment receipt](evidence/run11-detail-audit/production-head.json). The older read-only audit was at `618cf7e8bbadf4e020b9590eeb66e6368591f8db` (#460), before #462 and Fleet11. All source findings below were checked again on current main. **No product fix, deployment, data fixture, or backlog-status closure was made for this audit.**
 
 ## Owner report and limits

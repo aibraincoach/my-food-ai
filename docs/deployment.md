@@ -1,5 +1,9 @@
 # Deployment
 
+## Fleet14 production — November 4, 2026
+
+Main a24587a1ec3b57a7b2bdfb5f69cce4e0e73602db is READY as dpl_24RqPXLfHT5iuV9ZJEnADjoNzgFS; the production alias is verified and health200. All seven feature PRs are merged, migration0052 applied/read back with service-only permissions. The whole deployed tree equals the603-test/39-DB tested tree. Deployment identity does not establish physical-phone acceptance. Fleet14 docs remain unmerged.
+
 | Part | Where | Declared in |
 | --- | --- | --- |
 | Vercel functions | iad1 (Washington, D.C., USA, in Northern Virginia) | `vercel.json` `regions` |

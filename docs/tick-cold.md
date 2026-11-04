@@ -1,5 +1,9 @@
 # Fleet 11 cold tick comparison
 
+## Fleet14 measured cold headers — November 4, 2026
+
+Three eager preview deployments each returned x-tick-cold1. Seven production deployment observations produced six cold headers and15 warm reads; one deployment was already warm at the first observation. [Exact deployments/timings](run14-report.md). Five cold samples and ten warm samples are exceeded; no cold state is inferred from deployment creation. The physical-phone worker post remains unproved under #322.
+
 Fresh preview deployments cut from the same main source, `f81987f`: one restores eager imports and one is a source-identical lazy form (empty deployment commit). No request was sent to either tick endpoint before the first curl below. Preview protection was bypassed using a temporary own-project token. These are first-observed request timings, not a platform-instrumented proof of a cold process or a repeated distribution.
 
 Command: `curl --config <private-bypass-config> -sS -o <response> -w '%{http_code} %{time_total}' <fresh-preview>/api/jobs/tick`, three calls per deployment, one second apart.

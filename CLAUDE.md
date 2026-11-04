@@ -1,5 +1,19 @@
 # Agent rules — My Food AI
 
+## Current project state — Fleet 14, November 4, 2026
+
+Observed 2026-11-04T08:45:23.069706+00:00. Main and READY production are `a24587a1ec3b57a7b2bdfb5f69cce4e0e73602db`, deployment `dpl_24RqPXLfHT5iuV9ZJEnADjoNzgFS`, production alias verified and health200. All seven Fleet14 code PRs #559/#560/#561/#563/#564/#565/#566 merged in ascending order at cleared heads (the anticipated main-only #564 refresh is mapped in [the review index](docs/reviews/run14-review-index.md)). The entire main Git tree exactly matches tested tree `501108d7d1af0cce724bcc5965cdfc9cf60139b6`:603 passed,0 failed,6 existing optional skips; serial DB39/39; default build and TypeScript pass; lint0 errors/11 warnings (6 old,5 new). [Execution and measurement report](docs/run14-report.md).
+
+Migration0052 was applied from exact reviewed head e5d4f660 and independently read back: both summary RPCs recognize model-estimate disclosures, only service_role can execute. Food resolution now tries strict USDA, closest generic USDA, then a labelled Meta model estimate; non-foods remain unavailable. Unknown-to-known gram corrections reconstruct retained per100g references; volume-only edits and actual replay scale consumed values by volume ratio without inventing mass. The prior USDA-only/no-estimate statements below are historical.
+
+Desktop Home and offline shell share the500px frame; Today hides below1148px. Meal entry frames paint from remembered feed data; modal/history/cancel and mobile input handling were reviewed and measured locally. Action boxes are44px with the owner's accepted2px overlap, shared feedback save ownership survives navigation, capture awaits an owned durable posted flag or confirmed publication, Space retains native controls, and both open-model format attempts share one75-second deadline. A browser-readable verified-user cookie is a UI identity hint only; server access still uses real session/RLS. Today shares the first feed page and keeps chronological order.
+
+Production browser after-checks, final issue disposition and complete hourly resource series are still being recorded at this cutoff. Native Chromium page/network commands repeatedly hung; Firefox observations are explicitly unthrottled and do not prove CPU4×/Fast3G or real-phone acceptance. The three-phone checks, owner macaroni/Goldfish/real half-eaten-plate acceptance and submission remain separate. No recording-start notice has been received; preserve the recording-to-submission merge/migration hold.
+
+`run13/docs` and open #558 remain untouched. Fleet14 documents use `run14/docs`, remain unmerged and do not authorize a docs merge. The handover is a reply, never a tracked file. Current owner rules: judge the planner against the37 supplied items, not eight items added afterward; PM answers yes/no with the one word first; the PM backlog must show the active fleet under In Flight; the PM never estimates durations or constrains work from guessed clocks. Supplied Wall entries are verbatim.
+
+All dated sections below retain their original cutoffs and are superseded for current state.
+
 Hackathon project: My Food AI. PM contract: [docs/pm-contract.md](docs/pm-contract.md). Planner contract: [docs/planner-contract.md](docs/planner-contract.md). Backlog: [BACKLOG.md](BACKLOG.md). Review: [REVIEW_POLICY.md](REVIEW_POLICY.md), [docs/review.md](docs/review.md).
 
 ## Skills (Cursor / Claude)

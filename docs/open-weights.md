@@ -1,5 +1,9 @@
 # Muse Spark Open identify path
 
+## Fleet14 current scope — November 4, 2026
+
+Both structured-output format attempts share one75-second deadline, configurable by IDENTIFY_OPEN_TIMEOUT_MS. After strict and closest USDA matching both fail, food nutrition may come from Muse Spark1.3 as a labelled model estimate; the optional identify provider is unchanged. Final tests603/0/6,DB39/39; build/TypeScript pass; lint0errors/11warnings. Earlier timing/USDA-only statements retain their original cutoffs. Owner Profile/model-line acceptance remains separate.
+
 Built with Muse Spark Open. The optional per-account Profile switch sends initial food identification and portion estimates to Muse Spark Open through Baseten. SAM segmentation, voice transcription, corrections, labels and USDA reference matching keep their existing Meta/API and database paths. Hosted Meta identification remains the default for every account.
 
 ## Setup and rollout
