@@ -9,6 +9,7 @@ test('sugar backfill fills only eligible portion 1063 nulls with feedback lockin
  assert.ok(url,'Set TEST_SQL_DATABASE_URL to the isolated migrated local database.');
  assert.ok(['localhost','127.0.0.1','[::1]'].includes(new URL(url).hostname),'Disposable local DB only');
  const migration=readFileSync(new URL('../../supabase/migrations/0050_sugar_total_backfill.sql',import.meta.url),'utf8');
+ const rollback=readFileSync(new URL('../../supabase/rollbacks/0050_sugar_total_backfill.down.sql',import.meta.url),'utf8');
  const sql=`begin;
  create temp table sugar_fixture(label text primary key,id uuid default gen_random_uuid(),expected numeric);
  insert into sugar_fixture(label,expected) values ('eligible',4.275),('existing',2),('preferred',null),('unscaled',null),('wrong-unit',null),('no-calories',null),('missing-value',null);
@@ -29,6 +30,10 @@ test('sugar backfill fills only eligible portion 1063 nulls with feedback lockin
  ${migration}
  do $$begin
  if exists(select 1 from sugar_fixture f join public.item_nutrition n on n.post_item_id=f.id where n.sugar_g is distinct from f.expected) then raise exception 'Sugar backfill is not idempotent';end if;
+ end $$;
+ ${rollback}
+ do $$begin
+ if exists(select 1 from sugar_fixture f join public.item_nutrition n on n.post_item_id=f.id where n.sugar_g is distinct from case when f.label='existing' then 2 else null end) then raise exception 'Sugar rollback missed a backfill or changed preserved fixture sugar';end if;
  end $$;
  select 'sugar-backfill-ok';
  rollback;`;
