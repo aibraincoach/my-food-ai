@@ -106,22 +106,14 @@ export async function persistAnalysis(
     p_summary: summary,
     p_needs_input: named.needsInput ?? null,
   };
-  const legacyRpc = named.labelNutrition ? "persist_owned_label" : "persist_owned_analysis";
   const identificationArgs={...args,
     p_identify_model:named.labelNutrition?null:named.identification?.model??null,
     p_identify_host:named.labelNutrition?null:named.identification?.host??null,
     p_is_label:Boolean(named.labelNutrition),
   };
-  let result = approximations.length
-    ? await admin.rpc("persist_approximated_analysis",identificationArgs)
-    : named.identification
-      ? await admin.rpc("persist_identified_analysis",identificationArgs)
-      : await admin.rpc(legacyRpc,args);
-  if(!approximations.length && result.error && ["PGRST202","42883"].includes(result.error.code) && /persist_identified_analysis/.test(result.error.message)) {
-    // Migration-before-merge is the deployment order; older previews retain
-    // ordinary persistence without inventing unavailable model provenance.
-    result = await admin.rpc(legacyRpc,args);
-  }
+  // The wrapper also clears a prior closest-record disclosure when the new
+  // analysis is exact; its transaction preserves ordinary historical summaries.
+  const result=await admin.rpc("persist_approximated_analysis",identificationArgs);
   const {error,status} = result;
   if (error) {
     throw ioError(`persist: analysis transaction failed: ${error.message}`, error, status);

@@ -36,6 +36,23 @@ test('closest-record reanalysis refreshes its summary atomically behind job owne
  raise exception 'Changed current items unexpectedly succeeded';
  exception when sqlstate 'PT409' then null;
  end;
+ -- Removing the final approximate source must remove its old disclosure.
+ perform refresh_owned_approximation_summary(p,j,'Consumed exact nutrition.',expected);
+ if (select body from post_comments where post_id=p and author='model')<>'Consumed exact nutrition.' then raise exception 'Approximate to exact recompute kept stale label';end if;
+ perform refresh_owned_approximation_summary(p,j,label,expected);
+ update post_items set superseded_at=now() where post_id=p;
+ perform refresh_owned_approximation_summary(p,j,'Consumed: 0 kcal.','[]');
+ if (select body from post_comments where post_id=p and author='model')<>'Consumed: 0 kcal.' then raise exception 'Removing final approximate item kept stale label';end if;
+ update post_items set superseded_at=null where post_id=p;
+ update post_comments set body=label where post_id=p and author='model';
+ update posts set status='processing',analysis_initialized_at=null where id=p;
+ perform persist_approximated_analysis(p,j,payload,'New exact reanalysis.');
+ if (select body from post_comments where post_id=p and author='model')<>'New exact reanalysis.' then raise exception 'Exact reanalysis kept prior approximation label';end if;
+ update posts set status='processing',analysis_initialized_at=null where id=p;
+ perform persist_approximated_analysis(p,j,payload,'Ordinary historical summary must not be rewritten.');
+ if (select body from post_comments where post_id=p and author='model')<>'New exact reanalysis.' then raise exception 'Exact-only historical summary was rewritten';end if;
+ update post_comments set body=label where post_id=p and author='model';
+ select jsonb_agg(jsonb_build_object('id',i.id,'source_ref',n.source_ref)) into expected from current_post_items i join item_nutrition n on n.post_item_id=i.id where i.post_id=p;
  insert into jobs(id,post_id,kind,status,payload)values(new_job,p,'analyze','running','{"post_ownership":true}');
  update posts set active_job_id=new_job,status='processing',analysis_initialized_at=null where id=p;
  begin

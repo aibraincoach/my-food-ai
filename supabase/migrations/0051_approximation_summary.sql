@@ -17,7 +17,11 @@ begin
   perform public.persist_owned_analysis(p_post_id,p_job_id,p_items,p_summary,p_needs_input);
  end if;
  -- A previously committed retry must not rewrite its authoritative summary.
- if initialized is null then
+ if initialized is null and (
+  position(' is taken from the closest USDA record, ' in p_summary)>0
+  or exists(select 1 from public.post_comments where id=(select id from public.post_comments where post_id=p_post_id and author='model' order by created_at,id limit 1)
+   and position(' is taken from the closest USDA record, ' in body)>0)
+ ) then
   update public.post_comments set body=p_summary
   where id=(select id from public.post_comments where post_id=p_post_id and author='model' order by created_at,id limit 1);
  end if;
@@ -45,6 +49,11 @@ begin
  if current_count<>expected_count or matched_count<>expected_count then
   raise exception 'Nutrition summary items changed' using errcode='PT409';
  end if;
+ -- Exact-only historical summaries stay untouched. Refresh on either side
+ -- of the transition so removing the last approximate food clears its label.
+ if position(' is taken from the closest USDA record, ' in p_summary)=0
+  and not exists(select 1 from public.post_comments where id=(select id from public.post_comments where post_id=p_post_id and author='model' order by created_at,id limit 1)
+   and position(' is taken from the closest USDA record, ' in body)>0) then return;end if;
  update public.post_comments set body=p_summary
  where id=(select id from public.post_comments where post_id=p_post_id and author='model' order by created_at,id limit 1);
  get diagnostics changed=row_count;

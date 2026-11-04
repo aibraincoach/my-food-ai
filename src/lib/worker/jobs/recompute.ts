@@ -57,7 +57,6 @@ export default async function recompute(admin: SupabaseClient, job: JobRow): Pro
     const {safeSummary}=await import('@/lib/pipeline/wording');
     const current=await getCurrentItems(admin,job.post_id,{requireNutrition:true});
     const labels=approximationLabels(current);
-    if(labels.length){
     const body=await safeSummary('',sumNutrition(current),labels);
     // Post lock, job ownership and current source refs are rechecked together.
     const {error:summaryError,status:summaryStatus}=await admin.rpc('refresh_owned_approximation_summary',{
@@ -65,7 +64,6 @@ export default async function recompute(admin: SupabaseClient, job: JobRow): Pro
       p_expected:current.map(item=>({id:item.id,source_ref:item.source_ref})),
     });
     if(summaryError)throw ioError('Nutrition summary could not be saved.',summaryError,summaryStatus);
-    }
   }
   await markReady(job.post_id, admin,job.id);
 }
