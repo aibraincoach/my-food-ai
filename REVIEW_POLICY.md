@@ -1,5 +1,7 @@
 # Review execution policy
 
+Owner Fleet 15 override, November 4, 2026: AGY may be run when needed and its complete exact-head receipts count. PPLX may use ChatGPT, including GPT-6.1 Sol, under the owner's explicit quota override. Record the actual model and submit exactly `code review <PR URL>`; no extra instruction is submitted. This supersedes the older Muse-only route restriction and Gemini-only PPLX restriction for Fleet 15. Existing deviation and truncation labels remain part of the record; a finding is checked against source, and changed code needs a fresh receipt at its new head. Review clearance is not a merge order.
+
 Owner Run 7 override, November 3, 2026: **Muse owns the code reviews.** Coders build, test, push and fix reported findings; they do not launch their own PPLX/AGY/Codex review runs. This supersedes the route order below for this run. Record the reviewed head and findings accurately; completed earlier receipts remain evidence only for the heads they actually cover. Merge authority remains the named-head order after evaluation.
 
 The owner explicitly accepts Muse's `<!-- watch-review -->` comment reviews for this run, including their `WATCH VERDICT`, despite historical receipt disclaimers in the comments. Match the review's API `commit_id` to the current full PR head. A new head needs Muse's new exact-head review. These comments are reviews, never merge authorization.
