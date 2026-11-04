@@ -77,8 +77,7 @@ async function rebuildRemoved(admin:SupabaseClient,job:JobRow){
  const {replayCorrection}=await import('./correct');
  const {replayRemainder}=await import('./remainder');
  const {readPostComments}=await import('@/lib/posts/timeline');
- const {getCurrentItems,normalizeStoredNutrition,sumNutrition}=await import('@/lib/nutrition/totals');
- const {safeSummary}=await import('@/lib/pipeline/wording');
+ const {getCurrentItems,normalizeStoredNutrition,formatConsumed,sumNutrition}=await import('@/lib/nutrition/totals');
  const {checkWording}=await import('@/lib/pipeline/wording-check');
  const current=await getCurrentItems(admin,postId,{requireNutrition:true});
  const {data:original,error:originalError,status:originalStatus}=await admin.from('post_items').select('*,item_nutrition(*)').eq('post_id',postId).eq('source','model').order('created_at').order('id');
@@ -112,7 +111,7 @@ async function rebuildRemoved(admin:SupabaseClient,job:JobRow){
   install(await replayRemainder(admin,photo.storage_path,items) as unknown as RebuiltRow[]);
  }
  const labels=approximationLabels(items);
- const summary=(await safeSummary('',sumNutrition(items),labels)).replace(/[.]$/,'');
+ const summary=[formatConsumed(sumNutrition(items)),...labels.map(label=>`Nutrition for ${label.name} is taken from the closest USDA record, ${label.basis}`)].join('. ');
  const removed=thread.find(comment=>comment.id===job.payload.comment_id);
  const reply=job.payload.reason==='media_removed'?`${job.payload.media_unmarked===true?'Unmarked the leftovers photo.':'Removed the leftovers photo.'} ${summary}.`:`Removed the correction "${(removed?.body??'').slice(0,60)}". ${summary}.`;
  // Quoted user words are retained verbatim; only generated commentary makes
