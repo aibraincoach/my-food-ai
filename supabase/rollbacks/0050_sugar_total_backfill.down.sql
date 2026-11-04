@@ -1,7 +1,6 @@
--- Restore null sugar for matching 1063 backfill values without a 2000 nutrient.
+-- Restore only this migration's changes, preserving subsequently edited values.
 update public.item_nutrition n
-set sugar_g = null
-where n.calories is not null
-  and n.sugar_g = (select (m->>'value')::numeric from jsonb_array_elements(n.micronutrients) m
-                   where (m->>'nutrientId')::int = 1063 and m->>'unitName' = 'G' and m->>'basis' = 'portion' and m->>'value' is not null limit 1)
-  and not exists (select 1 from jsonb_array_elements(n.micronutrients) m where (m->>'nutrientId')::int = 2000);
+set sugar_g = b.previous_sugar_g
+from public.sugar_total_backfill_0050 b
+where n.post_item_id = b.post_item_id and n.sugar_g = b.applied_sugar_g;
+drop table public.sugar_total_backfill_0050;
