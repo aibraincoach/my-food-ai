@@ -7,9 +7,16 @@ test('approximation migration keeps one label, preserves every estimate basis an
  const url=process.env.TEST_SQL_DATABASE_URL;
  assert.ok(url,'Set TEST_SQL_DATABASE_URL to the disposable migrated local database.');
  assert.ok(['localhost','127.0.0.1','[::1]'].includes(new URL(url).hostname),'Disposable database only');
- const migration=readFileSync(new URL('../../supabase/migrations/0053_approximation_once.sql',import.meta.url),'utf8');
- const rollback=readFileSync(new URL('../../supabase/rollbacks/0053_approximation_once.down.sql',import.meta.url),'utf8');
+ const migration=readFileSync(new URL('../../supabase/migrations/0055_approximation_once.sql',import.meta.url),'utf8');
+ const rollback=readFileSync(new URL('../../supabase/rollbacks/0055_approximation_once.down.sql',import.meta.url),'utf8');
+ const prepare=readFileSync(new URL('../../supabase/migrations/0053_estimate_reader_rollout.sql',import.meta.url),'utf8');
  const input=`begin;
+ select to_regclass('public.nutrition_provenance_format') is not null as prepared \u005cgset
+ \u005cif :prepared
+ \u005celse
+ ${prepare}
+ \u005cendif
+ update public.nutrition_provenance_format set compact=false,reader_floor=null where id;
  create temporary table approximation_once_fixture(kind text, item uuid);
  do $test$
  declare u uuid:=gen_random_uuid();p uuid:=gen_random_uuid();estimate_item uuid:=gen_random_uuid();closest_item uuid:=gen_random_uuid();
@@ -22,6 +29,7 @@ test('approximation migration keeps one label, preserves every estimate basis an
  (closest_item,'123','[{"nutrientId":1008,"value":5,"approximation":{"kind":"closest","basis":"Plain food","sourceRef":"123"}},{"nutrientId":1003,"value":10,"approximation":{"kind":"closest","basis":"Plain food","sourceRef":"123"}}]');
  insert into approximation_once_fixture values('estimate',estimate_item),('closest',closest_item);
  end $test$;
+ update public.nutrition_provenance_format set compact=true,reader_floor=repeat('a',40) where id;
  ${migration}
  do $test$
  declare es jsonb;cl jsonb;
@@ -36,6 +44,7 @@ test('approximation migration keeps one label, preserves every estimate basis an
  or exists(select 1 from jsonb_array_elements(cl) e where e ? 'per100')
  or cl->0->'approximation'<>'{"kind":"closest","basis":"Plain food","sourceRef":"123"}'::jsonb then raise exception 'Closest provenance changed';end if;
  end $test$;
+ update public.nutrition_provenance_format set compact=false,reader_floor=null where id;
  ${rollback}
  do $test$
  declare es jsonb;cl jsonb;

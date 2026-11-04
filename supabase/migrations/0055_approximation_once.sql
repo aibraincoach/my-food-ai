@@ -1,3 +1,10 @@
+-- Activation only: scripts/activate-compact-nutrition.sql fences legacy claims,
+-- verifies zero running jobs under a NOWAIT lock, and records the reader floor.
+do $$begin
+ if not exists(select 1 from public.nutrition_provenance_format where id and compact and reader_floor is not null) then
+  raise exception 'Deploy reader-compatible code and run compact activation before 0055';
+ end if;
+end $$;
 -- #573: keep the closest-record / estimate label once per food, on the first nutrient entry.
 -- Estimate per-100 g values move from the tag to each entry's own per100 key.
 update public.item_nutrition n set micronutrients=(
