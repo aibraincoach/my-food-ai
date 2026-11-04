@@ -59,3 +59,46 @@ test('two-shot reservation refuses publication with only one stored object (2202
   const post=checked(await db.from('posts').select('status').eq('id',id).maybeSingle());assert.equal(post,null);
  }finally{await db.storage.from('media').remove([`${base}/0.jpg`]);await db.from('jobs').delete().contains('payload',{deleted_post_id:id});await db.from('post_upload_drafts').delete().eq('id',id);}
 });
+
+test('posting acknowledges a delayed durable flag while the upload runs',async()=>{
+ const {manager,store}=harness(()=>({setProgress(){},snapshot:async()=>null,stage:async()=>new Promise(()=>{}),submit:async()=>({postId:'posted'})}));
+ await manager.initialize('owner');const id=manager.stage([file],fields);await pause();
+ const original=store.put;let saved=false;store.put=async row=>{await new Promise(resolve=>setTimeout(resolve,50));await original(row);if(row.posted)saved=true;};
+ let resolved=false;const ack=manager.post(id).then(result=>{resolved=true;assert.equal(saved,true);return result;});await pause();assert.equal(resolved,false);assert.equal(manager.list()[0].state,'uploading');assert.equal(await ack,true);
+});
+test('posting reports a rejected durable flag without stopping the upload',async()=>{
+ const {manager,store}=harness(()=>({setProgress(){},snapshot:async()=>null,stage:async()=>new Promise(()=>{}),submit:async()=>({postId:'posted'})}));
+ await manager.initialize('owner');const id=manager.stage([file],fields);await pause();store.put=async()=>{throw Error('disk failed')};assert.equal(await manager.post(id),false);assert.equal(manager.list()[0].posted,true);assert.equal(manager.list()[0].state,'uploading');
+});
+
+test('retrying after a completed background post reuses its operation without publishing twice',async()=>{
+ let publishes=0;const draft={setProgress(){},snapshot:async()=>({id:'published',images:[],completed:[]}),stage:async()=>{},submit:async()=>{publishes++;return{postId:'published'}}};
+ const{manager}=harness(()=>draft);await manager.initialize('owner');const id=manager.stage([file],fields);await manager.post(id);await until(()=>manager.list()[0]?.postId==='published');assert.equal(manager.stage([file],fields,id),id);assert.equal(await manager.post(id),true);await pause();assert.equal(publishes,1);assert.equal(manager.list()[0].postId,'published');
+});
+
+test('an uninitialized post waits for its owner-bound checkpoint and can recover after reload',async()=>{
+ let authenticate;const auth=new Promise(resolve=>authenticate=resolve),rows=new Map();
+ const store={all:async()=>[...rows.values()],put:async row=>rows.set(row.operationId,structuredClone(row)),remove:async id=>rows.delete(id),clear:async()=>rows.clear()};
+ const makeDraft=()=>({setProgress(){},restore(){},snapshot:async()=>null,stage:async()=>new Promise(()=>{}),submit:async()=>{throw Error('must stay pending')}});
+ const manager=new UploadManager(store,makeDraft,async()=>{},fetch,()=>auth);
+ const id=manager.stage([file],fields);let resolved=false;
+ const ack=manager.post(id).then(result=>{resolved=true;return result;});
+ // Even a successful ownerless write is not proof that initialize can recover it.
+ manager.update(id,{caption:'kept meal'});await until(()=>rows.has(id));assert.equal(rows.get(id).ownerId,'');assert.equal(resolved,false);
+ authenticate('owner');assert.equal(await ack,true);const saved=rows.get(id);assert.equal(saved.ownerId,'owner');assert.equal(saved.posted,true);
+ const restored=new UploadManager(store,makeDraft,async()=>{});await restored.initialize('owner');assert.equal(restored.list()[0].operationId,id);assert.equal(restored.list()[0].posted,true);assert.equal(restored.list()[0].caption,'kept meal');
+});
+test('a post checkpoint cannot acknowledge an entry deleted or switched to another account while writing',async()=>{
+ for(const change of ['remove','account']){
+  let release;const gate=new Promise(resolve=>release=resolve),rows=new Map();
+  const store={all:async()=>[...rows.values()],put:async row=>{if(row.posted)await gate;rows.set(row.operationId,structuredClone(row));},remove:async id=>rows.delete(id),clear:async()=>rows.clear()};
+  const draft={setProgress(){},snapshot:async()=>null,stage:async()=>new Promise(()=>{}),submit:async()=>{throw Error('must stay pending')}};
+  const manager=new UploadManager(store,()=>draft,async()=>{});await manager.initialize('owner');const id=manager.stage([file],fields);await pause();const ack=manager.post(id);await pause();
+  const changed=change==='remove'?manager.remove(id):manager.initialize('other');release();await changed;assert.equal(await ack,false);assert.deepEqual(manager.list(),[]);
+ }
+});
+test('a late authentication response cannot revive an operation after its manager was cleared',async()=>{
+ let authenticate;const auth=new Promise(resolve=>authenticate=resolve),rows=new Map();const store={all:async()=>[...rows.values()],put:async row=>rows.set(row.operationId,row),remove:async id=>rows.delete(id),clear:async()=>rows.clear()};
+ const draft={setProgress(){},snapshot:async()=>null,stage:async()=>{throw Error('must not stage')},submit:async()=>{throw Error('must not publish')}};
+ const manager=new UploadManager(store,()=>draft,async()=>{},fetch,()=>auth);const id=manager.stage([file],fields);const ack=manager.post(id);await manager.clear();authenticate('owner');assert.equal(await ack,false);await pause();assert.deepEqual(manager.list(),[]);assert.equal(rows.size,0);
+});
