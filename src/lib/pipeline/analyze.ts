@@ -129,6 +129,8 @@ export interface NamedRegion extends SegmentedRegion {
 export interface NamedPost extends SegmentedPost {
   identification?: IdentifiedMeal["identification"];
   hasNotEaten?:boolean;
+  // Set by persistAnalysis when the question was kept beside a published meal (#615).
+  questionShown?:boolean;
   nutritionLabel?: boolean;
   labelNutrition?: Record<string,unknown>;
   regions: NamedRegion[];

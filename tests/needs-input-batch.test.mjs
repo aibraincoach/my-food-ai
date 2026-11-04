@@ -14,12 +14,12 @@ test('questions share immutable thumbnail identities; missing media retries and 
  let tick,authChange,resolvePosts,hold=false,now=1700000000000,missingMedia=false;
  const question={short:'Clarification needed',question:'What did you eat?',options:[]};
  let session={user:{id:'11111111-1111-4111-8111-111111111111'},access_token:'fixture-token'};
- const posts=[{id:'33333333-3333-4333-8333-333333333333',eaten_at:'2026-11-03T00:00:00Z',needs_input:question},{id:'44444444-4444-4444-8444-444444444444',eaten_at:'2026-11-03T00:00:00Z',needs_input:question}];
+ const posts=[{id:'33333333-3333-4333-8333-333333333333',eaten_at:'2026-11-03T00:00:00Z',status:'needs_input',needs_input:question},{id:'44444444-4444-4444-8444-444444444444',eaten_at:'2026-11-03T00:00:00Z',status:'needs_input',needs_input:question}];
  const media=[{id:'55555555-5555-4555-8555-555555555555',post_id:'33333333-3333-4333-8333-333333333333',storage_path:'owner-a/one/original.jpg',position:0},{id:'55555555-5555-4555-8555-555555555555',post_id:'33333333-3333-4333-8333-333333333333',storage_path:'owner-a/one/extra.jpg',position:1},{id:'55555555-5555-4555-8555-555555555555',post_id:'44444444-4444-4444-8444-444444444444',storage_path:'owner-a/two/original.jpg',position:0}];
  const db={auth:{getSession:async()=>({data:{session}}),onAuthStateChange(fn){authChange=fn;return{data:{subscription:{unsubscribe(){}}}};}},from(table){
   const filters=[];const q=new Proxy({}, {get(_,key){
    if(key==='then')return(resolve,reject)=>{reads.push({table,filters});if(table==='posts'&&hold)return new Promise(r=>{resolvePosts=r;}).then(resolve,reject);return Promise.resolve({data:table==='posts'?posts:(missingMedia?media.filter(row=>row.post_id!==posts[0].id):media),error:null}).then(resolve,reject);};
-   if(['eq','in'].includes(key))return(...values)=>{filters.push(values);return q;};
+   if(['eq','in','or','is','order','abortSignal'].includes(key))return(...values)=>{filters.push(values);return q;};
    return()=>q;
   }});return q;
  }};
