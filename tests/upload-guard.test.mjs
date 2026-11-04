@@ -70,3 +70,8 @@ test('posting reports a rejected durable flag without stopping the upload',async
  const {manager,store}=harness(()=>({setProgress(){},snapshot:async()=>null,stage:async()=>new Promise(()=>{}),submit:async()=>({postId:'posted'})}));
  await manager.initialize('owner');const id=manager.stage([file],fields);await pause();store.put=async()=>{throw Error('disk failed')};assert.equal(await manager.post(id),false);assert.equal(manager.list()[0].posted,true);assert.equal(manager.list()[0].state,'uploading');
 });
+
+test('retrying after a completed background post reuses its operation without publishing twice',async()=>{
+ let publishes=0;const draft={setProgress(){},snapshot:async()=>({id:'published',images:[],completed:[]}),stage:async()=>{},submit:async()=>{publishes++;return{postId:'published'}}};
+ const{manager}=harness(()=>draft);await manager.initialize('owner');const id=manager.stage([file],fields);await manager.post(id);await until(()=>manager.list()[0]?.postId==='published');assert.equal(manager.stage([file],fields,id),id);assert.equal(await manager.post(id),true);await pause();assert.equal(publishes,1);assert.equal(manager.list()[0].postId,'published');
+});

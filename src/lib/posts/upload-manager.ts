@@ -97,6 +97,7 @@ export class UploadManager {
     async clear() { const writes = [...this.entries.values()].map(entry => entry.writing.catch(() => { })); this.resetMemory(); this.ownerId = ''; this.initializing = null; await Promise.all(writes); await this.store.clear(); }
     stage(files: File[], fields: DraftFields, operationId?: string) {
         let entry = operationId ? this.entries.get(operationId) : undefined;
+        if(entry?.finished)return entry.data.operationId;
         if (!entry) {
             const id = crypto.randomUUID();
             const now = Date.now();
@@ -197,7 +198,7 @@ export class UploadManager {
 
     /** Acknowledge the posted flag's durable write before the sheet closes. Uploads keep running on failure. */
     async post(id: string): Promise<boolean> { const entry = this.entries.get(id); if (!entry || entry.deleted)
-        return false; entry.data.posted = true; const durable = this.persist(entry); this.notify(entry, 'upload-started'); void this.run(entry); try { await durable; return true; } catch { return false; } }
+        return false; if(entry.finished)return true; entry.data.posted = true; const durable = this.persist(entry); this.notify(entry, 'upload-started'); void this.run(entry); try { await durable; return true; } catch { return false; } }
     async discardFood(id:string){
         const entry=this.entries.get(id);
         if((!entry?.data.food&&!entry?.data.copy)||entry.deleted||entry.finished)return;
