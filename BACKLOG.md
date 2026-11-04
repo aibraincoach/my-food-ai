@@ -1,6 +1,6 @@
 # My Food AI — Backlog†
 
-Last edited: Wednesday 2026-11-04 at 12:36 WIB (UTC+07:00) by Claude, PM
+Last edited: Wednesday 2026-11-04 at 12:41 WIB (UTC+07:00) by Claude, PM
 
 The only job of the PM is to maintain this backlog and keep it completely up to date. Failing to do so is immediately terminable.
 
@@ -43,6 +43,36 @@ The submission requires a public repository, and it still carries the default RE
 After the last feature merges, one pass replaces the default README with a short start-here page (#287). All working files stay on main, including the agents' contracts, the Wall of Stupid file, the review policy and the review tools. Nothing is removed or scrubbed. Done when the README is the start-here page and a search of main for host names, account identifiers and billing detail returns only what the owner chose to keep. Fleet 10 closed the issue and Fleet 11 ran the search, so the owner's keep list is what remains.
 
 ## In Flight
+
+### #452 A plainly visible nutrition label is reported as not found
+
+A photo of a pack whose nutrition table can be read is rejected with "No nutrition label found".
+
+The photo of a Goldfish cracker pack, with the label printed in Indonesian and the table fully in the frame, gave "No nutrition label found" with "Take the photo again" and "Type it instead". Done when that photo gives a card with the numbers printed on the label, and a label in English does the same, on the owner's three phones.
+
+### #451 Every barcode scan comes back as not in the database
+
+The owner has scanned several packs on a phone and every scan has failed: the scanner reads the code and the lookup finds no product.
+
+The scanner read 7 622300 76136 3 from an Oreo pack and showed "Not in the database. No product for this code yet." The owner finds the same code with an ordinary web search, at barcodelookup.com/7622300761363. Done when this pack gives a product card with its name and nutrition, a second pack from the same shelf does too, and the planner has recorded which source the lookup asks and why it had no entry for this code, on the owner's three phones.
+
+### #523 A meal shows every nutrition value as unavailable
+
+A meal analysed on Nov 4 at 9:53 AM, "Spicy Indonesian macaroni", shows its calories, protein, carbs and fat as unavailable. The owner says the app's food estimates are broken now.
+
+The owner's screenshot of the post (86634d46-b0e3-421a-9b67-1a4e8f5e8e78 on production) shows a comment that reads "Nutrition unavailable: spicy Indonesian fried macaroni snack", and a model line that reads "Identified by Muse Spark 1.3". Judging runs from Nov 4, so a general fault would hit every judge's meal. The coder found on Nov 4 that the matcher rejected every retrieved reference after three searches (the full name, "fried +macaroni" and "fried +pasta") and never tried the bare name "macaroni". No lookup failed, nothing hit a rate limit, and nothing points to a Fleet 11 regression. Fresh USDA requests for "macaroni" and "macaroni cooked" returned records (357 kcal per 100 g, and Pasta, cooked, 157 kcal per 100 g), which are not confirmed equivalents of a fried snack. Of 15 posts in the last 24 hours, five had at least one unavailable field, and only this one had every value unavailable; the others were composite dishes the matcher rejected. The app has no fallback when USDA has no match: it shows unavailable and invents no value, and the Open Food Facts fallback covers barcode scans only. The owner asked for a fallback. The candidate is to search USDA for the closest generic food before saying unavailable. A model estimate needs the owner's ruling. Done when, after the matcher's strict searches fail, it tries the bare food name, and a re-analysed post of this food shows nutrition from the closest USDA record, labelled with that record's name, or says plainly why none qualifies.
+
+### #524 Sugar shows as unavailable when USDA holds it as Sugars, Total
+
+A meal can show its sugar as unavailable although USDA's record holds the value under "Sugars, Total".
+
+Confirmed by the coder on Nov 4 while auditing the macaroni post. A pineapple's record held nutrient 1063, "Sugars, Total", stored at 8.55 g, but the sugar column reads only nutrient 2000. Calories were unaffected. Done when a food whose USDA record holds 1063 and not 2000 shows its sugar, and a test pins that case.
+
+### #525 The meal detail photo is cropped and does not show the whole image
+
+The meal detail page shows the photo in a short, wide frame, so the top and bottom of the photo are cut off. The owner wants the whole image and has asked for it three times.
+
+The owner's screenshot on desktop shows the macaroni photo as a wide strip with the outline masks drawn on the cropped part. The detail photo is drawn to fill its frame (OutlineOverlay.tsx), and the outline masks use the photo's stored width and height. Observe first: measure the frame and the photo on desktop and on phone, and record how much of the photo is cut off. Done when the detail page shows the whole photo with nothing cut off on desktop and on phone, and the outline masks still sit on the right parts of the food.
 
 ## Engineering backlog
 
@@ -99,12 +129,6 @@ docs/egress.md attributes the bytes to browser-class agents but not to which fil
 The server renders the row of day bubbles with totals for the last 5 days. The browser feed then computes totals again for the feed's days. Today's totals are queried twice on every home open.
 
 Run 8 merged one shared server read of today's totals. Final browser windows still made one or two day-total reads, so a single read across the server and the browser together is unproved. Fleet 11 could not close it for the same reason. Measure with spans tied to one navigation, and count every read that returns today's totals, batch reads included. Done when a home open queries today's totals once across the server and the browser together.
-
-### #452 A plainly visible nutrition label is reported as not found
-
-A photo of a pack whose nutrition table can be read is rejected with "No nutrition label found".
-
-The photo of a Goldfish cracker pack, with the label printed in Indonesian and the table fully in the frame, gave "No nutrition label found" with "Take the photo again" and "Type it instead". Done when that photo gives a card with the numbers printed on the label, and a label in English does the same, on the owner's three phones.
 
 ### #370 The camera view stays open for a long time after a photo is taken
 
@@ -178,12 +202,6 @@ A new upload shows no food names while its numbers are still being worked out.
 
 On a new upload, the card's reader drops the pending food names, so #307 fails there. Done when a new upload shows the foods the app has found while the numbers are still being worked out, on the owner's three phones.
 
-### #451 Every barcode scan comes back as not in the database
-
-The owner has scanned several packs on a phone and every scan has failed: the scanner reads the code and the lookup finds no product.
-
-The scanner read 7 622300 76136 3 from an Oreo pack and showed "Not in the database. No product for this code yet." The owner finds the same code with an ordinary web search, at barcodelookup.com/7622300761363. Done when this pack gives a product card with its name and nutrition, a second pack from the same shelf does too, and the planner has recorded which source the lookup asks and why it had no entry for this code, on the owner's three phones.
-
 ### #453 The barcode prompt is printed over the live camera picture
 
 On the Barcode screen, the line "Point at the barcode. It reads on its own." runs across the camera picture and cannot be read against a busy shelf.
@@ -226,24 +244,6 @@ Several pages export a flag called instant set to false, and nothing reads it. E
 
 Unverified audit finding, read at head 618cf7e. The audit found no source file, script or tool that reads the flag (src/app/posts/\[id\]/page.tsx and other pages). Nothing breaks while it stays. Done when no page exports the flag and a search of the source for it returns nothing.
 
-### #523 A meal shows every nutrition value as unavailable
-
-A meal analysed on Nov 4 at 9:53 AM, "Spicy Indonesian macaroni", shows its calories, protein, carbs and fat as unavailable. The owner says the app's food estimates are broken now.
-
-The owner's screenshot of the post (86634d46-b0e3-421a-9b67-1a4e8f5e8e78 on production) shows a comment that reads "Nutrition unavailable: spicy Indonesian fried macaroni snack", and a model line that reads "Identified by Muse Spark 1.3". Judging runs from Nov 4, so a general fault would hit every judge's meal. The coder found on Nov 4 that the matcher rejected every retrieved reference after three searches (the full name, "fried +macaroni" and "fried +pasta") and never tried the bare name "macaroni". No lookup failed, nothing hit a rate limit, and nothing points to a Fleet 11 regression. Fresh USDA requests for "macaroni" and "macaroni cooked" returned records (357 kcal per 100 g, and Pasta, cooked, 157 kcal per 100 g), which are not confirmed equivalents of a fried snack. Of 15 posts in the last 24 hours, five had at least one unavailable field, and only this one had every value unavailable; the others were composite dishes the matcher rejected. The app has no fallback when USDA has no match: it shows unavailable and invents no value, and the Open Food Facts fallback covers barcode scans only. The owner asked for a fallback. The candidate is to search USDA for the closest generic food before saying unavailable. A model estimate needs the owner's ruling. Done when, after the matcher's strict searches fail, it tries the bare food name, and a re-analysed post of this food shows nutrition from the closest USDA record, labelled with that record's name, or says plainly why none qualifies.
-
-### #524 Sugar shows as unavailable when USDA holds it as Sugars, Total
-
-A meal can show its sugar as unavailable although USDA's record holds the value under "Sugars, Total".
-
-Confirmed by the coder on Nov 4 while auditing the macaroni post. A pineapple's record held nutrient 1063, "Sugars, Total", stored at 8.55 g, but the sugar column reads only nutrient 2000. Calories were unaffected. Done when a food whose USDA record holds 1063 and not 2000 shows its sugar, and a test pins that case.
-
-### #525 The meal detail photo is cropped and does not show the whole image
-
-The meal detail page shows the photo in a short, wide frame, so the top and bottom of the photo are cut off. The owner wants the whole image and has asked for it three times.
-
-The owner's screenshot on desktop shows the macaroni photo as a wide strip with the outline masks drawn on the cropped part. The detail photo is drawn to fill its frame (OutlineOverlay.tsx), and the outline masks use the photo's stored width and height. Observe first: measure the frame and the photo on desktop and on phone, and record how much of the photo is cut off. Done when the detail page shows the whole photo with nothing cut off on desktop and on phone, and the outline masks still sit on the right parts of the food.
-
 ### #542 Pressing Space on a focused button in desktop capture takes a photo
 
 On the desktop capture window, Space on a focused "Allow camera" or "Choose a file" button runs the photo shortcut instead of the button.
@@ -267,6 +267,44 @@ Found after #507 merged. Each send() in createOpenResponse gets its own 75-secon
 Anyone can send sign-up and sign-in requests as fast as a script can, to guess passwords, create accounts in bulk or run up the email and model bills, and nobody has shown what stops them.
 
 CAPTCHA stays off until the app goes public. Run 8 merged a dormant hCaptcha widget and token path (#336). Called directly from the coder's machine, Supabase refused the hammer at sign-up 31 and sign-in 32, and the 31 throwaway accounts were deleted. The owner holds the site key and the secret. The secret lives only in Supabase Auth and never goes into the repository, an issue, an order or this backlog. To turn CAPTCHA on, set NEXT\_PUBLIC\_HCAPTCHA\_SITE\_KEY in Vercel production and redeploy, then enable CAPTCHA in Supabase Auth, never the reverse. Done when CAPTCHA is on for sign-up and sign-in on production and a script that hammers sign-up and sign-in is refused.
+
+## Engineering backlog - design
+
+### #550 The desktop feed fills the whole window and the Today column is missing
+
+On desktop the feed runs edge to edge and the photo touches the window edge. The Today column does not appear.
+
+The Round 6 design (6a) and the code on main both centre a 500 px feed column beside a 280 px Today column. Main's code cannot produce the owner's screenshot, so production may not be running main, or something on the live page overrides the width. Check which commit production serves, then the feed width in DevTools. Done when production shows the centred 500 px feed with the Today column as 6a draws it, checked on the live page at 1280x800.
+
+### #551 A stray note about unavailable food floats above the first post on desktop
+
+A line of text sits above the first post on desktop with nothing above it. The design never put it there.
+
+DayHeader.tsx line 27 adds an unavailable-food note under each day header. On desktop the day header is hidden and the note is not. Delete the note and the "\*" on day totals, on phone and desktop. Each post's own summary line already names the unavailable food. Done when neither appears on either layout and production is checked.
+
+### #552 The buttons under each post are 24 px tall and show no pressed or turned-off state
+
+The buttons under a post are too small to hit and look the same at rest, while saving and when turned off.
+
+Design 7a (Round 7) gives 44 px tap areas and every state: rest, pressed, saving, turned off and failed. Done when each button matches 7a on production at 390x844.
+
+### #553 Thumbs up and down look the same when turned off and thumbs down waits for the server
+
+The thumbs turn themselves off while a vote saves and before the analysis exists, with no visible difference. Thumbs down opens nothing until the vote has saved.
+
+This is the first case the owner found for #217. Done when a thumb shows its pressed state at once, looks different when turned off, and thumbs down opens at once, checked on production at 390x844 with the processor slowed.
+
+### #554 Tapping a meal shows nothing until the server answers
+
+Comment, Details, tapping the photo, "more" and Post in the capture sheet wait for the server before anything changes on screen.
+
+Design 7b (Round 7) shows the screen at once, using the photo already on screen while the details load. Done when each of these taps shows a visible change at once, with no layout jump when the details arrive.
+
+### #555 The controls on Days, Search, Profile and the capture modes have not been audited
+
+The Round 7 control table covers the feed, the post and the capture sheet. Days, Search, Profile and the Text, Photo and Barcode modes are not in it.
+
+The designer has not read their controls yet. Add them to the table with the four findings of #217: time to a visible change, pressed state, jump or flicker, and double tap. Done when every control on those screens is in the table and the dead ones are fixed or filed as items.
 
 ## Interdit (Not part of Hackathon)
 
