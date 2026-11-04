@@ -20,10 +20,10 @@ export default function PostActions({postId,modelCommentId,fingerprint,drink=fal
   const dotCenter=Math.max(controlsRight+8+dotWidth/2,Math.min(width/2,width-48-dotWidth/2));
   return <div ref={ref} className={`relative flex items-center gap-[18px] px-inset pt-[10px] ${detail?"pb-[6px]":"pb-1"}`}>
     {!drink && <ThumbsFeedback postId={postId} modelCommentId={modelCommentId} fingerprint={fingerprint} compact />}
-    <Link href={`/posts/${postId}?reply=1`} aria-label="Comment or correct" className="flex h-6 items-center active:opacity-50"><Icon name="comment" /></Link>
-    <button type="button" aria-label="Log again" className="flex h-6 items-center active:opacity-50" onClick={()=>window.dispatchEvent(new CustomEvent('log-again',{detail:{postId,post}}))}><Icon name="log-again" /></button>
-    {!detail&&<Link href={`/posts/${postId}`} className="flex h-6 items-center text-detail text-muted active:opacity-50">Details ›</Link>}
+    <Link href={`/posts/${postId}?reply=1`} aria-label="Comment or correct" className="-m-[10px] flex size-11 items-center justify-center"><Icon name="comment" /></Link>
+    <button type="button" aria-label="Log again" className="-m-[10px] flex size-11 items-center justify-center" onClick={()=>window.dispatchEvent(new CustomEvent('log-again',{detail:{postId,post}}))}><Icon name="log-again" /></button>
+    {!detail&&<Link href={`/posts/${postId}`} className="-my-[10px] flex h-11 items-center text-detail text-muted">Details ›</Link>}
     {slides>1&&<div className="pointer-events-none absolute top-1/2 flex -translate-x-1/2 -translate-y-1/2 items-center justify-center gap-[5px] overflow-hidden" style={{left:dotCenter,width:dotWidth}} aria-hidden="true">{Array.from({length:slides},(_,i)=><span key={i} className={`size-[6px] shrink-0 rounded-circle ${i===index?'bg-text':'bg-ring'}`} />)}</div>}
-    <button type="button" aria-label={visibleSaved?'Unsave meal':'Save meal'} aria-pressed={visibleSaved} disabled={bookmark.pending} className="ml-auto flex h-6 items-center active:opacity-50" onClick={save}><Icon name="bookmark" active={visibleSaved} /></button>
+    <button type="button" aria-label={visibleSaved?'Unsave meal':'Save meal'} aria-pressed={visibleSaved} className="-my-[10px] -mr-[10px] ml-auto flex size-11 items-center justify-center" onClick={save}><Icon name="bookmark" active={visibleSaved} /></button>
   </div>;
 }
