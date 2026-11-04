@@ -99,12 +99,16 @@ export async function persistAnalysis(
   const totals = sumNutrition(items.map(item=>({...item.nutrition,name:item.name})));
   const approximations=approximationLabels(items.map(item=>({name:item.name,...item.nutrition})));
   const summary = await safeSummary(named.summary, totals, approximations, items.map(item=>({name:item.name,sourceRef:item.nutrition.source_ref})));
+  // Owner ruling (Nov 4, #615): a question about a meal the model could still name does not hold
+  // the post back. The meal publishes with the named items; the question is kept in posts.question,
+  // shown in the Home strip, and sent as the "needs a reply" push. No food found keeps the held route.
+  const visibleQuestion = Boolean(named.needsInput && named.needsInput.short === "Clarification needed" && items.length > 0);
   const args = {
     p_job_id: jobId ?? null,
     p_post_id: named.postId,
     p_items: items,
     p_summary: summary,
-    p_needs_input: named.needsInput ?? null,
+    p_needs_input: visibleQuestion ? null : named.needsInput ?? null,
   };
   const identificationArgs={...args,
     p_identify_model:named.labelNutrition?null:named.identification?.model??null,
@@ -129,6 +133,17 @@ export async function persistAnalysis(
   const {error,status} = result;
   if (error) {
     throw ioError(`persist: analysis transaction failed: ${error.message}`, error, status);
+  }
+  if (visibleQuestion && named.needsInput) {
+    const question = named.needsInput;
+    const kept = await admin.from("posts").update({ question }).eq("id", named.postId);
+    if (kept.error) throw ioError("The question could not be kept with the meal.", kept.error, kept.status);
+    const { data: asked } = await admin.from("post_comments").select("id").eq("post_id", named.postId).eq("author", "model").eq("body", question.question).limit(1).maybeSingle();
+    if (!asked) { const comment = await admin.from("post_comments").insert({ post_id: named.postId, author: "model", body: question.question }); if (comment.error) throw ioError("The question could not be posted.", comment.error, comment.status); }
+    named.questionShown = true;
+    const ready = await markReady(named.postId, admin, jobId, { notify: false, saveMeal: !named.hasNotEaten });
+    if (ready) await sendPostPush(admin, named.postId, question.question);
+    return;
   }
   if (!named.needsInput) await markReady(named.postId, admin, jobId,{notify:!named.hasNotEaten,saveMeal:!named.hasNotEaten});
 }

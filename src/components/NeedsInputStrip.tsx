@@ -31,11 +31,12 @@ export default function NeedsInputStrip(){
         if(!session){if(live)setPosts([]);return;}
         const userId = session.user.id;
         if (owner !== userId) { owner = userId; lastQuestions = ''; auxiliaryFailed = false; mediaRetryAt = 0; mediaFailures = 0; }
-        const {data,error}=await db.from("posts").select("id,eaten_at,needs_input").eq("user_id",userId).eq("status","needs_input").order("created_at",{ascending:false}).abortSignal(AbortSignal.timeout(8000));
+        const {data,error}=await db.from("posts").select("id,eaten_at,status,needs_input,question").eq("user_id",userId).or("status.eq.needs_input,question.not.is.null").is("deleted_at",null).order("created_at",{ascending:false}).abortSignal(AbortSignal.timeout(8000));
         if(error)throw error;
         const questions = (data??[]).flatMap(post => {
-          const question = readNeedsInput(post.needs_input);
-          return question ? [{...post,needs_input:question}] : [];
+          const held = post.status === "needs_input";
+          const question = readNeedsInput(held ? post.needs_input : post.question);
+          return question ? [{id:post.id,eaten_at:post.eaten_at,needs_input:question,held}] : [];
         });
         const identity = JSON.stringify(questions);
         if(identity === lastQuestions && (!auxiliaryFailed || Date.now()<mediaRetryAt))return;
@@ -65,6 +66,6 @@ export default function NeedsInputStrip(){
       {post.photoUrl?<img crossOrigin="anonymous" src={post.photoUrl} loading="lazy" decoding="async" width={40} height={40} alt="" className="size-tap shrink-0 rounded-thumb object-cover"/>:<span className="size-tap shrink-0 rounded-thumb bg-card"/>}
       <span className="min-w-0"><span className="block text-body">{post.needs_input.short==="Clarification needed"?"A question about this meal":post.needs_input.short}</span><span className="block truncate text-meta text-muted">{post.needs_input.short==="No food found"?"Add a caption to log it":post.needs_input.question}</span></span>
     </button>
-    <button type="button" aria-label="Discard meal" className="flex size-tap items-center justify-center" onClick={async()=>{const response=await fetch(`/api/posts/${post.id}/discard`,{method:"POST"});if(response.ok)remove(post.id);else setError("Meal could not be discarded.");}}><Icon name="close"/></button>
+    <button type="button" aria-label={post.held?"Discard meal":"Dismiss question"} className="flex size-tap items-center justify-center" onClick={async()=>{const response=post.held?await fetch(`/api/posts/${post.id}/discard`,{method:"POST"}):await fetch(`/api/posts/${post.id}/question`,{method:"DELETE"});if(response.ok)remove(post.id);else setError(post.held?"Meal could not be discarded.":"Question could not be dismissed.");}}><Icon name="close"/></button>
   </div>)}{error&&<p role="alert">{error}</p>}{selected&&<NeedsInputSheet post={selected} onClose={()=>setSelected(null)} onAnswered={()=>remove(selected.id)}/>}</>;
 }
