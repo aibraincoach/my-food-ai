@@ -104,7 +104,12 @@ if(!isSettled(fresh.status)||fresh.status==='failed'){
     schedulePoll();
     const changed=(event:Event)=>{if((event as CustomEvent<{id:string}>).detail?.id===initial.id){pollBackoffMs = POLL_START_MS; void refresh();}};
     window.addEventListener('media-removed',changed);window.addEventListener('correction-reverted',changed);
-    const visible = () => { if (pageVisible() && needsPolling()) schedulePoll(); else clearTimeout(pollTimer); };
+    const visible = () => {
+      if (!pageVisible()) { clearTimeout(pollTimer); return; }
+      pollBackoffMs = POLL_START_MS;
+      void refresh();
+      if (needsPolling()) schedulePoll(); else clearTimeout(pollTimer);
+    };
     document.addEventListener("visibilitychange", visible);
     window.addEventListener("focus", visible);
     return () => {
