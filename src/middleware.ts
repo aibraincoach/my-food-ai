@@ -7,7 +7,7 @@ import { sessionCookieBridge } from "@/lib/auth/session-cookies";
 
 import { homePhotoPreload } from "@/lib/posts/home-photo-preload";
 
-const PROTECTED = ["/", "/search", "/days", "/profile"];
+const PROTECTED = ["/", "/search", "/days", "/profile", "/posts"];
 
 export async function middleware(request: NextRequest) {
   request.headers.delete(VERIFIED_USER_HEADER);
@@ -58,5 +58,5 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/", "/search/:path*", "/days/:path*", "/profile/:path*", "/admin/:path*"],
+  matcher: ["/", "/search/:path*", "/days/:path*", "/profile/:path*", "/posts/:path*", "/admin/:path*"],
 };
