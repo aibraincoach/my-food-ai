@@ -179,8 +179,14 @@ export function rescaleStoredNutrition(row: NutritionRow, oldGrams: Numeric, new
     const n=scaleNutrition(reference,newGrams==null?null:toNumber(newGrams));
     return {...row,calories:n.calories,protein_g:n.proteinG,carbs_g:n.carbsG,fat_g:n.fatG,fibre_g:n.fibreG,sugar_g:n.sugarG,sodium_mg:n.sodiumMg,micronutrients:n.micronutrients as StoredNutrient[]};
   }
-  const normalized = normalizeStoredNutrition(row, oldGrams);
-  const old = toNumber(oldGrams), next = toNumber(newGrams);
+  return rescaleStoredAmounts(row,oldGrams,newGrams);
+}
+
+// Ratio-only rescaling of already consumed amounts. The quantities may be ml;
+// unlike gram reconstruction this never interprets them as a reference mass.
+export function rescaleStoredAmounts(row:NutritionRow,oldAmount:Numeric,newAmount:Numeric):NutritionRow{
+  const normalized = normalizeStoredNutrition(row, oldAmount);
+  const old = toNumber(oldAmount), next = toNumber(newAmount);
   const factor = old > 0 && next > 0 ? next / old : null;
   const scale = (value: Numeric) => value == null || factor === null ? null : toNumber(value) * factor;
   return { ...normalized, calories: scale(normalized.calories), protein_g: scale(normalized.protein_g),

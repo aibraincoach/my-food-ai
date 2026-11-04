@@ -4,7 +4,7 @@ import type {SupabaseClient} from '@supabase/supabase-js';
 import {getFoodById} from '@/lib/fdc/client';
 import {scaleNutrition, type ScaledNutrition} from '@/lib/fdc/nutrients';
 import {ioError} from '@/lib/worker/errors';
-import {rescaleStoredNutrition, toNumber, type Numeric, type NutritionRow} from './totals';
+import {rescaleStoredAmounts,rescaleStoredNutrition, toNumber, type Numeric, type NutritionRow} from './totals';
 
 export function storedNutrition(n: ScaledNutrition, id: string): NutritionRow {
  return {post_item_id:id, calories:n.calories,protein_g:n.proteinG,carbs_g:n.carbsG,fat_g:n.fatG,
@@ -34,7 +34,7 @@ export async function resolvePortionNutrition(admin: SupabaseClient, postId: str
    if (prior.portion_grams == null && grams == null) {
     const volume = (text: unknown) => typeof text === 'string' && /^[0-9]+([.][0-9]+)? ml$/.test(text) ? Number(text.split(' ')[0]) : null;
     const oldMl = volume(prior.portion_text), newMl = volume(portionText);
-    if (oldMl !== null && newMl !== null) return rescaleStoredNutrition(nutrition, oldMl, newMl);
+    if (oldMl !== null && newMl !== null) return rescaleStoredAmounts(nutrition, oldMl, newMl);
    }
    if(nutrition.source_ref && Number.isSafeInteger(Number(nutrition.source_ref)) && Number(nutrition.source_ref)>0 && (toNumber(prior.portion_grams)<=0 || !hasAmounts)) {
     const id=Number(nutrition.source_ref);

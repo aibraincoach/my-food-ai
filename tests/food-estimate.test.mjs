@@ -13,7 +13,7 @@ test('model estimate scales, names its non-USDA source and discloses provenance'
 test('out-of-range or malformed model nutrition is a provider error',async()=>{for(const bad of [{calories:5000},{protein_g:'2'},{sodium_mg:-1},{fat_g:undefined}])await withPayload({...valid,...bad},async()=>{await assert.rejects(()=>estimateFood('kerupuk',''),error=>error.status===502);});});
 const {resolvePortionNutrition,storedNutrition}=await import('../src/lib/nutrition/portion.ts');
 const {rescaleStoredNutrition}=await import('../src/lib/nutrition/totals.ts');
-function storedDb(row,grams){return{from(table){const q={select(){return q},eq(){return q},abortSignal(){return q},async maybeSingle(){return{data:table==='post_items'?{id:'prior',name:'kerupuk',portion_grams:grams,supersedes:null}:row,error:null,status:200}}};return q;}};}
+function storedDb(row,grams,portionText=null){return{from(table){const q={select(){return q},eq(){return q},abortSignal(){return q},async maybeSingle(){return{data:table==='post_items'?{id:'prior',name:'kerupuk',portion_grams:grams,portion_text:portionText,supersedes:null}:row,error:null,status:200}}};return q;}};}
 test('estimated nutrition recovers from unknown to known portions without a USDA request or another model call',async()=>withPayload(valid,async()=>{
  const food=await estimateFood('kerupuk','');
  for(const initialGrams of [null,0,100]){
@@ -27,4 +27,21 @@ test('estimated nutrition recovers from unknown to known portions without a USDA
   // The direct replay rescaling path must recover the same reference too.
   assert.equal(rescaleStoredNutrition(row,null,50).calories,250);
  }
+}));
+
+test('volume-only estimate edits never turn milliliters into a gram reference',async()=>withPayload(valid,async()=>{
+ const food=await estimateFood('kerupuk','');
+ const unknown=storedNutrition(scaleNutrition(food,null),'prior');
+ for(const text of ['100 ml','200 ml']){
+  const result=await resolvePortionNutrition(storedDb(unknown,null,'100 ml'),'post','prior','kerupuk',null,text);
+  assert.equal(result.calories,null);assert.equal(result.protein_g,null);assert.match(result.source_ref,/^estimate:/);
+  assert.equal(foodApproximation(result).kind,'estimate');
+ }
+ // A real consumed amount can still scale by its volume ratio, without any
+ // inference that the 200 ml correction weighs 200 grams.
+ const known=storedNutrition(scaleNutrition(food,50),'prior');
+ const doubled=await resolvePortionNutrition(storedDb(known,null,'100 ml'),'post','prior','kerupuk',null,'200 ml');
+ assert.equal(doubled.calories,500);assert.equal(doubled.protein_g,2);
+ const same=await resolvePortionNutrition(storedDb(known,null,'100 ml'),'post','prior','kerupuk',null,'100 ml');
+ assert.equal(same.calories,250);
 }));
