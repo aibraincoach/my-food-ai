@@ -123,6 +123,7 @@ export function scaleNutrition(
   const micronutrients = food.foodNutrients.map((nutrient) => ({
     ...nutrient, value: factor === null ? null : nutrient.value * factor,
     basis: "portion" as const,
+    ...(food.approximation?{approximation:{...food.approximation,sourceRef}}:{}),
   }));
   if (factor === null) {
     return {

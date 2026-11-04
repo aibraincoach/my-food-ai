@@ -1,3 +1,4 @@
+import { approximationLabels } from "@/lib/fdc/approximation-metadata";
 import {writePendingNames,writePendingKcal} from './pending-items';
 import { syncItemDrinks } from "@/lib/intake/drinks-from-items";
 import { sendPostPush } from "@/lib/push/send";
@@ -63,14 +64,12 @@ export async function persistAnalysis(
   }[] = [];
  await writePendingNames(admin,named.postId,rows.map(row=>row.name),jobId);
  const resolutionBudget=nutritionResolutionBudget();
- const approximations:{name:string;basis:string}[]=[];
   const {data:context,error:contextError,status:contextStatus}=await admin.from("posts").select("caption").eq("id",named.postId).abortSignal(resolutionBudget).single();
   if(contextError)throw ioError("Meal context could not be read.",contextError,resolutionBudget.aborted?503:contextStatus);
   const resolved = await resolveNutritionItems(rows,resolutionBudget,async (row,index,signal) => {
     const copied=copiedNutrition?.[index];
     if(copied)await traceNutritionReuse(row.name,copied,"copied",typeof copied.post_item_id==="string"?copied.post_item_id:undefined);
     const food=copied?null:await resolveFoodMatch(admin,row.name,context.caption??"",signal,{approximate:true});
-    if(food?.approximation)approximations.push({name:row.name,basis:food.approximation.basis});
     const scaled = scaleNutrition(food, row.portionGrams);
     const nutritionProgress=copied?.calories??scaled.calories;
     await writePendingKcal(admin,named.postId,index,typeof nutritionProgress==='number'?nutritionProgress:null,jobId);
@@ -98,6 +97,7 @@ export async function persistAnalysis(
   });
   items.push(...resolved);
   const totals = sumNutrition(items.map(item=>({...item.nutrition,name:item.name})));
+  const approximations=approximationLabels(items.map(item=>({name:item.name,...item.nutrition})));
   const summary = await safeSummary(named.summary, totals, approximations);
   const args = {
     p_job_id: jobId ?? null,

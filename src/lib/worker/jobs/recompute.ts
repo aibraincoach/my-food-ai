@@ -1,3 +1,4 @@
+import { approximationLabels } from "@/lib/fdc/approximation-metadata";
 import { resolvePortionNutrition } from "@/lib/nutrition/portion";
 import { ioError } from "@/lib/worker/errors";
 import type { SupabaseClient } from "@supabase/supabase-js";
@@ -21,12 +22,6 @@ export default async function recompute(admin: SupabaseClient, job: JobRow): Pro
     .select("id,name,portion_grams,portion_text,supersedes").eq("post_id", job.post_id);
   if (error) throw ioError(`recompute items: ${error.message}`, error, itemsStatus);
  const resolutionBudget=nutritionResolutionBudget();
- const approximations:{itemId:string;name:string;basis:string;sourceRef:string}[]=[];
- // Acknowledge provenance before nutrition writes, so a later summary failure
- // cannot lose the label when a retry skips already-written nutrition rows.
- for(const value of Array.isArray(job.payload.nutrition_approximations)?job.payload.nutrition_approximations:[]){
-   if(value&&typeof value==='object'&&typeof value.itemId==='string'&&typeof value.name==='string'&&typeof value.basis==='string'&&typeof value.sourceRef==='string')approximations.push(value);
- }
   const {data:context,error:contextError,status:contextStatus}=await admin.from("posts").select("caption").eq("id",job.post_id).abortSignal(resolutionBudget).single();
   if(contextError)throw ioError("Recompute context could not be read.",contextError,resolutionBudget.aborted?503:contextStatus);
   if (items?.length) {
@@ -43,7 +38,6 @@ export default async function recompute(admin: SupabaseClient, job: JobRow): Pro
       const retained = await resolvePortionNutrition(admin, job.post_id!, item.supersedes, item.name, item.portion_grams, item.portion_text,signal);
       if (retained) return {...retained,post_item_id:item.id};
       const food = await resolveFoodMatch(admin,item.name,context.caption??"",signal,{approximate:true});
-      if(food?.approximation)approximations.push({itemId:item.id,name:item.name,basis:food.approximation.basis,sourceRef:String(food.fdcId)});
       const n = scaleNutrition(food, item.portion_grams == null ? null : toNumber(item.portion_grams));
       return {
         post_item_id: item.id, calories: n.calories, protein_g: n.proteinG,
@@ -53,21 +47,17 @@ export default async function recompute(admin: SupabaseClient, job: JobRow): Pro
     });
     const writes=resolved.filter(row=>row!==null);
     if(writes.length){
-      if(approximations.length){
-        const {data:saved,error:provenanceError,status:provenanceStatus}=await admin.from('jobs').update({payload:{...job.payload,nutrition_approximations:approximations}}).eq('id',job.id).eq('status','running').select('id').maybeSingle();
-        if(provenanceError)throw ioError('Nutrition provenance could not be saved.',provenanceError,provenanceStatus);
-        if(!saved)throw new Error('Nutrition provenance was not acknowledged.');
-      }
       const {error:writeError,status:writeStatus}=await admin.from("item_nutrition")
         .upsert(writes,{onConflict:"post_item_id",ignoreDuplicates:true});
       if(writeError)throw ioError(`recompute save: ${writeError.message}`,writeError,writeStatus);
     }
   }
-  if(approximations.length){
+  {
     const {getCurrentItems,sumNutrition}=await import('@/lib/nutrition/totals');
     const {safeSummary}=await import('@/lib/pipeline/wording');
     const current=await getCurrentItems(admin,job.post_id,{requireNutrition:true});
-    const labels=approximations.filter(label=>current.some(item=>item.id===label.itemId&&item.name===label.name&&item.source_ref===label.sourceRef));
+    const labels=approximationLabels(current);
+    if(labels.length){
     const body=await safeSummary('',sumNutrition(current),labels);
     // Post lock, job ownership and current source refs are rechecked together.
     const {error:summaryError,status:summaryStatus}=await admin.rpc('refresh_owned_approximation_summary',{
@@ -75,6 +65,7 @@ export default async function recompute(admin: SupabaseClient, job: JobRow): Pro
       p_expected:current.map(item=>({id:item.id,source_ref:item.source_ref})),
     });
     if(summaryError)throw ioError('Nutrition summary could not be saved.',summaryError,summaryStatus);
+    }
   }
   await markReady(job.post_id, admin,job.id);
 }
@@ -112,19 +103,17 @@ async function rebuildRemoved(admin:SupabaseClient,job:JobRow){
  const {isOwnedPhotoPath}=await import('@/lib/media/paths');
  type RebuiltRow=Pick<CurrentItem,'name'|'portion_text'|'portion_grams'|'box'|'mask_path'> & Partial<Pick<CurrentItem,'gtin'|'not_eaten_grams'|'not_eaten_calories'|'count_text'|'not_eaten_count_text'>> & {supersedes?:string|null;nutrition:NutritionLike & {micronutrients:StoredNutrient[];source_ref:string|null}};
  let rows:RebuiltRow[]=items.map(item=>({...item,nutrition:{...item}}));
- const approximations:{name:string;basis:string;sourceRef:string}[]=[];
  const install=(next:RebuiltRow[])=>{rows=next;items=next.map(row=>({...row,...row.nutrition,id:typeof row.supersedes==='string'?row.supersedes:crypto.randomUUID(),source:'model' as const,name:row.name,portion_text:row.portion_text??null,portion_grams:row.portion_grams??null,box:row.box??null,mask_path:row.mask_path??null,micronutrients:row.nutrition.micronutrients??[],source_ref:row.nutrition.source_ref??null}));};
  for(const [index,comment] of comments.entries()){
   const result=await replayCorrection(admin,postId,items,[comment],comments.slice(0,index),false,true);
   if(result.result.needs_input)throw Error('The remaining correction needs clarification before the meal can be rebuilt.');
-  approximations.push(...result.approximations);
   install(result.rows as unknown as RebuiltRow[]);
  }
  for(const photo of photos??[]){
   if(!isOwnedPhotoPath(photo.storage_path,post.user_id,postId))throw Error('Leftovers photo does not belong to this meal.');
   install(await replayRemainder(admin,photo.storage_path,items) as unknown as RebuiltRow[]);
  }
- const labels=approximations.filter(label=>items.some(item=>item.name===label.name&&item.source_ref===label.sourceRef));
+ const labels=approximationLabels(items);
  const summary=(await safeSummary('',sumNutrition(items),labels)).replace(/[.]$/,'');
  const removed=thread.find(comment=>comment.id===job.payload.comment_id);
  const reply=job.payload.reason==='media_removed'?`${job.payload.media_unmarked===true?'Unmarked the leftovers photo.':'Removed the leftovers photo.'} ${summary}.`:`Removed the correction "${(removed?.body??'').slice(0,60)}". ${summary}.`;
