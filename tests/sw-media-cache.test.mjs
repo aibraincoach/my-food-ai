@@ -213,3 +213,16 @@ test('logout while navigation waits prevents serving the cached shell after its 
  assert.equal(result,undefined,'signed-out navigation must wait for its origin response');
  release(new Response('signed-out page'));assert.equal(await(await pending).text(),'signed-out page');await w.flush();
 });
+
+
+test('density-specific copies remain distinct and owner-scoped in the private cache',async()=>{
+ const w=worker();await w.authenticate();
+ for(const variant of ['v2-1040.webp','v2-1560.webp']){
+  const url=resized.replace('v1.webp',variant);
+  const first=await(await w.request(url)).text();assert.equal(await(await w.request(url)).text(),first);
+ }
+ assert.equal(w.stores.get(MEDIA).size,2);assert.equal(w.fetches(),2);
+ const foreign=worker();await foreign.authenticate();
+ await foreign.request(resized.replace('v1.webp','v2-1560.webp').replace(OWNER,OTHER),{}, {settle:false});
+ await foreign.clear();await foreign.flush();assert.equal(foreign.stores.has(MEDIA),false);
+});

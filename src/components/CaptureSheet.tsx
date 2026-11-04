@@ -290,16 +290,12 @@ export default function CaptureSheet({ onClose, initialMode = "photo", forPost, 
       onClose();
     }catch(e){setError(e instanceof Error?e.message:"The meal could not be saved.");}finally{postingRef.current=false;setPosting(false);}
   };
-  const attachmentUpload=useRef<PackPhotoUpload|null>(null);
   const attachFile=async(file:File)=>{
     if(!forPost)return false;
     postingRef.current=true;setPosting(true);setError(null);
     try{
-      attachmentUpload.current??=new PackPhotoUpload();
-      const photo=await attachmentUpload.current.prepare(file);
-      const response=await fetch(`/api/posts/${forPost}/media`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({photo,not_eaten:attachmentIsLeftovers})});
-      const result=await response.json();if(!response.ok)throw Error(result.error??"The photo could not be attached. Your photo was kept; try again.");
-      window.dispatchEvent(new CustomEvent("post-created",{detail:{id:forPost}}));
+      // The file is kept on this device; upload and attachment continue in the background.
+      await uploadManager.postAttachment(file,{postId:forPost,notEaten:attachmentIsLeftovers});
       onClose();router.refresh();return true;
     }catch(e){if(mountedRef.current)setError(e instanceof Error?e.message:"The photo could not be attached. Your photo was kept; try again.");return false;}
     finally{postingRef.current=false;if(mountedRef.current)setPosting(false);}

@@ -27,7 +27,9 @@ export async function estimateFood(name: string, caption: string, signal?: Abort
     let parsed: Estimate;
     try { parsed = JSON.parse(result.outputText) as Estimate; } catch { throw new MetaApiError(502, "Nutrition estimate was invalid."); }
     if (typeof parsed !== "object" || parsed === null || Array.isArray(parsed) || typeof parsed.food !== "boolean" || typeof parsed.basis !== "string") throw new MetaApiError(502, "Nutrition estimate was invalid.");
-    if (!parsed.food || parsed.calories === null || !parsed.basis.trim()) return null;
+    if (!parsed.food) return null;
+    // A food answer without usable numbers is a provider failure, not a non-food.
+    if (parsed.calories === null || !parsed.basis.trim()) throw Object.assign(new MetaApiError(502, "Nutrition estimate had no usable numbers."), {noEstimate: true});
     if (![within(parsed.calories, 900), within(parsed.protein_g, 100), within(parsed.carbs_g, 100), within(parsed.fat_g, 100), within(parsed.fibre_g, 100), within(parsed.sugar_g, 100), within(parsed.sodium_mg, 40000)].every(Boolean)) throw new MetaApiError(502, "Nutrition estimate was out of range.");
     const basis = parsed.basis.trim();
     return {

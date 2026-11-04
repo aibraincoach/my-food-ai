@@ -7,6 +7,7 @@ import { nutritionBudgetMs, NUTRITION_MAX_MS } from "@/lib/worker/budget";
 import { FOOD_MATCH_VERSION } from "./version";
 import { closestGenericFood } from "./approximate";
 import { estimateFood } from "./estimate";
+import { type UnavailableReason } from "./unavailable";
 
 export const NUTRITION_RESOLUTION_MS = NUTRITION_MAX_MS;
 export const nutritionResolutionBudget = () => AbortSignal.timeout(nutritionBudgetMs());
@@ -73,27 +74,38 @@ export async function matchFood(name: string, caption: string, dependencies: Mat
     const decision=await dependencies.choose(name,caption,candidates,attempt>0,query,2-attempt);
     const food=decision.id===null?null:candidates.find(f=>f.fdcId===decision.id)??null;
     if(decision.id!==null&&!food)throw new Error("Food decision selected an ineligible candidate.");
-    if(food)return {food,reason:decision.reason,searches:attempt+1,baseFood:baseQuery};
+    if(food)return {food,reason:decision.reason,searches:attempt+1,baseFood:baseQuery??query};
     const improved=decision.query?(decision.query_food?requiredFoodSearchQuery(decision.query,decision.query_food):foodSearchQuery(decision.query)):null;
     // Retain the first category if the next decision has no distinct refinement.
     if(attempt===0&&decision.query_food)baseQuery=foodSearchQuery(decision.query_food);
     const next=[improved,...(attempt>0?[baseQuery]:[])].find(candidate=>candidate&&!searched.has(candidate.toLowerCase()));
-    if(attempt===2||!next)return {food:null,reason:decision.reason,searches:attempt+1,baseFood:baseQuery};
+    if(attempt===2||!next)return {food:null,reason:decision.reason,searches:attempt+1,baseFood:baseQuery??query};
     query=next;
   }
   throw new Error("Unreachable match state.");
 }
 
-export async function resolveFoodMatch(admin:SupabaseClient,name:string,caption="",signal:AbortSignal=nutritionResolutionBudget(),options:{approximate?:boolean}={}):Promise<FdcFood|null>{
+// The food, or why there is none: the reason travels with the item (issue #575).
+export async function resolveFoodMatchDetailed(admin:SupabaseClient,name:string,caption="",signal:AbortSignal=nutritionResolutionBudget(),options:{approximate?:boolean}={}):Promise<{food:FdcFood|null;unavailable:UnavailableReason|null}>{
   try {
     const result=await recordCall("fdc",{event:"food_resolution",name,matcherVersion:FOOD_MATCH_VERSION},()=>matchFood(name,caption,{search:query=>searchFoods(admin,query,signal),choose:(item,context,foods,retry,query,remaining)=>choose(item,context,foods,retry,signal,query,remaining)},signal),r=>({text:{source:r.food?"selected":"unavailable",reason:r.reason,searches:r.searches},fdcId:r.food?.fdcId??null}));
-    if(result.food||!options.approximate)return result.food;
-    const closest=result.baseFood?await closestGenericFood(admin,name,caption,result.baseFood,signal):null;
-    return closest??await estimateFood(name,caption,signal);
+    if(result.food)return {food:result.food,unavailable:null};
+    if(!options.approximate)return {food:null,unavailable:{code:'no_match',detail:result.reason}};
+    const closest=result.baseFood?await closestGenericFood(admin,name,caption,result.baseFood,signal):{food:null,reason:result.reason};
+    if(closest.food)return {food:closest.food,unavailable:null};
+    let estimate:FdcFood|null=null;
+    try{estimate=await estimateFood(name,caption,signal);}
+    catch(error){if(!(error as {noEstimate?:boolean})?.noEstimate)throw error;return {food:null,unavailable:{code:'no_estimate',detail:closest.reason}};}
+    if(estimate)return {food:estimate,unavailable:null};
+    // estimateFood returns null only for a non-food; the closest step's reason is the last word on the match.
+    return {food:null,unavailable:{code:'not_food',detail:closest.reason}};
   } catch(error) {
     if(signal.aborted)throw new MetaApiError(503,"Food resolution budget was exhausted.");
     throw error;
   }
+}
+export async function resolveFoodMatch(admin:SupabaseClient,name:string,caption="",signal:AbortSignal=nutritionResolutionBudget(),options:{approximate?:boolean}={}):Promise<FdcFood|null>{
+  return (await resolveFoodMatchDetailed(admin,name,caption,signal,options)).food;
 }
 
 export async function traceNutritionReuse<T extends {source_ref?:unknown;matcher_version?:unknown}>(name:string,nutrition:T,source:string,sourceItem?:string){

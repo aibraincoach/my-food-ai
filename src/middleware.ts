@@ -7,8 +7,6 @@ import { adminRequestAllowed, adminNotFoundResponse } from "@/lib/auth/admin-acc
 import { postRequestAllowed } from "@/lib/auth/post-access";
 import { sessionCookieBridge } from "@/lib/auth/session-cookies";
 
-import { homePhotoPreload } from "@/lib/posts/home-photo-preload";
-
 const PROTECTED = ["/", "/search", "/days", "/profile", "/posts"];
 
 export async function middleware(request: NextRequest) {
@@ -60,11 +58,9 @@ export async function middleware(request: NextRequest) {
     } catch { /* Unknown identity leaves private caching disabled. */ }
   }
   if (pathname === "/" && user) {
-    const preload = await homePhotoPreload(supabase, pathname, user.id);
-    if (preload) {
-      session.response.headers.append("Link", preload);
-      session.response.headers.set("Cache-Control", "private, no-store");
-    }
+    // Responsive image preloads belong in HTML: HTTP Link headers cannot
+    // select a density candidate and can fetch the base photo as well.
+    session.response.headers.set("Cache-Control", "private, no-store");
   }
   return session.response;
 }
