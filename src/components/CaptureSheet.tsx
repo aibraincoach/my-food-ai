@@ -2,6 +2,7 @@
 "use client";
 import OpenFoodFactsAttribution from './OpenFoodFactsAttribution';
 import {useDesktop} from "@/lib/ui/use-desktop";
+import {useCameraMode} from "@/lib/media/camera-mode";
 import {lockBodyScroll} from '@/lib/ui/scroll-lock';
 import {formatGtin} from "@/lib/fdc/gtin";
 import CorrectProductSheet from "@/components/CorrectProductSheet";
@@ -38,6 +39,7 @@ export type CaptureMode = "photo" | "text" | "barcode";
 export default function CaptureSheet({ onClose, initialMode = "photo", forPost, attachNotEaten = false, initialFiles }: { onClose: () => void; initialMode?: CaptureMode; forPost?: string; attachNotEaten?: boolean; initialFiles?: File[] }) {
   const router = useRouter();
   const desktop=useDesktop();
+  const phoneCamera=useCameraMode()==='phone'&&!desktop;
   const [cameraAttempt,setCameraAttempt]=useState(0);
   const [devices,setDevices]=useState<MediaDeviceInfo[]>([]);
   const [deviceId,setDeviceId]=useState('');
@@ -161,7 +163,7 @@ export default function CaptureSheet({ onClose, initialMode = "photo", forPost, 
     if (!shotsRef.current.length && !pendingFilesRef.current.length) selectedPhotoRef.current = false;
   };
 
-  const cameraEnabled = mode !== "text" && (!composer || takingPhoto);
+  const cameraEnabled = mode !== "text" && (!composer || takingPhoto) && !(phoneCamera && mode === "photo");
   useEffect(() => {
     mountedRef.current = true;
     let cancelled = false;
@@ -353,7 +355,7 @@ export default function CaptureSheet({ onClose, initialMode = "photo", forPost, 
 
   const takePhoto = async () => {
     if (postingRef.current || cameraBusy || shotsRef.current.length >= MAX_SHOTS) return;
-    if (!stream || !videoRef.current) { cameraRef.current?.click(); return; }
+    if ((phoneCamera && mode === "photo") || !stream || !videoRef.current) { cameraRef.current?.click(); return; }
     setCameraBusy(true);setTakingPhoto(true);
     try {
       selectedPhotoRef.current = true;
@@ -396,6 +398,17 @@ export default function CaptureSheet({ onClose, initialMode = "photo", forPost, 
     if(operationRef.current){if(!shotsRef.current.length){void uploadManager.remove(operationRef.current);operationRef.current=null;setOperationId(null);}else operationRef.current=uploadManager.stage(shotsRef.current.map(shot=>shot.file),{caption,eatenAt:when===null?null:fromLocalInput(when),location:locationEnabled?location:null,options:{not_eaten_positions:notEaten.filter(value=>value!==index).map(value=>value>index?value-1:value).filter(value=>value>0),save_as_meal:saveAsMeal}},operationRef.current);}
     setNotEaten(values=>values.filter(value=>value!==index).map(value=>value>index?value-1:value).filter(value=>value>0));setPhotoIndex(value=>Math.max(0,Math.min(value,shotsRef.current.length-1)));
     if (!shotsRef.current.length && !pendingFilesRef.current.length) selectedPhotoRef.current = false;
+  };
+
+  const savePhoto = async () => {
+    const shot = shotsRef.current[photoIndex];
+    if (!shot) return;
+    try {
+      if (typeof navigator.share === "function" && typeof navigator.canShare === "function" && navigator.canShare({ files: [shot.file] })) {
+        await navigator.share({ files: [shot.file] }); return;
+      }
+      const link = document.createElement("a"); link.href = shot.previewUrl; link.download = "meal.jpg"; link.click();
+    } catch { /* The user can dismiss the share sheet. */ }
   };
 
   const post = async () => {
@@ -470,7 +483,7 @@ export default function CaptureSheet({ onClose, initialMode = "photo", forPost, 
 
 
   if(!forPost&&composer&&mode!=="barcode"&&barcodeState==="idle"&&labelState==="idle")return <div ref={dialogRef} role="dialog" aria-modal="true" aria-labelledby="capture-title" className="desktop-capture fixed inset-x-0 top-0 z-50 h-dvh overflow-hidden bg-surface" style={viewport?{height:viewport.height,top:viewport.top}:undefined}>
-    <div className="desktop-capture-inner mx-auto h-full max-w-phone desktop:max-w-[760px]"><LightComposer cameraPreview={cameraPreview} upload={upload} shots={shots} caption={caption} setCaption={setCaption} index={photoIndex} setIndex={setPhotoIndex} notEaten={notEaten} setNotEaten={setNotEaten} when={when} setWhen={setWhen} locationEnabled={locationEnabled} setLocationEnabled={enableLocation} saveAsMeal={saveAsMeal} setSaveAsMeal={setSaveAsMeal} busy={posting||cameraBusy} error={error} pending={pendingCount} onBack={closeDraft} onPhoto={()=>{setSearchingFoods(false);setComposer(false);setMode("photo");setStream(null);}} onSearch={()=>setSearchingFoods(value=>!value)} onPost={()=>{void post();}} onRemove={removeShot}
+    <div className="desktop-capture-inner mx-auto h-full max-w-phone desktop:max-w-[760px]"><LightComposer cameraPreview={cameraPreview} upload={upload} shots={shots} caption={caption} setCaption={setCaption} index={photoIndex} setIndex={setPhotoIndex} notEaten={notEaten} setNotEaten={setNotEaten} when={when} setWhen={setWhen} locationEnabled={locationEnabled} setLocationEnabled={enableLocation} saveAsMeal={saveAsMeal} setSaveAsMeal={setSaveAsMeal} busy={posting||cameraBusy} error={error} pending={pendingCount} onBack={closeDraft} onPhoto={()=>{setSearchingFoods(false);setComposer(false);setMode("photo");setStream(null);}} onSearch={()=>setSearchingFoods(value=>!value)} onPost={()=>{void post();}} onRemove={removeShot} onSavePhoto={phoneCamera?undefined:()=>{void savePhoto();}}
       searchPanel={searchingFoods?<div className="px-inset"><FoodSearchPanel eatenAt={when===null?null:fromLocalInput(when)} disabled={posting} onQueued={()=>{if(operationRef.current)void uploadManager.remove(operationRef.current);onClose();}} onDescribe={text=>{if(text&&!caption.trim())setCaption(text);setSearchingFoods(false);setError(null);}} onError={setError}/></div>:null}>
       <input ref={galleryRef} type="file" accept="image/*" multiple className="hidden" onChange={event=>{void addFiles(event.target.files);event.target.value='';}}/>
     </LightComposer></div>
@@ -495,6 +508,7 @@ export default function CaptureSheet({ onClose, initialMode = "photo", forPost, 
             // Local blob previews require no remote image transformation.
             <img src={latest.previewUrl} alt="Latest meal photo" className="h-full w-full object-cover" />
           ) : desktop&&forPost ? null : <Icon name="camera" />}
+          {phoneCamera&&mode==="photo"&&!latest&&<p className="absolute inset-x-6 bottom-6 text-center text-[14px] text-surface">The shutter opens the phone&apos;s camera app. Change this under Profile.</p>}
           {desktop&&(cameraUnavailable||forPost&&!stream&&!latest)&&<div className="absolute inset-0 flex flex-col items-center justify-center gap-3 px-6 text-center text-white">
             {forPost&&!stream&&!latest&&<><p className="text-[14px] font-semibold">Drop a photo here</p><p className="text-[13px] text-white/70">or paste one with ⌘V</p><button type="button" disabled={posting} onClick={()=>galleryRef.current?.click()} className="h-[42px] rounded-field bg-white px-[18px] text-[14px] font-semibold text-text disabled:opacity-50">Choose a file</button></>}
             {cameraUnavailable&&<button type="button" onClick={()=>setCameraAttempt(value=>value+1)} className="rounded-field border border-white/40 px-5 py-3 text-[14px] text-white">Allow camera</button>}
