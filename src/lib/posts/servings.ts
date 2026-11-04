@@ -12,3 +12,13 @@ export function stepServings(current: number, direction: 1 | -1): number {
 }
 
 export const servingsLabel = (value: number): string => String(Number(value.toFixed(2)));
+
+
+// Accept decimal text within the stored range, then keep it on the quarter grid.
+export function parseServings(text: string): number | null {
+  const normalized = text.trim().replace(",", ".");
+  if (!/^(?:\d+(?:\.\d*)?|\.\d+)$/.test(normalized)) return null;
+  const value = Number(normalized);
+  if (!Number.isFinite(value) || value < MIN_SERVINGS || value > MAX_SERVINGS) return null;
+  return Math.round(value * 4) / 4;
+}
