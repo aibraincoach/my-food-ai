@@ -411,7 +411,7 @@ export default function CaptureSheet({ onClose, initialMode = "photo", forPost, 
       const eatenAt = when === null ? null : fromLocalInput(when);
       if (when !== null && !eatenAt) throw new Error("Choose a time that is not in the future.");
       const id=uploadManager.stage(shotsRef.current.map(shot=>shot.file),{caption,location:chosenLocation,eatenAt,options:{not_eaten_positions:notEaten,save_as_meal:saveAsMeal}},operationRef.current??undefined);
-      operationRef.current=id;setOperationId(id);await uploadManager.post(id);onClose();router.refresh();
+      operationRef.current=id;setOperationId(id);if(!await uploadManager.post(id))throw new Error("The post could not be kept on this phone. Keep this screen open and try again.");onClose();router.refresh();
     } catch (e) {
       setError(e instanceof Error ? e.message : "Posting failed.");
     } finally {
