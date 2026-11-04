@@ -1,0 +1,16 @@
+{
+  "at": "2026-11-04T01:16:22.653757+00:00",
+  "main": "ca07be7014431d492039dafdda80186a2c697fb7",
+  "worktrees": [
+    "/home/opc/Projects/my-food-ai"
+  ],
+  "status": "?? docs/reviews/mfa-pplx-pr311-e7ece5c.md",
+  "fleet11LocalBranches": [],
+  "mergedFleet11RemoteBranchesRemoved": true,
+  "docsRemoteBranchRetainedForOpenPR475": true,
+  "disposablePortsListening": [],
+  "disposableCredentialsAndStackRemoved": true,
+  "previewBypassRevoked": true,
+  "originalUntrackedFilePreserved": true,
+  "cleanupScriptOutput": "=== firefox (mfa-pplx) processes ===\nnone\n=== mfa-pplx profiles ===\nnone\n=== git worktree list ===\n/home/opc/Projects/my-food-ai  ca07be7 [main]\n"
+}
