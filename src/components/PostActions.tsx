@@ -17,7 +17,12 @@ export default function PostActions({postId,modelCommentId,fingerprint,drink=fal
   const ready=(post?.status??status)==='ready';
   const save=()=>{if(bookmarkRef.current.pending)return;const previous=bookmarkRef.current;const next=beginBookmark({...previous,id:visibleSaved?previous.id:null});bookmarkRef.current=next;setBookmark(next);
    const detail={postId,savedMealId:previous.id,previousSaved:visibleSaved};
-   if(!ready&&!visibleSaved){const onSettled=(event:Event)=>{const settled=(event as CustomEvent<{id?:string;status?:string}>).detail;if(settled?.id!==postId||settled?.status!=='ready')return;window.removeEventListener('post-settled',onSettled);window.dispatchEvent(new CustomEvent('save-meal',{detail}));};window.addEventListener('post-settled',onSettled);return;}
+   if(!ready&&!visibleSaved){
+     const cleanup=()=>{window.removeEventListener('post-settled',onSettled);window.removeEventListener('post-ready',onReady);};
+     const onReady=(event:Event)=>{const d=(event as CustomEvent<{id?:string}>).detail;if(d?.id!==postId)return;cleanup();window.dispatchEvent(new CustomEvent('save-meal',{detail}));};
+     const onSettled=(event:Event)=>{const settled=(event as CustomEvent<{id?:string;status?:string}>).detail;if(settled?.id!==postId)return;if(settled?.status==='failed'){cleanup();const next=finishBookmark({id:null,pending:false},null,true);bookmarkRef.current=next;setBookmark(next);return;}if(settled?.status==='ready')onReady(event);};
+     window.addEventListener('post-settled',onSettled);window.addEventListener('post-ready',onReady);return;}
+   if((post?.status??status)==='failed'){const next=finishBookmark({id:null,pending:false},null,true);bookmarkRef.current=next;setBookmark(next);return;}
    window.dispatchEvent(new CustomEvent('save-meal',{detail}));
   };
   const controlsRight=16+(drink?66:150)+(detail?0:78);
