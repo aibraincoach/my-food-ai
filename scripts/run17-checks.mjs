@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// Fleet 17 readings: post-close (Chromium CDP) and beer (Firefox BiDi).
+// Fleet 17 readings: post-close (Chromium CDP) and beer (Firefox BiDi). Exits 1 when any check fails or cleanup is incomplete (#628).
 // node --env-file=.env.local scripts/run17-checks.mjs --mode=post-close --cdp=http://127.0.0.1:9245 --url=http://127.0.0.1:3000 --out=uploads/run17/post-close.json
 // node --env-file=.env.local scripts/run17-checks.mjs --mode=beer --bidi=ws://127.0.0.1:19515/session --url=http://127.0.0.1:3000 --out=uploads/run17/beer.json
 import {readFile,writeFile,mkdir} from 'node:fs/promises';
@@ -19,6 +19,8 @@ const ledger={startedAt:new Date().toISOString(),posts:[],cleanup:[]},receipt={o
 await mkdir('uploads/run17',{recursive:true});
 const save=()=>writeFile(options.ledger||'uploads/run17/checks-private.json',JSON.stringify(ledger,null,2)+'\n',{mode:0o600});
 const pause=ms=>new Promise(r=>setTimeout(r,ms));
+// #628: the fixture push row is removed at the end of every beer run, including one left by an earlier run.
+const PUSH_FIXTURE='https://fcm.googleapis.com/run17-fixture';
 
 async function storedPaths(prefix){const paths=[];for(let offset=0;;offset+=1000){const list=checked(await admin.storage.from('media').list(prefix,{limit:1000,offset}));for(const o of list){const path=prefix+'/'+o.name;if(o.id)paths.push(path);else paths.push(...await storedPaths(path));}if(list.length<1000)return paths;}}
 
@@ -105,22 +107,25 @@ try{
    if(run<3)await pause(8000);
   }
   receipt.pass=receipt.runs.every(r=>r.closeMs<=1000&&r.uploading);
+  if(!receipt.pass)process.exitCode=1;
  }else{
   let tickStop=false;const tick=setInterval(()=>{fetch(new URL('/api/jobs/tick',base),{signal:AbortSignal.timeout(20000)}).catch(()=>{});},2500);
   try{
-   if(process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY)await admin.from('push_subscriptions').upsert({user_id:user.id,endpoint:'https://fcm.googleapis.com/run17-fixture',keys:{p256dh:'A'.repeat(87),auth:'A'.repeat(22)}},{onConflict:'endpoint'});
+      if(process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY){checked(await admin.from('push_subscriptions').upsert({user_id:user.id,endpoint:PUSH_FIXTURE,keys:{p256dh:'A'.repeat(87),auth:'A'.repeat(22)}},{onConflict:'endpoint'}));ledger.pushFixture=true;await save();}
    const bytes=await readFile(new URL('./fixtures/plate3.jpg',import.meta.url));
    const {postId}=await injectFixture('run17-beer.jpg',bytes,'image/jpeg','a glass of beer');
-   const samples=[];const snap=async label=>{
-    const post=checked(await admin.from('posts').select('status,needs_input,question').eq('id',postId).eq('user_id',user.id).maybeSingle());
-    const items=checked(await admin.from('current_post_items').select('name').eq('post_id',postId));
-    const feed=await evaluate(`(()=>{const link=document.querySelector('a[href="/posts/${postId}"]');const card=link?.closest('article')||link;return {card:!!card,statusText:card?.textContent?.slice(0,240)||null};})()`).catch(()=>({card:false}));
+      // #628: every sample names the post it read; the dismiss samples read the second post.
+      const samples=[];const snap=async(label,id=postId)=>{
+       const post=checked(await admin.from('posts').select('status,needs_input,question').eq('id',id).eq('user_id',user.id).maybeSingle());
+       const items=checked(await admin.from('current_post_items').select('name').eq('post_id',id));
+       const feed=await evaluate(`(()=>{const link=document.querySelector('a[href="/posts/${id}"]');const card=link?.closest('article')||link;return {card:!!card,statusText:card?.textContent?.slice(0,240)||null};})()`).catch(()=>({card:false}));
     const strip=await evaluate(`(()=>{const row=[...document.querySelectorAll('button')].find(b=>b.textContent?.includes('question')||b.textContent?.includes('beer')||b.textContent?.includes('Clarification'));return !!row;})()`).catch(()=>false);
-    samples.push({label,feed,strip,items:items?.map(i=>i.name),post});
+    samples.push({label,id,feed,strip,items:items?.map(i=>i.name),post});
    };
    for(const delay of [1000,5000]){await pause(delay);await snap(`${delay}ms`);}
    let settled=null;for(let i=0;i<40;i++){await pause(5000);await snap(`settle-${i}`);const st=samples.at(-1).post?.status;if(st==='ready'&&samples.at(-1).post?.question){settled=samples.at(-1);break;}if(st==='failed'||st==='needs_input')break;}
-   receipt.postId=postId;
+      receipt.postId=postId;
+      if(!settled)throw Error('The beer post never settled with a question');
    if(settled?.post?.question?.options?.[0]){
     await evaluate(`(()=>{const row=[...document.querySelectorAll('button')].find(b=>(b.textContent||'').includes('A question about this meal'));if(!row)throw Error('Strip row missing');row.click();return true;})()`);
     await until(`!!document.querySelector('[aria-label="Your answer"]')`,15000);
@@ -131,14 +136,24 @@ try{
    }
    const bytes2=await readFile(new URL('./fixtures/plate3.jpg',import.meta.url));
    const second=await injectFixture('run17-beer-2.jpg',bytes2,'image/jpeg','a glass of beer');
-   for(let i=0;i<40;i++){await pause(5000);await snap(`dismiss-wait-${i}`);if(samples.at(-1).post?.status==='ready'&&samples.at(-1).post?.question)break;}
-   const dismissId=second.postId;
-   await evaluate(`(()=>{const x=[...document.querySelectorAll('button[aria-label="Dismiss question"]')].find(b=>b.closest('div')?.textContent?.includes('beer')||true);if(!x)throw Error('Dismiss control missing');x.click();return true;})()`);
-   await pause(2000);
-   await snap('after-dismiss');
-   const still=checked(await admin.from('posts').select('id,question').eq('id',dismissId).eq('user_id',user.id).maybeSingle());
+      const dismissId=second.postId;receipt.dismissPostId=dismissId;
+      for(let i=0;i<40;i++){await pause(5000);await snap(`dismiss-wait-${i}`,dismissId);if(samples.at(-1).post?.status==='ready'&&samples.at(-1).post?.question)break;}
+      const asked=samples.at(-1).post?.question?.question;
+      if(samples.at(-1).post?.status!=='ready'||typeof asked!=='string')throw Error('The second beer post never settled with a question');
+      // #628: dismiss only this post's own strip row (matched by its own question text) and prove the request reached this post.
+      const ownRow=`[...document.querySelectorAll('button[aria-label="Dismiss question"]')].filter(b=>b.parentElement?.textContent?.includes(${JSON.stringify(asked)}))`;
+      await until(`${ownRow}.length===1`,30000);
+      await evaluate(`(()=>{window.__dismissCalls=[];const original=window.fetch;window.fetch=async(...args)=>{const u=new URL(typeof args[0]==='string'?args[0]:args[0].url,location.origin);const r=await original(...args);if(args[1]?.method==='DELETE')window.__dismissCalls.push({path:u.pathname,status:r.status});return r;};return true;})()`);
+      await evaluate(`(()=>{const rows=${ownRow};if(rows.length!==1)throw Error('Expected one strip row for this post, found '+rows.length);rows[0].click();return true;})()`);
+      await until(`window.__dismissCalls.length>0`,15000);
+      const calls=await evaluate('window.__dismissCalls');receipt.dismissCalls=calls;
+      if(calls.length!==1||calls[0].path!==`/api/posts/${dismissId}/question`||calls[0].status!==204)throw Error('Dismiss did not reach this post: '+JSON.stringify(calls));
+      await pause(2000);
+      await snap('after-dismiss',dismissId);
+      const still=checked(await admin.from('posts').select('id,question,status').eq('id',dismissId).eq('user_id',user.id).maybeSingle());
    receipt.samples=samples;
-   receipt.pass=Boolean(settled?.feed?.card&&settled?.post?.status==='ready'&&settled?.post?.question&&samples.some(s=>!s.post?.question&&s.label.startsWith('answer'))&&still?.id&&!still?.question);
+      receipt.pass=Boolean(settled?.feed?.card&&settled?.post?.status==='ready'&&settled?.post?.question&&samples.some(s=>!s.post?.question&&s.label.startsWith('answer'))&&still?.id&&!still?.question&&still?.status==='ready');
+      if(!receipt.pass)process.exitCode=1;
   }finally{tickStop=true;clearInterval(tick);}
  }
 }catch(error){receipt.error=error.message;process.exitCode=1;}finally{
@@ -152,6 +167,7 @@ try{
   for(let pass=0;pass<2;pass++){const paths=await storedPaths(prefix);if(paths.length)checked(await admin.storage.from('media').remove(paths));await pause(300);}
   ledger.cleanup.push({id:entry.id,absent:true});
  }catch(e){ledger.cleanup.push({id:entry.id,error:e.message});process.exitCode=1;}await save();}
+    if(mode==='beer')try{checked(await admin.from('push_subscriptions').delete().eq('user_id',user.id).eq('endpoint',PUSH_FIXTURE));if(checked(await admin.from('push_subscriptions').select('id').eq('user_id',user.id).eq('endpoint',PUSH_FIXTURE)).length)throw Error('Push fixture still present');ledger.cleanup.push({pushFixture:'removed'});}catch(e){ledger.cleanup.push({pushFixture:e.message});process.exitCode=1;}await save();
  await writeFile(options.out||`uploads/run17/${mode}.json`,JSON.stringify(receipt,null,2)+'\n');
  console.log(JSON.stringify({mode,pass:receipt.pass??null,runs:receipt.runs?.length??0,error:receipt.error??null}));
 }
