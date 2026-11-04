@@ -1,4 +1,5 @@
 /* eslint-disable @next/next/no-img-element -- Private signed photos bypass paid optimization. */
+import { todayFromPage } from "@/lib/posts/today-view";
 import { verifiedUserId } from "@/lib/auth/verified-user";
 import CleanFreshMarker from "@/components/CleanFreshMarker";
 import DesktopToday from '@/components/DesktopToday';
@@ -24,6 +25,7 @@ import { dateInZone, getDayTotals, getLoggedDates, shiftDay, validZone } from "@
 const homeReader = cache(async () => {
   const db=await createClient(AbortSignal.timeout(8000));
   const verified = await verifiedUserId();
+  if (!verified) console.info("auth verify page /");
   const user = verified ? {id: verified} : (await db.auth.getUser()).data.user;
   return {db,user};
 });
@@ -92,33 +94,19 @@ async function HomeFirstPhoto() {
   </div>;
 }
 
-// Stream real first-card markup before downloading and hydrating the client
-// bundle. Optional day/hydration summaries are filled by the HTTP revalidation.
-async function HomeFeed() {
-  await connection();
-  let initialPage: Awaited<ReturnType<typeof getFeed>> | undefined;
-  let initialUserId: string | undefined;
-  let initialZone = "UTC";
-  try {
-    const seed = await homeDeadline((async () => {
-      const {db,user} = await homeReader();
-      if (!user) return undefined;
-      const zone = validZone((await cookies()).get('time-zone')?.value);
-      const [page, days] = await Promise.all([
-        getFeed(db, user.id, null, zone, 6, {knownDays: Array.from({length: 5}, (_, index) => shiftDay(dateInZone(new Date(), zone), -index)), onFirstPhoto: url => preload(url, {as:'image',fetchPriority:'high',crossOrigin:'anonymous'})}),
-        homeDayTotals().catch(() => []),
-      ]);
-      page.days = [...days, ...page.days];
-      return {page, userId: user.id, zone};
-    })());
-    initialPage = seed?.page;
-    initialUserId = seed?.userId;
-    initialZone = seed?.zone ?? "UTC";
-  } catch { /* The client boundary can retry while the shell stays visible. */ }
-  return <div data-server-feed-ready={initialPage ? true : undefined}><Feed key={initialUserId ?? 'anonymous'} initialPage={initialPage} initialUserId={initialUserId} initialZone={initialZone} /></div>;
+// Share one first-page read between the feed, day summaries and Today.
+const homeSeed=cache(async()=>{
+ const {db,user}=await homeReader();if(!user)return undefined;
+ const zone=validZone((await cookies()).get('time-zone')?.value);
+ const page=await getFeed(db,user.id,null,zone,6,{knownDays:Array.from({length:5},(_,i)=>shiftDay(dateInZone(new Date(),zone),-i)),onFirstPhoto:url=>preload(url,{as:'image',fetchPriority:'high',crossOrigin:'anonymous'})});
+ return {page,userId:user.id,zone};
+});
+async function HomeFeed(){
+ await connection();let initialPage:Awaited<ReturnType<typeof getFeed>>|undefined;let initialUserId:string|undefined;let initialZone='UTC';
+ try{const [seed,days]=await homeDeadline(Promise.all([homeSeed(),homeDayTotals().catch(()=>[])]));if(seed){initialPage={...seed.page,days:[...days,...seed.page.days]};initialUserId=seed.userId;initialZone=seed.zone;}}catch{/* The client can retry while the shell stays visible. */}
+ return <div data-server-feed-ready={initialPage?true:undefined}><Feed key={initialUserId??'anonymous'} initialPage={initialPage} initialUserId={initialUserId} initialZone={initialZone}/></div>;
 }
-
-async function HomeToday(){await connection();const zone=(await cookies()).get('time-zone')?.value;return <DesktopToday zone={zone}/>;}
+async function HomeToday(){await connection();const cookieZone=(await cookies()).get('time-zone')?.value;let initial;try{const seed=await homeDeadline(homeSeed());initial=seed&&cookieZone?todayFromPage(seed.page,seed.zone)??undefined:undefined;}catch{/* Preserve the client fallback. */}return <DesktopToday zone={cookieZone} initial={initial}/>;}
 
 export default async function Home({searchParams}:{searchParams:Promise<{post?:string}>}) {
   const {post}=await searchParams;

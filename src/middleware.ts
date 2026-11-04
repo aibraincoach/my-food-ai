@@ -1,3 +1,4 @@
+import { verifiedUserCookie } from "@/lib/auth/verified-cookie";
 import { VERIFIED_USER_HEADER } from "@/lib/auth/verified-user-header";
 import { mediaSessionEpoch } from "@/lib/auth/media-session-epoch";
 import { NextResponse, type NextRequest } from "next/server";
@@ -22,10 +23,12 @@ export async function middleware(request: NextRequest) {
   const {
     data: { user },
   } = await supabase.auth.getUser();
+  console.info(`auth verify middleware ${request.nextUrl.pathname}`);
   if (user) {
     request.headers.set(VERIFIED_USER_HEADER, user.id);
     session.refreshRequestHeaders();
   }
+  session.cookies.setAll([verifiedUserCookie(user?.id ?? null, request.nextUrl.protocol === "https:")]);
   const pathname = request.nextUrl.pathname;
   if (pathname === "/admin" || pathname.startsWith("/admin/")) {
     const allowed=await adminRequestAllowed(user?.id,async()=>supabase.from("profiles").select("role").eq("id",user!.id).maybeSingle());

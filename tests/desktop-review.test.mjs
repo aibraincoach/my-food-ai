@@ -16,8 +16,8 @@ test('Today uses the active zone and ignores older responses even when aborted t
  }});
  exported.default({zone:'Asia/Jakarta'});const cleanup=effects[0]();assert.equal(new URL(requests[0].url,'http://localhost').searchParams.get('tz'),'Asia/Jakarta');
  listeners.get('post-settled')();assert.equal(requests[0].signal.aborted,true);assert.equal(requests[1].signal.aborted,false);
- requests[1].resolve({ok:true,json:async()=>({day:{date:'newest'}})});await flush();assert.equal(state[0].date,'newest');
- requests[0].resolve({ok:true,json:async()=>({day:{date:'stale'}})});await flush();assert.equal(state[0].date,'newest');
+ requests[1].resolve({ok:true,json:async()=>({day:{date:'newest'}})});await flush();assert.equal(state[0].day.date,'newest');
+ requests[0].resolve({ok:true,json:async()=>({day:{date:'stale'}})});await flush();assert.equal(state[0].day.date,'newest');
  cleanup();assert.equal(requests[1].signal.aborted,true);assert.equal(listeners.size,0);
 });
 test('calendar arrow handling leaves rich inputs and controls outside its date grid alone',()=>{

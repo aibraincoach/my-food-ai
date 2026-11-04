@@ -17,7 +17,7 @@ const compiled=ts.transpileModule(routeSource,{compilerOptions:{module:ts.Module
 function route({user={id:owner},row={storage_path:path,kind:'photo'},authThrows=false,transform=photo.resizeFeedPhoto,sourceFetch}={}) {
  const filters=[],calls={auth:0,select:0,fetch:0,sign:0};
  const query={select(){calls.select++;return this;},eq(k,v){filters.push([k,v]);return this;},async maybeSingle(){return {data:row,error:null};}};
- const db={auth:{async getUser(){calls.auth++;if(authThrows)throw Error('private diagnostic');return {data:{user},error:null};},async getSession(){return {data:{session:{access_token:'offline-token'}}};}},from(){return query;},storage:{from(){return {async createSignedUrl(){calls.sign++;return {data:{signedUrl:'https://storage.example/storage/v1/object/sign/media/owned'},error:null};}};}}};
+ const db={auth:{async getUser(){calls.auth++;if(authThrows)throw Error('private diagnostic');return {data:{user},error:null};},async getSession(){if(authThrows)throw Error('private diagnostic');return {data:{session:user?{access_token:'offline-token',user}:null}};}},from(){return query;},storage:{from(){return {async createSignedUrl(){calls.sign++;return {data:{signedUrl:'https://storage.example/storage/v1/object/sign/media/owned'},error:null};}};}}};
  const exports={};
  vm.runInNewContext(compiled,{exports,require(name){if(name==='@/lib/supabase/server')return {createClient:async()=>db};if(name==='@/lib/posts/feed-photo')return {...photo,resizeFeedPhoto:transform};throw Error(name);},Response,Request,URL,AbortSignal,Uint8Array,process:{env:{NEXT_PUBLIC_SUPABASE_URL:'https://storage.example',NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY:'offline'}},fetch:async(...args)=>{calls.fetch++;return sourceFetch(...args);}});
  return {get:async(params={owner,post,media},search='',requestHeaders={})=>exports.GET(new Request(`https://app.example${smallFeedPhotoUrl(owner,post,media)}${search}`,{headers:requestHeaders}),{params:Promise.resolve(params)}),calls,filters};
@@ -96,7 +96,7 @@ test('matching ETag revalidates ownership before 304 without varying immutable i
  const response=await r.get({owner,post,media},'',{'If-None-Match':`"${media}-v1"`});
  assert.equal(response.status,304);assert.equal(response.headers.get('etag'),`"${media}-v1"`);
  assert.equal(response.headers.get('vary'),null);assert.equal(response.headers.get('cache-control'),'private, max-age=31536000, immutable');
- assert.equal(r.calls.auth,1);assert.equal(r.calls.select,1);assert.equal(r.calls.fetch,0);assert.equal(r.calls.sign,0);
+ assert.equal(r.calls.auth,0);assert.equal(r.calls.select,1);assert.equal(r.calls.fetch,0);assert.equal(r.calls.sign,0);
  const unsigned=route({user:null});const denied=await unsigned.get({owner,post,media},'',{'If-None-Match':`"${media}-v1"`});
  assert.equal(denied.status,401);assert.equal(denied.headers.get('cache-control'),'private, no-store');
 });

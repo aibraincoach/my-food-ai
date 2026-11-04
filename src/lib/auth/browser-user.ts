@@ -1,7 +1,7 @@
+import {readVerifiedUserCookie} from './verified-cookie';
 import type {SupabaseClient} from '@supabase/supabase-js';
 
-/** Cache only the result of a verified Auth request, never session.user or JWT
- * claims. A session epoch fences late responses from an earlier account. */
+/** Share an identity read, with a session epoch fencing late responses from an earlier account. */
 export function createVerifiedUserReader<T extends {error:unknown}>(read:()=>Promise<T>){
  let epoch=0;
  let pending:Promise<T>|null=null;
@@ -30,10 +30,12 @@ export function shareVerifiedBrowserUser(auth:BrowserAuth){
  const original=auth.getUser.bind(auth);
  let sessionToken:string|null|undefined;
  const reader=createVerifiedUserReader(async()=>{
-  // The token is only an invalidation key. Authorization/user data always
-  // comes from the real getUser request below, not this local session.
+  // The cookie is a UI identity hint from the verified page response. It is
+  // never authorization: every data request still uses the real RLS session.
   const {data:{session}}=await auth.getSession();
   if(sessionToken===undefined)sessionToken=session?.access_token??null;
+  const verified=typeof document==='undefined'?null:readVerifiedUserCookie(document.cookie);
+  if(session?.user&&verified===session.user.id)return {data:{user:session.user},error:null} as Awaited<ReturnType<typeof original>>;
   return original();
  });
  auth.getUser=jwt=>jwt===undefined?reader.get():original(jwt);
