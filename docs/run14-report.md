@@ -172,3 +172,5 @@ Firefox production touch observations at390×844. Mutation timing includes press
 | Saved meals Log now offline | unmeasured | unmeasured | unmeasured | unmeasured | unmeasured | not exercised |
 | Drink tile double tap | unmeasured | unmeasured | unmeasured | unmeasured | unmeasured | not exercised |
 | Edit caption Save | unmeasured | unmeasured | unmeasured | unmeasured | unmeasured | not exercised |
+
+A clean dedicated main checkout now exists at `/home/opc/Projects/my-food-ai-wt/main`, fast-forwarded to observed origin/main a24587a1. Original `/home/opc/Projects/my-food-ai` remains on run13/docs at7b439b5a with its pre-existing untracked files preserved. [Checkout receipt](evidence/run14/main-checkout.json). Completed D/E apps and D disposable stack are stopped; C remains for missing local CPU entry-path checks, F for the live collector, and issue579 for new implementation.
