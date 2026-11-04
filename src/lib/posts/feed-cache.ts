@@ -27,17 +27,32 @@ function validPost(value: unknown): value is FeedPost {
     Array.isArray(post.items) && post.items.every(item => item && typeof item.id === "string" && typeof item.name === "string");
 }
 
+// Signed card URLs last an hour (feed.ts) but the cache lasts a day; drop slides whose token has expired.
+function withLiveSlides(post: FeedPost, savedAt: number, now: number): FeedPost {
+  const slides = post.slides.filter(slide => {
+    if (!slide.url.includes("/storage/v1/object/sign/")) return true;
+    try {
+      const token = new URL(slide.url).searchParams.get("token") ?? "";
+      const exp = JSON.parse(atob(token.split(".")[1].replace(/-/g, "+").replace(/_/g, "/"))).exp;
+      return typeof exp === "number" ? exp * 1000 > now + 120_000 : now - savedAt < 50 * 60_000;
+    } catch { return now - savedAt < 50 * 60_000; }
+  });
+  return slides.length === post.slides.length ? post : { ...post, slides, photoUrl: slides[0]?.url ?? null };
+}
+
 // Local storage can be disabled, full, stale or corrupt. None may stop Home.
 export function readFeedCache(userId: string, now = Date.now()): CachedFeed | null {
   try {
     const raw = localStorage.getItem(PREFIX + userId);
     if (!raw || raw.length > MAX_BYTES) return null;
     const prior = snapshots.get(userId);
-    const value: CachedFeed = prior?.raw === raw ? prior.value : JSON.parse(raw);
+    let value: CachedFeed = prior?.raw === raw ? prior.value : JSON.parse(raw);
     if (value.version !== 1 || value.userId !== userId || !Number.isFinite(value.savedAt) ||
       value.savedAt > now + 60_000 || now - value.savedAt > MAX_AGE_MS ||
       !Array.isArray(value.posts) || value.posts.length > MAX_POSTS || !value.posts.every(validPost)) return null;
-    if (prior?.raw !== raw) snapshots.set(userId, { raw, value });
+    const posts = value.posts.map(post => withLiveSlides(post, value.savedAt, now));
+    if (posts.some((post, index) => post !== value.posts[index])) value = { ...value, posts };
+    if (prior?.raw !== raw || prior.value !== value) snapshots.set(userId, { raw, value });
     return value;
   } catch { return null; }
 }
