@@ -29,8 +29,8 @@ async function choose(name: string, caption: string, found: FdcFood[], signal?: 
 }
 
 // Searches the bare food noun among generic USDA records and accepts the closest one, labelled with its name.
-// Null leaves the food unavailable, as before.
-export async function closestGenericFood(admin: SupabaseClient, name: string, caption: string, baseFood: string, signal?: AbortSignal): Promise<FdcFood | null> {
+// A rejected reference retains its reason for the item and meal comment.
+export async function closestGenericFood(admin: SupabaseClient, name: string, caption: string, baseFood: string, signal?: AbortSignal): Promise<{food: FdcFood | null; reason: string}> {
   const result=await recordCall("fdc", { event: "food_approximation", name, query: baseFood }, async () => {
     const found = (await searchFoods(admin, baseFood, signal)).filter(f => GENERIC.has(f.dataType) && gramBasis(f) && hasNutrition(f)).slice(0, 30);
     if (!found.length) return {food:null,reason:"No generic USDA record with nutrition was found for this food."};
@@ -40,5 +40,5 @@ export async function closestGenericFood(admin: SupabaseClient, name: string, ca
     if (!food) throw new Error("Closest-food decision selected an ineligible candidate.");
     return {food:{ ...food, approximation: { kind: "closest" as const, basis: food.description } },reason:decision.reason};
   }, result => ({ text: { source: result.food ? "closest" : "unavailable", basis: result.food?.description ?? null, reason:result.reason }, fdcId: result.food?.fdcId ?? null }));
-  return result.food;
+  return result;
 }

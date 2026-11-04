@@ -27,8 +27,8 @@ export function storedEstimateFood(row:NutritionSource):FdcFood|null{
  if(approximation?.kind!=='estimate'||!Array.isArray(row.micronutrients))return null;
  const foodNutrients=row.micronutrients.flatMap(entry=>{
   if(!entry||typeof entry!=='object'||!Number.isSafeInteger(entry.nutrientId)||typeof entry.nutrientName!=='string'||typeof entry.unitName!=='string')return[];
-  const tag=entry.approximation,value=tag?.per100;
-  if(tag?.kind!=='estimate'||tag.sourceRef!==row.source_ref||tag.basis!==approximation.basis||typeof value!=='number'||!Number.isFinite(value)||value<0)return[];
+  const value=typeof entry.per100==='number'?entry.per100:entry.approximation?.per100;
+  if(typeof value!=='number'||!Number.isFinite(value)||value<0)return[];
   return[{nutrientId:entry.nutrientId,nutrientName:entry.nutrientName,unitName:entry.unitName,value}];
  });
  if(!foodNutrients.some(n=>n.nutrientId===1008))return null;

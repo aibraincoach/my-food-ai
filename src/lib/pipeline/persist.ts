@@ -11,7 +11,7 @@ import { ioError } from "@/lib/worker/errors";
 import { createAdminClient } from "@/lib/supabase/admin";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { resolveNutritionItems } from "@/lib/fdc/resolve-items";
-import { resolveFoodMatch, traceNutritionReuse, nutritionResolutionBudget } from "@/lib/fdc/match";
+import { resolveFoodMatchDetailed, traceNutritionReuse, nutritionResolutionBudget } from "@/lib/fdc/match";
 import { sumNutrition } from "@/lib/nutrition/totals";
 import {
   scaleNutrition,
@@ -69,8 +69,8 @@ export async function persistAnalysis(
   const resolved = await resolveNutritionItems(rows,resolutionBudget,async (row,index,signal) => {
     const copied=copiedNutrition?.[index];
     if(copied)await traceNutritionReuse(row.name,copied,"copied",typeof copied.post_item_id==="string"?copied.post_item_id:undefined);
-    const food=copied?null:await resolveFoodMatch(admin,row.name,context.caption??"",signal,{approximate:true});
-    const scaled = scaleNutrition(food, row.portionGrams);
+    const match=copied?{food:null,unavailable:null}:await resolveFoodMatchDetailed(admin,row.name,context.caption??"",signal,{approximate:true});
+    const scaled = scaleNutrition(match.food, row.portionGrams, match.unavailable);
     const nutritionProgress=copied?.calories??scaled.calories;
     await writePendingKcal(admin,named.postId,index,typeof nutritionProgress==='number'?nutritionProgress:null,jobId);
     return {
@@ -98,7 +98,7 @@ export async function persistAnalysis(
   items.push(...resolved);
   const totals = sumNutrition(items.map(item=>({...item.nutrition,name:item.name})));
   const approximations=approximationLabels(items.map(item=>({name:item.name,...item.nutrition})));
-  const summary = await safeSummary(named.summary, totals, approximations);
+  const summary = await safeSummary(named.summary, totals, approximations, items.map(item=>({name:item.name,sourceRef:item.nutrition.source_ref})));
   const args = {
     p_job_id: jobId ?? null,
     p_post_id: named.postId,

@@ -9,7 +9,7 @@ const {plainConsumed}=await import('../src/lib/pipeline/wording.ts');
 const valid={food:true,basis:'fried cassava cracker',calories:500,protein_g:2,carbs_g:65,fat_g:25,fibre_g:3,sugar_g:1,sodium_mg:600};
 async function withPayload(payload,fn){const original=globalThis.fetch;globalThis.fetch=async(input,init)=>{const url=new URL(input);if(url.origin==='https://trace.invalid')return new Response(null,{status:201});assert.equal(url.port,'1');return Response.json({status:'completed',output:[{type:'message',content:[{type:'output_text',text:JSON.stringify(payload)}]}],usage:{input_tokens:1,output_tokens:1}});};try{return await fn();}finally{globalThis.fetch=original;}}
 test('non-food refuses a model estimate',async()=>withPayload({...valid,food:false,calories:null},async()=>{assert.equal(await estimateFood('ceramic plate','not food'),null);}));
-test('model estimate scales, names its non-USDA source and discloses provenance',async()=>withPayload(valid,async()=>{const food=await estimateFood('kerupuk','fried cassava cracker');const n=scaleNutrition(food,50);assert.equal(n.calories,250);assert.equal(n.proteinG,1);assert.equal(n.sodiumMg,300);assert.match(n.sourceRef,/^estimate:/);const row={name:'kerupuk',source_ref:n.sourceRef,micronutrients:n.micronutrients};assert.deepEqual(foodApproximation(row),{kind:'estimate',basis:valid.basis});assert.match(plainConsumed({calories:n.calories,protein_g:n.proteinG,carbs_g:n.carbsG,fat_g:n.fatG},approximationLabels([row])),/Nutrition for kerupuk is a model estimate, fried cassava cracker\./);}));
+test('model estimate scales, names its non-USDA source and discloses provenance',async()=>withPayload(valid,async()=>{const food=await estimateFood('kerupuk','fried cassava cracker');const n=scaleNutrition(food,50);assert.equal(n.calories,250);assert.equal(n.proteinG,1);assert.equal(n.sodiumMg,300);assert.match(n.sourceRef,/^estimate:/);assert.equal(n.micronutrients.filter(e=>e.approximation).length,1);assert.ok(n.micronutrients.every(e=>typeof e.per100==='number'));const row={name:'kerupuk',source_ref:n.sourceRef,micronutrients:n.micronutrients};assert.deepEqual(foodApproximation(row),{kind:'estimate',basis:valid.basis});assert.match(plainConsumed({calories:n.calories,protein_g:n.proteinG,carbs_g:n.carbsG,fat_g:n.fatG},approximationLabels([row])),/Nutrition for kerupuk is a model estimate, fried cassava cracker\./);}));
 test('out-of-range or malformed model nutrition is a provider error',async()=>{for(const bad of [{calories:5000},{protein_g:'2'},{sodium_mg:-1},{fat_g:undefined}])await withPayload({...valid,...bad},async()=>{await assert.rejects(()=>estimateFood('kerupuk',''),error=>error.status===502);});});
 const {resolvePortionNutrition,storedNutrition}=await import('../src/lib/nutrition/portion.ts');
 const {rescaleStoredNutrition}=await import('../src/lib/nutrition/totals.ts');
@@ -54,4 +54,15 @@ test('actual correction replay shares volume dispatch and preserves known consum
  globalThis.fetch=async(input,init)=>{const body=JSON.parse(init?.body||'{}');if(body.text?.format?.name==='correct')return Response.json({status:'completed',output:[{type:'message',content:[{type:'output_text',text:JSON.stringify({items:[{name:'kerupuk',portion_text:correctedText,portion_grams:null,region_index:0,keep:null}],reply:'Updated the meal.',needs_input:null})}]}]});return original(input,init);};
  try{for(const [text,calories,protein,sodium] of [['100 ml',250,1,300],['200 ml',500,2,600]]){correctedText=text;const result=await replayCorrection(admin,'post',[item],[],[],false,true);assert.equal(result.rows.length,1);const n=result.rows[0].nutrition;assert.equal(n.calories,calories);assert.equal(n.protein_g,protein);assert.equal(n.sodium_mg,sodium);assert.equal(n.source_ref,nutrition.source_ref);assert.match(plainConsumed(n,result.approximations),/is a model estimate/);}}
  finally{globalThis.fetch=original;}
+}));
+
+test('a food answer without numbers is a 502 marked noEstimate',async()=>withPayload({...valid,calories:null},async()=>{await assert.rejects(()=>estimateFood('kerupuk',''),error=>error.status===502&&error.noEstimate===true);}));
+
+test('stored estimates read both repeated legacy tags and single-label nutrient bases',async()=>withPayload(valid,async()=>{
+ const {storedEstimateFood}=await import('../src/lib/fdc/approximation-metadata.ts');
+ const food=await estimateFood('kerupuk',''),n=scaleNutrition(food,null);
+ const current={source_ref:n.sourceRef,micronutrients:n.micronutrients};
+ const legacy={...current,micronutrients:n.micronutrients.map(({per100,approximation:_label,...entry})=>({...entry,approximation:{kind:'estimate',basis:valid.basis,sourceRef:n.sourceRef,per100}}))};
+ assert.deepEqual(storedEstimateFood(current),storedEstimateFood(legacy));
+ assert.deepEqual(storedEstimateFood(current).foodNutrients,food.foodNutrients);
 }));
