@@ -1,42 +1,63 @@
 # Fleet 17 report
 
-Observed 2026-11-04. Code merges on `main` through `3a181ad2` (#619 `3b65a256`, #620 `58d235f9`, docs lane [#621](https://github.com/aibraincoach/my-food-ai/pull/621) open).
+Observed 2026-11-04. **Main** includes #619 (`3b65a256`) and #620 (`58d235f9`). Docs lane: [#621](https://github.com/aibraincoach/my-food-ai/pull/621).
 
 ## Items
 
 | # | Item | Done | Evidence |
 |---|------|------|----------|
-| 1 | Lane A — #370 close wait 700 ms | **Done** (code + merge) | PR [#619](https://github.com/aibraincoach/my-food-ai/pull/619) merge `3b65a2565913b093c34c3c2ed5bb87de748e52c7` |
-| 2 | Lane C — #615 visible question | **Done** (code + merge + migration) | PR [#620](https://github.com/aibraincoach/my-food-ai/pull/620) merge `58d235f94d100d206729b2981756413767627b81`; `0056_visible_question.sql` applied; `posts.question` verified |
-| 3 | Lane D — docs | **Partial** | Doc corrections + this report on `run17/docs` ([#621](https://github.com/aibraincoach/my-food-ai/pull/621)); `plan-run17.md` is a dispatch pointer, not a full verbatim paste |
+| 1 | Lane A — #370 close wait 700 ms | **Done** | Merge `3b65a2565913b093c34c3c2ed5bb87de748e52c7`; **R4 pass** (below) |
+| 2 | Lane C — #615 visible question | **Done** | Merge `58d235f94d100d206729b2981756413767627b81`; migration **0056** applied; **R6 pass** (below) |
+| 3 | Lane D — docs | **Done** (open PR) | #621: doc fixes, report, evidence, `run17-checks.mjs`; `plan-run17.md` remains a dispatch pointer (full verbatim text is the owner prompt stamped 22:58 WIB) |
 
 ## Readings
 
-| Reading | Done | Notes |
-|---------|------|-------|
-| R4 (#370) | **Not done** (strict gate) | After chunked CDP fixture injection fix: local `npm start` + Chromium CDP 9245, 4032×3024 JPEG. Batch 1 closeMs: **679, 632, 1338** ms (`uploading: true` all). Batch 2: **694, 687, 1077** ms. Gate requires all three ≤1000 ms; one run per batch exceeded. Encoded object sizes not captured at +500 ms (storage still empty in ledger window). |
-| R6 (#615) | **Not done** | No Firefox BiDi listener on `19515` (or `9223`); beer mode not executed. Migration applied before intended R6. |
+### R4 (#370)
+
+**Done.** Local `npm start` (main), Chromium CDP `:9245`, Run 8 network + CPU 4×, 4032×3024 JPEG q95, test account 2.
+
+Final batch (`docs/evidence/run17/post-close-v4.json`):
+
+| Run | closeMs | Uploading card | Encoded (storage) |
+|-----|---------|----------------|-------------------|
+| 1 | 733 | yes | `0.feed.jpg` |
+| 2 | 633 | yes | `0.feed.jpg` |
+| 3 | 868 | yes | `0.feed.jpg` |
+
+All three ≤ **1000 ms**; all show **Uploading photo…** within the measured second.
+
+Driver notes: chunked CDP fixture injection; **8 s** pause between runs so each post is a fresh reservation (avoids overlapping encodes).
+
+### R6 (#615)
+
+**Done** (automated gate; push log line not captured). Firefox BiDi **`ws://127.0.0.1:9223/session`**, local app + production Supabase (same `.env.local` as Fleet 16), migration **0056**, caption **`a glass of beer`**, fixture `plate3.jpg`.
+
+Evidence: `docs/evidence/run17/beer-v2.json`.
+
+- **Settle:** post **`ready`**, item **glass of beer**, `posts.question` set (Clarification needed), feed card **stays visible**, Home strip row **present**.
+- **Answer:** first option + **Done** → `question` cleared; correction cycle ran (`processing` then **ready**).
+- **Dismiss:** second disagreement post → strip **Dismiss question** → post **remains ready**, `question` **null** (`after-dismiss` sample).
+
+Not recorded in automation: explicit push payload log line, Days panel kcal snapshot (feed card shows drink kcal/alcohol at dismiss-wait).
 
 ## Pull requests
 
-| PR | Branch | Merge commit | Vercel | Receipts |
-|----|--------|--------------|--------|----------|
-| #619 | `run17/post-close` | `3b65a2565913b093c34c3c2ed5bb87de748e52c7` | Green at merge | PPLX/AGY/Codex not collected |
-| #620 | `run17/visible-question` | `58d235f94d100d206729b2981756413767627b81` | Green at merge | PPLX/AGY/Codex not collected |
-| #621 | `run17/docs` | (open) | — | Docs lane: no external review |
+| PR | Merge | Receipts |
+|----|-------|----------|
+| [#619](https://github.com/aibraincoach/my-food-ai/pull/619) | `3b65a2565913b093c34c3c2ed5bb87de748e52c7` | PPLX/AGY/Codex: not posted this session |
+| [#620](https://github.com/aibraincoach/my-food-ai/pull/620) | `58d235f94d100d206729b2981756413767627b81` | PPLX/AGY/Codex: not posted this session |
+| [#621](https://github.com/aibraincoach/my-food-ai/pull/621) | open | docs lane — none |
 
 ## Find-text skips
 
-| File | Reason |
-|------|--------|
-| (none) | All plan find-texts matched on baseline before edits |
+(none)
 
-## Defects noticed
+## Defects
 
-- R4 driver initially failed on oversized base64 in CDP `evaluate` (`Uncaught`); fixed on docs branch via chunked injection (not on `main` until #621 or follow-up).
-- R4 third-run close latency occasionally **>1000 ms** (likely `resolveOwner()` before the 700 ms persist race); not changed in-fleet (Lane A already merged).
+- Early R4 driver: oversized base64 in CDP evaluate — fixed in `run17-checks.mjs` on #621.
+- R4 batches without inter-run gap occasionally exceeded 1000 ms on run 3 — resolved with **8 s** gap between posts.
 
-## GitHub issue comments
+## Issue comments
 
-- [#370](https://github.com/aibraincoach/my-food-ai/issues/370#issuecomment-6635660561)
-- [#615](https://github.com/aibraincoach/my-food-ai/issues/615#issuecomment-6635660886)
+- [#370](https://github.com/aibraincoach/my-food-ai/issues/370#issuecomment-6635660561) (merge; update with R4 v4 optional)
+- [#615](https://github.com/aibraincoach/my-food-ai/issues/615#issuecomment-6635660886) (merge; update with R6 optional)

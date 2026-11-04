@@ -1,0 +1,37 @@
+{
+  "observedAt": "2026-11-04T16:23:05.465Z",
+  "mode": "post-close",
+  "runs": [
+    {
+      "postId": "7fe7277b-3240-462c-beb6-871c15809ed4",
+      "closeMs": 733,
+      "uploading": true,
+      "encoded": [
+        {
+          "name": "0.feed.jpg"
+        }
+      ]
+    },
+    {
+      "postId": "ef543f2b-97a7-4eec-9231-5b443b27fcd1",
+      "closeMs": 633,
+      "uploading": true,
+      "encoded": [
+        {
+          "name": "0.feed.jpg"
+        }
+      ]
+    },
+    {
+      "postId": "1c2edf11-c186-4572-9705-9417b33c1014",
+      "closeMs": 868,
+      "uploading": true,
+      "encoded": [
+        {
+          "name": "0.feed.jpg"
+        }
+      ]
+    }
+  ],
+  "pass": true
+}
