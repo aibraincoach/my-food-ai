@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import vm from 'node:vm';
 import ts from 'typescript';
 import {readFileSync} from 'node:fs';
+import {formatCalories} from '../src/lib/nutrition/totals.ts';
 const source=readFileSync(new URL('../src/components/DayRings.tsx',import.meta.url),'utf8');
 const code=ts.transpileModule(source,{compilerOptions:{module:ts.ModuleKind.CommonJS,jsx:ts.JsxEmit.ReactJSX,target:ts.ScriptTarget.ES2022}}).outputText;
 function mount(overrides={}){
@@ -14,6 +15,7 @@ function mount(overrides={}){
   if(name==='next/navigation')return{useRouter:()=>({refresh(){}})};
   if(name==='next/link')return{default:'a'};
   if(name==='@/lib/posts/days')return dates;
+  if(name==='@/lib/nutrition/totals')return{formatCalories};
   if(name==='@/lib/posts/bubble')return{bubbleLinkClass:has=>has?'has-post':'empty'};
   if(name==='@/components/ui/Icon')return{Icon:'icon'};
   throw Error(name);
