@@ -18,7 +18,17 @@ export default async function AdminPage() {
   // No service-role query runs before the user's authenticated role check.
   const stats = await getQueueStats(createAdminClient());
   return <main className={`${font.className} mx-auto w-full max-w-phone bg-surface px-screen-x py-card-gap text-detail text-text`}>
-    <h1 className="mb-card-gap text-title">Queue</h1>
+    <h1 className="mb-card-gap text-title">Admin</h1>
+    <h2 className="mb-sheet-top text-sheet-title">App</h2>
+    <table className="mb-card-gap w-full tabular-nums"><thead><tr className="text-left"><th scope="col">Count</th><th scope="col" className="text-right">All time</th><th scope="col" className="text-right">Last 24 h</th></tr></thead>
+      <tbody>
+        <tr className="h-table-row border-b border-hairline"><td>Accounts</td><td className="text-right">{stats.app.users}</td><td className="text-right">—</td></tr>
+        <tr className="h-table-row border-b border-hairline"><td>Meals posted</td><td className="text-right">{stats.app.posts}</td><td className="text-right">{stats.app.postsDay}</td></tr>
+        <tr className="h-table-row border-b border-hairline"><td>Model calls</td><td className="text-right">{stats.app.modelCalls}</td><td className="text-right">{stats.app.modelCallsDay}</td></tr>
+        <tr className="h-table-row border-b border-hairline"><td>Failed model calls</td><td className="text-right">{stats.app.failedCalls}</td><td className="text-right">{stats.app.failedCallsDay}</td></tr>
+      </tbody>
+    </table>
+    <h2 className="mb-sheet-top text-sheet-title">Queue</h2>
     <dl className="space-y-sheet-top tabular-nums">
       <div className="flex justify-between"><dt>Queued jobs</dt><dd>{stats.depth}</dd></div>
       <div className="flex justify-between"><dt>Oldest waiting job</dt><dd>{stats.oldestAgeSeconds === null ? "None" : `${stats.oldestAgeSeconds} s`}</dd></div>
