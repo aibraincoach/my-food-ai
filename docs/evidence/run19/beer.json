@@ -1,0 +1,6 @@
+{
+  "observedAt": "2026-11-04T23:41:38.639Z",
+  "mode": "beer",
+  "runs": [],
+  "error": "Expected \"x\" to be a finite number, got [object String] \"-0\""
+}
