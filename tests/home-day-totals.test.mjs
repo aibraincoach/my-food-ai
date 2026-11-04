@@ -32,7 +32,7 @@ test('parallel Home streams share one totals read and pass that snapshot into Fe
   assert.equal(totalCalls,1);
   assert.equal(authCalls,0,'verified middleware identity avoids a second server Auth call');
   assert.deepEqual(rings.props.totals,days);
-  assert.deepEqual(feed.props.children.props.initialPage.days,days);
+  assert.deepEqual(Array.from(feed.props.children.props.initialPage.days),days);
 });
 
 test('feed refresh skips known days without removing meal or hydration reads; missing dates still load',async()=>{
