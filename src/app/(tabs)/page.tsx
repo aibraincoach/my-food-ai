@@ -60,7 +60,7 @@ async function HomeDays() {
   let ownerId: string | null = null;
   let earliest: string | null = null;
   try {
-    [days, totals, ownerId] = await homeDeadline((async () => {
+    [days, totals, ownerId, earliest] = await homeDeadline((async () => {
       const {db:supabase,user} = await homeReader();
       const [logged,readTotals,first] = user ? await Promise.all([
         getLoggedDates(supabase, user.id, zone, shiftDay(today, -29), today),
