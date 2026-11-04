@@ -15,9 +15,11 @@ async function readPhoto(request: Request, context: {params: Promise<{owner: str
   if (![owner, post, media].every(value => UUID.test(value)) || new URL(request.url).search) return fail(404);
   const signal = AbortSignal.any([request.signal, AbortSignal.timeout(4000)]);
   const db = await createClient(signal);
-  const {data: {user}, error: authError} = await db.auth.getUser();
-  if (authError || !user) return fail(401);
-  if (owner !== user.id) return fail(404);
+  // Identity from the cookie avoids a network Auth call per photo. The next
+  // lookup and original object fetch still enforce real session RLS.
+  const {data: {session}} = await db.auth.getSession();
+  if (!session?.user) return fail(401);
+  if (owner !== session.user.id) return fail(404);
   const {data, error} = await db.from('post_media').select('storage_path,kind').eq('id', media).eq('post_id', post).maybeSingle();
   if (error || !data || data.kind !== 'photo') return fail(404);
   const path = feedPhotoPath(data.storage_path, owner, post);

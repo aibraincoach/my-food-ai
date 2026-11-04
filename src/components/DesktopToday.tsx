@@ -3,12 +3,13 @@
 import {useEffect,useState} from 'react';
 import Link from 'next/link';
 import {useDesktop} from '@/lib/ui/use-desktop';
-import {dateInZone,validZone,type LoggedDay} from '@/lib/posts/days';
+import {dateInZone,validZone} from '@/lib/posts/days';
+import type {TodayView} from '@/lib/posts/today-view';
 import {formatCalories,formatNutrition} from '@/lib/nutrition/totals';
-export default function DesktopToday({zone:configuredZone}:{zone?:string}){
- const desktop=useDesktop();const [day,setDay]=useState<LoggedDay|null>(null);const [error,setError]=useState(false);
+export default function DesktopToday({zone:configuredZone,initial}:{zone?:string;initial?:TodayView}){
+ const desktop=useDesktop();const [loaded,setLoaded]=useState<{seed:TodayView|undefined;day:TodayView}|null>(null);const day=loaded&&loaded.seed===initial?loaded.day:initial??null;const [error,setError]=useState(false);
  const zone=validZone(configuredZone||Intl.DateTimeFormat().resolvedOptions().timeZone);
- useEffect(()=>{if(!desktop)return;let live=true;let controller:AbortController|undefined;const load=()=>{controller?.abort();const request=new AbortController();controller=request;const today=dateInZone(new Date(),zone);void fetch(`/api/days?date=${today}&tz=${encodeURIComponent(zone)}`,{cache:'no-store',signal:request.signal}).then(async response=>{if(!response.ok)throw Error();const data=await response.json();if(live&&controller===request){setDay(data.day);setError(false);}}).catch(()=>{if(live&&controller===request&&!request.signal.aborted)setError(true);});};load();for(const name of ['post-settled','post-deleted','post-restore','intake-changed'])window.addEventListener(name,load);return()=>{live=false;controller?.abort();for(const name of ['post-settled','post-deleted','post-restore','intake-changed'])window.removeEventListener(name,load);};},[desktop,zone]);
+ useEffect(()=>{if(!desktop)return;let live=true;let controller:AbortController|undefined;const load=()=>{controller?.abort();const request=new AbortController();controller=request;const today=dateInZone(new Date(),zone);void fetch(`/api/days?date=${today}&tz=${encodeURIComponent(zone)}`,{cache:'no-store',signal:request.signal}).then(async response=>{if(!response.ok)throw Error();const data=await response.json();if(live&&controller===request){setLoaded({seed:initial,day:data.day});setError(false);}}).catch(()=>{if(live&&controller===request&&!request.signal.aborted)setError(true);});};if(!initial)load();for(const name of ['post-settled','post-deleted','post-restore','intake-changed'])window.addEventListener(name,load);return()=>{live=false;controller?.abort();for(const name of ['post-settled','post-deleted','post-restore','intake-changed'])window.removeEventListener(name,load);};},[desktop,zone,initial]);
  if(!desktop)return null;
  const missing=[...new Set(Object.values(day?.totals.missing??{}).flat())];
  const date=new Date(`${day?.date??dateInZone(new Date(),zone)}T12:00:00Z`);
