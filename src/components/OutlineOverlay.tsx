@@ -32,6 +32,7 @@ function DetailImage({ photo, alt }: { photo: DetailPhoto; alt: string }) {
   useEffect(() => {
     if (!photo.previewUrl) return;
     let live = true; const image = new Image();
+    image.crossOrigin = "anonymous";
     image.onload = () => { if (live) setSrc(photo.url); };
     image.src = photo.url;
     return () => { live = false; };
