@@ -21,6 +21,9 @@ export interface StoredUpload {
     drink?: TileDrinkRequest;
     photoDrinks?: PhotoDrinksRequest;
     copy?: CopyRequest;
+    // A durable photo for an existing meal; the prepared stage is reused after reload.
+    attachment?: {postId: string; notEaten: boolean};
+    attachmentPhoto?: {path: string; width: number; height: number};
 
     cancelRequested?: boolean;
     resultPostId?: string;

@@ -14,8 +14,12 @@ export default function ServiceWorkerRegistration() {
   useEffect(() => {
     if (!("serviceWorker" in navigator)) return;
     const register = () => {
-      void navigator.serviceWorker.register("/sw.js").catch(() => {
-        // The online app remains usable when installation is unavailable.
+      void navigator.serviceWorker.register("/sw.js", { updateViaCache: "none" }).then(registration => {
+        // Request the check on every normal page load rather than waiting for
+        // the browser's background update schedule to notice imported bytes.
+        return registration.update();
+      }).catch(() => {
+        // The online app remains usable when registration or its update fails.
       });
     };
     if (document.readyState === "complete") register();

@@ -7,7 +7,7 @@ test('empty or unavailable meal cannot publish an invented zero in shared card o
  const water={...unknown,name:'Water',calories:0,protein_g:0,carbs_g:0,fat_g:0};assert.equal(sumNutrition([water]).calories,0);assert.equal(formatConsumed(sumNutrition([water])),'Consumed: 0 kcal');
 });
 function db(calories){
- const posts=calories.map((value,i)=>({id:`post${i}`,caption:'Meal',eaten_at:'2026-11-01T12:00:00Z',post_media:[],current_post_items:[{id:`item${i}`,post_id:`post${i}`,name:`Food ${i}`,portion_grams:100,source:'model',created_at:'2026-11-01T12:00:00Z',item_nutrition:{...unknown,name:undefined,calories:value,micronutrients:[],source_ref:null}}]}));
+ const posts=calories.map((value,i)=>({id:`post${i}`,caption:'Meal',status:'ready',eaten_at:'2026-11-01T12:00:00Z',post_media:[],current_post_items:[{id:`item${i}`,post_id:`post${i}`,name:`Food ${i}`,portion_grams:100,source:'model',created_at:'2026-11-01T12:00:00Z',item_nutrition:{...unknown,name:undefined,calories:value,micronutrients:[],source_ref:null}}]}));
  return{from(table){const q={select(){return q},is(){return q},eq(){return q},gte(){return q},lt(){return q},order(){return q},limit(){return q},in(){return q},async range(offset,end){return{data:table==='posts'?posts.slice(offset,end+1):[],error:null}},async maybeSingle(){return{data:null,error:null}},then(resolve){return Promise.resolve({data:[],error:null}).then(resolve)}};return q}};
 }
 test('a day of entirely unavailable foods stays unknown instead of adding to a zero seed',async()=>{

@@ -9,15 +9,15 @@ const FIRST='30000000-0000-4000-8000-000000000003',SECOND='40000000-0000-4000-80
 const MEDIA='mfa-media-v2',CONTROL='mfa-media-control-v1';
 const image=`https://storage.example/storage/v1/object/sign/media/${OWNER}/post/photo.feed.jpg`;
 const resized=`https://app.example/api/media/feed/${OWNER}/${FIRST}/${SECOND}/v1.webp`;
-function worker({stores=new Map(),mediaPut,setTimer=setTimeout}={}) {
+function worker({stores=new Map(),mediaPut,setTimer=setTimeout,active=false,build="test-build",windows=[]}={}) {
  const handlers=new Map(),lifetimes=[];let fetched=0,fetcher=async()=>new Response(`image-${++fetched}`,{status:200});
  const keyOf=key=>typeof key==='string'?key:key.url;
  const caches={async open(name){if(!stores.has(name))stores.set(name,new Map());const store=stores.get(name);return {
   async match(key){return store.get(keyOf(key))?.clone();},async put(key,response){if(name===MEDIA)await mediaPut?.();store.set(keyOf(key),response.clone());},
   async keys(){return [...store.keys()].map(key=>new Request(new URL(key,'https://app.example')));},async delete(key){return store.delete(keyOf(key));}
  };},async keys(){return [...stores.keys()];},async delete(name){return stores.delete(name);}};
- const self={location:{origin:'https://app.example'},addEventListener:(name,fn)=>handlers.set(name,fn),skipWaiting(){},clients:{async claim(){}},registration:{}};
- vm.runInNewContext(source,{self,caches,fetch:(request,init)=>fetcher(request,init),URL,Request,Response,Headers,Promise,Date,setTimeout:setTimer,clearTimeout});
+ const self={location:{origin:'https://app.example'},addEventListener:(name,fn)=>handlers.set(name,fn),skipWaiting(){},clients:{async claim(){},async matchAll(){return windows;}},registration:{active:active?{}:null}};
+ vm.runInNewContext(source,{self,caches,fetch:(request,init)=>fetcher(request,init),URL,Request,Response,Headers,Promise,Date,setTimeout:setTimer,clearTimeout,importScripts(){self.BUILD=build;}});
  const waitUntil=value=>lifetimes.push(Promise.resolve(value));
  const flush=async()=>{while(lifetimes.length)await Promise.all(lifetimes.splice(0));};
  const event=async(name,data={})=>{let pending;handlers.get(name)({...data,waitUntil(value){pending=value;}});await pending;};
@@ -212,4 +212,33 @@ test('logout while navigation waits prevents serving the cached shell after its 
  await w.clear();timers.forEach(fn=>fn());await new Promise(resolve=>setImmediate(resolve));
  assert.equal(result,undefined,'signed-out navigation must wait for its origin response');
  release(new Response('signed-out page'));assert.equal(await(await pending).text(),'signed-out page');await w.flush();
+});
+
+
+test('density-specific copies remain distinct and owner-scoped in the private cache',async()=>{
+ const w=worker();await w.authenticate();
+ for(const variant of ['v2-1040.webp','v2-1560.webp']){
+  const url=resized.replace('v1.webp',variant);
+  const first=await(await w.request(url)).text();assert.equal(await(await w.request(url)).text(),first);
+ }
+ assert.equal(w.stores.get(MEDIA).size,2);assert.equal(w.fetches(),2);
+ const foreign=worker();await foreign.authenticate();
+ await foreign.request(resized.replace('v1.webp','v2-1560.webp').replace(OWNER,OTHER),{}, {settle:false});
+ await foreign.clear();await foreign.flush();assert.equal(foreign.stores.has(MEDIA),false);
+});
+
+// A service-worker process can disappear after install has completed. Reusing
+// only its durable caches models activate starting in a fresh worker process.
+test('an updated worker reloads same-origin windows after an install-to-activate restart',async()=>{
+ const stores=new Map(),navigated=[];
+ const installer=worker({stores,active:true});await installer.event('install');
+ const windows=['https://app.example/','https://app.example/posts/meal','https://other.example/'].map(url=>({url,async navigate(target){navigated.push(target);}}));
+ const restarted=worker({stores,active:true,windows});await restarted.event('activate');
+ assert.deepEqual(navigated,['https://app.example/','https://app.example/posts/meal']);
+});
+test('a first install never reloads windows even if its worker restarts before activate',async()=>{
+ const stores=new Map(),navigated=[];
+ const installer=worker({stores});await installer.event('install');
+ const restarted=worker({stores,active:true,windows:[{url:'https://app.example/',async navigate(url){navigated.push(url);}}]});
+ await restarted.event('activate');assert.deepEqual(navigated,[]);
 });

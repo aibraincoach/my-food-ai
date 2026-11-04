@@ -6,7 +6,7 @@ import EatenAtEditor from '@/components/EatenAtEditor';
 import {MAX_CAPTION_LENGTH} from '@/lib/posts/caption';
 import {updateCaption} from '@/lib/posts/caption-client';
 import {useLocalTime} from '@/components/LocalTime';
-export type PostMenuRow={label:string;muted?:boolean;detail?:string;onSelect?:()=>void;onClick?:()=>void};
+export type PostMenuRow={label:string;disabled?:boolean;muted?:boolean;detail?:string;onSelect?:()=>void;onClick?:()=>void};
 export default function PostMenu({postId,caption,eatenAt,rows=[],gtin}:{postId:string;caption:string;eatenAt?:string;rows?:PostMenuRow[];gtin?:string|null}) {
  const router=useRouter();const menu=useRef<HTMLDetailsElement>(null);const savingRef=useRef(false);
  const [open,setOpen]=useState(false),[timeOpen,setTimeOpen]=useState(false),[value,setValue]=useState(caption),[saving,setSaving]=useState(false),[error,setError]=useState('');
@@ -33,4 +33,4 @@ export default function PostMenu({postId,caption,eatenAt,rows=[],gtin}:{postId:s
  </>;
 }
 
-function MenuOptions({rows,onDismiss}:{rows:PostMenuRow[];onDismiss:()=>void}){return <>{rows.map((row,index)=><button key={`${row.label}-${index}`} type="button" onClick={()=>{onDismiss();(row.onSelect??row.onClick)?.();}} className={`flex h-tap w-full items-center justify-between gap-2 border-b border-hairline px-[10px] text-left text-[15px] last:border-b-0 active:bg-field ${row.muted?'text-muted':''}`}><span>{row.label}</span>{row.detail&&<span className="text-meta text-muted">{row.detail}</span>}</button>)}</>;}
+function MenuOptions({rows,onDismiss}:{rows:PostMenuRow[];onDismiss:()=>void}){return <>{rows.map((row,index)=><button key={`${row.label}-${index}`} type="button" disabled={row.disabled} onClick={()=>{if(row.disabled)return;onDismiss();(row.onSelect??row.onClick)?.();}} className={`flex h-tap w-full items-center justify-between gap-2 border-b border-hairline px-[10px] text-left text-[15px] last:border-b-0 active:bg-field ${row.disabled?'text-faint':row.muted?'text-muted':''}`}><span>{row.label}</span>{row.detail&&<span className="text-meta text-muted">{row.detail}</span>}</button>)}</>;}

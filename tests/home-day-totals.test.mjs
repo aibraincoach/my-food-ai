@@ -19,13 +19,15 @@ test('parallel Home streams share one totals read and pass that snapshot into Fe
   vm.runInNewContext(code,{exports,Date,Promise,Array,Boolean,AbortSignal,setTimeout,clearTimeout,console,require(name){
     if(name==='react')return {cache(fn){let promise;return()=>promise??=fn();},Suspense:()=>null};
     if(name==='react/jsx-runtime')return{jsx:(component,props)=>({component,props}),jsxs:(component,props)=>({component,props})};
+    if(name==='@/lib/posts/feed-photo-url')return{feedPhotoSrcSet:()=>undefined};
     if(name==='react-dom')return{preload(){}};
     if(name==='next/server')return{connection:async()=>{}};
     if(name==='next/headers')return{cookies:async()=>({get:()=>({value:'UTC'})})};
     if(name==='@/lib/auth/verified-user')return{verifiedUserId:async()=>owner};
     if(name==='@/lib/supabase/server')return{createClient:async()=>({auth:{getUser:async()=>{authCalls++;throw Error('second Auth read');}}})};
-    if(name==='@/lib/posts/days')return{validZone:()=> 'UTC',dateInZone:()=> '2026-11-03',shiftDay:(_,n)=>String(n),getLoggedDates:async()=>[],getDayTotals:async()=>{totalCalls++;await new Promise(resolve=>setImmediate(resolve));return days;}};
+    if(name==='@/lib/posts/days')return{validZone:()=> 'UTC',dateInZone:()=> '2026-11-03',shiftDay:(_,n)=>String(n),getEarliestPostDate:async()=>null,getLoggedDates:async()=>[],getDayTotals:async()=>{totalCalls++;await new Promise(resolve=>setImmediate(resolve));return days;}};
     if(name==='@/lib/posts/today-view')return{todayFromPage};
+    if(name==='@/lib/nutrition/totals')return{sumNutrition:()=>({})};
     if(name==='@/lib/posts/feed')return{getFeed:async()=>({posts:[],days:[],nextCursor:null})};
     if(name==='next/link'||name.startsWith('@/components/'))return{default:name};
     throw Error(name);

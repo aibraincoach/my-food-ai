@@ -1,4 +1,5 @@
 "use client";
+import {feedPhotoSrcSet} from '@/lib/posts/feed-photo-url';
 import {useEffect,useRef,useState,type ReactNode} from 'react';
 import Link from 'next/link';
 import {useRouter} from 'next/navigation';
@@ -10,7 +11,7 @@ import UndoToast from '@/components/UndoToast';
 import type {FeedItem} from '@/lib/posts/feed';
 import {formatCalories,toNumber} from '@/lib/nutrition/totals';
 import {delayAction} from '@/lib/posts/delayed-action';
-export type Slide={id?:string;url:string;kind?:'photo'|'card';not_eaten?:boolean};
+export type Slide={id?:string;url:string;kind?:'photo'|'card';not_eaten?:boolean;width?:number;height?:number};
 export default function Carousel({slides,caption,postId,href,modelCommentId,fingerprint,nutrition,items=[],onIndexChange,canAddNotEaten=false,priority=false}:{priority?:boolean;items?:FeedItem[];slides:Slide[];caption:string;postId:string;href?:string;modelCommentId:string|null;fingerprint:string|null;nutrition:ReactNode;onIndexChange?:(index:number)=>void;canAddNotEaten?:boolean}) {
  const menus=useRef<HTMLDivElement>(null);useRemovalMenus(menus);
  const [index,setIndex]=useState(0);const [removed,setRemoved]=useState<string[]>([]),[removing,setRemoving]=useState(false),[error,setError]=useState('');const router=useRouter();
@@ -99,13 +100,15 @@ function MealPhoto({url,priority,alt}:{url:string;priority:boolean;alt:string}) 
  const [read,setRead]=useState({path:imageIdentity(url),url,failed:false});
  const image=useRef<HTMLImageElement>(null);
  const [nearViewport,setNearViewport]=useState(false);
+ const [failedSharp,setFailedSharp]=useState<string|null>(null);
  useEffect(()=>{
   if(priority||nearViewport||!image.current)return;
   return observeNearViewport(image.current,()=>setNearViewport(true));
  },[priority,nearViewport]);
  const active=retainedImageUrl(read,url);
+ const sharp=failedSharp!==imageIdentity(active);
  // eslint-disable-next-line @next/next/no-img-element
- return <img ref={image} src={priority||nearViewport?active:undefined} crossOrigin="anonymous" width={1080} height={1080} fetchPriority={priority?"high":undefined} loading={priority?"eager":"lazy"} decoding="async" alt={alt} className="h-full w-full object-cover"
-  onError={()=>setRead({path:imageIdentity(active),url:active,failed:true})}
+ return <img ref={image} src={priority||nearViewport?active:undefined} srcSet={(priority||nearViewport)&&sharp?feedPhotoSrcSet(active):undefined} crossOrigin="anonymous" width={1080} height={1080} fetchPriority={priority?"high":undefined} loading={priority?"eager":"lazy"} decoding="async" alt={alt} className="h-full w-full object-cover"
+  onError={()=>{if(sharp&&feedPhotoSrcSet(active)){setFailedSharp(imageIdentity(active));return;}setRead({path:imageIdentity(active),url:active,failed:true});}}
   onLoad={()=>{if(read.failed||read.url!==active||read.path!==imageIdentity(active))setRead({path:imageIdentity(active),url:active,failed:false});}}/>;
 }

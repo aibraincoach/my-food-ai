@@ -108,3 +108,47 @@ test('repeated refinements cannot loop and rejected compound foods remain unavai
  assert.deepEqual(queries,['mixed dish','mixed +dish','dish']);
  assert.equal(result.food,null);assert.equal(result.searches,3);
 });
+
+test('a first decision that names no base food still yields the bare name for the closest-record step', async()=>{const queries=[];const result=await matchFood('Pickled ginger','Load test 18',{search:async query=>{queries.push(query);return []},choose:async()=>({id:null,query:null,query_food:null,reason:'All candidates are Branded'})});assert.deepEqual(queries,['Pickled ginger']);assert.equal(result.food,null);assert.equal(result.searches,1);assert.equal(result.baseFood,'Pickled ginger');});
+
+
+test('references cannot silently omit a component such as Caesar dressing',async()=>{
+ const nutrient={nutrientId:1008,value:150};
+ const foods=[{fdcId:1,description:'Chicken caesar salad, no dressing',dataType:'Survey (FNDDS)',foodNutrients:[nutrient]},{fdcId:2,description:'Chicken caesar salad, with dressing',dataType:'Survey (FNDDS)',foodNutrients:[nutrient]}];
+ const result=await matchFood('Chicken caesar salad','',{
+  search:async()=>foods,
+  choose:async(_name,_caption,candidates)=>{assert.deepEqual(candidates.map(food=>food.fdcId),[2]);return{id:2,query:null,query_food:null,reason:'With dressing'}}
+ });
+ assert.equal(result.food.fdcId,2);
+});
+
+test('explicit target exclusions and preparation notes stay eligible',async()=>{
+ const {excludedComponents}=await import('../src/lib/fdc/exclusions.ts');
+ assert.deepEqual(excludedComponents('Rice, white, cooked, no added fat','steamed white rice'),[]);
+ assert.deepEqual(excludedComponents('Salad, no dressing','green salad no dressing'),[]);
+ assert.deepEqual(excludedComponents('Salad, no dressing','green salad without dressing'),[]);
+ assert.deepEqual(excludedComponents('Salad, no dressing','green salad no dressingless sauce'),['no dressing']);
+ for(const note of ['no salt','without sugar','no fat'])assert.deepEqual(excludedComponents(`Rice, ${note}`,'rice'),[]);
+ assert.deepEqual(excludedComponents('Salad, without croutons','green salad'),['without croutons']);
+});
+
+test('multiword excluded components cannot collide on their first adjective',async()=>{
+ const {excludedComponents}=await import('../src/lib/fdc/exclusions.ts');
+ assert.deepEqual(excludedComponents('Salad, no hot peppers','salad no hot sauce'),['no hot peppers']);
+ assert.deepEqual(excludedComponents('Salad, without hot sauce','salad without hot peppers'),['without hot sauce']);
+ assert.deepEqual(excludedComponents('Salad, no hot peppers','salad without hot peppers please'),[]);
+ assert.deepEqual(excludedComponents('Salad, no hot peppers, with cheese','salad without hot peppers'),[]);
+ assert.deepEqual(excludedComponents('Salad, no dressing','salad without dressing please'),[]);
+ assert.deepEqual(excludedComponents('Salad, no hot peppers and no cheese','salad without hot peppers, no cheese'),[]);
+ assert.deepEqual(excludedComponents('Salad, no hot peppers and no cheese','salad without hot peppers'),['no cheese']);
+});
+
+test('candidate matching rejects a missing multiword component despite a different target exclusion',async()=>{
+ const nutrient={nutrientId:1008,value:150};
+ const foods=[{fdcId:1,description:'Salad, no hot peppers',dataType:'Survey (FNDDS)',foodNutrients:[nutrient]},{fdcId:2,description:'Salad, no hot sauce',dataType:'Survey (FNDDS)',foodNutrients:[nutrient]}];
+ const result=await matchFood('Salad','without hot sauce',{
+  search:async()=>foods,
+  choose:async(_name,_caption,candidates)=>{assert.deepEqual(candidates.map(food=>food.fdcId),[2]);return{id:2,query:null,query_food:null,reason:'Matches sauce exclusion'}}
+ });
+ assert.equal(result.food.fdcId,2);
+});

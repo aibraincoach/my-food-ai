@@ -14,7 +14,7 @@ import { createResponse, MetaApiError } from '@/lib/meta/client';
 import { correctPrompt } from '@/lib/prompts/spark/correct';
 import { correctionSchema } from '@/lib/prompts/spark/correct-schema';
 import { resolveNutritionItems } from "@/lib/fdc/resolve-items";
-import { resolveFoodMatch, traceNutritionReuse, nutritionResolutionBudget } from '@/lib/fdc/match';
+import { resolveFoodMatchDetailed, traceNutritionReuse, nutritionResolutionBudget } from '@/lib/fdc/match';
 import { sumNutrition } from '@/lib/nutrition/totals';
 import { scaleNutrition } from '@/lib/fdc/nutrients';
 import { safeSummary } from '@/lib/pipeline/wording';
@@ -56,7 +56,7 @@ const correct:JobHandler=async(admin,job)=>{
  if(!prepared)throw new MetaApiError(503,'Correction snapshot could not be saved.');
  const {rows,result,approximations}=await replayCorrection(admin,job.post_id,items,window.pending,window.history,photoAdded);
  const totals=sumNutrition(rows.map(row=>({...row.nutrition,name:row.name})));
- const reply=await safeSummary(correctionReply(items,rows,totals),totals,approximations);
+ const reply=await safeSummary(correctionReply(items,rows,totals),totals,approximations,rows.map(row=>({name:row.name,sourceRef:row.nutrition.source_ref})));
  const {error,status}=await admin.rpc(photoAdded?'persist_photo_correction':result.needs_input?'persist_correction_question':'persist_correction',{p_post_id:job.post_id,p_job_id:job.id,p_expected:items.map(i=>i.id),...(!photoAdded?{p_through:latest!.id}:{}),p_items:rows,p_reply:reply,...(photoAdded?{p_question:result.needs_input}:result.needs_input?{p_question:result.needs_input}:{})});
  if(error)throw ioError('Correction transaction failed.',error,status);
  if(!result.needs_input)await markReady(job.post_id,admin,job.id);
@@ -107,8 +107,8 @@ export async function replayCorrection(admin:import('@supabase/supabase-js').Sup
    const retained=replaying&&region?.name===item.name?rescalePortionNutrition({...retainedNutrition(region),post_item_id:region.id},region.portion_grams,item.portion_grams,region.portion_text,item.portion_text):region?.name===item.name?await resolvePortionNutrition(admin,postId!,region.id,item.name,item.portion_grams,item.portion_text,signal):null;
    if(retained)nutrition=retained;
    else {
-   const food=await resolveFoodMatch(admin,item.name,context.caption??'',signal,{approximate:true});
-   const n=scaleNutrition(food,item.portion_grams);
+   const match=await resolveFoodMatchDetailed(admin,item.name,context.caption??'',signal,{approximate:true});
+   const n=scaleNutrition(match.food,item.portion_grams,match.unavailable);
    nutrition={calories:n.calories,protein_g:n.proteinG,carbs_g:n.carbsG,fat_g:n.fatG,fibre_g:n.fibreG,sugar_g:n.sugarG,sodium_mg:n.sodiumMg,micronutrients:n.micronutrients,source_ref:n.sourceRef,food_category:n.foodCategory ?? null};
    }
   }
