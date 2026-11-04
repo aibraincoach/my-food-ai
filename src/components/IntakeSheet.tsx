@@ -95,12 +95,14 @@ export default function IntakeSheet({ embedded = false, onClose }: { initialKind
     } catch (reason) { setError(reason instanceof Error ? reason.message : "The drink could not be removed."); }
     finally { setUndoing(null); }
   };
-  const ml = rows.reduce((total, row) => total + (row.ml ?? (row.kind === "water" ? row.amount : 0)), 0);
-  const caffeine = rows.reduce((total, row) => total + (row.kind === "caffeine" ? row.amount : 0), 0);
+  const ml = rows.reduce((total, row) => total + (row.kind === "alcohol" ? 0 : (row.ml ?? (row.kind === "water" ? row.amount : 0))), 0);
+  const caffeine = rows.reduce((total, row) => total + (row.kind === "caffeine" ? row.amount : row.kind === "alcohol" ? row.caffeineMg??0 : 0), 0);
+  const alcohol=rows.reduce((total,row)=>total+(row.kind==="alcohol"&&(row.alcoholG??0)>0?row.amount:0),0);
+  const alcoholUnavailable=rows.some(row=>row.kind==="alcohol"&&!(row.alcoholG!>0));
   const tileOrder = DRINK_TILES.map((_, index) => index).sort((a, b) => tileCounts[b] - tileCounts[a] || a - b);
   const content = <div className="flex flex-col gap-[14px] pb-2">
     <div className="flex items-center justify-between gap-2"><h2 className="text-sheet-head">Drink</h2>
-      <span className="text-[13px] text-muted tabular-nums">{readError ? "Drinks could not be read." : `Today: ${number(ml)} ml · ${number(caffeine)} mg caffeine`}</span>
+      <span className="text-[13px] text-muted tabular-nums">{readError ? "Drinks could not be read." : `Today: ${number(ml)} ml · ${number(caffeine)} mg caffeine${alcohol>0?` · ${number(alcohol)} g alcohol`:''}${alcoholUnavailable?' · alcohol unavailable':''}`}</span>
     </div>
     <div className="grid grid-cols-3 gap-2">{tileOrder.map(index => {
       const tile = DRINK_TILES[index];
