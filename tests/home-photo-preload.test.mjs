@@ -1,4 +1,5 @@
 import {verifiedUserCookie} from '../src/lib/auth/verified-cookie.ts';
+import {sumNutrition} from '../src/lib/nutrition/totals.ts';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import {readFileSync} from 'node:fs';
@@ -50,6 +51,7 @@ test('Home HTML preload and first image expose identical density candidates with
   if(name==='@/lib/posts/feed')return{getFirstFeedPhoto:async()=>({id:post,photoUrl:url,caption:'Rice',eaten_at:'2026-11-03T10:00:00Z'}),getFeed:async(_db,_owner,_cursor,_zone,_size,options)=>{options.onFirstPhoto(url);return{posts:[],days:[],nextCursor:null};}};
   if(name==='next/link'||name.startsWith('@/components/'))return{default:name};
   if(name==='@/lib/posts/today-view')return{};
+  if(name==='@/lib/nutrition/totals')return{sumNutrition};
   throw Error(name);
  }});
  const tree=await exports.HomeFirstPhoto();await exports.homeSeed();
