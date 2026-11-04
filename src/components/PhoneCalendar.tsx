@@ -12,6 +12,9 @@ export default function PhoneCalendar({months,today,selected,onDay,onOlder}:Prop
  const root=useRef<HTMLDivElement>(null),sentinel=useRef<HTMLDivElement>(null);
  const anchor=useRef<{height:number;top:number}|null>(null),opened=useRef(false);
  const [visible,setVisible]=useState(today.slice(0,7));
+ const olderRef=useRef(onOlder);
+ useEffect(()=>{olderRef.current=onOlder;});
+ const hasOlder=Boolean(onOlder);
  const current=months[visible]??months[today.slice(0,7)];
  const unavailable=[...new Set(current?.days.flatMap(day=>day.missing??[])??[])];
  useLayoutEffect(()=>{
@@ -39,16 +42,14 @@ export default function PhoneCalendar({months,today,selected,onDay,onOlder}:Prop
   elements.forEach(el=>observer.observe(el));return()=>observer.disconnect();
  },[key]);
  useEffect(()=>{
-  if(!onOlder||!sentinel.current)return;
+  if(!hasOlder||!sentinel.current)return;
   const older=olderRef;
   const observer=new IntersectionObserver(entries=>{
    if(!opened.current||!entries.some(entry=>entry.isIntersecting))return;
    observer.disconnect();anchor.current={height:document.documentElement.scrollHeight,top:window.scrollY};older.current?.();
   });
   observer.observe(sentinel.current);return()=>observer.disconnect();
- },[key,Boolean(onOlder)]);
- const olderRef=useRef(onOlder);
- useEffect(()=>{olderRef.current=onOlder;});
+ },[key,hasOlder]);
  const first=ordered[0]?new Date(ordered[0]+'-01T12:00:00Z'):null;
  const dates:string[]=[];
  if(first){const end=new Date(today.slice(0,7)+'-01T12:00:00Z');end.setUTCMonth(end.getUTCMonth()+1);for(const d=new Date(first);d<end;d.setUTCDate(d.getUTCDate()+1))dates.push(d.toISOString().slice(0,10));}
