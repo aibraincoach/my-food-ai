@@ -1,0 +1,66 @@
+{
+  "utc": "2026-11-04T07:49:21.700Z",
+  "browser": "Firefox BiDi (Chromium CDP renderer commands hung)",
+  "origin": "https://my-food-q8xu0y4a9-aibraincoachs-projects.vercel.app",
+  "rows": [
+    {
+      "url": "/",
+      "viewport": 1100,
+      "mainWidth": 500,
+      "left": 414,
+      "right": 914,
+      "todayPresent": true,
+      "todayVisible": false,
+      "workspace": {
+        "left": 266,
+        "right": 1062,
+        "width": 796
+      },
+      "strayNote": false,
+      "shell": false,
+      "body": "My Food AI\nNew post\nN\nHome\nSearch\n/\nDays\nD\nT\ntestkitchen2\nProfile\n?\nKeyboard sho"
+    },
+    {
+      "url": "/",
+      "viewport": 1280,
+      "mainWidth": 500,
+      "left": 332,
+      "right": 832,
+      "todayPresent": true,
+      "todayVisible": true,
+      "workspace": {
+        "left": 332,
+        "right": 1176,
+        "width": 844
+      },
+      "strayNote": false,
+      "shell": false,
+      "body": "My Food AI\nNew post\nN\nHome\nSearch\n/\nDays\nD\nT\ntestkitchen2\nProfile\n?\nKeyboard sho"
+    },
+    {
+      "url": "/",
+      "viewport": 1440,
+      "mainWidth": 500,
+      "left": 412,
+      "right": 912,
+      "todayPresent": true,
+      "todayVisible": true,
+      "workspace": {
+        "left": 412,
+        "right": 1256,
+        "width": 844
+      },
+      "strayNote": false,
+      "shell": false,
+      "body": "My Food AI\nNew post\nN\nHome\nSearch\n/\nDays\nD\nT\ntestkitchen2\nProfile\n?\nKeyboard sho"
+    }
+  ],
+  "shell": {
+    "url": "/shell",
+    "shell": true,
+    "mainWidth": 500,
+    "today": true,
+    "todayVisible": true,
+    "online": false
+  }
+}

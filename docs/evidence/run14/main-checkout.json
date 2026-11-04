@@ -1,0 +1,12 @@
+{
+  "/home/opc/Projects/my-food-ai": {
+    "branch": "run13/docs",
+    "head": "7b439b5ab3cf7c00fa7c06a09bc0a466f08f0608",
+    "status": "?? .qwen/\n?? docs/reviews/mfa-pplx-pr311-e7ece5c.md"
+  },
+  "/home/opc/Projects/my-food-ai-wt/main": {
+    "branch": "main",
+    "head": "a24587a1ec3b57a7b2bdfb5f69cce4e0e73602db",
+    "status": ""
+  }
+}

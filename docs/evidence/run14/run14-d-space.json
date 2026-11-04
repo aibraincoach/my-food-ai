@@ -1,0 +1,22 @@
+{
+  "utc": "2026-11-04T07:53:20.153Z",
+  "browser": "Firefox BiDi with fake media prefs",
+  "rows": [
+    {
+      "case": "focused Back to Feed",
+      "clicks": [
+        "Back to Feed"
+      ],
+      "closed": true
+    },
+    {
+      "case": "focused shutter",
+      "clicks": [
+        "Take a photo"
+      ],
+      "composer": true,
+      "photoCount": 0,
+      "body": " photo\nSearch foods\n\nDrink · read from the can\n\nCoca cola, can\nCorrect\n\n330\nml\n\n32\nmg caffeine\n\nunavailable\nkcal\n\nHow much did you drink?\n\nThe whole can\nHalf\nOther\n\nAdds 330 ml and 32 mg caffeine to today\n\nEaten at\nLocation\nSave as meal\nPost · 330 ml"
+    }
+  ]
+}

@@ -1,0 +1,9 @@
+{
+  "observedAt": "2026-11-04T08:24:15.460Z",
+  "migration": "0052_estimate_summary",
+  "reviewedHead": "e5d4f660ac4d9ab3c352dbd7709b1335c2db446e",
+  "sha256": "f8eb4ed9cceb6f3e77b35949cf9371aa505e1c3ae72b81229cb70bb34d3d4c36",
+  "exitCode": 3,
+  "before": "SET\n               proname               | recognizes_estimate | anon_can_execute | user_can_execute | service_can_execute \n-------------------------------------+---------------------+------------------+------------------+---------------------\n persist_approximated_analysis       | f                   | f                | f                | t\n refresh_owned_approximation_summary | f                   | f                | f                | t\n(2 rows)\n\n",
+  "after": "BEGIN\nSET\nSET\n"
+}

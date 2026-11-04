@@ -1,0 +1,17 @@
+{
+  "utc": "2026-11-04T08:03:49.114Z",
+  "browser": "Firefox BiDi local production build, one injected posted:true IndexedDB put rejection",
+  "first": {
+    "failedWrite": true,
+    "captionStillVisible": true,
+    "failure": true,
+    "body": "on…\n\nJust now\nToday · Wednesday, Nov 4\n\n—\nkcal consumed\n\n— g\n\nprotein\n\n— g\n\ncarbs\n\n— g\n\nfat\n\nPosted today\n\nNo posts today\n\nText post\nNew post\n×\nlocal_test_2\nAnother photo\nSearch foods\nEaten at\nLocation\nSave as meal\n\nThe post could not be kept on this phone. Keep this screen open and try again.\n\nPost"
+  },
+  "retry": {
+    "captionStillVisible": false,
+    "body": "— g\n\nprotein\n\n— g\n\ncarbs\n\n— g\n\nfat\n\nPosted today\nFleet14 durable retry fixture\n1:03 AM\n— kcal\n\nKnown nutrition shown. Nutrition unavailable: Coca cola"
+  },
+  "postRequests": [
+    "/api/posts"
+  ]
+}

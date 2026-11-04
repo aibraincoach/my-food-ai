@@ -1,5 +1,9 @@
 # Review (My Food AI)
 
+## Fleet 14 owner override — November 4, 2026
+
+For Fleet14, the owner accepts PPLX reviews even when Gemini requests silently route to ChatGPT6.1 and explicitly permits AGY in parallel for speed. The answer model is recorded separately from request preference. Exact reviewed feature heads, the main-only refresh mapping and counting receipts are in [the Fleet14 index](reviews/run14-review-index.md). Failed attempts and source-access failures do not count as approvals. Supplementary coder reviews are distinct from counting external reviews. This scoped instruction supersedes incompatible route-order/model restrictions below for Fleet14 only; it is not a future-run waiver. Docs PRs remain unmerged without the owner's explicit request.
+
 Owner Fleet 15 override, November 4, 2026: AGY may be run when needed and its complete exact-head receipts count. PPLX may use ChatGPT, including GPT-6.1 Sol, under the owner's explicit quota override. Record the actual model and submit exactly `code review <PR URL>`; no extra instruction is submitted. This supersedes the older Muse-only route restriction and Gemini-only PPLX restriction for Fleet 15. Existing deviation and truncation labels remain part of the record; a finding is checked against source, and changed code needs a fresh receipt at its new head. Review clearance is not a merge order.
 
 Fleet15 resource isolation: do not use or restart Fleet14's Firefox endpoint/profile. Use a separately owned browser on a different port. Do not close the owner's review tabs.

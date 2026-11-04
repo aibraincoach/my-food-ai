@@ -1,0 +1,34 @@
+{
+  "utc": "2026-11-04T07:59:20.801Z",
+  "rows": [
+    {
+      "phase": "open",
+      "summary": "October 2026 · 1 day posted",
+      "starts": [
+        "2026-10",
+        "2026-11"
+      ],
+      "today": 327.79998779296875
+    },
+    {
+      "phase": "October-near-top",
+      "summary": "October 2026 · 1 day posted",
+      "top": 87.80000305175781
+    },
+    {
+      "phase": "November-near-top",
+      "summary": "October 2026 · 1 day posted",
+      "top": 327.79998779296875
+    },
+    {
+      "phase": "controlled-bottom-spacer-2026-11",
+      "summary": "November 2026 · 1 day posted",
+      "top": 100.80000305175781
+    },
+    {
+      "phase": "controlled-bottom-spacer-2026-10",
+      "summary": "October 2026 · 1 day posted",
+      "top": 87.80000305175781
+    }
+  ]
+}

@@ -1,0 +1,22 @@
+{
+  "observedAt": "2026-11-04T07:49:26.182Z",
+  "deployment": "dpl_2CxQa5FWdy2GPTuZ2cqTZxcVm9nD",
+  "commit": "299f13a49af5320cb81d4cdf4e9de14263214a96",
+  "rows": [
+    {
+      "http": 200,
+      "cold": "0",
+      "totalMs": 156.67977699999994
+    },
+    {
+      "http": 200,
+      "cold": "0",
+      "totalMs": 127.25005499999997
+    },
+    {
+      "http": 200,
+      "cold": "0",
+      "totalMs": 123.48704499999985
+    }
+  ]
+}

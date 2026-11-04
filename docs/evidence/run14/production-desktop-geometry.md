@@ -12,4 +12,4 @@ All three ordinary `/` navigations rendered the network Home without an undersco
 
 A live 1280 × 800 production view was displayed directly in the tool after scrolling the first post into view: the sidebar, 500 px feed and Today column matched the intended desktop frame. The focused-card outline extends beyond the feed as in the existing focus treatment. No image file was stored. Existing post content and Today values were not treated as nutrition or owner-phone acceptance.
 
-The service-worker timeout premise P1 remains unproved; these successful production geometry checks do not establish the cause of the owner’s earlier screenshot. See [the numeric receipt](https://github.com/aibraincoach/my-food-ai/blob/eeba864c8e54c562f9a76cf90872187d172564ab/docs/evidence/run14/production-desktop-geometry.json).
+The service-worker timeout premise P1 remains unproved; these successful production geometry checks do not establish the cause of the owner’s earlier screenshot. See [the numeric receipt](production-desktop-geometry.json).

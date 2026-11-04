@@ -1,0 +1,46 @@
+{
+  "observedAt": "2026-11-04T09:24:35.110Z",
+  "rows": [
+    {
+      "control": "More",
+      "scope": "Actual production React PostCaption; local post-caption render fixture only, no saved caption mutation",
+      "hitArea": {
+        "x": 343.40831756591797,
+        "y": 421.8000030517578,
+        "width": 37.18333435058594,
+        "height": 19.600006103515625,
+        "feedback": {
+          "firstMutation": 0,
+          "pressed": true
+        }
+      },
+      "remainingMore": [
+        ""
+      ],
+      "verdict": "exercised"
+    },
+    {
+      "control": "Edit caption Save",
+      "scope": "Actual production React handler; own-tab PATCH interception returns500; no server write",
+      "hitArea": {
+        "x": 195,
+        "y": 708,
+        "width": 350,
+        "height": 48,
+        "feedback": {
+          "firstMutation": 0,
+          "pressed": true
+        }
+      },
+      "requests": [
+        {
+          "url": "/api/posts/e20a5590-9281-436b-900e-2afec24d2567/caption",
+          "method": "PATCH"
+        }
+      ],
+      "errorVisible": true,
+      "sheetRetained": true,
+      "verdict": "exercised"
+    }
+  ]
+}

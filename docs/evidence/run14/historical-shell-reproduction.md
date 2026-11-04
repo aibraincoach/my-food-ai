@@ -15,4 +15,4 @@ The immutable deployment is protected. The existing permanent bypass secret was 
 
 The first bounded attempt failed during worker setup with `Worker setup: Inspected target navigated or closed` and its context was disposed. The second and final attempt captured the observations above; it accepted the page and worker network commands and disposed its own context afterward. Native browser 18800 and the permanent bypass access remain available.
 
-[Numeric receipt and bounded-attempt provenance](https://github.com/aibraincoach/my-food-ai/blob/eeba864c8e54c562f9a76cf90872187d172564ab/docs/evidence/run14/historical-shell-reproduction.json). [The separately observed current Fleet 14 production layout](production-desktop-geometry.md).
+[Numeric receipt and bounded-attempt provenance](historical-shell-reproduction.json). [The separately observed current Fleet 14 production layout](production-desktop-geometry.md).

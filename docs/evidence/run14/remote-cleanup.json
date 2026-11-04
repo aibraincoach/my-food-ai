@@ -1,0 +1,15 @@
+{
+  "deletedMergedBranches": [
+    "run14/action-row",
+    "run14/auth-once",
+    "run14/capture-fixes",
+    "run14/desktop-shell",
+    "run14/food-estimate",
+    "run14/measure",
+    "run14/tap-frame"
+  ],
+  "preserved": [
+    "run13/docs",
+    "run14/docs"
+  ]
+}

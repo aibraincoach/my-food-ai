@@ -1,0 +1,16 @@
+{
+  "observedAt": "2026-11-04T09:04:08.114Z",
+  "modelSetting": {
+    "initialProvider": "meta",
+    "initialEvidence": "Readback before final controls; driver also captures/restores its own aria-checked state and asserts equality",
+    "finalProvider": "meta",
+    "restored": true
+  },
+  "feedback": {
+    "postPrefix": "f1737bd7",
+    "originalVerdict": "up",
+    "originalEvidence": "Final control table Thumbsup initialPressed=true and Thumbsdown initialPressed=false",
+    "finalVerdict": "up",
+    "restored": true
+  }
+}
