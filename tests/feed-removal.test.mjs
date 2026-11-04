@@ -25,7 +25,7 @@ test('retiring the last meal clears feed state and rejects an older hydration re
   if(name==='@/lib/posts/upload-manager')return{uploadManager:{list:()=>[]}};
   if(name==='@/components/useUploads')return{useUploads:()=>[]};
   if(name==='@/components/LocalTime')return{useDeviceTimeZone:()=> 'UTC'};
-  if(name==='@/components/useCachedFeed')return{useCachedFeed:()=>({cached:null,save(){}})};
+  if(name==='@/components/useCachedFeed')return{useCachedFeed:()=>({userId:'owner',cached:null,save(){}})};
   if(name==='@/lib/posts/feed-cache-mutations')return{claimFeedCacheEvents:()=>()=>{}};
   if(name==='@/lib/posts/feed-cache')return{readFeedCache:()=>null};
   if(name==='@/lib/posts/feed-order')return{mergeFeedPosts:(baseline,promoted)=>[...new Map([...baseline,...promoted].map(row=>[row.id,row])).values()],discoveryLostOverlap:()=>forceReset};
