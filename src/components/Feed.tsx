@@ -131,7 +131,7 @@ export default function Feed({initialPage, initialUserId, initialZone = "UTC", f
             const sameMedia=!post.expectedMediaIds||JSON.stringify(post.expectedMediaIds)===JSON.stringify(old?.slides.map(slide=>slide.id));
             return old&&old.status===post.status&&old.caption===post.caption&&old.eaten_at===post.eaten_at&&sameRevision&&sameMedia?[old]:[];
           });
-          cacheRef.current.save(cachePosts); cacheDirty = false;
+          if (cachePosts.length || !posts.length) cacheRef.current.save(cachePosts); cacheDirty = false;
         }
       }
     };
@@ -431,7 +431,7 @@ export default function Feed({initialPage, initialUserId, initialZone = "UTC", f
   const localCards=uploads.map(upload=>{const server=visibleState.kind==='ready'?visibleState.posts.find(post=>post.id===upload.postId):undefined;const seed:FeedPost=server??{id:upload.postId??upload.operationId,caption:upload.caption,eaten_at:upload.eatenAt,created_at:upload.eatenAt,status:"queued",photoUrl:upload.previewUrl,slides:[],items:[]};const zone=renderZone;const day=dateInZone(seed.eaten_at,zone);const header=!uploadDays.has(day);const measured=visibleState.kind==='ready'?visibleState.days.find(value=>value.day===day):undefined;const measuredTotal=measured?{...measured,ready:measured.ready||measured.kcal===0}:undefined;if(header)uploadDays.add(day);return <UploadHydratedCard key={upload.operationId} post={seed} upload={upload} header={header?<DayHeader day={day} zone={zone} empty={false} total={measuredTotal}/>:null}/>;});
   if (visibleState.kind === "loading"&&localCards.length)return <div>{localCards}{null}</div>;
   if (visibleState.kind === "loading") return <p className="px-screen-x text-detail text-muted" role="status">Loading feed…</p>;
-  if (visibleState.kind === "error") return <div>{localCards}<p className="px-screen-x text-detail text-muted" role="alert">The feed could not be loaded.</p><button type="button" className="min-h-tap px-screen-x text-text" onClick={() => retryInitial.current()}>Try again</button></div>;
+  if (visibleState.kind === "error") return <div data-feed-error>{localCards}<p className="px-screen-x text-detail text-muted" role="alert">The feed could not be loaded.</p><button type="button" className="min-h-tap px-screen-x text-text" onClick={() => retryInitial.current()}>Try again</button></div>;
   if (!visibleState.posts.length&&localCards.length)return <div>{localCards}{null}</div>;
   if (!visibleState.posts.length) return <div data-feed-source={fallbackOnly||!freshResponse?"cache":"fresh"} data-feed-client-ready={!fallbackOnly ? true : undefined} data-cached-feed-ready={fallbackOnly ? true : undefined} className="flex flex-1 items-center justify-center" style={{ paddingBottom: tokens.spacing['sheet-bottom'] * 3 }}>
     <p className="text-sheet-title font-normal text-muted">Post your first meal</p>
