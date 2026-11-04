@@ -28,7 +28,10 @@ export async function middleware(request: NextRequest) {
   session.cookies.setAll([verifiedUserCookie(userId, request.nextUrl.protocol === "https:")]);
   const pathname = request.nextUrl.pathname;
   if (pathname === "/admin" || pathname.startsWith("/admin/")) {
-    const allowed=await adminRequestAllowed(userId,async()=>supabase.from("profiles").select("role").eq("id",userId!).maybeSingle());
+    const allowed = await adminRequestAllowed(
+      userId ?? undefined,
+      async () => supabase.from("profiles").select("role").eq("id", userId!).maybeSingle(),
+    );
     if(!allowed)return adminNotFoundResponse(session.response);
   }
   if (!userId && PROTECTED.some((p) => pathname === p || pathname.startsWith(p + "/"))) {
