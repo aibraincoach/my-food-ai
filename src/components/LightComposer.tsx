@@ -34,10 +34,11 @@ export default function LightComposer(p:Props) {
  const observedPhoto=useRef({index:-1,count:-1});
  useEffect(()=>{if(!p.shots.length&&!p.cameraPreview)caption.current?.focus();},[p.shots.length,p.cameraPreview]);
  useEffect(()=>{
+  if(typing){observedPhoto.current={index:-1,count:-1};return;}
   const observed=observedPhoto.current;
   if(p.shots.length===2&&(observed.index!==p.index||observed.count!==p.shots.length))preview.current?.scrollTo({left:p.index*210,behavior:'auto'});
   observedPhoto.current={index:p.index,count:p.shots.length};
- },[p.index,p.shots.length]);
+ },[p.index,p.shots.length,typing]);
  const current=p.shots[Math.min(p.index,p.shots.length-1)],on=p.notEaten.includes(p.index);
  const when=p.when?new Date(p.when).toLocaleString(undefined,{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'}):'Now';
  const groups:number[][]=[];
