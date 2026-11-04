@@ -196,7 +196,7 @@ export class UploadManager {
     }
 
     post(id: string) { const entry = this.entries.get(id); if (!entry || entry.deleted)
-        return; entry.data.posted = true; this.notify(entry, 'upload-started'); void this.run(entry); }
+        return; entry.data.posted = true; void this.persist(entry); this.notify(entry, 'upload-started'); void this.run(entry); }
     async discardFood(id:string){
         const entry=this.entries.get(id);
         if((!entry?.data.food&&!entry?.data.copy)||entry.deleted||entry.finished)return;
