@@ -1,5 +1,7 @@
 # Leftovers rollout and way back
 
+> Historical rollout procedure, not a pending current migration order. Leftovers and multiple after-meal photos have since shipped; Fleet 12 uses “Leftovers”. The real half-eaten-plate accuracy check remains outstanding. Consult [CLAUDE.md](../CLAUDE.md) and [phone-acceptance.md](phone-acceptance.md) for current scope.
+
 Migration 0028 is not applied by this document or by the rollback tests. A PM order naming the PR and exact head is still required.
 
 Before applying 0028, let existing work drain and hold the worker lease across the migration and deployment. Apply the migration in one transaction with bounded lock/statement timeouts. Confirm the new production runtime before releasing the lease. Do not allow the old worker to consume new multi-photo jobs during the handoff.

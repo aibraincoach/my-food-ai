@@ -1,5 +1,9 @@
 # Fleet 11 cold tick comparison
 
+## Later instrumentation — November 4, 2026
+
+Fleet 12 merged #536 with x-tick-cold and a cold log line. No production value was read during that run; the older first-request timings below still do not establish a cold process. #322 remains open for identified production cold timing and a physical-phone post through the worker. This reconciliation sends no tick or model probe.
+
 Fresh preview deployments cut from the same main source, `f81987f`: one restores eager imports and one is a source-identical lazy form (empty deployment commit). No request was sent to either tick endpoint before the first curl below. Preview protection was bypassed using a temporary own-project token. These are first-observed request timings, not a platform-instrumented proof of a cold process or a repeated distribution.
 
 Command: `curl --config <private-bypass-config> -sS -o <response> -w '%{http_code} %{time_total}' <fresh-preview>/api/jobs/tick`, three calls per deployment, one second apart.

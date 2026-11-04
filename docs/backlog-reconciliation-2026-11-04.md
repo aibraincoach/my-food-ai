@@ -1,5 +1,7 @@
 # Fleet backlog issue reconciliation
 
+This is the historical 12:36 WIB reconciliation. Later #524 closed and #451 reopened during Fleet 13; the current issue index and Fleet 13 report supersede its issue-state list. #545 has now merged under the owner's explicit order; #558 remains open.
+
 The owner supplied the PM backlog dated November 4, 2026 at 12:36 WIB. Commit `cd0a24a` records that snapshot before this reconciliation. BACKLOG.md retains the supplied text and ordering, including its empty In Flight section.
 
 All 46 item numbers resolve to existing GitHub issues. No missing or unnumbered items require creation; no issues were created, closed or reopened in this pass. The three added entries already exist:

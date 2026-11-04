@@ -1,5 +1,9 @@
 # Closed-issue acceptance audit
 
+## Later acceptance boundary — November 4, 2026
+
+The tables below retain their historical cutoffs. GitHub closure does not establish an owner-device check. #451 was reopened for three-phone acceptance; #523/#525/#452 remain open. #524 closed only after the Fleet 13 sugar regression, production six-row backfill/readback and merge. [Current execution evidence](run13-report.md) and [the live issue index](open-issue-index.md) supersede the old status statements for current work.
+
 Current GitHub disposition, November1: the owner ordered **#11/#22 reopened** for unproven full Home-state/background-phone acceptance. The historic Feed implementation proof below does not close the Home-frame requirement. #67 and the ordered Run5 issues are closed with evidence; see [the owner report](post-run5-owner-report.md).
 
 Final disposition after the production checks through `4598a0ea51f9478ed6fc49d069ef6b5ff7eb7f81` and publication of this evidence: seven live GitHub issue conditions have supporting production evidence; three remain unproven. All associated implementation PRs below merged. The Home frame-restyling claim attached to backlog number #11 is a separate unproven claim.

@@ -1,5 +1,9 @@
 # Next fleet preparation
 
+## Current scope — November 4, 2026
+
+This preparation record is historical. Fleets 11–13 code is merged; #545 old-fleet docs merged only under the owner's explicit order. #558 holds Fleet 13 documentation and remains open. No new fleet or code order is outstanding. The owner removed the clock cutoff from the dispatched Fleet 12 completion rule; the old stop-time requirement below does not reintroduce it. Recording-to-submission still prohibits merges and deployments once recording starts. See [the report](run13-report.md) and [current agent memory](../CLAUDE.md). The successor handover itself is only in the reply, not here.
+
 This is the handoff after the owner's ordered merges on November 3, 2026. It prepares the next fleet's documentation; it does not start a fleet or assign an execution scope. The owner is supplying a newer backlog. The owner-supplied historical 22:48 WIB snapshot is preserved verbatim in [the snapshot archive](backlog-snapshots/2026-11-03-2248.md). A concurrent watch-agent update moved BACKLOG.md to a 22:54 WIB version; that remote work is preserved. The owner will supply a newer version later; neither snapshot starts a fleet.
 
 ## Confirmed repository and production baseline

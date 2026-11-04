@@ -17,7 +17,7 @@ Built for the Meta hackathon, October 26 to November 4, 2026.
 
 To configure the open model on Baseten, supply the server-only `IDENTIFY_OPEN_API_KEY`, `IDENTIFY_OPEN_BASE_URL` and `IDENTIFY_OPEN_MODEL` values named in [.env.example](.env.example). Keep their values in private environment configuration. Built with Muse Spark Open under the [Muse Model License](https://huggingface.co/meta-models/Muse-Spark-Open-816B-A42B/blob/main/LICENSE.md).
 
-USDA FoodData Central supplies nutrition references. It is a database, not a model. A food with no matching reference is shown as unavailable, never guessed. [Food matching](src/lib/fdc/match.ts), [third-party notices](THIRD_PARTY.md).
+USDA FoodData Central supplies nutrition references. It is a database, not a model. After strict matching fails, the app can use the closest generic USDA record and names that record in the meal summary. Numbers always come from USDA; a food with no close record stays unavailable. Model-made nutrient estimates are not used. [Food matching](src/lib/fdc/match.ts), [third-party notices](THIRD_PARTY.md).
 
 Packaged foods that USDA FoodData Central does not hold are looked up in Open Food Facts. Contains data from [Open Food Facts](https://world.openfoodfacts.org), available under the [Open Database License](https://opendatacommons.org/licenses/odbl/1-0/).
 
@@ -33,7 +33,7 @@ Packaged foods that USDA FoodData Central does not hold are looked up in Open Fo
 
 ## What was built
 
-From Run 1 to Fleet 10: capture by photo, caption, barcode and nutrition label; outlined food detail; editable item history and corrections; Saved meals and Log again; drinks with water and caffeine; Days and Search; a desktop layout; durable uploads; delete with Undo and Recently deleted; and revocable meal-agent access. Each run's plan and report are in [docs](docs/), for example the [Run 8 report](docs/run8-final-report.md).
+From Run 1 through Fleet 13: capture by photo, caption, barcode and nutrition label; outlined food detail; editable item history and corrections; Saved meals and Log again; drinks with water and caffeine; Days and Search; a desktop layout; durable uploads; delete with Undo and Recently deleted; and revocable meal-agent access. Each run's plan and report are in [docs](docs/), for example the [Run 8 report](docs/run8-final-report.md).
 
 ## Tests
 
@@ -41,11 +41,11 @@ Measured with the [disposable local test stack](docs/testing.md); [commands, dat
 
 | Command | Result |
 | --- | --- |
-| `npm run test:db` | 34 passed, 0 failed, 0 skipped |
-| `npm test` (complete top-level suite with TypeScript loading) | 573 passed, 0 failed, 6 existing optional integration skips |
+| `npm run test:db` | 38 passed, 0 failed, 0 skipped |
+| `npm test` (complete top-level suite with TypeScript loading) | 584 passed, 0 failed, 6 existing optional integration skips |
 | `npm run lint` | 0 errors, 6 warnings |
 
-[Fleet 11 validation logs and exact tested versions](https://github.com/aibraincoach/my-food-ai/blob/ccb1465/docs/evidence/run11-final-checks/verification.json).
+[Fleet 13 validation and exact tested tree](docs/evidence/run13/validation.json), [implementation and acceptance limits](docs/run13-report.md).
 
 The local stack runs real PostgreSQL, Auth, REST and app routes with scripted provider/Storage transports. It does not prove live provider availability or food accuracy.
 

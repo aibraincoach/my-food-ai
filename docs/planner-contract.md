@@ -1,5 +1,9 @@
 # Planner contract
 
+## Owner scope and docs rule — November 4, 2026
+
+The owner's current instruction merged old-fleet docs #545 only. New-fleet docs #558 stays open; no PM order or handover authorizes its merge. Match every PR to its own fleet/title and the owner's words. A docs merge requires the owner's explicit request. The successor handover belongs only in the reply, not in a tracked document; PMs write project documents only when the owner asks. These rules supersede conflicting older docs-merge/dispatch wording below.
+
 > Current owner overrides (2026-10-29): a merge prompt may batch ready PRs, each with its exact SHA and checks; plans are not standing merge orders. A changed head needs its own applicable receipt. The Run3 stacked branches were an explicit plan exception to the generic no-stacking rule, but their bases did not automatically retarget after #200 merged. Check actual bases. Codex is explicitly authorized as an additional reviewer on #205/#206 and again after their fixes; the generic non-OpenAI restriction below does not negate that narrow instruction.
 
 Check before delivering a plan. Revised 2026-10-02.

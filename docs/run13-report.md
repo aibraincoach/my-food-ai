@@ -1,5 +1,7 @@
 # Fleet 13 execution report
 
+> Later reconciliation (November 4, 2026): this execution receipt retains its original cutoff. #545 subsequently merged as main `299f13a49af5320cb81d4cdf4e9de14263214a96`; current deployment evidence is in [deployment.md](deployment.md). BACKLOG.md now records remaining acceptance and removes completed #524. #558 remains open and non-draft; this local document reconciliation is unpushed. No owner-device acceptance is established by those changes.
+
 The owner dispatched [the Fleet 13 plan](plan-run13.md) as the code-PR merge order. Execution started from origin/main `efa1e45d296344b90cec7fe80db3d7ed5f0f8c6b`, after Fleet 12's code and docs PRs had merged. No recording hold was received. The supplied plan is committed unchanged. No Fleet 12 feature was rebuilt. The docs branch also preserves the concurrent PM 12:41 WIB backlog update and its six existing design issues #550–#555, imported from PR #545; those are outside this fleet and were not created by it. The before/after #557 commits preserve that newer copy, including its In Flight section.
 
 ## Results

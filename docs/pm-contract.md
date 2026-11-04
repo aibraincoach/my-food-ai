@@ -1,5 +1,9 @@
 # PM contract
 
+## Owner scope and docs rule — November 4, 2026
+
+The owner's current instruction merged old-fleet docs #545 only. New-fleet docs #558 stays open; no PM order or handover authorizes its merge. Match every PR to its own fleet/title and the owner's words. A docs merge requires the owner's explicit request. The successor handover belongs only in the reply, not in a tracked document; PMs write project documents only when the owner asks. These rules supersede conflicting older docs-merge/dispatch wording below.
+
 Check before replying.
 
 ## Dispatch vs conversation

@@ -1,5 +1,9 @@
 # Current review index — Run 7
 
+## Latest review scope — November 4, 2026
+
+Fleet 13 code is merged at the exact cleared heads in [its report](../run13-report.md). Its explicit dispatch accepted ChatGPT answers in PPLX and required supplementary coder reviews; this is not a claim that every captured answer used Gemini or that failed/superseded attempts approve current code. All final code heads have zero-blocker receipts. #558 is docs-only, remains open, and receives no review run or merge merely because of this handover. The older Run 7 and earlier indexes below are historical.
+
 Run5 exact-head receipts and confirmations: [Run5 review index](run5-review-receipts.md). Final #269 exact `c54525b1bd1c8985866f7fe840411be274822719`: [Gemini BLOCKERS: NONE](post-run5-pr269-c54525b-receipt.md), [triage real0](post-run5-pr269-c54525b-triage.md). #269 and docs #266 are merged; no code PR is open at this cutoff. Historical records below retain their original heads and are not new review requests.
 
 # Review captures

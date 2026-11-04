@@ -1,5 +1,9 @@
 # Production demo checklist
 
+## Current scope — November 4, 2026
+
+This historical workflow is not the final submission video. Current owner requirements are in [demo.md](demo.md) and #26: under 3 minutes, live Meta calls, the open model and Baseten named, every built feature, and a validated real half-eaten plate. Owner phone acceptance on all 3 phones remains separate. A handover or this checklist authorizes no recording, sign-in, production posting or deployment.
+
 Historical checklist, retained from #235. The former unrun status is superseded by [the two functional runs](demo.md) and [verified timed rehearsal](demo-rehearsal.md). Hardware camera and phone-specific checks remain unproven; this checklist itself is not new execution evidence.
 
 For each run, record the deployed main commit, time and pass/fail outcome for each step. Record concrete failures and open a separate fix PR for each change; never mark a partial sequence complete.

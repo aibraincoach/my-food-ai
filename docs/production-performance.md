@@ -1,5 +1,9 @@
 # Production meal latency, Nov 1
 
+## Later implementation scope — November 4, 2026
+
+The timings below are historical Nov 1 observations, not Fleet 13 measurements. Current matching is v8 and can use a named closest generic USDA record after strict failure; drink identification remains exact. Fleet 12 added a 75-second open-provider attempt, but #544 remains open because structured-format fallback starts another attempt deadline. The recording account trial #471 and physical-phone posting remain unproved. See [current execution evidence](run13-report.md) and [the open-model limits](open-weights.md).
+
 Later Run5 burst check: **20/20 ready on attempt one**, median144.50 s, max307.47 s, all ready421.474 s from start. See [load-test.md](load-test.md). This supersedes the earlier “no new burst” cutoff below; it is not a controlled attribution to #256 alone.
 
 The change in [PR #256](https://github.com/aibraincoach/my-food-ai/pull/256) deployed as `44576592955ce576b2a66f875518d18a4ebb8bd4`, READY at 01:01:50 UTC on 2026-11-01. The prior runtime was `72910d0f49a3ba0a96bea015921d874ba13a6c5f`. No migration was needed. Worker concurrency remained one and its scheduled wake remained enabled.

@@ -1,5 +1,9 @@
 # Session persistence investigation — Run 4
 
+## Current device scope — November 4, 2026
+
+The owner now requires installed-app checks on all 3 phones under #379. The two-device sequence below is historical mechanism evidence, not completion of that larger physical-device requirement. No new phone/session measurement was performed in this reconciliation.
+
 A controlled test exercised the actual middleware and installed Supabase SSR SDK with an expired session and recorded refresh/user responses. No production account or session was changed.
 
 Before the fix, refresh ran once and returned renewed cookies to the browser, but the request cookie still contained the expired session. The assertion that the current server render reads the renewed session failed. A redirect also discarded the cookie updates produced during failed-session cleanup.

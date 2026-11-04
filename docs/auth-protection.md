@@ -1,5 +1,9 @@
 # Auth protection — Run 8
 
+## Current evidence scope — November 4, 2026
+
+The production CAPTCHA-off state below was observed during Run 8; this reconciliation does not re-read or change Auth settings. The owner's app-path sign-up probe #368 was withdrawn in Fleet 12, so do not run it from this handover. #279 remains open for authorized public-launch CAPTCHA activation and enforcement. Earlier direct-machine rate-limit refusals do not prove isolation across two app clients.
+
 CAPTCHA is built and **off** by the owner's ruling at 10:57 WIB on November 3, 2026. This run changes no Supabase Auth setting and sets no production site key. No new-account cap is added. The spending-cap lane separately limits each account to 40 new posts per clock hour.
 
 ## Observed configuration

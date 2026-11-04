@@ -1,5 +1,9 @@
 # Database egress and log observations
 
+## Current evidence scope — November 4, 2026
+
+The historical response-byte measurements below are not billed log-ingestion bytes. Fleets 12 and 13 shipped read-sharing, first-page reuse and detail preview/contain changes, but their reports do not attribute Storage bytes by real-user file/client class or explain billed log ingestion and Micro RAM. #373/#375 remain open. Do not present a code change or row count as a measured billing reduction.
+
 ## Before
 
 Window: 2026-11-02T04:15:17.615Z through 2026-11-03T04:15:17.615Z. Read-only aggregate logs. Response bytes are reported Content-Length, not billed egress; missing lengths are explicitly counted. Log row counts are not ingestion byte totals.

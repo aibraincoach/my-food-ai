@@ -1,6 +1,6 @@
 # My Food AI — Backlog†
 
-Last edited: Wednesday 2026-11-04 at 12:41 WIB (UTC+07:00) by Claude, PM
+Last edited: Wednesday 2026-11-04 at 14:08 WIB (UTC+07:00) by coder, owner-requested reconciliation
 
 The only job of the PM is to maintain this backlog and keep it completely up to date. Failing to do so is immediately terminable.
 
@@ -38,41 +38,63 @@ Check on each of the owner's three phones, installed from the home screen, over 
 
 ### #60 A judge-facing pass makes the public repository start-here ready
 
-The submission requires a public repository, and it still carries the default README.
+The public repository now has a start-here README, but the owner's final review of what it exposes is not recorded.
 
-After the last feature merges, one pass replaces the default README with a short start-here page (#287). All working files stay on main, including the agents' contracts, the Wall of Stupid file, the review policy and the review tools. Nothing is removed or scrubbed. Done when the README is the start-here page and a search of main for host names, account identifiers and billing detail returns only what the owner chose to keep. Fleet 10 closed the issue and Fleet 11 ran the search, so the owner's keep list is what remains.
+GitHub marks #60 closed. The README and public visibility are verified; all working contracts, the Wall and review tools remain. The owner still needs to confirm the keep list after the final feature changes. Done when the owner has confirmed the page and a search of main for host names, account identifiers and billing detail returns only what the owner chose to keep.
 
-## In Flight
+### #370 The camera view stays open for a long time after a photo is taken
 
-### #452 A plainly visible nutrition label is reported as not found
+The capture sheet closes optimistically now; its tap-to-close time and uploaded photo sizes have not been measured on the owner's phones.
 
-A photo of a pack whose nutrition table can be read is rejected with "No nutrition label found".
+Fleet 12 merged #505 with a processing card during upload. One247ms tab-close trial passed, but it did not prove durable posted-flag acknowledgement; #543 tracks that gap. GitHub marks #370 closed, while #379 retains owner phone acceptance. Record tap-to-close, new-card timing and uploaded bytes over mobile data. Done when the sheet closes within one second on a throttled connection, the post appears at the top in processing state, and a failed upload is shown on that post.
 
-The photo of a Goldfish cracker pack, with the label printed in Indonesian and the table fully in the frame, gave "No nutrition label found" with "Take the photo again" and "Type it instead". Done when that photo gives a card with the numbers printed on the label, and a label in English does the same, on the owner's three phones.
+### #348 A photographed drink's card was not proven on production
 
-### #451 Every barcode scan comes back as not in the database
+The card for a photographed drink was closed without the production check its done condition asked for.
 
-The owner has scanned several packs on a phone and every scan has failed: the scanner reads the code and the lookup finds no product.
+The Fleet 10 report says the selected drink card on screen remains unproven. Done when a photographed drink shows the right drink card on production, on the owner's three phones.
 
-The scanner read 7 622300 76136 3 from an Oreo pack and showed "Not in the database. No product for this code yet." The owner finds the same code with an ordinary web search, at barcodelookup.com/7622300761363. Done when this pack gives a product card with its name and nutrition, a second pack from the same shelf does too, and the planner has recorded which source the lookup asks and why it had no entry for this code, on the owner's three phones.
+### #351 The drink tile sizes and order were closed on a local test only
 
-### #523 A meal shows every nutrition value as unavailable
+The tile sizes and order on the drink sheet were not checked on production.
 
-A meal analysed on Nov 4 at 9:53 AM, "Spicy Indonesian macaroni", shows its calories, protein, carbs and fat as unavailable. The owner says the app's food estimates are broken now.
+Only a local test backs the closure. Done when the drink sheet shows its tiles in the right sizes and order on production, on the owner's three phones.
 
-The owner's screenshot of the post (86634d46-b0e3-421a-9b67-1a4e8f5e8e78 on production) shows a comment that reads "Nutrition unavailable: spicy Indonesian fried macaroni snack", and a model line that reads "Identified by Muse Spark 1.3". Judging runs from Nov 4, so a general fault would hit every judge's meal. The coder found on Nov 4 that the matcher rejected every retrieved reference after three searches (the full name, "fried +macaroni" and "fried +pasta") and never tried the bare name "macaroni". No lookup failed, nothing hit a rate limit, and nothing points to a Fleet 11 regression. Fresh USDA requests for "macaroni" and "macaroni cooked" returned records (357 kcal per 100 g, and Pasta, cooked, 157 kcal per 100 g), which are not confirmed equivalents of a fried snack. Of 15 posts in the last 24 hours, five had at least one unavailable field, and only this one had every value unavailable; the others were composite dishes the matcher rejected. The app has no fallback when USDA has no match: it shows unavailable and invents no value, and the Open Food Facts fallback covers barcode scans only. The owner asked for a fallback. The candidate is to search USDA for the closest generic food before saying unavailable. A model estimate needs the owner's ruling. Done when, after the matcher's strict searches fail, it tries the bare food name, and a re-analysed post of this food shows nutrition from the closest USDA record, labelled with that record's name, or says plainly why none qualifies.
+### #449 The food names do not show before the numbers on a new upload
 
-### #524 Sugar shows as unavailable when USDA holds it as Sugars, Total
+Early food names now pass local checks, but the owner has not confirmed them on three phones.
 
-A meal can show its sugar as unavailable although USDA's record holds the value under "Sugars, Total".
+Fleet 12 merged #534 with pending-name preservation and failed-read/status handling. GitHub marks #449 closed; no three-phone receipt is recorded. Done when a new upload shows the foods the app has found while the numbers are still being worked out, on the owner's three phones.
 
-Confirmed by the coder on Nov 4 while auditing the macaroni post. A pineapple's record held nutrient 1063, "Sugars, Total", stored at 8.55 g, but the sugar column reads only nutrient 2000. Calories were unaffected. Done when a food whose USDA record holds 1063 and not 2000 shows its sugar, and a test pins that case.
+### #453 The barcode prompt is printed over the live camera picture
 
-### #525 The meal detail photo is cropped and does not show the whole image
+The barcode prompt has a contrast treatment, but the owner has not checked its readability over a real shelf on three phones.
 
-The meal detail page shows the photo in a short, wide frame, so the top and bottom of the photo are cut off. The owner wants the whole image and has asked for it three times.
+The earlier owner report described words blending into packs and price labels. A merged contrast treatment has coder-local evidence, while GitHub marks #453 closed. Done when the prompt is readable over any camera picture on the owner's three phones.
 
-The owner's screenshot on desktop shows the macaroni photo as a wide strip with the outline masks drawn on the cropped part. The detail photo is drawn to fill its frame (OutlineOverlay.tsx), and the outline masks use the photo's stored width and height. Observe first: measure the frame and the photo on desktop and on phone, and record how much of the photo is cut off. Done when the detail page shows the whole photo with nothing cut off on desktop and on phone, and the outline masks still sit on the right parts of the food.
+### #454 The Days page is not one continuous calendar
+
+A continuous calendar is implemented, but its real-phone month transition, month markers and opening-on-today behavior are unconfirmed.
+
+The calendar implementation and Fleet 12's #539 anchoring/retry repairs are merged. Local prepend/retry checks passed, but the October/November boundary was not fully observed; #512 remains open for the summary/anchor condition. GitHub marks #454 closed. Done when scrolling Days moves through unbroken weeks from October into November, month names mark where each month starts, and Days opens on today, on the owner's three phones.
+
+### #455 The card you swipe to on a drink's photo shows a number and not what the drink is
+
+Drink pictures are implemented, but no acceptance on the owner's three phones proves every required card looks like its drink.
+
+Merged drink-card work has coder-local evidence, while GitHub marks #455 closed. The owner's earlier tiki card led with220ml instead of its kind. Done when coffee shows its cup and caffeine,500ml water shows two250ml cups, a cocktail and wine show their own glass and alcohol, the day's drinks use the same cups, and a liquid-only card reads as a drink at a glance, on all three phones.
+
+### #457 An alcoholic drink shows its alcohol, not its liquid
+
+Alcohol display is implemented, but the owner has not confirmed the cocktail and typed beer on three phones.
+
+Fleet 12 merged #533's alcohol and caffeine handling; historical stored rows were not changed by that run. GitHub marks #457 closed. Done when a photographed cocktail and typed beer show grams of alcohol and standard drinks in place of the liquid amount, Today includes the day's alcohol, and neither drink adds to the water tile, on the owner's three phones.
+
+### #458 The text box on New post is hidden behind the keyboard
+
+Phone layout has been changed to keep the caption and Post visible with the keyboard, but the owner's three phones have not confirmed it.
+
+Merged keyboard/layout work has local evidence only. The owner previously typed with the caption box hidden on an iPhone; GitHub marks #458 closed without a physical-phone receipt in this reconciliation. Done when the caption box is fully visible above the open keyboard together with Post and nothing overlaps it, on all three phones.
 
 ## Engineering backlog
 
@@ -90,15 +112,15 @@ Reviewer findings on merged PR #482, both reproduced by the coder in isolated co
 
 ### #294 The app's words read naturally everywhere
 
-The leftovers label reads awkwardly, and nobody has reviewed the words in the rest of the app.
+The owner has not signed off the complete list of app terms.
 
-The label "leftovers (not eaten)" reads awkwardly. The planner reviews the app's terms with AGY as a second opinion and lists each term, where it appears and a recommended replacement. The terms include the leftovers label, "Consumed", "Log again", "Saved meals", "Additional food", the needs-input question and the Days names. Every rule stays: consumed past tense, no target, goal, ring or percentage, and no "left" as a word for a remaining amount. Done when the list is reviewed, the owner has ruled on each term, and the wording is changed everywhere it appears.
+Fleet 12 merged #538 with revised UI wording, including Leftovers and the display-only needs-input question. Local checks do not establish the owner's complete terminology ruling, although GitHub marks #294 closed. The planner reviews Leftovers, Consumed, Log again, Saved meals, Additional food, the needs-input question and the Days names with AGY as a second opinion. Preserve consumed past tense and the bans on goals, targets, rings, percentages and remaining-amount "left". Done when the reviewed list and owner rulings are recorded and the chosen wording is used everywhere.
 
 ### #322 The tick function loads the whole worker before it answers (part of #222)
 
 Every app open, tab focus and once-a-minute database wake calls the tick route. It answers three numbers: queued, running and traffic. A cold tick function must first load the whole food-analysis pipeline, so every cold open waits for that.
 
-Run 8 merged lazy loading of the job modules in the tick route. Rapid tick calls passed, but they hit a warm function, so a cold start is unmeasured (docs/tick-cold.md), and a post from a real phone through the worker is untested. Fleet 11 timed one first request per deployment, which does not establish a cold start, and reopened the issue. PR #536 adds an x-tick-cold header and a tick cold log line, and no value has been read yet. Lazy loading is delivered by #334. Done when a cold start of the tick route is timed on production, before and after, with the times in docs, and a post from a real phone completes through the worker.
+Lazy job-module loading is merged through #334, and Fleet 12 merged #536's x-tick-cold header and cold log line. First-request preview timings and warm rapid calls are not proof of a cold process. No production header/log value or physical-phone worker post receipt was obtained. Done when a production cold tick is identified and timed before/after with the times in docs, and a post from a real phone completes through the worker.
 
 ### #323 Every protected page checks sign-in twice (part of #222)
 
@@ -130,11 +152,29 @@ The server renders the row of day bubbles with totals for the last 5 days. The b
 
 Run 8 merged one shared server read of today's totals. Final browser windows still made one or two day-total reads, so a single read across the server and the browser together is unproved. Fleet 11 could not close it for the same reason. Measure with spans tied to one navigation, and count every read that returns today's totals, batch reads included. Done when a home open queries today's totals once across the server and the browser together.
 
-### #370 The camera view stays open for a long time after a photo is taken
+### #452 A plainly visible nutrition label is reported as not found
 
-After a photo is taken, the camera view stays on screen for a long time before the post shows in the feed. People will not wait that long.
+A photo of a pack whose nutrition table can be read is rejected with "No nutrition label found".
 
-The capture sheet sends its post-created event and closes only after a successful post, so it waits on the upload and the server. The owner reports the wait on his phone. Observe first: time the tap to the sheet closing and to the new post showing, on a phone over mobile data, and record the size in bytes of each photo the phone uploads. Then close the sheet at the tap and show the new post at the top of the feed in its processing state while the upload finishes. Done when the sheet closes within one second of the tap on a throttled connection, the post appears at the top of the feed in its processing state, and a failed upload is shown on that post.
+Fleet 13 merged #548. A readable panel without a usable serving weight now has its own recovery message, and the prompt does not use a whole multi-piece pack's weight for one piece. Six real-model fixtures and both local viewport checks passed. The Goldfish photo was unavailable, so its cause remains unproved. Done when that photo gives a card with the numbers printed on the label, and a label in English does the same, on the owner's three phones.
+
+### #451 Every barcode scan comes back as not in the database
+
+The owner has scanned several packs on a phone and every scan has failed: the scanner reads the code and the lookup finds no product.
+
+Before #480, lookup asked USDA FDC Branded only; Open Food Facts now supplies the Oreo code 7622300761363 and a second pack in coder production checks. Fleet 13 merged #546 so provider outages return the retry state, and filed #557 for incomplete saved corrections. #451 is reopened because no owner three-phone receipt exists. Done when this pack gives a product card with its name and nutrition, a second pack from the same shelf does too, and the source explanation is recorded, on the owner's three phones.
+
+### #523 A meal shows every nutrition value as unavailable
+
+A meal analysed on Nov 4 at 9:53 AM, "Spicy Indonesian macaroni", shows its calories, protein, carbs and fat as unavailable. The owner says the app's food estimates are broken now.
+
+Fleet 13 merged #549: after strict USDA searches fail, it searches the bare food noun and can select the closest generic USDA record, naming that record in the summary. Model-made estimates are not used. All 17 provider fixtures passed; disposable real-provider re-analysis saved nutrition and a named-source comment. The owner's production post 86634d46-b0e3-421a-9b67-1a4e8f5e8e78 was not changed. Done when its re-analysis shows nutrition from the closest USDA record, labelled with that record's name, or says plainly why none qualifies, and the owner accepts the reference.
+
+### #525 The meal detail photo is cropped and does not show the whole image
+
+The whole-photo fix has passed local checks, but the owner has not confirmed it on a phone.
+
+Fleet 13 merged #556: detail uses the whole photo with matching mask and pointer transforms. Portrait, square and landscape checks passed at 390x844 and 1280x800, including real image-area editor taps. The old portrait crop was inferred as about 54% on phone and 20% on desktop; the local new view crops none. Done when the owner confirms the whole image and correct outline positions on a phone as well as desktop.
 
 ### #222 The feed fails to open, and photos and cards take too long to appear
 
@@ -148,23 +188,11 @@ The hackathon pays a $10,000 bonus for a build on a Meta open-weight model, and 
 
 Use Muse Spark Open (meta-models/muse-spark-open-1026) through Baseten's OpenAI-compatible endpoint, https://inference.baseten.co/v1, for the identify-and-portions call. The key works only with that model and never goes in the repository, an issue or this backlog. Confirm the coder can sign in to Baseten with the key before the trial. The model always reasons, so check output caps that include reasoning. The Meta client hardcodes model names, and the ten-photo harness cannot choose a model host. Trial first in a throwaway clone that swaps only that call, and spend at most 5 US dollars. SAM and transcription stay on the Meta API, and the USDA lookup is unchanged. Compare the ten meal photos and one caption, "I ate half the rice", against the current path. A qualifying step must be a real, switchable path on main that a judge can reproduce, with the model ID logged. Cerebral Valley answered on Nov 3 that Muse Spark Open counts however it runs, including through Baseten. Done when a real, switchable path on main runs the identify-and-portions step on Muse Spark Open through Baseten, the model ID is logged, the results against the ten photos are in docs, and the owner has switched it on in Profile, logged a meal, and seen the Muse Spark Open line in that meal's post detail on production.
 
-### #348 A photographed drink's card was not proven on production
-
-The card for a photographed drink was closed without the production check its done condition asked for.
-
-The Fleet 10 report says the selected drink card on screen remains unproven. Done when a photographed drink shows the right drink card on production, on the owner's three phones.
-
-### #351 The drink tile sizes and order were closed on a local test only
-
-The tile sizes and order on the drink sheet were not checked on production.
-
-Only a local test backs the closure. Done when the drink sheet shows its tiles in the right sizes and order on production, on the owner's three phones.
-
 ### #520 Every Home open reads the first feed page twice
 
-Home reads the first page of the feed in the server render and again from the browser, so every open pays for both reads.
+The first feed page is now shared locally, but production reads for one complete Home opening have not been counted.
 
-Planner finding from reading main on Nov 4, not yet measured. The client component always calls its load function after the server render (src/components/Feed.tsx). Related: #373 and #498. Observe first: count the first-page reads of one Home open on current main. Done when one Home open reads the first feed page once, and the request count before and after is in docs.
+Fleet 12 merged #528. Its matching-owner Home reuses the server page without a second client first-page fetch in local checks; the owner-change guard fetches the new owner correctly. Production counts tied to one opening were not measured. Related: #373 and #498. Done when one Home opening reads the first feed page once and the production before/after request counts are recorded.
 
 ### #368 Sign-ins through the app may share one rate limit across every user
 
@@ -174,15 +202,15 @@ Unverified planner finding. The app's sign-up and sign-in run as server actions 
 
 ### #372 Feed photos are too large for a phone on mobile data
 
-A feed photo downloads at a size far larger than a phone card shows, so the first photo arrives late and every revisit pays for it again.
+Feed-photo resizing and caching are implemented, but no owner-phone check proves first-photo speed or acceptable quality over mobile data.
 
-The sampled feed image is 152,193 bytes and its response carries no Cache-Control header (docs/media-loading.md). Several cards cost megabytes on mobile data, and the cold first photo measured 2.10 s against the 2 s target. The feed photo route (src/app/api/media/feed/\[owner\]/\[post\]/\[media\]/v1.webp/route.ts) reads the original from Storage on every request. Find the largest size a feed card needs on a phone and serve that instead of the original. Keep the original where post detail needs it. Done when the bytes per feed photo before and after are in docs, the first photo of the feed shows within two seconds on mobile data, and the photos look the same on a phone.
+The small authenticated feed-photo route is merged; the old 152,193-byte/no-cache observation describes the previous path. Earlier matched needs-input photos fell from 497,591 to 63,720 bytes, and natural feed revisits reused cached photos. These are distinct experiments, not a billed-egress reduction. Done when the first feed photo appears within two seconds over mobile data and the owner confirms acceptable photo quality on the phones.
 
 ### #306 Every tap that saves shows its result at once
 
 Some taps that save something look dead until the server answers, so the app feels slow.
 
-The thumbs (#215) are one case. The bookmark, Save meal, Log again and Edit caption (#223) may also wait for the server; observe which do. Each should show its new state at the tap, settle when the save lands, and show an error and revert if it fails. #217 measures every control; this item fixes the ones that wait. Done when each of those taps changes the screen before the server answers on a throttled connection, the saved state survives a reload, and a failed save is shown.
+The bookmark, Save meal, Log again and Edit caption have optimistic implementations from earlier merged work. The owner's newer #553 reports that thumbs-down still waits, and #217/#555 have uncompleted control coverage. GitHub marks #306 closed; treat those owner reports as unresolved evidence, not proof that every save is instant. Done when each listed tap changes the screen before the server answers on a throttled connection, survives reload and shows a failed save.
 
 ### #377 Existing photographed drink posts show no caffeine
 
@@ -196,53 +224,17 @@ Some controls feel dead or clunky, and nobody has measured how the app responds 
 
 The thumbs above are the first case the owner found. List every tappable control on each screen at 390x844, and for each record the time from the tap to a visible change, whether it shows a pressed state at once, whether it jumps or flickers while it loads, and whether it can be tapped twice. The coder measures in Chrome device emulation with the processor slowed and needs the production sign-in of #196. Done when the table lists every control with those four findings, the slow or dead ones are fixed or filed as items.
 
-### #449 The food names do not show before the numbers on a new upload
-
-A new upload shows no food names while its numbers are still being worked out.
-
-On a new upload, the card's reader drops the pending food names, so #307 fails there. Done when a new upload shows the foods the app has found while the numbers are still being worked out, on the owner's three phones.
-
-### #453 The barcode prompt is printed over the live camera picture
-
-On the Barcode screen, the line "Point at the barcode. It reads on its own." runs across the camera picture and cannot be read against a busy shelf.
-
-With the camera pointed at a shelf of packs and price labels, the line sits on top of them and the words blend into the picture. Done when the prompt is readable over any camera picture, on the owner's three phones.
-
-### #454 The Days page is not one continuous calendar
-
-Days cuts the calendar into separate month blocks, which no calendar app does, so the user cannot scroll through time as one run of weeks.
-
-On the phone, Days shows November 2026 and October 2026 as two separate blocks, each with its own heading, and the newest month sits on top. Days becomes one continuous calendar: the weeks run on from one to the next in time order with no break, the month name marks where each month starts, and Days opens with today in view. Done when scrolling Days moves through unbroken weeks from October into November, the month names mark where each month starts, and Days opens on today, on the owner's three phones.
-
-### #455 The card you swipe to on a drink's photo shows a number and not what the drink is
-
-Swiping right on a drink's photo opens a card with one big millilitre number, so the card does not say what the drink is or why it exists.
-
-The swiped card for the tiki cocktail shows "220 ml" in large type, a line of text and "1,200 ml consumed today" split into drinks and food. A card for a drink leads with its kind as a picture: a coffee cup for coffee with its caffeine, a water cup for water with one cup for every 250 ml drunk, and a cocktail glass or a wine glass for those with their alcohol, and the day's drinks are drawn as the same cups. Done when a coffee, a 500 ml water (two cups), a cocktail and a glass of wine each show their own picture on the swiped card, and a card that holds only liquid reads as a drink at a glance, on the owner's three phones.
-
 ### #456 A rum cocktail is logged with 15 mg caffeine
 
-The tiki cocktail post states caffeine that the drink does not contain.
+The owner reported caffeine on a drink with no caffeine source; no updated owner-card receipt confirms that the historical tiki post is correct.
 
-The drink card for the lime and rum tiki cocktail reads "15 mg caffeine" next to 196 kcal, and the day's caffeine total reads 110 mg. Done when a cocktail or any drink with no caffeine source logs no caffeine, the card shows none, and the day's total leaves it out, checked on the tiki cocktail and a glass of wine.
-
-### #457 An alcoholic drink shows its alcohol, not its liquid
-
-A cocktail post shows how much liquid it holds and nothing about the alcohol, so the user cannot tell how much they have drunk.
-
-The post for a lime and rum tiki cocktail shows "220 g" on the photo and 196 kcal, 0 g protein, 17 g carbs and 0 g fat under it, with no alcohol anywhere. For a drink that holds alcohol, the post shows the grams of alcohol and the standard drinks in place of the liquid amount, the drink's liquid is not added to the water total, and Today shows the day's alcohol so far. Done when a photographed cocktail and a typed beer each show their alcohol on the post and in Today, and neither adds to the water tile, on the owner's three phones.
-
-### #458 The text box on New post is hidden behind the keyboard
-
-On New post on the phone, the caption box is not visible when the keyboard is open, so the user types without seeing the words.
-
-On an iPhone with the keyboard up, the screen shows the photo and the Post button and no caption box. After a tap into the caption, the page scrolls so the box sits under the photo with the "Another photo" and "Search foods" buttons and other rows crowded around it. Done when, with the keyboard open, the caption box is fully visible above the keyboard together with the Post button, and nothing overlaps it, on the owner's three phones.
+Fleet 12 merged #533 with caffeine-source exclusions and measured-zero handling; drink-rule tests passed. Stored historical rows were not changed or re-analysed. GitHub marks #456 closed, but the owner's tiki and wine checks are not recorded. Done when a cocktail or any drink with no caffeine source logs no caffeine, the card shows none, and the day's total leaves it out, checked on the tiki cocktail and a glass of wine.
 
 ### #499 Several pages export an instant flag that nothing reads
 
 Several pages export a flag called instant set to false, and nothing reads it. Every reader has to wonder what it does.
 
-Unverified audit finding, read at head 618cf7e. The audit found no source file, script or tool that reads the flag (src/app/posts/\[id\]/page.tsx and other pages). Nothing breaks while it stays. Done when no page exports the flag and a search of the source for it returns nothing.
+Fleet 12 checked this premise and found Next reads export const instant under cacheComponents, so the original claim that nothing reads it is false. The issue remains open for a disposition; the dispatched plan explicitly kept the flag. Done when the owner or planner resolves the unsupported removal request using that reader evidence.
 
 ### #542 Pressing Space on a focused button in desktop capture takes a photo
 

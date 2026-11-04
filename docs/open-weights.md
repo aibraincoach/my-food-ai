@@ -1,5 +1,9 @@
 # Muse Spark Open identify path
 
+## Current implementation and limits — November 4, 2026
+
+Fleet 12 #507 merged one transport attempt with a 75-second timeout before Meta fallback. #544 is still open: a late structured-format rejection gives the JSON-object retry a fresh 75-second deadline, so the total can reach about 150 seconds. Do not describe the pair as one shared 75-second budget. #541 adds a visible fallback notice in post detail. Fleet 13 #549 adds closest generic USDA matching after strict failure, with durable named-source provenance; the identify-provider model itself is unchanged. Final local suite 584/0/6 existing skips, DB 38/38 and lint 0 errors/6 existing warnings supersede the old lint baseline below. Owner Profile/production model-line acceptance remains open under #281.
+
 Built with Muse Spark Open. The optional per-account Profile switch sends initial food identification and portion estimates to Muse Spark Open through Baseten. SAM segmentation, voice transcription, corrections, labels and USDA reference matching keep their existing Meta/API and database paths. Hosted Meta identification remains the default for every account.
 
 ## Setup and rollout

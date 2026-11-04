@@ -1,5 +1,9 @@
 # Media-loading measurement
 
+## Current implementation scope — November 4, 2026
+
+Earlier sections retain their measured versions. Current main uses small authenticated feed-photo URLs, cached feed data and server first-page reuse (#528); cached-card expiry fallback is merged (#529). Detail reuses media/item reads and displays a preview before the full original (#541); the complete image and aligned masks use contain geometry (#556). Feed crops remain square. None of this is a new two-second physical-phone receipt or a billed-egress attribution. #222/#372/#379 still need owner mobile-data evidence; [Fleet 13](run13-report.md) records local checks and their limits.
+
 Read-only investigation on 2026-10-31 used the first configured test account's licensed evaluation image. No post, upload, job retry or analysis was created. Credentials and signed URLs stayed in memory.
 
 The existing feed requests the `.feed.jpg` derivative rather than the original. For the sampled derivative, two independently signed URLs 1.1 seconds apart differed even though both returned the same 152,193 bytes with HTTP 200. Signing took 151 ms and 54 ms; the subsequent image requests took 331 ms and 94 ms from this server. The GET responses did not include a Cache-Control header. These are server observations, not phone or mobile-data timings.

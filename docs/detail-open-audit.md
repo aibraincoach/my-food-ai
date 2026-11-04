@@ -1,5 +1,9 @@
 # Detail open: current-production latency audit
 
+## Scope update — November 4, 2026
+
+The timings below are the Fleet 11 audit at ca07be7, not current-main timings. Fleet 12 #541 merged a loading shell, shared detail reads and preview-first photo rendering; Fleet 13 #556 merged whole-image contain geometry with matching masks. Those implementations do not explain the owner's 14 seconds on XL Axiata or prove the two-second phone target. #494/#554 remain open; [Fleet 13 local photo checks](run13-report.md) are not owner-phone latency evidence.
+
 Measured 2026-11-04 UTC against current main and production `ca07be7014431d492039dafdda80186a2c697fb7`; [deployment receipt](evidence/run11-detail-audit/production-head.json). The older read-only audit was at `618cf7e8bbadf4e020b9590eeb66e6368591f8db` (#460), before #462 and Fleet11. All source findings below were checked again on current main. **No product fix, deployment, data fixture, or backlog-status closure was made for this audit.**
 
 ## Owner report and limits

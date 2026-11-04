@@ -1,5 +1,9 @@
 # Production demonstration evidence
 
+## Current owner submission constraints — November 4, 2026
+
+The video and submission are not evidenced as complete (#26). The deadline is Nov 4 at 9 PM EST / Nov 5 at 09:00 WIB. The video is under 3 minutes, shows built features with live Meta calls, and names Muse Spark Open running on Baseten for the open-weight path. The owner must validate the real half-eaten plate first; exclude that plate if the consumed result is wrong. Post the video to X as soon as it exists. No merge or deployment runs from recording start until submission is in. The historical demonstrations below are not the final recorded video; no new PM script is supplied.
+
 Follow-up: the [verified uncut 51.3-second rehearsal](demo-rehearsal.md) is timed separately. The two runs below remain historical functional evidence.
 
 Two actual native-browser sequences ran on production on 2026-10-31, using the configured test account, the merged #203 session helper and real capture, upload, editing, question and navigation controls. Chromium CDP used a 390×844 touch viewport; no Playwright, fabricated DOM or seeded analysis outcome was used. Camera and notification permissions were denied. Existing test subscriptions were checked before posting. No manual job tick or retry was used by the controller.
