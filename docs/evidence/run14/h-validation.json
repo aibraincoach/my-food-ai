@@ -65,5 +65,17 @@
     "focusedESLint": "pass",
     "fullSuiteScope": "587/0/6 and DB39/39 above predate follow-up; final combined integration suite must cover revised head",
     "cleanup": "H localapp, restarted scriptedmodel, PostgREST/Auth/PostgreSQL stack stopped after laneA released backend"
+  },
+  "finalReplayFollowUp": {
+    "head": "e5d4f660ac4d9ab3c352dbd7709b1335c2db446e",
+    "fix": "Shared quantity-basis dispatcher used by ordinary portion resolution and actual correction replay",
+    "focusedCommand": "node --import tsx --test tests/food-estimate.test.mjs tests/portion-identity.test.mjs tests/nutrition-scaling.test.mjs tests/removal-replay.test.mjs",
+    "passed": 18,
+    "failed": 0,
+    "durationMs": 1624.756239,
+    "typeScript": "pass",
+    "focusedESLint": "pass",
+    "supplementaryReview": "root and independent lane C: BLOCKERS NONE (source only)",
+    "fullSuiteScope": "Final combined integration suite pending; original full-suite/DB figures above predate follow-ups"
   }
 }
