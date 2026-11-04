@@ -42,6 +42,7 @@ export default async function ProfilePage({searchParams}:{searchParams:Promise<{
       </header>
       <div className="desktop:hidden"><ConnectAgentRow userId={user.id} /></div>
       {openWeightsConfigured()?<IdentifyProviderSwitch initial={preference.data?.identify_provider==='open'?'open':'meta'}/>:null}
+      <Link href="/profile/about" className="flex min-h-tap items-center px-screen-x text-detail desktop:px-0">How My Food AI works</Link>
       <Link href="/profile/deleted" className="flex min-h-tap items-center px-screen-x text-detail desktop:px-0">Recently deleted</Link>
       <ProfileGrid posts={posts} />
     </main></DesktopWorkspace>
