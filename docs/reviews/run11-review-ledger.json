@@ -1,0 +1,106 @@
+[
+  {
+    "pr": 485,
+    "head": "0f0b11b8ef21d92119ef02efdfaba64d0f48a4f0",
+    "reviewer": "Gemini 3.8 Flash via PPLX",
+    "clearance": true,
+    "capture": "mfa-pplx-pr485-0f0b11b-completed.md",
+    "thread": "https://www.perplexity.ai/search/87b7987a-1012-42a1-bae6-36a2e47dfb23"
+  },
+  {
+    "pr": 485,
+    "head": "6063deb9454ca80202dd687fd3808b918820eea8",
+    "reviewer": "Gemini 3.8 Flash via PPLX",
+    "clearance": false,
+    "capture": "mfa-pplx-pr485-6063deb-completed.md",
+    "thread": "https://www.perplexity.ai/search/d8d6cb03-2085-45ae-ac62-4b86a31a1085"
+  },
+  {
+    "pr": 485,
+    "head": "90bcf5cf2b618e1ab452a4207fd3a8c9b3d28005",
+    "reviewer": "Gemini 3.8 Flash via PPLX",
+    "clearance": true,
+    "capture": "mfa-pplx-pr485-90bcf5c.md",
+    "thread": "https://www.perplexity.ai/search/1b4feba3-7b5f-46ec-8467-917be5ad829e"
+  },
+  {
+    "pr": 485,
+    "head": "a5d03ba58e8fcb862ce7add2bb44c24a291a61bd",
+    "reviewer": "Gemini 3.8 Flash via PPLX",
+    "clearance": true,
+    "capture": "mfa-pplx-pr485-a5d03ba-completed.md",
+    "thread": "https://www.perplexity.ai/search/c2c120e1-cc71-4ad3-b366-14b0a0082423"
+  },
+  {
+    "pr": 486,
+    "head": "722bf3e76e6c22e0f0b658da0ff5709fab9d5422",
+    "reviewer": "Gemini 3.8 Flash via PPLX",
+    "clearance": true,
+    "capture": "mfa-pplx-pr486-722bf3e-completed.md",
+    "thread": "https://www.perplexity.ai/search/507d09ff-593f-4c75-a789-eb122aede01e"
+  },
+  {
+    "pr": 486,
+    "head": "fd01b42e0a5aa0ed551da6ec4a439d12c966eb79",
+    "reviewer": "Gemini 3.8 Flash via PPLX",
+    "clearance": false,
+    "capture": "mfa-pplx-pr486-fd01b42-completed.md",
+    "thread": "https://www.perplexity.ai/search/c1b4b477-4a2d-4709-ac31-9bc4d5364fe8"
+  },
+  {
+    "pr": 487,
+    "head": "16814b694c52bee9340fea99db2264bdff0e9359",
+    "reviewer": "Gemini 3.8 Flash via PPLX",
+    "clearance": false,
+    "capture": "mfa-pplx-pr487-16814b6.md",
+    "thread": null
+  },
+  {
+    "pr": 487,
+    "head": "1d74990b882fe6726cd4c8f1cff51703cb413a05",
+    "reviewer": "Gemini 3.8 Flash via PPLX",
+    "clearance": true,
+    "capture": "mfa-pplx-pr487-1d74990.md",
+    "thread": "https://www.perplexity.ai/search/f5427710-24d0-4a6a-bb06-5c7d5c0043d2"
+  },
+  {
+    "pr": 487,
+    "head": "8fd1c3a4f50ae95862248612c0d801fd0f04a028",
+    "reviewer": "Gemini 3.8 Flash via PPLX",
+    "clearance": true,
+    "capture": "mfa-pplx-pr487-8fd1c3a-completed.md",
+    "thread": "https://www.perplexity.ai/search/193de877-8c71-488d-bbe9-a877eeb6daeb"
+  },
+  {
+    "pr": 488,
+    "head": "35ead18dc88940b455089786afbcfa4876845600",
+    "reviewer": "Gemini 3.8 Flash via PPLX",
+    "clearance": false,
+    "capture": "mfa-pplx-pr488-35ead18.md",
+    "thread": "https://www.perplexity.ai/search/7cbe0015-5067-4a3a-bcc5-27f7ab6b3cdf"
+  },
+  {
+    "pr": 488,
+    "head": "59cc3c9b45ddd87cd34e0167b35c0e648999ed90",
+    "reviewer": "Gemini 3.8 Flash via PPLX",
+    "clearance": true,
+    "capture": "mfa-pplx-pr488-59cc3c9-completed.md",
+    "thread": "https://www.perplexity.ai/search/7cbe0015-5067-4a3a-bcc5-27f7ab6b3cdf"
+  },
+  {
+    "pr": 488,
+    "head": "a523339d0355a4236e18b9502b0c87f4b7e74618",
+    "reviewer": "Gemini 3.8 Flash via PPLX",
+    "clearance": true,
+    "capture": "mfa-pplx-pr488-a523339-completed.md",
+    "thread": "https://www.perplexity.ai/search/851bc332-dc50-4368-a02b-a6f886dcf6af"
+  },
+  {
+    "pr": 490,
+    "head": "bb71ba1b97c9886cbd66fe148737b8dc25945988",
+    "reviewer": "Gemini 3.8 Flash via PPLX",
+    "clearance": false,
+    "capture": "mfa-pplx-pr490-bb71ba1.md",
+    "thread": "https://www.perplexity.ai/search/38c2b482-d37d-4965-bea7-3b026e33804b"
+  }
+]
