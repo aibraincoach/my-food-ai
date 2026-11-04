@@ -1,0 +1,74 @@
+{
+  "observedAt": "2026-11-04T09:27:24.702Z",
+  "engine": "Firefox native BiDi,390x844,no CPU throttle available",
+  "checks": {
+    "processingFixture": {
+      "id": "673adf08-76ea-4488-a6ce-50e226592f41",
+      "status": "ready"
+    }
+  },
+  "posts": [
+    {
+      "fixture": "fleet14-shared-processing.jpg",
+      "idPrefix": "673adf08",
+      "status": "ready",
+      "closeMs": 479,
+      "pendingNames": [
+        {
+          "name": "savory stuffing",
+          "kcal": 141.6
+        },
+        {
+          "name": "sliced roast beef",
+          "kcal": null
+        },
+        {
+          "name": "Yorkshire pudding",
+          "kcal": 241.20000000000002
+        },
+        {
+          "name": "brown gravy",
+          "kcal": 31.799999999999997
+        }
+      ],
+      "items": [
+        {
+          "name": "savory stuffing",
+          "item_nutrition": {
+            "calories": 141.6
+          }
+        },
+        {
+          "name": "sliced roast beef",
+          "item_nutrition": {
+            "calories": 208.8
+          }
+        },
+        {
+          "name": "Yorkshire pudding",
+          "item_nutrition": {
+            "calories": 241.20000000000002
+          }
+        },
+        {
+          "name": "brown gravy",
+          "item_nutrition": {
+            "calories": 31.799999999999997
+          }
+        }
+      ],
+      "intake": [],
+      "settledJobs": [
+        {
+          "kind": "analyze",
+          "status": "finished",
+          "error": null
+        }
+      ]
+    }
+  ],
+  "cleanup": {
+    "created": 1,
+    "verifiedAbsent": 1
+  }
+}
