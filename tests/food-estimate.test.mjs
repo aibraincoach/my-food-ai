@@ -45,3 +45,13 @@ test('volume-only estimate edits never turn milliliters into a gram reference',a
  const same=await resolvePortionNutrition(storedDb(known,null,'100 ml'),'post','prior','kerupuk',null,'100 ml');
  assert.equal(same.calories,250);
 }));
+const {replayCorrection}=await import('../src/lib/worker/jobs/correct.ts');
+test('actual correction replay shares volume dispatch and preserves known consumed estimates after removal rebuild',async()=>withPayload(valid,async()=>{
+ const food=await estimateFood('kerupuk',''),nutrition=storedNutrition(scaleNutrition(food,50),'prior');
+ const item={id:'prior',name:'kerupuk',source:'model',portion_grams:null,portion_text:'100 ml',box:null,mask_path:null,...nutrition};
+ const admin={from(table){assert.ok(['post_media','posts'].includes(table),'Replay does not re-query a USDA reference');const q={select(){return q},eq(){return q},order(){return q},abortSignal(){return q},async single(){return{data:{caption:'kerupuk'},error:null,status:200}},then(resolve){return Promise.resolve({data:table==='post_media'?[]:{caption:'kerupuk'},error:null,status:200}).then(resolve)}};return q;}};
+ const original=globalThis.fetch;let correctedText;
+ globalThis.fetch=async(input,init)=>{const body=JSON.parse(init?.body||'{}');if(body.text?.format?.name==='correct')return Response.json({status:'completed',output:[{type:'message',content:[{type:'output_text',text:JSON.stringify({items:[{name:'kerupuk',portion_text:correctedText,portion_grams:null,region_index:0,keep:null}],reply:'Updated the meal.',needs_input:null})}]}]});return original(input,init);};
+ try{for(const [text,calories,protein,sodium] of [['100 ml',250,1,300],['200 ml',500,2,600]]){correctedText=text;const result=await replayCorrection(admin,'post',[item],[],[],false,true);assert.equal(result.rows.length,1);const n=result.rows[0].nutrition;assert.equal(n.calories,calories);assert.equal(n.protein_g,protein);assert.equal(n.sodium_mg,sodium);assert.equal(n.source_ref,nutrition.source_ref);assert.match(plainConsumed(n,result.approximations),/is a model estimate/);}}
+ finally{globalThis.fetch=original;}
+}));

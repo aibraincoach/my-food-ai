@@ -3,7 +3,7 @@ import {beforeLeftovers,carryLeftovers,retainedNutrition} from '@/lib/pipeline/l
 import { sendPostPush } from "@/lib/push/send";
 import {readNeedsInput,type NeedsInput} from '@/lib/pipeline/needs-input';
 import { readPostComments, readCorrectionProgress } from '@/lib/posts/timeline';
-import { resolvePortionNutrition } from "@/lib/nutrition/portion";
+import { resolvePortionNutrition, rescalePortionNutrition } from "@/lib/nutrition/portion";
 import recompute from "./recompute";
 import { loadCorrectionItems, waitForInitialAnalysis } from "@/lib/pipeline/correction-ready";
 import { ioError } from "@/lib/worker/errors";
@@ -104,7 +104,7 @@ export async function replayCorrection(admin:import('@supabase/supabase-js').Sup
   let nutrition;
   if(old)nutrition={calories:old.calories,protein_g:old.protein_g,carbs_g:old.carbs_g,fat_g:old.fat_g,fibre_g:old.fibre_g,sugar_g:old.sugar_g,sodium_mg:old.sodium_mg,micronutrients:old.micronutrients,source_ref:old.source_ref,food_category:old.food_category ?? null};
   else {
-   const retained=replaying&&region?.name===item.name?(await import('@/lib/nutrition/totals')).rescaleStoredNutrition({...retainedNutrition(region),post_item_id:region.id},region.portion_grams,item.portion_grams):region?.name===item.name?await resolvePortionNutrition(admin,postId!,region.id,item.name,item.portion_grams,item.portion_text,signal):null;
+   const retained=replaying&&region?.name===item.name?rescalePortionNutrition({...retainedNutrition(region),post_item_id:region.id},region.portion_grams,item.portion_grams,region.portion_text,item.portion_text):region?.name===item.name?await resolvePortionNutrition(admin,postId!,region.id,item.name,item.portion_grams,item.portion_text,signal):null;
    if(retained)nutrition=retained;
    else {
    const food=await resolveFoodMatch(admin,item.name,context.caption??'',signal,{approximate:true});
