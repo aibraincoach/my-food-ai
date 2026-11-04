@@ -1,3 +1,4 @@
+import {foodApproximation} from "@/lib/fdc/approximation-metadata";
 import {traceNutritionReuse} from "@/lib/fdc/match";
 import type {SupabaseClient} from '@supabase/supabase-js';
 import {getFoodById} from '@/lib/fdc/client';
@@ -38,7 +39,8 @@ export async function resolvePortionNutrition(admin: SupabaseClient, postId: str
    if(nutrition.source_ref && (toNumber(prior.portion_grams)<=0 || !hasAmounts)) {
     const id=Number(nutrition.source_ref);
     const food=await getFoodById(admin,id,signal);
-    return storedNutrition(scaleNutrition(food,grams==null?null:toNumber(grams)),priorId);
+    const approximation=foodApproximation(nutrition);
+    return storedNutrition(scaleNutrition(approximation&&food?{...food,approximation}:food,grams==null?null:toNumber(grams)),priorId);
    }
    return rescaleStoredNutrition(nutrition,prior.portion_grams,grams);
   }

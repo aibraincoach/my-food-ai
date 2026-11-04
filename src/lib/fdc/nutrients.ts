@@ -10,7 +10,7 @@ const PROTEIN_ID = 1003;
 const FAT_ID = 1004;
 const CARBS_ID = 1005;
 const FIBRE_ID = 1079;
-const SUGAR_ID = 2000;
+const SUGAR_IDS = [2000, 1063];
 const SODIUM_ID = 1093;
 
 const DATA_TYPE_RANK: Record<string, number> = {
@@ -123,6 +123,7 @@ export function scaleNutrition(
   const micronutrients = food.foodNutrients.map((nutrient) => ({
     ...nutrient, value: factor === null ? null : nutrient.value * factor,
     basis: "portion" as const,
+    ...(food.approximation?{approximation:{...food.approximation,sourceRef}}:{}),
   }));
   if (factor === null) {
     return {
@@ -153,7 +154,7 @@ export function scaleNutrition(
     carbsG: scale([CARBS_ID], unitToGrams),
     fatG: scale([FAT_ID], unitToGrams),
     fibreG: scale([FIBRE_ID], unitToGrams),
-    sugarG: scale([SUGAR_ID], unitToGrams),
+    sugarG: scale(SUGAR_IDS, unitToGrams),
     sodiumMg:
       sodium === null
         ? null

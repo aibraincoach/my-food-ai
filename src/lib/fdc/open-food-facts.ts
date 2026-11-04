@@ -41,7 +41,7 @@ export async function lookupOpenFoodFacts(raw: string): Promise<BarcodeProduct |
     for (const code of [...new Set(candidates.map(c => c.replace(/^0+(?=\d{8,13}$)/, "")))]) {
       const response = await fetch(`${OFF_URL}/${code}.json?fields=${FIELDS}`, { headers: { "User-Agent": USER_AGENT }, signal: AbortSignal.timeout(8000), cache: "no-store" });
       if (response.status === 404) continue;
-      if (!response.ok) return null;
+      if (!response.ok) throw new Error(`open food facts: lookup failed with ${response.status}`);
       const product = productFromOff(await response.json(), candidates[0]);
       if (product) return product;
     }

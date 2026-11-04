@@ -37,7 +37,7 @@ function DetailImage({ photo, alt }: { photo: DetailPhoto; alt: string }) {
     image.src = photo.url;
     return () => { live = false; };
   }, [photo.url, photo.previewUrl]);
-  return <img src={src} crossOrigin="anonymous" alt={alt} draggable={false} className="h-full w-full object-cover" />;
+  return <img src={src} crossOrigin="anonymous" alt={alt} draggable={false} className="h-full w-full object-contain" />;
 }
 
 function Mask({ url, photo, color, frame, fallback }: {
@@ -67,12 +67,12 @@ export default function OutlineOverlay({ desktopModal=false, desktopHeader, desk
   const handle=usePostHandle(providedHandle);
   const [slide,setSlide]=useState(0);
   useEffect(()=>{if(!desktopModal)return;const key=(event:KeyboardEvent)=>{if(event.defaultPrevented||((event.target as HTMLElement)?.closest('input,textarea,select,[contenteditable="true"]')||((event.target as HTMLElement)?.closest('[role="dialog"]')&&!((event.target as HTMLElement).closest('[role="dialog"]')?.classList.contains('desktop-post-dialog')))))return;const step=event.key==='ArrowRight'?1:event.key==='ArrowLeft'?-1:0;if(step){event.preventDefault();setSlide(value=>Math.max(0,Math.min(Math.max(0,slides.length-1),value+step)));}};window.addEventListener('keydown',key);return()=>window.removeEventListener('keydown',key);},[desktopModal,slides.length]);
-  const [expandedPhoto,setExpandedPhoto]=useState(false);
   const [expandedNutrition,setExpandedNutrition]=useState(false);
   const drink = useDrinkCard(postId, status, eatenAt, initialDrink);
+  const wholePhoto = Boolean(photo) && !desktopModal && (!drink || drink.source === 'item');
   const localTime = useLocalTime(eatenAt);
   const ref = useRef<HTMLDivElement>(null);
-  const [frameHeight,setFrameHeight]=useState(640);
+  const [frameHeight,setFrameHeight]=useState(photo?Math.round(tokens.spacing.phone*photo.height/photo.width):640);
   const [width, setWidth] = useState<number>(tokens.spacing.phone);
   const [outlines, setOutlines] = useState(true);
   const [selection, setSelection] = useState<{ item: DetailItem | null; box?: ItemBox; key: number } | null>(null);
@@ -82,10 +82,10 @@ export default function OutlineOverlay({ desktopModal=false, desktopHeader, desk
   const [waiting, setWaiting] = useState(false);
   useEffect(() => {
     if (!ref.current) return;
-    const observer = new ResizeObserver(([entry]) => { if (entry.contentRect.width) setWidth(entry.contentRect.width); if(desktopModal&&entry.contentRect.height)setFrameHeight(entry.contentRect.height); });
+    const observer = new ResizeObserver(([entry]) => { if (entry.contentRect.width) setWidth(entry.contentRect.width); if((desktopModal||wholePhoto)&&entry.contentRect.height)setFrameHeight(entry.contentRect.height); });
     observer.observe(ref.current);
     return () => observer.disconnect();
-  }, [desktopModal]);
+  }, [desktopModal,wholePhoto]);
   useEffect(() => {
     const supabase = createClient();
     let live = true;
@@ -108,8 +108,8 @@ export default function OutlineOverlay({ desktopModal=false, desktopHeader, desk
     return () => { live = false; if (timer) clearInterval(timer); void supabase.removeChannel(channel); };
   }, [postId, status, waiting, router]);
 
-  const height=desktopModal?frameHeight:photo&&(!drink||drink.source==='item')?(expandedPhoto?width:230):width;
-  const scale = photo ? Math.max(width / photo.width, height / photo.height) : 1;
+  const height=desktopModal||wholePhoto?frameHeight:width;
+  const scale = photo ? Math.min(width / photo.width, height / photo.height) : 1;
   const offsetX = photo ? (width - photo.width * scale) / 2 : 0;
   const offsetY = photo ? (height - photo.height * scale) / 2 : 0;
   const frame = photo ? { left: offsetX, top: offsetY, width: photo.width * scale, height: photo.height * scale } : {};
@@ -118,7 +118,7 @@ export default function OutlineOverlay({ desktopModal=false, desktopHeader, desk
   const point = (event: { clientX: number; clientY: number }) => {
     if (!photo || !ref.current) return null;
     const rect = ref.current.getBoundingClientRect();
-    const ratio = Math.max(rect.width / photo.width, rect.height / photo.height);
+    const ratio = Math.min(rect.width / photo.width, rect.height / photo.height);
     const x = (event.clientX - rect.left - (rect.width - photo.width * ratio) / 2) / ratio;
     const y = (event.clientY - rect.top - (rect.height - photo.height * ratio) / 2) / ratio;
     return { x: Math.max(0, Math.min(photo.width, x)), y: Math.max(0, Math.min(photo.height, y)) };
@@ -147,20 +147,19 @@ export default function OutlineOverlay({ desktopModal=false, desktopHeader, desk
   const showNutrition = initialized && (items.length > 0 || status === "ready");
   const Container=desktopModal?"div":Fragment;
   return <Container {...(desktopModal?{className:"desktop-post-content"}:{})}>
-    <div ref={ref} className="relative w-full overflow-hidden bg-card" style={{ height, touchAction: drawing ? "none" : "auto" }}
+    <div ref={ref} className="relative w-full overflow-hidden bg-card" style={{ ...(wholePhoto&&photo?{aspectRatio:`${photo.width} / ${photo.height}`,maxHeight:"80dvh"}:{height}), touchAction: drawing ? "none" : "auto" }}
       onPointerDown={pointerDown} onPointerMove={pointerMove} onPointerUp={pointerUp}
       onPointerCancel={() => { start.current = null; setDrawBox(null); }}
       onClick={(event) => {
         if(desktopModal&&slide>0)return;
         if (drawing || selection) return;
-        if(readOnly || !initialized || !outlines){setExpandedPhoto(value=>!value);return;}
+        if(readOnly || !initialized || !outlines)return;
         const p = point(event); if (!p) return;
         const hit = items.filter((item) => item.box && p.x >= item.box.left && p.x <= item.box.right && p.y >= item.box.top && p.y <= item.box.bottom)
           .sort((a, b) => (a.box!.right - a.box!.left) * (a.box!.bottom - a.box!.top) - (b.box!.right - b.box!.left) * (b.box!.bottom - b.box!.top))[0];
         if (hit) setSelection({ item: hit, key: Date.now() });
-        else setExpandedPhoto(value=>!value);
       }}>
-      {desktopModal&&slide>0 ? slides[slide]?.kind==='photo'?<img src={slides[slide].url} alt={`Meal photo ${slide+1}`} className="size-full object-cover"/>:<ResultsCard data={displayCard} size={width} time={localTime}/> : photo && (!drink || drink.source === 'item') ? <>
+      {desktopModal&&slide>0 ? slides[slide]?.kind==='photo'?<img src={slides[slide].url} alt={`Meal photo ${slide+1}`} className="size-full object-contain"/>:<ResultsCard data={displayCard} size={width} time={localTime}/> : photo && (!drink || drink.source === 'item') ? <>
         <DetailImage photo={photo} alt={caption || "Meal photo"} />
         {outlines && items.map((item, index) => item.box ? <div key={item.id}>
           <Mask url={item.maskUrl} photo={photo} color={outlineColor(index)} frame={frame} fallback={boxStyle(item.box)} />
