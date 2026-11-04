@@ -51,7 +51,7 @@ export default function LightComposer(p:Props) {
 
  const photo=()=>{if(!busy)p.onPhoto();};
  // Local blob previews are kept on device.
- if(desktop)return <div className="desktop-composer grid h-[620px] grid-cols-[minmax(0,600px)_360px] bg-surface text-text">
+ if(desktop)return <div className="desktop-composer grid h-[min(620px,calc(100dvh-48px))] grid-cols-[minmax(0,600px)_360px] bg-surface text-text">
   <div className="relative min-h-0 overflow-hidden bg-camera text-surface">
    {p.cameraPreview?<CameraPreview frame={p.cameraPreview}/>:current?<img src={current.previewUrl} alt={`Meal photo ${p.index+1}`} className="size-full object-contain"/>:<div className="flex h-full items-center justify-center text-muted">Text post</div>}
    {p.shots.length>1&&<><button aria-label="Previous photo" disabled={p.index===0} onClick={()=>p.setIndex(p.index-1)} className="absolute left-4 top-1/2 size-10 rounded-circle bg-white text-[24px] text-text disabled:invisible">‹</button><button aria-label="Next photo" disabled={p.index===p.shots.length-1} onClick={()=>p.setIndex(p.index+1)} className="absolute right-4 top-1/2 size-10 rounded-circle bg-white text-[24px] text-text disabled:invisible">›</button></>}
