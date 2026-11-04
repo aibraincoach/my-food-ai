@@ -4,7 +4,7 @@ import { ioError } from "@/lib/worker/errors";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { JobRow } from "@/lib/queue/claim";
 import { resolveNutritionItems } from "@/lib/fdc/resolve-items";
-import { resolveFoodMatch, traceNutritionReuse, nutritionResolutionBudget } from "@/lib/fdc/match";
+import { resolveFoodMatchDetailed, traceNutritionReuse, nutritionResolutionBudget } from "@/lib/fdc/match";
 import { scaleNutrition } from "@/lib/fdc/nutrients";
 import { markReady } from "@/lib/pipeline/persist";
 import { toNumber, type CurrentItem, type NutritionLike, type StoredNutrient } from "@/lib/nutrition/totals";
@@ -37,8 +37,8 @@ export default async function recompute(admin: SupabaseClient, job: JobRow): Pro
       // Resolve all item data before issuing the one atomic nutrition write.
       const retained = await resolvePortionNutrition(admin, job.post_id!, item.supersedes, item.name, item.portion_grams, item.portion_text,signal);
       if (retained) return {...retained,post_item_id:item.id};
-      const food = await resolveFoodMatch(admin,item.name,context.caption??"",signal,{approximate:true});
-      const n = scaleNutrition(food, item.portion_grams == null ? null : toNumber(item.portion_grams));
+      const match = await resolveFoodMatchDetailed(admin,item.name,context.caption??"",signal,{approximate:true});
+      const n = scaleNutrition(match.food, item.portion_grams == null ? null : toNumber(item.portion_grams), match.unavailable);
       return {
         post_item_id: item.id, calories: n.calories, protein_g: n.proteinG,
         carbs_g: n.carbsG, fat_g: n.fatG, fibre_g: n.fibreG, sugar_g: n.sugarG,
@@ -57,7 +57,7 @@ export default async function recompute(admin: SupabaseClient, job: JobRow): Pro
     const {safeSummary}=await import('@/lib/pipeline/wording');
     const current=await getCurrentItems(admin,job.post_id,{requireNutrition:true});
     const labels=approximationLabels(current);
-    const body=await safeSummary('',sumNutrition(current),labels);
+    const body=await safeSummary('',sumNutrition(current),labels,current.map(item=>({name:item.name,sourceRef:item.source_ref})));
     // Post lock, job ownership and current source refs are rechecked together.
     const {error:summaryError,status:summaryStatus}=await admin.rpc('refresh_owned_approximation_summary',{
       p_post_id:job.post_id,p_job_id:job.id,p_summary:body,

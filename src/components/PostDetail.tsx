@@ -19,7 +19,7 @@ export default async function PostDetail({id,desktopModal=false}:{id:string;desk
  const detail=await getPostDetail(supabase,id,zone);if(!detail)notFound();const card=detail.card;
  const row=card as PostPresentation|null;
  const header=<PostDetailHeader post={card??undefined} readOnly={detail.isDrink} status={detail.post.status} postId={id} caption={detail.post.caption} eatenAt={detail.post.eaten_at} gtin={row?.gtin} saved={Boolean(row?.saved_meal_id)}/>;
- const thread=<Thread desktopActions={desktopModal?<PostActions detail postId={id} modelCommentId={card?.modelCommentId??null} fingerprint={card?.analysisFingerprint??null} drink={detail.isDrink} saved={Boolean(row?.saved_meal_id)}/>:undefined} sourcePostId={detail.post.source_post_id} key={id} postId={id} readOnly={detail.isDrink}/>;
+ const thread=<Thread desktopActions={desktopModal?<PostActions detail status={detail.post.status} postId={id} modelCommentId={card?.modelCommentId??null} fingerprint={card?.analysisFingerprint??null} drink={detail.isDrink} saved={Boolean(row?.saved_meal_id)}/>:undefined} sourcePostId={detail.post.source_post_id} key={id} postId={id} readOnly={detail.isDrink}/>;
  return <>
   <span hidden data-post-detail-ready={id}/>
   <LocalTimeZone zone={zone} explicit={Boolean(cookieZone)}/>

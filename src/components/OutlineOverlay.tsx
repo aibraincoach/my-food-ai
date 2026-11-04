@@ -1,5 +1,7 @@
 /* eslint-disable @next/next/no-img-element -- Private signed photos bypass public image optimization. */
 "use client";
+import {imageIdentity} from '@/lib/media/retained-image';
+import {feedPhotoSrcSet} from '@/lib/posts/feed-photo-url';
 import {alcoholGrams,isAlcoholic} from '@/lib/intake/alcohol';
 import { nutritionTableRows } from "@/lib/nutrition/table";
 
@@ -28,16 +30,19 @@ export function DetailDate({ value, weekday = false }: { value: string; weekday?
 }
 
 function DetailImage({ photo, alt }: { photo: DetailPhoto; alt: string }) {
-  const [src, setSrc] = useState(photo.previewUrl ?? photo.url);
+  const identity = imageIdentity(photo.url);
+  const [original, setOriginal] = useState<{identity:string;url:string}|null>(null);
+  const src = original?.identity === identity ? original.url : photo.previewUrl ?? photo.url;
+  const [failedSharp, setFailedSharp] = useState<string|null>(null);
   useEffect(() => {
     if (!photo.previewUrl) return;
     let live = true; const image = new Image();
     image.crossOrigin = "anonymous";
-    image.onload = () => { if (live) setSrc(photo.url); };
+    image.onload = () => { if (live) setOriginal({identity,url:photo.url}); };
     image.src = photo.url;
     return () => { live = false; };
-  }, [photo.url, photo.previewUrl]);
-  return <img src={src} crossOrigin="anonymous" alt={alt} draggable={false} className="h-full w-full object-contain" />;
+  }, [photo.url, photo.previewUrl, identity]);
+  return <img src={src} srcSet={failedSharp!==imageIdentity(src)&&src===photo.previewUrl?feedPhotoSrcSet(src):undefined} onError={()=>setFailedSharp(imageIdentity(src))} crossOrigin="anonymous" alt={alt} draggable={false} className="h-full w-full object-contain" />;
 }
 
 function Mask({ url, photo, color, frame, fallback }: {
@@ -182,7 +187,7 @@ export default function OutlineOverlay({ desktopModal=false, desktopHeader, desk
     <Container {...(desktopModal?{className:"desktop-post-record"}:{})}>
     {desktopModal&&desktopHeader}
     <Container {...(desktopModal?{className:"desktop-post-scroll"}:{})}>
-    <Container {...(desktopModal?{className:"desktop-post-actions"}:{})}><PostActions detail postId={postId} modelCommentId={modelCommentId} fingerprint={fingerprint} drink={readOnly} saved={saved}/></Container>
+    <Container {...(desktopModal?{className:"desktop-post-actions"}:{})}><PostActions detail status={status} postId={postId} modelCommentId={modelCommentId} fingerprint={fingerprint} drink={readOnly} saved={saved}/></Container>
     <div className="px-inset"><PostCaption postId={postId} handle={handle} caption={caption}/></div>
     {showNutrition&&<>
       <NutritionSummary items={items}/>

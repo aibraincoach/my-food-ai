@@ -108,3 +108,5 @@ test('repeated refinements cannot loop and rejected compound foods remain unavai
  assert.deepEqual(queries,['mixed dish','mixed +dish','dish']);
  assert.equal(result.food,null);assert.equal(result.searches,3);
 });
+
+test('a first decision that names no base food still yields the bare name for the closest-record step', async()=>{const queries=[];const result=await matchFood('Pickled ginger','Load test 18',{search:async query=>{queries.push(query);return []},choose:async()=>({id:null,query:null,query_food:null,reason:'All candidates are Branded'})});assert.deepEqual(queries,['Pickled ginger']);assert.equal(result.food,null);assert.equal(result.searches,1);assert.equal(result.baseFood,'Pickled ginger');});

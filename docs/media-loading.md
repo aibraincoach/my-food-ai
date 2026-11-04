@@ -216,3 +216,17 @@ The feed rows above use different photo sets and rendering paths. They establish
 | Total | 497591 | 63720 |
 
 The matched strip comparison reduced downloaded bytes by 87.19%. [Per-photo receipt](https://github.com/aibraincoach/my-food-ai/blob/1069cd3aa181919f9171dcb05c98ae1639a6181e/docs/evidence/run10-strip-thumbnails/receipt.json). The phone/mobile-data two-second and visual-equivalence acceptance remains RT's check under #379; #372 remains open for those parts. No billed-egress or log-ingestion-byte reduction is inferred.
+
+## Fleet15 production byte table — November4,2026
+
+Production bytes, own1920×1440fixture,14:06UTC; Storage API and read-only storage.objects SQL agree:
+
+|Object/response|HTTP|Content type|Bytes|
+|---|---|---|---:|
+|Original0.jpg|Storage metadata|image/jpeg|142504|
+|Feed0.feed.jpg|Storage metadata|image/jpeg|142504|
+|v1.webp route|200|image/jpeg|142504|
+|v2-1040.webp|200|image/webp|16386|
+|v2-1560.webp|200|image/webp|26854|
+
+All three image responses were direct, without redirects. Do not relabel v1 as WebP: the observed Content-Type was JPEG. The fixture ended needs_input, with0items, so this is photo delivery/byte evidence, not a successful nutrition-analysis claim. The first byte-probe attempt failed because the helper passed a connection URI in PGDATABASE and psql tried a local socket. A private corrected connection wrapper enabled one retry; both owned posts were deleted and verified absent. No product-code change or second review was needed for that wrapper.

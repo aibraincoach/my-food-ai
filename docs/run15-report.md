@@ -1,4 +1,62 @@
-# Fleet 15: implementation and verification, deployment pending
+# Fleet15: five authorized PRs deployed; four held
+
+## Authorized five-PR closeout — November4,2026
+
+All five specifically authorized heads merged unchanged, without a main-refresh conflict. Each production deployment is READY. The final production alias is `05a38bd3894a1186ce77e518d565d977a2246fb9`, deployment `dpl_GdXzNdRfDJVVY6mNuADCL72qhBi7`. The other four code PRs remain unmerged by explicit order. The owner accepted0054 and the #583 metadata read; acceptance of that read does not authorize merging the held #583.
+
+|PR|Reviewed head|Merge commit|Production|
+|---|---|---|---|
+|#585|`5887f56e6ceb92cece48192a8b56d2f7b9e6a2fc`|`54d8c1cb113bec565e372cb04df16c00397c906c`|READY|
+|#587|`2195a5cd4c5d6b66d81b33c3eb710fb2c95c498f`|`84f05f2a4bc6bea46ad5a7bce218a783cab6dfd4`|READY|
+|#588|`223bf70eb7b682a1a06a7d6bdcf33c79b9d36212`|`931ea7ccf89e4221b39aea849e841d4dcc1fa598`|READY|
+|#589|`911c33bac2853c88ad1e9ead20302fef0a414f2e`|`f3d81a457c196dbc6ff517800430f49e5d455e1b`|READY|
+|#590|`69a216b956be40f9dc434cdf379b328864f64421`|`05a38bd3894a1186ce77e518d565d977a2246fb9`|READY|
+
+### Production checks
+
+0053 applied14:01:49UTC, before #588: compact=false, reader_floor=null, versioned claim present, normalization trigger enabled. 0054 applied14:02:12UTC; readback14:02:13UTC confirms both exact function-body hashes match the reviewed file and execute is denied to anon/authenticated, allowed to service_role. #588 deployment/alias verified READY at14:03:07UTC. 0055 activated14:03:19UTC with reader_floor931ea7ccf89e4221b39aea849e841d4dcc1fa598: compact=true,4provenance-bearing rows,0repeated-label rows, required kind/basis/sourceRef fields retained, legacy claims fenced. No migration or activation refusal occurred.
+
+Days, production14:04:51UTC, account2 October31 America/Edmonton: daily/monthly HTTP200,4ready posts,1unfinished,1842.1kcal in both payloads. The daily known subtotal is protein86.555g, carbs138.797g, fat103.226g.
+
+Two-account read-only check: own detail200/rendered; account2 sees0foreign post rows through RLS; foreign photo404; all4daily posts belong to account2. Foreign direct page still returns200 with a not-found body and no detail. Thus data isolation passes, while the strict foreign-page HTTP404 acceptance remains pending the explicitly held #583. No foreign post was modified or deleted.
+
+Production bytes, own1920×1440fixture,14:06UTC; Storage API and read-only storage.objects SQL agree:
+
+|Object/response|HTTP|Content type|Bytes|
+|---|---|---|---:|
+|Original0.jpg|Storage metadata|image/jpeg|142504|
+|Feed0.feed.jpg|Storage metadata|image/jpeg|142504|
+|v1.webp route|200|image/jpeg|142504|
+|v2-1040.webp|200|image/webp|16386|
+|v2-1560.webp|200|image/webp|26854|
+
+All three image responses were direct, without redirects. Do not relabel v1 as WebP: the observed Content-Type was JPEG. The fixture ended needs_input, with0items, so this is photo delivery/byte evidence, not a successful nutrition-analysis claim. The first byte-probe attempt failed because the helper passed a connection URI in PGDATABASE and psql tried a local socket. A private corrected connection wrapper enabled one retry; both owned posts were deleted and verified absent. No product-code change or second review was needed for that wrapper.
+
+### Held PRs
+
+All four heads below are unchanged from their counting reviews and both Vercel checks are SUCCESS. Times are November4,WIB. No new review was run for this report.
+
+|PR|Current full head|Review at that head|
+|---|---|---|
+|#582|`dc07c47f5992d92fc300972b8b41866404e2df3b`|Gemini/PPLX approved19:10:59|
+|#583|`e7db5cee8ffe0ebe0d88d96ef8c73b584f8c7e76`|Gemini/PPLX no blockers19:11:00 (empty final summary); complete AGY no blockers19:11:48|
+|#584|`7279ca386f43fcf1451cc3716d572cb2d5d73a69`|Gemini/PPLX approved19:10:59; complete AGY no blockers19:13:08|
+|#586|`4b8ebcf5b1e6fa36737628693e427c537dc5b0df`|Complete AGY no blockers19:08:48; PPLX/GPT-6.1 Sol no blockers19:11:00|
+
+### Cleanup and documentation
+
+Five merged-code worktrees run15-a/b/d/g/h and the combined run15-core worktree were removed. The five merged remote code branches and their local branches are deleted, as is local run15/core. The named heads were verified ancestors of final origin/main before local force-deletion; git branch -d initially refused because its current checkout was the older aggregate. The clean main checkout was fast-forwarded to05a38bd3.
+
+Own Firefox19515 stopped; no own application/backend/container remains. A fresh read-only check at14:07:58UTC covers all6tracked production fixture IDs from this fleet and their stage prefixes:0posts,0drafts,0jobs,0Storage objects. Other users' data was untouched. Temporary profiles, databases, node_modules/builds, harness copies and private result captures are removed with their owned worktrees; durable outcomes/review receipts remain in committed docs. No broad cleanup script is used because it could affect protected or unowned resources.
+
+The exact BACKLOG.md commit282944477d2305e3ed2cc26c46103b7d655f1d50 is included as an ancestor of this docs branch, with its file bytes preserved. Two additional owner-supplied Wall entries from its ancestry are retained verbatim. Docs are pushed once for this closeout; #600/#577/#558 stay open. The handover ZIP and separate Wall are preserved byte-for-byte. The run15-docs worktree is removed after publication while its protected uploads directory is retained at the same path. No new handover export is generated.
+
+Protected/unowned exceptions: `/home/opc/Projects/my-food-ai` is now the planner's run16/docs checkout and is left untouched, including its Fleet16 plan; `/tmp/my-food-ai-backlog-docs` and `/tmp/my-food-ai-speed-audit` are not established as Fleet15 resources and remain. The existing authenticated Firefox9223 and its tabs/profile remain. Four held remote branches remain for their PRs. The Vercel protection-bypass secret is unchanged. This closes only the newly authorized five-PR merge/check/cleanup round; it does not claim the four held features deployed, the owner role updated, unrun original-plan acceptance passed or outstanding issues closed.
+
+## Earlier implementation checkpoints
+
+The following sections retain their earlier observation cutoffs. Their unmerged/migration-pending/owner-ruling statements are superseded by the closeout above.
+
 
 Updated 2026-11-04T13:49:35.672Z for PM replacement. All nine code PRs are open. No Fleet 15 PR has merged, no production migration or role update has run, and no production-after acceptance or issue closure is claimed. The supplied plan is preserved byte-for-byte in [plan-run15.md](plan-run15.md). This docs PR is the final-step push and remains unmerged.
 

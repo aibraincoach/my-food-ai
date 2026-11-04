@@ -1,6 +1,6 @@
 # Deployment
 
-Observed 2026-11-04T13:49:35.672Z: `https://my-food-ai-ten.vercel.app` points to READY deployment `dpl_Df6AGNF8r9vBjiNF2Jh4ghNNYimM`, main `376e3306942161a5e659e8d99c85154c8ac26a35`; `/api/health` returns200. Fleet15 preview success is not a production deployment.
+Observed November4,2026,14:04:48UTC: `https://my-food-ai-ten.vercel.app` points to READY deployment `dpl_GdXzNdRfDJVVY6mNuADCL72qhBi7`, main `05a38bd3894a1186ce77e518d565d977a2246fb9`. Authorized #585/#587/#588/#589/#590 are deployed; #582/#583/#584/#586 remain open. Migrations0053–0055 are applied and read back. See [the closeout report](run15-report.md).
 
 | Part | Where | Declared in |
 | --- | --- | --- |
