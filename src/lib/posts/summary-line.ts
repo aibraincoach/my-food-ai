@@ -21,7 +21,9 @@ export function summaryLine(post: PostPresentation, drink: DrinkCardData | null 
   const totals = sumNutrition(post.items);
   if (drinks.length && post.items.length && post.items.every(item => drinks.some(row => row.post_item_id === item.id))) {
     if(drinks.some(row=>row.kind==='alcohol')){
-      const g=post.items.reduce((sum,item)=>sum+alcoholGrams(item.micronutrients),0);
+      // Feed items retain water only; hydration owns the consumed alcohol amount.
+      const g=drink?.kind==='alcohol'&&drink.alcoholG!=null ? drink.alcoholG : drinks.filter(row=>row.kind==='alcohol')
+        .reduce((sum,row)=>sum+(row.alcoholG??alcoholGrams(post.items.find(item=>item.id===row.post_item_id)?.micronutrients)),0);
       return `Drank: ${g>0?`${number(g)} g alcohol · ${(g/14).toFixed(1)} standard drinks`:'alcohol unavailable'} · ${formatCalories(totals.calories)} kcal`;
     }
     return `Drank: ${drinks.length > 1 ? `${number(drinks.length)} drinks · ` : ''}${number(drankMl)} ml${caffeineMg > 0 ? ` · ${number(caffeineMg)} mg caffeine` : ''} · ${formatCalories(totals.calories)} kcal`;
