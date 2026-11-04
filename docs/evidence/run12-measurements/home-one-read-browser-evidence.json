@@ -1,0 +1,34 @@
+[
+  {
+    "viewport": [
+      390,
+      844
+    ],
+    "requests": [
+      {
+        "url": "http://127.0.0.1:60261/api/feed?ids=b4265b7b-b8f0-4d72-b3bc-e30f4aaffd97&tz=America%2FEdmonton",
+        "type": "Fetch"
+      }
+    ],
+    "firstPageClientReads": 0,
+    "text": "My Food AI\n1,200\nToday\nMon 2\nSun 1\nSat 31\nFri 30\nToday\nTuesday, Nov 3\nConsumed: 1,200 kcal\nR\nrun12_detail_local3\n\u00b7\u00b7\u00b7\n+\nAdd a photo\nLeftovers \u00b7 not eaten\nWas this estimate right?\nDetails \u203a\n\nrun12_detail_local3 Synthetic local detail meal\n\nConsumed: 1200 kcal \u00b7 30 g protein \u00b7 210 g carbs \u00b7 20 g fat more\n8:50 PM\nR\nCamera\nText\nDrink\nCoffee\nSaved",
+    "overflow": false,
+    "note": "ids= requests refresh an existing card; they do not read the first page."
+  },
+  {
+    "viewport": [
+      1280,
+      800
+    ],
+    "requests": [
+      {
+        "url": "http://127.0.0.1:60261/api/feed?ids=b4265b7b-b8f0-4d72-b3bc-e30f4aaffd97&tz=America%2FEdmonton",
+        "type": "Fetch"
+      }
+    ],
+    "firstPageClientReads": 0,
+    "text": "My Food AI\nNew post\nN\nHome\nSearch\n/\nDays\nD\nR\nrun12_detail_local3\nProfile\n?\nKeyboard shortcuts\nR\nrun12_detail_local3\n\u00b7\u00b7\u00b7\n+\nAdd a photo\nLeftovers \u00b7 not eaten\n\u203a\nWas this estimate right?\nDetails \u203a\n\nrun12_detail_local3 Synthetic local detail meal\n\nConsumed: 1200 kcal \u00b7 30 g protein \u00b7 210 g carbs \u00b7 20 g fat more\n8:50 PM\nToday \u00b7 Tuesday, Nov 3\n\n1,200\nkcal consumed\n\n30 g\n\nprotein\n\n210 g\n\ncarbs\n\n20 g\n\nfat\n\nPosted today\nSynthetic local detail meal\n8:50 PM\n1,200 kcal",
+    "overflow": false,
+    "note": "ids= requests refresh an existing card; they do not read the first page."
+  }
+]

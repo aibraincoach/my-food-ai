@@ -1,0 +1,10 @@
+Item7 local built-page check, native Chromium390x844, disposable synthetic account. No production auth/provider calls.
+Stored needs-input.short remains Clarification needed; actual strip displays A question about this meal and question What did you eat?.
+Add photo with notEaten:true title Leftovers, switch label Leftovers, stateOn.
+Two-photo composer labels row Leftovers; marking photo2 produces visible Leftovers badge and Photo2 row selection. No Leftovers · not eaten shown in these changed flows.
+Literal rendered page inspected in-memory screenshot; no image file saved. Compared phone composer/frame words and round6style: intended wording differs by owner's ruling; layout preserved. Existing horizontal/vertical browser scrollbars visible around photo carousel on native headless desktop-Chrome phone emulation; no unrelated code changed.
+The two-photo upload draft was removed through actual Remove photo2 then Remove photo1 controls; IndexedDB drafts[] confirmed. Question fixture and shared synthetic source meal remain until final local fixture cleanup.
+Full npmtest result recorded separately.
+Final synthetic fixtures(question/source) and account removed with fullStoragecleanup; readbackposts0,reservations0,objects0. See/tmp/run12-ah-cleanup.log.
+
+Terms full npm test PASS: 579 tests, 573 passed, 0 failed, 6 existing skips, 284.8 s. Log: /tmp/run12-terms-test.log. Suite session 14575 terminal exit 0. Terms app 60270 stopped afterward; all assigned local servers and browsers are released.

@@ -1,0 +1,156 @@
+[
+  {
+    "pr": 502,
+    "head": "7338ea3c2e4d0fe08ed9c5760f424a26d95e7533",
+    "capture": "mfa-pplx-pr502-7338ea3.md",
+    "eligible_model_proof": false,
+    "input_failure": true
+  },
+  {
+    "pr": 503,
+    "head": "60a2050291e938258b17e0e9dfd6b99dfa031512",
+    "capture": "mfa-pplx-pr503-60a2050.md",
+    "eligible_model_proof": false,
+    "input_failure": true
+  },
+  {
+    "pr": 504,
+    "head": "f1fe7cce895d894e305dce4e20bb7870ece29688",
+    "capture": "mfa-pplx-pr504-f1fe7cc.md",
+    "eligible_model_proof": false,
+    "input_failure": true
+  },
+  {
+    "pr": 505,
+    "head": "bc1c4a8912231f545281cdf09a10e3e1dd75b1d6",
+    "capture": "mfa-pplx-pr505-bc1c4a8.md",
+    "eligible_model_proof": false,
+    "input_failure": true
+  },
+  {
+    "pr": 506,
+    "head": "192e4e1d5d0533184427cabb72b242d380955cc9",
+    "capture": "mfa-pplx-pr506-192e4e1.md",
+    "eligible_model_proof": false,
+    "input_failure": true
+  },
+  {
+    "pr": 507,
+    "head": "3264bc60a755b5c4122a88ff222c1f129951c171",
+    "capture": "mfa-pplx-pr507-3264bc6.md",
+    "eligible_model_proof": false,
+    "input_failure": true
+  },
+  {
+    "pr": 526,
+    "head": "47e59ab4d40d3a7f7295f10497b7e4ce8ab2b75c",
+    "capture": "mfa-pplx-pr526-47e59ab.md",
+    "eligible_model_proof": false,
+    "input_failure": true
+  },
+  {
+    "pr": 527,
+    "head": "e92e4341a7385c0495e13e8dedad0cf8f6513d5c",
+    "capture": "mfa-pplx-pr527-e92e434.md",
+    "eligible_model_proof": false,
+    "input_failure": true
+  },
+  {
+    "pr": 528,
+    "head": "8e922b51c085641860bc1ec42572a6491601c25d",
+    "capture": "mfa-pplx-pr528-8e922b5.md",
+    "eligible_model_proof": false,
+    "input_failure": true
+  },
+  {
+    "pr": 529,
+    "head": "b474215749d8b0d203bb9e9585274b8d26c83f6f",
+    "capture": "mfa-pplx-pr529-b474215.md",
+    "eligible_model_proof": false,
+    "input_failure": true
+  },
+  {
+    "pr": 530,
+    "head": "1c1d6937ff01dcd918de87b94e492007cf3dbfff",
+    "capture": "mfa-pplx-pr530-1c1d693.md",
+    "eligible_model_proof": false,
+    "input_failure": true
+  },
+  {
+    "pr": 531,
+    "head": "6d70865e95cf540c4903be0b571c839716e32549",
+    "capture": "mfa-pplx-pr531-6d70865.md",
+    "eligible_model_proof": false,
+    "input_failure": true
+  },
+  {
+    "pr": 532,
+    "head": "846424aff899fcff71a98f5b024b97471fddeb61",
+    "capture": "mfa-pplx-pr532-846424a.md",
+    "eligible_model_proof": false,
+    "input_failure": true
+  },
+  {
+    "pr": 533,
+    "head": "83ac318ba21df7fdf4c6e15aca27398483ba372f",
+    "capture": "mfa-pplx-pr533-83ac318.md",
+    "eligible_model_proof": false,
+    "input_failure": true
+  },
+  {
+    "pr": 534,
+    "head": "ee598fe8f94b9553fca38ff3001efeaf08ff0e92",
+    "capture": "mfa-pplx-pr534-ee598fe.md",
+    "eligible_model_proof": false,
+    "input_failure": true
+  },
+  {
+    "pr": 535,
+    "head": "06cd9203aec839a991d3602377d3c13f51e2a9ce",
+    "capture": "mfa-pplx-pr535-06cd920.md",
+    "eligible_model_proof": false,
+    "input_failure": true
+  },
+  {
+    "pr": 536,
+    "head": "c4a471c32dbd14e279c36d7a54ac1d97995ce5f2",
+    "capture": "mfa-pplx-pr536-c4a471c.md",
+    "eligible_model_proof": false,
+    "input_failure": true
+  },
+  {
+    "pr": 537,
+    "head": "03ca5a9ca3845b7efc91eaf1b0b847df727607df",
+    "capture": "mfa-pplx-pr537-03ca5a9.md",
+    "eligible_model_proof": false,
+    "input_failure": true
+  },
+  {
+    "pr": 538,
+    "head": "7b8058238323bbbb8bd06905059bc09d157b3175",
+    "capture": "mfa-pplx-pr538-7b80582.md",
+    "eligible_model_proof": false,
+    "input_failure": true
+  },
+  {
+    "pr": 539,
+    "head": "6cf10f4612010c67c143cbb5459f30e59a80c8c1",
+    "capture": "mfa-pplx-pr539-6cf10f4.md",
+    "eligible_model_proof": false,
+    "input_failure": true
+  },
+  {
+    "pr": 540,
+    "head": "3bed2f483c6d12906f5f687f3801759987cd3940",
+    "capture": "mfa-pplx-pr540-3bed2f4.md",
+    "eligible_model_proof": false,
+    "input_failure": true
+  },
+  {
+    "pr": 541,
+    "head": "a40b18dbdf5986d4aede2b94be48e4a40dbe2c05",
+    "capture": "mfa-pplx-pr541-a40b18d.md",
+    "eligible_model_proof": false,
+    "input_failure": true
+  }
+]

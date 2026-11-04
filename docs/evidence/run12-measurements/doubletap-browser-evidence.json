@@ -1,0 +1,7 @@
+{
+  "scope": "native local390x844 Fast4G60ms/9Mbpsdown/1.5Mbpsup, two mouse clicks without delay after correcting invalid timestamp",
+  "invalidTimestampRemainsCorrectable": true,
+  "copyPostRequests": 1,
+  "newPosts": 1,
+  "pass": true
+}

@@ -1,0 +1,11 @@
+Final item 10 runtime correction and validation
+
+Runtime correction commit: 584a4d0a9a43d8ffae84d33198388fd2b7c8ce4d.
+Detail selects all needed ordered media rows once; chooses first photo locally; passes known.media into existing toFeedPost so card construction reuses the same snapshot. Non-detail callers retain their original media read. Two revision reads remain the intentional before/after fence. Hydration runs once and card shape/slides are preserved.
+Specific admin Baseten trace lookup now has an 8-second abort signal. Returned error throws Meal identification could not be loaded.; it cannot silently hide the failure.
+Existing targeted tests: 21 passed, 0 failed (provenance, feed photo/nutrition, selected masks).
+Actual disposable Supabase read counter: base post 1; detail item chain 1 with nutrition query 1; media 1; saved state 1; original-photo signing 1; trace 1; each hydration stage 1; revision fence 2. Fixture retained 2 photos plus card in order. Local trace returned-error probe rejected clearly; hanging trace rejected after 8050 ms. Fixture post/profile/auth account deleted; no Storage objects created. Evidence: /tmp/run12-detail-read-counter.log.
+Fresh production build PASS at 584a4d0. Log: /tmp/run12-detail-open-build-fullsuite-final.log.
+Full npm test PASS: 579 tests, 573 passed, 0 failed, 6 existing skips, 244.0 s. Log: /tmp/run12-detail-open-test-full-final.log. Dedicated app 60314 used that fresh build.
+Comment-only cleanup commit a40b18d removes the newly redundant DetailImage ESLint suppression. Final lint PASS: 0 errors, baseline 6 warnings. Log: /tmp/run12-detail-open-lint-fullsuite-final.log. This comment-only change does not alter runtime or test behavior.
+Full suite session 19637 exited 0. Dedicated app 60314 stopped afterward and listener absence verified. No provider mutations, review, PR, push or merge were performed during this validation task. No screenshots or tracked performance/layout tests added.

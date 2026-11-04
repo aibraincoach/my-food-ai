@@ -1,0 +1,202 @@
+{
+  "scope": "local native browser, service worker bypassed, CDP offline",
+  "before": {
+    "path": "/",
+    "origin": 1793765377904.5,
+    "text": "My Food AI\n500\nToday\nMon 2\nSun 1\nSat 31\nFri 30\nToday\nTuesday, Nov 3\nConsumed: 500 kcal\nR\nr12_copy_c39c67a8\n···\nCONSUMED · 9:09 PM\n500\nkcal\n20 g\nprotein\n60 g\ncarbs\n20 g\nfat\nScripted copy meal 100 g\nDetails ›\n\nr12_copy_c39c67a8 Run12 saved source\n\nConsumed: 500 kcal · 20 g protein · 60 g carbs · 20 g fat more\n9:09 PM\nR\nCamera\nText\nDrink\nCoffee\nSaved\nSaved meals\n×\n500\nRun12 saved source\nScripted copy meal · 500 kcal\nLast logged Never\nLog now\n\nTap a row to choose another time or edit amounts first. Save a meal with the bookmark on any post."
+  },
+  "after": {
+    "path": "/",
+    "origin": 1793765377904.5,
+    "text": "My Food AI\n500\nToday\nMon 2\nSun 1\nSat 31\nFri 30\nToday\nTuesday, Nov 3\nConsumed: 500 kcal\nR\nr12_copy_c39c67a8\n···\n\nr12_copy_c39c67a8 Run12 saved source\n\nCould not confirm the save. Your selection is kept on this phone.\n\nThe server did not respond.\n\nTry again\nRemove pending post\n9:09 PM\nR\nr12_copy_c39c67a8\n···\nCONSUMED · 9:09 PM\n500\nkcal\n20 g\nprotein\n60 g\ncarbs\n20 g\nfat\nScripted copy meal 100 g\nWas this estimate right?\nDetails ›\n\nr12_copy_c39c67a8 Run12 saved source\n\nConsumed: 500 kcal · 20 g protein · 60 g carbs · 20 g fat more\n9:09 PM\nR\nCamera\nText\nDrink\nCoffee\nSaved",
+    "online": false,
+    "overflow": false
+  },
+  "requests": [
+    {
+      "path": "/rest/v1/post_feedback",
+      "type": "Other"
+    },
+    {
+      "path": "/api/jobs/tick",
+      "type": "Fetch"
+    },
+    {
+      "path": "/rest/v1/post_feedback",
+      "type": "Fetch"
+    },
+    {
+      "path": "/rest/v1/posts",
+      "type": "Fetch"
+    },
+    {
+      "path": "/rest/v1/posts",
+      "type": "Other"
+    },
+    {
+      "path": "/",
+      "type": "Fetch"
+    },
+    {
+      "path": "/api/saved/bc607475-404e-481d-94ef-a5a59a734cd3/log",
+      "type": "Fetch"
+    },
+    {
+      "path": "/posts/d5e6cc85-12e1-4201-93e5-d6f55313d5c9",
+      "type": "Fetch"
+    },
+    {
+      "path": "/posts/d5e6cc85-12e1-4201-93e5-d6f55313d5c9",
+      "type": "Fetch"
+    },
+    {
+      "path": "/posts/edf817a5-e7f1-441f-b19f-757792015a8e",
+      "type": "Fetch"
+    },
+    {
+      "path": "/profile",
+      "type": "Fetch"
+    },
+    {
+      "path": "/api/feed",
+      "type": "Fetch"
+    },
+    {
+      "path": "/rest/v1/post_feedback",
+      "type": "Fetch"
+    },
+    {
+      "path": "/rest/v1/post_feedback",
+      "type": "Other"
+    },
+    {
+      "path": "/rest/v1/posts",
+      "type": "Fetch"
+    },
+    {
+      "path": "/rest/v1/posts",
+      "type": "Other"
+    },
+    {
+      "path": "/rest/v1/posts",
+      "type": "Fetch"
+    },
+    {
+      "path": "/rest/v1/posts",
+      "type": "Other"
+    },
+    {
+      "path": "/rest/v1/posts",
+      "type": "Fetch"
+    },
+    {
+      "path": "/rest/v1/posts",
+      "type": "Other"
+    },
+    {
+      "path": "/api/saved/bc607475-404e-481d-94ef-a5a59a734cd3/log",
+      "type": "Fetch"
+    },
+    {
+      "path": "/api/feed",
+      "type": "Fetch"
+    },
+    {
+      "path": "/rest/v1/posts",
+      "type": "Fetch"
+    },
+    {
+      "path": "/rest/v1/posts",
+      "type": "Other"
+    },
+    {
+      "path": "/rest/v1/posts",
+      "type": "Fetch"
+    },
+    {
+      "path": "/rest/v1/posts",
+      "type": "Other"
+    },
+    {
+      "path": "/rest/v1/post_feedback",
+      "type": "Fetch"
+    },
+    {
+      "path": "/rest/v1/post_feedback",
+      "type": "Other"
+    },
+    {
+      "path": "/rest/v1/posts",
+      "type": "Fetch"
+    },
+    {
+      "path": "/rest/v1/posts",
+      "type": "Other"
+    },
+    {
+      "path": "/api/feed",
+      "type": "Fetch"
+    },
+    {
+      "path": "/rest/v1/posts",
+      "type": "Fetch"
+    },
+    {
+      "path": "/rest/v1/posts",
+      "type": "Other"
+    },
+    {
+      "path": "/rest/v1/posts",
+      "type": "Fetch"
+    },
+    {
+      "path": "/rest/v1/posts",
+      "type": "Other"
+    },
+    {
+      "path": "/api/feed",
+      "type": "Fetch"
+    },
+    {
+      "path": "/rest/v1/post_feedback",
+      "type": "Fetch"
+    },
+    {
+      "path": "/rest/v1/post_feedback",
+      "type": "Other"
+    },
+    {
+      "path": "/rest/v1/posts",
+      "type": "Fetch"
+    },
+    {
+      "path": "/rest/v1/posts",
+      "type": "Other"
+    },
+    {
+      "path": "/rest/v1/posts",
+      "type": "Fetch"
+    },
+    {
+      "path": "/rest/v1/posts",
+      "type": "Other"
+    },
+    {
+      "path": "/rest/v1/posts",
+      "type": "Other"
+    },
+    {
+      "path": "/rest/v1/posts",
+      "type": "Fetch"
+    },
+    {
+      "path": "/api/saved/bc607475-404e-481d-94ef-a5a59a734cd3/log",
+      "type": "Fetch"
+    },
+    {
+      "path": "/api/feed",
+      "type": "Fetch"
+    }
+  ],
+  "pass": true
+}

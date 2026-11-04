@@ -1,0 +1,6 @@
+Item8 native Chromium390x844, disposable local build (drink-sheets lane), synthetic local account.
+First open: tile grid hidden aria-busytrue at31ms; first visible aria-busyfalse at411ms after open-entry. Actual tile-count request298ms; first-open reveal had exactlyone hidden->visible transition over2sec observation.
+Visible order Water glass250ml,Coffee cup240ml95mg,Espresso double60ml126mg,Tea mug300ml45mg,Coca-Cola can330ml32mg,Water bottle500ml. No reorder after reveal.
+P2 local measurement298ms, below1.5s. This does not prove production performance.
+503 check: browser-only intercept of /api/drinks/identify (no provider call) with503 and error text. Actual composer renders alert Drinks could not be checked. You can still post the photo.; ordinary Post stays enabled. One staged plate fixture image removed through UI; no post created.
+Literal rendered page looked at in-memory CDP screenshot; no image files saved. Compared to round6frame5f: same six3-column tiles,92px tile heights, title/total, text field, camera button, sheet corner style. Existing floating navigation overlaps lower sheet region (frame has only native home indicator); synthetic total0 differs. Composer503line is added per plan and fits above Post.

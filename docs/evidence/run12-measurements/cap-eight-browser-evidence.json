@@ -1,0 +1,67 @@
+{
+  "viewport": "390x844",
+  "selectedFiles": 8,
+  "scriptedProvider": "water",
+  "statuses": [
+    200,
+    200,
+    200,
+    200,
+    200,
+    200,
+    200,
+    200
+  ],
+  "text": "New post\nPost details\n8 drinks\n\nTap one to change it\n\n1\nWater, glass\n300 ml · 0 kcal\n—\n2\nWater, glass\n300 ml · 0 kcal\n—\n3\nWater, glass\n300 ml · 0 kcal\n—\n4\nWater, glass\n300 ml · 0 kcal\n—\n5\nWater, glass\n300 ml · 0 kcal\n—\n6\nWater, glass\n300 ml · 0 kcal\n—\n7\nWater, glass\n300 ml · 0 kcal\n—\n8\nWater, glass\n300 ml · 0 kcal\n—\n\n2,400 ml · 0 mg caffeine · 0 kcal\n\nPost 8 drinks",
+  "capMessage": false,
+  "overflow": false,
+  "readings": [
+    {
+      "upload_id": "ba8d6947-7454-48f0-aa45-6f02db5d6050",
+      "position": 7,
+      "state": "ready"
+    },
+    {
+      "upload_id": "ba8d6947-7454-48f0-aa45-6f02db5d6050",
+      "position": 6,
+      "state": "ready"
+    },
+    {
+      "upload_id": "ba8d6947-7454-48f0-aa45-6f02db5d6050",
+      "position": 2,
+      "state": "ready"
+    },
+    {
+      "upload_id": "ba8d6947-7454-48f0-aa45-6f02db5d6050",
+      "position": 3,
+      "state": "ready"
+    },
+    {
+      "upload_id": "ba8d6947-7454-48f0-aa45-6f02db5d6050",
+      "position": 1,
+      "state": "ready"
+    },
+    {
+      "upload_id": "ba8d6947-7454-48f0-aa45-6f02db5d6050",
+      "position": 4,
+      "state": "ready"
+    },
+    {
+      "upload_id": "ba8d6947-7454-48f0-aa45-6f02db5d6050",
+      "position": 5,
+      "state": "ready"
+    },
+    {
+      "upload_id": "ba8d6947-7454-48f0-aa45-6f02db5d6050",
+      "position": 0,
+      "state": "ready"
+    }
+  ],
+  "modelIdentifyCalls": 8,
+  "identifyHits": [
+    {
+      "route": "drink_identify",
+      "hits": 8
+    }
+  ]
+}

@@ -1,0 +1,57 @@
+{
+  "a": {
+    "text": "Yesterday\nMonday, Nov 2\nConsumed: 0 kcal\nR\nrun12_detail_local3\n···\nDetails ›\n\nrun12_detail_local3 Synthetic failed local upload\n\nThe analysis service refused this request. Try again.\n\nTry again\n11:00 AM",
+    "section": "2026-11-02"
+  },
+  "bInitial": "Yesterday\nMonday, Nov 2\nConsumed: 0 kcal\nR\nrun12_detail_local3\n···\nDetails ›\n\nrun12_detail_local3 Synthetic processing local upload\n\nProcessing, traffic low\n\n12:00 PM",
+  "b": {
+    "text": "Yesterday\nMonday, Nov 2\nConsumed: 5 kcal\nR\nrun12_detail_local3\n···\nCONSUMED · 12:00 PM\n5\nkcal\n1 g\nprotein\n0 g\ncarbs\n0 g\nfat\nSynthetic ready after pending error 10 g\nDetails ›\n\nrun12_detail_local3 Synthetic processing local upload\n\nConsumed: 5 kcal · 1 g protein · 0 g carbs · 0 g fat more\n12:00 PM",
+    "section": "2026-11-02"
+  },
+  "events": [
+    {
+      "type": "copy-response",
+      "target": "c70eb2cc-6b41-4440-bc0c-8935f3d149a9",
+      "body": {
+        "operation_id": "8676ffea-c6bd-431f-817a-0fc821ae173e",
+        "owner_id": "687da258-506f-41b5-8ab7-ebe38bdf1eda",
+        "eaten_at": "2026-11-04T04:01:16.353Z"
+      }
+    },
+    {
+      "type": "pending",
+      "target": "c70eb2cc-6b41-4440-bc0c-8935f3d149a9",
+      "mode": "null"
+    },
+    {
+      "type": "pending",
+      "target": "c70eb2cc-6b41-4440-bc0c-8935f3d149a9",
+      "mode": "null"
+    },
+    {
+      "type": "copy-response",
+      "target": "a534dfc4-d303-48bc-84c0-08bd996c10b2",
+      "body": {
+        "operation_id": "3098b0a4-9a72-491c-ab96-0c96a6f476ca",
+        "owner_id": "687da258-506f-41b5-8ab7-ebe38bdf1eda",
+        "eaten_at": "2026-11-04T04:01:17.783Z"
+      }
+    },
+    {
+      "type": "pending",
+      "target": "a534dfc4-d303-48bc-84c0-08bd996c10b2",
+      "mode": "error"
+    },
+    {
+      "type": "pending",
+      "target": "a534dfc4-d303-48bc-84c0-08bd996c10b2",
+      "mode": "error"
+    },
+    {
+      "type": "pending",
+      "target": "a534dfc4-d303-48bc-84c0-08bd996c10b2",
+      "mode": "error"
+    }
+  ],
+  "overflow": false
+}

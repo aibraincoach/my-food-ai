@@ -1,6 +1,6 @@
 # Fleet10 term inventory
 
-Measured exact `git grep -n -F <term> origin/main -- src` at `3ce84730a33f6e5ce8163c80e454eb63b7d9998a`. Dynamic needs-input questions are model text validated in `src/lib/pipeline/needs-input.ts`; fixed questions/notices are listed. Days month/weekday names also come from locale formatters. Recommended is intentionally empty for RT.
+Measured exact `git grep -n -F <term> origin/main -- src` at `3ce84730a33f6e5ce8163c80e454eb63b7d9998a`. Dynamic needs-input questions are model text validated in `src/lib/pipeline/needs-input.ts`; fixed questions/notices are listed. Days month/weekday names also come from locale formatters. Recommended is intentionally empty for RT. **Owner ruling, 2026-11-04 ~10:00 WIB (through the Fleet 12 planner):** keep Consumed, Log again, Saved meals, What did you eat?, No food found, Days, Today, Yesterday and the weekday names. "Leftovers · not eaten" becomes "Leftovers". "Clarification needed" is shown as "A question about this meal" (display only; the stored model value is unchanged). "Additional food" has no uses. Built in Fleet 12 item 7.
 
 | Term | Every matched file/line and source text | Recommended |
 | --- | --- | --- |

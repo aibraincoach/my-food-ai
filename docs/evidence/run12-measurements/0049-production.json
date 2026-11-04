@@ -1,0 +1,35 @@
+{
+  "at": "2026-11-04T03:59:05.283Z",
+  "reviewedHead": "a5415aa4ea5570996603daeca8df75be2cb3d50f",
+  "applied": true,
+  "results": [
+    {
+      "query": "select proname,prosecdef,pg_get_functiondef(oid) as definition from pg_proc where proname='feedback_revisions' and pronamespace='public'::regnamespace",
+      "status": 201,
+      "result": [
+        {
+          "proname": "feedback_revisions",
+          "prosecdef": false,
+          "definition": "CREATE OR REPLACE FUNCTION public.feedback_revisions(p_post_ids uuid[])\n RETURNS TABLE(post_id uuid, revision jsonb)\n LANGUAGE sql\n STABLE\n SET search_path TO 'public', 'pg_temp'\nAS $function$\n  select p.id, public.feedback_revision(p.id) from public.posts p where p.id = any(p_post_ids)\n$function$\n"
+        }
+      ]
+    },
+    {
+      "query": "select has_function_privilege('authenticated','public.feedback_revisions(uuid[])','execute') as authenticated,has_function_privilege('service_role','public.feedback_revisions(uuid[])','execute') as service_role,has_function_privilege('anon','public.feedback_revisions(uuid[])','execute') as anon",
+      "status": 201,
+      "result": [
+        {
+          "authenticated": true,
+          "service_role": true,
+          "anon": false
+        }
+      ]
+    }
+  ],
+  "comparison": {
+    "role": "service_role API; no account sign-in",
+    "posts": 6,
+    "identical": true
+  },
+  "managementComparison": "Read-only Management role refused execution with42501; service-role API comparison used instead. No extra grants added."
+}

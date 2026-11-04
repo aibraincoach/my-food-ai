@@ -1,0 +1,21 @@
+Item2 native Chromium/CDP, disposable local build, unique synthetic account.
+Initial requested cap alone failed stable first-run hint case:at1366x650 shutter bottom630.89 exceeded modal bottom626 (row partly clipped).
+Scoped correction836676d allows only desktopforPost Capturecontent flex-auto and preview flexshrink/minheight0. Retains planned min(400,100dvh-300) cap.
+Rebuilt651cfc2 stable real capture-hint plus camera denied:
+1366x650 modal y24..626, entire104px shutterrow y498..602; previewy196.89..498;height301.109.
+1024x700 modal y24..676, shutterrow y548..652; previewheight351.109.
+No horizontal overflow; drop/paste wording and Chooseafile visible; native Page.fileChooserOpenedselectMultiple event confirms chooser opens.
+Literal rendered page inspected in-memory screenshot; no image file saved. Compared to round6frame6c capture: same centred window style, dark camera pane/shutter; Addphoto single-column/Leftoversrow and empty-state words are plan's specified additions without equivalent frame. Root fix preserves controls while hint shows.
+Actual one-photo attachment pending after shared provider test window.
+Newpost stable geometry also checked:1024x700 inner960x620 atx32,y40, full104px shutterrow y556..660;1366x650 inner960x620 atx195.5,y24, shutterrow y540..644. Both horizontal overflowfalse.
+file:///tmp/run12-cdp.mjs:6
+ async until(expression,timeout=15000){const start=Date.now();do{const value=await this.eval(expression);if(value)return value;await delay(100);}while(Date.now()-start<timeout);throw Error('Timed out: '+expression);}
+                                                                                                                                                                                       ^
+
+Error: Timed out: !document.querySelector("[role=dialog]")
+    at CDP.until (file:///tmp/run12-cdp.mjs:6:184)
+    at async file:///tmp/run12-attach-file-final.mjs:2:927
+
+Node.js v22.23.2
+Actual file selection attempted at1024x700:chooseafile->nativechooser->plate1JPEG. Upload succeeded, then attachPostPhoto hit existing localStorage fixture limitation:Supabase bucket.copy has no /object/copy route in tests/fixtures/local-gateway.mjs. Dialog accurately reports The photo could not be copied. Your photo was kept;tryagain. Post remained unmodified. Local actual-attachment acceptance NOTDONE; no production conclusion. No unrelated fixture/product changes made.
+Final exact synthetic cleanup:17Storageobjects,1attachmentreservation,4owner-scoped cleanupjobs,3posts(including softdeleted durable-test post),1profile,1authuser removed. Verified storageobjects0,posts0,reservations0 for syntheticuser. Temporary browserprofiles deleted; own desktopattach/drinksheets appservers stopped. Termstest app remains until its suite terminal.

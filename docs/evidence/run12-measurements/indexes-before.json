@@ -1,0 +1,140 @@
+{
+  "at": "2026-11-04T03:46:05.825Z",
+  "results": [
+    {
+      "query": "select tablename,indexname,indexdef from pg_indexes where schemaname='public' and tablename in ('post_media','post_comments') order by 1,2",
+      "status": 201,
+      "result": [
+        {
+          "tablename": "post_comments",
+          "indexname": "post_comments_pkey",
+          "indexdef": "CREATE UNIQUE INDEX post_comments_pkey ON public.post_comments USING btree (id)"
+        },
+        {
+          "tablename": "post_media",
+          "indexname": "post_media_one_card",
+          "indexdef": "CREATE UNIQUE INDEX post_media_one_card ON public.post_media USING btree (post_id) WHERE (kind = 'card'::text)"
+        },
+        {
+          "tablename": "post_media",
+          "indexname": "post_media_pkey",
+          "indexdef": "CREATE UNIQUE INDEX post_media_pkey ON public.post_media USING btree (id)"
+        }
+      ]
+    },
+    {
+      "query": "explain (analyze,buffers) select id from public.post_media where post_id=any(array(select id from public.posts order by created_at desc limit 6))",
+      "status": 201,
+      "result": [
+        {
+          "QUERY PLAN": "Seq Scan on post_media  (cost=16.66..34.44 rows=17 width=16) (actual time=0.201..0.233 rows=10 loops=1)"
+        },
+        {
+          "QUERY PLAN": "  Filter: (post_id = ANY ((InitPlan 1).col1))"
+        },
+        {
+          "QUERY PLAN": "  Rows Removed by Filter: 339"
+        },
+        {
+          "QUERY PLAN": "  Buffers: shared hit=24"
+        },
+        {
+          "QUERY PLAN": "  InitPlan 1"
+        },
+        {
+          "QUERY PLAN": "    ->  Limit  (cost=16.64..16.66 rows=6 width=24) (actual time=0.137..0.139 rows=6 loops=1)"
+        },
+        {
+          "QUERY PLAN": "          Buffers: shared hit=14"
+        },
+        {
+          "QUERY PLAN": "          ->  Sort  (cost=16.64..17.15 rows=202 width=24) (actual time=0.137..0.137 rows=6 loops=1)"
+        },
+        {
+          "QUERY PLAN": "                Sort Key: posts.created_at DESC"
+        },
+        {
+          "QUERY PLAN": "                Sort Method: top-N heapsort  Memory: 25kB"
+        },
+        {
+          "QUERY PLAN": "                Buffers: shared hit=14"
+        },
+        {
+          "QUERY PLAN": "                ->  Seq Scan on posts  (cost=0.00..13.02 rows=202 width=24) (actual time=0.014..0.079 rows=203 loops=1)"
+        },
+        {
+          "QUERY PLAN": "                      Buffers: shared hit=11"
+        },
+        {
+          "QUERY PLAN": "Planning:"
+        },
+        {
+          "QUERY PLAN": "  Buffers: shared hit=259"
+        },
+        {
+          "QUERY PLAN": "Planning Time: 0.950 ms"
+        },
+        {
+          "QUERY PLAN": "Execution Time: 0.291 ms"
+        }
+      ]
+    },
+    {
+      "query": "explain (analyze,buffers) select id from public.post_comments where post_id=any(array(select id from public.posts order by created_at desc limit 6))",
+      "status": 201,
+      "result": [
+        {
+          "QUERY PLAN": "Seq Scan on post_comments  (cost=16.66..26.13 rows=12 width=16) (actual time=0.247..0.249 rows=5 loops=1)"
+        },
+        {
+          "QUERY PLAN": "  Filter: (post_id = ANY ((InitPlan 1).col1))"
+        },
+        {
+          "QUERY PLAN": "  Rows Removed by Filter: 196"
+        },
+        {
+          "QUERY PLAN": "  Buffers: shared hit=19"
+        },
+        {
+          "QUERY PLAN": "  InitPlan 1"
+        },
+        {
+          "QUERY PLAN": "    ->  Limit  (cost=16.64..16.66 rows=6 width=24) (actual time=0.149..0.151 rows=6 loops=1)"
+        },
+        {
+          "QUERY PLAN": "          Buffers: shared hit=14"
+        },
+        {
+          "QUERY PLAN": "          ->  Sort  (cost=16.64..17.15 rows=202 width=24) (actual time=0.148..0.149 rows=6 loops=1)"
+        },
+        {
+          "QUERY PLAN": "                Sort Key: posts.created_at DESC"
+        },
+        {
+          "QUERY PLAN": "                Sort Method: top-N heapsort  Memory: 25kB"
+        },
+        {
+          "QUERY PLAN": "                Buffers: shared hit=14"
+        },
+        {
+          "QUERY PLAN": "                ->  Seq Scan on posts  (cost=0.00..13.02 rows=202 width=24) (actual time=0.013..0.080 rows=203 loops=1)"
+        },
+        {
+          "QUERY PLAN": "                      Buffers: shared hit=11"
+        },
+        {
+          "QUERY PLAN": "Planning:"
+        },
+        {
+          "QUERY PLAN": "  Buffers: shared hit=224"
+        },
+        {
+          "QUERY PLAN": "Planning Time: 0.925 ms"
+        },
+        {
+          "QUERY PLAN": "Execution Time: 0.341 ms"
+        }
+      ]
+    }
+  ]
+}

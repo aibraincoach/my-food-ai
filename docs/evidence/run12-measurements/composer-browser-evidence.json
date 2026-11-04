@@ -1,0 +1,13 @@
+{
+  "before": {
+    "scrollLeft": 210,
+    "text": "New post\n1/2\n2/2\n\nUploading 2 photos…\n\nThis photo shows leftovers\n\nOff: both photos are of the meal. On: the first photo is the meal, this one is what remained, and the record is the difference.\n\nrun12_detail_local3\nAnother photo\nSearch foods\nEaten at\nNow\nLeftovers · not eaten\nAdd a photo of what remained\nOff\nLocation\nOnly you see it\nSave as meal\nPost"
+  },
+  "after": {
+    "scrollLeft": 210,
+    "caption": "Synthetic second-photo caption",
+    "text": "New post\n1/2\n2/2\nLeftovers · not eaten\n\nUploading 2 photos…\n\nThis photo shows leftovers\n\nConsumed = photo 1 minus photo 2. The card will say so.\n\nrun12_detail_local3\nAnother photo\nSearch foods\nEaten at\nNow\nLeftovers · not eaten\nAdd a photo of what remained\nPhoto 2\nLocation\nOnly you see it\nSave as meal\nPost",
+    "overflow": false
+  },
+  "events": []
+}

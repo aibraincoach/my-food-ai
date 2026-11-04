@@ -1,0 +1,25 @@
+{
+  "state": {
+    "text": "Yesterday\nMonday, Nov 2\nConsumed: 5 kcal\n···\nDetails ›\n\n Synthetic backdated photo probe\n\nUploading photo…\n\nJust now",
+    "section": "2026-11-02",
+    "box": {
+      "x": 0,
+      "y": 782.15625,
+      "width": 390,
+      "height": 542.28125,
+      "top": 782.15625,
+      "right": 390,
+      "bottom": 1324.4375,
+      "left": 0
+    },
+    "overflow": false
+  },
+  "requests": [
+    {
+      "operationId": "7c170d96-c3e4-4444-9c44-b4b8d47f9668",
+      "eatenAt": "2026-11-04T04:04:14.889Z",
+      "caption": "Synthetic backdated photo probe",
+      "hold": true
+    }
+  ]
+}

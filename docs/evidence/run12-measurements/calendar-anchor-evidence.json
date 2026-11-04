@@ -1,0 +1,47 @@
+{
+  "requests": [
+    "2026-09",
+    "2026-08",
+    "2026-09",
+    "2026-07"
+  ],
+  "before": {
+    "scrollY": 120,
+    "height": 1113,
+    "anchor": 63.796875
+  },
+  "after": {
+    "scrollY": 312,
+    "height": 1288,
+    "anchor": 63.796875
+  },
+  "anchorDelta": 0,
+  "bottom": {
+    "scrollY": 444,
+    "height": 1288,
+    "novemberTop": 507.796875,
+    "summary": "1 day posted",
+    "months": [
+      {
+        "month": "2026-07",
+        "top": -356.203125
+      },
+      {
+        "month": "2026-08",
+        "top": -164.203125
+      },
+      {
+        "month": "2026-09",
+        "top": 75.796875
+      },
+      {
+        "month": "2026-10",
+        "top": 267.796875
+      },
+      {
+        "month": "2026-11",
+        "top": 507.796875
+      }
+    ]
+  }
+}

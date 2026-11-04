@@ -1,0 +1,43 @@
+{
+  "before": {
+    "requests": [
+      "2026-09"
+    ],
+    "state": {
+      "text": "Feed\nDays\n2026\nS\nM\nT\nW\nT\nF\nS\n\n2 days posted\n\nOct 1\n0\n2\n0\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n13\n14\n15\n16\n17\n18\n19\n20\n21\n22\n23\n24\n25\n26\n27\n28\n29\n30\n31\nNov 1\n2\n5\n3\n1,200\n4\n5\n6\n7\n8\n9\n10\n11\n12\n13\n14\n15\n16\n17\n18\n19\n20\n21\n22\n23\n24\n25\n26\n27\n28\n29\n30\n\nThe month could not be loaded. Try again.Try again\n\nR\nCamera\nText\nDrink\nCoffee\nSaved",
+      "summary": "2 days posted",
+      "scrollY": 0,
+      "scrollHeight": 844,
+      "months": [
+        {
+          "month": "2026-10",
+          "top": 87.796875
+        },
+        {
+          "month": "2026-11",
+          "top": 327.796875
+        }
+      ]
+    }
+  },
+  "after": {
+    "requests": [
+      "2026-09",
+      "2026-09"
+    ],
+    "state": {
+      "summary": "2 days posted",
+      "scrollY": 0,
+      "months": [
+        {
+          "month": "2026-10",
+          "top": 87.796875
+        },
+        {
+          "month": "2026-11",
+          "top": 327.796875
+        }
+      ]
+    }
+  }
+}
