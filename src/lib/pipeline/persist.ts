@@ -115,6 +115,29 @@ export async function persistAnalysis(
     p_identify_host:named.labelNutrition?null:named.identification?.host??null,
     p_is_label:Boolean(named.labelNutrition),
   };
+  // #626: a question beside a published meal commits with the items, the ready flip and the question's
+  // comment in one database transaction. A failure leaves none of them, and the job retries cleanly.
+  if (visibleQuestion && named.needsInput) {
+    const question = named.needsInput;
+    const published = await admin.rpc("persist_analysis_with_question", {
+      p_post_id: named.postId,
+      p_job_id: jobId ?? null,
+      p_items: items,
+      p_summary: summary,
+      p_question: question,
+      p_identify_model: identificationArgs.p_identify_model,
+      p_identify_host: identificationArgs.p_identify_host,
+      p_is_label: identificationArgs.p_is_label,
+    });
+    if (published.error) throw ioError(`persist: question transaction failed: ${published.error.message}`, published.error, published.status);
+    named.questionShown = true;
+    // false: a comment arrived first; its queued correction publishes the meal, and no question was written.
+    if (published.data !== true) return;
+    // The card and the saved meal follow the committed ready flip; a retry of this step re-runs them.
+    const ready = await markReady(named.postId, admin, jobId, { notify: false, saveMeal: !named.hasNotEaten });
+    if (ready) await sendPostPush(admin, named.postId, question.question);
+    return;
+  }
   // The wrapper also clears a prior closest-record disclosure when the new
   // analysis is exact; its transaction preserves ordinary historical summaries.
   let result=await admin.rpc("persist_approximated_analysis",identificationArgs);
@@ -133,17 +156,6 @@ export async function persistAnalysis(
   const {error,status} = result;
   if (error) {
     throw ioError(`persist: analysis transaction failed: ${error.message}`, error, status);
-  }
-  if (visibleQuestion && named.needsInput) {
-    const question = named.needsInput;
-    const kept = await admin.from("posts").update({ question }).eq("id", named.postId);
-    if (kept.error) throw ioError("The question could not be kept with the meal.", kept.error, kept.status);
-    const { data: asked } = await admin.from("post_comments").select("id").eq("post_id", named.postId).eq("author", "model").eq("body", question.question).limit(1).maybeSingle();
-    if (!asked) { const comment = await admin.from("post_comments").insert({ post_id: named.postId, author: "model", body: question.question }); if (comment.error) throw ioError("The question could not be posted.", comment.error, comment.status); }
-    named.questionShown = true;
-    const ready = await markReady(named.postId, admin, jobId, { notify: false, saveMeal: !named.hasNotEaten });
-    if (ready) await sendPostPush(admin, named.postId, question.question);
-    return;
   }
   if (!named.needsInput) await markReady(named.postId, admin, jobId,{notify:!named.hasNotEaten,saveMeal:!named.hasNotEaten});
 }
