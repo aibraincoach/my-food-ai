@@ -15,7 +15,7 @@ import { tokens } from "@/lib/theme/tokens";
 import { useDrinkCard } from "@/components/useDrinkCard";
 import { cardDataFromRow, type CardData } from "@/lib/pipeline/card-data";
 import type { DrinkCardData } from "@/lib/intake/hydration";
-import { ResultsCard } from "@/components/ResultsCard";
+import { ARROW_GUTTER, ResultsCard } from "@/components/ResultsCard";
 import ItemRows, { outlineColor } from "@/components/ItemRows";
 import ItemEditSheet from "@/components/ItemEditSheet";
 import NutritionSummary from "@/components/NutritionSummary";
@@ -181,7 +181,7 @@ export default function OutlineOverlay({ desktopModal=false, desktopHeader, desk
         </div> : null)}
         {drawBox ? <div className="pointer-events-none absolute rounded-field border-2 border-text" style={boxStyle(drawBox)} /> : null}
         <span className="pointer-events-none absolute bottom-3 right-3 rounded-field bg-overlay px-[10px] py-[5px] text-meta text-white">Outlines · tap one to edit</span>
-      </> : showNutrition ? <ResultsCard data={displayCard} size={width} time={localTime} /> : <div role="status" className="flex h-full items-center justify-center px-screen-x text-body text-muted">{status === "failed" ? "This meal could not be analysed." : status === "needs_input" ? "A question about this meal" : "Processing, traffic low"}</div>}
+      </> : showNutrition ? <ResultsCard data={displayCard} size={width} time={localTime} gutter={visibleSlides.length>1?ARROW_GUTTER:0} /> : <div role="status" className="flex h-full items-center justify-center px-screen-x text-body text-muted">{status === "failed" ? "This meal could not be analysed." : status === "needs_input" ? "A question about this meal" : "Processing, traffic low"}</div>}
       {visibleSlides.length>1&&<><button type="button" aria-label="Previous slide" disabled={selectedIndex===0} onClick={event=>{event.stopPropagation();setSlide(Math.max(0,selectedIndex-1));}} className="absolute left-3 top-1/2 size-9 rounded-circle bg-white/90 text-[24px] text-text disabled:invisible">‹</button><button type="button" aria-label="Next slide" disabled={selectedIndex>=visibleSlides.length-1} onClick={event=>{event.stopPropagation();setSlide(Math.min(Math.max(0,visibleSlides.length-1),selectedIndex+1));}} className="absolute right-3 top-1/2 size-9 rounded-circle bg-white/90 text-[24px] text-text disabled:invisible">›</button><span className="absolute right-3 top-3 rounded-pill bg-overlay px-2 py-1 text-meta text-white">{selectedIndex+1}/{Math.max(1,visibleSlides.length)}</span></>}
     </div>
     <Container {...(desktopModal?{className:"desktop-post-record"}:{})}>

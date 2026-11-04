@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
-import { ResultsCard } from "@/components/ResultsCard";
+import { useDesktop } from "@/lib/ui/use-desktop";
+import { ARROW_GUTTER, ResultsCard } from "@/components/ResultsCard";
 import { type NutritionLike, type Numeric } from "@/lib/nutrition/totals";
 import { tokens } from "@/lib/theme/tokens";
 import { cardDataFromRow, type CardData } from "@/lib/pipeline/card-data";
@@ -23,6 +24,7 @@ function subscribeClock(listener: () => void) {
 // formats the actual instant in its own zone; a server's zone never leaks into it.
 export default function LiveNutritionCard({ items, eatenAt, drink, data, post }: { post?: FeedPost; items: CardNutritionItem[]; eatenAt: string; drink?: DrinkCardData | null; data?: CardData }) {
   const ref = useRef<HTMLDivElement>(null);
+  const desktop = useDesktop();
   const [width, setWidth] = useState<number>(tokens.spacing.phone);
   const time = useSyncExternalStore(subscribeClock, () => {
     const date = new Date(eatenAt);
@@ -42,6 +44,6 @@ export default function LiveNutritionCard({ items, eatenAt, drink, data, post }:
     : drink ? { ...cardDataFromRow({ items, eatenAt, drink, dayHydration: hydration }), footer: data?.footer }
     : data ?? cardDataFromRow({ items, eatenAt, drink });
   return <div ref={ref} className="aspect-square w-full overflow-hidden bg-card" aria-label="Meal nutrition summary">
-    <ResultsCard size={width} time={time} data={cardData} />
+    <ResultsCard size={width} time={time} data={cardData} gutter={desktop ? ARROW_GUTTER : 0} />
   </div>;
 }
