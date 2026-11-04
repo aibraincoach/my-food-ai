@@ -174,3 +174,9 @@ Firefox production touch observations at390×844. Mutation timing includes press
 | Edit caption Save | unmeasured | unmeasured | unmeasured | unmeasured | unmeasured | not exercised |
 
 A clean dedicated main checkout now exists at `/home/opc/Projects/my-food-ai-wt/main`, fast-forwarded to observed origin/main a24587a1. Original `/home/opc/Projects/my-food-ai` remains on run13/docs at7b439b5a with its pre-existing untracked files preserved. [Checkout receipt](evidence/run14/main-checkout.json). Completed D/E apps and D disposable stack are stopped; C remains for missing local CPU entry-path checks, F for the live collector, and issue579 for new implementation.
+
+## Remaining strict acceptance failures
+
+The subsequent local native CPU4×/Fast3G eight-path check retained zero photo-top shift, but phone photo entry51.5ms and desktop More64.3ms, Details66.6ms and Comment64.3ms exceed the strict50ms gate. #553 remains open. Production7a observations also miss the complete gate: unavailable processing was not captured, two pressed-state checks were not observed, and the thumbs-down navigation frame386.6ms/reply862.7ms does not meet the immediate-frame target. That interceptor also held OPTIONS, limiting what the induced pending/failure state proves. #552 remains open. No failed check is converted to a pass. [Observed state limits](evidence/run14/native-7a-observed.json).
+
+The native six-photo trace’s [request-phase extraction](evidence/run14/native-cpu4-request-phases.json) joins request IDs and labels prefetch headers. Where full completions or body bytes were not recorded they remain unavailable; encoded transfer bytes are not response-body bytes. The owner’s14second device observation remains unexplained.
