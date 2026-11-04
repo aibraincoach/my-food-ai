@@ -80,7 +80,7 @@ The live18-case provider gate passed17: cendol selected closest USDA gelatin des
 
 Remaining measurements are not labelled done: complete control rows and CPU4×/Fast3G scope; production phase timings; per-navigation physical reads; three-phone acceptance; final deployment/lazy tick samples; six-hour memory series. Owner physical-phone/meal-reference acceptance stays with the owner; no bot/phone result is fabricated. The current code/report must not close those issues on build success alone. #323 stays open: local windows recorded7/9/14 server Auth verifications (document plus prefetch/refresh), although browser Auth reads are0. [Local windows](evidence/run14/navigation-local-final.json). The eight items added after the37-item paste (#452,#557 and six without numbers) are outside this fleet, not planner omissions.
 
-New issues created by this run: none so far. No recording-start notice was received; preserve the recording-to-submission merge/migration hold. Migration0052 applied from reviewed e5d4f660 and independent readback confirms estimate markers in both functions, anon/authenticated execute false, service_role true. An initial transaction exited before function creation and rolled back; explicit READ WRITE retry succeeded. No cause is invented for the unrecorded first stderr. [Receipt](evidence/run14/production-0052.json).
+New issues created by this run: [#580](https://github.com/aibraincoach/my-food-ai/issues/580), measured target-size gaps in caption More (37.18×19.6px) and saved-meal Log now (79.12×34px). These controls do not meet the 44px gate. No recording-start notice was received; preserve the recording-to-submission merge/migration hold. Migration0052 applied from reviewed e5d4f660 and independent readback confirms estimate markers in both functions, anon/authenticated execute false, service_role true. An initial transaction exited before function creation and rolled back; explicit READ WRITE retry succeeded. No cause is invented for the unrecorded first stderr. [Receipt](evidence/run14/production-0052.json).
 
 ## Cleanup
 
@@ -103,3 +103,15 @@ Still running: hourly resource collector,2 of7 samples collected at07:40:46 and0
 ## Owner steering — November4,16:15 WIB
 
 The protection-bypass secret stays in place and is never revoked or listed for revocation. Its access material is retained privately outside disposable worktrees. This explicitly supersedes the original unchanged plan’s bypass-cleanup clauses. No revocation was performed. Review/planner suggestions must be checked for loss of fleet access before becoming backlog items or owner instructions. The verbatim correction is recorded in WALL_OF_STUPID.md.
+
+## Verified follow-up — November 4
+
+The complete original 26-finding DRY/service-boundary audit of main a24587a is preserved [verbatim](reviews/main-a24587a-dry-service-audit.md). The owner explicitly unblocked #579 at15:56WIB and directed it be fixed today; it is now separately assigned for implementation. This new steering is outside the original37-item planner input.
+
+The later [historical shell reproduction](evidence/run14/historical-shell-reproduction.md) verifies the old deployment’s mechanism: at1280×800, slowing both page and service worker2500ms produced the1025px shell without Today; zero latency produced the500px feed with Today. This late reproduction does not establish the cause of the owner’s original screenshot.
+
+The fifth gallery fixture passed the actual rendered second-slide drink check: Coca-Cola Original Taste330ml,30mg caffeine, visible tumbler illustration. All five gallery fixtures were removed with post/draft/job/Storage checks; with the12 cap posts this accounts for17 cleaned production posts. [Rendered proof](evidence/run14/cola-settled-proof.json), [scope](evidence/run14/cola-settled-visual.md). A separately tracked sixth gallery fixture is currently being used for the shared processing-state check; it is excluded from that completed-cleanup count until its receipt confirms removal.
+
+All seven formerly missing control rows now have explicitly scoped evidence. Local render/network-interception fixtures are distinguished from live persisted state, Firefox timing from CPU-throttled Chromium, and unavailable CLS evidence remains unavailable. The More and saved Log now dimensions fail44px and are filed in#580. [Control scope](evidence/run14/control-scope-final.md), [queue measurements](evidence/run14/control-queue-production.json).
+
+The hourly collector process3230892 was verified live during this follow-up. Its full series remains pending; its worktree and private protection-bypass access are retained.
