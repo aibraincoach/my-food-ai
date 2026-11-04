@@ -5,7 +5,7 @@ import {readFileSync} from 'node:fs';
 import vm from 'node:vm';
 import ts from 'typescript';
 import {homePhotoPreload} from '../src/lib/posts/home-photo-preload.ts';
-import {smallFeedPhotoUrl} from '../src/lib/posts/feed-photo-url.ts';
+import {feedPhotoSrcSet,smallFeedPhotoUrl} from '../src/lib/posts/feed-photo-url.ts';
 
 const owner='11111111-1111-4111-8111-111111111111', post='22222222-2222-4222-8222-222222222222', media='33333333-3333-4333-8333-333333333333';
 const row={id:post,user_id:owner,post_media:[{id:post,kind:'photo',position:3},{id:owner,kind:'card',position:0},{id:media,kind:'photo',position:1}]};
@@ -19,7 +19,7 @@ function database(result={data:row,error:null},hang=false) {
 }
 test('home hint matches the SSR private URL and selects the first ordered photo with feed visibility filters',async()=>{
  const mock=database();
- assert.equal(await homePhotoPreload(mock.db,'/',owner),`<${smallFeedPhotoUrl(owner,post,media)}>; rel=preload; as=image; fetchpriority=high; crossorigin=anonymous`);
+ assert.equal(await homePhotoPreload(mock.db,'/',owner),`<${smallFeedPhotoUrl(owner,post,media)}>; rel=preload; as=image; fetchpriority=high; crossorigin=anonymous; imagesrcset="${feedPhotoSrcSet(smallFeedPhotoUrl(owner,post,media))}"`);
  assert.deepEqual(mock.calls,[['from','posts'],['select','id,user_id,post_media(id,kind,position)'],['is','deleted_at',null],['eq','user_id',owner],['neq','status','needs_input'],['or','needs_input.is.null,status.eq.failed'],['order','eaten_at',{ascending:false}],['order','id',{ascending:false}],['limit',1]]);
 });
 test('owner mismatch, no row, no photo, invalid identity and read failures fail open',async()=>{

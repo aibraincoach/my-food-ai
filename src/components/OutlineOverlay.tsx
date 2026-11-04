@@ -1,5 +1,6 @@
 /* eslint-disable @next/next/no-img-element -- Private signed photos bypass public image optimization. */
 "use client";
+import {feedPhotoSrcSet} from '@/lib/posts/feed-photo-url';
 import {alcoholGrams,isAlcoholic} from '@/lib/intake/alcohol';
 import { nutritionTableRows } from "@/lib/nutrition/table";
 
@@ -29,6 +30,7 @@ export function DetailDate({ value, weekday = false }: { value: string; weekday?
 
 function DetailImage({ photo, alt }: { photo: DetailPhoto; alt: string }) {
   const [src, setSrc] = useState(photo.previewUrl ?? photo.url);
+  const [sharp, setSharp] = useState(true);
   useEffect(() => {
     if (!photo.previewUrl) return;
     let live = true; const image = new Image();
@@ -37,7 +39,7 @@ function DetailImage({ photo, alt }: { photo: DetailPhoto; alt: string }) {
     image.src = photo.url;
     return () => { live = false; };
   }, [photo.url, photo.previewUrl]);
-  return <img src={src} crossOrigin="anonymous" alt={alt} draggable={false} className="h-full w-full object-contain" />;
+  return <img src={src} srcSet={sharp&&src===photo.previewUrl?feedPhotoSrcSet(src):undefined} onError={()=>setSharp(false)} crossOrigin="anonymous" alt={alt} draggable={false} className="h-full w-full object-contain" />;
 }
 
 function Mask({ url, photo, color, frame, fallback }: {

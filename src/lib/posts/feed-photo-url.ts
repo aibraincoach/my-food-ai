@@ -6,3 +6,10 @@ export function smallFeedPhotoUrl(owner: string, post: string, media: string): s
   return [owner, post, media].every(value => UUID.test(value))
     ? `/api/media/feed/${owner}/${post}/${media}/v2.webp` : null;
 }
+
+// Keep existing v1/v2 identities usable; density candidates read the original.
+export function feedPhotoSrcSet(url: string | null | undefined): string | undefined {
+  if (!url || !/\/v[12]\.webp$/.test(url)) return undefined;
+  const base = url.slice(0, -'/v1.webp'.length);
+  return `${base}/v2-1040.webp 2x, ${base}/v2-1560.webp 3x`;
+}

@@ -1,5 +1,5 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
-import { smallFeedPhotoUrl } from './feed-photo-url';
+import { feedPhotoSrcSet, smallFeedPhotoUrl } from './feed-photo-url';
 
 const PRELOAD_DEADLINE_MS = 350;
 type FirstPost = {
@@ -28,7 +28,7 @@ export async function homePhotoPreload(db: SupabaseClient, pathname: string, use
       if (post.user_id !== userId) return null;
       const photo = [...(post.post_media ?? [])].filter(row => row.kind === 'photo').sort((a, b) => a.position - b.position)[0];
       const url = photo ? smallFeedPhotoUrl(post.user_id, post.id, photo.id) : null;
-      return url ? `<${url}>; rel=preload; as=image; fetchpriority=high; crossorigin=anonymous` : null;
+      return url ? `<${url}>; rel=preload; as=image; fetchpriority=high; crossorigin=anonymous; imagesrcset="${feedPhotoSrcSet(url)}"` : null;
     };
     return await Promise.race([read(), deadline]);
   } catch {

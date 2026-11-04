@@ -2,7 +2,7 @@ export type Facing = "environment" | "user";
 
 // Ideals improve capture pixels without rejecting cameras that deliver less.
 export function cameraVideoConstraints(facing: Facing, deviceId?: string): MediaTrackConstraints {
-  return {width:{ideal:2560},height:{ideal:1920},...(deviceId?{deviceId:{exact:deviceId}}:{facingMode:facing})};
+  return {width:{ideal:1920},height:{ideal:1440},...(deviceId?{deviceId:{exact:deviceId}}:{facingMode:facing})};
 }
 
 export interface Camera {

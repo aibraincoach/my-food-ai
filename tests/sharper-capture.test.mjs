@@ -2,8 +2,8 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {grabFrame,cameraVideoConstraints} from '../src/lib/media/camera.ts';
 test('camera resolution is an ideal and explicit desktop device selection stays exact',()=>{
- assert.deepEqual(cameraVideoConstraints('environment'),{width:{ideal:2560},height:{ideal:1920},facingMode:'environment'});
- assert.deepEqual(cameraVideoConstraints('user','camera2'),{width:{ideal:2560},height:{ideal:1920},deviceId:{exact:'camera2'}});
+ assert.deepEqual(cameraVideoConstraints('environment'),{width:{ideal:1920},height:{ideal:1440},facingMode:'environment'});
+ assert.deepEqual(cameraVideoConstraints('user','camera2'),{width:{ideal:1920},height:{ideal:1440},deviceId:{exact:'camera2'}});
 });
 test('shutter prefers native still bytes and falls back to the available video pixels',async()=>{
  const previous={document:globalThis.document,HTMLMediaElement:globalThis.HTMLMediaElement,ImageCapture:globalThis.ImageCapture};
