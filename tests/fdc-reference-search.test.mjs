@@ -131,3 +131,24 @@ test('explicit target exclusions and preparation notes stay eligible',async()=>{
  for(const note of ['no salt','without sugar','no fat'])assert.deepEqual(excludedComponents(`Rice, ${note}`,'rice'),[]);
  assert.deepEqual(excludedComponents('Salad, without croutons','green salad'),['without croutons']);
 });
+
+test('multiword excluded components cannot collide on their first adjective',async()=>{
+ const {excludedComponents}=await import('../src/lib/fdc/exclusions.ts');
+ assert.deepEqual(excludedComponents('Salad, no hot peppers','salad no hot sauce'),['no hot peppers']);
+ assert.deepEqual(excludedComponents('Salad, without hot sauce','salad without hot peppers'),['without hot sauce']);
+ assert.deepEqual(excludedComponents('Salad, no hot peppers','salad without hot peppers please'),[]);
+ assert.deepEqual(excludedComponents('Salad, no hot peppers, with cheese','salad without hot peppers'),[]);
+ assert.deepEqual(excludedComponents('Salad, no dressing','salad without dressing please'),[]);
+ assert.deepEqual(excludedComponents('Salad, no hot peppers and no cheese','salad without hot peppers, no cheese'),[]);
+ assert.deepEqual(excludedComponents('Salad, no hot peppers and no cheese','salad without hot peppers'),['no cheese']);
+});
+
+test('candidate matching rejects a missing multiword component despite a different target exclusion',async()=>{
+ const nutrient={nutrientId:1008,value:150};
+ const foods=[{fdcId:1,description:'Salad, no hot peppers',dataType:'Survey (FNDDS)',foodNutrients:[nutrient]},{fdcId:2,description:'Salad, no hot sauce',dataType:'Survey (FNDDS)',foodNutrients:[nutrient]}];
+ const result=await matchFood('Salad','without hot sauce',{
+  search:async()=>foods,
+  choose:async(_name,_caption,candidates)=>{assert.deepEqual(candidates.map(food=>food.fdcId),[2]);return{id:2,query:null,query_food:null,reason:'Matches sauce exclusion'}}
+ });
+ assert.equal(result.food.fdcId,2);
+});
