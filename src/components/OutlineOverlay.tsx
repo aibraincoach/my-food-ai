@@ -37,7 +37,6 @@ function DetailImage({ photo, alt }: { photo: DetailPhoto; alt: string }) {
     image.src = photo.url;
     return () => { live = false; };
   }, [photo.url, photo.previewUrl]);
-  // eslint-disable-next-line @next/next/no-img-element
   return <img src={src} crossOrigin="anonymous" alt={alt} draggable={false} className="h-full w-full object-cover" />;
 }
 
