@@ -22,8 +22,8 @@ async function registerDevice(account: string) {
   let subscription = await registration.pushManager.getSubscription();
   if (!subscription) subscription = await registration.pushManager.subscribe({ userVisibleOnly: true,
     applicationServerKey: applicationKey(process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY!) });
-  const { data } = await createClient().auth.getUser();
-  if (data.user?.id !== account || pushIsSigningOut()) { await subscription.unsubscribe(); return; }
+  const { data: { session } } = await createClient().auth.getSession();
+  if (session?.user?.id !== account || pushIsSigningOut()) { await subscription.unsubscribe(); return; }
   const response = await postPushSubscription(subscription);
   if (!response.ok) throw new Error();
   write(ownerKey, account);
@@ -42,19 +42,20 @@ export default function PushPrompt() {
       await reconcilePushOwner(id, { read, write });
       if (!cancelled) setAccount((current) => current === id ? current : null);
     };
-    void client.auth.getUser().then(({ data }) => withPushLock(() => reconcile(data.user?.id ?? null))).catch(() => {});
+    void client.auth.getSession().then(({ data: { session } }) => withPushLock(() => reconcile(session?.user?.id ?? null))).catch(() => {});
     const { data: auth } = client.auth.onAuthStateChange((_event, session) => {
       // Avoid calling async Supabase APIs inside its auth callback.
       void withPushLock(() => reconcile(session?.user.id ?? null)).catch(() => {});
     });
     const posted = async () => {
       if (!installed() || Notification.permission === "denied") return;
-      const { data } = await client.auth.getUser();
-      if (!data.user || cancelled || pushIsSigningOut()) return;
-      await reconcile(data.user.id);
+      const { data: { session } } = await client.auth.getSession();
+      const user = session?.user;
+      if (!user || cancelled || pushIsSigningOut()) return;
+      await reconcile(user.id);
       if (cancelled || pushIsSigningOut()) return;
-      if (Notification.permission === "granted") { await registerDevice(data.user.id); return; }
-      if (!read(promptedKey(data.user.id))) setAccount(data.user.id);
+      if (Notification.permission === "granted") { await registerDevice(user.id); return; }
+      if (!read(promptedKey(user.id))) setAccount(user.id);
     };
     const onPost = () => { void withPushLock(posted).catch(() => {}); };
     window.addEventListener("post-created", onPost);

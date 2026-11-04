@@ -11,7 +11,7 @@ function watchAccount(){
 function loadHandle() {
  watchAccount();
  if(!pending)pending=(async()=>{
-  const client=createClient();const {data:{user}}=await client.auth.getUser();if(!user)return '';
+  const client=createClient();const {data:{session}}=await client.auth.getSession();const user=session?.user;if(!user)return '';
   const {data}=await client.from('profiles').select('handle').eq('id',user.id).maybeSingle();
   return String(data?.handle??'');
  })().catch(error=>{pending=null;throw error;});

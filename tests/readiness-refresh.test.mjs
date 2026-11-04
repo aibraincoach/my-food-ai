@@ -21,7 +21,7 @@ test('mounted readiness observer skips initial Home reloads but still refreshes 
  async function mount(home,shell=false){
   const events=new EventTarget(),document=Object.assign(new EventTarget(),{visibilityState:'visible',querySelector:selector=>selector==='[data-shell]'?(shell?{}:null):home?{}:null}),exports={};let effect,refreshes=0,pendingRows=[],subscribed,revalidations=0;const timers=new Map();events.addEventListener('feed-revalidate',()=>revalidations++);
   const channel={on(){return this;},subscribe(fn){subscribed=fn;return this;}};
-  const db={auth:{getUser:async()=>({data:{user:{id:'owner'}}})},channel:()=>channel,removeChannel:async()=>{},from:()=>({select:()=>{
+  const db={auth:{getUser:async()=>({data:{user:{id:'owner'}}}),getSession:async()=>({data:{session:{user:{id:'owner'}}}})},channel:()=>channel,removeChannel:async()=>{},from:()=>({select:()=>{
    const query={eq(){return this;},in:async()=>({data:pendingRows,error:null}),order(){return this;},limit:async()=>({data:[{id:'meal',status:'ready'}],error:null})};return query;
   }})};
   vm.default.runInNewContext(code,{exports,Map,Date,Promise,Event,CustomEvent,window:events,document,location:{pathname:home?'/':'/days'},setInterval:(run,ms)=>{timers.set(ms,run);return ms;},clearInterval(){},require(name){
