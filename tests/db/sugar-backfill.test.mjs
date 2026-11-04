@@ -12,7 +12,7 @@ test('sugar backfill fills only eligible portion 1063 nulls with feedback lockin
  const rollback=readFileSync(new URL('../../supabase/rollbacks/0050_sugar_total_backfill.down.sql',import.meta.url),'utf8');
  const sql=`begin;
  create temp table sugar_fixture(label text primary key,id uuid default gen_random_uuid(),expected numeric);
- insert into sugar_fixture(label,expected) values ('eligible',4.275),('existing',2),('preexisting-equal',4.275),('edited',4.275),('preferred',null),('unscaled',null),('wrong-unit',null),('no-calories',null),('missing-value',null);
+ insert into sugar_fixture(label,expected) values ('eligible',4.275),('existing',2),('preexisting-equal',4.275),('edited',4.275),('same-value',4.275),('edited-back',4.275),('preferred',null),('unscaled',null),('wrong-unit',null),('no-calories',null),('missing-value',null);
  do $$declare p uuid;begin
  insert into public.posts(user_id,caption,status) select id,'Sugar backfill integration fixture','ready' from public.profiles limit 1 returning id into p;
  if p is null then raise exception 'Disposable profile fixture is required';end if;
@@ -31,14 +31,17 @@ test('sugar backfill fills only eligible portion 1063 nulls with feedback lockin
  do $$begin
  if exists(select 1 from sugar_fixture f join public.item_nutrition n on n.post_item_id=f.id where n.sugar_g is distinct from f.expected) then raise exception 'Sugar backfill is not idempotent';end if;
  end $$;
+ update public.item_nutrition set sugar_g=sugar_g where post_item_id=(select id from sugar_fixture where label='same-value');
+ update public.item_nutrition set sugar_g=7 where post_item_id=(select id from sugar_fixture where label='edited-back');
+ update public.item_nutrition set sugar_g=4.275 where post_item_id=(select id from sugar_fixture where label='edited-back');
  update public.item_nutrition set sugar_g=6 where post_item_id=(select id from sugar_fixture where label='edited');
  do $$begin
  if has_table_privilege('anon','public.sugar_total_backfill_0050','SELECT') or has_table_privilege('authenticated','public.sugar_total_backfill_0050','SELECT') then raise exception 'Backfill ledger exposed to app clients';end if;
- if (select count(*) from public.sugar_total_backfill_0050 b join sugar_fixture f on f.id=b.post_item_id) <> 2 then raise exception 'Backfill ledger includes unchanged fixtures';end if;
+ if (select count(*) from public.sugar_total_backfill_0050 b join sugar_fixture f on f.id=b.post_item_id) <> 1 then raise exception 'Backfill ledger includes unchanged fixtures';end if;
  end $$;
  ${rollback}
  do $$begin
- if exists(select 1 from sugar_fixture f join public.item_nutrition n on n.post_item_id=f.id where n.sugar_g is distinct from case when f.label='existing' then 2 when f.label='preexisting-equal' then 4.275 when f.label='edited' then 6 else null end) then raise exception 'Sugar rollback missed a backfill or changed preserved fixture sugar';end if;
+ if exists(select 1 from sugar_fixture f join public.item_nutrition n on n.post_item_id=f.id where n.sugar_g is distinct from case when f.label='existing' then 2 when f.label='preexisting-equal' then 4.275 when f.label='edited' then 6 when f.label in ('same-value','edited-back') then 4.275 else null end) then raise exception 'Sugar rollback missed a backfill or changed preserved fixture sugar';end if;
  end $$;
  select 'sugar-backfill-ok';
  rollback;`;

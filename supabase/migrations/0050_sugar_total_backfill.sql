@@ -7,6 +7,9 @@ create table if not exists public.sugar_total_backfill_0050 (
 alter table public.sugar_total_backfill_0050 enable row level security;
 revoke all on public.sugar_total_backfill_0050 from public, anon, authenticated;
 
+-- The migration runs in a transaction; recreating the trigger also keeps reapplication safe.
+drop trigger if exists invalidate_sugar_total_backfill_0050 on public.item_nutrition;
+
 -- Fill null sugar from USDA 1063 "Sugars, Total" portion values, without 2000.
 with eligible as materialized (
   select n.post_item_id, n.sugar_g as previous_sugar_g,
@@ -31,3 +34,16 @@ update public.item_nutrition n
 set sugar_g = r.applied_sugar_g
 from recorded r
 where n.post_item_id = r.post_item_id and n.sugar_g is null;
+
+-- Any later write invalidates rollback provenance, even a same-value edit.
+create or replace function public.invalidate_sugar_total_backfill_0050()
+returns trigger language plpgsql security definer set search_path = '' as $$
+begin
+  delete from public.sugar_total_backfill_0050 where post_item_id = old.post_item_id;
+  return new;
+end
+$$;
+revoke all on function public.invalidate_sugar_total_backfill_0050() from public, anon, authenticated;
+create trigger invalidate_sugar_total_backfill_0050
+before update on public.item_nutrition
+for each row execute function public.invalidate_sugar_total_backfill_0050();
