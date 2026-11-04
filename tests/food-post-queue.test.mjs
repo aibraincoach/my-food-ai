@@ -4,7 +4,7 @@ const food={fdc_id:123,query:'croissant',eaten_at:'2026-11-03T01:00:00Z'},pause=
 const deferred=()=>{let resolve;const promise=new Promise(yes=>resolve=yes);return{promise,resolve};};
 async function until(check){for(let i=0;i<200;i++){if(check())return;await pause();}throw Error('queue did not settle');}
 const makeDraft=()=>({setProgress(){},setSnapshotListener(){},restore(){},snapshot:async()=>null,stage:async()=>{},submit:async()=>{throw Error('Food must not use photo publication');}});
-function store(){const rows=new Map();return{rows,all:async()=>[...rows.values()],put:async row=>rows.set(row.operationId,structuredClone(row)),remove:async id=>rows.delete(id),clear:async()=>rows.clear()};}
+function store(){const rows=new Map(),intents=new Map();return{rows,intents,all:async()=>[...rows.values()],put:async row=>rows.set(row.operationId,structuredClone(row)),allIntents:async()=>[...intents.values()],putIntent:async intent=>intents.set(intent.operationId,structuredClone(intent)),removeIntent:async id=>intents.delete(id),remove:async id=>{rows.delete(id);intents.delete(id);},clear:async()=>{rows.clear();intents.clear();}};}
 test('selection becomes durable and visible pending before the server replies, then uses the acknowledged post ID',async()=>{
  const db=store(),gate=deferred();let called=0;
  const manager=new UploadManager(db,makeDraft,async()=>{},async(_url,options)=>{called++;const body=JSON.parse(options.body);assert.equal(db.rows.get(body.operation_id).food.fdc_id,123);assert.equal(body.owner_id,'owner');return gate.promise;});

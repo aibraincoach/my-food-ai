@@ -2,7 +2,7 @@ import test from'node:test';import assert from'node:assert/strict';import{Upload
 const pause=()=>new Promise(r=>setImmediate(r)),tile={tile:0,ml:300,eaten_at:'2026-11-03T12:00:00Z',time_zone:'Asia/Jakarta'};
 const gate=()=>{let resolve;const promise=new Promise(r=>resolve=r);return{resolve,promise};};
 async function until(f){for(let i=0;i<200;i++){if(f())return;await pause();}throw Error('Queue did not settle');}
-function store(){const rows=new Map();return{rows,all:async()=>[...rows.values()],put:async row=>rows.set(row.operationId,structuredClone(row)),remove:async id=>rows.delete(id),clear:async()=>rows.clear()};}
+function store(){const rows=new Map(),intents=new Map();return{rows,intents,all:async()=>[...rows.values()],put:async row=>rows.set(row.operationId,structuredClone(row)),allIntents:async()=>[...intents.values()],putIntent:async intent=>intents.set(intent.operationId,structuredClone(intent)),removeIntent:async id=>intents.delete(id),remove:async id=>{rows.delete(id);intents.delete(id);},clear:async()=>{rows.clear();intents.clear();}};}
 const draft=()=>({setProgress(){},setSnapshotListener(){},restore(){},snapshot:async()=>null,stage:async()=>{},submit:async()=>{throw Error('Drink must not publish ordinary analysis');}});
 test('a tile is durable and pending before backend; two identical taps are separate intents',async()=>{
  const db=store(),held=gate(),bodies=[];const m=new UploadManager(db,draft,async()=>{},async(url,o)=>{assert.match(url,/api\/intake\/post/);const b=JSON.parse(o.body);assert.equal(db.rows.get(b.operation_id).drink.ml,300);assert.equal(b.owner_id,'owner');bodies.push(b);return held.promise.then(()=>Response.json({post_id:'post-'+b.operation_id},{status:201}));});await m.initialize('owner');
