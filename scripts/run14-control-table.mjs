@@ -15,7 +15,7 @@ if(!['localhost','127.0.0.1','[::1]'].includes(new URL(endpoint).hostname))throw
 const targets=bidi?[]:await fetch(new URL('/json/list',endpoint)).then(r=>r.json());
 const target=targets.find(t=>t.type==='page');if(!bidi&&!target)throw Error('No browser page target');
 const ws=new WebSocket(bidi?endpoint:target.webSocketDebuggerUrl);await new Promise((resolve,reject)=>{ws.onopen=resolve;ws.onerror=reject;});let seq=0;const pending=new Map();let loadResolve;
-ws.onmessage=e=>{const m=JSON.parse(e.data),p=pending.get(m.id);if(m.method==='Page.loadEventFired')loadResolve?.();if(p){clearTimeout(p.timer);pending.delete(m.id);m.error||m.type==='error'?p.reject(Error(m.error?.message||m.message)):p.resolve(m.result);}};
+ws.onmessage=e=>{const m=JSON.parse(e.data),p=pending.get(m.id);if(m.method==='Page.loadEventFired')loadResolve?.();if(p){clearTimeout(p.timer);pending.delete(m.id);if(m.error||m.type==='error')p.reject(Error(m.error?.message||m.message));else p.resolve(m.result);}};
 const send=(method,params={})=>new Promise((resolve,reject)=>{const id=++seq;const timer=setTimeout(()=>{pending.delete(id);reject(Error(method+' timed out'));},20000);pending.set(id,{resolve,reject,timer});ws.send(JSON.stringify({id,method,params}));});
 let context;const rows=[];
 const unwrap=x=>x?.type==='object'?Object.fromEntries(x.value.map(([k,v])=>[k,unwrap(v)])):x?.type==='array'?x.value.map(unwrap):x?.type==='null'?null:x?.value;
