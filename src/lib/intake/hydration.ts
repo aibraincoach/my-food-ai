@@ -11,6 +11,7 @@ export const ROUND_ML = 10;
 export const roundWaterMl = (ml: number) => Math.round(ml / ROUND_ML) * ROUND_ML;
 
 export interface DrinkRow {
+  alcoholG?:number;
   kind: "water" | "caffeine" | "alcohol";
   amount: number;
   logged_at: string;
@@ -23,8 +24,8 @@ export interface DrinkRow {
 export interface HydrationRecord { drinksMl: number; foodMl: number; totalMl: number; caffeineMg: number }
 // caffeineMg remains the drink's own amount for existing consumers. The day's
 // caffeine is separate, and dayHydration exposes it as caffeineMg.
-export interface DrinkCardData extends Omit<HydrationRecord, "caffeineMg"> { source?: "sheet" | "item"; ml: number; label: string; caffeineMg: number; dayCaffeineMg?: number }
-export interface ItemDrinkRecord { kind?:"water"|"caffeine"|"alcohol"; post_item_id?: string | null; label: string; ml: number; caffeineMg: number }
+export interface DrinkCardData extends Omit<HydrationRecord, "caffeineMg"> { kind?:"water"|"caffeine"|"alcohol"; alcoholG?:number; dayDrinks?:{glyph:DrinkGlyph;ml:number}[]; source?: "sheet" | "item"; ml: number; label: string; caffeineMg: number; dayCaffeineMg?: number }
+export interface ItemDrinkRecord { alcoholG?:number; kind?:"water"|"caffeine"|"alcohol"; post_item_id?: string | null; label: string; ml: number; caffeineMg: number }
 export interface PostHydrationData { dayDrinks?:{glyph:DrinkGlyph;ml:number}[]; itemDrinks: ItemDrinkRecord[]; drinkSource?: "sheet" | "item"; kind: "meal" | "drink"; foodWaterMl: number; dayHydration: HydrationRecord; drink: DrinkCardData | null }
 type WaterItem = { id?: string; portion_text?: string | null; portion_grams: Numeric; micronutrients: StoredNutrient[] };
 export function itemWaterMl(item: WaterItem, isDrink = false): number {
@@ -181,7 +182,7 @@ export async function getPostHydrationData(db: SupabaseClient, userId: string, p
       const hydration = hydrationAt(timeline, post.eaten_at);
       output[post.id] = { dayDrinks:timeline.drinks.filter(row=>new Date(row.logged_at).getTime()<=new Date(post.eaten_at).getTime()).map(row=>({glyph:drinkGlyph(row.label??'Drink',row.kind),ml:toNumber(row.ml??(row.kind==='water'?row.amount:0))})), kind: isDrink ? "drink" : "meal", itemDrinks, drinkSource: links.length ? source : undefined, dayHydration: hydration,
         foodWaterMl: isDrink ? 0 : roundWaterMl(timeline.foods.find(row => row.postId === post.id)?.waterMl ?? 0),
-        drink: isDrink ? { ...hydration, source, ml: links.reduce((sum, row) => sum + toNumber(row.ml), 0), label: links.map(row => row.label!).join(" · "), caffeineMg: links.reduce((sum, row) => sum + (row.kind === "caffeine" ? toNumber(row.amount) : 0), 0), dayCaffeineMg: hydration.caffeineMg } : null };
+        drink: isDrink ? { ...hydration, kind:links.some(row=>row.kind==='alcohol')?'alcohol':links.some(row=>row.kind==='caffeine')?'caffeine':'water', alcoholG:links.reduce((sum,row)=>sum+(row.kind==='alcohol'?row.alcoholG??0:0),0), dayDrinks:timeline.drinks.filter(row=>new Date(row.logged_at).getTime()<=new Date(post.eaten_at).getTime()).map(row=>({glyph:drinkGlyph(row.label??'Drink',row.kind),ml:toNumber(row.ml??(row.kind==='water'?row.amount:0))})), source, ml: links.reduce((sum, row) => sum + toNumber(row.ml), 0), label: links.map(row => row.label!).join(" · "), caffeineMg: links.reduce((sum, row) => sum + (row.kind === "caffeine" ? toNumber(row.amount) : 0), 0), dayCaffeineMg: hydration.caffeineMg } : null };
     }
   }
   return output;

@@ -42,12 +42,13 @@ export function cardDataFromRow(source: CardSource): CardData {
   const totals = sumNutrition(source.items);
   const drink = source.drink;
   const hydration = source.dayHydration ?? (drink ? { totalMl: drink.totalMl, drinksMl: drink.drinksMl, foodMl: drink.foodMl, caffeineMg: drink.dayCaffeineMg ?? drink.caffeineMg } : undefined);
-  const alcoholic=Boolean(source.itemDrinks?.some(row=>row.kind==='alcohol'))||source.items.some(item=>item.micronutrients?.some(n=>n.nutrientId===1018&&n.basis==='portion'&&Number(n.value)>=0.5));
-  const alcoholG=source.items.reduce((total,item)=>total+(Number(item.micronutrients?.find(n=>n.nutrientId===1018&&n.basis==='portion')?.value)||0),0);
+  const alcoholic=drink?.kind==='alcohol'||Boolean(source.itemDrinks?.some(row=>row.kind==='alcohol'))||source.items.some(item=>item.micronutrients?.some(n=>n.nutrientId===1018&&n.basis==='portion'&&Number(n.value)>=0.5));
+  const linkedAlcohol=source.itemDrinks?.filter(row=>row.kind==='alcohol');
+  const alcoholG=drink?.kind==='alcohol'?(drink.alcoholG??0):linkedAlcohol?.length?linkedAlcohol.reduce((sum,row)=>sum+(row.alcoholG??0),0):source.items.reduce((total,item)=>total+(Number(item.micronutrients?.find(n=>n.nutrientId===1018&&n.basis==='portion')?.value)||0),0);
   const label=drink?.label??source.items.map(item=>item.name).join(' · ');
   const glyph=drinkGlyph(label,alcoholic?'alcohol':(drink?.caffeineMg??0)>0?'caffeine':'water');
   return {
-    glyph,drinkLabel:label,dayDrinks:source.dayDrinks,
+    glyph,drinkLabel:label,dayDrinks:drink?.dayDrinks??source.dayDrinks,
     drinkDetail:alcoholic?(alcoholG>0?`${Math.round(alcoholG)} g alcohol · ${(alcoholG/14).toFixed(1)} standard drinks`:'alcohol unavailable'):glyph==='coffee'?`${Math.round(drink?.caffeineMg??0)} mg caffeine`:`${Math.round(drink?.ml??0)} ml`,
     kind: drink || source.kind === "drink" || (source.items.length>0&&source.items.every(item=>item.id&&source.itemDrinks?.some(row=>row.post_item_id===item.id))) ? "drink" : "meal",
     time: source.eaten_at ?? source.eatenAt,
