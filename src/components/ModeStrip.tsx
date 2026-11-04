@@ -79,11 +79,11 @@ export default function ModeStrip({ mode, onChange, disabled = false, highlightB
       onChange(modes[index]);
       track.current?.querySelectorAll<HTMLButtonElement>("button")[index]?.focus();
     }}>
-    <div ref={track} className="absolute left-1/2 top-1 flex w-max items-center gap-6 transition-transform duration-[180ms] motion-reduce:transition-none"
+    <div ref={track} className="absolute left-1/2 top-0 flex w-max items-center gap-6 transition-transform duration-[180ms] motion-reduce:transition-none"
       style={{ transform: `translateX(-${offset}px)`, transitionDuration:animate?undefined:"0ms" }}>
       {modes.map(tab => <button key={tab} type="button" role="tab" aria-selected={mode === tab}
         tabIndex={mode === tab ? 0 : -1} disabled={disabled} onClick={() => onChange(tab)}
-        className={`relative flex h-9 shrink-0 items-center gap-1.5 rounded-pill px-[18px] text-[15px] disabled:opacity-50 ${mode === tab ? "font-semibold text-white" : "font-normal text-white/60"} ${tab === "barcode" && highlightBarcode ? "barcode-hint-ring ring-[1.5px] ring-white" : ""}`}>
+        className={`relative flex h-11 shrink-0 items-center gap-1.5 rounded-pill px-[18px] text-[15px] disabled:opacity-50 ${mode === tab ? "font-semibold text-white" : "font-normal text-white/60"} ${tab === "barcode" && highlightBarcode ? "barcode-hint-ring ring-[1.5px] ring-white" : ""}`}>
         {tab === "barcode" && <BarcodeGlyph />}{labels[tab]}
         {mode === tab && <span aria-hidden="true" className="absolute bottom-0 left-1/2 size-1 -translate-x-1/2 rounded-full bg-accent" />}
       </button>)}
