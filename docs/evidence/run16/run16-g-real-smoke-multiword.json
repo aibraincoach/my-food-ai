@@ -1,0 +1,1027 @@
+{
+  "lookups": [
+    {
+      "query": "scrambled egg",
+      "http": 200
+    },
+    {
+      "query": "ham",
+      "http": 200
+    },
+    {
+      "query": "Japanese toast",
+      "http": 200
+    },
+    {
+      "query": "green salad",
+      "http": 200
+    },
+    {
+      "query": "+japanese +toast",
+      "http": 200
+    },
+    {
+      "query": "+scrambled +egg",
+      "http": 200
+    },
+    {
+      "query": "+ham",
+      "http": 200
+    },
+    {
+      "query": "+green +salad",
+      "http": 200
+    },
+    {
+      "query": "Tonkatsu",
+      "http": 200
+    },
+    {
+      "query": "black coffee",
+      "http": 200
+    },
+    {
+      "query": "+tonkatsu",
+      "http": 200
+    },
+    {
+      "query": "+black +coffee",
+      "http": 200
+    },
+    {
+      "query": "Japanese curry sauce",
+      "http": 200
+    },
+    {
+      "query": "+japanese +curry +sauce",
+      "http": 200
+    },
+    {
+      "query": "Cooked white rice",
+      "http": 200
+    },
+    {
+      "query": "+cooked +white +rice",
+      "http": 200
+    },
+    {
+      "query": "white +bread toasted",
+      "http": 200
+    },
+    {
+      "query": "+white +bread +toasted",
+      "http": 200
+    },
+    {
+      "query": "lentil soup",
+      "http": 200
+    },
+    {
+      "query": "coated +pork cutlet",
+      "http": 200
+    },
+    {
+      "query": "+lentil +soup",
+      "http": 200
+    },
+    {
+      "query": "+coated +pork +cutlet",
+      "http": 200
+    },
+    {
+      "query": "baked salmon",
+      "http": 200
+    },
+    {
+      "query": "+baked +salmon",
+      "http": 200
+    },
+    {
+      "query": "raw apple",
+      "http": 200
+    },
+    {
+      "query": "Squid nigiri",
+      "http": 200
+    },
+    {
+      "query": "+raw +apple",
+      "http": 200
+    },
+    {
+      "query": "+squid +nigiri",
+      "http": 200
+    },
+    {
+      "query": "cooked spaghetti",
+      "http": 200
+    },
+    {
+      "query": "+cooked +spaghetti",
+      "http": 200
+    },
+    {
+      "query": "Margherita pizza",
+      "http": 200
+    },
+    {
+      "query": "Grilled chicken Caesar salad with croutons",
+      "http": 200
+    },
+    {
+      "query": "+margherita +pizza",
+      "http": 200
+    },
+    {
+      "query": "+grilled +chicken +caesar +salad +with +croutons",
+      "http": 200
+    },
+    {
+      "query": "ceramic plate",
+      "http": 200
+    },
+    {
+      "query": "+ceramic +plate",
+      "http": 200
+    },
+    {
+      "query": "spicy Indonesian fried macaroni snack",
+      "http": 200
+    },
+    {
+      "query": "+spicy +indonesian +fried +macaroni +snack",
+      "http": 200
+    },
+    {
+      "query": "cheese +pizza",
+      "http": 200
+    },
+    {
+      "query": "+cheese +pizza",
+      "http": 200
+    },
+    {
+      "query": "cendol",
+      "http": 200
+    },
+    {
+      "query": "+cendol",
+      "http": 200
+    },
+    {
+      "query": "fried +pasta",
+      "http": 200
+    },
+    {
+      "query": "+fried +pasta",
+      "http": 200
+    },
+    {
+      "query": "fried +macaroni",
+      "http": 200
+    },
+    {
+      "query": "+fried +macaroni",
+      "http": 200
+    },
+    {
+      "query": "coconut milk +dessert",
+      "http": 200
+    },
+    {
+      "query": "+coconut +milk +dessert",
+      "http": 200
+    },
+    {
+      "query": "pasta",
+      "http": 200
+    },
+    {
+      "query": "+pasta",
+      "http": 200
+    },
+    {
+      "query": "coconut +pudding",
+      "http": 200
+    },
+    {
+      "query": "+coconut +pudding",
+      "http": 200
+    },
+    {
+      "query": "dessert",
+      "http": 200
+    },
+    {
+      "query": "+dessert",
+      "http": 200
+    }
+  ],
+  "head": "e54697c2abaacd65c98fbbc2f57ef8870c71d2f8",
+  "calls": [
+    {
+      "cap": 4096,
+      "http": 200,
+      "status": "completed",
+      "outputTokens": 1140,
+      "reasoningTokens": 1032,
+      "ms": 9602
+    },
+    {
+      "cap": 4096,
+      "http": 200,
+      "status": "completed",
+      "outputTokens": 372,
+      "reasoningTokens": 295,
+      "ms": 3838
+    },
+    {
+      "cap": 4096,
+      "http": 200,
+      "status": "completed",
+      "outputTokens": 546,
+      "reasoningTokens": 481,
+      "ms": 5167
+    },
+    {
+      "cap": 4096,
+      "http": 200,
+      "status": "completed",
+      "outputTokens": 340,
+      "reasoningTokens": 248,
+      "ms": 3706
+    },
+    {
+      "cap": 4096,
+      "http": 200,
+      "status": "completed",
+      "outputTokens": 1032,
+      "reasoningTokens": 931,
+      "ms": 7553
+    },
+    {
+      "cap": 4096,
+      "http": 200,
+      "status": "completed",
+      "outputTokens": 386,
+      "reasoningTokens": 292,
+      "ms": 3804
+    },
+    {
+      "cap": 4096,
+      "http": 200,
+      "status": "completed",
+      "outputTokens": 677,
+      "reasoningTokens": 582,
+      "ms": 5819
+    },
+    {
+      "cap": 4096,
+      "http": 200,
+      "status": "completed",
+      "outputTokens": 653,
+      "reasoningTokens": 571,
+      "ms": 6679
+    },
+    {
+      "cap": 4096,
+      "http": 200,
+      "status": "completed",
+      "outputTokens": 536,
+      "reasoningTokens": 445,
+      "ms": 4658
+    },
+    {
+      "cap": 4096,
+      "http": 200,
+      "status": "completed",
+      "outputTokens": 373,
+      "reasoningTokens": 296,
+      "ms": 3996
+    },
+    {
+      "cap": 4096,
+      "http": 200,
+      "status": "completed",
+      "outputTokens": 549,
+      "reasoningTokens": 464,
+      "ms": 4188
+    },
+    {
+      "cap": 4096,
+      "http": 200,
+      "status": "completed",
+      "outputTokens": 328,
+      "reasoningTokens": 255,
+      "ms": 3262
+    },
+    {
+      "cap": 4096,
+      "http": 200,
+      "status": "completed",
+      "outputTokens": 257,
+      "reasoningTokens": 186,
+      "ms": 2408
+    },
+    {
+      "cap": 4096,
+      "http": 200,
+      "status": "completed",
+      "outputTokens": 998,
+      "reasoningTokens": 891,
+      "ms": 9427
+    },
+    {
+      "cap": 4096,
+      "http": 200,
+      "status": "completed",
+      "outputTokens": 557,
+      "reasoningTokens": 481,
+      "ms": 5139
+    },
+    {
+      "cap": 4096,
+      "http": 200,
+      "status": "completed",
+      "outputTokens": 902,
+      "reasoningTokens": 755,
+      "ms": 7554
+    },
+    {
+      "cap": 4096,
+      "http": 200,
+      "status": "completed",
+      "outputTokens": 1184,
+      "reasoningTokens": 1080,
+      "ms": 13571
+    },
+    {
+      "cap": 4096,
+      "http": 200,
+      "status": "completed",
+      "outputTokens": 580,
+      "reasoningTokens": 501,
+      "ms": 5178
+    },
+    {
+      "cap": 4096,
+      "http": 200,
+      "status": "completed",
+      "outputTokens": 846,
+      "reasoningTokens": 751,
+      "ms": 7115
+    },
+    {
+      "cap": 4096,
+      "http": 200,
+      "status": "completed",
+      "outputTokens": 980,
+      "reasoningTokens": 890,
+      "ms": 9103
+    },
+    {
+      "cap": 4096,
+      "http": 200,
+      "status": "completed",
+      "outputTokens": 440,
+      "reasoningTokens": 380,
+      "ms": 3718
+    },
+    {
+      "cap": 2048,
+      "http": 200,
+      "status": "completed",
+      "outputTokens": 375,
+      "reasoningTokens": 311,
+      "ms": 2903
+    },
+    {
+      "cap": 4096,
+      "http": 200,
+      "status": "completed",
+      "outputTokens": 1484,
+      "reasoningTokens": 1396,
+      "ms": 13143
+    },
+    {
+      "cap": 4096,
+      "http": 200,
+      "status": "completed",
+      "outputTokens": 1147,
+      "reasoningTokens": 1021,
+      "ms": 9901
+    },
+    {
+      "cap": 4096,
+      "http": 200,
+      "status": "completed",
+      "outputTokens": 617,
+      "reasoningTokens": 487,
+      "ms": 7260
+    },
+    {
+      "cap": 4096,
+      "http": 200,
+      "status": "completed",
+      "outputTokens": 1392,
+      "reasoningTokens": 1253,
+      "ms": 12379
+    },
+    {
+      "cap": 4096,
+      "http": 200,
+      "status": "completed",
+      "outputTokens": 412,
+      "reasoningTokens": 347,
+      "ms": 3707
+    },
+    {
+      "cap": 4096,
+      "http": 200,
+      "status": "completed",
+      "outputTokens": 1006,
+      "reasoningTokens": 873,
+      "ms": 7792
+    },
+    {
+      "cap": 4096,
+      "http": 200,
+      "status": "completed",
+      "outputTokens": 741,
+      "reasoningTokens": 679,
+      "ms": 5811
+    }
+  ],
+  "results": [
+    {
+      "name": "Japanese toast",
+      "selected": {
+        "id": 2707599,
+        "description": "Bread, white, toasted",
+        "dataType": "Survey (FNDDS)"
+      },
+      "pass": true,
+      "ms": 16632,
+      "resolution": {
+        "source": "selected",
+        "reason": "Target is toasted white bread (Japanese shokupan toast). Candidate 2707599 is a generic Survey (FNDDS) reference for Bread, white, toasted. Geographic descriptor 'Japanese' omitted as same generic food and preparation; it is a generic reference, not a different recipe.",
+        "searches": 2
+      }
+    },
+    {
+      "name": "ham",
+      "selected": {
+        "id": 2705878,
+        "description": "Ham",
+        "dataType": "Survey (FNDDS)"
+      },
+      "pass": true,
+      "ms": 6798,
+      "resolution": {
+        "source": "selected",
+        "reason": "Selected generic Survey reference 'Ham, sliced' as compatible plain sliced ham matching the small slice of ham; it is a generic reference with no incompatible preparation, species, or added components.",
+        "searches": 1
+      }
+    },
+    {
+      "name": "green salad",
+      "selected": {
+        "id": 2709792,
+        "description": "Mixed salad greens, raw",
+        "dataType": "Survey (FNDDS)"
+      },
+      "pass": true,
+      "ms": 5392,
+      "resolution": {
+        "source": "selected",
+        "reason": "Target is a plain small green salad with no named dressings or additions. Candidate 2709792 'Mixed salad greens, raw' is a generic Survey (FNDDS) reference for the same food and raw preparation, with compatible category lettuce and lettuce salads. No incompatible ingredients or preparation.",
+        "searches": 1
+      }
+    },
+    {
+      "name": "scrambled egg",
+      "selected": {
+        "id": 172187,
+        "description": "Egg, whole, cooked, scrambled",
+        "dataType": "SR Legacy"
+      },
+      "pass": true,
+      "ms": 5401,
+      "resolution": {
+        "source": "selected",
+        "reason": "Target is plain scrambled egg with no named additions. Candidate 172187 is a generic SR Legacy reference for 'Egg, whole, cooked, scrambled' with compatible food, cooking process and form, and no incompatible cheese/meat/vegetable additions.",
+        "searches": 1
+      }
+    },
+    {
+      "name": "black coffee",
+      "selected": {
+        "id": 2710375,
+        "description": "Coffee, brewed",
+        "dataType": "Survey (FNDDS)"
+      },
+      "pass": true,
+      "ms": 4828,
+      "resolution": {
+        "source": "selected",
+        "reason": "Target is plain black coffee with no milk, creamer, sugar or flavor. Candidate 2710375 'Coffee, brewed' is a compatible generic Survey (FNDDS) reference for the same plain brewed preparation, unlike cappuccino/latte/mocha/creamer/flavored variants.",
+        "searches": 1
+      }
+    },
+    {
+      "name": "Tonkatsu",
+      "selected": {
+        "id": 2705876,
+        "description": "Pork, steak, coated",
+        "dataType": "Survey (FNDDS)"
+      },
+      "pass": true,
+      "ms": 13387,
+      "resolution": {
+        "source": "selected",
+        "reason": "Target is tonkatsu alone; curry sauce and rice are other foods excluded from this portion. Candidate 2705876 'Pork, steak, coated' with cutlet is a generic reference for the same plain food/preparation: coated pork cutlet.",
+        "searches": 2
+      }
+    },
+    {
+      "name": "Japanese curry sauce",
+      "selected": {
+        "id": 2710178,
+        "description": "Curry sauce",
+        "dataType": "Survey (FNDDS)"
+      },
+      "pass": true,
+      "ms": 6618,
+      "resolution": {
+        "source": "selected",
+        "reason": "Target is curry sauce alone, not meat/seafood curry mixed dishes. Candidate 2710178 'Curry sauce' Survey (FNDDS) dips, gravies, other sauces is a generic reference for the same food category and preparation as Japanese curry sauce, with geographic descriptor omitted but same generic thick curry sauce form.",
+        "searches": 1
+      }
+    },
+    {
+      "name": "Cooked white rice",
+      "selected": {
+        "id": 2708403,
+        "description": "Rice, white, cooked, NS as to fat",
+        "dataType": "Survey (FNDDS)"
+      },
+      "pass": true,
+      "ms": 7676,
+      "resolution": {
+        "source": "selected",
+        "reason": "Survey (FNDDS) generic reference for the same plain food and preparation: white rice, cooked, NS as to fat. Compatible with target cooked white rice with no stated fat or variety; unspecified variety does not disqualify generic record.",
+        "searches": 1
+      }
+    },
+    {
+      "name": "lentil soup",
+      "selected": {
+        "id": 2707462,
+        "description": "Soup, lentil",
+        "dataType": "Survey (FNDDS)"
+      },
+      "pass": true,
+      "ms": 4834,
+      "resolution": {
+        "source": "selected",
+        "reason": "Generic Survey (FNDDS) whole-dish reference 'Soup, lentil' is the same food and preparation as target 'bowl of lentil soup' with compatible broth-based mixed soup form; no other substantial components named to cover.",
+        "searches": 1
+      }
+    },
+    {
+      "name": "baked salmon",
+      "selected": {
+        "id": 2706286,
+        "description": "Fish, salmon, baked or broiled",
+        "dataType": "Survey (FNDDS)"
+      },
+      "pass": true,
+      "ms": 4216,
+      "resolution": {
+        "source": "selected",
+        "reason": "Compatible generic Survey (FNDDS) reference for the same plain food and preparation: salmon baked or broiled, uncoated fillet, matching target baked salmon fillet with no additional components.",
+        "searches": 1
+      }
+    },
+    {
+      "name": "raw apple",
+      "selected": {
+        "id": 2709215,
+        "description": "Apple, raw",
+        "dataType": "Survey (FNDDS)"
+      },
+      "pass": true,
+      "ms": 3403,
+      "resolution": {
+        "source": "selected",
+        "reason": "Target is plain raw apple; candidate 2709215 'Apple, raw' is a compatible generic Survey (FNDDS) reference for the same food and raw preparation with unspecified variety.",
+        "searches": 1
+      }
+    },
+    {
+      "name": "Squid nigiri",
+      "selected": {
+        "id": 2708971,
+        "description": "Sushi, topped with tuna",
+        "dataType": "Survey (FNDDS)"
+      },
+      "pass": true,
+      "ms": 10301,
+      "resolution": {
+        "source": "selected",
+        "reason": "Survey (FNDDS) generic reference for nigiri as 'Sushi, topped with tuna' explicitly including 'sushi topped with other seafood, NFS'. As a generic whole-dish reference it covers the target's assembled form: vinegared rice base plus raw seafood topping, compatible with squid nigiri preparation with no incompatible coating, frying, or exclusions.",
+        "searches": 1
+      }
+    },
+    {
+      "name": "cooked spaghetti",
+      "selected": {
+        "id": 2708357,
+        "description": "Pasta, cooked",
+        "dataType": "Survey (FNDDS)"
+      },
+      "pass": true,
+      "ms": 6576,
+      "resolution": {
+        "source": "selected",
+        "reason": "Target is plain cooked spaghetti with no sauce or additions. Selected record is a generic Survey reference for Pasta, cooked explicitly including spaghetti any shape, matching base food and cooked preparation with compatible physical form and no incompatible ingredients.",
+        "searches": 1
+      }
+    },
+    {
+      "name": "Margherita pizza",
+      "selected": {
+        "id": 173292,
+        "description": "Fast Food, Pizza Chain, 14\" pizza, cheese topping, regular crust",
+        "dataType": "SR Legacy"
+      },
+      "pass": true,
+      "ms": 19626,
+      "resolution": {
+        "source": "selected",
+        "reason": "Selected SR Legacy generic cheese pizza regular crust as a generic reference for Margherita pizza; it is the same assembled baked whole-dish category covering crust, tomato sauce and cheese, compatible with Margherita mozzarella/tomato with only minor basil herb difference, same cooking process and form.",
+        "searches": 2
+      }
+    },
+    {
+      "name": "Grilled chicken Caesar salad with croutons",
+      "selected": {
+        "id": 2422578,
+        "description": "CHICKEN CAESAR GRILLED CHICKEN ON LEAF LETTUCE WITH PARMESAN CHEESE, CROUTONS & CAESAR DRESSING SALAD, CHICKEN CAESAR",
+        "dataType": "Branded"
+      },
+      "pass": true,
+      "ms": 14413,
+      "resolution": {
+        "source": "selected",
+        "reason": "No compatible generic Foundation/Survey/SR Legacy whole-dish record in candidates; McDonald's Bacon Ranch is a different dressing with bacon. Selected branded retail fallback explicitly covers the whole dish: grilled chicken on leaf lettuce with parmesan cheese, croutons and Caesar dressing, matching grilled chicken, Caesar salad, and croutons with no incompatible additions.",
+        "searches": 1
+      }
+    },
+    {
+      "name": "ceramic plate",
+      "selected": null,
+      "pass": true,
+      "ms": 12646,
+      "resolution": {
+        "source": "unavailable",
+        "basis": null
+      }
+    },
+    {
+      "name": "spicy Indonesian fried macaroni snack",
+      "selected": {
+        "id": 2708357,
+        "description": "Pasta, cooked",
+        "dataType": "Survey (FNDDS)"
+      },
+      "pass": true,
+      "ms": 32510,
+      "resolution": {
+        "source": "closest",
+        "basis": "Pasta, cooked",
+        "reason": "Chosen record is plain cooked macaroni/pasta with no added sauce or seasoning, whereas target is fried and seasoned spicy Indonesian style; differs in cooking method (boiled vs fried) and lack of spices/oil."
+      }
+    },
+    {
+      "name": "cendol",
+      "selected": {
+        "id": 2710310,
+        "description": "Gelatin dessert",
+        "dataType": "Survey (FNDDS)"
+      },
+      "pass": true,
+      "ms": 43531,
+      "resolution": {
+        "source": "closest",
+        "basis": "Gelatin dessert",
+        "reason": "Chosen is plain gelatin dessert (jello) which matches the pandan jelly component but lacks coconut milk, palm sugar, ice/shaved-ice drink base and pandan flavor of cendol."
+      }
+    }
+  ],
+  "pass": true,
+  "decisions": [
+    {
+      "name": "green salad",
+      "currentQuery": "green salad",
+      "retry": false,
+      "output": {
+        "id": 2709792,
+        "query": null,
+        "query_food": null,
+        "reason": "Target is a plain small green salad with no named dressings or additions. Candidate 2709792 'Mixed salad greens, raw' is a generic Survey (FNDDS) reference for the same food and raw preparation, with compatible category lettuce and lettuce salads. No incompatible ingredients or preparation."
+      },
+      "error": null
+    },
+    {
+      "name": "scrambled egg",
+      "currentQuery": "scrambled egg",
+      "retry": false,
+      "output": {
+        "id": 172187,
+        "query": null,
+        "query_food": null,
+        "reason": "Target is plain scrambled egg with no named additions. Candidate 172187 is a generic SR Legacy reference for 'Egg, whole, cooked, scrambled' with compatible food, cooking process and form, and no incompatible cheese/meat/vegetable additions."
+      },
+      "error": null
+    },
+    {
+      "name": "ham",
+      "currentQuery": "ham",
+      "retry": false,
+      "output": {
+        "id": 2705878,
+        "query": null,
+        "query_food": null,
+        "reason": "Selected generic Survey reference 'Ham, sliced' as compatible plain sliced ham matching the small slice of ham; it is a generic reference with no incompatible preparation, species, or added components."
+      },
+      "error": null
+    },
+    {
+      "name": "black coffee",
+      "currentQuery": "black coffee",
+      "retry": false,
+      "output": {
+        "id": 2710375,
+        "query": null,
+        "query_food": null,
+        "reason": "Target is plain black coffee with no milk, creamer, sugar or flavor. Candidate 2710375 'Coffee, brewed' is a compatible generic Survey (FNDDS) reference for the same plain brewed preparation, unlike cappuccino/latte/mocha/creamer/flavored variants."
+      },
+      "error": null
+    },
+    {
+      "name": "Japanese toast",
+      "currentQuery": "Japanese toast",
+      "retry": false,
+      "output": {
+        "id": null,
+        "query": "white bread toasted",
+        "query_food": "bread",
+        "reason": "No candidate is the same generic food: Japanese hits are other foods (persimmons, noodles, chestnuts, cabbage) and toast hits are different categories (cookies, cereal, shrimp toast) or specialty breads with incompatible additions like cheese, cinnamon, onion, raisin. Japanese shokupan toast is plain toasted white bread, so a broader bread-with-toasted-preparation search is needed."
+      },
+      "error": null
+    },
+    {
+      "name": "Japanese curry sauce",
+      "currentQuery": "Japanese curry sauce",
+      "retry": false,
+      "output": {
+        "id": 2710178,
+        "query": null,
+        "query_food": null,
+        "reason": "Target is curry sauce alone, not meat/seafood curry mixed dishes. Candidate 2710178 'Curry sauce' Survey (FNDDS) dips, gravies, other sauces is a generic reference for the same food category and preparation as Japanese curry sauce, with geographic descriptor omitted but same generic thick curry sauce form."
+      },
+      "error": null
+    },
+    {
+      "name": "Tonkatsu",
+      "currentQuery": "Tonkatsu",
+      "retry": false,
+      "output": {
+        "id": null,
+        "query": "breaded pork cutlet",
+        "query_food": "pork",
+        "reason": "Candidate 2581968 is seaweed snacks, a different food category incompatible with target. Target is Tonkatsu alone (breaded pork cutlet); curry sauce and rice are other foods excluded from portion. Culinary subtype 'Tonkatsu' retrieved unrelated food, so broader compatible category with coating retained is needed."
+      },
+      "error": null
+    },
+    {
+      "name": "Japanese toast",
+      "currentQuery": "white +bread toasted",
+      "retry": true,
+      "output": {
+        "id": 2707599,
+        "query": null,
+        "query_food": null,
+        "reason": "Target is toasted white bread (Japanese shokupan toast). Candidate 2707599 is a generic Survey (FNDDS) reference for Bread, white, toasted. Geographic descriptor 'Japanese' omitted as same generic food and preparation; it is a generic reference, not a different recipe."
+      },
+      "error": null
+    },
+    {
+      "name": "Cooked white rice",
+      "currentQuery": "Cooked white rice",
+      "retry": false,
+      "output": {
+        "id": 2708403,
+        "query": null,
+        "query_food": null,
+        "reason": "Survey (FNDDS) generic reference for the same plain food and preparation: white rice, cooked, NS as to fat. Compatible with target cooked white rice with no stated fat or variety; unspecified variety does not disqualify generic record."
+      },
+      "error": null
+    },
+    {
+      "name": "lentil soup",
+      "currentQuery": "lentil soup",
+      "retry": false,
+      "output": {
+        "id": 2707462,
+        "query": null,
+        "query_food": null,
+        "reason": "Generic Survey (FNDDS) whole-dish reference 'Soup, lentil' is the same food and preparation as target 'bowl of lentil soup' with compatible broth-based mixed soup form; no other substantial components named to cover."
+      },
+      "error": null
+    },
+    {
+      "name": "Tonkatsu",
+      "currentQuery": "coated +pork cutlet",
+      "retry": true,
+      "output": {
+        "id": 2705876,
+        "query": null,
+        "query_food": null,
+        "reason": "Target is tonkatsu alone; curry sauce and rice are other foods excluded from this portion. Candidate 2705876 'Pork, steak, coated' with cutlet is a generic reference for the same plain food/preparation: coated pork cutlet."
+      },
+      "error": null
+    },
+    {
+      "name": "baked salmon",
+      "currentQuery": "baked salmon",
+      "retry": false,
+      "output": {
+        "id": 2706286,
+        "query": null,
+        "query_food": null,
+        "reason": "Compatible generic Survey (FNDDS) reference for the same plain food and preparation: salmon baked or broiled, uncoated fillet, matching target baked salmon fillet with no additional components."
+      },
+      "error": null
+    },
+    {
+      "name": "raw apple",
+      "currentQuery": "raw apple",
+      "retry": false,
+      "output": {
+        "id": 2709215,
+        "query": null,
+        "query_food": null,
+        "reason": "Target is plain raw apple; candidate 2709215 'Apple, raw' is a compatible generic Survey (FNDDS) reference for the same food and raw preparation with unspecified variety."
+      },
+      "error": null
+    },
+    {
+      "name": "cooked spaghetti",
+      "currentQuery": "cooked spaghetti",
+      "retry": false,
+      "output": {
+        "id": 2708357,
+        "query": null,
+        "query_food": null,
+        "reason": "Target is plain cooked spaghetti with no sauce or additions. Selected record is a generic Survey reference for Pasta, cooked explicitly including spaghetti any shape, matching base food and cooked preparation with compatible physical form and no incompatible ingredients."
+      },
+      "error": null
+    },
+    {
+      "name": "Squid nigiri",
+      "currentQuery": "Squid nigiri",
+      "retry": false,
+      "output": {
+        "id": 2708971,
+        "query": null,
+        "query_food": null,
+        "reason": "Survey (FNDDS) generic reference for nigiri as 'Sushi, topped with tuna' explicitly including 'sushi topped with other seafood, NFS'. As a generic whole-dish reference it covers the target's assembled form: vinegared rice base plus raw seafood topping, compatible with squid nigiri preparation with no incompatible coating, frying, or exclusions."
+      },
+      "error": null
+    },
+    {
+      "name": "Margherita pizza",
+      "currentQuery": "Margherita pizza",
+      "retry": false,
+      "output": {
+        "id": null,
+        "query": "cheese pizza",
+        "query_food": "pizza",
+        "reason": "Target is Margherita pizza - crust with tomato, mozzarella/basil. Branded MARGHERITA PIZZA hits match by name but branded is fallback only when no compatible generic exists. SR Legacy PIZZA HUT cheese/pepperoni/sausage pizzas are identifiable proprietary chain recipes, not generic collection settings, so rejected as proxies. Survey dessert/Mexican/breakfast pizza and pizza rolls are different food categories/recipes. No compatible generic Foundation/Survey/SR Legacy whole-dish cheese pizza yet, so new search for broader generic whole-dish category with same preparation."
+      },
+      "error": null
+    },
+    {
+      "name": "ceramic plate",
+      "currentQuery": "ceramic plate",
+      "retry": false,
+      "output": {
+        "id": null,
+        "query": null,
+        "query_food": null,
+        "reason": "Caption states empty ceramic plate with no food, so there is no target food to reference; all candidates are beef plate/steak cuts, veal breast plate, or a macaroni dish, which are incompatible different foods, and no further food search is applicable."
+      },
+      "error": null
+    },
+    {
+      "name": "Grilled chicken Caesar salad with croutons",
+      "currentQuery": "Grilled chicken Caesar salad with croutons",
+      "retry": false,
+      "output": {
+        "id": 2422578,
+        "query": null,
+        "query_food": null,
+        "reason": "No compatible generic Foundation/Survey/SR Legacy whole-dish record in candidates; McDonald's Bacon Ranch is a different dressing with bacon. Selected branded retail fallback explicitly covers the whole dish: grilled chicken on leaf lettuce with parmesan cheese, croutons and Caesar dressing, matching grilled chicken, Caesar salad, and croutons with no incompatible additions."
+      },
+      "error": null
+    },
+    {
+      "name": "spicy Indonesian fried macaroni snack",
+      "currentQuery": "spicy Indonesian fried macaroni snack",
+      "retry": false,
+      "output": {
+        "id": null,
+        "query": "fried pasta",
+        "query_food": "pasta",
+        "reason": "No candidate is a compatible fried macaroni/pasta reference. All fried seafood, fish, vegetable, potato, tofu and bread candidates are different food categories with incompatible composition, and 2706483 Chili with macaroni is a meat/chili mixed dish, not fried pasta. Proposing broader category search for the plain fried base food."
+      },
+      "error": null
+    },
+    {
+      "name": "Margherita pizza",
+      "currentQuery": "cheese +pizza",
+      "retry": true,
+      "output": {
+        "id": 173292,
+        "query": null,
+        "query_food": null,
+        "reason": "Selected SR Legacy generic cheese pizza regular crust as a generic reference for Margherita pizza; it is the same assembled baked whole-dish category covering crust, tomato sauce and cheese, compatible with Margherita mozzarella/tomato with only minor basil herb difference, same cooking process and form."
+      },
+      "error": null
+    },
+    {
+      "name": "spicy Indonesian fried macaroni snack",
+      "currentQuery": "fried +pasta",
+      "retry": true,
+      "output": {
+        "id": null,
+        "query": "fried macaroni",
+        "query_food": "macaroni",
+        "reason": "No candidate is a compatible fried-pasta snack. Fried candidates are different food categories (seafood, vegetables, potatoes, tofu, breaded items). Pasta candidates are boiled/cooked, dry, or mixed dishes with sauce/meat/cheese/salad (e.g., Pasta cooked, Pasta with sauce, Chili with macaroni), not oil-fried crunchy macaroni, an incompatible preparation and form. Need a fried macaroni whole-food reference."
+      },
+      "error": null
+    },
+    {
+      "name": "cendol",
+      "currentQuery": "cendol",
+      "retry": false,
+      "output": {
+        "id": null,
+        "query": "coconut milk dessert",
+        "query_food": "dessert",
+        "reason": "No candidates were supplied for cendol, so no whole-dish reference can be selected. New search broadens the pandan jelly plus coconut milk plus palm sugar iced drink to its generic whole-dish category with preparation for a compatible NFS dessert reference."
+      },
+      "error": null
+    },
+    {
+      "name": "spicy Indonesian fried macaroni snack",
+      "currentQuery": "fried +macaroni",
+      "retry": true,
+      "output": {
+        "id": null,
+        "query": null,
+        "query_food": null,
+        "reason": "Target is spicy fried macaroni snack - dry/crunchy fried pasta with seasoning. No candidate is fried macaroni: fried candidates are other foods (seafood, fried vegetables, potatoes, etc - different food category), pasta candidates are incompatible preparation/form - boiled/cooked pasta, dry uncooked pasta, or pasta mixed dishes with cheese/sauce/meat/salad that add substantial components absent from target. None is a generic whole-dish fried pasta snack with compatible cooking process and form."
+      },
+      "error": null
+    },
+    {
+      "name": "cendol",
+      "currentQuery": "coconut milk +dessert",
+      "retry": true,
+      "output": {
+        "id": null,
+        "query": "coconut pudding",
+        "query_food": "pudding",
+        "reason": "All candidates are incompatible with iced cendol with pandan jelly, coconut milk and palm sugar: frozen milk desserts, dessert dip/sauce/pizza, wine, babyfood desserts, barfi, topping and dry mix are different food categories/preparations, and plain gelatin dessert is only the jelly component missing coconut milk and palm sugar and cannot represent the combined iced drink by one member. New search uses whole-dish category pudding with coconut to retrieve a compatible jelly/milk/sugar mixed dessert reference."
+      },
+      "error": null
+    },
+    {
+      "name": "cendol",
+      "currentQuery": "coconut +pudding",
+      "retry": true,
+      "output": {
+        "id": null,
+        "query": null,
+        "query_food": null,
+        "reason": "No compatible whole-dish reference. Target is Indonesian iced drink with three substantial components: pandan jelly + coconut milk + palm sugar. Closest candidate 2710316 Haupia coconut pudding shares coconut-milk/sugar but is a solid pudding, missing the named pandan jelly, and differs in physical form (pudding vs iced drink). Other candidates like gelatin dessert are only the jelly component missing coconut milk/palm sugar. Ingredient overlap is not recipe compatibility and one member cannot represent the combined portion."
+      },
+      "error": null
+    }
+  ],
+  "elapsedMs": 79569,
+  "usdaRequests": 54
+}

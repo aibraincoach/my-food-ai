@@ -1,0 +1,25 @@
+{
+  "sourceDeployment": "dpl_3h3mq6fEydos6e3c2GDS98sNVhTV",
+  "sourceCommit": "3677332317058a742284fba99fa806f074529632",
+  "expectedBuild": "3677332317058a742284fba99fa806f074529632-1793805530371",
+  "redeployId": "dpl_2QwtDGaZtiveFvtuRtiVgwYAhCs5",
+  "url": "my-food-dm74usnj2-aibraincoachs-projects.vercel.app",
+  "startedAt": "2026-11-04T15:25:51.600Z",
+  "states": [
+    {
+      "at": "2026-11-04T15:25:51.875Z",
+      "state": "INITIALIZING"
+    },
+    {
+      "at": "2026-11-04T15:25:55.210Z",
+      "state": "BUILDING"
+    },
+    {
+      "at": "2026-11-04T15:26:28.206Z",
+      "state": "READY"
+    }
+  ],
+  "build": "3677332317058a742284fba99fa806f074529632-1793805962694",
+  "readyAt": "2026-11-04T15:26:32.173Z",
+  "aliasAssigned": true
+}
