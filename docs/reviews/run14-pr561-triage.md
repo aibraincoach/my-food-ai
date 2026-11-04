@@ -7,3 +7,9 @@ Validation gap — The initial live provider smoke recorded its base HEAD before
 The first capture timed out after returning this actionable finding. It is not a counting zero-blocker review. Exact-head confirmation remains required on the revised head. Independent lane C source review at c2ddfb2c found no blockers; that is supplementary only.
 
 Real findings: 1
+
+Follow-up triage reviewer: Codex coder; reviewed head c2ddfb2cd09db1f15ed06a728c25831cbaf0ee41.
+
+Real — P2 volume-only edits called the same rescaler with milliliters, so per-100 g reconstruction could invent mass and consumed numbers. Fixed at 377df937: ratio-only rescaleStoredAmounts is now explicit for the milliliter caller; rescaleStoredNutrition reconstructs only gram-reference edits. Regressions cover unknown-mass 100 ml→100 ml/200 ml staying unavailable and known consumed amounts scaling only by their volume ratio. Focused estimate/portion/nutrition suite 13/13 passes, TypeScript and focused ESLint pass. Final combined full-suite evidence remains the integration run's responsibility.
+
+Real findings in follow-up: 1

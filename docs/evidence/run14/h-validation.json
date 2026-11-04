@@ -49,5 +49,21 @@
     "DB gate restarted after adding required scripted nutrition_estimate transport support; final complete results above supersede it."
   ],
   "productionMigration0052": "Not applied by lane H; root must apply after exact-head counting review and before merge, with service-role-only privilege readback.",
-  "supplementaryReview": "Lane C static source review, exact head30b574601998dceb0073c64636e7a43396a3bb36, BLOCKERS NONE. Not external counting review or independent runtime evidence."
+  "supplementaryReview": "Lane C static source review, exact head30b574601998dceb0073c64636e7a43396a3bb36, BLOCKERS NONE. Not external counting review or independent runtime evidence.",
+  "followUp": {
+    "head": "377df937",
+    "fixes": [
+      "unknown/zero grams\u2192known grams reconstructs retained model reference",
+      "known\u2192unknown\u2192known survives both normal edits and replay",
+      "volume-only edits use known consumed-amount ratios, never treat ml as g"
+    ],
+    "focusedCommand": "node --import tsx --test tests/food-estimate.test.mjs tests/portion-identity.test.mjs tests/nutrition-scaling.test.mjs",
+    "passed": 13,
+    "failed": 0,
+    "durationMs": 1262.629963,
+    "typeScript": "pass",
+    "focusedESLint": "pass",
+    "fullSuiteScope": "587/0/6 and DB39/39 above predate follow-up; final combined integration suite must cover revised head",
+    "cleanup": "H localapp, restarted scriptedmodel, PostgREST/Auth/PostgreSQL stack stopped after laneA released backend"
+  }
 }
