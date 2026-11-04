@@ -18,6 +18,6 @@ export async function resolveProduct(raw: string, userId: string, options: { wit
   let base = null;
   try { base = await lookupBarcode(gtin); } catch(error) { if (!(own?.source === "label" && own.per_100)) throw error; }
   // USDA FDC holds mostly US packs; Open Food Facts covers the rest.
-  if (!base) { try { base = await lookupOpenFoodFacts(gtin); } catch { base = null; } }
+  if (!base) { try { base = await lookupOpenFoodFacts(gtin); } catch (error) { if (!(own?.source === "label" && own.per_100)) throw error; } }
   return mergeProduct(gtin,base,own,shared.data as string|null);
 }
