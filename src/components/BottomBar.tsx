@@ -16,7 +16,8 @@ export default function BottomBar({ onPlus, menuOpen = false }: { onPlus: () => 
   const [initial,setInitial]=useState('');
   useEffect(()=>{
     let live=true;const client=createClient();
-    void client.auth.getUser().then(async({data:{user}})=>{
+    void client.auth.getSession().then(async({data:{session}})=>{
+      const user=session?.user;
       if(!user)return;const {data}=await client.from('profiles').select('handle').eq('id',user.id).maybeSingle();
       if(live)setInitial(String(data?.handle??'').slice(0,1).toUpperCase());
     });

@@ -38,7 +38,8 @@ export default function PostReadinessListener() {
     };
     const seedPending = async () => {
       try {
-        const { data: { user } } = await db.auth.getUser();
+        const { data: { session } } = await db.auth.getSession();
+        const user = session?.user;
         if (!user || !live) return;
         const { data, error } = await db.from("posts").select("id")
           .eq("user_id", user.id).in("status", ["queued", "processing"]);
