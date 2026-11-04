@@ -46,11 +46,13 @@ export function readFeedCache(userId: string, now = Date.now()): CachedFeed | nu
     const raw = localStorage.getItem(PREFIX + userId);
     if (!raw || raw.length > MAX_BYTES) return null;
     const prior = snapshots.get(userId);
-    const value: CachedFeed = prior?.raw === raw ? prior.value : JSON.parse(raw);
+    let value: CachedFeed = prior?.raw === raw ? prior.value : JSON.parse(raw);
     if (value.version !== 1 || value.userId !== userId || !Number.isFinite(value.savedAt) ||
       value.savedAt > now + 60_000 || now - value.savedAt > MAX_AGE_MS ||
       !Array.isArray(value.posts) || value.posts.length > MAX_POSTS || !value.posts.every(validPost)) return null;
-    if (prior?.raw !== raw) { value.posts = value.posts.map(post => withLiveSlides(post, value.savedAt, now)); snapshots.set(userId, { raw, value }); }
+    const posts = value.posts.map(post => withLiveSlides(post, value.savedAt, now));
+    if (posts.some((post, index) => post !== value.posts[index])) value = { ...value, posts };
+    if (prior?.raw !== raw || prior.value !== value) snapshots.set(userId, { raw, value });
     return value;
   } catch { return null; }
 }
