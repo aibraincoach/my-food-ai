@@ -1,0 +1,79 @@
+[
+  {
+    "headRefName": "run14/desktop-shell",
+    "headRefOid": "fbb6d50916cb907313c2a2374e3bc9410f9f1b1e",
+    "mergeCommit": {
+      "oid": "802b395247761a76cce621baf5065f04f8d6e8c8"
+    },
+    "mergedAt": "2026-11-04T08:28:35Z",
+    "number": 559,
+    "state": "MERGED",
+    "title": "fix: keep desktop shell in the Home frame and name calendar months"
+  },
+  {
+    "headRefName": "run14/action-row",
+    "headRefOid": "45fddaf62f3932e48f054013c30773fadd2e7059",
+    "mergeCommit": {
+      "oid": "063fc4378246e5a2924a92b6ab94962892a306e2"
+    },
+    "mergedAt": "2026-11-04T08:30:02Z",
+    "number": 560,
+    "state": "MERGED",
+    "title": "fix: give post actions full tap areas and immediate feedback"
+  },
+  {
+    "headRefName": "run14/food-estimate",
+    "headRefOid": "e5d4f660ac4d9ab3c352dbd7709b1335c2db446e",
+    "mergeCommit": {
+      "oid": "7eda89972f1434b865fcd11024ffeb231b5396e2"
+    },
+    "mergedAt": "2026-11-04T08:31:14Z",
+    "number": 561,
+    "state": "MERGED",
+    "title": "feat: disclose model nutrition estimates after USDA matching fails"
+  },
+  {
+    "headRefName": "run14/capture-fixes",
+    "headRefOid": "83f8a4b7c702e8069a2ddf6773c2653de55058ca",
+    "mergeCommit": {
+      "oid": "e3c261d859d9a73966cf12fcb0cb890f9a156d11"
+    },
+    "mergedAt": "2026-11-04T08:32:26Z",
+    "number": 563,
+    "state": "MERGED",
+    "title": "fix: acknowledge capture durability and share open-model deadline"
+  },
+  {
+    "headRefName": "run14/tap-frame",
+    "headRefOid": "b59be8e8659ba426e8ead2fbadecb68a069c398b",
+    "mergeCommit": {
+      "oid": "1ae4ce7c4147b92568b4a2757f5dae41e8ada7c3"
+    },
+    "mergedAt": "2026-11-04T08:35:14Z",
+    "number": 564,
+    "state": "MERGED",
+    "title": "perf: show the meal frame immediately when opening detail"
+  },
+  {
+    "headRefName": "run14/auth-once",
+    "headRefOid": "148d9ab2158734cf849274660c38e7841054be17",
+    "mergeCommit": {
+      "oid": "11ca20e952094bc9ee986f6c42bafb5553bb4a77"
+    },
+    "mergedAt": "2026-11-04T08:37:52Z",
+    "number": 565,
+    "state": "MERGED",
+    "title": "perf: share verified identity and seed Today from the feed page"
+  },
+  {
+    "headRefName": "run14/measure",
+    "headRefOid": "e142d52ccf962a4ab9f808675e208afa545401f9",
+    "mergeCommit": {
+      "oid": "a24587a1ec3b57a7b2bdfb5f69cce4e0e73602db"
+    },
+    "mergedAt": "2026-11-04T08:38:42Z",
+    "number": 566,
+    "state": "MERGED",
+    "title": "chore: measure Fleet 14 navigation, caps, ticks and resource usage"
+  }
+]

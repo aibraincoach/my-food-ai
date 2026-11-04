@@ -1,0 +1,24 @@
+{
+  "browser": "Chrome/151.0.7922.173",
+  "scope": "New isolated browser context only; CPU4x/Fast3G. Every unsafe HTTP method deliberately returns503, including server actions. GET HEAD OPTIONS allowed. Thus state-changing controls measure scoped failure behavior, not successful persistence.",
+  "blocked": [],
+  "observedAt": "2026-11-04T09:45:35.876Z",
+  "app": "https://my-food-ai-ten.vercel.app",
+  "engine": "Chromium native CDP touch actions, CPU4x",
+  "viewport": {
+    "width": 390,
+    "height": 844
+  },
+  "limitations": [
+    "CLS null means this engine did not expose layout-shift; never treat it as zero.",
+    "Visible-mutation latency includes the actual global pressed-state mutation; it is not server completion time.",
+    "Geometry, physical touch and double-tap outcomes are observed; unexercised rows are explicitly incomplete."
+  ],
+  "rows": [
+    {
+      "control": "Search result",
+      "verdict": "not exercised",
+      "reason": "Control absent in this test account/state"
+    }
+  ]
+}

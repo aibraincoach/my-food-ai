@@ -1,0 +1,16 @@
+{
+  "observedAt": "2026-11-04T08:48:13.842Z",
+  "main": "a24587a1ec3b57a7b2bdfb5f69cce4e0e73602db",
+  "project": "my-food-ai",
+  "deployment": {
+    "id": "dpl_24RqPXLfHT5iuV9ZJEnADjoNzgFS",
+    "state": "READY",
+    "sha": "a24587a1ec3b57a7b2bdfb5f69cce4e0e73602db",
+    "createdAt": 1793781524854
+  },
+  "alias": {
+    "host": "my-food-ai-ten.vercel.app",
+    "deploymentId": "dpl_24RqPXLfHT5iuV9ZJEnADjoNzgFS"
+  },
+  "scope": "Read-only production deployment and alias identity; no claim of phone acceptance."
+}

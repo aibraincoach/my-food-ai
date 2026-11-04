@@ -1,0 +1,159 @@
+{
+  "at": "2026-11-04T09:27:05.425Z",
+  "browser": "Chrome/151.0.7922.173",
+  "protocol": "1.3",
+  "scope": "New isolated browser context only; no existing tabs listed, read or driven.",
+  "main": "a24587a1ec3b57a7b2bdfb5f69cce4e0e73602db",
+  "throttle": {
+    "cpuRate": 4,
+    "network": {
+      "offline": false,
+      "latency": 150,
+      "downloadThroughput": 200000,
+      "uploadThroughput": 93750,
+      "connectionType": "cellular3g"
+    },
+    "description": "Fast3G:1.6Mbps down,150ms configured latency; CPU4x.",
+    "commandsAccepted": true
+  },
+  "counts": [],
+  "detail": [],
+  "cookieSetupAccepted": true,
+  "productionNavigationAccepted": true,
+  "states": [
+    {
+      "state": "rest",
+      "post": "f1737bd7",
+      "controls": [
+        {
+          "label": "Accept analysis",
+          "width": 44,
+          "height": 44,
+          "disabled": false,
+          "pressed": "false",
+          "color": "rgb(26, 25, 23)"
+        },
+        {
+          "label": "Correct analysis",
+          "width": 44,
+          "height": 44,
+          "disabled": false,
+          "pressed": "false",
+          "color": "rgb(26, 25, 23)"
+        },
+        {
+          "label": "Comment or correct",
+          "width": 44,
+          "height": 44,
+          "disabled": false,
+          "pressed": null,
+          "color": "rgb(26, 25, 23)"
+        },
+        {
+          "label": "Log again",
+          "width": 44,
+          "height": 44,
+          "disabled": false,
+          "pressed": null,
+          "color": "rgb(26, 25, 23)"
+        },
+        {
+          "label": "Details \u203a",
+          "width": 52.25,
+          "height": 44,
+          "disabled": false,
+          "pressed": null,
+          "color": "rgb(122, 118, 111)"
+        },
+        {
+          "label": "Save meal",
+          "width": 44,
+          "height": 44,
+          "disabled": false,
+          "pressed": "false",
+          "color": "rgb(26, 25, 23)"
+        }
+      ]
+    },
+    {
+      "state": "pressed",
+      "label": "Accept analysis",
+      "marked": true,
+      "opacity": "0.55"
+    },
+    {
+      "state": "pressed",
+      "label": "Correct analysis",
+      "marked": true,
+      "opacity": "0.55"
+    },
+    {
+      "state": "pressed",
+      "label": "Comment or correct",
+      "marked": true,
+      "opacity": "0.55"
+    },
+    {
+      "state": "pressed",
+      "label": "Log again",
+      "marked": false,
+      "opacity": "1"
+    },
+    {
+      "state": "pressed",
+      "label": "Details \u203a",
+      "marked": true,
+      "opacity": "0.55"
+    },
+    {
+      "state": "pressed",
+      "label": "Save meal",
+      "marked": false,
+      "opacity": "1"
+    },
+    {
+      "state": "chosen-saving",
+      "heldRequests": 8,
+      "pressed": "true",
+      "busy": "true",
+      "fill": "currentColor",
+      "visibleChangeMs": 20.700000286102295
+    },
+    {
+      "state": "pressed-while-saving",
+      "marked": true,
+      "opacity": "0.55",
+      "disabled": false
+    },
+    {
+      "state": "failed",
+      "message": "Feedback could not be saved. Try again.",
+      "noServerVotePersisted": true
+    },
+    {
+      "state": "thumbs-down-before-save",
+      "heldRequests": 13,
+      "url": "/posts/f1737bd7-7214-42c6-8e6a-0d1080a87e60",
+      "reply": true,
+      "frameMs": 386.59999990463257,
+      "replyMs": 862.6999998092651
+    },
+    {
+      "state": "failed-after-down-navigation",
+      "message": "Feedback could not be saved. Try again.",
+      "noServerVotePersisted": true
+    },
+    {
+      "state": "unavailable-analysis",
+      "at": "2026-11-04T09:27:31.005Z",
+      "found": false
+    }
+  ],
+  "finishedAt": "2026-11-04T09:27:31.005Z",
+  "isolatedContextDisposed": true,
+  "limitations": [
+    "The mutation interceptor also held OPTIONS preflights for read-only Supabase REST requests. These pending/failure observations therefore include a disturbed-read fixture and cannot establish every production state as conformant.",
+    "Log again and Save meal were not marked pressed in their observed hold; unavailable-analysis fixture was absent at the first capture.",
+    "Thumbs-down frame and reply timings exceed50ms; no instant-under50ms claim."
+  ]
+}

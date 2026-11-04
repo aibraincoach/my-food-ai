@@ -1,0 +1,61 @@
+{
+  "at": "2026-11-04T09:29:36.181Z",
+  "browser": "Chrome/151.0.7922.173",
+  "protocol": "1.3",
+  "scope": "New isolated browser context only; no existing tabs listed, read or driven.",
+  "main": "a24587a1ec3b57a7b2bdfb5f69cce4e0e73602db",
+  "throttle": {
+    "cpuRate": 4,
+    "network": {
+      "offline": false,
+      "latency": 150,
+      "downloadThroughput": 200000,
+      "uploadThroughput": 93750,
+      "connectionType": "cellular3g"
+    },
+    "description": "Fast3G:1.6Mbps down,150ms configured latency; CPU4x.",
+    "commandsAccepted": true
+  },
+  "counts": [],
+  "detail": [],
+  "cookieSetupAccepted": true,
+  "productionNavigationAccepted": true,
+  "processing": {
+    "at": "2026-11-04T09:29:41.345Z",
+    "found": true,
+    "post": "673adf08",
+    "status": "ready",
+    "thumbs": [
+      {
+        "label": "Accept analysis",
+        "disabled": false,
+        "color": "rgb(26, 25, 23)",
+        "width": 44,
+        "height": 44
+      },
+      {
+        "label": "Correct analysis",
+        "disabled": false,
+        "color": "rgb(26, 25, 23)",
+        "width": 44,
+        "height": 44
+      }
+    ],
+    "otherButtons": [
+      {
+        "label": "Comment or correct",
+        "disabled": false
+      },
+      {
+        "label": "Log again",
+        "disabled": false
+      },
+      {
+        "label": "Save meal",
+        "disabled": false
+      }
+    ]
+  },
+  "finishedAt": "2026-11-04T09:29:41.346Z",
+  "isolatedContextDisposed": true
+}

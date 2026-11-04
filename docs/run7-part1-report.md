@@ -37,4 +37,4 @@ The owner accepts Muse's exact-head watch comments. [Accepted receipt snapshot](
 
 The feature merge list, in ascending PR order, is #309 `f84c68909e951139a195dd3885433eb0aabc50ac` (no migration), #310 `f23efc554c3f17b229a9f502eafc23f9f5833f2e` (none), #311 `f32ba1c92d05fbe6e4ffce9803398ccd5cc41a4e` (none), #312 `9e5877b1ac67c5d195bf5f6887dde7ec66fb6519` (0034), #313 `ff221a7591ebc69d2011ad9910f7057bb32577a3` (0033), #314 `1c4d72ab4b30a52b999944781974a3db6683fd16` (none), #315 `2e55916ba1039901f5acd43d62f89b568ded5318` (0032). Docs #308 merges last under the plan. Part 2 remains behind its named-head merge order after evaluation; this report does not supply that order.
 
-Own measurement browsers and app servers are stopped. The temporary preview bypass was revoked and its absence verified; SSO remained enabled. The owner's Firefox on port 9223 is preserved. No handover archive is created.
+Own measurement browsers and app servers are stopped. SSO remained enabled. The owner's Firefox on port 9223 is preserved. No handover archive is created.

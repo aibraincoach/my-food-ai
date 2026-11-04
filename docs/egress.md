@@ -1,5 +1,9 @@
 # Database egress and log observations
 
+## Fleet14 attribution — November 4, 2026
+
+File/client-class response-byte tables and the memory/connection interpretation are in [run14-report.md](run14-report.md). User-agent automation classes include server runtimes serving real users; they are not a verified bot/human split. Response Content-Length is not billed egress or log-ingestion bytes. The first two hourly resource samples are available; the six-hour series is still active. #373/#375 remain open.
+
 ## Before
 
 Window: 2026-11-02T04:15:17.615Z through 2026-11-03T04:15:17.615Z. Read-only aggregate logs. Response bytes are reported Content-Length, not billed egress; missing lengths are explicitly counted. Log row counts are not ingestion byte totals.

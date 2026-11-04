@@ -1,0 +1,108 @@
+{
+  "at": "2026-11-04T09:34:47.862Z",
+  "browser": "Chrome/151.0.7922.173",
+  "protocol": "1.3",
+  "scope": "New isolated browser context only; no existing tabs listed, read or driven.",
+  "localSource": "d948c57baf9af7bffc9cf47b2473341318464c4b",
+  "localApp": "Disposable local default production build on60660",
+  "throttle": {
+    "cpuRate": 4,
+    "network": {
+      "offline": false,
+      "latency": 150,
+      "downloadThroughput": 200000,
+      "uploadThroughput": 93750,
+      "connectionType": "cellular3g"
+    },
+    "description": "Fast3G:1.6Mbps down,150ms configured latency; CPU4x.",
+    "commandsAccepted": true
+  },
+  "counts": [],
+  "detail": [],
+  "cookieSetupAccepted": true,
+  "productionNavigationAccepted": true,
+  "paths": [
+    {
+      "width": 390,
+      "kind": "photo",
+      "frameMs": 51.5,
+      "firstTop": 100,
+      "finalTop": 100,
+      "topDelta": 0,
+      "modal": false,
+      "path": "/posts/eddea94a-11b6-4401-9381-535769f67ab8"
+    },
+    {
+      "width": 390,
+      "kind": "more",
+      "frameMs": 37,
+      "firstTop": 100,
+      "finalTop": 100,
+      "topDelta": 0,
+      "modal": false,
+      "path": "/posts/eddea94a-11b6-4401-9381-535769f67ab8"
+    },
+    {
+      "width": 390,
+      "kind": "Details",
+      "frameMs": 26.399999618530273,
+      "firstTop": 100,
+      "finalTop": 100,
+      "topDelta": 0,
+      "modal": false,
+      "path": "/posts/eddea94a-11b6-4401-9381-535769f67ab8"
+    },
+    {
+      "width": 390,
+      "kind": "Comment",
+      "frameMs": 40.59999990463257,
+      "firstTop": 100,
+      "finalTop": 100,
+      "topDelta": 0,
+      "modal": false,
+      "path": "/posts/eddea94a-11b6-4401-9381-535769f67ab8"
+    },
+    {
+      "width": 1280,
+      "kind": "photo",
+      "frameMs": 28.200000286102295,
+      "firstTop": 60,
+      "finalTop": 60,
+      "topDelta": 0,
+      "modal": true,
+      "path": "/"
+    },
+    {
+      "width": 1280,
+      "kind": "more",
+      "frameMs": 64.30000019073486,
+      "firstTop": 60,
+      "finalTop": 60,
+      "topDelta": 0,
+      "modal": true,
+      "path": "/"
+    },
+    {
+      "width": 1280,
+      "kind": "Details",
+      "frameMs": 66.60000038146973,
+      "firstTop": 60,
+      "finalTop": 60,
+      "topDelta": 0,
+      "modal": true,
+      "path": "/"
+    },
+    {
+      "width": 1280,
+      "kind": "Comment",
+      "frameMs": 64.30000019073486,
+      "firstTop": 60,
+      "finalTop": 60,
+      "topDelta": 0,
+      "modal": true,
+      "path": "/"
+    }
+  ],
+  "finishedAt": "2026-11-04T09:35:13.556Z",
+  "isolatedContextDisposed": true
+}

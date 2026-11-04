@@ -1,0 +1,453 @@
+{
+  "utc": "2026-11-04T08:32:10.527Z",
+  "browser": "Firefox BiDi, default production build on isolated local stack, designated test account2, empty baseline account",
+  "viewport": [
+    1280,
+    800
+  ],
+  "zone": "America/Edmonton",
+  "rows": [
+    {
+      "path": "/",
+      "startedAt": "2026-11-04T08:31:54.586Z",
+      "endedAt": "2026-11-04T08:31:59.999Z",
+      "elapsedMs": 5413,
+      "dom": {
+        "path": "/",
+        "zone": "America/Edmonton",
+        "verifiedCookie": true,
+        "feedReady": true
+      },
+      "counts": {
+        "browserAuthUser": 0,
+        "browserAuthToken": 0,
+        "apiFeed": 0,
+        "apiDays": 0,
+        "serverActionPosts": 0,
+        "rscPrefetches": 6,
+        "authVerifyStdout": 7,
+        "dayTotalsStdout": 1
+      },
+      "stdout": [
+        "auth verify middleware /",
+        "feed read day-totals 74",
+        "feed read posts 69 status 200",
+        "feed read hydration 0",
+        "tick cold 2",
+        "auth verify middleware /search",
+        "auth verify middleware /profile",
+        "auth verify middleware /days",
+        "auth verify middleware /profile",
+        "auth verify middleware /days",
+        "auth verify middleware /search"
+      ],
+      "requests": [
+        {
+          "window": "/",
+          "time": 1793781114718,
+          "method": "GET",
+          "origin": "http://127.0.0.1:61260",
+          "path": "/",
+          "query": "",
+          "rsc": false,
+          "prefetch": false,
+          "serverAction": false
+        },
+        {
+          "window": "/",
+          "time": 1793781115236,
+          "method": "GET",
+          "origin": "http://127.0.0.1:61260",
+          "path": "/profile",
+          "query": "?_rsc=5CB68i4pnAekjehf",
+          "rsc": true,
+          "prefetch": true,
+          "serverAction": false
+        },
+        {
+          "window": "/",
+          "time": 1793781115237,
+          "method": "GET",
+          "origin": "http://127.0.0.1:61260",
+          "path": "/search",
+          "query": "?_rsc=5CB68i4pnAekjehf",
+          "rsc": true,
+          "prefetch": true,
+          "serverAction": false
+        },
+        {
+          "window": "/",
+          "time": 1793781115237,
+          "method": "GET",
+          "origin": "http://127.0.0.1:61260",
+          "path": "/days",
+          "query": "?_rsc=5CB68i4pnAekjehf",
+          "rsc": true,
+          "prefetch": true,
+          "serverAction": false
+        },
+        {
+          "window": "/",
+          "time": 1793781115292,
+          "method": "GET",
+          "origin": "http://127.0.0.1:61260",
+          "path": "/profile",
+          "query": "?_rsc=MJqHeoSem-dejtB5",
+          "rsc": true,
+          "prefetch": true,
+          "serverAction": false
+        },
+        {
+          "window": "/",
+          "time": 1793781115295,
+          "method": "GET",
+          "origin": "http://127.0.0.1:61260",
+          "path": "/days",
+          "query": "?_rsc=Qe5xQ7S7i2LRutt3",
+          "rsc": true,
+          "prefetch": true,
+          "serverAction": false
+        },
+        {
+          "window": "/",
+          "time": 1793781115296,
+          "method": "GET",
+          "origin": "http://127.0.0.1:61260",
+          "path": "/search",
+          "query": "?_rsc=qp_8VcAyBIMraPft",
+          "rsc": true,
+          "prefetch": true,
+          "serverAction": false
+        }
+      ]
+    },
+    {
+      "path": "/days",
+      "startedAt": "2026-11-04T08:32:00.000Z",
+      "endedAt": "2026-11-04T08:32:05.415Z",
+      "elapsedMs": 5415,
+      "dom": {
+        "path": "/days",
+        "zone": "America/Edmonton",
+        "verifiedCookie": true,
+        "feedReady": false
+      },
+      "counts": {
+        "browserAuthUser": 0,
+        "browserAuthToken": 0,
+        "apiFeed": 0,
+        "apiDays": 0,
+        "serverActionPosts": 0,
+        "rscPrefetches": 7,
+        "authVerifyStdout": 9,
+        "dayTotalsStdout": 0
+      },
+      "stdout": [
+        "auth verify middleware /days",
+        "auth verify middleware /",
+        "auth verify middleware /search",
+        "auth verify middleware /profile",
+        "auth verify middleware /days",
+        "auth verify middleware /days",
+        "auth verify middleware /search",
+        "auth verify middleware /",
+        "auth verify middleware /profile"
+      ],
+      "requests": [
+        {
+          "window": "/days",
+          "time": 1793781120068,
+          "method": "GET",
+          "origin": "http://127.0.0.1:61260",
+          "path": "/days",
+          "query": "",
+          "rsc": false,
+          "prefetch": false,
+          "serverAction": false
+        },
+        {
+          "window": "/days",
+          "time": 1793781120446,
+          "method": "GET",
+          "origin": "http://127.0.0.1:61260",
+          "path": "/search",
+          "query": "?_rsc=aqn2TS3pZExRMYBn",
+          "rsc": true,
+          "prefetch": true,
+          "serverAction": false
+        },
+        {
+          "window": "/days",
+          "time": 1793781120446,
+          "method": "GET",
+          "origin": "http://127.0.0.1:61260",
+          "path": "/profile",
+          "query": "?_rsc=aqn2TS3pZExRMYBn",
+          "rsc": true,
+          "prefetch": true,
+          "serverAction": false
+        },
+        {
+          "window": "/days",
+          "time": 1793781120446,
+          "method": "GET",
+          "origin": "http://127.0.0.1:61260",
+          "path": "/",
+          "query": "?_rsc=aqn2TS3pZExRMYBn",
+          "rsc": true,
+          "prefetch": true,
+          "serverAction": false
+        },
+        {
+          "window": "/days",
+          "time": 1793781120559,
+          "method": "GET",
+          "origin": "http://127.0.0.1:61260",
+          "path": "/days",
+          "query": "?_rsc=ZMywQCBQDrsEsUHc",
+          "rsc": true,
+          "prefetch": false,
+          "serverAction": false
+        },
+        {
+          "window": "/days",
+          "time": 1793781120608,
+          "method": "GET",
+          "origin": "http://127.0.0.1:61260",
+          "path": "/days",
+          "query": "?_rsc=LO-U_kirdX2wrtgf",
+          "rsc": true,
+          "prefetch": true,
+          "serverAction": false
+        },
+        {
+          "window": "/days",
+          "time": 1793781120608,
+          "method": "GET",
+          "origin": "http://127.0.0.1:61260",
+          "path": "/search",
+          "query": "?_rsc=DjPCygvyVUnXydkR",
+          "rsc": true,
+          "prefetch": true,
+          "serverAction": false
+        },
+        {
+          "window": "/days",
+          "time": 1793781120608,
+          "method": "GET",
+          "origin": "http://127.0.0.1:61260",
+          "path": "/profile",
+          "query": "?_rsc=5hz3izdwb2TySZpH",
+          "rsc": true,
+          "prefetch": true,
+          "serverAction": false
+        },
+        {
+          "window": "/days",
+          "time": 1793781120608,
+          "method": "GET",
+          "origin": "http://127.0.0.1:61260",
+          "path": "/",
+          "query": "?_rsc=PiTo1f-zeWqnVcYg",
+          "rsc": true,
+          "prefetch": true,
+          "serverAction": false
+        }
+      ]
+    },
+    {
+      "path": "/profile",
+      "startedAt": "2026-11-04T08:32:05.415Z",
+      "endedAt": "2026-11-04T08:32:10.527Z",
+      "elapsedMs": 5112,
+      "dom": {
+        "path": "/profile",
+        "zone": "America/Edmonton",
+        "verifiedCookie": true,
+        "feedReady": false
+      },
+      "counts": {
+        "browserAuthUser": 0,
+        "browserAuthToken": 0,
+        "apiFeed": 0,
+        "apiDays": 0,
+        "serverActionPosts": 0,
+        "rscPrefetches": 12,
+        "authVerifyStdout": 14,
+        "dayTotalsStdout": 0
+      },
+      "stdout": [
+        "auth verify middleware /profile",
+        "auth verify middleware /",
+        "auth verify middleware /search",
+        "auth verify middleware /days",
+        "auth verify middleware /profile",
+        "auth verify middleware /",
+        "auth verify middleware /",
+        "auth verify middleware /days",
+        "auth verify middleware /search",
+        "auth verify middleware /profile",
+        "auth verify middleware /profile/agents/new",
+        "auth verify middleware /profile/deleted",
+        "auth verify middleware /profile/agents/new",
+        "auth verify middleware /profile/deleted"
+      ],
+      "requests": [
+        {
+          "window": "/profile",
+          "time": 1793781125485,
+          "method": "GET",
+          "origin": "http://127.0.0.1:61260",
+          "path": "/profile",
+          "query": "",
+          "rsc": false,
+          "prefetch": false,
+          "serverAction": false
+        },
+        {
+          "window": "/profile",
+          "time": 1793781125812,
+          "method": "GET",
+          "origin": "http://127.0.0.1:61260",
+          "path": "/",
+          "query": "?_rsc=N_VArvFsXijtd_BH",
+          "rsc": true,
+          "prefetch": true,
+          "serverAction": false
+        },
+        {
+          "window": "/profile",
+          "time": 1793781125860,
+          "method": "GET",
+          "origin": "http://127.0.0.1:61260",
+          "path": "/search",
+          "query": "?_rsc=N_VArvFsXijtd_BH",
+          "rsc": true,
+          "prefetch": true,
+          "serverAction": false
+        },
+        {
+          "window": "/profile",
+          "time": 1793781125860,
+          "method": "GET",
+          "origin": "http://127.0.0.1:61260",
+          "path": "/days",
+          "query": "?_rsc=N_VArvFsXijtd_BH",
+          "rsc": true,
+          "prefetch": true,
+          "serverAction": false
+        },
+        {
+          "window": "/profile",
+          "time": 1793781125954,
+          "method": "GET",
+          "origin": "http://127.0.0.1:61260",
+          "path": "/profile",
+          "query": "?_rsc=Ky6X1rHXZMiRFirA",
+          "rsc": true,
+          "prefetch": false,
+          "serverAction": false
+        },
+        {
+          "window": "/profile",
+          "time": 1793781125996,
+          "method": "GET",
+          "origin": "http://127.0.0.1:61260",
+          "path": "/days",
+          "query": "?_rsc=iEn_82vaf6gggiIh",
+          "rsc": true,
+          "prefetch": true,
+          "serverAction": false
+        },
+        {
+          "window": "/profile",
+          "time": 1793781125996,
+          "method": "GET",
+          "origin": "http://127.0.0.1:61260",
+          "path": "/",
+          "query": "?_rsc=Mhl2gUII1MSj-u26",
+          "rsc": true,
+          "prefetch": true,
+          "serverAction": false
+        },
+        {
+          "window": "/profile",
+          "time": 1793781125996,
+          "method": "GET",
+          "origin": "http://127.0.0.1:61260",
+          "path": "/search",
+          "query": "?_rsc=Yam0mj08zWKvEQEj",
+          "rsc": true,
+          "prefetch": true,
+          "serverAction": false
+        },
+        {
+          "window": "/profile",
+          "time": 1793781125996,
+          "method": "GET",
+          "origin": "http://127.0.0.1:61260",
+          "path": "/",
+          "query": "?_rsc=Mhl2gUII1MSj-u26",
+          "rsc": true,
+          "prefetch": true,
+          "serverAction": false
+        },
+        {
+          "window": "/profile",
+          "time": 1793781126100,
+          "method": "GET",
+          "origin": "http://127.0.0.1:61260",
+          "path": "/profile",
+          "query": "?_rsc=PM-bClRDSWISz3cP",
+          "rsc": true,
+          "prefetch": true,
+          "serverAction": false
+        },
+        {
+          "window": "/profile",
+          "time": 1793781126145,
+          "method": "GET",
+          "origin": "http://127.0.0.1:61260",
+          "path": "/profile/deleted",
+          "query": "?_rsc=N_VArvFsXijtd_BH",
+          "rsc": true,
+          "prefetch": true,
+          "serverAction": false
+        },
+        {
+          "window": "/profile",
+          "time": 1793781126145,
+          "method": "GET",
+          "origin": "http://127.0.0.1:61260",
+          "path": "/profile/agents/new",
+          "query": "?_rsc=N_VArvFsXijtd_BH",
+          "rsc": true,
+          "prefetch": true,
+          "serverAction": false
+        },
+        {
+          "window": "/profile",
+          "time": 1793781126236,
+          "method": "GET",
+          "origin": "http://127.0.0.1:61260",
+          "path": "/profile/deleted",
+          "query": "?_rsc=cwgVfpWMAvePoPsu",
+          "rsc": true,
+          "prefetch": true,
+          "serverAction": false
+        },
+        {
+          "window": "/profile",
+          "time": 1793781126236,
+          "method": "GET",
+          "origin": "http://127.0.0.1:61260",
+          "path": "/profile/agents/new",
+          "query": "?_rsc=RKnc23sw277m3MdD",
+          "rsc": true,
+          "prefetch": true,
+          "serverAction": false
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,262 @@
+{
+  "observedAt": "2026-11-04T09:25:30.037Z",
+  "rows": [
+    {
+      "control": "Capture Post populated draft",
+      "hitArea": {
+        "x": 195,
+        "y": 789,
+        "width": 358,
+        "height": 50,
+        "disabled": false,
+        "feedback": {
+          "firstMutation": 0,
+          "pressed": true
+        }
+      },
+      "doubleTap": true,
+      "queue": [
+        {
+          "operationId": "99933e7c-b17c-4d9e-83bd-da4822b2f770",
+          "caption": "Scoped queued caption fixture",
+          "state": "failed",
+          "copy": false,
+          "drink": false,
+          "snapshot": {
+            "id": "9c753500-5f94-4ef0-b3b3-5422d96e2803",
+            "images": [],
+            "completed": []
+          }
+        }
+      ],
+      "sheetClosed": true,
+      "scope": "Actual production handler, all unsafe HTTP blocked before network; durable local queue only"
+    },
+    {
+      "control": "Try again failed post",
+      "hitArea": {
+        "x": 43.01667022705078,
+        "y": 421.70001220703125,
+        "width": 54.03334045410156,
+        "height": 44,
+        "disabled": false,
+        "feedback": {
+          "firstMutation": 0,
+          "pressed": true
+        }
+      },
+      "doubleTap": true,
+      "queue": [
+        {
+          "operationId": "99933e7c-b17c-4d9e-83bd-da4822b2f770",
+          "caption": "Scoped queued caption fixture",
+          "state": "failed",
+          "copy": false,
+          "drink": false,
+          "snapshot": {
+            "id": "9c753500-5f94-4ef0-b3b3-5422d96e2803",
+            "images": [],
+            "completed": []
+          }
+        }
+      ],
+      "scope": "Actual failed local queued caption; retries blocked before network"
+    },
+    {
+      "control": "Saved meals Log now offline",
+      "hitArea": {
+        "x": 330.44166564941406,
+        "y": 601.5,
+        "width": 79.11666870117188,
+        "height": 34,
+        "disabled": false,
+        "feedback": {
+          "firstMutation": 0,
+          "pressed": true
+        }
+      },
+      "doubleTap": true,
+      "queue": [
+        {
+          "operationId": "464f536e-0fde-434b-a938-166b705f4d35",
+          "caption": "Scoped saved render fixture",
+          "state": "failed",
+          "copy": true,
+          "drink": false,
+          "snapshot": null
+        },
+        {
+          "operationId": "99933e7c-b17c-4d9e-83bd-da4822b2f770",
+          "caption": "Scoped queued caption fixture",
+          "state": "failed",
+          "copy": false,
+          "drink": false,
+          "snapshot": {
+            "id": "9c753500-5f94-4ef0-b3b3-5422d96e2803",
+            "images": [],
+            "completed": []
+          }
+        }
+      ],
+      "scope": "Scripted saved GET fixture, actual production offline copy handler, unsafe requests blocked"
+    },
+    {
+      "control": "Drink tile double tap",
+      "hitArea": {
+        "x": 75.66666412353516,
+        "y": 488,
+        "width": 111.33332824707031,
+        "height": 92,
+        "disabled": false,
+        "feedback": {
+          "firstMutation": 0,
+          "pressed": true
+        }
+      },
+      "doubleTap": true,
+      "queue": [
+        {
+          "operationId": "464f536e-0fde-434b-a938-166b705f4d35",
+          "caption": "Scoped saved render fixture",
+          "state": "failed",
+          "copy": true,
+          "drink": false,
+          "snapshot": null
+        },
+        {
+          "operationId": "99933e7c-b17c-4d9e-83bd-da4822b2f770",
+          "caption": "Scoped queued caption fixture",
+          "state": "failed",
+          "copy": false,
+          "drink": false,
+          "snapshot": {
+            "id": "9c753500-5f94-4ef0-b3b3-5422d96e2803",
+            "images": [],
+            "completed": []
+          }
+        },
+        {
+          "operationId": "fb12fd8d-6e94-4f8c-b337-c23d94f8acf3",
+          "caption": "Water, glass · 250 ml",
+          "state": "failed",
+          "copy": false,
+          "drink": true,
+          "snapshot": null
+        }
+      ],
+      "scope": "Actual production Water tile; unsafe requests blocked before network"
+    },
+    {
+      "cleanup": {
+        "removedLocalOperationIds": [
+          "464f536e-0fde-434b-a938-166b705f4d35",
+          "99933e7c-b17c-4d9e-83bd-da4822b2f770",
+          "fb12fd8d-6e94-4f8c-b337-c23d94f8acf3"
+        ],
+        "remaining": [],
+        "unsafeRequests": [
+          {
+            "url": "/",
+            "method": "POST",
+            "body": "[\"thumbs\"]"
+          },
+          {
+            "url": "/api/posts",
+            "method": "POST",
+            "body": "{\"operation_id\":\"9c753500-5f94-4ef0-b3b3-5422d96e2803\",\"capture_intent\":\"text\",\"not_eaten_positions\":[],\"save_as_meal\":false,\"caption\":\"Scoped queued caption fixture\",\"location\":null,\"eaten_at\":\"2026-11-04T09:24:48.930Z\",\"shots\":[]}"
+          },
+          {
+            "url": "/",
+            "method": "POST",
+            "body": "[\"thumbs\"]"
+          },
+          {
+            "url": "/",
+            "method": "POST",
+            "body": "[\"thumbs\"]"
+          },
+          {
+            "url": "/api/posts",
+            "method": "POST",
+            "body": "{\"operation_id\":\"9c753500-5f94-4ef0-b3b3-5422d96e2803\",\"capture_intent\":\"text\",\"not_eaten_positions\":[],\"save_as_meal\":false,\"caption\":\"Scoped queued caption fixture\",\"location\":null,\"eaten_at\":\"2026-11-04T09:24:51.146Z\",\"shots\":[]}"
+          },
+          {
+            "url": "/",
+            "method": "POST",
+            "body": "[\"thumbs\"]"
+          },
+          {
+            "url": "/",
+            "method": "POST",
+            "body": "[\"thumbs\"]"
+          },
+          {
+            "url": "/api/posts",
+            "method": "POST",
+            "body": "{\"operation_id\":\"9c753500-5f94-4ef0-b3b3-5422d96e2803\",\"capture_intent\":\"text\",\"not_eaten_positions\":[],\"save_as_meal\":false,\"caption\":\"Scoped queued caption fixture\",\"location\":null,\"eaten_at\":\"2026-11-04T09:24:57.367Z\",\"shots\":[]}"
+          },
+          {
+            "url": "/",
+            "method": "POST",
+            "body": "[\"thumbs\"]"
+          },
+          {
+            "url": "/api/posts",
+            "method": "POST",
+            "body": "{\"operation_id\":\"9c753500-5f94-4ef0-b3b3-5422d96e2803\",\"capture_intent\":\"text\",\"not_eaten_positions\":[],\"save_as_meal\":false,\"caption\":\"Scoped queued caption fixture\",\"location\":null,\"eaten_at\":\"2026-11-04T09:24:58.679Z\",\"shots\":[]}"
+          },
+          {
+            "url": "/api/posts",
+            "method": "POST",
+            "body": "{\"operation_id\":\"9c753500-5f94-4ef0-b3b3-5422d96e2803\",\"capture_intent\":\"text\",\"not_eaten_positions\":[],\"save_as_meal\":false,\"caption\":\"Scoped queued caption fixture\",\"location\":null,\"eaten_at\":\"2026-11-04T09:25:00.895Z\",\"shots\":[]}"
+          },
+          {
+            "url": "/api/posts",
+            "method": "POST",
+            "body": "{\"operation_id\":\"9c753500-5f94-4ef0-b3b3-5422d96e2803\",\"capture_intent\":\"text\",\"not_eaten_positions\":[],\"save_as_meal\":false,\"caption\":\"Scoped queued caption fixture\",\"location\":null,\"eaten_at\":\"2026-11-04T09:25:07.111Z\",\"shots\":[]}"
+          },
+          {
+            "url": "/",
+            "method": "POST",
+            "body": "[\"thumbs\"]"
+          },
+          {
+            "url": "/api/saved/11111111-1111-4111-8111-111111111111/log",
+            "method": "POST",
+            "body": "{\"operation_id\":\"464f536e-0fde-434b-a938-166b705f4d35\",\"owner_id\":\"98f58d0a-9e84-4b78-82c1-2617c067ef10\",\"eaten_at\":\"2026-11-04T09:25:08.977Z\"}"
+          },
+          {
+            "url": "/api/saved/11111111-1111-4111-8111-111111111111/log",
+            "method": "POST",
+            "body": "{\"operation_id\":\"464f536e-0fde-434b-a938-166b705f4d35\",\"owner_id\":\"98f58d0a-9e84-4b78-82c1-2617c067ef10\",\"eaten_at\":\"2026-11-04T09:25:08.977Z\"}"
+          },
+          {
+            "url": "/api/saved/11111111-1111-4111-8111-111111111111/log",
+            "method": "POST",
+            "body": "{\"operation_id\":\"464f536e-0fde-434b-a938-166b705f4d35\",\"owner_id\":\"98f58d0a-9e84-4b78-82c1-2617c067ef10\",\"eaten_at\":\"2026-11-04T09:25:08.977Z\"}"
+          },
+          {
+            "url": "/",
+            "method": "POST",
+            "body": "[\"thumbs\"]"
+          },
+          {
+            "url": "/api/intake/post?tz=America%2FEdmonton",
+            "method": "POST",
+            "body": "{\"tile\":0,\"ml\":250,\"eaten_at\":\"2026-11-04T09:25:20.417Z\",\"time_zone\":\"America/Edmonton\",\"operation_id\":\"fb12fd8d-6e94-4f8c-b337-c23d94f8acf3\",\"owner_id\":\"98f58d0a-9e84-4b78-82c1-2617c067ef10\"}"
+          },
+          {
+            "url": "/api/intake/post?tz=America%2FEdmonton",
+            "method": "POST",
+            "body": "{\"tile\":0,\"ml\":250,\"eaten_at\":\"2026-11-04T09:25:20.417Z\",\"time_zone\":\"America/Edmonton\",\"operation_id\":\"fb12fd8d-6e94-4f8c-b337-c23d94f8acf3\",\"owner_id\":\"98f58d0a-9e84-4b78-82c1-2617c067ef10\"}"
+          },
+          {
+            "url": "/api/intake/post?tz=America%2FEdmonton",
+            "method": "POST",
+            "body": "{\"tile\":0,\"ml\":250,\"eaten_at\":\"2026-11-04T09:25:20.417Z\",\"time_zone\":\"America/Edmonton\",\"operation_id\":\"fb12fd8d-6e94-4f8c-b337-c23d94f8acf3\",\"owner_id\":\"98f58d0a-9e84-4b78-82c1-2617c067ef10\"}"
+          }
+        ]
+      }
+    }
+  ]
+}

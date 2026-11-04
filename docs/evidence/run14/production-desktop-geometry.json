@@ -1,0 +1,98 @@
+{
+  "observedUtc": "2026-11-04T08:41:42.440Z",
+  "main": "a24587a1ec3b57a7b2bdfb5f69cce4e0e73602db",
+  "validatedTree": "501108d7d1af0cce724bcc5965cdfc9cf60139b6",
+  "browser": "Firefox BiDi, actual production, separate designated test account2 session",
+  "rows": [
+    {
+      "viewport": [
+        1100,
+        800
+      ],
+      "path": "/",
+      "hasNetworkBypass": false,
+      "shell": false,
+      "main": {
+        "left": 414,
+        "right": 914,
+        "width": 500
+      },
+      "workspace": {
+        "left": 266,
+        "right": 1062,
+        "width": 796
+      },
+      "today": {
+        "present": true,
+        "visible": false,
+        "left": 0,
+        "right": 0,
+        "width": 0
+      },
+      "leftMarginWithinWorkspace": 148,
+      "rightMarginWithinWorkspace": 148,
+      "firstPost": true,
+      "knownNutritionBeforeFirstPost": 0
+    },
+    {
+      "viewport": [
+        1280,
+        800
+      ],
+      "path": "/",
+      "hasNetworkBypass": false,
+      "shell": false,
+      "main": {
+        "left": 332,
+        "right": 832,
+        "width": 500
+      },
+      "workspace": {
+        "left": 332,
+        "right": 1176,
+        "width": 844
+      },
+      "today": {
+        "present": true,
+        "visible": true,
+        "left": 896,
+        "right": 1176,
+        "width": 280
+      },
+      "leftMarginWithinWorkspace": 0,
+      "rightMarginWithinWorkspace": 0,
+      "firstPost": true,
+      "knownNutritionBeforeFirstPost": 0
+    },
+    {
+      "viewport": [
+        1440,
+        800
+      ],
+      "path": "/",
+      "hasNetworkBypass": false,
+      "shell": false,
+      "main": {
+        "left": 412,
+        "right": 912,
+        "width": 500
+      },
+      "workspace": {
+        "left": 412,
+        "right": 1256,
+        "width": 844
+      },
+      "today": {
+        "present": true,
+        "visible": true,
+        "left": 976,
+        "right": 1256,
+        "width": 280
+      },
+      "leftMarginWithinWorkspace": 0,
+      "rightMarginWithinWorkspace": 0,
+      "firstPost": true,
+      "knownNutritionBeforeFirstPost": 0
+    }
+  ]
+}

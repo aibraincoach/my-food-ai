@@ -1,0 +1,49 @@
+SET
+         application_name          |         backend_type         | state  | count 
+-----------------------------------+------------------------------+--------+-------
+ PostgREST 14.5                    | client backend               | idle   |     7
+                                   | client backend               | idle   |     3
+ Supabase Storage API              | client backend               | idle   |     3
+ realtime_subscription_manager_pub | client backend               | idle   |     2
+ realtime_connect                  | client backend               | idle   |     2
+ realtime_subscription_manager     | client backend               | idle   |     1
+                                   | checkpointer                 |        |     1
+ pg_net 0.20.3                     | pg_net 0.20.3 worker         | idle   |     1
+ Supavisor                         | client backend               | active |     1
+                                   | archiver                     |        |     1
+ Supavisor (auth_query)            | client backend               | idle   |     1
+                                   | logical replication launcher |        |     1
+                                   | walwriter                    |        |     1
+ pg_cron scheduler                 | pg_cron launcher             |        |     1
+ postgres_exporter                 | client backend               | idle   |     1
+ realtime_rls                      | client backend               | idle   |     1
+                                   | autovacuum launcher          |        |     1
+                                   | background writer            |        |     1
+ realtime_replication_connection   | walsender                    | active |     1
+(19 rows)
+
+ shared_buffers 
+----------------
+ 256MB
+(1 row)
+
+ max_connections 
+-----------------
+ 60
+(1 row)
+
+ work_mem 
+----------
+ 3500kB
+(1 row)
+
+ effective_cache_size 
+----------------------
+ 768MB
+(1 row)
+
+ pg_size_pretty 
+----------------
+ 57 MB
+(1 row)
+

@@ -1,0 +1,121 @@
+{
+  "observedAt": "2026-11-04T09:33:34.318Z",
+  "scope": "Read-only service-role DB queries with explicit owner filter; no owner browser/session",
+  "date": "2026-11-03",
+  "zoneContract": "Days uses explicit tz or reader time-zone cookie, falling back UTC; grouping is eaten_at or logged_at converted with Intl IANA zone. Stored render_time_zone identifies original card capture zone, not a permanent owner preference.",
+  "targets": [
+    {
+      "postPrefix": "376e1cae",
+      "status": "ready",
+      "eatenAt": "2026-11-03T09:05:58.718+00:00",
+      "renderTimeZone": "America/Edmonton",
+      "deletedAt": "2026-11-03T09:06:00.313787+00:00"
+    },
+    {
+      "postPrefix": "7184bd65",
+      "status": "ready",
+      "eatenAt": "2026-11-03T09:04:45.422+00:00",
+      "renderTimeZone": "America/Edmonton",
+      "deletedAt": "2026-11-03T09:04:51.528208+00:00"
+    }
+  ],
+  "days": [
+    {
+      "zone": "America/Edmonton",
+      "source": "Stored card capture zone",
+      "postCount": 0,
+      "nutritionTotals": {
+        "calories": null,
+        "protein_g": null,
+        "carbs_g": null,
+        "fat_g": null,
+        "fibre_g": null,
+        "sugar_g": null,
+        "sodium_mg": null
+      },
+      "intakeTotals": {
+        "water": 0,
+        "caffeine": 0
+      },
+      "hydration": {
+        "drinksMl": 0,
+        "foodMl": 0,
+        "totalMl": 0,
+        "caffeineMg": 0
+      },
+      "colaContributions": [],
+      "colaCaffeineMg": 0
+    },
+    {
+      "zone": "Asia/Jakarta",
+      "source": "WIB reporting comparison",
+      "postCount": 1,
+      "nutritionTotals": {
+        "calories": 96.75,
+        "protein_g": 2.0025,
+        "carbs_g": 20.9925,
+        "fat_g": 0.21000000000000002,
+        "fibre_g": 0.30000000000000004,
+        "sugar_g": 0.037500000000000006,
+        "sodium_mg": 183
+      },
+      "intakeTotals": {
+        "water": 0,
+        "caffeine": 0
+      },
+      "hydration": {
+        "drinksMl": 0,
+        "foodMl": 40,
+        "totalMl": 40,
+        "caffeineMg": 0
+      },
+      "colaContributions": [],
+      "colaCaffeineMg": 0
+    },
+    {
+      "zone": "UTC",
+      "source": "UTC fallback comparison",
+      "postCount": 1,
+      "nutritionTotals": {
+        "calories": 96.75,
+        "protein_g": 2.0025,
+        "carbs_g": 20.9925,
+        "fat_g": 0.21000000000000002,
+        "fibre_g": 0.30000000000000004,
+        "sugar_g": 0.037500000000000006,
+        "sodium_mg": 183
+      },
+      "intakeTotals": {
+        "water": 0,
+        "caffeine": 0
+      },
+      "hydration": {
+        "drinksMl": 0,
+        "foodMl": 40,
+        "totalMl": 40,
+        "caffeineMg": 0
+      },
+      "colaContributions": [],
+      "colaCaffeineMg": 0
+    }
+  ],
+  "interpretation": "Both historical cola posts are soft-deleted. Their retained raw intake rows total64mg but visibleDrinkRows excludes their linked rows from current day totals. This is exclusion proof, not evidence of a64mg live-day contribution; do not restore owner data.",
+  "rawColaIntake": [
+    {
+      "kind": "caffeine",
+      "amount": 32,
+      "ml": 330,
+      "logged_at": "2026-11-03T09:04:45.422+00:00",
+      "source": "sheet",
+      "postPrefix": "7184bd65"
+    },
+    {
+      "kind": "caffeine",
+      "amount": 32,
+      "ml": 330,
+      "logged_at": "2026-11-03T09:05:58.718+00:00",
+      "source": "sheet",
+      "postPrefix": "376e1cae"
+    }
+  ]
+}
