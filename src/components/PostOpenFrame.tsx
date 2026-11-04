@@ -8,7 +8,8 @@ import type {FeedPost} from '@/lib/posts/feed';
 import PostDetailSkeleton from '@/components/PostDetailSkeleton';
 import PostActions from '@/components/PostActions';
 import PostCaption from '@/components/PostCaption';
-import {usePostHandle} from '@/components/PostHandle';
+import {usePostHandle,useProfileIdentity} from '@/components/PostHandle';
+import Avatar from '@/components/Avatar';
 import {Shimmer} from '@/components/ui/Shimmer';
 
 // Design 7b: the frame that shows in the same paint as the tap. It uses the
@@ -21,8 +22,10 @@ export default function PostOpenFrame({id,desktopModal=false}:{id:string;desktop
 }
 
 function Header({post,height}:{post:FeedPost;height:string}) {
- const handle=usePostHandle((post as {handle?:string}).handle);
- return <div className={`flex ${height} items-center gap-[10px] px-inset`}><span className="flex size-8 shrink-0 items-center justify-center rounded-circle bg-text text-avatar text-surface">{handle.slice(0,1).toUpperCase()}</span><span className="min-w-0 flex-1 truncate text-handle">{handle}</span></div>;
+ const seeded=(post as {handle?:string}).handle;
+ const handle=usePostHandle(seeded);
+ const identity=useProfileIdentity(seeded?{handle:seeded}:undefined);
+ return <div className={`flex ${height} items-center gap-[10px] px-inset`}><Avatar handle={handle} userId={identity.userId} mediaId={identity.avatarMediaId} sizePx={32} textClassName="text-avatar"/><span className="min-w-0 flex-1 truncate text-handle">{handle}</span></div>;
 }
 
 function Photo({post,desktop=false}:{post:FeedPost;desktop?:boolean}) {

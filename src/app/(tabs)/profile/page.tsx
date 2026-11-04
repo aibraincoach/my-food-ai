@@ -13,6 +13,7 @@ import { connection } from "next/server";
 import { redirect } from "next/navigation";
 import { ProfileGrid } from "@/components/ProfileGrid";
 import { SignOutButton } from "@/components/SignOutButton";
+import ProfileAvatarControl from "@/components/ProfileAvatarControl";
 import { getProfileGrid } from "@/lib/posts/grid";
 import { createClient } from "@/lib/supabase/server";
 
@@ -24,7 +25,7 @@ export default async function ProfilePage({searchParams}:{searchParams:Promise<{
   const user = verified ? {id: verified} : (await supabase.auth.getUser()).data.user;
   if (!user) redirect("/sign-in");
   const [{ data: profile, error }, posts] = await Promise.all([
-    supabase.from("profiles").select("handle").eq("id", user.id).single(),
+    supabase.from("profiles").select("handle,avatar_media_id").eq("id", user.id).single(),
     getProfileGrid(supabase, user.id),
   ]);
   if (error) throw new Error("Profile could not be loaded.");
@@ -37,7 +38,7 @@ export default async function ProfilePage({searchParams}:{searchParams:Promise<{
   return (
     <DesktopWorkspace width={820} detail={post?<Suspense key={post} fallback={<PostOpenFrame id={post} desktopModal/>}><PostDetail id={post} desktopModal/></Suspense>:undefined}><main className="flex flex-1 flex-col desktop:pt-4">
       <header className="flex h-top-safe shrink-0 items-center justify-between gap-3 px-screen-x desktop:h-[88px] desktop:gap-6 desktop:px-0">
-        <span className="hidden desktop:flex desktop:size-[88px] desktop:shrink-0 desktop:items-center desktop:justify-center desktop:rounded-circle desktop:bg-text desktop:text-[32px] desktop:font-semibold desktop:text-surface" aria-hidden="true">{profile.handle.slice(0,1).toUpperCase()}</span>
+        <ProfileAvatarControl userId={user.id} handle={profile.handle} initialMediaId={profile.avatar_media_id ?? null} />
         <div className="min-w-0 desktop:flex-1"><h1 className="truncate text-title desktop:text-[24px]"><span className="desktop:hidden">@</span>{profile.handle}</h1><div className="hidden desktop:mt-3 desktop:flex desktop:gap-2"><ConnectAgentRow userId={user.id} desktopButton/><SavedMealsButton/><SignOutButton desktopButton/></div></div>
         <div className="desktop:hidden"><SignOutButton /></div>
       </header>
