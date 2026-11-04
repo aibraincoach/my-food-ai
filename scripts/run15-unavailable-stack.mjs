@@ -67,7 +67,7 @@ try{
  // Scope the empty cache read to this process; no shared cache row is deleted.
  const pipelineAdmin=new Proxy(admin,{get(target,key){
   if(key==='from')return table=>{
-   if(table==='fdc_cache')return{select(){return this},eq(){return this},abortSignal(){return this},async maybeSingle(){return{data:null,error:null}},async upsert(){return{data:null,error:null}}};
+   if(table==='fdc_cache')return{select(){return this},eq(){return this},abortSignal(){return this},async maybeSingle(){return{data:null,error:null}},upsert(){return{abortSignal(){return this},then(resolve){return Promise.resolve({data:null,error:null}).then(resolve)}}}};
    return target.from(table);
   };
   const value=target[key];return typeof value==='function'?value.bind(target):value;
