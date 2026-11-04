@@ -56,7 +56,7 @@ export default function Feed({initialPage, initialUserId, initialZone = "UTC", f
   const cachedListener = useRef<(posts: FeedPost[], ownerId: string | null) => void>(() => {});
   useEffect(() => { if (cache.cached) cachedListener.current(cache.cached, cache.userId); }, [cache.cached, cache.userId]);
   const [fallbackRetired, setFallbackRetired] = useState<Set<string>>(new Set());
-  const uploads=useUploads().filter(upload=>upload.posted);
+  const uploads=useUploads().filter(upload=>upload.posted&&!upload.attachment);
   const sentinel = useRef<HTMLDivElement>(null);
   const loadMore = useRef<() => void>(()=>{});
   const [state, setState] = useState<State>(initialPage ? {kind: "ready", posts: initialPage.posts, days: initialPage.days} : { kind: "loading" });
@@ -87,7 +87,7 @@ export default function Feed({initialPage, initialUserId, initialZone = "UTC", f
     const supabase = createClient();
     const zone = Intl.DateTimeFormat().resolvedOptions().timeZone;
     const dayTotals = new Map<string, FeedDayTotal>((initialZone === zone ? initialPage?.days ?? [] : []).map(day => [day.day, day]));
-    const uploadDaysToRead=new Set(uploadManager.list().filter(upload=>upload.posted).map(upload=>dateInZone(upload.eatenAt,zone)));
+    const uploadDaysToRead=new Set(uploadManager.list().filter(upload=>upload.posted&&!upload.attachment).map(upload=>dateInZone(upload.eatenAt,zone)));
     const mergeDays = (days: FeedDayTotal[]) => { for (const day of days) dayTotals.set(day.day, day); };
     let live = true;
     let userId: string | null = initialUserId ?? null;
