@@ -105,10 +105,10 @@ async function HomeFeed() {
       if (!user) return undefined;
       const zone = validZone((await cookies()).get('time-zone')?.value);
       const [page, days] = await Promise.all([
-        getFeed(db, user.id, null, zone, 6, {summaries: false, onFirstPhoto: url => preload(url, {as:'image',fetchPriority:'high',crossOrigin:'anonymous'})}),
+        getFeed(db, user.id, null, zone, 6, {knownDays: Array.from({length: 5}, (_, index) => shiftDay(dateInZone(new Date(), zone), -index)), onFirstPhoto: url => preload(url, {as:'image',fetchPriority:'high',crossOrigin:'anonymous'})}),
         homeDayTotals().catch(() => []),
       ]);
-      page.days = days;
+      page.days = [...days, ...page.days];
       return {page, userId: user.id, zone};
     })());
     initialPage = seed?.page;
