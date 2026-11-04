@@ -42,10 +42,11 @@ export function drinksFromItems(items: readonly DrinkItem[]): ItemDrink[] {
     const ml = Math.min(5000, Math.round(volume ? Number(volume[1]) : toNumber(item.portion_grams)));
     // A fully uneaten drink contributes no intake, rather than one phantom ml.
     if (!Number.isFinite(ml) || ml < 1) return [];
-    const nutrient = keepsCaffeine(item) ? item.micronutrients?.find(n => n.nutrientId === 1057 && n.basis === 'portion') : undefined;
-    const fallback = !nutrient && /\b(coca[- ]?cola|coke|cola|pepsi)\b/i.test(item.name) ? 32 * ml / 330 : 0;
+    const measured = item.micronutrients?.find(n => n.nutrientId === 1057 && n.basis === 'portion');
+    const nutrient = keepsCaffeine(item) ? measured : undefined;
+    const fallback = !measured && keepsCaffeine(item) && /\b(coca[- ]?cola|coke|cola|pepsi)\b/i.test(item.name) ? 32 * ml / 330 : 0;
     const caffeineMg = Math.min(1000, Math.max(0, Math.round(nutrient ? toNumber(nutrient.value) : fallback)));
-    if(isAlcoholic(item))return [{post_item_id:item.id,kind:'alcohol' as const,amount:Math.max(1,Math.round(alcoholGrams(item.micronutrients))),ml,label:item.name.trim().slice(0,40)||'Drink',caffeineMg,alcoholG:alcoholGrams(item.micronutrients)}];
+    if(isAlcoholic(item))return [{post_item_id:item.id,kind:'alcohol' as const,amount:Math.min(500,Math.max(1,Math.round(alcoholGrams(item.micronutrients)))),ml,label:item.name.trim().slice(0,40)||'Drink',caffeineMg,alcoholG:alcoholGrams(item.micronutrients)}];
     return [{ post_item_id: item.id, kind: caffeineMg >= 1 ? 'caffeine' as const : 'water' as const,
       amount: caffeineMg >= 1 ? caffeineMg : ml, ml, label: item.name.trim().slice(0, 40) || 'Drink', caffeineMg, alcoholG:0 }];
   });

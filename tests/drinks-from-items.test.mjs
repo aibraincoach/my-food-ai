@@ -166,3 +166,13 @@ test('alcohol keeps caffeine only when its name contains a caffeine source',()=>
  assert.equal(drinksFromItems([make('Rum and coke','Liquor and cocktails',20)])[0].caffeineMg,20);
  assert.equal(drinksFromItems([make('Coffee','Coffee',95)])[0].caffeineMg,95);
 });
+
+
+test('alcohol respects caffeine exclusions and zero measurements while capping intake only',()=>{
+ const alcoholic=(name,micronutrients)=>item({name,food_category:'Liquor and cocktails',portion_text:'330 ml',micronutrients});
+ const caffeine=value=>({nutrientId:1057,unitName:'MG',basis:'portion',value});
+ assert.equal(drinksFromItems([alcoholic('herbal tea cocktail',[caffeine(20)])])[0].caffeineMg,0);
+ assert.equal(drinksFromItems([alcoholic('rum and cocacola',[caffeine(0)])])[0].caffeineMg,0);
+ const [strong]=drinksFromItems([alcoholic('Strong cocktail',[{nutrientId:1018,unitName:'G',basis:'portion',value:630}])]);
+ assert.equal(strong.amount,500);assert.equal(strong.alcoholG,630);
+});
