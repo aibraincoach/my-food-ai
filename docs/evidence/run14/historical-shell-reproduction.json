@@ -1,0 +1,187 @@
+{
+  "observedUtc": "2026-11-04T09:23:41.665Z",
+  "scope": "Late historical immutable production-deployment reproduction, after Fleet14 already shipped. Own isolated context only; no existing targets listed, read or driven.",
+  "deployment": "dpl_2CxQa5FWdy2GPTuZ2cqTZxcVm9nD",
+  "source": "299f13a49af5320cb81d4cdf4e9de14263214a96",
+  "origin": "https://my-food-4u05rpjrg-aibraincoachs-projects.vercel.app",
+  "metadataVerifiedBeforeRun": true,
+  "rows": [
+    {
+      "latencyMsOnPageAndWorker": 2500,
+      "elapsedMs": 3854,
+      "path": "/",
+      "query": "",
+      "shell": true,
+      "mainWidth": 1025,
+      "todayPresent": false,
+      "todayVisible": false,
+      "controller": true,
+      "documentResponses": [
+        {
+          "url": "/",
+          "type": "Document",
+          "status": 200,
+          "fromServiceWorker": true,
+          "time": 1793784225327
+        }
+      ]
+    },
+    {
+      "latencyMsOnPageAndWorker": 0,
+      "elapsedMs": 2871,
+      "path": "/",
+      "query": "",
+      "shell": false,
+      "mainWidth": 500,
+      "todayPresent": true,
+      "todayVisible": true,
+      "controller": true,
+      "documentResponses": [
+        {
+          "url": "/",
+          "type": "Document",
+          "status": 200,
+          "fromServiceWorker": true,
+          "time": 1793784227918
+        }
+      ]
+    }
+  ],
+  "blockedWrites": [
+    {
+      "method": "POST",
+      "path": "/",
+      "origin": "app"
+    },
+    {
+      "method": "POST",
+      "path": "/",
+      "origin": "app"
+    },
+    {
+      "method": "POST",
+      "path": "/",
+      "origin": "app"
+    },
+    {
+      "method": "POST",
+      "path": "/",
+      "origin": "app"
+    },
+    {
+      "method": "POST",
+      "path": "/",
+      "origin": "app"
+    },
+    {
+      "method": "POST",
+      "path": "/",
+      "origin": "app"
+    },
+    {
+      "method": "POST",
+      "path": "/",
+      "origin": "app"
+    },
+    {
+      "method": "POST",
+      "path": "/",
+      "origin": "app"
+    },
+    {
+      "method": "POST",
+      "path": "/",
+      "origin": "app"
+    },
+    {
+      "method": "POST",
+      "path": "/",
+      "origin": "app"
+    }
+  ],
+  "workerAttached": true,
+  "workerVersions": [
+    {
+      "status": "new",
+      "runningStatus": "stopped"
+    },
+    {
+      "status": "new",
+      "runningStatus": "stopped"
+    },
+    {
+      "status": "new",
+      "runningStatus": "starting"
+    },
+    {
+      "status": "new",
+      "runningStatus": "starting"
+    },
+    {
+      "status": "installing",
+      "runningStatus": "starting"
+    },
+    {
+      "status": "installing",
+      "runningStatus": "running"
+    },
+    {
+      "status": "installed",
+      "runningStatus": "running"
+    },
+    {
+      "status": "activating",
+      "runningStatus": "running"
+    },
+    {
+      "status": "activating",
+      "runningStatus": "running"
+    },
+    {
+      "status": "activated",
+      "runningStatus": "running"
+    },
+    {
+      "status": "activated",
+      "runningStatus": "running"
+    },
+    {
+      "status": "activated",
+      "runningStatus": "running"
+    },
+    {
+      "status": "activated",
+      "runningStatus": "running"
+    },
+    {
+      "status": "activated",
+      "runningStatus": "running"
+    }
+  ],
+  "cookieSetupAccepted": true,
+  "workerSetupAccepted": true,
+  "initial": {
+    "controller": true,
+    "path": "/",
+    "mainWidth": 500,
+    "today": true
+  },
+  "outcome": "Historical deployment reproduces shell layout divergence under controlled latency; this does not prove the cause of the owner\u2019s earlier screenshot.",
+  "ownContextDisposed": true,
+  "driverErrors": [],
+  "finishedUtc": "2026-11-04T09:23:50.558Z",
+  "attempts": [
+    {
+      "attempt": 1,
+      "outcome": "Driver failure; no layout conclusion",
+      "error": "Worker setup: Inspected target navigated or closed",
+      "ownContextDisposed": true
+    },
+    {
+      "attempt": 2,
+      "outcome": "Completed two latency observations",
+      "ownContextDisposed": true
+    }
+  ],
+  "precondition_explanation": "The successful driver waited for a controlling service worker, an existing cached /shell response, and control-cache mode active with locked=false before collecting either row."
+}
