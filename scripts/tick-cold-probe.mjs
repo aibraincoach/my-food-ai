@@ -10,5 +10,13 @@ let bypass=option('bypass',null);const privateFile=option('bypass-file',null);if
 async function latest(){const u=new URL('https://api.vercel.com/v6/deployments');u.searchParams.set('projectId','my-food-ai');u.searchParams.set('limit','20');if(!preview)u.searchParams.set('target','production');const branch=option('branch',null);if(branch)u.searchParams.set('meta-githubCommitRef',branch);const r=await fetch(u,{headers:{Authorization:`Bearer ${token}`},signal:AbortSignal.timeout(30000)});if(!r.ok)throw Error(`Deployments API HTTP ${r.status}`);return (await r.json()).deployments?.[0];}
 let d=await latest();if(args.includes('--wait-for-deploy')){const previous=d?.uid;console.log(JSON.stringify({waitingAfter:previous}));for(;;){await sleep(5000);try{const next=await latest();if(next?.uid!==previous&&next?.readyState==='READY'){d=next;break;}}catch(error){console.error(error.message);}}}
 if(!d||d.readyState!=='READY')throw Error('No READY deployment selected');
+// READY precedes production alias assignment. Label only the deployment actually
+// serving the requested base; immutable deployment URLs need no alias lookup.
+if(new URL(base).hostname!==d.url){
+ const alias=new URL(base).hostname;const until=Date.now()+120000;let assigned=false;
+ while(Date.now()<until){const r=await fetch(`https://api.vercel.com/v4/aliases/${encodeURIComponent(alias)}`,{headers:{Authorization:`Bearer ${token}`},signal:AbortSignal.timeout(30000)});if(!r.ok)throw Error(`Alias API HTTP ${r.status}`);const a=await r.json();if((a.deploymentId??a.deployment?.id)===d.uid){assigned=true;break;}await sleep(1000);}
+ if(!assigned)throw Error('Requested alias did not point to selected deployment; no tick samples taken');
+}
+
 const rows=[];for(let i=0;i<3;i++){if(i)await sleep(1000);const started=performance.now();let row;try{const r=await fetch(new URL('/api/jobs/tick',base),{headers:bypass?{'x-vercel-protection-bypass':bypass}:{},signal:AbortSignal.timeout(30000)});await r.arrayBuffer();row={http:r.status,cold:r.headers.get('x-tick-cold'),totalMs:performance.now()-started};}catch{row={error:'Tick failed or timed out',totalMs:performance.now()-started};}rows.push(row);console.log(JSON.stringify(row));}
 await mkdir(dirname(output),{recursive:true});await writeFile(output,JSON.stringify({observedAt:new Date().toISOString(),deployment:d.uid,commit:d.meta?.githubCommitSha,rows},null,2)+'\n');
