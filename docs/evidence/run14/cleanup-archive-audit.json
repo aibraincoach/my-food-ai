@@ -1,0 +1,53 @@
+{
+  "scope": "Eight per-worktree evidence-only archives, no dependencies/private env/browser/session/PG/object archives",
+  "archives": [
+    {
+      "archive": "uploads/cleanup-evidence/run14-a-evidence.tar.gz",
+      "members": 1,
+      "bytes": 468,
+      "sha256": "67eb1f601a612beb6b90f1087690e8c469b0b2de8005fd0265b5a2e373fb52b4"
+    },
+    {
+      "archive": "uploads/cleanup-evidence/run14-b-evidence.tar.gz",
+      "members": 1,
+      "bytes": 464,
+      "sha256": "af0088df2f96aa6235ad3881f471692164d25d1df2028e03f54bb137c05f6fdf"
+    },
+    {
+      "archive": "uploads/cleanup-evidence/run14-c-evidence.tar.gz",
+      "members": 1,
+      "bytes": 463,
+      "sha256": "114fbf9abd66c0b2adb1ebfaea696dd44a77d2ac76d91cee043f317ad06f0cac"
+    },
+    {
+      "archive": "uploads/cleanup-evidence/run14-d-evidence.tar.gz",
+      "members": 4,
+      "bytes": 31844,
+      "sha256": "65d2de9b54651e208581465bb738d4d72862ea0f3a8129407f77d7474d80cf9d"
+    },
+    {
+      "archive": "uploads/cleanup-evidence/run14-e-evidence.tar.gz",
+      "members": 1,
+      "bytes": 465,
+      "sha256": "2b4527e9f467af824fd7a278466fbeeffba715c7cd77c1ca945dbb35f1c998dc"
+    },
+    {
+      "archive": "uploads/cleanup-evidence/run14-h-evidence.tar.gz",
+      "members": 2,
+      "bytes": 1254,
+      "sha256": "8b4bf61dfa0e715e2a1869442d9017d82a4bbde140be26e0502f139729b4d8ac"
+    },
+    {
+      "archive": "uploads/cleanup-evidence/run14-integration-evidence.tar.gz",
+      "members": 1,
+      "bytes": 477,
+      "sha256": "7c5fdf2c2f95a0027a6f0e6b1c22fee0adf84d2957e04b2c0bb214074e92df05"
+    },
+    {
+      "archive": "uploads/cleanup-evidence/run14-probe-evidence.tar.gz",
+      "members": 1,
+      "bytes": 470,
+      "sha256": "e1bf458bf244cd5afce77b44bd6034bc01bcf8b1538e3d02b6a7287fc491962d"
+    }
+  ]
+}
