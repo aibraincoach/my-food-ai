@@ -5,7 +5,7 @@ import DesktopToday from '@/components/DesktopToday';
 import DesktopWorkspace from '@/components/DesktopWorkspace';
 import DesktopHomeFrame from '@/components/DesktopHomeFrame';
 import PostDetail from '@/components/PostDetail';
-import PostDetailSkeleton from '@/components/PostDetailSkeleton';
+import PostOpenFrame from '@/components/PostOpenFrame';
 import SavedMealsButton from '@/components/SavedMealsButton';
 import { connection } from "next/server";
 import { cache, Suspense } from "react";
@@ -123,7 +123,7 @@ async function HomeToday(){await connection();const zone=(await cookies()).get('
 
 export default async function Home({searchParams}:{searchParams:Promise<{post?:string}>}) {
   const {post}=await searchParams;
-  return <DesktopWorkspace width={844} detail={post?<Suspense key={post} fallback={<PostDetailSkeleton/>}><PostDetail id={post} desktopModal/></Suspense>:undefined}><DesktopHomeFrame today={<Suspense fallback={null}><HomeToday/></Suspense>}><CleanFreshMarker />
+  return <DesktopWorkspace width={844} detail={post?<Suspense key={post} fallback={<PostOpenFrame id={post} desktopModal/>}><PostDetail id={post} desktopModal/></Suspense>:undefined}><DesktopHomeFrame today={<Suspense fallback={null}><HomeToday/></Suspense>}><CleanFreshMarker />
     <header className="desktop:hidden sticky top-0 z-20 flex h-top-safe items-center bg-surface px-inset"><h1 className="flex-1 text-title">My Food AI</h1><SavedMealsButton/></header>
     <NeedsInputStrip />
     <Suspense fallback={<div className="h-bar-h" />}><HomeDays /></Suspense>

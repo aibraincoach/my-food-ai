@@ -1,0 +1,4 @@
+Triage reviewer: Codex lane C; reviewed head 0a8707476b0706973bd6dff5e2f12ece697a3a21
+1. Real — completed pending desktop selections could reactivate on history return. Retire pending state when the selection changes, clear it on popstate, and avoid creating pending state for the already-selected meal. Native Firefox BiDi verifies open→complete→Back, Forward and close→complete→Back.
+2. Real — the phone preview stayed click-through beyond the double-tap window. Commit events now switch the cover to intercept input, retaining click-through only while the photo gesture is undecided. The visible Feed link cancels with a document navigation, which reliably abandons an in-flight App Router navigation; a same-path router.push was observed not to cancel it. Native Firefox BiDi verifies zero hidden-feed clicks after commit; final cancel/double-tap rerun remains part of the next-head validation.
+Real findings: 2
