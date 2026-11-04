@@ -8,7 +8,7 @@ Observed 2026-11-04. **Main** includes #619 (`3b65a256`) and #620 (`58d235f9`). 
 |---|------|------|----------|
 | 1 | Lane A — #370 close wait 700 ms | **Done** | Merge `3b65a2565913b093c34c3c2ed5bb87de748e52c7`; **R4 pass** (below) |
 | 2 | Lane C — #615 visible question | **Done** | Merge `58d235f94d100d206729b2981756413767627b81`; migration **0056** applied; **R6 pass** (below) |
-| 3 | Lane D — docs | **Done** (open PR) | #621: doc fixes, report, evidence, `run17-checks.mjs`; `plan-run17.md` remains a dispatch pointer (full verbatim text is the owner prompt stamped 22:58 WIB) |
+| 3 | Lane D — docs | **Done** (open PR) | #621: doc fixes, report, evidence, `run17-checks.mjs`, `plan-run17.md` |
 
 ## Readings
 
@@ -44,8 +44,8 @@ Not recorded in automation: explicit push payload log line, Days panel kcal snap
 
 | PR | Merge | Receipts |
 |----|-------|----------|
-| [#619](https://github.com/aibraincoach/my-food-ai/pull/619) | `3b65a2565913b093c34c3c2ed5bb87de748e52c7` | PPLX/AGY/Codex: not posted this session |
-| [#620](https://github.com/aibraincoach/my-food-ai/pull/620) | `58d235f94d100d206729b2981756413767627b81` | PPLX/AGY/Codex: not posted this session |
+| [#619](https://github.com/aibraincoach/my-food-ai/pull/619) | `3b65a2565913b093c34c3c2ed5bb87de748e52c7` | AGY posted ([comment](https://github.com/aibraincoach/my-food-ai/pull/619#issuecomment-6635969255), head `8c3707a6`); PPLX failed (incognito Perplexity, no ask input); Codex not run |
+| [#620](https://github.com/aibraincoach/my-food-ai/pull/620) | `58d235f94d100d206729b2981756413767627b81` | AGY posted ([comment](https://github.com/aibraincoach/my-food-ai/pull/620#issuecomment-6636250771), head `03d64c6f`, BLOCKERS: NONE); PPLX failed (same); Codex not run |
 | [#621](https://github.com/aibraincoach/my-food-ai/pull/621) | open | docs lane — none |
 
 ## Find-text skips
