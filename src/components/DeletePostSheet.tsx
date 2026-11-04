@@ -26,7 +26,7 @@ export default function DeletePostSheet(){
  const weekday=post?new Intl.DateTimeFormat('en-US',{weekday:'long'}).format(new Date(post.eaten_at)):'';
  const calories=post?sumNutrition(post.items).calories:null;
  return <><Sheet confirmation open={Boolean(id)} onClose={()=>{if(!lock.current)setId(null);}} label="Delete this post?">
-  <h2 className="pt-2 text-sheet-head">Delete this post?</h2><p className="text-[15px] leading-[1.5] text-muted">“{caption}” and its photos, comments and record are removed.{post&&<> {weekday}’s consumed total {calories===null?'will be updated.':<>goes down by {formatCalories(calories,'en-US')} kcal.</>}</>}</p>
+  <h2 className="pt-2 text-sheet-head">Delete this post?</h2><p className="text-[15px] leading-[1.5] text-muted">“{caption}” and its photos, comments and record are removed.{post&&<> {weekday}’s consumed total {calories===null?'will be updated.':<>goes down by {formatCalories(calories)} kcal.</>}</>}</p>
   {post?.saved_meal_id&&<p className="text-[15px] leading-[1.5] text-muted">The saved meal “{caption}” is not affected.</p>}
   {error&&<p role="alert" className="text-meta text-muted">{error}</p>}
   <button type="button" disabled={busy} onClick={()=>void remove()} className="mt-2 h-12 rounded-field text-[15px] font-semibold text-white disabled:opacity-50" style={{background:'oklch(0.52 0.17 25)'}}>{busy?'Deleting…':'Delete post'}</button>

@@ -8,7 +8,7 @@ import type { MonthSummary } from "@/lib/posts/days";
 export function monthName(month: string, year = false) {
   return new Date(`${month}-01T12:00:00Z`).toLocaleDateString("en", { timeZone: "UTC", month: "long", ...(year ? { year: "numeric" } : {}) });
 }
-export function formatDayKcal(value: number | null) { return formatCalories(value,"en"); }
+export function formatDayKcal(value: number | null) { return formatCalories(value); }
 export function postedLabel(count: number) { return count === 0 ? "No days posted" : `${count} ${count === 1 ? "day" : "days"} posted`; }
 
 export default function MonthGrid({ month, summary, today, selected, onDay, onOpenDay }: { month: string; summary: MonthSummary; today: string; selected?: string; onDay: (date: string, cell: HTMLElement) => void; onOpenDay?: (date:string)=>void }) {
