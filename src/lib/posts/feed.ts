@@ -134,10 +134,10 @@ export async function toFeedPost(
   supabase: SupabaseClient,
   row: PostRow,
   zone?: string,
-  known?: {items: FeedItem[]; revisionBefore: Awaited<ReturnType<typeof latestRevision>>}
+  known?: {items: FeedItem[]; revisionBefore: Awaited<ReturnType<typeof latestRevision>>; media?: {id:string;storage_path:string;kind:string;not_eaten:boolean}[]}
 ): Promise<FeedPost> {
   const revisionBefore=known?known.revisionBefore:row.status==="ready"?await latestRevision(supabase,row.id):null;
-  const { data: media, error: mediaError } = await supabase.from("post_media")
+  const { data: media, error: mediaError } = known?.media ? {data:known.media,error:null} : await supabase.from("post_media")
     .select("id,storage_path,kind,not_eaten").eq("post_id",row.id).order("position");
   if(mediaError) throw new Error(mediaError.message);
   const slides = (await Promise.all((media ?? []).map(async (entry) => {

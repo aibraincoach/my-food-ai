@@ -114,11 +114,12 @@ export async function getPostDetail(supabase: SupabaseClient, postId: string, zo
   if (!post) return null;
   // The card's revision fence must be read before the items it guards.
   const revisionBefore = post.status === "ready" ? await latestRevision(supabase, postId) : null;
-  const [current, { data: media, error: mediaError }] = await Promise.all([
+  const [current, { data: mediaRows, error: mediaError }] = await Promise.all([
     getCurrentItems(supabase, postId),
-    supabase.from("post_media").select("id,storage_path,width,height").eq("kind", "photo").eq("post_id", postId).order("position").limit(1).maybeSingle(),
+    supabase.from("post_media").select("id,storage_path,kind,not_eaten,width,height").eq("post_id", postId).order("position"),
   ]);
   if (mediaError) throw new Error("Meal photo could not be loaded.");
+  const media = mediaRows?.find(entry => entry.kind === "photo");
   const [signed, items] = await Promise.all([
     media ? supabase.storage.from("media").createSignedUrl(media.storage_path, 3600) : Promise.resolve(null),
     Promise.all(current.map(async (item): Promise<DetailItem> => {
@@ -142,9 +143,10 @@ export async function getPostDetail(supabase: SupabaseClient, postId: string, zo
   const identification=post.identify_model&&post.identify_host
     ? {model:post.identify_model,host:post.identify_host} : null;
   // shortcut: a failed Baseten trace for this post means Muse Spark Open was requested; a later failed retry can also set it.
-  const {data:openFailure}=identification?.host==='meta'?await createAdminClient().from('model_calls').select('id').eq('post_id',postId).eq('host','baseten').eq('kind','spark_identify').not('error','is',null).limit(1).maybeSingle():{data:null};
+  const {data:openFailure,error:openFailureError}=identification?.host==='meta'?await createAdminClient().from('model_calls').select('id').eq('post_id',postId).eq('host','baseten').eq('kind','spark_identify').not('error','is',null).limit(1).abortSignal(AbortSignal.timeout(8000)).maybeSingle():{data:null,error:null};
+  if(openFailureError)throw new Error('Meal identification could not be loaded.');
   const card = post.needs_input == null || post.status === "failed"
-    ? { ...(await toFeedPost(supabase, post, zone, { items: current, revisionBefore })), ...hydrated } : null;
+    ? { ...(await toFeedPost(supabase, post, zone, { items: current, revisionBefore, media: mediaRows ?? [] })), ...hydrated } : null;
   return { post, photo, items, identification: identification ?? null, openFallback: Boolean(openFailure), card, isDrink: hydrated.kind === "drink" && hydrated.drinkSource !== "item", ...hydrated,
     cardData: cardDataFromRow({ ...post, items, ...hydrated }) };
 }
