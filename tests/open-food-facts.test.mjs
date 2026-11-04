@@ -13,3 +13,10 @@ test('OFF missing and nutritionally empty products are unusable',()=>{
  assert.equal(productFromOff({status:0},'7622300761363'),null);
  assert.equal(productFromOff({status:1,product:{product_name:'Empty',nutriments:{}}},'7622300761363'),null);
 });
+
+test('OFF liquid package quantities use ml and solid quantities use g',()=>{
+ for(const quantity of ['500ml','1L','330mL','500 ml','33cl','200g','1 kg']){
+  const p=productFromOff({status:1,product:{product_name:'Product',quantity,nutriments:{'energy-kcal_100g':100}}},'7622300761363');
+  assert.ok(p);assert.equal(p.basisUnit,['200g','1 kg'].includes(quantity)?'g':'ml',quantity);
+ }
+});

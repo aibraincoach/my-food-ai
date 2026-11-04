@@ -24,7 +24,7 @@ export function productFromOff(body: unknown, gtin: string): BarcodeProduct | nu
   if (!name) return null;
   const quantity = typeof p.quantity === "string" ? p.quantity.trim() : "";
   const servingQty = num(p.serving_quantity);
-  const basisUnit: "g" | "ml" = /\bm?l\b/i.test(quantity) && !/\bk?g\b/i.test(quantity) ? "ml" : "g";
+  const basisUnit: "g" | "ml" = /(?:\d|\b)\s*[mcd]?l\b/i.test(quantity) && !/(?:\d|\b)\s*k?g\b/i.test(quantity) ? "ml" : "g";
   return {
     attribution: "off", fdcId: 0, gtin, name, brand: typeof p.brands === "string" && p.brands.trim() ? p.brands.split(",")[0].trim() : null,
     foodCategory: null, basisUnit,
