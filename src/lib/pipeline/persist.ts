@@ -106,26 +106,18 @@ export async function persistAnalysis(
     p_summary: summary,
     p_needs_input: named.needsInput ?? null,
   };
-  if(approximations.length){
-    // Re-analysis keeps its first model comment. Confirm its new source label
-    // while the post is processing, before the persistence RPC can publish it.
-    const {data:previous,error:summaryReadError,status:summaryReadStatus}=await admin.from('post_comments').select('id').eq('post_id',named.postId).eq('author','model').order('created_at').limit(1).maybeSingle();
-    if(summaryReadError)throw ioError('Nutrition summary could not be read.',summaryReadError,summaryReadStatus);
-    if(previous){
-      const {error:summaryError,status:summaryStatus}=await admin.from('post_comments').update({body:summary}).eq('id',previous.id);
-      if(summaryError)throw ioError('Nutrition summary could not be saved.',summaryError,summaryStatus);
-    }
-  }
   const legacyRpc = named.labelNutrition ? "persist_owned_label" : "persist_owned_analysis";
-  let result = named.identification
-    ? await admin.rpc("persist_identified_analysis", {...args,
-      // Label-derived item names have no food-identify provenance to claim.
-      p_identify_model: named.labelNutrition ? null : named.identification.model,
-      p_identify_host: named.labelNutrition ? null : named.identification.host,
-      p_is_label: Boolean(named.labelNutrition),
-    })
-    : await admin.rpc(legacyRpc,args);
-  if(result.error && ["PGRST202","42883"].includes(result.error.code) && /persist_identified_analysis/.test(result.error.message)) {
+  const identificationArgs={...args,
+    p_identify_model:named.labelNutrition?null:named.identification?.model??null,
+    p_identify_host:named.labelNutrition?null:named.identification?.host??null,
+    p_is_label:Boolean(named.labelNutrition),
+  };
+  let result = approximations.length
+    ? await admin.rpc("persist_approximated_analysis",identificationArgs)
+    : named.identification
+      ? await admin.rpc("persist_identified_analysis",identificationArgs)
+      : await admin.rpc(legacyRpc,args);
+  if(!approximations.length && result.error && ["PGRST202","42883"].includes(result.error.code) && /persist_identified_analysis/.test(result.error.message)) {
     // Migration-before-merge is the deployment order; older previews retain
     // ordinary persistence without inventing unavailable model provenance.
     result = await admin.rpc(legacyRpc,args);
