@@ -15,4 +15,3 @@ GitHub currently marks these supplied entries closed: [#60](https://github.com/a
 ## Verification
 
 Each numbered heading was fetched individually from GitHub and confirmed to be an issue. The backlog contains 46 unique numbered entries, each with a title and two paragraphs. The supplied section order and item order are retained. This PR changes documentation only; `git diff --check` passes. No fleet execution, production changes or merge is part of this PR.
-

@@ -1,0 +1,27 @@
+{
+  "main": "4ad8eb4b355a977354ab8ac56033e0c7d9bb8f36",
+  "source_tree_matches_tested_worktree": true,
+  "application_suite": {
+    "tests": 590,
+    "passed": 584,
+    "failed": 0,
+    "skipped_existing": 6,
+    "duration_ms": 237338.252624
+  },
+  "database_gate": {
+    "tests": 38,
+    "passed": 38,
+    "failed": 0,
+    "skipped": 0,
+    "duration_ms": 114326.925952
+  },
+  "build": "passed (default Turbopack)",
+  "typescript": "passed",
+  "lint": {
+    "errors": 0,
+    "existing_warnings": 6
+  },
+  "isolation": "Final suites ran serially on fresh disposable stack; earlier shared-stack run discarded.",
+  "tested_tree_sha": "612f98704cb61c096fca524cfe83148191faacbf",
+  "merged_tree_sha": "612f98704cb61c096fca524cfe83148191faacbf"
+}
