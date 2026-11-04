@@ -100,14 +100,15 @@ function MealPhoto({url,priority,alt}:{url:string;priority:boolean;alt:string}) 
  const [read,setRead]=useState({path:imageIdentity(url),url,failed:false});
  const image=useRef<HTMLImageElement>(null);
  const [nearViewport,setNearViewport]=useState(false);
- const [sharp,setSharp]=useState(true);
+ const [failedSharp,setFailedSharp]=useState<string|null>(null);
  useEffect(()=>{
   if(priority||nearViewport||!image.current)return;
   return observeNearViewport(image.current,()=>setNearViewport(true));
  },[priority,nearViewport]);
  const active=retainedImageUrl(read,url);
+ const sharp=failedSharp!==imageIdentity(active);
  // eslint-disable-next-line @next/next/no-img-element
  return <img ref={image} src={priority||nearViewport?active:undefined} srcSet={(priority||nearViewport)&&sharp?feedPhotoSrcSet(active):undefined} crossOrigin="anonymous" width={1080} height={1080} fetchPriority={priority?"high":undefined} loading={priority?"eager":"lazy"} decoding="async" alt={alt} className="h-full w-full object-cover"
-  onError={()=>{if(sharp&&feedPhotoSrcSet(active)){setSharp(false);return;}setRead({path:imageIdentity(active),url:active,failed:true});}}
+  onError={()=>{if(sharp&&feedPhotoSrcSet(active)){setFailedSharp(imageIdentity(active));return;}setRead({path:imageIdentity(active),url:active,failed:true});}}
   onLoad={()=>{if(read.failed||read.url!==active||read.path!==imageIdentity(active))setRead({path:imageIdentity(active),url:active,failed:false});}}/>;
 }

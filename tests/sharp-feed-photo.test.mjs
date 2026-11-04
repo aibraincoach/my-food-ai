@@ -40,6 +40,6 @@ test('resize, download and abort failures redirect through a fresh signing deadl
  }
 });
 test('legacy v1 and current v2 URLs select the same density candidates',()=>{
- for(const version of ['v1','v2'])assert.equal(feedPhotoSrcSet(`/api/media/feed/a/b/c/${version}.webp`),'/api/media/feed/a/b/c/v2-1040.webp 2x, /api/media/feed/a/b/c/v2-1560.webp 3x');
+ for(const version of ['v1','v2'])assert.equal(feedPhotoSrcSet(`/api/media/feed/a/b/c/${version}.webp`),`/api/media/feed/a/b/c/${version}.webp 1x, /api/media/feed/a/b/c/v2-1040.webp 2x, /api/media/feed/a/b/c/v2-1560.webp 3x`);
  assert.equal(feedPhotoSrcSet('https://x/y.jpg'),undefined);
 });
