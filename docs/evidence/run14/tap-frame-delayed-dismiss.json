@@ -1,0 +1,24 @@
+[
+  {
+    "dismiss": "close",
+    "networkDelayMs": 1200,
+    "waitAfterDismissMs": 1700,
+    "documentAbandoned": true,
+    "path": "/",
+    "query": "",
+    "modal": false,
+    "frame": false,
+    "pass": true
+  },
+  {
+    "dismiss": "escape",
+    "networkDelayMs": 1200,
+    "waitAfterDismissMs": 1700,
+    "documentAbandoned": true,
+    "path": "/",
+    "query": "",
+    "modal": false,
+    "frame": false,
+    "pass": true
+  }
+]

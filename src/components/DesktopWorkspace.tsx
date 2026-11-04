@@ -21,7 +21,18 @@ export default function DesktopWorkspace({children,detail,width=500}:{children:R
   if(pending&&selected!==pending.from)setPending(null);
   const transitioning=pending!==null&&selected===pending.from;
   const shown=transitioning?pending.id:selected;
-  const open=useCallback((id:string|null)=>{if(id===selected){setPending(null);return;}setPending({id,from:selected});if(!id)dialog.current?.close();const url=new URL(window.location.href);if(id)url.searchParams.set('post',id);else url.searchParams.delete('post');router.push(url.pathname+url.search,{scroll:false});},[router,selected]);
+  const open=useCallback((id:string|null)=>{
+    const url=new URL(window.location.href);if(id)url.searchParams.set('post',id);else url.searchParams.delete('post');
+    if(id===selected){
+      const canceling=transitioning&&pending&&!pending.preview&&pending.id!==selected;
+      setPending(null);
+      // A same-URL router push does not cancel an outstanding RSC navigation.
+      // Abandon that document when dismissing an in-flight open instead.
+      if(canceling)window.location.assign(url.pathname+url.search+url.hash);
+      return;
+    }
+    setPending({id,from:selected});if(!id)dialog.current?.close();router.push(url.pathname+url.search,{scroll:false});
+  },[router,selected,transitioning,pending]);
   useEffect(()=>{if(!shown||!desktop)return;const element=dialog.current;if(transitioning&&pending?.preview){element?.show();return()=>element?.close();}element?.showModal();const release=lockBodyScroll();return()=>{element?.close();release();};},[shown,desktop,transitioning,pending?.preview]);
   useEffect(()=>{const cancel=()=>setPending(null);window.addEventListener('popstate',cancel);return()=>window.removeEventListener('popstate',cancel);},[]);
   useEffect(()=>{const preview=(event:Event)=>{const id=(event as CustomEvent<{id?:string}>).detail?.id;if(desktop&&id&&recallPost(id))setPending({id,from:selected,preview:true});};const cancel=()=>setPending(current=>current?.preview?null:current);window.addEventListener('post-open-preview',preview);window.addEventListener('post-open-cancel',cancel);return()=>{window.removeEventListener('post-open-preview',preview);window.removeEventListener('post-open-cancel',cancel);};},[desktop,selected]);
