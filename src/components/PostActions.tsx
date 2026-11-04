@@ -7,7 +7,7 @@ import {beginBookmark,finishBookmark} from '@/lib/posts/save-optimistic';
 import type {FeedPost} from '@/lib/posts/feed';
 import { Icon } from '@/components/ui/Icon';
 export function postAction(name:string,postId:string) { window.dispatchEvent(new CustomEvent(name,{detail:{postId}})); }
-export default function PostActions({postId,modelCommentId,fingerprint,drink=false,saved=false,slides=1,index=0,detail=false,post}:{post?:FeedPost;postId:string;modelCommentId:string|null;fingerprint:string|null;drink?:boolean;saved?:boolean;slides?:number;index?:number;detail?:boolean}) {
+export default function PostActions({postId,modelCommentId,fingerprint,drink=false,saved=false,slides=1,index=0,detail=false,post,status}:{post?:FeedPost;status?:string;postId:string;modelCommentId:string|null;fingerprint:string|null;drink?:boolean;saved?:boolean;slides?:number;index?:number;detail?:boolean}) {
   const ref=useRef<HTMLDivElement>(null),[width,setWidth]=useState<number>(tokens.spacing.phone);
   useEffect(()=>{const element=ref.current;if(!element)return;const measure=()=>setWidth(element.getBoundingClientRect().width);measure();const observer=new ResizeObserver(measure);observer.observe(element);return()=>observer.disconnect();},[]);
   const [bookmark,setBookmark]=useState({id:post?.saved_meal_id??(saved?'unknown':null) as string|null,pending:false});
@@ -15,7 +15,7 @@ export default function PostActions({postId,modelCommentId,fingerprint,drink=fal
   useEffect(()=>{const receive=(event:Event)=>{const d=(event as CustomEvent<{postId:string;savedMealId?:string|null;failed?:boolean}>).detail;if(d?.postId!==postId)return;const next=finishBookmark({id:d.savedMealId??null,pending:false},d.savedMealId??null,Boolean(d.failed));bookmarkRef.current=next;setBookmark(next);};const starting=(event:Event)=>{const d=(event as CustomEvent<{postId:string}>).detail;if(d?.postId!==postId||bookmarkRef.current.pending)return;const next=beginBookmark(bookmarkRef.current);bookmarkRef.current=next;setBookmark(next);};window.addEventListener('save-meal-result',receive);window.addEventListener('save-meal',starting);return()=>{window.removeEventListener('save-meal-result',receive);window.removeEventListener('save-meal',starting);};},[postId]);
   const visibleSaved=bookmark.pending?Boolean(bookmark.id):bookmark.id==='unknown'?saved:Boolean(bookmark.id);
   // The database accepts a saved meal only once its analysis is ready.
-  const ready=!post||post.status==='ready';
+  const ready=visibleSaved||(post?.status??status)==='ready';
   const save=()=>{if(!ready||bookmarkRef.current.pending)return;const previous=bookmarkRef.current;const next=beginBookmark({...previous,id:visibleSaved?previous.id:null});bookmarkRef.current=next;setBookmark(next);window.dispatchEvent(new CustomEvent('save-meal',{detail:{postId,savedMealId:previous.id,previousSaved:visibleSaved}}));};
   const controlsRight=16+(drink?66:150)+(detail?0:78);
   const dotWidth=Math.min(11*slides-5,Math.max(0,width-controlsRight-56));

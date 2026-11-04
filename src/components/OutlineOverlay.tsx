@@ -182,7 +182,7 @@ export default function OutlineOverlay({ desktopModal=false, desktopHeader, desk
     <Container {...(desktopModal?{className:"desktop-post-record"}:{})}>
     {desktopModal&&desktopHeader}
     <Container {...(desktopModal?{className:"desktop-post-scroll"}:{})}>
-    <Container {...(desktopModal?{className:"desktop-post-actions"}:{})}><PostActions detail postId={postId} modelCommentId={modelCommentId} fingerprint={fingerprint} drink={readOnly} saved={saved}/></Container>
+    <Container {...(desktopModal?{className:"desktop-post-actions"}:{})}><PostActions detail status={status} postId={postId} modelCommentId={modelCommentId} fingerprint={fingerprint} drink={readOnly} saved={saved}/></Container>
     <div className="px-inset"><PostCaption postId={postId} handle={handle} caption={caption}/></div>
     {showNutrition&&<>
       <NutritionSummary items={items}/>
