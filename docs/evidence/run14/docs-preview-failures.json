@@ -1,0 +1,135 @@
+[
+  {
+    "commit": "a730c80814c984887413f6ff61ce63088fed0737",
+    "deployment": "dpl_GYKM73icXnP3KiLTVVeaBkAkGHDE",
+    "state": "ERROR",
+    "errorCode": "nextjs_docs",
+    "errorMessage": "Command \"npm run build\" exited with 1",
+    "typescriptErrors": [
+      "docs/evidence/run14/old-cola-day-read.mts(1,73): error TS2307: Cannot find module '../src/lib/nutrition/totals.ts' or its corresponding type declarations.",
+      "docs/evidence/run14/old-cola-day-read.mts(1,125): error TS2307: Cannot find module '../src/lib/posts/days.ts' or its corresponding type declarations.",
+      "docs/evidence/run14/old-cola-day-read.mts(1,191): error TS2307: Cannot find module '../src/lib/intake/hydration.ts' or its corresponding type declarations.",
+      "docs/evidence/run14/old-cola-day-read.mts(3,7): error TS7034: Variable 'targets' implicitly has type 'any[]' in some locations where its type cannot be determined.",
+      "docs/evidence/run14/old-cola-day-read.mts(6,321): error TS7006: Parameter 'd' implicitly has an 'any' type.",
+      "docs/evidence/run14/old-cola-day-read.mts(6,324): error TS7005: Variable 'targets' implicitly has an 'any[]' type.",
+      "docs/evidence/run14/old-cola-day-read.mts(6,363): error TS7006: Parameter 'd' implicitly has an 'any' type.",
+      "docs/evidence/run14/old-cola-day-read.mts(6,905): error TS7006: Parameter 'd' implicitly has an 'any' type.",
+      "docs/evidence/run14/old-cola-day-read.mts(6,937): error TS7006: Parameter 's' implicitly has an 'any' type.",
+      "docs/evidence/run14/old-cola-day-read.mts(6,939): error TS7006: Parameter 'd' implicitly has an 'any' type."
+    ]
+  },
+  {
+    "commit": "3eef4ec937f6509cf42edaa0e37ee91fcac37913",
+    "deployment": "dpl_FBJPytoqWDT7JhTZe7v7FoDc8Tw8",
+    "state": "ERROR",
+    "errorCode": "nextjs_docs",
+    "errorMessage": "Command \"npm run build\" exited with 1",
+    "typescriptErrors": [
+      "docs/evidence/run14/old-cola-day-read.mts(1,73): error TS2307: Cannot find module '../src/lib/nutrition/totals.ts' or its corresponding type declarations.",
+      "docs/evidence/run14/old-cola-day-read.mts(1,125): error TS2307: Cannot find module '../src/lib/posts/days.ts' or its corresponding type declarations.",
+      "docs/evidence/run14/old-cola-day-read.mts(1,191): error TS2307: Cannot find module '../src/lib/intake/hydration.ts' or its corresponding type declarations.",
+      "docs/evidence/run14/old-cola-day-read.mts(3,7): error TS7034: Variable 'targets' implicitly has type 'any[]' in some locations where its type cannot be determined.",
+      "docs/evidence/run14/old-cola-day-read.mts(6,321): error TS7006: Parameter 'd' implicitly has an 'any' type.",
+      "docs/evidence/run14/old-cola-day-read.mts(6,324): error TS7005: Variable 'targets' implicitly has an 'any[]' type.",
+      "docs/evidence/run14/old-cola-day-read.mts(6,363): error TS7006: Parameter 'd' implicitly has an 'any' type.",
+      "docs/evidence/run14/old-cola-day-read.mts(6,905): error TS7006: Parameter 'd' implicitly has an 'any' type.",
+      "docs/evidence/run14/old-cola-day-read.mts(6,937): error TS7006: Parameter 's' implicitly has an 'any' type.",
+      "docs/evidence/run14/old-cola-day-read.mts(6,939): error TS7006: Parameter 'd' implicitly has an 'any' type."
+    ]
+  },
+  {
+    "commit": "645115d06c68c674682d675489a428c078ba30aa",
+    "deployment": "dpl_9DFtQWoNCAp1k72YDamAygSmh3ru",
+    "state": "ERROR",
+    "errorCode": "nextjs_docs",
+    "errorMessage": "Command \"npm run build\" exited with 1",
+    "typescriptErrors": [
+      "docs/evidence/run14/old-cola-day-read.mts(1,73): error TS2307: Cannot find module '../src/lib/nutrition/totals.ts' or its corresponding type declarations.",
+      "docs/evidence/run14/old-cola-day-read.mts(1,125): error TS2307: Cannot find module '../src/lib/posts/days.ts' or its corresponding type declarations.",
+      "docs/evidence/run14/old-cola-day-read.mts(1,191): error TS2307: Cannot find module '../src/lib/intake/hydration.ts' or its corresponding type declarations.",
+      "docs/evidence/run14/old-cola-day-read.mts(3,7): error TS7034: Variable 'targets' implicitly has type 'any[]' in some locations where its type cannot be determined.",
+      "docs/evidence/run14/old-cola-day-read.mts(6,321): error TS7006: Parameter 'd' implicitly has an 'any' type.",
+      "docs/evidence/run14/old-cola-day-read.mts(6,324): error TS7005: Variable 'targets' implicitly has an 'any[]' type.",
+      "docs/evidence/run14/old-cola-day-read.mts(6,363): error TS7006: Parameter 'd' implicitly has an 'any' type.",
+      "docs/evidence/run14/old-cola-day-read.mts(6,905): error TS7006: Parameter 'd' implicitly has an 'any' type.",
+      "docs/evidence/run14/old-cola-day-read.mts(6,937): error TS7006: Parameter 's' implicitly has an 'any' type.",
+      "docs/evidence/run14/old-cola-day-read.mts(6,939): error TS7006: Parameter 'd' implicitly has an 'any' type."
+    ]
+  },
+  {
+    "commit": "cc5e65f4fcc790eee1914e74b0bf94e1ddf863a8",
+    "deployment": "dpl_DqLwjTnYoJKBnCVqH8Pv3ENCkBig",
+    "state": "ERROR",
+    "errorCode": "nextjs_docs",
+    "errorMessage": "Command \"npm run build\" exited with 1",
+    "typescriptErrors": [
+      "docs/evidence/run14/old-cola-day-read.mts(1,73): error TS2307: Cannot find module '../src/lib/nutrition/totals.ts' or its corresponding type declarations.",
+      "docs/evidence/run14/old-cola-day-read.mts(1,125): error TS2307: Cannot find module '../src/lib/posts/days.ts' or its corresponding type declarations.",
+      "docs/evidence/run14/old-cola-day-read.mts(1,191): error TS2307: Cannot find module '../src/lib/intake/hydration.ts' or its corresponding type declarations.",
+      "docs/evidence/run14/old-cola-day-read.mts(3,7): error TS7034: Variable 'targets' implicitly has type 'any[]' in some locations where its type cannot be determined.",
+      "docs/evidence/run14/old-cola-day-read.mts(6,321): error TS7006: Parameter 'd' implicitly has an 'any' type.",
+      "docs/evidence/run14/old-cola-day-read.mts(6,324): error TS7005: Variable 'targets' implicitly has an 'any[]' type.",
+      "docs/evidence/run14/old-cola-day-read.mts(6,363): error TS7006: Parameter 'd' implicitly has an 'any' type.",
+      "docs/evidence/run14/old-cola-day-read.mts(6,905): error TS7006: Parameter 'd' implicitly has an 'any' type.",
+      "docs/evidence/run14/old-cola-day-read.mts(6,937): error TS7006: Parameter 's' implicitly has an 'any' type.",
+      "docs/evidence/run14/old-cola-day-read.mts(6,939): error TS7006: Parameter 'd' implicitly has an 'any' type."
+    ]
+  },
+  {
+    "commit": "af826d724307d4894ed79172befffea96d6c1b7b",
+    "deployment": "dpl_8vJvnHkSHCPvk3DavoTXTqyK7MNR",
+    "state": "ERROR",
+    "errorCode": "nextjs_docs",
+    "errorMessage": "Command \"npm run build\" exited with 1",
+    "typescriptErrors": [
+      "docs/evidence/run14/old-cola-day-read.mts(1,73): error TS2307: Cannot find module '../src/lib/nutrition/totals.ts' or its corresponding type declarations.",
+      "docs/evidence/run14/old-cola-day-read.mts(1,125): error TS2307: Cannot find module '../src/lib/posts/days.ts' or its corresponding type declarations.",
+      "docs/evidence/run14/old-cola-day-read.mts(1,191): error TS2307: Cannot find module '../src/lib/intake/hydration.ts' or its corresponding type declarations.",
+      "docs/evidence/run14/old-cola-day-read.mts(3,7): error TS7034: Variable 'targets' implicitly has type 'any[]' in some locations where its type cannot be determined.",
+      "docs/evidence/run14/old-cola-day-read.mts(6,321): error TS7006: Parameter 'd' implicitly has an 'any' type.",
+      "docs/evidence/run14/old-cola-day-read.mts(6,324): error TS7005: Variable 'targets' implicitly has an 'any[]' type.",
+      "docs/evidence/run14/old-cola-day-read.mts(6,363): error TS7006: Parameter 'd' implicitly has an 'any' type.",
+      "docs/evidence/run14/old-cola-day-read.mts(6,905): error TS7006: Parameter 'd' implicitly has an 'any' type.",
+      "docs/evidence/run14/old-cola-day-read.mts(6,937): error TS7006: Parameter 's' implicitly has an 'any' type.",
+      "docs/evidence/run14/old-cola-day-read.mts(6,939): error TS7006: Parameter 'd' implicitly has an 'any' type."
+    ]
+  },
+  {
+    "commit": "bbcdc2897e4c4adf1da2d486a94aef2b17a8efa0",
+    "deployment": "dpl_EgvZkupL7L5MdHwJgrKzNGjxPNbW",
+    "state": "ERROR",
+    "errorCode": "nextjs_docs",
+    "errorMessage": "Command \"npm run build\" exited with 1",
+    "typescriptErrors": [
+      "docs/evidence/run14/old-cola-day-read.mts(1,73): error TS2307: Cannot find module '../src/lib/nutrition/totals.ts' or its corresponding type declarations.",
+      "docs/evidence/run14/old-cola-day-read.mts(1,125): error TS2307: Cannot find module '../src/lib/posts/days.ts' or its corresponding type declarations.",
+      "docs/evidence/run14/old-cola-day-read.mts(1,191): error TS2307: Cannot find module '../src/lib/intake/hydration.ts' or its corresponding type declarations.",
+      "docs/evidence/run14/old-cola-day-read.mts(3,7): error TS7034: Variable 'targets' implicitly has type 'any[]' in some locations where its type cannot be determined.",
+      "docs/evidence/run14/old-cola-day-read.mts(6,321): error TS7006: Parameter 'd' implicitly has an 'any' type.",
+      "docs/evidence/run14/old-cola-day-read.mts(6,324): error TS7005: Variable 'targets' implicitly has an 'any[]' type.",
+      "docs/evidence/run14/old-cola-day-read.mts(6,363): error TS7006: Parameter 'd' implicitly has an 'any' type.",
+      "docs/evidence/run14/old-cola-day-read.mts(6,905): error TS7006: Parameter 'd' implicitly has an 'any' type.",
+      "docs/evidence/run14/old-cola-day-read.mts(6,937): error TS7006: Parameter 's' implicitly has an 'any' type.",
+      "docs/evidence/run14/old-cola-day-read.mts(6,939): error TS7006: Parameter 'd' implicitly has an 'any' type."
+    ]
+  },
+  {
+    "commit": "75944e3058f4da745e2715e2607445df1205d147",
+    "deployment": "dpl_HkaxsrgqoBXrby28WN8nLAJEdY8Y",
+    "state": "ERROR",
+    "errorCode": "nextjs_docs",
+    "errorMessage": "Command \"npm run build\" exited with 1",
+    "typescriptErrors": [
+      "docs/evidence/run14/old-cola-day-read.mts(1,73): error TS2307: Cannot find module '../src/lib/nutrition/totals.ts' or its corresponding type declarations.",
+      "docs/evidence/run14/old-cola-day-read.mts(1,125): error TS2307: Cannot find module '../src/lib/posts/days.ts' or its corresponding type declarations.",
+      "docs/evidence/run14/old-cola-day-read.mts(1,191): error TS2307: Cannot find module '../src/lib/intake/hydration.ts' or its corresponding type declarations.",
+      "docs/evidence/run14/old-cola-day-read.mts(3,7): error TS7034: Variable 'targets' implicitly has type 'any[]' in some locations where its type cannot be determined.",
+      "docs/evidence/run14/old-cola-day-read.mts(6,321): error TS7006: Parameter 'd' implicitly has an 'any' type.",
+      "docs/evidence/run14/old-cola-day-read.mts(6,324): error TS7005: Variable 'targets' implicitly has an 'any[]' type.",
+      "docs/evidence/run14/old-cola-day-read.mts(6,363): error TS7006: Parameter 'd' implicitly has an 'any' type.",
+      "docs/evidence/run14/old-cola-day-read.mts(6,905): error TS7006: Parameter 'd' implicitly has an 'any' type.",
+      "docs/evidence/run14/old-cola-day-read.mts(6,937): error TS7006: Parameter 's' implicitly has an 'any' type.",
+      "docs/evidence/run14/old-cola-day-read.mts(6,939): error TS7006: Parameter 'd' implicitly has an 'any' type."
+    ]
+  }
+]

@@ -1,5 +1,7 @@
 # Fleet 14 execution report
 
+Fleet14’s seven code PRs merged and deployed at15:38WIB on November4; post-deployment acceptance gaps remain open.
+
 Observation cutoff: 2026-11-04T08:51:05.475040+00:00. All seven feature PRs are merged and READY on production main a24587a1ec3b57a7b2bdfb5f69cce4e0e73602db. Acceptance measurements and the six-hour memory series remain in progress; deployment is not physical-phone acceptance. The supplied plan, with the owner’s explicit amendment preserving bypass access, is [plan-run14.md](plan-run14.md). `run13/docs` and PR #558 remain untouched. Four active-agent slots required scheduling eight lanes across three agents plus the coordinator; eight simultaneous coders were not available.
 
 ## Items 1–8
@@ -194,3 +196,13 @@ Three observed samples; the remaining four have not occurred. Values are bytes f
 | 2026-11-04T07:40:46.086Z | 950153216 | 484290560 | 427454464 | 134029312 |
 | 2026-11-04T08:40:46.184Z | 950153216 | 502616064 | 420143104 | 230297600 |
 | 2026-11-04T09:40:46.184Z | 950153216 | 496422912 | 373358592 | 230637568 |
+
+## Documentation preview failure diagnosis
+
+The seven failed docs previews75944e3,bbcdc28,af826d7,cc5e65f,645115d,3eef4ec,a730c80 all fail the same TypeScript check. The evidence source docs/evidence/run14/old-cola-day-read.mts was added as an executable TypeScript module despite being a root-context query transcript: three imports use invalid relative paths and seven locations have implicit-any errors. The project include glob picks up every .mts file. Subsequent docs pushes inherited the same failure; repeated pushes did not repair it. The source is now preserved as fenced Markdown evidence, outside the executable module set. [Per-deployment errors](evidence/run14/docs-preview-failures.json). No cloud rebuild was triggered for this local correction.
+
+The sequence of previews was caused by the coder pushing individual evidence/doc updates as each result arrived, instead of batching them; each push invoked the Vercel Git integration. This was avoidable. Owner ruling16:46WIB: docs/evidence go up in one push when the work is done, and any failed preview is diagnosed before another push. Pending docs updates are local only.
+
+A fresh read-only Vercel project GET verified the retained Fleet14 protection-bypass secret key is still present, with identical creation metadata and identical secret set. It has not been revoked or regenerated. All remaining old bypass-removal instructions in the Fleet11 plan were replaced with permanent retention; older cleanup prose was cleared of revoked-bypass lines. The owner-supplied Wall account remains verbatim.
+
+Native control audit has now ended and all own browser contexts are disposed. It does not fully pass section6.4: Search result was absent and standardized CLS was not captured (raw post-input shift sums are not CLS). Scoped native queue/More/caption receipts retain their actual outcomes; no new production posts were made. The owner’s no-small-push ruling is in the verbatim16:46Wall entry. The docs build correction passes local TypeScript checking; no full build or preview was run for it.
