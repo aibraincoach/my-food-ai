@@ -12,9 +12,10 @@ export default function DesktopToday({zone:configuredZone,initial,placeholder=fa
  useEffect(()=>{if(!desktop)return;let live=true;let controller:AbortController|undefined;let slowTimer:ReturnType<typeof setTimeout>|undefined;
  const load=()=>{controller?.abort();const request=new AbortController();controller=request;setSlow(false);setError(false);
  void fetch(`/api/today?tz=${encodeURIComponent(zone)}`,{cache:'no-store',signal:request.signal}).then(async response=>{if(!response.ok)throw Error();const data=await response.json() as TodayView;if(live&&controller===request){setLoaded({seed:initial,day:data});setError(false);setSlow(false);}}).catch(()=>{if(live&&controller===request&&!request.signal.aborted)setError(true);});};
- if(!initial)load();else slowTimer=setTimeout(()=>{if(live&&!day)setSlow(true);},3000);
+ if(!initial)load();
+ slowTimer=setTimeout(()=>{if(live)setSlow(true);},3000);
  for(const name of ['post-settled','post-deleted','post-restore','intake-changed'])window.addEventListener(name,load);
- return()=>{live=false;controller?.abort();if(slowTimer)clearTimeout(slowTimer);for(const name of ['post-settled','post-deleted','post-restore','intake-changed'])window.removeEventListener(name,load);};},[desktop,zone,initial,placeholder,day]);
+ return()=>{live=false;controller?.abort();if(slowTimer)clearTimeout(slowTimer);for(const name of ['post-settled','post-deleted','post-restore','intake-changed'])window.removeEventListener(name,load);};},[desktop,zone,initial,placeholder]);
  const missing=[...new Set(Object.values(day?.totals.missing??{}).flat())];
  const date=new Date(`${day?.date??dateInZone(new Date(),zone)}T12:00:00Z`);
  const showPlaceholder=placeholder||(!day&&!error&&!slow);

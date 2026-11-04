@@ -409,7 +409,12 @@ export default function Feed({initialPage, initialUserId, initialZone = "UTC", f
     };
     void load();
     scheduleDiscoverPoll();
-    const focus = () => { if (!document.hidden) void discover(true); };
+    const focus = () => {
+      if (!document.hidden) {
+        void discover(true);
+        if (!realtimeSubscribed) scheduleDiscoverPoll(true);
+      }
+    };
     window.addEventListener("focus", focus);
     document.addEventListener("visibilitychange", focus);
     const channel = supabase.channel("feed-inserts").on("postgres_changes",
