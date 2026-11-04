@@ -103,12 +103,12 @@ test('a late authentication response cannot revive an operation after its manage
  const manager=new UploadManager(store,()=>draft,async()=>{},fetch,()=>auth);const id=manager.stage([file],fields);const ack=manager.post(id);await manager.clear();authenticate('owner');assert.equal(await ack,false);await pause();assert.deepEqual(manager.list(),[]);assert.equal(rows.size,0);
 });
 
-function attachHarness(media){
+function attachHarness(media,{uniqueStages=false}={}){
  const rows=new Map(),calls=[];
  const store={all:async()=>[...rows.values()],put:async row=>{await pause();rows.set(row.operationId,structuredClone(row));},remove:async id=>{rows.delete(id);},clear:async()=>rows.clear()};
  const request=async(url,init)=>{
   const path=typeof url==='string'?url:url.url;calls.push(path);
-  if(path.endsWith('/api/media/sign-upload'))return Response.json({uploads:[{position:0,originalPath:'owner/stage/0.jpg',feedPath:'owner/stage/0.feed.jpg',originalSignedUrl:'https://storage.invalid/o',feedSignedUrl:'https://storage.invalid/f'}]});
+  if(path.endsWith('/api/media/sign-upload')){const stage=uniqueStages?'stage-'+calls.filter(c=>c.endsWith('/api/media/sign-upload')).length:'stage';return Response.json({uploads:[{position:0,originalPath:`owner/${stage}/0.jpg`,feedPath:`owner/${stage}/0.feed.jpg`,originalSignedUrl:'https://storage.invalid/o',feedSignedUrl:'https://storage.invalid/f'}]});}
   if(path.startsWith('https://storage.invalid/'))return new Response(null,{status:200});
   if(path.endsWith('/media'))return media(init);
   throw Error('unexpected '+path);
@@ -149,8 +149,25 @@ test('reloading a failed attachment reuses its durable stage after an ambiguous 
  const restored=make();await restored.initialize('owner');assert.equal(restored.list()[0].state,'failed');succeed=true;restored.retry(id);await until(()=>restored.list()[0]?.postId==='post-1');
  assert.equal(calls.filter(c=>c==='/api/media/sign-upload').length,1);assert.ok(photos.every(photo=>photo.path==='owner/stage/0.jpg'));
 });
-test('a rejected attachment checkpoint keeps the sheet open and sends no network request',async()=>{
- const {manager,store,calls}=attachHarness(()=>{throw Error('must not attach')});await manager.initialize('owner');store.put=async()=>{throw Error('disk full')};
+test('a rejected attachment checkpoint leaves only the sheet owning a retry, even when the write committed',async()=>{
+ const {manager,store,calls,rows}=attachHarness(()=>Response.json({post_id:'post-1'},{status:201}));await manager.initialize('owner');const put=store.put;store.put=async row=>{await put(row);throw Error('write response lost')};
  await assert.rejects(()=>manager.postAttachment(file,{postId:'post-1',notEaten:true}),/could not be kept/);
- assert.deepEqual(calls,[]);assert.equal(manager.list()[0].state,'failed');
+ assert.deepEqual(calls,[]);assert.deepEqual(manager.list(),[]);assert.equal(rows.size,0);
+ store.put=put;await manager.postAttachment(file,{postId:'post-1',notEaten:true});await until(()=>manager.list()[0]?.postId==='post-1');
+ assert.equal(manager.list().length,1);assert.equal(calls.filter(c=>c.endsWith('/media')).length,1);
+});
+
+test('a persisted expired stage is reconciled before renewal and its kept photo uploads after reload',async()=>{
+ const old={path:'owner/old-stage/0.jpg',width:10,height:10};const attempts=[];
+ const {manager,rows,calls}=attachHarness(init=>{const photo=JSON.parse(init.body).photo;attempts.push(photo.path);return photo.path===old.path?Response.json({code:'attachment_stage_expired',error:'Expired'},{status:409}):Response.json({post_id:'post-1'},{status:201});},{uniqueStages:true});
+ rows.set('old-operation',{operationId:'old-operation',ownerId:'owner',createdAt:0,reservedAt:0,caption:'Leftovers',eatenAt:null,location:null,options:{},files:[file],snapshot:null,posted:true,state:'failed',sent:0,total:file.size,attachment:{postId:'post-1',notEaten:true},attachmentPhoto:old});
+ await manager.initialize('owner');manager.retry('old-operation');await until(()=>manager.list()[0]?.postId==='post-1');
+ assert.deepEqual(attempts,[old.path,'owner/stage-1/0.jpg']);assert.equal(calls[0],'/api/posts/post-1/media');assert.equal(calls.filter(c=>c.endsWith('/api/media/sign-upload')).length,1);assert.equal(rows.size,0);
+});
+test('an old committed attachment with a lost response is not renewed merely because time passed',async()=>{
+ const attempts=[];const old={path:'owner/committed-stage/0.jpg',width:10,height:10};
+ const {manager,rows,calls}=attachHarness(init=>{attempts.push(JSON.parse(init.body).photo.path);return Response.json({post_id:'post-1'},{status:201});});
+ rows.set('committed-operation',{operationId:'committed-operation',ownerId:'owner',createdAt:0,reservedAt:0,caption:'Leftovers',eatenAt:null,location:null,options:{},files:[file],snapshot:null,posted:true,state:'failed',sent:0,total:file.size,attachment:{postId:'post-1',notEaten:true},attachmentPhoto:old});
+ await manager.initialize('owner');manager.retry('committed-operation');await until(()=>manager.list()[0]?.postId==='post-1');
+ assert.deepEqual(attempts,[old.path]);assert.equal(calls.filter(c=>c.endsWith('/api/media/sign-upload')).length,0);
 });

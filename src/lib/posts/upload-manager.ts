@@ -225,8 +225,10 @@ export class UploadManager {
         this.entries.set(id,entry);
         this.notify(entry,'upload-started');
         try{await this.persist(entry);}catch{
-            entry.data.state='failed';entry.data.message='The photo could not be kept on this phone. Try again.';
-            this.notify(entry,'upload-failed');throw new Error(entry.data.message);
+            // The sheet keeps its file when this acknowledgement fails. Drop this
+            // operation so a sheet retry cannot race a second retry from the chip.
+            await this.remove(id);
+            throw new Error('The photo could not be kept on this phone. Try again.');
         }
         if(entry.deleted||this.ownerId!==owner)throw new Error('Sign-in changed. Your photo is kept for its original account.');
         void this.run(entry);return id;
@@ -241,7 +243,13 @@ export class UploadManager {
         await this.persist(entry);
         if(entry.deleted||d.ownerId!==this.ownerId)throw new Error('Sign-in changed. Your photo is kept for its original account.');
         const response=await this.foodRequest(`/api/posts/${attachment.postId}/media`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({photo:d.attachmentPhoto,not_eaten:attachment.notEaten})});
-        const result=await response.json().catch(()=>null) as {post_id?:string;error?:string}|null;
+        const result=await response.json().catch(()=>null) as {post_id?:string;error?:string;code?:string}|null;
+        if(!response.ok&&result?.code==='attachment_stage_expired'){
+            // Only the server can prove the old reservation cannot complete.
+            // A lost response or a transient failure must keep its original path.
+            d.attachmentPhoto=undefined;entry.attachmentUpload=undefined;
+            await this.persist(entry);
+        }
         if(!response.ok||!result?.post_id){d.message=typeof result?.error==='string'?result.error.slice(0,200):'The photo could not be attached. Your photo is kept.';throw new Error(d.message);}
         return {postId:result.post_id};
     }
