@@ -5,10 +5,13 @@ import { isUnit, OZ_G, roundGrams, toGrams, type Unit } from "@/lib/nutrition/un
 import { scaleNutrition } from "@/lib/fdc/nutrients";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { getCurrentItems, type CurrentItem } from "@/lib/nutrition/totals";
+import { latestRevision, toFeedPost, type PostRow as FeedRow } from "@/lib/posts/feed";
+import { smallFeedPhotoUrl } from "@/lib/posts/feed-photo-url";
+import { createAdminClient } from "@/lib/supabase/admin";
 
 export type ItemBox = { left: number; top: number; right: number; bottom: number };
 export type DetailItem = Omit<CurrentItem, "box"> & { box: ItemBox | null; maskUrl: string | null };
-export type DetailPhoto = { url: string; width: number; height: number };
+export type DetailPhoto = { url: string; previewUrl?: string; width: number; height: number };
 export type ItemEdit = { action: "rename" | "portion" | "remove" | "add"; item_id?: string; name?: string; portion_grams?: number; portion_amount?: number; portion_unit?: Unit; box?: ItemBox; fdc_selection?: { id: number; query: string } };
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 export const isUuid = (value: unknown): value is string => typeof value === "string" && UUID.test(value);
@@ -101,38 +104,49 @@ export async function editPostItem(admin: SupabaseClient, postId: string, userId
 }
 
 export async function getPostDetail(supabase: SupabaseClient, postId: string, zone = "UTC") {
-  const baseFields = "id,user_id,caption,eaten_at,status,analysis_initialized_at,servings,source_post_id";
-  type PostRow = {id:string;user_id:string;caption:string;eaten_at:string;status:"queued"|"processing"|"needs_input"|"ready"|"failed";analysis_initialized_at:string|null;servings:number;source_post_id:string|null;identify_model?:string|null;identify_host?:string|null};
+  const baseFields = "id,user_id,caption,eaten_at,status,analysis_initialized_at,servings,source_post_id,created_at,fail_reason,agent_token_id,agent_tokens(name),needs_input";
+  type PostRow = FeedRow & {analysis_initialized_at:string|null;servings:number;source_post_id:string|null;needs_input:unknown;identify_model?:string|null;identify_host?:string|null};
   const read = (identity:boolean) => supabase.from("posts").select(identity?`${baseFields},identify_model,identify_host`:baseFields).is("deleted_at", null).eq("id",postId).maybeSingle<PostRow>();
   let result=await read(true);
   if(result.error&&["PGRST204","42703"].includes(result.error.code)&&/identify_(?:model|host)/.test(result.error.message))result=await read(false);
   const {data:post,error}=result;
   if (error) throw new Error("Meal could not be loaded.");
   if (!post) return null;
-  const current = await getCurrentItems(supabase, postId);
-  const { data: media, error: mediaError } = await supabase.from("post_media").select("storage_path,width,height")
-    .eq("kind", "photo").eq("post_id", postId).order("position").limit(1).maybeSingle();
+  // The card's revision fence must be read before the items it guards.
+  const revisionBefore = post.status === "ready" ? await latestRevision(supabase, postId) : null;
+  const [current, { data: mediaRows, error: mediaError }] = await Promise.all([
+    getCurrentItems(supabase, postId),
+    supabase.from("post_media").select("id,storage_path,kind,not_eaten,width,height").eq("post_id", postId).order("position"),
+  ]);
   if (mediaError) throw new Error("Meal photo could not be loaded.");
+  const media = mediaRows?.find(entry => entry.kind === "photo");
+  const [signed, items] = await Promise.all([
+    media ? supabase.storage.from("media").createSignedUrl(media.storage_path, 3600) : Promise.resolve(null),
+    Promise.all(current.map(async (item): Promise<DetailItem> => {
+      let maskUrl: string | null = null;
+      if (item.mask_path) {
+        const mask = await supabase.storage.from("media").createSignedUrl(item.mask_path, 3600);
+        maskUrl = mask.data?.signedUrl ?? null;
+      }
+      return { ...item, box: itemBox(item.box), maskUrl };
+    })),
+  ]);
   let photo: DetailPhoto | null = null;
   if (media) {
-    const signed = await supabase.storage.from("media").createSignedUrl(media.storage_path, 3600);
-    if (signed.error || !signed.data) throw new Error("Meal photo could not be opened.");
-    photo = { url: signed.data.signedUrl, width: media.width || 1, height: media.height || 1 };
+    if (!signed || signed.error || !signed.data) throw new Error("Meal photo could not be opened.");
+    photo = { url: signed.data.signedUrl, previewUrl: smallFeedPhotoUrl(post.user_id, postId, media.id) ?? undefined, width: media.width || 1, height: media.height || 1 };
   }
-  const items: DetailItem[] = await Promise.all(current.map(async (item) => {
-    let maskUrl: string | null = null;
-    if (item.mask_path) {
-      const signed = await supabase.storage.from("media").createSignedUrl(item.mask_path, 3600);
-      maskUrl = signed.data?.signedUrl ?? null;
-    }
-    return { ...item, box: itemBox(item.box), maskUrl };
-  }));
   const hydrated = (await getPostHydrationData(supabase, post.user_id, [{ id: postId, eaten_at: post.eaten_at, items }], zone))[postId];
   // Identity belongs to the same atomic initial-analysis commit as these
   // items. Newer successful or failed attempts that never persisted cannot
   // relabel the meal. Raw attempt traces remain admin-only.
   const identification=post.identify_model&&post.identify_host
     ? {model:post.identify_model,host:post.identify_host} : null;
-  return { post, photo, items, identification: identification ?? null, isDrink: hydrated.kind === "drink" && hydrated.drinkSource !== "item", ...hydrated,
+  // shortcut: a failed Baseten trace for this post means Muse Spark Open was requested; a later failed retry can also set it.
+  const {data:openFailure,error:openFailureError}=identification?.host==='meta'?await createAdminClient().from('model_calls').select('id').eq('post_id',postId).eq('host','baseten').eq('kind','spark_identify').not('error','is',null).limit(1).abortSignal(AbortSignal.timeout(8000)).maybeSingle():{data:null,error:null};
+  if(openFailureError)throw new Error('Meal identification could not be loaded.');
+  const card = post.needs_input == null || post.status === "failed"
+    ? { ...(await toFeedPost(supabase, post, zone, { items: current, revisionBefore, media: mediaRows ?? [] })), ...hydrated } : null;
+  return { post, photo, items, identification: identification ?? null, openFallback: Boolean(openFailure), card, isDrink: hydrated.kind === "drink" && hydrated.drinkSource !== "item", ...hydrated,
     cardData: cardDataFromRow({ ...post, items, ...hydrated }) };
 }

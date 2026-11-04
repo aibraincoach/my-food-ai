@@ -2,7 +2,8 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { NextRequest } from 'next/server.js';
-import { middleware } from '../src/middleware.ts';
+import { middleware, config } from '../src/middleware.ts';
+import { unstable_doesMiddlewareMatch } from 'next/experimental/testing/server.js';
 import { VERIFIED_USER_HEADER } from '../src/lib/auth/verified-user-header.ts';
 import { sessionCookieBridge } from '../src/lib/auth/session-cookies.ts';
 
@@ -64,4 +65,34 @@ test('the forwarding refresh preserves changed session cookies and their attribu
   assert.equal(bridge.response.cookies.get('session')?.httpOnly,true);
   assert.equal(bridge.response.cookies.get('session')?.maxAge,3600);
   assert.match(bridge.response.headers.get('x-middleware-request-cookie'),/session=fresh/);
+});
+
+
+test('the real matcher runs the trust boundary for forged standalone post requests without a session',async()=>{
+  await withAuth(async calls=>{
+    for(const path of ['/posts','/posts/10000000-0000-4000-8000-000000000001','/posts/10000000-0000-4000-8000-000000000001/edit']){
+      const req=new NextRequest('https://app.invalid'+path,{headers:{[VERIFIED_USER_HEADER]:user.id}});
+      assert.equal(unstable_doesMiddlewareMatch({config,url:req.url,headers:Object.fromEntries(req.headers)}),true,`middleware must actually run for ${path}`);
+      const response=await middleware(req);
+      assert.equal(response.status,307);
+      assert.equal(response.headers.get('location'),'https://app.invalid/sign-in');
+      assert.equal(req.headers.get(VERIFIED_USER_HEADER),null);
+      assert.equal(response.headers.get(`x-middleware-request-${VERIFIED_USER_HEADER}`),null);
+    }
+    assert.equal(calls(),0,'no session means no extra Auth request');
+  });
+});
+
+test('a matched standalone detail forwards only the verified session identity with one Auth check',async()=>{
+  await withAuth(async calls=>{
+    const req=new NextRequest('https://app.invalid/posts/10000000-0000-4000-8000-000000000001',{headers:{[VERIFIED_USER_HEADER]:'20000000-0000-4000-8000-000000000002'}});
+    req.cookies.set('sb-fixture-auth-token','base64-'+encode({access_token:token,refresh_token:'fixture-refresh',expires_in:3600,expires_at:Math.floor(Date.now()/1000)+3600,token_type:'bearer',user}));
+    assert.equal(unstable_doesMiddlewareMatch({config,url:req.url,headers:Object.fromEntries(req.headers)}),true);
+    const response=await middleware(req);
+    assert.equal(response.status,200);
+    assert.equal(req.headers.get(VERIFIED_USER_HEADER),user.id);
+    assert.equal(response.headers.get(`x-middleware-request-${VERIFIED_USER_HEADER}`),user.id);
+    assert.equal(response.headers.get(VERIFIED_USER_HEADER),null);
+    assert.equal(calls(),1,'standalone detail uses the single verified Auth check');
+  });
 });

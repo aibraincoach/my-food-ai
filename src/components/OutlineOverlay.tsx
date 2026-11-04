@@ -27,6 +27,19 @@ export function DetailDate({ value, weekday = false }: { value: string; weekday?
   return <LocalTime value={value} weekday={weekday} />;
 }
 
+function DetailImage({ photo, alt }: { photo: DetailPhoto; alt: string }) {
+  const [src, setSrc] = useState(photo.previewUrl ?? photo.url);
+  useEffect(() => {
+    if (!photo.previewUrl) return;
+    let live = true; const image = new Image();
+    image.crossOrigin = "anonymous";
+    image.onload = () => { if (live) setSrc(photo.url); };
+    image.src = photo.url;
+    return () => { live = false; };
+  }, [photo.url, photo.previewUrl]);
+  return <img src={src} crossOrigin="anonymous" alt={alt} draggable={false} className="h-full w-full object-cover" />;
+}
+
 function Mask({ url, photo, color, frame, fallback }: {
   url: string | null; photo: DetailPhoto; color: string; frame: CSSProperties; fallback: CSSProperties;
 }) {
@@ -148,7 +161,7 @@ export default function OutlineOverlay({ desktopModal=false, desktopHeader, desk
         else setExpandedPhoto(value=>!value);
       }}>
       {desktopModal&&slide>0 ? slides[slide]?.kind==='photo'?<img src={slides[slide].url} alt={`Meal photo ${slide+1}`} className="size-full object-cover"/>:<ResultsCard data={displayCard} size={width} time={localTime}/> : photo && (!drink || drink.source === 'item') ? <>
-        <img src={photo.url} alt={caption || "Meal photo"} draggable={false} className="h-full w-full object-cover" />
+        <DetailImage photo={photo} alt={caption || "Meal photo"} />
         {outlines && items.map((item, index) => item.box ? <div key={item.id}>
           <Mask url={item.maskUrl} photo={photo} color={outlineColor(index)} frame={frame} fallback={boxStyle(item.box)} />
           <button type="button" disabled={!initialized || readOnly} aria-label={`Edit ${item.name}`} className="absolute max-w-full rounded-chip py-grid text-label font-semibold text-white"

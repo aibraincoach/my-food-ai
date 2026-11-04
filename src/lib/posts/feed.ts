@@ -111,7 +111,7 @@ function feedPathFor(storagePath: string): string {
   return `${base}.feed.jpg`;
 }
 
-interface PostRow {
+export interface PostRow {
   fail_reason?: string | null;
   agent_token_id?: string | null;
   agent_tokens?: { name: string } | { name: string }[] | null;
@@ -124,19 +124,20 @@ interface PostRow {
 }
 
 
-async function latestRevision(client:SupabaseClient,postId:string):Promise<{modelCommentId:string|null;fingerprint:string}|null> {
+export async function latestRevision(client:SupabaseClient,postId:string):Promise<{modelCommentId:string|null;fingerprint:string}|null> {
  const {data,error}=await client.rpc('feedback_revision',{p_post_id:postId}).abortSignal(AbortSignal.timeout(8000));
  if(error)throw new Error('Analysis revision could not be read.');
  return data;
 }
 
-async function toFeedPost(
+export async function toFeedPost(
   supabase: SupabaseClient,
   row: PostRow,
-  zone?: string
+  zone?: string,
+  known?: {items: FeedItem[]; revisionBefore: Awaited<ReturnType<typeof latestRevision>>; media?: {id:string;storage_path:string;kind:string;not_eaten:boolean}[]}
 ): Promise<FeedPost> {
-  const revisionBefore=row.status==="ready"?await latestRevision(supabase,row.id):null;
-  const { data: media, error: mediaError } = await supabase.from("post_media")
+  const revisionBefore=known?known.revisionBefore:row.status==="ready"?await latestRevision(supabase,row.id):null;
+  const { data: media, error: mediaError } = known?.media ? {data:known.media,error:null} : await supabase.from("post_media")
     .select("id,storage_path,kind,not_eaten").eq("post_id",row.id).order("position");
   if(mediaError) throw new Error(mediaError.message);
   const slides = (await Promise.all((media ?? []).map(async (entry) => {
@@ -145,7 +146,7 @@ async function toFeedPost(
   }))).filter((entry): entry is {id:string;url:string;kind:"photo"|"card";not_eaten:boolean} => entry !== null);
   const photoUrl = slides[0]?.url ?? null;
 
-  const items: FeedItem[] = row.status === "ready" ? await getCurrentItems(supabase, row.id) : [];
+  const items: FeedItem[] = row.status === "ready" ? known?.items ?? await getCurrentItems(supabase, row.id) : [];
 
   const {data:saved,error:savedError}=await supabase.from('saved_meals').select('id').eq('source_post_id',row.id).maybeSingle();
   if(savedError)throw new Error('Saved meal state could not be read.');
