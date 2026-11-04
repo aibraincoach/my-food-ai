@@ -14,7 +14,7 @@ export default function ServiceWorkerRegistration() {
   useEffect(() => {
     if (!("serviceWorker" in navigator)) return;
     const register = () => {
-      void navigator.serviceWorker.register("/sw.js").catch(() => {
+      void navigator.serviceWorker.register("/sw.js", { updateViaCache: "none" }).catch(() => {
         // The online app remains usable when installation is unavailable.
       });
     };

@@ -1,3 +1,5 @@
+importScripts("/build.js");
+let updating = false;
 const SHELL_CACHE = "my-food-ai-shell-v4";
 // Retire the previous media cache, which had no durable logout tombstones.
 const MEDIA_CACHE = "mfa-media-v2";
@@ -82,6 +84,7 @@ async function disableMedia(state, data = {}) {
 }
 
 self.addEventListener("install", event => {
+  updating = Boolean(self.registration.active);
   self.skipWaiting();
   event.waitUntil((async () => {
     const cache = await caches.open(SHELL_CACHE);
@@ -100,6 +103,9 @@ self.addEventListener("install", event => {
       const policy = response.headers.get("cache-control") ?? "";
       if (response.ok && /\bpublic\b/i.test(policy) && /\bimmutable\b/i.test(policy) && !/\bprivate\b|no-store/i.test(policy)) await putDecoded(cache, url, response);
     }));
+    // Retain only the shell and immutable files named by this deployment.
+    const keep = new Set(["/", "/shell", "/manifest.webmanifest"].map(path => new URL(path, self.location.origin).href).concat(shellAssets(shell)));
+    for (const request of await cache.keys()) if (!keep.has(request.url)) await cache.delete(request);
   })());
 });
 self.addEventListener("activate", event => {
@@ -107,6 +113,11 @@ self.addEventListener("activate", event => {
     const names = await caches.keys();
     await Promise.all(names.filter(name => ![SHELL_CACHE, MEDIA_CACHE, CONTROL_CACHE].includes(name)).map(name => caches.delete(name)));
     await self.clients.claim();
+    // An update replaces old cached documents without requiring a hard refresh.
+    // First installation leaves the current page alone.
+    if (updating) for (const client of await self.clients.matchAll({type: "window"})) {
+      if (new URL(client.url).origin === self.location.origin) await client.navigate(client.url).catch(() => {});
+    }
   })());
 });
 function authorizeClient(data, sourceId) {

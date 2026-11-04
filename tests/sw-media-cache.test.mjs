@@ -17,7 +17,7 @@ function worker({stores=new Map(),mediaPut,setTimer=setTimeout}={}) {
   async keys(){return [...store.keys()].map(key=>new Request(new URL(key,'https://app.example')));},async delete(key){return store.delete(keyOf(key));}
  };},async keys(){return [...stores.keys()];},async delete(name){return stores.delete(name);}};
  const self={location:{origin:'https://app.example'},addEventListener:(name,fn)=>handlers.set(name,fn),skipWaiting(){},clients:{async claim(){}},registration:{}};
- vm.runInNewContext(source,{self,caches,fetch:(request,init)=>fetcher(request,init),URL,Request,Response,Headers,Promise,Date,setTimeout:setTimer,clearTimeout});
+ vm.runInNewContext(source,{self,caches,fetch:(request,init)=>fetcher(request,init),URL,Request,Response,Headers,Promise,Date,setTimeout:setTimer,clearTimeout,importScripts(){}});
  const waitUntil=value=>lifetimes.push(Promise.resolve(value));
  const flush=async()=>{while(lifetimes.length)await Promise.all(lifetimes.splice(0));};
  const event=async(name,data={})=>{let pending;handlers.get(name)({...data,waitUntil(value){pending=value;}});await pending;};
