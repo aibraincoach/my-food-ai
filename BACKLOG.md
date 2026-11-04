@@ -1,6 +1,6 @@
 # My Food AI — Backlog†
 
-Last edited: Tuesday 2026-11-03 at 23:06 WIB (UTC+07:00) by Claude, PM
+Last edited: Wednesday 2026-11-04 at 09:20 WIB (UTC+07:00) by Claude, PM
 
 ## Backlog for Owner
 
@@ -32,29 +32,17 @@ The submission needs the public repository, the video link and a list of everyon
 
 Every Run 7 and Run 8 timing check ran in emulation. No physical phone has tested the feed, the photos, installation or posting.
 
-Check on each of the owner's three phones, installed from the home screen, over mobile data: the feed and the first photo show within two seconds (#222, #305); the last feed shows at once and fresh posts appear without jumping (#304); a warm revisit reuses cached photos and the photos look acceptable (#305); the camera, the keyboard and a post from the phone work, with the right photo kept (#6); a post completes through the worker (#322). Done when each check passes on each of the three phones and each failure is reported to the coder with its number.
+Check on each of the owner's three phones, installed from the home screen, over mobile data: the feed and the first photo show within two seconds (#222, #305); the last feed shows at once and fresh posts appear without jumping (#304); a warm revisit reuses cached photos and the photos look acceptable (#305); the camera, the keyboard and a post from the phone work, with the right photo kept (#6); a post completes through the worker (#322); the capture sheet closes within one second of the tap (#370). Done when each check passes on each of the three phones and each failure is reported to the coder with its number.
 
 ## In Flight
 
-### #468 Big numbers lose their thousands separator on the desktop Days and Today
-
-The same total reads "34,811" in one place and "34811" in another on the desktop screens.
-
-In the PR #460 screenshots, the Days panel shows "Consumed: 34811 kcal" while its calendar cell shows "34,811", and the Today column uses the same formatter, so it would show "2118" beside the feed's "2,118". Done when every kcal total on desktop Days and Today is written the way the feed writes it.
-
-### #469 The desktop Home and New post are likely to break below 1280 by 800
-
-The layout was only tested at 1280 by 800, and the CSS suggests two other sizes break.
-
-Between 1024 and 1147 px wide, the feed and the Today column need 844 px of room and the layout gives them less, so the Today column should overflow or force sideways scrolling. The New post window is a fixed 620 px tall with padding, so a laptop browser about 650 px high, such as 1366 by 768, clips the top or the shutter. This comes from reading the CSS and was not run. Done when Home and New post are checked at 1024 by 700 and 1366 by 650 and nothing is clipped or scrolls sideways.
-
-### #470 On desktop, adding a photo to an existing post has no file picker
-
-Adding a photo to an existing post, including a not-eaten plate, gives a desktop user no way to choose a file.
-
-That flow keeps the old window, where "Choose from library" is hidden on desktop, so without a webcam the user sees only the camera area and nothing says that drag and drop or paste works. This predates PR #460. Done when, on desktop with no webcam, a photo can be added to an existing post from a file picker.
-
 ## Engineering backlog
+
+### Opening a meal's detail takes 14 seconds
+
+The owner reports 14 seconds from tapping a meal to its detail page opening. He calls it not acceptable.
+
+The owner reported it on Nov 4 at about 07:38 WIB. The device and network are not recorded. The audit items below name three suspects: no loading screen on the tap, the same meal read twice, and the full original photo downloaded again. Nobody has timed the detail on current main. Observe first: time the tap to a usable detail on a phone over mobile data and on desktop, and record where the seconds go (server render, database reads, photo download). Done when the detail opens within two seconds on the owner's phone over mobile data, and the report states where the 14 seconds went.
 
 ### #473 The desktop Today column may not shrink at 1100 px wide
 
@@ -73,12 +61,6 @@ Unverified planner finding. The app's sign-up and sign-in run as server actions 
 Judges read the README and the evidence on main, and main still shows Run 7.
 
 All Run 8 evidence and the updated CLAUDE.md are in open docs PR #333, and the Fleet 9 evidence is in open docs PR #344. The README still describes Run 7 and says 17 database tests passed. The database gate now passes 20 of 20. The touched barcode test file fails with a fake USDA key (two failures, reproduced on the original main), and the full lint run shows 34 errors and 20 warnings (docs/run8-final-report.md). Done when #333 and #344 are merged, the README states the current test counts with the known failures, and every README evidence link points at a current document on main.
-
-### #370 The camera view stays open for a long time after a photo is taken
-
-After a photo is taken, the camera view stays on screen for a long time before the post shows in the feed. People will not wait that long.
-
-The capture sheet sends its post-created event and closes only after a successful post, so it waits on the upload and the server. The owner reports the wait on his phone. Observe first: time the tap to the sheet closing and to the new post showing, on a phone over mobile data, and record the size in bytes of each photo the phone uploads. Then close the sheet at the tap and show the new post at the top of the feed in its processing state while the upload finishes. Done when the sheet closes within one second of the tap on a throttled connection, the post appears at the top of the feed in its processing state, and a failed upload is shown on that post.
 
 ### #372 Feed photos are too large for a phone on mobile data
 
@@ -103,18 +85,6 @@ In 24 hours the loop produced 74,736 empty claims, 74,698 failures and 70,155 le
 In the 24 hours before Run 8, Supabase Storage served 2.99 GB across 35,048 requests, almost all to browsers. The Run 8 cut measured the feed's posts reads, not Storage.
 
 docs/egress.md attributes the bytes to browser-class agents but not to which files (feed JPEGs, card PNGs or originals) or which clients. Much of it may be the coder's own 100-opening measurement runs. Log-ingestion bytes were never measured; only row counts were. Done when Storage egress is broken down by file kind and by client (test automation or real users), log-ingestion bytes are measured, and the largest real-user source is cut or shown to be small.
-
-### #222 The feed fails to open, and photos and cards take too long to appear
-
-On a large account the feed sometimes shows an error or never appears. When it opens, photos and cards take a long time to show, so the app feels broken and slow.
-
-Run 8 merged the cold-open fixes (#322, #323, #324, #326). In emulation, 100 of 100 browser openings passed and the five final cold photos took 1.48 to 1.83 seconds. The original failures (3 server errors and 15 blank feeds in 100 openings on the largest test account, 146 posts) never reproduced on Run 7's baseline, so their cause is not isolated; the worker's empty-claim loop is a suspect (separate item). The runtime logs return 403 for the coder, so the stack for digest 3642131196 exists only in the Vercel console. Done when the feed and the first photo show within two seconds on the owner's phone over mobile data.
-
-### #281 A Meta open-weight model identifies the food (hackathon bonus)
-
-The hackathon pays a $10,000 bonus for a build on a Meta open-weight model, and the app calls only the hosted Meta API.
-
-Use Muse Spark Open (meta-models/muse-spark-open-1026) through Baseten's OpenAI-compatible endpoint, https://inference.baseten.co/v1, for the identify-and-portions call. The key works only with that model and never goes in the repository, an issue or this backlog. Confirm the coder can sign in to Baseten with the key before the trial. The model always reasons, so check output caps that include reasoning. The Meta client hardcodes model names, and the ten-photo harness cannot choose a model host. Trial first in a throwaway clone that swaps only that call, and spend at most 5 US dollars. SAM and transcription stay on the Meta API, and the USDA lookup is unchanged. Compare the ten meal photos and one caption, "I ate half the rice", against the current path. A qualifying step must be a real, switchable path on main that a judge can reproduce, with the model ID logged. Cerebral Valley answered on Nov 3 that Muse Spark Open counts however it runs, including through Baseten. Done when a real, switchable path on main runs the identify-and-portions step on Muse Spark Open through Baseten, the model ID is logged, the results against the ten photos are in docs, and the owner has switched it on in Profile, logged a meal, and seen the Muse Spark Open line in that meal's post detail on production.
 
 ### #306 Every tap that saves shows its result at once
 
@@ -170,12 +140,6 @@ The server renders the row of day bubbles with totals for the last 5 days. The b
 
 Run 8 merged one shared server read of today's totals. Final browser windows still made one or two day-total reads, so a single read across the server and the browser together is unproved. Done when a home open queries today's totals once across the server and the browser together.
 
-### #294 The app's words read naturally everywhere
-
-The leftovers label reads awkwardly, and nobody has reviewed the words in the rest of the app.
-
-The label "leftovers (not eaten)" reads awkwardly. The planner reviews the app's terms with AGY as a second opinion and lists each term, where it appears and a recommended replacement. The terms include the leftovers label, "Consumed", "Log again", "Saved meals", "Additional food", the needs-input question and the Days names. Every rule stays: consumed past tense, no target, goal, ring or percentage, and no "left" as a word for a remaining amount. Done when the list is reviewed, the owner has ruled on each term, and the wording is changed everywhere it appears.
-
 ### #193 Page looks for every screen against the designer's frames
 
 No screen has been compared with the designer's frames, and the intake control and the barcode scanner have no frame at all.
@@ -199,18 +163,6 @@ On a new upload, the card's reader drops the pending food names, so #307 fails t
 A recording with several photos on one account can run into the model's hourly limit while the video runs.
 
 Photo drink identification adds one model call per staged photo, counted against the account's hourly cap, and the last audit on production got "You have made a lot of requests this hour." Done when a recording-length session of several photos on one account runs with no cap message, or the account's cap is raised before recording.
-
-### #348 A photographed drink's card was not proven on production
-
-The card for a photographed drink was closed without the production check its done condition asked for.
-
-The Fleet 10 report says the selected drink card on screen remains unproven. Done when a photographed drink shows the right drink card on production, on the owner's three phones.
-
-### #351 The drink tile sizes and order were closed on a local test only
-
-The tile sizes and order on the drink sheet were not checked on production.
-
-Only a local test backs the closure. Done when the drink sheet shows its tiles in the right sizes and order on production, on the owner's three phones.
 
 ### #451 Every barcode scan comes back as not in the database
 
@@ -265,6 +217,90 @@ On an iPhone with the keyboard up, the screen shows the photo and the Post butto
 The desktop app follows the old Round 4 frames, which the designer has replaced, so it no longer matches the design.
 
 The designer delivered Round 6 at 1280x800 and removed the old desktop frames 4a to 4f. Frame 6a, Home: the same left sidebar on every screen, with New post as its one dark button and Profile at the bottom; the keyboard shortcut list leaves the sidebar and opens with the ? key; a Today column beside the feed shows today's totals and posts, and a dated line with each day's total separates the days. Frame 6b, a post open: the post opens in a window over the dimmed feed, with the photo on the left and the totals, items, comments and comment field on the right, in place of the narrow side panel. Frame 6c, New post: one window holds both the webcam and the photo drop area, with no Webcam and Upload switch, and the same Text, Photo and Barcode modes as the phone. Frame 6d, Days: a bigger month calendar, with the chosen day's posts in a full-height panel on the right. Frames 6e and 6f, Search and Profile: the same centred column, with "Connect an agent" as a button under the user's name. The desktop differences in the earlier visual-difference issues (#353 to #367) are superseded by these frames. The first build (PR #460, merged) still differs from the frames: on Days the ‹ › buttons sit at the right instead of beside the month title, the search field is filled grey where the frame's is white with an ink border, and the focus outline on search rows and the Profile grid is wider than its row or tile. Done when the app at 1280x800 matches frames 6a to 6f and the phone layout is unchanged.
+
+### #468 Big numbers lose their thousands separator on the desktop Days and Today
+
+The same total reads "34,811" in one place and "34811" in another on the desktop screens.
+
+In the PR #460 screenshots, the Days panel shows "Consumed: 34811 kcal" while its calendar cell shows "34,811", and the Today column uses the same formatter, so it would show "2118" beside the feed's "2,118". Done when every kcal total on desktop Days and Today is written the way the feed writes it.
+
+### #469 The desktop Home and New post are likely to break below 1280 by 800
+
+The layout was only tested at 1280 by 800, and the CSS suggests two other sizes break.
+
+Between 1024 and 1147 px wide, the feed and the Today column need 844 px of room and the layout gives them less, so the Today column should overflow or force sideways scrolling. The New post window is a fixed 620 px tall with padding, so a laptop browser about 650 px high, such as 1366 by 768, clips the top or the shutter. This comes from reading the CSS and was not run. Done when Home and New post are checked at 1024 by 700 and 1366 by 650 and nothing is clipped or scrolls sideways.
+
+### #470 On desktop, adding a photo to an existing post has no file picker
+
+Adding a photo to an existing post, including a not-eaten plate, gives a desktop user no way to choose a file.
+
+That flow keeps the old window, where "Choose from library" is hidden on desktop, so without a webcam the user sees only the camera area and nothing says that drag and drop or paste works. This predates PR #460. Done when, on desktop with no webcam, a photo can be added to an existing post from a file picker.
+
+### #370 The camera view stays open for a long time after a photo is taken
+
+After a photo is taken, the camera view stays on screen for a long time before the post shows in the feed. People will not wait that long.
+
+The capture sheet sends its post-created event and closes only after a successful post, so it waits on the upload and the server. The owner reports the wait on his phone. Observe first: time the tap to the sheet closing and to the new post showing, on a phone over mobile data, and record the size in bytes of each photo the phone uploads. Then close the sheet at the tap and show the new post at the top of the feed in its processing state while the upload finishes. Done when the sheet closes within one second of the tap on a throttled connection, the post appears at the top of the feed in its processing state, and a failed upload is shown on that post.
+
+### #222 The feed fails to open, and photos and cards take too long to appear
+
+On a large account the feed sometimes shows an error or never appears. When it opens, photos and cards take a long time to show, so the app feels broken and slow.
+
+Run 8 merged the cold-open fixes (#322, #323, #324, #326). In emulation, 100 of 100 browser openings passed and the five final cold photos took 1.48 to 1.83 seconds. The original failures (3 server errors and 15 blank feeds in 100 openings on the largest test account, 146 posts) never reproduced on Run 7's baseline, so their cause is not isolated; the worker's empty-claim loop is a suspect (separate item). The runtime logs return 403 for the coder, so the stack for digest 3642131196 exists only in the Vercel console. Done when the feed and the first photo show within two seconds on the owner's phone over mobile data.
+
+### #281 A Meta open-weight model identifies the food (hackathon bonus)
+
+The hackathon pays a $10,000 bonus for a build on a Meta open-weight model, and the app calls only the hosted Meta API.
+
+Use Muse Spark Open (meta-models/muse-spark-open-1026) through Baseten's OpenAI-compatible endpoint, https://inference.baseten.co/v1, for the identify-and-portions call. The key works only with that model and never goes in the repository, an issue or this backlog. Confirm the coder can sign in to Baseten with the key before the trial. The model always reasons, so check output caps that include reasoning. The Meta client hardcodes model names, and the ten-photo harness cannot choose a model host. Trial first in a throwaway clone that swaps only that call, and spend at most 5 US dollars. SAM and transcription stay on the Meta API, and the USDA lookup is unchanged. Compare the ten meal photos and one caption, "I ate half the rice", against the current path. A qualifying step must be a real, switchable path on main that a judge can reproduce, with the model ID logged. Cerebral Valley answered on Nov 3 that Muse Spark Open counts however it runs, including through Baseten. Done when a real, switchable path on main runs the identify-and-portions step on Muse Spark Open through Baseten, the model ID is logged, the results against the ten photos are in docs, and the owner has switched it on in Profile, logged a meal, and seen the Muse Spark Open line in that meal's post detail on production.
+
+### #294 The app's words read naturally everywhere
+
+The leftovers label reads awkwardly, and nobody has reviewed the words in the rest of the app.
+
+The label "leftovers (not eaten)" reads awkwardly. The planner reviews the app's terms with AGY as a second opinion and lists each term, where it appears and a recommended replacement. The terms include the leftovers label, "Consumed", "Log again", "Saved meals", "Additional food", the needs-input question and the Days names. Every rule stays: consumed past tense, no target, goal, ring or percentage, and no "left" as a word for a remaining amount. Done when the list is reviewed, the owner has ruled on each term, and the wording is changed everywhere it appears.
+
+### #348 A photographed drink's card was not proven on production
+
+The card for a photographed drink was closed without the production check its done condition asked for.
+
+The Fleet 10 report says the selected drink card on screen remains unproven. Done when a photographed drink shows the right drink card on production, on the owner's three phones.
+
+### #351 The drink tile sizes and order were closed on a local test only
+
+The tile sizes and order on the drink sheet were not checked on production.
+
+Only a local test backs the closure. Done when the drink sheet shows its tiles in the right sizes and order on production, on the owner's three phones.
+
+### Tapping a meal shows nothing until the whole detail loads
+
+A tap on a meal card looks dead until the server finishes the whole detail. On phone and on desktop, no loading screen appears, so the tap gives no feedback until the server answers.
+
+Unverified audit finding, read at head 618cf7e, which is older than main. The audit assumed a viewer in Jakarta. The judges are in North America. The phone page (src/app/posts/\[id\]/page.tsx) has no loading screen. The home page passes the desktop detail with no placeholder around it (src/app/(tabs)/page.tsx, src/components/DesktopWorkspace.tsx), so the dialog cannot open until the server finishes. The audit proposes a loading screen for the phone page and a placeholder with a photo and item-row skeleton on desktop. That would also let the browser prefetch the shell. Observe first: re-read those files on current main, and time the tap to the first visible change on a throttled connection. Done when a tap on a meal card shows a skeleton within one second on phone and on desktop, on a throttled connection, and the full detail replaces it when it loads.
+
+### Opening a meal's detail reads the same meal twice
+
+Opening a meal's detail reads the post, its items and its media twice, so every open pays about double the database work before anything shows.
+
+Unverified audit finding, read at head 618cf7e. The audit says the detail component fetches the full detail and the feed card for the same meal in parallel (src/components/PostDetail.tsx, src/lib/posts/items.ts, src/lib/posts/feed.ts, src/lib/nutrition/totals.ts). The items read is three queries (current items, nutrition rows, parent items), so items alone cost six round trips. The card adds two revision calls and a saved-meal query. The audit counts about fifteen database round trips per detail open. It proposes one detail loader that reads the post, items, media, saved state and revision data once. A smaller version shares the reads within one request. Observe first: count the database requests of one detail open on current main. Done when one detail open reads each of post, items, media, saved state and revision data once, and the request count before and after is in docs.
+
+### Opening a meal's detail downloads the full original photo again
+
+Opening a meal's detail downloads the full original photo although a small copy is already on screen from the feed. The browser cannot reuse what it already holds, so every open pays a large download.
+
+Unverified audit finding, read at head 618cf7e. The audit says the detail image uses a fresh signed address minted at every render, which skips the five-minute address cache the feed uses, and that it points at the original file and not the cached feed copy (src/components/OutlineOverlay.tsx, src/lib/posts/items.ts, src/app/api/media/feed/\[owner\]/\[post\]/\[media\]/v1.webp/route.ts). It proposes showing the cached feed copy first, then the original after it loads or on zoom, and keeping the original for the outline editor. Nobody has measured the original photo sizes. Related: #372. Done when a detail open shows the cached feed copy at once, the original loads only after it or on zoom, and the bytes downloaded per detail open before and after are in docs.
+
+### The feed reads once per meal and fires about 100 requests on a cold load
+
+A first load or a deep scroll of the feed fires about 100 browser requests for one 20-post page, because each meal costs its own set of reads.
+
+Unverified audit finding, read at head 618cf7e. Per meal, the audit lists two revision calls, a media query, a saved-meal query and the three-query item read (src/lib/posts/feed.ts). The home mitigations cover repeat visits to the top of the feed only: the first six posts render on the server, six posts stay in a browser cache, photo addresses are stable, and the first photo preloads. The audit proposes batching the per-meal reads the way the days reader now uses one joined query. Related: #222 and #373. Observe first: count the requests of a cold 20-post feed on current main. Done when a cold 20-post feed page makes a fixed small number of reads instead of one set per meal, and the request count before and after is in docs.
+
+### Several pages export an instant flag that nothing reads
+
+Several pages export a flag called instant set to false, and nothing reads it. Every reader has to wonder what it does.
+
+Unverified audit finding, read at head 618cf7e. The audit found no source file, script or tool that reads the flag (src/app/posts/\[id\]/page.tsx and other pages). Nothing breaks while it stays. Done when no page exports the flag and a search of the source for it returns nothing.
 
 ### #279 Sign-up and sign-in resist being hammered
 
