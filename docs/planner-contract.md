@@ -1,5 +1,7 @@
 # Planner contract
 
+> Owner override, November4 at16:15 WIB: the Vercel protection-bypass secret stays in place and is never revoked or listed for revocation. Preserve reviewer/coder access. This supersedes any older cleanup instruction; no revocation was performed. Before filing a reviewer/planner suggestion, the PM checks what access or functionality it would remove.
+
 > Current owner overrides (2026-10-29): a merge prompt may batch ready PRs, each with its exact SHA and checks; plans are not standing merge orders. A changed head needs its own applicable receipt. The Run3 stacked branches were an explicit plan exception to the generic no-stacking rule, but their bases did not automatically retarget after #200 merged. Check actual bases. Codex is explicitly authorized as an additional reviewer on #205/#206 and again after their fixes; the generic non-OpenAI restriction below does not negate that narrow instruction.
 
 Check before delivering a plan. Revised 2026-10-02.

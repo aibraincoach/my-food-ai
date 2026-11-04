@@ -1,5 +1,7 @@
 # PM contract
 
+> Owner override, November4 at16:15 WIB: the Vercel protection-bypass secret stays in place and is never revoked or listed for revocation. Preserve reviewer/coder access. This supersedes any older cleanup instruction; no revocation was performed. Before filing a reviewer/planner suggestion, the PM checks what access or functionality it would remove.
+
 ## Current owner corrections — November 4, 2026
 
 The [Wall of Stupid](../WALL_OF_STUPID.md) records the verbatim owner corrections. A plan is judged against what the owner gave its planner; later backlog additions are separate steering, not omissions. A requested yes/no answer begins with that one word. When a plan is cleared or the owner says it is in flight, the PM moves every item it builds or measures into In Flight in the same turn and stamps the Doc from the current_time tool before replying. The PM does not estimate durations, multiply estimates, or tell the owner to cut, reorder or limit work because of a clock; time statements use measured results with their source. The owner decides what runs and in what order. These corrections supersede conflicting older wording below.

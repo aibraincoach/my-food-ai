@@ -1,5 +1,7 @@
 # Agent rules — My Food AI
 
+> Owner override, November4 at16:15 WIB: the Vercel protection-bypass secret stays in place and is never revoked or listed for revocation. Preserve reviewer/coder access. This supersedes any older cleanup instruction; no revocation was performed. Before filing a reviewer/planner suggestion, the PM checks what access or functionality it would remove.
+
 ## Current project state — Fleet 14, November 4, 2026
 
 Observed 2026-11-04T08:45:23.069706+00:00. Main and READY production are `a24587a1ec3b57a7b2bdfb5f69cce4e0e73602db`, deployment `dpl_24RqPXLfHT5iuV9ZJEnADjoNzgFS`, production alias verified and health200. All seven Fleet14 code PRs #559/#560/#561/#563/#564/#565/#566 merged in ascending order at cleared heads (the anticipated main-only #564 refresh is mapped in [the review index](docs/reviews/run14-review-index.md)). The entire main Git tree exactly matches tested tree `501108d7d1af0cce724bcc5965cdfc9cf60139b6`:603 passed,0 failed,6 existing optional skips; serial DB39/39; default build and TypeScript pass; lint0 errors/11 warnings (6 old,5 new). [Execution and measurement report](docs/run14-report.md).

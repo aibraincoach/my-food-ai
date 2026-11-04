@@ -31,7 +31,7 @@ AGY read all9 original measurement patch parts and returned BLOCKERS:NONE at3d66
 
 P1 remains unproved: repeated native Chromium page/network commands timed out on this host, even when Browser/Runtime health commands answered. This is a driver limitation, not evidence that the service-worker cause is true or false. The shared structural Home/shell repair was specified regardless of P1.
 
-P4 passed: the project token created the temporary Vercel Protection Bypass secret (HTTP200), retained only in a private ignored file. Revocation remains due after preview checks finish. No secret is copied into source, receipts or public links.
+P4 passed: the project token created the Vercel Protection Bypass secret (HTTP200), retained only in a private ignored file. The owner explicitly ruled at16:15 WIB on November4 that this access secret stays in place and is never revoked or listed for revocation. No secret is copied into source, receipts or public links.
 
 ### Tick before measurements
 
@@ -84,7 +84,7 @@ New issues created by this run: none so far. No recording-start notice was recei
 
 ## Cleanup
 
-Completed:12 cap posts and objects removed; eager probe closed unmerged and remote branch deleted. Pending: preview bypass revocation, remaining production fixture cleanup, local apps/stacks/browsers and Fleet14 worktrees, final scripts/cleanup.sh. The original checkout's pre-existing untracked review remains preserved.
+Completed:12 cap posts and objects removed; eager probe closed unmerged and remote branch deleted. Pending: remaining production fixture cleanup, local apps/stacks/browsers and Fleet14 worktrees, final scripts/cleanup.sh. The original checkout's pre-existing untracked review remains preserved.
 
 ## Team status snapshot — 2026-11-04T08:59:00.199578+00:00
 
@@ -98,4 +98,8 @@ Two real production gallery fixtures became ready, showed pending food names bef
 
 Readonly UI checks: six drink tiles111.33×92px in3columns, usage order matched; actual virtual-camera video640×480 with scanning prompt opaque rgb(26,25,23). Calendar61dates October1–November30 contiguous and today visible. The entire calendar fits844px, so the November marker cannot be moved near the top; the label correctly names October at the current top, but production November switching remains unexercised. Do not close512 on that evidence alone.
 
-Still running: hourly resource collector,2 of7 samples collected at07:40:46 and08:40:46UTC; the configured six-hour series ends13:40:46UTC. Still being finished: remaining control-table states/rendered cola proof, final issue comments/closures, final report/index/backlog reconciliation, bypass revocation and local-service/worktree cleanup. Core feature coding, external review, tests, migration and deployment are finished. No new feature work is dispatched. All physical-phone/owner acceptance and the outside-bot368probe remain outside completed coder evidence.
+Still running: hourly resource collector,2 of7 samples collected at07:40:46 and08:40:46UTC; the configured six-hour series ends13:40:46UTC. Still being finished: remaining control-table states/rendered cola proof, final issue comments/closures, final report/index/backlog reconciliation and local-service/worktree cleanup. Core feature coding, external review, tests, migration and deployment are finished. No new feature work is dispatched. All physical-phone/owner acceptance and the outside-bot368probe remain outside completed coder evidence.
+
+## Owner steering — November4,16:15 WIB
+
+The protection-bypass secret stays in place and is never revoked or listed for revocation. Its access material is retained privately outside disposable worktrees. This explicitly supersedes the original unchanged plan’s bypass-cleanup clauses. No revocation was performed. Review/planner suggestions must be checked for loss of fleet access before becoming backlog items or owner instructions. The verbatim correction is recorded in WALL_OF_STUPID.md.
