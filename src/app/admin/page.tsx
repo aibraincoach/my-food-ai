@@ -1,14 +1,17 @@
 import Link from "next/link";
-import { connection } from "next/server";
+import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getQueueStats } from "@/lib/admin/stats";
 import { font } from "@/lib/theme/font";
 
-export const instant = false;
+export default function AdminPage() {
+  return <Suspense fallback={null}><AdminPageContent /></Suspense>;
+}
 
-export default async function AdminPage() {
+async function AdminPageContent() {
+  const { connection } = await import("next/server");
   await connection();
   const client = await createClient();
   const { data: { user }, error: authError } = await client.auth.getUser();

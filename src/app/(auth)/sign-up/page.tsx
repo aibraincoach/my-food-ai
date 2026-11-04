@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { connection } from "next/server";
+import { Suspense } from "react";
 import { signUp } from "@/lib/auth/actions";
 import HCaptcha from "@/components/HCaptcha";
 import FacebookButton from "@/components/FacebookButton";
@@ -9,9 +9,12 @@ import { Field } from "@/components/ui/Field";
 import { font } from "@/lib/theme/font";
 import { tokens } from "@/lib/theme/tokens";
 
-export const instant = false;
+export default function SignUpPage({ searchParams }: { searchParams: Promise<{ error?: string }> }) {
+  return <Suspense fallback={null}><SignUpContent searchParams={searchParams} /></Suspense>;
+}
 
-export default async function SignUpPage({ searchParams }: { searchParams: Promise<{ error?: string }> }) {
+async function SignUpContent({ searchParams }: { searchParams: Promise<{ error?: string }> }) {
+  const { connection } = await import("next/server");
   await connection();
   const { error } = await searchParams;
   return (

@@ -1,9 +1,14 @@
-import { connection } from 'next/server';
-import { redirect } from 'next/navigation';
-import { createClient } from '@/lib/supabase/server';
+import { Suspense } from 'react';
 import NewAgentForm from './NewAgentForm';
-export const instant = false;
-export default async function NewAgentPage() {
+
+export default function NewAgentPage() {
+  return <Suspense fallback={null}><NewAgentPageContent /></Suspense>;
+}
+
+async function NewAgentPageContent() {
+  const { connection } = await import('next/server');
+  const { redirect } = await import('next/navigation');
+  const { createClient } = await import('@/lib/supabase/server');
   await connection();
   const { data: { user } } = await (await createClient()).auth.getUser();
   if (!user) redirect('/sign-in');

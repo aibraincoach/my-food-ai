@@ -4,7 +4,8 @@ import {useRouter} from 'next/navigation';
 import {sendFeedback} from '@/lib/posts/feedback';
 import {createTapController} from '@/lib/posts/tap';
 import {Icon} from '@/components/ui/Icon';
-const openTarget=(router:ReturnType<typeof useRouter>,target:string)=>{const id=target.match(/^\/posts\/([0-9a-f-]{36})/i)?.[1];if(id&&matchMedia('(min-width:1024px)').matches&&document.querySelector('[data-desktop-workspace]')){window.dispatchEvent(new CustomEvent('open-post',{detail:{id}}));return;}if(id)window.dispatchEvent(new CustomEvent('post-open-preview',{detail:{id,committed:true}}));router.push(target);};
+import {openPost} from '@/lib/posts/open-post';
+const openTarget=(router:ReturnType<typeof useRouter>,target:string)=>{const id=target.match(/^\/posts\/([0-9a-f-]{36})/i)?.[1];if(id){openPost(id,target,router);return;}router.push(target);};
 // A double tap votes up; a single tap opens the meal (href) once it is clear no second tap follows.
 export default function DoubleTap({postId,modelCommentId,fingerprint,href,children}:{postId:string;modelCommentId:string|null;fingerprint:string|null;href?:string;children:ReactNode}){
  const router=useRouter();const pending=useRef(false);const timer=useRef<ReturnType<typeof setTimeout>|null>(null);

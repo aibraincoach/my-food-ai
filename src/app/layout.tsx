@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import { Suspense } from "react";
 import { font } from "@/lib/theme/font";
 import { tokens } from "@/lib/theme/tokens";
 import ServiceWorkerRegistration from "@/components/ServiceWorkerRegistration";
@@ -23,10 +24,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en" className="h-full antialiased" data-build={process.env.NEXT_PUBLIC_BUILD}>
       <body className={`${font.className} ${font.variable} flex min-h-dvh flex-col`}>
         <ServiceWorkerRegistration />
-        <DeletePostSheet />
+        <Suspense fallback={null}><DeletePostSheet /><PostOpenTransition /></Suspense>
         <FeedCacheMutations />
         {children}
-        <PostOpenTransition />
       </body>
     </html>
   );
