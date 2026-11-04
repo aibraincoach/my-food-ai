@@ -30,20 +30,28 @@ export function DetailDate({ value, weekday = false }: { value: string; weekday?
   return <LocalTime value={value} weekday={weekday} />;
 }
 
-function DetailImage({ photo, alt }: { photo: DetailPhoto; alt: string }) {
-  const identity = imageIdentity(photo.url);
-  const [original, setOriginal] = useState<{identity:string;url:string}|null>(null);
-  const src = original?.identity === identity ? original.url : photo.previewUrl ?? photo.url;
-  const [failedSharp, setFailedSharp] = useState<string|null>(null);
+function DetailImage({ photo, alt, sharp = false }: { photo: DetailPhoto; alt: string; sharp?: boolean }) {
+  const cacheKey = photo.id ? `mfa-original-${photo.id}` : null;
+  const [originalUrl, setOriginalUrl] = useState<string | null>(() => (sharp && cacheKey && typeof sessionStorage !== "undefined" ? sessionStorage.getItem(cacheKey) : null));
+  const preview = photo.previewUrl ?? photo.url;
+  const src = sharp && originalUrl ? originalUrl : preview;
+  const [failedSharp, setFailedSharp] = useState<string | null>(null);
   useEffect(() => {
-    if (!photo.previewUrl) return;
-    let live = true; const image = new Image();
+    if (!sharp || !photo.previewUrl) return;
+    const cached = cacheKey ? sessionStorage.getItem(cacheKey) : null;
+    if (cached) { setOriginalUrl(cached); return; }
+    let live = true;
+    const image = new Image();
     image.crossOrigin = "anonymous";
-    image.onload = () => { if (live) setOriginal({identity,url:photo.url}); };
+    image.onload = () => {
+      if (!live) return;
+      setOriginalUrl(photo.url);
+      if (cacheKey) sessionStorage.setItem(cacheKey, photo.url);
+    };
     image.src = photo.url;
     return () => { live = false; };
-  }, [photo.url, photo.previewUrl, identity]);
-  return <img src={src} srcSet={failedSharp!==imageIdentity(src)&&src===photo.previewUrl?feedPhotoSrcSet(src):undefined} onError={()=>setFailedSharp(imageIdentity(src))} crossOrigin="anonymous" alt={alt} draggable={false} className="h-full w-full object-contain" />;
+  }, [sharp, photo.url, photo.previewUrl, cacheKey]);
+  return <img src={src} srcSet={failedSharp !== imageIdentity(src) && src === preview ? feedPhotoSrcSet(src) : undefined} onError={() => setFailedSharp(imageIdentity(src))} crossOrigin="anonymous" alt={alt} draggable={false} className="h-full w-full object-contain" />;
 }
 
 function Mask({ url, photo, color, frame, fallback }: {
@@ -115,8 +123,17 @@ export default function OutlineOverlay({ desktopModal=false, desktopHeader, desk
     const channel = supabase.channel(`detail-${postId}`).on("postgres_changes", {
       event: "UPDATE", schema: "public", table: "posts", filter: `id=eq.${postId}`,
     }, () => { void refresh(); }).subscribe();
-    const timer = waiting || ["queued", "processing"].includes(status) ? setInterval(() => { void refresh(); }, 2000) : null;
-    return () => { live = false; if (timer) clearInterval(timer); void supabase.removeChannel(channel); };
+    const poll = waiting || ["queued", "processing"].includes(status);
+    let delay = 2000;
+    let timer: ReturnType<typeof setTimeout> | null = null;
+    const tick = () => {
+      if (!live) return;
+      if (document.visibilityState === "visible") void refresh();
+      delay = Math.min(30000, delay * 2);
+      timer = setTimeout(tick, delay);
+    };
+    if (poll) timer = setTimeout(tick, delay);
+    return () => { live = false; if (timer) clearTimeout(timer); void supabase.removeChannel(channel); };
   }, [postId, status, waiting, router]);
 
   const height=desktopModal||wholePhoto?frameHeight:width;
@@ -171,9 +188,9 @@ export default function OutlineOverlay({ desktopModal=false, desktopHeader, desk
         if (hit) setSelection({ item: hit, key: Date.now() });
       }}>
       {selectedIndex>0 ? selectedSlide?.kind==='photo'&&activePhoto?<DetailImage key={selectedSlide.id??selectedSlide.url} photo={activePhoto} alt={selectedSlide.not_eaten?'Leftovers':`Meal photo ${selectedIndex+1}`}/>:<ResultsCard data={displayCard} size={width} time={localTime}/> : photo && (!drink || drink.source === 'item') ? <>
-        <DetailImage photo={photo} alt={caption || "Meal photo"} />
+        <DetailImage photo={photo} alt={caption || "Meal photo"} sharp={outlines || drawing} />
         {outlines && items.map((item, index) => item.box ? <div key={item.id}>
-          <Mask url={item.maskUrl} photo={photo} color={outlineColor(index)} frame={frame} fallback={boxStyle(item.box)} />
+          <Mask url={outlines ? item.maskUrl : null} photo={photo} color={outlineColor(index)} frame={frame} fallback={boxStyle(item.box)} />
           <button type="button" disabled={!initialized || readOnly} aria-label={`Edit ${item.name}`} className="absolute max-w-full rounded-chip py-grid text-label font-semibold text-white"
             style={{ left: offsetX + item.box.left * scale, top: offsetY + item.box.top * scale, paddingLeft: tokens.detail.chipX, paddingRight: tokens.detail.chipX, background: outlineColor(index) }}
             onClick={(event) => { event.stopPropagation(); setSelection({ item, key: Date.now() }); }}>

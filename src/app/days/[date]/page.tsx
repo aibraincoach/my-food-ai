@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { connection } from "next/server";
 import { notFound } from "next/navigation";
 import { cookies } from "next/headers";
@@ -5,9 +6,11 @@ import TabsLayout from "@/app/(tabs)/layout";
 import DaysScreen from "@/components/DaysScreen";
 import { dateInZone, validDate, validZone } from "@/lib/posts/days";
 
-export const instant = false;
+export default function DayPage({ params, searchParams }: { params: Promise<{ date: string }>; searchParams: Promise<{ tz?: string }> }) {
+  return <Suspense fallback={null}><DayPageContent params={params} searchParams={searchParams} /></Suspense>;
+}
 
-export default async function DayPage({ params, searchParams }: { params: Promise<{ date: string }>; searchParams: Promise<{ tz?: string }> }) {
+async function DayPageContent({ params, searchParams }: { params: Promise<{ date: string }>; searchParams: Promise<{ tz?: string }> }) {
   await connection();
   const { date } = await params;
   if (!validDate(date)) notFound();

@@ -1,9 +1,12 @@
+import { Suspense } from "react";
 import { connection } from "next/server";
 import DaysScreen from "@/components/DaysScreen";
 
-export const instant = false;
+export default function DaysPage({ searchParams }: { searchParams: Promise<{ tz?: string }> }) {
+  return <Suspense fallback={null}><DaysPageContent searchParams={searchParams} /></Suspense>;
+}
 
-export default async function DaysPage({ searchParams }: { searchParams: Promise<{ tz?: string }> }) {
+async function DaysPageContent({ searchParams }: { searchParams: Promise<{ tz?: string }> }) {
   await connection();
   const { tz } = await searchParams;
   return <DaysScreen tz={tz} />;
