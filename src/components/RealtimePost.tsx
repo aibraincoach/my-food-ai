@@ -7,7 +7,8 @@ import { getPostCard, isSettled, hasUnavailableFields, retainCompleteItems, type
 import {readPendingItems,type PendingItem} from '@/lib/pipeline/pending-items';
 type PendingFeedPost=FeedPost&{pendingItems?:PendingItem[];fail_reason?:string|null};
 
-const POLL_INTERVAL_MS = 2000;
+const POLL_START_MS = 2000;
+const POLL_MAX_MS = 30000;
 const CARD_FAST_WINDOW_MS = 30_000;
 const CARD_POLL_BUDGET_MS = 120_000;
 const pageVisible = () => document.visibilityState !== "hidden";
@@ -18,17 +19,11 @@ export default function RealtimePost({ initial, renderCard }: {
 }) {
   const [removed,setRemoved]=useState(false);
   const [snapshot, setSnapshot] = useState({ seed: initial, current: initial });
-  // A fresh local-create read supersedes an earlier INSERT snapshot, including
-  // its signed photo URL. Never retain the old mount-only initial state.
   const post = snapshot.seed === initial ? snapshot.current : initial;
-  // Initial analysis publishes ready before the stored card finishes rendering.
-  // A bounded fallback covers missed publication events without repeatedly
-  // hydrating a ready meal forever when optional card maintenance failed.
   const awaitingItems = hasUnavailableFields(post);
   const awaitingCard = post.status === "ready" && post.items.length > 0
     && !post.slides.some((slide) => slide.kind === "card");
 
-  // Preserve the budget across fresh server props for the same meal.
   const cardPolling = useRef({ id: initial.id, started: 0, next: 0 });
   const lastReady = useRef(post.status === "ready" ? JSON.stringify([post.id, post.items]) : "");
   useEffect(() => {
@@ -44,10 +39,12 @@ export default function RealtimePost({ initial, renderCard }: {
     let live = true;
     let inFlight = false;
     let again = false;
-    let timer:ReturnType<typeof setInterval>|null=null;
+    let pollTimer: ReturnType<typeof setTimeout> | undefined;
+    let pollBackoffMs = POLL_START_MS;
+    const needsPolling = () => !isSettled(post.status) || awaitingCard || awaitingItems;
     const retire = (reason:"deleted"|"needs_input") => {
       if(!live)return;live=false;again=false;
-      if(timer)clearInterval(timer);
+      clearTimeout(pollTimer);
       setRemoved(true);
       window.dispatchEvent(new CustomEvent("post-unavailable",{detail:{id:initial.id,reason}}));
     };
@@ -75,34 +72,44 @@ if(!isSettled(fresh.status)||fresh.status==='failed'){
         // Preserve the last good card; polling retries unsettled posts.
       } finally { inFlight = false; }
     };
-    const channel = supabase.channel(`post-${initial.id}`).on("postgres_changes", {
-      event: "UPDATE", schema: "public", table: "posts", filter: `id=eq.${initial.id}`,
-    }, () => { void refresh(); }).on("postgres_changes", {
-      event:"DELETE",schema:"public",table:"posts",filter:`id=eq.${initial.id}`,
-    },(payload)=>{if((payload.old as {id?:string}).id===initial.id)retire("deleted");}).subscribe();
-    // Close the window between the initial read and subscription becoming live.
-    void refresh();
-    timer = isSettled(post.status) && !awaitingCard && !awaitingItems ? null : setInterval(() => {
-      if (!live || !pageVisible()) return;
+    const schedulePoll = () => {
+      clearTimeout(pollTimer);
+      if (!live || !needsPolling() || document.hidden) return;
       if (awaitingCard && !awaitingItems) {
         const now = Date.now(), state = cardPolling.current;
         const elapsed = now - state.started;
-        if (elapsed >= CARD_POLL_BUDGET_MS || now < state.next) return;
-        state.next = now + (elapsed < CARD_FAST_WINDOW_MS ? POLL_INTERVAL_MS : 15_000);
+        if (elapsed >= CARD_POLL_BUDGET_MS) return;
+        if (now < state.next) {
+          pollTimer = setTimeout(() => schedulePoll(), state.next - now);
+          return;
+        }
+        state.next = now + (elapsed < CARD_FAST_WINDOW_MS ? POLL_START_MS : 15_000);
       }
-      void refresh();
-    }, POLL_INTERVAL_MS);
-    // Realtime remains subscribed after the card-only polling budget expires.
-    // A deliberate return to the page also gets one fresh read, without
-    // restarting the automatic budget for a permanently missing card.
-    const changed=(event:Event)=>{if((event as CustomEvent<{id:string}>).detail?.id===initial.id)void refresh();};
+      pollTimer = setTimeout(() => {
+        void refresh().finally(() => {
+          if (live && needsPolling() && pageVisible()) {
+            pollBackoffMs = Math.min(pollBackoffMs * 2, POLL_MAX_MS);
+            schedulePoll();
+          }
+        });
+      }, pollBackoffMs);
+    };
+    const channel = supabase.channel(`post-${initial.id}`).on("postgres_changes", {
+      event: "UPDATE", schema: "public", table: "posts", filter: `id=eq.${initial.id}`,
+    }, () => { pollBackoffMs = POLL_START_MS; void refresh(); }).on("postgres_changes", {
+      event:"DELETE",schema:"public",table:"posts",filter:`id=eq.${initial.id}`,
+    },(payload)=>{if((payload.old as {id?:string}).id===initial.id)retire("deleted");}).subscribe();
+    void refresh();
+    pollBackoffMs = POLL_START_MS;
+    schedulePoll();
+    const changed=(event:Event)=>{if((event as CustomEvent<{id:string}>).detail?.id===initial.id){pollBackoffMs = POLL_START_MS; void refresh();}};
     window.addEventListener('media-removed',changed);window.addEventListener('correction-reverted',changed);
-    const visible = () => { if (pageVisible()) void refresh(); };
+    const visible = () => { if (pageVisible() && needsPolling()) schedulePoll(); else clearTimeout(pollTimer); };
     document.addEventListener("visibilitychange", visible);
     window.addEventListener("focus", visible);
     return () => {
       live = false;
-      if (timer) clearInterval(timer);
+      clearTimeout(pollTimer);
       document.removeEventListener("visibilitychange", visible);
       window.removeEventListener("focus", visible);
       window.removeEventListener('media-removed',changed);window.removeEventListener('correction-reverted',changed);
