@@ -113,7 +113,19 @@ export async function persistAnalysis(
   };
   // The wrapper also clears a prior closest-record disclosure when the new
   // analysis is exact; its transaction preserves ordinary historical summaries.
-  const result=await admin.rpc("persist_approximated_analysis",identificationArgs);
+  let result=await admin.rpc("persist_approximated_analysis",identificationArgs);
+  const missing=(name:string)=>result.error&&["PGRST202","42883"].includes(result.error.code)&&result.error.message.includes(name);
+  if(!approximations.length&&missing('persist_approximated_analysis')){
+    // Old previews may still write exact-only meals. Never downgrade a write
+    // that must clear an existing approximation disclosure without its fence.
+    const {data:previous,error:previousError,status:previousStatus}=await admin.from('post_comments').select('body').eq('post_id',named.postId).eq('author','model').order('created_at').limit(1).maybeSingle();
+    if(previousError)throw ioError('Prior nutrition summary could not be read.',previousError,previousStatus);
+    if(!previous?.body?.includes(' is taken from the closest USDA record, ')){
+      const legacyRpc=named.labelNutrition?'persist_owned_label':'persist_owned_analysis';
+      result=named.identification?await admin.rpc('persist_identified_analysis',identificationArgs):await admin.rpc(legacyRpc,args);
+      if(missing('persist_identified_analysis'))result=await admin.rpc(legacyRpc,args);
+    }
+  }
   const {error,status} = result;
   if (error) {
     throw ioError(`persist: analysis transaction failed: ${error.message}`, error, status);
