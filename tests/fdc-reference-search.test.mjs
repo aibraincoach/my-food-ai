@@ -110,3 +110,24 @@ test('repeated refinements cannot loop and rejected compound foods remain unavai
 });
 
 test('a first decision that names no base food still yields the bare name for the closest-record step', async()=>{const queries=[];const result=await matchFood('Pickled ginger','Load test 18',{search:async query=>{queries.push(query);return []},choose:async()=>({id:null,query:null,query_food:null,reason:'All candidates are Branded'})});assert.deepEqual(queries,['Pickled ginger']);assert.equal(result.food,null);assert.equal(result.searches,1);assert.equal(result.baseFood,'Pickled ginger');});
+
+
+test('references cannot silently omit a component such as Caesar dressing',async()=>{
+ const nutrient={nutrientId:1008,value:150};
+ const foods=[{fdcId:1,description:'Chicken caesar salad, no dressing',dataType:'Survey (FNDDS)',foodNutrients:[nutrient]},{fdcId:2,description:'Chicken caesar salad, with dressing',dataType:'Survey (FNDDS)',foodNutrients:[nutrient]}];
+ const result=await matchFood('Chicken caesar salad','',{
+  search:async()=>foods,
+  choose:async(_name,_caption,candidates)=>{assert.deepEqual(candidates.map(food=>food.fdcId),[2]);return{id:2,query:null,query_food:null,reason:'With dressing'}}
+ });
+ assert.equal(result.food.fdcId,2);
+});
+
+test('explicit target exclusions and preparation notes stay eligible',async()=>{
+ const {excludedComponents}=await import('../src/lib/fdc/exclusions.ts');
+ assert.deepEqual(excludedComponents('Rice, white, cooked, no added fat','steamed white rice'),[]);
+ assert.deepEqual(excludedComponents('Salad, no dressing','green salad no dressing'),[]);
+ assert.deepEqual(excludedComponents('Salad, no dressing','green salad without dressing'),[]);
+ assert.deepEqual(excludedComponents('Salad, no dressing','green salad no dressingless sauce'),['no dressing']);
+ for(const note of ['no salt','without sugar','no fat'])assert.deepEqual(excludedComponents(`Rice, ${note}`,'rice'),[]);
+ assert.deepEqual(excludedComponents('Salad, without croutons','green salad'),['without croutons']);
+});

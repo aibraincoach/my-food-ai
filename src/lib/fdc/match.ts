@@ -1,5 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { searchFoods, type FdcFood } from "./client";
+import { excludedComponents } from "./exclusions";
 import { gramBasis, hasNutrition } from "./nutrients";
 import { createResponse, MetaApiError } from "@/lib/meta/client";
 import { recordCall } from "@/lib/trace/record";
@@ -68,7 +69,7 @@ export async function matchFood(name: string, caption: string, dependencies: Mat
     if(signal?.aborted)throw new MetaApiError(503,"Food resolution budget was exhausted.");
     searched.add(query.toLowerCase());
     for(const food of await dependencies.search(query)){
-      if(gramBasis(food)&&hasNutrition(food)&&!eligible.has(food.fdcId))eligible.set(food.fdcId,food);
+      if(gramBasis(food)&&hasNutrition(food)&&!eligible.has(food.fdcId)&&!excludedComponents(food.description,`${name} ${caption}`).length)eligible.set(food.fdcId,food);
     }
     const candidates=[...eligible.values()];
     const decision=await dependencies.choose(name,caption,candidates,attempt>0,query,2-attempt);
