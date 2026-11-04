@@ -46,6 +46,8 @@ export default function DayRings({days,totals,today,zone,zoneKnown,ownerId,earli
   if(!touched||!ownerId)return;
   const first=shiftDay(today,-(limit-1));const wanted=new Set<string>();
   for(let month=first.slice(0,7);month<=today.slice(0,7);month=shiftDay(`${month}-28`,7).slice(0,7))wanted.add(month);
+  // loadMonth changes React state only after awaiting the network response.
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   for(const month of wanted)void loadMonth(month);
  },[touched,ownerId,limit,today,loadMonth]);
  const onScroll=()=>{const element=row.current;if(!element)return;if(!touched)setTouched(true);if(element.scrollLeft+element.clientWidth>=element.scrollWidth-NEAR_END*RING_STEP&&limit<span)setCount(value=>Math.min(value+LOAD_MORE,span));};
