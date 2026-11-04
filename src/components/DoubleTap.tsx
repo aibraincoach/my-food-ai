@@ -21,7 +21,7 @@ export default function DoubleTap({postId,modelCommentId,fingerprint,href,childr
   controller.current=created;
   return()=>{created.dispose();controller.current=null;if(timer.current)clearTimeout(timer.current);};
  },[]);
- return <div className="relative h-full w-full" onPointerDown={e=>{if(e.isPrimary&&e.button===0)controller.current?.down(e.clientX,e.clientY);}}
+ return <div data-tap-control={href || modelCommentId && fingerprint ? "" : undefined} className="relative h-full w-full" onPointerDown={e=>{if(e.isPrimary&&e.button===0)controller.current?.down(e.clientX,e.clientY);}}
   onPointerCancel={()=>controller.current?.cancel()}
   onPointerUp={e=>controller.current?.up(e.clientX,e.clientY,{canVote:Boolean(modelCommentId&&fingerprint),href})}>
   {children}
