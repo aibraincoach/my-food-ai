@@ -102,5 +102,117 @@
     "clearance": false,
     "capture": "mfa-pplx-pr490-bb71ba1.md",
     "thread": "https://www.perplexity.ai/search/38c2b482-d37d-4965-bea7-3b026e33804b"
+  },
+  {
+    "pr": 488,
+    "head": "900d2890a0845fe2c6b442b366f59f00ecf69058",
+    "reviewer": "Gemini 3.8 Flash via PPLX",
+    "clearance": true,
+    "capture": "mfa-pplx-pr488-900d289.md",
+    "thread": "https://www.perplexity.ai/search/851bc332-dc50-4368-a02b-a6f886dcf6af"
+  },
+  {
+    "pr": 490,
+    "head": "0b2c1900ff34ed2179b71ae0047b0d736321c9b4",
+    "reviewer": "Gemini 3.8 Flash via PPLX",
+    "clearance": false,
+    "capture": "mfa-pplx-pr490-0b2c190.md",
+    "thread": "https://www.perplexity.ai/search/38c2b482-d37d-4965-bea7-3b026e33804b",
+    "note": "Incremental code/test blockers none; final merge clearance explicitly withheld pending actual full-suite and DB README counts."
+  },
+  {
+    "pr": 491,
+    "head": "130abb0310550a59f8a0c0390395e1cb724af445",
+    "reviewer": "Gemini 3.8 Flash via PPLX",
+    "clearance": false,
+    "capture": "mfa-pplx-pr491-130abb0-initial.md",
+    "thread": "https://www.perplexity.ai/search/0a452289-08da-4058-9869-c0588eb082ef",
+    "note": "Completed initial safe-to-merge opinion without explicit exact-head NONE. Separate same-head clarification capture130abb0.md failed model selection before submission; not clearance."
+  },
+  {
+    "pr": 491,
+    "head": "9cb34b7749bd62d8790416d0dec2da2d8ce9ccd8",
+    "reviewer": "Gemini 3.8 Flash via PPLX",
+    "clearance": true,
+    "capture": "mfa-pplx-pr491-9cb34b7.md",
+    "thread": "https://www.perplexity.ai/search/0a452289-08da-4058-9869-c0588eb082ef"
+  },
+  {
+    "pr": 492,
+    "head": "80e331d5afef79ba4d8b84c8c44e73649c26e97c",
+    "reviewer": "Gemini 3.8 Flash via PPLX",
+    "clearance": false,
+    "capture": "mfa-pplx-pr492-80e331d.md",
+    "thread": "https://www.perplexity.ai/search/dd6f9056-9cb0-42d2-8801-e2ed6c42d841"
+  },
+  {
+    "pr": 492,
+    "head": "308d4b53948177c18ccc36bebf55fa016cb48a3d",
+    "reviewer": "Gemini 3.8 Flash via PPLX",
+    "clearance": true,
+    "capture": "mfa-pplx-pr492-308d4b5.md",
+    "thread": "https://www.perplexity.ai/search/dd6f9056-9cb0-42d2-8801-e2ed6c42d841"
+  },
+  {
+    "pr": 492,
+    "head": "e27e8250ff434638271e01c59057ccc74439da12",
+    "reviewer": "Gemini 3.8 Flash via PPLX",
+    "clearance": true,
+    "capture": "mfa-pplx-pr492-e27e825.md",
+    "thread": "https://www.perplexity.ai/search/dd6f9056-9cb0-42d2-8801-e2ed6c42d841"
+  },
+  {
+    "pr": 492,
+    "head": "82eef7d97d72c6b25f12c3d0b840fe83c97094b9",
+    "reviewer": "Gemini 3.8 Flash via PPLX",
+    "clearance": true,
+    "capture": "mfa-pplx-pr492-82eef7d.md",
+    "thread": "https://www.perplexity.ai/search/dd6f9056-9cb0-42d2-8801-e2ed6c42d841"
+  },
+  {
+    "pr": 493,
+    "head": "498bb1f143ced81a95228e5f8158bbee6dd704af",
+    "reviewer": "Gemini 3.8 Flash via PPLX",
+    "clearance": false,
+    "capture": "mfa-pplx-pr493-498bb1f-initial.md",
+    "thread": "https://www.perplexity.ai/search/39d32019-1633-4e5f-8ce0-4bae491fddf5"
+  },
+  {
+    "pr": 493,
+    "head": "1fd7327626ae096ff7d0c4fadd82c626aa554236",
+    "reviewer": "Gemini 3.8 Flash via PPLX",
+    "clearance": true,
+    "capture": "mfa-pplx-pr493-1fd7327.md",
+    "thread": "https://www.perplexity.ai/search/39d32019-1633-4e5f-8ce0-4bae491fddf5"
+  },
+  {
+    "pr": 490,
+    "head": "0086f2cad4f56d3d54d915fffc6c288907dc68c7",
+    "reviewer": "PPLX attempted Gemini3.8Flash; ineligible footer GPT-6.1 Sol",
+    "clearance": false,
+    "capture": "mfa-pplx-pr490-0086f2c.md",
+    "thread": "https://www.perplexity.ai/search/38c2b482-d37d-4965-bea7-3b026e33804b",
+    "note": "Weekly advanced search limit; invalid model footer; no completed eligible review. Owner-authorized AGY fallback started separately."
+  },
+  {
+    "pr": 490,
+    "head": "0086f2cad4f56d3d54d915fffc6c288907dc68c7",
+    "base": "0b2c1900ff34ed2179b71ae0047b0d736321c9b4",
+    "reviewer": "AGY Gemini3.8Flash-high (owner-authorized fallback)",
+    "clearance": false,
+    "incrementalBlockersNone": true,
+    "capture": "agy-pr490-0086f2c/receipt.md",
+    "receipt": "https://github.com/aibraincoach/my-food-ai/pull/490#issuecomment-6619796565",
+    "note": "Fixture delta complete coverage PASS1/1. Final count-only head8984000 review pending; not final merge clearance."
+  },
+  {
+    "pr": 490,
+    "head": "89840003183bff259a10fa40587c1a6e0421b3aa",
+    "base": "0086f2cad4f56d3d54d915fffc6c288907dc68c7",
+    "reviewer": "AGY Gemini3.8Flash-high (owner-authorized fallback)",
+    "clearance": true,
+    "capture": "agy-pr490-8984000/receipt.md",
+    "receipt": "https://github.com/aibraincoach/my-food-ai/pull/490#issuecomment-6619814662",
+    "note": "Final count-only delta complete coverage PASS1/1. Committedccb1465 verification JSON and top/DB logs supplied. Incremental chain: PPLX0b2c1900 source/test blockers none, AGY0086f2ca fixture blockers none, AGY8984000 final README blockers none."
   }
 ]

@@ -48,7 +48,7 @@ Plan: [plan-run11.md](plan-run11.md). Baseline `e9bea0aed7cd12dd9093d2e30212c85e
 
 ## Review and merge ledger
 
-All merged product heads have successful checks and an independent non-OpenAI zero-blocker verdict for the exact SHA. Receipts distinguish preliminary/incomplete captures from actual clearances; see [review ledger](reviews/run11-review-ledger.json) and PR comments. Each merge was followed by merging current main into remaining open Fleet11 code branches.
+All merged product heads have successful checks and an independent non-OpenAI zero-blocker verdict for the exact SHA. Final #490 used the authorized AGY Gemini3.8Flash-high fallback after PPLX hit its weekly quota; the invalid OpenAI fallback output is explicitly excluded. The completed review chain covers the prior source/test review, unique429fixture delta, and final count-only README head. Receipts distinguish preliminary/incomplete captures from actual clearances; see [review ledger](reviews/run11-review-ledger.json) and PR comments. Each merge was followed by merging current main into remaining open Fleet11 code branches.
 
 | PR | Reviewed head | Merge commit/state |
 |---|---|---|
@@ -65,7 +65,7 @@ All merged product heads have successful checks and an independent non-OpenAI ze
 | #486 | `722bf3e76e6c22e0f0b658da0ff5709fab9d5422` | `373864093db4d538dad282bd3d6f0403ab7697a3` |
 | #487 | `1d74990b882fe6726cd4c8f1cff51703cb413a05` | `a6ccc853463e3bd1307e65f6be404a414d8d8b4e` |
 | #488 | `900d2890a0845fe2c6b442b366f59f00ecf69058` | `55dc564f53f91cdde1d4ec188e656b439137011f` |
-| #490 | `0b2c1900ff34ed2179b71ae0047b0d736321c9b4` | `OPEN` |
+| #490 | `89840003183bff259a10fa40587c1a6e0421b3aa` | `ca07be7014431d492039dafdda80186a2c697fb7` |
 | #491 | `9cb34b7749bd62d8790416d0dec2da2d8ce9ccd8` | `4083f1a57138ce2b98a060339363b810894e4540` |
 | #492 | `82eef7d97d72c6b25f12c3d0b840fe83c97094b9` | `504de467557692530e6a11b9b4b2e3e89f991ac6` |
 | #493 | `1fd7327626ae096ff7d0c4fadd82c626aa554236` | `6614fe29a8d2cf78b701e23f163a5acab2362988` |

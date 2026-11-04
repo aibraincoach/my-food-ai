@@ -1,0 +1,26 @@
+{
+  "base": "0b2c1900ff34ed2179b71ae0047b0d736321c9b4",
+  "head": "0086f2cad4f56d3d54d915fffc6c288907dc68c7",
+  "part_bytes": 40000,
+  "files": [
+    {
+      "index": 1,
+      "path": "tests/fixtures/local-model.mjs",
+      "status": "M",
+      "parts": [
+        {
+          "name": "patches/001-tests__fixtures__local-model.mjs.part1.patch",
+          "bytes": 2513,
+          "sha256": "f95c2e02f671f3625e04a99b868df27dc085d1eb15382224413ef2e77d64275c"
+        }
+      ],
+      "context": [
+        {
+          "name": "context/001-tests__fixtures__local-model.mjs.part1.txt",
+          "bytes": 3491
+        }
+      ]
+    }
+  ],
+  "supplemental": []
+}
