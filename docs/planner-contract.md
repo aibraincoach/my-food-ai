@@ -86,3 +86,10 @@ Every PR branches from main. Nothing is stacked. Where an item depends on anothe
 ## Plan evaluation: retired
 
 RT, 2026-09-29: no per-PR "Plan evaluation" comment is written or required. After a run, when RT asks, the planner evaluates the result against the plan: good, bad, ugly, what is not being seen, and what needs remediation.
+
+## Nothing without a use
+
+1. Every step in a plan names, in one sentence, the decision it feeds or the thing it delivers. A step that feeds no decision before the deadline or the owner's ruling is deleted.
+2. No observation windows, soak periods, timed sampling, collectors or waits. A measurement is one reading, taken when the work is done. Nothing in a plan runs for hours so that numbers can be collected.
+3. Nothing waits on a clock, a collector or another fleet's tail. Work is done when its done condition is met, and the coder reports it done.
+4. A measurement is allowed only when its number changes what ships or what the owner rules. Say which.
