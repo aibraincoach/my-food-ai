@@ -5,7 +5,7 @@ import type { FeedPost } from "@/lib/posts/feed";
 import { feedCacheGeneration, readFeedCache, subscribeFeedCache, writeFeedCache } from "@/lib/posts/feed-cache";
 
 const noCache = () => null;
-export function useCachedFeed(userId: string | null): { cached: FeedPost[] | null; save(posts: FeedPost[]): void } {
+export function useCachedFeed(userId: string | null): { userId: string | null; cached: FeedPost[] | null; save(posts: FeedPost[]): void } {
   useEffect(connectMediaSession, []);
   const currentUser = useRef<string | null>(null);
   useLayoutEffect(() => {
@@ -24,5 +24,5 @@ export function useCachedFeed(userId: string | null): { cached: FeedPost[] | nul
     if (!userId || currentUser.current !== userId || generation !== feedCacheGeneration()) return;
     writeFeedCache(userId, { posts, savedAt: Date.now() });
   }, [userId, generation]);
-  return { cached, save };
+  return { userId, cached, save };
 }
