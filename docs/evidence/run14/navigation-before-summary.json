@@ -7,6 +7,8 @@
   "account": "designated test account 2",
   "navigation": [
     {
+      "width": 390,
+      "postInventory": null,
       "route": "/",
       "zonePresent": true,
       "idleObserved": true,
@@ -23,6 +25,8 @@
       "shell": false
     },
     {
+      "width": 390,
+      "postInventory": null,
       "route": "/",
       "zonePresent": false,
       "idleObserved": true,
@@ -44,6 +48,8 @@
       "shell": false
     },
     {
+      "width": 390,
+      "postInventory": null,
       "route": "/days",
       "zonePresent": true,
       "idleObserved": true,
@@ -60,6 +66,8 @@
       "shell": false
     },
     {
+      "width": 390,
+      "postInventory": null,
       "route": "/profile",
       "zonePresent": true,
       "idleObserved": true,
@@ -80,6 +88,7 @@
     {
       "post": "f1737bd7",
       "width": 390,
+      "ready": true,
       "trigger": "photo",
       "itemsVisibleMs": 1112,
       "firstFrameMs": null,
@@ -105,6 +114,7 @@
     {
       "post": "48d4e1b2",
       "width": 390,
+      "ready": true,
       "trigger": "photo",
       "itemsVisibleMs": 1195,
       "firstFrameMs": null,
@@ -130,6 +140,7 @@
     {
       "post": "88dfce5d",
       "width": 390,
+      "ready": true,
       "trigger": "photo",
       "itemsVisibleMs": 1122,
       "firstFrameMs": null,
@@ -155,6 +166,7 @@
     {
       "post": "f1737bd7",
       "width": 1280,
+      "ready": true,
       "trigger": "photo",
       "itemsVisibleMs": 994,
       "firstFrameMs": null,
@@ -180,6 +192,7 @@
     {
       "post": "48d4e1b2",
       "width": 1280,
+      "ready": true,
       "trigger": "photo",
       "itemsVisibleMs": 1055,
       "firstFrameMs": null,
@@ -205,6 +218,7 @@
     {
       "post": "88dfce5d",
       "width": 1280,
+      "ready": true,
       "trigger": "photo",
       "itemsVisibleMs": 983,
       "firstFrameMs": null,
