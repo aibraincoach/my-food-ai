@@ -65,7 +65,7 @@ export async function getDays(supabase: SupabaseClient, userId: string, zone: st
       const path = row.post_media?.[0]?.storage_path;
       if (path) photos.push({post, path: path.endsWith("/card.png") ? path : `${path.replace(/\.[^/.]+$/, "")}.feed.jpg`});
       const day = groups.get(date);
-      if (day) { day.posts.push(post); day.totals = sumNutrition([day.totals, post.totals]); }
+      if (day) { day.totals = day.posts.length ? sumNutrition([day.totals, post.totals]) : post.totals; day.posts.push(post); }
       else groups.set(date, { date, posts: [post], totals: post.totals, intake: emptyIntake(), pending: 0 });
     }
     if ((data?.length ?? 0) < 100) break;
