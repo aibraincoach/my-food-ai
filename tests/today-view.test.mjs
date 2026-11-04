@@ -12,3 +12,8 @@ test('unsettled food is not counted and failed item reads retain the server fall
  const queued=post('q','2026-11-04','processing');assert.deepEqual(todayFromPage({posts:[queued],nextCursor:null},'UTC',now).posts,[]);
  assert.equal(todayFromPage({posts:[{...post('a','2026-11-04'),itemsUnavailable:true}],nextCursor:null},'UTC',now),null);
 });
+
+test('Today uses the same chronological order before and after the server refresh, including equal-time ties',()=>{
+ const posts=[{...post('lunch','2026-11-04'),eaten_at:'2026-11-04T12:00:00Z'},{...post('b','2026-11-04'),eaten_at:'2026-11-04T08:00:00Z'},{...post('a','2026-11-04'),eaten_at:'2026-11-04T08:00:00Z'}];
+ assert.deepEqual(todayFromPage({posts,nextCursor:null},'UTC',now).posts.map(p=>p.id),['a','b','lunch']);
+});

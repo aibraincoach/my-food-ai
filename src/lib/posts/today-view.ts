@@ -10,7 +10,7 @@ export function todayFromPage(page: { posts: FeedPost[]; nextCursor: string | nu
   const today = dateInZone(now, zone);
   const complete = page.nextCursor === null || page.posts.some(post => dateInZone(post.eaten_at, zone) < today);
   if (!complete) return null;
-  const todays = page.posts.filter(post => post.status === "ready" && dateInZone(post.eaten_at, zone) === today);
+  const todays = page.posts.filter(post => post.status === "ready" && dateInZone(post.eaten_at, zone) === today).sort((a,b)=>Date.parse(a.eaten_at)-Date.parse(b.eaten_at)||a.id.localeCompare(b.id));
   if(todays.some(post=>post.itemsUnavailable))return null;
   return { date: today, posts: todays.map(post => ({ id: post.id, caption: post.caption, eatenAt: post.eaten_at, photoUrl: post.photoUrl, items: post.items.map(item => ({ name: item.name })), totals: sumNutrition(post.items) })), totals: sumNutrition(todays.flatMap(post => post.items)) };
 }
