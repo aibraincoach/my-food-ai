@@ -1,3 +1,4 @@
+import { approximationLabels } from "@/lib/fdc/approximation-metadata";
 import {writePendingNames,writePendingKcal} from './pending-items';
 import { syncItemDrinks } from "@/lib/intake/drinks-from-items";
 import { sendPostPush } from "@/lib/push/send";
@@ -68,7 +69,7 @@ export async function persistAnalysis(
   const resolved = await resolveNutritionItems(rows,resolutionBudget,async (row,index,signal) => {
     const copied=copiedNutrition?.[index];
     if(copied)await traceNutritionReuse(row.name,copied,"copied",typeof copied.post_item_id==="string"?copied.post_item_id:undefined);
-    const food=copied?null:await resolveFoodMatch(admin,row.name,context.caption??"",signal);
+    const food=copied?null:await resolveFoodMatch(admin,row.name,context.caption??"",signal,{approximate:true});
     const scaled = scaleNutrition(food, row.portionGrams);
     const nutritionProgress=copied?.calories??scaled.calories;
     await writePendingKcal(admin,named.postId,index,typeof nutritionProgress==='number'?nutritionProgress:null,jobId);
@@ -96,7 +97,8 @@ export async function persistAnalysis(
   });
   items.push(...resolved);
   const totals = sumNutrition(items.map(item=>({...item.nutrition,name:item.name})));
-  const summary = await safeSummary(named.summary, totals);
+  const approximations=approximationLabels(items.map(item=>({name:item.name,...item.nutrition})));
+  const summary = await safeSummary(named.summary, totals, approximations);
   const args = {
     p_job_id: jobId ?? null,
     p_post_id: named.postId,
@@ -104,19 +106,25 @@ export async function persistAnalysis(
     p_summary: summary,
     p_needs_input: named.needsInput ?? null,
   };
-  const legacyRpc = named.labelNutrition ? "persist_owned_label" : "persist_owned_analysis";
-  let result = named.identification
-    ? await admin.rpc("persist_identified_analysis", {...args,
-      // Label-derived item names have no food-identify provenance to claim.
-      p_identify_model: named.labelNutrition ? null : named.identification.model,
-      p_identify_host: named.labelNutrition ? null : named.identification.host,
-      p_is_label: Boolean(named.labelNutrition),
-    })
-    : await admin.rpc(legacyRpc,args);
-  if(result.error && ["PGRST202","42883"].includes(result.error.code) && /persist_identified_analysis/.test(result.error.message)) {
-    // Migration-before-merge is the deployment order; older previews retain
-    // ordinary persistence without inventing unavailable model provenance.
-    result = await admin.rpc(legacyRpc,args);
+  const identificationArgs={...args,
+    p_identify_model:named.labelNutrition?null:named.identification?.model??null,
+    p_identify_host:named.labelNutrition?null:named.identification?.host??null,
+    p_is_label:Boolean(named.labelNutrition),
+  };
+  // The wrapper also clears a prior closest-record disclosure when the new
+  // analysis is exact; its transaction preserves ordinary historical summaries.
+  let result=await admin.rpc("persist_approximated_analysis",identificationArgs);
+  const missing=(name:string)=>result.error&&["PGRST202","42883"].includes(result.error.code)&&result.error.message.includes(name);
+  if(!approximations.length&&missing('persist_approximated_analysis')){
+    // Old previews may still write exact-only meals. Never downgrade a write
+    // that must clear an existing approximation disclosure without its fence.
+    const {data:previous,error:previousError,status:previousStatus}=await admin.from('post_comments').select('body').eq('post_id',named.postId).eq('author','model').order('created_at').limit(1).maybeSingle();
+    if(previousError)throw ioError('Prior nutrition summary could not be read.',previousError,previousStatus);
+    if(!previous?.body?.includes(' is taken from the closest USDA record, ')){
+      const legacyRpc=named.labelNutrition?'persist_owned_label':'persist_owned_analysis';
+      result=named.identification?await admin.rpc('persist_identified_analysis',identificationArgs):await admin.rpc(legacyRpc,args);
+      if(missing('persist_identified_analysis'))result=await admin.rpc(legacyRpc,args);
+    }
   }
   const {error,status} = result;
   if (error) {
