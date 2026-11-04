@@ -42,8 +42,10 @@ export function usePostAuthor(row?:PostAuthorRow|null){
  return profile;
 }
 export function usePostHandle(handle?:string,author?:PostAuthorRow|null) {
+ const seeded=author?.userId&&author.handle?{userId:author.userId,handle:author.handle,avatarMediaId:author.avatarMediaId??null}:handle?{handle}:undefined;
+ const identity=useProfileIdentity(seeded);
  if(author?.handle)return author.handle;
- return useProfileIdentity(handle?{handle}:undefined).handle||handle||'';
+ return identity.handle||handle||'';
 }
 
 export function AgentAttribution({ name }: { name?: string | null }) {
