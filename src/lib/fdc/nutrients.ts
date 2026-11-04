@@ -4,6 +4,7 @@
 // Consumed values preserve nutrient order and units and carry basis="portion".
 // A gram portion cannot convert a declared milliliter basis without density.
 import type { FdcFood } from "./client";
+import { unavailableRef, type UnavailableReason } from "./unavailable";
 
 const ENERGY_IDS = [1008, 2047, 2048];
 const PROTEIN_ID = 1003;
@@ -101,7 +102,8 @@ export function chooseBestMatch(foods: FdcFood[], query?: string): FdcFood | nul
 // null but still records the source match.
 export function scaleNutrition(
   food: FdcFood | null,
-  portionGrams: number | null
+  portionGrams: number | null,
+  unavailable: UnavailableReason | null = null
 ): ScaledNutrition {
   if (!food) {
     return {
@@ -113,7 +115,7 @@ export function scaleNutrition(
       sugarG: null,
       sodiumMg: null,
       micronutrients: [],
-      sourceRef: null,
+      sourceRef: unavailable ? unavailableRef(unavailable) : null,
       foodCategory: null,
     };
   }
@@ -121,10 +123,14 @@ export function scaleNutrition(
   const sourceRef = food.approximation?.kind === "estimate" ? `estimate:${food.approximation.basis}` : String(food.fdcId);
   const factor = portionGrams !== null && Number.isFinite(portionGrams) && portionGrams > 0 && gramBasis(food)
     ? portionGrams / 100 : null;
-  const micronutrients = food.foodNutrients.map((nutrient) => ({
+  // Reader-first rollout: writers stay legacy until explicit activation. The
+  // database format boundary also protects mixed deployments and app rollback.
+  const compact = process.env.NUTRITION_COMPACT_WRITE === "1";
+  const micronutrients = food.foodNutrients.map((nutrient, index) => ({
     ...nutrient, value: factor === null ? null : nutrient.value * factor,
     basis: "portion" as const,
-    ...(food.approximation?{approximation:{...food.approximation,sourceRef,...(food.approximation.kind==="estimate"?{per100:nutrient.value}:{})}}:{}),
+    ...(food.approximation && (!compact || index === 0) ? {approximation:{...food.approximation,sourceRef,...(!compact && food.approximation.kind === "estimate" ? {per100: nutrient.value} : {})}} : {}),
+    ...(compact && food.approximation?.kind === "estimate" ? {per100: nutrient.value} : {}),
   }));
   if (factor === null) {
     return {
