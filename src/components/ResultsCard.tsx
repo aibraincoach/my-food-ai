@@ -25,7 +25,7 @@ export type ResultsCardProps = {
 export function ResultsCard({ data, drink, unavailable = [], time, calories = null, protein = null, carbs = null, fat = null, items = [], size = tokens.spacing.phone, fontFamily }: ResultsCardProps) {
   const card: CardData = data ?? {
     kind: drink ? 'drink' : 'meal', amountMl: drink?.ml, caffeineMg: drink?.caffeineMg,
-    drinkLine: drink ? `${drink.label}${drink.caffeineMg ? ` · ${drink.caffeineMg} mg caffeine · ${formatCalories(calories)} kcal` : ''}` : undefined,
+    drinkLine: drink ? `${drink.label}${drink.caffeineMg ? ` · ${formatNutrition(drink.caffeineMg)} mg caffeine · ${formatCalories(calories)} kcal` : ''}` : undefined,
     hydration: drink ? { totalMl: drink.totalMl, drinksMl: drink.drinksMl, foodMl: drink.foodMl, caffeineMg: drink.dayCaffeineMg ?? drink.caffeineMg } : undefined,
     kcal: calories, macros: { protein, carbs, fat }, items, unavailable,
   };
@@ -50,7 +50,7 @@ export function ResultsCard({ data, drink, unavailable = [], time, calories = nu
       <div style={{display:'flex',flexWrap:'wrap',maxWidth:150*scale}}>{Array.from({length:cups},(_,index)=><DrinkPicture key={index} glyph={glyph} size={tokens.typography['display-card'].size*scale}/>)}</div>
       <div style={{display:'flex',flex:1,flexDirection:'column',gap:6*scale}}>
         <div style={{display:'flex',...text('body')}}>{card.drinkLabel??drink?.label??card.drinkLine??'Drink'}</div>
-        <div style={{display:'flex',...text('detail'),color:tokens.colors.muted}}>{card.drinkDetail??`${Math.round(card.amountMl??0)} ml`}</div>
+        <div style={{display:'flex',...text('detail'),color:tokens.colors.muted}}>{card.drinkDetail??`${formatNutrition(card.amountMl??0)} ml`}</div>
       </div>
     </div>:<div style={{display:'flex',flexDirection:'column',gap:4*scale}}>
       <div style={{display:'flex',...text('display-card')}}>{card.kcal===null?'unavailable':formatCalories(card.kcal)}</div>

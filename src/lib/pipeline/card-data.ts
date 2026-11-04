@@ -1,7 +1,7 @@
 import {drinkGlyph,type DrinkGlyph} from '@/lib/intake/drink-glyph';
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { getPostHydrationData, type DrinkCardData, type HydrationRecord } from "@/lib/intake/hydration";
-import { formatCalories, sumNutrition, toNumber, unavailableFoods, normalizeStoredNutrition, type NutritionRow, type Numeric, type NutritionLike, type StoredNutrient } from "@/lib/nutrition/totals";
+import { formatCalories, formatNutrition, sumNutrition, toNumber, unavailableFoods, normalizeStoredNutrition, type NutritionRow, type Numeric, type NutritionLike, type StoredNutrient } from "@/lib/nutrition/totals";
 
 export type CardItem = NutritionLike & { id?:string; name: string; portion_grams: Numeric; portion_text?: string | null; micronutrients?: StoredNutrient[]; not_eaten_grams?:number|null;not_eaten_count_text?:string|null;not_eaten_calories?:number|null;supersedes?:string|null };
 export interface CardData {
@@ -49,12 +49,12 @@ export function cardDataFromRow(source: CardSource): CardData {
   const glyph=drinkGlyph(label,alcoholic?'alcohol':(drink?.caffeineMg??0)>0?'caffeine':'water');
   return {
     glyph,drinkLabel:label,dayDrinks:drink?.dayDrinks??source.dayDrinks,
-    drinkDetail:alcoholic?(alcoholG>0?`${Math.round(alcoholG)} g alcohol · ${(alcoholG/14).toFixed(1)} standard drinks`:'alcohol unavailable'):glyph==='coffee'?`${Math.round(drink?.caffeineMg??0)} mg caffeine`:`${Math.round(drink?.ml??0)} ml`,
+    drinkDetail:alcoholic?(alcoholG>0?`${formatNutrition(alcoholG)} g alcohol · ${(alcoholG/14).toFixed(1)} standard drinks`:'alcohol unavailable'):glyph==='coffee'?`${formatNutrition(drink?.caffeineMg??0)} mg caffeine`:`${formatNutrition(drink?.ml??0)} ml`,
     kind: drink || source.kind === "drink" || (source.items.length>0&&source.items.every(item=>item.id&&source.itemDrinks?.some(row=>row.post_item_id===item.id))) ? "drink" : "meal",
     time: source.eaten_at ?? source.eatenAt,
     amountMl: drink?.ml,
     caffeineMg: drink?.caffeineMg,
-    drinkLine: drink ? `${drink.label}${drink.caffeineMg ? ` · ${Math.round(drink.caffeineMg)} mg caffeine · ${totals.calories === null ? "unavailable" : formatCalories(totals.calories)} kcal` : drink.source === "item" ? ` · ${totals.calories === null ? "unavailable" : formatCalories(totals.calories)} kcal` : ""}` : undefined,
+    drinkLine: drink ? `${drink.label}${drink.caffeineMg ? ` · ${formatNutrition(drink.caffeineMg)} mg caffeine · ${totals.calories === null ? "unavailable" : formatCalories(totals.calories)} kcal` : drink.source === "item" ? ` · ${totals.calories === null ? "unavailable" : formatCalories(totals.calories)} kcal` : ""}` : undefined,
     hydration,
     kcal: totals.calories,
     macros: { protein: totals.protein_g, carbs: totals.carbs_g, fat: totals.fat_g },
@@ -87,6 +87,6 @@ function remainderFooter(items:CardItem[]):string|undefined {
  if(!omitted.length)return undefined;
  const texts=omitted.map(item=>item.not_eaten_count_text??`${Math.round(item.not_eaten_grams!)} g`);
  const calories=omitted.map(item=>{const consumed=toNumber(item.portion_grams),rest=item.not_eaten_grams!;return item.not_eaten_calories!==undefined?item.not_eaten_calories:rest===0?0:consumed>0&&item.calories!=null?toNumber(item.calories)*rest/consumed:null;});
- const kcal=calories.some(value=>value===null)?'unavailable':formatCalories(calories.reduce<number>((sum,value)=>sum+(value??0),0),'en-US');
+ const kcal=calories.some(value=>value===null)?'unavailable':formatCalories(calories.reduce<number>((sum,value)=>sum+(value??0),0));
  return `Leftovers · not eaten: ${texts.join(', ')} · ${kcal} kcal`;
 }
