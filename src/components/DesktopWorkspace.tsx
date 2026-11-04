@@ -14,6 +14,8 @@ export default function DesktopWorkspace({children,detail,width=500}:{children:R
   const root=useRef<HTMLDivElement>(null);
   const selected=params.get('post');
   const [focused,setFocused]=useState<string|null>(selected);
+  const [outlined,setOutlined]=useState(false);
+  const keyboard=useRef(false);
   // Pending selection paints before the server navigation completes.
   const [pending,setPending]=useState<{id:string|null;from:string|null;preview?:boolean}|null>(null);
   // Retire completed navigation state; history returning to its old source
@@ -53,11 +55,13 @@ export default function DesktopWorkspace({children,detail,width=500}:{children:R
   },[selected]);
   useEffect(()=>{
     const element=root.current;if(!element)return;
-    const mark=()=>{const first=element.querySelector<HTMLElement>('[data-desktop-post]');for(const card of element.querySelectorAll<HTMLElement>('[data-desktop-post]')){if(card.dataset.desktopPost===(focused??first?.dataset.desktopPost))card.dataset.focused='true';else delete card.dataset.focused;}};
+    const mark=()=>{const target=outlined?focused:null;for(const card of element.querySelectorAll<HTMLElement>('[data-desktop-post]')){if(target&&card.dataset.desktopPost===target)card.dataset.focused='true';else delete card.dataset.focused;}};
     mark();const observer=new MutationObserver(mark);observer.observe(element,{childList:true,subtree:true});return()=>observer.disconnect();
-  },[focused]);
+  },[focused,outlined]);
+  useEffect(()=>{const hide=()=>{keyboard.current=false;setOutlined(false);};window.addEventListener('pointerdown',hide,{passive:true});return()=>window.removeEventListener('pointerdown',hide);},[]);
   useEffect(()=>{
     const key=(event:KeyboardEvent)=>{
+      if(event.key==='Tab')keyboard.current=true;
       if(!matchMedia('(min-width:1024px)').matches || event.defaultPrevented || event.metaKey || event.ctrlKey || event.altKey || (event.target as HTMLElement)?.closest('input,textarea,select,[contenteditable="true"],[role="dialog"]'))return;
       if(event.key==='Escape'&&selected){event.preventDefault();open(null);return;}
       const cards=Array.from(root.current?.querySelectorAll<HTMLElement>('[data-desktop-post]')??[]);
@@ -65,12 +69,12 @@ export default function DesktopWorkspace({children,detail,width=500}:{children:R
       const index=cards.findIndex(card=>card.dataset.desktopPost===focused);
       const grid=Boolean(root.current?.querySelector('[data-profile-grid]'));
       const step=event.key==='j'?1:event.key==='k'?-1:grid&&event.key==='ArrowRight'?1:grid&&event.key==='ArrowLeft'?-1:grid&&event.key==='ArrowDown'?3:grid&&event.key==='ArrowUp'?-3:0;
-      if(step){event.preventDefault();const next=cards[Math.max(0,Math.min(cards.length-1,(index<0?0:index)+step))];setFocused(next.dataset.desktopPost!);next.focus({preventScroll:true});next.scrollIntoView({block:'nearest'});if(selected)open(next.dataset.desktopPost!);}
-      if(event.key==='Enter'&&!(event.target as HTMLElement)?.closest('button,a')){event.preventDefault();const id=focused??cards[0]?.dataset.desktopPost;if(id)open(id);}
+      if(step){event.preventDefault();const next=cards[Math.max(0,Math.min(cards.length-1,index<0?0:index+step))];setFocused(next.dataset.desktopPost!);setOutlined(true);next.focus({preventScroll:true});next.scrollIntoView({block:'nearest'});if(selected)open(next.dataset.desktopPost!);}
+      if(event.key==='Enter'&&!(event.target as HTMLElement)?.closest('button,a')){event.preventDefault();const id=outlined?focused:null;if(id)open(id);}
     };
     window.addEventListener('keydown',key);return()=>window.removeEventListener('keydown',key);
-  },[focused,selected,open]);
-  return <div onFocusCapture={event=>{if(!desktop)return;const card=(event.target as HTMLElement).closest<HTMLElement>('[data-desktop-post]');if(card?.dataset.desktopPost)setFocused(card.dataset.desktopPost);}} className="desktop:flex desktop:justify-center desktop:gap-6 desktop:py-6" onClickCapture={event=>{
+  },[focused,outlined,selected,open]);
+  return <div onFocusCapture={event=>{if(!desktop)return;const card=(event.target as HTMLElement).closest<HTMLElement>('[data-desktop-post]');if(card?.dataset.desktopPost){setFocused(card.dataset.desktopPost);if(keyboard.current)setOutlined(true);}}} className="desktop:flex desktop:justify-center desktop:gap-6 desktop:py-6" onClickCapture={event=>{
     if(!matchMedia('(min-width:1024px)').matches || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey)return;
     const target=(event.target as HTMLElement).closest<HTMLAnchorElement>('a[href^="/posts/"]');
     const id=target?.getAttribute('href')?.match(/^\/posts\/([0-9a-f-]{36})(?:\?|$)/i)?.[1];
