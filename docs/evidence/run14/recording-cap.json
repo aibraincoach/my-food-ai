@@ -1,0 +1,232 @@
+{
+  "startedAt": "2026-11-04T07:46:31.237Z",
+  "account": "designated test account 2",
+  "posts": [
+    {
+      "number": 1,
+      "startedAt": "2026-11-04T07:46:31.422Z",
+      "status": "needs_input",
+      "elapsedMs": 10266,
+      "counts": [
+        {
+          "route": "post",
+          "hour": "2026-11-04T07:00:00+00:00",
+          "hits": 1
+        }
+      ]
+    },
+    {
+      "number": 2,
+      "startedAt": "2026-11-04T07:46:41.813Z",
+      "status": "ready",
+      "elapsedMs": 62886,
+      "counts": [
+        {
+          "route": "post",
+          "hour": "2026-11-04T07:00:00+00:00",
+          "hits": 2
+        }
+      ]
+    },
+    {
+      "number": 3,
+      "startedAt": "2026-11-04T07:47:44.881Z",
+      "status": "needs_input",
+      "elapsedMs": 19463,
+      "counts": [
+        {
+          "route": "post",
+          "hour": "2026-11-04T07:00:00+00:00",
+          "hits": 3
+        }
+      ]
+    },
+    {
+      "number": 4,
+      "startedAt": "2026-11-04T07:48:04.615Z",
+      "status": "needs_input",
+      "elapsedMs": 15261,
+      "counts": [
+        {
+          "route": "post",
+          "hour": "2026-11-04T07:00:00+00:00",
+          "hits": 4
+        }
+      ]
+    },
+    {
+      "number": 5,
+      "startedAt": "2026-11-04T07:48:20.174Z",
+      "status": "ready",
+      "elapsedMs": 47994,
+      "counts": [
+        {
+          "route": "post",
+          "hour": "2026-11-04T07:00:00+00:00",
+          "hits": 5
+        }
+      ]
+    },
+    {
+      "number": 6,
+      "startedAt": "2026-11-04T07:49:08.313Z",
+      "status": "needs_input",
+      "elapsedMs": 19466,
+      "counts": [
+        {
+          "route": "post",
+          "hour": "2026-11-04T07:00:00+00:00",
+          "hits": 6
+        }
+      ]
+    },
+    {
+      "number": 7,
+      "startedAt": "2026-11-04T07:49:27.971Z",
+      "status": "needs_input",
+      "elapsedMs": 21503,
+      "counts": [
+        {
+          "route": "post",
+          "hour": "2026-11-04T07:00:00+00:00",
+          "hits": 7
+        }
+      ]
+    },
+    {
+      "number": 8,
+      "startedAt": "2026-11-04T07:49:49.624Z",
+      "status": "ready",
+      "elapsedMs": 40045,
+      "counts": [
+        {
+          "route": "post",
+          "hour": "2026-11-04T07:00:00+00:00",
+          "hits": 8
+        }
+      ]
+    },
+    {
+      "number": 9,
+      "startedAt": "2026-11-04T07:50:29.972Z",
+      "status": "needs_input",
+      "elapsedMs": 18114,
+      "counts": [
+        {
+          "route": "post",
+          "hour": "2026-11-04T07:00:00+00:00",
+          "hits": 9
+        }
+      ]
+    },
+    {
+      "number": 10,
+      "startedAt": "2026-11-04T07:50:48.334Z",
+      "status": "needs_input",
+      "elapsedMs": 19388,
+      "counts": [
+        {
+          "route": "post",
+          "hour": "2026-11-04T07:00:00+00:00",
+          "hits": 10
+        }
+      ]
+    },
+    {
+      "number": 11,
+      "startedAt": "2026-11-04T07:51:07.852Z",
+      "status": "ready",
+      "elapsedMs": 72888,
+      "counts": [
+        {
+          "route": "post",
+          "hour": "2026-11-04T07:00:00+00:00",
+          "hits": 11
+        }
+      ]
+    },
+    {
+      "number": 12,
+      "startedAt": "2026-11-04T07:52:20.891Z",
+      "status": "needs_input",
+      "elapsedMs": 29814,
+      "counts": [
+        {
+          "route": "post",
+          "hour": "2026-11-04T07:00:00+00:00",
+          "hits": 12
+        }
+      ]
+    }
+  ],
+  "cleanup": [
+    {
+      "number": 1,
+      "removedObjects": 2,
+      "absent": true
+    },
+    {
+      "number": 2,
+      "removedObjects": 6,
+      "absent": true
+    },
+    {
+      "number": 3,
+      "removedObjects": 2,
+      "absent": true
+    },
+    {
+      "number": 4,
+      "removedObjects": 2,
+      "absent": true
+    },
+    {
+      "number": 5,
+      "removedObjects": 3,
+      "absent": true
+    },
+    {
+      "number": 6,
+      "removedObjects": 2,
+      "absent": true
+    },
+    {
+      "number": 7,
+      "removedObjects": 2,
+      "absent": true
+    },
+    {
+      "number": 8,
+      "removedObjects": 3,
+      "absent": true
+    },
+    {
+      "number": 9,
+      "removedObjects": 2,
+      "absent": true
+    },
+    {
+      "number": 10,
+      "removedObjects": 2,
+      "absent": true
+    },
+    {
+      "number": 11,
+      "removedObjects": 7,
+      "absent": true
+    },
+    {
+      "number": 12,
+      "removedObjects": 2,
+      "absent": true
+    }
+  ],
+  "limits": {
+    "post": 40,
+    "drink_identify": 120,
+    "fdc_search": 300,
+    "label": 30,
+    "correct": 100
+  },
+  "error": null
+}

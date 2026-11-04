@@ -1,0 +1,75 @@
+{
+  "utc": "2026-11-04T07:55:33.285Z",
+  "head": "b9703dd3ced97888a77f56efad5e5afd0f3ff6ec",
+  "browser": "Firefox BiDi local default production build, scripted local backend",
+  "rows": [
+    {
+      "state": "rest",
+      "bounds": [
+        {
+          "control": "Accept analysis",
+          "width": 44,
+          "height": 44
+        },
+        {
+          "control": "Correct analysis",
+          "width": 44,
+          "height": 44
+        },
+        {
+          "control": "Comment or correct",
+          "width": 44,
+          "height": 44
+        },
+        {
+          "control": "Log again",
+          "width": 44,
+          "height": 44
+        },
+        {
+          "control": "Details ›",
+          "width": 52.23333740234375,
+          "height": 44
+        },
+        {
+          "control": "Save meal",
+          "width": 44,
+          "height": 44
+        }
+      ]
+    },
+    {
+      "state": "pressed",
+      "pressed": true,
+      "opacity": "0.55"
+    },
+    {
+      "state": "chosen-saving",
+      "pressed": "true",
+      "busy": "true",
+      "disabled": false
+    },
+    {
+      "state": "failed",
+      "selected": "false",
+      "alert": "Feedback could not be saved. Try again."
+    },
+    {
+      "state": "not-available",
+      "thumbs": [
+        {
+          "control": "Accept analysis",
+          "disabled": true,
+          "color": "rgb(180, 175, 167)"
+        },
+        {
+          "control": "Correct analysis",
+          "disabled": true,
+          "color": "rgb(180, 175, 167)"
+        }
+      ],
+      "commentDisabled": null
+    }
+  ],
+  "feedbackRequests": 1
+}

@@ -1,0 +1,60 @@
+{
+  "observed_utc": "2026-11-04T08:28:58.771219+00:00",
+  "integration_commit": "ea1a33fa135bfa411791774b0c47947aba2ec520",
+  "integration_tree": "501108d7d1af0cce724bcc5965cdfc9cf60139b6",
+  "built_product_commit": "0cd0c21f2b04040d658b4ffc51f6a84a87071726",
+  "post_build_changes": "Only measurement scripts from F e142d52; no src, tests, schema or build configuration changed.",
+  "heads": {
+    "A": "fbb6d50916cb907313c2a2374e3bc9410f9f1b1e",
+    "B": "45fddaf62f3932e48f054013c30773fadd2e7059",
+    "H": "e5d4f660ac4d9ab3c352dbd7709b1335c2db446e",
+    "D": "83f8a4b7c702e8069a2ddf6773c2653de55058ca",
+    "C": "d948c57baf9af7bffc9cf47b2473341318464c4b",
+    "E": "148d9ab2158734cf849274660c38e7841054be17",
+    "F": "e142d52ccf962a4ab9f808675e208afa545401f9"
+  },
+  "default_build": "PASS; shell prerendered",
+  "typescript": "PASS",
+  "lint": {
+    "errors": 0,
+    "warnings": 11,
+    "baseline_warnings": 6,
+    "new_warnings": 5
+  },
+  "application_suite": {
+    "tests": 609,
+    "pass": 603,
+    "fail": 0,
+    "skipped": 6,
+    "cancelled": 0,
+    "duration_ms": 253500.534745
+  },
+  "serial_database_gate": {
+    "tests": 39,
+    "pass": 39,
+    "fail": 0,
+    "skipped": 0,
+    "cancelled": 0,
+    "duration_ms": 114149.428457
+  },
+  "targeted_final_tests": {
+    "pass": 24,
+    "fail": 0,
+    "skipped": 0
+  },
+  "prior_rejected_run": {
+    "pass": 597,
+    "fail": 5,
+    "skipped": 6,
+    "reason": "Five VM import mocks rejected new Home/auth/modal dependencies. Existing assertions were unchanged; E148d updated imports/leaf mocks and focused checks passed before the complete successful rerun."
+  },
+  "database_scope": "Fresh disposable local stack; PostgreSQL55509 and app61260. Full and database suites ran serially. No production data or provider traffic.",
+  "sha256_of_local_logs": {
+    "/tmp/run14-integration-final2-build.log": "ff5a0af7d73bd61898bb8e28871cb728b3e154f6d03885b802288fe88c5aac23",
+    "/tmp/run14-integration-final-test.log": "46a3c95c6bbf06311d8088bb8b0202bd5df1c568f54e30bc7a806500370e729f",
+    "/tmp/run14-integration-final-db.log": "e351ad015b56d8aaddc41c4e364bea594f6dc6ca1bb485e6d414b65310ba80ca",
+    "/tmp/run14-integration-final-lint.log": "7226200fa217d5cbdeeae1a12a47136b8f8f9b786007bd1232ebb6eb16139143",
+    "/tmp/run14-integration-final-tsc.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "/tmp/run14-integration-final-focused.log": "8ab74824167053fae1ae75f3935f40549d19b786d39cfbe4092fc6e6712f7936"
+  }
+}
