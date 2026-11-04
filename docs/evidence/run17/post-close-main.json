@@ -1,0 +1,25 @@
+{
+  "observedAt": "2026-11-04T16:15:04.236Z",
+  "mode": "post-close",
+  "runs": [
+    {
+      "postId": "5c83ffba-2026-4559-92e5-bd98b1baa9ca",
+      "closeMs": 679,
+      "uploading": true,
+      "encoded": []
+    },
+    {
+      "postId": "2553b4de-28d4-4a57-bd58-5a3e2d5a2250",
+      "closeMs": 632,
+      "uploading": true,
+      "encoded": []
+    },
+    {
+      "postId": "43fcf3fa-c538-448f-b02d-e87ffb0ae2ef",
+      "closeMs": 1338,
+      "uploading": true,
+      "encoded": []
+    }
+  ],
+  "pass": false
+}

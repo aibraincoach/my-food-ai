@@ -29,20 +29,32 @@ if(useCdp&&!['127.0.0.1','localhost'].includes(new URL(cdpEndpoint).hostname))th
 if(!useCdp&&!['127.0.0.1','localhost'].includes(new URL(bidiEndpoint).hostname))throw Error('Local BiDi only');
 
 let ws,send,evaluate,context,navigate,tap,fill,until;
+const CHUNK=480_000;
+async function dispatchCaptureFiles(name,bytes,type){
+ const u8=bytes instanceof Uint8Array?bytes:new Uint8Array(bytes);
+ await evaluate('window.__run17B64=[]');
+ for(let i=0;i<u8.length;i+=CHUNK)await evaluate(`window.__run17B64.push(${JSON.stringify(Buffer.from(u8.subarray(i,i+CHUNK)).toString('base64'))})`);
+ return evaluate(`(()=>{const raw=window.__run17B64.join('');window.__run17B64=null;const data=Uint8Array.from(atob(raw),c=>c.charCodeAt(0));const file=new File([data],${JSON.stringify(name)},{type:${JSON.stringify(type)}});window.dispatchEvent(new CustomEvent('capture-files',{detail:{files:[file]}}));return data.byteLength;})()`);
+}
+async function draftEncodedSizes(postId){
+ const prefix=`${user.id}/${postId}`;
+ const paths=await storedPaths(prefix);
+ return paths.filter(p=>/\.(jpg|jpeg|webp)$/i.test(p)).map(p=>({path:p.split('/').pop(),bytes:null}));
+}
 if(useCdp){
  const targets=await fetch(new URL('/json/list',cdpEndpoint)).then(r=>r.json());
  const target=targets.find(t=>t.type==='page');if(!target)throw Error('No Chromium page');
- ws=new WebSocket(target.webSocketDebuggerUrl);await new Promise((r,j)=>{ws.onopen=r;ws.onerror=j;});let id=0;const pending=new Map();
- ws.onmessage=e=>{const m=JSON.parse(e.data);const p=pending.get(m.id);if(p){pending.delete(m.id);if(m.error)p.reject(Error(m.error.message));else p.resolve(m.result);}};
- send=(method,params={})=>new Promise((resolve,reject)=>{const key=++id;pending.set(key,{resolve,reject});ws.send(JSON.stringify({id:key,method,params}));setTimeout(()=>{if(pending.has(key)){pending.delete(key);reject(Error(method+' timeout'));}},20000);});
- evaluate=async expression=>{const r=await send('Runtime.evaluate',{expression,awaitPromise:true,returnByValue:true});if(r.exceptionDetails)throw Error(r.exceptionDetails.text);return r.result?.value;};
+ ws=new WebSocket(target.webSocketDebuggerUrl);await new Promise((r,j)=>{ws.onopen=r;ws.onerror=j;});let id=0;const pending=new Map();let loadResolve;
+ ws.onmessage=e=>{const m=JSON.parse(e.data);if(m.method==='Page.loadEventFired')loadResolve?.();const p=pending.get(m.id);if(p){pending.delete(m.id);if(m.error)p.reject(Error(m.error.message));else p.resolve(m.result);}};
+ send=(method,params={})=>new Promise((resolve,reject)=>{const key=++id;pending.set(key,{resolve,reject});ws.send(JSON.stringify({id:key,method,params}));setTimeout(()=>{if(pending.has(key)){pending.delete(key);reject(Error(method+' timeout'));}},60000);});
+ evaluate=async expression=>{const r=await send('Runtime.evaluate',{expression,awaitPromise:true,returnByValue:true});if(r.exceptionDetails)throw Error(r.exceptionDetails.text||JSON.stringify(r.exceptionDetails));return r.result?.value;};
  await send('Page.enable');await send('Runtime.enable');
  await send('Emulation.setDeviceMetricsOverride',{width:390,height:844,deviceScaleFactor:1,mobile:true});
  await send('Emulation.setTouchEmulationEnabled',{enabled:true});
  await send('Emulation.setCPUThrottlingRate',{rate:4});
  await send('Network.enable');
  await send('Network.emulateNetworkConditions',{offline:false,latency:150,downloadThroughput:1600000/8,uploadThroughput:750000/8,connectionType:'cellular3g'});
- navigate=async path=>{await send('Page.navigate',{url:new URL(path,base).href});await pause(1200);};
+ navigate=async path=>{let timeout;const loaded=new Promise(r=>{loadResolve=r;timeout=setTimeout(r,25000);});await send('Page.navigate',{url:new URL(path,base).href});await loaded;clearTimeout(timeout);loadResolve=null;await pause(800);};
  tap=async(selector,text)=>{const p=await evaluate(`(()=>{const e=[...document.querySelectorAll(${JSON.stringify(selector)})].find(e=>{const r=e.getBoundingClientRect();return r.width&&r.height&&(${text?`(e.getAttribute('aria-label')||e.textContent||'').trim()===${JSON.stringify(text)}`:'true'});});if(!e)throw Error('Control missing');e.scrollIntoView({block:'center'});const r=e.getBoundingClientRect();return{x:r.x+r.width/2,y:r.y+r.height/2};})()`);await send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{x:p.x,y:p.y}]});await pause(40);await send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});await pause(300);};
 }else{
  ws=new WebSocket(bidiEndpoint);await new Promise((r,j)=>{ws.onopen=r;ws.onerror=j;});let id=0;const pending=new Map();
@@ -60,7 +72,7 @@ until=async(expression,ms=30000)=>{const end=Date.now()+ms;while(Date.now()<end)
 async function injectFixture(name,bytes,type,caption){
  await navigate('/');await evaluate(`(()=>{window.__fixturePostIds=[];const original=window.fetch;window.fetch=async(...args)=>{try{const u=new URL(typeof args[0]==='string'?args[0]:args[0].url,location.origin);if(u.origin===location.origin&&u.pathname==='/api/posts'&&args[1]?.method==='POST'){const operation=JSON.parse(args[1].body).operation_id;if(typeof operation==='string'&&/^[0-9a-f-]{36}$/i.test(operation)&&!window.__fixturePostIds.includes(operation))window.__fixturePostIds.push(operation);}}catch{}const r=await original(...args);try{const u=new URL(typeof args[0]==='string'?args[0]:args[0].url,location.origin);if(u.origin===location.origin&&u.pathname==='/api/posts'&&r.ok){const data=await r.clone().json();if(data.postId&&!window.__fixturePostIds.includes(data.postId))window.__fixturePostIds.push(data.postId);}}catch{}return r;};return true;})()`);
  await tap('button','Post a meal');await tap('button[data-entry]','Camera');
- await evaluate(`(()=>{const raw=atob(${JSON.stringify(bytes.toString('base64'))});const data=Uint8Array.from(raw,c=>c.charCodeAt(0));const file=new File([data],${JSON.stringify(name)},{type:${JSON.stringify(type)}});window.dispatchEvent(new CustomEvent('capture-files',{detail:{files:[file]}}));return true;})()`);
+ await dispatchCaptureFiles(name,bytes,type);
  await until(`!!document.querySelector('textarea[aria-label="Caption"]')`);await fill('textarea[aria-label="Caption"]',caption);
  await until(`window.__fixturePostIds.length>0`,60000);const ids=await evaluate('window.__fixturePostIds');const postId=ids[0];
  ledger.posts.push({id:postId,name,ownerVerified:false});await save();
@@ -69,7 +81,9 @@ async function injectFixture(name,bytes,type,caption){
  const started=Date.now();await tap('button','Post');await until(`!document.querySelector('textarea[aria-label="Caption"]')`,30000);
  const closeMs=Date.now()-started;
  const uploading=await evaluate(`(()=>{const t=[...document.querySelectorAll('*')].find(e=>e.textContent?.includes('Uploading photo'));return !!t;})()`);
- return {postId,closeMs,uploading};
+ await pause(500);
+ const encoded=await draftEncodedSizes(postId);
+ return {postId,closeMs,uploading,encoded};
 }
 
 try{
