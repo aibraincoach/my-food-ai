@@ -439,6 +439,7 @@ export default function Feed({initialPage, initialUserId, initialZone = "UTC", f
 
   const visibleState: State = fallbackOnly ? cache.cached ? {kind: 'ready', posts: cache.cached.filter(post=>!fallbackRetired.has(post.id)), days: []} : {kind: 'loading'} : state;
   const uploadDays=new Set<string>();
+  const localDay=uploads.map(upload=>dateInZone((visibleState.kind==='ready'?visibleState.posts.find(post=>post.id===upload.postId)?.eaten_at:undefined)??upload.eatenAt,renderZone));
   const localCards=uploads.map(upload=>{const server=visibleState.kind==='ready'?visibleState.posts.find(post=>post.id===upload.postId):undefined;const seed:FeedPost=server??{id:upload.postId??upload.operationId,caption:upload.caption,eaten_at:upload.eatenAt,created_at:upload.eatenAt,status:"queued",photoUrl:upload.previewUrl,slides:[],items:[]};const zone=renderZone;const day=dateInZone(seed.eaten_at,zone);const header=!uploadDays.has(day);const measured=visibleState.kind==='ready'?visibleState.days.find(value=>value.day===day):undefined;const measuredTotal=measured?{...measured,ready:measured.ready||measured.kcal===0}:undefined;if(header)uploadDays.add(day);return <UploadHydratedCard key={upload.operationId} post={seed} upload={upload} header={header?<DayHeader day={day} zone={zone} empty={false} total={measuredTotal}/>:null}/>;});
   if (visibleState.kind === "loading"&&localCards.length)return <div>{localCards}{null}</div>;
   if (visibleState.kind === "loading") return <p className="px-screen-x text-detail text-muted" role="status">Loading feed…</p>;
@@ -458,9 +459,10 @@ export default function Feed({initialPage, initialUserId, initialZone = "UTC", f
   if(listed.length)for (let day = listed[0]; day >= listed.at(-1)!; day = shiftDay(day, -1)) days.push(day);
   const totals = new Map(visibleState.days.map(day => [day.day, day]));
   return <div data-feed-source={fallbackOnly||!freshResponse?"cache":"fresh"} data-feed-client-ready={!fallbackOnly ? true : undefined} data-cached-feed-ready={fallbackOnly ? true : undefined} className="flex flex-col">
-    {localCards}
+    {localCards.filter((_,index)=>!days.includes(localDay[index]))}
     {days.map(day => <section key={day} aria-label={day} className="relative pb-card-gap">
       {!uploadDays.has(day)&&<DayHeader day={day} zone={zone} empty={!groups.has(day)} total={totals.get(day)} />}
+      {localCards.filter((_,index)=>localDay[index]===day)}
       {groups.has(day) ? <div className="flex flex-col gap-card-gap pt-sheet-top">{groups.get(day)!.map((post) => <div key={uploads.find(upload=>upload.postId===post.id)?.operationId??post.id} data-desktop-post={post.id} tabIndex={-1}>{fallbackOnly ? <PostCard priority={visibleState.posts[0]?.id === post.id} post={post} /> : <RealtimePost initial={post} renderCard={(fresh) => <PostCard priority={visibleState.posts[0]?.id === post.id} post={fresh} upload={uploads.find(upload=>upload.postId===post.id)}
          />} />}</div>)}</div> : null}
     </section>)}
@@ -501,9 +503,9 @@ function UploadHydratedCard({post,upload,header}:{post:FeedPost;upload:UploadSta
         } else {
           missing=0;
           if(card.status!=='ready'){
-            const pending=await getPendingItems(db,id);
+            const pending=await getPendingItems(db,id).catch(()=>null);
             if(!live)return;
-            Object.assign(card,{pendingItems:pending.pendingItems,fail_reason:pending.fail_reason});
+            if(pending)Object.assign(card,{pendingItems:pending.pendingItems,fail_reason:pending.fail_reason??card.fail_reason});
           }
           setFresh(card);
           if(card.status==='ready'&&lastStatus.current!=='ready')window.dispatchEvent(new CustomEvent('post-ready',{detail:{id}}));
