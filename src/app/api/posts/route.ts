@@ -20,7 +20,6 @@ export async function POST(request: Request) {
   const db = await createClient();
   const { data: { user } } = await db.auth.getUser();
   if (!user) return NextResponse.json({ error: "Sign in required." }, { status: 401 });
- const capped = await capUser(user.id, "post"); if (capped) return capped;
   const body = await request.json().catch(() => null);
   if (!body || typeof body.caption !== "string" || body.caption.length > 2000 || body.caption.includes("\u0000")) return NextResponse.json({ error: "Invalid caption." }, { status: 400 });
   if(body.save_as_meal!==undefined&&typeof body.save_as_meal!=='boolean')return NextResponse.json({error:'Invalid save choice.'},{status:400});
@@ -35,6 +34,14 @@ export async function POST(request: Request) {
   const location = body.location ?? null;
   if (location !== null && (typeof location !== "object" || !Number.isFinite(location.lat) || !Number.isFinite(location.lng) || Math.abs(location.lat) > 90 || Math.abs(location.lng) > 180 || (location.accuracy_m != null && (!Number.isFinite(location.accuracy_m) || location.accuracy_m < 0)))) return NextResponse.json({ error: "Invalid location." }, { status: 400 });
   const admin = createAdminClient();
+  // #471: the hourly cap counts meals, not requests. The composer re-sends the same reservation when a
+  // photo is picked, on each staged change and at Post; only a new reservation spends a hit. A failed
+  // read counts the hit, as before.
+  const [knownDraft, knownPost] = await Promise.all([
+    admin.from("post_upload_drafts").select("id").eq("id", operationId).eq("user_id", user.id).maybeSingle(),
+    admin.from("posts").select("id").eq("id", operationId).eq("user_id", user.id).maybeSingle(),
+  ]);
+  if (!knownDraft.data && !knownPost.data) { const capped = await capUser(user.id, "post"); if (capped) return capped; }
   let reservation: Awaited<ReturnType<typeof reserveUpload>>;
   try {
     reservation = await reserveUpload(admin, db, user.id, {
