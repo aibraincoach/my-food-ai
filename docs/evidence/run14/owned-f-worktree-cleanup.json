@@ -1,0 +1,112 @@
+{
+  "observedAtUTC": "2026-11-04",
+  "worktree": "/home/opc/Projects/my-food-ai-wt/run14-f",
+  "worktreeRemoved": true,
+  "localBranch": "run14/measure",
+  "localBranchRemoved": true,
+  "priorHead": "e142d52c",
+  "sourcePR": 566,
+  "sourceMerged": true,
+  "collector": {
+    "pid": 3230892,
+    "ownerAuthorizedStop": "SIGTERM, exit143, confirmed by root",
+    "collectedSamples": 3,
+    "configuredSamples": 7,
+    "noRestart": true
+  },
+  "retainedAccess": {
+    "path": "/home/opc/Projects/my-food-ai-wt/private-access/protection-bypass.json",
+    "existsAfterRemoval": true,
+    "exactJSONEqualToFBypassBeforeRemoval": true,
+    "valuesPrinted": false,
+    "archived": false
+  },
+  "receiptPreservation": {
+    "directory": "uploads/cleanup-evidence/run14-f (ignored)",
+    "source": "Existing sanitized G evidence already copied from F before cleanup; original three metric rows preserved in metrics-three-of-seven.json",
+    "files": [
+      {
+        "file": "metrics-three-of-seven.json",
+        "source": "existing sanitized G evidence",
+        "sha256": "cda674bf4b75db2a5dc707b679aa2f426b1be7383a6fab781d8b7f1d8d5d9e39"
+      },
+      {
+        "file": "control-production-complete.json",
+        "source": "existing sanitized G evidence",
+        "sha256": "4caab11f347cb755c4b8b79d5364308a1a47bca8dc0587ecaa4538f2b2c02223"
+      },
+      {
+        "file": "control-more-caption-production.json",
+        "source": "existing sanitized G evidence",
+        "sha256": "5fdc16eb67b2cdd977af67df02985fd0b3007c2d7f4ee0252ae1444813aca277"
+      },
+      {
+        "file": "control-queue-production.json",
+        "source": "existing sanitized G evidence",
+        "sha256": "b18aaf6e1eb4e0bbdeca32219426c07b109db24f0f638b4cac163cfb28746b5c"
+      },
+      {
+        "file": "control-search-production.json",
+        "source": "existing sanitized G evidence",
+        "sha256": "e8e964962e2f3a8c943a0b9b41e9207e5c9bb88b0e33960545a1e0daf985f0b4"
+      },
+      {
+        "file": "control-state-restoration.json",
+        "source": "existing sanitized G evidence",
+        "sha256": "d9cd9753bee6451945600aaaa742c36f95918c4da22bbe984d8c4a8021d9a310"
+      },
+      {
+        "file": "calendar-camera-production.json",
+        "source": "existing sanitized G evidence",
+        "sha256": "50a3a05ef20a95cda1c825572a36cdca05c4e10cb0ab7aa69dff913863261a36"
+      },
+      {
+        "file": "cola-settled-proof.json",
+        "source": "existing sanitized G evidence",
+        "sha256": "700ecac15ec867bcf5e3fd10648645923d7631aed7e3978cca9ed4457b690ec1"
+      },
+      {
+        "file": "egress-historical.md",
+        "source": "existing sanitized G evidence",
+        "sha256": "1e10106d8ad613dfd692c56dccfe207aefb094896a11bf0325108dc53122c32f"
+      },
+      {
+        "file": "egress-latest.md",
+        "source": "existing sanitized G evidence",
+        "sha256": "1926db63615cbc7aa66419d17a5738fef7b46b793daf1691e64bb925179497fa"
+      },
+      {
+        "file": "db-memory.txt",
+        "source": "existing sanitized G evidence",
+        "sha256": "095266601f37b6b5173d089ef502df3a702f26088cdc1af5031de7665e27eaf1"
+      },
+      {
+        "file": "old-caffeine.txt",
+        "source": "existing sanitized G evidence",
+        "sha256": "924bed4d619e779d68f1c4257ee915173b032a1030e8b2ec8c78400d6b89b978"
+      },
+      {
+        "file": "old-cola-day-totals.json",
+        "source": "existing sanitized G evidence",
+        "sha256": "0be30e4a5c74e0d2897393f7d99cb41d600e1eccf6336b1f2fdbe0fb38f4ef54"
+      },
+      {
+        "file": "readonly-production.json",
+        "source": "existing sanitized G evidence",
+        "sha256": "a8b930dedc9a70b7475a2cfdd203fe51d6800b5f597ceb1da5f12487f1057d5d"
+      },
+      {
+        "file": "remote-cleanup.json",
+        "source": "existing sanitized G evidence",
+        "sha256": "137c52ea1ba561d44cd12d57349abe65e09be92992ae52ad9e5ad1480c8c7ed0"
+      },
+      {
+        "file": "shared-processing-production.json",
+        "source": "existing sanitized G evidence",
+        "sha256": "72dc56b84a7a0600e36afdbf43386849b1a5119b553a80e13e16c3d694f99eba"
+      }
+    ]
+  },
+  "limitation": "The attempted additional pre-removal archive failed on nested secret shape. Removal proceeded afterward; no claim that new archive of original F ignored files succeeded. Existing safe G copies were retained and copied to ignored cleanup evidence. Private/env/session/bypass files were never archived.",
+  "preserved": "G, main, run13/docs, all run15 worktrees, owner browsers and retained private access"
+}
