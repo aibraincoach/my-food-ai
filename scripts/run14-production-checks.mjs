@@ -46,7 +46,7 @@ try{
  const colaResponse=await fetch('https://i.ebayimg.com/images/g/nLYAAOSwC4ZeaqcQ/s-l500.png',{signal:AbortSignal.timeout(30000)});if(!colaResponse.ok)throw Error('Historical cola photograph unavailable');const cola=Buffer.from(await colaResponse.arrayBuffer());
  const drink=await photoPost('fleet14-cola.png',cola,'image/png','Fleet 14 production photographed cola fixture');
  receipt.checks.photographedDrink={status:drink.result.status,caffeineRows:drink.result.intake.filter(r=>r.kind==='caffeine'),scope:'Real pipeline and persisted drink intake; rendered second-slide picture still separately inspected'};
- const meal=await photoPost('fleet14-meal.jpg',await readFile(new URL('./fixtures/plate1.jpg',import.meta.url)),'image/jpeg','Fleet 14 production meal fixture. '+('A deliberately long caption checks the more control and keeps this separate from the owner and recording accounts. '.repeat(5)));
+ const meal=await photoPost('fleet14-meal.jpg',await readFile(new URL('./fixtures/plate2.jpg',import.meta.url)),'image/jpeg','Fleet 14 production meal fixture. '+('A deliberately long caption checks the more control and keeps this separate from the owner and recording accounts. '.repeat(5)));
  receipt.checks.earlyFoodNames={observed:meal.result.pendingNames!==null,rows:meal.result.pendingNames};
  await navigate('/');await tap('button','Post a meal');await tap('button[data-entry]','Drink');await pause(1800);
  receipt.checks.drinkTiles=await evaluate(`[...document.querySelectorAll('button[aria-label^="Post "]')].filter(e=>e.getBoundingClientRect().height).map(e=>{const r=e.getBoundingClientRect();return{label:e.getAttribute('aria-label'),x:r.x,y:r.y,width:r.width,height:r.height}})`);
