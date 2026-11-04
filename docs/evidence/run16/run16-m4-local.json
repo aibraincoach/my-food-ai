@@ -1,0 +1,23 @@
+{
+  "app": "http://127.0.0.1:60261",
+  "scope": "Local final combined production build; production M4 remains pending merge/deploy",
+  "viewport": {
+    "width": 1280,
+    "height": 800
+  },
+  "observedAt": "2026-11-04T14:33:01.968Z",
+  "normalReload": {
+    "firstDigitMs": 626.4000000953674,
+    "kcal": "260"
+  },
+  "hardReload": {
+    "firstDigitMs": 714.0999999046326,
+    "kcal": "260"
+  },
+  "serverHtmlKcalSpans": [
+    "—",
+    "260"
+  ],
+  "serverHtmlContainsKcal": true,
+  "bothUnder2000ms": true
+}

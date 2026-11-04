@@ -1,0 +1,178 @@
+[
+  {
+    "viewport": {
+      "width": 390,
+      "height": 844
+    },
+    "photo": "portrait",
+    "path": "feed-open",
+    "frames": [
+      {
+        "width": 390,
+        "height": 520
+      }
+    ],
+    "ready": true,
+    "box": {
+      "width": 390,
+      "height": 520
+    },
+    "image": {
+      "width": 390,
+      "height": 520,
+      "naturalWidth": 900,
+      "naturalHeight": 1200
+    }
+  },
+  {
+    "viewport": {
+      "width": 390,
+      "height": 844
+    },
+    "photo": "portrait",
+    "path": "direct-url",
+    "ready": true,
+    "box": {
+      "width": 390,
+      "height": 520
+    },
+    "image": {
+      "width": 390,
+      "height": 520,
+      "naturalWidth": 900,
+      "naturalHeight": 1200
+    }
+  },
+  {
+    "viewport": {
+      "width": 390,
+      "height": 844
+    },
+    "photo": "landscape",
+    "path": "feed-open",
+    "frames": [
+      {
+        "width": 390,
+        "height": 292.5
+      }
+    ],
+    "ready": true,
+    "box": {
+      "width": 390,
+      "height": 292.5
+    },
+    "image": {
+      "width": 390,
+      "height": 292.5,
+      "naturalWidth": 1200,
+      "naturalHeight": 900
+    }
+  },
+  {
+    "viewport": {
+      "width": 390,
+      "height": 844
+    },
+    "photo": "landscape",
+    "path": "direct-url",
+    "ready": true,
+    "box": {
+      "width": 390,
+      "height": 292.5
+    },
+    "image": {
+      "width": 390,
+      "height": 292.5,
+      "naturalWidth": 1200,
+      "naturalHeight": 900
+    }
+  },
+  {
+    "viewport": {
+      "width": 1280,
+      "height": 800
+    },
+    "photo": "portrait",
+    "path": "feed-open",
+    "frames": [
+      {
+        "width": 510,
+        "height": 680
+      }
+    ],
+    "ready": true,
+    "box": {
+      "width": 510,
+      "height": 680
+    },
+    "image": {
+      "width": 510,
+      "height": 680,
+      "naturalWidth": 900,
+      "naturalHeight": 1200
+    }
+  },
+  {
+    "viewport": {
+      "width": 1280,
+      "height": 800
+    },
+    "photo": "portrait",
+    "path": "direct-url",
+    "ready": true,
+    "box": {
+      "width": 480,
+      "height": 640
+    },
+    "image": {
+      "width": 480,
+      "height": 640,
+      "naturalWidth": 900,
+      "naturalHeight": 1200
+    }
+  },
+  {
+    "viewport": {
+      "width": 1280,
+      "height": 800
+    },
+    "photo": "landscape",
+    "path": "feed-open",
+    "frames": [
+      {
+        "width": 640,
+        "height": 480
+      }
+    ],
+    "ready": true,
+    "box": {
+      "width": 640,
+      "height": 480
+    },
+    "image": {
+      "width": 640,
+      "height": 480,
+      "naturalWidth": 1200,
+      "naturalHeight": 900
+    }
+  },
+  {
+    "viewport": {
+      "width": 1280,
+      "height": 800
+    },
+    "photo": "landscape",
+    "path": "direct-url",
+    "ready": true,
+    "box": {
+      "width": 640,
+      "height": 480
+    },
+    "image": {
+      "width": 640,
+      "height": 480,
+      "naturalWidth": 1200,
+      "naturalHeight": 900
+    }
+  }
+]

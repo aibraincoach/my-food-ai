@@ -1,0 +1,125 @@
+{
+  "scope": "Actual compiled production CSS and actual shared photoBoxStyle helper; isolated layout fixture, no image loaded",
+  "rows": [
+    {
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "size": {
+        "width": 900,
+        "height": 1200
+      },
+      "box": {
+        "width": 390,
+        "height": 520,
+        "cap": "675.2px"
+      }
+    },
+    {
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "size": {
+        "width": 1200,
+        "height": 900
+      },
+      "box": {
+        "width": 390,
+        "height": 292.5,
+        "cap": "675.2px"
+      }
+    },
+    {
+      "viewport": {
+        "width": 390,
+        "height": 500
+      },
+      "size": {
+        "width": 900,
+        "height": 1200
+      },
+      "box": {
+        "width": 300,
+        "height": 400,
+        "cap": "400px"
+      }
+    },
+    {
+      "viewport": {
+        "width": 390,
+        "height": 500
+      },
+      "size": {
+        "width": 1200,
+        "height": 900
+      },
+      "box": {
+        "width": 390,
+        "height": 292.5,
+        "cap": "400px"
+      }
+    },
+    {
+      "viewport": {
+        "width": 1280,
+        "height": 800
+      },
+      "size": {
+        "width": 900,
+        "height": 1200
+      },
+      "box": {
+        "width": 480,
+        "height": 640,
+        "cap": "640px"
+      }
+    },
+    {
+      "viewport": {
+        "width": 1280,
+        "height": 800
+      },
+      "size": {
+        "width": 1200,
+        "height": 900
+      },
+      "box": {
+        "width": 640,
+        "height": 480,
+        "cap": "640px"
+      }
+    },
+    {
+      "viewport": {
+        "width": 1280,
+        "height": 1000
+      },
+      "size": {
+        "width": 900,
+        "height": 1200
+      },
+      "box": {
+        "width": 510,
+        "height": 680,
+        "cap": "680px"
+      }
+    },
+    {
+      "viewport": {
+        "width": 1280,
+        "height": 1000
+      },
+      "size": {
+        "width": 1200,
+        "height": 900
+      },
+      "box": {
+        "width": 640,
+        "height": 480,
+        "cap": "680px"
+      }
+    }
+  ]
+}

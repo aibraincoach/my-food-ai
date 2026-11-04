@@ -1,0 +1,13 @@
+{
+  "sql": "select count(*) from public.post_media where kind='photo' and (width is null or height is null or width<1 or height<1);",
+  "before": {
+    "at": "2026-11-04T14:50:17.696Z",
+    "count": 0
+  },
+  "apply": "Missing before: 0\nMissing after: 0",
+  "after": {
+    "at": "2026-11-04T14:50:18.464Z",
+    "count": 0
+  },
+  "rowsWritten": 0
+}
