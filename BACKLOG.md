@@ -1,6 +1,6 @@
 # My Food AI — Backlog†
 
-Last edited: Wednesday 2026-11-04 at 21:03 WIB (UTC+07:00) by Claude, PM
+Last edited: Wednesday 2026-11-04 at 21:07 WIB (UTC+07:00) by Claude, PM
 
 The only job of the PM is to maintain this backlog and keep it completely up to date. Failing to do so is immediately terminable.
 
@@ -134,7 +134,7 @@ The owner reports 14 seconds from tapping a meal to its detail page opening. He 
 
 The owner reported it on Nov 4 at about 07:38 WIB. He measured on an iPhone with the app installed from the home screen, on XL Axiata Prioritas 5G in Indonesia. He gave no meal URL because the installed app shows none. The coder's Chromium audit on production (docs/detail-open-audit.md in PR #475) found useful content at 0.9 to 3.4 seconds, the original photo decoded at 1.2 to 3.7 seconds, 24 to 25 requests with eight repeated, and a 142 KB original downloaded although the feed copy was on screen. It did not measure the iPhone on XL Axiata, so the 14 seconds is unexplained. The audit items below name three suspects: no loading screen on the tap, the same meal read twice, and the full original photo downloaded again. Nobody has timed the detail on a phone on current main. Fleet 14 (production a24587a, unthrottled Firefox, not a phone) measured the first detail frame at 10 to 25 ms and completed detail replacements at 1,030 to 1,787 ms in five trials. One desktop trial did not finish within 20 seconds, a follow-up finished by 2.5 seconds, and no cause is known. Every successful detail trace shows two completed original-image GETs of 110 to 240 KB, which the first frame hides but does not remove. Chromium hung on the coder's host, so nothing was measured with the processor slowed or on Fast 3G, and that condition is unmet. Observe first: time the tap to a usable detail on a phone over mobile data and on desktop, and record where the seconds go (server render, database reads, photo download). Done when the detail opens within two seconds on the owner's phone over mobile data, and the report states where the 14 seconds went. The Fleet 14 coder's 17:44 WIB report says the 14-second opening was not reproduced or fully explained. A Muse efficiency audit of main 299f13a that the owner relayed at 19:25 WIB (read-only, nothing measured live, not verified by the PM) says the detail photo downloads the full original on every open even with no outlines to show (OutlineOverlay.tsx:31-37), signs one address per outline instead of one batch (items.ts:126-135), and reloads the whole meal on every thread event (Thread.tsx).
 
-Blast radius: The owner measured 14 seconds on his phone, so a judge's first meal tap could take as long and read as a crash. The cause is unknown, so work on the suspects can spend time without removing the delay.
+Blast radius: The owner measured 14 seconds on his phone, so a judge's first meal tap could take as long and read as a crash. The cause is unknown, so work on suspects can spend time without removing the delay.
 
 ### #499 Several pages export an instant flag that nothing reads
 
@@ -557,6 +557,14 @@ Anyone can send sign-up and sign-in requests as fast as a script can, to guess p
 CAPTCHA stays off until the app goes public. Run 8 merged a dormant hCaptcha widget and token path (#336). Called directly from the coder's machine, Supabase refused the hammer at sign-up 31 and sign-in 32, and the 31 throwaway accounts were deleted. The owner holds the site key and the secret. The secret lives only in Supabase Auth and never goes into the repository, an issue, an order or this backlog. To turn CAPTCHA on, set NEXT\_PUBLIC\_HCAPTCHA\_SITE\_KEY in Vercel production and redeploy, then enable CAPTCHA in Supabase Auth, never the reverse. Done when CAPTCHA is on for sign-up and sign-in on production and a script that hammers sign-up and sign-in is refused.
 
 Blast radius: Unprotected sign-up lets a script create accounts in bulk and guess passwords, which could fill the database, drain quota or lock out judges. Turning on CAPTCHA adds a step to every sign-up, so judges feel it.
+
+### #615 A posted beer disappears and a clarification card takes its place
+
+The owner posted a beer and the post vanished from where he expected it, and a clarification card appeared instead. He does not accept a post that disappears.
+
+The owner reported it on Nov 4 at 21:07 WIB, after the photographed beer was matched against the glass label and the app found the glass and the beer inside did not match. He likes the card. His ruling: the beer shows up as posted, with the calories of the drink as stated, and the clarification request arrives as a notification. Nothing in the app removes a post to make room for a question. The PM has not seen which screens do this, whether the post leaves the feed or only the card, or whether the notification should be in the app or a push, and the owner has not said. Observe first: reproduce a beer post whose glass and drink disagree and record what the feed, Days and the post page show at each moment. Done when a posted drink stays on screen from the tap, shows the calories of the drink as stated, the clarification request reaches the owner as a notification, and no screen makes a post disappear, checked on the owner's three phones.
+
+Blast radius: A post that vanishes reads as lost data, in the demo and to a judge, on a headline drink feature. The fix reaches the clarification flow, the feed and the notification path, so a mistake can show a wrong calorie number or drop the question.
 
 ## Engineering backlog - design
 
