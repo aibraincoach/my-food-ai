@@ -1,0 +1,21 @@
+{
+  "posts": [
+    {
+      "caption": "a can of Bintang beer",
+      "id": "a762fef5-0d14-4f52-b613-b006f5573a09",
+      "status": "ready",
+      "fail_reason": null,
+      "drinks": null,
+      "text": "···\nCONSUMED · 18:48\n142\nkcal\n2 g\nprotein\n12 g\ncarbs\n0 g\nfat\nBintang beer 330 g\nDetails ›\n\n a can of Bintang beer\n\nConsumed: 142 kcal · 2 g protein · 12 g carbs · 0 g fat more\n18:48"
+    },
+    {
+      "caption": "150 ml red wine",
+      "id": "078af6b6-bfcb-40ea-aa9e-1bf0280ef457",
+      "status": "ready",
+      "fail_reason": null,
+      "drinks": null,
+      "text": "···\nCONSUMED\n128\nkcal\n0 g\nprotein\n4 g\ncarbs\n0 g\nfat\nred wine 150 g\nDetails ›\n\n 150 ml red wine\n\nConsumed: 128 kcal · 0 g protein · 4 g carbs · 0 g fat more"
+    }
+  ],
+  "cleanup": 0
+}

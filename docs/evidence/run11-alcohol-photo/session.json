@@ -1,0 +1,125 @@
+{
+  "startedAt": "2026-11-04T00:47:01.378Z",
+  "photos": [
+    {
+      "name": "cocktail",
+      "tap": 1793753264707,
+      "closedAt": 1793753266130,
+      "newIds": []
+    }
+  ],
+  "progress": [
+    {
+      "id": "d7f18f6d-2f00-4ff5-824a-b9af0fb85a5d",
+      "at": 1793753264955,
+      "status": "queued",
+      "names": [],
+      "text": "",
+      "hasKcal": false
+    },
+    {
+      "id": "d7f18f6d-2f00-4ff5-824a-b9af0fb85a5d",
+      "at": 1793753267108,
+      "status": "queued",
+      "names": [],
+      "text": "Processing, traffic low",
+      "hasKcal": false
+    },
+    {
+      "id": "d7f18f6d-2f00-4ff5-824a-b9af0fb85a5d",
+      "at": 1793753280299,
+      "status": "processing",
+      "names": [],
+      "text": "Processing, traffic low",
+      "hasKcal": false
+    },
+    {
+      "id": "d7f18f6d-2f00-4ff5-824a-b9af0fb85a5d",
+      "at": 1793753288821,
+      "status": "processing",
+      "names": [
+        "Fleet 11 acceptance cocktail with lime"
+      ],
+      "text": "Fleet 11 acceptance cocktail with lime\n\nProcessing, traffic low",
+      "hasKcal": false
+    },
+    {
+      "id": "d7f18f6d-2f00-4ff5-824a-b9af0fb85a5d",
+      "at": 1793753299223,
+      "status": "ready",
+      "names": [],
+      "text": "",
+      "hasKcal": false
+    }
+  ],
+  "cleanup": {
+    "created": 1,
+    "postsRemaining": 0,
+    "objectsRemoved": 4,
+    "objectsRemaining": 0
+  },
+  "credits": "Meals: eval/SOURCES.md. Coffee cup (1).jpg: Jon Sullivan, public domain, Wikimedia Commons. Coca-cola.jpg: 些細な日常, CC BY-SA4.0, Wikimedia Commons. Originals supplied to normal client reencoding.",
+  "capBefore": [
+    {
+      "route": "fdc_barcode",
+      "hour": "2026-11-04T00:00:00+00:00",
+      "hits": 3
+    },
+    {
+      "route": "post",
+      "hour": "2026-11-04T00:00:00+00:00",
+      "hits": 26
+    },
+    {
+      "route": "drink_identify",
+      "hour": "2026-11-04T00:00:00+00:00",
+      "hits": 2
+    }
+  ],
+  "readings": [
+    {
+      "name": "cocktail",
+      "allDrinks": false,
+      "drinks": []
+    }
+  ],
+  "statuses": [
+    {
+      "id": "7b5c427d-2c07-4d78-9d6a-557ea991c915",
+      "status": "ready",
+      "fail_reason": null
+    }
+  ],
+  "cardText": "T\ntestkitchen\n···\nDRANK · 7:47\nFleet 11 acceptance cocktail with lime\n15 g alcohol · 1.1 standard drinks\nToday\n0 ml\nconsumed today\n0 ml from drinks\n0 ml from food\n+\nAdd a photo\nLeftovers · not eaten\nDetails ›\n\ntestkitchen Fleet 11 acceptance cocktail\n\nDrank: alcohol unavailable · 160 kcal more\n7:47",
+  "capAfter": [
+    {
+      "route": "drink_identify",
+      "hour": "2026-11-04T00:00:00+00:00",
+      "hits": 3
+    },
+    {
+      "route": "post",
+      "hour": "2026-11-04T00:00:00+00:00",
+      "hits": 30
+    },
+    {
+      "route": "fdc_barcode",
+      "hour": "2026-11-04T00:00:00+00:00",
+      "hits": 3
+    }
+  ],
+  "capMessages": 0,
+  "namesBeforeTotals": [
+    {
+      "id": "d7f18f6d-2f00-4ff5-824a-b9af0fb85a5d",
+      "at": 1793753288821,
+      "status": "processing",
+      "names": [
+        "Fleet 11 acceptance cocktail with lime"
+      ],
+      "text": "Fleet 11 acceptance cocktail with lime\n\nProcessing, traffic low",
+      "hasKcal": false
+    }
+  ],
+  "finishedAt": "2026-11-04T00:48:22.013Z"
+}
