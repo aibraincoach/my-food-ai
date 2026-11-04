@@ -30,7 +30,7 @@ export default function ServingsControl({ postId, servings }: { postId: string; 
     <input type="text" inputMode="decimal" aria-label="Servings count" value={draft} onChange={event => setDraft(event.currentTarget.value)} disabled={busy} onKeyDown={event => { if (event.key === "Enter") { event.preventDefault(); event.currentTarget.blur(); } }} onBlur={() => {
       const next = parseServings(draft);
       if (next === null) { setDraft(servingsLabel(saved)); setError("Enter a count from 0.25 to 50, in quarters."); return; }
-      setSaved(next); setDraft(servingsLabel(next)); setError("");
+      setDraft(servingsLabel(next)); setError("");
       if (next !== saved) void submit(next);
     }} className="h-tap w-16 rounded-field border border-line bg-white text-center text-detail tabular-nums disabled:opacity-50" />
     <button type="button" aria-label="More servings" disabled={busy || saved >= MAX_SERVINGS} onClick={() => { void change(1); }} className="min-h-tap min-w-tap disabled:opacity-50">+</button>
