@@ -70,7 +70,7 @@ The first memory sample measured950,153,216 B total,484,290,560 B available and4
 
 ### Existing caffeine and wording
 
-[Read-only caffeine receipt](evidence/run14/old-caffeine.txt): posts376e1cae and7184bd65 each retain32 mg for330 ml. This does not prove the owner's visual card check or day totals; those remain distinct.
+[Read-only caffeine receipt](evidence/run14/old-caffeine.txt): posts376e1cae and7184bd65 each retain32 mg for330 ml. Follow-up found both are soft-deleted. Their retained raw64mg contributes zero to the visible November3 America/Edmonton day:0 visible posts,0mg caffeine and0ml hydration under the actual shared day readers. This is not evidence of a live-day64mg total or an owner visual card check. [Day totals and tombstone receipt](evidence/run14/old-cola-day-totals.json).
 
 The wording search at observed main299f13a4 found stored/schema/regex uses of "Clarification needed", with the visible NeedsInputStrip mapping to "A question about this meal". No hit for the other three searched obsolete phrases. Repeat against final main before closing#294. Installed Next16.4.3's `app-segment-config.js:152` parses `case 'instant'`;#499's premise is false and exports remain.
 
@@ -110,7 +110,7 @@ The complete original 26-finding DRY/service-boundary audit of main a24587a is p
 
 The later [historical shell reproduction](evidence/run14/historical-shell-reproduction.md) verifies the old deployment’s mechanism: at1280×800, slowing both page and service worker2500ms produced the1025px shell without Today; zero latency produced the500px feed with Today. This late reproduction does not establish the cause of the owner’s original screenshot.
 
-The fifth gallery fixture passed the actual rendered second-slide drink check: Coca-Cola Original Taste330ml,30mg caffeine, visible tumbler illustration. All five gallery fixtures were removed with post/draft/job/Storage checks; with the12 cap posts this accounts for17 cleaned production posts. [Rendered proof](evidence/run14/cola-settled-proof.json), [scope](evidence/run14/cola-settled-visual.md). A separately tracked sixth gallery fixture is currently being used for the shared processing-state check; it is excluded from that completed-cleanup count until its receipt confirms removal.
+The fifth gallery fixture passed the actual rendered second-slide drink check: Coca-Cola Original Taste330ml,30mg caffeine, visible tumbler illustration. All five gallery fixtures were removed with post/draft/job/Storage checks; with the12 cap posts this accounts for17 cleaned production posts at that checkpoint. The sixth shared fixture was subsequently removed with all four absence checks, bringing the completed total to18. [Rendered proof](evidence/run14/cola-settled-proof.json), [scope](evidence/run14/cola-settled-visual.md). [Sixth fixture cleanup](evidence/run14/shared-processing-cleanup.json) now confirms removal. Its capture found the ready state; it did not prove unavailable thumbs.
 
 All seven formerly missing control rows now have explicitly scoped evidence. Local render/network-interception fixtures are distinguished from live persisted state, Firefox timing from CPU-throttled Chromium, and unavailable CLS evidence remains unavailable. Nine direct interactive rectangles fall below44px and are filed in#580; the original feedback verdicts are not geometry passes. [Control scope](evidence/run14/control-scope-final.md), [queue measurements](evidence/run14/control-queue-production.json).
 
