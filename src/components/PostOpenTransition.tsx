@@ -11,14 +11,14 @@ import PostOpenFrame from '@/components/PostOpenFrame';
 // photo tap can still cancel the provisional open and cast its vote.
 export default function PostOpenTransition() {
  const path=usePathname();
- const [opening,setOpening]=useState<{id:string;from:string}|null>(null);
+ const [opening,setOpening]=useState<{id:string;from:string;committed:boolean}|null>(null);
  useEffect(()=>{
   let account:string|null|undefined;
   const {data:{subscription}}=createClient().auth.onAuthStateChange((_event,session)=>{const next=session?.user.id??null;if(account!==undefined&&account!==next){clearRememberedPosts();setOpening(null);}account=next;});
   const preview=(event:Event)=>{
    const id=(event as CustomEvent<{id:string}>).detail?.id;
    if(!id||matchMedia('(min-width:1024px)').matches||!recallPost(id))return;
-   setOpening({id,from:window.location.pathname});
+   setOpening({id,from:window.location.pathname,committed:(event as CustomEvent<{committed?:boolean}>).detail?.committed===true});
   };
   const cancel=()=>setOpening(null);
   const click=(event:MouseEvent)=>{
@@ -28,7 +28,7 @@ export default function PostOpenTransition() {
    const url=new URL(anchor.href,window.location.href);
    if(url.origin!==window.location.origin)return;
    const id=url.pathname.match(/^\/posts\/([0-9a-f-]{36})$/i)?.[1];
-   if(id)preview(new CustomEvent('post-open-preview',{detail:{id}}));
+   if(id)preview(new CustomEvent('post-open-preview',{detail:{id,committed:true}}));
   };
   window.addEventListener('post-open-preview',preview);
   window.addEventListener('post-open-cancel',cancel);
@@ -45,5 +45,7 @@ export default function PostOpenTransition() {
   return()=>{observer.disconnect();clearTimeout(timeout);};
  },[opening]);
  if(!opening||(path!==opening.from&&path!==`/posts/${opening.id}`))return null;
- return <div className="pointer-events-none fixed inset-0 z-40 overflow-hidden bg-surface desktop:hidden" aria-hidden="true" inert><PostPageShell><PostOpenFrame id={opening.id}/></PostPageShell></div>;
+ return <div className={`fixed inset-0 z-40 overflow-hidden bg-surface desktop:hidden ${opening.committed?'pointer-events-auto':'pointer-events-none'}`} aria-hidden={opening.committed?undefined:true} aria-busy="true">
+  <PostPageShell onBack={event=>{event.preventDefault();setOpening(null);window.location.assign('/');}}><div inert><PostOpenFrame id={opening.id}/></div></PostPageShell>
+ </div>;
 }

@@ -16,10 +16,14 @@ export default function DesktopWorkspace({children,detail,width=500}:{children:R
   const [focused,setFocused]=useState<string|null>(selected);
   // Pending selection paints before the server navigation completes.
   const [pending,setPending]=useState<{id:string|null;from:string|null;preview?:boolean}|null>(null);
+  // Retire completed navigation state; history returning to its old source
+  // must never reactivate an already-completed open or close.
+  if(pending&&selected!==pending.from)setPending(null);
   const transitioning=pending!==null&&selected===pending.from;
   const shown=transitioning?pending.id:selected;
-  const open=useCallback((id:string|null)=>{setPending({id,from:selected});if(!id)dialog.current?.close();const url=new URL(window.location.href);if(id)url.searchParams.set('post',id);else url.searchParams.delete('post');router.push(url.pathname+url.search,{scroll:false});},[router,selected]);
+  const open=useCallback((id:string|null)=>{if(id===selected){setPending(null);return;}setPending({id,from:selected});if(!id)dialog.current?.close();const url=new URL(window.location.href);if(id)url.searchParams.set('post',id);else url.searchParams.delete('post');router.push(url.pathname+url.search,{scroll:false});},[router,selected]);
   useEffect(()=>{if(!shown||!desktop)return;const element=dialog.current;if(transitioning&&pending?.preview){element?.show();return()=>element?.close();}element?.showModal();const release=lockBodyScroll();return()=>{element?.close();release();};},[shown,desktop,transitioning,pending?.preview]);
+  useEffect(()=>{const cancel=()=>setPending(null);window.addEventListener('popstate',cancel);return()=>window.removeEventListener('popstate',cancel);},[]);
   useEffect(()=>{const preview=(event:Event)=>{const id=(event as CustomEvent<{id?:string}>).detail?.id;if(desktop&&id&&recallPost(id))setPending({id,from:selected,preview:true});};const cancel=()=>setPending(current=>current?.preview?null:current);window.addEventListener('post-open-preview',preview);window.addEventListener('post-open-cancel',cancel);return()=>{window.removeEventListener('post-open-preview',preview);window.removeEventListener('post-open-cancel',cancel);};},[desktop,selected]);
   useEffect(()=>{const handler=(event:Event)=>{const id=(event as CustomEvent<{id?:string}>).detail?.id;if(id){setFocused(id);open(id);}};window.addEventListener('open-post',handler);return()=>window.removeEventListener('open-post',handler);},[open]);
   useEffect(()=>{if(!shown)return;const capture=()=>open(null);window.addEventListener('open-entry',capture);return()=>window.removeEventListener('open-entry',capture);},[shown,open]);
