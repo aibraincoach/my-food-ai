@@ -1,5 +1,5 @@
 {
-  "observedAtUtc": "2026-11-04T09:38:30Z",
+  "observedAtUtc": "2026-11-04T09:38:53Z",
   "scope": "Only Fleet14 laneC/D/E owned apps and state-backed disposable stacks; C confirmed local completion before shutdown. No global cleanup script used.",
   "appsStopped": [
     {
