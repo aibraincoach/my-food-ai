@@ -1,0 +1,743 @@
+{
+  "observedAt": "2026-11-04T16:25:41.148Z",
+  "mode": "beer",
+  "runs": [],
+  "postId": "60a06124-93bd-44c5-a3ef-299bb5202516",
+  "samples": [
+    {
+      "label": "1000ms",
+      "feed": {
+        "card": false,
+        "statusText": null
+      },
+      "strip": true,
+      "items": [],
+      "post": null
+    },
+    {
+      "label": "5000ms",
+      "feed": {
+        "card": true,
+        "statusText": null
+      },
+      "strip": true,
+      "items": [],
+      "post": {
+        "status": "processing",
+        "needs_input": null,
+        "question": null
+      }
+    },
+    {
+      "label": "settle-0",
+      "feed": {
+        "card": true,
+        "statusText": null
+      },
+      "strip": true,
+      "items": [],
+      "post": {
+        "status": "processing",
+        "needs_input": null,
+        "question": null
+      }
+    },
+    {
+      "label": "settle-1",
+      "feed": {
+        "card": true,
+        "statusText": null
+      },
+      "strip": true,
+      "items": [
+        "glass of beer"
+      ],
+      "post": {
+        "status": "ready",
+        "needs_input": null,
+        "question": {
+          "short": "Clarification needed",
+          "options": [
+            "Glass of beer",
+            "Empty plate - no food",
+            "Other drink"
+          ],
+          "question": "The photo shows an empty plate, not a glass of beer. What did you have?"
+        }
+      }
+    },
+    {
+      "label": "answer-0",
+      "feed": {
+        "card": true,
+        "statusText": null
+      },
+      "strip": true,
+      "items": [
+        "glass of beer"
+      ],
+      "post": {
+        "status": "processing",
+        "needs_input": null,
+        "question": null
+      }
+    },
+    {
+      "label": "dismiss-wait-0",
+      "feed": {
+        "card": true,
+        "statusText": null
+      },
+      "strip": true,
+      "items": [
+        "glass of beer"
+      ],
+      "post": {
+        "status": "ready",
+        "needs_input": null,
+        "question": null
+      }
+    },
+    {
+      "label": "dismiss-wait-1",
+      "feed": {
+        "card": true,
+        "statusText": "Ttestkitchen2···Add photoLog againSave mealEdit captionEdit time9:25 AMDeleteDRANK · 9:25 AMbeerglass of beer14 g alcohol · 1.0 standard drinksTodaybeer0 mlconsumed today0 ml from drinks0 ml from food+Add a photoLeftovers‹›1/2Details ›testk"
+      },
+      "strip": true,
+      "items": [
+        "glass of beer"
+      ],
+      "post": {
+        "status": "ready",
+        "needs_input": null,
+        "question": null
+      }
+    },
+    {
+      "label": "dismiss-wait-2",
+      "feed": {
+        "card": true,
+        "statusText": "Ttestkitchen2···Add photoLog againSave mealEdit captionEdit time9:25 AMDeleteDRANK · 9:25 AMbeerglass of beer14 g alcohol · 1.0 standard drinksTodaybeer0 mlconsumed today0 ml from drinks0 ml from food+Add a photoLeftovers‹›1/2Details ›testk"
+      },
+      "strip": true,
+      "items": [
+        "glass of beer"
+      ],
+      "post": {
+        "status": "ready",
+        "needs_input": null,
+        "question": null
+      }
+    },
+    {
+      "label": "dismiss-wait-3",
+      "feed": {
+        "card": true,
+        "statusText": "Ttestkitchen2···Add photoLog againSave mealEdit captionEdit time9:25 AMDeleteDRANK · 9:25 AMbeerglass of beer14 g alcohol · 1.0 standard drinksTodaybeer0 mlconsumed today0 ml from drinks0 ml from food+Add a photoLeftovers‹›1/2Details ›testk"
+      },
+      "strip": true,
+      "items": [
+        "glass of beer"
+      ],
+      "post": {
+        "status": "ready",
+        "needs_input": null,
+        "question": null
+      }
+    },
+    {
+      "label": "dismiss-wait-4",
+      "feed": {
+        "card": true,
+        "statusText": "Ttestkitchen2···Add photoLog againSave mealEdit captionEdit time9:25 AMDeleteDRANK · 9:25 AMbeerglass of beer14 g alcohol · 1.0 standard drinksTodaybeer0 mlconsumed today0 ml from drinks0 ml from food+Add a photoLeftovers‹›1/2Details ›testk"
+      },
+      "strip": true,
+      "items": [
+        "glass of beer"
+      ],
+      "post": {
+        "status": "ready",
+        "needs_input": null,
+        "question": null
+      }
+    },
+    {
+      "label": "dismiss-wait-5",
+      "feed": {
+        "card": true,
+        "statusText": "Ttestkitchen2···Add photoLog againSave mealEdit captionEdit time9:25 AMDeleteDRANK · 9:25 AMbeerglass of beer14 g alcohol · 1.0 standard drinksTodaybeer0 mlconsumed today0 ml from drinks0 ml from food+Add a photoLeftovers‹›1/2Details ›testk"
+      },
+      "strip": true,
+      "items": [
+        "glass of beer"
+      ],
+      "post": {
+        "status": "ready",
+        "needs_input": null,
+        "question": null
+      }
+    },
+    {
+      "label": "dismiss-wait-6",
+      "feed": {
+        "card": true,
+        "statusText": "Ttestkitchen2···Add photoLog againSave mealEdit captionEdit time9:25 AMDeleteDRANK · 9:25 AMbeerglass of beer14 g alcohol · 1.0 standard drinksTodaybeer0 mlconsumed today0 ml from drinks0 ml from food+Add a photoLeftovers‹›1/2Details ›testk"
+      },
+      "strip": true,
+      "items": [
+        "glass of beer"
+      ],
+      "post": {
+        "status": "ready",
+        "needs_input": null,
+        "question": null
+      }
+    },
+    {
+      "label": "dismiss-wait-7",
+      "feed": {
+        "card": true,
+        "statusText": "Ttestkitchen2···Add photoLog againSave mealEdit captionEdit time9:25 AMDeleteDRANK · 9:25 AMbeerglass of beer14 g alcohol · 1.0 standard drinksTodaybeer0 mlconsumed today0 ml from drinks0 ml from food+Add a photoLeftovers‹›1/2Details ›testk"
+      },
+      "strip": true,
+      "items": [
+        "glass of beer"
+      ],
+      "post": {
+        "status": "ready",
+        "needs_input": null,
+        "question": null
+      }
+    },
+    {
+      "label": "dismiss-wait-8",
+      "feed": {
+        "card": true,
+        "statusText": "Ttestkitchen2···Add photoLog againSave mealEdit captionEdit time9:25 AMDeleteDRANK · 9:25 AMbeerglass of beer14 g alcohol · 1.0 standard drinksTodaybeer0 mlconsumed today0 ml from drinks0 ml from food+Add a photoLeftovers‹›1/2Details ›testk"
+      },
+      "strip": true,
+      "items": [
+        "glass of beer"
+      ],
+      "post": {
+        "status": "ready",
+        "needs_input": null,
+        "question": null
+      }
+    },
+    {
+      "label": "dismiss-wait-9",
+      "feed": {
+        "card": true,
+        "statusText": "Ttestkitchen2···Add photoLog againSave mealEdit captionEdit time9:25 AMDeleteDRANK · 9:25 AMbeerglass of beer14 g alcohol · 1.0 standard drinksTodaybeer0 mlconsumed today0 ml from drinks0 ml from food+Add a photoLeftovers‹›1/2Details ›testk"
+      },
+      "strip": true,
+      "items": [
+        "glass of beer"
+      ],
+      "post": {
+        "status": "ready",
+        "needs_input": null,
+        "question": null
+      }
+    },
+    {
+      "label": "dismiss-wait-10",
+      "feed": {
+        "card": true,
+        "statusText": "Ttestkitchen2···Add photoLog againSave mealEdit captionEdit time9:25 AMDeleteDRANK · 9:25 AMbeerglass of beer14 g alcohol · 1.0 standard drinksTodaybeer0 mlconsumed today0 ml from drinks0 ml from food+Add a photoLeftovers‹›1/2Details ›testk"
+      },
+      "strip": true,
+      "items": [
+        "glass of beer"
+      ],
+      "post": {
+        "status": "ready",
+        "needs_input": null,
+        "question": null
+      }
+    },
+    {
+      "label": "dismiss-wait-11",
+      "feed": {
+        "card": true,
+        "statusText": "Ttestkitchen2···Add photoLog againSave mealEdit captionEdit time9:25 AMDeleteDRANK · 9:25 AMbeerglass of beer14 g alcohol · 1.0 standard drinksTodaybeer0 mlconsumed today0 ml from drinks0 ml from food+Add a photoLeftovers‹›1/2Details ›testk"
+      },
+      "strip": true,
+      "items": [
+        "glass of beer"
+      ],
+      "post": {
+        "status": "ready",
+        "needs_input": null,
+        "question": null
+      }
+    },
+    {
+      "label": "dismiss-wait-12",
+      "feed": {
+        "card": true,
+        "statusText": "Ttestkitchen2···Add photoLog againSave mealEdit captionEdit time9:25 AMDeleteDRANK · 9:25 AMbeerglass of beer14 g alcohol · 1.0 standard drinksTodaybeer0 mlconsumed today0 ml from drinks0 ml from food+Add a photoLeftovers‹›1/2Details ›testk"
+      },
+      "strip": true,
+      "items": [
+        "glass of beer"
+      ],
+      "post": {
+        "status": "ready",
+        "needs_input": null,
+        "question": null
+      }
+    },
+    {
+      "label": "dismiss-wait-13",
+      "feed": {
+        "card": true,
+        "statusText": "Ttestkitchen2···Add photoLog againSave mealEdit captionEdit time9:25 AMDeleteDRANK · 9:25 AMbeerglass of beer14 g alcohol · 1.0 standard drinksTodaybeer0 mlconsumed today0 ml from drinks0 ml from food+Add a photoLeftovers‹›1/2Details ›testk"
+      },
+      "strip": true,
+      "items": [
+        "glass of beer"
+      ],
+      "post": {
+        "status": "ready",
+        "needs_input": null,
+        "question": null
+      }
+    },
+    {
+      "label": "dismiss-wait-14",
+      "feed": {
+        "card": true,
+        "statusText": "Ttestkitchen2···Add photoLog againSave mealEdit captionEdit time9:25 AMDeleteDRANK · 9:25 AMbeerglass of beer14 g alcohol · 1.0 standard drinksTodaybeer0 mlconsumed today0 ml from drinks0 ml from food+Add a photoLeftovers‹›1/2Details ›testk"
+      },
+      "strip": true,
+      "items": [
+        "glass of beer"
+      ],
+      "post": {
+        "status": "ready",
+        "needs_input": null,
+        "question": null
+      }
+    },
+    {
+      "label": "dismiss-wait-15",
+      "feed": {
+        "card": true,
+        "statusText": "Ttestkitchen2···Add photoLog againSave mealEdit captionEdit time9:25 AMDeleteDRANK · 9:25 AMbeerglass of beer14 g alcohol · 1.0 standard drinksTodaybeer0 mlconsumed today0 ml from drinks0 ml from food+Add a photoLeftovers‹›1/2Details ›testk"
+      },
+      "strip": true,
+      "items": [
+        "glass of beer"
+      ],
+      "post": {
+        "status": "ready",
+        "needs_input": null,
+        "question": null
+      }
+    },
+    {
+      "label": "dismiss-wait-16",
+      "feed": {
+        "card": true,
+        "statusText": "Ttestkitchen2···Add photoLog againSave mealEdit captionEdit time9:25 AMDeleteDRANK · 9:25 AMbeerglass of beer14 g alcohol · 1.0 standard drinksTodaybeer0 mlconsumed today0 ml from drinks0 ml from food+Add a photoLeftovers‹›1/2Details ›testk"
+      },
+      "strip": true,
+      "items": [
+        "glass of beer"
+      ],
+      "post": {
+        "status": "ready",
+        "needs_input": null,
+        "question": null
+      }
+    },
+    {
+      "label": "dismiss-wait-17",
+      "feed": {
+        "card": true,
+        "statusText": "Ttestkitchen2···Add photoLog againSave mealEdit captionEdit time9:25 AMDeleteDRANK · 9:25 AMbeerglass of beer14 g alcohol · 1.0 standard drinksTodaybeer0 mlconsumed today0 ml from drinks0 ml from food+Add a photoLeftovers‹›1/2Details ›testk"
+      },
+      "strip": true,
+      "items": [
+        "glass of beer"
+      ],
+      "post": {
+        "status": "ready",
+        "needs_input": null,
+        "question": null
+      }
+    },
+    {
+      "label": "dismiss-wait-18",
+      "feed": {
+        "card": true,
+        "statusText": "Ttestkitchen2···Add photoLog againSave mealEdit captionEdit time9:25 AMDeleteDRANK · 9:25 AMbeerglass of beer14 g alcohol · 1.0 standard drinksTodaybeer0 mlconsumed today0 ml from drinks0 ml from food+Add a photoLeftovers‹›1/2Details ›testk"
+      },
+      "strip": true,
+      "items": [
+        "glass of beer"
+      ],
+      "post": {
+        "status": "ready",
+        "needs_input": null,
+        "question": null
+      }
+    },
+    {
+      "label": "dismiss-wait-19",
+      "feed": {
+        "card": true,
+        "statusText": "Ttestkitchen2···Add photoLog againSave mealEdit captionEdit time9:25 AMDeleteDRANK · 9:25 AMbeerglass of beer14 g alcohol · 1.0 standard drinksTodaybeer0 mlconsumed today0 ml from drinks0 ml from food+Add a photoLeftovers‹›1/2Details ›testk"
+      },
+      "strip": true,
+      "items": [
+        "glass of beer"
+      ],
+      "post": {
+        "status": "ready",
+        "needs_input": null,
+        "question": null
+      }
+    },
+    {
+      "label": "dismiss-wait-20",
+      "feed": {
+        "card": true,
+        "statusText": "Ttestkitchen2···Add photoLog againSave mealEdit captionEdit time9:25 AMDeleteDRANK · 9:25 AMbeerglass of beer14 g alcohol · 1.0 standard drinksTodaybeer0 mlconsumed today0 ml from drinks0 ml from food+Add a photoLeftovers‹›1/2Details ›testk"
+      },
+      "strip": true,
+      "items": [
+        "glass of beer"
+      ],
+      "post": {
+        "status": "ready",
+        "needs_input": null,
+        "question": null
+      }
+    },
+    {
+      "label": "dismiss-wait-21",
+      "feed": {
+        "card": true,
+        "statusText": "Ttestkitchen2···Add photoLog againSave mealEdit captionEdit time9:25 AMDeleteDRANK · 9:25 AMbeerglass of beer14 g alcohol · 1.0 standard drinksTodaybeer0 mlconsumed today0 ml from drinks0 ml from food+Add a photoLeftovers‹›1/2Details ›testk"
+      },
+      "strip": true,
+      "items": [
+        "glass of beer"
+      ],
+      "post": {
+        "status": "ready",
+        "needs_input": null,
+        "question": null
+      }
+    },
+    {
+      "label": "dismiss-wait-22",
+      "feed": {
+        "card": true,
+        "statusText": "Ttestkitchen2···Add photoLog againSave mealEdit captionEdit time9:25 AMDeleteDRANK · 9:25 AMbeerglass of beer14 g alcohol · 1.0 standard drinksTodaybeer0 mlconsumed today0 ml from drinks0 ml from food+Add a photoLeftovers‹›1/2Details ›testk"
+      },
+      "strip": true,
+      "items": [
+        "glass of beer"
+      ],
+      "post": {
+        "status": "ready",
+        "needs_input": null,
+        "question": null
+      }
+    },
+    {
+      "label": "dismiss-wait-23",
+      "feed": {
+        "card": true,
+        "statusText": "Ttestkitchen2···Add photoLog againSave mealEdit captionEdit time9:25 AMDeleteDRANK · 9:25 AMbeerglass of beer14 g alcohol · 1.0 standard drinksTodaybeer0 mlconsumed today0 ml from drinks0 ml from food+Add a photoLeftovers‹›1/2Details ›testk"
+      },
+      "strip": true,
+      "items": [
+        "glass of beer"
+      ],
+      "post": {
+        "status": "ready",
+        "needs_input": null,
+        "question": null
+      }
+    },
+    {
+      "label": "dismiss-wait-24",
+      "feed": {
+        "card": true,
+        "statusText": "Ttestkitchen2···Add photoLog againSave mealEdit captionEdit time9:25 AMDeleteDRANK · 9:25 AMbeerglass of beer14 g alcohol · 1.0 standard drinksTodaybeer0 mlconsumed today0 ml from drinks0 ml from food+Add a photoLeftovers‹›1/2Details ›testk"
+      },
+      "strip": true,
+      "items": [
+        "glass of beer"
+      ],
+      "post": {
+        "status": "ready",
+        "needs_input": null,
+        "question": null
+      }
+    },
+    {
+      "label": "dismiss-wait-25",
+      "feed": {
+        "card": true,
+        "statusText": "Ttestkitchen2···Add photoLog againSave mealEdit captionEdit time9:25 AMDeleteDRANK · 9:25 AMbeerglass of beer14 g alcohol · 1.0 standard drinksTodaybeer0 mlconsumed today0 ml from drinks0 ml from food+Add a photoLeftovers‹›1/2Details ›testk"
+      },
+      "strip": true,
+      "items": [
+        "glass of beer"
+      ],
+      "post": {
+        "status": "ready",
+        "needs_input": null,
+        "question": null
+      }
+    },
+    {
+      "label": "dismiss-wait-26",
+      "feed": {
+        "card": true,
+        "statusText": "Ttestkitchen2···Add photoLog againSave mealEdit captionEdit time9:25 AMDeleteDRANK · 9:25 AMbeerglass of beer14 g alcohol · 1.0 standard drinksTodaybeer0 mlconsumed today0 ml from drinks0 ml from food+Add a photoLeftovers‹›1/2Details ›testk"
+      },
+      "strip": true,
+      "items": [
+        "glass of beer"
+      ],
+      "post": {
+        "status": "ready",
+        "needs_input": null,
+        "question": null
+      }
+    },
+    {
+      "label": "dismiss-wait-27",
+      "feed": {
+        "card": true,
+        "statusText": "Ttestkitchen2···Add photoLog againSave mealEdit captionEdit time9:25 AMDeleteDRANK · 9:25 AMbeerglass of beer14 g alcohol · 1.0 standard drinksTodaybeer0 mlconsumed today0 ml from drinks0 ml from food+Add a photoLeftovers‹›1/2Details ›testk"
+      },
+      "strip": true,
+      "items": [
+        "glass of beer"
+      ],
+      "post": {
+        "status": "ready",
+        "needs_input": null,
+        "question": null
+      }
+    },
+    {
+      "label": "dismiss-wait-28",
+      "feed": {
+        "card": true,
+        "statusText": "Ttestkitchen2···Add photoLog againSave mealEdit captionEdit time9:25 AMDeleteDRANK · 9:25 AMbeerglass of beer14 g alcohol · 1.0 standard drinksTodaybeer0 mlconsumed today0 ml from drinks0 ml from food+Add a photoLeftovers‹›1/2Details ›testk"
+      },
+      "strip": true,
+      "items": [
+        "glass of beer"
+      ],
+      "post": {
+        "status": "ready",
+        "needs_input": null,
+        "question": null
+      }
+    },
+    {
+      "label": "dismiss-wait-29",
+      "feed": {
+        "card": true,
+        "statusText": "Ttestkitchen2···Add photoLog againSave mealEdit captionEdit time9:25 AMDeleteDRANK · 9:25 AMbeerglass of beer14 g alcohol · 1.0 standard drinksTodaybeer0 mlconsumed today0 ml from drinks0 ml from food+Add a photoLeftovers‹›1/2Details ›testk"
+      },
+      "strip": true,
+      "items": [
+        "glass of beer"
+      ],
+      "post": {
+        "status": "ready",
+        "needs_input": null,
+        "question": null
+      }
+    },
+    {
+      "label": "dismiss-wait-30",
+      "feed": {
+        "card": true,
+        "statusText": "Ttestkitchen2···Add photoLog againSave mealEdit captionEdit time9:25 AMDeleteDRANK · 9:25 AMbeerglass of beer14 g alcohol · 1.0 standard drinksTodaybeer0 mlconsumed today0 ml from drinks0 ml from food+Add a photoLeftovers‹›1/2Details ›testk"
+      },
+      "strip": true,
+      "items": [
+        "glass of beer"
+      ],
+      "post": {
+        "status": "ready",
+        "needs_input": null,
+        "question": null
+      }
+    },
+    {
+      "label": "dismiss-wait-31",
+      "feed": {
+        "card": true,
+        "statusText": "Ttestkitchen2···Add photoLog againSave mealEdit captionEdit time9:25 AMDeleteDRANK · 9:25 AMbeerglass of beer14 g alcohol · 1.0 standard drinksTodaybeer0 mlconsumed today0 ml from drinks0 ml from food+Add a photoLeftovers‹›1/2Details ›testk"
+      },
+      "strip": true,
+      "items": [
+        "glass of beer"
+      ],
+      "post": {
+        "status": "ready",
+        "needs_input": null,
+        "question": null
+      }
+    },
+    {
+      "label": "dismiss-wait-32",
+      "feed": {
+        "card": true,
+        "statusText": "Ttestkitchen2···Add photoLog againSave mealEdit captionEdit time9:25 AMDeleteDRANK · 9:25 AMbeerglass of beer14 g alcohol · 1.0 standard drinksTodaybeer0 mlconsumed today0 ml from drinks0 ml from food+Add a photoLeftovers‹›1/2Details ›testk"
+      },
+      "strip": true,
+      "items": [
+        "glass of beer"
+      ],
+      "post": {
+        "status": "ready",
+        "needs_input": null,
+        "question": null
+      }
+    },
+    {
+      "label": "dismiss-wait-33",
+      "feed": {
+        "card": true,
+        "statusText": "Ttestkitchen2···Add photoLog againSave mealEdit captionEdit time9:25 AMDeleteDRANK · 9:25 AMbeerglass of beer14 g alcohol · 1.0 standard drinksTodaybeer0 mlconsumed today0 ml from drinks0 ml from food+Add a photoLeftovers‹›1/2Details ›testk"
+      },
+      "strip": true,
+      "items": [
+        "glass of beer"
+      ],
+      "post": {
+        "status": "ready",
+        "needs_input": null,
+        "question": null
+      }
+    },
+    {
+      "label": "dismiss-wait-34",
+      "feed": {
+        "card": true,
+        "statusText": "Ttestkitchen2···Add photoLog againSave mealEdit captionEdit time9:25 AMDeleteDRANK · 9:25 AMbeerglass of beer14 g alcohol · 1.0 standard drinksTodaybeer0 mlconsumed today0 ml from drinks0 ml from food+Add a photoLeftovers‹›1/2Details ›testk"
+      },
+      "strip": true,
+      "items": [
+        "glass of beer"
+      ],
+      "post": {
+        "status": "ready",
+        "needs_input": null,
+        "question": null
+      }
+    },
+    {
+      "label": "dismiss-wait-35",
+      "feed": {
+        "card": true,
+        "statusText": "Ttestkitchen2···Add photoLog againSave mealEdit captionEdit time9:25 AMDeleteDRANK · 9:25 AMbeerglass of beer14 g alcohol · 1.0 standard drinksTodaybeer0 mlconsumed today0 ml from drinks0 ml from food+Add a photoLeftovers‹›1/2Details ›testk"
+      },
+      "strip": true,
+      "items": [
+        "glass of beer"
+      ],
+      "post": {
+        "status": "ready",
+        "needs_input": null,
+        "question": null
+      }
+    },
+    {
+      "label": "dismiss-wait-36",
+      "feed": {
+        "card": true,
+        "statusText": "Ttestkitchen2···Add photoLog againSave mealEdit captionEdit time9:25 AMDeleteDRANK · 9:25 AMbeerglass of beer14 g alcohol · 1.0 standard drinksTodaybeer0 mlconsumed today0 ml from drinks0 ml from food+Add a photoLeftovers‹›1/2Details ›testk"
+      },
+      "strip": true,
+      "items": [
+        "glass of beer"
+      ],
+      "post": {
+        "status": "ready",
+        "needs_input": null,
+        "question": null
+      }
+    },
+    {
+      "label": "dismiss-wait-37",
+      "feed": {
+        "card": true,
+        "statusText": "Ttestkitchen2···Add photoLog againSave mealEdit captionEdit time9:25 AMDeleteDRANK · 9:25 AMbeerglass of beer14 g alcohol · 1.0 standard drinksTodaybeer0 mlconsumed today0 ml from drinks0 ml from food+Add a photoLeftovers‹›1/2Details ›testk"
+      },
+      "strip": true,
+      "items": [
+        "glass of beer"
+      ],
+      "post": {
+        "status": "ready",
+        "needs_input": null,
+        "question": null
+      }
+    },
+    {
+      "label": "dismiss-wait-38",
+      "feed": {
+        "card": true,
+        "statusText": "Ttestkitchen2···Add photoLog againSave mealEdit captionEdit time9:25 AMDeleteDRANK · 9:25 AMbeerglass of beer14 g alcohol · 1.0 standard drinksTodaybeer0 mlconsumed today0 ml from drinks0 ml from food+Add a photoLeftovers‹›1/2Details ›testk"
+      },
+      "strip": true,
+      "items": [
+        "glass of beer"
+      ],
+      "post": {
+        "status": "ready",
+        "needs_input": null,
+        "question": null
+      }
+    },
+    {
+      "label": "dismiss-wait-39",
+      "feed": {
+        "card": true,
+        "statusText": "Ttestkitchen2···Add photoLog againSave mealEdit captionEdit time9:25 AMDeleteDRANK · 9:25 AMbeerglass of beer14 g alcohol · 1.0 standard drinksTodaybeer0 mlconsumed today0 ml from drinks0 ml from food+Add a photoLeftovers‹›1/2Details ›testk"
+      },
+      "strip": true,
+      "items": [
+        "glass of beer"
+      ],
+      "post": {
+        "status": "ready",
+        "needs_input": null,
+        "question": null
+      }
+    },
+    {
+      "label": "after-dismiss",
+      "feed": {
+        "card": true,
+        "statusText": "Ttestkitchen2···Add photoLog againSave mealEdit captionEdit time9:25 AMDeleteDRANK · 9:25 AMbeerglass of beer14 g alcohol · 1.0 standard drinksTodaybeer0 mlconsumed today0 ml from drinks0 ml from food+Add a photoLeftovers‹›1/2Details ›testk"
+      },
+      "strip": true,
+      "items": [
+        "glass of beer"
+      ],
+      "post": {
+        "status": "ready",
+        "needs_input": null,
+        "question": null
+      }
+    }
+  ],
+  "pass": true
+}
