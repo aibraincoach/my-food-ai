@@ -10,7 +10,7 @@ Images
 Share
 10:46 PM
 
-code review 
+code review
  aibraincoach/my-food-ai#548
 
 Finished
@@ -50,7 +50,7 @@ The existing per-100 g/ml rules remain intact.
 
 The downstream labelNutrition() function still rejects readings without a serving, so this change does not bypass the existing conversion guard.
 
-These conclusions come from the changed code and its supporting implementation in 
+These conclusions come from the changed code and its supporting implementation in
  aibraincoach/my-food-ai#548.
 
 Validation before merge

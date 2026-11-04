@@ -10,7 +10,7 @@ Images
 Share
 10:45 PM
 
-code review 
+code review
  aibraincoach/my-food-ai#547
 
 Finished
@@ -51,7 +51,7 @@ The ledger protects pre-existing equal values. Only newly recorded rows feed the
 
 Client access is restricted. The migration enables RLS and revokes ledger access from public, anon, and authenticated.
 
-These observations come from the 
+These observations come from the
  #547 — PR’s changed files (diff).
 
 Validation limits

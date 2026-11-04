@@ -11,7 +11,7 @@ Images
 Share
 10:49 PM
 
-code review 
+code review
  aibraincoach/my-food-ai#556
 
 Finished
@@ -34,7 +34,7 @@ Removing tap-to-expand is internally consistent. The expansion state and its cal
 
 The change is limited to the detail component; it does not modify feed photo rendering.
 
-Source: 
+Source:
  #556 — changed component and diff (diff).
 
 Remaining validation
@@ -52,7 +52,7 @@ These are validation gaps, not confirmed bugs. I did not run the application or 
 
 Check status
 
-The returned GitHub check-run list contains one successful check, Vercel Preview Comments; it does not independently establish that TypeScript, lint, or application tests passed. The PR description reports successful TypeScript, focused ESLint, diff checking, and a production build, while explicitly leaving phone acceptance open. Source: 
+The returned GitHub check-run list contains one successful check, Vercel Preview Comments; it does not independently establish that TypeScript, lint, or application tests passed. The PR description reports successful TypeScript, focused ESLint, diff checking, and a production build, while explicitly leaving phone acceptance open. Source:
  #556 — PR description and checks.
 
 No review or comments were posted to GitHub.

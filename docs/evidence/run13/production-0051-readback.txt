@@ -9,11 +9,10 @@ CREATE FUNCTION
 REVOKE
 GRANT
 NOTIFY
-               proname               | anon_can_execute | user_can_execute | service_can_execute 
+               proname               | anon_can_execute | user_can_execute | service_can_execute
 -------------------------------------+------------------+------------------+---------------------
  persist_approximated_analysis       | f                | f                | t
  refresh_owned_approximation_summary | f                | f                | t
 (2 rows)
 
 COMMIT
-

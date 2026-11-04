@@ -11,7 +11,7 @@ UPDATE 6
 CREATE FUNCTION
 REVOKE
 CREATE TRIGGER
-            name            |      sugar_g       
+            name            |      sugar_g
 ----------------------------+--------------------
  rolled chicken ham slices  | 0.8800000000000001
  scrambled egg with ketchup |               10.9
@@ -21,25 +21,24 @@ CREATE TRIGGER
  pineapple chunks           |               8.55
 (6 rows)
 
- changed_sugar_rows 
+ changed_sugar_rows
 --------------------
                   6
 (1 row)
 
- changed_calorie_rows 
+ changed_calorie_rows
 ----------------------
                     0
 (1 row)
 
- ledger_rows 
+ ledger_rows
 -------------
            6
 (1 row)
 
-                tgname                
+                tgname
 --------------------------------------
  invalidate_sugar_total_backfill_0050
 (1 row)
 
 COMMIT
-
