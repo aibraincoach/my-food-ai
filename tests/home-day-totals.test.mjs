@@ -5,7 +5,6 @@ import { readFileSync } from 'node:fs';
 import vm from 'node:vm';
 import ts from 'typescript';
 import { createClient } from '@supabase/supabase-js';
-import { todayFromPage } from '../src/lib/posts/today-view.ts';
 import { getFeed } from '../src/lib/posts/feed.ts';
 
 const owner='00000000-0000-4000-8000-000000000001';
@@ -22,11 +21,11 @@ test('parallel Home streams share one totals read and pass that snapshot into Fe
     if(name==='@/lib/posts/feed-photo-url')return{feedPhotoSrcSet:()=>undefined};
     if(name==='react-dom')return{preload(){}};
     if(name==='next/server')return{connection:async()=>{}};
-    if(name==='next/headers')return{cookies:async()=>({get:()=>({value:'UTC'})})};
+    if(name==='next/headers')return{cookies:async()=>({get:()=>({value:'UTC'})}),headers:async()=>({get:()=>null})};
+    if(name==='@/lib/posts/home-today')return{homeToday:async()=>({date:'2026-11-03',posts:[],totals:{}})};
     if(name==='@/lib/auth/verified-user')return{verifiedUserId:async()=>owner};
     if(name==='@/lib/supabase/server')return{createClient:async()=>({auth:{getUser:async()=>{authCalls++;throw Error('second Auth read');}}})};
     if(name==='@/lib/posts/days')return{validZone:()=> 'UTC',dateInZone:()=> '2026-11-03',shiftDay:(_,n)=>String(n),getEarliestPostDate:async()=>null,getLoggedDates:async()=>[],getDayTotals:async()=>{totalCalls++;await new Promise(resolve=>setImmediate(resolve));return days;}};
-    if(name==='@/lib/posts/today-view')return{todayFromPage};
     if(name==='@/lib/nutrition/totals')return{sumNutrition:()=>({})};
     if(name==='@/lib/posts/feed')return{getFeed:async()=>({posts:[],days:[],nextCursor:null})};
     if(name==='next/link'||name.startsWith('@/components/'))return{default:name};
@@ -37,6 +36,31 @@ test('parallel Home streams share one totals read and pass that snapshot into Fe
   assert.equal(authCalls,0,'verified middleware identity avoids a second server Auth call');
   assert.deepEqual(rings.props.totals,days);
   assert.deepEqual(Array.from(feed.props.children.props.initialPage.days),days);
+});
+
+test('Home feed and Today each perform one read per render',async()=>{
+  let feedCalls=0,todayCalls=0;
+  const source=readFileSync(new URL('../src/app/(tabs)/page.tsx',import.meta.url),'utf8')+'\nexport {HomeFeed,HomeToday};';
+  const code=ts.transpileModule(source,{compilerOptions:{module:ts.ModuleKind.CommonJS,jsx:ts.JsxEmit.ReactJSX,target:ts.ScriptTarget.ES2022}}).outputText;
+  const exports={};
+  vm.runInNewContext(code,{exports,Date,Promise,Array,Boolean,AbortSignal,setTimeout,clearTimeout,console,require(name){
+    if(name==='react')return {cache(fn){let promise;return()=>promise??=fn();},Suspense:()=>null};
+    if(name==='react/jsx-runtime')return{jsx:(component,props)=>({component,props}),jsxs:(component,props)=>({component,props})};
+    if(name==='@/lib/posts/feed-photo-url')return{feedPhotoSrcSet:()=>undefined};
+    if(name==='react-dom')return{preload(){}};
+    if(name==='next/server')return{connection:async()=>{}};
+    if(name==='next/headers')return{cookies:async()=>({get:()=>({value:'UTC'})}),headers:async()=>({get:()=>null})};
+    if(name==='@/lib/auth/verified-user')return{verifiedUserId:async()=>owner};
+    if(name==='@/lib/supabase/server')return{createClient:async()=>({auth:{getUser:async()=>({data:{user:{id:owner}}})}})};
+    if(name==='@/lib/posts/days')return{validZone:()=> 'UTC',dateInZone:()=> '2026-11-03',shiftDay:(_,n)=>String(n),getDayTotals:async()=>[]};
+    if(name==='@/lib/posts/home-today')return{homeToday:async()=>{todayCalls++;return {date:'2026-11-03',posts:[],totals:{}};}};
+    if(name==='@/lib/posts/feed')return{getFeed:async()=>{feedCalls++;return {posts:[],days:[],nextCursor:null};}};
+    if(name==='next/link'||name.startsWith('@/components/'))return{default:name};
+    throw Error(name);
+  }});
+  await Promise.all([exports.HomeFeed(),exports.HomeToday()]);
+  assert.equal(feedCalls,1);
+  assert.equal(todayCalls,1);
 });
 
 test('feed refresh skips known days without removing meal or hydration reads; missing dates still load',async()=>{
@@ -66,7 +90,8 @@ test('feed API validates the known-date boundary and retains its independent Aut
   const exports={};
   vm.runInNewContext(code,{exports,Date,Promise,URL,Set,Number,AbortSignal,setTimeout,clearTimeout,console,require(name){
     if(name==='next/server')return{NextResponse:{json:(body,init)=>Response.json(body,init)}};
-    if(name==='next/headers')return{cookies:async()=>({get:()=>({value:'UTC'})})};
+    if(name==='next/headers')return{cookies:async()=>({get:()=>({value:'UTC'})}),headers:async()=>({get:()=>null})};
+    if(name==='@/lib/posts/home-today')return{homeToday:async()=>({date:'2026-11-03',posts:[],totals:{}})};
     if(name==='@/lib/supabase/server')return{createClient:async()=>({auth:{getUser:async()=>{authCalls++;return{data:{user:{id:owner}},error:null};}}})};
     if(name==='@/lib/posts/days')return{validZone:()=> 'UTC',validDate:day=>/^2026-11-0[1-3]$/.test(day)};
     if(name==='@/lib/posts/feed')return{FEED_PAGE_SIZE:20,getFeed:async(...args)=>{readCalls++;options=args[5];return{posts:[],days:[],nextCursor:null};}};

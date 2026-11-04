@@ -24,6 +24,8 @@ import {useCachedFeed} from "@/components/useCachedFeed";
 
 type State = { kind: "loading" } | { kind: "error" } | { kind: "ready"; posts: FeedPost[]; days: FeedDayTotal[] };
 const DISCOVERY_INTERVAL_MS = 2000;
+const DISCOVERY_BACKOFF_START_MS = 5000;
+const DISCOVERY_BACKOFF_MAX_MS = 60000;
 const RETRY_INTERVAL_MS = 1000;
 
 const noServerSeed = () => false;
@@ -104,6 +106,10 @@ export default function Feed({initialPage, initialUserId, initialZone = "UTC", f
     let generation = 0;
     let hasFreshPage = false;
     let cacheDirty = false;
+    let trustServerSeed = Boolean(initialPage && initialUserId && initialZone === zone);
+    let realtimeSubscribed = false;
+    let discoverBackoffMs = DISCOVERY_BACKOFF_START_MS;
+    let discoverPoll: ReturnType<typeof setTimeout> | undefined;
     const cacheInvalidated = new Set<string>();
     const unavailable = new Set<string>();
     const answered = new Set<string>();
@@ -384,15 +390,38 @@ export default function Feed({initialPage, initialUserId, initialZone = "UTC", f
         // A transient discovery failure is retried on the next visible tick.
       } finally { discovering = false; }
     };
+    const scheduleDiscoverPoll = (immediate = false) => {
+      if (!live || realtimeSubscribed || document.hidden) return;
+      clearTimeout(discoverPoll);
+      const delay = immediate ? 0 : trustServerSeed ? DISCOVERY_INTERVAL_MS : discoverBackoffMs;
+      if (trustServerSeed) trustServerSeed = false;
+      discoverPoll = setTimeout(() => {
+        void discover().finally(() => {
+          if (live && !realtimeSubscribed && !document.hidden) {
+            discoverBackoffMs = Math.min(discoverBackoffMs * 2, DISCOVERY_BACKOFF_MAX_MS);
+            scheduleDiscoverPoll();
+          }
+        });
+      }, delay);
+    };
     void load();
-    const timer = setInterval(() => { void discover(); }, DISCOVERY_INTERVAL_MS);
-    const focus = () => { void discover(true); };
+    scheduleDiscoverPoll();
+    const focus = () => { if (!document.hidden) void discover(true); };
     window.addEventListener("focus", focus);
     document.addEventListener("visibilitychange", focus);
     const channel = supabase.channel("feed-inserts").on("postgres_changes",
       { event: "INSERT", schema: "public", table: "posts" },
       (payload) => { const id = (payload.new as { id?: string }).id; if (id) requestCard(id); }
-    ).subscribe();
+    ).subscribe((status) => {
+      if (status === "SUBSCRIBED") {
+        realtimeSubscribed = true;
+        clearTimeout(discoverPoll);
+      } else if (status === "CHANNEL_ERROR" || status === "TIMED_OUT" || status === "CLOSED") {
+        realtimeSubscribed = false;
+        discoverBackoffMs = DISCOVERY_BACKOFF_START_MS;
+        scheduleDiscoverPoll();
+      }
+    });
 
     return () => {
       live = false;
@@ -404,7 +433,7 @@ export default function Feed({initialPage, initialUserId, initialZone = "UTC", f
       window.removeEventListener("post-restore", restore);
       window.removeEventListener("post-ready", readyEvent);
       window.removeEventListener('upload-started',uploading);
-      clearInterval(timer);
+      clearTimeout(discoverPoll);
       for (const retry of timers) clearTimeout(retry);
       window.removeEventListener("post-created", created);
       window.removeEventListener("upload-finished",finished);

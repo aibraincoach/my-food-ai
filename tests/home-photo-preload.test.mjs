@@ -44,17 +44,18 @@ test('Home HTML preload and first image expose identical density candidates with
   if(name==='react/jsx-runtime')return{jsx:(type,props)=>({type,props}),jsxs:(type,props)=>({type,props})};
   if(name==='@/lib/posts/feed-photo-url')return{feedPhotoSrcSet};
   if(name==='next/server')return{connection:async()=>{}};
-  if(name==='next/headers')return{cookies:async()=>({get:()=>({value:'UTC'})})};
+  if(name==='next/headers')return{cookies:async()=>({get:()=>({value:'UTC'})}),headers:async()=>({get:()=>null})};
   if(name==='@/lib/auth/verified-user')return{verifiedUserId:async()=>owner};
   if(name==='@/lib/supabase/server')return{createClient:async()=>({})};
   if(name==='@/lib/posts/days')return{validZone:()=> 'UTC',dateInZone:()=> '2026-11-03',shiftDay:(_,step)=>String(step)};
-  if(name==='@/lib/posts/feed')return{getFirstFeedPhoto:async()=>({id:post,photoUrl:url,caption:'Rice',eaten_at:'2026-11-03T10:00:00Z'}),getFeed:async(_db,_owner,_cursor,_zone,_size,options)=>{options.onFirstPhoto(url);return{posts:[],days:[],nextCursor:null};}};
+  if(name==='@/lib/posts/feed')return{getFeed:async(_db,_owner,_cursor,_zone,_size,options)=>{options.onFirstPhoto(url);return{posts:[{id:post,caption:'Rice',eaten_at:'2026-11-03T10:00:00Z',photoUrl:url}],days:[],nextCursor:null};}};
+  if(name==='@/lib/posts/home-today')return{homeToday:async()=>({date:'2026-11-03',posts:[],totals:{}})};
   if(name==='next/link'||name.startsWith('@/components/'))return{default:name};
   if(name==='@/lib/posts/today-view')return{};
   if(name==='@/lib/nutrition/totals')return{sumNutrition};
   throw Error(name);
  }});
- const tree=await exports.HomeFirstPhoto();await exports.homeSeed();
+ const tree=await exports.HomeFirstPhoto();
  function findImage(node){if(Array.isArray(node))return node.map(findImage).find(Boolean);if(node?.type==='img')return node.props;return node?.props?findImage(node.props.children):undefined;}
  const image=findImage(tree);assert.ok(image);
  assert.equal(image.src,url);assert.equal(image.srcSet,feedPhotoSrcSet(url));

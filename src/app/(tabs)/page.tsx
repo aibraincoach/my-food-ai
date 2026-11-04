@@ -1,8 +1,6 @@
 /* eslint-disable @next/next/no-img-element -- Private signed photos bypass paid optimization. */
 import {feedPhotoSrcSet} from '@/lib/posts/feed-photo-url';
-import { sumNutrition } from "@/lib/nutrition/totals";
 import type { TodayView } from "@/lib/posts/today-view";
-import { todayFromPage } from "@/lib/posts/today-view";
 import { verifiedUserId } from "@/lib/auth/verified-user";
 import CleanFreshMarker from "@/components/CleanFreshMarker";
 import DesktopToday from '@/components/DesktopToday';
@@ -15,14 +13,15 @@ import { connection } from "next/server";
 import { cache, Suspense } from "react";
 import {preload} from "react-dom";
 import Link from "next/link";
-import {getFeed, getFirstFeedPhoto} from "@/lib/posts/feed";
+import {getFeed} from "@/lib/posts/feed";
 import NeedsInputStrip from "@/components/NeedsInputStrip";
 import Feed, {CachedFeedFallback} from "@/components/Feed";
 import DayHeader from "@/components/DayHeader";
 import DayRings from "@/components/DayRings";
-import { cookies } from "next/headers";
+import { cookies, headers } from "next/headers";
 import { createClient } from "@/lib/supabase/server";
-import { dateInZone, getDays, getDayTotals, getEarliestPostDate, getLoggedDates, shiftDay, validZone } from "@/lib/posts/days";
+import { dateInZone, getDayTotals, getEarliestPostDate, getLoggedDates, shiftDay, validZone } from "@/lib/posts/days";
+import { homeToday } from "@/lib/posts/home-today";
 
 // React's server cache is request-scoped: all Home streams share one Auth
 // check and one cancellable owner client, never another visitor's session.
@@ -34,6 +33,13 @@ const homeReader = cache(async () => {
   return {db,user};
 });
 
+const homeZone = cache(async () => {
+  const cookie = (await cookies()).get("time-zone")?.value;
+  if (cookie) return { zone: validZone(cookie), known: true };
+  const edge = (await headers()).get("x-vercel-ip-timezone");
+  return { zone: validZone(edge), known: Boolean(edge) };
+});
+
 async function homeDeadline<T>(read: Promise<T>): Promise<T> {
   let timer: ReturnType<typeof setTimeout> | undefined;
   try { return await Promise.race([read, new Promise<T>((_, reject) => {timer = setTimeout(() => reject(new Error('Home read timed out.')), 8000);})]); }
@@ -43,7 +49,7 @@ async function homeDeadline<T>(read: Promise<T>): Promise<T> {
 // Both streams await the same request-scoped totals promise. Failed optional
 // totals remain unavailable and are not cached across visitors or navigations.
 const homeDayTotals = cache(async () => {
-  const zone = validZone((await cookies()).get("time-zone")?.value);
+  const { zone } = await homeZone();
   const today = dateInZone(new Date(), zone);
   const {db, user} = await homeReader();
   if (!user) return [];
@@ -53,10 +59,16 @@ const homeDayTotals = cache(async () => {
   } finally { console.info(`feed read day-totals ${Date.now() - started}`); }
 });
 
+const homeTodayRead = cache(async () => {
+  const { db, user } = await homeReader();
+  if (!user) return null;
+  const { zone } = await homeZone();
+  return homeToday(db, user.id, zone);
+});
+
 async function HomeDays() {
   await connection();
-  const cookieZone = (await cookies()).get("time-zone")?.value;
-  const zone = validZone(cookieZone);
+  const { zone, known } = await homeZone();
   const today = dateInZone(new Date(), zone);
   let days: {date: string}[] = [];
   let totals: import("@/lib/posts/days").FeedDayTotal[] = [];
@@ -73,22 +85,30 @@ async function HomeDays() {
       return [logged,readTotals,user?.id??null,first] as [{date:string}[],import('@/lib/posts/days').FeedDayTotal[],string|null,string|null];
     })());
   } catch { /* Optional day reads must not take down Home. */ }
-  return <DayRings ownerId={ownerId} days={days} totals={totals} today={today} zone={zone} zoneKnown={Boolean(cookieZone)} earliest={earliest} />;
+  return <DayRings ownerId={ownerId} days={days} totals={totals} today={today} zone={zone} zoneKnown={known} earliest={earliest} />;
 }
 
-// A separately streamed owner snapshot paints before the full nutrition
-// read; a later page reconciles newer posts without mixing their nutrition.
+// Share one first-page read between the feed, day summaries and Today.
+const homeSeed=cache(async()=>{
+ const {db,user}=await homeReader();if(!user)return undefined;
+ const {zone}=await homeZone();
+ const page=await getFeed(db,user.id,null,zone,6,{knownDays:Array.from({length:5},(_,i)=>shiftDay(dateInZone(new Date(),zone),-i)),onFirstPhoto:url=>preload(url,{as:'image',fetchPriority:'high',crossOrigin:'anonymous',imageSrcSet:feedPhotoSrcSet(url)})});
+ return {page,userId:user.id,zone};
+});
+
 async function HomeFirstPhoto() {
   await connection();
-  let first: Awaited<ReturnType<typeof getFirstFeedPhoto>> = null;
+  let first: { id: string; caption: string; eaten_at: string; photoUrl: string | null } | null = null;
+  let zone = "UTC";
   try {
-    first = await homeDeadline((async () => {
-      const {db,user}=await homeReader();
-      return user?getFirstFeedPhoto(db,user.id):null;
-    })());
+    const seed = await homeDeadline(homeSeed());
+    if (seed) {
+      zone = seed.zone;
+      const post = seed.page.posts.find((row) => row.photoUrl) ?? seed.page.posts[0];
+      if (post) first = { id: post.id, caption: post.caption, eaten_at: post.eaten_at, photoUrl: post.photoUrl };
+    }
   } catch { /* The normal feed boundary and cache remain available. */ }
   if(!first)return null;
-  const zone=validZone((await cookies()).get('time-zone')?.value);
   if(first.photoUrl)preload(first.photoUrl,{as:'image',fetchPriority:'high',crossOrigin:'anonymous',imageSrcSet:feedPhotoSrcSet(first.photoUrl)});
   return <div data-fast-feed-seed className="relative pb-card-gap">
     <DayHeader day={dateInZone(first.eaten_at,zone)} zone={zone} empty={false}/><div className="pt-sheet-top">
@@ -100,30 +120,20 @@ async function HomeFirstPhoto() {
   </div>;
 }
 
-// Share one first-page read between the feed, day summaries and Today.
-const homeSeed=cache(async()=>{
- const {db,user}=await homeReader();if(!user)return undefined;
- const zone=validZone((await cookies()).get('time-zone')?.value);
- const page=await getFeed(db,user.id,null,zone,6,{knownDays:Array.from({length:5},(_,i)=>shiftDay(dateInZone(new Date(),zone),-i)),onFirstPhoto:url=>preload(url,{as:'image',fetchPriority:'high',crossOrigin:'anonymous',imageSrcSet:feedPhotoSrcSet(url)})});
- return {page,userId:user.id,zone};
-});
 async function HomeFeed(){
  await connection();let initialPage:Awaited<ReturnType<typeof getFeed>>|undefined;let initialUserId:string|undefined;let initialZone='UTC';
  try{const [seed,days]=await homeDeadline(Promise.all([homeSeed(),homeDayTotals().catch(()=>[])]));if(seed){initialPage={...seed.page,days:[...days,...seed.page.days]};initialUserId=seed.userId;initialZone=seed.zone;}}catch{/* The client can retry while the shell stays visible. */}
  return <div data-server-feed-ready={initialPage?true:undefined}><Feed key={initialUserId??'anonymous'} initialPage={initialPage} initialUserId={initialUserId} initialZone={initialZone}/></div>;
 }
 async function HomeToday(){
- await connection();const cookieZone=(await cookies()).get('time-zone')?.value;let initial:TodayView|undefined;
- try{
-  const seed=await homeDeadline(homeSeed());
-  if(seed&&cookieZone){
-   // An incomplete first page cannot prove today's totals. Read today on the
-   // server so its numbers stream with the page, before client hydration.
-   initial=todayFromPage(seed.page,seed.zone)??undefined;
-   if(!initial){const {db,user}=await homeReader();const today=dateInZone(new Date(),seed.zone);const days=user?await homeDeadline(getDays(db,user.id,seed.zone,today,today)):[];initial=days[0]??{date:today,posts:[],totals:sumNutrition([])};}
-  }
- }catch{/* Preserve the client fallback. */}
- return <DesktopToday zone={cookieZone} initial={initial}/>;
+ await connection();
+ const { zone, known } = await homeZone();
+ let initial: TodayView | undefined;
+ try {
+  const today = await homeDeadline(homeTodayRead());
+  if (today) initial = today;
+ } catch { /* Preserve the client fallback. */ }
+ return <DesktopToday zone={known ? zone : undefined} initial={initial} placeholder={!initial} />;
 }
 
 export default async function Home({searchParams}:{searchParams:Promise<{post?:string}>}) {
