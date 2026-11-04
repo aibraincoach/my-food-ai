@@ -1,0 +1,60 @@
+{
+  "observedAtUtc": "2026-11-04T09:38:30Z",
+  "scope": "Only Fleet14 laneC/D/E owned apps and state-backed disposable stacks; C confirmed local completion before shutdown. No global cleanup script used.",
+  "appsStopped": [
+    {
+      "lane": "C",
+      "pid": 3286446,
+      "port": 60660
+    },
+    {
+      "lane": "D",
+      "pid": 3242935,
+      "port": 60860
+    },
+    {
+      "lane": "E",
+      "pid": 3260760,
+      "port": 60661
+    }
+  ],
+  "stacks": [
+    {
+      "lane": "C",
+      "directory": "uploads/test-stack-c",
+      "envFile": ".env.test.c",
+      "ports": [
+        60665,
+        60666,
+        60667,
+        60668,
+        55479
+      ]
+    },
+    {
+      "lane": "D",
+      "directory": "uploads/test-stack-run14-d",
+      "envFile": ".env.test.run14-d.local",
+      "ports": [
+        60865,
+        60866,
+        60867,
+        60868,
+        55489
+      ]
+    }
+  ],
+  "verification": "ss showed no listeners on listed ports after state-backed down commands. E shared C backend; no extra stack existed.",
+  "ownFirefoxStopped": {
+    "profile": "/tmp/run14-h-final-proof-profile",
+    "pid": 3318933
+  },
+  "preserved": [
+    "F live resource collector",
+    "579 work and services",
+    "Chromium18800 with existing tabs",
+    "Firefox9223/PPLX",
+    "All worktrees",
+    "Vercel protection bypass secret/access"
+  ]
+}
