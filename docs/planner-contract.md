@@ -1,5 +1,7 @@
 # Planner contract
 
+> Owner override, November4 at16:15 WIB: the Vercel protection-bypass secret stays in place and is never revoked or listed for revocation. Preserve reviewer/coder access. This supersedes any older cleanup instruction; no revocation was performed. Before filing a reviewer/planner suggestion, the PM checks what access or functionality it would remove.
+
 > Current owner overrides (2026-10-29): a merge prompt may batch ready PRs, each with its exact SHA and checks; plans are not standing merge orders. A changed head needs its own applicable receipt. The Run3 stacked branches were an explicit plan exception to the generic no-stacking rule, but their bases did not automatically retarget after #200 merged. Check actual bases. Codex is explicitly authorized as an additional reviewer on #205/#206 and again after their fixes; the generic non-OpenAI restriction below does not negate that narrow instruction.
 
 Check before delivering a plan. Revised 2026-10-02.
@@ -84,3 +86,10 @@ Every PR branches from main. Nothing is stacked. Where an item depends on anothe
 ## Plan evaluation: retired
 
 RT, 2026-09-29: no per-PR "Plan evaluation" comment is written or required. After a run, when RT asks, the planner evaluates the result against the plan: good, bad, ugly, what is not being seen, and what needs remediation.
+
+## Nothing without a use
+
+1. Every step in a plan names, in one sentence, the decision it feeds or the thing it delivers. A step that feeds no decision before the deadline or the owner's ruling is deleted.
+2. No observation windows, soak periods, timed sampling, collectors or waits. A measurement is one reading, taken when the work is done. Nothing in a plan runs for hours so that numbers can be collected.
+3. Nothing waits on a clock, a collector or another fleet's tail. Work is done when its done condition is met, and the coder reports it done.
+4. A measurement is allowed only when its number changes what ships or what the owner rules. Say which.

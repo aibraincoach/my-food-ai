@@ -1,0 +1,12 @@
+The initial table exercised36 controls with pressed feedback and visible mutation within100ms; empty-draft Post was correctly disabled. Its seven missing states were then exercised separately. Search used the existing owned Black item. The other six used actual production React handlers with explicitly scoped local render or HTTP failure fixtures. Each extra control observed pressed feedback and first visible mutation0ms in unthrottled Firefox. These observations do not establish CPU4× or CLS; layout-shift was unsupported here.
+
+- More: actual PostCaption renders a long caption from its existing local event; touch expands it. Hit area37.18×19.6px fails the44px target requirement.
+- Caption Save: two taps yield one intercepted PATCH500; error appears and editable sheet returns. No caption is persisted.
+- Populated Text Post: two taps close the composer and create one durable local operation. All unsafe HTTP is rejected before network.
+- Try again: actual failed local caption queue button is44px high; two taps retain the same operation and retry the blocked request.
+- Saved meals Log now offline: scripted saved GET, actual copy handler; two taps create one local copy operation. Hit area79.12×34px fails the44px requirement.
+- Drink tile: actual Water tile, two taps before settling; one durable local drink operation is observed while the sheet closes. This measures the actual close/queue outcome, not two persisted drinks.
+
+The queue receipt records three created operation IDs and deletes only those IDs; final durable queue is empty. No server post, saved meal, intake, draft, storage object, or job is created by these interception fixtures. Physical touch feedback is measured; blocked requests are not live endpoint correctness evidence. Model setting was independently read back as meta; baseline feedback restored to up and bookmark false.
+
+Full-table geometry audit adds seven existing sub44 direct interactive rectangles: bottom-bar +34×34; Search input294×21; Capture Photo/Text/Barcode tabs36px high; caption textarea358×42; Drink description260×21. Together with More and saved Log now, nine controls have measured target-size gaps. Original pass verdicts cover feedback latency, not geometry. Filed #580 (https://github.com/aibraincoach/my-food-ai/issues/580). Fields sit inside styled div wrappers without a click-to-focus handler; effective pointer hit regions need verification during remediation.

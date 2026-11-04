@@ -1,5 +1,7 @@
 # Media-loading measurement
 
+Current cutoff 2026-11-04T13:49:35.672Z: deployed #581 preserves the legacyv1 endpoint and adds sharper originals/v2; its camera ideals are2560×1920. Pending #590 adds1040/1560 density derivatives, removes the HTTP preload and scopes fallback state to image identity. It is unmerged. The local DPR1/2/3 measurements in [the Fleet15 report](run15-report.md) are not production byte or egress results. Historical reduction tables below retain their original routes and revisions.
+
 Read-only investigation on 2026-10-31 used the first configured test account's licensed evaluation image. No post, upload, job retry or analysis was created. Credentials and signed URLs stayed in memory.
 
 The existing feed requests the `.feed.jpg` derivative rather than the original. For the sampled derivative, two independently signed URLs 1.1 seconds apart differed even though both returned the same 152,193 bytes with HTTP 200. Signing took 151 ms and 54 ms; the subsequent image requests took 331 ms and 94 ms from this server. The GET responses did not include a Cache-Control header. These are server observations, not phone or mobile-data timings.

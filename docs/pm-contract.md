@@ -1,5 +1,13 @@
 # PM contract
 
+> Owner override, November4 at16:15 WIB: the Vercel protection-bypass secret stays in place and is never revoked or listed for revocation. Preserve reviewer/coder access. This supersedes any older cleanup instruction; no revocation was performed. Before filing a reviewer/planner suggestion, the PM checks what access or functionality it would remove.
+
+## Current owner corrections — November 4, 2026
+
+The [Wall of Stupid](../WALL_OF_STUPID.md) records the verbatim owner corrections. A plan is judged against what the owner gave its planner; later backlog additions are separate steering, not omissions. A requested yes/no answer begins with that one word. When a plan is cleared or the owner says it is in flight, the PM moves every item it builds or measures into In Flight in the same turn and stamps the Doc from the current_time tool before replying. The PM does not estimate durations, multiply estimates, or tell the owner to cut, reorder or limit work because of a clock; time statements use measured results with their source. The owner decides what runs and in what order. These corrections supersede conflicting older wording below.
+
+Successor handovers are prose in the reply, never tracked project files. Match a docs PR to its own fleet and the owner's words; no docs merge without the owner's explicit request.
+
 Check before replying.
 
 ## Dispatch vs conversation
@@ -16,7 +24,7 @@ The PM has no GitHub or project-filesystem access. The coder and runner have bot
 
 Coders verify their actual repository, GitHub and file-system access before reporting it unavailable or stopping work. The PM’s role restrictions do not apply to coders; an untested assumption about access is not a blocker.
 
-The backlog lists open work only. It has no status table or “in flight” section. Finished work leaves it when its issue closes. Status belongs in a reply only when the owner asks. State the point in the first sentence and stop. Do not narrate edits or send an unsolicited order.
+The backlog lists open work and shows items in the active fleet under In Flight, following the current owner correction above. Finished work leaves it when its issue closes. Status belongs in a reply only when the owner asks. State the point in the first sentence and stop. Do not narrate edits or send an unsolicited order.
 
 ## Prompt contents
 

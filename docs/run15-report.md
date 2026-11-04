@@ -1,6 +1,6 @@
 # Fleet 15: implementation and verification, deployment pending
 
-Observed November 4, 2026. All nine code PRs are open. No Fleet 15 PR has merged, no production migration or role update has run, and no production-after acceptance or issue closure is claimed. The supplied plan is preserved byte-for-byte in [plan-run15.md](plan-run15.md). This docs PR is the final-step push and remains unmerged.
+Updated 2026-11-04T13:49:35.672Z for PM replacement. All nine code PRs are open. No Fleet 15 PR has merged, no production migration or role update has run, and no production-after acceptance or issue closure is claimed. The supplied plan is preserved byte-for-byte in [plan-run15.md](plan-run15.md). This docs PR is the final-step push and remains unmerged.
 
 ## Reconciliation with deployed Fleet 14 work
 
@@ -79,7 +79,7 @@ All five reported blockers were confirmed against source; none was dismissed:
 - #589: a saved label needs at least one finite, nonnegative energy/protein/carbs/fat value; zero remains valid. Empty corrections cannot erase usable provider data.
 - #590: the HTTP preload was removed; the responsive HTML preload has explicit 1x/2x/3x sources. Sharp/original fallback state follows image identity. Fresh browser contexts at DPR 1/2/3 each made exactly one successful photo request: v2 40,024 bytes; 1040 variant 16,446 bytes; 1560 variant 27,084 bytes. These are local fixture measurements, not production bytes.
 
-The owner still has two reserved rulings: retain migration 0054's stale-summary repair, and retain #583's owner-metadata lookup on direct post navigation. These did not delay remediation or its reviews and combined gate. Deployment and production acceptance remain pending those rulings.
+The owner still has two reserved rulings: retain migration 0054's stale-summary repair, and retain #583's owner-metadata lookup on direct post navigation. These did not delay remediation or its reviews and combined gate. The previous PM explicitly reserved those rulings for the owner; none has arrived. A named-head merge order is also absent under the PM/planner contracts. This handover does not supply either authority.
 
 P1 phones remain unverified. P2, a second disposable account, was verified. P3, the known bookmark toast, was reproduced; the broader screenshot cause remains an inference. P4, the production decode ceiling, remains unverified; local oversize fallback passes. P5 production bytes and egress remain unmeasured. Owner phone/judge checks remain as the plan states.
 
@@ -101,6 +101,12 @@ Backlog issues created: none. Other observations retained without new scope: the
 | #589 | run15/barcode-complete | `911c33bac2853c88ad1e9ead20302fef0a414f2e` | #557 | [AGY](https://github.com/aibraincoach/my-food-ai/pull/589#issuecomment-6630691845) |
 | #590 | run15/photos | `69a216b956be40f9dc434cdf379b328864f64421` | #579; byte evidence for #372/#222 | [AGY](https://github.com/aibraincoach/my-food-ai/pull/590#issuecomment-6630743736) |
 
+Supplementary Muse watch reviews now report zero blockers at the current heads of #585/#587/#588/#589/#590. [Offline current-head receipt copies](reviews/run15-pr585-current.md) accompany the package, with one file per PR.
+
 All nine remain unmerged. Docs #600 sits beside Fleet 14 docs #577; it does not replace it.
 
 Raw receipts and exact own-fixture ledgers remain ignored under `run15-core/uploads/run15`; credentials and full account identifiers are not committed. Only owned browser/server/backend resources are stopped, and only owned pushed code worktrees are removed. The broad cleanup script is avoided because it can affect other fleets. The aggregate evidence worktree is retained for the unfinished deployment phase.
+
+## Production and migration reconciliation
+
+The November4 read-only [migration audit](migrations.md) finds no missing prior-fleet migration. Production remains #581/main376e3306. No Fleet15 migration, role update or production-after acceptance ran. The owner has fired the PM and requested a successor handover. No new code scope, merge order or database-write permission is inferred from that request. The fresh GitHub index holds118 open issues; #591–#599 remain outside this fleet's dispatched work. The latest full repository backlog is12:41WIB; the later owner-reported Doc rev1168 at17:58WIB was not supplied in full.

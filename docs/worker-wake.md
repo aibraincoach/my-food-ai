@@ -1,6 +1,6 @@
 # Durable worker wake
 
-Current verified production baseline: `c392a30ae170ec4f7a7cc48e5b8ff9b1d4d597a5`, READY. The scheduled wake is ON; worker concurrency is one and current food resolution has four bounded lanes within a job. The latest single-meal measurements and unchanged burst-evidence boundary are in [production-performance.md](production-performance.md). Older disabled states and edb56d42 timings below are historical.
+Production audit 2026-11-04T13:49:35.672Z: main `376e3306942161a5e659e8d99c85154c8ac26a35` is READY. The worker-wake target is configured and its expected once-per-minute cron job is active. This read-only configuration check did not invoke a wake or establish a new latency result. Historical timings below retain their original revisions.
 
 Migration 0024 adds a once-per-minute database wake using pg_cron and pg_net. The existing tick route owns the worker lease, so overlapping timer, upload and self-handoff requests still produce one worker. Runtime concurrency is fixed at one, including when an older deployment setting requests more lanes.
 

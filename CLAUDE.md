@@ -13,7 +13,21 @@ Hackathon project: My Food AI. PM contract: [docs/pm-contract.md](docs/pm-contra
 
 Review tooling is ported from [naval-association-calgary](https://github.com/aibraincoach/naval-association-calgary) (PPLX runner, review policy shape) and burn-centre-translator / calgarysalutes-website (AGY delivery script, Firefox helper).
 
-## Run 8 current state — November 3, 2026
+## Current state — November 4, 2026, PM replacement
+
+Owner session instruction: the PM has been fired and a successor handover requested. This request authorizes document reconciliation and packaging; it is not a merge, deployment or database-write order. Earlier dated sections below are historical.
+
+Observed 2026-11-04T13:49:35.672Z: fetched main and the production alias are `376e3306942161a5e659e8d99c85154c8ac26a35`, deployment `dpl_Df6AGNF8r9vBjiNF2Jh4ghNNYimM`, READY, health200. Production hostname: `https://my-food-ai-ten.vercel.app`. Fleet14 code through #581 is deployed; Fleet15 code #582–#590 is open, non-draft, mergeable and green at the exact heads in [the Fleet15 report](docs/run15-report.md). All nine have counting reviews; the five repaired heads also have supplemental zero-blocker Muse watch reviews. Final combined build passed; full suite650 passed/6 skipped/0 failed and DB45/45 passed. Nothing from Fleet15 has merged or migrated. Docs #600 remains draft/open beside #577 and #558; it replaces neither.
+
+[Production migration audit](docs/migrations.md): all54 migration files on main are accounted for, with110 surviving application function bodies matching production. Only Fleet15 migrations0053–0055 remain unapplied;0055 requires explicit post-deployment activation. Migration0054 and #583's extra owner-metadata lookup were reserved for an owner ruling by the previous PM; the session contains no subsequent ruling. Review clearance does not constitute merge authority.
+
+The latest complete repository backlog remains the supplied12:41WIB snapshot; the owner reported a later Doc rev1168 at17:58WIB, but did not supply its complete text. BACKLOG.md is preserved under the explicit no-edit instruction, not represented as a current live Doc. [The fresh open-issue index](docs/open-issue-index.md) lists118 open issues. #591–#599 are outside Fleet15 scope; no assignment is inferred. #598 stale builds and #599 delayed Today affect demo readiness. #595 still needs closure reconciliation, although the final Fleet14 plan has retain-only bypass instructions. Never revoke or regenerate that bypass secret.
+
+Fleet14 branches/worktrees and browser endpoint remain protected. Use separately owned browser ports/profiles and clean only tracked own fixtures. Fleet15 test servers and disposable backends are stopped; evidence worktrees remain for pending deployment. No new work order or review run is issued by this handover.
+
+## Historical session records
+
+## Run 8 historical state — November 3, 2026
 
 [Run 8 final execution](docs/run8-final-report.md) supersedes the historical pre-merge sections below. Eight planned code PRs #334–#339/#341/#342 and defect follow-ups #340/#343 merged in ascending order at exact externally cleared heads. Production `6996817cec6aaf865357e9fee6550abf27cdfd0f` is READY; migration 0035 is applied. Actual browser reliability is 100/100; separate feed/Home probes are 100/100 each. Final emulated cold photos are 1480.2–1828.3 ms, warm 481.5–507.0 ms. Mean browser Supabase transfer fell 89.7%.
 
