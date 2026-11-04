@@ -5,6 +5,7 @@ import { createResponse, MetaApiError } from "@/lib/meta/client";
 import { recordCall } from "@/lib/trace/record";
 import { nutritionBudgetMs, NUTRITION_MAX_MS } from "@/lib/worker/budget";
 import { FOOD_MATCH_VERSION } from "./version";
+import { closestGenericFood } from "./approximate";
 
 export const NUTRITION_RESOLUTION_MS = NUTRITION_MAX_MS;
 export const nutritionResolutionBudget = () => AbortSignal.timeout(nutritionBudgetMs());
@@ -55,10 +56,10 @@ async function choose(name: string, caption: string, foods: FdcFood[], retry: bo
 }
 
 // At most three searches: the name and distinct refinements, with a base-food fallback. A valid rejection stays unknown; provider errors remain retryable errors.
-export async function matchFood(name: string, caption: string, dependencies: MatchDependencies, signal?:AbortSignal): Promise<{food:FdcFood|null; reason:string; searches:number}> {
+export async function matchFood(name: string, caption: string, dependencies: MatchDependencies, signal?:AbortSignal): Promise<{food:FdcFood|null; reason:string; searches:number; baseFood:string|null}> {
   let query=foodSearchQuery(name);
   let baseQuery:string|null=null;
-  if(!query)return {food:null,reason:"The item has no searchable food name.",searches:0};
+  if(!query)return {food:null,reason:"The item has no searchable food name.",searches:0,baseFood:null};
   const eligible=new Map<number,FdcFood>();
   const searched=new Set<string>();
   for(let attempt=0;attempt<3;attempt++){
@@ -71,21 +72,22 @@ export async function matchFood(name: string, caption: string, dependencies: Mat
     const decision=await dependencies.choose(name,caption,candidates,attempt>0,query,2-attempt);
     const food=decision.id===null?null:candidates.find(f=>f.fdcId===decision.id)??null;
     if(decision.id!==null&&!food)throw new Error("Food decision selected an ineligible candidate.");
-    if(food)return {food,reason:decision.reason,searches:attempt+1};
+    if(food)return {food,reason:decision.reason,searches:attempt+1,baseFood:baseQuery};
     const improved=decision.query?(decision.query_food?requiredFoodSearchQuery(decision.query,decision.query_food):foodSearchQuery(decision.query)):null;
     // Retain the first category if the next decision has no distinct refinement.
     if(attempt===0&&decision.query_food)baseQuery=foodSearchQuery(decision.query_food);
     const next=[improved,...(attempt>0?[baseQuery]:[])].find(candidate=>candidate&&!searched.has(candidate.toLowerCase()));
-    if(attempt===2||!next)return {food:null,reason:decision.reason,searches:attempt+1};
+    if(attempt===2||!next)return {food:null,reason:decision.reason,searches:attempt+1,baseFood:baseQuery};
     query=next;
   }
   throw new Error("Unreachable match state.");
 }
 
-export async function resolveFoodMatch(admin:SupabaseClient,name:string,caption="",signal:AbortSignal=nutritionResolutionBudget()):Promise<FdcFood|null>{
+export async function resolveFoodMatch(admin:SupabaseClient,name:string,caption="",signal:AbortSignal=nutritionResolutionBudget(),options:{approximate?:boolean}={}):Promise<FdcFood|null>{
   try {
     const result=await recordCall("fdc",{event:"food_resolution",name,matcherVersion:FOOD_MATCH_VERSION},()=>matchFood(name,caption,{search:query=>searchFoods(admin,query,signal),choose:(item,context,foods,retry,query,remaining)=>choose(item,context,foods,retry,signal,query,remaining)},signal),r=>({text:{source:r.food?"selected":"unavailable",reason:r.reason,searches:r.searches},fdcId:r.food?.fdcId??null}));
-    return result.food;
+    if(result.food||!options.approximate||!result.baseFood)return result.food;
+    return await closestGenericFood(admin,name,caption,result.baseFood,signal);
   } catch(error) {
     if(signal.aborted)throw new MetaApiError(503,"Food resolution budget was exhausted.");
     throw error;

@@ -21,6 +21,7 @@ export default async function recompute(admin: SupabaseClient, job: JobRow): Pro
     .select("id,name,portion_grams,portion_text,supersedes").eq("post_id", job.post_id);
   if (error) throw ioError(`recompute items: ${error.message}`, error, itemsStatus);
  const resolutionBudget=nutritionResolutionBudget();
+ const approximations:{name:string;basis:string}[]=[];
   const {data:context,error:contextError,status:contextStatus}=await admin.from("posts").select("caption").eq("id",job.post_id).abortSignal(resolutionBudget).single();
   if(contextError)throw ioError("Recompute context could not be read.",contextError,resolutionBudget.aborted?503:contextStatus);
   if (items?.length) {
@@ -36,7 +37,8 @@ export default async function recompute(admin: SupabaseClient, job: JobRow): Pro
       // Resolve all item data before issuing the one atomic nutrition write.
       const retained = await resolvePortionNutrition(admin, job.post_id!, item.supersedes, item.name, item.portion_grams, item.portion_text,signal);
       if (retained) return {...retained,post_item_id:item.id};
-      const food = await resolveFoodMatch(admin,item.name,context.caption??"",signal);
+      const food = await resolveFoodMatch(admin,item.name,context.caption??"",signal,{approximate:true});
+      if(food?.approximation)approximations.push({name:item.name,basis:food.approximation.basis});
       const n = scaleNutrition(food, item.portion_grams == null ? null : toNumber(item.portion_grams));
       return {
         post_item_id: item.id, calories: n.calories, protein_g: n.proteinG,
@@ -50,6 +52,18 @@ export default async function recompute(admin: SupabaseClient, job: JobRow): Pro
         .upsert(writes,{onConflict:"post_item_id",ignoreDuplicates:true});
       if(writeError)throw ioError(`recompute save: ${writeError.message}`,writeError,writeStatus);
     }
+  }
+  if(approximations.length){
+    const {getCurrentItems,sumNutrition}=await import('@/lib/nutrition/totals');
+    const {safeSummary}=await import('@/lib/pipeline/wording');
+    const current=await getCurrentItems(admin,job.post_id,{requireNutrition:true});
+    const body=await safeSummary('',sumNutrition(current),approximations);
+    // Repair the original nutrition summary so approximated values are never unlabeled.
+    const {data:summary,error:readError,status:readStatus}=await admin.from('post_comments').select('id').eq('post_id',job.post_id).eq('author','model').order('created_at').limit(1).maybeSingle();
+    if(readError)throw ioError('Nutrition summary could not be read.',readError,readStatus);
+    if(!summary)throw new Error('Nutrition summary is missing.');
+    const {error:summaryError,status:summaryStatus}=await admin.from('post_comments').update({body}).eq('id',summary.id);
+    if(summaryError)throw ioError('Nutrition summary could not be saved.',summaryError,summaryStatus);
   }
   await markReady(job.post_id, admin,job.id);
 }

@@ -89,6 +89,8 @@ export interface FdcFood {
   brandOwner?: string;
   // Gram weights the food states for cups and pieces (detail lookups only).
   portions?: FoodPortion[];
+  // Set only when the numbers come from a similar food, not an exact reference.
+  approximation?: {kind: "closest"; basis: string};
 }
 
 // Two thirty-hit windows may carry lengthy USDA aliases. Budget descriptive

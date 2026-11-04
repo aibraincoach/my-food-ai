@@ -261,5 +261,21 @@
     "name": "ceramic plate",
     "caption": "An empty ceramic plate, no food.",
     "unavailable": true
+  },
+  {
+    "name": "spicy Indonesian fried macaroni snack",
+    "caption": "Spicy Indonesian macaroni",
+    "requires": [
+      [
+        "macaroni",
+        "pasta"
+      ]
+    ],
+    "rejects": [
+      "chili",
+      "cheese",
+      "salad",
+      "shrimp"
+    ]
   }
 ]
