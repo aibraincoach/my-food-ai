@@ -1,6 +1,6 @@
 # My Food AI — Backlog†
 
-Last edited: Wednesday 2026-11-04 at 17:05 WIB (UTC+07:00), coder reconciliation after #581 deployment
+Last edited: Wednesday 2026-11-04 at 17:30 WIB (UTC+07:00), owner-directed final coder reconciliation
 
 The only job of the PM is to maintain this backlog and keep it completely up to date. Failing to do so is immediately terminable.
 
@@ -189,13 +189,15 @@ The sampled feed image is 152,193 bytes and its response carries no Cache-Contro
 
 ## In Flight
 
+None. Fleet14 code is deployed; the owner ended the collection at **three of seven** samples.
+
+## Engineering backlog
+
 ### #373 The app reads more from the production database than it needs
 
 The app's reads drove egress to 8.66 GB and log ingestion to 1.10 GB in one billing cycle, against 5 GB and 1 GB on Supabase's free plan, and the project was depleting its Disk IO budget. The organization is now on Pro, which includes 250 GB of egress per cycle, but the same reads still cost bandwidth and database load while judges use the app.
 
 Run 8 cut the feed's Supabase traffic per opening from 5.06 MB to 0.523 MB, 89.7%, by reading day totals once. The app and the worker use Supabase's HTTPS APIs, not SQL connections, so the pooler setting does not apply. Managed services (PostgREST, Storage, Realtime) account for many of the connections the Infrastructure page counts, and the historical 31 of 60 is unexplained, as is the 70% RAM on the Micro instance. Log-ingestion bytes are unattributed, since only row counts exist. Done when the billed log-ingestion bytes are attributed to their sources on the usage page and the RAM use on the Micro instance is explained.
-
-## Engineering backlog
 
 ### #512 The phone calendar can show the wrong month summary and jump when older months load
 

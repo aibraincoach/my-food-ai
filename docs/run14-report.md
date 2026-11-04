@@ -1,5 +1,7 @@
 Fleet14’s seven code PRs were deployed at15:38WIB; the added #579 fix is now deployed at main376e3306.
 
+Owner-directed final delivery,10:30:29UTC: resource collection is **three of seven**; collector stopped. The six-hour window is incomplete and is not a delivery gate. All code, counting reviews and feature cleanup are complete; acceptance gaps below remain explicitly open.
+
 # Fleet 14 execution report
 
 Fleet14’s seven code PRs merged and deployed at15:38WIB on November4; post-deployment acceptance gaps remain open.
@@ -218,3 +220,14 @@ Backlog role reconciliation after delivery: only#373’s live hourly collector r
 Final feature cleanup is verified: eight completed original code/probe/integration worktrees plus the added#579 worktree and their completed branches are removed. Unique evidence and the47-file#579review packet were archived and hash-verified first. The original run13 checkout, clean main, all external worktrees, private bypass access, F’s live collector and G’s held documentation batch remain. No new preview was triggered by these local records.
 
 The required scripts/cleanup.sh was run after verifying there were no matching shared review profiles/processes and only protected or still-needed worktrees remained. It completed successfully, found no mfa-pplx profiles/processes, and retained main/run13/F/G plus the two detached owner worktrees. [Exact output](evidence/run14/cleanup-script-final.txt). F and G remain solely for the live collector and held final documentation batch.
+
+## Owner-directed sampler closeout
+
+The owner explicitly instructed immediate packaging with the three samples labelled **three of seven**, with no hold for20:40WIB. The owned collector was stopped at10:30:29UTC and its three HTTP200observations preserved. Four samples were not collected; no six-hour trend is claimed. [Final delivered series:three of seven](evidence/run14/metrics-three-of-seven.json). Older running/pending notes in dated checkpoints describe earlier state and are superseded here.
+
+Collection accountability:
+Decision fed: nothing.
+What changed: nothing.
+Cost:2.828588hours of collector runtime (07:40:46.084–10:30:29UTC);6hours was the cancelled configured window, not elapsed time. No team-delay duration is inferred.
+
+The exact owner rules are now in AGENTS.md (“Long runs, long waits, long collections”) and docs/planner-contract.md (“Nothing without a use”); both latest verbatim Wall entries are included. Fleet14 only; no other fleet’s plan is part of this handover.
