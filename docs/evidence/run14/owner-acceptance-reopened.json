@@ -1,0 +1,32 @@
+[
+  {
+    "issue": 348,
+    "ok": true,
+    "result": "\u2713 Reopened issue aibraincoach/my-food-ai#348 (Add composer drink cards before posting (round 5 frames 5b\u20135d))"
+  },
+  {
+    "issue": 351,
+    "ok": true,
+    "result": "\u2713 Reopened issue aibraincoach/my-food-ai#351 (Add drink tile ordering by use and hold-for-sizes (frame 5f))"
+  },
+  {
+    "issue": 449,
+    "ok": true,
+    "result": "\u2713 Reopened issue aibraincoach/my-food-ai#449 (New-upload food names were not observed before totals (#307))"
+  },
+  {
+    "issue": 453,
+    "ok": true,
+    "result": "\u2713 Reopened issue aibraincoach/my-food-ai#453 (The barcode prompt is printed over the live camera picture)"
+  },
+  {
+    "issue": 454,
+    "ok": true,
+    "result": "\u2713 Reopened issue aibraincoach/my-food-ai#454 (The Days page is not one continuous calendar)"
+  },
+  {
+    "issue": 370,
+    "ok": true,
+    "result": "\u2713 Reopened issue aibraincoach/my-food-ai#370 (The camera view stays open for a long time after a photo is taken)"
+  }
+]
