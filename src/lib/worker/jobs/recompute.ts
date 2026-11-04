@@ -50,7 +50,7 @@ export default async function recompute(admin: SupabaseClient, job: JobRow): Pro
     const writes=resolved.filter(row=>row!==null);
     if(writes.length){
       const {error:writeError,status:writeStatus}=await admin.from("item_nutrition")
-        .upsert(writes,{onConflict:"post_item_id",ignoreDuplicates:true});
+        .upsert(writes,{onConflict:"post_item_id"});
       if(writeError)throw ioError(`recompute save: ${writeError.message}`,writeError,writeStatus);
     }
   }

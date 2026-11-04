@@ -96,7 +96,7 @@ export async function resolveFoodMatchDetailed(admin:SupabaseClient,name:string,
     if(!options.approximate)return {food:null,unavailable:{code:'no_match',detail:result.reason}};
     const closest=result.baseFood?await closestGenericFood(admin,name,caption,result.baseFood,signal):{food:null,reason:result.reason};
     if(closest.food&&!referenceProteinMismatch(name,closest.food.description))return {food:closest.food,unavailable:null};
-    const dishSuggestsRice=/\b(rice|sushi|nigiri|donburi|bowl)\b/i.test(`${name} ${caption}`);
+    const dishSuggestsRice=/\b(rice|sushi|nigiri|donburi)\b/i.test(name);
     if(dishSuggestsRice){
       const composed=await composeRiceWithProtein(admin,name,caption,signal);
       if(composed.food)return {food:composed.food,unavailable:null};
