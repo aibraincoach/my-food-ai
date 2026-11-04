@@ -8,7 +8,7 @@ import type {FeedPost} from '@/lib/posts/feed';
 import PostDetailSkeleton from '@/components/PostDetailSkeleton';
 import PostActions from '@/components/PostActions';
 import PostCaption from '@/components/PostCaption';
-import {usePostHandle,useProfileIdentity} from '@/components/PostHandle';
+import {usePostHandle,usePostAuthor} from '@/components/PostHandle';
 import Avatar from '@/components/Avatar';
 import {Shimmer} from '@/components/ui/Shimmer';
 
@@ -22,10 +22,10 @@ export default function PostOpenFrame({id,desktopModal=false}:{id:string;desktop
 }
 
 function Header({post,height}:{post:FeedPost;height:string}) {
- const seeded=(post as {handle?:string}).handle;
- const handle=usePostHandle(seeded);
- const identity=useProfileIdentity(seeded?{handle:seeded}:undefined);
- return <div className={`flex ${height} items-center gap-[10px] px-inset`}><Avatar handle={handle} userId={identity.userId} mediaId={identity.avatarMediaId} sizePx={32} textClassName="text-avatar"/><span className="min-w-0 flex-1 truncate text-handle">{handle}</span></div>;
+ const row=post as FeedPost&{handle?:string;avatar_media_id?:string|null};
+ const author=usePostAuthor(row.user_id&&row.handle?{userId:row.user_id,handle:row.handle,avatarMediaId:row.avatar_media_id??null}:null);
+ const handle=usePostHandle(row.handle,author.userId?{userId:author.userId,handle:author.handle,avatarMediaId:author.avatarMediaId}:null);
+ return <div className={`flex ${height} items-center gap-[10px] px-inset`}><Avatar handle={handle} userId={author.userId} mediaId={author.avatarMediaId} sizePx={32} textClassName="text-avatar"/><span className="min-w-0 flex-1 truncate text-handle">{handle}</span></div>;
 }
 
 function Photo({post,desktop=false}:{post:FeedPost;desktop?:boolean}) {

@@ -58,6 +58,9 @@ export interface FeedPost {
   foodWaterMl?: number;
   dayHydration?: HydrationRecord;
   drink?: DrinkCardData | null;
+  user_id?: string;
+  handle?: string;
+  avatar_media_id?: string | null;
   id: string;
   caption: string;
   eaten_at: string;
@@ -130,13 +133,19 @@ export async function latestRevision(client:SupabaseClient,postId:string):Promis
  return data;
 }
 
+async function profileForOwner(supabase: SupabaseClient, userId: string) {
+  const {data}=await supabase.from('profiles').select('handle,avatar_media_id').eq('id',userId).maybeSingle();
+  return {handle:String(data?.handle??''),avatar_media_id:data?.avatar_media_id??null};
+}
+
 export async function toFeedPost(
   supabase: SupabaseClient,
   row: PostRow,
   zone?: string,
-  known?: {items: FeedItem[]; revisionBefore: Awaited<ReturnType<typeof latestRevision>>; media?: {id:string;storage_path:string;kind:string;not_eaten:boolean;width?:number|null;height?:number|null}[]}
+  known?: {items: FeedItem[]; revisionBefore: Awaited<ReturnType<typeof latestRevision>>; media?: {id:string;storage_path:string;kind:string;not_eaten:boolean;width?:number|null;height?:number|null}[]; profile?: {handle:string;avatar_media_id:string|null}}
 ): Promise<FeedPost> {
   const revisionBefore=known?known.revisionBefore:row.status==="ready"?await latestRevision(supabase,row.id):null;
+  const profile=known?.profile??await profileForOwner(supabase,row.user_id);
   const { data: media, error: mediaError } = known?.media ? {data:known.media,error:null} : await supabase.from("post_media")
     .select("id,storage_path,kind,not_eaten,width,height").eq("post_id",row.id).order("position");
   if(mediaError) throw new Error(mediaError.message);
@@ -160,6 +169,9 @@ export async function toFeedPost(
     analysisFingerprint:row.status==="ready"&&JSON.stringify(revisionBefore)===JSON.stringify(revisionAfter)?revisionAfter?.fingerprint??null:null,
     day: zone ? dateInZone(row.eaten_at, zone) : undefined,
     gtin: items.find(item=>item.gtin)?.gtin,
+    user_id: row.user_id,
+    handle: profile.handle,
+    avatar_media_id: profile.avatar_media_id,
     id: row.id,
     caption: row.caption,
     eaten_at: row.eaten_at,
@@ -235,10 +247,16 @@ export async function toFeedPosts(db: SupabaseClient, rows: PostRow[], zone = "U
     if (url && !smallFirst) onFirstPhoto?.(url);
     return urls;
   });
+  const profileRead = optionalRead('profiles', async () => {
+    const userIds = [...new Set(rows.map(row => row.user_id))];
+    const {data, error} = await db.from('profiles').select('id,handle,avatar_media_id').in('id', userIds).abortSignal(AbortSignal.timeout(8000));
+    if (error) throw error;
+    return new Map((data ?? []).map(entry => [entry.id, {handle: String(entry.handle ?? ''), avatar_media_id: entry.avatar_media_id ?? null}]));
+  }, new Map<string, {handle: string; avatar_media_id: string | null}>());
   const beforeRead = revisions();
   const nutritionRead = beforeRead.then(() => optionalRead('items', () => getCurrentItemsForPosts(db, ready.map(row => row.id)), new Map<string, CurrentItem[]>()));
   const afterRead = nutritionRead.then(() => revisions());
-  const [media, nutrition, saved, urls, before, after] = await Promise.all([mediaRead, nutritionRead, savedRead, urlRead, beforeRead, afterRead]);
+  const [media, nutrition, saved, urls, profiles, before, after] = await Promise.all([mediaRead, nutritionRead, savedRead, urlRead, profileRead, beforeRead, afterRead]);
   const revisionById = new Map(ready.map((row, index) => [row.id, before[index] && JSON.stringify(before[index]) === JSON.stringify(after[index]) ? after[index] : null]));
   return rows.map(row => {
     const items: FeedItem[] = (nutrition.get(row.id) ?? []).map(item => ({
@@ -255,10 +273,12 @@ export async function toFeedPosts(db: SupabaseClient, rows: PostRow[], zone = "U
       return url ? [{ id: entry.id, url, kind: entry.kind as 'photo' | 'card', not_eaten: Boolean(entry.not_eaten), width: entry.width ?? undefined, height: entry.height ?? undefined }] : [];
     });
     const revision = revisionById.get(row.id);
+    const profile = profiles.get(row.user_id) ?? {handle: '', avatar_media_id: null};
     return { mediaUnavailable: media === null || slides.length !== (ownMedia?.length ?? 0), expectedMediaIds: ownMedia?.map(entry=>entry.id), savedStateUnavailable: saved === null, itemsUnavailable: row.status === 'ready' && !nutrition.has(row.id), fail_reason: row.fail_reason ?? null, agentName: (Array.isArray(row.agent_tokens) ? row.agent_tokens[0] : row.agent_tokens)?.name ?? null,
       agent_token_id: row.agent_token_id ?? null, saved_meal_id: saved?.find(entry => entry.source_post_id === row.id)?.id ?? null,
       modelCommentId: revision?.modelCommentId ?? null, analysisFingerprint: revision?.fingerprint ?? null,
       day: dateInZone(row.eaten_at, zone), gtin: items.find(item => item.gtin)?.gtin,
+      user_id: row.user_id, handle: profile.handle, avatar_media_id: profile.avatar_media_id,
       id: row.id, caption: row.caption, eaten_at: row.eaten_at, status: row.status, created_at: row.created_at,
       photoUrl: slides[0]?.url ?? null, slides, items, count_text: items[0]?.count_text ?? null };
   });
