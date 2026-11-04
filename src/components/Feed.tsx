@@ -97,6 +97,7 @@ export default function Feed({initialPage, initialUserId, initialZone = "UTC", f
     let discovering = false;
     let baseline: FeedPost[] = initialPage?.posts ?? [];
     let loaded = Boolean(initialPage);
+    let usedServerPage = false;
     let initialLoading = true;
     let cursor: string | null = initialPage?.nextCursor ?? null;
     let loadingMore = false;
@@ -285,7 +286,7 @@ export default function Feed({initialPage, initialUserId, initialZone = "UTC", f
           else if (baseline.some(hasUnavailableFields)) {baseline=baseline.map(post=>retainCompleteItems(cached.find(old=>old.id===post.id),post));publish();}
         }
         if (claimedUser!==userId) {releaseCacheOwner?.();claimedUser=userId;releaseCacheOwner=claimFeedCacheEvents(userId);}
-        const page = await readPage(null,6);
+        const page = !usedServerPage && initialPage && initialZone === zone ? (usedServerPage = true, initialPage) : await readPage(null,6);
         if(!live||loadGeneration!==generation)return;
         mergeDays(page.days);
         // A fresh page can reveal an external edit even when its day was
