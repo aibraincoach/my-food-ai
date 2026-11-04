@@ -28,7 +28,7 @@ export default function MonthGrid({ month, summary, today, selected, onDay, onOp
     <div className="flex items-baseline justify-between px-screen-x" style={{ paddingBottom: tokens.spacing.grid + tokens.spacing.grid / 2 }}>
       <h2 className="text-month desktop:text-[22px]">{monthName(month, true)}</h2><span className="text-meta text-muted tabular-nums">{postedLabel(summary.posted)}</span>
     </div>
-    {unavailable.length ? <details data-nutrition-disclosure className="px-screen-x text-meta text-muted"><summary className="cursor-pointer">* Known nutrition shown · Unavailable foods</summary><p className="mt-2">Nutrition unavailable: {unavailable.join(", ")}</p></details> : null}
+    {unavailable.length ? <details data-nutrition-disclosure className="px-screen-x text-meta text-muted"><summary className="cursor-pointer">Known nutrition shown · Unavailable foods</summary><p className="mt-2">Nutrition unavailable: {unavailable.join(", ")}</p></details> : null}
     <div style={{ paddingInline: tokens.spacing["tooltip-x"] }}>
       <div className="grid grid-cols-7 gap-1 pb-1" aria-hidden="true">{["S", "M", "T", "W", "T", "F", "S"].map((label, index) => <span key={index} className="text-center text-bubble text-faint">{label}</span>)}</div>
       <div className="grid grid-cols-7 gap-1">
@@ -39,11 +39,11 @@ export default function MonthGrid({ month, summary, today, selected, onDay, onOp
           const enabled = Boolean((day||desktop) && date <= today);
           const outlined = date === today || date === selected;
           return <button type="button" key={date} data-day={date} disabled={!enabled} aria-pressed={desktop?date===selected:undefined} tabIndex={!day&&!desktop?-1:0} onFocus={event=>{if(matchMedia("(min-width:1024px)").matches)onDay(date,event.currentTarget);}} onClick={event => { if(day || matchMedia("(min-width:1024px)").matches)onDay(date, event.currentTarget); }}
-            aria-label={`${date}${day ? `, ${day.posts} ${day.posts === 1 ? "post" : "posts"}${day.intake ? ", drank" : ""}${day.ready ? `, ${formatCalories(day.kcal)} kcal${day.missing?.length?`, nutrition unavailable: ${[...new Set(day.missing)].join(", ")}`:""}` : ""}` : ""}`}
+            aria-label={`${date}${day ? `, ${day.posts} ${day.posts === 1 ? "post" : "posts"}${day.pending ? `, ${day.pending} not finished` : ""}${day.intake ? ", drank" : ""}${day.ready ? `, ${formatCalories(day.kcal)} kcal${day.missing?.length?`, nutrition unavailable: ${[...new Set(day.missing)].join(", ")}`:""}` : ""}` : ""}`}
             className={`flex min-w-0 flex-col justify-between rounded-tile text-left desktop:!h-[100px] desktop:focus-visible:outline-2 desktop:focus-visible:outline-text ${day?"bg-card":""} ${date===selected?"desktop:bg-text desktop:text-white desktop:[&>span]:text-white":""} ${date > today ? "text-faint" : "text-text"}`}
             style={{ height: tokens.spacing.tap, padding: `${tokens.spacing.grid}px ${tokens.calendar.padding}px`, border: outlined ? `${tokens.calendar.border}px solid ${tokens.colors.text}` : `${tokens.calendar.border}px solid transparent` }}>
             <span className="text-label font-medium leading-none desktop:text-[13px]">{index + 1}</span>
-            <span className="text-cell-kcal text-muted tabular-nums desktop:text-[12px]">{day?.ready ? `${formatDayKcal(day.kcal)}${day.missing?.length?"*":""}` : day?.intake ? "drank" : ""}</span>
+            <span className="text-cell-kcal text-muted tabular-nums desktop:text-[12px]">{day?.ready ? `${formatDayKcal(day.kcal)}` : day?.intake ? "drank" : ""}</span>
           </button>;
         })}
       </div>

@@ -1,8 +1,9 @@
+import { approximationLabels } from "@/lib/fdc/approximation-metadata";
 import {beforeLeftovers,carryLeftovers,retainedNutrition} from '@/lib/pipeline/leftovers';
 import { sendPostPush } from "@/lib/push/send";
 import {readNeedsInput,type NeedsInput} from '@/lib/pipeline/needs-input';
 import { readPostComments, readCorrectionProgress } from '@/lib/posts/timeline';
-import { resolvePortionNutrition } from "@/lib/nutrition/portion";
+import { resolvePortionNutrition, rescalePortionNutrition } from "@/lib/nutrition/portion";
 import recompute from "./recompute";
 import { loadCorrectionItems, waitForInitialAnalysis } from "@/lib/pipeline/correction-ready";
 import { ioError } from "@/lib/worker/errors";
@@ -13,7 +14,7 @@ import { createResponse, MetaApiError } from '@/lib/meta/client';
 import { correctPrompt } from '@/lib/prompts/spark/correct';
 import { correctionSchema } from '@/lib/prompts/spark/correct-schema';
 import { resolveNutritionItems } from "@/lib/fdc/resolve-items";
-import { resolveFoodMatch, traceNutritionReuse, nutritionResolutionBudget } from '@/lib/fdc/match';
+import { resolveFoodMatchDetailed, traceNutritionReuse, nutritionResolutionBudget } from '@/lib/fdc/match';
 import { sumNutrition } from '@/lib/nutrition/totals';
 import { scaleNutrition } from '@/lib/fdc/nutrients';
 import { safeSummary } from '@/lib/pipeline/wording';
@@ -53,9 +54,9 @@ const correct:JobHandler=async(admin,job)=>{
  const {data:prepared,error:prepareError,status:prepareStatus}=await admin.from('jobs').update({payload:{...job.payload,correction_from_sequence:window.sequence,correction_pending_ids:window.pending.map(comment=>comment.id)}}).eq('id',job.id).eq('status','running').select('id').maybeSingle();
  if(prepareError)throw ioError('Correction snapshot could not be saved.',prepareError,prepareStatus);
  if(!prepared)throw new MetaApiError(503,'Correction snapshot could not be saved.');
- const {rows,result}=await replayCorrection(admin,job.post_id,items,window.pending,window.history,photoAdded);
+ const {rows,result,approximations}=await replayCorrection(admin,job.post_id,items,window.pending,window.history,photoAdded);
  const totals=sumNutrition(rows.map(row=>({...row.nutrition,name:row.name})));
- const reply=await safeSummary(correctionReply(items,rows,totals),totals);
+ const reply=await safeSummary(correctionReply(items,rows,totals),totals,approximations,rows.map(row=>({name:row.name,sourceRef:row.nutrition.source_ref})));
  const {error,status}=await admin.rpc(photoAdded?'persist_photo_correction':result.needs_input?'persist_correction_question':'persist_correction',{p_post_id:job.post_id,p_job_id:job.id,p_expected:items.map(i=>i.id),...(!photoAdded?{p_through:latest!.id}:{}),p_items:rows,p_reply:reply,...(photoAdded?{p_question:result.needs_input}:result.needs_input?{p_question:result.needs_input}:{})});
  if(error)throw ioError('Correction transaction failed.',error,status);
  if(!result.needs_input)await markReady(job.post_id,admin,job.id);
@@ -103,10 +104,11 @@ export async function replayCorrection(admin:import('@supabase/supabase-js').Sup
   let nutrition;
   if(old)nutrition={calories:old.calories,protein_g:old.protein_g,carbs_g:old.carbs_g,fat_g:old.fat_g,fibre_g:old.fibre_g,sugar_g:old.sugar_g,sodium_mg:old.sodium_mg,micronutrients:old.micronutrients,source_ref:old.source_ref,food_category:old.food_category ?? null};
   else {
-   const retained=replaying&&region?.name===item.name?(await import('@/lib/nutrition/totals')).rescaleStoredNutrition({...retainedNutrition(region),post_item_id:region.id},region.portion_grams,item.portion_grams):region?.name===item.name?await resolvePortionNutrition(admin,postId!,region.id,item.name,item.portion_grams,item.portion_text,signal):null;
+   const retained=replaying&&region?.name===item.name?rescalePortionNutrition({...retainedNutrition(region),post_item_id:region.id},region.portion_grams,item.portion_grams,region.portion_text,item.portion_text):region?.name===item.name?await resolvePortionNutrition(admin,postId!,region.id,item.name,item.portion_grams,item.portion_text,signal):null;
    if(retained)nutrition=retained;
    else {
-   const n=scaleNutrition(await resolveFoodMatch(admin,item.name,context.caption??'',signal),item.portion_grams);
+   const match=await resolveFoodMatchDetailed(admin,item.name,context.caption??'',signal,{approximate:true});
+   const n=scaleNutrition(match.food,item.portion_grams,match.unavailable);
    nutrition={calories:n.calories,protein_g:n.proteinG,carbs_g:n.carbsG,fat_g:n.fatG,fibre_g:n.fibreG,sugar_g:n.sugarG,sodium_mg:n.sodiumMg,micronutrients:n.micronutrients,source_ref:n.sourceRef,food_category:n.foodCategory ?? null};
    }
   }
@@ -116,6 +118,6 @@ export async function replayCorrection(admin:import('@supabase/supabase-js').Sup
  // A model omission must never delete an earlier leftover record.
  for(const prior of items.filter(item=>item.not_eaten_grams!=null&&!protectedSources.has(item.id))){rows.push({...prior,portion_grams:prior.portion_grams==null?null:toNumber(prior.portion_grams),supersedes:prior.id,nutrition:retainedNutrition(prior)});}
 
- return {rows,result};
+ return {rows,result,approximations:approximationLabels(rows.map(row=>({name:row.name,...row.nutrition})))};
 }
 export default correct;

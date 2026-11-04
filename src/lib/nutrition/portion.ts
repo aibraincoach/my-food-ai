@@ -1,9 +1,20 @@
+import {foodApproximation,storedEstimateFood} from "@/lib/fdc/approximation-metadata";
 import {traceNutritionReuse} from "@/lib/fdc/match";
 import type {SupabaseClient} from '@supabase/supabase-js';
 import {getFoodById} from '@/lib/fdc/client';
 import {scaleNutrition, type ScaledNutrition} from '@/lib/fdc/nutrients';
 import {ioError} from '@/lib/worker/errors';
-import {rescaleStoredNutrition, toNumber, type Numeric, type NutritionRow} from './totals';
+import {rescaleStoredAmounts,rescaleStoredNutrition, toNumber, type Numeric, type NutritionRow} from './totals';
+
+// One quantity-basis dispatch for ordinary edits and in-memory correction replay.
+export function rescalePortionNutrition(row:NutritionRow,oldGrams:Numeric,newGrams:Numeric,oldText?:string|null,newText?:string|null):NutritionRow{
+ if(oldGrams==null&&newGrams==null){
+  const volume=(text:unknown)=>typeof text==='string'&&/^[0-9]+([.][0-9]+)? ml$/.test(text)?Number(text.split(' ')[0]):null;
+  const oldMl=volume(oldText),newMl=volume(newText);
+  if(oldMl!==null&&newMl!==null)return rescaleStoredAmounts(row,oldMl,newMl);
+ }
+ return rescaleStoredNutrition(row,oldGrams,newGrams);
+}
 
 export function storedNutrition(n: ScaledNutrition, id: string): NutritionRow {
  return {post_item_id:id, calories:n.calories,protein_g:n.proteinG,carbs_g:n.carbsG,fat_g:n.fatG,
@@ -30,17 +41,17 @@ export async function resolvePortionNutrition(admin: SupabaseClient, postId: str
    const nutrition=row as NutritionRow;
    await traceNutritionReuse(name,nutrition,"retained",priorId);
    const hasAmounts=[nutrition.calories,nutrition.protein_g,nutrition.carbs_g,nutrition.fat_g,...(Array.isArray(nutrition.micronutrients)?nutrition.micronutrients:[]).map(n=>n.value)].some(n=>n!=null);
-   if (prior.portion_grams == null && grams == null) {
-    const volume = (text: unknown) => typeof text === 'string' && /^[0-9]+([.][0-9]+)? ml$/.test(text) ? Number(text.split(' ')[0]) : null;
-    const oldMl = volume(prior.portion_text), newMl = volume(portionText);
-    if (oldMl !== null && newMl !== null) return rescaleStoredNutrition(nutrition, oldMl, newMl);
-   }
-   if(nutrition.source_ref && (toNumber(prior.portion_grams)<=0 || !hasAmounts)) {
+   if(prior.portion_grams==null&&grams==null)return rescalePortionNutrition(nutrition,prior.portion_grams,grams,prior.portion_text,portionText);
+   if(nutrition.source_ref && Number.isSafeInteger(Number(nutrition.source_ref)) && Number(nutrition.source_ref)>0 && (toNumber(prior.portion_grams)<=0 || !hasAmounts)) {
     const id=Number(nutrition.source_ref);
     const food=await getFoodById(admin,id,signal);
-    return storedNutrition(scaleNutrition(food,grams==null?null:toNumber(grams)),priorId);
+    const approximation=foodApproximation(nutrition);
+    return storedNutrition(scaleNutrition(approximation&&food?{...food,approximation}:food,grams==null?null:toNumber(grams)),priorId);
    }
-   return rescaleStoredNutrition(nutrition,prior.portion_grams,grams);
+   // Legacy estimates without a retained reference must re-resolve rather than
+   // reuse null amounts when a portion becomes known.
+   if(foodApproximation(nutrition)?.kind==='estimate'&&toNumber(grams)>0&&(toNumber(prior.portion_grams)<=0||!hasAmounts)&&!storedEstimateFood(nutrition))return null;
+   return rescalePortionNutrition(nutrition,prior.portion_grams,grams,prior.portion_text,portionText);
   }
   priorId=prior.supersedes;
  }

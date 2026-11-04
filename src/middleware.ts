@@ -1,11 +1,11 @@
+import { verifiedUserCookie } from "@/lib/auth/verified-cookie";
 import { VERIFIED_USER_HEADER } from "@/lib/auth/verified-user-header";
 import { mediaSessionEpoch } from "@/lib/auth/media-session-epoch";
 import { NextResponse, type NextRequest } from "next/server";
 import { createServerClient } from "@supabase/ssr";
 import { adminRequestAllowed, adminNotFoundResponse } from "@/lib/auth/admin-access";
+import { postRequestAllowed } from "@/lib/auth/post-access";
 import { sessionCookieBridge } from "@/lib/auth/session-cookies";
-
-import { homePhotoPreload } from "@/lib/posts/home-photo-preload";
 
 const PROTECTED = ["/", "/search", "/days", "/profile", "/posts"];
 
@@ -22,10 +22,12 @@ export async function middleware(request: NextRequest) {
   const {
     data: { user },
   } = await supabase.auth.getUser();
+  console.info(`auth verify middleware ${request.nextUrl.pathname}`);
   if (user) {
     request.headers.set(VERIFIED_USER_HEADER, user.id);
     session.refreshRequestHeaders();
   }
+  session.cookies.setAll([verifiedUserCookie(user?.id ?? null, request.nextUrl.protocol === "https:")]);
   const pathname = request.nextUrl.pathname;
   if (pathname === "/admin" || pathname.startsWith("/admin/")) {
     const allowed=await adminRequestAllowed(user?.id,async()=>supabase.from("profiles").select("role").eq("id",user!.id).maybeSingle());
@@ -33,6 +35,14 @@ export async function middleware(request: NextRequest) {
   }
   if (!user && PROTECTED.some((p) => pathname === p || pathname.startsWith(p + "/"))) {
     return session.apply(NextResponse.redirect(new URL("/sign-in", request.url)));
+  }
+  // A Suspense notFound() after streaming starts keeps HTTP 200. Check only
+  // owner metadata here so foreign direct links return a real private 404.
+  const postPath = pathname.match(/^\/posts\/([^/]+)\/?$/);
+  if (user && postPath) {
+    const allowed = await postRequestAllowed(user.id, postPath[1], () => supabase.from("posts")
+      .select("id,user_id").eq("id", postPath[1]).eq("user_id", user.id).is("deleted_at", null).maybeSingle());
+    if (!allowed) return adminNotFoundResponse(session.response);
   }
   // The worker can bind a new document before its priority SSR image arrives.
   // getUser above already validated Auth; this reads the local cookie session,
@@ -48,11 +58,9 @@ export async function middleware(request: NextRequest) {
     } catch { /* Unknown identity leaves private caching disabled. */ }
   }
   if (pathname === "/" && user) {
-    const preload = await homePhotoPreload(supabase, pathname, user.id);
-    if (preload) {
-      session.response.headers.append("Link", preload);
-      session.response.headers.set("Cache-Control", "private, no-store");
-    }
+    // Responsive image preloads belong in HTML: HTTP Link headers cannot
+    // select a density candidate and can fetch the base photo as well.
+    session.response.headers.set("Cache-Control", "private, no-store");
   }
   return session.response;
 }

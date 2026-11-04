@@ -4,7 +4,7 @@ import test from 'node:test';
 import {readFileSync} from 'node:fs';
 import {spawnSync} from 'node:child_process';
 import {createClient} from '@supabase/supabase-js';
-import {mergeProduct,productFromFood} from '../src/lib/fdc/barcode-product.ts';
+import {completeLabelCorrection,mergeProduct,productFromFood} from '../src/lib/fdc/barcode-product.ts';
 import {canonicalGtin,parseBarcodeCorrection} from '../src/lib/posts/barcode-correction.ts';
 import {labelNutrition,parseLabelReading} from '../src/lib/meta/label.ts';
 const migration=absentMigration(readFileSync(new URL('../supabase/migrations/0025_barcode_corrections.sql',import.meta.url),'utf8'),'0025_barcode_corrections.sql');
@@ -107,4 +107,21 @@ select 1/0 as quota_mutable_by_browser;
 rollback;
 \\echo barcode_correction_access_passed`;
  const result=spawnSync('psql',['-X','-qAt','--dbname',process.env.SUPABASE_DB_URL],{input:script,encoding:'utf8',timeout:90000});assert.ifError(result.error);assert.equal(result.status,0,result.stderr);assert.match(result.stdout,/barcode_correction_access_passed/);
+});
+
+test('a label correction stands in for a provider only when complete',()=>{const full={source:'label',per_100:{calories:100},name:'X',serving_unit:'g'};assert.equal(completeLabelCorrection(full),true);assert.equal(completeLabelCorrection({...full,name:null}),false);assert.equal(completeLabelCorrection({...full,serving_unit:null}),false);assert.equal(completeLabelCorrection({...full,source:'user'}),false);assert.equal(completeLabelCorrection(null),false);});
+
+
+test('empty label nutrition cannot replace a provider or erase usable provider nutrition',()=>{
+ const base=productFromFood({fdcId:7,description:'Provider food',foodNutrients:[{nutrientId:1008,value:90}]},'123');
+ const empty={calories:null,protein_g:null,carbs_g:null,fat_g:null,fibre_g:null,sugar_g:null,sodium_mg:null};
+ for(const per_100 of [empty,{}, {...empty,calories:NaN}, {...empty,calories:Infinity}, {...empty,calories:-1}]){
+  const own={source:'label',per_100,name:'Water',serving_unit:'ml'};
+  assert.equal(completeLabelCorrection(own),false);assert.equal(mergeProduct('123',null,own,null),null);
+  const fallback=mergeProduct('123',base,own,null);assert.deepEqual(fallback.per100g,base.per100g);
+ }
+ for(const field of ['calories','protein_g','carbs_g','fat_g']){
+  const own={source:'label',per_100:{...empty,[field]:0},name:'Water',serving_unit:'ml'};
+  assert.equal(completeLabelCorrection(own),true);assert.equal(mergeProduct('123',null,own,null).per100g[field],0);
+ }
 });

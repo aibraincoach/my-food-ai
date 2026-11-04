@@ -26,7 +26,7 @@ export default function BottomBar({ onPlus, menuOpen = false }: { onPlus: () => 
   },[]);
   const link=(slot:typeof SLOTS[number])=>{
     const active=slot.href==='/'?pathname==='/':pathname.startsWith(slot.href);
-    return <Link key={slot.href} href={slot.href} onClick={dismissSheets} aria-label={slot.label} aria-current={active?'page':undefined} className={`flex h-[46px] min-w-0 items-center justify-center rounded-[23px] text-text active:opacity-50 ${active?'bg-hairline':''}`}>
+    return <Link key={slot.href} href={slot.href} onClick={()=>{dismissSheets();if(slot.href==='/'&&pathname==='/'){window.dispatchEvent(new Event('home-reset'));window.scrollTo({top:0,behavior:'smooth'});}}} aria-label={slot.label} aria-current={active?'page':undefined} className={`flex h-[46px] min-w-0 items-center justify-center rounded-[23px] text-text active:opacity-50 ${active?'bg-hairline':''}`}>
       {slot.href==='/profile'?<span className="flex size-[26px] items-center justify-center rounded-circle bg-text text-avatar-sm text-surface">{initial||<Icon name="profile" size={18}/>}</span>:<Icon name={slot.icon} active={active} size={24}/>}
     </Link>;
   };
@@ -34,7 +34,7 @@ export default function BottomBar({ onPlus, menuOpen = false }: { onPlus: () => 
     {link(SLOTS[0])}{link(SLOTS[1])}
     <div className="relative flex h-[46px] items-center justify-center">
       {pathname==='/'&&feedEmpty&&<div className="pointer-events-none absolute bottom-full left-1/2 -translate-x-1/2 whitespace-nowrap pb-4"><Tooltip>Photograph a meal</Tooltip></div>}
-      <button type="button" id="post-menu-toggle" aria-label={menuOpen?'Close post menu':'Post a meal'} aria-expanded={menuOpen} aria-controls="post-menu" onClick={()=>{if(!menuOpen)dismissSheets();onPlus();}} className="flex size-[34px] items-center justify-center rounded-circle border-[1.5px] border-text text-text active:opacity-50"><Icon name="plus" size={20} style={{transform:`rotate(${menuOpen?45:0}deg)`,transition:'transform 160ms'}} /></button>
+      <button type="button" id="post-menu-toggle" aria-label={menuOpen?'Close post menu':'Post a meal'} aria-expanded={menuOpen} aria-controls="post-menu" onClick={()=>{if(!menuOpen)dismissSheets();onPlus();}} className="flex size-11 items-center justify-center text-text active:opacity-50"><span className="flex size-[34px] items-center justify-center rounded-circle border-[1.5px] border-text"><Icon name="plus" size={20} style={{transform:`rotate(${menuOpen?45:0}deg)`,transition:'transform 160ms'}} /></span></button>
     </div>
     {link(SLOTS[2])}{link(SLOTS[3])}
   </nav>;

@@ -2,6 +2,7 @@
 "use client";
 import OpenFoodFactsAttribution from './OpenFoodFactsAttribution';
 import {useDesktop} from "@/lib/ui/use-desktop";
+import {useCameraMode} from "@/lib/media/camera-mode";
 import {lockBodyScroll} from '@/lib/ui/scroll-lock';
 import {formatGtin} from "@/lib/fdc/gtin";
 import CorrectProductSheet from "@/components/CorrectProductSheet";
@@ -24,7 +25,7 @@ import { Field } from "@/components/ui/Field";
 import { Icon } from "@/components/ui/Icon";
 import { TopBar } from "@/components/ui/TopBar";
 import { requestLocation } from "@/lib/location/capture";
-import { openCamera, grabFrame, CameraFlipError, type Camera } from "@/lib/media/camera";
+import { openCamera, grabFrame, cameraVideoConstraints, CameraFlipError, type Camera } from "@/lib/media/camera";
 import {uploadManager} from "@/lib/posts/upload-manager";
 import {useUploads} from "@/components/useUploads";
 import { fromLocalInput, toLocalInput } from "@/lib/posts/eaten-at";
@@ -38,6 +39,7 @@ export type CaptureMode = "photo" | "text" | "barcode";
 export default function CaptureSheet({ onClose, initialMode = "photo", forPost, attachNotEaten = false, initialFiles }: { onClose: () => void; initialMode?: CaptureMode; forPost?: string; attachNotEaten?: boolean; initialFiles?: File[] }) {
   const router = useRouter();
   const desktop=useDesktop();
+  const phoneCamera=useCameraMode()==='phone'&&!desktop;
   const [cameraAttempt,setCameraAttempt]=useState(0);
   const [devices,setDevices]=useState<MediaDeviceInfo[]>([]);
   const [deviceId,setDeviceId]=useState('');
@@ -61,7 +63,7 @@ export default function CaptureSheet({ onClose, initialMode = "photo", forPost, 
   const [barcodeState, setBarcodeState] = useState<"idle" | "looking" | "missing" | "found" | "error">("idle");
   const [scannedCode,setScannedCode]=useState("");
   const [labelForCode,setLabelForCode]=useState<string|null>(null);
-  const [labelState,setLabelState]=useState<"idle"|"reading"|"read"|"missing"|"failed">("idle");
+  const [labelState,setLabelState]=useState<"idle"|"reading"|"read"|"missing"|"noServing"|"failed">("idle");
   const [labelReading,setLabelReading]=useState<{reading_id:string;reading:LabelReading}|null>(null);
   const [labelName,setLabelName]=useState("");
   const [labelServings,setLabelServings]=useState(1);
@@ -91,6 +93,7 @@ export default function CaptureSheet({ onClose, initialMode = "photo", forPost, 
   const mountedRef = useRef(false);
   const [stream, setStream] = useState<MediaStream | null>(null);
   const [cameraBusy, setCameraBusy] = useState(false);
+  const [takingPhoto,setTakingPhoto]=useState(false);
   const [cameraUnavailable, setCameraUnavailable] = useState(false);
   const postingRef = useRef(false);
   const [shots, setShots] = useState<Shot[]>(initialShots);
@@ -160,13 +163,13 @@ export default function CaptureSheet({ onClose, initialMode = "photo", forPost, 
     if (!shotsRef.current.length && !pendingFilesRef.current.length) selectedPhotoRef.current = false;
   };
 
-  const cameraEnabled = mode !== "text" && !composer;
+  const cameraEnabled = mode !== "text" && (!composer || takingPhoto) && !(phoneCamera && mode === "photo");
   useEffect(() => {
     mountedRef.current = true;
     let cancelled = false;
     if (!cameraEnabled) return () => { cancelled = true; mountedRef.current = false; };
     void loadBarcodeDecoder();
-    const acquire=desktop&&deviceId?navigator.mediaDevices.getUserMedia({video:{deviceId:{exact:deviceId}},audio:false}).then(stream=>({stream,close(){stream.getTracks().forEach(track=>track.stop());},async flip(){return stream;}})):openCamera(desktop?'user':'environment');
+    const acquire=desktop&&deviceId?navigator.mediaDevices.getUserMedia({video:cameraVideoConstraints('user',deviceId),audio:false}).then(stream=>({stream,close(){stream.getTracks().forEach(track=>track.stop());},async flip(){return stream;}})):openCamera(desktop?'user':'environment');
     void acquire.then((camera) => {
       if (cancelled) { camera.close(); return; }
       liveCameraRef.current = camera;
@@ -267,7 +270,8 @@ export default function CaptureSheet({ onClose, initialMode = "photo", forPost, 
       const response=await fetch("/api/label/read",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({photo_path:photo.path})});
       const result=await response.json();if(!response.ok)throw Error(result.error??"The label could not be read.");
       if(!mountedRef.current)return;
-      if(!result.reading.is_label||!result.reading.serving||!result.reading.per_serving){setLabelState("missing");return;}
+      if(!result.reading.is_label||!result.reading.per_serving){setLabelState("missing");return;}
+      if(!result.reading.serving){setLabelState("noServing");return;}
       setLabelReading(result);setLabelName("");setLabelServings(1);setLabelState("read");
       window.setTimeout(()=>document.getElementById("label-name")?.focus(),0);
     }catch(e){if(mountedRef.current){setLabelState("failed");setError(e instanceof Error?e.message:"The label could not be read.");}}
@@ -288,16 +292,12 @@ export default function CaptureSheet({ onClose, initialMode = "photo", forPost, 
       onClose();
     }catch(e){setError(e instanceof Error?e.message:"The meal could not be saved.");}finally{postingRef.current=false;setPosting(false);}
   };
-  const attachmentUpload=useRef<PackPhotoUpload|null>(null);
   const attachFile=async(file:File)=>{
     if(!forPost)return false;
     postingRef.current=true;setPosting(true);setError(null);
     try{
-      attachmentUpload.current??=new PackPhotoUpload();
-      const photo=await attachmentUpload.current.prepare(file);
-      const response=await fetch(`/api/posts/${forPost}/media`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({photo,not_eaten:attachmentIsLeftovers})});
-      const result=await response.json();if(!response.ok)throw Error(result.error??"The photo could not be attached. Your photo was kept; try again.");
-      window.dispatchEvent(new CustomEvent("post-created",{detail:{id:forPost}}));
+      // The file is kept on this device; upload and attachment continue in the background.
+      await uploadManager.postAttachment(file,{postId:forPost,notEaten:attachmentIsLeftovers});
       onClose();router.refresh();return true;
     }catch(e){if(mountedRef.current)setError(e instanceof Error?e.message:"The photo could not be attached. Your photo was kept; try again.");return false;}
     finally{postingRef.current=false;if(mountedRef.current)setPosting(false);}
@@ -355,17 +355,17 @@ export default function CaptureSheet({ onClose, initialMode = "photo", forPost, 
 
   const takePhoto = async () => {
     if (postingRef.current || cameraBusy || shotsRef.current.length >= MAX_SHOTS) return;
-    if (!stream || !videoRef.current) { cameraRef.current?.click(); return; }
-    setCameraBusy(true);
+    if ((phoneCamera && mode === "photo") || !stream || !videoRef.current) { cameraRef.current?.click(); return; }
+    setCameraBusy(true);setTakingPhoto(true);
     try {
       selectedPhotoRef.current = true;
       const blob = await grabFrame(videoRef.current,!forPost&&mode==='photo'?frame=>{
         if(mountedRef.current){setCameraPreview(frame);setComposer(true);}
-      }:undefined);
-      if (mountedRef.current) await addFiles([new File([blob], "meal.jpg", { type: "image/jpeg" })]);
+      }:undefined,true);
+      if (mountedRef.current) await addFiles([new File([blob], "meal.jpg", { type: blob.type || "image/jpeg" })]);
     } catch {
       if (mountedRef.current) {setError("Could not capture a photo. Try again or choose one from the gallery.");if(!forPost&&mode==='photo')setComposer(shotsRef.current.length>0);}
-    } finally { if (mountedRef.current) {setCameraPreview(null);setCameraBusy(false);} }
+    } finally { if (mountedRef.current) {setCameraPreview(null);setCameraBusy(false);setTakingPhoto(false);} }
   };
 
   const flipCamera = async () => {
@@ -400,6 +400,17 @@ export default function CaptureSheet({ onClose, initialMode = "photo", forPost, 
     if (!shotsRef.current.length && !pendingFilesRef.current.length) selectedPhotoRef.current = false;
   };
 
+  const savePhoto = async () => {
+    const shot = shotsRef.current[photoIndex];
+    if (!shot) return;
+    try {
+      if (typeof navigator.share === "function" && typeof navigator.canShare === "function" && navigator.canShare({ files: [shot.file] })) {
+        await navigator.share({ files: [shot.file] }); return;
+      }
+      const link = document.createElement("a"); link.href = shot.previewUrl; link.download = "meal.jpg"; link.click();
+    } catch { /* The user can dismiss the share sheet. */ }
+  };
+
   const post = async () => {
     if (postingRef.current || cameraBusy || pendingFilesRef.current.length > 0 || (!caption.trim() && shotsRef.current.length === 0)) return;
     postingRef.current = true;
@@ -410,7 +421,7 @@ export default function CaptureSheet({ onClose, initialMode = "photo", forPost, 
       const eatenAt = when === null ? null : fromLocalInput(when);
       if (when !== null && !eatenAt) throw new Error("Choose a time that is not in the future.");
       const id=uploadManager.stage(shotsRef.current.map(shot=>shot.file),{caption,location:chosenLocation,eatenAt,options:{not_eaten_positions:notEaten,save_as_meal:saveAsMeal}},operationRef.current??undefined);
-      operationRef.current=id;setOperationId(id);uploadManager.post(id);onClose();router.refresh();
+      operationRef.current=id;setOperationId(id);if(!await uploadManager.post(id))throw new Error("The post could not be kept on this phone. Keep this screen open and try again.");onClose();router.refresh();
     } catch (e) {
       setError(e instanceof Error ? e.message : "Posting failed.");
     } finally {
@@ -443,7 +454,7 @@ export default function CaptureSheet({ onClose, initialMode = "photo", forPost, 
     if(initialFiles?.length)void addFiles(initialFiles);
   },[initialFiles]); // eslint-disable-line react-hooks/exhaustive-deps
   const handleCaptureFiles=useEffectEvent((event:Event)=>{const incoming=(event as CustomEvent<{files:File[]}>).detail?.files;if(incoming?.length)void addFiles(incoming);});
-  const handleCaptureKey=useEffectEvent((event:KeyboardEvent)=>{if(!desktop||composer||mode!=='photo'||barcodeState!=='idle'||labelState!=='idle'||event.code!=='Space'||(event.target as HTMLElement)?.closest('input,textarea,select,[contenteditable="true"]'))return;event.preventDefault();void takePhoto();});
+  const handleCaptureKey=useEffectEvent((event:KeyboardEvent)=>{if(!desktop||composer||mode!=='photo'||barcodeState!=='idle'||labelState!=='idle'||event.code!=='Space'||(event.target as HTMLElement)?.closest('input,textarea,select,button,a[href],summary,[contenteditable="true"]'))return;event.preventDefault();void takePhoto();});
   useEffect(()=>{
     const files=(event:Event)=>handleCaptureFiles(event);
     const key=(event:KeyboardEvent)=>handleCaptureKey(event);
@@ -472,7 +483,7 @@ export default function CaptureSheet({ onClose, initialMode = "photo", forPost, 
 
 
   if(!forPost&&composer&&mode!=="barcode"&&barcodeState==="idle"&&labelState==="idle")return <div ref={dialogRef} role="dialog" aria-modal="true" aria-labelledby="capture-title" className="desktop-capture fixed inset-x-0 top-0 z-50 h-dvh overflow-hidden bg-surface" style={viewport?{height:viewport.height,top:viewport.top}:undefined}>
-    <div className="desktop-capture-inner mx-auto h-full max-w-phone desktop:max-w-[760px]"><LightComposer cameraPreview={cameraPreview} upload={upload} shots={shots} caption={caption} setCaption={setCaption} index={photoIndex} setIndex={setPhotoIndex} notEaten={notEaten} setNotEaten={setNotEaten} when={when} setWhen={setWhen} locationEnabled={locationEnabled} setLocationEnabled={enableLocation} saveAsMeal={saveAsMeal} setSaveAsMeal={setSaveAsMeal} busy={posting||cameraBusy} error={error} pending={pendingCount} onBack={closeDraft} onPhoto={()=>{setSearchingFoods(false);setComposer(false);setMode("photo");setStream(null);}} onSearch={()=>setSearchingFoods(value=>!value)} onPost={()=>{void post();}} onRemove={removeShot}
+    <div className="desktop-capture-inner mx-auto h-full max-w-phone desktop:max-w-[760px]"><LightComposer cameraPreview={cameraPreview} upload={upload} shots={shots} caption={caption} setCaption={setCaption} index={photoIndex} setIndex={setPhotoIndex} notEaten={notEaten} setNotEaten={setNotEaten} when={when} setWhen={setWhen} locationEnabled={locationEnabled} setLocationEnabled={enableLocation} saveAsMeal={saveAsMeal} setSaveAsMeal={setSaveAsMeal} busy={posting||cameraBusy} error={error} pending={pendingCount} onBack={closeDraft} onPhoto={()=>{setSearchingFoods(false);setComposer(false);setMode("photo");setStream(null);}} onSearch={()=>setSearchingFoods(value=>!value)} onPost={()=>{void post();}} onRemove={removeShot} onSavePhoto={phoneCamera?undefined:()=>{void savePhoto();}}
       searchPanel={searchingFoods?<div className="px-inset"><FoodSearchPanel eatenAt={when===null?null:fromLocalInput(when)} disabled={posting} onQueued={()=>{if(operationRef.current)void uploadManager.remove(operationRef.current);onClose();}} onDescribe={text=>{if(text&&!caption.trim())setCaption(text);setSearchingFoods(false);setError(null);}} onError={setError}/></div>:null}>
       <input ref={galleryRef} type="file" accept="image/*" multiple className="hidden" onChange={event=>{void addFiles(event.target.files);event.target.value='';}}/>
     </LightComposer></div>
@@ -492,11 +503,12 @@ export default function CaptureSheet({ onClose, initialMode = "photo", forPost, 
         <div className={`flex min-h-0 flex-1 flex-col overflow-y-auto overscroll-contain ${forPost?"desktop:!flex-auto":""}`} aria-label="Capture content">
         <div className="capture-hint px-screen-x"><FirstRunHint hint="capture" /></div>
         {forPost&&<div className="flex items-center justify-between gap-3 px-screen-x py-3"><span className="text-detail">Leftovers</span><button type="button" role="switch" aria-label="Leftovers" aria-checked={attachmentIsLeftovers} disabled={posting} onClick={()=>setAttachmentIsLeftovers(value=>!value)} className="min-h-11 rounded-pill bg-camera-field px-4 text-detail">{attachmentIsLeftovers?'On':'Off'}</button></div>}
-        {mode !== "text" && <><div {...(!desktop?modeSwipe:{})} className={`desktop-viewfinder relative flex touch-pan-y items-center justify-center overflow-hidden bg-camera text-camera-muted ${labelState==="read"?"min-h-[180px] shrink":"shrink-0"} desktop:mx-6 desktop:!mt-0 ${labelState==="read"?"":forPost?"desktop:!h-[min(400px,calc(100dvh-300px))] desktop:shrink desktop:min-h-0":"desktop:h-[450px]"} desktop:rounded-card`} style={{ height: labelState==="read"?300:tokens.capture.previewHeight, marginTop: tokens.capture.previewTop }}>
-          {labelState!=="idle"&&packPhoto ? <img src={packPhoto.previewUrl} alt="Photographed nutrition label" className="h-full w-full object-contain"/> : stream ? <video ref={videoRef} muted playsInline autoPlay aria-label="Live camera viewfinder" className="h-full w-full object-cover" /> : latest ? (
+        {mode !== "text" && <><div {...(!desktop?modeSwipe:{})} className={`desktop-viewfinder relative flex touch-pan-y items-center justify-center overflow-hidden bg-camera text-camera-muted ${labelState==="read"?"min-h-[180px] shrink":"shrink-0"} desktop:mx-6 desktop:!mt-0 ${labelState==="read"?"":forPost?"desktop:!h-[min(400px,calc(100dvh-300px))] desktop:shrink desktop:min-h-0":"desktop:h-auto desktop:min-h-[240px] desktop:flex-1 desktop:shrink"} desktop:rounded-card`} style={{ height: labelState==="read"?300:tokens.capture.previewHeight, marginTop: tokens.capture.previewTop }}>
+          {labelState!=="idle"&&packPhoto ? <img src={packPhoto.previewUrl} alt="Photographed nutrition label" className="h-full w-full object-contain"/> : stream && !(phoneCamera && mode === "photo") ? <video ref={videoRef} muted playsInline autoPlay aria-label="Live camera viewfinder" className="h-full w-full object-cover" /> : latest ? (
             // Local blob previews require no remote image transformation.
             <img src={latest.previewUrl} alt="Latest meal photo" className="h-full w-full object-cover" />
           ) : desktop&&forPost ? null : <Icon name="camera" />}
+          {phoneCamera&&mode==="photo"&&!latest&&<p className="absolute inset-x-6 bottom-6 text-center text-[14px] text-surface">The shutter opens the phone&apos;s camera app. Change this under Profile.</p>}
           {desktop&&(cameraUnavailable||forPost&&!stream&&!latest)&&<div className="absolute inset-0 flex flex-col items-center justify-center gap-3 px-6 text-center text-white">
             {forPost&&!stream&&!latest&&<><p className="text-[14px] font-semibold">Drop a photo here</p><p className="text-[13px] text-white/70">or paste one with ⌘V</p><button type="button" disabled={posting} onClick={()=>galleryRef.current?.click()} className="h-[42px] rounded-field bg-white px-[18px] text-[14px] font-semibold text-text disabled:opacity-50">Choose a file</button></>}
             {cameraUnavailable&&<button type="button" onClick={()=>setCameraAttempt(value=>value+1)} className="rounded-field border border-white/40 px-5 py-3 text-[14px] text-white">Allow camera</button>}
@@ -532,7 +544,7 @@ export default function CaptureSheet({ onClose, initialMode = "photo", forPost, 
           <button type="button" aria-label="Take a photo" disabled={posting || full || cameraBusy} onClick={takePhoto} className="desktop-shutter flex items-center justify-center rounded-circle border-surface disabled:opacity-50" style={{ width: tokens.capture.shutterSize, height: tokens.capture.shutterSize, borderWidth: tokens.capture.shutterBorder }}>
             {mode === "barcode" ? <BarcodeGlyph className="size-7 text-white opacity-50" /> : <span className="block rounded-circle bg-surface" style={{ width: tokens.capture.shutterDisc, height: tokens.capture.shutterDisc }} />}
           </button>
-          {stream ? <button type="button" aria-label="Flip camera" disabled={posting || cameraBusy} onClick={flipCamera} className="desktop:hidden flex size-tap items-center justify-center rounded-circle bg-camera-button disabled:opacity-50"><Icon name="flip" size={tokens.capture.galleryIcon} /></button> : <span className="size-tap" aria-hidden="true" />}
+          {stream && !(phoneCamera && mode === "photo") ? <button type="button" aria-label="Flip camera" disabled={posting || cameraBusy} onClick={flipCamera} className="desktop:hidden flex size-tap items-center justify-center rounded-circle bg-camera-button disabled:opacity-50"><Icon name="flip" size={tokens.capture.galleryIcon} /></button> : <span className="size-tap" aria-hidden="true" />}
           {desktop&&!composer&&labelState==='idle'&&<p className="absolute left-[calc(50%+48px)] flex items-center gap-2 whitespace-nowrap text-meta text-muted"><kbd className="flex h-[22px] items-center rounded-chip border border-line bg-white px-2 font-sans text-[11px] font-semibold text-text">Space</kbd>takes the photo</p>}
         </div>}
         {!forPost&&(mode === "text" || mode === "photo") && barcodeState === "idle" && labelState === "idle" && <div className="desktop:hidden flex shrink-0 overflow-x-auto px-screen-x" style={{ gap: tokens.capture.thumbGap }} aria-label="Meal photos">
@@ -550,7 +562,7 @@ export default function CaptureSheet({ onClose, initialMode = "photo", forPost, 
           {posting&&<p role="status">Adding photo…</p>}{error&&<p role="alert">{error}</p>}
           {!posting&&pendingCount>0&&<button type="button" disabled={cameraBusy} onClick={()=>{void addFiles([]);}} className="min-h-tap underline">Retry adding photo</button>}
         </div>:<>{labelState!=="idle" ? <section aria-label="Nutrition label" className="shrink-0 rounded-t-sheet bg-text px-screen-x py-5 text-surface">
-          {labelState==="reading"?<p role="status" className="text-body">Reading the label…</p>:labelState==="missing"||labelState==="failed"?<><p className="text-body">{labelState==="failed"?"The label could not be read. Try again.":"No nutrition label found"}</p><button type="button" onClick={()=>{setLabelState("idle");}} className="min-h-tap text-detail underline">Take the photo again</button><button type="button" onClick={typePackInstead} className="ml-4 min-h-tap text-detail underline">Type it instead</button></>:labelReading&&<>
+          {labelState==="reading"?<p role="status" className="text-body">Reading the label…</p>:labelState==="missing"||labelState==="noServing"||labelState==="failed"?<><p className="text-body">{labelState==="failed"?"The label could not be read. Try again.":labelState==="noServing"?"The serving weight or volume could not be read":"No nutrition label found"}</p><button type="button" onClick={()=>{setLabelState("idle");}} className="min-h-tap text-detail underline">Take the photo again</button><button type="button" onClick={typePackInstead} className="ml-4 min-h-tap text-detail underline">Type it instead</button></>:labelReading&&<>
           <div className="flex gap-3"><div className="min-w-0 flex-1"><p className="text-meta text-faint">Label read · per serving {labelReading.reading.serving?.amount} {labelReading.reading.serving?.unit}</p><Field id="label-name" variant="camera" autoFocus placeholder="Name this food" value={labelName} maxLength={80} onChange={e=>setLabelName(e.target.value)} disabled={posting}/><p className="mt-1.5 text-detail text-faint">{labelMacros(1)} · {labelNumber("fibre_g",1)} g fibre · {labelNumber("sugar_g",1)} g sugar · {labelNumber("sodium_mg",1)} mg sodium</p></div>{packPhoto&&<img src={packPhoto.previewUrl} alt="Nutrition label" className="size-14 rounded-thumb object-cover"/>}</div>
           <p className="mt-[18px] text-meta text-faint">How much?</p><div className="mt-2.5 flex flex-wrap gap-2">{[1,2,0.5].map(n=><button key={n} type="button" disabled={posting} onClick={()=>{setLabelServings(n);setOtherServings(false);}} aria-pressed={!otherServings&&labelServings===n} className={`h-10 rounded-field border px-3 text-comment font-medium ${!otherServings&&labelServings===n?"border-surface bg-surface text-text":"border-ring-on-ink"}`}>{n===0.5?"½ serving":`${n} ${n===1?"serving":"servings"}`}</button>)}<button type="button" onClick={()=>setOtherServings(true)} className="h-10 rounded-field border border-ring-on-ink px-3 text-comment">Other</button></div>
           {otherServings&&<Field variant="camera" aria-label="Number of servings" type="number" min="0.25" max="50" step="0.1" value={labelServings} onChange={e=>setLabelServings(Number(e.target.value))} disabled={posting}/>}

@@ -1,7 +1,7 @@
 import { lookupOpenFoodFacts } from "./open-food-facts";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { gtinCandidates, lookupBarcode } from "./barcode";
-import { mergeProduct, type BarcodeCorrection } from "./barcode-product";
+import { completeLabelCorrection, mergeProduct, type BarcodeCorrection } from "./barcode-product";
 
 export async function resolveProduct(raw: string, userId: string, options: { withoutLookup?: boolean } = {}) {
   const gtin = gtinCandidates(raw)[0]?.padStart(14,"0");
@@ -16,8 +16,8 @@ export async function resolveProduct(raw: string, userId: string, options: { wit
   // A complete label correction is usable even if FDC has no record or is offline.
   if(options.withoutLookup)return mergeProduct(gtin,null,own,shared.data as string|null);
   let base = null;
-  try { base = await lookupBarcode(gtin); } catch(error) { if (!(own?.source === "label" && own.per_100)) throw error; }
+  try { base = await lookupBarcode(gtin); } catch(error) { if (!completeLabelCorrection(own)) throw error; }
   // USDA FDC holds mostly US packs; Open Food Facts covers the rest.
-  if (!base) { try { base = await lookupOpenFoodFacts(gtin); } catch { base = null; } }
+  if (!base) { try { base = await lookupOpenFoodFacts(gtin); } catch (error) { if (!completeLabelCorrection(own)) throw error; } }
   return mergeProduct(gtin,base,own,shared.data as string|null);
 }

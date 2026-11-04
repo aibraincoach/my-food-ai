@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { font } from "@/lib/theme/font";
 import { tokens } from "@/lib/theme/tokens";
 import ServiceWorkerRegistration from "@/components/ServiceWorkerRegistration";
+import PostOpenTransition from "@/components/PostOpenTransition";
 import FeedCacheMutations from "@/components/FeedCacheMutations";
 import DeletePostSheet from "@/components/DeletePostSheet";
 import "./globals.css";
@@ -19,12 +20,13 @@ export const viewport: Viewport = { themeColor: tokens.colors.surface, viewportF
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className="h-full antialiased">
+    <html lang="en" className="h-full antialiased" data-build={process.env.NEXT_PUBLIC_BUILD}>
       <body className={`${font.className} ${font.variable} flex min-h-dvh flex-col`}>
         <ServiceWorkerRegistration />
         <DeletePostSheet />
         <FeedCacheMutations />
         {children}
+        <PostOpenTransition />
       </body>
     </html>
   );

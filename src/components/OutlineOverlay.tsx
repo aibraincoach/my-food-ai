@@ -1,5 +1,8 @@
 /* eslint-disable @next/next/no-img-element -- Private signed photos bypass public image optimization. */
 "use client";
+import {imageIdentity} from '@/lib/media/retained-image';
+import {feedPhotoSrcSet} from '@/lib/posts/feed-photo-url';
+import {desktopPhotoVars,photoBoxStyle} from '@/lib/media/photo-box';
 import {alcoholGrams,isAlcoholic} from '@/lib/intake/alcohol';
 import { nutritionTableRows } from "@/lib/nutrition/table";
 
@@ -13,7 +16,7 @@ import { tokens } from "@/lib/theme/tokens";
 import { useDrinkCard } from "@/components/useDrinkCard";
 import { cardDataFromRow, type CardData } from "@/lib/pipeline/card-data";
 import type { DrinkCardData } from "@/lib/intake/hydration";
-import { ResultsCard } from "@/components/ResultsCard";
+import { ARROW_GUTTER, ResultsCard } from "@/components/ResultsCard";
 import ItemRows, { outlineColor } from "@/components/ItemRows";
 import ItemEditSheet from "@/components/ItemEditSheet";
 import NutritionSummary from "@/components/NutritionSummary";
@@ -28,16 +31,19 @@ export function DetailDate({ value, weekday = false }: { value: string; weekday?
 }
 
 function DetailImage({ photo, alt }: { photo: DetailPhoto; alt: string }) {
-  const [src, setSrc] = useState(photo.previewUrl ?? photo.url);
+  const identity = imageIdentity(photo.url);
+  const [original, setOriginal] = useState<{identity:string;url:string}|null>(null);
+  const src = original?.identity === identity ? original.url : photo.previewUrl ?? photo.url;
+  const [failedSharp, setFailedSharp] = useState<string|null>(null);
   useEffect(() => {
     if (!photo.previewUrl) return;
     let live = true; const image = new Image();
     image.crossOrigin = "anonymous";
-    image.onload = () => { if (live) setSrc(photo.url); };
+    image.onload = () => { if (live) setOriginal({identity,url:photo.url}); };
     image.src = photo.url;
     return () => { live = false; };
-  }, [photo.url, photo.previewUrl]);
-  return <img src={src} crossOrigin="anonymous" alt={alt} draggable={false} className="h-full w-full object-cover" />;
+  }, [photo.url, photo.previewUrl, identity]);
+  return <img src={src} srcSet={failedSharp!==imageIdentity(src)&&src===photo.previewUrl?feedPhotoSrcSet(src):undefined} onError={()=>setFailedSharp(imageIdentity(src))} crossOrigin="anonymous" alt={alt} draggable={false} className="h-full w-full object-contain" />;
 }
 
 function Mask({ url, photo, color, frame, fallback }: {
@@ -59,20 +65,25 @@ function Mask({ url, photo, color, frame, fallback }: {
 }
 
 export default function OutlineOverlay({ desktopModal=false, desktopHeader, desktopThread, slides=[], initialized, readOnly = false, postId, caption, eatenAt, status, photo, items, modelCommentId=null, fingerprint=null, saved=false, handle:providedHandle, cardData, initialDrink, children }: {
-  desktopModal?:boolean; desktopHeader?:ReactNode; desktopThread?:ReactNode; slides?:import('@/lib/posts/feed').FeedPost['slides'];
+  desktopModal?:boolean; desktopHeader?:ReactNode; desktopThread?:ReactNode; slides?:import('@/lib/posts/items').DetailSlide[];
   cardData?: CardData; initialDrink?: DrinkCardData|null;
   initialized: boolean; readOnly?: boolean; postId: string; caption: string; eatenAt: string; status: string; photo: DetailPhoto | null; items: DetailItem[]; modelCommentId?:string|null; fingerprint?:string|null; saved?:boolean; handle?:string; children?:ReactNode;
 }) {
   const router = useRouter();
   const handle=usePostHandle(providedHandle);
   const [slide,setSlide]=useState(0);
+  const visibleSlides=desktopModal?slides:slides.filter(entry=>entry.kind==='photo');
+  const selectedIndex=Math.min(slide,Math.max(0,visibleSlides.length-1));
+  const selectedSlide=visibleSlides[selectedIndex];
+  const activePhoto:DetailPhoto|null=selectedIndex>0&&selectedSlide?.kind==='photo'
+    ? {id:selectedSlide.id,url:selectedSlide.url,previewUrl:selectedSlide.previewUrl,width:selectedSlide.width??1,height:selectedSlide.height??1,not_eaten:selectedSlide.not_eaten}:photo;
   useEffect(()=>{if(!desktopModal)return;const key=(event:KeyboardEvent)=>{if(event.defaultPrevented||((event.target as HTMLElement)?.closest('input,textarea,select,[contenteditable="true"]')||((event.target as HTMLElement)?.closest('[role="dialog"]')&&!((event.target as HTMLElement).closest('[role="dialog"]')?.classList.contains('desktop-post-dialog')))))return;const step=event.key==='ArrowRight'?1:event.key==='ArrowLeft'?-1:0;if(step){event.preventDefault();setSlide(value=>Math.max(0,Math.min(Math.max(0,slides.length-1),value+step)));}};window.addEventListener('keydown',key);return()=>window.removeEventListener('keydown',key);},[desktopModal,slides.length]);
-  const [expandedPhoto,setExpandedPhoto]=useState(false);
   const [expandedNutrition,setExpandedNutrition]=useState(false);
   const drink = useDrinkCard(postId, status, eatenAt, initialDrink);
+  const wholePhoto = Boolean(activePhoto) && !desktopModal && (!drink || drink.source === 'item');
   const localTime = useLocalTime(eatenAt);
   const ref = useRef<HTMLDivElement>(null);
-  const [frameHeight,setFrameHeight]=useState(640);
+  const [frameHeight,setFrameHeight]=useState(photo?Math.round(tokens.spacing.phone*photo.height/photo.width):640);
   const [width, setWidth] = useState<number>(tokens.spacing.phone);
   const [outlines, setOutlines] = useState(true);
   const [selection, setSelection] = useState<{ item: DetailItem | null; box?: ItemBox; key: number } | null>(null);
@@ -82,10 +93,10 @@ export default function OutlineOverlay({ desktopModal=false, desktopHeader, desk
   const [waiting, setWaiting] = useState(false);
   useEffect(() => {
     if (!ref.current) return;
-    const observer = new ResizeObserver(([entry]) => { if (entry.contentRect.width) setWidth(entry.contentRect.width); if(desktopModal&&entry.contentRect.height)setFrameHeight(entry.contentRect.height); });
+    const observer = new ResizeObserver(([entry]) => { if (entry.contentRect.width) setWidth(entry.contentRect.width); if((desktopModal||wholePhoto)&&entry.contentRect.height)setFrameHeight(entry.contentRect.height); });
     observer.observe(ref.current);
     return () => observer.disconnect();
-  }, [desktopModal]);
+  }, [desktopModal,wholePhoto]);
   useEffect(() => {
     const supabase = createClient();
     let live = true;
@@ -108,8 +119,8 @@ export default function OutlineOverlay({ desktopModal=false, desktopHeader, desk
     return () => { live = false; if (timer) clearInterval(timer); void supabase.removeChannel(channel); };
   }, [postId, status, waiting, router]);
 
-  const height=desktopModal?frameHeight:photo&&(!drink||drink.source==='item')?(expandedPhoto?width:230):width;
-  const scale = photo ? Math.max(width / photo.width, height / photo.height) : 1;
+  const height=desktopModal||wholePhoto?frameHeight:width;
+  const scale = photo ? Math.min(width / photo.width, height / photo.height) : 1;
   const offsetX = photo ? (width - photo.width * scale) / 2 : 0;
   const offsetY = photo ? (height - photo.height * scale) / 2 : 0;
   const frame = photo ? { left: offsetX, top: offsetY, width: photo.width * scale, height: photo.height * scale } : {};
@@ -118,7 +129,7 @@ export default function OutlineOverlay({ desktopModal=false, desktopHeader, desk
   const point = (event: { clientX: number; clientY: number }) => {
     if (!photo || !ref.current) return null;
     const rect = ref.current.getBoundingClientRect();
-    const ratio = Math.max(rect.width / photo.width, rect.height / photo.height);
+    const ratio = Math.min(rect.width / photo.width, rect.height / photo.height);
     const x = (event.clientX - rect.left - (rect.width - photo.width * ratio) / 2) / ratio;
     const y = (event.clientY - rect.top - (rect.height - photo.height * ratio) / 2) / ratio;
     return { x: Math.max(0, Math.min(photo.width, x)), y: Math.max(0, Math.min(photo.height, y)) };
@@ -146,21 +157,20 @@ export default function OutlineOverlay({ desktopModal=false, desktopHeader, desk
     : cardData ?? cardDataFromRow({ items, eatenAt });
   const showNutrition = initialized && (items.length > 0 || status === "ready");
   const Container=desktopModal?"div":Fragment;
-  return <Container {...(desktopModal?{className:"desktop-post-content"}:{})}>
-    <div ref={ref} className="relative w-full overflow-hidden bg-card" style={{ height, touchAction: drawing ? "none" : "auto" }}
+  return <Container {...(desktopModal?{className:"desktop-post-content",style:desktopPhotoVars(activePhoto)}:{})}>
+    <div ref={ref} className="relative w-full overflow-hidden bg-card" style={{ ...(wholePhoto&&activePhoto?photoBoxStyle(activePhoto):{height}), touchAction: drawing ? "none" : "auto" }}
       onPointerDown={pointerDown} onPointerMove={pointerMove} onPointerUp={pointerUp}
       onPointerCancel={() => { start.current = null; setDrawBox(null); }}
       onClick={(event) => {
-        if(desktopModal&&slide>0)return;
+        if(selectedIndex>0)return;
         if (drawing || selection) return;
-        if(readOnly || !initialized || !outlines){setExpandedPhoto(value=>!value);return;}
+        if(readOnly || !initialized || !outlines)return;
         const p = point(event); if (!p) return;
         const hit = items.filter((item) => item.box && p.x >= item.box.left && p.x <= item.box.right && p.y >= item.box.top && p.y <= item.box.bottom)
           .sort((a, b) => (a.box!.right - a.box!.left) * (a.box!.bottom - a.box!.top) - (b.box!.right - b.box!.left) * (b.box!.bottom - b.box!.top))[0];
         if (hit) setSelection({ item: hit, key: Date.now() });
-        else setExpandedPhoto(value=>!value);
       }}>
-      {desktopModal&&slide>0 ? slides[slide]?.kind==='photo'?<img src={slides[slide].url} alt={`Meal photo ${slide+1}`} className="size-full object-cover"/>:<ResultsCard data={displayCard} size={width} time={localTime}/> : photo && (!drink || drink.source === 'item') ? <>
+      {selectedIndex>0 ? selectedSlide?.kind==='photo'&&activePhoto?<DetailImage key={selectedSlide.id??selectedSlide.url} photo={activePhoto} alt={selectedSlide.not_eaten?'Leftovers':`Meal photo ${selectedIndex+1}`}/>:<ResultsCard data={displayCard} size={width} time={localTime}/> : photo && (!drink || drink.source === 'item') ? <>
         <DetailImage photo={photo} alt={caption || "Meal photo"} />
         {outlines && items.map((item, index) => item.box ? <div key={item.id}>
           <Mask url={item.maskUrl} photo={photo} color={outlineColor(index)} frame={frame} fallback={boxStyle(item.box)} />
@@ -172,13 +182,13 @@ export default function OutlineOverlay({ desktopModal=false, desktopHeader, desk
         </div> : null)}
         {drawBox ? <div className="pointer-events-none absolute rounded-field border-2 border-text" style={boxStyle(drawBox)} /> : null}
         <span className="pointer-events-none absolute bottom-3 right-3 rounded-field bg-overlay px-[10px] py-[5px] text-meta text-white">Outlines · tap one to edit</span>
-      </> : showNutrition ? <ResultsCard data={displayCard} size={width} time={localTime} /> : <div role="status" className="flex h-full items-center justify-center px-screen-x text-body text-muted">{status === "failed" ? "This meal could not be analysed." : status === "needs_input" ? "A question about this meal" : "Processing, traffic low"}</div>}
-      {desktopModal&&<><button type="button" aria-label="Previous slide" disabled={slide===0} onClick={event=>{event.stopPropagation();setSlide(value=>Math.max(0,value-1));}} className="absolute left-3 top-1/2 size-9 rounded-circle bg-white/90 text-[24px] text-text disabled:invisible">‹</button><button type="button" aria-label="Next slide" disabled={slide>=slides.length-1} onClick={event=>{event.stopPropagation();setSlide(value=>Math.min(Math.max(0,slides.length-1),value+1));}} className="absolute right-3 top-1/2 size-9 rounded-circle bg-white/90 text-[24px] text-text disabled:invisible">›</button><span className="absolute right-3 top-3 rounded-pill bg-overlay px-2 py-1 text-meta text-white">{slide+1}/{Math.max(1,slides.length)}</span></>}
+      </> : showNutrition ? <ResultsCard data={displayCard} size={width} time={localTime} gutter={visibleSlides.length>1?ARROW_GUTTER:0} /> : <div role="status" className="flex h-full items-center justify-center px-screen-x text-body text-muted">{status === "failed" ? "This meal could not be analysed." : status === "needs_input" ? "A question about this meal" : "Processing, traffic low"}</div>}
+      {visibleSlides.length>1&&<><button type="button" aria-label="Previous slide" disabled={selectedIndex===0} onClick={event=>{event.stopPropagation();setSlide(Math.max(0,selectedIndex-1));}} className="absolute left-3 top-1/2 size-9 rounded-circle bg-white/90 text-[24px] text-text disabled:invisible">‹</button><button type="button" aria-label="Next slide" disabled={selectedIndex>=visibleSlides.length-1} onClick={event=>{event.stopPropagation();setSlide(Math.min(Math.max(0,visibleSlides.length-1),selectedIndex+1));}} className="absolute right-3 top-1/2 size-9 rounded-circle bg-white/90 text-[24px] text-text disabled:invisible">›</button><span className="absolute right-3 top-3 rounded-pill bg-overlay px-2 py-1 text-meta text-white">{selectedIndex+1}/{Math.max(1,visibleSlides.length)}</span></>}
     </div>
     <Container {...(desktopModal?{className:"desktop-post-record"}:{})}>
     {desktopModal&&desktopHeader}
     <Container {...(desktopModal?{className:"desktop-post-scroll"}:{})}>
-    <Container {...(desktopModal?{className:"desktop-post-actions"}:{})}><PostActions detail postId={postId} modelCommentId={modelCommentId} fingerprint={fingerprint} drink={readOnly} saved={saved}/></Container>
+    <Container {...(desktopModal?{className:"desktop-post-actions"}:{})}><PostActions detail status={status} postId={postId} modelCommentId={modelCommentId} fingerprint={fingerprint} drink={readOnly} saved={saved}/></Container>
     <div className="px-inset"><PostCaption postId={postId} handle={handle} caption={caption}/></div>
     {showNutrition&&<>
       <NutritionSummary items={items}/>

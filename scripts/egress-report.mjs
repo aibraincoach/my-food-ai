@@ -1,6 +1,7 @@
 // node --env-file=.env.local scripts/egress-report.mjs
 // Read-only Management API aggregate queries. Never writes account data or prints tokens/IDs.
 import {writeFile} from 'node:fs/promises';
+if(process.argv.includes('--metrics')){await import('./fleet14-metrics.mjs');process.exit(0);}
 const option=(name,fallback)=>process.argv.find(arg=>arg.startsWith(`--${name}=`))?.slice(name.length+3)??fallback;
 const end=option('end',new Date().toISOString());
 const start=option('start',new Date(Date.parse(end)-86400000).toISOString());
@@ -22,7 +23,14 @@ const bytes="toUInt64OrZero(log_attributes['response.headers.content_length'])";
 // Keep aggregates coarse: no object/account ids, URL queries, IPs or raw agents.
 const prefix=`multiIf(startsWith(${path},'/storage/v1/object/'),'/storage/v1/object/…',startsWith(${path},'/rest/v1/rpc/'),concat('/rest/v1/rpc/',splitByChar('/',${path})[5]),startsWith(${path},'/rest/v1/'),concat('/rest/v1/',splitByChar('/',${path})[4]),startsWith(${path},'/auth/v1/'),'/auth/v1/…',startsWith(${path},'/realtime/'),'/realtime/…','other')`;
 const ua=`multiIf(positionCaseInsensitive(${agent},'pg_net')>0,'pg_net',positionCaseInsensitive(${agent},'Mozilla')>0,'browser',positionCaseInsensitive(${agent},'vercel')>0 OR positionCaseInsensitive(${agent},'node')>0 OR positionCaseInsensitive(${agent},'undici')>0,'server runtime','other/absent')`;
+// Stored feed sources: <owner>/<post>/<media>.feed.jpg; generated cards:
+// <owner>/<post>/cards/<revision>/card.png; original photographs: <media>.jpg.
+// The app's /api/media/feed/.../v1.webp proxy is not itself a Storage log path.
+const fileClass=`multiIf(endsWith(${path},'.feed.jpg'),'feed photo source',position(${path},'/cards/')>0 AND endsWith(${path},'/card.png'),'results card',endsWith(${path},'.jpg'),'original photograph','other storage')`;
+const clientClass=`multiIf(positionCaseInsensitive(${agent},'HeadlessChrome')>0 OR positionCaseInsensitive(${agent},'node')>0 OR positionCaseInsensitive(${agent},'undici')>0 OR positionCaseInsensitive(${agent},'curl')>0,'automation',positionCaseInsensitive(${agent},'Mobile')>0 AND positionCaseInsensitive(${agent},'Safari')>0,'mobile browser',positionCaseInsensitive(${agent},'Chrome')>0 OR positionCaseInsensitive(${agent},'Safari')>0 OR positionCaseInsensitive(${agent},'Firefox')>0,'desktop browser','other/unknown')`;
 const queries=[
+ ['Storage by file kind',`select ${fileClass} as file_kind,count(*) as requests,sum(${bytes}) as response_bytes,countIf(${bytes}=0) as bytes_missing_or_zero from logs where source='edge_logs' and startsWith(${path},'/storage/v1/object/') group by file_kind order by response_bytes desc`],
+ ['Storage by file kind and client',`select ${fileClass} as file_kind,${clientClass} as client_class,count(*) as requests,sum(${bytes}) as response_bytes,countIf(${bytes}=0) as bytes_missing_or_zero from logs where source='edge_logs' and startsWith(${path},'/storage/v1/object/') group by file_kind,client_class order by response_bytes desc`],
  ['Edge requests by path prefix',`select ${prefix} as path_prefix,count(*) as requests,sum(${bytes}) as response_bytes,countIf(${bytes}=0) as bytes_missing_or_zero from logs where source='edge_logs' group by path_prefix order by response_bytes desc`],
  ['Edge requests by user agent class',`select ${ua} as user_agent,count(*) as requests,sum(${bytes}) as response_bytes,countIf(${bytes}=0) as bytes_missing_or_zero from logs where source='edge_logs' group by user_agent order by response_bytes desc`],
  ['Log rows by source','select source,count(*) as rows from logs group by source order by rows desc'],

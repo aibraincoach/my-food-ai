@@ -1,4 +1,5 @@
-// node --env-file=.env.local scripts/load-test.mjs
+// node --env-file=.env.local scripts/load-test.mjs [--recording-session]
+// Default: historical 20-post arrival test on account1. --recording-session: 12 sequential posts on designated test account2, with verified cleanup.
 import { createClient } from '@supabase/supabase-js';
 import { signInAsTestUser } from './lib/session.mjs';
 import { scheduleSummary } from './lib/schedule.mjs';
@@ -163,7 +164,7 @@ async function main() {
     } finally { await report(run); }
 }
 
-main().catch((error) => {
+(process.argv.includes('--recording-session') ? import('./recording-cap-probe.mjs') : main()).catch((error) => {
   console.error(safeError(error instanceof Error ? error.message : 'Load test failed.'));
   process.exitCode = 1;
 });

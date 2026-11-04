@@ -9,6 +9,8 @@ import { uploadStore, type StoredUpload } from './upload-store';
 import { UPLOAD_PARK_MS, UPLOAD_GRACE_MS } from '@/lib/media/upload-window';
 import type { CapturedLocation } from '@/lib/location/capture';
 import { PhotoUploadError, type UploadError } from '@/lib/media/put-with-progress';
+import { PackPhotoUpload } from '@/lib/media/pack-photo-upload';
+import { reencodeShot } from '@/lib/media/reencode';
 export interface UploadState {
     operationId: string;
     kind?: "food"|"copy"|"drink";
@@ -16,6 +18,7 @@ export interface UploadState {
     removing?: boolean;
     drinkTile?: boolean;
     text?: boolean;
+    attachment?: {postId: string; notEaten: boolean};
     message?: string;
     uploadId?: string;
     sent: number;
@@ -44,6 +47,7 @@ type Entry = {
     deleted: boolean;
     finished: boolean;
     writing: Promise<unknown>;
+    attachmentUpload?: PackPhotoUpload;
 };
 const pause = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 /** Each mutation is persisted before network work. Only post() permits publication. */
@@ -52,12 +56,28 @@ export class UploadManager {
     private listeners = new Set<() => void>();
     private ownerId = '';
     private initializing: Promise<void> | null = null;
-    constructor(private store = uploadStore, private makeDraft = () => new PostUploadDraft(), private delay = pause, private foodRequest: typeof fetch = (...args) => fetch(...args)) { }
+    private ownerEpoch = 0;
+    private ownerPending: Promise<string> | null = null;
+    constructor(private store = uploadStore, private makeDraft = () => new PostUploadDraft(), private delay = pause, private foodRequest: typeof fetch = (...args) => fetch(...args), private readOwner: () => Promise<string | null> = async () => (await createClient().auth.getUser()).data.user?.id ?? null, private encodeShot = reencodeShot) { }
+    private resolveOwner(): Promise<string> {
+        if (this.ownerId) return Promise.resolve(this.ownerId);
+        if (this.ownerPending) return this.ownerPending;
+        const epoch = this.ownerEpoch;
+        const pending = this.readOwner().then(owner => {
+            if (!owner || epoch !== this.ownerEpoch || (this.ownerId && this.ownerId !== owner)) throw new Error('Sign-in changed. Keep this screen open and try again.');
+            this.ownerId = owner;
+            return owner;
+        });
+        this.ownerPending = pending;
+        const settled = () => { if (this.ownerPending === pending) this.ownerPending = null; };
+        void pending.then(settled, settled);
+        return pending;
+    }
     subscribe = (listener: () => void) => { this.listeners.add(listener); return () => { this.listeners.delete(listener); }; };
     private notify(entry?: Entry, event?: string) { for (const listener of this.listeners)
         listener(); if (entry && event && typeof window !== 'undefined')
         window.dispatchEvent(new CustomEvent(event, { detail: this.state(entry) })); }
-    private state(entry: Entry): UploadState { const d = entry.data; return { operationId: d.operationId, uploadId:d.snapshot?.id, caption: d.caption, eatenAt: d.eatenAt ?? new Date(d.createdAt).toISOString(), previewUrl: entry.previewUrl, sent: d.sent, total: d.total, state: d.state, error: d.error, posted: d.posted, ...((d.food||d.copy||d.drink||d.photoDrinks)?{kind:d.copy?"copy" as const:d.food?"food" as const:"drink" as const,removing:d.cancelRequested,message:d.message}:{}), ...(d.drink?{drinkTile:true}:{}), ...(!d.files.length&&!d.food&&!d.copy&&!d.drink&&!d.photoDrinks?{text:true}:{}), ...(entry.finished ? { postId: d.resultPostId??d.snapshot?.id } : {}) }; }
+    private state(entry: Entry): UploadState { const d = entry.data; return { operationId: d.operationId, uploadId:d.snapshot?.id, caption: d.caption, eatenAt: d.eatenAt ?? new Date(d.createdAt).toISOString(), previewUrl: entry.previewUrl, sent: d.sent, total: d.total, state: d.state, error: d.error, posted: d.posted, ...(d.attachment?{attachment:d.attachment,message:d.message}:{}), ...((d.food||d.copy||d.drink||d.photoDrinks)?{kind:d.copy?"copy" as const:d.food?"food" as const:"drink" as const,removing:d.cancelRequested,message:d.message}:{}), ...(d.drink?{drinkTile:true}:{}), ...(!d.files.length&&!d.food&&!d.copy&&!d.drink&&!d.photoDrinks?{text:true}:{}), ...(entry.finished ? { postId: d.resultPostId??d.snapshot?.id } : {}) }; }
 
     list = () => [...this.entries.values()].filter(e => !e.deleted).sort((a, b) => b.data.createdAt - a.data.createdAt).map(e => this.state(e));
     fields(id:string):DraftFields|null { const data=this.entries.get(id)?.data; return data?{caption:data.caption,eatenAt:data.eatenAt,location:data.location,options:{...data.options}}:null; }
@@ -73,6 +93,7 @@ export class UploadManager {
             return this.initializing;
         if (this.ownerId && this.ownerId !== ownerId)
             this.resetMemory();
+        if(this.ownerId !== ownerId){this.ownerEpoch++;this.ownerPending=null;}
         this.ownerId = ownerId;
         return this.initializing = (async () => { for (const data of await this.store.all()) {
             if (this.ownerId !== ownerId)
@@ -94,9 +115,10 @@ export class UploadManager {
         if (entry.previewUrl)
             URL.revokeObjectURL(entry.previewUrl);
     } this.entries.clear(); this.notify(); }
-    async clear() { const writes = [...this.entries.values()].map(entry => entry.writing.catch(() => { })); this.resetMemory(); this.ownerId = ''; this.initializing = null; await Promise.all(writes); await this.store.clear(); }
+    async clear() { const writes = [...this.entries.values()].map(entry => entry.writing.catch(() => { })); this.resetMemory(); this.ownerId = ''; this.ownerEpoch++; this.ownerPending=null; this.initializing = null; await Promise.all(writes); await this.store.clear(); }
     stage(files: File[], fields: DraftFields, operationId?: string) {
         let entry = operationId ? this.entries.get(operationId) : undefined;
+        if(entry?.finished)return entry.data.operationId;
         if (!entry) {
             const id = crypto.randomUUID();
             const now = Date.now();
@@ -195,8 +217,63 @@ export class UploadManager {
         void this.run(entry);return id;
     }
 
-    post(id: string) { const entry = this.entries.get(id); if (!entry || entry.deleted)
-        return; entry.data.posted = true; void this.persist(entry); this.notify(entry, 'upload-started'); void this.run(entry); }
+    /** Resolve only once the photo is durable; network work continues after the sheet closes. */
+    async postAttachment(file: File, attachment: {postId: string; notEaten: boolean}): Promise<string> {
+        const owner = await this.resolveOwner();
+        const now=Date.now(),id=crypto.randomUUID();
+        const entry=this.make({operationId:id,ownerId:owner,createdAt:now,reservedAt:now,caption:attachment.notEaten?'Leftovers':'Added photo',eatenAt:null,location:null,options:{},files:[file],snapshot:null,posted:true,attachment:{...attachment},state:'uploading',sent:0,total:file.size});
+        this.entries.set(id,entry);
+        this.notify(entry,'upload-started');
+        try{await this.persist(entry);}catch{
+            // The sheet keeps its file when this acknowledgement fails. Drop this
+            // operation so a sheet retry cannot race a second retry from the chip.
+            await this.remove(id);
+            throw new Error('The photo could not be kept on this phone. Try again.');
+        }
+        if(entry.deleted||this.ownerId!==owner)throw new Error('Sign-in changed. Your photo is kept for its original account.');
+        void this.run(entry);return id;
+    }
+    private async submitAttachment(entry:Entry):Promise<{postId:string}> {
+        const d=entry.data,attachment=d.attachment!;
+        if(!d.attachmentPhoto){
+            entry.attachmentUpload??=new PackPhotoUpload(this.encodeShot,this.foodRequest);
+            d.attachmentPhoto=await entry.attachmentUpload.prepare(d.files[0]);
+        }
+        // Persist before attach: the server deduplicates by this stage path, even after a lost response/reload.
+        await this.persist(entry);
+        if(entry.deleted||d.ownerId!==this.ownerId)throw new Error('Sign-in changed. Your photo is kept for its original account.');
+        const response=await this.foodRequest(`/api/posts/${attachment.postId}/media`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({photo:d.attachmentPhoto,not_eaten:attachment.notEaten})});
+        const result=await response.json().catch(()=>null) as {post_id?:string;error?:string;code?:string}|null;
+        if(!response.ok&&result?.code==='attachment_stage_expired'){
+            // Only the server can prove the old reservation cannot complete.
+            // A lost response or a transient failure must keep its original path.
+            d.attachmentPhoto=undefined;entry.attachmentUpload=undefined;
+            await this.persist(entry);
+        }
+        if(!response.ok||!result?.post_id){d.message=typeof result?.error==='string'?result.error.slice(0,200):'The photo could not be attached. Your photo is kept.';throw new Error(d.message);}
+        return {postId:result.post_id};
+    }
+
+    /** Acknowledge only an owner-bound recoverable draft, or confirmed publication.
+     * Upload work keeps running when the durable acknowledgement fails. */
+    async post(id: string): Promise<boolean> {
+        const entry = this.entries.get(id);
+        if (!entry || entry.deleted) return false;
+        if (entry.finished) return Boolean(entry.data.resultPostId);
+        entry.data.posted = true;
+        this.notify(entry, 'upload-started');
+        void this.run(entry);
+        try {
+            const owner = await this.resolveOwner();
+            const current = () => !entry.deleted && this.entries.get(id) === entry && this.ownerId === owner && entry.data.ownerId === owner;
+            if (entry.deleted || this.entries.get(id) !== entry || this.ownerId !== owner || (entry.data.ownerId && entry.data.ownerId !== owner)) return false;
+            entry.data.ownerId = owner;
+            await this.persist(entry);
+            return current();
+        } catch {
+            return !entry.deleted && this.entries.get(id) === entry && Boolean(this.ownerId) && entry.data.ownerId === this.ownerId && entry.finished && Boolean(entry.data.resultPostId);
+        }
+    }
     async discardFood(id:string){
         const entry=this.entries.get(id);
         if((!entry?.data.food&&!entry?.data.copy)||entry.deleted||entry.finished)return;
@@ -207,7 +284,7 @@ export class UploadManager {
     }
     discardCopy(id:string){return this.discardFood(id);}
     retry(id: string) { const entry = this.entries.get(id); if (!entry || entry.deleted || entry.finished)
-        return; entry.data.state = 'uploading'; entry.data.error = undefined; entry.data.message=undefined; this.notify(entry, 'upload-progress'); void this.run(entry); }
+        return; entry.data.state = 'uploading'; entry.data.error = undefined; entry.data.message=undefined; this.notify(entry, 'upload-progress'); if(entry.active)entry.rerun=true; void this.run(entry); }
     online = () => { for (const entry of this.entries.values())
         if (entry.data.state === 'failed')
             this.retry(entry.data.operationId); };
@@ -258,15 +335,11 @@ export class UploadManager {
     private async process(entry: Entry) {
         try {
             if(entry.deleted||(entry.data.ownerId&&this.ownerId&&entry.data.ownerId!==this.ownerId))return;
-            if (!this.ownerId) {
-                const { data: { user } } = await createClient().auth.getUser();
-                if (!user)
-                    throw new Error('Sign in required.');
-                this.ownerId = user.id;
-            }
-            entry.data.ownerId = this.ownerId;
+            const owner = await this.resolveOwner();
+            if (entry.deleted || this.entries.get(entry.data.operationId) !== entry || this.ownerId !== owner || (entry.data.ownerId && entry.data.ownerId !== owner)) return;
+            entry.data.ownerId = owner;
             await this.persist(entry);
-            if (entry.deleted)
+            if (entry.deleted || this.ownerId !== owner || entry.data.ownerId !== owner)
                 return;
             if((entry.data.food||entry.data.copy||entry.data.drink||entry.data.photoDrinks)&&entry.data.cancelRequested){
                 const response=await this.foodRequest(entry.data.copy?copyEndpoint(entry.data.copy):entry.data.photoDrinks?'/api/drinks/post':entry.data.drink?'/api/intake/post':'/api/posts/food',{method:'DELETE',headers:{'Content-Type':'application/json'},body:JSON.stringify({operation_id:entry.data.operationId,owner_id:entry.data.ownerId,...(entry.data.copy?{eaten_at:entry.data.copy.eatenAt}:{}),...(entry.data.photoDrinks?{upload_id:entry.data.photoDrinks.upload_id}:{})})});
@@ -289,7 +362,7 @@ export class UploadManager {
                         this.attachSnapshot(entry);
                     }
                     const d = entry.data;
-                    if (d.files.length&&!d.photoDrinks&&!(d.food&&'photo' in d.food))
+                    if (d.files.length&&!d.attachment&&!d.photoDrinks&&!(d.food&&'photo' in d.food))
                         await entry.draft.stage(d.caption, d.files, d.location, d.eatenAt, d.options);
                     if (entry.deleted)
                         return;
@@ -313,7 +386,7 @@ export class UploadManager {
                     await this.persist(entry);
                     if (entry.deleted)
                         return;
-                    const result = d.copy?await this.submitCopy(entry):d.food ? await this.submitFood(entry) : (d.drink||d.photoDrinks)?await this.submitDrink(entry):await entry.draft.submit(d.caption, d.files, d.location, d.eatenAt, d.files.length ? 'photo' : 'text', d.options);
+                    const result = d.attachment?await this.submitAttachment(entry):d.copy?await this.submitCopy(entry):d.food ? await this.submitFood(entry) : (d.drink||d.photoDrinks)?await this.submitDrink(entry):await entry.draft.submit(d.caption, d.files, d.location, d.eatenAt, d.files.length ? 'photo' : 'text', d.options);
 
                     if (entry.deleted)
                         return;

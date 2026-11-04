@@ -7,6 +7,7 @@ import {createServer} from 'node:http';
 process.env.IDENTIFY_OPEN_MODEL='meta-models/muse-spark-open-1026';
 process.env.MODEL_API_BASE_URL='http://127.0.0.1:1/v1';process.env.MODEL_API_KEY='offline-meta';
 process.env.NEXT_PUBLIC_SUPABASE_URL='https://trace.invalid';process.env.SUPABASE_SECRET_KEY='offline-trace';
+process.env.IDENTIFY_OPEN_TIMEOUT_MS='600';
 const {openRequest,readOpenResponse,openIdentifyModel}=await import('../src/lib/meta/open-weights.ts');
 const body={model:'muse-spark-1.3',instructions:'Name foods',input:[{role:'user',content:[{type:'input_text',text:'toast'},{type:'input_image',image_url:'data:image/jpeg;base64,AA=='}]}],text:{format:{name:'identify',schema:{type:'object'}}},reasoning:{effort:'low'}};
 test('maps identify messages and structured output to the open provider',()=>{
@@ -29,4 +30,14 @@ test('a local provider 500 falls back to Meta and records actual identities',asy
 });
 test('migration defaults to Meta and the setting RPC changes only the authenticated owner',()=>{
  const sql=readFileSync(new URL('../supabase/migrations/0032_identify_provider.sql',import.meta.url),'utf8');assert.match(sql,/default 'meta'/);assert.match(sql,/where id=auth\.uid\(\)/);assert.match(sql,/revoke all.*from public,anon/);assert.match(sql,/add column model text, add column host text/);
+});
+
+test('a late format rejection shares the total deadline and falls back to Meta',async()=>{
+ let requests=0;
+ const server=createServer((_req,res)=>{requests++;if(requests===1)setTimeout(()=>{res.writeHead(400,{'Content-Type':'application/json'});res.end(JSON.stringify({error:{message:'response_format is not supported'}}));},300);});
+ await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));
+ process.env.IDENTIFY_OPEN_BASE_URL=`http://127.0.0.1:${server.address().port}/v1`;process.env.IDENTIFY_OPEN_API_KEY='offline-open';
+ const original=globalThis.fetch;
+ globalThis.fetch=async(input,init)=>{const url=new URL(input);if(url.origin==='https://trace.invalid')return new Response(null,{status:201});if(url.port==='1')return Response.json({status:'completed',output:[{type:'message',content:[{type:'output_text',text:JSON.stringify({items:[{name:'toast',region_index:null,portion_text:'one slice',portion_grams:30,confidence:0.8}],summary:'Toast',needs_input:null})}]}],usage:{input_tokens:1,output_tokens:1}});return original(input,init);};
+ try{const {identifyItems}=await import('../src/lib/meta/spark.ts');const start=performance.now();const result=await identifyItems(null,'image/jpeg','toast',[],'',[],'','open');const elapsed=performance.now()-start;assert.equal(result.items[0].name,'toast');assert.equal(requests,2);assert.ok(elapsed>=550&&elapsed<900,`shared deadline elapsed ${elapsed}ms`);}finally{globalThis.fetch=original;server.closeAllConnections();await new Promise(resolve=>server.close(resolve));delete process.env.IDENTIFY_OPEN_TIMEOUT_MS;}
 });

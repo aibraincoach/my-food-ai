@@ -38,3 +38,9 @@ test('portion changes retain exact selected identity and normalized density', ()
   assert.equal(again.calories,50); assert.equal(again.source_ref,'987654');
   assert.equal(rescaleStoredNutrition(row,null,50).calories,null);
 });
+
+test('sugar falls back to Sugars, Total 1063 and preserves 2000 precedence', () => {
+  const sugar = (nutrientId, value) => ({nutrientId, nutrientName:'Sugars, Total', unitName:'G', value});
+  assert.equal(scaleNutrition({...food, foodNutrients:[sugar(1063,8.55)]},50).sugarG,4.275);
+  assert.equal(scaleNutrition({...food, foodNutrients:[sugar(1063,8),sugar(2000,5)]},50).sugarG,2.5);
+});

@@ -1,9 +1,10 @@
+import { approximationLabels } from "@/lib/fdc/approximation-metadata";
 import { resolvePortionNutrition } from "@/lib/nutrition/portion";
 import { ioError } from "@/lib/worker/errors";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { JobRow } from "@/lib/queue/claim";
 import { resolveNutritionItems } from "@/lib/fdc/resolve-items";
-import { resolveFoodMatch, traceNutritionReuse, nutritionResolutionBudget } from "@/lib/fdc/match";
+import { resolveFoodMatchDetailed, traceNutritionReuse, nutritionResolutionBudget } from "@/lib/fdc/match";
 import { scaleNutrition } from "@/lib/fdc/nutrients";
 import { markReady } from "@/lib/pipeline/persist";
 import { toNumber, type CurrentItem, type NutritionLike, type StoredNutrient } from "@/lib/nutrition/totals";
@@ -36,8 +37,8 @@ export default async function recompute(admin: SupabaseClient, job: JobRow): Pro
       // Resolve all item data before issuing the one atomic nutrition write.
       const retained = await resolvePortionNutrition(admin, job.post_id!, item.supersedes, item.name, item.portion_grams, item.portion_text,signal);
       if (retained) return {...retained,post_item_id:item.id};
-      const food = await resolveFoodMatch(admin,item.name,context.caption??"",signal);
-      const n = scaleNutrition(food, item.portion_grams == null ? null : toNumber(item.portion_grams));
+      const match = await resolveFoodMatchDetailed(admin,item.name,context.caption??"",signal,{approximate:true});
+      const n = scaleNutrition(match.food, item.portion_grams == null ? null : toNumber(item.portion_grams), match.unavailable);
       return {
         post_item_id: item.id, calories: n.calories, protein_g: n.proteinG,
         carbs_g: n.carbsG, fat_g: n.fatG, fibre_g: n.fibreG, sugar_g: n.sugarG,
@@ -50,6 +51,19 @@ export default async function recompute(admin: SupabaseClient, job: JobRow): Pro
         .upsert(writes,{onConflict:"post_item_id",ignoreDuplicates:true});
       if(writeError)throw ioError(`recompute save: ${writeError.message}`,writeError,writeStatus);
     }
+  }
+  {
+    const {getCurrentItems,sumNutrition}=await import('@/lib/nutrition/totals');
+    const {safeSummary}=await import('@/lib/pipeline/wording');
+    const current=await getCurrentItems(admin,job.post_id,{requireNutrition:true});
+    const labels=approximationLabels(current);
+    const body=await safeSummary('',sumNutrition(current),labels,current.map(item=>({name:item.name,sourceRef:item.source_ref})));
+    // Post lock, job ownership and current source refs are rechecked together.
+    const {error:summaryError,status:summaryStatus}=await admin.rpc('refresh_owned_approximation_summary',{
+      p_post_id:job.post_id,p_job_id:job.id,p_summary:body,
+      p_expected:current.map(item=>({id:item.id,source_ref:item.source_ref})),
+    });
+    if(summaryError)throw ioError('Nutrition summary could not be saved.',summaryError,summaryStatus);
   }
   await markReady(job.post_id, admin,job.id);
 }
@@ -96,7 +110,8 @@ async function rebuildRemoved(admin:SupabaseClient,job:JobRow){
   if(!isOwnedPhotoPath(photo.storage_path,post.user_id,postId))throw Error('Leftovers photo does not belong to this meal.');
   install(await replayRemainder(admin,photo.storage_path,items) as unknown as RebuiltRow[]);
  }
- const summary=formatConsumed(sumNutrition(items));
+ const labels=approximationLabels(items);
+ const summary=[formatConsumed(sumNutrition(items)),...labels.map(label=>label.kind==='estimate'?`Nutrition for ${label.name} is a model estimate, ${label.basis}`:`Nutrition for ${label.name} is taken from the closest USDA record, ${label.basis}`)].join('. ');
  const removed=thread.find(comment=>comment.id===job.payload.comment_id);
  const reply=job.payload.reason==='media_removed'?`${job.payload.media_unmarked===true?'Unmarked the leftovers photo.':'Removed the leftovers photo.'} ${summary}.`:`Removed the correction "${(removed?.body??'').slice(0,60)}". ${summary}.`;
  // Quoted user words are retained verbatim; only generated commentary makes

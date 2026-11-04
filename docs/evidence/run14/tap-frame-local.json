@@ -1,0 +1,95 @@
+{
+  "browser": "Firefox native WebDriver BiDi",
+  "app": "default Turbopack production build against disposable local stack",
+  "viewport_trials": [
+    {
+      "width": 390,
+      "kind": "photo",
+      "ms": 20,
+      "firstTop": 100,
+      "finalTop": 100,
+      "delta": 0,
+      "url": "/posts/eddea94a-11b6-4401-9381-535769f67ab8",
+      "dialog": false
+    },
+    {
+      "width": 390,
+      "kind": "more",
+      "ms": 19,
+      "firstTop": 100,
+      "finalTop": 100,
+      "delta": 0,
+      "url": "/posts/eddea94a-11b6-4401-9381-535769f67ab8",
+      "dialog": false
+    },
+    {
+      "width": 390,
+      "kind": "Details",
+      "ms": 13,
+      "firstTop": 100,
+      "finalTop": 100,
+      "delta": 0,
+      "url": "/posts/eddea94a-11b6-4401-9381-535769f67ab8",
+      "dialog": false
+    },
+    {
+      "width": 390,
+      "kind": "Comment",
+      "ms": 24,
+      "firstTop": 100,
+      "finalTop": 100,
+      "delta": 0,
+      "url": "/posts/eddea94a-11b6-4401-9381-535769f67ab8?reply=1",
+      "dialog": false
+    },
+    {
+      "width": 1280,
+      "kind": "photo",
+      "ms": 17,
+      "firstTop": 60,
+      "finalTop": 60,
+      "delta": 0,
+      "url": "/?post=eddea94a-11b6-4401-9381-535769f67ab8",
+      "dialog": true
+    },
+    {
+      "width": 1280,
+      "kind": "more",
+      "ms": 22,
+      "firstTop": 60,
+      "finalTop": 60,
+      "delta": 0,
+      "url": "/?post=eddea94a-11b6-4401-9381-535769f67ab8",
+      "dialog": true
+    },
+    {
+      "width": 1280,
+      "kind": "Details",
+      "ms": 27,
+      "firstTop": 60,
+      "finalTop": 60,
+      "delta": 0,
+      "url": "/?post=eddea94a-11b6-4401-9381-535769f67ab8",
+      "dialog": true
+    },
+    {
+      "width": 1280,
+      "kind": "Comment",
+      "ms": 23,
+      "firstTop": 60,
+      "finalTop": 60,
+      "delta": 0,
+      "url": "/?post=eddea94a-11b6-4401-9381-535769f67ab8",
+      "dialog": true
+    }
+  ],
+  "network": "RSC fetch initiation delayed1200ms in browser; cached feed photo",
+  "limits": "Chromium CDP failed at cookie and navigation plumbing. Firefox does not support the required CDP CPU4x/Fast3G emulation; no claim those exact conditions passed.",
+  "screenshotsStored": false,
+  "checks": {
+    "tap_suite": "14 passed",
+    "typescript": "pass",
+    "build": "pass",
+    "lint": "0errors/6existing warnings"
+  }
+}

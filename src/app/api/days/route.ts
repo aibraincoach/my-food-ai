@@ -18,7 +18,7 @@ export async function GET(request: Request) {
     if (date !== null) {
       if (!validDate(date) || date > dateInZone(new Date(), zone)) return NextResponse.json({ error: "Invalid day." }, { status: 400 });
       const days = await getDays(db, user.id, zone, date, date);
-      return NextResponse.json({ day: days[0] ?? { date, posts: [], totals: sumNutrition([]), intake: emptyIntake() } }, { headers });
+      return NextResponse.json({ day: days[0] ?? { date, posts: [], totals: sumNutrition([]), intake: emptyIntake(), pending: 0 } }, { headers });
     }
     const month = params.get("month") ?? undefined;
     if (!validMonth(month)) return NextResponse.json({ error: "Invalid month." }, { status: 400 });

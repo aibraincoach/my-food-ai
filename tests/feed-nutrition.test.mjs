@@ -88,7 +88,7 @@ test('all feed and refreshed photos use small owner URLs while only card PNGs ar
   throw Error('Unexpected fixture request '+url.pathname);
  }}});
  const batch=await toFeedPosts(db,posts);
- for(const post of batch)for(const slide of post.slides.filter(s=>s.kind==='photo'))assert.equal(slide.url,`/api/media/feed/${owner}/${post.id}/${slide.id}/v1.webp`);
+ for(const post of batch)for(const slide of post.slides.filter(s=>s.kind==='photo'))assert.equal(slide.url,`/api/media/feed/${owner}/${post.id}/${slide.id}/v2.webp`);
  assert.deepEqual(signed,[media[2].storage_path],'photo signing is eliminated, not duplicated beside small URLs');
  const refreshed=await getPostCard(db,posts[0].id);
  assert.deepEqual(refreshed.slides.filter(s=>s.kind==='photo').map(s=>s.url),batch[0].slides.filter(s=>s.kind==='photo').map(s=>s.url),'realtime refresh cannot restore the old large Storage paths');

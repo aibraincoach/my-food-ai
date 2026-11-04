@@ -12,15 +12,15 @@ import {getFeed,getFirstFeedPhoto} from '../src/lib/posts/feed.ts';
 
 const owner='11111111-1111-4111-8111-111111111111',post='22222222-2222-4222-8222-222222222222',media='33333333-3333-4333-8333-333333333333';
 const path=`${owner}/${post}/0.jpg`;
-const routeSource=readFileSync(new URL('../src/app/api/media/feed/[owner]/[post]/[media]/v1.webp/route.ts',import.meta.url),'utf8');
+const routeSource=readFileSync(new URL('../src/lib/posts/feed-photo-response.ts',import.meta.url),'utf8');
 const compiled=ts.transpileModule(routeSource,{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText;
-function route({user={id:owner},row={storage_path:path,kind:'photo'},authThrows=false,transform=photo.resizeFeedPhoto,sourceFetch}={}) {
+function route({user={id:owner},row={storage_path:path,kind:'photo'},authThrows=false,transform=photo.resizeFeedPhoto,sourceFetch,version=1}={}) {
  const filters=[],calls={auth:0,select:0,fetch:0,sign:0};
  const query={select(){calls.select++;return this;},eq(k,v){filters.push([k,v]);return this;},async maybeSingle(){return {data:row,error:null};}};
- const db={auth:{async getUser(){calls.auth++;if(authThrows)throw Error('private diagnostic');return {data:{user},error:null};},async getSession(){return {data:{session:{access_token:'offline-token'}}};}},from(){return query;},storage:{from(){return {async createSignedUrl(){calls.sign++;return {data:{signedUrl:'https://storage.example/storage/v1/object/sign/media/owned'},error:null};}};}}};
+ const db={auth:{async getUser(){calls.auth++;if(authThrows)throw Error('private diagnostic');return {data:{user},error:null};},async getSession(){if(authThrows)throw Error('private diagnostic');return {data:{session:user?{access_token:'offline-token',user}:null}};}},from(){return query;},storage:{from(){return {async createSignedUrl(){calls.sign++;return {data:{signedUrl:'https://storage.example/storage/v1/object/sign/media/owned'},error:null};}};}}};
  const exports={};
  vm.runInNewContext(compiled,{exports,require(name){if(name==='@/lib/supabase/server')return {createClient:async()=>db};if(name==='@/lib/posts/feed-photo')return {...photo,resizeFeedPhoto:transform};throw Error(name);},Response,Request,URL,AbortSignal,Uint8Array,process:{env:{NEXT_PUBLIC_SUPABASE_URL:'https://storage.example',NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY:'offline'}},fetch:async(...args)=>{calls.fetch++;return sourceFetch(...args);}});
- return {get:async(params={owner,post,media},search='',requestHeaders={})=>exports.GET(new Request(`https://app.example${smallFeedPhotoUrl(owner,post,media)}${search}`,{headers:requestHeaders}),{params:Promise.resolve(params)}),calls,filters};
+ return {get:async(params={owner,post,media},search='',requestHeaders={})=>exports.serveFeedPhoto(new Request(`https://app.example${smallFeedPhotoUrl(owner,post,media)?.replace('/v2.webp',`/v${version}.webp`)}${search}`,{headers:requestHeaders}),{params:Promise.resolve(params)},version),calls,filters};
 }
 
 test('route rejects invalid, signed-out, cross-owner, deleted and foreign-path media before storage',async()=>{
@@ -96,7 +96,17 @@ test('matching ETag revalidates ownership before 304 without varying immutable i
  const response=await r.get({owner,post,media},'',{'If-None-Match':`"${media}-v1"`});
  assert.equal(response.status,304);assert.equal(response.headers.get('etag'),`"${media}-v1"`);
  assert.equal(response.headers.get('vary'),null);assert.equal(response.headers.get('cache-control'),'private, max-age=31536000, immutable');
- assert.equal(r.calls.auth,1);assert.equal(r.calls.select,1);assert.equal(r.calls.fetch,0);assert.equal(r.calls.sign,0);
+ assert.equal(r.calls.auth,0);assert.equal(r.calls.select,1);assert.equal(r.calls.fetch,0);assert.equal(r.calls.sign,0);
  const unsigned=route({user:null});const denied=await unsigned.get({owner,post,media},'',{'If-None-Match':`"${media}-v1"`});
  assert.equal(denied.status,401);assert.equal(denied.headers.get('cache-control'),'private, no-store');
+});
+
+test('v2 preserves dense-phone pixels under a new immutable identity and still verifies ownership',async()=>{
+ const source=await sharp({create:{width:1440,height:1920,channels:3,background:'#a44c32'}}).jpeg().toBuffer();
+ const r=route({version:2,sourceFetch:async()=>new Response(source)}),response=await r.get();
+ const info=await sharp(Buffer.from(await response.arrayBuffer())).metadata();
+ assert.equal(response.status,200);assert.equal(info.width,1440);assert.equal(info.height,1920);
+ assert.equal(response.headers.get('etag'),`"${media}-v2"`);assert.match(smallFeedPhotoUrl(owner,post,media),/\/v2\.webp$/);
+ const conditional=await r.get({owner,post,media},'',{'If-None-Match':`"${media}-v2"`});assert.equal(conditional.status,304);assert.equal(r.calls.select,2);assert.equal(r.calls.fetch,1);
+ const denied=await route({version:2,user:{id:post}}).get();assert.equal(denied.status,404);
 });

@@ -4,6 +4,7 @@ import {useRouter} from 'next/navigation';
 import {sendFeedback} from '@/lib/posts/feedback';
 import {createTapController} from '@/lib/posts/tap';
 import {Icon} from '@/components/ui/Icon';
+const openTarget=(router:ReturnType<typeof useRouter>,target:string)=>{const id=target.match(/^\/posts\/([0-9a-f-]{36})/i)?.[1];if(id&&matchMedia('(min-width:1024px)').matches&&document.querySelector('[data-desktop-workspace]')){window.dispatchEvent(new CustomEvent('open-post',{detail:{id}}));return;}if(id)window.dispatchEvent(new CustomEvent('post-open-preview',{detail:{id,committed:true}}));router.push(target);};
 // A double tap votes up; a single tap opens the meal (href) once it is clear no second tap follows.
 export default function DoubleTap({postId,modelCommentId,fingerprint,href,children}:{postId:string;modelCommentId:string|null;fingerprint:string|null;href?:string;children:ReactNode}){
  const router=useRouter();const pending=useRef(false);const timer=useRef<ReturnType<typeof setTimeout>|null>(null);
@@ -13,11 +14,11 @@ export default function DoubleTap({postId,modelCommentId,fingerprint,href,childr
   pending.current=true;
   void sendFeedback(postId,'up',modelCommentId,fingerprint).then(()=>{setShown(true);if(timer.current)clearTimeout(timer.current);timer.current=setTimeout(()=>setShown(false),600);}).catch(()=>window.dispatchEvent(new CustomEvent('feedback-error',{detail:{postId}}))).finally(()=>{pending.current=false;});
  };
- const latest=useRef({vote,open:(target:string)=>router.push(target)});
+ const latest=useRef({vote,open:(target:string)=>openTarget(router,target)});
  const controller=useRef<ReturnType<typeof createTapController>|null>(null);
- useEffect(()=>{latest.current={vote,open:(target:string)=>router.push(target)};});
+ useEffect(()=>{latest.current={vote,open:(target:string)=>openTarget(router,target)};});
  useEffect(()=>{
-  const created=createTapController({now:()=>performance.now(),open:(target)=>latest.current.open(target),vote:()=>latest.current.vote()});
+  const created=createTapController({preview:target=>{const id=target.match(/^\/posts\/([0-9a-f-]{36})/i)?.[1];if(id)window.dispatchEvent(new CustomEvent('post-open-preview',{detail:{id}}));},cancelPreview:()=>window.dispatchEvent(new Event('post-open-cancel')),now:()=>performance.now(),open:(target)=>latest.current.open(target),vote:()=>latest.current.vote()});
   controller.current=created;
   return()=>{created.dispose();controller.current=null;if(timer.current)clearTimeout(timer.current);};
  },[]);

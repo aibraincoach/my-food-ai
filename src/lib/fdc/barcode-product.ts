@@ -89,14 +89,25 @@ export interface BarcodeCorrection {
 }
 export type ResolvedProduct = BarcodeProduct & { source: "database" | "own" | "shared"; originalName?: string };
 
+// Zero is a valid label value; an empty object or null-only nutrition is not.
+export function usableBarcodeNutrition(nutrition: BarcodeNutrition | null | undefined): boolean {
+  return Boolean(nutrition && [nutrition.calories, nutrition.protein_g, nutrition.carbs_g, nutrition.fat_g]
+    .some(value => typeof value === "number" && Number.isFinite(value) && value >= 0));
+}
+
+// A saved label can replace a provider only when it can make a card by itself.
+export function completeLabelCorrection(own: BarcodeCorrection | null | undefined): boolean {
+  return Boolean(own && own.source === "label" && usableBarcodeNutrition(own.per_100) && own.name && own.serving_unit);
+}
+
 // Pure precedence rule is also used by access tests; no server module enters the camera bundle.
 export function mergeProduct(gtin: string, base: BarcodeProduct | null, own: BarcodeCorrection | null, sharedName: string | null): ResolvedProduct | null {
-  if (!base && !(own?.per_100 && own.name && own.serving_unit)) return null;
+  if (!base && !(usableBarcodeNutrition(own?.per_100) && own?.name && own.serving_unit)) return null;
   const original = base ?? { fdcId: 0, gtin, name: "Packaged food", brand: null, basisUnit: own?.serving_unit ?? "g", servingSize: null,
     servingSizeUnit: null, servingText: null, packageWeight: null, micronutrients: [], per100g: own!.per_100! };
   return { ...original, source: own ? "own" : sharedName ? "shared" : "database", originalName: original.name,
     name: own?.name ?? sharedName ?? original.name,
-    ...(own?.per_100 ? { per100g: own.per_100, micronutrients: [], basisUnit: own.serving_unit ?? original.basisUnit } : {}),
+    ...(usableBarcodeNutrition(own?.per_100) ? { per100g: own!.per_100!, micronutrients: [], basisUnit: own!.serving_unit ?? original.basisUnit } : {}),
     ...(own?.serving_amount ? { servingSize: Number(own.serving_amount), servingSizeUnit: own.serving_unit ?? original.basisUnit } : {}),
     ...(own?.pack_amount ? { packageWeight: `${own.pack_amount} ${own.pack_unit ?? original.basisUnit}` } : {}),
   };

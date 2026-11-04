@@ -19,10 +19,14 @@ export type ResultsCardProps = {
   items?: { name: string; grams: number | null }[];
   size?: number;
   fontFamily?: string;
+  // Live slide arrows need space; stored card images keep the original layout.
+  gutter?: number;
 };
 
+export const ARROW_GUTTER = 24;
+
 /** The exact same flex layout renders in the browser and next/og (Satori). */
-export function ResultsCard({ data, drink, unavailable = [], time, calories = null, protein = null, carbs = null, fat = null, items = [], size = tokens.spacing.phone, fontFamily }: ResultsCardProps) {
+export function ResultsCard({ data, drink, unavailable = [], time, calories = null, protein = null, carbs = null, fat = null, items = [], size = tokens.spacing.phone, fontFamily, gutter = 0 }: ResultsCardProps) {
   const card: CardData = data ?? {
     kind: drink ? 'drink' : 'meal', amountMl: drink?.ml, caffeineMg: drink?.caffeineMg,
     drinkLine: drink ? `${drink.label}${drink.caffeineMg ? ` · ${formatNutrition(drink.caffeineMg)} mg caffeine · ${formatCalories(calories)} kcal` : ''}` : undefined,
@@ -44,7 +48,7 @@ export function ResultsCard({ data, drink, unavailable = [], time, calories = nu
   const split = (value: number, word: string) => <span key={word}>
     <span style={{ color: tokens.colors.text, fontWeight: tokens.card.emphasisWeight }}>{Math.round(value).toLocaleString('en-US')}{word === 'caffeine' ? ' mg' : ' ml'}</span>{` ${word}`}
   </span>;
-  return <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between', width: size, height: size, padding: tokens.spacing['card-padding'] * scale, boxSizing: 'border-box', background: tokens.colors.card, color: tokens.colors.text, fontFamily }}>
+  return <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between', width: size, height: size, padding: tokens.spacing['card-padding'] * scale, ...(gutter ? { paddingLeft: tokens.spacing['card-padding'] * scale + gutter, paddingRight: tokens.spacing['card-padding'] * scale + gutter } : {}), boxSizing: 'border-box', background: tokens.colors.card, color: tokens.colors.text, fontFamily }}>
     <div style={{ display: 'flex', ...text('meta'), color: tokens.colors.muted, letterSpacing: tokens.card.labelTracking * scale, textTransform: 'uppercase' }}>{isDrink ? 'DRANK' : 'CONSUMED'}{time ? ` · ${time}` : ''}</div>
     {isDrink?<div style={{display:'flex',alignItems:'center',gap:12*scale}}>
       <div style={{display:'flex',flexWrap:'wrap',maxWidth:150*scale}}>{Array.from({length:cups},(_,index)=><DrinkPicture key={index} glyph={glyph} size={tokens.typography['display-card'].size*scale}/>)}</div>

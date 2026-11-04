@@ -261,5 +261,36 @@
     "name": "ceramic plate",
     "caption": "An empty ceramic plate, no food.",
     "unavailable": true
+  },
+  {
+    "name": "spicy Indonesian fried macaroni snack",
+    "caption": "Spicy Indonesian macaroni",
+    "requires": [
+      [
+        "macaroni",
+        "pasta"
+      ]
+    ],
+    "rejects": [
+      "chili",
+      "cheese",
+      "salad",
+      "shrimp"
+    ]
+  },
+  {
+    "name": "cendol",
+    "caption": "Indonesian iced dessert drink with pandan jelly, coconut milk and palm sugar",
+    "requires": [
+      [
+        "cendol",
+        "pandan",
+        "coconut",
+        "jelly",
+        "dessert",
+        "palm"
+      ]
+    ],
+    "rejects": []
   }
 ]

@@ -1,6 +1,6 @@
 // Client-side shot re-encoding. Drawing through a canvas drops EXIF
 // (including GPS) and bakes in orientation. Two JPEGs per shot: the
-// original capped at 4096px on the long side, and a 1080px feed copy.
+// original capped at 4096px on the long side, and a 1920px feed copy.
 
 export interface ReencodedShot {
   original: Blob;
@@ -11,7 +11,7 @@ export interface ReencodedShot {
 }
 
 const ORIGINAL_LONG_SIDE = 4096;
-const FEED_LONG_SIDE = 1080;
+const FEED_LONG_SIDE = 1920;
 
 function drawScaled(img: HTMLImageElement, longSide: number): HTMLCanvasElement {
   const scale = Math.min(1, longSide / Math.max(img.naturalWidth, img.naturalHeight));

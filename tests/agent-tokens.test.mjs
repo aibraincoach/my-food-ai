@@ -3,7 +3,7 @@
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import test from 'node:test';
-import { randomToken, hashToken, createToken, authenticateBearer, revokeToken } from '../src/lib/agents/tokens.ts';
+import { randomToken, hashToken, createToken, authenticateBearer } from '../src/lib/agents/tokens.ts';
 import { readAgentText } from '../src/lib/agents/request-body.ts';
 import { mealInput, getMeal, correctMeal } from '../src/lib/agents/ops.ts';
 const request = token => new Request('http://localhost/mcp', { headers: token ? { Authorization: `Bearer ${token}` } : {} });

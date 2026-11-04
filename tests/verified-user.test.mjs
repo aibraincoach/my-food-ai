@@ -1,3 +1,4 @@
+import './fixtures/async-local-storage.mjs';
 // node --import tsx --test tests/verified-user.test.mjs
 import assert from 'node:assert/strict';
 import test from 'node:test';
@@ -18,7 +19,12 @@ async function withAuth(run) {
   process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY='fixture-key';
   let authCalls=0;
   globalThis.fetch=async input=>{
-    assert.equal(new URL(String(input instanceof Request?input.url:input)).pathname,'/auth/v1/user');
+    const url=new URL(String(input instanceof Request?input.url:input));
+    if(url.pathname==='/rest/v1/posts'){
+      assert.equal(url.searchParams.get('user_id'),'eq.'+user.id,'post lookup uses the Auth identity');
+      return Response.json({id:url.searchParams.get('id').slice(3),user_id:user.id});
+    }
+    assert.equal(url.pathname,'/auth/v1/user');
     authCalls++;return Response.json(user);
   };
   try {await run(()=>authCalls);}
