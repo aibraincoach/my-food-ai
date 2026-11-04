@@ -5,7 +5,7 @@ const copy={id:'source',saved:false,eatenAt:'2026-11-03T01:00:00Z'},pause=()=>ne
 const deferred=()=>{let resolve;const promise=new Promise(yes=>resolve=yes);return{promise,resolve};};
 async function until(check){for(let i=0;i<200;i++){if(check())return;await pause();}throw Error('copy queue did not settle');}
 const makeDraft=()=>({setProgress(){},setSnapshotListener(){},restore(){},snapshot:async()=>null,stage:async()=>{throw Error('A copy must not stage a photo');},submit:async()=>{throw Error('A copy must not re-analyse the meal');}});
-function store(){const rows=new Map();return{rows,all:async()=>[...rows.values()],put:async row=>rows.set(row.operationId,structuredClone(row)),remove:async id=>rows.delete(id),clear:async()=>rows.clear()};}
+function store(){const rows=new Map(),intents=new Map();return{rows,intents,all:async()=>[...rows.values()],put:async row=>rows.set(row.operationId,structuredClone(row)),allIntents:async()=>[...intents.values()],putIntent:async intent=>intents.set(intent.operationId,structuredClone(intent)),removeIntent:async id=>intents.delete(id),remove:async id=>{rows.delete(id);intents.delete(id);},clear:async()=>{rows.clear();intents.clear();}};}
 test('copy selection is durable and visible as a new pending entry before its response',async()=>{
  const db=store(),gate=deferred();let calls=0;
  const manager=new UploadManager(db,makeDraft,async()=>{},async(url,options)=>{calls++;assert.equal(url,'/api/posts/source/log-again');const body=JSON.parse(options.body);assert.equal(body.owner_id,'owner');assert.deepEqual(db.rows.get(body.operation_id).copy,copy);return gate.promise;});

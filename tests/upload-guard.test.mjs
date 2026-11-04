@@ -11,7 +11,8 @@ const file=new File(['image'],'meal.jpg',{type:'image/jpeg'});
 const fields={caption:'meal',eatenAt:null,location:null,options:{}};
 const pause=()=>new Promise(resolve=>setTimeout(resolve,0));
 async function until(predicate){for(let i=0;i<100;i++){if(predicate())return;await pause();}throw Error('state did not settle');}
-function harness(makeDraft){const rows=new Map();const store={all:async()=>[...rows.values()],put:async row=>{rows.set(row.operationId,structuredClone(row));},remove:async id=>{rows.delete(id);},clear:async()=>rows.clear()};const manager=new UploadManager(store,makeDraft,async()=>{});return{manager,store,rows};}
+function withIntents(store,rows){const intents=new Map();return Object.assign(store,{intents,allIntents:async()=>[...intents.values()],putIntent:async intent=>{intents.set(intent.operationId,structuredClone(intent));},removeIntent:async id=>intents.delete(id),remove:async id=>{intents.delete(id);rows.delete(id);},clear:async()=>{intents.clear();rows.clear();}});}
+function harness(makeDraft){const rows=new Map();const store=withIntents({all:async()=>[...rows.values()],put:async row=>{rows.set(row.operationId,structuredClone(row));},remove:async id=>{rows.delete(id);},clear:async()=>rows.clear()},rows);const manager=new UploadManager(store,makeDraft,async()=>{});return{manager,store,rows};}
 test('posting before PUT completion waits; three failures never publish; online retries safely',async()=>{
  let release,attempts=0,published=0,shouldFail=true;const gate=new Promise(resolve=>release=resolve);
  const draft={setProgress(){},snapshot:async()=>null,stage:async()=>{attempts++;await gate;if(shouldFail)throw Error('dropped');},submit:async()=>{published++;return{postId:'post'};}};
@@ -24,7 +25,7 @@ test('a reload restores the persisted photo and failed draft, then explicit retr
 });
 test('another signed-in owner cannot restore the first owner\'s photos',async()=>{const{manager,store}=harness(()=>({setProgress(){},snapshot:async()=>null,stage:async()=>{},submit:async()=>({postId:'post'})}));await manager.initialize('owner');manager.stage([file],fields);await pause();const other=new UploadManager(store);await other.initialize('other');assert.deepEqual(other.list(),[]);});
 test('deleting a draft waits for a pending checkpoint so it cannot reappear after reload',async()=>{
- let release;const gate=new Promise(resolve=>release=resolve),rows=new Map();const store={all:async()=>[],put:async row=>{await gate;rows.set(row.operationId,row);},remove:async id=>rows.delete(id),clear:async()=>rows.clear()};
+ let release;const gate=new Promise(resolve=>release=resolve),rows=new Map();const store=withIntents({all:async()=>[],put:async row=>{await gate;rows.set(row.operationId,row);},remove:async id=>rows.delete(id),clear:async()=>rows.clear()},rows);
  const draft={setProgress(){},snapshot:async()=>null,stage:async()=>{},submit:async()=>{throw Error('must not publish')}};const manager=new UploadManager(store,()=>draft,async()=>{});await manager.initialize('owner');const id=manager.stage([file],fields);await pause();const removed=manager.remove(id);release();await removed;await pause();assert.equal(rows.size,0);assert.deepEqual(manager.list(),[]);
 });
 test('an old ambiguous publication retries the same reservation instead of duplicating the meal',async()=>{
@@ -63,12 +64,22 @@ test('two-shot reservation refuses publication with only one stored object (2202
 test('posting acknowledges a delayed durable flag while the upload runs',async()=>{
  const {manager,store}=harness(()=>({setProgress(){},snapshot:async()=>null,stage:async()=>new Promise(()=>{}),submit:async()=>({postId:'posted'})}));
  await manager.initialize('owner');const id=manager.stage([file],fields);await pause();
- const original=store.put;let saved=false;store.put=async row=>{await new Promise(resolve=>setTimeout(resolve,50));await original(row);if(row.posted)saved=true;};
- let resolved=false;const ack=manager.post(id).then(result=>{resolved=true;assert.equal(saved,true);return result;});await pause();assert.equal(resolved,false);assert.equal(manager.list()[0].state,'uploading');assert.equal(await ack,true);
+ const original=store.putIntent;let intentSaved=false;store.putIntent=async intent=>{await new Promise(resolve=>setTimeout(resolve,50));await original(intent);intentSaved=true;};
+ store.put=async()=>new Promise(()=>{});
+ let resolved=false;const ack=manager.post(id).then(result=>{resolved=true;assert.equal(intentSaved,true);return result;});await pause();assert.equal(resolved,false);assert.equal(manager.list()[0].state,'uploading');assert.equal(await ack,true);
+});
+test('publish intent survives a slow draft write and still publishes after reload',async()=>{
+ let publishes=0;const draft={setProgress(){},restore(){},snapshot:async()=>({id:'posted',images:[],completed:[]}),stage:async()=>{},submit:async()=>{publishes++;return{postId:'posted'}}};
+ const {store,rows}=harness(()=>draft);const id=randomUUID(),now=Date.now();
+ await store.putIntent({operationId:id,ownerId:'owner',createdAt:now,postId:null,notEaten:false});
+ await store.put({operationId:id,ownerId:'owner',createdAt:now,reservedAt:now,...fields,files:[file],snapshot:null,posted:false,state:'uploading',sent:0,total:file.size});
+ assert.equal(rows.get(id).posted,false);
+ const restored=new UploadManager(store,()=>draft,async()=>{});await restored.initialize('owner');assert.equal(restored.list()[0].posted,true);
+ await until(()=>publishes===1);assert.equal(restored.list()[0].postId,'posted');
 });
 test('posting reports a rejected durable flag without stopping the upload',async()=>{
  const {manager,store}=harness(()=>({setProgress(){},snapshot:async()=>null,stage:async()=>new Promise(()=>{}),submit:async()=>({postId:'posted'})}));
- await manager.initialize('owner');const id=manager.stage([file],fields);await pause();store.put=async()=>{throw Error('disk failed')};assert.equal(await manager.post(id),false);assert.equal(manager.list()[0].posted,true);assert.equal(manager.list()[0].state,'uploading');
+ await manager.initialize('owner');const id=manager.stage([file],fields);await pause();store.putIntent=async()=>{throw Error('disk failed')};assert.equal(await manager.post(id),false);assert.equal(manager.list()[0].posted,true);assert.equal(manager.list()[0].state,'uploading');
 });
 
 test('retrying after a completed background post reuses its operation without publishing twice',async()=>{
@@ -78,7 +89,7 @@ test('retrying after a completed background post reuses its operation without pu
 
 test('an uninitialized post waits for its owner-bound checkpoint and can recover after reload',async()=>{
  let authenticate;const auth=new Promise(resolve=>authenticate=resolve),rows=new Map();
- const store={all:async()=>[...rows.values()],put:async row=>rows.set(row.operationId,structuredClone(row)),remove:async id=>rows.delete(id),clear:async()=>rows.clear()};
+ const store=withIntents({all:async()=>[...rows.values()],put:async row=>rows.set(row.operationId,structuredClone(row)),remove:async id=>rows.delete(id),clear:async()=>rows.clear()},rows);
  const makeDraft=()=>({setProgress(){},restore(){},snapshot:async()=>null,stage:async()=>new Promise(()=>{}),submit:async()=>{throw Error('must stay pending')}});
  const manager=new UploadManager(store,makeDraft,async()=>{},fetch,()=>auth);
  const id=manager.stage([file],fields);let resolved=false;
@@ -91,21 +102,22 @@ test('an uninitialized post waits for its owner-bound checkpoint and can recover
 test('a post checkpoint cannot acknowledge an entry deleted or switched to another account while writing',async()=>{
  for(const change of ['remove','account']){
   let release;const gate=new Promise(resolve=>release=resolve),rows=new Map();
-  const store={all:async()=>[...rows.values()],put:async row=>{if(row.posted)await gate;rows.set(row.operationId,structuredClone(row));},remove:async id=>rows.delete(id),clear:async()=>rows.clear()};
+  const store=withIntents({all:async()=>[...rows.values()],put:async row=>rows.set(row.operationId,structuredClone(row)),remove:async id=>rows.delete(id),clear:async()=>rows.clear()},rows);
+  const originalIntent=store.putIntent;store.putIntent=async intent=>{await gate;return originalIntent(intent);};
   const draft={setProgress(){},snapshot:async()=>null,stage:async()=>new Promise(()=>{}),submit:async()=>{throw Error('must stay pending')}};
   const manager=new UploadManager(store,()=>draft,async()=>{});await manager.initialize('owner');const id=manager.stage([file],fields);await pause();const ack=manager.post(id);await pause();
   const changed=change==='remove'?manager.remove(id):manager.initialize('other');release();await changed;assert.equal(await ack,false);assert.deepEqual(manager.list(),[]);
  }
 });
 test('a late authentication response cannot revive an operation after its manager was cleared',async()=>{
- let authenticate;const auth=new Promise(resolve=>authenticate=resolve),rows=new Map();const store={all:async()=>[...rows.values()],put:async row=>rows.set(row.operationId,row),remove:async id=>rows.delete(id),clear:async()=>rows.clear()};
+ let authenticate;const auth=new Promise(resolve=>authenticate=resolve),rows=new Map();const store=withIntents({all:async()=>[...rows.values()],put:async row=>rows.set(row.operationId,row),remove:async id=>rows.delete(id),clear:async()=>rows.clear()},rows);
  const draft={setProgress(){},snapshot:async()=>null,stage:async()=>{throw Error('must not stage')},submit:async()=>{throw Error('must not publish')}};
  const manager=new UploadManager(store,()=>draft,async()=>{},fetch,()=>auth);const id=manager.stage([file],fields);const ack=manager.post(id);await manager.clear();authenticate('owner');assert.equal(await ack,false);await pause();assert.deepEqual(manager.list(),[]);assert.equal(rows.size,0);
 });
 
 function attachHarness(media,{uniqueStages=false}={}){
  const rows=new Map(),calls=[];
- const store={all:async()=>[...rows.values()],put:async row=>{await pause();rows.set(row.operationId,structuredClone(row));},remove:async id=>{rows.delete(id);},clear:async()=>rows.clear()};
+ const store=withIntents({all:async()=>[...rows.values()],put:async row=>{await pause();rows.set(row.operationId,structuredClone(row));},remove:async id=>{rows.delete(id);},clear:async()=>rows.clear()},rows);
  const request=async(url,init)=>{
   const path=typeof url==='string'?url:url.url;calls.push(path);
   if(path.endsWith('/api/media/sign-upload')){const stage=uniqueStages?'stage-'+calls.filter(c=>c.endsWith('/api/media/sign-upload')).length:'stage';return Response.json({uploads:[{position:0,originalPath:`owner/${stage}/0.jpg`,feedPath:`owner/${stage}/0.feed.jpg`,originalSignedUrl:'https://storage.invalid/o',feedSignedUrl:'https://storage.invalid/f'}]});}
@@ -121,11 +133,26 @@ function attachHarness(media,{uniqueStages=false}={}){
 test('an attachment is durable before the sheet may close, then uploads and attaches in the background',async()=>{
  const {manager,store,rows,calls}=attachHarness(()=>Response.json({post_id:'post-1'},{status:201}));
  await manager.initialize('owner');const id=await manager.postAttachment(file,{postId:'post-1',notEaten:true});
- assert.equal(rows.get(id).posted,true);assert.equal(rows.get(id).attachment.notEaten,true);
+ assert.equal(store.intents.get(id).postId,'post-1');assert.equal(store.intents.get(id).notEaten,true);
  assert.equal(calls.filter(c=>c.endsWith('/media')).length,0);
  await until(()=>manager.list()[0]?.postId==='post-1');
  assert.deepEqual(calls,['/api/media/sign-upload','https://storage.invalid/o','https://storage.invalid/f','/api/posts/post-1/media']);
- assert.equal((await store.all()).length,0);
+ assert.equal((await store.all()).length,0);assert.equal((await store.allIntents()).length,0);
+});
+test('two overlapping attachment entries keep distinct operation ids',async()=>{
+ const {manager}=attachHarness(()=>Response.json({post_id:'post-1'},{status:201}));
+ await manager.initialize('owner');
+ const first=manager.postAttachment(file,{postId:'post-1',notEaten:true});
+ const second=manager.postAttachment(new File(['other'],'other.jpg',{type:'image/jpeg'}),{postId:'post-1',notEaten:false});
+ const [a,b]=await Promise.all([first,second]);assert.notEqual(a,b);assert.equal(manager.list().length,2);
+});
+test('a lost photo write after publish intent leaves retake state on reload',async()=>{
+ const {manager,make,store}=attachHarness(()=>Response.json({post_id:'post-1'},{status:201}));
+ await manager.initialize('owner');const put=store.put;store.put=async()=>{throw Error('disk full');};
+ const id=await manager.postAttachment(file,{postId:'post-1',notEaten:true});assert.ok(store.intents.has(id));
+ const restored=make();await restored.initialize('owner');assert.equal(restored.list().length,1);
+ assert.equal(restored.list()[0].photoLost,true);assert.match(restored.list()[0].message,/not kept/);
+ store.put=put;
 });
 test('a failed attachment keeps the photo and retries from the chip',async()=>{
  let succeed=false;
@@ -149,11 +176,11 @@ test('reloading a failed attachment reuses its durable stage after an ambiguous 
  const restored=make();await restored.initialize('owner');assert.equal(restored.list()[0].state,'failed');succeed=true;restored.retry(id);await until(()=>restored.list()[0]?.postId==='post-1');
  assert.equal(calls.filter(c=>c==='/api/media/sign-upload').length,1);assert.ok(photos.every(photo=>photo.path==='owner/stage/0.jpg'));
 });
-test('a rejected attachment checkpoint leaves only the sheet owning a retry, even when the write committed',async()=>{
- const {manager,store,calls,rows}=attachHarness(()=>Response.json({post_id:'post-1'},{status:201}));await manager.initialize('owner');const put=store.put;store.put=async row=>{await put(row);throw Error('write response lost')};
+test('a rejected publish intent leaves only the sheet owning a retry',async()=>{
+ const {manager,store,calls,rows}=attachHarness(()=>Response.json({post_id:'post-1'},{status:201}));await manager.initialize('owner');const putIntent=store.putIntent;store.putIntent=async()=>{throw Error('intent write lost');};
  await assert.rejects(()=>manager.postAttachment(file,{postId:'post-1',notEaten:true}),/could not be kept/);
- assert.deepEqual(calls,[]);assert.deepEqual(manager.list(),[]);assert.equal(rows.size,0);
- store.put=put;await manager.postAttachment(file,{postId:'post-1',notEaten:true});await until(()=>manager.list()[0]?.postId==='post-1');
+ assert.deepEqual(calls,[]);assert.deepEqual(manager.list(),[]);assert.equal(rows.size,0);assert.equal(store.intents.size,0);
+ store.putIntent=putIntent;await manager.postAttachment(file,{postId:'post-1',notEaten:true});await until(()=>manager.list()[0]?.postId==='post-1');
  assert.equal(manager.list().length,1);assert.equal(calls.filter(c=>c.endsWith('/media')).length,1);
 });
 
