@@ -10,12 +10,18 @@ import { runWorker } from "@/lib/worker/drain";
 // Allows the 60 s drain window plus the largest (60 s) retry delay.
 export const maxDuration = 300;
 
+const bootAt = Date.now();
+let served = false;
+
 export async function GET(request: Request) {
+  const cold = !served; served = true;
+  if (cold) console.info("tick cold", Date.now() - bootAt);
+  const headers = {"x-tick-cold": cold ? "1" : "0"};
   let admin;
   try {
     admin = createAdminClient();
   } catch {
-    return NextResponse.json({ error: "Worker is not configured." }, { status: 503 });
+    return NextResponse.json({ error: "Worker is not configured." }, { status: 503, headers });
   }
   try {
     const holder = randomUUID();
@@ -33,11 +39,11 @@ export async function GET(request: Request) {
       queued: status.queued,
       running: status.running,
       traffic: status.traffic,
-    });
+    }, { headers });
   } catch (e) {
     return NextResponse.json(
       { error: e instanceof Error ? e.message : "Tick failed." },
-      { status: 500 }
+      { status: 500, headers }
     );
   }
 }
