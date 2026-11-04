@@ -1,0 +1,64 @@
+{
+  "cards": [
+    {
+      "name": "Indonesian",
+      "id": "1b3f321f-0c86-4b98-89d5-ec1c039b6615",
+      "reading": {
+        "box": {
+          "h": 0.47,
+          "w": 0.315,
+          "x": 0.525,
+          "y": 0.228
+        },
+        "is_label": true,
+        "per_serving": {
+          "carbs_g": 30,
+          "fat_g": 5,
+          "fibre_g": null,
+          "kcal": 200,
+          "protein_g": 8,
+          "sodium_mg": 55,
+          "sugar_g": 23
+        },
+        "product_name": null,
+        "serving": {
+          "amount": 250,
+          "unit": "ml"
+        }
+      },
+      "text": "Feed\nPost\nT\n\ntestkitchen\n\nTue 3 Nov · 18:54\n\n···\nOutlines · tap one to edit\n\ntestkitchen Indonesian label acceptance\n\n200\nkcal\n8 g\nprotein\n30 g\ncarbs\n5 g\nfat\nConsumed · all nutrients\nShow less\nServings\n−\n1\n+\nIndonesian label acceptance\n— · 200 kcal\nAdd another item\n\nKnown nutrition shown. Nutrition unavailable: Indonesian label acceptance\n\nConsumed nutrition from USDA FoodData Central\nCalories\t200 kcal\nProtein\t8 g\nCarbs\t30 g\nFat\t5 g\nFibre · unavailable: Indonesian label acceptance\tunavailable\nSugar\t23 g\nSodium\t55 mg\n\nNutrition values from USDA FoodData Central.\n\nComments 0\nT\nT\nCamera\nText\nDrink\nCoffee\nSaved"
+    },
+    {
+      "name": "English",
+      "id": "ab3d79c1-7681-44c9-bbd1-dd2926c7d0af",
+      "reading": {
+        "box": {
+          "h": 0.883,
+          "w": 0.688,
+          "x": 0.161,
+          "y": 0.039
+        },
+        "is_label": true,
+        "per_serving": {
+          "carbs_g": 37,
+          "fat_g": 8,
+          "fibre_g": 4,
+          "kcal": 230,
+          "protein_g": 3,
+          "sodium_mg": 160,
+          "sugar_g": 12
+        },
+        "product_name": null,
+        "serving": {
+          "amount": 55,
+          "unit": "g"
+        }
+      },
+      "text": "Feed\nPost\nT\n\ntestkitchen\n\nTue 3 Nov · 18:54\n\n···\nOutlines · tap one to edit\n\ntestkitchen English label acceptance\n\n230\nkcal\n3 g\nprotein\n37 g\ncarbs\n8 g\nfat\nConsumed · all nutrients\nShow less\nServings\n−\n1\n+\nEnglish label acceptance\n55 g · 230 kcal\nAdd another item\nConsumed nutrition from USDA FoodData Central\nCalories\t230 kcal\nProtein\t3 g\nCarbs\t37 g\nFat\t8 g\nFibre\t4 g\nSugar\t12 g\nSodium\t160 mg\n\nNutrition values from USDA FoodData Central.\n\nComments 0\nT\nT\nCamera\nText\nDrink\nCoffee\nSaved"
+    }
+  ],
+  "cleanup": {
+    "posts": 0,
+    "readings": 0
+  }
+}
