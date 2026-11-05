@@ -9,7 +9,7 @@ const privateHeaders = {
   'Vary': 'Cookie',
   'X-Content-Type-Options': 'nosniff',
 };
-const fail = (status: number) => new Response(null, {status, headers: privateHeaders});
+const fail = (status: number) => new Response(null, {status, headers: {'Cache-Control': 'private, no-store', 'Vary': 'Cookie', 'X-Content-Type-Options': 'nosniff'}});
 
 export async function GET(
   request: Request,
