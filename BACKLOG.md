@@ -216,24 +216,8 @@ A photographed cola posted before Fleet 9 shows no caffeine on its card or in th
 
 The cola records hold 29.7 mg of caffeine from the USDA, but they have no beverage category and no linked intake rows. #346 fixes new and re-analysed posts only, and the backfill had not run. Fleet 18 ran it after #633 merged: 8 posts are fixed and 12 still fail the intake rules. Done when existing photographed drink posts show their stored caffeine on the card and in the day's total.
 
-### #452 A plainly visible nutrition label is reported as not found
 
-A photo of a pack whose nutrition table can be read is rejected with "No nutrition label found".
-
-A photo of a Goldfish cracker pack failed. The label is in Indonesian and the whole table is in the frame. The app showed "No nutrition label found" with the buttons "Take the photo again" and "Type it instead". Done when that photo gives a card with the numbers printed on the label, and a label in English does too, in a phone-sized browser window.
-
-### #603 The Servings control on a meal cannot be set to a fraction
-
-The owner wants to log part of a serving, such as half, and says the app cannot do it while Cal AI can.
-
-Fixed: the servings count can now be typed as well as stepped. It accepts 0.25 to 50 in quarters, and the minus and plus buttons still step by 0.5. Checked in a browser at phone and desktop widths: typing 1.5 sent 1.5, typing 0.5 sent 0.5, typing "abc" restored the saved value and sent nothing, and a failed save restored the confirmed value. Database checks covered rescaling, ownership, history and recompute jobs. Every nutrient value on Home, Days and Today was not measured one by one in a browser. Cal AI shows "1 ✎" beside the name, a count the user can edit. Done when a meal is set to 0.5 and to 1.5 on the live app, and the nutrition on the meal page, Home, Days and Today changes to match.
-
-### #593 The first post on desktop Home has a black outline when the page loads
-
-When the desktop Home page loads, the first post sits inside a thick black outline that looks like a focus ring. The posts below it have none. The owner does not like it.
-
-The outline marks the post chosen for keyboard use: J and K move between posts and Enter opens one. The old design and code chose the first post by default. The new rule: the feed opens with nothing outlined, the outline appears after the first J, K or Tab, and a click anywhere in the feed hides it. Checked on the live app: nothing is outlined on load, J outlines the first post, a click clears the outline, and Tab outlines a post. That Tab check started in the page, not in the address bar. The owner also said the other posts are not loaded when he scrolls. That was read as meaning they have no outline; a post that fails to load would be a separate item. Done when it is confirmed on the owner's desktop, including pressing Tab from the address bar.
-
+ 8d7ae5e6 (docs: Fleet 18 closing-run final report and backlog trim)
 ### #594 Let the user choose where a photo is saved: the in-app camera with manual saving, or the native camera with every photo saved
 
 The app's own camera sends photos only to the app, so none reach the phone's camera roll, and the owner wants a choice.
@@ -370,30 +354,14 @@ Codex and AGY reviewed the Fleet 18 PRs and raised problems in code that is now 
 
 A read-only check on main 7d64f4c8 reproduced 11 of the review findings; each is its own item below. It dismissed two with proof: the #633 recompute upsert (line 53 of recompute.ts has no ignoreDuplicates, so recomputed nutrition is written) and the #633 rice-with-protein composition (it only runs for a rice or sushi dish). Still unchecked: the #641 portion_unit "serving" that the database does not accept; on #638, the Feed discovery polling that stops when the tab is hidden and today_summary disagreeing with the legacy totals; on #639, NeedsInputStrip never finding new questions after an empty first poll, and RealtimePost not refreshing on visibility; the #637 Thread retry polling; and the #643 header text cut off. AGY found blockers on #647 (head b1c55245) and #648 (head 9c04984b), and their text is not in anything I hold. AGY ran on #646 (head 05b0ba50) and found none. Observe first: check each unchecked finding on main and reproduce it or dismiss it with proof. Done when each unchecked finding is reproduced or dismissed with proof, the blockers on #647 and #648 are copied from the AGY receipts and each is checked on main, and each one reproduced is filed as its own item.
 
-### The jobs drain route runs the worker for anyone and without holding the lease (#640)
-
-Anyone, or a duplicate scheduled tick, can start extra workers and extra paid model calls through /api/jobs/drain. Worker concurrency was meant to be one.
-
-The planner checked it in the code on main 7d64f4c8, and it is live in production. The route is public and unauthenticated. It runs the worker for any ?holder= value without holding the lease. The planner proposes that it require the lease it was handed, or an internal secret. Done when a request to the route without the lease or secret is refused, a normal tick still drains the queue, and two ticks at once never run two workers.
-
 ### An expired feed-photo redirect is cached for a year, so a phone keeps a blurry or broken photo (#639)
 
 When the image resizer is busy, the feed photo route answers with a redirect to a signed link that expires in 60 seconds, and marks that redirect immutable for a year. That browser then keeps the broken photo.
 
 The planner checked it in the code on main 7d64f4c8, and it is live in production. Done when the redirect carries no long-lived cache header, and a feed photo requested while the resizer is busy loads correctly on the next visit.
 
-### Today on desktop reloads its numbers in a loop (#638)
 
-When the server did not supply the day's numbers, the desktop Today view keeps asking /api/today again and again. This is the database hammering the owner complained about.
-
-The planner checked it in the code on main 7d64f4c8: the effect depends on the day, and loading the numbers sets the day, which triggers the effect again. It is live in production. Done when the day is removed from that dependency list and the desktop Today view makes one request to /api/today per visit, counted in the network log.
-
-### Servings between 0.1 and 0.24 are accepted by the app and rejected by the database (#643)
-
-The app now accepts a serving of 0.1, but any value from 0.1 to 0.24 fails to save.
-
-The planner checked it on main 7d64f4c8: migration 0017_servings.sql still requires at least 0.25. It is live in production. Done when the app's minimum and the database's minimum are the same number, and saving that minimum works.
-
+ 8d7ae5e6 (docs: Fleet 18 closing-run final report and backlog trim)
 ### A food topped with cheese, sauce or herbs is rejected as a protein mismatch (#633)
 
 The protein check reads the word after "topped with" as a protein. Any other topping, such as cheese, sauce, herbs, lettuce or onions, makes a correct generic record look like a mismatch, so a chicken breast topped with cheese is rejected.
@@ -458,7 +426,9 @@ The read-only check reproduced it on main 7d64f4c8 in src/components/UploadChip.
 
 Tabbing into a control inside a meal card does not show the card's focus outline.
 
-The read-only check reproduced it on main 7d64f4c8 in src/components/DesktopWorkspace.tsx, line 65. The code tests the card for focus-visible instead of the element that has focus, so the check fails for any child. Done when tabbing into a control inside a card shows the outline on the desktop, and a test covers it.
+
+The read-only check reproduced it on main 7d64f4c8 in src/components/DesktopWorkspace.tsx, line 65. The code tests the card for focus-visible instead of the element that has focus, so the check fails for any child. Done when tabbing into a control inside a card shows the outline on the desktop, and a test covers it. The fix is merged as #669; production proof is pending.
+ a7a967e7 (docs: remove #638 today_summary backlog item after fix18 proof)
 
 ## Backlog for Designer
 
