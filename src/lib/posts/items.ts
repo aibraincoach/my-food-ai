@@ -132,6 +132,8 @@ export async function getPostDetail(supabase: SupabaseClient, postId: string, zo
   const openFailurePromise = identification?.host === "meta"
     ? createAdminClient().from("model_calls").select("id").eq("post_id", postId).eq("host", "baseten").eq("kind", "spark_identify").not("error", "is", null).limit(1).abortSignal(AbortSignal.timeout(8000)).maybeSingle()
     : Promise.resolve({ data: null, error: null });
+  // Signed URLs expire 3600 s after signing; stamp the expiry before the request so it never overestimates.
+  const signedExpiresAt=Date.now()+3600*1000;
   const [signed, openFailureResult] = await Promise.all([
     signPaths.length ? supabase.storage.from("media").createSignedUrls(signPaths, 3600) : Promise.resolve(null),
     openFailurePromise,
@@ -148,8 +150,7 @@ export async function getPostDetail(supabase: SupabaseClient, postId: string, zo
     const previewUrl=smallFeedPhotoUrl(post.user_id,postId,entry.id)??undefined;
     const url=originalUrls.get(entry.storage_path);
     if(!url&&entry===media)throw new Error("Meal photo could not be opened.");
-    const expiresAt=Date.now()+3600*1000;
-    return{id:entry.id,url:url??previewUrl??'',previewUrl,width:entry.width||1,height:entry.height||1,not_eaten:Boolean(entry.not_eaten),expiresAt};
+    return{id:entry.id,url:url??previewUrl??'',previewUrl,width:entry.width||1,height:entry.height||1,not_eaten:Boolean(entry.not_eaten),...(url?{expiresAt:signedExpiresAt}:{})};
   });
   const photo=photos[0]??null;
   const hydrated = (await getPostHydrationData(supabase, post.user_id, [{ id: postId, eaten_at: post.eaten_at, items }], zone))[postId];
