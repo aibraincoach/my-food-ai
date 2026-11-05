@@ -1,6 +1,6 @@
 # My Food AI — Backlog†
 
-Last edited: Thursday 2026-11-05 at 05:53 WIB (UTC+07:00) by Claude, PM
+Last edited: Thursday 2026-11-05 at 07:40 WIB (UTC+07:00) by Claude, PM
 
 The only job of the PM is to maintain this backlog and keep it completely up to date. Failing to do so is immediately terminable.
 
@@ -18,7 +18,7 @@ The coder measured the owner's Beef noodle post on production. The live camera a
 
 Feed photos are too large for a phone on mobile data, so the first photo is slow and the app spends more storage egress than it needs. A phone should receive a small copy sized for its screen.
 
-It is built on main: the feed serves immutable WebP copies, at 1920 px for the default, 1040 px for 2x screens and 1560 px for 3x screens, with a one-year cache header. Fleet 15 measured 16,386 and 26,854 bytes for the two phone copies on production. One line in docs/media-loading.md still says "no-store"; Fleet 17's docs lane corrects it. Done when a browser helper on production records the bytes and the cache header of the first feed photo, the first photo shows within two seconds at the slow-network test profile, and the stored photo is at least twice as wide in pixels as the card it fills.
+It is built on main: the feed serves immutable WebP copies, at 1920 px for the default, 1040 px for 2x screens and 1560 px for 3x screens, with a one-year cache header. Fleet 15 measured 16,386 and 26,854 bytes for the two phone copies on production. GrokBot's Fleet 18 check on production found the first feed photo at 4.09 s and 4.05 s on a cold open with slow 4G at 390 wide, which fails the two-second target. That photo was 50,076 bytes of WebP at 390 by 520 rendered (the 1560 copy), with the one-year immutable cache header. One line in docs/media-loading.md still says "no-store"; Fleet 17's docs lane corrects it. Done when a browser helper on production records the bytes and the cache header of the first feed photo, the first photo shows within two seconds at the slow-network test profile, and the stored photo is at least twice as wide in pixels as the card it fills.
 
 ### #370 The camera view stays open for a long time after a photo is taken
 
@@ -30,13 +30,7 @@ The wait came from the phone's save of the draft, which queued behind earlier sa
 
 The owner posted a beer and the post vanished from the feed. A card asking a question appeared in its place. A post must stay on screen from the tap, with the calories of the drink as stated, and the question must reach the owner as a notification.
 
-The cause: when the caption and the photo disagree, the model asks a question and the app marked the post "needs input", and every feed read hid posts in that state. The owner's ruling: the post shows as posted with the drink as stated, and the question sits in the Home strip and arrives as a notification. The strip's X dismisses the question and never deletes the post. "No food found" still holds the post. Fleet 17 built it with a new column, posts.question (migration 0056, applied), and merged it as #620 (58d235f9). The main path works: the post stayed in the feed with its question beside it, the card read "14 g alcohol · 1.0 standard drinks", and answering cleared the question and ran the correction. Two parts were never observed. The notification was not seen, because the test inserted a fake subscription and captured no send log. The X was not proven either, because the test driver read the wrong post and passed on an empty question field. Done when, on the live app with test account 2, a beer caption over a mismatching photo keeps the post in the feed with its calories, the strip row shows, the server log shows it sent "Your meal needs a reply", the X dismisses the row on the same screen without a reload, and the post stays. Also check that the beer counts in the day's kcal on Days.
-
-### #348 The card for a drink photo has not been checked on the live app
-
-When you post a photo of a drink and swipe it, a card opens about the drink. That card was marked done without anyone checking it on the live app.
-
-Two test attempts failed. Fleet 14 proved that the cola analysis and its caffeine are saved, but not the card itself. Done when a photo of a drink (coffee, cola, water or beer) shows its card on the live app, checked by GrokBot. A photo of anything that is not a drink, such as a beard, does not count.
+The cause: when the caption and the photo disagree, the model asks a question and the app marked the post "needs input", and every feed read hid posts in that state. The owner's ruling: the post shows as posted with the drink as stated, and the question sits in the Home strip and arrives as a notification. The strip's X dismisses the question and never deletes the post. "No food found" still holds the post. Fleet 17 built it with a new column, posts.question (migration 0056, applied), and merged it as #620 (58d235f9). The main path works: the post stayed in the feed with its question beside it, the card read "14 g alcohol · 1.0 standard drinks", and answering cleared the question and ran the correction. Two parts were never observed. The notification was not seen, because the test inserted a fake subscription and captured no send log. The X was not proven either, because the test driver read the wrong post and passed on an empty question field. GrokBot's Fleet 18 check posted a salad photo captioned "A pint of Bintang beer" and it stayed in the feed as a drink (18 g alcohol, 1.3 standard drinks, 203 kcal) with no question raised, so no strip row appeared and the X could not be tested; the notification cannot be observed from a headless browser. Done when, on the live app with test account 2, a beer caption over a mismatching photo keeps the post in the feed with its calories, the strip row shows, the server log shows it sent "Your meal needs a reply", the X dismisses the row on the same screen without a reload, and the post stays. Also check that the beer counts in the day's kcal on Days.
 
 ### #351 The drink sheet's tiles have not been checked on the live app
 
@@ -124,49 +118,43 @@ Fleet 18 is finished. The coder reports its code merged to main 3f29ebe3 and dep
 
 The buttons under a post are too small to hit and look the same at rest, while saving and when turned off.
 
-The designer's Round 7 design (7a) gives every button a 44 px tap area and five looks: at rest, pressed, saving, turned off and failed. Done when each button matches 7a on production on a phone-sized screen. The latest check could not prove all five looks: the test missed the saving look, and earlier samples missed the pressed look. Thumbs down took 0.39 seconds to show a change and 0.86 seconds to get its reply.
+The designer's Round 7 design (7a) gives every button a 44 px tap area and five looks: at rest, pressed, saving, turned off and failed. Done when each button matches 7a on production on a phone-sized screen. The latest check could not prove all five looks: the test missed the saving look, and earlier samples missed the pressed look. Thumbs down took 0.39 seconds to show a change and 0.86 seconds to get its reply. GrokBot's Fleet 18 check found every button 44 by 44 (Details 53 by 44); the saving and failed looks were not captured.
 
 ### #553 Thumbs up and down look the same when turned off and thumbs down waits for the server
 
 The thumbs turn themselves off while a vote saves and before the analysis exists, with no visible difference. Thumbs down opens nothing until the vote has saved.
 
-This is the first case the owner found for #217. The Fleet 14 checks found that four of eight entry paths took longer than 50 ms to show a change: phone photo 51.5 ms, desktop More 64.3 ms, Details 66.6 ms and Comment 64.3 ms. No photo shifted on any of the eight. Done when a thumb shows its pressed look at once, looks different when turned off, and thumbs down opens at once, checked on production on a phone-sized screen with a slowed processor.
+This is the first case the owner found for #217. The Fleet 14 checks found that four of eight entry paths took longer than 50 ms to show a change: phone photo 51.5 ms, desktop More 64.3 ms, Details 66.6 ms and Comment 64.3 ms. No photo shifted on any of the eight. GrokBot found the pressed look appears at once (first change 6 to 8 ms with 4x CPU) and thumbs down opens the reply at once. The turned-off look was not observed: the buttons were never disabled, and the rest look is the grey text-off. Done when a thumb shows its pressed look at once, looks different when turned off, and thumbs down opens at once, checked on production on a phone-sized screen with a slowed processor.
 
 ### #554 Tapping a meal shows nothing until the server answers
 
 Comment, Details, tapping the photo, "more" and Post in the capture sheet wait for the server before anything changes on screen.
 
-The designer's Round 7 design (7b) shows the screen at once, using the photo already on screen while the details load. GrokBot reports that at 390 wide a tap on the feed link did not open the post in headless Chrome, and that /posts/\<id> opened directly. Done when each of these taps shows a visible change at once, and nothing jumps when the details arrive.
+The designer's Round 7 design (7b) shows the screen at once, using the photo already on screen while the details load. GrokBot reports that at 390 wide a tap on the feed link did not open the post in headless Chrome, and that /posts/\<id> opened directly. GrokBot's Fleet 18 check with 4x CPU found Comment, Details and More change within 6 to 8 ms, but a tap on the feed photo (Open meal details, 390 by 390) produced no change within 2 s; with normal CPU a tap on the feed link did open the post. Done when each of these taps shows a visible change at once, and nothing jumps when the details arrive.
 
 ### #494 Opening a meal's detail takes 14 seconds
 
 The owner reports 14 seconds from tapping a meal to its detail page opening. He calls it not acceptable.
 
-The owner measured 14 seconds on Nov 4 on an iPhone with the app installed, on mobile data in Indonesia. A coder's production check found useful content after 0.9 to 3.4 seconds, 24 to 25 requests with eight repeated, and a 142 KB original photo downloaded although the feed copy was already on screen. A desktop Firefox check measured the full detail at 1.0 to 1.8 seconds, with one trial that did not finish in 20 seconds. Nobody has explained the 14 seconds, and nobody has timed the detail on a phone on current main. Observe first: time the tap to a usable detail on a phone over mobile data and on desktop, and record where the seconds go (server, database, photo download). Done when the detail opens within two seconds at the slow-network test profile and a written finding says where the 14 seconds went.
-
-### #499 Several pages export an instant flag that nothing reads
-
-Several pages export a flag called instant set to false, and nothing reads it. Every reader has to wonder what it does.
-
-This is an unverified audit finding. The audit found no file, script or tool that reads the flag. Nothing breaks while it stays. GitHub shows this issue closed, and it stays here until its done condition is met. Done when no page exports the flag and a search of the source for it finds nothing.
+The owner measured 14 seconds on Nov 4 on an iPhone with the app installed, on mobile data in Indonesia. A coder's production check found useful content after 0.9 to 3.4 seconds, 24 to 25 requests with eight repeated, and a 142 KB original photo downloaded although the feed copy was already on screen. A desktop Firefox check measured the full detail at 1.0 to 1.8 seconds, with one trial that did not finish in 20 seconds. Nobody has explained the 14 seconds, and nobody has timed the detail on a phone on current main. Observe first: time the tap to a usable detail on a phone over mobile data and on desktop, and record where the seconds go (server, database, photo download). GrokBot measured a usable detail on production with slow 4G at 1.96 to 2.45 s on desktop and 1.64 to 1.74 s at 390 wide, and found that desktop downloads two 0.feed.jpg originals of about 480 to 496 KB. The 14 seconds cannot be re-measured without the owner's iPhone, so it is no longer asked for. Done when the detail opens within two seconds at the slow-network test profile on desktop and at 390 wide, and the two large originals are not downloaded.
 
 ### #323 Every protected page checks sign-in twice (part of #222)
 
 The app checks that the user is signed in when a protected page is requested, and checks again when the home page loads. That is two round trips to the sign-in service on every page open, on top of the slow start of the server function.
 
-Run 8 reduced this to one sign-in check per page on the server, and a forged request header is still refused. Browser recordings still showed 10 and six sign-in requests, so the whole page open is not yet explained. Fleet 14 cut the browser's sign-in requests from one to zero on Home, Days and Profile on production, but local server recordings still showed 7, 9 and 14 checks per page open. The likeliest cause is that the guard checks every background prefetch and refresh request, not only the page itself, and each card carries several links. This is probably the server half of #222. Done when one page open makes one sign-in call across the server and the browser together, and an unsigned request still cannot reach a protected page.
+Run 8 reduced this to one sign-in check per page on the server, and a forged request header is still refused. Browser recordings still showed 10 and six sign-in requests, so the whole page open is not yet explained. Fleet 14 cut the browser's sign-in requests from one to zero on Home, Days and Profile on production, but local server recordings still showed 7, 9 and 14 checks per page open. The likeliest cause is that the guard checks every background prefetch and refresh request, not only the page itself, and each card carries several links. This is probably the server half of #222. GrokBot found 0 sign-in calls from the browser on Home; the server's checks need the coder's log. Done when one page open makes one sign-in call across the server and the browser together, and an unsigned request still cannot reach a protected page.
 
 ### #324 Home computes the day totals twice on every open (part of #222)
 
 The server draws the row of day circles with totals for the last five days. The browser then computes totals again for the feed's days. Today's totals are read twice on every home open.
 
-Run 8 merged one shared server read of today's totals. Final browser recordings still showed one or two reads, so a single read across the server and the browser together is unproved. Measure one page navigation and count every read that returns today's totals, including batched reads. Done when a home open reads today's totals once across the server and the browser together.
+Run 8 merged one shared server read of today's totals. Final browser recordings still showed one or two reads, so a single read across the server and the browser together is unproved. Measure one page navigation and count every read that returns today's totals, including batched reads. GrokBot's browser count found no request that carries the totals on its own, because they arrive in the server HTML, and found day pages prefetched repeatedly (/days/2026-11-04 five times, earlier days several times each); the server's own reads need the coder's log. Done when a home open reads today's totals once across the server and the browser together.
 
 ### #520 Every Home open reads the first feed page twice
 
 Home reads the first page of the feed in the server render and again from the browser, so every open pays for both reads.
 
-This is a planner finding from reading main on Nov 4, not yet measured. The feed always loads its first page again after the server has drawn it. Related: #373 and #498. Observe first: count the first-page reads of one Home open on current main. Done when one Home open reads the first feed page once, and the request counts before and after are written down.
+This is a planner finding from reading main on Nov 4, not yet measured. The feed always loads its first page again after the server has drawn it. Related: #373 and #498. Observe first: count the first-page reads of one Home open on current main. GrokBot counted in the browser on production (owner account, 390 wide, slow 4G): /api/feed?ids was requested twice, at 3.9 s and 9.0 s, plus one posts status read and two posts id reads, within 112 to 119 requests in 10 s. Done when one Home open reads the first feed page once, and the request counts before and after are written down.
 
 ### #322 The tick function loads the whole worker before it answers (part of #222)
 
@@ -188,15 +176,15 @@ docs/egress.md says the bytes went to browser-like clients but not which files (
 
 ### #222 The feed fails to open, and photos and cards take too long to appear
 
-The feed sometimes fails to open, and on a slow connection the first photo and the cards take too long to show. The goal is the feed and the first photo within two seconds on the owner's phones over mobile data.
+The feed sometimes fails to open, and on a slow connection the first photo and the cards take too long to show. The goal is the feed and the first photo within two seconds at the slow-network test profile.
 
-Run 8 cut the work done on a cold open and measured it in emulation: 100 of 100 opens succeeded, and cold photos showed in 1.48 to 1.83 seconds. Fleet 15 added smaller photo copies (see #372). The original failures (3 server errors and 15 blank feeds in 100 opens on the largest test account, 146 posts) never reproduced on the Run 7 baseline, so their cause is not isolated. The runtime logs return 403 for the coder, so the stack for digest 3642131196 exists only in the Vercel console. The sub-items #322, #323, #324 and #520 each remove one piece of wasted work. Nothing else is left to build for this item. No physical phone has measured it yet. Done when a browser helper on production measures the first feed photo at 2 seconds or less on a cold open at the slow-network test profile.
+Run 8 cut the work done on a cold open and measured it in emulation: 100 of 100 opens succeeded, and cold photos showed in 1.48 to 1.83 seconds. Fleet 15 added smaller photo copies (see #372). The original failures (3 server errors and 15 blank feeds in 100 opens on the largest test account, 146 posts) never reproduced on the Run 7 baseline, so their cause is not isolated. The runtime logs return 403 for the coder, so the stack for digest 3642131196 exists only in the Vercel console. The sub-items #322, #323, #324 and #520 each remove one piece of wasted work. Nothing else is left to build for this item. GrokBot measured the first feed photo on production at 4.09 s and 4.05 s on a cold open with slow 4G at 390 wide, over the two-second target. Done when a browser helper on production measures the first feed photo at 2 seconds or less on a cold open at the slow-network test profile.
 
 ### #523 A meal shows every nutrition value as unavailable
 
 The meal "Spicy Indonesian macaroni" shows its calories, protein, carbs and fat as unavailable. The owner re-analysed it after the fix went live, and it is still broken. He says the app's food estimates are broken.
 
-The post says "Nutrition unavailable: spicy Indonesian fried macaroni snack". The first analysis searched the USDA database three times, rejected every record, and never tried the plain name "macaroni". The owner ruled that when the USDA has no record, the model must estimate, because an unavailable value is worse than a rough estimate. The closest-food fallback is on main (#588), but the guard that stops re-analysing from reusing an empty result is not: that fix (71f2fd1d) was never merged, so re-analysing reuses the old empty result and skips both the search and the estimate. The guard is in #633, which is merged. Fleet 18's data audit found 40 ready posts with incomplete macros (docs/evidence/run18/data-audit.json). The recompute for them has not run. No new post has come out unavailable since. Done when re-analysing this post runs a fresh lookup and shows numbers, with a note naming the closest USDA food or saying the model estimated them, no value is left unavailable, zero or blank, and a browser helper confirms it on the live app.
+The post says "Nutrition unavailable: spicy Indonesian fried macaroni snack". The first analysis searched the USDA database three times, rejected every record, and never tried the plain name "macaroni". The owner ruled that when the USDA has no record, the model must estimate, because an unavailable value is worse than a rough estimate. The closest-food fallback is on main (#588), but the guard that stops re-analysing from reusing an empty result is not: that fix (71f2fd1d) was never merged, so re-analysing reuses the old empty result and skips both the search and the estimate. The guard is in #633, which is merged. Fleet 18's data audit found 40 ready posts with incomplete macros (docs/evidence/run18/data-audit.json). The recompute for them has not run. No new post has come out unavailable since. GrokBot looked on Nov 5: the macaroni post (86634d46) still shows "— kcal" and "Nutrition unavailable" in every AI comment. It was not re-analysed because it is the owner's post. Done when re-analysing this post runs a fresh lookup and shows numbers, with a note naming the closest USDA food or saying the model estimated them, no value is left unavailable, zero or blank, and a browser helper confirms it on the live app.
 
 ### #617 Squid and tuna are matched to the wrong food records
 
@@ -208,7 +196,7 @@ No fix has been tried. First step: look at which squid records were available, t
 
 The tiki cocktail post states caffeine that the drink does not contain.
 
-The drink card for the lime and rum tiki cocktail reads "15 mg caffeine" next to 196 kcal, and the day's caffeine total reads 110 mg. This is built on main. GitHub shows this issue closed, and it stays here until its done condition is met. Done when a cocktail or any drink with no caffeine source logs no caffeine, the card shows none, and the day's total leaves it out, checked on the tiki cocktail and a glass of wine.
+The drink card for the lime and rum tiki cocktail reads "15 mg caffeine" next to 196 kcal, and the day's caffeine total reads 110 mg. This is built on main. GitHub shows this issue closed, and it stays here until its done condition is met. GrokBot's Fleet 18 check found the tiki cocktail (owner post 8535b793) now shows 196 kcal and 18 g alcohol with no caffeine on the meal page, and a glass of red wine shows 16 g alcohol and 128 kcal with no caffeine; the Nov 3 day total was not read. Done when a cocktail or any drink with no caffeine source logs no caffeine, the card shows none, and the day's total leaves it out, checked on the tiki cocktail and a glass of wine.
 
 ### #377 Existing photographed drink posts show no caffeine
 
@@ -220,19 +208,7 @@ The cola records hold 29.7 mg of caffeine from the USDA, but they have no bevera
 
 A photo of a pack whose nutrition table can be read is rejected with "No nutrition label found".
 
-A photo of a Goldfish cracker pack failed. The label is in Indonesian and the whole table is in the frame. The app showed "No nutrition label found" with the buttons "Take the photo again" and "Type it instead". Done when that photo gives a card with the numbers printed on the label, and a label in English does too, in a phone-sized browser window.
-
-### #603 The Servings control on a meal cannot be set to a fraction
-
-The owner wants to log part of a serving, such as half, and says the app cannot do it while Cal AI can.
-
-Fixed: the servings count can now be typed as well as stepped. It accepts 0.25 to 50 in quarters, and the minus and plus buttons still step by 0.5. Checked in a browser at phone and desktop widths: typing 1.5 sent 1.5, typing 0.5 sent 0.5, typing "abc" restored the saved value and sent nothing, and a failed save restored the confirmed value. Database checks covered rescaling, ownership, history and recompute jobs. Every nutrient value on Home, Days and Today was not measured one by one in a browser. Cal AI shows "1 ✎" beside the name, a count the user can edit. Done when a meal is set to 0.5 and to 1.5 on the live app, and the nutrition on the meal page, Home, Days and Today changes to match.
-
-### #593 The first post on desktop Home has a black outline when the page loads
-
-When the desktop Home page loads, the first post sits inside a thick black outline that looks like a focus ring. The posts below it have none. The owner does not like it.
-
-The outline marks the post chosen for keyboard use: J and K move between posts and Enter opens one. The old design and code chose the first post by default. The new rule: the feed opens with nothing outlined, the outline appears after the first J, K or Tab, and a click anywhere in the feed hides it. Checked on the live app: nothing is outlined on load, J outlines the first post, a click clears the outline, and Tab outlines a post. That Tab check started in the page, not in the address bar. The owner also said the other posts are not loaded when he scrolls. That was read as meaning they have no outline; a post that fails to load would be a separate item. Done when it is confirmed on the owner's desktop, including pressing Tab from the address bar.
+A photo of a Goldfish cracker pack failed. The label is in Indonesian and the whole table is in the frame. The app showed "No nutrition label found" with the buttons "Take the photo again" and "Type it instead". GrokBot could not run it: the label flow opens only after a barcode scan answers Not in the database, and it had no such barcode; an English label image is ready. The planner also found that a label with no printed weight cannot be saved, because the database rejects the serving unit, and the Fleet 18 remediation fixes that. Done when that photo gives a card with the numbers printed on the label, and a label in English does too, in a phone-sized browser window.
 
 ### #594 Let the user choose where a photo is saved: the in-app camera with manual saving, or the native camera with every photo saved
 
@@ -244,7 +220,7 @@ The owner ruled that this is a switch in personal settings with a short explanat
 
 On desktop Home the right-hand column (Today, kcal consumed, protein, carbs, fat, Posted today) is empty when the page loads and fills in a moment later. The owner reports that it took far too long to show up.
 
-The owner sent two screenshots: first the right column is blank, then the same page shows Today with 1,468 kcal, 56 g protein, 211 g carbs, 46 g fat and six posts. He reports about 20 seconds to fill in. That is his count, not a measurement. The fix is live: the server now fills in today's totals before the page arrives. On the live app at 1280x800, a test account showed its numbers at 0.85 seconds on a normal reload and 1.0 second on a hard reload. That account had zero calories that day, so a day with posts has not been measured on the live app. A test with fake data showed 260 kcal. Done when the column shows its numbers within two seconds on a day with posts, shows a loading placeholder from the first instant, and shows a plain message with a retry if the numbers do not arrive.
+The owner sent two screenshots: first the right column is blank, then the same page shows Today with 1,468 kcal, 56 g protein, 211 g carbs, 46 g fat and six posts. He reports about 20 seconds to fill in. That is his count, not a measurement. The fix is live: the server now fills in today's totals before the page arrives. On the live app at 1280x800, a test account showed its numbers at 0.85 seconds on a normal reload and 1.0 second on a hard reload. That account had zero calories that day, so a day with posts has not been measured on the live app. A test with fake data showed 260 kcal. GrokBot's Fleet 18 check on production found the numbers rendered by the server in the first DOM frame, at 1.46 s and 1.93 s from navigation, and blocking the browser's data calls changed nothing. The retry message cannot be triggered from the browser. Done when the column shows its numbers within two seconds on a day with posts, shows a loading placeholder from the first instant, and shows a plain message with a retry if the numbers do not arrive.
 
 ### #570 A leftovers photo takes several seconds to post while a regular photo is fast
 
@@ -264,12 +240,6 @@ After a deploy, a browser that already holds the previous build can keep showing
 
 After an earlier release, the owner's desktop kept showing the old full-width layout until a hard refresh. The suspect is the browser's stored copy of the app, which is not confirmed. Fleet 16 built a fix, and a follow-up (#616) went live, but its activation check failed: the newer copy installed and stayed waiting while the old one kept running, and a normal reload did not switch to it. A browser can hold back a takeover while requests are in flight; that is a lead, not a proven cause. The cause is unknown. Fleet 18 investigated; its evidence is on branch run18/investigate-598 and is not merged, and the report I hold does not state the cause. First step: with a browser holding the previous version, release or simulate a new version, and record whether a normal reload shows it and which stored copy serves the old one. Done when a browser holding the previous version shows the new one on its next normal load, and the check is written down.
 
-### #629 A user may not be able to upload a profile picture
-
-The owner is not sure he can tap his picture on Profile and upload one. Today the sidebar shows a letter in a dark circle. He calls a profile picture a beautiful piece of finish and wants it.
-
-The owner raised it at 22:05 WIB. His desktop Home screenshot shows the letter T in a circle beside the handle "tinhead" in the sidebar and in the post header. Nobody has checked whether Profile accepts a picture today, or where a picture would show (sidebar, post header, comments, Profile). Observe first: open Profile on a phone and on desktop, tap the circle, and record what happens. Done when a user can tap their picture on Profile, choose or take a photo, see it replace the letter in the sidebar, post headers and Profile, remove it to return to the letter, and a second account cannot change it, checked in a phone-sized browser and on desktop.
-
 ### #294 The app's words read naturally everywhere
 
 The leftovers label reads awkwardly, and nobody has reviewed the words in the rest of the app.
@@ -288,57 +258,41 @@ Days cuts the calendar into separate month blocks, which no calendar app does, s
 
 On the phone, Days shows November 2026 and October 2026 as two separate blocks, each with its own heading, and the newest month sits on top. Days becomes one continuous calendar: the weeks run on from one to the next in time order with no break, the month name marks where each month starts, and Days opens with today in view. Done when scrolling Days moves through unbroken weeks from October into November, the month names mark where each month starts, and Days opens on today, in a phone-sized browser.
 
-### #630 A fleet ends when its plan is done; new defects go to the backlog, not into the running fleet
-
-A coder who finishes its plan keeps working. At the end of Fleet 16 a production check found a new defect. The coder shipped a fix for it inside the same fleet and held the final report until that fix was checked. The coder's contract does not say what to do with a defect that is not in the plan.
-
-The owner's rule has five parts. (1) A fleet ends when its plan is done, and the coder says so plainly: "I completed my plan." (2) The coder starts no new work inside the fleet. (3) Every new defect, meaning anything not already in the backlog, is reported to the owner in the message that finds it, so it can be filed. (4) A high-intelligence coder investigates the defect properly. (5) The fix runs afterwards, in a new fleet. Done when the rule is written into the coder's contract, covers defects found by production checks, and the coder's next report names any new defect it found and starts no work on it.
-
 ### #625 Tapping Post can close the sheet before the post is safely saved on the phone
 
 Since Fleet 17, the capture sheet closes and the app says Post worked after 700 ms, even when the phone has not finished saving the draft. If the page reloads or the phone kills the app in that gap, the draft can come back as not posted or be missing, and the user's post is lost.
 
-A static review of #619 at head 8c3707a found it, and nothing was run. The review is posted on #619 as a GitHub comment (issuecomment-6636522807). The 700 ms cap in src/lib/posts/upload-manager.ts (the post() function, around line 278) reports success from the entry in memory. The save that marks the draft as posted can still be queued behind earlier saves that carry the full photo, and on the next start a draft saved as not posted is never published. The reviewer suggests saving a small record of the intent to publish first and reporting success only after that record is saved. The cap exists to fix #370, so the fix must keep the sheet closing within 1 second. Done when a test that delays the phone's save beyond 700 ms, taps Post and then rebuilds the manager from saved data only still publishes the post, and the sheet still closes within 1 second.
+A static review of #619 at head 8c3707a found it, and nothing was run. GrokBot read main's code in Fleet 18: post() in upload-manager.ts awaits putIntent before it returns success, and no 700 ms cap is left in post(). The runtime test was not run. The review is posted on #619 as a GitHub comment (issuecomment-6636522807). The 700 ms cap in src/lib/posts/upload-manager.ts (the post() function, around line 278) reports success from the entry in memory. The save that marks the draft as posted can still be queued behind earlier saves that carry the full photo, and on the next start a draft saved as not posted is never published. The reviewer suggests saving a small record of the intent to publish first and reporting success only after that record is saved. The cap exists to fix #370, so the fix must keep the sheet closing within 1 second. Done when a test that delays the phone's save beyond 700 ms, taps Post and then rebuilds the manager from saved data only still publishes the post, and the sheet still closes within 1 second.
 
 ## Engineering backlog
 
-Fleet 19 is in flight and is building #624, #626, #627, #628 and #471 (migration 0059). It is not building the README line 20 item, the 320 ms single-tap item, #279, #60 or #578. An item stays here until its work is merged, its production proof has run and its issue is closed.
+The fleet that built #624, #626, #627, #628 and #471 merged its code. #624, #626 and #627 are done and closed, and are off this Doc. #471 is done and closed, and is off this Doc. #628 is merged and stays here, because its browser proof has not passed. A separate fleet is now running to fix the review findings on the merged Fleet 18 PRs (#633–#648). Its fix PRs are #661–#674. Migrations 0060, 0061 and 0062 are applied on production, and #662, #665, #669, #673 and #674 are merged. The other nine (#661, #663, #664, #666, #667, #668, #670, #671 and #672) are open and wait for a fresh review at their current heads. Perplexity review has run on all 14 and found two real blockers, a rum punch not treated as alcoholic (#670) and a conditional hook in usePostHandle (#672). The coder pushed fixes for both (#670 at 40e55a9, #672 at 0b813fb), and both need a new review at those heads. Open findings: #664 wrong label crop after EXIF rotation, #663 slow timer, #661 lease clock drift, #667 bookmark leak on unmount, and P2 findings on #668, #671 and #674. Only #662, #669 and #673 were approved on first pass. The data pass, the production proof and the close have not started. Every Fleet 18 finding item below stays until that fleet's work is merged and its production proof has run. That fleet did not build the README line 20 item, the 320 ms single-tap item, #279, #60 or #578. An item stays here until its work is merged, its production proof has run and its issue is closed.
 
-### #624 The Fleet 17 run report on main overstates its proof
+### A Fleet 17 test post and its draft are still on test account 2, and the corrected run report may be incomplete
 
-docs/run17-report.md says the post-close check passed and the beer flow was proven. The evidence behind it is weaker, and the report is now on main.
+A post captioned "Fleet 17 post-close 2" (id starting d37b129e) was created at 16:21 UTC and was never cleaned up. It sits between the "retry" batch at 16:16 and the "v4" batch at 16:23, and it is in no evidence file.
 
-The planner's evaluation found four gaps. All nine close readings ran after the fix merged, so no reading shows what the 700 ms cap changed. Two of the nine were over one second, and the pass came only after an 8-second gap was added between posts. The dismiss step was never proven, because the test driver read the wrong post. The notification was never observed, because only a fake subscription row was inserted. Done when the report lists all nine close readings, says that no reading exists from before the fix, and says that the dismiss step and the notification are unproven.
+The planner's evaluation found it on test account 2, with its draft. It suggests a fourth close-time batch ran without a kept receipt, which would make the "all nine readings" claim in docs/run17-report.md (the corrected report, from #624) incomplete. Done when the post and its draft are deleted, and docs/run17-report.md either says a fourth batch ran with no receipt or says the post was not a reading.
 
-### #626 Saving a clarification question is three separate steps, so a failure part-way can leave a stray comment
+### The PRs that built #628, #471, #626 and #627 have no external review, and their closing comments link to files that are not in the repo
 
-When the model asks a question about a drink, the app saves the question on the post, adds it as a comment and marks the post ready, one step after another. If a later step fails, the post can keep a comment without a question, or a question without a comment.
+PRs #651, #652, #654 and #655 carry only Vercel comments, with no PPLX, AGY or Codex receipt. The closing comments on the issues point to files under docs/evidence/run19/, such as push-row-delete.json, and those files are not on main.
 
-A review of #620 found it in the code that saves the analysis (persist.ts). A failure is reported as an I/O error, but the earlier steps are not undone. Done when the three steps succeed or fail together, and a test covers a failure part-way.
-
-### #627 The question dismissal route answers errors in two different formats
-
-Dismissing a question can fail with a JSON message or with an empty reply, depending on where it fails.
-
-A review of #620 found it in src/app/api/posts/\[id\]/question/route.ts. A failed clear returns the message "Question could not be dismissed." with status 500, while the earlier failures return an empty reply with status 404 or 500. Done when every failure of that route returns the same format.
+The planner's evaluation found that the docs PR #653 contained only docs/run17-report.md. After-the-fact reviews are allowed by the merge rule used for that work. ten-photos.json reached main through docs PR #656, which the coder says he merged early by mistake and without an order. push-row-delete.json is still not on main. The failed post-close and beer receipts are now on main, merged through docs pull request #660 as 3deb890e together with the Fleet 19 final report (docs/run19-final-report.md). Done when PPLX receipts are posted on #651, #652, #654 and #655, and the docs/evidence/run19/ files are on main so the links in the closing comments open.
 
 ### #628 The Fleet 17 check script passes when its checks fail and leaves a test row behind
 
 The test script scripts/run17-checks.mjs can finish successfully even when a check fails, and it leaves test data on production.
 
-Two reviews of the script (#619 and #621) found three faults. It sets a pass flag when a close time is over 1,000 ms but never makes the command fail. The beer check records that it never settled and does not fail either. The dismiss step clicks any button on the page because of an "|| true" in its selector, which is why the dismiss check passed on an empty question. Beer mode also inserts a fake push subscription at the fixed address https://fcm.googleapis.com/run17-fixture and never deletes it. The script is part of docs PR #621, which Muse merged on Nov 4 at 16:49 UTC (7d2cbd37) without being asked to, so the faults are now on main. Done when the script exits with an error when any check fails, the dismiss step targets only this post's own question, and the fake push subscription is removed at the end of every run, including the row already left on test account 2.
+Two reviews of the script (#619 and #621) found three faults. It sets a pass flag when a close time is over 1,000 ms but never makes the command fail. The beer check records that it never settled and does not fail either. The dismiss step clicks any button on the page because of an "|| true" in its selector, which is why the dismiss check passed on an empty question. Beer mode also inserts a fake push subscription at the fixed address https://fcm.googleapis.com/run17-fixture and never deletes it. The script is part of docs PR #621, which Muse merged on Nov 4 at 16:49 UTC (7d2cbd37) without being asked to, so the faults are now on main. Done when the script exits with an error when any check fails, the dismiss step targets only this post's own question, and the fake push subscription is removed at the end of every run, including the row already left on test account 2. Also, the tap step no longer fails on a "-0" coordinate, the answer step waits for the strip row before it taps, and the post-close and beer commands each exit 0 on a stable browser setup, with their receipts on main. This work waits for the next fleet and does not run now.
 
-### #471 Posting several photos in one hour can hit the app's hourly limit
-
-The app limits how many analyses one account can run in an hour. When one account posts a run of photos, the app can stop analysing and show a message instead of the result.
-
-Identifying a drink from a photo adds one model call per photo, and every call counts against the account's hourly limit. The last check on production hit the message "You have made a lot of requests this hour." The planner reports that the cap on the post route counts requests, not meals. The composer sends the same reservation when a photo is picked, on each staged change and at Post, and production showed test account 2 at 36 post hits in one hour for about 11 posts. The drink-identify cap is a separate bucket of 120 an hour. Done when one account can post ten photos within an hour with no limit message, or the limit is raised so it can.
+It merged as #651 and removed the leftover push row on test account 2. The browser proof has not passed. The coder's receipts show the post-close run exited 1 with a Page.navigate timeout and the beer run exited 1, with Strip row missing the first time and Control missing the second; push cleanup worked in the failed beer run. The script does now fail when a check fails. The dismiss targeting and the push cleanup in a full beer run are unproven. The coder stopped the proof to leave the window for the Fleet 18 remediation. He also reports that Chromium opens data: pages but hangs on http://, Firefox BiDi reaches the app, and a port 3000 conflict (EADDRINUSE) left the local app unreliable. Whether the beer failure is the model asking no question or a real strip regression (#615) is not diagnosed. The planner's evaluation says no Chromium was listening on port 9245, so the script was not at fault, and the only Chromium running is a 17-hour browser on port 18800 that looks personal and is not to be used. The coder's later runs (07:00 report) did not pass either. The post-close run still fails: Page.navigate and Page.enable time out against both localhost and production on headless Chromium on that host. The beer run on production has failed several times: once with Strip row missing, once never settling with a question after about 3.7 minutes. The newest beer receipt on #660 fails with a BiDi tap error: Expected "x" to be a finite number, got the string "-0". That looks like a coordinate bug in the script's tap step, and the coder has not diagnosed it. On the local app, the health check stayed at 503 for more than five minutes, because the app's own database probe said false while a direct Supabase connection from Node worked. Neither run has a dismiss proof, and the coder says the dismiss was never recorded. The coder reads the post-close failure as a host problem, not a product regression, but that is his reading and not proven. BiDi sessions are also unstable on that host (Maximum number of active sessions). The coder's options are a non-headless Chromium, a different automation host, or accepting the CDP failure. So the exit-code check and the dismiss check are unproven, and the issue is open.
 
 ### #279 Sign-up and sign-in resist being hammered
 
 Anyone can send sign-up and sign-in requests as fast as a script can, to guess passwords, create accounts in bulk or run up the email and model bills, and nobody has shown what stops them.
 
-CAPTCHA stays off until the app goes public. Run 8 merged a dormant hCaptcha widget (#336). A direct hammer from the coder's machine was refused at sign-up 31 and sign-in 32, and the 31 throwaway accounts were deleted. The owner holds the site key and the secret. The secret lives only in Supabase Auth and never goes into the repository, an issue, an order or this backlog. To turn CAPTCHA on, set NEXT_PUBLIC_HCAPTCHA_SITE_KEY in Vercel production and redeploy, then enable CAPTCHA in Supabase Auth, never the reverse. Done when CAPTCHA is on for sign-up and sign-in on production and a script that hammers both is refused.
+CAPTCHA stays off until the app goes public. Run 8 merged a dormant hCaptcha widget (#336). A direct hammer from the coder's machine was refused at sign-up 31 and sign-in 32, and the 31 throwaway accounts were deleted. The owner holds the site key and the secret. The secret lives only in Supabase Auth and never goes into the repository, an issue, an order or this backlog. To turn CAPTCHA on, set NEXT\_PUBLIC\_HCAPTCHA\_SITE\_KEY in Vercel production and redeploy, then enable CAPTCHA in Supabase Auth, never the reverse. Done when CAPTCHA is on for sign-up and sign-in on production and a script that hammers both is refused.
 
 ### #657 The README says a food with no match is shown as unavailable, but the app now estimates it
 
@@ -350,7 +304,7 @@ The coder's audit found it at README.md line 20. The matcher in src/lib/fdc/matc
 
 The app waits up to 320 ms after a single tap on a meal before it opens the meal, in case the tap is the first half of a double tap.
 
-The coder's audit found the wait in the tap logic (SINGLE_TAP_WAIT_MS). It is separate from the server wait in #554, and no done line counts it. Related: #554. Done when a single tap on a meal shows a visible change at once and a double tap still works, or the owner rules that the 320 ms stays.
+The coder's audit found the wait in the tap logic (SINGLE\_TAP\_WAIT\_MS). It is separate from the server wait in #554, and no done line counts it. Related: #554. Done when a single tap on a meal shows a visible change at once and a double tap still works, or the owner rules that the 320 ms stays.
 
 ### #578 The leftovers photo and the regular photo post through different code
 
@@ -368,7 +322,7 @@ After the last feature is in, one pass replaces the default README with a short 
 
 Codex and AGY reviewed the Fleet 18 PRs and raised problems in code that is now merged. The planner confirmed four of them on main 7d64f4c8; they are the four items below. The rest have not been checked.
 
-A read-only check on main 7d64f4c8 reproduced 11 of the review findings; each is its own item below. It dismissed two with proof: the #633 recompute upsert (line 53 of recompute.ts has no ignoreDuplicates, so recomputed nutrition is written) and the #633 rice-with-protein composition (it only runs for a rice or sushi dish). Still unchecked: the #641 portion_unit "serving" that the database does not accept; on #638, the Feed discovery polling that stops when the tab is hidden and today_summary disagreeing with the legacy totals; on #639, NeedsInputStrip never finding new questions after an empty first poll, and RealtimePost not refreshing on visibility; the #637 Thread retry polling; and the #643 header text cut off. AGY found blockers on #647 (head b1c55245) and #648 (head 9c04984b), and their text is not in anything I hold. AGY ran on #646 (head 05b0ba50) and found none. Observe first: check each unchecked finding on main and reproduce it or dismiss it with proof. Done when each unchecked finding is reproduced or dismissed with proof, the blockers on #647 and #648 are copied from the AGY receipts and each is checked on main, and each one reproduced is filed as its own item.
+A read-only check on main 7d64f4c8 reproduced 11 of the review findings; each is its own item below. It dismissed two with proof: the #633 recompute upsert (line 53 of recompute.ts has no ignoreDuplicates, so recomputed nutrition is written) and the #633 rice-with-protein composition (it only runs for a rice or sushi dish). Still unchecked: the #641 portion\_unit "serving" that the database does not accept; on #638, the Feed discovery polling that stops when the tab is hidden; on #639, NeedsInputStrip never finding new questions after an empty first poll, and RealtimePost not refreshing on visibility; the #637 Thread retry polling; and the #643 header text cut off. AGY found blockers on #647 (head b1c55245) and #648 (head 9c04984b). The remediation plan states them, and the planner marks both as still on main. On #647, useProfileIdentity in PostHandle.tsx binds the viewer's avatar and handle to every post header and not the author's, and the avatar route reads with the viewer's token, so viewing another user's avatar fails. Separately, the avatar route sends a public one-year immutable cache header for an image only signed-in users should see. On #648, wording-inventory.mjs embeds the HEAD short hash, so its check can never pass after a commit, and the committed docs/wording/inventory.md was generated at 7d2cbd37, before Fleet 18's 66 changed files. These are in the remediation plan as items 12 and 13. I have not seen a coder report that reproduces them, so I list them as planner-checked. AGY ran on #646 (head 05b0ba50) and found none. Observe first: check each unchecked finding on main and reproduce it or dismiss it with proof. Done when each unchecked finding is reproduced or dismissed with proof, the blockers on #647 and #648 are copied from the AGY receipts and each is checked on main, and each one reproduced is filed as its own item.
 
 ### The jobs drain route runs the worker for anyone and without holding the lease (#640)
 
@@ -380,7 +334,7 @@ The planner checked it in the code on main 7d64f4c8, and it is live in productio
 
 When the image resizer is busy, the feed photo route answers with a redirect to a signed link that expires in 60 seconds, and marks that redirect immutable for a year. That browser then keeps the broken photo.
 
-The planner checked it in the code on main 7d64f4c8, and it is live in production. Done when the redirect carries no long-lived cache header, and a feed photo requested while the resizer is busy loads correctly on the next visit.
+The planner checked it in the code on main 7d64f4c8, and it is live in production. Done when the redirect carries no long-lived cache header, and a feed photo requested while the resizer is busy loads correctly on the next visit. The fix is merged as #662; production proof is pending.
 
 ### Today on desktop reloads its numbers in a loop (#638)
 
@@ -392,7 +346,7 @@ The planner checked it in the code on main 7d64f4c8: the effect depends on the d
 
 The app now accepts a serving of 0.1, but any value from 0.1 to 0.24 fails to save.
 
-The planner checked it on main 7d64f4c8: migration 0017_servings.sql still requires at least 0.25. It is live in production. Done when the app's minimum and the database's minimum are the same number, and saving that minimum works.
+The planner checked it on main 7d64f4c8: migration 0017\_servings.sql still requires at least 0.25. It is live in production. Done when the app's minimum and the database's minimum are the same number, and saving that minimum works. The fix is merged as #665 and migration 0061 is applied; production proof is pending.
 
 ### A food topped with cheese, sauce or herbs is rejected as a protein mismatch (#633)
 
@@ -404,7 +358,7 @@ The read-only check reproduced it on main 7d64f4c8 in src/lib/fdc/protein-refere
 
 The alcohol check matches the bare word cocktail, so fruit cocktail and shrimp cocktail are treated as alcoholic.
 
-The read-only check reproduced it on main 7d64f4c8 in src/lib/intake/alcohol.ts, lines 6 and 14: ALCOHOLIC_NAME contains cocktail, and it is tested against the item name. Done when a fruit cocktail and a shrimp cocktail are not counted as alcohol, a tiki cocktail and a margarita still are, and a test covers all four.
+The read-only check reproduced it on main 7d64f4c8 in src/lib/intake/alcohol.ts, lines 6 and 14: ALCOHOLIC\_NAME contains cocktail, and it is tested against the item name. Done when a fruit cocktail and a shrimp cocktail are not counted as alcohol, a tiki cocktail and a margarita still are, and a test covers all four.
 
 ### Saving a meal whose analysis failed leaves the bookmark stuck, or marks a saved meal failed (#634)
 
@@ -458,7 +412,13 @@ The read-only check reproduced it on main 7d64f4c8 in src/components/UploadChip.
 
 Tabbing into a control inside a meal card does not show the card's focus outline.
 
-The read-only check reproduced it on main 7d64f4c8 in src/components/DesktopWorkspace.tsx, line 65. The code tests the card for focus-visible instead of the element that has focus, so the check fails for any child. Done when tabbing into a control inside a card shows the outline on the desktop, and a test covers it.
+The read-only check reproduced it on main 7d64f4c8 in src/components/DesktopWorkspace.tsx, line 65. The code tests the card for focus-visible instead of the element that has focus, so the check fails for any child. Done when tabbing into a control inside a card shows the outline on the desktop, and a test covers it. The fix is merged as #669; production proof is pending.
+
+### Today shows 0 g protein, carbs or fat when the value is unavailable (#638)
+
+The new Today summary turns a nutrient nobody could measure into a zero, so a day whose protein is unavailable shows "0 g protein". The owner ruled that unavailable is never shown as zero.
+
+The planner reproduced it on main in the code: the old totals in src/lib/nutrition/totals.ts return null for a nutrient with no known value, and the today\_summary function from migration 0057 sets protein, carbs and fat to 0 always, and calories to 0 unless every item lacks calories. The planner's fix is a new migration for today\_summary that returns null when no item of the day has a known value. Done when an empty day and a day with protein missing on every item show unavailable and not 0, a day with known values shows the same totals as the old calculation, and a test covers all three.
 
 ## Backlog for Designer
 
