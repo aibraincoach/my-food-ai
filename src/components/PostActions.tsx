@@ -12,6 +12,8 @@ export default function PostActions({postId,modelCommentId,fingerprint,drink=fal
   useEffect(()=>{const element=ref.current;if(!element)return;const measure=()=>setWidth(element.getBoundingClientRect().width);measure();const observer=new ResizeObserver(measure);observer.observe(element);return()=>observer.disconnect();},[]);
   const [bookmark,setBookmark]=useState({id:post?.saved_meal_id??(saved?'unknown':null) as string|null,pending:false});
   const bookmarkRef=useRef(bookmark);useEffect(()=>{bookmarkRef.current=bookmark;},[bookmark]);
+  const waitCleanupRef=useRef<(() => void)|null>(null);
+  useEffect(()=>()=>{waitCleanupRef.current?.();},[]);
   useEffect(()=>{const receive=(event:Event)=>{const d=(event as CustomEvent<{postId:string;savedMealId?:string|null;failed?:boolean}>).detail;if(d?.postId!==postId)return;const next=finishBookmark({id:d.savedMealId??null,pending:false},d.savedMealId??null,Boolean(d.failed));bookmarkRef.current=next;setBookmark(next);};const starting=(event:Event)=>{const d=(event as CustomEvent<{postId:string}>).detail;if(d?.postId!==postId||bookmarkRef.current.pending)return;const next=beginBookmark(bookmarkRef.current);bookmarkRef.current=next;setBookmark(next);};window.addEventListener('save-meal-result',receive);window.addEventListener('save-meal',starting);return()=>{window.removeEventListener('save-meal-result',receive);window.removeEventListener('save-meal',starting);};},[postId]);
   const visibleSaved=bookmark.pending?Boolean(bookmark.id):bookmark.id==='unknown'?saved:Boolean(bookmark.id);
   const ready=(post?.status??status)==='ready';
@@ -20,8 +22,10 @@ export default function PostActions({postId,modelCommentId,fingerprint,drink=fal
    if(visibleSaved){const next=beginBookmark({...previous,id:previous.id});bookmarkRef.current=next;setBookmark(next);window.dispatchEvent(new CustomEvent('save-meal',{detail}));return;}
    if(postStatus==='failed'){const next=finishBookmark({id:null,pending:false},null,true);bookmarkRef.current=next;setBookmark(next);return;}
    if(!ready){
+     waitCleanupRef.current?.();
      const next=beginBookmark({...previous,id:null});bookmarkRef.current=next;setBookmark(next);
-     const cleanup=()=>{window.removeEventListener('post-settled',onSettled);window.removeEventListener('post-ready',onReady);clearTimeout(cap);};
+     const cleanup=()=>{window.removeEventListener('post-settled',onSettled);window.removeEventListener('post-ready',onReady);clearTimeout(cap);waitCleanupRef.current=null;};
+     waitCleanupRef.current=cleanup;
      const revert=()=>{cleanup();const restored=finishBookmark({id:previous.id,pending:false},previous.id,false);bookmarkRef.current=restored;setBookmark(restored);};
      const cap=setTimeout(revert,120_000);
      const onReady=(event:Event)=>{const d=(event as CustomEvent<{id?:string}>).detail;if(d?.id!==postId)return;cleanup();window.dispatchEvent(new CustomEvent('save-meal',{detail}));};
