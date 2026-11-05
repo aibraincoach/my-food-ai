@@ -1,53 +1,49 @@
-# Fleet 18 remediation — final report (stop 2026-11-05 01:00 UTC)
+# Fleet 18 remediation — final report
 
 **I did not complete my plan.**
 
-Production alias: `https://my-food-ai-ten.vercel.app`. Deployment checked at **`d399a286`** (merge #666; includes merged fix18 through #674 in history). Vercel production check: **success**.
+Production alias: `https://my-food-ai-ten.vercel.app`.
 
-## Merge outcome (14 fix PRs #661–#674)
+## Stop snapshot (2026-11-05 01:00 UTC)
 
-| State | PRs |
+At the planned stop, **`d399a286`** was production-ready (9/14 fix PRs merged). Read-only DB/route checks below were run against that deployment. **Data pass** and **production proof matrix** were **not done**.
+
+## Owner override (after 01:00 UTC)
+
+The owner overrode exact-head external review for the remaining five PRs (out of time). All merged to **`main`** by **2026-11-05 00:58:53Z**:
+
+| PR | Merge |
 | --- | --- |
-| **Merged (9)** | #661, #662, #663, #664, #665, #666, #669, #673, #674 |
-| **Open (5)** | #667, #668, #670, #671, #672 |
+| #667 | `e333685` |
+| #668 | `1ab1025` |
+| #670 | `47f92b9` |
+| #671 | `d54a9ed` |
+| #672 | `5be9625` (`d50bdf79` on branch; conflict resolve in `PostDetailHeader.tsx`) |
 
-Migrations **0060**, **0061**, **0062** verified on production database (function bodies and `posts_servings_check`; `today_summary` null semantics match 0062).
+**Current `main`:** **`5be9625f`** — **14/14** fix PRs #661–#674 merged. PPLX receipts at pre-merge heads were not re-run or triaged on GitHub before these merges.
 
-## Open PRs — live bugs left on production
+The bugs listed for the five open PRs at stop are **addressed in code on main**; production proof that each fix behaves on the live app was **not done** in this window.
 
-| PR | Live bug |
-| --- | --- |
-| **#667** | Bookmark on failed posts can hang; unsave on saved failed post can mark failed instead of unsaving. |
-| **#668** | Open-cover retry lacks timers; expired signed photo links in session cache → 403 until session ends. |
-| **#670** | “Fruit cocktail” / shrimp cocktail counted as alcohol; “topped with cheese” (non-protein) can reject valid USDA records. |
-| **#671** | Photo-lost upload chip: retake path can leave failed upload stuck / drafts resurrect. |
-| **#672** | Post headers can show viewer not author; avatar route may cache signed URLs with public immutable cache. |
-
-Per stop-time rule, these five are **not merged** in this window; each is one fix + one exact-head PPLX (or policy fallback) from merge-ready.
-
-## Read-only production checks (post–#674 deployment)
+## Read-only production checks (at stop, deployment through #674 / `d399a286`)
 
 | Check | Result | Notes |
 | --- | --- | --- |
-| **`/api/jobs/drain` without lease → 409** | **Pass** | `GET …/drain?holder=fake-holder-id` → `Not the lease holder.` HTTP 409. |
-| **Feed overload 302 uses `private, no-store`** | **Pass (code on main)** | `feed-photo-response.ts` at `d399a286`: 302 spreads `headers` with `Cache-Control: private, no-store`. Not re-probed with an authenticated overload redirect in this window. |
-| **`today_summary` null semantics (0062)** | **Pass** | DB function body uses per-macro `count(*) filter … = 0 then null`. |
-| **Servings floor 0.1 (0061)** | **Pass** | `posts_servings_check`: `servings >= 0.1`. |
-| **Label `portion_unit` accepts `serving` (0060)** | **Pass** | `create_food_post` definition includes `'serving'` in allowed units. |
-| **0062 migration applied** | **Pass** | Inferred from `today_summary` definition (not from a migrations table row; no `schema_migrations` relation in this DB). |
-| **Data pass (recompute jobs / item 14)** | **Not done** | Zero rows in `public.jobs` with `created_at >= 2026-11-05 00:00 UTC`; no `recompute-ids.json` or batch run. Skipped per planner when <5 minutes remained before stop. |
-| **Production proof matrix (item 15, account 2, #471 guard)** | **Not done** | Not started in this window. |
-| **Close issues / BACKLOG reconciliation beyond owner snapshot** | **Not done** | Backlog on docs PR #675 is owner verbatim 07:40 WIB (stale on merge counts by design). |
+| **`/api/jobs/drain` without lease → 409** | **Pass** | `GET …/drain?holder=fake-holder-id` → HTTP 409. |
+| **Feed overload 302 uses `private, no-store`** | **Pass (code on main)** | Verified in `feed-photo-response.ts` at stop head; no authenticated overload curl. |
+| **`today_summary` null semantics (0062)** | **Pass** | DB function body. |
+| **Servings floor 0.1 (0061)** | **Pass** | `posts_servings_check`. |
+| **Label `portion_unit` accepts `serving` (0060)** | **Pass** | `create_food_post`. |
+| **Data pass (recompute / item 14)** | **Not done** | No `recompute-ids.json`; no recompute batch since 00:00 UTC. |
+| **Production proof matrix (item 15, account 2, #471)** | **Not done** | Not started. |
+| **Issue close / backlog live sync** | **Not done** | Backlog on #675 is owner verbatim 07:40 WIB. |
 
-## PPLX at current heads (local captures, not all on PR branches)
+Re-run drain / DB checks against **`5be9625f`** after Vercel production is READY if you need post-override confirmation.
 
-- **#667**, **#668**, **#670**, **#671**, **#672**: captures exist under `docs/reviews/` at current heads; findings are **P2-only** on #672 at `97d0a9d` (no P1 after `getUser()` fix). Triage/post to GitHub not completed in this window.
+## Docs PRs (not merged without owner order)
 
-## Docs PRs
+- **#675** — backlog + Fleet 18 evidence.
+- **#676** — Wall 07:42 / 07:45 + PM authority (split from #675).
 
-- **#675** (`fix18/docs-remediation`): backlog + Fleet 18 evidence only; **not merged** without owner order. PM contract / Wall split to **#676**.
-- **#676** (`docs/pm-authority-wall-20261105`): Wall 07:42 / 07:45 + PM authority; **not merged** without owner order.
+## Process
 
-## Planner note (process)
-
-Review waivers and merge-with-open-P2 calls are **PM decisions**, stated in writing — not owner polls mid-run.
+Review waivers are PM decisions, stated in writing. The owner may override review/merge policy by explicit order (as for the final five PRs).
