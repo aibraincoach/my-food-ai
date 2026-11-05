@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { holdsActiveLease } from "@/lib/queue/lease";
 import { runWorker } from "@/lib/worker/drain";
 
 export const maxDuration = 300;
@@ -14,6 +15,9 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: "Worker is not configured." }, { status: 503 });
   }
   try {
+    if (!(await holdsActiveLease(admin, holder))) {
+      return NextResponse.json({ error: "Not the lease holder." }, { status: 409 });
+    }
     await runWorker(admin, holder, async () => {
       const response = await fetch(new URL("/api/jobs/tick", request.url), {
         cache: "no-store",
