@@ -11,7 +11,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 
 export type ItemBox = { left: number; top: number; right: number; bottom: number };
 export type DetailItem = Omit<CurrentItem, "box"> & { box: ItemBox | null; maskUrl: string | null };
-export type DetailPhoto = { id?:string; url: string; previewUrl?: string; width: number; height: number; not_eaten?:boolean };
+export type DetailPhoto = { id?:string; url: string; previewUrl?: string; width: number; height: number; not_eaten?:boolean; expiresAt?: number };
 export type DetailSlide = FeedPost["slides"][number] & {previewUrl?:string;width?:number;height?:number};
 export type ItemEdit = { action: "rename" | "portion" | "remove" | "add"; item_id?: string; name?: string; portion_grams?: number; portion_amount?: number; portion_unit?: Unit; box?: ItemBox; fdc_selection?: { id: number; query: string } };
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -148,7 +148,8 @@ export async function getPostDetail(supabase: SupabaseClient, postId: string, zo
     const previewUrl=smallFeedPhotoUrl(post.user_id,postId,entry.id)??undefined;
     const url=originalUrls.get(entry.storage_path);
     if(!url&&entry===media)throw new Error("Meal photo could not be opened.");
-    return{id:entry.id,url:url??previewUrl??'',previewUrl,width:entry.width||1,height:entry.height||1,not_eaten:Boolean(entry.not_eaten)};
+    const expiresAt=Date.now()+3600*1000;
+    return{id:entry.id,url:url??previewUrl??'',previewUrl,width:entry.width||1,height:entry.height||1,not_eaten:Boolean(entry.not_eaten),expiresAt};
   });
   const photo=photos[0]??null;
   const hydrated = (await getPostHydrationData(supabase, post.user_id, [{ id: postId, eaten_at: post.eaten_at, items }], zone))[postId];

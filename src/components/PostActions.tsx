@@ -20,7 +20,7 @@ export default function PostActions({postId,modelCommentId,fingerprint,drink=fal
   const save=()=>{if(bookmarkRef.current.pending)return;const previous=bookmarkRef.current;const postStatus=post?.status??status;
    const detail={postId,savedMealId:previous.id,previousSaved:visibleSaved};
    if(visibleSaved){const next=beginBookmark({...previous,id:previous.id});bookmarkRef.current=next;setBookmark(next);window.dispatchEvent(new CustomEvent('save-meal',{detail}));return;}
-   if(postStatus==='failed'){const next=finishBookmark({id:null,pending:false},null,true);bookmarkRef.current=next;setBookmark(next);return;}
+   if(postStatus==='failed'){window.dispatchEvent(new CustomEvent('save-meal-result',{detail:{postId,savedMealId:null,failed:true}}));window.dispatchEvent(new CustomEvent('save-meal-blocked',{detail:{postId,message:'This meal did not finish analysis and cannot be saved.'}}));return;}
    if(!ready){
      waitCleanupRef.current?.();
      const next=beginBookmark({...previous,id:null});bookmarkRef.current=next;setBookmark(next);
