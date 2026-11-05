@@ -23,9 +23,9 @@ export async function GET(
     }
 
     const db = await createClient();
-    const {data: {session}} = await db.auth.getSession();
-    const viewerId = session?.user?.id;
-    if (!viewerId) return fail(401);
+    const {data: {user}, error: userError} = await db.auth.getUser();
+    const viewerId = user?.id;
+    if (userError || !viewerId) return fail(401);
 
     const adminAllowed = await adminRequestAllowed(viewerId, async () => {
       const {data, error} = await db.from('profiles').select('role').eq('id', viewerId).maybeSingle();
