@@ -426,7 +426,9 @@ The read-only check reproduced it on main 7d64f4c8 in src/components/UploadChip.
 
 Tabbing into a control inside a meal card does not show the card's focus outline.
 
-The read-only check reproduced it on main 7d64f4c8 in src/components/DesktopWorkspace.tsx, line 65. The code tests the card for focus-visible instead of the element that has focus, so the check fails for any child. Done when tabbing into a control inside a card shows the outline on the desktop, and a test covers it.
+
+The read-only check reproduced it on main 7d64f4c8 in src/components/DesktopWorkspace.tsx, line 65. The code tests the card for focus-visible instead of the element that has focus, so the check fails for any child. Done when tabbing into a control inside a card shows the outline on the desktop, and a test covers it. The fix is merged as #669; production proof is pending.
+ a7a967e7 (docs: remove #638 today_summary backlog item after fix18 proof)
 
 ## Backlog for Designer
 
