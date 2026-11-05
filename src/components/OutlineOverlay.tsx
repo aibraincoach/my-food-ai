@@ -37,12 +37,12 @@ function readOriginalCache(key: string): string | null {
     if (!raw) return null;
     const parsed = JSON.parse(raw) as { url?: string; expiresAt?: number };
     if (!parsed.url || typeof parsed.expiresAt !== "number" || parsed.expiresAt <= Date.now()) {
-      sessionStorage.removeItem(key);
+      try { sessionStorage.removeItem(key); } catch { /* treat as missing */ }
       return null;
     }
     return parsed.url;
   } catch {
-    sessionStorage.removeItem(key);
+    try { sessionStorage.removeItem(key); } catch { /* treat as missing */ }
     return null;
   }
 }
@@ -54,6 +54,7 @@ function DetailImage({ photo, alt, sharp = false }: { photo: DetailPhoto; alt: s
   const cacheKey = photo.id ? `mfa-original-${photo.id}` : null;
   const preview = photo.previewUrl ?? photo.url;
   const [originalUrl, setOriginalUrl] = useState<string | null>(() => (sharp && cacheKey && typeof sessionStorage !== "undefined" ? readOriginalCache(cacheKey) : null));
+  const [reloadOriginal, setReloadOriginal] = useState(0);
   const src = sharp && originalUrl ? originalUrl : preview;
   const [failedSharp, setFailedSharp] = useState<string | null>(null);
   useEffect(() => {
@@ -70,9 +71,15 @@ function DetailImage({ photo, alt, sharp = false }: { photo: DetailPhoto; alt: s
     };
     image.src = photo.url;
     return () => { live = false; };
-  }, [sharp, photo.url, photo.previewUrl, cacheKey]);
+  }, [sharp, photo.url, photo.previewUrl, cacheKey, reloadOriginal]);
   return <img src={src} srcSet={failedSharp !== imageIdentity(src) && src === preview ? feedPhotoSrcSet(src) : undefined} onError={() => {
-    if (cacheKey) sessionStorage.removeItem(cacheKey);
+    if (sharp && originalUrl && cacheKey) {
+      try { sessionStorage.removeItem(cacheKey); } catch { /* ignore */ }
+      setOriginalUrl(null);
+      setReloadOriginal(n => n + 1);
+      return;
+    }
+    if (cacheKey) { try { sessionStorage.removeItem(cacheKey); } catch { /* ignore */ } }
     setOriginalUrl(null);
     setFailedSharp(imageIdentity(src));
   }} crossOrigin="anonymous" alt={alt} draggable={false} className="h-full w-full object-contain" />;
