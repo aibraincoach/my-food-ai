@@ -36,10 +36,11 @@ export async function renewLease(
 export async function holdsActiveLease(admin: SupabaseClient, holder: string): Promise<boolean> {
   const { data, error, status } = await admin
     .from("worker_lease")
-    .select("holder,expires_at")
+    .select("holder")
     .eq("id", 1)
+    .eq("holder", holder)
+    .gt("expires_at", new Date().toISOString())
     .maybeSingle();
   if (error) throw ioError(`read lease failed: ${error.message}`, error, status);
-  if (!data?.holder || data.holder !== holder || !data.expires_at) return false;
-  return Date.parse(data.expires_at) > Date.now();
+  return data?.holder === holder;
 }
