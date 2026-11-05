@@ -2,6 +2,8 @@
 import {useEffect,useState} from 'react';
 import {createClient} from '@/lib/supabase/client';
 export type ProfileIdentity={handle:string;userId:string;avatarMediaId:string|null};
+export type PostAuthorRow={userId:string;handle:string;avatarMediaId?:string|null};
+
 let pending:Promise<ProfileIdentity>|null=null;
 let authWatching=false;
 let account:string|null|undefined;
@@ -20,19 +22,30 @@ function loadIdentity() {
 }
 export function refreshProfileIdentity(){pending=null;}
 export function useProfileIdentity(seed?:Partial<ProfileIdentity>) {
+ const seeded=Boolean(seed?.userId&&seed?.handle);
  const [value,setValue]=useState<ProfileIdentity>({handle:seed?.handle??'',userId:seed?.userId??'',avatarMediaId:seed?.avatarMediaId??null});
  useEffect(()=>{
+  if(seeded)return;
   let live=true;
   const apply=(identity:ProfileIdentity)=>{if(live)setValue({handle:seed?.handle||identity.handle,userId:identity.userId,avatarMediaId:identity.avatarMediaId});};
   void loadIdentity().then(apply).catch(()=>{if(live)setValue({handle:seed?.handle??'',userId:'',avatarMediaId:null});});
   const changed=()=>{pending=null;void loadIdentity().then(apply);};
   window.addEventListener('profile-identity-changed',changed);
   return()=>{live=false;window.removeEventListener('profile-identity-changed',changed);};
- },[seed?.handle]);
+ },[seed?.handle,seed?.userId,seed?.avatarMediaId,seeded]);
+ if(seeded)return {handle:seed!.handle!,userId:seed!.userId!,avatarMediaId:seed?.avatarMediaId??null};
  return value;
 }
-export function usePostHandle(handle?:string) {
- return useProfileIdentity(handle?{handle}:undefined).handle||handle||'';
+export function usePostAuthor(row?:PostAuthorRow|null){
+ const profile=useProfileIdentity();
+ if(row?.userId&&row.handle)return {handle:row.handle,userId:row.userId,avatarMediaId:row.avatarMediaId??null};
+ return profile;
+}
+export function usePostHandle(handle?:string,author?:PostAuthorRow|null) {
+ const seeded=author?.userId&&author.handle?{userId:author.userId,handle:author.handle,avatarMediaId:author.avatarMediaId??null}:handle?{handle}:undefined;
+ const identity=useProfileIdentity(seeded);
+ if(author?.handle)return author.handle;
+ return identity.handle||handle||'';
 }
 
 export function AgentAttribution({ name }: { name?: string | null }) {

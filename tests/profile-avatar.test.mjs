@@ -14,9 +14,9 @@ const media = '33333333-3333-4333-8333-333333333333';
 const routeSource = readFileSync(new URL('../src/app/api/media/avatar/[owner]/[media]/[variant]/route.ts', import.meta.url), 'utf8');
 const compiled = ts.transpileModule(routeSource, {compilerOptions: {module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022}}).outputText;
 
-function mediaRoute({user = {id: owner}, row = {avatar_media_id: media}, fetchImpl} = {}) {
+function mediaRoute({user = {id: owner}, row = {avatar_media_id: media}, admin = false, bytes = null} = {}) {
   const filters = [];
-  const calls = {fetch: 0};
+  const downloads = [];
   const query = {
     select() { return this; },
     eq(key, value) { filters.push([key, value]); return this; },
@@ -30,11 +30,17 @@ function mediaRoute({user = {id: owner}, row = {avatar_media_id: media}, fetchIm
     },
     from() { return query; },
   };
+  const adminClient = {
+    storage: {from: () => ({download: async path => { downloads.push(path); return bytes ? {data: new Blob([bytes], {type: 'image/webp'}), error: null} : {data: null, error: {message: 'missing'}}; }})},
+    from() { return query; },
+  };
   const exports = {};
   vm.runInNewContext(compiled, {
     exports,
     require(name) {
       if (name === '@/lib/supabase/server') return {createClient: async () => db};
+      if (name === '@/lib/supabase/admin') return {createAdminClient: () => adminClient};
+      if (name === '@/lib/auth/admin-access') return {adminRequestAllowed: async () => admin};
       if (name === '@/lib/profile/avatar-url') return avatar;
       throw Error(name);
     },
@@ -42,45 +48,42 @@ function mediaRoute({user = {id: owner}, row = {avatar_media_id: media}, fetchIm
     Request,
     URL,
     AbortSignal,
-    process: {env: {NEXT_PUBLIC_SUPABASE_URL: 'https://storage.example', NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: 'offline'}},
-    fetch: async (...args) => { calls.fetch++; return fetchImpl(...args); },
+    process: {env: {}},
   });
   return {
     get: async (params = {owner, media, variant: '96.webp'}, headers = {}) =>
       exports.GET(new Request(`https://app.example/api/media/avatar/${params.owner}/${params.media}/${params.variant}`, {headers}), {params: Promise.resolve(params)}),
-    calls,
+    downloads,
     filters,
   };
 }
 
 test('avatar media route rejects invalid ids, signed-out requests and mismatched profile media', async () => {
+  const other = '22222222-2222-4222-8222-222222222222';
   for (const [setup, params, status] of [
     [{user: null}, {owner, media, variant: '96.webp'}, 401],
+    [{user: {id: other}, row: {avatar_media_id: media}}, {owner, media, variant: '96.webp'}, 404],
     [{row: {avatar_media_id: null}}, {owner, media, variant: '96.webp'}, 404],
     [{row: {avatar_media_id: media}}, {owner: 'bad', media, variant: '96.webp'}, 404],
     [{row: {avatar_media_id: media}}, {owner, media, variant: '128.webp'}, 404],
   ]) {
-    const route = mediaRoute({...setup, fetchImpl: async () => { throw Error('no fetch'); }});
+    const route = mediaRoute({...setup});
     const response = await route.get(params);
     assert.equal(response.status, status);
-    assert.equal(route.calls.fetch, 0);
+    assert.equal(route.downloads.length, 0);
   }
 });
 
-test('avatar media route serves immutable webp for the bound profile media', async () => {
+test('avatar media route serves private cached webp for the owner', async () => {
   const bytes = await sharp({create: {width: 120, height: 90, channels: 3, background: '#2244aa'}}).webp().toBuffer();
-  const route = mediaRoute({
-    fetchImpl: async (url, init) => {
-      assert.equal(url.pathname, `/storage/v1/object/authenticated/media/${owner}/avatar/${media}/96.webp`);
-      assert.equal(init.headers.Authorization, 'Bearer offline-token');
-      return new Response(bytes);
-    },
-  });
+  const route = mediaRoute({bytes});
   const response = await route.get();
   assert.equal(response.status, 200);
-  assert.equal(response.headers.get('cache-control'), 'public, max-age=31536000, immutable');
+  assert.match(response.headers.get('cache-control') ?? '', /^private/);
+  assert.ok(!/public/i.test(response.headers.get('cache-control') ?? ''));
+  assert.equal(response.headers.get('vary'), 'Cookie');
   assert.equal(response.headers.get('content-type'), 'image/webp');
-  assert.deepEqual(route.filters, [['id', owner]]);
+  assert.deepEqual(route.downloads, [`${owner}/avatar/${media}/96.webp`]);
 });
 
 test('profile avatar HTTP keeps session scope and blocks cross-account writes', {timeout: 90000}, async () => {

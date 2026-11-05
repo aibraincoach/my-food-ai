@@ -6,6 +6,7 @@ import type { DrinkCardData } from '@/lib/intake/hydration';
 /** Optional fields allow the independent record services to land in dependency order. */
 export type PostPresentation = FeedPost & {
   handle?: string;
+  avatar_media_id?: string | null;
   kind?: 'meal' | 'drink';
   foodWaterMl?: number;
   dayHydration?: { totalMl: number; drinksMl: number; foodMl: number; caffeineMg?: number };
