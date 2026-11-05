@@ -61,8 +61,10 @@ export default function DesktopWorkspace({children,detail,width=500}:{children:R
   useEffect(()=>{
     const element=root.current;if(!element||!desktop)return;
     const onFocusIn=(event:FocusEvent)=>{
-      const card=(event.target as HTMLElement).closest<HTMLElement>('[data-desktop-post]');
-      if(!card?.dataset.desktopPost||!card.matches(':focus-visible'))return;
+      const target=event.target as HTMLElement;
+      if(!target.matches(':focus-visible'))return;
+      const card=target.closest<HTMLElement>('[data-desktop-post]');
+      if(!card?.dataset.desktopPost)return;
       setFocused(card.dataset.desktopPost);
       setOutlined(true);
     };
