@@ -44,6 +44,7 @@ export function usePostAuthor(row?:PostAuthorRow|null){
  return {handle:'',userId:row.userId,avatarMediaId:row.avatarMediaId??null};
 }
 export function usePostHandle(handle?:string,author?:PostAuthorRow|null) {
+ if(author?.userId&&!author.handle)return handle||'';
  const seeded=author?.userId&&author.handle?{userId:author.userId,handle:author.handle,avatarMediaId:author.avatarMediaId??null}:handle?{handle}:undefined;
  const identity=useProfileIdentity(seeded);
  if(author?.handle)return author.handle;

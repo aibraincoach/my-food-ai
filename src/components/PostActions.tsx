@@ -29,7 +29,7 @@ export default function PostActions({postId,modelCommentId,fingerprint,drink=fal
      const revert=()=>{cleanup();const restored=finishBookmark({id:previous.id,pending:false},previous.id,false);bookmarkRef.current=restored;setBookmark(restored);};
      const cap=setTimeout(revert,120_000);
      const onReady=(event:Event)=>{const d=(event as CustomEvent<{id?:string}>).detail;if(d?.id!==postId)return;cleanup();window.dispatchEvent(new CustomEvent('save-meal',{detail}));};
-     const onSettled=(event:Event)=>{const settled=(event as CustomEvent<{id?:string;status?:string}>).detail;if(settled?.id!==postId)return;cleanup();if(settled?.status==='ready'){window.dispatchEvent(new CustomEvent('save-meal',{detail}));return;}const next=finishBookmark({id:null,pending:false},null,true);bookmarkRef.current=next;setBookmark(next);};
+     const onSettled=(event:Event)=>{const settled=(event as CustomEvent<{id?:string;status?:string}>).detail;if(settled?.id!==postId)return;cleanup();if(settled?.status==='ready'){window.dispatchEvent(new CustomEvent('save-meal',{detail}));return;}window.dispatchEvent(new CustomEvent('save-meal-result',{detail:{postId,savedMealId:null,failed:true}}));window.dispatchEvent(new CustomEvent('save-meal-blocked',{detail:{postId,message:'This meal did not finish analysis and cannot be saved.'}}));};
      window.addEventListener('post-settled',onSettled);window.addEventListener('post-ready',onReady);return;}
    const next=beginBookmark({...previous,id:null});bookmarkRef.current=next;setBookmark(next);
    window.dispatchEvent(new CustomEvent('save-meal',{detail}));

@@ -60,7 +60,7 @@ function HeaderServings({postId,servings}:{postId:string;servings:number}) {
 
 export default function PostDetailHeader({post,postId,caption,eatenAt,handle:providedHandle,gtin,rows,saved=false,status,readOnly=false,servings,showServings=false}:{post?:FeedPost;postId:string;caption:string;eatenAt:string;handle?:string;gtin?:string|null;rows?:PostMenuRow[];saved?:boolean;status?:string;readOnly?:boolean;servings?:number;showServings?:boolean}) {
  const row=post as PostPresentation|undefined;
- const author=usePostAuthor(row?.user_id&&row.handle?{userId:row.user_id,handle:row.handle,avatarMediaId:row.avatar_media_id??null}:null);
+ const author=usePostAuthor(row?.user_id?{userId:row.user_id,handle:row.handle??'',avatarMediaId:row.avatar_media_id??null}:null);
  const handle=usePostHandle(providedHandle??row?.handle,author.userId?{userId:author.userId,handle:author.handle,avatarMediaId:author.avatarMediaId}:null);
  const date=useLocalDate(eatenAt);const time=useLocalTime(eatenAt);
  return <div className="flex h-[52px] items-center gap-[10px] px-inset">

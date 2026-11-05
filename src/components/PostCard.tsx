@@ -71,7 +71,7 @@ function StatusLine({ post }: { post: FeedPost }) {
 export default function PostCard({ post, showDate = false, upload, priority = false }: { priority?: boolean; upload?:UploadState;post: FeedPost; analysis?: ReactNode; showDate?: boolean }) {
   const record=post as PostPresentation;
   const drink = useDrinkCard(post.id, post.status, post.eaten_at, post.drink);
-  const author=usePostAuthor(record.user_id&&record.handle?{userId:record.user_id,handle:record.handle,avatarMediaId:record.avatar_media_id??null}:null);
+  const author=usePostAuthor(record.user_id?{userId:record.user_id,handle:record.handle??'',avatarMediaId:record.avatar_media_id??null}:null);
   const handle=usePostHandle(record.handle,author.userId?{userId:author.userId,handle:author.handle,avatarMediaId:author.avatarMediaId}:null);
   useEffect(()=>{rememberPost(post);},[post]);
   const [slide,setSlide]=useState(0);
