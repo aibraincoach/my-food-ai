@@ -62,7 +62,7 @@ export default function PostDetailHeader({post,postId,caption,eatenAt,handle:pro
  const identity=useProfileIdentity(providedHandle?{handle:providedHandle}:undefined);
  return <div className="flex h-[52px] items-center gap-[10px] px-inset">
   <Avatar handle={handle} userId={identity.userId} mediaId={identity.avatarMediaId} sizePx={32} textClassName="text-avatar"/>
-  <div className="min-w-0 flex-1"><p className="truncate text-handle">{handle}{showServings&&servings!=null?<span className="ml-2 inline-flex align-middle"><HeaderServings key={`${postId}:${servings}`} postId={postId} servings={servings}/></span>:null}</p><p className="text-label text-muted">{date} · {time}</p></div>
+  <div className="min-w-0 flex-1"><div className="flex min-w-0 items-center gap-2"><p className="truncate text-handle">{handle}</p>{showServings&&servings!=null?<HeaderServings key={`${postId}:${servings}`} postId={postId} servings={servings}/>:null}</div><p className="text-label text-muted">{date} · {time}</p></div>
   <PostMenu postId={postId} caption={caption} eatenAt={eatenAt} gtin={gtin} rows={[...(status==='ready'&&!readOnly?[{label:'Add photo',onSelect:()=>window.dispatchEvent(new CustomEvent('open-entry',{detail:{entry:'camera',forPost:postId,notEaten:false}}))}]:[]),{label:'Log again',onSelect:()=>window.dispatchEvent(new CustomEvent('log-again',{detail:{postId}}))},{label:saved?'Unsave':'Save meal',disabled:!saved&&(post?.status??status)!=='ready',onSelect:()=>window.dispatchEvent(new CustomEvent('save-meal',{detail:{postId}}))},...(rows??[]),{label:'Delete',muted:true,onSelect:()=>window.dispatchEvent(new CustomEvent('delete-post',{detail:{id:postId,post}}))}]}/>
  </div>;
 }
