@@ -192,12 +192,6 @@ The feed sometimes fails to open, and on a slow connection the first photo and t
 
 Run 8 cut the work done on a cold open and measured it in emulation: 100 of 100 opens succeeded, and cold photos showed in 1.48 to 1.83 seconds. Fleet 15 added smaller photo copies (see #372). The original failures (3 server errors and 15 blank feeds in 100 opens on the largest test account, 146 posts) never reproduced on the Run 7 baseline, so their cause is not isolated. The runtime logs return 403 for the coder, so the stack for digest 3642131196 exists only in the Vercel console. The sub-items #322, #323, #324 and #520 each remove one piece of wasted work. Nothing else is left to build for this item. No physical phone has measured it yet. Done when a browser helper on production measures the first feed photo at 2 seconds or less on a cold open at the slow-network test profile.
 
-### #523 A meal shows every nutrition value as unavailable
-
-The meal "Spicy Indonesian macaroni" shows its calories, protein, carbs and fat as unavailable. The owner re-analysed it after the fix went live, and it is still broken. He says the app's food estimates are broken.
-
-The post says "Nutrition unavailable: spicy Indonesian fried macaroni snack". The first analysis searched the USDA database three times, rejected every record, and never tried the plain name "macaroni". The owner ruled that when the USDA has no record, the model must estimate, because an unavailable value is worse than a rough estimate. The closest-food fallback is on main (#588), but the guard that stops re-analysing from reusing an empty result is not: that fix (71f2fd1d) was never merged, so re-analysing reuses the old empty result and skips both the search and the estimate. The guard is in #633, which is merged. Fleet 18's data audit found 40 ready posts with incomplete macros (docs/evidence/run18/data-audit.json). The recompute for them has not run. No new post has come out unavailable since. Done when re-analysing this post runs a fresh lookup and shows numbers, with a note naming the closest USDA food or saying the model estimated them, no value is left unavailable, zero or blank, and a browser helper confirms it on the live app.
-
 ### #617 Squid and tuna are matched to the wrong food records
 
 In the real food test, a photo of squid nigiri was matched to a USDA record described as "Sushi, topped with tuna". The test allows this kind of closest match, so a passing test does not show the match is right.

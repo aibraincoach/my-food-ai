@@ -1,0 +1,80 @@
+{
+ "startedAt": "2026-11-05T01:26:45.754Z",
+ "account": 2,
+ "avatar": {
+  "priorAvatar": null,
+  "postStatus": 200,
+  "dbMedia": "dea434d6-a8ec-47b2-a4c8-c640cbe8ffe2",
+  "matches": true,
+  "getStatus": 200,
+  "cacheControl": "private, max-age=31536000, immutable",
+  "contentType": "image/webp",
+  "bytes": 6528,
+  "noCookieStatus": 401,
+  "deleteStatus": 200,
+  "afterDelete": null,
+  "result": "pass"
+ },
+ "label": {
+  "fixture": "synthetic in-memory label (no count-only fixture in repo): Serving size 1 bar, 190 Calories",
+  "signStatus": 200,
+  "putOriginal": 200,
+  "putFeed": 200,
+  "readStatus": 200,
+  "reading": {
+   "box": {
+    "h": 0.966,
+    "w": 0.936,
+    "x": 0.032,
+    "y": 0.016
+   },
+   "is_label": true,
+   "per_serving": {
+    "carbs_g": 27,
+    "fat_g": 8,
+    "fibre_g": 3,
+    "kcal": 190,
+    "protein_g": 4,
+    "sodium_mg": 150,
+    "sugar_g": 11
+   },
+   "product_name": null,
+   "serving": null
+  },
+  "postStatus": 201,
+  "postBody": {
+   "post_id": "b2c4b632-11ae-49d8-8a0c-ac7730dede3b"
+  },
+  "postId": "b2c4b632-11ae-49d8-8a0c-ac7730dede3b",
+  "items": [
+   {
+    "name": "Lane D label check",
+    "portion_text": "1 serving",
+    "portion_grams": null,
+    "calories": 190,
+    "protein_g": 4,
+    "carbs_g": 27,
+    "fat_g": 8,
+    "source_ref": "label:4476261e-b093-44f9-958c-bbf36eec2355"
+   }
+  ],
+  "deleteStatus": 204,
+  "deletedAt": "2026-11-05T01:26:56.821665+00:00",
+  "labelKcal": 190,
+  "result": "pass",
+  "cleanup": "post soft-deleted via DELETE /api/posts/:id (204); label_readings row deleted by service client"
+ },
+ "drain": {
+  "status": 409,
+  "body": "{\"error\":\"Not the lease holder.\"}",
+  "result": "pass"
+ },
+ "detail": {
+  "postIdPrefix": "f1737bd7",
+  "status": 200,
+  "hasExpiresAt": true,
+  "note": "first probe used e20a5590, a ready post whose only media is a generated card slide (no real photo), so no DetailPhoto/expiresAt is emitted; same for 105ba6bf/cbad4665/db0b132d/87a62bb2. Ready posts with real photos (f1737bd7, 48d4e1b2, 88dfce5d) all contain expiresAt.",
+  "result": "pass"
+ },
+ "finishedAt": "2026-11-05T01:26:57.807Z"
+}

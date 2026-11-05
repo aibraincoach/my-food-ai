@@ -61,3 +61,27 @@ Production deployment (last merge): **`02eed560`** (`#678` fix18/post-merge at *
 - **`OutlineOverlay`** signed-URL cache findings (#668) still open on main after #678.
 - **#677** accidentally committed many `docs/reviews/mfa-pplx-pr*.md` artifacts (process hygiene).
 - **Recompute backlog**: 39/41 posts still missing macros; worker lease healthy but drain slower than closing window.
+
+## Closeout run, 2026-11-05 01:24–01:55 UTC (parallel lanes)
+
+Lane: Fleet 18 only. One reviewer per PR (PPLX, with AGY as the fallback).
+
+| Lane | Result |
+| --- | --- |
+| A: recompute queue | Tick loop every 30 s. Final counts: see `recompute-result.json` (snapshot taken at commit time). The worker stalled twice, at about 01:29 and 01:34, when the #679/#680 deploys killed a running drain that still held the lease; it resumed when the lease expired (TTL). |
+| B: #678 post-merge review | **#680** merged at `12901df3` (merge `4795254b`). PPLX was blocked by the Firefox session limit, so AGY reviewed it: **BLOCKERS: NONE**. Fixed: conditional-hook order in `usePostHandle`; the viewer's own cards now follow `profile-identity-changed`; `UploadManager.remove()` no longer revokes the preview before a successful delete; avatar error responses are `no-store`. |
+| C: #668 photo cache lifetime | **#679** merged at `f311e025` (merge `d0ec63f5`). PPLX approved, 0 real findings, after one fix (a key on the sharp image). `expiresAt` is set at signing time; no load-time fallback; `onError` clears the cache and retries the fresh URL once. |
+| D: production proof (account 2) | Avatar upload: 200; GET with cookie: 200 `private, max-age=31536000, immutable`; without cookie: 401; delete clears it. **Label with count-only serving:** read with `serving:null`, post created (201), item `1 serving` / 190 kcal, then deleted. Drain with a fake holder: 409. Post page contains `expiresAt` (posts with real photos). Evidence: `closeout-production-checks.json`. |
+| #523 macaroni | Recompute finished. 38.4 kcal / 1.359 g protein / 7.98 g carbs / 0.033 g fat, closest USDA food "Macaroni, vegetable, enriched, cooked" (168904). **#523 closed**, with caveats: fat may display as 0 g, and no live-app browser look was run. |
+| #452 | Evidence comment added; it stays closed. Pack recognition on the owner's phones remains separate. |
+
+### Still open / live
+- Recompute posts still queued at the stop, and posts whose USDA record lacks a macro (listed in `recompute-result.json`).
+- #680's related unit tests fail on unmodified `main` as well: the test setup is broken (missing timers, env, mocks), so they don't prove the fixes either way.
+- UI-only behaviours (bookmark, upload chip, open-cover retry) were not checked in a browser.
+
+### New defects found (not worked on)
+- A production deploy kills a running drain while it still holds the lease, so the worker idles until the lease expires (up to 300 s) after every deploy.
+- The PPLX runner leaves a stale "Review in progress" claim after a Firefox session-limit failure, which blocks its own retry.
+- Unit test setup is broken for `profile-avatar`, `save-meal-readiness` and related files (missing `setTimeout`, `SUPABASE_DB_URL`, module mocks).
+- The drain holds the lease after it stops working: from 01:44 to 01:49 the lease was live with 0 jobs running and 12 queued. Ticks can't start a new drain until the 300 s lease expires, so the queue moves in bursts.
