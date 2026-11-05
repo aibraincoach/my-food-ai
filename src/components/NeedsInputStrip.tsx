@@ -52,7 +52,8 @@ export default function NeedsInputStrip(){
         const identity = JSON.stringify(questions);
         if(identity === lastQuestions && (!auxiliaryFailed || Date.now()<mediaRetryAt)) {
           hasPending = questions.length > 0 || auxiliaryFailed;
-          if (fromPoll && hasPending) { pollBackoffMs = Math.min(pollBackoffMs * 2, POLL_MAX_MS); schedulePoll(); }
+          if (fromPoll && hasPending) pollBackoffMs = Math.min(pollBackoffMs * 2, POLL_MAX_MS);
+          schedulePoll();
           return;
         }
         const media = questions.length ? await db.from('post_media').select('id,post_id,position').in('post_id',questions.map(post=>post.id)).eq('kind','photo').order('position').abortSignal(AbortSignal.timeout(8000)) : {data:[],error:null};
@@ -84,7 +85,6 @@ export default function NeedsInputStrip(){
     document.addEventListener("visibilitychange", visible);
     window.addEventListener("focus", onFocus);
     void refresh();
-    schedulePoll();
     return()=>{live=false;clearTimeout(pollTimer);document.removeEventListener("visibilitychange", visible);window.removeEventListener("focus", onFocus);auth.data.subscription.unsubscribe();};
   },[]);
   const remove=(id:string)=>{setPosts(rows=>rows.filter(row=>row.id!==id));setSelected(null);};
