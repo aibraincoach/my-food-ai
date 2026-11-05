@@ -80,10 +80,14 @@ export class UploadManager {
     private notify(entry?: Entry, event?: string) { for (const listener of this.listeners)
         listener(); if (entry && event && typeof window !== 'undefined')
         window.dispatchEvent(new CustomEvent(event, { detail: this.state(entry) })); }
-    private state(entry: Entry): UploadState { const d = entry.data; const photoLost=Boolean(d.attachment&&!d.files.length&&d.message===RETAKE_ATTACHMENT_MESSAGE); return { operationId: d.operationId, uploadId:d.snapshot?.id, caption: d.caption, eatenAt: d.eatenAt ?? new Date(d.createdAt).toISOString(), previewUrl: entry.previewUrl, sent: d.sent, total: d.total, state: d.state, error: d.error, posted: d.posted, ...(d.attachment?{attachment:d.attachment,message:d.message,...(photoLost?{photoLost:true}:{})}:{}), ...((d.food||d.copy||d.drink||d.photoDrinks)?{kind:d.copy?"copy" as const:d.food?"food" as const:"drink" as const,removing:d.cancelRequested,message:d.message}:{}), ...(d.drink?{drinkTile:true}:{}), ...(!d.files.length&&!d.food&&!d.copy&&!d.drink&&!d.photoDrinks&&!d.attachment?{text:true}:{}), ...(entry.finished ? { postId: d.resultPostId??d.snapshot?.id } : {}) }; }
+    private photoLost(entry: Entry) {
+        const d = entry.data;
+        return Boolean(d.attachment && !d.files.length && (d.photoLost || d.message === RETAKE_ATTACHMENT_MESSAGE));
+    }
+    private state(entry: Entry): UploadState { const d = entry.data; const photoLost=this.photoLost(entry); return { operationId: d.operationId, uploadId:d.snapshot?.id, caption: d.caption, eatenAt: d.eatenAt ?? new Date(d.createdAt).toISOString(), previewUrl: entry.previewUrl, sent: d.sent, total: d.total, state: d.state, error: d.error, posted: d.posted, ...(d.attachment?{attachment:d.attachment,message:d.message,...(photoLost?{photoLost:true}:{})}:{}), ...((d.food||d.copy||d.drink||d.photoDrinks)?{kind:d.copy?"copy" as const:d.food?"food" as const:"drink" as const,removing:d.cancelRequested,message:d.message}:{}), ...(d.drink?{drinkTile:true}:{}), ...(!d.files.length&&!d.food&&!d.copy&&!d.drink&&!d.photoDrinks&&!d.attachment?{text:true}:{}), ...(entry.finished ? { postId: d.resultPostId??d.snapshot?.id } : {}) }; }
     private intentFor(entry: Entry, ownerId: string): PublishIntent { const d=entry.data,attachment=d.attachment; return {operationId:d.operationId,ownerId,createdAt:d.createdAt,postId:attachment?.postId??null,notEaten:attachment?.notEaten??false}; }
-    private applyIntent(data: StoredUpload, intent: PublishIntent) { data.posted=true; data.ownerId=intent.ownerId; if(intent.postId&&!data.attachment)data.attachment={postId:intent.postId,notEaten:intent.notEaten}; if(data.attachment&&!data.files.length){data.state='failed';data.message=RETAKE_ATTACHMENT_MESSAGE;} }
-    private attachmentFromIntent(intent: PublishIntent): StoredUpload { return {operationId:intent.operationId,ownerId:intent.ownerId,createdAt:intent.createdAt,reservedAt:intent.createdAt,caption:intent.notEaten?'Leftovers':'Added photo',eatenAt:null,location:null,options:{},files:[],snapshot:null,posted:true,attachment:{postId:intent.postId!,notEaten:intent.notEaten},state:'failed',message:RETAKE_ATTACHMENT_MESSAGE,sent:0,total:0}; }
+    private applyIntent(data: StoredUpload, intent: PublishIntent) { data.posted=true; data.ownerId=intent.ownerId; if(intent.postId&&!data.attachment)data.attachment={postId:intent.postId,notEaten:intent.notEaten}; if(data.attachment&&!data.files.length){data.state='failed';data.message=RETAKE_ATTACHMENT_MESSAGE;data.photoLost=true;} }
+    private attachmentFromIntent(intent: PublishIntent): StoredUpload { return {operationId:intent.operationId,ownerId:intent.ownerId,createdAt:intent.createdAt,reservedAt:intent.createdAt,caption:intent.notEaten?'Leftovers':'Added photo',eatenAt:null,location:null,options:{},files:[],snapshot:null,posted:true,attachment:{postId:intent.postId!,notEaten:intent.notEaten},state:'failed',message:RETAKE_ATTACHMENT_MESSAGE,photoLost:true,sent:0,total:0}; }
 
     list = () => [...this.entries.values()].filter(e => !e.deleted).sort((a, b) => b.data.createdAt - a.data.createdAt).map(e => this.state(e));
     fields(id:string):DraftFields|null { const data=this.entries.get(id)?.data; return data?{caption:data.caption,eatenAt:data.eatenAt,location:data.location,options:{...data.options}}:null; }
@@ -308,10 +312,10 @@ export class UploadManager {
         this.notify(entry,'upload-progress');if(entry.active)entry.rerun=true;void this.run(entry);
     }
     discardCopy(id:string){return this.discardFood(id);}
-    retry(id: string) { const entry = this.entries.get(id); if (!entry || entry.deleted || entry.finished)
+    retry(id: string) { const entry = this.entries.get(id); if (!entry || entry.deleted || entry.finished || this.photoLost(entry))
         return; entry.data.state = 'uploading'; entry.data.error = undefined; entry.data.message=undefined; this.notify(entry, 'upload-progress'); if(entry.active)entry.rerun=true; void this.run(entry); }
     online = () => { for (const entry of this.entries.values())
-        if (entry.data.state === 'failed')
+        if (entry.data.state === 'failed' && !this.photoLost(entry))
             this.retry(entry.data.operationId); };
     async remove(id: string) { const entry = this.entries.get(id); if (!entry)
         return; entry.deleted = true; this.entries.delete(id); if (entry.previewUrl)

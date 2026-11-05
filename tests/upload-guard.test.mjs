@@ -154,6 +154,16 @@ test('a lost photo write after publish intent leaves retake state on reload',asy
  assert.equal(restored.list()[0].photoLost,true);assert.match(restored.list()[0].message,/not kept/);
  store.put=put;
 });
+test('online and explicit retry skip photo-lost attachments without network work',async()=>{
+ const {manager,make,store,calls}=attachHarness(()=>Response.json({post_id:'post-1'},{status:201}));
+ await manager.initialize('owner');const put=store.put;store.put=async()=>{throw Error('disk full');};
+ await manager.postAttachment(file,{postId:'post-1',notEaten:true});
+ const restored=make();await restored.initialize('owner');assert.equal(restored.list()[0].photoLost,true);
+ const before=calls.length;
+ restored.online();restored.retry(restored.list()[0].operationId);
+ assert.equal(restored.list()[0].state,'failed');assert.equal(restored.list()[0].photoLost,true);assert.equal(calls.length,before);
+ store.put=put;
+});
 test('a failed attachment keeps the photo and retries from the chip',async()=>{
  let succeed=false;
  const {manager,rows,calls}=attachHarness(()=>succeed?Response.json({post_id:'post-1'},{status:201}):Response.json({error:'The photo could not be attached.'},{status:503}));
