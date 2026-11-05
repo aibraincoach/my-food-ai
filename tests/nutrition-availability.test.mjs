@@ -27,6 +27,20 @@ test('squid nigiri never matches tuna-topped sushi reference', () => {
   assert.equal(referenceProteinMismatch('squid nigiri', 'Sushi, topped with tuna'), true);
   assert.equal(referenceProteinMismatch('squid nigiri', 'Mollusks, squid, mixed species, raw'), false);
 });
+test('non-protein toppings do not reject chicken breast', () => {
+  assert.equal(referenceProteinMismatch('chicken breast', 'Chicken breast, topped with cheese'), false);
+});
+
+const { isAlcoholic } = await import('../src/lib/intake/alcohol.ts');
+const food = (name) => ({ name, food_category: null, micronutrients: [] });
+test('fruit and shrimp cocktail names are not treated as alcoholic', () => {
+  for (const name of ['fruit cocktail', 'shrimp cocktail', 'prawn cocktail', 'cocktail sauce']) {
+    assert.equal(isAlcoholic(food(name)), false, name);
+  }
+  for (const name of ['rum punch', 'mojito']) {
+    assert.equal(isAlcoholic(food(name)), true, name);
+  }
+});
 
 const { keepsCaffeine } = await import('../src/lib/intake/alcohol.ts');
 const drink = (name, food_category = null) => ({ name, food_category, micronutrients: [] });
