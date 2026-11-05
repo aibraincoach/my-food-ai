@@ -37,6 +37,7 @@ A merge order follows the planner's evaluation. Only an explicit PM merge order 
 ## PM authority
 
 - The PM decides review waivers and merge-with-known-P2 calls, states the decision and reason in one line, and does not ask the owner to waive the zero-blocker rule.
+- Handovers and one-off status live in the reply only, not as repository files, unless the owner explicitly orders a durable document.
 
 ## Findings stay inside the prompt
 
