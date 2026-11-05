@@ -23,7 +23,7 @@ export default function PostOpenFrame({id,desktopModal=false}:{id:string;desktop
 
 function Header({post,height}:{post:FeedPost;height:string}) {
  const row=post as FeedPost&{handle?:string;avatar_media_id?:string|null};
- const author=usePostAuthor(row.user_id&&row.handle?{userId:row.user_id,handle:row.handle,avatarMediaId:row.avatar_media_id??null}:null);
+ const author=usePostAuthor(row.user_id?{userId:row.user_id,handle:row.handle??'',avatarMediaId:row.avatar_media_id??null}:null);
  const handle=usePostHandle(row.handle,author.userId?{userId:author.userId,handle:author.handle,avatarMediaId:author.avatarMediaId}:null);
  return <div className={`flex ${height} items-center gap-[10px] px-inset`}><Avatar handle={handle} userId={author.userId} mediaId={author.avatarMediaId} sizePx={32} textClassName="text-avatar"/><span className="min-w-0 flex-1 truncate text-handle">{handle}</span></div>;
 }

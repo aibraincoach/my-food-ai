@@ -319,7 +319,9 @@ export class UploadManager {
             this.retry(entry.data.operationId); };
     async remove(id: string) { const entry = this.entries.get(id); if (!entry)
         return; entry.deleted = true; this.entries.delete(id); if (entry.previewUrl)
-        URL.revokeObjectURL(entry.previewUrl); await entry.writing.catch(() => { }); await this.store.remove(id); this.notify(); if (typeof window !== 'undefined')
+        URL.revokeObjectURL(entry.previewUrl); try { await entry.writing.catch(() => { }); await this.store.remove(id); }
+        catch (error) { entry.deleted = false; this.entries.set(id, entry); throw error; }
+        this.notify(); if (typeof window !== 'undefined')
         window.dispatchEvent(new CustomEvent('upload-deleted', { detail: { operationId: id } })); }
     private run(entry: Entry): Promise<void> {
         if (entry.active)
