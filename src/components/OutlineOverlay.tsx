@@ -59,6 +59,7 @@ function DetailImage({ photo, alt, sharp = false }: { photo: DetailPhoto; alt: s
   const [originalUrl, setOriginalUrl] = useState<string | null>(() => (sharp && cacheKey && typeof sessionStorage !== "undefined" ? readOriginalCache(cacheKey) : null));
   const [reloadOriginal, setReloadOriginal] = useState(0);
   const retriedFresh = useRef(false);
+  useEffect(() => { retriedFresh.current = false; }, [photo.id, photo.url]);
   const src = sharp && originalUrl ? originalUrl : preview;
   const [failedSharp, setFailedSharp] = useState<string | null>(null);
   useEffect(() => {
