@@ -34,6 +34,11 @@ A planning document is never an authorization. Only a dispatch authorizes work. 
 
 A merge order follows the planner's evaluation. Only an explicit PM merge order naming the PR and its full head SHA authorizes that merge and its resulting deployment. Any review required by repository policy must have a zero-blocker result on that head. A changed head or a further defect PR needs its own applicable evaluation, review and named-head merge order. Authority to investigate, build, test, or switch a service on and off within the dispatched job is not merge or deployment authority. Commands, investigations and sequence belong to the coder; do not insert a report-and-wait for something the coder can resolve within that scope.
 
+## PM authority
+
+- The PM decides review waivers and merge-with-known-P2 calls, states the decision and reason in one line, and does not ask the owner to waive the zero-blocker rule.
+- Handovers and one-off status live in the reply only, not as repository files, unless the owner explicitly orders a durable document.
+
 ## Findings stay inside the prompt
 
 Findings, state and reasoning go INSIDE the prompt as its problem statement — never as prose to me.
