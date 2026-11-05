@@ -30,15 +30,36 @@ export function DetailDate({ value, weekday = false }: { value: string; weekday?
   return <LocalTime value={value} weekday={weekday} />;
 }
 
+const ORIGINAL_CACHE_TTL_MS = 3_300_000;
+function readOriginalCache(key: string): string | null {
+  try {
+    const raw = sessionStorage.getItem(key);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as { url?: string; expiresAt?: number };
+    if (!parsed.url || typeof parsed.expiresAt !== "number" || parsed.expiresAt <= Date.now()) {
+      try { sessionStorage.removeItem(key); } catch { /* treat as missing */ }
+      return null;
+    }
+    return parsed.url;
+  } catch {
+    try { sessionStorage.removeItem(key); } catch { /* treat as missing */ }
+    return null;
+  }
+}
+function writeOriginalCache(key: string, url: string) {
+  sessionStorage.setItem(key, JSON.stringify({ url, expiresAt: Date.now() + ORIGINAL_CACHE_TTL_MS }));
+}
+
 function DetailImage({ photo, alt, sharp = false }: { photo: DetailPhoto; alt: string; sharp?: boolean }) {
   const cacheKey = photo.id ? `mfa-original-${photo.id}` : null;
-  const [originalUrl, setOriginalUrl] = useState<string | null>(() => (sharp && cacheKey && typeof sessionStorage !== "undefined" ? sessionStorage.getItem(cacheKey) : null));
   const preview = photo.previewUrl ?? photo.url;
+  const [originalUrl, setOriginalUrl] = useState<string | null>(() => (sharp && cacheKey && typeof sessionStorage !== "undefined" ? readOriginalCache(cacheKey) : null));
+  const [reloadOriginal, setReloadOriginal] = useState(0);
   const src = sharp && originalUrl ? originalUrl : preview;
   const [failedSharp, setFailedSharp] = useState<string | null>(null);
   useEffect(() => {
     if (!sharp || !photo.previewUrl) return;
-    const cached = cacheKey ? sessionStorage.getItem(cacheKey) : null;
+    const cached = cacheKey ? readOriginalCache(cacheKey) : null;
     if (cached) { setOriginalUrl(cached); return; }
     let live = true;
     const image = new Image();
@@ -46,12 +67,22 @@ function DetailImage({ photo, alt, sharp = false }: { photo: DetailPhoto; alt: s
     image.onload = () => {
       if (!live) return;
       setOriginalUrl(photo.url);
-      if (cacheKey) sessionStorage.setItem(cacheKey, photo.url);
+      if (cacheKey) writeOriginalCache(cacheKey, photo.url);
     };
     image.src = photo.url;
     return () => { live = false; };
-  }, [sharp, photo.url, photo.previewUrl, cacheKey]);
-  return <img src={src} srcSet={failedSharp !== imageIdentity(src) && src === preview ? feedPhotoSrcSet(src) : undefined} onError={() => setFailedSharp(imageIdentity(src))} crossOrigin="anonymous" alt={alt} draggable={false} className="h-full w-full object-contain" />;
+  }, [sharp, photo.url, photo.previewUrl, cacheKey, reloadOriginal]);
+  return <img src={src} srcSet={failedSharp !== imageIdentity(src) && src === preview ? feedPhotoSrcSet(src) : undefined} onError={() => {
+    if (sharp && originalUrl && cacheKey) {
+      try { sessionStorage.removeItem(cacheKey); } catch { /* ignore */ }
+      setOriginalUrl(null);
+      setReloadOriginal(n => n + 1);
+      return;
+    }
+    if (cacheKey) { try { sessionStorage.removeItem(cacheKey); } catch { /* ignore */ } }
+    setOriginalUrl(null);
+    setFailedSharp(imageIdentity(src));
+  }} crossOrigin="anonymous" alt={alt} draggable={false} className="h-full w-full object-contain" />;
 }
 
 function Mask({ url, photo, color, frame, fallback }: {

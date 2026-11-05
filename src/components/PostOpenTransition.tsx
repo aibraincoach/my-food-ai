@@ -10,6 +10,7 @@ export default function PostOpenTransition() {
  const path=usePathname();
  const router=useRouter();
  const [opening,setOpening]=useState<{id:string;from:string;committed:boolean}|null>(null);
+ const [attempt,setAttempt]=useState(0);
  const [phase,setPhase]=useState<'opening'|'slow'|'error'>('opening');
  useEffect(()=>{
   let account:string|null|undefined;
@@ -44,9 +45,9 @@ export default function PostOpenTransition() {
   const slow=setTimeout(()=>setPhase(current=>current==='opening'?'slow':current),2500);
   const fail=setTimeout(()=>setPhase('error'),10000);
   return()=>{observer.disconnect();clearTimeout(slow);clearTimeout(fail);};
- },[opening]);
+ },[opening,attempt]);
  if(!opening||(path!==opening.from&&path!==`/posts/${opening.id}`))return null;
- const retry=()=>{setPhase('opening');router.push(`/posts/${opening.id}`);};
+ const retry=()=>{setPhase('opening');setAttempt(n=>n+1);router.push(`/posts/${opening.id}`);};
  return <div className={`fixed inset-0 z-40 overflow-hidden bg-surface desktop:hidden ${opening.committed?'pointer-events-auto':'pointer-events-none'}`} aria-hidden={opening.committed?undefined:true} aria-busy={phase!=='error'}>
   {phase==='slow'&&<p role="status" className="absolute inset-x-inset top-[52px] z-50 px-inset text-center text-detail text-muted">Still opening… (slow connection)</p>}
   {phase==='error'?<div className="flex h-full flex-col items-center justify-center gap-4 px-inset text-center"><p className="text-body">Couldn&apos;t open this meal.</p><div className="flex gap-3"><button type="button" className="min-h-tap rounded-field bg-field px-4 text-detail font-medium" onClick={retry}>Try again</button><button type="button" className="min-h-tap rounded-field bg-field px-4 text-detail font-medium" onClick={()=>{setOpening(null);router.back();}}>Back</button></div></div>:

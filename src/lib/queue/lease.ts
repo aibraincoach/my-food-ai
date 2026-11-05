@@ -31,3 +31,16 @@ export async function renewLease(
   if (error) throw ioError(`renew lease failed: ${error.message}`, error, status);
   if (data !== true) throw ioError("Worker lease is no longer held.", null);
 }
+
+/** True when this holder owns the singleton worker lease and it has not expired. */
+export async function holdsActiveLease(admin: SupabaseClient, holder: string): Promise<boolean> {
+  const { data, error, status } = await admin
+    .from("worker_lease")
+    .select("holder")
+    .eq("id", 1)
+    .eq("holder", holder)
+    .gt("expires_at", new Date().toISOString())
+    .maybeSingle();
+  if (error) throw ioError(`read lease failed: ${error.message}`, error, status);
+  return data?.holder === holder;
+}
