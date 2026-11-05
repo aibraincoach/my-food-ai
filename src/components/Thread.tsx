@@ -22,9 +22,9 @@ export default function Thread({postId,readOnly=false,sourcePostId,desktopAction
  const wake=useRef<()=>void>(()=>{});
  const append=useCallback((row:CommentRow)=>{setRows(old=>sort([...old.filter(r=>r.id!==row.id),row]));setWaiting(row.author==='user');wake.current();},[]);
  useEffect(()=>{
-  const client=createClient();let live=true;let inFlight=false;let knownStatus:string|null=null;
+  const client=createClient();let live=true;let inFlight=false;let again=false;let knownStatus:string|null=null;let modelIds=new Set<string>();
   // Always a full, ordered read: a comment can commit with an earlier timestamp than one already seen.
-  const load=async()=>{if(inFlight)return;inFlight=true;try{
+  const load=async()=>{if(inFlight){again=true;return;}inFlight=true;try{
    const {data:verdict}=await client.from('post_feedback').select('verdict,model_comment_id,item_fingerprint').eq('post_id',postId).maybeSingle();
    const {data:revision}=await client.rpc('feedback_revision',{p_post_id:postId});
    if(live)setAccepted(verdict?.verdict==='up'&&verdict.item_fingerprint===revision?.fingerprint?verdict.model_comment_id:null);
@@ -34,12 +34,14 @@ export default function Thread({postId,readOnly=false,sourcePostId,desktopAction
    ]);
    if(!live)return;if(postError||!post){setError('Comments could not be loaded.');return;}
    const models=(data??[]).filter(row=>row.author==='model');
-   void models;
+   const freshModel=models.some(row=>!modelIds.has(row.id));
+   modelIds=new Set(models.map(row=>row.id));
+   if(freshModel)router.refresh();
    if(knownStatus&&knownStatus!==post.status)router.refresh();knownStatus=post.status;
    const feedback=correctionFeedback(post.status);
    setFailed(feedback==='failed');setError(feedback==='failed'?'The meal could not be updated.':'');setRows(old=>sort([...new Map([...old,...(data??[])].map(row=>[row.id,row as CommentRow])).values()]));
    setWaiting(feedback==='waiting');
-  }catch{if(live)setError('Comments could not be loaded.');}finally{inFlight=false;}};
+  }catch{if(live)setError('Comments could not be loaded.');}finally{inFlight=false;if(again&&live){again=false;void load();}}};
   const channel=client.channel(`thread-${postId}`).on('postgres_changes',{event:'INSERT',schema:'public',table:'post_comments',filter:`post_id=eq.${postId}`},()=>{void load();}).on('postgres_changes',{event:'UPDATE',schema:'public',table:'post_comments',filter:`post_id=eq.${postId}`},()=>{void load();}).subscribe((status)=>{if(status==='SUBSCRIBED')void load();});
   wake.current=()=>{void load();};
   void load();
@@ -69,7 +71,7 @@ export default function Thread({postId,readOnly=false,sourcePostId,desktopAction
   });
   setToast(previous=>({key:(previous?.key??0)+1,undo:()=>{action.undo();restore();setToast(null);}}));
  };
- const retry=async()=>{setRetrying(true);try{const response=await fetch(`/api/posts/${postId}/retry`,{method:'POST'});if(!response.ok)throw new Error('retry failed');setFailed(false);setError('');router.refresh();}catch{setError('Could not retry. Please try again.');}finally{setRetrying(false);}};
+ const retry=async()=>{setRetrying(true);try{const response=await fetch(`/api/posts/${postId}/retry`,{method:'POST'});if(!response.ok)throw new Error('retry failed');setFailed(false);setError('');setWaiting(true);router.refresh();wake.current();}catch{setError('Could not retry. Please try again.');}finally{setRetrying(false);}};
  return <section ref={menus} aria-label="Meal comments" className="relative px-inset pt-[14px]">
   {sourcePostId?<p className="mb-[10px] text-meta text-muted">Logged again</p>:null}
   <h2 className="mb-[10px] text-handle">Comments <span className="font-normal text-muted">{rows.length}</span></h2>
