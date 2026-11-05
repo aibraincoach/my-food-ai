@@ -30,7 +30,6 @@ export function DetailDate({ value, weekday = false }: { value: string; weekday?
   return <LocalTime value={value} weekday={weekday} />;
 }
 
-const ORIGINAL_CACHE_TTL_MS = 3_300_000;
 function readOriginalCache(key: string): string | null {
   try {
     const raw = sessionStorage.getItem(key);
@@ -46,9 +45,12 @@ function readOriginalCache(key: string): string | null {
     return null;
   }
 }
+// Lifetime is measured from signing time (photo.expiresAt), never from load time; unsigned URLs are not cached.
 function writeOriginalCache(key: string, url: string, signedExpiresAt?: number) {
-  const expiresAt = typeof signedExpiresAt === "number" ? signedExpiresAt - 300_000 : Date.now() + ORIGINAL_CACHE_TTL_MS;
-  sessionStorage.setItem(key, JSON.stringify({ url, expiresAt }));
+  if (typeof signedExpiresAt !== "number") return;
+  const expiresAt = signedExpiresAt - 300_000;
+  if (expiresAt <= Date.now()) return;
+  try { sessionStorage.setItem(key, JSON.stringify({ url, expiresAt })); } catch { /* storage unavailable */ }
 }
 
 function DetailImage({ photo, alt, sharp = false }: { photo: DetailPhoto; alt: string; sharp?: boolean }) {
@@ -56,6 +58,7 @@ function DetailImage({ photo, alt, sharp = false }: { photo: DetailPhoto; alt: s
   const preview = photo.previewUrl ?? photo.url;
   const [originalUrl, setOriginalUrl] = useState<string | null>(() => (sharp && cacheKey && typeof sessionStorage !== "undefined" ? readOriginalCache(cacheKey) : null));
   const [reloadOriginal, setReloadOriginal] = useState(0);
+  const retriedFresh = useRef(false);
   const src = sharp && originalUrl ? originalUrl : preview;
   const [failedSharp, setFailedSharp] = useState<string | null>(null);
   useEffect(() => {
@@ -74,7 +77,9 @@ function DetailImage({ photo, alt, sharp = false }: { photo: DetailPhoto; alt: s
     return () => { live = false; };
   }, [sharp, photo.url, photo.previewUrl, cacheKey, reloadOriginal]);
   return <img src={src} srcSet={failedSharp !== imageIdentity(src) && src === preview ? feedPhotoSrcSet(src) : undefined} onError={() => {
-    if (sharp && originalUrl && cacheKey) {
+    if (sharp && originalUrl && cacheKey && !retriedFresh.current) {
+      // Fall back once to the fresh signed photo.url; a second failure falls through to previewUrl.
+      retriedFresh.current = true;
       try { sessionStorage.removeItem(cacheKey); } catch { /* ignore */ }
       setOriginalUrl(null);
       setReloadOriginal(n => n + 1);
