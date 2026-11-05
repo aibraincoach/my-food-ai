@@ -24,9 +24,11 @@ function macroCompleteness(reading: LabelReading): number {
  if (!panel) return 0;
  return [panel.protein_g, panel.carbs_g, panel.fat_g].filter(value => value !== null).length;
 }
+async function orientLabelImage(image: Uint8Array): Promise<Uint8Array> {
+ return new Uint8Array(await sharp(image).rotate().toBuffer());
+}
 async function cropLabelBox(image: Uint8Array, box: NonNullable<LabelReading["box"]>, mime: string): Promise<Uint8Array> {
- const oriented = sharp(image).rotate();
- const meta = await oriented.metadata();
+ const meta = await sharp(image).metadata();
  const width = meta.width ?? 0;
  const height = meta.height ?? 0;
  if (!width || !height) return image;
@@ -36,7 +38,7 @@ async function cropLabelBox(image: Uint8Array, box: NonNullable<LabelReading["bo
  const top = Math.max(0, Math.floor((box.y - padY) * height));
  const right = Math.min(width, Math.ceil((box.x + box.w + padX) * width));
  const bottom = Math.min(height, Math.ceil((box.y + box.h + padY) * height));
- const output = await oriented.extract({ left, top, width: Math.max(1, right - left), height: Math.max(1, bottom - top) }).toBuffer();
+ const output = await sharp(image).extract({ left, top, width: Math.max(1, right - left), height: Math.max(1, bottom - top) }).toBuffer();
  return new Uint8Array(output);
 }
 export function mergeLabelReading(first: LabelReading, retry: LabelReading): LabelReading {
@@ -58,12 +60,13 @@ async function readLabelOnce(image: Uint8Array, mime: string, effort: "low" | "m
  return parseLabelReading(JSON.parse(out.outputText));
 }
 export async function readNutritionLabel(image:Uint8Array,mime="image/jpeg"):Promise<LabelReading>{
- let reading=await readLabelOnce(image,mime,"low");
+ const oriented=await orientLabelImage(image);
+ let reading=await readLabelOnce(oriented,mime,"low");
  const panel=reading.per_serving;
  const needsRetry=panel&&[panel.protein_g,panel.carbs_g,panel.fat_g].some(value=>value===null)&&reading.box;
  if(needsRetry&&reading.box){
   try{
-   const cropped=await cropLabelBox(image,reading.box,mime);
+   const cropped=await cropLabelBox(oriented,reading.box,mime);
    const retry=await readLabelOnce(cropped,mime,"medium");
    if(macroCompleteness(retry)>macroCompleteness(reading))reading=mergeLabelReading(reading,retry);
   }catch{/* Keep the first reading when the crop retry fails. */}
