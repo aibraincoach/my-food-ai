@@ -38,8 +38,10 @@ export function useProfileIdentity(seed?:Partial<ProfileIdentity>) {
 }
 export function usePostAuthor(row?:PostAuthorRow|null){
  const profile=useProfileIdentity();
- if(row?.userId&&row.handle)return {handle:row.handle,userId:row.userId,avatarMediaId:row.avatarMediaId??null};
- return profile;
+ if(!row?.userId)return profile;
+ if(profile.userId&&row.userId===profile.userId)return profile;
+ if(row.handle)return {handle:row.handle,userId:row.userId,avatarMediaId:row.avatarMediaId??null};
+ return {handle:'',userId:row.userId,avatarMediaId:row.avatarMediaId??null};
 }
 export function usePostHandle(handle?:string,author?:PostAuthorRow|null) {
  const seeded=author?.userId&&author.handle?{userId:author.userId,handle:author.handle,avatarMediaId:author.avatarMediaId??null}:handle?{handle}:undefined;

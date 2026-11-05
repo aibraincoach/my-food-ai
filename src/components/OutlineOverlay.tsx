@@ -46,8 +46,9 @@ function readOriginalCache(key: string): string | null {
     return null;
   }
 }
-function writeOriginalCache(key: string, url: string) {
-  sessionStorage.setItem(key, JSON.stringify({ url, expiresAt: Date.now() + ORIGINAL_CACHE_TTL_MS }));
+function writeOriginalCache(key: string, url: string, signedExpiresAt?: number) {
+  const expiresAt = typeof signedExpiresAt === "number" ? signedExpiresAt - 300_000 : Date.now() + ORIGINAL_CACHE_TTL_MS;
+  sessionStorage.setItem(key, JSON.stringify({ url, expiresAt }));
 }
 
 function DetailImage({ photo, alt, sharp = false }: { photo: DetailPhoto; alt: string; sharp?: boolean }) {
@@ -67,7 +68,7 @@ function DetailImage({ photo, alt, sharp = false }: { photo: DetailPhoto; alt: s
     image.onload = () => {
       if (!live) return;
       setOriginalUrl(photo.url);
-      if (cacheKey) writeOriginalCache(cacheKey, photo.url);
+      if (cacheKey) writeOriginalCache(cacheKey, photo.url, photo.expiresAt);
     };
     image.src = photo.url;
     return () => { live = false; };

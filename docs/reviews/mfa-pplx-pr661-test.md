@@ -1,0 +1,4 @@
+Head at submission: 986d63dae7e32f7a8cc1059b17f8a5679fd25c6b
+
+
+Error: {"type":"error","id":1,"error":"session not created","message":"Maximum number of active sessions","stacktrace":"RemoteError@chrome://remote/content/shared/RemoteError.sys.mjs:8:8\nWebDriverError@chrome://remote/content/shared/webdriver/Errors.sys.mjs:199:5\nSessionNotCreatedError@chrome://remote/content/shared/webdriver/Errors.sys.mjs:779:5\ncreateSession@chrome://remote/content/webdriver-bidi/WebDriverBiDi.sys.mjs:127:13\nonPacket@chrome://remote/content/webdriver-bidi/WebDriverBiDiConnection.sys.mjs:206:55\nonMessage@chrome://remote/content/server/WebSocketTransport.sys.mjs:127:18\nhandleEvent@chrome://remote/content/server/WebSocketTransport.sys.mjs:109:14\n"}
