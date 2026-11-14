@@ -2,7 +2,7 @@
 
 ## Current project state — November 14, 2026 (23:35 WIB)
 
-Observed 2026-11-14T16:34Z (23:34 WIB): `origin/main` is `96ecdcf7` (merge of #681, Nov 5). No code has merged since Fleet 18 closeout (#674–#681). The only open PR is docs #682 (draft, this branch, head `7ab9c1d3`, CLEAN/MERGEABLE, Vercel pass), carrying the 23:27 WIB BACKLOG.md (82 items), Wall rows through 23:32 WIB, and the Muse PM-pack intake notes.
+Observed 2026-11-14T16:34Z (23:34 WIB): `origin/main` is `96ecdcf7` (merge of #681, Nov 5). No code has merged since Fleet 18 closeout (#674–#681). The only open PR is docs #682 (draft, this branch, CLEAN/MERGEABLE, Vercel pass; exact packaged head in the handover manifest), carrying the 23:27 WIB BACKLOG.md (82 items), Wall rows through 23:32 WIB, and the Muse PM-pack intake notes.
 
 BACKLOG.md is the owner-supplied 23:27 WIB snapshot. Since the Nov 5 re-checks, issues #683–#694 were filed for the previously unnumbered items; every backlog item now carries its number. Two backlog sub-findings from code reads on `96ecdcf7` (fruit/shrimp-cocktail and topped-with checks) describe code that no longer matches and need PM correction, not code work.
 
