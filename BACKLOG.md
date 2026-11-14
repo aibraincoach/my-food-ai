@@ -1,12 +1,10 @@
 # My Food AI — Backlog†
 
-Last edited: Saturday 2026-11-14 at 23:27 WIB (UTC+07:00) by Claude, PM
+Last edited: Saturday 2026-11-14 at 23:45 WIB (UTC+07:00) by Claude, PM
 
 The only job of the PM is to maintain this backlog and keep it completely up to date. Failing to do so is immediately terminable.
 
 ## Backlog for GrokBot
-
-Checks and investigations that need the live app and the web, and change no code. GrokBot reports what it finds. A fix becomes its own item for the planner or the designer.
 
 ### #377 Existing photographed drink posts show no caffeine
 
@@ -32,27 +30,37 @@ The app stores each photo at 480 × 640 pixels, the size the browser chose for t
 
 The live camera asks for the rear camera with no size and draws one video frame, so the stored original is 480 × 640 pixels (0.31 megapixels, 126,407 bytes). The feed shrinks it to a 384 × 512 copy (22,118 bytes) cached for a year, so a sharper copy needs a new address. Photos already captured stay at 480 × 640. A sharper photo costs more Storage egress (see #375). A sharper capture, a larger feed copy at a new address and full-resolution detail photos are on main; the bytes, the egress and a real camera's resolution have not been measured. Known risks: the preload can download the wrong photo size, and one failed image turns off sharper photos for later ones. Observe first: find what resolution the camera delivers in a phone-sized browser at 3x, and the bytes of a photo at each size. GrokBot, Nov 5: a 4032 × 3024 file upload stored the original at 4032 × 3024 (119,546 bytes) and a feed copy of about 11.6 KB. A fake camera with no size requested returns 640 × 480, and with 4032 × 3024 requested it returns 3840 × 2160. The live shutter capture did not finish because another element intercepted the tap, and a real phone's bytes are unmeasured because the owner is not testing. GrokBot keeps the shutter capture. Done when a photo captured in a phone-sized browser at 3x is stored at a sharper resolution, the feed and the meal detail show it sharp on a 3x phone, the first photo still shows within two seconds on mobile data, and the bytes per photo before and after are written down.
 
-## Merged, awaiting production proof
+### A fix for the cached expired feed-photo redirect has never been seen working on production
 
-### An expired feed-photo redirect is cached for a year, so a phone keeps a blurry or broken photo (#639)
+A change that stops a phone keeping an expired feed-photo link is on main. Nobody has seen it work on the live app, so a blurry or broken photo could still stick.
 
-When the image resizer is busy, the feed photo route answers with a redirect to a signed link that expires in 60 seconds, and marks that redirect immutable for a year. That browser then keeps the broken photo.
+Before the fix, the feed photo route answered with a redirect to a signed link that expires in 60 seconds and marked that redirect immutable for a year. Related: #639. Done when GrokBot confirms on production that the redirect carries no long-lived cache header, and that a feed photo requested while the resizer is busy loads correctly on the next visit.
 
-The long-lived cache header on the redirect is the whole cause: a browser that stored the redirect keeps the expired link. Done when the redirect carries no long-lived cache header, and a feed photo requested while the resizer is busy loads correctly on the next visit.
+### A fix for servings between 0.1 and 0.24 has never been seen working on production
 
-### Servings between 0.1 and 0.24 are accepted by the app and rejected by the database (#643)
+A change that makes the app and the database accept the same smallest serving is on main. Nobody has saved the smallest serving on the live app.
 
-The app now accepts a serving of 0.1, but any value from 0.1 to 0.24 fails to save.
+Before the fix, the app accepted 0.1 while the database, through migration 0017\_servings.sql, required at least 0.25, so any value from 0.1 to 0.24 failed to save. Related: #643. Done when GrokBot saves the smallest serving the app accepts on production and the meal keeps it after a reload.
 
-Migration 0017\_servings.sql required at least 0.25. Done when the app's minimum and the database's minimum are the same number, and saving that minimum works.
+### A fix for the missing keyboard focus outline on a desktop meal card has never been seen working on production
 
-### On desktop the focus outline does not follow keyboard tabbing into a meal card (#645)
+A change that shows the focus outline when a user tabs into a control inside a meal card is on main. Nobody has tabbed through a card on the live app.
 
-Tabbing into a control inside a meal card does not show the card's focus outline.
-
-In src/components/DesktopWorkspace.tsx, line 65, the code tests the card for focus-visible instead of the element that has focus, so the check fails for any child. Done when tabbing into a control inside a card shows the outline on the desktop, and a test covers it.
+Before the fix, the code in src/components/DesktopWorkspace.tsx tested the card for focus-visible instead of the element that had focus, so the outline never showed for a control inside the card. Related: #645. Done when GrokBot tabs into a control inside a meal card on the desktop layout and the card shows its focus outline.
 
 ## Engineering backlog
+
+### Pull requests can reach main without the PM's merge order
+
+Merging is not yet limited to the PM's order. A pull request must merge only when the PM orders that one PR at its full head SHA, after the planner's evaluation and a zero-blocker review of that head. Fleet 18 landed seven pull requests without a clean review of their exact head.
+
+Observe first: list every way a pull request can reach main today, including a coder's own merge, auto-merge, a merge queue, a workflow and the branch protection settings. Related: #689. Done when no pull request can reach main without a merge order that names its PR and full head SHA, a zero-blocker review of that head is required before the merge, and an attempt to merge without them is refused.
+
+### Our review and merge process has not been compared with the owner's other recent repositories
+
+Nobody has measured how rigorous our review, merge and proof process is against the other repositories the owner works on right now. Fleet 18 shows the process has gaps.
+
+Take the owner's most recently active repositories and compare them with this one, practice by practice: how a change is reviewed, who may merge and on what evidence, how proof that a change works is recorded, and what happens when a merge goes wrong. Observe first: list those repositories and write down each practice as it stands. Done when a written comparison lists each practice in those repositories next to ours, and each improvement worth making is its own item.
 
 ### #212 Packaged food cannot be logged from the regular camera, and the scanner has never been tried on a phone
 
@@ -366,83 +374,89 @@ Codex and AGY reviewed the Fleet 18 PRs and raised problems in code that is now 
 
 Two blockers are planner-checked on main and not yet reproduced by a coder. On #647, useProfileIdentity in PostHandle.tsx binds the viewer's avatar and handle to every post header and not the author's, the avatar route reads with the viewer's token so another user's avatar fails, and the route sends a public one-year immutable cache header for an image only signed-in users should see. On #648, wording-inventory.mjs embeds the HEAD short hash so its check can never pass after a commit, and docs/wording/inventory.md was generated before 66 files changed. Eleven other findings were reproduced and are filed as the items below; two were dismissed with proof (the #633 recompute upsert and the #633 rice-with-protein composition). Still unchecked: the #641 portion\_unit "serving" that the database does not accept; on #638, Feed discovery polling that stops when the tab is hidden; on #639, NeedsInputStrip never finding new questions after an empty first poll, and RealtimePost not refreshing on visibility; the #637 Thread retry polling; and the #643 header text cut off. Done when each unchecked finding is reproduced or dismissed with proof, the blockers on #647 and #648 are each checked on main, and each one reproduced is filed as its own item.
 
-### The jobs drain route runs the worker for anyone and without holding the lease (#640)
+### The jobs drain route runs the worker for anyone and without holding the lease
 
 Anyone, or a duplicate scheduled tick, can start extra workers and extra paid model calls through /api/jobs/drain. Worker concurrency was meant to be one.
 
-The route is public and unauthenticated, and it runs the worker for any ?holder= value without holding the lease. The proposed fix is that it require the lease it was handed, or an internal secret. Done when a request to the route without the lease or secret is refused, a normal tick still drains the queue, and two ticks at once never run two workers.
+The route is public and unauthenticated, and it runs the worker for any ?holder= value without holding the lease. The proposed fix is that it require the lease it was handed, or an internal secret. Related: #640. Done when a request to the route without the lease or secret is refused, a normal tick still drains the queue, and two ticks at once never run two workers.
 
-### Today on desktop reloads its numbers in a loop (#638)
+### Today on desktop reloads its numbers in a loop
 
 When the server did not supply the day's numbers, the desktop Today view keeps asking /api/today again and again. This is the database hammering the owner complained about.
 
-The effect depends on the day, and loading the numbers sets the day, which triggers the effect again. Done when the day is removed from that dependency list and the desktop Today view makes one request to /api/today per visit, counted in the network log.
+The effect depends on the day, and loading the numbers sets the day, which triggers the effect again. Related: #638. Done when the day is removed from that dependency list and the desktop Today view makes one request to /api/today per visit, counted in the network log.
 
-### Saving a meal whose analysis failed leaves the bookmark stuck, or marks a saved meal failed (#634)
+### Saving a meal whose analysis failed leaves the bookmark stuck, or marks a saved meal failed
 
 On a post whose analysis already failed, the bookmark action can hang waiting forever. Unsaving an already-saved failed post can mark it failed instead of unsaving it.
 
-In src/components/PostActions.tsx, lines 20 to 26. The not-ready, not-saved branch returns before the failed-status check, and for a saved failed post the failed branch runs during an unsave. Done when saving a failed post settles with an error, unsaving a saved failed post unsaves it, and a test covers both.
+In src/components/PostActions.tsx, lines 20 to 26. The not-ready, not-saved branch returns before the failed-status check, and for a saved failed post the failed branch runs during an unsave. Related: #634. Done when saving a failed post settles with an error, unsaving a saved failed post unsaves it, and a test covers both.
 
-### Retrying a failed meal opening can leave an overlay covering the screen (#635)
+### Retrying a failed meal opening can leave an overlay covering the screen
 
 If opening a meal fails and the user taps retry, and navigation then hangs or fails again, an overlay covers the screen and blocks every tap, with no timeout to clear it.
 
-In src/components/PostOpenTransition.tsx, line 49. Retry sets the phase to opening but does not change the value the effect depends on, so the slow and fail timeouts are not scheduled again. Done when a second failure after a retry shows the failure message and removes the overlay, and a test covers it.
+In src/components/PostOpenTransition.tsx, line 49. Retry sets the phase to opening but does not change the value the effect depends on, so the slow and fail timeouts are not scheduled again. Related: #635. Done when a second failure after a retry shows the failure message and removes the overlay, and a test covers it.
 
-### An expired photo link saved in the browser leaves the meal photo broken (#635)
+### An expired photo link saved in the browser leaves the meal photo broken
 
 The full-size meal photo keeps a signed link in the browser session and prefers it over the fresh link from the server. Once that link expires, the photo fails with 403 and stays broken until the session ends.
 
-In src/components/OutlineOverlay.tsx, lines 34 to 42 and 54: the saved link is preferred, and a load error never clears it. Done when a photo opened after its saved link expired loads from the fresh link, and a failed load removes the saved link.
+In src/components/OutlineOverlay.tsx, lines 34 to 42 and 54: the saved link is preferred, and a load error never clears it. Related: #635. Done when a photo opened after its saved link expired loads from the fresh link, and a failed load removes the saved link.
 
-### A retry on a label photo throws away the product name, serving size and box (#641)
+### A retry on a label photo throws away the product name, serving size and box
 
 When the retry reads more of the nutrition table, the app replaces the whole first reading with the retry's. The retry saw only the cropped nutrition box, so the product name and serving size become empty, and the highlight box is measured on the crop instead of the photo.
 
-In src/lib/meta/label.ts, line 54: the retry replaces the reading outright whenever its macro completeness is higher. Done when a retry that reads more nutrition keeps the first reading's product name and serving size, the box is in the original photo's coordinates, and a test covers it.
+In src/lib/meta/label.ts, line 54: the retry replaces the reading outright whenever its macro completeness is higher. Related: #641. Done when a retry that reads more nutrition keeps the first reading's product name and serving size, the box is in the original photo's coordinates, and a test covers it.
 
-### A label photo from a phone is cropped from the wrong area (#641)
+### A label photo from a phone is cropped from the wrong area
 
 The label crop ignores the rotation stored in the photo. A portrait phone photo is then cropped using the unrotated width and height, so the wrong part of the picture is cut out.
 
-In src/lib/meta/label.ts, lines 27 to 38: the crop reads the size and extracts without rotating first. A rebuttal on PR #664 argues this cannot happen for stored photos, because every upload is re-encoded through a canvas (src/lib/media/reencode.ts), which drops the orientation tag; that is unverified. Done when a portrait photo with rotation 6 is cropped at the label, and a test covers a rotated photo.
+In src/lib/meta/label.ts, lines 27 to 38: the crop reads the size and extracts without rotating first. A rebuttal on PR #664 argues this cannot happen for stored photos, because every upload is re-encoded through a canvas (src/lib/media/reencode.ts), which drops the orientation tag; that is unverified. Related: #641. Done when a portrait photo with rotation 6 is cropped at the label, and a test covers a rotated photo.
 
-### A retried attachment upload with a lost photo stays on Uploading forever (#644)
+### A retried attachment upload with a lost photo stays on Uploading forever
 
 When an attachment upload that lost its photo is retried, for example when the network returns, the upload shows Uploading with no retake button and never settles.
 
-In src/lib/posts/upload-manager.ts, lines 311 to 312 and 366 to 367. Retry sets the state to uploading, then the process step sees an attachment with no files and returns without finishing or failing. Done when a retried upload with a lost photo goes back to the retake state, and a test covers it.
+In src/lib/posts/upload-manager.ts, lines 311 to 312 and 366 to 367. Retry sets the state to uploading, then the process step sees an attachment with no files and returns without finishing or failing. Related: #644. Done when a retried upload with a lost photo goes back to the retake state, and a test covers it.
 
-### Retaking a lost photo leaves the old failed upload on screen (#644)
+### Retaking a lost photo leaves the old failed upload on screen
 
 Tapping retake opens the camera but does not remove the failed upload. After the new photo is taken the old failed entry is still there, and it comes back from the browser's stored drafts on every session.
 
-In src/components/UploadChip.tsx, line 29: the retake handler only opens the camera. Done when taking the new photo removes the old failed upload, and a reload does not bring it back.
+In src/components/UploadChip.tsx, line 29: the retake handler only opens the camera. Related: #644. Done when taking the new photo removes the old failed upload, and a reload does not bring it back.
 
-### Deleting a meal does not remove pending or failed attachment uploads aimed at it (#644)
+### Deleting a meal does not remove pending or failed attachment uploads aimed at it
 
 When a meal is deleted or becomes unavailable, attachment uploads that target it stay in the app and in storage.
 
-In src/components/UploadChip.tsx, line 25. The listener compares only the upload's own post id, but an attachment upload names its target in the attachment, so the comparison never matches. Done when deleting a meal removes every pending or failed upload aimed at it, and a test covers an attachment upload.
+In src/components/UploadChip.tsx, line 25. The listener compares only the upload's own post id, but an attachment upload names its target in the attachment, so the comparison never matches. Related: #644. Done when deleting a meal removes every pending or failed upload aimed at it, and a test covers an attachment upload.
 
-### Today shows 0 g protein, carbs or fat when the value is unavailable (#638)
+### Today shows 0 g protein, carbs or fat when the value is unavailable
 
 The new Today summary turns a nutrient nobody could measure into a zero, so a day whose protein is unavailable shows "0 g protein". The owner ruled that unavailable is never shown as zero.
 
-The old totals in src/lib/nutrition/totals.ts return null for a nutrient with no known value, but the today\_summary function from migration 0057 sets protein, carbs and fat to 0 always, and calories to 0 unless every item lacks calories. The proposed fix is a new migration for today\_summary that returns null when no item of the day has a known value. Done when an empty day and a day with protein missing on every item show unavailable and not 0, a day with known values shows the same totals as the old calculation, and a test covers all three.
+The old totals in src/lib/nutrition/totals.ts return null for a nutrient with no known value, but the today\_summary function from migration 0057 sets protein, carbs and fat to 0 always, and calories to 0 unless every item lacks calories. The proposed fix is a new migration for today\_summary that returns null when no item of the day has a known value. Related: #638. Done when an empty day and a day with protein missing on every item show unavailable and not 0, a day with known values shows the same totals as the old calculation, and a test covers all three.
 
-### Voice input exists only in the comment box on a meal
+### #693 Voice input exists only in the comment box on a meal
 
 The mic is the one place a user can speak instead of type, and it is buried: it appears only after opening a meal and starting a comment. A user who wants to say what they ate when posting cannot.
 
 The owner ruled on Nov 14 that voice must be a first-class input, available wherever the user types. Checked in the code on main (96ecdcf): VoiceRecorder is mounted only in CommentComposer.tsx, and every transcription is a model call that counts against the hourly limit (#471). PM ruling: the mic sits inside the field, in the same place as the comment box mic, in the new-post caption, the drink description, the leftovers caption, search and the comment box. Done when, in a phone-sized browser on production, each of those five fields shows the mic, and a short recorded clip played into the microphone puts its words in the field.
 
-### Many of the owner's meals show wrong nutrition numbers and nobody knows how many or why
+### #694 Many of the owner's meals show wrong nutrition numbers and nobody knows how many or why
 
 The owner has logged food daily for days, his diet changed, and he reports that a lot of what the app shows is wrong. Nobody has measured how wrong or where the error comes from.
 
 Known cases: the macaroni snack shows 38 kcal and 0 g fat from a cooked vegetable macaroni record (#523), squid matched to a tuna sushi record (#617), a consumed number from a half-eaten plate that nobody confirmed (#285), and 12 of the owner's 137 posts show a 0 g macro that nobody judged. A capable coder investigates read-only: pull the owner's ready posts, check each food's weight and kcal against its USDA record and the photo, and record for each wrong number which step caused it (the food identified, the record matched, the weight estimated or the stored value). Done when a written finding lists every one of the owner's posts whose numbers are wrong with its cause, ranks the causes by how many posts each one explains, and each cause is on the backlog as its own item.
+
+### Unit tests for the avatar and the save-meal fixes fail on main, so they prove nothing
+
+The tests that are meant to prove the Fleet 18 avatar and save-meal fixes fail on main even without the fixes, so a green or red result says nothing about those fixes.
+
+The Fleet 18 final report (docs/evidence/fix18/remediation-final-report.md) says the test setup is broken for profile-avatar, save-meal-readiness and related files: setTimeout is missing, SUPABASE\_DB\_URL is not set and module mocks are missing. The failure shows on unmodified main. Done when those test files run to a pass on a clean checkout of main, a test that should fail does fail, and the run is written down.
 
 ## Backlog for Designer
 
@@ -510,6 +524,7 @@ Blocked until after the hackathon, and blocked by the claims rule: the app shows
 
 ---
 
-† **What this backlog is.** The shared, ordered list of open work for My Food AI, shown live. GitHub issues in aibraincoach/my-food-ai are the record, and BACKLOG.md in the repository is a copy of this list that the PM supplies, so the coder and the planner read the same list. This Doc is private between the PM and the owner, and the coder cannot open it. The coder reads BACKLOG.md, which the owner copies from this Doc. This list usually runs a little ahead of the issues, because an item reaches them only after the PM has filed it. An item stays until its work is merged, its done condition is met and its issue is closed; the "Interdit (Not part of Hackathon)" section holds items that cannot be worked on and says why. Each section is for one role or one state: Backlog for GrokBot, Merged, awaiting production proof (the items Fleet 18 built) and Engineering backlog (open work outside it), ordered within a section by the pass that will work them together, not by issue number or date.
+† **What this backlog is.** The shared, ordered list of open work for My Food AI, shown live. GitHub issues in aibraincoach/my-food-ai are the record, and BACKLOG.md in the repository is a copy of this list that the PM supplies, so the coder and the planner read the same list. This Doc is private between the PM and the owner, and the coder cannot open it. The coder reads BACKLOG.md, which the owner copies from this Doc. Every item has its own GitHub issue. An item leaves this list when its work is merged. Production proof of a merged fix is a new item in Backlog for GrokBot; the "Interdit (Not part of Hackathon)" section holds items that cannot be worked on and says why. Each section is for one role or one state: Backlog for GrokBot and Engineering backlog (open work), ordered within a section by the pass that will work them together, not by issue number or date.
 
-Every item is a title line and two paragraphs. The title line carries the GitHub issue number once the issue exists. (1) The title says in plain words what is wrong, as a GitHub issue title does. (2) The first paragraph is the problem statement, which any person can read. (3) The second paragraph holds the context we have learned that helps solve it. It can be technical. It never holds a dump of logs, review history or merged-change detail. It ends with "Done when" and a condition a person can check. Write short sentences in the active voice, as the Google developer documentation style guide asks, and spell out any term a reader outside the project would not know. An item missing a part is not on the backlog.
+Every item is a title line and two paragraphs. The title line carries the item's own GitHub issue number. (1) The title says in plain words what is wrong, as a GitHub issue title does. (2) The first paragraph is the problem statement, which any person can read. (3) The second paragraph holds the context we have learned that helps solve it. It can be technical. It never holds a dump of logs, review history or merged-change detail. It ends with "Done when" and a condition a person can check. Write short sentences in the active voice, as the Google developer documentation style guide asks, and spell out any term a reader outside the project would not know. An item missing a part is not on the backlog.as reviewed at its merged head. Production main is 96ecdcf, and code is frozen until judging, so a new finding cannot be fixed now. Done when the avatar route is checked on production for an account with an avatar (200, private cache) and for another signed-in user (404), PostDetailHeader.tsx is checked on production for the author avatar and the servings layout, and each unreviewed merged head has been reviewed with each real finding filed as its own item.
+
