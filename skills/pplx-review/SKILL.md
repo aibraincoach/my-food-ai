@@ -1,6 +1,6 @@
 ---
 name: pplx-review
-description: Run the PPLX code review (Gemini 3.8 Flash on Perplexity, Firefox headless BiDi) on one or many GitHub PRs at once, with the memory guard, the 29-tab cap, PR receipt comments and cleanup. Use for every code PR the moment it is pushed; batch all open PRs in one run.
+description: Run the PPLX code review (Perplexity, model as offered and recorded, Firefox headless BiDi) on one or many GitHub PRs at once, with the memory guard, the 29-tab cap, PR receipt comments and cleanup. Use for every code PR the moment it is pushed; batch all open PRs in one run.
 ---
 
 # PPLX review runner

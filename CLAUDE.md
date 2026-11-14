@@ -1,6 +1,14 @@
 # Agent rules — My Food AI
 
-## Current project state — November 4, 2026 (22:09 WIB)
+## Current project state — November 14, 2026 (23:35 WIB)
+
+Observed 2026-11-14T16:34Z (23:34 WIB): `origin/main` is `96ecdcf7` (merge of #681, Nov 5). No code has merged since Fleet 18 closeout (#674–#681). The only open PR is docs #682 (draft, this branch, CLEAN/MERGEABLE, Vercel pass; exact packaged head in the handover manifest), carrying the 23:27 WIB BACKLOG.md (82 items), Wall rows through 23:32 WIB, and the Muse PM-pack intake notes.
+
+BACKLOG.md is the owner-supplied 23:27 WIB snapshot. Since the Nov 5 re-checks, issues #683–#694 were filed for the previously unnumbered items; every backlog item now carries its number. Two backlog sub-findings from code reads on `96ecdcf7` (fruit/shrimp-cocktail and topped-with checks) describe code that no longer matches and need PM correction, not code work.
+
+The owner fired the PM (Wall rows 23:30, 23:32 WIB). The Fleet 20 plan (designer's Rounds 8–9) is a draft awaiting the owner's yes/no; plan mode has not exited, nothing is dispatched, and the planner writes no files until then. Untracked and unpackaged: `docs/reviews/mfa-pplx-pr670-9c37722-close.md` and `docs/reviews/mfa-pplx-pr677-close.md` (provenance unchecked — new PM decides). The handover package for the incoming PM is built from this branch per `skills/pm-handover/SKILL.md`; the handover text is the reply, not a tracked file.
+
+## Current project state — November 4, 2026 (22:09 WIB) [superseded above]
 
 Observed 2026-11-04T15:09:52Z (22:09 WIB): `origin/main` is `7e0c7898` (Fleet 16 PR #614 merged). Fleet 15 is fully merged (#582–#590); the four held PRs merged at the exact ordered heads #582 `dc07c47f`→`13784fca`, #583 `e7db5cee`→`f190965d`, #584 `7279ca38`→`4c31d1ff`, #586 `4b8ebcf5`→`14ad9de0`. A post-merge push `a8b238eb` sits on branch `run15/judges-page` only and is not on main. Fleet 16 (Codex coder, in flight) has merged #605–#614; open PRs are docs #604 (this branch), #600, #577, #558.
 
