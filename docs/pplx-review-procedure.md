@@ -30,7 +30,7 @@ node tools/pplx-review.mjs "https://github.com/aibraincoach/my-food-ai/pull/<N>"
 
 ## Model and submission
 
-Choose **Gemini 3.8 Flash** in the picker. `MODEL NOT SELECTED` means open the dropdown, select Flash, reopen and confirm — not a quota error.
+Use the model on offer in the picker — never demand a model by name. Models change; the procedure follows what Perplexity offers. Record the picker selection before submitting. `MODEL NOT SELECTED` means open the dropdown, select the offered model, reopen and confirm — not a quota error. After the answer, the picker's selected model, the request proof and the answer footer must all name the same model; a mismatch across the three invalidates the attempt (see Observed model mismatch in Run 3).
 
 Type exactly: `code review https://github.com/aibraincoach/my-food-ai/pull/<N>` — no SHA, no extra instructions.
 
