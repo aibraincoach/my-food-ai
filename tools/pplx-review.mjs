@@ -368,17 +368,12 @@ async function ensureModel(tab) {
   if (WANT ? label !== WANT : !label) {
     const opened = await pointerClick(tab.context, MODEL_BUTTON);
     await new Promise((r) => setTimeout(r, 1500));
-    const pickTarget = WANT || "__FIRST_OFFERED__";
-    const itemByRole =
-      pickTarget === "__FIRST_OFFERED__"
-        ? `[...document.querySelectorAll('[role="menuitemradio"]')].find((e) => (e.innerText || '').trim() && e.getBoundingClientRect().width > 0)`
-        : `[...document.querySelectorAll('[role="menuitemradio"]')].find((e) => (e.innerText || '').trim().split('\\n')[0] === ${JSON.stringify(WANT)})`;
-    const itemAny =
-      pickTarget === "__FIRST_OFFERED__"
-        ? `[...document.querySelectorAll('div,button,li,span')].filter((e) => /./.test((e.innerText || '').trim()) && e.getBoundingClientRect().width > 0 && e.getBoundingClientRect().width < 400).pop()`
-        : `[...document.querySelectorAll('div,button,li,span')].filter((e) => (e.innerText || '').trim().split('\\n')[0] === ${JSON.stringify(WANT)} && e.getBoundingClientRect().width > 0).pop()`;
-    const picked =
-      opened && ((await pointerClick(tab.context, itemByRole)) || (await pointerClick(tab.context, itemAny)));
+    // Scope every pick to the open menu — never to page-wide divs or buttons.
+    const menuScope = `([...document.querySelectorAll('[role="menu"],[role="listbox"]')].find((m) => m.getBoundingClientRect().width > 0) || document)`;
+    const itemByRole = WANT
+      ? `[...(${menuScope}).querySelectorAll('[role="menuitemradio"]')].find((e) => (e.innerText || '').trim().split('\\n')[0] === ${JSON.stringify(WANT)})`
+      : `[...(${menuScope}).querySelectorAll('[role="menuitemradio"]')].find((e) => (e.innerText || '').trim() && e.getBoundingClientRect().width > 0)`;
+    const picked = opened && (await pointerClick(tab.context, itemByRole));
     await new Promise((r) => setTimeout(r, 1500));
     label = await modelLabel();
     if (!picked || !label || (WANT && label !== WANT)) {
@@ -499,7 +494,7 @@ async function pollAnswer(tab) {
     /* ignore */
   }
 
-  const header = `Head at submission: ${tab.headAt}\nModel proof: model_preference = ${modelPref || "MISSING"}\nElapsed since Enter: ${elapsedSinceEnter}s\nElapsed since tab open: ${tab.sinceTabOpen()}s\nPrompt submitted: ${tab.prompt}`;
+  const header = `Head at submission: ${tab.headAt}\nModel proof: model_preference = ${modelPref || "MISSING"}\nModel picker at submission: ${tab.modelLabel || "MISSING"}\nElapsed since Enter: ${elapsedSinceEnter}s\nElapsed since tab open: ${tab.sinceTabOpen()}s\nPrompt submitted: ${tab.prompt}`;
 
   if (timedOut) {
     return {
@@ -510,12 +505,14 @@ async function pollAnswer(tab) {
       text,
     };
   }
-  // The request must carry a model_preference that agrees with the model
-  // selected at submission (normalized both ways); anything else is exit 4.
+  // The request must carry a model_preference that agrees with the selected model
+  // at submission: exact normalized match, or containment with the shorter side
+  // at least 6 chars so short slugs cannot collide ("best" never matches "pplx_pro").
   const norm = (s) => String(s || "").toLowerCase().replace(/[^a-z0-9]/g, "");
   const want = norm(tab.modelLabel || "");
   const got = norm(modelPref);
-  if (!got || !want || !(got === want || got.includes(want) || want.includes(got))) {
+  const short = Math.min(got.length, want.length);
+  if (!got || !want || !(got === want || (short >= 6 && (got.includes(want) || want.includes(got))))) {
     return { ok: false, code: 4, message: "WRONG MODEL", header, text };
   }
   return { ok: true, header, text };
