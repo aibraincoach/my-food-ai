@@ -1,6 +1,6 @@
 # My Food AI — Backlog†
 
-Last edited: Saturday 2026-11-14 at 11:17 WIB (UTC+07:00) by Claude, PM
+Last edited: Saturday 2026-11-14 at 23:27 WIB (UTC+07:00) by Claude, PM
 
 The only job of the PM is to maintain this backlog and keep it completely up to date. Failing to do so is immediately terminable.
 
@@ -18,9 +18,9 @@ The cola records hold 29.7 mg of caffeine from the USDA but have no beverage cat
 
 The meal "Spicy Indonesian macaroni" shows its calories, protein, carbs and fat as unavailable. The owner re-analysed it after the fix went live, and it is still broken. He says the app's food estimates are broken.
 
-The first analysis searched the USDA database three times, rejected every record, and never tried the plain name "macaroni". Ruling: when the USDA has no record, the model must estimate, because an unavailable value is worse than a rough estimate. The closest-food fallback and the guard that stops re-analysing from reusing an empty result are both on main. 41 ready posts (95 item rows) had incomplete macros (docs/evidence/fix18/recompute-ids.json). The coder reports that at 09:11 WIB all 41 recompute jobs were done (the last at 08:59 WIB), that 40 posts now have complete nutrition including the macaroni post (86634d46), and that it closed the GitHub issue. One post, 6fad4a16, still lacks a value because its matched USDA record holds no number for that nutrient; whether to estimate it is undecided. The queue holds only three photo-cleanup jobs, which change no meal data. Nobody has checked any of this on production. GrokBot, Nov 5 (run before the 08:59 WIB recompute): the macaroni post 86634d46 still showed "— kcal" and "Nutrition unavailable: spicy Indonesian fried macaroni snack" in every AI comment. No owner OK is needed, because the coder has since reported the recompute done and GrokBot re-checks read-only. Done when a browser helper confirms on the live app that the macaroni post shows numbers with a note naming the closest USDA food or saying the model estimated them, and that no ready post shows a value that is unavailable, zero or blank, except post 6fad4a16, which is listed with its reason.
+The first analysis searched the USDA database three times, rejected every record, and never tried the plain name "macaroni". Ruling: when the USDA has no record, the model must estimate, because an unavailable value is worse than a rough estimate. The closest-food fallback and the guard that stops re-analysing from reusing an empty result are both on main. 41 ready posts (95 item rows) had incomplete macros (docs/evidence/fix18/recompute-ids.json). The coder reports that at 09:11 WIB all 41 recompute jobs were done (the last at 08:59 WIB), that 40 posts now have complete nutrition including the macaroni post (86634d46), and that it closed the GitHub issue. One post, 6fad4a16, still lacks a value because its matched USDA record holds no number for that nutrient; whether to estimate it is undecided. The queue holds only three photo-cleanup jobs, which change no meal data. PM, Nov 14 (Chrome, owner account, read-only): the macaroni post 86634d46 shows 38 kcal, 1 g protein, 8 g carbs and 0 g fat, and its latest AI comment (Nov 4, 10:11 PM) names the closest USDA record, "Macaroni, vegetable, enriched, cooked". Two older comments on it still read unavailable. 0 g fat for a fried snack looks low. PM sweep, Nov 14 23:25 WIB, of all 137 posts the Home feed loaded on the owner account: two posts show "Nutrition unavailable" for one item while their totals show numbers (6fad4a16, the salami, which is the known exception, and f08e2e86, an unsalted butter packet, 541 kcal); 12 posts show a 0 g macro, and I did not judge which are real zeros (Hydro Coco Original at 0 g protein looks right); and post 6caf8906 (leftovers, 8:55 PM) reads "This photo could not be analysed. Try again". The macaroni fix reached the other posts. The coder decides f08e2e86 and 6caf8906. GrokBot, Nov 5 (run before the 08:59 WIB recompute): the macaroni post 86634d46 still showed "— kcal" and "Nutrition unavailable: spicy Indonesian fried macaroni snack" in every AI comment. No owner OK is needed, because the coder has since reported the recompute done and GrokBot re-checks read-only. Done when a browser helper confirms on the live app that the macaroni post shows numbers with a note naming the closest USDA food or saying the model estimated them, and that no ready post shows a value that is unavailable, zero or blank, except post 6fad4a16, which is listed with its reason.
 
-### Three merged fixes have never been seen working in a browser
+### #683 Three merged fixes have never been seen working in a browser
 
 The fixes for the meal bookmark on a failed analysis (#634), the upload chip and the meal-cover retry were reviewed in code and never run in a browser. A judge who taps them could meet a defect nobody has seen.
 
@@ -44,7 +44,7 @@ The long-lived cache header on the redirect is the whole cause: a browser that s
 
 The app now accepts a serving of 0.1, but any value from 0.1 to 0.24 fails to save.
 
-Migration 0017_servings.sql required at least 0.25. Done when the app's minimum and the database's minimum are the same number, and saving that minimum works.
+Migration 0017\_servings.sql required at least 0.25. Done when the app's minimum and the database's minimum are the same number, and saving that minimum works.
 
 ### On desktop the focus outline does not follow keyboard tabbing into a meal card (#645)
 
@@ -54,19 +54,13 @@ In src/components/DesktopWorkspace.tsx, line 65, the code tests the card for foc
 
 ## Engineering backlog
 
-### #108 The installed app overlaps the iPhone clock and clips the bottom bar
-
-When the app is installed to an iPhone's home screen, its content can run under the phone's clock and the bottom bar can be clipped, so part of a screen cannot be read or tapped.
-
-GitHub closed #108 on Oct 28 through PR #157, and the owner reopened it on Nov 2 because nobody had verified it on an iPhone. The owner's screenshot of a meal's page (Fri Nov 6, 2:40 PM WIB) shows the clock printed over the "Feed" back label. Not known: whether that screen was the installed app, and whether any other screen overlaps. Observe first: open the installed app on an iPhone, or a browser at 390 × 844 and 430 × 932, and check the top and bottom edge of every screen. Done when nothing overlaps the clock or the home indicator at 390 × 844 and at 430 × 932.
-
 ### #212 Packaged food cannot be logged from the regular camera, and the scanner has never been tried on a phone
 
 To log a packaged food, the user has to switch to a separate scanner, and that scanner has not been tested on a phone. The owner wants the regular camera to read a barcode and a nutrition label.
 
 The design is to decode a barcode with deterministic code first, and to use the model only when no code is found or for a label. On Nov 1 a production check at phone width returned "not in database" for a valid barcode, and a label read by the model made a ready post whose stored nutrition matched. On Nov 2 on production, a Photo-mode shutter decoded an emulated UPC-A barcode to a Found result. The owner kept the issue open because the physical-phone check for both is unmet. Related: #452, where the label flow opens only after a barcode miss. Done when a real packaged product's barcode, photographed through the capture sheet on a phone, creates a post showing the product's name and nutrition, and a nutrition label photographed the same way does the same.
 
-### A failed leftovers upload cannot be dismissed and stays on screen every time the app is reopened
+### #684 A failed leftovers upload cannot be dismissed and stays on screen every time the app is reopened
 
 On the owner's phone, adding a leftovers photo to a meal failed with "Upload failed. The photo could not be attached." The failure leaves a "Leftovers: Not posted yet" card in the feed and a red chip at the bottom reading "Leftovers, Not saved · Try again". The user cannot dismiss either one, and both come back after closing and reopening the app, so the screen stays broken.
 
@@ -106,7 +100,7 @@ After an earlier release, the owner's desktop kept showing the old full-width la
 
 Starting a second post while an earlier post is still going up can end with "The meal could not be saved.", and the owner has to press Post again to get the meal saved.
 
-The owner's screenshot shows the toast "The meal could not be saved." over the feed, with the first post, "Beef noodle", showing a grey bar where the analysis would be. He posted one photo, photographed another food while the first was going up, and one of the two posts stopped working when the first finished; pressing Post again saved the meal. Which post stopped, and whether the two overlap in the capture sheet, the upload or the save, is not confirmed. The cause is unknown. Observe first: on a phone, start a second post while the first is still going up, and record which request raises the error and why. GrokBot, Nov 5: not reproduced as the owner saw it. An overlap on slow 4G showed no "could not be saved" toast and the second post closed in 107 ms, but /posts/<id> RSC fetches returned repeated 404s for one overlapping id, which the coder must look at. Done when one post finishing never stops the screen of the other, and both meals save on the first press of Post, in a phone-sized browser.
+The owner's screenshot shows the toast "The meal could not be saved." over the feed, with the first post, "Beef noodle", showing a grey bar where the analysis would be. He posted one photo, photographed another food while the first was going up, and one of the two posts stopped working when the first finished; pressing Post again saved the meal. Which post stopped, and whether the two overlap in the capture sheet, the upload or the save, is not confirmed. The cause is unknown. Observe first: on a phone, start a second post while the first is still going up, and record which request raises the error and why. GrokBot, Nov 5: not reproduced as the owner saw it. An overlap on slow 4G showed no "could not be saved" toast and the second post closed in 107 ms, but /posts/\<id> RSC fetches returned repeated 404s for one overlapping id, which the coder must look at. Done when one post finishing never stops the screen of the other, and both meals save on the first press of Post, in a phone-sized browser.
 
 ### #570 A leftovers photo takes several seconds to post while a regular photo is fast
 
@@ -178,7 +172,7 @@ The feed always loads its first page again from the browser after the server has
 
 The server draws the row of day circles with totals for the last five days. The browser then computes totals again for the feed's days. Today's totals are read twice on every home open.
 
-Today's totals arrive in the server HTML, and day pages are prefetched repeatedly (/days/2026-11-04 five times, earlier days several times each). A single read across the server and the browser together is unproved. Measure one page navigation and count every read that returns today's totals, including batched reads. GrokBot, Nov 5: totals arrive in the server HTML with no separate browser request, and heavy /days/…?_rsc prefetches repeat. The server reads need the coder's log. Done when a home open reads today's totals once across the server and the browser together.
+Today's totals arrive in the server HTML, and day pages are prefetched repeatedly (/days/2026-11-04 five times, earlier days several times each). A single read across the server and the browser together is unproved. Measure one page navigation and count every read that returns today's totals, including batched reads. GrokBot, Nov 5: totals arrive in the server HTML with no separate browser request, and heavy /days/…?\_rsc prefetches repeat. The server reads need the coder's log. Done when a home open reads today's totals once across the server and the browser together.
 
 ### #323 Every protected page checks sign-in twice (part of #222)
 
@@ -256,7 +250,7 @@ On production, 12 of 119 unavailable results in 14 days stopped after one search
 
 On the phone, the row of day circles above the feed shows four whole circles and a fifth cut off by the screen edge. The owner wants the row either to scroll or never to show a partly drawn circle.
 
-The row needs 386 px and the phone leaves 358 px, and the code clipped the row. Ruling: the row scrolls sideways back in time, drawn as Round 7 frames 7c and 7d. Today comes first with five whole circles and the edge of a sixth at rest, each swipe stops on a circle, and the feed stays on today while the row scrolls. Tapping a circle with posts opens that day; circles without posts are grey and cannot be tapped. The row starts with 30 days, loads 30 more near the end and stops at the first post, so the last circle is whole. Tapping Home while on Home returns the row to Today. Confirmed on a 390 px screen: sideways scroll, 30 circles, snap per circle, five whole circles plus the edge of a sixth. Not yet checked: tapping a circle with posts, grey circles being inert, Home returning the row to Today, and loading 30 more near the end. GrokBot, Nov 5: at 390 wide the row scrolls and shows five whole circles and the edge of a sixth. Tapping Wed 4 (a day with posts) opens /days/2026-11-04, and tapping Home returns the row to Today. Circles without a kcal number are not inert: Fri 30 is a link and navigates. Scrolling to the end did not load 30 more circles (9 controls, scrollWidth 2182). Done when the row matches 7c and 7d on a phone-sized screen.
+The row needs 386 px and the phone leaves 358 px, and the code clipped the row. Ruling: the row scrolls sideways back in time, drawn as Round 7 frames 7c and 7d. Today comes first with five whole circles and the edge of a sixth at rest, each swipe stops on a circle, and the feed stays on today while the row scrolls. Tapping a circle with posts opens that day; circles without posts are grey and cannot be tapped. The row starts with 30 days, loads 30 more near the end and stops at the first post, so the last circle is whole. Tapping Home while on Home returns the row to Today. Confirmed on a 390 px screen: sideways scroll, 30 circles, snap per circle, five whole circles plus the edge of a sixth. Not yet checked: tapping a circle with posts, grey circles being inert, Home returning the row to Today, and loading 30 more near the end. GrokBot, Nov 5: at 390 wide the row scrolls and shows five whole circles and the edge of a sixth. Tapping Wed 4 (a day with posts) opens /days/2026-11-04, and tapping Home returns the row to Today. Fri 30 is a link and navigates. The code on main links any day with posts, even with no kcal, as the ruling says, so this is a defect only if Fri 30 has no posts (planner, Nov 14); GrokBot checks. Scrolling to the end did not load 30 more circles (9 controls, scrollWidth 2182). Done when the row matches 7c and 7d on a phone-sized screen.
 
 ### #568 Judges have no page that shows how the app works
 
@@ -272,9 +266,9 @@ Unproven. A rice-and-broccoli post reached ready with no food names shown while 
 
 ### #351 The drink sheet's tiles have not been checked on the live app
 
-The drink sheet shows tiles, and a change set their sizes and order. Ordering by use is on main (#527), but the hold to pick a size is not.
+The drink sheet shows tiles, and a change set their sizes and order. Ordering by use (#527) and the hold to pick a size are both in the code on main.
 
-Issue #351 specifies six fixed tiles from the server, ordered by use with the most used first. Holding a tile for about 650 ms offers a size, such as a 240 ml cup or a 350 ml large coffee. Ordering by use is on main; the hold-for-size part is absent. GrokBot, Nov 5: the drink sheet on production shows four tiles (Water glass 250 ml, Coffee cup 240 ml, Tea mug 300 ml, Water bottle 500 ml), not six. Holding a tile for about 700 ms opened no size picker. Hold-for-size is absent on main. Done when the drink sheet on the live app shows six tiles with the most used first, and holding a tile offers its sizes.
+Issue #351 specifies six fixed tiles from the server, ordered by use with the most used first. Holding a tile for about 650 ms offers a size, such as a 240 ml cup or a 350 ml large coffee. In IntakeSheet.tsx on main (96ecdcf), six tiles are ordered by use and a 500 ms hold opens the sizes.  GrokBot, Nov 5: the drink sheet on production shows four tiles (Water glass 250 ml, Coffee cup 240 ml, Tea mug 300 ml, Water bottle 500 ml), not six. Holding a tile for about 700 ms opened no size picker. The code on main has both, so production differs from the code and the cause is unknown: a stale build (#598), hidden tiles, or how GrokBot held the tile. Done when the drink sheet on the live app shows six tiles with the most used first, and holding a tile offers its sizes.
 
 ### #615 A posted beer disappears and a clarification card takes its place
 
@@ -288,43 +282,43 @@ Feed photos are too large for a phone on mobile data, so the first photo is slow
 
 The feed serves immutable WebP copies at 1920 px (default), 1040 px (2x) and 1560 px (3x) with a one-year cache header. On production the first feed photo appeared at 4.09 s and 4.05 s on a cold open with slow 4G at 390 wide, against a 2 s target. It was the 1560 copy, 50,076 bytes, rendered 390 by 520. One line in docs/media-loading.md still says "no-store". GrokBot, Nov 5: FAIL. On a cold open at slow 4G and 390 wide, three runs showed the first feed photo at 6.96 s, 8.49 s and 7.20 s (about 4.05 s in Fleet 18). The photo is v2-1560.webp, 91,542 bytes, cache-control private, max-age=31536000, immutable, with a natural width of 390 against a 390-wide card, a ratio of 1.0 where the done line needs 2. Done when a browser helper on production records the bytes and the cache header of the first feed photo, the first photo shows within two seconds at the slow-network test profile, and the stored photo is at least twice as wide in pixels as the card it fills.
 
-### The worker keeps its lock after it stops, so the queue can stall up to five minutes after a deploy
+### #685 The worker keeps its lock after it stops, so the queue can stall up to five minutes after a deploy
 
 When the background worker stops, it does not release its lock. After a deploy, new meals wait up to five minutes before analysis starts, so a meal posted in that window sits on a grey bar. Nothing breaks.
 
 The coder reported this on Nov 5 as known and open. The five-minute figure is the lock's lifetime as the coder gave it, not a measurement. Code is frozen until judging, so this waits. Observe first: stop the worker mid-job on the disposable stack and time how long the next job waits. Done when stopping the worker releases the lock and the next queued job starts within one worker wake, measured on the disposable stack.
 
-### A retry poll can be cancelled by an in-flight load, so a failed meal's retry can stop (PR #674)
+### #686 A retry poll can be cancelled by an in-flight load, so a failed meal's retry can stop (PR #674)
 
 After a meal fails and the user retries, the app polls for the result, but a load already in flight can cancel the restarted poll, so the retry can stop without ever showing a result.
 
 PPLX raised this as a P2 on PR #674, and the Fleet 18 plan accepted it as real and deferred it. #674 is on main with the P2 unfixed. Done when a retry poll restarted after a failure is not cancelled by a load already in flight, and a test covers it.
 
-### The submission text omits voice transcription and says all AI calls use the Meta Model API, which is untrue when Muse Spark Open is on
+### #687 The submission text omits voice transcription and says all AI calls use the Meta Model API, which is untrue when Muse Spark Open is on
 
 The hackathon submission was sent at 08:59 WIB. Its description never mentions voice transcription, and it says all runtime AI calls use the Meta Model API. When a user turns on Muse Spark Open in Profile, food identification goes through Baseten instead. A judge who compares the submission with the README sees two accounts of the app.
 
-Checked in the public repository at 96ecdcf (Nov 5, 08:46 WIB): voice is built. The route /api/transcribe calls muse-voice-transcribe-1.0, and VoiceRecorder is mounted in CommentComposer, so the mic sits in the comment box on a meal, not on the capture screen. The open path is built too: open-weights.ts, plus a Profile switch that appears only when IDENTIFY_OPEN_API_KEY is set. docs/open-weights.md says production holds that key and the switch persists (Fleet 10 check), and the owner's own-account look on #281 is still open. The owner believed both were removed, and the code contradicts that. Not yet seen on production today: the mic and the Profile switch. #657 covers the README's no-match wording. Whether the portal counts edits after 09:00 is unknown. Done when GrokBot confirms on production that the mic shows in a meal's comment box and the Profile switch shows, and the owner has checked the portal for the contributor list and decided whether to edit the description.
+Checked in the public repository at 96ecdcf (Nov 5, 08:46 WIB): voice is built. The route /api/transcribe calls muse-voice-transcribe-1.0, and VoiceRecorder is mounted in CommentComposer, so the mic sits in the comment box on a meal, not on the capture screen. The open path is built too: open-weights.ts, plus a Profile switch that appears only when IDENTIFY\_OPEN\_API\_KEY is set. docs/open-weights.md says production holds that key and the switch persists (Fleet 10 check), and the owner's own-account look on #281 is still open. The owner believed both were removed, and the code contradicts that. PM, Nov 14 (Chrome, owner account, read-only): production shows the mic beside the comment box on a meal, and Profile shows the switch "Identify food with Muse Spark Open", set to Off. #657 covers the README's no-match wording. Whether the portal counts edits after 09:00 is unknown. Done when GrokBot confirms on production that the mic shows in a meal's comment box and the Profile switch shows, and the owner has checked the portal for the contributor list and decided whether to edit the description.
 
-### The feed jumps to another meal because every card's first-run hint triggers a server action that remounts the feed in a loop
+### #688 The feed jumps to another meal because every card's first-run hint triggers a server action that remounts the feed in a loop
 
 On the phone, while the user scrolls the feed, the screen suddenly jumps up to a different meal and keeps bouncing, so the user loses their place. The owner first saw it after swiping the photos of a meal that has a leftovers photo.
 
-Fable reproduced it on production on Nov 5 in a 400 px window. The swipe is not the trigger: it also happens with no swipe and on a meal without leftovers. Every feed card mounts the "Was this estimate right?" hint, and FirstRunHint.tsx line 31 calls the getHintState server action on every mount, even when all hints are seen. That action uses the cookie-writing Supabase client (src/lib/profile/hints.ts line 11), so Next returns a 42 KB re-render of Home. The feed falls back to its loading state and remounts with page one, and the scroll position clamps from 6598 px to 3170 px. The remount mounts six more hints, which fire six more actions, about two per second until the queue drains. Loading page two mounts 20 cards at once, which starts the loop. A DOM observer, the resource timing log and a manual replay of the action all confirmed it. Not verified: Chrome's network panel listed the POSTs as 503 while timing and replays showed 200, so Fable treated the 503 as a tool artifact. Fable's smallest fix is a module-level map in FirstRunHint.tsx (ThumbsFeedback.tsx line 35 mounts the hint) that caches the lookup per page load, which cuts it to at most four actions at startup. A cleaner follow-up reads profiles.hints_seen with the browser Supabase client. Code is frozen until judging, so nothing is fixed. Done when scrolling the feed into page two on production in a phone-sized browser sends no repeated POSTs to "/", the scroll position never jumps, and swiping the photos of a meal with a leftovers photo moves only that meal's photos.
+Fable reproduced it on production on Nov 5 in a 400 px window. The swipe is not the trigger: it also happens with no swipe and on a meal without leftovers. Every feed card mounts the "Was this estimate right?" hint, and FirstRunHint.tsx line 31 calls the getHintState server action on every mount, even when all hints are seen. That action uses the cookie-writing Supabase client (src/lib/profile/hints.ts line 11), so Next returns a 42 KB re-render of Home. The feed falls back to its loading state and remounts with page one, and the scroll position clamps from 6598 px to 3170 px. The remount mounts six more hints, which fire six more actions, about two per second until the queue drains. Loading page two mounts 20 cards at once, which starts the loop. A DOM observer, the resource timing log and a manual replay of the action all confirmed it. Not verified: Chrome's network panel listed the POSTs as 503 while timing and replays showed 200, so Fable treated the 503 as a tool artifact. Fable's smallest fix is a module-level map in FirstRunHint.tsx (ThumbsFeedback.tsx line 35 mounts the hint) that caches the lookup per page load, which cuts it to at most four actions at startup. A cleaner follow-up reads profiles.hints\_seen with the browser Supabase client. Code is frozen until judging, so nothing is fixed. Done when scrolling the feed into page two on production in a phone-sized browser sends no repeated POSTs to "/", the scroll position never jumps, and swiping the photos of a meal with a leftovers photo moves only that meal's photos.
 
-### The last Fleet 18 remediation PRs (#667, #668, #670, #671, #672, #677 and #678) merged without a clean exact-head review
+### #689 The last Fleet 18 remediation PRs (#667, #668, #670, #671, #672, #677 and #678) merged without a clean exact-head review
 
 These PRs are on main, and the reviewer asked for changes at most of their merged heads. Two bugs were confirmed in them: the cover photo's cache lifetime (#668) and the seeded avatar subscription (#672). Fixes for both merged afterwards in #679 and #680.
 
-The exact-head review rule was overridden to land them before the stop. #672 merged at the unreviewed head d50b79f9 with a hand-resolved conflict in PostDetailHeader.tsx, and #677 had no PPLX run. The coder reports #679 (photo cache counted from signing time, #668) and #680 (review findings on #678 and the seeded author identity, #672) merged at 08:30 and 08:32 WIB. Nobody has reported whether either was reviewed at its merged head. Production main is 96ecdcf, and code is frozen until judging, so a new finding cannot be fixed now. Done when the avatar route is checked on production for an account with an avatar (200, private cache) and for another signed-in user (404), PostDetailHeader.tsx is checked on production for the author avatar and the servings layout, and each unreviewed merged head has been reviewed with each real finding filed as its own item.
+The exact-head review rule was overridden to land them before the stop. #672 merged at the unreviewed head d50bdf79 with a hand-resolved conflict in PostDetailHeader.tsx, and #677 had no PPLX run. The coder reports #679 (photo cache counted from signing time, #668) and #680 (review findings on #678 and the seeded author identity, #672) merged at 08:30 and 08:32 WIB. Nobody has reported whether either was reviewed at its merged head. Production main is 96ecdcf, and code is frozen until judging, so a new finding cannot be fixed now. Done when the avatar route is checked on production for an account with an avatar (200, private cache) and for another signed-in user (404), PostDetailHeader.tsx is checked on production for the author avatar and the servings layout, and each unreviewed merged head has been reviewed with each real finding filed as its own item.
 
-### A Fleet 17 test post and its draft are still on test account 2, and the corrected run report may be incomplete
+### #690 A Fleet 17 test post and its draft are still on test account 2, and the corrected run report may be incomplete
 
 A post captioned "Fleet 17 post-close 2" (id starting d37b129e) was created at 16:21 UTC and was never cleaned up. It sits between the "retry" batch at 16:16 and the "v4" batch at 16:23, and it is in no evidence file.
 
 A fourth close-time batch may have run without a kept receipt, which would make the "all nine readings" claim in docs/run17-report.md incomplete. Done when the post and its draft are deleted, and docs/run17-report.md either says a fourth batch ran with no receipt or says the post was not a reading.
 
-### The PRs that built #628, #471, #626 and #627 have no external review, and their closing comments link to files that are not in the repo
+### #691 The PRs that built #628, #471, #626 and #627 have no external review, and their closing comments link to files that are not in the repo
 
 PRs #651, #652, #654 and #655 carry only Vercel comments, with no PPLX, AGY or Codex receipt. The closing comments on the issues point to files under docs/evidence/run19/, such as push-row-delete.json, and those files are not on main.
 
@@ -340,7 +334,7 @@ The script scripts/run17-checks.mjs now exits with an error when a check fails, 
 
 Anyone can send sign-up and sign-in requests as fast as a script can, to guess passwords, create accounts in bulk or run up the email and model bills, and nobody has shown what stops them.
 
-CAPTCHA stays off until the app goes public. A dormant hCaptcha widget is built. A direct hammer from one machine was refused at sign-up 31 and sign-in 32. The owner holds the site key and the secret; the secret lives only in Supabase Auth and never goes into the repository, an issue, an order or this backlog. To turn CAPTCHA on, set NEXT_PUBLIC_HCAPTCHA_SITE_KEY in Vercel production and redeploy, then enable CAPTCHA in Supabase Auth, never the reverse. Done when CAPTCHA is on for sign-up and sign-in on production and a script that hammers both is refused.
+CAPTCHA stays off until the app goes public. A dormant hCaptcha widget is built. A direct hammer from one machine was refused at sign-up 31 and sign-in 32. The owner holds the site key and the secret; the secret lives only in Supabase Auth and never goes into the repository, an issue, an order or this backlog. To turn CAPTCHA on, set NEXT\_PUBLIC\_HCAPTCHA\_SITE\_KEY in Vercel production and redeploy, then enable CAPTCHA in Supabase Auth, never the reverse. Done when CAPTCHA is on for sign-up and sign-in on production and a script that hammers both is refused.
 
 ### #657 The README says a food with no match is shown as unavailable, but the app now estimates it
 
@@ -352,7 +346,7 @@ README.md line 20 contradicts the matcher in src/fdc/match.ts (lines 97 to 100),
 
 The app waits up to 320 ms after a single tap on a meal before it opens the meal, in case the tap is the first half of a double tap.
 
-The wait is the SINGLE_TAP_WAIT_MS constant in the tap logic. It is separate from the server wait in #554, and no done line there counts it. Done when a single tap on a meal shows a visible change at once and a double tap still works, or the owner rules that the 320 ms stays.
+The wait is the SINGLE\_TAP\_WAIT\_MS constant in the tap logic. It is separate from the server wait in #554, and no done line there counts it. Done when a single tap on a meal shows a visible change at once and a double tap still works, or the owner rules that the 320 ms stays.
 
 ### #578 The leftovers photo and the regular photo post through different code
 
@@ -370,7 +364,7 @@ After the last feature is in, one pass replaces the default README with a short 
 
 Codex and AGY reviewed the Fleet 18 PRs and raised problems in code that is now merged. The planner confirmed four of them on main 7d64f4c8; they are the four items below. The rest have not been checked.
 
-Two blockers are planner-checked on main and not yet reproduced by a coder. On #647, useProfileIdentity in PostHandle.tsx binds the viewer's avatar and handle to every post header and not the author's, the avatar route reads with the viewer's token so another user's avatar fails, and the route sends a public one-year immutable cache header for an image only signed-in users should see. On #648, wording-inventory.mjs embeds the HEAD short hash so its check can never pass after a commit, and docs/wording/inventory.md was generated before 66 files changed. Eleven other findings were reproduced and are filed as the items below; two were dismissed with proof (the #633 recompute upsert and the #633 rice-with-protein composition). Still unchecked: the #641 portion_unit "serving" that the database does not accept; on #638, Feed discovery polling that stops when the tab is hidden; on #639, NeedsInputStrip never finding new questions after an empty first poll, and RealtimePost not refreshing on visibility; the #637 Thread retry polling; and the #643 header text cut off. Done when each unchecked finding is reproduced or dismissed with proof, the blockers on #647 and #648 are each checked on main, and each one reproduced is filed as its own item.
+Two blockers are planner-checked on main and not yet reproduced by a coder. On #647, useProfileIdentity in PostHandle.tsx binds the viewer's avatar and handle to every post header and not the author's, the avatar route reads with the viewer's token so another user's avatar fails, and the route sends a public one-year immutable cache header for an image only signed-in users should see. On #648, wording-inventory.mjs embeds the HEAD short hash so its check can never pass after a commit, and docs/wording/inventory.md was generated before 66 files changed. Eleven other findings were reproduced and are filed as the items below; two were dismissed with proof (the #633 recompute upsert and the #633 rice-with-protein composition). Still unchecked: the #641 portion\_unit "serving" that the database does not accept; on #638, Feed discovery polling that stops when the tab is hidden; on #639, NeedsInputStrip never finding new questions after an empty first poll, and RealtimePost not refreshing on visibility; the #637 Thread retry polling; and the #643 header text cut off. Done when each unchecked finding is reproduced or dismissed with proof, the blockers on #647 and #648 are each checked on main, and each one reproduced is filed as its own item.
 
 ### The jobs drain route runs the worker for anyone and without holding the lease (#640)
 
@@ -383,18 +377,6 @@ The route is public and unauthenticated, and it runs the worker for any ?holder=
 When the server did not supply the day's numbers, the desktop Today view keeps asking /api/today again and again. This is the database hammering the owner complained about.
 
 The effect depends on the day, and loading the numbers sets the day, which triggers the effect again. Done when the day is removed from that dependency list and the desktop Today view makes one request to /api/today per visit, counted in the network log.
-
-### A food topped with cheese, sauce or herbs is rejected as a protein mismatch (#633)
-
-The protein check reads the word after "topped with" as a protein. Any other topping, such as cheese, sauce, herbs, lettuce or onions, makes a correct generic record look like a mismatch, so a chicken breast topped with cheese is rejected.
-
-In src/lib/fdc/protein-reference.ts, lines 15 to 18. The pattern /\btopped with ([a-z]+)/ has no list of protein words. It affects both matchFood and closestGenericFood. Done when a food topped with a non-protein topping is no longer rejected as a protein mismatch, a food topped with a different protein still is, and a test covers both.
-
-### Fruit cocktail and shrimp cocktail are counted as alcohol (#633)
-
-The alcohol check matches the bare word cocktail, so fruit cocktail and shrimp cocktail are treated as alcoholic.
-
-In src/lib/intake/alcohol.ts, lines 6 and 14: ALCOHOLIC_NAME contains cocktail, and it is tested against the item name. Done when a fruit cocktail and a shrimp cocktail are not counted as alcohol, a tiki cocktail and a margarita still are, and a test covers all four.
 
 ### Saving a meal whose analysis failed leaves the bookmark stuck, or marks a saved meal failed (#634)
 
@@ -448,7 +430,19 @@ In src/components/UploadChip.tsx, line 25. The listener compares only the upload
 
 The new Today summary turns a nutrient nobody could measure into a zero, so a day whose protein is unavailable shows "0 g protein". The owner ruled that unavailable is never shown as zero.
 
-The old totals in src/lib/nutrition/totals.ts return null for a nutrient with no known value, but the today_summary function from migration 0057 sets protein, carbs and fat to 0 always, and calories to 0 unless every item lacks calories. The proposed fix is a new migration for today_summary that returns null when no item of the day has a known value. Done when an empty day and a day with protein missing on every item show unavailable and not 0, a day with known values shows the same totals as the old calculation, and a test covers all three.
+The old totals in src/lib/nutrition/totals.ts return null for a nutrient with no known value, but the today\_summary function from migration 0057 sets protein, carbs and fat to 0 always, and calories to 0 unless every item lacks calories. The proposed fix is a new migration for today\_summary that returns null when no item of the day has a known value. Done when an empty day and a day with protein missing on every item show unavailable and not 0, a day with known values shows the same totals as the old calculation, and a test covers all three.
+
+### Voice input exists only in the comment box on a meal
+
+The mic is the one place a user can speak instead of type, and it is buried: it appears only after opening a meal and starting a comment. A user who wants to say what they ate when posting cannot.
+
+The owner ruled on Nov 14 that voice must be a first-class input, available wherever the user types. Checked in the code on main (96ecdcf): VoiceRecorder is mounted only in CommentComposer.tsx, and every transcription is a model call that counts against the hourly limit (#471). PM ruling: the mic sits inside the field, in the same place as the comment box mic, in the new-post caption, the drink description, the leftovers caption, search and the comment box. Done when, in a phone-sized browser on production, each of those five fields shows the mic, and a short recorded clip played into the microphone puts its words in the field.
+
+### Many of the owner's meals show wrong nutrition numbers and nobody knows how many or why
+
+The owner has logged food daily for days, his diet changed, and he reports that a lot of what the app shows is wrong. Nobody has measured how wrong or where the error comes from.
+
+Known cases: the macaroni snack shows 38 kcal and 0 g fat from a cooked vegetable macaroni record (#523), squid matched to a tuna sushi record (#617), a consumed number from a half-eaten plate that nobody confirmed (#285), and 12 of the owner's 137 posts show a 0 g macro that nobody judged. A capable coder investigates read-only: pull the owner's ready posts, check each food's weight and kcal against its USDA record and the photo, and record for each wrong number which step caused it (the food identified, the record matched, the weight estimated or the stored value). Done when a written finding lists every one of the owner's posts whose numbers are wrong with its cause, ranks the causes by how many posts each one explains, and each cause is on the backlog as its own item.
 
 ## Backlog for Designer
 
@@ -518,4 +512,4 @@ Blocked until after the hackathon, and blocked by the claims rule: the app shows
 
 † **What this backlog is.** The shared, ordered list of open work for My Food AI, shown live. GitHub issues in aibraincoach/my-food-ai are the record, and BACKLOG.md in the repository is a copy of this list that the PM supplies, so the coder and the planner read the same list. This Doc is private between the PM and the owner, and the coder cannot open it. The coder reads BACKLOG.md, which the owner copies from this Doc. This list usually runs a little ahead of the issues, because an item reaches them only after the PM has filed it. An item stays until its work is merged, its done condition is met and its issue is closed; the "Interdit (Not part of Hackathon)" section holds items that cannot be worked on and says why. Each section is for one role or one state: Backlog for GrokBot, Merged, awaiting production proof (the items Fleet 18 built) and Engineering backlog (open work outside it), ordered within a section by the pass that will work them together, not by issue number or date.
 
-Every item is a title line and two paragraphs. The title line carries the GitHub issue number once the issue exists. (1) The title says in plain words what is wrong, as a GitHub issue title does. (2) The first paragraph is the problem statement, which any person can read. (3) The second paragraph holds the context we have learned that helps solve it. It can be technical. It never holds a dump of logs, review history or merged-change detail. It ends with "Done when" and a condition a person can check. An item missing a part is not on the backlog.
+Every item is a title line and two paragraphs. The title line carries the GitHub issue number once the issue exists. (1) The title says in plain words what is wrong, as a GitHub issue title does. (2) The first paragraph is the problem statement, which any person can read. (3) The second paragraph holds the context we have learned that helps solve it. It can be technical. It never holds a dump of logs, review history or merged-change detail. It ends with "Done when" and a condition a person can check. Write short sentences in the active voice, as the Google developer documentation style guide asks, and spell out any term a reader outside the project would not know. An item missing a part is not on the backlog.
