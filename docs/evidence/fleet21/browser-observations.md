@@ -10,4 +10,14 @@ These are measured local observations, not production completion claims. Every c
 
 Production test account 2 Search for the exact caption Fleet 17 post-close 2 returned No meals found. No other meal was touched and no deletion was claimed. A draft in the original posting browser cannot be reached from this browser.
 
-Remaining PR looks and local checks are still in progress. Production checks and merges await the required PM order naming each PR and its full head SHA.
+All eleven required PR page looks and all eighteen local-check entries now have receipts. Unverified and failed steps remain explicitly recorded below. Production checks and merges await the required PM order naming each PR and its full head SHA.
+
+
+- PR 913: ready F1 saves; failed F2 refuses beneath its own buttons without a save request; F5 refuses with its question-specific message at both widths. F3 stayed processing. A fixed-phone-width timeout attempt was still filled at 114.32 seconds and empty with the planned message at 133.33 seconds. The earlier attempt lost pending state during a viewport change and is not counted as timeout proof.
+- PR 915: F1/F4 photos and Days/Today thumbnails load at both widths. Three cold phone reloads displayed the first photo at 634, 915 and 627 ms. The selected 1600-width public address returned a 23,040-byte WebP whose actual dimensions were 1280 × 853; full browser transfers were 23,340 bytes. Cache-Control is public with max-age=31536000 and s-maxage=86400. Desktop detail requested zero .feed.jpg files. Home made zero /api/today requests over 12.45 seconds. Numeric kcal equality and literal first paint were not certified with the unavailable-nutrition canned fixtures. CDN behavior and production timing remain pending deployment.
+- PR 916: fifteen-second Home counts were ten feed-id requests on main and three on the branch. Four main requests named the six rendered cards; none on the branch did. The three residual branch requests named other seeded meals, so the absolute zero-request line was not met. After the prescribed ready update, F3 filled in after 1.09 seconds; F3 and F2 were then restored to their prescribed states.
+- PR 917: at both widths, a controlled disposable cocktail with 15 mg stored caffeine has no Caffeine row; coffee with 95 mg keeps that row. These two direct-SQL fixtures were removed after the look. They do not substitute for the production cocktail, wine and Nov 3 checks.
+- PR 919: usable thumbs are black outlines at rest, the selected thumb fills, and the unfinished meal's controls remain faint and disabled. Home and detail were checked at both widths.
+- PR 921: F1 and F5 details show their photos with outlines on. F5's photo-first view does not render the renamed question heading, so that text was not visually certified by this fixture. The changed-photo identity test passes.
+
+Local checks are summarized in local-check-summary.md; raw numeric/text receipts are in local-check-results.json. Screenshots were viewed in memory only. No new issue was created. Newly found defects and inconclusive observations are reported for the owner; none was fixed outside the dispatched changes.
