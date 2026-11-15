@@ -1,56 +1,52 @@
 Head at submission: 6109ab1688d68f77e33743ac56ec60f1afd05148
-Model proof: model_preference = gemini38flash
-Elapsed since Enter: 47.0s
-Elapsed since tab open: 54.4s
+Model proof: model_preference = gemini4hydrogen
+Model picker at submission: Gemini 4 Hydrogen
+Elapsed since Enter: 18.5s
+Elapsed since tab open: 21.9s
 Prompt submitted: code review https://github.com/aibraincoach/my-food-ai/pull/616
 
 Answer
 Links
 Images
 Share
-8:11 AM
+11:05 AM
 
 code review 
  aibraincoach/my-food-ai#616
 
 Finished
-27s
-Review result
+9s
 
-Verdict: No blocking issues found in PR #616 at commit 6109ab1. The changes are narrowly scoped and consistent with the existing worker-update design.
+Pull request 
+ aibraincoach/my-food-ai#616 (fix: explicitly refresh workers and stamp every rebuild) is a focused, low-risk change (+7 / -3 across 2 files) that is already merged. Both changes directly address stale service worker retention without introducing regressions.
 
-I reviewed both changed files and traced their interaction with public/sw.js and src/app/build.js/route.ts. This was a static review; I did not execute the build or tests.
+Build ID stamping in next.config.ts
 
-What looks correct
+What changed: NEXT_PUBLIC_BUILD now always appends -${Date.now()} to process.env.VERCEL_GIT_COMMIT_SHA ?? "local", rather than only using a timestamp for local builds.
 
-Explicit update checks: The registration now returns registration.update() from the promise chain. The existing catch therefore handles both registration failures and update failures, keeping either failure from becoming an unhandled rejection.
+Why it works: Redeploying the same commit on Vercel previously produced an identical NEXT_PUBLIC_BUILD, so the worker import URL did not change. Including the build timestamp ensures every rebuild produces a distinct identifier.
 
-Registration timing remains intact: The component registers immediately when the document has already finished loading; otherwise, it registers once on load and removes the listener during cleanup.
+Minor note: Because Date.now() is evaluated when next.config.ts is loaded, any separate process that re-evaluates the config independently would get a different timestamp. Your PR description notes that /build.js matched /shell data-build and stayed identical across requests, which confirms Next.js evaluates it once per build in your setup.
 
-Same-commit redeploys change the worker’s imported bytes: Previously, setting VERCEL_GIT_COMMIT_SHA made the build marker identical across rebuilds of the same commit. Appending a timestamp addresses that case. The worker imports /build.js, whose handler emits the build marker and sets Cache-Control: no-store.
+Explicit worker update in ServiceWorkerRegistration.tsx
 
-The activation path already exists: The worker calls skipWaiting(), refreshes its shell cache during installation, claims clients during activation, and navigates existing windows for an update. This PR adds update discovery rather than introducing a second activation mechanism.
+What changed: navigator.serviceWorker.register("/sw.js", { updateViaCache: "none" }) now chains .then(registration => registration.update()) before the existing .catch(() => {}).
 
-Validation caveats
+Why it works: Chaining registration.update() forces the browser to check /sw.js (and its importScripts dependencies, which carry the new build ID) on every normal page load rather than waiting on the browser's background update schedule.
 
-The focused regression checks are not included in this diff. The PR description reports checks for registration timing, rejected registration/update promises, and distinct build IDs for the same commit, but only the two implementation files changed. Those checks would be more useful as committed regression tests.
+Error handling: Returning registration.update() inside .then(...) keeps any rejected update promise inside the same .catch() handler, preserving nonfatal behavior when offline or when service workers are blocked.
 
-The returned GitHub check-run list contained only a successful “Vercel Preview Comments” check. That does not independently verify the reported TypeScript, lint, production-build, or 41 lifecycle checks.
+Overall assessment
 
-The reported live check is useful but not the full production acceptance test. Matching /build.js and /shell build markers, with a stable marker across repeated requests, verifies marker consistency. It does not yet demonstrate that an already-controlled browser running the old shell discovers and activates the new worker.
+No blockers, security issues, or correctness bugs are present in the diff. The change is minimal, well-scoped, and matches the stated root cause.
 
-Merge recommendation
-
-Mergeable based on the code review. Keep the production lifecycle check as a separate acceptance gate: start with a browser controlled by the previous deployment, deploy the change, perform a normal page load, and verify that the new worker activates and the old shell is replaced without a hard refresh.
-
-No review comments or approval were posted to GitHub.
-
-Suggest regression tests for these changes
-Draft a review comment for the pull request
-Show me how to verify the worker update manually
-Explain how the build marker prevents stale caching
-Check if the service worker unregister is safe
-⠼
+Show me how to test this service worker update locally
+What edge cases could still cause stale workers here
+Are there any performance trade-offs with updateViaCache none
+How can I monitor service worker updates in production
+Generate a release note summary for this fix
+Sources
+⠋
 You're incognito.
 Exit incognito
 
@@ -60,4 +56,4 @@ Exit incognito
 Ask a follow-up
 Search
 Computer
-GPT-6.1 Sol
+Gemini 4 Hydrogen
