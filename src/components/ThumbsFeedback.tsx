@@ -29,7 +29,7 @@ export default function ThumbsFeedback({postId,modelCommentId,fingerprint,compac
  const thumbClass=(value:Verdict)=>{
   if(!modelCommentId||!fingerprint)return 'text-faint';
   if(verdict===value||pressed===value)return 'text-text';
-  return 'text-off';
+  return 'text-text';
  };
 
  return <div><div className={compact?"flex items-center gap-[18px]":"flex items-center gap-2 py-2"}>{(['up','down']as const).map(value=><button key={value} type="button" disabled={!modelCommentId||!fingerprint} aria-busy={busy} aria-label={value==='up'?'Accept analysis':'Correct analysis'} aria-pressed={verdict===value} className={`flex items-center justify-center ${compact?"-m-[10px] size-11":"h-tap"} ${thumbClass(value)}`} onPointerDown={()=>{if(modelCommentId&&fingerprint)setPressed(value);}} onPointerUp={()=>setPressed(null)} onPointerLeave={()=>setPressed(null)} onClick={()=>{if(value==='down')window.dispatchEvent(new CustomEvent('post-open-preview',{detail:{id:postId,committed:true}}));if(value==='down')router.push(`/posts/${postId}?reply=1`);void vote(value);}}><Icon name="thumb" down={value==='down'} size={24} fill={verdict===value||pressed===value?'currentColor':'none'}/></button>)}<FirstRunHint hint="thumbs" /></div>{error?.revision===revision||storedError?<p role="alert" className="text-meta text-muted">{error?.revision===revision?error.message:'Feedback could not be saved. Try again.'}</p>:null}</div>;
