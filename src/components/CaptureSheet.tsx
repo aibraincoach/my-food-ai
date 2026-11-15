@@ -31,6 +31,7 @@ import {uploadManager} from "@/lib/posts/upload-manager";
 import {useUploads} from "@/components/useUploads";
 import { fromLocalInput, toLocalInput } from "@/lib/posts/eaten-at";
 import { tokens } from "@/lib/theme/tokens";
+import VoiceButton from "@/components/VoiceButton";
 
 type Shot = { file: File; previewUrl: string };
 const MAX_SHOTS = 8;
@@ -598,7 +599,7 @@ export default function CaptureSheet({ onClose, initialMode = "photo", forPost, 
           {searchingFoods ? <FoodSearchPanel eatenAt={when === null ? null : fromLocalInput(when)} disabled={posting}
             onQueued={() => {  onClose(); }}
             onDescribe={(text) => { if (text && !caption.trim()) setCaption(text); setSearchingFoods(false); setError(null); }} onError={setError} /> : <>
-          <Field variant="camera" id="capture-caption" aria-label="Caption" value={caption} onChange={(event) => setCaption(event.target.value)} disabled={posting} placeholder="What did you eat?" />
+          <Field variant="camera" id="capture-caption" aria-label="Caption" value={caption} onChange={(event) => setCaption(event.target.value)} disabled={posting} placeholder="What did you eat?" /><VoiceButton value={caption} onChange={setCaption} max={2000} disabled={posting} />
           <button type="button" disabled={posting} onClick={() => { setSearchingFoods(true); setError(null); }} className="min-h-tap self-start px-grid text-detail text-surface disabled:opacity-50">Search foods</button>
           <p className="px-grid text-meta text-camera-muted">Location is saved with the post and helps recognise meals you eat in the same place. Only you see it.</p>
           </>}

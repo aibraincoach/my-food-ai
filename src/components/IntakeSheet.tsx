@@ -8,6 +8,7 @@ import { Icon } from "@/components/ui/Icon";
 import {uploadManager,type UploadState} from "@/lib/posts/upload-manager";
 import { DRINK_TILES, TILE_SIZES } from "@/lib/intake/intake";
 import type { DrinkRow } from "@/lib/intake/hydration";
+import VoiceButton from "@/components/VoiceButton";
 
 type Posted = { id: string; label: string; expires: number };
 const number = (value: number) => value.toLocaleString("en-US");
@@ -132,7 +133,7 @@ export default function IntakeSheet({ embedded = false, onClose }: { initialKind
     </div>}
     <p className="-mt-1 text-[12px] text-muted">Tap to post. Hold to change the size.</p>
     <form onSubmit={event => { event.preventDefault(); void postCaption(); }} className="flex flex-col gap-2">
-      <div className="flex items-center gap-2"><Field className="min-w-0 flex-1" aria-label="Drink description" placeholder="Type a drink, e.g. oat latte, large" maxLength={1000} value={caption} disabled={busy} onChange={event => setCaption(event.target.value)} />
+      <div className="flex items-center gap-2"><Field className="min-w-0 flex-1" aria-label="Drink description" placeholder="Type a drink, e.g. oat latte, large" maxLength={1000} value={caption} disabled={busy} onChange={event => setCaption(event.target.value)} /><VoiceButton value={caption} onChange={setCaption} max={1000} disabled={busy} />
         <button type="button" aria-label="Photograph a drink" disabled={busy} className="flex size-12 shrink-0 items-center justify-center rounded-field bg-text text-surface" onClick={() => { close(); window.dispatchEvent(new CustomEvent("open-entry", { detail: { entry: "camera" } })); }}><Icon name="camera" size={22} /></button>
       </div>
       {caption.trim() && <Button type="submit" disabled={busy}>{busy ? "Posting…" : "Post drink"}</Button>}
