@@ -10,7 +10,7 @@ test('a ready card with an unavailable item snapshot keeps polling and recovers 
  const initial={id:'meal',status:'ready',itemsUnavailable:true,mediaUnavailable:true,items:[{id:'known',name:'Rice',calories:90}],slides:[],analysisFingerprint:'same'};
  const channel={on(){return this;},subscribe(){return this;}};
  const code=ts.transpileModule(readFileSync(new URL('../src/components/RealtimePost.tsx',import.meta.url),'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,jsx:ts.JsxEmit.ReactJSX,target:ts.ScriptTarget.ES2022}}).outputText;
- const exports={};vm.runInNewContext(code,{exports,Date:{now:()=>now},document:{visibilityState:'visible',addEventListener(){},removeEventListener(){}},window:{addEventListener(){},removeEventListener(){},dispatchEvent(){}},CustomEvent:class{},setInterval(fn){interval=fn;return 1;},clearInterval(){},
+ const exports={};vm.runInNewContext(code,{exports,Date:{now:()=>now},document:{visibilityState:'visible',addEventListener(){},removeEventListener(){}},window:{addEventListener(){},removeEventListener(){},dispatchEvent(){}},CustomEvent:class{},setTimeout(fn){interval=fn;return 1;},clearTimeout(){},
  require(name){
   if(name==='react')return{useState(initial){const index=stateIndex++;states[index]=initial;return[initial,next=>{states[index]=typeof next==='function'?next(states[index]):next;}];},useRef:current=>({current}),useEffect:fn=>effects.push(fn)};
   if(name==='react/jsx-runtime')return{jsx:()=>null,Fragment:Symbol()};

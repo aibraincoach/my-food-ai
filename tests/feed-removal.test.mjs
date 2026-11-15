@@ -14,7 +14,7 @@ test('retiring the last meal clears feed state and rejects an older hydration re
  const exports={};
  const code=ts.transpileModule(readFileSync(new URL('../src/components/Feed.tsx',import.meta.url),'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,jsx:ts.JsxEmit.ReactJSX,target:ts.ScriptTarget.ES2022}}).outputText;
  vm.runInNewContext(code,{exports,URLSearchParams,AbortSignal,fetch:async()=>({ok:true,json:async()=>forceReset?new Promise(resolve=>{resolvePage=resolve;}):({posts:[post],nextCursor:null,days:[]})}),document:{hidden:false,addEventListener(){},removeEventListener(){}},CustomEvent:class{constructor(type,init){this.type=type;this.detail=init?.detail;}},
- window:{addEventListener(type,fn){listeners.set(type,fn);},removeEventListener(){},dispatchEvent(){}},setInterval:fn=>{discoverTick=fn;return 1;},clearInterval(){},setTimeout:fn=>{retryTimers.push(fn);return retryTimers.length;},clearTimeout(){},
+ window:{addEventListener(type,fn){listeners.set(type,fn);},removeEventListener(){},dispatchEvent(){}},setTimeout:(fn,ms)=>{if(ms===1000){retryTimers.push(fn);return retryTimers.length;}discoverTick=fn;return 0;},clearTimeout(){},
  require(name){
   if(name==='@/lib/posts/day-total-changes')return{dayTotalRefreshDates};if(name==='@/lib/posts/day-totals-refresh')return{createDayTotalsRefresh};if(name==='react')return{useEffect:fn=>effects.push(fn),useRef:current=>({current}),useState:initial=>[initial,state=>states.push(state)]};
   if(name==='react/jsx-runtime')return{jsx:()=>null,jsxs:()=>null};
@@ -23,6 +23,7 @@ test('retiring the last meal clears feed state and rejects an older hydration re
   if(name==='@/lib/posts/day-totals-refresh')return{createDayTotalsRefresh};
    if(name==='@/lib/posts/feed')return{FEED_PAGE_SIZE:20,retainCompleteItems,hasUnavailableFields,getFeed:async()=>forceReset?new Promise(resolve=>{resolvePage=resolve;}):({posts:[post],nextCursor:null,days:[]}),getPostCard:(_db,id)=>new Promise((resolve,reject)=>{resolveCard=resolve;resolvers.set(id,resolve);rejectors.set(id,reject);})};
   if(name==='@/lib/posts/upload-manager')return{uploadManager:{list:()=>[]}};
+  if(name==='@/lib/posts/upload-target')return{uploadTargetsPost:()=>false};
   if(name==='@/components/useUploads')return{useUploads:()=>[]};
   if(name==='@/components/LocalTime')return{useDeviceTimeZone:()=> 'UTC'};
   if(name==='@/components/useCachedFeed')return{useCachedFeed:()=>({userId:'owner',cached:null,save(){}})};
