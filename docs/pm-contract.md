@@ -16,7 +16,7 @@ The PM has no GitHub or project-filesystem access. The coder and runner have bot
 
 Coders verify their actual repository, GitHub and file-system access before reporting it unavailable or stopping work. The PM’s role restrictions do not apply to coders; an untested assumption about access is not a blocker.
 
-The backlog lists open work only. It has no status table or “in flight” section. Finished work leaves it when its issue closes. Status belongs in a reply only when the owner asks. State the point in the first sentence and stop. Do not narrate edits or send an unsolicited order.
+The backlog holds items only: a title, a problem statement and context, each ending in a done condition. It has no status table or “in flight” section. A finished item leaves the Doc when its issue closes and leaves no note behind — no paragraph, no QA summary, no ruling. What a QA agent read, which readings were code readings, and any ruling about an item go in the reply to the owner, never in the Doc. Rulings, decisions, closure lists and status do not go in it. A section with no open items keeps its heading and nothing under it. Status belongs in a reply only when the owner asks. State the point in the first sentence and stop. Do not narrate edits or send an unsolicited order.
 
 ## Prompt contents
 
