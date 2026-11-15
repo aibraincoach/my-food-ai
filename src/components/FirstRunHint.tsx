@@ -2,10 +2,26 @@
 
 import { useEffect, useRef, useState } from "react";
 import { Tooltip } from "@/components/ui/Tooltip";
-import { dismissHint, getHintState } from "@/lib/profile/hints";
+import { dismissHint } from "@/lib/profile/hints";
+import { createClient } from "@/lib/supabase/client";
 
 type HintKey = "capture" | "thread" | "thumbs" | "modes";
 const claimed = new Set<string>();
+// One profile read per page load, shared by every card. A server action here
+// re-rendered Home and remounted the feed.
+let hintState: Promise<{ userId: string; seen: string[] } | null> | null = null;
+function loadHintState() {
+  hintState ??= (async () => {
+    const db = createClient();
+    const { data: { session } } = await db.auth.getSession();
+    const userId = session?.user.id;
+    if (!userId) return null;
+    const { data, error } = await db.from("profiles").select("hints_seen").eq("id", userId).single();
+    if (error || !data) return null;
+    return { userId, seen: [...(data.hints_seen as string[])] };
+  })().catch(() => null).then(state => { if (!state) hintState = null; return state; });
+  return hintState;
+}
 const copy: Record<HintKey, string> = {
   modes: "Swipe to scan a barcode",
   capture: "A caption alone works too",
@@ -24,12 +40,13 @@ export default function FirstRunHint({ hint, onTryBarcode, onVisibilityChange }:
       if (!identity || dismissed) return;
       dismissed = true;
       setVisible(false);
+      void hintState?.then(state => { if (state && !state.seen.includes(hint)) state.seen.push(hint); });
       // Keep the session claim while retrying a transient action failure.
       void dismissHint(hint).catch(() => dismissHint(hint)).catch(() => {});
     };
     dismiss.current = hide;
-    void getHintState(hint).then((state) => {
-      if (!live || !state || state.seen) return;
+    void loadHintState().then((state) => {
+      if (!live || !state || state.seen.includes(hint)) return;
       const key = `${state.userId}:${hint}`;
       if (claimed.has(key)) return;
       claimed.add(key); identity = key; setVisible(true);
