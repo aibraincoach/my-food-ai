@@ -18,9 +18,12 @@ export async function POST(request:Request){
   form=await new Response(new Blob(chunks),{headers:{'Content-Type':request.headers.get('Content-Type')??''}}).formData();
  }catch{return NextResponse.json({error:'Audio could not be read.'},{status:400});}
  const audio=form.get('audio'),draftId=form.get('draftId'),postId=form.get('postId');
- if(!isUuid(postId))return NextResponse.json({error:'A post is required.'},{status:400});
- const {data:post}=await client.from('posts').select('id').eq('id',postId).eq('user_id',user.id).maybeSingle();
- if(!post)return NextResponse.json({error:'Post not found.'},{status:404});
+ // A caption, drink or search field has no post yet. A comment still names its own post.
+ if(postId!==null){
+  if(!isUuid(postId))return NextResponse.json({error:'A post is required.'},{status:400});
+  const {data:post}=await client.from('posts').select('id').eq('id',postId).eq('user_id',user.id).maybeSingle();
+  if(!post)return NextResponse.json({error:'Post not found.'},{status:404});
+ }
  if(!(audio instanceof Blob)||!isUuid(draftId)||audio.size<46||audio.size>MAX_WAV_BYTES)return NextResponse.json({error:'Send a WAV recording up to two minutes.'},{status:400});
 
  const bytes=await audio.arrayBuffer();const v=new DataView(bytes);const ascii=(start:number,n:number)=>new TextDecoder().decode(new Uint8Array(bytes,start,n));
