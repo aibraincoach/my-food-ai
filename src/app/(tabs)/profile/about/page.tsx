@@ -3,6 +3,8 @@ import {redirect} from 'next/navigation';
 import Link from 'next/link';
 import {createClient} from '@/lib/supabase/server';
 import {verifiedUserId} from '@/lib/auth/verified-user';
+import {ProfileGrid} from '@/components/ProfileGrid';
+import {getProfileGrid} from '@/lib/posts/grid';
 // A judge's page: what the app does, which models run, and where the judge's
 // own meals are. It names no other account's data; every read in the app runs
 // under row-level security, so an account sees its own meals only.
@@ -14,6 +16,7 @@ const MODELS=[
 ];
 export default async function AboutPage(){
  await connection();const db=await createClient();const verified=await verifiedUserId();const user=verified?{id:verified}:(await db.auth.getUser()).data.user;if(!user)redirect('/sign-in');
+ const posts=await getProfileGrid(db,user.id);
  return <main className="mx-auto w-full max-w-phone px-inset py-6 text-text">
   <Link href="/profile" className="inline-flex min-h-tap items-center text-detail">‹ Profile</Link>
   <h1 className="text-title">How My Food AI works</h1>
@@ -32,6 +35,8 @@ export default async function AboutPage(){
   <p className="mt-3 text-detail text-muted">Every model call is recorded with the model that answered. USDA FoodData Central and Open Food Facts are databases, not models.</p>
   <h2 className="mt-6 text-sheet-title">Your data</h2>
   <p className="mt-2 text-detail">Your meals, photos, comments and drinks are visible to your account only. Nobody else’s meals appear anywhere in the app.</p>
-  <div className="mt-6 flex flex-col gap-2"><Link href="/profile" className="flex min-h-tap items-center text-body font-semibold">Your meals ›</Link><Link href="/" className="flex min-h-tap items-center text-body font-semibold">Photograph a meal ›</Link></div>
+  <h2 className="mt-6 text-sheet-title">Your meals</h2>
+  {posts.length?<ProfileGrid posts={posts}/>:<p className="mt-2 text-detail text-muted">No meals yet.</p>}
+  <div className="mt-6 flex flex-col gap-2"><Link href="/" className="flex min-h-tap items-center text-body font-semibold">Photograph a meal ›</Link></div>
  </main>;
 }
