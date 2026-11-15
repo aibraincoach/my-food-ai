@@ -11,8 +11,9 @@ const owner='00000000-0000-4000-8000-000000000001';
 
 test('parallel Home streams share one totals read and pass that snapshot into Feed',async()=>{
   const days=[{day:'2026-11-03',kcal:300,ready:true}];
-  let totalCalls=0,authCalls=0;
-  const source=readFileSync(new URL('../src/app/(tabs)/page.tsx',import.meta.url),'utf8')+'\nexport {HomeDays,HomeFeed};';
+  let totalCalls=0,authCalls=0,todayCalls=0;
+  const todayTotal={day:'2026-11-04',kcal:120,ready:true,missing:[],known:1,posts:[]};
+  const source=readFileSync(new URL('../src/app/(tabs)/page.tsx',import.meta.url),'utf8')+'\nexport {HomeDays,HomeFeed,HomeToday};';
   const code=ts.transpileModule(source,{compilerOptions:{module:ts.ModuleKind.CommonJS,jsx:ts.JsxEmit.ReactJSX,target:ts.ScriptTarget.ES2022}}).outputText;
   const exports={};
   vm.runInNewContext(code,{exports,Date,Promise,Array,Boolean,AbortSignal,setTimeout,clearTimeout,console,require(name){
@@ -22,7 +23,7 @@ test('parallel Home streams share one totals read and pass that snapshot into Fe
     if(name==='react-dom')return{preload(){}};
     if(name==='next/server')return{connection:async()=>{}};
     if(name==='next/headers')return{cookies:async()=>({get:()=>({value:'UTC'})}),headers:async()=>({get:()=>null})};
-    if(name==='@/lib/posts/home-today')return{homeToday:async()=>({date:'2026-11-03',posts:[],totals:{}})};
+    if(name==='@/lib/posts/home-today')return{readToday:async()=>{todayCalls++;return{view:{date:'2026-11-04',posts:[],totals:{}},total:todayTotal};}};
     if(name==='@/lib/auth/verified-user')return{verifiedUserId:async()=>owner};
     if(name==='@/lib/supabase/server')return{createClient:async()=>({auth:{getUser:async()=>{authCalls++;throw Error('second Auth read');}}})};
     if(name==='@/lib/posts/days')return{validZone:()=> 'UTC',dateInZone:()=> '2026-11-03',shiftDay:(_,n)=>String(n),getEarliestPostDate:async()=>null,getLoggedDates:async()=>[],getDayTotals:async()=>{totalCalls++;await new Promise(resolve=>setImmediate(resolve));return days;}};
@@ -31,11 +32,13 @@ test('parallel Home streams share one totals read and pass that snapshot into Fe
     if(name==='next/link'||name.startsWith('@/components/'))return{default:name};
     throw Error(name);
   }});
-  const [rings,feed]=await Promise.all([exports.HomeDays(),exports.HomeFeed()]);
+  const [rings,feed,todayColumn]=await Promise.all([exports.HomeDays(),exports.HomeFeed(),exports.HomeToday()]);
   assert.equal(totalCalls,1);
   assert.equal(authCalls,0,'verified middleware identity avoids a second server Auth call');
-  assert.deepEqual(rings.props.totals,days);
-  assert.deepEqual(Array.from(feed.props.children.props.initialPage.days),days);
+  assert.equal(todayCalls,1,'today is read once and shared by the circles, the feed and the Today column');
+  assert.deepEqual(Array.from(rings.props.totals),[...days,todayTotal]);
+  assert.deepEqual(Array.from(feed.props.children.props.initialPage.days),[...days,todayTotal]);
+  assert.equal(todayColumn.props.initial.date,'2026-11-04');
 });
 
 test('Home feed and Today each perform one read per render',async()=>{
@@ -53,7 +56,7 @@ test('Home feed and Today each perform one read per render',async()=>{
     if(name==='@/lib/auth/verified-user')return{verifiedUserId:async()=>owner};
     if(name==='@/lib/supabase/server')return{createClient:async()=>({auth:{getUser:async()=>({data:{user:{id:owner}}})}})};
     if(name==='@/lib/posts/days')return{validZone:()=> 'UTC',dateInZone:()=> '2026-11-03',shiftDay:(_,n)=>String(n),getDayTotals:async()=>[]};
-    if(name==='@/lib/posts/home-today')return{homeToday:async()=>{todayCalls++;return {date:'2026-11-03',posts:[],totals:{}};}};
+    if(name==='@/lib/posts/home-today')return{readToday:async()=>{todayCalls++;return {view:{date:'2026-11-03',posts:[],totals:{}},total:{day:'2026-11-03',kcal:0,ready:false,missing:[],known:0,posts:[]}};}};
     if(name==='@/lib/posts/feed')return{getFeed:async()=>{feedCalls++;return {posts:[],days:[],nextCursor:null};}};
     if(name==='next/link'||name.startsWith('@/components/'))return{default:name};
     throw Error(name);
@@ -61,6 +64,34 @@ test('Home feed and Today each perform one read per render',async()=>{
   await Promise.all([exports.HomeFeed(),exports.HomeToday()]);
   assert.equal(feedCalls,1);
   assert.equal(todayCalls,1);
+});
+
+test('when the shared read of today fails, the circles and the feed still get every total and the Today column keeps its browser fallback',async()=>{
+  const reads=[];
+  const source=readFileSync(new URL('../src/app/(tabs)/page.tsx',import.meta.url),'utf8')+'\nexport {HomeDays,HomeFeed,HomeToday};';
+  const code=ts.transpileModule(source,{compilerOptions:{module:ts.ModuleKind.CommonJS,jsx:ts.JsxEmit.ReactJSX,target:ts.ScriptTarget.ES2022}}).outputText;
+  const exports={};
+  vm.runInNewContext(code,{exports,Date,Promise,Array,Boolean,AbortSignal,setTimeout,clearTimeout,console,require(name){
+    if(name==='react')return {cache(fn){let promise;return()=>promise??=fn();},Suspense:()=>null};
+    if(name==='react/jsx-runtime')return{jsx:(component,props)=>({component,props}),jsxs:(component,props)=>({component,props})};
+    if(name==='@/lib/posts/feed-photo-url')return{feedPhotoSrcSet:()=>undefined};
+    if(name==='react-dom')return{preload(){}};
+    if(name==='next/server')return{connection:async()=>{}};
+    if(name==='next/headers')return{cookies:async()=>({get:()=>({value:'UTC'})}),headers:async()=>({get:()=>null})};
+    if(name==='@/lib/posts/home-today')return{readToday:async()=>{throw Error('today unavailable');}};
+    if(name==='@/lib/auth/verified-user')return{verifiedUserId:async()=>owner};
+    if(name==='@/lib/supabase/server')return{createClient:async()=>({auth:{getUser:async()=>({data:{user:{id:owner}}})}})};
+    if(name==='@/lib/posts/days')return{validZone:()=> 'UTC',dateInZone:()=> '2026-11-03',shiftDay:(_,n)=>'day'+n,getEarliestPostDate:async()=>null,getLoggedDates:async()=>[],getDayTotals:async(_db,_owner,_zone,dates)=>{reads.push([...dates]);return dates.map(day=>({day,kcal:1,ready:true}));}};
+    if(name==='@/lib/posts/feed')return{getFeed:async()=>({posts:[],days:[],nextCursor:null})};
+    if(name==='next/link'||name.startsWith('@/components/'))return{default:name};
+    throw Error(name);
+  }});
+  const [rings,feed,todayColumn]=await Promise.all([exports.HomeDays(),exports.HomeFeed(),exports.HomeToday()]);
+  assert.deepEqual(reads,[['day-1','day-2','day-3','day-4','day-5'],['2026-11-03']],'the five earlier days, then today alone after the shared read failed');
+  assert.deepEqual(Array.from(rings.props.totals,day=>day.day),['day-1','day-2','day-3','day-4','day-5','2026-11-03']);
+  assert.deepEqual(Array.from(feed.props.children.props.initialPage.days,day=>day.day),['day-1','day-2','day-3','day-4','day-5','2026-11-03'],'the feed is seeded with the same six totals');
+  assert.equal(todayColumn.props.initial,undefined,'the column gets no server copy and loads in the browser, as on main');
+  assert.equal(todayColumn.props.placeholder,true);
 });
 
 test('feed refresh skips known days without removing meal or hydration reads; missing dates still load',async()=>{

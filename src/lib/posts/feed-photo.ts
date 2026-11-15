@@ -49,11 +49,11 @@ export async function resizeFeedPhoto(source: Buffer, version: 1 | 2 = 1): Promi
     const output=await transform(76);
     return output.length<=220_000?output:transform(64);
   }
-  const output = await sharp(source, {limitInputPixels: 2_000_000, failOn: 'error'})
+  const output = await sharp(source, {limitInputPixels: 4_000_000, failOn: 'error'})
     .timeout({seconds: 1}).rotate().resize({width: 512, height: 512, fit: 'inside', withoutEnlargement: true})
     .webp({quality: 62, effort: 3}).toBuffer();
   if (output.length <= 50_000) return output;
-  const smaller = await sharp(source, {limitInputPixels: 2_000_000, failOn: 'error'})
+  const smaller = await sharp(source, {limitInputPixels: 4_000_000, failOn: 'error'})
     .timeout({seconds: 1}).rotate().resize({width: 384, height: 384, fit: 'inside', withoutEnlargement: true})
     .webp({quality: 50, effort: 3}).toBuffer();
   if (smaller.length > 50_000) throw new Error('Preview too large');

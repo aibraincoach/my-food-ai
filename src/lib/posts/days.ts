@@ -1,6 +1,7 @@
 import {visibleDrinkRows} from '@/lib/intake/hydration';
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { groupIntakeByDay, emptyIntake, type IntakeRow, type IntakeTotals } from "@/lib/intake/intake";
+import { publicPhotoUrl } from "@/lib/posts/feed-photo-url";
 import { CURRENT_ITEM_COLUMNS, CURRENT_NUTRITION_COLUMNS, mapCurrentItems, normalizeStoredNutrition, nutritionNumber, sumNutrition, type CurrentItem, type MealTotals, type NutritionRow } from "@/lib/nutrition/totals";
 
 export interface DayPost { id: string; caption: string; eatenAt: string; photoUrl: string | null; items: CurrentItem[]; totals: MealTotals }
@@ -44,7 +45,7 @@ export async function getDays(supabase: SupabaseClient, userId: string, zone: st
   const photos: {post: DayPost; path: string}[] = [];
   for (let offset = 0; ; offset += 100) {
     const { data, error } = await supabase.from("posts")
-      .select(`id,caption,eaten_at,status,post_media(storage_path,position),current_post_items(${CURRENT_ITEM_COLUMNS},created_at,item_nutrition(${CURRENT_NUTRITION_COLUMNS}))`).is("deleted_at", null)
+      .select(`id,caption,eaten_at,status,post_media(id,storage_path,position,photo_secret),current_post_items(${CURRENT_ITEM_COLUMNS},created_at,item_nutrition(${CURRENT_NUTRITION_COLUMNS}))`).is("deleted_at", null)
       .eq("user_id", userId).in("status", LOGGED_STATUSES).gte("eaten_at", lower).lt("eaten_at", upper)
       .eq("post_media.kind", "photo").order("position", { referencedTable: "post_media", ascending: true })
       .limit(1, { referencedTable: "post_media" })
@@ -145,12 +146,25 @@ export function dayPostReceipt(id: string, eatenAt: string, items: {name:string;
   receipt.missing=[...new Set(receipt.missing)].sort();return receipt;
 }
 
+// One day circle's total from that day's ready meals, in eaten order. getDayTotals uses it
+// for every day it reads, and readToday (home-today.ts) for today, so the rule lives once.
+export function dayTotalFromMeals(day: string, meals: {id: string; eatenAt: string; items: {name: string; calories: import('@/lib/nutrition/totals').Numeric}[]}[]): FeedDayTotal {
+  let kcal = 0, known = 0;
+  const missing: string[] = [];
+  for (const meal of meals) for (const item of meal.items) {
+    const value = nutritionNumber(item.calories);
+    if (value === null) missing.push(item.name); else { kcal += value; known++; }
+  }
+  const unique = [...new Set(missing)];
+  return { day, kcal: known === 0 && unique.length ? null : kcal, ready: meals.length > 0, missing: unique, known, posts: meals.map(meal => dayPostReceipt(meal.id, meal.eatenAt, meal.items)) };
+}
+
 // Read all current nutrition for the touched days together, never one query per card.
 // The relationships are inferred from the view's underlying post_items foreign keys.
 export async function getDayTotals(db: SupabaseClient, userId: string, zone: string, dates: string[]): Promise<FeedDayTotal[]> {
   const wanted = [...new Set(dates)].sort();
   if (!wanted.length) return [];
-  const groups = new Map(wanted.map(day => [day, { day, kcal: 0 as number | null, ready: false, missing:[] as string[], known:0, posts:[] as DayPostReceipt[] }]));
+  const groups = new Map(wanted.map(day => [day, { day, meals: [] as {id: string; eatenAt: string; items: {name: string; calories: number | null}[]}[] }]));
   // Group contiguous requested days only; widely separated card events must
   // not rescan every meal between the two days.
   const windows: {from: string; through: string}[] = [];
@@ -171,21 +185,19 @@ export async function getDayTotals(db: SupabaseClient, userId: string, zone: str
     for (const row of data ?? []) {
       const group = groups.get(dateInZone(row.eaten_at, zone));
       if (!group || group.day < window.from || group.day > window.through) continue;
-      group.ready = true;
       const contributions: {name:string;calories:number|null}[]=[];
       for (const item of row.current_post_items ?? []) {
         const nutrients = Array.isArray(item.item_nutrition) ? item.item_nutrition : [item.item_nutrition];
         const nutrition = nutrients[0];
         const value = nutrition ? normalizeStoredNutrition(nutrition as NutritionRow, item.portion_grams).calories : null;
         contributions.push({name:item.name,calories:nutritionNumber(value)});
-        if(value==null)group.missing.push(item.name); else {group.kcal=(group.kcal??0)+Number(value);group.known++;}
       }
-      group.posts.push(dayPostReceipt(row.id,row.eaten_at,contributions));
+      group.meals.push({id: row.id, eatenAt: row.eaten_at, items: contributions});
     }
     if ((data?.length ?? 0) < 1000) break;
   }
   }
-  return [...groups.values()].map(group=>({...group,missing:[...new Set(group.missing)],kcal:group.known===0&&group.missing.length?null:group.kcal}));
+  return [...groups.values()].map(group => dayTotalFromMeals(group.day, group.meals));
 }
 
 export interface MonthDay { intake?: boolean; day: string; kcal: number | null; posts: number; pending: number; ready: boolean; missing?:string[]; known?:number }
