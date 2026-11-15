@@ -1,6 +1,12 @@
 # Agent rules — My Food AI
 
-## Current project state — November 14, 2026 (23:35 WIB)
+## Current project state — November 15, 2026 (11:07 WIB)
+
+Observed 2026-11-15T04:07Z (11:07 WIB; 22:07 MST Nov 14): `origin/main` is `96ecdcf7` (merge of #681, Nov 5). No code has merged since Fleet 18 closeout (#674–#681). The only open PR is docs #682 (draft, this branch, CLEAN/MERGEABLE, Vercel checks pass; exact packaged head in the handover manifest), carrying BACKLOG.md (Nov 14 23:45 WIB, GrokBot proof and merge-gate items, #693/#694), Wall rows through 09:40 WIB Nov 15, the Muse PM-pack intake notes, and PPLX receipts/triage for merged heads (docs/reviews/).
+
+The owner fired the PM again on Nov 15 (a further handover). The previous PM's 09:40 WIB Wall row: a review order that named no scope sent the coder through about 170 docs-only PRs; the owner stopped it and ruled that only code PRs need review. Docs-only PRs are never reviewed unless the owner says so. The Fleet 20 plan (designer's Rounds 8–9) is a draft awaiting the owner's yes/no; nothing is dispatched. The earlier untracked review files (pr670 close, pr677 close) are now tracked. The handover text is the reply, not a tracked file.
+
+## Prior state — November 14, 2026 (23:35 WIB) [superseded above]
 
 Observed 2026-11-14T16:34Z (23:34 WIB): `origin/main` is `96ecdcf7` (merge of #681, Nov 5). No code has merged since Fleet 18 closeout (#674–#681). The only open PR is docs #682 (draft, this branch, CLEAN/MERGEABLE, Vercel pass; exact packaged head in the handover manifest), carrying the 23:27 WIB BACKLOG.md (82 items), Wall rows through 23:32 WIB, and the Muse PM-pack intake notes.
 
