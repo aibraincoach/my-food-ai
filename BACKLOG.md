@@ -1,22 +1,10 @@
 # My Food AI — Backlog†
 
-Last edited: Sunday 2026-11-15 at 11:13 WIB (UTC+07:00) by Claude, PM
+Last edited: Sunday 2026-11-15 at 20:33 WIB (UTC+07:00) by Claude, PM
 
 The only job of the PM is to maintain this backlog and keep it completely up to date. Failing to do so is immediately terminable.
 
 ## Backlog for GrokBot
-
-### #713 Closed issues #624, #626 and #627 have never had their done lines checked on production
-
-The owner closed #624, #626 and #627 on the strength of tests on a disposable stack. GrokBot has not read their done lines on production.
-
-GrokBot reads each done line on production, read-only, and reports what it sees. Done when each of the three has a production reading that matches its done line, or is reopened.
-
-### #714 Nobody has confirmed that the function persist\_analysis\_with\_question exists on production
-
-Migration 0059 defines persist\_analysis\_with\_question in the repository. Its existence on the production database is unconfirmed.
-
-GrokBot or the coder checks production read-only. Related: #654. Done when a production reading shows the function present or absent.
 
 ## Engineering backlog
 
@@ -30,13 +18,13 @@ The cola records hold 29.7 mg of caffeine from the USDA but have no beverage cat
 
 The meal "Spicy Indonesian macaroni" shows its calories, protein, carbs and fat as unavailable. The owner re-analysed it after the fix went live, and it is still broken. He says the app's food estimates are broken.
 
-The first analysis searched the USDA database three times, rejected every record, and never tried the plain name "macaroni". Ruling: when the USDA has no record, the model must estimate, because an unavailable value is worse than a rough estimate. The closest-food fallback and the guard that stops re-analysing from reusing an empty result are both on main. 41 ready posts (95 item rows) had incomplete macros (docs/evidence/fix18/recompute-ids.json). The coder reports that at 09:11 WIB all 41 recompute jobs were done (the last at 08:59 WIB), that 40 posts now have complete nutrition including the macaroni post (86634d46), and that it closed the GitHub issue. One post, 6fad4a16, still lacks a value because its matched USDA record holds no number for that nutrient; whether to estimate it is undecided. The queue holds only three photo-cleanup jobs, which change no meal data. PM, Nov 14 (Chrome, owner account, read-only): the macaroni post 86634d46 shows 38 kcal, 1 g protein, 8 g carbs and 0 g fat, and its latest AI comment (Nov 4, 10:11 PM) names the closest USDA record, "Macaroni, vegetable, enriched, cooked". Two older comments on it still read unavailable. 0 g fat for a fried snack looks low. PM sweep, Nov 14 23:25 WIB, of all 137 posts the Home feed loaded on the owner account: two posts show "Nutrition unavailable" for one item while their totals show numbers (6fad4a16, the salami, which is the known exception, and f08e2e86, an unsalted butter packet, 541 kcal); 12 posts show a 0 g macro, and I did not judge which are real zeros (Hydro Coco Original at 0 g protein looks right); and post 6caf8906 (leftovers, 8:55 PM) reads "This photo could not be analysed. Try again". The macaroni fix reached the other posts. The coder decides f08e2e86 and 6caf8906. GrokBot, Nov 15, sweep of all 137 posts: the macaroni post now shows numbers and its AI comment names the closest USDA food. Still wrong: blank values on the butter post f08e2e86 and the Pocari post 89286fbf, a -1 g carbs value on post 38de279e, a leftovers post 189673aa that reads "unavailable kcal", sambal at 0 kcal in post 509ef9bc, the pizza post 61b3a510 reading "unavailable kcal" for several minutes after two servings changes in a row (it recovered), and 28 meal pages that say "Nutrition unavailable", some of them when the calories and macros are known and only a minor nutrient such as sugar or fibre is missing (88d38425). Done when a browser helper confirms on the live app that the macaroni post shows numbers with a note naming the closest USDA food or saying the model estimated them, and that no ready post shows a value that is unavailable, zero or blank, except post 6fad4a16, which is listed with its reason.
+The first analysis searched the USDA database three times, rejected every record, and never tried the plain name "macaroni". Ruling: when the USDA has no record, the model must estimate, because an unavailable value is worse than a rough estimate. The closest-food fallback and the guard that stops re-analysing from reusing an empty result are both on main. 41 ready posts (95 item rows) had incomplete macros (docs/evidence/fix18/recompute-ids.json). The coder reports that at 09:11 WIB all 41 recompute jobs were done (the last at 08:59 WIB), that 40 posts now have complete nutrition including the macaroni post (86634d46), and that it closed the GitHub issue. One post, 6fad4a16, still lacks a value because its matched USDA record holds no number for that nutrient; whether to estimate it is undecided. The queue holds only three photo-cleanup jobs, which change no meal data. PM, Nov 14 (Chrome, owner account, read-only): the macaroni post 86634d46 shows 38 kcal, 1 g protein, 8 g carbs and 0 g fat, and its latest AI comment (Nov 4, 10:11 PM) names the closest USDA record, "Macaroni, vegetable, enriched, cooked". Two older comments on it still read unavailable. 0 g fat for a fried snack looks low. PM sweep, Nov 14 23:25 WIB, of all 137 posts the Home feed loaded on the owner account: two posts show "Nutrition unavailable" for one item while their totals show numbers (6fad4a16, the salami, which is the known exception, and f08e2e86, an unsalted butter packet, 541 kcal); 12 posts show a 0 g macro, and I did not judge which are real zeros (Hydro Coco Original at 0 g protein looks right); and post 6caf8906 (leftovers, 8:55 PM) reads "This photo could not be analysed. Try again". The macaroni fix reached the other posts. The coder decides f08e2e86 and 6caf8906. GrokBot, Nov 15, sweep of all 137 posts: the macaroni post now shows numbers and its AI comment names the closest USDA food. Still wrong: blank values on the butter post f08e2e86 and the Pocari post 89286fbf, a -1 g carbs value on post 38de279e, a leftovers post 189673aa that reads "unavailable kcal", sambal at 0 kcal in post 509ef9bc, bakpia e7e1782c at 0 g protein and fat, the pizza post 61b3a510 reading "unavailable kcal" for several minutes after two servings changes in a row (it recovered), and 28 meal pages that say "Nutrition unavailable", some of them when the calories and macros are known and only a minor nutrient such as sugar or fibre is missing (88d38425). Done when a browser helper confirms on the live app that the macaroni post shows numbers with a note naming the closest USDA food or saying the model estimated them, and that no ready post shows a value that is unavailable, zero or blank, except post 6fad4a16, which is listed with its reason.
 
 ### #683 Three merged fixes have never been seen working in a browser
 
 The fixes for the meal bookmark on a failed analysis (#634), the upload chip and the meal-cover retry were reviewed in code and never run in a browser. A judge who taps them could meet a defect nobody has seen.
 
-The coder reported this on Nov 5 and named the three fixes without PR numbers for the chip and the retry. The retry poll can also be cancelled by an in-flight load (PR #674), which is deferred. GrokBot, Nov 15: the upload chip works, and bookmarking and unbookmarking a ready meal works. Two bookmark defects: a bookmark on a "No food found" post shows filled but sends no request and cannot be unsaved, and a bookmark tapped while a post is queued reverts at about 120 s and is never saved even when the analysis finishes later. Posts that end as "No food found" also leave the Home feed and show only on Profile (see #615). The cover retry was not reached: no truly failed meal could be made, and the meal page always opened from client data in 0.8 to 1.4 s. Related: #702. Done when, on production in a phone-sized browser, bookmarking a failed meal and unbookmarking it leaves it bookmarked and then unbookmarked and never marked failed, a bookmark on a "No food found" meal or on a queued meal either saves or says why it cannot, and a failed meal's cover retry runs to a result, each reported by GrokBot with what it saw.
+The coder reported this on Nov 5 and named the three fixes without PR numbers for the chip and the retry. The retry poll can also be cancelled by an in-flight load (PR #674), which is deferred. GrokBot, Nov 15: the upload chip works, and bookmarking and unbookmarking a ready meal works. Two bookmark defects: a bookmark on a "No food found" post shows filled but sends no request and cannot be unsaved, and a bookmark tapped while a post is queued reverts at about 120 s and is never saved even when the analysis finishes later. Posts that end as "No food found" also leave the Home feed and show only on Profile (see #615). GrokBot, Nov 15, second reading (12:20 to 12:46 WIB, same production build): a failed meal was made by replacing an uploaded photo's original with 4 KB of random bytes, and the post failed in about 20 s with "The analysis service refused this request. Try again." Tapping the bookmark on that failed meal shows "This meal did not finish analysis and cannot be saved." and sends no request, so the meal is never saved and never marked failed. On Home that message covers the failure text and the Try again button. The failed meal's page opens with "Nutrition could not be updated." and "The meal could not be updated." before any tap, and once showed a broken photo. Unsaving a saved failed meal was not reached, because a failed meal cannot be saved. A queued meal that finished within 2 minutes saved (200), unsaved (200) and stayed so after a reload. A queued meal that finished after 2 minutes reverted to empty at 120 s and no save request was sent; during that run the card's post id changed from 7a25457a to efde7a3d. On a "No food found" meal a second tap does nothing. The cover retry runs to a result: from Home the retry answered 204 at 1.2 s and the card showed Processing at 2.1 s, then returned to failed about 7 minutes later; from the meal page it answered 204 at 0.9 s and showed "Nutrition could not be updated." at 24 s. The cover photo has no retry of its own: a blocked photo shows broken with nothing offered. "Couldn't open this meal" never appeared. Other attempts to make a failed meal: a zero-byte file or a text file named .jpg shows "Upload failed. The server didn't respond." (misleading for a bad file) and posts nothing; a cut-off JPEG became a bread-only meal at 401 kcal; a 9000 × 9000 photo shrank to 962 KB and was analysed normally. Test data left on judge accounts: judge180119 has 0eee29a1, 467aeaa4, fe1abad8, bf3b89a2 and unpublished drafts b08f0e66 and 319e3909; judge291428 has 5ac2735a and efde7a3d. Related: #702. Done when, on production in a phone-sized browser, bookmarking a failed meal shows a plain message that it cannot be saved, without covering the failure text or the Try again button, and never marks the meal failed or saved (PM ruling, Nov 15: this matches #702's done line), a bookmark on a "No food found" meal or on a queued meal either saves or says why it cannot, and a failed meal's cover retry runs to a result, each reported by GrokBot with what it saw.
 
 ### #579 Photos are captured at 480 × 640 and look blurry on high-density phones
 
@@ -54,7 +42,7 @@ Before the fix, the feed photo route answered with a redirect to a signed link t
 
 Merging is not yet limited to the PM's order. A pull request must merge only when the PM orders that one PR at its full head SHA, after the planner's evaluation and a zero-blocker review of that head. Fleet 18 landed seven pull requests without a clean review of their exact head.
 
-Observe first: list every way a pull request can reach main today, including a coder's own merge, auto-merge, a merge queue, a workflow and the branch protection settings. Related: #689. Done when no pull request can reach main without a merge order that names its PR and full head SHA, a zero-blocker review of that head is required before the merge, and an attempt to merge without them is refused.
+Observe first: list every way a pull request can reach main today, including a coder's own merge, auto-merge, a merge queue, a workflow and the branch protection settings. Related: #689. The owner ruled on Nov 15, answering the planner, that merge control stays a written rule only. Done when the contracts state that no pull request merges without a merge order naming its PR and full head SHA and a zero-blocker review of that head, and the owner has accepted that nothing in GitHub refuses a merge without them.
 
 ### #699 Our review and merge process has not been compared with the owner's other recent repositories
 
@@ -66,7 +54,49 @@ Take the owner's most recently active repositories and compare them with this on
 
 The Wall of Stupid holds dozens of incident rows, newest first, and the rules the agents must follow sit inside those rows. A new agent has to read the whole history to learn what gets it fired.
 
-The owner ruled on Nov 15 that the Wall of Stupid becomes two files: a short operational rules list of what gets an agent fired, and a Wall of Stupid archive that keeps the incident history. The rules list's wording is not decided. The PM contract, the planner contract, CLAUDE.md and the handover skill refer to the Wall and must name the right file. The coder alone changes the Wall, from a prompt the PM supplies. This item has no GitHub issue yet. Related: #699. Done when the repository holds an operational rules list and a Wall of Stupid archive, every standing rule in today's Wall is in one of them, no incident row is lost, and the contracts, CLAUDE.md and the handover skill each name the right file.
+The owner ruled on Nov 15 that the Wall of Stupid becomes two files: a short operational rules list of what gets an agent fired, and a Wall of Stupid archive that keeps the incident history. The rules list's wording is not decided. The PM contract, the planner contract, CLAUDE.md and the handover skill refer to the Wall and must name the right file. The coder alone changes the Wall, from a prompt the PM supplies. Related: #699. Done when the repository holds an operational rules list and a Wall of Stupid archive, every standing rule in today's Wall is in one of them, no incident row is lost, and the contracts, CLAUDE.md and the handover skill each name the right file.
+
+### #TBD There is no guide for reaching the MCP server, and tokens were deployed without instructions
+
+A person who needs to connect to the app's MCP server has no written way to do it. Tokens exist, but nothing says where the server is, how to get a token or how to connect a client. The owner has ChatGPT unable to work out how to connect.
+
+The owner reported on Nov 15 that tokens were deployed with no guideline or instruction manual. Which server, which tokens and who deployed them are not recorded in this backlog. Observe first: the coder lists the MCP server (where it runs, what tools it offers, how it authenticates) and every token deployed for it, and where each is documented. No token value goes into the repository, the issue or this backlog. This item has no GitHub issue yet. Done when a written guide in the repository tells a person who has never seen the server how to get a token, where the server is and how to connect a client such as ChatGPT, and a client that follows only the guide connects and lists the tools.
+
+### #712 The ten-photo receipt on main contradicts the reported failure
+
+ten-photos.json on main shows pass true, 50 calls all HTTP 200, hour 23:00Z. A later run was reported failing on an hour check and a 401 sign-in on test account 2, and no receipt for that run is on main. One of the two describes a run with no receipt.
+
+Related: #471. Done when the receipt that exists is named and the other claim is withdrawn or backed by a receipt.
+
+### #715 Two review captures sit untracked in the repository
+
+docs/reviews/mfa-pplx-pr670-9c37722-close.md and docs/reviews/mfa-pplx-pr677-close.md are untracked and have no decision.
+
+Related: #670, #677. Done when each is committed as a receipt or deleted.
+
+### #716 The owner has not ruled on the hourly cap counting meals instead of requests
+
+PR #652 changed the hourly post cap from counting requests to counting new meal reservations, so a known draft or post does not count. This is a product rule the owner has not ruled on.
+
+Related: #652. A review of #652 also found that a malformed request no longer spends a cap hit, which leaves a gap in spam throttling under the same rule. Done when the owner has ruled to keep it or revert it and the ruling is recorded.
+
+### #TBD A draft pull request of readiness documents was opened in the repository without the owner knowing what it contains
+
+An agent opened draft pull request #682 (branch docs/muse-readiness-pm-pack, seven Markdown files under docs/product/muse-readiness-pm-pack) holding a summary of a newsletter article about Meta's Muse launch, a 40-row launch scorecard and six candidate backlog items. The owner was handed the pack afterwards and had not seen what was in it.
+
+The planner's Fleet 21 plan, written the same day, describes PR #682 as the docs branch that holds the two review captures named in #715. Both descriptions cannot be right. The pack also lists #370, #108 and #567 as open and #22 and #221 as closed, and none of those five is in this backlog, which belongs to the owner and the PM. The pack states that every scorecard result is unrun, that its thresholds are proposals, and that the article is a secondhand account of an interview; nobody has checked its statements against the code or the contracts. Observe first: read PR #682 on GitHub (author, branch, creation date, files), compare it with the review captures in #715, and read each of the seven files against README.md, docs/eval.md and docs/pm-contract.md. Done when a written finding says which pull request number holds which files, lists every statement in the pack that disagrees with the code or a contract, and the owner has ruled whether the pack stays in the repository, is corrected, or is removed.
+
+### #TBD Nobody has written down whether a newer Muse model helps or hurts My Food AI
+
+My Food AI identifies foods, estimates portions and applies corrections with Meta's Muse models. A product that only wraps a model is replaced when the model improves; a product that owns something the model does not have gets better with it. Nobody has said which of My Food AI's steps a stronger model improves and which it makes unnecessary.
+
+The owner raised the test from Greg Isenberg's 48 hours in San Francisco: when a new model comes out, does it help the company or hurt it? In the code, a food with no USDA match falls back to the closest generic record, then a rice-with-protein composition, then a model estimate (src/lib/fdc/match.ts lines 92 to 109). Several open items are model errors that a stronger model may remove: #617 (squid matched to tuna sushi), #523 (macaroni), #285 (consumed number from a leftovers photo) and #572 (fallback skipped after one search). Parts a general chat model with a camera does not have today include the trail that names the record or the estimate behind a number, the consumed-versus-leftover accounting, drink and caffeine records, and the user's own history. Observe first: list each step of a meal's path (identify the food, estimate the portion, match a record, estimate when none matches, work out the consumed amount, keep the history) and mark each step as removed, improved or unchanged by a stronger model. Done when a written finding lists every step with that mark, names the steps a stronger model replaces, and states what the product keeps that a general model does not.
+
+### #TBD The planner contract does not say to plan every item that can be planned, or to give a reason for each item skipped
+
+The planner contract describes how a plan is written but not how many backlog items it must cover. The first Fleet 21 plan wrote exact text for 7 of the 73 items on the backlog it was given and left the rest, and the owner needed many further turns to get a plan that covered what could be planned.
+
+The owner's rule: a planner plans as many items as are feasible. An item is skipped only when it contains a fallacy or cannot be done, and the plan states that reason beside the item. The owner may instead pick the items a planner works on, and then the plan covers those items and does not grow to the whole backlog. None of this is in docs/planner-contract.md. Done when docs/planner-contract.md states all three rules and a plan lists every item it did not plan next to its reason.
 
 ### #212 Packaged food cannot be logged from the regular camera, and the scanner has never been tried on a phone
 
@@ -180,7 +210,7 @@ A cold tick function must load the whole food-analysis pipeline before it answer
 
 Home reads the first page of the feed in the server render and again from the browser, so every open pays for both reads.
 
-The feed always loads its first page again from the browser after the server has drawn it. On production (owner account, 390 wide, slow 4G), /api/feed?ids was requested twice, at 3.9 s and 9.0 s, plus one posts status read and two posts id reads, within 112 to 119 requests in 10 s. Related: #373 and #498. GrokBot, Nov 5: not fixed. One cold Home open called /api/feed?ids=… twice, at about 3.9 s and 9.0 s. Done when one Home open reads the first feed page once, and the request counts before and after are written down.
+The feed always loads its first page again from the browser after the server has drawn it. On production (owner account, 390 wide, slow 4G), /api/feed?ids was requested twice, at 3.9 s and 9.0 s, plus one posts status read and two posts id reads, within 112 to 119 requests in 10 s. Related: #373 and #498. GrokBot, Nov 5: not fixed. One cold Home open called /api/feed?ids=… twice, at about 3.9 s and about 9.0 s. Done when one Home open reads the first feed page once, and the request counts before and after are written down.
 
 ### #324 Home computes the day totals twice on every open (part of #222)
 
@@ -198,7 +228,7 @@ The server checks sign-in once per page, and a forged request header is still re
 
 The owner reports 14 seconds from tapping a meal to its detail page opening. He calls it not acceptable.
 
-The owner measured 14 seconds on an iPhone on mobile data in Indonesia; that cannot be re-measured. On production with slow 4G, a usable detail opens in 1.96 to 2.45 s on desktop and 1.64 to 1.74 s at 390 wide. The page makes 24 to 25 requests, eight repeated, and desktop downloads two 0.feed.jpg originals of about 480 to 496 KB although the feed copy is already on screen. GrokBot, Nov 5: desktop still downloads two 480 to 496 KB 0.feed.jpg originals, so the done line fails. The owner's 14 s on an iPhone cannot be re-measured and is no longer required. Done when the detail opens within two seconds at the slow-network test profile on desktop and at 390 wide, and the two large originals are not downloaded.
+The owner measured 14 seconds on an iPhone on mobile data in Indonesia; that cannot be re-measured. On production with slow 4G a usable detail opens in 1.96 to 2.45 s on desktop and 1.64 to 1.74 s at 390 wide. The page makes 24 to 25 requests, eight repeated, and desktop downloads two 0.feed.jpg originals of about 480 to 496 KB although the feed copy is already on screen. GrokBot, Nov 5: desktop still downloads two 480 to 496 KB 0.feed.jpg originals, so the done line fails. The owner's 14 s on an iPhone cannot be re-measured and is no longer required. Done when the detail opens within two seconds at the slow-network test profile on desktop and at 390 wide, and the two large originals are not downloaded.
 
 ### #554 Tapping a meal shows nothing until the server answers
 
@@ -306,7 +336,7 @@ The coder reported this on Nov 5 as known and open. The five-minute figure is th
 
 After a meal fails and the user retries, the app polls for the result, but a load already in flight can cancel the restarted poll, so the retry can stop without ever showing a result.
 
-PPLX raised this as a P2 on PR #674, and the Fleet 18 plan accepted it as real and deferred it. #674 is on main with the P2 unfixed. Done when a retry poll restarted after a failure is not cancelled by a load already in flight, and a test covers it.
+PPLX raised this as a P2 on PR #674, and the Fleet 18 plan accepted it as real and deferred it. #674 is on main with the P2 unfixed. Done when a retry poll restarted after a failure is not cancelled by a load already in flight.
 
 ### #687 The submission text omits voice transcription and says all AI calls use the Meta Model API, which is untrue when Muse Spark Open is on
 
@@ -372,7 +402,7 @@ The audit of main ranked 26 findings. The biggest: two photo-upload workflows (t
 
 The submission requires a public repository, and it still carries the default README.
 
-After the last feature is in, one pass replaces the default README with a short start-here page. All working files stay in the repository, including the agents' contracts, the Wall of Stupid file, the review policy and the review tools. Nothing is removed. Done when the README is the start-here page, and a search of the repository for host names, account identifiers and billing details finds only what the owner chose to keep. GitHub already shows this issue closed. It stays here until that is true.
+After the last feature is in, one pass replaces the default README with a short start-here page. All working files stay in the repository, including the agents' contracts, the Wall of Stupid file and the review policy and the review tools. Nothing is removed. Done when the README is the start-here page, and a search of the repository for host names, account identifiers and billing details finds only what the owner chose to keep. GitHub already shows this issue closed. It stays here until that is true.
 
 ### #659 Review findings on the merged Fleet 18 PRs have not been checked on main
 
@@ -454,7 +484,7 @@ The owner ruled on Nov 14 that voice must be a first-class input, available wher
 
 ### #694 Many of the owner's meals show wrong nutrition numbers and nobody knows how many or why
 
-The owner has logged food daily for days, his diet changed, and he reports that a lot of what the app shows is wrong. Nobody has measured how wrong or where the error comes from.
+The owner has logged food daily for days, his diet has changed, and he reports that a lot of what the app shows is wrong. Nobody has measured how wrong or where the error comes from.
 
 Known cases: the macaroni snack shows 38 kcal and 0 g fat from a cooked vegetable macaroni record (#523), squid matched to a tuna sushi record (#617), a consumed number from a half-eaten plate that nobody confirmed (#285), and 12 of the owner's 137 posts show a 0 g macro that nobody judged. A capable coder investigates read-only: pull the owner's ready posts, check each food's weight and kcal against its USDA record and the photo, and record for each wrong number which step caused it (the food identified, the record matched, the weight estimated or the stored value). Done when a written finding lists every one of the owner's posts whose numbers are wrong with its cause, ranks the causes by how many posts each one explains, and each cause is on the backlog as its own item.
 
@@ -501,24 +531,6 @@ The owner's desktop Home took about 20 seconds to fill the Today column and the 
 The Round 7 control table covers the feed, the post and the capture sheet. Days, Search, Profile and the Text, Photo and Barcode modes are not in it.
 
 The designer has not read their controls yet. Add them to the table from #217 with its four findings: time to a visible change, pressed look, jump or flicker, and double tap. Done when every control on those screens is in the table and the dead ones are fixed or filed as items.
-
-### #712 The ten-photo receipt on main contradicts the reported failure
-
-ten-photos.json on main shows pass true, 50 calls all HTTP 200, hour 23:00Z. A later run was reported failing on an hour check and a 401 sign-in on test account 2, and no receipt for that run is on main. One of the two describes a run with no receipt.
-
-Related: #471. Done when the receipt that exists is named and the other claim is withdrawn or backed by a receipt.
-
-### #715 Two review captures sit untracked in the repository
-
-docs/reviews/mfa-pplx-pr670-9c37722-close.md and docs/reviews/mfa-pplx-pr677-close.md are untracked and have no decision.
-
-Related: #670, #677. Done when each is committed as a receipt or deleted.
-
-### #716 The owner has not ruled on the hourly cap counting meals instead of requests
-
-PR #652 changed the hourly post cap from counting requests to counting new meal reservations, so a known draft or post does not count. This is a product rule the owner has not ruled on.
-
-Related: #652. A review of #652 also found that a malformed request no longer spends a cap hit, which leaves a gap in spam throttling under the same rule. Done when the owner has ruled to keep it or revert it and the ruling is recorded.
 
 ## Interdit (Not part of Hackathon)
 
