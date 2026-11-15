@@ -63,8 +63,11 @@ export async function getDays(supabase: SupabaseClient, userId: string, zone: st
         return item;
       }) as Parameters<typeof mapCurrentItems>[0]);
       const post: DayPost = { id: row.id, caption: row.caption, eatenAt: row.eaten_at, photoUrl: null, items, totals: sumNutrition(items) };
-      const path = row.post_media?.[0]?.storage_path;
-      if (path) photos.push({post, path: path.endsWith("/card.png") ? path : `${path.replace(/\.[^/.]+$/, "")}.feed.jpg`});
+      const shot = row.post_media?.[0] as {id?: string; storage_path?: string; photo_secret?: string | null} | undefined;
+      const path = shot?.storage_path;
+      // A day's thumbnail is the small public copy; only a card image still needs a signed link.
+      if (shot?.id && shot.photo_secret && path && !path.endsWith("/card.png")) post.photoUrl = publicPhotoUrl(shot.id, shot.photo_secret, 640);
+      else if (path) photos.push({post, path: path.endsWith("/card.png") ? path : `${path.replace(/\.[^/.]+$/, "")}.feed.jpg`});
       const day = groups.get(date);
       if (day) { day.totals = day.posts.length ? sumNutrition([day.totals, post.totals]) : post.totals; day.posts.push(post); }
       else groups.set(date, { date, posts: [post], totals: post.totals, intake: emptyIntake(), pending: 0 });
