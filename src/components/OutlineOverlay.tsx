@@ -69,7 +69,21 @@ function DetailImage({ photo, alt, sharp = false }: { photo: DetailPhoto; alt: s
   useEffect(() => {
     if (!sharp || !photo.previewUrl) return;
     const cached = cacheKey ? readOriginalCache(cacheKey) : null;
-    if (cached) { setLoaded({ of: photo.url, url: cached }); return; }
+    if (cached) {
+      setLoaded({ of: photo.url, url: cached });
+      let live = true;
+      const probe = new Image();
+      probe.crossOrigin = "anonymous";
+      // A saved link that no longer loads is removed and the fresh signed photo.url is loaded instead.
+      probe.onerror = () => {
+        if (!live) return;
+        try { sessionStorage.removeItem(cacheKey!); } catch { /* ignore */ }
+        setLoaded(null);
+        setReloadOriginal(n => n + 1);
+      };
+      probe.src = cached;
+      return () => { live = false; probe.onerror = null; };
+    }
     let live = true;
     const image = new Image();
     image.crossOrigin = "anonymous";
