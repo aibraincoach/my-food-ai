@@ -27,6 +27,9 @@ function mediaRoute({user = {id: owner}, row = {avatar_media_id: media}, admin =
       async getSession() {
         return {data: {session: user ? {access_token: 'offline-token', user} : null}};
       },
+      async getClaims() {
+        return {data: user ? {claims: {sub: user.id}} : null};
+      },
     },
     from() { return query; },
   };

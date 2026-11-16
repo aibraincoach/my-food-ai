@@ -13,7 +13,8 @@ if(process.env.MFA_TEST_DISPOSABLE!=='1'){
  console.error('npm test requires MFA_TEST_DISPOSABLE=1 for the isolated test stack. See docs/testing.md.');process.exit(1);
 }
 const directory=process.argv.includes('--db')?'tests/db':'tests';
-const files=readdirSync(directory).filter(name=>name.endsWith('.test.mjs')).sort().map(name=>directory+'/'+name);
+const named=process.argv.slice(2).filter(arg=>arg.endsWith('.test.mjs'));
+const files=named.length?named:readdirSync(directory).filter(name=>name.endsWith('.test.mjs')).sort().map(name=>directory+'/'+name);
 const child=spawn(process.execPath,['--import','./tests/fixtures/local-providers.mjs','--import','tsx','--test','--test-concurrency=1',...files],{stdio:'inherit',env:{...process.env,ALLOW_SHARED_DB_TESTS:'1'}});
 child.once('error',()=>{console.error('The test runner could not start.');process.exitCode=1;});
 child.once('exit',(code,signal)=>{process.exitCode=code??(signal?1:0);});
