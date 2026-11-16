@@ -3,7 +3,7 @@ import { traceContext } from "@/lib/trace/context";
 import { ioError } from "@/lib/worker/errors";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { claimJob, finishJob } from "@/lib/queue/claim";
-import { releaseLease, renewLease } from "@/lib/queue/lease";
+import { LEASE_HEARTBEAT_MS, LEASE_TTL_SECONDS, releaseLease, renewLease } from "@/lib/queue/lease";
 import { jobHandlers, runJob, type JobHandlers } from "@/lib/worker/handlers";
 import { isRetriable } from "@/lib/worker/errors";
 import { workerConcurrency } from "@/lib/worker/concurrency";
@@ -54,6 +54,7 @@ export async function runWorker(
   tickSelf?: () => Promise<void>
 ): Promise<void> {
   const startedAt = Date.now();
+  const heartbeat = setInterval(() => { void renewLease(admin, holder, LEASE_TTL_SECONDS).catch(() => {}); }, LEASE_HEARTBEAT_MS);
   try {
     const concurrency = workerConcurrency(process.env.WORKER_CONCURRENCY);
     // Each lane claims through the same SKIP LOCKED RPC. Await every lane
@@ -63,12 +64,13 @@ export async function runWorker(
         if (Date.now() - startedAt > WORK_MS) break;
         const { processed } = await drainOnce(admin);
         if (processed === 0) break;
-        await renewLease(admin, holder);
+        await renewLease(admin, holder, LEASE_TTL_SECONDS);
       }
     })));
     const failed = lanes.find((lane) => lane.status === "rejected");
     if (failed?.status === "rejected") throw failed.reason;
   } finally {
+    clearInterval(heartbeat);
     await releaseLease(admin, holder).catch(() => {});
   }
   const { data: next, error, status } = await admin.rpc("next_worker_wake");

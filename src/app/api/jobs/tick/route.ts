@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { after } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { queueTick } from "@/lib/queue/tick";
+import { LEASE_TTL_SECONDS } from "@/lib/queue/lease";
 
 // Public, idempotent tick: queues work and hands draining to /api/jobs/drain.
 export const maxDuration = 300;
@@ -22,7 +23,7 @@ export async function GET(request: Request) {
   }
   try {
     const holder = randomUUID();
-    const status = await queueTick(admin, holder);
+    const status = await queueTick(admin, holder, LEASE_TTL_SECONDS);
     if (status.started) {
       const drainUrl = new URL("/api/jobs/drain", request.url);
       drainUrl.searchParams.set("holder", holder);
