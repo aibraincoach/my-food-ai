@@ -31,7 +31,7 @@ import {uploadManager} from "@/lib/posts/upload-manager";
 import {useUploads} from "@/components/useUploads";
 import { fromLocalInput, toLocalInput } from "@/lib/posts/eaten-at";
 import { tokens } from "@/lib/theme/tokens";
-import VoiceButton from "@/components/VoiceButton";
+import VoiceButton,{useVoiceActivity} from "@/components/VoiceButton";
 
 type Shot = { file: File; previewUrl: string };
 const MAX_SHOTS = 8;
@@ -104,6 +104,7 @@ export default function CaptureSheet({ onClose, initialMode = "photo", forPost, 
   const [when, setWhen] = useState<string | null>(resumed?.eatenAt?toLocalInput(new Date(resumed.eatenAt)):null);
   const [searchingFoods, setSearchingFoods] = useState(false);
   const [posting, setPosting] = useState(false);
+  const voice=useVoiceActivity();
   const [savePhotoUrl, setSavePhotoUrl] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -413,7 +414,7 @@ export default function CaptureSheet({ onClose, initialMode = "photo", forPost, 
   };
 
   const post = async () => {
-    if (postingRef.current || cameraBusy || pendingFilesRef.current.length > 0 || (!caption.trim() && shotsRef.current.length === 0)) return;
+    if (voice.activeRef.current || postingRef.current || cameraBusy || pendingFilesRef.current.length > 0 || (!caption.trim() && shotsRef.current.length === 0)) return;
     postingRef.current = true;
     setPosting(true);
     setError(null);
@@ -599,8 +600,8 @@ export default function CaptureSheet({ onClose, initialMode = "photo", forPost, 
           {searchingFoods ? <FoodSearchPanel eatenAt={when === null ? null : fromLocalInput(when)} disabled={posting}
             onQueued={() => {  onClose(); }}
             onDescribe={(text) => { if (text && !caption.trim()) setCaption(text); setSearchingFoods(false); setError(null); }} onError={setError} /> : <>
-          <Field variant="camera" id="capture-caption" aria-label="Caption" value={caption} onChange={(event) => setCaption(event.target.value)} disabled={posting} placeholder="What did you eat?" /><VoiceButton value={caption} onChange={setCaption} max={2000} disabled={posting} />
-          <button type="button" disabled={posting} onClick={() => { setSearchingFoods(true); setError(null); }} className="min-h-tap self-start px-grid text-detail text-surface disabled:opacity-50">Search foods</button>
+          <Field variant="camera" id="capture-caption" aria-label="Caption" value={caption} onChange={(event) => setCaption(event.target.value)} disabled={posting} placeholder="What did you eat?" /><VoiceButton value={caption} onChange={setCaption} max={2000} disabled={posting} onActiveChange={voice.onActiveChange} />
+          <button type="button" disabled={posting||voice.active} onClick={() => { setSearchingFoods(true); setError(null); }} className="min-h-tap self-start px-grid text-detail text-surface disabled:opacity-50">Search foods</button>
           <p className="px-grid text-meta text-camera-muted">Location is saved with the post and helps recognise meals you eat in the same place. Only you see it.</p>
           </>}
         </div>}</>}
@@ -609,7 +610,7 @@ export default function CaptureSheet({ onClose, initialMode = "photo", forPost, 
           {error && <p role="alert" className="mb-sheet-top text-detail text-surface">{error}</p>}
           {!searchingFoods && barcodeState === "idle" && mode !== "barcode" && labelState==="idle" && <>
             {pendingCount > 0 && <button type="button" disabled={posting || cameraBusy} onClick={() => { void continueSelected(); }} className="min-h-tap text-detail text-surface underline">Retry selected photos</button>}
-            <Button variant="camera" onClick={post} disabled={posting || cameraBusy || pendingCount > 0 || (!caption.trim() && shots.length === 0)}>{posting ? "Posting…" : "Post"}</Button>
+            <Button variant="camera" onClick={post} disabled={voice.active || posting || cameraBusy || pendingCount > 0 || (!caption.trim() && shots.length === 0)}>{posting ? "Posting…" : "Post"}</Button>
           </>}
 
           {labelState==="read"&&<Button variant="camera" disabled={posting||!Number.isFinite(labelServings)||labelServings<0.25||labelServings>50} onClick={()=>{void postLabel();}}>{posting?"Posting…":`Post · ${labelServings} ${labelServings===1?"serving":"servings"}`}</Button>}

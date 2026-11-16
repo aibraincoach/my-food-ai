@@ -10,7 +10,7 @@ import {Icon} from '@/components/ui/Icon';
 import {Button} from '@/components/ui/Button';
 import {usePostHandle} from '@/components/PostHandle';
 import {toLocalInput} from '@/lib/posts/eaten-at';
-import VoiceButton from '@/components/VoiceButton';
+import VoiceButton,{useVoiceActivity} from '@/components/VoiceButton';
 type Props={cameraPreview?:HTMLCanvasElement|null;upload?:UploadState;shots:{previewUrl:string}[];caption:string;setCaption:(value:string)=>void;index:number;setIndex:(value:number)=>void;notEaten:number[];setNotEaten:(value:number[])=>void;when:string|null;setWhen:(value:string|null)=>void;locationEnabled:boolean;setLocationEnabled:(value:boolean)=>void;saveAsMeal:boolean;setSaveAsMeal:(value:boolean)=>void;busy:boolean;error:string|null;pending:number;onBack:()=>void;onPhoto:()=>void;onSearch:()=>void;onPost:()=>void;children?:ReactNode;searchPanel?:ReactNode;onRemove:(index:number)=>void;onSavePhoto?:()=>void};
 function Switch({label,on,disabled,onChange}:{label:string;on:boolean;disabled:boolean;onChange:()=>void}) {
  return <button type="button" role="switch" aria-label={label} aria-checked={on} disabled={disabled} onClick={onChange} className={`relative h-[26px] w-[44px] shrink-0 rounded-circle disabled:opacity-50 ${on?'bg-accent':'bg-ring'}`}><span className="absolute top-[3px] size-5 rounded-circle bg-white" style={{left:on?21:3,boxShadow:'var(--color-shadow-knob)'}}/></button>;
@@ -18,7 +18,10 @@ function Switch({label,on,disabled,onChange}:{label:string;on:boolean;disabled:b
 export default function LightComposer(p:Props) {
  const desktop=useDesktop();
  const drinks=useComposerDrinks(p);
- const busy=p.busy||drinks.saving;
+ const voice=useVoiceActivity();
+ const inputBusy=p.busy||drinks.saving;
+ const busy=inputBusy||voice.active;
+ const post=()=>{if(voice.activeRef.current||inputBusy)return;if(drinks.active)void drinks.post();else p.onPost();};
  const [typing,setTyping]=useState(false);
  const [drinkDetails,setDrinkDetails]=useState(false);
  const [whenOpen,setWhenOpen]=useState(false);
@@ -61,7 +64,7 @@ export default function LightComposer(p:Props) {
   </div>
   <section className="flex min-h-0 flex-col"><header className="flex h-14 shrink-0 items-center justify-between border-b border-hairline px-5"><h1 id="capture-title" className="text-[16px] font-semibold">New post</h1><button aria-label="Back to Feed" onClick={p.onBack} disabled={busy} className="size-8 text-[24px]">×</button></header>
    <div className="min-h-0 flex-1 overflow-y-auto p-5">
-    <label htmlFor="capture-caption" className="text-[14px] font-semibold">{handle}</label><textarea ref={caption} id="capture-caption" aria-label="Caption" maxLength={2000} rows={3} placeholder="Add a caption…" value={p.caption} disabled={busy} onChange={event=>p.setCaption(event.target.value)} className="mt-2 w-full resize-none text-[14px] outline-none"/><VoiceButton value={p.caption} onChange={p.setCaption} max={2000} disabled={busy}/>
+    <label htmlFor="capture-caption" className="text-[14px] font-semibold">{handle}</label><textarea ref={caption} id="capture-caption" aria-label="Caption" maxLength={2000} rows={3} placeholder="Add a caption…" value={p.caption} disabled={busy} onChange={event=>p.setCaption(event.target.value)} className="mt-2 w-full resize-none text-[14px] outline-none"/><VoiceButton value={p.caption} onChange={p.setCaption} max={2000} disabled={inputBusy} onActiveChange={voice.onActiveChange}/>
     <div className="my-3 flex gap-2"><button onClick={photo} disabled={busy||p.shots.length>=8} className="flex h-9 items-center gap-2 rounded-field bg-field px-3 text-[13px]"><Icon name="camera" size={16}/>Another photo</button><button onClick={p.onSearch} disabled={busy} className="flex h-9 items-center gap-2 rounded-field bg-field px-3 text-[13px]"><Icon name="search" size={16}/>Search foods</button></div>
     {p.searchPanel}{drinks.card}
     <label className="flex min-h-[56px] flex-wrap items-center justify-between gap-2 border-b border-hairline text-[14px]">Eaten at<input type="datetime-local" aria-label="Eaten at" value={p.when??''} max={toLocalInput(new Date())} disabled={busy} onChange={event=>p.setWhen(event.target.value||null)} className="max-w-[190px] bg-transparent text-[12px]"/></label>
@@ -69,7 +72,7 @@ export default function LightComposer(p:Props) {
     {p.onSavePhoto&&p.shots.length>0&&<div className="flex min-h-[56px] items-center justify-between border-b border-hairline text-[14px]">Save photo<button type="button" disabled={busy} onClick={p.onSavePhoto} className="min-h-tap rounded-field bg-field px-3 text-[13px]">Save</button></div>}
     <div className="flex min-h-[56px] items-center justify-between border-b border-hairline text-[14px]">Location<Switch label="Save location" on={p.locationEnabled} disabled={busy} onChange={()=>p.setLocationEnabled(!p.locationEnabled)}/></div>
     <div className="flex min-h-[56px] items-center justify-between border-b border-hairline text-[14px]">Save as meal<Switch label="Save as meal" on={p.saveAsMeal} disabled={busy} onChange={()=>p.setSaveAsMeal(!p.saveAsMeal)}/></div>
-   </div><footer className="shrink-0 border-t border-hairline p-5">{(p.error||drinks.error)&&<p role="alert" className="mb-2 text-detail">{p.error||drinks.error}</p>}{p.pending>0&&<p role="status" className="text-meta">Preparing selected photos…</p>}<Button disabled={busy||p.pending>0||(drinks.active?drinks.disabled:!p.caption.trim()&&!p.shots.length)} onClick={drinks.active?()=>void drinks.post():p.onPost}>{busy?'Posting…':drinks.active?drinks.button:'Post'}</Button></footer>
+   </div><footer className="shrink-0 border-t border-hairline p-5">{(p.error||drinks.error)&&<p role="alert" className="mb-2 text-detail">{p.error||drinks.error}</p>}{p.pending>0&&<p role="status" className="text-meta">Preparing selected photos…</p>}<Button disabled={busy||p.pending>0||(drinks.active?drinks.disabled:!p.caption.trim()&&!p.shots.length)} onClick={post}>{inputBusy?'Posting…':drinks.active?drinks.button:'Post'}</Button></footer>
   </section>{drinks.editor}{p.children}
  </div>;
  if(drinks.active&&!drinkDetails)return <div className="flex h-full flex-col bg-camera text-surface">
@@ -80,7 +83,7 @@ export default function LightComposer(p:Props) {
   <div className="max-h-[70%] shrink-0 overflow-y-auto rounded-t-sheet bg-text">{drinks.card}
    <footer className="px-5 pt-4 pb-[calc(34px+env(safe-area-inset-bottom))]">
     {drinks.error&&<p role="alert" className="mb-2 text-detail text-faint">{drinks.error}</p>}
-    <Button variant="camera" style={{height:48,borderRadius:12,fontSize:15}} disabled={busy||drinks.disabled} onClick={()=>{void drinks.post();}}>{busy?'Posting…':drinks.button}</Button>
+    <Button variant="camera" style={{height:48,borderRadius:12,fontSize:15}} disabled={busy||drinks.disabled} onClick={post}>{inputBusy?'Posting…':drinks.button}</Button>
    </footer>
   </div>{drinks.editor}{p.children}
  </div>;
@@ -121,7 +124,7 @@ export default function LightComposer(p:Props) {
     <button type="button" role="switch" aria-label="Leftovers" aria-checked={on} disabled={busy} onClick={()=>p.setNotEaten(on?p.notEaten.filter(index=>index!==p.index):[...p.notEaten,p.index].sort((a,b)=>a-b))} className={`relative h-[30px] w-[50px] shrink-0 rounded-circle ${on?'bg-accent':'bg-ring'}`}><span className="absolute top-[3px] size-6 rounded-circle bg-white" style={{left:on?23:3,boxShadow:'var(--color-shadow-knob)'}}/></button>
     {p.shots.length>2&&<button type="button" aria-label="Close photo options" onClick={()=>setPhotoOptions(false)} className="flex size-tap shrink-0 items-center justify-center"><Icon name="close" size={18}/></button>}
    </div>}
-   <div className="px-inset pt-[14px]"><label htmlFor="capture-caption" className="text-body font-semibold">{handle}</label><textarea ref={caption} onFocus={()=>{if(!p.cameraPreview){setTyping(true);requestAnimationFrame(()=>caption.current?.scrollIntoView({block:"nearest"}));}}} onBlur={()=>setTyping(false)} id="capture-caption" aria-label="Caption" maxLength={2000} rows={2} placeholder="Add a caption…" value={p.caption} disabled={busy} onChange={event=>p.setCaption(event.target.value)} className="min-h-tap w-full resize-none bg-transparent text-body font-normal outline-none placeholder:text-muted"/><VoiceButton value={p.caption} onChange={p.setCaption} max={2000} disabled={busy}/></div>
+   <div className="px-inset pt-[14px]"><label htmlFor="capture-caption" className="text-body font-semibold">{handle}</label><textarea ref={caption} onFocus={()=>{if(!p.cameraPreview){setTyping(true);requestAnimationFrame(()=>caption.current?.scrollIntoView({block:"nearest"}));}}} onBlur={()=>setTyping(false)} id="capture-caption" aria-label="Caption" maxLength={2000} rows={2} placeholder="Add a caption…" value={p.caption} disabled={busy} onChange={event=>p.setCaption(event.target.value)} className="min-h-tap w-full resize-none bg-transparent text-body font-normal outline-none placeholder:text-muted"/><VoiceButton value={p.caption} onChange={p.setCaption} max={2000} disabled={inputBusy} onActiveChange={voice.onActiveChange}/></div>
    <div className="flex gap-2 px-inset pt-[22px]">
     <button type="button" disabled={busy||p.shots.length>=8} onClick={photo} className="flex h-[34px] items-center gap-2 rounded-[17px] bg-field px-3 text-detail font-medium"><Icon name="camera" size={16}/>Another photo</button>
     <button type="button" disabled={busy} onClick={p.onSearch} className="flex h-[34px] items-center gap-2 rounded-[17px] bg-field px-3 text-detail font-medium"><Icon name="search" size={16}/>Search foods</button>
@@ -140,7 +143,7 @@ export default function LightComposer(p:Props) {
    {drinks.error&&<p role="alert" className="mb-2 text-detail text-muted">{drinks.error}</p>}
    {p.error&&<p role="alert" className="mb-2 text-detail text-muted">{p.error}</p>}
    {p.pending>0&&<p role="status" className="mb-2 text-meta text-muted">Preparing selected photos…</p>}
-   <Button style={{height:50,borderRadius:14,fontSize:16}} disabled={busy||drinks.saving||p.pending>0||(drinks.active?drinks.disabled:(!p.caption.trim()&&!p.shots.length))} onClick={drinks.active?()=>{void drinks.post();}:p.onPost}>{(busy||drinks.saving)&&!p.cameraPreview?'Posting…':drinks.active?drinks.button:'Post'}</Button>
+   <Button style={{height:50,borderRadius:14,fontSize:16}} disabled={busy||drinks.saving||p.pending>0||(drinks.active?drinks.disabled:(!p.caption.trim()&&!p.shots.length))} onClick={post}>{inputBusy&&!p.cameraPreview?'Posting…':drinks.active?drinks.button:'Post'}</Button>
   </div>
   {drinks.editor}
   {p.children}

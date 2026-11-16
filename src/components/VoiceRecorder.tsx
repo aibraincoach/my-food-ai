@@ -8,7 +8,7 @@ export default function VoiceRecorder({postId,disabled,onTranscript,onActiveChan
  const [state,setState]=useState<'idle'|'starting'|'recording'|'sending'>('idle');const [error,setError]=useState('');
  const capture=useRef<Capture|null>(null);const alive=useRef(true);const locked=useRef(false);const abort=useRef<AbortController|null>(null);
  const cleanup=(record:Capture)=>{if(record.timer)clearTimeout(record.timer);record.stream.getTracks().forEach(t=>t.stop());record.node.disconnect();void record.context.close();};
- useEffect(()=>{alive.current=true;return()=>{alive.current=false;abort.current?.abort();if(capture.current){cleanup(capture.current);capture.current=null;}};},[]);
+ useEffect(()=>{alive.current=true;return()=>{alive.current=false;onActiveChange(false);abort.current?.abort();if(capture.current){cleanup(capture.current);capture.current=null;}};},[]);
  const stop=()=>{
   const record=capture.current;if(!record||locked.current)return;locked.current=true;setState('sending');
   if(record.timer)clearTimeout(record.timer);record.stream.getTracks().forEach(t=>t.stop());
