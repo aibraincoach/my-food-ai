@@ -35,7 +35,7 @@ for(const [file,name,props]of[
 });
 test('DetailImage switches from a loaded original to the new photo preview immediately',()=>{
  const view=component('OutlineOverlay.tsx','DetailImage');
- const props=url=>({photo:{url:url.replace('/v2.webp','/original.jpg'),previewUrl:url},alt:'Meal'});
+ const props=url=>({photo:{url:url.replace('/v2.webp','/original.jpg'),previewUrl:url},alt:'Meal',sharp:true});
  view.render(props(first));view.images[0].onload();
  let image=view.render(props(first));assert.equal(image.src,props(first).photo.url);
  image=view.render(props(second));assert.equal(image.src,second);assert.equal(image.srcSet,feedPhotoSrcSet(second));

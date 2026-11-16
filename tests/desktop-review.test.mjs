@@ -10,14 +10,14 @@ const flush=()=>new Promise(resolve=>setImmediate(resolve));
 test('Today uses the active zone and ignores older responses even when aborted transport still resolves',async()=>{
  const effects=[],requests=[],listeners=new Map(),state=[];let index=0;
  const exported={};
- vm.runInNewContext(compile('DesktopToday.tsx'),{exports:exported,Intl,Date,AbortController,fetch:(url,options)=>new Promise(resolve=>requests.push({url,signal:options.signal,resolve})),window:{addEventListener:(name,fn)=>listeners.set(name,fn),removeEventListener:name=>listeners.delete(name)},require(name){
+ vm.runInNewContext(compile('DesktopToday.tsx'),{exports:exported,Intl,Date,AbortController,setTimeout:()=>1,clearTimeout(){},fetch:(url,options)=>new Promise(resolve=>requests.push({url,signal:options.signal,resolve})),window:{addEventListener:(name,fn)=>listeners.set(name,fn),removeEventListener:name=>listeners.delete(name)},require(name){
   if(name==='react')return{useState:initial=>{const slot=index++;state[slot]=initial;return[initial,value=>{state[slot]=value;}]},useEffect:fn=>effects.push(fn)};
   if(name==='react/jsx-runtime')return{jsx,jsxs:jsx};if(name==='@/lib/ui/use-desktop')return{useDesktop:()=>true};if(name==='@/lib/posts/days')return{dateInZone,validZone};if(name==='@/lib/nutrition/totals')return{formatCalories:()=>'',formatNutrition:()=>''};if(name==='next/link')return{default:'a'};throw Error(name);
  }});
  exported.default({zone:'Asia/Jakarta'});const cleanup=effects[0]();assert.equal(new URL(requests[0].url,'http://localhost').searchParams.get('tz'),'Asia/Jakarta');
  listeners.get('post-settled')();assert.equal(requests[0].signal.aborted,true);assert.equal(requests[1].signal.aborted,false);
- requests[1].resolve({ok:true,json:async()=>({day:{date:'newest'}})});await flush();assert.equal(state[0].day.date,'newest');
- requests[0].resolve({ok:true,json:async()=>({day:{date:'stale'}})});await flush();assert.equal(state[0].day.date,'newest');
+ requests[1].resolve({ok:true,json:async()=>({date:'newest'})});await flush();assert.equal(state[0].day.date,'newest');
+ requests[0].resolve({ok:true,json:async()=>({date:'stale'})});await flush();assert.equal(state[0].day.date,'newest');
  cleanup();assert.equal(requests[1].signal.aborted,true);assert.equal(listeners.size,0);
 });
 test('calendar arrow handling leaves rich inputs and controls outside its date grid alone',()=>{

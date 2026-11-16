@@ -10,6 +10,7 @@ import {dayTotalRefreshDates} from '../src/lib/posts/day-total-changes.ts';
 import {createDayTotalsRefresh} from '../src/lib/posts/day-totals-refresh.ts';
 import {mergeFeedPosts,discoveryLostOverlap} from '../src/lib/posts/feed-order.ts';
 import {readFeedCache,writeFeedCache,clearFeedCache} from '../src/lib/posts/feed-cache.ts';
+import {uploadTargetsPost} from '../src/lib/posts/upload-target.ts';
 
 const jsx=(type,props)=>({type,props:props??{}});
 const turn=()=>new Promise(resolve=>setImmediate(resolve));
@@ -39,6 +40,7 @@ async function serverHome(seedRead){
    if(name==='@/lib/posts/feed')return{getFeed:seedRead,getFirstFeedPhoto:async()=>null};
   if(name==='@/lib/posts/days')return days;
   if(name==='@/lib/posts/today-view')return{todayFromPage};
+  if(name==='@/lib/posts/home-today')return{homeToday:async()=>null,readToday:async()=>null};
   if(name==='@/lib/nutrition/totals')return{sumNutrition:()=>({})};
   if(name==='@/components/DesktopWorkspace'||name==='@/components/DesktopHomeFrame')return{default:({children})=>children};
   if(name==='@/components/Feed')return{default:noop,CachedFeedFallback:noop};
@@ -119,6 +121,7 @@ async function mountedFeed(initialPosts,{cachedPosts,failPage=false,initialPage,
    if(name==='@/components/useCachedFeed')return{useCachedFeed:()=>cache};
    if(name==='@/components/useUploads')return{useUploads:()=>[]};
    if(name==='@/lib/posts/upload-manager')return{uploadManager:{list:()=>[]}};
+   if(name==='@/lib/posts/upload-target')return{uploadTargetsPost};
    if(name==='@/lib/theme/tokens')return{tokens:{spacing:{'sheet-bottom':1}}};
    if(name.startsWith('@/components/'))return{default:()=>null};
    throw Error('Unexpected feed dependency '+name);
