@@ -34,7 +34,7 @@ function Photo({post,desktop=false}:{post:FeedPost;desktop?:boolean}) {
  const [failedSharp,setFailedSharp]=useState<string|null>(null);
  if(!url)return <div className="aspect-square w-full bg-card"/>;
  // eslint-disable-next-line @next/next/no-img-element
- return <div className="relative w-full overflow-hidden bg-card" style={desktop?undefined:photoBoxStyle(slide)}><img src={url} srcSet={failedSharp!==imageIdentity(url)?feedPhotoSrcSet(url):undefined} onError={()=>setFailedSharp(imageIdentity(url))} crossOrigin="anonymous" alt={post.caption||'Meal photo'} draggable={false} className="h-full w-full object-contain"/></div>;
+ return <div className="relative w-full overflow-hidden bg-card" style={desktop?undefined:photoBoxStyle(slide)}><img src={url} srcSet={failedSharp!==imageIdentity(url)?feedPhotoSrcSet(url):undefined} onError={()=>setFailedSharp(imageIdentity(url))} crossOrigin="anonymous" sizes="(min-width: 1024px) 520px, 100vw" alt={post.caption||'Meal photo'} draggable={false} className="h-full w-full object-contain"/></div>;
 }
 
 function Rows() {
