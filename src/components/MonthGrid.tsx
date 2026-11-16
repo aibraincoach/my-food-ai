@@ -9,7 +9,7 @@ export function monthName(month: string, year = false) {
   return new Date(`${month}-01T12:00:00Z`).toLocaleDateString("en", { timeZone: "UTC", month: "long", ...(year ? { year: "numeric" } : {}) });
 }
 export function formatDayKcal(value: number | null) { return formatCalories(value); }
-export function postedLabel(count: number) { return count === 0 ? "No days posted" : `${count} ${count === 1 ? "day" : "days"} posted`; }
+export function postedLabel(count: number) { return count === 0 ? "No days logged" : `${count} ${count === 1 ? "day" : "days"} logged`; }
 
 export default function MonthGrid({ month, summary, today, selected, onDay, onOpenDay }: { month: string; summary: MonthSummary; today: string; selected?: string; onDay: (date: string, cell: HTMLElement) => void; onOpenDay?: (date:string)=>void }) {
   const desktop=useDesktop();
@@ -39,11 +39,11 @@ export default function MonthGrid({ month, summary, today, selected, onDay, onOp
           const enabled = Boolean((day||desktop) && date <= today);
           const outlined = date === today || date === selected;
           return <button type="button" key={date} data-day={date} disabled={!enabled} aria-pressed={desktop?date===selected:undefined} tabIndex={!day&&!desktop?-1:0} onFocus={event=>{if(matchMedia("(min-width:1024px)").matches)onDay(date,event.currentTarget);}} onClick={event => { if(day || matchMedia("(min-width:1024px)").matches)onDay(date, event.currentTarget); }}
-            aria-label={`${date}${day ? `, ${day.posts} ${day.posts === 1 ? "post" : "posts"}${day.pending ? `, ${day.pending} not finished` : ""}${day.intake ? ", drank" : ""}${day.ready ? `, ${formatCalories(day.kcal)} kcal${day.missing?.length?`, nutrition unavailable: ${[...new Set(day.missing)].join(", ")}`:""}` : ""}` : ""}`}
+            aria-label={`${date}${day ? `, ${day.posts} ${day.posts === 1 ? "meal" : "meals"}${day.pending ? `, ${day.pending} not finished` : ""}${day.intake ? ", drank" : ""}${day.ready ? `, ${formatCalories(day.kcal)} kcal${day.missing?.length?`, nutrition unavailable: ${[...new Set(day.missing)].join(", ")}`:""}` : ""}` : ""}`}
             className={`flex min-w-0 flex-col justify-between rounded-tile text-left desktop:!h-[100px] desktop:focus-visible:outline-2 desktop:focus-visible:outline-text ${day?"bg-card":""} ${date===selected?"desktop:bg-text desktop:text-white desktop:[&>span]:text-white":""} ${date > today ? "text-faint" : "text-text"}`}
             style={{ height: tokens.spacing.tap, padding: `${tokens.spacing.grid}px ${tokens.calendar.padding}px`, border: outlined ? `${tokens.calendar.border}px solid ${tokens.colors.text}` : `${tokens.calendar.border}px solid transparent` }}>
             <span className="text-label font-medium leading-none desktop:text-[13px]">{index + 1}</span>
-            <span className="text-cell-kcal text-muted tabular-nums desktop:text-[12px]">{day?.ready ? `${formatDayKcal(day.kcal)}` : day?.intake ? "drank" : ""}</span>
+            <span className="text-cell-kcal text-muted tabular-nums desktop:text-[12px]">{day?.ready ? `${formatDayKcal(day.kcal)}` : day?.intake ? "Drank" : ""}</span>
           </button>;
         })}
       </div>

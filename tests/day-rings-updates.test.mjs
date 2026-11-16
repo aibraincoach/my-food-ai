@@ -37,7 +37,7 @@ test('rings consume the mounted owner feed snapshot, preserve measured zero and 
 });
 test('a new server seed supersedes an old snapshot; deletion clears the former logged-day ring',()=>{
  const h=mount();h.events.dispatchEvent(new CustomEvent('feed-day-totals',{detail:{userId:'owner',days:[{day:'2026-11-02',ready:false,kcal:0}]}}));
- assert.match(h.render(),/no posts/);assert.doesNotMatch(h.render(),/600 kcal consumed/);
+ assert.match(h.render(),/no meals/);assert.doesNotMatch(h.render(),/600 kcal consumed/);
  const next={...h.props,totals:[{day:'2026-11-02',ready:true,kcal:450}]};
  assert.match(h.render(next),/450 kcal consumed/);h.close();
 });

@@ -63,7 +63,7 @@ export default function DayRings({days,totals,today,zone,zoneKnown,ownerId,earli
     <span className={`flex size-full items-center justify-center rounded-circle text-meta font-medium tabular-nums ${index===0||hasDay?'bg-card':''}`}>{total?.ready&&total.kcal!==null?formatCalories(total.kcal):''}</span>
     {index===0&&<span className="absolute -right-[3px] -bottom-[3px] flex size-[22px] items-center justify-center rounded-circle border-2 border-surface bg-text text-surface"><Icon name="plus" size={12} strokeWidth={3}/></span>}
    </span><span className={`text-label ${index===0?'text-text':bubbleLinkClass(hasDay)}`}>{label}</span></>;
-   const dayLabel=`${label}, ${waiting?'updating':hasDay?(total?.kcal==null?'nutrition unavailable':`${formatCalories(total.kcal)} kcal consumed`):'no posts'}`;
+   const dayLabel=`${label}, ${waiting?'updating':hasDay?(total?.kcal==null?'nutrition unavailable':`${formatCalories(total.kcal)} kcal consumed`):'no meals'}`;
    const className='flex w-[62px] shrink-0 snap-start flex-col items-center gap-[5px]';
    return index===0?<button key={day} type="button" aria-label="Photograph a meal today" onClick={todayAction} className={className}>{content}</button>:hasDay?<Link key={day} aria-label={dayLabel} href={withZone(`/days/${day}`,zone,zoneKnown)} className={className}>{content}</Link>:<span key={day} aria-label={dayLabel} className={className}>{content}</span>;
   })}
