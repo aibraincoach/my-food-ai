@@ -1,0 +1,37 @@
+{
+  "build": "local-1794801316195",
+  "visibleCards": [
+    {
+      "id": "42d2f823-f821-459c-92e8-d1621336eaef",
+      "status": "ready"
+    },
+    {
+      "id": "5fb7cb42-6b0c-4d04-8f3c-daf6b4ce5baa",
+      "status": "ready"
+    },
+    {
+      "id": "87b870a4-b366-4930-968b-fe5345133956",
+      "status": "ready"
+    },
+    {
+      "id": "0c00ecb2-5503-49e9-8f0c-cb882990776e",
+      "status": "ready"
+    },
+    {
+      "id": "5f8bc835-2f2e-439e-8b5f-7aa1000e9340",
+      "status": "ready"
+    },
+    {
+      "id": "c50e2a39-c513-4a02-9a60-ad7eda577136",
+      "status": "ready"
+    }
+  ],
+  "scrollY": 0,
+  "viewport": 390,
+  "seconds": 15.012,
+  "requestCount": 0,
+  "idsRequests": 0,
+  "requests": [],
+  "profile": "fresh isolated Firefox profile",
+  "slowing": "not slowed"
+}

@@ -6,7 +6,7 @@ import {readFileSync} from 'node:fs';
 import ts from 'typescript';
 import {dayTotalRefreshDates} from '../src/lib/posts/day-total-changes.ts';
 import {createDayTotalsRefresh} from '../src/lib/posts/day-totals-refresh.ts';
-import {retainCompleteItems,hasUnavailableFields} from '../src/lib/posts/feed.ts';
+import {retainCompleteItems,hasUnavailableFields,readFeedDiscovery} from '../src/lib/posts/feed.ts';
 test('retiring the last meal clears feed state and rejects an older hydration result',async()=>{
  const effects=[],listeners=new Map(),states=[],resolvers=new Map(),rejectors=new Map(),retryTimers=[];let resolveCard,resolvePage,discoverTick;let forceReset=false,deferTotals=false;const dayWaiters=[];
  const post={id:'meal',status:'processing',created_at:'2026-10-01',eaten_at:'2026-10-01T12:00:00Z',items:[],slides:[]};
@@ -19,9 +19,9 @@ test('retiring the last meal clears feed state and rejects an older hydration re
   if(name==='@/lib/posts/day-total-changes')return{dayTotalRefreshDates};if(name==='@/lib/posts/day-totals-refresh')return{createDayTotalsRefresh};if(name==='react')return{useEffect:fn=>effects.push(fn),useRef:current=>({current}),useState:initial=>[initial,state=>states.push(state)]};
   if(name==='react/jsx-runtime')return{jsx:()=>null,jsxs:()=>null};
   if(name==='next/navigation')return{useRouter:()=>({replace(){}})};
-  if(name==='@/lib/supabase/client')return{createClient:()=>({auth:{getSession:async()=>({data:{session:{user:{id:'owner'}}}})},channel:()=>channel,removeChannel(){},from(){return{select(){return this;},is(){return this;},eq(){return this;},neq(){return this;},or(){return this;},order(){return this;},limit:async()=>({data:[{id:'new-page-meal'}],error:null})};}})};
+  if(name==='@/lib/supabase/client')return{createClient:()=>({auth:{getSession:async()=>({data:{session:{user:{id:'owner'}}}})},channel:()=>channel,removeChannel(){},from(){return{select(){return this;},is(){return this;},eq(){return this;},neq(){return this;},or(){return this;},order(){return this;},limit(){return this;},abortSignal:async()=>({data:[{id:'new-page-meal'}],error:null})};}})};
   if(name==='@/lib/posts/day-totals-refresh')return{createDayTotalsRefresh};
-   if(name==='@/lib/posts/feed')return{FEED_PAGE_SIZE:20,retainCompleteItems,hasUnavailableFields,getFeed:async()=>forceReset?new Promise(resolve=>{resolvePage=resolve;}):({posts:[post],nextCursor:null,days:[]}),getPostCard:(_db,id)=>new Promise((resolve,reject)=>{resolveCard=resolve;resolvers.set(id,resolve);rejectors.set(id,reject);})};
+   if(name==='@/lib/posts/feed')return{FEED_PAGE_SIZE:20,retainCompleteItems,hasUnavailableFields,readFeedDiscovery,getFeed:async()=>forceReset?new Promise(resolve=>{resolvePage=resolve;}):({posts:[post],nextCursor:null,days:[]}),getPostCard:(_db,id)=>new Promise((resolve,reject)=>{resolveCard=resolve;resolvers.set(id,resolve);rejectors.set(id,reject);})};
   if(name==='@/lib/posts/upload-manager')return{uploadManager:{list:()=>[]}};
   if(name==='@/lib/posts/upload-target')return{uploadTargetsPost:()=>false};
   if(name==='@/components/useUploads')return{useUploads:()=>[]};
