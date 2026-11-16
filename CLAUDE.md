@@ -10,7 +10,7 @@ Reviews: #582 holds two PPLX no-blocker reviews at head `dc07c47f` and a Codex z
 
 BACKLOG.md on this branch is the owner-supplied 21:07 WIB snapshot with the beer item filed as #615. WALL_OF_STUPID.md carries the 21:12 and 21:56 entries. The PM was fired; this handover is for the successor. Codex's Fleet 16 coder shares the repo: new code branches only, no docs-branch writes, no merges without the owner's exact-head order. No code prompt or merge order is outstanding in this session.
 
-Hackathon project: My Food AI. PM contract: [docs/pm-contract.md](docs/pm-contract.md). Planner contract: [docs/planner-contract.md](docs/planner-contract.md). Backlog: [BACKLOG.md](BACKLOG.md). Review: [REVIEW_POLICY.md](REVIEW_POLICY.md), [docs/review.md](docs/review.md).
+Hackathon project: My Food AI. PM contract: [docs/pm-contract.md](docs/pm-contract.md). Planner contract: [docs/planner-contract.md](docs/planner-contract.md). Backlog: [BACKLOG.md](BACKLOG.md). Review: [REVIEW_POLICY.md](REVIEW_POLICY.md), [docs/review.md](docs/review.md). Rules that get an agent fired: [pm-operational-rules.md](pm-operational-rules.md). Incident history: [WALL_OF_STUPID.md](WALL_OF_STUPID.md), the Wall of Stupid archive.
 
 ## Skills (Cursor / Claude)
 

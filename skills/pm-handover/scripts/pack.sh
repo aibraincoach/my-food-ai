@@ -26,6 +26,10 @@ if [ -f docs/history/wall-of-stupid.md ]; then
   cp docs/history/wall-of-stupid.md "$UP/${REPO}_${TS}_Wall-of-Stupid.md"
   cp docs/history/wall-of-stupid-archive.md "$UP/${REPO}_${TS}_Wall-of-Stupid-Archive.md"
 fi
+if [ -f pm-operational-rules.md ]; then
+  cp pm-operational-rules.md "$UP/${REPO}_${TS}_PM-Operational-Rules.md"
+  echo "$UP/${REPO}_${TS}_PM-Operational-Rules.md"
+fi
 if [ -f docs/pm-contract.md ]; then
   cp docs/pm-contract.md "$UP/${REPO}_${TS}_PM-Contract.md"
   echo "$UP/${REPO}_${TS}_PM-Contract.md"
