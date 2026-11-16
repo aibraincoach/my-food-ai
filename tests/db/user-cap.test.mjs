@@ -80,7 +80,7 @@ test('each spending route allows its final slot then refuses before invalid inpu
     ['POST', '/api/transcribe', 'transcribe', 60, 400],
     ['GET', '/api/fdc/search', 'fdc_search', 300, 400],
     ['GET', '/api/fdc/barcode', 'fdc_barcode', 120, 400],
-    ['POST', '/api/posts', 'post', 40, 400],
+    // /api/posts counts meals, not requests (#471, kept by the owner's ruling on #716): an invalid body is answered 400 before the limit is read, so it has no row here.
     ['POST', '/api/posts/food', 'post', 40, 400],
     ['POST', `/api/posts/${id}/comments`, 'correct', 100, 404],
     ['POST', `/api/posts/${id}/items`, 'correct', 100, 404],

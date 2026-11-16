@@ -21,7 +21,7 @@ import DayRings from "@/components/DayRings";
 import { cookies, headers } from "next/headers";
 import { createClient } from "@/lib/supabase/server";
 import { dateInZone, getDayTotals, getEarliestPostDate, getLoggedDates, shiftDay, validZone } from "@/lib/posts/days";
-import { homeToday } from "@/lib/posts/home-today";
+import { readToday } from "@/lib/posts/home-today";
 
 // React's server cache is request-scoped: all Home streams share one Auth
 // check and one cancellable owner client, never another visitor's session.
@@ -46,8 +46,18 @@ async function homeDeadline<T>(read: Promise<T>): Promise<T> {
   finally { if (timer) clearTimeout(timer); }
 }
 
-// Both streams await the same request-scoped totals promise. Failed optional
-// totals remain unavailable and are not cached across visitors or navigations.
+// Today's meals are read once per request (readToday) and shared: the desktop
+// Today column shows the view and today's day circle shows the total.
+const homeTodayRead = cache(async () => {
+  const { db, user } = await homeReader();
+  if (!user) return null;
+  const { zone } = await homeZone();
+  return readToday(db, user.id, zone);
+});
+
+// Both streams await the same request-scoped totals promise. Today's total comes
+// from homeTodayRead; only the five days before today are read here. Failed
+// optional totals remain unavailable and are not cached across visitors or navigations.
 const homeDayTotals = cache(async () => {
   const { zone } = await homeZone();
   const today = dateInZone(new Date(), zone);
@@ -55,15 +65,14 @@ const homeDayTotals = cache(async () => {
   if (!user) return [];
   const started = Date.now();
   try {
-    return await homeDeadline(getDayTotals(db, user.id, zone, Array.from({length: 6}, (_, index) => shiftDay(today, -index))));
+    const [earlier, current] = await homeDeadline(Promise.all([
+      getDayTotals(db, user.id, zone, Array.from({length: 5}, (_, index) => shiftDay(today, -index - 1))),
+      homeTodayRead().catch(() => null),
+    ]));
+    if (current) return [...earlier, current.total];
+    // Today's shared read failed: today's circle reads its own total, as it did before the shared read.
+    return [...earlier, ...await homeDeadline(getDayTotals(db, user.id, zone, [today]))];
   } finally { console.info(`feed read day-totals ${Date.now() - started}`); }
-});
-
-const homeTodayRead = cache(async () => {
-  const { db, user } = await homeReader();
-  if (!user) return null;
-  const { zone } = await homeZone();
-  return homeToday(db, user.id, zone);
 });
 
 async function HomeDays() {
@@ -92,7 +101,7 @@ async function HomeDays() {
 const homeSeed=cache(async()=>{
  const {db,user}=await homeReader();if(!user)return undefined;
  const {zone}=await homeZone();
- const page=await getFeed(db,user.id,null,zone,6,{knownDays:Array.from({length:5},(_,i)=>shiftDay(dateInZone(new Date(),zone),-i)),onFirstPhoto:url=>preload(url,{as:'image',fetchPriority:'high',crossOrigin:'anonymous',imageSrcSet:feedPhotoSrcSet(url)})});
+ const page=await getFeed(db,user.id,null,zone,6,{knownDays:Array.from({length:5},(_,i)=>shiftDay(dateInZone(new Date(),zone),-i)),onFirstPhoto:url=>preload(url,{as:'image',fetchPriority:'high',crossOrigin:'anonymous',imageSrcSet:feedPhotoSrcSet(url),imageSizes:'(min-width: 1024px) 520px, 100vw'})});
  return {page,userId:user.id,zone};
 });
 
@@ -109,12 +118,12 @@ async function HomeFirstPhoto() {
     }
   } catch { /* The normal feed boundary and cache remain available. */ }
   if(!first)return null;
-  if(first.photoUrl)preload(first.photoUrl,{as:'image',fetchPriority:'high',crossOrigin:'anonymous',imageSrcSet:feedPhotoSrcSet(first.photoUrl)});
+  if(first.photoUrl)preload(first.photoUrl,{as:'image',fetchPriority:'high',crossOrigin:'anonymous',imageSrcSet:feedPhotoSrcSet(first.photoUrl),imageSizes:'(min-width: 1024px) 520px, 100vw'});
   return <div data-fast-feed-seed className="relative pb-card-gap">
     <DayHeader day={dateInZone(first.eaten_at,zone)} zone={zone} empty={false}/><div className="pt-sheet-top">
     <div className="flex h-[52px] items-center gap-[10px] px-inset" aria-hidden="true"><span className="size-8 rounded-circle bg-card"/><span className="h-3 w-24 rounded-field bg-card"/></div>
     {first.photoUrl?<Link href={`/posts/${first.id}`} aria-label="Open meal details" className="block aspect-square">
-      <img crossOrigin="anonymous" src={first.photoUrl} srcSet={feedPhotoSrcSet(first.photoUrl)} width={1080} height={1080} fetchPriority="high" loading="eager" decoding="async" alt={first.caption||'Meal photo'} className="size-full object-cover"/>
+      <img crossOrigin="anonymous" src={first.photoUrl} srcSet={feedPhotoSrcSet(first.photoUrl)} sizes="(min-width: 1024px) 520px, 100vw" width={1080} height={1080} fetchPriority="high" loading="eager" decoding="async" alt={first.caption||'Meal photo'} className="size-full object-cover"/>
     </Link>:null}
     <div className="px-inset py-sheet-top">{first.caption?<p className="text-body">{first.caption}</p>:null}<p className="text-detail text-muted" role="status">Loading meal details…</p></div></div>
   </div>;
@@ -131,7 +140,7 @@ async function HomeToday(){
  let initial: TodayView | undefined;
  try {
   const today = await homeDeadline(homeTodayRead());
-  if (today) initial = today;
+  if (today) initial = today.view;
  } catch { /* Preserve the client fallback. */ }
  return <DesktopToday zone={known ? zone : undefined} initial={initial} placeholder={!initial} />;
 }

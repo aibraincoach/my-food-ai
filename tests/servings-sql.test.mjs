@@ -36,7 +36,7 @@ ${expect("tripled", "(select sum(portion_grams) from current_post_items where po
 do $t$ begin
   begin perform public.set_post_servings(current_setting('sv.post')::uuid, current_setting('sv.other')::uuid, 2); raise exception 'other owner allowed';
   exception when insufficient_privilege then null; end;
-  begin perform public.set_post_servings(current_setting('sv.post')::uuid, current_setting('sv.owner')::uuid, 0.1); raise exception 'range allowed';
+  begin perform public.set_post_servings(current_setting('sv.post')::uuid, current_setting('sv.owner')::uuid, 0.05); raise exception 'range allowed';
   exception when invalid_parameter_value then null; end;
 end $t$;
 rollback;`;

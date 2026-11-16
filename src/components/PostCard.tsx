@@ -84,7 +84,7 @@ export default function PostCard({ post, showDate = false, upload, priority = fa
       <span className="min-w-0 flex-1 truncate text-handle">{handle}<AgentAttribution name={post.agentName}/></span>
       {upload&&!upload.postId?(upload.state==='failed'&&!upload.kind?<UploadMenu upload={upload}/>:<span aria-hidden="true" className="flex size-tap items-center justify-center text-xl">···</span>):<PostMenu postId={post.id} caption={post.caption} eatenAt={post.eaten_at} gtin={record.gtin} rows={[
         ...(post.status==='ready'&&!hasDrink?[{label:'Add photo',onSelect:()=>window.dispatchEvent(new CustomEvent('open-entry',{detail:{entry:'camera',forPost:post.id,notEaten:false}}))}]:[]),
-        {label:'Log again',onSelect:()=>window.dispatchEvent(new CustomEvent('log-again',{detail:{postId:post.id,post,savedMealId:record.saved_meal_id??null}}))},
+        {label:'Eat this again',onSelect:()=>window.dispatchEvent(new CustomEvent('log-again',{detail:{postId:post.id,post,savedMealId:record.saved_meal_id??null}}))},
         {label:record.saved_meal_id?'Unsave':'Save meal',disabled:!record.saved_meal_id&&post.status!=='ready',onSelect:()=>window.dispatchEvent(new CustomEvent('save-meal',{detail:{postId:post.id,post,savedMealId:record.saved_meal_id??null}}))},
         {label:'Delete',muted:true,onSelect:()=>window.dispatchEvent(new CustomEvent('delete-post',{detail:{id:post.id,post}}))},
       ]}/>}

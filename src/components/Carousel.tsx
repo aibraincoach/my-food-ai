@@ -108,7 +108,7 @@ function MealPhoto({url,priority,alt}:{url:string;priority:boolean;alt:string}) 
  const active=retainedImageUrl(read,url);
  const sharp=failedSharp!==imageIdentity(active);
  // eslint-disable-next-line @next/next/no-img-element
- return <img ref={image} src={priority||nearViewport?active:undefined} srcSet={(priority||nearViewport)&&sharp?feedPhotoSrcSet(active):undefined} crossOrigin="anonymous" width={1080} height={1080} fetchPriority={priority?"high":undefined} loading={priority?"eager":"lazy"} decoding="async" alt={alt} className="h-full w-full object-cover"
+ return <img ref={image} src={priority||nearViewport?active:undefined} srcSet={(priority||nearViewport)&&sharp?feedPhotoSrcSet(active):undefined} crossOrigin="anonymous" sizes="(min-width: 1024px) 520px, 100vw" width={1080} height={1080} fetchPriority={priority?"high":undefined} loading={priority?"eager":"lazy"} decoding="async" alt={alt} className="h-full w-full object-cover"
   onError={()=>{if(sharp&&feedPhotoSrcSet(active)){setFailedSharp(imageIdentity(active));return;}setRead({path:imageIdentity(active),url:active,failed:true});}}
   onLoad={()=>{if(read.failed||read.url!==active||read.path!==imageIdentity(active))setRead({path:imageIdentity(active),url:active,failed:false});}}/>;
 }

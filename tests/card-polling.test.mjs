@@ -8,17 +8,17 @@ import {hasUnavailableFields,retainCompleteItems} from '../src/lib/posts/feed.ts
 
 // Run the real component's effects against a clock and a counted data source.
 // No React DOM/layout snapshots; this checks its network/resource behavior.
-function harness(status, hidden = false) {
+function harness(status, hidden = false, fields = {}) {
   let now = 1000, reads = 0, update, deletion;const retired=[];
-  const effects = [], intervals = [], refs = [];
-  const doc = { visibilityState: hidden ? 'hidden' : 'visible', addEventListener() {}, removeEventListener() {} };
-  const post = { id: 'meal', status, items: [{id:'rice'}], slides: [] };
+  const effects = [], timers = new Map(), refs = [];let timerId = 0;
+  const doc = { visibilityState: hidden ? 'hidden' : 'visible', hidden, addEventListener() {}, removeEventListener() {} };
+  const post = { id: 'meal', status, items: [{id:'rice'}], slides: [], ...fields };
   const channel = { on(_name,filter,cb) { if(filter.event==='DELETE')deletion=cb;else update=cb;return this; }, subscribe() {return this;} };
   const exports = {};
   const code=ts.transpileModule(readFileSync(new URL('../src/components/RealtimePost.tsx',import.meta.url),'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,jsx:ts.JsxEmit.ReactJSX,target:ts.ScriptTarget.ES2022}}).outputText;
   vm.runInNewContext(code, {exports, Date:class extends Date {static now(){return now;}}, document:doc,
     window:{dispatchEvent(event){retired.push(event);},addEventListener(){},removeEventListener(){}}, CustomEvent:class {constructor(type,init){this.type=type;this.detail=init?.detail;}},
-    setInterval:cb=>{intervals.push(cb);return cb;},clearInterval(){},
+    AbortSignal,setTimeout:(cb,ms=0)=>{timers.set(++timerId,{at:now+ms,cb});return timerId;},clearTimeout:id=>{timers.delete(id);},
     require(name){
       if(name==='react')return {useState:initial=>[initial,()=>{}],useRef:initial=>{const ref={current:initial};refs.push(ref);return ref;},useEffect:fn=>effects.push(fn)};
       if(name==='react/jsx-runtime')return {jsx:()=>null,Fragment:()=>null};
@@ -29,7 +29,7 @@ function harness(status, hidden = false) {
     }});
   exports.default({initial:post,renderCard:()=>null});
   const cleanups=effects.map(fn=>fn());
-  return {doc,post,retired,remove:()=>deletion({old:{id:post.id}}),reads:()=>reads,update:()=>update(),async tick(ms){now+=ms;for(const cb of intervals)cb();await new Promise(resolve=>setImmediate(resolve));},cleanup(){for(const fn of cleanups)fn?.();}};
+  return {doc,post,retired,remove:()=>deletion({old:{id:post.id}}),reads:()=>reads,update:()=>update(),async tick(ms){now+=ms;for(const [id,timer] of [...timers])if(timer.at<=now){timers.delete(id);timer.cb();}await new Promise(resolve=>setImmediate(resolve));},cleanup(){for(const fn of cleanups)fn?.();}};
 }
 test('missing optional cards back off and stop automatic hydration, but realtime still updates',async()=>{
  const h=harness('ready');
@@ -38,9 +38,9 @@ test('missing optional cards back off and stop automatic hydration, but realtime
  const stopped=h.reads();await h.tick(120000);assert.equal(h.reads(),stopped);
  h.update();await Promise.resolve();assert.equal(h.reads(),stopped+1,'late realtime publication remains live');h.cleanup();
 });
-test('hidden pages make no reads; active analysis retains two-second fallback',async()=>{
+test('hidden pages make no reads; active analysis polls from two seconds and backs off',async()=>{
  const hidden=harness('ready',true);for(let i=0;i<30;i++)await hidden.tick(2000);assert.equal(hidden.reads(),0);hidden.cleanup();
- const active=harness('processing');await Promise.resolve();for(let i=0;i<5;i++)await active.tick(2000);assert.ok(active.reads()>=5);active.cleanup();
+ const active=harness('processing');await Promise.resolve();await active.tick(2000);assert.equal(active.reads(),2,'first poll two seconds after the opening read');for(let i=0;i<60;i++)await active.tick(2000);assert.ok(active.reads()>=6&&active.reads()<=12,`expected backed-off polling, received ${active.reads()}`);active.cleanup();
 });
 
 test('clarification and deleted meals retire instead of polling invisibly',async()=>{
@@ -48,4 +48,11 @@ test('clarification and deleted meals retire instead of polling invisibly',async
  assert.equal(h.retired.at(-1).type,'post-unavailable');assert.equal(h.retired.at(-1).detail.reason,'needs_input');
  const reads=h.reads();for(let i=0;i<20;i++)await h.tick(2000);assert.equal(h.reads(),reads);h.cleanup();
  const deleted=harness('processing');await Promise.resolve();deleted.remove();const before=deleted.reads();await deleted.tick(2000);assert.equal(deleted.reads(),before);assert.equal(deleted.retired.at(-1).detail.reason,'deleted');deleted.cleanup();
+});
+
+test('complete server cards skip the mount read but a revision-fenced card still repairs itself',async()=>{
+ const complete={slides:[{kind:'card',url:'card'}],analysisFingerprint:'stable'};
+ const good=harness('ready',false,complete);await good.tick(15000);assert.equal(good.reads(),0,'complete ready seed has no mount read or poll');good.update();await Promise.resolve();assert.equal(good.reads(),1,'database changes still refresh');good.cleanup();
+ const raced=harness('ready',false,{...complete,analysisFingerprint:null,revisionUnavailable:true});await Promise.resolve();assert.equal(raced.reads(),1,'inconsistent revision is read on mount');await raced.tick(2000);assert.ok(raced.reads()>1,'repair does not strand an inconsistent ready seed');raced.cleanup();
+ const empty=harness('ready',false,{items:[],slides:[],analysisFingerprint:null});await empty.tick(15000);assert.equal(empty.reads(),0,'a genuinely empty complete meal is not made to poll');empty.cleanup();
 });

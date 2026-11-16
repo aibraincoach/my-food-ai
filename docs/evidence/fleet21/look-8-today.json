@@ -1,0 +1,14 @@
+{
+  "initialInspection": {
+    "text": "My Food AI\nNew post\nN\nHome\nSearch\n/\nDays\nD\nL\nlocal_test_2\nProfile\n?\nKeyboard shortcuts\nL\nlocal_test_2\n\u00b7\u00b7\u00b7\nDRANK \u00b7 9:18 AM\nCoca cola\n330 ml\nToday\n1,980 ml\nconsumed today\n1,980 ml from drinks\n0 ml from food\n192 mg caffeine\n+\nAdd a photo\nLeftovers\n\u203a\n1/2\nDetails \u203a\n\nlocal_test_2 Fixture delete\n\nCola caffeine estimated at 32 mg per 330 ml.\n\nDrank: 330 ml \u00b7 32 mg caffeine \u00b7 \u2014 kcal more\n9:18 AM\nL\nlocal_test_2\n\u00b7\u00b7\u00b7\nDRANK \u00b7 9:17 AM\nCoca cola\n330 ml\nToday\n1,320 ml\nconsumed today\n1,320 ml from drinks\n0 ml from food\n128 mg caffeine\n+\nAdd a photo\nLeftovers\n\u203a\n1/2\nDetails \u203a\n\nlocal_test_2 Fixture ready 2\n\nCola caffeine estimated at 32 mg per 330 ml.\n\nDrank: 330 ml \u00b7 32 mg caffeine \u00b7 \u2014 kcal more\n9:17 AM\nL\nlocal_test_2\n\u00b7\u00b7\u00b7\nProcessing\u2026\n\u203a\n1/2\nDetails \u203a\n\nlocal_test_2 Fixture unfinished\n\nProcessing, traffic high\n\n9:17 AM\nL\nlocal_test_2\n\u00b7\u00b7\u00b7\nProcessing\u2026\n\u203a\n1/2\nDetails \u203a\n\nlocal_test_2 Fixture failed\n\nThe analysis service refused this request. Try again.\n\nTry again\n9:17 AM\nL\nlocal_test_2\n\u00b7\u00b7\u00b7\nDRANK \u00b7 9:17 AM\nCoca cola\n330 ml\nToday\n330 ml\nconsumed today\n330 ml from drinks\n0 ml from food\n32 mg caffeine\n+\nAdd a photo\nLeftovers\n\u203a\n1/2\nDetails \u203a\n\nlocal_test_2 Fixture ready\n\nCola caffeine estimated at 32 mg per 330 ml.\n\nDrank: 330 ml \u00b7 32 mg caffeine \u00b7 \u2014 kcal more\n9:17 AM\nSaturday, Nov 14\nConsumed: 0 kcal\nL\nlocal_test_2\n\u00b7\u00b7\u00b7\nDetails \u203a\n\nlocal_test_2 Seeded day 1\n\nNo food found in this photo.\n\nAdd a caption to log it\n9:11 AM\nToday \u00b7 Sunday, Nov 15\n\n\u2014\nkcal consumed\n\n\u2014 g\n\nprotein\n\n\u2014 g\n\ncarbs\n\n\u2014 g\n\nfat\n\nPosted today\nFixture ready\n9:17 AM\n\u2014 kcal\nFixture ready 2\n9:17 AM\n\u2014 kcal\nFixture delete\n9:18 AM\n\u2014 kcal\n\nKnown nutrition shown. Nutrition unavailable: Coca cola",
+    "dayRings": [
+      {
+        "label": "Today",
+        "text": "Today \u00b7 Sunday, Nov 15\n\n\u2014\nkcal consumed\n\n\u2014 g\n\nprotein\n\n\u2014 g\n\ncarbs\n\n\u2014 g\n\nfat\n\nPosted today\nFixture ready\n9:17 AM\n\u2014 kcal\nFixture ready 2\n9:17 AM\n\u2014 kcal\nFixture delete\n9:18 AM\n\u2014 kcal\n\nKnown nutrition shown. Nutrition unavailable: Coca cola"
+      }
+    ]
+  },
+  "observationSeconds": 12.45,
+  "todayRequests": 0,
+  "networkEvents": []
+}

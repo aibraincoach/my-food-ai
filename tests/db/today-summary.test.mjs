@@ -73,8 +73,6 @@ begin
   if (summary->>'posted')::int <> 0 or summary->>'kcal' is not null then raise exception 'Zone boundary failed: %', summary; end if;
 end $test$;
 ${rollback}
-revoke execute on function public.today_summary(text) from authenticated;
-drop function if exists public.today_summary(text);
 rollback;`;
   execFileSync('psql', [url, '-v', 'ON_ERROR_STOP=1', '-c', input], { encoding: 'utf8' });
 });

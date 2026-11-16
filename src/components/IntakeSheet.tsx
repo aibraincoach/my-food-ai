@@ -8,6 +8,7 @@ import { Icon } from "@/components/ui/Icon";
 import {uploadManager,type UploadState} from "@/lib/posts/upload-manager";
 import { DRINK_TILES, TILE_SIZES } from "@/lib/intake/intake";
 import type { DrinkRow } from "@/lib/intake/hydration";
+import VoiceButton,{useVoiceActivity} from "@/components/VoiceButton";
 
 type Posted = { id: string; label: string; expires: number };
 const number = (value: number) => value.toLocaleString("en-US");
@@ -18,6 +19,7 @@ export default function IntakeSheet({ embedded = false, onClose }: { initialKind
   const [caption, setCaption] = useState("");
   const [rows, setRows] = useState<DrinkRow[]>([]);
   const [busy, setBusy] = useState(false);
+  const voice=useVoiceActivity();
   const [error, setError] = useState("");
   const [readError, setReadError] = useState(false);
   const [posted, setPosted] = useState<Posted[]>([]);
@@ -65,6 +67,7 @@ export default function IntakeSheet({ embedded = false, onClose }: { initialKind
   const close = () => { cancelHold(); setSizeTile(null); setOpen(false); onClose?.(); window.dispatchEvent(new Event("entry-closed")); };
   // Each tap is a separate request, including two taps before the first settles.
   const postTile = async (tile: number, ml = usualMl[tile]) => {
+    if(voice.activeRef.current)return;
     setError("");
     try {
       const choice=DRINK_TILES[tile],size=TILE_SIZES[tile].find(size=>size.ml===ml);
@@ -77,7 +80,7 @@ export default function IntakeSheet({ embedded = false, onClose }: { initialKind
     window.addEventListener('upload-finished',finished);return()=>window.removeEventListener('upload-finished',finished);
   },[]);
   const postCaption = async () => {
-    if (!caption.trim() || captionPending.current) return;
+    if (voice.activeRef.current || !caption.trim() || captionPending.current) return;
     captionPending.current = true; setBusy(true); setError("");
     try {
       await uploadManager.postCaption(caption.trim(),new Date().toISOString());
@@ -109,7 +112,7 @@ export default function IntakeSheet({ embedded = false, onClose }: { initialKind
       const tile = DRINK_TILES[index];
       const size = TILE_SIZES[index].find(size => size.ml === usualMl[index])!;
       const caffeineMg = size.caffeineMg ?? Math.round(tile.caffeineMg * size.ml / tile.ml);
-      return <button key={index} type="button" disabled={busy} onClick={() => { if (held.current) { held.current = false; return; } void postTile(index); }}
+      return <button key={index} type="button" disabled={busy||voice.active} onClick={() => { if (held.current) { held.current = false; return; } void postTile(index); }}
         onPointerDown={event => {
           if (!event.isPrimary || event.button !== 0) return;
           cancelHold(); held.current = false;
@@ -126,16 +129,16 @@ export default function IntakeSheet({ embedded = false, onClose }: { initialKind
       </button>;
     })}</div>
     {sizeTile !== null && <div id="drink-tile-sizes" role="group" aria-label={`${DRINK_TILES[sizeTile].name} sizes`} className="flex flex-wrap gap-2">
-      {TILE_SIZES[sizeTile].map(size => <button key={size.ml} type="button" disabled={busy} className="min-h-tap rounded-field border border-line px-3 py-2 text-detail active:bg-field" onClick={() => { held.current = false; void postTile(sizeTile, size.ml); }}>
+      {TILE_SIZES[sizeTile].map(size => <button key={size.ml} type="button" disabled={busy||voice.active} className="min-h-tap rounded-field border border-line px-3 py-2 text-detail active:bg-field" onClick={() => { held.current = false; void postTile(sizeTile, size.ml); }}>
         {size.word} · {size.ml} ml
       </button>)}
     </div>}
     <p className="-mt-1 text-[12px] text-muted">Tap to post. Hold to change the size.</p>
     <form onSubmit={event => { event.preventDefault(); void postCaption(); }} className="flex flex-col gap-2">
-      <div className="flex items-center gap-2"><Field className="min-w-0 flex-1" aria-label="Drink description" placeholder="Type a drink, e.g. oat latte, large" maxLength={1000} value={caption} disabled={busy} onChange={event => setCaption(event.target.value)} />
-        <button type="button" aria-label="Photograph a drink" disabled={busy} className="flex size-12 shrink-0 items-center justify-center rounded-field bg-text text-surface" onClick={() => { close(); window.dispatchEvent(new CustomEvent("open-entry", { detail: { entry: "camera" } })); }}><Icon name="camera" size={22} /></button>
+      <div className="flex flex-wrap items-center gap-2"><Field className="min-w-0 flex-1" aria-label="Drink description" placeholder="Type a drink, e.g. oat latte, large" maxLength={1000} value={caption} disabled={busy||voice.active} onChange={event => setCaption(event.target.value)} /><VoiceButton value={caption} onChange={setCaption} max={1000} disabled={busy} onActiveChange={voice.onActiveChange} className="contents [&>span]:order-last [&>p]:order-last" />
+        <button type="button" aria-label="Photograph a drink" disabled={busy||voice.active} className="flex size-12 shrink-0 items-center justify-center rounded-field bg-text text-surface" onClick={() => { close(); window.dispatchEvent(new CustomEvent("open-entry", { detail: { entry: "camera" } })); }}><Icon name="camera" size={22} /></button>
       </div>
-      {caption.trim() && <Button type="submit" disabled={busy}>{busy ? "Posting…" : "Post drink"}</Button>}
+      {caption.trim() && <Button type="submit" disabled={busy||voice.active}>{busy ? "Posting…" : "Post drink"}</Button>}
     </form>
     {error && <p role="alert" className="text-detail text-muted">{error}</p>}
   </div>;

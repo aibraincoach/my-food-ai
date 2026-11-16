@@ -1,6 +1,10 @@
 import { ioError } from "@/lib/worker/errors";
 import type { SupabaseClient } from "@supabase/supabase-js";
 
+// A killed function never releases its lease, so the lease is short and the
+// running worker keeps it alive with a heartbeat.
+export const LEASE_TTL_SECONDS = 60;
+export const LEASE_HEARTBEAT_MS = 20_000;
 // A lease older than its TTL is reclaimable inside try_acquire_worker_lease.
 export async function tryAcquireLease(
   admin: SupabaseClient,

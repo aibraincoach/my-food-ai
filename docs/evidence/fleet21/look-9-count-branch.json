@@ -1,0 +1,49 @@
+{
+  "name": "branch",
+  "seconds": 15.07,
+  "build": "local-1794753945287",
+  "count": 3,
+  "idsCount": 3,
+  "requests": [
+    {
+      "url": "http://127.0.0.1:60260/api/feed?ids=c94c55ff-1768-4178-89af-a8b7b643d3d3%2Cd1b65ed3-2522-4aaf-b2ea-9ebf7be13efc%2Cd3549391-d335-4913-8de2-d4c43890ca24%2Cd39e51b0-6b0b-4c1c-b25e-5fffe3d74017%2Cd63036b2-9962-4225-b4f7-d6caa6df7082%2Cd95eefd8-cd8e-4b26-9026-8e0be6db6a9f%2Cda28fe2b-dfd1-4c85-b038-bcc2a1ff79b9%2Cdddf3115-66dd-48d3-b35e-96be275f3704%2Cde31aa39-8950-4d0c-8c29-77438d5d5688%2Cde4d591d-00e5-412c-9318-7032766859e4%2Ce1b7b263-28cc-4aad-be32-e6ce31e13580%2Ceebea9b2-187b-44b3-a35d-82ffd9d1d456%2Cef96f77d-9e34-4225-a4f9-de89ccfd91c0%2Cf24010fe-b95d-46e6-b381-286ea7611d1e%2Cf8e10b51-4ed1-4a2c-aee9-a9f2d311f536&tz=America%2FEdmonton",
+      "time": 1794761382796
+    },
+    {
+      "url": "http://127.0.0.1:60260/api/feed?ids=c94c55ff-1768-4178-89af-a8b7b643d3d3%2Cd1b65ed3-2522-4aaf-b2ea-9ebf7be13efc%2Cd3549391-d335-4913-8de2-d4c43890ca24%2Cd39e51b0-6b0b-4c1c-b25e-5fffe3d74017%2Cd63036b2-9962-4225-b4f7-d6caa6df7082%2Cd95eefd8-cd8e-4b26-9026-8e0be6db6a9f%2Cda28fe2b-dfd1-4c85-b038-bcc2a1ff79b9%2Cdddf3115-66dd-48d3-b35e-96be275f3704%2Cde31aa39-8950-4d0c-8c29-77438d5d5688%2Cde4d591d-00e5-412c-9318-7032766859e4%2Ce1b7b263-28cc-4aad-be32-e6ce31e13580%2Ceebea9b2-187b-44b3-a35d-82ffd9d1d456%2Cef96f77d-9e34-4225-a4f9-de89ccfd91c0%2Cf24010fe-b95d-46e6-b381-286ea7611d1e%2Cf8e10b51-4ed1-4a2c-aee9-a9f2d311f536&tz=America%2FEdmonton",
+      "time": 1794761387476
+    },
+    {
+      "url": "http://127.0.0.1:60260/api/feed?ids=c94c55ff-1768-4178-89af-a8b7b643d3d3%2Cd1b65ed3-2522-4aaf-b2ea-9ebf7be13efc%2Cd3549391-d335-4913-8de2-d4c43890ca24%2Cd39e51b0-6b0b-4c1c-b25e-5fffe3d74017%2Cd63036b2-9962-4225-b4f7-d6caa6df7082%2Cd95eefd8-cd8e-4b26-9026-8e0be6db6a9f%2Cda28fe2b-dfd1-4c85-b038-bcc2a1ff79b9%2Cdddf3115-66dd-48d3-b35e-96be275f3704%2Cde31aa39-8950-4d0c-8c29-77438d5d5688%2Cde4d591d-00e5-412c-9318-7032766859e4%2Ce1b7b263-28cc-4aad-be32-e6ce31e13580%2Ceebea9b2-187b-44b3-a35d-82ffd9d1d456%2Cef96f77d-9e34-4225-a4f9-de89ccfd91c0%2Cf24010fe-b95d-46e6-b381-286ea7611d1e%2Cf8e10b51-4ed1-4a2c-aee9-a9f2d311f536&tz=America%2FEdmonton",
+      "time": 1794761391636
+    }
+  ],
+  "visibleStatuses": [
+    {
+      "id": "9bdd76af-828b-4678-a2d2-1adcb715badb",
+      "status": "ready"
+    },
+    {
+      "id": "87b870a4-b366-4930-968b-fe5345133956",
+      "status": "ready"
+    },
+    {
+      "id": "0c00ecb2-5503-49e9-8f0c-cb882990776e",
+      "status": "ready"
+    },
+    {
+      "id": "5f8bc835-2f2e-439e-8b5f-7aa1000e9340",
+      "status": "ready"
+    },
+    {
+      "id": "c50e2a39-c513-4a02-9a60-ad7eda577136",
+      "status": "ready"
+    },
+    {
+      "id": "2229f4c4-e2ce-4101-af86-99567c11061e",
+      "status": "ready"
+    }
+  ],
+  "note": "F2/F3 temporarily ready during count. Counts include all logged feed requests; residual branch requests address seeded meals outside the six rendered cards. Direct API inspection of one residual seeded meal had all optional-unavailable flags false; cause not established.",
+  "requestsContainingRenderedCards": 0
+}

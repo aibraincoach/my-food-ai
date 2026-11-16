@@ -7,7 +7,7 @@ import {createDayTotalsRefresh} from "@/lib/posts/day-totals-refresh";
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
-import { FEED_PAGE_SIZE, VISIBLE_MEAL_FILTER, hasUnavailableFields, retainCompleteItems, getPostCard, getPendingItems, type FeedPost } from "@/lib/posts/feed";
+import { FEED_PAGE_SIZE, readFeedDiscovery, hasUnavailableFields, retainCompleteItems, getPostCard, getPendingItems, type FeedPost } from "@/lib/posts/feed";
 import { tokens } from "@/lib/theme/tokens";
 import DayHeader from "@/components/DayHeader";
 import { dateInZone, shiftDay, getDayTotals, type FeedDayTotal } from "@/lib/posts/days";
@@ -46,7 +46,7 @@ export function CachedFeedFallback() {
 
 // Home discovers new rows independently of the optional Realtime connection.
 // Per-card refreshes remain in RealtimePost, so discovery fetches only IDs.
-export default function Feed({initialPage, initialUserId, initialZone = "UTC", fallbackOnly = false}: {initialZone?: string; fallbackOnly?: boolean; initialPage?: {posts: FeedPost[]; days: FeedDayTotal[]; nextCursor: string | null}; initialUserId?: string} = {}) {
+export default function Feed({initialPage, initialUserId, initialZone = "UTC", fallbackOnly = false}: {initialZone?: string; fallbackOnly?: boolean; initialPage?: {posts: FeedPost[]; days: FeedDayTotal[]; nextCursor: string | null; discoveryIds?: string[]}; initialUserId?: string} = {}) {
   const router = useRouter();
   const deviceZone=useDeviceTimeZone();
   const renderZone=deviceZone||initialZone;
@@ -108,6 +108,7 @@ export default function Feed({initialPage, initialUserId, initialZone = "UTC", f
     let loadingMore = false;
     let generation = 0;
     let hasFreshPage = false;
+    let discoveryKnown: Set<string> | null = null;
     let cacheDirty = false;
     let trustServerSeed = Boolean(initialPage && initialUserId && initialZone === zone);
     let realtimeSubscribed = false;
@@ -270,7 +271,7 @@ export default function Feed({initialPage, initialUserId, initialZone = "UTC", f
       const response = await fetch(`/api/feed?${params}`, {signal: AbortSignal.timeout(15000), cache: 'no-store'});
       if (response.status === 401) { router.replace('/sign-in'); throw new Error('Sign in required.'); }
       if (!response.ok) throw new Error('Feed could not be loaded.');
-      return await response.json() as {posts: FeedPost[]; nextCursor: string | null; days: FeedDayTotal[]};
+      return await response.json() as {posts: FeedPost[]; nextCursor: string | null; days: FeedDayTotal[]; discoveryIds?: string[]};
     };
     cachedListener.current = (posts, ownerId) => {
       if (!live || loaded || !userId || ownerId!==userId) return;
@@ -291,7 +292,7 @@ export default function Feed({initialPage, initialUserId, initialZone = "UTC", f
           pending.clear();deferred.clear();unavailable.clear();answered.clear();cacheInvalidated.clear();uploadDaysToRead.clear();
           for(const retry of timers)clearTimeout(retry);timers.clear();
           totalsRefresh.cancel();totalsRefresh=makeTotalsRefresh();
-          cursor=null;loadingMore=false;discovering=false;loaded=false;hasFreshPage=false;cacheDirty=false;usedServerPage=true;
+          cursor=null;loadingMore=false;discovering=false;loaded=false;hasFreshPage=false;discoveryKnown=null;cacheDirty=false;usedServerPage=true;
           setState({kind:"loading"});setPageError(false);setFreshResponse(false);
         }
         userId=nextUserId;
@@ -317,6 +318,7 @@ export default function Feed({initialPage, initialUserId, initialZone = "UTC", f
           }
         }
         baseline = page.posts.filter(post=>!unavailable.has(post.id)).map(post=>retainCompleteItems(baseline.find(prior=>prior.id===post.id),post));
+        if(discoveryKnown===null&&page.discoveryIds)discoveryKnown=new Set(page.discoveryIds);
         hasFreshPage = true; setFreshResponse(true);
         cursor = page.nextCursor;
         loaded = true;
@@ -352,10 +354,11 @@ export default function Feed({initialPage, initialUserId, initialZone = "UTC", f
         for(const [id,due] of deferred)if(retryNow||due<=Date.now())requestCard(id);
         if (!hasFreshPage) { await load(); return; }
         if (!userId) return;
-        const { data, error } = await supabase.from("posts").select("id")
-          .eq("user_id", userId).neq("status", "needs_input").or(VISIBLE_MEAL_FILTER).order("created_at", { ascending: false })
-          .order("id", { ascending: false }).limit(FEED_PAGE_SIZE);
+        const {data:discovered,error}=await readFeedDiscovery(supabase,userId);
         if (!live || error || discoveryGeneration!==generation) return;
+        // The initial server ID window already belongs to pagination. An ID
+        // absent from that window remains discoverable regardless of its dates.
+        const data=(discovered??[]).filter(row=>baseline.some(post=>post.id===row.id)||cards.has(row.id)||discoveryKnown===null||!discoveryKnown.has(row.id));
         // A full discovery window without any baseline overlap can hide a
         // gap larger than one page after an outage (or an initially empty feed).
         // Restart pagination from the fresh first page; the old cursor would

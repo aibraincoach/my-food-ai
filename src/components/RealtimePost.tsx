@@ -99,7 +99,8 @@ if(!isSettled(fresh.status)||fresh.status==='failed'){
     }, () => { pollBackoffMs = POLL_START_MS; void refresh(); }).on("postgres_changes", {
       event:"DELETE",schema:"public",table:"posts",filter:`id=eq.${initial.id}`,
     },(payload)=>{if((payload.old as {id?:string}).id===initial.id)retire("deleted");}).subscribe();
-    void refresh();
+    // A finished card drawn from the server's page is already current; re-reading every card on mount doubled the first feed read.
+    if (needsPolling()) void refresh();
     pollBackoffMs = POLL_START_MS;
     schedulePoll();
     const changed=(event:Event)=>{if((event as CustomEvent<{id:string}>).detail?.id===initial.id){pollBackoffMs = POLL_START_MS; void refresh();}};

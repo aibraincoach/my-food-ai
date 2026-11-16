@@ -1,0 +1,145 @@
+{
+  "account": "production test account2",
+  "readOnlyActions": true,
+  "568": {
+    "heading": true,
+    "profileMealLinks": 11,
+    "aboutMealLinks": 11,
+    "setsAgree": true,
+    "oldLink": false
+  },
+  "688": {
+    "firstMealCount": 6,
+    "afterMealCount": 6,
+    "rootPostCount": 0,
+    "scrollObservations": [
+      {
+        "before": 0,
+        "after": 700
+      },
+      {
+        "before": 700,
+        "after": 1400
+      },
+      {
+        "before": 1400,
+        "after": 2100
+      },
+      {
+        "before": 2100,
+        "after": 2800
+      }
+    ],
+    "leftoversSwipe": "not exercised: no existing leftovers photo menu in the loaded production test-account meals",
+    "afterEndScrollMealCount": 8,
+    "rootPostCountThroughPage2": 0
+  },
+  "552_553": {
+    "thumbs": [
+      {
+        "label": "Accept analysis",
+        "disabled": false,
+        "pressed": "true",
+        "color": "rgb(26, 25, 23)"
+      },
+      {
+        "label": "Correct analysis",
+        "disabled": false,
+        "pressed": "false",
+        "color": "rgb(26, 25, 23)"
+      },
+      {
+        "label": "Accept analysis",
+        "disabled": false,
+        "pressed": "false",
+        "color": "rgb(26, 25, 23)"
+      },
+      {
+        "label": "Correct analysis",
+        "disabled": false,
+        "pressed": "false",
+        "color": "rgb(26, 25, 23)"
+      }
+    ],
+    "choiceAndUnfinishedStates": "not changed or manufactured on production",
+    "existingStates": [
+      {
+        "label": "Accept analysis",
+        "disabled": false,
+        "pressed": "true",
+        "color": "rgb(26, 25, 23)",
+        "fills": [
+          "rgb(26, 25, 23)"
+        ]
+      },
+      {
+        "label": "Correct analysis",
+        "disabled": false,
+        "pressed": "false",
+        "color": "rgb(26, 25, 23)",
+        "fills": [
+          "none"
+        ]
+      },
+      {
+        "label": "Accept analysis",
+        "disabled": false,
+        "pressed": "false",
+        "color": "rgb(26, 25, 23)",
+        "fills": [
+          "none"
+        ]
+      },
+      {
+        "label": "Correct analysis",
+        "disabled": false,
+        "pressed": "false",
+        "color": "rgb(26, 25, 23)",
+        "fills": [
+          "none"
+        ]
+      },
+      {
+        "label": "Accept analysis",
+        "disabled": false,
+        "pressed": "false",
+        "color": "rgb(26, 25, 23)",
+        "fills": [
+          "none"
+        ]
+      },
+      {
+        "label": "Correct analysis",
+        "disabled": false,
+        "pressed": "false",
+        "color": "rgb(26, 25, 23)",
+        "fills": [
+          "none"
+        ]
+      },
+      {
+        "label": "Accept analysis",
+        "disabled": false,
+        "pressed": "false",
+        "color": "rgb(26, 25, 23)",
+        "fills": [
+          "none"
+        ]
+      },
+      {
+        "label": "Correct analysis",
+        "disabled": false,
+        "pressed": "false",
+        "color": "rgb(26, 25, 23)",
+        "fills": [
+          "none"
+        ]
+      }
+    ]
+  },
+  "683": {
+    "matchingFailedMealSeen": false,
+    "bookmarkTap": "not exercised"
+  },
+  "observedBuild": "8914b3e69a2e461fee95bd24aedfa5d38d7d1ede-1794799709426"
+}

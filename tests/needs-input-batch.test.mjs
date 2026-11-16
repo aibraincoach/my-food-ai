@@ -23,8 +23,8 @@ test('questions share immutable thumbnail identities; missing media retries and 
    return()=>q;
   }});return q;
  }};
- const exports={};vm.runInNewContext(source,{exports,AbortSignal,Date:{now:()=>now},document:{hidden:false},process:{env:{NEXT_PUBLIC_SUPABASE_URL:'https://fixture.invalid',NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY:'fixture-key'}},
-  setInterval(fn){tick=fn;return 1;},clearInterval(){},fetch:async()=>{throw Error('strip must not sign or fetch full-size photos');},
+ const exports={};vm.runInNewContext(source,{exports,AbortSignal,Date:{now:()=>now},document:{hidden:false,visibilityState:'visible',addEventListener(){},removeEventListener(){}},window:{addEventListener(){},removeEventListener(){}},process:{env:{NEXT_PUBLIC_SUPABASE_URL:'https://fixture.invalid',NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY:'fixture-key'}},
+  setTimeout(fn){tick=fn;return 1;},clearTimeout(){},fetch:async()=>{throw Error('strip must not sign or fetch full-size photos');},
   require(name){if(name==='react')return{useEffect:fn=>effects.push(fn),useState:initial=>[initial,value=>states.push(value)]};if(name==='react/jsx-runtime')return{jsx:()=>null,jsxs:()=>null};if(name==='@/lib/supabase/client')return{createClient:()=>db};if(name==='@/lib/posts/feed-photo-url')return{smallFeedPhotoUrl};if(name==='@/lib/pipeline/needs-input')return{readNeedsInput};if(name.startsWith('@/components/'))return{default:()=>null};throw Error(name);}
  });
  exports.default();const cleanup=effects[0]();await turn();await turn();

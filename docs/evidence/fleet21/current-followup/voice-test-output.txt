@@ -1,0 +1,46 @@
+TAP version 13
+# Subtest: LightComposer phone preserves speech through recording and transcription, then submits combined text
+ok 1 - LightComposer phone preserves speech through recording and transcription, then submits combined text
+  ---
+  duration_ms: 286.602702
+  type: 'test'
+  ...
+# Subtest: LightComposer desktop preserves speech through recording and transcription, then submits combined text
+ok 2 - LightComposer desktop preserves speech through recording and transcription, then submits combined text
+  ---
+  duration_ms: 104.171525
+  type: 'test'
+  ...
+# Subtest: IntakeSheet phone preserves speech through recording and transcription, then submits combined text
+ok 3 - IntakeSheet phone preserves speech through recording and transcription, then submits combined text
+  ---
+  duration_ms: 100.911751
+  type: 'test'
+  ...
+# Subtest: a failed transcription releases the guard and preserves typed text
+ok 4 - a failed transcription releases the guard and preserves typed text
+  ---
+  duration_ms: 75.280436
+  type: 'test'
+  ...
+# Subtest: drink detection during recording keeps the live clip until its transcript reaches the caption
+ok 5 - drink detection during recording keeps the live clip until its transcript reaches the caption
+  ---
+  duration_ms: 66.424908
+  type: 'test'
+  ...
+# Subtest: drink detection during transcribing keeps the live clip until its transcript reaches the caption
+ok 6 - drink detection during transcribing keeps the live clip until its transcript reaches the caption
+  ---
+  duration_ms: 59.007327
+  type: 'test'
+  ...
+1..6
+# tests 6
+# suites 0
+# pass 6
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1790.157488

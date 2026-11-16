@@ -17,7 +17,7 @@ Built for the Meta hackathon, October 26 to November 4, 2026.
 
 To configure the open model on Baseten, supply the server-only `IDENTIFY_OPEN_API_KEY`, `IDENTIFY_OPEN_BASE_URL` and `IDENTIFY_OPEN_MODEL` values named in [.env.example](.env.example). Keep their values in private environment configuration. Built with Muse Spark Open under the [Muse Model License](https://huggingface.co/meta-models/Muse-Spark-Open-816B-A42B/blob/main/LICENSE.md).
 
-USDA FoodData Central supplies nutrition references. It is a database, not a model. A food with no matching reference is shown as unavailable, never guessed. [Food matching](src/lib/fdc/match.ts), [third-party notices](THIRD_PARTY.md).
+USDA FoodData Central supplies nutrition references. It is a database, not a model. When no exact reference exists, the closest generic USDA record is used and named. When none is close, Muse Spark estimates typical nutrition and the meal says it is an estimate. A food is shown as unavailable, with the reason, only when the model gives no estimate or does not treat it as food. [Food matching](src/lib/fdc/match.ts), [third-party notices](THIRD_PARTY.md).
 
 Packaged foods that USDA FoodData Central does not hold are looked up in Open Food Facts. Contains data from [Open Food Facts](https://world.openfoodfacts.org), available under the [Open Database License](https://opendatacommons.org/licenses/odbl/1-0/).
 

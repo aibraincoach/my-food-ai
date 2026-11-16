@@ -1,0 +1,89 @@
+[
+  {
+    "url": "http://127.0.0.1:60260/p/1b8122bc-9ba5-46da-99ac-92038cce7f17_9b7f273981414e8085482f5739f956f8_1600.webp",
+    "shownMs": 634,
+    "resource": {
+      "startTime": 301,
+      "responseEnd": 482,
+      "duration": 181,
+      "transferSize": 23340,
+      "encodedBodySize": 23040,
+      "decodedBodySize": 23040
+    },
+    "naturalWidth": 312,
+    "viewport": 390,
+    "devicePixelRatio": 3,
+    "build": "local-1794753524390",
+    "file": {
+      "requestedURL": "http://127.0.0.1:60260/p/1b8122bc-9ba5-46da-99ac-92038cce7f17_9b7f273981414e8085482f5739f956f8_1600.webp",
+      "finalURL": "http://127.0.0.1:60260/p/1b8122bc-9ba5-46da-99ac-92038cce7f17_9b7f273981414e8085482f5739f956f8_1600.webp",
+      "status": 200,
+      "bytes": 23040,
+      "contentType": "image/webp",
+      "cacheControl": "public, max-age=31536000, s-maxage=86400, immutable",
+      "vercelCache": null,
+      "width": 1280,
+      "height": 853,
+      "format": "webp"
+    },
+    "coldConfirmed": true
+  },
+  {
+    "url": "http://127.0.0.1:60260/p/1b8122bc-9ba5-46da-99ac-92038cce7f17_9b7f273981414e8085482f5739f956f8_1600.webp",
+    "shownMs": 915,
+    "resource": {
+      "startTime": 402,
+      "responseEnd": 606,
+      "duration": 204,
+      "transferSize": 23340,
+      "encodedBodySize": 23040,
+      "decodedBodySize": 23040
+    },
+    "naturalWidth": 312,
+    "viewport": 390,
+    "devicePixelRatio": 3,
+    "build": "local-1794753524390",
+    "file": {
+      "requestedURL": "http://127.0.0.1:60260/p/1b8122bc-9ba5-46da-99ac-92038cce7f17_9b7f273981414e8085482f5739f956f8_1600.webp",
+      "finalURL": "http://127.0.0.1:60260/p/1b8122bc-9ba5-46da-99ac-92038cce7f17_9b7f273981414e8085482f5739f956f8_1600.webp",
+      "status": 200,
+      "bytes": 23040,
+      "contentType": "image/webp",
+      "cacheControl": "public, max-age=31536000, s-maxage=86400, immutable",
+      "vercelCache": null,
+      "width": 1280,
+      "height": 853,
+      "format": "webp"
+    },
+    "coldConfirmed": true
+  },
+  {
+    "url": "http://127.0.0.1:60260/p/1b8122bc-9ba5-46da-99ac-92038cce7f17_9b7f273981414e8085482f5739f956f8_1600.webp",
+    "shownMs": 627,
+    "resource": {
+      "startTime": 328,
+      "responseEnd": 511,
+      "duration": 183,
+      "transferSize": 23340,
+      "encodedBodySize": 23040,
+      "decodedBodySize": 23040
+    },
+    "naturalWidth": 312,
+    "viewport": 390,
+    "devicePixelRatio": 3,
+    "build": "local-1794753524390",
+    "file": {
+      "requestedURL": "http://127.0.0.1:60260/p/1b8122bc-9ba5-46da-99ac-92038cce7f17_9b7f273981414e8085482f5739f956f8_1600.webp",
+      "finalURL": "http://127.0.0.1:60260/p/1b8122bc-9ba5-46da-99ac-92038cce7f17_9b7f273981414e8085482f5739f956f8_1600.webp",
+      "status": 200,
+      "bytes": 23040,
+      "contentType": "image/webp",
+      "cacheControl": "public, max-age=31536000, s-maxage=86400, immutable",
+      "vercelCache": null,
+      "width": 1280,
+      "height": 853,
+      "format": "webp"
+    },
+    "coldConfirmed": true
+  }
+]

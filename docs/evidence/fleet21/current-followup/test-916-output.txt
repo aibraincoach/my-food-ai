@@ -1,0 +1,318 @@
+TAP version 13
+# Subtest: missing optional cards back off and stop automatic hydration, but realtime still updates
+ok 1 - missing optional cards back off and stop automatic hydration, but realtime still updates
+  ---
+  duration_ms: 163.43241
+  type: 'test'
+  ...
+# Subtest: hidden pages make no reads; active analysis polls from two seconds and backs off
+ok 2 - hidden pages make no reads; active analysis polls from two seconds and backs off
+  ---
+  duration_ms: 85.869231
+  type: 'test'
+  ...
+# Subtest: clarification and deleted meals retire instead of polling invisibly
+ok 3 - clarification and deleted meals retire instead of polling invisibly
+  ---
+  duration_ms: 80.382676
+  type: 'test'
+  ...
+# Subtest: complete server cards skip the mount read but a revision-fenced card still repairs itself
+ok 4 - complete server cards skip the mount read but a revision-fenced card still repairs itself
+  ---
+  duration_ms: 104.84464
+  type: 'test'
+  ...
+# Subtest: a failed server seed does not retire the independently hydrated cached feed
+ok 5 - a failed server seed does not retire the independently hydrated cached feed
+  ---
+  duration_ms: 509.071639
+  type: 'test'
+  ...
+# Subtest: an authoritative empty server feed retires an obsolete cached snapshot
+ok 6 - an authoritative empty server feed retires an obsolete cached snapshot
+  ---
+  duration_ms: 266.179426
+  type: 'test'
+  ...
+# Subtest: deleting a cached meal persists its removal and a failed delete can restore it
+ok 7 - deleting a cached meal persists its removal and a failed delete can restore it
+  ---
+  duration_ms: 165.653192
+  type: 'test'
+  ...
+# Subtest: accepted corrections invalidate stale cached nutrition and persist the later ready revision
+ok 8 - accepted corrections invalidate stale cached nutrition and persist the later ready revision
+  ---
+  duration_ms: 112.026742
+  type: 'test'
+  ...
+# Subtest: the unseeded main feed keeps the owner cache when fresh loading fails
+ok 9 - the unseeded main feed keeps the owner cache when fresh loading fails
+  ---
+  duration_ms: 117.770696
+  type: 'test'
+  ...
+# Subtest: matching browser and SSR owners reuse the server page without another first-page read
+ok 10 - matching browser and SSR owners reuse the server page without another first-page read
+  ---
+  duration_ms: 90.200477
+  type: 'test'
+  ...
+# Subtest: an SSR owner mismatch clears foreign posts and totals and ignores the old hook cache
+ok 11 - an SSR owner mismatch clears foreign posts and totals and ignores the old hook cache
+  ---
+  duration_ms: 88.55977
+  type: 'test'
+  ...
+# Subtest: a failed fresh read after an owner mismatch cannot keep foreign SSR or hook-cache meals visible
+ok 12 - a failed fresh read after an owner mismatch cannot keep foreign SSR or hook-cache meals visible
+  ---
+  duration_ms: 60.545795
+  type: 'test'
+  ...
+# Subtest: discovery leaves older off-page meals in pagination while finding new back-dated meals
+ok 13 - discovery leaves older off-page meals in pagination while finding new back-dated meals
+  ---
+  duration_ms: 81.393027
+  type: 'test'
+  ...
+# feed read hydration 19
+# feed read revision 1
+# feed read items 1
+# feed read revision 0
+# feed read media 4
+# feed read saved 4
+# feed read first-photo 0
+# feed read signed-urls 1
+# Subtest: feed and detail normalize the same legacy branded row
+ok 14 - feed and detail normalize the same legacy branded row
+  ---
+  duration_ms: 44.778761
+  type: 'test'
+  ...
+# Subtest: batch nutrition preserves post ownership, legacy scaling and remainder fallback
+ok 15 - batch nutrition preserves post ownership, legacy scaling and remainder fallback
+  ---
+  duration_ms: 254.917676
+  type: 'test'
+  ...
+# Subtest: only a matching analysis revision may retain previously read nutrition
+ok 16 - only a matching analysis revision may retain previously read nutrition
+  ---
+  duration_ms: 1.470029
+  type: 'test'
+  ...
+# Subtest: transient auxiliary failures retain known fields and recovery still applies genuine removals
+ok 17 - transient auxiliary failures retain known fields and recovery still applies genuine removals
+  ---
+  duration_ms: 0.891353
+  type: 'test'
+  ...
+# feed read profiles 7018
+# feed read revision 1
+# feed read items 0
+# feed read revision 1
+# feed read media 5
+# feed read saved 5
+# feed read signed-urls 1
+# Subtest: fast first-photo read and full snapshot share the same owner-scoped capability
+ok 18 - fast first-photo read and full snapshot share the same owner-scoped capability
+  ---
+  duration_ms: 7024.255405
+  type: 'test'
+  ...
+# feed read profiles 7010
+# feed read hydration 2
+# Subtest: all feed and refreshed photos use small owner URLs while only card PNGs are signed
+ok 19 - all feed and refreshed photos use small owner URLs while only card PNGs are signed
+  ---
+  duration_ms: 14024.574241
+  type: 'test'
+  ...
+# feed read posts 44 status 200
+# feed read revision 5
+# feed read items 23
+# feed read revision 0
+# feed read media 34
+# feed read saved 35
+# feed read signed-urls 0
+# Subtest: retrying edited meals does not restart the initial analysis
+ok 20 - retrying edited meals does not restart the initial analysis
+  ---
+  duration_ms: 1.24583
+  type: 'test'
+  ...
+# Subtest: refreshing or retrying an older meal preserves chronological order
+ok 21 - refreshing or retrying an older meal preserves chronological order
+  ---
+  duration_ms: 1.040312
+  type: 'test'
+  ...
+# feed read profiles 7046
+# feed read day-totals 8
+# feed read hydration 9
+# feed read posts 1 status 200
+# feed read revision 2
+# feed read items 2
+# feed read revision 1
+# feed read media 5
+# feed read saved 5
+# feed read signed-urls 0
+# feed read profiles 7011
+# feed read day-totals 3
+# feed read hydration 3
+# feed read posts 1 status 200
+# feed read revision 1
+# feed read items 1
+# feed read revision 0
+# feed read media 3
+# feed read saved 3
+# feed read signed-urls 0
+# feed read profiles 7011
+# feed read day-totals 5
+# feed read hydration 6
+# feed read posts 1 status 200
+# feed read revision 1
+# feed read items 1
+# feed read revision 0
+# feed read media 2
+# feed read saved 2
+# feed read signed-urls 0
+# feed read profiles 7008
+# feed read day-totals 3
+# feed read hydration 4
+# feed read posts 1 status 200
+# feed read revision 0
+# feed read items 1
+# feed read revision 0
+# feed read media 1
+# feed read saved 1
+# feed read signed-urls 1
+# feed read profiles 7007
+# feed read day-totals 2
+# feed read hydration 2
+# Subtest: 21 posts created together all appear once across pages
+ok 22 - 21 posts created together all appear once across pages
+  ---
+  duration_ms: 35256.28258
+  type: 'test'
+  ...
+# Subtest: invalid cursor data is rejected before any database request
+ok 23 - invalid cursor data is rejected before any database request
+  ---
+  duration_ms: 2.43006
+  type: 'test'
+  ...
+# Subtest: uninitialized failure retries initial analysis before pending correction; initialized replay recomputes
+ok 24 - uninitialized failure retries initial analysis before pending correction; initialized replay recomputes
+  ---
+  duration_ms: 0.152038
+  type: 'test'
+  ...
+# feed read hydration 1
+# feed read discovery 1
+# feed read posts 1 status 200
+# feed read media 1
+# feed read saved 1
+# feed read profiles 1
+# feed read revision 1
+# feed read signed-urls 1
+# feed read items 1
+# feed read revision 1
+# feed read day-totals 2
+# feed read hydration 2
+# Subtest: persisted questions remain hidden while queued but failed answers stay recoverable
+ok 25 - persisted questions remain hidden while queued but failed answers stay recoverable
+  ---
+  duration_ms: 7017.993935
+  type: 'test'
+  ...
+# Subtest: first page limit is six and optional field failures do not hide posts
+ok 26 - first page limit is six and optional field failures do not hide posts
+  ---
+  duration_ms: 10.067519
+  type: 'test'
+  ...
+# feed read discovery 1
+# feed read posts 0 status 200
+# feed read revision 1
+# feed read items 0
+# feed read revision 0
+# feed read media 2
+# feed read saved 2
+# feed read profiles 2
+# feed read signed-urls 0
+# Subtest: same-tick browser card refreshes share one cancellable server request
+ok 27 - same-tick browser card refreshes share one cancellable server request
+  ---
+  duration_ms: 2.966217
+  type: 'test'
+  ...
+# Subtest: the short Home page captures its discovery IDs before the meal snapshot
+ok 28 - the short Home page captures its discovery IDs before the meal snapshot
+  ---
+  duration_ms: 3.72593
+  type: 'test'
+  ...
+# Subtest: retiring the last meal clears feed state and rejects an older hydration result
+ok 29 - retiring the last meal clears feed state and rejects an older hydration result
+  ---
+  duration_ms: 347.488854
+  type: 'test'
+  ...
+# feed read media 16
+# feed read saved 16
+# feed read profiles 16
+# feed read revision 16
+# feed read signed-urls 1
+# feed read items 3
+# feed read revision 1
+# feed read media 6
+# feed read saved 6
+# feed read profiles 7
+# feed read revision 7
+# feed read signed-urls 0
+# feed read items 1
+# feed read revision 0
+# feed read media 3
+# feed read saved 3
+# feed read profiles 3
+# feed read revision 3
+# feed read signed-urls 0
+# feed read items 1
+# feed read revision 0
+# feed read media 2
+# feed read saved 2
+# feed read profiles 2
+# feed read revision 2
+# feed read signed-urls 0
+# feed read items 1
+# feed read revision 0
+# Subtest: a revision race or unavailable revision read marks a ready server card for repair
+ok 30 - a revision race or unavailable revision read marks a ready server card for repair
+  ---
+  duration_ms: 95.98019
+  type: 'test'
+  ...
+# Subtest: consistent and genuinely empty revisions do not add a redundant repair read
+ok 31 - consistent and genuinely empty revisions do not add a redundant repair read
+  ---
+  duration_ms: 9.024408
+  type: 'test'
+  ...
+# Subtest: a ready card with an unavailable item snapshot keeps polling and recovers its actual nutrition
+ok 32 - a ready card with an unavailable item snapshot keeps polling and recovers its actual nutrition
+  ---
+  duration_ms: 128.564849
+  type: 'test'
+  ...
+1..32
+# tests 32
+# suites 0
+# pass 32
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 44730.630421

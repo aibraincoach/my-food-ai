@@ -16,7 +16,7 @@ function harness(makeDraft){const rows=new Map();const store=withIntents({all:as
 test('posting before PUT completion waits; three failures never publish; online retries safely',async()=>{
  let release,attempts=0,published=0,shouldFail=true;const gate=new Promise(resolve=>release=resolve);
  const draft={setProgress(){},snapshot:async()=>null,stage:async()=>{attempts++;await gate;if(shouldFail)throw Error('dropped');},submit:async()=>{published++;return{postId:'post'};}};
- const{manager}=harness(()=>draft);await manager.initialize('owner');const id=manager.stage([file],fields);manager.post(id);await pause();assert.equal(published,0);release();await until(()=>manager.list()[0]?.state==='failed');assert.equal(attempts,3);assert.equal(published,0);shouldFail=false;manager.online();await until(()=>published===1);assert.equal(published,1);
+ const{manager}=harness(()=>draft);await manager.initialize('owner');const id=manager.stage([file],fields);manager.post(id);await pause();assert.equal(published,0);release();await until(()=>manager.list()[0]?.state==='failed');assert.equal(attempts,6,'posting during the first pass queues one more pass of three tries');assert.equal(published,0);shouldFail=false;manager.online();await until(()=>published===1);assert.equal(published,1);
 });
 test('a reload restores the persisted photo and failed draft, then explicit retry can publish',async()=>{
  let publishes=0;const bad={setProgress(){},snapshot:async()=>null,stage:async()=>{throw Error('offline')},submit:async()=>{throw Error('must not publish')}};
@@ -75,6 +75,16 @@ test('publish intent survives a slow draft write and still publishes after reloa
  await store.put({operationId:id,ownerId:'owner',createdAt:now,reservedAt:now,...fields,files:[file],snapshot:null,posted:false,state:'uploading',sent:0,total:file.size});
  assert.equal(rows.get(id).posted,false);
  const restored=new UploadManager(store,()=>draft,async()=>{});await restored.initialize('owner');assert.equal(restored.list()[0].posted,true);
+ await until(()=>publishes===1);assert.equal(restored.list()[0].postId,'posted');
+});
+test('a draft save delayed beyond 700 ms still acknowledges Post within 1 second and publishes after a rebuild from saved data',async()=>{
+ let publishes=0;const draft={setProgress(){},restore(){},snapshot:async()=>({id:'posted',images:[],completed:[]}),stage:async()=>new Promise(()=>{}),submit:async()=>{publishes++;return{postId:'posted'}}};
+ const {manager,store,rows}=harness(()=>draft);await manager.initialize('owner');const id=manager.stage([file],fields);await until(()=>rows.size===1);
+ const put=store.put;store.put=async row=>{await new Promise(resolve=>setTimeout(resolve,800));return put(row);};
+ const started=Date.now();assert.equal(await manager.post(id),true);assert.ok(Date.now()-started<1000,'Post is acknowledged within 1 second');
+ assert.equal(rows.get(id).posted,false,'the saved draft is still marked not posted');assert.equal((await store.allIntents()).length,1);
+ store.put=put;
+ const restored=new UploadManager(store,()=>({...draft,stage:async()=>{}}),async()=>{});await restored.initialize('owner');assert.equal(restored.list()[0].posted,true);
  await until(()=>publishes===1);assert.equal(restored.list()[0].postId,'posted');
 });
 test('posting reports a rejected durable flag without stopping the upload',async()=>{

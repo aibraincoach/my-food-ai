@@ -84,8 +84,8 @@ test('feed never binds a new revision to data hydrated across a correction commi
   if(url.pathname.endsWith('/rpc/feedback_revision'))data=revisions.shift();
   return new Response(JSON.stringify(data),{headers:{'Content-Type':'application/json'}});
  }}});
- assert.equal((await getPostCard(client,'post')).modelCommentId,null);
- revisions=[{modelCommentId:'new',fingerprint:'b'},{modelCommentId:'new',fingerprint:'b'}];assert.equal((await getPostCard(client,'post')).modelCommentId,'new');
+ const raced=await getPostCard(client,'post');assert.equal(raced.modelCommentId,null);assert.equal(raced.revisionUnavailable,true,'a changed revision must request a repair read');
+ revisions=[{modelCommentId:'new',fingerprint:'b'},{modelCommentId:'new',fingerprint:'b'}];const stable=await getPostCard(client,'post');assert.equal(stable.modelCommentId,'new');assert.equal(stable.revisionUnavailable,false);
  revisions=[{modelCommentId:'new',fingerprint:'b'},{modelCommentId:'new',fingerprint:'c'}];
  assert.equal((await getPostCard(client,'post')).modelCommentId,null);
 });

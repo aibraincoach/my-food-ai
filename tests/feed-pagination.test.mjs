@@ -139,3 +139,18 @@ test('same-tick browser card refreshes share one cancellable server request', as
     assert.deepEqual(result.map(post=>post.id),[uuid(1),uuid(2),uuid(1)]);assert.equal(calls.length,1);
   } finally {globalThis.fetch=originalFetch;if(previous===undefined)delete globalThis.window;else globalThis.window=previous;}
 });
+
+
+test('the short Home page captures its discovery IDs before the meal snapshot',async()=>{
+ const reads=[];
+ const client=createClient('https://fixture.invalid','fixture',{global:{fetch:async input=>{
+  const url=new URL(input instanceof Request?input.url:String(input));
+  if(url.pathname.endsWith('/posts')){
+   if(url.searchParams.get('select')==='id'){reads.push('discovery');return Response.json([{id:'old-off-page'}]);}
+   reads.push('page');return Response.json([{id:uuid(1),user_id:uuid(99),status:'queued',caption:'',created_at:timestamp,eaten_at:timestamp}]);
+  }
+  return Response.json([]);
+ }}});
+ const page=await getFeed(client,uuid(99),null,'UTC',6,{summaries:false});
+ assert.deepEqual(page.discoveryIds,['old-off-page']);assert.deepEqual(reads,['discovery','page'],'an insert committed after the ID read remains unknown and discoverable');
+});

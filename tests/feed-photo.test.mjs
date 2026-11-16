@@ -59,7 +59,7 @@ test('stream byte and decoded pixel limits are enforced; owner paths cannot trav
  await assert.rejects(photo.readFeedSource(new Response(new Uint8Array(4),{headers:{'content-length':String(photo.MAX_FEED_SOURCE_BYTES+1)}})),/large/);
  await assert.rejects(photo.readFeedSource(new Response(new ReadableStream({start(c){c.enqueue(new Uint8Array(photo.MAX_FEED_SOURCE_BYTES));c.enqueue(new Uint8Array(1));c.close();}}))),/large/);
  await assert.rejects(photo.readFeedSource(new Response('not JPEG')),/JPEG/);
- const oversized=await sharp({create:{width:1500,height:1500,channels:3,background:'#fff'}}).jpeg().toBuffer();
+ const oversized=await sharp({create:{width:2100,height:2100,channels:3,background:'#fff'}}).jpeg().toBuffer();
  await assert.rejects(photo.resizeFeedPhoto(oversized),/pixel limit/i);
 });
 

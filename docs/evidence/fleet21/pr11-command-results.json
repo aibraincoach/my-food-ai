@@ -1,0 +1,18 @@
+{
+  "branchHead": "58b02b13dc0f954d8f058c8a64299f605e53a578",
+  "postClose": {
+    "exitCode": 1,
+    "error": "Page.navigate timeout",
+    "receipt": "pr11-post-close.json",
+    "runsCompleted": 0
+  },
+  "beer": {
+    "exitCode": 1,
+    "error": "The beer post never settled with a question",
+    "receipt": "pr11-beer.json",
+    "runsCompleted": 0,
+    "cleanupPostAbsent": true,
+    "cleanupPushFixtureRemoved": true
+  },
+  "notes": "Both commands ran against their own PR build and disposable backend. Post-close used an isolated Chromium CDP profile; beer an isolated Firefox BiDi profile. No production rows touched. Scripted identify fixture returns needs_input:null; expected clarification was not produced. No product fix attempted for these remaining failures."
+}
