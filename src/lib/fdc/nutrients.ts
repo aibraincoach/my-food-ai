@@ -179,7 +179,8 @@ export function scaleNutrition(
   return {
     calories: scale(ENERGY_IDS, energyToKcal),
     proteinG: scale([PROTEIN_ID], unitToGrams),
-    carbsG: scale([CARBS_ID], unitToGrams),
+    // USDA carbohydrate is "by difference" and can come out slightly below zero; a food never has negative carbs.
+    carbsG: (carbs => carbs === null ? null : Math.max(0, carbs))(scale([CARBS_ID], unitToGrams)),
     fatG: scale([FAT_ID], unitToGrams),
     fibreG: scale([FIBRE_ID], unitToGrams),
     sugarG: scale(SUGAR_IDS, unitToGrams),

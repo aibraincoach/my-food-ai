@@ -50,7 +50,7 @@ export function nutritionNumber(value: Numeric): number | null {
 
 export function formatNutrition(value: Numeric): string {
   const amount = nutritionNumber(value);
-  return amount === null ? "—" : Math.round(amount).toLocaleString("en-US");
+  return amount === null ? "—" : Math.round(Math.max(0, amount)).toLocaleString("en-US");
 }
 
 // Preserve positive energy below the whole-kcal display precision; zero is a measured value.
