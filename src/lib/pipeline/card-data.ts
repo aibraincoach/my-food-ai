@@ -61,7 +61,7 @@ export function cardDataFromRow(source: CardSource): CardData {
     items: source.items.map(item => ({ name: item.name, grams: item.portion_grams == null ? null : toNumber(item.portion_grams) })),
     unavailable: unavailableFoods(totals),
     waterLine: (source.foodWaterMl ?? 0) >= 50 && hydration ? `Water in this meal: ${Math.round(source.foodWaterMl!).toLocaleString("en-US")} ml · Consumed today: ${hydration.totalMl.toLocaleString("en-US")} ml` : undefined,
-    mealDrinkLine: !drink && source.itemDrinks?.length ? `Drank in this meal: ${source.itemDrinks.map(row => `${Math.round(row.ml).toLocaleString("en-US")} ml ${row.label}`).join(" · ")}${source.itemDrinks.reduce((sum, row) => sum + row.caffeineMg, 0) > 0 ? ` · ${Math.round(source.itemDrinks.reduce((sum, row) => sum + row.caffeineMg, 0))} mg caffeine` : ""}` : undefined,
+    mealDrinkLine: !drink && source.itemDrinks?.length ? `Drinks with this meal: ${source.itemDrinks.map(row => `${Math.round(row.ml).toLocaleString("en-US")} ml ${row.label}`).join(" · ")}${source.itemDrinks.reduce((sum, row) => sum + row.caffeineMg, 0) > 0 ? ` · ${Math.round(source.itemDrinks.reduce((sum, row) => sum + row.caffeineMg, 0))} mg caffeine` : ""}` : undefined,
     footer: source.footer ?? remainderFooter(source.items),
   };
 }

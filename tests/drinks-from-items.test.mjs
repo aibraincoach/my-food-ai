@@ -85,7 +85,7 @@ test('all-drink photo aggregates the card, while mixed meal copy retains consume
   assert.equal(hydrated.kind, 'drink'); assert.equal(hydrated.drink.source, 'item'); assert.equal(hydrated.drink.ml, 355);
   const mixed = { items: [{ name: 'Meal', portion_grams: 100, calories: 200, protein_g: 10, carbs_g: 20, fat_g: 8 }],
     itemDrinks: hydrated.itemDrinks, kind: 'meal' };
-  assert.equal(cardDataFromRow(mixed).mealDrinkLine, 'Drank in this meal: 355 ml Cola · 34 mg caffeine');
+  assert.equal(cardDataFromRow(mixed).mealDrinkLine, 'Drinks with this meal: 355 ml Cola · 34 mg caffeine');
   assert.match(summaryLine(mixed), /Consumed: 200 kcal · 355 ml drank · 34 mg caffeine · 10 g protein/);
 });
 test('0029 preserves categories in every SQL writer and restricts linked intake writes', () => {
