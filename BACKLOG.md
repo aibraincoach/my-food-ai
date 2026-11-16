@@ -1,6 +1,6 @@
 # My Food AI — Backlog†
 
-Last edited: Monday 2026-11-16 at 16:38 WIB (UTC+07:00) by Claude, PM
+Last edited: Monday 2026-11-16 at 16:42 WIB (UTC+07:00) by Claude, PM
 
 The only job of the PM is to maintain this backlog and keep it completely up to date. Failing to do so is immediately terminable.
 
@@ -590,13 +590,13 @@ The owner wants the app eventually to show how much of the user's daily intake i
 
 Blocked until after the hackathon, and blocked by the claims rule: the app shows no percentage that reads as progress, and a share of intake is a percentage. The owner decides whether this one figure may break that rule. Done when the owner has lifted the rule for this figure and its design is drawn.
 
-### Flickr-style web addresses throughout the app (issue number to come)
+### #940 Flickr-style web addresses throughout the app
 
 The app's addresses do not tell a person what they are looking at, so people cannot guess, edit or share them the way they can on Flickr. The owner wants addresses where the path names the thing (a person, a meal, a day), so finding and sharing data works by reading and editing the address.
 
 Blocked until the owner has finished researching what the real planner must be told: which pages get such an address, what each address shows a signed-out visitor, and how it fits the public photo addresses (/p/…, #915). Today's pages use /posts/<id>, /days/<date> and /profile. Done when the owner has written the address pattern and a planner brief lists every page and what its address returns.
 
-### An agent holding an API key cannot read its owner's data through a plain web address (issue number to come)
+### #941 An agent holding an API key cannot read its owner's data through a plain web address
 
 A person can create an API key, but there is no way for a client such as ChatGPT to use it. The owner wants a person to hand the key to ChatGPT and have it fetch that person's data from an address such as /agent/<the key>/<what it wants>, and wants instructions for MCP clients behind a plain link on the website.
 
