@@ -1,6 +1,8 @@
 # My Food AI — Backlog†
 
-Last edited: Monday 2026-11-16 at 16:20 WIB (UTC+07:00) by Claude, PM
+Last edited: Monday 2026-11-16 at 16:27 WIB (UTC+07:00) by Claude, PM
+
+Needs the owner (Nov 16, 16:27 WIB): (1) The new name for the operational rules list (#908); you said the name is yours to give. (2) Docs PR #933, the Wall entry about the PM's failure: merge it? You wrote it and said it merges only on your word. (3) Was the removed designer zip "My Food AI app design (3).zip" needed? It is gone from uploads; say if it must be restored. Everything else is decided by the PM and is moving.
 
 The only job of the PM is to maintain this backlog and keep it completely up to date. Failing to do so is immediately terminable.
 
@@ -464,40 +466,6 @@ On the second slide of a meal on desktop, the round left arrow sits on top of th
 
 The fix adds extra space beside the numbers card. On the live app at 1100, 1280 and 1440 px wide no arrow touches any text, and the smallest gap on the left is 21 px. On the phone the photo rail holds only photos and nutrition is shown separately, so there is no numbers slide with arrows. Done when it is confirmed that no arrow covers any text or number on any slide at those widths, and the phone case is confirmed as not applicable.
 
-## Backlog for Designer
-
-### #453 The barcode prompt is printed over the live camera picture
-
-On the Barcode screen, the line "Point at the barcode. It reads on its own." runs across the camera picture and cannot be read against a busy shelf.
-
-No design exists yet for where this line sits, so the designer chooses its place. Done when the prompt is readable over any camera picture, in a phone-sized browser.
-
-### #455 The card you swipe to on a drink's photo shows a number and not what the drink is
-
-Swiping right on a drink's photo opens a card with one big millilitre number, so the card does not say what the drink is or why it exists.
-
-The swiped card for the tiki cocktail shows "220 ml" in large type, a line of text and "1,200 ml consumed today" split into drinks and food. A card for a drink should lead with its kind as a picture: a coffee cup for coffee with its caffeine, a water cup for water with one cup for every 250 ml drunk, and a cocktail glass or a wine glass for those with their alcohol, and the day's drinks drawn as the same cups. This is built on main. GitHub shows this issue closed, and it stays here until its done condition is met. Owner, Nov 15, 10:52 PM WIB: the card slide of "Fancy Highball at the JW" (a whisky highball with chips and crackers) leads with a large "503 kcal" and shows no cocktail glass or any other picture of the drink. The done line below covers cards that hold only liquid; whether a meal that mixes food and a drink gets the picture is not decided. Done when a coffee, a 500 ml water (two cups), a cocktail and a glass of wine each show their own picture on the swiped card, and a card that holds only liquid reads as a drink at a glance, in a phone-sized browser.
-
-### #457 An alcoholic drink shows its alcohol but not how much was drunk
-
-A drink post shows its alcohol but not how many drinks or how many millilitres were drunk, so the user cannot tell how much they have drunk.
-
-The tiki cocktail post shows "220 g" on the photo and 196 kcal, 0 g protein, 17 g carbs and 0 g fat, with no alcohol anywhere. For a drink with alcohol, the post should show how much was drunk (a count and millilitres), the grams of alcohol and the standard drinks. The drink's liquid does not add to the water total, and Today shows the day's alcohol so far. Ruling: the US 14 g standard drink stays, so a 500 ml pint at 5% (20 g of alcohol) reads 1.4. Built on main; GitHub shows this issue closed. Owner, Nov 15, 10:52 PM WIB (iPhone, owner account): his post "Fancy Highball at the JW" (Sat Nov 14, 9:36 PM; potato chips 40 g, cheese crackers 30 g, whisky highball 240 g, lemon twist 5 g; 503 kcal, 6 g protein, 40 g carbs, 20 g fat) shows no alcohol anywhere on its photo slide, its card slide or its caption line, no grams of alcohol and no standard drinks. The card says only "Drank in this meal: 240 ml Whisky highball". The caption's "more" and Details were not opened. Done when a photographed cocktail and a typed beer each show how much was drunk (a count and millilitres) and their alcohol, on the post and in Today, and neither adds to the water tile, in a phone-sized browser.
-
-### #631 Every place that waits on the network shows nothing while it waits
-
-A screen or action that waits on the network can sit empty or frozen for seconds, and the customer cannot tell whether the app is working. The owner wants a visible waiting state anywhere a network problem is possible, so the customer's expectation is managed and nobody is annoyed.
-
-The owner's desktop Home took about 20 seconds to fill the Today column and the Posted today list (see #599). The designer's audit found every control drawn at rest only: no waiting, slow or failed state exists in the design for whole regions or for actions. Observe first: list every region and action that waits on the network (the Home right column, the feed, Days, Search, Profile, the meal detail, saving a post, barcode and label lookups, the drink sheet) and record what each shows while it waits, after a failure and after a timeout. Done when each of them shows a loading placeholder or spinner at once, shows a plain message with a retry after a failure or a timeout, never shows an empty or half-drawn region as if it were final, and is checked on production with the network throttled at 390x844 and at 1280x800.
-
-### #555 The controls on Days, Search, Profile and the capture modes have not been audited
-
-The Round 7 control table covers the feed, the post and the capture sheet. Days, Search, Profile and the Text, Photo and Barcode modes are not in it.
-
-The designer has not read their controls yet. Add them to the table from #217 with its four findings: time to a visible change, pressed look, jump or flicker, and double tap. Done when every control on those screens is in the table and the dead ones are fixed or filed as items.
-
-## In flight
-
 ### #579 Photos are captured at 480 × 640 and look blurry on high-density phones
 
 The app stores each photo at 480 × 640 pixels, the size the browser chose for the live camera, and the feed shows a smaller 384 × 512 copy. On a phone with a three-times screen a full-width card needs about 1,170 pixels, so every photo looks soft. The owner finds the blur painful.
@@ -540,6 +508,40 @@ The mic is the one place a user can speak instead of type, and it is buried: it 
 
 The owner ruled on Nov 14 that voice must be a first-class input, available wherever the user types. Checked in the code on main (96ecdcf): VoiceRecorder is mounted only in CommentComposer.tsx, and every transcription is a model call that counts against the hourly limit (#471). PM ruling: the mic sits inside the field, in the same place as the comment box mic, in the new-post caption, the drink description, the leftovers caption, search and the comment box. Done when, in a phone-sized browser on production, each of those five fields shows the mic, and a short recorded clip played into the microphone puts its words in the field. Fleet 21 independent source read, Nov 16 (investigators' report): PR 911 loses speech on submit. The field mic's activity callback is empty (VoiceButton.tsx line 8), so pressing Post while recording closes the composer and the unmount aborts the transcription. The access test stops before transcription and cannot catch it. Fleet 21, Nov 16 (PR 911): the mics are built; those in the text composer, the drink sheet, Search and the comment box were inspected. The mobile camera-caption mic was not verified and no speech clip was played. Fleet 21 independent source read of the fixed head 16348f08, Nov 16: speech lost on Post is fixed, but speech is still lost when a drink photo is being identified during a caption recording and the result is all drinks, because the composer then switches to the drink overview and the recorder's cleanup throws the unfinished speech away (ComposerDrinks.tsx line 23, LightComposer.tsx line 78, VoiceRecorder.tsx line 13). The new tests mock drink detection as inactive and never run the cleanup. Read from source, not reproduced in a browser.
 
+## Backlog for Designer
+
+### #453 The barcode prompt is printed over the live camera picture
+
+On the Barcode screen, the line "Point at the barcode. It reads on its own." runs across the camera picture and cannot be read against a busy shelf.
+
+No design exists yet for where this line sits, so the designer chooses its place. Done when the prompt is readable over any camera picture, in a phone-sized browser.
+
+### #455 The card you swipe to on a drink's photo shows a number and not what the drink is
+
+Swiping right on a drink's photo opens a card with one big millilitre number, so the card does not say what the drink is or why it exists.
+
+The swiped card for the tiki cocktail shows "220 ml" in large type, a line of text and "1,200 ml consumed today" split into drinks and food. A card for a drink should lead with its kind as a picture: a coffee cup for coffee with its caffeine, a water cup for water with one cup for every 250 ml drunk, and a cocktail glass or a wine glass for those with their alcohol, and the day's drinks drawn as the same cups. This is built on main. GitHub shows this issue closed, and it stays here until its done condition is met. Owner, Nov 15, 10:52 PM WIB: the card slide of "Fancy Highball at the JW" (a whisky highball with chips and crackers) leads with a large "503 kcal" and shows no cocktail glass or any other picture of the drink. The done line below covers cards that hold only liquid; whether a meal that mixes food and a drink gets the picture is not decided. Done when a coffee, a 500 ml water (two cups), a cocktail and a glass of wine each show their own picture on the swiped card, and a card that holds only liquid reads as a drink at a glance, in a phone-sized browser.
+
+### #457 An alcoholic drink shows its alcohol but not how much was drunk
+
+A drink post shows its alcohol but not how many drinks or how many millilitres were drunk, so the user cannot tell how much they have drunk.
+
+The tiki cocktail post shows "220 g" on the photo and 196 kcal, 0 g protein, 17 g carbs and 0 g fat, with no alcohol anywhere. For a drink with alcohol, the post should show how much was drunk (a count and millilitres), the grams of alcohol and the standard drinks. The drink's liquid does not add to the water total, and Today shows the day's alcohol so far. Ruling: the US 14 g standard drink stays, so a 500 ml pint at 5% (20 g of alcohol) reads 1.4. Built on main; GitHub shows this issue closed. Owner, Nov 15, 10:52 PM WIB (iPhone, owner account): his post "Fancy Highball at the JW" (Sat Nov 14, 9:36 PM; potato chips 40 g, cheese crackers 30 g, whisky highball 240 g, lemon twist 5 g; 503 kcal, 6 g protein, 40 g carbs, 20 g fat) shows no alcohol anywhere on its photo slide, its card slide or its caption line, no grams of alcohol and no standard drinks. The card says only "Drank in this meal: 240 ml Whisky highball". The caption's "more" and Details were not opened. Done when a photographed cocktail and a typed beer each show how much was drunk (a count and millilitres) and their alcohol, on the post and in Today, and neither adds to the water tile, in a phone-sized browser.
+
+### #631 Every place that waits on the network shows nothing while it waits
+
+A screen or action that waits on the network can sit empty or frozen for seconds, and the customer cannot tell whether the app is working. The owner wants a visible waiting state anywhere a network problem is possible, so the customer's expectation is managed and nobody is annoyed.
+
+The owner's desktop Home took about 20 seconds to fill the Today column and the Posted today list (see #599). The designer's audit found every control drawn at rest only: no waiting, slow or failed state exists in the design for whole regions or for actions. Observe first: list every region and action that waits on the network (the Home right column, the feed, Days, Search, Profile, the meal detail, saving a post, barcode and label lookups, the drink sheet) and record what each shows while it waits, after a failure and after a timeout. Done when each of them shows a loading placeholder or spinner at once, shows a plain message with a retry after a failure or a timeout, never shows an empty or half-drawn region as if it were final, and is checked on production with the network throttled at 390x844 and at 1280x800.
+
+### #555 The controls on Days, Search, Profile and the capture modes have not been audited
+
+The Round 7 control table covers the feed, the post and the capture sheet. Days, Search, Profile and the Text, Photo and Barcode modes are not in it.
+
+The designer has not read their controls yet. Add them to the table from #217 with its four findings: time to a visible change, pressed look, jump or flicker, and double tap. Done when every control on those screens is in the table and the dead ones are fixed or filed as items.
+
+## In flight
+
 ## Interdit (Not part of Hackathon)
 
 ### #217 A smoothness audit of every screen
@@ -567,5 +569,7 @@ The owner wants the app eventually to show how much of the user's daily intake i
 Blocked until after the hackathon, and blocked by the claims rule: the app shows no percentage that reads as progress, and a share of intake is a percentage. The owner decides whether this one figure may break that rule. Done when the owner has lifted the rule for this figure and its design is drawn.
 
 ---
+
+† What this backlog is. The shared, ordered list of open work for My Food AI, shown live. GitHub issues in aibraincoach/my-food-ai are the record, and BACKLOG.md in the repository is a copy of this list that the PM supplies, so the coder and the planner read the same list. This Doc is private between the PM and the owner, and the coder cannot open it. The coder reads BACKLOG.md, which the owner copies from this Doc. Every item has its own GitHub issue. An item leaves this list when its work is merged. Production proof of a merged fix is a new item in Backlog for GrokBot; the "Interdit (Not part of Hackathon)" section holds items that cannot be worked on and says why. Each section is for one role or one state: Backlog for GrokBot and Engineering backlog (open work), ordered within a section by the pass that will work them together, not by issue number or date. In flight holds the items a dispatch has sent to the coder that have not merged: an item moves there when it is dispatched and leaves the list when its work is merged.
 
 Every item is a title line and two paragraphs. The title line carries the item's own GitHub issue number. (1) The title says in plain words what is wrong, as a GitHub issue title does. (2) The first paragraph is the problem statement, which any person can read. (3) The second paragraph holds the context we have learned that helps solve it. It can be technical. It never holds a dump of logs, review history or merged-change detail. It ends with "Done when" and a condition a person can check. Write short sentences in the active voice, as the Google developer documentation style guide asks, and spell out any term a reader outside the project would not know. An item missing a part is not on the backlog.
