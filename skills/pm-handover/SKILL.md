@@ -42,7 +42,7 @@ From the clean document checkout run:
 skills/pm-handover/scripts/pack.sh
 ```
 
-The script writes under `uploads/`: a zip of every tracked `*.md`, plus a separate Wall of Stupid file and separate copies of docs/pm-contract.md and docs/planner-contract.md when present, each with the same timestamp prefix. Do not zip the whole checkout. Exclude credentials, environment files, browser profiles, live exports, private captures and token-bearing links. Package the reconciled document commit even when the product checkout is older; state that the documentation branch is unmerged and name the observed main SHA.
+The script writes outside the checkout, to the directory given as its first argument or else a new directory under the system temp directory, and prints each path. Nothing is written under the checkout's `uploads/`, and the package is deleted once the owner has taken it. It writes a zip of every tracked `*.md`, plus a separate Wall of Stupid file and separate copies of docs/pm-contract.md and docs/planner-contract.md when present, each with the same timestamp prefix. Do not zip the whole checkout. Exclude credentials, environment files, browser profiles, live exports, private captures and token-bearing links. Package the reconciled document commit even when the product checkout is older; state that the documentation branch is unmerged and name the observed main SHA.
 
 Verify ZIP CRC, the exact tracked-Markdown entry set, and every entry's SHA-256 against the packaged commit. Verify the separate wall and contracts byte-for-byte against their zip entries. Provide a manifest outside the zip naming the source commit, observed main SHA, UTC/MDT times, archive hash and per-file hashes.
 

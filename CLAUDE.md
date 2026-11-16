@@ -109,7 +109,7 @@ The owner-supplied plan remains unchanged in [docs/plan.md](docs/plan.md); Run3 
 
 ## PM handover
 
-Reconcile documents, commit on the document branch, then `skills/pm-handover/scripts/pack.sh`. The handover text is the reply; zip output goes under `uploads/` (gitignored). Dispatch shape and technical ownership follow the current PM and planner contracts linked above.
+Reconcile documents, commit on the document branch, then `skills/pm-handover/scripts/pack.sh`. The handover text is the reply; the pack script writes its zip outside the checkout and prints the path; nothing is kept under the checkout's uploads folder. Dispatch shape and technical ownership follow the current PM and planner contracts linked above.
 
 ## Historical session summary — superseded by Current state above
 

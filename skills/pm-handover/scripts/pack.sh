@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-# Package markdown for PM handover. Run from repository root.
+# Package markdown for PM handover into a directory outside the checkout.
+# Usage: pack.sh [output directory]. Default: a new directory under the system temp directory. Prints every path it writes.
 set -euo pipefail
 command -v zip >/dev/null 2>&1 || { echo "Error: zip is not installed." >&2; exit 1; }
 ROOT=$(cd "$(dirname "$0")/../../.." && pwd)
@@ -9,7 +10,10 @@ SRC=$(git rev-parse HEAD)
 echo "Packing revision $SRC"
 REPO=my-food-ai
 TS=$(TZ=America/Edmonton date '+%Y-%m-%d_%H-%M-%S_%Z')
-UP="$ROOT/uploads"
+UP="${1:-$(mktemp -d "${TMPDIR:-/tmp}/my-food-ai-handover.XXXXXX")}"
+mkdir -p "$UP"
+UP=$(cd "$UP" && pwd -P)
+case "$UP/" in "$(pwd -P)/"*) echo "Error: the output directory must be outside the checkout." >&2; exit 1;; esac
 mkdir -p "$UP"
 ZIP="$UP/${REPO}_${TS}_Project-Memory-Handover_Markdown.zip"
 rm -f "$ZIP"
