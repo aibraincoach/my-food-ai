@@ -1,12 +1,30 @@
 # My Food AI — Backlog†
 
-Last edited: Monday 2026-11-16 at 22:29 WIB (UTC+07:00) by Claude, PM
+Last edited: Monday 2026-11-16 at 22:36 WIB (UTC+07:00) by Claude, PM
 
 Needs the owner (Nov 16, 21:15 WIB): One ruling, so #294 can close: the Days words stay as they are unless you change one. They are "Days", "Selected day", "Choose a day", "Open the day", "not finished", "Go to", "Previous month", "Next month", "No posts", "Posted today", "No posts today" and "Photograph a meal today". Name any to change and the new words.
 
 The only job of the PM is to maintain this backlog and keep it completely up to date. Failing to do so is immediately terminable.
 
 ## Backlog for GrokBot
+
+### #372 Feed photos are too large for a phone on mobile data
+
+Feed photos are too large for a phone on mobile data, so the first photo is slow and the app spends more storage egress than it needs. A phone should receive a small copy sized for its screen.
+
+The feed serves immutable WebP copies at 1920 px (default), 1040 px (2x) and 1560 px (3x) with a one-year cache header. On production the first feed photo appeared at 4.09 s and 4.05 s on a cold open with slow 4G at 390 wide, against a 2 s target. It was the 1560 copy, 50,076 bytes, rendered 390 by 520. One line in docs/media-loading.md still says "no-store". GrokBot, Nov 5: FAIL. On a cold open at slow 4G and 390 wide, three runs showed the first feed photo at 6.96 s, 8.49 s and 7.20 s (about 4.05 s in Fleet 18). The photo is v2-1560.webp, 91,542 bytes, cache-control private, max-age=31536000, immutable, with a natural width of 390 against a 390-wide card, a ratio of 1.0 where the done line needs 2. GrokBot, Nov 15: the first photo took 3.4 s on a judge account (78,522 bytes) and 2.7 s on the owner account (42,986 bytes), still over 2 s. Done when a browser helper on production records the bytes and the cache header of the first feed photo, the first photo shows within two seconds at the slow-network test profile, and the stored photo is at least twice as wide in pixels as the card it fills, for photos captured since the sharper camera (old 480 × 640 photos cannot meet it).
+
+### #494 Opening a meal's detail takes 14 seconds
+
+The owner reports 14 seconds from tapping a meal to its detail page opening. He calls it not acceptable.
+
+The owner measured 14 seconds on an iPhone on mobile data in Indonesia; that cannot be re-measured. On production with slow 4G, a usable detail opens in 1.96 to 2.45 s on desktop and 1.64 to 1.74 s at 390 wide. The page makes 24 to 25 requests, eight repeated, and desktop downloads two 0.feed.jpg originals of about 480 to 496 KB although the feed copy is already on screen. GrokBot, Nov 5: desktop still downloads two 480 to 496 KB 0.feed.jpg originals, so the done line fails. The owner's 14 s on an iPhone cannot be re-measured and is no longer required. Done when the detail opens within two seconds at the slow-network test profile on desktop and at 390 wide, and the two large originals are not downloaded.
+
+### #693 Voice input exists only in the comment box on a meal
+
+The mic is the one place a user can speak instead of type, and it is buried: it appears only after opening a meal and starting a comment. A user who wants to say what they ate when posting cannot.
+
+The owner ruled on Nov 14 that voice must be a first-class input, available wherever the user types. Checked in the code on main (96ecdcf): VoiceRecorder is mounted only in CommentComposer.tsx, and every transcription is a model call that counts against the hourly limit (#471). PM ruling: the mic sits inside the field, in the same place as the comment box mic, in the new-post caption, the drink description, search and the comment box (the app has no leftovers caption field). Done when, in a phone-sized browser on production, each of those four fields shows the mic, and a short recorded clip played into the microphone puts its words in the field. Fleet 21 independent source read, Nov 16 (investigators' report): PR 911 loses speech on submit. The field mic's activity callback is empty (VoiceButton.tsx line 8), so pressing Post while recording closes the composer and the unmount aborts the transcription. The access test stops before transcription and cannot catch it. Fleet 21, Nov 16 (PR 911): the mics are built; those in the text composer, the drink sheet, Search and the comment box were inspected. The mobile camera-caption mic was not verified and no speech clip was played. Fleet 21 independent source read of the fixed head 16348f08, Nov 16: speech lost on Post is fixed, but speech is still lost when a drink photo is being identified during a caption recording and the result is all drinks, because the composer then switches to the drink overview and the recorder's cleanup throws the unfinished speech away (ComposerDrinks.tsx line 23, LightComposer.tsx line 78, VoiceRecorder.tsx line 13). The new tests mock drink detection as inactive and never run the cleanup. Read from source, not reproduced in a browser.
 
 ### #688 The feed jumps to another meal because every card's first-run hint triggers a server action that remounts the feed in a loop
 
@@ -346,6 +364,18 @@ Tapping retake opens the camera but does not remove the failed upload. After the
 
 In src/components/UploadChip.tsx, line 29: the retake handler only opens the camera. Related: #644. Done when taking the new photo removes the old failed upload, and a reload does not bring it back. Fleet 21 check, Nov 16: the fixture was not created within 60 seconds and a scoped retry reported "Control missing", so the retake, the intent count and the reload were not verified.
 
+### #294 The app's words read naturally everywhere
+
+The leftovers label reads awkwardly, and nobody has reviewed the words in the rest of the app.
+
+The terms to review: the label "leftovers (not eaten)", the line "Drank in this meal" on a meal's second slide (the owner said it sounds off), "Consumed", "Log again", "Saved meals", "Additional food", the clarification question and the Days names. List each term, where it appears and a better wording, with AGY as a second opinion. Every rule stays: use the past tense for consumed, show no target, goal, ring or percentage, and never use "left" for a remaining amount. GitHub shows this issue closed. Done when the list is reviewed, the owner has ruled on each term, and the wording is changed everywhere it appears.
+
+### #375 Storage egress is the largest source and was not cut
+
+In the 24 hours before Run 8, Supabase Storage served 2.99 GB across 35,048 requests, almost all to browsers. The Run 8 cut measured the feed's posts reads, not Storage.
+
+docs/egress.md says the bytes went to browser-like clients but not which files (feed photos, card images or originals) or which clients. In a later 24 hours, test automation accounted for 1.72 GB of the 1.77 GB of feed photo bytes and real mobile browsers for about 46 MB, so the split between test and real users is still a guess. Log volume was never measured in bytes. Done when Storage egress is broken down by file kind and by client (test automation or real users), log bytes are measured, and the largest real-user source is cut or shown to be small.
+
 ## Backlog for Designer
 
 ### #453 The barcode prompt is printed over the live camera picture
@@ -379,48 +409,6 @@ The Round 7 control table covers the feed, the post and the capture sheet. Days,
 The designer has not read their controls yet. Add them to the table from #217 with its four findings: time to a visible change, pressed look, jump or flicker, and double tap. Done when every control on those screens is in the table and the dead ones are fixed or filed as items.
 
 ## In flight
-
-### #375 Storage egress is the largest source and was not cut
-
-In the 24 hours before Run 8, Supabase Storage served 2.99 GB across 35,048 requests, almost all to browsers. The Run 8 cut measured the feed's posts reads, not Storage.
-
-docs/egress.md says the bytes went to browser-like clients but not which files (feed photos, card images or originals) or which clients. In a later 24 hours, test automation accounted for 1.72 GB of the 1.77 GB of feed photo bytes and real mobile browsers for about 46 MB, so the split between test and real users is still a guess. Log volume was never measured in bytes. Done when Storage egress is broken down by file kind and by client (test automation or real users), log bytes are measured, and the largest real-user source is cut or shown to be small.
-
-### #294 The app's words read naturally everywhere
-
-The leftovers label reads awkwardly, and nobody has reviewed the words in the rest of the app.
-
-The terms to review: the label "leftovers (not eaten)", the line "Drank in this meal" on a meal's second slide (the owner said it sounds off), "Consumed", "Log again", "Saved meals", "Additional food", the clarification question and the Days names. List each term, where it appears and a better wording, with AGY as a second opinion. Every rule stays: use the past tense for consumed, show no target, goal, ring or percentage, and never use "left" for a remaining amount. GitHub shows this issue closed. Done when the list is reviewed, the owner has ruled on each term, and the wording is changed everywhere it appears.
-
-### #372 Feed photos are too large for a phone on mobile data
-
-Feed photos are too large for a phone on mobile data, so the first photo is slow and the app spends more storage egress than it needs. A phone should receive a small copy sized for its screen.
-
-The feed serves immutable WebP copies at 1920 px (default), 1040 px (2x) and 1560 px (3x) with a one-year cache header. On production the first feed photo appeared at 4.09 s and 4.05 s on a cold open with slow 4G at 390 wide, against a 2 s target. It was the 1560 copy, 50,076 bytes, rendered 390 by 520. One line in docs/media-loading.md still says "no-store". GrokBot, Nov 5: FAIL. On a cold open at slow 4G and 390 wide, three runs showed the first feed photo at 6.96 s, 8.49 s and 7.20 s (about 4.05 s in Fleet 18). The photo is v2-1560.webp, 91,542 bytes, cache-control private, max-age=31536000, immutable, with a natural width of 390 against a 390-wide card, a ratio of 1.0 where the done line needs 2. GrokBot, Nov 15: the first photo took 3.4 s on a judge account (78,522 bytes) and 2.7 s on the owner account (42,986 bytes), still over 2 s. Done when a browser helper on production records the bytes and the cache header of the first feed photo, the first photo shows within two seconds at the slow-network test profile, and the stored photo is at least twice as wide in pixels as the card it fills, for photos captured since the sharper camera (old 480 × 640 photos cannot meet it).
-
-### #494 Opening a meal's detail takes 14 seconds
-
-The owner reports 14 seconds from tapping a meal to its detail page opening. He calls it not acceptable.
-
-The owner measured 14 seconds on an iPhone on mobile data in Indonesia; that cannot be re-measured. On production with slow 4G, a usable detail opens in 1.96 to 2.45 s on desktop and 1.64 to 1.74 s at 390 wide. The page makes 24 to 25 requests, eight repeated, and desktop downloads two 0.feed.jpg originals of about 480 to 496 KB although the feed copy is already on screen. GrokBot, Nov 5: desktop still downloads two 480 to 496 KB 0.feed.jpg originals, so the done line fails. The owner's 14 s on an iPhone cannot be re-measured and is no longer required. Done when the detail opens within two seconds at the slow-network test profile on desktop and at 390 wide, and the two large originals are not downloaded.
-
-### #693 Voice input exists only in the comment box on a meal
-
-The mic is the one place a user can speak instead of type, and it is buried: it appears only after opening a meal and starting a comment. A user who wants to say what they ate when posting cannot.
-
-The owner ruled on Nov 14 that voice must be a first-class input, available wherever the user types. Checked in the code on main (96ecdcf): VoiceRecorder is mounted only in CommentComposer.tsx, and every transcription is a model call that counts against the hourly limit (#471). PM ruling: the mic sits inside the field, in the same place as the comment box mic, in the new-post caption, the drink description, search and the comment box (the app has no leftovers caption field). Done when, in a phone-sized browser on production, each of those four fields shows the mic, and a short recorded clip played into the microphone puts its words in the field. Fleet 21 independent source read, Nov 16 (investigators' report): PR 911 loses speech on submit. The field mic's activity callback is empty (VoiceButton.tsx line 8), so pressing Post while recording closes the composer and the unmount aborts the transcription. The access test stops before transcription and cannot catch it. Fleet 21, Nov 16 (PR 911): the mics are built; those in the text composer, the drink sheet, Search and the comment box were inspected. The mobile camera-caption mic was not verified and no speech clip was played. Fleet 21 independent source read of the fixed head 16348f08, Nov 16: speech lost on Post is fixed, but speech is still lost when a drink photo is being identified during a caption recording and the result is all drinks, because the composer then switches to the drink overview and the recorder's cleanup throws the unfinished speech away (ComposerDrinks.tsx line 23, LightComposer.tsx line 78, VoiceRecorder.tsx line 13). The new tests mock drink detection as inactive and never run the cleanup. Read from source, not reproduced in a browser.
-
-### #935 A transcription error can disappear when a detected drink changes the composer
-
-When a person speaks a caption and the photo is identified as a drink, the composer switches to the drink overview. If the transcription fails at that moment, its error message can be hidden, so the person gets neither words nor an explanation.
-
-Fleet 21's independent read of #911 found this from the source; it has not been reproduced in a browser. The switch replaces the part of the composer that shows the recorder's inline error. Done when a failed transcription after drink detection shows its error message, and a browser run or a reading of the source shows it.
-
-### #908 The Wall of Stupid mixes the rules that get an agent fired with the history of every failure
-
-The Wall of Stupid holds dozens of incident rows, newest first, and the rules the agents must follow sit inside those rows. A new agent has to read the whole history to learn what gets it fired.
-
-The owner ruled on Nov 15 that the Wall of Stupid becomes two files: a short operational rules list of what gets an agent fired, and a Wall of Stupid archive that keeps the incident history. The rules list's wording is not decided. The PM contract, the planner contract, CLAUDE.md and the handover skill refer to the Wall and must name the right file. The coder alone changes the Wall, from a prompt the PM supplies. Owner, Nov 16: this item comes first on the backlog, because an agent cannot operate without a short list of the rules that get it fired. Each rule in the list names the failure it prevents, its blast radius and how it changes operations, and points to the archive entries behind it by timestamp so the archive keeps the tally of failures. Owner, Nov 16 (comment): the operational rules list is the one document he gives every PM he fires, so it is renamed, and the new name is pm-operational-rules.md. Related: #699. Done when the repository holds an operational rules list and a Wall of Stupid archive, every standing rule in today's Wall is in one of them, each rule in the operational list names its failure, its blast radius and how it changes operations and cites its archive entries by timestamp, no incident row is lost, and the contracts, CLAUDE.md and the handover skill each name the right file, the operational rules list carries the name the owner gives it, and the handover skill gives that list, with this backlog's link, to every successor PM in every PM handover.
 
 ## Interdit (Not part of Hackathon)
 
