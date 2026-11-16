@@ -46,7 +46,8 @@ export default function NeedsInputStrip(){
         if(error)throw error;
         const questions = (data??[]).flatMap(post => {
           const held = post.status === "needs_input";
-          const question = readNeedsInput(held ? post.needs_input : post.question);
+          let question: ReturnType<typeof readNeedsInput> = null;
+          try { question = readNeedsInput(held ? post.needs_input : post.question); } catch { /* One unreadable row must not hide the other questions. */ }
           return question ? [{id:post.id,eaten_at:post.eaten_at,needs_input:question,held}] : [];
         });
         const identity = JSON.stringify(questions);
