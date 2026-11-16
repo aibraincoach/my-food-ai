@@ -61,3 +61,20 @@ Both interfaces share a limit of **60 calls per minute per token**. Each entry
 in an MCP batch counts separately. A refused request returns 429 with
 `{"error":"Too many requests"}`; try again in the next minute. A missing,
 invalid or revoked token returns 401 with `{"error":"Token required"}`.
+
+## Connect a client
+
+1. Create a token as the top of this page says.
+2. In the client, add a remote MCP server. Its address is the app's address followed by `/mcp`. Set the request header `Authorization: Bearer <token>`.
+3. Ask the client to list the tools. It shows `log_meal`, `list_meals`, `get_meal` and `correct_meal`.
+
+To check the connection without a client, list the tools with curl:
+
+```sh
+curl '<app origin>/mcp' \
+  -H 'Authorization: Bearer <token>' \
+  -H 'Content-Type: application/json' \
+  -d '{"jsonrpc":"2.0","id":3,"method":"tools/list"}'
+```
+
+The server accepts only this fixed header. It has no sign-in page and no OAuth flow, so a client that cannot send its own `Authorization` header cannot connect. Without a token the server answers 401.

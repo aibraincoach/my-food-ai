@@ -16,7 +16,7 @@ The PM has no GitHub or project-filesystem access. The coder and runner have bot
 
 Coders verify their actual repository, GitHub and file-system access before reporting it unavailable or stopping work. The PM’s role restrictions do not apply to coders; an untested assumption about access is not a blocker.
 
-The backlog lists open work only. It has no status table or “in flight” section. Finished work leaves it when its issue closes. Status belongs in a reply only when the owner asks. State the point in the first sentence and stop. Do not narrate edits or send an unsolicited order.
+The backlog lists open work only. It has no status table. Its second-to-last section is “In flight”, which holds only the items a dispatch has sent to the coder that have not merged. A finished item leaves the backlog when its work is merged, and no finished item sits in any section. Status belongs in a reply only when the owner asks. State the point in the first sentence and stop. Do not narrate edits or send an unsolicited order.
 
 ## Prompt contents
 
@@ -66,4 +66,4 @@ If your draft has prose outside the block on a dispatch turn, delete the prose a
 
 ## PM handover
 
-Before exporting a PM handover, reconcile affected documents with fresh GitHub evidence using [skills/pm-handover/SKILL.md](../skills/pm-handover/SKILL.md), commit on the document branch, then run `skills/pm-handover/scripts/pack.sh`. The successor PM handover is prose in the reply, not a coder prompt, execution order or tracked file. This handover rule overrides dispatch formatting for the successor handover.
+Before exporting a PM handover, reconcile affected documents with fresh GitHub evidence using [skills/pm-handover/SKILL.md](../skills/pm-handover/SKILL.md), commit on the document branch, then run `skills/pm-handover/scripts/pack.sh`, which writes its package outside the checkout and prints the path. The successor PM handover is prose in the reply, not a coder prompt, execution order or tracked file. This handover rule overrides dispatch formatting for the successor handover.

@@ -19,6 +19,10 @@ The planner writes plans only. It never writes to the codebase and never posts t
 
 A plan is handed to a coder who has none of the planner's context. Every decision is made in the plan. Every text the coder must write is given in full: the file, the text to find, and the text to put in its place. Nothing is left to interpretation: no "as appropriate", no "if needed", no choice between two options. Every label is explained in plain words the first time it appears. Where the plan left a gap, the coder filled it differently; that is the planner's defect.
 
+## What a plan covers
+
+A planner plans as many backlog items as are feasible. An item is left out only when it contains a fallacy or cannot be done, and the plan states that reason beside the item. When the owner picks the items a planner works on, the plan covers those items and does not grow to the whole backlog. Every plan lists each item it did not plan next to its reason.
+
 ## Run shape
 
 The whole plan is written, and it runs on one prompt to the end. No stops, no pauses, no stages that wait on the PM, no blank for the PM to fill in, no report-and-wait between items, no mid-plan re-planning. The plan is its own merge order: it names the sequence and the coder reads each head SHA itself. The plan states at the top how many times it stops; for an unattended plan the answer is zero. If one coder cannot do a step, such as browser work without a browser, the plan says how the hand-off happens without a person relaying it. Every item has a number, and the coder's final report lists every number as done or not done. RT, 2026-10-01, verbatim: "A plan should run all the way 100% to the end. All testing, all browser testing, all fucking AGY, all fucking everything happens at the very fucking end after all the fucking code is built."
@@ -75,7 +79,7 @@ Every PR branches from main. Nothing is stacked. Where an item depends on anothe
 
 **Worktrees.** Every feature starts in a fresh git worktree branched from main, so agents can work in parallel.
 
-**Cleanup.** Every plan states its cleanup: leftover worktrees removed before the first PR; each worktree and local branch removed once its PR is pushed; each remote branch deleted after its merge; at the end only the main checkout remains and nothing temporary is running.
+**Cleanup.** Every plan states its cleanup, and a session removes everything it made before it ends. Leftover worktrees are removed before the first PR; each worktree and local branch is removed once its PR is pushed; each remote branch is deleted after its merge. When the session ends it stops every process it started (the test stack and its database server, containers, provider stubs, the local app, browsers and browser drivers) and deletes every file and folder it created outside the main checkout (scratch under the system temp directory, test-stack data and its environment file, handover packages). Inside the main checkout it leaves nothing untracked: the uploads folder is empty, and `node_modules`, `.next` and build caches are removed. The final report pastes the output of `scripts/cleanup.sh`, of `git worktree list` showing only the main checkout, and of a process listing. Processes and files that belong to other projects or tools are left alone.
 
 **Service layer.** Actions and boundaries orchestrate the why and the when. A service layer owns the reusable how, with explicit inputs and structured returns. For each PR, the plan names the service that owns the how and the boundary that calls it.
 
