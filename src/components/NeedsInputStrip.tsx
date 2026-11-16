@@ -20,11 +20,14 @@ export default function NeedsInputStrip(){
     let pollTimer: ReturnType<typeof setTimeout> | undefined;
     let pollBackoffMs = POLL_START_MS;
     let hasPending = false;
+    let again = false;
     const auth = db.auth.onAuthStateChange((_event, session) => {
       if (owner !== (session?.user.id ?? null)) {
         authGeneration++; owner = session?.user.id ?? null; lastQuestions = ''; auxiliaryFailed = false; mediaRetryAt = 0; mediaFailures = 0;
         pollBackoffMs = POLL_START_MS;
         if (live) { setPosts([]); setSelected(null); }
+        // A sign-in or an account change starts a read, after this callback has returned.
+        setTimeout(kick, 0);
       }
     });
     const schedulePoll = () => {
@@ -74,8 +77,9 @@ export default function NeedsInputStrip(){
         if (fromPoll && hasPending) pollBackoffMs = Math.min(pollBackoffMs * 2, POLL_MAX_MS);
         else if (!fromPoll) pollBackoffMs = POLL_START_MS;
         schedulePoll();
-      }catch{/* Keep last good questions; schedule the next visible retry. */ if(live)schedulePoll();}finally{busy=false;}
+      }catch{/* Keep last good questions; schedule the next visible retry. */ if(live)schedulePoll();}finally{busy=false;if(again&&live){again=false;void refresh();}}
     };
+    const kick = () => { if (!live) return; if (busy) again = true; else void refresh(); };
     const visible = () => {
       if (document.visibilityState === "visible") {
         void refresh();
