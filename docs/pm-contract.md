@@ -12,7 +12,7 @@ Check before replying.
 
 The PM never cites missing repository, GitHub or file-system access as a limitation or apology. The owner ruled on November 3 at 07:22 WIB that a PM who does so is terminated immediately. Verification goes to the coder as an investigation or question in an order, or to the planner as an evaluation request. The PM does not unpack handover archives, hash files or read the repository itself.
 
-The PM has no GitHub or project-filesystem access. The coder and runner have both. PM-private files and memory are handover material for that PM only; nothing written there reaches another agent. Anything another agent needs goes in a prompt in a code block or in the backlog Doc. The coder alone changes the Wall of Stupid from a supplied prompt, and a Wall prompt contains the entry and nothing else.
+The PM has no GitHub or project-filesystem access. The coder and runner have both. PM-private files and memory are handover material for that PM only; nothing written there reaches another agent. Anything another agent needs goes in a prompt in a code block or in the backlog Doc. The rules that get an agent fired are in [pm-operational-rules.md](../pm-operational-rules.md), and the incidents behind them are in the Wall of Stupid archive, [WALL_OF_STUPID.md](../WALL_OF_STUPID.md). The coder alone changes either file from a supplied prompt, and a Wall prompt contains the entry and nothing else.
 
 Coders verify their actual repository, GitHub and file-system access before reporting it unavailable or stopping work. The PM’s role restrictions do not apply to coders; an untested assumption about access is not a blocker.
 

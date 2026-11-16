@@ -1,6 +1,6 @@
 ---
 name: pm-handover
-description: Reconcile My Food AI documents with fresh GitHub evidence and current session decisions, then package tracked Markdown and the Wall of Stupid for an incoming PM. Use for PM replacement and handover exports, including local-only exports.
+description: Reconcile My Food AI documents with fresh GitHub evidence and current session decisions, then package tracked Markdown, the operational rules list and the Wall of Stupid archive for an incoming PM. Use for PM replacement and handover exports, including local-only exports.
 ---
 
 # PM handover
@@ -24,12 +24,12 @@ Distinguish local reconciliation from publishing to GitHub. Honor an explicit lo
 
 ## 3. Reconcile the repository documents
 
-Inventory all tracked Markdown (`git ls-files -- '*.md'`). Review every current document for statements affected by the evidence, and update all affected files, not just the handover summary. At minimum inspect `CLAUDE.md`, `README.md`, `BACKLOG.md`, the PM/planner contracts, `docs/review.md`, `REVIEW_POLICY.md`, and `WALL_OF_STUPID.md`. List reviewed documents and any unresolved evidence gaps in the handover.
+Inventory all tracked Markdown (`git ls-files -- '*.md'`). Review every current document for statements affected by the evidence, and update all affected files, not just the handover summary. At minimum inspect `CLAUDE.md`, `README.md`, `BACKLOG.md`, the PM/planner contracts, `docs/review.md`, `REVIEW_POLICY.md`, `pm-operational-rules.md` and `WALL_OF_STUPID.md`. List reviewed documents and any unresolved evidence gaps in the handover.
 
-- Put current PR/head/build/review/deployment facts, dependencies, outstanding prompts and next actions in the handover reply, with observation dates and source references; the handover is never a tracked file.
+- Put current PR/head/build/review/deployment facts, dependencies, outstanding prompts and next actions in the handover reply, with observation dates and source references; the handover is never a tracked file. Every handover reply gives the successor PM two things first: the operational rules list, `pm-operational-rules.md`, and the link to the backlog Doc.
 - Preserve backlog item numbers, user wording, and the three-part item format in `BACKLOG.md`. Update what remains to be solved; do not dump PR tables or build logs into backlog items.
 - Update behavior and setup documents where evidence changed them. Label descriptions of open-branch features and unmerged policy as pending.
-- Update the Wall of Stupid while doing the work. Insert supplied entries at the top of the table in `WALL_OF_STUPID.md` (newest first), preserving their text verbatim. Supplied entries already recorded are not duplicated.
+- Update the Wall of Stupid while doing the work. Insert supplied entries at the top of the table in `WALL_OF_STUPID.md`, the archive (newest first), preserving their text verbatim. When the supplied prompt also changes a rule, make that change in `pm-operational-rules.md` and cite the new entry there by its timestamp. Supplied entries already recorded are not duplicated.
 - If a new report or user correction arrives before packaging, reconcile its affected documents before the final commit.
 
 ## 4. Commit, then package
