@@ -8,6 +8,7 @@ import {useCallback,useEffect,useRef,useState,type ReactNode} from 'react';
 import {readPostComments} from '@/lib/posts/timeline';
 import {useRouter} from 'next/navigation';
 import {correctionFeedback} from '@/lib/posts/correction-feedback';
+import {failureMessage} from '@/lib/worker/failure-message';
 import {createClient} from '@/lib/supabase/client';
 import CommentComposer,{type CommentRow} from '@/components/CommentComposer';
 import {LocalTime} from '@/components/LocalTime';
@@ -30,7 +31,7 @@ export default function Thread({postId,readOnly=false,sourcePostId,desktopAction
    if(live)setAccepted(verdict?.verdict==='up'&&verdict.item_fingerprint===revision?.fingerprint?verdict.model_comment_id:null);
    const [data,{data:post,error:postError}]=await Promise.all([
     readPostComments(client,postId),
-    client.from('posts').select('status').eq('id',postId).maybeSingle(),
+    client.from('posts').select('status,analysis_initialized_at,fail_reason').eq('id',postId).maybeSingle(),
    ]);
    if(!live)return;if(postError||!post){setError('Comments could not be loaded.');return;}
    const models=(data??[]).filter(row=>row.author==='model');
@@ -39,7 +40,7 @@ export default function Thread({postId,readOnly=false,sourcePostId,desktopAction
    if(freshModel)router.refresh();
    if(knownStatus&&knownStatus!==post.status)router.refresh();knownStatus=post.status;
    const feedback=correctionFeedback(post.status);
-   setFailed(feedback==='failed');setError(feedback==='failed'?'The meal could not be updated.':'');setRows(old=>sort([...new Map([...old,...(data??[])].map(row=>[row.id,row as CommentRow])).values()]));
+   setFailed(feedback==='failed');setError(feedback==='failed'?(post.analysis_initialized_at?'The meal could not be updated.':failureMessage(post.fail_reason)):'');setRows(old=>sort([...new Map([...old,...(data??[])].map(row=>[row.id,row as CommentRow])).values()]));
    setWaiting(feedback==='waiting');
   }catch{if(live)setError('Comments could not be loaded.');}finally{inFlight=false;if(again&&live){again=false;void load();}}};
   const channel=client.channel(`thread-${postId}`).on('postgres_changes',{event:'INSERT',schema:'public',table:'post_comments',filter:`post_id=eq.${postId}`},()=>{void load();}).on('postgres_changes',{event:'UPDATE',schema:'public',table:'post_comments',filter:`post_id=eq.${postId}`},()=>{void load();}).subscribe((status)=>{if(status==='SUBSCRIBED')void load();});
@@ -52,7 +53,10 @@ export default function Thread({postId,readOnly=false,sourcePostId,desktopAction
   let live=true;let delay=2000;let timer:ReturnType<typeof setTimeout>;
   const tick=()=>{if(!live)return;if(document.visibilityState==='visible')void wake.current();delay=Math.min(30000,delay*2);timer=setTimeout(tick,delay);};
   timer=setTimeout(tick,delay);
-  return()=>{live=false;clearTimeout(timer);};
+  // Returning to the tab checks at once and starts the backoff again.
+  const visible=()=>{if(document.visibilityState!=='visible')return;clearTimeout(timer);delay=2000;void wake.current();timer=setTimeout(tick,delay);};
+  document.addEventListener('visibilitychange',visible);
+  return()=>{live=false;clearTimeout(timer);document.removeEventListener('visibilitychange',visible);};
  },[waiting]);
  const [toast,setToast]=useState<{key:number;undo:()=>void}|null>(null);
  const [pendingRemovals,setPendingRemovals]=useState<string[]>([]);

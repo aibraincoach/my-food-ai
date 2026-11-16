@@ -277,7 +277,7 @@ export default function OutlineOverlay({ desktopModal=false, desktopHeader, desk
       </div>}
     </>}
     {waiting || ["queued", "processing"].includes(status) ? <p role="status" className="px-screen-x text-meta text-muted">Updating nutrition…</p> : null}
-    {status === "failed" ? <p role="status" className="px-screen-x text-meta text-muted">Nutrition could not be updated.</p> : null}
+    {status === "failed" && initialized ? <p role="status" className="px-screen-x text-meta text-muted">Nutrition could not be updated.</p> : null}
     </Container>
     {desktopModal&&desktopThread}
     </Container>
