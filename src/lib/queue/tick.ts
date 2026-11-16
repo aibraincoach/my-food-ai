@@ -21,7 +21,8 @@ export async function queueTick(
   ttlSeconds = 300
 ): Promise<TickStatus & { started: boolean }> {
   const [queuedResult, runningResult, traffic] = await Promise.all([
-    admin.from("jobs").select("id", { count: "exact", head: true }).eq("status", "queued"),
+    // A job that is not due yet (a photo-stage cleanup runs three hours later) is not waiting work.
+    admin.from("jobs").select("id", { count: "exact", head: true }).lte("run_after", new Date().toISOString()).eq("status", "queued"),
     admin.from("jobs").select("id", { count: "exact", head: true }).eq("status", "running"),
     getTraffic(admin),
   ]);
