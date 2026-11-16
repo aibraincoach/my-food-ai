@@ -157,10 +157,10 @@ export async function toFeedPost(
   const revisionBefore=known?known.revisionBefore:row.status==="ready"?await latestRevision(supabase,row.id):null;
   const profile=known?.profile??await profileForOwner(supabase,row.user_id);
   const { data: media, error: mediaError } = known?.media ? {data:known.media,error:null} : await supabase.from("post_media")
-    .select("id,storage_path,kind,not_eaten,width,height").eq("post_id",row.id).order("position");
+    .select("id,storage_path,kind,not_eaten,width,height,photo_secret").eq("post_id",row.id).order("position");
   if(mediaError) throw new Error(mediaError.message);
   const slides = (await Promise.all((media ?? []).map(async (entry) => {
-    try { return {id:entry.id,url: (entry.kind === "photo" ? smallFeedPhotoUrl(row.user_id,row.id,entry.id) : null) ?? await feedCopyUrl(supabase, entry.kind === "card" ? entry.storage_path : feedPathFor(entry.storage_path),row.user_id),kind:entry.kind as "photo"|"card",not_eaten:Boolean(entry.not_eaten),width:entry.width??undefined,height:entry.height??undefined}; }
+    try { return {id:entry.id,url: (entry.kind === "photo" ? smallFeedPhotoUrl(row.user_id,row.id,entry.id,(entry as {photo_secret?:string|null}).photo_secret) : null) ?? await feedCopyUrl(supabase, entry.kind === "card" ? entry.storage_path : feedPathFor(entry.storage_path),row.user_id),kind:entry.kind as "photo"|"card",not_eaten:Boolean(entry.not_eaten),width:entry.width??undefined,height:entry.height??undefined}; }
     catch { return null; }
   }))).filter((entry): entry is NonNullable<typeof entry> => entry !== null);
   const photoUrl = slides[0]?.url ?? null;
@@ -220,7 +220,7 @@ export async function toFeedPosts(db: SupabaseClient, rows: PostRow[], zone = "U
   // Start immutable media and its signed URLs immediately. SSR can emit the
   // first-photo preload while the revision-fenced nutrition is still reading.
   const mediaRead = optionalRead<null | {id:string;post_id:string;storage_path:string;kind:string;not_eaten:boolean;position:number;width:number|null;height:number|null}[]>('media', async () => {
-    const result = await db.from('post_media').select('id,post_id,storage_path,kind,not_eaten,position,width,height').in('post_id', ids).order('position').abortSignal(AbortSignal.timeout(8000));
+    const result = await db.from('post_media').select('id,post_id,storage_path,kind,not_eaten,position,width,height,photo_secret').in('post_id', ids).order('position').abortSignal(AbortSignal.timeout(8000));
     if (result.error) throw result.error; return result.data ?? [];
   }, null);
   const savedRead = optionalRead<null | {id:string;source_post_id:string}[]>('saved', async () => {
@@ -233,7 +233,7 @@ export async function toFeedPosts(db: SupabaseClient, rows: PostRow[], zone = "U
     const smallPhotos=new Map<string,string>();
     for(const entry of media??[]){
       const owner=owners.get(entry.post_id);
-      const url=entry.kind==='photo'&&owner?smallFeedPhotoUrl(owner,entry.post_id,entry.id):null;
+      const url=entry.kind==='photo'&&owner?smallFeedPhotoUrl(owner,entry.post_id,entry.id,(entry as {photo_secret?:string|null}).photo_secret):null;
       if(url)smallPhotos.set(feedPathFor(entry.storage_path),url);
     }
     const first = media?.find(entry => entry.post_id === rows[0].id);
@@ -301,14 +301,14 @@ export const VISIBLE_MEAL_FILTER="needs_input.is.null,status.eq.failed";
 // The critical first-photo path does not wait for six meals' nutrition and
 // feedback fences. Embedded media remains authorized by the caller's RLS.
 export async function getFirstFeedPhoto(db: SupabaseClient, userId: string) {
-  const {data, error} = await db.from('posts').select('id,user_id,caption,eaten_at,post_media(id,storage_path,kind,position)').is("deleted_at", null)
+  const {data, error} = await db.from('posts').select('id,user_id,caption,eaten_at,post_media(id,storage_path,kind,position,photo_secret)').is("deleted_at", null)
     .eq('user_id',userId).neq('status','needs_input').or(VISIBLE_MEAL_FILTER)
     .order('eaten_at',{ascending:false}).order('id',{ascending:false}).limit(1).abortSignal(AbortSignal.timeout(8000)).maybeSingle();
   if(error)throw new Error('The first meal could not be read.');
   if(!data)return null;
   if(data.user_id!==userId)throw new Error('The first meal owner did not match.');
   const photo=[...(data.post_media??[])].filter(row=>row.kind==='photo').sort((a,b)=>a.position-b.position)[0];
-  const photoUrl=photo?(smallFeedPhotoUrl(data.user_id,data.id,photo.id)??await feedCopyUrl(db,feedPathFor(photo.storage_path),data.user_id)):null;
+  const photoUrl=photo?(smallFeedPhotoUrl(data.user_id,data.id,photo.id,(photo as {photo_secret?:string|null}).photo_secret)??await feedCopyUrl(db,feedPathFor(photo.storage_path),data.user_id)):null;
   return {id:data.id,caption:data.caption??'',eaten_at:data.eaten_at,photoUrl};
 }
 

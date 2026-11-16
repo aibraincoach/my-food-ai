@@ -49,7 +49,7 @@ test('Home HTML preload and first image expose identical density candidates with
   if(name==='@/lib/supabase/server')return{createClient:async()=>({})};
   if(name==='@/lib/posts/days')return{validZone:()=> 'UTC',dateInZone:()=> '2026-11-03',shiftDay:(_,step)=>String(step)};
   if(name==='@/lib/posts/feed')return{getFeed:async(_db,_owner,_cursor,_zone,_size,options)=>{options.onFirstPhoto(url);return{posts:[{id:post,caption:'Rice',eaten_at:'2026-11-03T10:00:00Z',photoUrl:url}],days:[],nextCursor:null};}};
-  if(name==='@/lib/posts/home-today')return{homeToday:async()=>({date:'2026-11-03',posts:[],totals:{}})};
+  if(name==='@/lib/posts/home-today')return{readToday:async()=>({view:{date:'2026-11-03',posts:[],totals:{}},total:{day:'2026-11-03',kcal:0,ready:false,missing:[],known:0,posts:[]}})};
   if(name==='next/link'||name.startsWith('@/components/'))return{default:name};
   if(name==='@/lib/posts/today-view')return{};
   if(name==='@/lib/nutrition/totals')return{sumNutrition};

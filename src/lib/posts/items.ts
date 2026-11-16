@@ -119,7 +119,7 @@ export async function getPostDetail(supabase: SupabaseClient, postId: string, zo
   if (!post) return null;
   const revisionBefore = post.status === "ready" ? await latestRevision(supabase, postId) : null;
   const [mediaResult, current] = await Promise.all([
-    supabase.from("post_media").select("id,storage_path,kind,not_eaten,width,height").eq("post_id", postId).order("position"),
+    supabase.from("post_media").select("id,storage_path,kind,not_eaten,width,height,photo_secret").eq("post_id", postId).order("position"),
     getCurrentItems(supabase, postId),
   ]);
   const { data: mediaRows, error: mediaError } = mediaResult;
@@ -147,7 +147,7 @@ export async function getPostDetail(supabase: SupabaseClient, postId: string, zo
     maskUrl: item.mask_path ? originalUrls.get(item.mask_path) ?? null : null,
   }));
   const photos: DetailPhoto[] = photoRows.map(entry=>{
-    const previewUrl=smallFeedPhotoUrl(post.user_id,postId,entry.id)??undefined;
+    const previewUrl=smallFeedPhotoUrl(post.user_id,postId,entry.id,(entry as {photo_secret?:string|null}).photo_secret)??undefined;
     const url=originalUrls.get(entry.storage_path);
     if(!url&&entry===media)throw new Error("Meal photo could not be opened.");
     return{id:entry.id,url:url??previewUrl??'',previewUrl,width:entry.width||1,height:entry.height||1,not_eaten:Boolean(entry.not_eaten),...(url?{expiresAt:signedExpiresAt}:{})};
