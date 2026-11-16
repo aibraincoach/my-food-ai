@@ -8,11 +8,11 @@ import {hasUnavailableFields,retainCompleteItems} from '../src/lib/posts/feed.ts
 
 // Run the real component's effects against a clock and a counted data source.
 // No React DOM/layout snapshots; this checks its network/resource behavior.
-function harness(status, hidden = false) {
+function harness(status, hidden = false, fields = {}) {
   let now = 1000, reads = 0, update, deletion;const retired=[];
   const effects = [], timers = new Map(), refs = [];let timerId = 0;
   const doc = { visibilityState: hidden ? 'hidden' : 'visible', hidden, addEventListener() {}, removeEventListener() {} };
-  const post = { id: 'meal', status, items: [{id:'rice'}], slides: [] };
+  const post = { id: 'meal', status, items: [{id:'rice'}], slides: [], ...fields };
   const channel = { on(_name,filter,cb) { if(filter.event==='DELETE')deletion=cb;else update=cb;return this; }, subscribe() {return this;} };
   const exports = {};
   const code=ts.transpileModule(readFileSync(new URL('../src/components/RealtimePost.tsx',import.meta.url),'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,jsx:ts.JsxEmit.ReactJSX,target:ts.ScriptTarget.ES2022}}).outputText;
@@ -48,4 +48,11 @@ test('clarification and deleted meals retire instead of polling invisibly',async
  assert.equal(h.retired.at(-1).type,'post-unavailable');assert.equal(h.retired.at(-1).detail.reason,'needs_input');
  const reads=h.reads();for(let i=0;i<20;i++)await h.tick(2000);assert.equal(h.reads(),reads);h.cleanup();
  const deleted=harness('processing');await Promise.resolve();deleted.remove();const before=deleted.reads();await deleted.tick(2000);assert.equal(deleted.reads(),before);assert.equal(deleted.retired.at(-1).detail.reason,'deleted');deleted.cleanup();
+});
+
+test('complete server cards skip the mount read but a revision-fenced card still repairs itself',async()=>{
+ const complete={slides:[{kind:'card',url:'card'}],analysisFingerprint:'stable'};
+ const good=harness('ready',false,complete);await good.tick(15000);assert.equal(good.reads(),0,'complete ready seed has no mount read or poll');good.update();await Promise.resolve();assert.equal(good.reads(),1,'database changes still refresh');good.cleanup();
+ const raced=harness('ready',false,{...complete,analysisFingerprint:null,revisionUnavailable:true});await Promise.resolve();assert.equal(raced.reads(),1,'inconsistent revision is read on mount');await raced.tick(2000);assert.ok(raced.reads()>1,'repair does not strand an inconsistent ready seed');raced.cleanup();
+ const empty=harness('ready',false,{items:[],slides:[],analysisFingerprint:null});await empty.tick(15000);assert.equal(empty.reads(),0,'a genuinely empty complete meal is not made to poll');empty.cleanup();
 });

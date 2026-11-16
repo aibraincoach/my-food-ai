@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 import vm from 'node:vm';
 import {readFileSync} from 'node:fs';
 import ts from 'typescript';
-import {retainCompleteItems,hasUnavailableFields} from '../src/lib/posts/feed.ts';
+import {retainCompleteItems,hasUnavailableFields,readFeedDiscovery} from '../src/lib/posts/feed.ts';
 import {todayFromPage} from '../src/lib/posts/today-view.ts';
 import {dayTotalRefreshDates} from '../src/lib/posts/day-total-changes.ts';
 import {createDayTotalsRefresh} from '../src/lib/posts/day-totals-refresh.ts';
@@ -69,7 +69,7 @@ function fallbackFor(tree){
   if(name==='react/jsx-runtime')return{jsx,jsxs:jsx};
   if(name==='@/lib/posts/day-totals-refresh')return{createDayTotalsRefresh};
   if(name==='@/lib/posts/day-total-changes')return{dayTotalRefreshDates};
-   if(name==='@/lib/posts/feed')return{retainCompleteItems,hasUnavailableFields};
+   if(name==='@/lib/posts/feed')return{retainCompleteItems,hasUnavailableFields,readFeedDiscovery};
   return{};
  }});
  return exported.CachedFeedFallback();
@@ -96,7 +96,7 @@ async function mountedFeed(initialPosts,{cachedPosts,failPage=false,initialPage,
  if(cachedPosts)writeFeedCache(sessionUserId,{posts:cachedPosts,savedAt:Date.now()});
  let current=initialPosts[0];
  const hookOwner=initialUserId??sessionUserId;
- const pageReads=[];
+ const pageReads=[],cardReads=[];let discovered=[];
  const cache={userId:hookOwner,cached:hookCachedPosts,save:posts=>writeFeedCache(hookOwner,{posts,savedAt:Date.now()})};
  const channel={on(){return this;},subscribe(){return this;}};
  const exported={};
@@ -109,10 +109,10 @@ async function mountedFeed(initialPosts,{cachedPosts,failPage=false,initialPage,
    if(name==='react')return{useEffect:fn=>effects.push(fn),useRef:value=>({current:value}),useState:initial=>{let value=initial;return[initial,next=>{value=typeof next==='function'?next(value):next;states.push(value);}];}};
    if(name==='react/jsx-runtime')return{jsx,jsxs:jsx};
    if(name==='next/navigation')return{useRouter:()=>({replace(){}})};
-   if(name==='@/lib/supabase/client')return{createClient:()=>({auth:{getSession:async()=>({data:{session:{user:{id:sessionUserId}}}})},channel:()=>channel,removeChannel(){}})};
+   if(name==='@/lib/supabase/client')return{createClient:()=>({auth:{getSession:async()=>({data:{session:{user:{id:sessionUserId}}}})},channel:()=>channel,removeChannel(){},from(){return{select(){return this},is(){return this},eq(){return this},neq(){return this},or(){return this},order(){return this},limit(){return this},async abortSignal(){return{data:discovered,error:null}}};}})};
    if(name==='@/lib/posts/day-totals-refresh')return{createDayTotalsRefresh};
   if(name==='@/lib/posts/day-total-changes')return{dayTotalRefreshDates};
-   if(name==='@/lib/posts/feed')return{FEED_PAGE_SIZE:20,retainCompleteItems,hasUnavailableFields,getPostCard:async()=>current};
+   if(name==='@/lib/posts/feed')return{FEED_PAGE_SIZE:20,retainCompleteItems,hasUnavailableFields,readFeedDiscovery,getPostCard:async(_db,id)=>{cardReads.push(id);return current;}};
    if(name==='@/lib/posts/feed-order')return{mergeFeedPosts,discoveryLostOverlap};
    if(name==='@/lib/posts/feed-cache')return{readFeedCache,writeFeedCache,clearFeedCache};
    if(name==='@/lib/posts/feed-cache-mutations')return{claimFeedCacheEvents:()=>()=>{}};
@@ -127,7 +127,7 @@ async function mountedFeed(initialPosts,{cachedPosts,failPage=false,initialPage,
    throw Error('Unexpected feed dependency '+name);
   }});
  exported.default({initialPage,initialUserId,initialZone:Intl.DateTimeFormat().resolvedOptions().timeZone});const cleanups=effects.map(fn=>fn());await turn();await turn();
- return{setCard(value){current=value;},emit(type,id,extra={}){assert.ok(listeners.has(type),'real feed listener must be mounted');listeners.get(type)({detail:{id,...extra}});},pageReads,snapshotFor:id=>readFeedCache(id)?.posts,snapshot:()=>readFeedCache(sessionUserId)?.posts,readyState:()=>states.findLast(state=>state?.kind==='ready'),cleanup(){for(const cleanup of cleanups)cleanup?.();clearFeedCache();if(priorStorage)Object.defineProperty(globalThis,'localStorage',priorStorage);else delete globalThis.localStorage;if(priorWindow)Object.defineProperty(globalThis,'window',priorWindow);else delete globalThis.window;}};
+ return{cardReads,async discover(rows){discovered=rows;listeners.get('focus')();await turn();await turn();},setCard(value){current=value;},emit(type,id,extra={}){assert.ok(listeners.has(type),'real feed listener must be mounted');listeners.get(type)({detail:{id,...extra}});},pageReads,snapshotFor:id=>readFeedCache(id)?.posts,snapshot:()=>readFeedCache(sessionUserId)?.posts,readyState:()=>states.findLast(state=>state?.kind==='ready'),cleanup(){for(const cleanup of cleanups)cleanup?.();clearFeedCache();if(priorStorage)Object.defineProperty(globalThis,'localStorage',priorStorage);else delete globalThis.localStorage;if(priorWindow)Object.defineProperty(globalThis,'window',priorWindow);else delete globalThis.window;}};
 }
 
 test('deleting a cached meal persists its removal and a failed delete can restore it',async()=>{
@@ -191,5 +191,15 @@ test('a failed fresh read after an owner mismatch cannot keep foreign SSR or hoo
   assert.equal(app.pageReads.length,1);
   assert.equal(app.readyState(),undefined,'foreign data must not publish as B fallback when the B page fails');
   assert.equal(app.snapshotFor('owner-b'),undefined);
+ }finally{app.cleanup();}
+});
+
+test('discovery leaves older off-page meals in pagination while finding new back-dated meals',async()=>{
+ const seed=meal('seed');
+ const app=await mountedFeed([seed],{initialUserId:'owner',initialPage:{posts:[seed],days:[],nextCursor:'older',discoveryIds:['seed','old-off-page']}});
+ try{
+  await app.discover([{id:'old-off-page',created_at:'2026-11-15T23:59:59Z'}]);assert.deepEqual(app.cardReads,[],'old off-page meals are not rehydrated on Home open');assert.equal(app.pageReads.length,0);
+  const backdated={...meal('new'),eaten_at:'2026-10-01T00:00:00Z',created_at:'2026-11-15T23:00:00Z'};app.setCard(backdated);
+  await app.discover([{id:'new',created_at:backdated.created_at},{id:'old-off-page',created_at:'2026-11-15T23:59:59Z'}]);assert.deepEqual(app.cardReads,['new'],'new posting is found even when eaten earlier');
  }finally{app.cleanup();}
 });
