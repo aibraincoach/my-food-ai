@@ -1,0 +1,29 @@
+{
+  "started": 1794760785.1104918,
+  "note": "second attempt holds width390 with no navigation or viewport change; prior attempt lost pending state during desktop look and timer was not certified",
+  "initial": {
+    "alert": "",
+    "pressed": null
+  },
+  "lastObservedSeconds": 114.32,
+  "lastObserved": {
+    "alert": "",
+    "buttons": [
+      {
+        "label": "Unsave meal",
+        "pressed": "true"
+      }
+    ]
+  },
+  "finalSeconds": 133.33,
+  "final": {
+    "alert": "This meal is still being analysed. Save it when it finishes.",
+    "buttons": [
+      {
+        "label": "Save meal",
+        "pressed": "false"
+      }
+    ],
+    "status": "processing"
+  }
+}

@@ -1,0 +1,19 @@
+TAP version 13
+# feed read hydration 5
+# feed read hydration 1
+# feed read hydration 1
+# Subtest: feed never binds a new revision to data hydrated across a correction commit
+ok 1 - feed never binds a new revision to data hydrated across a correction commit
+  ---
+  duration_ms: 365.353911
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 762.17469

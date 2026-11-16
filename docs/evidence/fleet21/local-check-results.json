@@ -1,0 +1,1449 @@
+{
+  "K1": {
+    "items": [
+      700
+    ],
+    "holderStatus": 409,
+    "noHolderStatus": 400
+  },
+  "K10": {
+    "items": [
+      615
+    ],
+    "exitCode": 1,
+    "firstError": "The beer post never settled with a question",
+    "completedBatches": 0,
+    "result": "not established; canned provider produced ready instead of question"
+  },
+  "K11": {
+    "items": [
+      705,
+      707
+    ],
+    "labelMerge": "pass",
+    "photoLostOnlineExplicitRetry": "pass",
+    "evidence": "validation-15/test.log; same product code as original main, before seed/fixtures"
+  },
+  "K17": {
+    "items": [
+      710
+    ],
+    "tests": 49,
+    "pass": 49,
+    "fail": 0,
+    "skipped": 0,
+    "todaySummary": "pass: today_summary matches sumNutrition null semantics for the caller local day",
+    "evidence": "validation-14/db.log"
+  },
+  "K2": {
+    "items": [
+      701
+    ],
+    "width": 1280,
+    "secondsAfterNavigation": 15,
+    "requests": 0,
+    "build": "local-1794758971410"
+  },
+  "K3": {
+    "items": [
+      703
+    ],
+    "firstFailure": false,
+    "retryNotChecked": "offline meal did not show the planned failure message",
+    "daysOpened": true,
+    "finalPath": "/days"
+  },
+  "K4": {
+    "items": [
+      704
+    ],
+    "cacheKeysBefore": [
+      "mfa-original-9de77920",
+      "mfa-original-bcf6abd5"
+    ],
+    "targetKeyExists": true,
+    "after": {
+      "photoShows": true,
+      "photoUsesMissing": false,
+      "cache": {
+        "urlPath": "/missing.jpg",
+        "expiresAt": 1794765661670
+      }
+    }
+  },
+  "K6": {
+    "items": [
+      454,
+      512
+    ],
+    "initial": {
+      "scrollY": 47,
+      "scrollHeight": 891,
+      "viewport": 844,
+      "today": {
+        "x": 14,
+        "y": 604,
+        "width": 46.56666564941406,
+        "height": 44,
+        "bottom": 648
+      },
+      "tabBar": {
+        "x": 24,
+        "y": 762,
+        "width": 330,
+        "height": 58,
+        "bottom": 820
+      },
+      "heading": "September 2026 \u00b7 30 days posted",
+      "months": [
+        {
+          "month": "2026-09",
+          "top": 76
+        },
+        {
+          "month": "2026-10",
+          "top": 268
+        },
+        {
+          "month": "2026-11",
+          "top": 508
+        }
+      ]
+    },
+    "todayWhollyAboveTabs": true,
+    "headings": [
+      "September 2026 \u00b7 30 days posted"
+    ],
+    "samples": [
+      {
+        "requested": -120,
+        "actualDelta": -47,
+        "y": 0,
+        "heading": "September 2026 \u00b7 30 days posted",
+        "months": [
+          {
+            "month": "2026-09",
+            "top": 123
+          },
+          {
+            "month": "2026-10",
+            "top": 315
+          },
+          {
+            "month": "2026-11",
+            "top": 555
+          }
+        ]
+      }
+    ]
+  },
+  "K7": {
+    "items": [
+      569
+    ],
+    "initial": {
+      "count": 30,
+      "left": 0,
+      "width": 378,
+      "scrollWidth": 2182,
+      "last": {
+        "left": 2104,
+        "right": 2166,
+        "width": 62
+      },
+      "row": {
+        "left": 0,
+        "right": 378
+      },
+      "lastWhole": false
+    },
+    "afterFirstFiveSeconds": {
+      "count": 60,
+      "left": 1872,
+      "width": 378,
+      "scrollWidth": 4342,
+      "last": {
+        "left": 2392,
+        "right": 2454,
+        "width": 62
+      },
+      "row": {
+        "left": 0,
+        "right": 378
+      },
+      "lastWhole": false
+    },
+    "afterContinuingToEnd": {
+      "count": 76,
+      "left": 5116,
+      "width": 378,
+      "scrollWidth": 5494,
+      "last": {
+        "left": 300,
+        "right": 362,
+        "width": 62
+      },
+      "row": {
+        "left": 0,
+        "right": 378
+      },
+      "lastWhole": true
+    }
+  },
+  "K8": {
+    "items": [
+      351
+    ],
+    "tileCount": 6,
+    "tiles": [
+      {
+        "label": "Post Water, glass",
+        "text": "Water\nglass\n250 ml"
+      },
+      {
+        "label": "Post Coffee, cup",
+        "text": "Coffee\ncup\n240 ml\n95 mg"
+      },
+      {
+        "label": "Post Espresso, double",
+        "text": "Espresso\ndouble\n60 ml\n126 mg"
+      },
+      {
+        "label": "Post Tea, mug",
+        "text": "Tea\nmug\n300 ml\n45 mg"
+      },
+      {
+        "label": "Post Coca-Cola, can",
+        "text": "Coca-Cola\ncan\n330 ml\n32 mg"
+      },
+      {
+        "label": "Post Water, bottle",
+        "text": "Water\nbottle\n500 ml"
+      }
+    ],
+    "sizeGroup": "glass \u00b7 250 ml\nglass \u00b7 500 ml\nglass \u00b7 750 ml",
+    "sizesOpened": true,
+    "note": "Count restricted to the six drink tiles; the background Post a meal fan toggle is excluded."
+  },
+  "K5": {
+    "items": [
+      709
+    ],
+    "failedChip": true,
+    "chipGoneAfterDelete": true,
+    "chipGoneAfterReload": true,
+    "databaseDeleted": true
+  },
+  "K9": {
+    "items": [
+      554,
+      658
+    ],
+    "notSlowed": true,
+    "singleTap": {
+      "installed": 2205,
+      "start": 2213,
+      "firstMutation": 2213,
+      "detailReady": 3128,
+      "firstChangeMs": 0,
+      "detailShownMs": 915,
+      "path": "/posts/c50e2a39-c513-4a02-9a60-ad7eda577136"
+    },
+    "doubleTap100msGap": {
+      "everPostPath": false,
+      "detailReady": false,
+      "path": "/",
+      "previewLeft": false
+    }
+  },
+  "K12": {
+    "items": [
+      708
+    ],
+    "instrumentationNote": "Initial global Post selector did not create a fixture. Retried with the dialog-scoped native Post selector verified by K15; product code unchanged.",
+    "error": "{\"error\":\"Error: Control missing\"}",
+    "attempts": [
+      {
+        "postSelector": "global enabled Post",
+        "outcome": "No meal with Fixture lost photo caption appeared within 60 seconds."
+      },
+      {
+        "postSelector": "dialog-scoped enabled Post",
+        "outcome": "Control missing during the native Post step."
+      }
+    ],
+    "retakeStepsNotChecked": true,
+    "note": "No lost-photo fixture was established, so drafts/intents were not cleared by this check and retake was not claimed."
+  },
+  "K13": {
+    "items": [
+      599
+    ],
+    "firstPaintNotMeasured": "Driver inspects after navigation completion plus one second.",
+    "firstInspection": {
+      "text": "Today\n\n\u2014\nkcal consumed\n\n\u2014 g\n\nprotein\n\n\u2014 g\n\ncarbs\n\n\u2014 g\n\nfat\n\nPosted today\n\nToday's totals couldn't load. Try again",
+      "retry": true,
+      "photos": 0
+    },
+    "afterFiveSeconds": {
+      "text": "Today\n\n\u2014\nkcal consumed\n\n\u2014 g\n\nprotein\n\n\u2014 g\n\ncarbs\n\n\u2014 g\n\nfat\n\nPosted today\n\nToday's totals couldn't load. Try again",
+      "retry": true,
+      "photos": 0
+    },
+    "functionRestored": true,
+    "afterRetry": {
+      "text": "Today\n\n\u2014\nkcal consumed\n\n\u2014 g\n\nprotein\n\n\u2014 g\n\ncarbs\n\n\u2014 g\n\nfat\n\nPosted today\nFixture ready\n9:17 AM\n\u2014 kcal\nFixture ready 2\n9:17 AM\n\u2014 kcal\n\nKnown nutrition shown. Nutrition unavailable: Coca cola",
+      "retry": false,
+      "photos": 2
+    },
+    "databaseFunctionExists": true
+  },
+  "K14": {
+    "items": [
+      598
+    ],
+    "before": {
+      "build": "local-1794758971410",
+      "controller": "http://127.0.0.1:60260/sw.js",
+      "waiting": false,
+      "caches": [
+        "mfa-media-control-v1",
+        "my-food-ai-shell-v4",
+        "mfa-media-v2"
+      ],
+      "shellKeys": [
+        "http://127.0.0.1:60260/",
+        "http://127.0.0.1:60260/shell",
+        "http://127.0.0.1:60260/manifest.webmanifest",
+        "http://127.0.0.1:60260/_next/static/chunks/3gi1bk4fd3_0u.css",
+        "http://127.0.0.1:60260/_next/static/chunks/33iqpb14oftvb.css",
+        "http://127.0.0.1:60260/_next/static/chunks/1kexj4s7oxhs2.js",
+        "http://127.0.0.1:60260/_next/static/chunks/02ntz_3hrdom0.js",
+        "http://127.0.0.1:60260/_next/static/chunks/2g_nlitt60n6d.js",
+        "http://127.0.0.1:60260/_next/static/chunks/0jpawt7pp1rq8.js",
+        "http://127.0.0.1:60260/_next/static/chunks/2gsxhio73malr.js",
+        "http://127.0.0.1:60260/_next/static/chunks/2wdg3ssrm1tu4.js",
+        "http://127.0.0.1:60260/_next/static/chunks/turbopack-2c3mg3r-05n1w.js",
+        "http://127.0.0.1:60260/_next/static/chunks/09m660jonr8ev.js",
+        "http://127.0.0.1:60260/_next/static/chunks/0683d_x8qkymu.js",
+        "http://127.0.0.1:60260/_next/static/chunks/2yf9irc72drc1.js",
+        "http://127.0.0.1:60260/_next/static/chunks/3y2fdg1bdob8_.js",
+        "http://127.0.0.1:60260/_next/static/chunks/2cp2j_1sgjp2g.js",
+        "http://127.0.0.1:60260/_next/static/chunks/2qgudchbq_rlc.js",
+        "http://127.0.0.1:60260/_next/static/chunks/2_ylm5vh-ww_p.js",
+        "http://127.0.0.1:60260/_next/static/chunks/1n1_x2zjuigap.js",
+        "http://127.0.0.1:60260/_next/static/chunks/3s6152l1influ.js",
+        "http://127.0.0.1:60260/_next/static/chunks/0cz1d0mv5g_q7.js",
+        "http://127.0.0.1:60260/_next/static/chunks/383-jb2k00qqh.js"
+      ],
+      "navigationWorkerStart": 0
+    },
+    "buildExitCode": 0,
+    "firstReload": {
+      "build": "local-1794762748232",
+      "controller": "http://127.0.0.1:60260/sw.js",
+      "waiting": false,
+      "caches": [
+        "mfa-media-control-v1",
+        "my-food-ai-shell-v4",
+        "mfa-media-v2"
+      ],
+      "shellKeys": [
+        "http://127.0.0.1:60260/",
+        "http://127.0.0.1:60260/shell",
+        "http://127.0.0.1:60260/manifest.webmanifest",
+        "http://127.0.0.1:60260/_next/static/chunks/1kexj4s7oxhs2.js",
+        "http://127.0.0.1:60260/_next/static/chunks/3gi1bk4fd3_0u.css",
+        "http://127.0.0.1:60260/_next/static/chunks/33iqpb14oftvb.css",
+        "http://127.0.0.1:60260/_next/static/chunks/02ntz_3hrdom0.js",
+        "http://127.0.0.1:60260/_next/static/chunks/2g_nlitt60n6d.js",
+        "http://127.0.0.1:60260/_next/static/chunks/2gsxhio73malr.js",
+        "http://127.0.0.1:60260/_next/static/chunks/turbopack-2c3mg3r-05n1w.js",
+        "http://127.0.0.1:60260/_next/static/chunks/2wdg3ssrm1tu4.js",
+        "http://127.0.0.1:60260/_next/static/chunks/0jpawt7pp1rq8.js",
+        "http://127.0.0.1:60260/_next/static/chunks/3s6152l1influ.js",
+        "http://127.0.0.1:60260/_next/static/chunks/09m660jonr8ev.js",
+        "http://127.0.0.1:60260/_next/static/chunks/2yf9irc72drc1.js",
+        "http://127.0.0.1:60260/_next/static/chunks/0683d_x8qkymu.js",
+        "http://127.0.0.1:60260/_next/static/chunks/383-jb2k00qqh.js",
+        "http://127.0.0.1:60260/_next/static/chunks/3y2fdg1bdob8_.js",
+        "http://127.0.0.1:60260/_next/static/chunks/2cp2j_1sgjp2g.js",
+        "http://127.0.0.1:60260/_next/static/chunks/2qgudchbq_rlc.js",
+        "http://127.0.0.1:60260/_next/static/chunks/2_ylm5vh-ww_p.js",
+        "http://127.0.0.1:60260/_next/static/chunks/1n1_x2zjuigap.js",
+        "http://127.0.0.1:60260/_next/static/chunks/0cz1d0mv5g_q7.js"
+      ],
+      "navigationWorkerStart": 0,
+      "publicFromCache": [
+        "http://127.0.0.1:60260/_next/static/chunks/3gi1bk4fd3_0u.css",
+        "http://127.0.0.1:60260/_next/static/chunks/33iqpb14oftvb.css",
+        "http://127.0.0.1:60260/_next/static/chunks/1kexj4s7oxhs2.js",
+        "http://127.0.0.1:60260/_next/static/chunks/02ntz_3hrdom0.js",
+        "http://127.0.0.1:60260/_next/static/chunks/2gsxhio73malr.js",
+        "http://127.0.0.1:60260/_next/static/chunks/turbopack-2c3mg3r-05n1w.js",
+        "http://127.0.0.1:60260/_next/static/chunks/2wdg3ssrm1tu4.js",
+        "http://127.0.0.1:60260/_next/static/chunks/3s6152l1influ.js",
+        "http://127.0.0.1:60260/_next/static/chunks/09m660jonr8ev.js",
+        "http://127.0.0.1:60260/_next/static/chunks/0683d_x8qkymu.js",
+        "http://127.0.0.1:60260/_next/static/chunks/383-jb2k00qqh.js",
+        "http://127.0.0.1:60260/_next/static/chunks/2_ylm5vh-ww_p.js",
+        "http://127.0.0.1:60260/_next/static/chunks/2g_nlitt60n6d.js",
+        "http://127.0.0.1:60260/_next/static/chunks/2qgudchbq_rlc.js",
+        "http://127.0.0.1:60260/_next/static/chunks/10habupcqi6ta.js",
+        "http://127.0.0.1:60260/_next/static/chunks/02n055b2_-16v.js",
+        "http://127.0.0.1:60260/_next/static/chunks/1n1_x2zjuigap.js",
+        "http://127.0.0.1:60260/_next/static/chunks/0xowna7hvrzrl.js",
+        "http://127.0.0.1:60260/_next/static/chunks/3t2wh7mt_be-v.js",
+        "http://127.0.0.1:60260/_next/static/chunks/147w1kuio9c6r.js",
+        "http://127.0.0.1:60260/_next/static/chunks/0jpawt7pp1rq8.js",
+        "http://127.0.0.1:60260/_next/static/chunks/3y2fdg1bdob8_.js"
+      ],
+      "shellCacheProvenance": "BiDi fromCache does not distinguish the worker shell cache from HTTP cache; no stronger provenance claimed."
+    },
+    "secondReload": {
+      "build": "local-1794762748232",
+      "controller": "http://127.0.0.1:60260/sw.js",
+      "waiting": false,
+      "caches": [
+        "mfa-media-control-v1",
+        "my-food-ai-shell-v4",
+        "mfa-media-v2"
+      ],
+      "shellKeys": [
+        "http://127.0.0.1:60260/",
+        "http://127.0.0.1:60260/shell",
+        "http://127.0.0.1:60260/manifest.webmanifest",
+        "http://127.0.0.1:60260/_next/static/chunks/1kexj4s7oxhs2.js",
+        "http://127.0.0.1:60260/_next/static/chunks/3gi1bk4fd3_0u.css",
+        "http://127.0.0.1:60260/_next/static/chunks/33iqpb14oftvb.css",
+        "http://127.0.0.1:60260/_next/static/chunks/02ntz_3hrdom0.js",
+        "http://127.0.0.1:60260/_next/static/chunks/2g_nlitt60n6d.js",
+        "http://127.0.0.1:60260/_next/static/chunks/2gsxhio73malr.js",
+        "http://127.0.0.1:60260/_next/static/chunks/turbopack-2c3mg3r-05n1w.js",
+        "http://127.0.0.1:60260/_next/static/chunks/2wdg3ssrm1tu4.js",
+        "http://127.0.0.1:60260/_next/static/chunks/0jpawt7pp1rq8.js",
+        "http://127.0.0.1:60260/_next/static/chunks/3s6152l1influ.js",
+        "http://127.0.0.1:60260/_next/static/chunks/09m660jonr8ev.js",
+        "http://127.0.0.1:60260/_next/static/chunks/2yf9irc72drc1.js",
+        "http://127.0.0.1:60260/_next/static/chunks/0683d_x8qkymu.js",
+        "http://127.0.0.1:60260/_next/static/chunks/383-jb2k00qqh.js",
+        "http://127.0.0.1:60260/_next/static/chunks/3y2fdg1bdob8_.js",
+        "http://127.0.0.1:60260/_next/static/chunks/2cp2j_1sgjp2g.js",
+        "http://127.0.0.1:60260/_next/static/chunks/2qgudchbq_rlc.js",
+        "http://127.0.0.1:60260/_next/static/chunks/2_ylm5vh-ww_p.js",
+        "http://127.0.0.1:60260/_next/static/chunks/1n1_x2zjuigap.js",
+        "http://127.0.0.1:60260/_next/static/chunks/0cz1d0mv5g_q7.js"
+      ],
+      "navigationWorkerStart": 0,
+      "publicFromCache": [
+        "http://127.0.0.1:60260/_next/static/chunks/3gi1bk4fd3_0u.css",
+        "http://127.0.0.1:60260/_next/static/chunks/33iqpb14oftvb.css",
+        "http://127.0.0.1:60260/_next/static/chunks/1kexj4s7oxhs2.js",
+        "http://127.0.0.1:60260/_next/static/chunks/02ntz_3hrdom0.js",
+        "http://127.0.0.1:60260/_next/static/chunks/2gsxhio73malr.js",
+        "http://127.0.0.1:60260/_next/static/chunks/turbopack-2c3mg3r-05n1w.js",
+        "http://127.0.0.1:60260/_next/static/chunks/2wdg3ssrm1tu4.js",
+        "http://127.0.0.1:60260/_next/static/chunks/3s6152l1influ.js",
+        "http://127.0.0.1:60260/_next/static/chunks/09m660jonr8ev.js",
+        "http://127.0.0.1:60260/_next/static/chunks/0683d_x8qkymu.js",
+        "http://127.0.0.1:60260/_next/static/chunks/383-jb2k00qqh.js",
+        "http://127.0.0.1:60260/_next/static/chunks/2_ylm5vh-ww_p.js",
+        "http://127.0.0.1:60260/_next/static/chunks/2qgudchbq_rlc.js",
+        "http://127.0.0.1:60260/_next/static/chunks/10habupcqi6ta.js",
+        "http://127.0.0.1:60260/_next/static/chunks/2g_nlitt60n6d.js",
+        "http://127.0.0.1:60260/_next/static/chunks/02n055b2_-16v.js",
+        "http://127.0.0.1:60260/_next/static/chunks/1n1_x2zjuigap.js",
+        "http://127.0.0.1:60260/_next/static/chunks/0xowna7hvrzrl.js",
+        "http://127.0.0.1:60260/_next/static/chunks/3t2wh7mt_be-v.js",
+        "http://127.0.0.1:60260/_next/static/chunks/147w1kuio9c6r.js",
+        "http://127.0.0.1:60260/_next/static/chunks/0jpawt7pp1rq8.js",
+        "http://127.0.0.1:60260/_next/static/chunks/3y2fdg1bdob8_.js",
+        "http://127.0.0.1:60260/_next/static/chunks/1sw90oajzcrjq.js"
+      ],
+      "shellCacheProvenance": "BiDi fromCache does not distinguish the worker shell cache from HTTP cache; no stronger provenance claimed."
+    },
+    "changedWithinTwoReloads": true
+  },
+  "K15": {
+    "items": [
+      571
+    ],
+    "notSlowed": true,
+    "postPresses": {
+      "Fixture overlap 1": 1,
+      "Fixture overlap 2": 1
+    },
+    "afterFirstPost": {
+      "dialogs": 0,
+      "uploading": true
+    },
+    "firstUploadingBeforeSecondOpen": true,
+    "afterSecondPost": {
+      "dialogs": 0,
+      "uploading": true
+    },
+    "mealStates": [
+      "Fixture overlap 1|ready",
+      "Fixture overlap 2|ready"
+    ],
+    "saveErrorShown": false,
+    "non2xx3xx": [
+      {
+        "url": "http://127.0.0.1:60260/posts/c02bf5bd?_rsc=5CB68i4pnAekjehf",
+        "status": 404,
+        "time": 1794762826905,
+        "error": null
+      },
+      {
+        "url": "http://127.0.0.1:60260/posts/c02bf5bd?reply=1&_rsc=5CB68i4pnAekjehf",
+        "status": 404,
+        "time": 1794762826907,
+        "error": null
+      },
+      {
+        "url": "http://127.0.0.1:60260/posts/c02bf5bd?reply=1&_rsc=_i_aeImnuN6u1u1r",
+        "status": 404,
+        "time": 1794762827337,
+        "error": null
+      },
+      {
+        "url": "http://127.0.0.1:60260/posts/c02bf5bd?_rsc=_i_aeImnuN6u1u1r",
+        "status": 404,
+        "time": 1794762827354,
+        "error": null
+      },
+      {
+        "url": "http://127.0.0.1:60260/posts/c02bf5bd?reply=1&_rsc=5CB68i4pnAekjehf",
+        "status": 404,
+        "time": 1794762827488,
+        "error": null
+      },
+      {
+        "url": "http://127.0.0.1:60260/posts/c02bf5bd?_rsc=5CB68i4pnAekjehf",
+        "status": 404,
+        "time": 1794762827491,
+        "error": null
+      },
+      {
+        "url": "http://127.0.0.1:60260/posts/c09a9171?reply=1&_rsc=5CB68i4pnAekjehf",
+        "status": 404,
+        "time": 1794762828835,
+        "error": null
+      },
+      {
+        "url": "http://127.0.0.1:60260/posts/c09a9171?_rsc=5CB68i4pnAekjehf",
+        "status": 404,
+        "time": 1794762828844,
+        "error": null
+      },
+      {
+        "url": "http://127.0.0.1:60260/posts/c09a9171?_rsc=_i_aeImnuN6u1u1r",
+        "status": 404,
+        "time": 1794762830124,
+        "error": null
+      },
+      {
+        "url": "http://127.0.0.1:60260/posts/c09a9171?reply=1&_rsc=_i_aeImnuN6u1u1r",
+        "status": 404,
+        "time": 1794762830156,
+        "error": null
+      },
+      {
+        "url": "http://127.0.0.1:60260/posts/c09a9171?reply=1&_rsc=_i_aeImnuN6u1u1r",
+        "status": 404,
+        "time": 1794762831176,
+        "error": null
+      },
+      {
+        "url": "http://127.0.0.1:60260/posts/c09a9171?_rsc=_i_aeImnuN6u1u1r",
+        "status": 404,
+        "time": 1794762831176,
+        "error": null
+      },
+      {
+        "url": "http://127.0.0.1:60260/posts/99e34b18?_rsc=_i_aeImnuN6u1u1r",
+        "status": 404,
+        "time": 1794762832203,
+        "error": null
+      },
+      {
+        "url": "http://127.0.0.1:60260/posts/99e34b18?reply=1&_rsc=_i_aeImnuN6u1u1r",
+        "status": 404,
+        "time": 1794762832209,
+        "error": null
+      },
+      {
+        "url": "http://127.0.0.1:60260/posts/99e34b18?reply=1&_rsc=_i_aeImnuN6u1u1r",
+        "status": 404,
+        "time": 1794762833577,
+        "error": null
+      },
+      {
+        "url": "http://127.0.0.1:60260/posts/99e34b18?_rsc=_i_aeImnuN6u1u1r",
+        "status": 404,
+        "time": 1794762833578,
+        "error": null
+      }
+    ]
+  },
+  "K16": {
+    "items": [
+      323
+    ],
+    "pages": {
+      "/": {
+        "since": "2026-11-15T17:16:06.886692Z",
+        "counts": {
+          "/user": 115
+        }
+      },
+      "/days": {
+        "since": "2026-11-15T17:16:18.527044Z",
+        "counts": {
+          "/user": 10
+        }
+      },
+      "/profile": {
+        "since": "2026-11-15T17:16:29.886481Z",
+        "counts": {
+          "/user": 18
+        }
+      }
+    }
+  },
+  "K18": {
+    "items": [
+      592
+    ],
+    "widths": [
+      {
+        "width": 1100,
+        "dialogOpen": true,
+        "arrow": {
+          "left": 68,
+          "top": 449.98333740234375,
+          "right": 104,
+          "bottom": 485.98333740234375,
+          "width": 36,
+          "height": 36
+        },
+        "previousDisabled": false,
+        "card": {
+          "left": 56,
+          "top": 240.75,
+          "right": 683.9833374023438,
+          "bottom": 868.7333374023438,
+          "width": 627.9833374023438,
+          "height": 627.9833374023438
+        },
+        "textNodes": [
+          {
+            "text": "DRANK",
+            "rect": {
+              "left": 107.53334045410156,
+              "top": 292.29998779296875,
+              "right": 172.46665954589844,
+              "bottom": 319.29998779296875,
+              "width": 64.93331909179688,
+              "height": 27
+            },
+            "gap": 130.7311070858452,
+            "overlaps": false
+          },
+          {
+            "text": "\u00b7 9:17 AM",
+            "rect": {
+              "left": 172.46665954589844,
+              "top": 292.29998779296875,
+              "right": 258.3833312988281,
+              "bottom": 319.29998779296875,
+              "width": 85.91667175292969,
+              "height": 27
+            },
+            "gap": 147.53244163403554,
+            "overlaps": false
+          },
+          {
+            "text": "Coca cola",
+            "rect": {
+              "left": 242.78334045410156,
+              "top": 414.2166748046875,
+              "right": 353.8833312988281,
+              "bottom": 447.2166748046875,
+              "width": 111.09999084472656,
+              "height": 33
+            },
+            "gap": 138.81091459077825,
+            "overlaps": false
+          },
+          {
+            "text": "330 ml",
+            "rect": {
+              "left": 242.78334045410156,
+              "top": 456.91668701171875,
+              "right": 305.53334045410156,
+              "bottom": 484.91668701171875,
+              "width": 62.75,
+              "height": 28
+            },
+            "gap": 138.78334045410156,
+            "overlaps": false
+          },
+          {
+            "text": "Today",
+            "rect": {
+              "left": 107.53334045410156,
+              "top": 605.4000244140625,
+              "right": 165.18333435058594,
+              "bottom": 633.4000244140625,
+              "width": 57.649993896484375,
+              "height": 28
+            },
+            "gap": 119.46894839923631,
+            "overlaps": false
+          },
+          {
+            "text": "330",
+            "rect": {
+              "left": 107.53334045410156,
+              "top": 699.1500244140625,
+              "right": 165.89999389648438,
+              "bottom": 748.1500244140625,
+              "width": 58.36665344238281,
+              "height": 49
+            },
+            "gap": 213.19596841009133,
+            "overlaps": false
+          },
+          {
+            "text": "ml",
+            "rect": {
+              "left": 165.89999389648438,
+              "top": 699.1500244140625,
+              "right": 208.88333129882812,
+              "bottom": 748.1500244140625,
+              "width": 42.98333740234375,
+              "height": 49
+            },
+            "gap": 221.9721732468664,
+            "overlaps": false
+          },
+          {
+            "text": "consumed today",
+            "rect": {
+              "left": 221.76666259765625,
+              "top": 715.1500244140625,
+              "right": 382.5833282470703,
+              "bottom": 743.1500244140625,
+              "width": 160.81666564941406,
+              "height": 28
+            },
+            "gap": 257.65550111596156,
+            "overlaps": false
+          },
+          {
+            "text": "330",
+            "rect": {
+              "left": 107.53334045410156,
+              "top": 762.38330078125,
+              "right": 144.9499969482422,
+              "bottom": 790.38330078125,
+              "width": 37.416656494140625,
+              "height": 28
+            },
+            "gap": 276.4225465670724,
+            "overlaps": false
+          },
+          {
+            "text": "ml",
+            "rect": {
+              "left": 144.9499969482422,
+              "top": 762.38330078125,
+              "right": 173.13333129882812,
+              "bottom": 790.38330078125,
+              "width": 28.183334350585938,
+              "height": 28
+            },
+            "gap": 279.41696799929986,
+            "overlaps": false
+          },
+          {
+            "text": "from drinks",
+            "rect": {
+              "left": 173.13333129882812,
+              "top": 762.38330078125,
+              "right": 222.1999969482422,
+              "bottom": 790.38330078125,
+              "width": 49.06666564941406,
+              "height": 28
+            },
+            "gap": 284.91464906588124,
+            "overlaps": false
+          },
+          {
+            "text": "from drinks",
+            "rect": {
+              "left": 107.53334045410156,
+              "top": 789.5999755859375,
+              "right": 165.98333740234375,
+              "bottom": 817.5999755859375,
+              "width": 58.44999694824219,
+              "height": 28
+            },
+            "gap": 303.63719712293465,
+            "overlaps": false
+          },
+          {
+            "text": "0",
+            "rect": {
+              "left": 319.26666259765625,
+              "top": 762.38330078125,
+              "right": 332.71665954589844,
+              "bottom": 790.38330078125,
+              "width": 13.449996948242188,
+              "height": 28
+            },
+            "gap": 350.33794510699795,
+            "overlaps": false
+          },
+          {
+            "text": "ml",
+            "rect": {
+              "left": 332.7166748046875,
+              "top": 762.38330078125,
+              "right": 360.90000915527344,
+              "bottom": 790.38330078125,
+              "width": 28.183334350585938,
+              "height": 28
+            },
+            "gap": 358.75933031709974,
+            "overlaps": false
+          },
+          {
+            "text": "from food",
+            "rect": {
+              "left": 360.8999938964844,
+              "top": 762.38330078125,
+              "right": 409.96665954589844,
+              "bottom": 790.38330078125,
+              "width": 49.06666564941406,
+              "height": 28
+            },
+            "gap": 377.3520194988685,
+            "overlaps": false
+          },
+          {
+            "text": "from food",
+            "rect": {
+              "left": 319.26666259765625,
+              "top": 789.5999755859375,
+              "right": 363.43333435058594,
+              "bottom": 817.5999755859375,
+              "width": 44.16667175292969,
+              "height": 28
+            },
+            "gap": 372.18651105036093,
+            "overlaps": false
+          },
+          {
+            "text": "32",
+            "rect": {
+              "left": 493.66668701171875,
+              "top": 762.38330078125,
+              "right": 517.933349609375,
+              "bottom": 790.38330078125,
+              "width": 24.26666259765625,
+              "height": 28
+            },
+            "gap": 477.74163176611427,
+            "overlaps": false
+          },
+          {
+            "text": "mg",
+            "rect": {
+              "left": 517.933349609375,
+              "top": 762.38330078125,
+              "right": 553.3166809082031,
+              "bottom": 790.38330078125,
+              "width": 35.383331298828125,
+              "height": 28
+            },
+            "gap": 497.7326166474303,
+            "overlaps": false
+          },
+          {
+            "text": "caffeine",
+            "rect": {
+              "left": 493.66668701171875,
+              "top": 789.5999755859375,
+              "right": 571.9833526611328,
+              "bottom": 817.5999755859375,
+              "width": 78.31666564941406,
+              "height": 28
+            },
+            "gap": 493.9870341907731,
+            "overlaps": false
+          }
+        ],
+        "minGap": 119.46894839923631,
+        "overlaps": 0
+      },
+      {
+        "width": 1280,
+        "dialogOpen": true,
+        "arrow": {
+          "left": 152,
+          "top": 450,
+          "right": 188,
+          "bottom": 486,
+          "width": 36,
+          "height": 36
+        },
+        "previousDisabled": false,
+        "card": {
+          "left": 140,
+          "top": 236.75,
+          "right": 780,
+          "bottom": 876.75,
+          "width": 640,
+          "height": 640
+        },
+        "textNodes": [
+          {
+            "text": "DRANK",
+            "rect": {
+              "left": 192.51666259765625,
+              "top": 289.54998779296875,
+              "right": 258.68333435058594,
+              "bottom": 316.54998779296875,
+              "width": 66.16667175292969,
+              "height": 27
+            },
+            "gap": 133.5264243476843,
+            "overlaps": false
+          },
+          {
+            "text": "\u00b7 9:17 AM",
+            "rect": {
+              "left": 258.683349609375,
+              "top": 289.54998779296875,
+              "right": 346.183349609375,
+              "bottom": 316.54998779296875,
+              "width": 87.5,
+              "height": 27
+            },
+            "gap": 151.01338242042632,
+            "overlaps": false
+          },
+          {
+            "text": "Coca cola",
+            "rect": {
+              "left": 330.3666687011719,
+              "top": 413.8666687011719,
+              "right": 443.6000061035156,
+              "bottom": 446.8666687011719,
+              "width": 113.23333740234375,
+              "height": 33
+            },
+            "gap": 142.40114508703027,
+            "overlaps": false
+          },
+          {
+            "text": "330 ml",
+            "rect": {
+              "left": 330.3666687011719,
+              "top": 456.816650390625,
+              "right": 394.31666564941406,
+              "bottom": 485.816650390625,
+              "width": 63.94999694824219,
+              "height": 29
+            },
+            "gap": 142.36666870117188,
+            "overlaps": false
+          },
+          {
+            "text": "Today",
+            "rect": {
+              "left": 192.51666259765625,
+              "top": 608.11669921875,
+              "right": 251.23333740234375,
+              "bottom": 637.11669921875,
+              "width": 58.7166748046875,
+              "height": 29
+            },
+            "gap": 122.20019831859408,
+            "overlaps": false
+          },
+          {
+            "text": "330",
+            "rect": {
+              "left": 192.51666259765625,
+              "top": 704.38330078125,
+              "right": 252.01666259765625,
+              "bottom": 753.38330078125,
+              "width": 59.5,
+              "height": 49
+            },
+            "gap": 218.430003207286,
+            "overlaps": false
+          },
+          {
+            "text": "ml",
+            "rect": {
+              "left": 252.01666259765625,
+              "top": 704.38330078125,
+              "right": 295.81666564941406,
+              "bottom": 753.38330078125,
+              "width": 43.80000305175781,
+              "height": 49
+            },
+            "gap": 227.57284361332762,
+            "overlaps": false
+          },
+          {
+            "text": "consumed today",
+            "rect": {
+              "left": 308.95001220703125,
+              "top": 719.38330078125,
+              "right": 472.7833557128906,
+              "bottom": 748.38330078125,
+              "width": 163.83334350585938,
+              "height": 29
+            },
+            "gap": 262.8624555474448,
+            "overlaps": false
+          },
+          {
+            "text": "330",
+            "rect": {
+              "left": 192.51666259765625,
+              "top": 768.13330078125,
+              "right": 230.61666870117188,
+              "bottom": 797.13330078125,
+              "width": 38.100006103515625,
+              "height": 29
+            },
+            "gap": 282.16945201552977,
+            "overlaps": false
+          },
+          {
+            "text": "ml",
+            "rect": {
+              "left": 230.61666870117188,
+              "top": 768.13330078125,
+              "right": 259.3333282470703,
+              "bottom": 797.13330078125,
+              "width": 28.716659545898438,
+              "height": 29
+            },
+            "gap": 285.3338042730106,
+            "overlaps": false
+          },
+          {
+            "text": "from drinks",
+            "rect": {
+              "left": 259.33331298828125,
+              "top": 768.13330078125,
+              "right": 309.34999084472656,
+              "bottom": 797.13330078125,
+              "width": 50.01667785644531,
+              "height": 29
+            },
+            "gap": 291.01141034606763,
+            "overlaps": false
+          },
+          {
+            "text": "from drinks",
+            "rect": {
+              "left": 192.51666259765625,
+              "top": 795.86669921875,
+              "right": 252.0500030517578,
+              "bottom": 824.86669921875,
+              "width": 59.53334045410156,
+              "height": 29
+            },
+            "gap": 309.8996152397488,
+            "overlaps": false
+          },
+          {
+            "text": "0",
+            "rect": {
+              "left": 408.29998779296875,
+              "top": 768.13330078125,
+              "right": 421.99998474121094,
+              "bottom": 797.13330078125,
+              "width": 13.699996948242188,
+              "height": 29
+            },
+            "gap": 357.95430438996743,
+            "overlaps": false
+          },
+          {
+            "text": "ml",
+            "rect": {
+              "left": 422,
+              "top": 768.13330078125,
+              "right": 450.71665954589844,
+              "bottom": 797.13330078125,
+              "width": 28.716659545898438,
+              "height": 29
+            },
+            "gap": 366.54494868941146,
+            "overlaps": false
+          },
+          {
+            "text": "from food",
+            "rect": {
+              "left": 450.7166748046875,
+              "top": 768.13330078125,
+              "right": 500.7333526611328,
+              "bottom": 797.13330078125,
+              "width": 50.01667785644531,
+              "height": 29
+            },
+            "gap": 385.5116737923188,
+            "overlaps": false
+          },
+          {
+            "text": "from food",
+            "rect": {
+              "left": 408.29998779296875,
+              "top": 795.86669921875,
+              "right": 453.29998779296875,
+              "bottom": 824.86669921875,
+              "width": 45,
+              "height": 29
+            },
+            "gap": 380.19660165012715,
+            "overlaps": false
+          },
+          {
+            "text": "32",
+            "rect": {
+              "left": 586.0499877929688,
+              "top": 768.13330078125,
+              "right": 610.7666473388672,
+              "bottom": 797.13330078125,
+              "width": 24.716659545898438,
+              "height": 29
+            },
+            "gap": 487.8964974169274,
+            "overlaps": false
+          },
+          {
+            "text": "mg",
+            "rect": {
+              "left": 610.7666625976562,
+              "top": 768.13330078125,
+              "right": 646.8166656494141,
+              "bottom": 797.13330078125,
+              "width": 36.05000305175781,
+              "height": 29
+            },
+            "gap": 508.262580182413,
+            "overlaps": false
+          },
+          {
+            "text": "caffeine",
+            "rect": {
+              "left": 586.0499877929688,
+              "top": 795.86669921875,
+              "right": 665.8499908447266,
+              "bottom": 824.86669921875,
+              "width": 79.80000305175781,
+              "height": 29
+            },
+            "gap": 504.44143769788167,
+            "overlaps": false
+          }
+        ],
+        "minGap": 122.20019831859408,
+        "overlaps": 0
+      },
+      {
+        "width": 1440,
+        "dialogOpen": true,
+        "arrow": {
+          "left": 232,
+          "top": 450,
+          "right": 268,
+          "bottom": 486,
+          "width": 36,
+          "height": 36
+        },
+        "previousDisabled": false,
+        "card": {
+          "left": 220,
+          "top": 236.75,
+          "right": 860,
+          "bottom": 876.75,
+          "width": 640,
+          "height": 640
+        },
+        "textNodes": [
+          {
+            "text": "DRANK",
+            "rect": {
+              "left": 272.51666259765625,
+              "top": 289.54998779296875,
+              "right": 338.68333435058594,
+              "bottom": 316.54998779296875,
+              "width": 66.16667175292969,
+              "height": 27
+            },
+            "gap": 133.5264243476843,
+            "overlaps": false
+          },
+          {
+            "text": "\u00b7 9:17 AM",
+            "rect": {
+              "left": 338.683349609375,
+              "top": 289.54998779296875,
+              "right": 426.183349609375,
+              "bottom": 316.54998779296875,
+              "width": 87.5,
+              "height": 27
+            },
+            "gap": 151.01338242042632,
+            "overlaps": false
+          },
+          {
+            "text": "Coca cola",
+            "rect": {
+              "left": 410.3666687011719,
+              "top": 413.8666687011719,
+              "right": 523.6000061035156,
+              "bottom": 446.8666687011719,
+              "width": 113.23333740234375,
+              "height": 33
+            },
+            "gap": 142.40114508703027,
+            "overlaps": false
+          },
+          {
+            "text": "330 ml",
+            "rect": {
+              "left": 410.3666687011719,
+              "top": 456.816650390625,
+              "right": 474.31666564941406,
+              "bottom": 485.816650390625,
+              "width": 63.94999694824219,
+              "height": 29
+            },
+            "gap": 142.36666870117188,
+            "overlaps": false
+          },
+          {
+            "text": "Today",
+            "rect": {
+              "left": 272.51666259765625,
+              "top": 608.11669921875,
+              "right": 331.23333740234375,
+              "bottom": 637.11669921875,
+              "width": 58.7166748046875,
+              "height": 29
+            },
+            "gap": 122.20019831859408,
+            "overlaps": false
+          },
+          {
+            "text": "330",
+            "rect": {
+              "left": 272.51666259765625,
+              "top": 704.38330078125,
+              "right": 332.01666259765625,
+              "bottom": 753.38330078125,
+              "width": 59.5,
+              "height": 49
+            },
+            "gap": 218.430003207286,
+            "overlaps": false
+          },
+          {
+            "text": "ml",
+            "rect": {
+              "left": 332.01666259765625,
+              "top": 704.38330078125,
+              "right": 375.81666564941406,
+              "bottom": 753.38330078125,
+              "width": 43.80000305175781,
+              "height": 49
+            },
+            "gap": 227.57284361332762,
+            "overlaps": false
+          },
+          {
+            "text": "consumed today",
+            "rect": {
+              "left": 388.95001220703125,
+              "top": 719.38330078125,
+              "right": 552.7833557128906,
+              "bottom": 748.38330078125,
+              "width": 163.83334350585938,
+              "height": 29
+            },
+            "gap": 262.8624555474448,
+            "overlaps": false
+          },
+          {
+            "text": "330",
+            "rect": {
+              "left": 272.51666259765625,
+              "top": 768.13330078125,
+              "right": 310.6166687011719,
+              "bottom": 797.13330078125,
+              "width": 38.100006103515625,
+              "height": 29
+            },
+            "gap": 282.16945201552977,
+            "overlaps": false
+          },
+          {
+            "text": "ml",
+            "rect": {
+              "left": 310.6166687011719,
+              "top": 768.13330078125,
+              "right": 339.3333282470703,
+              "bottom": 797.13330078125,
+              "width": 28.716659545898438,
+              "height": 29
+            },
+            "gap": 285.3338042730106,
+            "overlaps": false
+          },
+          {
+            "text": "from drinks",
+            "rect": {
+              "left": 339.33331298828125,
+              "top": 768.13330078125,
+              "right": 389.34999084472656,
+              "bottom": 797.13330078125,
+              "width": 50.01667785644531,
+              "height": 29
+            },
+            "gap": 291.01141034606763,
+            "overlaps": false
+          },
+          {
+            "text": "from drinks",
+            "rect": {
+              "left": 272.51666259765625,
+              "top": 795.86669921875,
+              "right": 332.0500030517578,
+              "bottom": 824.86669921875,
+              "width": 59.53334045410156,
+              "height": 29
+            },
+            "gap": 309.8996152397488,
+            "overlaps": false
+          },
+          {
+            "text": "0",
+            "rect": {
+              "left": 488.29998779296875,
+              "top": 768.13330078125,
+              "right": 501.99998474121094,
+              "bottom": 797.13330078125,
+              "width": 13.699996948242188,
+              "height": 29
+            },
+            "gap": 357.95430438996743,
+            "overlaps": false
+          },
+          {
+            "text": "ml",
+            "rect": {
+              "left": 502,
+              "top": 768.13330078125,
+              "right": 530.7166595458984,
+              "bottom": 797.13330078125,
+              "width": 28.716659545898438,
+              "height": 29
+            },
+            "gap": 366.54494868941146,
+            "overlaps": false
+          },
+          {
+            "text": "from food",
+            "rect": {
+              "left": 530.7166748046875,
+              "top": 768.13330078125,
+              "right": 580.7333526611328,
+              "bottom": 797.13330078125,
+              "width": 50.01667785644531,
+              "height": 29
+            },
+            "gap": 385.5116737923188,
+            "overlaps": false
+          },
+          {
+            "text": "from food",
+            "rect": {
+              "left": 488.29998779296875,
+              "top": 795.86669921875,
+              "right": 533.2999877929688,
+              "bottom": 824.86669921875,
+              "width": 45,
+              "height": 29
+            },
+            "gap": 380.19660165012715,
+            "overlaps": false
+          },
+          {
+            "text": "32",
+            "rect": {
+              "left": 666.0499877929688,
+              "top": 768.13330078125,
+              "right": 690.7666473388672,
+              "bottom": 797.13330078125,
+              "width": 24.716659545898438,
+              "height": 29
+            },
+            "gap": 487.8964974169274,
+            "overlaps": false
+          },
+          {
+            "text": "mg",
+            "rect": {
+              "left": 690.7666625976562,
+              "top": 768.13330078125,
+              "right": 726.8166656494141,
+              "bottom": 797.13330078125,
+              "width": 36.05000305175781,
+              "height": 29
+            },
+            "gap": 508.262580182413,
+            "overlaps": false
+          },
+          {
+            "text": "caffeine",
+            "rect": {
+              "left": 666.0499877929688,
+              "top": 795.86669921875,
+              "right": 745.8499908447266,
+              "bottom": 824.86669921875,
+              "width": 79.80000305175781,
+              "height": 29
+            },
+            "gap": 504.44143769788167,
+            "overlaps": false
+          }
+        ],
+        "minGap": 122.20019831859408,
+        "overlaps": 0
+      }
+    ],
+    "phone": {
+      "path": "/",
+      "visiblePrevious": 0,
+      "visibleNext": 0
+    },
+    "phoneAfterNavigationSettled": {
+      "path": "/posts/c50e2a39-c513-4a02-9a60-ad7eda577136",
+      "detailReady": true,
+      "visiblePrevious": 0,
+      "visibleNext": 0,
+      "head": "Feed\nPost\nL\n\nlocal_test_2\n\n1 \u270e\n\nSun, Nov 15 \u00b7 9:17 AM\n\n\u00b7\u00b7\u00b7\nOutlines \u00b7 tap one to edit\n\nlocal_test_2 Fixture ready\n\n\u2014\nkcal\n\u2014 g\nprotein\n\u2014 g\ncarbs\n\u2014 g\nfat\nConsumed \u00b7 all nutrients\nSho"
+    }
+  }
+}
