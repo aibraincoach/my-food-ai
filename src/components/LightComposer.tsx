@@ -75,7 +75,8 @@ export default function LightComposer(p:Props) {
    </div><footer className="shrink-0 border-t border-hairline p-5">{(p.error||drinks.error)&&<p role="alert" className="mb-2 text-detail">{p.error||drinks.error}</p>}{p.pending>0&&<p role="status" className="text-meta">Preparing selected photos…</p>}<Button disabled={busy||p.pending>0||(drinks.active?drinks.disabled:!p.caption.trim()&&!p.shots.length)} onClick={post}>{inputBusy?'Posting…':drinks.active?drinks.button:'Post'}</Button></footer>
   </section>{drinks.editor}{p.children}
  </div>;
- if(drinks.active&&!drinkDetails)return <div className="flex h-full flex-col bg-camera text-surface">
+ // Keep the recorder mounted until its clip has reached the caption.
+ if(drinks.active&&!drinkDetails&&!voice.active)return <div className="flex h-full flex-col bg-camera text-surface">
   <header className="flex h-top-safe shrink-0 items-center justify-between px-5"><button type="button" aria-label="Back to Feed" disabled={busy} onClick={p.onBack} className="flex size-tap items-center justify-center"><Icon name="close"/></button><h1 id="capture-title" className="text-body font-semibold">New post</h1><button type="button" disabled={busy} onClick={()=>setDrinkDetails(true)} className="min-h-tap text-meta">Post details</button></header>
   <div className="relative min-h-[140px] flex-1 overflow-hidden">
    <img src={current?.previewUrl} alt="Photographed drinks" className="size-full object-contain"/>
