@@ -44,3 +44,13 @@ test('sugar falls back to Sugars, Total 1063 and preserves 2000 precedence', () 
   assert.equal(scaleNutrition({...food, foodNutrients:[sugar(1063,8.55)]},50).sugarG,4.275);
   assert.equal(scaleNutrition({...food, foodNutrients:[sugar(1063,8),sugar(2000,5)]},50).sugarG,2.5);
 });
+
+test('a USDA carbohydrate-by-difference value below zero is stored as zero, never negative', () => {
+  const meat = { fdcId: 2, description: 'Fixture meat', dataType: 'Foundation', foodNutrients: [
+    { nutrientId: 1008, nutrientName: 'Energy', unitName: 'KCAL', value: 150 },
+    { nutrientId: 1005, nutrientName: 'Carbohydrate, by difference', unitName: 'G', value: -0.6 },
+  ] };
+  const n = scaleNutrition(meat, 200);
+  assert.equal(n.carbsG, 0); assert.equal(n.calories, 300);
+  assert.equal(scaleNutrition({...meat, foodNutrients: meat.foodNutrients.slice(0, 1)}, 200).carbsG, null);
+});
