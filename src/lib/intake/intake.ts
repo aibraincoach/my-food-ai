@@ -31,6 +31,11 @@ export const TILE_SIZES: ReadonlyArray<ReadonlyArray<{ml: number; word: string; 
 
 export const emptyIntake = (): IntakeTotals => ({ water: 0, caffeine: 0 });
 
+// The one caffeine rule for a logged drink: a caffeine row's own amount, or the caffeine an alcoholic drink keeps (a rum and cola).
+export function rowCaffeineMg(row: { kind: string; amount: number | string; caffeineMg?: number }): number {
+  return row.kind === "caffeine" ? Number(row.amount) || 0 : row.kind === "alcohol" ? row.caffeineMg ?? 0 : 0;
+}
+
 export const isIntakeKind = (kind: unknown): kind is IntakeKind => kind === "water" || kind === "caffeine";
 
 export function validIntake(kind: unknown, amount: unknown): boolean {
@@ -44,13 +49,14 @@ export function sumIntake(rows: IntakeRow[]): IntakeTotals {
 }
 
 // One total per local day; `dayOf` turns an instant into the reader's local YYYY-MM-DD.
-export function groupIntakeByDay(rows: IntakeRow[], dayOf: (instant: string) => string): Map<string, IntakeTotals> {
+export function groupIntakeByDay(rows: (IntakeRow | { kind: "alcohol"; amount: number; logged_at: string; caffeineMg?: number })[], dayOf: (instant: string) => string): Map<string, IntakeTotals> {
   const days = new Map<string, IntakeTotals>();
   for (const row of rows) {
-    if (!isIntakeKind(row.kind) || !validIntake(row.kind, row.amount)) continue;
+    const kept = row.kind === "alcohol" ? rowCaffeineMg(row) : 0;
+    if (!kept && !(isIntakeKind(row.kind) && validIntake(row.kind, row.amount))) continue;
     const day = dayOf(row.logged_at);
     const totals = days.get(day) ?? emptyIntake();
-    totals[row.kind] += row.amount;
+    if (row.kind === "alcohol") totals.caffeine += kept; else totals[row.kind] += row.amount;
     days.set(day, totals);
   }
   return days;
