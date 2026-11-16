@@ -4,11 +4,13 @@ import {Icon} from '@/components/ui/Icon';
 import {encodeWav} from '@/lib/audio/wav-encoder';
 import {MAX_RECORDING_SECONDS} from '@/lib/audio/limits';
 type Capture={context:AudioContext;stream:MediaStream;node:AudioWorkletNode;chunks:Float32Array[];timer:ReturnType<typeof setTimeout>|null};
-export default function VoiceRecorder({postId,disabled,onTranscript,onActiveChange}:{postId:string;disabled:boolean;onTranscript:(text:string)=>void;onActiveChange:(active:boolean)=>void}){
+export default function VoiceRecorder({postId,disabled,onTranscript,onActiveChange,label='Record a correction'}:{postId?:string;label?:string;disabled:boolean;onTranscript:(text:string)=>void;onActiveChange:(active:boolean)=>void}){
  const [state,setState]=useState<'idle'|'starting'|'recording'|'sending'>('idle');const [error,setError]=useState('');
  const capture=useRef<Capture|null>(null);const alive=useRef(true);const locked=useRef(false);const abort=useRef<AbortController|null>(null);
+ const activeChange=useRef(onActiveChange);
+ useEffect(()=>{activeChange.current=onActiveChange;},[onActiveChange]);
  const cleanup=(record:Capture)=>{if(record.timer)clearTimeout(record.timer);record.stream.getTracks().forEach(t=>t.stop());record.node.disconnect();void record.context.close();};
- useEffect(()=>{alive.current=true;return()=>{alive.current=false;abort.current?.abort();if(capture.current){cleanup(capture.current);capture.current=null;}};},[]);
+ useEffect(()=>{alive.current=true;return()=>{alive.current=false;activeChange.current(false);abort.current?.abort();if(capture.current){cleanup(capture.current);capture.current=null;}};},[]);
  const stop=()=>{
   const record=capture.current;if(!record||locked.current)return;locked.current=true;setState('sending');
   if(record.timer)clearTimeout(record.timer);record.stream.getTracks().forEach(t=>t.stop());
@@ -18,7 +20,7 @@ export default function VoiceRecorder({postId,disabled,onTranscript,onActiveChan
    if(!alive.current){locked.current=false;return;}
    try{
     const wav=encodeWav(record.chunks,record.context.sampleRate);if(wav.byteLength<=44)throw new Error('No audio was recorded.');
-    const form=new FormData();form.append('audio',new Blob([wav],{type:'audio/wav'}),'correction.wav');form.append('draftId',crypto.randomUUID());form.append('postId',postId);
+    const form=new FormData();form.append('audio',new Blob([wav],{type:'audio/wav'}),'correction.wav');form.append('draftId',crypto.randomUUID());if(postId)form.append('postId',postId);
     const controller=new AbortController();abort.current=controller;
     const response=await fetch('/api/transcribe',{method:'POST',body:form,signal:controller.signal});const body=await response.json();
     if(!response.ok)throw new Error(body.error??'Transcription could not be completed.');
@@ -43,5 +45,5 @@ export default function VoiceRecorder({postId,disabled,onTranscript,onActiveChan
   }catch(cause){stream?.getTracks().forEach(t=>t.stop());if(context)void context.close();if(alive.current){setError(cause instanceof Error?cause.message:'Microphone could not be opened.');setState('idle');onActiveChange(false);}}
   finally{locked.current=false;}
  };
- return <><button type="button" disabled={disabled||state==='starting'||state==='sending'} aria-label={state==='recording'?'Stop recording':'Record a correction'} aria-pressed={state==='recording'} onClick={()=>{if(state==='recording')stop();else void begin();}} className={`flex min-h-tap min-w-tap items-center justify-center ${state==='recording'?'rounded-circle bg-text text-surface':'text-muted'}`}><Icon name="mic"/></button>{state==='recording'||state==='sending'?<span role="status" className="w-full text-meta text-muted">{state==='recording'?'Recording… tap to stop. Stops automatically after two minutes.':'Transcribing…'}</span>:null}{error?<p role="alert" className="w-full text-meta text-muted">{error}</p>:null}</>;
+ return <><button type="button" disabled={disabled||state==='starting'||state==='sending'} aria-label={state==='recording'?'Stop recording':label} aria-pressed={state==='recording'} onClick={()=>{if(state==='recording')stop();else void begin();}} className={`flex min-h-tap min-w-tap items-center justify-center ${state==='recording'?'rounded-circle bg-text text-surface':'text-muted'}`}><Icon name="mic"/></button>{state==='recording'||state==='sending'?<span role="status" className="w-full text-meta text-muted">{state==='recording'?'Recording… tap to stop. Stops automatically after two minutes.':'Transcribing…'}</span>:null}{error?<p role="alert" className="w-full text-meta text-muted">{error}</p>:null}</>;
 }
