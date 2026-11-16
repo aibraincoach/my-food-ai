@@ -1,0 +1,106 @@
+{
+  "build": "local-1794799753920",
+  "visibleCards": [
+    {
+      "id": "42d2f823-f821-459c-92e8-d1621336eaef",
+      "status": "ready"
+    },
+    {
+      "id": "5fb7cb42-6b0c-4d04-8f3c-daf6b4ce5baa",
+      "status": "ready"
+    },
+    {
+      "id": "87b870a4-b366-4930-968b-fe5345133956",
+      "status": "ready"
+    },
+    {
+      "id": "0c00ecb2-5503-49e9-8f0c-cb882990776e",
+      "status": "ready"
+    },
+    {
+      "id": "5f8bc835-2f2e-439e-8b5f-7aa1000e9340",
+      "status": "ready"
+    },
+    {
+      "id": "c50e2a39-c513-4a02-9a60-ad7eda577136",
+      "status": "ready"
+    },
+    {
+      "id": "eebea9b2-187b-44b3-a35d-82ffd9d1d456",
+      "status": "ready"
+    },
+    {
+      "id": "f24010fe-b95d-46e6-b381-286ea7611d1e",
+      "status": "ready"
+    },
+    {
+      "id": "dddf3115-66dd-48d3-b35e-96be275f3704",
+      "status": "ready"
+    },
+    {
+      "id": "ef96f77d-9e34-4225-a4f9-de89ccfd91c0",
+      "status": "ready"
+    },
+    {
+      "id": "d3549391-d335-4913-8de2-d4c43890ca24",
+      "status": "ready"
+    },
+    {
+      "id": "f8e10b51-4ed1-4a2c-aee9-a9f2d311f536",
+      "status": "ready"
+    },
+    {
+      "id": "d95eefd8-cd8e-4b26-9026-8e0be6db6a9f",
+      "status": "ready"
+    },
+    {
+      "id": "e1b7b263-28cc-4aad-be32-e6ce31e13580",
+      "status": "ready"
+    },
+    {
+      "id": "d1b65ed3-2522-4aaf-b2ea-9ebf7be13efc",
+      "status": "ready"
+    },
+    {
+      "id": "de4d591d-00e5-412c-9318-7032766859e4",
+      "status": "ready"
+    },
+    {
+      "id": "d63036b2-9962-4225-b4f7-d6caa6df7082",
+      "status": "ready"
+    },
+    {
+      "id": "de31aa39-8950-4d0c-8c29-77438d5d5688",
+      "status": "ready"
+    },
+    {
+      "id": "d39e51b0-6b0b-4c1c-b25e-5fffe3d74017",
+      "status": "ready"
+    },
+    {
+      "id": "da28fe2b-dfd1-4c85-b038-bcc2a1ff79b9",
+      "status": "ready"
+    }
+  ],
+  "scrollY": 0,
+  "viewport": 390,
+  "seconds": 15.011,
+  "requestCount": 3,
+  "idsRequests": 3,
+  "requests": [
+    {
+      "url": "http://127.0.0.1:60260/api/feed?ids=42d2f823-f821-459c-92e8-d1621336eaef%2C5fb7cb42-6b0c-4d04-8f3c-daf6b4ce5baa%2C87b870a4-b366-4930-968b-fe5345133956%2C0c00ecb2-5503-49e9-8f0c-cb882990776e%2C5f8bc835-2f2e-439e-8b5f-7aa1000e9340%2Cc50e2a39-c513-4a02-9a60-ad7eda577136&tz=America%2FEdmonton",
+      "time": 1794802271194
+    },
+    {
+      "url": "http://127.0.0.1:60260/api/feed?ids=d1b65ed3-2522-4aaf-b2ea-9ebf7be13efc%2Cd3549391-d335-4913-8de2-d4c43890ca24%2Cd39e51b0-6b0b-4c1c-b25e-5fffe3d74017%2Cd63036b2-9962-4225-b4f7-d6caa6df7082%2Cd95eefd8-cd8e-4b26-9026-8e0be6db6a9f%2Cda28fe2b-dfd1-4c85-b038-bcc2a1ff79b9%2Cdddf3115-66dd-48d3-b35e-96be275f3704%2Cde31aa39-8950-4d0c-8c29-77438d5d5688%2Cde4d591d-00e5-412c-9318-7032766859e4%2Ce1b7b263-28cc-4aad-be32-e6ce31e13580%2Ceebea9b2-187b-44b3-a35d-82ffd9d1d456%2Cef96f77d-9e34-4225-a4f9-de89ccfd91c0%2Cf24010fe-b95d-46e6-b381-286ea7611d1e%2Cf8e10b51-4ed1-4a2c-aee9-a9f2d311f536&tz=America%2FEdmonton",
+      "time": 1794802276907
+    },
+    {
+      "url": "http://127.0.0.1:60260/api/feed?ids=eebea9b2-187b-44b3-a35d-82ffd9d1d456%2Cf24010fe-b95d-46e6-b381-286ea7611d1e%2Cdddf3115-66dd-48d3-b35e-96be275f3704%2Cef96f77d-9e34-4225-a4f9-de89ccfd91c0%2Cd3549391-d335-4913-8de2-d4c43890ca24%2Cf8e10b51-4ed1-4a2c-aee9-a9f2d311f536%2Cd95eefd8-cd8e-4b26-9026-8e0be6db6a9f%2Ce1b7b263-28cc-4aad-be32-e6ce31e13580%2Cd1b65ed3-2522-4aaf-b2ea-9ebf7be13efc%2Cde4d591d-00e5-412c-9318-7032766859e4%2Cd63036b2-9962-4225-b4f7-d6caa6df7082%2Cde31aa39-8950-4d0c-8c29-77438d5d5688%2Cd39e51b0-6b0b-4c1c-b25e-5fffe3d74017%2Cda28fe2b-dfd1-4c85-b038-bcc2a1ff79b9&tz=America%2FEdmonton",
+      "time": 1794802277364
+    }
+  ],
+  "profile": "fresh isolated Firefox profile",
+  "slowing": "not slowed"
+}

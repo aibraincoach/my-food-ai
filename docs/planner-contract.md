@@ -86,3 +86,13 @@ Every PR branches from main. Nothing is stacked. Where an item depends on anothe
 ## Plan evaluation: retired
 
 RT, 2026-09-29: no per-PR "Plan evaluation" comment is written or required. After a run, when RT asks, the planner evaluates the result against the plan: good, bad, ugly, what is not being seen, and what needs remediation.
+
+## Merge control (written rule, owner ruling Nov 14 2026)
+
+Routes to main as observed on Nov 15 2026: the web merge button, `gh pr merge`, a direct push,
+and the API. main has no branch protection and no rulesets. Auto-merge is off. There is no merge
+queue and no workflow. Every agent acts as the owner's admin account, so GitHub refuses nothing.
+
+The rule: a pull request merges only when the PM orders that one PR at its full head SHA, after
+the planner's evaluation and a zero-blocker review of that exact head. A coder never merges on a
+plan, a standing order, or its own judgement. The owner ruled that this stays a written rule.

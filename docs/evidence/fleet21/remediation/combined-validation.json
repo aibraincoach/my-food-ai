@@ -1,0 +1,67 @@
+{
+  "sourceManifest": "integration-source-check.json",
+  "appSuite": {
+    "tests": 711,
+    "pass": 705,
+    "fail": 0,
+    "skipped": 6,
+    "exit": 0
+  },
+  "dbSuite": {
+    "tests": 49,
+    "pass": 49,
+    "fail": 0,
+    "skipped": 0,
+    "exit": 0
+  },
+  "typecheck": {
+    "diagnostics": 0
+  },
+  "productionBuild": "passed",
+  "lint": {
+    "exit": 1,
+    "errors": 3,
+    "warnings": 14,
+    "comparison": "same measured baseline errors and warnings"
+  },
+  "rawReceipts": {
+    "combined-test.log": {
+      "rawPath": "/tmp/f21-fixes/combined-test.log",
+      "sha256": "cd5549fc10ce96f3d72417b0576df5f6990e26788d643bce3515ad3df5a2f269"
+    },
+    "combined-db.log": {
+      "rawPath": "/tmp/f21-fixes/combined-db.log",
+      "sha256": "b1d9455f0bbcc70c9e56c62013d405de6499e716c45a5d854d3af2d5acc5b8f6"
+    },
+    "combined-lint.log": {
+      "rawPath": "/tmp/f21-fixes/combined-lint.log",
+      "sha256": "bcf21638bc8477d22a33731a6d39b4a5165d4defcce7d2977517734a69178e78"
+    },
+    "build-combined.log": {
+      "rawPath": "/tmp/f21-fixes/build-combined.log",
+      "sha256": "a145354c32351dc99bed138691425c6c841ac7badafe08864cfd4f6318b8af30"
+    },
+    "tsc-combined.log": {
+      "rawPath": "/tmp/f21-fixes/tsc-combined.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "build-911.log": {
+      "rawPath": "/tmp/f21-fixes/build-911.log",
+      "sha256": "d666483d9170edccf0f7714af3f31675ffbdd72fdd1698afc8e1c3858f1da551"
+    },
+    "build-912.log": {
+      "rawPath": "/tmp/f21-fixes/build-912.log",
+      "sha256": "1f6f0a73d4810d61ad926ede8d63ad8e8d0f64f661cbd60d03db27d4855d85db"
+    },
+    "build-915.log": {
+      "rawPath": "/tmp/f21-fixes/build-915.log",
+      "sha256": "1310b2b0839276fa83de27a896636a227ddad61fbaafccabbfed2cedb73d697e"
+    }
+  },
+  "limits": [
+    "Simulated voice lifecycle does not prove real microphone/provider speech.",
+    "Direct CaptureSheet camera-caption lifecycle has no separate runtime case.",
+    "Production migration, CDN, phone timing and deployment checks not run.",
+    "These are correcting-coder measurements, not an independent evaluation or merge order."
+  ]
+}

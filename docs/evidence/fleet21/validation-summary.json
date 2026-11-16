@@ -1,0 +1,2232 @@
+[
+  {
+    "plan": 1,
+    "branch": "fix21/feed-hint",
+    "steps": {
+      "memory": 0,
+      "install": 0,
+      "lint": 1,
+      "types": 0,
+      "build": 0,
+      "test": 1
+    },
+    "started": 1794757528.3087614,
+    "sha": "b0f1037a6947104f97d7cc2da803af9d3b3a01bb",
+    "appPid": 3555376,
+    "ended": 1794757939.8506732,
+    "lintErrors": [
+      {
+        "file": "src/components/DesktopToday.tsx",
+        "message": "'slowTimer' is never reassigned. Use 'const' instead  prefer-const"
+      },
+      {
+        "file": "src/components/OutlineOverlay.tsx",
+        "message": "Error: Calling setState synchronously within an effect can trigger cascading renders"
+      },
+      {
+        "file": "src/components/PostOpenTransition.tsx",
+        "message": "Error: Calling setState synchronously within an effect can trigger cascading renders"
+      }
+    ],
+    "relativeLintGate": true,
+    "test": {
+      "tests": 694,
+      "pass": 662,
+      "fail": 26,
+      "cancelled": 0,
+      "skipped": 6,
+      "failures": [
+        {
+          "name": "missing optional cards back off and stop automatic hydration, but realtime still updates",
+          "location": "/tmp/my-food-ai-f21-test-1/tests/card-polling.test.mjs:34:1"
+        },
+        {
+          "name": "hidden pages make no reads; active analysis retains two-second fallback",
+          "location": "/tmp/my-food-ai-f21-test-1/tests/card-polling.test.mjs:41:1"
+        },
+        {
+          "name": "clarification and deleted meals retire instead of polling invisibly",
+          "location": "/tmp/my-food-ai-f21-test-1/tests/card-polling.test.mjs:46:1"
+        },
+        {
+          "name": "Today uses the active zone and ignores older responses even when aborted transport still resolves",
+          "location": "/tmp/my-food-ai-f21-test-1/tests/desktop-review.test.mjs:10:1"
+        },
+        {
+          "name": "a failed server seed does not retire the independently hydrated cached feed",
+          "location": "/tmp/my-food-ai-f21-test-1/tests/feed-cache-lifecycle.test.mjs:76:1"
+        },
+        {
+          "name": "an authoritative empty server feed retires an obsolete cached snapshot",
+          "location": "/tmp/my-food-ai-f21-test-1/tests/feed-cache-lifecycle.test.mjs:82:1"
+        },
+        {
+          "name": "deleting a cached meal persists its removal and a failed delete can restore it",
+          "location": "/tmp/my-food-ai-f21-test-1/tests/feed-cache-lifecycle.test.mjs:130:1"
+        },
+        {
+          "name": "accepted corrections invalidate stale cached nutrition and persist the later ready revision",
+          "location": "/tmp/my-food-ai-f21-test-1/tests/feed-cache-lifecycle.test.mjs:140:1"
+        },
+        {
+          "name": "the unseeded main feed keeps the owner cache when fresh loading fails",
+          "location": "/tmp/my-food-ai-f21-test-1/tests/feed-cache-lifecycle.test.mjs:152:1"
+        },
+        {
+          "name": "matching browser and SSR owners reuse the server page without another first-page read",
+          "location": "/tmp/my-food-ai-f21-test-1/tests/feed-cache-lifecycle.test.mjs:161:1"
+        },
+        {
+          "name": "an SSR owner mismatch clears foreign posts and totals and ignores the old hook cache",
+          "location": "/tmp/my-food-ai-f21-test-1/tests/feed-cache-lifecycle.test.mjs:171:1"
+        },
+        {
+          "name": "a failed fresh read after an owner mismatch cannot keep foreign SSR or hook-cache meals visible",
+          "location": "/tmp/my-food-ai-f21-test-1/tests/feed-cache-lifecycle.test.mjs:184:1"
+        },
+        {
+          "name": "retiring the last meal clears feed state and rejects an older hydration result",
+          "location": "/tmp/my-food-ai-f21-test-1/tests/feed-removal.test.mjs:10:1"
+        },
+        {
+          "name": "a ready card with an unavailable item snapshot keeps polling and recovers its actual nutrition",
+          "location": "/tmp/my-food-ai-f21-test-1/tests/feed-unavailable-retry.test.mjs:8:1"
+        },
+        {
+          "name": "questions share immutable thumbnail identities; missing media retries and account changes discard old reads",
+          "location": "/tmp/my-food-ai-f21-test-1/tests/needs-input-batch.test.mjs:12:1"
+        },
+        {
+          "name": "avatar media route rejects invalid ids, signed-out requests and mismatched profile media",
+          "location": "/tmp/my-food-ai-f21-test-1/tests/profile-avatar.test.mjs:61:1"
+        },
+        {
+          "name": "avatar media route serves private cached webp for the owner",
+          "location": "/tmp/my-food-ai-f21-test-1/tests/profile-avatar.test.mjs:77:1"
+        },
+        {
+          "name": "PostCard: processing saves are faded and inert, then ready saves dispatch",
+          "location": "/tmp/my-food-ai-f21-test-1/tests/save-meal-readiness.test.mjs:57:2"
+        },
+        {
+          "name": "PostDetailHeader: processing saves are faded and inert, then ready saves dispatch",
+          "location": "/tmp/my-food-ai-f21-test-1/tests/save-meal-readiness.test.mjs:57:2"
+        },
+        {
+          "name": "OutlineOverlay: processing saves are faded and inert, then ready saves dispatch",
+          "location": "/tmp/my-food-ai-f21-test-1/tests/save-meal-readiness.test.mjs:57:2"
+        },
+        {
+          "name": "PostDetail: processing saves are faded and inert, then ready saves dispatch",
+          "location": "/tmp/my-food-ai-f21-test-1/tests/save-meal-readiness.test.mjs:57:2"
+        },
+        {
+          "name": "an already-saved processing meal can still be unsaved from actions or menus",
+          "location": "/tmp/my-food-ai-f21-test-1/tests/save-meal-readiness.test.mjs:67:1"
+        },
+        {
+          "name": "standalone actions with no known status cannot save an unfinished meal",
+          "location": "/tmp/my-food-ai-f21-test-1/tests/save-meal-readiness.test.mjs:74:1"
+        },
+        {
+          "name": "set_post_servings scales items, queues a recompute and notes it in the thread",
+          "location": "/tmp/my-food-ai-f21-test-1/tests/servings-sql.test.mjs:11:1"
+        },
+        {
+          "name": "DetailImage switches from a loaded original to the new photo preview immediately",
+          "location": "/tmp/my-food-ai-f21-test-1/tests/sharp-image-identity.test.mjs:36:1"
+        },
+        {
+          "name": "posting before PUT completion waits; three failures never publish; online retries safely",
+          "location": "/tmp/my-food-ai-f21-test-1/tests/upload-guard.test.mjs:16:1"
+        }
+      ]
+    },
+    "lastObservedCase": {
+      "index": 693,
+      "name": "a time zone the reader chose or the cookie holds is carried in links"
+    },
+    "requiredNamedCases": {},
+    "unexpectedFailureFiles": [],
+    "stillFailingRepairedFiles": [],
+    "relativeTestGate": true
+  },
+  {
+    "plan": 2,
+    "branch": "fix21/about-meals",
+    "steps": {
+      "memory": 0,
+      "install": 0,
+      "lint": 1,
+      "types": 0,
+      "build": 0,
+      "test": 1
+    },
+    "started": 1794750905.5304306,
+    "sha": "a23b73bf319e8a61cdb2a0f36aadd23bc0c49d63",
+    "appPid": 3419431,
+    "ended": 1794751354.190557,
+    "lintErrors": [
+      {
+        "file": "src/components/DesktopToday.tsx",
+        "message": "'slowTimer' is never reassigned. Use 'const' instead  prefer-const"
+      },
+      {
+        "file": "src/components/OutlineOverlay.tsx",
+        "message": "Error: Calling setState synchronously within an effect can trigger cascading renders"
+      },
+      {
+        "file": "src/components/PostOpenTransition.tsx",
+        "message": "Error: Calling setState synchronously within an effect can trigger cascading renders"
+      }
+    ],
+    "relativeLintGate": true,
+    "test": {
+      "tests": 694,
+      "pass": 662,
+      "fail": 26,
+      "cancelled": 0,
+      "skipped": 6,
+      "failures": [
+        {
+          "name": "missing optional cards back off and stop automatic hydration, but realtime still updates",
+          "location": "/tmp/my-food-ai-f21-test-2/tests/card-polling.test.mjs:34:1"
+        },
+        {
+          "name": "hidden pages make no reads; active analysis retains two-second fallback",
+          "location": "/tmp/my-food-ai-f21-test-2/tests/card-polling.test.mjs:41:1"
+        },
+        {
+          "name": "clarification and deleted meals retire instead of polling invisibly",
+          "location": "/tmp/my-food-ai-f21-test-2/tests/card-polling.test.mjs:46:1"
+        },
+        {
+          "name": "Today uses the active zone and ignores older responses even when aborted transport still resolves",
+          "location": "/tmp/my-food-ai-f21-test-2/tests/desktop-review.test.mjs:10:1"
+        },
+        {
+          "name": "a failed server seed does not retire the independently hydrated cached feed",
+          "location": "/tmp/my-food-ai-f21-test-2/tests/feed-cache-lifecycle.test.mjs:76:1"
+        },
+        {
+          "name": "an authoritative empty server feed retires an obsolete cached snapshot",
+          "location": "/tmp/my-food-ai-f21-test-2/tests/feed-cache-lifecycle.test.mjs:82:1"
+        },
+        {
+          "name": "deleting a cached meal persists its removal and a failed delete can restore it",
+          "location": "/tmp/my-food-ai-f21-test-2/tests/feed-cache-lifecycle.test.mjs:130:1"
+        },
+        {
+          "name": "accepted corrections invalidate stale cached nutrition and persist the later ready revision",
+          "location": "/tmp/my-food-ai-f21-test-2/tests/feed-cache-lifecycle.test.mjs:140:1"
+        },
+        {
+          "name": "the unseeded main feed keeps the owner cache when fresh loading fails",
+          "location": "/tmp/my-food-ai-f21-test-2/tests/feed-cache-lifecycle.test.mjs:152:1"
+        },
+        {
+          "name": "matching browser and SSR owners reuse the server page without another first-page read",
+          "location": "/tmp/my-food-ai-f21-test-2/tests/feed-cache-lifecycle.test.mjs:161:1"
+        },
+        {
+          "name": "an SSR owner mismatch clears foreign posts and totals and ignores the old hook cache",
+          "location": "/tmp/my-food-ai-f21-test-2/tests/feed-cache-lifecycle.test.mjs:171:1"
+        },
+        {
+          "name": "a failed fresh read after an owner mismatch cannot keep foreign SSR or hook-cache meals visible",
+          "location": "/tmp/my-food-ai-f21-test-2/tests/feed-cache-lifecycle.test.mjs:184:1"
+        },
+        {
+          "name": "retiring the last meal clears feed state and rejects an older hydration result",
+          "location": "/tmp/my-food-ai-f21-test-2/tests/feed-removal.test.mjs:10:1"
+        },
+        {
+          "name": "a ready card with an unavailable item snapshot keeps polling and recovers its actual nutrition",
+          "location": "/tmp/my-food-ai-f21-test-2/tests/feed-unavailable-retry.test.mjs:8:1"
+        },
+        {
+          "name": "questions share immutable thumbnail identities; missing media retries and account changes discard old reads",
+          "location": "/tmp/my-food-ai-f21-test-2/tests/needs-input-batch.test.mjs:12:1"
+        },
+        {
+          "name": "avatar media route rejects invalid ids, signed-out requests and mismatched profile media",
+          "location": "/tmp/my-food-ai-f21-test-2/tests/profile-avatar.test.mjs:61:1"
+        },
+        {
+          "name": "avatar media route serves private cached webp for the owner",
+          "location": "/tmp/my-food-ai-f21-test-2/tests/profile-avatar.test.mjs:77:1"
+        },
+        {
+          "name": "PostCard: processing saves are faded and inert, then ready saves dispatch",
+          "location": "/tmp/my-food-ai-f21-test-2/tests/save-meal-readiness.test.mjs:57:2"
+        },
+        {
+          "name": "PostDetailHeader: processing saves are faded and inert, then ready saves dispatch",
+          "location": "/tmp/my-food-ai-f21-test-2/tests/save-meal-readiness.test.mjs:57:2"
+        },
+        {
+          "name": "OutlineOverlay: processing saves are faded and inert, then ready saves dispatch",
+          "location": "/tmp/my-food-ai-f21-test-2/tests/save-meal-readiness.test.mjs:57:2"
+        },
+        {
+          "name": "PostDetail: processing saves are faded and inert, then ready saves dispatch",
+          "location": "/tmp/my-food-ai-f21-test-2/tests/save-meal-readiness.test.mjs:57:2"
+        },
+        {
+          "name": "an already-saved processing meal can still be unsaved from actions or menus",
+          "location": "/tmp/my-food-ai-f21-test-2/tests/save-meal-readiness.test.mjs:67:1"
+        },
+        {
+          "name": "standalone actions with no known status cannot save an unfinished meal",
+          "location": "/tmp/my-food-ai-f21-test-2/tests/save-meal-readiness.test.mjs:74:1"
+        },
+        {
+          "name": "set_post_servings scales items, queues a recompute and notes it in the thread",
+          "location": "/tmp/my-food-ai-f21-test-2/tests/servings-sql.test.mjs:11:1"
+        },
+        {
+          "name": "DetailImage switches from a loaded original to the new photo preview immediately",
+          "location": "/tmp/my-food-ai-f21-test-2/tests/sharp-image-identity.test.mjs:36:1"
+        },
+        {
+          "name": "posting before PUT completion waits; three failures never publish; online retries safely",
+          "location": "/tmp/my-food-ai-f21-test-2/tests/upload-guard.test.mjs:16:1"
+        }
+      ]
+    },
+    "lastObservedCase": {
+      "index": 693,
+      "name": "a time zone the reader chose or the cookie holds is carried in links"
+    },
+    "requiredNamedCases": {},
+    "unexpectedFailureFiles": [],
+    "stillFailingRepairedFiles": [],
+    "relativeTestGate": true
+  },
+  {
+    "plan": 3,
+    "branch": "fix21/words",
+    "steps": {
+      "memory": 0,
+      "install": 0,
+      "lint": 1,
+      "types": 0,
+      "build": 0,
+      "test": 1
+    },
+    "started": 1794751354.1916974,
+    "sha": "03c0c909e499f876eea3829ddf34308e25932ad6",
+    "appPid": 3427272,
+    "ended": 1794751773.0047083,
+    "lintErrors": [
+      {
+        "file": "src/components/DesktopToday.tsx",
+        "message": "'slowTimer' is never reassigned. Use 'const' instead  prefer-const"
+      },
+      {
+        "file": "src/components/OutlineOverlay.tsx",
+        "message": "Error: Calling setState synchronously within an effect can trigger cascading renders"
+      },
+      {
+        "file": "src/components/PostOpenTransition.tsx",
+        "message": "Error: Calling setState synchronously within an effect can trigger cascading renders"
+      }
+    ],
+    "relativeLintGate": true,
+    "test": {
+      "tests": 694,
+      "pass": 662,
+      "fail": 26,
+      "cancelled": 0,
+      "skipped": 6,
+      "failures": [
+        {
+          "name": "missing optional cards back off and stop automatic hydration, but realtime still updates",
+          "location": "/tmp/my-food-ai-f21-test-3/tests/card-polling.test.mjs:34:1"
+        },
+        {
+          "name": "hidden pages make no reads; active analysis retains two-second fallback",
+          "location": "/tmp/my-food-ai-f21-test-3/tests/card-polling.test.mjs:41:1"
+        },
+        {
+          "name": "clarification and deleted meals retire instead of polling invisibly",
+          "location": "/tmp/my-food-ai-f21-test-3/tests/card-polling.test.mjs:46:1"
+        },
+        {
+          "name": "Today uses the active zone and ignores older responses even when aborted transport still resolves",
+          "location": "/tmp/my-food-ai-f21-test-3/tests/desktop-review.test.mjs:10:1"
+        },
+        {
+          "name": "a failed server seed does not retire the independently hydrated cached feed",
+          "location": "/tmp/my-food-ai-f21-test-3/tests/feed-cache-lifecycle.test.mjs:76:1"
+        },
+        {
+          "name": "an authoritative empty server feed retires an obsolete cached snapshot",
+          "location": "/tmp/my-food-ai-f21-test-3/tests/feed-cache-lifecycle.test.mjs:82:1"
+        },
+        {
+          "name": "deleting a cached meal persists its removal and a failed delete can restore it",
+          "location": "/tmp/my-food-ai-f21-test-3/tests/feed-cache-lifecycle.test.mjs:130:1"
+        },
+        {
+          "name": "accepted corrections invalidate stale cached nutrition and persist the later ready revision",
+          "location": "/tmp/my-food-ai-f21-test-3/tests/feed-cache-lifecycle.test.mjs:140:1"
+        },
+        {
+          "name": "the unseeded main feed keeps the owner cache when fresh loading fails",
+          "location": "/tmp/my-food-ai-f21-test-3/tests/feed-cache-lifecycle.test.mjs:152:1"
+        },
+        {
+          "name": "matching browser and SSR owners reuse the server page without another first-page read",
+          "location": "/tmp/my-food-ai-f21-test-3/tests/feed-cache-lifecycle.test.mjs:161:1"
+        },
+        {
+          "name": "an SSR owner mismatch clears foreign posts and totals and ignores the old hook cache",
+          "location": "/tmp/my-food-ai-f21-test-3/tests/feed-cache-lifecycle.test.mjs:171:1"
+        },
+        {
+          "name": "a failed fresh read after an owner mismatch cannot keep foreign SSR or hook-cache meals visible",
+          "location": "/tmp/my-food-ai-f21-test-3/tests/feed-cache-lifecycle.test.mjs:184:1"
+        },
+        {
+          "name": "retiring the last meal clears feed state and rejects an older hydration result",
+          "location": "/tmp/my-food-ai-f21-test-3/tests/feed-removal.test.mjs:10:1"
+        },
+        {
+          "name": "a ready card with an unavailable item snapshot keeps polling and recovers its actual nutrition",
+          "location": "/tmp/my-food-ai-f21-test-3/tests/feed-unavailable-retry.test.mjs:8:1"
+        },
+        {
+          "name": "questions share immutable thumbnail identities; missing media retries and account changes discard old reads",
+          "location": "/tmp/my-food-ai-f21-test-3/tests/needs-input-batch.test.mjs:12:1"
+        },
+        {
+          "name": "avatar media route rejects invalid ids, signed-out requests and mismatched profile media",
+          "location": "/tmp/my-food-ai-f21-test-3/tests/profile-avatar.test.mjs:61:1"
+        },
+        {
+          "name": "avatar media route serves private cached webp for the owner",
+          "location": "/tmp/my-food-ai-f21-test-3/tests/profile-avatar.test.mjs:77:1"
+        },
+        {
+          "name": "PostCard: processing saves are faded and inert, then ready saves dispatch",
+          "location": "/tmp/my-food-ai-f21-test-3/tests/save-meal-readiness.test.mjs:57:2"
+        },
+        {
+          "name": "PostDetailHeader: processing saves are faded and inert, then ready saves dispatch",
+          "location": "/tmp/my-food-ai-f21-test-3/tests/save-meal-readiness.test.mjs:57:2"
+        },
+        {
+          "name": "OutlineOverlay: processing saves are faded and inert, then ready saves dispatch",
+          "location": "/tmp/my-food-ai-f21-test-3/tests/save-meal-readiness.test.mjs:57:2"
+        },
+        {
+          "name": "PostDetail: processing saves are faded and inert, then ready saves dispatch",
+          "location": "/tmp/my-food-ai-f21-test-3/tests/save-meal-readiness.test.mjs:57:2"
+        },
+        {
+          "name": "an already-saved processing meal can still be unsaved from actions or menus",
+          "location": "/tmp/my-food-ai-f21-test-3/tests/save-meal-readiness.test.mjs:67:1"
+        },
+        {
+          "name": "standalone actions with no known status cannot save an unfinished meal",
+          "location": "/tmp/my-food-ai-f21-test-3/tests/save-meal-readiness.test.mjs:74:1"
+        },
+        {
+          "name": "set_post_servings scales items, queues a recompute and notes it in the thread",
+          "location": "/tmp/my-food-ai-f21-test-3/tests/servings-sql.test.mjs:11:1"
+        },
+        {
+          "name": "DetailImage switches from a loaded original to the new photo preview immediately",
+          "location": "/tmp/my-food-ai-f21-test-3/tests/sharp-image-identity.test.mjs:36:1"
+        },
+        {
+          "name": "posting before PUT completion waits; three failures never publish; online retries safely",
+          "location": "/tmp/my-food-ai-f21-test-3/tests/upload-guard.test.mjs:16:1"
+        }
+      ]
+    },
+    "lastObservedCase": {
+      "index": 693,
+      "name": "a time zone the reader chose or the cookie holds is carried in links"
+    },
+    "requiredNamedCases": {},
+    "unexpectedFailureFiles": [],
+    "stillFailingRepairedFiles": [],
+    "relativeTestGate": true
+  },
+  {
+    "plan": 4,
+    "branch": "fix21/voice-fields",
+    "steps": {
+      "memory": 0,
+      "install": 0,
+      "lint": 1,
+      "types": 0,
+      "build": 0,
+      "test": 1
+    },
+    "started": 1794751773.0060287,
+    "sha": "8b5d99e941273e4f3e439f4480cd097dc8583bf6",
+    "appPid": 3432990,
+    "ended": 1794752193.8548143,
+    "lintErrors": [
+      {
+        "file": "src/components/DesktopToday.tsx",
+        "message": "'slowTimer' is never reassigned. Use 'const' instead  prefer-const"
+      },
+      {
+        "file": "src/components/OutlineOverlay.tsx",
+        "message": "Error: Calling setState synchronously within an effect can trigger cascading renders"
+      },
+      {
+        "file": "src/components/PostOpenTransition.tsx",
+        "message": "Error: Calling setState synchronously within an effect can trigger cascading renders"
+      }
+    ],
+    "relativeLintGate": true,
+    "test": {
+      "tests": 695,
+      "pass": 663,
+      "fail": 26,
+      "cancelled": 0,
+      "skipped": 6,
+      "failures": [
+        {
+          "name": "missing optional cards back off and stop automatic hydration, but realtime still updates",
+          "location": "/tmp/my-food-ai-f21-test-4/tests/card-polling.test.mjs:34:1"
+        },
+        {
+          "name": "hidden pages make no reads; active analysis retains two-second fallback",
+          "location": "/tmp/my-food-ai-f21-test-4/tests/card-polling.test.mjs:41:1"
+        },
+        {
+          "name": "clarification and deleted meals retire instead of polling invisibly",
+          "location": "/tmp/my-food-ai-f21-test-4/tests/card-polling.test.mjs:46:1"
+        },
+        {
+          "name": "Today uses the active zone and ignores older responses even when aborted transport still resolves",
+          "location": "/tmp/my-food-ai-f21-test-4/tests/desktop-review.test.mjs:10:1"
+        },
+        {
+          "name": "a failed server seed does not retire the independently hydrated cached feed",
+          "location": "/tmp/my-food-ai-f21-test-4/tests/feed-cache-lifecycle.test.mjs:76:1"
+        },
+        {
+          "name": "an authoritative empty server feed retires an obsolete cached snapshot",
+          "location": "/tmp/my-food-ai-f21-test-4/tests/feed-cache-lifecycle.test.mjs:82:1"
+        },
+        {
+          "name": "deleting a cached meal persists its removal and a failed delete can restore it",
+          "location": "/tmp/my-food-ai-f21-test-4/tests/feed-cache-lifecycle.test.mjs:130:1"
+        },
+        {
+          "name": "accepted corrections invalidate stale cached nutrition and persist the later ready revision",
+          "location": "/tmp/my-food-ai-f21-test-4/tests/feed-cache-lifecycle.test.mjs:140:1"
+        },
+        {
+          "name": "the unseeded main feed keeps the owner cache when fresh loading fails",
+          "location": "/tmp/my-food-ai-f21-test-4/tests/feed-cache-lifecycle.test.mjs:152:1"
+        },
+        {
+          "name": "matching browser and SSR owners reuse the server page without another first-page read",
+          "location": "/tmp/my-food-ai-f21-test-4/tests/feed-cache-lifecycle.test.mjs:161:1"
+        },
+        {
+          "name": "an SSR owner mismatch clears foreign posts and totals and ignores the old hook cache",
+          "location": "/tmp/my-food-ai-f21-test-4/tests/feed-cache-lifecycle.test.mjs:171:1"
+        },
+        {
+          "name": "a failed fresh read after an owner mismatch cannot keep foreign SSR or hook-cache meals visible",
+          "location": "/tmp/my-food-ai-f21-test-4/tests/feed-cache-lifecycle.test.mjs:184:1"
+        },
+        {
+          "name": "retiring the last meal clears feed state and rejects an older hydration result",
+          "location": "/tmp/my-food-ai-f21-test-4/tests/feed-removal.test.mjs:10:1"
+        },
+        {
+          "name": "a ready card with an unavailable item snapshot keeps polling and recovers its actual nutrition",
+          "location": "/tmp/my-food-ai-f21-test-4/tests/feed-unavailable-retry.test.mjs:8:1"
+        },
+        {
+          "name": "questions share immutable thumbnail identities; missing media retries and account changes discard old reads",
+          "location": "/tmp/my-food-ai-f21-test-4/tests/needs-input-batch.test.mjs:12:1"
+        },
+        {
+          "name": "avatar media route rejects invalid ids, signed-out requests and mismatched profile media",
+          "location": "/tmp/my-food-ai-f21-test-4/tests/profile-avatar.test.mjs:61:1"
+        },
+        {
+          "name": "avatar media route serves private cached webp for the owner",
+          "location": "/tmp/my-food-ai-f21-test-4/tests/profile-avatar.test.mjs:77:1"
+        },
+        {
+          "name": "PostCard: processing saves are faded and inert, then ready saves dispatch",
+          "location": "/tmp/my-food-ai-f21-test-4/tests/save-meal-readiness.test.mjs:57:2"
+        },
+        {
+          "name": "PostDetailHeader: processing saves are faded and inert, then ready saves dispatch",
+          "location": "/tmp/my-food-ai-f21-test-4/tests/save-meal-readiness.test.mjs:57:2"
+        },
+        {
+          "name": "OutlineOverlay: processing saves are faded and inert, then ready saves dispatch",
+          "location": "/tmp/my-food-ai-f21-test-4/tests/save-meal-readiness.test.mjs:57:2"
+        },
+        {
+          "name": "PostDetail: processing saves are faded and inert, then ready saves dispatch",
+          "location": "/tmp/my-food-ai-f21-test-4/tests/save-meal-readiness.test.mjs:57:2"
+        },
+        {
+          "name": "an already-saved processing meal can still be unsaved from actions or menus",
+          "location": "/tmp/my-food-ai-f21-test-4/tests/save-meal-readiness.test.mjs:67:1"
+        },
+        {
+          "name": "standalone actions with no known status cannot save an unfinished meal",
+          "location": "/tmp/my-food-ai-f21-test-4/tests/save-meal-readiness.test.mjs:74:1"
+        },
+        {
+          "name": "set_post_servings scales items, queues a recompute and notes it in the thread",
+          "location": "/tmp/my-food-ai-f21-test-4/tests/servings-sql.test.mjs:11:1"
+        },
+        {
+          "name": "DetailImage switches from a loaded original to the new photo preview immediately",
+          "location": "/tmp/my-food-ai-f21-test-4/tests/sharp-image-identity.test.mjs:36:1"
+        },
+        {
+          "name": "posting before PUT completion waits; three failures never publish; online retries safely",
+          "location": "/tmp/my-food-ai-f21-test-4/tests/upload-guard.test.mjs:16:1"
+        }
+      ]
+    },
+    "lastObservedCase": {
+      "index": 694,
+      "name": "a time zone the reader chose or the cookie holds is carried in links"
+    },
+    "requiredNamedCases": {
+      "transcribe needs sign-in, checks ownership when a post is named, and accepts no post": true
+    },
+    "unexpectedFailureFiles": [],
+    "stillFailingRepairedFiles": [],
+    "relativeTestGate": true
+  },
+  {
+    "plan": 5,
+    "branch": "fix21/remove-failed-upload",
+    "steps": {
+      "memory": 0,
+      "install": 0,
+      "lint": 1,
+      "types": 0,
+      "build": 0,
+      "test": 1
+    },
+    "started": 1794752193.8558502,
+    "sha": "e403e35c7674ae610ee725ca0d03844e0ab00901",
+    "appPid": 3438663,
+    "ended": 1794752614.6735175,
+    "lintErrors": [
+      {
+        "file": "src/components/DesktopToday.tsx",
+        "message": "'slowTimer' is never reassigned. Use 'const' instead  prefer-const"
+      },
+      {
+        "file": "src/components/OutlineOverlay.tsx",
+        "message": "Error: Calling setState synchronously within an effect can trigger cascading renders"
+      },
+      {
+        "file": "src/components/PostOpenTransition.tsx",
+        "message": "Error: Calling setState synchronously within an effect can trigger cascading renders"
+      }
+    ],
+    "relativeLintGate": true,
+    "test": {
+      "tests": 694,
+      "pass": 662,
+      "fail": 26,
+      "cancelled": 0,
+      "skipped": 6,
+      "failures": [
+        {
+          "name": "missing optional cards back off and stop automatic hydration, but realtime still updates",
+          "location": "/tmp/my-food-ai-f21-test-5/tests/card-polling.test.mjs:34:1"
+        },
+        {
+          "name": "hidden pages make no reads; active analysis retains two-second fallback",
+          "location": "/tmp/my-food-ai-f21-test-5/tests/card-polling.test.mjs:41:1"
+        },
+        {
+          "name": "clarification and deleted meals retire instead of polling invisibly",
+          "location": "/tmp/my-food-ai-f21-test-5/tests/card-polling.test.mjs:46:1"
+        },
+        {
+          "name": "Today uses the active zone and ignores older responses even when aborted transport still resolves",
+          "location": "/tmp/my-food-ai-f21-test-5/tests/desktop-review.test.mjs:10:1"
+        },
+        {
+          "name": "a failed server seed does not retire the independently hydrated cached feed",
+          "location": "/tmp/my-food-ai-f21-test-5/tests/feed-cache-lifecycle.test.mjs:76:1"
+        },
+        {
+          "name": "an authoritative empty server feed retires an obsolete cached snapshot",
+          "location": "/tmp/my-food-ai-f21-test-5/tests/feed-cache-lifecycle.test.mjs:82:1"
+        },
+        {
+          "name": "deleting a cached meal persists its removal and a failed delete can restore it",
+          "location": "/tmp/my-food-ai-f21-test-5/tests/feed-cache-lifecycle.test.mjs:130:1"
+        },
+        {
+          "name": "accepted corrections invalidate stale cached nutrition and persist the later ready revision",
+          "location": "/tmp/my-food-ai-f21-test-5/tests/feed-cache-lifecycle.test.mjs:140:1"
+        },
+        {
+          "name": "the unseeded main feed keeps the owner cache when fresh loading fails",
+          "location": "/tmp/my-food-ai-f21-test-5/tests/feed-cache-lifecycle.test.mjs:152:1"
+        },
+        {
+          "name": "matching browser and SSR owners reuse the server page without another first-page read",
+          "location": "/tmp/my-food-ai-f21-test-5/tests/feed-cache-lifecycle.test.mjs:161:1"
+        },
+        {
+          "name": "an SSR owner mismatch clears foreign posts and totals and ignores the old hook cache",
+          "location": "/tmp/my-food-ai-f21-test-5/tests/feed-cache-lifecycle.test.mjs:171:1"
+        },
+        {
+          "name": "a failed fresh read after an owner mismatch cannot keep foreign SSR or hook-cache meals visible",
+          "location": "/tmp/my-food-ai-f21-test-5/tests/feed-cache-lifecycle.test.mjs:184:1"
+        },
+        {
+          "name": "retiring the last meal clears feed state and rejects an older hydration result",
+          "location": "/tmp/my-food-ai-f21-test-5/tests/feed-removal.test.mjs:10:1"
+        },
+        {
+          "name": "a ready card with an unavailable item snapshot keeps polling and recovers its actual nutrition",
+          "location": "/tmp/my-food-ai-f21-test-5/tests/feed-unavailable-retry.test.mjs:8:1"
+        },
+        {
+          "name": "questions share immutable thumbnail identities; missing media retries and account changes discard old reads",
+          "location": "/tmp/my-food-ai-f21-test-5/tests/needs-input-batch.test.mjs:12:1"
+        },
+        {
+          "name": "avatar media route rejects invalid ids, signed-out requests and mismatched profile media",
+          "location": "/tmp/my-food-ai-f21-test-5/tests/profile-avatar.test.mjs:61:1"
+        },
+        {
+          "name": "avatar media route serves private cached webp for the owner",
+          "location": "/tmp/my-food-ai-f21-test-5/tests/profile-avatar.test.mjs:77:1"
+        },
+        {
+          "name": "PostCard: processing saves are faded and inert, then ready saves dispatch",
+          "location": "/tmp/my-food-ai-f21-test-5/tests/save-meal-readiness.test.mjs:57:2"
+        },
+        {
+          "name": "PostDetailHeader: processing saves are faded and inert, then ready saves dispatch",
+          "location": "/tmp/my-food-ai-f21-test-5/tests/save-meal-readiness.test.mjs:57:2"
+        },
+        {
+          "name": "OutlineOverlay: processing saves are faded and inert, then ready saves dispatch",
+          "location": "/tmp/my-food-ai-f21-test-5/tests/save-meal-readiness.test.mjs:57:2"
+        },
+        {
+          "name": "PostDetail: processing saves are faded and inert, then ready saves dispatch",
+          "location": "/tmp/my-food-ai-f21-test-5/tests/save-meal-readiness.test.mjs:57:2"
+        },
+        {
+          "name": "an already-saved processing meal can still be unsaved from actions or menus",
+          "location": "/tmp/my-food-ai-f21-test-5/tests/save-meal-readiness.test.mjs:67:1"
+        },
+        {
+          "name": "standalone actions with no known status cannot save an unfinished meal",
+          "location": "/tmp/my-food-ai-f21-test-5/tests/save-meal-readiness.test.mjs:74:1"
+        },
+        {
+          "name": "set_post_servings scales items, queues a recompute and notes it in the thread",
+          "location": "/tmp/my-food-ai-f21-test-5/tests/servings-sql.test.mjs:11:1"
+        },
+        {
+          "name": "DetailImage switches from a loaded original to the new photo preview immediately",
+          "location": "/tmp/my-food-ai-f21-test-5/tests/sharp-image-identity.test.mjs:36:1"
+        },
+        {
+          "name": "posting before PUT completion waits; three failures never publish; online retries safely",
+          "location": "/tmp/my-food-ai-f21-test-5/tests/upload-guard.test.mjs:16:1"
+        }
+      ]
+    },
+    "lastObservedCase": {
+      "index": 693,
+      "name": "a time zone the reader chose or the cookie holds is carried in links"
+    },
+    "requiredNamedCases": {},
+    "unexpectedFailureFiles": [],
+    "stillFailingRepairedFiles": [],
+    "relativeTestGate": true
+  },
+  {
+    "plan": 6,
+    "branch": "fix21/test-setup",
+    "steps": {
+      "memory": 0,
+      "install": 0,
+      "lint": 1,
+      "types": 0,
+      "build": 0,
+      "test": 1,
+      "readiness-control": 1,
+      "readiness-restored": 0
+    },
+    "started": 1794752614.6746178,
+    "sha": "c34f31826af004165ca0a3c8157ebb94679505c8",
+    "appPid": 3444402,
+    "ended": 1794753045.433333,
+    "lintErrors": [
+      {
+        "file": "src/components/DesktopToday.tsx",
+        "message": "'slowTimer' is never reassigned. Use 'const' instead  prefer-const"
+      },
+      {
+        "file": "src/components/OutlineOverlay.tsx",
+        "message": "Error: Calling setState synchronously within an effect can trigger cascading renders"
+      },
+      {
+        "file": "src/components/PostOpenTransition.tsx",
+        "message": "Error: Calling setState synchronously within an effect can trigger cascading renders"
+      }
+    ],
+    "relativeLintGate": true,
+    "test": {
+      "tests": 695,
+      "pass": 671,
+      "fail": 18,
+      "cancelled": 0,
+      "skipped": 6,
+      "failures": [
+        {
+          "name": "missing optional cards back off and stop automatic hydration, but realtime still updates",
+          "location": "/tmp/my-food-ai-f21-test-6/tests/card-polling.test.mjs:34:1"
+        },
+        {
+          "name": "hidden pages make no reads; active analysis retains two-second fallback",
+          "location": "/tmp/my-food-ai-f21-test-6/tests/card-polling.test.mjs:41:1"
+        },
+        {
+          "name": "clarification and deleted meals retire instead of polling invisibly",
+          "location": "/tmp/my-food-ai-f21-test-6/tests/card-polling.test.mjs:46:1"
+        },
+        {
+          "name": "Today uses the active zone and ignores older responses even when aborted transport still resolves",
+          "location": "/tmp/my-food-ai-f21-test-6/tests/desktop-review.test.mjs:10:1"
+        },
+        {
+          "name": "a failed server seed does not retire the independently hydrated cached feed",
+          "location": "/tmp/my-food-ai-f21-test-6/tests/feed-cache-lifecycle.test.mjs:76:1"
+        },
+        {
+          "name": "an authoritative empty server feed retires an obsolete cached snapshot",
+          "location": "/tmp/my-food-ai-f21-test-6/tests/feed-cache-lifecycle.test.mjs:82:1"
+        },
+        {
+          "name": "deleting a cached meal persists its removal and a failed delete can restore it",
+          "location": "/tmp/my-food-ai-f21-test-6/tests/feed-cache-lifecycle.test.mjs:130:1"
+        },
+        {
+          "name": "accepted corrections invalidate stale cached nutrition and persist the later ready revision",
+          "location": "/tmp/my-food-ai-f21-test-6/tests/feed-cache-lifecycle.test.mjs:140:1"
+        },
+        {
+          "name": "the unseeded main feed keeps the owner cache when fresh loading fails",
+          "location": "/tmp/my-food-ai-f21-test-6/tests/feed-cache-lifecycle.test.mjs:152:1"
+        },
+        {
+          "name": "matching browser and SSR owners reuse the server page without another first-page read",
+          "location": "/tmp/my-food-ai-f21-test-6/tests/feed-cache-lifecycle.test.mjs:161:1"
+        },
+        {
+          "name": "an SSR owner mismatch clears foreign posts and totals and ignores the old hook cache",
+          "location": "/tmp/my-food-ai-f21-test-6/tests/feed-cache-lifecycle.test.mjs:171:1"
+        },
+        {
+          "name": "a failed fresh read after an owner mismatch cannot keep foreign SSR or hook-cache meals visible",
+          "location": "/tmp/my-food-ai-f21-test-6/tests/feed-cache-lifecycle.test.mjs:184:1"
+        },
+        {
+          "name": "retiring the last meal clears feed state and rejects an older hydration result",
+          "location": "/tmp/my-food-ai-f21-test-6/tests/feed-removal.test.mjs:10:1"
+        },
+        {
+          "name": "a ready card with an unavailable item snapshot keeps polling and recovers its actual nutrition",
+          "location": "/tmp/my-food-ai-f21-test-6/tests/feed-unavailable-retry.test.mjs:8:1"
+        },
+        {
+          "name": "questions share immutable thumbnail identities; missing media retries and account changes discard old reads",
+          "location": "/tmp/my-food-ai-f21-test-6/tests/needs-input-batch.test.mjs:12:1"
+        },
+        {
+          "name": "set_post_servings scales items, queues a recompute and notes it in the thread",
+          "location": "/tmp/my-food-ai-f21-test-6/tests/servings-sql.test.mjs:11:1"
+        },
+        {
+          "name": "DetailImage switches from a loaded original to the new photo preview immediately",
+          "location": "/tmp/my-food-ai-f21-test-6/tests/sharp-image-identity.test.mjs:36:1"
+        },
+        {
+          "name": "posting before PUT completion waits; three failures never publish; online retries safely",
+          "location": "/tmp/my-food-ai-f21-test-6/tests/upload-guard.test.mjs:16:1"
+        }
+      ]
+    },
+    "lastObservedCase": {
+      "index": 694,
+      "name": "a time zone the reader chose or the cookie holds is carried in links"
+    },
+    "requiredNamedCases": {
+      "a saved meal whose analysis failed is unsaved, not refused or marked failed": true
+    },
+    "readiness-control": {
+      "tests": 7,
+      "pass": 4,
+      "fail": 3,
+      "cancelled": 0,
+      "skipped": 0,
+      "failures": [
+        {
+          "name": "PostCard: an unfinished meal's save waits for ready, a failed meal's save is refused, a ready meal saves",
+          "location": "/tmp/my-food-ai-f21-test-6/tests/save-meal-readiness.test.mjs:57:2"
+        },
+        {
+          "name": "OutlineOverlay: an unfinished meal's save waits for ready, a failed meal's save is refused, a ready meal saves",
+          "location": "/tmp/my-food-ai-f21-test-6/tests/save-meal-readiness.test.mjs:57:2"
+        },
+        {
+          "name": "PostDetail: an unfinished meal's save waits for ready, a failed meal's save is refused, a ready meal saves",
+          "location": "/tmp/my-food-ai-f21-test-6/tests/save-meal-readiness.test.mjs:57:2"
+        }
+      ]
+    },
+    "readiness-restored": {
+      "tests": 7,
+      "pass": 7,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "failures": []
+    },
+    "unexpectedFailureFiles": [],
+    "stillFailingRepairedFiles": [],
+    "relativeTestGate": true
+  },
+  {
+    "plan": 7,
+    "branch": "fix21/lease-heartbeat",
+    "steps": {
+      "memory": 0,
+      "install": 0,
+      "lint": 1,
+      "types": 0,
+      "build": 0,
+      "test": 1
+    },
+    "started": 1794753045.4348567,
+    "sha": "319797d4797c7db8ed046c9a4c6ffc8459d5dc0b",
+    "appPid": 3451290,
+    "ended": 1794753469.4098947,
+    "lintErrors": [
+      {
+        "file": "src/components/DesktopToday.tsx",
+        "message": "'slowTimer' is never reassigned. Use 'const' instead  prefer-const"
+      },
+      {
+        "file": "src/components/OutlineOverlay.tsx",
+        "message": "Error: Calling setState synchronously within an effect can trigger cascading renders"
+      },
+      {
+        "file": "src/components/PostOpenTransition.tsx",
+        "message": "Error: Calling setState synchronously within an effect can trigger cascading renders"
+      }
+    ],
+    "relativeLintGate": true,
+    "test": {
+      "tests": 694,
+      "pass": 662,
+      "fail": 26,
+      "cancelled": 0,
+      "skipped": 6,
+      "failures": [
+        {
+          "name": "missing optional cards back off and stop automatic hydration, but realtime still updates",
+          "location": "/tmp/my-food-ai-f21-test-7/tests/card-polling.test.mjs:34:1"
+        },
+        {
+          "name": "hidden pages make no reads; active analysis retains two-second fallback",
+          "location": "/tmp/my-food-ai-f21-test-7/tests/card-polling.test.mjs:41:1"
+        },
+        {
+          "name": "clarification and deleted meals retire instead of polling invisibly",
+          "location": "/tmp/my-food-ai-f21-test-7/tests/card-polling.test.mjs:46:1"
+        },
+        {
+          "name": "Today uses the active zone and ignores older responses even when aborted transport still resolves",
+          "location": "/tmp/my-food-ai-f21-test-7/tests/desktop-review.test.mjs:10:1"
+        },
+        {
+          "name": "a failed server seed does not retire the independently hydrated cached feed",
+          "location": "/tmp/my-food-ai-f21-test-7/tests/feed-cache-lifecycle.test.mjs:76:1"
+        },
+        {
+          "name": "an authoritative empty server feed retires an obsolete cached snapshot",
+          "location": "/tmp/my-food-ai-f21-test-7/tests/feed-cache-lifecycle.test.mjs:82:1"
+        },
+        {
+          "name": "deleting a cached meal persists its removal and a failed delete can restore it",
+          "location": "/tmp/my-food-ai-f21-test-7/tests/feed-cache-lifecycle.test.mjs:130:1"
+        },
+        {
+          "name": "accepted corrections invalidate stale cached nutrition and persist the later ready revision",
+          "location": "/tmp/my-food-ai-f21-test-7/tests/feed-cache-lifecycle.test.mjs:140:1"
+        },
+        {
+          "name": "the unseeded main feed keeps the owner cache when fresh loading fails",
+          "location": "/tmp/my-food-ai-f21-test-7/tests/feed-cache-lifecycle.test.mjs:152:1"
+        },
+        {
+          "name": "matching browser and SSR owners reuse the server page without another first-page read",
+          "location": "/tmp/my-food-ai-f21-test-7/tests/feed-cache-lifecycle.test.mjs:161:1"
+        },
+        {
+          "name": "an SSR owner mismatch clears foreign posts and totals and ignores the old hook cache",
+          "location": "/tmp/my-food-ai-f21-test-7/tests/feed-cache-lifecycle.test.mjs:171:1"
+        },
+        {
+          "name": "a failed fresh read after an owner mismatch cannot keep foreign SSR or hook-cache meals visible",
+          "location": "/tmp/my-food-ai-f21-test-7/tests/feed-cache-lifecycle.test.mjs:184:1"
+        },
+        {
+          "name": "retiring the last meal clears feed state and rejects an older hydration result",
+          "location": "/tmp/my-food-ai-f21-test-7/tests/feed-removal.test.mjs:10:1"
+        },
+        {
+          "name": "a ready card with an unavailable item snapshot keeps polling and recovers its actual nutrition",
+          "location": "/tmp/my-food-ai-f21-test-7/tests/feed-unavailable-retry.test.mjs:8:1"
+        },
+        {
+          "name": "questions share immutable thumbnail identities; missing media retries and account changes discard old reads",
+          "location": "/tmp/my-food-ai-f21-test-7/tests/needs-input-batch.test.mjs:12:1"
+        },
+        {
+          "name": "avatar media route rejects invalid ids, signed-out requests and mismatched profile media",
+          "location": "/tmp/my-food-ai-f21-test-7/tests/profile-avatar.test.mjs:61:1"
+        },
+        {
+          "name": "avatar media route serves private cached webp for the owner",
+          "location": "/tmp/my-food-ai-f21-test-7/tests/profile-avatar.test.mjs:77:1"
+        },
+        {
+          "name": "PostCard: processing saves are faded and inert, then ready saves dispatch",
+          "location": "/tmp/my-food-ai-f21-test-7/tests/save-meal-readiness.test.mjs:57:2"
+        },
+        {
+          "name": "PostDetailHeader: processing saves are faded and inert, then ready saves dispatch",
+          "location": "/tmp/my-food-ai-f21-test-7/tests/save-meal-readiness.test.mjs:57:2"
+        },
+        {
+          "name": "OutlineOverlay: processing saves are faded and inert, then ready saves dispatch",
+          "location": "/tmp/my-food-ai-f21-test-7/tests/save-meal-readiness.test.mjs:57:2"
+        },
+        {
+          "name": "PostDetail: processing saves are faded and inert, then ready saves dispatch",
+          "location": "/tmp/my-food-ai-f21-test-7/tests/save-meal-readiness.test.mjs:57:2"
+        },
+        {
+          "name": "an already-saved processing meal can still be unsaved from actions or menus",
+          "location": "/tmp/my-food-ai-f21-test-7/tests/save-meal-readiness.test.mjs:67:1"
+        },
+        {
+          "name": "standalone actions with no known status cannot save an unfinished meal",
+          "location": "/tmp/my-food-ai-f21-test-7/tests/save-meal-readiness.test.mjs:74:1"
+        },
+        {
+          "name": "set_post_servings scales items, queues a recompute and notes it in the thread",
+          "location": "/tmp/my-food-ai-f21-test-7/tests/servings-sql.test.mjs:11:1"
+        },
+        {
+          "name": "DetailImage switches from a loaded original to the new photo preview immediately",
+          "location": "/tmp/my-food-ai-f21-test-7/tests/sharp-image-identity.test.mjs:36:1"
+        },
+        {
+          "name": "posting before PUT completion waits; three failures never publish; online retries safely",
+          "location": "/tmp/my-food-ai-f21-test-7/tests/upload-guard.test.mjs:16:1"
+        }
+      ]
+    },
+    "lastObservedCase": {
+      "index": 693,
+      "name": "a time zone the reader chose or the cookie holds is carried in links"
+    },
+    "requiredNamedCases": {},
+    "unexpectedFailureFiles": [],
+    "stillFailingRepairedFiles": [],
+    "relativeTestGate": true
+  },
+  {
+    "plan": 8,
+    "branch": "fix21/photo-address",
+    "steps": {
+      "memory": 0,
+      "install": 0,
+      "lint": 1,
+      "types": 0,
+      "migration": 0,
+      "build": 0,
+      "test": 1
+    },
+    "started": 1794753469.4163775,
+    "sha": "5d1896c1af122b32de0914a4f3629ee539844339",
+    "appPid": 3456926,
+    "ended": 1794753891.5453744,
+    "lintErrors": [
+      {
+        "file": "src/components/DesktopToday.tsx",
+        "message": "'slowTimer' is never reassigned. Use 'const' instead  prefer-const"
+      },
+      {
+        "file": "src/components/OutlineOverlay.tsx",
+        "message": "Error: Calling setState synchronously within an effect can trigger cascading renders"
+      },
+      {
+        "file": "src/components/PostOpenTransition.tsx",
+        "message": "Error: Calling setState synchronously within an effect can trigger cascading renders"
+      }
+    ],
+    "relativeLintGate": true,
+    "test": {
+      "tests": 696,
+      "pass": 664,
+      "fail": 26,
+      "cancelled": 0,
+      "skipped": 6,
+      "failures": [
+        {
+          "name": "missing optional cards back off and stop automatic hydration, but realtime still updates",
+          "location": "/tmp/my-food-ai-f21-test-8/tests/card-polling.test.mjs:34:1"
+        },
+        {
+          "name": "hidden pages make no reads; active analysis retains two-second fallback",
+          "location": "/tmp/my-food-ai-f21-test-8/tests/card-polling.test.mjs:41:1"
+        },
+        {
+          "name": "clarification and deleted meals retire instead of polling invisibly",
+          "location": "/tmp/my-food-ai-f21-test-8/tests/card-polling.test.mjs:46:1"
+        },
+        {
+          "name": "Today uses the active zone and ignores older responses even when aborted transport still resolves",
+          "location": "/tmp/my-food-ai-f21-test-8/tests/desktop-review.test.mjs:10:1"
+        },
+        {
+          "name": "a failed server seed does not retire the independently hydrated cached feed",
+          "location": "/tmp/my-food-ai-f21-test-8/tests/feed-cache-lifecycle.test.mjs:76:1"
+        },
+        {
+          "name": "an authoritative empty server feed retires an obsolete cached snapshot",
+          "location": "/tmp/my-food-ai-f21-test-8/tests/feed-cache-lifecycle.test.mjs:82:1"
+        },
+        {
+          "name": "deleting a cached meal persists its removal and a failed delete can restore it",
+          "location": "/tmp/my-food-ai-f21-test-8/tests/feed-cache-lifecycle.test.mjs:130:1"
+        },
+        {
+          "name": "accepted corrections invalidate stale cached nutrition and persist the later ready revision",
+          "location": "/tmp/my-food-ai-f21-test-8/tests/feed-cache-lifecycle.test.mjs:140:1"
+        },
+        {
+          "name": "the unseeded main feed keeps the owner cache when fresh loading fails",
+          "location": "/tmp/my-food-ai-f21-test-8/tests/feed-cache-lifecycle.test.mjs:152:1"
+        },
+        {
+          "name": "matching browser and SSR owners reuse the server page without another first-page read",
+          "location": "/tmp/my-food-ai-f21-test-8/tests/feed-cache-lifecycle.test.mjs:161:1"
+        },
+        {
+          "name": "an SSR owner mismatch clears foreign posts and totals and ignores the old hook cache",
+          "location": "/tmp/my-food-ai-f21-test-8/tests/feed-cache-lifecycle.test.mjs:171:1"
+        },
+        {
+          "name": "a failed fresh read after an owner mismatch cannot keep foreign SSR or hook-cache meals visible",
+          "location": "/tmp/my-food-ai-f21-test-8/tests/feed-cache-lifecycle.test.mjs:184:1"
+        },
+        {
+          "name": "retiring the last meal clears feed state and rejects an older hydration result",
+          "location": "/tmp/my-food-ai-f21-test-8/tests/feed-removal.test.mjs:10:1"
+        },
+        {
+          "name": "a ready card with an unavailable item snapshot keeps polling and recovers its actual nutrition",
+          "location": "/tmp/my-food-ai-f21-test-8/tests/feed-unavailable-retry.test.mjs:8:1"
+        },
+        {
+          "name": "questions share immutable thumbnail identities; missing media retries and account changes discard old reads",
+          "location": "/tmp/my-food-ai-f21-test-8/tests/needs-input-batch.test.mjs:12:1"
+        },
+        {
+          "name": "avatar media route rejects invalid ids, signed-out requests and mismatched profile media",
+          "location": "/tmp/my-food-ai-f21-test-8/tests/profile-avatar.test.mjs:61:1"
+        },
+        {
+          "name": "avatar media route serves private cached webp for the owner",
+          "location": "/tmp/my-food-ai-f21-test-8/tests/profile-avatar.test.mjs:77:1"
+        },
+        {
+          "name": "PostCard: processing saves are faded and inert, then ready saves dispatch",
+          "location": "/tmp/my-food-ai-f21-test-8/tests/save-meal-readiness.test.mjs:57:2"
+        },
+        {
+          "name": "PostDetailHeader: processing saves are faded and inert, then ready saves dispatch",
+          "location": "/tmp/my-food-ai-f21-test-8/tests/save-meal-readiness.test.mjs:57:2"
+        },
+        {
+          "name": "OutlineOverlay: processing saves are faded and inert, then ready saves dispatch",
+          "location": "/tmp/my-food-ai-f21-test-8/tests/save-meal-readiness.test.mjs:57:2"
+        },
+        {
+          "name": "PostDetail: processing saves are faded and inert, then ready saves dispatch",
+          "location": "/tmp/my-food-ai-f21-test-8/tests/save-meal-readiness.test.mjs:57:2"
+        },
+        {
+          "name": "an already-saved processing meal can still be unsaved from actions or menus",
+          "location": "/tmp/my-food-ai-f21-test-8/tests/save-meal-readiness.test.mjs:67:1"
+        },
+        {
+          "name": "standalone actions with no known status cannot save an unfinished meal",
+          "location": "/tmp/my-food-ai-f21-test-8/tests/save-meal-readiness.test.mjs:74:1"
+        },
+        {
+          "name": "set_post_servings scales items, queues a recompute and notes it in the thread",
+          "location": "/tmp/my-food-ai-f21-test-8/tests/servings-sql.test.mjs:11:1"
+        },
+        {
+          "name": "DetailImage switches from a loaded original to the new photo preview immediately",
+          "location": "/tmp/my-food-ai-f21-test-8/tests/sharp-image-identity.test.mjs:36:1"
+        },
+        {
+          "name": "posting before PUT completion waits; three failures never publish; online retries safely",
+          "location": "/tmp/my-food-ai-f21-test-8/tests/upload-guard.test.mjs:16:1"
+        }
+      ]
+    },
+    "lastObservedCase": {
+      "index": 695,
+      "name": "a time zone the reader chose or the cookie holds is carried in links"
+    },
+    "requiredNamedCases": {
+      "a photo address opens only with its secret, and never for a deleted meal": true,
+      "when the shared read of today fails, the circles and the feed still get every total and the Today column keeps its browser fallback": true
+    },
+    "unexpectedFailureFiles": [],
+    "stillFailingRepairedFiles": [],
+    "relativeTestGate": true
+  },
+  {
+    "plan": 9,
+    "branch": "fix21/feed-reread",
+    "steps": {
+      "memory": 0,
+      "install": 0,
+      "lint": 1,
+      "types": 0,
+      "build": 0,
+      "test": 1
+    },
+    "started": 1794753891.5466375,
+    "sha": "eadbdc83a9206ef8559a0ac33fbd911c49881862",
+    "appPid": 3462656,
+    "ended": 1794754310.184879,
+    "lintErrors": [
+      {
+        "file": "src/components/DesktopToday.tsx",
+        "message": "'slowTimer' is never reassigned. Use 'const' instead  prefer-const"
+      },
+      {
+        "file": "src/components/OutlineOverlay.tsx",
+        "message": "Error: Calling setState synchronously within an effect can trigger cascading renders"
+      },
+      {
+        "file": "src/components/PostOpenTransition.tsx",
+        "message": "Error: Calling setState synchronously within an effect can trigger cascading renders"
+      }
+    ],
+    "relativeLintGate": true,
+    "test": {
+      "tests": 694,
+      "pass": 662,
+      "fail": 26,
+      "cancelled": 0,
+      "skipped": 6,
+      "failures": [
+        {
+          "name": "missing optional cards back off and stop automatic hydration, but realtime still updates",
+          "location": "/tmp/my-food-ai-f21-test-9/tests/card-polling.test.mjs:34:1"
+        },
+        {
+          "name": "hidden pages make no reads; active analysis retains two-second fallback",
+          "location": "/tmp/my-food-ai-f21-test-9/tests/card-polling.test.mjs:41:1"
+        },
+        {
+          "name": "clarification and deleted meals retire instead of polling invisibly",
+          "location": "/tmp/my-food-ai-f21-test-9/tests/card-polling.test.mjs:46:1"
+        },
+        {
+          "name": "Today uses the active zone and ignores older responses even when aborted transport still resolves",
+          "location": "/tmp/my-food-ai-f21-test-9/tests/desktop-review.test.mjs:10:1"
+        },
+        {
+          "name": "a failed server seed does not retire the independently hydrated cached feed",
+          "location": "/tmp/my-food-ai-f21-test-9/tests/feed-cache-lifecycle.test.mjs:76:1"
+        },
+        {
+          "name": "an authoritative empty server feed retires an obsolete cached snapshot",
+          "location": "/tmp/my-food-ai-f21-test-9/tests/feed-cache-lifecycle.test.mjs:82:1"
+        },
+        {
+          "name": "deleting a cached meal persists its removal and a failed delete can restore it",
+          "location": "/tmp/my-food-ai-f21-test-9/tests/feed-cache-lifecycle.test.mjs:130:1"
+        },
+        {
+          "name": "accepted corrections invalidate stale cached nutrition and persist the later ready revision",
+          "location": "/tmp/my-food-ai-f21-test-9/tests/feed-cache-lifecycle.test.mjs:140:1"
+        },
+        {
+          "name": "the unseeded main feed keeps the owner cache when fresh loading fails",
+          "location": "/tmp/my-food-ai-f21-test-9/tests/feed-cache-lifecycle.test.mjs:152:1"
+        },
+        {
+          "name": "matching browser and SSR owners reuse the server page without another first-page read",
+          "location": "/tmp/my-food-ai-f21-test-9/tests/feed-cache-lifecycle.test.mjs:161:1"
+        },
+        {
+          "name": "an SSR owner mismatch clears foreign posts and totals and ignores the old hook cache",
+          "location": "/tmp/my-food-ai-f21-test-9/tests/feed-cache-lifecycle.test.mjs:171:1"
+        },
+        {
+          "name": "a failed fresh read after an owner mismatch cannot keep foreign SSR or hook-cache meals visible",
+          "location": "/tmp/my-food-ai-f21-test-9/tests/feed-cache-lifecycle.test.mjs:184:1"
+        },
+        {
+          "name": "retiring the last meal clears feed state and rejects an older hydration result",
+          "location": "/tmp/my-food-ai-f21-test-9/tests/feed-removal.test.mjs:10:1"
+        },
+        {
+          "name": "a ready card with an unavailable item snapshot keeps polling and recovers its actual nutrition",
+          "location": "/tmp/my-food-ai-f21-test-9/tests/feed-unavailable-retry.test.mjs:8:1"
+        },
+        {
+          "name": "questions share immutable thumbnail identities; missing media retries and account changes discard old reads",
+          "location": "/tmp/my-food-ai-f21-test-9/tests/needs-input-batch.test.mjs:12:1"
+        },
+        {
+          "name": "avatar media route rejects invalid ids, signed-out requests and mismatched profile media",
+          "location": "/tmp/my-food-ai-f21-test-9/tests/profile-avatar.test.mjs:61:1"
+        },
+        {
+          "name": "avatar media route serves private cached webp for the owner",
+          "location": "/tmp/my-food-ai-f21-test-9/tests/profile-avatar.test.mjs:77:1"
+        },
+        {
+          "name": "PostCard: processing saves are faded and inert, then ready saves dispatch",
+          "location": "/tmp/my-food-ai-f21-test-9/tests/save-meal-readiness.test.mjs:57:2"
+        },
+        {
+          "name": "PostDetailHeader: processing saves are faded and inert, then ready saves dispatch",
+          "location": "/tmp/my-food-ai-f21-test-9/tests/save-meal-readiness.test.mjs:57:2"
+        },
+        {
+          "name": "OutlineOverlay: processing saves are faded and inert, then ready saves dispatch",
+          "location": "/tmp/my-food-ai-f21-test-9/tests/save-meal-readiness.test.mjs:57:2"
+        },
+        {
+          "name": "PostDetail: processing saves are faded and inert, then ready saves dispatch",
+          "location": "/tmp/my-food-ai-f21-test-9/tests/save-meal-readiness.test.mjs:57:2"
+        },
+        {
+          "name": "an already-saved processing meal can still be unsaved from actions or menus",
+          "location": "/tmp/my-food-ai-f21-test-9/tests/save-meal-readiness.test.mjs:67:1"
+        },
+        {
+          "name": "standalone actions with no known status cannot save an unfinished meal",
+          "location": "/tmp/my-food-ai-f21-test-9/tests/save-meal-readiness.test.mjs:74:1"
+        },
+        {
+          "name": "set_post_servings scales items, queues a recompute and notes it in the thread",
+          "location": "/tmp/my-food-ai-f21-test-9/tests/servings-sql.test.mjs:11:1"
+        },
+        {
+          "name": "DetailImage switches from a loaded original to the new photo preview immediately",
+          "location": "/tmp/my-food-ai-f21-test-9/tests/sharp-image-identity.test.mjs:36:1"
+        },
+        {
+          "name": "posting before PUT completion waits; three failures never publish; online retries safely",
+          "location": "/tmp/my-food-ai-f21-test-9/tests/upload-guard.test.mjs:16:1"
+        }
+      ]
+    },
+    "lastObservedCase": {
+      "index": 693,
+      "name": "a time zone the reader chose or the cookie holds is carried in links"
+    },
+    "requiredNamedCases": {},
+    "unexpectedFailureFiles": [],
+    "stillFailingRepairedFiles": [],
+    "relativeTestGate": true
+  },
+  {
+    "plan": 10,
+    "branch": "fix21/caffeine-table",
+    "steps": {
+      "memory": 0,
+      "install": 0,
+      "lint": 1,
+      "types": 0,
+      "build": 0,
+      "test": 1
+    },
+    "started": 1794754310.1859243,
+    "sha": "022f1e55da6cd0b58e35aa77a0b98200d747c4f7",
+    "appPid": 3468369,
+    "ended": 1794754728.5752127,
+    "lintErrors": [
+      {
+        "file": "src/components/DesktopToday.tsx",
+        "message": "'slowTimer' is never reassigned. Use 'const' instead  prefer-const"
+      },
+      {
+        "file": "src/components/OutlineOverlay.tsx",
+        "message": "Error: Calling setState synchronously within an effect can trigger cascading renders"
+      },
+      {
+        "file": "src/components/PostOpenTransition.tsx",
+        "message": "Error: Calling setState synchronously within an effect can trigger cascading renders"
+      }
+    ],
+    "relativeLintGate": true,
+    "test": {
+      "tests": 694,
+      "pass": 662,
+      "fail": 26,
+      "cancelled": 0,
+      "skipped": 6,
+      "failures": [
+        {
+          "name": "missing optional cards back off and stop automatic hydration, but realtime still updates",
+          "location": "/tmp/my-food-ai-f21-test-10/tests/card-polling.test.mjs:34:1"
+        },
+        {
+          "name": "hidden pages make no reads; active analysis retains two-second fallback",
+          "location": "/tmp/my-food-ai-f21-test-10/tests/card-polling.test.mjs:41:1"
+        },
+        {
+          "name": "clarification and deleted meals retire instead of polling invisibly",
+          "location": "/tmp/my-food-ai-f21-test-10/tests/card-polling.test.mjs:46:1"
+        },
+        {
+          "name": "Today uses the active zone and ignores older responses even when aborted transport still resolves",
+          "location": "/tmp/my-food-ai-f21-test-10/tests/desktop-review.test.mjs:10:1"
+        },
+        {
+          "name": "a failed server seed does not retire the independently hydrated cached feed",
+          "location": "/tmp/my-food-ai-f21-test-10/tests/feed-cache-lifecycle.test.mjs:76:1"
+        },
+        {
+          "name": "an authoritative empty server feed retires an obsolete cached snapshot",
+          "location": "/tmp/my-food-ai-f21-test-10/tests/feed-cache-lifecycle.test.mjs:82:1"
+        },
+        {
+          "name": "deleting a cached meal persists its removal and a failed delete can restore it",
+          "location": "/tmp/my-food-ai-f21-test-10/tests/feed-cache-lifecycle.test.mjs:130:1"
+        },
+        {
+          "name": "accepted corrections invalidate stale cached nutrition and persist the later ready revision",
+          "location": "/tmp/my-food-ai-f21-test-10/tests/feed-cache-lifecycle.test.mjs:140:1"
+        },
+        {
+          "name": "the unseeded main feed keeps the owner cache when fresh loading fails",
+          "location": "/tmp/my-food-ai-f21-test-10/tests/feed-cache-lifecycle.test.mjs:152:1"
+        },
+        {
+          "name": "matching browser and SSR owners reuse the server page without another first-page read",
+          "location": "/tmp/my-food-ai-f21-test-10/tests/feed-cache-lifecycle.test.mjs:161:1"
+        },
+        {
+          "name": "an SSR owner mismatch clears foreign posts and totals and ignores the old hook cache",
+          "location": "/tmp/my-food-ai-f21-test-10/tests/feed-cache-lifecycle.test.mjs:171:1"
+        },
+        {
+          "name": "a failed fresh read after an owner mismatch cannot keep foreign SSR or hook-cache meals visible",
+          "location": "/tmp/my-food-ai-f21-test-10/tests/feed-cache-lifecycle.test.mjs:184:1"
+        },
+        {
+          "name": "retiring the last meal clears feed state and rejects an older hydration result",
+          "location": "/tmp/my-food-ai-f21-test-10/tests/feed-removal.test.mjs:10:1"
+        },
+        {
+          "name": "a ready card with an unavailable item snapshot keeps polling and recovers its actual nutrition",
+          "location": "/tmp/my-food-ai-f21-test-10/tests/feed-unavailable-retry.test.mjs:8:1"
+        },
+        {
+          "name": "questions share immutable thumbnail identities; missing media retries and account changes discard old reads",
+          "location": "/tmp/my-food-ai-f21-test-10/tests/needs-input-batch.test.mjs:12:1"
+        },
+        {
+          "name": "avatar media route rejects invalid ids, signed-out requests and mismatched profile media",
+          "location": "/tmp/my-food-ai-f21-test-10/tests/profile-avatar.test.mjs:61:1"
+        },
+        {
+          "name": "avatar media route serves private cached webp for the owner",
+          "location": "/tmp/my-food-ai-f21-test-10/tests/profile-avatar.test.mjs:77:1"
+        },
+        {
+          "name": "PostCard: processing saves are faded and inert, then ready saves dispatch",
+          "location": "/tmp/my-food-ai-f21-test-10/tests/save-meal-readiness.test.mjs:57:2"
+        },
+        {
+          "name": "PostDetailHeader: processing saves are faded and inert, then ready saves dispatch",
+          "location": "/tmp/my-food-ai-f21-test-10/tests/save-meal-readiness.test.mjs:57:2"
+        },
+        {
+          "name": "OutlineOverlay: processing saves are faded and inert, then ready saves dispatch",
+          "location": "/tmp/my-food-ai-f21-test-10/tests/save-meal-readiness.test.mjs:57:2"
+        },
+        {
+          "name": "PostDetail: processing saves are faded and inert, then ready saves dispatch",
+          "location": "/tmp/my-food-ai-f21-test-10/tests/save-meal-readiness.test.mjs:57:2"
+        },
+        {
+          "name": "an already-saved processing meal can still be unsaved from actions or menus",
+          "location": "/tmp/my-food-ai-f21-test-10/tests/save-meal-readiness.test.mjs:67:1"
+        },
+        {
+          "name": "standalone actions with no known status cannot save an unfinished meal",
+          "location": "/tmp/my-food-ai-f21-test-10/tests/save-meal-readiness.test.mjs:74:1"
+        },
+        {
+          "name": "set_post_servings scales items, queues a recompute and notes it in the thread",
+          "location": "/tmp/my-food-ai-f21-test-10/tests/servings-sql.test.mjs:11:1"
+        },
+        {
+          "name": "DetailImage switches from a loaded original to the new photo preview immediately",
+          "location": "/tmp/my-food-ai-f21-test-10/tests/sharp-image-identity.test.mjs:36:1"
+        },
+        {
+          "name": "posting before PUT completion waits; three failures never publish; online retries safely",
+          "location": "/tmp/my-food-ai-f21-test-10/tests/upload-guard.test.mjs:16:1"
+        }
+      ]
+    },
+    "lastObservedCase": {
+      "index": 693,
+      "name": "a time zone the reader chose or the cookie holds is carried in links"
+    },
+    "requiredNamedCases": {},
+    "unexpectedFailureFiles": [],
+    "stillFailingRepairedFiles": [],
+    "relativeTestGate": true
+  },
+  {
+    "plan": 11,
+    "branch": "fix21/check-script",
+    "steps": {
+      "memory": 0,
+      "install": 0,
+      "lint": 1,
+      "types": 0,
+      "build": 0,
+      "test": 1
+    },
+    "started": 1794754728.5763566,
+    "sha": "58b02b13dc0f954d8f058c8a64299f605e53a578",
+    "appPid": 3475160,
+    "ended": 1794755149.3610554,
+    "lintErrors": [
+      {
+        "file": "src/components/DesktopToday.tsx",
+        "message": "'slowTimer' is never reassigned. Use 'const' instead  prefer-const"
+      },
+      {
+        "file": "src/components/OutlineOverlay.tsx",
+        "message": "Error: Calling setState synchronously within an effect can trigger cascading renders"
+      },
+      {
+        "file": "src/components/PostOpenTransition.tsx",
+        "message": "Error: Calling setState synchronously within an effect can trigger cascading renders"
+      }
+    ],
+    "relativeLintGate": true,
+    "test": {
+      "tests": 694,
+      "pass": 662,
+      "fail": 26,
+      "cancelled": 0,
+      "skipped": 6,
+      "failures": [
+        {
+          "name": "missing optional cards back off and stop automatic hydration, but realtime still updates",
+          "location": "/tmp/my-food-ai-f21-test-11/tests/card-polling.test.mjs:34:1"
+        },
+        {
+          "name": "hidden pages make no reads; active analysis retains two-second fallback",
+          "location": "/tmp/my-food-ai-f21-test-11/tests/card-polling.test.mjs:41:1"
+        },
+        {
+          "name": "clarification and deleted meals retire instead of polling invisibly",
+          "location": "/tmp/my-food-ai-f21-test-11/tests/card-polling.test.mjs:46:1"
+        },
+        {
+          "name": "Today uses the active zone and ignores older responses even when aborted transport still resolves",
+          "location": "/tmp/my-food-ai-f21-test-11/tests/desktop-review.test.mjs:10:1"
+        },
+        {
+          "name": "a failed server seed does not retire the independently hydrated cached feed",
+          "location": "/tmp/my-food-ai-f21-test-11/tests/feed-cache-lifecycle.test.mjs:76:1"
+        },
+        {
+          "name": "an authoritative empty server feed retires an obsolete cached snapshot",
+          "location": "/tmp/my-food-ai-f21-test-11/tests/feed-cache-lifecycle.test.mjs:82:1"
+        },
+        {
+          "name": "deleting a cached meal persists its removal and a failed delete can restore it",
+          "location": "/tmp/my-food-ai-f21-test-11/tests/feed-cache-lifecycle.test.mjs:130:1"
+        },
+        {
+          "name": "accepted corrections invalidate stale cached nutrition and persist the later ready revision",
+          "location": "/tmp/my-food-ai-f21-test-11/tests/feed-cache-lifecycle.test.mjs:140:1"
+        },
+        {
+          "name": "the unseeded main feed keeps the owner cache when fresh loading fails",
+          "location": "/tmp/my-food-ai-f21-test-11/tests/feed-cache-lifecycle.test.mjs:152:1"
+        },
+        {
+          "name": "matching browser and SSR owners reuse the server page without another first-page read",
+          "location": "/tmp/my-food-ai-f21-test-11/tests/feed-cache-lifecycle.test.mjs:161:1"
+        },
+        {
+          "name": "an SSR owner mismatch clears foreign posts and totals and ignores the old hook cache",
+          "location": "/tmp/my-food-ai-f21-test-11/tests/feed-cache-lifecycle.test.mjs:171:1"
+        },
+        {
+          "name": "a failed fresh read after an owner mismatch cannot keep foreign SSR or hook-cache meals visible",
+          "location": "/tmp/my-food-ai-f21-test-11/tests/feed-cache-lifecycle.test.mjs:184:1"
+        },
+        {
+          "name": "retiring the last meal clears feed state and rejects an older hydration result",
+          "location": "/tmp/my-food-ai-f21-test-11/tests/feed-removal.test.mjs:10:1"
+        },
+        {
+          "name": "a ready card with an unavailable item snapshot keeps polling and recovers its actual nutrition",
+          "location": "/tmp/my-food-ai-f21-test-11/tests/feed-unavailable-retry.test.mjs:8:1"
+        },
+        {
+          "name": "questions share immutable thumbnail identities; missing media retries and account changes discard old reads",
+          "location": "/tmp/my-food-ai-f21-test-11/tests/needs-input-batch.test.mjs:12:1"
+        },
+        {
+          "name": "avatar media route rejects invalid ids, signed-out requests and mismatched profile media",
+          "location": "/tmp/my-food-ai-f21-test-11/tests/profile-avatar.test.mjs:61:1"
+        },
+        {
+          "name": "avatar media route serves private cached webp for the owner",
+          "location": "/tmp/my-food-ai-f21-test-11/tests/profile-avatar.test.mjs:77:1"
+        },
+        {
+          "name": "PostCard: processing saves are faded and inert, then ready saves dispatch",
+          "location": "/tmp/my-food-ai-f21-test-11/tests/save-meal-readiness.test.mjs:57:2"
+        },
+        {
+          "name": "PostDetailHeader: processing saves are faded and inert, then ready saves dispatch",
+          "location": "/tmp/my-food-ai-f21-test-11/tests/save-meal-readiness.test.mjs:57:2"
+        },
+        {
+          "name": "OutlineOverlay: processing saves are faded and inert, then ready saves dispatch",
+          "location": "/tmp/my-food-ai-f21-test-11/tests/save-meal-readiness.test.mjs:57:2"
+        },
+        {
+          "name": "PostDetail: processing saves are faded and inert, then ready saves dispatch",
+          "location": "/tmp/my-food-ai-f21-test-11/tests/save-meal-readiness.test.mjs:57:2"
+        },
+        {
+          "name": "an already-saved processing meal can still be unsaved from actions or menus",
+          "location": "/tmp/my-food-ai-f21-test-11/tests/save-meal-readiness.test.mjs:67:1"
+        },
+        {
+          "name": "standalone actions with no known status cannot save an unfinished meal",
+          "location": "/tmp/my-food-ai-f21-test-11/tests/save-meal-readiness.test.mjs:74:1"
+        },
+        {
+          "name": "set_post_servings scales items, queues a recompute and notes it in the thread",
+          "location": "/tmp/my-food-ai-f21-test-11/tests/servings-sql.test.mjs:11:1"
+        },
+        {
+          "name": "DetailImage switches from a loaded original to the new photo preview immediately",
+          "location": "/tmp/my-food-ai-f21-test-11/tests/sharp-image-identity.test.mjs:36:1"
+        },
+        {
+          "name": "posting before PUT completion waits; three failures never publish; online retries safely",
+          "location": "/tmp/my-food-ai-f21-test-11/tests/upload-guard.test.mjs:16:1"
+        }
+      ]
+    },
+    "lastObservedCase": {
+      "index": 693,
+      "name": "a time zone the reader chose or the cookie holds is carried in links"
+    },
+    "requiredNamedCases": {},
+    "unexpectedFailureFiles": [],
+    "stillFailingRepairedFiles": [],
+    "relativeTestGate": true
+  },
+  {
+    "plan": 12,
+    "branch": "fix21/thumbs-black",
+    "steps": {
+      "memory": 0,
+      "install": 0,
+      "lint": 1,
+      "types": 0,
+      "build": 0,
+      "test": 1
+    },
+    "started": 1794755149.3682742,
+    "sha": "a4cf9ee8ad7505c5333a8bf6873693261bead42d",
+    "appPid": 3480829,
+    "ended": 1794755568.710463,
+    "lintErrors": [
+      {
+        "file": "src/components/DesktopToday.tsx",
+        "message": "'slowTimer' is never reassigned. Use 'const' instead  prefer-const"
+      },
+      {
+        "file": "src/components/OutlineOverlay.tsx",
+        "message": "Error: Calling setState synchronously within an effect can trigger cascading renders"
+      },
+      {
+        "file": "src/components/PostOpenTransition.tsx",
+        "message": "Error: Calling setState synchronously within an effect can trigger cascading renders"
+      }
+    ],
+    "relativeLintGate": true,
+    "test": {
+      "tests": 694,
+      "pass": 662,
+      "fail": 26,
+      "cancelled": 0,
+      "skipped": 6,
+      "failures": [
+        {
+          "name": "missing optional cards back off and stop automatic hydration, but realtime still updates",
+          "location": "/tmp/my-food-ai-f21-test-12/tests/card-polling.test.mjs:34:1"
+        },
+        {
+          "name": "hidden pages make no reads; active analysis retains two-second fallback",
+          "location": "/tmp/my-food-ai-f21-test-12/tests/card-polling.test.mjs:41:1"
+        },
+        {
+          "name": "clarification and deleted meals retire instead of polling invisibly",
+          "location": "/tmp/my-food-ai-f21-test-12/tests/card-polling.test.mjs:46:1"
+        },
+        {
+          "name": "Today uses the active zone and ignores older responses even when aborted transport still resolves",
+          "location": "/tmp/my-food-ai-f21-test-12/tests/desktop-review.test.mjs:10:1"
+        },
+        {
+          "name": "a failed server seed does not retire the independently hydrated cached feed",
+          "location": "/tmp/my-food-ai-f21-test-12/tests/feed-cache-lifecycle.test.mjs:76:1"
+        },
+        {
+          "name": "an authoritative empty server feed retires an obsolete cached snapshot",
+          "location": "/tmp/my-food-ai-f21-test-12/tests/feed-cache-lifecycle.test.mjs:82:1"
+        },
+        {
+          "name": "deleting a cached meal persists its removal and a failed delete can restore it",
+          "location": "/tmp/my-food-ai-f21-test-12/tests/feed-cache-lifecycle.test.mjs:130:1"
+        },
+        {
+          "name": "accepted corrections invalidate stale cached nutrition and persist the later ready revision",
+          "location": "/tmp/my-food-ai-f21-test-12/tests/feed-cache-lifecycle.test.mjs:140:1"
+        },
+        {
+          "name": "the unseeded main feed keeps the owner cache when fresh loading fails",
+          "location": "/tmp/my-food-ai-f21-test-12/tests/feed-cache-lifecycle.test.mjs:152:1"
+        },
+        {
+          "name": "matching browser and SSR owners reuse the server page without another first-page read",
+          "location": "/tmp/my-food-ai-f21-test-12/tests/feed-cache-lifecycle.test.mjs:161:1"
+        },
+        {
+          "name": "an SSR owner mismatch clears foreign posts and totals and ignores the old hook cache",
+          "location": "/tmp/my-food-ai-f21-test-12/tests/feed-cache-lifecycle.test.mjs:171:1"
+        },
+        {
+          "name": "a failed fresh read after an owner mismatch cannot keep foreign SSR or hook-cache meals visible",
+          "location": "/tmp/my-food-ai-f21-test-12/tests/feed-cache-lifecycle.test.mjs:184:1"
+        },
+        {
+          "name": "retiring the last meal clears feed state and rejects an older hydration result",
+          "location": "/tmp/my-food-ai-f21-test-12/tests/feed-removal.test.mjs:10:1"
+        },
+        {
+          "name": "a ready card with an unavailable item snapshot keeps polling and recovers its actual nutrition",
+          "location": "/tmp/my-food-ai-f21-test-12/tests/feed-unavailable-retry.test.mjs:8:1"
+        },
+        {
+          "name": "questions share immutable thumbnail identities; missing media retries and account changes discard old reads",
+          "location": "/tmp/my-food-ai-f21-test-12/tests/needs-input-batch.test.mjs:12:1"
+        },
+        {
+          "name": "avatar media route rejects invalid ids, signed-out requests and mismatched profile media",
+          "location": "/tmp/my-food-ai-f21-test-12/tests/profile-avatar.test.mjs:61:1"
+        },
+        {
+          "name": "avatar media route serves private cached webp for the owner",
+          "location": "/tmp/my-food-ai-f21-test-12/tests/profile-avatar.test.mjs:77:1"
+        },
+        {
+          "name": "PostCard: processing saves are faded and inert, then ready saves dispatch",
+          "location": "/tmp/my-food-ai-f21-test-12/tests/save-meal-readiness.test.mjs:57:2"
+        },
+        {
+          "name": "PostDetailHeader: processing saves are faded and inert, then ready saves dispatch",
+          "location": "/tmp/my-food-ai-f21-test-12/tests/save-meal-readiness.test.mjs:57:2"
+        },
+        {
+          "name": "OutlineOverlay: processing saves are faded and inert, then ready saves dispatch",
+          "location": "/tmp/my-food-ai-f21-test-12/tests/save-meal-readiness.test.mjs:57:2"
+        },
+        {
+          "name": "PostDetail: processing saves are faded and inert, then ready saves dispatch",
+          "location": "/tmp/my-food-ai-f21-test-12/tests/save-meal-readiness.test.mjs:57:2"
+        },
+        {
+          "name": "an already-saved processing meal can still be unsaved from actions or menus",
+          "location": "/tmp/my-food-ai-f21-test-12/tests/save-meal-readiness.test.mjs:67:1"
+        },
+        {
+          "name": "standalone actions with no known status cannot save an unfinished meal",
+          "location": "/tmp/my-food-ai-f21-test-12/tests/save-meal-readiness.test.mjs:74:1"
+        },
+        {
+          "name": "set_post_servings scales items, queues a recompute and notes it in the thread",
+          "location": "/tmp/my-food-ai-f21-test-12/tests/servings-sql.test.mjs:11:1"
+        },
+        {
+          "name": "DetailImage switches from a loaded original to the new photo preview immediately",
+          "location": "/tmp/my-food-ai-f21-test-12/tests/sharp-image-identity.test.mjs:36:1"
+        },
+        {
+          "name": "posting before PUT completion waits; three failures never publish; online retries safely",
+          "location": "/tmp/my-food-ai-f21-test-12/tests/upload-guard.test.mjs:16:1"
+        }
+      ]
+    },
+    "lastObservedCase": {
+      "index": 693,
+      "name": "a time zone the reader chose or the cookie holds is carried in links"
+    },
+    "requiredNamedCases": {},
+    "unexpectedFailureFiles": [],
+    "stillFailingRepairedFiles": [],
+    "relativeTestGate": true
+  },
+  {
+    "plan": 13,
+    "branch": "fix21/post-intent-test",
+    "steps": {
+      "memory": 0,
+      "install": 0,
+      "lint": 1,
+      "types": 0,
+      "build": 0,
+      "test": 1
+    },
+    "started": 1794755568.7114835,
+    "sha": "0a574a4604ff296fb1254e52e34d1fbc68f32e46",
+    "appPid": 3486559,
+    "ended": 1794755989.0511296,
+    "lintErrors": [
+      {
+        "file": "src/components/DesktopToday.tsx",
+        "message": "'slowTimer' is never reassigned. Use 'const' instead  prefer-const"
+      },
+      {
+        "file": "src/components/OutlineOverlay.tsx",
+        "message": "Error: Calling setState synchronously within an effect can trigger cascading renders"
+      },
+      {
+        "file": "src/components/PostOpenTransition.tsx",
+        "message": "Error: Calling setState synchronously within an effect can trigger cascading renders"
+      }
+    ],
+    "relativeLintGate": true,
+    "test": {
+      "tests": 697,
+      "pass": 666,
+      "fail": 25,
+      "cancelled": 0,
+      "skipped": 6,
+      "failures": [
+        {
+          "name": "missing optional cards back off and stop automatic hydration, but realtime still updates",
+          "location": "/tmp/my-food-ai-f21-test-13/tests/card-polling.test.mjs:34:1"
+        },
+        {
+          "name": "hidden pages make no reads; active analysis retains two-second fallback",
+          "location": "/tmp/my-food-ai-f21-test-13/tests/card-polling.test.mjs:41:1"
+        },
+        {
+          "name": "clarification and deleted meals retire instead of polling invisibly",
+          "location": "/tmp/my-food-ai-f21-test-13/tests/card-polling.test.mjs:46:1"
+        },
+        {
+          "name": "Today uses the active zone and ignores older responses even when aborted transport still resolves",
+          "location": "/tmp/my-food-ai-f21-test-13/tests/desktop-review.test.mjs:10:1"
+        },
+        {
+          "name": "a failed server seed does not retire the independently hydrated cached feed",
+          "location": "/tmp/my-food-ai-f21-test-13/tests/feed-cache-lifecycle.test.mjs:76:1"
+        },
+        {
+          "name": "an authoritative empty server feed retires an obsolete cached snapshot",
+          "location": "/tmp/my-food-ai-f21-test-13/tests/feed-cache-lifecycle.test.mjs:82:1"
+        },
+        {
+          "name": "deleting a cached meal persists its removal and a failed delete can restore it",
+          "location": "/tmp/my-food-ai-f21-test-13/tests/feed-cache-lifecycle.test.mjs:130:1"
+        },
+        {
+          "name": "accepted corrections invalidate stale cached nutrition and persist the later ready revision",
+          "location": "/tmp/my-food-ai-f21-test-13/tests/feed-cache-lifecycle.test.mjs:140:1"
+        },
+        {
+          "name": "the unseeded main feed keeps the owner cache when fresh loading fails",
+          "location": "/tmp/my-food-ai-f21-test-13/tests/feed-cache-lifecycle.test.mjs:152:1"
+        },
+        {
+          "name": "matching browser and SSR owners reuse the server page without another first-page read",
+          "location": "/tmp/my-food-ai-f21-test-13/tests/feed-cache-lifecycle.test.mjs:161:1"
+        },
+        {
+          "name": "an SSR owner mismatch clears foreign posts and totals and ignores the old hook cache",
+          "location": "/tmp/my-food-ai-f21-test-13/tests/feed-cache-lifecycle.test.mjs:171:1"
+        },
+        {
+          "name": "a failed fresh read after an owner mismatch cannot keep foreign SSR or hook-cache meals visible",
+          "location": "/tmp/my-food-ai-f21-test-13/tests/feed-cache-lifecycle.test.mjs:184:1"
+        },
+        {
+          "name": "retiring the last meal clears feed state and rejects an older hydration result",
+          "location": "/tmp/my-food-ai-f21-test-13/tests/feed-removal.test.mjs:10:1"
+        },
+        {
+          "name": "a ready card with an unavailable item snapshot keeps polling and recovers its actual nutrition",
+          "location": "/tmp/my-food-ai-f21-test-13/tests/feed-unavailable-retry.test.mjs:8:1"
+        },
+        {
+          "name": "questions share immutable thumbnail identities; missing media retries and account changes discard old reads",
+          "location": "/tmp/my-food-ai-f21-test-13/tests/needs-input-batch.test.mjs:12:1"
+        },
+        {
+          "name": "avatar media route rejects invalid ids, signed-out requests and mismatched profile media",
+          "location": "/tmp/my-food-ai-f21-test-13/tests/profile-avatar.test.mjs:61:1"
+        },
+        {
+          "name": "avatar media route serves private cached webp for the owner",
+          "location": "/tmp/my-food-ai-f21-test-13/tests/profile-avatar.test.mjs:77:1"
+        },
+        {
+          "name": "PostCard: processing saves are faded and inert, then ready saves dispatch",
+          "location": "/tmp/my-food-ai-f21-test-13/tests/save-meal-readiness.test.mjs:57:2"
+        },
+        {
+          "name": "PostDetailHeader: processing saves are faded and inert, then ready saves dispatch",
+          "location": "/tmp/my-food-ai-f21-test-13/tests/save-meal-readiness.test.mjs:57:2"
+        },
+        {
+          "name": "OutlineOverlay: processing saves are faded and inert, then ready saves dispatch",
+          "location": "/tmp/my-food-ai-f21-test-13/tests/save-meal-readiness.test.mjs:57:2"
+        },
+        {
+          "name": "PostDetail: processing saves are faded and inert, then ready saves dispatch",
+          "location": "/tmp/my-food-ai-f21-test-13/tests/save-meal-readiness.test.mjs:57:2"
+        },
+        {
+          "name": "an already-saved processing meal can still be unsaved from actions or menus",
+          "location": "/tmp/my-food-ai-f21-test-13/tests/save-meal-readiness.test.mjs:67:1"
+        },
+        {
+          "name": "standalone actions with no known status cannot save an unfinished meal",
+          "location": "/tmp/my-food-ai-f21-test-13/tests/save-meal-readiness.test.mjs:74:1"
+        },
+        {
+          "name": "set_post_servings scales items, queues a recompute and notes it in the thread",
+          "location": "/tmp/my-food-ai-f21-test-13/tests/servings-sql.test.mjs:11:1"
+        },
+        {
+          "name": "DetailImage switches from a loaded original to the new photo preview immediately",
+          "location": "/tmp/my-food-ai-f21-test-13/tests/sharp-image-identity.test.mjs:36:1"
+        }
+      ]
+    },
+    "lastObservedCase": {
+      "index": 696,
+      "name": "a time zone the reader chose or the cookie holds is carried in links"
+    },
+    "requiredNamedCases": {
+      "a draft save delayed beyond 700 ms still acknowledges Post within 1 second and publishes after a rebuild from saved data": true,
+      "a first decision with no base food sends the bare item name to the closest-record search": true,
+      "a rotation-6 label photo is read upright and cropped at the label": true
+    },
+    "unexpectedFailureFiles": [],
+    "stillFailingRepairedFiles": [],
+    "relativeTestGate": true
+  },
+  {
+    "plan": 14,
+    "branch": "fix21/test-repairs",
+    "steps": {
+      "memory": 0,
+      "install": 0,
+      "lint": 1,
+      "types": 0,
+      "build": 0,
+      "test": 1,
+      "db": 0
+    },
+    "started": 1794755990.2798042,
+    "sha": "0ea7acbddbc199137b2563abeec85a5d5b86070e",
+    "appPid": 3492228,
+    "ended": 1794756527.914213,
+    "lintErrors": [
+      {
+        "file": "src/components/DesktopToday.tsx",
+        "message": "'slowTimer' is never reassigned. Use 'const' instead  prefer-const"
+      },
+      {
+        "file": "src/components/OutlineOverlay.tsx",
+        "message": "Error: Calling setState synchronously within an effect can trigger cascading renders"
+      },
+      {
+        "file": "src/components/PostOpenTransition.tsx",
+        "message": "Error: Calling setState synchronously within an effect can trigger cascading renders"
+      }
+    ],
+    "relativeLintGate": true,
+    "test": {
+      "tests": 694,
+      "pass": 679,
+      "fail": 9,
+      "cancelled": 0,
+      "skipped": 6,
+      "failures": [
+        {
+          "name": "avatar media route rejects invalid ids, signed-out requests and mismatched profile media",
+          "location": "/tmp/my-food-ai-f21-test-14/tests/profile-avatar.test.mjs:61:1"
+        },
+        {
+          "name": "avatar media route serves private cached webp for the owner",
+          "location": "/tmp/my-food-ai-f21-test-14/tests/profile-avatar.test.mjs:77:1"
+        },
+        {
+          "name": "PostCard: processing saves are faded and inert, then ready saves dispatch",
+          "location": "/tmp/my-food-ai-f21-test-14/tests/save-meal-readiness.test.mjs:57:2"
+        },
+        {
+          "name": "PostDetailHeader: processing saves are faded and inert, then ready saves dispatch",
+          "location": "/tmp/my-food-ai-f21-test-14/tests/save-meal-readiness.test.mjs:57:2"
+        },
+        {
+          "name": "OutlineOverlay: processing saves are faded and inert, then ready saves dispatch",
+          "location": "/tmp/my-food-ai-f21-test-14/tests/save-meal-readiness.test.mjs:57:2"
+        },
+        {
+          "name": "PostDetail: processing saves are faded and inert, then ready saves dispatch",
+          "location": "/tmp/my-food-ai-f21-test-14/tests/save-meal-readiness.test.mjs:57:2"
+        },
+        {
+          "name": "an already-saved processing meal can still be unsaved from actions or menus",
+          "location": "/tmp/my-food-ai-f21-test-14/tests/save-meal-readiness.test.mjs:67:1"
+        },
+        {
+          "name": "standalone actions with no known status cannot save an unfinished meal",
+          "location": "/tmp/my-food-ai-f21-test-14/tests/save-meal-readiness.test.mjs:74:1"
+        },
+        {
+          "name": "posting before PUT completion waits; three failures never publish; online retries safely",
+          "location": "/tmp/my-food-ai-f21-test-14/tests/upload-guard.test.mjs:16:1"
+        }
+      ]
+    },
+    "lastObservedCase": {
+      "index": 693,
+      "name": "a time zone the reader chose or the cookie holds is carried in links"
+    },
+    "requiredNamedCases": {
+      "DetailImage switches from a loaded original to the new photo preview immediately": true
+    },
+    "db": {
+      "tests": 49,
+      "pass": 49,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "failures": []
+    },
+    "unexpectedFailureFiles": [],
+    "stillFailingRepairedFiles": [],
+    "relativeTestGate": true
+  },
+  {
+    "plan": 15,
+    "branch": "docs/fleet21",
+    "steps": {
+      "memory": 0,
+      "install": 0,
+      "lint": 1,
+      "types": 0,
+      "build": 0,
+      "test": 1
+    },
+    "started": 1794757049.103691,
+    "sha": "e3625b9628c234247c37198c7157e358494d7435",
+    "appPid": 3545222,
+    "ended": 1794757476.1854343,
+    "lintErrors": [
+      {
+        "file": "src/components/DesktopToday.tsx",
+        "message": "'slowTimer' is never reassigned. Use 'const' instead  prefer-const"
+      },
+      {
+        "file": "src/components/OutlineOverlay.tsx",
+        "message": "Error: Calling setState synchronously within an effect can trigger cascading renders"
+      },
+      {
+        "file": "src/components/PostOpenTransition.tsx",
+        "message": "Error: Calling setState synchronously within an effect can trigger cascading renders"
+      }
+    ],
+    "relativeLintGate": true,
+    "test": {
+      "tests": 694,
+      "pass": 662,
+      "fail": 26,
+      "cancelled": 0,
+      "skipped": 6,
+      "failures": [
+        {
+          "name": "missing optional cards back off and stop automatic hydration, but realtime still updates",
+          "location": "/tmp/my-food-ai-f21-test-15/tests/card-polling.test.mjs:34:1"
+        },
+        {
+          "name": "hidden pages make no reads; active analysis retains two-second fallback",
+          "location": "/tmp/my-food-ai-f21-test-15/tests/card-polling.test.mjs:41:1"
+        },
+        {
+          "name": "clarification and deleted meals retire instead of polling invisibly",
+          "location": "/tmp/my-food-ai-f21-test-15/tests/card-polling.test.mjs:46:1"
+        },
+        {
+          "name": "Today uses the active zone and ignores older responses even when aborted transport still resolves",
+          "location": "/tmp/my-food-ai-f21-test-15/tests/desktop-review.test.mjs:10:1"
+        },
+        {
+          "name": "a failed server seed does not retire the independently hydrated cached feed",
+          "location": "/tmp/my-food-ai-f21-test-15/tests/feed-cache-lifecycle.test.mjs:76:1"
+        },
+        {
+          "name": "an authoritative empty server feed retires an obsolete cached snapshot",
+          "location": "/tmp/my-food-ai-f21-test-15/tests/feed-cache-lifecycle.test.mjs:82:1"
+        },
+        {
+          "name": "deleting a cached meal persists its removal and a failed delete can restore it",
+          "location": "/tmp/my-food-ai-f21-test-15/tests/feed-cache-lifecycle.test.mjs:130:1"
+        },
+        {
+          "name": "accepted corrections invalidate stale cached nutrition and persist the later ready revision",
+          "location": "/tmp/my-food-ai-f21-test-15/tests/feed-cache-lifecycle.test.mjs:140:1"
+        },
+        {
+          "name": "the unseeded main feed keeps the owner cache when fresh loading fails",
+          "location": "/tmp/my-food-ai-f21-test-15/tests/feed-cache-lifecycle.test.mjs:152:1"
+        },
+        {
+          "name": "matching browser and SSR owners reuse the server page without another first-page read",
+          "location": "/tmp/my-food-ai-f21-test-15/tests/feed-cache-lifecycle.test.mjs:161:1"
+        },
+        {
+          "name": "an SSR owner mismatch clears foreign posts and totals and ignores the old hook cache",
+          "location": "/tmp/my-food-ai-f21-test-15/tests/feed-cache-lifecycle.test.mjs:171:1"
+        },
+        {
+          "name": "a failed fresh read after an owner mismatch cannot keep foreign SSR or hook-cache meals visible",
+          "location": "/tmp/my-food-ai-f21-test-15/tests/feed-cache-lifecycle.test.mjs:184:1"
+        },
+        {
+          "name": "retiring the last meal clears feed state and rejects an older hydration result",
+          "location": "/tmp/my-food-ai-f21-test-15/tests/feed-removal.test.mjs:10:1"
+        },
+        {
+          "name": "a ready card with an unavailable item snapshot keeps polling and recovers its actual nutrition",
+          "location": "/tmp/my-food-ai-f21-test-15/tests/feed-unavailable-retry.test.mjs:8:1"
+        },
+        {
+          "name": "questions share immutable thumbnail identities; missing media retries and account changes discard old reads",
+          "location": "/tmp/my-food-ai-f21-test-15/tests/needs-input-batch.test.mjs:12:1"
+        },
+        {
+          "name": "avatar media route rejects invalid ids, signed-out requests and mismatched profile media",
+          "location": "/tmp/my-food-ai-f21-test-15/tests/profile-avatar.test.mjs:61:1"
+        },
+        {
+          "name": "avatar media route serves private cached webp for the owner",
+          "location": "/tmp/my-food-ai-f21-test-15/tests/profile-avatar.test.mjs:77:1"
+        },
+        {
+          "name": "PostCard: processing saves are faded and inert, then ready saves dispatch",
+          "location": "/tmp/my-food-ai-f21-test-15/tests/save-meal-readiness.test.mjs:57:2"
+        },
+        {
+          "name": "PostDetailHeader: processing saves are faded and inert, then ready saves dispatch",
+          "location": "/tmp/my-food-ai-f21-test-15/tests/save-meal-readiness.test.mjs:57:2"
+        },
+        {
+          "name": "OutlineOverlay: processing saves are faded and inert, then ready saves dispatch",
+          "location": "/tmp/my-food-ai-f21-test-15/tests/save-meal-readiness.test.mjs:57:2"
+        },
+        {
+          "name": "PostDetail: processing saves are faded and inert, then ready saves dispatch",
+          "location": "/tmp/my-food-ai-f21-test-15/tests/save-meal-readiness.test.mjs:57:2"
+        },
+        {
+          "name": "an already-saved processing meal can still be unsaved from actions or menus",
+          "location": "/tmp/my-food-ai-f21-test-15/tests/save-meal-readiness.test.mjs:67:1"
+        },
+        {
+          "name": "standalone actions with no known status cannot save an unfinished meal",
+          "location": "/tmp/my-food-ai-f21-test-15/tests/save-meal-readiness.test.mjs:74:1"
+        },
+        {
+          "name": "set_post_servings scales items, queues a recompute and notes it in the thread",
+          "location": "/tmp/my-food-ai-f21-test-15/tests/servings-sql.test.mjs:11:1"
+        },
+        {
+          "name": "DetailImage switches from a loaded original to the new photo preview immediately",
+          "location": "/tmp/my-food-ai-f21-test-15/tests/sharp-image-identity.test.mjs:36:1"
+        },
+        {
+          "name": "posting before PUT completion waits; three failures never publish; online retries safely",
+          "location": "/tmp/my-food-ai-f21-test-15/tests/upload-guard.test.mjs:16:1"
+        }
+      ]
+    },
+    "lastObservedCase": {
+      "index": 693,
+      "name": "a time zone the reader chose or the cookie holds is carried in links"
+    },
+    "requiredNamedCases": {},
+    "unexpectedFailureFiles": [],
+    "stillFailingRepairedFiles": [],
+    "relativeTestGate": true
+  }
+]

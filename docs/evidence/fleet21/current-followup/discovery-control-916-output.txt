@@ -1,0 +1,37 @@
+TAP version 13
+# Subtest: discovery leaves older off-page meals in pagination while finding new back-dated meals
+not ok 1 - discovery leaves older off-page meals in pagination while finding new back-dated meals
+  ---
+  duration_ms: 275.939068
+  type: 'test'
+  location: '/tmp/f21-next/916/tests/feed-cache-lifecycle.test.mjs:197:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    old off-page meals are not rehydrated on Home open
+    + actual - expected
+    
+    + [
+    +   'old-off-page'
+    + ]
+    - []
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+  actual:
+    0: 'old-off-page'
+  operator: 'deepStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///tmp/f21-next/916/tests/feed-cache-lifecycle.test.mjs:201:86)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 0
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1437.337436

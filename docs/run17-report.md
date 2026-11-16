@@ -24,7 +24,7 @@ Local `npm start` of main **after** #619 merged, Chromium CDP `:9245`, Run 8 net
 | `post-close-retry.json` | 16:16:49 | none | 694 | 687 | **1077** | false |
 | `post-close-v4.json` | 16:23:05 | 8 s | 733 | 633 | 868 | true |
 
-Two of the nine readings were over one second. The only all-under-one-second batch came after an 8-second gap was added between posts. That gap changed the test, not the app. Every reading showed **Uploading photo…**. The driver's pass flag never failed the command (#628).
+Two of the nine readings were over one second. The only all-under-one-second batch came after an 8-second gap was added between posts. That gap changed the test, not the app. Every reading showed **Uploading photo…**. The driver's pass flag never failed the command (#628). A post captioned "Fleet 17 post-close 2" was created at 16:21 UTC, between the retry and v4 batches; it has no receipt and is in no evidence file, so a fourth batch may have run that this report does not count.
 
 ### R6 (#615)
 

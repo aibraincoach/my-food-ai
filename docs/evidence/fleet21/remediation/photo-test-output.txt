@@ -1,0 +1,250 @@
+TAP version 13
+# Subtest: SSR, fresh page and metadata hydration share the known day total
+ok 1 - SSR, fresh page and metadata hydration share the known day total
+  ---
+  duration_ms: 66.458987
+  type: 'test'
+  ...
+# Subtest: nutrition revision, readiness and forced mutation events invalidate totals
+ok 2 - nutrition revision, readiness and forced mutation events invalidate totals
+  ---
+  duration_ms: 1.186711
+  type: 'test'
+  ...
+# Subtest: unknown revision never claims unchanged nutrition; moves refresh both local days
+ok 3 - unknown revision never claims unchanged nutrition; moves refresh both local days
+  ---
+  duration_ms: 1.24955
+  type: 'test'
+  ...
+# Subtest: backdated discovery reuses its SSR contribution, but inserted or edited meals refresh
+ok 4 - backdated discovery reuses its SSR contribution, but inserted or edited meals refresh
+  ---
+  duration_ms: 59.139325
+  type: 'test'
+  ...
+# Subtest: the existing owner day query supplies normalized receipts without an extra database read
+ok 5 - the existing owner day query supplies normalized receipts without an extra database read
+  ---
+  duration_ms: 326.250262
+  type: 'test'
+  ...
+# Subtest: only years 2000-2999 are accepted for months and days
+ok 6 - only years 2000-2999 are accepted for months and days
+  ---
+  duration_ms: 1.624707
+  type: 'test'
+  ...
+# Subtest: shifting a supported day across a year boundary stays a valid date
+ok 7 - shifting a supported day across a year boundary stays a valid date
+  ---
+  duration_ms: 0.238158
+  type: 'test'
+  ...
+# Subtest: two requested days a month apart read separate windows rather than the gap
+ok 8 - two requested days a month apart read separate windows rather than the gap
+  ---
+  duration_ms: 388.567961
+  type: 'test'
+  ...
+# Subtest: prior-day SQL and today SQL do not overlap, including DST and extreme zones
+ok 9 - prior-day SQL and today SQL do not overlap, including DST and extreme zones
+  ---
+  duration_ms: 126.996101
+  type: 'test'
+  ...
+# Subtest: route rejects invalid, signed-out, cross-owner, deleted and foreign-path media before storage
+ok 10 - route rejects invalid, signed-out, cross-owner, deleted and foreign-path media before storage
+  ---
+  duration_ms: 67.665857
+  type: 'test'
+  ...
+# Subtest: authorized route binds both media and post, uses fixed storage origin and emits a small private WebP
+ok 11 - authorized route binds both media and post, uses fixed storage origin and emits a small private WebP
+  ---
+  duration_ms: 209.502319
+  type: 'test'
+  ...
+# Subtest: authorized transform failure retains bounded JPEG; download failure redirects only after ownership lookup
+ok 12 - authorized transform failure retains bounded JPEG; download failure redirects only after ownership lookup
+  ---
+  duration_ms: 6.431949
+  type: 'test'
+  ...
+# feed read posts 3 status 200
+# feed read revision 2
+# feed read items 2
+# feed read revision 0
+# feed read media 5
+# feed read saved 5
+# feed read signed-urls 0
+# Subtest: stream byte and decoded pixel limits are enforced; owner paths cannot traverse
+ok 13 - stream byte and decoded pixel limits are enforced; owner paths cannot traverse
+  ---
+  duration_ms: 83.49913
+  type: 'test'
+  ...
+# Subtest: native work is limited to four concurrent requests and release is idempotent
+ok 14 - native work is limited to four concurrent requests and release is idempotent
+  ---
+  duration_ms: 0.538635
+  type: 'test'
+  ...
+# feed read profiles 7024
+# Subtest: SSR seed and every batch slide use immutable owner-scoped private identities
+ok 15 - SSR seed and every batch slide use immutable owner-scoped private identities
+  ---
+  duration_ms: 7055.718259
+  type: 'test'
+  ...
+# Subtest: matching ETag revalidates ownership before 304 without varying immutable identity on refreshed cookies
+ok 16 - matching ETag revalidates ownership before 304 without varying immutable identity on refreshed cookies
+  ---
+  duration_ms: 2.269062
+  type: 'test'
+  ...
+# Subtest: v2 preserves dense-phone pixels under a new immutable identity and still verifies ownership
+ok 17 - v2 preserves dense-phone pixels under a new immutable identity and still verifies ownership
+  ---
+  duration_ms: 234.224201
+  type: 'test'
+  ...
+# feed read day-totals 7
+# feed read day-totals 1
+# feed read day-totals 1
+# feed read posts 9 status 200
+# feed read revision 2
+# feed read items 1
+# feed read revision 1
+# feed read media 4
+# feed read saved 4
+# feed read profiles 4
+# feed read signed-urls 0
+# feed read hydration 4
+# feed read posts 1 status 200
+# feed read revision 1
+# feed read items 2
+# feed read revision 1
+# feed read media 6
+# feed read saved 6
+# feed read profiles 6
+# feed read signed-urls 0
+# feed read day-totals 8
+# feed read hydration 8
+# auth verify api/feed
+# feed read auth 0
+# feed read total 1
+# auth verify api/feed
+# feed read auth 1
+# feed read total 1
+# Subtest: parallel Home streams share one totals read and pass that snapshot into Feed
+ok 18 - parallel Home streams share one totals read and pass that snapshot into Feed
+  ---
+  duration_ms: 257.163777
+  type: 'test'
+  ...
+# Subtest: Home feed and Today each perform one read per render
+ok 19 - Home feed and Today each perform one read per render
+  ---
+  duration_ms: 72.148141
+  type: 'test'
+  ...
+# Subtest: when the shared read of today fails, the circles and the feed still get every total and the Today column keeps its browser fallback
+ok 20 - when the shared read of today fails, the circles and the feed still get every total and the Today column keeps its browser fallback
+  ---
+  duration_ms: 80.251356
+  type: 'test'
+  ...
+# Subtest: feed refresh skips known days without removing meal or hydration reads; missing dates still load
+ok 21 - feed refresh skips known days without removing meal or hydration reads; missing dates still load
+  ---
+  duration_ms: 100.206716
+  type: 'test'
+  ...
+# Subtest: feed API validates the known-date boundary and retains its independent Auth check
+ok 22 - feed API validates the known-date boundary and retains its independent Auth check
+  ---
+  duration_ms: 19.947879
+  type: 'test'
+  ...
+# Subtest: middleware makes no photo query or HTTP image preload while preserving auth and cache headers
+ok 23 - middleware makes no photo query or HTTP image preload while preserving auth and cache headers
+  ---
+  duration_ms: 146.594504
+  type: 'test'
+  ...
+# Subtest: Home HTML preload and first image expose identical density candidates without a second base-only hint
+ok 24 - Home HTML preload and first image expose identical density candidates without a second base-only hint
+  ---
+  duration_ms: 155.080756
+  type: 'test'
+  ...
+# Subtest: React emits one responsive HTML preload and no base image Link header for duplicated stream hints
+ok 25 - React emits one responsive HTML preload and no base image Link header for duplicated stream hints
+  ---
+  duration_ms: 14.422205
+  type: 'test'
+  ...
+# Subtest: public photo uses the shared eight-MiB reader and returns cacheable output for a valid source
+ok 26 - public photo uses the shared eight-MiB reader and returns cacheable output for a valid source
+  ---
+  duration_ms: 28.488531
+  type: 'test'
+  ...
+# Subtest: oversized declared source is cancelled before resizing and uses no-store fallback
+ok 27 - oversized declared source is cancelled before resizing and uses no-store fallback
+  ---
+  duration_ms: 3.560571
+  type: 'test'
+  ...
+# Subtest: oversized streamed source is cancelled before resizing and uses no-store fallback
+ok 28 - oversized streamed source is cancelled before resizing and uses no-store fallback
+  ---
+  duration_ms: 4.715162
+  type: 'test'
+  ...
+# Subtest: deadline cancels the source fetch and releases the reservation
+ok 29 - deadline cancels the source fetch and releases the reservation
+  ---
+  duration_ms: 2.068424
+  type: 'test'
+  ...
+# Subtest: disconnect cancels the source fetch and releases the reservation
+ok 30 - disconnect cancels the source fetch and releases the reservation
+  ---
+  duration_ms: 2.164143
+  type: 'test'
+  ...
+# Subtest: density variants read the original and retain owner-scoped cache identities
+ok 31 - density variants read the original and retain owner-scoped cache identities
+  ---
+  duration_ms: 425.383906
+  type: 'test'
+  ...
+# Subtest: invalid variants and unowned photos perform no storage access
+ok 32 - invalid variants and unowned photos perform no storage access
+  ---
+  duration_ms: 6.735546
+  type: 'test'
+  ...
+# Subtest: resize, download and abort failures redirect through a fresh signing deadline
+ok 33 - resize, download and abort failures redirect through a fresh signing deadline
+  ---
+  duration_ms: 33.62045
+  type: 'test'
+  ...
+# Subtest: legacy v1 and current v2 URLs select the same density candidates
+ok 34 - legacy v1 and current v2 URLs select the same density candidates
+  ---
+  duration_ms: 0.793753
+  type: 'test'
+  ...
+1..34
+# tests 34
+# suites 0
+# pass 34
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 10723.687224

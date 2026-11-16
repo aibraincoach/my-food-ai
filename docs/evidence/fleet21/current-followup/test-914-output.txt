@@ -1,0 +1,88 @@
+TAP version 13
+# Subtest: empty SQL composite stops the worker after a single claim with no failure or renewal
+ok 1 - empty SQL composite stops the worker after a single claim with no failure or renewal
+  ---
+  duration_ms: 2.895417
+  type: 'test'
+  ...
+# Subtest: null claims stop and genuine claimed jobs preserve their identity
+ok 2 - null claims stop and genuine claimed jobs preserve their identity
+  ---
+  duration_ms: 0.344917
+  type: 'test'
+  ...
+# Subtest: nutrition uses remaining invocation time and reserves persistence plus the global tail
+ok 3 - nutrition uses remaining invocation time and reserves persistence plus the global tail
+  ---
+  duration_ms: 1.121311
+  type: 'test'
+  ...
+# Subtest: raw Meta requests stop at the invocation deadline without a transport retry
+ok 4 - raw Meta requests stop at the invocation deadline without a transport retry
+  ---
+  duration_ms: 51.569827
+  type: 'test'
+  ...
+# Subtest: expired invocation cannot start an SDK request or extend an existing caller signal
+ok 5 - expired invocation cannot start an SDK request or extend an existing caller signal
+  ---
+  duration_ms: 429.834794
+  type: 'test'
+  ...
+# Subtest: late worker handoff skips both the timer and request so the durable wake can take over
+ok 6 - late worker handoff skips both the timer and request so the durable wake can take over
+  ---
+  duration_ms: 2.096943
+  type: 'test'
+  ...
+# Subtest: a handoff timer that resumes late cannot launch a request
+ok 7 - a handoff timer that resumes late cannot launch a request
+  ---
+  duration_ms: 0.708155
+  type: 'test'
+  ...
+# Subtest: a lone abandoned running job can acquire a recovery worker
+ok 8 - a lone abandoned running job can acquire a recovery worker
+  ---
+  duration_ms: 5.266638
+  type: 'test'
+  ...
+# Subtest: blocked due work waits for eligibility instead of immediately self-ticking
+ok 9 - blocked due work waits for eligibility instead of immediately self-ticking
+  ---
+  duration_ms: 2.072103
+  type: 'test'
+  ...
+# Subtest: renewal checks the dedicated ownership RPC and refuses a lost lease
+ok 10 - renewal checks the dedicated ownership RPC and refuses a lost lease
+  ---
+  duration_ms: 1.635387
+  type: 'test'
+  ...
+# Subtest: a USDA retry time reaches the durable queue unchanged instead of fail_job
+ok 11 - a USDA retry time reaches the durable queue unchanged instead of fail_job
+  ---
+  duration_ms: 1.817545
+  type: 'test'
+  ...
+# Subtest: a lost lease stops the worker before it claims another job
+ok 12 - a lost lease stops the worker before it claims another job
+  ---
+  duration_ms: 1.037792
+  type: 'test'
+  ...
+# Subtest: public failure messages use fixed copy and never echo raw provider diagnostics
+ok 13 - public failure messages use fixed copy and never echo raw provider diagnostics
+  ---
+  duration_ms: 0.284398
+  type: 'test'
+  ...
+1..13
+# tests 13
+# suites 0
+# pass 13
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 2362.978696
