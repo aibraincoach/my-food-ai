@@ -1,4 +1,5 @@
 import {sumMicronutrients, sumNutrition, type CurrentItem, type NutritionLike} from './totals';
+import {keepsCaffeine} from '@/lib/intake/alcohol';
 const core: {name: string; key: keyof NutritionLike; unit: string}[] = [
   {name:'Calories',key:'calories',unit:'kcal'},{name:'Protein',key:'protein_g',unit:'g'},
   {name:'Carbs',key:'carbs_g',unit:'g'},{name:'Fat',key:'fat_g',unit:'g'},
@@ -22,6 +23,7 @@ export function nutritionTableRows(items: CurrentItem[]) {
   const totals=sumNutrition(items);
   const nutrients=items.map(item=>({...item,micronutrients:item.micronutrients.filter(row=>{
     const name=(row.nutrientName??row.name??'').toLowerCase().replace(/[(),]/g,' ').replace(/\s+/g,' ').trim();
+    if(row.nutrientId===1057&&!keepsCaffeine({name:item.name,food_category:(item as {food_category?:string|null}).food_category,micronutrients:item.micronutrients}))return false;
     return !macroIds.has(row.nutrientId??-1)&&!macroNames.has(name);
   }).map(row=>({...row,nutrientName:names[row.nutrientId??-1]??row.nutrientName??row.name,unitName:unit(row.unitName??row.unit??'')}))}));
   const micros=sumMicronutrients(nutrients).sort((a,b)=>{
