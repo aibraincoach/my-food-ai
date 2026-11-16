@@ -176,5 +176,14 @@
     "evidenceScope": "Fresh PPLX source capture and correcting-coder triage; independent evaluation and merge order still required",
     "capture": "docs/reviews/mfa-pplx-pr916-5738da3.md",
     "triage": "docs/reviews/mfa-pplx-pr916-5738da3-triage.md"
+  },
+  {
+    "pr": 922,
+    "reviewedHead": "003770c33b4095a0bf5b7e1e7f4423678f2bdb6f",
+    "blockingFindings": 0,
+    "nonblockingObservations": 1,
+    "evidenceScope": "Historical docs receipt; following commit corrects spacing and requires its own review",
+    "capture": "docs/reviews/mfa-pplx-pr922-003770c.md",
+    "triage": "docs/reviews/mfa-pplx-pr922-003770c-triage.md"
   }
 ]
