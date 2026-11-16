@@ -32,11 +32,11 @@ The Wall of Stupid holds dozens of incident rows, newest first, and the rules th
 
 The owner ruled on Nov 15 that the Wall of Stupid becomes two files: a short operational rules list of what gets an agent fired, and a Wall of Stupid archive that keeps the incident history. The rules list's wording is not decided. The PM contract, the planner contract, CLAUDE.md and the handover skill refer to the Wall and must name the right file. The coder alone changes the Wall, from a prompt the PM supplies. Related: #699. Done when the repository holds an operational rules list and a Wall of Stupid archive, every standing rule in today's Wall is in one of them, no incident row is lost, and the contracts, CLAUDE.md and the handover skill each name the right file.
 
-### #TBD There is no guide for reaching the MCP server, and tokens were deployed without instructions
+### #924 There is no guide for reaching the MCP server, and tokens were deployed without instructions
 
 A person who needs to connect to the app's MCP server has no written way to do it. Tokens exist, but nothing says where the server is, how to get a token or how to connect a client. The owner has ChatGPT unable to work out how to connect.
 
-The owner reported on Nov 15 that tokens were deployed with no guideline or instruction manual. Which server, which tokens and who deployed them are not recorded in this backlog. Observe first: the coder lists the MCP server (where it runs, what tools it offers, how it authenticates) and every token deployed for it, and where each is documented. No token value goes into the repository, the issue or this backlog. This item has no GitHub issue yet. Done when a written guide in the repository tells a person who has never seen the server how to get a token, where the server is and how to connect a client such as ChatGPT, and a client that follows only the guide connects and lists the tools.
+The owner reported on Nov 15 that tokens were deployed with no guideline or instruction manual. Which server, which tokens and who deployed them are not recorded in this backlog. Observe first: the coder lists the MCP server (where it runs, what tools it offers, how it authenticates) and every token deployed for it, and where each is documented. No token value goes into the repository, the issue or this backlog. This item is GitHub issue #924. Done when a written guide in the repository tells a person who has never seen the server how to get a token, where the server is and how to connect a client such as ChatGPT, and a client that follows only the guide connects and lists the tools.
 
 ### #712 The ten-photo receipt on main contradicts the reported failure
 
@@ -50,25 +50,25 @@ docs/reviews/mfa-pplx-pr670-9c37722-close.md and docs/reviews/mfa-pplx-pr677-clo
 
 Related: #670, #677. Done when each is committed as a receipt or deleted.
 
-### #TBD A draft pull request of readiness documents was opened in the repository without the owner knowing what it contains
+### #925 A draft pull request of readiness documents was opened in the repository without the owner knowing what it contains
 
 An agent opened draft pull request #682 (branch docs/muse-readiness-pm-pack, seven Markdown files under docs/product/muse-readiness-pm-pack) holding a summary of a newsletter article about Meta's Muse launch, a 40-row launch scorecard and six candidate backlog items. The owner was handed the pack afterwards and had not seen what was in it.
 
 The planner's Fleet 21 plan, written the same day, describes PR #682 as the docs branch that holds the two review captures named in #715. Both descriptions cannot be right. The pack also lists #370, #108 and #567 as open and #22 and #221 as closed, and none of those five is in this backlog, which belongs to the owner and the PM. The pack states that every scorecard result is unrun, that its thresholds are proposals, and that the article is a secondhand account of an interview; nobody has checked its statements against the code or the contracts. Observe first: read PR #682 on GitHub (author, branch, creation date, files), compare it with the review captures in #715, and read each of the seven files against README.md, docs/eval.md and docs/pm-contract.md. Done when a written finding says which pull request number holds which files, lists every statement in the pack that disagrees with the code or a contract, and the owner has ruled whether the pack stays in the repository, is corrected, or is removed.
 
-### #TBD Nobody has written down whether a newer Muse model helps or hurts My Food AI
+### #926 Nobody has written down whether a newer Muse model helps or hurts My Food AI
 
 My Food AI identifies foods, estimates portions and applies corrections with Meta's Muse models. A product that only wraps a model is replaced when the model improves; a product that owns something the model does not have gets better with it. Nobody has said which of My Food AI's steps a stronger model improves and which it makes unnecessary.
 
 The owner raised the test from Greg Isenberg's 48 hours in San Francisco: when a new model comes out, does it help the company or hurt it? In the code, a food with no USDA match falls back to the closest generic record, then a rice-with-protein composition, then a model estimate (src/lib/fdc/match.ts lines 92 to 109). Several open items are model errors that a stronger model may remove: #617 (squid matched to tuna sushi), #523 (macaroni), #285 (consumed number from a leftovers photo) and #572 (fallback skipped after one search). Parts a general chat model with a camera does not have today include the trail that names the record or the estimate behind a number, the consumed-versus-leftover accounting, drink and caffeine records, and the user's own history. Observe first: list each step of a meal's path (identify the food, estimate the portion, match a record, estimate when none matches, work out the consumed amount, keep the history) and mark each step as removed, improved or unchanged by a stronger model. Done when a written finding lists every step with that mark, names the steps a stronger model replaces, and states what the product keeps that a general model does not.
 
-### #TBD The planner contract does not say to plan every item that can be planned, or to give a reason for each item skipped
+### #927 The planner contract does not say to plan every item that can be planned, or to give a reason for each item skipped
 
 The planner contract describes how a plan is written but not how many backlog items it must cover. The first Fleet 21 plan wrote exact text for 7 of the 73 items on the backlog it was given and left the rest, and the owner needed many further turns to get a plan that covered what could be planned.
 
 The owner's rule: a planner plans as many items as are feasible. An item is skipped only when it contains a fallacy or cannot be done, and the plan states that reason beside the item. The owner may instead pick the items a planner works on, and then the plan covers those items and does not grow to the whole backlog. None of this is in docs/planner-contract.md. Done when docs/planner-contract.md states all three rules and a plan lists every item it did not plan next to its reason.
 
-### #TBD The PM contract says the backlog has no In flight section, and the backlog needs one
+### #928 The PM contract says the backlog has no In flight section, and the backlog needs one
 
 The PM contract and the Wall of Stupid tell the PM that the backlog has no "In flight" section. The backlog needs one, so the PM cannot follow the contract and keep the backlog the owner wants.
 
