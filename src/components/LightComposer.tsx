@@ -24,6 +24,7 @@ export default function LightComposer(p:Props) {
  const post=()=>{if(voice.activeRef.current||inputBusy)return;if(drinks.active)void drinks.post();else p.onPost();};
  const [typing,setTyping]=useState(false);
  const [drinkDetails,setDrinkDetails]=useState(false);
+ const [voiceError,setVoiceError]=useState('');
  const [whenOpen,setWhenOpen]=useState(false);
  const [photoOptions,setPhotoOptions]=useState(false);
  const [uploadedVisible,setUploadedVisible]=useState(false);
@@ -84,6 +85,7 @@ export default function LightComposer(p:Props) {
   <div className="max-h-[70%] shrink-0 overflow-y-auto rounded-t-sheet bg-text">{drinks.card}
    <footer className="px-5 pt-4 pb-[calc(34px+env(safe-area-inset-bottom))]">
     {drinks.error&&<p role="alert" className="mb-2 text-detail text-faint">{drinks.error}</p>}
+    {voiceError&&<p role="alert" className="mb-2 text-detail text-faint">{voiceError}</p>}
     <Button variant="camera" style={{height:48,borderRadius:12,fontSize:15}} disabled={busy||drinks.disabled} onClick={post}>{inputBusy?'Posting…':drinks.button}</Button>
    </footer>
   </div>{drinks.editor}{p.children}
@@ -125,7 +127,7 @@ export default function LightComposer(p:Props) {
     <button type="button" role="switch" aria-label="Leftovers" aria-checked={on} disabled={busy} onClick={()=>p.setNotEaten(on?p.notEaten.filter(index=>index!==p.index):[...p.notEaten,p.index].sort((a,b)=>a-b))} className={`relative h-[30px] w-[50px] shrink-0 rounded-circle ${on?'bg-accent':'bg-ring'}`}><span className="absolute top-[3px] size-6 rounded-circle bg-white" style={{left:on?23:3,boxShadow:'var(--color-shadow-knob)'}}/></button>
     {p.shots.length>2&&<button type="button" aria-label="Close photo options" onClick={()=>setPhotoOptions(false)} className="flex size-tap shrink-0 items-center justify-center"><Icon name="close" size={18}/></button>}
    </div>}
-   <div className="px-inset pt-[14px]"><label htmlFor="capture-caption" className="text-body font-semibold">{handle}</label><textarea ref={caption} onFocus={()=>{if(!p.cameraPreview){setTyping(true);requestAnimationFrame(()=>caption.current?.scrollIntoView({block:"nearest"}));}}} onBlur={()=>setTyping(false)} id="capture-caption" aria-label="Caption" maxLength={2000} rows={2} placeholder="Add a caption…" value={p.caption} disabled={busy} onChange={event=>p.setCaption(event.target.value)} className="min-h-tap w-full resize-none bg-transparent text-body font-normal outline-none placeholder:text-muted"/><VoiceButton value={p.caption} onChange={p.setCaption} max={2000} disabled={inputBusy} onActiveChange={voice.onActiveChange}/></div>
+   <div className="px-inset pt-[14px]"><label htmlFor="capture-caption" className="text-body font-semibold">{handle}</label><textarea ref={caption} onFocus={()=>{if(!p.cameraPreview){setTyping(true);requestAnimationFrame(()=>caption.current?.scrollIntoView({block:"nearest"}));}}} onBlur={()=>setTyping(false)} id="capture-caption" aria-label="Caption" maxLength={2000} rows={2} placeholder="Add a caption…" value={p.caption} disabled={busy} onChange={event=>p.setCaption(event.target.value)} className="min-h-tap w-full resize-none bg-transparent text-body font-normal outline-none placeholder:text-muted"/><VoiceButton value={p.caption} onChange={p.setCaption} max={2000} disabled={inputBusy} onActiveChange={voice.onActiveChange} onError={setVoiceError}/></div>
    <div className="flex gap-2 px-inset pt-[22px]">
     <button type="button" disabled={busy||p.shots.length>=8} onClick={photo} className="flex h-[34px] items-center gap-2 rounded-[17px] bg-field px-3 text-detail font-medium"><Icon name="camera" size={16}/>Another photo</button>
     <button type="button" disabled={busy} onClick={p.onSearch} className="flex h-[34px] items-center gap-2 rounded-[17px] bg-field px-3 text-detail font-medium"><Icon name="search" size={16}/>Search foods</button>

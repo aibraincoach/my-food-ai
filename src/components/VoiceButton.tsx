@@ -8,8 +8,8 @@ export function useVoiceActivity(){
  return {active,activeRef,onActiveChange};
 }
 // The mic for a typing field that has no post yet: spoken words are added to the field's text.
-export default function VoiceButton({value,onChange,max,onActiveChange,disabled=false,className="flex shrink-0 flex-wrap items-center justify-end"}:{value:string;onChange:(next:string)=>void;max:number;onActiveChange?:(active:boolean)=>void;disabled?:boolean;className?:string}){
+export default function VoiceButton({value,onChange,max,onActiveChange,onError,disabled=false,className="flex shrink-0 flex-wrap items-center justify-end"}:{value:string;onChange:(next:string)=>void;max:number;onActiveChange?:(active:boolean)=>void;onError?:(message:string)=>void;disabled?:boolean;className?:string}){
  const latest=useRef(value);
  useEffect(()=>{latest.current=value;},[value]);
- return <span className={className}><VoiceRecorder label="Speak" disabled={disabled} onActiveChange={onActiveChange??(()=>{})} onTranscript={text=>onChange(`${latest.current}${latest.current.trim()?' ':''}${text}`.slice(0,max))}/></span>;
+ return <span className={className}><VoiceRecorder label="Speak" disabled={disabled} onError={onError} onActiveChange={onActiveChange??(()=>{})} onTranscript={text=>onChange(`${latest.current}${latest.current.trim()?' ':''}${text}`.slice(0,max))}/></span>;
 }
