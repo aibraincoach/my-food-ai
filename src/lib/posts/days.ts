@@ -1,7 +1,7 @@
 import {localDateStart} from '@/lib/search/dates';
-import {visibleDrinkRows} from '@/lib/intake/hydration';
+import {visibleDrinkRows,withAlcoholNutrition,type DrinkRow} from '@/lib/intake/hydration';
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { groupIntakeByDay, emptyIntake, type IntakeRow, type IntakeTotals } from "@/lib/intake/intake";
+import { groupIntakeByDay, emptyIntake, type IntakeTotals } from "@/lib/intake/intake";
 import { publicPhotoUrl } from "@/lib/posts/feed-photo-url";
 import { CURRENT_ITEM_COLUMNS, CURRENT_NUTRITION_COLUMNS, mapCurrentItems, normalizeStoredNutrition, nutritionNumber, sumNutrition, type CurrentItem, type MealTotals, type NutritionRow } from "@/lib/nutrition/totals";
 
@@ -90,18 +90,19 @@ export async function getDays(supabase: SupabaseClient, userId: string, zone: st
   // Water and caffeine appear on their day, including a day with no meal (never a target).
   {
     // Every row, in a fixed order, a page at a time: a capped response must never pass for the full total.
-    const intake: (IntakeRow & {post_id?:string|null})[] = [];
+    const intake: Pick<DrinkRow,'kind'|'amount'|'logged_at'|'post_id'|'post_item_id'>[] = [];
     let intakeError = false;
     for (let offset = 0; ; offset += 1000) {
-      const { data, error } = await supabase.from("intake_logs").select("kind,amount,logged_at,post_id")
+      const { data, error } = await supabase.from("intake_logs").select("kind,amount,logged_at,post_id,post_item_id")
         .eq("user_id", userId).gte("logged_at", lower).lt("logged_at", upper)
         .order("logged_at", { ascending: true }).order("id", { ascending: true }).range(offset, offset + 999);
       if (error) { intakeError = true; break; }
-      intake.push(...((data ?? []) as IntakeRow[]));
+      intake.push(...((data ?? []) as typeof intake));
       if ((data?.length ?? 0) < 1000) break;
     }
     if (!intakeError) {
-      const byDay = groupIntakeByDay(await visibleDrinkRows(supabase,userId,intake), (instant) => dateInZone(instant, zone));
+      // The feed's rule: an alcoholic drink's own caffeine (a rum and cola) counts toward the day.
+      const byDay = groupIntakeByDay(await withAlcoholNutrition(supabase,await visibleDrinkRows(supabase,userId,intake)), (instant) => dateInZone(instant, zone));
       for (const [date, totals] of byDay) {
         if (date < from || date > through) continue;
         const day = groups.get(date);
@@ -117,7 +118,7 @@ export async function getDays(supabase: SupabaseClient, userId: string, zone: st
 // (only a failed meal does not count); the story and totals still show ready meals only.
 export const LOGGED_STATUSES = ["ready", "queued", "processing", "needs_input"];
 // The one counting rule for Days: a ready meal is a post; every other logged meal is "not finished".
-// The calendar cell (getMonthSummary) and the day summary (getDays) both use it.
+// The calendar cell (getMonthSummary), the day summary (getDays) and Home's day circles (getDayTotals) all use it.
 export function countsAsPost(status: string): boolean { return status === "ready"; }
 
 // Home's bubbles only need which local days have a logged meal: no items,
@@ -186,7 +187,7 @@ export async function getDayTotals(db: SupabaseClient, userId: string, zone: str
   for (let offset = 0; ; offset += 1000) {
     const { data, error } = await db.from('posts')
       .select('id,eaten_at,current_post_items(name,portion_grams,item_nutrition(post_item_id,calories,protein_g,carbs_g,fat_g,fibre_g,sugar_g,sodium_mg,micronutrients,source_ref))').is("deleted_at", null)
-      .eq('user_id', userId).eq('status', 'ready').or('needs_input.is.null,status.eq.failed')
+      .eq('user_id', userId).in('status', LOGGED_STATUSES.filter(countsAsPost))
       .gte('eaten_at', lower).lt('eaten_at', upper).order('eaten_at').order('id').range(offset, offset + 999).abortSignal(AbortSignal.timeout(8000));
     if (error) throw new Error('Day totals could not be loaded.');
     for (const row of data ?? []) {

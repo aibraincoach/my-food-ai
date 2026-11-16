@@ -1,5 +1,6 @@
 import {drinkGlyph,type DrinkGlyph} from './drink-glyph';
 import {alcoholGrams,isAlcoholic,keepsCaffeine} from './alcohol';
+import {rowCaffeineMg} from './intake';
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { dateInZone, shiftDay, validZone } from "@/lib/posts/days";
 import { normalizeStoredNutrition, toNumber, type NutritionRow, type Numeric, type StoredNutrient } from "@/lib/nutrition/totals";
@@ -52,7 +53,7 @@ export async function visibleDrinkRows<T extends {post_id?:string|null}>(db:Supa
 
 // Alcohol rows store grams in amount. Rehydrate their independently recorded
 // caffeine from the consumed item revision, without counting their liquid as water.
-async function withAlcoholNutrition(db:SupabaseClient,rows:DrinkRow[]):Promise<DrinkRow[]>{
+export async function withAlcoholNutrition<T extends Pick<DrinkRow,'kind'|'post_item_id'>>(db:SupabaseClient,rows:T[]):Promise<(T&{alcoholG?:number;caffeineMg?:number})[]>{
  const ids=[...new Set(rows.filter(row=>row.kind==='alcohol'&&row.post_item_id).map(row=>row.post_item_id!))];
  if(!ids.length)return rows;
  const amounts=new Map<string,{alcoholG:number;caffeineMg:number}>();
@@ -144,7 +145,7 @@ function hydrationAt(timeline: HydrationTimeline, upToEatenAt: string): Hydratio
   const cutoff = new Date(upToEatenAt).getTime();
   const drinks = timeline.drinks.filter(row => new Date(row.logged_at).getTime() <= cutoff);
   const drinksMl = Math.round(drinks.reduce((total, row) => total + (row.kind === "alcohol" ? 0 : toNumber(row.ml ?? (row.kind === "water" ? row.amount : 0))), 0));
-  const caffeineMg = Math.round(drinks.reduce((total, row) => total + (row.kind === "caffeine" ? toNumber(row.amount) : row.kind === "alcohol" ? row.caffeineMg??0 : 0), 0));
+  const caffeineMg = Math.round(drinks.reduce((total, row) => total + rowCaffeineMg(row), 0));
   const foodMl = roundWaterMl(timeline.foods.filter(row => new Date(row.eatenAt).getTime() <= cutoff).reduce((total, row) => total + row.waterMl, 0));
   return { drinksMl, foodMl, totalMl: drinksMl + foodMl, caffeineMg };
 }
@@ -197,7 +198,7 @@ export async function getPostHydrationData(db: SupabaseClient, userId: string, p
     for (const post of dayPosts) {
       const links = drinksByPost.get(post.id) ?? [];
       const source = links.some(row => row.source !== "item") ? "sheet" as const : "item" as const;
-      const itemDrinks = links.filter(row => row.source === "item").map(row => ({ post_item_id: row.post_item_id, label: row.label!, ...(row.kind==="alcohol"?{kind:row.kind,alcoholG:row.alcoholG??alcoholGrams(post.items?.find(item=>item.id===row.post_item_id)?.micronutrients)}:{}), ml: toNumber(row.ml), caffeineMg: row.kind === "caffeine" ? toNumber(row.amount) : row.kind === "alcohol" ? row.caffeineMg??0 : 0 }));
+      const itemDrinks = links.filter(row => row.source === "item").map(row => ({ post_item_id: row.post_item_id, label: row.label!, ...(row.kind==="alcohol"?{kind:row.kind,alcoholG:row.alcoholG??alcoholGrams(post.items?.find(item=>item.id===row.post_item_id)?.micronutrients)}:{}), ml: toNumber(row.ml), caffeineMg: rowCaffeineMg(row) }));
       const currentIds = post.items ? post.items.map(item => item.id) : itemIds.get(post.id) ?? [];
       const linkedIds = new Set(links.map(row => row.post_item_id));
       const isDrink = links.length > 0 && (source === "sheet" || currentIds.length > 0 && currentIds.every(id => id && linkedIds.has(id)));
