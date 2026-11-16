@@ -1,0 +1,38 @@
+{
+  "main": "8914b3e69a2e461fee95bd24aedfa5d38d7d1ede",
+  "mergedThisTask": {
+    "pr": 912,
+    "head": "50ea5f705075741b04c605b23fb7d4306dc3bfab",
+    "build": 0,
+    "typecheck": 0
+  },
+  "changedHeads": {
+    "911": "a151ef033c670613ccabbeb8fd6b39fc4e17b662",
+    "914": "6380874b77387ddee9d6feac59d7a5ed4775afdd",
+    "916": "5738da3a01c3c34cc06c7c285caeaef8ed8c4b55"
+  },
+  "validation": {
+    "voiceCases": 6,
+    "voiceControl": {
+      "pass": 4,
+      "expectedFail": 2
+    },
+    "workerCases": 13,
+    "takeoverSeconds": 59.977016,
+    "workerWakes": 1,
+    "feedCases": 32,
+    "selectedRevisionFenceCases": 1,
+    "mainItemCases": 39,
+    "mainItemFailures": 0,
+    "feedIdRequests": {
+      "main": 3,
+      "branch": 0
+    },
+    "builds": "pass",
+    "typechecks": "pass",
+    "lintChangedSource": "no errors"
+  },
+  "migrationsRun": [],
+  "independentReads": "still required on all changed heads before an order",
+  "productionScope": "test-account2 About/Profile, Home scrolling/network and existing thumb state observations; no feedback/meal/upload edits"
+}

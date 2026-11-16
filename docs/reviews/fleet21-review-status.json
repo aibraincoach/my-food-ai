@@ -149,5 +149,32 @@
     "evidenceScope": "fresh exact-head PPLX capture and source triage; production checks remain pending",
     "capture": "docs/reviews/mfa-pplx-pr915-90819a1.md",
     "triage": "docs/reviews/mfa-pplx-pr915-90819a1-triage.md"
+  },
+  {
+    "pr": 911,
+    "reviewedHead": "a151ef033c670613ccabbeb8fd6b39fc4e17b662",
+    "blockingFindings": 0,
+    "nonblockingObservations": 2,
+    "evidenceScope": "Fresh PPLX source capture and correcting-coder triage; independent evaluation and merge order still required",
+    "capture": "docs/reviews/mfa-pplx-pr911-a151ef0.md",
+    "triage": "docs/reviews/mfa-pplx-pr911-a151ef0-triage.md"
+  },
+  {
+    "pr": 914,
+    "reviewedHead": "6380874b77387ddee9d6feac59d7a5ed4775afdd",
+    "blockingFindings": 0,
+    "nonblockingObservations": 2,
+    "evidenceScope": "Fresh PPLX source capture and correcting-coder triage; independent evaluation and merge order still required",
+    "capture": "docs/reviews/mfa-pplx-pr914-6380874.md",
+    "triage": "docs/reviews/mfa-pplx-pr914-6380874-triage.md"
+  },
+  {
+    "pr": 916,
+    "reviewedHead": "5738da3a01c3c34cc06c7c285caeaef8ed8c4b55",
+    "blockingFindings": 0,
+    "nonblockingObservations": 1,
+    "evidenceScope": "Fresh PPLX source capture and correcting-coder triage; independent evaluation and merge order still required",
+    "capture": "docs/reviews/mfa-pplx-pr916-5738da3.md",
+    "triage": "docs/reviews/mfa-pplx-pr916-5738da3-triage.md"
   }
 ]

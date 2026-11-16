@@ -1,0 +1,16 @@
+TAP version 13
+# Subtest: discovery leaves older off-page meals in pagination while finding new back-dated meals
+ok 1 - discovery leaves older off-page meals in pagination while finding new back-dated meals
+  ---
+  duration_ms: 326.8907
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1486.723921

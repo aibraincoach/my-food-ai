@@ -1,0 +1,246 @@
+TAP version 13
+# Subtest: a first decision with no base food sends the bare item name to the closest-record search
+ok 1 - a first decision with no base food sends the bare item name to the closest-record search
+  ---
+  duration_ms: 34.597723
+  type: 'test'
+  ...
+# Model trace could not be stored.
+# Model trace could not be stored.
+# Subtest: a rotation-6 label photo is read upright and cropped at the label
+ok 2 - a rotation-6 label photo is read upright and cropped at the label
+  ---
+  duration_ms: 606.273459
+  type: 'test'
+  ...
+# Subtest: avatar media route rejects invalid ids, signed-out requests and mismatched profile media
+ok 3 - avatar media route rejects invalid ids, signed-out requests and mismatched profile media
+  ---
+  duration_ms: 46.915624
+  type: 'test'
+  ...
+# Subtest: avatar media route serves private cached webp for the owner
+ok 4 - avatar media route serves private cached webp for the owner
+  ---
+  duration_ms: 24.044088
+  type: 'test'
+  ...
+# Subtest: profile avatar HTTP keeps session scope and blocks cross-account writes
+ok 5 - profile avatar HTTP keeps session scope and blocks cross-account writes
+  ---
+  duration_ms: 1836.579355
+  type: 'test'
+  ...
+# Subtest: PostCard: an unfinished meal's save waits for ready, a failed meal's save is refused, a ready meal saves
+ok 6 - PostCard: an unfinished meal's save waits for ready, a failed meal's save is refused, a ready meal saves
+  ---
+  duration_ms: 739.049795
+  type: 'test'
+  ...
+# Subtest: PostDetailHeader: an unfinished meal's save waits for ready, a failed meal's save is refused, a ready meal saves
+ok 7 - PostDetailHeader: an unfinished meal's save waits for ready, a failed meal's save is refused, a ready meal saves
+  ---
+  duration_ms: 146.468186
+  type: 'test'
+  ...
+# Subtest: OutlineOverlay: an unfinished meal's save waits for ready, a failed meal's save is refused, a ready meal saves
+ok 8 - OutlineOverlay: an unfinished meal's save waits for ready, a failed meal's save is refused, a ready meal saves
+  ---
+  duration_ms: 315.005354
+  type: 'test'
+  ...
+# Subtest: PostDetail: an unfinished meal's save waits for ready, a failed meal's save is refused, a ready meal saves
+ok 9 - PostDetail: an unfinished meal's save waits for ready, a failed meal's save is refused, a ready meal saves
+  ---
+  duration_ms: 382.650813
+  type: 'test'
+  ...
+# Subtest: an already-saved processing meal can still be unsaved from actions or menus
+ok 10 - an already-saved processing meal can still be unsaved from actions or menus
+  ---
+  duration_ms: 182.553736
+  type: 'test'
+  ...
+# Subtest: a saved meal whose analysis failed is unsaved, not refused or marked failed
+ok 11 - a saved meal whose analysis failed is unsaved, not refused or marked failed
+  ---
+  duration_ms: 39.297605
+  type: 'test'
+  ...
+# Subtest: standalone actions with no known status hold the save until the meal is ready
+ok 12 - standalone actions with no known status hold the save until the meal is ready
+  ---
+  duration_ms: 19.860521
+  type: 'test'
+  ...
+# Subtest: posting before PUT completion waits; three failures never publish; online retries safely
+ok 13 - posting before PUT completion waits; three failures never publish; online retries safely
+  ---
+  duration_ms: 59.546723
+  type: 'test'
+  ...
+# Subtest: a reload restores the persisted photo and failed draft, then explicit retry can publish
+ok 14 - a reload restores the persisted photo and failed draft, then explicit retry can publish
+  ---
+  duration_ms: 13.816369
+  type: 'test'
+  ...
+# Subtest: another signed-in owner cannot restore the first owner's photos
+ok 15 - another signed-in owner cannot restore the first owner's photos
+  ---
+  duration_ms: 3.028696
+  type: 'test'
+  ...
+# Subtest: deleting a draft waits for a pending checkpoint so it cannot reappear after reload
+ok 16 - deleting a draft waits for a pending checkpoint so it cannot reappear after reload
+  ---
+  duration_ms: 24.723721
+  type: 'test'
+  ...
+# Subtest: an old ambiguous publication retries the same reservation instead of duplicating the meal
+ok 17 - an old ambiguous publication retries the same reservation instead of duplicating the meal
+  ---
+  duration_ms: 20.397157
+  type: 'test'
+  ...
+# Subtest: a checkpoint for fewer photos cannot silently omit a selected photo after reload
+ok 18 - a checkpoint for fewer photos cannot silently omit a selected photo after reload
+  ---
+  duration_ms: 42.41022
+  type: 'test'
+  ...
+# Subtest: caption edits during a PUT do not restart staging and publication uses the latest text
+ok 19 - caption edits during a PUT do not restart staging and publication uses the latest text
+  ---
+  duration_ms: 15.865993
+  type: 'test'
+  ...
+# Subtest: changing the photo manifest during staging starts one fresh pass after the previous pass settles
+ok 20 - changing the photo manifest during staging starts one fresh pass after the previous pass settles
+  ---
+  duration_ms: 17.374261
+  type: 'test'
+  ...
+# Subtest: two-shot reservation refuses publication with only one stored object (22023)
+ok 21 - two-shot reservation refuses publication with only one stored object (22023)
+  ---
+  duration_ms: 1016.636049
+  type: 'test'
+  ...
+# Subtest: posting acknowledges a delayed durable flag while the upload runs
+ok 22 - posting acknowledges a delayed durable flag while the upload runs
+  ---
+  duration_ms: 60.827072
+  type: 'test'
+  ...
+# Subtest: publish intent survives a slow draft write and still publishes after reload
+ok 23 - publish intent survives a slow draft write and still publishes after reload
+  ---
+  duration_ms: 1.645027
+  type: 'test'
+  ...
+# Subtest: a draft save delayed beyond 700 ms still acknowledges Post within 1 second and publishes after a rebuild from saved data
+ok 24 - a draft save delayed beyond 700 ms still acknowledges Post within 1 second and publishes after a rebuild from saved data
+  ---
+  duration_ms: 5.882873
+  type: 'test'
+  ...
+# Subtest: posting reports a rejected durable flag without stopping the upload
+ok 25 - posting reports a rejected durable flag without stopping the upload
+  ---
+  duration_ms: 1.065591
+  type: 'test'
+  ...
+# Subtest: retrying after a completed background post reuses its operation without publishing twice
+ok 26 - retrying after a completed background post reuses its operation without publishing twice
+  ---
+  duration_ms: 2.228302
+  type: 'test'
+  ...
+# Subtest: an uninitialized post waits for its owner-bound checkpoint and can recover after reload
+ok 27 - an uninitialized post waits for its owner-bound checkpoint and can recover after reload
+  ---
+  duration_ms: 5.183319
+  type: 'test'
+  ...
+# Subtest: a post checkpoint cannot acknowledge an entry deleted or switched to another account while writing
+ok 28 - a post checkpoint cannot acknowledge an entry deleted or switched to another account while writing
+  ---
+  duration_ms: 12.982496
+  type: 'test'
+  ...
+# Subtest: a late authentication response cannot revive an operation after its manager was cleared
+ok 29 - a late authentication response cannot revive an operation after its manager was cleared
+  ---
+  duration_ms: 2.132262
+  type: 'test'
+  ...
+# Subtest: an attachment is durable before the sheet may close, then uploads and attaches in the background
+ok 30 - an attachment is durable before the sheet may close, then uploads and attaches in the background
+  ---
+  duration_ms: 16.831705
+  type: 'test'
+  ...
+# Subtest: two overlapping attachment entries keep distinct operation ids
+ok 31 - two overlapping attachment entries keep distinct operation ids
+  ---
+  duration_ms: 0.619275
+  type: 'test'
+  ...
+# Subtest: a lost photo write after publish intent leaves retake state on reload
+ok 32 - a lost photo write after publish intent leaves retake state on reload
+  ---
+  duration_ms: 3.326413
+  type: 'test'
+  ...
+# Subtest: online and explicit retry skip photo-lost attachments without network work
+ok 33 - online and explicit retry skip photo-lost attachments without network work
+  ---
+  duration_ms: 0.526916
+  type: 'test'
+  ...
+# Subtest: a failed attachment keeps the photo and retries from the chip
+ok 34 - a failed attachment keeps the photo and retries from the chip
+  ---
+  duration_ms: 31.442107
+  type: 'test'
+  ...
+# Subtest: an attachment is not a feed card
+ok 35 - an attachment is not a feed card
+  ---
+  duration_ms: 15.311437
+  type: 'test'
+  ...
+# Subtest: reloading a failed attachment reuses its durable stage after an ambiguous response
+ok 36 - reloading a failed attachment reuses its durable stage after an ambiguous response
+  ---
+  duration_ms: 31.829385
+  type: 'test'
+  ...
+# Subtest: a rejected publish intent leaves only the sheet owning a retry
+ok 37 - a rejected publish intent leaves only the sheet owning a retry
+  ---
+  duration_ms: 13.918209
+  type: 'test'
+  ...
+# Subtest: a persisted expired stage is reconciled before renewal and its kept photo uploads after reload
+ok 38 - a persisted expired stage is reconciled before renewal and its kept photo uploads after reload
+  ---
+  duration_ms: 17.086863
+  type: 'test'
+  ...
+# Subtest: an old committed attachment with a lost response is not renewed merely because time passed
+ok 39 - an old committed attachment with a lost response is not renewed merely because time passed
+  ---
+  duration_ms: 7.721138
+  type: 'test'
+  ...
+1..39
+# tests 39
+# suites 0
+# pass 39
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 5743.551392
