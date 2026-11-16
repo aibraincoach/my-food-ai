@@ -1,7 +1,7 @@
 // node --import tsx --test tests/days-summary.test.mjs
 import assert from "node:assert/strict";
 import test from "node:test";
-import { getLoggedDates, getDays, getMonthSummary, LOGGED_STATUSES } from "../src/lib/posts/days.ts";
+import { getLoggedDates, getDays, getMonthSummary, LOGGED_STATUSES, countsAsPost } from "../src/lib/posts/days.ts";
 
 // Records every table read; rows come back for posts only.
 function fakeClient(rows) {
@@ -58,4 +58,18 @@ test('an earlier unfinished meal does not add unknown nutrition to a fully known
   const [day]=await getDays(db,'u','America/Edmonton','2026-10-31','2026-10-31');
   assert.equal(day.posts.length,1);assert.equal(day.pending,1);assert.equal(day.totals.calories,100);assert.deepEqual(unavailableFoods(day.totals),[]);
  }
+});
+
+test('the calendar cell and the day summary count the same posts for every logged status', async () => {
+ const {createClient}=await import('@supabase/supabase-js');
+ const nutrition={calories:100,protein_g:5,carbs_g:10,fat_g:4,fibre_g:0,sugar_g:0,sodium_mg:0,micronutrients:[]};
+ const rows=LOGGED_STATUSES.flatMap((status,index)=>[0,1].map(copy=>({id:`${status}-${copy}`,status,caption:'Rice',eaten_at:`2026-10-31T1${index}:0${copy}:00Z`,post_media:[],current_post_items:status==='ready'?[{id:`i${copy}`,name:'Rice',portion_grams:100,item_nutrition:[nutrition]}]:[]})));
+ const db=createClient('https://fixture.invalid','fixture',{global:{fetch:async input=>Response.json(new URL(input instanceof Request?input.url:String(input)).pathname.endsWith('/posts')?rows:[])}});
+ const cell=(await getMonthSummary(db,'u','UTC','2026-10')).days.find(day=>day.day==='2026-10-31');
+ const [day]=await getDays(db,'u','UTC','2026-10-31','2026-10-31');
+ assert.equal(cell.posts,2);assert.equal(cell.posts,day.posts.length);
+ assert.equal(cell.pending,6);assert.equal(cell.pending,day.pending);
+ assert.equal(cell.kcal,day.totals.calories);
+ assert.equal(countsAsPost('ready'),true);
+ for(const status of ['queued','processing','needs_input','failed'])assert.equal(countsAsPost(status),false);
 });

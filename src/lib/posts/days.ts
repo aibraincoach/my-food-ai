@@ -56,7 +56,7 @@ export async function getDays(supabase: SupabaseClient, userId: string, zone: st
     for (const row of data ?? []) {
       const date = dateInZone(row.eaten_at, zone);
       if (date < from || date > through) continue;
-      if (row.status !== "ready") { const day = groups.get(date); if (day) day.pending++; else groups.set(date, { date, posts: [], totals: sumNutrition([]), intake: emptyIntake(), pending: 1 }); continue; }
+      if (!countsAsPost(row.status)) { const day = groups.get(date); if (day) day.pending++; else groups.set(date, { date, posts: [], totals: sumNutrition([]), intake: emptyIntake(), pending: 1 }); continue; }
       // Use the shared current-item mapper, including unknown nutrition and
       // consumed-portion normalization; retain every item field and its order.
       const items = mapCurrentItems((row.current_post_items ?? []).map(({created_at: _created, ...item}) => {
@@ -116,6 +116,9 @@ export async function getDays(supabase: SupabaseClient, userId: string, zone: st
 // A day is logged as soon as a meal was posted for it, even while it is still being analysed or waiting for a reply
 // (only a failed meal does not count); the story and totals still show ready meals only.
 export const LOGGED_STATUSES = ["ready", "queued", "processing", "needs_input"];
+// The one counting rule for Days: a ready meal is a post; every other logged meal is "not finished".
+// The calendar cell (getMonthSummary) and the day summary (getDays) both use it.
+export function countsAsPost(status: string): boolean { return status === "ready"; }
 
 // Home's bubbles only need which local days have a logged meal: no items,
 // nutrition or photos, so an optional read cannot hide the strip.
@@ -235,8 +238,8 @@ export async function getMonthSummary(supabase: SupabaseClient, userId: string, 
       const date = dateInZone(row.eaten_at, zone);
       if (date < from || date > through) continue;
       const day = groups.get(date) ?? { day: date, kcal: 0, posts: 0, pending: 0, ready: false, missing:[],known:0 };
-      if (row.status === "ready") day.posts++; else day.pending++;
-      if (row.status === "ready") {
+      if (countsAsPost(row.status)) day.posts++; else day.pending++;
+      if (countsAsPost(row.status)) {
         day.ready = true;
         for (const item of row.current_post_items ?? []) {
           const stored = Array.isArray(item.item_nutrition) ? item.item_nutrition[0] : item.item_nutrition;
