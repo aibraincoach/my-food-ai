@@ -64,6 +64,7 @@ export default function Feed({initialPage, initialUserId, initialZone = "UTC", f
   const attachmentUploads=allUploads.filter(upload=>upload.attachment);
   const sentinel = useRef<HTMLDivElement>(null);
   const loadMore = useRef<() => void>(()=>{});
+  const kept = useRef<{userId: string | null; posts: FeedPost[]; cursor: string | null}>({userId: null, posts: [], cursor: null});
   const [state, setState] = useState<State>(initialPage ? {kind: "ready", posts: initialPage.posts, days: initialPage.days} : { kind: "loading" });
   const [pageError, setPageError] = useState(false);
 
@@ -100,11 +101,18 @@ export default function Feed({initialPage, initialUserId, initialZone = "UTC", f
     let releaseCacheOwner: (()=>void) | undefined;
     if (userId) {claimedUser=userId;releaseCacheOwner=claimFeedCacheEvents(userId);}
     let discovering = false;
-    let baseline: FeedPost[] = initialPage?.posts ?? [];
+    // A re-rendered server page or a revalidation carries only the newest rows; keep the older rows already loaded below it (#688).
+    const withOlder = (owner: string | null, page: {posts: FeedPost[]; nextCursor: string | null}) => {
+      const last = page.posts.at(-1), prior = kept.current;
+      const tail = last && page.nextCursor && owner && prior.userId === owner ? prior.posts.filter(post => post.eaten_at < last.eaten_at || (post.eaten_at === last.eaten_at && post.id < last.id)) : [];
+      return tail.length ? {posts: [...page.posts, ...tail], nextCursor: prior.cursor} : {posts: page.posts, nextCursor: page.nextCursor};
+    };
+    const seeded = initialPage ? withOlder(initialUserId ?? null, initialPage) : null;
+    let baseline: FeedPost[] = seeded?.posts ?? [];
     let loaded = Boolean(initialPage);
     let usedServerPage = false;
     let initialLoading = true;
-    let cursor: string | null = initialPage?.nextCursor ?? null;
+    let cursor: string | null = seeded?.nextCursor ?? null;
     let loadingMore = false;
     let generation = 0;
     let hasFreshPage = false;
@@ -127,6 +135,7 @@ export default function Feed({initialPage, initialUserId, initialZone = "UTC", f
     window.addEventListener("feed-day-totals-request",reportTotals);
     const publish = () => {
       if (!live) return;
+      if (loaded) kept.current = {userId, posts: baseline, cursor};
       // A late initial load must not erase cards received while it was in flight.
       const promoted = newest.flatMap((id) => cards.has(id) ? [cards.get(id)!] : []);
       const posts = mergeFeedPosts(baseline, promoted).filter(post=>!unavailable.has(post.id)&&post.status!=="needs_input"&&(!answered.has(post.id)||post.status==="ready"||post.status==="failed"));
@@ -317,10 +326,11 @@ export default function Feed({initialPage, initialUserId, initialZone = "UTC", f
             refreshTotals(dayTotalRefreshDates(previous, post, zone, new Set(dayTotals.keys()), false, totalReceipts()));
           }
         }
-        baseline = page.posts.filter(post=>!unavailable.has(post.id)).map(post=>retainCompleteItems(baseline.find(prior=>prior.id===post.id),post));
+        const merged = withOlder(userId, page);
+        baseline = merged.posts.filter(post=>!unavailable.has(post.id)).map(post=>retainCompleteItems(baseline.find(prior=>prior.id===post.id),post));
         if(discoveryKnown===null&&page.discoveryIds)discoveryKnown=new Set(page.discoveryIds);
         hasFreshPage = true; setFreshResponse(true);
-        cursor = page.nextCursor;
+        cursor = merged.nextCursor;
         loaded = true;
         publish();
         for (const post of baseline) if (hasUnavailableFields(post)) requestCard(post.id);
