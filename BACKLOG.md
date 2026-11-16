@@ -1,6 +1,6 @@
 # My Food AI — Backlog†
 
-Last edited: Tuesday 2026-11-17 at 00:03 WIB (UTC+07:00) by Claude, PM
+Last edited: Tuesday 2026-11-17 at 00:42 WIB (UTC+07:00) by Claude, PM
 
 The only job of the PM is to maintain this backlog and keep it completely up to date. Failing to do so is immediately terminable.
 
@@ -449,18 +449,6 @@ The owner's own leftovers posts are the data; he will not run more tests. A capa
 The owner has logged food daily for days, his diet changed, and he reports that a lot of what the app shows is wrong. Nobody has measured how wrong or where the error comes from.
 
 Known cases: the macaroni snack shows 38 kcal and 0 g fat from a cooked vegetable macaroni record (#523), squid matched to a tuna sushi record (#617), a consumed number from a half-eaten plate that nobody confirmed (#285), and 12 of the owner's 137 posts show a 0 g macro that nobody judged. A capable coder investigates read-only: pull the owner's ready posts, check each food's weight and kcal against its USDA record and the photo, and record for each wrong number which step caused it (the food identified, the record matched, the weight estimated or the stored value). Done when a written finding lists every one of the owner's posts whose numbers are wrong with its cause, ranks the causes by how many posts each one explains, and each cause is on the backlog as its own item.
-
-### #294 The app's words read naturally everywhere
-
-The leftovers label reads awkwardly, and nobody has reviewed the words in the rest of the app.
-
-The terms to review: the label "leftovers (not eaten)", the line "Drank in this meal" on a meal's second slide (the owner said it sounds off), "Consumed", "Log again", "Saved meals", "Additional food", the clarification question and the Days names. List each term, where it appears and a better wording, with AGY as a second opinion. Every rule stays: use the past tense for consumed, show no target, goal, ring or percentage, and never use "left" for a remaining amount. GitHub shows this issue closed. Done when the list is reviewed, the owner has ruled on each term, and the wording is changed everywhere it appears.
-
-### #949 The database keeps an unused today_summary function
-
-The app no longer calls the today_summary database function, but it and its test remain.
-
-It needs a migration, so it waits for a fleet that has one. Done when a migration removes the function and its test, and Home still shows today's totals.
 
 ## Interdit (Not part of Hackathon)
 
