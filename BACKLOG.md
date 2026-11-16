@@ -32,13 +32,13 @@ Nobody has measured how rigorous our review, merge and proof process is against 
 
 Take the owner's most recently active repositories and compare them with this one, practice by practice: how a change is reviewed, who may merge and on what evidence, how proof that a change works is recorded, and what happens when a merge goes wrong. Observe first: list those repositories and write down each practice as it stands. Done when a written comparison lists each practice in those repositories next to ours, and each improvement worth making is its own item.
 
-### #TBD The Perplexity review route breaks whenever the website or the model behind it changes
+### #929 The Perplexity review route breaks whenever the website or the model behind it changes
 
 Reviews of pull requests run through Perplexity's website, and both the page and the model behind it change without notice. A review then fails, comes back invalid or is judged on the wrong model, and the pull request waits with no review on its head. The owner's view on Nov 16 is that the route is built as if neither one ever changes.
 
 The repository holds receipts for failed or invalid runs, such as docs/reviews/mfa-pplx-pr310-2d4142b-invalid-model.md, mfa-pplx-pr311-e7ece5c-invalid-input.md and mfa-pplx-pr312-9e5877b-invalid-model.md, and the Wall of Stupid entry of 2026-11-03 08:24 WIB records a run judged on the wrong model. Related: #699. Observe first: the coder lists every way a review is run today, every failure on record with its cause (page change, model change, input or quota) and which step of the route each one broke. Done when a written finding lists those, and a review route is in place that finishes with a result whichever model Perplexity offers that day and records the model each run used, or the owner has ruled on a different route.
 
-### #TBD Two time-format tests pass or fail with the machine's language setting, so the baseline of failing tests is wrong
+### #930 Two time-format tests pass or fail with the machine's language setting, so the baseline of failing tests is wrong
 
 The test suite on main has failures that depend on the computer running it and not on the code, so no one can say how many tests really fail.
 
@@ -86,7 +86,7 @@ The PM contract and the Wall of Stupid tell the PM that the backlog has no "In f
 
 The clause sits in the PM contract under "Shared evidence and backlog" ("It has no status table or 'in flight' section") and in docs/pm-contract.md. It comes from the Wall entry of 2026-11-03 07:08 WIB, where a status table listed merged pull requests as in flight, and the entry of 2026-11-03 23:17 WIB, where finished items sat under "In Flight". The failure in both was finished items left on the list. The remedy was never to ban the section. The In flight section holds the items a dispatch has sent to the coder that have not merged, and an item leaves the list when its work is merged. The contract must keep the ban on status tables and on finished items sitting in any section. Done when docs/pm-contract.md and the PM contract in the Project both describe an In flight section, second to last, that holds only dispatched, unmerged items; both say a finished item leaves the backlog when its work is merged; and no sentence in either says the backlog has no In flight section.
 
-### #TBD A GET to the tick route can take the worker lease and start a drain
+### #931 A GET to the tick route can take the worker lease and start a drain
 
 The tick route is meant to answer three numbers (queued, running and traffic) and change nothing, and #322 was written on that premise. A GET to it can acquire a worker lease and schedule a drain.
 
