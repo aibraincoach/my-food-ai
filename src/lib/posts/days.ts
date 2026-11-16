@@ -1,3 +1,4 @@
+import {localDateStart} from '@/lib/search/dates';
 import {visibleDrinkRows} from '@/lib/intake/hydration';
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { groupIntakeByDay, emptyIntake, type IntakeRow, type IntakeTotals } from "@/lib/intake/intake";
@@ -38,10 +39,10 @@ export function validDate(date: string): boolean {
 // Session-client reads keep both post and current-item RLS in force.
 export async function getDays(supabase: SupabaseClient, userId: string, zone: string, from: string, through: string): Promise<LoggedDay[]> {
   const groups = new Map<string, LoggedDay>();
-  // Wide UTC bounds include every local day even at UTC-12/UTC+14; the exact
-  // local date check below removes the padding without DST assumptions.
-  const lower = `${shiftDay(from, -1)}T00:00:00Z`;
-  const upper = `${shiftDay(through, 2)}T00:00:00Z`;
+  // Exact local-day boundaries share Search's DST-aware conversion. Today's
+  // meals must not overlap the preceding-day nutrition query.
+  const lower = localDateStart(from, zone);
+  const upper = localDateStart(shiftDay(through, 1), zone);
   const photos: {post: DayPost; path: string}[] = [];
   for (let offset = 0; ; offset += 100) {
     const { data, error } = await supabase.from("posts")
@@ -120,8 +121,8 @@ export const LOGGED_STATUSES = ["ready", "queued", "processing", "needs_input"];
 // nutrition or photos, so an optional read cannot hide the strip.
 export async function getLoggedDates(supabase: SupabaseClient, userId: string, zone: string, from: string, through: string): Promise<{ date: string }[]> {
   const dates = new Set<string>();
-  const lower = `${shiftDay(from, -1)}T00:00:00Z`;
-  const upper = `${shiftDay(through, 2)}T00:00:00Z`;
+  const lower = localDateStart(from, zone);
+  const upper = localDateStart(shiftDay(through, 1), zone);
   for (let offset = 0; ; offset += 100) {
     const { data, error } = await supabase.from("posts").select("id,eaten_at").is("deleted_at", null)
       .eq("user_id", userId).in("status", LOGGED_STATUSES).gte("eaten_at", lower).lt("eaten_at", upper)
@@ -177,8 +178,8 @@ export async function getDayTotals(db: SupabaseClient, userId: string, zone: str
     else windows.push({from: day, through: day});
   }
   for (const window of windows) {
-  const lower = `${shiftDay(window.from, -1)}T00:00:00Z`;
-  const upper = `${shiftDay(window.through, 2)}T00:00:00Z`;
+  const lower = localDateStart(window.from, zone);
+  const upper = localDateStart(shiftDay(window.through, 1), zone);
   for (let offset = 0; ; offset += 1000) {
     const { data, error } = await db.from('posts')
       .select('id,eaten_at,current_post_items(name,portion_grams,item_nutrition(post_item_id,calories,protein_g,carbs_g,fat_g,fibre_g,sugar_g,sodium_mg,micronutrients,source_ref))').is("deleted_at", null)
