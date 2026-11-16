@@ -4,104 +4,150 @@
     "reviewedHead": "b0f1037a6947104f97d7cc2da803af9d3b3a01bb",
     "realFindings": 0,
     "triage": "docs/reviews/mfa-pplx-pr909-b0f1037-triage.md",
-    "capture": "docs/reviews/mfa-pplx-pr909-b0f1037.md"
+    "capture": "docs/reviews/mfa-pplx-pr909-b0f1037.md",
+    "evidenceScope": "historical exact-head capture and builder source triage; not current-head certification"
   },
   {
     "pr": 910,
     "reviewedHead": "a23b73bf319e8a61cdb2a0f36aadd23bc0c49d63",
     "realFindings": 0,
     "triage": "docs/reviews/mfa-pplx-pr910-a23b73b-triage.md",
-    "capture": "docs/reviews/mfa-pplx-pr910-a23b73b.md"
+    "capture": "docs/reviews/mfa-pplx-pr910-a23b73b.md",
+    "evidenceScope": "historical exact-head capture and builder source triage; not current-head certification"
   },
   {
     "pr": 911,
     "reviewedHead": "8b5d99e941273e4f3e439f4480cd097dc8583bf6",
     "realFindings": 0,
     "triage": "docs/reviews/mfa-pplx-pr911-8b5d99e-triage.md",
-    "capture": "docs/reviews/mfa-pplx-pr911-8b5d99e.md"
+    "capture": "docs/reviews/mfa-pplx-pr911-8b5d99e.md",
+    "evidenceScope": "historical exact-head capture and builder source triage; not current-head certification",
+    "status": "superseded by remediation; fresh exact-head review required"
   },
   {
     "pr": 912,
     "reviewedHead": "e403e35c7674ae610ee725ca0d03844e0ab00901",
     "realFindings": 0,
     "triage": "docs/reviews/mfa-pplx-pr912-e403e35-triage.md",
-    "capture": "docs/reviews/mfa-pplx-pr912-e403e35.md"
+    "capture": "docs/reviews/mfa-pplx-pr912-e403e35.md",
+    "evidenceScope": "historical exact-head capture and builder source triage; not current-head certification",
+    "status": "superseded by remediation; fresh exact-head review required"
   },
   {
     "pr": 913,
     "reviewedHead": "c34f31826af004165ca0a3c8157ebb94679505c8",
     "realFindings": 0,
     "triage": "docs/reviews/mfa-pplx-pr913-c34f318-triage.md",
-    "capture": "docs/reviews/mfa-pplx-pr913-c34f318.md"
+    "capture": "docs/reviews/mfa-pplx-pr913-c34f318.md",
+    "evidenceScope": "historical exact-head capture and builder source triage; not current-head certification"
   },
   {
     "pr": 914,
     "reviewedHead": "319797d4797c7db8ed046c9a4c6ffc8459d5dc0b",
     "realFindings": 0,
     "triage": "docs/reviews/mfa-pplx-pr914-319797d-triage.md",
-    "capture": "docs/reviews/mfa-pplx-pr914-319797d.md"
+    "capture": "docs/reviews/mfa-pplx-pr914-319797d.md",
+    "evidenceScope": "historical exact-head capture and builder source triage; not current-head certification"
   },
   {
     "pr": 915,
     "reviewedHead": "5d1896c1af122b32de0914a4f3629ee539844339",
     "realFindings": 0,
     "triage": "docs/reviews/mfa-pplx-pr915-5d1896c-triage.md",
-    "capture": "docs/reviews/mfa-pplx-pr915-5d1896c.md"
+    "capture": "docs/reviews/mfa-pplx-pr915-5d1896c.md",
+    "evidenceScope": "historical exact-head capture and builder source triage; not current-head certification",
+    "status": "superseded by remediation; fresh exact-head review required"
   },
   {
     "pr": 916,
     "reviewedHead": "eadbdc83a9206ef8559a0ac33fbd911c49881862",
     "realFindings": 0,
     "triage": "docs/reviews/mfa-pplx-pr916-eadbdc8-triage.md",
-    "capture": "docs/reviews/mfa-pplx-pr916-eadbdc8.md"
+    "capture": "docs/reviews/mfa-pplx-pr916-eadbdc8.md",
+    "evidenceScope": "historical exact-head capture and builder source triage; not current-head certification"
   },
   {
     "pr": 917,
     "reviewedHead": "022f1e55da6cd0b58e35aa77a0b98200d747c4f7",
     "realFindings": 0,
     "triage": "docs/reviews/mfa-pplx-pr917-022f1e5-triage.md",
-    "capture": "docs/reviews/mfa-pplx-pr917-022f1e5.md"
+    "capture": "docs/reviews/mfa-pplx-pr917-022f1e5.md",
+    "evidenceScope": "historical exact-head capture and builder source triage; not current-head certification"
   },
   {
     "pr": 918,
     "reviewedHead": "58b02b13dc0f954d8f058c8a64299f605e53a578",
     "realFindings": 0,
     "triage": "docs/reviews/mfa-pplx-pr918-58b02b1-triage.md",
-    "capture": "docs/reviews/mfa-pplx-pr918-58b02b1.md"
+    "capture": "docs/reviews/mfa-pplx-pr918-58b02b1.md",
+    "evidenceScope": "historical exact-head capture and builder source triage; not current-head certification"
   },
   {
     "pr": 919,
     "reviewedHead": "a4cf9ee8ad7505c5333a8bf6873693261bead42d",
     "realFindings": 0,
     "triage": "docs/reviews/mfa-pplx-pr919-a4cf9ee-triage.md",
-    "capture": "docs/reviews/mfa-pplx-pr919-a4cf9ee.md"
+    "capture": "docs/reviews/mfa-pplx-pr919-a4cf9ee.md",
+    "evidenceScope": "historical exact-head capture and builder source triage; not current-head certification"
   },
   {
     "pr": 920,
     "reviewedHead": "0a574a4604ff296fb1254e52e34d1fbc68f32e46",
     "realFindings": 0,
     "triage": "docs/reviews/mfa-pplx-pr920-0a574a4-triage.md",
-    "capture": "docs/reviews/mfa-pplx-pr920-0a574a4.md"
+    "capture": "docs/reviews/mfa-pplx-pr920-0a574a4.md",
+    "evidenceScope": "historical exact-head capture and builder source triage; not current-head certification"
   },
   {
     "pr": 921,
     "reviewedHead": "0ea7acbddbc199137b2563abeec85a5d5b86070e",
     "realFindings": 0,
     "triage": "docs/reviews/mfa-pplx-pr921-0ea7acb-triage.md",
-    "capture": "docs/reviews/mfa-pplx-pr921-0ea7acb.md"
+    "capture": "docs/reviews/mfa-pplx-pr921-0ea7acb.md",
+    "evidenceScope": "historical exact-head capture and builder source triage; not current-head certification"
   },
   {
     "pr": 922,
     "reviewedHead": "d81ac4edfc9c902ba401c1cb99c892285e3e2652",
     "realFindings": 0,
     "triage": "docs/reviews/mfa-pplx-pr922-d81ac4e-triage.md",
-    "capture": "docs/reviews/mfa-pplx-pr922-d81ac4e.md"
+    "capture": "docs/reviews/mfa-pplx-pr922-d81ac4e.md",
+    "evidenceScope": "historical exact-head capture and builder source triage; not current-head certification",
+    "status": "historical docs head; separate bca0a1c receipt preserved; neither covers subsequent edits"
   },
   {
     "pr": 923,
     "reviewedHead": "03c0c909e499f876eea3829ddf34308e25932ad6",
     "realFindings": 0,
     "triage": "docs/reviews/mfa-pplx-pr923-03c0c90-triage.md",
-    "capture": "docs/reviews/mfa-pplx-pr923-03c0c90.md"
+    "capture": "docs/reviews/mfa-pplx-pr923-03c0c90.md",
+    "evidenceScope": "historical exact-head capture and builder source triage; not current-head certification"
+  },
+  {
+    "pr": 911,
+    "reviewedHead": "16348f08d970266777f4cc3d0f5127716d065037",
+    "blockingFindings": 0,
+    "nonblockingObservations": 3,
+    "evidenceScope": "fresh exact-head PPLX capture and source triage; production checks remain pending",
+    "capture": "docs/reviews/mfa-pplx-pr911-16348f0.md",
+    "triage": "docs/reviews/mfa-pplx-pr911-16348f0-triage.md"
+  },
+  {
+    "pr": 912,
+    "reviewedHead": "50ea5f705075741b04c605b23fb7d4306dc3bfab",
+    "blockingFindings": 0,
+    "nonblockingObservations": 3,
+    "evidenceScope": "fresh exact-head PPLX capture and source triage; production checks remain pending",
+    "capture": "docs/reviews/mfa-pplx-pr912-50ea5f7.md",
+    "triage": "docs/reviews/mfa-pplx-pr912-50ea5f7-triage.md"
+  },
+  {
+    "pr": 915,
+    "reviewedHead": "90819a1fd24f5b92673eb9a9126184783b99002b",
+    "blockingFindings": 0,
+    "nonblockingObservations": 0,
+    "evidenceScope": "fresh exact-head PPLX capture and source triage; production checks remain pending",
+    "capture": "docs/reviews/mfa-pplx-pr915-90819a1.md",
+    "triage": "docs/reviews/mfa-pplx-pr915-90819a1-triage.md"
   }
 ]

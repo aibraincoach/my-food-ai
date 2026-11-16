@@ -1,0 +1,101 @@
+[
+  {
+    "width": 1280,
+    "build": "local-1794791247581",
+    "chip": {
+      "x": 28,
+      "y": 308,
+      "width": 183,
+      "height": 114.25,
+      "bottom": 422.25
+    },
+    "buttons": [
+      {
+        "text": "This photo was not kept. Take it again.",
+        "rect": {
+          "x": 40,
+          "y": 337,
+          "width": 97.39999389648438,
+          "height": 50.69999694824219,
+          "bottom": 387.6999969482422
+        },
+        "hit": true
+      },
+      {
+        "text": "Remove",
+        "rect": {
+          "x": 52,
+          "y": 394.79998779296875,
+          "width": 47.96665954589844,
+          "height": 16.899993896484375,
+          "bottom": 411.6999816894531
+        },
+        "hit": true
+      },
+      {
+        "text": "View",
+        "rect": {
+          "x": 149.39999389648438,
+          "y": 343.1166687011719,
+          "width": 49.600006103515625,
+          "height": 44,
+          "bottom": 387.1166687011719
+        },
+        "hit": true
+      }
+    ]
+  },
+  {
+    "width": 390,
+    "build": "local-1794791247581",
+    "chip": {
+      "x": 24,
+      "y": 663,
+      "width": 330,
+      "height": 85,
+      "bottom": 748
+    },
+    "buttons": [
+      {
+        "text": "This photo was not kept. Take it again.",
+        "rect": {
+          "x": 36,
+          "y": 696.5499877929688,
+          "width": 225.78334045410156,
+          "height": 16.899993896484375,
+          "bottom": 713.4499816894531
+        },
+        "hit": true
+      },
+      {
+        "text": "Remove",
+        "rect": {
+          "x": 48,
+          "y": 720.5499877929688,
+          "width": 47.96665954589844,
+          "height": 16.899993896484375,
+          "bottom": 737.4499816894531
+        },
+        "hit": true
+      },
+      {
+        "text": "View",
+        "rect": {
+          "x": 292.3999938964844,
+          "y": 683.5,
+          "width": 49.600006103515625,
+          "height": 44,
+          "bottom": 727.5
+        },
+        "hit": true
+      }
+    ]
+  },
+  {
+    "gone": true,
+    "durableRemoval": {
+      "drafts": "absent",
+      "intents": "absent"
+    }
+  }
+]
