@@ -1,12 +1,22 @@
 # My Food AI — Backlog†
 
-Last edited: Monday 2026-11-16 at 16:27 WIB (UTC+07:00) by Claude, PM
-
-Needs the owner (Nov 16, 16:27 WIB): (1) The new name for the operational rules list (#908); you said the name is yours to give. (2) Docs PR #933, the Wall entry about the PM's failure: merge it? You wrote it and said it merges only on your word. (3) Was the removed designer zip "My Food AI app design (3).zip" needed? It is gone from uploads; say if it must be restored. Everything else is decided by the PM and is moving.
+Last edited: Monday 2026-11-16 at 16:38 WIB (UTC+07:00) by Claude, PM
 
 The only job of the PM is to maintain this backlog and keep it completely up to date. Failing to do so is immediately terminable.
 
 ## Backlog for GrokBot
+
+### #936 Check on production that finished meals are not re-read when Home opens
+
+After the fix for #520, a cold Home open of finished meals should not read them again. Fleet 21 first measured three extra reads, then later evidence measured none.
+
+On production, with six finished meals, a 15-second open made no /api/feed?ids= request. A local run earlier showed three reads for other seeded meals, and later source reads blamed old off-page discovery ids and measured zero on a fresh profile. The two results are not yet reconciled. Done when a cold Home open on the owner's account and on a test account makes no /api/feed?ids= request, and the earlier three reads are explained.
+
+### #938 Check on production that the desktop failed-upload chip shows its Remove button
+
+On desktop the failed-upload chip cut off its own Remove button, so a person could not discard a failed added photo.
+
+Fleet 21 recorded the failure locally and a later local repair on #912 measured the button contained and tappable. Production acceptance was not checked. The broader item #684 stays open. Done when, at 1280 wide on production, a failed added-photo upload shows its whole Remove button and tapping it removes the upload.
 
 ## Engineering backlog
 
@@ -14,7 +24,7 @@ The only job of the PM is to maintain this backlog and keep it completely up to 
 
 The Wall of Stupid holds dozens of incident rows, newest first, and the rules the agents must follow sit inside those rows. A new agent has to read the whole history to learn what gets it fired.
 
-The owner ruled on Nov 15 that the Wall of Stupid becomes two files: a short operational rules list of what gets an agent fired, and a Wall of Stupid archive that keeps the incident history. The rules list's wording is not decided. The PM contract, the planner contract, CLAUDE.md and the handover skill refer to the Wall and must name the right file. The coder alone changes the Wall, from a prompt the PM supplies. Owner, Nov 16: this item comes first on the backlog, because an agent cannot operate without a short list of the rules that get it fired. Each rule in the list names the failure it prevents, its blast radius and how it changes operations, and points to the archive entries behind it by timestamp so the archive keeps the tally of failures. Owner, Nov 16 (comment): the operational rules list is the one document he gives every PM he fires, so it is renamed, and the new name is his to give. Related: #699. Done when the repository holds an operational rules list and a Wall of Stupid archive, every standing rule in today's Wall is in one of them, each rule in the operational list names its failure, its blast radius and how it changes operations and cites its archive entries by timestamp, no incident row is lost, and the contracts, CLAUDE.md and the handover skill each name the right file, the operational rules list carries the name the owner gives it, and the handover skill gives that list, with this backlog's link, to every successor PM in every PM handover.
+The owner ruled on Nov 15 that the Wall of Stupid becomes two files: a short operational rules list of what gets an agent fired, and a Wall of Stupid archive that keeps the incident history. The rules list's wording is not decided. The PM contract, the planner contract, CLAUDE.md and the handover skill refer to the Wall and must name the right file. The coder alone changes the Wall, from a prompt the PM supplies. Owner, Nov 16: this item comes first on the backlog, because an agent cannot operate without a short list of the rules that get it fired. Each rule in the list names the failure it prevents, its blast radius and how it changes operations, and points to the archive entries behind it by timestamp so the archive keeps the tally of failures. Owner, Nov 16 (comment): the operational rules list is the one document he gives every PM he fires, so it is renamed, and the new name is pm-operational-rules.md. Related: #699. Done when the repository holds an operational rules list and a Wall of Stupid archive, every standing rule in today's Wall is in one of them, each rule in the operational list names its failure, its blast radius and how it changes operations and cites its archive entries by timestamp, no incident row is lost, and the contracts, CLAUDE.md and the handover skill each name the right file, the operational rules list carries the name the owner gives it, and the handover skill gives that list, with this backlog's link, to every successor PM in every PM handover.
 
 ### The uploads folder in the checkout is a dump of generated packages nobody asked for
 
@@ -508,6 +518,24 @@ The mic is the one place a user can speak instead of type, and it is buried: it 
 
 The owner ruled on Nov 14 that voice must be a first-class input, available wherever the user types. Checked in the code on main (96ecdcf): VoiceRecorder is mounted only in CommentComposer.tsx, and every transcription is a model call that counts against the hourly limit (#471). PM ruling: the mic sits inside the field, in the same place as the comment box mic, in the new-post caption, the drink description, the leftovers caption, search and the comment box. Done when, in a phone-sized browser on production, each of those five fields shows the mic, and a short recorded clip played into the microphone puts its words in the field. Fleet 21 independent source read, Nov 16 (investigators' report): PR 911 loses speech on submit. The field mic's activity callback is empty (VoiceButton.tsx line 8), so pressing Post while recording closes the composer and the unmount aborts the transcription. The access test stops before transcription and cannot catch it. Fleet 21, Nov 16 (PR 911): the mics are built; those in the text composer, the drink sheet, Search and the comment box were inspected. The mobile camera-caption mic was not verified and no speech clip was played. Fleet 21 independent source read of the fixed head 16348f08, Nov 16: speech lost on Post is fixed, but speech is still lost when a drink photo is being identified during a caption recording and the result is all drinks, because the composer then switches to the drink overview and the recorder's cleanup throws the unfinished speech away (ComposerDrinks.tsx line 23, LightComposer.tsx line 78, VoiceRecorder.tsx line 13). The new tests mock drink detection as inactive and never run the cleanup. Read from source, not reproduced in a browser.
 
+### #217 A smoothness audit of every screen
+
+Some controls feel dead or clunky, and nobody has measured how the app responds to touch.
+
+The thumbs in #553 are the first case found. List every tappable control on each screen at phone size. For each, record the time from the tap to a visible change, whether it shows a pressed look at once, whether it jumps or flickers while it loads, and whether it can be tapped twice. Measure in Chrome with a slowed processor, using the production sign-in from #196; the table built so far used unthrottled Firefox, so the slowed-processor condition is unmet. Done when the table lists every control with those four findings, and the slow or dead ones are fixed or filed as items.
+
+### #935 A transcription error can disappear when a detected drink changes the composer
+
+When a person speaks a caption and the photo is identified as a drink, the composer switches to the drink overview. If the transcription fails at that moment, its error message can be hidden, so the person gets neither words nor an explanation.
+
+Fleet 21's independent read of #911 found this from the source; it has not been reproduced in a browser. The switch replaces the part of the composer that shows the recorder's inline error. Done when a failed transcription after drink detection shows its error message, and a test or a browser run shows it.
+
+### #937 Opening an uploading meal's address returns repeated not-found errors
+
+While a meal is still uploading, requests for its own address are answered not found, over and over.
+
+Fleet 21 check K15 saw sixteen not-found answers from detail prefetches while two meals uploaded; both meals still reached ready. What a person sees and the cause are not known. Done when the cause is found and an uploading meal's address produces no not-found request, or the errors are shown to be harmless and why.
+
 ## Backlog for Designer
 
 ### #453 The barcode prompt is printed over the live camera picture
@@ -544,12 +572,6 @@ The designer has not read their controls yet. Add them to the table from #217 wi
 
 ## Interdit (Not part of Hackathon)
 
-### #217 A smoothness audit of every screen
-
-Some controls feel dead or clunky, and nobody has measured how the app responds to touch.
-
-The thumbs in #553 are the first case found. List every tappable control on each screen at phone size. For each, record the time from the tap to a visible change, whether it shows a pressed look at once, whether it jumps or flickers while it loads, and whether it can be tapped twice. Measure in Chrome with a slowed processor, using the production sign-in from #196; the table built so far used unthrottled Firefox, so the slowed-processor condition is unmet. PM ruling: moved out of the hackathon backlog, since code is frozen until judging. Done when the table lists every control with those four findings, and the slow or dead ones are fixed or filed as items.
-
 ### #114 Facebook Login in production mode
 
 Public sign-in with Facebook needs the app submitted for Meta app review, which takes longer than the event.
@@ -567,6 +589,18 @@ Blocked by scope. The first design pass is light mode only. Dark mode is designe
 The owner wants the app eventually to show how much of the user's daily intake is hydration.
 
 Blocked until after the hackathon, and blocked by the claims rule: the app shows no percentage that reads as progress, and a share of intake is a percentage. The owner decides whether this one figure may break that rule. Done when the owner has lifted the rule for this figure and its design is drawn.
+
+### Flickr-style web addresses throughout the app (issue number to come)
+
+The app's addresses do not tell a person what they are looking at, so people cannot guess, edit or share them the way they can on Flickr. The owner wants addresses where the path names the thing (a person, a meal, a day), so finding and sharing data works by reading and editing the address.
+
+Blocked until the owner has finished researching what the real planner must be told: which pages get such an address, what each address shows a signed-out visitor, and how it fits the public photo addresses (/p/…, #915). Today's pages use /posts/<id>, /days/<date> and /profile. Done when the owner has written the address pattern and a planner brief lists every page and what its address returns.
+
+### An agent holding an API key cannot read its owner's data through a plain web address (issue number to come)
+
+A person can create an API key, but there is no way for a client such as ChatGPT to use it. The owner wants a person to hand the key to ChatGPT and have it fetch that person's data from an address such as /agent/<the key>/<what it wants>, and wants instructions for MCP clients behind a plain link on the website.
+
+Blocked until the owner has finished researching what the real planner must be told. The documentation half overlaps #924 (no guide for reaching the MCP server). The research must settle: whether a key in the address is acceptable (addresses end up in logs, browser history and referrer headers), what each key may read and whether it is read-only, how a key is revoked, and whether ChatGPT can send the fixed Authorization: Bearer header the server accepts today (not checked). Done when the owner has decided the access design, a planner brief says what to build, and the website carries a link to the instructions.
 
 ---
 
