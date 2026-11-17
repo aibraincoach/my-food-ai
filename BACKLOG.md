@@ -1,6 +1,6 @@
 # My Food AI — Backlog†
 
-Last edited: Wednesday 2026-11-18 at 03:20 WIB (UTC+07:00) by Claude, PM
+Last edited: Wednesday 2026-11-18 at 04:33 WIB (UTC+07:00) by Claude, PM
 
 For the owner (Tue Nov 17, 19:11 WIB): The PM cannot talk to the designer. The PM seat has no browser tool, so it cannot open the designer's chat in claude.ai and type into it. Five backlog items are waiting for the designer to choose a place, a look or an audit: the barcode prompt over the live camera (#453), what the card you swipe to on a drink's photo shows (#455), how much of an alcoholic drink was drunk (#457), what places that wait on the network show while they wait (#631), and the controls on Days, Search, Profile and the capture modes (#555). To unblock them, paste those five titles into the designer's chat and ask for a look for each, or give the PM seat a browser tool. Nothing else waits on you.
 
@@ -31,12 +31,6 @@ When the caption and the photo disagree, the model asks a question. The app used
 On the owner's phone, adding a leftovers photo to a meal failed with "Upload failed. The photo could not be attached." The failure leaves a "Leftovers: Not posted yet" card in the feed and a red chip at the bottom reading "Leftovers, Not saved · Try again". The user cannot dismiss either one, and both come back after closing and reopening the app, so the screen stays broken.
 
 The owner's screenshots (Fri Nov 6, 2:40 PM and 2:43 PM WIB, iPhone on 5G) show the failed card in the Today feed under his 2:35 PM post. It says "Not posted yet. The photo is kept on this phone." and offers only Try again. The chip sits over the post and the floating tab bar and covers the nutrition numbers. The owner reports that closing and reopening the app does not clear it. A third screenshot, Tue Nov 10 at 12:18 PM WIB, shows the same red chip still over the Today feed four days after the first failure, so the stuck state does not expire. Owner, Nov 15, 10:50 PM WIB (iPhone, 5G): a screenshot of the Fri Nov 6 2:35 PM post shows the same "Leftovers, Not saved · Try again" chip nine days later, sitting over the post's nutrition numbers and above the tab bar. He reports that pressing Try again only brings back an error and the leftovers never save. The error text was not captured. This looks like the same family as #644 (a failed attachment upload that nothing removes), but that is not confirmed. Not known: what failed the first time, whether Try again works, and where the phone keeps the failed upload. Related items: #570, #578, #644 and #625. GrokBot's leftovers attach on a judge account on Nov 5 closed in 5,049 ms and did not fail, so this is not reproduced. Observe first: read the owner's failed attachment job and its error from the jobs table and the model-call log (read-only), then fail a leftovers upload on a judge account on purpose and look for what the phone stores. Done when the error behind this failure is written down, a leftovers photo saves on the first try or on Try again in a phone-sized browser, a failed upload can be dismissed or removed by the user and stays gone after the app is reopened, and the chip does not cover the post's nutrition numbers. Fleet 21 independent source read, Nov 16 (investigators' report): PR 912 puts Remove in a fixed-height row (h-14) inside an overflow-hidden container (UploadChip.tsx line 30), so the source supports the clipping. Nobody repeated the browser measurement. Fleet 21, Nov 16 (coder, local, PR 912): the phone's new Remove button works and stays gone after a reload. On desktop the sidebar chip ends at y=364 and Remove begins at y=374.13, so Remove is clipped; it was left unfixed under the plan's rule. The original failure cause is not found and the chip over the nutrition numbers is not addressed. Merged in #912 on Nov 16 (coder report). Fleet 21 independent source read of the fixed head 50ea5f70, Nov 16: the clipping is fixed (UploadChip.tsx line 30 now uses a minimum height); the retained Firefox receipt shows the chip ending at 422.25 px with Remove at 411.70 px at 1280 wide, and 748 px with 737.45 px at 390 wide; no fresh browser run. Owner, Tue Nov 17, 1:24 PM WIB (iPhone, 5G): a Home screenshot shows the same "Leftovers, Not saved · Try again" chip, now with Remove beside it, floating over his 1:15 PM post ("Pork crackling and pasta and more pork. Oink.", 730 kcal) and covering that post's caption and nutrition line above the tab bar. He could not add the leftovers photo to this new meal either, so the failure repeats on a new meal and is not specific to the Nov 6 post. The error text was not captured.
-
-### #1021 Check on production the card, first comment and day total of three re-matched meals
-
-Three meals kept changed calorie totals after the team re-matched them, and nobody has yet looked at them on production.
-
-The meals are f1439c72 (stored 564.85 kcal), e31fd9af (687.8 kcal) and 5711e19c (373.6 kcal). The changed totals are not proof that the numbers are right. Fleet 28 also kept changed totals for `38de279e` (repaired) and `509ef9bc`, and Fleet 29 kept the changed butter meal `f08e2e86` (590.75 kcal). Done when someone opens each of the six meals on production and records the card's calories, the first model comment's calories, and that day's total, with the displayed rounding, and they agree with the stored values.
 
 ### #988 A drink whose matched record has no category is not counted as a drink
 
@@ -368,11 +362,11 @@ The designer has not read their controls yet. Add them to the table from #217 wi
 
 ## In flight
 
-### #659 Review findings on the merged Fleet 18 PRs have not been checked on main
+### #990 Revisit the stored numbers: the meals that pass every rule, the other accounts, and saved meals
 
-Codex and AGY reviewed the Fleet 18 PRs and raised problems in code that is now merged. The planner confirmed four of them on main 7d64f4c8; they are the four items below. The rest have not been checked.
+Meals that pass every rule can still be wrong, and other accounts and saved meals hold numbers too.
 
-Two blockers are planner-checked on main and not yet reproduced by a coder. On #647, useProfileIdentity in PostHandle.tsx binds the viewer's avatar and handle to every post header and not the author's, the avatar route reads with the viewer's token so another user's avatar fails, and the route sends a public one-year immutable cache header for an image only signed-in users should see. On #648, wording-inventory.mjs embeds the HEAD short hash so its check can never pass after a commit, and docs/wording/inventory.md was generated before 66 files changed. Eleven other findings were reproduced and are filed as the items below; two were dismissed with proof (the #633 recompute upsert and the #633 rice-with-protein composition). Still unchecked: the #641 portion_unit "serving" that the database does not accept; on #638, Feed discovery polling that stops when the tab is hidden; on #639, NeedsInputStrip never finding new questions after an empty first poll, and RealtimePost not refreshing on visibility; the #637 Thread retry polling; and the #643 header text cut off. Done when each unchecked finding is reproduced or dismissed with proof, the blockers on #647 and #648 are each checked on main, and each one reproduced is filed as its own item.
+This is the last step of the revisit, after #989. Done when a sample of passing meals is checked against an independent estimate, and the other accounts and saved meals are re-analysed or listed with their reason.
 
 ### #937 Opening an uploading meal's address returns repeated not-found errors
 
@@ -380,29 +374,23 @@ While a meal is still uploading, requests for its own address are answered not f
 
 Fleet 21 check K15 saw sixteen not-found answers from detail prefetches while two meals uploaded; both meals still reached ready. What a person sees and the cause are not known. Done when the cause is found and an uploading meal's address produces no not-found request, or the errors are shown to be harmless and why.
 
-### #703 Retrying a failed meal opening can leave an overlay covering the screen
+### #1021 Check on production the card, first comment and day total of three re-matched meals
 
-If opening a meal fails and the user taps retry, and navigation then hangs or fails again, an overlay covers the screen and blocks every tap, with no timeout to clear it.
+Three meals kept changed calorie totals after the team re-matched them, and nobody has yet looked at them on production.
 
-In src/components/PostOpenTransition.tsx, line 49. Retry sets the phase to opening but does not change the value the effect depends on, so the slow and fail timeouts are not scheduled again. Related: #635. Done when a second failure after a retry shows the failure message and removes the overlay, and a test covers it. Fleet 21 check, Nov 16: opening while offline did not produce the prescribed failure message, so retry was not verified.
+The meals are f1439c72 (stored 564.85 kcal), e31fd9af (687.8 kcal) and 5711e19c (373.6 kcal). The changed totals are not proof that the numbers are right. Fleet 28 also kept changed totals for `38de279e` (repaired) and `509ef9bc`, and Fleet 29 kept the changed butter meal `f08e2e86` (590.75 kcal), and Fleet 30 kept `1c18b87e` (protein and carbohydrate filled) and `1c4f16bf` (duplicate milk removed, 156.2 kcal). Done when someone opens each of the eight meals on production and records the card's calories, the first model comment's calories, and that day's total, with the displayed rounding, and they agree with the stored values.
 
-### #1022 A 30-character meal header is cut off at phone width
+### #1041 The overlapping first-upload 404 count has still not been measured
 
-A long name in a meal's header does not fit on a phone, so the person cannot read all of it.
+When two meals upload at once, the app may request a meal's own address before it exists and get not-found answers. Nobody has counted them since the Fleet 22 fix.
 
-The Fleet 27 check reproduced it at 390 wide with a 30-character name: the header scrolled 318 px inside a 219 px space and ended in an ellipsis. It was observed, and nobody has decided that the name should wrap. Done when a 30-character header either wraps or shows its whole name at 390 wide, and the owner agrees with the choice.
+The Fleet 30 check could not observe the first "Uploading" card, so it measured nothing. #937 describes the original report. Done when two overlapping uploads are run, and the count of not-found answers under /posts/ is recorded, with the number of uploads that reached ready.
 
-### #1018 A test of the composer drinks route fails when it runs across an hour boundary
+### #1040 The double-count removal SQL has no explicit row lock around its readiness check
 
-A test in the full suite can fail at the turn of the hour, so a clean run is not always clean.
+The command that removes a double-counted food checks that the meal is ready and has no queued job, but it does not lock the meal while it does so.
 
-The test checks that the hourly drink-identify usage counter reads 1, and it read 0 on main in the Fleet 27 baseline, which started just before 13:00 UTC. The cause is unproven. Done when the test no longer depends on the clock hour, and it passes when run across an hour boundary.
-
-### #990 Revisit the stored numbers: the meals that pass every rule, the other accounts, and saved meals
-
-Meals that pass every rule can still be wrong, and other accounts and saved meals hold numbers too.
-
-This is the last step of the revisit, after #989. Done when a sample of passing meals is checked against an independent estimate, and the other accounts and saved meals are re-analysed or listed with their reason.
+A queue change that arrives between the check and the write would not be caught, and the sequential tests do not prove otherwise. The reviewer of the removal (#1037) noted it as Minor. Done when the check and the write hold a row lock on the meal, and a test shows a concurrent change is refused.
 
 ## Interdit (Not part of Hackathon)
 
