@@ -6,9 +6,11 @@ import SavedMealListeners from './SavedMealListeners';
 import CorrectProductAction from './CorrectProductAction';
 import BottomBar from '@/components/BottomBar';
 import PlusMenu,{type PostEntry} from '@/components/PlusMenu';
-import CaptureSheet from '@/components/CaptureSheet';
+import type CaptureSheetComponent from '@/components/CaptureSheet';
 import IntakeBar from '@/components/IntakeBar';
 
+// Fetched after the page is up, not with it. public/sw.js keeps the file for offline opens.
+const loadCaptureSheet=()=>import('@/components/CaptureSheet').then(module=>module.default);
 /** The same navigation and entry surface is mounted on tabs and post detail. */
 export default function NavigationControls() {
   const router=useRouter();
@@ -18,6 +20,17 @@ export default function NavigationControls() {
   const [entry,setEntry]=useState<PostEntry|null>(null);
   const closeMenu=useCallback(()=>setMenuOpen(false),[]);
   const closeEntry=useCallback(()=>{setEntry(null);setAttachment(null);setInitialFiles(undefined);},[]);
+  const [CaptureSheet,setCaptureSheet]=useState<typeof CaptureSheetComponent|null>(null);
+  const capture=entry==='camera'||entry==='text';
+  useEffect(()=>{
+    if(CaptureSheet)return;
+    let live=true;
+    // A failed fetch closes the entry, so the next tap tries again instead of breaking the page.
+    const load=()=>{void loadCaptureSheet().then(component=>{if(live)setCaptureSheet(()=>component);},()=>{if(live&&capture)closeEntry();});};
+    if(capture){load();return()=>{live=false;};}
+    const timer=window.setTimeout(load,1500);
+    return()=>{live=false;window.clearTimeout(timer);};
+  },[CaptureSheet,capture,closeEntry]);
   const closeCapture=useCallback(()=>{window.dispatchEvent(new Event('entry-closed'));closeEntry();router.push('/');},[closeEntry,router]);
   useEffect(()=>{
     const open=(event:Event)=>{const detail=(event as CustomEvent<{entry?:PostEntry;forPost?:string;notEaten?:boolean}>).detail;const value=detail?.entry;if(value&&['camera','text','drink','coffee'].includes(value)){setMenuOpen(false);setAttachment(value==='camera'&&typeof detail?.forPost==='string'?{postId:detail.forPost,notEaten:detail.notEaten===true}:null);setEntry(value);}};
@@ -37,7 +50,7 @@ export default function NavigationControls() {
     <SavedMealListeners/><CorrectProductAction/><UploadChip/>
     <div className="desktop:hidden"><BottomBar onPlus={()=>setMenuOpen(value=>!value)} menuOpen={menuOpen}/>
     <PlusMenu open={menuOpen} onClose={closeMenu}/></div>
-    {entry==='camera'||entry==='text'?<CaptureSheet initialFiles={initialFiles} key={`${entry}:${attachment?.postId??"new"}:${attachment?.notEaten??false}`} forPost={attachment?.postId} attachNotEaten={attachment?.notEaten} initialMode={entry==='camera'?'photo':'text'} onClose={closeCapture}/>:null}
+    {capture&&CaptureSheet?<CaptureSheet initialFiles={initialFiles} key={`${entry}:${attachment?.postId??"new"}:${attachment?.notEaten??false}`} forPost={attachment?.postId} attachNotEaten={attachment?.notEaten} initialMode={entry==='camera'?'photo':'text'} onClose={closeCapture}/>:null}
     <IntakeBar onClose={closeEntry}/>
   </>;
 }

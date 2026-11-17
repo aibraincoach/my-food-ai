@@ -242,3 +242,21 @@ test('a first install never reloads windows even if its worker restarts before a
  const restarted=worker({stores,active:true,windows:[{url:'https://app.example/',async navigate(url){navigated.push(url);}}]});
  await restarted.event('activate');assert.deepEqual(navigated,[]);
 });
+test('install keeps the files a shell script fetches on demand, one level deep, under the same public rule',async()=>{
+ const w=worker(),requests=[];
+ w.setFetch(async request=>{
+  requests.push(request);
+  const path=new URL(request.url).pathname;
+  if(path==='/shell')return new Response('<script src="/_next/static/chunks/shell.js"></script>');
+  const body=path.endsWith('/shell.js')?'t.v(s=>Promise.all(["static/chunks/sheet.js","static/chunks/private.js"].map(s=>t.l(s))))':path.endsWith('/sheet.js')?'import("static/chunks/deeper.js")':path;
+  return new Response(body,{headers:path.endsWith('/private.js')?{'Cache-Control':'private, immutable'}:{'Cache-Control':'public, max-age=31536000, immutable'}});
+ });
+ await w.event('install');
+ const store=w.stores.get('my-food-ai-shell-v4'),sheet='https://app.example/_next/static/chunks/sheet.js';
+ assert.ok(requests.every(r=>r.credentials==='omit'));
+ assert.ok(store.has('https://app.example/_next/static/chunks/shell.js'));assert.ok(store.has(sheet));
+ assert.equal(store.has('https://app.example/_next/static/chunks/private.js'),false);
+ assert.equal(requests.some(r=>new URL(r.url).pathname.endsWith('/deeper.js')),false);
+ w.setFetch(async()=>{throw Error('offline');});
+ assert.equal(await(await w.request(sheet)).text(),'import("static/chunks/deeper.js")');
+});

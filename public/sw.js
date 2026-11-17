@@ -103,13 +103,20 @@ self.addEventListener("install", event => {
     // The first fallback must not download a new client bundle before showing
     // the last feed. No authenticated HTML, API result or private media enters
     // this public cache; a failed optional asset retains the normal network path.
-    await Promise.allSettled(shellAssets(shell).map(async url => {
+    const named = shellAssets(shell), onDemand = new Set();
+    const store = async (url, scan) => {
       const response = await fetch(new Request(url, {credentials: "omit", cache: "force-cache"}));
       const policy = response.headers.get("cache-control") ?? "";
-      if (response.ok && /\bpublic\b/i.test(policy) && /\bimmutable\b/i.test(policy) && !/\bprivate\b|no-store/i.test(policy)) await putDecoded(cache, url, response);
-    }));
+      if (!response.ok || !/\bpublic\b/i.test(policy) || !/\bimmutable\b/i.test(policy) || /\bprivate\b|no-store/i.test(policy)) return;
+      // A shell script names the files it fetches on demand (the capture sheet)
+      // as "static/chunks/…", the same form a Flight reference has.
+      if (scan && new URL(url).pathname.endsWith(".js")) for (const next of shellAssets(await response.clone().text())) if (!named.includes(next) && onDemand.size < 16) onDemand.add(next);
+      await putDecoded(cache, url, response);
+    };
+    await Promise.allSettled(named.map(url => store(url, true)));
+    await Promise.allSettled([...onDemand].map(url => store(url, false)));
     // Retain only the shell and immutable files named by this deployment.
-    const keep = new Set(["/", "/shell", "/manifest.webmanifest"].map(path => new URL(path, self.location.origin).href).concat(shellAssets(shell)));
+    const keep = new Set(["/", "/shell", "/manifest.webmanifest"].map(path => new URL(path, self.location.origin).href).concat(named, [...onDemand]));
     for (const request of await cache.keys()) if (!keep.has(request.url)) await cache.delete(request);
   })());
 });
