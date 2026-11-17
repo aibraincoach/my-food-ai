@@ -2,7 +2,7 @@ import { randomUUID } from "node:crypto";
 import { NextResponse } from "next/server";
 import { after } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { queueTick } from "@/lib/queue/tick";
+import { queueTick, retickWhenBlocked } from "@/lib/queue/tick";
 import { LEASE_TTL_SECONDS } from "@/lib/queue/lease";
 
 // Public, idempotent tick: queues work and hands draining to /api/jobs/drain.
@@ -29,6 +29,9 @@ export async function GET(request: Request) {
       drainUrl.searchParams.set("holder", holder);
       after(() => fetch(drainUrl, { cache: "no-store", signal: AbortSignal.timeout(290_000) })
         .then((response) => { if (!response.ok) throw new Error(`Drain failed: ${response.status}`); }));
+    } else {
+      const tickUrl = new URL("/api/jobs/tick", request.url);
+      after(() => retickWhenBlocked(admin, status, () => fetch(tickUrl, { cache: "no-store", signal: AbortSignal.timeout(10_000) }), LEASE_TTL_SECONDS));
     }
     return NextResponse.json({
       queued: status.queued,
