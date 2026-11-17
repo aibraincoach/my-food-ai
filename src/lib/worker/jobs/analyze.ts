@@ -3,7 +3,7 @@ import { findPrior } from "@/lib/pipeline/prior";
 import type { JobHandler } from "@/lib/worker/handlers";
 import { analyzePost } from "@/lib/pipeline/analyze";
 import { ioError } from "@/lib/worker/errors";
-import { persistAnalysis, markReady } from "@/lib/pipeline/persist";
+import { persistAnalysis, markReady, refreshOperatorSavedMeal } from "@/lib/pipeline/persist";
 import { certifiedPriorNutrition } from "@/lib/pipeline/prior-version";
 
 const analyze: JobHandler = async (admin, job) => {
@@ -18,11 +18,14 @@ const analyze: JobHandler = async (admin, job) => {
   async function queueRemainder(){const {error,status}=await admin.rpc('queue_post_remainder',{p_post_id:job.post_id,p_job_id:job.id});if(error)throw ioError('Not-eaten work could not be queued.',error,status);}
   // #626: a retry after the question transaction committed sends the question, not a plain ready push.
   if(post.analysis_initialized_at){const asked=(post.question as {question?:unknown}|null)?.question;const question=typeof asked==="string"?asked:null;const ready=await markReady(job.post_id,admin,job.id,{notify:!hasNotEaten&&!question,saveMeal:!hasNotEaten});if(ready&&question)await sendPostPush(admin,job.post_id,question);await queueRemainder();return;}
-  const prior = (photoCount??0)>1?null:await findPrior(admin,job.post_id);
+  // #984: an operator re-analysis (scripts/numbers/12-reanalyse.sql) exists because stored numbers are
+  // in doubt, so it takes neither a hint nor a copy from an earlier meal; that meal may be wrong too.
+  const prior = (photoCount??0)>1||"operator" in job.payload?null:await findPrior(admin,job.post_id);
   const reusable = prior?.named && certifiedPriorNutrition(prior.nutrition) ? prior : null;
   const named = reusable?.named ?? await analyzePost(admin, job.post_id, prior?.hint,job.id);
   named.hasNotEaten=hasNotEaten;
   await persistAnalysis(admin, named, named.labelNutrition?[named.labelNutrition]:reusable?.nutrition, job.id);
+  await refreshOperatorSavedMeal(admin, job);
   if (named.needsInput && !named.questionShown) await sendPostPush(admin, job.post_id, named.needsInput.question);
   else await queueRemainder();
 };
