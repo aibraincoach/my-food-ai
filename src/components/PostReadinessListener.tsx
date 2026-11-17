@@ -74,10 +74,18 @@ export default function PostReadinessListener() {
     };
     const discoveryTimer = setInterval(() => { if (document.visibilityState === "visible") void discover(); }, 15_000);
     void discover();
-    // A visible page re-renders once a minute: this covers an update to an older meal that
-    // `discover` cannot see and carries "today" across local midnight (the server derives it).
-    const reconcileTimer = setInterval(() => { if (document.visibilityState === "visible" && live) refreshView(); }, 60_000);
-    const visible = () => { if (document.visibilityState === "visible" && live) refreshView(); };
+    // Once a minute and on a return to the tab. Home's feed keeps its own meals current, so Home
+    // re-renders here only while a meal is waiting or when the local day has changed (the server
+    // derives "today"). Other tabs have no reader of their own and still re-render every time.
+    let day = new Date().toDateString();
+    const visible = () => {
+      if (document.visibilityState !== "visible" || !live) return;
+      const today = new Date().toDateString();
+      const newDay = today !== day;
+      day = today;
+      if (newDay || pending.size > 0 || refreshAfterReadinessSeed(location.pathname,Boolean(document.querySelector("[data-home-feed]")))) refreshView();
+    };
+    const reconcileTimer = setInterval(visible, 60_000);
     document.addEventListener("visibilitychange", visible);
     const focus = () => { void seedPending(); void discover(); };
     const channel = db.channel("tab-post-readiness").on("postgres_changes", {
