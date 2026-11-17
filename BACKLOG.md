@@ -1,6 +1,6 @@
 # My Food AI — Backlog†
 
-Last edited: Wednesday 2026-11-18 at 03:07 WIB (UTC+07:00) by Claude, PM
+Last edited: Wednesday 2026-11-18 at 03:20 WIB (UTC+07:00) by Claude, PM
 
 For the owner (Tue Nov 17, 19:11 WIB): The PM cannot talk to the designer. The PM seat has no browser tool, so it cannot open the designer's chat in claude.ai and type into it. Five backlog items are waiting for the designer to choose a place, a look or an audit: the barcode prompt over the live camera (#453), what the card you swipe to on a drink's photo shows (#455), how much of an alcoholic drink was drunk (#457), what places that wait on the network show while they wait (#631), and the controls on Days, Search, Profile and the capture modes (#555). To unblock them, paste those five titles into the designer's chat and ask for a look for each, or give the PM seat a browser tool. Nothing else waits on you.
 
@@ -36,7 +36,7 @@ The owner's screenshots (Fri Nov 6, 2:40 PM and 2:43 PM WIB, iPhone on 5G) show 
 
 Three meals kept changed calorie totals after the team re-matched them, and nobody has yet looked at them on production.
 
-The meals are f1439c72 (stored 564.85 kcal), e31fd9af (687.8 kcal) and 5711e19c (373.6 kcal). The changed totals are not proof that the numbers are right. Fleet 28 also kept changed totals for `38de279e` (repaired) and `509ef9bc`. Done when someone opens each of the five meals on production and records the card's calories, the first model comment's calories, and that day's total, with the displayed rounding, and they agree with the stored values.
+The meals are f1439c72 (stored 564.85 kcal), e31fd9af (687.8 kcal) and 5711e19c (373.6 kcal). The changed totals are not proof that the numbers are right. Fleet 28 also kept changed totals for `38de279e` (repaired) and `509ef9bc`, and Fleet 29 kept the changed butter meal `f08e2e86` (590.75 kcal). Done when someone opens each of the six meals on production and records the card's calories, the first model comment's calories, and that day's total, with the displayed rounding, and they agree with the stored values.
 
 ### #988 A drink whose matched record has no category is not counted as a drink
 
@@ -397,12 +397,6 @@ The Fleet 27 check reproduced it at 390 wide with a 30-character name: the heade
 A test in the full suite can fail at the turn of the hour, so a clean run is not always clean.
 
 The test checks that the hourly drink-identify usage counter reads 1, and it read 0 on main in the Fleet 27 baseline, which started just before 13:00 UTC. The cause is unproven. Done when the test no longer depends on the clock hour, and it passes when run across an hour boundary.
-
-### #1029 The re-analysis repair skips rows where only a micronutrient is negative
-
-The team's repair command fixes a stored negative nutrition value, but it ignores a row where the only negative value is a micronutrient, so that row stays wrong.
-
-The repair selects a row only when one of seven scalar nutrition fields is negative, even though its clamp expression covers micronutrients. The named repair case, a negative carbohydrate, is selected. Done when a negative micronutrient is repaired too, the original values are recorded, and an undo restores them.
 
 ### #990 Revisit the stored numbers: the meals that pass every rule, the other accounts, and saved meals
 
