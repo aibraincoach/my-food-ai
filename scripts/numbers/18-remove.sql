@@ -7,6 +7,10 @@
 -- 13-restore.sql through `reanalyse.mjs restore` puts the meal back from that snapshot.
 -- psql variables: post (the full meal id) and item (the full id of the current food to remove).
 begin;
+-- #1040: lock the meal's row before the readiness check. A writer that changes the row (queues the meal, changes
+-- its status) waits until this transaction ends, and the statement below takes its snapshot only once the lock is
+-- held, so it sees every such change committed before. The lock's own output is discarded.
+select id from public.posts where id = :'post'::uuid for update \g /dev/null
 with meal as (
   select p.id from public.posts p
   where p.id = :'post'::uuid and p.status = 'ready' and p.deleted_at is null
