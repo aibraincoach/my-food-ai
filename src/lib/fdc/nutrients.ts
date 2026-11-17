@@ -91,6 +91,15 @@ export function hasNutrition(food: FdcFood): boolean {
   return food.foodNutrients.some(n => [1008, 2047, 2048, 1003, 1004, 1005].includes(n.nutrientId) && Number.isFinite(n.value));
 }
 
+// #989: a record with no energy value gave "unsalted butter packet" no calories, and one with zero energy gave
+// "Sambal" 0 kcal. Zero energy fits only the plain drinks that rule b of scripts/numbers/03-suspicious.sql allows.
+export function energyFits(name: string, food: FdcFood): boolean {
+  const energy = nutrientValue(food, ENERGY_IDS);
+  if (!energy || !Number.isFinite(energy.value) || energy.value < 0) return false;
+  if (energy.value > 0) return true;
+  return /\b(water|tea|coffee|espresso|americano|diet|zero)\b/i.test(name) && !/\b(milk|latte|cappuccino|sugar|sweet|mocha|bubble|boba)\b/i.test(name);
+}
+
 /** Weighted blend of generic references into one per-100 g food. */
 export function blendFoodsPer100(parts: { food: FdcFood; share: number }[], description: string): FdcFood {
   const total = parts.reduce((sum, part) => sum + part.share, 0);
