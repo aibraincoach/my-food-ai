@@ -13,17 +13,19 @@ with items as (
   left join public.item_nutrition n on n.post_item_id = i.id
   where p.user_id = :'uid'::uuid and p.status = 'ready' and p.deleted_at is null
 ), cache_foods as (
+  -- One description per record, chosen the same way every run and by the rule of 06-seafood.sql:
+  -- a detail entry ('fdc_cache detail') wins over a search entry ('fdc_cache search'); then the first description in text order.
   select distinct on (fdc_id) fdc_id, description from (
-    select (f->>'fdcId') as fdc_id, f->>'description' as description
+    select (f->>'fdcId') as fdc_id, f->>'description' as description, 'fdc_cache search' as found_in
     from public.fdc_cache c
     cross join lateral jsonb_array_elements(case when jsonb_typeof(coalesce(c.response->'payload'->'foods', c.response->'foods')) = 'array'
                                              then coalesce(c.response->'payload'->'foods', c.response->'foods') else '[]'::jsonb end) f
     union all
-    select coalesce(c.response->'payload'->>'fdcId', c.response->>'fdcId'), coalesce(c.response->'payload'->>'description', c.response->>'description')
+    select coalesce(c.response->'payload'->>'fdcId', c.response->>'fdcId'), coalesce(c.response->'payload'->>'description', c.response->>'description'), 'fdc_cache detail'
     from public.fdc_cache c where c.query like 'fdc-detail:%'
   ) d
   where fdc_id in (select source_ref from items where source_ref ~ '^[1-9][0-9]*$') and description is not null
-  order by fdc_id
+  order by fdc_id, found_in, description
 ), described0 as (
   select it.*,
          coalesce((select m->'approximation'->>'basis' from jsonb_array_elements(case when jsonb_typeof(it.micro) = 'array' then it.micro else '[]'::jsonb end) m

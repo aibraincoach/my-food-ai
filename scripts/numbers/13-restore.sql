@@ -10,7 +10,7 @@ where id = :'summary_comment_id'::uuid and post_id = :'post'::uuid and author = 
   and not exists (select 1 from public.jobs j where j.post_id = :'post'::uuid and j.status in ('queued', 'running'));
 insert into public.jobs (post_id, kind, priority, status, payload)
 select p.id, 'recompute', 200, 'queued', '{"reason":"drink_sync","operator":"restore"}'::jsonb
-from public.posts p where p.id = :'post'::uuid and p.status = 'ready'
+from public.posts p where p.id = :'post'::uuid and p.status = 'ready' and p.deleted_at is null
   and not exists (select 1 from public.jobs j where j.post_id = p.id and j.status in ('queued', 'running'))
 returning left(id::text, 8) as job, kind, payload;
 commit;
