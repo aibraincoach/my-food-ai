@@ -53,8 +53,8 @@ restore
   --snapshot=first uses the oldest: the meal as it was before the first run with this ledger.
   A meal left "failed" is first set back to "ready" with its analysis time from the snapshot.
 
-Exit codes: 0 every meal changed, unchanged or skipped (restore: the meal is ready);
-            1 finished, but a meal failed or timed out;
+Exit codes: 0 every meal changed, unchanged or skipped (restore: work was queued and the meal is ready);
+            1 incomplete: a meal failed, timed out, or the restore SQL refused;
             3 a stop condition fired; 4 usage or guard error (nothing was started).`;
 
 export class UsageError extends Error {}
@@ -250,13 +250,18 @@ const publicTotals = ({ status, items, calories, protein_g, carbs_g, fat_g }) =>
 const dbNow = () => one('select now();');
 const jobsSince = (post, since) => Number(one(`select count(*) from public.jobs where post_id = :'post'::uuid and created_at >= :'since'::timestamptz;`, { post, since }));
 
-// Model calls for the meal since a time, counted by 09-usage.sql (its "calls" column).
+// 09-usage.sql includes FDC wrapper/network/cache traces as well as model calls.
 function modelCalls(prefix, since) {
   const lines = psql({ file: sqlFile('09-usage.sql'), vars: { prefixes: prefix, since }, extra: ['-P', 'tuples_only=off', '-P', 'footer=off', '-F', '\x1f'] }).split('\n').filter(Boolean);
   if (!lines.length) return 0;
-  const column = lines[0].split('\x1f').indexOf('calls');
-  if (column < 0) throw new Error('09-usage.sql no longer has a "calls" column.');
-  return lines.slice(1).reduce((total, line) => total + Number(line.split('\x1f')[column] ?? 0), 0);
+  const columns = lines[0].split('\x1f'), calls = columns.indexOf('calls'), kind = columns.indexOf('kind');
+  if (calls < 0 || kind < 0) throw new Error('09-usage.sql no longer has "calls" and "kind" columns.');
+  return lines.slice(1).reduce((total, line) => {
+    const row = line.split('\x1f');
+    // FDC is the non-model CallKind; SAM, transcription and all Spark providers count,
+    // including legacy traces whose model name is absent.
+    return total + (row[kind] === 'fdc' ? 0 : Number(row[calls] ?? 0));
+  }, 0);
 }
 
 async function tick() {
@@ -381,7 +386,10 @@ async function restore(request) {
     and not exists (select 1 from public.jobs j where j.post_id = p.id and j.status in ('queued', 'running'));
 \\i '${sqlFile('13-restore.sql').replaceAll("'", "\\'")}'
 ` });
-  if (jobsSince(params.post, since) === 0) console.log('13-restore.sql queued no job (its guards refused); the totals below are read as they stand.');
+  if (jobsSince(params.post, since) === 0) {
+    console.error('Restore refused: 13-restore.sql queued no job. The preliminary status update may already have run; inspect the meal before retrying.');
+    return EXIT.incomplete;
+  }
   const waitResult = await waitForMeal(params.post, request.waitSeconds);
   const row = { meal: request.meal, mode: 'restore', outcome: waitResult.timedOut ? 'timeout' : waitResult.totals.status === 'ready' ? 'restored' : 'failed',
     before: publicTotals(before), after: publicTotals(waitResult.totals), seconds_waited: waitResult.seconds, model_calls: modelCalls(request.meal, since) };

@@ -1,6 +1,9 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
+import { appendFileSync, chmodSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { EXIT, HELP, UsageError, compareTotals, findSnapshot, isInside, ledgerRefusal, parseArgs, parseMealsFile, relativeChange, restoreParams, stopReason, summaryTable } from '../scripts/numbers/reanalyse.mjs';
 
@@ -117,4 +120,93 @@ test('the command line answers --help and refuses bad usage without a database',
   const outside = run('run', '--mode=rematch', '--meals=1e5f8815', '--dry-run', '--ledger=/nonexistent-private/ledger');
   assert.equal(outside.status, EXIT.usage);
   assert.match(outside.stderr, /Set SUPABASE_DB_URL/);
+});
+
+// Exercise the public CLI without a database or app: only psql and fetch are replaced.
+function cliFixture(t, { restore = false, usage = [] } = {}) {
+  const directory = mkdtempSync(path.join(tmpdir(), 'mfa-numbers-cli-'));
+  t.after(() => rmSync(directory, { recursive: true, force: true }));
+  const ledger = path.join(directory, 'ledger'), calls = path.join(directory, 'calls.jsonl');
+  const fixture = path.join(directory, 'fixture.json'), preload = path.join(directory, 'fetch.mjs');
+  writeFileSync(fixture, JSON.stringify({ id: A, snapshot: snapshot(A), restore, usage }));
+  writeFileSync(calls, '');
+  const psql = path.join(directory, 'psql');
+  writeFileSync(psql, `#!${process.execPath}
+import { appendFileSync, readFileSync } from 'node:fs';
+import path from 'node:path';
+const fixture = JSON.parse(readFileSync(process.env.NUMBERS_FIXTURE, 'utf8'));
+const args = process.argv.slice(2), index = args.indexOf('-f');
+const file = index < 0 ? null : path.basename(args[index + 1]);
+const sql = file ? '' : readFileSync(0, 'utf8');
+const previous = readFileSync(process.env.NUMBERS_CALLS, 'utf8');
+appendFileSync(process.env.NUMBERS_CALLS, JSON.stringify({ type: 'psql', file, sql }) + '\\n');
+if (file === '08-snapshot.sql') console.log(JSON.stringify(fixture.snapshot));
+else if (file === '09-usage.sql') {
+  const columns = ['post','kind','model','step','calls','errors','input_tokens','output_tokens','duration_ms','first_call','last_call'];
+  console.log(columns.join('\\x1f'));
+  for (const row of fixture.usage) console.log(columns.map(key => row[key] ?? '-').join('\\x1f'));
+} else if (file === '11-rematch.sql') console.log('queued');
+else if (sql.includes('select left(id::text, 8)')) console.log(fixture.id.slice(0, 8) + ' ' + fixture.id);
+else if (sql.includes('select json_build_object')) console.log(JSON.stringify({
+  status: fixture.restore && !previous.includes('13-restore.sql') ? 'failed' : 'ready',
+  items: 2, calories: 50, protein_g: 2, carbs_g: 6, fat_g: 1, deleted: false, job_in_flight: false
+}));
+else if (sql === 'select now();') console.log('2026-11-01T00:00:00+00:00');
+else if (sql.includes('select count(*) from public.jobs')) console.log(fixture.restore ? '0' : '1');
+else if (!sql.includes('13-restore.sql')) throw Error('Unexpected fake psql query: ' + sql);
+`);
+  chmodSync(psql, 0o700);
+  writeFileSync(preload, `import { appendFileSync } from 'node:fs';
+globalThis.fetch = async url => {
+  if (String(url) !== 'http://127.0.0.1:1/api/jobs/tick') throw Error('Unexpected app address');
+  appendFileSync(process.env.NUMBERS_CALLS, JSON.stringify({ type: 'tick' }) + '\\n');
+  return new Response(null, { status: 204 });
+};
+`);
+  if (restore) {
+    // The command's own private writer is exercised by run; restore needs an existing snapshot.
+    mkdirSync(ledger, { mode: 0o700 });
+    appendFileSync(path.join(ledger, 'snapshots.jsonl'), JSON.stringify(snapshot(A)) + '\n', { mode: 0o600 });
+  }
+  const result = spawnSync(process.execPath, ['--import', preload, script,
+    ...(restore ? ['restore', '--meal=11111111'] : ['run', '--mode=rematch', '--meals=11111111']),
+    '--ledger=' + ledger, '--wait-seconds=1'], {
+    encoding: 'utf8', timeout: 10000,
+    env: { PATH: directory, SUPABASE_DB_URL: 'postgresql://fixture.invalid/synthetic', APP_URL: 'http://127.0.0.1:1',
+      NUMBERS_FIXTURE: fixture, NUMBERS_CALLS: calls },
+  });
+  assert.ifError(result.error);
+  return { result, calls: readFileSync(calls, 'utf8').trim().split('\n').filter(Boolean).map(line => JSON.parse(line)),
+    ledger: () => readFileSync(path.join(ledger, 'ledger.jsonl'), 'utf8').trim().split('\n').map(line => JSON.parse(line)) };
+}
+
+test('restore refuses a zero-job SQL result even if its preliminary update left the meal ready', t => {
+  const { result, calls } = cliFixture(t, { restore: true });
+  assert.equal(result.status, EXIT.incomplete, result.stdout + result.stderr);
+  assert.match(result.stderr, /restore refused.*no job/i);
+  assert.doesNotMatch(result.stdout, /\brestored\b/);
+  assert.equal(calls.filter(call => call.type === 'tick').length, 0, 'a refused restore must not wake the worker');
+  assert.equal(calls.filter(call => call.sql?.includes('select json_build_object')).length, 1, 'do not wait on an unrelated ready state');
+});
+
+test('the CLI counts six model calls separately from eleven USDA wrapper, network and cache rows', t => {
+  const usage = [
+    { kind: 'fdc', model: '-', step: 'food_resolution', calls: 5 },
+    { kind: 'fdc', model: '-', step: 'usda network', calls: 4 },
+    { kind: 'fdc', model: '-', step: 'usda cache', calls: 2 },
+    { kind: 'spark_search', model: 'muse-spark-1.3', step: 'search_query', calls: 6 },
+  ];
+  const { result, ledger } = cliFixture(t, { usage });
+  assert.equal(result.status, EXIT.ok, result.stdout + result.stderr);
+  assert.equal(ledger()[0].model_calls, 6);
+  assert.match(result.stdout, /6 model call\(s\)/);
+});
+
+test('the CLI includes SAM, transcription and every Spark trace kind without requiring one provider model name', t => {
+  const kinds = ['sam', 'transcribe', 'spark_identify', 'spark_correct', 'spark_same_meal', 'spark_search', 'spark_label', 'spark_remainder'];
+  const usage = kinds.map((kind, index) => ({ kind, model: index % 2 ? '-' : 'another-provider-model', calls: 1 }));
+  usage.push({ kind: 'fdc', model: '-', calls: 9 });
+  const { result, ledger } = cliFixture(t, { usage });
+  assert.equal(result.status, EXIT.ok, result.stdout + result.stderr);
+  assert.equal(ledger()[0].model_calls, kinds.length, 'legacy rows with no model name are still model calls');
 });
