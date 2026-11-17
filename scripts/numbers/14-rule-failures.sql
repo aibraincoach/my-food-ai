@@ -32,6 +32,7 @@ with items as (
   select post_id, item_id, 'g1' from items
   where name ~* '\m(coffee|espresso|americano|tea)\M' and name !~* '\m(milk|latte|cappuccino|sugar|sweet|sweetened|condensed|mocha|brownie|cookie|cake)\M'
     and portion_grams > 0 and calories / portion_grams > 0.25
+    and not (name ~* '\miced\M' and name ~* '\mtea\M' and calories / portion_grams <= 0.40)
 ), failing as (
   select post_id, count(distinct item_id) as items_failing, count(distinct rule) as rule_count,
          string_agg(distinct rule, ',' order by rule) as rules

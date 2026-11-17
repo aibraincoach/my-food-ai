@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // Re-analyse or re-match a list of meals, one at a time, keeping every old row, and restore any of them.
-// It runs the SQL files beside it (08, 09, 11, 12, 13, 15 and 15-repair-undo) through psql and wakes the worker with /api/jobs/tick.
+// It runs the SQL files beside it (08, 09, 11, 12, 13, 15, 15-repair-undo and 16) through psql and wakes the worker with /api/jobs/tick.
 // Usage and rules: node scripts/numbers/reanalyse.mjs --help, and scripts/numbers/README.md.
 import { spawnSync } from 'node:child_process';
 import { appendFileSync, chmodSync, existsSync, mkdirSync, readFileSync, realpathSync } from 'node:fs';
@@ -51,6 +51,9 @@ run
   before. The meal is put back at once, as restore --snapshot=last would, when it failed or asks a question, lost
   any nutrition value it had (a zero counts as a value, NULL does not; micronutrients included), or its calories
   moved by more than half. The ledger line says why.
+  When the only values lost are micronutrients of a food that is still there with the same name and weight, and
+  none is water, caffeine or alcohol, 16-carry.sql first adds the old entries to that food's new row and the meal
+  is compared again; it is kept when nothing is lost any more. The ledger line lists them (values_carried).
 
 restore
   Puts one meal back as its snapshot in <ledger>/snapshots.jsonl recorded it, with 13-restore.sql.
@@ -199,6 +202,37 @@ export function lostValues(before, after) {
   for (const name of wasNames) if (nowNames.has(name)) compare(`food ${was.findIndex((item) => key(item) === name) + 1}`, was.filter((item) => key(item) === name), now.filter((item) => key(item) === name));
   compare('renamed foods', was.filter((item) => !nowNames.has(key(item))), now.filter((item) => !wasNames.has(key(item))));
   return lost;
+}
+
+// Nutrients a carry never adds: they feed the day's alcohol, water and caffeine totals.
+export const NOT_CARRIED = new Set([1018, 1051, 1057]);
+
+// Pure: #990. When every value a run lost is a micronutrient of a food still there under the same name and weight,
+// the steps that add the old entries to that food's new row with 16-carry.sql, as [{ item, entries, lost }]; null
+// when any lost value cannot be carried so (then the meal is put back). A re-match that finds a fuller record keeps
+// both: the butter of f08e2e86 gained energy, protein and 98 micronutrients from 173430 but had lost iodine (1100).
+// A meal with a saved meal is never carried: the saved copy would not get the entries.
+export function carryPlan(before, after) {
+  const lost = lostValues(before, after);
+  if (!lost.length || (before?.saved_meals ?? []).length) return null;
+  const current = (snapshot) => (snapshot?.items ?? []).filter((item) => item.superseded_at === null);
+  const key = (item) => String(item.name ?? '').trim().toLowerCase();
+  const was = current(before), now = current(after), steps = new Map();
+  for (const label of lost) {
+    const match = /^food (\d+): nutrient (\d+)$/.exec(label);
+    if (!match || NOT_CARRIED.has(Number(match[2]))) return null;
+    const old = was[Number(match[1]) - 1], id = Number(match[2]);
+    const same = (items) => items.filter((item) => key(item) === key(old));
+    const fresh = same(now);
+    if (fresh.length !== 1 || same(was).length !== 1 || old.portion_grams == null || Number(old.portion_grams) !== Number(fresh[0].portion_grams) || !fresh[0].nutrition) return null;
+    const nutrients = fresh[0].nutrition.micronutrients;
+    if (!Array.isArray(nutrients) || !nutrients.every((n) => n?.basis === 'portion')) return null;
+    const entry = (Array.isArray(old.nutrition?.micronutrients) ? old.nutrition.micronutrients : []).find((n) => Number(n?.nutrientId) === id && n.value != null);
+    if (!entry || entry.basis !== 'portion') return null;
+    const step = steps.get(fresh[0].id) ?? { item: fresh[0].id, entries: [], lost: [] };
+    step.entries.push(entry); step.lost.push(label); steps.set(fresh[0].id, step);
+  }
+  return [...steps.values()];
 }
 
 // Pure: why a finished meal is put back, or null (the PM's rules of 2026-11-17 for #989).
@@ -396,7 +430,17 @@ async function run(request) {
         else { row.outcome = 'failed'; row.reason = waitResult.totals.status === 'needs_input' ? 'the meal now asks its owner a question (needs_input)' : 'the meal is failed'; }
         if (!waitResult.timedOut) {
           const afterLine = psql({ file: sqlFile('08-snapshot.sql'), vars: { prefixes: prefix } }).split('\n').find((line) => line && JSON.parse(line).post?.id === id);
-          if (afterLine) { appendPrivate(ledger, 'after.jsonl', afterLine); row.values_lost = lostValues(JSON.parse(snapshot), JSON.parse(afterLine)); }
+          if (afterLine) {
+            appendPrivate(ledger, 'after.jsonl', afterLine); row.values_lost = lostValues(JSON.parse(snapshot), JSON.parse(afterLine));
+            const carry = row.outcome === 'failed' ? null : carryPlan(JSON.parse(snapshot), JSON.parse(afterLine));
+            if (carry) {
+              for (const step of carry) psql({ file: sqlFile('16-carry.sql'), vars: { post: id, item: step.item, entries: JSON.stringify(step.entries) } });
+              const carried = psql({ file: sqlFile('08-snapshot.sql'), vars: { prefixes: prefix } }).split('\n').find((line) => line && JSON.parse(line).post?.id === id);
+              if (carried) { appendPrivate(ledger, 'after.jsonl', carried); row.values_lost = lostValues(JSON.parse(snapshot), JSON.parse(carried)); }
+              else row.values_lost = ['the meal could not be read after its carry'];
+              if (!row.values_lost.length) row.values_carried = carry.flatMap((step) => step.lost);
+            }
+          }
           else row.values_lost = ['the meal could not be read after its run'];
           const why = restoreReason(row);
           if (why) {
@@ -414,7 +458,7 @@ async function run(request) {
     if (row.outcome === 'skipped') row.after = row.before;
     appendPrivate(ledger, 'ledger.jsonl', JSON.stringify(row));
     rows.push(row); outcomes.push(row.outcome);
-    console.log(`${prefix}  ${row.outcome}${row.reason ? ` (${row.reason})` : ''}${row.restore_reason ? ` [put back: ${row.restore_reason}${row.restored ? '' : '; the restore did not finish'}]` : ''}  kcal ${fmt(row.before?.calories)} -> ${fmt(row.after?.calories)}  waited ${row.seconds_waited} s`);
+    console.log(`${prefix}  ${row.outcome}${row.reason ? ` (${row.reason})` : ''}${row.values_carried ? ` [carried: ${row.values_carried.join('; ')}]` : ''}${row.restore_reason ? ` [put back: ${row.restore_reason}${row.restored ? '' : '; the restore did not finish'}]` : ''}  kcal ${fmt(row.before?.calories)} -> ${fmt(row.after?.calories)}  waited ${row.seconds_waited} s`);
   } } catch (error) { broken = error; }
   console.log('\n' + summaryTable(rows));
   if (broken) { console.error(`\nSTOPPED at meal ${meals[rows.length].prefix}: ${broken.message} Its ledger line was not written; read its state before going on.`); return EXIT.incomplete; }
