@@ -10,6 +10,9 @@ import { scaleNutrition } from "@/lib/fdc/nutrients";
 import { markReady, refreshOperatorSavedMeal } from "@/lib/pipeline/persist";
 import { toNumber, type CurrentItem, type NutritionLike, type StoredNutrient } from "@/lib/nutrition/totals";
 
+// The nutrition sources that scripts/numbers/11-rematch.sql carries over: a barcode, a label or the person's own numbers.
+export const PACKAGE_SOURCE = /^(barcode:|off:|label|user:)/;
+
 export default async function recompute(admin: SupabaseClient, job: JobRow): Promise<void> {
   if (!job.post_id) throw new Error("recompute: post is required.");
   if(job.payload.reason==='media_removed'||job.payload.reason==='correction_reverted'){await rebuildRemoved(admin,job);return;}
@@ -39,7 +42,9 @@ export default async function recompute(admin: SupabaseClient, job: JobRow): Pro
       }
       // Resolve all item data before issuing the one atomic nutrition write.
       const retained = await resolvePortionNutrition(admin, job.post_id!, item.supersedes, item.name, item.portion_grams, item.portion_text,signal);
-      if (retained && !nutritionUnavailable(retained)) return {...retained,post_item_id:item.id};
+      // #989: a barcode, label or typed row came from the package or the person, not from a USDA search. A search by
+      // its name cannot do better (a label's 140 kcal became NULL under the name "Packaged food"), so it is kept as it is.
+      if (retained && (!nutritionUnavailable(retained) || PACKAGE_SOURCE.test(retained.source_ref ?? ""))) return {...retained,post_item_id:item.id};
       const match = await resolveFoodMatchDetailed(admin,item.name,context.caption??"",signal,{approximate:true});
       const n = scaleNutrition(match.food, item.portion_grams == null ? null : toNumber(item.portion_grams), match.unavailable);
       return {
