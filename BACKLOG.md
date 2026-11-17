@@ -1,6 +1,6 @@
 # My Food AI — Backlog†
 
-Last edited: Wednesday 2026-11-18 at 04:33 WIB (UTC+07:00) by Claude, PM
+Last edited: Wednesday 2026-11-18 at 06:11 WIB (UTC+07:00) by Claude, PM
 
 For the owner (Tue Nov 17, 19:11 WIB): The PM cannot talk to the designer. The PM seat has no browser tool, so it cannot open the designer's chat in claude.ai and type into it. Five backlog items are waiting for the designer to choose a place, a look or an audit: the barcode prompt over the live camera (#453), what the card you swipe to on a drink's photo shows (#455), how much of an alcoholic drink was drunk (#457), what places that wait on the network show while they wait (#631), and the controls on Days, Search, Profile and the capture modes (#555). To unblock them, paste those five titles into the designer's chat and ask for a look for each, or give the PM seat a browser tool. Nothing else waits on you.
 
@@ -32,12 +32,6 @@ On the owner's phone, adding a leftovers photo to a meal failed with "Upload fai
 
 The owner's screenshots (Fri Nov 6, 2:40 PM and 2:43 PM WIB, iPhone on 5G) show the failed card in the Today feed under his 2:35 PM post. It says "Not posted yet. The photo is kept on this phone." and offers only Try again. The chip sits over the post and the floating tab bar and covers the nutrition numbers. The owner reports that closing and reopening the app does not clear it. A third screenshot, Tue Nov 10 at 12:18 PM WIB, shows the same red chip still over the Today feed four days after the first failure, so the stuck state does not expire. Owner, Nov 15, 10:50 PM WIB (iPhone, 5G): a screenshot of the Fri Nov 6 2:35 PM post shows the same "Leftovers, Not saved · Try again" chip nine days later, sitting over the post's nutrition numbers and above the tab bar. He reports that pressing Try again only brings back an error and the leftovers never save. The error text was not captured. This looks like the same family as #644 (a failed attachment upload that nothing removes), but that is not confirmed. Not known: what failed the first time, whether Try again works, and where the phone keeps the failed upload. Related items: #570, #578, #644 and #625. GrokBot's leftovers attach on a judge account on Nov 5 closed in 5,049 ms and did not fail, so this is not reproduced. Observe first: read the owner's failed attachment job and its error from the jobs table and the model-call log (read-only), then fail a leftovers upload on a judge account on purpose and look for what the phone stores. Done when the error behind this failure is written down, a leftovers photo saves on the first try or on Try again in a phone-sized browser, a failed upload can be dismissed or removed by the user and stays gone after the app is reopened, and the chip does not cover the post's nutrition numbers. Fleet 21 independent source read, Nov 16 (investigators' report): PR 912 puts Remove in a fixed-height row (h-14) inside an overflow-hidden container (UploadChip.tsx line 30), so the source supports the clipping. Nobody repeated the browser measurement. Fleet 21, Nov 16 (coder, local, PR 912): the phone's new Remove button works and stays gone after a reload. On desktop the sidebar chip ends at y=364 and Remove begins at y=374.13, so Remove is clipped; it was left unfixed under the plan's rule. The original failure cause is not found and the chip over the nutrition numbers is not addressed. Merged in #912 on Nov 16 (coder report). Fleet 21 independent source read of the fixed head 50ea5f70, Nov 16: the clipping is fixed (UploadChip.tsx line 30 now uses a minimum height); the retained Firefox receipt shows the chip ending at 422.25 px with Remove at 411.70 px at 1280 wide, and 748 px with 737.45 px at 390 wide; no fresh browser run. Owner, Tue Nov 17, 1:24 PM WIB (iPhone, 5G): a Home screenshot shows the same "Leftovers, Not saved · Try again" chip, now with Remove beside it, floating over his 1:15 PM post ("Pork crackling and pasta and more pork. Oink.", 730 kcal) and covering that post's caption and nutrition line above the tab bar. He could not add the leftovers photo to this new meal either, so the failure repeats on a new meal and is not specific to the Nov 6 post. The error text was not captured.
 
-### #988 A drink whose matched record has no category is not counted as a drink
-
-A drink whose USDA record has no beverage category can be left out of the drink totals.
-
-The cola records behind #377 are the known case. Done when such a drink counts as a drink, with its caffeine, on the card and in the day total.
-
 ### #987 An estimated coffee or tea never stores caffeine
 
 A coffee or tea whose numbers come from a model estimate shows no caffeine, because an estimate holds no caffeine value.
@@ -62,12 +56,6 @@ A photo added to a meal can stay on "Uploading" forever, and the chip still says
 
 No request in the added-photo path has a time limit (pack-photo-upload.ts, upload-manager.ts line 271); the chip's title is in UploadChip.tsx line 30. Done when a request that never answers fails after a set time, the chip shows the failure, and its title does not claim uploading when every post has failed.
 
-### #120 Home refreshes its whole server page every minute while it is visible
-
-While Home is open, it reloads its whole server page once a minute and on every return to the tab, which costs reads and can make the page jump.
-
-The refresh sits in PostReadinessListener.tsx (lines 79 to 80). The Fleet 24 audit found it. Done when Home refreshes only what changed, or only when a meal is waiting, and a Home open with only finished meals makes no minute refresh.
-
 ### #973 A meal with no photo shows two differently worded failure sentences
 
 A meal with no photo that failed its first analysis can show two different sentences for the same failure.
@@ -79,18 +67,6 @@ The photo area reads "This meal could not be analysed." while the card reads its
 On a meal's page, returning to the tab can leave the "updating" check waiting before it looks again.
 
 The poll in OutlineOverlay.tsx (lines 181 to 190) has no listener for a return to the tab. #753 covers the same gap in the thread. Done when returning to the tab starts a check within one second.
-
-### #456 A rum cocktail is logged with 15 mg caffeine
-
-The tiki cocktail post states caffeine that the drink does not contain.
-
-The drink card for the lime and rum tiki cocktail read "15 mg caffeine" next to 196 kcal, and the day's caffeine total read 110 mg. Fixed on main: the tiki cocktail (owner post 8535b793) now shows 196 kcal and 18 g alcohol with no caffeine on the meal page, and a glass of red wine shows 16 g alcohol and 128 kcal with no caffeine. The Nov 3 day total was not read. GitHub shows this issue closed. GrokBot, Nov 5: FAIL. Tiki cocktail 8535b793 shows 196 kcal and 18 g alcohol, but Show all lists Caffeine 15.4 mg and the Nov 3 day total shows Caffeine 95. PM ruling: the defect stands, even though the card no longer leads with caffeine. GrokBot, Nov 15: Show all still lists caffeine on the tiki cocktail 8535b793 (15.4 mg), 8b728c7e (15.4 mg) and 8ab2eccb (14 mg). Done when a cocktail or any drink with no caffeine source logs no caffeine, the card shows none, and the day's total leaves it out, checked on the tiki cocktail and a glass of wine.
-
-### #377 Existing photographed drink posts show no caffeine
-
-A photographed cola posted before Fleet 9 shows no caffeine on its card or in the day's total.
-
-The cola records hold 29.7 mg of caffeine from the USDA but have no beverage category and no linked intake rows. The fix covers new and re-analysed posts only. A backfill fixed 8 posts, and 12 still fail the intake rules. GrokBot, Nov 15: the old colas now show caffeine on the card and in the day total, but the Oct 29 black coffee (post 4dfe4411) shows no caffeine anywhere and is listed at 112 kcal, which is far too high for black coffee. Done when existing photographed drink posts show their stored caffeine on the card and in the day's total.
 
 ### #222 The feed fails to open, and photos and cards take too long to appear
 
@@ -104,12 +80,6 @@ On the phone Days screen, the month name at the top can show the wrong month, an
 
 Two defects in a live change were reproduced with made-up test months, not on the owner's phone. First, the month name can keep showing October while November scrolls into view; this cannot appear on any production account today because two months fit on one screen, so it is proven only on the disposable stack with three seeded months. Second, scrolling while an older month loads makes the screen jump back to an old position. A third review finding was cut off and is unknown. Done when, on the disposable stack with three seeded months, the month name shows the month nearest the top of the screen while scrolling across the October and November boundary, and the screen stays still while an older month loads. Fleet 21 check, Nov 16: three months were already loaded with only 47 px of upward scroll, no boundary crossed the sticky line, and the header and insertion behaviour were not verified.
 
-### #454 The Days page is not one continuous calendar
-
-Days cuts the calendar into separate month blocks, which no calendar app does, so the user cannot scroll through time as one run of weeks.
-
-On the phone, Days shows November 2026 and October 2026 as two separate blocks, each with its own heading, and the newest month sits on top. Days becomes one continuous calendar: the weeks run on from one to the next in time order with no break, the month name marks where each month starts, and Days opens with today in view. GrokBot, Nov 5: the phone Days page shows October running into November in one scrolling grid, but it did not open with today in view (todayInView false, October heading), and the sticky month name across the boundary is not proven. Done when scrolling Days moves through unbroken weeks from October into November, the month names mark where each month starts, and Days opens on today, in a phone-sized browser.
-
 ### #955 The meal header's date line can be clipped inside its fixed-height row
 
 The date line under a meal's header can be cut off, so the person cannot read when the meal was eaten.
@@ -121,12 +91,6 @@ The header row is a fixed 52 px (PostDetailHeader.tsx lines 66 to 68). Issues #7
 Feed photos are too large for a phone on mobile data, so the first photo is slow and the app spends more storage egress than it needs. A phone should receive a small copy sized for its screen.
 
 The feed serves immutable WebP copies at 1920 px (default), 1040 px (2x) and 1560 px (3x) with a one-year cache header. On production the first feed photo appeared at 4.09 s and 4.05 s on a cold open with slow 4G at 390 wide, against a 2 s target. It was the 1560 copy, 50,076 bytes, rendered 390 by 520. One line in docs/media-loading.md still says "no-store". GrokBot, Nov 5: FAIL. On a cold open at slow 4G and 390 wide, three runs showed the first feed photo at 6.96 s, 8.49 s and 7.20 s (about 4.05 s in Fleet 18). The photo is v2-1560.webp, 91,542 bytes, cache-control private, max-age=31536000, immutable, with a natural width of 390 against a 390-wide card, a ratio of 1.0 where the done line needs 2. GrokBot, Nov 15: the first photo took 3.4 s on a judge account (78,522 bytes) and 2.7 s on the owner account (42,986 bytes), still over 2 s. Done when a browser helper on production records the bytes and the cache header of the first feed photo, the first photo shows within two seconds at the slow-network test profile, and the stored photo is at least twice as wide in pixels as the card it fills, for photos captured since the sharper camera (old 480 × 640 photos cannot meet it).
-
-### #494 Opening a meal's detail takes 14 seconds
-
-The owner reports 14 seconds from tapping a meal to its detail page opening. He calls it not acceptable.
-
-The owner measured 14 seconds on an iPhone on mobile data in Indonesia; that cannot be re-measured. On production with slow 4G, a usable detail opens in 1.96 to 2.45 s on desktop and 1.64 to 1.74 s at 390 wide. The page makes 24 to 25 requests, eight repeated, and desktop downloads two 0.feed.jpg originals of about 480 to 496 KB although the feed copy is already on screen. GrokBot, Nov 5: desktop still downloads two 480 to 496 KB 0.feed.jpg originals, so the done line fails. The owner's 14 s on an iPhone cannot be re-measured and is no longer required. Done when the detail opens within two seconds at the slow-network test profile on desktop and at 390 wide, and the two large originals are not downloaded.
 
 ### #693 Voice input exists only in the comment box on a meal
 
@@ -362,23 +326,11 @@ The designer has not read their controls yet. Add them to the table from #217 wi
 
 ## In flight
 
-### #990 Revisit the stored numbers: the meals that pass every rule, the other accounts, and saved meals
-
-Meals that pass every rule can still be wrong, and other accounts and saved meals hold numbers too.
-
-This is the last step of the revisit, after #989. Done when a sample of passing meals is checked against an independent estimate, and the other accounts and saved meals are re-analysed or listed with their reason.
-
 ### #937 Opening an uploading meal's address returns repeated not-found errors
 
 While a meal is still uploading, requests for its own address are answered not found, over and over.
 
 Fleet 21 check K15 saw sixteen not-found answers from detail prefetches while two meals uploaded; both meals still reached ready. What a person sees and the cause are not known. Done when the cause is found and an uploading meal's address produces no not-found request, or the errors are shown to be harmless and why.
-
-### #1021 Check on production the card, first comment and day total of three re-matched meals
-
-Three meals kept changed calorie totals after the team re-matched them, and nobody has yet looked at them on production.
-
-The meals are f1439c72 (stored 564.85 kcal), e31fd9af (687.8 kcal) and 5711e19c (373.6 kcal). The changed totals are not proof that the numbers are right. Fleet 28 also kept changed totals for `38de279e` (repaired) and `509ef9bc`, and Fleet 29 kept the changed butter meal `f08e2e86` (590.75 kcal), and Fleet 30 kept `1c18b87e` (protein and carbohydrate filled) and `1c4f16bf` (duplicate milk removed, 156.2 kcal). Done when someone opens each of the eight meals on production and records the card's calories, the first model comment's calories, and that day's total, with the displayed rounding, and they agree with the stored values.
 
 ### #1041 The overlapping first-upload 404 count has still not been measured
 
@@ -386,11 +338,35 @@ When two meals upload at once, the app may request a meal's own address before i
 
 The Fleet 30 check could not observe the first "Uploading" card, so it measured nothing. #937 describes the original report. Done when two overlapping uploads are run, and the count of not-found answers under /posts/ is recorded, with the number of uploads that reached ready.
 
-### #1040 The double-count removal SQL has no explicit row lock around its readiness check
+### #1049 The overlapping first-upload check has an empty response cohort, so zero not-found answers proves nothing
 
-The command that removes a double-counted food checks that the meal is ready and has no queued job, but it does not lock the meal while it does so.
+The Fleet 31 check of two overlapping uploads saw both meals ready in 7.9 seconds, but it matched no responses under /posts/ at all, so its count of zero is not evidence.
 
-A queue change that arrives between the check and the write would not be caught, and the sequential tests do not prove otherwise. The reviewer of the removal (#1037) noted it as Minor. Done when the check and the write hold a row lock on the meal, and a test shows a concurrent change is refused.
+The helper's response filter matched nothing on the builder's run, although it matched two or three on the planner's. Done when the check records at least one matching response, or shows why there is none, and then counts the not-found answers. #937 and #1041 describe the original report.
+
+### #1048 The saved-meal report's numeric casts assume valid legacy JSON
+
+The read-only saved-meal report can fail or misread if an old stored value is not valid JSON.
+
+The report (19-saved.sql) casts stored legacy values to numbers without checking them. Done when the report skips or flags a row whose stored value is not a valid number, and a test shows it.
+
+### #1047 Unexpected errors in the removal concurrency test leave child processes running
+
+If the new removal concurrency test fails in an unexpected way, the helper processes it started can keep running.
+
+The review of #1044 noted that the test has no explicit child kills. Done when every child process the test starts is stopped on any exit, including an unexpected error.
+
+### #990 Revisit the stored numbers: the meals that pass every rule, the other accounts, and saved meals
+
+Meals that pass every rule can still be wrong, and other accounts and saved meals hold numbers too.
+
+This is the last step of the revisit, after #989. Done when a sample of passing meals is checked against an independent estimate, and the other accounts and saved meals are re-analysed or listed with their reason.
+
+### #456 A rum cocktail is logged with 15 mg caffeine
+
+The tiki cocktail post states caffeine that the drink does not contain.
+
+The drink card for the lime and rum tiki cocktail read "15 mg caffeine" next to 196 kcal, and the day's caffeine total read 110 mg. Fixed on main: the tiki cocktail (owner post 8535b793) now shows 196 kcal and 18 g alcohol with no caffeine on the meal page, and a glass of red wine shows 16 g alcohol and 128 kcal with no caffeine. The Nov 3 day total was not read. GitHub shows this issue closed. GrokBot, Nov 5: FAIL. Tiki cocktail 8535b793 shows 196 kcal and 18 g alcohol, but Show all lists Caffeine 15.4 mg and the Nov 3 day total shows Caffeine 95. PM ruling: the defect stands, even though the card no longer leads with caffeine. GrokBot, Nov 15: Show all still lists caffeine on the tiki cocktail 8535b793 (15.4 mg), 8b728c7e (15.4 mg) and 8ab2eccb (14 mg). Done when a cocktail or any drink with no caffeine source logs no caffeine, the card shows none, and the day's total leaves it out, checked on the tiki cocktail and a glass of wine.
 
 ## Interdit (Not part of Hackathon)
 
