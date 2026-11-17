@@ -1,0 +1,415 @@
+#!/usr/bin/env node
+// Re-analyse or re-match a list of meals, one at a time, keeping every old row, and restore any of them.
+// It runs the SQL files beside it (08, 09, 11, 12, 13) through psql and wakes the worker with /api/jobs/tick.
+// Usage and rules: node scripts/numbers/reanalyse.mjs --help, and scripts/numbers/README.md.
+import { spawnSync } from 'node:child_process';
+import { appendFileSync, chmodSync, existsSync, mkdirSync, readFileSync, realpathSync } from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath, pathToFileURL } from 'node:url';
+import { parseArgs as parseNodeArgs } from 'node:util';
+
+const here = path.dirname(fileURLToPath(import.meta.url));
+const sqlFile = (name) => path.join(here, name);
+export const MODE_FILES = { rematch: '11-rematch.sql', reanalyse: '12-reanalyse.sql' };
+export const EXIT = { ok: 0, incomplete: 1, stopped: 3, usage: 4 };
+export const WAIT_HARD_MAX_SECONDS = 600;
+const POLL_SECONDS = 10, TICK_SECONDS = 60, FIRST_POLL_SECONDS = 2;
+const NIL_UUID = '00000000-0000-0000-0000-000000000000';
+
+export const HELP = `Re-analyse or re-match meals one at a time, keeping their old rows, and restore any of them.
+
+  node scripts/numbers/reanalyse.mjs run --mode=rematch|reanalyse
+       (--meals=<prefix,prefix,...> | --meals-file=<path>) --ledger=<directory>
+       [--max-meals=10] [--max-minutes=45] [--wait-seconds=300] [--dry-run]
+  node scripts/numbers/reanalyse.mjs restore --meal=<prefix> --ledger=<directory> [--snapshot=last|first]
+       [--wait-seconds=300]
+
+Environment: SUPABASE_DB_URL (psql connection) and APP_URL (the app whose /api/jobs/tick wakes the worker).
+psql must be on PATH. Nothing else is read.
+
+run
+  --mode=rematch      11-rematch.sql: same foods and portions, nutrition looked up again.
+  --mode=reanalyse    12-reanalyse.sql: the photos are read again from the start.
+  --meals             comma-separated 8-character meal id prefixes, worked in the order given.
+  --meals-file        the same, one prefix per line; blank lines and lines starting with # are ignored.
+  --ledger            a private directory OUTSIDE the repository. It receives snapshots.jsonl (the full
+                      rows of each meal before it is touched: the only way back) and ledger.jsonl (one
+                      line per meal, prefixes only). Made with mode 0700; the files with mode 0600.
+  --max-meals         stop after this many meals (default 10).
+  --max-minutes       stop when this much wall clock has passed since the command started (default 45).
+  --wait-seconds      longest wait for one meal (default 300, never more than ${WAIT_HARD_MAX_SECONDS}).
+  --dry-run           resolve the prefixes and print what would be done. Writes nothing, takes no snapshot.
+
+  Every prefix must match exactly one meal that is not deleted, or nothing is started.
+  A meal the SQL file's own guards refuse is recorded as skipped and the run goes on.
+  The next meal starts only when the previous one is ready (or was skipped, or failed for good).
+  The run stops, and says why, when: --max-meals is reached; --max-minutes is used up; two meals in a
+  row failed or timed out; more than one in ten meals failed (after at least 10); or a meal is still
+  being worked when its wait runs out.
+
+restore
+  Puts one meal back as its snapshot in <ledger>/snapshots.jsonl recorded it, with 13-restore.sql.
+  --snapshot=last (default) uses the newest snapshot of that meal: it undoes the latest run.
+  --snapshot=first uses the oldest: the meal as it was before the first run with this ledger.
+  A meal left "failed" is first set back to "ready" with its analysis time from the snapshot.
+
+Exit codes: 0 every meal changed, unchanged or skipped (restore: work was queued and the meal is ready);
+            1 incomplete: a meal failed, timed out, or the restore SQL refused;
+            3 a stop condition fired; 4 usage or guard error (nothing was started).`;
+
+export class UsageError extends Error {}
+
+function positiveInt(text, name, max) {
+  if (!/^[1-9][0-9]*$/.test(String(text))) throw new UsageError(`${name} must be a whole number above zero.`);
+  const n = Number(text);
+  if (max && n > max) throw new UsageError(`${name} cannot be more than ${max}.`);
+  return n;
+}
+
+export function parsePrefixes(text) {
+  const list = String(text).split(/[\s,]+/).map((x) => x.trim().toLowerCase()).filter(Boolean);
+  if (!list.length) throw new UsageError('No meal prefixes were given.');
+  for (const p of list) if (!/^[0-9a-f]{8}$/.test(p)) throw new UsageError(`"${p.slice(0, 20)}" is not an 8-character meal id prefix.`);
+  const twice = list.find((p, i) => list.indexOf(p) !== i);
+  if (twice) throw new UsageError(`Prefix ${twice} is listed twice.`);
+  return list;
+}
+
+export function parseMealsFile(text) {
+  return parsePrefixes(String(text).split('\n').map((line) => line.trim()).filter((line) => line && !line.startsWith('#')).join(','));
+}
+
+// Pure: turns argv (after "node script") into a checked request. Throws UsageError.
+export function parseArgs(argv, readFile = (file) => readFileSync(file, 'utf8')) {
+  if (argv.includes('--help') || argv.includes('-h')) return { command: 'help' };
+  const [command, ...rest] = argv;
+  if (!['run', 'restore'].includes(command)) throw new UsageError('Use "run" or "restore". See --help.');
+  let values;
+  try {
+    ({ values } = parseNodeArgs({ args: rest, allowPositionals: false, strict: true, options: {
+      mode: { type: 'string' }, meals: { type: 'string' }, 'meals-file': { type: 'string' }, meal: { type: 'string' },
+      ledger: { type: 'string' }, 'max-meals': { type: 'string' }, 'max-minutes': { type: 'string' },
+      'wait-seconds': { type: 'string' }, 'dry-run': { type: 'boolean' }, snapshot: { type: 'string' } } }));
+  } catch (error) { throw new UsageError(error.message); }
+  if (!values.ledger) throw new UsageError('--ledger=<private directory outside the repository> is required.');
+  const waitSeconds = positiveInt(values['wait-seconds'] ?? 300, '--wait-seconds', WAIT_HARD_MAX_SECONDS);
+  if (command === 'restore') {
+    for (const key of ['mode', 'meals', 'meals-file', 'max-meals', 'max-minutes', 'dry-run']) if (values[key] !== undefined) throw new UsageError(`--${key} is not a restore option.`);
+    if (!values.meal) throw new UsageError('--meal=<8-character prefix> is required.');
+    const [meal, more] = parsePrefixes(values.meal);
+    if (more) throw new UsageError('restore takes one meal.');
+    const snapshot = values.snapshot ?? 'last';
+    if (!['last', 'first'].includes(snapshot)) throw new UsageError('--snapshot is last or first.');
+    return { command, meal, ledger: values.ledger, snapshot, waitSeconds };
+  }
+  for (const key of ['meal', 'snapshot']) if (values[key] !== undefined) throw new UsageError(`--${key} is not a run option.`);
+  if (!Object.hasOwn(MODE_FILES, values.mode ?? '')) throw new UsageError('--mode=rematch or --mode=reanalyse is required.');
+  if ((values.meals === undefined) === (values['meals-file'] === undefined)) throw new UsageError('Give exactly one of --meals and --meals-file.');
+  let meals;
+  if (values.meals !== undefined) meals = parsePrefixes(values.meals);
+  else {
+    let text;
+    try { text = readFile(values['meals-file']); } catch { throw new UsageError('The --meals-file could not be read.'); }
+    meals = parseMealsFile(text);
+  }
+  return { command, mode: values.mode, meals, ledger: values.ledger, dryRun: values['dry-run'] === true, waitSeconds,
+    maxMeals: positiveInt(values['max-meals'] ?? 10, '--max-meals'), maxMinutes: positiveInt(values['max-minutes'] ?? 45, '--max-minutes') };
+}
+
+// Pure: is child the same as, or inside, parent? Both absolute.
+export function isInside(parent, child) {
+  const rel = path.relative(parent, child);
+  return rel === '' || (!rel.startsWith('..' + path.sep) && rel !== '..' && !path.isAbsolute(rel));
+}
+
+// Pure: the reason a ledger directory is refused, or null. roots are the repository directories to stay out of.
+export function ledgerRefusal(ledger, roots) {
+  for (const root of roots.filter(Boolean)) if (isInside(root, ledger)) return `The ledger directory is inside the repository (${root}). It holds private rows; choose a directory outside it.`;
+  return null;
+}
+
+// Follows symlinks for the part of the path that already exists.
+function realPath(target) {
+  let existing = path.resolve(target); const tail = [];
+  while (!existsSync(existing) && path.dirname(existing) !== existing) { tail.unshift(path.basename(existing)); existing = path.dirname(existing); }
+  return path.join(realpathSync(existing), ...tail);
+}
+
+function repositoryRoots() {
+  const roots = [realPath(path.resolve(here, '..', '..'))];
+  const git = spawnSync('git', ['rev-parse', '--show-toplevel'], { encoding: 'utf8' });
+  if (!git.error && git.status === 0 && git.stdout.trim()) roots.push(realPath(git.stdout.trim()));
+  return roots;
+}
+
+// Pure: why the run must not start another meal, or null.
+// outcomes: the outcomes so far, in order. started: how many meals have been worked. remaining: how many are left.
+export function stopReason({ outcomes, started, remaining, maxMeals, maxMinutes, elapsedMinutes, previousInFlight = false }) {
+  if (remaining <= 0) return null;
+  if (previousInFlight) return 'the previous meal is still being worked after its wait ran out; meals are worked one at a time';
+  const bad = (o) => o === 'failed' || o === 'timeout';
+  if (outcomes.length >= 2 && outcomes.slice(-2).every(bad)) return 'two meals in a row failed or timed out';
+  const failed = outcomes.filter((o) => o === 'failed').length;
+  if (outcomes.length >= 10 && failed * 10 > outcomes.length) return `more than one in ten meals failed (${failed} of ${outcomes.length})`;
+  if (started >= maxMeals) return `--max-meals reached (${maxMeals})`;
+  if (elapsedMinutes >= maxMinutes) return `--max-minutes used up (${maxMinutes})`;
+  return null;
+}
+
+const NUMBERS = ['items', 'calories', 'protein_g', 'carbs_g', 'fat_g'];
+
+// Pure: changed or unchanged, from the two totals.
+export function compareTotals(before, after) {
+  return NUMBERS.every((key) => Number(before?.[key] ?? NaN) === Number(after?.[key] ?? NaN) || (before?.[key] == null && after?.[key] == null)) ? 'unchanged' : 'changed';
+}
+
+// Pure: (after - before) / before, rounded to four places; null when there is no "before" to divide by.
+export function relativeChange(before, after) {
+  if (before == null || after == null || Number(before) === 0) return null;
+  return Math.round(((Number(after) - Number(before)) / Number(before)) * 10000) / 10000;
+}
+
+// Pure: the snapshot of one meal out of the text of snapshots.jsonl (only snapshots of a ready meal count). Throws UsageError when there is none or two meals share the prefix.
+export function findSnapshot(text, prefix, which = 'last') {
+  const found = [];
+  for (const line of String(text).split('\n')) {
+    if (!line.trim()) continue;
+    let snapshot;
+    try { snapshot = JSON.parse(line); } catch { continue; }
+    if (typeof snapshot?.post?.id === 'string' && snapshot.post.id.startsWith(prefix) && snapshot.post.status === 'ready') found.push(snapshot);
+  }
+  if (!found.length) throw new UsageError(`No snapshot of meal ${prefix} is in this ledger.`);
+  if (new Set(found.map((s) => s.post.id)).size > 1) throw new UsageError(`Two different meals in this ledger start with ${prefix}.`);
+  return { snapshot: which === 'first' ? found[0] : found.at(-1), count: found.length };
+}
+
+// Pure: what 13-restore.sql needs, from one snapshot line.
+export function restoreParams(snapshot) {
+  const oldIds = (snapshot.items ?? []).filter((item) => item.superseded_at === null).map((item) => item.id);
+  if (!oldIds.length) throw new UsageError('The snapshot has no current items to put back.');
+  for (const id of oldIds) if (!/^[0-9a-f-]{36}$/.test(id)) throw new UsageError('The snapshot holds an item id that is not a uuid.');
+  const summary = (snapshot.comments ?? []).find((comment) => comment.author === 'model');
+  return { post: snapshot.post.id, old_ids: `{${oldIds.join(',')}}`, summary_comment_id: summary?.id ?? NIL_UUID, old_summary: summary?.body ?? '',
+    analysis_initialized_at: snapshot.post.analysis_initialized_at ?? '' };
+}
+
+const fmt = (value, digits = 1) => (value == null ? '-' : Number(value).toFixed(digits));
+
+// Pure: the table printed at the end. Prefixes only.
+export function summaryTable(rows) {
+  const head = ['meal', 'mode', 'outcome', 'items', 'kcal before', 'kcal after', 'change', 'waited s', 'model calls'];
+  const body = rows.map((r) => [r.meal, r.mode, r.outcome, `${r.before?.items ?? '-'} -> ${r.after?.items ?? '-'}`, fmt(r.before?.calories), fmt(r.after?.calories),
+    r.calories_change == null ? '-' : `${(r.calories_change * 100).toFixed(1)}%`, String(r.seconds_waited ?? 0), String(r.model_calls ?? 0)]);
+  const widths = head.map((h, i) => Math.max(h.length, ...body.map((row) => row[i].length)));
+  const line = (cells) => cells.map((cell, i) => cell.padEnd(widths[i])).join('  ').trimEnd();
+  const counts = {};
+  for (const r of rows) counts[r.outcome] = (counts[r.outcome] ?? 0) + 1;
+  const sum = (pick) => rows.reduce((total, r) => total + Number(pick(r) ?? 0), 0);
+  return [line(head), line(widths.map((w) => '-'.repeat(w))), ...body.map(line), '',
+    `Totals: ${rows.length} meal(s): ${Object.entries(counts).map(([k, v]) => `${v} ${k}`).join(', ') || 'none'}; ` +
+    `kcal ${fmt(sum((r) => r.before?.calories))} -> ${fmt(sum((r) => r.after?.calories))}; ${sum((r) => r.model_calls)} model call(s); ${sum((r) => r.seconds_waited)} s waited.`].join('\n');
+}
+
+// ---- database and worker (not pure) ----
+
+function psql({ file, input, vars = {}, extra = [] }) {
+  const args = ['-X', '-At', '-v', 'ON_ERROR_STOP=1', '--dbname', process.env.SUPABASE_DB_URL, ...extra];
+  for (const [key, value] of Object.entries(vars)) args.push('-v', `${key}=${value}`);
+  if (file) args.push('-f', file);
+  const result = spawnSync('psql', args, { encoding: 'utf8', input: file ? undefined : input, timeout: 120000, maxBuffer: 256 * 1024 * 1024 });
+  if (result.error) throw new Error(`psql could not be run: ${result.error.code ?? result.error.message}`);
+  if (result.status !== 0) throw new Error(`psql failed: ${String(result.stderr).trim().split('\n').slice(-3).join(' ')}`);
+  return result.stdout;
+}
+
+const one = (sql, vars) => psql({ input: sql, vars }).trim();
+
+function resolvePrefixes(prefixes) {
+  const rows = one(`select left(id::text, 8) || ' ' || id::text from public.posts
+    where deleted_at is null and left(id::text, 8) = any(string_to_array(:'prefixes', ',')) order by 1;`, { prefixes: prefixes.join(',') });
+  const ids = new Map(prefixes.map((p) => [p, []]));
+  for (const row of rows.split('\n').filter(Boolean)) { const [prefix, id] = row.split(' '); ids.get(prefix)?.push(id); }
+  const problems = prefixes.filter((p) => ids.get(p).length !== 1).map((p) => `${p} matches ${ids.get(p).length === 0 ? 'no meal that is not deleted' : `${ids.get(p).length} meals`}`);
+  if (problems.length) throw new UsageError(`Nothing was started: ${problems.join('; ')}.`);
+  return prefixes.map((prefix) => ({ prefix, id: ids.get(prefix)[0] }));
+}
+
+// Current items of one meal: count and sums, the meal's status, and whether a job for it is queued or running.
+function readTotals(post) {
+  const text = one(`select json_build_object('status', p.status, 'items', count(i.id), 'calories', sum(n.calories), 'protein_g', sum(n.protein_g),
+      'carbs_g', sum(n.carbs_g), 'fat_g', sum(n.fat_g), 'deleted', p.deleted_at is not null,
+      'job_in_flight', exists (select 1 from public.jobs j where j.post_id = p.id and j.status in ('queued', 'running')))
+    from public.posts p left join public.post_items i on i.post_id = p.id and i.superseded_at is null
+    left join public.item_nutrition n on n.post_item_id = i.id
+    where p.id = :'post'::uuid group by p.id;`, { post });
+  if (!text) throw new Error('The meal is no longer there.');
+  return JSON.parse(text);
+}
+const publicTotals = ({ status, items, calories, protein_g, carbs_g, fat_g }) => ({ status, items, calories, protein_g, carbs_g, fat_g });
+
+const dbNow = () => one('select now();');
+const jobsSince = (post, since) => Number(one(`select count(*) from public.jobs where post_id = :'post'::uuid and created_at >= :'since'::timestamptz;`, { post, since }));
+
+// 09-usage.sql includes FDC wrapper/network/cache traces as well as model calls.
+function modelCalls(prefix, since) {
+  const lines = psql({ file: sqlFile('09-usage.sql'), vars: { prefixes: prefix, since }, extra: ['-P', 'tuples_only=off', '-P', 'footer=off', '-F', '\x1f'] }).split('\n').filter(Boolean);
+  if (!lines.length) return 0;
+  const columns = lines[0].split('\x1f'), calls = columns.indexOf('calls'), kind = columns.indexOf('kind');
+  if (calls < 0 || kind < 0) throw new Error('09-usage.sql no longer has "calls" and "kind" columns.');
+  return lines.slice(1).reduce((total, line) => {
+    const row = line.split('\x1f');
+    // FDC is the non-model CallKind; SAM, transcription and all Spark providers count,
+    // including legacy traces whose model name is absent.
+    return total + (row[kind] === 'fdc' ? 0 : Number(row[calls] ?? 0));
+  }, 0);
+}
+
+async function tick() {
+  try {
+    const response = await fetch(new URL('/api/jobs/tick', process.env.APP_URL), { cache: 'no-store', signal: AbortSignal.timeout(30000) });
+    if (!response.ok) console.log(`  (the tick answered ${response.status})`);
+  } catch (error) { console.log(`  (the tick could not be reached: ${error.name})`); }
+}
+
+const sleep = (seconds) => new Promise((resolve) => setTimeout(resolve, seconds * 1000));
+const settled = (totals) => ['ready', 'failed', 'needs_input'].includes(totals.status) && !totals.job_in_flight;
+
+// Ticks, then polls every 10 seconds (first look after 2), ticking again every 60, until the meal settles or the wait runs out.
+async function waitForMeal(post, waitSeconds) {
+  const started = Date.now(); let lastTick = started, totals;
+  const waited = () => Math.round((Date.now() - started) / 1000);
+  await tick();
+  await sleep(Math.min(FIRST_POLL_SECONDS, waitSeconds));
+  for (;;) {
+    totals = readTotals(post);
+    if (settled(totals)) return { totals, seconds: waited(), timedOut: false };
+    const left = waitSeconds - (Date.now() - started) / 1000;
+    if (left <= 0) return { totals, seconds: waited(), timedOut: true };
+    if (Date.now() - lastTick >= TICK_SECONDS * 1000) { lastTick = Date.now(); await tick(); }
+    await sleep(Math.min(POLL_SECONDS, left));
+  }
+}
+
+function requireEnv(names) {
+  const missing = names.filter((name) => !process.env[name]);
+  if (missing.length) throw new UsageError(`Set ${missing.join(' and ')} in the environment.`);
+}
+
+function checkedLedger(ledger) {
+  const resolved = realPath(ledger);
+  const refusal = ledgerRefusal(resolved, repositoryRoots());
+  if (refusal) throw new UsageError(refusal);
+  return resolved;
+}
+
+function appendPrivate(directory, name, line) {
+  mkdirSync(directory, { recursive: true, mode: 0o700 }); chmodSync(directory, 0o700);
+  const file = path.join(directory, name);
+  appendFileSync(file, line + '\n', { mode: 0o600 }); chmodSync(file, 0o600);
+}
+
+async function run(request) {
+  const ledger = checkedLedger(request.ledger);
+  requireEnv(request.dryRun ? ['SUPABASE_DB_URL'] : ['SUPABASE_DB_URL', 'APP_URL']);
+  const meals = resolvePrefixes(request.meals);
+  const file = MODE_FILES[request.mode];
+  if (request.dryRun) {
+    console.log(`Dry run: nothing is written and no snapshot is taken. Mode ${request.mode} (${file}); at most ${request.maxMeals} meal(s), ${request.maxMinutes} minute(s), ${request.waitSeconds} s per meal.`);
+    meals.forEach(({ prefix, id }, index) => {
+      const t = readTotals(id);
+      const note = index >= request.maxMeals ? 'would NOT be started: --max-meals' : t.job_in_flight ? 'would be skipped: a job for this meal is queued or running'
+        : t.status !== 'ready' ? `would be skipped: the meal is ${t.status}, not ready` : `would snapshot, then run ${file}`;
+      console.log(`${prefix}  ${t.status}  ${t.items} item(s)  ${fmt(t.calories)} kcal  ${note}`);
+    });
+    console.log(`Ledger directory (not created by a dry run): outside the repository, accepted.`);
+    return EXIT.ok;
+  }
+  const startedAt = Date.now(), rows = [], outcomes = [];
+  let stop = null, previousInFlight = false, broken = null;
+  try { for (let index = 0; index < meals.length; index++) {
+    stop = stopReason({ outcomes, started: index, remaining: meals.length - index, maxMeals: request.maxMeals, maxMinutes: request.maxMinutes,
+      elapsedMinutes: (Date.now() - startedAt) / 60000, previousInFlight });
+    if (stop) break;
+    const { prefix, id } = meals[index];
+    const row = { meal: prefix, mode: request.mode, outcome: 'skipped', at: new Date().toISOString(), before: null, after: null, calories_change: null, seconds_waited: 0, model_calls: 0 };
+    const first = readTotals(id);
+    row.before = publicTotals(first);
+    if (first.deleted) row.reason = 'the meal was deleted after the run started';
+    else if (first.job_in_flight) row.reason = 'a job for this meal is queued or running';
+    else if (first.status !== 'ready') row.reason = `the meal is ${first.status}, not ready`;
+    else {
+      const snapshot = psql({ file: sqlFile('08-snapshot.sql'), vars: { prefixes: prefix } }).split('\n').find((line) => line && JSON.parse(line).post?.id === id);
+      if (!snapshot) throw new Error(`08-snapshot.sql returned no line for meal ${prefix}; nothing was written for it.`);
+      appendPrivate(ledger, 'snapshots.jsonl', snapshot);
+      const since = dbNow();
+      psql({ file: sqlFile(file), vars: { post: id } });
+      if (jobsSince(id, since) === 0) row.reason = "refused by the file's guards";
+      else {
+        const waitResult = await waitForMeal(id, request.waitSeconds);
+        row.seconds_waited = waitResult.seconds;
+        row.after = publicTotals(waitResult.totals);
+        row.calories_change = relativeChange(row.before.calories, row.after.calories);
+        row.model_calls = modelCalls(prefix, since);
+        if (waitResult.timedOut) { row.outcome = 'timeout'; row.reason = `still ${waitResult.totals.status} after ${request.waitSeconds} s`; previousInFlight = waitResult.totals.job_in_flight; }
+        else if (waitResult.totals.status === 'ready') row.outcome = compareTotals(row.before, row.after);
+        else { row.outcome = 'failed'; row.reason = waitResult.totals.status === 'needs_input' ? 'the meal now asks its owner a question (needs_input)' : 'the meal is failed'; }
+      }
+    }
+    if (row.outcome === 'skipped') row.after = row.before;
+    appendPrivate(ledger, 'ledger.jsonl', JSON.stringify(row));
+    rows.push(row); outcomes.push(row.outcome);
+    console.log(`${prefix}  ${row.outcome}${row.reason ? ` (${row.reason})` : ''}  kcal ${fmt(row.before?.calories)} -> ${fmt(row.after?.calories)}  waited ${row.seconds_waited} s`);
+  } } catch (error) { broken = error; }
+  console.log('\n' + summaryTable(rows));
+  if (broken) { console.error(`\nSTOPPED at meal ${meals[rows.length].prefix}: ${broken.message} Its ledger line was not written; read its state before going on.`); return EXIT.incomplete; }
+  if (stop) { console.log(`\nSTOPPED before meal ${meals[rows.length].prefix}: ${stop}. ${meals.length - rows.length} meal(s) not started: ${meals.slice(rows.length).map((m) => m.prefix).join(', ')}.`); return EXIT.stopped; }
+  return outcomes.some((o) => o === 'failed' || o === 'timeout') ? EXIT.incomplete : EXIT.ok;
+}
+
+async function restore(request) {
+  const ledger = checkedLedger(request.ledger);
+  requireEnv(['SUPABASE_DB_URL', 'APP_URL']);
+  let text;
+  try { text = readFileSync(path.join(ledger, 'snapshots.jsonl'), 'utf8'); } catch { throw new UsageError('There is no snapshots.jsonl in that ledger directory.'); }
+  const { snapshot, count } = findSnapshot(text, request.meal, request.snapshot);
+  const params = restoreParams(snapshot);
+  const before = readTotals(params.post);
+  if (before.deleted) throw new UsageError(`Meal ${request.meal} is deleted; it is not restored.`);
+  if (before.job_in_flight) throw new UsageError(`A job for meal ${request.meal} is queued or running; try again when it has finished.`);
+  if (!['ready', 'failed'].includes(before.status)) throw new UsageError(`Meal ${request.meal} is ${before.status}; only a ready or failed meal is restored.`);
+  console.log(`Restoring meal ${request.meal} from its ${request.snapshot} snapshot (${count} in the ledger): ${params.old_ids.split(',').length} item(s) come back.`);
+  const since = dbNow();
+  // One psql session: a failed meal is first made ready again with its analysis time, then 13-restore.sql runs as it is.
+  psql({ vars: { post: params.post, old_ids: params.old_ids, summary_comment_id: params.summary_comment_id, old_summary: params.old_summary, initialized: params.analysis_initialized_at },
+    input: `update public.posts p set status = 'ready', fail_reason = null, analysis_initialized_at = nullif(:'initialized', '')::timestamptz
+  where p.id = :'post'::uuid and p.status = 'failed' and p.deleted_at is null
+    and not exists (select 1 from public.jobs j where j.post_id = p.id and j.status in ('queued', 'running'));
+\\i '${sqlFile('13-restore.sql').replaceAll("'", "\\'")}'
+` });
+  if (jobsSince(params.post, since) === 0) {
+    console.error('Restore refused: 13-restore.sql queued no job. The preliminary status update may already have run; inspect the meal before retrying.');
+    return EXIT.incomplete;
+  }
+  const waitResult = await waitForMeal(params.post, request.waitSeconds);
+  const row = { meal: request.meal, mode: 'restore', outcome: waitResult.timedOut ? 'timeout' : waitResult.totals.status === 'ready' ? 'restored' : 'failed',
+    before: publicTotals(before), after: publicTotals(waitResult.totals), seconds_waited: waitResult.seconds, model_calls: modelCalls(request.meal, since) };
+  row.calories_change = relativeChange(row.before.calories, row.after.calories);
+  console.log(summaryTable([row]));
+  const was = snapshot.items.filter((item) => item.superseded_at === null).reduce((total, item) => total + Number(item.nutrition?.calories ?? 0), 0);
+  console.log(`Snapshot: ${params.old_ids.split(',').length} item(s), ${fmt(was)} kcal. Now: ${row.after.items} item(s), ${fmt(row.after.calories)} kcal, status ${row.after.status}.`);
+  return row.outcome === 'restored' ? EXIT.ok : EXIT.incomplete;
+}
+
+export async function main(argv) {
+  let request;
+  try {
+    request = parseArgs(argv);
+    if (request.command === 'help') { console.log(HELP); return EXIT.ok; }
+    return await (request.command === 'run' ? run(request) : restore(request));
+  } catch (error) {
+    if (error instanceof UsageError) { console.error(error.message); return EXIT.usage; }
+    console.error(error.message); return EXIT.incomplete;
+  }
+}
+
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) process.exitCode = await main(process.argv.slice(2));
