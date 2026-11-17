@@ -40,16 +40,20 @@ test('18-remove.sql waits for a concurrent queue change and then refuses the mea
   assert.ok(['localhost', '127.0.0.1', '[::1]'].includes(new URL(url).hostname), 'Disposable database only');
   const sql = input => execFileSync('psql', ['-X', '-qAt', '-v', 'ON_ERROR_STOP=1', '--dbname', url], { input, encoding: 'utf8', timeout: 10000 });
   const user = randomUUID(), post = randomUUID(), coffee = randomUUID(), milk = randomUUID(), app = `remove-${post.slice(0, 8)}`;
+  // #1047: an unexpected error must not leave either psql running. Hooks run in the order they are registered, so
+  // this one ends both children (and the writer's lock) before the fixture is deleted.
+  let writer = null, removal = null;
+  t.after(() => { for (const child of [writer, removal]) if (child && child.exitCode === null && child.signalCode === null) child.kill('SIGKILL'); });
   t.after(() => sql(`delete from posts where id='${post}';delete from profiles where id='${user}';delete from auth.users where id='${user}';`));
   sql(`insert into auth.users(id)values('${user}');insert into profiles(id,handle)values('${user}','remove-${user.slice(0, 8)}');
 insert into posts(id,user_id,status,analysis_initialized_at)values('${post}','${user}','ready',now());
 insert into post_items(id,post_id,name,source,portion_grams)values('${coffee}','${post}','Vietnamese drip coffee','model',100),('${milk}','${post}','sweetened condensed milk','model',30);`);
   // The other writer: it holds the meal's row, queued, until this test lets it commit.
-  const writer = spawn('psql', ['-X', '-qAt', '-v', 'ON_ERROR_STOP=1', '--dbname', url], { stdio: ['pipe', 'pipe', 'pipe'] });
+  writer = spawn('psql', ['-X', '-qAt', '-v', 'ON_ERROR_STOP=1', '--dbname', url], { stdio: ['pipe', 'pipe', 'pipe'] });
   const writerDone = new Promise(resolve => writer.on('close', resolve));
   writer.stdin.write(`begin;update posts set status='queued' where id='${post}';select 'held';\n`);
   await new Promise((resolve, reject) => { writer.stdout.on('data', chunk => { if (String(chunk).includes('held')) resolve(); }); writer.on('close', () => reject(new Error('writer ended early'))); });
-  const removal = spawn('psql', ['-X', '-qAt', '-v', 'ON_ERROR_STOP=1', '--dbname', url, '-v', `post=${post}`, '-v', `item=${milk}`, '-f', file], { env: { ...process.env, PGAPPNAME: app } });
+  removal = spawn('psql', ['-X', '-qAt', '-v', 'ON_ERROR_STOP=1', '--dbname', url, '-v', `post=${post}`, '-v', `item=${milk}`, '-f', file], { env: { ...process.env, PGAPPNAME: app } });
   let output = '';
   removal.stdout.on('data', chunk => { output += chunk; });
   const removalDone = new Promise(resolve => removal.on('close', resolve));
