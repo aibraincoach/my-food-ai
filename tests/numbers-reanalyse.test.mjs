@@ -5,7 +5,7 @@ import { appendFileSync, chmodSync, mkdirSync, mkdtempSync, readFileSync, rmSync
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { EXIT, HELP, UsageError, compareTotals, findSnapshot, isInside, ledgerRefusal, lostValues, parseArgs, parseMealsFile, relativeChange, restoreParams, restoreReason, stopReason, summaryTable } from '../scripts/numbers/reanalyse.mjs';
+import { EXIT, HELP, UsageError, carryPlan, compareTotals, findSnapshot, isInside, ledgerRefusal, lostValues, parseArgs, parseMealsFile, relativeChange, restoreParams, restoreReason, stopReason, summaryTable } from '../scripts/numbers/reanalyse.mjs';
 
 const script = fileURLToPath(new URL('../scripts/numbers/reanalyse.mjs', import.meta.url));
 const A = '11111111-aaaa-4aaa-8aaa-aaaaaaaaaaaa', B = '22222222-bbbb-4bbb-8bbb-bbbbbbbbbbbb';
@@ -123,12 +123,12 @@ test('the command line answers --help and refuses bad usage without a database',
 });
 
 // Exercise the public CLI without a database or app: only psql and fetch are replaced.
-function cliFixture(t, { restore = false, usage = [], after = null } = {}) {
+function cliFixture(t, { restore = false, usage = [], after = null, before = null, carried = null } = {}) {
   const directory = mkdtempSync(path.join(tmpdir(), 'mfa-numbers-cli-'));
   t.after(() => rmSync(directory, { recursive: true, force: true }));
   const ledger = path.join(directory, 'ledger'), calls = path.join(directory, 'calls.jsonl');
   const fixture = path.join(directory, 'fixture.json'), preload = path.join(directory, 'fetch.mjs');
-  writeFileSync(fixture, JSON.stringify({ id: A, snapshot: snapshot(A), restore, usage, after }));
+  writeFileSync(fixture, JSON.stringify({ id: A, snapshot: before ?? snapshot(A), restore, usage, after, carried }));
   writeFileSync(calls, '');
   const psql = path.join(directory, 'psql');
   writeFileSync(psql, `#!${process.execPath}
@@ -140,12 +140,13 @@ const file = index < 0 ? null : path.basename(args[index + 1]);
 const sql = file ? '' : readFileSync(0, 'utf8');
 const previous = readFileSync(process.env.NUMBERS_CALLS, 'utf8');
 appendFileSync(process.env.NUMBERS_CALLS, JSON.stringify({ type: 'psql', file, sql }) + '\\n');
-if (file === '08-snapshot.sql') console.log(JSON.stringify(fixture.after && previous.includes('11-rematch.sql') ? fixture.after : fixture.snapshot));
+if (file === '08-snapshot.sql') console.log(JSON.stringify(fixture.carried && previous.includes('16-carry.sql') ? fixture.carried : fixture.after && previous.includes('11-rematch.sql') ? fixture.after : fixture.snapshot));
 else if (file === '09-usage.sql') {
   const columns = ['post','kind','model','step','calls','errors','input_tokens','output_tokens','duration_ms','first_call','last_call'];
   console.log(columns.join('\\x1f'));
   for (const row of fixture.usage) console.log(columns.map(key => row[key] ?? '-').join('\\x1f'));
 } else if (file === '11-rematch.sql') console.log('queued');
+else if (file === '16-carry.sql') console.log('carried');
 else if (sql.includes('select left(id::text, 8)')) console.log(fixture.id.slice(0, 8) + ' ' + fixture.id);
 else if (sql.includes('select json_build_object')) console.log(JSON.stringify({
   status: fixture.restore && !previous.includes('13-restore.sql') ? 'failed' : 'ready',
@@ -250,6 +251,55 @@ test('the CLI puts back a re-matched meal that lost a value, and says why', t =>
   assert.match(result.stdout, /put back: /);
 });
 
+// #990: a re-match that finds a fuller record but lacks one micronutrient keeps both, instead of being put back.
+const butterMeal = (nutrition, extra = {}) => ({ post: { id: A, status: 'ready' }, saved_meals: [], comments: [], items: [
+  { id: 'aaaaaaaa-0000-4000-8000-000000000009', name: 'sliced apple', portion_grams: 60, superseded_at: null, nutrition: { calories: 36.6, micronutrients: [] } },
+  { id: 'aaaaaaaa-0000-4000-8000-00000000000b', name: 'unsalted butter packet', portion_grams: 7, superseded_at: null, nutrition }], ...extra });
+const foundation = { calories: null, fat_g: 5.705, micronutrients: [{ nutrientId: 1100, value: 0.0001, basis: 'portion' }, { nutrientId: 1087, value: 1.68, basis: 'portion' }] };
+const legacy = { calories: 50.19, protein_g: 0.06, fat_g: 5.677, micronutrients: [{ nutrientId: 1087, value: 1.68, basis: 'portion' }, { nutrientId: 1100, value: null }, { nutrientId: 1092, value: 1.68, basis: 'portion' }] };
+const fresh = (meal) => ({ ...meal, items: meal.items.map((i) => ({ ...i, id: i.id.replace('aaaaaaaa', 'bbbbbbbb') })) });
+
+test('a lost micronutrient of the same food is carried, and nothing else is', () => {
+  const before = butterMeal(foundation), after = fresh(butterMeal(legacy));
+  assert.deepEqual(carryPlan(before, after), [{ item: 'bbbbbbbb-0000-4000-8000-00000000000b', entries: [foundation.micronutrients[0]], lost: ['food 2: nutrient 1100'] }]);
+  assert.equal(carryPlan(before, fresh(butterMeal({ ...legacy, micronutrients: [...legacy.micronutrients.slice(0, 1), { nutrientId: 1100, value: 0.0002 }] }))), null, 'nothing lost, nothing to carry');
+  assert.equal(carryPlan(before, fresh(butterMeal({ ...legacy, fat_g: null }))), null, 'a lost scalar value is never carried');
+  const renamed = fresh(butterMeal(legacy)); renamed.items[1].name = 'butter';
+  assert.equal(carryPlan(before, renamed), null, 'a renamed food is never carried');
+  const heavier = fresh(butterMeal(legacy)); heavier.items[1].portion_grams = 14;
+  assert.equal(carryPlan(before, heavier), null, 'a food whose weight changed is never carried');
+  const caffeine = butterMeal({ ...foundation, micronutrients: [{ nutrientId: 1057, value: 40, basis: 'portion' }] });
+  assert.equal(carryPlan(caffeine, after), null, 'caffeine, water and alcohol feed day totals and are never carried');
+  assert.equal(carryPlan({ ...before, saved_meals: [{ id: 's' }] }, after), null, 'a meal with a saved meal is never carried');
+});
+
+test('the CLI carries a lost micronutrient and keeps the re-match', t => {
+  const before = butterMeal(foundation), after = fresh(butterMeal(legacy));
+  const carried = fresh(butterMeal({ ...legacy, micronutrients: [legacy.micronutrients[0], legacy.micronutrients[2], foundation.micronutrients[0]] }));
+  const { result, calls, ledger } = cliFixture(t, { before, after, carried });
+  assert.equal(result.status, EXIT.ok, result.stdout + result.stderr);
+  const line = ledger()[0];
+  assert.equal(line.outcome, 'unchanged', 'the fake totals do not move; the meal is kept');
+  assert.deepEqual(line.values_carried, ['food 2: nutrient 1100']);
+  assert.deepEqual(line.values_lost, []);
+  assert.equal(line.restore_reason, undefined);
+  const carry = calls.filter((call) => call.file === '16-carry.sql');
+  assert.equal(carry.length, 1);
+  assert.ok(!calls.some((call) => call.sql?.includes('13-restore.sql')), 'nothing is put back');
+  assert.match(result.stdout, /carried: food 2: nutrient 1100/);
+});
+
+test('the CLI puts the meal back when the carry did not take', t => {
+  const before = butterMeal(foundation), after = fresh(butterMeal(legacy));
+  const { result, calls, ledger } = cliFixture(t, { before, after, carried: after });
+  assert.equal(result.status, EXIT.ok, result.stdout + result.stderr);
+  const line = ledger()[0];
+  assert.equal(line.outcome, 'restored');
+  assert.equal(line.values_carried, undefined);
+  assert.ok(calls.some((call) => call.file === '16-carry.sql'));
+  assert.ok(calls.some((call) => call.sql?.includes('13-restore.sql')), 'the restore SQL ran');
+});
+
 // PM 2026-11-17 14:56: the tool must actually put a needs_input meal back, including its question state.
 test('restoring needs_input reinstates the snapshot state and exact original current food', { skip: !process.env.TEST_SQL_DATABASE_URL }, async t => {
   const {execFileSync} = await import('node:child_process');
@@ -306,7 +356,7 @@ globalThis.fetch=async url=>{
 });
 
 // PM 2026-11-17 15:07: in-place repair must retain an actual, usable nutrition undo.
-test('repair records original nutrition before writing and restore undoes it on the same item IDs', { skip: !process.env.TEST_SQL_DATABASE_URL }, async t => {
+async function repairRoundTrip(t, { carbs }) {
   const {execFileSync} = await import('node:child_process');
   const {randomUUID} = await import('node:crypto');
   const url = process.env.TEST_SQL_DATABASE_URL;
@@ -326,7 +376,7 @@ insert into profiles(id,handle)values('${user}','repair-undo-${user.slice(0,8)}'
 insert into posts(id,user_id,status)values('${post}','${user}','ready');
 insert into post_items(id,post_id,name,source,portion_grams,portion_text)values('${item}','${post}','Original food','model',50,'50 g');
 insert into item_nutrition(post_item_id,calories,protein_g,carbs_g,fat_g,fibre_g,sugar_g,sodium_mg,micronutrients)
-values('${item}',50,2,-0.7,1,null,0,5,'[{"nutrientId":1005,"value":-0.7,"basis":"portion"},{"nutrientId":1087,"value":null},{"nutrientId":1089,"value":0}]');`);
+values('${item}',50,2,${carbs},1,null,0,5,'[{"nutrientId":1005,"value":-0.7,"basis":"portion"},{"nutrientId":1087,"value":null},{"nutrientId":1089,"value":0}]');`);
   const nutrition = () => JSON.parse(sql(`select to_jsonb(n) from item_nutrition n where post_item_id='${item}';`));
   const original = nutrition();
   mkdirSync(bin);
@@ -338,7 +388,7 @@ if(f>=0&&args[f+1].endsWith('/15-repair.sql')){
  const file=process.env.REPAIR_LEDGER+'/snapshots.jsonl';
  const saved=JSON.parse(readFileSync(file,'utf8').trim().split('\\n').at(-1));
  const old=saved.items.find(i=>i.id===process.env.REPAIR_ITEM).nutrition;
- assert.equal(old.carbs_g,-0.7);assert.equal(old.micronutrients[0].value,-0.7);
+ assert.equal(old.carbs_g,Number(process.env.REPAIR_CARBS));assert.equal(old.micronutrients[0].value,-0.7);
  assert.equal(statSync(file).mode&0o777,0o600);
  writeFileSync(process.env.REPAIR_RECORDED,'before-write');
 }
@@ -355,7 +405,7 @@ globalThis.fetch=async url=>{
  execFileSync(process.env.REPAIR_REAL_PSQL,['-X','-qAt','-v','ON_ERROR_STOP=1','--dbname',process.env.SUPABASE_DB_URL],{input:"update jobs set status='finished',finished_at=now()where post_id='"+process.env.REPAIR_POST+"'and status='queued';update posts set status='ready'where id='"+process.env.REPAIR_POST+"';",encoding:'utf8',timeout:10000});
  return new Response(null,{status:204});
 };`);
-  const env = {...process.env, PATH: bin+path.delimiter+process.env.PATH, SUPABASE_DB_URL: url, APP_URL: 'http://127.0.0.1:1', REPAIR_REAL_PSQL: realPsql, REPAIR_LEDGER: ledger, REPAIR_ITEM: item, REPAIR_POST: post, REPAIR_RECORDED: path.join(directory,'recorded')};
+  const env = {...process.env, PATH: bin+path.delimiter+process.env.PATH, SUPABASE_DB_URL: url, APP_URL: 'http://127.0.0.1:1', REPAIR_REAL_PSQL: realPsql, REPAIR_LEDGER: ledger, REPAIR_ITEM: item, REPAIR_POST: post, REPAIR_RECORDED: path.join(directory,'recorded'), REPAIR_CARBS: String(carbs)};
   const invoke = args => {
     const result = spawnSync(process.execPath, ['--import', preload, script, ...args, '--ledger='+ledger, '--wait-seconds=1'], {env, encoding:'utf8', timeout:15000});
     assert.ifError(result.error);
@@ -365,11 +415,16 @@ globalThis.fetch=async url=>{
   assert.equal(readFileSync(env.REPAIR_RECORDED,'utf8'),'before-write');
   const repaired = nutrition();
   assert.equal(repaired.post_item_id,item);
-  assert.equal(repaired.carbs_g,0);
+  assert.equal(repaired.carbs_g,Math.max(carbs,0));
   assert.equal(repaired.micronutrients[0].value,0);
   assert.equal(repaired.fibre_g,null);
   assert.equal(repaired.sugar_g,0);
   invoke(['restore','--meal='+post.slice(0,8),'--snapshot=first']);
   assert.deepEqual(nutrition(),original,'restore must undo the actual in-place repair, including NULLs, zeros and micronutrients');
   assert.equal(sql(`select string_agg(id::text,',')from current_post_items where post_id='${post}';`).trim(),item,'the same item ID remains current');
-});
+}
+
+test('repair records original nutrition before writing and restore undoes it on the same item IDs', { skip: !process.env.TEST_SQL_DATABASE_URL }, t => repairRoundTrip(t, { carbs: -0.7 }));
+
+// #1029: a row whose only negative value is a micronutrient is repaired and undone the same way.
+test('repair also takes a row whose only negative value is a micronutrient', { skip: !process.env.TEST_SQL_DATABASE_URL }, t => repairRoundTrip(t, { carbs: 2 }));

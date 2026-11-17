@@ -24,7 +24,11 @@ with meal as (
       from jsonb_array_elements(n.micronutrients) with ordinality e(m, o)) else n.micronutrients end
   from public.post_items i
   where n.post_item_id = i.id and i.superseded_at is null and i.post_id in (select id from meal)
-    and (n.calories < 0 or n.protein_g < 0 or n.carbs_g < 0 or n.fat_g < 0 or n.fibre_g < 0 or n.sugar_g < 0 or n.sodium_mg < 0)
+    and (n.calories < 0 or n.protein_g < 0 or n.carbs_g < 0 or n.fat_g < 0 or n.fibre_g < 0 or n.sugar_g < 0 or n.sodium_mg < 0
+         -- #1029: a row whose only negative value is a micronutrient is repaired too.
+         or (jsonb_typeof(n.micronutrients) = 'array' and exists (
+               select 1 from jsonb_array_elements(n.micronutrients) e(m)
+               where jsonb_typeof(m->'value') = 'number' and (m->>'value')::numeric < 0)))
   returning i.post_id
 ), queued as (
   update public.posts p set status = 'queued', fail_reason = null
