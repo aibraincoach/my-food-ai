@@ -73,6 +73,24 @@ export async function readNutritionLabel(image:Uint8Array,mime="image/jpeg"):Pro
  }
  return reading;
 }
+// #990: a meal can show its nutrition panel on more than one photo (1c18b87e has three; its first lacks protein and
+// carbohydrate). When the first reading is a label with a value missing, up to two more photos are read, and a value
+// is filled only where it is missing and only from a reading of the same serving. Nothing read already is replaced.
+export const LABEL_KEYS = ["kcal", "protein_g", "carbs_g", "fat_g", "fibre_g", "sugar_g", "sodium_mg"] as const;
+export async function readLabelFromPhotos(photos:Uint8Array[],read:(image:Uint8Array)=>Promise<LabelReading>=image=>readNutritionLabel(image)):Promise<LabelReading>{
+ const reading=await read(photos[0]);
+ const panel=reading.per_serving;
+ if(!reading.is_label||!panel||!reading.serving)return reading;
+ const missing=()=>LABEL_KEYS.filter(key=>panel[key]===null);
+ for(const photo of photos.slice(1,3)){
+  if(!missing().length)break;
+  let next:LabelReading;
+  try{next=await read(photo);}catch{continue;}
+  if(!next.is_label||!next.per_serving||next.serving?.amount!==reading.serving.amount||next.serving.unit!==reading.serving.unit)continue;
+  for(const key of missing())if(next.per_serving[key]!==null)panel[key]=next.per_serving[key];
+ }
+ return reading;
+}
 export function labelNutrition(reading:LabelReading,servings:number){
  if(!reading.is_label||!reading.per_serving)throw Error("A readable nutrition panel is required.");
  const {kcal,...values}=reading.per_serving;
