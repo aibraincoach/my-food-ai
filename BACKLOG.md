@@ -1,10 +1,22 @@
 # My Food AI — Backlog†
 
-Last edited: Tuesday 2026-11-17 at 00:42 WIB (UTC+07:00) by Claude, PM
+Last edited: Tuesday 2026-11-17 at 18:43 WIB (UTC+07:00) by Claude, PM
 
 The only job of the PM is to maintain this backlog and keep it completely up to date. Failing to do so is immediately terminable.
 
 ## Backlog for GrokBot
+
+### #456 A rum cocktail is logged with 15 mg caffeine
+
+The tiki cocktail post states caffeine that the drink does not contain.
+
+The drink card for the lime and rum tiki cocktail read "15 mg caffeine" next to 196 kcal, and the day's caffeine total read 110 mg. Fixed on main: the tiki cocktail (owner post 8535b793) now shows 196 kcal and 18 g alcohol with no caffeine on the meal page, and a glass of red wine shows 16 g alcohol and 128 kcal with no caffeine. The Nov 3 day total was not read. GitHub shows this issue closed. GrokBot, Nov 5: FAIL. Tiki cocktail 8535b793 shows 196 kcal and 18 g alcohol, but Show all lists Caffeine 15.4 mg and the Nov 3 day total shows Caffeine 95. PM ruling: the defect stands, even though the card no longer leads with caffeine. GrokBot, Nov 15: Show all still lists caffeine on the tiki cocktail 8535b793 (15.4 mg), 8b728c7e (15.4 mg) and 8ab2eccb (14 mg). Done when a cocktail or any drink with no caffeine source logs no caffeine, the card shows none, and the day's total leaves it out, checked on the tiki cocktail and a glass of wine.
+
+### #377 Existing photographed drink posts show no caffeine
+
+A photographed cola posted before Fleet 9 shows no caffeine on its card or in the day's total.
+
+The cola records hold 29.7 mg of caffeine from the USDA but have no beverage category and no linked intake rows. The fix covers new and re-analysed posts only. A backfill fixed 8 posts, and 12 still fail the intake rules. GrokBot, Nov 15: the old colas now show caffeine on the card and in the day total, but the Oct 29 black coffee (post 4dfe4411) shows no caffeine anywhere and is listed at 112 kcal, which is far too high for black coffee. Done when existing photographed drink posts show their stored caffeine on the card and in the day's total.
 
 ### #222 The feed fails to open, and photos and cards take too long to appear
 
@@ -104,6 +116,18 @@ Fleet 21 recorded the failure locally and a later local repair on #912 measured 
 
 ## Engineering backlog
 
+### #999 The camera view goes black on the Photo screen, possibly because the barcode reader starts there
+
+The owner opened New post on his iPhone in Photo mode and tried to take a photo. The picture area stayed black, so he could not take one. He later found that a QR reader may have started and blacked out the screen, even though he was on the regular Photo screen. A person who is not on the Barcode screen should never meet the barcode reader.
+
+Owner, Tue Nov 17 at 10:48 WIB: the New post screen showed its Photo tab, the shutter button and the "What did you eat?" field, with a black picture area. The owner's own reading at 10:59 WIB is that a QR reader kicked in; the cause is not confirmed. At 10:49 WIB the same phone also showed "Safari can't open the page because the network connection was lost" for my-food-ai-ten.vercel.app, with 5G and three signal bars on screen; nobody has checked whether that is linked. The owner said he would kill the app and try again; the result is not yet known. No GitHub issue exists yet. Done when, on a phone, opening New post in Photo mode shows the live camera picture within a few seconds, the barcode reader does not run until the person opens the Barcode screen, and the shutter button takes a photo, both on a first open and after the app is killed and reopened.
+
+### #1000 A person cannot merge two posts of the same meal into one
+
+When a person posts the same meal twice by mistake, the app shows two posts and counts the food twice. A person may also want to join two posts on purpose. Today they cannot do either.
+
+Owner, Tue Nov 17: this is a new feature, and he calls it tricky. It must work when someone wants to merge two posts and when two posts hold the same item because it was double posted. No design exists, and the rules for what the merged post keeps are not decided: its photos, caption, time, items, numbers and comments. No GitHub issue exists yet. Done when a person can pick two of their own posts and merge them into one, and the merged post shows once in the feed, on Days and in the day's totals, with no item counted twice.
+
 ### #699 Our review and merge process has not been compared with the owner's other recent repositories
 
 Nobody has measured how rigorous our review, merge and proof process is against the other repositories the owner works on right now. Fleet 18 shows the process has gaps.
@@ -198,7 +222,7 @@ Observe first: list every way a pull request can reach main today, including a c
 
 On the owner's phone, adding a leftovers photo to a meal failed with "Upload failed. The photo could not be attached." The failure leaves a "Leftovers: Not posted yet" card in the feed and a red chip at the bottom reading "Leftovers, Not saved · Try again". The user cannot dismiss either one, and both come back after closing and reopening the app, so the screen stays broken.
 
-The owner's screenshots (Fri Nov 6, 2:40 PM and 2:43 PM WIB, iPhone on 5G) show the failed card in the Today feed under his 2:35 PM post. It says "Not posted yet. The photo is kept on this phone." and offers only Try again. The chip sits over the post and the floating tab bar and covers the nutrition numbers. The owner reports that closing and reopening the app does not clear it. A third screenshot, Tue Nov 10 at 12:18 PM WIB, shows the same red chip still over the Today feed four days after the first failure, so the stuck state does not expire. Owner, Nov 15, 10:50 PM WIB (iPhone, 5G): a screenshot of the Fri Nov 6 2:35 PM post shows the same "Leftovers, Not saved · Try again" chip nine days later, sitting over the post's nutrition numbers and above the tab bar. He reports that pressing Try again only brings back an error and the leftovers never save. The error text was not captured. This looks like the same family as #644 (a failed attachment upload that nothing removes), but that is not confirmed. Not known: what failed the first time, whether Try again works, and where the phone keeps the failed upload. Related items: #570, #578, #644 and #625. GrokBot's leftovers attach on a judge account on Nov 5 closed in 5,049 ms and did not fail, so this is not reproduced. Observe first: read the owner's failed attachment job and its error from the jobs table and the model-call log (read-only), then fail a leftovers upload on a judge account on purpose and look for what the phone stores. Done when the error behind this failure is written down, a leftovers photo saves on the first try or on Try again in a phone-sized browser, a failed upload can be dismissed or removed by the user and stays gone after the app is reopened, and the chip does not cover the post's nutrition numbers. Fleet 21 independent source read, Nov 16 (investigators' report): PR 912 puts Remove in a fixed-height row (h-14) inside an overflow-hidden container (UploadChip.tsx line 30), so the source supports the clipping. Nobody repeated the browser measurement. Fleet 21, Nov 16 (coder, local, PR 912): the phone's new Remove button works and stays gone after a reload. On desktop the sidebar chip ends at y=364 and Remove begins at y=374.13, so Remove is clipped; it was left unfixed under the plan's rule. The original failure cause is not found and the chip over the nutrition numbers is not addressed. Merged in #912 on Nov 16 (coder report). Fleet 21 independent source read of the fixed head 50ea5f70, Nov 16: the clipping is fixed (UploadChip.tsx line 30 now uses a minimum height); the retained Firefox receipt shows the chip ending at 422.25 px with Remove at 411.70 px at 1280 wide, and 748 px with 737.45 px at 390 wide; no fresh browser run.
+The owner's screenshots (Fri Nov 6, 2:40 PM and 2:43 PM WIB, iPhone on 5G) show the failed card in the Today feed under his 2:35 PM post. It says "Not posted yet. The photo is kept on this phone." and offers only Try again. The chip sits over the post and the floating tab bar and covers the nutrition numbers. The owner reports that closing and reopening the app does not clear it. A third screenshot, Tue Nov 10 at 12:18 PM WIB, shows the same red chip still over the Today feed four days after the first failure, so the stuck state does not expire. Owner, Nov 15, 10:50 PM WIB (iPhone, 5G): a screenshot of the Fri Nov 6 2:35 PM post shows the same "Leftovers, Not saved · Try again" chip nine days later, sitting over the post's nutrition numbers and above the tab bar. He reports that pressing Try again only brings back an error and the leftovers never save. The error text was not captured. This looks like the same family as #644 (a failed attachment upload that nothing removes), but that is not confirmed. Not known: what failed the first time, whether Try again works, and where the phone keeps the failed upload. Related items: #570, #578, #644 and #625. GrokBot's leftovers attach on a judge account on Nov 5 closed in 5,049 ms and did not fail, so this is not reproduced. Observe first: read the owner's failed attachment job and its error from the jobs table and the model-call log (read-only), then fail a leftovers upload on a judge account on purpose and look for what the phone stores. Done when the error behind this failure is written down, a leftovers photo saves on the first try or on Try again in a phone-sized browser, a failed upload can be dismissed or removed by the user and stays gone after the app is reopened, and the chip does not cover the post's nutrition numbers. Fleet 21 independent source read, Nov 16 (investigators' report): PR 912 puts Remove in a fixed-height row (h-14) inside an overflow-hidden container (UploadChip.tsx line 30), so the source supports the clipping. Nobody repeated the browser measurement. Fleet 21, Nov 16 (coder, local, PR 912): the phone's new Remove button works and stays gone after a reload. On desktop the sidebar chip ends at y=364 and Remove begins at y=374.13, so Remove is clipped; it was left unfixed under the plan's rule. The original failure cause is not found and the chip over the nutrition numbers is not addressed. Merged in #912 on Nov 16 (coder report). Fleet 21 independent source read of the fixed head 50ea5f70, Nov 16: the clipping is fixed (UploadChip.tsx line 30 now uses a minimum height); the retained Firefox receipt shows the chip ending at 422.25 px with Remove at 411.70 px at 1280 wide, and 748 px with 737.45 px at 390 wide; no fresh browser run. Owner, Tue Nov 17, 1:24 PM WIB (iPhone, 5G): a Home screenshot shows the same "Leftovers, Not saved · Try again" chip, now with Remove beside it, floating over his 1:15 PM post ("Pork crackling and pasta and more pork. Oink.", 730 kcal) and covering that post's caption and nutrition line above the tab bar. He could not add the leftovers photo to this new meal either, so the failure repeats on a new meal and is not specific to the Nov 6 post. The error text was not captured.
 
 ### #553 Thumbs up and down look the same when turned off and thumbs down waits for the server
 
@@ -260,131 +284,29 @@ In the 24 hours before Run 8, Supabase Storage served 2.99 GB across 35,048 requ
 
 docs/egress.md says the bytes went to browser-like clients but not which files (feed photos, card images or originals) or which clients. In a later 24 hours, test automation accounted for 1.72 GB of the 1.77 GB of feed photo bytes and real mobile browsers for about 46 MB, so the split between test and real users is still a guess. Log volume was never measured in bytes. Done when Storage egress is broken down by file kind and by client (test automation or real users), log bytes are measured, and the largest real-user source is cut or shown to be small.
 
-### #967 The traffic label counts jobs that are not due yet
-
-The app can show "traffic medium" while nothing is running, because the label counts jobs that are not due yet.
-
-The label counts every queued job (src/lib/queue/traffic.ts). It is a second copy of the rule in #966. Done when the label counts only jobs that are due, and a queue holding only not-yet-due jobs shows no traffic.
-
-### #120 Home refreshes its whole server page every minute while it is visible
-
-While Home is open, it reloads its whole server page once a minute and on every return to the tab, which costs reads and can make the page jump.
-
-The refresh sits in PostReadinessListener.tsx (lines 79 to 80). The Fleet 24 audit found it. Done when Home refreshes only what changed, or only when a meal is waiting, and a Home open with only finished meals makes no minute refresh.
-
-### #968 The meal detail's "updating" poll does not wake when the person returns to the tab
-
-On a meal's page, returning to the tab can leave the "updating" check waiting before it looks again.
-
-The poll in OutlineOverlay.tsx (lines 181 to 190) has no listener for a return to the tab. #753 covers the same gap in the thread. Done when returning to the tab starts a check within one second.
-
-### #969 An added-photo request that never answers leaves the chip on "Uploading" for good
-
-A photo added to a meal can stay on "Uploading" forever, and the chip still says "Uploading N posts" when all of them have failed.
-
-No request in the added-photo path has a time limit (pack-photo-upload.ts, upload-manager.ts line 271); the chip's title is in UploadChip.tsx line 30. Done when a request that never answers fails after a set time, the chip shows the failure, and its title does not claim uploading when every post has failed.
-
-### #970 Five different refusals of an added photo share one sentence
-
-When a photo cannot be attached to a meal, the person always reads "The photo could not be attached.", whatever the cause.
-
-Five refusals reach that one sentence (attach-photo.ts line 9). Done when each refusal says what happened and what the person can do.
-
-### #971 Unused source files, one-off scripts and old evidence sit in the repository
-
-The repository holds files nothing uses, which makes it larger and slower to read.
-
-Three unused source files, ten one-off scripts under scripts/ (about 111,000 bytes), and docs/evidence at 38 MB in 597 files. None of it reaches a phone. Done when each is removed or kept with a stated reason, and nothing that is imported is removed.
-
-### #972 The capture sheet could load on the first tap
-
-The capture sheet is bundled with the page, though most opens never use it, which adds to the first load.
-
-Loading it on the first tap needs the service worker to keep the new file for offline use, so it is not a one-line change. Done when the capture sheet loads on first tap, still opens offline, and Home's first-load JavaScript is smaller.
-
-### #973 A meal with no photo shows two differently worded failure sentences
-
-A meal with no photo that failed its first analysis can show two different sentences for the same failure.
-
-The photo area reads "This meal could not be analysed." while the card reads its own failure sentence. Done when both places say the same thing.
-
-### #983 Re-analysing a stored meal needs hand-run database commands
-
-There is no safe command that re-analyses a list of meals, so correcting wrong numbers means running database commands by hand.
-
-A meal that already has numbers is not changed by re-running its job, so a re-analysis needs operator SQL first. The Fleet 25 plan keeps every old row so a meal can be put back. Done when one command re-analyses a list of meals, keeps their old rows, and can restore any meal.
-
-### #984 A re-analysed meal can copy its numbers from an earlier meal that is still wrong
-
-A meal that is re-analysed can end up with the same wrong numbers as a similar earlier meal.
-
-Read from the code; not yet seen on production. The four-meal pilot in Fleet 25 shows whether it happens. Done when a re-analysed meal never takes numbers from an earlier meal that fails a rule, and a test shows it.
-
-### #985 After a meal is re-analysed, its first comment and its saved-meal copy can keep the old numbers
-
-A re-analysed meal's page can show new numbers while its first comment and its saved-meal copy still show the old ones.
-
-Read from the code; not yet seen on production. Done when a re-analysis also updates the first comment and the saved-meal copy.
-
-### #986 Removing a correction or a leftovers photo after a re-analysis rebuilds the meal from the old numbers
-
-Taking away a correction or a leftovers photo after a re-analysis can bring back the old numbers.
-
-Read from the code; not yet seen on production. Done when removing a correction or a leftovers photo after a re-analysis keeps the re-analysed numbers.
-
-### #987 An estimated coffee or tea never stores caffeine
-
-A coffee or tea whose numbers come from a model estimate shows no caffeine, because an estimate holds no caffeine value.
-
-Caffeine comes only from a matched USDA record. The Oct 29 black coffee is the known case (#377). Done when an estimated coffee or tea stores a caffeine value, or the app says plainly that it is an estimate with no caffeine figure.
-
-### #988 A drink whose matched record has no category is not counted as a drink
-
-A drink whose USDA record has no beverage category can be left out of the drink totals.
-
-The cola records behind #377 are the known case. Done when such a drink counts as a drink, with its caffeine, on the card and in the day total.
-
-### #989 Revisit the stored numbers: re-analyse the meals that fail a rule
-
-The owner considers the app's stored calorie and nutrition numbers wrong. The first step is to find the meals that fail a rule and re-analyse them.
-
-Fleet 25 measures how many meals fail (#694) and re-analyses four. This item is the next fleet: re-analyse every meal that fails a rule, with a rate limit and a bounded cost, checking each against its matched record. Done when every meal that fails a rule has been re-analysed and passes it, or is listed with its reason.
-
 ### #990 Revisit the stored numbers: the meals that pass every rule, the other accounts, and saved meals
 
 Meals that pass every rule can still be wrong, and other accounts and saved meals hold numbers too.
 
 This is the last step of the revisit, after #989. Done when a sample of passing meals is checked against an independent estimate, and the other accounts and saved meals are re-analysed or listed with their reason.
 
-### #323 Every protected page checks sign-in twice (part of #222)
+### #694 Many of the owner's meals show wrong nutrition numbers and nobody knows how many or why
 
-The app checks that the user is signed in when a protected page is requested, and checks again when the home page loads. That is two round trips to the sign-in service on every page open, on top of the slow start of the server function.
+The owner has logged food daily for days, his diet changed, and he reports that a lot of what the app shows is wrong. Nobody has measured how wrong or where the error comes from.
 
-The server checks sign-in once per page, and a forged request header is still refused. The browser makes zero sign-in calls on Home, Days and Profile, but server recordings still show 7, 9 and 14 checks per page open. The likeliest cause is that the guard checks every background prefetch and refresh request, not only the page, and each card carries several links. This is probably the server half of #222. GrokBot, Nov 5: the browser made 0 auth/v1 calls on a cold Home open. The server-side checks need the coder's log. Done when one page open makes one sign-in call across the server and the browser together, and an unsigned request still cannot reach a protected page. Fleet 21, Nov 16 (local, ten-second windows): /user calls were 115 on Home, 10 on Days and 18 on Profile, against a target of one; no call was attributed to its source.
+Known cases: the macaroni snack shows 38 kcal and 0 g fat from a cooked vegetable macaroni record (#523), squid matched to a tuna sushi record (#617), a consumed number from a half-eaten plate that nobody confirmed (#285), and 12 of the owner's 137 posts show a 0 g macro that nobody judged. A capable coder investigates read-only: pull the owner's ready posts, check each food's weight and kcal against its USDA record and the photo, and record for each wrong number which step caused it (the food identified, the record matched, the weight estimated or the stored value). Done when a written finding lists every one of the owner's posts whose numbers are wrong with its cause, ranks the causes by how many posts each one explains, and each cause is on the backlog as its own item.
 
-### #523 A meal shows every nutrition value as unavailable
+### #285 The half-eaten plate may give the wrong consumed number
 
-The meal "Spicy Indonesian macaroni" shows its calories, protein, carbs and fat as unavailable. The owner re-analysed it after the fix went live, and it is still broken. He says the app's food estimates are broken.
+The app works out how much of a meal was eaten from a photo of the leftovers. The owner has already tested it on his phone, including today, and nobody has confirmed that the consumed number is right.
 
-The first analysis searched the USDA database three times, rejected every record, and never tried the plain name "macaroni". Ruling: when the USDA has no record, the model must estimate, because an unavailable value is worse than a rough estimate. The closest-food fallback and the guard that stops re-analysing from reusing an empty result are both on main. 41 ready posts (95 item rows) had incomplete macros (docs/evidence/fix18/recompute-ids.json). The coder reports that at 09:11 WIB all 41 recompute jobs were done (the last at 08:59 WIB), that 40 posts now have complete nutrition including the macaroni post (86634d46), and that it closed the GitHub issue. One post, 6fad4a16, still lacks a value because its matched USDA record holds no number for that nutrient; whether to estimate it is undecided. The queue holds only three photo-cleanup jobs, which change no meal data. PM, Nov 14 (Chrome, owner account, read-only): the macaroni post 86634d46 shows 38 kcal, 1 g protein, 8 g carbs and 0 g fat, and its latest AI comment (Nov 4, 10:11 PM) names the closest USDA record, "Macaroni, vegetable, enriched, cooked". Two older comments on it still read unavailable. 0 g fat for a fried snack looks low. PM sweep, Nov 14 23:25 WIB, of all 137 posts the Home feed loaded on the owner account: two posts show "Nutrition unavailable" for one item while their totals show numbers (6fad4a16, the salami, which is the known exception, and f08e2e86, an unsalted butter packet, 541 kcal); 12 posts show a 0 g macro, and I did not judge which are real zeros (Hydro Coco Original at 0 g protein looks right); and post 6caf8906 (leftovers, 8:55 PM) reads "This photo could not be analysed. Try again". The macaroni fix reached the other posts. The coder decides f08e2e86 and 6caf8906. GrokBot, Nov 15, sweep of all 137 posts: the macaroni post now shows numbers and its AI comment names the closest USDA food. Still wrong: blank values on the butter post f08e2e86 and the Pocari post 89286fbf, a -1 g carbs value on post 38de279e, a leftovers post 189673aa that reads "unavailable kcal", sambal at 0 kcal in post 509ef9bc, bakpia e7e1782c at 0 g protein and fat, the pizza post 61b3a510 reading "unavailable kcal" for several minutes after two servings changes in a row (it recovered), and 28 meal pages that say "Nutrition unavailable", some of them when the calories and macros are known and only a minor nutrient such as sugar or fibre is missing (88d38425). Done when a browser helper confirms on the live app that the macaroni post shows numbers with a note naming the closest USDA food or saying the model estimated them, and that no ready post shows a value that is unavailable, zero or blank, except post 6fad4a16, which is listed with its reason.
+The owner's own leftovers posts are the data; he will not run more tests. A capable coder investigates read-only: pull the owner's leftovers posts from production, compare each consumed number with the before and after photos, and record where a wrong number goes wrong (the portion estimate, the not-eaten step or the stored value). Related: #570 and #578. Done when a written finding says, for each of the owner's leftovers posts, whether the consumed number is right and what caused any error, and any fix is on the backlog as its own item.
 
-### #615 A posted beer disappears and a clarification card takes its place
+### #617 Squid and tuna are matched to the wrong food records
 
-The owner posted a beer and the post vanished from the feed. A card asking a question appeared in its place. A post must stay on screen from the tap, with the calories of the drink as stated, and the question must reach the owner as a notification.
+In the real food test, a photo of squid nigiri was matched to a USDA record described as "Sushi, topped with tuna". The test allows this kind of closest match, so a passing test does not show the match is right.
 
-When the caption and the photo disagree, the model asks a question. The app used to mark the post "needs input", and every feed read hid posts in that state. Ruling: the post shows as posted with the drink as stated, and the question sits in the Home strip and arrives as a notification. The strip's X dismisses the question and never deletes the post. "No food found" still holds the post. The post now stays in the feed with its question beside it (column posts.question). Not yet observed: the notification (a headless browser cannot see it), and the X. A salad photo captioned "A pint of Bintang beer" stayed in the feed as a drink (18 g alcohol, 1.3 standard drinks, 203 kcal) and raised no question, so no strip row appeared. GrokBot, Nov 5: judge 2 posted a rice photo captioned "A pint of Bintang beer". The post stayed in the feed as a drink (18 g alcohol, 1.3 standard drinks, 203 kcal) and Days for Nov 5 counted 203 kcal and 1 post. No clarification strip appeared, so the strip, the X and the notification could not be tested, and a headless browser cannot see the notification. The model accepts the caption as it did in Fleet 18, so the mismatch has to be forced on the disposable stack. Done when, on the live app with test account 2, a beer caption over a mismatching photo keeps the post in the feed with its calories, the strip row shows, the server log shows it sent "Your meal needs a reply", the X dismisses the row on the same screen without a reload, and the post stays. Also check that the beer counts in the day's kcal on Days. Fleet 21, Nov 16: the beer command exited 1 ("The beer post never settled with a question") and no batch completed; Home's question strip did not appear for the fixture meal despite its database state.
-
-### #703 Retrying a failed meal opening can leave an overlay covering the screen
-
-If opening a meal fails and the user taps retry, and navigation then hangs or fails again, an overlay covers the screen and blocks every tap, with no timeout to clear it.
-
-In src/components/PostOpenTransition.tsx, line 49. Retry sets the phase to opening but does not change the value the effect depends on, so the slow and fail timeouts are not scheduled again. Related: #635. Done when a second failure after a retry shows the failure message and removes the overlay, and a test covers it. Fleet 21 check, Nov 16: opening while offline did not produce the prescribed failure message, so retry was not verified.
-
-### #708 Retaking a lost photo leaves the old failed upload on screen
-
-Tapping retake opens the camera but does not remove the failed upload. After the new photo is taken the old failed entry is still there, and it comes back from the browser's stored drafts on every session.
-
-In src/components/UploadChip.tsx, line 29: the retake handler only opens the camera. Related: #644. Done when taking the new photo removes the old failed upload, and a reload does not bring it back. Fleet 21 check, Nov 16: the fixture was not created within 60 seconds and a scoped retry reported "Control missing", so the retake, the intent count and the reload were not verified.
+No fix has been tried. First step: look at which squid records were available, the matching trace, and the closest-food label. Done when a written finding says whether this match is acceptable and, if not, what should change.
 
 ## Backlog for Designer
 
@@ -420,35 +342,137 @@ The designer has not read their controls yet. Add them to the table from #217 wi
 
 ## In flight
 
-### #456 A rum cocktail is logged with 15 mg caffeine
+### #323 Every protected page checks sign-in twice (part of #222)
 
-The tiki cocktail post states caffeine that the drink does not contain.
+The app checks that the user is signed in when a protected page is requested, and checks again when the home page loads. That is two round trips to the sign-in service on every page open, on top of the slow start of the server function.
 
-The drink card for the lime and rum tiki cocktail read "15 mg caffeine" next to 196 kcal, and the day's caffeine total read 110 mg. Fixed on main: the tiki cocktail (owner post 8535b793) now shows 196 kcal and 18 g alcohol with no caffeine on the meal page, and a glass of red wine shows 16 g alcohol and 128 kcal with no caffeine. The Nov 3 day total was not read. GitHub shows this issue closed. GrokBot, Nov 5: FAIL. Tiki cocktail 8535b793 shows 196 kcal and 18 g alcohol, but Show all lists Caffeine 15.4 mg and the Nov 3 day total shows Caffeine 95. PM ruling: the defect stands, even though the card no longer leads with caffeine. GrokBot, Nov 15: Show all still lists caffeine on the tiki cocktail 8535b793 (15.4 mg), 8b728c7e (15.4 mg) and 8ab2eccb (14 mg). Done when a cocktail or any drink with no caffeine source logs no caffeine, the card shows none, and the day's total leaves it out, checked on the tiki cocktail and a glass of wine.
+The server checks sign-in once per page, and a forged request header is still refused. The browser makes zero sign-in calls on Home, Days and Profile, but server recordings still show 7, 9 and 14 checks per page open. The likeliest cause is that the guard checks every background prefetch and refresh request, not only the page, and each card carries several links. This is probably the server half of #222. GrokBot, Nov 5: the browser made 0 auth/v1 calls on a cold Home open. The server-side checks need the coder's log. Done when one page open makes one sign-in call across the server and the browser together, and an unsigned request still cannot reach a protected page. Fleet 21, Nov 16 (local, ten-second windows): /user calls were 115 on Home, 10 on Days and 18 on Profile, against a target of one; no call was attributed to its source.
 
-### #377 Existing photographed drink posts show no caffeine
+### #708 Retaking a lost photo leaves the old failed upload on screen
 
-A photographed cola posted before Fleet 9 shows no caffeine on its card or in the day's total.
+Tapping retake opens the camera but does not remove the failed upload. After the new photo is taken the old failed entry is still there, and it comes back from the browser's stored drafts on every session.
 
-The cola records hold 29.7 mg of caffeine from the USDA but have no beverage category and no linked intake rows. The fix covers new and re-analysed posts only. A backfill fixed 8 posts, and 12 still fail the intake rules. GrokBot, Nov 15: the old colas now show caffeine on the card and in the day total, but the Oct 29 black coffee (post 4dfe4411) shows no caffeine anywhere and is listed at 112 kcal, which is far too high for black coffee. Done when existing photographed drink posts show their stored caffeine on the card and in the day's total.
+In src/components/UploadChip.tsx, line 29: the retake handler only opens the camera. Related: #644. Done when taking the new photo removes the old failed upload, and a reload does not bring it back. Fleet 21 check, Nov 16: the fixture was not created within 60 seconds and a scoped retry reported "Control missing", so the retake, the intent count and the reload were not verified.
 
-### #617 Squid and tuna are matched to the wrong food records
+### #703 Retrying a failed meal opening can leave an overlay covering the screen
 
-In the real food test, a photo of squid nigiri was matched to a USDA record described as "Sushi, topped with tuna". The test allows this kind of closest match, so a passing test does not show the match is right.
+If opening a meal fails and the user taps retry, and navigation then hangs or fails again, an overlay covers the screen and blocks every tap, with no timeout to clear it.
 
-No fix has been tried. First step: look at which squid records were available, the matching trace, and the closest-food label. Done when a written finding says whether this match is acceptable and, if not, what should change.
+In src/components/PostOpenTransition.tsx, line 49. Retry sets the phase to opening but does not change the value the effect depends on, so the slow and fail timeouts are not scheduled again. Related: #635. Done when a second failure after a retry shows the failure message and removes the overlay, and a test covers it. Fleet 21 check, Nov 16: opening while offline did not produce the prescribed failure message, so retry was not verified.
 
-### #285 The half-eaten plate may give the wrong consumed number
+### #615 A posted beer disappears and a clarification card takes its place
 
-The app works out how much of a meal was eaten from a photo of the leftovers. The owner has already tested it on his phone, including today, and nobody has confirmed that the consumed number is right.
+The owner posted a beer and the post vanished from the feed. A card asking a question appeared in its place. A post must stay on screen from the tap, with the calories of the drink as stated, and the question must reach the owner as a notification.
 
-The owner's own leftovers posts are the data; he will not run more tests. A capable coder investigates read-only: pull the owner's leftovers posts from production, compare each consumed number with the before and after photos, and record where a wrong number goes wrong (the portion estimate, the not-eaten step or the stored value). Related: #570 and #578. Done when a written finding says, for each of the owner's leftovers posts, whether the consumed number is right and what caused any error, and any fix is on the backlog as its own item.
+When the caption and the photo disagree, the model asks a question. The app used to mark the post "needs input", and every feed read hid posts in that state. Ruling: the post shows as posted with the drink as stated, and the question sits in the Home strip and arrives as a notification. The strip's X dismisses the question and never deletes the post. "No food found" still holds the post. The post now stays in the feed with its question beside it (column posts.question). Not yet observed: the notification (a headless browser cannot see it), and the X. A salad photo captioned "A pint of Bintang beer" stayed in the feed as a drink (18 g alcohol, 1.3 standard drinks, 203 kcal) and raised no question, so no strip row appeared. GrokBot, Nov 5: judge 2 posted a rice photo captioned "A pint of Bintang beer". The post stayed in the feed as a drink (18 g alcohol, 1.3 standard drinks, 203 kcal) and Days for Nov 5 counted 203 kcal and 1 post. No clarification strip appeared, so the strip, the X and the notification could not be tested, and a headless browser cannot see the notification. The model accepts the caption as it did in Fleet 18, so the mismatch has to be forced on the disposable stack. Done when, on the live app with test account 2, a beer caption over a mismatching photo keeps the post in the feed with its calories, the strip row shows, the server log shows it sent "Your meal needs a reply", the X dismisses the row on the same screen without a reload, and the post stays. Also check that the beer counts in the day's kcal on Days. Fleet 21, Nov 16: the beer command exited 1 ("The beer post never settled with a question") and no batch completed; Home's question strip did not appear for the fixture meal despite its database state.
 
-### #694 Many of the owner's meals show wrong nutrition numbers and nobody knows how many or why
+### #523 A meal shows every nutrition value as unavailable
 
-The owner has logged food daily for days, his diet changed, and he reports that a lot of what the app shows is wrong. Nobody has measured how wrong or where the error comes from.
+The meal "Spicy Indonesian macaroni" shows its calories, protein, carbs and fat as unavailable. The owner re-analysed it after the fix went live, and it is still broken. He says the app's food estimates are broken.
 
-Known cases: the macaroni snack shows 38 kcal and 0 g fat from a cooked vegetable macaroni record (#523), squid matched to a tuna sushi record (#617), a consumed number from a half-eaten plate that nobody confirmed (#285), and 12 of the owner's 137 posts show a 0 g macro that nobody judged. A capable coder investigates read-only: pull the owner's ready posts, check each food's weight and kcal against its USDA record and the photo, and record for each wrong number which step caused it (the food identified, the record matched, the weight estimated or the stored value). Done when a written finding lists every one of the owner's posts whose numbers are wrong with its cause, ranks the causes by how many posts each one explains, and each cause is on the backlog as its own item.
+The first analysis searched the USDA database three times, rejected every record, and never tried the plain name "macaroni". Ruling: when the USDA has no record, the model must estimate, because an unavailable value is worse than a rough estimate. The closest-food fallback and the guard that stops re-analysing from reusing an empty result are both on main. 41 ready posts (95 item rows) had incomplete macros (docs/evidence/fix18/recompute-ids.json). The coder reports that at 09:11 WIB all 41 recompute jobs were done (the last at 08:59 WIB), that 40 posts now have complete nutrition including the macaroni post (86634d46), and that it closed the GitHub issue. One post, 6fad4a16, still lacks a value because its matched USDA record holds no number for that nutrient; whether to estimate it is undecided. The queue holds only three photo-cleanup jobs, which change no meal data. PM, Nov 14 (Chrome, owner account, read-only): the macaroni post 86634d46 shows 38 kcal, 1 g protein, 8 g carbs and 0 g fat, and its latest AI comment (Nov 4, 10:11 PM) names the closest USDA record, "Macaroni, vegetable, enriched, cooked". Two older comments on it still read unavailable. 0 g fat for a fried snack looks low. PM sweep, Nov 14 23:25 WIB, of all 137 posts the Home feed loaded on the owner account: two posts show "Nutrition unavailable" for one item while their totals show numbers (6fad4a16, the salami, which is the known exception, and f08e2e86, an unsalted butter packet, 541 kcal); 12 posts show a 0 g macro, and I did not judge which are real zeros (Hydro Coco Original at 0 g protein looks right); and post 6caf8906 (leftovers, 8:55 PM) reads "This photo could not be analysed. Try again". The macaroni fix reached the other posts. The coder decides f08e2e86 and 6caf8906. GrokBot, Nov 15, sweep of all 137 posts: the macaroni post now shows numbers and its AI comment names the closest USDA food. Still wrong: blank values on the butter post f08e2e86 and the Pocari post 89286fbf, a -1 g carbs value on post 38de279e, a leftovers post 189673aa that reads "unavailable kcal", sambal at 0 kcal in post 509ef9bc, bakpia e7e1782c at 0 g protein and fat, the pizza post 61b3a510 reading "unavailable kcal" for several minutes after two servings changes in a row (it recovered), and 28 meal pages that say "Nutrition unavailable", some of them when the calories and macros are known and only a minor nutrient such as sugar or fibre is missing (88d38425). Done when a browser helper confirms on the live app that the macaroni post shows numbers with a note naming the closest USDA food or saying the model estimated them, and that no ready post shows a value that is unavailable, zero or blank, except post 6fad4a16, which is listed with its reason.
+
+### #971 Unused source files, one-off scripts and old evidence sit in the repository
+
+The repository holds files nothing uses, which makes it larger and slower to read.
+
+Three unused source files, ten one-off scripts under scripts/ (about 111,000 bytes), and docs/evidence at 38 MB in 597 files. None of it reaches a phone. Done when each is removed or kept with a stated reason, and nothing that is imported is removed.
+
+### #970 Five different refusals of an added photo share one sentence
+
+When a photo cannot be attached to a meal, the person always reads "The photo could not be attached.", whatever the cause.
+
+Five refusals reach that one sentence (attach-photo.ts line 9). Done when each refusal says what happened and what the person can do.
+
+### #972 The capture sheet could load on the first tap
+
+The capture sheet is bundled with the page, though most opens never use it, which adds to the first load.
+
+Loading it on the first tap needs the service worker to keep the new file for offline use, so it is not a one-line change. Done when the capture sheet loads on first tap, still opens offline, and Home's first-load JavaScript is smaller.
+
+### #969 An added-photo request that never answers leaves the chip on "Uploading" for good
+
+A photo added to a meal can stay on "Uploading" forever, and the chip still says "Uploading N posts" when all of them have failed.
+
+No request in the added-photo path has a time limit (pack-photo-upload.ts, upload-manager.ts line 271); the chip's title is in UploadChip.tsx line 30. Done when a request that never answers fails after a set time, the chip shows the failure, and its title does not claim uploading when every post has failed.
+
+### #120 Home refreshes its whole server page every minute while it is visible
+
+While Home is open, it reloads its whole server page once a minute and on every return to the tab, which costs reads and can make the page jump.
+
+The refresh sits in PostReadinessListener.tsx (lines 79 to 80). The Fleet 24 audit found it. Done when Home refreshes only what changed, or only when a meal is waiting, and a Home open with only finished meals makes no minute refresh.
+
+### #973 A meal with no photo shows two differently worded failure sentences
+
+A meal with no photo that failed its first analysis can show two different sentences for the same failure.
+
+The photo area reads "This meal could not be analysed." while the card reads its own failure sentence. Done when both places say the same thing.
+
+### #968 The meal detail's "updating" poll does not wake when the person returns to the tab
+
+On a meal's page, returning to the tab can leave the "updating" check waiting before it looks again.
+
+The poll in OutlineOverlay.tsx (lines 181 to 190) has no listener for a return to the tab. #753 covers the same gap in the thread. Done when returning to the tab starts a check within one second.
+
+### #988 A drink whose matched record has no category is not counted as a drink
+
+A drink whose USDA record has no beverage category can be left out of the drink totals.
+
+The cola records behind #377 are the known case. Done when such a drink counts as a drink, with its caffeine, on the card and in the day total.
+
+### #987 An estimated coffee or tea never stores caffeine
+
+A coffee or tea whose numbers come from a model estimate shows no caffeine, because an estimate holds no caffeine value.
+
+Caffeine comes only from a matched USDA record. The Oct 29 black coffee is the known case (#377). Done when an estimated coffee or tea stores a caffeine value, or the app says plainly that it is an estimate with no caffeine figure.
+
+### #986 Removing a correction or a leftovers photo after a re-analysis rebuilds the meal from the old numbers
+
+Taking away a correction or a leftovers photo after a re-analysis can bring back the old numbers.
+
+Read from the code; not yet seen on production. Done when removing a correction or a leftovers photo after a re-analysis keeps the re-analysed numbers.
+
+### #985 After a meal is re-analysed, its first comment and its saved-meal copy can keep the old numbers
+
+A re-analysed meal's page can show new numbers while its first comment and its saved-meal copy still show the old ones.
+
+Read from the code; not yet seen on production. Done when a re-analysis also updates the first comment and the saved-meal copy.
+
+### #984 A re-analysed meal can copy its numbers from an earlier meal that is still wrong
+
+A meal that is re-analysed can end up with the same wrong numbers as a similar earlier meal.
+
+Read from the code; not yet seen on production. The four-meal pilot in Fleet 25 shows whether it happens. Done when a re-analysed meal never takes numbers from an earlier meal that fails a rule, and a test shows it.
+
+### #989 Revisit the stored numbers: re-analyse the meals that fail a rule
+
+The owner considers the app's stored calorie and nutrition numbers wrong. The first step is to find the meals that fail a rule and re-analyse them.
+
+Fleet 25 measures how many meals fail (#694) and re-analyses four. This item is the next fleet: re-analyse every meal that fails a rule, with a rate limit and a bounded cost, checking each against its matched record. Done when every meal that fails a rule has been re-analysed and passes it, or is listed with its reason.
+
+### #983 Re-analysing a stored meal needs hand-run database commands
+
+There is no safe command that re-analyses a list of meals, so correcting wrong numbers means running database commands by hand.
+
+A meal that already has numbers is not changed by re-running its job, so a re-analysis needs operator SQL first. The Fleet 25 plan keeps every old row so a meal can be put back. Done when one command re-analyses a list of meals, keeps their old rows, and can restore any meal.
+
+### #967 The traffic label counts jobs that are not due yet
+
+The app can show "traffic medium" while nothing is running, because the label counts jobs that are not due yet.
+
+The label counts every queued job (src/lib/queue/traffic.ts). It is a second copy of the rule in #966. Done when the label counts only jobs that are due, and a queue holding only not-yet-due jobs shows no traffic.
+
+### #997 The restore step's final job enqueue does not check that the meal was deleted
+
+When a re-analysed meal is put back, a final step queues a new job even if the meal was deleted in the meantime.
+
+The independent review of the re-analysis SQL (#992) found it; none of the four meals re-analysed so far was deleted. Done when the restore's final enqueue skips a deleted meal, and a restore of a deleted meal queues nothing.
+
+### #998 The re-analysis cache picks among differing cached descriptions without a stable order
+
+When the re-analysis looks up cached USDA records, it can choose between different cached descriptions for the same record in a changing order.
+
+The query takes DISTINCT ON (fdc_id) ordered by the record id alone, so ties are broken by chance. The review of #992 recorded it as Minor. Done when the query orders ties in a fixed way and gives the same answer on repeated runs.
 
 ## Interdit (Not part of Hackathon)
 
