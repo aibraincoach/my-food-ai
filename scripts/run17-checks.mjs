@@ -127,7 +127,11 @@ try{
       receipt.postId=postId;
       if(!settled)throw Error('The beer post never settled with a question');
    if(settled?.post?.question?.options?.[0]){
-    await evaluate(`(()=>{const row=[...document.querySelectorAll('button')].find(b=>(b.textContent||'').includes('A question about this meal'));if(!row)throw Error('Strip row missing');row.click();return true;})()`);
+    // #615: the strip row reads "A quick question about your meal" over the question itself, and an idle Home
+    // looks for new questions once a minute, so wait up to 70 seconds for this post's own row (by its question).
+    const ownQuestion=`[...document.querySelectorAll('button')].find(b=>!b.getAttribute('aria-label')&&(b.textContent||'').includes(${JSON.stringify(settled.post.question.question)}))`;
+    await until(`!!${ownQuestion}`,70000).catch(()=>{throw Error('Strip row missing');});
+    await evaluate(`(()=>{const row=${ownQuestion};if(!row)throw Error('Strip row missing');row.click();return true;})()`);
     await until(`!!document.querySelector('[aria-label="Your answer"]')`,15000);
     const option=settled.post.question.options[0];
     await evaluate(`(()=>{const b=[...document.querySelectorAll('button')].find(e=>e.textContent.trim()===${JSON.stringify(option)});if(!b)throw Error('Option missing');b.click();return true;})()`);
