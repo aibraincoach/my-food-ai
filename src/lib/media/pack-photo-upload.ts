@@ -2,11 +2,16 @@ import { createClient } from "@/lib/supabase/client";
 import { reencodeShot } from "./reencode";
 import type { SignedUpload } from "./storage";
 
+// A request that never answers must fail, so the three-attempt rule can end as the failed chip.
+// The photo limit equals the 120 s the new-meal upload already allows (put-with-progress.ts).
+export const JSON_REQUEST_LIMIT_MS = 20_000;
+export const PHOTO_PUT_LIMIT_MS = 120_000;
+
 // A PUT may commit while its response is lost. Reconcile by reading the exact bytes
 // through the signed-in owner's storage policy; do not overwrite an attached photo.
 export async function uploadedMatches(path: string, expected: Blob): Promise<boolean> {
   try {
-    const { data, error } = await createClient().storage.from("media").download(path);
+    const { data, error } = await createClient().storage.from("media").download(path, {}, { signal: AbortSignal.timeout(JSON_REQUEST_LIMIT_MS) });
     if (error || !data || data.size !== expected.size) return false;
     const [actual, original] = await Promise.all([data.arrayBuffer(), expected.arrayBuffer()]);
     const bytes = new Uint8Array(original);
@@ -23,7 +28,7 @@ export class PackPhotoUpload {
     // Renew before the two-hour upload capability ends, also before three-hour cleanup.
     if (this.pending?.file !== file || this.pending.expiresAt <= this.now()) {
       const image = await this.encode(file);
-      const response = await this.request("/api/media/sign-upload", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ staged: true }) });
+      const response = await this.request("/api/media/sign-upload", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ staged: true }), signal: AbortSignal.timeout(JSON_REQUEST_LIMIT_MS) });
       if (!response.ok) throw new Error("The pack photo could not be uploaded.");
       const { uploads } = await response.json() as { uploads: SignedUpload[] };
       this.pending = { file, image, upload: uploads[0], completed: new Set(), expiresAt: this.now() + 110 * 60 * 1000 };
@@ -32,7 +37,7 @@ export class PackPhotoUpload {
     for (const [url, path, blob] of [[upload.originalSignedUrl, upload.originalPath, image.original], [upload.feedSignedUrl, upload.feedPath, image.feed]] as const) {
       if (completed.has(url)) continue;
       let confirmed = false;
-      try { confirmed = (await this.request(url, { method: "PUT", headers: { "Content-Type": "image/jpeg" }, body: blob })).ok; }
+      try { confirmed = (await this.request(url, { method: "PUT", headers: { "Content-Type": "image/jpeg" }, body: blob, signal: AbortSignal.timeout(PHOTO_PUT_LIMIT_MS) })).ok; }
       catch { /* Read below reconciles a committed upload whose response was lost. */ }
       if (!confirmed) confirmed = await this.verify(path, blob);
       if (!confirmed) throw new Error("The pack photo could not be uploaded.");

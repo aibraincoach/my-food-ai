@@ -1,6 +1,6 @@
 import type { CapturedLocation } from "@/lib/location/capture";
 import { reencodeShot } from "@/lib/media/reencode";
-import { uploadedMatches } from "@/lib/media/pack-photo-upload";
+import { uploadedMatches, JSON_REQUEST_LIMIT_MS, PHOTO_PUT_LIMIT_MS } from "@/lib/media/pack-photo-upload";
 import {putWithProgress} from "@/lib/media/put-with-progress";
 import type {ReencodedShot} from "@/lib/media/reencode";
 import type { SignedUpload } from "@/lib/media/storage";
@@ -52,7 +52,7 @@ export class PostUploadDraft {
     try { images = await pending.images; }
     catch { this.pending = null; throw new Error("The photo could not be prepared. Your selected files were kept."); }
     await this.persistSnapshot();
-    const create = await this.request("/api/posts", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ operation_id: pending.id, capture_intent: intent, ...options, caption, location, eaten_at: eatenAt ?? new Date().toISOString(), shots: images.map((image, position) => ({ position, width: image.width, height: image.height, phash: image.phash })) }) });
+    const create = await this.request("/api/posts", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ operation_id: pending.id, capture_intent: intent, ...options, caption, location, eaten_at: eatenAt ?? new Date().toISOString(), shots: images.map((image, position) => ({ position, width: image.width, height: image.height, phash: image.phash })) }), signal: AbortSignal.timeout(JSON_REQUEST_LIMIT_MS) });
     if (!create.ok) {
       const detail = await create.json().catch(() => null);
       if (create.status === 410) this.pending = null;
@@ -83,7 +83,7 @@ export class PostUploadDraft {
           let confirmed = false;let uploadError:unknown;
           try {
             if(typeof XMLHttpRequest!=="undefined"){await putWithProgress(url,blob,(loaded)=>{sent.set(path,loaded);report();});confirmed=true;}
-            else confirmed = (await this.request(url, { method: "PUT", headers: { "Content-Type": "image/jpeg" }, body: blob })).ok;
+            else confirmed = (await this.request(url, { method: "PUT", headers: { "Content-Type": "image/jpeg" }, body: blob, signal: AbortSignal.timeout(PHOTO_PUT_LIMIT_MS) })).ok;
           }
           catch(error) { uploadError=error; /* Reconcile an ambiguous upload through the owner's read policy. */ }
           if (!confirmed) confirmed = await this.verify(path, blob);
@@ -97,7 +97,7 @@ export class PostUploadDraft {
     await Promise.all(Array.from({ length: Math.min(2, tasks.length) }, lane));
     if (failure) throw failure;
     if(!publish)return {postId:pending.id};
-    const complete = await this.request("/api/posts", { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ postId: pending.id }) });
+    const complete = await this.request("/api/posts", { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ postId: pending.id }), signal: AbortSignal.timeout(JSON_REQUEST_LIMIT_MS) });
     if (!complete.ok) {
       if (complete.status === 410) this.pending = null;
       throw new Error(complete.status === 410 ? "The upload draft expired. Your photos were kept; try again." : "The post could not be completed. Your uploaded photos were kept; try again.");

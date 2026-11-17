@@ -9,7 +9,7 @@ import { uploadStore, type PublishIntent, type StoredUpload } from './upload-sto
 import { UPLOAD_PARK_MS, UPLOAD_GRACE_MS } from '@/lib/media/upload-window';
 import type { CapturedLocation } from '@/lib/location/capture';
 import { PhotoUploadError, type UploadError } from '@/lib/media/put-with-progress';
-import { PackPhotoUpload } from '@/lib/media/pack-photo-upload';
+import { PackPhotoUpload, JSON_REQUEST_LIMIT_MS } from '@/lib/media/pack-photo-upload';
 import { reencodeShot } from '@/lib/media/reencode';
 
 const RETAKE_ATTACHMENT_MESSAGE = 'This photo was not kept. Take it again.';
@@ -268,7 +268,7 @@ export class UploadManager {
         // Persist before attach: the server deduplicates by this stage path, even after a lost response/reload.
         await this.persist(entry);
         if(entry.deleted||d.ownerId!==this.ownerId)throw new Error('Sign-in changed. Your photo is kept for its original account.');
-        const response=await this.foodRequest(`/api/posts/${attachment.postId}/media`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({photo:d.attachmentPhoto,not_eaten:attachment.notEaten})});
+        const response=await this.foodRequest(`/api/posts/${attachment.postId}/media`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({photo:d.attachmentPhoto,not_eaten:attachment.notEaten}),signal:AbortSignal.timeout(JSON_REQUEST_LIMIT_MS)});
         const result=await response.json().catch(()=>null) as {post_id?:string;error?:string;code?:string}|null;
         if(!response.ok&&result?.code==='attachment_stage_expired'){
             // Only the server can prove the old reservation cannot complete.

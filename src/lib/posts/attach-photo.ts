@@ -4,9 +4,19 @@ export class AttachmentStageExpired extends Error {
  readonly code='attachment_stage_expired';
  constructor(){super('The photo upload expired. Uploading the kept photo again.');}
 }
+/** One stable code and one sentence per refusal the attachment functions raise
+ * (supabase/migrations/0028_multiple_leftovers.sql), keyed by the raised text. */
+export const ATTACH_REFUSALS=new Map<string,{code:string;message:string}>([
+ ['Wait for this meal to be ready',{code:'attachment_meal_not_ready',message:'This meal is still being analysed, so try again a little later.'}],
+ ['Drink amounts were recorded when posted',{code:'attachment_meal_has_drink',message:'Photos cannot be added to meals with drinks, so log this as a new meal instead.'}],
+ ['A meal has at most eight photos',{code:'attachment_photo_limit',message:'This meal already has eight photos, so remove one before trying again.'}],
+ ['Photo upload incomplete',{code:'attachment_upload_incomplete',message:'The photo did not finish reaching the app, so try again to send it.'}],
+ ['Post not found',{code:'attachment_meal_missing',message:'This meal was deleted, so remove this photo or log it as a new meal.'}],
+]);
 function stageError(error:{code?:string;message?:string},status?:number):Error {
- return error.code==='22023'&&error.message==='Photo stage expired'
-  ?new AttachmentStageExpired():ioError('The photo could not be attached.',error,status);
+ if(error.code==='22023'&&error.message==='Photo stage expired')return new AttachmentStageExpired();
+ const refusal=ATTACH_REFUSALS.get(error.message??'');
+ return refusal?Object.assign(ioError(refusal.message,error,status),{refusal:refusal.code}):ioError('The photo could not be attached.',error,status);
 }
 export interface AttachedPhoto {path:string;width:number;height:number}
 /** A reservation is durable before any copy is made. Its delayed cleanup checks
