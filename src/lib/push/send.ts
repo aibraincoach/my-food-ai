@@ -21,8 +21,16 @@ export async function sendPostPush(admin: SupabaseClient, postId: string, questi
   const subject = process.env.VAPID_SUBJECT;
   if (!publicKey || !privateKey || !subject) return;
   try {
-    const { data: post, error } = await admin.from("posts").select("user_id,status,needs_input,question").eq("id", postId).maybeSingle();
+    const { data: post, error } = await admin.from("posts").select("user_id,status,needs_input,question,active_job_id").eq("id", postId).maybeSingle();
     if (error || !post) return;
+    // #1001: an operator re-analysis or re-match (scripts/numbers; its job payload carries "operator") is
+    // maintenance on a meal the person already saw, so it never notifies. The job that publishes the meal is
+    // still the meal's active job here; a job that cannot be read does not stop an ordinary notification.
+    if (post.active_job_id) {
+      const { data: job } = await admin.from("jobs").select("payload").eq("id", post.active_job_id).maybeSingle();
+      const payload = (job as { payload?: unknown } | null)?.payload;
+      if (payload && typeof payload === "object" && "operator" in payload) return;
+    }
     // Persistence may have queued an answer submitted during the model call.
     // Notify only the state that actually survived that transaction.
     if (question !== undefined) {
