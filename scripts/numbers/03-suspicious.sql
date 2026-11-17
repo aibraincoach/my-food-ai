@@ -1,5 +1,5 @@
 with items as (
-  select p.id as post_id, i.id as item_id, i.name, i.portion_grams,
+  select p.id as post_id, i.id as item_id, i.name, i.portion_grams, i.portion_text,
          n.post_item_id is not null as has_row, n.calories, n.protein_g, n.carbs_g, n.fat_g,
          n.fibre_g, n.sugar_g, n.sodium_mg, n.source_ref, n.food_category,
          coalesce(n.micronutrients, '[]'::jsonb) as micro,
@@ -47,6 +47,7 @@ with items as (
   from described
   where portion_grams > 20 and (calories = 0 or (protein_g = 0 and carbs_g = 0 and fat_g = 0))
     and not (name ~* '\m(water|tea|coffee|espresso|americano|diet|zero)\M' and name !~* '\m(milk|latte|cappuccino|sugar|sweet|mocha|bubble|boba)\M')
+    and not (calories > 0 and lower(coalesce(food_category, '')) in ('alcoholic beverages', 'beer', 'wine', 'liquor and cocktails'))
   union all
   select post_id, item_id, name, portion_grams, calories, 'c energy differs from 4p+4c+9f+7alc by more than 25% and 40 kcal',
          'from macros ' || round(4 * protein_g + 4 * carbs_g + 9 * fat_g + 7 * coalesce(alcohol_g, 0), 1) || ' kcal (alcohol grams stored: ' || coalesce(round(alcohol_g, 1)::text, 'none') || ')'
@@ -60,7 +61,7 @@ with items as (
   from described where portion_grams > 0 and calories is not null and (calories / portion_grams < 0 or calories / portion_grams > 9)
   union all
   select post_id, item_id, name, portion_grams, calories, 'e portion NULL, under 5 g or over 1500 g', coalesce(portion_grams::text, 'NULL') || ' g'
-  from described where portion_grams is null or portion_grams < 5 or portion_grams > 1500
+  from described where (portion_grams is null and not (calories is not null and portion_text ~ '^[0-9]+([.][0-9]+)? ml$')) or portion_grams < 5 or portion_grams > 1500
   union all
   select post_id, item_id, name, portion_grams, calories, 'f negative value',
          concat_ws(' ', case when calories < 0 then 'kcal ' || calories end, case when protein_g < 0 then 'protein ' || protein_g end,
@@ -72,7 +73,7 @@ with items as (
   select post_id, item_id, name, portion_grams, calories, 'g1 plain coffee or tea above 0.25 kcal per gram',
          round(calories / portion_grams, 2) || ' kcal/g, category ' || coalesce(food_category, 'NULL')
   from described
-  where name ~* '\m(coffee|espresso|americano|tea)\M' and name !~* '\m(milk|latte|cappuccino|sugar|mocha)\M'
+  where name ~* '\m(coffee|espresso|americano|tea)\M' and name !~* '\m(milk|latte|cappuccino|sugar|sweet|sweetened|condensed|mocha|brownie|cookie|cake)\M'
     and portion_grams > 0 and calories / portion_grams > 0.25
   union all
   select post_id, item_id, name, portion_grams, calories, 'g2 caffeine stored on a name with no caffeine source',
