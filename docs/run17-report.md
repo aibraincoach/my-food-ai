@@ -50,3 +50,7 @@ Firefox BiDi, local app + production Supabase, migration **0056**, caption **`a 
 - R4: two readings over 1000 ms (1338, 1077) without an inter-post gap — **not resolved**. The 8 s gap only avoided them.
 - `run17-checks.mjs`: exit status ignored failed checks, dismiss selector `|| true`, samples read the wrong post, fake push row left behind — #628.
 - Two-step error formats on the dismiss route — #627. Question save not atomic — #626 (found in the #620 review).
+
+## Note added 2026-11-17 (#690)
+
+A post captioned "Fleet 17 post-close 2" (id starting `d37b129e`) was created on test account 2 at 16:21 UTC, between the "retry" batch at 16:16 and the "v4" batch at 16:23. No receipt covers it, so it is not one of the nine readings above. Whether a fourth close-time batch ran cannot be shown either way. At the Fleet 27 pre-merge stop, deletion of the post and its upload draft is pending the PM's exact-head merge order; it has not been performed.

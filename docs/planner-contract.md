@@ -4,13 +4,6 @@
 
 Check before delivering a plan. Revised 2026-10-02. The rules that get an agent fired are in [pm-operational-rules.md](../pm-operational-rules.md); rule 31 names the planner. The incidents behind them are in the Wall of Stupid archive, [WALL_OF_STUPID.md](../WALL_OF_STUPID.md).
 
-> Coder annotation 2026-10-27 (handoff, not the planner's words): the
-> "plan is its own merge order" lines below (Run shape, Authorization)
-> are superseded. Owner rule since 16:43 JST: the coder never merges
-> without a merge order naming one PR and one head SHA, sent after the
-> planner's evaluation and the reviewer's zero-blocker result on that
-> head. Standing conditional orders do not authorize merges.
-
 ## Planner role
 
 The planner writes plans only. It never writes to the codebase and never posts to GitHub. A coder commits a plan's text unchanged when asked. A prompt the planner wrote goes to the coder as RT sends it; the PM adds nothing.
@@ -25,7 +18,7 @@ A planner plans as many backlog items as are feasible. An item is left out only 
 
 ## Run shape
 
-The whole plan is written, and it runs on one prompt to the end. No stops, no pauses, no stages that wait on the PM, no blank for the PM to fill in, no report-and-wait between items, no mid-plan re-planning. The plan is its own merge order: it names the sequence and the coder reads each head SHA itself. The plan states at the top how many times it stops; for an unattended plan the answer is zero. If one coder cannot do a step, such as browser work without a browser, the plan says how the hand-off happens without a person relaying it. Every item has a number, and the coder's final report lists every number as done or not done. RT, 2026-10-01, verbatim: "A plan should run all the way 100% to the end. All testing, all browser testing, all fucking AGY, all fucking everything happens at the very fucking end after all the fucking code is built."
+The whole plan is written, and it runs on one prompt to the end. No stops, no pauses, no stages that wait on the PM, no blank for the PM to fill in, no report-and-wait between items, no mid-plan re-planning. The plan names the merge sequence, but it is not a merge order: each pull request merges only on the PM's order naming that PR and its full head SHA, after the planner's evaluation and a zero-blocker review of that exact head (docs/coder-contract.md, "Merge control"; #698). The plan states at the top how many times it stops; for an unattended plan the answer is zero. If one coder cannot do a step, such as browser work without a browser, the plan says how the hand-off happens without a person relaying it. Every item has a number, and the coder's final report lists every number as done or not done. RT, 2026-10-01, verbatim: "A plan should run all the way 100% to the end. All testing, all browser testing, all fucking AGY, all fucking everything happens at the very fucking end after all the fucking code is built."
 
 A plan never absorbs a defect found while it runs; that defect goes to the owner for the backlog and a later fleet.
 
@@ -53,7 +46,7 @@ What you checked yourself today is a fact. State it with the check beside it: th
 
 ## Authorization
 
-A plan authorizes nothing until RT approves it and it is dispatched. Then it is the merge order for the PRs it names. Where a plan has more than one migration, it states the apply and merge order by number. Merges come last, in ascending PR number, with the docs PR never merged unless RT says so.
+A plan authorizes nothing until RT approves it and it is dispatched, and even then it authorizes no merge. Where a plan has more than one migration, it states the apply and merge order by number. Merges come last, in ascending PR number, with the docs PR never merged unless RT says so.
 
 ## Customer contact
 
