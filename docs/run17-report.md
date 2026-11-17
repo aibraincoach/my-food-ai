@@ -53,4 +53,4 @@ Firefox BiDi, local app + production Supabase, migration **0056**, caption **`a 
 
 ## Note added 2026-11-17 (#690)
 
-A post captioned "Fleet 17 post-close 2" (id starting `d37b129e`) was created on test account 2 at 16:21 UTC, between the "retry" batch at 16:16 and the "v4" batch at 16:23. No receipt covers it, so it is not one of the nine readings above. Whether a fourth close-time batch ran cannot be shown either way. At the Fleet 27 pre-merge stop, deletion of the post and its upload draft is pending the PM's exact-head merge order; it has not been performed.
+A post captioned "Fleet 17 post-close 2" (id starting `d37b129e`) was created on test account 2 at 16:21 UTC, between the "retry" batch at 16:16 and the "v4" batch at 16:23. No receipt covers it, so it is not one of the nine readings above. Whether a fourth close-time batch ran cannot be shown either way. The post and its upload draft were deleted in Fleet 27.
