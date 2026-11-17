@@ -1,0 +1,61 @@
+// node --import tsx --test tests/estimate-caffeine.test.mjs
+import test from 'node:test';
+import assert from 'node:assert/strict';
+process.env.NUTRITION_COMPACT_WRITE='1';
+process.env.MODEL_API_BASE_URL='http://127.0.0.1:1/v1';process.env.MODEL_API_KEY='offline-meta';
+process.env.NEXT_PUBLIC_SUPABASE_URL='https://trace.invalid';process.env.SUPABASE_SECRET_KEY='offline-trace';
+const {estimateFood}=await import('../src/lib/fdc/estimate.ts');
+const {scaleNutrition}=await import('../src/lib/fdc/nutrients.ts');
+const {foodApproximation,approximationLabels,storedEstimateFood}=await import('../src/lib/fdc/approximation-metadata.ts');
+const {drinksFromItems}=await import('../src/lib/intake/drinks-from-items.ts');
+const {nutritionTableRows}=await import('../src/lib/nutrition/table.ts');
+const {plainConsumed}=await import('../src/lib/pipeline/wording.ts');
+const coffee={food:true,basis:'brewed black coffee',calories:1,protein_g:0.1,carbs_g:0,fat_g:0,fibre_g:0,sugar_g:0,sodium_mg:2,caffeine_mg:40};
+let request;
+async function withPayload(payload,fn){const original=globalThis.fetch;globalThis.fetch=async(input,init)=>{const url=new URL(input);if(url.origin==='https://trace.invalid')return new Response(null,{status:201});assert.equal(url.port,'1');request=JSON.parse(init.body);return Response.json({status:'completed',output:[{type:'message',content:[{type:'output_text',text:JSON.stringify(payload)}]}],usage:{input_tokens:1,output_tokens:1}});};try{return await fn();}finally{globalThis.fetch=original;}}
+const stored=(name,n,grams)=>({id:'item',name,portion_text:null,portion_grams:grams,food_category:n.foodCategory,source_ref:n.sourceRef,micronutrients:n.micronutrients});
+
+test('the estimate asks the model for caffeine',async()=>withPayload(coffee,async()=>{
+ await estimateFood('black coffee','');
+ assert.match(request.instructions,/caffeine in milligrams/);
+ assert.deepEqual(request.text.format.schema.properties.caffeine_mg,{type:['number','null']});
+ assert.ok(request.text.format.schema.required.includes('caffeine_mg'));
+}));
+
+test('an estimated coffee stores caffeine as nutrient 1057 for the portion and keeps the estimate label',async()=>withPayload(coffee,async()=>{
+ const food=await estimateFood('black coffee','');const n=scaleNutrition(food,180);
+ const caffeine=n.micronutrients.find(entry=>entry.nutrientId===1057);
+ assert.deepEqual({nutrientName:caffeine.nutrientName,unitName:caffeine.unitName,value:caffeine.value,basis:caffeine.basis,per100:caffeine.per100},{nutrientName:'Caffeine',unitName:'MG',value:72,basis:'portion',per100:40});
+ assert.equal(n.calories,1.8);assert.match(n.sourceRef,/^estimate:/);assert.equal(n.foodCategory,null);
+ const row=stored('black coffee',n,180);
+ assert.deepEqual(foodApproximation(row),{kind:'estimate',basis:coffee.basis});
+ assert.match(plainConsumed({calories:n.calories,protein_g:n.proteinG,carbs_g:n.carbsG,fat_g:n.fatG},approximationLabels([row])),/Nutrition for black coffee is a model estimate, brewed black coffee\./);
+ // The drink row and the nutrition table read it exactly as they read a matched record's caffeine.
+ assert.deepEqual(drinksFromItems([row]),[{post_item_id:'item',kind:'caffeine',amount:72,ml:180,label:'black coffee',caffeineMg:72,alcoholG:0}]);
+ assert.equal(nutritionTableRows([{...row,calories:n.calories,protein_g:n.proteinG,carbs_g:n.carbsG,fat_g:n.fatG,fibre_g:n.fibreG,sugar_g:n.sugarG,sodium_mg:n.sodiumMg}]).find(line=>line.name==='Caffeine').value,72);
+ // The per-100 g reference survives a later portion change.
+ assert.equal(storedEstimateFood(row).foodNutrients.find(entry=>entry.nutrientId===1057).value,40);
+}));
+
+test('an estimated drink with no caffeine source drops the estimated caffeine',async()=>withPayload({...coffee,basis:'orange juice',calories:45,carbs_g:10,sugar_g:8,caffeine_mg:12},async()=>{
+ for(const name of ['orange juice','herbal tea','decaf coffee']){
+  const n=scaleNutrition(await estimateFood(name,''),200);
+  assert.equal(n.micronutrients.find(entry=>entry.nutrientId===1057).value,24);
+  // Only "herbal tea" and "decaf coffee" are drinks by name without a category; orange juice needs a category.
+  const [drink]=drinksFromItems([{...stored(name,n,200),food_category:name==='orange juice'?'citrus juice':null}]);
+  assert.equal(drink.caffeineMg,0,name);assert.equal(drink.kind,'water',name);
+  assert.equal(nutritionTableRows([{...stored(name,n,200),food_category:name==='orange juice'?'citrus juice':null,calories:1,protein_g:0,carbs_g:0,fat_g:0,fibre_g:0,sugar_g:0,sodium_mg:0}]).some(line=>line.name==='Caffeine'),false,name);
+ }
+}));
+
+test('no caffeine, zero, an older answer without the field, and an out-of-range figure store no caffeine and keep the estimate',async()=>{
+ for(const caffeine_mg of [null,0,undefined,-1,401,5000,'40',Number.NaN]){
+  await withPayload({...coffee,caffeine_mg},async()=>{
+   const food=await estimateFood('black coffee','');
+   assert.equal(food.foodNutrients.some(entry=>entry.nutrientId===1057),false,String(caffeine_mg));
+   assert.deepEqual(food.foodNutrients.map(entry=>entry.nutrientId),[1008,1003,1005,1004,1079,2000,1093]);
+   assert.equal(scaleNutrition(food,180).calories,1.8);
+  });
+ }
+ await withPayload({...coffee,caffeine_mg:400},async()=>{assert.equal((await estimateFood('espresso','')).foodNutrients.find(entry=>entry.nutrientId===1057).value,400);});
+});

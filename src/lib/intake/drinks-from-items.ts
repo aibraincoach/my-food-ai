@@ -1,4 +1,4 @@
-import {alcoholGrams,isAlcoholic,keepsCaffeine} from './alcohol';
+import {ALCOHOLIC_NAME,alcoholGrams,isAlcoholic,keepsCaffeine} from './alcohol';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { getCurrentItems, toNumber, type Numeric, type StoredNutrient } from '@/lib/nutrition/totals';
 import { ioError } from '@/lib/worker/errors';
@@ -28,10 +28,19 @@ function ambiguousDairyDrink(name: string): boolean {
     && parts.slice(1).every(part => DAIRY_QUALIFIERS.has(part) || /^[0-4](?:\.\d+)?% milkfat$/.test(part)
       || /^(?:with|without) added vitamin (?:a|d|a and vitamin d)$/.test(part));
 }
+// #988: with no category, the name decides, by one rule over the two existing lists. The drink is the
+// part before "with", "in", "on", a comma or a bracket, and that part must be or end with a plain drink
+// ("iced black coffee", "a can of Coca-Cola") or an alcoholic drink name ("rum cocktail"). A food that
+// only mentions a drink ("coffee cake", "tea-smoked duck", "chicken braised in cola") stays a food.
+const ALCOHOLIC_DRINK_ENDING = new RegExp(`(?:${ALCOHOLIC_NAME.source})$`, 'i');
+function plainDrinkName(name: string): boolean {
+  const words = name.trim().toLowerCase().replace(/\s+/g, ' ').split(/[,(]| (?:with|in|on) /)[0].trim().split(' ');
+  return ALCOHOLIC_DRINK_ENDING.test(words.join(' ')) || words.some((_, start) => PLAIN_DRINKS.has(words.slice(start).join(' ')));
+}
 export function isDrinkItem(item: Pick<DrinkItem, 'name' | 'food_category'>): boolean {
   const category = item.food_category?.trim().toLowerCase();
   return category ? (category === 'dairy and egg products' && ambiguousDairyDrink(item.name)) || BEVERAGE_CATEGORIES.has(category) || /\b(?:beverage|beverages|drink|drinks|juice|soda|coffee|tea|water)\b/.test(category)
-    : PLAIN_DRINKS.has(item.name.trim().toLowerCase());
+    : plainDrinkName(item.name);
 }
 /** A volume alone never makes food a beverage. Nutrients are already scaled to
  * the consumed portion. Cola alone has a disclosed typical-value fallback. */
