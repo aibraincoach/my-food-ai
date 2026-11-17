@@ -41,15 +41,19 @@ test('composer identify enforces caps and ownership, caches one model call, and 
  const origin=process.env.APP_URL,model=process.env.MODEL_API_BASE_URL;
  const db=createClient(process.env.NEXT_PUBLIC_SUPABASE_URL,process.env.SUPABASE_SECRET_KEY,{auth:{persistSession:false}});
  const {user}=await signInTestClient(1),cookie=await signInAsTestUser(1),other=await signInAsTestUser(2);
- const hour=new Date();hour.setUTCMinutes(0,0,0);const bucket=hour.toISOString();
- const prior=checked(await db.from('user_call_hits').select('*').eq('user_id',user.id).in('route',['post','drink_identify']).eq('hour',bucket));
+ // #1018: the server counts a call into the clock hour in which it is made. Each cap writes this hour and the next,
+ // and a read takes the larger of the two hours the last cap wrote, so a run that crosses the hour still finds its call.
+ const hourOf=offset=>{const hour=new Date(Date.now()+offset*3600000);hour.setUTCMinutes(0,0,0);return hour.toISOString();};
+ let capped=[hourOf(0),hourOf(1)];const written=new Set(capped);
+ const prior=checked(await db.from('user_call_hits').select('*').eq('user_id',user.id).in('route',['post','drink_identify']).in('hour',capped));
  const cacheQuery='fdc-search-v3:coca cola';
  const priorCache=checked(await db.from('fdc_cache').select('*').eq('query',cacheQuery));
  const stages=[];
  const request=(path,body,session=cookie)=>fetch(origin+path,{method:'POST',headers:{Cookie:session,'Content-Type':'application/json'},body:JSON.stringify(body),signal:AbortSignal.timeout(15000)});
- const cap=(hits,route='drink_identify')=>db.from('user_call_hits').upsert({user_id:user.id,route,hour:bucket,hits},{onConflict:'user_id,route,hour'}).then(checked);
+ const cap=(hits,route='drink_identify')=>{capped=[hourOf(0),hourOf(1)];capped.forEach(hour=>written.add(hour));return db.from('user_call_hits').upsert(capped.map(hour=>({user_id:user.id,route,hour,hits})),{onConflict:'user_id,route,hour'}).then(checked);};
+ const hitsFor=async route=>Math.max(...checked(await db.from('user_call_hits').select('hits').eq('user_id',user.id).eq('route',route).in('hour',capped)).map(row=>row.hits));
  const count=()=>fetch(model+'/__calls').then(r=>r.json()).then(rows=>rows.filter(row=>row.name==='identify').length);
- const hits=async()=>checked(await db.from('user_call_hits').select('hits').eq('user_id',user.id).eq('route','drink_identify').eq('hour',bucket).single()).hits;
+ const hits=()=>hitsFor('drink_identify');
  async function stage(photo='01'){
   const id=randomUUID();stages.push(id);
   const response=await request('/api/posts',{operation_id:id,capture_intent:'photo',caption:'',eaten_at:new Date().toISOString(),shots:[{position:0,width:390,height:390}]});const data=await response.json();assert.equal(response.status,200,JSON.stringify(data));
@@ -64,7 +68,7 @@ test('composer identify enforces caps and ownership, caches one model call, and 
   assert.equal((await request('/api/drinks/identify',{upload_id:id,position:0},other)).status,404);
   assert.equal(await count(),0);
   await cap(120);const denied=await request('/api/drinks/identify',{upload_id:id,position:0});assert.equal(denied.status,429);assert.ok(Number(denied.headers.get('Retry-After'))>=1);assert.equal(await count(),0);assert.deepEqual(checked(await db.from('composer_drink_readings').select('id').eq('upload_id',id)),[],'cap refusal releases the photo claim for a later retry');
-  await cap(0);await cap(40,'post');const response=await request('/api/drinks/identify',{upload_id:id,position:0});const reading=await response.json();assert.equal(response.status,200,JSON.stringify(reading));assert.equal(reading.allDrinks,true);assert.equal(reading.drinks[0].ml,300);assert.equal(await count(),1);assert.equal(checked(await db.from('user_call_hits').select('hits').eq('user_id',user.id).eq('route','post').eq('hour',bucket).single()).hits,40,'identify does not spend the full post bucket');await cap(0,'post');
+  await cap(0);await cap(40,'post');const response=await request('/api/drinks/identify',{upload_id:id,position:0});const reading=await response.json();assert.equal(response.status,200,JSON.stringify(reading));assert.equal(reading.allDrinks,true);assert.equal(reading.drinks[0].ml,300);assert.equal(await count(),1);assert.equal(await hitsFor('post'),40,'identify does not spend the full post bucket');await cap(0,'post');
   assert.equal(await hits(),1,'one model call spends exactly one identify hit');
   await cap(120);
   const cached=await request('/api/drinks/identify',{upload_id:id,position:0});assert.equal(cached.status,200);assert.equal((await cached.json()).id,reading.id);assert.equal(await count(),1);assert.equal(await hits(),120,'a ready reading remains reusable at the cap without spending');
@@ -118,6 +122,6 @@ test('composer identify enforces caps and ownership, caches one model call, and 
   if(stages.length){checked(await db.from('posts').delete().in('id',stages));checked(await db.from('post_upload_drafts').delete().in('id',stages));
    const result=spawnSync('psql',['-X','-qAt','--dbname',process.env.SUPABASE_DB_URL,'-v','ON_ERROR_STOP=1'],{input:`delete from public.jobs where payload->>'deleted_post_id' in (${stages.map(id=>`'${id}'`).join(',')});delete from storage.objects where ${stages.map(id=>`name like '${user.id}/${id}/%'`).join(' or ')};`,encoding:'utf8'});assert.equal(result.status,0,result.stderr);}
   checked(await db.from('fdc_cache').delete().eq('query',cacheQuery));if(priorCache.length)checked(await db.from('fdc_cache').insert(priorCache));
-  checked(await db.from('user_call_hits').delete().eq('user_id',user.id).in('route',['post','drink_identify']).eq('hour',bucket));if(prior.length)checked(await db.from('user_call_hits').insert(prior));
+  written.add(hourOf(0));checked(await db.from('user_call_hits').delete().eq('user_id',user.id).in('route',['post','drink_identify']).in('hour',[...written]));if(prior.length)checked(await db.from('user_call_hits').insert(prior));
  }
 });
