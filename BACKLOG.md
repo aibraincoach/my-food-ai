@@ -1,6 +1,6 @@
 # My Food AI — Backlog†
 
-Last edited: Tuesday 2026-11-17 at 21:50 WIB (UTC+07:00) by Claude, PM
+Last edited: Tuesday 2026-11-17 at 21:54 WIB (UTC+07:00) by Claude, PM
 
 For the owner (Tue Nov 17, 19:11 WIB): The PM cannot talk to the designer. The PM seat has no browser tool, so it cannot open the designer's chat in claude.ai and type into it. Five backlog items are waiting for the designer to choose a place, a look or an audit: the barcode prompt over the live camera (#453), what the card you swipe to on a drink's photo shows (#455), how much of an alcoholic drink was drunk (#457), what places that wait on the network show while they wait (#631), and the controls on Days, Search, Profile and the capture modes (#555). To unblock them, paste those five titles into the designer's chat and ask for a look for each, or give the PM seat a browser tool. Nothing else waits on you.
 
@@ -339,6 +339,12 @@ This is the last step of the revisit, after #989. Done when a sample of passing 
 A test in the full suite can fail at the turn of the hour, so a clean run is not always clean.
 
 The test checks that the hourly drink-identify usage counter reads 1, and it read 0 on main in the Fleet 27 baseline, which started just before 13:00 UTC. The cause is unproven. Done when the test no longer depends on the clock hour, and it passes when run across an hour boundary.
+
+### #1022 A 30-character meal header is cut off at phone width
+
+A long name in a meal's header does not fit on a phone, so the person cannot read all of it.
+
+The Fleet 27 check reproduced it at 390 wide with a 30-character name: the header scrolled 318 px inside a 219 px space and ended in an ellipsis. It was observed, and nobody has decided that the name should wrap. Done when a 30-character header either wraps or shows its whole name at 390 wide, and the owner agrees with the choice.
 
 ## Backlog for Designer
 
