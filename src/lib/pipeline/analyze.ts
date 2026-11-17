@@ -1,5 +1,5 @@
 import {writePendingNames} from './pending-items';
-import { readNutritionLabel, labelNutrition } from "@/lib/meta/label";
+import { readLabelFromPhotos, labelNutrition } from "@/lib/meta/label";
 import { ApiError, ioError } from "@/lib/worker/errors";
 import { isOwnedPhotoPath } from "@/lib/media/paths";
 import { UPLOAD_GRACE_MS } from "@/lib/media/upload-window";
@@ -260,7 +260,7 @@ export async function analyzePost(
   } catch { /* An unavailable optional setting retains the normal Meta path. */ }
   const named = await identifyMeal(photo, "image/jpeg", post.caption, segmented, prior,additionalPhotos,additionalRegionHints.join('\n'),provider);
   if(named.nutritionLabel && !named.captionOnly.length && !named.regions.some(r=>r.item) && photo){
-    const reading=await readNutritionLabel(photo);
+    const reading=await readLabelFromPhotos([photo,...additionalPhotos]);
     if(reading.is_label&&reading.serving&&reading.per_serving){
       named.captionOnly=[{regionIndex:null,name:"Packaged food",portionText:`${reading.serving.amount} ${reading.serving.unit}`,portionGrams:reading.serving.unit==="g"?reading.serving.amount:null,confidence:null}];
       named.labelNutrition=labelNutrition(reading,1);
