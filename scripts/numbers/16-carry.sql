@@ -15,5 +15,11 @@ where n.post_item_id = :'item'::uuid and i.id = n.post_item_id and i.superseded_
   and p.id = i.post_id and p.status = 'ready' and p.deleted_at is null
   and not exists (select 1 from public.jobs j where j.post_id = p.id and j.status in ('queued', 'running'))
   and jsonb_typeof(:'entries'::jsonb) = 'array'
+  -- Refuse a stale carry plan rather than replace a value that is already available.
+  and not exists (
+    select 1 from jsonb_array_elements(case when jsonb_typeof(n.micronutrients) = 'array' then n.micronutrients else '[]'::jsonb end) m
+    join jsonb_array_elements(:'entries'::jsonb) c on c->>'nutrientId' = m->>'nutrientId'
+    where m->>'value' is not null
+  )
 returning left(n.post_item_id::text, 8) as item, jsonb_array_length(n.micronutrients) as micronutrients;
 commit;

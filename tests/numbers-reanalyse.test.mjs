@@ -256,7 +256,7 @@ const butterMeal = (nutrition, extra = {}) => ({ post: { id: A, status: 'ready' 
   { id: 'aaaaaaaa-0000-4000-8000-000000000009', name: 'sliced apple', portion_grams: 60, superseded_at: null, nutrition: { calories: 36.6, micronutrients: [] } },
   { id: 'aaaaaaaa-0000-4000-8000-00000000000b', name: 'unsalted butter packet', portion_grams: 7, superseded_at: null, nutrition }], ...extra });
 const foundation = { calories: null, fat_g: 5.705, micronutrients: [{ nutrientId: 1100, value: 0.0001, basis: 'portion' }, { nutrientId: 1087, value: 1.68, basis: 'portion' }] };
-const legacy = { calories: 50.19, protein_g: 0.06, fat_g: 5.677, micronutrients: [{ nutrientId: 1087, value: 1.68, basis: 'portion' }, { nutrientId: 1100, value: null }, { nutrientId: 1092, value: 1.68, basis: 'portion' }] };
+const legacy = { calories: 50.19, protein_g: 0.06, fat_g: 5.677, micronutrients: [{ nutrientId: 1087, value: 1.68, basis: 'portion' }, { nutrientId: 1100, value: null, basis: 'portion' }, { nutrientId: 1092, value: 1.68, basis: 'portion' }] };
 const fresh = (meal) => ({ ...meal, items: meal.items.map((i) => ({ ...i, id: i.id.replace('aaaaaaaa', 'bbbbbbbb') })) });
 
 test('a lost micronutrient of the same food is carried, and nothing else is', () => {
@@ -271,6 +271,18 @@ test('a lost micronutrient of the same food is carried, and nothing else is', ()
   const caffeine = butterMeal({ ...foundation, micronutrients: [{ nutrientId: 1057, value: 40, basis: 'portion' }] });
   assert.equal(carryPlan(caffeine, after), null, 'caffeine, water and alcohol feed day totals and are never carried');
   assert.equal(carryPlan({ ...before, saved_meals: [{ id: 's' }] }, after), null, 'a meal with a saved meal is never carried');
+});
+
+test('carry refuses legacy bases on the old entry or new row', () => {
+  const before = butterMeal(foundation), after = fresh(butterMeal(legacy));
+  const oldLegacy = structuredClone(before);
+  delete oldLegacy.items[1].nutrition.micronutrients[0].basis;
+  assert.equal(carryPlan(oldLegacy, after), null, 'an old entry without portion basis is not carried');
+  oldLegacy.items[1].nutrition.micronutrients[0].basis = '100g';
+  assert.equal(carryPlan(oldLegacy, after), null, 'an old entry with a different basis is not carried');
+  const mixed = structuredClone(after);
+  delete mixed.items[1].nutrition.micronutrients[0].basis;
+  assert.equal(carryPlan(before, mixed), null, 'every destination entry must have portion basis');
 });
 
 test('the CLI carries a lost micronutrient and keeps the re-match', t => {

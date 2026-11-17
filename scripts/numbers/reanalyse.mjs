@@ -225,8 +225,10 @@ export function carryPlan(before, after) {
     const same = (items) => items.filter((item) => key(item) === key(old));
     const fresh = same(now);
     if (fresh.length !== 1 || same(was).length !== 1 || old.portion_grams == null || Number(old.portion_grams) !== Number(fresh[0].portion_grams) || !fresh[0].nutrition) return null;
+    const nutrients = fresh[0].nutrition.micronutrients;
+    if (!Array.isArray(nutrients) || !nutrients.every((n) => n?.basis === 'portion')) return null;
     const entry = (Array.isArray(old.nutrition?.micronutrients) ? old.nutrition.micronutrients : []).find((n) => Number(n?.nutrientId) === id && n.value != null);
-    if (!entry) return null;
+    if (!entry || entry.basis !== 'portion') return null;
     const step = steps.get(fresh[0].id) ?? { item: fresh[0].id, entries: [], lost: [] };
     step.entries.push(entry); step.lost.push(label); steps.set(fresh[0].id, step);
   }
