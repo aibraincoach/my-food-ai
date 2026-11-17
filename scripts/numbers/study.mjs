@@ -14,6 +14,7 @@ import { createHash } from 'node:crypto';
 import { chmodSync, copyFileSync, existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { parseArgs } from 'node:util';
+import { pathToFileURL } from 'node:url';
 
 export const AGREE_SHARE = 0.25, CLOSE_MIN_COMPLETE = 17, CLOSE_MIN_AGREE = 0.85;
 export const RETRY_WAITS_SECONDS = [2, 8, 30];
@@ -78,10 +79,13 @@ export function estimateMeal(portion, choice, candidates) {
     if (!found?.ok) return { key: food.key, grams: food.grams, missing: 'lookup failed' };
     const record = picked?.fdcId == null ? null : found.foods.find(f => f.fdcId === picked.fdcId);
     if (!record) return { key: food.key, grams: food.grams, missing: picked?.fdcId == null ? 'not chosen' : 'chosen record not among the candidates' };
-    return { key: food.key, grams: food.grams, fdcId: record.fdcId, kcal_per_100g: record.kcal_per_100g, kcal: Math.round(food.grams * record.kcal_per_100g) / 100 };
+    const kcal = Math.round(food.grams * record.kcal_per_100g) / 100;
+    if (!Number.isFinite(food.grams) || !Number.isFinite(record.kcal_per_100g) || !Number.isFinite(kcal)) return { key: food.key, grams: food.grams, missing: 'non-finite nutrition value' };
+    return { key: food.key, grams: food.grams, fdcId: record.fdcId, kcal_per_100g: record.kcal_per_100g, kcal };
   });
-  const complete = foods.every(f => f.kcal !== undefined);
-  return { meal: portion.meal, complete, kcal: complete ? Math.round(foods.reduce((sum, f) => sum + f.kcal, 0) * 10) / 10 : null, foods };
+  const total = Math.round(foods.reduce((sum, f) => sum + f.kcal, 0) * 10) / 10;
+  const complete = foods.length > 0 && foods.every(f => Number.isFinite(f.kcal)) && Number.isFinite(total);
+  return { meal: portion.meal, complete, kcal: complete ? total : null, foods };
 }
 
 // Pure: the comparison and whether it closes the passing-meal part.
@@ -89,8 +93,9 @@ export function compareStudy(estimates, map, stored) {
   const rows = estimates.map(e => {
     const prefix = map[e.meal];
     const s = stored[prefix];
-    const agrees = e.complete && s != null ? Math.abs(s - e.kcal) <= AGREE_SHARE * e.kcal : null;
-    return { meal: prefix, estimate: e.kcal, stored: s ?? null, complete: e.complete, agrees };
+    const complete = e.complete === true && (!Array.isArray(e.foods) || e.foods.length > 0) && Number.isFinite(e.kcal) && Number.isFinite(s);
+    const agrees = complete ? Math.abs(s - e.kcal) <= AGREE_SHARE * e.kcal : null;
+    return { meal: prefix, estimate: Number.isFinite(e.kcal) ? e.kcal : null, stored: Number.isFinite(s) ? s : null, complete, agrees };
   });
   const complete = rows.filter(r => r.complete && r.stored != null);
   const agree = complete.filter(r => r.agrees).length;
@@ -101,7 +106,7 @@ export function compareStudy(estimates, map, stored) {
 async function main(argv) {
   const [step, ...rest] = argv;
   const { values } = parseArgs({ args: rest, options: { drafts: { type: 'string' }, sample: { type: 'string' }, blind: { type: 'string' }, map: { type: 'string' },
-    cache: { type: 'string' }, estimates: { type: 'string' }, stored: { type: 'string' }, 'max-minutes': { type: 'string' }, help: { type: 'boolean' } } });
+    estimates: { type: 'string' }, stored: { type: 'string' }, 'max-minutes': { type: 'string' }, help: { type: 'boolean' } } });
   if (values.help || !['prepare', 'candidates', 'total', 'compare'].includes(step)) {
     console.log(`node scripts/numbers/study.mjs prepare --drafts=<blind-portion-drafts.json> --sample=<folder of <prefix>/photo-* files> --blind=<new folder> --map=<private map file>
 node scripts/numbers/study.mjs candidates --blind=<folder> [--max-minutes=10]      (needs FDC_API_KEY)
@@ -109,6 +114,10 @@ node scripts/numbers/study.mjs total --blind=<folder>
 node scripts/numbers/study.mjs compare --estimates=<blind>/estimates.json --map=<private map file> --stored=<cards.mjs output>`);
     return step ? 0 : 4;
   }
+  const required = { prepare: ['drafts', 'sample', 'blind', 'map'], candidates: ['blind'], total: ['blind'], compare: ['estimates', 'map', 'stored'] };
+  for (const flag of required[step]) if (!values[flag]?.trim()) throw new Error(`--${flag} is required.`);
+  const maxMinutes = Number(values['max-minutes'] ?? 10);
+  if (!Number.isFinite(maxMinutes) || maxMinutes <= 0) throw new Error('--max-minutes must be a finite number above zero.');
   if (step === 'prepare') {
     const drafts = readJson(values.drafts);
     if (drafts.some(d => d.storedNumbersRead !== false)) throw new Error('A draft was written after stored numbers were read; it cannot be used.');
@@ -139,7 +148,7 @@ node scripts/numbers/study.mjs compare --estimates=<blind>/estimates.json --map=
     const file = path.join(values.blind, 'candidates.json');
     const candidates = existsSync(file) ? readJson(file) : {};
     const keys = [...new Set(readJson(path.join(values.blind, 'portions.json')).flatMap(p => p.foods.map(f => f.key)))];
-    const deadline = Date.now() + Number(values['max-minutes'] ?? 10) * 60000;
+    const deadline = Date.now() + maxMinutes * 60000;
     for (const food of keys) {
       if (candidates[food]?.ok) continue;
       if (Date.now() > deadline) { console.log(`STOPPED: --max-minutes used up; ${keys.filter(k => !candidates[k]?.ok).length} food(s) not looked up.`); break; }
@@ -174,4 +183,4 @@ node scripts/numbers/study.mjs compare --estimates=<blind>/estimates.json --map=
   return 0;
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) main(process.argv.slice(2)).then(code => { process.exitCode = code; }, error => { console.error(error.message); process.exitCode = 1; });
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) main(process.argv.slice(2)).then(code => { process.exitCode = code; }, error => { console.error(error.message); process.exitCode = 1; });
