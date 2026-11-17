@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // Re-analyse or re-match a list of meals, one at a time, keeping every old row, and restore any of them.
-// It runs the SQL files beside it (08, 09, 11, 12, 13, 15, 15-repair-undo and 16) through psql and wakes the worker with /api/jobs/tick.
+// It runs the SQL files beside it (08, 09, 11, 12, 13, 15, 15-repair-undo, 16 and 20) through psql and wakes the worker with /api/jobs/tick.
 // Usage and rules: node scripts/numbers/reanalyse.mjs --help, and scripts/numbers/README.md.
 import { spawnSync } from 'node:child_process';
 import { appendFileSync, chmodSync, existsSync, mkdirSync, readFileSync, realpathSync } from 'node:fs';
@@ -10,7 +10,9 @@ import { parseArgs as parseNodeArgs } from 'node:util';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const sqlFile = (name) => path.join(here, name);
-export const MODE_FILES = { rematch: '11-rematch.sql', reanalyse: '12-reanalyse.sql', repair: '15-repair.sql' };
+export const MODE_FILES = { rematch: '11-rematch.sql', reanalyse: '12-reanalyse.sql', repair: '15-repair.sql', decaf: '20-decaf.sql' };
+// Modes that write nutrition in place: their snapshot records it, and restore puts it back with 15-repair-undo.sql.
+export const IN_PLACE_MODES = new Set(['repair', 'decaf']);
 export const EXIT = { ok: 0, incomplete: 1, stopped: 3, usage: 4 };
 export const WAIT_HARD_MAX_SECONDS = 600;
 const POLL_SECONDS = 10, TICK_SECONDS = 60, FIRST_POLL_SECONDS = 2;
@@ -18,7 +20,7 @@ const NIL_UUID = '00000000-0000-0000-0000-000000000000';
 
 export const HELP = `Re-analyse or re-match meals one at a time, keeping their old rows, and restore any of them.
 
-  node scripts/numbers/reanalyse.mjs run --mode=rematch|reanalyse|repair
+  node scripts/numbers/reanalyse.mjs run --mode=rematch|reanalyse|repair|decaf
        (--meals=<prefix,prefix,...> | --meals-file=<path>) --ledger=<directory>
        [--max-meals=10] [--max-minutes=45] [--wait-seconds=300] [--dry-run]
   node scripts/numbers/reanalyse.mjs restore --meal=<prefix> --ledger=<directory> [--snapshot=last|first]
@@ -31,6 +33,8 @@ run
   --mode=rematch      11-rematch.sql: same foods and portions, nutrition looked up again.
   --mode=reanalyse    12-reanalyse.sql: the photos are read again from the start.
   --mode=repair       15-repair.sql: a negative stored value becomes zero and the meal is summed again.
+  --mode=decaf        20-decaf.sql: caffeine stored on an alcoholic drink that names no caffeine source is removed
+                      and the meal is summed again (#456). That caffeine is ledgered as values_removed, not as a loss.
   --meals             comma-separated 8-character meal id prefixes, worked in the order given.
   --meals-file        the same, one prefix per line; blank lines and lines starting with # are ignored.
   --ledger            a private directory OUTSIDE the repository. It receives snapshots.jsonl (the full
@@ -112,7 +116,7 @@ export function parseArgs(argv, readFile = (file) => readFileSync(file, 'utf8'))
     return { command, meal, ledger: values.ledger, snapshot, waitSeconds };
   }
   for (const key of ['meal', 'snapshot']) if (values[key] !== undefined) throw new UsageError(`--${key} is not a run option.`);
-  if (!Object.hasOwn(MODE_FILES, values.mode ?? '')) throw new UsageError('--mode=rematch, --mode=reanalyse or --mode=repair is required.');
+  if (!Object.hasOwn(MODE_FILES, values.mode ?? '')) throw new UsageError('--mode=rematch, --mode=reanalyse, --mode=repair or --mode=decaf is required.');
   if ((values.meals === undefined) === (values['meals-file'] === undefined)) throw new UsageError('Give exactly one of --meals and --meals-file.');
   let meals;
   if (values.meals !== undefined) meals = parsePrefixes(values.meals);
@@ -202,6 +206,15 @@ export function lostValues(before, after) {
   for (const name of wasNames) if (nowNames.has(name)) compare(`food ${was.findIndex((item) => key(item) === name) + 1}`, was.filter((item) => key(item) === name), now.filter((item) => key(item) === name));
   compare('renamed foods', was.filter((item) => !nowNames.has(key(item))), now.filter((item) => !wasNames.has(key(item))));
   return lost;
+}
+
+// Pure: #456. A decaf run removes caffeine (nutrient 1057) on purpose from alcoholic drinks that name no caffeine
+// source: a correction under the PM's ruling, ledgered with the snapshot taken before it. Those removals are not losses;
+// any other value lost still puts the meal back.
+export const DECAF_REASON = 'caffeine stored on an alcoholic drink that names no caffeine source (#456)';
+export function deliberateRemovals(lost) {
+  const removed = (lost ?? []).filter((value) => /^food [0-9]+: nutrient 1057$/.test(value));
+  return { removed, kept: (lost ?? []).filter((value) => !removed.includes(value)) };
 }
 
 // Nutrients a carry never adds: they feed the day's alcohol, water and caffeine totals.
@@ -415,7 +428,7 @@ async function run(request) {
     else {
       const snapshot = psql({ file: sqlFile('08-snapshot.sql'), vars: { prefixes: prefix } }).split('\n').find((line) => line && JSON.parse(line).post?.id === id);
       if (!snapshot) throw new Error(`08-snapshot.sql returned no line for meal ${prefix}; nothing was written for it.`);
-      appendPrivate(ledger, 'snapshots.jsonl', request.mode === 'repair' ? JSON.stringify({ ...JSON.parse(snapshot), operator_mode: 'repair' }) : snapshot);
+      appendPrivate(ledger, 'snapshots.jsonl', IN_PLACE_MODES.has(request.mode) ? JSON.stringify({ ...JSON.parse(snapshot), operator_mode: request.mode }) : snapshot);
       const since = dbNow();
       psql({ file: sqlFile(file), vars: { post: id } });
       if (jobsSince(id, since) === 0) row.reason = "refused by the file's guards";
@@ -442,6 +455,11 @@ async function run(request) {
             }
           }
           else row.values_lost = ['the meal could not be read after its run'];
+          if (request.mode === 'decaf') {
+            const { removed, kept } = deliberateRemovals(row.values_lost);
+            row.values_lost = kept;
+            if (removed.length) { row.values_removed = removed; row.removal_reason = DECAF_REASON; }
+          }
           const why = restoreReason(row);
           if (why) {
             row.restore_reason = why;
@@ -458,7 +476,7 @@ async function run(request) {
     if (row.outcome === 'skipped') row.after = row.before;
     appendPrivate(ledger, 'ledger.jsonl', JSON.stringify(row));
     rows.push(row); outcomes.push(row.outcome);
-    console.log(`${prefix}  ${row.outcome}${row.reason ? ` (${row.reason})` : ''}${row.values_carried ? ` [carried: ${row.values_carried.join('; ')}]` : ''}${row.restore_reason ? ` [put back: ${row.restore_reason}${row.restored ? '' : '; the restore did not finish'}]` : ''}  kcal ${fmt(row.before?.calories)} -> ${fmt(row.after?.calories)}  waited ${row.seconds_waited} s`);
+    console.log(`${prefix}  ${row.outcome}${row.reason ? ` (${row.reason})` : ''}${row.values_carried ? ` [carried: ${row.values_carried.join('; ')}]` : ''}${row.values_removed ? ` [removed: ${row.values_removed.join('; ')}]` : ''}${row.restore_reason ? ` [put back: ${row.restore_reason}${row.restored ? '' : '; the restore did not finish'}]` : ''}  kcal ${fmt(row.before?.calories)} -> ${fmt(row.after?.calories)}  waited ${row.seconds_waited} s`);
   } } catch (error) { broken = error; }
   console.log('\n' + summaryTable(rows));
   if (broken) { console.error(`\nSTOPPED at meal ${meals[rows.length].prefix}: ${broken.message} Its ledger line was not written; read its state before going on.`); return EXIT.incomplete; }
@@ -473,7 +491,7 @@ async function restore(request) {
   try { text = readFileSync(path.join(ledger, 'snapshots.jsonl'), 'utf8'); } catch { throw new UsageError('There is no snapshots.jsonl in that ledger directory.'); }
   const { snapshot, count } = findSnapshot(text, request.meal, request.snapshot);
   const params = restoreParams(snapshot);
-  const repairNutrition = snapshot.operator_mode === 'repair' ? (snapshot.items ?? [])
+  const repairNutrition = IN_PLACE_MODES.has(snapshot.operator_mode) ? (snapshot.items ?? [])
     .filter((item) => item.superseded_at === null && item.nutrition != null)
     .map((item) => {
       if (item.nutrition.post_item_id !== item.id) throw new UsageError('The repair snapshot nutrition does not match its item ID.');
