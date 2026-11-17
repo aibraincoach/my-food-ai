@@ -218,3 +218,12 @@ test('an old committed attachment with a lost response is not renewed merely bec
  await manager.initialize('owner');manager.retry('committed-operation');await until(()=>manager.list()[0]?.postId==='post-1');
  assert.deepEqual(attempts,[old.path]);assert.equal(calls.filter(c=>c.endsWith('/api/media/sign-upload')).length,0);
 });
+test('an added-photo request that never answers is limited, tried three times and ends as the failed chip',async()=>{
+ const signals=[];
+ const {manager,rows,calls}=attachHarness(init=>{signals.push(init.signal);throw new DOMException('The operation timed out.','TimeoutError');});
+ await manager.initialize('owner');const id=await manager.postAttachment(file,{postId:'post-1',notEaten:false});
+ await until(()=>manager.list()[0]?.state==='failed');
+ assert.equal(signals.length,3);assert.ok(signals.every(signal=>signal instanceof AbortSignal));
+ assert.equal(calls.filter(c=>c.endsWith('/media')).length,3);assert.equal(calls.filter(c=>c==='/api/media/sign-upload').length,1);
+ assert.equal(manager.list()[0].postId,undefined);assert.equal(rows.get(id).files[0].size,file.size);
+});

@@ -21,7 +21,8 @@ export async function POST(request:Request,context:{params:Promise<{id:string}>}
  }catch(error){
   if(error instanceof AttachmentStageExpired)return NextResponse.json({error:error.message,code:error.code},{status:409});
   const code=(error as {code?:string;cause?:{code?:string}})?.cause?.code??(error as {code?:string})?.code;
-  return NextResponse.json({error:error instanceof Error?error.message:'The photo could not be attached.'},{status:code==='42501'?404:code==='55000'||code==='40001'?409:code?.startsWith('22')?400:503});
+  const refusal=(error as {refusal?:string})?.refusal;
+  return NextResponse.json({error:error instanceof Error?error.message:'The photo could not be attached.',...(refusal?{code:refusal}:{})},{status:code==='42501'?404:code==='55000'||code==='40001'?409:code?.startsWith('22')?400:503});
  }
 }
 
