@@ -1,6 +1,6 @@
 # My Food AI — Backlog†
 
-Last edited: Wednesday 2026-11-18 at 02:35 WIB (UTC+07:00) by Claude, PM
+Last edited: Wednesday 2026-11-18 at 03:07 WIB (UTC+07:00) by Claude, PM
 
 For the owner (Tue Nov 17, 19:11 WIB): The PM cannot talk to the designer. The PM seat has no browser tool, so it cannot open the designer's chat in claude.ai and type into it. Five backlog items are waiting for the designer to choose a place, a look or an audit: the barcode prompt over the live camera (#453), what the card you swipe to on a drink's photo shows (#455), how much of an alcoholic drink was drunk (#457), what places that wait on the network show while they wait (#631), and the controls on Days, Search, Profile and the capture modes (#555). To unblock them, paste those five titles into the designer's chat and ask for a look for each, or give the PM seat a browser tool. Nothing else waits on you.
 
@@ -328,41 +328,11 @@ The meal "Spicy Indonesian macaroni" shows its calories, protein, carbs and fat 
 
 The first analysis searched the USDA database three times, rejected every record, and never tried the plain name "macaroni". Ruling: when the USDA has no record, the model must estimate, because an unavailable value is worse than a rough estimate. The closest-food fallback and the guard that stops re-analysing from reusing an empty result are both on main. 41 ready posts (95 item rows) had incomplete macros (docs/evidence/fix18/recompute-ids.json). The coder reports that at 09:11 WIB all 41 recompute jobs were done (the last at 08:59 WIB), that 40 posts now have complete nutrition including the macaroni post (86634d46), and that it closed the GitHub issue. One post, 6fad4a16, still lacks a value because its matched USDA record holds no number for that nutrient; whether to estimate it is undecided. The queue holds only three photo-cleanup jobs, which change no meal data. PM, Nov 14 (Chrome, owner account, read-only): the macaroni post 86634d46 shows 38 kcal, 1 g protein, 8 g carbs and 0 g fat, and its latest AI comment (Nov 4, 10:11 PM) names the closest USDA record, "Macaroni, vegetable, enriched, cooked". Two older comments on it still read unavailable. 0 g fat for a fried snack looks low. PM sweep, Nov 14 23:25 WIB, of all 137 posts the Home feed loaded on the owner account: two posts show "Nutrition unavailable" for one item while their totals show numbers (6fad4a16, the salami, which is the known exception, and f08e2e86, an unsalted butter packet, 541 kcal); 12 posts show a 0 g macro, and I did not judge which are real zeros (Hydro Coco Original at 0 g protein looks right); and post 6caf8906 (leftovers, 8:55 PM) reads "This photo could not be analysed. Try again". The macaroni fix reached the other posts. The coder decides f08e2e86 and 6caf8906. GrokBot, Nov 15, sweep of all 137 posts: the macaroni post now shows numbers and its AI comment names the closest USDA food. Still wrong: blank values on the butter post f08e2e86 and the Pocari post 89286fbf, a -1 g carbs value on post 38de279e, a leftovers post 189673aa that reads "unavailable kcal", sambal at 0 kcal in post 509ef9bc, bakpia e7e1782c at 0 g protein and fat, the pizza post 61b3a510 reading "unavailable kcal" for several minutes after two servings changes in a row (it recovered), and 28 meal pages that say "Nutrition unavailable", some of them when the calories and macros are known and only a minor nutrient such as sugar or fibre is missing (88d38425). Done when a browser helper confirms on the live app that the macaroni post shows numbers with a note naming the closest USDA food or saying the model estimated them, and that no ready post shows a value that is unavailable, zero or blank, except post 6fad4a16, which is listed with its reason.
 
-### #703 Retrying a failed meal opening can leave an overlay covering the screen
-
-If opening a meal fails and the user taps retry, and navigation then hangs or fails again, an overlay covers the screen and blocks every tap, with no timeout to clear it.
-
-In src/components/PostOpenTransition.tsx, line 49. Retry sets the phase to opening but does not change the value the effect depends on, so the slow and fail timeouts are not scheduled again. Related: #635. Done when a second failure after a retry shows the failure message and removes the overlay, and a test covers it. Fleet 21 check, Nov 16: opening while offline did not produce the prescribed failure message, so retry was not verified.
-
 ### #708 Retaking a lost photo leaves the old failed upload on screen
 
 Tapping retake opens the camera but does not remove the failed upload. After the new photo is taken the old failed entry is still there, and it comes back from the browser's stored drafts on every session.
 
 In src/components/UploadChip.tsx, line 29: the retake handler only opens the camera. Related: #644. Done when taking the new photo removes the old failed upload, and a reload does not bring it back. Fleet 21 check, Nov 16: the fixture was not created within 60 seconds and a scoped retry reported "Control missing", so the retake, the intent count and the reload were not verified.
-
-### #659 Review findings on the merged Fleet 18 PRs have not been checked on main
-
-Codex and AGY reviewed the Fleet 18 PRs and raised problems in code that is now merged. The planner confirmed four of them on main 7d64f4c8; they are the four items below. The rest have not been checked.
-
-Two blockers are planner-checked on main and not yet reproduced by a coder. On #647, useProfileIdentity in PostHandle.tsx binds the viewer's avatar and handle to every post header and not the author's, the avatar route reads with the viewer's token so another user's avatar fails, and the route sends a public one-year immutable cache header for an image only signed-in users should see. On #648, wording-inventory.mjs embeds the HEAD short hash so its check can never pass after a commit, and docs/wording/inventory.md was generated before 66 files changed. Eleven other findings were reproduced and are filed as the items below; two were dismissed with proof (the #633 recompute upsert and the #633 rice-with-protein composition). Still unchecked: the #641 portion_unit "serving" that the database does not accept; on #638, Feed discovery polling that stops when the tab is hidden; on #639, NeedsInputStrip never finding new questions after an empty first poll, and RealtimePost not refreshing on visibility; the #637 Thread retry polling; and the #643 header text cut off. Done when each unchecked finding is reproduced or dismissed with proof, the blockers on #647 and #648 are each checked on main, and each one reproduced is filed as its own item.
-
-### #937 Opening an uploading meal's address returns repeated not-found errors
-
-While a meal is still uploading, requests for its own address are answered not found, over and over.
-
-Fleet 21 check K15 saw sixteen not-found answers from detail prefetches while two meals uploaded; both meals still reached ready. What a person sees and the cause are not known. Done when the cause is found and an uploading meal's address produces no not-found request, or the errors are shown to be harmless and why.
-
-### #1018 A test of the composer drinks route fails when it runs across an hour boundary
-
-A test in the full suite can fail at the turn of the hour, so a clean run is not always clean.
-
-The test checks that the hourly drink-identify usage counter reads 1, and it read 0 on main in the Fleet 27 baseline, which started just before 13:00 UTC. The cause is unproven. Done when the test no longer depends on the clock hour, and it passes when run across an hour boundary.
-
-### #1022 A 30-character meal header is cut off at phone width
-
-A long name in a meal's header does not fit on a phone, so the person cannot read all of it.
-
-The Fleet 27 check reproduced it at 390 wide with a 30-character name: the header scrolled 318 px inside a 219 px space and ended in an ellipsis. It was observed, and nobody has decided that the name should wrap. Done when a 30-character header either wraps or shows its whole name at 390 wide, and the owner agrees with the choice.
 
 ## Backlog for Designer
 
@@ -397,6 +367,36 @@ The Round 7 control table covers the feed, the post and the capture sheet. Days,
 The designer has not read their controls yet. Add them to the table from #217 with its four findings: time to a visible change, pressed look, jump or flicker, and double tap. Done when every control on those screens is in the table and the dead ones are fixed or filed as items.
 
 ## In flight
+
+### #659 Review findings on the merged Fleet 18 PRs have not been checked on main
+
+Codex and AGY reviewed the Fleet 18 PRs and raised problems in code that is now merged. The planner confirmed four of them on main 7d64f4c8; they are the four items below. The rest have not been checked.
+
+Two blockers are planner-checked on main and not yet reproduced by a coder. On #647, useProfileIdentity in PostHandle.tsx binds the viewer's avatar and handle to every post header and not the author's, the avatar route reads with the viewer's token so another user's avatar fails, and the route sends a public one-year immutable cache header for an image only signed-in users should see. On #648, wording-inventory.mjs embeds the HEAD short hash so its check can never pass after a commit, and docs/wording/inventory.md was generated before 66 files changed. Eleven other findings were reproduced and are filed as the items below; two were dismissed with proof (the #633 recompute upsert and the #633 rice-with-protein composition). Still unchecked: the #641 portion_unit "serving" that the database does not accept; on #638, Feed discovery polling that stops when the tab is hidden; on #639, NeedsInputStrip never finding new questions after an empty first poll, and RealtimePost not refreshing on visibility; the #637 Thread retry polling; and the #643 header text cut off. Done when each unchecked finding is reproduced or dismissed with proof, the blockers on #647 and #648 are each checked on main, and each one reproduced is filed as its own item.
+
+### #937 Opening an uploading meal's address returns repeated not-found errors
+
+While a meal is still uploading, requests for its own address are answered not found, over and over.
+
+Fleet 21 check K15 saw sixteen not-found answers from detail prefetches while two meals uploaded; both meals still reached ready. What a person sees and the cause are not known. Done when the cause is found and an uploading meal's address produces no not-found request, or the errors are shown to be harmless and why.
+
+### #703 Retrying a failed meal opening can leave an overlay covering the screen
+
+If opening a meal fails and the user taps retry, and navigation then hangs or fails again, an overlay covers the screen and blocks every tap, with no timeout to clear it.
+
+In src/components/PostOpenTransition.tsx, line 49. Retry sets the phase to opening but does not change the value the effect depends on, so the slow and fail timeouts are not scheduled again. Related: #635. Done when a second failure after a retry shows the failure message and removes the overlay, and a test covers it. Fleet 21 check, Nov 16: opening while offline did not produce the prescribed failure message, so retry was not verified.
+
+### #1022 A 30-character meal header is cut off at phone width
+
+A long name in a meal's header does not fit on a phone, so the person cannot read all of it.
+
+The Fleet 27 check reproduced it at 390 wide with a 30-character name: the header scrolled 318 px inside a 219 px space and ended in an ellipsis. It was observed, and nobody has decided that the name should wrap. Done when a 30-character header either wraps or shows its whole name at 390 wide, and the owner agrees with the choice.
+
+### #1018 A test of the composer drinks route fails when it runs across an hour boundary
+
+A test in the full suite can fail at the turn of the hour, so a clean run is not always clean.
+
+The test checks that the hourly drink-identify usage counter reads 1, and it read 0 on main in the Fleet 27 baseline, which started just before 13:00 UTC. The cause is unproven. Done when the test no longer depends on the clock hour, and it passes when run across an hour boundary.
 
 ### #1029 The re-analysis repair skips rows where only a micronutrient is negative
 
