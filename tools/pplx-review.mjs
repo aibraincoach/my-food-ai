@@ -5,7 +5,7 @@
  * Single: PPLX_BIDI_WS=ws://127.0.0.1:9223/session node tools/pplx-review.mjs <GitHub PR URL> <head sha> <capture file>
  * Batch:  PPLX_BIDI_WS=ws://127.0.0.1:9223/session node tools/pplx-review.mjs --tabs <N> <PR URL>… --out <dir outside the repo>
  * Prerequisite: Firefox headless listening on PPLX_BIDI_WS with signed-in Perplexity profile.
- * Exit 0: success. Exit 2: timeout or error. Exit 3: DEVIATION (Searching the web). Exit 4: the request did not carry gemini38flash. Exit 5: the model could not be selected. Exit 6: head has no successful Vercel status. Exit 7: memory guard refused. Exit 8: the PR already carries a fresh "Review in progress" claim or a receipt for this head (set PPLX_FORCE=1 to override).
+ * Exit 0: success. Exit 2: timeout or error. Exit 3: DEVIATION (Searching the web). Exit 4: the request carried no model_preference or one disagreeing with the selected model, or the answer's follow-up box names a different model. Exit 5: the model could not be selected. Exit 6: head has no successful Vercel status. Exit 7: memory guard refused. Exit 8: the PR already carries a fresh "Review in progress" claim or a receipt for this head (set PPLX_FORCE=1 to override).
  * On every exit (success, error, timeout) it closes its tab(s) and ends the BiDi session (session.end), so the next run
  * can open a new session on the same Firefox. After the capture is written a 10-second hard-exit timer guards the
  * close, so a hung browsingContext.close or session.end cannot hold the process.
@@ -152,7 +152,7 @@ function postReceipt(tab, header, text) {
   const headNow = headShaForUrl(tab.prUrl);
   const modelProof = (header.match(/Model proof: .*/) || ["Model proof: MISSING"])[0];
   const body = [
-    `Reviewer: Gemini 3.8 Flash via Perplexity (PPLX); version reviewed: ${tab.headAt}`,
+    `Reviewer: ${tab.modelLabel || "Perplexity offered model"} via Perplexity (PPLX); version reviewed: ${tab.headAt}`,
     `Head reviewed: ${tab.headAt}`,
     `Head after answer: ${headNow}`,
     modelProof,
@@ -353,28 +353,44 @@ async function ensureModel(tab) {
     await new Promise((r) => setTimeout(r, 1500));
   }
 
-  const WANT = "Gemini 3.8 Flash";
-  const MODEL_BUTTON = `(document.querySelector('button[aria-label="Model"]') || [...document.querySelectorAll('button')].find((b) => /^(Gemini|GPT|Claude|Kimi|GLM|Grok|Nemotron|Best)/.test(b.getAttribute('aria-label') || '')))`;
+  // Model agility: use the model on offer. PPLX_MODEL pins one when the owner
+  // names it; otherwise the picker's current selection is the offered model.
+  const WANT = process.env.PPLX_MODEL || null;
+  const MODEL_BUTTON = `(document.querySelector('button[aria-label="Model"]') || [...document.querySelectorAll('button')].find((b) => /^(Gemini|GPT|Claude|Kimi|GLM|Grok|Nemotron|Best|Google)/.test(b.getAttribute('aria-label') || '')))`;
+  // The picker's name for the selected model: its aria-label, or, when that is only the generic
+  // "Model" (seen 2026-11-16, #929), the first line of its visible text. "" = no button, "generic" = a
+  // button that names no model. A site change that hides the name is not a reason to change the model.
   const modelLabel = () =>
-    evalScript(tab.context, `((${MODEL_BUTTON}) || { getAttribute: () => '' }).getAttribute('aria-label')`);
+    evalScript(tab.context, `(() => { const b = ${MODEL_BUTTON}; if (!b) return ''; const named = (s) => (s && !/^(model|models|choose a model|select a model|select model)$/i.test(s.trim())) ? s.trim() : ''; return named(b.getAttribute('aria-label') || '') || named(((b.innerText || '').trim().split('\\n')[0]) || '') || 'generic'; })()`);
   for (let wait = 0; wait < 8; wait++) {
     const label = await modelLabel();
-    if (label === WANT) break;
-    if (label) break;
+    if (label && label !== "generic" && (!WANT || label === WANT)) break;
     await new Promise((r) => setTimeout(r, 500));
   }
-  if ((await modelLabel()) !== WANT) {
+  let label = await modelLabel();
+  if (!WANT && label === "generic") {
+    // The offered model is selected but unnamed on the page. pollAnswer takes its name from the
+    // request's model_preference and records that it did.
+    tab.modelLabel = "";
+    tab.pickerGeneric = true;
+    return { ok: true };
+  }
+  if (WANT ? label !== WANT : !label) {
     const opened = await pointerClick(tab.context, MODEL_BUTTON);
     await new Promise((r) => setTimeout(r, 1500));
-    const itemByRole = `[...document.querySelectorAll('[role="menuitemradio"]')].find((e) => (e.innerText || '').trim().split('\\n')[0] === ${JSON.stringify(WANT)})`;
-    const itemAny = `[...document.querySelectorAll('div,button,li,span')].filter((e) => (e.innerText || '').trim().split('\\n')[0] === ${JSON.stringify(WANT)} && e.getBoundingClientRect().width > 0).pop()`;
-    const picked =
-      opened && ((await pointerClick(tab.context, itemByRole)) || (await pointerClick(tab.context, itemAny)));
+    // Scope every pick to the open menu — never to page-wide divs or buttons.
+    const menuScope = `([...document.querySelectorAll('[role="menu"],[role="listbox"]')].find((m) => m.getBoundingClientRect().width > 0) || document)`;
+    const itemByRole = WANT
+      ? `[...(${menuScope}).querySelectorAll('[role="menuitemradio"]')].find((e) => (e.innerText || '').trim().split('\\n')[0] === ${JSON.stringify(WANT)})`
+      : `[...(${menuScope}).querySelectorAll('[role="menuitemradio"]')].find((e) => (e.innerText || '').trim() && e.getBoundingClientRect().width > 0)`;
+    const picked = opened && (await pointerClick(tab.context, itemByRole));
     await new Promise((r) => setTimeout(r, 1500));
-    if (!picked || (await modelLabel()) !== WANT) {
+    label = await modelLabel();
+    if (!picked || !label || (WANT && label !== WANT)) {
       return { ok: false, code: 5, message: "MODEL NOT SELECTED" };
     }
   }
+  tab.modelLabel = label;
   return { ok: true };
 }
 
@@ -447,6 +463,22 @@ async function pressEnter(tab) {
   return true;
 }
 
+const normModel = (s) => String(s || "").toLowerCase().replace(/[^a-z0-9]/g, "");
+// Exact normalized match, or containment with the shorter side at least 6 characters.
+function sameModel(a, b) {
+  const x = normModel(a), y = normModel(b), short = Math.min(x.length, y.length);
+  return Boolean(x && y && (x === y || (short >= 6 && (x.includes(y) || y.includes(x)))));
+}
+// The model named after "Ask a follow-up" at the end of the page text, or "" when none is named.
+function answerModelOf(text) {
+  const lines = String(text || "").split("\n").map((line) => line.trim()).filter(Boolean);
+  const at = lines.lastIndexOf("Ask a follow-up");
+  if (at < 0) return "";
+  const last = lines.at(-1);
+  if (lines.length - at > 6 || /^(model|search|computer|ask a follow-up)$/i.test(last)) return "";
+  return last;
+}
+
 async function pollAnswer(tab) {
   let text = "";
   let stable = 0;
@@ -488,7 +520,9 @@ async function pollAnswer(tab) {
     /* ignore */
   }
 
-  const header = `Head at submission: ${tab.headAt}\nModel proof: model_preference = ${modelPref || "MISSING"}\nElapsed since Enter: ${elapsedSinceEnter}s\nElapsed since tab open: ${tab.sinceTabOpen()}s\nPrompt submitted: ${tab.prompt}`;
+  if (tab.pickerGeneric && modelPref) tab.modelLabel = modelPref;
+  const pickerLine = tab.pickerGeneric ? `generic ("Model"); model taken from the request: ${modelPref || "MISSING"}` : (tab.modelLabel || "MISSING");
+  const header = `Head at submission: ${tab.headAt}\nModel proof: model_preference = ${modelPref || "MISSING"}\nModel picker at submission: ${pickerLine}\nElapsed since Enter: ${elapsedSinceEnter}s\nElapsed since tab open: ${tab.sinceTabOpen()}s\nPrompt submitted: ${tab.prompt}`;
 
   if (timedOut) {
     return {
@@ -499,10 +533,20 @@ async function pollAnswer(tab) {
       text,
     };
   }
-  if (modelPref !== "gemini38flash") {
+  // The request must carry a model_preference that agrees with the selected model at submission
+  // (sameModel: short slugs cannot collide, so "best" never matches "pplx_pro").
+  if (!sameModel(tab.modelLabel, modelPref)) {
     return { ok: false, code: 4, message: "WRONG MODEL", header, text };
   }
-  return { ok: true, header, text };
+  // #929: the model that answered. The follow-up box under a finished answer names it on the last line of
+  // the page text. On 2026-11-03 the request carried gemini38flash while this line read GPT-6.1 Sol, and
+  // five such answers were posted as reviews. A named answer model must agree with the request.
+  const answerModel = answerModelOf(text);
+  const answerLine = `Answer model (follow-up box): ${answerModel || "not shown"}`;
+  if (answerModel && !sameModel(answerModel, modelPref)) {
+    return { ok: false, code: 4, message: "WRONG ANSWER MODEL", header: `${header}\n${answerLine}`, text };
+  }
+  return { ok: true, header: `${header}\n${answerLine}`, text };
 }
 
 function recordFailure(tab, result) {
