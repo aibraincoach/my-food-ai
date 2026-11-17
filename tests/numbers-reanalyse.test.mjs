@@ -5,7 +5,7 @@ import { appendFileSync, chmodSync, mkdirSync, mkdtempSync, readFileSync, rmSync
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { EXIT, HELP, UsageError, compareTotals, findSnapshot, isInside, ledgerRefusal, parseArgs, parseMealsFile, relativeChange, restoreParams, stopReason, summaryTable } from '../scripts/numbers/reanalyse.mjs';
+import { EXIT, HELP, UsageError, compareTotals, findSnapshot, isInside, ledgerRefusal, lostValues, parseArgs, parseMealsFile, relativeChange, restoreParams, restoreReason, stopReason, summaryTable } from '../scripts/numbers/reanalyse.mjs';
 
 const script = fileURLToPath(new URL('../scripts/numbers/reanalyse.mjs', import.meta.url));
 const A = '11111111-aaaa-4aaa-8aaa-aaaaaaaaaaaa', B = '22222222-bbbb-4bbb-8bbb-bbbbbbbbbbbb';
@@ -123,12 +123,12 @@ test('the command line answers --help and refuses bad usage without a database',
 });
 
 // Exercise the public CLI without a database or app: only psql and fetch are replaced.
-function cliFixture(t, { restore = false, usage = [] } = {}) {
+function cliFixture(t, { restore = false, usage = [], after = null } = {}) {
   const directory = mkdtempSync(path.join(tmpdir(), 'mfa-numbers-cli-'));
   t.after(() => rmSync(directory, { recursive: true, force: true }));
   const ledger = path.join(directory, 'ledger'), calls = path.join(directory, 'calls.jsonl');
   const fixture = path.join(directory, 'fixture.json'), preload = path.join(directory, 'fetch.mjs');
-  writeFileSync(fixture, JSON.stringify({ id: A, snapshot: snapshot(A), restore, usage }));
+  writeFileSync(fixture, JSON.stringify({ id: A, snapshot: snapshot(A), restore, usage, after }));
   writeFileSync(calls, '');
   const psql = path.join(directory, 'psql');
   writeFileSync(psql, `#!${process.execPath}
@@ -140,7 +140,7 @@ const file = index < 0 ? null : path.basename(args[index + 1]);
 const sql = file ? '' : readFileSync(0, 'utf8');
 const previous = readFileSync(process.env.NUMBERS_CALLS, 'utf8');
 appendFileSync(process.env.NUMBERS_CALLS, JSON.stringify({ type: 'psql', file, sql }) + '\\n');
-if (file === '08-snapshot.sql') console.log(JSON.stringify(fixture.snapshot));
+if (file === '08-snapshot.sql') console.log(JSON.stringify(fixture.after && previous.includes('11-rematch.sql') ? fixture.after : fixture.snapshot));
 else if (file === '09-usage.sql') {
   const columns = ['post','kind','model','step','calls','errors','input_tokens','output_tokens','duration_ms','first_call','last_call'];
   console.log(columns.join('\\x1f'));
@@ -209,4 +209,167 @@ test('the CLI includes SAM, transcription and every Spark trace kind without req
   const { result, ledger } = cliFixture(t, { usage });
   assert.equal(result.status, EXIT.ok, result.stdout + result.stderr);
   assert.equal(ledger()[0].model_calls, kinds.length, 'legacy rows with no model name are still model calls');
+});
+
+// #989: the PM's rule of 2026-11-17 counts any lost value as worse, zeros and micronutrients included.
+test('lost values are the values a food had before and has no longer, matched by name', () => {
+  const food = (name, nutrition) => ({ id: name, name, superseded_at: null, nutrition });
+  const meal = (...items) => ({ items });
+  const label = food('Packaged food', { calories: 140, protein_g: null, fat_g: 3.5, micronutrients: [] });
+  assert.deepEqual(lostValues(meal(label), meal(food('Packaged food', { calories: null, protein_g: null, fat_g: null }))), ['food 1: calories', 'food 1: fat_g']);
+  assert.deepEqual(lostValues(meal(food('Pepsi Zero', { calories: 0 })), meal(food('Pepsi Zero', { calories: null }))), ['food 1: calories'], 'a zero is a value');
+  assert.deepEqual(lostValues(meal(food('salami', { calories: null })), meal(food('salami', { calories: 0 }))), [], 'NULL becoming a number is no loss');
+  const micro = (...ids) => ids.map((nutrientId) => ({ nutrientId, value: 1, basis: 'portion' }));
+  assert.deepEqual(lostValues(meal(food('a', { micronutrients: micro(1087, 1089) }), food('b', { calories: 1 })),
+    meal(food('a', { micronutrients: [...micro(1087), { nutrientId: 1089, value: null }] }), food('b', { calories: 1 }))), ['food 1: nutrient 1089']);
+  assert.deepEqual(lostValues(meal(food('rice', { calories: 200 })), meal(food('steamed rice', { calories: 210 }))), [], 'a renamed food keeps its values');
+  assert.deepEqual(lostValues(meal(food('rice', { calories: 200, fat_g: 1 })), meal(food('steamed rice', { calories: 210 }))), ['renamed foods: fat_g']);
+  assert.deepEqual(lostValues(meal(food('egg', { calories: 70 }), food('egg', { calories: 70 })), meal(food('egg', { calories: 70 }), food('egg', { calories: null }))), ['food 1: calories']);
+  assert.deepEqual(lostValues(meal({ ...label, superseded_at: '2026-11-17T00:00:00Z' }), meal()), [], 'only current foods count');
+});
+
+test('a meal is put back when it failed, lost a value or moved its calories by more than half', () => {
+  assert.equal(restoreReason({ outcome: 'changed', values_lost: [], before: { calories: 100 }, after: { calories: 140 }, calories_change: 0.4 }), null);
+  assert.match(restoreReason({ outcome: 'failed', reason: 'the meal is failed' }), /failed/);
+  assert.match(restoreReason({ outcome: 'changed', values_lost: ['food 1: nutrient 1089'], before: {}, after: {} }), /1 nutrition value\(s\) lost: food 1: nutrient 1089/);
+  assert.match(restoreReason({ outcome: 'changed', values_lost: [], before: { calories: 140 }, after: { calories: null }, calories_change: null }), /unavailable/);
+  assert.match(restoreReason({ outcome: 'changed', values_lost: [], before: { calories: 63.7 }, after: { calories: 98 }, calories_change: 0.5383 }), /53\.8%/);
+  assert.deepEqual(parseArgs(['run', '--mode=repair', '--meals=38de279e', '--ledger=/l']).mode, 'repair');
+});
+
+test('the CLI puts back a re-matched meal that lost a value, and says why', t => {
+  const worse = snapshot(A);
+  worse.items = worse.items.map((item) => (item.superseded_at === null ? { ...item, nutrition: { calories: null } } : item));
+  const { result, calls, ledger } = cliFixture(t, { after: worse });
+  assert.equal(result.status, EXIT.ok, result.stdout + result.stderr);
+  const line = ledger()[0];
+  assert.equal(line.outcome, 'restored');
+  assert.equal(line.restored, true);
+  assert.match(line.restore_reason, /nutrition value\(s\) lost: food 1: calories/);
+  assert.ok(calls.some((call) => call.sql?.includes('13-restore.sql')), 'the restore SQL ran');
+  assert.match(result.stdout, /put back: /);
+});
+
+// PM 2026-11-17 14:56: the tool must actually put a needs_input meal back, including its question state.
+test('restoring needs_input reinstates the snapshot state and exact original current food', { skip: !process.env.TEST_SQL_DATABASE_URL }, async t => {
+  const {execFileSync} = await import('node:child_process');
+  const {randomUUID} = await import('node:crypto');
+  const url = process.env.TEST_SQL_DATABASE_URL;
+  assert.equal(process.env.MFA_TEST_DISPOSABLE, '1');
+  assert.ok(['localhost', '127.0.0.1', '[::1]'].includes(new URL(url).hostname), 'Disposable database only');
+  const user = randomUUID(), post = randomUUID(), originalItem = randomUUID();
+  const directory = mkdtempSync(path.join(tmpdir(), 'mfa-needs-input-restore-'));
+  const ledger = path.join(directory, 'ledger'), stateFile = path.join(directory, 'state.json');
+  const sql = input => execFileSync('psql', ['-X', '-qAt', '-v', 'ON_ERROR_STOP=1', '--dbname', url], {input, encoding: 'utf8', timeout: 10000});
+  t.after(() => {
+    try { sql(`delete from public.posts where id='${post}';delete from public.profiles where id='${user}';delete from auth.users where id='${user}';`); }
+    finally { rmSync(directory, {recursive: true, force: true}); }
+  });
+  sql(`insert into auth.users(id)values('${user}');
+insert into profiles(id,handle)values('${user}','restore-input-${user.slice(0,8)}');
+insert into posts(id,user_id,status,analysis_initialized_at)values('${post}','${user}','ready','2026-11-01T00:00:00Z');
+insert into post_items(id,post_id,name,source,portion_grams,portion_text)values('${originalItem}','${post}','Original food','model',50,'50 g');
+insert into item_nutrition(post_item_id,calories,protein_g,carbs_g,fat_g)values('${originalItem}',50,2,6,1);
+insert into post_comments(post_id,author,body)values('${post}','model','Consumed: 50 kcal');`);
+  const saved = JSON.parse(execFileSync('psql', ['-X', '-qAt', '-v', 'ON_ERROR_STOP=1', '--dbname', url, '-v', 'prefixes='+post.slice(0,8), '-f', fileURLToPath(new URL('../scripts/numbers/08-snapshot.sql', import.meta.url))], {encoding: 'utf8', timeout: 10000}).trim());
+  mkdirSync(ledger, {mode: 0o700});
+  writeFileSync(path.join(ledger, 'snapshots.jsonl'), JSON.stringify(saved)+'\n', {mode: 0o600});
+  sql(`update post_items set superseded_at=now() where id='${originalItem}';
+with added as(insert into post_items(post_id,name,source,portion_grams,portion_text)values('${post}','Changed food','model',99,'99 g')returning id)
+insert into item_nutrition(post_item_id,calories,protein_g,carbs_g,fat_g)select id,99,3,9,2 from added;
+update post_comments set body='Changed summary' where post_id='${post}' and author='model';
+update posts set status='needs_input',needs_input='{"question":"Changed held question","options":["Yes","No"]}',question='{"question":"Changed beside question","options":["Yes","No"]}',fail_reason='fixture',analysis_initialized_at=null where id='${post}';`);
+  const preload = path.join(directory, 'tick.mjs');
+  writeFileSync(preload, `import {execFileSync} from 'node:child_process';import {writeFileSync} from 'node:fs';
+globalThis.fetch=async url=>{
+ if(String(url)!=='http://127.0.0.1:1/api/jobs/tick')throw Error('Only the fixture tick is allowed');
+ const p=process.env.RESTORE_FIXTURE_POST;
+ const run=input=>execFileSync('psql',['-X','-qAt','-v','ON_ERROR_STOP=1','--dbname',process.env.SUPABASE_DB_URL],{input,encoding:'utf8',timeout:10000});
+ // Observe the real restore SQL before the simulated worker changes only its own queued job status.
+ const state=run("select jsonb_build_object('status',p.status,'needs_input',p.needs_input,'question',p.question,'fail_reason',p.fail_reason,'analysis_initialized_at',p.analysis_initialized_at,'items',(select jsonb_agg(jsonb_build_object('id',i.id,'calories',n.calories)order by i.id)from current_post_items i left join item_nutrition n on n.post_item_id=i.id where i.post_id=p.id),'summary',(select body from post_comments c where c.post_id=p.id and author='model'order by created_at,id limit 1))from posts p where id='"+p+"';");
+ writeFileSync(process.env.RESTORE_FIXTURE_STATE,state);
+ run("update jobs set status='finished',finished_at=now()where post_id='"+p+"'and status='queued'and payload->>'operator'='restore';");
+ return new Response(null,{status:204});
+};`);
+  const result = spawnSync(process.execPath, ['--import', preload, script, 'restore', '--meal='+post.slice(0,8), '--ledger='+ledger, '--snapshot=first', '--wait-seconds=1'], {encoding: 'utf8', timeout: 10000,
+    env: {...process.env, SUPABASE_DB_URL: url, APP_URL: 'http://127.0.0.1:1', RESTORE_FIXTURE_POST: post, RESTORE_FIXTURE_STATE: stateFile} });
+  assert.ifError(result.error);
+  assert.equal(result.status, EXIT.ok, result.stdout+result.stderr);
+  const actual = JSON.parse(readFileSync(stateFile, 'utf8'));
+  assert.equal(actual.status, saved.post.status);
+  assert.equal(actual.needs_input, saved.post.needs_input);
+  assert.equal(actual.question, saved.post.question);
+  assert.equal(actual.fail_reason, saved.post.fail_reason);
+  assert.equal(actual.analysis_initialized_at, saved.post.analysis_initialized_at);
+  assert.deepEqual(actual.items, [{id: originalItem, calories: 50}]);
+  assert.equal(actual.summary, 'Consumed: 50 kcal');
+});
+
+// PM 2026-11-17 15:07: in-place repair must retain an actual, usable nutrition undo.
+test('repair records original nutrition before writing and restore undoes it on the same item IDs', { skip: !process.env.TEST_SQL_DATABASE_URL }, async t => {
+  const {execFileSync} = await import('node:child_process');
+  const {randomUUID} = await import('node:crypto');
+  const url = process.env.TEST_SQL_DATABASE_URL;
+  assert.equal(process.env.MFA_TEST_DISPOSABLE, '1');
+  assert.ok(['localhost', '127.0.0.1', '[::1]'].includes(new URL(url).hostname), 'Disposable database only');
+  const user = randomUUID(), post = randomUUID(), item = randomUUID();
+  const directory = mkdtempSync(path.join(tmpdir(), 'mfa-repair-undo-'));
+  const ledger = path.join(directory, 'ledger'), bin = path.join(directory, 'bin');
+  const realPsql = execFileSync('which', ['psql'], {encoding: 'utf8'}).trim();
+  const sql = input => execFileSync(realPsql, ['-X', '-qAt', '-v', 'ON_ERROR_STOP=1', '--dbname', url], {input, encoding: 'utf8', timeout: 10000});
+  t.after(() => {
+    try { sql(`delete from posts where id='${post}';delete from profiles where id='${user}';delete from auth.users where id='${user}';`); }
+    finally { rmSync(directory, {recursive: true, force: true}); }
+  });
+  sql(`insert into auth.users(id)values('${user}');
+insert into profiles(id,handle)values('${user}','repair-undo-${user.slice(0,8)}');
+insert into posts(id,user_id,status)values('${post}','${user}','ready');
+insert into post_items(id,post_id,name,source,portion_grams,portion_text)values('${item}','${post}','Original food','model',50,'50 g');
+insert into item_nutrition(post_item_id,calories,protein_g,carbs_g,fat_g,fibre_g,sugar_g,sodium_mg,micronutrients)
+values('${item}',50,2,-0.7,1,null,0,5,'[{"nutrientId":1005,"value":-0.7,"basis":"portion"},{"nutrientId":1087,"value":null},{"nutrientId":1089,"value":0}]');`);
+  const nutrition = () => JSON.parse(sql(`select to_jsonb(n) from item_nutrition n where post_item_id='${item}';`));
+  const original = nutrition();
+  mkdirSync(bin);
+  const wrapper = path.join(bin, 'psql');
+  writeFileSync(wrapper, `#!${process.execPath}
+import assert from 'node:assert/strict';import {readFileSync,statSync,writeFileSync} from 'node:fs';import {spawnSync} from 'node:child_process';
+const args=process.argv.slice(2), f=args.indexOf('-f');
+if(f>=0&&args[f+1].endsWith('/15-repair.sql')){
+ const file=process.env.REPAIR_LEDGER+'/snapshots.jsonl';
+ const saved=JSON.parse(readFileSync(file,'utf8').trim().split('\\n').at(-1));
+ const old=saved.items.find(i=>i.id===process.env.REPAIR_ITEM).nutrition;
+ assert.equal(old.carbs_g,-0.7);assert.equal(old.micronutrients[0].value,-0.7);
+ assert.equal(statSync(file).mode&0o777,0o600);
+ writeFileSync(process.env.REPAIR_RECORDED,'before-write');
+}
+const input=f<0?readFileSync(0):undefined;
+const result=spawnSync(process.env.REPAIR_REAL_PSQL,args,{input,stdio:input?['pipe','inherit','inherit']:'inherit'});
+process.exit(result.status??1);
+`);
+  chmodSync(wrapper, 0o700);
+  const preload = path.join(directory, 'tick.mjs');
+  writeFileSync(preload, `import {execFileSync} from 'node:child_process';
+globalThis.fetch=async url=>{
+ if(String(url)!=='http://127.0.0.1:1/api/jobs/tick')throw Error('Only the fixture tick is allowed');
+ // Stand in only for worker completion; all nutrition writes come from the real operator SQL.
+ execFileSync(process.env.REPAIR_REAL_PSQL,['-X','-qAt','-v','ON_ERROR_STOP=1','--dbname',process.env.SUPABASE_DB_URL],{input:"update jobs set status='finished',finished_at=now()where post_id='"+process.env.REPAIR_POST+"'and status='queued';update posts set status='ready'where id='"+process.env.REPAIR_POST+"';",encoding:'utf8',timeout:10000});
+ return new Response(null,{status:204});
+};`);
+  const env = {...process.env, PATH: bin+path.delimiter+process.env.PATH, SUPABASE_DB_URL: url, APP_URL: 'http://127.0.0.1:1', REPAIR_REAL_PSQL: realPsql, REPAIR_LEDGER: ledger, REPAIR_ITEM: item, REPAIR_POST: post, REPAIR_RECORDED: path.join(directory,'recorded')};
+  const invoke = args => {
+    const result = spawnSync(process.execPath, ['--import', preload, script, ...args, '--ledger='+ledger, '--wait-seconds=1'], {env, encoding:'utf8', timeout:15000});
+    assert.ifError(result.error);
+    assert.equal(result.status, EXIT.ok, result.stdout+result.stderr);
+  };
+  invoke(['run','--mode=repair','--meals='+post.slice(0,8),'--max-meals=1','--max-minutes=1']);
+  assert.equal(readFileSync(env.REPAIR_RECORDED,'utf8'),'before-write');
+  const repaired = nutrition();
+  assert.equal(repaired.post_item_id,item);
+  assert.equal(repaired.carbs_g,0);
+  assert.equal(repaired.micronutrients[0].value,0);
+  assert.equal(repaired.fibre_g,null);
+  assert.equal(repaired.sugar_g,0);
+  invoke(['restore','--meal='+post.slice(0,8),'--snapshot=first']);
+  assert.deepEqual(nutrition(),original,'restore must undo the actual in-place repair, including NULLs, zeros and micronutrients');
+  assert.equal(sql(`select string_agg(id::text,',')from current_post_items where post_id='${post}';`).trim(),item,'the same item ID remains current');
 });

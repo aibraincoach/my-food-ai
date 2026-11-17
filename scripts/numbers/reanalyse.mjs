@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // Re-analyse or re-match a list of meals, one at a time, keeping every old row, and restore any of them.
-// It runs the SQL files beside it (08, 09, 11, 12, 13) through psql and wakes the worker with /api/jobs/tick.
+// It runs the SQL files beside it (08, 09, 11, 12, 13, 15 and 15-repair-undo) through psql and wakes the worker with /api/jobs/tick.
 // Usage and rules: node scripts/numbers/reanalyse.mjs --help, and scripts/numbers/README.md.
 import { spawnSync } from 'node:child_process';
 import { appendFileSync, chmodSync, existsSync, mkdirSync, readFileSync, realpathSync } from 'node:fs';
@@ -10,7 +10,7 @@ import { parseArgs as parseNodeArgs } from 'node:util';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const sqlFile = (name) => path.join(here, name);
-export const MODE_FILES = { rematch: '11-rematch.sql', reanalyse: '12-reanalyse.sql' };
+export const MODE_FILES = { rematch: '11-rematch.sql', reanalyse: '12-reanalyse.sql', repair: '15-repair.sql' };
 export const EXIT = { ok: 0, incomplete: 1, stopped: 3, usage: 4 };
 export const WAIT_HARD_MAX_SECONDS = 600;
 const POLL_SECONDS = 10, TICK_SECONDS = 60, FIRST_POLL_SECONDS = 2;
@@ -18,7 +18,7 @@ const NIL_UUID = '00000000-0000-0000-0000-000000000000';
 
 export const HELP = `Re-analyse or re-match meals one at a time, keeping their old rows, and restore any of them.
 
-  node scripts/numbers/reanalyse.mjs run --mode=rematch|reanalyse
+  node scripts/numbers/reanalyse.mjs run --mode=rematch|reanalyse|repair
        (--meals=<prefix,prefix,...> | --meals-file=<path>) --ledger=<directory>
        [--max-meals=10] [--max-minutes=45] [--wait-seconds=300] [--dry-run]
   node scripts/numbers/reanalyse.mjs restore --meal=<prefix> --ledger=<directory> [--snapshot=last|first]
@@ -30,6 +30,7 @@ psql must be on PATH. Nothing else is read.
 run
   --mode=rematch      11-rematch.sql: same foods and portions, nutrition looked up again.
   --mode=reanalyse    12-reanalyse.sql: the photos are read again from the start.
+  --mode=repair       15-repair.sql: a negative stored value becomes zero and the meal is summed again.
   --meals             comma-separated 8-character meal id prefixes, worked in the order given.
   --meals-file        the same, one prefix per line; blank lines and lines starting with # are ignored.
   --ledger            a private directory OUTSIDE the repository. It receives snapshots.jsonl (the full
@@ -46,14 +47,19 @@ run
   The run stops, and says why, when: --max-meals is reached; --max-minutes is used up; two meals in a
   row failed or timed out; more than one in ten meals failed (after at least 10); or a meal is still
   being worked when its wait runs out.
+  When a meal has finished, its snapshot is taken again (into <ledger>/after.jsonl) and compared with the one
+  before. The meal is put back at once, as restore --snapshot=last would, when it failed or asks a question, lost
+  any nutrition value it had (a zero counts as a value, NULL does not; micronutrients included), or its calories
+  moved by more than half. The ledger line says why.
 
 restore
   Puts one meal back as its snapshot in <ledger>/snapshots.jsonl recorded it, with 13-restore.sql.
+  A repair snapshot first restores its original nutrition rows on the same item IDs with 15-repair-undo.sql.
   --snapshot=last (default) uses the newest snapshot of that meal: it undoes the latest run.
   --snapshot=first uses the oldest: the meal as it was before the first run with this ledger.
-  A meal left "failed" is first set back to "ready" with its analysis time from the snapshot.
+  A meal left "failed" or "needs_input" first regains the snapshot's ready state, question fields and analysis time.
 
-Exit codes: 0 every meal changed, unchanged or skipped (restore: work was queued and the meal is ready);
+Exit codes: 0 every meal changed, unchanged, skipped or put back (restore: work was queued and the meal is ready);
             1 incomplete: a meal failed, timed out, or the restore SQL refused;
             3 a stop condition fired; 4 usage or guard error (nothing was started).`;
 
@@ -103,7 +109,7 @@ export function parseArgs(argv, readFile = (file) => readFileSync(file, 'utf8'))
     return { command, meal, ledger: values.ledger, snapshot, waitSeconds };
   }
   for (const key of ['meal', 'snapshot']) if (values[key] !== undefined) throw new UsageError(`--${key} is not a run option.`);
-  if (!Object.hasOwn(MODE_FILES, values.mode ?? '')) throw new UsageError('--mode=rematch or --mode=reanalyse is required.');
+  if (!Object.hasOwn(MODE_FILES, values.mode ?? '')) throw new UsageError('--mode=rematch, --mode=reanalyse or --mode=repair is required.');
   if ((values.meals === undefined) === (values['meals-file'] === undefined)) throw new UsageError('Give exactly one of --meals and --meals-file.');
   let meals;
   if (values.meals !== undefined) meals = parsePrefixes(values.meals);
@@ -167,6 +173,41 @@ export function compareTotals(before, after) {
 export function relativeChange(before, after) {
   if (before == null || after == null || Number(before) === 0) return null;
   return Math.round(((Number(after) - Number(before)) / Number(before)) * 10000) / 10000;
+}
+
+const VALUES = ['calories', 'protein_g', 'carbs_g', 'fat_g', 'fibre_g', 'sugar_g', 'sodium_mg'];
+
+// Pure: each nutrition value that the current foods of snapshot "before" had and those of "after" do not, as
+// "food <n>: <value>" (n counts the foods of "before" from 1; a micronutrient is its USDA nutrient id). A zero is a
+// value and NULL is not. Foods pair up by name; the foods whose name is gone are compared as one group.
+export function lostValues(before, after) {
+  const current = (snapshot) => (snapshot?.items ?? []).filter((item) => item.superseded_at === null);
+  const key = (item) => String(item.name ?? '').trim().toLowerCase();
+  const counts = (items) => {
+    const found = new Map();
+    for (const item of items) {
+      const nutrition = item.nutrition ?? {};
+      const names = VALUES.filter((name) => nutrition[name] != null);
+      for (const n of Array.isArray(nutrition.micronutrients) ? nutrition.micronutrients : []) if (n?.nutrientId != null && n.value != null) names.push(`nutrient ${n.nutrientId}`);
+      for (const name of new Set(names)) found.set(name, (found.get(name) ?? 0) + 1);
+    }
+    return found;
+  };
+  const was = current(before), now = current(after), lost = [];
+  const wasNames = new Set(was.map(key)), nowNames = new Set(now.map(key));
+  const compare = (label, left, right) => { const a = counts(left), b = counts(right); for (const [name, count] of a) if ((b.get(name) ?? 0) < count) lost.push(`${label}: ${name}`); };
+  for (const name of wasNames) if (nowNames.has(name)) compare(`food ${was.findIndex((item) => key(item) === name) + 1}`, was.filter((item) => key(item) === name), now.filter((item) => key(item) === name));
+  compare('renamed foods', was.filter((item) => !nowNames.has(key(item))), now.filter((item) => !wasNames.has(key(item))));
+  return lost;
+}
+
+// Pure: why a finished meal is put back, or null (the PM's rules of 2026-11-17 for #989).
+export function restoreReason(row) {
+  if (row.outcome === 'failed') return row.reason ?? 'the meal did not finish';
+  if (row.values_lost?.length) return `${row.values_lost.length} nutrition value(s) lost: ${row.values_lost.slice(0, 3).join('; ')}${row.values_lost.length > 3 ? '; ...' : ''}`;
+  if (row.before?.calories != null && row.after?.calories == null) return 'the calories became unavailable';
+  if (row.calories_change != null && Math.abs(row.calories_change) > 0.5) return `the calories moved by ${(row.calories_change * 100).toFixed(1)}%`;
+  return null;
 }
 
 // Pure: the snapshot of one meal out of the text of snapshots.jsonl (only snapshots of a ready meal count). Throws UsageError when there is none or two meals share the prefix.
@@ -340,7 +381,7 @@ async function run(request) {
     else {
       const snapshot = psql({ file: sqlFile('08-snapshot.sql'), vars: { prefixes: prefix } }).split('\n').find((line) => line && JSON.parse(line).post?.id === id);
       if (!snapshot) throw new Error(`08-snapshot.sql returned no line for meal ${prefix}; nothing was written for it.`);
-      appendPrivate(ledger, 'snapshots.jsonl', snapshot);
+      appendPrivate(ledger, 'snapshots.jsonl', request.mode === 'repair' ? JSON.stringify({ ...JSON.parse(snapshot), operator_mode: 'repair' }) : snapshot);
       const since = dbNow();
       psql({ file: sqlFile(file), vars: { post: id } });
       if (jobsSince(id, since) === 0) row.reason = "refused by the file's guards";
@@ -353,12 +394,27 @@ async function run(request) {
         if (waitResult.timedOut) { row.outcome = 'timeout'; row.reason = `still ${waitResult.totals.status} after ${request.waitSeconds} s`; previousInFlight = waitResult.totals.job_in_flight; }
         else if (waitResult.totals.status === 'ready') row.outcome = compareTotals(row.before, row.after);
         else { row.outcome = 'failed'; row.reason = waitResult.totals.status === 'needs_input' ? 'the meal now asks its owner a question (needs_input)' : 'the meal is failed'; }
+        if (!waitResult.timedOut) {
+          const afterLine = psql({ file: sqlFile('08-snapshot.sql'), vars: { prefixes: prefix } }).split('\n').find((line) => line && JSON.parse(line).post?.id === id);
+          if (afterLine) { appendPrivate(ledger, 'after.jsonl', afterLine); row.values_lost = lostValues(JSON.parse(snapshot), JSON.parse(afterLine)); }
+          else row.values_lost = ['the meal could not be read after its run'];
+          const why = restoreReason(row);
+          if (why) {
+            row.restore_reason = why;
+            let code;
+            try { code = await restore({ meal: prefix, ledger: request.ledger, snapshot: 'last', waitSeconds: request.waitSeconds }); }
+            catch (error) { code = EXIT.incomplete; row.restore_error = error.message; }
+            row.restored = code === EXIT.ok;
+            if (row.outcome !== 'failed') { row.outcome = row.restored ? 'restored' : 'failed'; if (!row.restored) row.reason = 'it was worse and could not be put back'; }
+            if (row.restored) row.after = publicTotals(readTotals(id));
+          }
+        }
       }
     }
     if (row.outcome === 'skipped') row.after = row.before;
     appendPrivate(ledger, 'ledger.jsonl', JSON.stringify(row));
     rows.push(row); outcomes.push(row.outcome);
-    console.log(`${prefix}  ${row.outcome}${row.reason ? ` (${row.reason})` : ''}  kcal ${fmt(row.before?.calories)} -> ${fmt(row.after?.calories)}  waited ${row.seconds_waited} s`);
+    console.log(`${prefix}  ${row.outcome}${row.reason ? ` (${row.reason})` : ''}${row.restore_reason ? ` [put back: ${row.restore_reason}${row.restored ? '' : '; the restore did not finish'}]` : ''}  kcal ${fmt(row.before?.calories)} -> ${fmt(row.after?.calories)}  waited ${row.seconds_waited} s`);
   } } catch (error) { broken = error; }
   console.log('\n' + summaryTable(rows));
   if (broken) { console.error(`\nSTOPPED at meal ${meals[rows.length].prefix}: ${broken.message} Its ledger line was not written; read its state before going on.`); return EXIT.incomplete; }
@@ -373,17 +429,28 @@ async function restore(request) {
   try { text = readFileSync(path.join(ledger, 'snapshots.jsonl'), 'utf8'); } catch { throw new UsageError('There is no snapshots.jsonl in that ledger directory.'); }
   const { snapshot, count } = findSnapshot(text, request.meal, request.snapshot);
   const params = restoreParams(snapshot);
+  const repairNutrition = snapshot.operator_mode === 'repair' ? (snapshot.items ?? [])
+    .filter((item) => item.superseded_at === null && item.nutrition != null)
+    .map((item) => {
+      if (item.nutrition.post_item_id !== item.id) throw new UsageError('The repair snapshot nutrition does not match its item ID.');
+      return item.nutrition;
+    }) : null;
   const before = readTotals(params.post);
   if (before.deleted) throw new UsageError(`Meal ${request.meal} is deleted; it is not restored.`);
   if (before.job_in_flight) throw new UsageError(`A job for meal ${request.meal} is queued or running; try again when it has finished.`);
-  if (!['ready', 'failed'].includes(before.status)) throw new UsageError(`Meal ${request.meal} is ${before.status}; only a ready or failed meal is restored.`);
+  if (!['ready', 'failed', 'needs_input'].includes(before.status)) throw new UsageError(`Meal ${request.meal} is ${before.status}; only a ready, failed or needs_input meal is restored.`);
   console.log(`Restoring meal ${request.meal} from its ${request.snapshot} snapshot (${count} in the ledger): ${params.old_ids.split(',').length} item(s) come back.`);
   const since = dbNow();
-  // One psql session: a failed meal is first made ready again with its analysis time, then 13-restore.sql runs as it is.
-  psql({ vars: { post: params.post, old_ids: params.old_ids, summary_comment_id: params.summary_comment_id, old_summary: params.old_summary, initialized: params.analysis_initialized_at },
-    input: `update public.posts p set status = 'ready', fail_reason = null, analysis_initialized_at = nullif(:'initialized', '')::timestamptz
-  where p.id = :'post'::uuid and p.status = 'failed' and p.deleted_at is null
+  // One psql session: a failed or needs_input meal first regains its snapshot state, then 13-restore.sql runs as it is.
+  psql({ vars: { post: params.post, old_ids: params.old_ids, summary_comment_id: params.summary_comment_id, old_summary: params.old_summary, initialized: params.analysis_initialized_at,
+    snapshot_needs_input: JSON.stringify(snapshot.post.needs_input ?? null), snapshot_question: JSON.stringify(snapshot.post.question ?? null), snapshot_fail_reason: snapshot.post.fail_reason ?? '',
+    nutrition_rows: JSON.stringify(repairNutrition ?? []) },
+    input: `update public.posts p set status = 'ready', fail_reason = nullif(:'snapshot_fail_reason', ''),
+  needs_input = nullif(:'snapshot_needs_input'::jsonb, 'null'::jsonb), question = nullif(:'snapshot_question'::jsonb, 'null'::jsonb),
+  analysis_initialized_at = nullif(:'initialized', '')::timestamptz
+  where p.id = :'post'::uuid and p.status in ('failed', 'needs_input') and p.deleted_at is null
     and not exists (select 1 from public.jobs j where j.post_id = p.id and j.status in ('queued', 'running'));
+${repairNutrition === null ? '' : `\\i '${sqlFile('15-repair-undo.sql').replaceAll("'", "\\'")}'`}
 \\i '${sqlFile('13-restore.sql').replaceAll("'", "\\'")}'
 ` });
   if (jobsSince(params.post, since) === 0) {
