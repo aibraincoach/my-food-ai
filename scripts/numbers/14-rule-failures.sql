@@ -1,16 +1,40 @@
 -- Meals with numbers that cannot be right, and whether 12-reanalyse.sql would take each one.
 -- Read-only, one SELECT. psql variable: uid (the account id).
--- It repeats rules a1, a2, b, d, e, f and g1 of 03-suspicious.sql word for word (not c, g2, h or i),
+-- It repeats rules a1, a2, b, d, e, f and g1 of 03-suspicious.sql word for word (not c, g2, h or i), and 03's way of
+-- finding each record's description (cache_foods, described0, described), which g1 reads,
 -- because one SELECT in a read-only session cannot read another file. A rule change is made in 03, 04 and 14.
 -- can_reanalyse repeats the guards of 12-reanalyse.sql; a change to those guards is made in 12 and 14.
 with items as (
   select p.id as post_id, i.id as item_id, i.name, i.portion_grams, i.portion_text,
          n.post_item_id is not null as has_row, n.calories, n.protein_g, n.carbs_g, n.fat_g,
-         n.fibre_g, n.sugar_g, n.sodium_mg, n.food_category
+         n.fibre_g, n.sugar_g, n.sodium_mg, n.source_ref, n.food_category,
+         coalesce(n.micronutrients, '[]'::jsonb) as micro
   from public.posts p
   join public.post_items i on i.post_id = p.id and i.superseded_at is null
   left join public.item_nutrition n on n.post_item_id = i.id
   where p.user_id = :'uid'::uuid and p.status = 'ready' and p.deleted_at is null
+), cache_foods as (
+  -- One description per record, chosen the same way every run and by the rule of 06-seafood.sql:
+  -- a detail entry ('fdc_cache detail') wins over a search entry ('fdc_cache search'); then the first description in text order.
+  select distinct on (fdc_id) fdc_id, description from (
+    select (f->>'fdcId') as fdc_id, f->>'description' as description, 'fdc_cache search' as found_in
+    from public.fdc_cache c
+    cross join lateral jsonb_array_elements(case when jsonb_typeof(coalesce(c.response->'payload'->'foods', c.response->'foods')) = 'array'
+                                             then coalesce(c.response->'payload'->'foods', c.response->'foods') else '[]'::jsonb end) f
+    union all
+    select coalesce(c.response->'payload'->>'fdcId', c.response->>'fdcId'), coalesce(c.response->'payload'->>'description', c.response->>'description'), 'fdc_cache detail'
+    from public.fdc_cache c where c.query like 'fdc-detail:%'
+  ) d
+  where fdc_id in (select source_ref from items where source_ref ~ '^[1-9][0-9]*$') and description is not null
+  order by fdc_id, found_in, description
+), described0 as (
+  select it.*,
+         coalesce((select m->'approximation'->>'basis' from jsonb_array_elements(case when jsonb_typeof(it.micro) = 'array' then it.micro else '[]'::jsonb end) m
+                    where m->'approximation'->>'kind' = 'closest' limit 1), cf.description) as raw_description
+  from items it left join cache_foods cf on cf.fdc_id = it.source_ref
+), described as (
+  select d0.*, case when raw_description like 'Combined %' then regexp_replace(raw_description, ' for .*$', '') else raw_description end as record_description
+  from described0 d0
 ), flags as (
   select post_id, item_id, 'a1' as rule from items where not has_row
   union all
@@ -29,10 +53,13 @@ with items as (
   select post_id, item_id, 'f' from items
   where calories < 0 or protein_g < 0 or carbs_g < 0 or fat_g < 0 or fibre_g < 0 or sugar_g < 0 or sodium_mg < 0
   union all
-  select post_id, item_id, 'g1' from items
+  select post_id, item_id, 'g1' from described
   where name ~* '\m(coffee|espresso|americano|tea)\M' and name !~* '\m(milk|latte|cappuccino|sugar|sweet|sweetened|condensed|mocha|brownie|cookie|cake)\M'
     and portion_grams > 0 and calories / portion_grams > 0.25
     and not (name ~* '\miced\M' and name ~* '\mtea\M' and calories / portion_grams <= 0.40)
+    -- #990: a coffee or tea matched to a record that holds milk (USDA 171880, "Beverages, coffee, ready to drink, milk
+    -- based, sweetened") is not plain, whatever its name says.
+    and coalesce(record_description, '') !~* '\mmilk\M'
 ), failing as (
   select post_id, count(distinct item_id) as items_failing, count(distinct rule) as rule_count,
          string_agg(distinct rule, ',' order by rule) as rules

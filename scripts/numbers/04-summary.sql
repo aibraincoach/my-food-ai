@@ -77,6 +77,9 @@ with items as (
     and portion_grams > 0 and calories / portion_grams > 0.25
     -- #990: an iced tea of unknown sweetness is counted as sweetened, Indonesia's default (es teh manis), up to 0.40 kcal/g.
     and not (name ~* '\miced\M' and name ~* '\mtea\M' and calories / portion_grams <= 0.40)
+    -- #990: a coffee or tea matched to a record that holds milk (USDA 171880, "Beverages, coffee, ready to drink, milk
+    -- based, sweetened") is not plain, whatever its name says.
+    and coalesce(record_description, '') !~* '\mmilk\M'
   union all
   select post_id, item_id, name, portion_grams, calories, 'g2 caffeine stored on a name with no caffeine source',
          'nutrient ' || coalesce(round(caffeine_mg, 1)::text, '-') || ' mg, intake row ' || coalesce(intake_caffeine_mg::text, '-') || ' mg, category ' || coalesce(food_category, 'NULL')

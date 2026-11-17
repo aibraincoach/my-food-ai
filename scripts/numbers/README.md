@@ -16,3 +16,9 @@ Files 03 and 04 hold the same rules. Each must be one SELECT so that it runs in 
 14-rule-failures.sql is read-only, like 02 to 09: one row per ready meal that fails rule a1, a2, b, d, e, f or g1 of 03, and whether 12-reanalyse.sql would accept it. It repeats those rules, so a rule change is made in 03, 04 and 14.
 
 17-census.sql is read-only too and takes no variable: one row per account with a ready meal (its first 8 characters), with its ready meals, copies, saved meals and saved meals whose meal is gone (#990).
+
+Rule g1 (plain coffee or tea above 0.25 kcal per gram) leaves out a coffee or tea whose matched record's description holds "milk" (#990), so 14 finds each record's description the way 03 does.
+
+19-saved.sql is read-only and takes no variable: one row per saved meal and per copied meal, with its account and meal prefixes, its foods and calories against its source meal's current ones, and which of rules a2, d, e and f its saved foods fail (#990). It prints no name, caption or comment.
+
+cards.mjs only reads: for each meal prefix, the calories its card shows, the calories its first model comment states and its day's total, computed and rounded by the app's own code (getDays, formatCalories), beside the stored sum of its foods (#1021). Run it with `node --import tsx scripts/numbers/cards.mjs --zone=<IANA zone> <prefix> ...` and NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SECRET_KEY set. It prints prefixes, dates and numbers only.
