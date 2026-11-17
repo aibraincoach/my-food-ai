@@ -2,22 +2,44 @@
 -- A saved meal keeps the foods and nutrition of its source meal as they were when it was saved (saved_meals.items);
 -- a copy is a meal logged again from a saved meal or a meal (posts.source_post_id). The row says whether its calories
 -- still match its source's current foods, and which of rules a2, d, e and f of 03-suspicious.sql its own foods fail.
+-- #1048: a saved value is read as a number only when it is a JSON number or a numeric string. A string that is not a
+-- number (empty, or text) is not turned into zero and does not stop the report: the value is unknown, and the meal's
+-- row lists rule x, "a saved number cannot be read". A value that is absent, null or not a string or number counts as
+-- missing (rule a2). A saved meal whose items is not a list has no foods and x.
 -- Prefixes only: no name, caption or comment is printed.
-with saved as (
+with saved_foods as (
+  select s.id, e.food, e.position,
+         case when jsonb_typeof(e.food) <> 'object' then null when g.raw ~ '^\s*-?[0-9]+([.][0-9]+)?\s*$' then g.raw::numeric end as grams,
+         case when c.raw ~ '^\s*-?[0-9]+([.][0-9]+)?\s*$' then c.raw::numeric end as kcal,
+         case when pr.raw ~ '^\s*-?[0-9]+([.][0-9]+)?\s*$' then pr.raw::numeric end as protein,
+         case when cb.raw ~ '^\s*-?[0-9]+([.][0-9]+)?\s*$' then cb.raw::numeric end as carbs,
+         case when ft.raw ~ '^\s*-?[0-9]+([.][0-9]+)?\s*$' then ft.raw::numeric end as fat,
+         -- x: a value that is present but is not a number.
+         jsonb_typeof(e.food) <> 'object' or exists (select 1 from (values (g.raw), (c.raw), (pr.raw), (cb.raw), (ft.raw)) v(raw)
+                where v.raw is not null and v.raw !~ '^\s*-?[0-9]+([.][0-9]+)?\s*$') as unreadable,
+         c.raw is null or pr.raw is null or cb.raw is null or ft.raw is null as missing
+  from public.saved_meals s
+  cross join lateral jsonb_array_elements(case when jsonb_typeof(s.items) = 'array' then s.items else '[]'::jsonb end) with ordinality e(food, position)
+  cross join lateral (select case when jsonb_typeof(e.food) = 'object' and jsonb_typeof(e.food->'portion_grams') in ('number', 'string') then e.food->>'portion_grams' end) g(raw)
+  cross join lateral (select case when jsonb_typeof(e.food->'nutrition') = 'object' and jsonb_typeof(e.food->'nutrition'->'calories') in ('number', 'string') then e.food->'nutrition'->>'calories' end) c(raw)
+  cross join lateral (select case when jsonb_typeof(e.food->'nutrition') = 'object' and jsonb_typeof(e.food->'nutrition'->'protein_g') in ('number', 'string') then e.food->'nutrition'->>'protein_g' end) pr(raw)
+  cross join lateral (select case when jsonb_typeof(e.food->'nutrition') = 'object' and jsonb_typeof(e.food->'nutrition'->'carbs_g') in ('number', 'string') then e.food->'nutrition'->>'carbs_g' end) cb(raw)
+  cross join lateral (select case when jsonb_typeof(e.food->'nutrition') = 'object' and jsonb_typeof(e.food->'nutrition'->'fat_g') in ('number', 'string') then e.food->'nutrition'->>'fat_g' end) ft(raw)
+), saved as (
   select 'saved' as kind, s.user_id, s.id, s.source_post_id,
-         (select count(*) from jsonb_array_elements(s.items)) as foods,
-         (select sum((e->'nutrition'->>'calories')::numeric) from jsonb_array_elements(s.items) e) as kcal,
-         (select string_agg(distinct r, ',' order by r) from jsonb_array_elements(s.items) e
-            cross join lateral (values
-              (case when e->'nutrition'->>'calories' is null or e->'nutrition'->>'protein_g' is null
-                      or e->'nutrition'->>'carbs_g' is null or e->'nutrition'->>'fat_g' is null then 'a2' end),
-              (case when (e->>'portion_grams')::numeric > 0 and ((e->'nutrition'->>'calories')::numeric / (e->>'portion_grams')::numeric < 0
-                      or (e->'nutrition'->>'calories')::numeric / (e->>'portion_grams')::numeric > 9) then 'd' end),
-              (case when ((e->>'portion_grams') is null and not (e->'nutrition'->>'calories' is not null and e->>'portion_text' ~ '^[0-9]+([.][0-9]+)? ml$'))
-                      or (e->>'portion_grams')::numeric < 5 or (e->>'portion_grams')::numeric > 1500 then 'e' end),
-              (case when (e->'nutrition'->>'calories')::numeric < 0 or (e->'nutrition'->>'protein_g')::numeric < 0
-                      or (e->'nutrition'->>'carbs_g')::numeric < 0 or (e->'nutrition'->>'fat_g')::numeric < 0 then 'f' end)) v(r)
-            where r is not null) as rules
+         (select count(*) from saved_foods f where f.id = s.id) as foods,
+         (select sum(f.kcal) from saved_foods f where f.id = s.id) as kcal,
+         (select string_agg(distinct r, ',' order by r) from (
+            select case when jsonb_typeof(s.items) <> 'array' then 'x' end
+            union all
+            select r from saved_foods f cross join lateral (values
+              (case when f.missing or (not f.unreadable and (f.kcal is null or f.protein is null or f.carbs is null or f.fat is null)) then 'a2' end),
+              (case when f.grams > 0 and (f.kcal / f.grams < 0 or f.kcal / f.grams > 9) then 'd' end),
+              (case when (f.grams is null and not f.unreadable and not (f.kcal is not null and f.food->>'portion_text' ~ '^[0-9]+([.][0-9]+)? ml$'))
+                      or f.grams < 5 or f.grams > 1500 then 'e' end),
+              (case when f.kcal < 0 or f.protein < 0 or f.carbs < 0 or f.fat < 0 then 'f' end),
+              (case when f.unreadable then 'x' end)) v(r)
+            where f.id = s.id) rr(r) where r is not null) as rules
   from public.saved_meals s
 ), copies as (
   select 'copy' as kind, p.user_id, p.id, p.source_post_id,
