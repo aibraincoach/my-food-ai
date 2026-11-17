@@ -160,6 +160,14 @@ export async function persistAnalysis(
   if (!named.needsInput) await markReady(named.postId, admin, jobId,{notify:!named.hasNotEaten,saveMeal:!named.hasNotEaten});
 }
 
+// #985: after an operator re-analysis, re-match or restore (scripts/numbers) has made the meal ready,
+// its saved-meal copy takes the meal's current numbers. The database refuses any other job.
+export async function refreshOperatorSavedMeal(admin: SupabaseClient, job: { id: string; post_id: string | null; payload: Record<string, unknown> }): Promise<void> {
+  if (!job.post_id || !("operator" in job.payload)) return;
+  const { error, status } = await admin.rpc("refresh_operator_saved_meal", { p_post_id: job.post_id, p_job_id: job.id });
+  if (error) throw ioError("The saved meal could not be refreshed.", error, status);
+}
+
 // Publication clears clarification atomically with ready under the post lock. The stored card is optional:
 // a render or upload failure is logged and the meal is marked ready on its nutrition anyway; the live card
 // is the fallback. (An outdated card after a failed regeneration is tracked in the backlog.)

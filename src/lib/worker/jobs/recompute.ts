@@ -7,7 +7,7 @@ import type { JobRow } from "@/lib/queue/claim";
 import { resolveNutritionItems } from "@/lib/fdc/resolve-items";
 import { resolveFoodMatchDetailed, traceNutritionReuse, nutritionResolutionBudget } from "@/lib/fdc/match";
 import { scaleNutrition } from "@/lib/fdc/nutrients";
-import { markReady } from "@/lib/pipeline/persist";
+import { markReady, refreshOperatorSavedMeal } from "@/lib/pipeline/persist";
 import { toNumber, type CurrentItem, type NutritionLike, type StoredNutrient } from "@/lib/nutrition/totals";
 
 export default async function recompute(admin: SupabaseClient, job: JobRow): Promise<void> {
@@ -17,6 +17,7 @@ export default async function recompute(admin: SupabaseClient, job: JobRow): Pro
     // Copies already hold exact nutrition. This durable repair must not resolve
     // food again, send another push, or save another meal.
     await markReady(job.post_id, admin, job.id, { notify: false, saveMeal: false });
+    await refreshOperatorSavedMeal(admin, job);
     return;
   }
   const { data: items, error, status: itemsStatus } = await admin.from("current_post_items")
@@ -68,8 +69,32 @@ export default async function recompute(admin: SupabaseClient, job: JobRow): Pro
     if(summaryError)throw ioError('Nutrition summary could not be saved.',summaryError,summaryStatus);
   }
   await markReady(job.post_id, admin,job.id);
+  await refreshOperatorSavedMeal(admin, job);
 }
 
+// #986: one transaction writes one revision, so its rows share created_at. A correction, a leftovers
+// photo and a removal each write a model reply at that instant; an operator revision writes none.
+// The rebuild starts from the newest operator revision after the first analysis:
+// - a re-analysis (scripts/numbers/12-reanalyse.sql): every earlier row was superseded before it;
+// - a re-match (11-rematch.sql): the copy written in the transaction that superseded the rows before
+//   it, unless that copy holds a correction or leftovers, because the corrections that are kept are
+//   replayed on top of the starting rows.
+type RevisionRow={created_at:string;superseded_at?:string|null;not_eaten_grams?:unknown;not_eaten_count_text?:unknown};
+type RevisionComment={author:string;created_at:string;reverted_at?:string|null};
+function analysisRevision(rows:RevisionRow[],thread:RevisionComment[],first:string):string{
+ const replies=new Set(thread.filter(comment=>comment.author==='model').map(comment=>comment.created_at));
+ let base=first;
+ for(const at of new Set(rows.map(row=>row.created_at))){
+  const time=Date.parse(at);
+  if(replies.has(at)||time<=Date.parse(first))continue;
+  if(rows.some(row=>row.superseded_at===at)){
+   const corrected=rows.some(row=>row.created_at===at&&(row.not_eaten_grams!=null||row.not_eaten_count_text!=null))
+    ||thread.some(comment=>comment.author==='user'&&Date.parse(comment.created_at)<time&&(!comment.reverted_at||Date.parse(comment.reverted_at)>time));
+   if(!corrected)base=at;
+  }else if(rows.every(row=>Date.parse(row.created_at)>=time||(row.superseded_at!=null&&Date.parse(row.superseded_at)<time)))base=at;
+ }
+ return base;
+}
 
 async function rebuildRemoved(admin:SupabaseClient,job:JobRow){
  const postId=job.post_id!;
@@ -89,7 +114,8 @@ async function rebuildRemoved(admin:SupabaseClient,job:JobRow){
  const thread=await readPostComments(admin,postId);
  const first=thread.find(comment=>comment.author==='model')?.created_at??original?.[0]?.created_at;
  if(!first&&current.length)throw Error('Original meal revision is unavailable.');
- let items:import('@/lib/nutrition/totals').CurrentItem[]=(original??[]).filter(row=>row.created_at===first).map(row=>{
+ const base=first?analysisRevision(original??[],thread,first):first;
+ let items:import('@/lib/nutrition/totals').CurrentItem[]=(original??[]).filter(row=>row.created_at===base).map(row=>{
   const nutrition=Array.isArray(row.item_nutrition)?row.item_nutrition[0]:row.item_nutrition;
   if(!nutrition)throw Error('Original meal nutrition is unavailable.');
   return {...row,...normalizeStoredNutrition(nutrition,row.portion_grams),id:row.id,not_eaten_grams:null,not_eaten_calories:null,not_eaten_count_text:null};
