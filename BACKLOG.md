@@ -1,6 +1,8 @@
 # My Food AI — Backlog†
 
-Last edited: Tuesday 2026-11-17 at 18:43 WIB (UTC+07:00) by Claude, PM
+Last edited: Tuesday 2026-11-17 at 19:37 WIB (UTC+07:00) by Claude, PM
+
+For the owner (Tue Nov 17, 19:11 WIB): The PM cannot talk to the designer. The PM seat has no browser tool, so it cannot open the designer's chat in claude.ai and type into it. Five backlog items are waiting for the designer to choose a place, a look or an audit: the barcode prompt over the live camera (#453), what the card you swipe to on a drink's photo shows (#455), how much of an alcoholic drink was drunk (#457), what places that wait on the network show while they wait (#631), and the controls on Days, Search, Profile and the capture modes (#555). To unblock them, paste those five titles into the designer's chat and ask for a look for each, or give the PM seat a browser tool. Nothing else waits on you.
 
 The only job of the PM is to maintain this backlog and keep it completely up to date. Failing to do so is immediately terminable.
 
@@ -128,30 +130,6 @@ When a person posts the same meal twice by mistake, the app shows two posts and 
 
 Owner, Tue Nov 17: this is a new feature, and he calls it tricky. It must work when someone wants to merge two posts and when two posts hold the same item because it was double posted. No design exists, and the rules for what the merged post keeps are not decided: its photos, caption, time, items, numbers and comments. No GitHub issue exists yet. Done when a person can pick two of their own posts and merge them into one, and the merged post shows once in the feed, on Days and in the day's totals, with no item counted twice.
 
-### #699 Our review and merge process has not been compared with the owner's other recent repositories
-
-Nobody has measured how rigorous our review, merge and proof process is against the other repositories the owner works on right now. Fleet 18 shows the process has gaps.
-
-Take the owner's most recently active repositories and compare them with this one, practice by practice: how a change is reviewed, who may merge and on what evidence, how proof that a change works is recorded, and what happens when a merge goes wrong. Observe first: list those repositories and write down each practice as it stands. Done when a written comparison lists each practice in those repositories next to ours, and each improvement worth making is its own item.
-
-### #929 The Perplexity review route breaks whenever the website or the model behind it changes
-
-Reviews of pull requests run through Perplexity's website, and both the page and the model behind it change without notice. A review then fails, comes back invalid or is judged on the wrong model, and the pull request waits with no review on its head. The owner's view on Nov 16 is that the route is built as if neither one ever changes.
-
-The repository holds receipts for failed or invalid runs, such as docs/reviews/mfa-pplx-pr310-2d4142b-invalid-model.md, mfa-pplx-pr311-e7ece5c-invalid-input.md and mfa-pplx-pr312-9e5877b-invalid-model.md, and the Wall of Stupid entry of 2026-11-03 08:24 WIB records a run judged on the wrong model. Related: #699. Observe first: the coder lists every way a review is run today, every failure on record with its cause (page change, model change, input or quota) and which step of the route each one broke. Done when a written finding lists those, and a review route is in place that finishes with a result whichever model Perplexity offers that day and records the model each run used, or the owner has ruled on a different route.
-
-### #715 Two review captures sit untracked in the repository
-
-docs/reviews/mfa-pplx-pr670-9c37722-close.md and docs/reviews/mfa-pplx-pr677-close.md are untracked and have no decision.
-
-Related: #670, #677. Done when each is committed as a receipt or deleted.
-
-### #925 A draft pull request of readiness documents was opened in the repository without the owner knowing what it contains
-
-An agent opened draft pull request #682 (branch docs/muse-readiness-pm-pack, seven Markdown files under docs/product/muse-readiness-pm-pack) holding a summary of a newsletter article about Meta's Muse launch, a 40-row launch scorecard and six candidate backlog items. The owner was handed the pack afterwards and had not seen what was in it.
-
-The planner's Fleet 21 plan, written the same day, describes PR #682 as the docs branch that holds the two review captures named in #715. Both descriptions cannot be right. The pack also lists #370, #108 and #567 as open and #22 and #221 as closed, and none of those five is in this backlog, which belongs to the owner and the PM. The pack states that every scorecard result is unrun, that its thresholds are proposals, and that the article is a secondhand account of an interview; nobody has checked its statements against the code or the contracts. Observe first: read PR #682 on GitHub (author, branch, creation date, files), compare it with the review captures in #715, and read each of the seven files against README.md, docs/eval.md and docs/pm-contract.md. Done when a written finding says which pull request number holds which files, lists every statement in the pack that disagrees with the code or a contract, and the owner has ruled whether the pack stays in the repository, is corrected, or is removed.
-
 ### #212 Packaged food cannot be logged from the regular camera, and the scanner has never been tried on a phone
 
 To log a packaged food, the user has to switch to a separate scanner, and that scanner has not been tested on a phone. The owner wants the regular camera to read a barcode and a nutrition label.
@@ -206,18 +184,6 @@ The submission requires a public repository, and it still carries the default RE
 
 After the last feature is in, one pass replaces the default README with a short start-here page. All working files stay in the repository, including the agents' contracts, the Wall of Stupid file, the review policy and the review tools. Nothing is removed. Done when the README is the start-here page, and a search of the repository for host names, account identifiers and billing details finds only what the owner chose to keep. GitHub already shows this issue closed. It stays here until that is true.
 
-### #659 Review findings on the merged Fleet 18 PRs have not been checked on main
-
-Codex and AGY reviewed the Fleet 18 PRs and raised problems in code that is now merged. The planner confirmed four of them on main 7d64f4c8; they are the four items below. The rest have not been checked.
-
-Two blockers are planner-checked on main and not yet reproduced by a coder. On #647, useProfileIdentity in PostHandle.tsx binds the viewer's avatar and handle to every post header and not the author's, the avatar route reads with the viewer's token so another user's avatar fails, and the route sends a public one-year immutable cache header for an image only signed-in users should see. On #648, wording-inventory.mjs embeds the HEAD short hash so its check can never pass after a commit, and docs/wording/inventory.md was generated before 66 files changed. Eleven other findings were reproduced and are filed as the items below; two were dismissed with proof (the #633 recompute upsert and the #633 rice-with-protein composition). Still unchecked: the #641 portion_unit "serving" that the database does not accept; on #638, Feed discovery polling that stops when the tab is hidden; on #639, NeedsInputStrip never finding new questions after an empty first poll, and RealtimePost not refreshing on visibility; the #637 Thread retry polling; and the #643 header text cut off. Done when each unchecked finding is reproduced or dismissed with proof, the blockers on #647 and #648 are each checked on main, and each one reproduced is filed as its own item.
-
-### #698 Pull requests can reach main without the PM's merge order
-
-Merging is not yet limited to the PM's order. A pull request must merge only when the PM orders that one PR at its full head SHA, after the planner's evaluation and a zero-blocker review of that head. Fleet 18 landed seven pull requests without a clean review of their exact head.
-
-Observe first: list every way a pull request can reach main today, including a coder's own merge, auto-merge, a merge queue, a workflow and the branch protection settings. Related: #689. The owner ruled on Nov 15, answering the planner, that merge control stays a written rule only. Done when the contracts state that no pull request merges without a merge order naming its PR and full head SHA and a zero-blocker review of that head, and the owner has accepted that nothing in GitHub refuses a merge without them.
-
 ### #684 A failed leftovers upload cannot be dismissed and stays on screen every time the app is reopened
 
 On the owner's phone, adding a leftovers photo to a meal failed with "Upload failed. The photo could not be attached." The failure leaves a "Leftovers: Not posted yet" card in the feed and a red chip at the bottom reading "Leftovers, Not saved · Try again". The user cannot dismiss either one, and both come back after closing and reopening the app, so the screen stays broken.
@@ -235,12 +201,6 @@ This is the first case found for #217. The pressed look appears at once (first c
 The buttons under a post are too small to hit and look the same at rest, while saving and when turned off.
 
 Design 7a gives every button a 44 px tap area and five looks: at rest, pressed, saving, turned off and failed. On production every button measures 44 by 44 (Details 53 by 44). The saving, failed and pressed looks were not captured. Thumbs down took 0.39 seconds to show a change and 0.86 seconds to get its reply. GrokBot, Nov 5 (Fleet 18 result, not re-run): every button measures 44 × 44 (Details 53 × 44). The saving and failed looks were never captured, and forcing them needs the coder. Done when each button matches 7a on production on a phone-sized screen.
-
-### #690 A Fleet 17 test post and its draft are still on test account 2, and the corrected run report may be incomplete
-
-A post captioned "Fleet 17 post-close 2" (id starting d37b129e) was created at 16:21 UTC and was never cleaned up. It sits between the "retry" batch at 16:16 and the "v4" batch at 16:23, and it is in no evidence file.
-
-A fourth close-time batch may have run without a kept receipt, which would make the "all nine readings" claim in docs/run17-report.md incomplete. Done when the post and its draft are deleted, and docs/run17-report.md either says a fourth batch ran with no receipt or says the post was not a reading.
 
 ### #628 The Fleet 17 check script passes when its checks fail and leaves a test row behind
 
@@ -260,12 +220,6 @@ Some controls feel dead or clunky, and nobody has measured how the app responds 
 
 The thumbs in #553 are the first case found. List every tappable control on each screen at phone size. For each, record the time from the tap to a visible change, whether it shows a pressed look at once, whether it jumps or flickers while it loads, and whether it can be tapped twice. Measure in Chrome with a slowed processor, using the production sign-in from #196; the table built so far used unthrottled Firefox, so the slowed-processor condition is unmet. Done when the table lists every control with those four findings, and the slow or dead ones are fixed or filed as items.
 
-### #937 Opening an uploading meal's address returns repeated not-found errors
-
-While a meal is still uploading, requests for its own address are answered not found, over and over.
-
-Fleet 21 check K15 saw sixteen not-found answers from detail prefetches while two meals uploaded; both meals still reached ready. What a person sees and the cause are not known. Done when the cause is found and an uploading meal's address produces no not-found request, or the errors are shown to be harmless and why.
-
 ### #571 A post started while another is going up breaks the other post with "The meal could not be saved"
 
 Starting a second post while an earlier post is still going up can end with "The meal could not be saved.", and the owner has to press Post again to get the meal saved.
@@ -283,12 +237,6 @@ The coder reported this on Nov 5 and named the three fixes without PR numbers fo
 In the 24 hours before Run 8, Supabase Storage served 2.99 GB across 35,048 requests, almost all to browsers. The Run 8 cut measured the feed's posts reads, not Storage.
 
 docs/egress.md says the bytes went to browser-like clients but not which files (feed photos, card images or originals) or which clients. In a later 24 hours, test automation accounted for 1.72 GB of the 1.77 GB of feed photo bytes and real mobile browsers for about 46 MB, so the split between test and real users is still a guess. Log volume was never measured in bytes. Done when Storage egress is broken down by file kind and by client (test automation or real users), log bytes are measured, and the largest real-user source is cut or shown to be small.
-
-### #990 Revisit the stored numbers: the meals that pass every rule, the other accounts, and saved meals
-
-Meals that pass every rule can still be wrong, and other accounts and saved meals hold numbers too.
-
-This is the last step of the revisit, after #989. Done when a sample of passing meals is checked against an independent estimate, and the other accounts and saved meals are re-analysed or listed with their reason.
 
 ### #694 Many of the owner's meals show wrong nutrition numbers and nobody knows how many or why
 
@@ -341,6 +289,72 @@ The Round 7 control table covers the feed, the post and the capture sheet. Days,
 The designer has not read their controls yet. Add them to the table from #217 with its four findings: time to a visible change, pressed look, jump or flicker, and double tap. Done when every control on those screens is in the table and the dead ones are fixed or filed as items.
 
 ## In flight
+
+### #1002 About eighteen scripts under scripts/ are run by nothing
+
+The repository holds about eighteen scripts that nothing imports or runs, which makes it larger and harder to read.
+
+They are the real-*-smoke scripts, meta-check, make-tone and others, found by the Fleet 26 planner outside the nine files #971 removes. Done when each is removed or kept with a stated reason, and nothing that is used is removed.
+
+### #1001 Operator re-analysis jobs send the owner's phone a meal-ready notification
+
+When the team re-analyses meals in a batch, each finished meal sends the owner's phone a "meal ready" notification, so a batch of 18 meals sends 18 to 36 of them.
+
+The Fleet 26 plan found that every operator re-analysis or re-match notifies, and left it unchanged. Done when a job run by the operator sends no notification, and a meal the person posts still does.
+
+### #990 Revisit the stored numbers: the meals that pass every rule, the other accounts, and saved meals
+
+Meals that pass every rule can still be wrong, and other accounts and saved meals hold numbers too.
+
+This is the last step of the revisit, after #989. Done when a sample of passing meals is checked against an independent estimate, and the other accounts and saved meals are re-analysed or listed with their reason.
+
+### #699 Our review and merge process has not been compared with the owner's other recent repositories
+
+Nobody has measured how rigorous our review, merge and proof process is against the other repositories the owner works on right now. Fleet 18 shows the process has gaps.
+
+Take the owner's most recently active repositories and compare them with this one, practice by practice: how a change is reviewed, who may merge and on what evidence, how proof that a change works is recorded, and what happens when a merge goes wrong. Observe first: list those repositories and write down each practice as it stands. Done when a written comparison lists each practice in those repositories next to ours, and each improvement worth making is its own item.
+
+### #937 Opening an uploading meal's address returns repeated not-found errors
+
+While a meal is still uploading, requests for its own address are answered not found, over and over.
+
+Fleet 21 check K15 saw sixteen not-found answers from detail prefetches while two meals uploaded; both meals still reached ready. What a person sees and the cause are not known. Done when the cause is found and an uploading meal's address produces no not-found request, or the errors are shown to be harmless and why.
+
+### #925 A draft pull request of readiness documents was opened in the repository without the owner knowing what it contains
+
+An agent opened draft pull request #682 (branch docs/muse-readiness-pm-pack, seven Markdown files under docs/product/muse-readiness-pm-pack) holding a summary of a newsletter article about Meta's Muse launch, a 40-row launch scorecard and six candidate backlog items. The owner was handed the pack afterwards and had not seen what was in it.
+
+The planner's Fleet 21 plan, written the same day, describes PR #682 as the docs branch that holds the two review captures named in #715. Both descriptions cannot be right. The pack also lists #370, #108 and #567 as open and #22 and #221 as closed, and none of those five is in this backlog, which belongs to the owner and the PM. The pack states that every scorecard result is unrun, that its thresholds are proposals, and that the article is a secondhand account of an interview; nobody has checked its statements against the code or the contracts. Observe first: read PR #682 on GitHub (author, branch, creation date, files), compare it with the review captures in #715, and read each of the seven files against README.md, docs/eval.md and docs/pm-contract.md. Done when a written finding says which pull request number holds which files, lists every statement in the pack that disagrees with the code or a contract, and the owner has ruled whether the pack stays in the repository, is corrected, or is removed.
+
+### #659 Review findings on the merged Fleet 18 PRs have not been checked on main
+
+Codex and AGY reviewed the Fleet 18 PRs and raised problems in code that is now merged. The planner confirmed four of them on main 7d64f4c8; they are the four items below. The rest have not been checked.
+
+Two blockers are planner-checked on main and not yet reproduced by a coder. On #647, useProfileIdentity in PostHandle.tsx binds the viewer's avatar and handle to every post header and not the author's, the avatar route reads with the viewer's token so another user's avatar fails, and the route sends a public one-year immutable cache header for an image only signed-in users should see. On #648, wording-inventory.mjs embeds the HEAD short hash so its check can never pass after a commit, and docs/wording/inventory.md was generated before 66 files changed. Eleven other findings were reproduced and are filed as the items below; two were dismissed with proof (the #633 recompute upsert and the #633 rice-with-protein composition). Still unchecked: the #641 portion_unit "serving" that the database does not accept; on #638, Feed discovery polling that stops when the tab is hidden; on #639, NeedsInputStrip never finding new questions after an empty first poll, and RealtimePost not refreshing on visibility; the #637 Thread retry polling; and the #643 header text cut off. Done when each unchecked finding is reproduced or dismissed with proof, the blockers on #647 and #648 are each checked on main, and each one reproduced is filed as its own item.
+
+### #690 A Fleet 17 test post and its draft are still on test account 2, and the corrected run report may be incomplete
+
+A post captioned "Fleet 17 post-close 2" (id starting d37b129e) was created at 16:21 UTC and was never cleaned up. It sits between the "retry" batch at 16:16 and the "v4" batch at 16:23, and it is in no evidence file.
+
+A fourth close-time batch may have run without a kept receipt, which would make the "all nine readings" claim in docs/run17-report.md incomplete. Done when the post and its draft are deleted, and docs/run17-report.md either says a fourth batch ran with no receipt or says the post was not a reading.
+
+### #698 Pull requests can reach main without the PM's merge order
+
+Merging is not yet limited to the PM's order. A pull request must merge only when the PM orders that one PR at its full head SHA, after the planner's evaluation and a zero-blocker review of that head. Fleet 18 landed seven pull requests without a clean review of their exact head.
+
+Observe first: list every way a pull request can reach main today, including a coder's own merge, auto-merge, a merge queue, a workflow and the branch protection settings. Related: #689. The owner ruled on Nov 15, answering the planner, that merge control stays a written rule only. Done when the contracts state that no pull request merges without a merge order naming its PR and full head SHA and a zero-blocker review of that head, and the owner has accepted that nothing in GitHub refuses a merge without them.
+
+### #715 Two review captures sit untracked in the repository
+
+docs/reviews/mfa-pplx-pr670-9c37722-close.md and docs/reviews/mfa-pplx-pr677-close.md are untracked and have no decision.
+
+Related: #670, #677. Done when each is committed as a receipt or deleted.
+
+### #929 The Perplexity review route breaks whenever the website or the model behind it changes
+
+Reviews of pull requests run through Perplexity's website, and both the page and the model behind it change without notice. A review then fails, comes back invalid or is judged on the wrong model, and the pull request waits with no review on its head. The owner's view on Nov 16 is that the route is built as if neither one ever changes.
+
+The repository holds receipts for failed or invalid runs, such as docs/reviews/mfa-pplx-pr310-2d4142b-invalid-model.md, mfa-pplx-pr311-e7ece5c-invalid-input.md and mfa-pplx-pr312-9e5877b-invalid-model.md, and the Wall of Stupid entry of 2026-11-03 08:24 WIB records a run judged on the wrong model. Related: #699. Observe first: the coder lists every way a review is run today, every failure on record with its cause (page change, model change, input or quota) and which step of the route each one broke. Done when a written finding lists those, and a review route is in place that finishes with a result whichever model Perplexity offers that day and records the model each run used, or the owner has ruled on a different route.
 
 ### #323 Every protected page checks sign-in twice (part of #222)
 
