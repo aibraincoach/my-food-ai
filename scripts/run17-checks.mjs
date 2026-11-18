@@ -77,12 +77,14 @@ if(useCdp){
  tap=async(selector,text)=>{const p=await evaluate(`(()=>{const e=[...document.querySelectorAll(${JSON.stringify(selector)})].find(e=>{const r=e.getBoundingClientRect();return r.width&&r.height&&(${text?`(e.getAttribute('aria-label')||e.textContent||'').trim()===${JSON.stringify(text)}`:'true'});});if(!e)throw Error('Control missing');e.scrollIntoView({block:'center'});const r=e.getBoundingClientRect();return{x:Math.round(r.x+r.width/2),y:Math.round(r.y+r.height/2)};})()`);await call('input.performActions',{context,actions:[{type:'pointer',id:'run17-touch',parameters:{pointerType:'touch'},actions:[{type:'pointerMove',origin:'viewport',...p},{type:'pointerDown',button:0},{type:'pointerUp',button:0}]}]});await pause(300);};
 }
 fill=async(selector,value)=>{await evaluate(`(()=>{const e=document.querySelector(${JSON.stringify(selector)});if(!e)throw Error('Field missing');const proto=e.tagName==='TEXTAREA'?HTMLTextAreaElement.prototype:HTMLInputElement.prototype;Object.getOwnPropertyDescriptor(proto,'value').set.call(e,${JSON.stringify(value)});e.dispatchEvent(new Event('input',{bubbles:true}));return true;})()`);await pause(100);};
-until=async(expression,ms=30000)=>{const end=Date.now()+ms;while(Date.now()<end){if(await evaluate(expression))return;await pause(200);}throw Error('Browser condition did not settle');};
+until=async(expression,ms=30000)=>{const end=Date.now()+ms;while(Date.now()<end){if(await evaluate(expression))return;await pause(200);}throw Error(`Browser condition did not settle after ${ms} ms: ${expression.replace(/\s+/g,' ').slice(0,120)}`);};
 
 async function injectFixture(name,bytes,type,caption,{freshHome=true}={}){
  if(freshHome){await navigate('/');await installPostIdHook();}
  else await evaluate('window.__fixturePostIds=[]');
- await tap('button','Post a meal');await tap('button[data-entry]','Camera');
+ // #628: the entry menu animates in, and the capture sheet must be mounted before it can take the photo.
+ await tap('button','Post a meal');await pause(600);await tap('button[data-entry]','Camera');
+ await until(`!!document.querySelector('[aria-label="Capture content"]')`,10000);await pause(300);
  await dispatchCaptureFiles(name,bytes,type);
  await until(`!!document.querySelector('textarea[aria-label="Caption"]')`);await fill('textarea[aria-label="Caption"]',caption);
  await until(`window.__fixturePostIds.length>0`,60000);const ids=await evaluate('window.__fixturePostIds');const postId=ids[0];
