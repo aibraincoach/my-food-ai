@@ -1,16 +1,17 @@
 #!/usr/bin/env node
 // Re-analyse or re-match a list of meals, one at a time, keeping every old row, and restore any of them.
-// It runs the SQL files beside it (08, 09, 11, 12, 13, 15, 15-repair-undo, 16 and 20) through psql and wakes the worker with /api/jobs/tick.
+// It runs the SQL files beside it (08, 09, 11, 12, 13, 15, 15-repair-undo, 16, 20, 22 and 24) through psql and wakes the worker with /api/jobs/tick.
 // Usage and rules: node scripts/numbers/reanalyse.mjs --help, and scripts/numbers/README.md.
 import { spawnSync } from 'node:child_process';
 import { appendFileSync, chmodSync, existsSync, mkdirSync, readFileSync, realpathSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { parseArgs as parseNodeArgs } from 'node:util';
+import { checkRecord } from '../../src/lib/fdc/record-kind.ts';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const sqlFile = (name) => path.join(here, name);
-export const MODE_FILES = { rematch: '11-rematch.sql', reanalyse: '12-reanalyse.sql', repair: '15-repair.sql', decaf: '20-decaf.sql' };
+export const MODE_FILES = { rematch: '11-rematch.sql', reanalyse: '12-reanalyse.sql', repair: '15-repair.sql', decaf: '20-decaf.sql', recheck: '24-recheck.sql' };
 // Modes that write nutrition in place: their snapshot records it, and restore puts it back with 15-repair-undo.sql.
 export const IN_PLACE_MODES = new Set(['repair', 'decaf']);
 export const EXIT = { ok: 0, incomplete: 1, stopped: 3, usage: 4 };
@@ -22,6 +23,7 @@ export const HELP = `Re-analyse or re-match meals one at a time, keeping their o
 
   node scripts/numbers/reanalyse.mjs run --mode=rematch|reanalyse|repair|decaf
        (--meals=<prefix,prefix,...> | --meals-file=<path>) --ledger=<directory>
+  node scripts/numbers/reanalyse.mjs run --mode=recheck --foods-file=<flagged.jsonl> --ledger=<directory>
        [--max-meals=10] [--max-minutes=45] [--wait-seconds=300] [--dry-run]
   node scripts/numbers/reanalyse.mjs restore --meal=<prefix> --ledger=<directory> [--snapshot=last|first]
        [--wait-seconds=300]
@@ -35,6 +37,11 @@ run
   --mode=repair       15-repair.sql: a negative stored value becomes zero and the meal is summed again.
   --mode=decaf        20-decaf.sql: caffeine stored on an alcoholic drink that names no caffeine source is removed
                       and the meal is summed again (#456). That caffeine is ledgered as values_removed, not as a loss.
+  --mode=recheck      24-recheck.sql: only the foods listed in --foods-file (mismatch.mjs's flagged.jsonl; meal foods
+                      with a strong signal) are looked up again; every other food keeps its nutrition exactly (#990).
+                      The micronutrients a listed food loses are ledgered as values_removed. The calories may move by
+                      more than half only when every listed food's new record passes the matcher's record check (or
+                      is an estimate); a listed food whose new record is still another kind of food puts the meal back.
   --meals             comma-separated 8-character meal id prefixes, worked in the order given.
   --meals-file        the same, one prefix per line; blank lines and lines starting with # are ignored.
   --ledger            a private directory OUTSIDE the repository. It receives snapshots.jsonl (the full
@@ -92,6 +99,40 @@ export function parseMealsFile(text) {
   return parsePrefixes(String(text).split('\n').map((line) => line.trim()).filter((line) => line && !line.startsWith('#')).join(','));
 }
 
+// Pure: #990. mismatch.mjs's flagged.jsonl as Map(meal prefix -> [{ item, name }]), in file order. Only meal foods with a
+// strong signal are taken: a saved meal is not re-matched here, and a weak signal alone is a report, not a correction.
+export function parseFoodsFile(text) {
+  const foods = new Map();
+  for (const line of String(text).split('\n').map((x) => x.trim()).filter(Boolean)) {
+    let row;
+    try { row = JSON.parse(line); } catch { throw new UsageError('A --foods-file line is not JSON.'); }
+    if (row.kind !== 'meal' || !Array.isArray(row.strong) || !row.strong.length) continue;
+    if (!/^[0-9a-f]{8}$/.test(String(row.meal)) || !/^[0-9a-f]{8}$/.test(String(row.item))) throw new UsageError('A --foods-file line has no 8-character meal and item prefix.');
+    const list = foods.get(row.meal) ?? [];
+    if (!list.some((food) => food.item === row.item)) list.push({ item: row.item, name: String(row.name ?? '') });
+    foods.set(row.meal, list);
+  }
+  if (!foods.size) throw new UsageError('The --foods-file lists no meal food with a strong signal.');
+  return foods;
+}
+
+// Pure: #990. After a recheck, the losses that are the listed foods' own micronutrients (the old record was another
+// kind of food, so its micronutrients were never this food's) and whether every listed food's new record passes the
+// record check. items22 is 22-items.sql's rows for the meal (name, category, how, description).
+export const RECHECK_REASON = 'the record was another kind of food (#990)';
+export function recheckOutcome(lost, before, listedNames, items22) {
+  const current = (before?.items ?? []).filter((item) => item.superseded_at === null);
+  const names = new Set(listedNames.map((name) => name.trim().toLowerCase()));
+  const key = item => String(item.name ?? '').trim().toLowerCase();
+  // Name-only outcome rows cannot distinguish twins: retain their losses so the ordinary restore rule applies.
+  const listedIndex = new Set(current.map((item, index) => names.has(key(item)) && current.filter(other => key(other) === key(item)).length === 1 ? index + 1 : null).filter(Boolean));
+  const removed = (lost ?? []).filter((value) => { const m = /^food ([0-9]+): nutrient [0-9]+$/.exec(value); return m && listedIndex.has(Number(m[1])); });
+  const after = items22.filter((row) => names.has(String(row.name ?? '').trim().toLowerCase()));
+  const still = after.filter((row) => row.how !== 'estimate' && (!row.description || checkRecord(row.name, { description: row.description, category: row.category }).strong.length));
+  return { removed, kept: (lost ?? []).filter((value) => !removed.includes(value)), passed: after.length >= names.size && !still.length,
+    still: still.map((row) => `${row.name}: ${row.description ?? 'no record'}`) };
+}
+
 // Pure: turns argv (after "node script") into a checked request. Throws UsageError.
 export function parseArgs(argv, readFile = (file) => readFileSync(file, 'utf8')) {
   if (argv.includes('--help') || argv.includes('-h')) return { command: 'help' };
@@ -102,12 +143,12 @@ export function parseArgs(argv, readFile = (file) => readFileSync(file, 'utf8'))
     ({ values } = parseNodeArgs({ args: rest, allowPositionals: false, strict: true, options: {
       mode: { type: 'string' }, meals: { type: 'string' }, 'meals-file': { type: 'string' }, meal: { type: 'string' },
       ledger: { type: 'string' }, 'max-meals': { type: 'string' }, 'max-minutes': { type: 'string' },
-      'wait-seconds': { type: 'string' }, 'dry-run': { type: 'boolean' }, snapshot: { type: 'string' } } }));
+      'wait-seconds': { type: 'string' }, 'dry-run': { type: 'boolean' }, snapshot: { type: 'string' }, 'foods-file': { type: 'string' } } }));
   } catch (error) { throw new UsageError(error.message); }
   if (!values.ledger) throw new UsageError('--ledger=<private directory outside the repository> is required.');
   const waitSeconds = positiveInt(values['wait-seconds'] ?? 300, '--wait-seconds', WAIT_HARD_MAX_SECONDS);
   if (command === 'restore') {
-    for (const key of ['mode', 'meals', 'meals-file', 'max-meals', 'max-minutes', 'dry-run']) if (values[key] !== undefined) throw new UsageError(`--${key} is not a restore option.`);
+    for (const key of ['mode', 'meals', 'meals-file', 'max-meals', 'max-minutes', 'dry-run', 'foods-file']) if (values[key] !== undefined) throw new UsageError(`--${key} is not a restore option.`);
     if (!values.meal) throw new UsageError('--meal=<8-character prefix> is required.');
     const [meal, more] = parsePrefixes(values.meal);
     if (more) throw new UsageError('restore takes one meal.');
@@ -116,7 +157,16 @@ export function parseArgs(argv, readFile = (file) => readFileSync(file, 'utf8'))
     return { command, meal, ledger: values.ledger, snapshot, waitSeconds };
   }
   for (const key of ['meal', 'snapshot']) if (values[key] !== undefined) throw new UsageError(`--${key} is not a run option.`);
-  if (!Object.hasOwn(MODE_FILES, values.mode ?? '')) throw new UsageError('--mode=rematch, --mode=reanalyse, --mode=repair or --mode=decaf is required.');
+  if (!Object.hasOwn(MODE_FILES, values.mode ?? '')) throw new UsageError('--mode=rematch, --mode=reanalyse, --mode=repair, --mode=decaf or --mode=recheck is required.');
+  if (values.mode === 'recheck') {
+    if (values.meals !== undefined || values['meals-file'] !== undefined || values['foods-file'] === undefined) throw new UsageError('--mode=recheck takes --foods-file, not --meals or --meals-file.');
+    let text;
+    try { text = readFile(values['foods-file']); } catch { throw new UsageError('The --foods-file could not be read.'); }
+    const foods = parseFoodsFile(text);
+    return { command, mode: values.mode, meals: [...foods.keys()], foods, ledger: values.ledger, dryRun: values['dry-run'] === true, waitSeconds,
+      maxMeals: positiveInt(values['max-meals'] ?? 10, '--max-meals'), maxMinutes: positiveInt(values['max-minutes'] ?? 45, '--max-minutes') };
+  }
+  if (values['foods-file'] !== undefined) throw new UsageError('--foods-file is only for --mode=recheck.');
   if ((values.meals === undefined) === (values['meals-file'] === undefined)) throw new UsageError('Give exactly one of --meals and --meals-file.');
   let meals;
   if (values.meals !== undefined) meals = parsePrefixes(values.meals);
@@ -253,7 +303,8 @@ export function restoreReason(row) {
   if (row.outcome === 'failed') return row.reason ?? 'the meal did not finish';
   if (row.values_lost?.length) return `${row.values_lost.length} nutrition value(s) lost: ${row.values_lost.slice(0, 3).join('; ')}${row.values_lost.length > 3 ? '; ...' : ''}`;
   if (row.before?.calories != null && row.after?.calories == null) return 'the calories became unavailable';
-  if (row.calories_change != null && Math.abs(row.calories_change) > 0.5) return `the calories moved by ${(row.calories_change * 100).toFixed(1)}%`;
+  if (row.recheck_still?.length) return `the new record is still another kind of food: ${row.recheck_still.slice(0, 2).join('; ')}`;
+  if (row.calories_change != null && Math.abs(row.calories_change) > 0.5 && !row.recheck_passed) return `the calories moved by ${(row.calories_change * 100).toFixed(1)}%`;
   return null;
 }
 
@@ -311,6 +362,9 @@ function psql({ file, input, vars = {}, extra = [] }) {
 }
 
 const one = (sql, vars) => psql({ input: sql, vars }).trim();
+// 22-items.sql's columns, in its SELECT order, read with a unit-separator field delimiter (a name may hold any text).
+export const ITEMS22 = ['meal', 'food', 'name', 'grams', 'kcal', 'kcal_per_100g', 'record', 'category', 'how', 'description'];
+export const parseItems22 = (text) => String(text).split('\n').filter(Boolean).map((line) => Object.fromEntries(line.split('\x1f').map((value, i) => [ITEMS22[i], value === '' ? null : value])));
 
 function resolvePrefixes(prefixes) {
   const rows = one(`select left(id::text, 8) || ' ' || id::text from public.posts
@@ -430,7 +484,7 @@ async function run(request) {
       if (!snapshot) throw new Error(`08-snapshot.sql returned no line for meal ${prefix}; nothing was written for it.`);
       appendPrivate(ledger, 'snapshots.jsonl', IN_PLACE_MODES.has(request.mode) ? JSON.stringify({ ...JSON.parse(snapshot), operator_mode: request.mode }) : snapshot);
       const since = dbNow();
-      psql({ file: sqlFile(file), vars: { post: id } });
+      psql({ file: sqlFile(file), vars: request.mode === 'recheck' ? { post: id, items: request.foods.get(prefix).map((food) => food.item).join(',') } : { post: id } });
       if (jobsSince(id, since) === 0) row.reason = "refused by the file's guards";
       else {
         const waitResult = await waitForMeal(id, request.waitSeconds);
@@ -445,7 +499,8 @@ async function run(request) {
           const afterLine = psql({ file: sqlFile('08-snapshot.sql'), vars: { prefixes: prefix } }).split('\n').find((line) => line && JSON.parse(line).post?.id === id);
           if (afterLine) {
             appendPrivate(ledger, 'after.jsonl', afterLine); row.values_lost = lostValues(JSON.parse(snapshot), JSON.parse(afterLine));
-            const carry = row.outcome === 'failed' ? null : carryPlan(JSON.parse(snapshot), JSON.parse(afterLine));
+            // #990: a recheck never carries: the listed foods' old micronutrients belong to the wrong record.
+            const carry = row.outcome === 'failed' || request.mode === 'recheck' ? null : carryPlan(JSON.parse(snapshot), JSON.parse(afterLine));
             if (carry) {
               for (const step of carry) psql({ file: sqlFile('16-carry.sql'), vars: { post: id, item: step.item, entries: JSON.stringify(step.entries) } });
               const carried = psql({ file: sqlFile('08-snapshot.sql'), vars: { prefixes: prefix } }).split('\n').find((line) => line && JSON.parse(line).post?.id === id);
@@ -459,6 +514,12 @@ async function run(request) {
             const { removed, kept } = deliberateRemovals(row.values_lost);
             row.values_lost = kept;
             if (removed.length) { row.values_removed = removed; row.removal_reason = DECAF_REASON; }
+          }
+          if (request.mode === 'recheck' && row.outcome !== 'failed') {
+            const parsed = parseItems22(psql({ file: sqlFile('22-items.sql'), vars: { prefixes: prefix }, extra: ['-F', '\x1f'] }));
+            const outcome = recheckOutcome(row.values_lost, JSON.parse(snapshot), request.foods.get(prefix).map((food) => food.name), parsed);
+            row.values_lost = outcome.kept; row.recheck_passed = outcome.passed; if (outcome.still.length) row.recheck_still = outcome.still;
+            if (outcome.removed.length) { row.values_removed = outcome.removed; row.removal_reason = RECHECK_REASON; }
           }
           const why = restoreReason(row);
           if (why) {
