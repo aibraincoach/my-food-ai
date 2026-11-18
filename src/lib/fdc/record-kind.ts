@@ -13,14 +13,14 @@
 export type FoodKind = "fruit" | "sweet" | "drink" | "condiment" | "fat" | "meat" | "seafood" | "grain" | "vegetable" | "dairy" | "egg" | "legume" | "dish";
 
 const NAME_WORDS: [FoodKind, RegExp][] = [
-  ["fruit", /\b(fruits?|apples?|bananas?|papayas?|mangos?|mangoes|melons?|watermelons?|honeydew|cantaloupe|persimmons?|berry|berries|strawberr(y|ies)|blueberr(y|ies)|grapes?|oranges?|pineapples?|durian|jackfruit|rambutan|lychees?|longan|guavas?|kiwis?|pears?|peach(es)?|plums?|cherr(y|ies)|dates|figs?|raisins?|apricots?|avocados?|dragon ?fruit|pomelo|mangosteen|salak|starfruit)\b/i],
-  ["sweet", /\b(cakes?|cookies?|biscuits?|candy|candies|chocolate|desserts?|pastr(y|ies)|donuts?|doughnuts?|pudding|ice cream|gelato|brownies?|tarts?|pies?|kue|martabak manis|croissants?|jell(y|ies)|jams?|preserves?|sweets?)\b/i],
-  ["drink", /\b(drinks?|juice|tea|coffee|kopi|teh|espresso|latte|cappuccino|americano|mocha|milkshakes?|shakes?|mocktails?|smoothie|soda|cola|coke|beer|radler|wine|cocktail|mai tai|mojito|margarita|sake|soju|whisk(e)?y|vodka|gin|rum|liquor|water|lemonade|boba|bubble tea|kombucha|bintang|lager|ale)\b/i],
+  ["fruit", /\b(fruits?|lemons?|limes?|calamansi|kalamansi|apples?|bananas?|papayas?|mangos?|mangoes|melons?|watermelons?|honeydew|cantaloupe|persimmons?|berry|berries|strawberr(y|ies)|blueberr(y|ies)|grapes?|oranges?|pineapples?|durian|jackfruit|rambutan|lychees?|longan|guavas?|kiwis?|pears?|peach(es)?|plums?|cherr(y|ies)|dates|figs?|raisins?|apricots?|avocados?|dragon ?fruit|pomelo|mangosteen|salak|starfruit)\b/i],
+  ["sweet", /\b(cakes?|cookies?|biscuits?|candy|candies|chocolate|desserts?|curds?|marmalades?|compotes?|cheesecakes?|cupcakes?|sorbets?|sherbets?|mousse|custards?|flan|parfaits?|popsicles?|granita|pastr(y|ies)|donuts?|doughnuts?|pudding|ice cream|gelato|brownies?|tarts?|pies?|kue|martabak manis|croissants?|jell(y|ies)|jams?|preserves?|sweets?)\b/i],
+  ["drink", /\b(drinks?|cordials?|juice|tea|coffee|kopi|teh|espresso|latte|cappuccino|americano|mocha|milkshakes?|shakes?|mocktails?|smoothie|soda|cola|coke|beer|radler|wine|cocktail|mai tai|mojito|margarita|sake|soju|whisk(e)?y|vodka|gin|rum|liquor|water|lemonade|boba|bubble tea|kombucha|bintang|lager|ale)\b/i],
   ["condiment", /\b(sauces?|gravy|dressings?|sambal|ketchup|mayonnaise|mayo|salsa|dips?|condiments?|chutney|relish|mustard|pesto|aioli|vinaigrette|kecap|syrup|honey|jam)\b/i],
   ["fat", /\b(oil|butter|margarine|ghee|lard|shortening)\b/i],
-  ["meat", /\b(chicken|beef|pork|lamb|mutton|goat|veal|duck|turkey|bacon|ham|sausages?|salami|meat|steak|ribs?|tonkatsu|katsu|rendang|satay|sate|bakso|meatballs?|crackling|chiro)\b/i],
+  ["meat", /\b(chicken|beef|pork|lamb|mutton|goat|veal|duck|turkey|bacon|ham|sausages?|salami|meat|steak|ribs?|tonkatsu|katsu|rendang|satay|sate|bakso|meatballs?|crackling|chiro|kebabs?|kabobs?|seekh|shawarma|gyros?)\b/i],
   ["seafood", /\b(fish|salmon|tuna|shrimp|prawns?|crab|lobster|squid|calamari|octopus|clams?|mussels?|oysters?|scallops?|seafood|anchov(y|ies)|eel|unagi|sashimi)\b/i],
-  ["grain", /\b(rice|nasi|noodles?|mie|bihun|vermicelli|pasta|spaghetti|bread|buns?|bao|toast|sandwich|burger|wraps?|tortilla|pizza|oats?|oatmeal|porridge|congee|bubur|cereal|dumplings?|gyoza|dim sum|siomay|crackers?|fritters?|pancakes?|waffles?|croissant|bagel)\b/i],
+  ["grain", /\b(rice|nasi|noodles?|mie|bihun|vermicelli|pasta|spaghetti|breads?|buns?|bao|toasts?|sandwich(es)?|burgers?|wraps?|tortillas?|pizzas?|oats?|oatmeal|porridges?|congees?|bubur|cereals?|dumplings?|gyoza|dim sum|siomay|crackers?|fritters?|pancakes?|waffles?|croissants?|bagels?)\b/i],
   ["vegetable", /\b(salad|vegetables?|veggies?|greens|lettuce|cabbage|cucumber|tomato(es)?|carrots?|broccoli|spinach|kangkung|potato(es)?|fries|corn|onions?|mushrooms?|eggplant|beans? sprouts?|pak ?choy|bok ?choy|kimchi|gado gado|sayur)\b/i],
   ["dairy", /\b(milk|cheese|yogh?urt|cream|kefir|paneer)\b/i],
   ["egg", /\b(eggs?|omelet(te)?|telur)\b/i],
@@ -34,7 +34,7 @@ const CATEGORY_KIND: [FoodKind, RegExp][] = [
   ["fruit", /^fruits and fruit juices$/],
   ["drink", /beverage|drinks?\b|juice|coffee|tea\b|beer|wine|liquor|cocktail|soft drink|water|smoothie/],
   ["sweet", /\b(jell(y|ies)|jams?|preserves?)\b/],
-  ["condiment", /sauce|gravies|gravy|dressing|condiment|dips?\b|salsa|ketchup|mustard|spreads?|syrups?|jams?|jellies/],
+  ["condiment", /spices|herbs|seasoning|sauce|gravies|gravy|dressing|condiment|dips?\b|salsa|ketchup|mustard|spreads?|syrups?|jams?|jellies/],
   ["fat", /fats and oils|vegetable oils|butter|margarine|cooking oils/],
   ["sweet", /sweets|candy|cookies|cakes|pies|pastr|doughnuts|desserts|ice cream|chocolate|biscuits/],
   ["fruit", /fruit|apples|bananas|citrus|melons|berries|grapes|pears|pineapple|peaches|mango/],
@@ -45,6 +45,7 @@ const RAW_FOODS = /\b(raw|sashimi|poke|tartare|ceviche|carpaccio|salad|fresh fru
 // Calories per 100 g a food of this kind can plausibly have: [lowest, highest].
 const DENSITY: Partial<Record<FoodKind, [number, number]>> = { fruit: [10, 120], vegetable: [5, 250], drink: [0, 150] };
 const DRIED = /\b(dried|dry|raisins?|dates|kering|chips|candied)\b/i;
+const MAIN_KINDS = new Set<FoodKind>(["meat", "seafood", "grain", "dish", "dairy", "egg", "legume", "drink", "sweet", "condiment", "fat"]);
 const SINGLE_KINDS = new Set<FoodKind>(["fruit", "sweet", "drink", "condiment", "fat"]);
 
 export function nameKinds(name: string): Set<FoodKind> {
@@ -53,7 +54,7 @@ export function nameKinds(name: string): Set<FoodKind> {
 export function recordKind(description: string, category?: string | null): FoodKind | null {
   const text = (category ?? "").toLowerCase();
   const fromCategory = CATEGORY_KIND.find(([kind, words]) => words.test(text)
-    && !(kind === "condiment" && /\bsoups?\b/.test(text))
+    && !(kind === "condiment" && /\b(?:soups?|mixtures)\b/.test(text))
     && !(kind === "fruit" && /^pre-packaged fruit (?:and|&) vegetables$/.test(text)))?.[0];
   if (fromCategory) return fromCategory;
   // No category: the record's own first words name it ("Persimmons, japanese, dried").
@@ -68,13 +69,39 @@ export function recordKind(description: string, category?: string | null): FoodK
   return named.length === 1 && SINGLE_KINDS.has(named[0]) ? named[0] : null;
 }
 
+// Only specific plant foods count; generic vegetables/fruit/berries and named whole dishes do not.
+const SPECIFIC_PLANTS = /\b(lemons?|limes?|calamansi|kalamansi|apples?|bananas?|papayas?|mangos?|mangoes|melons?|watermelons?|honeydew|cantaloupe|persimmons?|strawberr(?:y|ies)|blueberr(?:y|ies)|grapes?|oranges?|pineapples?|durian|jackfruit|rambutan|lychees?|longan|guavas?|kiwis?|pears?|peach(?:es)?|plums?|cherr(?:y|ies)|dates|figs?|raisins?|apricots?|avocados?|dragon ?fruit|pomelo|mangosteen|salak|starfruit|salad|lettuce|romaine|cabbage|cucumber|tomato(?:es)?|carrots?|broccoli|spinach|kale|arugula|kangkung|potato(?:es)?|fries|corn|onions?|mushrooms?|eggplant|beans? sprouts?|pak ?choy|bok ?choy)\b/gi;
+const PLANT_ALIASES: Record<string, string> = {
+  potatoes: "potato", fries: "potato", tomatoes: "tomato", mangoes: "mango",
+  peaches: "peach", kalamansi: "calamansi", pakchoy: "bokchoy",
+};
+const SALAD_WORDS = new Set(["lettuce", "romaine", "cabbage", "spinach", "kale", "arugula", "cucumber", "tomato", "carrot"]);
+function plantWords(text: string): Set<string> {
+  return new Set([...text.matchAll(SPECIFIC_PLANTS)].map(match => {
+    const word = match[0].toLowerCase().replace(/\s+/g, "");
+    if (/^beans?sprouts?$/.test(word)) return "beansprout";
+    return PLANT_ALIASES[word] ?? (word.endsWith("ies") ? word.slice(0, -3) + "y" : word.endsWith("s") ? word.slice(0, -1) : word);
+  }));
+}
+const plantsAgree = (a: string, b: string) => a === b
+  || (a === "salad" && SALAD_WORDS.has(b)) || (b === "salad" && SALAD_WORDS.has(a));
+
 export type RecordCheck = { strong: string[]; weak: string[]; score: number };
 
 // Every signal for one food and its record. kcalPer100g is the record's (or the stored food's) energy density, if known.
 export function checkRecord(name: string, record: { description: string; category?: string | null; kcalPer100g?: number | null }): RecordCheck {
   const strong: string[] = [], weak: string[] = [];
   const kinds = nameKinds(name), kind = recordKind(record.description, record.category);
-  if (kind && SINGLE_KINDS.has(kind) && kinds.size > 0 && !kinds.has(kind)) strong.push(`kind: the record is a ${kind}; the name has no ${kind} word`);
+  if (!["meat", "seafood", "grain", "dish"].some(k => kinds.has(k as FoodKind))) {
+    const foodPlants = plantWords(name), recordPlants = plantWords(record.description);
+    if (foodPlants.size && recordPlants.size && ![...foodPlants].some(a => [...recordPlants].some(b => plantsAgree(a, b)))) {
+      strong.push("food: the name and record name different plant foods");
+    }
+  }
+  const head = name.split(/\b(?:with|and|in)\b|&/i)[0].trim().split(/\s+/).at(-1) ?? "";
+  const describedKinds = nameKinds(record.description);
+  const differentMainHead = [...nameKinds(head)].some(headKind => MAIN_KINDS.has(headKind) && headKind !== kind && !describedKinds.has(headKind));
+  if (kind && SINGLE_KINDS.has(kind) && kinds.size > 0 && (!kinds.has(kind) || differentMainHead)) strong.push(`kind: the record is a ${kind}; the name has ${differentMainHead ? "a different main food head" : `no ${kind} word`}`);
   // A name that is only fruit or only a drink, matched to a record of another kind.
   if (kind && kinds.size > 0 && [...kinds].every(k => k === "fruit" || k === "drink") && !kinds.has(kind) && kind !== "dairy") strong.push(`kind: the name is a ${[...kinds].join(" or ")}; the record is a ${kind}`);
   if (/\braw\b/i.test(record.description) && COOKED_WORDS.test(name) && !RAW_FOODS.test(name)) strong.push("raw: the record is raw and the name is a cooked food or dish");

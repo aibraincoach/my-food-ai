@@ -52,13 +52,14 @@ for (const [name, description, kind] of [
 
 test('a head named by its last word still keeps matching foods and whole dishes (#1089)', () => {
   for (const [name, description] of [
-    ['peanut butter toast', 'Peanut butter, smooth style'],
+    ['peanut butter toast', 'Toast, whole wheat, with peanut butter'],
     ['strawberry milkshake', 'Milk shakes, thick strawberry'],
     ['vanilla ice cream', 'Ice cream, vanilla'],
     ['chocolate milk', 'Milk, chocolate, reduced fat'],
     ['chicken satay with peanut sauce', 'Chicken satay with peanut sauce'],
     ['fish and chips', 'Fish and chips'],
   ]) assert.equal(recordContradicts(name, { description }), false, name);
+  assert.equal(recordContradicts('peanut butter toast', { description: 'Peanut butter, smooth style' }), true);
   assert.equal(recordKind('Beef and noodles with soy-based sauce', null), null);
   assert.equal(recordKind('Pasta with tomato-based sauce, cheese and meat', null), null);
 });
