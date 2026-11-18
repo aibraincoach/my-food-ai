@@ -129,10 +129,12 @@ try{
       receipt.postId=postId;
       if(!settled)throw Error('The beer post never settled with a question');
    if(settled?.post?.question?.options?.[0]){
-    // #615: the strip row reads "A quick question about your meal" over the question itself, and an idle Home
-    // looks for new questions once a minute, so wait up to 70 seconds for this post's own row (by its question).
+    // #615: the strip row reads "A quick question about your meal" over the question itself. #1082: Fleet 47 removed the
+    // strip's timer, so it reads questions on load, focus or the tab's Realtime event. The check reloads Home once the
+    // database shows the question, then expects the row within 15 seconds. Realtime delivery is proven on production.
     const ownQuestion=`[...document.querySelectorAll('button')].find(b=>!b.getAttribute('aria-label')&&(b.textContent||'').includes(${JSON.stringify(settled.post.question.question)}))`;
-    await until(`!!${ownQuestion}`,70000).catch(()=>{throw Error('Strip row missing');});
+    await navigate('/');
+    await until(`!!${ownQuestion}`,15000).catch(()=>{throw Error('Strip row missing');});
     await evaluate(`(()=>{const row=${ownQuestion};if(!row)throw Error('Strip row missing');row.click();return true;})()`);
     await until(`!!document.querySelector('[aria-label="Your answer"]')`,15000);
     const option=settled.post.question.options[0];
@@ -147,8 +149,11 @@ try{
       const asked=samples.at(-1).post?.question?.question;
       if(samples.at(-1).post?.status!=='ready'||typeof asked!=='string')throw Error('The second beer post never settled with a question');
       // #628: dismiss only this post's own strip row (matched by its own question text) and prove the request reached this post.
-      const ownRow=`[...document.querySelectorAll('button[aria-label="Dismiss question"]')].filter(b=>b.parentElement?.textContent?.includes(${JSON.stringify(asked)}))`;
-      await until(`${ownRow}.length===1`,30000);
+      // #1082: the row is matched by this post's own photo, and Home is reloaded once the database shows the question.
+      const media=checked(await admin.from('post_media').select('id').eq('post_id',dismissId).eq('kind','photo'));const photoNeedles=[dismissId,...media.map(x=>x.id)];
+      const ownRow=`[...document.querySelectorAll('button[aria-label="Dismiss question"]')].filter(b=>{const image=b.parentElement?.querySelector('img');return image&&${JSON.stringify(photoNeedles)}.some(id=>(image.currentSrc||image.src).includes(id));})`;
+      await navigate('/');
+      await until(`${ownRow}.length===1`,15000);
       await evaluate(`(()=>{window.__dismissCalls=[];const original=window.fetch;window.fetch=async(...args)=>{const u=new URL(typeof args[0]==='string'?args[0]:args[0].url,location.origin);const r=await original(...args);if(args[1]?.method==='DELETE')window.__dismissCalls.push({path:u.pathname,status:r.status});return r;};return true;})()`);
       await evaluate(`(()=>{const rows=${ownRow};if(rows.length!==1)throw Error('Expected one strip row for this post, found '+rows.length);rows[0].click();return true;})()`);
       await until(`window.__dismissCalls.length>0`,15000);
@@ -162,7 +167,7 @@ try{
       if(!receipt.pass)process.exitCode=1;
   }finally{tickStop=true;clearInterval(tick);}
  }
-}catch(error){receipt.error=error.message;process.exitCode=1;}finally{
+}catch(error){receipt.error=error.message;process.exitCode=1;if(!useCdp&&context&&options.screenshot)try{const shot=await send('browsingContext.captureScreenshot',{context});await writeFile(options.screenshot,Buffer.from(shot.data,'base64'),{mode:0o600});receipt.screenshot=options.screenshot;}catch(e){receipt.screenshotError=e.message;}}finally{
  if(useCdp)try{await send('Emulation.setCPUThrottlingRate',{rate:1});}catch{}
  if(!useCdp&&context)try{await send('browsingContext.close',{context});await send('session.end');}catch{}
  if(ws)ws.close();
