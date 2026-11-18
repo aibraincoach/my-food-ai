@@ -1,6 +1,6 @@
 ### My Food AI — Backlog†
 
-Last edited: Wednesday 2026-11-18 at 14:33 WIB (UTC+07:00) by Claude, PM
+Last edited: Wednesday 2026-11-18 at 18:21 WIB (UTC+07:00) by Claude, PM
 
 The only job of the PM is to maintain this backlog and keep it completely up to date. Failing to do so is immediately terminable.
 
@@ -9,6 +9,10 @@ The only job of the PM is to maintain this backlog and keep it completely up to 
 Two things only you can do. Nothing else is waiting on you.
 
 Tell us how much the bag of salami weighs. The app has no way to know the weight on the package, and the stored numbers for that meal depend on it. A grams figure (for example, 250 g) is enough.Try a leftovers photo on your phone. Add a leftovers photo to a meal, then close and reopen the app. If a photo fails, tap Try again. Please tell us whether it uploaded, and what the red message said if it did not. The fixes are live, but we have only tested them on test accounts, not on your iPhone.
+
+One more, because Supabase warned you the database is running hot. The team found likely causes in the code, but only Supabase's own report shows the real one. Please sign in to the Supabase account that owns the My Food AI project, open this page, and send us the first ten rows (the queries that use the most total time): https://supabase.com/dashboard/project/ukudowbsfmofisekahqb/advisors/query-performance. The browser we can use is signed in to a different Supabase account that does not hold this project, so we cannot read it ourselves. With the ten rows, we fix the real cause and not a guess. Without them, we still fix the likely causes, with local checks only.
+
+Permission to delete 160 old background-job records, one time. The app keeps a record of every background task it has run (for example, reading a meal photo). The team wrote a cleaner that deletes finished tasks older than 14 days, and it is live but has not deleted anything. A dry run today found 160 such records out of 701, from Oct 27 to Nov 4, none of which the app still reads. Deleting them cannot be undone, and nothing you can see in the app changes. Reply "delete" and the team runs it once, in a single batch. Reply "keep" or say nothing and nothing is deleted. Because the table is this small, deleting these 160 records will not measurably lower the database's CPU use, so there is no hurry.
 
 ### Backlog for GrokBot
 
@@ -230,12 +234,6 @@ Tapping retake opens the camera but does not remove the failed upload. After the
 
 In src/components/UploadChip.tsx, line 29: the retake handler only opens the camera. Related: #644. Done when taking the new photo removes the old failed upload, and a reload does not bring it back. Fleet 21 check, Nov 16: the fixture was not created within 60 seconds and a scoped retry reported "Control missing", so the retake, the intent count and the reload were not verified.
 
-### #222 The feed fails to open, and photos and cards take too long to appear
-
-The feed sometimes fails to open, and on a slow connection the first photo and the cards take too long to show. The goal is the feed and the first photo within two seconds at the slow-network test profile.
-
-The original failures (3 server errors and 15 blank feeds in 100 opens on the largest test account, 146 posts) never reproduced on the earlier baseline, so their cause is not isolated. The stack for digest 3642131196 exists only in the Vercel console, because runtime logs return 403 for the coder. In emulation 100 of 100 cold opens succeeded with photos at 1.48 to 1.83 s, but on production the first feed photo measured 4.09 s and 4.05 s on a cold open with slow 4G at 390 wide. The sub-items #322, #323, #324, #520 and #372 each remove one piece of wasted work. GrokBot, Nov 5: FAIL. The first feed photo showed at 6.96 s, 8.49 s and 7.20 s on a cold slow-4G open at 390 wide, against about 4.05 s in Fleet 18 (see #372). GrokBot, Nov 15: 3.4 s on a judge account and 2.7 s on the owner account, still over 2 s. Done when a browser helper on production measures the first feed photo at 2 seconds or less on a cold open at the slow-network test profile.
-
 ### #1075 The pending-upload card still says the photo is saved on this phone
 
 The larger card that shows a photo while it uploads keeps an older caption saying the photo is saved on this phone. The owner says the app never had a save-on-the-phone flow.
@@ -247,6 +245,62 @@ The Fleet 35b change reworded the failed chip only; the card's caption was left 
 On current main, after the second meal is ready with a question, the Dismiss control and the question strip do not appear within 30 seconds, so the beer check fails. Fleet 35 did not cause it: main fails the same way as the branches.
 
 The question strip can wait 60 seconds for its empty check while the check allows 30, so the cause may be the check and not the app. Done when the check passes on main.
+
+### #1089 The matcher can still match a dressing to a salad when the record has no category
+
+Fleet 37 made the record-kind rule conservative: it drops a record only on a clear signal, so a description whose first words name more than one kind returns no kind. As a result "mixed green salad" against "Salad dressing, green goddess", "Creamy dipping sauce" against "Almond butter, creamy", and the fish-oil and milk-shake records are no longer flagged when the record has no category. A wrong match of this kind can still be stored.
+
+The cheap follow-up is to classify the first words by their last noun: "Salad dressing" is a condiment, "Fish oil" a fat, "Milk shakes, thick chocolate" a drink. Done when those four cases are flagged and the 58-pair check from the Fleet 37 review still passes.
+
+### #1093 A pending photo saved before Fleet 35b is still read as a File
+
+Fleet 35b changed the phone's pending-photo store to keep the photo as plain bytes, but upload-store.ts still reads a row in the old format as a File. The owner's rule is no legacy code and no fallbacks: when code is replaced, the old path goes.
+
+Done when upload-store.ts has no File branch, a row in the old format is treated as unreadable and shows the retake prompt, and a test shows it. Checked on a local database only; nothing runs against production.
+
+### #1095 Replace duplicate per-card Realtime channels with the tab event
+
+Each meal card opens its own Realtime channel while the tab already listens for the same changes, so one meal write is checked once per card per open tab. Found by the CPU audit that led to #1094; it is a follow-up to #1094.
+
+Done when card updates use the shared tab event, duplicate channels are deleted, and local tests cover updates, deletion and account isolation.
+
+### #1096 Replace the feed failed-channel poll with a visible reconnecting state
+
+When the feed's Realtime channel fails, the app falls back to a quiet periodic poll. The owner's rule is no fallbacks: a failure must show and be fixed. Follow-up to #1094.
+
+Done when the poll is deleted, failure and reconnection have a visible state, and local fake-clock tests prove reconnection discovers missed meals without quiet periodic polling.
+
+### #222 The feed fails to open, and photos and cards take too long to appear
+
+The feed sometimes fails to open, and on a slow connection the first photo and the cards take too long to show. The goal is the feed and the first photo within two seconds at the slow-network test profile.
+
+The original failures (3 server errors and 15 blank feeds in 100 opens on the largest test account, 146 posts) never reproduced on the earlier baseline, so their cause is not isolated. The stack for digest 3642131196 exists only in the Vercel console, because runtime logs return 403 for the coder. In emulation 100 of 100 cold opens succeeded with photos at 1.48 to 1.83 s, but on production the first feed photo measured 4.09 s and 4.05 s on a cold open with slow 4G at 390 wide. The sub-items #322, #323, #324, #520 and #372 each remove one piece of wasted work. GrokBot, Nov 5: FAIL. The first feed photo showed at 6.96 s, 8.49 s and 7.20 s on a cold slow-4G open at 390 wide, against about 4.05 s in Fleet 18 (see #372). GrokBot, Nov 15: 3.4 s on a judge account and 2.7 s on the owner account, still over 2 s. Done when a browser helper on production measures the first feed photo at 2 seconds or less on a cold open at the slow-network test profile.
+
+Fleet 35 and Fleet 38, Nov 18 (builder, local, same instrument): the 1200 px photo copy is live (#372, met) and the desktop-only Today column no longer downloads photos on a phone (hidden photos 6 to 0, fresh load 3,712 to 3,204 ms). A first-photo hint (a cookie and a preload header) was measured and dropped: it gained 0.5 ms on a returning open and made the new-meal case 1,090 ms slower. The best slow-network first photo is 3,133.8 ms, about 1,134 ms over the target. With only the page and the test photo on the line, the floor is 1.9 s, so the planner is writing a plan that reaches 2 s or shows with numbers that it cannot.
+
+### #1101 The trace writer retries without the model and host columns for a database older than migration 0032
+
+In record.ts (lines 70 to 73), when the trace insert is rejected the code retries it without the model and host columns, an old path for a database that predates migration 0032. The owner's rule is no legacy code and no fallbacks. Fleet 44 deletes it together with the trace retention work (#1098).
+
+Done when the retry is deleted, a failed insert fails visibly, and a test shows it.
+
+### #1102 The meal read retries without identify_model and identify_host when the columns are missing
+
+In src/lib/posts/items.ts (line 113) the meal read repeats itself without identify_model and identify_host when those columns are missing, an old path for a database that predates migration 0032. The owner's rule is no legacy code and no fallbacks.
+
+Done when the old path is deleted, a failure fails visibly, and a test shows it.
+
+### #1103 The nutrition totals read retries without not_eaten_calories when the column is missing
+
+In src/lib/nutrition/totals.ts (lines 210 and 275) the totals read repeats itself without not_eaten_calories when that column is missing, an old path for an older database. The owner's rule is no legacy code and no fallbacks.
+
+Done when the old path is deleted, a failure fails visibly, and a test shows it.
+
+### #1104 The worker falls back to legacy persistence functions when the new one is missing
+
+The worker falls back to the legacy persistence functions when the new one is missing (tests/identify-provenance.test.mjs line 39 describes it). Migration 0007b keeps the legacy functions callable for migration-before-merge workers. The owner's rule is no legacy code and no fallbacks.
+
+Done when the fallback and the legacy functions it needs are deleted, a missing new function fails visibly, and a test shows it.
 
 ### Backlog for Designer
 
@@ -282,17 +336,19 @@ The designer has not read their controls yet. Add them to the table from #217 wi
 
 ### In flight
 
-### #1084 A stored food is matched to a record of another kind of food
+### #1098 Decide retention for model and USDA trace rows
 
-For "japanese curry", USDA returned only a tea cookie and dried persimmons, and the matcher stored one of them. Part of #990. Fleet 37 is building a detector over every account's foods and saved meals, and a recheck that looks up only the flagged foods again.
+Trace rows of model calls and USDA lookups are kept forever. Team decision: delete rows older than 45 days, except rows the current analysis of a meal still references (the numbers revisit relies on them), in small batches after a dry run that prints the counts per table.
 
-Done when a food is never stored against a record of another kind of food, the detector lists none that is still wrong, and a test shows it.
+Done when an implementation expires the eligible rows by that rule with local tests, a small summary table keeps counts per day and per kind for the audit trail, and the first real run happens only after the dry-run counts are reviewed.
 
-### #1085 The matcher has no check that its chosen record is the same kind of food as its name
+### #1097 Decide retention for completed worker jobs
 
-Every safeguard filters candidates for gram basis, nutrition, exclusions and a conflicting protein, but none checks the record's kind. Fleet 37 adds one deterministic rule before the model chooses: it drops a fruit, sweet, drink, condiment or fat record for a name with no word of that kind, and a raw record for a cooked dish.
+The jobs table grows with every finished job and nothing removes them, and a running-jobs scan reads it. Team decision: delete jobs that finished successfully more than 14 days ago; keep failed or dead jobs 60 days; never delete a queued or running job, or one a kept meal analysis or receipt references. Deletion runs in small batches with a pause between them, after a dry run that prints the counts.
 
-Done when the rule is in the matcher with tests, and the matcher version changes so older matches are rechecked.
+Done when an implementation removes the eligible completed jobs by that rule with local tests, and the first real run happens only after the dry-run counts are reviewed.
+
+Fleet 43, Nov 18 (builder): the cleaner (a dry run by default, batches of up to 1,000 with a pause, every deleted row counted by day, rule and kind) is live with migration 0071. One dry run on production found 160 finished records older than 14 days to delete, 0 failed records older than 60 days, 701 in total, 136 old records protected by the keep rules, and 10 queued. Nothing was deleted. The owner is asked at the top of this Doc whether to delete the 160.
 
 ### #990 Revisit the stored numbers: the meals that pass every rule, the other accounts, and saved meals
 
