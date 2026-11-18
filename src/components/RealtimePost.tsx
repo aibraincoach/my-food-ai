@@ -57,17 +57,14 @@ if(!isSettled(fresh.status)||fresh.status==='failed'){
         // Keep the visible card until a new event or focus requests another read.
       } finally { inFlight = false; }
     };
-    const channel = supabase.channel(`post-${initial.id}`).on("postgres_changes", {
-      event: "UPDATE", schema: "public", table: "posts", filter: `id=eq.${initial.id}`,
-    }, () => { void refresh(); }).on("postgres_changes", {
-      event:"DELETE",schema:"public",table:"posts",filter:`id=eq.${initial.id}`,
-    },(payload)=>{if((payload.old as {id?:string}).id===initial.id)retire("deleted");}).subscribe();
     // A finished card drawn from the server's page is already current; re-reading every card on mount doubled the first feed read.
     const needsInitialRead = !isSettled(initial.status) || hasUnavailableFields(initial)
       || (initial.status === "ready" && initial.items.length > 0 && !initial.slides.some(slide => slide.kind === "card"));
     if (needsInitialRead) void refresh();
     const changed=(event:Event)=>{if((event as CustomEvent<{id:string}>).detail?.id===initial.id){void refresh();}};
-    window.addEventListener('media-removed',changed);window.addEventListener('correction-reverted',changed);
+    // #1095: the tab's one Realtime channel announces every change to this owner's posts; a deletion is a deleted_at
+    // update, and the re-read that follows retires the card.
+    window.addEventListener('post-readiness',changed);window.addEventListener('media-removed',changed);window.addEventListener('correction-reverted',changed);
     const visible = () => { if (pageVisible()) void refresh(); };
     document.addEventListener("visibilitychange", visible);
     window.addEventListener("focus", visible);
@@ -75,8 +72,7 @@ if(!isSettled(fresh.status)||fresh.status==='failed'){
       live = false;
       document.removeEventListener("visibilitychange", visible);
       window.removeEventListener("focus", visible);
-      window.removeEventListener('media-removed',changed);window.removeEventListener('correction-reverted',changed);
-      void supabase.removeChannel(channel);
+      window.removeEventListener('post-readiness',changed);window.removeEventListener('media-removed',changed);window.removeEventListener('correction-reverted',changed);
     };
   }, [initial]);
 

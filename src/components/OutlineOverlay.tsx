@@ -175,31 +175,19 @@ export default function OutlineOverlay({ desktopModal=false, desktopHeader, desk
         if (!data) { router.replace("/"); return; }
         router.refresh();
         if (data.status === "ready" || data.status === "failed") setWaiting(false);
-      } catch { /* A later subscription or polling tick retries a transient read. */ } finally { checking = false; }
+      } catch { /* The next post-readiness event or return to the tab reads again. */ } finally { checking = false; }
     };
-    const channel = supabase.channel(`detail-${postId}`).on("postgres_changes", {
-      event: "UPDATE", schema: "public", table: "posts", filter: `id=eq.${postId}`,
-    }, () => { void refresh(); }).subscribe();
-    const poll = waiting || ["queued", "processing"].includes(status);
-    let delay = 2000;
-    let timer: ReturnType<typeof setTimeout> | null = null;
-    const tick = () => {
-      if (!live) return;
-      if (document.visibilityState === "visible") void refresh();
-      delay = Math.min(30000, delay * 2);
-      timer = setTimeout(tick, delay);
-    };
-    // Returning to the tab checks at once and starts the backoff again.
-    const visible = () => {
-      if (document.visibilityState !== "visible") return;
-      if (timer) clearTimeout(timer);
-      delay = 2000;
-      void refresh();
-      timer = setTimeout(tick, delay);
-    };
-    if (poll) { timer = setTimeout(tick, delay); document.addEventListener("visibilitychange", visible); }
-    return () => { live = false; if (timer) clearTimeout(timer); document.removeEventListener("visibilitychange", visible); void supabase.removeChannel(channel); };
-  }, [postId, status, waiting, router]);
+    // #1095: the tab's one Realtime channel announces this post's changes; there is no timer (rule 5). A deletion is
+    // not announced there (the deleted row is hidden from its owner), so returning to the tab reads once, and a read
+    // that finds no meal leaves the page. A deletion in this tab arrives as post-deleted.
+    const changed = (event: Event) => { if ((event as CustomEvent<{id?: string}>).detail?.id === postId) void refresh(); };
+    const deleted = (event: Event) => { if ((event as CustomEvent<{id?: string}>).detail?.id === postId) router.replace("/"); };
+    const visible = () => { if (document.visibilityState === "visible") void refresh(); };
+    window.addEventListener("post-readiness", changed);
+    window.addEventListener("post-deleted", deleted);
+    document.addEventListener("visibilitychange", visible);
+    return () => { live = false; window.removeEventListener("post-readiness", changed); window.removeEventListener("post-deleted", deleted); document.removeEventListener("visibilitychange", visible); };
+  }, [postId, router]);
 
   const height=desktopModal||wholePhoto?frameHeight:width;
   const scale = photo ? Math.min(width / photo.width, height / photo.height) : 1;
