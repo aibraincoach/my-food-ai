@@ -1,10 +1,40 @@
 # My Food AI — Backlog†
 
-Last edited: Wednesday 2026-11-18 at 08:33 WIB (UTC+07:00) by Claude, PM
+Last edited: Wednesday 2026-11-18 at 09:17 WIB (UTC+07:00) by Claude, PM
 
 The only job of the PM is to maintain this backlog and keep it completely up to date. Failing to do so is immediately terminable.
 
 ## Backlog for GrokBot
+
+### #688 The feed jumps to another meal because every card's first-run hint triggers a server action that remounts the feed in a loop
+
+On the phone, while the user scrolls the feed, the screen suddenly jumps up to a different meal and keeps bouncing, so the user loses their place. The owner first saw it after swiping the photos of a meal that has a leftovers photo.
+
+Fable reproduced it on production on Nov 5 in a 400 px window. The swipe is not the trigger: it also happens with no swipe and on a meal without leftovers. Every feed card mounts the "Was this estimate right?" hint, and FirstRunHint.tsx line 31 calls the getHintState server action on every mount, even when all hints are seen. That action uses the cookie-writing Supabase client (src/lib/profile/hints.ts line 11), so Next returns a 42 KB re-render of Home. The feed falls back to its loading state and remounts with page one, and the scroll position clamps from 6598 px to 3170 px. The remount mounts six more hints, which fire six more actions, about two per second until the queue drains. Loading page two mounts 20 cards at once, which starts the loop. A DOM observer, the resource timing log and a manual replay of the action all confirmed it. Not verified: Chrome's network panel listed the POSTs as 503 while timing and replays showed 200, so Fable treated the 503 as a tool artifact. Fable's smallest fix is a module-level map in FirstRunHint.tsx (ThumbsFeedback.tsx line 35 mounts the hint) that caches the lookup per page load, which cuts it to at most four actions at startup. A cleaner follow-up reads profiles.hints_seen with the browser Supabase client. Code is frozen until judging, so nothing is fixed. Done when scrolling the feed into page two on production in a phone-sized browser sends no repeated POSTs to "/", the scroll position never jumps, and swiping the photos of a meal with a leftovers photo moves only that meal's photos. Fleet 21, Nov 16 (local): no root POST while loading 80 meal elements; a scroll-position jump coincided with older rows loading, and the no-jump and leftovers-swipe conditions are not certified.
+
+### #570 A leftovers photo takes several seconds to post while a regular photo is fast
+
+Posting a photo of leftovers takes several seconds to show, while a regular meal photo shows at once. The owner says the leftovers photo is not snappy and that this is not acceptable.
+
+The owner timed adding a leftover at about 11 seconds on his phone. The leftovers path waits for image encoding, upload signing, two uploads in a row (about 1.3 and 1.2 seconds) and the attachment steps before it closes the camera; a regular post hands the work to the upload manager and closes at once. The logged staging-to-attachment time was about 4.9 seconds, so most of the 11 seconds is unexplained without a trace from the phone. Two causes are suspected: two photo-upload workflows, and one worker lane shared by analysis and maintenance. Observe first: on a phone over mobile data, time a regular photo and a leftovers photo from the tap to the post showing in the feed, and record where the extra seconds go. GrokBot, Nov 5: FAIL. On judge 1 in a phone-sized browser a regular photo closes its sheet in 72 ms and a leftovers attach closes in 5,049 ms. Done when a leftovers photo shows in the feed as quickly as a regular photo, timed in a phone-sized browser.
+
+### #987 An estimated coffee or tea never stores caffeine
+
+A coffee or tea whose numbers come from a model estimate shows no caffeine, because an estimate holds no caffeine value.
+
+Caffeine comes only from a matched USDA record. The Oct 29 black coffee is the known case (#377). Done when an estimated coffee or tea stores a caffeine value, or the app says plainly that it is an estimate with no caffeine figure.
+
+### #938 Check on production that the desktop failed-upload chip shows its Remove button
+
+On desktop the failed-upload chip cut off its own Remove button, so a person could not discard a failed added photo.
+
+Fleet 21 recorded the failure locally and a later local repair on #912 measured the button contained and tappable. Production acceptance was not checked. The broader item #684 stays open. Done when, at 1280 wide on production, a failed added-photo upload shows its whole Remove button and tapping it removes the upload.
+
+### #628 The Fleet 17 check script passes when its checks fail and leaves a test row behind
+
+The test script scripts/run17-checks.mjs can finish successfully even when a check fails, and it leaves test data on production.
+
+The script scripts/run17-checks.mjs now exits with an error when a check fails, and the leftover push row on test account 2 is removed. Still broken: the dismiss step must target only this post's own question; the fake push subscription must be removed at the end of every full beer run; the tap step fails on a "-0" coordinate (BiDi error: Expected "x" to be a finite number, got the string "-0"); the answer step must wait for the strip row. The post-close run fails with Page.navigate and Page.enable timeouts on headless Chromium on the host, and the beer run fails with the strip row missing or never settling; the post-close failure looks like a host problem, not a product regression, but that is not proven. BiDi sessions on that host hit a session cap. Done when the script exits with an error when any check fails, the dismiss step targets only this post's own question, the fake push subscription is removed at the end of every run, the tap step handles "-0", the answer step waits for the strip row, and the post-close and beer commands each exit 0 on a stable browser setup with their receipts on main. Fleet 21, Nov 16: the script repairs are built (PR 918) and both commands still fail; the errors and receipts are preserved.
 
 ### #323 Every protected page checks sign-in twice (part of #222)
 
@@ -206,6 +236,18 @@ Tapping retake opens the camera but does not remove the failed upload. After the
 
 In src/components/UploadChip.tsx, line 29: the retake handler only opens the camera. Related: #644. Done when taking the new photo removes the old failed upload, and a reload does not bring it back. Fleet 21 check, Nov 16: the fixture was not created within 60 seconds and a scoped retry reported "Control missing", so the retake, the intent count and the reload were not verified.
 
+### #222 The feed fails to open, and photos and cards take too long to appear
+
+The feed sometimes fails to open, and on a slow connection the first photo and the cards take too long to show. The goal is the feed and the first photo within two seconds at the slow-network test profile.
+
+The original failures (3 server errors and 15 blank feeds in 100 opens on the largest test account, 146 posts) never reproduced on the earlier baseline, so their cause is not isolated. The stack for digest 3642131196 exists only in the Vercel console, because runtime logs return 403 for the coder. In emulation 100 of 100 cold opens succeeded with photos at 1.48 to 1.83 s, but on production the first feed photo measured 4.09 s and 4.05 s on a cold open with slow 4G at 390 wide. The sub-items #322, #323, #324, #520 and #372 each remove one piece of wasted work. GrokBot, Nov 5: FAIL. The first feed photo showed at 6.96 s, 8.49 s and 7.20 s on a cold slow-4G open at 390 wide, against about 4.05 s in Fleet 18 (see #372). GrokBot, Nov 15: 3.4 s on a judge account and 2.7 s on the owner account, still over 2 s. Done when a browser helper on production measures the first feed photo at 2 seconds or less on a cold open at the slow-network test profile.
+
+### #372 Feed photos are too large for a phone on mobile data
+
+Feed photos are too large for a phone on mobile data, so the first photo is slow and the app spends more storage egress than it needs. A phone should receive a small copy sized for its screen.
+
+The feed serves immutable WebP copies at 1920 px (default), 1040 px (2x) and 1560 px (3x) with a one-year cache header. On production the first feed photo appeared at 4.09 s and 4.05 s on a cold open with slow 4G at 390 wide, against a 2 s target. It was the 1560 copy, 50,076 bytes, rendered 390 by 520. One line in docs/media-loading.md still says "no-store". GrokBot, Nov 5: FAIL. On a cold open at slow 4G and 390 wide, three runs showed the first feed photo at 6.96 s, 8.49 s and 7.20 s (about 4.05 s in Fleet 18). The photo is v2-1560.webp, 91,542 bytes, cache-control private, max-age=31536000, immutable, with a natural width of 390 against a 390-wide card, a ratio of 1.0 where the done line needs 2. GrokBot, Nov 15: the first photo took 3.4 s on a judge account (78,522 bytes) and 2.7 s on the owner account (42,986 bytes), still over 2 s. Done when a browser helper on production records the bytes and the cache header of the first feed photo, the first photo shows within two seconds at the slow-network test profile, and the stored photo is at least twice as wide in pixels as the card it fills, for photos captured since the sharper camera (old 480 × 640 photos cannot meet it).
+
 ## Backlog for Designer
 
 ### #453 The barcode prompt is printed over the live camera picture
@@ -239,78 +281,6 @@ The Round 7 control table covers the feed, the post and the capture sheet. Days,
 The designer has not read their controls yet. Add them to the table from #217 with its four findings: time to a visible change, pressed look, jump or flicker, and double tap. Done when every control on those screens is in the table and the dead ones are fixed or filed as items.
 
 ## In flight
-
-### #351 The drink sheet's tiles have not been checked on the live app
-
-The drink sheet shows tiles, and a change set their sizes and order. Ordering by use (#527) and the hold to pick a size are both in the code on main.
-
-Issue #351 specifies six fixed tiles from the server, ordered by use with the most used first. Holding a tile for about 650 ms offers a size, such as a 240 ml cup or a 350 ml large coffee. In IntakeSheet.tsx on main (96ecdcf), six tiles are ordered by use and a 500 ms hold opens the sizes.  GrokBot, Nov 5: the drink sheet on production shows four tiles (Water glass 250 ml, Coffee cup 240 ml, Tea mug 300 ml, Water bottle 500 ml), not six. Holding a tile for about 700 ms opened no size picker. The code on main has both, so production differs from the code and the cause is unknown: a stale build (#598), hidden tiles, or how GrokBot held the tile. Done when the drink sheet on the live app shows six tiles with the most used first, and holding a tile offers its sizes.
-
-### #372 Feed photos are too large for a phone on mobile data
-
-Feed photos are too large for a phone on mobile data, so the first photo is slow and the app spends more storage egress than it needs. A phone should receive a small copy sized for its screen.
-
-The feed serves immutable WebP copies at 1920 px (default), 1040 px (2x) and 1560 px (3x) with a one-year cache header. On production the first feed photo appeared at 4.09 s and 4.05 s on a cold open with slow 4G at 390 wide, against a 2 s target. It was the 1560 copy, 50,076 bytes, rendered 390 by 520. One line in docs/media-loading.md still says "no-store". GrokBot, Nov 5: FAIL. On a cold open at slow 4G and 390 wide, three runs showed the first feed photo at 6.96 s, 8.49 s and 7.20 s (about 4.05 s in Fleet 18). The photo is v2-1560.webp, 91,542 bytes, cache-control private, max-age=31536000, immutable, with a natural width of 390 against a 390-wide card, a ratio of 1.0 where the done line needs 2. GrokBot, Nov 15: the first photo took 3.4 s on a judge account (78,522 bytes) and 2.7 s on the owner account (42,986 bytes), still over 2 s. Done when a browser helper on production records the bytes and the cache header of the first feed photo, the first photo shows within two seconds at the slow-network test profile, and the stored photo is at least twice as wide in pixels as the card it fills, for photos captured since the sharper camera (old 480 × 640 photos cannot meet it).
-
-### #222 The feed fails to open, and photos and cards take too long to appear
-
-The feed sometimes fails to open, and on a slow connection the first photo and the cards take too long to show. The goal is the feed and the first photo within two seconds at the slow-network test profile.
-
-The original failures (3 server errors and 15 blank feeds in 100 opens on the largest test account, 146 posts) never reproduced on the earlier baseline, so their cause is not isolated. The stack for digest 3642131196 exists only in the Vercel console, because runtime logs return 403 for the coder. In emulation 100 of 100 cold opens succeeded with photos at 1.48 to 1.83 s, but on production the first feed photo measured 4.09 s and 4.05 s on a cold open with slow 4G at 390 wide. The sub-items #322, #323, #324, #520 and #372 each remove one piece of wasted work. GrokBot, Nov 5: FAIL. The first feed photo showed at 6.96 s, 8.49 s and 7.20 s on a cold slow-4G open at 390 wide, against about 4.05 s in Fleet 18 (see #372). GrokBot, Nov 15: 3.4 s on a judge account and 2.7 s on the owner account, still over 2 s. Done when a browser helper on production measures the first feed photo at 2 seconds or less on a cold open at the slow-network test profile.
-
-### #972 The capture sheet could load on the first tap
-
-The capture sheet is bundled with the page, though most opens never use it, which adds to the first load.
-
-Loading it on the first tap needs the service worker to keep the new file for offline use, so it is not a one-line change. Done when the capture sheet loads on first tap, still opens offline, and Home's first-load JavaScript is smaller.
-
-### #987 An estimated coffee or tea never stores caffeine
-
-A coffee or tea whose numbers come from a model estimate shows no caffeine, because an estimate holds no caffeine value.
-
-Caffeine comes only from a matched USDA record. The Oct 29 black coffee is the known case (#377). Done when an estimated coffee or tea stores a caffeine value, or the app says plainly that it is an estimate with no caffeine figure.
-
-### #973 A meal with no photo shows two differently worded failure sentences
-
-A meal with no photo that failed its first analysis can show two different sentences for the same failure.
-
-The photo area reads "This meal could not be analysed." while the card reads its own failure sentence. Done when both places say the same thing.
-
-### #968 The meal detail's "updating" poll does not wake when the person returns to the tab
-
-On a meal's page, returning to the tab can leave the "updating" check waiting before it looks again.
-
-The poll in OutlineOverlay.tsx (lines 181 to 190) has no listener for a return to the tab. #753 covers the same gap in the thread. Done when returning to the tab starts a check within one second.
-
-### #938 Check on production that the desktop failed-upload chip shows its Remove button
-
-On desktop the failed-upload chip cut off its own Remove button, so a person could not discard a failed added photo.
-
-Fleet 21 recorded the failure locally and a later local repair on #912 measured the button contained and tappable. Production acceptance was not checked. The broader item #684 stays open. Done when, at 1280 wide on production, a failed added-photo upload shows its whole Remove button and tapping it removes the upload.
-
-### #970 Five different refusals of an added photo share one sentence
-
-When a photo cannot be attached to a meal, the person always reads "The photo could not be attached.", whatever the cause.
-
-Five refusals reach that one sentence (attach-photo.ts line 9). Done when each refusal says what happened and what the person can do.
-
-### #628 The Fleet 17 check script passes when its checks fail and leaves a test row behind
-
-The test script scripts/run17-checks.mjs can finish successfully even when a check fails, and it leaves test data on production.
-
-The script scripts/run17-checks.mjs now exits with an error when a check fails, and the leftover push row on test account 2 is removed. Still broken: the dismiss step must target only this post's own question; the fake push subscription must be removed at the end of every full beer run; the tap step fails on a "-0" coordinate (BiDi error: Expected "x" to be a finite number, got the string "-0"); the answer step must wait for the strip row. The post-close run fails with Page.navigate and Page.enable timeouts on headless Chromium on the host, and the beer run fails with the strip row missing or never settling; the post-close failure looks like a host problem, not a product regression, but that is not proven. BiDi sessions on that host hit a session cap. Done when the script exits with an error when any check fails, the dismiss step targets only this post's own question, the fake push subscription is removed at the end of every run, the tap step handles "-0", the answer step waits for the strip row, and the post-close and beer commands each exit 0 on a stable browser setup with their receipts on main. Fleet 21, Nov 16: the script repairs are built (PR 918) and both commands still fail; the errors and receipts are preserved.
-
-### #688 The feed jumps to another meal because every card's first-run hint triggers a server action that remounts the feed in a loop
-
-On the phone, while the user scrolls the feed, the screen suddenly jumps up to a different meal and keeps bouncing, so the user loses their place. The owner first saw it after swiping the photos of a meal that has a leftovers photo.
-
-Fable reproduced it on production on Nov 5 in a 400 px window. The swipe is not the trigger: it also happens with no swipe and on a meal without leftovers. Every feed card mounts the "Was this estimate right?" hint, and FirstRunHint.tsx line 31 calls the getHintState server action on every mount, even when all hints are seen. That action uses the cookie-writing Supabase client (src/lib/profile/hints.ts line 11), so Next returns a 42 KB re-render of Home. The feed falls back to its loading state and remounts with page one, and the scroll position clamps from 6598 px to 3170 px. The remount mounts six more hints, which fire six more actions, about two per second until the queue drains. Loading page two mounts 20 cards at once, which starts the loop. A DOM observer, the resource timing log and a manual replay of the action all confirmed it. Not verified: Chrome's network panel listed the POSTs as 503 while timing and replays showed 200, so Fable treated the 503 as a tool artifact. Fable's smallest fix is a module-level map in FirstRunHint.tsx (ThumbsFeedback.tsx line 35 mounts the hint) that caches the lookup per page load, which cuts it to at most four actions at startup. A cleaner follow-up reads profiles.hints_seen with the browser Supabase client. Code is frozen until judging, so nothing is fixed. Done when scrolling the feed into page two on production in a phone-sized browser sends no repeated POSTs to "/", the scroll position never jumps, and swiping the photos of a meal with a leftovers photo moves only that meal's photos. Fleet 21, Nov 16 (local): no root POST while loading 80 meal elements; a scroll-position jump coincided with older rows loading, and the no-jump and leftovers-swipe conditions are not certified.
-
-### #570 A leftovers photo takes several seconds to post while a regular photo is fast
-
-Posting a photo of leftovers takes several seconds to show, while a regular meal photo shows at once. The owner says the leftovers photo is not snappy and that this is not acceptable.
-
-The owner timed adding a leftover at about 11 seconds on his phone. The leftovers path waits for image encoding, upload signing, two uploads in a row (about 1.3 and 1.2 seconds) and the attachment steps before it closes the camera; a regular post hands the work to the upload manager and closes at once. The logged staging-to-attachment time was about 4.9 seconds, so most of the 11 seconds is unexplained without a trace from the phone. Two causes are suspected: two photo-upload workflows, and one worker lane shared by analysis and maintenance. Observe first: on a phone over mobile data, time a regular photo and a leftovers photo from the tap to the post showing in the feed, and record where the extra seconds go. GrokBot, Nov 5: FAIL. On judge 1 in a phone-sized browser a regular photo closes its sheet in 72 ms and a leftovers attach closes in 5,049 ms. Done when a leftovers photo shows in the feed as quickly as a regular photo, timed in a phone-sized browser.
 
 ### #990 Revisit the stored numbers: the meals that pass every rule, the other accounts, and saved meals
 
