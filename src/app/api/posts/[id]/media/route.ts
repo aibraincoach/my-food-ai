@@ -3,7 +3,7 @@ import {after,NextResponse} from 'next/server';
 import {createClient} from '@/lib/supabase/server';
 import {createAdminClient} from '@/lib/supabase/admin';
 import {isUuid} from '@/lib/posts/items';
-import {attachPostPhoto,AttachmentStageExpired} from '@/lib/posts/attach-photo';
+import {attachPostPhoto,AttachmentStageExpired,ATTACH_REFUSALS} from '@/lib/posts/attach-photo';
 export async function POST(request:Request,context:{params:Promise<{id:string}>}){
  const client=await createClient();const {data:{user}}=await client.auth.getUser();
  if(!user)return NextResponse.json({error:'Sign in required.'},{status:401});
@@ -11,7 +11,8 @@ export async function POST(request:Request,context:{params:Promise<{id:string}>}
  const {id}=await context.params;if(!isUuid(id))return NextResponse.json({error:'Post not found.'},{status:404});
  const {data:post,error:readError}=await client.from('posts').select('id').eq('id',id).maybeSingle();
  if(readError)return NextResponse.json({error:'The meal could not be read.'},{status:503});
- if(!post)return NextResponse.json({error:'Post not found.'},{status:404});
+ // #970: a meal deleted while its photo was on the way says so, with the same sentence the attach refusal uses.
+ if(!post){const missing=ATTACH_REFUSALS.get('Post not found')!;return NextResponse.json({error:missing.message,code:missing.code},{status:404});}
  const body=await request.json().catch(()=>null),photo=body?.photo;
  if(typeof body?.not_eaten!=='boolean'||!photo||typeof photo.path!=='string'||!new RegExp(`^${user.id}/[0-9a-f-]{36}/0[.]jpg$`).test(photo.path)||!Number.isSafeInteger(photo.width)||!Number.isSafeInteger(photo.height)||photo.width<1||photo.width>4096||photo.height<1||photo.height>4096)return NextResponse.json({error:'Choose a valid uploaded photo.'},{status:400});
  try{
