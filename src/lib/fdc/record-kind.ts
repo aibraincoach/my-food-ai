@@ -14,8 +14,8 @@ export type FoodKind = "fruit" | "sweet" | "drink" | "condiment" | "fat" | "meat
 
 const NAME_WORDS: [FoodKind, RegExp][] = [
   ["fruit", /\b(fruits?|apples?|bananas?|papayas?|mangos?|mangoes|melons?|watermelons?|honeydew|cantaloupe|persimmons?|berry|berries|strawberr(y|ies)|blueberr(y|ies)|grapes?|oranges?|pineapples?|durian|jackfruit|rambutan|lychees?|longan|guavas?|kiwis?|pears?|peach(es)?|plums?|cherr(y|ies)|dates|figs?|raisins?|apricots?|avocados?|dragon ?fruit|pomelo|mangosteen|salak|starfruit)\b/i],
-  ["sweet", /\b(cakes?|cookies?|biscuits?|candy|candies|chocolate|desserts?|pastr(y|ies)|donuts?|doughnuts?|pudding|ice cream|gelato|brownies?|tarts?|pies?|kue|martabak manis|jell(y|ies)|jams?|preserves?|sweets?)\b/i],
-  ["drink", /\b(drinks?|juice|tea|coffee|kopi|teh|espresso|latte|cappuccino|americano|mocha|milkshake|smoothie|soda|cola|coke|beer|radler|wine|cocktail|mai tai|mojito|margarita|sake|soju|whisk(e)?y|vodka|gin|rum|liquor|water|lemonade|boba|bubble tea|kombucha|bintang|lager|ale)\b/i],
+  ["sweet", /\b(cakes?|cookies?|biscuits?|candy|candies|chocolate|desserts?|pastr(y|ies)|donuts?|doughnuts?|pudding|ice cream|gelato|brownies?|tarts?|pies?|kue|martabak manis|croissants?|jell(y|ies)|jams?|preserves?|sweets?)\b/i],
+  ["drink", /\b(drinks?|juice|tea|coffee|kopi|teh|espresso|latte|cappuccino|americano|mocha|milkshakes?|shakes?|mocktails?|smoothie|soda|cola|coke|beer|radler|wine|cocktail|mai tai|mojito|margarita|sake|soju|whisk(e)?y|vodka|gin|rum|liquor|water|lemonade|boba|bubble tea|kombucha|bintang|lager|ale)\b/i],
   ["condiment", /\b(sauces?|gravy|dressings?|sambal|ketchup|mayonnaise|mayo|salsa|dips?|condiments?|chutney|relish|mustard|pesto|aioli|vinaigrette|kecap|syrup|honey|jam)\b/i],
   ["fat", /\b(oil|butter|margarine|ghee|lard|shortening)\b/i],
   ["meat", /\b(chicken|beef|pork|lamb|mutton|goat|veal|duck|turkey|bacon|ham|sausages?|salami|meat|steak|ribs?|tonkatsu|katsu|rendang|satay|sate|bakso|meatballs?|crackling|chiro)\b/i],
