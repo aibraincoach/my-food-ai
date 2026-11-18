@@ -13,6 +13,8 @@ import { PackPhotoUpload, JSON_REQUEST_LIMIT_MS } from '@/lib/media/pack-photo-u
 import { reencodeShot } from '@/lib/media/reencode';
 
 const RETAKE_ATTACHMENT_MESSAGE = 'This photo was not kept. Take it again.';
+// #1093: a new meal whose kept photo is from before #684's fix. It has no meal to retake a photo for.
+export const PHOTO_NOT_KEPT = 'This photo was not kept. Remove this post and take a new photo.';
 // #684: say only what is true. The photo is kept inside the app, not in the phone's photos.
 const ATTACHMENT_UPLOAD_FAILED = "The photo couldn't be uploaded. Try again, or remove it.";
 // #684: which step of an added photo failed, and how. No photo data; read by operators with the service key.
@@ -90,9 +92,9 @@ export class UploadManager {
         window.dispatchEvent(new CustomEvent(event, { detail: this.state(entry) })); }
     private photoLost(entry: Entry) {
         const d = entry.data;
-        return Boolean(d.attachment && !d.files.length && (d.photoLost || d.message === RETAKE_ATTACHMENT_MESSAGE));
+        return Boolean(!d.files.length && (d.photoLost || (d.attachment && d.message === RETAKE_ATTACHMENT_MESSAGE)));
     }
-    private state(entry: Entry): UploadState { const d = entry.data; const photoLost=this.photoLost(entry); return { operationId: d.operationId, uploadId:d.snapshot?.id, caption: d.caption, eatenAt: d.eatenAt ?? new Date(d.createdAt).toISOString(), previewUrl: entry.previewUrl, sent: d.sent, total: d.total, state: d.state, error: d.error, posted: d.posted, ...(d.attachment?{attachment:d.attachment,message:d.message,...(photoLost?{photoLost:true}:{})}:{}), ...((d.food||d.copy||d.drink||d.photoDrinks)?{kind:d.copy?"copy" as const:d.food?"food" as const:"drink" as const,removing:d.cancelRequested,message:d.message}:{}), ...(d.drink?{drinkTile:true}:{}), ...(!d.files.length&&!d.food&&!d.copy&&!d.drink&&!d.photoDrinks&&!d.attachment?{text:true}:{}), ...(entry.finished ? { postId: d.resultPostId??d.snapshot?.id } : {}) }; }
+    private state(entry: Entry): UploadState { const d = entry.data; const photoLost=this.photoLost(entry); return { operationId: d.operationId, uploadId:d.snapshot?.id, caption: d.caption, eatenAt: d.eatenAt ?? new Date(d.createdAt).toISOString(), previewUrl: entry.previewUrl, sent: d.sent, total: d.total, state: d.state, error: d.error, posted: d.posted, ...(d.attachment?{attachment:d.attachment,message:d.message,...(photoLost?{photoLost:true}:{})}:{}), ...((d.food||d.copy||d.drink||d.photoDrinks)?{kind:d.copy?"copy" as const:d.food?"food" as const:"drink" as const,removing:d.cancelRequested,message:d.message}:{}), ...(d.drink?{drinkTile:true}:{}), ...(!d.files.length&&!photoLost&&!d.food&&!d.copy&&!d.drink&&!d.photoDrinks&&!d.attachment?{text:true}:{}), ...(photoLost&&!d.attachment?{photoLost:true,message:PHOTO_NOT_KEPT}:{}), ...(entry.finished ? { postId: d.resultPostId??d.snapshot?.id } : {}) }; }
     private intentFor(entry: Entry, ownerId: string): PublishIntent { const d=entry.data,attachment=d.attachment; return {operationId:d.operationId,ownerId,createdAt:d.createdAt,postId:attachment?.postId??null,notEaten:attachment?.notEaten??false}; }
     private applyIntent(data: StoredUpload, intent: PublishIntent) { data.posted=true; data.ownerId=intent.ownerId; if(intent.postId&&!data.attachment)data.attachment={postId:intent.postId,notEaten:intent.notEaten}; if(data.attachment&&!data.files.length){data.state='failed';data.message=RETAKE_ATTACHMENT_MESSAGE;data.photoLost=true;} }
     private attachmentFromIntent(intent: PublishIntent): StoredUpload { return {operationId:intent.operationId,ownerId:intent.ownerId,createdAt:intent.createdAt,reservedAt:intent.createdAt,caption:intent.notEaten?'Leftovers':'Added photo',eatenAt:null,location:null,options:{},files:[],snapshot:null,posted:true,attachment:{postId:intent.postId!,notEaten:intent.notEaten},state:'failed',message:RETAKE_ATTACHMENT_MESSAGE,photoLost:true,sent:0,total:0}; }
@@ -126,7 +128,6 @@ export class UploadManager {
                 const intent = intentById.get(data.operationId);
                 if (intent)
                     this.applyIntent(data, intent);
-                data.files = data.files.map((file, index) => new File([file], file.name ?? `meal-${index}.jpg`, { type: file.type }));
                 const entry = this.make(data);
                 this.entries.set(data.operationId, entry);
                 intentById.delete(data.operationId);
@@ -473,7 +474,7 @@ export class UploadManager {
         catch (error) {
             if (entry.deleted)
                 return;
-            // A legacy File can fail while checkpointing, before the encoder runs.
+            // A photo the browser can no longer read fails while its bytes are kept, before the encoder runs.
             if (entry.data.attachment && !this.photoLost(entry) && (error as Error)?.name === 'NotReadableError') {
                 const d=entry.data,file=d.files[0];
                 void this.report({post_id:d.attachment!.postId,kind:'attachment',stage:'encode',status:null,detail:`NotReadableError: ${(error as Error).message}`.slice(0,300),bytes:file?.size??null,mime:file?.type||null,user_agent:typeof navigator==='undefined'?null:navigator.userAgent.slice(0,300)});

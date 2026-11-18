@@ -156,7 +156,7 @@ test('a signing network failure remains retryable and records sign rather than e
  await manager.initialize('owner');const id=await manager.postAttachment(file,{postId:'post-1',notEaten:true});await until(()=>manager.list()[0]?.state==='failed');
  assert.equal(manager.list()[0].photoLost,undefined);assert.equal(rows.get(id).files.length,1);assert.equal(manager.list()[0].message,"The photo couldn't be uploaded. Try again, or remove it.");assert.equal(failures.length,3);assert.ok(failures.every(row=>row.stage==='sign'&&row.status==='network'));
 });
-test('a legacy attachment whose bytes cannot be checkpointed also asks for a retake',async()=>{
+test('an attachment whose bytes cannot be read when they are kept also asks for a retake',async()=>{
  const rows=new Map(),failures=[];let delays=0;
  rows.set('legacy',{operationId:'legacy',ownerId:'owner',createdAt:Date.now(),reservedAt:Date.now(),...fields,files:[file],snapshot:null,posted:true,state:'failed',sent:0,total:file.size,attachment:{postId:'post-1',notEaten:true}});
  const store=withIntents({all:async()=>[...rows.values()],put:async row=>{if(row.files.length)throw new DOMException('Cannot read stored File','NotReadableError');rows.set(row.operationId,structuredClone(row))}},rows);
