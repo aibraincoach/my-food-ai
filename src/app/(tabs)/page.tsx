@@ -12,7 +12,6 @@ import SavedMealsButton from '@/components/SavedMealsButton';
 import FirstPhotoMemory from '@/components/FirstPhotoMemory';
 import { connection } from "next/server";
 import { cache, Suspense } from "react";
-import {preload} from "react-dom";
 import Link from "next/link";
 import {getFeed} from "@/lib/posts/feed";
 import NeedsInputStrip from "@/components/NeedsInputStrip";
@@ -102,7 +101,7 @@ async function HomeDays() {
 const homeSeed=cache(async()=>{
  const {db,user}=await homeReader();if(!user)return undefined;
  const {zone}=await homeZone();
- const page=await getFeed(db,user.id,null,zone,6,{knownDays:Array.from({length:5},(_,i)=>shiftDay(dateInZone(new Date(),zone),-i)),onFirstPhoto:url=>preload(url,{as:'image',fetchPriority:'high',crossOrigin:'anonymous',imageSrcSet:feedPhotoSrcSet(url),imageSizes:'(min-width: 1024px) 520px, 100vw'})});
+ const page=await getFeed(db,user.id,null,zone,6,{knownDays:Array.from({length:5},(_,i)=>shiftDay(dateInZone(new Date(),zone),-i))});
  return {page,userId:user.id,zone};
 });
 
@@ -119,7 +118,6 @@ async function HomeFirstPhoto() {
     }
   } catch { /* The normal feed boundary and cache remain available. */ }
   if(!first)return null;
-  if(first.photoUrl)preload(first.photoUrl,{as:'image',fetchPriority:'high',crossOrigin:'anonymous',imageSrcSet:feedPhotoSrcSet(first.photoUrl),imageSizes:'(min-width: 1024px) 520px, 100vw'});
   return <div data-fast-feed-seed className="relative pb-card-gap"><FirstPhotoMemory url={first.photoUrl}/>
     <DayHeader day={dateInZone(first.eaten_at,zone)} zone={zone} empty={false}/><div className="pt-sheet-top">
     <div className="flex h-[52px] items-center gap-[10px] px-inset" aria-hidden="true"><span className="size-8 rounded-circle bg-card"/><span className="h-3 w-24 rounded-field bg-card"/></div>

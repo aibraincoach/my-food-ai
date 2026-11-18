@@ -207,7 +207,7 @@ async function optionalRead<T>(stage: string, read: () => PromiseLike<T>, fallba
   finally { if (timeout) clearTimeout(timeout); if (typeof window === 'undefined') console.info(`feed read ${stage} ${Date.now() - started}`); }
 }
 
-export async function toFeedPosts(db: SupabaseClient, rows: PostRow[], zone = "UTC", onFirstPhoto?: (url: string) => void): Promise<FeedPost[]> {
+export async function toFeedPosts(db: SupabaseClient, rows: PostRow[], zone = "UTC"): Promise<FeedPost[]> {
   if (!rows.length) return [];
   const ids = rows.map(row => row.id), ready = rows.filter(row => row.status === 'ready');
   const revisions = () => optionalRead('revision', async () => {
@@ -218,7 +218,7 @@ export async function toFeedPosts(db: SupabaseClient, rows: PostRow[], zone = "U
   return ready.map(row => byId.get(row.id) ?? null);
 }, null as ({modelCommentId: string|null; fingerprint: string}|null)[]|null);
   // Start immutable media and its signed URLs immediately. SSR can emit the
-  // first-photo preload while the revision-fenced nutrition is still reading.
+  // photo identities while the revision-fenced nutrition is still reading.
   const mediaRead = optionalRead<null | {id:string;post_id:string;storage_path:string;kind:string;not_eaten:boolean;position:number;width:number|null;height:number|null}[]>('media', async () => {
     const result = await db.from('post_media').select('id,post_id,storage_path,kind,not_eaten,position,width,height,photo_secret').in('post_id', ids).order('position').abortSignal(AbortSignal.timeout(8000));
     if (result.error) throw result.error; return result.data ?? [];
@@ -239,7 +239,6 @@ export async function toFeedPosts(db: SupabaseClient, rows: PostRow[], zone = "U
     const first = media?.find(entry => entry.post_id === rows[0].id);
     const firstPath = first && first.kind !== 'card' ? feedPathFor(first.storage_path) : null;
     const smallFirst = firstPath ? smallPhotos.get(firstPath)??null : null;
-    if (smallFirst) onFirstPhoto?.(smallFirst);
     // Fast SSR and the full page share one immutable private photo URL.
     // Legacy identifiers retain the shared owner/path signing fallback.
     const firstRead = smallFirst ? Promise.resolve(smallFirst) : firstPath ? optionalRead('first-photo', () => feedCopyUrl(db, firstPath, rows[0].user_id), null) : Promise.resolve(null);
@@ -254,8 +253,6 @@ export async function toFeedPosts(db: SupabaseClient, rows: PostRow[], zone = "U
     const [urls, firstUrl] = await Promise.all([batchRead, firstRead]);
     for(const [path,url]of smallPhotos)urls.set(path,url);
     if (firstPath && firstUrl) urls.set(firstPath, firstUrl);
-    const url = first && urls.get(first.kind === 'card' ? first.storage_path : feedPathFor(first.storage_path));
-    if (url && !smallFirst) onFirstPhoto?.(url);
     return urls;
   });
   const profileRead = optionalRead('profiles', async () => {
@@ -320,7 +317,7 @@ export async function getFeed(
   before: string | null = null,
   zone = "UTC",
   limit = FEED_PAGE_SIZE,
-  options: { summaries?: boolean; knownDays?: readonly string[]; onFirstPhoto?: (url: string) => void } = {}
+  options: { summaries?: boolean; knownDays?: readonly string[] } = {}
 ): Promise<{posts: FeedPost[]; nextCursor:string|null; days: FeedDayTotal[]; discoveryIds?: string[]}> {
   const cursor = before === null ? null : parseFeedCursor(before);
   limit = Math.max(1, Math.min(FEED_PAGE_SIZE, Math.trunc(limit) || FEED_PAGE_SIZE));
@@ -347,7 +344,7 @@ export async function getFeed(
   }
   const rows = (data ?? []) as PostRow[];
   const page = rows.slice(0,limit);
-  const posts = await toFeedPosts(supabase,page,zone,options.onFirstPhoto);
+  const posts = await toFeedPosts(supabase,page,zone);
   const knownDays = new Set(options.knownDays ?? []);
   const missingDays = [...new Set(page.map(row => dateInZone(row.eaten_at, zone)))].filter(day => !knownDays.has(day));
   const [hydration, days] = options.summaries === false ? [{}, []] as [Record<string, import('@/lib/intake/hydration').PostHydrationData>, FeedDayTotal[]] : await Promise.all([
