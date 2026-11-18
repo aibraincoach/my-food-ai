@@ -109,7 +109,7 @@ try{
    if(run<3)await pause(8000);
   }
   receipt.pass=receipt.runs.every(r=>r.closeMs<=1000&&r.uploading);
-  if(!receipt.pass)process.exitCode=1;
+  if(!receipt.pass){receipt.error='Post-close check failed: '+receipt.runs.flatMap((r,i)=>[...(r.closeMs>1000?['run '+(i+1)+' close exceeded 1000 ms']:[]),...(!r.uploading?['run '+(i+1)+' uploading state missing']:[])]).join(', ');process.exitCode=1;}
  }else{
   let tickStop=false;const tick=setInterval(()=>{fetch(new URL('/api/jobs/tick',base),{signal:AbortSignal.timeout(20000)}).catch(()=>{});},2500);
   try{
@@ -129,10 +129,12 @@ try{
       receipt.postId=postId;
       if(!settled)throw Error('The beer post never settled with a question');
    if(settled?.post?.question?.options?.[0]){
-    // #615: the strip row reads "A quick question about your meal" over the question itself, and an idle Home
-    // looks for new questions once a minute, so wait up to 70 seconds for this post's own row (by its question).
+    // #615: the strip row reads "A quick question about your meal" over the question itself. #1082: Fleet 47 removed the
+    // strip's timer, so it reads questions on load, focus or the tab's Realtime event. The check reloads Home once the
+    // database shows the question, then expects the row within 15 seconds. Realtime delivery is proven on production.
     const ownQuestion=`[...document.querySelectorAll('button')].find(b=>!b.getAttribute('aria-label')&&(b.textContent||'').includes(${JSON.stringify(settled.post.question.question)}))`;
-    await until(`!!${ownQuestion}`,70000).catch(()=>{throw Error('Strip row missing');});
+    await navigate('/');
+    await until(`!!${ownQuestion}`,15000).catch(()=>{throw Error('Strip row missing');});
     await evaluate(`(()=>{const row=${ownQuestion};if(!row)throw Error('Strip row missing');row.click();return true;})()`);
     await until(`!!document.querySelector('[aria-label="Your answer"]')`,15000);
     const option=settled.post.question.options[0];
@@ -146,9 +148,12 @@ try{
       for(let i=0;i<40;i++){await pause(5000);await snap(`dismiss-wait-${i}`,dismissId);if(samples.at(-1).post?.status==='ready'&&samples.at(-1).post?.question)break;}
       const asked=samples.at(-1).post?.question?.question;
       if(samples.at(-1).post?.status!=='ready'||typeof asked!=='string')throw Error('The second beer post never settled with a question');
-      // #628: dismiss only this post's own strip row (matched by its own question text) and prove the request reached this post.
-      const ownRow=`[...document.querySelectorAll('button[aria-label="Dismiss question"]')].filter(b=>b.parentElement?.textContent?.includes(${JSON.stringify(asked)}))`;
-      await until(`${ownRow}.length===1`,30000);
+      // #628: dismiss only this post's own strip row and prove the request reached this post.
+      // #1082: the row is matched by this post's own photo, and Home is reloaded once the database shows the question.
+      const media=checked(await admin.from('post_media').select('id').eq('post_id',dismissId).eq('kind','photo'));const photoNeedles=[dismissId,...media.map(x=>x.id)];
+      const ownRow=`[...document.querySelectorAll('button[aria-label="Dismiss question"]')].filter(b=>{const image=b.parentElement?.querySelector('img');return image&&${JSON.stringify(photoNeedles)}.some(id=>(image.currentSrc||image.src).includes(id));})`;
+      await navigate('/');
+      await until(`${ownRow}.length===1`,15000);
       await evaluate(`(()=>{window.__dismissCalls=[];const original=window.fetch;window.fetch=async(...args)=>{const u=new URL(typeof args[0]==='string'?args[0]:args[0].url,location.origin);const r=await original(...args);if(args[1]?.method==='DELETE')window.__dismissCalls.push({path:u.pathname,status:r.status});return r;};return true;})()`);
       await evaluate(`(()=>{const rows=${ownRow};if(rows.length!==1)throw Error('Expected one strip row for this post, found '+rows.length);rows[0].click();return true;})()`);
       await until(`window.__dismissCalls.length>0`,15000);
@@ -158,11 +163,13 @@ try{
       await snap('after-dismiss',dismissId);
       const still=checked(await admin.from('posts').select('id,question,status').eq('id',dismissId).eq('user_id',user.id).maybeSingle());
    receipt.samples=samples;
-      receipt.pass=Boolean(settled?.feed?.card&&settled?.post?.status==='ready'&&settled?.post?.question&&samples.some(s=>!s.post?.question&&s.label.startsWith('answer'))&&still?.id&&!still?.question&&still?.status==='ready');
-      if(!receipt.pass)process.exitCode=1;
+      const answers=samples.filter(s=>s.label.startsWith('answer'));
+      receipt.checks={firstCard:!!settled?.feed?.card,firstReadyWithQuestion:!!(settled?.post?.status==='ready'&&settled?.post?.question),answerMealPresent:answers.length>0&&answers.every(s=>!!s.post),answerQuestionCleared:answers.some(s=>s.post&&!s.post.question),secondReadyWithoutQuestion:!!(still?.id&&!still?.question&&still?.status==='ready')};
+      receipt.pass=Object.values(receipt.checks).every(Boolean);
+      if(!receipt.pass){receipt.error='Beer check failed: '+Object.entries(receipt.checks).filter(([,pass])=>!pass).map(([name])=>name).join(', ');process.exitCode=1;}
   }finally{tickStop=true;clearInterval(tick);}
  }
-}catch(error){receipt.error=error.message;process.exitCode=1;}finally{
+}catch(error){receipt.pass=false;receipt.error=error.message;process.exitCode=1;if(!useCdp&&context&&options.screenshot)try{const shot=await send('browsingContext.captureScreenshot',{context});await writeFile(options.screenshot,Buffer.from(shot.data,'base64'),{mode:0o600});receipt.screenshot=options.screenshot;}catch(e){receipt.screenshotError=e.message;}}finally{
  if(useCdp)try{await send('Emulation.setCPUThrottlingRate',{rate:1});}catch{}
  if(!useCdp&&context)try{await send('browsingContext.close',{context});await send('session.end');}catch{}
  if(ws)ws.close();
@@ -170,10 +177,16 @@ try{
   const prefix=user.id+'/'+entry.id;
   checked(await admin.from('posts').delete().eq('id',entry.id).eq('user_id',user.id));
   checked(await admin.from('post_upload_drafts').delete().eq('id',entry.id).eq('user_id',user.id));
+  checked(await admin.from('upload_failures').delete().eq('post_id',entry.id).eq('user_id',user.id));
   for(let pass=0;pass<2;pass++){const paths=await storedPaths(prefix);if(paths.length)checked(await admin.storage.from('media').remove(paths));await pause(300);}
+  for(const [table,column] of [['posts','id'],['post_upload_drafts','id'],['upload_failures','post_id']]){
+   const remaining=checked(await admin.from(table).select('id').eq(column,entry.id).eq('user_id',user.id));
+   if(remaining.length)throw Error(table+' rows remaining');
+  }
+  if((await storedPaths(prefix)).length)throw Error('Storage objects remaining');
   ledger.cleanup.push({id:entry.id,absent:true});
- }catch(e){ledger.cleanup.push({id:entry.id,error:e.message});process.exitCode=1;}await save();}
-    if(mode==='beer')try{checked(await admin.from('push_subscriptions').delete().eq('user_id',user.id).eq('endpoint',PUSH_FIXTURE));if(checked(await admin.from('push_subscriptions').select('id').eq('user_id',user.id).eq('endpoint',PUSH_FIXTURE)).length)throw Error('Push fixture still present');ledger.cleanup.push({pushFixture:'removed'});}catch(e){ledger.cleanup.push({pushFixture:e.message});process.exitCode=1;}await save();
+ }catch(e){ledger.cleanup.push({id:entry.id,error:e.message});(receipt.cleanupErrors??=[]).push(entry.id+': '+e.message);receipt.pass=false;process.exitCode=1;}await save();}
+    if(mode==='beer')try{checked(await admin.from('push_subscriptions').delete().eq('user_id',user.id).eq('endpoint',PUSH_FIXTURE));if(checked(await admin.from('push_subscriptions').select('id').eq('user_id',user.id).eq('endpoint',PUSH_FIXTURE)).length)throw Error('Push fixture still present');ledger.cleanup.push({pushFixture:'removed'});}catch(e){ledger.cleanup.push({pushFixture:e.message});(receipt.cleanupErrors??=[]).push('Push fixture: '+e.message);receipt.pass=false;process.exitCode=1;}await save();
  await writeFile(options.out||`uploads/run17/${mode}.json`,JSON.stringify(receipt,null,2)+'\n');
- console.log(JSON.stringify({mode,pass:receipt.pass??null,runs:receipt.runs?.length??0,error:receipt.error??null}));
+ console.log(JSON.stringify({mode,pass:receipt.pass??null,runs:receipt.runs?.length??0,error:receipt.error??null,cleanupErrors:receipt.cleanupErrors??[]}));
 }
