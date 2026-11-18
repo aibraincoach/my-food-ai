@@ -6,6 +6,8 @@
 // counted in public.retention_summary. Usage:
 //   SUPABASE_DB_URL=... node scripts/retention/run.mjs --table=jobs [--delete --batches=1 --batch-size=200 --pause-ms=5000]
 import { spawnSync } from 'node:child_process';
+import { existsSync, realpathSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
 import { setTimeout as sleep } from 'node:timers/promises';
 
 export const TABLES = {
@@ -58,7 +60,11 @@ export async function run(options, log = console.log) {
   return { deleted, batches };
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) {
-  try { await run(parseArgs(process.argv.slice(2))); }
+const entry = process.argv[1];
+if (entry && existsSync(entry) && realpathSync(entry) === realpathSync(fileURLToPath(import.meta.url))) {
+  try {
+    if (entry !== realpathSync(entry)) throw new Error('Run retention by its real file path; symlink invocation is refused.');
+    await run(parseArgs(process.argv.slice(2)));
+  }
   catch (error) { console.error(error.message); process.exitCode = 1; }
 }
