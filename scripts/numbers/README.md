@@ -1,5 +1,7 @@
 # Numbers: study and re-analysis
 
+The JavaScript tools that import the shared TypeScript record check need Node 22.18 or newer (native type stripping), or must run through `node --import tsx`.
+
 Read-only queries that look for stored nutrition numbers that cannot be right, and operator statements that re-analyse one meal and put it back. Each file says what it needs. Written for Fleet 25 (docs/plan-fleet25.md), where every file was run on a database made from this repository's migrations.
 
 Read-only files (02 to 09) are run with a read-only session:
@@ -32,3 +34,5 @@ cards.mjs only reads: for each meal prefix, the calories its card shows, the cal
 23-records.sql is read-only and takes no variable: every current food of every account's ready meals and every saved meal's food, one JSON line each, with its record, the record's description and category, and how it was chosen (#990). `node scripts/numbers/mismatch.mjs [--labels=<file>] [--out=<private directory>]` reads it in a read-only session and checks each matched or closest record with the matcher's own rules (`src/lib/fdc/record-kind.ts`): a record that is a fruit, sweet, drink, condiment or fat for a food with no word of that kind, or a raw record for a cooked food or dish, is a strong signal; a dish of several foods matched to one, or an energy density far outside the food's kind, is weak. It prints the flagged foods, ranked, and with `--labels` their precision and recall on foods whose verdict is known.
 
 24-recheck.sql writes, like 11: it looks up again only the listed foods of one meal; every other food keeps its nutrition exactly. Run it only through `reanalyse.mjs run --mode=recheck --foods-file=<mismatch.mjs flagged.jsonl>`, which takes the snapshot first and works only meal foods with a strong signal. The listed foods' lost micronutrients are ledgered as values_removed; the calories may move by more than half only when every listed food's new record passes the record check or is an estimate. 25-resave.sql writes one saved meal in place from its meal's current foods, after a kept recheck; the meal's snapshot holds the old saved row.
+
+25-resave.sql has no CLI snapshot guard of its own: before running it, retain and inspect the meal's 08-snapshot.sql output with its original `saved_meals` entry. Undo restores that saved row's original items by the same saved-meal ID. Duplicate current food names cannot be distinguished by the recheck outcome's name-only rows, so their micronutrient losses are retained and trigger the ordinary restore rule. Labelled detector precision is scoped to the supplied labels; it is not blind precision or proof that every unlabelled flag is wrong.

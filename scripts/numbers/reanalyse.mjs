@@ -123,7 +123,9 @@ export const RECHECK_REASON = 'the record was another kind of food (#990)';
 export function recheckOutcome(lost, before, listedNames, items22) {
   const current = (before?.items ?? []).filter((item) => item.superseded_at === null);
   const names = new Set(listedNames.map((name) => name.trim().toLowerCase()));
-  const listedIndex = new Set(current.map((item, index) => names.has(String(item.name ?? '').trim().toLowerCase()) ? index + 1 : null).filter(Boolean));
+  const key = item => String(item.name ?? '').trim().toLowerCase();
+  // Name-only outcome rows cannot distinguish twins: retain their losses so the ordinary restore rule applies.
+  const listedIndex = new Set(current.map((item, index) => names.has(key(item)) && current.filter(other => key(other) === key(item)).length === 1 ? index + 1 : null).filter(Boolean));
   const removed = (lost ?? []).filter((value) => { const m = /^food ([0-9]+): nutrient [0-9]+$/.exec(value); return m && listedIndex.has(Number(m[1])); });
   const after = items22.filter((row) => names.has(String(row.name ?? '').trim().toLowerCase()));
   const still = after.filter((row) => row.how !== 'estimate' && (!row.description || checkRecord(row.name, { description: row.description, category: row.category }).strong.length));

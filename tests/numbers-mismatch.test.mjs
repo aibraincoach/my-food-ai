@@ -118,3 +118,18 @@ test('a recheck reads only strong meal flags, and keeps a meal whose new record 
   assert.match(restoreReason({ outcome: 'changed', values_lost: [], calories_change: 0.1, recheck_still: again.still }), /still another kind/);
   assert.equal(recheckOutcome([], before, ['Japanese curry sauce'], [{ name: 'Japanese curry sauce', how: 'estimate', description: null }]).passed, true);
 });
+
+test('a listed food name cannot excuse micronutrient losses from an indistinguishable twin', () => {
+  const before = { items: [
+    { name: 'Japanese curry sauce', superseded_at: null },
+    { name: 'Japanese curry sauce', superseded_at: null },
+  ] };
+  const lost = ['food 1: nutrient 1092', 'food 2: nutrient 1092'];
+  const outcome = recheckOutcome(lost, before, ['Japanese curry sauce'], [
+    { name: 'Japanese curry sauce', how: 'estimate', description: null },
+    { name: 'Japanese curry sauce', how: 'estimate', description: null },
+  ]);
+  assert.deepEqual(outcome.removed, []);
+  assert.deepEqual(outcome.kept, lost);
+  assert.match(restoreReason({ outcome: 'changed', values_lost: outcome.kept }), /lost/);
+});
