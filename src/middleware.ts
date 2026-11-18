@@ -1,4 +1,4 @@
-import { verifiedUserCookie } from "@/lib/auth/verified-cookie";
+import { verifiedUserCookie, VERIFIED_USER_COOKIE } from "@/lib/auth/verified-cookie";
 import { VERIFIED_USER_HEADER } from "@/lib/auth/verified-user-header";
 import { mediaSessionEpoch } from "@/lib/auth/media-session-epoch";
 import { NextResponse, type NextRequest } from "next/server";
@@ -6,10 +6,12 @@ import { createServerClient } from "@supabase/ssr";
 import { adminRequestAllowed, adminNotFoundResponse } from "@/lib/auth/admin-access";
 import { postRequestAllowed } from "@/lib/auth/post-access";
 import { sessionCookieBridge } from "@/lib/auth/session-cookies";
+import { FIRST_PHOTO_COOKIE, firstPhotoLinkHeader } from "@/lib/posts/first-photo-hint";
 
 const PROTECTED = ["/", "/search", "/days", "/profile", "/posts"];
 
 export async function middleware(request: NextRequest) {
+  const previousUser = request.cookies.get(VERIFIED_USER_COOKIE)?.value;
   request.headers.delete(VERIFIED_USER_HEADER);
   const session = sessionCookieBridge(request);
   const supabase = createServerClient(
@@ -26,6 +28,9 @@ export async function middleware(request: NextRequest) {
     session.refreshRequestHeaders();
   }
   session.cookies.setAll([verifiedUserCookie(userId, request.nextUrl.protocol === "https:")]);
+  if (!userId || (previousUser && previousUser !== userId)) {
+    session.cookies.setAll([{name:FIRST_PHOTO_COOKIE,value:'',options:{path:'/',maxAge:0,sameSite:'lax',secure:request.nextUrl.protocol==='https:'}}]);
+  }
   const pathname = request.nextUrl.pathname;
   if (pathname === "/admin" || pathname.startsWith("/admin/")) {
     const allowed = await adminRequestAllowed(
@@ -55,6 +60,15 @@ export async function middleware(request: NextRequest) {
   }
   if (pathname === "/" && userId) {
     session.response.headers.set("Cache-Control", "private, no-store");
+    // #222: ask for the last first photo before the shell's scripts; Home's own preload follows once the feed is read.
+    const hint = request.cookies.get(FIRST_PHOTO_COOKIE)?.value;
+    const started = performance.now();
+    const link = await firstPhotoLinkHeader(hint, userId, (id, secret) => supabase.from('post_media')
+      .select('id,kind,photo_secret,posts!inner(user_id,deleted_at)').eq('id',id).eq('photo_secret',secret)
+      .eq('posts.user_id',userId).is('posts.deleted_at',null).abortSignal(AbortSignal.timeout(250)).maybeSingle());
+    if(hint)session.response.headers.append('Server-Timing',`first-photo-ownership;dur=${(performance.now()-started).toFixed(1)}`);
+    if (link) session.response.headers.append("Link", link);
+    else if(hint)session.response.cookies.set(FIRST_PHOTO_COOKIE,'',{path:'/',maxAge:0,sameSite:'lax',secure:request.nextUrl.protocol==='https:'});
   }
   return session.response;
 }

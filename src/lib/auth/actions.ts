@@ -4,6 +4,8 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { endCurrentSession } from "@/lib/auth/end-session";
+import { cookies } from "next/headers";
+import { FIRST_PHOTO_COOKIE } from "@/lib/posts/first-photo-hint";
 
 function fail(path: string, message: string): never {
   redirect(`${path}?error=${encodeURIComponent(message)}`);
@@ -54,11 +56,13 @@ export async function signIn(formData: FormData): Promise<void> {
   const supabase = await createClient();
   const { error } = await supabase.auth.signInWithPassword({ email, password, ...(options ? { options } : {}) });
   if (error) fail("/sign-in", error.message.toLowerCase().includes("captcha") ? "Complete the check and try again." : error.message);
+  (await cookies()).set(FIRST_PHOTO_COOKIE,'',{path:'/',maxAge:0,sameSite:'lax'});
   redirect("/");
 }
 
 export async function signOut() {
   const supabase = await createClient();
   await endCurrentSession(supabase.auth);
+  (await cookies()).set(FIRST_PHOTO_COOKIE,'',{path:'/',maxAge:0,sameSite:'lax'});
   redirect("/sign-in");
 }

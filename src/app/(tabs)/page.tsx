@@ -9,6 +9,7 @@ import DesktopHomeFrame from '@/components/DesktopHomeFrame';
 import PostDetail from '@/components/PostDetail';
 import PostOpenFrame from '@/components/PostOpenFrame';
 import SavedMealsButton from '@/components/SavedMealsButton';
+import FirstPhotoMemory from '@/components/FirstPhotoMemory';
 import { connection } from "next/server";
 import { cache, Suspense } from "react";
 import {preload} from "react-dom";
@@ -119,7 +120,7 @@ async function HomeFirstPhoto() {
   } catch { /* The normal feed boundary and cache remain available. */ }
   if(!first)return null;
   if(first.photoUrl)preload(first.photoUrl,{as:'image',fetchPriority:'high',crossOrigin:'anonymous',imageSrcSet:feedPhotoSrcSet(first.photoUrl),imageSizes:'(min-width: 1024px) 520px, 100vw'});
-  return <div data-fast-feed-seed className="relative pb-card-gap">
+  return <div data-fast-feed-seed className="relative pb-card-gap"><FirstPhotoMemory url={first.photoUrl}/>
     <DayHeader day={dateInZone(first.eaten_at,zone)} zone={zone} empty={false}/><div className="pt-sheet-top">
     <div className="flex h-[52px] items-center gap-[10px] px-inset" aria-hidden="true"><span className="size-8 rounded-circle bg-card"/><span className="h-3 w-24 rounded-field bg-card"/></div>
     {first.photoUrl?<Link href={`/posts/${first.id}`} aria-label="Open meal details" className="block aspect-square">
