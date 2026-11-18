@@ -1,59 +1,23 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
+import {readFileSync} from 'node:fs';
+import vm from 'node:vm';
+import ts from 'typescript';
 import * as tick from '../src/lib/queue/tick.ts';
 
-// Stand-in database: one due queued job, nothing running, and a lease another holder has.
-function blockedAdmin(expiresAt){
-  const calls=[];
-  return {calls,
-    from(table){
-      if(table==='worker_lease')return {select(){return this;},eq(){return this;},maybeSingle:async()=>({data:{expires_at:expiresAt},error:null})};
-      assert.equal(table,'jobs');
-      return {select(){return this;},lte(){return this;},eq(column,value){return Promise.resolve({count:value==='queued'?1:0,error:null});}};
-    },
-    async rpc(name){calls.push(name);assert.equal(name,'try_acquire_worker_lease');return {data:false,error:null};},
-  };
-}
-
-test('a tick that finds due work behind another holder\'s lease looks again once that lease can have expired', async () => {
-  const original=globalThis.setTimeout;const waits=[];let ticks=0;
-  globalThis.setTimeout=(callback,delay)=>{waits.push(delay);callback();return 0;};
-  try {
-    const admin=blockedAdmin(new Date(Date.now()+40_000).toISOString());
-    const status=await tick.queueTick(admin,'second-tick',60);
-    assert.equal(status.queued,1);assert.equal(status.started,false,'the lease is held by someone else');
-    assert.equal(typeof tick.retickWhenBlocked,'function','a blocked tick must have a way to look again');
-    assert.equal(await tick.retickWhenBlocked(admin,status,async()=>{ticks++;},60),true);
-    assert.equal(ticks,1,'the blocked tick ticks again');
-    assert.equal(waits.length,1);
-    assert.ok(waits[0]>39_000&&waits[0]<=41_000,`waits for the lease expiry plus one second, got ${waits[0]}`);
-    // A lease far in the future (a fixture run) never makes the wait longer than one lease lifetime.
-    waits.length=0;
-    await tick.retickWhenBlocked(blockedAdmin(new Date(Date.now()+600_000).toISOString()),status,async()=>{ticks++;},60);
-    assert.deepEqual(waits,[61_000]);assert.equal(ticks,2);
-    // Nothing to look again for: this tick started the worker, or no due work waits.
-    waits.length=0;
-    assert.equal(await tick.retickWhenBlocked(admin,{queued:1,started:true},async()=>{ticks++;},60),false);
-    assert.equal(await tick.retickWhenBlocked(admin,{queued:0,started:false},async()=>{ticks++;},60),false);
-    assert.deepEqual(waits,[]);assert.equal(ticks,2);
-  } finally {globalThis.setTimeout=original;}
+test('a tick blocked behind a lease schedules no further tick in ten simulated minutes',async()=>{
+ const afters=[],timers=[];let now=1000,requests=0,reads=0;
+ const admin={from(table){reads++;if(table==='worker_lease')return{select(){return this;},eq(){return this;},maybeSingle:async()=>({data:{expires_at:new Date(41000).toISOString()},error:null})};assert.equal(table,'jobs');return{select(){return this;},lte(){return this;},eq(_column,value){return Promise.resolve({count:value==='queued'?1:0,error:null});}};},rpc:async name=>{assert.equal(name,'try_acquire_worker_lease');return{data:false,error:null};}};
+ const exports={};const code=ts.transpileModule(readFileSync(new URL('../src/app/api/jobs/tick/route.ts',import.meta.url),'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText;
+ const original=globalThis.setTimeout;globalThis.setTimeout=(fn,delay)=>{timers.push({fn,at:now+delay});return 0;};
+ try{
+ vm.runInNewContext(code,{exports,URL,AbortSignal,console:{info(){}},Date:class extends Date{static now(){return now;}},fetch:async()=>{requests++;return Response.json({});},require(name){if(name==='node:crypto')return{randomUUID:()=> 'holder'};if(name==='next/server')return{NextResponse:{json:Response.json},after:fn=>afters.push(fn)};if(name==='@/lib/supabase/admin')return{createAdminClient:()=>admin};if(name==='@/lib/queue/tick')return tick;if(name==='@/lib/queue/lease')return{LEASE_TTL_SECONDS:60};throw Error(name);}});
+ const response=await exports.GET(new Request('http://127.0.0.1/api/jobs/tick'));assert.equal(response.status,200);assert.equal((await response.json()).queued,1);
+ const before=reads,work=afters.map(fn=>fn());await new Promise(resolve=>setImmediate(resolve));now+=600000;for(const timer of timers)if(timer.at<=now)timer.fn();await Promise.all(work);
+ assert.equal(requests,0,'blocked work waits for the minute wake, never a timer self-request');assert.equal(timers.length,0);assert.equal(reads,before,'no lease-expiry recovery read');
+ }finally{globalThis.setTimeout=original;}
 });
-
-test('only one second look is pending per server instance', async () => {
-  const original=globalThis.setTimeout;const pending=[];let ticks=0;
-  globalThis.setTimeout=(callback)=>{pending.push(callback);return 0;};
-  try {
-    const admin=blockedAdmin(new Date(Date.now()+40_000).toISOString());
-    const first=tick.retickWhenBlocked(admin,{queued:1,started:false},async()=>{ticks++;},60);
-    assert.equal(await tick.retickWhenBlocked(admin,{queued:1,started:false},async()=>{ticks++;},60),false,'a second blocked tick does not stack another wait');
-    await new Promise(resolve=>setImmediate(resolve));
-    assert.equal(pending.length,1);pending[0]();
-    assert.equal(await first,true);assert.equal(ticks,1);
-  } finally {globalThis.setTimeout=original;}
-});
-
-test('the tick route hands a blocked tick to the second look', () => {
-  const route=readFileSync(new URL('../src/app/api/jobs/tick/route.ts',import.meta.url),'utf8');
-  assert.match(route,/retickWhenBlocked\(admin, status,/);
+test('the removed blocked-tick path is absent from the function and route',()=>{
+ assert.equal(tick.retickWhenBlocked,undefined);
+ assert.doesNotMatch(readFileSync(new URL('../src/app/api/jobs/tick/route.ts',import.meta.url),'utf8'),/retickWhenBlocked/);
 });
