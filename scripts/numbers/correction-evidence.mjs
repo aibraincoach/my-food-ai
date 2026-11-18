@@ -77,6 +77,10 @@ export function correctionFor(meal,finding) {
  if(evidence.some(e=>!e || e.meal_id!==meal.meal_id || e.item_id!==food.item_id)) return denied(finding.action==='restore_snapshot'?'no restore evidence':'no structured correction evidence');
  const current=evidence.find(e=>e.kind==='current' && Object.hasOwn(e.values??{},finding.field) && e.values[finding.field]===food[finding.field] && e.basis?.[finding.field]===finding.basis);
  if(!current) return denied(finding.action==='restore_snapshot'?'no restore evidence':'no structured correction evidence');
+ if(finding.action==='set_weight') {
+  if(food.not_eaten_g!=null)return denied('served weight on a leftovers food');
+  if(!['plate or bowl','hand','cutlery','pack size'].includes(meal.verdict.weight_reference))return denied('no size reference');
+ }
  let script,snapshot;
  if(finding.action==='restore_snapshot') {
   const prior=evidence.filter(e=>['snapshot','earlier-state'].includes(e.kind));

@@ -1,3 +1,4 @@
+import fs from'node:fs';
 import{addSnapshotEvidence}from'./correction-evidence.mjs';
 import{createHash}from'node:crypto';import{parseArgs}from'node:util';import path from'node:path';import{privateDir,writeJson,readRows,readJson,isMain,validPrefix,refuseExisting}from'./study-io.mjs';
 const md5=value=>createHash('md5').update(value).digest('hex');
@@ -12,4 +13,14 @@ export function chooseSample(rows,{flagged=[]}={}){
  const selected=[...a.map(m=>({...m,group:'a'})),...b.map(m=>({...m,group:'b'})),...c.map(m=>({...m,group:'c'}))];
  return{meals:selected,controls_available:controls.length,omitted_leftovers:leftovers.slice(22).map(m=>m.meal),population:{meals:meals.length,leftovers:leftovers.length,flagged_non_leftovers:meals.filter(m=>flagIds.has(m.meal)&&!leftIds.has(m.meal)).length,sampled:selected.length,unsampled:meals.length-selected.length}};
 }
-if(isMain(import.meta.url)){try{const{values}=parseArgs({options:{rows:{type:'string'},mismatch:{type:'string'},out:{type:'string'},snapshots:{type:'string'}}});if(!values.rows||!values.mismatch||!values.out)throw Error('Required: --rows=<jsonl> --mismatch=<flagged.jsonl or JSON> --out=<private directory>.');const dir=privateDir(values.out),file=path.join(dir,'sample.json');refuseExisting(file);let flags;try{flags=readJson(values.mismatch);}catch{flags=readRows(values.mismatch);}let sample=chooseSample(readRows(values.rows),{flagged:Array.isArray(flags)?flags:flags.flagged??(flags.meal?[flags]:[])});if(values.snapshots)sample=addSnapshotEvidence(sample,values.snapshots);writeJson(file,sample);console.log(JSON.stringify({sampled:sample.meals.length,controls:sample.meals.filter(m=>m.group==='c').length,omitted_leftovers:sample.omitted_leftovers.length}));}catch(e){console.error(e.message);process.exitCode=1;}}
+export function subsetSample(sample,prefixes){
+ if(!Array.isArray(prefixes)||prefixes.length>30)throw Error('At most 30 meals may be selected.');
+ const seen=new Set(),meals=[];
+ for(const prefix of prefixes){if(seen.has(prefix))throw Error('Duplicate meal prefix.');seen.add(prefix);const meal=sample.meals.find(m=>m.meal===prefix);if(!validPrefix(prefix)||!meal)throw Error('Unknown meal prefix.');meals.push(structuredClone(meal));}
+ return {meals,parent_sha256:createHash('sha256').update(JSON.stringify(sample)).digest('hex')};
+}
+if(isMain(import.meta.url)){try{const{values}=parseArgs({options:{rows:{type:'string'},mismatch:{type:'string'},out:{type:'string'},snapshots:{type:'string'},'from-sample':{type:'string'},meals:{type:'string'}}});if(!values.out)throw Error('Required: --out.');const dir=privateDir(values.out),file=path.join(dir,'sample.json');refuseExisting(file);let sample;
+ if(values['from-sample']){if(!values.meals||values.rows||values.mismatch||values.snapshots)throw Error('Subset requires --from-sample and --meals only.');sample=subsetSample(readJson(values['from-sample']),readRowsPrefixes(values.meals));}
+ else{if(!values.rows||!values.mismatch||values.meals)throw Error('Required: --rows and --mismatch.');let flags;try{flags=readJson(values.mismatch);}catch{flags=readRows(values.mismatch);}sample=chooseSample(readRows(values.rows),{flagged:Array.isArray(flags)?flags:flags.flagged??(flags.meal?[flags]:[])});if(values.snapshots)sample=addSnapshotEvidence(sample,values.snapshots);}
+ writeJson(file,sample);console.log(JSON.stringify({sampled:sample.meals.length,controls:sample.meals.filter(m=>m.group==='c').length,omitted_leftovers:sample.omitted_leftovers?.length??0}));}catch(e){console.error(e.message);process.exitCode=1;}}
+function readRowsPrefixes(file){return fs.readFileSync(file,'utf8').split(/\s+/).filter(Boolean);}
