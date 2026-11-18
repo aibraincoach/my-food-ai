@@ -14,7 +14,7 @@ import CommentComposer,{type CommentRow} from '@/components/CommentComposer';
 import {LocalTime} from '@/components/LocalTime';
 import {usePostHandle} from '@/components/PostHandle';
 const sort=(rows:CommentRow[])=>rows.toSorted((a,b)=>a.created_at.localeCompare(b.created_at)||a.id.localeCompare(b.id));
-export default function Thread({postId,readOnly=false,sourcePostId,desktopActions}:{desktopActions?:ReactNode;postId:string;readOnly?:boolean;sourcePostId?:string|null}){
+export default function Thread({postId,readOnly=false,sourcePostId,desktopActions,fingerprint=null}:{desktopActions?:ReactNode;postId:string;readOnly?:boolean;sourcePostId?:string|null;fingerprint?:string|null}){
  const menus=useRef<HTMLElement>(null);useRemovalMenus(menus);
  const handle=usePostHandle();
  const [accepted,setAccepted]=useState<string|null>(null);
@@ -27,15 +27,14 @@ export default function Thread({postId,readOnly=false,sourcePostId,desktopAction
   // Always a full, ordered read: a comment can commit with an earlier timestamp than one already seen.
   const load=async()=>{if(inFlight){again=true;return;}inFlight=true;try{
    const {data:verdict}=await client.from('post_feedback').select('verdict,model_comment_id,item_fingerprint').eq('post_id',postId).maybeSingle();
-   const {data:revision}=await client.rpc('feedback_revision',{p_post_id:postId});
-   if(live)setAccepted(verdict?.verdict==='up'&&verdict.item_fingerprint===revision?.fingerprint?verdict.model_comment_id:null);
+   if(live)setAccepted(fingerprint!==null&&verdict?.verdict==='up'&&verdict.item_fingerprint===fingerprint?verdict.model_comment_id:null);
    const [data,{data:post,error:postError}]=await Promise.all([
     readPostComments(client,postId),
     client.from('posts').select('status,analysis_initialized_at,fail_reason').eq('id',postId).maybeSingle(),
    ]);
    if(!live)return;if(postError||!post){setError('Comments could not be loaded.');return;}
    const models=(data??[]).filter(row=>row.author==='model');
-   const freshModel=models.some(row=>!modelIds.has(row.id));
+   const freshModel=knownStatus!==null&&models.some(row=>!modelIds.has(row.id));
    modelIds=new Set(models.map(row=>row.id));
    if(freshModel)router.refresh();
    if(knownStatus&&knownStatus!==post.status)router.refresh();knownStatus=post.status;
@@ -51,7 +50,7 @@ export default function Thread({postId,readOnly=false,sourcePostId,desktopAction
   wake.current=()=>{void load();};
   void load();
   return()=>{live=false;wake.current=()=>{};window.removeEventListener('focus',visible);document.removeEventListener('visibilitychange',visible);window.removeEventListener('post-readiness',readiness);void client.removeChannel(channel);};
- },[postId,router]);
+ },[postId,router,fingerprint]);
  const [toast,setToast]=useState<{key:number;undo:()=>void}|null>(null);
  const [pendingRemovals,setPendingRemovals]=useState<string[]>([]);
  const pendingRemovalIds=useRef(new Set<string>());
