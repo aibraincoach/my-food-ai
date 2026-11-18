@@ -21,7 +21,9 @@ export function workerDeadlineSignal(signal?: AbortSignal): AbortSignal | undefi
 }
 
 export function workerHandoffDelay(nextAt: number, startedAt: number, now = Date.now()): number | null {
-  const wait = Math.min(Math.max(nextAt - now, 1000), 60_000);
+  // Future work belongs to the minute cron; a self-request would find nothing due.
+  if (nextAt > now) return null;
+  const wait = 1000;
   // A durable scheduled wake handles future work when this invocation cannot wait safely.
   return now + wait + HANDOFF_REQUEST_MS <= startedAt + WORKER_PROCESSING_MS ? wait : null;
 }

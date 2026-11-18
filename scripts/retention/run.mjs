@@ -1,16 +1,17 @@
 #!/usr/bin/env node
-// Retention runner (#1097 jobs, #1098 model_calls). Owner rule 4: never one big delete.
+// Retention runner (#1097 jobs, #1098 model_calls, #1121 cron_runs). Owner rule 4: never one big delete.
 // Dry run by default: prints what each rule would delete, per rule, kind and day, and deletes nothing.
 // --delete runs at most --batches batches of at most --batch-size rows, one after another, with --pause-ms between
 // them, and stops at the first batch that deletes nothing or fails. Deleted rows cannot be restored; each batch is
 // counted in public.retention_summary. Usage:
-//   SUPABASE_DB_URL=... node scripts/retention/run.mjs --table=jobs|model_calls [--delete --batches=1 --batch-size=200 --pause-ms=5000]
+//   SUPABASE_DB_URL=... node scripts/retention/run.mjs --table=jobs|model_calls|cron_runs [--delete --batches=1 --batch-size=200 --pause-ms=5000]
 import { spawnSync } from 'node:child_process';
 import { existsSync, realpathSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { setTimeout as sleep } from 'node:timers/promises';
 
 export const TABLES = {
+  cron_runs: { dryRun: 'retention_cron_runs_dry_run', batch: 'retention_cron_runs_batch' },
   jobs: { dryRun: 'retention_jobs_dry_run', batch: 'retention_jobs_batch' },
   model_calls: { dryRun: 'retention_traces_dry_run', batch: 'retention_traces_batch' },
 };
@@ -25,7 +26,7 @@ export function parseArgs(argv) {
   const int = (name, value, [min, max]) => { const n = Number(value); if (typeof value === 'boolean' || !Number.isInteger(n) || n < min || n > max) throw new Error(`--${name} must be an integer from ${min} to ${max}`); return n; };
   return { table: raw.table, delete: raw.delete === true,
     batches: int('batches', raw.batches ?? 1, LIMITS.batches),
-    batchSize: int('batch-size', raw['batch-size'] ?? 200, LIMITS.batchSize),
+    batchSize: int('batch-size', raw['batch-size'] ?? 200, raw.table === 'cron_runs' ? [1, 5000] : LIMITS.batchSize),
     pauseMs: int('pause-ms', raw['pause-ms'] ?? 5000, LIMITS.pauseMs) };
 }
 
@@ -36,14 +37,29 @@ function psql(sql, readOnly = false) {
   const result = spawnSync('psql', ['-X', '-qAt', '-F', '\t', '-v', 'ON_ERROR_STOP=1', '--dbname', db],
     { input: `begin${readOnly ? ' read only' : ''};\nset local lock_timeout = '5s';\nset local statement_timeout = '30s';\n${sql}\ncommit;\n`, encoding: 'utf8', timeout: 60000 });
   if (result.error) throw result.error;
-  if (result.status !== 0) throw new Error(result.stderr.trim() || `psql exited ${result.status}`);
+  if (result.status !== 0) throw new Error([result.stdout.trim(), result.stderr.trim()].filter(Boolean).join('\n') || `psql exited ${result.status}`);
   return result.stdout.trim();
 }
 
 export async function run(options, log = console.log) {
   const fns = TABLES[options.table];
   if (!options.delete) {
-    const rows = psql(`select rule, kind, day, would_delete from public.${fns.dryRun}();`, true);
+    const privilege = options.table === 'cron_runs' ? `select has_table_privilege('cron.job_run_details', 'DELETE') as cron_can_delete \\gset
+\\echo cron_delete_privilege :cron_can_delete
+\\if :cron_can_delete
+` : '';
+    const refuse = options.table === 'cron_runs' ? `
+\\else
+\\echo Cron run DELETE privilege is required; stopping without cleanup.
+\\quit 1
+\\endif` : '';
+    let rows = psql(`${privilege}select rule, kind, day, would_delete from public.${fns.dryRun}();${refuse}`, true);
+    if (options.table === 'cron_runs') {
+      const [permission, ...data] = rows.split('\n');
+      if (permission !== 'cron_delete_privilege t') throw new Error('Cron run DELETE privilege was not confirmed.');
+      log(permission);
+      rows = data.join('\n');
+    }
     const lines = rows ? rows.split('\n').map(line => line.split('\t')) : [];
     log(`dry run, ${options.table}: ${lines.reduce((sum, row) => sum + Number(row[3]), 0)} row(s) would be deleted; nothing was deleted`);
     for (const [rule, kind, day, count] of lines) log(`${day}\t${rule}\t${kind}\t${count}`);

@@ -36,28 +36,4 @@ export async function queueTick(
   return { queued: depth, running: running ?? 0, traffic, started };
 }
 
-let retickPending = false;
-
-// queueTick found due work while another holder has the lease. A healthy holder claims that work
-// itself, but a holder that died never releases, and this tick can be the only wake the job gets
-// (the post route ticks once; a stack without the minute database wake has nothing else). So the
-// caller looks again once that lease can have expired. One pending look per server instance.
-export async function retickWhenBlocked(
-  admin: SupabaseClient,
-  status: { queued: number; started: boolean },
-  tickSelf: () => Promise<unknown>,
-  ttlSeconds: number
-): Promise<boolean> {
-  if (status.started || status.queued === 0 || retickPending) return false;
-  retickPending = true;
-  try {
-    const { data } = await admin.from("worker_lease").select("expires_at").eq("id", 1).maybeSingle();
-    const expiresAt = data?.expires_at ? Date.parse(data.expires_at as string) : Date.now();
-    const wait = Math.min(Math.max(expiresAt - Date.now(), 0), ttlSeconds * 1000) + 1000;
-    await new Promise((resolve) => setTimeout(resolve, wait));
-  } catch {
-    // An unreadable lease still gets its second look, straight away.
-  } finally { retickPending = false; }
-  await tickSelf();
-  return true;
-}
+// A blocked tick leaves recovery to the minute cron: at most 60 s after the lease expires.

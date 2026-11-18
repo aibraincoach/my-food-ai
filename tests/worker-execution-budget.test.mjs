@@ -40,14 +40,16 @@ test('expired invocation cannot start an SDK request or extend an existing calle
 });
 
 test('late worker handoff skips both the timer and request so the durable wake can take over',async()=>{
- assert.equal(workerHandoffDelay(100000,0,0),60000);
+ assert.equal(workerHandoffDelay(100000,0,0),null);
  assert.equal(workerHandoffDelay(300000,0,250000),null);
- const oldNow=Date.now,oldTimeout=globalThis.setTimeout;let now=0,ticks=0;const waits=[];
+ const oldNow=Date.now,oldTimeout=globalThis.setTimeout;let now=0,ticks=0,claimed=0;const waits=[];
  Date.now=()=>now;globalThis.setTimeout=(fn,delay)=>{waits.push(delay);fn();return 0;};
  const admin={async rpc(name){
-  if(name==='claim_owned_job')return{data:null,error:null};
+  if(name==='claim_owned_job')return{data:claimed++===0?{id:'job',kind:'fixture',post_id:null,payload:{}}:null,error:null};
+  if(name==='renew_worker_lease')return{data:true,error:null};
+  if(name==='fail_job')return{data:null,error:null};
   if(name==='release_worker_lease'){now=269000;return{error:null};}
-  if(name==='next_worker_wake')return{data:new Date(now+60000).toISOString(),error:null};
+  if(name==='next_worker_wake')return{data:new Date(now).toISOString(),error:null};
   throw Error('Unexpected RPC');
  }};
  try{await runWorker(admin,'fixture',async()=>{ticks++;});assert.equal(ticks,0);assert.deepEqual(waits,[]);}
@@ -55,14 +57,29 @@ test('late worker handoff skips both the timer and request so the durable wake c
 });
 
 test('a handoff timer that resumes late cannot launch a request',async()=>{
- const oldNow=Date.now,oldTimeout=globalThis.setTimeout;let now=0,ticks=0;const waits=[];
+ const oldNow=Date.now,oldTimeout=globalThis.setTimeout;let now=0,ticks=0,claimed=0;const waits=[];
  Date.now=()=>now;globalThis.setTimeout=(fn,delay)=>{waits.push(delay);now=269500;fn();return 0;};
  const admin={async rpc(name){
-  if(name==='claim_owned_job')return{data:null,error:null};
+  if(name==='claim_owned_job')return{data:claimed++===0?{id:'job',kind:'fixture',post_id:null,payload:{}}:null,error:null};
+  if(name==='renew_worker_lease')return{data:true,error:null};
+  if(name==='fail_job')return{data:null,error:null};
   if(name==='release_worker_lease')return{error:null};
   if(name==='next_worker_wake')return{data:new Date(0).toISOString(),error:null};
   throw Error('Unexpected RPC');
  }};
  try{await runWorker(admin,'fixture',async()=>{ticks++;});assert.equal(ticks,0);assert.deepEqual(waits,[1000]);}
+ finally{Date.now=oldNow;globalThis.setTimeout=oldTimeout;}
+});
+test('a processed round with only a far-future wake makes no timer or self-tick',async()=>{
+ const oldNow=Date.now,oldTimeout=globalThis.setTimeout;let now=1000,claimed=0,ticks=0;const waits=[];
+ Date.now=()=>now;globalThis.setTimeout=(fn,delay)=>{waits.push(delay);now+=delay;fn();return 0;};
+ const admin={async rpc(name){
+  if(name==='claim_owned_job')return{data:claimed++===0?{id:'job',kind:'fixture',post_id:null,payload:{}}:null,error:null};
+  if(name==='renew_worker_lease')return{data:true,error:null};
+  if(['fail_job','release_worker_lease'].includes(name))return{data:null,error:null};
+  if(name==='next_worker_wake')return{data:new Date(now+10800000).toISOString(),error:null};
+  throw Error('Unexpected RPC '+name);
+ }};
+ try{await runWorker(admin,'fixture',async()=>{ticks++;});assert.equal(ticks,0);assert.deepEqual(waits,[]);assert.equal(workerHandoffDelay(now+10800000,1000,now),null);}
  finally{Date.now=oldNow;globalThis.setTimeout=oldTimeout;}
 });

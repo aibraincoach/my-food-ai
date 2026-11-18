@@ -13,7 +13,7 @@ test('a lone abandoned running job can acquire a recovery worker', async () => {
   assert.deepEqual(calls,['try_acquire_worker_lease']);
 });
 
-test('blocked due work waits for eligibility instead of immediately self-ticking', async () => {
+test('a round with due but unclaimable work makes no self-tick', async () => {
   const original=globalThis.setTimeout;const waits=[];let ticks=0;
   globalThis.setTimeout=(callback,delay)=>{waits.push(delay);callback();return 0;};
   try {
@@ -24,10 +24,10 @@ test('blocked due work waits for eligibility instead of immediately self-ticking
       throw new Error(`unexpected RPC ${name}`);
     }};
     await runWorker(admin,'recovery',async()=>{ticks++;});
-    assert.deepEqual(waits,[60_000]);assert.equal(ticks,1);
+    assert.deepEqual(waits,[]);assert.equal(ticks,0);
     admin.rpc=async name=>{assert.ok(['claim_owned_job','release_worker_lease','next_worker_wake'].includes(name));return {data:null,error:null};};
     await runWorker(admin,'empty',async()=>{ticks++;});
-    assert.equal(ticks,1,'empty queue does not keep waking');
+    assert.equal(ticks,0,'empty queue does not keep waking');
   } finally {globalThis.setTimeout=original;}
 });
 
@@ -41,4 +41,18 @@ test('a queued job that is not due yet does not wake the worker', async () => {
   };
   assert.deepEqual(await queueTick(admin,'idle'),{queued:0,running:0,traffic:'low',started:false});
   assert.deepEqual(calls,[],'no lease is taken');
+});
+
+
+test('two processed jobs with work remaining hand off exactly once',async()=>{
+ const originalTimeout=globalThis.setTimeout,originalDateNow=Date.now,oldConcurrency=process.env.WORKER_CONCURRENCY;let now=1000,claimed=0,ticks=0;const waits=[];process.env.WORKER_CONCURRENCY='1';
+ Date.now=()=>now;globalThis.setTimeout=(fn,delay)=>{waits.push(delay);now+=delay;fn();return 0;};
+ const admin={async rpc(name){
+  if(name==='claim_owned_job'){claimed++;if(claimed>2)return{data:null,error:null};now+=31000;return{data:{id:'job-'+claimed,kind:'unknown-fixture',post_id:null,payload:{}},error:null};}
+  if(name==='finish_job'||name==='renew_worker_lease'||name==='release_worker_lease')return{data:true,error:null};
+  if(name==='fail_job')return{data:null,error:null};
+  if(name==='next_worker_wake')return{data:new Date(now).toISOString(),error:null};
+  throw Error('Unexpected '+name);
+ }};
+ try{await runWorker(admin,'worked',async()=>{ticks++;});assert.equal(claimed,2);assert.equal(ticks,1);assert.equal(waits.length,1);}finally{Date.now=originalDateNow;globalThis.setTimeout=originalTimeout;if(oldConcurrency===undefined)delete process.env.WORKER_CONCURRENCY;else process.env.WORKER_CONCURRENCY=oldConcurrency;}
 });
