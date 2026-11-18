@@ -1,5 +1,7 @@
 # Fleet45 cache-enabled local comparison
 
+PM acceptance at12:27Z: optionA is accepted on the realistic setting. The1793.3ms median passes; the first2359.1ms run is59.1ms above the original2300ms worst-run bound, the other four are inside, and each photo transfers once. This is an explicit PM exception to the worst-run bound. No optionB; reviewer verdict and an exact-head merge order are still required.
+
 PM order of12:22Z: fresh empty profiles, cache enabled, same photo and slow profile, five sequential opens per build. Only the initial Network.setCacheDisabled argument changes from true to false in a separate instrument copy; the original frozen file stays byte-identical. No production access or source-code change.
 
 | Run | First resource ms | 640 shown ms | 1200 shown ms | FCP ms | 640 CDP entries / bytes each | 1200 CDP entries / bytes each |
