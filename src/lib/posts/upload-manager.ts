@@ -13,6 +13,7 @@ import { PackPhotoUpload, JSON_REQUEST_LIMIT_MS } from '@/lib/media/pack-photo-u
 import { reencodeShot } from '@/lib/media/reencode';
 
 const RETAKE_ATTACHMENT_MESSAGE = 'This photo was not kept. Take it again.';
+const ATTACHMENT_UPLOAD_FAILED = 'The photo did not reach the app. It is kept on this phone, so try again.';
 export interface UploadState {
     operationId: string;
     kind?: "food"|"copy"|"drink";
@@ -263,7 +264,9 @@ export class UploadManager {
         const d=entry.data,attachment=d.attachment!;
         if(!d.attachmentPhoto){
             entry.attachmentUpload??=new PackPhotoUpload(this.encodeShot,this.foodRequest);
-            d.attachmentPhoto=await entry.attachmentUpload.prepare(d.files[0]);
+            // #970: a photo that never reached storage says so; the chip shows d.message beside Try again.
+            try{d.attachmentPhoto=await entry.attachmentUpload.prepare(d.files[0]);}
+            catch(error){d.message=ATTACHMENT_UPLOAD_FAILED;throw error;}
         }
         // Persist before attach: the server deduplicates by this stage path, even after a lost response/reload.
         await this.persist(entry);
