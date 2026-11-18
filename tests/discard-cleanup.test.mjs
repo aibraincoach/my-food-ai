@@ -6,49 +6,45 @@ import {createRequire} from 'node:module';
 import {isRetriable} from '../src/lib/worker/errors.ts';
 const cleanup=createRequire(import.meta.url)('../src/lib/worker/jobs/media_cleanup.ts').default;
 
-test('discard commits durable cleanup atomically and retries survive post cascade',()=>{
+// #1095 (Fleet 50, migration 0074): discarding a meal that waits for an answer is a soft delete, as the owner's
+// delete is. The media stay until the daily purge, which queues the prefix cleanup and removes the row.
+test('discard soft-deletes only the owner\'s waiting meal, and the purge cleans it up later',()=>{
  assert.ok(process.env.SUPABASE_DB_URL);
- const migration=readFileSync(new URL('../supabase/migrations/0011_posts_needs_input.sql',import.meta.url),'utf8');
- const rpc=migration.slice(migration.indexOf('-- Detached cleanup survives'));
- const setup=`select to_regprocedure('public.discard_post(uuid,uuid,text[])') is not null as installed \\gset
-\\if :installed
-\\else
-${rpc}
-\\endif`;
  const sql=`\\set ON_ERROR_STOP on
 begin;set local lock_timeout='5s';set local statement_timeout='30s';
-${setup}
-${setup}
-do $t$ declare u uuid:=gen_random_uuid();p uuid;other uuid:=gen_random_uuid();j uuid;n integer;path text;begin
+do $t$ declare u uuid:=gen_random_uuid();p uuid;other uuid:=gen_random_uuid();n integer;path text;begin
+if to_regprocedure('public.discard_post(uuid,uuid,text[])') is not null then raise exception 'the old discard function remains';end if;
 insert into auth.users(id)values(u);insert into profiles(id,handle)values(u,'discard-'||u);
 insert into posts(user_id,status)values(u,'needs_input')returning id into p;
 path:=u::text||'/'||p::text||'/photo.jpg';
 insert into post_media(post_id,storage_path)values(p,path);
-insert into jobs(post_id,kind,status)values(p,'analyze','finished');
 select count(*) into n from jobs where kind='media_cleanup';
-if discard_post(p,other,array[path]) then raise exception 'wrong owner discard accepted';end if;
-begin
- perform discard_post(p,u,array['another-owner/photo.jpg']);raise exception 'foreign path accepted';
-exception when invalid_parameter_value then null;end;
-if not exists(select 1 from posts where id=p) or (select count(*) from jobs where kind='media_cleanup')<>n then raise exception 'failed discard partly committed';end if;
+if discard_post(p,other) then raise exception 'wrong owner discard accepted';end if;
 update posts set status='ready' where id=p;
-if discard_post(p,u,array[path]) then raise exception 'changed ready meal discarded';end if;
+if discard_post(p,u) then raise exception 'changed ready meal discarded';end if;
 update posts set status='needs_input' where id=p;
-if not discard_post(p,u,array[path]) then raise exception 'discard failed';end if;
-if exists(select 1 from posts where id=p) or exists(select 1 from jobs where post_id=p) then raise exception 'post cascade incomplete';end if;
-select id into j from jobs where kind='media_cleanup' and payload->>'deleted_post_id'=p::text;
-if j is null or not exists(select 1 from jobs where id=j and post_id is null and payload->'paths'=jsonb_build_array(path)) then raise exception 'cleanup lost after cascade';end if;
-update jobs set status='running',attempts=1 where id=j;
-perform fail_job(j,'Storage unavailable',true);
-if not exists(select 1 from jobs where id=j and status='queued' and payload->>'deleted_post_id'=p::text and run_after>now()) then raise exception 'cleanup cannot retry after deletion';end if;
-if discard_post(p,u,array[path]) then raise exception 'repeat discard created duplicate';end if;
+if not discard_post(p,u) then raise exception 'discard failed';end if;
+if not exists(select 1 from posts where id=p and deleted_at is not null) then raise exception 'discard was not a soft delete';end if;
+if not exists(select 1 from post_media where post_id=p) then raise exception 'media removed before the purge';end if;
+if (select count(*) from jobs where kind='media_cleanup')<>n then raise exception 'cleanup queued before the purge';end if;
+if discard_post(p,u) then raise exception 'repeat discard accepted';end if;
+update posts set deleted_at=now()-interval '31 days' where id=p;
+perform purge_deleted_posts();
+if exists(select 1 from posts where id=p) then raise exception 'purge left the discarded meal';end if;
+if not exists(select 1 from jobs where kind='media_cleanup' and post_id is null and payload->>'deleted_post_id'=p::text) then raise exception 'purge queued no cleanup';end if;
 end;$t$;
 set local role authenticated;
 do $t$ begin
-begin perform discard_post(gen_random_uuid(),gen_random_uuid(),'{}');raise exception 'client RPC accepted';exception when insufficient_privilege then null;end;
+begin perform discard_post(gen_random_uuid(),gen_random_uuid());raise exception 'client RPC accepted';exception when insufficient_privilege then null;end;
 end;$t$;
 rollback;`;
  const result=spawnSync('psql',['-X','-q','--dbname',process.env.SUPABASE_DB_URL],{input:sql,encoding:'utf8',timeout:90000});assert.ifError(result.error);assert.equal(result.status,0,result.stderr);
+});
+
+test('the discard route soft-deletes through one call and lists or removes no storage itself (#1095)',()=>{
+ const route=readFileSync(new URL('../src/app/api/posts/[id]/discard/route.ts',import.meta.url),'utf8');
+ assert.match(route,/rpc\("discard_post",\{p_post_id:id,p_user_id:user\.id\}\)/);
+ assert.doesNotMatch(route,/storage|\.list\(|p_paths|jobs\/tick/);
 });
 
 test('cleanup retries partial storage removal using durable paths and stays within the deleted meal',async()=>{

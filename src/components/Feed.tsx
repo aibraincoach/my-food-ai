@@ -568,17 +568,14 @@ function UploadHydratedCard({post,upload,attachment,header}:{post:FeedPost;uploa
     const refresh=()=>{void read();};
     const visible=()=>{if(!document.hidden)refresh();};
     const changed=(event:Event)=>{if((event as CustomEvent<{id?:string}>).detail?.id===id)refresh();};
-    const channel=db.channel(`upload-post-${id}`).on('postgres_changes',{
-      event:'UPDATE',schema:'public',table:'posts',filter:`id=eq.${id}`,
-    },refresh).subscribe();
+    // #1095: the tab's one Realtime channel announces this post's changes as post-readiness.
     window.addEventListener('online',refresh);window.addEventListener('focus',refresh);
-    window.addEventListener('post-updated',changed);document.addEventListener('visibilitychange',visible);
+    window.addEventListener('post-readiness',changed);window.addEventListener('post-updated',changed);document.addEventListener('visibilitychange',visible);
     void read();
     return()=>{
       live=false;
       window.removeEventListener('online',refresh);window.removeEventListener('focus',refresh);
-      window.removeEventListener('post-updated',changed);document.removeEventListener('visibilitychange',visible);
-      void db.removeChannel(channel);
+      window.removeEventListener('post-readiness',changed);window.removeEventListener('post-updated',changed);document.removeEventListener('visibilitychange',visible);
     };
   },[post.id,upload.postId,upload.operationId]);
   return <div data-desktop-post={upload.postId??upload.operationId} tabIndex={-1}>{header}<PostCard post={fresh??post} upload={attachment??upload}/></div>;
