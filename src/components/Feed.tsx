@@ -24,11 +24,6 @@ import {useDeviceTimeZone} from "@/components/LocalTime";
 import {useCachedFeed} from "@/components/useCachedFeed";
 
 type State = { kind: "loading" } | { kind: "error" } | { kind: "ready"; posts: FeedPost[]; days: FeedDayTotal[] };
-const DISCOVERY_INTERVAL_MS = 2000;
-const DISCOVERY_BACKOFF_START_MS = 5000;
-const DISCOVERY_BACKOFF_MAX_MS = 60000;
-const RETRY_INTERVAL_MS = 1000;
-
 const noServerSeed = () => false;
 const hasServerSeed = () => typeof document !== 'undefined' && Boolean(document.querySelector('[data-server-feed-ready], [data-feed-client-ready]'));
 function subscribeServerSeed(listener: () => void) {
@@ -44,7 +39,7 @@ export function CachedFeedFallback() {
   return ready ? null : <Feed fallbackOnly />;
 }
 
-// Home discovers new rows independently of the optional Realtime connection.
+// Home discovers new rows on events and focus; failed channels never start a poll.
 // Per-card refreshes remain in RealtimePost, so discovery fetches only IDs.
 export default function Feed({initialPage, initialUserId, initialZone = "UTC", fallbackOnly = false}: {initialZone?: string; fallbackOnly?: boolean; initialPage?: {posts: FeedPost[]; days: FeedDayTotal[]; nextCursor: string | null; discoveryIds?: string[]}; initialUserId?: string} = {}) {
   const router = useRouter();
@@ -67,6 +62,9 @@ export default function Feed({initialPage, initialUserId, initialZone = "UTC", f
   const kept = useRef<{userId: string | null; posts: FeedPost[]; cursor: string | null}>({userId: null, posts: [], cursor: null});
   const [state, setState] = useState<State>(initialPage ? {kind: "ready", posts: initialPage.posts, days: initialPage.days} : { kind: "loading" });
   const [pageError, setPageError] = useState(false);
+  const [cardReadFailed,setCardReadFailed] = useState(false);
+  const [reconnectFailed,setReconnectFailed] = useState(false);
+  const retryCards = useRef<() => void>(()=>{});
 
   useEffect(() => {
     if (fallbackOnly) {
@@ -118,18 +116,16 @@ export default function Feed({initialPage, initialUserId, initialZone = "UTC", f
     let hasFreshPage = false;
     let discoveryKnown: Set<string> | null = null;
     let cacheDirty = false;
-    let trustServerSeed = Boolean(initialPage && initialUserId && initialZone === zone);
-    let realtimeSubscribed = false;
-    let discoverBackoffMs = DISCOVERY_BACKOFF_START_MS;
-    let discoverPoll: ReturnType<typeof setTimeout> | undefined;
+    let channelReady = false;
+    let lastReconnectRead = -Infinity;
+    const failedCards = new Set<string>();
     const cacheInvalidated = new Set<string>();
     const unavailable = new Set<string>();
     const answered = new Set<string>();
     const cards = new Map<string, FeedPost>();
     const newest: string[] = [];
-    const pending = new Map<string, { again: boolean; retries: number }>();
+    const pending = new Map<string, { again: boolean }>();
     const deferred = new Map<string, number>();
-    const timers = new Set<ReturnType<typeof setTimeout>>();
 
     const reportTotals = () => { if(live&&userId)window.dispatchEvent(new CustomEvent("feed-day-totals",{detail:{userId,days:[...dayTotals.values()],fresh:hasFreshPage||Boolean(initialPage&&initialUserId===userId)}})); };
     window.addEventListener("feed-day-totals-request",reportTotals);
@@ -172,13 +168,13 @@ export default function Feed({initialPage, initialUserId, initialZone = "UTC", f
     const removeCard = (id:string) => {
       const interrupted=[...pending.keys()].filter(other=>other!==id);
       const removed = cards.get(id) ?? baseline.find(post => post.id === id);
-      deferred.delete(id);
+      deferred.delete(id);failedCards.delete(id);setCardReadFailed(failedCards.size>0);
       unavailable.add(id);cacheInvalidated.delete(id);cacheDirty=true;generation++;
       baseline=baseline.filter(post=>post.id!==id);cards.delete(id);
       const index=newest.indexOf(id);if(index>=0)newest.splice(index,1);
       // Old pages cannot resurrect a hidden card. Restart unrelated reads:
       // settled meals may be older than the bounded discovery window.
-      pending.clear();for(const retry of timers)clearTimeout(retry);timers.clear();
+      pending.clear();
       loadingMore=false;publish();if(removed)void refreshTotals([dateInZone(removed.eaten_at,zone)]);
       for(const other of interrupted)requestCard(other);
     };
@@ -211,7 +207,7 @@ export default function Feed({initialPage, initialUserId, initialZone = "UTC", f
       if (active) { active.again = true; return; }
       deferred.delete(id);
       const requestGeneration = generation;
-      const request = { again: false, retries: 0 };
+      const request = { again: false };
       pending.set(id, request);
       const fetchCard = async () => {
         if (!live || requestGeneration !== generation) return;
@@ -227,7 +223,7 @@ export default function Feed({initialPage, initialUserId, initialZone = "UTC", f
           unavailable.delete(id);
           card.day = dateInZone(card.eaten_at, zone);
           const previous = cards.get(id) ?? baseline.find(post => post.id === id);
-          if(!hasUnavailableFields(card)){cacheInvalidated.delete(id);cacheDirty=true;}
+          if(!hasUnavailableFields(card)){cacheInvalidated.delete(id);cacheDirty=true;failedCards.delete(id);setCardReadFailed(failedCards.size>0);}
           cards.set(id, retainCompleteItems(previous, card));
           void refreshTotals(dayTotalRefreshDates(previous, card, zone, new Set(dayTotals.keys()), local, totalReceipts()));
           publish();
@@ -238,19 +234,16 @@ export default function Feed({initialPage, initialUserId, initialZone = "UTC", f
           pending.delete(id);
         } catch {
           if (!live || requestGeneration !== generation) return;
-          if (request.retries++ < 3) {
-            const timer = setTimeout(() => { timers.delete(timer); void fetchCard(); }, RETRY_INTERVAL_MS);
-            timers.add(timer);
-          } else {
-            pending.delete(id);
-            // Older settled meals may never reappear in the discovery window.
-            deferred.set(id,Date.now()+15_000);
-          }
+          pending.delete(id);deferred.set(id,0);
+          failedCards.add(id);setCardReadFailed(true);
+          // A queued event earns one read; a failed read never schedules another.
+          if (request.again) requestCard(id);
         }
       };
       void fetchCard();
     };
 
+    retryCards.current = () => { for (const id of [...failedCards]) requestCard(id); };
     const created = (event: Event) => {
       const id = (event as CustomEvent<{ id?: unknown }>).detail?.id;
       if (typeof id === "string" && id) {
@@ -299,7 +292,7 @@ export default function Feed({initialPage, initialUserId, initialZone = "UTC", f
           releaseCacheOwner?.();releaseCacheOwner=undefined;claimedUser=null;
           baseline=[];dayTotals.clear();cards.clear();newest.length=0;
           pending.clear();deferred.clear();unavailable.clear();answered.clear();cacheInvalidated.clear();uploadDaysToRead.clear();
-          for(const retry of timers)clearTimeout(retry);timers.clear();
+          failedCards.clear();setCardReadFailed(false);setReconnectFailed(false);
           totalsRefresh.cancel();totalsRefresh=makeTotalsRefresh();
           cursor=null;loadingMore=false;discovering=false;loaded=false;hasFreshPage=false;discoveryKnown=null;cacheDirty=false;usedServerPage=true;
           setState({kind:"loading"});setPageError(false);setFreshResponse(false);
@@ -358,15 +351,15 @@ export default function Feed({initialPage, initialUserId, initialZone = "UTC", f
       }).catch(()=>{if(live && pageGeneration === generation)setPageError(true);}).finally(()=>{if(pageGeneration === generation)loadingMore=false;});
     };
     const discover = async (retryNow=false) => {
-      if (!live || initialLoading || discovering || document.hidden) return;
+      if (!live || initialLoading || discovering || document.hidden) return false;
       discovering = true;
       const discoveryGeneration=generation;
       try {
         for(const [id,due] of deferred)if(retryNow||due<=Date.now())requestCard(id);
-        if (!hasFreshPage) { await load(); return; }
-        if (!userId) return;
+        if (!hasFreshPage) { await load(); return hasFreshPage; }
+        if (!userId) return false;
         const {data:discovered,error}=await readFeedDiscovery(supabase,userId);
-        if (!live || error || discoveryGeneration!==generation) return;
+        if (!live || error || discoveryGeneration!==generation) return false;
         // The initial server ID window already belongs to pagination. An ID
         // absent from that window remains discoverable regardless of its dates.
         const data=(discovered??[]).filter(row=>baseline.some(post=>post.id===row.id)||cards.has(row.id)||discoveryKnown===null||!discoveryKnown.has(row.id));
@@ -378,7 +371,7 @@ export default function Feed({initialPage, initialUserId, initialZone = "UTC", f
         // hydrated back-dated card counts as known: overlap is judged against baseline and cards together.
         if (discoveryLostOverlap([...baseline, ...cards.values()], data ?? [], FEED_PAGE_SIZE)) {
           const page = await readPage(null,6);
-          if (!live || discoveryGeneration!==generation) return;
+          if (!live || discoveryGeneration!==generation) return false;
           // A promoted read may have completed while the page was loading.
           // Refresh it after installing the page too, even outside this window.
           // Newly created meals (possibly back-dated beyond this page) are hydrated by id, never skipped.
@@ -394,7 +387,7 @@ export default function Feed({initialPage, initialUserId, initialZone = "UTC", f
           setPageError(false);
           publish();
           for(const id of interrupted)requestCard(id);
-          return;
+          return true;
         }
         // Visit oldest first: newly discovered rows are prepended in order.
         for (const row of [...(data ?? [])].reverse()) {
@@ -403,31 +396,14 @@ export default function Feed({initialPage, initialUserId, initialZone = "UTC", f
             requestCard(row.id);
           }
         }
+        return true;
       } catch {
-        // A transient discovery failure is retried on the next visible tick.
+        return false;
       } finally { discovering = false; }
     };
-    const scheduleDiscoverPoll = (immediate = false) => {
-      if (!live || realtimeSubscribed || document.hidden) return;
-      clearTimeout(discoverPoll);
-      const delay = immediate ? 0 : trustServerSeed ? DISCOVERY_INTERVAL_MS : discoverBackoffMs;
-      if (trustServerSeed) trustServerSeed = false;
-      discoverPoll = setTimeout(() => {
-        void discover().finally(() => {
-          if (live && !realtimeSubscribed && !document.hidden) {
-            discoverBackoffMs = Math.min(discoverBackoffMs * 2, DISCOVERY_BACKOFF_MAX_MS);
-            scheduleDiscoverPoll();
-          }
-        });
-      }, delay);
-    };
     void load();
-    scheduleDiscoverPoll();
     const focus = () => {
-      if (!document.hidden) {
-        void discover(true);
-        if (!realtimeSubscribed) scheduleDiscoverPoll(true);
-      }
+      if (!document.hidden) void discover(true).then(ok => { if (live) setReconnectFailed(!ok || !channelReady); });
     };
     window.addEventListener("focus", focus);
     document.addEventListener("visibilitychange", focus);
@@ -437,26 +413,31 @@ export default function Feed({initialPage, initialUserId, initialZone = "UTC", f
       if (!live || ownerId === channelUser) return;
       if (channel) void supabase.removeChannel(channel);
       channel = null; channelUser = ownerId;
-      realtimeSubscribed = false;
+      channelReady = false;
+      setReconnectFailed(false);
       if (!ownerId) return;
+      let connectedOnce = false, disconnected = false;
       channel = supabase.channel("feed-inserts").on("postgres_changes",
       { event: "INSERT", schema: "public", table: "posts", filter: `user_id=eq.${ownerId}` },
       (payload) => { const id = (payload.new as { id?: string }).id; if (live && userId === ownerId && id) requestCard(id); }
     ).subscribe((status) => {
       if (!live || userId !== ownerId) return;
       if (status === "SUBSCRIBED") {
-        realtimeSubscribed = true;
-        clearTimeout(discoverPoll);
+        channelReady = true;
+        if (!connectedOnce) { connectedOnce = true;disconnected = false;setReconnectFailed(false);return; }
+        if (!disconnected) return;
+        disconnected = false;
+        if (Date.now()-lastReconnectRead < 30_000) { setReconnectFailed(false);return; }
+        lastReconnectRead = Date.now();
+        void discover(true).then(ok => { if (live && channelUser === ownerId) setReconnectFailed(!ok); });
       } else if (status === "CHANNEL_ERROR" || status === "TIMED_OUT" || status === "CLOSED") {
-        realtimeSubscribed = false;
-        discoverBackoffMs = DISCOVERY_BACKOFF_START_MS;
-        scheduleDiscoverPoll();
+        channelReady = false;disconnected = true;setReconnectFailed(true);
       }
     });
     };
 
     return () => {
-      live = false;
+      live = false;retryCards.current=()=>{};
       window.removeEventListener('feed-revalidate',revalidate);
       totalsRefresh.cancel();
       window.removeEventListener("feed-day-totals-request",reportTotals);
@@ -465,8 +446,6 @@ export default function Feed({initialPage, initialUserId, initialZone = "UTC", f
       window.removeEventListener("post-restore", restore);
       window.removeEventListener("post-ready", readyEvent);
       window.removeEventListener('upload-started',uploading);
-      clearTimeout(discoverPoll);
-      for (const retry of timers) clearTimeout(retry);
       window.removeEventListener("post-created", created);
       window.removeEventListener("upload-finished",finished);
       window.removeEventListener("post-updated", created);
@@ -521,6 +500,7 @@ export default function Feed({initialPage, initialUserId, initialZone = "UTC", f
   if(listed.length)for (let day = listed[0]; day >= listed.at(-1)!; day = shiftDay(day, -1)) days.push(day);
   const totals = new Map(visibleState.days.map(day => [day.day, day]));
   return <div data-feed-source={fallbackOnly||!freshResponse?"cache":"fresh"} data-feed-client-ready={!fallbackOnly ? true : undefined} data-cached-feed-ready={fallbackOnly ? true : undefined} className="flex flex-col">
+    {reconnectFailed?<p role="status" className="px-screen-x text-detail text-muted">Meal updates could not reconnect. Refresh to try again.</p>:null}
     {localCards.filter((_,index)=>!days.includes(localDay[index]))}
     {days.map(day => <section key={day} aria-label={day} className="relative pb-card-gap">
       {!uploadDays.has(day)&&<DayHeader day={day} zone={zone} empty={!groups.has(day)} total={totals.get(day)} />}
@@ -528,9 +508,9 @@ export default function Feed({initialPage, initialUserId, initialZone = "UTC", f
       {groups.has(day) ? <div className="flex flex-col gap-card-gap pt-sheet-top">{groups.get(day)!.map((post) => <div key={attachmentUploads.find(upload=>uploadTargetsPost(upload,post.id))?.operationId??uploads.find(upload=>upload.postId===post.id)?.operationId??post.id} data-desktop-post={post.id} tabIndex={-1}>{fallbackOnly ? <PostCard priority={firstPhotoId === post.id} post={post} upload={attachmentUploads.find(upload=>uploadTargetsPost(upload,post.id))} /> : <RealtimePost initial={post} renderCard={(fresh) => <PostCard priority={firstPhotoId === post.id} post={fresh} upload={attachmentUploads.find(upload=>uploadTargetsPost(upload,post.id))??uploads.find(upload=>upload.postId===post.id)}
          />} />}</div>)}</div> : null}
     </section>)}
-    {pageError ? <div className="px-screen-x text-detail text-muted" role="alert">
+    {pageError || cardReadFailed ? <div className="px-screen-x text-detail text-muted" role="alert">
       <p>More meals could not be loaded.</p>
-      <button type="button" className="min-h-tap text-text" onClick={() => loadMore.current()}>Try again</button>
+      <button type="button" className="min-h-tap text-text" onClick={() => { if(cardReadFailed)retryCards.current();else loadMore.current(); }}>Try again</button>
     </div> : null}
     <div ref={sentinel} className="h-tap" aria-hidden="true" />
   </div>;
@@ -544,15 +524,11 @@ function UploadHydratedCard({post,upload,attachment,header}:{post:FeedPost;uploa
     const id=upload.postId;
     if(!id)return;
     const db=createClient();
-    let live=true,inFlight=false,again=false,missing=0,step=0;
-    let timer:ReturnType<typeof setTimeout>|null=null;
-    const delays=[2000,5000,10000,30000];
+    let live=true,inFlight=false,again=false,missing=0;
     const read=async()=>{
       if(!live)return;
       if(inFlight){again=true;return;}
-      if(timer){clearTimeout(timer);timer=null;}
       inFlight=true;
-      let unsettled=true;
       try {
         const card=await getPostCard(db,id);
         if(!live)return;
@@ -573,18 +549,16 @@ function UploadHydratedCard({post,upload,attachment,header}:{post:FeedPost;uploa
           setFresh(card);
           if(card.status==='ready'&&lastStatus.current!=='ready')window.dispatchEvent(new CustomEvent('post-ready',{detail:{id}}));
           lastStatus.current=card.status;
-          unsettled=!((card.status==='ready'&&card.slides.some(slide=>slide.kind==='card'))||card.status==='failed');
         }
-      } catch { /* Realtime or the bounded-rate fallback retries a transient read. */ }
+      } catch { /* Keep the last visible card; a new event or focus can read again. */ }
       finally {
         inFlight=false;
         if(live){
           if(again){again=false;void read();}
-          else if(unsettled)timer=setTimeout(()=>{void read();},delays[Math.min(step++,delays.length-1)]);
         }
       }
     };
-    const refresh=()=>{step=0;void read();};
+    const refresh=()=>{void read();};
     const visible=()=>{if(!document.hidden)refresh();};
     const changed=(event:Event)=>{if((event as CustomEvent<{id?:string}>).detail?.id===id)refresh();};
     const channel=db.channel(`upload-post-${id}`).on('postgres_changes',{
@@ -594,7 +568,7 @@ function UploadHydratedCard({post,upload,attachment,header}:{post:FeedPost;uploa
     window.addEventListener('post-updated',changed);document.addEventListener('visibilitychange',visible);
     void read();
     return()=>{
-      live=false;if(timer)clearTimeout(timer);
+      live=false;
       window.removeEventListener('online',refresh);window.removeEventListener('focus',refresh);
       window.removeEventListener('post-updated',changed);document.removeEventListener('visibilitychange',visible);
       void db.removeChannel(channel);

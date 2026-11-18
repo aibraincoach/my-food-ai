@@ -8,15 +8,15 @@ import {dayTotalRefreshDates} from '../src/lib/posts/day-total-changes.ts';
 import {createDayTotalsRefresh} from '../src/lib/posts/day-totals-refresh.ts';
 import {retainCompleteItems,hasUnavailableFields,readFeedDiscovery} from '../src/lib/posts/feed.ts';
 test('retiring the last meal clears feed state and rejects an older hydration result',async()=>{
- const effects=[],listeners=new Map(),states=[],resolvers=new Map(),rejectors=new Map(),retryTimers=[];let resolveCard,resolvePage,discoverTick;let forceReset=false,deferTotals=false;const dayWaiters=[];
+ const effects=[],listeners=new Map(),states=[],resolvers=new Map(),rejectors=new Map();let resolveCard,resolvePage,timedReads=0;let forceReset=false,deferTotals=false;const dayWaiters=[];
  const post={id:'meal',status:'processing',created_at:'2026-10-01',eaten_at:'2026-10-01T12:00:00Z',items:[],slides:[]};
  const channel={on(){return this;},subscribe(){return this;}};
  const exports={};
  const code=ts.transpileModule(readFileSync(new URL('../src/components/Feed.tsx',import.meta.url),'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,jsx:ts.JsxEmit.ReactJSX,target:ts.ScriptTarget.ES2022}}).outputText;
  vm.runInNewContext(code,{exports,URLSearchParams,AbortSignal,fetch:async()=>({ok:true,json:async()=>forceReset?new Promise(resolve=>{resolvePage=resolve;}):({posts:[post],nextCursor:null,days:[]})}),document:{hidden:false,addEventListener(){},removeEventListener(){}},CustomEvent:class{constructor(type,init){this.type=type;this.detail=init?.detail;}},
- window:{addEventListener(type,fn){listeners.set(type,fn);},removeEventListener(){},dispatchEvent(){}},setTimeout:(fn,ms)=>{if(ms===1000){retryTimers.push(fn);return retryTimers.length;}discoverTick=fn;return 0;},clearTimeout(){},
+ window:{addEventListener(type,fn){listeners.set(type,fn);},removeEventListener(){},dispatchEvent(){}},setTimeout:()=>{timedReads++;throw Error('Feed must not schedule a retry or discovery timer');},clearTimeout(){},
  require(name){
-  if(name==='@/lib/posts/day-total-changes')return{dayTotalRefreshDates};if(name==='@/lib/posts/day-totals-refresh')return{createDayTotalsRefresh};if(name==='react')return{useEffect:fn=>effects.push(fn),useRef:current=>({current}),useState:initial=>[initial,state=>states.push(state)]};
+  if(name==='@/lib/posts/day-total-changes')return{dayTotalRefreshDates};if(name==='@/lib/posts/day-totals-refresh')return{createDayTotalsRefresh};if(name==='react')return{useEffect:fn=>effects.push(fn),useRef:current=>({current}),useState:initial=>[initial,state=>{if(state&&typeof state==='object'&&'kind'in state)states.push(state);}]};
   if(name==='react/jsx-runtime')return{jsx:()=>null,jsxs:()=>null};
   if(name==='next/navigation')return{useRouter:()=>({replace(){}})};
   if(name==='@/lib/supabase/client')return{createClient:()=>({auth:{getSession:async()=>({data:{session:{user:{id:'owner'}}}})},channel:()=>channel,removeChannel(){},from(){return{select(){return this;},is(){return this;},eq(){return this;},neq(){return this;},or(){return this;},order(){return this;},limit(){return this;},abortSignal:async()=>({data:[{id:'new-page-meal'}],error:null})};}})};
@@ -65,7 +65,7 @@ test('retiring the last meal clears feed state and rejects an older hydration re
  listeners.get('post-answer-resume')({detail:{id:'settled-during-reset'}});
  listeners.get('post-settled')({detail:{id:'settled-during-reset'}});
  const beforeReset=resolveCard;
- forceReset=true;discoverTick();await new Promise(resolve=>setImmediate(resolve));
+ forceReset=true;listeners.get('focus')();await new Promise(resolve=>setImmediate(resolve));
  assert.equal(typeof resolvePage,'function','a fresh first-page read is pending');
  beforeReset({...post,id:'settled-during-reset',status:'ready'});await new Promise(resolve=>setImmediate(resolve));
  assert.ok(states.at(-1).posts.some(row=>row.id==='settled-during-reset'),'the settled-card read can complete while the fresh page is loading');
@@ -79,13 +79,10 @@ test('retiring the last meal clears feed state and rejects an older hydration re
  forceReset=false;
  listeners.get('post-answer-resume')({detail:{id:'settled-after-network-recovery'}});
  listeners.get('post-settled')({detail:{id:'settled-after-network-recovery'}});
- for(let attempt=0;attempt<4;attempt++){
-  rejectors.get('settled-after-network-recovery')(new Error('temporary network failure'));
-  await new Promise(resolve=>setImmediate(resolve));
-  if(attempt<3){assert.equal(retryTimers.length,1);retryTimers.shift()();}
- }
+ rejectors.get('settled-after-network-recovery')(new Error('temporary network failure'));
+ await new Promise(resolve=>setImmediate(resolve));
  const exhausted=resolvers.get('settled-after-network-recovery');
- assert.equal(retryTimers.length,0,'bounded quick retries are exhausted');
+ assert.equal(timedReads,0,'failed reads wait for an event or focus without timer retries');
  listeners.get('focus')();await new Promise(resolve=>setImmediate(resolve));
  const recovered=resolvers.get('settled-after-network-recovery');
  assert.notEqual(recovered,exhausted,'focus retains and retries the older ID outside discovery');

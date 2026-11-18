@@ -94,25 +94,26 @@ async function mountedFeed(initialPosts,{cachedPosts,failPage=false,initialPage,
  Object.defineProperty(globalThis,'window',{configurable:true,value:events});
  clearFeedCache();
  if(cachedPosts)writeFeedCache(sessionUserId,{posts:cachedPosts,savedAt:Date.now()});
- let current=initialPosts[0];
+ let current=initialPosts[0],now=100000,nextTimer=0,channelStatus,discoveryReads=0,failDiscovery=false,hookIndex=0;const hookStates=[],timers=new Map();
+ const FakeDate=class extends Date{constructor(value){super(value??now);}static now(){return now;}};
  const hookOwner=initialUserId??sessionUserId;
  const pageReads=[],cardReads=[];let discovered=[];
  const cache={userId:hookOwner,cached:hookCachedPosts,save:posts=>writeFeedCache(hookOwner,{posts,savedAt:Date.now()})};
- const subscriptions=[];const channel={on(_type,filter){subscriptions.push(filter);return this;},subscribe(){return this;}};
+ const subscriptions=[];const channel={on(_type,filter){subscriptions.push(filter);return this;},subscribe(fn){channelStatus=fn;return this;}};
  const exported={};
- vm.runInNewContext(compile('../src/components/Feed.tsx'),{exports:exported,URLSearchParams,AbortSignal,Date,
+ vm.runInNewContext(compile('../src/components/Feed.tsx'),{exports:exported,URLSearchParams,AbortSignal,Date:FakeDate,
   fetch:async url=>{pageReads.push(url);if(failPage)throw Error('temporary server failure');return{ok:true,status:200,json:async()=>({posts:initialPosts,days:[],nextCursor:null})};},
   document:{hidden:false,addEventListener(){},removeEventListener(){}},
   window:{addEventListener:(type,fn)=>listeners.set(type,fn),removeEventListener:type=>listeners.delete(type),dispatchEvent(){}},
-  CustomEvent:class{constructor(type,init){this.type=type;this.detail=init?.detail;}},setInterval:()=>1,clearInterval(){},setTimeout:()=>1,clearTimeout(){},
+  CustomEvent:class{constructor(type,init){this.type=type;this.detail=init?.detail;}},setInterval:()=>1,clearInterval(){},setTimeout:(fn,ms=0)=>{timers.set(++nextTimer,{fn,at:now+ms});return nextTimer;},clearTimeout:id=>timers.delete(id),
   require(name){
-   if(name==='react')return{useEffect:fn=>effects.push(fn),useRef:value=>({current:value}),useState:initial=>{let value=initial;return[initial,next=>{value=typeof next==='function'?next(value):next;states.push(value);}];}};
+   if(name==='react')return{useEffect:fn=>effects.push(fn),useRef:value=>({current:value}),useState:initial=>{const index=hookIndex++;if(!(index in hookStates))hookStates[index]=initial;return[hookStates[index],next=>{hookStates[index]=typeof next==='function'?next(hookStates[index]):next;states.push(hookStates[index]);}];}};
    if(name==='react/jsx-runtime')return{jsx,jsxs:jsx};
    if(name==='next/navigation')return{useRouter:()=>({replace(){}})};
-   if(name==='@/lib/supabase/client')return{createClient:()=>({auth:{getSession:async()=>({data:{session:{user:{id:sessionUserId}}}})},channel:()=>channel,removeChannel(){},from(){return{select(){return this},is(){return this},eq(){return this},neq(){return this},or(){return this},order(){return this},limit(){return this},async abortSignal(){return{data:discovered,error:null}}};}})};
+   if(name==='@/lib/supabase/client')return{createClient:()=>({auth:{getSession:async()=>({data:{session:{user:{id:sessionUserId}}}})},channel:()=>channel,removeChannel(){},from(){return{select(){return this},is(){return this},eq(){return this},neq(){return this},or(){return this},order(){return this},limit(){return this},async abortSignal(){discoveryReads++;return{data:failDiscovery?null:discovered,error:failDiscovery?{message:"offline"}:null}}};}})};
    if(name==='@/lib/posts/day-totals-refresh')return{createDayTotalsRefresh};
   if(name==='@/lib/posts/day-total-changes')return{dayTotalRefreshDates};
-   if(name==='@/lib/posts/feed')return{FEED_PAGE_SIZE:20,retainCompleteItems,hasUnavailableFields,readFeedDiscovery,getPostCard:async(_db,id)=>{cardReads.push(id);return current;}};
+   if(name==='@/lib/posts/feed')return{FEED_PAGE_SIZE:20,retainCompleteItems,hasUnavailableFields,readFeedDiscovery,getPostCard:async(_db,id)=>{cardReads.push(id);if(current instanceof Error)throw current;return current;}};
    if(name==='@/lib/posts/feed-order')return{mergeFeedPosts,discoveryLostOverlap};
    if(name==='@/lib/posts/feed-cache')return{readFeedCache,writeFeedCache,clearFeedCache};
    if(name==='@/lib/posts/feed-cache-mutations')return{claimFeedCacheEvents:()=>()=>{}};
@@ -127,7 +128,7 @@ async function mountedFeed(initialPosts,{cachedPosts,failPage=false,initialPage,
    throw Error('Unexpected feed dependency '+name);
   }});
  const tree=exported.default({initialPage,initialUserId,initialZone:Intl.DateTimeFormat().resolvedOptions().timeZone});const cleanups=effects.map(fn=>fn());await turn();await turn();
- return{tree,subscriptions,cardReads,async discover(rows){discovered=rows;listeners.get('focus')();await turn();await turn();},setCard(value){current=value;},emit(type,id,extra={}){assert.ok(listeners.has(type),'real feed listener must be mounted');listeners.get(type)({detail:{id,...extra}});},pageReads,snapshotFor:id=>readFeedCache(id)?.posts,snapshot:()=>readFeedCache(sessionUserId)?.posts,readyState:()=>states.findLast(state=>state?.kind==='ready'),cleanup(){for(const cleanup of cleanups)cleanup?.();clearFeedCache();if(priorStorage)Object.defineProperty(globalThis,'localStorage',priorStorage);else delete globalThis.localStorage;if(priorWindow)Object.defineProperty(globalThis,'window',priorWindow);else delete globalThis.window;}};
+ return{tree,render(){hookIndex=0;return exported.default({initialPage,initialUserId,initialZone:Intl.DateTimeFormat().resolvedOptions().timeZone});},discoveryReads:()=>discoveryReads,failDiscovery:value=>{failDiscovery=value;},async channelStatus(status){channelStatus(status);await turn();await turn();},async advance(ms){for(let elapsed=0;elapsed<ms;elapsed+=1000){now+=Math.min(1000,ms-elapsed);for(const[id,timer]of[...timers])if(timer.at<=now){timers.delete(id);timer.fn();}await turn();}},subscriptions,cardReads,async discover(rows){discovered=rows;listeners.get('focus')();await turn();await turn();},setCard(value){current=value;},emit(type,id,extra={}){assert.ok(listeners.has(type),'real feed listener must be mounted');listeners.get(type)({detail:{id,...extra}});},pageReads,snapshotFor:id=>readFeedCache(id)?.posts,snapshot:()=>readFeedCache(sessionUserId)?.posts,readyState:()=>states.findLast(state=>state?.kind==='ready'),cleanup(){for(const cleanup of cleanups)cleanup?.();clearFeedCache();if(priorStorage)Object.defineProperty(globalThis,'localStorage',priorStorage);else delete globalThis.localStorage;if(priorWindow)Object.defineProperty(globalThis,'window',priorWindow);else delete globalThis.window;}};
 }
 
 test('deleting a cached meal persists its removal and a failed delete can restore it',async()=>{
@@ -222,4 +223,15 @@ test('a photo after a drink gets the single first-photo priority, matching the f
   };visit(app.tree);
   assert.deepEqual([...cards],[['drink',false],['first-photo',true],['second-photo',false]]);
  }finally{app.cleanup();}
+});
+
+
+function textOf(node){if(Array.isArray(node))return node.map(textOf).join(' ');if(typeof node==='string')return node;if(!node||typeof node!=='object')return '';return textOf(node.props?.children);}
+test('an unsubscribed feed makes zero timed discovery or failed-card retries in ten minutes (#1096)',async()=>{
+ const seed=meal();const app=await mountedFeed([seed],{initialUserId:'owner',initialPage:{posts:[seed],days:[],nextCursor:null}});
+ try{app.setCard(Error('offline'));app.emit('post-updated',seed.id);await turn();await turn();assert.equal(app.cardReads.length,1);const discoveries=app.discoveryReads();await app.advance(600000);assert.equal(app.cardReads.length,1);assert.equal(app.discoveryReads(),discoveries);assert.match(textOf(app.render()),/More meals could not be loaded/);app.setCard(seed);await app.discover([]);assert.equal(app.cardReads.length,2,'focus requests one failed-card recovery');}finally{app.cleanup();}
+});
+test('feed reconnect catch-up is once, skips the first subscribe, rate-limits flaps and exposes a failed read (#1096)',async()=>{
+ const seed=meal();const app=await mountedFeed([seed],{initialUserId:'owner',initialPage:{posts:[seed],days:[],nextCursor:null}});
+ try{const initial=app.discoveryReads();await app.channelStatus('SUBSCRIBED');assert.equal(app.discoveryReads(),initial);await app.channelStatus('CHANNEL_ERROR');assert.match(textOf(app.render()),/could not reconnect/);await app.channelStatus('SUBSCRIBED');assert.equal(app.discoveryReads(),initial+1);await app.channelStatus('SUBSCRIBED');assert.equal(app.discoveryReads(),initial+1);await app.advance(5000);await app.channelStatus('CHANNEL_ERROR');await app.channelStatus('SUBSCRIBED');assert.equal(app.discoveryReads(),initial+1);await app.advance(25000);app.failDiscovery(true);await app.channelStatus('TIMED_OUT');await app.channelStatus('SUBSCRIBED');assert.equal(app.discoveryReads(),initial+2);assert.match(textOf(app.render()),/could not reconnect/);await app.advance(600000);assert.equal(app.discoveryReads(),initial+2,'a failed catch-up never retries on a timer');}finally{app.cleanup();}
 });
