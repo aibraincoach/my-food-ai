@@ -1,8 +1,6 @@
 # My Food AI — Backlog†
 
-Last edited: Wednesday 2026-11-18 at 08:07 WIB (UTC+07:00) by Claude, PM
-
-For the owner (Tue Nov 17, 19:11 WIB): The PM cannot talk to the designer. The PM seat has no browser tool, so it cannot open the designer's chat in claude.ai and type into it. Five backlog items are waiting for the designer to choose a place, a look or an audit: the barcode prompt over the live camera (#453), what the card you swipe to on a drink's photo shows (#455), how much of an alcoholic drink was drunk (#457), what places that wait on the network show while they wait (#631), and the controls on Days, Search, Profile and the capture modes (#555). To unblock them, paste those five titles into the designer's chat and ask for a look for each, or give the PM seat a browser tool. Nothing else waits on you.
+Last edited: Wednesday 2026-11-18 at 08:33 WIB (UTC+07:00) by Claude, PM
 
 The only job of the PM is to maintain this backlog and keep it completely up to date. Failing to do so is immediately terminable.
 
