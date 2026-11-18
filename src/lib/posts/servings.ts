@@ -42,9 +42,9 @@ export const servingsLabel = (value: number): string => {
 };
 
 // The header's words: exactly one is "serving", more than one is "servings".
-// A part serving below one (¼, ½) is also "serving", as on a recipe label.
+// Displayed fractions below one use "serving"; decimal quantities use "servings" (AGY).
 export const servingsText = (value: number): string =>
-  `${servingsLabel(value)} ${roundServings(value) > 1 ? "servings" : "serving"}`;
+  `${servingsLabel(value)} ${(roundServings(value) > 1 || servingsLabel(value).includes(".")) ? "servings" : "serving"}`;
 
 const parseFractionToken = (token: string): number | null => {
   const trimmed = token.trim();
