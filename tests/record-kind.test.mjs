@@ -38,3 +38,27 @@ test('named shakes, mocktails and croissants retain their matching record kinds'
     ['croissant', 'Croissant', 'doughnuts, sweet rolls, pastries'],
   ]) assert.equal(recordContradicts(name, { description, foodCategory }), false, name);
 });
+
+// #1089: with no category, a description head that mixes kinds is named by its last word.
+for (const [name, description, kind] of [
+  ['mixed green salad', 'Salad dressing, green goddess', 'condiment'],
+  ['Creamy dipping sauce', 'Almond butter, creamy', 'fat'],
+  ['salmon nigiri', 'Fish oil, salmon', 'fat'],
+  ['thick toast', 'Milk shakes, thick chocolate', 'drink'],
+]) test(`${name} is flagged against "${description}" with no category (#1089)`, () => {
+  assert.equal(recordKind(description, null), kind);
+  assert.equal(recordContradicts(name, { description }), true);
+});
+
+test('a head named by its last word still keeps matching foods and whole dishes (#1089)', () => {
+  for (const [name, description] of [
+    ['peanut butter toast', 'Peanut butter, smooth style'],
+    ['strawberry milkshake', 'Milk shakes, thick strawberry'],
+    ['vanilla ice cream', 'Ice cream, vanilla'],
+    ['chocolate milk', 'Milk, chocolate, reduced fat'],
+    ['chicken satay with peanut sauce', 'Chicken satay with peanut sauce'],
+    ['fish and chips', 'Fish and chips'],
+  ]) assert.equal(recordContradicts(name, { description }), false, name);
+  assert.equal(recordKind('Beef and noodles with soy-based sauce', null), null);
+  assert.equal(recordKind('Pasta with tomato-based sauce, cheese and meat', null), null);
+});
