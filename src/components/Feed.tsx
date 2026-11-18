@@ -54,7 +54,10 @@ export default function Feed({initialPage, initialUserId, initialZone = "UTC", f
   const cachedListener = useRef<(posts: FeedPost[], ownerId: string | null) => void>(() => {});
   useEffect(() => { if (cache.cached) cachedListener.current(cache.cached, cache.userId); }, [cache.cached, cache.userId]);
   const [fallbackRetired, setFallbackRetired] = useState<Set<string>>(new Set());
-  const allUploads=useUploads().filter(upload=>upload.posted);
+  const draftUploads=useUploads();
+  const lostDraft=draftUploads.find(upload=>upload.lostNotice);
+  const lostNotice=!fallbackOnly && lostDraft ? <LostDraftNotice key={lostDraft.operationId} upload={lostDraft}/> : null;
+  const allUploads=draftUploads.filter(upload=>upload.posted);
   const uploads=allUploads.filter(upload=>!upload.attachment);
   const attachmentUploads=allUploads.filter(upload=>upload.attachment);
   const sentinel = useRef<HTMLDivElement>(null);
@@ -481,12 +484,12 @@ export default function Feed({initialPage, initialUserId, initialZone = "UTC", f
   const uploadDays=new Set<string>();
   const localDay=uploads.map(upload=>dateInZone((visibleState.kind==='ready'?visibleState.posts.find(post=>post.id===upload.postId)?.eaten_at:undefined)??upload.eatenAt,renderZone));
   const localCards=uploads.map(upload=>{const server=visibleState.kind==='ready'?visibleState.posts.find(post=>post.id===upload.postId):undefined;const seed:FeedPost=server??{id:upload.postId??upload.operationId,caption:upload.caption,eaten_at:upload.eatenAt,created_at:upload.eatenAt,status:"queued",photoUrl:upload.previewUrl,slides:[],items:[]};const zone=renderZone;const day=dateInZone(seed.eaten_at,zone);const header=!uploadDays.has(day);const measured=visibleState.kind==='ready'?visibleState.days.find(value=>value.day===day):undefined;const measuredTotal=measured?{...measured,ready:measured.ready||measured.kcal===0}:undefined;if(header)uploadDays.add(day);return <UploadHydratedCard key={upload.operationId} post={seed} upload={upload} attachment={upload.postId?attachmentUploads.find(attached=>uploadTargetsPost(attached,upload.postId!)):undefined} header={header?<DayHeader day={day} zone={zone} empty={false} total={measuredTotal}/>:null}/>;});
-  if (visibleState.kind === "loading"&&localCards.length)return <div>{localCards}{null}</div>;
-  if (visibleState.kind === "loading") return <p className="px-screen-x text-detail text-muted" role="status">Loading feed…</p>;
-  if (visibleState.kind === "error") return <div data-feed-error>{localCards}<p className="px-screen-x text-detail text-muted" role="alert">The feed could not be loaded.</p><button type="button" className="min-h-tap px-screen-x text-text" onClick={() => retryInitial.current()}>Try again</button></div>;
-  if (!visibleState.posts.length&&localCards.length)return <div>{localCards}{null}</div>;
+  if (visibleState.kind === "loading"&&localCards.length)return <div>{lostNotice}{localCards}{null}</div>;
+  if (visibleState.kind === "loading") return <div>{lostNotice}<p className="px-screen-x text-detail text-muted" role="status">Loading feed…</p></div>;
+  if (visibleState.kind === "error") return <div data-feed-error>{lostNotice}{localCards}<p className="px-screen-x text-detail text-muted" role="alert">The feed could not be loaded.</p><button type="button" className="min-h-tap px-screen-x text-text" onClick={() => retryInitial.current()}>Try again</button></div>;
+  if (!visibleState.posts.length&&localCards.length)return <div>{lostNotice}{localCards}{null}</div>;
   if (!visibleState.posts.length) return <div data-feed-source={fallbackOnly||!freshResponse?"cache":"fresh"} data-feed-client-ready={!fallbackOnly ? true : undefined} data-cached-feed-ready={fallbackOnly ? true : undefined} className="flex flex-1 items-center justify-center" style={{ paddingBottom: tokens.spacing['sheet-bottom'] * 3 }}>
-    <p className="text-sheet-title font-normal text-muted">Post your first meal</p>
+    {lostNotice}<p className="text-sheet-title font-normal text-muted">Post your first meal</p>
   </div>;
   const firstPhotoId=visibleState.posts.find(post=>post.photoUrl)?.id;
   const zone = renderZone;
@@ -500,6 +503,7 @@ export default function Feed({initialPage, initialUserId, initialZone = "UTC", f
   if(listed.length)for (let day = listed[0]; day >= listed.at(-1)!; day = shiftDay(day, -1)) days.push(day);
   const totals = new Map(visibleState.days.map(day => [day.day, day]));
   return <div data-feed-source={fallbackOnly||!freshResponse?"cache":"fresh"} data-feed-client-ready={!fallbackOnly ? true : undefined} data-cached-feed-ready={fallbackOnly ? true : undefined} className="flex flex-col">
+    {lostNotice}
     {reconnectFailed?<p role="status" className="px-screen-x text-detail text-muted">Meal updates could not reconnect. Refresh to try again.</p>:null}
     {localCards.filter((_,index)=>!days.includes(localDay[index]))}
     {days.map(day => <section key={day} aria-label={day} className="relative pb-card-gap">
@@ -575,4 +579,21 @@ function UploadHydratedCard({post,upload,attachment,header}:{post:FeedPost;uploa
     };
   },[post.id,upload.postId,upload.operationId]);
   return <div data-desktop-post={upload.postId??upload.operationId} tabIndex={-1}>{header}<PostCard post={fresh??post} upload={attachment??upload}/></div>;
+}
+
+// Only the main Feed renders this durable draft notice.
+function LostDraftNotice({upload}: {upload: UploadState}) {
+  const [failed,setFailed]=useState(false);
+  const [saving,setSaving]=useState(false);
+  const acknowledge=async()=>{
+    setSaving(true);setFailed(false);
+    try { await uploadManager.acknowledgeLost(upload.operationId); }
+    catch { setFailed(true); }
+    finally { setSaving(false); }
+  };
+  return <div data-lost-draft-notice className="px-screen-x text-detail text-muted" role="status">
+    <p>{upload.caption.trim() ? "An unposted photo couldn’t be recovered, but your caption is saved." : "An unposted photo couldn’t be recovered."}</p>
+    <button type="button" className="min-h-tap text-text" disabled={saving} onClick={()=>void acknowledge()}>OK</button>
+    {failed?<p role="alert">This could not be saved. Try again.</p>:null}
+  </div>;
 }
