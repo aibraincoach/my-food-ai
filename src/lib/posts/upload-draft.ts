@@ -51,13 +51,7 @@ export async function reserveUpload(admin: SupabaseClient, ownerDb: SupabaseClie
     p_shots: input.shots, p_location: input.location,
     p_save_as_meal: input.saveAsMeal, p_render_zone: input.renderZone,
   };
-  let reserved = await admin.rpc("reserve_post_upload_with_leftovers", { ...options, p_not_eaten_positions: input.notEatenPositions });
-  // Preserve the existing single-leftovers rollout fallback without downgrading
-  // a multi-leftovers manifest into ordinary food photos.
-  if (reserved.error?.code === "PGRST202" && reserved.error.message.includes("reserve_post_upload_with_leftovers") && input.notEatenPositions.length <= 1) {
-    reserved = await admin.rpc("reserve_post_upload_with_options", { ...options, p_not_eaten_position: input.notEatenPositions[0] ?? null });
-  }
-  const { data, error } = reserved;
+  const { data, error } = await admin.rpc("reserve_post_upload_with_leftovers", { ...options, p_not_eaten_positions: input.notEatenPositions });
   if (error || !data || data.id !== input.operationId || typeof data.published !== "boolean") {
     const expired = /expired/i.test(error?.message ?? "");
     throw new UploadReservationError(expired ? 410 : 409, expired ? "The upload draft expired. Your photos were kept; try again." : "The post draft could not be reserved. Your photos were kept; try again.");
