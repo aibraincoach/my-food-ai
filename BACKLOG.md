@@ -1,6 +1,6 @@
 ### My Food AI — Backlog†
 
-Last edited: Wednesday 2026-11-18 at 19:32 WIB (UTC+07:00) by Claude, PM
+Last edited: Wednesday 2026-11-18 at 22:58 WIB (UTC+07:00) by Claude, PM
 
 The only job of the PM is to maintain this backlog and keep it completely up to date. Failing to do so is immediately terminable.
 
@@ -10,15 +10,25 @@ Wondering if this stuff on the backlog is being built, asking for a friend. Also
 
 For the owner
 
-Two things only you can do. Nothing else is waiting on you.
+One thing needs your yes in the chat with the PM, and one thing is optional. Everything else is decided by the team.
 
-Tell us how much the bag of salami weighs. The app has no way to know the weight on the package, and the stored numbers for that meal depend on it. A grams figure (for example, 250 g) is enough. OWNER: Can't tell you, that was ages ago in Canada, I'm now in indonesia, can't speculate, so it's a lost opportunity to chase down. Try a leftovers photo on your phone. Add a leftovers photo to a meal, then close and reopen the app. If a photo fails, tap Try again. Please tell us whether it uploaded, and what the red message said if it did not. The fixes are live, but we have only tested them on test accounts, not on your iPhone. While you are there, open Home and watch the first photo for a few seconds. It now loads small and sharp-after-a-moment; tell us if the first photo ever flashes blank or jumps. OWNER: Does it count for the shit that is stuck there right now? OWNER UPDATE NUMBER 2:I have something on my iPhone 16 Pro Max, not on my other phones, for whatever reason. It says, "Leftovers not saved. Try again. The photo could not be uploaded. It is saved on this phone, so try again." There's a remove button below it, a view button to the right, and I guess "not saved, try again" is in red, so it's hard to read. That's one item.When I click on view, it takes me to the food, which, I don't know why, says "Tinhead N1" as my user ID, and then there's a little pencil beside it. I don't know what the fuck that means. That's kind of weird. I clicked on it, and it looks like my pasta with pork thing, and I had leftovers for that.If I click on try again, it says, "Adding leftovers photo," but I think the issue is that this stuff doesn't reside in cache or doesn't reside in the system, so it says, "not saved, try again, and remove." Basically, it failed. I think there's an issue with how you handle this item: either this doesn't get up to the internet and it gets cleared out of the local browser storage, or something else is fucked up. I don't know, but there you have it. My leftover is from yesterday's lunch. Failed. I'm going to remove that now. 
+Confirm the one-time delete in the PM's chat. You wrote "delete" here next to the question about 160 old background-job records. These are the app's own records of finished tasks (for example, reading a meal photo) from Oct 27 to Nov 4, which the app no longer reads. Deleting them cannot be undone, and nothing you can see in the app changes. Because it cannot be undone, the PM runs it only after you say "delete" once in the chat with the PM. Until then, nothing is deleted. The same applies to a second cleanup: the app's every-minute task log has 16,328 records older than seven days (about 1,440 a day, from Oct 31 to Nov 11). They are also the app's own logs and nothing you can see changes. If you say "delete" in the chat with the PM, the PM will ask you once more which of the two cleanups you mean, so it is clear what you approved.Optional: try a leftovers photo again, and watch Home. The leftovers entry that was stuck on your iPhone 16 Pro Max ("Leftovers not saved. Try again.") is the problem the team found: an older version of the app kept the photo in a way the phone can no longer read, so Try again cannot work. Fixes for new photos are live. Two more are queued: one removes the old way for good, so an old entry shows "take it again" at once, and one changes the card's sentence, which says "saved on this phone" and is only half true. When you next add a leftovers photo, tell us whether it uploads. Also open Home and watch the first photo for a few seconds: it now loads small and sharp-after-a-moment, so tell us if it flashes blank or jumps.
 
-One more, because Supabase warned you the database is running hot. The team found likely causes in the code, but only Supabase's own report shows the real one. Please sign in to the Supabase account that owns the My Food AI project, open this page, and send us the first ten rows (the queries that use the most total time): https://supabase.com/dashboard/project/ukudowbsfmofisekahqb/advisors/query-performance. The browser we can use is signed in to a different Supabase account that does not hold this project, so we cannot read it ourselves. With the ten rows, we fix the real cause and not a guess. Without them, we still fix the likely causes, with local checks only. OWNER: Signed in (clearchoice browser)
+Two database choices that are yours, with no hurry. Supabase's own pages show the database machine is small: 1.4 GB of memory, with 1.9 GB promised to it (Supabase marks that as severe), and a banner that CPU use is high. The database itself holds only 0.11 GB of data, so the load comes from how often the app asks it for things, not from how much it stores. The team measured the settings once: they are the standard ones for a machine this size (60 connections, 256 MB of buffers), so no setting we control would fix it. First, reset Supabase's Query Performance report: it mixes 18 days of old and new code, so a reset followed by one read a day later would show only today's code. Say "reset" in the chat with the PM and the PM clicks "Reset report" (it clears the report's history, nothing else). Second, a bigger machine costs money, and the team recommends waiting a day or two for the fixes now in progress to take effect before you decide. If you want it now, the "Upgrade compute" button is on that Supabase page.
 
-Permission to delete 160 old background-job records, one time. The app keeps a record of every background task it has run (for example, reading a meal photo). The team wrote a cleaner that deletes finished tasks older than 14 days, and it is live but has not deleted anything. A dry run today found 160 such records out of 701, from Oct 27 to Nov 4, none of which the app still reads. Deleting them cannot be undone, and nothing you can see in the app changes. Reply "delete" and the team runs it once, in a single batch. Reply "keep" or say nothing and nothing is deleted. Because the table is this small, deleting these 160 records will not measurably lower the database's CPU use, so there is no hurry. OWNER: delete
+What we did with your other answers. The salami: we leave that meal's numbers as they are, and nothing more is asked of you. The Supabase report: thank you; the team read it. It shows the database is busy mostly because the app asks it for too much (one request per meal card, a very large number of small requests, and live-update listening), and the team is fixing those first. "Tinhead N1" with a pencil on the meal page: "Tinhead" is your profile name. The "1" with the pencil is how many servings you ate; tap the pencil to change it, and the meal's calories scale with it. It has no word beside it, so it looked like part of your name. The team is adding a word to it.
 
 ### Backlog for GrokBot
+
+### #222 The feed fails to open, and photos and cards take too long to appear
+
+The feed sometimes fails to open, and on a slow connection the first photo and the cards take too long to show. The goal is the feed and the first photo within two seconds at the slow-network test profile.
+
+The original failures (3 server errors and 15 blank feeds in 100 opens on the largest test account, 146 posts) never reproduced on the earlier baseline, so their cause is not isolated. The stack for digest 3642131196 exists only in the Vercel console, because runtime logs return 403 for the coder. In emulation 100 of 100 cold opens succeeded with photos at 1.48 to 1.83 s, but on production the first feed photo measured 4.09 s and 4.05 s on a cold open with slow 4G at 390 wide. The sub-items #322, #323, #324, #520 and #372 each remove one piece of wasted work. GrokBot, Nov 5: FAIL. The first feed photo showed at 6.96 s, 8.49 s and 7.20 s on a cold slow-4G open at 390 wide, against about 4.05 s in Fleet 18 (see #372). GrokBot, Nov 15: 3.4 s on a judge account and 2.7 s on the owner account, still over 2 s. Done when a browser helper on production measures the first feed photo at 2 seconds or less on a cold open at the slow-network test profile.
+
+Fleet 35 and Fleet 38, Nov 18 (builder, local, same instrument): the 1200 px photo copy is live (#372, met) and the desktop-only Today column no longer downloads photos on a phone (hidden photos 6 to 0, fresh load 3,712 to 3,204 ms). A first-photo hint (a cookie and a preload header) was measured and dropped: it gained 0.5 ms on a returning open and made the new-meal case 1,090 ms slower. The best slow-network first photo is 3,133.8 ms, about 1,134 ms over the target. With only the page and the test photo on the line, the floor is 1.9 s, so the planner is writing a plan that reaches 2 s or shows with numbers that it cannot.
+
+Fleet 45, Nov 18 (builder): the first card on Home now starts at a 640 px photo through one shared reader and swaps to the 1200 px photo after load, with the 640 staying painted. Local, slow profile, cache enabled, five runs each: median 1,793.3 ms against main's 3,518.6 ms (worst 2,359.1 ms); cache disabled, 2,043.6 ms. On production one generated test meal showed one 640 request and one 1200 request, each 200 with a one-year immutable cache header, and the card was never blank; the fixture was removed. The production slow-profile time itself has not been measured, because the owner's rule against loading the production database allows only one pass. What is left is one check by GrokBot on production: the first feed photo within 2 seconds on a cold open at the slow-network test profile.
 
 ### #684 A failed leftovers upload cannot be dismissed and stays on screen every time the app is reopened
 
@@ -272,37 +282,17 @@ Each meal card opens its own Realtime channel while the tab already listens for 
 
 Done when card updates use the shared tab event, duplicate channels are deleted, and local tests cover updates, deletion and account isolation.
 
-### #1096 Replace the feed failed-channel poll with a visible reconnecting state
+### #1123 Something sent about 482 million API requests; the cause is not in current source
 
-When the feed's Realtime channel fails, the app falls back to a quiet periodic poll. The owner's rule is no fallbacks: a failure must show and be fixed. Follow-up to #1094.
+The production report records 482,360,150 request preludes (29.1% of database time), while the gateway shows about 17 requests a minute now, so this is a past burst or traffic outside the gateway. The code is not blamed without evidence.
 
-Done when the poll is deleted, failure and reconnection have a visible state, and local fake-clock tests prove reconnection discovers missed meals without quiet periodic polling.
+Done when the quiet retry loops listed above are deleted, and the next Query Performance read, after the owner resets it, shows the count growing at about the gateway rate.
 
-### #222 The feed fails to open, and photos and cards take too long to appear
+### #1134 The servings control is too small to tap and its screen-reader label leaves out the count
 
-The feed sometimes fails to open, and on a slow connection the first photo and the cards take too long to show. The goal is the feed and the first photo within two seconds at the slow-network test profile.
+The small control beside a meal's name (the pencil that opens the servings editor) is about 20 px tall in the reviewer's replica, below the app's 44 px tap size. Its accessible label "Edit servings" replaces its visible text, so a screen reader does not say the count or the unit. Both were already so before the Fleet 48 wording change.
 
-The original failures (3 server errors and 15 blank feeds in 100 opens on the largest test account, 146 posts) never reproduced on the earlier baseline, so their cause is not isolated. The stack for digest 3642131196 exists only in the Vercel console, because runtime logs return 403 for the coder. In emulation 100 of 100 cold opens succeeded with photos at 1.48 to 1.83 s, but on production the first feed photo measured 4.09 s and 4.05 s on a cold open with slow 4G at 390 wide. The sub-items #322, #323, #324, #520 and #372 each remove one piece of wasted work. GrokBot, Nov 5: FAIL. The first feed photo showed at 6.96 s, 8.49 s and 7.20 s on a cold slow-4G open at 390 wide, against about 4.05 s in Fleet 18 (see #372). GrokBot, Nov 15: 3.4 s on a judge account and 2.7 s on the owner account, still over 2 s. Done when a browser helper on production measures the first feed photo at 2 seconds or less on a cold open at the slow-network test profile.
-
-Fleet 35 and Fleet 38, Nov 18 (builder, local, same instrument): the 1200 px photo copy is live (#372, met) and the desktop-only Today column no longer downloads photos on a phone (hidden photos 6 to 0, fresh load 3,712 to 3,204 ms). A first-photo hint (a cookie and a preload header) was measured and dropped: it gained 0.5 ms on a returning open and made the new-meal case 1,090 ms slower. The best slow-network first photo is 3,133.8 ms, about 1,134 ms over the target. With only the page and the test photo on the line, the floor is 1.9 s, so the planner is writing a plan that reaches 2 s or shows with numbers that it cannot.
-
-### #1102 The meal read retries without identify_model and identify_host when the columns are missing
-
-In src/lib/posts/items.ts (line 113) the meal read repeats itself without identify_model and identify_host when those columns are missing, an old path for a database that predates migration 0032. The owner's rule is no legacy code and no fallbacks.
-
-Done when the old path is deleted, a failure fails visibly, and a test shows it.
-
-### #1103 The nutrition totals read retries without not_eaten_calories when the column is missing
-
-In src/lib/nutrition/totals.ts (lines 210 and 275) the totals read repeats itself without not_eaten_calories when that column is missing, an old path for an older database. The owner's rule is no legacy code and no fallbacks.
-
-Done when the old path is deleted, a failure fails visibly, and a test shows it.
-
-### #1104 The worker falls back to legacy persistence functions when the new one is missing
-
-The worker falls back to the legacy persistence functions when the new one is missing (tests/identify-provenance.test.mjs line 39 describes it). Migration 0007b keeps the legacy functions callable for migration-before-merge workers. The owner's rule is no legacy code and no fallbacks.
-
-Done when the fallback and the legacy functions it needs are deleted, a missing new function fails visibly, and a test shows it.
+Done when the control meets the tap size, its accessible name includes the count and unit (for example "Edit servings, 1 serving"), and a test shows both.
 
 ### Backlog for Designer
 
@@ -337,6 +327,14 @@ The Round 7 control table covers the feed, the post and the capture sheet. Days,
 The designer has not read their controls yet. Add them to the table from #217 with its four findings: time to a visible change, pressed look, jump or flicker, and double tap. Done when every control on those screens is in the table and the dead ones are fixed or filed as items.
 
 ### In flight
+
+### #1121 The every-minute worker wake logs every run forever
+
+The cron log (cron.job_run_details) is 4.1 MB and grows by one row a minute. The minute wake is needed for delayed jobs and already skips work when nothing is due.
+
+Done when run details older than seven days can be counted by a read-only dry run and removed in bounded batches, oldest first, with per-day counts and administrator-only permission, and the not-yet-due skip is proved locally. No production delete runs without the PM's separate order.
+
+Fleet 47, Nov 18 (builder): the cleaner is live (migration 0073, applied once in 568 ms; it installs no schedule and deletes nothing). One read-only session found the delete permission is in place and a dry run counted 26,415 cron run records in total, of which 16,328 are older than seven days (about 1,440 a day from Oct 31 to Nov 11). Nothing was deleted. The owner is asked at the top of this Doc to confirm the one-time delete in the PM's chat.
 
 ### #1097 Decide retention for completed worker jobs
 
