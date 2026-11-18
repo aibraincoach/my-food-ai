@@ -36,5 +36,5 @@ test('a lost lease stops the worker before it claims another job',async()=>{
 test('public failure messages use fixed copy and never echo raw provider diagnostics',()=>{
  assert.match(failureMessage('fdc: private diagnostic'),/food database was busy/);
  assert.match(failureMessage('meta: private diagnostic'),/analysis service refused/);
- assert.equal(failureMessage('private credential detail'),'This photo could not be analysed.');
+ assert.equal(failureMessage('private credential detail'),'This meal could not be analysed. Please try again.');
 });
