@@ -15,19 +15,20 @@ test('feed and detail normalize the same legacy branded row',async()=>{
  assert.equal(card.items[0].protein_g,null);
 });
 
-test('batch nutrition preserves post ownership, legacy scaling and remainder fallback',async()=>{
+// #1103, rule 5: not_eaten_calories is read as stored; the original food is never read to work it out.
+test('batch nutrition preserves post ownership and legacy scaling, and reads stored leftover calories in one request',async()=>{
  const {createClient}=await import('@supabase/supabase-js');
  const {getCurrentItemsForPosts}=await import('../src/lib/nutrition/totals.ts');
  const calls=[];const db=createClient('https://fixture.invalid','fixture',{global:{fetch:async input=>{
   const url=new URL(input instanceof Request?input.url:String(input));calls.push(url);
-  if(url.pathname.endsWith('/post_items'))return Response.json([{id:'parent',post_id:'post-a',portion_grams:100,item_nutrition:{post_item_id:'parent',calories:200,micronutrients:[]}}]);
-  return Response.json([{id:'a',post_id:'post-a',name:'Food A',portion_grams:50,not_eaten_grams:50,supersedes:'parent',item_nutrition:{post_item_id:'a',calories:333,micronutrients:[{nutrientId:1008,nutrientName:'Energy',unitName:'KCAL',value:200}]}},{id:'b',post_id:'post-b',name:'Food B',portion_grams:20,item_nutrition:null}]);
+  if(url.pathname.endsWith('/post_items'))throw Error('the original food must not be read');
+  return Response.json([{id:'a',post_id:'post-a',name:'Food A',portion_grams:50,not_eaten_grams:50,not_eaten_calories:100,supersedes:'parent',item_nutrition:{post_item_id:'a',calories:333,micronutrients:[{nutrientId:1008,nutrientName:'Energy',unitName:'KCAL',value:200}]}},{id:'b',post_id:'post-b',name:'Food B',portion_grams:20,item_nutrition:null}]);
  }}});
  const result=await getCurrentItemsForPosts(db,['post-a','post-b']);
  assert.equal('item_nutrition' in result.get('post-a')[0],false,'embedded nutrition is not duplicated into the feed payload');assert.equal('post_id' in result.get('post-a')[0],false);
  assert.equal(result.get('post-a')[0].calories,100);assert.equal(result.get('post-a')[0].not_eaten_calories,100);
  assert.equal(result.get('post-b')[0].calories,null);assert.equal(result.get('post-b')[0].name,'Food B');
- assert.equal(calls.length,2);assert.equal(calls[1].searchParams.get('post_id'),'in.(post-a,post-b)');
+ assert.equal(calls.length,1);assert.equal(calls[0].searchParams.get('post_id'),'in.(post-a,post-b)');
 });
 
 
@@ -92,4 +93,30 @@ test('all feed and refreshed photos use small owner URLs while only card PNGs ar
  assert.deepEqual(signed,[media[2].storage_path],'photo signing is eliminated, not duplicated beside small URLs');
  const refreshed=await getPostCard(db,posts[0].id);
  assert.deepEqual(refreshed.slides.filter(s=>s.kind==='photo').map(s=>s.url),batch[0].slides.filter(s=>s.kind==='photo').map(s=>s.url),'realtime refresh cannot restore the old large Storage paths');
+});
+
+test('a nutrition read the database rejects is one request and fails visibly',async()=>{
+ const {createClient}=await import('@supabase/supabase-js');
+ const {getCurrentItemsForPosts,getCurrentItems}=await import('../src/lib/nutrition/totals.ts');
+ const calls=[];const db=createClient('https://fixture.invalid','fixture',{global:{fetch:async input=>{calls.push(new URL(input instanceof Request?input.url:String(input)));
+  return Response.json({code:'42703',message:'column current_post_items.not_eaten_calories does not exist'},{status:400});}}});
+ await assert.rejects(()=>getCurrentItemsForPosts(db,['post-a']),/Current meal nutrition could not be read/);
+ assert.equal(calls.length,1);assert.match(calls[0].searchParams.get('select'),/not_eaten_calories/);
+ await assert.rejects(()=>getCurrentItems(db,'post-a'),/Current items could not be read/);
+ assert.equal(calls.length,2);assert.match(calls[1].searchParams.get('select'),/not_eaten_calories/);
+});
+
+test('single-meal leftover nutrition uses the stored value without reading its original food',async()=>{
+ const {createClient}=await import('@supabase/supabase-js');
+ const {getCurrentItems}=await import('../src/lib/nutrition/totals.ts');
+ const calls=[];const db=createClient('https://fixture.invalid','fixture',{global:{fetch:async input=>{
+  const url=new URL(input instanceof Request?input.url:String(input));calls.push(url.pathname);
+  if(url.pathname.endsWith('/post_items'))throw Error('the original food must not be read');
+  if(url.pathname.endsWith('/current_post_items'))return Response.json([{id:'leftover',name:'Rice',portion_grams:50,not_eaten_grams:50,not_eaten_calories:null,supersedes:'original',source:'model'}]);
+  if(url.pathname.endsWith('/item_nutrition'))return Response.json([{post_item_id:'leftover',calories:100,micronutrients:[]}]);
+  throw Error('Unexpected request '+url.pathname);
+ }}});
+ const rows=await getCurrentItems(db,'meal');
+ assert.equal(rows[0].not_eaten_calories,null,'an explicitly unknown stored value stays unknown');
+ assert.deepEqual(calls,['/rest/v1/current_post_items','/rest/v1/item_nutrition']);
 });
