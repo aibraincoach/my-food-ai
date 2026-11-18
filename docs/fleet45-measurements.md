@@ -1,4 +1,32 @@
-# Fleet45 local results
+# Fleet45 cache-enabled local comparison
+
+PM order of12:22Z: fresh empty profiles, cache enabled, same photo and slow profile, five sequential opens per build. Only the initial Network.setCacheDisabled argument changes from true to false in a separate instrument copy; the original frozen file stays byte-identical. No production access or source-code change.
+
+| Run | First resource ms | 640 shown ms | 1200 shown ms | FCP ms | 640 CDP entries / bytes each | 1200 CDP entries / bytes each |
+|---|---:|---:|---:|---:|---|---|
+| main-01 | 3771.4 | — | 3902.5 | 916 | 0 / — | 1 / 207051 |
+| main-02 | 3383.8 | — | 3642.6 | 604 | 0 / — | 1 / 207051 |
+| main-03 | 3518.6 | — | 3634.4 | 612 | 0 / — | 1 / 207051 |
+| main-04 | 3489.1 | — | 3577.2 | 556 | 0 / — | 1 / 207051 |
+| main-05 | 3528.7 | — | 3609.7 | 660 | 0 / — | 1 / 207051 |
+| a-01 | 2359.1 | 2366.6 | 6466.4 | 992 | 2 / 65168, 0 | 1 / 207051 |
+| a-02 | 1881.0 | 1898.6 | 6202.1 | 724 | 2 / 65168, 0 | 1 / 207051 |
+| a-03 | 1793.3 | 1807.0 | 6189.3 | 628 | 2 / 65168, 0 | 1 / 207051 |
+| a-04 | 1792.9 | 1811.4 | 6243.9 | 648 | 2 / 65168, 0 | 1 / 207051 |
+| a-05 | 1789.0 | 1800.4 | 6153.7 | 652 | 2 / 65168, 0 | 1 / 207051 |
+
+Main median 3518.6ms; worst 3771.4ms. Candidate median 1793.3ms; worst 2359.1ms.
+
+NOT MET on the PM-ordered realistic setting.
+
+Each candidate640 URL has two CDP request entries, one with65,168 transferred bytes and one with0bytes. This is one network transfer plus cache reuse, not two transfers. Each1200 URL has one207,051-byte transfer. Bytes are CDP encodedDataLength, including response overhead. Request counts are not silently renamed as transfer counts.
+
+Cache-disabled results remain separately recorded: main median3482.4ms/worst3498.0ms; candidate median2043.6ms/worst2336.3ms, with two65,168-byte640transfers and one207,051-byte1200transfer in each candidate run. That profile fails the2000/2300ms thresholds.
+
+Source stays at4472641498bac6f7af355a9452102718e9b5cb8b; no optionB, production run, merge or issue closure. Reviewer-seat verdict pending; AGY cancelled on PM order.
+
+
+# Fleet45 cache-disabled local results
 
 Option A only; no production access. Frozen response-end time can precede actual display when duplicate requests exist. Supplementary displayed-image observations were applied identically to both builds. Bytes below count completed other responses before the first resource completion; in-flight response bytes are excluded.
 
