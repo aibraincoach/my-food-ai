@@ -2,5 +2,5 @@
 export function failureMessage(reason?: string | null): string {
   if (reason?.startsWith("fdc:")) return "The food database was busy. Try again in a minute.";
   if (reason?.startsWith("meta:")) return "The analysis service refused this request. Try again.";
-  return "This photo could not be analysed.";
+  return "This meal could not be analysed. Please try again.";
 }

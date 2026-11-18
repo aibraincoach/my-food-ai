@@ -13,7 +13,7 @@ import { PackPhotoUpload, JSON_REQUEST_LIMIT_MS } from '@/lib/media/pack-photo-u
 import { reencodeShot } from '@/lib/media/reencode';
 
 const RETAKE_ATTACHMENT_MESSAGE = 'This photo was not kept. Take it again.';
-const ATTACHMENT_UPLOAD_FAILED = 'The photo did not reach the app. It is kept on this phone, so try again.';
+const ATTACHMENT_UPLOAD_FAILED = 'The photo could not be uploaded. It is saved on this phone, so try again.';
 export interface UploadState {
     operationId: string;
     kind?: "food"|"copy"|"drink";
