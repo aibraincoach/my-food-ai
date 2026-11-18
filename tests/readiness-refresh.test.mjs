@@ -24,7 +24,7 @@ test('mounted readiness observer skips initial Home reloads but still refreshes 
   const db={auth:{onAuthStateChange:()=>({data:{subscription:{unsubscribe(){}}}}),getUser:async()=>({data:{user:{id:'owner'}}}),getSession:async()=>({data:{session:{user:{id:'owner'}}}})},channel:()=>channel,removeChannel:async()=>{},from:()=>({select:()=>{
    const query={eq(){return this;},in:async()=>({data:pendingRows,error:null}),order(){return this;},limit:async()=>({data:[{id:'meal',status:'ready'}],error:null})};return query;
   }})};
-  vm.default.runInNewContext(code,{exports,Map,Date:FakeDate,Promise,Event,CustomEvent,window:events,document,location:{pathname:home?'/':'/days'},setInterval:(run,ms)=>{timers.set(ms,run);return ms;},clearInterval(){},require(name){
+  vm.default.runInNewContext(code,{exports,Map,Date:FakeDate,Promise,Event,CustomEvent,window:events,document,location:{pathname:home?'/':'/days'},setTimeout:(run)=>{timers.set(1,run);return 1;},clearTimeout:id=>timers.delete(id),require(name){
    if(name==='react')return{useEffect:run=>{effect=run;},useState:initial=>[initial,()=>{}]};
    if(name==='react/jsx-runtime')return{jsx:()=>null};
    if(name==='next/navigation')return{useRouter:()=>({refresh(){refreshes++;}})};
@@ -33,7 +33,7 @@ test('mounted readiness observer skips initial Home reloads but still refreshes 
    throw Error(name);
   }});
   exports.default();const cleanup=effect(),tick=()=>new Promise(resolve=>setImmediate(resolve));await tick();
-  return{events,refreshes:()=>refreshes,revalidations:()=>revalidations,visible:()=>document.dispatchEvent(new Event('visibilitychange')),minute:()=>timers.get(60000)(),setDay:value=>{day=value;},setPending:rows=>{pendingRows=rows;},reconnect:async()=>{subscribed('SUBSCRIBED');await tick();},cleanup,tick};
+  return{events,refreshes:()=>refreshes,revalidations:()=>revalidations,visible:()=>document.dispatchEvent(new Event('visibilitychange')),minute:()=>timers.get(1)(),setDay:value=>{day=value;},setPending:rows=>{pendingRows=rows;},reconnect:async()=>{subscribed('SUBSCRIBED');await tick();},cleanup,tick};
  }
  const home=await mount(true);assert.equal(home.refreshes(),0);await home.reconnect();assert.equal(home.refreshes(),0);
  home.events.dispatchEvent(new CustomEvent('post-ready',{detail:{id:'meal'}}));assert.equal(home.refreshes(),0);

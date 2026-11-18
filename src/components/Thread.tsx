@@ -44,20 +44,14 @@ export default function Thread({postId,readOnly=false,sourcePostId,desktopAction
    setWaiting(feedback==='waiting');
   }catch{if(live)setError('Comments could not be loaded.');}finally{inFlight=false;if(again&&live){again=false;void load();}}};
   const channel=client.channel(`thread-${postId}`).on('postgres_changes',{event:'INSERT',schema:'public',table:'post_comments',filter:`post_id=eq.${postId}`},()=>{void load();}).on('postgres_changes',{event:'UPDATE',schema:'public',table:'post_comments',filter:`post_id=eq.${postId}`},()=>{void load();}).subscribe((status)=>{if(status==='SUBSCRIBED')void load();});
+  const visible=()=>{if(document.visibilityState==='visible')void load();};
+  const readiness=(event:Event)=>{if((event as CustomEvent<{id?:string}>).detail?.id===postId)void load();};
+  window.addEventListener('focus',visible);document.addEventListener('visibilitychange',visible);
+  window.addEventListener('post-readiness',readiness);
   wake.current=()=>{void load();};
   void load();
-  return()=>{live=false;wake.current=()=>{};void client.removeChannel(channel);};
+  return()=>{live=false;wake.current=()=>{};window.removeEventListener('focus',visible);document.removeEventListener('visibilitychange',visible);window.removeEventListener('post-readiness',readiness);void client.removeChannel(channel);};
  },[postId,router]);
- useEffect(()=>{
-  if(!waiting)return;
-  let live=true;let delay=2000;let timer:ReturnType<typeof setTimeout>;
-  const tick=()=>{if(!live)return;if(document.visibilityState==='visible')void wake.current();delay=Math.min(30000,delay*2);timer=setTimeout(tick,delay);};
-  timer=setTimeout(tick,delay);
-  // Returning to the tab checks at once and starts the backoff again.
-  const visible=()=>{if(document.visibilityState!=='visible')return;clearTimeout(timer);delay=2000;void wake.current();timer=setTimeout(tick,delay);};
-  document.addEventListener('visibilitychange',visible);
-  return()=>{live=false;clearTimeout(timer);document.removeEventListener('visibilitychange',visible);};
- },[waiting]);
  const [toast,setToast]=useState<{key:number;undo:()=>void}|null>(null);
  const [pendingRemovals,setPendingRemovals]=useState<string[]>([]);
  const pendingRemovalIds=useRef(new Set<string>());
