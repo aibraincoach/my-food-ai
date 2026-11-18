@@ -14,7 +14,7 @@ export type FoodKind = "fruit" | "sweet" | "drink" | "condiment" | "fat" | "meat
 
 const NAME_WORDS: [FoodKind, RegExp][] = [
   ["fruit", /\b(fruits?|apples?|bananas?|papayas?|mangos?|mangoes|melons?|watermelons?|honeydew|cantaloupe|persimmons?|berry|berries|strawberr(y|ies)|blueberr(y|ies)|grapes?|oranges?|pineapples?|durian|jackfruit|rambutan|lychees?|longan|guavas?|kiwis?|pears?|peach(es)?|plums?|cherr(y|ies)|dates|figs?|raisins?|apricots?|avocados?|dragon ?fruit|pomelo|mangosteen|salak|starfruit)\b/i],
-  ["sweet", /\b(cakes?|cookies?|biscuits?|candy|candies|chocolate|desserts?|pastr(y|ies)|donuts?|doughnuts?|pudding|ice cream|gelato|brownies?|tarts?|pies?|kue|martabak manis|jelly|sweets?)\b/i],
+  ["sweet", /\b(cakes?|cookies?|biscuits?|candy|candies|chocolate|desserts?|pastr(y|ies)|donuts?|doughnuts?|pudding|ice cream|gelato|brownies?|tarts?|pies?|kue|martabak manis|jell(y|ies)|jams?|preserves?|sweets?)\b/i],
   ["drink", /\b(drinks?|juice|tea|coffee|kopi|teh|espresso|latte|cappuccino|americano|mocha|milkshake|smoothie|soda|cola|coke|beer|radler|wine|cocktail|mai tai|mojito|margarita|sake|soju|whisk(e)?y|vodka|gin|rum|liquor|water|lemonade|boba|bubble tea|kombucha|bintang|lager|ale)\b/i],
   ["condiment", /\b(sauces?|gravy|dressings?|sambal|ketchup|mayonnaise|mayo|salsa|dips?|condiments?|chutney|relish|mustard|pesto|aioli|vinaigrette|kecap|syrup|honey|jam)\b/i],
   ["fat", /\b(oil|butter|margarine|ghee|lard|shortening)\b/i],
@@ -33,6 +33,7 @@ const NAME_WORDS: [FoodKind, RegExp][] = [
 const CATEGORY_KIND: [FoodKind, RegExp][] = [
   ["fruit", /^fruits and fruit juices$/],
   ["drink", /beverage|drinks?\b|juice|coffee|tea\b|beer|wine|liquor|cocktail|soft drink|water|smoothie/],
+  ["sweet", /\b(jell(y|ies)|jams?|preserves?)\b/],
   ["condiment", /sauce|gravies|gravy|dressing|condiment|dips?\b|salsa|ketchup|mustard|spreads?|syrups?|jams?|jellies/],
   ["fat", /fats and oils|vegetable oils|butter|margarine|cooking oils/],
   ["sweet", /sweets|candy|cookies|cakes|pies|pastr|doughnuts|desserts|ice cream|chocolate|baked products|biscuits/],
