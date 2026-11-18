@@ -19,7 +19,7 @@ test('not-eaten difference clamps the photographed amount and preserves count re
 test('the stored-card snapshot preserves known uneaten calories when all of a food was not eaten',async()=>{
  const parent={id:'original',portion_grams:100,item_nutrition:[{post_item_id:'original',calories:500,protein_g:10,carbs_g:60,fat_g:20,fibre_g:1,sugar_g:1,sodium_mg:5,micronutrients:[],source_ref:null}]};
  const db={from(table){let chain;chain=new Proxy({}, {get(_target,key){if(key==='then')return resolve=>resolve({data:table==='post_items'?[parent]:[],error:null});return()=>chain;}});return chain;}};
- const data=await readCardData(db,'owner',{id:'copy',eaten_at:'2026-11-01T08:00:00Z',items:[{id:'current',name:'Food',portion_grams:0,calories:0,protein_g:0,carbs_g:0,fat_g:0,fibre_g:0,sugar_g:0,sodium_mg:0,micronutrients:[],supersedes:'original',not_eaten_grams:100,not_eaten_count_text:null}]});
+ const data=await readCardData(db,'owner',{id:'copy',eaten_at:'2026-11-01T08:00:00Z',items:[{id:'current',name:'Food',portion_grams:0,calories:0,protein_g:0,carbs_g:0,fat_g:0,fibre_g:0,sugar_g:0,sodium_mg:0,micronutrients:[],supersedes:'original',not_eaten_grams:100,not_eaten_calories:500,not_eaten_count_text:null}]});
  assert.equal(data.kcal,0);
  assert.equal(data.footer,'Leftovers: 100 g · 500 kcal');
 });
@@ -68,4 +68,13 @@ rollback;
 `;
  const result=spawnSync('psql',['-X','-qAt','--dbname',process.env.SUPABASE_DB_URL],{input:sql,encoding:'utf8',timeout:90000});
  assert.equal(result.status,0,result.stderr||'Database difference test failed');
+});
+
+test('a card with missing leftover calories does not read or derive old nutrition',async()=>{
+ const reads=[];const db={from(table){reads.push(table);let chain;chain=new Proxy({}, {get(_target,key){if(key==='then')return resolve=>resolve({data:[],error:null});return()=>chain;}});return chain;}};
+ const data=await readCardData(db,'owner',{id:'copy',eaten_at:'2026-11-01T08:00:00Z',items:[{id:'current',name:'Food',portion_grams:50,calories:100,protein_g:1,carbs_g:1,fat_g:1,micronutrients:[],supersedes:'original',not_eaten_grams:50}]});
+ assert.ok(!reads.includes('post_items'),'no original-food lookup even for an incomplete input');
+ assert.equal(data.footer,'Leftovers: 50 g · unavailable kcal');
+ const {cardDataFromRow}=await import('../src/lib/pipeline/card-data.ts');
+ assert.equal(cardDataFromRow({items:[{name:'Food',portion_grams:50,calories:100,not_eaten_grams:50}]}).footer,'Leftovers: 50 g · unavailable kcal');
 });
