@@ -1,6 +1,6 @@
 ### My Food AI — Backlog†
 
-Last edited: Thursday 2026-11-19 at 01:42 WIB (UTC+07:00) by Claude, PM
+Last edited: Thursday 2026-11-19 at 02:45 WIB (UTC+07:00) by Claude, PM
 
 The only job of the PM is to maintain this backlog and keep it completely up to date. Failing to do so is immediately terminable.
 
@@ -15,6 +15,8 @@ One thing needs your yes in the chat with the PM, and one thing is optional. Eve
 Confirm the one-time delete in the PM's chat. You wrote "delete" here next to the question about 160 old background-job records. These are the app's own records of finished tasks (for example, reading a meal photo) from Oct 27 to Nov 4, which the app no longer reads. Deleting them cannot be undone, and nothing you can see in the app changes. Because it cannot be undone, the PM runs it only after you say "delete" once in the chat with the PM. Until then, nothing is deleted. The same applies to a second cleanup: the app's every-minute task log has 16,328 records older than seven days (about 1,440 a day, from Oct 31 to Nov 11). They are also the app's own logs and nothing you can see changes. If you say "delete" in the chat with the PM, the PM will ask you once more which of the two cleanups you mean, so it is clear what you approved.Optional: try a leftovers photo again, and watch Home. The leftovers entry that was stuck on your iPhone 16 Pro Max ("Leftovers not saved. Try again.") is the problem the team found: an older version of the app kept the photo in a way the phone can no longer read, so Try again cannot work. Fixes for new photos are live. Two more are queued: one removes the old way for good, so an old entry shows "take it again" at once, and one changes the card's sentence, which says "saved on this phone" and is only half true. When you next add a leftovers photo, tell us whether it uploads. Also open Home and watch the first photo for a few seconds: it now loads small and sharp-after-a-moment, so tell us if it flashes blank or jumps.
 
 Update, Nov 18 at 23:53 WIB: the first of the two follow-up fixes above is now live. An old leftovers entry that the phone can no longer read now says "This photo was not kept. Remove this post and take a new photo." and can be removed. A photo you had not posted yet and could not be recovered shows a one-time line on Home, "An unposted photo couldn't be recovered, but your caption is saved.", with an OK button. The second fix, the card's half-true "saved on this phone" sentence, is now live too: the card no longer says the photo is saved on the phone, and says only what is true about its photo and the controls it offers.
+
+Also live, Nov 19 at 02:43 WIB: a meal you discard while it is waiting for your answer now goes to Recently deleted, like any deleted meal, and can be restored from there. Before, it was erased at once. This also lets other open tabs and devices notice a discard when you return to them.
 
 Two database choices that are yours, with no hurry. Supabase's own pages show the database machine is small: 1.4 GB of memory, with 1.9 GB promised to it (Supabase marks that as severe), and a banner that CPU use is high. The database itself holds only 0.11 GB of data, so the load comes from how often the app asks it for things, not from how much it stores. The team measured the settings once: they are the standard ones for a machine this size (60 connections, 256 MB of buffers), so no setting we control would fix it. First, reset Supabase's Query Performance report: it mixes 18 days of old and new code, so a reset followed by one read a day later would show only today's code. Say "reset" in the chat with the PM and the PM clicks "Reset report" (it clears the report's history, nothing else). Second, a bigger machine costs money, and the team recommends waiting a day or two for the fixes now in progress to take effect before you decide. If you want it now, the "Upgrade compute" button is on that Supabase page.
 
@@ -170,35 +172,23 @@ The owner has logged food daily for days, his diet changed, and he reports that 
 
 Known cases: the macaroni snack shows 38 kcal and 0 g fat from a cooked vegetable macaroni record (#523), squid matched to a tuna sushi record (#617), a consumed number from a half-eaten plate that nobody confirmed (#285), and 12 of the owner's 137 posts show a 0 g macro that nobody judged. A capable coder investigates read-only: pull the owner's ready posts, check each food's weight and kcal against its USDA record and the photo, and record for each wrong number which step caused it (the food identified, the record matched, the weight estimated or the stored value). Done when a written finding lists every one of the owner's posts whose numbers are wrong with its cause, ranks the causes by how many posts each one explains, and each cause is on the backlog as its own item.
 
-### #617 Squid and tuna are matched to the wrong food records
-
-In the real food test, a photo of squid nigiri was matched to a USDA record described as "Sushi, topped with tuna". The test allows this kind of closest match, so a passing test does not show the match is right.
-
-No fix has been tried. First step: look at which squid records were available, the matching trace, and the closest-food label. Done when a written finding says whether this match is acceptable and, if not, what should change.
-
-### #1095 Replace duplicate per-card Realtime channels with the tab event
-
-Each meal card opens its own Realtime channel while the tab already listens for the same changes, so one meal write is checked once per card per open tab. Found by the CPU audit that led to #1094; it is a follow-up to #1094.
-
-Done when card updates use the shared tab event, duplicate channels are deleted, and local tests cover updates, deletion and account isolation.
-
 ### #1123 Something sent about 482 million API requests; the cause is not in current source
 
 The production report records 482,360,150 request preludes (29.1% of database time), while the gateway shows about 17 requests a minute now, so this is a past burst or traffic outside the gateway. The code is not blamed without evidence.
 
 Done when the quiet retry loops listed above are deleted, and the next Query Performance read, after the owner resets it, shows the count growing at about the gateway rate.
 
-### #1134 The servings control is too small to tap and its screen-reader label leaves out the count
-
-The small control beside a meal's name (the pencil that opens the servings editor) is about 20 px tall in the reviewer's replica, below the app's 44 px tap size. Its accessible label "Edit servings" replaces its visible text, so a screen reader does not say the count or the unit. Both were already so before the Fleet 48 wording change.
-
-Done when the control meets the tap size, its accessible name includes the count and unit (for example "Edit servings, 1 serving"), and a test shows both.
-
 ### #1153 A correct coleslaw record is dropped for cabbage slaw when the record has no category
 
 The reviewer found this while checking Fleet 51, on both the old and new matcher: a food named "cabbage slaw" is compared with the USDA record "Coleslaw with dressing", which has no category, and the matcher drops that correct record. The Fleet 51 change did not cause it. A dropped correct record sends the food to a less exact route, so its numbers are less accurate.
 
 Done when that pair is kept and the Fleet 37 and Fleet 51 pair tables still pass.
+
+### #1161 A tab return makes about 14 requests at once (feedback, comments, readiness)
+
+When a person returns to a tab showing a meal, the page makes about 14 requests and 14 preflight checks at once: 4 for feedback, 6 for comments, 3 for readiness (status and initialization) and 1 for the meal page's own status. The one status read is what the quiet-polling work (#1095) intended. The rest are other readers' event-driven reads on focus, not timers, and they were the same before.
+
+Done when the return makes the fewest reads the screen needs, shown by a local count test.
 
 ### Backlog for Designer
 
