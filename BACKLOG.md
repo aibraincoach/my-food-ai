@@ -1,18 +1,22 @@
 ### My Food AI — Backlog†
 
-Last edited: Wednesday 2026-11-18 at 18:21 WIB (UTC+07:00) by Claude, PM
+Last edited: Wednesday 2026-11-18 at 19:32 WIB (UTC+07:00) by Claude, PM
 
 The only job of the PM is to maintain this backlog and keep it completely up to date. Failing to do so is immediately terminable.
 
-### For the owner
+### From the owner
+
+Wondering if this stuff on the backlog is being built, asking for a friend. Also, your GrokBot stuff: you can drive the browser. What value is GrokBot giving us if you can drive the browser? Should this not be handled on my browsers? GrokBot was only useful when you refused to drive the browser, but I think you can do all this stuff now. If not, reply here and tell me what the advantage is. finally, let's play a game called Marco Polo. I'm going to give you a Marco, and when you read this, you give me a Polo with the time stamp below. Don't edit this one paragraph. Everything else on this backlog can be edited. Marco! 7:01 pm, Wednesday, November 18th 
+
+For the owner
 
 Two things only you can do. Nothing else is waiting on you.
 
-Tell us how much the bag of salami weighs. The app has no way to know the weight on the package, and the stored numbers for that meal depend on it. A grams figure (for example, 250 g) is enough.Try a leftovers photo on your phone. Add a leftovers photo to a meal, then close and reopen the app. If a photo fails, tap Try again. Please tell us whether it uploaded, and what the red message said if it did not. The fixes are live, but we have only tested them on test accounts, not on your iPhone.
+Tell us how much the bag of salami weighs. The app has no way to know the weight on the package, and the stored numbers for that meal depend on it. A grams figure (for example, 250 g) is enough. OWNER: Can't tell you, that was ages ago in Canada, I'm now in indonesia, can't speculate, so it's a lost opportunity to chase down. Try a leftovers photo on your phone. Add a leftovers photo to a meal, then close and reopen the app. If a photo fails, tap Try again. Please tell us whether it uploaded, and what the red message said if it did not. The fixes are live, but we have only tested them on test accounts, not on your iPhone. While you are there, open Home and watch the first photo for a few seconds. It now loads small and sharp-after-a-moment; tell us if the first photo ever flashes blank or jumps. OWNER: Does it count for the shit that is stuck there right now? OWNER UPDATE NUMBER 2:I have something on my iPhone 16 Pro Max, not on my other phones, for whatever reason. It says, "Leftovers not saved. Try again. The photo could not be uploaded. It is saved on this phone, so try again." There's a remove button below it, a view button to the right, and I guess "not saved, try again" is in red, so it's hard to read. That's one item.When I click on view, it takes me to the food, which, I don't know why, says "Tinhead N1" as my user ID, and then there's a little pencil beside it. I don't know what the fuck that means. That's kind of weird. I clicked on it, and it looks like my pasta with pork thing, and I had leftovers for that.If I click on try again, it says, "Adding leftovers photo," but I think the issue is that this stuff doesn't reside in cache or doesn't reside in the system, so it says, "not saved, try again, and remove." Basically, it failed. I think there's an issue with how you handle this item: either this doesn't get up to the internet and it gets cleared out of the local browser storage, or something else is fucked up. I don't know, but there you have it. My leftover is from yesterday's lunch. Failed. I'm going to remove that now. 
 
-One more, because Supabase warned you the database is running hot. The team found likely causes in the code, but only Supabase's own report shows the real one. Please sign in to the Supabase account that owns the My Food AI project, open this page, and send us the first ten rows (the queries that use the most total time): https://supabase.com/dashboard/project/ukudowbsfmofisekahqb/advisors/query-performance. The browser we can use is signed in to a different Supabase account that does not hold this project, so we cannot read it ourselves. With the ten rows, we fix the real cause and not a guess. Without them, we still fix the likely causes, with local checks only.
+One more, because Supabase warned you the database is running hot. The team found likely causes in the code, but only Supabase's own report shows the real one. Please sign in to the Supabase account that owns the My Food AI project, open this page, and send us the first ten rows (the queries that use the most total time): https://supabase.com/dashboard/project/ukudowbsfmofisekahqb/advisors/query-performance. The browser we can use is signed in to a different Supabase account that does not hold this project, so we cannot read it ourselves. With the ten rows, we fix the real cause and not a guess. Without them, we still fix the likely causes, with local checks only. OWNER: Signed in (clearchoice browser)
 
-Permission to delete 160 old background-job records, one time. The app keeps a record of every background task it has run (for example, reading a meal photo). The team wrote a cleaner that deletes finished tasks older than 14 days, and it is live but has not deleted anything. A dry run today found 160 such records out of 701, from Oct 27 to Nov 4, none of which the app still reads. Deleting them cannot be undone, and nothing you can see in the app changes. Reply "delete" and the team runs it once, in a single batch. Reply "keep" or say nothing and nothing is deleted. Because the table is this small, deleting these 160 records will not measurably lower the database's CPU use, so there is no hurry.
+Permission to delete 160 old background-job records, one time. The app keeps a record of every background task it has run (for example, reading a meal photo). The team wrote a cleaner that deletes finished tasks older than 14 days, and it is live but has not deleted anything. A dry run today found 160 such records out of 701, from Oct 27 to Nov 4, none of which the app still reads. Deleting them cannot be undone, and nothing you can see in the app changes. Reply "delete" and the team runs it once, in a single batch. Reply "keep" or say nothing and nothing is deleted. Because the table is this small, deleting these 160 records will not measurably lower the database's CPU use, so there is no hurry. OWNER: delete
 
 ### Backlog for GrokBot
 
@@ -95,6 +99,10 @@ After the fix for #520, a cold Home open of finished meals should not read them 
 On production, with six finished meals, a 15-second open made no /api/feed?ids= request. A local run earlier showed three reads for other seeded meals, and later source reads blamed old off-page discovery ids and measured zero on a fresh profile. The two results are not yet reconciled. Done when a cold Home open on the owner's account and on a test account makes no /api/feed?ids= request, and the earlier three reads are explained.
 
 ### Engineering backlog
+
+### The connect an agent is fucking useless
+
+ I've connected an agent, but no agent knows how to fucking use the thing. There's no instruction, there's no MCP endpoint, there's nothing. This is supposed to be a world-class app. Meanwhile, it's a world piece of shit. 
 
 ### #999 The camera view goes black on the Photo screen, possibly because the barcode reader starts there
 
@@ -278,12 +286,6 @@ The original failures (3 server errors and 15 blank feeds in 100 opens on the la
 
 Fleet 35 and Fleet 38, Nov 18 (builder, local, same instrument): the 1200 px photo copy is live (#372, met) and the desktop-only Today column no longer downloads photos on a phone (hidden photos 6 to 0, fresh load 3,712 to 3,204 ms). A first-photo hint (a cookie and a preload header) was measured and dropped: it gained 0.5 ms on a returning open and made the new-meal case 1,090 ms slower. The best slow-network first photo is 3,133.8 ms, about 1,134 ms over the target. With only the page and the test photo on the line, the floor is 1.9 s, so the planner is writing a plan that reaches 2 s or shows with numbers that it cannot.
 
-### #1101 The trace writer retries without the model and host columns for a database older than migration 0032
-
-In record.ts (lines 70 to 73), when the trace insert is rejected the code retries it without the model and host columns, an old path for a database that predates migration 0032. The owner's rule is no legacy code and no fallbacks. Fleet 44 deletes it together with the trace retention work (#1098).
-
-Done when the retry is deleted, a failed insert fails visibly, and a test shows it.
-
 ### #1102 The meal read retries without identify_model and identify_host when the columns are missing
 
 In src/lib/posts/items.ts (line 113) the meal read repeats itself without identify_model and identify_host when those columns are missing, an old path for a database that predates migration 0032. The owner's rule is no legacy code and no fallbacks.
@@ -335,12 +337,6 @@ The Round 7 control table covers the feed, the post and the capture sheet. Days,
 The designer has not read their controls yet. Add them to the table from #217 with its four findings: time to a visible change, pressed look, jump or flicker, and double tap. Done when every control on those screens is in the table and the dead ones are fixed or filed as items.
 
 ### In flight
-
-### #1098 Decide retention for model and USDA trace rows
-
-Trace rows of model calls and USDA lookups are kept forever. Team decision: delete rows older than 45 days, except rows the current analysis of a meal still references (the numbers revisit relies on them), in small batches after a dry run that prints the counts per table.
-
-Done when an implementation expires the eligible rows by that rule with local tests, a small summary table keeps counts per day and per kind for the audit trail, and the first real run happens only after the dry-run counts are reviewed.
 
 ### #1097 Decide retention for completed worker jobs
 
