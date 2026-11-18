@@ -18,7 +18,7 @@ const NAME_WORDS: [FoodKind, RegExp][] = [
   ["drink", /\b(drinks?|juice|tea|coffee|kopi|teh|espresso|latte|cappuccino|americano|mocha|milkshakes?|shakes?|mocktails?|smoothie|soda|cola|coke|beer|radler|wine|cocktail|mai tai|mojito|margarita|sake|soju|whisk(e)?y|vodka|gin|rum|liquor|water|lemonade|boba|bubble tea|kombucha|bintang|lager|ale)\b/i],
   ["condiment", /\b(sauces?|gravy|dressings?|sambal|ketchup|mayonnaise|mayo|salsa|dips?|condiments?|chutney|relish|mustard|pesto|aioli|vinaigrette|kecap|syrup|honey|jam)\b/i],
   ["fat", /\b(oil|butter|margarine|ghee|lard|shortening)\b/i],
-  ["meat", /\b(chicken|beef|pork|lamb|mutton|goat|veal|duck|turkey|bacon|ham|sausages?|salami|meat|steak|ribs?|tonkatsu|katsu|rendang|satay|sate|bakso|meatballs?|crackling|chiro)\b/i],
+  ["meat", /\b(chicken|beef|pork|lamb|mutton|goat|veal|duck|turkey|bacon|ham|sausages?|salami|meat|steak|ribs?|tonkatsu|katsu|rendang|satay|sate|bakso|meatballs?|crackling|chiro|kebabs?|kabobs?|seekh|shawarma|gyros?)\b/i],
   ["seafood", /\b(fish|salmon|tuna|shrimp|prawns?|crab|lobster|squid|calamari|octopus|clams?|mussels?|oysters?|scallops?|seafood|anchov(y|ies)|eel|unagi|sashimi)\b/i],
   ["grain", /\b(rice|nasi|noodles?|mie|bihun|vermicelli|pasta|spaghetti|bread|buns?|bao|toast|sandwich|burger|wraps?|tortilla|pizza|oats?|oatmeal|porridge|congee|bubur|cereal|dumplings?|gyoza|dim sum|siomay|crackers?|fritters?|pancakes?|waffles?|croissant|bagel)\b/i],
   ["vegetable", /\b(salad|vegetables?|veggies?|greens|lettuce|cabbage|cucumber|tomato(es)?|carrots?|broccoli|spinach|kangkung|potato(es)?|fries|corn|onions?|mushrooms?|eggplant|beans? sprouts?|pak ?choy|bok ?choy|kimchi|gado gado|sayur)\b/i],
@@ -53,7 +53,7 @@ export function nameKinds(name: string): Set<FoodKind> {
 export function recordKind(description: string, category?: string | null): FoodKind | null {
   const text = (category ?? "").toLowerCase();
   const fromCategory = CATEGORY_KIND.find(([kind, words]) => words.test(text)
-    && !(kind === "condiment" && /\bsoups?\b/.test(text))
+    && !(kind === "condiment" && /\b(?:soups?|mixtures)\b/.test(text))
     && !(kind === "fruit" && /^pre-packaged fruit (?:and|&) vegetables$/.test(text)))?.[0];
   if (fromCategory) return fromCategory;
   // No category: the record's own first words name it ("Persimmons, japanese, dried").
@@ -73,7 +73,18 @@ export type RecordCheck = { strong: string[]; weak: string[]; score: number };
 // Every signal for one food and its record. kcalPer100g is the record's (or the stored food's) energy density, if known.
 export function checkRecord(name: string, record: { description: string; category?: string | null; kcalPer100g?: number | null }): RecordCheck {
   const strong: string[] = [], weak: string[] = [];
-  const kinds = nameKinds(name), kind = recordKind(record.description, record.category);
+  const kinds = nameKinds(name);
+  const head = name.split(/\b(?:with|and|in)\b|&/i)[0].trim().split(/\s+/).at(-1) ?? "";
+  const headKinds = nameKinds(head);
+  // A bare ambiguous dish word ("curry") may itself name a spice product. Only an explicit main-food head or a
+  // dish accompanied by a main food is enough to refuse a spice-category reference. No plant/flavour override.
+  const mainKinds: FoodKind[] = ["meat", "seafood", "grain", "dairy", "egg", "legume"];
+  const mainHead = mainKinds.some(kind => headKinds.has(kind))
+    || (headKinds.has("dish") && [...mainKinds, "vegetable" as FoodKind].some(kind => kinds.has(kind)));
+  const spiceProduct = /\b(spices?|herbs?|seasonings?|powders?|masala)\b/i.test(name) || headKinds.has("condiment");
+  const spiceCategory = /\b(spices?|herbs?|seasonings?)\b/i.test(record.category ?? "")
+    && !/\b(soups?|mixtures)\b/i.test(record.category ?? "");
+  const kind = spiceCategory && mainHead && !spiceProduct ? "condiment" : recordKind(record.description, record.category);
   if (kind && SINGLE_KINDS.has(kind) && kinds.size > 0 && !kinds.has(kind)) strong.push(`kind: the record is a ${kind}; the name has no ${kind} word`);
   // A name that is only fruit or only a drink, matched to a record of another kind.
   if (kind && kinds.size > 0 && [...kinds].every(k => k === "fruit" || k === "drink") && !kinds.has(kind) && kind !== "dairy") strong.push(`kind: the name is a ${[...kinds].join(" or ")}; the record is a ${kind}`);
