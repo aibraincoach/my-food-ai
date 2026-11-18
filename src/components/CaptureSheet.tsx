@@ -539,7 +539,7 @@ export default function CaptureSheet({ onClose, initialMode = "photo", forPost, 
           {labelState!=="idle"&&packPhoto ? <img src={packPhoto.previewUrl} alt="Photographed nutrition label" className="h-full w-full object-contain"/> : stream && !(phoneCamera && mode === "photo") ? <video ref={videoRef} muted playsInline autoPlay aria-label="Live camera viewfinder" className="h-full w-full object-cover" /> : latest ? (
             // Local blob previews require no remote image transformation.
             <img src={latest.previewUrl} alt="Latest meal photo" className="h-full w-full object-cover" />
-          ) : desktop&&forPost ? null : <Icon name="camera" />}
+          ) : cameraUnavailable||desktop&&forPost ? null : <Icon name="camera" />}
           {phoneCamera&&mode==="photo"&&!latest&&<p className="absolute inset-x-6 bottom-6 text-center text-[14px] text-surface">The shutter opens the phone&apos;s camera app. Change this under Profile.</p>}
           {(cameraUnavailable||desktop&&forPost&&!stream&&!latest)&&<div className="absolute inset-0 flex flex-col items-center justify-center gap-3 px-6 text-center text-white">
             {/* #999: a phone whose camera did not open says so in Photo mode too, instead of a black picture. */}
