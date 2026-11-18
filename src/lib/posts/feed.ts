@@ -169,7 +169,7 @@ export async function toFeedPost(
 
   const {data:saved,error:savedError}=await supabase.from('saved_meals').select('id').eq('source_post_id',row.id).maybeSingle();
   if(savedError)throw new Error('Saved meal state could not be read.');
-  const revisionAfter=row.status==="ready"?await latestRevision(supabase,row.id):null;
+  const revisionAfter=known?known.revisionBefore:row.status==="ready"?await latestRevision(supabase,row.id):null;
   return {
     revisionUnavailable: row.status === "ready" && JSON.stringify(revisionBefore) !== JSON.stringify(revisionAfter),
     fail_reason: row.fail_reason ?? null,

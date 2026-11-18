@@ -14,7 +14,7 @@ import CommentComposer,{type CommentRow} from '@/components/CommentComposer';
 import {LocalTime} from '@/components/LocalTime';
 import {usePostHandle} from '@/components/PostHandle';
 const sort=(rows:CommentRow[])=>rows.toSorted((a,b)=>a.created_at.localeCompare(b.created_at)||a.id.localeCompare(b.id));
-export default function Thread({postId,readOnly=false,sourcePostId,desktopActions}:{desktopActions?:ReactNode;postId:string;readOnly?:boolean;sourcePostId?:string|null}){
+export default function Thread({postId,readOnly=false,sourcePostId,desktopActions,fingerprint=null}:{desktopActions?:ReactNode;postId:string;readOnly?:boolean;sourcePostId?:string|null;fingerprint?:string|null}){
  const menus=useRef<HTMLElement>(null);useRemovalMenus(menus);
  const handle=usePostHandle();
  const [accepted,setAccepted]=useState<string|null>(null);
@@ -27,8 +27,7 @@ export default function Thread({postId,readOnly=false,sourcePostId,desktopAction
   // Always a full, ordered read: a comment can commit with an earlier timestamp than one already seen.
   const load=async()=>{if(inFlight){again=true;return;}inFlight=true;try{
    const {data:verdict}=await client.from('post_feedback').select('verdict,model_comment_id,item_fingerprint').eq('post_id',postId).maybeSingle();
-   const {data:revision}=await client.rpc('feedback_revision',{p_post_id:postId});
-   if(live)setAccepted(verdict?.verdict==='up'&&verdict.item_fingerprint===revision?.fingerprint?verdict.model_comment_id:null);
+   if(live)setAccepted(fingerprint!==null&&verdict?.verdict==='up'&&verdict.item_fingerprint===fingerprint?verdict.model_comment_id:null);
    const [data,{data:post,error:postError}]=await Promise.all([
     readPostComments(client,postId),
     client.from('posts').select('status,analysis_initialized_at,fail_reason').eq('id',postId).maybeSingle(),
@@ -47,7 +46,7 @@ export default function Thread({postId,readOnly=false,sourcePostId,desktopAction
   wake.current=()=>{void load();};
   void load();
   return()=>{live=false;wake.current=()=>{};void client.removeChannel(channel);};
- },[postId,router]);
+ },[postId,router,fingerprint]);
  useEffect(()=>{
   if(!waiting)return;
   let live=true;let delay=2000;let timer:ReturnType<typeof setTimeout>;

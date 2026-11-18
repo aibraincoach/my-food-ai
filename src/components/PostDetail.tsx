@@ -20,7 +20,7 @@ export default async function PostDetail({id,desktopModal=false}:{id:string;desk
  // A failed meal's foods and nutrition are incomplete or absent, so it offers no scaling.
  const showServings=detail.post.analysis_initialized_at!=null&&!detail.isDrink&&detail.post.status!=='failed';
  const header=<PostDetailHeader post={card??undefined} readOnly={detail.isDrink} status={detail.post.status} postId={id} caption={detail.post.caption} eatenAt={detail.post.eaten_at} gtin={row?.gtin} saved={Boolean(row?.saved_meal_id)} servings={Number(detail.post.servings)} showServings={showServings}/>;
- const thread=<Thread desktopActions={desktopModal?<PostActions detail status={detail.post.status} postId={id} modelCommentId={card?.modelCommentId??null} fingerprint={card?.analysisFingerprint??null} drink={detail.isDrink} saved={Boolean(row?.saved_meal_id)}/>:undefined} sourcePostId={detail.post.source_post_id} key={id} postId={id} readOnly={detail.isDrink}/>;
+ const thread=<Thread fingerprint={card?.analysisFingerprint??null} desktopActions={desktopModal?<PostActions detail status={detail.post.status} postId={id} modelCommentId={card?.modelCommentId??null} fingerprint={card?.analysisFingerprint??null} drink={detail.isDrink} saved={Boolean(row?.saved_meal_id)}/>:undefined} sourcePostId={detail.post.source_post_id} key={id} postId={id} readOnly={detail.isDrink}/>;
  return <>
   <span hidden data-post-detail-ready={id}/>
   <LocalTimeZone zone={zone} explicit={Boolean(cookieZone)}/>

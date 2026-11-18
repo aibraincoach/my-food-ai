@@ -1,0 +1,34 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
+import vm from 'node:vm';
+import ts from 'typescript';
+import {getPostDetail} from '../src/lib/posts/items.ts';
+import {correctionFeedback} from '../src/lib/posts/correction-feedback.ts';
+
+const post={id:'10000000-0000-4000-8000-000000000001',user_id:'owner',caption:'Rice',eaten_at:'2026-11-03T00:00:00Z',status:'ready',analysis_initialized_at:'2026-11-03T00:00:01Z',servings:1,source_post_id:null,created_at:'2026-11-03T00:00:00Z',identify_model:null,identify_host:null};
+test('a meal detail shares its single feedback revision with its card',async()=>{
+ let revisions=0;const db={rpc(name){assert.equal(name,'feedback_revision');revisions++;return{abortSignal:async()=>({data:{modelCommentId:'model',fingerprint:'same'},error:null,status:200})};},from(table){let chain;chain=new Proxy({}, {get(_target,key){if(key==='then')return resolve=>Promise.resolve({data:[],error:null,status:200}).then(resolve);if(key==='maybeSingle'||key==='single')return async()=>({data:table==='posts'?post:table==='profiles'?{handle:'owner',avatar_media_id:null}:null,error:null,status:200});return()=>chain;}});return chain;}};
+ const detail=await getPostDetail(db,post.id);assert.ok(detail);assert.equal(detail.card.analysisFingerprint,'same');assert.equal(revisions,1);
+});
+
+test('a thread uses the supplied fingerprint and makes no revision RPC on load',async()=>{
+ const effects=[],states=[];let revisionReads=0;const window=new EventTarget(),document=Object.assign(new EventTarget(),{visibilityState:'visible'});
+ const client={rpc(){revisionReads++;return Promise.resolve({data:{fingerprint:'same'}});},from(table){const q={select(){return q;},eq(){return q;},maybeSingle:async()=>({data:table==='post_feedback'?{verdict:'up',model_comment_id:'model',item_fingerprint:'same'}:{status:'ready',analysis_initialized_at:'done'},error:null})};return q;},channel(){const c={on(){return c;},subscribe(){return c;}};return c;},removeChannel(){}};
+ const code=ts.transpileModule(readFileSync(new URL('../src/components/Thread.tsx',import.meta.url),'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022,jsx:ts.JsxEmit.ReactJSX}}).outputText;
+ const exports={};vm.runInNewContext(code,{exports,window,document,Event,CustomEvent,setTimeout,clearTimeout,require(name){
+  if(name==='react')return{useEffect:fn=>effects.push(fn),useCallback:fn=>fn,useRef:current=>({current}),useState:initial=>{const i=states.length;states.push(initial);return[initial,next=>{states[i]=typeof next==='function'?next(states[i]):next;}];}};
+  if(name==='react/jsx-runtime')return{jsx:(type,props)=>({type,props}),jsxs:(type,props)=>({type,props})};
+  if(name==='next/navigation')return{useRouter:()=>({refresh(){}})};
+  if(name==='@/lib/supabase/client')return{createClient:()=>client};
+  if(name==='@/lib/posts/timeline')return{readPostComments:async()=>[]};
+  if(name==='@/lib/posts/correction-feedback')return{correctionFeedback};
+  if(name==='@/components/PostHandle')return{usePostHandle:()=> 'owner'};
+  if(name==='@/components/useRemovalMenus')return{useRemovalMenus(){}};
+  if(name==='@/lib/posts/comment-label')return{formatModelCommentLabels:s=>s};
+  if(name==='@/lib/worker/failure-message')return{failureMessage:s=>s};
+  if(name==='@/lib/posts/delayed-action')return{delayAction(){throw Error('not used');}};
+  if(name.startsWith('@/components/'))return{default:()=>null,LocalTime:()=>null};throw Error(name);
+ }});
+ exports.default({postId:post.id,fingerprint:'same'});const cleanup=effects.map(fn=>fn());await new Promise(resolve=>setImmediate(resolve));assert.equal(revisionReads,0);assert.equal(states[0],'model');for(const fn of cleanup)fn?.();
+});
