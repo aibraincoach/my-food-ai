@@ -1,4 +1,4 @@
-import {ALCOHOLIC_NAME,alcoholGrams,isAlcoholic,keepsCaffeine} from './alcohol';
+import {ALCOHOLIC_NAME,alcoholGrams,expectsCaffeine,isAlcoholic,keepsCaffeine} from './alcohol';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { getCurrentItems, toNumber, type Numeric, type StoredNutrient } from '@/lib/nutrition/totals';
 import { ioError } from '@/lib/worker/errors';
@@ -43,7 +43,7 @@ export function isDrinkItem(item: Pick<DrinkItem, 'name' | 'food_category'>): bo
     : plainDrinkName(item.name);
 }
 /** A volume alone never makes food a beverage. Nutrients are already scaled to
- * the consumed portion. Cola alone has a disclosed typical-value fallback. */
+ * the consumed portion. A drink with no caffeine figure has no assumed one. */
 export function drinksFromItems(items: readonly DrinkItem[]): ItemDrink[] {
   return items.flatMap<ItemDrink>(item => {
     if (!isDrinkItem(item)) return [];
@@ -53,8 +53,9 @@ export function drinksFromItems(items: readonly DrinkItem[]): ItemDrink[] {
     if (!Number.isFinite(ml) || ml < 1) return [];
     const measured = item.micronutrients?.find(n => n.nutrientId === 1057 && n.basis === 'portion');
     const nutrient = keepsCaffeine(item) ? measured : undefined;
-    const fallback = !measured && keepsCaffeine(item) && /\b(coca[- ]?cola|coke|cola|pepsi)\b/i.test(item.name) ? 32 * ml / 330 : 0;
-    const caffeineMg = Math.min(1000, Math.max(0, Math.round(nutrient ? toNumber(nutrient.value) : fallback)));
+    const caffeineMg = Math.min(1000, Math.max(0, Math.round(nutrient ? toNumber(nutrient.value) : 0)));
+    // #987: a coffee, tea or cola with no caffeine figure is not logged as water: its caffeine is unknown, not zero.
+    if (measured?.value == null && !isAlcoholic(item) && expectsCaffeine(item)) return [];
     if(isAlcoholic(item))return [{post_item_id:item.id,kind:'alcohol' as const,amount:Math.min(500,Math.max(1,Math.round(alcoholGrams(item.micronutrients)))),ml,label:item.name.trim().slice(0,40)||'Drink',caffeineMg,alcoholG:alcoholGrams(item.micronutrients)}];
     return [{ post_item_id: item.id, kind: caffeineMg >= 1 ? 'caffeine' as const : 'water' as const,
       amount: caffeineMg >= 1 ? caffeineMg : ml, ml, label: item.name.trim().slice(0, 40) || 'Drink', caffeineMg, alcoholG:0 }];

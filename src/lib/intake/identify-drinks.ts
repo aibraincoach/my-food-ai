@@ -24,8 +24,7 @@ export async function identifyDrinks(admin:SupabaseClient,_userId:string,photo:U
    {calories:scaled.calories,protein_g:scaled.proteinG,carbs_g:scaled.carbsG,fat_g:scaled.fatG,fibre_g:scaled.fibreG,sugar_g:scaled.sugarG,sodium_mg:scaled.sodiumMg,micronutrients:scaled.micronutrients as StoredNutrient[],source_ref:scaled.sourceRef,food_category:scaled.foodCategory??null};
   if(!keepsCaffeine({name:item.name,food_category:nutrition.food_category,micronutrients:nutrition.micronutrients}))nutrition.micronutrients=nutrition.micronutrients.filter(n=>n.nutrientId!==1057);
   const caffeine=nutrition.micronutrients.find(n=>n.nutrientId===1057);
-  const caffeineMg=caffeine?(caffeine.value===null?null:Number(caffeine.value)):plainWater?0:/\b(?:coca[- ]?cola|coke|cola|pepsi)\b/i.test(item.name)?32*ml/330:null;
-  // Preserve a measured USDA value (e.g. 29.7 mg) before considering the disclosed cola fallback.
+  const caffeineMg=caffeine?(caffeine.value===null?null:Number(caffeine.value)):plainWater?0:null;
   if(caffeineMg!==null&&!caffeine)nutrition.micronutrients.push({nutrientId:1057,nutrientName:'Caffeine',unitName:'MG',value:caffeineMg,basis:'portion'});
   nutrition.micronutrients=nutrition.micronutrients.filter(n=>n.nutrientId!==1051);
   nutrition.micronutrients.push({nutrientId:1051,nutrientName:'Water',unitName:'G',value:ml,basis:'portion'});

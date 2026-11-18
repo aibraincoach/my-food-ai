@@ -34,7 +34,7 @@ test('one-search rejection enters closest matching and retains the selected gene
 });
 
 test('non-food and unusable estimate outcomes have distinct durable reasons',async()=>{
- const base={food:false,basis:'not food',calories:null,protein_g:null,carbs_g:null,fat_g:null,fibre_g:null,sugar_g:null,sodium_mg:null};
+ const base={food:false,drink:'not a drink',caffeine_mg:null,basis:'not food',calories:null,protein_g:null,carbs_g:null,fat_g:null,fibre_g:null,sugar_g:null,sodium_mg:null};
  for(const [estimate,code] of [[base,'not_food'],[{...base,food:true},'no_estimate']]){
   const {result}=await resolveFixture({estimate});
   assert.equal(result.food,null);assert.equal(result.unavailable.code,code);assert.ok(result.unavailable.detail);

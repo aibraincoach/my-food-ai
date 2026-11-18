@@ -10,7 +10,7 @@ const {foodApproximation,approximationLabels,storedEstimateFood}=await import('.
 const {drinksFromItems}=await import('../src/lib/intake/drinks-from-items.ts');
 const {nutritionTableRows}=await import('../src/lib/nutrition/table.ts');
 const {plainConsumed}=await import('../src/lib/pipeline/wording.ts');
-const coffee={food:true,basis:'brewed black coffee',calories:1,protein_g:0.1,carbs_g:0,fat_g:0,fibre_g:0,sugar_g:0,sodium_mg:2,caffeine_mg:40};
+const coffee={food:true,basis:'brewed black coffee',calories:1,protein_g:0.1,carbs_g:0,fat_g:0,fibre_g:0,sugar_g:0,sodium_mg:2,caffeine_mg:40,drink:'coffee'};
 let request;
 async function withPayload(payload,fn){const original=globalThis.fetch;globalThis.fetch=async(input,init)=>{const url=new URL(input);if(url.origin==='https://trace.invalid')return new Response(null,{status:201});assert.equal(url.port,'1');request=JSON.parse(init.body);return Response.json({status:'completed',output:[{type:'message',content:[{type:'output_text',text:JSON.stringify(payload)}]}],usage:{input_tokens:1,output_tokens:1}});};try{return await fn();}finally{globalThis.fetch=original;}}
 const stored=(name,n,grams)=>({id:'item',name,portion_text:null,portion_grams:grams,food_category:n.foodCategory,source_ref:n.sourceRef,micronutrients:n.micronutrients});
@@ -26,7 +26,7 @@ test('an estimated coffee stores caffeine as nutrient 1057 for the portion and k
  const food=await estimateFood('black coffee','');const n=scaleNutrition(food,180);
  const caffeine=n.micronutrients.find(entry=>entry.nutrientId===1057);
  assert.deepEqual({nutrientName:caffeine.nutrientName,unitName:caffeine.unitName,value:caffeine.value,basis:caffeine.basis,per100:caffeine.per100},{nutrientName:'Caffeine',unitName:'MG',value:72,basis:'portion',per100:40});
- assert.equal(n.calories,1.8);assert.match(n.sourceRef,/^estimate:/);assert.equal(n.foodCategory,null);
+ assert.equal(n.calories,1.8);assert.match(n.sourceRef,/^estimate:/);assert.equal(n.foodCategory,'coffee');
  const row=stored('black coffee',n,180);
  assert.deepEqual(foodApproximation(row),{kind:'estimate',basis:coffee.basis});
  assert.match(plainConsumed({calories:n.calories,protein_g:n.proteinG,carbs_g:n.carbsG,fat_g:n.fatG},approximationLabels([row])),/Nutrition for black coffee is a model estimate, brewed black coffee\./);
@@ -37,7 +37,7 @@ test('an estimated coffee stores caffeine as nutrient 1057 for the portion and k
  assert.equal(storedEstimateFood(row).foodNutrients.find(entry=>entry.nutrientId===1057).value,40);
 }));
 
-test('an estimated drink with no caffeine source drops the estimated caffeine',async()=>withPayload({...coffee,basis:'orange juice',calories:45,carbs_g:10,sugar_g:8,caffeine_mg:12},async()=>{
+test('an estimated drink with no caffeine source drops the estimated caffeine',async()=>withPayload({...coffee,basis:'orange juice',calories:45,carbs_g:10,sugar_g:8,caffeine_mg:12,drink:'other drink'},async()=>{
  for(const name of ['orange juice','herbal tea','decaf coffee']){
   const n=scaleNutrition(await estimateFood(name,''),200);
   assert.equal(n.micronutrients.find(entry=>entry.nutrientId===1057).value,24);
@@ -48,8 +48,8 @@ test('an estimated drink with no caffeine source drops the estimated caffeine',a
  }
 }));
 
-test('no caffeine, zero, an older answer without the field, and an out-of-range figure store no caffeine and keep the estimate',async()=>{
- for(const caffeine_mg of [null,0,undefined,-1,401,5000,'40',Number.NaN]){
+test('no caffeine, an answer without the field, and an out-of-range figure keep valid nutrition with caffeine unknown',async()=>{
+ for(const caffeine_mg of [null,undefined,-1,401,5000,'40',Number.NaN]){
   await withPayload({...coffee,caffeine_mg},async()=>{
    const food=await estimateFood('black coffee','');
    assert.equal(food.foodNutrients.some(entry=>entry.nutrientId===1057),false,String(caffeine_mg));
@@ -58,4 +58,38 @@ test('no caffeine, zero, an older answer without the field, and an out-of-range 
   });
  }
  await withPayload({...coffee,caffeine_mg:400},async()=>{assert.equal((await estimateFood('espresso','')).foodNutrients.find(entry=>entry.nutrientId===1057).value,400);});
+});
+
+// #987: a drink the drink rules do not know by name reaches the day's caffeine through the model's own drink kind.
+test('an estimated drink with an unfamiliar name counts as coffee or tea and its caffeine reaches the day',async()=>{
+ for(const [name,drink,category] of [['Es kopi susu gula aren','coffee','coffee'],['Kopi joss','coffee','coffee'],['Cappuccino','coffee','coffee'],['Teh tarik','tea','tea'],['Yuanyang','coffee','coffee']]){
+  await withPayload({...coffee,drink,caffeine_mg:30},async()=>{
+   const food=await estimateFood(name,'');assert.equal(food.foodCategory,category,name);
+   assert.ok(request.text.format.schema.required.includes('drink'));assert.match(request.instructions,/"coffee", "tea", "other drink" or "not a drink"/);
+   const n=scaleNutrition(food,250);
+   assert.deepEqual(drinksFromItems([stored(name,n,250)]).map(d=>[d.kind,d.amount]),[['caffeine',75]],name);
+  });
+ }
+});
+test('an estimated coffee without a caffeine figure is unknown, not water; a caffeine-free tea is water; a food is no drink',async()=>{
+ await withPayload({...coffee,drink:'coffee',caffeine_mg:null},async()=>{const n=scaleNutrition(await estimateFood('Kopi talua',''),200);assert.deepEqual(drinksFromItems([stored('Kopi talua',n,200)]),[]);});
+ await withPayload({...coffee,drink:'tea',caffeine_mg:0},async()=>{const n=scaleNutrition(await estimateFood('Herbal tea',''),200);assert.deepEqual(drinksFromItems([stored('Herbal tea',n,200)]).map(d=>[d.kind,d.amount]),[['water',200]]);});
+ await withPayload({...coffee,drink:'not a drink',calories:300,caffeine_mg:5},async()=>{const food=await estimateFood('Tiramisu','');assert.equal(food.foodCategory,undefined);assert.deepEqual(drinksFromItems([stored('Tiramisu',scaleNutrition(food,100),100)]),[]);});
+ await withPayload({...coffee,drink:'other drink',calories:45,caffeine_mg:0},async()=>{assert.equal((await estimateFood('Es jeruk','')).foodCategory,'beverages');});
+});
+test('rule 5: an estimate without a valid drink kind is invalid, with no name-based guess',async()=>{
+ for(const drink of [undefined,'','juice',null]){
+  await withPayload({...coffee,drink},async()=>{await assert.rejects(()=>estimateFood('Kopi talua',''),error=>error.status===502&&/invalid/.test(error.message),String(drink));});
+ }
+});
+
+
+test('a model-stated zero caffeine is measured data for tea, coffee and other drinks',async()=>{
+ for(const [name,drink] of [['Barley tea','tea'],['Lemon ginger tea','tea'],['Decaf coffee','coffee'],['Orange juice','other drink']]){
+  await withPayload({...coffee,drink,caffeine_mg:0},async()=>{
+   const food=await estimateFood(name,''),n=scaleNutrition(food,200),caffeine=n.micronutrients.find(entry=>entry.nutrientId===1057);
+   assert.equal(caffeine?.value,0,name);assert.equal(caffeine?.basis,'portion',name);
+   assert.deepEqual(drinksFromItems([stored(name,n,200)]).map(d=>[d.kind,d.amount]),[['water',200]],name);
+  });
+ }
 });

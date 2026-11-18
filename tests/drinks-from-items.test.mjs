@@ -41,7 +41,11 @@ test('actual WWEIA categories include waters, juices, milk, diet drinks and alco
 test('drink limits, missing caffeine, grams fallback and fully uneaten drinks', () => {
   const large = drinksFromItems([item({ portion_text: '6000 ml', micronutrients: [{ nutrientId: 1057, value: 1300, basis: 'portion' }] })])[0];
   assert.equal(large.ml, 5000); assert.equal(large.amount, 1000);
-  const grams = drinksFromItems([item({ name: 'Coffee', portion_text: 'one cup', portion_grams: 240, micronutrients: [{ nutrientId: 1057, value: 95, basis: '100g' }] })])[0];
+  // #987: a coffee with no portion caffeine has unknown caffeine: it is not logged, and never as water.
+  assert.deepEqual(drinksFromItems([item({ name: 'Coffee', portion_text: 'one cup', portion_grams: 240, micronutrients: [{ nutrientId: 1057, value: 95, basis: '100g' }] })]), []);
+  // Rule 5: a cola with no caffeine figure gets no assumed 32 mg per 330 ml; it is unknown, so no row.
+  assert.deepEqual(drinksFromItems([item({ micronutrients: [] })]), []);
+  const grams = drinksFromItems([item({ name: 'Sparkling water', portion_text: 'one glass', portion_grams: 240, micronutrients: [] })])[0];
   assert.equal(grams.ml, 240); assert.equal(grams.caffeineMg, 0);
   assert.equal(drinksFromItems([item({ portion_text: '0 ml', portion_grams: 0 })]).length, 0);
   assert.equal(drinksFromItems([item({ portion_text: null, portion_grams: null })]).length, 0);
@@ -137,23 +141,23 @@ test('a glass of milk adds drink volume while its calories stay on the drink car
 });
 
 
-test('only cola gets a scaled caffeine fallback; portion values including zero win', () => {
+test('rule 5: a cola with no caffeine figure gets no assumed value and no row; portion values including zero win', () => {
   for (const name of ['Cola', 'Coca-Cola', 'Coca Cola', 'Coke', 'Pepsi']) {
-    assert.equal(drinksFromItems([item({ name, portion_text: '330 ml', micronutrients: [] })])[0].caffeineMg, 32);
-    assert.equal(drinksFromItems([item({ name, portion_text: '165 ml', micronutrients: [] })])[0].caffeineMg, 16);
+    assert.deepEqual(drinksFromItems([item({ name, portion_text: '330 ml', micronutrients: [] })]), []);
+    assert.deepEqual(drinksFromItems([item({ name, portion_text: '165 ml', micronutrients: [] })]), []);
   }
-  assert.equal(drinksFromItems([item({ name: 'Cola', food_category: null, portion_text: '330 ml', micronutrients: [] })])[0].caffeineMg, 32);
+  assert.deepEqual(drinksFromItems([item({ name: 'Cola', food_category: null, portion_text: '330 ml', micronutrients: [] })]), []);
   assert.equal(drinksFromItems([item({ name: 'Cola cake', food_category: null })]).length, 0);
   assert.equal(drinksFromItems([item({ name: 'Water', micronutrients: [] })])[0].caffeineMg, 0);
   assert.equal(drinksFromItems([item({ portion_text: '330 ml' })])[0].caffeineMg, 34);
   assert.equal(drinksFromItems([item({ micronutrients: [{ nutrientId: 1057, value: 0, basis: 'portion' }] })])[0].caffeineMg, 0);
 });
 
-test('historical Pepsi Zero and Evian water without categories receive item intake',()=>{
+test('historical Pepsi Zero and Evian water without categories are drinks; the Pepsi with no caffeine figure gets no row',()=>{
  const base={id:'drink',portion_grams:330,food_category:null,micronutrients:[]};
  assert.equal(isDrinkItem({...base,name:'Pepsi Zero'}),true);
- assert.equal(drinksFromItems([{...base,name:'Pepsi Zero',portion_text:'one can'}])[0].ml,330);
- assert.equal(drinksFromItems([{...base,name:'Pepsi Zero',portion_text:'one can'}])[0].caffeineMg,32);
+ assert.deepEqual(drinksFromItems([{...base,name:'Pepsi Zero',portion_text:'one can'}]),[]);
+ assert.equal(drinksFromItems([{...base,name:'Pepsi Zero',portion_text:'one can',micronutrients:[{nutrientId:1057,value:20,basis:'portion'}]}])[0].ml,330);
  assert.equal(drinksFromItems([{...base,name:'Evian bottled water',portion_grams:500,portion_text:'1 x 500 mL bottle'}])[0].ml,500);
  assert.equal(isDrinkItem({...base,name:'Pepsi Zero cake'}),false);
  assert.equal(isDrinkItem({...base,name:'Evian bottled water biscuit'}),false);
@@ -175,4 +179,12 @@ test('alcohol respects caffeine exclusions and zero measurements while capping i
  assert.equal(drinksFromItems([alcoholic('rum and cocacola',[caffeine(0)])])[0].caffeineMg,0);
  const [strong]=drinksFromItems([alcoholic('Strong cocktail',[{nutrientId:1018,unitName:'G',basis:'portion',value:630}])]);
  assert.equal(strong.amount,500);assert.equal(strong.alcoholG,630);
+});
+
+test('an existing portion caffeine row with a null value is unknown, never water or known zero',()=>{
+ for(const [name,food_category] of [['Coffee','coffee'],['Coca-Cola','soft drinks'],['Teh tarik','tea']]){
+  const unknown=item({name,food_category,portion_text:'240 ml',portion_grams:240,micronutrients:[{nutrientId:1057,value:null,unitName:'MG',basis:'portion'}]});
+  assert.deepEqual(drinksFromItems([unknown]),[],name);
+  assert.equal(drinksFromItems([{...unknown,micronutrients:[{nutrientId:1057,value:0,unitName:'MG',basis:'portion'}]}])[0].kind,'water');
+ }
 });
