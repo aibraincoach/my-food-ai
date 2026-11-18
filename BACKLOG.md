@@ -1,28 +1,22 @@
-# My Food AI — Backlog†
+### My Food AI — Backlog†
 
-Last edited: Wednesday 2026-11-18 at 13:23 WIB (UTC+07:00) by Claude, PM
+Last edited: Wednesday 2026-11-18 at 14:33 WIB (UTC+07:00) by Claude, PM
 
 The only job of the PM is to maintain this backlog and keep it completely up to date. Failing to do so is immediately terminable.
 
-## Backlog for GrokBot
+### For the owner
+
+Two things only you can do. Nothing else is waiting on you.
+
+Tell us how much the bag of salami weighs. The app has no way to know the weight on the package, and the stored numbers for that meal depend on it. A grams figure (for example, 250 g) is enough.Try a leftovers photo on your phone. Add a leftovers photo to a meal, then close and reopen the app. If a photo fails, tap Try again. Please tell us whether it uploaded, and what the red message said if it did not. The fixes are live, but we have only tested them on test accounts, not on your iPhone.
+
+### Backlog for GrokBot
 
 ### #684 A failed leftovers upload cannot be dismissed and stays on screen every time the app is reopened
 
 On the owner's phone, adding a leftovers photo to a meal failed with "Upload failed. The photo could not be attached." The failure leaves a "Leftovers: Not posted yet" card in the feed and a red chip at the bottom reading "Leftovers, Not saved · Try again". The user cannot dismiss either one, and both come back after closing and reopening the app, so the screen stays broken.
 
 The owner's screenshots (Fri Nov 6, 2:40 PM and 2:43 PM WIB, iPhone on 5G) show the failed card in the Today feed under his 2:35 PM post. It says "Not posted yet. The photo is kept on this phone." and offers only Try again. The chip sits over the post and the floating tab bar and covers the nutrition numbers. The owner reports that closing and reopening the app does not clear it. A third screenshot, Tue Nov 10 at 12:18 PM WIB, shows the same red chip still over the Today feed four days after the first failure, so the stuck state does not expire. Owner, Nov 15, 10:50 PM WIB (iPhone, 5G): a screenshot of the Fri Nov 6 2:35 PM post shows the same "Leftovers, Not saved · Try again" chip nine days later, sitting over the post's nutrition numbers and above the tab bar. He reports that pressing Try again only brings back an error and the leftovers never save. The error text was not captured. This looks like the same family as #644 (a failed attachment upload that nothing removes), but that is not confirmed. Not known: what failed the first time, whether Try again works, and where the phone keeps the failed upload. Related items: #570, #578, #644 and #625. GrokBot's leftovers attach on a judge account on Nov 5 closed in 5,049 ms and did not fail, so this is not reproduced. Observe first: read the owner's failed attachment job and its error from the jobs table and the model-call log (read-only), then fail a leftovers upload on a judge account on purpose and look for what the phone stores. Done when the error behind this failure is written down, a leftovers photo saves on the first try or on Try again in a phone-sized browser, a failed upload can be dismissed or removed by the user and stays gone after the app is reopened, the chip does not cover the post's nutrition numbers, pressing Try again visibly does something, and the message says only what is true about where the photo is kept. Fleet 21 independent source read, Nov 16 (investigators' report): PR 912 puts Remove in a fixed-height row (h-14) inside an overflow-hidden container (UploadChip.tsx line 30), so the source supports the clipping. Nobody repeated the browser measurement. Fleet 21, Nov 16 (coder, local, PR 912): the phone's new Remove button works and stays gone after a reload. On desktop the sidebar chip ends at y=364 and Remove begins at y=374.13, so Remove is clipped; it was left unfixed under the plan's rule. The original failure cause is not found and the chip over the nutrition numbers is not addressed. Merged in #912 on Nov 16 (coder report). Fleet 21 independent source read of the fixed head 50ea5f70, Nov 16: the clipping is fixed (UploadChip.tsx line 30 now uses a minimum height); the retained Firefox receipt shows the chip ending at 422.25 px with Remove at 411.70 px at 1280 wide, and 748 px with 737.45 px at 390 wide; no fresh browser run. Owner, Tue Nov 17, 1:24 PM WIB (iPhone, 5G): a Home screenshot shows the same "Leftovers, Not saved · Try again" chip, now with Remove beside it, floating over his 1:15 PM post ("Pork crackling and pasta and more pork. Oink.", 730 kcal) and covering that post's caption and nutrition line above the tab bar. He could not add the leftovers photo to this new meal either, so the failure repeats on a new meal and is not specific to the Nov 6 post. The error text was not captured. Owner, Wed Nov 18, 9:49 AM WIB (iPhone, 5G): a Home screenshot shows the red chip again, now reading "Leftovers, Not saved · Try again. The photo could not be uploaded. It is saved on this phone, so try again.", with View and Remove. It floats over the buttons and text under the espresso post at the top of Today and over the tab bar. The chip's thumbnail looks like the same plate as in the Nov 17 screenshot; that is not confirmed. The owner pressed Try again and nothing happened for the leftovers. He does not believe the photo is saved on the phone, because he says the app never had a save-on-the-phone flow, and he calls the message a misnomer. Not checked: whether the photo is on the phone. The Fleet 21 plan (Nov 15, read from the code, not checked on a phone) says uploads are kept in the browser's local database `mfa-uploads`, so the sentence may be literally true; nobody has looked inside the phone.
-
-### #688 The feed jumps to another meal because every card's first-run hint triggers a server action that remounts the feed in a loop
-
-On the phone, while the user scrolls the feed, the screen suddenly jumps up to a different meal and keeps bouncing, so the user loses their place. The owner first saw it after swiping the photos of a meal that has a leftovers photo.
-
-Fable reproduced it on production on Nov 5 in a 400 px window. The swipe is not the trigger: it also happens with no swipe and on a meal without leftovers. Every feed card mounts the "Was this estimate right?" hint, and FirstRunHint.tsx line 31 calls the getHintState server action on every mount, even when all hints are seen. That action uses the cookie-writing Supabase client (src/lib/profile/hints.ts line 11), so Next returns a 42 KB re-render of Home. The feed falls back to its loading state and remounts with page one, and the scroll position clamps from 6598 px to 3170 px. The remount mounts six more hints, which fire six more actions, about two per second until the queue drains. Loading page two mounts 20 cards at once, which starts the loop. A DOM observer, the resource timing log and a manual replay of the action all confirmed it. Not verified: Chrome's network panel listed the POSTs as 503 while timing and replays showed 200, so Fable treated the 503 as a tool artifact. Fable's smallest fix is a module-level map in FirstRunHint.tsx (ThumbsFeedback.tsx line 35 mounts the hint) that caches the lookup per page load, which cuts it to at most four actions at startup. A cleaner follow-up reads profiles.hints_seen with the browser Supabase client. Code is frozen until judging, so nothing is fixed. Done when scrolling the feed into page two on production in a phone-sized browser sends no repeated POSTs to "/", the scroll position never jumps, and swiping the photos of a meal with a leftovers photo moves only that meal's photos. Fleet 21, Nov 16 (local): no root POST while loading 80 meal elements; a scroll-position jump coincided with older rows loading, and the no-jump and leftovers-swipe conditions are not certified.
-
-### #570 A leftovers photo takes several seconds to post while a regular photo is fast
-
-Posting a photo of leftovers takes several seconds to show, while a regular meal photo shows at once. The owner says the leftovers photo is not snappy and that this is not acceptable.
-
-The owner timed adding a leftover at about 11 seconds on his phone. The leftovers path waits for image encoding, upload signing, two uploads in a row (about 1.3 and 1.2 seconds) and the attachment steps before it closes the camera; a regular post hands the work to the upload manager and closes at once. The logged staging-to-attachment time was about 4.9 seconds, so most of the 11 seconds is unexplained without a trace from the phone. Two causes are suspected: two photo-upload workflows, and one worker lane shared by analysis and maintenance. Observe first: on a phone over mobile data, time a regular photo and a leftovers photo from the tap to the post showing in the feed, and record where the extra seconds go. GrokBot, Nov 5: FAIL. On judge 1 in a phone-sized browser a regular photo closes its sheet in 72 ms and a leftovers attach closes in 5,049 ms. Done when a leftovers photo shows in the feed as quickly as a regular photo, timed in a phone-sized browser.
 
 ### #987 An estimated coffee or tea never stores caffeine
 
@@ -96,7 +90,7 @@ After the fix for #520, a cold Home open of finished meals should not read them 
 
 On production, with six finished meals, a 15-second open made no /api/feed?ids= request. A local run earlier showed three reads for other seeded meals, and later source reads blamed old off-page discovery ids and measured zero on a fresh profile. The two results are not yet reconciled. Done when a cold Home open on the owner's account and on a test account makes no /api/feed?ids= request, and the earlier three reads are explained.
 
-## Engineering backlog
+### Engineering backlog
 
 ### #999 The camera view goes black on the Photo screen, possibly because the barcode reader starts there
 
@@ -242,19 +236,19 @@ The feed sometimes fails to open, and on a slow connection the first photo and t
 
 The original failures (3 server errors and 15 blank feeds in 100 opens on the largest test account, 146 posts) never reproduced on the earlier baseline, so their cause is not isolated. The stack for digest 3642131196 exists only in the Vercel console, because runtime logs return 403 for the coder. In emulation 100 of 100 cold opens succeeded with photos at 1.48 to 1.83 s, but on production the first feed photo measured 4.09 s and 4.05 s on a cold open with slow 4G at 390 wide. The sub-items #322, #323, #324, #520 and #372 each remove one piece of wasted work. GrokBot, Nov 5: FAIL. The first feed photo showed at 6.96 s, 8.49 s and 7.20 s on a cold slow-4G open at 390 wide, against about 4.05 s in Fleet 18 (see #372). GrokBot, Nov 15: 3.4 s on a judge account and 2.7 s on the owner account, still over 2 s. Done when a browser helper on production measures the first feed photo at 2 seconds or less on a cold open at the slow-network test profile.
 
-### #372 Feed photos are too large for a phone on mobile data
-
-Feed photos are too large for a phone on mobile data, so the first photo is slow and the app spends more storage egress than it needs. A phone should receive a small copy sized for its screen.
-
-The feed serves immutable WebP copies at 1920 px (default), 1040 px (2x) and 1560 px (3x) with a one-year cache header. On production the first feed photo appeared at 4.09 s and 4.05 s on a cold open with slow 4G at 390 wide, against a 2 s target. It was the 1560 copy, 50,076 bytes, rendered 390 by 520. One line in docs/media-loading.md still says "no-store". GrokBot, Nov 5: FAIL. On a cold open at slow 4G and 390 wide, three runs showed the first feed photo at 6.96 s, 8.49 s and 7.20 s (about 4.05 s in Fleet 18). The photo is v2-1560.webp, 91,542 bytes, cache-control private, max-age=31536000, immutable, with a natural width of 390 against a 390-wide card, a ratio of 1.0 where the done line needs 2. GrokBot, Nov 15: the first photo took 3.4 s on a judge account (78,522 bytes) and 2.7 s on the owner account (42,986 bytes), still over 2 s. Done when a browser helper on production records the bytes and the cache header of the first feed photo, the first photo shows within two seconds at the slow-network test profile, and the stored photo is at least twice as wide in pixels as the card it fills, for photos captured since the sharper camera (old 480 × 640 photos cannot meet it).
-
 ### #1075 The pending-upload card still says the photo is saved on this phone
 
 The larger card that shows a photo while it uploads keeps an older caption saying the photo is saved on this phone. The owner says the app never had a save-on-the-phone flow.
 
 The Fleet 35b change reworded the failed chip only; the card's caption was left as it was. The photo is kept in the browser's local database, which the person cannot see and which may be unreadable after the app is closed, so the sentence is only half true. Done when the card says only what is true about where the photo is kept, with AGY choosing the wording.
 
-## Backlog for Designer
+### #1082 The beer check never finds the second meal's Dismiss control
+
+On current main, after the second meal is ready with a question, the Dismiss control and the question strip do not appear within 30 seconds, so the beer check fails. Fleet 35 did not cause it: main fails the same way as the branches.
+
+The question strip can wait 60 seconds for its empty check while the check allows 30, so the cause may be the check and not the app. Done when the check passes on main.
+
+### Backlog for Designer
 
 ### #453 The barcode prompt is printed over the live camera picture
 
@@ -286,13 +280,19 @@ The Round 7 control table covers the feed, the post and the capture sheet. Days,
 
 The designer has not read their controls yet. Add them to the table from #217 with its four findings: time to a visible change, pressed look, jump or flicker, and double tap. Done when every control on those screens is in the table and the dead ones are fixed or filed as items.
 
-## In flight
+### In flight
 
-### #1077 A photo added to a meal that was deleted during the upload says "Post not found."
+### #1084 A stored food is matched to a record of another kind of food
 
-If the meal is deleted while a photo is still uploading to it, the person reads the raw sentence "Post not found." instead of a plain explanation.
+For "japanese curry", USDA returned only a tea cookie and dried persimmons, and the matcher stored one of them. Part of #990. Fleet 37 is building a detector over every account's foods and saved meals, and a recheck that looks up only the flagged foods again.
 
-Fleet 35 is changing this in its third PR. Done when the person reads a plain sentence saying the meal was deleted and the photo was not added, with AGY choosing the wording, and a test shows it.
+Done when a food is never stored against a record of another kind of food, the detector lists none that is still wrong, and a test shows it.
+
+### #1085 The matcher has no check that its chosen record is the same kind of food as its name
+
+Every safeguard filters candidates for gram basis, nutrition, exclusions and a conflicting protein, but none checks the record's kind. Fleet 37 adds one deterministic rule before the model chooses: it drops a fruit, sweet, drink, condiment or fat record for a name with no word of that kind, and a raw record for a cooked dish.
+
+Done when the rule is in the matcher with tests, and the matcher version changes so older matches are rechecked.
 
 ### #990 Revisit the stored numbers: the meals that pass every rule, the other accounts, and saved meals
 
@@ -300,7 +300,7 @@ Meals that pass every rule can still be wrong, and other accounts and saved meal
 
 This is the last step of the revisit, after #989. Done when a sample of passing meals is checked against an independent estimate, and the other accounts and saved meals are re-analysed or listed with their reason.
 
-## Interdit (Not part of Hackathon)
+### Interdit (Not part of Hackathon)
 
 ### #114 Facebook Login in production mode
 
