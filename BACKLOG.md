@@ -1,6 +1,6 @@
 ### My Food AI — Backlog†
 
-Last edited: Thursday 2026-11-19 at 02:45 WIB (UTC+07:00) by Claude, PM
+Last edited: Thursday 2026-11-19 at 05:50 WIB (UTC+07:00) by Claude, PM
 
 The only job of the PM is to maintain this backlog and keep it completely up to date. Failing to do so is immediately terminable.
 
@@ -18,11 +18,29 @@ Update, Nov 18 at 23:53 WIB: the first of the two follow-up fixes above is now l
 
 Also live, Nov 19 at 02:43 WIB: a meal you discard while it is waiting for your answer now goes to Recently deleted, like any deleted meal, and can be restored from there. Before, it was erased at once. This also lets other open tabs and devices notice a discard when you return to them.
 
+Optional, whenever you have a minute (Nov 19): the black camera picture fix is live but was only tested with a fake camera. On your iPhone, open the Photo screen, switch to another app and back, and tell us whether the camera picture comes back. If it stays black or shows "The camera could not be opened." with a button, tell us which.
+
+Optional, helps most (Nov 19): you told us every one of My Food's numbers looks wrong. We checked 20 of your meals against their photos and found nothing we can prove wrong, but a photo cannot show grams or exact calories. If you can name two or three specific meals whose numbers look wrong to you (for example, "the pasta with pork on Nov 14 shows 1,200 calories and it was half that"), tell us the meal and the number you expected. Those are the cases the team can trace.
+
+We found real wrong numbers, and a fix is being built (Nov 19). The team traced your foods one by one. The stored numbers match their food records exactly, but some foods were matched to the wrong record. A lemon wedge was stored as french fries (162 calories per 100 g; a real lemon is about 29). A spiced potato side dish was stored as a restaurant side salad (20). Grilled onions were stored as grilled mushrooms. Seekh kebab was stored as a dry spice mix, which gives 686 calories for a 160 g portion and is the biggest error found. A charred lemon half was stored as lemon pie filling (354). The team is fixing the matching rules, checking each fix against hundreds of known good and bad matches, and only then re-checking these specific foods, with a saved copy of each meal first so nothing can be lost.
+
+Four questions, all optional, only you can answer them from memory:
+
+Scallions and pickles meal: the app says about 60% was left over, but the photo looks like it was all left. Which is right?Katsu meal: the app says 57% of the cheese katsu and 42% of the plain katsu were left, but the photo suggests about 30% and about 90%. Which is closer? Were the rice, the sauce and the drink part of the meal?Tomato, cucumber and lettuce salad: the app says under half was left, but the photo suggests most or all. Which is right?Roasted cherry tomatoes: were they roasted in oil? (The stored 200 calories per 100 g fits oil-roasted.)
+
 Two database choices that are yours, with no hurry. Supabase's own pages show the database machine is small: 1.4 GB of memory, with 1.9 GB promised to it (Supabase marks that as severe), and a banner that CPU use is high. The database itself holds only 0.11 GB of data, so the load comes from how often the app asks it for things, not from how much it stores. The team measured the settings once: they are the standard ones for a machine this size (60 connections, 256 MB of buffers), so no setting we control would fix it. First, reset Supabase's Query Performance report: it mixes 18 days of old and new code, so a reset followed by one read a day later would show only today's code. Say "reset" in the chat with the PM and the PM clicks "Reset report" (it clears the report's history, nothing else). Second, a bigger machine costs money, and the team recommends waiting a day or two for the fixes now in progress to take effect before you decide. If you want it now, the "Upgrade compute" button is on that Supabase page.
 
 What we did with your other answers. The salami: we leave that meal's numbers as they are, and nothing more is asked of you. The Supabase report: thank you; the team read it. It shows the database is busy mostly because the app asks it for too much (one request per meal card, a very large number of small requests, and live-update listening), and the team is fixing those first. "Tinhead N1" with a pencil on the meal page: "Tinhead" is your profile name. The "1" with the pencil is how many servings you ate; tap the pencil to change it, and the meal's calories scale with it. It has no word beside it, so it looked like part of your name. The team is adding a word to it.
 
 ### Backlog for GrokBot
+
+### #999 The camera view goes black on the Photo screen, possibly because the barcode reader starts there
+
+The owner opened New post on his iPhone in Photo mode and tried to take a photo. The picture area stayed black, so he could not take one. He later found that a QR reader may have started and blacked out the screen, even though he was on the regular Photo screen. A person who is not on the Barcode screen should never meet the barcode reader.
+
+Owner, Tue Nov 17 at 10:48 WIB: the New post screen showed its Photo tab, the shutter button and the "What did you eat?" field, with a black picture area. The owner's own reading at 10:59 WIB is that a QR reader kicked in; the cause is not confirmed. At 10:49 WIB the same phone also showed "Safari can't open the page because the network connection was lost" for my-food-ai-ten.vercel.app, with 5G and three signal bars on screen; nobody has checked whether that is linked. The owner said he would kill the app and try again; the result is not yet known. No GitHub issue exists yet. Done when, on a phone, opening New post in Photo mode shows the live camera picture within a few seconds, the barcode reader does not run until the person opens the Barcode screen, and the shutter button takes a photo, both on a first open and after the app is killed and reopened.
+
+Fleet 54, Nov 19 (builder, local with a fake camera): a camera that the phone stops now reopens once when you return to the app, a paused picture plays again, a second stop shows "The camera could not be opened." with a Try again button (one tap, one attempt), and a refused permission shows the existing Allow camera button. The live barcode scan runs only on the Barcode screen: in Photo mode it made 0 scans in 10 seconds. What is left is one check on a real iPhone or by GrokBot: open the Photo screen, send the app to the background and come back, and see whether the camera picture returns instead of staying black.
 
 ### #689 The last Fleet 18 remediation PRs (#667, #668, #670, #671, #672, #677 and #678) merged without a clean exact-head review
 
@@ -142,12 +160,6 @@ On production, with six finished meals, a 15-second open made no /api/feed?ids= 
 
  I've connected an agent, but no agent knows how to fucking use the thing. There's no instruction, there's no MCP endpoint, there's nothing. This is supposed to be a world-class app. Meanwhile, it's a world piece of shit. 
 
-### #999 The camera view goes black on the Photo screen, possibly because the barcode reader starts there
-
-The owner opened New post on his iPhone in Photo mode and tried to take a photo. The picture area stayed black, so he could not take one. He later found that a QR reader may have started and blacked out the screen, even though he was on the regular Photo screen. A person who is not on the Barcode screen should never meet the barcode reader.
-
-Owner, Tue Nov 17 at 10:48 WIB: the New post screen showed its Photo tab, the shutter button and the "What did you eat?" field, with a black picture area. The owner's own reading at 10:59 WIB is that a QR reader kicked in; the cause is not confirmed. At 10:49 WIB the same phone also showed "Safari can't open the page because the network connection was lost" for my-food-ai-ten.vercel.app, with 5G and three signal bars on screen; nobody has checked whether that is linked. The owner said he would kill the app and try again; the result is not yet known. No GitHub issue exists yet. Done when, on a phone, opening New post in Photo mode shows the live camera picture within a few seconds, the barcode reader does not run until the person opens the Barcode screen, and the shutter button takes a photo, both on a first open and after the app is killed and reopened.
-
 ### #1000 A person cannot merge two posts of the same meal into one
 
 When a person posts the same meal twice by mistake, the app shows two posts and counts the food twice. A person may also want to join two posts on purpose. Today they cannot do either.
@@ -171,6 +183,10 @@ docs/egress.md says the bytes went to browser-like clients but not which files (
 The owner has logged food daily for days, his diet changed, and he reports that a lot of what the app shows is wrong. Nobody has measured how wrong or where the error comes from.
 
 Known cases: the macaroni snack shows 38 kcal and 0 g fat from a cooked vegetable macaroni record (#523), squid matched to a tuna sushi record (#617), a consumed number from a half-eaten plate that nobody confirmed (#285), and 12 of the owner's 137 posts show a 0 g macro that nobody judged. A capable coder investigates read-only: pull the owner's ready posts, check each food's weight and kcal against its USDA record and the photo, and record for each wrong number which step caused it (the food identified, the record matched, the weight estimated or the stored value). Done when a written finding lists every one of the owner's posts whose numbers are wrong with its cause, ranks the causes by how many posts each one explains, and each cause is on the backlog as its own item.
+
+Fleet 55, Nov 19 (builder, one bounded production study): of the owner's 178 ready meals (400 foods), 20 were read against their photos (12 with leftovers and 8 without), one photo each, one model call each, nothing written. The record-kind detector flagged none of the 20. The reader raised raw flags on 2 of the 8 meals without leftovers, but for 7 of the 8 it also said a photo cannot tell the weight, so this is not a confirmed error rate. On leftovers meals the reader mistook the grams eaten for the grams on the original plate (for example, 80 g left of 150 g is 0.53, but it divided by 70 g and flagged a share above 1), so those flags are unvalidated. No correction was recommended, and none was made. What a photo can and cannot show: it can show which foods are on the plate, roughly how much was eaten and a visible drink or brand; it cannot show grams. The team is planning a re-read with the reader fixed and a set of internal consistency checks that need no photo.
+
+Fleet 56, Nov 19 (builder, one more bounded study, nothing written): the reader was fixed (it now compares grams eaten with grams on the original plate correctly, and never turns "a photo cannot tell the weight" into a flag) and the 14 flagged or leftovers meals were read again. The stored per-100 g numbers are not the weak point: the 241 foods' records were fetched from USDA's public database and none of 368 comparable stored values differs from its record by more than 0.5 kcal per 100 g. The 24 questions from a calories-against-macros screen are almost all drinks, where alcohol explains the gap; the one solid food is corn (94 against 108 kcal from its macros). Four of the earlier flags survived the re-read, all model judgments and none measured: roasted cherry tomatoes at 200 kcal per 100 g, the share of scallions and pickles eaten, the share of a cheese-filled katsu, and a lemon (162) and a potato (20) that look implausible per 100 g. No correction was made or recommended. The open questions are which food record a food was matched to and the portions; the team is tracing the flagged foods one by one.
 
 ### #1123 Something sent about 482 million API requests; the cause is not in current source
 
