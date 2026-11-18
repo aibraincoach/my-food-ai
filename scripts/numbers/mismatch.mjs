@@ -4,12 +4,13 @@
 // the matcher never disagree. Prints a ranked list (prefixes and food names only) and, with --labels, the precision and
 // recall on foods whose verdict is already known.
 //
-//   node --import tsx scripts/numbers/mismatch.mjs [--labels=<file.json>] [--out=<private directory>]
+//   node --import tsx scripts/numbers/mismatch.mjs [--rows=<private JSONL file>] [--labels=<file.json>] [--out=<private directory>]
 //
+// --rows: use the supplied rows with no database access; ranking is identical.
 // --labels: a JSON list of {"meal": "<8-character prefix>", "name": "<food name>", "label": "absurd" | "wrong" | "right"}.
 //   "absurd" is a record of another kind of food; "wrong" is a record judged wrong for another reason (a close food,
 //   a portion); "right" is a record judged right. Precision counts absurd against all labelled foods it flags.
-// --out: also writes flagged.jsonl and summary.json there (mode 0600). Needs SUPABASE_DB_URL and psql.
+// --out: also writes flagged.jsonl and summary.json there (mode 0600). Needs SUPABASE_DB_URL and psql only without --rows.
 import { spawnSync } from 'node:child_process';
 import { readFileSync, writeFileSync, mkdirSync, chmodSync } from 'node:fs';
 import { parseArgs } from 'node:util';
@@ -45,7 +46,10 @@ export function score(flagged, checked, labels) {
 }
 
 function main() {
-  const { values } = parseArgs({ options: { labels: { type: 'string' }, out: { type: 'string' } } });
+  const { values } = parseArgs({ options: { labels: { type: 'string' }, out: { type: 'string' }, rows: { type: 'string' } } });
+  let rows;
+  if(values.rows){rows=readFileSync(values.rows,'utf8').split('\n').filter(Boolean).map(line=>JSON.parse(line));}
+  else {
   if (!process.env.SUPABASE_DB_URL) throw new Error('SUPABASE_DB_URL is required.');
   const sql = fileURLToPath(new URL('./23-records.sql', import.meta.url));
   // Transaction poolers can discard PGOPTIONS. Pin the read and its safety checks to one explicit transaction.
@@ -61,7 +65,8 @@ end $$;`;
   const result = spawnSync('psql', ['-X', '-qAt', '-v', 'ON_ERROR_STOP=1', '--dbname', process.env.SUPABASE_DB_URL, '-c', guard, '-f', sql, '-c', 'commit'],
     { encoding: 'utf8', timeout: 120000, maxBuffer: 256 * 1024 * 1024, env: { ...process.env, PGOPTIONS: '-c default_transaction_read_only=on -c statement_timeout=60000' } });
   if (result.status !== 0) throw new Error(`psql failed: ${String(result.stderr).trim().split('\n').slice(-3).join(' ')}`);
-  const rows = result.stdout.split('\n').filter(Boolean).map(line => JSON.parse(line));
+  rows = result.stdout.split('\n').filter(Boolean).map(line => JSON.parse(line));
+  }
   const { checked, flagged, skipped } = rank(rows);
   const summary = { foods: rows.length, meal_foods: rows.filter(r => r.kind === 'meal').length, saved_foods: rows.filter(r => r.kind === 'saved').length,
     checked: checked.length, not_checked: skipped, flagged: flagged.length, flagged_strong: flagged.filter(r => r.strong.length).length,

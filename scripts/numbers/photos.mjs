@@ -1,0 +1,20 @@
+import path from'node:path';import{createHash}from'node:crypto';import{parseArgs}from'node:util';import{createClient}from'@supabase/supabase-js';import{photoExtension}from'./study.mjs';import{privateDir,privateWrite,writeJson,readJson,isMain,validPrefix,refuseExisting}from'./study-io.mjs';
+const uuid=/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
+export function validatePhotoSample(sample,account){
+ if(!Array.isArray(sample.meals)||sample.meals.length>30)throw Error('Sample must have at most 30 meals.');if(!uuid.test(account??''))throw Error('Invalid account scope.');const seen=new Set();
+ for(const meal of sample.meals){if(!validPrefix(meal.meal)||seen.has(meal.meal))throw Error('Invalid or duplicate meal prefix.');seen.add(meal.meal);let fullMeal;
+  for(const photo of meal.photos??[]){const parts=typeof photo.path==='string'?photo.path.split('/'):[];if(parts.length<3||parts[0]!==account||!uuid.test(parts[1]??'')||!parts[1].startsWith(meal.meal)||parts.some(p=>!p||p==='.'||p==='..'||/[\\%\u0000-\u001f]/.test(p)))throw Error('Photo path is outside the sample scope.');if(fullMeal&&fullMeal!==parts[1])throw Error('Ambiguous meal prefix in photo paths.');fullMeal=parts[1];}
+ }
+}
+export async function fetchPhotos(sample,{account,client,fetcher=fetch,dir,expectedOrigin}={}){
+ validatePhotoSample(sample,account);dir=privateDir(dir);const photoDir=privateDir(path.join(dir,'photos')),file=path.join(photoDir,'ledger.json');refuseExisting(file);const ledger={account,sample_sha256:createHash('sha256').update(JSON.stringify(sample)).digest('hex'),photos:[],signs:0,gets:0,failures:0};writeJson(file,ledger);
+ for(const meal of sample.meals)for(const[index,photo]of(meal.photos??[]).entries()){
+  const entry={meal:meal.meal,index,not_eaten:Boolean(photo.not_eaten),ok:false,status:null,stage:'sign',path:photo.path};ledger.photos.push(entry);ledger.signs++;writeJson(file,ledger);
+  try{const signed=await client.storage.from('media').createSignedUrl(photo.path,60);if(signed.error||!signed.data?.signedUrl){entry.status=Number(signed.error?.status??signed.error?.statusCode)||'sign-error';throw Error('sign-failed');}const url=new URL(signed.data.signedUrl);if(!['https:','http:'].includes(url.protocol)||expectedOrigin&&url.origin!==expectedOrigin){entry.status='invalid-url';throw Error('sign-failed');}
+   entry.stage='get';ledger.gets++;writeJson(file,ledger);const response=await fetcher(url.href,{redirect:'error',signal:AbortSignal.timeout(30000)});entry.status=response.status;if(!response.ok)throw Error('get-failed');const bytes=Buffer.from(await response.arrayBuffer()),ext=photoExtension(bytes);if(!ext){entry.status='unreadable-image';throw Error('get-failed');}entry.file=path.join('photos',meal.meal,`photo-${index+1}.${ext}`);privateWrite(path.join(dir,entry.file),bytes);entry.ok=true;entry.stage='done';
+  }catch(error){entry.status??=error.name==='TimeoutError'?'timeout':'network';entry.error=entry.stage==='sign'?'Photo signing failed.':'Photo could not be fetched.';ledger.failures++;}
+  writeJson(file,ledger);
+ }
+ return ledger;
+}
+if(isMain(import.meta.url)){try{const{values}=parseArgs({options:{sample:{type:'string'},account:{type:'string'},out:{type:'string'}}});if(!values.sample||!values.account||!values.out)throw Error('Required: --sample=<sample.json> --account=<uuid> --out=<private directory>.');if(!process.env.NEXT_PUBLIC_SUPABASE_URL||!process.env.SUPABASE_SECRET_KEY)throw Error('Storage configuration is required.');const client=createClient(process.env.NEXT_PUBLIC_SUPABASE_URL,process.env.SUPABASE_SECRET_KEY,{auth:{persistSession:false,autoRefreshToken:false},global:{fetch:(input,init)=>fetch(input,{...init,signal:AbortSignal.timeout(30000),redirect:'error'})}});const ledger=await fetchPhotos(readJson(values.sample),{account:values.account,client,dir:values.out,expectedOrigin:new URL(process.env.NEXT_PUBLIC_SUPABASE_URL).origin});console.log(JSON.stringify({signs:ledger.signs,gets:ledger.gets,failures:ledger.failures}));}catch{console.error('Photo stage failed. Inspect the private ledger.');process.exitCode=1;}}
