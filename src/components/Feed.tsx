@@ -488,8 +488,11 @@ export default function Feed({initialPage, initialUserId, initialZone = "UTC", f
   if (visibleState.kind === "loading") return <div>{lostNotice}<p className="px-screen-x text-detail text-muted" role="status">Loading feed…</p></div>;
   if (visibleState.kind === "error") return <div data-feed-error>{lostNotice}{localCards}<p className="px-screen-x text-detail text-muted" role="alert">The feed could not be loaded.</p><button type="button" className="min-h-tap px-screen-x text-text" onClick={() => retryInitial.current()}>Try again</button></div>;
   if (!visibleState.posts.length&&localCards.length)return <div>{lostNotice}{localCards}{null}</div>;
-  if (!visibleState.posts.length) return <div data-feed-source={fallbackOnly||!freshResponse?"cache":"fresh"} data-feed-client-ready={!fallbackOnly ? true : undefined} data-cached-feed-ready={fallbackOnly ? true : undefined} className="flex flex-1 items-center justify-center" style={{ paddingBottom: tokens.spacing['sheet-bottom'] * 3 }}>
-    {lostNotice}<p className="text-sheet-title font-normal text-muted">Post your first meal</p>
+  if (!visibleState.posts.length) return <div data-feed-source={fallbackOnly||!freshResponse?"cache":"fresh"} data-feed-client-ready={!fallbackOnly ? true : undefined} data-cached-feed-ready={fallbackOnly ? true : undefined} className="flex w-full flex-1 flex-col">
+    {lostNotice}
+    <div className="flex flex-1 items-center justify-center" style={{ paddingBottom: tokens.spacing['sheet-bottom'] * 3 }}>
+    <p className="text-sheet-title font-normal text-muted">Post your first meal</p>
+    </div>
   </div>;
   const firstPhotoId=visibleState.posts.find(post=>post.photoUrl)?.id;
   const zone = renderZone;

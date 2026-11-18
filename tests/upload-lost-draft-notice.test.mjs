@@ -28,3 +28,10 @@ test('posted new-meal and leftovers rows never show the unposted-draft notice',a
 test('Home renders one inline notice in the main Feed with OK and a visible save failure',()=>{
  const source=readFileSync(new URL('../src/components/Feed.tsx',import.meta.url),'utf8');assert.match(source,/!fallbackOnly[\s\S]*?<LostDraftNotice/);assert.match(source,/data-lost-draft-notice/);assert.match(source,/An unposted photo couldn’t be recovered, but your caption is saved\./);assert.match(source,/An unposted photo couldn’t be recovered\./);assert.match(source,/>OK<\/button>/);assert.match(source,/This could not be saved\. Try again\./);assert.match(source,/await uploadManager\.acknowledgeLost/);assert.doesNotMatch(source.slice(source.indexOf('function LostDraftNotice')),/setTimeout|setInterval|fixed/);
 });
+
+test('the empty-feed notice is a full-width sibling above the centered empty-state row',()=>{
+ const source=readFileSync(new URL('../src/components/Feed.tsx',import.meta.url),'utf8');
+ const branch=source.slice(source.indexOf('if (!visibleState.posts.length) return'),source.indexOf('const firstPhotoId='));
+ assert.match(branch,/className="flex w-full flex-1 flex-col">\s*\{lostNotice\}\s*<div className="flex flex-1 items-center justify-center"/);
+ assert.match(branch,/Post your first meal/);
+});
