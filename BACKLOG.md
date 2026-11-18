@@ -1,6 +1,6 @@
 ### My Food AI — Backlog†
 
-Last edited: Thursday 2026-11-19 at 01:04 WIB (UTC+07:00) by Claude, PM
+Last edited: Thursday 2026-11-19 at 01:42 WIB (UTC+07:00) by Claude, PM
 
 The only job of the PM is to maintain this backlog and keep it completely up to date. Failing to do so is immediately terminable.
 
@@ -21,6 +21,42 @@ Two database choices that are yours, with no hurry. Supabase's own pages show th
 What we did with your other answers. The salami: we leave that meal's numbers as they are, and nothing more is asked of you. The Supabase report: thank you; the team read it. It shows the database is busy mostly because the app asks it for too much (one request per meal card, a very large number of small requests, and live-update listening), and the team is fixing those first. "Tinhead N1" with a pencil on the meal page: "Tinhead" is your profile name. The "1" with the pencil is how many servings you ate; tap the pencil to change it, and the meal's calories scale with it. It has no word beside it, so it looked like part of your name. The team is adding a word to it.
 
 ### Backlog for GrokBot
+
+### #689 The last Fleet 18 remediation PRs (#667, #668, #670, #671, #672, #677 and #678) merged without a clean exact-head review
+
+These PRs are on main, and the reviewer asked for changes at most of their merged heads. Two bugs were confirmed in them: the cover photo's cache lifetime (#668) and the seeded avatar subscription (#672). Fixes for both merged afterwards in #679 and #680.
+
+The exact-head review rule was overridden to land them before the stop. #672 merged at the unreviewed head d50bdf79 with a hand-resolved conflict in PostDetailHeader.tsx, and #677 had no PPLX run. The coder reports #679 (photo cache counted from signing time, #668) and #680 (review findings on #678 and the seeded author identity, #672) merged at 08:30 and 08:32 WIB. The coder now reports (relayed by the owner, Nov 15) reviews at the merged head of #672, #677, #678 and #680 with the fixed runner, and valid head-matched receipts already held for #667, #668, #670, #671 and #679. No receipt contents have reached the PM. Production main is 96ecdcf, and code is frozen until judging, so a new finding cannot be fixed now. Done when the avatar route is checked on production for an account with an avatar (200, private cache) and for another signed-in user (404), PostDetailHeader.tsx is checked on production for the author avatar and the servings layout, and each unreviewed merged head has been reviewed with each real finding filed as its own item.
+
+### #687 The submission text omits voice transcription and says all AI calls use the Meta Model API, which is untrue when Muse Spark Open is on
+
+The hackathon submission was sent at 08:59 WIB. Its description never mentions voice transcription, and it says all runtime AI calls use the Meta Model API. When a user turns on Muse Spark Open in Profile, food identification goes through Baseten instead. A judge who compares the submission with the README sees two accounts of the app.
+
+Checked in the public repository at 96ecdcf (Nov 5, 08:46 WIB): voice is built. The route /api/transcribe calls muse-voice-transcribe-1.0, and VoiceRecorder is mounted in CommentComposer, so the mic sits in the comment box on a meal, not on the capture screen. The open path is built too: open-weights.ts, plus a Profile switch that appears only when IDENTIFY_OPEN_API_KEY is set. docs/open-weights.md says production holds that key and the switch persists (Fleet 10 check), and the owner's own-account look on #281 is still open. The owner believed both were removed, and the code contradicts that. PM, Nov 14 (Chrome, owner account, read-only): production shows the mic beside the comment box on a meal, and Profile shows the switch "Identify food with Muse Spark Open", set to Off. #657 covers the README's no-match wording. Whether the portal counts edits after 09:00 is unknown. Done when GrokBot confirms on production that the mic shows in a meal's comment box and the Profile switch shows, and the owner has checked the portal for the contributor list and decided whether to edit the description.
+
+### #217 A smoothness audit of every screen
+
+Some controls feel dead or clunky, and nobody has measured how the app responds to touch.
+
+The thumbs in #553 are the first case found. List every tappable control on each screen at phone size. For each, record the time from the tap to a visible change, whether it shows a pressed look at once, whether it jumps or flickers while it loads, and whether it can be tapped twice. Measure in Chrome with a slowed processor, using the production sign-in from #196; the table built so far used unthrottled Firefox, so the slowed-processor condition is unmet. Done when the table lists every control with those four findings, and the slow or dead ones are fixed or filed as items.
+
+### #683 Three merged fixes have never been seen working in a browser
+
+The fixes for the meal bookmark on a failed analysis (#634), the upload chip and the meal-cover retry were reviewed in code and never run in a browser. A judge who taps them could meet a defect nobody has seen.
+
+The coder reported this on Nov 5 and named the three fixes without PR numbers for the chip and the retry. The retry poll can also be cancelled by an in-flight load (PR #674), which is deferred. GrokBot, Nov 15: the upload chip works, and bookmarking and unbookmarking a ready meal works. Two bookmark defects: a bookmark on a "No food found" post shows filled but sends no request and cannot be unsaved, and a bookmark tapped while a post is queued reverts at about 120 s and is never saved even when the analysis finishes later. Posts that end as "No food found" also leave the Home feed and show only on Profile (see #615). GrokBot, Nov 15, second reading (12:20 to 12:46 WIB, same production build): a failed meal was made by replacing an uploaded photo's original with 4 KB of random bytes, and the post failed in about 20 s with "The analysis service refused this request. Try again." Tapping the bookmark on that failed meal shows "This meal did not finish analysis and cannot be saved." and sends no request, so the meal is never saved and never marked failed. On Home that message covers the failure text and the Try again button. The failed meal's page opens with "Nutrition could not be updated." and "The meal could not be updated." before any tap, and once showed a broken photo. Unsaving a saved failed meal was not reached, because a failed meal cannot be saved. A queued meal that finished within 2 minutes saved (200), unsaved (200) and stayed so after a reload. A queued meal that finished after 2 minutes reverted to empty at 120 s and no save request was sent; during that run the card's post id changed from 7a25457a to efde7a3d. On a "No food found" meal a second tap does nothing. The cover retry runs to a result: from Home the retry answered 204 at 1.2 s and the card showed Processing at 2.1 s, then returned to failed about 7 minutes later; from the meal page it answered 204 at 0.9 s and showed "Nutrition could not be updated." at 24 s. The cover photo has no retry of its own: a blocked photo shows broken with nothing offered. "Couldn't open this meal" never appeared. Other attempts to make a failed meal: a zero-byte file or a text file named .jpg shows "Upload failed. The server didn't respond." (misleading for a bad file) and posts nothing; a cut-off JPEG became a bread-only meal at 401 kcal; a 9000 × 9000 photo shrank to 962 KB and was analysed normally. Test data left on judge accounts: judge180119 has 0eee29a1, 467aeaa4, fe1abad8, bf3b89a2 and unpublished drafts b08f0e66 and 319e3909; judge291428 has 5ac2735a and efde7a3d. Related: #702. Done when, on production in a phone-sized browser, bookmarking a failed meal shows a plain message that it cannot be saved, without covering the failure text or the Try again button, and never marks the meal failed or saved (PM ruling, Nov 15: this matches #702's done line), a bookmark on a "No food found" meal or on a queued meal either saves or says why it cannot, and a failed meal's cover retry runs to a result, each reported by GrokBot with what it saw.
+
+### #579 Photos are captured at 480 × 640 and look blurry on high-density phones
+
+The app stores each photo at 480 × 640 pixels, the size the browser chose for the live camera, and the feed shows a smaller 384 × 512 copy. On a phone with a three-times screen a full-width card needs about 1,170 pixels, so every photo looks soft. The owner finds the blur painful.
+
+The live camera asks for the rear camera with no size and draws one video frame, so the stored original is 480 × 640 pixels (0.31 megapixels, 126,407 bytes). The feed shrinks it to a 384 × 512 copy (22,118 bytes) cached for a year, so a sharper copy needs a new address. Photos already captured stay at 480 × 640. A sharper photo costs more Storage egress (see #375). A sharper capture, a larger feed copy at a new address and full-resolution detail photos are on main; the bytes, the egress and a real camera's resolution have not been measured. Known risks: the preload can download the wrong photo size, and one failed image turns off sharper photos for later ones. Observe first: find what resolution the camera delivers in a phone-sized browser at 3x, and the bytes of a photo at each size. GrokBot, Nov 15: the shutter now captures at 2560 × 1920 and the stored photo is sharp. The first photo still takes 2.7 to 3.4 seconds on slow mobile data, against the two-second target. The 384 px feed copy (v1.webp) of the new 2560 × 1920 capture was served as a 1920 × 1440 JPEG with a one-year immutable cache, which suggests the resize failed on a large source. A real phone's camera was not tested. Done when a photo captured in a phone-sized browser at 3x is stored at a sharper resolution, the feed and the meal detail show it sharp on a 3x phone, the first photo still shows within two seconds on mobile data, and the bytes per photo before and after are written down.
+
+### #212 Packaged food cannot be logged from the regular camera, and the scanner has never been tried on a phone
+
+To log a packaged food, the user has to switch to a separate scanner, and that scanner has not been tested on a phone. The owner wants the regular camera to read a barcode and a nutrition label.
+
+The design is to decode a barcode with deterministic code first, and to use the model only when no code is found or for a label. On Nov 1 a production check at phone width returned "not in database" for a valid barcode, and a label read by the model made a ready post whose stored nutrition matched. On Nov 2 on production, a Photo-mode shutter decoded an emulated UPC-A barcode to a Found result. The owner kept the issue open because the physical-phone check for both is unmet. Related: #452, where the label flow opens only after a barcode miss. Done when a real packaged product's barcode, photographed through the capture sheet on a phone, creates a post showing the product's name and nutrition, and a nutrition label photographed the same way does the same.
 
 ### #222 The feed fails to open, and photos and cards take too long to appear
 
@@ -43,12 +79,6 @@ The owner's screenshots (Fri Nov 6, 2:40 PM and 2:43 PM WIB, iPhone on 5G) show 
 On desktop the failed-upload chip cut off its own Remove button, so a person could not discard a failed added photo.
 
 Fleet 21 recorded the failure locally and a later local repair on #912 measured the button contained and tappable. Production acceptance was not checked. The broader item #684 stays open. Done when, at 1280 wide on production, a failed added-photo upload shows its whole Remove button and tapping it removes the upload.
-
-### #628 The Fleet 17 check script passes when its checks fail and leaves a test row behind
-
-The test script scripts/run17-checks.mjs can finish successfully even when a check fails, and it leaves test data on production.
-
-The script scripts/run17-checks.mjs now exits with an error when a check fails, and the leftover push row on test account 2 is removed. Still broken: the dismiss step must target only this post's own question; the fake push subscription must be removed at the end of every full beer run; the tap step fails on a "-0" coordinate (BiDi error: Expected "x" to be a finite number, got the string "-0"); the answer step must wait for the strip row. The post-close run fails with Page.navigate and Page.enable timeouts on headless Chromium on the host, and the beer run fails with the strip row missing or never settling; the post-close failure looks like a host problem, not a product regression, but that is not proven. BiDi sessions on that host hit a session cap. Done when the script exits with an error when any check fails, the dismiss step targets only this post's own question, the fake push subscription is removed at the end of every run, the tap step handles "-0", the answer step waits for the strip row, and the post-close and beer commands each exit 0 on a stable browser setup with their receipts on main. Fleet 21, Nov 16: the script repairs are built (PR 918) and both commands still fail; the errors and receipts are preserved.
 
 ### #323 Every protected page checks sign-in twice (part of #222)
 
@@ -122,95 +152,11 @@ When a person posts the same meal twice by mistake, the app shows two posts and 
 
 Owner, Tue Nov 17: this is a new feature, and he calls it tricky. It must work when someone wants to merge two posts and when two posts hold the same item because it was double posted. No design exists, and the rules for what the merged post keeps are not decided: its photos, caption, time, items, numbers and comments. No GitHub issue exists yet. Done when a person can pick two of their own posts and merge them into one, and the merged post shows once in the feed, on Days and in the day's totals, with no item counted twice.
 
-### #212 Packaged food cannot be logged from the regular camera, and the scanner has never been tried on a phone
-
-To log a packaged food, the user has to switch to a separate scanner, and that scanner has not been tested on a phone. The owner wants the regular camera to read a barcode and a nutrition label.
-
-The design is to decode a barcode with deterministic code first, and to use the model only when no code is found or for a label. On Nov 1 a production check at phone width returned "not in database" for a valid barcode, and a label read by the model made a ready post whose stored nutrition matched. On Nov 2 on production, a Photo-mode shutter decoded an emulated UPC-A barcode to a Found result. The owner kept the issue open because the physical-phone check for both is unmet. Related: #452, where the label flow opens only after a barcode miss. Done when a real packaged product's barcode, photographed through the capture sheet on a phone, creates a post showing the product's name and nutrition, and a nutrition label photographed the same way does the same.
-
-### #594 Let the user choose where a photo is saved: the in-app camera with manual saving, or the native camera with every photo saved
-
-The app's own camera sends photos only to the app, so none reach the phone's camera roll, and the owner wants a choice.
-
-The owner ruled that this is a switch in personal settings with a short explanation of each mode, so he can test both. Manual-save mode keeps the app's camera and shows a Save photo button that opens the share sheet. Native mode opens the phone's own camera, which may save to the camera roll by itself. Built: the switch on Profile (kept per device), native mode, Save photo through the share sheet and a file-download fallback. Browser checks pass. Not checked on a real phone: which actions the share sheet offers and whether a copy reaches the camera roll. On iPhone with iOS 16.2 or later, a share sheet opened by an app has no Save Image option (a known Apple bug), but pressing and holding a shown photo does offer it. How people share or save everything, or nothing, is not decided. Done when the owner rules whether native mode and Save photo are accepted without a phone check, because nobody can check the share sheet or the camera roll without a physical phone.
-
-### #373 The app reads more from the production database than it needs
-
-The app's reads drove egress to 8.66 GB and log ingestion to 1.10 GB in one billing cycle, against 5 GB and 1 GB on Supabase's free plan, and the project was depleting its Disk IO budget. The organization is now on Pro, which includes 250 GB of egress per cycle, but the same reads still cost bandwidth and database load while judges use the app.
-
-The feed's database traffic per page open fell from 5.06 MB to 0.523 MB (89.7% less) by reading day totals once. The app and the worker reach Supabase through web requests, not database connections, so the connection-pool setting does not apply. Nobody can explain the historical 31 of 60 connections or the 70% memory use on the small instance, and log volume is known only in rows, not bytes. Done when the billed log bytes are attributed to their sources on the usage page and the memory use on the small instance is explained.
-
-### #368 Sign-ins through the app may share one rate limit across every user
-
-Supabase limits sign-up and sign-in requests per IP address. If it counts the app's requests against Vercel's address, one script hammering the app's forms could lock every judge out.
-
-The app's sign-up and sign-in run on Vercel's servers and do not pass on the browser's address, so Supabase counts the app server's addresses (seven were seen, 36 of 75 sign-ups from one). A direct hammer from one machine was refused at request 31, but that did not test the app's own path. 75 sign-ups through the production form, one every 10 to 22 seconds, raised no rate-limit message, no 429 and no CAPTCHA; why none was refused is unexplained. Observe first: send sign-ups through the form faster than a browser can, then sign in from the owner's phone on mobile data, using throwaway @example.com accounts only. Done when a written report states which address Supabase counts for app sign-ins, and a refusal triggered from one machine does not block sign-in from another.
-
-### #687 The submission text omits voice transcription and says all AI calls use the Meta Model API, which is untrue when Muse Spark Open is on
-
-The hackathon submission was sent at 08:59 WIB. Its description never mentions voice transcription, and it says all runtime AI calls use the Meta Model API. When a user turns on Muse Spark Open in Profile, food identification goes through Baseten instead. A judge who compares the submission with the README sees two accounts of the app.
-
-Checked in the public repository at 96ecdcf (Nov 5, 08:46 WIB): voice is built. The route /api/transcribe calls muse-voice-transcribe-1.0, and VoiceRecorder is mounted in CommentComposer, so the mic sits in the comment box on a meal, not on the capture screen. The open path is built too: open-weights.ts, plus a Profile switch that appears only when IDENTIFY_OPEN_API_KEY is set. docs/open-weights.md says production holds that key and the switch persists (Fleet 10 check), and the owner's own-account look on #281 is still open. The owner believed both were removed, and the code contradicts that. PM, Nov 14 (Chrome, owner account, read-only): production shows the mic beside the comment box on a meal, and Profile shows the switch "Identify food with Muse Spark Open", set to Off. #657 covers the README's no-match wording. Whether the portal counts edits after 09:00 is unknown. Done when GrokBot confirms on production that the mic shows in a meal's comment box and the Profile switch shows, and the owner has checked the portal for the contributor list and decided whether to edit the description.
-
-### #689 The last Fleet 18 remediation PRs (#667, #668, #670, #671, #672, #677 and #678) merged without a clean exact-head review
-
-These PRs are on main, and the reviewer asked for changes at most of their merged heads. Two bugs were confirmed in them: the cover photo's cache lifetime (#668) and the seeded avatar subscription (#672). Fixes for both merged afterwards in #679 and #680.
-
-The exact-head review rule was overridden to land them before the stop. #672 merged at the unreviewed head d50bdf79 with a hand-resolved conflict in PostDetailHeader.tsx, and #677 had no PPLX run. The coder reports #679 (photo cache counted from signing time, #668) and #680 (review findings on #678 and the seeded author identity, #672) merged at 08:30 and 08:32 WIB. The coder now reports (relayed by the owner, Nov 15) reviews at the merged head of #672, #677, #678 and #680 with the fixed runner, and valid head-matched receipts already held for #667, #668, #670, #671 and #679. No receipt contents have reached the PM. Production main is 96ecdcf, and code is frozen until judging, so a new finding cannot be fixed now. Done when the avatar route is checked on production for an account with an avatar (200, private cache) and for another signed-in user (404), PostDetailHeader.tsx is checked on production for the author avatar and the servings layout, and each unreviewed merged head has been reviewed with each real finding filed as its own item.
-
-### #279 Sign-up and sign-in resist being hammered
-
-Anyone can send sign-up and sign-in requests as fast as a script can, to guess passwords, create accounts in bulk or run up the email and model bills, and nobody has shown what stops them.
-
-CAPTCHA stays off until the app goes public. A dormant hCaptcha widget is built. A direct hammer from one machine was refused at sign-up 31 and sign-in 32. The owner holds the site key and the secret; the secret lives only in Supabase Auth and never goes into the repository, an issue, an order or this backlog. To turn CAPTCHA on, set NEXT_PUBLIC_HCAPTCHA_SITE_KEY in Vercel production and redeploy, then enable CAPTCHA in Supabase Auth, never the reverse. Done when CAPTCHA is on for sign-up and sign-in on production and a script that hammers both is refused.
-
-### #578 The leftovers photo and the regular photo post through different code
-
-The app has at least two code paths that post a photo, and the leftovers one is slower and blocks the camera. Other jobs may be done twice in different ways, and nobody has listed them.
-
-The audit of main ranked 26 findings. The biggest: two photo-upload workflows (the leftovers path is slower and blocks the camera), several screens that each refresh when a meal finishes, the meal detail waiting for optional services, the same photo delivered under several addresses, and nutrition read twice by the feed. The smallest: the profile handle read by separate readers, serial drink lookups, a photo reloaded during matching, repeated queue counts and a repeated search interpretation. Rank 1 (the two upload workflows) is built; the other 25 await a decision. Done when each of the 26 findings is filed as its own item or closed with a reason.
-
-### #60 A judge-facing pass makes the public repository start-here ready
-
-The submission requires a public repository, and it still carries the default README.
-
-After the last feature is in, one pass replaces the default README with a short start-here page. All working files stay in the repository, including the agents' contracts, the Wall of Stupid file, the review policy and the review tools. Nothing is removed. Done when the README is the start-here page, and a search of the repository for host names, account identifiers and billing details finds only what the owner chose to keep. GitHub already shows this issue closed. It stays here until that is true.
-
-### #553 Thumbs up and down look the same when turned off and thumbs down waits for the server
-
-The thumbs turn themselves off while a vote saves and before the analysis exists, with no visible difference. Thumbs down opens nothing until the vote has saved.
-
-This is the first case found for #217. The pressed look appears at once (first change 6 to 8 ms with 4x CPU) and thumbs down opens the reply at once. The turned-off look was not observed: the buttons were never disabled, and the rest look is the grey text-off. Four of eight entry paths took longer than 50 ms to show a change: phone photo 51.5 ms, desktop More 64.3 ms, Details 66.6 ms and Comment 64.3 ms. GrokBot, Nov 5 (Fleet 18 result): the pressed look shows in 6 to 8 ms with 4x CPU and thumbs down opens its reply at once. The turned-off look was never observed because the buttons never disabled. Done when a thumb shows its pressed look at once, looks different when turned off, and thumbs down opens at once, checked on production on a phone-sized screen with a slowed processor.
-
 ### #552 The buttons under each post are 24 px tall and show no pressed or turned-off state
 
 The buttons under a post are too small to hit and look the same at rest, while saving and when turned off.
 
 Design 7a gives every button a 44 px tap area and five looks: at rest, pressed, saving, turned off and failed. On production every button measures 44 by 44 (Details 53 by 44). The saving, failed and pressed looks were not captured. Thumbs down took 0.39 seconds to show a change and 0.86 seconds to get its reply. GrokBot, Nov 5 (Fleet 18 result, not re-run): every button measures 44 × 44 (Details 53 × 44). The saving and failed looks were never captured, and forcing them needs the coder. Done when each button matches 7a on production on a phone-sized screen.
-
-### #579 Photos are captured at 480 × 640 and look blurry on high-density phones
-
-The app stores each photo at 480 × 640 pixels, the size the browser chose for the live camera, and the feed shows a smaller 384 × 512 copy. On a phone with a three-times screen a full-width card needs about 1,170 pixels, so every photo looks soft. The owner finds the blur painful.
-
-The live camera asks for the rear camera with no size and draws one video frame, so the stored original is 480 × 640 pixels (0.31 megapixels, 126,407 bytes). The feed shrinks it to a 384 × 512 copy (22,118 bytes) cached for a year, so a sharper copy needs a new address. Photos already captured stay at 480 × 640. A sharper photo costs more Storage egress (see #375). A sharper capture, a larger feed copy at a new address and full-resolution detail photos are on main; the bytes, the egress and a real camera's resolution have not been measured. Known risks: the preload can download the wrong photo size, and one failed image turns off sharper photos for later ones. Observe first: find what resolution the camera delivers in a phone-sized browser at 3x, and the bytes of a photo at each size. GrokBot, Nov 15: the shutter now captures at 2560 × 1920 and the stored photo is sharp. The first photo still takes 2.7 to 3.4 seconds on slow mobile data, against the two-second target. The 384 px feed copy (v1.webp) of the new 2560 × 1920 capture was served as a 1920 × 1440 JPEG with a one-year immutable cache, which suggests the resize failed on a large source. A real phone's camera was not tested. Done when a photo captured in a phone-sized browser at 3x is stored at a sharper resolution, the feed and the meal detail show it sharp on a 3x phone, the first photo still shows within two seconds on mobile data, and the bytes per photo before and after are written down.
-
-### #217 A smoothness audit of every screen
-
-Some controls feel dead or clunky, and nobody has measured how the app responds to touch.
-
-The thumbs in #553 are the first case found. List every tappable control on each screen at phone size. For each, record the time from the tap to a visible change, whether it shows a pressed look at once, whether it jumps or flickers while it loads, and whether it can be tapped twice. Measure in Chrome with a slowed processor, using the production sign-in from #196; the table built so far used unthrottled Firefox, so the slowed-processor condition is unmet. Done when the table lists every control with those four findings, and the slow or dead ones are fixed or filed as items.
-
-### #571 A post started while another is going up breaks the other post with "The meal could not be saved"
-
-Starting a second post while an earlier post is still going up can end with "The meal could not be saved.", and the owner has to press Post again to get the meal saved.
-
-The owner's screenshot shows the toast "The meal could not be saved." over the feed, with the first post, "Beef noodle", showing a grey bar where the analysis would be. He posted one photo, photographed another food while the first was going up, and one of the two posts stopped working when the first finished; pressing Post again saved the meal. Which post stopped, and whether the two overlap in the capture sheet, the upload or the save, is not confirmed. The cause is unknown. Observe first: on a phone, start a second post while the first is still going up, and record which request raises the error and why. GrokBot, Nov 5: not reproduced as the owner saw it. An overlap on slow 4G showed no "could not be saved" toast and the second post closed in 107 ms, but /posts/<id> RSC fetches returned repeated 404s for one overlapping id, which the coder must look at. Fleet 21, Nov 16 (coder report, relayed by the planner): 16 not-found errors were seen on a meal's own address while the meal was still uploading, and the cause is not traced. Done when one post finishing never stops the screen of the other, and both meals save on the first press of Post, in a phone-sized browser.
-
-### #683 Three merged fixes have never been seen working in a browser
-
-The fixes for the meal bookmark on a failed analysis (#634), the upload chip and the meal-cover retry were reviewed in code and never run in a browser. A judge who taps them could meet a defect nobody has seen.
-
-The coder reported this on Nov 5 and named the three fixes without PR numbers for the chip and the retry. The retry poll can also be cancelled by an in-flight load (PR #674), which is deferred. GrokBot, Nov 15: the upload chip works, and bookmarking and unbookmarking a ready meal works. Two bookmark defects: a bookmark on a "No food found" post shows filled but sends no request and cannot be unsaved, and a bookmark tapped while a post is queued reverts at about 120 s and is never saved even when the analysis finishes later. Posts that end as "No food found" also leave the Home feed and show only on Profile (see #615). GrokBot, Nov 15, second reading (12:20 to 12:46 WIB, same production build): a failed meal was made by replacing an uploaded photo's original with 4 KB of random bytes, and the post failed in about 20 s with "The analysis service refused this request. Try again." Tapping the bookmark on that failed meal shows "This meal did not finish analysis and cannot be saved." and sends no request, so the meal is never saved and never marked failed. On Home that message covers the failure text and the Try again button. The failed meal's page opens with "Nutrition could not be updated." and "The meal could not be updated." before any tap, and once showed a broken photo. Unsaving a saved failed meal was not reached, because a failed meal cannot be saved. A queued meal that finished within 2 minutes saved (200), unsaved (200) and stayed so after a reload. A queued meal that finished after 2 minutes reverted to empty at 120 s and no save request was sent; during that run the card's post id changed from 7a25457a to efde7a3d. On a "No food found" meal a second tap does nothing. The cover retry runs to a result: from Home the retry answered 204 at 1.2 s and the card showed Processing at 2.1 s, then returned to failed about 7 minutes later; from the meal page it answered 204 at 0.9 s and showed "Nutrition could not be updated." at 24 s. The cover photo has no retry of its own: a blocked photo shows broken with nothing offered. "Couldn't open this meal" never appeared. Other attempts to make a failed meal: a zero-byte file or a text file named .jpg shows "Upload failed. The server didn't respond." (misleading for a bad file) and posts nothing; a cut-off JPEG became a bread-only meal at 401 kcal; a 9000 × 9000 photo shrank to 962 KB and was analysed normally. Test data left on judge accounts: judge180119 has 0eee29a1, 467aeaa4, fe1abad8, bf3b89a2 and unpublished drafts b08f0e66 and 319e3909; judge291428 has 5ac2735a and efde7a3d. Related: #702. Done when, on production in a phone-sized browser, bookmarking a failed meal shows a plain message that it cannot be saved, without covering the failure text or the Try again button, and never marks the meal failed or saved (PM ruling, Nov 15: this matches #702's done line), a bookmark on a "No food found" meal or on a queued meal either saves or says why it cannot, and a failed meal's cover retry runs to a result, each reported by GrokBot with what it saw.
 
 ### #375 Storage egress is the largest source and was not cut
 
@@ -224,41 +170,11 @@ The owner has logged food daily for days, his diet changed, and he reports that 
 
 Known cases: the macaroni snack shows 38 kcal and 0 g fat from a cooked vegetable macaroni record (#523), squid matched to a tuna sushi record (#617), a consumed number from a half-eaten plate that nobody confirmed (#285), and 12 of the owner's 137 posts show a 0 g macro that nobody judged. A capable coder investigates read-only: pull the owner's ready posts, check each food's weight and kcal against its USDA record and the photo, and record for each wrong number which step caused it (the food identified, the record matched, the weight estimated or the stored value). Done when a written finding lists every one of the owner's posts whose numbers are wrong with its cause, ranks the causes by how many posts each one explains, and each cause is on the backlog as its own item.
 
-### #285 The half-eaten plate may give the wrong consumed number
-
-The app works out how much of a meal was eaten from a photo of the leftovers. The owner has already tested it on his phone, including today, and nobody has confirmed that the consumed number is right.
-
-The owner's own leftovers posts are the data; he will not run more tests. A capable coder investigates read-only: pull the owner's leftovers posts from production, compare each consumed number with the before and after photos, and record where a wrong number goes wrong (the portion estimate, the not-eaten step or the stored value). Related: #570 and #578. Done when a written finding says, for each of the owner's leftovers posts, whether the consumed number is right and what caused any error, and any fix is on the backlog as its own item.
-
 ### #617 Squid and tuna are matched to the wrong food records
 
 In the real food test, a photo of squid nigiri was matched to a USDA record described as "Sushi, topped with tuna". The test allows this kind of closest match, so a passing test does not show the match is right.
 
 No fix has been tried. First step: look at which squid records were available, the matching trace, and the closest-food label. Done when a written finding says whether this match is acceptable and, if not, what should change.
-
-### #523 A meal shows every nutrition value as unavailable
-
-The meal "Spicy Indonesian macaroni" shows its calories, protein, carbs and fat as unavailable. The owner re-analysed it after the fix went live, and it is still broken. He says the app's food estimates are broken.
-
-The first analysis searched the USDA database three times, rejected every record, and never tried the plain name "macaroni". Ruling: when the USDA has no record, the model must estimate, because an unavailable value is worse than a rough estimate. The closest-food fallback and the guard that stops re-analysing from reusing an empty result are both on main. 41 ready posts (95 item rows) had incomplete macros (docs/evidence/fix18/recompute-ids.json). The coder reports that at 09:11 WIB all 41 recompute jobs were done (the last at 08:59 WIB), that 40 posts now have complete nutrition including the macaroni post (86634d46), and that it closed the GitHub issue. One post, 6fad4a16, still lacks a value because its matched USDA record holds no number for that nutrient; whether to estimate it is undecided. The queue holds only three photo-cleanup jobs, which change no meal data. PM, Nov 14 (Chrome, owner account, read-only): the macaroni post 86634d46 shows 38 kcal, 1 g protein, 8 g carbs and 0 g fat, and its latest AI comment (Nov 4, 10:11 PM) names the closest USDA record, "Macaroni, vegetable, enriched, cooked". Two older comments on it still read unavailable. 0 g fat for a fried snack looks low. PM sweep, Nov 14 23:25 WIB, of all 137 posts the Home feed loaded on the owner account: two posts show "Nutrition unavailable" for one item while their totals show numbers (6fad4a16, the salami, which is the known exception, and f08e2e86, an unsalted butter packet, 541 kcal); 12 posts show a 0 g macro, and I did not judge which are real zeros (Hydro Coco Original at 0 g protein looks right); and post 6caf8906 (leftovers, 8:55 PM) reads "This photo could not be analysed. Try again". The macaroni fix reached the other posts. The coder decides f08e2e86 and 6caf8906. GrokBot, Nov 15, sweep of all 137 posts: the macaroni post now shows numbers and its AI comment names the closest USDA food. Still wrong: blank values on the butter post f08e2e86 and the Pocari post 89286fbf, a -1 g carbs value on post 38de279e, a leftovers post 189673aa that reads "unavailable kcal", sambal at 0 kcal in post 509ef9bc, bakpia e7e1782c at 0 g protein and fat, the pizza post 61b3a510 reading "unavailable kcal" for several minutes after two servings changes in a row (it recovered), and 28 meal pages that say "Nutrition unavailable", some of them when the calories and macros are known and only a minor nutrient such as sugar or fibre is missing (88d38425). Done when a browser helper confirms on the live app that the macaroni post shows numbers with a note naming the closest USDA food or saying the model estimated them, and that no ready post shows a value that is unavailable, zero or blank, except post 6fad4a16, which is listed with its reason.
-
-### #708 Retaking a lost photo leaves the old failed upload on screen
-
-Tapping retake opens the camera but does not remove the failed upload. After the new photo is taken the old failed entry is still there, and it comes back from the browser's stored drafts on every session.
-
-In src/components/UploadChip.tsx, line 29: the retake handler only opens the camera. Related: #644. Done when taking the new photo removes the old failed upload, and a reload does not bring it back. Fleet 21 check, Nov 16: the fixture was not created within 60 seconds and a scoped retry reported "Control missing", so the retake, the intent count and the reload were not verified.
-
-### #1082 The beer check never finds the second meal's Dismiss control
-
-On current main, after the second meal is ready with a question, the Dismiss control and the question strip do not appear within 30 seconds, so the beer check fails. Fleet 35 did not cause it: main fails the same way as the branches.
-
-The question strip can wait 60 seconds for its empty check while the check allows 30, so the cause may be the check and not the app. Done when the check passes on main.
-
-### #1089 The matcher can still match a dressing to a salad when the record has no category
-
-Fleet 37 made the record-kind rule conservative: it drops a record only on a clear signal, so a description whose first words name more than one kind returns no kind. As a result "mixed green salad" against "Salad dressing, green goddess", "Creamy dipping sauce" against "Almond butter, creamy", and the fish-oil and milk-shake records are no longer flagged when the record has no category. A wrong match of this kind can still be stored.
-
-The cheap follow-up is to classify the first words by their last noun: "Salad dressing" is a condiment, "Fish oil" a fat, "Milk shakes, thick chocolate" a drink. Done when those four cases are flagged and the 58-pair check from the Fleet 37 review still passes.
 
 ### #1095 Replace duplicate per-card Realtime channels with the tab event
 
@@ -277,6 +193,12 @@ Done when the quiet retry loops listed above are deleted, and the next Query Per
 The small control beside a meal's name (the pencil that opens the servings editor) is about 20 px tall in the reviewer's replica, below the app's 44 px tap size. Its accessible label "Edit servings" replaces its visible text, so a screen reader does not say the count or the unit. Both were already so before the Fleet 48 wording change.
 
 Done when the control meets the tap size, its accessible name includes the count and unit (for example "Edit servings, 1 serving"), and a test shows both.
+
+### #1153 A correct coleslaw record is dropped for cabbage slaw when the record has no category
+
+The reviewer found this while checking Fleet 51, on both the old and new matcher: a food named "cabbage slaw" is compared with the USDA record "Coleslaw with dressing", which has no category, and the matcher drops that correct record. The Fleet 51 change did not cause it. A dropped correct record sends the food to a less exact route, so its numbers are less accurate.
+
+Done when that pair is kept and the Fleet 37 and Fleet 51 pair tables still pass.
 
 ### Backlog for Designer
 
@@ -336,6 +258,12 @@ This is the last step of the revisit, after #989. Done when a sample of passing 
 
 ### Interdit (Not part of Hackathon)
 
+### #368 Sign-ins through the app may share one rate limit across every user
+
+Supabase limits sign-up and sign-in requests per IP address. If it counts the app's requests against Vercel's address, one script hammering the app's forms could lock every judge out.
+
+The app's sign-up and sign-in run on Vercel's servers and do not pass on the browser's address, so Supabase counts the app server's addresses (seven were seen, 36 of 75 sign-ups from one). A direct hammer from one machine was refused at request 31, but that did not test the app's own path. 75 sign-ups through the production form, one every 10 to 22 seconds, raised no rate-limit message, no 429 and no CAPTCHA; why none was refused is unexplained. Observe first: send sign-ups through the form faster than a browser can, then sign in from the owner's phone on mobile data, using throwaway @example.com accounts only. Done when a written report states which address Supabase counts for app sign-ins, and a refusal triggered from one machine does not block sign-in from another.
+
 ### #114 Facebook Login in production mode
 
 Public sign-in with Facebook needs the app submitted for Meta app review, which takes longer than the event.
@@ -365,6 +293,8 @@ Blocked until the owner has finished researching what the real planner must be t
 A person can create an API key, but there is no way for a client such as ChatGPT to use it. The owner wants a person to hand the key to ChatGPT and have it fetch that person's data from an address such as /agent/<the key>/<what it wants>, and wants instructions for MCP clients behind a plain link on the website.
 
 Blocked until the owner has finished researching what the real planner must be told. The documentation half overlaps #924 (no guide for reaching the MCP server). The research must settle: whether a key in the address is acceptable (addresses end up in logs, browser history and referrer headers), what each key may read and whether it is read-only, how a key is revoked, and whether ChatGPT can send the fixed Authorization: Bearer header the server accepts today (not checked). Done when the owner has decided the access design, a planner brief says what to build, and the website carries a link to the instructions.
+
+---
 
 † What this backlog is. The shared, ordered list of open work for My Food AI, shown live. GitHub issues in aibraincoach/my-food-ai are the record, and BACKLOG.md in the repository is a copy of this list that the PM supplies, so the coder and the planner read the same list. This Doc is private between the PM and the owner, and the coder cannot open it. The coder reads BACKLOG.md, which the owner copies from this Doc. Every item has its own GitHub issue. An item leaves this list when its work is merged. Production proof of a merged fix is a new item in Backlog for GrokBot; the "Interdit (Not part of Hackathon)" section holds items that cannot be worked on and says why. Each section is for one role or one state: Backlog for GrokBot and Engineering backlog (open work), ordered within a section by the pass that will work them together, not by issue number or date. In flight holds the items a dispatch has sent to the coder that have not merged: an item moves there when it is dispatched and leaves the list when its work is merged.
 
