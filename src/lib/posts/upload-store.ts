@@ -63,15 +63,18 @@ async function transaction<T>(stores: string | string[], mode: IDBTransactionMod
     }
 }
 // #684: iOS can lose a File kept in IndexedDB once the app is closed, so a retry could never read it again. A photo
-// is kept as its own bytes and becomes a File again when read back. A row written before this keeps its File.
+// is kept as its own bytes and becomes a File again when read back. #1093: only kept bytes are read. A row saved
+// before this holds a File that may no longer be readable, so it comes back with no photo, marked lost and failed.
 type KeptFile = { name: string; type: string; lastModified: number; bytes: ArrayBuffer };
+const isKept = (file: unknown): file is KeptFile => typeof file === 'object' && file !== null && !(file instanceof Blob) && (file as KeptFile).bytes instanceof ArrayBuffer;
 async function keepFiles(draft: StoredUpload): Promise<StoredUpload> {
     const files = await Promise.all(draft.files.map(async file => ({ name: file.name, type: file.type, lastModified: file.lastModified, bytes: await file.arrayBuffer() })));
     return { ...draft, files: files as unknown as File[] };
 }
-function restoreFiles(row: StoredUpload): StoredUpload {
-    const files = (row.files as unknown as (File | KeptFile)[]).map(file => file instanceof Blob ? file : new File([file.bytes], file.name, { type: file.type, lastModified: file.lastModified }));
-    return { ...row, files };
+export function restoreFiles(row: StoredUpload): StoredUpload {
+    const kept = row.files as unknown[];
+    if (!kept.every(isKept)) return { ...row, files: [], photoLost: true, state: 'failed' };
+    return { ...row, files: kept.map(file => new File([file.bytes], file.name, { type: file.type, lastModified: file.lastModified })) };
 }
 export const uploadStore = {
     all: async () => ((await transaction('drafts', 'readonly', tx => tx.objectStore('drafts').getAll())) as StoredUpload[] | undefined ?? []).map(restoreFiles),
