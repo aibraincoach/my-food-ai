@@ -490,7 +490,7 @@ export default function Feed({initialPage, initialUserId, initialZone = "UTC", f
   const visibleState: State = fallbackOnly ? cache.cached ? {kind: 'ready', posts: cache.cached.filter(post=>!fallbackRetired.has(post.id)), days: []} : {kind: 'loading'} : state;
   const uploadDays=new Set<string>();
   const localDay=uploads.map(upload=>dateInZone((visibleState.kind==='ready'?visibleState.posts.find(post=>post.id===upload.postId)?.eaten_at:undefined)??upload.eatenAt,renderZone));
-  const localCards=uploads.map(upload=>{const server=visibleState.kind==='ready'?visibleState.posts.find(post=>post.id===upload.postId):undefined;const seed:FeedPost=server??{id:upload.postId??upload.operationId,caption:upload.caption,eaten_at:upload.eatenAt,created_at:upload.eatenAt,status:"queued",photoUrl:upload.previewUrl,slides:[],items:[]};const zone=renderZone;const day=dateInZone(seed.eaten_at,zone);const header=!uploadDays.has(day);const measured=visibleState.kind==='ready'?visibleState.days.find(value=>value.day===day):undefined;const measuredTotal=measured?{...measured,ready:measured.ready||measured.kcal===0}:undefined;if(header)uploadDays.add(day);return <UploadHydratedCard key={upload.operationId} post={seed} upload={upload} header={header?<DayHeader day={day} zone={zone} empty={false} total={measuredTotal}/>:null}/>;});
+  const localCards=uploads.map(upload=>{const server=visibleState.kind==='ready'?visibleState.posts.find(post=>post.id===upload.postId):undefined;const seed:FeedPost=server??{id:upload.postId??upload.operationId,caption:upload.caption,eaten_at:upload.eatenAt,created_at:upload.eatenAt,status:"queued",photoUrl:upload.previewUrl,slides:[],items:[]};const zone=renderZone;const day=dateInZone(seed.eaten_at,zone);const header=!uploadDays.has(day);const measured=visibleState.kind==='ready'?visibleState.days.find(value=>value.day===day):undefined;const measuredTotal=measured?{...measured,ready:measured.ready||measured.kcal===0}:undefined;if(header)uploadDays.add(day);return <UploadHydratedCard key={upload.operationId} post={seed} upload={upload} attachment={upload.postId?attachmentUploads.find(attached=>uploadTargetsPost(attached,upload.postId!)):undefined} header={header?<DayHeader day={day} zone={zone} empty={false} total={measuredTotal}/>:null}/>;});
   if (visibleState.kind === "loading"&&localCards.length)return <div>{localCards}{null}</div>;
   if (visibleState.kind === "loading") return <p className="px-screen-x text-detail text-muted" role="status">Loading feed…</p>;
   if (visibleState.kind === "error") return <div data-feed-error>{localCards}<p className="px-screen-x text-detail text-muted" role="alert">The feed could not be loaded.</p><button type="button" className="min-h-tap px-screen-x text-text" onClick={() => retryInitial.current()}>Try again</button></div>;
@@ -524,7 +524,8 @@ export default function Feed({initialPage, initialUserId, initialZone = "UTC", f
   </div>;
 }
 
-function UploadHydratedCard({post,upload,header}:{post:FeedPost;upload:UploadState;header:import("react").ReactNode}) {
+// #570: a photo added to a meal posted in this session shows on this card at once, as it does on a server card.
+function UploadHydratedCard({post,upload,attachment,header}:{post:FeedPost;upload:UploadState;attachment?:UploadState;header:import("react").ReactNode}) {
   const [fresh,setFresh]=useState<FeedPost|null>(null);
   const lastStatus=useRef(post.status);
   useEffect(()=>{
@@ -587,5 +588,5 @@ function UploadHydratedCard({post,upload,header}:{post:FeedPost;upload:UploadSta
       void db.removeChannel(channel);
     };
   },[post.id,upload.postId,upload.operationId]);
-  return <div data-desktop-post={upload.postId??upload.operationId} tabIndex={-1}>{header}<PostCard post={fresh??post} upload={upload}/></div>;
+  return <div data-desktop-post={upload.postId??upload.operationId} tabIndex={-1}>{header}<PostCard post={fresh??post} upload={attachment??upload}/></div>;
 }
