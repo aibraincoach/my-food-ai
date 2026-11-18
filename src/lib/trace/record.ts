@@ -56,7 +56,7 @@ export async function recordCall<T>(kind: CallKind, requestText: unknown, fn: ()
     try {
       const finite = (value?: number) => typeof value === "number" && Number.isFinite(value) && value >= 0 ? Math.round(value) : null;
       // The write has its own deadline: a stalled trace store must never hold back a finished model call.
-      const legacy = {
+      const row = {
         post_id: traceContext.getStore()?.postId ?? null, kind, started_at: startedAt,
         duration_ms: Math.min(2147483647, Date.now() - started),
         input_tokens: finite(details.usage?.input_tokens), output_tokens: finite(details.usage?.output_tokens),
@@ -64,14 +64,12 @@ export async function recordCall<T>(kind: CallKind, requestText: unknown, fn: ()
         fdc_id: finite(details.fdcId ?? undefined), error: failure,
       };
       const db=createAdminClient(), deadline=AbortSignal.timeout(TRACE_WRITE_TIMEOUT_MS);
-      let result=await db.from("model_calls").insert({...legacy,
+      // Rule 5: one insert with every column. A failed write is logged with its code and is not retried in another shape.
+      const result=await db.from("model_calls").insert({...row,
         model: identity?.model ?? (typeof (requestText as {model?:unknown})?.model === "string" ? (requestText as {model:string}).model : kind === "sam" ? "sam-3.1" : null),
         host: identity?.host ?? "meta",
       }).abortSignal(deadline);
-      if(result.error&&["PGRST204","42703"].includes(result.error.code)&&/\b(?:model|host)\b/.test(result.error.message)) {
-        result=await db.from("model_calls").insert(legacy).abortSignal(deadline);
-      }
-      if (result.error) console.error("Model trace could not be stored.");
+      if (result.error) console.error(`Model trace could not be stored: ${result.error.code ?? "unknown"}.`);
     } catch { console.error("Model trace could not be stored."); }
   }
 }

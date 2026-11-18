@@ -9,9 +9,12 @@ const {identifyItems}=await import('../src/lib/meta/spark.ts');
 const {getPostDetail}=await import('../src/lib/posts/items.ts');
 const valid={items:[{name:'rice',region_index:null,portion_text:'half bowl',portion_grams:100,confidence:0.8}],summary:'Rice',needs_input:null};
 const meta=text=>Response.json({status:'completed',output:[{type:'message',content:[{type:'output_text',text}]}],usage:{input_tokens:10,output_tokens:20}});
-test('pre-0032 trace rejection retries only legacy identity fields within the same deadline',async()=>{
- const original=fetch,writes=[];globalThis.fetch=async(_url,init)=>{writes.push({row:JSON.parse(init.body),signal:init.signal});return writes.length===1?Response.json({code:'PGRST204',message:"Could not find the 'model' column of 'model_calls' in the schema cache"},{status:400}):new Response(null,{status:201});};
- try{assert.equal(await recordCall('spark_identify',{model:'muse-spark-1.3'},async()=>7),7);assert.equal(writes.length,2);assert.equal(writes[0].row.model,'muse-spark-1.3');assert.equal(writes[1].row.model,undefined);assert.equal(writes[1].row.host,undefined);assert.equal(writes[1].row.kind,'spark_identify');assert.equal(writes[1].row.error,null);assert.equal(writes[0].signal,writes[1].signal);}finally{globalThis.fetch=original;}
+// Rule 5: the pre-0032 retry without model and host is gone. A rejected trace write is one attempt, logged with its
+// code, and never repeated in an older shape; the model call's own result is still returned.
+test('a rejected trace write is not retried without model and host, and is logged visibly',async()=>{
+ const original=fetch,previous=console.error,writes=[],logged=[];console.error=message=>logged.push(String(message));
+ globalThis.fetch=async(_url,init)=>{writes.push(JSON.parse(init.body));return Response.json({code:'PGRST204',message:"Could not find the 'model' column of 'model_calls' in the schema cache"},{status:400});};
+ try{assert.equal(await recordCall('spark_identify',{model:'muse-spark-1.3'},async()=>7),7);assert.equal(writes.length,1);assert.equal(writes[0].model,'muse-spark-1.3');assert.equal(writes[0].host,'meta');assert.deepEqual(logged,['Model trace could not be stored: PGRST204.']);}finally{globalThis.fetch=original;console.error=previous;}
 });
 test('unrelated trace schema errors do not silently downgrade payloads',async()=>{
  const original=fetch,previous=console.error;let writes=0;globalThis.fetch=async()=>{writes++;return Response.json({code:'PGRST204',message:"Could not find the 'response_text' column of 'model_calls' in the schema cache"},{status:400});};console.error=()=>{};

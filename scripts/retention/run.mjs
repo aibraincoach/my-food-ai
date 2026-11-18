@@ -1,10 +1,10 @@
 #!/usr/bin/env node
-// Retention runner (#1097 jobs). Owner rule 4: never one big delete.
+// Retention runner (#1097 jobs, #1098 model_calls). Owner rule 4: never one big delete.
 // Dry run by default: prints what each rule would delete, per rule, kind and day, and deletes nothing.
 // --delete runs at most --batches batches of at most --batch-size rows, one after another, with --pause-ms between
 // them, and stops at the first batch that deletes nothing or fails. Deleted rows cannot be restored; each batch is
 // counted in public.retention_summary. Usage:
-//   SUPABASE_DB_URL=... node scripts/retention/run.mjs --table=jobs [--delete --batches=1 --batch-size=200 --pause-ms=5000]
+//   SUPABASE_DB_URL=... node scripts/retention/run.mjs --table=jobs|model_calls [--delete --batches=1 --batch-size=200 --pause-ms=5000]
 import { spawnSync } from 'node:child_process';
 import { existsSync, realpathSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
@@ -12,6 +12,7 @@ import { setTimeout as sleep } from 'node:timers/promises';
 
 export const TABLES = {
   jobs: { dryRun: 'retention_jobs_dry_run', batch: 'retention_jobs_batch' },
+  model_calls: { dryRun: 'retention_traces_dry_run', batch: 'retention_traces_batch' },
 };
 export const LIMITS = { batches: [1, 50], batchSize: [1, 1000], pauseMs: [1000, 600000] };
 
