@@ -44,7 +44,8 @@ function HeaderServings({postId,servings}:{postId:string;servings:number}) {
     if(next!==saved)void submit(next);
   };
   if(!open){
-    return <button type="button" aria-label="Edit servings" disabled={busy} onClick={()=>{setOpen(true);setDraft(servingsLabel(saved));setError('');}} className="shrink-0 text-handle tabular-nums disabled:opacity-50">{servingsText(saved)} <span className="text-muted" aria-hidden>✎</span></button>;
+    // #1134: a 44 px tap target whose negative margin keeps the header row's height; the name says the count it edits.
+    return <button type="button" aria-label={`Edit servings, ${servingsText(saved)}`} disabled={busy} onClick={()=>{setOpen(true);setDraft(servingsLabel(saved));setError('');}} className="-my-3 min-h-tap shrink-0 text-handle tabular-nums disabled:opacity-50">{servingsText(saved)} <span className="text-muted" aria-hidden>✎</span></button>;
   }
   return <div className="flex max-w-[min(100%,14rem)] flex-col items-end gap-1">
     <div className="flex items-center gap-1">

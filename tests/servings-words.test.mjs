@@ -6,11 +6,15 @@ import {servingsText} from '../src/lib/posts/servings.ts';
 test('the servings control says serving for one or a part, servings above one (#1124)',()=>{
  for(const [value,want] of [[1,'1 serving'],[2,'2 servings'],[1.5,'1½ servings'],[0.5,'½ serving'],[0.25,'¼ serving'],[0.1,'0.1 servings'],[50,'50 servings'],[1.25,'1¼ servings']])assert.equal(servingsText(value),want,String(value));
 });
-test('the meal header shows the words beside the pencil and keeps its accessible name (#1124)',()=>{
+test('the meal header shows the words beside the pencil; its name says what it edits and its count (#1124, #1134)',()=>{
  const source=readFileSync(new URL('../src/components/PostDetailHeader.tsx',import.meta.url),'utf8');
- const button=source.slice(source.indexOf('aria-label="Edit servings"'),source.indexOf('</button>',source.indexOf('aria-label="Edit servings"')));
+ const start=source.indexOf('aria-label={`Edit servings, ${servingsText(saved)}`}');assert.ok(start>0,'the accessible name includes the count and unit');
+ const button=source.slice(start,source.indexOf('</button>',start));
  assert.ok(button.includes('>{servingsText(saved)} <span className="text-muted" aria-hidden>✎</span>'),button);
  assert.ok(!button.includes('{servingsLabel(saved)} <span'));
+ assert.match(button,/className="[^"]*\bmin-h-tap\b[^"]*"/,'the closed control meets the 44 px tap size');
+ assert.match(button,/className="[^"]*-my-3\b[^"]*"/,'its margin keeps the header row height');
+ assert.doesNotMatch(source,/aria-label="Edit servings"/);
 });
 test('a failed meal does not show the servings control (#1124)',()=>{
  const source=readFileSync(new URL('../src/components/PostDetail.tsx',import.meta.url),'utf8');
