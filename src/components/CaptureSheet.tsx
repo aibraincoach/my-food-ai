@@ -36,6 +36,8 @@ import VoiceButton,{useVoiceActivity} from "@/components/VoiceButton";
 type Shot = { file: File; previewUrl: string };
 const MAX_SHOTS = 8;
 const FLIP_ERROR = "Could not switch cameras. Try again.";
+// #999: shown on a phone in Photo mode when the camera did not open; AGY rules on the words.
+const CAMERA_NOT_OPENED = "The camera could not be opened.";
 
 export type CaptureMode = "photo" | "text" | "barcode";
 export default function CaptureSheet({ onClose, initialMode = "photo", forPost, attachNotEaten = false, initialFiles }: { onClose: () => void; initialMode?: CaptureMode; forPost?: string; attachNotEaten?: boolean; initialFiles?: File[] }) {
@@ -43,6 +45,10 @@ export default function CaptureSheet({ onClose, initialMode = "photo", forPost, 
   const desktop=useDesktop();
   const phoneCamera=useCameraMode()==='phone'&&!desktop;
   const [cameraAttempt,setCameraAttempt]=useState(0);
+  const reopened=useRef(false);
+  const recovering=useRef(false);
+  const [cameraRecoveryFailed,setCameraRecoveryFailed]=useState(false);
+  const retryCamera=()=>{recovering.current=cameraRecoveryFailed;reopened.current=false;setCameraAttempt(value=>value+1);};
   const [devices,setDevices]=useState<MediaDeviceInfo[]>([]);
   const [deviceId,setDeviceId]=useState('');
   const [dragging,setDragging]=useState(false);
@@ -177,9 +183,9 @@ export default function CaptureSheet({ onClose, initialMode = "photo", forPost, 
     void acquire.then((camera) => {
       if (cancelled) { camera.close(); return; }
       liveCameraRef.current = camera;
-      setCameraUnavailable(false); setStream(camera.stream);
+      setCameraUnavailable(false); setCameraRecoveryFailed(false); recovering.current=false; setStream(camera.stream);
       if(desktop)void navigator.mediaDevices.enumerateDevices().then(all=>{if(!cancelled)setDevices(all.filter(device=>device.kind==='videoinput'));}).catch(()=>{});
-    }).catch(() => { if (!cancelled) {setCameraUnavailable(true);} });
+    }).catch((cause:unknown) => { if (!cancelled) {setCameraRecoveryFailed(recovering.current&&(cause as {name?:string}|null)?.name!=="NotAllowedError");setCameraUnavailable(true);} });
     return () => {
       cancelled = true;
       mountedRef.current = false;
@@ -201,6 +207,30 @@ export default function CaptureSheet({ onClose, initialMode = "photo", forPost, 
     });
     return () => { cancelled = true; video.srcObject = null; };
   }, [stream,composer]);
+
+  // #999: iOS can stop the camera, or pause its picture, while the app is in the background, another app takes the
+  // camera, or the app is reopened. Each of those events is answered once: an ended camera is opened again, and a paused
+  // picture is played again. At most one reopen per return to the app (rule 5: no retry loop); after that, and on any
+  // failure, the camera-unavailable message shows with its Allow camera button.
+  useEffect(() => {
+    if (!stream) return;
+    const reopen = () => {
+      liveCameraRef.current?.close(); liveCameraRef.current = null; setStream(null);
+      if (reopened.current) { setCameraRecoveryFailed(true); setCameraUnavailable(true); return; }
+      recovering.current = true; reopened.current = true; setCameraAttempt(value => value + 1);
+    };
+    const tracks = stream.getVideoTracks();
+    const back = () => {
+      if (document.visibilityState === "hidden") { reopened.current = false; return; }
+      if (tracks.some(track => track.readyState !== "live")) { reopen(); return; }
+      const video = videoRef.current;
+      if (video?.paused) void video.play().catch(() => { liveCameraRef.current?.close(); liveCameraRef.current = null; setStream(null); setCameraRecoveryFailed(true); setCameraUnavailable(true); });
+    };
+    for (const track of tracks) track.addEventListener("ended", reopen);
+    document.addEventListener("visibilitychange", back);
+    window.addEventListener("pageshow", back);
+    return () => { for (const track of tracks) track.removeEventListener("ended", reopen); document.removeEventListener("visibilitychange", back); window.removeEventListener("pageshow", back); };
+  }, [stream]);
 
   useEffect(() => {
     const previousFocus = document.activeElement;
@@ -509,11 +539,13 @@ export default function CaptureSheet({ onClose, initialMode = "photo", forPost, 
           {labelState!=="idle"&&packPhoto ? <img src={packPhoto.previewUrl} alt="Photographed nutrition label" className="h-full w-full object-contain"/> : stream && !(phoneCamera && mode === "photo") ? <video ref={videoRef} muted playsInline autoPlay aria-label="Live camera viewfinder" className="h-full w-full object-cover" /> : latest ? (
             // Local blob previews require no remote image transformation.
             <img src={latest.previewUrl} alt="Latest meal photo" className="h-full w-full object-cover" />
-          ) : desktop&&forPost ? null : <Icon name="camera" />}
+          ) : cameraUnavailable||desktop&&forPost ? null : <Icon name="camera" />}
           {phoneCamera&&mode==="photo"&&!latest&&<p className="absolute inset-x-6 bottom-6 text-center text-[14px] text-surface">The shutter opens the phone&apos;s camera app. Change this under Profile.</p>}
-          {desktop&&(cameraUnavailable||forPost&&!stream&&!latest)&&<div className="absolute inset-0 flex flex-col items-center justify-center gap-3 px-6 text-center text-white">
-            {forPost&&!stream&&!latest&&<><p className="text-[14px] font-semibold">Drop a photo here</p><p className="text-[13px] text-white/70">or paste one with ⌘V</p><button type="button" disabled={posting} onClick={()=>galleryRef.current?.click()} className="h-[42px] rounded-field bg-white px-[18px] text-[14px] font-semibold text-text disabled:opacity-50">Choose a file</button></>}
-            {cameraUnavailable&&<button type="button" onClick={()=>setCameraAttempt(value=>value+1)} className="rounded-field border border-white/40 px-5 py-3 text-[14px] text-white">Allow camera</button>}
+          {(cameraUnavailable||desktop&&forPost&&!stream&&!latest)&&<div className="absolute inset-0 flex flex-col items-center justify-center gap-3 px-6 text-center text-white">
+            {/* #999: a phone whose camera did not open says so in Photo mode too, instead of a black picture. */}
+            {!desktop&&cameraUnavailable&&mode==="photo"&&<p role="status" className="text-[14px]">{CAMERA_NOT_OPENED}</p>}
+            {desktop&&forPost&&!stream&&!latest&&<><p className="text-[14px] font-semibold">Drop a photo here</p><p className="text-[13px] text-white/70">or paste one with ⌘V</p><button type="button" disabled={posting} onClick={()=>galleryRef.current?.click()} className="h-[42px] rounded-field bg-white px-[18px] text-[14px] font-semibold text-text disabled:opacity-50">Choose a file</button></>}
+            {cameraUnavailable&&<button type="button" onClick={retryCamera} className="rounded-field border border-white/40 px-5 py-3 text-[14px] text-white">{cameraRecoveryFailed?"Try again":"Allow camera"}</button>}
           </div>}
           {desktop&&devices.length>0&&<select aria-label="Camera" value={deviceId||stream?.getVideoTracks()[0]?.getSettings().deviceId||''} onChange={event=>setDeviceId(event.target.value)} className="absolute left-[14px] top-[14px] h-[29px] max-w-[80%] rounded-field bg-overlay px-[10px] text-meta text-surface">{devices.map((device,index)=><option key={device.deviceId} value={device.deviceId}>{device.label||`Camera ${index+1}`}</option>)}</select>}
           {labelState==="read"&&<div aria-hidden="true" className="pointer-events-none absolute rounded-thumb border-2 border-accent" style={{left:`${(labelReading?.reading.box?.x??0)*100}%`,top:`${(labelReading?.reading.box?.y??0)*100}%`,width:`${(labelReading?.reading.box?.w??1)*100}%`,height:`${(labelReading?.reading.box?.h??1)*100}%`,boxShadow:`0 0 12px ${tokens.colors["accent-glow"]}`}}/>}
