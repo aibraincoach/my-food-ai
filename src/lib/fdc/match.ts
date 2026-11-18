@@ -8,6 +8,7 @@ import { nutritionBudgetMs, NUTRITION_MAX_MS } from "@/lib/worker/budget";
 import { FOOD_MATCH_VERSION } from "./version";
 import { closestGenericFood, composeRiceWithProtein } from "./approximate";
 import { referenceProteinMismatch } from "./protein-reference";
+import { recordContradicts } from "./record-kind";
 import { estimateFood } from "./estimate";
 import { type UnavailableReason } from "./unavailable";
 
@@ -70,7 +71,7 @@ export async function matchFood(name: string, caption: string, dependencies: Mat
     if(signal?.aborted)throw new MetaApiError(503,"Food resolution budget was exhausted.");
     searched.add(query.toLowerCase());
     for(const food of await dependencies.search(query)){
-      if(gramBasis(food)&&hasNutrition(food)&&energyFits(name,food)&&!eligible.has(food.fdcId)&&!excludedComponents(food.description,`${name} ${caption}`).length&&!referenceProteinMismatch(name,food.description))eligible.set(food.fdcId,food);
+      if(gramBasis(food)&&hasNutrition(food)&&energyFits(name,food)&&!eligible.has(food.fdcId)&&!excludedComponents(food.description,`${name} ${caption}`).length&&!referenceProteinMismatch(name,food.description)&&!recordContradicts(name,food))eligible.set(food.fdcId,food);
     }
     const candidates=[...eligible.values()];
     const decision=await dependencies.choose(name,caption,candidates,attempt>0,query,2-attempt);
