@@ -36,3 +36,52 @@ cards.mjs only reads: for each meal prefix, the calories its card shows, the cal
 24-recheck.sql writes, like 11: it looks up again only the listed foods of one meal; every other food keeps its nutrition exactly. Run it only through `reanalyse.mjs run --mode=recheck --foods-file=<mismatch.mjs flagged.jsonl>`, which takes the snapshot first and works only meal foods with a strong signal. The listed foods' lost micronutrients are ledgered as values_removed; the calories may move by more than half only when every listed food's new record passes the record check or is an estimate. 25-resave.sql writes one saved meal in place from its meal's current foods, after a kept recheck; the meal's snapshot holds the old saved row.
 
 25-resave.sql has no CLI snapshot guard of its own: before running it, retain and inspect the meal's 08-snapshot.sql output with its original `saved_meals` entry. Undo restores that saved row's original items by the same saved-meal ID. Duplicate current food names cannot be distinguished by the recheck outcome's name-only rows, so their micronutrient losses are retained and trigger the ordinary restore rule. Labelled detector precision is scoped to the supplied labels; it is not blind precision or proof that every unlabelled flag is wrong.
+
+## Owner photo study (#694, Fleet 55)
+
+This pipeline is read-only on production and writes recommendations, never corrections.
+Production starts only after the PM's exact-head merge order and named reader choice.
+Run `26-owner-study.sql` once for that owner in one explicit `BEGIN READ ONLY`
+transaction, with the transaction/read-refusal guard, `lock_timeout='5s'` and
+`statement_timeout='30s'`. Do not rely on `PGOPTIONS`: the transaction pooler can ignore it.
+The query exports full meal/item ids and current evidence rows privately; it reads no
+caption, comment, or search-cache rows.
+
+All output directories must be dedicated private directories outside the repository.
+Use `umask 077`. After the guarded query writes `owner-study.jsonl`:
+
+```bash
+node --import tsx scripts/numbers/mismatch.mjs --rows="$STUDY_PRIVATE/owner-study.jsonl" --out="$STUDY_PRIVATE/mismatch"
+node scripts/numbers/sample.mjs --rows="$STUDY_PRIVATE/owner-study.jsonl" --mismatch="$STUDY_PRIVATE/mismatch/flagged.jsonl" --out="$STUDY_PRIVATE"
+node scripts/numbers/photos.mjs --sample="$STUDY_PRIVATE/sample.json" --account="$STUDY_ACCOUNT" --out="$STUDY_PRIVATE"
+node --import tsx scripts/numbers/read-photos.mjs --sample="$STUDY_PRIVATE/sample.json" --photos="$STUDY_PRIVATE/photos/ledger.json" --out="$STUDY_PRIVATE" --reader=app --reader-reason="PM's named production reader"
+node scripts/numbers/causes.mjs --verdicts="$STUDY_PRIVATE/verdicts.json" --out="$STUDY_PRIVATE"
+node scripts/numbers/causes.mjs --verdicts="$STUDY_PRIVATE/verdicts.json" --out="$STUDY_PRIVATE" --corrections
+```
+
+`--reader=agy` is a separate explicit choice, bounded to two minutes per meal (135s
+hard subprocess cap). There is no default reader, automatic switch or second call.
+Failed/malformed readings remain `cannot tell` with the reader, duration, error and
+available token usage recorded. A missing photo is not sent to either reader.
+
+Optionally add `--snapshots=/private/existing-snapshot.jsonl` to `sample.mjs`.
+This must be an **existing** `08-snapshot.sql` ledger containing the selected meals;
+no new production snapshot/read is taken by this study. Keep it outside `photos/`.
+Snapshots for other meals are refused, and items link only by exact id or `supersedes`,
+never by a guessed name. Only values and evidence ids go to the reader: snapshot
+captions/comments and local source-file paths are not forwarded.
+
+The reader's structured `findings` carry item id, cause, field, action, expected
+value/basis, an explicit yes/no/unknown loss flag and evidence-row ids. Free-text
+notes never choose an action. `corrections.json` contains `recommendations` and
+`withheld`; `corrections.txt` has one complete JSON row per recommendation or
+withheld proposal. Every recommendation includes the full meal/item ids, the
+structured finding and its evidence ids. Unknowns/negations do not recommend an
+action. Restore requires a current NULL, an affirmative lost value, the exact
+available prior value and an existing matching snapshot file; otherwise the row
+says `no restore evidence` with no script. A known zero is available data.
+
+These are **WRITTEN, NEVER RUN** lists. The PM orders any later correction under the
+snapshot/restore rule. Before deleting `photos/` after the finding, preserve its
+`ledger.json` as a separate private JSON proof file. Keep the other JSON outputs and
+existing snapshot ledger private; publish only prefixes, verdicts and short findings.
