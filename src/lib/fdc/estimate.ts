@@ -38,9 +38,9 @@ export async function estimateFood(name: string, caption: string, signal?: Abort
     if (parsed.calories === null || parsed.protein_g === null || parsed.carbs_g === null || parsed.fat_g === null || !parsed.basis.trim()) throw Object.assign(new MetaApiError(502, "Nutrition estimate had no usable numbers."), {noEstimate: true});
     if (![within(parsed.calories, 900), within(parsed.protein_g, 100), within(parsed.carbs_g, 100), within(parsed.fat_g, 100), within(parsed.fibre_g, 100), within(parsed.sugar_g, 100), within(parsed.sodium_mg, 40000)].every(Boolean)) throw new MetaApiError(502, "Nutrition estimate was out of range.");
     const basis = parsed.basis.trim();
-    // #987: caffeine is extra to the seven values. A missing, zero or implausible figure (above 400 mg
-    // per 100 g) stores no caffeine and never fails the estimate.
-    const caffeine = typeof parsed.caffeine_mg === "number" && parsed.caffeine_mg > 0 && parsed.caffeine_mg <= 400 ? parsed.caffeine_mg : null;
+    // #987: missing or implausible caffeine stays unknown without losing valid nutrition.
+    // A model-stated zero for a drink is measured data, so its portion retains that known zero.
+    const caffeine = typeof parsed.caffeine_mg === "number" && (parsed.caffeine_mg > 0 || (parsed.caffeine_mg === 0 && parsed.drink !== "not a drink")) && parsed.caffeine_mg <= 400 ? parsed.caffeine_mg : null;
     return {
       fdcId: 0, description: `Model estimate: ${basis}`, dataType: "Estimate", ...(DRINK_CATEGORY[parsed.drink] ? { foodCategory: DRINK_CATEGORY[parsed.drink] } : {}),
       foodNutrients: [...nutrient(1008, "Energy", "KCAL", parsed.calories), ...nutrient(1003, "Protein", "G", parsed.protein_g), ...nutrient(1005, "Carbohydrate, by difference", "G", parsed.carbs_g), ...nutrient(1004, "Total lipid (fat)", "G", parsed.fat_g), ...nutrient(1079, "Fiber, total dietary", "G", parsed.fibre_g), ...nutrient(2000, "Sugars, total including NLEA", "G", parsed.sugar_g), ...nutrient(1093, "Sodium, Na", "MG", parsed.sodium_mg), ...nutrient(1057, "Caffeine", "MG", caffeine)],

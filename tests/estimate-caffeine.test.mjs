@@ -48,8 +48,8 @@ test('an estimated drink with no caffeine source drops the estimated caffeine',a
  }
 }));
 
-test('no caffeine, zero, an older answer without the field, and an out-of-range figure store no caffeine and keep the estimate',async()=>{
- for(const caffeine_mg of [null,0,undefined,-1,401,5000,'40',Number.NaN]){
+test('no caffeine, an answer without the field, and an out-of-range figure keep valid nutrition with caffeine unknown',async()=>{
+ for(const caffeine_mg of [null,undefined,-1,401,5000,'40',Number.NaN]){
   await withPayload({...coffee,caffeine_mg},async()=>{
    const food=await estimateFood('black coffee','');
    assert.equal(food.foodNutrients.some(entry=>entry.nutrientId===1057),false,String(caffeine_mg));
@@ -80,5 +80,16 @@ test('an estimated coffee without a caffeine figure is unknown, not water; a caf
 test('rule 5: an estimate without a valid drink kind is invalid, with no name-based guess',async()=>{
  for(const drink of [undefined,'','juice',null]){
   await withPayload({...coffee,drink},async()=>{await assert.rejects(()=>estimateFood('Kopi talua',''),error=>error.status===502&&/invalid/.test(error.message),String(drink));});
+ }
+});
+
+
+test('a model-stated zero caffeine is measured data for tea, coffee and other drinks',async()=>{
+ for(const [name,drink] of [['Barley tea','tea'],['Lemon ginger tea','tea'],['Decaf coffee','coffee'],['Orange juice','other drink']]){
+  await withPayload({...coffee,drink,caffeine_mg:0},async()=>{
+   const food=await estimateFood(name,''),n=scaleNutrition(food,200),caffeine=n.micronutrients.find(entry=>entry.nutrientId===1057);
+   assert.equal(caffeine?.value,0,name);assert.equal(caffeine?.basis,'portion',name);
+   assert.deepEqual(drinksFromItems([stored(name,n,200)]).map(d=>[d.kind,d.amount]),[['water',200]],name);
+  });
  }
 });
