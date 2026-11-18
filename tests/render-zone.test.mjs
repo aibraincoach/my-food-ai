@@ -8,7 +8,7 @@ import {renderTimeZone,readStoredCardData} from '../src/lib/pipeline/render-zone
 import {readCardData} from '../src/lib/pipeline/card-data.ts';
 
 const eatenAt='2026-11-01T00:30:00Z';
-const item={name:'Soup',portion_grams:100,portion_text:'100 g',calories:30,protein_g:1,carbs_g:4,fat_g:1,fibre_g:1,sugar_g:1,sodium_mg:10,micronutrients:[{nutrientId:1051,unitName:'G',value:100,basis:'portion'}]};
+const item={name:'Soup',not_eaten_calories:null,portion_grams:100,portion_text:'100 g',calories:30,protein_g:1,carbs_g:4,fat_g:1,fibre_g:1,sugar_g:1,sodium_mg:10,micronutrients:[{nutrientId:1051,unitName:'G',value:100,basis:'portion'}]};
 function hydrationFixture(zone){
  const post={id:'meal',user_id:'owner',eaten_at:eatenAt,status:'processing',deleted_at:null,render_time_zone:zone};
  const tables={posts:[post],intake_logs:[
