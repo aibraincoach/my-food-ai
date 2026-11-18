@@ -1,6 +1,6 @@
 # My Food AI — Backlog†
 
-Last edited: Wednesday 2026-11-18 at 06:11 WIB (UTC+07:00) by Claude, PM
+Last edited: Wednesday 2026-11-18 at 07:45 WIB (UTC+07:00) by Claude, PM
 
 For the owner (Tue Nov 17, 19:11 WIB): The PM cannot talk to the designer. The PM seat has no browser tool, so it cannot open the designer's chat in claude.ai and type into it. Five backlog items are waiting for the designer to choose a place, a look or an audit: the barcode prompt over the live camera (#453), what the card you swipe to on a drink's photo shows (#455), how much of an alcoholic drink was drunk (#457), what places that wait on the network show while they wait (#631), and the controls on Days, Search, Profile and the capture modes (#555). To unblock them, paste those five titles into the designer's chat and ask for a look for each, or give the PM seat a browser tool. Nothing else waits on you.
 
@@ -49,12 +49,6 @@ Loading it on the first tap needs the service worker to keep the new file for of
 When a photo cannot be attached to a meal, the person always reads "The photo could not be attached.", whatever the cause.
 
 Five refusals reach that one sentence (attach-photo.ts line 9). Done when each refusal says what happened and what the person can do.
-
-### #969 An added-photo request that never answers leaves the chip on "Uploading" for good
-
-A photo added to a meal can stay on "Uploading" forever, and the chip still says "Uploading N posts" when all of them have failed.
-
-No request in the added-photo path has a time limit (pack-photo-upload.ts, upload-manager.ts line 271); the chip's title is in UploadChip.tsx line 30. Done when a request that never answers fails after a set time, the chip shows the failure, and its title does not claim uploading when every post has failed.
 
 ### #973 A meal with no photo shows two differently worded failure sentences
 
@@ -127,12 +121,6 @@ A photo of a Goldfish cracker pack failed: the label is in Indonesian and the wh
 Posting a photo of leftovers takes several seconds to show, while a regular meal photo shows at once. The owner says the leftovers photo is not snappy and that this is not acceptable.
 
 The owner timed adding a leftover at about 11 seconds on his phone. The leftovers path waits for image encoding, upload signing, two uploads in a row (about 1.3 and 1.2 seconds) and the attachment steps before it closes the camera; a regular post hands the work to the upload manager and closes at once. The logged staging-to-attachment time was about 4.9 seconds, so most of the 11 seconds is unexplained without a trace from the phone. Two causes are suspected: two photo-upload workflows, and one worker lane shared by analysis and maintenance. Observe first: on a phone over mobile data, time a regular photo and a leftovers photo from the tap to the post showing in the feed, and record where the extra seconds go. GrokBot, Nov 5: FAIL. On judge 1 in a phone-sized browser a regular photo closes its sheet in 72 ms and a leftovers attach closes in 5,049 ms. Done when a leftovers photo shows in the feed as quickly as a regular photo, timed in a phone-sized browser.
-
-### #449 The food names do not show before the numbers on a new upload
-
-A new upload shows no food names while its numbers are still being worked out.
-
-Unproven. A rice-and-broccoli post reached ready with no food names shown while its numbers were pending (390x844, Fast 4G, account 1). The feed now polls pending items, so the claim may already be false. The claim is that the card discards food names the app has found while the numbers are still being worked out. Observe first: post a new photo on production and watch the card until the numbers arrive. GrokBot, Nov 5: on a new salad upload the card showed the caption and "Processing, traffic low" before any kcal, and once ready the names and numbers arrived together. The sampled polls neither show names while numbers are pending nor show names discarded, so the model-call log has to decide it. Done when a new upload shows the foods the app has found while the numbers are still being worked out, or the item is closed because the names already show.
 
 ### #351 The drink sheet's tiles have not been checked on the live app
 
@@ -326,47 +314,11 @@ The designer has not read their controls yet. Add them to the table from #217 wi
 
 ## In flight
 
-### #937 Opening an uploading meal's address returns repeated not-found errors
-
-While a meal is still uploading, requests for its own address are answered not found, over and over.
-
-Fleet 21 check K15 saw sixteen not-found answers from detail prefetches while two meals uploaded; both meals still reached ready. What a person sees and the cause are not known. Done when the cause is found and an uploading meal's address produces no not-found request, or the errors are shown to be harmless and why.
-
-### #1041 The overlapping first-upload 404 count has still not been measured
-
-When two meals upload at once, the app may request a meal's own address before it exists and get not-found answers. Nobody has counted them since the Fleet 22 fix.
-
-The Fleet 30 check could not observe the first "Uploading" card, so it measured nothing. #937 describes the original report. Done when two overlapping uploads are run, and the count of not-found answers under /posts/ is recorded, with the number of uploads that reached ready.
-
-### #1049 The overlapping first-upload check has an empty response cohort, so zero not-found answers proves nothing
-
-The Fleet 31 check of two overlapping uploads saw both meals ready in 7.9 seconds, but it matched no responses under /posts/ at all, so its count of zero is not evidence.
-
-The helper's response filter matched nothing on the builder's run, although it matched two or three on the planner's. Done when the check records at least one matching response, or shows why there is none, and then counts the not-found answers. #937 and #1041 describe the original report.
-
-### #1048 The saved-meal report's numeric casts assume valid legacy JSON
-
-The read-only saved-meal report can fail or misread if an old stored value is not valid JSON.
-
-The report (19-saved.sql) casts stored legacy values to numbers without checking them. Done when the report skips or flags a row whose stored value is not a valid number, and a test shows it.
-
-### #1047 Unexpected errors in the removal concurrency test leave child processes running
-
-If the new removal concurrency test fails in an unexpected way, the helper processes it started can keep running.
-
-The review of #1044 noted that the test has no explicit child kills. Done when every child process the test starts is stopped on any exit, including an unexpected error.
-
 ### #990 Revisit the stored numbers: the meals that pass every rule, the other accounts, and saved meals
 
 Meals that pass every rule can still be wrong, and other accounts and saved meals hold numbers too.
 
 This is the last step of the revisit, after #989. Done when a sample of passing meals is checked against an independent estimate, and the other accounts and saved meals are re-analysed or listed with their reason.
-
-### #456 A rum cocktail is logged with 15 mg caffeine
-
-The tiki cocktail post states caffeine that the drink does not contain.
-
-The drink card for the lime and rum tiki cocktail read "15 mg caffeine" next to 196 kcal, and the day's caffeine total read 110 mg. Fixed on main: the tiki cocktail (owner post 8535b793) now shows 196 kcal and 18 g alcohol with no caffeine on the meal page, and a glass of red wine shows 16 g alcohol and 128 kcal with no caffeine. The Nov 3 day total was not read. GitHub shows this issue closed. GrokBot, Nov 5: FAIL. Tiki cocktail 8535b793 shows 196 kcal and 18 g alcohol, but Show all lists Caffeine 15.4 mg and the Nov 3 day total shows Caffeine 95. PM ruling: the defect stands, even though the card no longer leads with caffeine. GrokBot, Nov 15: Show all still lists caffeine on the tiki cocktail 8535b793 (15.4 mg), 8b728c7e (15.4 mg) and 8ab2eccb (14 mg). Done when a cocktail or any drink with no caffeine source logs no caffeine, the card shows none, and the day's total leaves it out, checked on the tiki cocktail and a glass of wine.
 
 ## Interdit (Not part of Hackathon)
 
