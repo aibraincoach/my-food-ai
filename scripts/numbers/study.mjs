@@ -7,6 +7,9 @@
 //               a rate limit, a server error or a network error; a food that still fails is listed, never guessed.
 //   total       each meal's calories from the reader's choices (blind/choices/meal-NN.json): grams x kcal per 100 g.
 //               A meal with any food unchosen or unlooked-up is incomplete and has no total. Prints the sha256 seal.
+//   requery     (#990, Fleet 34) a second search for a food a reader left unchosen with a better search of its own
+//               (choices/meal-NN.json: fdcId null and a non-empty "query"). Its results join that food's candidates,
+//               and only those meals go to a second reader.
 //   compare     estimates against stored totals: agrees when |stored - estimate| <= 25% of the estimate, and the
 //               passing-meal part closes when at least 17 meals have a complete estimate and 85% of them agree.
 // Use: node scripts/numbers/study.mjs <step> --help
@@ -71,6 +74,28 @@ export async function search(query, { key, fetcher = fetch, wait = s => new Prom
   return { ok: false, query, attempts, status: 'unreachable' };
 }
 
+// Pure: the second searches the readers asked for: one per food and query, from choices with fdcId null.
+export function requeryWanted(portions, choicesByMeal) {
+  const wanted = new Map();
+  for (const portion of portions) for (const choice of choicesByMeal[portion.meal]?.foods ?? []) {
+    const query = typeof choice.query === 'string' ? choice.query.trim() : '';
+    if (choice.fdcId == null && query && portion.foods.some(f => f.key === choice.key)) {
+      const id = `${choice.key}\0${query.toLowerCase()}`;
+      if (!wanted.has(id)) wanted.set(id, { key: choice.key, query, meals: [] });
+      wanted.get(id).meals.push(portion.meal);
+    }
+  }
+  return [...wanted.values()];
+}
+
+// Pure: a food's candidates with a second search's results added after them, each record once, the new ones marked.
+export function mergeCandidates(existing, result) {
+  if (!result?.ok) return existing;
+  const seen = new Set((existing?.foods ?? []).map(f => f.fdcId));
+  const added = result.foods.filter(f => !seen.has(f.fdcId)).map(f => ({ ...f, requery: result.query }));
+  return { ...(existing ?? {}), ok: true, query: existing?.query ?? result.query, foods: [...(existing?.foods ?? []), ...added], requeries: [...(existing?.requeries ?? []), { query: result.query, attempts: result.attempts, added: added.length }] };
+}
+
 // Pure: one meal's estimate from its drafted foods, the reader's choices and the candidates.
 export function estimateMeal(portion, choice, candidates) {
   const foods = portion.foods.map(food => {
@@ -106,15 +131,16 @@ export function compareStudy(estimates, map, stored) {
 async function main(argv) {
   const [step, ...rest] = argv;
   const { values } = parseArgs({ args: rest, options: { drafts: { type: 'string' }, sample: { type: 'string' }, blind: { type: 'string' }, map: { type: 'string' },
-    estimates: { type: 'string' }, stored: { type: 'string' }, 'max-minutes': { type: 'string' }, help: { type: 'boolean' } } });
-  if (values.help || !['prepare', 'candidates', 'total', 'compare'].includes(step)) {
-    console.log(`node scripts/numbers/study.mjs prepare --drafts=<blind-portion-drafts.json> --sample=<folder of <prefix>/photo-* files> --blind=<new folder> --map=<private map file>
+    estimates: { type: 'string' }, stored: { type: 'string' }, captions: { type: 'string' }, 'max-minutes': { type: 'string' }, help: { type: 'boolean' } } });
+  if (values.help || !['prepare', 'candidates', 'requery', 'total', 'compare'].includes(step)) {
+    console.log(`node scripts/numbers/study.mjs prepare --drafts=<blind-portion-drafts.json> --sample=<folder of <prefix>/photo-* files> --blind=<new folder> --map=<private map file> [--captions=<private {prefix: caption} file, for meals with no photo>]
 node scripts/numbers/study.mjs candidates --blind=<folder> [--max-minutes=10]      (needs FDC_API_KEY)
+node scripts/numbers/study.mjs requery --blind=<folder> [--max-minutes=10]         (needs FDC_API_KEY)
 node scripts/numbers/study.mjs total --blind=<folder>
 node scripts/numbers/study.mjs compare --estimates=<blind>/estimates.json --map=<private map file> --stored=<cards.mjs output>`);
     return step ? 0 : 4;
   }
-  const required = { prepare: ['drafts', 'sample', 'blind', 'map'], candidates: ['blind'], total: ['blind'], compare: ['estimates', 'map', 'stored'] };
+  const required = { prepare: ['drafts', 'sample', 'blind', 'map'], candidates: ['blind'], requery: ['blind'], total: ['blind'], compare: ['estimates', 'map', 'stored'] };
   for (const flag of required[step]) if (!values[flag]?.trim()) throw new Error(`--${flag} is required.`);
   const maxMinutes = Number(values['max-minutes'] ?? 10);
   if (!Number.isFinite(maxMinutes) || maxMinutes <= 0) throw new Error('--max-minutes must be a finite number above zero.');
@@ -124,12 +150,16 @@ node scripts/numbers/study.mjs compare --estimates=<blind>/estimates.json --map=
     if (existsSync(values.blind)) throw new Error('The blind folder exists; give a new one.');
     privateDir(values.blind);
     const map = {}, portions = [];
+    // A meal with no photo is studied from its caption only when one is given for it (#990, the caption-only meals).
+    const captions = values.captions ? readJson(values.captions) : {};
     drafts.forEach((draft, index) => {
       const name = blindName(index);
       map[name] = draft.meal;
       privateDir(path.join(values.blind, name));
-      const photos = readdirSync(path.join(values.sample, draft.meal)).filter(f => f.startsWith('photo-')).sort();
-      if (!photos.length) throw new Error(`Meal ${index + 1} has no photo.`);
+      const folder = path.join(values.sample, draft.meal);
+      const photos = existsSync(folder) ? readdirSync(folder).filter(f => f.startsWith('photo-')).sort() : [];
+      if (!photos.length && typeof captions[draft.meal] === 'string' && captions[draft.meal].trim()) privateWrite(path.join(values.blind, name, 'caption.txt'), captions[draft.meal].trim() + '\n');
+      else if (!photos.length) throw new Error(`Meal ${index + 1} has no photo.`);
       photos.forEach((photo, k) => {
         const from = path.join(values.sample, draft.meal, photo), ext = photoExtension(readFileSync(from));
         if (!ext) throw new Error(`Meal ${index + 1}, photo ${k + 1} is not a JPEG, PNG or WebP image.`);
@@ -157,6 +187,24 @@ node scripts/numbers/study.mjs compare --estimates=<blind>/estimates.json --map=
     }
     const failed = keys.filter(k => !candidates[k]?.ok);
     console.log(`${keys.length - failed.length} of ${keys.length} foods looked up.${failed.length ? ` Failed: ${failed.map(k => `${k} (${candidates[k]?.attempts?.join(', ') ?? 'not tried'})`).join('; ')}.` : ''}`);
+    return failed.length ? 1 : 0;
+  }
+  if (step === 'requery') {
+    const key = process.env.FDC_API_KEY;
+    if (!key) throw new Error('FDC_API_KEY is not set.');
+    const file = path.join(values.blind, 'candidates.json');
+    const candidates = readJson(file), portions = readJson(path.join(values.blind, 'portions.json'));
+    const choices = Object.fromEntries(portions.map(p => [p.meal, path.join(values.blind, 'choices', `${p.meal}.json`)]).filter(([, f]) => existsSync(f)).map(([m, f]) => [m, readJson(f)]));
+    const wanted = requeryWanted(portions, choices), deadline = Date.now() + maxMinutes * 60000, failed = [];
+    for (const want of wanted) {
+      if (Date.now() > deadline) { failed.push(`${want.key} (not tried: --max-minutes used up)`); continue; }
+      const result = await search(want.query, { key, log: line => console.log(line) });
+      if (!result.ok) failed.push(`${want.key} "${want.query}" (${result.attempts.join(', ')})`);
+      candidates[want.key] = mergeCandidates(candidates[want.key], result);
+      privateWrite(file, JSON.stringify(candidates, null, 1) + '\n');
+    }
+    const meals = [...new Set(wanted.flatMap(w => w.meals))].sort();
+    console.log(`${wanted.length} second search(es); meals for a second reader: ${meals.join(', ') || 'none'}.${failed.length ? ` Failed: ${failed.join('; ')}.` : ''}`);
     return failed.length ? 1 : 0;
   }
   if (step === 'total') {
