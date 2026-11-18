@@ -62,9 +62,21 @@ async function transaction<T>(stores: string | string[], mode: IDBTransactionMod
         db.close();
     }
 }
+// #684: iOS can lose a File kept in IndexedDB once the app is closed, so a retry could never read it again. A photo
+// is kept as its own bytes and becomes a File again when read back. A row written before this keeps its File.
+type KeptFile = { name: string; type: string; lastModified: number; bytes: ArrayBuffer };
+async function keepFiles(draft: StoredUpload): Promise<StoredUpload> {
+    const files = await Promise.all(draft.files.map(async file => ({ name: file.name, type: file.type, lastModified: file.lastModified, bytes: await file.arrayBuffer() })));
+    return { ...draft, files: files as unknown as File[] };
+}
+function restoreFiles(row: StoredUpload): StoredUpload {
+    const files = (row.files as unknown as (File | KeptFile)[]).map(file => file instanceof Blob ? file : new File([file.bytes], file.name, { type: file.type, lastModified: file.lastModified }));
+    return { ...row, files };
+}
 export const uploadStore = {
-    all: () => transaction('drafts', 'readonly', tx => tx.objectStore('drafts').getAll()) as Promise<StoredUpload[]>,
-    put: (draft: StoredUpload) => transaction('drafts', 'readwrite', tx => tx.objectStore('drafts').put(draft)),
+    all: async () => ((await transaction('drafts', 'readonly', tx => tx.objectStore('drafts').getAll())) as StoredUpload[] | undefined ?? []).map(restoreFiles),
+    // The bytes are read before the transaction opens: IndexedDB ends a transaction that waits on anything else.
+    put: async (draft: StoredUpload) => { const row = await keepFiles(draft); return transaction('drafts', 'readwrite', tx => tx.objectStore('drafts').put(row)); },
     remove: (id: string) => transaction(['drafts', 'intents'], 'readwrite', tx => { tx.objectStore('drafts').delete(id); tx.objectStore('intents').delete(id); }),
     clear: () => transaction(['drafts', 'intents'], 'readwrite', tx => { tx.objectStore('drafts').clear(); tx.objectStore('intents').clear(); }),
     allIntents: () => transaction('intents', 'readonly', tx => tx.objectStore('intents').getAll()) as Promise<PublishIntent[]>,

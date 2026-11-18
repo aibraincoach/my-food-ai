@@ -21,7 +21,7 @@ test('failed save retry reuses uploaded photo; a partial upload retries only its
  const request=async(url,options)=>{calls.push([url,options.method]);if(options.method==='POST')return Response.json({uploads:[{originalPath:'stage/0.jpg',originalSignedUrl:'original',feedSignedUrl:'feed'}]});if(url==='feed'&&fail){fail=false;return new Response('',{status:503})}return new Response('')};
  const uploader=new PackPhotoUpload(async()=>({original:new Blob(['original']),feed:new Blob(['feed']),width:100,height:100}),request);
  const file=new File(['photo'],'pack.jpg');
- await assert.rejects(uploader.prepare(file),/could not be uploaded/);
+ await assert.rejects(uploader.prepare(file),/could(?: not|n't) be uploaded/);
  const photo=await uploader.prepare(file);assert.equal(photo.path,'stage/0.jpg');
  // Product save can fail or lose its response: preparing again changes no storage.
  assert.deepEqual(await uploader.prepare(file),photo);
@@ -78,6 +78,19 @@ test('attachment cleanup removes only reserved unclaimed copies and preserves an
 });
 
 const url=process.env.LOCAL_TEST_DB_URL;
+test('photo preparation preserves the failing encode, sign and PUT step',async()=>{
+ const encoded={original:new Blob(['original']),feed:new Blob(['feed']),width:1,height:1};
+ for(const [stage,status,encode,request]of[
+  ['encode',undefined,async()=>{throw new DOMException('Photo bytes cannot be read','NotReadableError')},async()=>assert.fail('encode failure must not sign')],
+  ['sign','401',async()=>encoded,async()=>new Response(null,{status:401})],
+  ['sign','network',async()=>encoded,async()=>{throw new TypeError('Network request failed')}],
+  ['sign','200',async()=>encoded,async()=>new Response('not JSON',{status:200})],
+  ['put-original','503',async()=>encoded,async(_url,init)=>init.method==='POST'?Response.json({uploads:[{originalPath:'stage/0.jpg',feedPath:'stage/0.feed.jpg',originalSignedUrl:'original',feedSignedUrl:'feed'}]}):new Response(null,{status:503})],
+ ]){
+  const uploader=new PackPhotoUpload(encode,request,Date.now,async()=>false);
+  await assert.rejects(uploader.prepare(new File(['photo'],'meal.jpg')),error=>error.stage===stage&&error.status===status,stage+' failure must keep its step and status');
+ }
+});
 test('servings RPC scales volume labels and gram portions and claims a staged photo idempotently', {skip:!url},()=>{
  assert.ok(['localhost','127.0.0.1'].includes(new URL(url).hostname),'disposable local database only');
  const source=readFileSync(new URL('../supabase/migrations/0020_food_post_photo.sql',import.meta.url),'utf8');

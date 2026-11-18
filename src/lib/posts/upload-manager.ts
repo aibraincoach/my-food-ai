@@ -13,7 +13,14 @@ import { PackPhotoUpload, JSON_REQUEST_LIMIT_MS } from '@/lib/media/pack-photo-u
 import { reencodeShot } from '@/lib/media/reencode';
 
 const RETAKE_ATTACHMENT_MESSAGE = 'This photo was not kept. Take it again.';
-const ATTACHMENT_UPLOAD_FAILED = 'The photo could not be uploaded. It is saved on this phone, so try again.';
+// #684: say only what is true. The photo is kept inside the app, not in the phone's photos.
+const ATTACHMENT_UPLOAD_FAILED = "The photo couldn't be uploaded. Try again, or remove it.";
+// #684: which step of an added photo failed, and how. No photo data; read by operators with the service key.
+export type UploadFailure = { post_id: string; kind: 'attachment'; stage: 'encode' | 'sign' | 'put-original' | 'put-feed' | 'attach'; status: string | null; detail: string | null; bytes: number | null; mime: string | null; user_agent: string | null };
+export async function reportUploadFailure(row: UploadFailure): Promise<void> {
+    try { const db = createClient(); const owner = (await db.auth.getSession()).data.session?.user.id; if (owner) await db.from('upload_failures').insert({ ...row, user_id: owner }); }
+    catch { /* A failure report never changes what the person sees. */ }
+}
 export interface UploadState {
     operationId: string;
     kind?: "food"|"copy"|"drink";
@@ -62,7 +69,7 @@ export class UploadManager {
     private initializing: Promise<void> | null = null;
     private ownerEpoch = 0;
     private ownerPending: Promise<string> | null = null;
-    constructor(private store = uploadStore, private makeDraft = () => new PostUploadDraft(), private delay = pause, private foodRequest: typeof fetch = (...args) => fetch(...args), private readOwner: () => Promise<string | null> = async () => (await createClient().auth.getSession()).data.session?.user.id ?? null, private encodeShot = reencodeShot) { }
+    constructor(private store = uploadStore, private makeDraft = () => new PostUploadDraft(), private delay = pause, private foodRequest: typeof fetch = (...args) => fetch(...args), private readOwner: () => Promise<string | null> = async () => (await createClient().auth.getSession()).data.session?.user.id ?? null, private encodeShot = reencodeShot, private report: (row: UploadFailure) => Promise<void> = reportUploadFailure) { }
     private resolveOwner(): Promise<string> {
         if (this.ownerId) return Promise.resolve(this.ownerId);
         if (this.ownerPending) return this.ownerPending;
@@ -266,7 +273,14 @@ export class UploadManager {
             entry.attachmentUpload??=new PackPhotoUpload(this.encodeShot,this.foodRequest);
             // #970: a photo that never reached storage says so; the chip shows d.message beside Try again.
             try{d.attachmentPhoto=await entry.attachmentUpload.prepare(d.files[0]);}
-            catch(error){d.message=ATTACHMENT_UPLOAD_FAILED;throw error;}
+            catch(error){
+                const failure=error as {stage?:UploadFailure['stage'];status?:string;name?:string;message?:string};
+                void this.report({post_id:attachment.postId,kind:'attachment',stage:failure.stage??'encode',status:failure.status??null,detail:`${failure.name??'Error'}: ${failure.message??''}`.slice(0,300),bytes:d.files[0]?.size??null,mime:d.files[0]?.type||null,user_agent:typeof navigator==='undefined'?null:navigator.userAgent.slice(0,300)});
+                // #684: a kept photo that can no longer be read cannot be sent by any retry; ask for it again.
+                if(failure.stage==='encode'){d.files=[];d.photoLost=true;d.message=RETAKE_ATTACHMENT_MESSAGE;await this.persist(entry).catch(()=>{});}
+                else d.message=ATTACHMENT_UPLOAD_FAILED;
+                throw error;
+            }
         }
         // Persist before attach: the server deduplicates by this stage path, even after a lost response/reload.
         await this.persist(entry);
@@ -279,7 +293,7 @@ export class UploadManager {
             d.attachmentPhoto=undefined;entry.attachmentUpload=undefined;
             await this.persist(entry);
         }
-        if(!response.ok||!result?.post_id){d.message=typeof result?.error==='string'?result.error.slice(0,200):'The photo could not be attached. Your photo is kept.';throw new Error(d.message);}
+        if(!response.ok||!result?.post_id){d.message=typeof result?.error==='string'?result.error.slice(0,200):'The photo could not be attached. Your photo is kept.';void this.report({post_id:attachment.postId,kind:'attachment',stage:'attach',status:String(response.status),detail:(result?.code??d.message).slice(0,300),bytes:d.files[0]?.size??null,mime:d.files[0]?.type||null,user_agent:typeof navigator==='undefined'?null:navigator.userAgent.slice(0,300)});throw new Error(d.message);}
         return {postId:result.post_id};
     }
 
@@ -446,6 +460,7 @@ export class UploadManager {
                         entry.rerun = true;
                         return;
                     }
+                    if (this.photoLost(entry) || (error as Error)?.name === 'NotReadableError') throw error;
                     if (attempt < 2) {
                         await this.delay(attempt === 0 ? 2000 : 6000);
                         continue;
@@ -455,9 +470,15 @@ export class UploadManager {
                 }
             }
         }
-        catch {
+        catch (error) {
             if (entry.deleted)
                 return;
+            // A legacy File can fail while checkpointing, before the encoder runs.
+            if (entry.data.attachment && !this.photoLost(entry) && (error as Error)?.name === 'NotReadableError') {
+                const d=entry.data,file=d.files[0];
+                void this.report({post_id:d.attachment!.postId,kind:'attachment',stage:'encode',status:null,detail:`NotReadableError: ${(error as Error).message}`.slice(0,300),bytes:file?.size??null,mime:file?.type||null,user_agent:typeof navigator==='undefined'?null:navigator.userAgent.slice(0,300)});
+                d.files=[];d.photoLost=true;d.message=RETAKE_ATTACHMENT_MESSAGE;
+            }
             entry.data.state = 'failed';
             try {
                 entry.data.snapshot = await entry.draft.snapshot();
