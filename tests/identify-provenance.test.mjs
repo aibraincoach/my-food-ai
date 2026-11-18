@@ -39,13 +39,14 @@ test('incomplete and refused HTTP-200 Meta identification are failed traces',asy
  const original=fetch,traces=[];let mode='incomplete';globalThis.fetch=async(input,init)=>{const url=new URL(input);if(url.origin==='https://trace.invalid'){traces.push(JSON.parse(init.body));return new Response(null,{status:201});}return mode==='incomplete'?Response.json({status:'incomplete',output:[],usage:{input_tokens:1,output_tokens:1}}):Response.json({status:'completed',output:[{type:'refusal'}],usage:{input_tokens:1,output_tokens:1}});};
  try{for(mode of ['incomplete','refusal']){await assert.rejects(()=>identifyItems(null,'image/jpeg','rice',[]));assert.ok(traces.at(-1).error);assert.equal(traces.at(-1).host,'meta');}}finally{globalThis.fetch=original;}
 });
-test('missing new persistence RPC alone allows a legacy rollout fallback; ownership failures never do',async()=>{
+// #1104, rule 5: the worker calls the current persistence function only. A missing or failing function fails the
+// job visibly; no older function is ever called in its place.
+test('a missing or failing persistence function fails the job, with no older function called',async()=>{
  const {persistAnalysis}=await import('../src/lib/pipeline/persist.ts');
  const named={postId:'post',userId:'owner',photoWidth:0,photoHeight:0,regions:[],captionOnly:[],summary:'Rice',needsInput:{question:'What did you eat?',short:'Clarification needed',options:[]},identification:{model:'muse-spark-1.3',host:'meta'}};
- const wrapperMissing={code:'PGRST202',message:'Could not find public.persist_approximated_analysis in the schema cache'};
- const make=(error,wrapperError=wrapperMissing,body=null)=>{const calls=[];return{calls,from(){return{select(){return{eq(){return this;},order(){return this;},limit(){return this;},abortSignal(){return this;},maybeSingle:async()=>({data:body?{body}:null,error:null}),single:async()=>({data:{caption:'Rice'},error:null})};}};},rpc:async(name,body)=>{calls.push({name,body});const failure=name==='persist_approximated_analysis'?wrapperError:name==='persist_identified_analysis'?error:null;return{name,error:failure,status:failure?400:200};}};};
- const missing=make({code:'PGRST202',message:'Could not find public.persist_identified_analysis in the schema cache'});await persistAnalysis(missing,named,undefined,'job');assert.deepEqual(missing.calls.filter(c=>c.name.startsWith('persist_')).map(c=>c.name),['persist_approximated_analysis','persist_identified_analysis','persist_owned_analysis']);assert.equal(missing.calls.at(-1).body.p_identify_model,undefined);
- const ownershipError={code:'40001',message:'Analysis job no longer owns this meal'};
- const ownership=make(ownershipError,ownershipError);await assert.rejects(()=>persistAnalysis(ownership,named,undefined,'job'),/no longer owns/);assert.deepEqual(ownership.calls.filter(c=>c.name.startsWith('persist_')).map(c=>c.name),['persist_approximated_analysis']);
- const transition=make(null,wrapperMissing,'Nutrition for rice is taken from the closest USDA record, Rice, cooked.');await assert.rejects(()=>persistAnalysis(transition,named,undefined,'job'),/persist_approximated_analysis/);assert.deepEqual(transition.calls.filter(c=>c.name.startsWith('persist_')).map(c=>c.name),['persist_approximated_analysis']);
+ const make=wrapperError=>{const calls=[];return{calls,from(){return{select(){return{eq(){return this;},order(){return this;},limit(){return this;},abortSignal(){return this;},maybeSingle:async()=>({data:null,error:null}),single:async()=>({data:{caption:'Rice'},error:null})};}};},rpc:async(name,body)=>{calls.push({name,body});const failure=name==='persist_approximated_analysis'?wrapperError:null;return{name,error:failure,status:failure?400:200};}};};
+ for(const failure of [{code:'PGRST202',message:'Could not find public.persist_approximated_analysis in the schema cache'},{code:'40001',message:'Analysis job no longer owns this meal'}]){
+  const db=make(failure);await assert.rejects(()=>persistAnalysis(db,named,undefined,'job'),/persist: analysis transaction failed/);
+  assert.deepEqual(db.calls.filter(c=>c.name.startsWith('persist_')).map(c=>c.name),['persist_approximated_analysis'],failure.code);
+ }
 });
