@@ -180,3 +180,11 @@ test('alcohol respects caffeine exclusions and zero measurements while capping i
  const [strong]=drinksFromItems([alcoholic('Strong cocktail',[{nutrientId:1018,unitName:'G',basis:'portion',value:630}])]);
  assert.equal(strong.amount,500);assert.equal(strong.alcoholG,630);
 });
+
+test('an existing portion caffeine row with a null value is unknown, never water or known zero',()=>{
+ for(const [name,food_category] of [['Coffee','coffee'],['Tea','tea'],['Cola','soft drinks']]){
+  const unknown=item({name,food_category,portion_text:'240 ml',portion_grams:240,micronutrients:[{nutrientId:1057,value:null,unitName:'MG',basis:'portion'}]});
+  assert.deepEqual(drinksFromItems([unknown]),[],name);
+  assert.equal(drinksFromItems([{...unknown,micronutrients:[{nutrientId:1057,value:0,unitName:'MG',basis:'portion'}]}])[0].kind,'water');
+ }
+});

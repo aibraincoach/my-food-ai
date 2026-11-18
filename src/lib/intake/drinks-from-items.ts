@@ -55,7 +55,7 @@ export function drinksFromItems(items: readonly DrinkItem[]): ItemDrink[] {
     const nutrient = keepsCaffeine(item) ? measured : undefined;
     const caffeineMg = Math.min(1000, Math.max(0, Math.round(nutrient ? toNumber(nutrient.value) : 0)));
     // #987: a coffee, tea or cola with no caffeine figure is not logged as water: its caffeine is unknown, not zero.
-    if (!measured && !isAlcoholic(item) && expectsCaffeine(item)) return [];
+    if (measured?.value == null && !isAlcoholic(item) && expectsCaffeine(item)) return [];
     if(isAlcoholic(item))return [{post_item_id:item.id,kind:'alcohol' as const,amount:Math.min(500,Math.max(1,Math.round(alcoholGrams(item.micronutrients)))),ml,label:item.name.trim().slice(0,40)||'Drink',caffeineMg,alcoholG:alcoholGrams(item.micronutrients)}];
     return [{ post_item_id: item.id, kind: caffeineMg >= 1 ? 'caffeine' as const : 'water' as const,
       amount: caffeineMg >= 1 ? caffeineMg : ml, ml, label: item.name.trim().slice(0, 40) || 'Drink', caffeineMg, alcoholG:0 }];
