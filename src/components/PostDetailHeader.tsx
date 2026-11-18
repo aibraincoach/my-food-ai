@@ -7,7 +7,7 @@ import {useLocalDate,useLocalTime} from '@/components/LocalTime';
 import PostMenu,{type PostMenuRow} from '@/components/PostMenu';
 import {useRouter} from 'next/navigation';
 import {useRef,useState} from 'react';
-import {MAX_SERVINGS,MIN_SERVINGS,parseServings,servingsLabel,stepServings} from '@/lib/posts/servings';
+import {MAX_SERVINGS,MIN_SERVINGS,parseServings,servingsLabel,servingsText,stepServings} from '@/lib/posts/servings';
 
 const SERVING_CHIPS = [
   { value: 0.25, label: '¼' },
@@ -44,7 +44,7 @@ function HeaderServings({postId,servings}:{postId:string;servings:number}) {
     if(next!==saved)void submit(next);
   };
   if(!open){
-    return <button type="button" aria-label="Edit servings" disabled={busy} onClick={()=>{setOpen(true);setDraft(servingsLabel(saved));setError('');}} className="shrink-0 text-handle tabular-nums disabled:opacity-50">{servingsLabel(saved)} <span className="text-muted" aria-hidden>✎</span></button>;
+    return <button type="button" aria-label="Edit servings" disabled={busy} onClick={()=>{setOpen(true);setDraft(servingsLabel(saved));setError('');}} className="shrink-0 text-handle tabular-nums disabled:opacity-50">{servingsText(saved)} <span className="text-muted" aria-hidden>✎</span></button>;
   }
   return <div className="flex max-w-[min(100%,14rem)] flex-col items-end gap-1">
     <div className="flex items-center gap-1">
