@@ -106,14 +106,9 @@ export async function editPostItem(admin: SupabaseClient, postId: string, userId
 
 export async function getPostDetail(supabase: SupabaseClient, postId: string, zone = "UTC") {
   const baseFields = "id,user_id,caption,eaten_at,status,analysis_initialized_at,servings,source_post_id,created_at,fail_reason,agent_token_id,agent_tokens(name),needs_input";
-  type PostRow = FeedRow & {analysis_initialized_at:string|null;servings:number;source_post_id:string|null;needs_input:unknown;identify_model?:string|null;identify_host?:string|null};
-  const read = (identity:boolean) => supabase.from("posts").select(identity?`${baseFields},identify_model,identify_host`:baseFields).is("deleted_at", null).eq("id",postId).maybeSingle<PostRow>();
-  const loadPost = async () => {
-    let result = await read(true);
-    if (result.error && ["PGRST204", "42703"].includes(result.error.code) && /identify_(?:model|host)/.test(result.error.message)) result = await read(false);
-    return result;
-  };
-  const postResult = await loadPost();
+  type PostRow = FeedRow & {analysis_initialized_at:string|null;servings:number;source_post_id:string|null;needs_input:unknown;identify_model:string|null;identify_host:string|null};
+  // #1102: one read with the identify columns (migration 0032). A failed read fails the page; it is not retried without them.
+  const postResult = await supabase.from("posts").select(`${baseFields},identify_model,identify_host`).is("deleted_at", null).eq("id",postId).maybeSingle<PostRow>();
   const { data: post, error } = postResult;
   if (error) throw new Error("Meal could not be loaded.");
   if (!post) return null;
