@@ -30,17 +30,18 @@ test('malformed reservation results never turn into overwrite capabilities',asyn
 test('storage ownership remains checked even after a successful reservation',async()=>{
  const f=fixture();await assert.rejects(reserveUpload(f.admin,f.client(other),owner,input),error=>error.status===503);assert.ok(f.signs.every(sign=>sign.actor===other&&sign.path.startsWith(`${owner}/`)));
 });
-test('existing single-leftovers rollout fallback preserves the verified owner and guard',async()=>{
- const f=fixture(),admin={rpc:async(name,args)=>{if(name==='reserve_post_upload_with_leftovers')return{data:null,error:{code:'PGRST202',message:'reserve_post_upload_with_leftovers absent'}};f.rpcs.push({name,args});return{data:{id,published:false},error:null};}};await reserveUpload(admin,f.client(owner),owner,input);assert.equal(f.rpcs[0].name,'reserve_post_upload_with_options');assert.equal(f.rpcs[0].args.p_user_id,owner);assert.equal(f.rpcs[0].args.p_not_eaten_position,null);
+test('a missing reservation function fails visibly and no older function is called (#1125)',async()=>{
+ for(const notEatenPositions of [[],[0],[1,2]]){
+  const f=fixture(),called=[];const admin={rpc:async name=>{called.push(name);return{data:null,error:{code:'PGRST202',message:'Could not find the function public.reserve_post_upload_with_leftovers'}};}};
+  await assert.rejects(reserveUpload(admin,f.client(owner),owner,{...input,notEatenPositions}),error=>error.status===409&&/could not be reserved/.test(error.message));
+  assert.deepEqual(called,['reserve_post_upload_with_leftovers'],String(notEatenPositions));assert.equal(f.signs.length,0);
+ }
 });
 test('expired reservations never receive renewed capabilities',async()=>{
  const f=fixture();await assert.rejects(reserveUpload({rpc:async()=>({data:null,error:{code:'22023',message:'Upload draft expired'}})},f.client(owner),owner,input),error=>error.status===410);assert.equal(f.signs.length,0);
 });
 test('text-only reservations do not mint photo capabilities',async()=>{
  const f=fixture();const result=await reserveUpload(f.admin,f.client(owner),owner,{...input,shots:[]});assert.deepEqual(result.uploads,[]);assert.equal(f.signs.length,0);
-});
-test('missing multi-leftovers support cannot fall back to an unmarked reservation',async()=>{
- const f=fixture();let calls=0;await assert.rejects(reserveUpload({rpc:async()=>{calls++;return{data:null,error:{code:'PGRST202',message:'reserve_post_upload_with_leftovers absent'}}}},f.client(owner),owner,{...input,notEatenPositions:[1,2]}),error=>error.status===409);assert.equal(calls,1);assert.equal(f.signs.length,0);
 });
 test('actual draft staging then submit can renew existing paths without uploading acknowledged bytes twice',async()=>{
  const f=fixture(),image={width:10,height:10,phash:'1',original:new Blob(['original']),feed:new Blob(['feed'])};let puts=0;
