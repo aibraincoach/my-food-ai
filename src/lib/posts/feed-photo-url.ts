@@ -22,3 +22,34 @@ export function feedPhotoSrcSet(url: string | null | undefined): string | undefi
   const base = url.slice(0, -'/v1.webp'.length);
   return `${url} 1x, ${base}/v2-1040.webp 2x, ${base}/v2-1560.webp 3x`;
 }
+
+// The fast server copy, feed card and responsive preload must select the same one file.
+export const FEED_PHOTO_SIZES = '(min-width: 1024px) 520px, 100vw';
+export function firstPhotoSources(url: string): {src: string; srcSet: string; sizes: string} {
+  const src = url.replace(/^(\/p\/[0-9a-f-]{36}_[0-9a-f]{32})_1080\.webp$/, '$1_640.webp');
+  return {src, srcSet: `${src} 1x`, sizes: FEED_PHOTO_SIZES};
+}
+
+const firstPhotoReady = new Map<string, Promise<void>>();
+// Share one load/idle gate. Each mounted image keeps its current bitmap while its pending image decodes.
+export function firstPhotoUpgrade(url: string, image: HTMLImageElement, signal: AbortSignal): Promise<void> {
+  let ready = firstPhotoReady.get(url);
+  if (!ready) {
+    ready = new Promise<void>(resolve => {
+      const idle = () => {
+        if ('requestIdleCallback' in window) window.requestIdleCallback(() => resolve(), {timeout: 3000});
+        else setTimeout(resolve, 0);
+      };
+      if (document.readyState === 'complete') idle();
+      else window.addEventListener('load', idle, {once: true});
+    });
+    firstPhotoReady.set(url, ready);
+  }
+  return ready.then(async () => {
+    if (signal.aborted || !image.isConnected) return;
+    image.sizes = FEED_PHOTO_SIZES;
+    image.srcset = feedPhotoSrcSet(url) ?? '';
+    image.src = url;
+    await image.decode();
+  });
+}

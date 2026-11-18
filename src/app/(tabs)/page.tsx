@@ -1,7 +1,8 @@
 /* eslint-disable @next/next/no-img-element -- Private signed photos bypass paid optimization. */
-import {feedPhotoSrcSet} from '@/lib/posts/feed-photo-url';
+import {firstPhotoSources} from '@/lib/posts/feed-photo-url';
 import type { TodayView } from "@/lib/posts/today-view";
 import { verifiedUserId } from "@/lib/auth/verified-user";
+import {FirstPhoto} from '@/components/Carousel';
 import CleanFreshMarker from "@/components/CleanFreshMarker";
 import DesktopToday from '@/components/DesktopToday';
 import DesktopWorkspace from '@/components/DesktopWorkspace';
@@ -97,11 +98,16 @@ async function HomeDays() {
   return <DayRings ownerId={ownerId} days={days} totals={totals} today={today} zone={zone} zoneKnown={known} earliest={earliest} />;
 }
 
+function preloadFirstPhoto(url: string) {
+ const {src,srcSet,sizes}=firstPhotoSources(url);
+ preload(src,{as:'image',fetchPriority:'high',crossOrigin:'anonymous',imageSrcSet:srcSet,imageSizes:sizes});
+}
+
 // Share one first-page read between the feed, day summaries and Today.
 const homeSeed=cache(async()=>{
  const {db,user}=await homeReader();if(!user)return undefined;
  const {zone}=await homeZone();
- const page=await getFeed(db,user.id,null,zone,6,{knownDays:Array.from({length:5},(_,i)=>shiftDay(dateInZone(new Date(),zone),-i)),onFirstPhoto:url=>preload(url,{as:'image',fetchPriority:'high',crossOrigin:'anonymous',imageSrcSet:feedPhotoSrcSet(url),imageSizes:'(min-width: 1024px) 520px, 100vw'})});
+ const page=await getFeed(db,user.id,null,zone,6,{knownDays:Array.from({length:5},(_,i)=>shiftDay(dateInZone(new Date(),zone),-i)),onFirstPhoto:preloadFirstPhoto});
  return {page,userId:user.id,zone};
 });
 
@@ -118,12 +124,12 @@ async function HomeFirstPhoto() {
     }
   } catch { /* The normal feed boundary and cache remain available. */ }
   if(!first)return null;
-  if(first.photoUrl)preload(first.photoUrl,{as:'image',fetchPriority:'high',crossOrigin:'anonymous',imageSrcSet:feedPhotoSrcSet(first.photoUrl),imageSizes:'(min-width: 1024px) 520px, 100vw'});
+  if(first.photoUrl)preloadFirstPhoto(first.photoUrl);
   return <div data-fast-feed-seed className="relative pb-card-gap">
     <DayHeader day={dateInZone(first.eaten_at,zone)} zone={zone} empty={false}/><div className="pt-sheet-top">
     <div className="flex h-[52px] items-center gap-[10px] px-inset" aria-hidden="true"><span className="size-8 rounded-circle bg-card"/><span className="h-3 w-24 rounded-field bg-card"/></div>
     {first.photoUrl?<Link href={`/posts/${first.id}`} aria-label="Open meal details" className="block aspect-square">
-      <img crossOrigin="anonymous" src={first.photoUrl} srcSet={feedPhotoSrcSet(first.photoUrl)} sizes="(min-width: 1024px) 520px, 100vw" width={1080} height={1080} fetchPriority="high" loading="eager" decoding="async" alt={first.caption||'Meal photo'} className="size-full object-cover"/>
+      <FirstPhoto url={first.photoUrl} alt={first.caption||'Meal photo'} />
     </Link>:null}
     <div className="px-inset py-sheet-top">{first.caption?<p className="text-body">{first.caption}</p>:null}<p className="text-detail text-muted" role="status">Loading meal details…</p></div></div>
   </div>;

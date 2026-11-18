@@ -509,6 +509,7 @@ export default function Feed({initialPage, initialUserId, initialZone = "UTC", f
   if (!visibleState.posts.length) return <div data-feed-source={fallbackOnly||!freshResponse?"cache":"fresh"} data-feed-client-ready={!fallbackOnly ? true : undefined} data-cached-feed-ready={fallbackOnly ? true : undefined} className="flex flex-1 items-center justify-center" style={{ paddingBottom: tokens.spacing['sheet-bottom'] * 3 }}>
     <p className="text-sheet-title font-normal text-muted">Post your first meal</p>
   </div>;
+  const firstPhotoId=visibleState.posts.find(post=>post.photoUrl)?.id;
   const zone = renderZone;
   const groups = new Map<string, FeedPost[]>();
   for (const post of visibleState.posts.filter(post=>!uploads.some(upload=>upload.postId===post.id))) {
@@ -524,7 +525,7 @@ export default function Feed({initialPage, initialUserId, initialZone = "UTC", f
     {days.map(day => <section key={day} aria-label={day} className="relative pb-card-gap">
       {!uploadDays.has(day)&&<DayHeader day={day} zone={zone} empty={!groups.has(day)} total={totals.get(day)} />}
       {localCards.filter((_,index)=>localDay[index]===day)}
-      {groups.has(day) ? <div className="flex flex-col gap-card-gap pt-sheet-top">{groups.get(day)!.map((post) => <div key={attachmentUploads.find(upload=>uploadTargetsPost(upload,post.id))?.operationId??uploads.find(upload=>upload.postId===post.id)?.operationId??post.id} data-desktop-post={post.id} tabIndex={-1}>{fallbackOnly ? <PostCard priority={visibleState.posts[0]?.id === post.id} post={post} upload={attachmentUploads.find(upload=>uploadTargetsPost(upload,post.id))} /> : <RealtimePost initial={post} renderCard={(fresh) => <PostCard priority={visibleState.posts[0]?.id === post.id} post={fresh} upload={attachmentUploads.find(upload=>uploadTargetsPost(upload,post.id))??uploads.find(upload=>upload.postId===post.id)}
+      {groups.has(day) ? <div className="flex flex-col gap-card-gap pt-sheet-top">{groups.get(day)!.map((post) => <div key={attachmentUploads.find(upload=>uploadTargetsPost(upload,post.id))?.operationId??uploads.find(upload=>upload.postId===post.id)?.operationId??post.id} data-desktop-post={post.id} tabIndex={-1}>{fallbackOnly ? <PostCard priority={firstPhotoId === post.id} post={post} upload={attachmentUploads.find(upload=>uploadTargetsPost(upload,post.id))} /> : <RealtimePost initial={post} renderCard={(fresh) => <PostCard priority={firstPhotoId === post.id} post={fresh} upload={attachmentUploads.find(upload=>uploadTargetsPost(upload,post.id))??uploads.find(upload=>upload.postId===post.id)}
          />} />}</div>)}</div> : null}
     </section>)}
     {pageError ? <div className="px-screen-x text-detail text-muted" role="alert">

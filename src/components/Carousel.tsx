@@ -1,5 +1,5 @@
 "use client";
-import {feedPhotoSrcSet} from '@/lib/posts/feed-photo-url';
+import {feedPhotoSrcSet,firstPhotoSources,firstPhotoUpgrade,FEED_PHOTO_SIZES} from '@/lib/posts/feed-photo-url';
 import {useEffect,useRef,useState,type ReactNode} from 'react';
 import Link from 'next/link';
 import {useRouter} from 'next/navigation';
@@ -96,6 +96,10 @@ export default function Carousel({slides,caption,postId,href,modelCommentId,fing
  </div>;
 }
 
+export function FirstPhoto({url,alt}:{url:string;alt:string}) {
+ return <MealPhoto url={url} priority alt={alt}/>;
+}
+
 function MealPhoto({url,priority,alt}:{url:string;priority:boolean;alt:string}) {
  const [read,setRead]=useState({path:imageIdentity(url),url,failed:false});
  const image=useRef<HTMLImageElement>(null);
@@ -107,8 +111,16 @@ function MealPhoto({url,priority,alt}:{url:string;priority:boolean;alt:string}) 
  },[priority,nearViewport]);
  const active=retainedImageUrl(read,url);
  const sharp=failedSharp!==imageIdentity(active);
+ const [photoError,setPhotoError]=useState<{url:string;message:string}|null>(null);
+ useEffect(()=>{
+  if(!priority||!image.current)return;
+  let live=true;const controller=new AbortController();
+  void firstPhotoUpgrade(active,image.current,controller.signal).catch(()=>{if(live)setPhotoError({url:active,message:'Sharper photo could not be loaded.'});});
+  return()=>{live=false;controller.abort();};
+ },[active,priority]);
+ const sources=priority?firstPhotoSources(active):{src:active,srcSet:sharp?feedPhotoSrcSet(active):undefined,sizes:FEED_PHOTO_SIZES};
  // eslint-disable-next-line @next/next/no-img-element
- return <img ref={image} src={priority||nearViewport?active:undefined} srcSet={(priority||nearViewport)&&sharp?feedPhotoSrcSet(active):undefined} crossOrigin="anonymous" sizes="(min-width: 1024px) 520px, 100vw" width={1080} height={1080} fetchPriority={priority?"high":undefined} loading={priority?"eager":"lazy"} decoding="async" alt={alt} className="h-full w-full object-cover"
-  onError={()=>{if(sharp&&feedPhotoSrcSet(active)){setFailedSharp(imageIdentity(active));return;}setRead({path:imageIdentity(active),url:active,failed:true});}}
-  onLoad={()=>{if(read.failed||read.url!==active||read.path!==imageIdentity(active))setRead({path:imageIdentity(active),url:active,failed:false});}}/>;
+ return <><img ref={image} src={priority||nearViewport?sources.src:undefined} srcSet={priority||nearViewport?sources.srcSet:undefined} crossOrigin="anonymous" sizes={sources.sizes} width={1080} height={1080} fetchPriority={priority?"high":undefined} loading={priority?"eager":"lazy"} decoding="async" alt={alt} className="h-full w-full object-cover"
+  onError={()=>{if(priority){setPhotoError({url:active,message:'Meal photo could not be loaded.'});return;}if(sharp&&feedPhotoSrcSet(active)){setFailedSharp(imageIdentity(active));return;}setRead({path:imageIdentity(active),url:active,failed:true});}}
+  onLoad={()=>{if(read.failed||read.url!==active||read.path!==imageIdentity(active))setRead({path:imageIdentity(active),url:active,failed:false});}}/>{priority&&photoError?.url===active&&<span role="status" className="absolute bottom-3 left-3 rounded-field bg-surface px-2 text-meta text-text">{photoError.message}</span>}</>;
 }
