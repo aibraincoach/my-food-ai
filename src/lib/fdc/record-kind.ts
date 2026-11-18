@@ -59,7 +59,13 @@ export function recordKind(description: string, category?: string | null): FoodK
   // No category: the record's own first words name it ("Persimmons, japanese, dried").
   const head = description.split(",")[0];
   const kinds = nameKinds(head);
-  return [...kinds].every(kind => SINGLE_KINDS.has(kind)) ? [...kinds][0] ?? null : null;
+  if ([...kinds].every(kind => SINGLE_KINDS.has(kind))) return [...kinds][0] ?? null;
+  // #1089: a head that mixes kinds is named by its last word, the noun: "Salad dressing" is a condiment, "Fish oil" a
+  // fat, "Milk shakes" a drink. The head is cut at its first with/and/&/in first, so a whole dish keeps no kind
+  // ("Beef and noodles with soy-based sauce" ends at "Beef"). Only a single kind counts; anything else stays unknown.
+  const last = head.split(/\b(?:with|and|in)\b|&/i)[0].trim().split(/\s+/).at(-1) ?? "";
+  const named = [...nameKinds(last)];
+  return named.length === 1 && SINGLE_KINDS.has(named[0]) ? named[0] : null;
 }
 
 export type RecordCheck = { strong: string[]; weak: string[]; score: number };
