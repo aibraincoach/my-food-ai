@@ -54,6 +54,7 @@ export async function runWorker(
   tickSelf?: () => Promise<void>
 ): Promise<void> {
   const startedAt = Date.now();
+  let processedJobs = 0;
   const heartbeat = setInterval(() => { void renewLease(admin, holder, LEASE_TTL_SECONDS).catch(() => {}); }, LEASE_HEARTBEAT_MS);
   try {
     const concurrency = workerConcurrency(process.env.WORKER_CONCURRENCY);
@@ -64,6 +65,7 @@ export async function runWorker(
         if (Date.now() - startedAt > WORK_MS) break;
         const { processed } = await drainOnce(admin);
         if (processed === 0) break;
+        processedJobs += processed;
         await renewLease(admin, holder, LEASE_TTL_SECONDS);
       }
     })));
@@ -73,6 +75,8 @@ export async function runWorker(
     clearInterval(heartbeat);
     await releaseLease(admin, holder).catch(() => {});
   }
+  // An empty round leaves delayed/blocked work to the next minute cron wake.
+  if (processedJobs === 0) return;
   const { data: next, error, status } = await admin.rpc("next_worker_wake");
   if (error) throw ioError(`worker remaining jobs: ${error.message}`, error, status);
   if (next && tickSelf) {
