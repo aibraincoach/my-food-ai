@@ -140,6 +140,30 @@ function attachHarness(media,{uniqueStages=false}={}){
  const make=()=>new UploadManager(store,makeDraft,async()=>{},request,async()=>'owner',encode);
  return{manager:make(),make,store,rows,calls};
 }
+test('an unreadable attachment asks for a retake immediately without retry delays',async()=>{
+ const rows=new Map(),failures=[];let delays=0,encodes=0;
+ const store=withIntents({all:async()=>[],put:async row=>rows.set(row.operationId,structuredClone(row))},rows);
+ const draft=()=>({setProgress(){},snapshot:async()=>null});
+ const manager=new UploadManager(store,draft,async()=>{delays++},async()=>assert.fail('unreadable photo must not reach network'),async()=>'owner',async()=>{encodes++;throw new DOMException('Cannot read photo','NotReadableError')},async row=>{failures.push(row)});
+ await manager.initialize('owner');await manager.postAttachment(file,{postId:'post-1',notEaten:true});await until(()=>manager.list()[0]?.state==='failed');
+ assert.equal(manager.list()[0].photoLost,true);assert.match(manager.list()[0].message,/Take it again/);assert.equal(delays,0);assert.equal(encodes,1);assert.equal(failures.length,1);assert.equal(failures[0].stage,'encode');
+});
+test('a signing network failure remains retryable and records sign rather than encode',async()=>{
+ const rows=new Map(),failures=[];
+ const store=withIntents({all:async()=>[],put:async row=>rows.set(row.operationId,structuredClone(row))},rows);
+ const encoded={original:new Blob(['original']),feed:new Blob(['feed']),width:1,height:1};
+ const manager=new UploadManager(store,()=>({setProgress(){},snapshot:async()=>null}),async()=>{},async()=>{throw new TypeError('offline')},async()=>'owner',async()=>encoded,async row=>{failures.push(row)});
+ await manager.initialize('owner');const id=await manager.postAttachment(file,{postId:'post-1',notEaten:true});await until(()=>manager.list()[0]?.state==='failed');
+ assert.equal(manager.list()[0].photoLost,undefined);assert.equal(rows.get(id).files.length,1);assert.equal(manager.list()[0].message,"The photo couldn't be uploaded. Try again, or remove it.");assert.equal(failures.length,3);assert.ok(failures.every(row=>row.stage==='sign'&&row.status==='network'));
+});
+test('a legacy attachment whose bytes cannot be checkpointed also asks for a retake',async()=>{
+ const rows=new Map(),failures=[];let delays=0;
+ rows.set('legacy',{operationId:'legacy',ownerId:'owner',createdAt:Date.now(),reservedAt:Date.now(),...fields,files:[file],snapshot:null,posted:true,state:'failed',sent:0,total:file.size,attachment:{postId:'post-1',notEaten:true}});
+ const store=withIntents({all:async()=>[...rows.values()],put:async row=>{if(row.files.length)throw new DOMException('Cannot read stored File','NotReadableError');rows.set(row.operationId,structuredClone(row))}},rows);
+ const manager=new UploadManager(store,()=>({setProgress(){},snapshot:async()=>null}),async()=>{delays++},async()=>assert.fail('unreadable legacy photo must not reach network'),async()=>'owner',async()=>assert.fail('checkpoint failure precedes encoding'),async row=>{failures.push(row)});
+ await manager.initialize('owner');manager.retry('legacy');await until(()=>manager.list()[0]?.state==='failed');
+ assert.equal(manager.list()[0].photoLost,true);assert.match(manager.list()[0].message,/Take it again/);assert.equal(delays,0);assert.equal(rows.get('legacy').files.length,0);assert.equal(failures[0]?.stage,'encode');
+});
 test('an attachment is durable before the sheet may close, then uploads and attaches in the background',async()=>{
  const {manager,store,rows,calls}=attachHarness(()=>Response.json({post_id:'post-1'},{status:201}));
  await manager.initialize('owner');const id=await manager.postAttachment(file,{postId:'post-1',notEaten:true});
