@@ -36,11 +36,11 @@ const CATEGORY_KIND: [FoodKind, RegExp][] = [
   ["sweet", /\b(jell(y|ies)|jams?|preserves?)\b/],
   ["condiment", /sauce|gravies|gravy|dressing|condiment|dips?\b|salsa|ketchup|mustard|spreads?|syrups?|jams?|jellies/],
   ["fat", /fats and oils|vegetable oils|butter|margarine|cooking oils/],
-  ["sweet", /sweets|candy|cookies|cakes|pies|pastr|doughnuts|desserts|ice cream|chocolate|baked products|biscuits/],
+  ["sweet", /sweets|candy|cookies|cakes|pies|pastr|doughnuts|desserts|ice cream|chocolate|biscuits/],
   ["fruit", /fruit|apples|bananas|citrus|melons|berries|grapes|pears|pineapple|peaches|mango/],
 ];
 
-const COOKED_WORDS = /\b(cooked|fried|grilled|roast(ed)?|baked|steamed|boiled|braised|stewed|smoked|curry|kari|stew|soup|soto|rendang|satay|sate|goreng|bakar|bakso|katsu|tonkatsu|crispy|crunchy|crackling|barbecued?|bbq|sauteed|stir[- ]?fried|with)\b/i;
+const COOKED_WORDS = /\b(cooked|fried|grilled|roast(ed)?|baked|steamed|boiled|braised|stewed|smoked|curry|kari|stew|soup|soto|rendang|satay|sate|goreng|bakar|bakso|katsu|tonkatsu|crispy|crunchy|crackling|barbecued?|bbq|sauteed|stir[- ]?fried)\b/i;
 const RAW_FOODS = /\b(raw|sashimi|poke|tartare|ceviche|carpaccio|salad|fresh fruit|fruit)\b/i;
 // Calories per 100 g a food of this kind can plausibly have: [lowest, highest].
 const DENSITY: Partial<Record<FoodKind, [number, number]>> = { fruit: [10, 120], vegetable: [5, 250], drink: [0, 150] };
@@ -52,12 +52,14 @@ export function nameKinds(name: string): Set<FoodKind> {
 }
 export function recordKind(description: string, category?: string | null): FoodKind | null {
   const text = (category ?? "").toLowerCase();
-  const fromCategory = CATEGORY_KIND.find(([, words]) => words.test(text))?.[0];
+  const fromCategory = CATEGORY_KIND.find(([kind, words]) => words.test(text)
+    && !(kind === "condiment" && /\bsoups?\b/.test(text))
+    && !(kind === "fruit" && /^pre-packaged fruit (?:and|&) vegetables$/.test(text)))?.[0];
   if (fromCategory) return fromCategory;
   // No category: the record's own first words name it ("Persimmons, japanese, dried").
   const head = description.split(",")[0];
   const kinds = nameKinds(head);
-  return [...kinds].find(kind => SINGLE_KINDS.has(kind)) ?? null;
+  return [...kinds].every(kind => SINGLE_KINDS.has(kind)) ? [...kinds][0] ?? null : null;
 }
 
 export type RecordCheck = { strong: string[]; weak: string[]; score: number };
