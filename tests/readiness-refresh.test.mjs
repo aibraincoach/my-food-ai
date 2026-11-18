@@ -17,15 +17,16 @@ test('ready metadata hydration does not refresh SSR; pending completion and unkn
 
 test('mounted readiness observer skips initial Home reloads but still refreshes an observed completion and other tabs',async()=>{
  const vm=await import('node:vm'),ts=await import('typescript'),{readFileSync}=await import('node:fs');
- const code=ts.default.transpileModule(readFileSync(new URL('../src/components/PostReadinessListener.tsx',import.meta.url),'utf8'),{compilerOptions:{module:ts.default.ModuleKind.CommonJS,target:ts.default.ScriptTarget.ES2022}}).outputText;
+ const code=ts.default.transpileModule(readFileSync(new URL('../src/components/PostReadinessListener.tsx',import.meta.url),'utf8'),{compilerOptions:{module:ts.default.ModuleKind.CommonJS,target:ts.default.ScriptTarget.ES2022,jsx:ts.default.JsxEmit.ReactJSX}}).outputText;
  async function mount(home,shell=false){
   const events=new EventTarget(),document=Object.assign(new EventTarget(),{visibilityState:'visible',querySelector:selector=>selector==='[data-shell]'?(shell?{}:null):home?{}:null}),exports={};let effect,refreshes=0,pendingRows=[],subscribed,revalidations=0,day=null;const FakeDate=class extends Date{toDateString(){return day??super.toDateString();}};const timers=new Map();events.addEventListener('feed-revalidate',()=>revalidations++);
   const channel={on(){return this;},subscribe(fn){subscribed=fn;return this;}};
-  const db={auth:{getUser:async()=>({data:{user:{id:'owner'}}}),getSession:async()=>({data:{session:{user:{id:'owner'}}}})},channel:()=>channel,removeChannel:async()=>{},from:()=>({select:()=>{
+  const db={auth:{onAuthStateChange:()=>({data:{subscription:{unsubscribe(){}}}}),getUser:async()=>({data:{user:{id:'owner'}}}),getSession:async()=>({data:{session:{user:{id:'owner'}}}})},channel:()=>channel,removeChannel:async()=>{},from:()=>({select:()=>{
    const query={eq(){return this;},in:async()=>({data:pendingRows,error:null}),order(){return this;},limit:async()=>({data:[{id:'meal',status:'ready'}],error:null})};return query;
   }})};
   vm.default.runInNewContext(code,{exports,Map,Date:FakeDate,Promise,Event,CustomEvent,window:events,document,location:{pathname:home?'/':'/days'},setInterval:(run,ms)=>{timers.set(ms,run);return ms;},clearInterval(){},require(name){
-   if(name==='react')return{useEffect:run=>{effect=run;}};
+   if(name==='react')return{useEffect:run=>{effect=run;},useState:initial=>[initial,()=>{}]};
+   if(name==='react/jsx-runtime')return{jsx:()=>null};
    if(name==='next/navigation')return{useRouter:()=>({refresh(){refreshes++;}})};
    if(name==='@/lib/supabase/client')return{createClient:()=>db};
    if(name==='@/lib/posts/readiness-refresh')return{refreshAfterReadinessSeed,refreshAfterReady};
@@ -42,8 +43,8 @@ test('mounted readiness observer skips initial Home reloads but still refreshes 
  const shell=await mount(true,true);assert.equal(shell.refreshes(),0);
  shell.visible();shell.minute();assert.equal(shell.revalidations(),0,'Home with only finished meals makes no minute or return-to-tab refresh');assert.equal(shell.refreshes(),0);
  shell.setPending([{id:'pending-shell-meal'}]);await shell.reconnect();
- shell.visible();shell.minute();assert.equal(shell.revalidations(),2,'a waiting meal keeps both refreshes');shell.events.dispatchEvent(new CustomEvent('post-ready',{detail:{id:'pending-shell-meal'}}));
- assert.equal(shell.revalidations(),3);assert.equal(shell.refreshes(),0,'the active shell updates its API reader rather than replacing the page');
- shell.visible();shell.minute();assert.equal(shell.revalidations(),3,'once the meal is finished the refreshes stop again');
- shell.setDay('Tue Jan 02 2024');shell.minute();assert.equal(shell.revalidations(),4,'a new local day refreshes Home once');shell.minute();assert.equal(shell.revalidations(),4);shell.cleanup();
+ shell.visible();shell.minute();assert.equal(shell.revalidations(),1,'a waiting meal refreshes on visibility, not the minute');shell.events.dispatchEvent(new CustomEvent('post-ready',{detail:{id:'pending-shell-meal'}}));
+ assert.equal(shell.revalidations(),2);assert.equal(shell.refreshes(),0,'the active shell updates its API reader rather than replacing the page');
+ shell.visible();shell.minute();assert.equal(shell.revalidations(),2,'once the meal is finished the refreshes stop again');
+ shell.setDay('Tue Jan 02 2024');shell.minute();assert.equal(shell.revalidations(),3,'a new local day refreshes Home once');shell.minute();assert.equal(shell.revalidations(),3);shell.cleanup();
 });
