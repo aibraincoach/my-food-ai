@@ -21,6 +21,12 @@ function namesCaffeineSource(item: { name: string; food_category?: string | null
   const category = (item.food_category ?? '').trim().toLowerCase();
   return (CAFFEINE_SOURCE.test(item.name) && !NO_CAFFEINE.test(item.name)) || CAFFEINE_DRINK_CATEGORIES.has(category);
 }
+// #987: a coffee or tea that should hold caffeine: its name names a caffeine source or its category is coffee or tea,
+// and its name does not say it has none. With no caffeine figure its caffeine is unknown, never a known zero.
+export function expectsCaffeine(item: { name: string; food_category?: string | null }): boolean {
+  const category = (item.food_category ?? '').trim().toLowerCase();
+  return (CAFFEINE_SOURCE.test(item.name) || category === 'coffee' || category === 'tea') && !NO_CAFFEINE.test(item.name);
+}
 // Drinks keep USDA caffeine only when the name or category names a caffeine source.
 export function keepsCaffeine(item: { name: string; food_category?: string | null; micronutrients?: readonly StoredNutrient[] }): boolean {
   if (!isDrink(item)) return true;
