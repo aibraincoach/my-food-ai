@@ -37,6 +37,7 @@ export interface StoredUpload {
     cancelRequested?: boolean;
     resultPostId?: string;
     photoLost?: boolean;
+    lostNoticeSeen?: true;
     message?: string;
     state: 'uploading' | 'uploaded' | 'failed';
     error?: 'dropped' | 'too_large' | 'no_response';
