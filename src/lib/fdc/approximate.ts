@@ -5,6 +5,7 @@ import { createResponse, MetaApiError } from "@/lib/meta/client";
 import { recordCall } from "@/lib/trace/record";
 import { excludedComponents } from "./exclusions";
 import { itemProteinTerm, referenceProteinMismatch } from "./protein-reference";
+import { recordContradicts } from "./record-kind";
 import { blendFoodsPer100 } from "./nutrients";
 
 // Generic USDA record types only; Branded stays out so a manufacturer is never presented as a plain food.
@@ -35,7 +36,7 @@ async function choose(name: string, caption: string, found: FdcFood[], signal?: 
 // A rejected reference retains its reason for the item and meal comment.
 export async function closestGenericFood(admin: SupabaseClient, name: string, caption: string, baseFood: string, signal?: AbortSignal): Promise<{food: FdcFood | null; reason: string}> {
   const result=await recordCall("fdc", { event: "food_approximation", name, query: baseFood }, async () => {
-    const found = (await searchFoods(admin, baseFood, signal)).filter(f => GENERIC.has(f.dataType) && gramBasis(f) && hasNutrition(f) && energyFits(name, f) && !excludedComponents(f.description, `${name} ${caption}`).length && !referenceProteinMismatch(name, f.description)).slice(0, 30);
+    const found = (await searchFoods(admin, baseFood, signal)).filter(f => GENERIC.has(f.dataType) && gramBasis(f) && hasNutrition(f) && energyFits(name, f) && !excludedComponents(f.description, `${name} ${caption}`).length && !referenceProteinMismatch(name, f.description) && !recordContradicts(name, f)).slice(0, 30);
     if (!found.length) return {food:null,reason:"No generic USDA record with nutrition was found for this food."};
     const decision = await choose(name, caption, found, signal);
     if (decision.id === null) return {food:null,reason:decision.reason};
