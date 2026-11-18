@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import {refreshAfterReadinessSeed,refreshAfterReady} from "@/lib/posts/readiness-refresh";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
@@ -8,6 +8,7 @@ import { createClient } from "@/lib/supabase/client";
 // Tabs share one readiness observer so capture also updates Days and Profile.
 export default function PostReadinessListener() {
   const router = useRouter();
+  const [reconnectFailed, setReconnectFailed] = useState(false);
   useEffect(() => {
     const db = createClient();
     // The installed shell owns an in-place client reader. A route refresh
@@ -17,6 +18,7 @@ export default function PostReadinessListener() {
     const known = new Map<string, string>();
     let live = true;
     let polling = false;
+    let lastReconnectRead = -Infinity;
     const settle = (id: string, status: string, announce=true) => {
       if (!["ready", "failed", "needs_input"].includes(status)) return;
       const refresh=refreshAfterReady(announce,pending.has(id),known.get(id));
@@ -61,7 +63,7 @@ export default function PostReadinessListener() {
       const revision = authRevision;
       try {
         const { data, error } = await db.from("posts").select("id,status").order("created_at", { ascending: false }).limit(20);
-        if (!live || error || revision !== authRevision) return;
+        if (!live || error || revision !== authRevision) return false;
         let changed = false;
         for (const row of data ?? []) {
           if (discovered && known.get(row.id) !== row.status && ["ready", "failed", "needs_input"].includes(row.status)) changed = true;
@@ -69,8 +71,9 @@ export default function PostReadinessListener() {
         }
         discovered = true;
         if (changed) refreshView();
+        return true;
       } catch {
-        // The next visible check retries.
+        return false;
       }
     };
     // The minute tick only notices a local day change; visibility keeps its reconciliation rule.
@@ -97,7 +100,9 @@ export default function PostReadinessListener() {
       if (channel) void db.removeChannel(channel);
       channel = null; channelUser = userId;
       pending.clear(); known.clear(); discovered = false;
+      setReconnectFailed(false);
       if (!userId) return;
+      let connectedOnce = false, disconnected = false;
       channel = db.channel("tab-post-readiness").on("postgres_changes", {
         event: "*", schema: "public", table: "posts", filter: `user_id=eq.${userId}`,
       }, ({ new: row }) => {
@@ -106,8 +111,18 @@ export default function PostReadinessListener() {
           settle(row.id, row.status);
         }
       }).subscribe((status) => {
-        // Reconcile once live and after reconnecting.
-        if (live && channelUser === userId && status === "SUBSCRIBED") void seedPending();
+        if (!live || channelUser !== userId) return;
+        if (status !== "SUBSCRIBED") {
+          if (["CHANNEL_ERROR", "TIMED_OUT", "CLOSED"].includes(status)) disconnected = true;
+          return;
+        }
+        if (!connectedOnce) { connectedOnce = true; disconnected = false; void seedPending(); return; }
+        if (!disconnected) return;
+        disconnected = false;
+        // Exactly one attempt per reconnect, at most once per 30 seconds per tab.
+        if (Date.now() - lastReconnectRead < 30_000) return;
+        lastReconnectRead = Date.now();
+        void discover().then(ok => { if (live && channelUser === userId) setReconnectFailed(!ok); });
       });
       void seedPending();
       void discover();
@@ -156,5 +171,5 @@ export default function PostReadinessListener() {
       window.removeEventListener("focus", focus);
     };
   }, [router]);
-  return null;
+  return reconnectFailed ? <p role="status">Meal updates could not reconnect. Refresh to try again.</p> : null;
 }
