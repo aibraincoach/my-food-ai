@@ -19,7 +19,8 @@ export function analyseCauses(input) {
    withheld.push({meal:meal.meal,meal_id:meal.meal_id??null,item_id:null,script:null,reason:cause==='value'?'no restore evidence':'no structured correction evidence',finding:null,evidence_row_ids:[]});
   }
  }
- return {causes,controls:{wrong,sampled:controls.length,share:controls.length?wrong/controls.length:null,cannot_tell},corrections,withheld,
+ const outcomes=Object.fromEntries(fields.map(question=>[question,Object.fromEntries(['a','b','c'].map(group=>[group,Object.fromEntries(['right','wrong','cannot tell'].map(outcome=>[outcome,meals.filter(m=>m.group===group&&m.verdict[question]===outcome).length]))]))]));
+ return {causes,outcomes,controls:{wrong,sampled:controls.length,share:controls.length?wrong/controls.length:null,cannot_tell},corrections,withheld,
   unjudged:meals.filter(m=>fields.some(f=>m.verdict[f]==='cannot tell')).map(m=>m.meal)};
 }
 if(isMain(import.meta.url)) {
