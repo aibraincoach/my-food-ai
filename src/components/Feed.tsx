@@ -305,6 +305,7 @@ export default function Feed({initialPage, initialUserId, initialZone = "UTC", f
           setState({kind:"loading"});setPageError(false);setFreshResponse(false);
         }
         userId=nextUserId;
+        subscribeInserts(userId);
         setCacheUserId(userId);
         if (!userId) { router.replace("/sign-in"); return; }
         // A cache notification can precede user initialization. Consume the
@@ -430,10 +431,19 @@ export default function Feed({initialPage, initialUserId, initialZone = "UTC", f
     };
     window.addEventListener("focus", focus);
     document.addEventListener("visibilitychange", focus);
-    const channel = supabase.channel("feed-inserts").on("postgres_changes",
-      { event: "INSERT", schema: "public", table: "posts" },
-      (payload) => { const id = (payload.new as { id?: string }).id; if (id) requestCard(id); }
+    let channel: ReturnType<typeof supabase.channel> | null = null;
+    let channelUser: string | null = null;
+    const subscribeInserts = (ownerId: string | null) => {
+      if (!live || ownerId === channelUser) return;
+      if (channel) void supabase.removeChannel(channel);
+      channel = null; channelUser = ownerId;
+      realtimeSubscribed = false;
+      if (!ownerId) return;
+      channel = supabase.channel("feed-inserts").on("postgres_changes",
+      { event: "INSERT", schema: "public", table: "posts", filter: `user_id=eq.${ownerId}` },
+      (payload) => { const id = (payload.new as { id?: string }).id; if (live && userId === ownerId && id) requestCard(id); }
     ).subscribe((status) => {
+      if (!live || userId !== ownerId) return;
       if (status === "SUBSCRIBED") {
         realtimeSubscribed = true;
         clearTimeout(discoverPoll);
@@ -443,6 +453,7 @@ export default function Feed({initialPage, initialUserId, initialZone = "UTC", f
         scheduleDiscoverPoll();
       }
     });
+    };
 
     return () => {
       live = false;
@@ -467,7 +478,7 @@ export default function Feed({initialPage, initialUserId, initialZone = "UTC", f
       window.removeEventListener("post-deleted",unavailableEvent);
       window.removeEventListener("focus", focus);
       document.removeEventListener("visibilitychange", focus);
-      void supabase.removeChannel(channel);
+      if (channel) void supabase.removeChannel(channel);
     };
   }, [router, initialPage, initialUserId, initialZone, fallbackOnly]);
 

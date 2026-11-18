@@ -37,13 +37,14 @@ export default function PostReadinessListener() {
       if (typeof id === "string") settle(id, "ready",false);
     };
     const seedPending = async () => {
+      const revision = authRevision;
       try {
         const { data: { session } } = await db.auth.getSession();
         const user = session?.user;
-        if (!user || !live) return;
+        if (!user || !live || revision !== authRevision) return;
         const { data, error } = await db.from("posts").select("id")
           .eq("user_id", user.id).in("status", ["queued", "processing"]);
-        if (!live) return;
+        if (!live || revision !== authRevision) return;
         if (!error) for (const row of data ?? []) {
           if (!pending.has(row.id)) pending.set(row.id, { started: Date.now(), nextCheck: 0 });
         }
@@ -51,16 +52,16 @@ export default function PostReadinessListener() {
         // including the gap before the realtime subscription is established.
         if(refreshAfterReadinessSeed(location.pathname,Boolean(document.querySelector("[data-home-feed]"))))refreshView();
       } catch {
-        if (live && refreshAfterReadinessSeed(location.pathname,Boolean(document.querySelector("[data-home-feed]")))) refreshView();
+        if (live && revision === authRevision && refreshAfterReadinessSeed(location.pathname,Boolean(document.querySelector("[data-home-feed]")))) refreshView();
       }
     };
-    // Meals created elsewhere are never in `pending`; look at the newest few posts now and then
-    // so a disconnected channel cannot leave Days or a story stale until the next focus.
+    // Reconcile newest meals on mount and focus; Realtime handles live changes.
     let discovered = false;
     const discover = async () => {
+      const revision = authRevision;
       try {
         const { data, error } = await db.from("posts").select("id,status").order("created_at", { ascending: false }).limit(20);
-        if (!live || error) return;
+        if (!live || error || revision !== authRevision) return;
         let changed = false;
         for (const row of data ?? []) {
           if (discovered && known.get(row.id) !== row.status && ["ready", "failed", "needs_input"].includes(row.status)) changed = true;
@@ -72,11 +73,7 @@ export default function PostReadinessListener() {
         // The next visible check retries.
       }
     };
-    const discoveryTimer = setInterval(() => { if (document.visibilityState === "visible") void discover(); }, 15_000);
-    void discover();
-    // Once a minute and on a return to the tab. Home's feed keeps its own meals current, so Home
-    // re-renders here only while a meal is waiting or when the local day has changed (the server
-    // derives "today"). Other tabs have no reader of their own and still re-render every time.
+    // The minute tick only notices a local day change; visibility keeps its reconciliation rule.
     let day = new Date().toDateString();
     const visible = () => {
       if (document.visibilityState !== "visible" || !live) return;
@@ -85,18 +82,44 @@ export default function PostReadinessListener() {
       day = today;
       if (newDay || pending.size > 0 || refreshAfterReadinessSeed(location.pathname,Boolean(document.querySelector("[data-home-feed]")))) refreshView();
     };
-    const reconcileTimer = setInterval(visible, 60_000);
+    const reconcileTimer = setInterval(() => {
+      if (!live || document.visibilityState !== "visible") return;
+      const today = new Date().toDateString();
+      if (today !== day) { day = today; refreshView(); }
+    }, 60_000);
     document.addEventListener("visibilitychange", visible);
     const focus = () => { void seedPending(); void discover(); };
-    const channel = db.channel("tab-post-readiness").on("postgres_changes", {
-      event: "UPDATE", schema: "public", table: "posts",
-    }, ({ new: row }) => {
-      if (typeof row.id === "string") settle(row.id, row.status);
-    }).subscribe((status) => {
-      // Reconcile once the channel is live (and again after a reconnect): the first read can run before it is.
-      if (status === "SUBSCRIBED") void seedPending();
+    let channel: ReturnType<typeof db.channel> | null = null;
+    let channelUser: string | null = null;
+    let authRevision = 0;
+    const subscribeUser = (userId: string | null) => {
+      if (!live || userId === channelUser) return;
+      if (channel) void db.removeChannel(channel);
+      channel = null; channelUser = userId;
+      pending.clear(); known.clear(); discovered = false;
+      if (!userId) return;
+      channel = db.channel("tab-post-readiness").on("postgres_changes", {
+        event: "*", schema: "public", table: "posts", filter: `user_id=eq.${userId}`,
+      }, ({ new: row }) => {
+        if (live && channelUser === userId && "id" in row && typeof row.id === "string" && "status" in row && typeof row.status === "string") {
+          window.dispatchEvent(new CustomEvent("post-readiness", {detail: {id: row.id}}));
+          settle(row.id, row.status);
+        }
+      }).subscribe((status) => {
+        // Reconcile once live and after reconnecting.
+        if (live && channelUser === userId && status === "SUBSCRIBED") void seedPending();
+      });
+      void seedPending();
+      void discover();
+    };
+    const {data: {subscription}} = db.auth.onAuthStateChange((_event, session) => {
+      authRevision++;
+      subscribeUser(session?.user.id ?? null);
     });
-    void seedPending();
+    const initialRevision = authRevision;
+    void db.auth.getSession().then(({data: {session}}) => {
+      if (authRevision === initialRevision) subscribeUser(session?.user.id ?? null);
+    });
     // Poll known pending IDs until terminal, with a slower status-only check after two minutes.
     // Long queues must not strand an answered meal outside the discovery page.
     const timer = setInterval(async () => {
@@ -105,13 +128,14 @@ export default function PostReadinessListener() {
       const due = [...pending].filter(([, state]) => state.nextCheck <= now).map(([id]) => id);
       if (!due.length) return;
       polling = true;
+      const revision = authRevision;
       for (const id of due) {
         const state = pending.get(id)!;
         state.nextCheck = now + (now - state.started > 120_000 ? 15_000 : 3000);
       }
       try {
         const { data,error } = await db.from("posts").select("id,status").in("id", due);
-        if (live&&!error) {
+        if (live && revision === authRevision && !error) {
           for (const row of data ?? []) settle(row.id, row.status);
           const found=new Set((data??[]).map(row=>row.id));
           for(const id of due)if(!found.has(id))pending.delete(id);
@@ -125,7 +149,7 @@ export default function PostReadinessListener() {
     window.addEventListener("post-ready", ready);
     window.addEventListener("focus", focus);
     return () => {
-      live = false; clearInterval(timer); clearInterval(discoveryTimer); clearInterval(reconcileTimer); document.removeEventListener("visibilitychange", visible); void db.removeChannel(channel);
+      live = false; clearInterval(timer); clearInterval(reconcileTimer); document.removeEventListener("visibilitychange", visible); subscription.unsubscribe(); if (channel) void db.removeChannel(channel);
       window.removeEventListener("post-created", created);
       window.removeEventListener("post-answer-resume",created);
       window.removeEventListener("post-ready", ready);

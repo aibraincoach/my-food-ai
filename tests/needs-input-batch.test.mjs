@@ -10,7 +10,7 @@ const source=ts.transpileModule(readFileSync(new URL('../src/components/NeedsInp
 const turn=()=>new Promise(resolve=>setImmediate(resolve));
 
 test('questions share immutable thumbnail identities; missing media retries and account changes discard old reads',async()=>{
- const effects=[],states=[],reads=[];
+ const effects=[],states=[],reads=[];const events=new EventTarget();
  let tick,authChange,resolvePosts,hold=false,now=1700000000000,missingMedia=false;
  const question={short:'Clarification needed',question:'What did you eat?',options:[]};
  let session={user:{id:'11111111-1111-4111-8111-111111111111'},access_token:'fixture-token'};
@@ -23,7 +23,7 @@ test('questions share immutable thumbnail identities; missing media retries and 
    return()=>q;
   }});return q;
  }};
- const exports={};vm.runInNewContext(source,{exports,AbortSignal,Date:{now:()=>now},document:{hidden:false,visibilityState:'visible',addEventListener(){},removeEventListener(){}},window:{addEventListener(){},removeEventListener(){}},process:{env:{NEXT_PUBLIC_SUPABASE_URL:'https://fixture.invalid',NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY:'fixture-key'}},
+ const exports={};vm.runInNewContext(source,{exports,AbortSignal,Date:{now:()=>now},document:{hidden:false,visibilityState:'visible',addEventListener(){},removeEventListener(){}},window:events,process:{env:{NEXT_PUBLIC_SUPABASE_URL:'https://fixture.invalid',NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY:'fixture-key'}},
   setTimeout(fn){tick=fn;return 1;},clearTimeout(){},fetch:async()=>{throw Error('strip must not sign or fetch full-size photos');},
   require(name){if(name==='react')return{useEffect:fn=>effects.push(fn),useState:initial=>[initial,value=>states.push(value)]};if(name==='react/jsx-runtime')return{jsx:()=>null,jsxs:()=>null};if(name==='@/lib/supabase/client')return{createClient:()=>db};if(name==='@/lib/posts/feed-photo-url')return{smallFeedPhotoUrl};if(name==='@/lib/pipeline/needs-input')return{readNeedsInput};if(name.startsWith('@/components/'))return{default:()=>null};throw Error(name);}
  });
@@ -32,6 +32,7 @@ test('questions share immutable thumbnail identities; missing media retries and 
  assert.equal(states.at(-1).length,2,'all unanswered questions remain visible');
  assert.equal(states.at(-1)[0].photoUrl,smallFeedPhotoUrl(session.user.id,posts[0].id,media[0].id));
  tick();await turn();await turn();assert.equal(reads.filter(x=>x.table==='post_media').length,1,'unchanged identities need no renewed signatures');
+ const beforeEvent=reads.filter(x=>x.table==='posts').length;const external={...posts[0],id:'66666666-6666-4666-8666-666666666666',needs_input:{...question,question:'Question inserted in another session'}};posts.push(external);events.dispatchEvent(new Event('post-readiness'));await turn();await turn();assert.equal(reads.filter(x=>x.table==='posts').length,beforeEvent+1);assert.equal(states.at(-1).find(p=>p.id===external.id)?.needs_input.question,'Question inserted in another session','external INSERT event updates the strip without advancing any timer');posts.pop();events.dispatchEvent(new Event('post-readiness'));await turn();await turn();
  posts[0].needs_input={...question,question:'New question'};missingMedia=true;tick();await turn();await turn();
  assert.equal(states.at(-1).length,2,'missing auxiliary photo never hides a question');
  assert.equal(states.at(-1)[0].photoUrl,null);
@@ -42,7 +43,7 @@ test('questions share immutable thumbnail identities; missing media retries and 
  hold=true;tick();await turn();session={user:{id:'22222222-2222-4222-8222-222222222222'},access_token:'other-fixture'};authChange('SIGNED_IN',session);
  resolvePosts({data:posts,error:null});await turn();await turn();
  assert.deepEqual(Array.from(states.at(-2)),[],'switching account immediately clears the old questions');
- assert.ok(states.every(value=>!Array.isArray(value)||value.every(post=>post.id==='33333333-3333-4333-8333-333333333333'||post.id==='44444444-4444-4444-8444-444444444444')));
+ assert.ok(states.every(value=>!Array.isArray(value)||value.every(post=>post.id==='33333333-3333-4333-8333-333333333333'||post.id==='44444444-4444-4444-8444-444444444444'||post.id===external.id)));
  assert.equal(states.at(-1),null,'selected old-account question is cleared and old async results cannot restore it');
  cleanup();
 });

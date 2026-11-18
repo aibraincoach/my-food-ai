@@ -98,7 +98,7 @@ async function mountedFeed(initialPosts,{cachedPosts,failPage=false,initialPage,
  const hookOwner=initialUserId??sessionUserId;
  const pageReads=[],cardReads=[];let discovered=[];
  const cache={userId:hookOwner,cached:hookCachedPosts,save:posts=>writeFeedCache(hookOwner,{posts,savedAt:Date.now()})};
- const channel={on(){return this;},subscribe(){return this;}};
+ const subscriptions=[];const channel={on(_type,filter){subscriptions.push(filter);return this;},subscribe(){return this;}};
  const exported={};
  vm.runInNewContext(compile('../src/components/Feed.tsx'),{exports:exported,URLSearchParams,AbortSignal,Date,
   fetch:async url=>{pageReads.push(url);if(failPage)throw Error('temporary server failure');return{ok:true,status:200,json:async()=>({posts:initialPosts,days:[],nextCursor:null})};},
@@ -127,7 +127,7 @@ async function mountedFeed(initialPosts,{cachedPosts,failPage=false,initialPage,
    throw Error('Unexpected feed dependency '+name);
   }});
  exported.default({initialPage,initialUserId,initialZone:Intl.DateTimeFormat().resolvedOptions().timeZone});const cleanups=effects.map(fn=>fn());await turn();await turn();
- return{cardReads,async discover(rows){discovered=rows;listeners.get('focus')();await turn();await turn();},setCard(value){current=value;},emit(type,id,extra={}){assert.ok(listeners.has(type),'real feed listener must be mounted');listeners.get(type)({detail:{id,...extra}});},pageReads,snapshotFor:id=>readFeedCache(id)?.posts,snapshot:()=>readFeedCache(sessionUserId)?.posts,readyState:()=>states.findLast(state=>state?.kind==='ready'),cleanup(){for(const cleanup of cleanups)cleanup?.();clearFeedCache();if(priorStorage)Object.defineProperty(globalThis,'localStorage',priorStorage);else delete globalThis.localStorage;if(priorWindow)Object.defineProperty(globalThis,'window',priorWindow);else delete globalThis.window;}};
+ return{subscriptions,cardReads,async discover(rows){discovered=rows;listeners.get('focus')();await turn();await turn();},setCard(value){current=value;},emit(type,id,extra={}){assert.ok(listeners.has(type),'real feed listener must be mounted');listeners.get(type)({detail:{id,...extra}});},pageReads,snapshotFor:id=>readFeedCache(id)?.posts,snapshot:()=>readFeedCache(sessionUserId)?.posts,readyState:()=>states.findLast(state=>state?.kind==='ready'),cleanup(){for(const cleanup of cleanups)cleanup?.();clearFeedCache();if(priorStorage)Object.defineProperty(globalThis,'localStorage',priorStorage);else delete globalThis.localStorage;if(priorWindow)Object.defineProperty(globalThis,'window',priorWindow);else delete globalThis.window;}};
 }
 
 test('deleting a cached meal persists its removal and a failed delete can restore it',async()=>{
@@ -202,4 +202,10 @@ test('discovery leaves older off-page meals in pagination while finding new back
   const backdated={...meal('new'),eaten_at:'2026-10-01T00:00:00Z',created_at:'2026-11-15T23:00:00Z'};app.setCard(backdated);
   await app.discover([{id:'new',created_at:backdated.created_at},{id:'old-off-page',created_at:'2026-11-15T23:59:59Z'}]);assert.deepEqual(app.cardReads,['new'],'new posting is found even when eaten earlier');
  }finally{app.cleanup();}
+});
+
+
+test('feed insertion subscription uses the authenticated account rather than a stale server seed',async()=>{
+ const app=await mountedFeed([meal()],{initialUserId:'stale-owner',sessionUserId:'actual-owner'});
+ try{assert.equal(app.subscriptions.length,1);assert.equal(app.subscriptions[0].filter,'user_id=eq.actual-owner');assert.equal(app.subscriptions[0].event,'INSERT');}finally{app.cleanup();}
 });

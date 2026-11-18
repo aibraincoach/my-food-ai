@@ -89,8 +89,9 @@ export default function NeedsInputStrip(){
     const onFocus = () => { if (live) void refresh(); };
     document.addEventListener("visibilitychange", visible);
     window.addEventListener("focus", onFocus);
+    window.addEventListener("post-readiness", kick);
     void refresh();
-    return()=>{live=false;clearTimeout(pollTimer);document.removeEventListener("visibilitychange", visible);window.removeEventListener("focus", onFocus);auth.data.subscription.unsubscribe();};
+    return()=>{live=false;clearTimeout(pollTimer);document.removeEventListener("visibilitychange", visible);window.removeEventListener("focus", onFocus);window.removeEventListener("post-readiness", kick);auth.data.subscription.unsubscribe();};
   },[]);
   const remove=(id:string)=>{setPosts(rows=>rows.filter(row=>row.id!==id));setSelected(null);};
   return <>{posts.map(post=><div key={post.id} className="flex min-h-brand items-center gap-sheet-top border-b border-hairline px-screen-x">
