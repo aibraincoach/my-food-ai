@@ -13,15 +13,15 @@ test('a meal detail shares its single feedback revision with its card',async()=>
 });
 
 test('a thread uses the supplied fingerprint and makes no revision RPC on load',async()=>{
- const effects=[],states=[];let revisionReads=0;const window=new EventTarget(),document=Object.assign(new EventTarget(),{visibilityState:'visible'});
+ const effects=[],states=[];let revisionReads=0,refreshes=0;const comments=[{id:'model',author:'model',body:'Existing reply',created_at:'2026-11-03T00:00:00Z'}];const window=new EventTarget(),document=Object.assign(new EventTarget(),{visibilityState:'visible'});
  const client={rpc(){revisionReads++;return Promise.resolve({data:{fingerprint:'same'}});},from(table){const q={select(){return q;},eq(){return q;},maybeSingle:async()=>({data:table==='post_feedback'?{verdict:'up',model_comment_id:'model',item_fingerprint:'same'}:{status:'ready',analysis_initialized_at:'done'},error:null})};return q;},channel(){const c={on(){return c;},subscribe(){return c;}};return c;},removeChannel(){}};
  const code=ts.transpileModule(readFileSync(new URL('../src/components/Thread.tsx',import.meta.url),'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022,jsx:ts.JsxEmit.ReactJSX}}).outputText;
  const exports={};vm.runInNewContext(code,{exports,window,document,Event,CustomEvent,setTimeout,clearTimeout,require(name){
   if(name==='react')return{useEffect:fn=>effects.push(fn),useCallback:fn=>fn,useRef:current=>({current}),useState:initial=>{const i=states.length;states.push(initial);return[initial,next=>{states[i]=typeof next==='function'?next(states[i]):next;}];}};
   if(name==='react/jsx-runtime')return{jsx:(type,props)=>({type,props}),jsxs:(type,props)=>({type,props})};
-  if(name==='next/navigation')return{useRouter:()=>({refresh(){}})};
+  if(name==='next/navigation')return{useRouter:()=>({refresh(){refreshes++;}})};
   if(name==='@/lib/supabase/client')return{createClient:()=>client};
-  if(name==='@/lib/posts/timeline')return{readPostComments:async()=>[]};
+  if(name==='@/lib/posts/timeline')return{readPostComments:async()=>comments};
   if(name==='@/lib/posts/correction-feedback')return{correctionFeedback};
   if(name==='@/components/PostHandle')return{usePostHandle:()=> 'owner'};
   if(name==='@/components/useRemovalMenus')return{useRemovalMenus(){}};
@@ -30,5 +30,5 @@ test('a thread uses the supplied fingerprint and makes no revision RPC on load',
   if(name==='@/lib/posts/delayed-action')return{delayAction(){throw Error('not used');}};
   if(name.startsWith('@/components/'))return{default:()=>null,LocalTime:()=>null};throw Error(name);
  }});
- exports.default({postId:post.id,fingerprint:'same'});const cleanup=effects.map(fn=>fn());await new Promise(resolve=>setImmediate(resolve));assert.equal(revisionReads,0);assert.equal(states[0],'model');for(const fn of cleanup)fn?.();
+ exports.default({postId:post.id,fingerprint:'same'});const cleanup=effects.map(fn=>fn());await new Promise(resolve=>setImmediate(resolve));assert.equal(revisionReads,0);assert.equal(states[0],'model');assert.equal(refreshes,0,'initial comments must not force a second detail revision read');comments.push({id:'new-model',author:'model',body:'New reply',created_at:'2026-11-03T01:00:00Z'});window.dispatchEvent(new Event('focus'));await new Promise(resolve=>setImmediate(resolve));assert.equal(refreshes,1,'a newly arrived reply still refreshes the detail');for(const fn of cleanup)fn?.();
 });

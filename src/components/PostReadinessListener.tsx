@@ -14,10 +14,10 @@ export default function PostReadinessListener() {
     // The installed shell owns an in-place client reader. A route refresh
     // would replace that cached page with a blank server Suspense boundary.
     const refreshView=()=>{if(document.querySelector('[data-shell]'))window.dispatchEvent(new Event('feed-revalidate'));else router.refresh();};
-    const pending = new Map<string, { started: number; nextCheck: number }>();
+    const pending = new Set<string>();
     const known = new Map<string, string>();
     let live = true;
-    let polling = false;
+    let checkingPending = false;
     let lastReconnectRead = -Infinity;
     const settle = (id: string, status: string, announce=true) => {
       if (!["ready", "failed", "needs_input"].includes(status)) return;
@@ -32,7 +32,7 @@ export default function PostReadinessListener() {
     };
     const created = (event: Event) => {
       const id = (event as CustomEvent<{ id?: unknown }>).detail?.id;
-      if (typeof id === "string") pending.set(id, { started: Date.now(), nextCheck: 0 });
+      if (typeof id === "string") pending.add(id);
     };
     const ready = (event: Event) => {
       const id = (event as CustomEvent<{ id?: unknown }>).detail?.id;
@@ -48,7 +48,7 @@ export default function PostReadinessListener() {
           .eq("user_id", user.id).in("status", ["queued", "processing"]);
         if (!live || revision !== authRevision) return;
         if (!error) for (const row of data ?? []) {
-          if (!pending.has(row.id)) pending.set(row.id, { started: Date.now(), nextCheck: 0 });
+          if (!pending.has(row.id)) pending.add(row.id);
         }
         // Covers a meal that became ready before this pending-status read,
         // including the gap before the realtime subscription is established.
@@ -76,7 +76,7 @@ export default function PostReadinessListener() {
         return false;
       }
     };
-    // The minute tick only notices a local day change; visibility keeps its reconciliation rule.
+    // One boundary event keeps the local day current; focus and visibility reconcile changes.
     let day = new Date().toDateString();
     const visible = () => {
       if (document.visibilityState !== "visible" || !live) return;
@@ -84,14 +84,27 @@ export default function PostReadinessListener() {
       const newDay = today !== day;
       day = today;
       if (newDay || pending.size > 0 || refreshAfterReadinessSeed(location.pathname,Boolean(document.querySelector("[data-home-feed]")))) refreshView();
+      clearTimeout(dayBoundaryTimer);scheduleDayBoundary();
+      focus();
     };
-    const reconcileTimer = setInterval(() => {
-      if (!live || document.visibilityState !== "visible") return;
-      const today = new Date().toDateString();
-      if (today !== day) { day = today; refreshView(); }
-    }, 60_000);
+    let dayBoundaryTimer: ReturnType<typeof setTimeout>;
+    const scheduleDayBoundary = () => {
+      const next = new Date();next.setHours(24,0,0,0);
+      dayBoundaryTimer = setTimeout(() => {
+        if (!live) return;
+        const today = new Date().toDateString();
+        if (document.visibilityState === "visible" && today !== day) { day = today;refreshView(); }
+        scheduleDayBoundary();
+      }, Math.max(1,next.getTime()-Date.now()));
+    };
+    scheduleDayBoundary();
     document.addEventListener("visibilitychange", visible);
-    const focus = () => { void seedPending(); void discover(); };
+    let focusInFlight = false;
+    const focus = () => {
+      if (!live || focusInFlight) return;
+      focusInFlight = true;
+      void (async () => { try { await reconcilePending();await seedPending();await discover(); } finally { focusInFlight = false; } })();
+    };
     let channel: ReturnType<typeof db.channel> | null = null;
     let channelUser: string | null = null;
     let authRevision = 0;
@@ -135,36 +148,28 @@ export default function PostReadinessListener() {
     void db.auth.getSession().then(({data: {session}}) => {
       if (authRevision === initialRevision) subscribeUser(session?.user.id ?? null);
     });
-    // Poll known pending IDs until terminal, with a slower status-only check after two minutes.
-    // Long queues must not strand an answered meal outside the discovery page.
-    const timer = setInterval(async () => {
-      const now = Date.now();
-      if (!pending.size || polling || document.visibilityState === "hidden") return;
-      const due = [...pending].filter(([, state]) => state.nextCheck <= now).map(([id]) => id);
-      if (!due.length) return;
-      polling = true;
-      const revision = authRevision;
-      for (const id of due) {
-        const state = pending.get(id)!;
-        state.nextCheck = now + (now - state.started > 120_000 ? 15_000 : 3000);
-      }
+    // Focus reconciles tracked old IDs even when they are outside the newest discovery page.
+    const reconcilePending = async () => {
+      if (!pending.size || checkingPending || document.visibilityState === "hidden") return;
+      checkingPending = true;
+      const revision = authRevision, ids = [...pending];
       try {
-        const { data,error } = await db.from("posts").select("id,status").in("id", due);
-        if (live && revision === authRevision && !error) {
-          for (const row of data ?? []) settle(row.id, row.status);
-          const found=new Set((data??[]).map(row=>row.id));
-          for(const id of due)if(!found.has(id))pending.delete(id);
-        }
-      } catch {
-        // The bounded next status check retries transient network errors.
-      } finally { polling = false; }
-    }, 3000);
+        const { data,error } = await db.from("posts").select("id,status").in("id", ids);
+        if (!live || revision !== authRevision) return;
+        if (error) { setReconnectFailed(true);return; }
+        for (const row of data ?? []) settle(row.id,row.status);
+        const found = new Set((data ?? []).map(row=>row.id));
+        for (const id of ids) if (!found.has(id)) pending.delete(id);
+        setReconnectFailed(false);
+      } catch { if (live && revision === authRevision) setReconnectFailed(true); }
+      finally { checkingPending = false; }
+    };
     window.addEventListener("post-created", created);
     window.addEventListener("post-answer-resume",created);
     window.addEventListener("post-ready", ready);
     window.addEventListener("focus", focus);
     return () => {
-      live = false; clearInterval(timer); clearInterval(reconcileTimer); document.removeEventListener("visibilitychange", visible); subscription.unsubscribe(); if (channel) void db.removeChannel(channel);
+      live = false; clearTimeout(dayBoundaryTimer); document.removeEventListener("visibilitychange", visible); subscription.unsubscribe(); if (channel) void db.removeChannel(channel);
       window.removeEventListener("post-created", created);
       window.removeEventListener("post-answer-resume",created);
       window.removeEventListener("post-ready", ready);

@@ -7,10 +7,6 @@ import { getPostCard, isSettled, hasUnavailableFields, retainCompleteItems, type
 import {readPendingItems,type PendingItem} from '@/lib/pipeline/pending-items';
 type PendingFeedPost=FeedPost&{pendingItems?:PendingItem[];fail_reason?:string|null};
 
-const POLL_START_MS = 2000;
-const POLL_MAX_MS = 30000;
-const CARD_FAST_WINDOW_MS = 30_000;
-const CARD_POLL_BUDGET_MS = 120_000;
 const pageVisible = () => document.visibilityState !== "hidden";
 
 export default function RealtimePost({ initial, renderCard }: {
@@ -20,11 +16,6 @@ export default function RealtimePost({ initial, renderCard }: {
   const [removed,setRemoved]=useState(false);
   const [snapshot, setSnapshot] = useState({ seed: initial, current: initial });
   const post = snapshot.seed === initial ? snapshot.current : initial;
-  const awaitingItems = hasUnavailableFields(post);
-  const awaitingCard = post.status === "ready" && post.items.length > 0
-    && !post.slides.some((slide) => slide.kind === "card");
-
-  const cardPolling = useRef({ id: initial.id, started: 0, next: 0 });
   const lastReady = useRef(post.status === "ready" ? JSON.stringify([post.id, post.items]) : "");
   useEffect(() => {
     if (post.status !== "ready") return;
@@ -39,17 +30,11 @@ export default function RealtimePost({ initial, renderCard }: {
     let live = true;
     let inFlight = false;
     let again = false;
-    let pollTimer: ReturnType<typeof setTimeout> | undefined;
-    let pollBackoffMs = POLL_START_MS;
-    const needsPolling = () => !isSettled(post.status) || awaitingCard || awaitingItems;
     const retire = (reason:"deleted"|"needs_input") => {
       if(!live)return;live=false;again=false;
-      clearTimeout(pollTimer);
       setRemoved(true);
       window.dispatchEvent(new CustomEvent("post-unavailable",{detail:{id:initial.id,reason}}));
     };
-    if (cardPolling.current.id !== initial.id || !awaitingCard) cardPolling.current = { id: initial.id, started: 0, next: 0 };
-    if (awaitingCard && !cardPolling.current.started) cardPolling.current.started = Date.now();
     const refresh = async () => {
       if (!live || !pageVisible()) return;
       if (inFlight) { again = true; return; }
@@ -69,59 +54,31 @@ if(!isSettled(fresh.status)||fresh.status==='failed'){
           setSnapshot(previous => ({ seed: initial, current: retainCompleteItems(previous.seed.id === fresh.id ? previous.current : undefined, fresh) }));
         } while (live && again && pageVisible());
       } catch {
-        // Preserve the last good card; polling retries unsettled posts.
+        // Keep the visible card until a new event or focus requests another read.
       } finally { inFlight = false; }
-    };
-    const schedulePoll = () => {
-      clearTimeout(pollTimer);
-      if (!live || !needsPolling() || document.hidden) return;
-      if (awaitingCard && !awaitingItems) {
-        const now = Date.now(), state = cardPolling.current;
-        const elapsed = now - state.started;
-        if (elapsed >= CARD_POLL_BUDGET_MS) return;
-        if (now < state.next) {
-          pollTimer = setTimeout(() => schedulePoll(), state.next - now);
-          return;
-        }
-        state.next = now + (elapsed < CARD_FAST_WINDOW_MS ? POLL_START_MS : 15_000);
-      }
-      pollTimer = setTimeout(() => {
-        void refresh().finally(() => {
-          if (live && needsPolling() && pageVisible()) {
-            pollBackoffMs = Math.min(pollBackoffMs * 2, POLL_MAX_MS);
-            schedulePoll();
-          }
-        });
-      }, pollBackoffMs);
     };
     const channel = supabase.channel(`post-${initial.id}`).on("postgres_changes", {
       event: "UPDATE", schema: "public", table: "posts", filter: `id=eq.${initial.id}`,
-    }, () => { pollBackoffMs = POLL_START_MS; void refresh(); }).on("postgres_changes", {
+    }, () => { void refresh(); }).on("postgres_changes", {
       event:"DELETE",schema:"public",table:"posts",filter:`id=eq.${initial.id}`,
     },(payload)=>{if((payload.old as {id?:string}).id===initial.id)retire("deleted");}).subscribe();
     // A finished card drawn from the server's page is already current; re-reading every card on mount doubled the first feed read.
-    if (needsPolling()) void refresh();
-    pollBackoffMs = POLL_START_MS;
-    schedulePoll();
-    const changed=(event:Event)=>{if((event as CustomEvent<{id:string}>).detail?.id===initial.id){pollBackoffMs = POLL_START_MS; void refresh();}};
+    const needsInitialRead = !isSettled(initial.status) || hasUnavailableFields(initial)
+      || (initial.status === "ready" && initial.items.length > 0 && !initial.slides.some(slide => slide.kind === "card"));
+    if (needsInitialRead) void refresh();
+    const changed=(event:Event)=>{if((event as CustomEvent<{id:string}>).detail?.id===initial.id){void refresh();}};
     window.addEventListener('media-removed',changed);window.addEventListener('correction-reverted',changed);
-    const visible = () => {
-      if (!pageVisible()) { clearTimeout(pollTimer); return; }
-      pollBackoffMs = POLL_START_MS;
-      void refresh();
-      if (needsPolling()) schedulePoll(); else clearTimeout(pollTimer);
-    };
+    const visible = () => { if (pageVisible()) void refresh(); };
     document.addEventListener("visibilitychange", visible);
     window.addEventListener("focus", visible);
     return () => {
       live = false;
-      clearTimeout(pollTimer);
       document.removeEventListener("visibilitychange", visible);
       window.removeEventListener("focus", visible);
       window.removeEventListener('media-removed',changed);window.removeEventListener('correction-reverted',changed);
       void supabase.removeChannel(channel);
     };
-  }, [initial, post.status, awaitingCard, awaitingItems]);
+  }, [initial]);
 
   return removed || post.status === "needs_input" ? null : <>{renderCard(post)}</>;
 }
