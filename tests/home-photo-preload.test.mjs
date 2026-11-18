@@ -8,7 +8,7 @@ import ts from 'typescript';
 import {createElement} from 'react';
 import {preload} from 'react-dom';
 import {renderToReadableStream} from 'react-dom/server';
-import {feedPhotoSrcSet,smallFeedPhotoUrl} from '../src/lib/posts/feed-photo-url.ts';
+import {feedPhotoSrcSet,smallFeedPhotoUrl,firstPhotoSources} from '../src/lib/posts/feed-photo-url.ts';
 const owner='11111111-1111-4111-8111-111111111111',post='22222222-2222-4222-8222-222222222222',media='33333333-3333-4333-8333-333333333333';
 const compile=source=>ts.transpileModule(source,{compilerOptions:{module:ts.ModuleKind.CommonJS,jsx:ts.JsxEmit.ReactJSX,target:ts.ScriptTarget.ES2022}}).outputText;
 
@@ -35,14 +35,15 @@ test('middleware makes no photo query or HTTP image preload while preserving aut
  }
 });
 
-test('Home HTML preload and first image expose identical density candidates without a second base-only hint',async()=>{
- const url=smallFeedPhotoUrl(owner,post,media),preloads=[],exports={};
+test('Home HTML preload and first image expose the same single 640 candidate without a second base-only hint',async()=>{
+ const url=smallFeedPhotoUrl(owner,post,media,'a'.repeat(32)),preloads=[],exports={};
  const source=readFileSync(new URL('../src/app/(tabs)/page.tsx',import.meta.url),'utf8')+'\nexport {HomeFirstPhoto,homeSeed};';
  vm.runInNewContext(compile(source),{exports,Date,Promise,Array,AbortSignal,setTimeout,clearTimeout,require(name){
   if(name==='react')return{cache:fn=>fn,Suspense:()=>null};
   if(name==='react-dom')return{preload:(href,options)=>preloads.push({href,...options})};
-  if(name==='react/jsx-runtime')return{jsx:(type,props)=>({type,props}),jsxs:(type,props)=>({type,props})};
-  if(name==='@/lib/posts/feed-photo-url')return{feedPhotoSrcSet};
+  if(name==='react/jsx-runtime')return{jsx:(type,props)=>typeof type==='function'?type(props):({type,props}),jsxs:(type,props)=>({type,props})};
+  if(name==='@/lib/posts/feed-photo-url')return{feedPhotoSrcSet,firstPhotoSources};
+  if(name==='@/components/Carousel')return{FirstPhoto:({url,alt})=>({type:'img',props:{...firstPhotoSources(url),crossOrigin:'anonymous',alt}})};
   if(name==='next/server')return{connection:async()=>{}};
   if(name==='next/headers')return{cookies:async()=>({get:()=>({value:'UTC'})}),headers:async()=>({get:()=>null})};
   if(name==='@/lib/auth/verified-user')return{verifiedUserId:async()=>owner};
@@ -58,10 +59,10 @@ test('Home HTML preload and first image expose identical density candidates with
  const tree=await exports.HomeFirstPhoto();
  function findImage(node){if(Array.isArray(node))return node.map(findImage).find(Boolean);if(node?.type==='img')return node.props;return node?.props?findImage(node.props.children):undefined;}
  const image=findImage(tree);assert.ok(image);
- assert.equal(image.src,url);assert.equal(image.srcSet,feedPhotoSrcSet(url));
- assert.ok(image.srcSet.startsWith(image.src+' 1x, '),'the preload includes the img implicit1x candidate explicitly');
+ assert.equal(image.src,firstPhotoSources(url).src);assert.equal(image.srcSet,firstPhotoSources(url).srcSet);
+ assert.equal(image.srcSet,firstPhotoSources(url).src+' 1x','the first card has one candidate even on a dense display');
  assert.equal(preloads.length,2,'independent streams both describe the same responsive resource for React to deduplicate');
- for(const preload of preloads){assert.equal(preload.href,image.src);assert.equal(preload.imageSrcSet,image.srcSet);assert.equal(preload.crossOrigin,image.crossOrigin);assert.equal(preload.as,'image');}
+ for(const preload of preloads){assert.equal(preload.href,firstPhotoSources(url).src);assert.equal(preload.imageSrcSet,image.srcSet);assert.equal(preload.crossOrigin,image.crossOrigin);assert.equal(preload.as,'image');}
 });
 
 

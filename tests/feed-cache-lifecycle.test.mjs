@@ -126,8 +126,8 @@ async function mountedFeed(initialPosts,{cachedPosts,failPage=false,initialPage,
    if(name.startsWith('@/components/'))return{default:()=>null};
    throw Error('Unexpected feed dependency '+name);
   }});
- exported.default({initialPage,initialUserId,initialZone:Intl.DateTimeFormat().resolvedOptions().timeZone});const cleanups=effects.map(fn=>fn());await turn();await turn();
- return{subscriptions,cardReads,async discover(rows){discovered=rows;listeners.get('focus')();await turn();await turn();},setCard(value){current=value;},emit(type,id,extra={}){assert.ok(listeners.has(type),'real feed listener must be mounted');listeners.get(type)({detail:{id,...extra}});},pageReads,snapshotFor:id=>readFeedCache(id)?.posts,snapshot:()=>readFeedCache(sessionUserId)?.posts,readyState:()=>states.findLast(state=>state?.kind==='ready'),cleanup(){for(const cleanup of cleanups)cleanup?.();clearFeedCache();if(priorStorage)Object.defineProperty(globalThis,'localStorage',priorStorage);else delete globalThis.localStorage;if(priorWindow)Object.defineProperty(globalThis,'window',priorWindow);else delete globalThis.window;}};
+ const tree=exported.default({initialPage,initialUserId,initialZone:Intl.DateTimeFormat().resolvedOptions().timeZone});const cleanups=effects.map(fn=>fn());await turn();await turn();
+ return{tree,subscriptions,cardReads,async discover(rows){discovered=rows;listeners.get('focus')();await turn();await turn();},setCard(value){current=value;},emit(type,id,extra={}){assert.ok(listeners.has(type),'real feed listener must be mounted');listeners.get(type)({detail:{id,...extra}});},pageReads,snapshotFor:id=>readFeedCache(id)?.posts,snapshot:()=>readFeedCache(sessionUserId)?.posts,readyState:()=>states.findLast(state=>state?.kind==='ready'),cleanup(){for(const cleanup of cleanups)cleanup?.();clearFeedCache();if(priorStorage)Object.defineProperty(globalThis,'localStorage',priorStorage);else delete globalThis.localStorage;if(priorWindow)Object.defineProperty(globalThis,'window',priorWindow);else delete globalThis.window;}};
 }
 
 test('deleting a cached meal persists its removal and a failed delete can restore it',async()=>{
@@ -208,4 +208,18 @@ test('discovery leaves older off-page meals in pagination while finding new back
 test('feed insertion subscription uses the authenticated account rather than a stale server seed',async()=>{
  const app=await mountedFeed([meal()],{initialUserId:'stale-owner',sessionUserId:'actual-owner'});
  try{assert.equal(app.subscriptions.length,1);assert.equal(app.subscriptions[0].filter,'user_id=eq.actual-owner');assert.equal(app.subscriptions[0].event,'INSERT');}finally{app.cleanup();}
+});
+
+test('a photo after a drink gets the single first-photo priority, matching the fast server copy',async()=>{
+ const posts=[meal('drink'),{...meal('first-photo'),photoUrl:'/p/first_1080.webp'},{...meal('second-photo'),photoUrl:'/p/second_1080.webp'}];
+ const app=await mountedFeed(posts,{initialPage:{posts,days:[],nextCursor:null},initialUserId:'owner'});
+ try{
+  const cards=new Map();const visit=node=>{
+   if(Array.isArray(node)){node.forEach(visit);return;}if(!node||typeof node!=='object')return;
+   if(node.props?.renderCard)visit(node.props.renderCard(node.props.initial));
+   if(node.props?.post&&Object.hasOwn(node.props,'priority'))cards.set(node.props.post.id,node.props.priority);
+   visit(node.props?.children);
+  };visit(app.tree);
+  assert.deepEqual([...cards],[['drink',false],['first-photo',true],['second-photo',false]]);
+ }finally{app.cleanup();}
 });
