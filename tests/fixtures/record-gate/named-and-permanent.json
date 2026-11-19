@@ -1,0 +1,1090 @@
+[
+  {
+    "name": "apple juice",
+    "description": "Apples, raw",
+    "category": "Fruits and Fruit Juices",
+    "source": "Fleet57 named/adversarial/permanent",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "mango smoothie",
+    "description": "Mangos, raw",
+    "category": "Fruits and Fruit Juices",
+    "source": "Fleet57 named/adversarial/permanent",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "honey lemon tea",
+    "description": "Honey",
+    "category": "Sugars and Sweets",
+    "source": "Fleet57 named/adversarial/permanent",
+    "expected": "judge",
+    "mainRejected": true
+  },
+  {
+    "name": "lemon beer",
+    "description": "Lemons, raw",
+    "category": "Fruits and Fruit Juices",
+    "source": "Fleet57 named/adversarial/permanent",
+    "expected": "judge",
+    "mainRejected": true
+  },
+  {
+    "name": "sparkling water with lemon",
+    "description": "Lemons, raw",
+    "category": "Fruits and Fruit Juices",
+    "source": "Fleet57 named/adversarial/permanent",
+    "expected": "judge",
+    "mainRejected": true
+  },
+  {
+    "name": "banana bread",
+    "description": "Bananas, raw",
+    "category": "Fruits and Fruit Juices",
+    "source": "Fleet57 named/adversarial/permanent",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "avocado toast",
+    "description": "Avocados, raw",
+    "category": "Fruits and Fruit Juices",
+    "source": "Fleet57 named/adversarial/permanent",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "peanut butter toast",
+    "description": "Peanut butter, smooth",
+    "category": "Legumes and Legume Products",
+    "source": "Fleet57 named/adversarial/permanent",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "butter chicken",
+    "description": "Butter, salted",
+    "category": "Dairy and Egg Products",
+    "source": "Fleet57 named/adversarial/permanent",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "orange chicken",
+    "description": "Oranges, raw",
+    "category": "Fruits and Fruit Juices",
+    "source": "Fleet57 named/adversarial/permanent",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "lemon chicken",
+    "description": "Lemons, raw",
+    "category": "Fruits and Fruit Juices",
+    "source": "Fleet57 named/adversarial/permanent",
+    "expected": "judge",
+    "mainRejected": true
+  },
+  {
+    "name": "mango sticky rice",
+    "description": "Mangos, raw",
+    "category": "Fruits and Fruit Juices",
+    "source": "Fleet57 named/adversarial/permanent",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "honey garlic chicken",
+    "description": "Honey",
+    "category": "Sugars and Sweets",
+    "source": "Fleet57 named/adversarial/permanent",
+    "expected": "judge",
+    "mainRejected": true
+  },
+  {
+    "name": "garlic butter shrimp",
+    "description": "Butter",
+    "category": "Fats and Oils",
+    "source": "Fleet57 named/adversarial/permanent",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "strawberry yogurt",
+    "description": "Strawberries, raw",
+    "category": "Fruits and Fruit Juices",
+    "source": "Fleet57 named/adversarial/permanent",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "Lemon wedge",
+    "description": "Potatoes, french fried, wedge cut, frozen",
+    "category": "Vegetables and Vegetable Products",
+    "source": "Fleet57 named/adversarial/permanent",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "charred lemon half",
+    "description": "Lemon pie filling",
+    "category": "Sweets",
+    "source": "Fleet57 named/adversarial/permanent",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "Spiced potato side dish",
+    "description": "McDONALD'S, Side Salad",
+    "category": "Vegetables and Vegetable Products",
+    "source": "Fleet57 named/adversarial/permanent",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "Grilled onions",
+    "description": "Mushrooms, portabella, grilled",
+    "category": "Vegetables and Vegetable Products",
+    "source": "Fleet57 named/adversarial/permanent",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "Seekh kebab",
+    "description": "SEEKH KEBAB MASALA SPIC MIX",
+    "category": "Herbs & Spices",
+    "source": "Fleet57 named/adversarial/permanent",
+    "expected": "judge",
+    "mainRejected": true
+  },
+  {
+    "name": "stir-fried meat with red chilies",
+    "description": "Fish, tuna, cooked",
+    "category": "Finfish and Shellfish Products",
+    "source": "Fleet57 named/adversarial/permanent",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "lemon chicken",
+    "description": "Chicken with lemon sauce",
+    "category": "Poultry Products",
+    "source": "Fleet57 named/adversarial/permanent",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "banana bread",
+    "description": "Bread, banana, prepared from recipe",
+    "category": "Baked Products",
+    "source": "Fleet57 named/adversarial/permanent",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "avocado toast",
+    "description": "Toast with avocado",
+    "category": "Baked Products",
+    "source": "Fleet57 named/adversarial/permanent",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "peanut butter toast",
+    "description": "Toast, whole wheat",
+    "category": "Baked Products",
+    "source": "Fleet57 named/adversarial/permanent",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "butter chicken",
+    "description": "Chicken, butter sauce",
+    "category": "Mixed Dishes",
+    "source": "Fleet57 named/adversarial/permanent",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "orange chicken",
+    "description": "Chicken with orange sauce",
+    "category": "Poultry Products",
+    "source": "Fleet57 named/adversarial/permanent",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "Lime and rum tiki cocktail",
+    "description": "Cocktail, NFS",
+    "category": "Liquor and cocktails",
+    "source": "Fleet57 named/adversarial/permanent",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "orange juice",
+    "description": "Orange juice, raw",
+    "category": "Fruits and Fruit Juices",
+    "source": "Fleet57 named/adversarial/permanent",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "orange marmalade",
+    "description": "Marmalade, orange",
+    "category": "Sweets",
+    "source": "Fleet57 named/adversarial/permanent",
+    "expected": "judge",
+    "mainRejected": true
+  },
+  {
+    "name": "lemon curd",
+    "description": "Lemon curd",
+    "category": "Sweets",
+    "source": "Fleet57 named/adversarial/permanent",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "lime cordial",
+    "description": "Lime cordial",
+    "category": "Beverages",
+    "source": "Fleet57 named/adversarial/permanent",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "butter croissant",
+    "description": "Croissants, butter",
+    "category": "Croissants, sweet rolls, muffins and other pastries",
+    "source": "Fleet57 named/adversarial/permanent",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "Indonesian sweet bread with chocolate filling",
+    "description": "Croissant, chocolate",
+    "category": "doughnuts, sweet rolls, pastries",
+    "source": "Fleet57 named/adversarial/permanent",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "satay peanut sambal sauce",
+    "description": "Peanut sauce",
+    "category": "Sauces",
+    "source": "Fleet57 named/adversarial/permanent",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "lemon beer",
+    "description": "Hard lemonade",
+    "category": "Beverages",
+    "source": "Fleet57 named/adversarial/permanent",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "fruit salad",
+    "description": "Fruit, mixed",
+    "category": "Fruits and Fruit Juices",
+    "source": "Fleet57 named/adversarial/permanent",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "sparkling water with lemon",
+    "description": "Water, bottled",
+    "category": "Beverages",
+    "source": "Fleet57 named/adversarial/permanent",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "Mala udon with beef",
+    "description": "Beef and noodles with soy-based sauce",
+    "category": "Stir-fry and soy-based sauce mixtures",
+    "source": "Fleet57 named/adversarial/permanent",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "roasted cherry tomatoes",
+    "description": "ROASTED CHERRY TOMATOES",
+    "category": "Vegetables and Vegetable Products",
+    "source": "Fleet57 named/adversarial/permanent",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "corn on the cob",
+    "description": "Corn, sweet, yellow, on cob, boiled",
+    "category": "Vegetables and Vegetable Products",
+    "source": "Fleet57 named/adversarial/permanent",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "Lemon wedge",
+    "description": "Lemon, raw",
+    "category": "Fruits and Fruit Juices",
+    "source": "Fleet57 named/adversarial/permanent",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "Sambal",
+    "description": "CHNG KEE'S, SAMBAL OELEK",
+    "category": "Sauces",
+    "source": "Fleet57 named/adversarial/permanent",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "sambal",
+    "description": "Chili sauce",
+    "category": "Sauces",
+    "source": "Fleet57 named/adversarial/permanent",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "stir-fried greens with chili",
+    "description": "Asian stir fry vegetables",
+    "category": "Vegetables and Vegetable Products",
+    "source": "Fleet57 named/adversarial/permanent",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "mixed green salad",
+    "description": "Lettuce, raw",
+    "category": "Vegetables and Vegetable Products",
+    "source": "Fleet57 named/adversarial/permanent",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "Lemon twist garnish",
+    "description": "Lemon peel, raw",
+    "category": "Fruits and Fruit Juices",
+    "source": "Fleet57 named/adversarial/permanent",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "sliced tomato",
+    "description": "Tomatoes, raw",
+    "category": "Vegetables and Vegetable Products",
+    "source": "Fleet57 named/adversarial/permanent",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "Grilled onions",
+    "description": "Onions, cooked",
+    "category": "Vegetables and Vegetable Products",
+    "source": "Fleet57 named/adversarial/permanent",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "French fries",
+    "description": "Potatoes, french fried",
+    "category": "Vegetables and Vegetable Products",
+    "source": "Fleet57 named/adversarial/permanent",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "roasted baby potatoes",
+    "description": "Potato, roasted, NFS",
+    "category": "Vegetables and Vegetable Products",
+    "source": "Fleet57 named/adversarial/permanent",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "mushroom dish with onion",
+    "description": "Mushrooms, cooked",
+    "category": "Vegetables and Vegetable Products",
+    "source": "Fleet57 named/adversarial/permanent",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "sweet and sour dish",
+    "description": "Sweet and sour chicken",
+    "category": "Mixed Dishes",
+    "source": "Fleet57 named/adversarial/permanent",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "Lemon cheesecake",
+    "description": "Cheesecake",
+    "category": "Cakes and pies",
+    "source": "Fleet57 named/adversarial/permanent",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "Lime sorbet",
+    "description": "Frozen desserts, sorbet",
+    "category": "Desserts",
+    "source": "Fleet57 named/adversarial/permanent",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "honeydew",
+    "description": "Melons, honeydew, raw",
+    "category": "Fruits and Fruit Juices",
+    "source": "Fleet57 named/adversarial/permanent",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "cantaloupe",
+    "description": "Melons, cantaloupe, raw",
+    "category": "Fruits and Fruit Juices",
+    "source": "Fleet57 named/adversarial/permanent",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "key lime pie",
+    "description": "Pie, key lime",
+    "category": "Cakes and pies",
+    "source": "Fleet57 named/adversarial/permanent",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "chocolate cake",
+    "description": "Cake, chocolate, prepared from mix",
+    "category": "Baked Products",
+    "source": "Fleet57 named/adversarial/permanent",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "nut trail mix",
+    "description": "Snacks, trail mix",
+    "category": "Snacks",
+    "source": "Fleet57 named/adversarial/permanent",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "mixed vegetables",
+    "description": "Vegetables, mixed, corn, peas, carrots",
+    "category": "Vegetables and Vegetable Products",
+    "source": "Fleet57 named/adversarial/permanent",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "stir-fried vegetables",
+    "description": "Vegetables, mixed, broccoli, carrots, corn",
+    "category": "Vegetables and Vegetable Products",
+    "source": "Fleet57 named/adversarial/permanent",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "vegetable soup",
+    "description": "Soup, vegetable, tomato, corn, peas, carrots",
+    "category": "Soups",
+    "source": "Fleet57 named/adversarial/permanent",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "ratatouille",
+    "description": "Ratatouille, eggplant, zucchini, tomato",
+    "category": "Vegetables and Vegetable Products",
+    "source": "Fleet57 named/adversarial/permanent",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "succotash",
+    "description": "Succotash, corn and lima beans",
+    "category": "Vegetables and Vegetable Products",
+    "source": "Fleet57 named/adversarial/permanent",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "corn",
+    "description": "Vegetables, mixed, corn, peas, carrots",
+    "category": "Vegetables and Vegetable Products",
+    "source": "Fleet57 named/adversarial/permanent",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "peas",
+    "description": "Vegetables, mixed, corn, peas, carrots",
+    "category": "Vegetables and Vegetable Products",
+    "source": "Fleet57 named/adversarial/permanent",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "carrots",
+    "description": "Vegetables, mixed, corn, peas, carrots",
+    "category": "Vegetables and Vegetable Products",
+    "source": "Fleet57 named/adversarial/permanent",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "mixed greens salad",
+    "description": "Salad, greens, lettuce, spinach, cucumber",
+    "category": "Vegetables and Vegetable Products",
+    "source": "Fleet57 named/adversarial/permanent",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "fruit salad",
+    "description": "Fruit salad, apple, pineapple, peach",
+    "category": "Fruits and Fruit Juices",
+    "source": "Fleet57 named/adversarial/permanent",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "trail mix",
+    "description": "Snacks, trail mix, raisins, almonds, peanuts",
+    "category": "Snacks",
+    "source": "Fleet57 named/adversarial/permanent",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "mixed berries",
+    "description": "Berries, mixed, blueberries, strawberries",
+    "category": "Fruits and Fruit Juices",
+    "source": "Fleet57 named/adversarial/permanent",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "pak choy",
+    "description": "Cabbage, chinese (pak-choi), raw",
+    "category": "Vegetables and Vegetable Products",
+    "source": "Fleet57 named/adversarial/permanent",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "pak choy",
+    "description": "Cabbage, chinese (pak-choi), cooked, boiled",
+    "category": "Vegetables and Vegetable Products",
+    "source": "Fleet57 named/adversarial/permanent",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "bok choy",
+    "description": "Cabbage, chinese (pak-choi), raw",
+    "category": "Vegetables and Vegetable Products",
+    "source": "Fleet57 named/adversarial/permanent",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "bok choy",
+    "description": "Cabbage, chinese (pak-choi), cooked, boiled",
+    "category": "Vegetables and Vegetable Products",
+    "source": "Fleet57 named/adversarial/permanent",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "stir-fried bok choy",
+    "description": "Cabbage, chinese (pak-choi), raw",
+    "category": "Vegetables and Vegetable Products",
+    "source": "Fleet57 named/adversarial/permanent",
+    "expected": "judge",
+    "mainRejected": true
+  },
+  {
+    "name": "stir-fried bok choy",
+    "description": "Cabbage, chinese (pak-choi), cooked, boiled",
+    "category": "Vegetables and Vegetable Products",
+    "source": "Fleet57 named/adversarial/permanent",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "stir fried pak choy",
+    "description": "Cabbage, chinese (pak-choi), raw",
+    "category": "Vegetables and Vegetable Products",
+    "source": "Fleet57 named/adversarial/permanent",
+    "expected": "judge",
+    "mainRejected": true
+  },
+  {
+    "name": "stir fried pak choy",
+    "description": "Cabbage, chinese (pak-choi), cooked, boiled",
+    "category": "Vegetables and Vegetable Products",
+    "source": "Fleet57 named/adversarial/permanent",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "strawberry jam",
+    "description": "Jams and preserves",
+    "category": "Sweets",
+    "source": "Fleet57 named/adversarial/permanent",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "strawberry jam",
+    "description": "Jams and preserves",
+    "category": null,
+    "source": "Fleet57 named/adversarial/permanent",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "peach jam",
+    "description": "Jams and preserves",
+    "category": "Sweets",
+    "source": "Fleet57 named/adversarial/permanent",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "peach jam",
+    "description": "Jams and preserves",
+    "category": null,
+    "source": "Fleet57 named/adversarial/permanent",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "fruit jam",
+    "description": "Jams and preserves",
+    "category": "Sweets",
+    "source": "Fleet57 named/adversarial/permanent",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "fruit jam",
+    "description": "Jams and preserves",
+    "category": null,
+    "source": "Fleet57 named/adversarial/permanent",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "curry powder",
+    "description": "Spices, curry powder",
+    "category": "Spices and Herbs",
+    "source": "Fleet57 named/adversarial/permanent",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "curry",
+    "description": "Spices, curry powder",
+    "category": "Spices and Herbs",
+    "source": "Fleet57 named/adversarial/permanent",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "garam masala",
+    "description": "Spices, curry powder",
+    "category": "Spices and Herbs",
+    "source": "Fleet57 named/adversarial/permanent",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "chilli powder",
+    "description": "Spices, curry powder",
+    "category": "Spices and Herbs",
+    "source": "Fleet57 named/adversarial/permanent",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "apple sauce",
+    "description": "Applesauce, canned, unsweetened",
+    "category": "Fruits and Fruit Juices",
+    "source": "Fleet57 named/adversarial/permanent",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "lime and rum tiki cocktail",
+    "description": "Limes, raw",
+    "category": "Fruits and Fruit Juices",
+    "source": "Fleet57 named/adversarial/permanent",
+    "expected": "judge",
+    "mainRejected": true
+  },
+  {
+    "name": "lemon and ginger tea",
+    "description": "Lemons, raw",
+    "category": "Fruits and Fruit Juices",
+    "source": "Fleet57 named/adversarial/permanent",
+    "expected": "judge",
+    "mainRejected": true
+  },
+  {
+    "name": "lemon and honey tea",
+    "description": "Lemons, raw",
+    "category": "Fruits and Fruit Juices",
+    "source": "Fleet57 named/adversarial/permanent",
+    "expected": "judge",
+    "mainRejected": true
+  },
+  {
+    "name": "lemon and lime soda",
+    "description": "Lemons, raw",
+    "category": "Fruits and Fruit Juices",
+    "source": "Fleet57 named/adversarial/permanent",
+    "expected": "judge",
+    "mainRejected": true
+  },
+  {
+    "name": "lime with soda",
+    "description": "Limes, raw",
+    "category": "Fruits and Fruit Juices",
+    "source": "Fleet57 named/adversarial/permanent",
+    "expected": "judge",
+    "mainRejected": true
+  },
+  {
+    "name": "lemon with soda water",
+    "description": "Lemons, raw",
+    "category": "Fruits and Fruit Juices",
+    "source": "Fleet57 named/adversarial/permanent",
+    "expected": "judge",
+    "mainRejected": true
+  },
+  {
+    "name": "lemon & mint drink",
+    "description": "Lemons, raw",
+    "category": "Fruits and Fruit Juices",
+    "source": "Fleet57 named/adversarial/permanent",
+    "expected": "judge",
+    "mainRejected": true
+  },
+  {
+    "name": "lime in water",
+    "description": "Limes, raw",
+    "category": "Fruits and Fruit Juices",
+    "source": "Fleet57 named/adversarial/permanent",
+    "expected": "judge",
+    "mainRejected": true
+  },
+  {
+    "name": "lemon in tea",
+    "description": "Lemons, raw",
+    "category": "Fruits and Fruit Juices",
+    "source": "Fleet57 named/adversarial/permanent",
+    "expected": "judge",
+    "mainRejected": true
+  },
+  {
+    "name": "lemon and vodka (cocktail)",
+    "description": "Lemons, raw",
+    "category": "Fruits and Fruit Juices",
+    "source": "Fleet57 named/adversarial/permanent",
+    "expected": "judge",
+    "mainRejected": true
+  },
+  {
+    "name": "lemon and rum punch",
+    "description": "Lemons, raw",
+    "category": "Fruits and Fruit Juices",
+    "source": "Fleet57 named/adversarial/permanent",
+    "expected": "judge",
+    "mainRejected": true
+  },
+  {
+    "name": "lemon and chicken",
+    "description": "Lemons, raw",
+    "category": "Fruits and Fruit Juices",
+    "source": "Fleet57 named/adversarial/permanent",
+    "expected": "judge",
+    "mainRejected": true
+  },
+  {
+    "name": "lemon and herb chicken",
+    "description": "Lemons, raw",
+    "category": "Fruits and Fruit Juices",
+    "source": "Fleet57 named/adversarial/permanent",
+    "expected": "judge",
+    "mainRejected": true
+  },
+  {
+    "name": "lemon and pepper salmon",
+    "description": "Lemons, raw",
+    "category": "Fruits and Fruit Juices",
+    "source": "Fleet57 named/adversarial/permanent",
+    "expected": "judge",
+    "mainRejected": true
+  },
+  {
+    "name": "lime and coriander rice",
+    "description": "Limes, raw",
+    "category": "Fruits and Fruit Juices",
+    "source": "Fleet57 named/adversarial/permanent",
+    "expected": "judge",
+    "mainRejected": true
+  },
+  {
+    "name": "lime and chili shrimp",
+    "description": "Limes, raw",
+    "category": "Fruits and Fruit Juices",
+    "source": "Fleet57 named/adversarial/permanent",
+    "expected": "judge",
+    "mainRejected": true
+  },
+  {
+    "name": "lemon and ricotta pancakes",
+    "description": "Lemons, raw",
+    "category": "Fruits and Fruit Juices",
+    "source": "Fleet57 named/adversarial/permanent",
+    "expected": "judge",
+    "mainRejected": true
+  },
+  {
+    "name": "lemon and garlic butter",
+    "description": "Lemons, raw",
+    "category": "Fruits and Fruit Juices",
+    "source": "Fleet57 named/adversarial/permanent",
+    "expected": "judge",
+    "mainRejected": true
+  },
+  {
+    "name": "bok choy",
+    "description": "Cabbage, chinese (pak-choi), raw",
+    "category": "Vegetables and Vegetable Products",
+    "source": "Fleet57 named/adversarial/permanent",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "pak choy",
+    "description": "Cabbage, chinese (pak-choi), cooked, boiled",
+    "category": "Vegetables and Vegetable Products",
+    "source": "Fleet57 named/adversarial/permanent",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "stir-fried bok choy",
+    "description": "Cabbage, chinese (pak-choi), cooked, boiled",
+    "category": "Vegetables and Vegetable Products",
+    "source": "Fleet57 named/adversarial/permanent",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "strawberry jam",
+    "description": "Jams and preserves",
+    "category": "Sweets",
+    "source": "Fleet57 named/adversarial/permanent",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "peach jam",
+    "description": "Jams and preserves",
+    "category": null,
+    "source": "Fleet57 named/adversarial/permanent",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "fruit jam",
+    "description": "Jams and preserves",
+    "category": "Sweets",
+    "source": "Fleet57 named/adversarial/permanent",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "apple sauce",
+    "description": "Applesauce, canned, unsweetened",
+    "category": "Fruits and Fruit Juices",
+    "source": "Fleet57 named/adversarial/permanent",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "curry powder",
+    "description": "Spices, curry powder",
+    "category": "Spices and Herbs",
+    "source": "Fleet57 named/adversarial/permanent",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "curry",
+    "description": "Spices, curry powder",
+    "category": "Spices and Herbs",
+    "source": "Fleet57 named/adversarial/permanent",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "garam masala",
+    "description": "Spices, garam masala",
+    "category": "Spices and Herbs",
+    "source": "Fleet57 named/adversarial/permanent",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "chilli powder",
+    "description": "Spices, chili powder",
+    "category": "Spices and Herbs",
+    "source": "Fleet57 named/adversarial/permanent",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "chicken seasoning",
+    "description": "Chicken seasoning",
+    "category": "Herbs & Spices",
+    "source": "Fleet57 named/adversarial/permanent",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "Mala udon with beef",
+    "description": "Beef and noodles with soy-based sauce",
+    "category": "Stir-fry and soy-based sauce mixtures",
+    "source": "Fleet57 named/adversarial/permanent",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "tofu stir fry",
+    "description": "Stir-fry and soy-based sauce mixtures",
+    "category": "Sauce mixtures",
+    "source": "Fleet57 named/adversarial/permanent",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "chocolate cake",
+    "description": "Cake, chocolate, prepared from mix",
+    "category": "Baked Products",
+    "source": "Fleet57 named/adversarial/permanent",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "nut trail mix",
+    "description": "Snacks, trail mix",
+    "category": "Snacks",
+    "source": "Fleet57 named/adversarial/permanent",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "Lemon wedge",
+    "description": "Lemon, raw",
+    "category": "Fruits and Fruit Juices",
+    "source": "Fleet57 named/adversarial/permanent",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "stir-fried meat with red chilies",
+    "description": "Fish, tuna, cooked",
+    "category": "Finfish and Shellfish Products",
+    "source": "Fleet57 named/adversarial/permanent",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "shrimp rice noodle roll",
+    "description": "Crepe, with meat",
+    "category": "Mixed Dishes",
+    "source": "Fleet57 named/adversarial/permanent",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "Seekh kebab",
+    "description": "SEEKH KEBAB MASALA SPIC MIX",
+    "category": "Herbs & Spices",
+    "source": "Fleet57 named/adversarial/permanent",
+    "expected": "judge",
+    "mainRejected": true
+  },
+  {
+    "name": "chicken",
+    "description": "Spices, seasoning mix",
+    "category": "Spices and Herbs",
+    "source": "Fleet57 named/adversarial/permanent",
+    "expected": "judge",
+    "mainRejected": true
+  },
+  {
+    "name": "steak",
+    "description": "Seasoning mix",
+    "category": "Seasonings",
+    "source": "Fleet57 named/adversarial/permanent",
+    "expected": "judge",
+    "mainRejected": true
+  },
+  {
+    "name": "chicken curry",
+    "description": "Spices, curry powder",
+    "category": "Spices and Herbs",
+    "source": "Fleet57 named/adversarial/permanent",
+    "expected": "judge",
+    "mainRejected": true
+  },
+  {
+    "name": "lemon and herb chicken",
+    "description": "Lemons, raw",
+    "category": "Fruits and Fruit Juices",
+    "source": "Fleet57 named/adversarial/permanent",
+    "expected": "judge",
+    "mainRejected": true
+  },
+  {
+    "name": "lime and rum tiki cocktail",
+    "description": "Limes, raw",
+    "category": "Fruits and Fruit Juices",
+    "source": "Fleet57 named/adversarial/permanent",
+    "expected": "judge",
+    "mainRejected": true
+  },
+  {
+    "name": "lemon and ginger tea",
+    "description": "Lemons, raw",
+    "category": "Fruits and Fruit Juices",
+    "source": "Fleet57 named/adversarial/permanent",
+    "expected": "judge",
+    "mainRejected": true
+  },
+  {
+    "name": "lemon with soda water",
+    "description": "Lemons, raw",
+    "category": "Fruits and Fruit Juices",
+    "source": "Fleet57 named/adversarial/permanent",
+    "expected": "judge",
+    "mainRejected": true
+  }
+]

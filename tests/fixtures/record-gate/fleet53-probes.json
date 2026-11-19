@@ -1,0 +1,1146 @@
+[
+  {
+    "name": "ham",
+    "description": "HAM",
+    "category": null,
+    "source": "Fleet53 recorded probes and planner replay",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "ham",
+    "description": "HAM",
+    "category": null,
+    "source": "Fleet53 recorded probes and planner replay",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "ham",
+    "description": "HAM",
+    "category": null,
+    "source": "Fleet53 recorded probes and planner replay",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "ham",
+    "description": "HAM",
+    "category": null,
+    "source": "Fleet53 recorded probes and planner replay",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "ham",
+    "description": "HAM",
+    "category": null,
+    "source": "Fleet53 recorded probes and planner replay",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "ham",
+    "description": "Ham, turkey, sliced, extra lean, prepackaged or deli",
+    "category": null,
+    "source": "Fleet53 recorded probes and planner replay",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "ham",
+    "description": "Ham, sliced, restaurant",
+    "category": null,
+    "source": "Fleet53 recorded probes and planner replay",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "ham",
+    "description": "Ham, sliced, pre-packaged, deli meat (96%fat free, water added)",
+    "category": null,
+    "source": "Fleet53 recorded probes and planner replay",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "ham",
+    "description": "Ham, sliced, pre-packaged, deli meat (96%fat free, water added)",
+    "category": null,
+    "source": "Fleet53 recorded probes and planner replay",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "ham",
+    "description": "Roast beef, deli style, prepackaged, sliced",
+    "category": null,
+    "source": "Fleet53 recorded probes and planner replay",
+    "expected": "judge",
+    "mainRejected": true
+  },
+  {
+    "name": "Indonesian nasi kotak bento box with ric",
+    "description": "Frozen dinner, NFS",
+    "category": null,
+    "source": "Fleet53 recorded probes and planner replay",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "Tonkatsu",
+    "description": "Pork, steak, coated",
+    "category": null,
+    "source": "Fleet53 recorded probes and planner replay",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "Fried Macaroni with Spicy Powder",
+    "description": "Noodles, chow mein",
+    "category": null,
+    "source": "Fleet53 recorded probes and planner replay",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "hamburger steak",
+    "description": "Beef, ground, patty",
+    "category": null,
+    "source": "Fleet53 recorded probes and planner replay",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "Pain au chocolat",
+    "description": "Croissant, chocolate",
+    "category": null,
+    "source": "Fleet53 recorded probes and planner replay",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "nasi goreng with sunny-side-up egg",
+    "description": "Rice pilaf",
+    "category": null,
+    "source": "Fleet53 recorded probes and planner replay",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "CHAGEE BO.YA Mango Jasmine Green Milk Te",
+    "description": "Tea, bubble",
+    "category": null,
+    "source": "Fleet53 recorded probes and planner replay",
+    "expected": "judge",
+    "mainRejected": true
+  },
+  {
+    "name": "Tuna and black olive pain Suisse",
+    "description": "Turnover, seafood",
+    "category": null,
+    "source": "Fleet53 recorded probes and planner replay",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "Omelette",
+    "description": "Egg, whole, cooked, omelet",
+    "category": null,
+    "source": "Fleet53 recorded probes and planner replay",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "Omelette",
+    "description": "Egg, whole, cooked, omelet",
+    "category": null,
+    "source": "Fleet53 recorded probes and planner replay",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "Tuna and black olive pain Suisse",
+    "description": "Turnover, seafood",
+    "category": null,
+    "source": "Fleet53 recorded probes and planner replay",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "shrimp rice noodle roll",
+    "description": "Crepe, with meat",
+    "category": null,
+    "source": "Fleet53 recorded probes and planner replay",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "shrimp rice noodle roll",
+    "description": "Roll with meat and/or shrimp, vegetables and rice paper, not fried",
+    "category": null,
+    "source": "Fleet53 recorded probes and planner replay",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "Shrimp tempura with sauce",
+    "description": "Shrimp, fried",
+    "category": null,
+    "source": "Fleet53 recorded probes and planner replay",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "fried calamari",
+    "description": "Calamari, fried",
+    "category": null,
+    "source": "Fleet53 recorded probes and planner replay",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "salt and pepper battered baby squid",
+    "description": "Mollusks, squid, mixed species, cooked, fried",
+    "category": null,
+    "source": "Fleet53 recorded probes and planner replay",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "tuna rica (spicy shredded tuna with red",
+    "description": "Fish, tuna, cooked",
+    "category": null,
+    "source": "Fleet53 recorded probes and planner replay",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "Salmon bomb sushi with spicy topping and",
+    "description": "Sushi, topped with salmon",
+    "category": null,
+    "source": "Fleet53 recorded probes and planner replay",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "Salmon sashimi platter with garnishes",
+    "description": "Fish, salmon, raw",
+    "category": null,
+    "source": "Fleet53 recorded probes and planner replay",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "assorted salmon sashimi",
+    "description": "Fish, salmon, raw",
+    "category": null,
+    "source": "Fleet53 recorded probes and planner replay",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "chicken burger",
+    "description": "Hamburger, with beef",
+    "category": null,
+    "source": "Fleet53 recorded probes and planner replay",
+    "expected": "judge",
+    "mainRejected": true
+  },
+  {
+    "name": "fish burger",
+    "description": "Hamburger, with beef",
+    "category": null,
+    "source": "Fleet53 recorded probes and planner replay",
+    "expected": "judge",
+    "mainRejected": true
+  },
+  {
+    "name": "turkey burger",
+    "description": "Hamburger, with beef",
+    "category": null,
+    "source": "Fleet53 recorded probes and planner replay",
+    "expected": "judge",
+    "mainRejected": true
+  },
+  {
+    "name": "chicken meatballs",
+    "description": "Meatballs, with beef",
+    "category": null,
+    "source": "Fleet53 recorded probes and planner replay",
+    "expected": "judge",
+    "mainRejected": true
+  },
+  {
+    "name": "beef and broccoli",
+    "description": "Chicken and broccoli",
+    "category": null,
+    "source": "Fleet53 recorded probes and planner replay",
+    "expected": "judge",
+    "mainRejected": true
+  },
+  {
+    "name": "chicken parmesan",
+    "description": "Veal parmigiana",
+    "category": null,
+    "source": "Fleet53 recorded probes and planner replay",
+    "expected": "judge",
+    "mainRejected": true
+  },
+  {
+    "name": "ham",
+    "description": "Roast beef, deli style, prepackaged, sliced",
+    "category": null,
+    "source": "Fleet53 recorded probes and planner replay",
+    "expected": "judge",
+    "mainRejected": true
+  },
+  {
+    "name": "squid nigiri",
+    "description": "Sushi roll, tuna",
+    "category": null,
+    "source": "Fleet53 recorded probes and planner replay",
+    "expected": "judge",
+    "mainRejected": true
+  },
+  {
+    "name": "squid nigiri",
+    "description": "Tuna, fresh, bluefin, raw",
+    "category": null,
+    "source": "Fleet53 recorded probes and planner replay",
+    "expected": "judge",
+    "mainRejected": true
+  },
+  {
+    "name": "squid nigiri",
+    "description": "Fish, tuna, light, canned in water, drained solids",
+    "category": null,
+    "source": "Fleet53 recorded probes and planner replay",
+    "expected": "judge",
+    "mainRejected": true
+  },
+  {
+    "name": "pork chop",
+    "description": "Beef, ribeye steak, cooked",
+    "category": null,
+    "source": "Fleet53 recorded probes and planner replay",
+    "expected": "judge",
+    "mainRejected": true
+  },
+  {
+    "name": "chicken curry",
+    "description": "Fish, salmon, Atlantic, cooked",
+    "category": null,
+    "source": "Fleet53 recorded probes and planner replay",
+    "expected": "judge",
+    "mainRejected": true
+  },
+  {
+    "name": "egg roll",
+    "description": "Egg roll, with pork",
+    "category": null,
+    "source": "Fleet53 recorded probes and planner replay",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "imitation crab",
+    "description": "Crustaceans, crab, blue, cooked",
+    "category": null,
+    "source": "Fleet53 recorded probes and planner replay",
+    "expected": "judge",
+    "mainRejected": true
+  },
+  {
+    "name": "chicken burger",
+    "description": "Hamburger, single patty",
+    "category": null,
+    "source": "Fleet53 recorded probes and planner replay",
+    "expected": "judge",
+    "mainRejected": true
+  },
+  {
+    "name": "beef curry",
+    "description": "Curry, chicken",
+    "category": null,
+    "source": "Fleet53 recorded probes and planner replay",
+    "expected": "judge",
+    "mainRejected": true
+  },
+  {
+    "name": "chicken satay",
+    "description": "Satay, beef",
+    "category": null,
+    "source": "Fleet53 recorded probes and planner replay",
+    "expected": "judge",
+    "mainRejected": true
+  },
+  {
+    "name": "eggs benedict",
+    "description": "Egg, whole, cooked, poached",
+    "category": null,
+    "source": "Fleet53 recorded probes and planner replay",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "scrambled tofu",
+    "description": "Tofu, firm, prepared",
+    "category": null,
+    "source": "Fleet53 recorded probes and planner replay",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "ham and cheese croissant",
+    "description": "Croissants, cheese",
+    "category": null,
+    "source": "Fleet53 recorded probes and planner replay",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "salmon burger",
+    "description": "Fish, salmon, Atlantic, cooked",
+    "category": null,
+    "source": "Fleet53 recorded probes and planner replay",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "salmon burger",
+    "description": "Beef, ground, patty, cooked",
+    "category": null,
+    "source": "Fleet53 recorded probes and planner replay",
+    "expected": "judge",
+    "mainRejected": true
+  },
+  {
+    "name": "turkey burger",
+    "description": "Turkey, ground, cooked",
+    "category": null,
+    "source": "Fleet53 recorded probes and planner replay",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "turkey burger",
+    "description": "Beef, ground, patty, cooked",
+    "category": null,
+    "source": "Fleet53 recorded probes and planner replay",
+    "expected": "judge",
+    "mainRejected": true
+  },
+  {
+    "name": "veggie burger",
+    "description": "Veggie burgers or soyburgers, unprepared",
+    "category": null,
+    "source": "Fleet53 recorded probes and planner replay",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "crab cake",
+    "description": "Crustaceans, crab, blue, cooked",
+    "category": null,
+    "source": "Fleet53 recorded probes and planner replay",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "beef pho",
+    "description": "Soup, pho, beef",
+    "category": null,
+    "source": "Fleet53 recorded probes and planner replay",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "octopus",
+    "description": "Mollusks, octopus, common, cooked",
+    "category": null,
+    "source": "Fleet53 recorded probes and planner replay",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "calamari",
+    "description": "Mollusks, squid, mixed species, cooked",
+    "category": null,
+    "source": "Fleet53 recorded probes and planner replay",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "fried calamari",
+    "description": "Fish, cod, battered, fried",
+    "category": null,
+    "source": "Fleet53 recorded probes and planner replay",
+    "expected": "judge",
+    "mainRejected": true
+  },
+  {
+    "name": "anchovies",
+    "description": "Fish, anchovy, european, raw",
+    "category": null,
+    "source": "Fleet53 recorded probes and planner replay",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "sardines",
+    "description": "Fish, sardine, Atlantic, canned in oil",
+    "category": null,
+    "source": "Fleet53 recorded probes and planner replay",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "eel",
+    "description": "Fish, eel, mixed species, cooked",
+    "category": null,
+    "source": "Fleet53 recorded probes and planner replay",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "fish",
+    "description": "Mollusks, squid, mixed species, raw",
+    "category": null,
+    "source": "Fleet53 recorded probes and planner replay",
+    "expected": "judge",
+    "mainRejected": true
+  },
+  {
+    "name": "egg drop soup",
+    "description": "Soup, chicken broth, ready-to-serve",
+    "category": null,
+    "source": "Fleet53 recorded probes and planner replay",
+    "expected": "judge",
+    "mainRejected": true
+  },
+  {
+    "name": "egg drop soup",
+    "description": "Soup, egg drop, Chinese restaurant",
+    "category": null,
+    "source": "Fleet53 recorded probes and planner replay",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "chicken and egg sandwich",
+    "description": "Egg, whole, cooked, fried",
+    "category": null,
+    "source": "Fleet53 recorded probes and planner replay",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "ham omelette",
+    "description": "Egg, whole, cooked, omelet",
+    "category": null,
+    "source": "Fleet53 recorded probes and planner replay",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "shrimp omelet",
+    "description": "Egg, whole, cooked, omelet",
+    "category": null,
+    "source": "Fleet53 recorded probes and planner replay",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "quiche lorraine",
+    "description": "Quiche, with bacon",
+    "category": null,
+    "source": "Fleet53 recorded probes and planner replay",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "bacon",
+    "description": "Turkey bacon, cooked",
+    "category": null,
+    "source": "Fleet53 recorded probes and planner replay",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "pork belly",
+    "description": "Bacon, pork, cooked",
+    "category": null,
+    "source": "Fleet53 recorded probes and planner replay",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "tuna steak",
+    "description": "Beef, steak, cooked",
+    "category": null,
+    "source": "Fleet53 recorded probes and planner replay",
+    "expected": "judge",
+    "mainRejected": true
+  },
+  {
+    "name": "tuna steak",
+    "description": "Fish, tuna, fresh, bluefin, cooked",
+    "category": null,
+    "source": "Fleet53 recorded probes and planner replay",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "chicken fried rice",
+    "description": "Fried rice, with pork",
+    "category": null,
+    "source": "Fleet53 recorded probes and planner replay",
+    "expected": "judge",
+    "mainRejected": true
+  },
+  {
+    "name": "chicken-fried steak",
+    "description": "Chicken, broilers or fryers, breast, cooked",
+    "category": null,
+    "source": "Fleet53 recorded probes and planner replay",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "chicken fried steak",
+    "description": "Beef, round, steak, cooked",
+    "category": null,
+    "source": "Fleet53 recorded probes and planner replay",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "fish roe",
+    "description": "Fish, roe, mixed species, raw",
+    "category": null,
+    "source": "Fleet53 recorded probes and planner replay",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "ikura",
+    "description": "Fish, caviar, black and red, granular",
+    "category": null,
+    "source": "Fleet53 recorded probes and planner replay",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "salmon",
+    "description": "Fish, roe, mixed species, raw",
+    "category": null,
+    "source": "Fleet53 recorded probes and planner replay",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "salmon",
+    "description": "Fish, cod, Atlantic, cooked",
+    "category": null,
+    "source": "Fleet53 recorded probes and planner replay",
+    "expected": "judge",
+    "mainRejected": true
+  },
+  {
+    "name": "tuna",
+    "description": "Fish, salmon, Atlantic, raw",
+    "category": null,
+    "source": "Fleet53 recorded probes and planner replay",
+    "expected": "judge",
+    "mainRejected": true
+  },
+  {
+    "name": "grilled fish",
+    "description": "Mollusks, squid",
+    "category": null,
+    "source": "Fleet53 recorded probes and planner replay",
+    "expected": "judge",
+    "mainRejected": true
+  },
+  {
+    "name": "fish and chips",
+    "description": "Fish, haddock, cooked",
+    "category": null,
+    "source": "Fleet53 recorded probes and planner replay",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "hot dog",
+    "description": "Sausage, pork, cooked",
+    "category": null,
+    "source": "Fleet53 recorded probes and planner replay",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "pepperoni pizza",
+    "description": "Pizza, cheese topping",
+    "category": null,
+    "source": "Fleet53 recorded probes and planner replay",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "meatball sub",
+    "description": "Meatballs, beef, cooked",
+    "category": null,
+    "source": "Fleet53 recorded probes and planner replay",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "chicken meatballs",
+    "description": "Meatballs, beef, cooked",
+    "category": null,
+    "source": "Fleet53 recorded probes and planner replay",
+    "expected": "judge",
+    "mainRejected": true
+  },
+  {
+    "name": "sausage roll",
+    "description": "Pork, ground, cooked",
+    "category": null,
+    "source": "Fleet53 recorded probes and planner replay",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "shrimp fried rice",
+    "description": "Fried rice, with shrimp",
+    "category": null,
+    "source": "Fleet53 recorded probes and planner replay",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "duck rice",
+    "description": "Duck, roasted",
+    "category": null,
+    "source": "Fleet53 recorded probes and planner replay",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "lamb kebab",
+    "description": "Beef, ground, cooked",
+    "category": null,
+    "source": "Fleet53 recorded probes and planner replay",
+    "expected": "judge",
+    "mainRejected": true
+  },
+  {
+    "name": "scallops",
+    "description": "Mollusks, scallop, cooked",
+    "category": null,
+    "source": "Fleet53 recorded probes and planner replay",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "clams",
+    "description": "Mollusks, clam, cooked",
+    "category": null,
+    "source": "Fleet53 recorded probes and planner replay",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "oysters",
+    "description": "Mollusks, oyster, eastern, raw",
+    "category": null,
+    "source": "Fleet53 recorded probes and planner replay",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "shellfish",
+    "description": "Crustaceans, shrimp",
+    "category": null,
+    "source": "Fleet53 recorded probes and planner replay",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "egg tart",
+    "description": "Egg custard pie",
+    "category": null,
+    "source": "Fleet53 recorded probes and planner replay",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "chicken burger",
+    "description": "Hamburger, single patty",
+    "category": null,
+    "source": "Fleet53 recorded probes and planner replay",
+    "expected": "judge",
+    "mainRejected": true
+  },
+  {
+    "name": "fish burger",
+    "description": "Hamburger, single patty",
+    "category": null,
+    "source": "Fleet53 recorded probes and planner replay",
+    "expected": "judge",
+    "mainRejected": true
+  },
+  {
+    "name": "surimi",
+    "description": "Crustaceans, crab, blue, cooked",
+    "category": null,
+    "source": "Fleet53 recorded probes and planner replay",
+    "expected": "judge",
+    "mainRejected": true
+  },
+  {
+    "name": "crab stick",
+    "description": "Crustaceans, crab, blue, cooked",
+    "category": null,
+    "source": "Fleet53 recorded probes and planner replay",
+    "expected": "judge",
+    "mainRejected": true
+  },
+  {
+    "name": "tempura shrimp",
+    "description": "Shrimp, cooked, breaded and fried",
+    "category": null,
+    "source": "Fleet53 recorded probes and planner replay",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "chicken katsu",
+    "description": "Pork, cutlet, breaded, fried",
+    "category": null,
+    "source": "Fleet53 recorded probes and planner replay",
+    "expected": "judge",
+    "mainRejected": true
+  },
+  {
+    "name": "tonkatsu",
+    "description": "Pork, cutlet, breaded, fried",
+    "category": null,
+    "source": "Fleet53 recorded probes and planner replay",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "chicken burger",
+    "description": "Hamburger, with beef",
+    "category": null,
+    "source": "Fleet53 recorded probes and planner replay",
+    "expected": "judge",
+    "mainRejected": true
+  },
+  {
+    "name": "fish burger",
+    "description": "Hamburger, with beef",
+    "category": null,
+    "source": "Fleet53 recorded probes and planner replay",
+    "expected": "judge",
+    "mainRejected": true
+  },
+  {
+    "name": "turkey burger",
+    "description": "Hamburger, with beef",
+    "category": null,
+    "source": "Fleet53 recorded probes and planner replay",
+    "expected": "judge",
+    "mainRejected": true
+  },
+  {
+    "name": "chicken meatballs",
+    "description": "Meatballs, with beef",
+    "category": null,
+    "source": "Fleet53 recorded probes and planner replay",
+    "expected": "judge",
+    "mainRejected": true
+  },
+  {
+    "name": "shrimp omelet",
+    "description": "Omelet, egg, plain",
+    "category": null,
+    "source": "Fleet53 recorded probes and planner replay",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "chicken patty",
+    "description": "Chicken patty, fillet, or tenders, breaded, cooked",
+    "category": null,
+    "source": "Fleet53 recorded probes and planner replay",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "tofu burger",
+    "description": "Beef, ground, patty, cooked",
+    "category": null,
+    "source": "Fleet53 recorded probes and planner replay",
+    "expected": "judge",
+    "mainRejected": true
+  },
+  {
+    "name": "bacon cheeseburger",
+    "description": "Hamburger, with beef",
+    "category": null,
+    "source": "Fleet53 recorded probes and planner replay",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "turkey meatballs",
+    "description": "Meatballs, Swedish, beef and pork",
+    "category": null,
+    "source": "Fleet53 recorded probes and planner replay",
+    "expected": "judge",
+    "mainRejected": true
+  },
+  {
+    "name": "imitation crab",
+    "description": "Crustaceans, crab, blue, cooked",
+    "category": null,
+    "source": "Fleet53 recorded probes and planner replay",
+    "expected": "judge",
+    "mainRejected": true
+  },
+  {
+    "name": "chicken hot dog",
+    "description": "Frankfurter, beef, heated",
+    "category": null,
+    "source": "Fleet53 recorded probes and planner replay",
+    "expected": "judge",
+    "mainRejected": true
+  },
+  {
+    "name": "beef burger",
+    "description": "Hamburger, single patty, plain",
+    "category": null,
+    "source": "Fleet53 recorded probes and planner replay",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "bacon cheeseburger",
+    "description": "Chicken sandwich, fillet",
+    "category": null,
+    "source": "Fleet53 recorded probes and planner replay",
+    "expected": "judge",
+    "mainRejected": true
+  },
+  {
+    "name": "veggie burger",
+    "description": "Beef, ground, patty, cooked",
+    "category": null,
+    "source": "Fleet53 recorded probes and planner replay",
+    "expected": "judge",
+    "mainRejected": true
+  },
+  {
+    "name": "plant-based burger",
+    "description": "Hamburger, single patty, plain",
+    "category": null,
+    "source": "Fleet53 recorded probes and planner replay",
+    "expected": "judge",
+    "mainRejected": true
+  },
+  {
+    "name": "mushroom burger",
+    "description": "Beef, ground, patty, cooked",
+    "category": null,
+    "source": "Fleet53 recorded probes and planner replay",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "bean burger",
+    "description": "Hamburger, with beef",
+    "category": null,
+    "source": "Fleet53 recorded probes and planner replay",
+    "expected": "judge",
+    "mainRejected": true
+  },
+  {
+    "name": "impossible burger",
+    "description": "Beef, ground, patty, cooked",
+    "category": null,
+    "source": "Fleet53 recorded probes and planner replay",
+    "expected": "judge",
+    "mainRejected": true
+  },
+  {
+    "name": "chicken burger",
+    "description": "Beef, ground, patty, cooked",
+    "category": null,
+    "source": "Fleet53 recorded probes and planner replay",
+    "expected": "judge",
+    "mainRejected": true
+  },
+  {
+    "name": "lentil meatballs",
+    "description": "Meatballs, beef, cooked",
+    "category": null,
+    "source": "Fleet53 recorded probes and planner replay",
+    "expected": "judge",
+    "mainRejected": true
+  },
+  {
+    "name": "vegan hot dog",
+    "description": "Frankfurter, beef, heated",
+    "category": null,
+    "source": "Fleet53 recorded probes and planner replay",
+    "expected": "judge",
+    "mainRejected": true
+  },
+  {
+    "name": "falafel",
+    "description": "Beef, ground, cooked",
+    "category": null,
+    "source": "Fleet53 recorded probes and planner replay",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "chicken nuggets",
+    "description": "Beef, ground, cooked",
+    "category": null,
+    "source": "Fleet53 recorded probes and planner replay",
+    "expected": "judge",
+    "mainRejected": true
+  },
+  {
+    "name": "veggie burger",
+    "description": "Veggie burgers or soyburgers, unprepared",
+    "category": null,
+    "source": "Fleet53 recorded probes and planner replay",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "tofu burger",
+    "description": "Veggie burgers or soyburgers, unprepared",
+    "category": null,
+    "source": "Fleet53 recorded probes and planner replay",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "beef burrito with beans",
+    "description": "Burrito, beef",
+    "category": null,
+    "source": "Fleet53 recorded probes and planner replay",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "rice and beans",
+    "description": "Chicken and rice",
+    "category": null,
+    "source": "Fleet53 recorded probes and planner replay",
+    "expected": "judge",
+    "mainRejected": true
+  },
+  {
+    "name": "green beans",
+    "description": "Beans, snap, green, cooked",
+    "category": null,
+    "source": "Fleet53 recorded probes and planner replay",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "chickpea curry",
+    "description": "Curry, chicken",
+    "category": null,
+    "source": "Fleet53 recorded probes and planner replay",
+    "expected": "judge",
+    "mainRejected": true
+  },
+  {
+    "name": "soy sauce chicken",
+    "description": "Chicken, roasted",
+    "category": null,
+    "source": "Fleet53 recorded probes and planner replay",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "chili con carne",
+    "description": "Chili con carne with beans",
+    "category": null,
+    "source": "Fleet53 recorded probes and planner replay",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "beef chili",
+    "description": "Chili with beans, beef",
+    "category": null,
+    "source": "Fleet53 recorded probes and planner replay",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "baked beans",
+    "description": "Beans, baked, canned, with pork",
+    "category": null,
+    "source": "Fleet53 recorded probes and planner replay",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "pork and beans",
+    "description": "Beans, baked, canned, with pork",
+    "category": null,
+    "source": "Fleet53 recorded probes and planner replay",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "black bean soup",
+    "description": "Soup, black bean",
+    "category": null,
+    "source": "Fleet53 recorded probes and planner replay",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "edamame",
+    "description": "Edamame, frozen, prepared",
+    "category": null,
+    "source": "Fleet53 recorded probes and planner replay",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "tempeh",
+    "description": "Tempeh, cooked",
+    "category": null,
+    "source": "Fleet53 recorded probes and planner replay",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "tofu",
+    "description": "Soybeans, tofu, firm",
+    "category": null,
+    "source": "Fleet53 recorded probes and planner replay",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "nasi goreng with egg",
+    "description": "Fried rice, with egg",
+    "category": null,
+    "source": "Fleet53 recorded probes and planner replay",
+    "expected": "judge",
+    "mainRejected": false
+  }
+]

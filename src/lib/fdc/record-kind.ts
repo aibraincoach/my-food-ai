@@ -1,3 +1,5 @@
+import { plantFamilyConflict } from "./plant-families";
+
 // #990: is a USDA record the same kind of food as the food it stands for? One reader for the matcher (which drops a
 // record that is plainly another kind of food before the model chooses) and for the stored-numbers detector
 // (scripts/numbers/mismatch.mjs), so both apply the same rules.
@@ -73,6 +75,7 @@ export type RecordCheck = { strong: string[]; weak: string[]; score: number };
 // Every signal for one food and its record. kcalPer100g is the record's (or the stored food's) energy density, if known.
 export function checkRecord(name: string, record: { description: string; category?: string | null; kcalPer100g?: number | null }): RecordCheck {
   const strong: string[] = [], weak: string[] = [];
+  if (plantFamilyConflict(name, record.description, nameKinds)) strong.push("plant: the plain plant and record head name different foods");
   const kinds = nameKinds(name);
   const head = name.split(/\b(?:with|and|in)\b|&/i)[0].trim().split(/\s+/).at(-1) ?? "";
   const headKinds = nameKinds(head);

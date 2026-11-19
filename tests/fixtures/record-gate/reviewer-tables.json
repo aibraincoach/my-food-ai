@@ -1,0 +1,5082 @@
+[
+  {
+    "name": "bread",
+    "description": "Bread, white, commercially prepared",
+    "category": "Baked Products",
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "toast",
+    "description": "Bread, white, toasted",
+    "category": "Baked Products",
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "pancakes",
+    "description": "Pancakes, plain, prepared from recipe",
+    "category": "Baked Products",
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "bagel",
+    "description": "Bagels, plain",
+    "category": "Baked Products",
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "dinner roll",
+    "description": "Rolls, dinner, plain",
+    "category": "Baked Products",
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "bread roll",
+    "description": "Rolls, dinner, plain",
+    "category": "Baked Products",
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "crackers",
+    "description": "Crackers, saltines",
+    "category": "Baked Products",
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "waffle",
+    "description": "Waffles, plain, frozen",
+    "category": "Baked Products",
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "tortilla",
+    "description": "Tortillas, ready-to-bake or -fry, flour",
+    "category": "Baked Products",
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "pizza",
+    "description": "Pizza, cheese topping",
+    "category": "Baked Products",
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "apple with peanut butter",
+    "description": "Apples, raw, with skin",
+    "category": "Fruits and Fruit Juices",
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "tomato with cheese",
+    "description": "Tomatoes, red, ripe, raw",
+    "category": "Vegetables and Vegetable Products",
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "crispy lettuce",
+    "description": "Lettuce, cos or romaine, raw",
+    "category": "Vegetables and Vegetable Products",
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": true
+  },
+  {
+    "name": "coleslaw",
+    "description": "Cabbage, raw",
+    "category": "Vegetables and Vegetable Products",
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "cabbage slaw",
+    "description": "Cabbage, red, raw",
+    "category": "Vegetables and Vegetable Products",
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "cabbage slaw",
+    "description": "Cole slaw, home-prepared",
+    "category": "Pre-packaged fruit and vegetables",
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "cabbage slaw",
+    "description": "Coleslaw",
+    "category": "Pre-Packaged Fruit & Vegetables",
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "chicken satay with peanut sauce",
+    "description": "Chicken, roasted",
+    "category": "Poultry Products",
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "japanese curry sauce",
+    "description": "Persimmons, japanese, dried",
+    "category": "Fruits and Fruit Juices",
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": true
+  },
+  {
+    "name": "japanese curry sauce",
+    "description": "Persimmons, japanese, dried",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": true
+  },
+  {
+    "name": "japanese toast",
+    "description": "Persimmons, japanese, dried",
+    "category": "Fruits and Fruit Juices",
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": true
+  },
+  {
+    "name": "japanese toast",
+    "description": "Persimmons, japanese, dried",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": true
+  },
+  {
+    "name": "mixed green salad",
+    "description": "Salad dressing, green goddess",
+    "category": "Fats and Oils",
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": true
+  },
+  {
+    "name": "mixed green salad",
+    "description": "Salad dressing, green goddess",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": true
+  },
+  {
+    "name": "lamb curry with rice",
+    "description": "Lamb, ground, raw",
+    "category": "Lamb, Veal, and Game Products",
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": true
+  },
+  {
+    "name": "lamb curry",
+    "description": "Lamb, ground, raw",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": true
+  },
+  {
+    "name": "papaya",
+    "description": "Cookie, tea, Japanese",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": true
+  },
+  {
+    "name": "papaya",
+    "description": "Cookie, tea, Japanese",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": true
+  },
+  {
+    "name": "fried egg",
+    "description": "Egg, whole, raw, fresh",
+    "category": "Dairy and Egg Products",
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": true
+  },
+  {
+    "name": "yogurt with granola",
+    "description": "Yogurt, plain",
+    "category": "Dairy and Egg Products",
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "curry sauce",
+    "description": "Sauce, curry",
+    "category": "Soups, Sauces, and Gravies",
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "bbq sauce",
+    "description": "Sauce, barbecue",
+    "category": "Soups, Sauces, and Gravies",
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "sweet and sour chicken",
+    "description": "Chicken, sweet and sour",
+    "category": "Poultry",
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "chicken noodle soup",
+    "description": "Soup, chicken noodle, canned",
+    "category": "Soups, Sauces, and Gravies",
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "tomato soup",
+    "description": "Soup, tomato, canned",
+    "category": "Soups, Sauces, and Gravies",
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "spaghetti with tomato sauce",
+    "description": "Spaghetti, cooked",
+    "category": "Cereal Grains and Pasta",
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "spaghetti bolognese",
+    "description": "Sauce, pasta, spaghetti/marinara, ready-to-serve",
+    "category": "Soups, Sauces, and Gravies",
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": true
+  },
+  {
+    "name": "hot dog bun",
+    "description": "Rolls, hamburger or hotdog, plain",
+    "category": "Baked Products",
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "burger bun",
+    "description": "Rolls, hamburger or hotdog, plain",
+    "category": "Baked Products",
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "iced tea",
+    "description": "Tea, brewed",
+    "category": "Beverages",
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "milk tea",
+    "description": "Beverages, tea, black",
+    "category": "Beverages",
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "peanut butter toast",
+    "description": "Peanut butter, smooth",
+    "category": "Legumes and Legume Products",
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "banana bread",
+    "description": "Bananas, raw",
+    "category": "Fruits and Fruit Juices",
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "avocado toast",
+    "description": "Avocados, raw, all commercial varieties",
+    "category": "Fruits and Fruit Juices",
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "butter chicken",
+    "description": "Butter, salted",
+    "category": "Dairy and Egg Products",
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "fruit salad",
+    "description": "Fruit salad, canned",
+    "category": "Fruits and Fruit Juices",
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "orange chicken",
+    "description": "Oranges, raw",
+    "category": "Fruits and Fruit Juices",
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "lemon chicken",
+    "description": "Lemons, raw",
+    "category": "Fruits and Fruit Juices",
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": true
+  },
+  {
+    "name": "rice",
+    "description": "Rice, white, long-grain, regular, raw, enriched",
+    "category": "Cereal Grains and Pasta",
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "steamed rice",
+    "description": "Rice, white, long-grain, regular, raw, enriched",
+    "category": "Cereal Grains and Pasta",
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": true
+  },
+  {
+    "name": "Mala udon with beef",
+    "description": "Beef and noodles with soy-based sauce",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "pasta with pork and grated cheese",
+    "description": "Pasta with tomato-based sauce, cheese and meat",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "Pork sate stuffed with mushrooms",
+    "description": "Ham or pork with mushroom sauce",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "Ikan dabu dabu fried fish",
+    "description": "Fried fish with sauce, Puerto Rican style",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "Creamy dipping sauce",
+    "description": "Almond butter, creamy",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": true
+  },
+  {
+    "name": "shredded cabbage and carrot slaw",
+    "description": "CABBAGE & CARROTS COLE SLAW, CABBAGE & CARROTS",
+    "category": "Pre-Packaged Fruit & Vegetables",
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "grilled chicken",
+    "description": "Chicken, broilers or fryers, breast, raw",
+    "category": "Poultry Products",
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": true
+  },
+  {
+    "name": "fish oil capsule",
+    "description": "Fish oil, cod liver",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "thick chocolate shake",
+    "description": "Milk shakes, thick chocolate",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "coffee",
+    "description": "Beverages, coffee, brewed",
+    "category": "Beverages",
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "orange juice",
+    "description": "Orange juice, raw",
+    "category": "Fruits and Fruit Juices",
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "apple",
+    "description": "Apples, raw, with skin",
+    "category": "Fruits and Fruit Juices",
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "salmon",
+    "description": "Fish, salmon, Atlantic, raw",
+    "category": "Finfish and Shellfish Products",
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "cheeseburger",
+    "description": "Beef, ground, 85% lean meat / 15% fat, patty, cooked, broiled",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "cheeseburger",
+    "description": "Fast foods, cheeseburger, regular, single patty, plain",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "cheeseburger",
+    "description": "Cheeseburger, single patty, plain, on bun",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "cheeseburger",
+    "description": "Hamburger, single patty, with cheese",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "hamburger",
+    "description": "Beef, ground, 85% lean meat / 15% fat, patty, cooked, broiled",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "hamburger",
+    "description": "Hamburger, single patty, plain, on bun",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "hamburger",
+    "description": "Fast foods, hamburger, regular, single patty, plain",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "bacon cheeseburger",
+    "description": "Cheeseburger with bacon, on bun",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "bacon cheeseburger",
+    "description": "Fast foods, cheeseburger; single patty, with condiments and bacon",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "bacon cheeseburger",
+    "description": "Beef, ground, 85% lean meat / 15% fat, patty, cooked, broiled",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "bacon cheeseburger",
+    "description": "Cheeseburger, single patty, plain, on bun",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "bacon cheeseburger",
+    "description": "Hamburger, single patty, with bacon",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "bacon cheeseburger",
+    "description": "Bacon, pan-fried",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "hot dog",
+    "description": "Frankfurter, beef, heated",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "hot dog",
+    "description": "Hot dog, plain, on bun",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "hot dog",
+    "description": "Fast foods, hot dog, plain",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "hot dog",
+    "description": "Frankfurter, beef and pork",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "meatball",
+    "description": "Meatballs, beef, cooked",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "meatball",
+    "description": "Meatballs, Swedish, beef and pork",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "meatball",
+    "description": "Meatballs, with sauce",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "spaghetti and meatballs",
+    "description": "Spaghetti with meatballs and tomato sauce",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "spaghetti and meatballs",
+    "description": "Spaghetti with meat sauce",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "spaghetti and meatballs",
+    "description": "Pasta with meatballs and tomato-based sauce",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "chicken nuggets",
+    "description": "Chicken, broilers or fryers, nuggets, fried",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "chicken nuggets",
+    "description": "Fast foods, chicken tenders",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "chicken nuggets",
+    "description": "Chicken nuggets, from fast food",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "chicken nuggets",
+    "description": "Chicken patty, fillet, or tenders, breaded, cooked",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "fish sticks",
+    "description": "Fish, fish sticks, frozen, prepared",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "fish sticks",
+    "description": "Fish, pollock, Alaska, breaded, fried",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "fish sticks",
+    "description": "Fish sticks, battered",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "pepperoni pizza",
+    "description": "Pizza, pepperoni topping",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "pepperoni pizza",
+    "description": "Pizza with pepperoni, thick crust",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "pepperoni pizza",
+    "description": "Fast foods, pizza chain, pepperoni topping, regular crust",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "ham sandwich",
+    "description": "Sandwich, ham and cheese",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "ham sandwich",
+    "description": "Ham, sliced, regular",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "ham sandwich",
+    "description": "Pork, cured, ham, boneless, regular",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "ham sandwich",
+    "description": "Sandwich, ham, on bun",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "ham sandwich",
+    "description": "Ham sandwich, on bread",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "BLT",
+    "description": "Sandwich, bacon, lettuce, and tomato",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "BLT",
+    "description": "Bacon, pan-fried",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "BLT",
+    "description": "Fast foods, BLT sandwich",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "egg salad",
+    "description": "Egg salad",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "egg salad",
+    "description": "Egg salad sandwich",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "egg salad",
+    "description": "Egg, whole, cooked, hard-boiled",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "egg salad",
+    "description": "Eggs, whole, cooked, hard-boiled",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "tuna melt",
+    "description": "Tuna melt sandwich",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "tuna melt",
+    "description": "Fish, tuna, light, canned in water, drained solids",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "tuna melt",
+    "description": "Tuna salad",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "tuna melt",
+    "description": "Sandwich, tuna salad",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "beef noodle soup",
+    "description": "Soup, beef noodle, canned, condensed",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "beef noodle soup",
+    "description": "Soup, beef noodle, canned",
+    "category": "Soups, Sauces, and Gravies",
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "beef noodle soup",
+    "description": "Noodle soup with beef",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "beef noodle soup",
+    "description": "Soup, beef broth or bouillon",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "chicken fried rice",
+    "description": "Rice, fried, with chicken",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "chicken fried rice",
+    "description": "Chicken fried rice",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "chicken fried rice",
+    "description": "Fried rice",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "chicken fried rice",
+    "description": "Rice, white, cooked",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "chicken fried rice",
+    "description": "Fried rice, with pork",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": true
+  },
+  {
+    "name": "nasi goreng with chicken",
+    "description": "Fried rice with chicken",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "nasi goreng with chicken",
+    "description": "Nasi goreng",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "nasi goreng with chicken",
+    "description": "Rice, fried, with chicken and vegetables",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "nasi goreng with chicken",
+    "description": "Fried rice, with meat",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "nasi goreng with chicken",
+    "description": "Fried rice, with egg",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": true
+  },
+  {
+    "name": "pad thai with shrimp",
+    "description": "Pad thai with shrimp",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "pad thai with shrimp",
+    "description": "Noodles, pad thai, with shrimp",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "pad thai with shrimp",
+    "description": "Pad Thai",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "pad thai with shrimp",
+    "description": "Pad thai, with chicken",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": true
+  },
+  {
+    "name": "pad thai with shrimp",
+    "description": "Rice noodles, cooked",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "lasagna (beef)",
+    "description": "Lasagna with meat sauce",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "lasagna (beef)",
+    "description": "Lasagna, with beef",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "lasagna (beef)",
+    "description": "Lasagna with meat and sauce, frozen entree",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "lasagna (beef)",
+    "description": "Lasagna, cheese",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "beef and broccoli",
+    "description": "Beef and broccoli",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "beef and broccoli",
+    "description": "Beef with broccoli, stir-fried",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "beef and broccoli",
+    "description": "Beef and vegetables, stir fry",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "beef and broccoli",
+    "description": "Chicken and broccoli",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": true
+  },
+  {
+    "name": "beef and broccoli",
+    "description": "Broccoli, cooked",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "surf and turf",
+    "description": "Steak and shrimp",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "surf and turf",
+    "description": "Beef steak, with lobster",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "surf and turf",
+    "description": "Steak, sirloin, cooked",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "chicken parmesan",
+    "description": "Chicken parmesan",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "chicken parmesan",
+    "description": "Chicken parmigiana, breaded",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "chicken parmesan",
+    "description": "Chicken, breaded, with cheese and tomato sauce",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "chicken parmesan",
+    "description": "Veal parmigiana",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": true
+  },
+  {
+    "name": "salmon",
+    "description": "Fish, salmon, Atlantic, farmed, cooked, dry heat",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "salmon",
+    "description": "Salmon, baked or broiled",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "salmon",
+    "description": "Salmon, raw",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "tuna",
+    "description": "Fish, tuna, light, canned in water, drained solids",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "tuna",
+    "description": "Tuna, fresh, bluefin, raw",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "tuna",
+    "description": "Tuna salad",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "tuna",
+    "description": "Sushi roll, tuna",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "cod",
+    "description": "Fish, cod, Atlantic, cooked, dry heat",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "cod",
+    "description": "Cod, baked or broiled",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "shrimp",
+    "description": "Crustaceans, shrimp, cooked",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "shrimp",
+    "description": "Shrimp, cooked, fried",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "prawn",
+    "description": "Crustaceans, shrimp, cooked",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "prawn",
+    "description": "Shrimp, cooked, fried",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "ham",
+    "description": "Pork, cured, ham, sliced",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "ham",
+    "description": "Ham, sliced, regular",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "ham",
+    "description": "Ham, deli style, prepackaged",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "ham",
+    "description": "Roast beef, deli style, prepackaged, sliced",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": true
+  },
+  {
+    "name": "ham",
+    "description": "Pork, fresh, leg, roasted",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "egg noodles",
+    "description": "Noodles, egg, cooked, enriched",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "egg noodles",
+    "description": "Egg noodles",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "egg noodles",
+    "description": "Noodles, chow mein",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "dumplings",
+    "description": "Dumpling, meat-filled",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "dumplings",
+    "description": "Dumpling, pork",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "dumplings",
+    "description": "Dumplings, chicken",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "dumplings",
+    "description": "Dumpling, shrimp",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "squid nigiri",
+    "description": "Sushi roll, tuna",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": true
+  },
+  {
+    "name": "squid nigiri",
+    "description": "Tuna, fresh, bluefin, raw",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": true
+  },
+  {
+    "name": "squid nigiri",
+    "description": "Fish, tuna, light, canned in water, drained solids",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": true
+  },
+  {
+    "name": "squid nigiri",
+    "description": "Mollusks, squid, mixed species, cooked",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "pork chop",
+    "description": "Beef, ribeye steak, cooked",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": true
+  },
+  {
+    "name": "pork chop",
+    "description": "Pork, fresh, loin, chop, cooked",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "chicken curry",
+    "description": "Fish, salmon, Atlantic, cooked",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": true
+  },
+  {
+    "name": "chicken curry",
+    "description": "Curry with chicken",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "chicken-fried steak",
+    "description": "Beef, round, steak, cooked",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "chicken-fried steak",
+    "description": "Chicken-fried steak",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "chicken-fried steak",
+    "description": "Chicken, broilers or fryers, breast, cooked",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "bacon and eggs",
+    "description": "Egg, whole, cooked, scrambled",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "bacon and eggs",
+    "description": "Bacon, pan-fried",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "scrambled eggs with bacon",
+    "description": "Egg, whole, cooked, scrambled",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "scrambled eggs with bacon",
+    "description": "Eggs, scrambled",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "ham and cheese omelet",
+    "description": "Omelet, egg, with cheese",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "ham and cheese omelet",
+    "description": "Egg omelet or scrambled egg, with cheese and ham",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "ham and cheese omelet",
+    "description": "Egg, whole, omelet",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "grilled fish",
+    "description": "Salmon, baked or broiled",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "grilled fish",
+    "description": "Fish, tilapia, cooked",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "grilled fish",
+    "description": "Fish, cod, Atlantic, cooked",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "fish fillet",
+    "description": "Salmon, baked or broiled",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "fish fillet",
+    "description": "Fish, tilapia, raw",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "egg roll",
+    "description": "Egg roll, with pork",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "egg roll",
+    "description": "Spring roll, with shrimp",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": true
+  },
+  {
+    "name": "egg roll",
+    "description": "Egg roll, chicken",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "imitation crab",
+    "description": "Fish, surimi",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "imitation crab",
+    "description": "Crustaceans, crab, blue, cooked",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": true
+  },
+  {
+    "name": "crab stick",
+    "description": "Fish, surimi",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "salmon roe",
+    "description": "Fish, caviar, black and red, granular",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "salmon roe",
+    "description": "Fish, roe, mixed species, raw",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "turkey bacon",
+    "description": "Bacon, pork, cooked",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "turkey bacon",
+    "description": "Turkey bacon, cooked",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "chicken liver",
+    "description": "Chicken, liver, all classes, cooked",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "chicken liver",
+    "description": "Liver, chicken",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "chicken wings",
+    "description": "Chicken, wing, meat and skin, cooked, fried",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "beef jerky",
+    "description": "Beef, dried, jerky",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "beef jerky",
+    "description": "Jerky, beef",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "fish and chips",
+    "description": "Fish, cod, battered or breaded, fried",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "fish and chips",
+    "description": "Fish and chips",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "chicken sausage",
+    "description": "Sausage, poultry, cooked",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "chicken sausage",
+    "description": "Sausage, chicken",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "sausage and egg sandwich",
+    "description": "Sandwich, egg and cheese",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "sausage and egg sandwich",
+    "description": "Sausage, pork, cooked",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "chicken burger",
+    "description": "Chicken sandwich, fillet, with cheese",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "chicken burger",
+    "description": "Hamburger, single patty",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": true
+  },
+  {
+    "name": "beef curry",
+    "description": "Curry, chicken",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": true
+  },
+  {
+    "name": "beef curry",
+    "description": "Beef curry",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "chicken satay",
+    "description": "Satay, beef",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": true
+  },
+  {
+    "name": "chicken satay",
+    "description": "Chicken, satay",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "pork bun",
+    "description": "Steamed bun, pork",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "pork bun",
+    "description": "Bun, filled with meat",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "tuna sushi",
+    "description": "Sushi, roll, tuna",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "tuna sushi",
+    "description": "Fish, tuna, fresh, raw",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "prawn cocktail",
+    "description": "Shrimp cocktail",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "prawn cocktail",
+    "description": "Crustaceans, shrimp, cooked",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "oyster sauce",
+    "description": "Sauce, oyster, ready-to-serve",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "fish sauce",
+    "description": "Sauce, fish, ready-to-serve",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "lobster roll",
+    "description": "Lobster salad",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "lobster roll",
+    "description": "Crustaceans, lobster, northern, cooked",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "pork",
+    "description": "Ham, sliced, regular",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "pork",
+    "description": "Pork, fresh, loin, cooked",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "chicken",
+    "description": "Chicken, broilers or fryers, breast, cooked",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "chicken",
+    "description": "Poultry, mixed, cooked",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "duck",
+    "description": "Duck, roasted",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "mussels with fries",
+    "description": "Mollusks, mussel, blue, cooked",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "bread",
+    "description": "Bread, white, commercially prepared",
+    "category": "Baked Products",
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "toast",
+    "description": "Bread, white, toasted",
+    "category": "Baked Products",
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "pancakes",
+    "description": "Pancakes, plain, prepared from recipe",
+    "category": "Baked Products",
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "bagel",
+    "description": "Bagels, plain",
+    "category": "Baked Products",
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "dinner roll",
+    "description": "Rolls, dinner, plain",
+    "category": "Baked Products",
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "bread roll",
+    "description": "Rolls, dinner, plain",
+    "category": "Baked Products",
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "crackers",
+    "description": "Crackers, saltines",
+    "category": "Baked Products",
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "waffle",
+    "description": "Waffles, plain, frozen",
+    "category": "Baked Products",
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "tortilla",
+    "description": "Tortillas, ready-to-bake or -fry, flour",
+    "category": "Baked Products",
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "pizza",
+    "description": "Pizza, cheese topping",
+    "category": "Baked Products",
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "apple with peanut butter",
+    "description": "Apples, raw, with skin",
+    "category": "Fruits and Fruit Juices",
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "tomato with cheese",
+    "description": "Tomatoes, red, ripe, raw",
+    "category": "Vegetables and Vegetable Products",
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "crispy lettuce",
+    "description": "Lettuce, cos or romaine, raw",
+    "category": "Vegetables and Vegetable Products",
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": true
+  },
+  {
+    "name": "coleslaw",
+    "description": "Cabbage, raw",
+    "category": "Vegetables and Vegetable Products",
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "cabbage slaw",
+    "description": "Cabbage, red, raw",
+    "category": "Vegetables and Vegetable Products",
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "cabbage slaw",
+    "description": "Cole slaw, home-prepared",
+    "category": "Pre-packaged fruit and vegetables",
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "cabbage slaw",
+    "description": "Coleslaw",
+    "category": "Pre-Packaged Fruit & Vegetables",
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "chicken satay with peanut sauce",
+    "description": "Chicken, roasted",
+    "category": "Poultry Products",
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "japanese curry sauce",
+    "description": "Persimmons, japanese, dried",
+    "category": "Fruits and Fruit Juices",
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": true
+  },
+  {
+    "name": "japanese curry sauce",
+    "description": "Persimmons, japanese, dried",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": true
+  },
+  {
+    "name": "japanese toast",
+    "description": "Persimmons, japanese, dried",
+    "category": "Fruits and Fruit Juices",
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": true
+  },
+  {
+    "name": "japanese toast",
+    "description": "Persimmons, japanese, dried",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": true
+  },
+  {
+    "name": "mixed green salad",
+    "description": "Salad dressing, green goddess",
+    "category": "Fats and Oils",
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": true
+  },
+  {
+    "name": "mixed green salad",
+    "description": "Salad dressing, green goddess",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": true
+  },
+  {
+    "name": "lamb curry with rice",
+    "description": "Lamb, ground, raw",
+    "category": "Lamb, Veal, and Game Products",
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": true
+  },
+  {
+    "name": "lamb curry",
+    "description": "Lamb, ground, raw",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": true
+  },
+  {
+    "name": "papaya",
+    "description": "Cookie, tea, Japanese",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": true
+  },
+  {
+    "name": "papaya",
+    "description": "Cookie, tea, Japanese",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": true
+  },
+  {
+    "name": "fried egg",
+    "description": "Egg, whole, raw, fresh",
+    "category": "Dairy and Egg Products",
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": true
+  },
+  {
+    "name": "yogurt with granola",
+    "description": "Yogurt, plain",
+    "category": "Dairy and Egg Products",
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "curry sauce",
+    "description": "Sauce, curry",
+    "category": "Soups, Sauces, and Gravies",
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "bbq sauce",
+    "description": "Sauce, barbecue",
+    "category": "Soups, Sauces, and Gravies",
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "sweet and sour chicken",
+    "description": "Chicken, sweet and sour",
+    "category": "Poultry",
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "chicken noodle soup",
+    "description": "Soup, chicken noodle, canned",
+    "category": "Soups, Sauces, and Gravies",
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "tomato soup",
+    "description": "Soup, tomato, canned",
+    "category": "Soups, Sauces, and Gravies",
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "spaghetti with tomato sauce",
+    "description": "Spaghetti, cooked",
+    "category": "Cereal Grains and Pasta",
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "spaghetti bolognese",
+    "description": "Sauce, pasta, spaghetti/marinara, ready-to-serve",
+    "category": "Soups, Sauces, and Gravies",
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": true
+  },
+  {
+    "name": "hot dog bun",
+    "description": "Rolls, hamburger or hotdog, plain",
+    "category": "Baked Products",
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "burger bun",
+    "description": "Rolls, hamburger or hotdog, plain",
+    "category": "Baked Products",
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "iced tea",
+    "description": "Tea, brewed",
+    "category": "Beverages",
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "milk tea",
+    "description": "Beverages, tea, black",
+    "category": "Beverages",
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "peanut butter toast",
+    "description": "Peanut butter, smooth",
+    "category": "Legumes and Legume Products",
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "banana bread",
+    "description": "Bananas, raw",
+    "category": "Fruits and Fruit Juices",
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "avocado toast",
+    "description": "Avocados, raw, all commercial varieties",
+    "category": "Fruits and Fruit Juices",
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "butter chicken",
+    "description": "Butter, salted",
+    "category": "Dairy and Egg Products",
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "fruit salad",
+    "description": "Fruit salad, canned",
+    "category": "Fruits and Fruit Juices",
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "orange chicken",
+    "description": "Oranges, raw",
+    "category": "Fruits and Fruit Juices",
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "lemon chicken",
+    "description": "Lemons, raw",
+    "category": "Fruits and Fruit Juices",
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": true
+  },
+  {
+    "name": "rice",
+    "description": "Rice, white, long-grain, regular, raw, enriched",
+    "category": "Cereal Grains and Pasta",
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "steamed rice",
+    "description": "Rice, white, long-grain, regular, raw, enriched",
+    "category": "Cereal Grains and Pasta",
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": true
+  },
+  {
+    "name": "Mala udon with beef",
+    "description": "Beef and noodles with soy-based sauce",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "pasta with pork and grated cheese",
+    "description": "Pasta with tomato-based sauce, cheese and meat",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "Pork sate stuffed with mushrooms",
+    "description": "Ham or pork with mushroom sauce",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "Ikan dabu dabu fried fish",
+    "description": "Fried fish with sauce, Puerto Rican style",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "Creamy dipping sauce",
+    "description": "Almond butter, creamy",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": true
+  },
+  {
+    "name": "shredded cabbage and carrot slaw",
+    "description": "CABBAGE & CARROTS COLE SLAW, CABBAGE & CARROTS",
+    "category": "Pre-Packaged Fruit & Vegetables",
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "grilled chicken",
+    "description": "Chicken, broilers or fryers, breast, raw",
+    "category": "Poultry Products",
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": true
+  },
+  {
+    "name": "fish oil capsule",
+    "description": "Fish oil, cod liver",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "thick chocolate shake",
+    "description": "Milk shakes, thick chocolate",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "coffee",
+    "description": "Beverages, coffee, brewed",
+    "category": "Beverages",
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "orange juice",
+    "description": "Orange juice, raw",
+    "category": "Fruits and Fruit Juices",
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "apple",
+    "description": "Apples, raw, with skin",
+    "category": "Fruits and Fruit Juices",
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "salmon",
+    "description": "Fish, salmon, Atlantic, raw",
+    "category": "Finfish and Shellfish Products",
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "cheeseburger",
+    "description": "Beef, ground, 85% lean meat / 15% fat, patty, cooked, broiled",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "cheeseburger",
+    "description": "Fast foods, cheeseburger, regular, single patty, plain",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "cheeseburger",
+    "description": "Cheeseburger, single patty, plain, on bun",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "cheeseburger",
+    "description": "Hamburger, single patty, with cheese",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "hamburger",
+    "description": "Beef, ground, 85% lean meat / 15% fat, patty, cooked, broiled",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "hamburger",
+    "description": "Hamburger, single patty, plain, on bun",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "hamburger",
+    "description": "Fast foods, hamburger, regular, single patty, plain",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "bacon cheeseburger",
+    "description": "Cheeseburger with bacon, on bun",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "bacon cheeseburger",
+    "description": "Fast foods, cheeseburger; single patty, with condiments and bacon",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "bacon cheeseburger",
+    "description": "Beef, ground, 85% lean meat / 15% fat, patty, cooked, broiled",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "bacon cheeseburger",
+    "description": "Cheeseburger, single patty, plain, on bun",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "bacon cheeseburger",
+    "description": "Hamburger, single patty, with bacon",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "bacon cheeseburger",
+    "description": "Bacon, pan-fried",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "hot dog",
+    "description": "Frankfurter, beef, heated",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "hot dog",
+    "description": "Hot dog, plain, on bun",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "hot dog",
+    "description": "Fast foods, hot dog, plain",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "hot dog",
+    "description": "Frankfurter, beef and pork",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "meatball",
+    "description": "Meatballs, beef, cooked",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "meatball",
+    "description": "Meatballs, Swedish, beef and pork",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "meatball",
+    "description": "Meatballs, with sauce",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "spaghetti and meatballs",
+    "description": "Spaghetti with meatballs and tomato sauce",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "spaghetti and meatballs",
+    "description": "Spaghetti with meat sauce",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "spaghetti and meatballs",
+    "description": "Pasta with meatballs and tomato-based sauce",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "chicken nuggets",
+    "description": "Chicken, broilers or fryers, nuggets, fried",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "chicken nuggets",
+    "description": "Fast foods, chicken tenders",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "chicken nuggets",
+    "description": "Chicken nuggets, from fast food",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "chicken nuggets",
+    "description": "Chicken patty, fillet, or tenders, breaded, cooked",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "fish sticks",
+    "description": "Fish, fish sticks, frozen, prepared",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "fish sticks",
+    "description": "Fish, pollock, Alaska, breaded, fried",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "fish sticks",
+    "description": "Fish sticks, battered",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "pepperoni pizza",
+    "description": "Pizza, pepperoni topping",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "pepperoni pizza",
+    "description": "Pizza with pepperoni, thick crust",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "pepperoni pizza",
+    "description": "Fast foods, pizza chain, pepperoni topping, regular crust",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "ham sandwich",
+    "description": "Sandwich, ham and cheese",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "ham sandwich",
+    "description": "Ham, sliced, regular",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "ham sandwich",
+    "description": "Pork, cured, ham, boneless, regular",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "ham sandwich",
+    "description": "Sandwich, ham, on bun",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "ham sandwich",
+    "description": "Ham sandwich, on bread",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "BLT",
+    "description": "Sandwich, bacon, lettuce, and tomato",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "BLT",
+    "description": "Bacon, pan-fried",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "BLT",
+    "description": "Fast foods, BLT sandwich",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "egg salad",
+    "description": "Egg salad",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "egg salad",
+    "description": "Egg salad sandwich",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "egg salad",
+    "description": "Egg, whole, cooked, hard-boiled",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "egg salad",
+    "description": "Eggs, whole, cooked, hard-boiled",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "tuna melt",
+    "description": "Tuna melt sandwich",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "tuna melt",
+    "description": "Fish, tuna, light, canned in water, drained solids",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "tuna melt",
+    "description": "Tuna salad",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "tuna melt",
+    "description": "Sandwich, tuna salad",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "beef noodle soup",
+    "description": "Soup, beef noodle, canned, condensed",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "beef noodle soup",
+    "description": "Soup, beef noodle, canned",
+    "category": "Soups, Sauces, and Gravies",
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "beef noodle soup",
+    "description": "Noodle soup with beef",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "beef noodle soup",
+    "description": "Soup, beef broth or bouillon",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "chicken fried rice",
+    "description": "Rice, fried, with chicken",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "chicken fried rice",
+    "description": "Chicken fried rice",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "chicken fried rice",
+    "description": "Fried rice",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "chicken fried rice",
+    "description": "Rice, white, cooked",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "chicken fried rice",
+    "description": "Fried rice, with pork",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": true
+  },
+  {
+    "name": "nasi goreng with chicken",
+    "description": "Fried rice with chicken",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "nasi goreng with chicken",
+    "description": "Nasi goreng",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "nasi goreng with chicken",
+    "description": "Rice, fried, with chicken and vegetables",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "nasi goreng with chicken",
+    "description": "Fried rice, with meat",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "nasi goreng with chicken",
+    "description": "Fried rice, with egg",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": true
+  },
+  {
+    "name": "pad thai with shrimp",
+    "description": "Pad thai with shrimp",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "pad thai with shrimp",
+    "description": "Noodles, pad thai, with shrimp",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "pad thai with shrimp",
+    "description": "Pad Thai",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "pad thai with shrimp",
+    "description": "Pad thai, with chicken",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": true
+  },
+  {
+    "name": "pad thai with shrimp",
+    "description": "Rice noodles, cooked",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "lasagna (beef)",
+    "description": "Lasagna with meat sauce",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "lasagna (beef)",
+    "description": "Lasagna, with beef",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "lasagna (beef)",
+    "description": "Lasagna with meat and sauce, frozen entree",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "lasagna (beef)",
+    "description": "Lasagna, cheese",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "beef and broccoli",
+    "description": "Beef and broccoli",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "beef and broccoli",
+    "description": "Beef with broccoli, stir-fried",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "beef and broccoli",
+    "description": "Beef and vegetables, stir fry",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "beef and broccoli",
+    "description": "Chicken and broccoli",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": true
+  },
+  {
+    "name": "beef and broccoli",
+    "description": "Broccoli, cooked",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "surf and turf",
+    "description": "Steak and shrimp",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "surf and turf",
+    "description": "Beef steak, with lobster",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "surf and turf",
+    "description": "Steak, sirloin, cooked",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "chicken parmesan",
+    "description": "Chicken parmesan",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "chicken parmesan",
+    "description": "Chicken parmigiana, breaded",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "chicken parmesan",
+    "description": "Chicken, breaded, with cheese and tomato sauce",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "chicken parmesan",
+    "description": "Veal parmigiana",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": true
+  },
+  {
+    "name": "salmon",
+    "description": "Fish, salmon, Atlantic, farmed, cooked, dry heat",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "salmon",
+    "description": "Salmon, baked or broiled",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "salmon",
+    "description": "Salmon, raw",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "tuna",
+    "description": "Fish, tuna, light, canned in water, drained solids",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "tuna",
+    "description": "Tuna, fresh, bluefin, raw",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "tuna",
+    "description": "Tuna salad",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "tuna",
+    "description": "Sushi roll, tuna",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "cod",
+    "description": "Fish, cod, Atlantic, cooked, dry heat",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "cod",
+    "description": "Cod, baked or broiled",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "shrimp",
+    "description": "Crustaceans, shrimp, cooked",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "shrimp",
+    "description": "Shrimp, cooked, fried",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "prawn",
+    "description": "Crustaceans, shrimp, cooked",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "prawn",
+    "description": "Shrimp, cooked, fried",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "ham",
+    "description": "Pork, cured, ham, sliced",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "ham",
+    "description": "Ham, sliced, regular",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "ham",
+    "description": "Ham, deli style, prepackaged",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "ham",
+    "description": "Roast beef, deli style, prepackaged, sliced",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": true
+  },
+  {
+    "name": "ham",
+    "description": "Pork, fresh, leg, roasted",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "egg noodles",
+    "description": "Noodles, egg, cooked, enriched",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "egg noodles",
+    "description": "Egg noodles",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "egg noodles",
+    "description": "Noodles, chow mein",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "dumplings",
+    "description": "Dumpling, meat-filled",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "dumplings",
+    "description": "Dumpling, pork",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "dumplings",
+    "description": "Dumplings, chicken",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "dumplings",
+    "description": "Dumpling, shrimp",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "squid nigiri",
+    "description": "Sushi roll, tuna",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": true
+  },
+  {
+    "name": "squid nigiri",
+    "description": "Tuna, fresh, bluefin, raw",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": true
+  },
+  {
+    "name": "squid nigiri",
+    "description": "Fish, tuna, light, canned in water, drained solids",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": true
+  },
+  {
+    "name": "squid nigiri",
+    "description": "Mollusks, squid, mixed species, cooked",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "pork chop",
+    "description": "Beef, ribeye steak, cooked",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": true
+  },
+  {
+    "name": "pork chop",
+    "description": "Pork, fresh, loin, chop, cooked",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "chicken curry",
+    "description": "Fish, salmon, Atlantic, cooked",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": true
+  },
+  {
+    "name": "chicken curry",
+    "description": "Curry with chicken",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "chicken-fried steak",
+    "description": "Beef, round, steak, cooked",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "chicken-fried steak",
+    "description": "Chicken-fried steak",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "chicken-fried steak",
+    "description": "Chicken, broilers or fryers, breast, cooked",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "bacon and eggs",
+    "description": "Egg, whole, cooked, scrambled",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "bacon and eggs",
+    "description": "Bacon, pan-fried",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "scrambled eggs with bacon",
+    "description": "Egg, whole, cooked, scrambled",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "scrambled eggs with bacon",
+    "description": "Eggs, scrambled",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "ham and cheese omelet",
+    "description": "Omelet, egg, with cheese",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "ham and cheese omelet",
+    "description": "Egg omelet or scrambled egg, with cheese and ham",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "ham and cheese omelet",
+    "description": "Egg, whole, omelet",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "grilled fish",
+    "description": "Salmon, baked or broiled",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "grilled fish",
+    "description": "Fish, tilapia, cooked",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "grilled fish",
+    "description": "Fish, cod, Atlantic, cooked",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "fish fillet",
+    "description": "Salmon, baked or broiled",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "fish fillet",
+    "description": "Fish, tilapia, raw",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "egg roll",
+    "description": "Egg roll, with pork",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "egg roll",
+    "description": "Spring roll, with shrimp",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": true
+  },
+  {
+    "name": "egg roll",
+    "description": "Egg roll, chicken",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "imitation crab",
+    "description": "Fish, surimi",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "imitation crab",
+    "description": "Crustaceans, crab, blue, cooked",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": true
+  },
+  {
+    "name": "crab stick",
+    "description": "Fish, surimi",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "salmon roe",
+    "description": "Fish, caviar, black and red, granular",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "salmon roe",
+    "description": "Fish, roe, mixed species, raw",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "turkey bacon",
+    "description": "Bacon, pork, cooked",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "turkey bacon",
+    "description": "Turkey bacon, cooked",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "chicken liver",
+    "description": "Chicken, liver, all classes, cooked",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "chicken liver",
+    "description": "Liver, chicken",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "chicken wings",
+    "description": "Chicken, wing, meat and skin, cooked, fried",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "beef jerky",
+    "description": "Beef, dried, jerky",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "beef jerky",
+    "description": "Jerky, beef",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "fish and chips",
+    "description": "Fish, cod, battered or breaded, fried",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "fish and chips",
+    "description": "Fish and chips",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "chicken sausage",
+    "description": "Sausage, poultry, cooked",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "chicken sausage",
+    "description": "Sausage, chicken",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "sausage and egg sandwich",
+    "description": "Sandwich, egg and cheese",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "sausage and egg sandwich",
+    "description": "Sausage, pork, cooked",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "chicken burger",
+    "description": "Chicken sandwich, fillet, with cheese",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "chicken burger",
+    "description": "Hamburger, single patty",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": true
+  },
+  {
+    "name": "beef curry",
+    "description": "Curry, chicken",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": true
+  },
+  {
+    "name": "beef curry",
+    "description": "Beef curry",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "chicken satay",
+    "description": "Satay, beef",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": true
+  },
+  {
+    "name": "chicken satay",
+    "description": "Chicken, satay",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "pork bun",
+    "description": "Steamed bun, pork",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "pork bun",
+    "description": "Bun, filled with meat",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "tuna sushi",
+    "description": "Sushi, roll, tuna",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "tuna sushi",
+    "description": "Fish, tuna, fresh, raw",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "prawn cocktail",
+    "description": "Shrimp cocktail",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "prawn cocktail",
+    "description": "Crustaceans, shrimp, cooked",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "oyster sauce",
+    "description": "Sauce, oyster, ready-to-serve",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "fish sauce",
+    "description": "Sauce, fish, ready-to-serve",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "lobster roll",
+    "description": "Lobster salad",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "lobster roll",
+    "description": "Crustaceans, lobster, northern, cooked",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "pork",
+    "description": "Ham, sliced, regular",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "pork",
+    "description": "Pork, fresh, loin, cooked",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "chicken",
+    "description": "Chicken, broilers or fryers, breast, cooked",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "chicken",
+    "description": "Poultry, mixed, cooked",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "duck",
+    "description": "Duck, roasted",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "mussels with fries",
+    "description": "Mollusks, mussel, blue, cooked",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "chicken burger",
+    "description": "Hamburger, with beef",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": true
+  },
+  {
+    "name": "chicken burger",
+    "description": "Hamburger, single patty, plain",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": true
+  },
+  {
+    "name": "chicken burger",
+    "description": "Beef, ground, 85% lean meat / 15% fat, patty, cooked, broiled",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": true
+  },
+  {
+    "name": "chicken burger",
+    "description": "Chicken, ground, cooked",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "chicken burger",
+    "description": "Chicken sandwich, fillet, with cheese",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "fish burger",
+    "description": "Hamburger, with beef",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": true
+  },
+  {
+    "name": "fish burger",
+    "description": "Fish, salmon, Atlantic, cooked",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "fish burger",
+    "description": "Fish sandwich, fried",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "fish burger",
+    "description": "Hamburger, single patty, plain",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": true
+  },
+  {
+    "name": "turkey burger",
+    "description": "Hamburger, with beef",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": true
+  },
+  {
+    "name": "turkey burger",
+    "description": "Turkey, ground, cooked",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "turkey burger",
+    "description": "Turkey burger",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "turkey burger",
+    "description": "Hamburger, single patty, plain",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": true
+  },
+  {
+    "name": "chicken meatballs",
+    "description": "Meatballs, with beef",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": true
+  },
+  {
+    "name": "chicken meatballs",
+    "description": "Meatballs, beef, cooked",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": true
+  },
+  {
+    "name": "chicken meatballs",
+    "description": "Chicken, ground, cooked",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "chicken meatballs",
+    "description": "Meatballs, chicken",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "veggie burger",
+    "description": "Hamburger, with beef",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": true
+  },
+  {
+    "name": "veggie burger",
+    "description": "Veggie burger",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "veggie burger",
+    "description": "Meatless burger patty, soy based",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "veggie burger",
+    "description": "Beef, ground, patty, cooked",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": true
+  },
+  {
+    "name": "salmon burger",
+    "description": "Fish, salmon, Atlantic, cooked",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "salmon burger",
+    "description": "Hamburger, with beef",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": true
+  },
+  {
+    "name": "salmon burger",
+    "description": "Fish, tuna, light, canned",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": true
+  },
+  {
+    "name": "mushroom burger",
+    "description": "Hamburger, with beef",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "mushroom burger",
+    "description": "Mushrooms, cooked",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "mushroom burger",
+    "description": "Veggie burger",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": true
+  },
+  {
+    "name": "falafel",
+    "description": "Hamburger, with beef",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "falafel",
+    "description": "Falafel",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "falafel",
+    "description": "Chickpeas, cooked",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "egg drop soup",
+    "description": "Soup, chicken broth",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": true
+  },
+  {
+    "name": "egg drop soup",
+    "description": "Egg drop soup",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "egg drop soup",
+    "description": "Soup, egg drop",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "egg drop soup",
+    "description": "Egg, whole, cooked",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "bacon cheeseburger",
+    "description": "Hamburger, with beef",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "bacon cheeseburger",
+    "description": "Cheeseburger with bacon, on bun",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "bacon cheeseburger",
+    "description": "Beef, ground, 85% lean meat / 15% fat, patty, cooked, broiled",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "bacon cheeseburger",
+    "description": "Bacon, pan-fried",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "bacon cheeseburger",
+    "description": "Fish, tuna, light, canned",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": true
+  },
+  {
+    "name": "bacon cheeseburger",
+    "description": "Chicken, roasted",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": true
+  },
+  {
+    "name": "cheeseburger",
+    "description": "Chicken, roasted",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": true
+  },
+  {
+    "name": "cheeseburger",
+    "description": "Fish, tuna, light, canned",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": true
+  },
+  {
+    "name": "cheeseburger",
+    "description": "Pork, fresh, loin, cooked",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": true
+  },
+  {
+    "name": "cheeseburger",
+    "description": "Beef, ground, patty, cooked",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "cheeseburger",
+    "description": "Cheeseburger, single patty, plain",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "hot dog",
+    "description": "Frankfurter, beef, heated",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "hot dog",
+    "description": "Chicken frankfurter",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": true
+  },
+  {
+    "name": "hot dog",
+    "description": "Pork sausage",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "hot dog",
+    "description": "Turkey, ground",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": true
+  },
+  {
+    "name": "chicken hot dog",
+    "description": "Frankfurter, beef, heated",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": true
+  },
+  {
+    "name": "chicken hot dog",
+    "description": "Chicken frankfurter",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "pepperoni pizza",
+    "description": "Pizza, pepperoni topping",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "pepperoni pizza",
+    "description": "Pizza, cheese topping",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "pepperoni pizza",
+    "description": "Chicken, roasted",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": true
+  },
+  {
+    "name": "omelet",
+    "description": "Egg, whole, omelet",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "omelet",
+    "description": "Omelet, egg, with cheese",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "omelet",
+    "description": "Chicken, roasted",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": true
+  },
+  {
+    "name": "ham and cheese omelet",
+    "description": "Omelet, egg, with cheese",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "ham and cheese omelet",
+    "description": "Egg, whole, omelet",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "ham and cheese omelet",
+    "description": "Egg omelet or scrambled egg, with cheese and ham",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "ham and cheese omelet",
+    "description": "Ham, sliced, regular",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "ham and cheese omelet",
+    "description": "Chicken omelet",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "scrambled eggs",
+    "description": "Egg, whole, cooked, scrambled",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "scrambled eggs",
+    "description": "Bacon, pan-fried",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": true
+  },
+  {
+    "name": "sausage and egg sandwich",
+    "description": "Sandwich, egg and cheese",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "sausage and egg sandwich",
+    "description": "Sausage, pork, cooked",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "sausage and egg sandwich",
+    "description": "Sandwich, sausage",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "tuna",
+    "description": "Fish, tuna, light, canned in water",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "tuna",
+    "description": "Fish, salmon, Atlantic, cooked",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": true
+  },
+  {
+    "name": "tuna",
+    "description": "Fish, cod, Atlantic, cooked",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": true
+  },
+  {
+    "name": "fish",
+    "description": "Fish, salmon, Atlantic, cooked",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "fish",
+    "description": "Fish, tilapia, cooked",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "fish",
+    "description": "Fish, cod, Atlantic, cooked",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "fish",
+    "description": "Tuna, fresh, bluefin, raw",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "grilled fish",
+    "description": "Salmon, baked or broiled",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "grilled fish",
+    "description": "Fish, tilapia, cooked",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "grilled fish",
+    "description": "Mackerel, cooked",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "salmon",
+    "description": "Fish, tuna, light, canned",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": true
+  },
+  {
+    "name": "salmon",
+    "description": "Fish, cod, Atlantic, cooked",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": true
+  },
+  {
+    "name": "salmon",
+    "description": "Fish, salmon, Atlantic, cooked",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "salmon",
+    "description": "Fish, roe, mixed species, raw",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "salmon",
+    "description": "Fish, caviar, black and red, granular",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "ikura",
+    "description": "Fish, caviar, black and red, granular",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "ikura",
+    "description": "Fish, roe, mixed species, raw",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "ikura",
+    "description": "Fish, tuna, light, canned",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "mentaiko",
+    "description": "Fish, roe, mixed species, raw",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "mentaiko",
+    "description": "Chicken, roasted",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "imitation crab",
+    "description": "Fish, surimi",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "imitation crab",
+    "description": "Crustaceans, crab, blue, cooked",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": true
+  },
+  {
+    "name": "imitation crab",
+    "description": "Chicken, roasted",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": true
+  },
+  {
+    "name": "chicken-fried steak",
+    "description": "Beef, round, steak, cooked",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "chicken-fried steak",
+    "description": "Chicken, broilers or fryers, breast, cooked",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "chicken-fried steak",
+    "description": "Chicken-fried steak",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "chicken fried chicken",
+    "description": "Chicken, broilers or fryers, breast, cooked",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "chicken fried chicken",
+    "description": "Beef, round, steak, cooked",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": true
+  },
+  {
+    "name": "tofu burger",
+    "description": "Hamburger, with beef",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": true
+  },
+  {
+    "name": "tofu burger",
+    "description": "Tofu, raw",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "tofu burger",
+    "description": "Veggie burger",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "tempeh stir fry",
+    "description": "Tofu, raw",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "tempeh stir fry",
+    "description": "Tempeh",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "tempeh stir fry",
+    "description": "Beef, round, steak, cooked",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": true
+  },
+  {
+    "name": "beans and rice",
+    "description": "Beef, ground",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": true
+  },
+  {
+    "name": "beans and rice",
+    "description": "Chicken, roasted",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": true
+  },
+  {
+    "name": "beans and rice",
+    "description": "Beans, cooked",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "lentil soup",
+    "description": "Soup, chicken broth",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": true
+  },
+  {
+    "name": "lentil soup",
+    "description": "Soup, lentil",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "lentil soup",
+    "description": "Beef, ground",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": true
+  },
+  {
+    "name": "shrimp fried rice",
+    "description": "Rice, fried, with shrimp",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "shrimp fried rice",
+    "description": "Rice, fried, with chicken",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": true
+  },
+  {
+    "name": "shrimp fried rice",
+    "description": "Crustaceans, shrimp, cooked",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "prawn",
+    "description": "Crustaceans, shrimp, cooked",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "prawn",
+    "description": "Fish, salmon, Atlantic, cooked",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": true
+  },
+  {
+    "name": "pork and shrimp dumpling",
+    "description": "Dumpling, pork",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "pork and shrimp dumpling",
+    "description": "Dumpling, shrimp",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "pork and shrimp dumpling",
+    "description": "Dumpling, chicken",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": true
+  },
+  {
+    "name": "pork and shrimp dumpling",
+    "description": "Dumpling, meat-filled",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "beef and broccoli",
+    "description": "Beef and broccoli",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "beef and broccoli",
+    "description": "Chicken and broccoli",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": true
+  },
+  {
+    "name": "beef and broccoli",
+    "description": "Beef with broccoli, stir-fried",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "ham",
+    "description": "Ham, sliced, regular",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "ham",
+    "description": "Pork, fresh, leg, roasted",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "ham",
+    "description": "Roast beef, deli style, prepackaged, sliced",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": true
+  },
+  {
+    "name": "ham",
+    "description": "Pork, cured, ham, sliced",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "pork",
+    "description": "Pork, fresh, loin, cooked",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "pork",
+    "description": "Ham, sliced, regular",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "pork",
+    "description": "Bacon, pan-fried",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "pork",
+    "description": "Sausage, pork, cooked",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "pork",
+    "description": "Beef, round, steak, cooked",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": true
+  },
+  {
+    "name": "sausage",
+    "description": "Sausage, pork, cooked",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "sausage",
+    "description": "Pork, fresh, loin, cooked",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "sausage",
+    "description": "Beef, round, steak, cooked",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": true
+  },
+  {
+    "name": "bacon",
+    "description": "Bacon, pan-fried",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "bacon",
+    "description": "Pork, cured, bacon",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "bacon",
+    "description": "Beef, round, steak, cooked",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": true
+  },
+  {
+    "name": "bacon",
+    "description": "Pork, fresh, loin",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "turkey bacon",
+    "description": "Bacon, pork, cooked",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "turkey bacon",
+    "description": "Turkey bacon, cooked",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "turkey bacon",
+    "description": "Turkey, ground, cooked",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "chicken liver",
+    "description": "Liver, chicken",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "chicken liver",
+    "description": "Chicken, liver, all classes, cooked",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "chicken liver",
+    "description": "Beef, liver, cooked",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": true
+  },
+  {
+    "name": "lamb curry",
+    "description": "Lamb, ground, cooked",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "lamb curry",
+    "description": "Beef, ground, cooked",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": true
+  },
+  {
+    "name": "lamb curry",
+    "description": "Curry, chicken",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": true
+  },
+  {
+    "name": "chicken curry",
+    "description": "Curry, chicken",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "chicken curry",
+    "description": "Curry with chicken",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "chicken curry",
+    "description": "Fish, salmon, Atlantic, cooked",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": true
+  },
+  {
+    "name": "chicken curry",
+    "description": "Beef, ground, cooked",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": true
+  },
+  {
+    "name": "squid nigiri",
+    "description": "Mollusks, squid, mixed species, cooked",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "squid nigiri",
+    "description": "Sushi roll, tuna",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": true
+  },
+  {
+    "name": "squid nigiri",
+    "description": "Tuna, fresh, bluefin, raw",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": true
+  },
+  {
+    "name": "squid nigiri",
+    "description": "Fish, tuna, light, canned in water",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": true
+  },
+  {
+    "name": "squid nigiri",
+    "description": "Octopus, cooked",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": true
+  },
+  {
+    "name": "octopus salad",
+    "description": "Mollusks, octopus, common, cooked",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "octopus salad",
+    "description": "Mollusks, squid, mixed species, cooked",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": true
+  },
+  {
+    "name": "tuna melt",
+    "description": "Tuna salad",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "tuna melt",
+    "description": "Fish, tuna, light, canned in water",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "tuna melt",
+    "description": "Sandwich, tuna salad",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": false
+  },
+  {
+    "name": "tuna melt",
+    "description": "Sandwich, ham and cheese",
+    "category": null,
+    "source": "reviewer Fleets37/51/53 tables",
+    "expected": "judge",
+    "mainRejected": true
+  }
+]

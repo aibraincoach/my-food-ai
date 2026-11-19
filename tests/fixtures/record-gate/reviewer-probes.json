@@ -1,0 +1,5177 @@
+[
+  {
+    "name": "lemon wedge",
+    "description": "Lemons, raw, without peel",
+    "category": "Fruits and Fruit Juices",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "lemon slice",
+    "description": "Lemon, raw",
+    "category": "Fruits and Fruit Juices",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "lime wedge",
+    "description": "Limes, raw",
+    "category": "Fruits and Fruit Juices",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "lemon juice",
+    "description": "Lemon juice, raw",
+    "category": "Fruits and Fruit Juices",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": true
+  },
+  {
+    "name": "lemonade",
+    "description": "Lemonade, frozen concentrate",
+    "category": "Beverages",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "lemon tea",
+    "description": "Tea, hot, lemon",
+    "category": "Beverages",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "lemon water",
+    "description": "Water, with lemon",
+    "category": "Beverages",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "orange juice",
+    "description": "Orange juice, raw",
+    "category": "Fruits and Fruit Juices",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "orange juice",
+    "description": "Orange juice, canned",
+    "category": "Fruits and Fruit Juices",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "apple juice",
+    "description": "Apple juice, canned or bottled",
+    "category": "Fruits and Fruit Juices",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "mango smoothie",
+    "description": "Smoothie, mango",
+    "category": "Beverages",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "banana smoothie",
+    "description": "Bananas, raw",
+    "category": "Fruits and Fruit Juices",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "reject",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "banana",
+    "description": "Bananas, raw",
+    "category": "Fruits and Fruit Juices",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "sliced banana",
+    "description": "Bananas, raw",
+    "category": "Fruits and Fruit Juices",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "banana pancakes",
+    "description": "Pancakes, plain, prepared from recipe",
+    "category": "Baked Products",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "banana pudding",
+    "description": "Pudding, banana",
+    "category": "Sweets",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "banana bread",
+    "description": "Banana bread, prepared from recipe",
+    "category": "Baked Products",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "apple pie",
+    "description": "Pie, apple",
+    "category": "Pies",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "apple pie",
+    "description": "Apples, raw, with skin",
+    "category": "Fruits and Fruit Juices",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "reject",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "apple sauce",
+    "description": "Applesauce, canned, unsweetened",
+    "category": "Fruits and Fruit Juices",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "applesauce",
+    "description": "Apples, raw",
+    "category": "Fruits and Fruit Juices",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "strawberry yogurt",
+    "description": "Yogurt, fruit, strawberry",
+    "category": "Dairy and Egg Products",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "strawberry yogurt",
+    "description": "Strawberries, raw",
+    "category": "Fruits and Fruit Juices",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "reject",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "strawberry smoothie",
+    "description": "Smoothie, strawberry",
+    "category": "Beverages",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "mango lassi",
+    "description": "Lassi, mango",
+    "category": "Beverages",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": true
+  },
+  {
+    "name": "mango sticky rice",
+    "description": "Mangos, raw",
+    "category": "Fruits and Fruit Juices",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "reject",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "mango sticky rice",
+    "description": "Rice, glutinous, cooked",
+    "category": "Cereal Grains and Pasta",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "fruit salad",
+    "description": "Fruit salad, mixed",
+    "category": "Fruits and Fruit Juices",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "fruit salad",
+    "description": "Fruit cocktail, canned",
+    "category": "Fruits and Fruit Juices",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "green salad",
+    "description": "Lettuce, raw",
+    "category": "Vegetables and Vegetable Products",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "caesar salad",
+    "description": "Salad, caesar, with chicken",
+    "category": "Fast Foods",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "caesar salad",
+    "description": "Lettuce, cos or romaine, raw",
+    "category": "Vegetables and Vegetable Products",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "tomato salad",
+    "description": "Tomatoes, red, ripe, raw",
+    "category": "Vegetables and Vegetable Products",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "cucumber salad",
+    "description": "Cucumber, with peel, raw",
+    "category": "Vegetables and Vegetable Products",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "potato salad",
+    "description": "Potato salad",
+    "category": "Vegetables and Vegetable Products",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "potato salad",
+    "description": "Potatoes, boiled",
+    "category": "Vegetables and Vegetable Products",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "coleslaw",
+    "description": "Cabbage, raw",
+    "category": "Vegetables and Vegetable Products",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "mashed potatoes",
+    "description": "Potatoes, mashed, home-prepared",
+    "category": "Vegetables and Vegetable Products",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "baked potato",
+    "description": "Potatoes, baked, flesh and skin",
+    "category": "Vegetables and Vegetable Products",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "sweet potato",
+    "description": "Sweet potato, cooked, baked in skin",
+    "category": "Vegetables and Vegetable Products",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "sweet potato fries",
+    "description": "Sweet potato, french fries",
+    "category": "Vegetables and Vegetable Products",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "potato wedges",
+    "description": "Potatoes, french fried, wedge cut, frozen",
+    "category": "Vegetables and Vegetable Products",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "french fries",
+    "description": "Potatoes, french fried, frozen",
+    "category": "Vegetables and Vegetable Products",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "corn on the cob",
+    "description": "Corn, sweet, yellow, on cob, boiled",
+    "category": "Vegetables and Vegetable Products",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "corn",
+    "description": "Corn, sweet, yellow, canned",
+    "category": "Vegetables and Vegetable Products",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "popcorn",
+    "description": "Popcorn, air-popped",
+    "category": "Snacks",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "grilled onions",
+    "description": "Onions, cooked",
+    "category": "Vegetables and Vegetable Products",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "onion rings",
+    "description": "Onion rings, breaded, fried",
+    "category": "Vegetables and Vegetable Products",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "onion",
+    "description": "Onions, raw",
+    "category": "Vegetables and Vegetable Products",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "sauteed mushrooms",
+    "description": "Mushrooms, cooked, fried",
+    "category": "Vegetables and Vegetable Products",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "tomato soup",
+    "description": "Soup, tomato",
+    "category": "Soups, Sauces, and Gravies",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "tomato sauce",
+    "description": "Tomato sauce, canned",
+    "category": "Soups, Sauces, and Gravies",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "ketchup",
+    "description": "Catsup",
+    "category": "Soups, Sauces, and Gravies",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "tomato and cucumber",
+    "description": "Tomatoes, red, ripe, raw",
+    "category": "Vegetables and Vegetable Products",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "cucumber and tomato",
+    "description": "Cucumber, raw",
+    "category": "Vegetables and Vegetable Products",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "carrot and cucumber sticks",
+    "description": "Carrots, raw",
+    "category": "Vegetables and Vegetable Products",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "tomato and cucumber",
+    "description": "Cucumber, raw",
+    "category": "Vegetables and Vegetable Products",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "sliced tomato",
+    "description": "Tomatoes, raw",
+    "category": "Vegetables and Vegetable Products",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "cherry tomatoes",
+    "description": "Tomatoes, red, ripe, raw",
+    "category": "Vegetables and Vegetable Products",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "tomatoes and onions",
+    "description": "Onions, raw",
+    "category": "Vegetables and Vegetable Products",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "mixed vegetables",
+    "description": "Vegetables, mixed, frozen, cooked",
+    "category": "Vegetables and Vegetable Products",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "stir-fried greens",
+    "description": "Asian stir fry vegetables",
+    "category": "Vegetables and Vegetable Products",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "spinach",
+    "description": "Spinach, raw",
+    "category": "Vegetables and Vegetable Products",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "pak choy",
+    "description": "Cabbage, chinese (pak-choi), raw",
+    "category": "Vegetables and Vegetable Products",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "bok choy",
+    "description": "Cabbage, chinese (pak-choi), cooked",
+    "category": "Vegetables and Vegetable Products",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "bean sprouts",
+    "description": "Mung beans, mature seeds, sprouted, raw",
+    "category": "Legumes and Legume Products",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "avocado",
+    "description": "Avocados, raw",
+    "category": "Fruits and Fruit Juices",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "guacamole",
+    "description": "Guacamole",
+    "category": "Soups, Sauces, and Gravies",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "avocado toast",
+    "description": "Avocados, raw",
+    "category": "Fruits and Fruit Juices",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "reject",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "kiwi",
+    "description": "Kiwifruit, green, raw",
+    "category": "Fruits and Fruit Juices",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "dragon fruit",
+    "description": "Pitaya (dragonfruit), raw",
+    "category": "Fruits and Fruit Juices",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "watermelon",
+    "description": "Watermelon, raw",
+    "category": "Fruits and Fruit Juices",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "cantaloupe",
+    "description": "Melons, cantaloupe, raw",
+    "category": "Fruits and Fruit Juices",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "honeydew melon",
+    "description": "Melons, honeydew, raw",
+    "category": "Fruits and Fruit Juices",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "melon",
+    "description": "Melons, honeydew, raw",
+    "category": "Fruits and Fruit Juices",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "grapes",
+    "description": "Grapes, red or green, raw",
+    "category": "Fruits and Fruit Juices",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "raisins",
+    "description": "Raisins, dark, seedless",
+    "category": "Fruits and Fruit Juices",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "dates",
+    "description": "Dates, medjool",
+    "category": "Fruits and Fruit Juices",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "cherry pie",
+    "description": "Pie, cherry",
+    "category": "Pies",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "pineapple fried rice",
+    "description": "Rice, fried",
+    "category": "Cereal Grains and Pasta",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "pineapple",
+    "description": "Pineapple, raw",
+    "category": "Fruits and Fruit Juices",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "orange",
+    "description": "Oranges, raw, all commercial varieties",
+    "category": "Fruits and Fruit Juices",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "mandarin orange",
+    "description": "Tangerines, (mandarin oranges), raw",
+    "category": "Fruits and Fruit Juices",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "peach",
+    "description": "Peaches, raw",
+    "category": "Fruits and Fruit Juices",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "peaches and cream",
+    "description": "Peaches, raw",
+    "category": "Fruits and Fruit Juices",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "pear",
+    "description": "Pears, raw",
+    "category": "Fruits and Fruit Juices",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "apple",
+    "description": "Apples, raw, with skin",
+    "category": "Fruits and Fruit Juices",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "apple",
+    "description": "Pears, raw",
+    "category": "Fruits and Fruit Juices",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "reject",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "lemon",
+    "description": "Limes, raw",
+    "category": "Fruits and Fruit Juices",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "reject",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "lime",
+    "description": "Lemons, raw",
+    "category": "Fruits and Fruit Juices",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "reject",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "tomato",
+    "description": "Cucumber, raw",
+    "category": "Vegetables and Vegetable Products",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "reject",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "carrots",
+    "description": "Onions, raw",
+    "category": "Vegetables and Vegetable Products",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "reject",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "broccoli",
+    "description": "Cabbage, raw",
+    "category": "Vegetables and Vegetable Products",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "reject",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "mushrooms",
+    "description": "Onions, cooked",
+    "category": "Vegetables and Vegetable Products",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "reject",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "potato",
+    "description": "Corn, sweet, canned",
+    "category": "Vegetables and Vegetable Products",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "reject",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "lemon beer",
+    "description": "Alcoholic beverage, beer, regular",
+    "category": "Alcoholic Beverages",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "lemon beer",
+    "description": "Lemons, raw",
+    "category": "Fruits and Fruit Juices",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "reject",
+    "description_typed_from_memory": true,
+    "mainRejected": true
+  },
+  {
+    "name": "lemon radler",
+    "description": "Beer, regular",
+    "category": "Alcoholic Beverages",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "lime and rum tiki cocktail",
+    "description": "Cocktail NFS",
+    "category": "Alcoholic Beverages",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "lime and rum tiki cocktail",
+    "description": "Limes, raw",
+    "category": "Fruits and Fruit Juices",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "reject",
+    "description_typed_from_memory": true,
+    "mainRejected": true
+  },
+  {
+    "name": "mojito",
+    "description": "Mojito",
+    "category": "Alcoholic Beverages",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "mojito",
+    "description": "Limes, raw",
+    "category": "Fruits and Fruit Juices",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "reject",
+    "description_typed_from_memory": true,
+    "mainRejected": true
+  },
+  {
+    "name": "margarita",
+    "description": "Margarita",
+    "category": "Alcoholic Beverages",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "gin and tonic",
+    "description": "Gin and tonic",
+    "category": "Alcoholic Beverages",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "lime cordial",
+    "description": "Lime cordial",
+    "category": "Beverages",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "lime cordial",
+    "description": "Limes, raw",
+    "category": "Fruits and Fruit Juices",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "reject",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "lemon curd",
+    "description": "Lemon curd",
+    "category": "Sweets",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "lemon curd",
+    "description": "Lemons, raw",
+    "category": "Fruits and Fruit Juices",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "reject",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "lemon tart",
+    "description": "Pie, lemon meringue",
+    "category": "Pies",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "lemon tart",
+    "description": "Lemons, raw",
+    "category": "Fruits and Fruit Juices",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "reject",
+    "description_typed_from_memory": true,
+    "mainRejected": true
+  },
+  {
+    "name": "lemon cheesecake",
+    "description": "Cheesecake",
+    "category": "Sweets",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "lime sorbet",
+    "description": "Frozen desserts, sorbet",
+    "category": "Sweets",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "key lime pie",
+    "description": "Pie, key lime",
+    "category": "Pies",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "mango sorbet",
+    "description": "Sorbet, mango",
+    "category": "Sweets",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": true
+  },
+  {
+    "name": "mango sorbet",
+    "description": "Mangos, raw",
+    "category": "Fruits and Fruit Juices",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "reject",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "mango pudding",
+    "description": "Mangos, raw",
+    "category": "Fruits and Fruit Juices",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "reject",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "strawberry ice cream",
+    "description": "Ice creams, strawberry",
+    "category": "Dairy and Egg Products",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "chocolate mousse",
+    "description": "Mousse, chocolate",
+    "category": "Sweets",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "chocolate croissant",
+    "description": "Croissants, chocolate",
+    "category": "Baked Products",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "chocolate croissant",
+    "description": "Chocolate, dark",
+    "category": "Sweets",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "reject",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "butter croissant",
+    "description": "Croissants, butter",
+    "category": "Baked Products",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "butter croissant",
+    "description": "Butter, salted",
+    "category": "Fats and Oils",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "reject",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "butter chicken",
+    "description": "Butter chicken",
+    "category": "Poultry Products",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "butter chicken",
+    "description": "Chicken, cooked",
+    "category": "Poultry Products",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "honey garlic chicken",
+    "description": "Honey",
+    "category": "Sweets",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "reject",
+    "description_typed_from_memory": true,
+    "mainRejected": true
+  },
+  {
+    "name": "honey lemon tea",
+    "description": "Honey",
+    "category": "Sweets",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "reject",
+    "description_typed_from_memory": true,
+    "mainRejected": true
+  },
+  {
+    "name": "honey lemon tea",
+    "description": "Tea, hot",
+    "category": "Beverages",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "honey",
+    "description": "Honey",
+    "category": "Sweets",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": true
+  },
+  {
+    "name": "peanut butter toast",
+    "description": "Toast, whole wheat, with peanut butter",
+    "category": "Baked Products",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "peanut butter toast",
+    "description": "Bread, white, toasted",
+    "category": "Baked Products",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "peanut butter toast",
+    "description": "Peanut butter, smooth",
+    "category": "Legumes and Legume Products",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "reject",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "peanut butter sandwich",
+    "description": "Sandwich, peanut butter and jelly",
+    "category": "Fast Foods",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "peanut butter sandwich",
+    "description": "Peanut butter, smooth",
+    "category": "Legumes and Legume Products",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "reject",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "peanut butter",
+    "description": "Peanut butter, smooth",
+    "category": "Legumes and Legume Products",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "garlic butter shrimp",
+    "description": "Butter, salted",
+    "category": "Fats and Oils",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "reject",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "garlic butter shrimp",
+    "description": "Shrimp, cooked",
+    "category": "Finfish and Shellfish Products",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "garlic bread",
+    "description": "Bread, garlic",
+    "category": "Baked Products",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "butter",
+    "description": "Butter, salted",
+    "category": "Fats and Oils",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "buttered toast",
+    "description": "Bread, white, toasted",
+    "category": "Baked Products",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "buttered toast",
+    "description": "Butter, salted",
+    "category": "Fats and Oils",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "reject",
+    "description_typed_from_memory": true,
+    "mainRejected": true
+  },
+  {
+    "name": "toast with butter",
+    "description": "Bread, toasted",
+    "category": "Baked Products",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "toast with jam",
+    "description": "Jams and preserves",
+    "category": "Sweets",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "reject",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "bread and butter",
+    "description": "Bread, white",
+    "category": "Baked Products",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "bread and butter",
+    "description": "Butter, salted",
+    "category": "Fats and Oils",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "rice and beans",
+    "description": "Beans, kidney",
+    "category": "Legumes and Legume Products",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "egg fried rice",
+    "description": "Rice, fried",
+    "category": "Cereal Grains and Pasta",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "chicken and rice",
+    "description": "Rice, white, cooked",
+    "category": "Cereal Grains and Pasta",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "milk tea",
+    "description": "Tea, hot",
+    "category": "Beverages",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "coffee with milk",
+    "description": "Coffee, brewed",
+    "category": "Beverages",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "coffee with milk",
+    "description": "Milk, whole",
+    "category": "Dairy and Egg Products",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "reject",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "bubble tea",
+    "description": "Tea, hot",
+    "category": "Beverages",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "iced lemon tea",
+    "description": "Tea, iced, lemon",
+    "category": "Beverages",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "chocolate milk",
+    "description": "Milk, chocolate",
+    "category": "Dairy and Egg Products",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "chocolate milkshake",
+    "description": "Milk shakes, thick chocolate",
+    "category": "Dairy and Egg Products",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "chocolate cake",
+    "description": "Cake, chocolate, prepared from mix",
+    "category": "Baked Products",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "trail mix",
+    "description": "Trail mix",
+    "category": "Snacks",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "spice mix",
+    "description": "Spices, mixed",
+    "category": "Spices and Herbs",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "curry powder",
+    "description": "Spices, curry powder",
+    "category": "Spices and Herbs",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "garlic",
+    "description": "Garlic, raw",
+    "category": "Vegetables and Vegetable Products",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "basil",
+    "description": "Basil, fresh",
+    "category": "Spices and Herbs",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "chili",
+    "description": "Peppers, hot chili, red, raw",
+    "category": "Vegetables and Vegetable Products",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "seasoned fries",
+    "description": "Potatoes, french fried",
+    "category": "Vegetables and Vegetable Products",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "seasoning",
+    "description": "Spices, pepper, black",
+    "category": "Spices and Herbs",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "mixed herbs",
+    "description": "Spices, oregano",
+    "category": "Spices and Herbs",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "mint",
+    "description": "Peppermint, fresh",
+    "category": "Spices and Herbs",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "herbal tea",
+    "description": "Tea, herb, brewed",
+    "category": "Beverages",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "soy sauce",
+    "description": "Soy sauce",
+    "category": "Soups, Sauces, and Gravies",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "soy sauce",
+    "description": "Spices, pepper, black",
+    "category": "Spices and Herbs",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "reject",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "sambal",
+    "description": "Sauce, chili",
+    "category": "Soups, Sauces, and Gravies",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "sambal",
+    "description": "Spices, chili powder",
+    "category": "Spices and Herbs",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "chili powder",
+    "description": "Spices, chili powder",
+    "category": "Spices and Herbs",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "cinnamon roll",
+    "description": "Spices, cinnamon, ground",
+    "category": "Spices and Herbs",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "reject",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "cinnamon toast",
+    "description": "Bread, toasted, cinnamon",
+    "category": "Baked Products",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "pepper steak",
+    "description": "Spices, pepper, black",
+    "category": "Spices and Herbs",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "reject",
+    "description_typed_from_memory": true,
+    "mainRejected": true
+  },
+  {
+    "name": "garlic naan",
+    "description": "Bread, naan",
+    "category": "Baked Products",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "masala chai",
+    "description": "Tea, masala",
+    "category": "Beverages",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "tandoori chicken",
+    "description": "Chicken, cooked",
+    "category": "Poultry Products",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "tandoori chicken",
+    "description": "Spices, curry powder",
+    "category": "Spices and Herbs",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "reject",
+    "description_typed_from_memory": true,
+    "mainRejected": true
+  },
+  {
+    "name": "chicken curry",
+    "description": "Spices, curry powder",
+    "category": "Spices and Herbs",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "reject",
+    "description_typed_from_memory": true,
+    "mainRejected": true
+  },
+  {
+    "name": "chicken curry",
+    "description": "Chicken curry",
+    "category": "Poultry Products",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "nasi goreng",
+    "description": "Rice, fried",
+    "category": "Cereal Grains and Pasta",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "seekh kebab",
+    "description": "SEEKH KEBAB MASALA SPIC MIX",
+    "category": "Herbs & Spices",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "reject",
+    "description_typed_from_memory": true,
+    "mainRejected": true
+  },
+  {
+    "name": "seekh kebab",
+    "description": "Lamb, ground, cooked",
+    "category": "Lamb, Veal, and Game Products",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "seekh kebab",
+    "description": "Beef, ground, cooked",
+    "category": "Beef Products",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "chicken kebab",
+    "description": "Chicken, cooked",
+    "category": "Poultry Products",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "chicken kebab",
+    "description": "Pork, cooked",
+    "category": "Pork Products",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "reject",
+    "description_typed_from_memory": true,
+    "mainRejected": true
+  },
+  {
+    "name": "shawarma",
+    "description": "Chicken shawarma",
+    "category": "Poultry Products",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "shawarma",
+    "description": "Lamb, cooked",
+    "category": "Lamb, Veal, and Game Products",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "kebab",
+    "description": "Kebab, beef",
+    "category": "Beef Products",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "gyros",
+    "description": "Gyro meat, beef and lamb",
+    "category": "Lamb, Veal, and Game Products",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "gyro sandwich",
+    "description": "Sandwich, gyro",
+    "category": "Fast Foods",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "shish kebab",
+    "description": "Beef, cooked",
+    "category": "Beef Products",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "vegetable kebab",
+    "description": "Vegetables, mixed, cooked",
+    "category": "Vegetables and Vegetable Products",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "stir-fried meat",
+    "description": "Fish, tuna, cooked",
+    "category": "Finfish and Shellfish Products",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "reject",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "stir-fried meat",
+    "description": "Beef, cooked",
+    "category": "Beef Products",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "meat",
+    "description": "Chicken, cooked",
+    "category": "Poultry Products",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "meat",
+    "description": "Salmon, cooked",
+    "category": "Finfish and Shellfish Products",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "reject",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "meat",
+    "description": "Shrimp, cooked",
+    "category": "Finfish and Shellfish Products",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "reject",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "meat",
+    "description": "Pork, cooked",
+    "category": "Pork Products",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "meat and rice",
+    "description": "Rice, white, cooked",
+    "category": "Cereal Grains and Pasta",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "meat and rice",
+    "description": "Beef and rice",
+    "category": "Mixed",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "meat sauce pasta",
+    "description": "Pasta with meat sauce",
+    "category": "Mixed",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "meat sauce pasta",
+    "description": "Spaghetti with meat sauce",
+    "category": "Mixed",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "meatballs",
+    "description": "Meatballs, beef",
+    "category": "Beef Products",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "meat pie",
+    "description": "Pie, meat",
+    "category": "Pies",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "meat floss",
+    "description": "Pork floss",
+    "category": "Pork Products",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "mixed meat platter",
+    "description": "Sausage, pork",
+    "category": "Pork Products",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "meat dumplings",
+    "description": "Dumpling, pork",
+    "category": "Mixed",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "meat soup",
+    "description": "Soup, beef",
+    "category": "Soups, Sauces, and Gravies",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "beef noodles",
+    "description": "Beef and noodles with soy-based sauce",
+    "category": "Mixed",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "mala udon with beef",
+    "description": "Beef and noodles with soy-based sauce",
+    "category": "Stir-fry and soy-based sauce mixtures",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "mala udon",
+    "description": "Beef noodles soy sauce",
+    "category": "Stir-fry and soy-based sauce mixtures",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "reject",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "tofu stir fry",
+    "description": "Stir-fry and soy-based sauce mixtures",
+    "category": "Stir-fry and soy-based sauce mixtures",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "sweet and sour sauce",
+    "description": "Sauce, sweet and sour",
+    "category": "Soups, Sauces, and Gravies",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "sauce mixtures",
+    "description": "Sauce, mixed",
+    "category": "Soups, Sauces, and Gravies",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "salad dressing",
+    "description": "Salad dressing, caesar",
+    "category": "Soups, Sauces, and Gravies",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "salad dressing",
+    "description": "Lettuce, raw",
+    "category": "Vegetables and Vegetable Products",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "reject",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "tomato ketchup",
+    "description": "Catsup",
+    "category": "Soups, Sauces, and Gravies",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "chicken satay with peanut sauce",
+    "description": "Chicken satay with peanut sauce",
+    "category": "Mixed",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "satay peanut sambal sauce",
+    "description": "Sauce, peanut, ready-to-serve",
+    "category": "Soups, Sauces, and Gravies",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "gado gado",
+    "description": "Salad, vegetable, with peanut sauce",
+    "category": "Mixed",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "gado gado",
+    "description": "Cabbage, raw",
+    "category": "Vegetables and Vegetable Products",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "reject",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "egg salad",
+    "description": "Egg salad",
+    "category": "Mixed",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "tuna salad",
+    "description": "Tuna salad",
+    "category": "Mixed",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "chicken salad",
+    "description": "Chicken salad",
+    "category": "Mixed",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "chicken salad",
+    "description": "Lettuce, raw",
+    "category": "Vegetables and Vegetable Products",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "reject",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "salad with chicken",
+    "description": "Chicken, cooked",
+    "category": "Poultry Products",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "greek salad",
+    "description": "Salad, greek",
+    "category": "Mixed",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "greek salad",
+    "description": "Cucumber, raw",
+    "category": "Vegetables and Vegetable Products",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "side salad",
+    "description": "McDONALD'S, Side Salad",
+    "category": "Fast Foods",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "spiced potato side dish",
+    "description": "McDONALD'S, Side Salad",
+    "category": "Fast Foods",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "reject",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "spiced potato side dish",
+    "description": "Potatoes, mashed",
+    "category": "Vegetables and Vegetable Products",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "hash browns",
+    "description": "Potatoes, hash brown",
+    "category": "Vegetables and Vegetable Products",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "tater tots",
+    "description": "Potato puffs, frozen",
+    "category": "Vegetables and Vegetable Products",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "chips",
+    "description": "Potato chips, plain",
+    "category": "Snacks",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "fish and chips",
+    "description": "Fish and chips",
+    "category": "Mixed",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "chips and salsa",
+    "description": "Tortilla chips",
+    "category": "Snacks",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "corn chips",
+    "description": "Corn chips",
+    "category": "Snacks",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "corn tortilla",
+    "description": "Tortillas, corn",
+    "category": "Baked Products",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "cornbread",
+    "description": "Cornbread",
+    "category": "Baked Products",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "corn soup",
+    "description": "Soup, corn",
+    "category": "Soups, Sauces, and Gravies",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "corn fritters",
+    "description": "Fritter, corn",
+    "category": "Baked Products",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "mushroom soup",
+    "description": "Soup, cream of mushroom",
+    "category": "Soups, Sauces, and Gravies",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "mushroom burger",
+    "description": "Hamburger, with beef",
+    "category": "Fast Foods",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "onion soup",
+    "description": "Soup, onion",
+    "category": "Soups, Sauces, and Gravies",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "tomato egg",
+    "description": "Egg, whole, cooked, scrambled",
+    "category": "Dairy and Egg Products",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "tomato egg",
+    "description": "Tomatoes, red, ripe, raw",
+    "category": "Vegetables and Vegetable Products",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "potato and onion",
+    "description": "Onions, raw",
+    "category": "Vegetables and Vegetable Products",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "carrot cake",
+    "description": "Cake, carrot",
+    "category": "Baked Products",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "carrot cake",
+    "description": "Carrots, raw",
+    "category": "Vegetables and Vegetable Products",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "reject",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "banana cake",
+    "description": "Bananas, raw",
+    "category": "Fruits and Fruit Juices",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "reject",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "orange chicken",
+    "description": "Oranges, raw",
+    "category": "Fruits and Fruit Juices",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "reject",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "orange chicken",
+    "description": "Chicken, cooked",
+    "category": "Poultry Products",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "lemon chicken",
+    "description": "Lemons, raw",
+    "category": "Fruits and Fruit Juices",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "reject",
+    "description_typed_from_memory": true,
+    "mainRejected": true
+  },
+  {
+    "name": "apple cider",
+    "description": "Apple juice",
+    "category": "Fruits and Fruit Juices",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "cider",
+    "description": "Alcoholic beverage, cider",
+    "category": "Alcoholic Beverages",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "grape juice",
+    "description": "Grape juice, canned",
+    "category": "Fruits and Fruit Juices",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "lemon lime soda",
+    "description": "Carbonated beverage, lemon-lime",
+    "category": "Beverages",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "lemon-lime soda",
+    "description": "Limes, raw",
+    "category": "Fruits and Fruit Juices",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "reject",
+    "description_typed_from_memory": true,
+    "mainRejected": true
+  },
+  {
+    "name": "sparkling water with lemon",
+    "description": "Lemons, raw",
+    "category": "Fruits and Fruit Juices",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "reject",
+    "description_typed_from_memory": true,
+    "mainRejected": true
+  },
+  {
+    "name": "sparkling water with lemon",
+    "description": "Water, carbonated",
+    "category": "Beverages",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "iced tea with lemon",
+    "description": "Tea, iced",
+    "category": "Beverages",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "whisky with lime",
+    "description": "Alcoholic beverage, whiskey",
+    "category": "Alcoholic Beverages",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "coconut water",
+    "description": "Beverages, coconut water",
+    "category": "Beverages",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "coconut milk",
+    "description": "Nuts, coconut milk",
+    "category": "Nut and Seed Products",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "pineapple juice",
+    "description": "Pineapple juice",
+    "category": "Fruits and Fruit Juices",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "fruit punch",
+    "description": "Fruit punch drink",
+    "category": "Beverages",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": true
+  },
+  {
+    "name": "fruit tea",
+    "description": "Tea, fruit",
+    "category": "Beverages",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "mixed berries",
+    "description": "Blueberries, raw",
+    "category": "Fruits and Fruit Juices",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "berries",
+    "description": "Strawberries, raw",
+    "category": "Fruits and Fruit Juices",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "mixed fruit",
+    "description": "Fruit cocktail",
+    "category": "Fruits and Fruit Juices",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "mixed fruit",
+    "description": "Apples, raw",
+    "category": "Fruits and Fruit Juices",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "fruit bowl",
+    "description": "Bananas, raw",
+    "category": "Fruits and Fruit Juices",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "acai bowl",
+    "description": "Acai berry, frozen",
+    "category": "Fruits and Fruit Juices",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": true
+  },
+  {
+    "name": "yogurt with banana",
+    "description": "Yogurt, plain",
+    "category": "Dairy and Egg Products",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "yogurt with banana",
+    "description": "Bananas, raw",
+    "category": "Fruits and Fruit Juices",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "oatmeal with banana",
+    "description": "Oatmeal, cooked",
+    "category": "Cereal Grains and Pasta",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "oatmeal with banana",
+    "description": "Bananas, raw",
+    "category": "Fruits and Fruit Juices",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "reject",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "pancakes with strawberries",
+    "description": "Pancakes, plain",
+    "category": "Baked Products",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "waffles and fruit",
+    "description": "Waffles, plain",
+    "category": "Baked Products",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "toast with avocado",
+    "description": "Avocados, raw",
+    "category": "Fruits and Fruit Juices",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "reject",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "smashed avocado on toast",
+    "description": "Bread, toasted",
+    "category": "Baked Products",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "salmon with lemon",
+    "description": "Salmon, baked or broiled",
+    "category": "Finfish and Shellfish Products",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "salmon with lemon",
+    "description": "Lemons, raw",
+    "category": "Fruits and Fruit Juices",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "reject",
+    "description_typed_from_memory": true,
+    "mainRejected": true
+  },
+  {
+    "name": "shrimp and lemon",
+    "description": "Shrimp, cooked",
+    "category": "Finfish and Shellfish Products",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "lemon pepper chicken",
+    "description": "Chicken, roasted",
+    "category": "Poultry Products",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "lemon pepper chicken",
+    "description": "Spices, pepper, black",
+    "category": "Spices and Herbs",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "reject",
+    "description_typed_from_memory": true,
+    "mainRejected": true
+  },
+  {
+    "name": "lemon garlic pasta",
+    "description": "Pasta, cooked",
+    "category": "Cereal Grains and Pasta",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "onion bhaji",
+    "description": "Fritter, onion",
+    "category": "Baked Products",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "garlic naan",
+    "description": "Garlic, raw",
+    "category": "Vegetables and Vegetable Products",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "reject",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "chili crab",
+    "description": "Crustaceans, crab, cooked",
+    "category": "Finfish and Shellfish Products",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "chili crab",
+    "description": "Peppers, hot chili, red, raw",
+    "category": "Vegetables and Vegetable Products",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "reject",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "chili con carne",
+    "description": "Chili with beans",
+    "category": "Mixed",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "kimchi",
+    "description": "Cabbage, kimchi",
+    "category": "Vegetables and Vegetable Products",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "kimchi fried rice",
+    "description": "Rice, fried",
+    "category": "Cereal Grains and Pasta",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "kimchi",
+    "description": "Cabbage, raw",
+    "category": "Vegetables and Vegetable Products",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "cabbage rolls",
+    "description": "Cabbage, cooked",
+    "category": "Vegetables and Vegetable Products",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "pickled cucumber",
+    "description": "Pickles, cucumber, dill",
+    "category": "Vegetables and Vegetable Products",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "pickles",
+    "description": "Cucumber, raw",
+    "category": "Vegetables and Vegetable Products",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "cucumber",
+    "description": "Pickles, cucumber",
+    "category": "Vegetables and Vegetable Products",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "pickled vegetables",
+    "description": "Pickles, cucumber, dill",
+    "category": "Vegetables and Vegetable Products",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "tomato",
+    "description": "Tomatoes, red, ripe, raw",
+    "category": "Vegetables and Vegetable Products",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "tomato",
+    "description": "Tomato juice",
+    "category": "Vegetables and Vegetable Products",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": true
+  },
+  {
+    "name": "tomato",
+    "description": "Tomato paste",
+    "category": "Vegetables and Vegetable Products",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "romaine lettuce",
+    "description": "Lettuce, cos or romaine, raw",
+    "category": "Vegetables and Vegetable Products",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "romaine lettuce",
+    "description": "Spinach, raw",
+    "category": "Vegetables and Vegetable Products",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "mixed salad",
+    "description": "Salad, mixed greens",
+    "category": "Vegetables and Vegetable Products",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "garden salad",
+    "description": "Lettuce, raw",
+    "category": "Vegetables and Vegetable Products",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "garden salad",
+    "description": "Tomatoes, raw",
+    "category": "Vegetables and Vegetable Products",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "garden salad",
+    "description": "Cucumber, raw",
+    "category": "Vegetables and Vegetable Products",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "sliced cucumber",
+    "description": "Lettuce, raw",
+    "category": "Vegetables and Vegetable Products",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "reject",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "kale chips",
+    "description": "Kale, raw",
+    "category": "Vegetables and Vegetable Products",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "kale salad",
+    "description": "Kale, raw",
+    "category": "Vegetables and Vegetable Products",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "arugula",
+    "description": "Arugula, raw",
+    "category": "Vegetables and Vegetable Products",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "rocket salad",
+    "description": "Arugula, raw",
+    "category": "Vegetables and Vegetable Products",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "eggplant",
+    "description": "Eggplant, cooked",
+    "category": "Vegetables and Vegetable Products",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "aubergine",
+    "description": "Eggplant, raw",
+    "category": "Vegetables and Vegetable Products",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "courgette",
+    "description": "Squash, summer, zucchini, raw",
+    "category": "Vegetables and Vegetable Products",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "capsicum",
+    "description": "Peppers, sweet, red, raw",
+    "category": "Vegetables and Vegetable Products",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "spring onion",
+    "description": "Onions, spring or scallions, raw",
+    "category": "Vegetables and Vegetable Products",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "scallions",
+    "description": "Onions, spring or scallions, raw",
+    "category": "Vegetables and Vegetable Products",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "green onion",
+    "description": "Onions, spring or scallions, raw",
+    "category": "Vegetables and Vegetable Products",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "shallots",
+    "description": "Shallots, raw",
+    "category": "Vegetables and Vegetable Products",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "onion and mushroom",
+    "description": "Mushrooms, cooked",
+    "category": "Vegetables and Vegetable Products",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "pickled onion",
+    "description": "Onions, pickled",
+    "category": "Vegetables and Vegetable Products",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "coleslaw",
+    "description": "Cole slaw, home-prepared",
+    "category": "Vegetables and Vegetable Products",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "cabbage",
+    "description": "Cabbage, chinese (pak-choi), raw",
+    "category": "Vegetables and Vegetable Products",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "reject",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "banana chips",
+    "description": "Bananas, dehydrated, or banana powder",
+    "category": "Fruits and Fruit Juices",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "plantain",
+    "description": "Plantains, raw",
+    "category": "Fruits and Fruit Juices",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "fried plantain",
+    "description": "Plantains, cooked",
+    "category": "Fruits and Fruit Juices",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "mango",
+    "description": "Mangos, raw",
+    "category": "Fruits and Fruit Juices",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "mango chutney",
+    "description": "Chutney, mango",
+    "category": "Soups, Sauces, and Gravies",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "mango chutney",
+    "description": "Mangos, raw",
+    "category": "Fruits and Fruit Juices",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "reject",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "lime pickle",
+    "description": "Pickle, lime",
+    "category": "Vegetables and Vegetable Products",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "calamansi juice",
+    "description": "Limes, raw",
+    "category": "Fruits and Fruit Juices",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "reject",
+    "description_typed_from_memory": true,
+    "mainRejected": true
+  },
+  {
+    "name": "calamansi",
+    "description": "Limes, raw",
+    "category": "Fruits and Fruit Juices",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "kalamansi lime",
+    "description": "Limes, raw",
+    "category": "Fruits and Fruit Juices",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "lemon",
+    "description": "Lemons, raw",
+    "category": "Fruits and Fruit Juices",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "lemon peel",
+    "description": "Lemon peel, raw",
+    "category": "Fruits and Fruit Juices",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "lemon twist garnish",
+    "description": "Lemon peel, raw",
+    "category": "Fruits and Fruit Juices",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "lemon zest",
+    "description": "Lemon peel, raw",
+    "category": "Fruits and Fruit Juices",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "lemon wedge",
+    "description": "Potatoes, french fried, wedge cut, frozen",
+    "category": "Vegetables and Vegetable Products",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "reject",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "charred lemon half",
+    "description": "Lemon pie filling",
+    "category": "Sweets",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "reject",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "grilled onions",
+    "description": "Mushrooms, portabella, grilled",
+    "category": "Vegetables and Vegetable Products",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "reject",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "lemon and ginger tea",
+    "description": "Lemons, raw",
+    "category": "Fruits and Fruit Juices",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "reject",
+    "description_typed_from_memory": true,
+    "mainRejected": true
+  },
+  {
+    "name": "lemon and honey tea",
+    "description": "Lemons, raw",
+    "category": "Fruits and Fruit Juices",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "reject",
+    "description_typed_from_memory": true,
+    "mainRejected": true
+  },
+  {
+    "name": "lemon and lime soda",
+    "description": "Lemons, raw",
+    "category": "Fruits and Fruit Juices",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "reject",
+    "description_typed_from_memory": true,
+    "mainRejected": true
+  },
+  {
+    "name": "lemon and lime soda",
+    "description": "Limes, raw",
+    "category": "Fruits and Fruit Juices",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "reject",
+    "description_typed_from_memory": true,
+    "mainRejected": true
+  },
+  {
+    "name": "lime with soda",
+    "description": "Limes, raw",
+    "category": "Fruits and Fruit Juices",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "reject",
+    "description_typed_from_memory": true,
+    "mainRejected": true
+  },
+  {
+    "name": "lemon with soda water",
+    "description": "Lemons, raw",
+    "category": "Fruits and Fruit Juices",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "reject",
+    "description_typed_from_memory": true,
+    "mainRejected": true
+  },
+  {
+    "name": "lemon & mint drink",
+    "description": "Lemons, raw",
+    "category": "Fruits and Fruit Juices",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "reject",
+    "description_typed_from_memory": true,
+    "mainRejected": true
+  },
+  {
+    "name": "lime in water",
+    "description": "Limes, raw",
+    "category": "Fruits and Fruit Juices",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "reject",
+    "description_typed_from_memory": true,
+    "mainRejected": true
+  },
+  {
+    "name": "lemon and vodka",
+    "description": "Lemons, raw",
+    "category": "Fruits and Fruit Juices",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "reject",
+    "description_typed_from_memory": true,
+    "mainRejected": true
+  },
+  {
+    "name": "lemon and vodka cocktail",
+    "description": "Lemons, raw",
+    "category": "Fruits and Fruit Juices",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "reject",
+    "description_typed_from_memory": true,
+    "mainRejected": true
+  },
+  {
+    "name": "lemon and rum punch",
+    "description": "Lemons, raw",
+    "category": "Fruits and Fruit Juices",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "reject",
+    "description_typed_from_memory": true,
+    "mainRejected": true
+  },
+  {
+    "name": "lemon and chicken",
+    "description": "Lemons, raw",
+    "category": "Fruits and Fruit Juices",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "reject",
+    "description_typed_from_memory": true,
+    "mainRejected": true
+  },
+  {
+    "name": "lemon and herb chicken",
+    "description": "Lemons, raw",
+    "category": "Fruits and Fruit Juices",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "reject",
+    "description_typed_from_memory": true,
+    "mainRejected": true
+  },
+  {
+    "name": "lemon and herb roasted chicken",
+    "description": "Lemons, raw",
+    "category": "Fruits and Fruit Juices",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "reject",
+    "description_typed_from_memory": true,
+    "mainRejected": true
+  },
+  {
+    "name": "lemon and pepper salmon",
+    "description": "Lemons, raw",
+    "category": "Fruits and Fruit Juices",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "reject",
+    "description_typed_from_memory": true,
+    "mainRejected": true
+  },
+  {
+    "name": "lime and coriander rice",
+    "description": "Limes, raw",
+    "category": "Fruits and Fruit Juices",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "reject",
+    "description_typed_from_memory": true,
+    "mainRejected": true
+  },
+  {
+    "name": "lime and chili shrimp",
+    "description": "Limes, raw",
+    "category": "Fruits and Fruit Juices",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "reject",
+    "description_typed_from_memory": true,
+    "mainRejected": true
+  },
+  {
+    "name": "lemon and poppy seed muffin",
+    "description": "Lemons, raw",
+    "category": "Fruits and Fruit Juices",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "reject",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "lemon and blueberry cake",
+    "description": "Lemons, raw",
+    "category": "Fruits and Fruit Juices",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "reject",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "lemon and ricotta pancakes",
+    "description": "Lemons, raw",
+    "category": "Fruits and Fruit Juices",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "reject",
+    "description_typed_from_memory": true,
+    "mainRejected": true
+  },
+  {
+    "name": "lemon and garlic butter",
+    "description": "Lemons, raw",
+    "category": "Fruits and Fruit Juices",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "reject",
+    "description_typed_from_memory": true,
+    "mainRejected": true
+  },
+  {
+    "name": "lemon & lime juice",
+    "description": "Lemons, raw",
+    "category": "Fruits and Fruit Juices",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": true
+  },
+  {
+    "name": "lemon in tea",
+    "description": "Lemons, raw",
+    "category": "Fruits and Fruit Juices",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "reject",
+    "description_typed_from_memory": true,
+    "mainRejected": true
+  },
+  {
+    "name": "lime and salt",
+    "description": "Limes, raw",
+    "category": "Fruits and Fruit Juices",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "lemon, honey and ginger shot",
+    "description": "Lemons, raw",
+    "category": "Fruits and Fruit Juices",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "reject",
+    "description_typed_from_memory": true,
+    "mainRejected": true
+  },
+  {
+    "name": "banana and peanut butter sandwich",
+    "description": "Bananas, raw",
+    "category": "Fruits and Fruit Juices",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "reject",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "mango and sticky rice",
+    "description": "Mangos, raw",
+    "category": "Fruits and Fruit Juices",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "reject",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "apple and cinnamon oatmeal",
+    "description": "Apples, raw",
+    "category": "Fruits and Fruit Juices",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "reject",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "strawberry and cream cake",
+    "description": "Strawberries, raw",
+    "category": "Fruits and Fruit Juices",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "reject",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "orange and fennel salad",
+    "description": "Oranges, raw",
+    "category": "Fruits and Fruit Juices",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "reject",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "avocado and egg toast",
+    "description": "Avocados, raw",
+    "category": "Fruits and Fruit Juices",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "reject",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "grape and chicken salad",
+    "description": "Grapes, raw",
+    "category": "Fruits and Fruit Juices",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "reject",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "spices",
+    "description": "Spices, pepper, black",
+    "category": "Spices and Herbs",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "garam masala",
+    "description": "Spices, curry powder",
+    "category": "Spices and Herbs",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "turmeric",
+    "description": "Spices, turmeric, ground",
+    "category": "Spices and Herbs",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "paprika",
+    "description": "Spices, paprika",
+    "category": "Spices and Herbs",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "ground cumin",
+    "description": "Spices, cumin seed",
+    "category": "Spices and Herbs",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "cinnamon",
+    "description": "Spices, cinnamon, ground",
+    "category": "Spices and Herbs",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "black pepper",
+    "description": "Spices, pepper, black",
+    "category": "Spices and Herbs",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "oregano",
+    "description": "Spices, oregano, dried",
+    "category": "Spices and Herbs",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "thyme",
+    "description": "Spices, thyme, dried",
+    "category": "Spices and Herbs",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "rosemary",
+    "description": "Spices, rosemary, dried",
+    "category": "Spices and Herbs",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "basil",
+    "description": "Spices, basil, dried",
+    "category": "Spices and Herbs",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "dried basil",
+    "description": "Spices, basil, dried",
+    "category": "Spices and Herbs",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "cinnamon",
+    "description": "Cinnamon",
+    "category": "Herbs & Spices",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "masala",
+    "description": "MASALA SPICE MIX",
+    "category": "Herbs & Spices",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "chili flakes",
+    "description": "Spices, pepper, red or cayenne",
+    "category": "Spices and Herbs",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "five spice",
+    "description": "Spices, five spice",
+    "category": "Spices and Herbs",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "ginger",
+    "description": "Spices, ginger, ground",
+    "category": "Spices and Herbs",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "ginger",
+    "description": "Ginger root, raw",
+    "category": "Vegetables and Vegetable Products",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "garlic powder",
+    "description": "Spices, garlic powder",
+    "category": "Spices and Herbs",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "mustard",
+    "description": "Mustard, prepared, yellow",
+    "category": "Soups, Sauces, and Gravies",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "curry",
+    "description": "Spices, curry powder",
+    "category": "Spices and Herbs",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "curry",
+    "description": "Curry, chicken",
+    "category": "Mixed",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "rendang",
+    "description": "Spices, curry powder",
+    "category": "Spices and Herbs",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "reject",
+    "description_typed_from_memory": true,
+    "mainRejected": true
+  },
+  {
+    "name": "salt",
+    "description": "Salt, table",
+    "category": "Spices and Herbs",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "vanilla",
+    "description": "Vanilla extract",
+    "category": "Spices and Herbs",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "seasoned rice",
+    "description": "Spices, pepper, black",
+    "category": "Spices and Herbs",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "reject",
+    "description_typed_from_memory": true,
+    "mainRejected": true
+  },
+  {
+    "name": "bumbu",
+    "description": "Spices, mixed",
+    "category": "Spices and Herbs",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "sambal",
+    "description": "Spices, mixed",
+    "category": "Spices and Herbs",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "applesauce",
+    "description": "Applesauce, canned, unsweetened",
+    "category": "Fruits and Fruit Juices",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "cranberry sauce",
+    "description": "Cranberry sauce, canned, sweetened",
+    "category": "Fruits and Fruit Juices",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": true
+  },
+  {
+    "name": "cranberry sauce",
+    "description": "Cranberries, raw",
+    "category": "Fruits and Fruit Juices",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "reject",
+    "description_typed_from_memory": true,
+    "mainRejected": true
+  },
+  {
+    "name": "mango sauce",
+    "description": "Mangos, raw",
+    "category": "Fruits and Fruit Juices",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "reject",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "apple butter",
+    "description": "Apple butter",
+    "category": "Fruits and Fruit Juices",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "apple cider vinegar",
+    "description": "Vinegar, cider",
+    "category": "Fats and Oils",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": true
+  },
+  {
+    "name": "peach jam",
+    "description": "Jams and preserves",
+    "category": "Sweets",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "strawberry jam",
+    "description": "Jams and preserves",
+    "category": "Sweets",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "orange marmalade",
+    "description": "Marmalade, orange",
+    "category": "Sweets",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": true
+  },
+  {
+    "name": "strawberry preserves",
+    "description": "Jams and preserves",
+    "category": "Sweets",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "fruit jam",
+    "description": "Jams and preserves",
+    "category": "Sweets",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "fruit juice",
+    "description": "Fruit juice blend",
+    "category": "Fruits and Fruit Juices",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "fruit sauce",
+    "description": "Fruit sauce",
+    "category": "Fruits and Fruit Juices",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "berry sauce",
+    "description": "Berries, mixed",
+    "category": "Fruits and Fruit Juices",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "reject",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "orange sauce",
+    "description": "Sauce, orange",
+    "category": "Soups, Sauces, and Gravies",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "pak choi",
+    "description": "Cabbage, chinese (pak-choi), raw",
+    "category": "Vegetables and Vegetable Products",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "bok choy",
+    "description": "Cabbage, chinese (pak-choi), cooked, boiled",
+    "category": "Vegetables and Vegetable Products",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "stir-fried bok choy",
+    "description": "Cabbage, chinese (pak-choi), cooked, boiled",
+    "category": "Vegetables and Vegetable Products",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "stir fried pak choy",
+    "description": "Cabbage, chinese (pak-choi), cooked",
+    "category": "Vegetables and Vegetable Products",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "pak choy",
+    "description": "Bok choy, raw",
+    "category": "Vegetables and Vegetable Products",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "bok choy",
+    "description": "Pak choy, raw",
+    "category": "Vegetables and Vegetable Products",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "chinese cabbage",
+    "description": "Cabbage, chinese (pak-choi), raw",
+    "category": "Vegetables and Vegetable Products",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "napa cabbage",
+    "description": "Cabbage, chinese (pe-tsai), raw",
+    "category": "Vegetables and Vegetable Products",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "kangkung",
+    "description": "Swamp cabbage (skunk cabbage), raw",
+    "category": "Vegetables and Vegetable Products",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "kangkung",
+    "description": "Spinach, raw",
+    "category": "Vegetables and Vegetable Products",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "water spinach",
+    "description": "Spinach, raw",
+    "category": "Vegetables and Vegetable Products",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "sweet corn",
+    "description": "Corn, sweet, yellow, raw",
+    "category": "Vegetables and Vegetable Products",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "baby corn",
+    "description": "Corn, sweet, yellow, canned",
+    "category": "Vegetables and Vegetable Products",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "sweet potato leaves",
+    "description": "Sweet potato leaves, cooked",
+    "category": "Vegetables and Vegetable Products",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "cassava",
+    "description": "Cassava, raw",
+    "category": "Vegetables and Vegetable Products",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "yam",
+    "description": "Yam, cooked",
+    "category": "Vegetables and Vegetable Products",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "green beans",
+    "description": "Beans, snap, green, raw",
+    "category": "Vegetables and Vegetable Products",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "long beans",
+    "description": "Yardlong bean, raw",
+    "category": "Legumes and Legume Products",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "tempeh",
+    "description": "Tempeh",
+    "category": "Legumes and Legume Products",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "romaine",
+    "description": "Lettuce, cos or romaine, raw",
+    "category": "Vegetables and Vegetable Products",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "iceberg lettuce",
+    "description": "Lettuce, iceberg (includes crisphead types), raw",
+    "category": "Vegetables and Vegetable Products",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "lettuce",
+    "description": "Lettuce, butterhead (includes boston and bibb types), raw",
+    "category": "Vegetables and Vegetable Products",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "rocket",
+    "description": "Arugula, raw",
+    "category": "Vegetables and Vegetable Products",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "salad",
+    "description": "Lettuce, raw",
+    "category": "Vegetables and Vegetable Products",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "salad",
+    "description": "Salad, mixed greens",
+    "category": "Vegetables and Vegetable Products",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "salad",
+    "description": "Tomatoes, red, ripe, raw",
+    "category": "Vegetables and Vegetable Products",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "salad",
+    "description": "Onions, raw",
+    "category": "Vegetables and Vegetable Products",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "reject",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "salad",
+    "description": "Potatoes, boiled",
+    "category": "Vegetables and Vegetable Products",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "reject",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "vegetable salad",
+    "description": "Salad, vegetable",
+    "category": "Mixed",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "vegetable salad",
+    "description": "Onions, raw",
+    "category": "Vegetables and Vegetable Products",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "cucumber salad",
+    "description": "Tomatoes, raw",
+    "category": "Vegetables and Vegetable Products",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "reject",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "onion salad",
+    "description": "Lettuce, raw",
+    "category": "Vegetables and Vegetable Products",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "reject",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "cherry tomatoes",
+    "description": "Tomatoes, grape, raw",
+    "category": "Vegetables and Vegetable Products",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "grape tomatoes",
+    "description": "Tomatoes, grape, raw",
+    "category": "Vegetables and Vegetable Products",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "tomato",
+    "description": "Tomato, sun-dried",
+    "category": "Vegetables and Vegetable Products",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "cherry tomato",
+    "description": "Tomatoes, red, ripe, raw",
+    "category": "Vegetables and Vegetable Products",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "sliced tomato and cucumber",
+    "description": "Tomatoes, raw",
+    "category": "Vegetables and Vegetable Products",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "sliced tomato and cucumber",
+    "description": "Cucumber, raw",
+    "category": "Vegetables and Vegetable Products",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "sliced tomato and cucumber",
+    "description": "Lettuce, raw",
+    "category": "Vegetables and Vegetable Products",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "reject",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "carrot and onion",
+    "description": "Onions, raw",
+    "category": "Vegetables and Vegetable Products",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "pear",
+    "description": "Pears, asian, raw",
+    "category": "Fruits and Fruit Juices",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "pear",
+    "description": "Apples, raw",
+    "category": "Fruits and Fruit Juices",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "reject",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "orange",
+    "description": "Tangerines, (mandarin oranges), raw",
+    "category": "Fruits and Fruit Juices",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "mandarin",
+    "description": "Tangerines, (mandarin oranges), raw",
+    "category": "Fruits and Fruit Juices",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "lemon",
+    "description": "Lemon juice, raw",
+    "category": "Fruits and Fruit Juices",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "lime juice",
+    "description": "Lime juice, canned or bottled",
+    "category": "Fruits and Fruit Juices",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": true
+  },
+  {
+    "name": "key lime",
+    "description": "Limes, raw",
+    "category": "Fruits and Fruit Juices",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "calamansi",
+    "description": "Lemons, raw",
+    "category": "Fruits and Fruit Juices",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "calamansi juice",
+    "description": "Lemon juice, raw",
+    "category": "Fruits and Fruit Juices",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": true
+  },
+  {
+    "name": "kalamansi",
+    "description": "Limes, raw",
+    "category": "Fruits and Fruit Juices",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "jeruk nipis",
+    "description": "Limes, raw",
+    "category": "Fruits and Fruit Juices",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "lemon",
+    "description": "Lemon, raw",
+    "category": "Fruits and Fruit Juices",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "lime",
+    "description": "Limes, raw",
+    "category": "Fruits and Fruit Juices",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "plum",
+    "description": "Plums, raw",
+    "category": "Fruits and Fruit Juices",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "plum",
+    "description": "Plum sauce",
+    "category": "Soups, Sauces, and Gravies",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "reject",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "cherry",
+    "description": "Cherries, sweet, raw",
+    "category": "Fruits and Fruit Juices",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "fig",
+    "description": "Figs, raw",
+    "category": "Fruits and Fruit Juices",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "dates and figs",
+    "description": "Dates, deglet noor",
+    "category": "Fruits and Fruit Juices",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "melon",
+    "description": "Melons, cantaloupe, raw",
+    "category": "Fruits and Fruit Juices",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "rockmelon",
+    "description": "Melons, cantaloupe, raw",
+    "category": "Fruits and Fruit Juices",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "watermelon",
+    "description": "Melons, honeydew",
+    "category": "Fruits and Fruit Juices",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "reject",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "fruit platter",
+    "description": "Watermelon, raw",
+    "category": "Fruits and Fruit Juices",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "fruit platter",
+    "description": "Grapes, raw",
+    "category": "Fruits and Fruit Juices",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "fruit plate",
+    "description": "Pineapple, raw",
+    "category": "Fruits and Fruit Juices",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "fruit bowl",
+    "description": "Fruit salad, canned",
+    "category": "Fruits and Fruit Juices",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "fruits",
+    "description": "Bananas, raw",
+    "category": "Fruits and Fruit Juices",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "fresh fruit",
+    "description": "Apples, raw",
+    "category": "Fruits and Fruit Juices",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "yogurt with fruit",
+    "description": "Yogurt, fruit",
+    "category": "Dairy and Egg Products",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "yoghurt with mango",
+    "description": "Mangos, raw",
+    "category": "Fruits and Fruit Juices",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "reject",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "granola with yogurt",
+    "description": "Granola",
+    "category": "Breakfast Cereals",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "chocolate banana",
+    "description": "Bananas, raw",
+    "category": "Fruits and Fruit Juices",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "frozen banana",
+    "description": "Bananas, raw",
+    "category": "Fruits and Fruit Juices",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "banana split",
+    "description": "Bananas, raw",
+    "category": "Fruits and Fruit Juices",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "reject",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "banana fritter",
+    "description": "Fritter, banana",
+    "category": "Baked Products",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "pisang goreng",
+    "description": "Bananas, raw",
+    "category": "Fruits and Fruit Juices",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": true
+  },
+  {
+    "name": "fried banana",
+    "description": "Bananas, raw",
+    "category": "Fruits and Fruit Juices",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": true
+  },
+  {
+    "name": "grilled pineapple",
+    "description": "Pineapple, raw",
+    "category": "Fruits and Fruit Juices",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": true
+  },
+  {
+    "name": "baked apple",
+    "description": "Apples, baked",
+    "category": "Fruits and Fruit Juices",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "apple slices",
+    "description": "Apples, raw, with skin",
+    "category": "Fruits and Fruit Juices",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "apple slices with peanut butter",
+    "description": "Apples, raw",
+    "category": "Fruits and Fruit Juices",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "apple slices with peanut butter",
+    "description": "Peanut butter, smooth",
+    "category": "Legumes and Legume Products",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "orange slices",
+    "description": "Oranges, raw",
+    "category": "Fruits and Fruit Juices",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "orange wedges",
+    "description": "Oranges, raw",
+    "category": "Fruits and Fruit Juices",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "avocado slices",
+    "description": "Avocados, raw",
+    "category": "Fruits and Fruit Juices",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "avocado half",
+    "description": "Avocados, raw",
+    "category": "Fruits and Fruit Juices",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "sliced avocado",
+    "description": "Avocados, raw",
+    "category": "Fruits and Fruit Juices",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "avocado with egg",
+    "description": "Avocados, raw",
+    "category": "Fruits and Fruit Juices",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "reject",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "avocado juice",
+    "description": "Avocados, raw",
+    "category": "Fruits and Fruit Juices",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "reject",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "avocado juice",
+    "description": "Avocado juice",
+    "category": "Beverages",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "peanut butter",
+    "description": "Peanut butter, chunk style",
+    "category": "Legumes and Legume Products",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "almond butter",
+    "description": "Nuts, almond butter, plain",
+    "category": "Nut and Seed Products",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "shea butter",
+    "description": "Butter",
+    "category": "Fats and Oils",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "butter",
+    "description": "Butter, without salt",
+    "category": "Dairy and Egg Products",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "butter beans",
+    "description": "Beans, lima, canned",
+    "category": "Legumes and Legume Products",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "butter cookies",
+    "description": "Cookies, butter",
+    "category": "Baked Products",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "butter cake",
+    "description": "Cake, pound",
+    "category": "Baked Products",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "butter cake",
+    "description": "Butter, salted",
+    "category": "Fats and Oils",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "reject",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "butter chicken",
+    "description": "Butter, salted",
+    "category": "Dairy and Egg Products",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "reject",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "buttered corn",
+    "description": "Corn, sweet, yellow",
+    "category": "Vegetables and Vegetable Products",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "jam sandwich",
+    "description": "Jams and preserves",
+    "category": "Sweets",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "reject",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "jam toast",
+    "description": "Jams and preserves",
+    "category": "Sweets",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "reject",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "jam doughnut",
+    "description": "Doughnuts, jelly",
+    "category": "Baked Products",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "honey toast",
+    "description": "Honey",
+    "category": "Sweets",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "reject",
+    "description_typed_from_memory": true,
+    "mainRejected": true
+  },
+  {
+    "name": "honey cake",
+    "description": "Cake, honey",
+    "category": "Baked Products",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "honey roasted peanuts",
+    "description": "Peanuts, honey roasted",
+    "category": "Nut and Seed Products",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "honey mustard chicken",
+    "description": "Honey",
+    "category": "Sweets",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "reject",
+    "description_typed_from_memory": true,
+    "mainRejected": true
+  },
+  {
+    "name": "chocolate bread",
+    "description": "Bread, chocolate",
+    "category": "Baked Products",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "chocolate chip cookie",
+    "description": "Cookies, chocolate chip",
+    "category": "Baked Products",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "chocolate bar",
+    "description": "Candies, chocolate",
+    "category": "Sweets",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "chocolate pancake",
+    "description": "Pancakes, chocolate",
+    "category": "Baked Products",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "chocolate pancake",
+    "description": "Chocolate, dark",
+    "category": "Sweets",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "reject",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "chocolate toast",
+    "description": "Chocolate, dark",
+    "category": "Sweets",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "reject",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "chocolate toast",
+    "description": "Bread, toasted",
+    "category": "Baked Products",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "chocolate spread toast",
+    "description": "Toast",
+    "category": "Baked Products",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "nutella toast",
+    "description": "Chocolate-flavored hazelnut spread",
+    "category": "Sweets",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "reject",
+    "description_typed_from_memory": true,
+    "mainRejected": true
+  },
+  {
+    "name": "nutella",
+    "description": "Chocolate-flavored hazelnut spread",
+    "category": "Sweets",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "ice cream sandwich",
+    "description": "Ice cream sandwich",
+    "category": "Sweets",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "ice cream cone",
+    "description": "Ice cream cone",
+    "category": "Sweets",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "egg sandwich",
+    "description": "Egg, whole, cooked",
+    "category": "Dairy and Egg Products",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "reject",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "egg sandwich",
+    "description": "Sandwich, egg",
+    "category": "Fast Foods",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "cheese toast",
+    "description": "Cheese, cheddar",
+    "category": "Dairy and Egg Products",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "reject",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "cheese toast",
+    "description": "Bread, cheese, toasted",
+    "category": "Baked Products",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "cheese sandwich",
+    "description": "Cheese, cheddar",
+    "category": "Dairy and Egg Products",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "reject",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "cheese burger",
+    "description": "Cheeseburger",
+    "category": "Fast Foods",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "milk bread",
+    "description": "Bread, milk",
+    "category": "Baked Products",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "milk bread",
+    "description": "Milk, whole",
+    "category": "Dairy and Egg Products",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "reject",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "milk toast",
+    "description": "Milk, whole",
+    "category": "Dairy and Egg Products",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "reject",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "condensed milk toast",
+    "description": "Milk, condensed",
+    "category": "Dairy and Egg Products",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "reject",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "kaya toast",
+    "description": "Jams and preserves",
+    "category": "Sweets",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "reject",
+    "description_typed_from_memory": true,
+    "mainRejected": true
+  },
+  {
+    "name": "kaya toast",
+    "description": "Bread, toasted",
+    "category": "Baked Products",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "sambal fried rice",
+    "description": "Rice, fried",
+    "category": "Cereal Grains and Pasta",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "sambal fried rice",
+    "description": "Sauce, chili",
+    "category": "Soups, Sauces, and Gravies",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "reject",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "chili sauce chicken",
+    "description": "Sauce, chili",
+    "category": "Soups, Sauces, and Gravies",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "reject",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "teriyaki chicken",
+    "description": "Sauce, teriyaki",
+    "category": "Soups, Sauces, and Gravies",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "reject",
+    "description_typed_from_memory": true,
+    "mainRejected": true
+  },
+  {
+    "name": "teriyaki sauce",
+    "description": "Sauce, teriyaki",
+    "category": "Soups, Sauces, and Gravies",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "beef tea",
+    "description": "Beef broth",
+    "category": "Soups, Sauces, and Gravies",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "green tea",
+    "description": "Tea, green",
+    "category": "Beverages",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "green tea",
+    "description": "Tea, green, brewed",
+    "category": "Beverages",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "green tea latte",
+    "description": "Tea, green",
+    "category": "Beverages",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "lemon green tea",
+    "description": "Tea, green",
+    "category": "Beverages",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "lemon green tea",
+    "description": "Lemons, raw",
+    "category": "Fruits and Fruit Juices",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "reject",
+    "description_typed_from_memory": true,
+    "mainRejected": true
+  },
+  {
+    "name": "lemonade",
+    "description": "Lemonade",
+    "category": "Beverages",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "lemonade",
+    "description": "Lemons, raw",
+    "category": "Fruits and Fruit Juices",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "reject",
+    "description_typed_from_memory": true,
+    "mainRejected": true
+  },
+  {
+    "name": "limeade",
+    "description": "Limeade",
+    "category": "Beverages",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "limeade",
+    "description": "Limes, raw",
+    "category": "Fruits and Fruit Juices",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "reject",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "orange soda",
+    "description": "Carbonated beverage, orange",
+    "category": "Beverages",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "orange soda",
+    "description": "Oranges, raw",
+    "category": "Fruits and Fruit Juices",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "reject",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "orange juice and vodka",
+    "description": "Oranges, raw",
+    "category": "Fruits and Fruit Juices",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "reject",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "orange juice and vodka",
+    "description": "Alcoholic beverage, screwdriver",
+    "category": "Alcoholic Beverages",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "apple and cranberry juice",
+    "description": "Apple juice",
+    "category": "Fruits and Fruit Juices",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "apple and cranberry juice",
+    "description": "Apples, raw",
+    "category": "Fruits and Fruit Juices",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "reject",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "banana and strawberry smoothie",
+    "description": "Bananas, raw",
+    "category": "Fruits and Fruit Juices",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "reject",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "strawberry and banana smoothie",
+    "description": "Strawberries, raw",
+    "category": "Fruits and Fruit Juices",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "reject",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "mango and pineapple smoothie",
+    "description": "Mangos, raw",
+    "category": "Fruits and Fruit Juices",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "reject",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "mango and pineapple smoothie",
+    "description": "Smoothie, mango",
+    "category": "Beverages",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  },
+  {
+    "name": "pineapple and mango",
+    "description": "Mangos, raw",
+    "category": "Fruits and Fruit Juices",
+    "source": "reviewer Fleet57 probes, typed from memory",
+    "expected": "keep",
+    "description_typed_from_memory": true,
+    "mainRejected": false
+  }
+]
