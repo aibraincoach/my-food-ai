@@ -1,6 +1,6 @@
 ### My Food AI — Backlog†
 
-Last edited: Thursday 2026-11-19 at 05:50 WIB (UTC+07:00) by Claude, PM
+Last edited: Thursday 2026-11-19 at 07:58 WIB (UTC+07:00) by Claude, PM
 
 The only job of the PM is to maintain this backlog and keep it completely up to date. Failing to do so is immediately terminable.
 
@@ -188,6 +188,8 @@ Fleet 55, Nov 19 (builder, one bounded production study): of the owner's 178 rea
 
 Fleet 56, Nov 19 (builder, one more bounded study, nothing written): the reader was fixed (it now compares grams eaten with grams on the original plate correctly, and never turns "a photo cannot tell the weight" into a flag) and the 14 flagged or leftovers meals were read again. The stored per-100 g numbers are not the weak point: the 241 foods' records were fetched from USDA's public database and none of 368 comparable stored values differs from its record by more than 0.5 kcal per 100 g. The 24 questions from a calories-against-macros screen are almost all drinks, where alcohol explains the gap; the one solid food is corn (94 against 108 kcal from its macros). Four of the earlier flags survived the re-read, all model judgments and none measured: roasted cherry tomatoes at 200 kcal per 100 g, the share of scallions and pickles eaten, the share of a cheese-filled katsu, and a lemon (162) and a potato (20) that look implausible per 100 g. No correction was made or recommended. The open questions are which food record a food was matched to and the portions; the team is tracing the flagged foods one by one.
 
+Fleet 57, Nov 19 (builder): the first real corrections to the owner's numbers. A saved copy of each meal was taken first, and a rule restored any meal that lost something. Of 11 meals with a wrong food record, 9 were corrected, 1 was put back, and 1 was skipped. Seekh kebab was stored as a dry spice mix and is now a real grilled seekh kebab (514.8 to 200.4 kcal on one meal, 686.4 to 267.2 on another). A shrimp roll stored as a meat crepe is now a shrimp sushi roll proxy (121.1 to 70.0 kcal). The creamy dipping sauce stored as almond butter went from 193.5 to 129.6 kcal. Sambal stored at 0 kcal is now 4.2 and 52.6 kcal for 20 g (two plausible recipes, so unresolved). Lamb curry stored as beef curry went from 333.2 to 380.8 kcal. A mixed green salad stored as pure dressing went from 213.5 to 10.5 kcal, and a salad with dressing from 341.6 to 16.0 kcal (rough: the dressing is not counted). One meal, a tuna dish, was put back because the new rule wrongly judged its tuna record as the wrong animal; its caption said tuna. The red bean bun was skipped (a plain bun, not a wrong animal). Still wrong: a lemon wedge stored as french fries, a charred lemon half as lemon pie filling, grilled onions as mushrooms and a spiced potato as a side salad; the team is building a safer fix for those next.
+
 ### #1123 Something sent about 482 million API requests; the cause is not in current source
 
 The production report records 482,360,150 request preludes (29.1% of database time), while the gateway shows about 17 requests a minute now, so this is a past burst or traffic outside the gateway. The code is not blamed without evidence.
@@ -205,6 +207,12 @@ Done when that pair is kept and the Fleet 37 and Fleet 51 pair tables still pass
 When a person returns to a tab showing a meal, the page makes about 14 requests and 14 preflight checks at once: 4 for feedback, 6 for comments, 3 for readiness (status and initialization) and 1 for the meal page's own status. The one status read is what the quiet-polling work (#1095) intended. The rest are other readers' event-driven reads on focus, not timers, and they were the same before.
 
 Done when the return makes the fewest reads the screen needs, shown by a local count test.
+
+### #1175 An implied-protein dish word that names only a bread implies no protein (Roll, white, hamburger bun)
+
+The matcher reads the word "hamburger" in the record "Roll, white, hamburger bun" as beef, but a hamburger bun holds no beef. The owner's red bean bun was listed as a wrong-animal match for that false reason. The record is a weak plain-bun estimate, not a wrong animal, and the meal was skipped in the recheck.
+
+Done when a dish word that only names a bread, bun or roll implies no protein, and the Fleet 37, 51, 53 and 57 pair tables still pass.
 
 ### Backlog for Designer
 
