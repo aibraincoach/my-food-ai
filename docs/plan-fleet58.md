@@ -222,3 +222,20 @@ Report to the PM, food by food:
 - the finding PR (counts and prefixes only).
 
 **Nothing else changes.** #694 and #990 stay open.
+
+## Result: not shipped
+
+The signal was not shipped. Code PR #1179 was closed unmerged at
+92abc7c5af008ecabd83a0b8f71a4eedcce10d2c under section 5.4; there was no
+amended signal and no production recheck.
+
+The 1,489-row replay had 27 changes and 0 new wrong keeps. It newly dropped
+correct records in three cases: chili con carne against the chili con carne
+with beans records; apple cider against apple juice; and lemon against lemon
+juice. These drops failed the gate even though the intended plant-food
+mismatches were also rejected.
+
+The bounded public USDA collection completed 76 searches, with 76/76 HTTP 200
+responses in 401.3 seconds. The responses remain cached outside the repository
+for the audit. The code head is preserved for that audit. The six deferred
+plant foods await targeted corrections without a rule change.
