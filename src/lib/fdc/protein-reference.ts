@@ -44,16 +44,15 @@ function proteins(text: string): Set<string> {
   const found = new Set<string>();
   let main = false;
   for (const [words, word, named] of NAMED) if (words.test(plain)) { named.forEach(protein => found.add(protein)); if (!TOPPINGS.has(word)) main = true; }
-  if (!main && /\bmeat\b/i.test(plain)) { found.add("land"); main=true; }
   if (!main) for (const [words, implied] of IMPLIED) if (words.test(plain)) implied.forEach(protein => found.add(protein));
   if (EGG_DISH.test(plain)) found.add("egg");
   // A side that names its species does not stand for any fish: "Fish, salmon" is salmon.
   if (FISH_SPECIES.some(species => found.has(species))) found.delete("fish");
   return found;
 }
-const LAND = new Set(["chicken","turkey","duck","beef","pork","lamb","veal","goat","mutton"]);
 const PLANT = new Set(["plant", "tofu", "tempeh"]);
-const agree = (a: string, b: string) => a === b || (a === "land" && LAND.has(b)) || (b === "land" && LAND.has(a)) || (PLANT.has(a) && PLANT.has(b))
+// #990 Fleet 59: a bare "meat" names no animal. The model's short name can say "meat" for tuna rica, so it judges nothing.
+const agree = (a: string, b: string) => a === b || (PLANT.has(a) && PLANT.has(b))
   || (a === "fish" && FISH_SPECIES.includes(b)) || (b === "fish" && FISH_SPECIES.includes(a));
 
 /**
