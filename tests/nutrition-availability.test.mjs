@@ -110,9 +110,9 @@ test('a named main protein replaces what the dish word implies; a topping does n
   assert.equal(referenceProteinMismatch('bacon cheeseburger', 'Beef, ground, 85% lean meat / 15% fat, patty, cooked, broiled'), false);
 });
 
-test('bare meat means a land animal unless a main protein is named',()=>{
- assert.equal(referenceProteinMismatch('stir-fried meat with red chilies','Fish, tuna, cooked'),true);
- for(const record of['Beef, cooked','Chicken, cooked','Turkey, cooked','Duck, cooked','Pork, cooked','Lamb, cooked','Veal, cooked','Goat, cooked','Mutton, cooked'])assert.equal(referenceProteinMismatch('stir-fried meat',record),false,record);
+test('bare meat names no animal: the short food name can say meat for fish (#990 Fleet 59)',()=>{
+ for(const record of['Fish, tuna, cooked','Beef, cooked','Chicken, cooked','Pork, cooked','Lamb, cooked','Crepe, with meat'])assert.equal(referenceProteinMismatch('stir-fried meat with red chilies',record),false,record);
+ assert.equal(referenceProteinMismatch('shrimp rice noodle roll','Crepe, with meat'),false);
  assert.equal(referenceProteinMismatch('tuna meat','Fish, tuna, cooked'),false);
  assert.equal(referenceProteinMismatch('chicken meat','Fish, tuna, cooked'),true);
 });
