@@ -11,7 +11,7 @@ import { checkRecord } from '../../src/lib/fdc/record-kind.ts';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const sqlFile = (name) => path.join(here, name);
-export const MODE_FILES = { rematch: '11-rematch.sql', reanalyse: '12-reanalyse.sql', repair: '15-repair.sql', decaf: '20-decaf.sql', recheck: '24-recheck.sql' };
+export const MODE_FILES = { rematch: '11-rematch.sql', reanalyse: '12-reanalyse.sql', repair: '15-repair.sql', decaf: '20-decaf.sql', recheck: '24-recheck.sql', 'set-record': '27-set-record.sql' };
 // Modes that write nutrition in place: their snapshot records it, and restore puts it back with 15-repair-undo.sql.
 export const IN_PLACE_MODES = new Set(['repair', 'decaf']);
 export const EXIT = { ok: 0, incomplete: 1, stopped: 3, usage: 4 };
@@ -37,6 +37,8 @@ run
   --mode=repair       15-repair.sql: a negative stored value becomes zero and the meal is summed again.
   --mode=decaf        20-decaf.sql: caffeine stored on an alcoholic drink that names no caffeine source is removed
                       and the meal is summed again (#456). That caffeine is ledgered as values_removed, not as a loss.
+  --mode=set-record   27-set-record.sql: chosen numeric records from --foods-file, one food at a time, no search.
+                      Recomputes through retained bridges; any unlisted change or wrong chosen record puts it back.
   --mode=recheck      24-recheck.sql: only the foods listed in --foods-file (mismatch.mjs's flagged.jsonl; meal foods
                       with a strong signal) are looked up again; every other food keeps its nutrition exactly (#990).
                       The micronutrients a listed food loses are ledgered as values_removed. The calories may move by
@@ -116,6 +118,67 @@ export function parseFoodsFile(text) {
   return foods;
 }
 
+// Explicit choices are separate from detector findings; no model or record search chooses these ids.
+export function parseSetRecordFoods(text) {
+  const foods = new Map(), seen = new Set();
+  for (const line of String(text).split('\n').map(s => s.trim()).filter(Boolean)) {
+    let row;
+    try { row = JSON.parse(line); } catch { throw new UsageError('A set-record line is not JSON.'); }
+    if (!/^[0-9a-f]{8}$/.test(row.meal ?? '') || !/^(?:[0-9a-f]{8}|[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})$/.test(row.item ?? '')) throw new UsageError('Set-record needs a meal prefix and item id or prefix.');
+    if (!Number.isSafeInteger(row.fdc) || row.fdc <= 0) throw new UsageError('Set-record fdc must be a positive safe integer.');
+    if (typeof row.description !== 'string' || !row.description.trim()) throw new UsageError('Set-record needs the chosen record description.');
+    const key = row.meal + ':' + row.item.slice(0, 8);
+    if (seen.has(key)) throw new UsageError('A set-record item is listed twice.');
+    seen.add(key);
+    const list = foods.get(row.meal) ?? [];
+    list.push({ item: row.item, fdc: row.fdc, description: row.description }); foods.set(row.meal, list);
+  }
+  if (!foods.size) throw new UsageError('No set-record choices were given.');
+  return foods;
+}
+const currentFoods = snapshot => (snapshot.items ?? []).filter(i => i.superseded_at == null);
+function descends(item, id, snapshot) {
+  const index = new Map((snapshot.items ?? []).map(i => [i.id, i]));
+  const seen = new Set();
+  while (item && !seen.has(item.id)) {
+    if (item.id === id || item.supersedes === id) return true;
+    seen.add(item.id); item = index.get(item.supersedes);
+  }
+  return false;
+}
+const stable = value => JSON.stringify(value, (_key, v) => v && !Array.isArray(v) && typeof v === 'object' ? Object.fromEntries(Object.entries(v).sort(([a], [b]) => a.localeCompare(b))) : v);
+const nutritionValues = n => Object.fromEntries(Object.entries(n ?? {}).filter(([key]) => key !== 'post_item_id'));
+// Compare through revision identities, never by name (twins must remain distinguishable).
+export function setRecordOutcome(before, after, foods) {
+  const old = currentFoods(before), now = currentFoods(after), values_removed = [], changes = [];
+  const bad = reason => ({ reason, values_removed, changes });
+  if (after.post?.status !== 'ready') return bad(`the meal is ${after.post?.status ?? 'missing'}`);
+  if (old.length !== now.length) return bad('the food count changed');
+  const choices = new Map();
+  for (const food of foods) {
+    const matches = old.filter(i => i.id.startsWith(food.item));
+    if (matches.length !== 1) return bad('a chosen food does not identify exactly one original');
+    choices.set(matches[0].id, food);
+  }
+  for (const original of old) {
+    const matches = now.filter(i => descends(i, original.id, after));
+    if (matches.length !== 1) return bad('a food revision is missing or ambiguous');
+    const item = matches[0], choice = choices.get(original.id);
+    // A data correction cannot rename, reweigh, or alter a leftover/count field.
+    for (const key of ['name','portion_grams','portion_text','not_eaten_grams','not_eaten_calories','not_eaten_count_text','count_text']) {
+      if (stable(item[key]) !== stable(original[key])) return bad(`a food changed ${key}`);
+    }
+    if (!choice) {
+      if (stable(nutritionValues(item.nutrition)) !== stable(nutritionValues(original.nutrition))) return bad('an unlisted food nutrition value or record changed');
+    } else {
+      if (item.nutrition?.source_ref !== String(choice.fdc) || item.nutrition?.calories == null) return bad('a chosen food has the wrong record or unknown calories');
+      changes.push({ item: original.id.slice(0,8), old_record: original.nutrition?.source_ref ?? null, new_record: item.nutrition.source_ref, old_kcal: original.nutrition?.calories ?? null, new_kcal: item.nutrition.calories });
+      for (const entry of original.nutrition?.micronutrients ?? []) values_removed.push({ item: original.id.slice(0,8), record: original.nutrition.source_ref, entry });
+    }
+  }
+  return { reason: null, values_removed, changes };
+}
+
 // Pure: #990. After a recheck, the losses that are the listed foods' own micronutrients (the old record was another
 // kind of food, so its micronutrients were never this food's) and whether every listed food's new record passes the
 // record check. items22 is 22-items.sql's rows for the meal (name, category, how, description).
@@ -157,16 +220,16 @@ export function parseArgs(argv, readFile = (file) => readFileSync(file, 'utf8'))
     return { command, meal, ledger: values.ledger, snapshot, waitSeconds };
   }
   for (const key of ['meal', 'snapshot']) if (values[key] !== undefined) throw new UsageError(`--${key} is not a run option.`);
-  if (!Object.hasOwn(MODE_FILES, values.mode ?? '')) throw new UsageError('--mode=rematch, --mode=reanalyse, --mode=repair, --mode=decaf or --mode=recheck is required.');
-  if (values.mode === 'recheck') {
-    if (values.meals !== undefined || values['meals-file'] !== undefined || values['foods-file'] === undefined) throw new UsageError('--mode=recheck takes --foods-file, not --meals or --meals-file.');
+  if (!Object.hasOwn(MODE_FILES, values.mode ?? '')) throw new UsageError('--mode=rematch, --mode=reanalyse, --mode=repair, --mode=decaf, --mode=recheck or --mode=set-record is required.');
+  if (values.mode === 'recheck' || values.mode === 'set-record') {
+    if (values.meals !== undefined || values['meals-file'] !== undefined || values['foods-file'] === undefined) throw new UsageError('--mode=recheck and --mode=set-record take --foods-file, not --meals or --meals-file.');
     let text;
     try { text = readFile(values['foods-file']); } catch { throw new UsageError('The --foods-file could not be read.'); }
-    const foods = parseFoodsFile(text);
+    const foods = values.mode === 'set-record' ? parseSetRecordFoods(text) : parseFoodsFile(text);
     return { command, mode: values.mode, meals: [...foods.keys()], foods, ledger: values.ledger, dryRun: values['dry-run'] === true, waitSeconds,
       maxMeals: positiveInt(values['max-meals'] ?? 10, '--max-meals'), maxMinutes: positiveInt(values['max-minutes'] ?? 45, '--max-minutes') };
   }
-  if (values['foods-file'] !== undefined) throw new UsageError('--foods-file is only for --mode=recheck.');
+  if (values['foods-file'] !== undefined) throw new UsageError('--foods-file is only for --mode=recheck or --mode=set-record.');
   if ((values.meals === undefined) === (values['meals-file'] === undefined)) throw new UsageError('Give exactly one of --meals and --meals-file.');
   let meals;
   if (values.meals !== undefined) meals = parsePrefixes(values.meals);
@@ -450,7 +513,92 @@ function appendPrivate(directory, name, line) {
   appendFileSync(file, line + '\n', { mode: 0o600 }); chmodSync(file, 0o600);
 }
 
+async function runSetRecord(request) {
+  const ledger = checkedLedger(request.ledger);
+  requireEnv(request.dryRun ? ['SUPABASE_DB_URL'] : ['SUPABASE_DB_URL', 'APP_URL']);
+  const meals = resolvePrefixes(request.meals), rows = [], outcomes = [], startedAt = Date.now();
+  let previousInFlight = false;
+  const snapshot = (prefix, id) => {
+    const line = psql({ file: sqlFile('08-snapshot.sql'), vars: { prefixes: prefix } }).split('\n').find(s => s && JSON.parse(s).post?.id === id);
+    if (!line) throw new Error(`Snapshot returned no meal ${prefix}.`);
+    return JSON.parse(line);
+  };
+  for (let index = 0; index < meals.length; index++) {
+    const stop = stopReason({outcomes, started:index, remaining:meals.length-index, maxMeals:request.maxMeals,
+      maxMinutes:request.maxMinutes, elapsedMinutes:(Date.now()-startedAt)/60000, previousInFlight});
+    if (stop) { console.log(`STOPPED: ${stop}`); console.log(summaryTable(rows)); return EXIT.stopped; }
+    const {prefix, id} = meals[index], foods = request.foods.get(prefix);
+    const before = snapshot(prefix, id);
+    const choices = foods.map(food => {
+      const matches = currentFoods(before).filter(i => i.id.startsWith(food.item));
+      if (matches.length !== 1) throw new UsageError(`Food ${food.item} does not resolve to one current food in ${prefix}.`);
+      return {...food, item:matches[0].id};
+    });
+    if (request.dryRun) {
+      for (const food of choices) {
+        const item = currentFoods(before).find(i => i.id === food.item);
+        console.log(`${prefix} ${food.item.slice(0,8)}: ${item.nutrition?.source_ref ?? 'unknown'} -> ${food.fdc} (${food.description}); dry run, nothing written`);
+      }
+      continue;
+    }
+    const first = readTotals(id);
+    const row = {meal:prefix, mode:'set-record', outcome:'skipped', before:publicTotals(first), after:null, seconds_waited:0, model_calls:0};
+    if (before.post.status !== 'ready' || before.post.deleted_at || row.before.items !== currentFoods(before).length || first.job_in_flight) {
+      row.reason = 'meal not ready, deleted, changed, or has an active job'; rows.push(row); outcomes.push('skipped');
+      appendPrivate(ledger, 'ledger.jsonl', JSON.stringify(row)); continue;
+    }
+    appendPrivate(ledger, 'snapshots.jsonl', JSON.stringify(before));
+    const since = dbNow(), processed = [];
+    let after = before, changed = false, why = null, writeUnconfirmed = false;
+    try {
+      for (const food of choices) {
+        const left = request.maxMinutes*60-(Date.now()-startedAt)/1000;
+        if (left <= 0) { why='the bounded run clock expired'; break; }
+        const matches = currentFoods(after).filter(i => descends(i, food.item, after));
+        if (matches.length !== 1) { why='a current food identity is missing or ambiguous'; break; }
+        writeUnconfirmed = true;
+        const output = psql({file:sqlFile('27-set-record.sql'), vars:{post:id, item:matches[0].id, fdc:food.fdc}});
+        writeUnconfirmed = false;
+        if (!output.includes('|recompute|')) { why="refused by 27-set-record.sql's guards"; break; }
+        changed = true;
+        const wait = await waitForMeal(id, Math.max(1,Math.min(request.waitSeconds, Math.floor(left))));
+        row.seconds_waited += wait.seconds; row.after=publicTotals(wait.totals);
+        if (wait.timedOut) {
+          previousInFlight=wait.totals.job_in_flight;
+          why='the meal did not settle inside its wait cap'; row.outcome='timeout'; break;
+        }
+        after=snapshot(prefix,id); appendPrivate(ledger,'after.jsonl',JSON.stringify(after));
+        processed.push(food);
+        const result=setRecordOutcome(before,after,processed);
+        row.values_removed=result.values_removed; row.foods=result.changes;
+        if (result.reason) { why=result.reason; break; }
+      }
+    } catch(error) {
+      if (writeUnconfirmed) { changed=true; row.write_uncertain=true; }
+      why=error.message;
+    }
+    if (why && changed) {
+      row.restore_reason=why;
+      try { row.restored=await restore({meal:prefix,ledger:request.ledger,snapshot:'last',waitSeconds:request.waitSeconds})===EXIT.ok; }
+      catch(error) { row.restored=false; row.restore_error=error.message; }
+      row.outcome=row.restored?'restored':row.outcome==='timeout'?'timeout':'failed';
+      if (row.restored) row.after=publicTotals(readTotals(id));
+    } else if (why) { row.reason=why; row.after=row.before; }
+    else { row.outcome='changed'; row.after=publicTotals(readTotals(id)); }
+    row.calories_change=relativeChange(row.before.calories,row.after?.calories);
+    row.model_calls=modelCalls(prefix,since);
+    appendPrivate(ledger,'ledger.jsonl',JSON.stringify(row)); rows.push(row);
+    // A put-back counts toward the two-consecutive-failures stop.
+    outcomes.push(row.outcome==='restored'?'failed':row.outcome);
+    console.log(`${prefix}: ${row.outcome}${why?` (${why})`:''}`);
+    if (why && !row.restored && changed) { console.log(summaryTable(rows)); return EXIT.incomplete; }
+  }
+  if (!request.dryRun) console.log(summaryTable(rows));
+  return EXIT.ok;
+}
+
 async function run(request) {
+  if (request.mode === 'set-record') return runSetRecord(request);
   const ledger = checkedLedger(request.ledger);
   requireEnv(request.dryRun ? ['SUPABASE_DB_URL'] : ['SUPABASE_DB_URL', 'APP_URL']);
   const meals = resolvePrefixes(request.meals);

@@ -85,3 +85,18 @@ These are **WRITTEN, NEVER RUN** lists. The PM orders any later correction under
 snapshot/restore rule. Before deleting `photos/` after the finding, preserve its
 `ledger.json` as a separate private JSON proof file. Keep the other JSON outputs and
 existing snapshot ledger private; publish only prefixes, verdicts and short findings.
+
+### Explicit record correction (`set-record`)
+
+`node scripts/numbers/reanalyse.mjs run --mode=set-record --foods-file=<private.jsonl> --ledger=<private-directory> --dry-run`
+
+Each JSONL line is `{ "meal": "<8-character prefix>", "item": "<current item UUID or 8-character prefix>", "fdc": 2709168, "description": "Lemon, raw" }`.
+Choose and independently verify each public record before running. No model chooses the record. Remove `--dry-run` only under the packet's write order; `--max-meals`, `--max-minutes` and `--wait-seconds` bound the run as in the other modes.
+
+Each meal is snapshotted first. `27-set-record.sql` copies every current food, preserving its name, weight and history. For the chosen food it inserts a superseded bridge whose nutrition contains the chosen record id and null amounts. The existing retained worker path fetches that record by id and scales it. The operator waits after each choice, takes the after-snapshot and follows the retained revision chains to find the next chosen food's current copy. A stale initial id is never sent to the SQL after an earlier copy superseded it.
+
+A failed or questioning meal, a changed food count, a changed name or portion, any unlisted nutrition change, or a chosen record mismatch/unknown calories puts the entire meal back using the original snapshot. Two consecutive failures or put-backs stop the run. The prior wrong records' micronutrients are written with their old values as `values_removed`; nothing is carried from them. No food is deleted. A refused first SQL guard skips the meal; a refusal after a partial correction puts it back. A timeout with an active job stops the run and reports a refused restore rather than racing it.
+
+This is a one-off data correction tool. It changes no matcher rule; the same wrong match can recur in a future meal (#990 remains open). Before any production write, compare the caption, food name and stored record and skip a food if its caption contradicts the correction.
+
+An uncertain SQL completion (for example, a lost command response after commit) is a failed attempt, never a skip. The operator attempts the existing guarded restore; if a job is still queued or running, restore refuses and the run stops visibly. It does not retry the SQL or race the worker.
