@@ -23,7 +23,9 @@ export default function LightComposer(p:Props) {
  const busy=inputBusy||voice.active;
  const post=()=>{if(voice.activeRef.current||inputBusy)return;if(drinks.active)void drinks.post();else p.onPost();};
  const [typing,setTyping]=useState(false);
- const [drinkDetails,setDrinkDetails]=useState(false);
+ const [drinkReview,setDrinkReview]=useState<string|null>(null);
+ const reviewing=drinks.active&&drinkReview===drinks.identity;
+ const reviewAction=drinks.active?<button type="button" disabled={busy} aria-expanded={reviewing} onPointerDown={event=>event.preventDefault()} onClick={()=>setDrinkReview(reviewing?null:drinks.identity)} className="min-h-tap rounded-field bg-field px-3 text-detail font-medium">Review drinks</button>:null;
  const [voiceError,setVoiceError]=useState('');
  const [whenOpen,setWhenOpen]=useState(false);
  const [photoOptions,setPhotoOptions]=useState(false);
@@ -67,7 +69,7 @@ export default function LightComposer(p:Props) {
    <div className="min-h-0 flex-1 overflow-y-auto p-5">
     <label htmlFor="capture-caption" className="text-[14px] font-semibold">{handle}</label><textarea ref={caption} id="capture-caption" aria-label="Caption" maxLength={2000} rows={3} placeholder="Add a caption…" value={p.caption} disabled={busy} onChange={event=>p.setCaption(event.target.value)} className="mt-2 w-full resize-none text-[14px] outline-none"/><VoiceButton value={p.caption} onChange={p.setCaption} max={2000} disabled={inputBusy} onActiveChange={voice.onActiveChange}/>
     <div className="my-3 flex gap-2"><button onClick={photo} disabled={busy||p.shots.length>=8} className="flex h-9 items-center gap-2 rounded-field bg-field px-3 text-[13px]"><Icon name="camera" size={16}/>Another photo</button><button onClick={p.onSearch} disabled={busy} className="flex h-9 items-center gap-2 rounded-field bg-field px-3 text-[13px]"><Icon name="search" size={16}/>Search foods</button></div>
-    {p.searchPanel}{drinks.card}
+    {p.searchPanel}{reviewAction}{reviewing&&drinks.card}
     <label className="flex min-h-[56px] flex-wrap items-center justify-between gap-2 border-b border-hairline text-[14px]">Eaten at<input type="datetime-local" aria-label="Eaten at" value={p.when??''} max={toLocalInput(new Date())} disabled={busy} onChange={event=>p.setWhen(event.target.value||null)} className="max-w-[190px] bg-transparent text-[12px]"/></label>
     {p.index>0&&<div className="flex min-h-[56px] items-center justify-between border-b border-hairline text-[14px]">Leftovers<Switch label="Leftovers" on={on} disabled={busy} onChange={()=>p.setNotEaten(on?p.notEaten.filter(index=>index!==p.index):[...p.notEaten,p.index].sort((a,b)=>a-b))}/></div>}
     {p.onSavePhoto&&p.shots.length>0&&<div className="flex min-h-[56px] items-center justify-between border-b border-hairline text-[14px]">Save photo<button type="button" disabled={busy} onClick={p.onSavePhoto} className="min-h-tap rounded-field bg-field px-3 text-[13px]">Save</button></div>}
@@ -76,9 +78,9 @@ export default function LightComposer(p:Props) {
    </div><footer className="shrink-0 border-t border-hairline p-5">{(p.error||drinks.error)&&<p role="alert" className="mb-2 text-detail">{p.error||drinks.error}</p>}{p.pending>0&&<p role="status" className="text-meta">Preparing selected photos…</p>}<Button disabled={busy||p.pending>0||(drinks.active?drinks.disabled:!p.caption.trim()&&!p.shots.length)} onClick={post}>{inputBusy?'Posting…':drinks.active?drinks.button:'Post'}</Button></footer>
   </section>{drinks.editor}{p.children}
  </div>;
- // Keep the recorder mounted until its clip has reached the caption.
- if(drinks.active&&!drinkDetails&&!voice.active)return <div className="flex h-full flex-col bg-camera text-surface">
-  <header className="flex h-top-safe shrink-0 items-center justify-between px-5"><button type="button" aria-label="Back to Feed" disabled={busy} onClick={p.onBack} className="flex size-tap items-center justify-center"><Icon name="close"/></button><h1 id="capture-title" className="text-body font-semibold">New post</h1><button type="button" disabled={busy} onClick={()=>setDrinkDetails(true)} className="min-h-tap text-meta">Post details</button></header>
+ // Only a deliberate review may replace the caption; identification never does.
+ if(reviewing&&!voice.active)return <div className="flex h-full flex-col bg-camera text-surface">
+  <header className="flex h-top-safe shrink-0 items-center justify-between px-5"><button type="button" aria-label="Back to Feed" disabled={busy} onClick={p.onBack} className="flex size-tap items-center justify-center"><Icon name="close"/></button><h1 id="capture-title" className="text-body font-semibold">New post</h1><button type="button" disabled={busy} onClick={()=>setDrinkReview(null)} className="min-h-tap text-meta">Post details</button></header>
   <div className="relative min-h-[140px] flex-1 overflow-hidden">
    <img src={current?.previewUrl} alt="Photographed drinks" className="size-full object-contain"/>
   </div>
@@ -92,7 +94,7 @@ export default function LightComposer(p:Props) {
  </div>;
  return <div className="flex h-full flex-col bg-surface text-text" style={{animation:'composer-in 220ms ease-out'}}>
   <style>{'@keyframes composer-in {from {transform:translateX(30px);opacity:.5}to {transform:translateX(0);opacity:1}}'}</style>
-  <header className="flex h-top-safe shrink-0 items-center justify-between px-inset"><button type="button" aria-label="Back to Feed" disabled={busy} onClick={drinks.active?()=>setDrinkDetails(false):p.onBack} className="flex size-tap items-center justify-center rounded-circle bg-field"><Icon name="back" size={22}/></button><h1 id="capture-title" className="text-sheet-title">{drinks.active?'Post details':'New post'}</h1><span className="size-tap"/></header>
+  <header className="flex h-top-safe shrink-0 items-center justify-between px-inset"><button type="button" aria-label="Back to Feed" disabled={busy} onClick={p.onBack} className="flex size-tap items-center justify-center rounded-circle bg-field"><Icon name="back" size={22}/></button><h1 id="capture-title" className="text-sheet-title">New post</h1><span className="size-tap"/></header>
   <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain pb-2">
    {p.cameraPreview&&<CameraPreview frame={p.cameraPreview}/>}
    {typing?<div className="flex gap-2 overflow-x-auto px-inset pt-3" aria-label="Meal photos">{p.shots.map((shot,index)=><img key={shot.previewUrl} src={shot.previewUrl} alt={`Meal photo ${index+1}`} className="size-[72px] shrink-0 rounded-thumb object-cover"/>)}</div>:!p.cameraPreview&&!!p.shots.length&&<div className="pt-3">
@@ -128,6 +130,7 @@ export default function LightComposer(p:Props) {
     {p.shots.length>2&&<button type="button" aria-label="Close photo options" onClick={()=>setPhotoOptions(false)} className="flex size-tap shrink-0 items-center justify-center"><Icon name="close" size={18}/></button>}
    </div>}
    <div className="px-inset pt-[14px]"><label htmlFor="capture-caption" className="text-body font-semibold">{handle}</label><textarea ref={caption} onFocus={()=>{if(!p.cameraPreview){setTyping(true);requestAnimationFrame(()=>caption.current?.scrollIntoView({block:"nearest"}));}}} onBlur={()=>setTyping(false)} id="capture-caption" aria-label="Caption" maxLength={2000} rows={2} placeholder="Add a caption…" value={p.caption} disabled={busy} onChange={event=>p.setCaption(event.target.value)} className="min-h-tap w-full resize-none bg-transparent text-body font-normal outline-none placeholder:text-muted"/><VoiceButton value={p.caption} onChange={p.setCaption} max={2000} disabled={inputBusy} onActiveChange={voice.onActiveChange} onError={setVoiceError}/></div>
+   {reviewAction&&<div className="px-inset pt-2">{reviewAction}</div>}
    <div className="flex gap-2 px-inset pt-[22px]">
     <button type="button" disabled={busy||p.shots.length>=8} onClick={photo} className="flex h-[34px] items-center gap-2 rounded-[17px] bg-field px-3 text-detail font-medium"><Icon name="camera" size={16}/>Another photo</button>
     <button type="button" disabled={busy} onClick={p.onSearch} className="flex h-[34px] items-center gap-2 rounded-[17px] bg-field px-3 text-detail font-medium"><Icon name="search" size={16}/>Search foods</button>
