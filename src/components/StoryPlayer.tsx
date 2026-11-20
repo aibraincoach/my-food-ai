@@ -143,7 +143,7 @@ export default function StoryPlayer({ day, zone, onClose, onDay, cell }: { day: 
             {([[day.totals.protein_g, "protein"], [day.totals.carbs_g, "carbs"], [day.totals.fat_g, "fat"]] as const).map(([value, word]) => <div key={word}><p className="text-day-macro tabular-nums">{formatNutrition(value)} g</p><p className="text-meta text-faint">{word}</p></div>)}
           </div>
           {unavailable.length>0&&<details data-day-nutrition-disclosure className="text-meta text-faint"><summary className="cursor-pointer">Known nutrition shown · Unavailable foods</summary><p className="mt-2">Nutrition unavailable: {unavailable.join(', ')}</p></details>}
-          {intakeLine(day.intake) ? <p className="text-meta text-faint tabular-nums">{intakeLine(day.intake)}</p> : null}
+          {day.intake === null ? <p role="alert" className="text-meta text-faint">Couldn’t load drinks.<button type="button" className="ml-2 min-h-tap text-surface" onClick={() => onDay(day.date)}>Try again</button></p> : intakeLine(day.intake) ? <p className="text-meta text-faint tabular-nums">{intakeLine(day.intake)}</p> : null}
           <div className="grid grid-cols-3 gap-2">{day.posts.map(entry => <Link key={entry.id} href={`/posts/${entry.id}`} className="min-w-0">
             <div className="flex aspect-square items-center justify-center overflow-hidden rounded-thumb bg-card text-text">
               {photo(entry) ? (

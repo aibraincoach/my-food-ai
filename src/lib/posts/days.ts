@@ -7,7 +7,7 @@ import { CURRENT_ITEM_COLUMNS, CURRENT_NUTRITION_COLUMNS, mapCurrentItems, norma
 
 export interface DayPost { id: string; caption: string; eatenAt: string; photoUrl: string | null; items: CurrentItem[]; totals: MealTotals }
 // pending: meals of that day still being analysed or waiting for a reply; they are listed nowhere yet and are counted apart.
-export interface LoggedDay { date: string; posts: DayPost[]; totals: MealTotals; intake: IntakeTotals; pending: number }
+export interface LoggedDay { date: string; posts: DayPost[]; totals: MealTotals; intake: IntakeTotals | null; pending: number }
 export function validZone(zone?: string | null): string {
   try { if (zone) { zone = decodeURIComponent(zone); new Intl.DateTimeFormat("en", { timeZone: zone }); return zone; } } catch {}
   return "UTC";
@@ -100,7 +100,16 @@ export async function getDays(supabase: SupabaseClient, userId: string, zone: st
       intake.push(...((data ?? []) as typeof intake));
       if ((data?.length ?? 0) < 1000) break;
     }
-    if (!intakeError) {
+    if (intakeError) {
+      // None of the paginated intake is trustworthy when any page fails.
+      // Represent even an otherwise empty requested day so callers cannot
+      // mistake a failed read for their successful-empty fallback.
+      for (let date = from; date <= through; date = shiftDay(date, 1)) {
+        const day = groups.get(date);
+        if (day) day.intake = null;
+        else groups.set(date, {date, posts: [], totals: sumNutrition([]), intake: null, pending: 0});
+      }
+    } else {
       // The feed's rule: an alcoholic drink's own caffeine (a rum and cola) counts toward the day.
       const byDay = groupIntakeByDay(await withAlcoholNutrition(supabase,await visibleDrinkRows(supabase,userId,intake)), (instant) => dateInZone(instant, zone));
       for (const [date, totals] of byDay) {
@@ -210,6 +219,12 @@ export async function getDayTotals(db: SupabaseClient, userId: string, zone: str
 
 export interface MonthDay { intake?: boolean; day: string; kcal: number | null; posts: number; pending: number; ready: boolean; missing?:string[]; known?:number }
 export interface MonthSummary { days: MonthDay[]; posted: number }
+export class MonthIntakeError extends Error {
+  constructor(readonly month: string, readonly summary: MonthSummary) {
+    super("Couldn’t load monthly drinks.");
+    this.name = "MonthIntakeError";
+  }
+}
 export function shiftMonth(month: string, offset: number): string {
   const date = new Date(`${month}-01T12:00:00Z`);
   date.setUTCMonth(date.getUTCMonth() + offset);
@@ -253,20 +268,23 @@ export async function getMonthSummary(supabase: SupabaseClient, userId: string, 
     }
     if ((data?.length ?? 0) < 100) break;
   }
+  const summary = (): MonthSummary => ({ days: [...groups.values()].map(day => ({ ...day, missing:[...new Set(day.missing??[])], kcal: day.ready && !((day.known??0)===0&&day.missing?.length) ? day.kcal : null })).sort((a, b) => a.day.localeCompare(b.day)), posted: groups.size });
+  const intakeDates = new Set<string>();
   for (let offset = 0; ; offset += 1000) {
     const { data, error } = await supabase.from("intake_logs").select("logged_at,post_id")
       .eq("user_id", userId).is("post_id", null)
       .gte("logged_at", `${shiftDay(from, -1)}T00:00:00Z`).lt("logged_at", `${shiftDay(through, 2)}T00:00:00Z`)
       .order("logged_at", { ascending: true }).order("id", {ascending: true}).range(offset, offset + 999);
-    if (error) break;
+    if (error) throw new MonthIntakeError(month, summary());
     for (const row of data ?? []) {
       const date = dateInZone(row.logged_at, zone);
       if (date < from || date > through || groups.has(date)) continue;
-      groups.set(date, {day: date, kcal: null, posts: 0, pending: 0, ready: false, missing: [], known: 0, intake: true});
+      intakeDates.add(date);
     }
     if ((data?.length ?? 0) < 1000) break;
   }
-  return { days: [...groups.values()].map(day => ({ ...day, missing:[...new Set(day.missing??[])], kcal: day.ready && !((day.known??0)===0&&day.missing?.length) ? day.kcal : null })).sort((a, b) => a.day.localeCompare(b.day)), posted: groups.size };
+  for (const date of intakeDates) groups.set(date, {day: date, kcal: null, posts: 0, pending: 0, ready: false, missing: [], known: 0, intake: true});
+  return summary();
 }
 
 export async function getPostedMonthCounts(supabase: SupabaseClient, userId: string, zone: string): Promise<Record<string, number>> {
