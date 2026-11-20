@@ -8,7 +8,7 @@ function load(file){
  const source=readFileSync(new URL(file,import.meta.url),'utf8');
  const exports={};
  const code=ts.transpileModule(source,{compilerOptions:{module:ts.ModuleKind.CommonJS,jsx:ts.JsxEmit.ReactJSX,target:ts.ScriptTarget.ES2022}}).outputText;
- vm.runInNewContext(code,{exports,Date,Promise,AbortSignal,setTimeout,clearTimeout,require(name){
+ vm.runInNewContext(code,{exports,Date:class extends Date{constructor(){super();throw Error('shell read unstable current time before request boundary');}},Promise,AbortSignal,setTimeout,clearTimeout,require(name){
   if(name==='react')return{cache:fn=>fn,Suspense:'Suspense'};
   if(name==='react/jsx-runtime')return{jsx:(type,props)=>({type,props}),jsxs:(type,props)=>({type,props})};
   if(name==='react-dom')return{preload(){}};
