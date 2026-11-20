@@ -8,6 +8,7 @@ import BottomBar from '@/components/BottomBar';
 import PlusMenu,{type PostEntry} from '@/components/PlusMenu';
 import type CaptureSheetComponent from '@/components/CaptureSheet';
 import IntakeBar from '@/components/IntakeBar';
+import {Sheet} from '@/components/ui/Sheet';
 
 // Fetched after the page is up, not with it. public/sw.js keeps the file for offline opens.
 const loadCaptureSheet=()=>import('@/components/CaptureSheet').then(module=>module.default);
@@ -18,22 +19,23 @@ export default function NavigationControls() {
   const [menuOpen,setMenuOpen]=useState(false);
   const [attachment,setAttachment]=useState<{postId:string;notEaten:boolean}|null>(null);
   const [entry,setEntry]=useState<PostEntry|null>(null);
+  const [loadFailed,setLoadFailed]=useState(false);
+  const [loadAttempt,setLoadAttempt]=useState(0);
   const closeMenu=useCallback(()=>setMenuOpen(false),[]);
-  const closeEntry=useCallback(()=>{setEntry(null);setAttachment(null);setInitialFiles(undefined);},[]);
+  const closeEntry=useCallback(()=>{setEntry(null);setAttachment(null);setInitialFiles(undefined);setLoadFailed(false);},[]);
   const [CaptureSheet,setCaptureSheet]=useState<typeof CaptureSheetComponent|null>(null);
   const capture=entry==='camera'||entry==='text';
   useEffect(()=>{
     if(CaptureSheet)return;
     let live=true;
-    // A failed fetch closes the entry, so the next tap tries again instead of breaking the page.
-    const load=()=>{void loadCaptureSheet().then(component=>{if(live)setCaptureSheet(()=>component);},()=>{if(live&&capture)closeEntry();});};
+    const load=()=>{void loadCaptureSheet().then(component=>{if(live)setCaptureSheet(()=>component);},()=>{if(live&&capture)setLoadFailed(true);});};
     if(capture){load();return()=>{live=false;};}
     const timer=window.setTimeout(load,1500);
     return()=>{live=false;window.clearTimeout(timer);};
-  },[CaptureSheet,capture,closeEntry]);
+  },[CaptureSheet,capture,loadAttempt]);
   const closeCapture=useCallback(()=>{window.dispatchEvent(new Event('entry-closed'));closeEntry();router.push('/');},[closeEntry,router]);
   useEffect(()=>{
-    const open=(event:Event)=>{const detail=(event as CustomEvent<{entry?:PostEntry;forPost?:string;notEaten?:boolean}>).detail;const value=detail?.entry;if(value&&['camera','text','drink','coffee'].includes(value)){setMenuOpen(false);setAttachment(value==='camera'&&typeof detail?.forPost==='string'?{postId:detail.forPost,notEaten:detail.notEaten===true}:null);setEntry(value);}};
+    const open=(event:Event)=>{const detail=(event as CustomEvent<{entry?:PostEntry;forPost?:string;notEaten?:boolean}>).detail;const value=detail?.entry;if(value&&['camera','text','drink','coffee'].includes(value)){setLoadFailed(false);setLoadAttempt(value=>value+1);setMenuOpen(false);setAttachment(value==='camera'&&typeof detail?.forPost==='string'?{postId:detail.forPost,notEaten:detail.notEaten===true}:null);setEntry(value);}};
     const close=()=>{setEntry(null);setAttachment(null);setMenuOpen(false);};
     window.addEventListener('open-entry',open);window.addEventListener('close-sheets',close);
     return()=>{window.removeEventListener('open-entry',open);window.removeEventListener('close-sheets',close);};
@@ -51,6 +53,9 @@ export default function NavigationControls() {
     <div className="desktop:hidden"><BottomBar onPlus={()=>setMenuOpen(value=>!value)} menuOpen={menuOpen}/>
     <PlusMenu open={menuOpen} onClose={closeMenu}/></div>
     {capture&&CaptureSheet?<CaptureSheet initialFiles={initialFiles} key={`${entry}:${attachment?.postId??"new"}:${attachment?.notEaten??false}`} forPost={attachment?.postId} attachNotEaten={attachment?.notEaten} initialMode={entry==='camera'?'photo':'text'} onClose={closeCapture}/>:null}
+    <Sheet confirmation open={capture&&!CaptureSheet} onClose={closeEntry} label="New post">
+      {loadFailed?<><p role="alert">Couldn’t open composer.</p><button className="min-h-tap text-accent" onClick={()=>{setLoadFailed(false);setLoadAttempt(value=>value+1);}}>Try again</button><button className="min-h-tap text-accent" onClick={()=>window.location.reload()}>Reload app</button></>:<p role="status">Opening composer…</p>}
+    </Sheet>
     <IntakeBar onClose={closeEntry}/>
   </>;
 }
