@@ -4,7 +4,7 @@ import { redirect } from "next/navigation";
 import LocalTimeZone from "@/components/LocalTimeZone";
 import DaysView from "@/components/DaysView";
 import { createClient } from "@/lib/supabase/server";
-import { dateInZone, getDays, getEarliestPostDate, getMonthSummary, shiftMonth, validZone, type MonthSummary } from "@/lib/posts/days";
+import { dateInZone, getDays, getEarliestPostDate, getMonthSummary, MonthIntakeError, shiftMonth, validZone, type MonthSummary } from "@/lib/posts/days";
 import { sumNutrition } from "@/lib/nutrition/totals";
 import { emptyIntake } from "@/lib/intake/intake";
 
@@ -20,8 +20,16 @@ export default async function DaysScreen({ tz, date }: { tz?: string; date?: str
   const earliest = [earliestPosted ?? today, date ?? today, today].sort()[0];
   const currentMonth = today.slice(0, 7), previousMonth = shiftMonth(currentMonth, -1);
   const initialMonths: Record<string, MonthSummary> = {};
+  const initialMonthErrors: string[] = [];
   const names = [currentMonth, ...(previousMonth >= earliest.slice(0, 7) ? [previousMonth] : [])];
-  await Promise.all(names.map(async month => { initialMonths[month] = await getMonthSummary(supabase, user.id, zone, month); }));
+  await Promise.all(names.map(async month => {
+    try { initialMonths[month] = await getMonthSummary(supabase, user.id, zone, month); }
+    catch (failure) {
+      if (!(failure instanceof MonthIntakeError)) throw failure;
+      initialMonths[month] = failure.summary;
+      initialMonthErrors.push(month);
+    }
+  }));
   const initialDay = date ? (await getDays(supabase, user.id, zone, date, date))[0] ?? { date, posts: [], totals: sumNutrition([]), intake: emptyIntake(), pending: 0 } : undefined;
-  return <><LocalTimeZone zone={zone} explicit={Boolean(tz)} /><DaysView key={zone} initialMonths={initialMonths} earliest={earliest} today={today} zone={zone} initialDay={initialDay} /></>;
+  return <><LocalTimeZone zone={zone} explicit={Boolean(tz)} /><DaysView key={zone} initialMonths={initialMonths} initialMonthErrors={initialMonthErrors} earliest={earliest} today={today} zone={zone} initialDay={initialDay} /></>;
 }

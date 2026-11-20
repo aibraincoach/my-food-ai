@@ -14,11 +14,12 @@ import PhoneCalendar from "@/components/PhoneCalendar";
 import GoToMonthSheet from "@/components/GoToMonthSheet";
 import StoryPlayer,{dayPostName} from "@/components/StoryPlayer";
 
-type Props = { initialMonths: Record<string, MonthSummary>; earliest: string; today: string; zone: string; initialDay?: LoggedDay };
-export default function DaysView({ initialMonths, earliest, today, zone, initialDay }: Props) {
+type Props = { initialMonths: Record<string, MonthSummary>; initialMonthErrors?: string[]; earliest: string; today: string; zone: string; initialDay?: LoggedDay };
+export default function DaysView({ initialMonths, initialMonthErrors, earliest, today, zone, initialDay }: Props) {
   const router = useRouter();
   const [months, setMonths] = useState(initialMonths);
   const monthsRef = useRef(initialMonths);
+  const [monthErrors, setMonthErrors] = useState<string[]>(initialMonthErrors ?? []);
   const inFlight = useRef(new Map<string, Promise<void>>());
   const desktop=useDesktop();
   const [desktopStory,setDesktopStory]=useState(Boolean(initialDay));
@@ -44,14 +45,22 @@ export default function DaysView({ initialMonths, earliest, today, zone, initial
   const allMonths: string[] = [];
   for (let month = top; month >= floor; month = shiftMonth(month, -1)) allMonths.push(month);
   const url = useCallback((path: string) => `${path}${path.includes("?") ? "&" : "?"}tz=${encodeURIComponent(zone)}`, [zone]);
-  const loadMonth = useCallback(async (month: string): Promise<void> => {
-    if (monthsRef.current[month]) return;
+  const loadMonth = useCallback(async (month: string, force = false): Promise<void> => {
+    if (monthsRef.current[month] && !force) return;
     const existing = inFlight.current.get(month);
     if (existing) return existing;
     const task = (async () => {
       const response = await fetch(url(`/api/days?month=${month}`), { cache: "no-store" });
-      if (!response.ok) throw new Error("The month could not be loaded. Try again.");
-      const summary: MonthSummary = await response.json();
+      let summary: MonthSummary;
+      if (!response.ok) {
+        const failure = await response.json();
+        if (response.status !== 503 || failure.month !== month || !failure.summary) throw new Error("The month could not be loaded. Try again.");
+        summary = failure.summary;
+        setMonthErrors(current => [...new Set([...current, month])]);
+      } else {
+        summary = await response.json();
+        setMonthErrors(current => current.filter(value => value !== month));
+      }
       const element=monthScroll.current,oldHeight=element?.scrollHeight??0,oldTop=element?.scrollTop??0;
       monthsRef.current = { ...monthsRef.current, [month]: summary };
       setMonths(monthsRef.current);
@@ -63,7 +72,7 @@ export default function DaysView({ initialMonths, earliest, today, zone, initial
   const loadThrough = useCallback(async (month: string) => {
     const missing: string[] = [];
     for (let value = today.slice(0, 7); value >= month; value = shiftMonth(value, -1)) if (!monthsRef.current[value]) missing.push(value);
-    for (let index = 0; index < missing.length; index += 4) await Promise.all(missing.slice(index, index + 4).map(loadMonth));
+    for (let index = 0; index < missing.length; index += 4) await Promise.all(missing.slice(index, index + 4).map(value => loadMonth(value)));
   }, [today, loadMonth]);
   const scrollMonth = useCallback((month: string) => {
     requestAnimationFrame(() => document.getElementById(`month-${month}`)?.scrollIntoView({ block: "start", behavior: "instant" }));
@@ -93,16 +102,17 @@ export default function DaysView({ initialMonths, earliest, today, zone, initial
   useEffect(()=>{
     const refresh=()=>{
       router.refresh();
-      for(const month of Object.keys(monthsRef.current))void fetch(url(`/api/days?month=${month}`),{cache:'no-store'}).then(async response=>{if(!response.ok)return;const summary:MonthSummary=await response.json();monthsRef.current={...monthsRef.current,[month]:summary};setMonths(monthsRef.current);}).catch(()=>{});
+      for(const month of Object.keys(monthsRef.current))void loadMonth(month,true).catch(()=>{});
       if(activeRef.current)void openDay(activeRef.current.date,false);
     };
     window.addEventListener('post-deleted',refresh);
     return()=>window.removeEventListener('post-deleted',refresh);
-  },[router,url,openDay]);
+  },[router,loadMonth,openDay]);
   // Readiness refreshes supply new server props without discarding months already read.
   useEffect(() => {
     monthsRef.current = { ...monthsRef.current, ...initialMonths };
     setMonths(monthsRef.current);
+    setMonthErrors(current => [...current.filter(month => !initialMonths[month]), ...(initialMonthErrors ?? [])]);
     if (initialDay && activeRef.current?.date === initialDay.date) {
       activeRef.current = initialDay; setActive(initialDay);
     }
@@ -112,11 +122,7 @@ export default function DaysView({ initialMonths, earliest, today, zone, initial
     // A server reconciliation only includes the first two months. Revalidate
     // older loaded records as well, preserving their order and scroll position.
     for (const month of Object.keys(monthsRef.current).filter(value => !initialMonths[value])) {
-      void fetch(url(`/api/days?month=${month}`), { cache: "no-store" }).then(async response => {
-        if (!response.ok) return;
-        const summary: MonthSummary = await response.json();
-        if (live) { monthsRef.current = { ...monthsRef.current, [month]: summary }; setMonths(monthsRef.current); }
-      }).catch(() => {});
+      void loadMonth(month,true).catch(() => {});
     }
     const activeDate = activeRef.current?.date;
     if (activeDate && initialDay?.date !== activeDate) {
@@ -128,7 +134,7 @@ export default function DaysView({ initialMonths, earliest, today, zone, initial
       }).catch(() => {});
     }
     return () => { live = false; };
-  }, [initialMonths, initialDay, url]);
+  }, [initialMonths, initialMonthErrors, initialDay, url, loadMonth]);
   useEffect(() => {
     if (!initialDay) return;
     let live = true;
@@ -149,16 +155,12 @@ export default function DaysView({ initialMonths, earliest, today, zone, initial
       const date = window.location.pathname.match(/^\/days\/(2\d{3}-\d{2}-\d{2})$/)?.[1];
       if (date) void openDay(date, false);
       for (const month of Object.keys(monthsRef.current)) {
-        void fetch(url(`/api/days?month=${month}`), { cache: "no-store" }).then(async response => {
-          if (!response.ok) return;
-          const summary: MonthSummary = await response.json();
-          monthsRef.current = { ...monthsRef.current, [month]: summary }; setMonths(monthsRef.current);
-        }).catch(() => {});
+        void loadMonth(month,true).catch(() => {});
       }
     };
     window.addEventListener("post-settled", refresh);
     return () => window.removeEventListener("post-settled", refresh);
-  }, [openDay, url]);
+  }, [openDay, loadMonth]);
   const showMenu = async () => {
     setMenu(true);
     setMenuLoading(true); setMenuError("");
@@ -181,11 +183,20 @@ export default function DaysView({ initialMonths, earliest, today, zone, initial
     window.history.replaceState(null, "", url("/days"));
     if (selected) requestAnimationFrame(() => document.querySelector<HTMLElement>(`[data-day="${selected}"]`)?.focus({ preventScroll: true }));
   };
-  if(desktop)return <main className="flex flex-1 flex-col"><DesktopDays months={months} today={today} earliest={earliest} zone={zone} selected={selected} active={active} onDay={date=>{if(activeRef.current?.date!==date)void openDay(date);}} onMonth={loadMonth} onOpen={date=>{void openDay(date,false).then(()=>{if(activeRef.current?.date===date){setDesktopStory(true);window.history.pushState(null,'',url(`/days/${date}`));}});}}/>{loadingDay?<p role="status" className="px-8">Loading day…</p>:null}{error?<p role="alert" className="px-8">{error}</p>:null}{active&&desktopStory?<StoryPlayer key={active.date} day={active} zone={zone} onClose={close} onDay={date=>void openDay(date)} cell={()=>document.querySelector<HTMLElement>(`[data-day="${active.date}"]`)?.getBoundingClientRect()}/>:null}</main>;
+  const retryMonth = (month: string) => {
+    const attempt = () => {
+      setError("");
+      void loadMonth(month,true).catch(failure => { retry.current = attempt; setError(failure.message); });
+    };
+    attempt();
+  };
+  const monthFailures = monthErrors.slice().sort().reverse().map(month => <p key={month} role="alert" className="px-screen-x text-meta text-muted">{month} · Couldn’t load monthly drinks.<button type="button" className="ml-2 min-h-tap text-text" onClick={() => retryMonth(month)}>Try again</button></p>);
+  if(desktop)return <main className="flex flex-1 flex-col">{monthFailures}<DesktopDays months={months} today={today} earliest={earliest} zone={zone} selected={selected} active={active} onDay={date=>{if(activeRef.current?.date!==date)void openDay(date);}} onMonth={loadMonth} onOpen={date=>{void openDay(date,false).then(()=>{if(activeRef.current?.date===date){setDesktopStory(true);window.history.pushState(null,'',url(`/days/${date}`));}});}}/>{loadingDay?<p role="status" className="px-8">Loading day…</p>:null}{error?<p role="alert" className="px-8">{error}</p>:null}{active&&desktopStory?<StoryPlayer key={active.date} day={active} zone={zone} onClose={close} onDay={date=>void openDay(date)} cell={()=>document.querySelector<HTMLElement>(`[data-day="${active.date}"]`)?.getBoundingClientRect()}/>:null}</main>;
   return <main className="flex flex-1 flex-col desktop:mx-auto desktop:w-full desktop:max-w-[1112px] desktop:px-4 desktop:pt-8">
     <TopBar className="sticky top-0 z-10 bg-surface desktop:hidden" title={<h1 className="text-month">Days</h1>}
       left={<Link href="/" className="flex min-h-tap items-center text-body" style={{ marginLeft: -tokens.spacing["tooltip-y"] }}><Icon name="back" size={tokens.radii.pill} strokeWidth={tokens.icon.strongStroke} />Feed</Link>}
       right={<button type="button" onClick={() => { void showMenu(); }} className="flex min-h-tap items-center gap-1 text-detail text-muted" style={{ marginRight: -tokens.spacing.grid * 2 }}>{top.slice(0, 4)}<Icon name="chevron-down" /></button>} />
+    {monthFailures}
     <div className="desktop:flex desktop:items-start desktop:justify-center desktop:gap-6"><div ref={monthScroll} className="flex flex-col pt-1 desktop:max-h-[calc(100dvh-96px)] desktop:overflow-y-auto desktop:w-[616px] desktop:min-w-0 desktop:flex-1 desktop:max-w-[616px]" style={{ gap: tokens.spacing["icon-small"] + tokens.spacing.grid }}>
       <PhoneCalendar months={months} today={today} selected={selected} onDay={date=>{if(activeRef.current?.date!==date)void openDay(date);}} onOlder={last>floor?()=>{
         const attempt=()=>{setLoadingMonth(true);setError('');void loadMonth(shiftMonth(last,-1)).catch(failure=>{retry.current=attempt;setError(failure.message);}).finally(()=>setLoadingMonth(false));};attempt();

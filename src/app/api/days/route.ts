@@ -1,7 +1,7 @@
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
-import { dateInZone, getDays, getMonthSummary, getPostedMonthCounts, validDate, validMonth, validZone } from "@/lib/posts/days";
+import { dateInZone, getDays, getMonthSummary, getPostedMonthCounts, MonthIntakeError, validDate, validMonth, validZone } from "@/lib/posts/days";
 import { emptyIntake } from "@/lib/intake/intake";
 import { sumNutrition } from "@/lib/nutrition/totals";
 
@@ -23,7 +23,8 @@ export async function GET(request: Request) {
     const month = params.get("month") ?? undefined;
     if (!validMonth(month)) return NextResponse.json({ error: "Invalid month." }, { status: 400 });
     return NextResponse.json(await getMonthSummary(db, user.id, zone, month), { headers });
-  } catch {
+  } catch (failure) {
+    if (failure instanceof MonthIntakeError) return NextResponse.json({ error: failure.message, month: failure.month, summary: failure.summary }, { status: 503, headers });
     return NextResponse.json({ error: "Days could not be loaded." }, { status: 503, headers });
   }
 }
