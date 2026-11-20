@@ -156,7 +156,7 @@ export default async function Home({searchParams}:{searchParams:Promise<{post?:s
   return <DesktopWorkspace width={844} detail={post?<Suspense key={post} fallback={<PostOpenFrame id={post} desktopModal/>}><PostDetail id={post} desktopModal/></Suspense>:undefined}><DesktopHomeFrame today={<Suspense fallback={<DesktopToday placeholder/>}><HomeToday/></Suspense>}><CleanFreshMarker />
     <header className="desktop:hidden sticky top-0 z-20 flex h-top-safe items-center bg-surface px-inset"><h1 className="flex-1 text-title">My Food AI</h1><SavedMealsButton/></header>
     <NeedsInputStrip />
-    <Suspense fallback={<div className="h-bar-h" />}><HomeDays /></Suspense>
+    <Suspense fallback={<DayRings pending days={[]} totals={[]} today={dateInZone(new Date(),"UTC")} zone="UTC" zoneKnown={false}/>}><HomeDays /></Suspense>
     <div data-home-feed>
       <style>{`[data-home-feed]:has([data-server-feed-ready], [data-feed-client-ready]) > [data-cached-feed] { display: none; }
 [data-home-feed]:has([data-server-feed-ready], [data-feed-client-ready], [data-cached-feed-ready], [data-feed-error]) [data-fast-feed-seed] { display: none; }
