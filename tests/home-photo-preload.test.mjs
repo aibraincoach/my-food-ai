@@ -17,12 +17,12 @@ test('middleware makes no photo query or HTTP image preload while preserving aut
  for(const [pathname,user] of [['/',{id:owner}],['/search',{id:owner}],['/days',{id:owner}],['/',null]]){
   const response=new Response(null,{headers:{Link:'</existing>; rel=preconnect'}});let photoReads=0;
   const exports={};
-  vm.runInNewContext(compiled,{exports,console:{info(){}},process:{env:{}},URL,require(name){
+  vm.runInNewContext(compiled,{exports,AbortSignal,console:{info(){}},process:{env:{}},URL,require(name){
    if(name==='@/lib/auth/verified-cookie')return{verifiedUserCookie};
    if(name==='@/lib/auth/verified-user-header')return{VERIFIED_USER_HEADER:'x-mfa-verified-user'};
    if(name==='@/lib/auth/media-session-epoch')return{mediaSessionEpoch:()=>null};
    if(name==='next/server')return{NextResponse:{redirect:()=>new Response(null,{status:307})}};
-   if(name==='@supabase/ssr')return{createServerClient:()=>({auth:{getUser:async()=>({data:{user}}),getSession:async()=>({data:{session:null}}),getClaims:async()=>({data:{claims:user?{sub:user.id}:null}})},from(table){if(table==='profiles')return{select:columns=>{assert.equal(columns,'id,role');return{eq:()=>({maybeSingle:async()=>({data:{id:user.id,role:'user'},error:null})})}}};photoReads++;throw Error('No photo read belongs in middleware');}})};
+   if(name==='@supabase/ssr')return{createServerClient:()=>({auth:{getUser:async()=>({data:{user}}),getSession:async()=>({data:{session:null}}),getClaims:async()=>({data:{claims:user?{sub:user.id}:null}})},from(table){if(table==='profiles')return{select:columns=>{assert.equal(columns,'id,role');return{eq:()=>{const query={abortSignal(signal){assert.ok(signal);return query;},maybeSingle:async()=>({data:{id:user.id,role:'user'},error:null})};return query;}}}};photoReads++;throw Error('No photo read belongs in middleware');}})};
    if(name==='@/lib/auth/admin-access')return{};
    if(name==='@/lib/auth/post-access')return{};
    if(name==='@/lib/auth/session-cookies')return{sessionCookieBridge:()=>({response,cookies:{setAll(){}},apply:r=>r,refreshRequestHeaders:()=>{}})};
