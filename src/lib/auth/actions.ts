@@ -62,3 +62,13 @@ export async function signOut() {
   await endCurrentSession(supabase.auth);
   redirect("/sign-in");
 }
+
+export async function chooseHandle(formData: FormData): Promise<void> {
+  const supabase = await createClient();
+  const {data: {user}, error} = await supabase.auth.getUser();
+  if (error || !user) redirect('/sign-in');
+  const {saveFirstHandle} = await import('@/lib/auth/first-profile');
+  const message = await saveFirstHandle(createAdminClient(), user.id, String(formData.get('handle') ?? ''));
+  if (message) fail('/choose-handle', message);
+  redirect('/');
+}

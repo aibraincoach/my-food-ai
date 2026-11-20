@@ -2,7 +2,7 @@ import Link from "next/link";
 import { Suspense } from "react";
 import { signIn } from "@/lib/auth/actions";
 import HCaptcha from "@/components/HCaptcha";
-import FacebookButton from "@/components/FacebookButton";
+import AuthProviders from "@/components/AuthProviders";
 import { BrandMark } from "@/components/BrandMark";
 import { Button } from "@/components/ui/Button";
 import { Field } from "@/components/ui/Field";
@@ -33,8 +33,8 @@ async function SignInContent({ searchParams }: { searchParams: Promise<{ error?:
         <p className="py-tooltip-y text-center text-comment text-muted">
           No account? <Link href="/sign-up" className="font-semibold text-text">Sign up</Link>
         </p>
-        <FacebookButton />
       </form>
+      <AuthProviders />
     </main>
   );
 }

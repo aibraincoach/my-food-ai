@@ -25,7 +25,7 @@ export async function GET(request: NextRequest) {
     const { error } = await supabase.auth.exchangeCodeForSession(code);
     if (error) {
       return NextResponse.redirect(
-        new URL(`/sign-in?error=${encodeURIComponent(error.message)}`, request.url)
+        new URL(`/sign-in?error=${encodeURIComponent("Sign-in failed. Try again.")}`, request.url)
       );
     }
     const response = NextResponse.redirect(new URL("/", request.url));
@@ -34,5 +34,8 @@ export async function GET(request: NextRequest) {
     }
     return response;
   }
-  return NextResponse.redirect(new URL("/sign-in", request.url));
+  const message = url.searchParams.get("error") === "access_denied"
+    ? "Sign-in was cancelled."
+    : "Sign-in failed. Try again.";
+  return NextResponse.redirect(new URL(`/sign-in?error=${encodeURIComponent(message)}`, request.url));
 }
