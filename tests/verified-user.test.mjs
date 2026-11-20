@@ -20,6 +20,7 @@ async function withAuth(run) {
   let authCalls=0;
   globalThis.fetch=async input=>{
     const url=new URL(String(input instanceof Request?input.url:input));
+    if(url.pathname==='/rest/v1/profiles'){assert.equal(url.searchParams.get('id'),'eq.'+user.id);return Response.json({id:user.id,role:'user'});}
     if(url.pathname==='/rest/v1/posts'){
       assert.equal(url.searchParams.get('user_id'),'eq.'+user.id,'post lookup uses the Auth identity');
       return Response.json({id:url.searchParams.get('id').slice(3),user_id:user.id});

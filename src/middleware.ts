@@ -27,10 +27,32 @@ export async function middleware(request: NextRequest) {
   }
   session.cookies.setAll([verifiedUserCookie(userId, request.nextUrl.protocol === "https:")]);
   const pathname = request.nextUrl.pathname;
+  // One read covers both first-sign-in onboarding and the admin role gate.
+  let profile: {id: string; role: string} | null = null;
+  if (userId) {
+    try {
+      const {data, error} = await supabase.from("profiles").select("id,role").eq("id", userId).maybeSingle();
+      if (error) throw error;
+      profile = data;
+    } catch {
+      return session.apply(new NextResponse("Your account could not be loaded. Try again.", {
+        status: 503, headers: {"Cache-Control": "private, no-store", "Content-Type": "text/plain; charset=utf-8"},
+      }));
+    }
+    if (!profile && pathname !== "/choose-handle") {
+      return session.apply(NextResponse.redirect(new URL("/choose-handle", request.url)));
+    }
+    if (profile && pathname === "/choose-handle") {
+      return session.apply(NextResponse.redirect(new URL("/", request.url)));
+    }
+  }
+  if (!userId && pathname === "/choose-handle") {
+    return session.apply(NextResponse.redirect(new URL("/sign-in", request.url)));
+  }
   if (pathname === "/admin" || pathname.startsWith("/admin/")) {
     const allowed = await adminRequestAllowed(
       userId ?? undefined,
-      async () => supabase.from("profiles").select("role").eq("id", userId!).maybeSingle(),
+      async () => ({data: profile, error: null}),
     );
     if(!allowed)return adminNotFoundResponse(session.response);
   }
@@ -60,5 +82,5 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/", "/search/:path*", "/days/:path*", "/profile/:path*", "/posts/:path*", "/admin/:path*"],
+  matcher: ["/", "/search/:path*", "/days/:path*", "/profile/:path*", "/posts/:path*", "/admin/:path*", "/choose-handle"],
 };

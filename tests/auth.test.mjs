@@ -22,10 +22,13 @@ const signIn = read("src/app/(auth)/sign-in/page.tsx");
 assert(signIn.includes('type="email"'), "sign-in has an email field");
 assert(signIn.includes('type="password"'), "sign-in has a password field");
 assert(signIn.includes("/sign-up"), "sign-in links to sign-up");
-const facebook=read('src/components/FacebookButton.tsx');
-assert(signIn.includes('<FacebookButton'), 'sign-in uses the shared Facebook control');
-assert(facebook.includes('disabled') && facebook.includes('Facebook'), 'Facebook is visibly disabled while app review is unavailable');
-assert(!facebook.includes('signInWithOAuth'), 'disabled Facebook never starts OAuth');
+const providers=read('src/components/AuthProviders.tsx');
+const shared=read('src/components/ProviderButton.tsx');
+assert(signIn.includes('<AuthProviders'), 'sign-in uses the shared provider choices');
+assert(providers.includes('provider="Facebook"'), 'Facebook is present in the shared choices');
+assert(shared.includes('disabled={!start}') && shared.includes('sign-in is coming soon.'), 'unconfigured providers are visibly disabled');
+assert(!existsSync(join(root,'src/components/FacebookButton.tsx')), 'the replaced Facebook path is deleted');
+assert(!providers.includes('signInWithOAuth'), 'disabled providers never start OAuth');
 assert(existsSync(join(root, "src/app/auth/callback/route.ts")), "OAuth/PKCE callback exists");
 assert(existsSync(join(root, "src/middleware.ts")), "auth middleware exists");
 

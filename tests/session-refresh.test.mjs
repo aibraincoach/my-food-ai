@@ -14,7 +14,7 @@ test('session renewal is visible to the current server render and persists for t
  process.env.NEXT_PUBLIC_SUPABASE_URL='https://fixture.invalid';process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY='fixture-public-key';
  const fresh={access_token:token(Math.floor(Date.now()/1000)+3600),refresh_token:'fixture-renewed',expires_in:3600,expires_at:Math.floor(Date.now()/1000)+3600,token_type:'bearer',user};
  let refreshes=0;
- globalThis.fetch=async input=>{const url=String(input instanceof Request?input.url:input);if(url.includes('/token')){refreshes++;return Response.json(fresh)}if(url.includes('/user'))return Response.json(user);throw Error('Unexpected request')};
+ globalThis.fetch=async input=>{const url=String(input instanceof Request?input.url:input);if(url.includes('/token')){refreshes++;return Response.json(fresh)}if(url.includes('/user'))return Response.json(user);if(url.includes('/rest/v1/profiles'))return Response.json({id:user.id,role:'user'});throw Error('Unexpected request')};
  try{
   const expired={...fresh,access_token:token(Math.floor(Date.now()/1000)-3600),refresh_token:'fixture-expired',expires_at:Math.floor(Date.now()/1000)-3600};
   const req=new NextRequest('https://app.invalid/');req.cookies.set(cookieName,cookie(expired));
