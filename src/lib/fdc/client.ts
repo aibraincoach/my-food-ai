@@ -127,9 +127,9 @@ function normalizeQuery(query: string): string {
 
 
 function asFoods(payload: unknown): FdcFood[] {
-  if (typeof payload !== "object" || payload === null) return [];
+  if (typeof payload !== "object" || payload === null) throw new ApiError(502, "", "fdc: search failed with 502.");
   const foods = (payload as { foods?: unknown }).foods;
-  if (!Array.isArray(foods)) return [];
+  if (!Array.isArray(foods)) throw new ApiError(502, "", "fdc: search failed with 502.");
   const out: FdcFood[] = [];
   for (const entry of foods) {
     if (typeof entry !== "object" || entry === null) continue;
@@ -207,7 +207,11 @@ export async function searchFoods(
       body: JSON.stringify({query:searchQuery,dataType,pageSize:FDC_SEARCH_PAGE_SIZE}), signal,
     });
     if (!response.ok) throw new ApiError(response.status, await response.text(), `fdc: search failed with ${response.status}.`);
-    return asFoods(await response.json());
+    try { return asFoods(await response.json()); }
+    catch (error) {
+      if (error instanceof SyntaxError) throw new ApiError(502, "", "fdc: search failed with 502.");
+      throw error;
+    }
   };
   const broad = await fetchCandidates(query.trim(), FDC_SEARCH_DATA_TYPES);
   const strict = strictGenericQuery(query);
