@@ -26,9 +26,9 @@ const providers=read('src/components/AuthProviders.tsx');
 const shared=read('src/components/ProviderButton.tsx');
 assert(signIn.includes('<AuthProviders'), 'sign-in uses the shared provider choices');
 assert(providers.includes('provider="Facebook"'), 'Facebook is present in the shared choices');
-assert(shared.includes('disabled={!start}') && shared.includes('sign-in is coming soon.'), 'unconfigured providers are visibly disabled');
+assert(shared.includes('Coming soon') && shared.includes("'button'") && shared.includes('setShown(true)'), 'unconfigured providers show a local coming-soon message');
 assert(!existsSync(join(root,'src/components/FacebookButton.tsx')), 'the replaced Facebook path is deleted');
-assert(!providers.includes('signInWithOAuth'), 'disabled providers never start OAuth');
+assert(!providers.includes('signInWithOAuth'), 'placeholder choices never start OAuth');
 assert(existsSync(join(root, "src/app/auth/callback/route.ts")), "OAuth/PKCE callback exists");
 assert(existsSync(join(root, "src/middleware.ts")), "auth middleware exists");
 
