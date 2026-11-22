@@ -78,6 +78,8 @@ export function restoreFiles(row: StoredUpload): StoredUpload {
     return { ...row, files: kept.map(file => new File([file.bytes], file.name, { type: file.type, lastModified: file.lastModified })) };
 }
 export const uploadStore = {
+    // Update safety needs only existence, never decoding every stored photo.
+    hasPending: async () => Boolean(await transaction('drafts', 'readonly', tx => tx.objectStore('drafts').count()) || await transaction('intents', 'readonly', tx => tx.objectStore('intents').count())),
     all: async () => ((await transaction('drafts', 'readonly', tx => tx.objectStore('drafts').getAll())) as StoredUpload[] | undefined ?? []).map(restoreFiles),
     // The bytes are read before the transaction opens: IndexedDB ends a transaction that waits on anything else.
     put: async (draft: StoredUpload) => { const row = await keepFiles(draft); return transaction('drafts', 'readwrite', tx => tx.objectStore('drafts').put(row)); },

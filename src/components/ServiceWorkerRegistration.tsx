@@ -1,8 +1,36 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
+import { usePathname } from "next/navigation";
+import { createUpdateSafety } from "@/lib/sw-update-safety";
+import { uploadManager } from "@/lib/posts/upload-manager";
+import { uploadStore } from "@/lib/posts/upload-store";
 
 export default function ServiceWorkerRegistration() {
+  const pathname = usePathname();
+  const safePoint = useRef<(() => void) | null>(null);
+  useEffect(() => {
+    if (!("serviceWorker" in navigator)) return;
+    const blocked = () => document.documentElement.hasAttribute('data-mfa-sheet-open') || Boolean(document.querySelector('[role="dialog"]')) ||
+      Array.from(document.querySelectorAll('video')).some(video => video.srcObject instanceof MediaStream && video.srcObject.getVideoTracks().some(track => track.readyState === 'live')) ||
+      uploadManager.list().some(upload => !upload.postId);
+    const update = createUpdateSafety({blocked, pending: () => uploadStore.hasPending(), reload: () => window.location.reload()});
+    const check = () => { void update.safePoint().catch(() => console.error('App update deferred: pending photos could not be checked.')); };
+    safePoint.current = check;
+    let closeFrame = 0;
+    const closed = () => { cancelAnimationFrame(closeFrame); closeFrame = requestAnimationFrame(check); };
+    const message = (event: MessageEvent) => {
+      if (event.source === navigator.serviceWorker.controller && event.data?.type === 'app-update-ready') update.ready();
+    };
+    const visibility = () => { if (document.visibilityState === 'hidden') check(); };
+    const observer = new MutationObserver(() => { if (!document.documentElement.hasAttribute('data-mfa-sheet-open')) check(); });
+    observer.observe(document.documentElement, {attributes: true, attributeFilter: ['data-mfa-sheet-open']});
+    navigator.serviceWorker.addEventListener('message', message);
+    document.addEventListener('visibilitychange', visibility);
+    window.addEventListener('entry-closed', closed);
+    return () => { cancelAnimationFrame(closeFrame); window.removeEventListener('entry-closed', closed); safePoint.current = null; observer.disconnect(); navigator.serviceWorker.removeEventListener('message', message); document.removeEventListener('visibilitychange', visibility); };
+  }, []);
+  useEffect(() => { safePoint.current?.(); }, [pathname]);
   useEffect(() => {
     let pressed: HTMLElement | null = null;
     const release = () => { pressed?.removeAttribute('data-tap-pressed'); pressed = null; };

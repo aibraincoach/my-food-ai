@@ -125,11 +125,12 @@ self.addEventListener("activate", event => {
     const names = await caches.keys();
     await Promise.all(names.filter(name => ![SHELL_CACHE, MEDIA_CACHE, CONTROL_CACHE].includes(name)).map(name => caches.delete(name)));
     await self.clients.claim();
-    // An update replaces old cached documents without requiring a hard refresh.
+    // Never await a navigation during activation: its fetch waits for activation.
+    // Let the page choose a safe point after the worker is fully active.
     // First installation leaves the current page alone.
     const manifest = await (await caches.open(SHELL_CACHE)).match("/manifest.webmanifest");
     if (manifest?.headers.get("x-mfa-update-build") === self.BUILD) for (const client of await self.clients.matchAll({type: "window"})) {
-      if (new URL(client.url).origin === self.location.origin) await client.navigate(client.url).catch(() => {});
+      if (new URL(client.url).origin === self.location.origin) client.postMessage({type: 'app-update-ready', build: self.BUILD});
     }
   })());
 });
