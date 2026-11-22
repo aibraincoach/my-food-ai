@@ -31,7 +31,7 @@ export async function searchPosts(db:SupabaseClient,text:string,timeZone?:string
     if(initial.posts.length) return initial;
   }
   const result=await createResponse({model:"muse-spark-1.3",instructions:searchQueryPrompt,input:[{role:"user",content:[{type:"input_text",text:JSON.stringify({query:text,today:localDate(now,zone),time_zone:zone})}]}],text:{format:{type:"json_schema",name:"search_query",schema:searchQuerySchema,strict:true}},max_output_tokens:512});
-  if(result.status!=="completed"||!result.outputText) return {posts:[],truncated:false};
+  if(result.status!=="completed"||!result.outputText) throw new Error("Search interpretation did not complete.");
   const query=JSON.parse(result.outputText) as Query;
   if(!Array.isArray(query.terms)||!query.terms.every(term=>typeof term==="string")||![null,"breakfast","lunch","dinner","snack"].includes(query.meal)||typeof query.big!=="boolean"||!["recent","largest"].includes(query.rank)||typeof query.latest_only!=="boolean") throw new Error("Search query was not understood.");
   for(const date of [query.date_from,query.date_to]) if(date!==null&&(typeof date!=="string"||!Number.isFinite(Date.parse(date)))) throw new Error("Search date was not understood.");
