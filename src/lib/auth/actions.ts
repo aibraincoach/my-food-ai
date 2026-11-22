@@ -30,7 +30,7 @@ export async function signUp(formData: FormData): Promise<void> {
     const { error: profileError } = await admin
       .from("profiles")
       .insert({ id: data.user.id, handle });
-    if (profileError) profileMessage = profileError.message;
+    if (profileError) profileMessage = profileError.code === "23505" ? "That handle is taken. Choose another." : profileError.message;
   } catch (e) {
     profileMessage = e instanceof Error ? e.message : "Profile creation failed.";
   }
