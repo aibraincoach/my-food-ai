@@ -12,7 +12,7 @@ test('sign-up errors return only safe retained fields, neutral messages and no r
   const h=actions(error),result=await h.exports.signUp({},form());assert.deepEqual(JSON.parse(JSON.stringify(result)),{email:'person@example.com',handle:'taken',error:message});assert.doesNotMatch(JSON.stringify(result)+JSON.stringify(h.logs),/PRIVATE|SECRET|Account exists/);
  }
 });
-test('a profile failure without an owned session keeps Auth and returns a neutral error',async()=>{const h=actions(null,{code:'23505',message:'PRIVATE'});const result=await h.exports.signUp({},form());assert.equal(result.error,"We couldn't finish creating your account. Try again.");assert.deepEqual(h.removed,[]);assert.ok(!('password'in result));});
+test('a signup without a session keeps Auth and returns neutral next steps',async()=>{const h=actions(null,{code:'23505',message:'PRIVATE'});const result=await h.exports.signUp({},form());assert.equal(result.error,"If you received a confirmation email, confirm your account, then sign in. Otherwise, sign in.");assert.deepEqual(h.removed,[]);assert.ok(!('password'in result));});
 test('sign-in distinguishes confirmation and rate limit but never leaks unknown service text',async()=>{
  for(const [error,message]of [[{code:'email_not_confirmed',message:'SECRET'},"Confirm your email address before you sign in."],[{code:'over_request_rate_limit',message:'SECRET'},"Too many attempts. Wait a moment, then try again."],[{status:429,message:'SECRET'},"Too many attempts. Wait a moment, then try again."],[{code:'other',message:'SECRET'},'Sign-in could not be completed. Try again.']])await assert.rejects(actions(error).exports.signIn(form()),e=>new URL(e.url,'https://app.invalid').searchParams.get('error')===message);
 });
