@@ -5,7 +5,8 @@ import HCaptcha from "@/components/HCaptcha";
 import AuthProviders from "@/components/AuthProviders";
 import { BrandMark } from "@/components/BrandMark";
 import { Button } from "@/components/ui/Button";
-import { Field } from "@/components/ui/Field";
+import {AuthField} from "../_components/AuthField";
+import {AuthHeader,AuthErrorBanner} from "../_components/AuthPieces";
 import { font } from "@/lib/theme/font";
 import { tokens } from "@/lib/theme/tokens";
 
@@ -20,14 +21,11 @@ async function SignInContent({ searchParams }: { searchParams: Promise<{ error?:
   return (
     <main className={`${font.className} mx-auto flex min-h-dvh w-full max-w-phone flex-col justify-center bg-surface px-card-padding text-text`}
       style={{ paddingBottom: tokens.spacing['sheet-bottom'] * 2, gap: tokens.spacing['sheet-bottom'] }}>
-      <div className="flex flex-col items-center gap-screen-x">
-        <BrandMark />
-        <h1 className="text-title">My Food AI</h1>
-      </div>
+      <AuthHeader title="My Food AI"><BrandMark /></AuthHeader>
       <form action={signIn} className="flex flex-col gap-tooltip-y">
-        {error ? <p role="alert" className="text-detail text-text">{error}</p> : null}
-        <Field name="email" type="email" required autoComplete="email" placeholder="Email" aria-label="Email" />
-        <Field name="password" type="password" required autoComplete="current-password" placeholder="Password" aria-label="Password" />
+        {error ? <AuthErrorBanner>{error}</AuthErrorBanner> : null}
+        <AuthField label="Email" name="email" type="email" required autoComplete="email" placeholder="Email" aria-label="Email" />
+        <AuthField label="Password" name="password" type="password" required autoComplete="current-password" placeholder="Password" aria-label="Password" />
         <HCaptcha />
         <Button type="submit" className="mt-tooltip-offset">Sign in</Button>
         <p className="py-tooltip-y text-center text-comment text-muted">
