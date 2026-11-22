@@ -3,20 +3,23 @@ import {connection} from 'next/server';
 import {chooseHandle} from '@/lib/auth/actions';
 import {Button} from '@/components/ui/Button';
 import {AuthField} from '../_components/AuthField';
-import {AuthHeader,AuthErrorBanner} from '../_components/AuthPieces';
+import {AuthHeader,AuthErrorBanner,AuthBackRow} from '../_components/AuthPieces';
+import {font} from '@/lib/theme/font';
 
-type Props = {searchParams: Promise<{error?: string}>};
-export default function ChooseHandlePage(props: Props) {
+type Props={searchParams:Promise<{error?:string}>};
+export default function ChooseHandlePage(props:Props){
   return <Suspense fallback={null}><ChooseHandleContent {...props}/></Suspense>;
 }
-async function ChooseHandleContent({searchParams}: Props) {
+async function ChooseHandleContent({searchParams}:Props){
   await connection();
-  const {error} = await searchParams;
-  return <main className="mx-auto flex min-h-dvh w-full max-w-phone flex-col justify-center gap-screen-x px-card-padding">
-    <AuthHeader title="Choose a handle."/>
-    <form action={chooseHandle} className="flex flex-col gap-tooltip-y">
-      {error && <AuthErrorBanner>{error}</AuthErrorBanner>}
-      <AuthField label="Handle" name="handle" type="text" required maxLength={80} autoComplete="nickname" placeholder="Handle" aria-label="Handle"/>
+  const {error}=await searchParams;
+  const handleError=error&&(error.startsWith('That handle is taken.')||error.startsWith('Enter a handle'))?error:undefined;
+  return <main className={`${font.className} mx-auto flex min-h-dvh w-full max-w-phone flex-col gap-5 bg-surface px-screen-x pb-5 pt-4 text-text`}>
+    <AuthBackRow href="/welcome">Welcome</AuthBackRow>
+    <AuthHeader title="Choose a handle" align="start"/>
+    <form action={chooseHandle} className="flex flex-1 flex-col gap-4">
+      {error&&!handleError?<AuthErrorBanner>{error}</AuthErrorBanner>:null}
+      <AuthField label="Handle" name="handle" type="text" required maxLength={80} autoComplete="nickname" placeholder="yourname" help="The name shown on your posts." error={handleError}/>
       <Button type="submit">Continue</Button>
     </form>
   </main>;
