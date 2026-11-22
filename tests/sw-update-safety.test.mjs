@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {createUpdateSafety} from '../src/lib/sw-update-safety.ts';
+import {createUpdateSafety,hasUnsentText} from '../src/lib/sw-update-safety.ts';
 
 test('update notification never reloads immediately; next safe point reloads once',async()=>{
  let reloads=0,blocked=false,pending=false;
@@ -27,26 +27,26 @@ import fs from 'node:fs';
 import vm from 'node:vm';
 import ts from 'typescript';
 function pageFixture() {
- const effects=[],frames=new Map();let nextFrame=0,reloads=0,dialogs=false,sheet=false,live=false,pending=false,stored=false;
+ const effects=[],frames=new Map();let nextFrame=0,reloads=0,dialogs=false,sheet=false,live=false,pending=false,stored=false,fields=[];
  const worker=new EventTarget();worker.controller={};
  const window=new EventTarget();window.location={reload:()=>reloads++};
  const document=new EventTarget();document.readyState='loading';document.visibilityState='visible';
  document.documentElement={hasAttribute:()=>sheet};document.querySelector=()=>dialogs?{}:null;
  class MediaStream { getVideoTracks(){return [{readyState:'live'}];} }
- document.querySelectorAll=()=>live?[{srcObject:new MediaStream()}]:[];
+ document.querySelectorAll=selector=>selector==='video'?(live?[{srcObject:new MediaStream()}]:[]):fields;
  const observers=[];
  const react={useEffect:fn=>effects.push(fn),useRef:value=>({current:value})};
  const code=ts.transpileModule(fs.readFileSync(new URL('../src/components/ServiceWorkerRegistration.tsx',import.meta.url),'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,jsx:ts.JsxEmit.ReactJSX}}).outputText;
  const exports={};vm.runInNewContext(code,{exports,require:name=>{
   if(name==='react')return react;if(name==='next/navigation')return {usePathname:()=>'/'};
-  if(name==='@/lib/sw-update-safety')return {createUpdateSafety};
+  if(name==='@/lib/sw-update-safety')return {createUpdateSafety,hasUnsentText};
   if(name.endsWith('/upload-manager'))return {uploadManager:{list:()=>pending?[{}]:[]}};
   if(name.endsWith('/upload-store'))return {uploadStore:{hasPending:async()=>stored}};
   throw Error(name);
  },window,document,navigator:{serviceWorker:worker},MediaStream,MutationObserver:class{constructor(fn){observers.push(fn);}observe(){}disconnect(){}},setTimeout,Event,Element:class{},requestAnimationFrame:fn=>{frames.set(++nextFrame,fn);return nextFrame;},cancelAnimationFrame:id=>frames.delete(id),console});
  exports.default();const cleanups=effects.map(fn=>fn());
  return {message(source=worker.controller){const event=new Event('message');Object.assign(event,{source,data:{type:'app-update-ready'}});worker.dispatchEvent(event);},
-  set(value){({dialogs=dialogs,sheet=sheet,live=live,pending=pending,stored=stored}=value);},
+  set(value){({dialogs=dialogs,sheet=sheet,live=live,pending=pending,stored=stored,fields=fields}=value);},
   close(){window.dispatchEvent(new Event('entry-closed'));for(const fn of frames.values())fn();frames.clear();},
   hidden(){document.visibilityState='hidden';document.dispatchEvent(new Event('visibilitychange'));},
   reloads:()=>reloads,dispose(){cleanups.forEach(fn=>fn?.());}};
@@ -61,4 +61,10 @@ test('real page listener preserves open composer, live camera, memory shots and 
 });
 test('real page listener ignores foreign messages and removes lifecycle listeners on unmount',async()=>{
  const page=pageFixture();page.message({});page.hidden();await settled();assert.equal(page.reloads(),0);page.message();page.dispose();page.hidden();page.close();await settled();assert.equal(page.reloads(),0);
+});
+
+test('real page listener waits for controlled text and applies the update after clearing',async()=>{
+ const page=pageFixture(),field={tagName:'INPUT',type:'email',value:'local@example.invalid',defaultValue:'local@example.invalid',getClientRects:()=>[{}],matches:()=>false,hasAttribute:()=>false};
+ page.set({fields:[field]});page.message();page.hidden();page.close();await settled();assert.equal(page.reloads(),0);
+ field.value='';page.hidden();await settled();assert.equal(page.reloads(),1);page.dispose();
 });
