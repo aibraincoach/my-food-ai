@@ -89,6 +89,16 @@ export function checkRecord(name: string, record: { description: string; categor
   // A name that is only fruit or only a drink, matched to a record of another kind.
   if (kind && kinds.size > 0 && [...kinds].every(k => k === "fruit" || k === "drink") && !kinds.has(kind) && kind !== "dairy") strong.push(`kind: the name is a ${[...kinds].join(" or ")}; the record is a ${kind}`);
   if (/\braw\b/i.test(record.description) && COOKED_WORDS.test(name) && !RAW_FOODS.test(name)) strong.push("raw: the record is raw and the name is a cooked food or dish");
+  // #1258: preserved fruit does not represent frying. A reference that
+  // itself states frying, or names the same syrup-served dish, remains eligible.
+  const frying = /\b(fried|goreng|battered|fritters?|tempura)\b/i;
+  // PM-approved syrup dishes only: an unlisted fruit must never gain a
+  // dish exemption merely because the preserved record repeats its name.
+  const syrupDishes = [/\bgulab jamun\b/i];
+  const sameSyrupDish = syrupDishes.some(dish => dish.test(name) && dish.test(record.description));
+  if (frying.test(name) && !frying.test(record.description) && !sameSyrupDish
+    && /\b(?:candied|syrup[- ]pack|juice[- ]pack|in (?:light |heavy |extra light )?syrup)\b/i.test(record.description))
+    strong.push("packed: the record is preserved in syrup or juice, or candied; the food is fried");
   if (/\b(with|and|&)\b/i.test(name)) {
     const parts = name.split(/\b(?:with|and)\b|&/i).map(part => nameKinds(part)).filter(set => set.size > 0);
     const described = nameKinds(record.description);
