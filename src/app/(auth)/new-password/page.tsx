@@ -1,3 +1,4 @@
+import {AuthShell} from '../_components/AuthShell';
 import Link from 'next/link';
 import {Suspense} from 'react';
 import {connection} from 'next/server';
@@ -6,7 +7,6 @@ import {updatePassword} from '@/lib/auth/password-reset';
 import {Button} from '@/components/ui/Button';
 import {AuthField} from '../_components/AuthField';
 import {AuthBackRow,AuthHeader,AuthErrorBanner} from '../_components/AuthPieces';
-import {font} from '@/lib/theme/font';
 
 type Props={searchParams:Promise<{error?:string}>};
 export default function NewPasswordPage(props:Props){
@@ -17,7 +17,7 @@ async function NewPasswordContent({searchParams}:Props){
   const {error}=await searchParams;
   const supabase=await createClient(AbortSignal.timeout(8000));
   const {data:{user},error:identityError}=await supabase.auth.getUser();
-  return <main className={`${font.className} mx-auto flex min-h-dvh w-full max-w-phone flex-col gap-5 bg-surface px-screen-x pb-5 pt-4 text-text`}>
+  return <AuthShell>
     <AuthBackRow href="/sign-in">Sign in</AuthBackRow>
     <AuthHeader title="Choose a new password" align="start"/>
     {!user||identityError?<>
@@ -28,5 +28,5 @@ async function NewPasswordContent({searchParams}:Props){
       <AuthField label="Password" name="password" type="password" required minLength={8} autoComplete="new-password" placeholder="Password"/>
       <Button type="submit">Save password</Button>
     </form>}
-  </main>;
+  </AuthShell>;
 }

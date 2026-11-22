@@ -1,0 +1,35 @@
+.mfaAuth-shell{display:flex;flex-direction:column;min-height:100dvh;width:100%;background:var(--color-surface);color:var(--color-text)}
+.mfaAuth-product{display:none}
+.mfaAuth-welcome .mfaAuth-product{display:block;width:100%;max-width:390px;margin:0 auto;padding:32px 20px 0}
+.mfaAuth-formPane{display:flex;flex:1;width:100%}
+.mfaAuth-form{display:flex;flex-direction:column;gap:20px;width:100%;max-width:390px;min-height:100dvh;margin:0 auto;padding:16px 20px 20px}
+.mfaAuth-welcome .mfaAuth-form{min-height:0;justify-content:flex-end}
+.mfaAuth-intro{display:flex;flex-direction:column;gap:20px;height:100%}
+.mfaAuth-brand{display:flex;align-items:center;gap:10px;font-size:17px;font-weight:600;letter-spacing:-.2px}
+.mfaAuth-mark{width:32px;height:32px;flex:none}
+.mfaAuth-content{display:flex;flex:1;flex-direction:column;gap:20px}
+.mfaAuth-sample{display:flex;flex-direction:column;align-items:center;align-self:center;gap:4px;margin:0}
+.mfaAuth-sampleFrame{width:180px;height:180px;overflow:hidden}
+.mfaAuth-sampleFrame>div{transform:scale(.6);transform-origin:top left}
+.mfaAuth-sampleLabel{font-size:var(--text-label);color:var(--color-muted)}
+.mfaAuth-copy{display:flex;flex-direction:column;gap:8px}
+.mfaAuth-headline{margin:0;font-size:30px;font-weight:600;line-height:1.1;letter-spacing:-.8px}
+.mfaAuth-support{margin:0;font-size:15px;line-height:1.5}
+.mfaAuth-welcomeHeader{display:none}
+@media(min-width:1024px){
+ .mfaAuth-shell{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}
+ .mfaAuth-product,.mfaAuth-welcome .mfaAuth-product{display:block;width:100%;max-width:none;margin:0;padding:48px;background:var(--color-card)}
+ .mfaAuth-brand{font-size:19px}
+ .mfaAuth-mark{width:36px;height:36px}
+ .mfaAuth-mark>span{transform:scale(1.125);transform-origin:top left}
+ .mfaAuth-content{justify-content:center;gap:32px;width:100%;max-width:420px;margin:0 auto}
+ .mfaAuth-sampleFrame{width:300px;height:300px}
+ .mfaAuth-sampleFrame>div{transform:none}
+ .mfaAuth-copy{text-align:center}
+ .mfaAuth-headline{font-size:28px;line-height:1.15;letter-spacing:-.7px}
+ .mfaAuth-formPane{align-items:center;justify-content:center;padding:48px}
+ .mfaAuth-form,.mfaAuth-welcome .mfaAuth-form{width:380px;max-width:100%;min-height:0;margin:0;padding:0;justify-content:flex-start}
+ .mfaAuth-welcomeHeader{display:flex;flex-direction:column;gap:8px}
+ .mfaAuth-welcomeHeader h2{font-size:28px;font-weight:600;line-height:1.15;letter-spacing:-.6px}
+ .mfaAuth-welcomeHeader p{font-size:15px;line-height:1.5}
+}
