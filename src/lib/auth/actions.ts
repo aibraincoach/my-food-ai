@@ -53,7 +53,9 @@ export async function signIn(formData: FormData): Promise<void> {
   const options = typeof captchaToken === "string" && captchaToken.trim() ? { captchaToken: captchaToken.trim() } : undefined;
   const supabase = await createClient();
   const { error } = await supabase.auth.signInWithPassword({ email, password, ...(options ? { options } : {}) });
-  if (error) fail("/sign-in", error.message.toLowerCase().includes("captcha") ? "Complete the check and try again." : error.message);
+  if (error) fail("/sign-in", error.message.toLowerCase().includes("captcha") ? "Complete the check and try again."
+    : error.code === "invalid_credentials" ? "That email and password don't match. Try again."
+    : "Sign-in could not be completed. Try again.");
   redirect("/");
 }
 
