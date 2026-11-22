@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
 import { readFileSync } from "node:fs";
 import test from "node:test";
-import { caloriesPerServing, servingGrams } from "../src/lib/fdc/serving.ts";
+import { caloriesPerServing, servingPortion } from "../src/lib/fdc/serving.ts";
 import { searchFoods } from "../src/lib/fdc/client.ts";
 import { scaleNutrition } from "../src/lib/fdc/nutrients.ts";
 
@@ -11,12 +11,12 @@ const kcal = (value) => [{ nutrientId: 1008, nutrientName: "Energy", unitName: "
 
 test("a serving is the label's gram serving, else 100 g, and calories follow it", () => {
   const branded = { fdcId: 1, description: "Cereal", dataType: "Branded", foodNutrients: kcal(370), servingSize: 27, servingSizeUnit: "g" };
-  assert.equal(servingGrams(branded), 27);
+  assert.deepEqual(servingPortion(branded), {amount:27,unit:"g"});
   assert.equal(caloriesPerServing(branded), 100);
   const sr = { fdcId: 2, description: "Croissant", dataType: "SR Legacy", foodNutrients: kcal(406) };
-  assert.equal(servingGrams(sr), 100);
+  assert.deepEqual(servingPortion(sr), {amount:100,unit:"g"});
   assert.equal(caloriesPerServing(sr), 406);
-  assert.equal(servingGrams({ ...branded, servingSizeUnit: "ml" }), 100);
+  assert.deepEqual(servingPortion({ ...branded, servingSizeUnit: "ml" }), {amount:27,unit:"ml"});
   assert.equal(caloriesPerServing({ ...sr, foodNutrients: [] }), null);
 });
 
@@ -30,8 +30,8 @@ test("searching croissant and picking one logs a ready post in under 3 seconds, 
     const foods = await searchFoods(coldAdmin, "croissant");
     assert.ok(foods.length > 0, "FDC returned no croissant");
     const food = foods[0];
-    const grams = servingGrams(food);
-    const n = scaleNutrition(food, grams);
+    const portion = servingPortion(food), grams = portion.amount;
+    const n = scaleNutrition(food, grams, null, portion.unit);
     const nutrition = JSON.stringify({ calories: n.calories, protein_g: n.proteinG, carbs_g: n.carbsG, fat_g: n.fatG, fibre_g: n.fibreG, sugar_g: n.sugarG, sodium_mg: n.sodiumMg, micronutrients: n.micronutrients, source_ref: n.sourceRef });
     const searchMs = performance.now() - started;
     const script = `\\set ON_ERROR_STOP on

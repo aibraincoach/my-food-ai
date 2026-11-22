@@ -46,11 +46,17 @@ function queryTokens(query: string): string[] {
   )];
 }
 
-export function gramBasis(food: FdcFood): boolean {
+export function nutritionBasis(food: FdcFood): "g" | "ml" | null {
   const unit = (food.servingSizeUnit ?? "").trim().toLowerCase();
-  // An unsupported count/activity unit cannot establish a gram denominator.
   // Missing units retain the historical per-100g reference behavior.
-  return food.dataType !== "Branded" || !unit || ["g","grm","gm","gram","grams","kg","mg","oz","onz","ounce","ounces"].includes(unit);
+  if (food.dataType !== "Branded" || !unit) return "g";
+  if (["g","grm","gm","gram","grams","kg","mg","oz","onz","ounce","ounces"].includes(unit)) return "g";
+  if (["ml","mlt","milliliter","milliliters"].includes(unit)) return "ml";
+  return null;
+}
+
+export function gramBasis(food: FdcFood): boolean {
+  return nutritionBasis(food) === "g";
 }
 
 function unitToGrams(value: number, unit: string): number {
@@ -128,12 +134,13 @@ export function chooseBestMatch(foods: FdcFood[], query?: string): FdcFood | nul
   return ranked[0]?.score >= 0.66 ? ranked[0].food : null;
 }
 
-// Scale one match to portion grams. A null portion leaves every column
+// Scale one match in its declared basis only; mass and volume never convert. A null portion leaves every column
 // null but still records the source match.
 export function scaleNutrition(
   food: FdcFood | null,
-  portionGrams: number | null,
-  unavailable: UnavailableReason | null = null
+  portionAmount: number | null,
+  unavailable: UnavailableReason | null = null,
+  portionUnit: "g" | "ml" = "g"
 ): ScaledNutrition {
   if (!food) {
     return {
@@ -151,8 +158,8 @@ export function scaleNutrition(
   }
   // An estimate has no USDA id; its ref names the basis.
   const sourceRef = food.approximation?.kind === "estimate" ? `estimate:${food.approximation.basis}` : String(food.fdcId);
-  const factor = portionGrams !== null && Number.isFinite(portionGrams) && portionGrams > 0 && gramBasis(food)
-    ? portionGrams / 100 : null;
+  const factor = portionAmount !== null && Number.isFinite(portionAmount) && portionAmount > 0 && nutritionBasis(food) === portionUnit
+    ? portionAmount / 100 : null;
   // Reader-first rollout: writers stay legacy until explicit activation. The
   // database format boundary also protects mixed deployments and app rollback.
   const compact = process.env.NUTRITION_COMPACT_WRITE === "1";

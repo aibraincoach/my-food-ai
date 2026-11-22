@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import {uploadManager} from "@/lib/posts/upload-manager";
 import { Field } from "@/components/ui/Field";
 
-type Match = { id: number; description: string; serving_g: number; calories: number | null };
+type Match = { id: number; description: string; serving_amount: number; serving_unit: "g" | "ml"; calories: number | null };
 
 // "Search foods" in the + sheet: an FDC text search with calories per serving. Picking a result logs a ready post
 // straight away (no model call); "Describe it instead" hands back to the caption and the model.
@@ -50,7 +50,7 @@ export default function FoodSearchPanel({ eatenAt, disabled, onQueued, onDescrib
     {shown?.foods.length ? <ul aria-label="Food results" className="divide-y divide-surface/15">
       {shown.foods.map((food) => <li key={food.id}><button type="button" disabled={busy} onClick={() => { void pick(food); }} className="flex min-h-tap w-full items-baseline justify-between gap-3 px-grid py-grid text-left text-detail disabled:opacity-50">
         <span className="min-w-0 flex-1">{food.description}</span>
-        <span className="shrink-0 tabular-nums text-camera-muted">{food.calories === null ? "–" : `${food.calories} kcal`} · {food.serving_g} g</span>
+        <span className="shrink-0 tabular-nums text-camera-muted">{food.calories === null ? "–" : `${food.calories} kcal`} · {food.serving_amount} {food.serving_unit}</span>
       </button></li>)}
     </ul> : null}
     {picking ? <p className="px-grid text-detail text-camera-muted" role="status">Logging…</p> : null}

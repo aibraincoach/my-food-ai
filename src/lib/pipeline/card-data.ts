@@ -18,7 +18,7 @@ export interface CardData {
   hydration?: HydrationRecord;
   kcal?: number | null;
   macros?: { protein: number | null; carbs: number | null; fat: number | null };
-  items?: { name: string; grams: number | null }[];
+  items?: { name: string; grams: number | null; portionText?: string }[];
   gap?: string;
   waterLine?: string;
   mealDrinkLine?: string;
@@ -58,7 +58,7 @@ export function cardDataFromRow(source: CardSource): CardData {
     hydration,
     kcal: totals.calories,
     macros: { protein: totals.protein_g, carbs: totals.carbs_g, fat: totals.fat_g },
-    items: source.items.map(item => ({ name: item.name, grams: item.portion_grams == null ? null : toNumber(item.portion_grams) })),
+    items: source.items.map(item => ({ name: item.name, grams: item.portion_grams == null ? null : toNumber(item.portion_grams), ...(item.portion_grams == null && /^\d+(?:\.\d+)? ml$/i.test(item.portion_text ?? "") ? {portionText: item.portion_text!} : {}) })),
     gap: gapSentence(nutritionGaps(totals),source.items.map(item=>({name:item.name,sourceRef:item.source_ref}))),
     waterLine: (source.foodWaterMl ?? 0) >= 50 && hydration ? `Water in this meal: ${Math.round(source.foodWaterMl!).toLocaleString("en-US")} ml · Consumed today: ${hydration.totalMl.toLocaleString("en-US")} ml` : undefined,
     mealDrinkLine: !drink && source.itemDrinks?.length ? `Drinks with this meal: ${source.itemDrinks.map(row => `${Math.round(row.ml).toLocaleString("en-US")} ml ${row.label}`).join(" · ")}${source.itemDrinks.reduce((sum, row) => sum + row.caffeineMg, 0) > 0 ? ` · ${Math.round(source.itemDrinks.reduce((sum, row) => sum + row.caffeineMg, 0))} mg caffeine` : ""}` : undefined,
