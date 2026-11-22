@@ -102,6 +102,7 @@ export function gapSentence(gaps: NutritionGap[], reasons: {name:string;sourceRe
   const sentences = gaps.map(gap => {
     if (gap.nutrients.includes("calories")) {
       const why = [...new Set(reasons.filter(row=>row.name===gap.name).map(row=>unavailableSentence(row.name,row.sourceRef,withDetail)).filter(Boolean))].join(" ");
+      if (["calories","protein_g","carbs_g","fat_g"].every(key=>gap.nutrients.includes(key as NutrientKey))) return why || `Nutrition unavailable for ${gap.name}.`;
       return `Calories unavailable for ${gap.name}.${why ? ` ${why}` : ""}`;
     }
     return gap.nutrients.length ? `Missing ${wordList(gap.nutrients.map(key=>nutrientNames[key]))} for ${gap.name}.` : "";

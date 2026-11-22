@@ -34,3 +34,9 @@ test('every disclosure uses the shared sentence and the old list builder is dele
  for(const path of walk('src')){const source=readFileSync(path,'utf8');assert.doesNotMatch(source,/unavailableFoods|Object\.values\(day\?\.totals\.missing/);
  if(path!=='src/lib/nutrition/totals.ts')assert.doesNotMatch(source,/Nutrition unavailable:|Calories unavailable for|Showing known values\.|Missing \$\{nutrient/);}
 });
+
+test('a food with neither calories nor macros uses its durable reason or names the whole gap',()=>{
+ const totals=nutrition.sumNutrition([{...complete,name:'X',calories:null,protein_g:null,carbs_g:null,fat_g:null}]);
+ assert.equal(nutrition.gapSentence(nutrition.nutritionGaps(totals)),'Nutrition unavailable for X.');
+ assert.equal(nutrition.gapSentence(nutrition.nutritionGaps(totals),[{name:'X',sourceRef:'unavailable:no_match:no match'}]),'No USDA record matched “X”.');
+});

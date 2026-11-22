@@ -1,3 +1,4 @@
+import {nutritionGaps,gapSentence,GAP_LEAD} from '../src/lib/nutrition/totals.ts';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
@@ -15,7 +16,7 @@ function render(phase,deviceZone,zone,initial=view){
  vm.runInNewContext(compile('DesktopToday.tsx'),{exports,Intl:intl,Date,require:name=>{
   if(name==='react')return react;if(name==='react/jsx-runtime')return{jsx,jsxs:jsx};if(name==='next/link')return{default:'a'};
   if(name==='@/lib/ui/use-desktop')return{useDesktop:()=>false};if(name==='@/components/LocalTime')return local;
-  if(name==='@/lib/posts/days')return{dateInZone,validZone};if(name==='@/lib/nutrition/totals')return{formatCalories:String,formatNutrition:String};throw Error(name);
+  if(name==='@/lib/posts/days')return{dateInZone,validZone};if(name==='@/lib/nutrition/totals')return{formatCalories:String,formatNutrition:String,nutritionGaps,gapSentence,GAP_LEAD};throw Error(name);
  }});
  const tree=exports.default({...(initial?{initial}:{}),...(zone?{zone}:{})});const times=[];
  function walk(node){if(Array.isArray(node)){node.forEach(walk);return;}if(!node?.props)return;if(node.type==='span'&&node.props.className==='text-[12px] text-muted')times.push(node.props.children);walk(node.props.children);}

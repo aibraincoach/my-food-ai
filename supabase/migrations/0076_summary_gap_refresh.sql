@@ -25,10 +25,10 @@ begin
  -- of the transition so removing the last approximate food clears its label.
  -- #985: an operator re-match (scripts/numbers/11-rematch.sql) always rewrites the comment.
  if not exists(select 1 from public.jobs where id=p_job_id and payload ? 'operator')
-  and position('Nutrition unavailable: ' in p_summary)=0 and position('Calories unavailable for ' in p_summary)=0 and position('Missing ' in p_summary)=0
+  and position('Nutrition unavailable: ' in p_summary)=0 and position('Nutrition unavailable for ' in p_summary)=0 and position('Calories unavailable for ' in p_summary)=0 and position('Missing ' in p_summary)=0
   and position(' is taken from the closest USDA record, ' in p_summary)=0 and position(' is a model estimate, ' in p_summary)=0 and position('The model did not treat “' in p_summary)=0 and position('No USDA record matched “' in p_summary)=0
   and not exists(select 1 from public.post_comments where id=revision_comment
-   and (position('Nutrition unavailable: ' in body)>0 or position('Calories unavailable for ' in body)>0 or position('Missing ' in body)>0 or position(' is taken from the closest USDA record, ' in body)>0 or position(' is a model estimate, ' in body)>0 or position('The model did not treat “' in body)>0 or position('No USDA record matched “' in body)>0)) then return;end if;
+   and (position('Nutrition unavailable: ' in body)>0 or position('Nutrition unavailable for ' in body)>0 or position('Calories unavailable for ' in body)>0 or position('Missing ' in body)>0 or position(' is taken from the closest USDA record, ' in body)>0 or position(' is a model estimate, ' in body)>0 or position('The model did not treat “' in body)>0 or position('No USDA record matched “' in body)>0)) then return;end if;
  -- #989: a meal with no model comment (a barcode or label meal) has no summary to rewrite. Before 0066 an
  -- operator re-match of such a meal failed here with "Nutrition summary is missing".
  if revision_comment is null then return;end if;

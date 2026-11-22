@@ -44,6 +44,10 @@ test('a filled gap updates only the current comment, with guards and exact rollb
  if (select body from post_comments where id=f.comment)<>'Consumed: 33 kcal.' then raise exception 'New macro gap not cleared';end if;
  perform refresh_owned_approximation_summary(f.p,f.job,'Calories unavailable for syrup.',f.expected);
  if (select body from post_comments where id=f.comment)<>'Calories unavailable for syrup.' then raise exception 'New calorie gap missing';end if;
+ perform refresh_owned_approximation_summary(f.p,f.job,'Nutrition unavailable for syrup.',f.expected);
+ if (select body from post_comments where id=f.comment)<>'Nutrition unavailable for syrup.' then raise exception 'Whole-food gap missing';end if;
+ perform refresh_owned_approximation_summary(f.p,f.job,'Consumed: 33 kcal.',f.expected);
+ if (select body from post_comments where id=f.comment)<>'Consumed: 33 kcal.' then raise exception 'Whole-food gap not cleared';end if;
  begin perform refresh_owned_approximation_summary(f.p,gen_random_uuid(),'BAD',f.expected);exception when sqlstate 'PT409' then refused:=true;end;
  if not refused then raise exception 'Foreign job accepted';end if;
  refused:=false;
