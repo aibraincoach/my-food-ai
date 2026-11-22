@@ -42,7 +42,7 @@ test('a forged verified ID cannot authenticate a protected request with no user'
     const response=await middleware(req);
     assert.equal(req.headers.get(VERIFIED_USER_HEADER),null);
     assert.equal(response.status,307);
-    assert.equal(response.headers.get('location'),'https://app.invalid/sign-in');
+    assert.equal(response.headers.get('location'),'https://app.invalid/welcome');
     assert.equal(response.headers.get(`x-middleware-request-${VERIFIED_USER_HEADER}`),null);
     assert.equal(calls(),0);
   });
@@ -82,7 +82,7 @@ test('the real matcher runs the trust boundary for forged standalone post reques
       assert.equal(unstable_doesMiddlewareMatch({config,url:req.url,headers:Object.fromEntries(req.headers)}),true,`middleware must actually run for ${path}`);
       const response=await middleware(req);
       assert.equal(response.status,307);
-      assert.equal(response.headers.get('location'),'https://app.invalid/sign-in');
+      assert.equal(response.headers.get('location'),'https://app.invalid/welcome');
       assert.equal(req.headers.get(VERIFIED_USER_HEADER),null);
       assert.equal(response.headers.get(`x-middleware-request-${VERIFIED_USER_HEADER}`),null);
     }
