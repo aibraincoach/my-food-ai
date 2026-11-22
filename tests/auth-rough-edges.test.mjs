@@ -1,6 +1,7 @@
+import {englishIntl,englishIntlServer} from './fixtures/english-intl.mjs';
 import test from'node:test';import assert from'node:assert/strict';import vm from'node:vm';import ts from'typescript';import{readFileSync}from'node:fs';
 const read=p=>readFileSync(new URL('../'+p,import.meta.url),'utf8');
-function actions(error=null,profileError=null){const exports={},removed=[],logs=[],deps={
+function actions(error=null,profileError=null){const exports={},removed=[],logs=[],deps={'next-intl':englishIntl,'next-intl/server':englishIntlServer,
  'next/navigation':{redirect:url=>{throw Object.assign(Error('redirect'),{url})}},
  '@/lib/supabase/server':{createClient:async()=>({auth:{signUp:async()=>({data:{user:error?null:{id:'new-user'}},error}),signInWithPassword:async()=>({error}),getUser:async()=>({data:{user:null}})}})},
  '@/lib/supabase/admin':{createAdminClient:()=>({from:()=>({insert:async()=>({error:profileError})}),auth:{admin:{deleteUser:async id=>{removed.push(id);return{error:null}}}}})},

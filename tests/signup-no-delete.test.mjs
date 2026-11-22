@@ -1,7 +1,8 @@
+import {englishIntl,englishIntlServer} from './fixtures/english-intl.mjs';
 import test from'node:test';import assert from'node:assert/strict';import vm from'node:vm';import ts from'typescript';import{readFileSync}from'node:fs';
 const nextStep="If you received a confirmation email, confirm your account, then sign in. Otherwise, sign in.";
 const neutral="We couldn't finish creating your account. Try again.";
-function fixture(user,session=null,profileError={code:'23505',message:'PRIVATE account exists'},authError=null){const removed=[],exports={},deps={
+function fixture(user,session=null,profileError={code:'23505',message:'PRIVATE account exists'},authError=null){const removed=[],exports={},deps={'next-intl':englishIntl,'next-intl/server':englishIntlServer,
  'next/navigation':{redirect:url=>{throw Object.assign(Error('redirect'),{url})}},
  '@/lib/supabase/server':{createClient:async()=>({auth:{signUp:async()=>({data:{user,session},error:authError}),getUser:async()=>({data:{user},error:null})}})},
  '@/lib/supabase/admin':{createAdminClient:()=>({from:()=>({insert:async()=>{if(profileError instanceof Error)throw profileError;return{error:profileError}}}),auth:{admin:{deleteUser:async id=>{removed.push(id);return{error:null}}}}})},

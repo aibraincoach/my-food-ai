@@ -1,3 +1,4 @@
+import {englishIntl,englishIntlServer} from './fixtures/english-intl.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import vm from 'node:vm';
@@ -7,7 +8,7 @@ import {readFileSync,existsSync} from 'node:fs';
 function fixture({resetError=null,user={id:'verified-user'},updateError=null,origin='https://app.invalid'}={}){
   const calls=[],exports={},path=new URL('../src/lib/auth/password-reset.ts',import.meta.url);
   if(!existsSync(path))return{calls,exports};
-  const deps={
+  const deps={'next-intl':englishIntl,'next-intl/server':englishIntlServer,
     'next/navigation':{redirect:url=>{throw Object.assign(Error('redirect'),{url});}},
     'next/headers':{headers:async()=>({get:key=>key==='origin'?origin:null})},
     '@/lib/supabase/server':{createClient:async signal=>{
@@ -31,7 +32,7 @@ test('weak passwords and missing origin fail before a provider write',async()=>{
 function callbackFixture({redirectType='recovery',error=null,throws=false}={}){
   const path=new URL('../src/app/auth/password-reset/route.ts',import.meta.url),exports={},calls=[];
   if(!existsSync(path))return{exports,calls};
-  let notify=()=>{};const deps={'next/server':{NextResponse},'@supabase/ssr':{createServerClient:(_url,_key,options)=>({auth:{onAuthStateChange:callback=>{notify=callback;return{data:{subscription:{unsubscribe(){}}}};},exchangeCodeForSession:async(code,flow)=>{calls.push([code,flow]);if(throws)throw Error('PRIVATE');options.cookies.setAll([{name:'verified-recovery',value:'token',options:{httpOnly:true}}]);notify(redirectType==='recovery'?'PASSWORD_RECOVERY':'SIGNED_IN');return{data:{user:{id:'verified'}},error};}}})}};
+  let notify=()=>{};const deps={'next-intl':englishIntl,'next-intl/server':englishIntlServer,'next/server':{NextResponse},'@supabase/ssr':{createServerClient:(_url,_key,options)=>({auth:{onAuthStateChange:callback=>{notify=callback;return{data:{subscription:{unsubscribe(){}}}};},exchangeCodeForSession:async(code,flow)=>{calls.push([code,flow]);if(throws)throw Error('PRIVATE');options.cookies.setAll([{name:'verified-recovery',value:'token',options:{httpOnly:true}}]);notify(redirectType==='recovery'?'PASSWORD_RECOVERY':'SIGNED_IN');return{data:{user:{id:'verified'}},error};}}})}};
   vm.runInNewContext(ts.transpileModule(readFileSync(path,'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText,{exports,URL,AbortSignal,process:{env:{}},fetch:()=>{throw Error('unexpected direct fetch');},require:n=>deps[n]});
   return{exports,calls};
 }

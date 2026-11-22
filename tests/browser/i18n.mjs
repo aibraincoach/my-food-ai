@@ -13,13 +13,11 @@ for(const [name,engine] of [['chromium',chromium],['webkit',webkit]].filter(([na
   await context.addCookies(cookies.map(c=>({name:c.name,value:c.value,url:app})));
   page=await context.newPage();page.setDefaultTimeout(10000);page.on('pageerror',error=>result.errors.push(error.message));
   const first=await page.goto(app+'/profile',{waitUntil:'load'});
-  const html=await first.text();assert.match(html,/<html\b[^>]*\blang="en"/);
-  await page.locator('select[aria-label="Language"]:visible').waitFor();
-  assert.equal(await page.locator('select[aria-label="Language"]:visible').inputValue(),'en');
-  await page.locator('select[aria-label="Language"]:visible').selectOption('ja');
+  const html=await first.text();assert.match(html,/<html\b[^>]*\blang="ja"/);
   await page.locator('select[aria-label="言語"]:visible').waitFor();
-  assert.equal(await page.locator('html').getAttribute('lang'),'en');
-  result.checks.push('Phone default deferred; English first response, explicit Japanese row');
+  assert.equal(await page.locator('select[aria-label="言語"]:visible').inputValue(),'ja');
+  assert.equal(await page.locator('html').getAttribute('lang'),'ja');
+  result.checks.push('Japanese phone default and first response html');
   const oldSection=await page.locator('section').filter({hasText:"Use the phone's camera app"}).filter({visible:true}).evaluate(e=>e.outerHTML);
   const languageSection=page.locator('section').filter({has:page.locator('select:visible')});
   result.japaneseText=await languageSection.innerText();
@@ -42,8 +40,8 @@ for(const [name,engine] of [['chromium',chromium],['webkit',webkit]].filter(([na
   const independent=await browser.newContext({...devices['iPhone 13'],locale:'ja-JP'});
   await independent.addCookies(cookies.map(c=>({name:c.name,value:c.value,url:app})));
   const other=await independent.newPage();await other.goto(app+'/profile',{waitUntil:'load'});
-  await other.locator('select[aria-label="Language"]:visible').waitFor();assert.equal(await other.locator('html').getAttribute('lang'),'en');
-  await independent.close();result.checks.push('Fresh device context stays English for same account until slice 2');
+  await other.locator('select[aria-label="言語"]:visible').waitFor();assert.equal(await other.locator('html').getAttribute('lang'),'ja');
+  await independent.close();result.checks.push('Fresh device context uses phone default for same account');
   await page.locator('select[aria-label="Language"]:visible').selectOption('ja');await page.locator('select[aria-label="言語"]:visible').waitFor();
   // A separate worker-blocked context makes the browser routing fault seam
   // observable in WebKit; its worker network otherwise bypasses page.route.
@@ -63,16 +61,16 @@ for(const [name,engine] of [['chromium',chromium],['webkit',webkit]].filter(([na
   // Anonymous shell override wins even with the other explicit locale cookie.
   for(const locale of ['en','ja']) {
    const response=await context.request.get(app+'/shell?lang='+locale);
-   assert.equal(response.status(),200);assert.match(await response.text(),/<html\b[^>]*\blang="en"/);
+   assert.equal(response.status(),200);assert.match(await response.text(),new RegExp('<html\\b[^>]*\\blang="'+locale+'"'));
   }
   await page.goto(app+'/',{waitUntil:'load'});
   await page.evaluate(async()=>{await navigator.serviceWorker.ready;if(!navigator.serviceWorker.controller)await new Promise(resolve=>navigator.serviceWorker.addEventListener('controllerchange',resolve,{once:true}));});
   const shells=await page.evaluate(async()=>{const c=await caches.open('my-food-ai-shell-v4'),saved=await(await caches.open('mfa-media-control-v1')).match(location.origin+'/__mfa_locale__');return {en:await(await c.match('/shell?lang=en')).text(),ja:await(await c.match('/shell?lang=ja')).text(),saved:saved?await saved.text():null};});
-  assert.match(shells.en,/<html\b[^>]*\blang="en"/);assert.match(shells.ja,/<html\b[^>]*\blang="en"/);assert.equal(shells.saved,'ja');
+  assert.match(shells.en,/<html\b[^>]*\blang="en"/);assert.match(shells.ja,/<html\b[^>]*\blang="ja"/);assert.equal(shells.saved,'ja');
   await context.setOffline(true);
   const offline=await page.goto(app+'/',{waitUntil:'load',timeout:10000});
-  assert.equal(offline.fromServiceWorker(),true);assert.equal(await page.locator('html').getAttribute('lang'),'en');
-  result.checks.push('Offline start serves matching Japanese-keyed shell; unconverted shell stays English');
+  assert.equal(offline.fromServiceWorker(),true);assert.equal(await page.locator('html').getAttribute('lang'),'ja');
+  result.checks.push('Offline start serves matching Japanese-keyed shell; Home content outside scope remains unconverted');
   await page.evaluate(async()=>{await(await caches.open('my-food-ai-shell-v4')).delete('/shell?lang=ja');});
   let failed=false;try{await page.goto(app+'/',{waitUntil:'load',timeout:10000});}catch{failed=true;}
   assert.equal(failed,true,'Missing Japanese shell must use the failing network, never English');

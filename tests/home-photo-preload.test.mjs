@@ -29,7 +29,7 @@ test('middleware makes no photo query or HTTP image preload while preserving aut
    if(name==='@/lib/auth/session-cookies')return{sessionCookieBridge:()=>({response,cookies:{setAll(){}},apply:r=>r,refreshRequestHeaders:()=>{}})};
    throw Error(name);
   }});
-  const result=await exports.middleware({url:`https://app.example${pathname}`,nextUrl:{pathname,protocol:'https:'},headers:new Headers()});
+  const result=await exports.middleware({url:`https://app.example${pathname}`,nextUrl:new URL(`https://app.example${pathname}`),headers:new Headers()});
   assert.equal(photoReads,0);
   if(user){assert.equal(result.headers.get('link'),'</existing>; rel=preconnect');if(pathname==='/')assert.equal(result.headers.get('cache-control'),'private, no-store');}
   else assert.equal(result.status,307);

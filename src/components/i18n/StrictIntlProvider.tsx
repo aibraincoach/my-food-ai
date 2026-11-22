@@ -5,7 +5,7 @@ import type {Locale} from '@/i18n/locales';
 import type messages from '../../../messages/en.json';
 
 export default function StrictIntlProvider({children, locale, timeZone, messages: translations}: {
-  children: React.ReactNode; locale: Locale; timeZone: string; messages: typeof messages;
+  children: React.ReactNode; locale: Locale; timeZone: string; messages: Partial<typeof messages>;
 }) {
   return <NextIntlClientProvider locale={locale} timeZone={timeZone} messages={translations} onError={onError} getMessageFallback={getMessageFallback}>
     {children}

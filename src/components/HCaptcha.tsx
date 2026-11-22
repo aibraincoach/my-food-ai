@@ -1,4 +1,6 @@
 "use client";
+import {useTranslations} from 'next-intl';
+
 
 import Script from "next/script";
 import {useCallback,useState} from "react";
@@ -20,6 +22,7 @@ declare global{
 const listeners=new Set<()=>void>();
 
 export default function HCaptcha(){
+ const t=useTranslations('auth');
   const sitekey=process.env.NEXT_PUBLIC_HCAPTCHA_SITE_KEY;
   const [failed,setFailed]=useState(false);
   const container=useCallback((node:HTMLDivElement|null)=>{
@@ -76,7 +79,7 @@ export default function HCaptcha(){
     <div ref={container} className="h-captcha" data-sitekey={sitekey} data-size="invisible"/>
     <Script id="mfa-hcaptcha" src="https://js.hcaptcha.com/1/api.js?onload=mfaHCaptchaReady&render=explicit"
       strategy="afterInteractive" onError={()=>setFailed(true)}/>
-    {failed?<AuthErrorBanner>The check could not be completed. Try again.</AuthErrorBanner>:null}
-    <p className="text-label text-muted">This site is protected by hCaptcha and its <a href="https://www.hcaptcha.com/privacy" className="underline">Privacy Policy</a> and <a href="https://www.hcaptcha.com/terms" className="underline">Terms of Service</a> apply.</p>
+    {failed?<AuthErrorBanner>{t('checkFailure')}</AuthErrorBanner>:null}
+    <p className="text-label text-muted">{t('captchaLead')} <a href="https://www.hcaptcha.com/privacy" className="underline">{t('privacy')}</a> {t('captchaAnd')} <a href="https://www.hcaptcha.com/terms" className="underline">{t('terms')}</a> {t('captchaEnd')}</p>
   </>;
 }

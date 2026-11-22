@@ -1,0 +1,70 @@
+{
+  "base": "d5b86946eba5c4f45077c136db832c6676cfa2f6",
+  "cases": [
+    {
+      "name": "water and meal drinks",
+      "data": {
+        "glyph": "tumbler",
+        "drinkLabel": "Rice",
+        "drinkDetail": "0 ml",
+        "kind": "meal",
+        "hydration": {
+          "totalMl": 1134,
+          "drinksMl": 1000,
+          "foodMl": 134,
+          "caffeineMg": 80
+        },
+        "kcal": 180,
+        "macros": {
+          "protein": 4,
+          "carbs": 42,
+          "fat": 0
+        },
+        "items": [
+          {
+            "name": "Rice",
+            "grams": 100
+          }
+        ],
+        "gap": "",
+        "waterLine": "Water in this meal: 134 ml · Consumed today: 1,134 ml",
+        "mealDrinkLine": "Drinks with this meal: 200 ml Tea · 300 ml Water · 30 mg caffeine"
+      },
+      "sha256": "b38ff21cc55d18b486bb057703386fd7d554208ca6deb63bcdeb8dbc3c692127",
+      "bytes": 74801
+    },
+    {
+      "name": "coffee caffeine",
+      "data": {
+        "glyph": "coffee",
+        "drinkLabel": "Coffee",
+        "drinkDetail": "80 mg caffeine",
+        "kind": "drink",
+        "amountMl": 250,
+        "caffeineMg": 80,
+        "drinkLine": "Coffee · 80 mg caffeine · 180 kcal",
+        "hydration": {
+          "totalMl": 1250,
+          "drinksMl": 1000,
+          "foodMl": 250,
+          "caffeineMg": 100
+        },
+        "kcal": 180,
+        "macros": {
+          "protein": 4,
+          "carbs": 42,
+          "fat": 0
+        },
+        "items": [
+          {
+            "name": "Rice",
+            "grams": 100
+          }
+        ],
+        "gap": ""
+      },
+      "sha256": "e87a29e039ed81547a3b7fd4c7eb97adbd45d352501cc1a2245399c0858b8e78",
+      "bytes": 63652
+    }
+  ]
+}

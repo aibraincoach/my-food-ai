@@ -1,4 +1,7 @@
 "use client";
+import {useLocale} from 'next-intl';
+import {formatDate} from '@/i18n/format';
+import {cardGapWording} from '@/i18n/card';
 import { nutritionGaps, gapSentence, GAP_LEAD } from "@/lib/nutrition/totals";
 
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
@@ -28,6 +31,7 @@ export function dayPostName(post:Pick<DayPost,'items'|'caption'>):string {
 export default function StoryPlayer({ day, zone, onClose, onDay, cell }: { day: LoggedDay; zone: string; onClose: () => void; onDay: (date: string) => void; cell: () => DOMRect | undefined }) {
   useEffect(()=>{const refresh=()=>onDay(day.date);window.addEventListener('post-deleted',refresh);return()=>window.removeEventListener('post-deleted',refresh);},[day.date,onDay]);
   const clockZone=useDeviceTimeZone();
+  const locale=useLocale();
   const width = useSyncExternalStore(subscribeWidth, readWidth, serverWidth);
   const dialog = useRef<HTMLDialogElement>(null);
   const story = useRef<HTMLDivElement>(null);
@@ -134,7 +138,7 @@ export default function StoryPlayer({ day, zone, onClose, onDay, cell }: { day: 
             {photo(post) ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img src={photo(post)!} onError={() => photoFailed(post.photoUrl)} alt={post.caption || "Meal"} className="h-full w-full object-cover" />
-            ) : <ResultsCard gap={gapSentence(nutritionGaps(post.totals))} size={width} time={time(post.eatenAt)} calories={post.totals.calories} protein={post.totals.protein_g} carbs={post.totals.carbs_g} fat={post.totals.fat_g} items={post.items.map(item => ({ name: item.name, grams: item.portion_grams == null ? null : Number(item.portion_grams) }))} />}
+            ) : <ResultsCard locale={locale} gap={gapSentence(nutritionGaps(post.totals),[],false,cardGapWording(locale))} size={width} time={clockZone?formatDate(locale,new Date(post.eatenAt),clockZone,{hour:'numeric',minute:'2-digit'}):''} calories={post.totals.calories} protein={post.totals.protein_g} carbs={post.totals.carbs_g} fat={post.totals.fat_g} items={post.items.map(item => ({ name: item.name, grams: item.portion_grams == null ? null : Number(item.portion_grams) }))} />}
           </div>
           <div className="px-screen-x"><p className="text-body">{post.caption}</p><p className="mt-1 text-meta text-faint">{time(post.eatenAt)}</p></div>
         </div> : <div className="mt-auto flex shrink-0 flex-col gap-7 px-screen-x">

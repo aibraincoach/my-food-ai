@@ -1,9 +1,26 @@
 // Enforced on converted directories only; each slice expands the scope.
 // All remaining src directories are temporary migration exemptions, removed
 // at slice 6. Do not add a converted directory back to the exemptions.
-export const deferred = ['src/app/**', 'src/components/*.tsx', 'src/lib/**', 'src/middleware.ts'];
+// #1243/#1253 owner wording holds. Delete this one entry after the owner rules.
+export const HELD_FOR_OWNER_WORDING = [
+ 'Log a meal in seconds.',
+ 'Photograph it, type it or say it.',
+ 'Consumed nutrition from USDA FoodData Central',
+ 'Nutrition values from USDA FoodData Central.',
+ 'Log meals with a photo and get nutrition numbers.',
+ // unavailableSentence templates remain untouched in their existing reader.
+ 'The model did not treat “{food}” as a food, so no nutrition was estimated.',
+ 'No USDA record matched “{food}” and the model gave no usable estimate.',
+ 'No USDA record matched “{food}”.',
+];
+export const untranslatedNamesAndUnits = ['My Food AI','kcal','g','ml','mg','(',')'];
+export const deferred = [
+ 'src/app/**','!src/app/(auth)/**','!src/app/error.tsx','!src/app/not-found.tsx','!src/app/(tabs)/profile/about/page.tsx',
+ 'src/components/*.tsx',...['AuthProviders','ProviderButton','HCaptcha','BottomBar','PlusMenu','ResultsCard'].map(name=>'!src/components/'+name+'.tsx'),
+ 'src/lib/**','!src/lib/auth/actions.ts','!src/lib/auth/password-reset.ts','!src/lib/pipeline/card-data.ts','src/middleware.ts',
+];
 export const converted = ['src/**/*.{ts,tsx}'];
-export const lintTargets = ['src/i18n', 'src/components/i18n'];
+export const lintTargets = ['src/i18n','src/components/i18n','src/app/(auth)','src/app/error.tsx','src/app/not-found.tsx','src/app/(tabs)/profile/about/page.tsx',...['AuthProviders','ProviderButton','HCaptcha','BottomBar','PlusMenu','ResultsCard'].map(name=>'src/components/'+name+'.tsx'),'src/lib/auth/actions.ts','src/lib/auth/password-reset.ts','src/lib/pipeline/card-data.ts'];
 const visibleAttributes = new Set(['aria-label', 'aria-description', 'placeholder', 'title', 'alt', 'label']);
 function hasFixedText(node) {
   if(!node) return false;

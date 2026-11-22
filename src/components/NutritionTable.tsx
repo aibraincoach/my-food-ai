@@ -13,13 +13,13 @@ export default function NutritionTable({ items }: { items: CurrentItem[] }) {
   const gap=gapSentence(nutritionGaps(totals,NUTRIENT_KEYS),items.map(item=>({name:item.name,sourceRef:item.source_ref})),true);
   return <section className="px-screen-x pt-grid" aria-label="Consumed nutrition">
     {gap ? <p className="text-meta text-muted">{GAP_LEAD} {gap}</p> : null}
-    <table className="w-full border-collapse text-detail tabular-nums"><caption className="sr-only">Consumed nutrition from USDA FoodData Central</caption>
+    <table className="w-full border-collapse text-detail tabular-nums"><caption lang="en" className="sr-only">Consumed nutrition from USDA FoodData Central</caption>
       <tbody>{rows.map((row, index) => <tr key={`${index}:${row.name}:${row.unit}`} className={`h-table-row border-b border-hairline ${index === 0 ? "font-medium text-text" : "text-muted"}`}>
         <th scope="row" className="py-grid text-left" style={{ fontWeight: "inherit" }}>{row.name}{row.unavailable?.length?` · unavailable: ${row.unavailable.join(", ")}`:""}</th>
         <td className="whitespace-nowrap py-grid pl-grid text-right">{row.micro&&row.value!==null?formatTableNutrient(row.value):number(row.value,row.unit)}{row.value === null ? "" : ` ${row.unit}`}</td>
       </tr>)}</tbody>
     </table>
-    <p className="pt-sheet-top text-label text-muted">Nutrition values from USDA FoodData Central.</p>
+    <p lang="en" className="pt-sheet-top text-label text-muted">Nutrition values from USDA FoodData Central.</p>
     {items.some(item=>item.source_ref?.startsWith("off:")) && <OpenFoodFactsAttribution/>}
   </section>;
 }

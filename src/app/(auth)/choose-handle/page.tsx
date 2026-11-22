@@ -1,3 +1,4 @@
+import {getTranslations} from 'next-intl/server';
 import {AuthShell} from '../_components/AuthShell';
 import {Suspense} from 'react';
 import {connection} from 'next/server';
@@ -11,16 +12,17 @@ export default function ChooseHandlePage(props:Props){
   return <Suspense fallback={null}><ChooseHandleContent {...props}/></Suspense>;
 }
 async function ChooseHandleContent({searchParams}:Props){
+ const t=await getTranslations('auth');
   await connection();
   const {error}=await searchParams;
-  const handleError=error&&(error.startsWith('That handle is taken.')||error.startsWith('Enter a handle'))?error:undefined;
+  const handleError=error&&(error===t('takenHandle')||error===t('handleLength'))?error:undefined;
   return <AuthShell>
-    <AuthBackRow href="/welcome">Welcome</AuthBackRow>
-    <AuthHeader title="Choose a handle" align="start"/>
+    <AuthBackRow href="/welcome">{t('welcome')}</AuthBackRow>
+    <AuthHeader title={t('chooseHandle')} align="start"/>
     <form action={chooseHandle} className="flex flex-1 flex-col gap-4">
       {error&&!handleError?<AuthErrorBanner>{error}</AuthErrorBanner>:null}
-      <AuthField label="Handle" name="handle" type="text" required maxLength={80} autoComplete="nickname" placeholder="yourname" help="The name shown on your posts." error={handleError}/>
-      <Button type="submit">Continue</Button>
+      <AuthField label={t('handle')} name="handle" type="text" required maxLength={80} autoComplete="nickname" placeholder={t('handlePlaceholder')} help={t('handleHelp')} error={handleError}/>
+      <Button type="submit">{t('continue')}</Button>
     </form>
   </AuthShell>;
 }

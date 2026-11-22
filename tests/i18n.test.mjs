@@ -9,7 +9,7 @@ import {ESLint} from 'eslint';
 
 const sample=()=>({en:{button:'Save',items:'{count, plural, one {# item} other {# items}}'},ja:{button:'保存',items:'{count, plural, other {#件}}'}});
 test('all real files pass and Japanese plural categories may differ',()=>{
- assert.equal(checkMessages(readMessages()).keys,6);
+ assert.equal(checkMessages(readMessages()).keys,137);
  assert.equal(checkMessages(sample()).keys,2);
 });
 for(const fault of ['missing','extra','empty','notString','placeholder','argumentType','selectOptions','invalidIcu','noJapanese']) {

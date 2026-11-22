@@ -1,3 +1,4 @@
+import {englishIntl,englishIntlServer} from './fixtures/english-intl.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
@@ -9,7 +10,7 @@ const compile=path=>ts.transpileModule(readFileSync(new URL('../'+path,import.me
 function fixture(ua){
  const state=[];let cursor=0,requests=0;
  const jsx=(type,props)=>typeof type==='function'?type(props):({type,props});
- const dependencies={'next/image':{default:props=>({type:'img',props})},'react/jsx-runtime':{jsx,jsxs:jsx},react:{useState(initial){const at=cursor++;if(!(at in state))state[at]=initial;return[state[at],value=>{state[at]=value;}];}}};
+ const dependencies={'next-intl':englishIntl,'next-intl/server':englishIntlServer,'next/image':{default:props=>({type:'img',props})},'react/jsx-runtime':{jsx,jsxs:jsx},react:{useState(initial){const at=cursor++;if(!(at in state))state[at]=initial;return[state[at],value=>{state[at]=value;}];}}};
  const load=path=>{const exports={};vm.runInNewContext(compile(path),{exports,fetch(){requests++;throw Error('placeholder must not request');},require(name){assert.ok(name in dependencies,name);return dependencies[name];}});return exports;};
  dependencies['@/components/ui/Button']=load('src/components/ui/Button.tsx');
  dependencies['@/components/ProviderButton']=load('src/components/ProviderButton.tsx');

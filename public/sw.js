@@ -8,7 +8,7 @@ const MAX_MEDIA = 300;
 const LOCALE_URL = new URL('/__mfa_locale__', self.location.origin).href;
 const clientLocales = new Map();
 let localeWrites = Promise.resolve();
-async function shellKey(event) {
+async function localizedKey(event, path='/shell') {
   let locale = clientLocales.get(event.clientId);
   if (!locale) {
     const saved = await (await caches.open(CONTROL_CACHE)).match(LOCALE_URL);
@@ -17,8 +17,9 @@ async function shellKey(event) {
   }
   // Until a document has reported its resolved locale, use the network.
   // The worker cannot read the HttpOnly choice cookie and must not guess.
-  return locale ? '/shell?lang=' + locale : null;
+  return locale ? path+'?lang=' + locale : null;
 }
+const PUBLIC_DOCUMENTS=['/?lang=en','/?lang=ja','/welcome?lang=en','/welcome?lang=ja','/shell?lang=en','/shell?lang=ja'];
 const PUBLIC_ASSET = /^\/_next\/static\/(?:immutable\/)?(?:chunks|media)\//;
 // Cache only the public hashed files named by the anonymous shell. Flight
 // references omit /_next/, while script/link attributes include it.
@@ -102,10 +103,10 @@ self.addEventListener("install", event => {
   event.waitUntil((async () => {
     const cache = await caches.open(SHELL_CACHE);
     let shell = "";
-    for (const path of ["/", "/shell?lang=en", "/shell?lang=ja", "/manifest.webmanifest"]) {
+    for (const path of [...PUBLIC_DOCUMENTS, "/manifest.webmanifest"]) {
       const response = await fetch(new Request(new URL(path, self.location.origin), {credentials: "omit", cache: "reload"}));
       if (!response.ok) throw Error("App shell could not be cached.");
-      if (path.startsWith("/shell?lang=")) shell += await response.clone().text();
+      if (path.includes("?lang=")) shell += await response.clone().text();
       // Persist update identity in an existing public cache entry: a worker
       // can restart between install and activate, losing every global variable.
       if (path === "/manifest.webmanifest") {
@@ -130,7 +131,7 @@ self.addEventListener("install", event => {
     await Promise.allSettled(named.map(url => store(url, true)));
     await Promise.allSettled([...onDemand].map(url => store(url, false)));
     // Retain only the shell and immutable files named by this deployment.
-    const keep = new Set(["/", "/shell?lang=en", "/shell?lang=ja", "/manifest.webmanifest"].map(path => new URL(path, self.location.origin).href).concat(named, [...onDemand]));
+    const keep = new Set([...PUBLIC_DOCUMENTS, "/manifest.webmanifest"].map(path => new URL(path, self.location.origin).href).concat(named, [...onDemand]));
     for (const request of await cache.keys()) if (!keep.has(request.url)) await cache.delete(request);
   })());
 });
@@ -319,14 +320,14 @@ self.addEventListener("fetch", event => {
       const first = await Promise.race([network.catch(() => null), timer]);
       if (first) return first;
       const state = await control;
-      const localeKey = await shellKey(event);
+      const localeKey = await localizedKey(event);
       const shell = localeKey && !disabledImmediately && !state.locked && state.mode === "active" ? await (await caches.open(SHELL_CACHE)).match(localeKey) : null;
       if (shell && !disabledImmediately && state.mode === "active") { event.waitUntil(network.catch(() => {})); return shell; }
       try { return await network; } catch {
         // No matching localized shell: a failed network stays a failed network,
         // never an anonymous document cached in a different language.
-        if (localeKey) return Response.error();
-        return (await (await caches.open(SHELL_CACHE)).match("/")) || Response.error();
+        const anonymousKey=await localizedKey(event,'/');
+        return anonymousKey ? (await (await caches.open(SHELL_CACHE)).match(anonymousKey)) || Response.error() : Response.error();
       }
     })());
     return;
@@ -340,7 +341,14 @@ self.addEventListener("fetch", event => {
       // eligibility checks, but never make HTML delivery wait on cache I/O.
       if (response.ok && new URL(event.request.url).origin === self.location.origin) event.waitUntil(navigationSession(event, response).catch(() => {}));
       return response;
-    } catch {return await (await caches.open(SHELL_CACHE)).match("/") || Response.error();}
+    } catch {
+      // Anonymous Welcome never borrows the other language's public document.
+      if(event.request.mode==='navigate' && navUrl.pathname==='/welcome') {
+        const key=await localizedKey(event,'/welcome');
+        return key ? (await (await caches.open(SHELL_CACHE)).match(key)) || Response.error() : Response.error();
+      }
+      return Response.error();
+    }
   })());
 });
 

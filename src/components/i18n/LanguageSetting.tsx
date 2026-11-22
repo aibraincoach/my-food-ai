@@ -11,7 +11,7 @@ export default function LanguageSetting() {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [failed, setFailed] = useState(false);
-  return <section lang={locale} className="border-b border-line px-screen-x py-4">
+  return <section className="border-b border-line px-screen-x py-4">
     <label className="flex min-h-tap items-center justify-between gap-3">
       <span className="text-body">{t('label')}</span>
       <select aria-label={t('label')} value={locale} disabled={pending} className="min-h-tap rounded-pill border border-line bg-surface px-3 text-detail" onChange={event => {
