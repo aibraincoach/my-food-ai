@@ -18,7 +18,7 @@ node scripts/review/agy-review.mjs --base "$BASE" --head "$(git rev-parse HEAD)"
   --model gemini-3.8-flash-high --effort high --timeout 45m
 ```
 
-Receipt: `.git/review-state/agy-<head7>/receipt.md` (path from `git rev-parse --absolute-git-dir`).
+Receipt: `receipt.md` in the fresh packet directory printed by the command (default: a unique `mfa-agy-<head7>-<uuid>` directory under the system temporary directory). An explicit `--out` must name a new directory with an existing parent. Existing packets, repository roots/ancestors, Git metadata and symlink paths are refused, including under `--dry-run`; the runner never deletes or overwrites a packet directory.
 
 ## Offline test
 
