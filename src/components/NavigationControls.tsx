@@ -22,6 +22,10 @@ export default function NavigationControls() {
   const [loadFailed,setLoadFailed]=useState(false);
   const [loadAttempt,setLoadAttempt]=useState(0);
   const closeMenu=useCallback(()=>setMenuOpen(false),[]);
+  useEffect(()=>{
+    window.addEventListener('pagehide',closeMenu);
+    return()=>window.removeEventListener('pagehide',closeMenu);
+  },[closeMenu]);
   const closeEntry=useCallback(()=>{setEntry(null);setAttachment(null);setInitialFiles(undefined);setLoadFailed(false);},[]);
   const [CaptureSheet,setCaptureSheet]=useState<typeof CaptureSheetComponent|null>(null);
   const capture=entry==='camera'||entry==='text';

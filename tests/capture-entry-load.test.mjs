@@ -15,7 +15,7 @@ function fixture(){
  function render(){index=0;dirty=false;tree=exports.default();while(effects.length)effects.shift()();return tree}
  async function flush(){for(let i=0;i<5;i++){await new Promise(r=>setImmediate(r));if(dirty)render()}}
  function nodes(root=tree){if(!root||typeof root!=='object')return[];return[root,...[root.props?.children].flat(Infinity).filter(x=>x!=null&&x!==false).flatMap(x=>nodes(x))]}
- render();return{loads,timers,flush,render,nodes,open(entry='text'){window.dispatchEvent({type:'open-entry',detail:{entry}});render()},close(){window.dispatchEvent({type:'close-sheets'});render()},get reloads(){return reloads}};
+ render();return{loads,timers,flush,render,nodes,open(entry='text'){window.dispatchEvent({type:'open-entry',detail:{entry}});render()},close(){window.dispatchEvent({type:'close-sheets'});render()},toggleMenu(){nodes().find(n=>n.type==='@/components/BottomBar').props.onPlus();render()},hide(){window.dispatchEvent({type:'pagehide'});render()},get menuOpen(){return nodes().find(n=>n.type==='@/components/PlusMenu').props.open},get reloads(){return reloads}};
 }
 test('entry opens a pending sheet before the composer file arrives',()=>{
  const f=fixture();f.open();assert.equal(f.loads.length,1);assert.ok(f.nodes().some(x=>x.type==='sheet'&&x.props.open),'the pending entry stays visible');assert.ok(f.nodes().some(x=>x.props.children==='Opening composer…'));
@@ -35,4 +35,9 @@ test('reloading after a missing old file requires an explicit press',async()=>{
 });
 test('a new explicit entry request after failure starts a new load',async()=>{
  const f=fixture();f.open();f.loads[0].reject(Error('failed'));await f.flush();f.open('camera');assert.equal(f.loads.length,2);assert.ok(f.nodes().some(x=>x.props.children==='Opening composer…'));
+});
+
+test('pagehide closes the plus menu without closing an open capture entry',()=>{
+ const f=fixture();assert.equal(f.menuOpen,false);f.toggleMenu();assert.equal(f.menuOpen,true);f.hide();assert.equal(f.menuOpen,false);
+ f.open('camera');f.hide();assert.ok(f.nodes().some(n=>n.type==='sheet'&&n.props.open),'capture draft stays open');
 });
