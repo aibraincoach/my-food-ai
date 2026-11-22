@@ -19,11 +19,6 @@ export function parseLabelReading(raw:unknown):LabelReading{
  if(b.box && (![b.box.x,b.box.y,b.box.w,b.box.h].every(v=>Number.isFinite(v)&&v>=0&&v<=1)||b.box.x+b.box.w>1.001||b.box.y+b.box.h>1.001))b.box=null;
  return b;
 }
-function macroCompleteness(reading: LabelReading): number {
- const panel = reading.per_serving;
- if (!panel) return 0;
- return [panel.protein_g, panel.carbs_g, panel.fat_g].filter(value => value !== null).length;
-}
 async function orientLabelImage(image: Uint8Array): Promise<Uint8Array> {
  return new Uint8Array(await sharp(image).rotate().toBuffer());
 }
@@ -68,7 +63,7 @@ export async function readNutritionLabel(image:Uint8Array,mime="image/jpeg"):Pro
   try{
    const cropped=await cropLabelBox(oriented,reading.box,mime);
    const retry=await readLabelOnce(cropped,mime,"medium");
-   if(macroCompleteness(retry)>macroCompleteness(reading))reading=mergeLabelReading(reading,retry);
+   reading=mergeLabelReading(reading,retry);
   }catch{/* Keep the first reading when the crop retry fails. */}
  }
  return reading;
