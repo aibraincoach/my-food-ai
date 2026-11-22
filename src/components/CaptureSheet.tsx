@@ -94,7 +94,7 @@ export default function CaptureSheet({ onClose, initialMode = "photo", forPost, 
   const [initialShots]=useState<Shot[]>(()=>resumed?.files.map(file=>({file,previewUrl:URL.createObjectURL(file)}))??[]);
   const shotsRef = useRef<Shot[]>(initialShots);
   const selectedPhotoRef = useRef(Boolean(resumed?.files.length));
-  const pendingFilesRef = useRef<File[]>([]);
+  const pendingFilesRef = useRef<Array<{ file: File; barcode: boolean }>>([]);
   const [pendingCount, setPendingCount] = useState(0);
   const videoRef = useRef<HTMLVideoElement>(null);
   const liveCameraRef = useRef<Camera | null>(null);
@@ -178,7 +178,6 @@ export default function CaptureSheet({ onClose, initialMode = "photo", forPost, 
     mountedRef.current = true;
     let cancelled = false;
     if (!cameraEnabled) return () => { cancelled = true; mountedRef.current = false; };
-    void loadBarcodeDecoder();
     const acquire=desktop&&deviceId?navigator.mediaDevices.getUserMedia({video:cameraVideoConstraints('user',deviceId),audio:false}).then(stream=>({stream,close(){stream.getTracks().forEach(track=>track.stop());},async flip(){return stream;}})):openCamera(desktop?'user':'environment');
     void acquire.then((camera) => {
       if (cancelled) { camera.close(); return; }
@@ -273,6 +272,7 @@ export default function CaptureSheet({ onClose, initialMode = "photo", forPost, 
 
   useEffect(() => {
     if (mode !== "barcode" || !stream) return;
+    void loadBarcodeDecoder();
     let cancelled = false;
     const timer = window.setInterval(async () => {
       if (cancelled || scanBusy.current || !videoRef.current || postingRef.current) return;
@@ -338,14 +338,14 @@ export default function CaptureSheet({ onClose, initialMode = "photo", forPost, 
   const addFiles = async (files: FileList | File[] | null) => {
     if (!files || postingRef.current) return;
     if (Array.from(files).length) { selectedPhotoRef.current = true; window.dispatchEvent(new Event("capture-shot")); }
-    pendingFilesRef.current.push(...Array.from(files).slice(0, Math.max(0, (forPost?1:MAX_SHOTS) - shotsRef.current.length - pendingFilesRef.current.length)));
+    pendingFilesRef.current.push(...Array.from(files).slice(0, Math.max(0, (forPost?1:MAX_SHOTS) - shotsRef.current.length - pendingFilesRef.current.length)).map(file => ({file, barcode: mode === "barcode"})));
     setPendingCount(pendingFilesRef.current.length);
     if (scanBusy.current) return;
     scanBusy.current = true; setCameraBusy(true);
     try {
       while (pendingFilesRef.current.length && shotsRef.current.length < MAX_SHOTS) {
         // Keep the in-flight file in the queue so another selection cannot exceed capacity.
-        const file = pendingFilesRef.current[0];
+        const {file, barcode} = pendingFilesRef.current[0];
         if(forPost){
           const attached=await attachFile(file);
           if(attached){pendingFilesRef.current.shift();setPendingCount(pendingFilesRef.current.length);}
@@ -355,13 +355,12 @@ export default function CaptureSheet({ onClose, initialMode = "photo", forPost, 
           pendingFilesRef.current.shift();setPendingCount(pendingFilesRef.current.length);
           await readLabelFile(file);return;
         }
-        // Show the photo in the composer at once. A barcode in it is read
-        // afterwards; when one is found the photo leaves the draft and the
-        // barcode result opens, as before.
+        // Photo keeps the selected file; only the Barcode screen runs its decoder.
         shotsRef.current = [...shotsRef.current, { file, previewUrl: URL.createObjectURL(file) }];
         pendingFilesRef.current.shift(); setPendingCount(pendingFilesRef.current.length);
         operationRef.current=uploadManager.stage(shotsRef.current.map(shot=>shot.file),{caption,eatenAt:when===null?null:fromLocalInput(when),location:locationEnabled?location:null,options:{not_eaten_positions:notEaten,save_as_meal:saveAsMeal}},operationRef.current??undefined);setOperationId(operationRef.current);
         setShots(shotsRef.current);setPhotoIndex(shotsRef.current.length-1);setComposer(true);
+        if (!barcode) continue;
         const shot = shotsRef.current[shotsRef.current.length - 1];
         let deadline: ReturnType<typeof setTimeout> | undefined;
         // Give React and the browser a paint before the decoder's CPU work.
@@ -381,6 +380,7 @@ export default function CaptureSheet({ onClose, initialMode = "photo", forPost, 
             void findBarcode(code, file);
           })
           .catch(() => {});
+
       }
     } catch { if (mountedRef.current) setError("Could not read that photo. Choose another photo."); }
     finally { scanBusy.current = false; if (mountedRef.current) setCameraBusy(false); }
