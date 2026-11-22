@@ -1,0 +1,10 @@
+{
+  "language": {
+    "label": "Language",
+    "english": "English",
+    "japanese": "日本語",
+    "hint": "This choice is kept on this device.",
+    "saving": "Saving…",
+    "error": "We couldn't save your language. Try again."
+  }
+}

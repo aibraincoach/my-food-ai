@@ -1,7 +1,7 @@
 // The complete suite includes SQL/HTTP/worker integration tests. Never let
 // its global worker lease, fixture writes or scripted providers reach live data.
 import {existsSync,readdirSync} from 'node:fs';
-import {spawn} from 'node:child_process';
+import {spawn,spawnSync} from 'node:child_process';
 const envFile=process.env.TEST_ENV_FILE||'.env.test.local';
 if(existsSync(envFile))process.loadEnvFile(envFile);
 const loopback=new Set(['localhost','127.0.0.1','[::1]']);
@@ -12,6 +12,8 @@ for(const key of ['APP_URL','NEXT_PUBLIC_SUPABASE_URL','SUPABASE_DB_URL','MODEL_
 if(process.env.MFA_TEST_DISPOSABLE!=='1'){
  console.error('npm test requires MFA_TEST_DISPOSABLE=1 for the isolated test stack. See docs/testing.md.');process.exit(1);
 }
+const messages=spawnSync(process.execPath,['scripts/check-i18n.mjs'],{stdio:'inherit'});
+if(messages.status!==0)process.exit(messages.status??1);
 const directory=process.argv.includes('--db')?'tests/db':'tests';
 const named=process.argv.slice(2).filter(arg=>arg.endsWith('.test.mjs'));
 const files=named.length?named:readdirSync(directory).filter(name=>name.endsWith('.test.mjs')).sort().map(name=>directory+'/'+name);

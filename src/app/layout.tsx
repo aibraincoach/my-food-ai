@@ -1,3 +1,5 @@
+import LocaleReporter from '@/components/i18n/LocaleReporter';
+import {getLocale} from 'next-intl/server';
 import type { Metadata, Viewport } from "next";
 import { Suspense } from "react";
 import { font } from "@/lib/theme/font";
@@ -19,11 +21,18 @@ export const metadata: Metadata = {
 // viewport-fit=cover lets the page run under the notch and home indicator; env(safe-area-inset-*) keeps content clear of them.
 export const viewport: Viewport = { themeColor: tokens.colors.surface, viewportFit: "cover", interactiveWidget: "resizes-content" };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default function RootLayout({children}: {children: React.ReactNode}) {
+  return <Suspense fallback={null}><LocaleDocument>{children}</LocaleDocument></Suspense>;
+}
+
+async function LocaleDocument({children}: {children: React.ReactNode}) {
+  const locale=await getLocale();
+  // Slice 1 translates only the Language row. Enable document locale with slice 2.
   return (
     <html lang="en" className="h-full antialiased" data-build={process.env.NEXT_PUBLIC_BUILD}>
       <body className={`${font.className} ${font.variable} flex min-h-dvh flex-col`}>
         <Suspense fallback={null}><ServiceWorkerRegistration /></Suspense>
+        <LocaleReporter locale={locale}/>
         <Suspense fallback={null}><DeletePostSheet /><PostOpenTransition /></Suspense>
         <FeedCacheMutations />
         {children}
