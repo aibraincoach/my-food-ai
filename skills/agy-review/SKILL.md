@@ -21,7 +21,7 @@ node scripts/review/agy-review.mjs --base "$BASE" --head "$(git rev-parse HEAD)"
   --model gemini-3.8-flash-high --effort high --timeout 45m
 ```
 
-Exit 0 is clean. Exit 3 is blockers found. Exit 2 (incomplete read) or 4 (AGY failed): retry once; a second 2 or 4 makes AGY unavailable — use Codex per policy. Receipt: `<git dir>/review-state/agy-<head7>/receipt.md`. Never ask AGY for a "security review"; it refuses.
+Exit 0 is clean. Exit 3 is blockers found. Exit 2 (incomplete read) or 4 (AGY failed): retry once; a second 2 or 4 makes AGY unavailable — use Codex per policy. Receipt: `receipt.md` in this run's fresh packet directory. The PR wrapper passes its own new `--out` and posts only that receipt; direct runner calls print their unique temporary packet path. Existing output directories are refused, never overwritten. Never ask AGY for a "security review"; it refuses.
 
 ## Verify the script offline
 
