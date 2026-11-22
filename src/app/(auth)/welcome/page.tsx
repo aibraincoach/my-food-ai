@@ -14,8 +14,10 @@ async function WelcomeContent() {
   return <main className={`${font.className} mx-auto flex min-h-dvh w-full max-w-phone flex-col gap-5 bg-surface px-screen-x pb-5 pt-8 text-text`}>
     <div className="flex items-center gap-[10px] text-month font-semibold"><BrandMark size={32} /><span>My Food AI</span></div>
     <figure className="flex flex-col items-center gap-1">
-      <ResultsCard size={180} calories={503} protein={6} carbs={40} fat={20}
-        items={[{name: "Rice", grams: 150}, {name: "Salmon", grams: 120}, {name: "Broccoli", grams: 90}]} />
+      {/* PM sample: salmon120g≈250kcal/27P/0C/15F plus cooked rice150g≈180kcal/4P/42C/0F.
+          Keep listed foods plausible and 4P+4C+9F within rounding of the sample energy (427≈430). */}
+      <ResultsCard size={180} calories={430} protein={31} carbs={42} fat={15}
+        items={[{name: "Salmon", grams: 120}, {name: "Rice", grams: 150}]} />
       <figcaption className="text-label text-muted">Sample</figcaption>
     </figure>
     <div className="flex flex-col gap-2">
