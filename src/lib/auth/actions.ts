@@ -12,10 +12,10 @@ function fail(path: string, message: string): never {
 export type SignUpState = {error:string|null;email:string;handle:string};
 function signUpMessage(error:{code?:string;status?:number;message?:string}|null):string {
   if (error?.code==='captcha_failed' || error?.message?.toLowerCase().includes('captcha')) return "Complete the check and try again.";
-  if (error?.code==='weak_password') return "Please choose a stronger password and try again.";
-  if (error?.code==='email_address_invalid') return "Please enter a valid email address.";
-  if (error?.code==='over_email_send_rate_limit' || error?.code==='over_request_rate_limit' || error?.status===429) return "Too many requests; please wait and try again.";
-  return "Unable to complete sign-up; please try again.";
+  if (error?.code==='weak_password') return "Choose a stronger password, then try again.";
+  if (error?.code==='email_address_invalid') return "Enter a valid email address.";
+  if (error?.code==='over_email_send_rate_limit' || error?.code==='over_request_rate_limit' || error?.status===429) return "Too many requests. Wait a moment, then try again.";
+  return "We couldn't finish creating your account. Try again.";
 }
 export async function signUp(_previous:SignUpState, formData: FormData): Promise<SignUpState> {
   const email = String(formData.get("email") ?? "");
@@ -62,8 +62,8 @@ export async function signIn(formData: FormData): Promise<void> {
   const { error } = await supabase.auth.signInWithPassword({ email, password, ...(options ? { options } : {}) });
   if (error) fail("/sign-in", error.message.toLowerCase().includes("captcha") ? "Complete the check and try again."
     : error.code === "invalid_credentials" ? "That email and password don't match. Try again."
-    : error.code === "email_not_confirmed" ? "Please confirm your email address before signing in."
-    : error.code === "over_request_rate_limit" || error.status === 429 ? "Too many attempts; please wait and try again."
+    : error.code === "email_not_confirmed" ? "Confirm your email address before you sign in."
+    : error.code === "over_request_rate_limit" || error.status === 429 ? "Too many attempts. Wait a moment, then try again."
     : "Sign-in could not be completed. Try again.");
   redirect("/");
 }
