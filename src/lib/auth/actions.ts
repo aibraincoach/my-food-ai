@@ -18,29 +18,29 @@ export async function signUp(formData: FormData): Promise<void> {
   const supabase = await createClient();
   const { data, error } = await supabase.auth.signUp({ email, password, ...(options ? { options } : {}) });
   if (error || !data.user) {
-    fail("/sign-up", error?.message.toLowerCase().includes("captcha") ? "Complete the check and try again." : error?.message ?? "Sign-up failed.");
+    fail("/sign-up", error?.message.toLowerCase().includes("captcha") ? "Complete the check and try again." : "We couldn't finish creating your account. Try again.");
   }
   // The profiles table has no client insert policy, so the row is created
   // with the service-role client; the secret key never leaves the server.
   // The redirect below stays outside the try: redirect() throws
   // NEXT_REDIRECT, which a catch here would mistake for a real error.
+  const ownsSession=data.session?.user.id===data.user.id;
+  const profileFailure="We couldn't finish creating your account. Try again.";
   let profileMessage: string | null = null;
   try {
     const admin = createAdminClient();
     const { error: profileError } = await admin
       .from("profiles")
       .insert({ id: data.user.id, handle });
-    if (profileError) profileMessage = profileError.code === "23505" ? "That handle is taken. Choose another." : profileError.message;
-  } catch (e) {
-    profileMessage = e instanceof Error ? e.message : "Profile creation failed.";
+    if (profileError) profileMessage = ownsSession && profileError.code === "23505" ? "That handle is taken. Choose another." : profileFailure;
+  } catch {
+    profileMessage = profileFailure;
   }
   if (profileMessage) {
-    // Roll back the orphan auth user so the address can sign up again.
-    try {
-      await createAdminClient().auth.admin.deleteUser(data.user.id);
-    } catch {
-      // Best effort; the sign-up error below is what matters.
-    }
+    // signUp can return an existing/obfuscated account. Its returned id is
+    // never permission to delete an Auth account after a profile failure.
+    // A verified sign-up session can continue through the existing handle form.
+    if (ownsSession) fail("/choose-handle",profileMessage);
     fail("/sign-up", profileMessage);
   }
   redirect("/");
