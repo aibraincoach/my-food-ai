@@ -16,7 +16,7 @@ export type ResultsCardProps = {
   protein?: number | null;
   carbs?: number | null;
   fat?: number | null;
-  items?: { name: string; grams: number | null }[];
+  items?: CardData["items"];
   size?: number;
   fontFamily?: string;
   // Live slide arrows need space; stored card images keep the original layout.
@@ -78,7 +78,7 @@ export function ResultsCard({ data, drink, gap = "", time, calories = null, prot
       </div>
       {card.gap ? <div style={{ display: 'flex', ...text('meta'), color: tokens.colors.muted }}>{card.gap}</div> : null}
       <div style={{ display: 'flex', flexDirection: 'column', gap: 6 * scale, ...text('detail'), lineHeight: tokens.card.itemLeading, color: tokens.colors.muted }}>
-        <div style={{ display: 'flex' }}>{(card.items ?? []).map(item => `${item.name}${item.grams === null ? '' : ` ${Math.round(item.grams)} g`}`).join(' · ')}</div>
+        <div style={{ display: 'flex' }}>{(card.items ?? []).map(item => `${item.name}${item.grams === null ? (item.portionText ? ` ${item.portionText}` : '') : ` ${Math.round(item.grams)} g`}`).join(' · ')}</div>
         {card.mealDrinkLine ? <div style={{ display: 'flex' }}>{card.mealDrinkLine}</div> : null}
         {card.waterLine ? <div style={{ display: 'flex' }}>{card.waterLine}</div> : null}
         {card.footer ? <div style={{ display: 'flex' }}>{card.footer}</div> : null}
