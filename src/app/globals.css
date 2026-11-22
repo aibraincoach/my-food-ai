@@ -35,6 +35,12 @@ body {
   .animate-shimmer { animation: none; }
 }
 
+/* Keep browser focus/scrollIntoView targets above the phone's fixed navigation.
+   Match PostPageShell's bottom clearance; desktop has no floating bottom bar. */
+@media (width < 1024px) {
+  html:has(nav[data-pill]) { scroll-padding-bottom: calc(100px + env(safe-area-inset-bottom)); }
+}
+
 /* Round 6 desktop shell and windows. Phone rules above and component classes stay intact. */
 @media (min-width: 1024px) {
   :root { --detail-photo-cap: min(680px, 80dvh); }
