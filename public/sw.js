@@ -5,6 +5,20 @@ const MEDIA_CACHE = "mfa-media-v2";
 const CONTROL_CACHE = "mfa-media-control-v1";
 const CONTROL_URL = new URL("/__mfa_media_control__", self.location.origin).href;
 const MAX_MEDIA = 300;
+const LOCALE_URL = new URL('/__mfa_locale__', self.location.origin).href;
+const clientLocales = new Map();
+let localeWrites = Promise.resolve();
+async function shellKey(event) {
+  let locale = clientLocales.get(event.clientId);
+  if (!locale) {
+    const saved = await (await caches.open(CONTROL_CACHE)).match(LOCALE_URL);
+    const value = saved ? await saved.text() : null;
+    if (value === 'en' || value === 'ja') locale = value;
+  }
+  // Until a document has reported its resolved locale, use the network.
+  // The worker cannot read the HttpOnly choice cookie and must not guess.
+  return locale ? '/shell?lang=' + locale : null;
+}
 const PUBLIC_ASSET = /^\/_next\/static\/(?:immutable\/)?(?:chunks|media)\//;
 // Cache only the public hashed files named by the anonymous shell. Flight
 // references omit /_next/, while script/link attributes include it.
@@ -88,10 +102,10 @@ self.addEventListener("install", event => {
   event.waitUntil((async () => {
     const cache = await caches.open(SHELL_CACHE);
     let shell = "";
-    for (const path of ["/", "/shell", "/manifest.webmanifest"]) {
+    for (const path of ["/", "/shell?lang=en", "/shell?lang=ja", "/manifest.webmanifest"]) {
       const response = await fetch(new Request(new URL(path, self.location.origin), {credentials: "omit", cache: "reload"}));
       if (!response.ok) throw Error("App shell could not be cached.");
-      if (path === "/shell") shell = await response.clone().text();
+      if (path.startsWith("/shell?lang=")) shell += await response.clone().text();
       // Persist update identity in an existing public cache entry: a worker
       // can restart between install and activate, losing every global variable.
       if (path === "/manifest.webmanifest") {
@@ -116,7 +130,7 @@ self.addEventListener("install", event => {
     await Promise.allSettled(named.map(url => store(url, true)));
     await Promise.allSettled([...onDemand].map(url => store(url, false)));
     // Retain only the shell and immutable files named by this deployment.
-    const keep = new Set(["/", "/shell", "/manifest.webmanifest"].map(path => new URL(path, self.location.origin).href).concat(named, [...onDemand]));
+    const keep = new Set(["/", "/shell?lang=en", "/shell?lang=ja", "/manifest.webmanifest"].map(path => new URL(path, self.location.origin).href).concat(named, [...onDemand]));
     for (const request of await cache.keys()) if (!keep.has(request.url)) await cache.delete(request);
   })());
 });
@@ -179,7 +193,17 @@ async function navigationSession(event, response) {
 
 self.addEventListener("message", event => {
   const data = event.data;
-  if (data?.type === "clear-media") {
+  if (data?.type === 'app-locale') {
+    if ((data.locale !== 'en' && data.locale !== 'ja') || !event.source?.id) return;
+    // One device preference only, no account id, field text or private data.
+    // Serialize writes so the last reported language survives worker restarts.
+    clientLocales.set(event.source.id, data.locale);
+    const persist = localeWrites.catch(() => {}).then(async () => {
+      await (await caches.open(CONTROL_CACHE)).put(LOCALE_URL, new Response(data.locale));
+    });
+    localeWrites = persist;
+    event.waitUntil(persist.then(() => event.ports?.[0]?.postMessage({type: 'app-locale-saved', locale: data.locale}), () => event.ports?.[0]?.postMessage({type: 'app-locale-failed'})));
+  } else if (data?.type === "clear-media") {
     // This synchronous barrier also rejects requests beginning AFTER logout.
     mediaGeneration++; logoutGeneration++; disabledImmediately = true; clientEpochs.clear(); navigationEpochs.clear(); notifyBindings();
     event.waitUntil(controlOperation(async state => {
@@ -295,9 +319,15 @@ self.addEventListener("fetch", event => {
       const first = await Promise.race([network.catch(() => null), timer]);
       if (first) return first;
       const state = await control;
-      const shell = !disabledImmediately && !state.locked && state.mode === "active" ? await (await caches.open(SHELL_CACHE)).match("/shell") : null;
+      const localeKey = await shellKey(event);
+      const shell = localeKey && !disabledImmediately && !state.locked && state.mode === "active" ? await (await caches.open(SHELL_CACHE)).match(localeKey) : null;
       if (shell && !disabledImmediately && state.mode === "active") { event.waitUntil(network.catch(() => {})); return shell; }
-      try { return await network; } catch { return (await (await caches.open(SHELL_CACHE)).match("/")) || Response.error(); }
+      try { return await network; } catch {
+        // No matching localized shell: a failed network stays a failed network,
+        // never an anonymous document cached in a different language.
+        if (localeKey) return Response.error();
+        return (await (await caches.open(SHELL_CACHE)).match("/")) || Response.error();
+      }
     })());
     return;
   }

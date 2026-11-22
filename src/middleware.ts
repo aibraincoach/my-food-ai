@@ -1,3 +1,4 @@
+import {isLocale} from '@/i18n/locales';
 import { verifiedUserCookie } from "@/lib/auth/verified-cookie";
 import { VERIFIED_USER_HEADER } from "@/lib/auth/verified-user-header";
 import { mediaSessionEpoch } from "@/lib/auth/media-session-epoch";
@@ -11,6 +12,15 @@ const PROTECTED = ["/", "/search", "/days", "/profile", "/posts"];
 
 export async function middleware(request: NextRequest) {
   request.headers.delete(VERIFIED_USER_HEADER);
+  request.headers.delete('x-mfa-shell-locale');
+  // Only the anonymous worker shell accepts this explicit, non-credential
+  // override. Return before constructing Auth or reading account data.
+  if (request.nextUrl.pathname === '/shell') {
+    const locale = request.nextUrl.searchParams.get('lang');
+    const headers = new Headers(request.headers);
+    if (isLocale(locale)) headers.set('x-mfa-shell-locale', locale);
+    return NextResponse.next({request: {headers}});
+  }
   const session = sessionCookieBridge(request);
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -84,5 +94,5 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/", "/search/:path*", "/days/:path*", "/profile/:path*", "/posts/:path*", "/admin/:path*", "/choose-handle"],
+  matcher: ["/shell", "/", "/search/:path*", "/days/:path*", "/profile/:path*", "/posts/:path*", "/admin/:path*", "/choose-handle"],
 };

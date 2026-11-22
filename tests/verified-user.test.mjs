@@ -103,3 +103,19 @@ test('a matched standalone detail forwards only the verified session identity wi
     assert.equal(calls(),1,'standalone detail uses the single verified Auth check');
   });
 });
+
+
+test('locale-keyed shell bypasses Auth and strips forged account and locale headers',async()=>{
+  await withAuth(async calls=>{
+    for(const locale of ['en','ja','bad']) {
+      const req=new NextRequest('https://app.invalid/shell?lang='+locale,{headers:{[VERIFIED_USER_HEADER]:'forged','x-mfa-shell-locale':'forged'}});
+      assert.equal(unstable_doesMiddlewareMatch({config,url:req.url,headers:Object.fromEntries(req.headers)}),true);
+      const response=await middleware(req);
+      assert.equal(response.status,200);
+      assert.equal(response.headers.get(`x-middleware-request-${VERIFIED_USER_HEADER}`),null);
+      assert.equal(response.headers.get('x-middleware-request-x-mfa-shell-locale'),locale==='bad'?null:locale);
+      assert.equal(response.headers.get('location'),null);
+    }
+    assert.equal(calls(),0);
+  });
+});

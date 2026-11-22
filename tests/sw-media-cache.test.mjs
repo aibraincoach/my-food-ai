@@ -130,7 +130,7 @@ test('signed-in navigation HTML is never added to a shared cache',async()=>{
 });
 test('install stores only anonymous shell responses with credentials omitted',async()=>{
  const w=worker(),requests=[];w.setFetch(async request=>{requests.push(request);return new Response('anonymous');});await w.event('install');
- assert.equal(requests.length,3);assert.ok(requests.every(request=>request.credentials==='omit'));assert.equal(w.stores.get('my-food-ai-shell-v4').size,3);
+ assert.equal(requests.length,4);assert.ok(requests.every(request=>request.credentials==='omit'));assert.equal(w.stores.get('my-food-ai-shell-v4').size,4);
 });
 
 test('validated navigation UUID headers authorize the second visit before JavaScript registration',async()=>{
@@ -196,17 +196,19 @@ test('install warms only anonymous same-origin immutable shell assets, including
 
 test('cached public shell stays available to an active session and never stores the late private response',async()=>{
  const timers=[],w=worker({setTimer:fn=>{timers.push(fn);return 1;}});await w.authenticate();
- await(await w.caches.open('my-food-ai-shell-v4')).put('/shell',new Response('public shell'));
+ await(await w.caches.open('my-food-ai-shell-v4')).put('/shell?lang=en',new Response('public shell'));
  let release;w.setFetch(()=>new Promise(resolve=>{release=resolve;}));
+ await w.event('message',{source:{id:'old-document'},data:{type:'app-locale',locale:'en'}});
  const pending=w.navigate('https://app.example/');timers.forEach(fn=>fn());
  assert.equal(await(await pending).text(),'public shell');
  release(new Response('late private feed',{headers:{'x-mfa-media-user':OWNER,'x-mfa-media-session':FIRST}}));await w.flush();
- assert.equal(await(await(await w.caches.open('my-food-ai-shell-v4')).match('/shell')).text(),'public shell');
+ assert.equal(await(await(await w.caches.open('my-food-ai-shell-v4')).match('/shell?lang=en')).text(),'public shell');
 });
 
 test('logout while navigation waits prevents serving the cached shell after its fallback timer',async()=>{
  const timers=[],w=worker({setTimer:fn=>{timers.push(fn);return 1;}});await w.authenticate();
- await(await w.caches.open('my-food-ai-shell-v4')).put('/shell',new Response('public shell'));
+ await(await w.caches.open('my-food-ai-shell-v4')).put('/shell?lang=en',new Response('public shell'));
+ await w.event('message',{source:{id:'old-document'},data:{type:'app-locale',locale:'en'}});
  let release,result;w.setFetch(()=>new Promise(resolve=>{release=resolve;}));
  const pending=w.navigate('https://app.example/').then(response=>{result=response;return response;});
  await w.clear();timers.forEach(fn=>fn());await new Promise(resolve=>setImmediate(resolve));
@@ -262,4 +264,47 @@ test('install keeps the files a shell script fetches on demand, one level deep, 
  assert.equal(requests.some(r=>new URL(r.url).pathname.endsWith('/deeper.js')),false);
  w.setFetch(async()=>{throw Error('offline');});
  assert.equal(await(await w.request(sheet)).text(),'import("static/chunks/deeper.js")');
+});
+
+
+test('anonymous install caches both locale shells with no credentials',async()=>{
+ const w=worker(),requests=[];
+ w.setFetch(async request=>{requests.push(request);return new Response(new URL(request.url).pathname);});
+ await w.event('install');
+ for(const locale of ['en','ja']) {
+  assert.ok(requests.some(r=>new URL(r.url).pathname==='/shell' && new URL(r.url).searchParams.get('lang')===locale && r.credentials==='omit'));
+  assert.ok(await(await w.caches.open('my-food-ai-shell-v4')).match('/shell?lang='+locale));
+ }
+ assert.equal(await(await w.caches.open('my-food-ai-shell-v4')).match('/shell'),undefined);
+});
+test('Japanese choice and worker restart never serve the English shell; missing Japanese goes to the network',async()=>{
+ const stores=new Map(),w=worker({stores,setTimer:fn=>{queueMicrotask(fn);return 1;}});
+ await w.authenticate();
+ const cache=await w.caches.open('my-food-ai-shell-v4');
+ await cache.put('/shell?lang=en',new Response('<html lang="en">English shell</html>'));
+ await cache.put('/shell?lang=ja',new Response('<html lang="ja">日本語</html>'));
+ const replies=[];
+ await w.event('message',{source:{id:'old-document'},ports:[{postMessage:data=>replies.push(data)}],data:{type:'app-locale',locale:'ja'}});
+ assert.equal(replies[0].type,'app-locale-saved');
+ w.setFetch(()=>new Promise(()=>{}));
+ assert.match(await(await w.navigate('https://app.example/')).text(),/lang="ja"/);
+ const restarted=worker({stores,setTimer:fn=>{queueMicrotask(fn);return 1;}});
+ await restarted.authenticate();restarted.setFetch(()=>new Promise(()=>{}));
+ assert.match(await(await restarted.navigate('https://app.example/')).text(),/lang="ja"/);
+ await cache.delete('/shell?lang=ja');
+ restarted.setFetch(async()=>new Response('<html lang="ja">network Japanese</html>'));
+ assert.match(await(await restarted.navigate('https://app.example/')).text(),/network Japanese/);
+ await cache.put('/',new Response('<html lang="en">wrong anonymous English</html>'));
+ restarted.setFetch(async()=>{throw Error('offline');});
+ assert.equal((await restarted.navigate('https://app.example/')).type,'error');
+});
+test('unknown worker locale never guesses English; invalid report does not change a saved choice',async()=>{
+ const w=worker({setTimer:fn=>{queueMicrotask(fn);return 1;}});await w.authenticate();
+ await(await w.caches.open('my-food-ai-shell-v4')).put('/shell?lang=en',new Response('wrong default'));
+ w.setFetch(async()=>new Response('network document'));
+ assert.equal(await(await w.navigate('https://app.example/')).text(),'network document');
+ await w.event('message',{source:{id:'old-document'},data:{type:'app-locale',locale:'ja'}});
+ await w.event('message',{source:{id:'old-document'},data:{type:'app-locale',locale:'xx'}});
+ const saved=await(await w.caches.open(CONTROL)).match('https://app.example/__mfa_locale__');
+ assert.equal(await saved.text(),'ja');
 });
