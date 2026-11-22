@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# End-of-run cleanup: mfa-pplx Firefox processes and profiles, and worktrees whose PR is merged or closed.
+# End-of-run cleanup: mfa-pplx Firefox processes and profiles, and worktrees whose commits are verified merged into origin/main.
 # Run from any checkout: scripts/cleanup.sh. Paste its output in the handoff.
 set -uo pipefail
 MAIN="$(cd "$(dirname "$0")/.." && pwd)"
@@ -24,34 +24,36 @@ for d in /tmp/mfa-pplx-profile-*; do
   rm -rf "$d" 2>/dev/null || true
 done
 
+fail_cleanup() { echo "Cleanup stopped: $*" >&2; exit 1; }
 cd "$MAIN" || exit 1
-git fetch origin main --quiet 2>/dev/null || true
-pr_state_for_branch() {
-  local branch="$1"
-  gh pr list --state all --head "$branch" --json state -q '.[0].state' 2>/dev/null || echo ""
-}
-for wt in $(git worktree list --porcelain | awk '/^worktree / {print $2}'); do
+git fetch origin main --quiet || fail_cleanup "could not refresh origin/main"
+worktrees="$(git worktree list --porcelain -z | base64 -w0)" || fail_cleanup "could not list worktrees"
+while IFS= read -r -d '' record; do
+  [[ "$record" == 'worktree '* ]] || continue
+  wt="${record#worktree }"
   base="$(basename "$wt")"
   [[ "$base" == my-food-ai-* ]] || continue
   [[ "$wt" != "$MAIN" ]] || continue
-  branch="$(git -C "$wt" rev-parse --abbrev-ref HEAD 2>/dev/null || echo "")"
+  branch="$(git -C "$wt" rev-parse --abbrev-ref HEAD)" || fail_cleanup "could not identify branch for $wt"
   [[ -n "$branch" && "$branch" != "HEAD" ]] || continue
-  pr_state="$(pr_state_for_branch "$branch")"
-  merged_into_main=false
-  if git branch --merged origin/main --list "$branch" | grep -q .; then
-    merged_into_main=true
+  if git merge-base --is-ancestor "$branch" origin/main; then
+    :
+  else
+    status=$?
+    [[ "$status" == 1 ]] || fail_cleanup "could not verify merge for $branch"
+    echo "skip unmerged worktree $wt ($branch)"
+    continue
   fi
-  if [[ "$pr_state" == "MERGED" || "$pr_state" == "CLOSED" || "$merged_into_main" == true ]]; then
-    if [ -n "$(git -C "$wt" status --porcelain 2>/dev/null)" ]; then
-      echo "skip dirty worktree $wt ($branch)"
-      continue
-    fi
-    git worktree remove "$wt" 2>/dev/null || true
-    git branch -D "$branch" 2>/dev/null || true
-    git push origin --delete "$branch" 2>/dev/null || true
+  dirty="$(git -C "$wt" status --porcelain)" || fail_cleanup "could not inspect $wt"
+  if [[ -n "$dirty" ]]; then
+    echo "skip dirty worktree $wt ($branch)"
+    continue
   fi
-done
-git worktree prune 2>/dev/null || true
+  git worktree remove "$wt" || fail_cleanup "could not remove worktree $wt"
+  git branch -D "$branch" || fail_cleanup "could not remove local branch $branch"
+  git push origin --delete "$branch" || fail_cleanup "could not remove remote branch $branch"
+done < <(printf '%s' "$worktrees" | base64 -d)
+git worktree prune || fail_cleanup "could not prune worktrees"
 
 echo "=== firefox (mfa-pplx) processes ==="
 pgrep -af 'firefox.*mfa-pplx-profile' || echo "none"
