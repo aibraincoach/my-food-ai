@@ -15,7 +15,7 @@ const MODELS=[
  {name:'Muse Spark Open (Meta open weights on Baseten)',id:'meta-models/muse-spark-open-1026',job:'An optional path for naming foods and portions, switched on under Profile. SAM and transcription stay on the Meta API.'},
 ];
 export default async function AboutPage(){
- await connection();const db=await createClient();const verified=await verifiedUserId();const user=verified?{id:verified}:(await db.auth.getUser()).data.user;if(!user)redirect('/sign-in');
+ await connection();const db=await createClient();const verified=await verifiedUserId();const user=verified?{id:verified}:(await db.auth.getUser()).data.user;if(!user)redirect('/welcome');
  const posts=await getProfileGrid(db,user.id);
  return <main className="mx-auto w-full max-w-phone px-inset py-6 text-text">
   <Link href="/profile" className="inline-flex min-h-tap items-center text-detail">‹ Profile</Link>

@@ -23,7 +23,7 @@ export default async function ProfilePage({searchParams}:{searchParams:Promise<{
   const supabase = await createClient();
   const verified = await verifiedUserId();
   const user = verified ? {id: verified} : (await supabase.auth.getUser()).data.user;
-  if (!user) redirect("/sign-in");
+  if (!user) redirect("/welcome");
   const [{ data: profile, error }, posts] = await Promise.all([
     supabase.from("profiles").select("handle,avatar_media_id").eq("id", user.id).single(),
     getProfileGrid(supabase, user.id),

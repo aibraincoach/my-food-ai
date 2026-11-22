@@ -11,6 +11,6 @@ async function NewAgentPageContent() {
   const { createClient } = await import('@/lib/supabase/server');
   await connection();
   const { data: { user } } = await (await createClient()).auth.getUser();
-  if (!user) redirect('/sign-in');
+  if (!user) redirect('/welcome');
   return <NewAgentForm />;
 }

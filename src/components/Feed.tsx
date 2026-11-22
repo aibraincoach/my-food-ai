@@ -274,7 +274,7 @@ export default function Feed({initialPage, initialUserId, initialZone = "UTC", f
       const knownDays = [...dayTotals.keys()].slice(-120);
       if (knownDays.length) params.set('known_days', knownDays.join(','));
       const response = await fetch(`/api/feed?${params}`, {signal: AbortSignal.timeout(15000), cache: 'no-store'});
-      if (response.status === 401) { router.replace('/sign-in'); throw new Error('Sign in required.'); }
+      if (response.status === 401) { router.replace('/welcome'); throw new Error('Sign in required.'); }
       if (!response.ok) throw new Error('Feed could not be loaded.');
       return await response.json() as {posts: FeedPost[]; nextCursor: string | null; days: FeedDayTotal[]; discoveryIds?: string[]};
     };
@@ -303,7 +303,7 @@ export default function Feed({initialPage, initialUserId, initialZone = "UTC", f
         userId=nextUserId;
         subscribeInserts(userId);
         setCacheUserId(userId);
-        if (!userId) { router.replace("/sign-in"); return; }
+        if (!userId) { router.replace("/welcome"); return; }
         // A cache notification can precede user initialization. Consume the
         // current owner snapshot explicitly instead of waiting for another event.
         const cached = readFeedCache(userId)?.posts ?? (cacheRef.current.userId===userId?cacheRef.current.cached:null);
