@@ -40,6 +40,8 @@ const FLIP_ERROR = "Could not switch cameras. Try again.";
 const CAMERA_NOT_OPENED = "The camera could not be opened.";
 
 export type CaptureMode = "photo" | "text" | "barcode";
+type BarcodePick = { remaining: number; found: boolean; files: File[] };
+type BarcodeState = "idle" | "looking" | "missing" | "found" | "error" | "unread";
 export default function CaptureSheet({ onClose, initialMode = "photo", forPost, attachNotEaten = false, initialFiles }: { onClose: () => void; initialMode?: CaptureMode; forPost?: string; attachNotEaten?: boolean; initialFiles?: File[] }) {
   const router = useRouter();
   const desktop=useDesktop();
@@ -68,7 +70,12 @@ export default function CaptureSheet({ onClose, initialMode = "photo", forPost, 
   const [modesHintVisible, setModesHintVisible] = useState(false);
   const [mode, setMode] = useState<CaptureMode>(initialMode);
   const [product, setProduct] = useState<BarcodeProduct | null>(null);
-  const [barcodeState, setBarcodeState] = useState<"idle" | "looking" | "missing" | "found" | "error">("idle");
+  const [barcodeState, setBarcodeStateValue] = useState<BarcodeState>("idle");
+  const barcodeStateRef = useRef<BarcodeState>("idle");
+  const setBarcodeState = useCallback((next: BarcodeState) => {
+    barcodeStateRef.current = next;
+    setBarcodeStateValue(next);
+  }, []);
   const [scannedCode,setScannedCode]=useState("");
   const [labelForCode,setLabelForCode]=useState<string|null>(null);
   const [labelState,setLabelState]=useState<"idle"|"reading"|"read"|"missing"|"noServing"|"failed">("idle");
@@ -94,7 +101,7 @@ export default function CaptureSheet({ onClose, initialMode = "photo", forPost, 
   const [initialShots]=useState<Shot[]>(()=>resumed?.files.map(file=>({file,previewUrl:URL.createObjectURL(file)}))??[]);
   const shotsRef = useRef<Shot[]>(initialShots);
   const selectedPhotoRef = useRef(Boolean(resumed?.files.length));
-  const pendingFilesRef = useRef<Array<{ file: File; barcode: boolean }>>([]);
+  const pendingFilesRef = useRef<Array<{ file: File; barcode: boolean; pick: BarcodePick }>>([]);
   const [pendingCount, setPendingCount] = useState(0);
   const videoRef = useRef<HTMLVideoElement>(null);
   const liveCameraRef = useRef<Camera | null>(null);
@@ -161,11 +168,12 @@ export default function CaptureSheet({ onClose, initialMode = "photo", forPost, 
     } catch {
       if (mountedRef.current && mine === lookupRef.current) { setBarcodeState("error"); setError("Barcode lookup is temporarily unavailable. Try again."); }
     }
-  }, [setError]);
+  }, [setError, setBarcodeState]);
 
   const dismissBarcode = () => {
     if (postingRef.current) return;
     lookupRef.current += 1;
+    if (barcodeStateRef.current === "unread") setComposer(false);
     if(packOperationRef.current){void uploadManager.remove(packOperationRef.current);packOperationRef.current=null;}
     setProduct(null); setBarcodeState("idle"); setPackPhoto(null); setError(null); setLabelState("idle");setLabelReading(null);setLabelForCode(null);
     if (packPhotoRef.current) URL.revokeObjectURL(packPhotoRef.current.previewUrl);
@@ -338,14 +346,16 @@ export default function CaptureSheet({ onClose, initialMode = "photo", forPost, 
   const addFiles = async (files: FileList | File[] | null) => {
     if (!files || postingRef.current) return;
     if (Array.from(files).length) { selectedPhotoRef.current = true; window.dispatchEvent(new Event("capture-shot")); }
-    pendingFilesRef.current.push(...Array.from(files).slice(0, Math.max(0, (forPost?1:MAX_SHOTS) - shotsRef.current.length - pendingFilesRef.current.length)).map(file => ({file, barcode: mode === "barcode"})));
+    const chosen = Array.from(files).slice(0, Math.max(0, (forPost?1:MAX_SHOTS) - shotsRef.current.length - pendingFilesRef.current.length));
+    const pick: BarcodePick = {remaining: chosen.length, found: false, files: chosen};
+    pendingFilesRef.current.push(...chosen.map(file => ({file, barcode: mode === "barcode", pick})));
     setPendingCount(pendingFilesRef.current.length);
     if (scanBusy.current) return;
     scanBusy.current = true; setCameraBusy(true);
     try {
       while (pendingFilesRef.current.length && shotsRef.current.length < MAX_SHOTS) {
         // Keep the in-flight file in the queue so another selection cannot exceed capacity.
-        const {file, barcode} = pendingFilesRef.current[0];
+        const {file, barcode, pick} = pendingFilesRef.current[0];
         if(forPost){
           const attached=await attachFile(file);
           if(attached){pendingFilesRef.current.shift();setPendingCount(pendingFilesRef.current.length);}
@@ -369,7 +379,8 @@ export default function CaptureSheet({ onClose, initialMode = "photo", forPost, 
             if (!mountedRef.current || postingRef.current || !shotsRef.current.includes(shot)) return null;
             return Promise.race([decodeBarcodeFile(file), new Promise<null>((resolve) => { deadline = setTimeout(() => resolve(null), 900); })]);
           })
-          .finally(() => clearTimeout(deadline))
+          // Decode rejection is the same unread outcome as a null or deadline.
+          .then(code => code, () => null)
           .then((code) => {
             if (!code || !mountedRef.current || postingRef.current) return;
             const index = shotsRef.current.indexOf(shot);
@@ -377,9 +388,14 @@ export default function CaptureSheet({ onClose, initialMode = "photo", forPost, 
             if(shotsRef.current.length===1&&operationRef.current){packOperationRef.current=operationRef.current;operationRef.current=null;setOperationId(null);}
             removeShot(index);
             if (!shotsRef.current.length) setComposer(false);
+            pick.found = true;
             void findBarcode(code, file);
           })
-          .catch(() => {});
+          .finally(() => {
+            clearTimeout(deadline);
+            pick.remaining -= 1;
+            if (pick.remaining === 0 && !pick.found && mountedRef.current && !postingRef.current && barcodeStateRef.current === "idle" && shotsRef.current.some(shot => pick.files.includes(shot.file))) setBarcodeState("unread");
+          });
 
       }
     } catch { if (mountedRef.current) setError("Could not read that photo. Choose another photo."); }
@@ -556,7 +572,7 @@ export default function CaptureSheet({ onClose, initialMode = "photo", forPost, 
                 ...(corner.includes("t") ? { top: 0, borderTopWidth: 2 } : { bottom: 0, borderBottomWidth: 2 }),
                 ...(corner.includes("l") ? { left: 0, borderLeftWidth: 2 } : { right: 0, borderRightWidth: 2 }),
               }} />)}
-              {barcodeState !== "missing" && <span className="barcode-scan-line absolute inset-x-0 top-0 h-[2px] bg-accent" />}
+              {barcodeState !== "missing" && barcodeState !== "unread" && <span className="barcode-scan-line absolute inset-x-0 top-0 h-[2px] bg-accent" />}
             </div>
             {barcodeState === "missing" && <p className="absolute bottom-icon-small rounded-tile bg-overlay-dark px-tooltip-caret py-tooltip-offset text-detail text-surface">Code read · {formatGtin(scannedCode)}</p>}
             <style jsx>{`
@@ -604,7 +620,7 @@ export default function CaptureSheet({ onClose, initialMode = "photo", forPost, 
           </>}
         </section> : (mode === "barcode" || barcodeState !== "idle") ? <section aria-label="Scanned product" className="relative shrink-0 rounded-t-sheet bg-text px-screen-x text-surface" style={{ paddingTop: tokens.spacing['screen-x'] - tokens.icon.strongStroke, paddingBottom: `calc(${tokens.brand.barHeight - tokens.radii.chip}px + env(safe-area-inset-bottom))` }}>
           {barcodeState !== "idle" && <button type="button" aria-label="Dismiss scanned product" disabled={posting} onClick={dismissBarcode} className="absolute right-screen-x top-sheet-top flex size-tap items-center justify-center"><Icon name="close" size={tokens.capture.galleryIcon} /></button>}
-          {barcodeState === "idle" ? <><p className="text-body">{cameraUnavailable ? "Camera unavailable" : "Looking for a barcode…"}</p><p className="text-detail text-faint">{cameraUnavailable ? "Choose a photo containing a barcode." : "Hold the code steady in the frame"}</p></> : barcodeState === "looking" ? <p className="text-body" role="status">Looking it up…</p> : barcodeState === "missing" ? <><div className="flex items-start gap-3 pr-tap"><div className="min-w-0 flex-1"><p className="text-meta text-faint">Not in the database</p><p className="text-month">{formatGtin(scannedCode)}</p><p className="text-detail text-faint">No product for this code yet. Photograph the nutrition label and the pack becomes a post the same way.</p></div>{packPhoto&&<img src={packPhoto.previewUrl} alt="Scanned pack" className="size-14 shrink-0 rounded-thumb object-cover"/>}</div><Button variant="camera" className="flex items-center justify-center gap-2" onClick={()=>{setLabelForCode(scannedCode);setComposer(false);setMode("photo");setBarcodeState("idle");}}><Icon name="camera" size={18}/>Photograph the nutrition label</Button><button type="button" onClick={typePackInstead} className="mt-2 h-field-h w-full rounded-field border border-ring-on-ink text-body">Type it instead</button><button type="button" onClick={()=>{rejectedCode.current=null;dismissBarcode();}} className="min-h-tap w-full text-detail text-muted">Try the code again</button></> : null}
+          {barcodeState === "idle" ? <><p className="text-body">{cameraUnavailable ? "Camera unavailable" : "Looking for a barcode…"}</p><p className="text-detail text-faint">{cameraUnavailable ? "Choose a photo containing a barcode." : "Hold the code steady in the frame"}</p></> : barcodeState === "looking" ? <p className="text-body" role="status">Looking it up…</p>  : barcodeState === "unread" ? <><p role="status" className="pr-tap text-body">{"We couldn't read a barcode from this photo."}</p><p className="mt-2 text-detail text-faint">Your photo is kept.</p><Button variant="camera" disabled={posting || cameraBusy || full} className="mt-4 w-full" onClick={() => galleryRef.current?.click()}>Choose another photo</Button><button type="button" disabled={posting} onClick={dismissBarcode} className="min-h-tap w-full text-detail">Back to camera</button></> : barcodeState === "missing" ? <><div className="flex items-start gap-3 pr-tap"><div className="min-w-0 flex-1"><p className="text-meta text-faint">Not in the database</p><p className="text-month">{formatGtin(scannedCode)}</p><p className="text-detail text-faint">No product for this code yet. Photograph the nutrition label and the pack becomes a post the same way.</p></div>{packPhoto&&<img src={packPhoto.previewUrl} alt="Scanned pack" className="size-14 shrink-0 rounded-thumb object-cover"/>}</div><Button variant="camera" className="flex items-center justify-center gap-2" onClick={()=>{setLabelForCode(scannedCode);setComposer(false);setMode("photo");setBarcodeState("idle");}}><Icon name="camera" size={18}/>Photograph the nutrition label</Button><button type="button" onClick={typePackInstead} className="mt-2 h-field-h w-full rounded-field border border-ring-on-ink text-body">Type it instead</button><button type="button" onClick={()=>{rejectedCode.current=null;dismissBarcode();}} className="min-h-tap w-full text-detail text-muted">Try the code again</button></> : null}
           {cameraUnavailable && mode === "barcode" && <div className="mt-sheet-top"><p role="status" className="text-detail text-faint">The camera could not be opened. Choose a photo from the library.</p><button type="button" disabled={posting || cameraBusy} onClick={() => galleryRef.current?.click()} className="min-h-tap text-detail underline">Choose from library</button></div>}
           {barcodeState === "idle" && pendingCount > 0 && <button type="button" disabled={posting || cameraBusy} onClick={() => { void continueSelected(); }} className="min-h-tap text-detail underline">Continue with {pendingCount} selected {pendingCount === 1 ? "photo" : "photos"}</button>}
           {product && <>
@@ -618,7 +634,7 @@ export default function CaptureSheet({ onClose, initialMode = "photo", forPost, 
             <div className="mt-tooltip-y flex flex-wrap gap-2">{barcodeAmounts(product).map((amount) => <button key={amount} type="button" disabled={posting} aria-pressed={portion === amount} onClick={() => setPortion(amount)} style={{ height: tokens.brand.barHeight }} className={`rounded-field border px-tooltip-caret text-comment font-medium ${portion === amount ? "border-surface bg-surface text-text" : "border-ring-on-ink text-surface"}`}>{pack === amount ? `Pack · ${amountLabel(amount)}` : amountLabel(amount)}</button>)}</div>
             <p className="text-body" style={{ marginTop: tokens.spacing['screen-x'] - tokens.icon.strongStroke }}>Consumed: {value("calories", portion)} kcal <span className="text-detail font-normal text-faint">· {macros(portion).split(" · ").slice(1).join(" · ")}</span></p>
           </>}
-          {pendingCount + shots.length > 0 && <p className="mt-sheet-top text-detail text-faint">{pendingCount + shots.length} other selected {pendingCount + shots.length === 1 ? "photo is" : "photos are"} waiting. Post this product or dismiss it to continue.</p>}
+          {barcodeState !== "unread" && pendingCount + shots.length > 0 && <p className="mt-sheet-top text-detail text-faint">{pendingCount + shots.length} other selected {pendingCount + shots.length === 1 ? "photo is" : "photos are"} waiting. Post this product or dismiss it to continue.</p>}
         </section> : <div className="desktop:hidden flex flex-col px-screen-x pb-sheet-top" style={{ gap: tokens.capture.bottomGap }}>
           {pendingCount > 0 && <button type="button" disabled={posting || cameraBusy} onClick={() => { void continueSelected(); }} className="min-h-tap text-detail underline">Continue with {pendingCount} selected {pendingCount === 1 ? "photo" : "photos"}</button>}
           <div className="flex items-center justify-between px-grid text-detail">
