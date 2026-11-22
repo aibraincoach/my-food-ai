@@ -2,8 +2,8 @@ import Link from 'next/link';
 import type {ReactNode} from 'react';
 import {Icon} from '@/components/ui/Icon';
 
-export function AuthHeader({title,children}:{title:string;children?:ReactNode}){
- return <header className="flex flex-col items-center gap-screen-x">{children}<h1 className="text-title">{title}</h1></header>;
+export function AuthHeader({title,children,description,align='center'}:{title:string;children?:ReactNode;description?:string;align?:'center'|'start'}){
+ return <header className={`flex flex-col ${align==='start'?'items-start gap-2':'items-center gap-screen-x'}`}>{children}<h1 className={align==='start'?"text-[28px] font-semibold leading-[1.15] tracking-[-0.6px]":"text-title"}>{title}</h1>{description?<p className="text-body">{description}</p>:null}</header>;
 }
 export function AuthBackRow({href,children}:{href:string;children:ReactNode}){
  return <nav aria-label="Back" className="flex min-h-tap items-center"><Link href={href} className="inline-flex min-h-tap items-center text-body"><Icon name="back" aria-hidden="true"/>{children}</Link></nav>;
