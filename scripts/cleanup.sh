@@ -49,9 +49,12 @@ while IFS= read -r -d '' record; do
     echo "skip dirty worktree $wt ($branch)"
     continue
   fi
+  git fetch --no-tags origin "refs/heads/$branch" || fail_cleanup "could not fetch remote branch $branch"
+  remote_tip="$(git rev-parse --verify FETCH_HEAD)" || fail_cleanup "could not identify remote branch $branch"
+  git merge-base --is-ancestor "$remote_tip" origin/main || fail_cleanup "remote branch $branch is not merged into origin/main"
   git worktree remove "$wt" || fail_cleanup "could not remove worktree $wt"
   git branch -D "$branch" || fail_cleanup "could not remove local branch $branch"
-  git push origin --delete "$branch" || fail_cleanup "could not remove remote branch $branch"
+  git push --force-with-lease="refs/heads/$branch:$remote_tip" origin ":refs/heads/$branch" || fail_cleanup "could not remove remote branch $branch"
 done < <(printf '%s' "$worktrees" | base64 -d)
 git worktree prune || fail_cleanup "could not prune worktrees"
 
