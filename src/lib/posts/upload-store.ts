@@ -37,6 +37,7 @@ export interface StoredUpload {
     cancelRequested?: boolean;
     resultPostId?: string;
     photoLost?: boolean;
+    failureKind?: 'storage';
     lostNoticeSeen?: true;
     message?: string;
     state: 'uploading' | 'uploaded' | 'failed';
@@ -63,19 +64,33 @@ async function transaction<T>(stores: string | string[], mode: IDBTransactionMod
         db.close();
     }
 }
-// #684: iOS can lose a File kept in IndexedDB once the app is closed, so a retry could never read it again. A photo
-// is kept as its own bytes and becomes a File again when read back. #1093: only kept bytes are read. A row saved
-// before this holds a File that may no longer be readable, so it comes back with no photo, marked lost and failed.
+// #684/#1233: every durable photo, including encoded snapshots, uses bytes.
+// WebKit can refuse Blob/File storage. Old binary objects are never resumed.
 type KeptFile = { name: string; type: string; lastModified: number; bytes: ArrayBuffer };
 const isKept = (file: unknown): file is KeptFile => typeof file === 'object' && file !== null && !(file instanceof Blob) && (file as KeptFile).bytes instanceof ArrayBuffer;
+async function keepPhoto(blob: Blob): Promise<KeptFile> {
+    return {name: blob instanceof File ? blob.name : '', type: blob.type,
+        lastModified: blob instanceof File ? blob.lastModified : 0, bytes: await blob.arrayBuffer()};
+}
 async function keepFiles(draft: StoredUpload): Promise<StoredUpload> {
-    const files = await Promise.all(draft.files.map(async file => ({ name: file.name, type: file.type, lastModified: file.lastModified, bytes: await file.arrayBuffer() })));
-    return { ...draft, files: files as unknown as File[] };
+    const files = await Promise.all(draft.files.map(keepPhoto));
+    const snapshot = draft.snapshot ? {...draft.snapshot, images: await Promise.all(draft.snapshot.images.map(async image => ({
+        ...image, original: await keepPhoto(image.original), feed: await keepPhoto(image.feed),
+    })))} : null;
+    return {...draft, files: files as unknown as File[], snapshot: snapshot as unknown as UploadSnapshot | null};
 }
 export function restoreFiles(row: StoredUpload): StoredUpload {
     const kept = row.files as unknown[];
-    if (!kept.every(isKept)) return { ...row, files: [], photoLost: true, state: 'failed' };
-    return { ...row, files: kept.map(file => new File([file.bytes], file.name, { type: file.type, lastModified: file.lastModified })) };
+    if (!kept.every(isKept)) return {...row, files: [], snapshot: null, photoLost: true, state: 'failed'};
+    const images = row.snapshot?.images as unknown as {original: unknown; feed: unknown; width: number; height: number; phash: string}[] | undefined;
+    // An old Blob snapshot cannot be resumed; retained original bytes still
+    // support the normal encoder. There is only one stored binary format.
+    const snapshot = row.snapshot && images?.every(image => isKept(image.original) && isKept(image.feed))
+        ? {...row.snapshot, images: images.map(image => ({...image,
+            original: new Blob([(image.original as KeptFile).bytes], {type: (image.original as KeptFile).type}),
+            feed: new Blob([(image.feed as KeptFile).bytes], {type: (image.feed as KeptFile).type}),
+        }))} : null;
+    return {...row, snapshot, files: kept.map(file => new File([file.bytes], file.name, {type: file.type, lastModified: file.lastModified}))};
 }
 export const uploadStore = {
     // Update safety needs only existence, never decoding every stored photo.

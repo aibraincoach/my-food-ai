@@ -6,8 +6,9 @@ export const PHOTO_NOT_POSTED = 'Not posted yet. Try again, or delete it.';
 const POST_PHOTO_LOST = 'Photo lost. Delete this post.';
 const ATTACHMENT_PHOTO_LOST = 'Photo lost. Delete this photo.';
 const ATTACHMENT_PHOTO_FAILED = 'Photo not uploaded yet. Try again, or delete this photo.';
-export function pendingUploadLine(upload: Pick<UploadState,'kind'|'state'|'removing'|'text'|'photoLost'|'attachment'>): string {
+export function pendingUploadLine(upload: Pick<UploadState,'kind'|'state'|'removing'|'text'|'photoLost'|'attachment'|'message'|'failureKind'>): string {
   if (upload.photoLost) return upload.attachment ? ATTACHMENT_PHOTO_LOST : POST_PHOTO_LOST;
+  if (upload.state === 'failed' && upload.failureKind === 'storage' && upload.message) return upload.message;
   if (upload.attachment && upload.state === 'failed') return ATTACHMENT_PHOTO_FAILED;
   if (upload.kind) return upload.state === 'failed' ? 'Could not confirm the save. Your selection is kept on this phone.'
     : upload.removing ? 'Removing pending post…' : upload.kind === 'drink' ? 'Saving drink…' : upload.kind === 'copy' ? 'Saving copy…' : 'Saving food…';
