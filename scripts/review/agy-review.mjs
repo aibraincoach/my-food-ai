@@ -30,11 +30,12 @@
  * --model has no default on purpose: the approved model is chosen per
  * docs/agy-review-procedure.md and recorded in the receipt.
  */
-import { createHash } from "node:crypto";
+import { createHash, randomUUID } from "node:crypto";
 import { spawnSync } from "node:child_process";
-import { mkdirSync, writeFileSync, readFileSync, rmSync } from "node:fs";
-import { join, resolve } from "node:path";
+import { mkdirSync, writeFileSync, readFileSync, existsSync, lstatSync, realpathSync } from "node:fs";
+import { join, resolve, dirname, relative, isAbsolute, sep } from "node:path";
 import { fileURLToPath } from "node:url";
+import { homedir, tmpdir } from "node:os";
 
 export const PART_BYTES = 40_000; // below the observed 46,080-byte single view_file delivery
 export const READ_METHOD = "view_file";
@@ -112,12 +113,40 @@ function slug(path) {
   return path.replace(/[^A-Za-z0-9._-]+/g, "__");
 }
 
+function safePacketDirectory(cwd, requested) {
+  const out = resolve(cwd, requested);
+  // Never follow a symlink, even when only an ancestor of a new output exists.
+  for (let cursor = out; ; cursor = dirname(cursor)) {
+    try { if (lstatSync(cursor).isSymbolicLink()) throw new Error("Unsafe review output: symlink path"); }
+    catch (error) { if (error.code !== "ENOENT") throw error; }
+    if (dirname(cursor) === cursor) break;
+  }
+  const within = (parent, child) => {
+    const path = relative(parent, child);
+    return path === "" || (path !== ".." && !path.startsWith(".." + sep) && !isAbsolute(path));
+  };
+  const repo = realpathSync(git(["rev-parse", "--show-toplevel"], cwd).trim());
+  const metadata = ["--absolute-git-dir", "--git-common-dir"].map(flag =>
+    realpathSync(resolve(cwd, git(["rev-parse", "--path-format=absolute", flag], cwd).trim())));
+  const protectedPaths = [realpathSync(cwd), repo, homedir(), ...metadata];
+  if (protectedPaths.some(path => within(out, path)) || metadata.some(path => within(path, out)) || out.split(sep).includes(".git")) {
+    throw new Error("Unsafe review output: protected directory or ancestor");
+  }
+  if (existsSync(out)) throw new Error("Unsafe review output: directory must be new; existing packets are preserved");
+  if (!lstatSync(dirname(out)).isDirectory()) throw new Error("Unsafe review output: parent must be a directory");
+  return out;
+}
+
 /** Write patches (and optional head-file context) to disk; return the manifest record. */
 export function writePacket(cwd, base, head, outDir, { context = true, contextPaths = [] } = {}) {
-  rmSync(outDir, { recursive: true, force: true });
-  mkdirSync(join(outDir, "patches"), { recursive: true });
-  if (context) mkdirSync(join(outDir, "context"), { recursive: true });
+  for (const path of contextPaths) {
+    if (!path || path.startsWith("/") || path.split("/").some(p => p === ".." || p === ".git")) throw new Error(`invalid context path: ${path}`);
+  }
+  outDir = safePacketDirectory(cwd, outDir);
   const files = buildManifest(cwd, base, head);
+  mkdirSync(outDir); // Atomic fresh allocation: never remove or reuse a directory.
+  mkdirSync(join(outDir, "patches"));
+  if (context) mkdirSync(join(outDir, "context"));
   const manifest = { base, head, part_bytes: PART_BYTES, files: [] };
   files.forEach((file, index) => {
     const patch = git(["diff", "--no-ext-diff", "--no-renames", base, head, "--", file.path], cwd);
@@ -318,7 +347,7 @@ export async function main(argv = process.argv.slice(2)) {
   if (!args.base || !args.head) throw new Error("--base and --head are required");
   const cwd = process.cwd();
   const shortHead = args.head.slice(0, 7);
-  const outDir = resolve(args.out ?? join(git(["rev-parse", "--absolute-git-dir"], cwd).trim(), "review-state", `agy-${shortHead}`));
+  const outDir = resolve(args.out ?? join(tmpdir(), `mfa-agy-${shortHead}-${randomUUID()}`));
   // Capture check-only input before rebuilding a packet that may contain it.
   const checkOnlyInput = args.checkOnly ? readFileSync(args.checkOnly, "utf8") : null;
   const manifest = writePacket(cwd, args.base, args.head, outDir, { context: args.context, contextPaths: args.contextPaths });

@@ -16,6 +16,9 @@ MERGE_BASE=$(git merge-base "$BASE" "$HEAD")
 
 echo "PR #$PR head=$HEAD base=$BASE merge-base=$MERGE_BASE model=$MODEL"
 
+PACKET_PARENT="$(mktemp -d "${TMPDIR:-/tmp}/mfa-agy-pr-XXXXXXXX")"
+OUT_DIR="$PACKET_PARENT/packet"
+
 set +e
 node scripts/review/agy-review.mjs \
   --base "$MERGE_BASE" \
@@ -23,15 +26,17 @@ node scripts/review/agy-review.mjs \
   --pr "$PR" \
   --model "$MODEL" \
   --effort high \
-  --timeout "$TIMEOUT"
+  --timeout "$TIMEOUT" \
+  --out "$OUT_DIR"
 STATUS=$?
 set -e
 
-OUT="$(git rev-parse --absolute-git-dir)/review-state/agy-${HEAD:0:7}/receipt.md"
+OUT="$OUT_DIR/receipt.md"
 if [[ -f "$OUT" ]]; then
   gh pr comment "$PR" --body-file "$OUT"
   echo "COMMENTED on PR #$PR from $OUT (agy-review exit $STATUS)"
 else
   echo "No receipt at $OUT (agy-review exit $STATUS)" >&2
+  if [[ "$STATUS" == 0 ]]; then exit 1; fi
 fi
 exit "$STATUS"
