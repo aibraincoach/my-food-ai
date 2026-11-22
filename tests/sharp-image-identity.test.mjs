@@ -24,7 +24,6 @@ function component(file,name){
 }
 for(const [file,name,props]of[
  ['PostOpenFrame.tsx','Photo',url=>({post:{photoUrl:url,slides:[],caption:'Meal'},square:true})],
- ['OutlineOverlay.tsx','DetailImage',url=>({photo:{url:url.replace('/v2.webp','/original.jpg'),previewUrl:url},alt:'Meal'})],
 ])test(`${name}: a failed density candidate affects that image only across mounted rerenders`,()=>{
  const view=component(file,name);
  let image=view.render(props(first));assert.equal(image.srcSet,feedPhotoSrcSet(first));
@@ -32,14 +31,23 @@ for(const [file,name,props]of[
  image=view.render(props(second));assert.equal(image.src,second);assert.equal(image.srcSet,feedPhotoSrcSet(second));
  image=view.render(props(first));assert.equal(image.srcSet,undefined,'the failed identity remains on its fallback');
 });
-test('DetailImage switches from a loaded original to the new photo preview immediately',()=>{
+test('DetailImage uses the cacheable copy even with outlines, and never preloads a signed original',()=>{
  const view=component('OutlineOverlay.tsx','DetailImage');
- const props=url=>({photo:{url:url.replace('/v2.webp','/original.jpg'),previewUrl:url},alt:'Meal',sharp:true});
- view.render(props(first));view.images[0].onload();
- let image=view.render(props(first));assert.equal(image.src,props(first).photo.url);
+ const props=url=>({photo:{id:'photo',url:url.replace('/v2.webp','/original.jpg'),previewUrl:url},alt:'Meal',sizes:'390px',sharp:true});
+ let image=view.render(props(first));
+ assert.equal(view.images.length,0,'outlines must not create an original-image request');
+ assert.equal(image.src,first);assert.equal(image.srcSet,feedPhotoSrcSet(first));assert.equal(image.sizes,'390px');
  image=view.render(props(second));assert.equal(image.src,second);assert.equal(image.srcSet,feedPhotoSrcSet(second));
- view.images[0].onload();image=view.render(props(second));assert.equal(image.src,second,'late callback for the old photo cannot replace the new preview');
- view.images[1].onload();image=view.render(props(second));assert.equal(image.src,props(second).photo.url);assert.equal(image.srcSet,undefined);
+ assert.equal(view.images.length,0);
+});
+test('DetailImage failure is visible and never retries another density or signed route',()=>{
+ const view=component('OutlineOverlay.tsx','DetailImage');
+ const props=url=>({photo:{url:url.replace('/v2.webp','/original.jpg'),previewUrl:url},alt:'Meal',sizes:'390px'});
+ let image=view.render(props(first));image.onError();image=view.render(props(first));
+ assert.equal(image.src,first);assert.equal(image.srcSet,feedPhotoSrcSet(first),'failure does not change the request');
+ assert.match(JSON.stringify(view.tree),/Meal photo could not be loaded/);
+ image=view.render(props(second));assert.equal(image.src,second);assert.doesNotMatch(JSON.stringify(view.tree),/Meal photo could not be loaded/);
+ assert.equal(view.images.length,0);
 });
 
 test('the first card shows a failed photo visibly without changing to an older source path',()=>{
