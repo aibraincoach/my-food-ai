@@ -12,6 +12,11 @@ import { PhotoUploadError, type UploadError } from '@/lib/media/put-with-progres
 import { PackPhotoUpload, JSON_REQUEST_LIMIT_MS } from '@/lib/media/pack-photo-upload';
 import { reencodeShot } from '@/lib/media/reencode';
 
+// AGY wording: a failed durable write only guarantees the current screen's copy.
+export const PHOTO_STORAGE_FAILED = "This photo couldn't be saved, but it is still on this screen—tap Try again.";
+class UploadStorageError extends Error {
+    constructor(cause: unknown) { super('Photo storage failed.', {cause}); this.name = 'UploadStorageError'; }
+}
 const RETAKE_ATTACHMENT_MESSAGE = 'This photo was not kept. Take it again.';
 // #1093: a new meal whose kept photo is from before #684's fix. It has no meal to retake a photo for.
 export const PHOTO_NOT_KEPT = 'This photo was not kept. Remove this post and take a new photo.';
@@ -33,6 +38,7 @@ export interface UploadState {
     attachment?: {postId: string; notEaten: boolean};
     photoLost?: boolean;
     lostNotice: boolean;
+    failureKind?: 'storage';
     message?: string;
     uploadId?: string;
     sent: number;
@@ -95,7 +101,7 @@ export class UploadManager {
         const d = entry.data;
         return Boolean(!d.files.length && (d.photoLost || (d.attachment && d.message === RETAKE_ATTACHMENT_MESSAGE)));
     }
-    private state(entry: Entry): UploadState { const d = entry.data; const photoLost=this.photoLost(entry); return { operationId: d.operationId, lostNotice: !d.posted && photoLost && !d.lostNoticeSeen, uploadId:d.snapshot?.id, caption: d.caption, eatenAt: d.eatenAt ?? new Date(d.createdAt).toISOString(), previewUrl: entry.previewUrl, sent: d.sent, total: d.total, state: d.state, error: d.error, posted: d.posted, ...(d.attachment?{attachment:d.attachment,message:d.message,...(photoLost?{photoLost:true}:{})}:{}), ...((d.food||d.copy||d.drink||d.photoDrinks)?{kind:d.copy?"copy" as const:d.food?"food" as const:"drink" as const,removing:d.cancelRequested,message:d.message}:{}), ...(d.drink?{drinkTile:true}:{}), ...(!d.files.length&&!photoLost&&!d.food&&!d.copy&&!d.drink&&!d.photoDrinks&&!d.attachment?{text:true}:{}), ...(photoLost&&!d.attachment?{photoLost:true,message:PHOTO_NOT_KEPT}:{}), ...(entry.finished ? { postId: d.resultPostId??d.snapshot?.id } : {}) }; }
+    private state(entry: Entry): UploadState { const d = entry.data; const photoLost=this.photoLost(entry); return { operationId: d.operationId, lostNotice: !d.posted && photoLost && !d.lostNoticeSeen, uploadId:d.snapshot?.id, caption: d.caption, eatenAt: d.eatenAt ?? new Date(d.createdAt).toISOString(), previewUrl: entry.previewUrl, sent: d.sent, total: d.total, state: d.state, error: d.error, posted: d.posted, ...(d.failureKind==='storage'?{message:d.message,failureKind:d.failureKind}:{}), ...(d.attachment?{attachment:d.attachment,message:d.message,...(photoLost?{photoLost:true}:{})}:{}), ...((d.food||d.copy||d.drink||d.photoDrinks)?{kind:d.copy?"copy" as const:d.food?"food" as const:"drink" as const,removing:d.cancelRequested,message:d.message}:{}), ...(d.drink?{drinkTile:true}:{}), ...(!d.files.length&&!photoLost&&!d.food&&!d.copy&&!d.drink&&!d.photoDrinks&&!d.attachment?{text:true}:{}), ...(photoLost&&!d.attachment?{photoLost:true,message:PHOTO_NOT_KEPT}:{}), ...(entry.finished ? { postId: d.resultPostId??d.snapshot?.id } : {}) }; }
     private intentFor(entry: Entry, ownerId: string): PublishIntent { const d=entry.data,attachment=d.attachment; return {operationId:d.operationId,ownerId,createdAt:d.createdAt,postId:attachment?.postId??null,notEaten:attachment?.notEaten??false}; }
     private applyIntent(data: StoredUpload, intent: PublishIntent) { data.posted=true; data.ownerId=intent.ownerId; if(intent.postId&&!data.attachment)data.attachment={postId:intent.postId,notEaten:intent.notEaten}; if(data.attachment&&!data.files.length){data.state='failed';data.message=RETAKE_ATTACHMENT_MESSAGE;data.photoLost=true;} }
     private attachmentFromIntent(intent: PublishIntent): StoredUpload { return {operationId:intent.operationId,ownerId:intent.ownerId,createdAt:intent.createdAt,reservedAt:intent.createdAt,caption:intent.notEaten?'Leftovers':'Added photo',eatenAt:null,location:null,options:{},files:[],snapshot:null,posted:true,attachment:{postId:intent.postId!,notEaten:intent.notEaten},state:'failed',message:RETAKE_ATTACHMENT_MESSAGE,photoLost:true,sent:0,total:0}; }
@@ -171,6 +177,8 @@ export class UploadManager {
         }
         else if (files.length !== entry.data.files.length || files.some((file, i) => file !== entry!.data.files[i])) {
             entry.data.files = [...files];
+            entry.data.failureKind = undefined;
+            entry.data.message = undefined;
             entry.data.snapshot = null;
             entry.data.reservedAt = Date.now();
             entry.draft = this.makeDraft();
@@ -182,18 +190,30 @@ export class UploadManager {
         }
         this.attachSnapshot(entry);
         Object.assign(entry.data, fields);
+        // Composer effects also restage the same files when fields change.
+        // Only Try again (or selecting new files above) clears a storage failure.
+        if (entry.data.failureKind === 'storage') { this.notify(entry, 'upload-failed'); return entry.data.operationId; }
         entry.data.state = 'uploading';
+        entry.data.message = undefined;
         entry.data.error = undefined;
         this.notify(entry, 'upload-started');
         void this.run(entry);
         return entry.data.operationId;
     }
     update(id: string, fields: Partial<DraftFields>) { const entry = this.entries.get(id); if (!entry || entry.deleted || entry.finished)
-        return; Object.assign(entry.data, fields); void this.persist(entry); this.notify(entry, 'upload-progress'); }
+        return; Object.assign(entry.data, fields); void this.persist(entry).catch(() => { /* Storage failure is announced by persist. */ }); this.notify(entry, 'upload-progress'); }
     private persist(entry: Entry, fields: Partial<StoredUpload> = {}) { const snapshot = { ...entry.data, ...fields, files: [...entry.data.files] }; const writing = entry.writing.catch(() => { }).then(() => { if (!entry.deleted && !entry.finished) {
         // A queued caption write must not undo an acknowledgment that just committed.
         if (entry.data.lostNoticeSeen) snapshot.lostNoticeSeen = true;
-        return this.store.put(snapshot); } }); entry.writing = writing; return writing; }
+        if (entry.data.failureKind === 'storage') throw new UploadStorageError('Storage retry requires a user action.');
+        return this.store.put(snapshot); } }).catch(error => {
+            if (!entry.data.files.length || this.photoLost(entry) || (error as Error)?.name === 'NotReadableError') throw error;
+            entry.data.failureKind = 'storage';
+            entry.data.message = PHOTO_STORAGE_FAILED;
+            entry.data.state = 'failed';
+            this.notify(entry, 'upload-failed');
+            throw new UploadStorageError(error);
+        }); entry.writing = writing; return writing; }
     /** Close only after the owner selection/files are durable, then publish in
      * the background. The same operation survives reload and a lost response. */
     async postFood(food: FoodRequest, label: string, files: File[] = [], stagedId?: string) {
@@ -326,7 +346,7 @@ export class UploadManager {
             if (entry.deleted || this.entries.get(id) !== entry || this.ownerId !== owner || (entry.data.ownerId && entry.data.ownerId !== owner)) return false;
             entry.data.ownerId = owner;
             await this.store.putIntent(this.intentFor(entry, owner));
-            void this.persist(entry);
+            void this.persist(entry).catch(() => { /* Storage failure is announced by persist. */ });
             return current();
         } catch {
             return !entry.deleted && this.entries.get(id) === entry && Boolean(this.ownerId) && entry.data.ownerId === this.ownerId && entry.finished && Boolean(entry.data.resultPostId);
@@ -342,9 +362,9 @@ export class UploadManager {
     }
     discardCopy(id:string){return this.discardFood(id);}
     retry(id: string) { const entry = this.entries.get(id); if (!entry || entry.deleted || entry.finished || this.photoLost(entry))
-        return; entry.data.state = 'uploading'; entry.data.error = undefined; entry.data.message=undefined; this.notify(entry, 'upload-progress'); if(entry.active)entry.rerun=true; void this.run(entry); }
+        return; entry.data.state = 'uploading'; entry.data.error = undefined; entry.data.message=undefined; entry.data.failureKind=undefined; this.notify(entry, 'upload-progress'); if(entry.active)entry.rerun=true; void this.run(entry); }
     online = () => { for (const entry of this.entries.values())
-        if (entry.data.state === 'failed' && !this.photoLost(entry))
+        if (entry.data.state === 'failed' && entry.data.failureKind !== 'storage' && !this.photoLost(entry))
             this.retry(entry.data.operationId); };
     async remove(id: string) { const entry = this.entries.get(id); if (!entry)
         return; entry.deleted = true; this.entries.delete(id); try { await entry.writing.catch(() => { }); await this.store.remove(id); }
@@ -472,7 +492,7 @@ export class UploadManager {
                         entry.rerun = true;
                         return;
                     }
-                    if (this.photoLost(entry) || (error as Error)?.name === 'NotReadableError') throw error;
+                    if (error instanceof UploadStorageError || this.photoLost(entry) || (error as Error)?.name === 'NotReadableError') throw error;
                     // A selection failure is visible immediately; only an explicit retry may resend its receipt.
                     if (entry.data.food || entry.data.copy || entry.data.drink || entry.data.photoDrinks) {
                         entry.data.error = 'no_response';
@@ -497,11 +517,18 @@ export class UploadManager {
                 d.files=[];d.photoLost=true;d.message=RETAKE_ATTACHMENT_MESSAGE;
             }
             entry.data.state = 'failed';
-            try {
-                entry.data.snapshot = await entry.draft.snapshot();
-                await this.persist(entry);
+            if (!(error instanceof UploadStorageError)) {
+                try {
+                    entry.data.snapshot = await entry.draft.snapshot();
+                    await this.persist(entry);
+                }
+                catch {
+                    if (entry.data.files.length && !this.photoLost(entry)) {
+                        entry.data.failureKind = 'storage';
+                        entry.data.message = PHOTO_STORAGE_FAILED;
+                    }
+                }
             }
-            catch { /* Keep the original durable files even if a snapshot cannot be read. */ }
             this.notify(entry, 'upload-failed');
         }
     }
