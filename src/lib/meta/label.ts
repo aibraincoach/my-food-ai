@@ -36,6 +36,7 @@ async function cropLabelBox(image: Uint8Array, box: NonNullable<LabelReading["bo
  const output = await sharp(image).extract({ left, top, width: Math.max(1, right - left), height: Math.max(1, bottom - top) }).toBuffer();
  return new Uint8Array(output);
 }
+// PM ruling (#1197): a non-null closer cropped reading, including 0, wins; retry null keeps the earlier value.
 export function mergeLabelReading(first: LabelReading, retry: LabelReading): LabelReading {
  const merged: LabelReading = { ...first, box: first.box };
  if (retry.per_serving && first.per_serving) {
