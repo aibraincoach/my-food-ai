@@ -27,8 +27,9 @@ export default function RootLayout({children}: {children: React.ReactNode}) {
 
 async function LocaleDocument({children}: {children: React.ReactNode}) {
   const locale=await getLocale();
+  // Slice 1 translates only the Language row. Enable document locale with slice 2.
   return (
-    <html lang={locale} className="h-full antialiased" data-build={process.env.NEXT_PUBLIC_BUILD}>
+    <html lang="en" className="h-full antialiased" data-build={process.env.NEXT_PUBLIC_BUILD}>
       <body className={`${font.className} ${font.variable} flex min-h-dvh flex-col`}>
         <Suspense fallback={null}><ServiceWorkerRegistration /></Suspense>
         <LocaleReporter locale={locale}/>

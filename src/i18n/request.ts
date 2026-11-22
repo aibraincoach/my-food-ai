@@ -9,7 +9,9 @@ export default getRequestConfig(async () => {
   // Public shell hint from the shell-only middleware branch. It has no
   // authority over authentication or data, only this anonymous document's lang.
   const shellLocale = requestHeaders.get('x-mfa-shell-locale');
-  const locale = isLocale(shellLocale) ? shellLocale : resolveLocale((await cookies()).get('lang')?.value, requestHeaders.get('accept-language'));
+  // Phone-language negotiation switches on with the translated front screens in slice 2.
+  // Explicit device choices already apply to the translated Language row.
+  const locale = isLocale(shellLocale) ? shellLocale : resolveLocale((await cookies()).get('lang')?.value, null);
   return {
     locale,
     // Same validated person-zone cookie used by the existing food/Today readers.

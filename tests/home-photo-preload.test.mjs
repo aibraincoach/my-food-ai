@@ -18,6 +18,7 @@ test('middleware makes no photo query or HTTP image preload while preserving aut
   const response=new Response(null,{headers:{Link:'</existing>; rel=preconnect'}});let photoReads=0;
   const exports={};
   vm.runInNewContext(compiled,{exports,AbortSignal,console:{info(){}},process:{env:{}},URL,require(name){
+   if(name==='@/i18n/locales')return{isLocale:value=>value==='en'||value==='ja'};
    if(name==='@/lib/auth/verified-cookie')return{verifiedUserCookie};
    if(name==='@/lib/auth/verified-user-header')return{VERIFIED_USER_HEADER:'x-mfa-verified-user'};
    if(name==='@/lib/auth/media-session-epoch')return{mediaSessionEpoch:()=>null};
