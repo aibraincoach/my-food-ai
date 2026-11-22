@@ -12,10 +12,10 @@ test('selection becomes durable and visible pending before the server replies, t
  assert.equal(manager.list()[0].posted,true);assert.equal(manager.list()[0].kind,'food');assert.equal(manager.list()[0].postId,undefined);assert.equal(db.rows.get(id).posted,true);
  gate.resolve(Response.json({post_id:'server-post'},{status:201}));await until(()=>manager.list()[0].postId==='server-post');assert.equal(db.rows.size,0);
 });
-test('a committed response lost in transit retries the same operation without a duplicate save',async()=>{
+test('a committed response lost in transit explicitly retries the same operation without a duplicate save',async()=>{
  const db=store(),committed=new Map(),ids=[];let calls=0;
  const request=async(_url,options)=>{const body=JSON.parse(options.body);ids.push(body.operation_id);committed.set(body.operation_id,'one-post');if(++calls===1)throw Error('response dropped after commit');return Response.json({post_id:committed.get(body.operation_id)},{status:201});};
- const manager=new UploadManager(db,makeDraft,async()=>{},request);await manager.initialize('owner');await manager.postFood(food,'Croissant');await until(()=>manager.list()[0].postId==='one-post');
+ const manager=new UploadManager(db,makeDraft,async()=>{},request);await manager.initialize('owner');const id=await manager.postFood(food,'Croissant');await until(()=>manager.list()[0].state==='failed');assert.equal(calls,1);manager.retry(id);await until(()=>manager.list()[0].postId==='one-post');
  assert.equal(calls,2);assert.equal(committed.size,1);assert.equal(new Set(ids).size,1);
 });
 test('failed input survives reload, stays private to its owner and explicit retry retains the original operation',async()=>{
@@ -40,10 +40,10 @@ test('an account switch during the durable checkpoint cannot send the prior acco
 test('failed removal is durable and reload retries cancellation rather than posting the selection again',async()=>{
  const db=store();let deletes=0,posts=0;
  const request=async(_url,options)=>{if(options.method==='DELETE'){deletes++;throw Error('cancel response dropped');}posts++;return Response.json({error:'Offline fixture'},{status:503});};
- const manager=new UploadManager(db,makeDraft,async()=>{},request);await manager.initialize('owner');const id=await manager.postFood(food,'Kept selection');await until(()=>manager.list()[0].state==='failed');assert.equal(posts,3);
+ const manager=new UploadManager(db,makeDraft,async()=>{},request);await manager.initialize('owner');const id=await manager.postFood(food,'Kept selection');await until(()=>manager.list()[0].state==='failed');assert.equal(posts,1);
  await manager.discardFood(id);await until(()=>deletes===1&&manager.list()[0].state==='failed');assert.equal(db.rows.get(id).cancelRequested,true);
  const restored=new UploadManager(db,makeDraft,async()=>{},async(_url,options)=>{assert.equal(options.method,'DELETE');const body=JSON.parse(options.body);assert.equal(body.operation_id,id);assert.equal(body.owner_id,'owner');return Response.json({post_id:'unacknowledged-post'},{status:200});});
- await restored.initialize('owner');restored.retry(id);await until(()=>restored.list().length===0);assert.equal(db.rows.size,0);assert.equal(posts,3);
+ await restored.initialize('owner');restored.retry(id);await until(()=>restored.list().length===0);assert.equal(db.rows.size,0);assert.equal(posts,1);
 });
 test('a verified label keeps its prepared photo and chosen servings without reuploading',async()=>{
  const db=store(),gate=deferred(),file=new File(['label'],'label.jpg',{type:'image/jpeg'});let body;

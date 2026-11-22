@@ -367,7 +367,7 @@ export class UploadManager {
         const prepared=Boolean(d.food&&'photo' in d.food);
         const photo=prepared?null:d.files.length?d.snapshot?.images[0]:null;
         if(d.files.length&&!prepared&&(!photo||!d.snapshot))throw new Error('The pack photo is not ready. Your selection is kept.');
-        const response=await this.foodRequest('/api/posts/food',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({...d.food,operation_id:d.operationId,owner_id:d.ownerId,...(photo&&d.snapshot?{photo:{path:this.ownerId+'/'+d.snapshot.id+'/0.jpg',width:photo.width,height:photo.height}}:{})})});
+        const response=await this.foodRequest('/api/posts/food',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({...d.food,operation_id:d.operationId,owner_id:d.ownerId,...(photo&&d.snapshot?{photo:{path:this.ownerId+'/'+d.snapshot.id+'/0.jpg',width:photo.width,height:photo.height}}:{})}),signal:AbortSignal.timeout(JSON_REQUEST_LIMIT_MS)});
         const result=await response.json().catch(()=>null) as {post_id?:string;error?:string}|null;
         if(!response.ok||!result?.post_id){
             d.message=typeof result?.error==='string'?result.error.slice(0,200):'The server did not respond. Your selection is kept.';
@@ -378,14 +378,14 @@ export class UploadManager {
     private async submitDrink(entry:Entry):Promise<{postId:string}>{
         const d=entry.data,photo=d.photoDrinks,tile=d.drink;
         const endpoint=photo?'/api/drinks/post':'/api/intake/post?tz='+encodeURIComponent(tile!.time_zone);
-        const response=await this.foodRequest(endpoint,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({...photo??tile,operation_id:d.operationId,owner_id:d.ownerId})});
+        const response=await this.foodRequest(endpoint,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({...photo??tile,operation_id:d.operationId,owner_id:d.ownerId}),signal:AbortSignal.timeout(JSON_REQUEST_LIMIT_MS)});
         const result=await response.json().catch(()=>null) as {post_id?:string;error?:string}|null;
         if(!response.ok||!result?.post_id){d.message=result?.error??'The drink save could not be confirmed. Your selection is kept.';throw new Error(d.message);}
         return{postId:result.post_id};
     }
     private async submitCopy(entry:Entry):Promise<{postId:string}> {
         const d=entry.data,copy=d.copy!;
-        const response=await this.foodRequest(copyEndpoint(copy),{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({operation_id:d.operationId,owner_id:d.ownerId,eaten_at:copy.eatenAt})});
+        const response=await this.foodRequest(copyEndpoint(copy),{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({operation_id:d.operationId,owner_id:d.ownerId,eaten_at:copy.eatenAt}),signal:AbortSignal.timeout(JSON_REQUEST_LIMIT_MS)});
         const result=await response.json().catch(()=>null) as {postId?:string;post_id?:string;error?:string}|null;
         const postId=result?.postId??result?.post_id;
         if(!response.ok||!postId){d.message=typeof result?.error==='string'?result.error.slice(0,200):'The copy could not be confirmed. Your selection is kept.';throw new Error(d.message);}
@@ -404,7 +404,7 @@ export class UploadManager {
             if (entry.deleted || this.ownerId !== owner || entry.data.ownerId !== owner)
                 return;
             if((entry.data.food||entry.data.copy||entry.data.drink||entry.data.photoDrinks)&&entry.data.cancelRequested){
-                const response=await this.foodRequest(entry.data.copy?copyEndpoint(entry.data.copy):entry.data.photoDrinks?'/api/drinks/post':entry.data.drink?'/api/intake/post':'/api/posts/food',{method:'DELETE',headers:{'Content-Type':'application/json'},body:JSON.stringify({operation_id:entry.data.operationId,owner_id:entry.data.ownerId,...(entry.data.copy?{eaten_at:entry.data.copy.eatenAt}:{}),...(entry.data.photoDrinks?{upload_id:entry.data.photoDrinks.upload_id}:{})})});
+                const response=await this.foodRequest(entry.data.copy?copyEndpoint(entry.data.copy):entry.data.photoDrinks?'/api/drinks/post':entry.data.drink?'/api/intake/post':'/api/posts/food',{method:'DELETE',headers:{'Content-Type':'application/json'},body:JSON.stringify({operation_id:entry.data.operationId,owner_id:entry.data.ownerId,...(entry.data.copy?{eaten_at:entry.data.copy.eatenAt}:{}),...(entry.data.photoDrinks?{upload_id:entry.data.photoDrinks.upload_id}:{})}),signal:AbortSignal.timeout(JSON_REQUEST_LIMIT_MS)});
 
                 const body=await response.json().catch(()=>null) as {post_id?:string;error?:string}|null;
                 if(!response.ok){entry.data.message=body?.error??(entry.data.copy?'The pending copy could not be removed. Your selection is kept.':'The pending food could not be removed. Your selection is kept.');throw new Error(entry.data.message);}
@@ -473,6 +473,11 @@ export class UploadManager {
                         return;
                     }
                     if (this.photoLost(entry) || (error as Error)?.name === 'NotReadableError') throw error;
+                    // A selection failure is visible immediately; only an explicit retry may resend its receipt.
+                    if (entry.data.food || entry.data.copy || entry.data.drink || entry.data.photoDrinks) {
+                        entry.data.error = 'no_response';
+                        throw error;
+                    }
                     if (attempt < 2) {
                         await this.delay(attempt === 0 ? 2000 : 6000);
                         continue;
