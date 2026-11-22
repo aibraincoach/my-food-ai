@@ -13,3 +13,10 @@ test('canned foods, non-frying names and generic crispy labels keep their prior 
   ['fried beans','Beans, canned'],['fried tuna','Fish, tuna, canned in oil'],
  ])assert.deepEqual(packed(name,description),[],name);
 });
+test('a fried or explicitly named syrup-served dish keeps its own preparation record',()=>{
+ for(const [name,description] of [
+  ['fried banana','FRIED BANANA IN SYRUP'],
+  ['gulab jamun fried','Gulab jamun, in syrup'],
+ ])assert.deepEqual(packed(name,description),[],name);
+ assert.equal(packed('fried jackfruit','Jackfruit, canned, syrup pack').length,1);
+});

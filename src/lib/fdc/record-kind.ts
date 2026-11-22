@@ -89,9 +89,15 @@ export function checkRecord(name: string, record: { description: string; categor
   // A name that is only fruit or only a drink, matched to a record of another kind.
   if (kind && kinds.size > 0 && [...kinds].every(k => k === "fruit" || k === "drink") && !kinds.has(kind) && kind !== "dairy") strong.push(`kind: the name is a ${[...kinds].join(" or ")}; the record is a ${kind}`);
   if (/\braw\b/i.test(record.description) && COOKED_WORDS.test(name) && !RAW_FOODS.test(name)) strong.push("raw: the record is raw and the name is a cooked food or dish");
-  // #1258: sweet-liquid fruit preserves do not represent a fried preparation.
-  // Plain canned foods and generic "crispy" names carry no such signal.
-  if (/\b(fried|goreng|battered|fritters?|tempura)\b/i.test(name)
+  // #1258: preserved fruit does not represent frying. A reference that
+  // itself states frying, or names the same syrup-served dish, remains eligible.
+  const frying = /\b(fried|goreng|battered|fritters?|tempura)\b/i;
+  const inSyrup = /\bin (?:light |heavy |extra light )?syrup\b/i;
+  const preservedPack = /\b(?:canned|syrup[- ]pack|juice[- ]pack)\b/i;
+  const dishName = (value: string) => value.toLowerCase().replace(/\b(fried|goreng|battered|fritters?|tempura)\b/g, '').replace(/[^\p{L}\p{N}]+/gu, ' ').trim();
+  const sameSyrupDish = kind !== 'fruit' && inSyrup.test(record.description) && !preservedPack.test(record.description)
+    && dishName(name) === dishName(record.description.split(',')[0]);
+  if (frying.test(name) && !frying.test(record.description) && !sameSyrupDish
     && /\b(?:syrup[- ]pack|juice[- ]pack|in (?:light |heavy |extra light )?syrup)\b/i.test(record.description))
     strong.push("packed: the record is packed in syrup or juice; the food is fried");
   if (/\b(with|and|&)\b/i.test(name)) {
