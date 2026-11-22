@@ -1,4 +1,4 @@
-/* eslint-disable @next/next/no-img-element -- Private signed photos bypass public image optimization. */
+/* eslint-disable @next/next/no-img-element -- Responsive photos use the existing cacheable media route. */
 "use client";
 import {imageIdentity} from '@/lib/media/retained-image';
 import {feedPhotoSrcSet} from '@/lib/posts/feed-photo-url';
@@ -31,84 +31,15 @@ export function DetailDate({ value, weekday = false }: { value: string; weekday?
   return <LocalTime value={value} weekday={weekday} />;
 }
 
-function readOriginalCache(key: string): string | null {
-  try {
-    const raw = sessionStorage.getItem(key);
-    if (!raw) return null;
-    const parsed = JSON.parse(raw) as { url?: string; expiresAt?: number };
-    if (!parsed.url || typeof parsed.expiresAt !== "number" || parsed.expiresAt <= Date.now()) {
-      try { sessionStorage.removeItem(key); } catch { /* treat as missing */ }
-      return null;
-    }
-    return parsed.url;
-  } catch {
-    try { sessionStorage.removeItem(key); } catch { /* treat as missing */ }
-    return null;
-  }
-}
-// Lifetime is measured from signing time (photo.expiresAt), never from load time; unsigned URLs are not cached.
-function writeOriginalCache(key: string, url: string, signedExpiresAt?: number) {
-  if (typeof signedExpiresAt !== "number") return;
-  const expiresAt = signedExpiresAt - 300_000;
-  if (expiresAt <= Date.now()) return;
-  try { sessionStorage.setItem(key, JSON.stringify({ url, expiresAt })); } catch { /* storage unavailable */ }
-}
-
-function DetailImage({ photo, alt, sharp = false }: { photo: DetailPhoto; alt: string; sharp?: boolean }) {
-  const cacheKey = photo.id ? `mfa-original-${photo.id}` : null;
-  const preview = photo.previewUrl ?? photo.url;
-  const [loaded, setLoaded] = useState<{ of: string; url: string } | null>(() => {
-    const cached = sharp && cacheKey && typeof sessionStorage !== "undefined" ? readOriginalCache(cacheKey) : null;
-    return cached ? { of: photo.url, url: cached } : null;
-  });
-  const originalUrl = loaded && loaded.of === photo.url ? loaded.url : null;
-  const [reloadOriginal, setReloadOriginal] = useState(0);
-  const retriedFresh = useRef(false);
-  useEffect(() => { retriedFresh.current = false; }, [photo.id, photo.url]);
-  const src = sharp && originalUrl ? originalUrl : preview;
-  const [failedSharp, setFailedSharp] = useState<string | null>(null);
-  useEffect(() => {
-    if (!sharp || !photo.previewUrl) return;
-    const cached = cacheKey ? readOriginalCache(cacheKey) : null;
-    if (cached) {
-      setLoaded({ of: photo.url, url: cached });
-      let live = true;
-      const probe = new Image();
-      probe.crossOrigin = "anonymous";
-      // A saved link that no longer loads is removed and the fresh signed photo.url is loaded instead.
-      probe.onerror = () => {
-        if (!live) return;
-        try { sessionStorage.removeItem(cacheKey!); } catch { /* ignore */ }
-        setLoaded(null);
-        setReloadOriginal(n => n + 1);
-      };
-      probe.src = cached;
-      return () => { live = false; probe.onerror = null; };
-    }
-    let live = true;
-    const image = new Image();
-    image.crossOrigin = "anonymous";
-    image.onload = () => {
-      if (!live) return;
-      setLoaded({ of: photo.url, url: photo.url });
-      if (cacheKey) writeOriginalCache(cacheKey, photo.url, photo.expiresAt);
-    };
-    image.src = photo.url;
-    return () => { live = false; };
-  }, [sharp, photo.url, photo.previewUrl, cacheKey, reloadOriginal]);
-  return <img src={src} srcSet={failedSharp !== imageIdentity(src) && src === preview ? feedPhotoSrcSet(src) : undefined} onError={() => {
-    if (sharp && originalUrl && cacheKey && !retriedFresh.current) {
-      // Fall back once to the fresh signed photo.url; a second failure falls through to previewUrl.
-      retriedFresh.current = true;
-      try { sessionStorage.removeItem(cacheKey); } catch { /* ignore */ }
-      setLoaded(null);
-      setReloadOriginal(n => n + 1);
-      return;
-    }
-    if (cacheKey) { try { sessionStorage.removeItem(cacheKey); } catch { /* ignore */ } }
-    setLoaded(null);
-    setFailedSharp(imageIdentity(src));
-  }} crossOrigin="anonymous" alt={alt} draggable={false} className="h-full w-full object-contain" />;
+function DetailImage({ photo, alt, sizes }: { photo: DetailPhoto; alt: string; sizes: string }) {
+  const src = photo.previewUrl ?? photo.url;
+  const [failed, setFailed] = useState<string | null>(null);
+  // Masks and boxes use the original coordinate grid, scaled to this same frame;
+  // they do not require a second download of the full signed original.
+  return <><img src={src} srcSet={feedPhotoSrcSet(src)} sizes={sizes}
+    onError={() => setFailed(imageIdentity(src))} crossOrigin="anonymous" alt={alt}
+    draggable={false} className="h-full w-full object-contain" />
+    {failed === imageIdentity(src) && <span role="status" className="absolute bottom-3 left-3 rounded-field bg-surface px-2 text-meta text-text">Meal photo could not be loaded.</span>}</>;
 }
 
 function Mask({ url, photo, color, frame, fallback }: {
@@ -240,8 +171,8 @@ export default function OutlineOverlay({ desktopModal=false, desktopHeader, desk
           .sort((a, b) => (a.box!.right - a.box!.left) * (a.box!.bottom - a.box!.top) - (b.box!.right - b.box!.left) * (b.box!.bottom - b.box!.top))[0];
         if (hit) setSelection({ item: hit, key: Date.now() });
       }}>
-      {selectedIndex>0 ? selectedSlide?.kind==='photo'&&activePhoto?<DetailImage key={selectedSlide.id??selectedSlide.url} photo={activePhoto} alt={selectedSlide.not_eaten?'Leftovers':`Meal photo ${selectedIndex+1}`}/>:<ResultsCard data={displayCard} size={width} time={localTime}/> : photo && (!drink || drink.source === 'item') ? <>
-        <DetailImage photo={photo} alt={caption || "Meal photo"} sharp={outlines || drawing} />
+      {selectedIndex>0 ? selectedSlide?.kind==='photo'&&activePhoto?<DetailImage key={selectedSlide.id??selectedSlide.url} photo={activePhoto} alt={selectedSlide.not_eaten?'Leftovers':`Meal photo ${selectedIndex+1}`} sizes={`${width}px`}/>:<ResultsCard data={displayCard} size={width} time={localTime}/> : photo && (!drink || drink.source === 'item') ? <>
+        <DetailImage photo={photo} alt={caption || "Meal photo"} sizes={`${width}px`} />
         {outlines && items.map((item, index) => item.box ? <div key={item.id}>
           <Mask url={outlines ? item.maskUrl : null} photo={photo} color={outlineColor(index)} frame={frame} fallback={boxStyle(item.box)} />
           <button type="button" disabled={!initialized || readOnly} aria-label={`Edit ${item.name}`} className="absolute max-w-full rounded-chip py-grid text-label font-semibold text-white"
