@@ -49,7 +49,7 @@ export async function middleware(request: NextRequest) {
     }
   }
   if (!userId && pathname === "/choose-handle") {
-    return session.apply(NextResponse.redirect(new URL("/sign-in", request.url)));
+    return session.apply(NextResponse.redirect(new URL("/welcome", request.url)));
   }
   if (pathname === "/admin" || pathname.startsWith("/admin/")) {
     const allowed = await adminRequestAllowed(
@@ -59,7 +59,7 @@ export async function middleware(request: NextRequest) {
     if(!allowed)return adminNotFoundResponse(session.response);
   }
   if (!userId && PROTECTED.some((p) => pathname === p || pathname.startsWith(p + "/"))) {
-    return session.apply(NextResponse.redirect(new URL("/sign-in", request.url)));
+    return session.apply(NextResponse.redirect(new URL("/welcome", request.url)));
   }
   const postPath = pathname.match(/^\/posts\/([^/]+)\/?$/);
   if (userId && postPath && !request.headers.get("RSC")) {
