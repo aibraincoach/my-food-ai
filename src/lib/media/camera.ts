@@ -90,31 +90,47 @@ export async function grabFrame(video: HTMLVideoElement, onFrame?: (frame: HTMLC
   if (video.readyState < HTMLMediaElement.HAVE_CURRENT_DATA || !video.videoWidth || !video.videoHeight) {
     throw new Error("Camera is not ready yet.");
   }
-  const canvas = document.createElement("canvas");
-  canvas.width = video.videoWidth;
-  canvas.height = video.videoHeight;
-  const context = canvas.getContext("2d");
-  if (!context) throw new Error("Camera capture unavailable.");
-  context.drawImage(video, 0, 0);
-  if (onFrame) {
-    // A frozen frame can paint immediately while the full-quality JPEG is
-    // prepared. Yield a paint before starting the potentially expensive encode.
-    onFrame(canvas);
-    await new Promise<void>(resolve=>requestAnimationFrame(()=>requestAnimationFrame(()=>resolve())));
-  }
-  if (preferStill) {
-    const track = (video.srcObject as MediaStream | null)?.getVideoTracks?.()[0];
-    const Capture = (globalThis as unknown as {ImageCapture?: new(track: MediaStreamTrack) => {takePhoto(): Promise<Blob>}}).ImageCapture;
-    if (track && Capture) {
-      let timer: ReturnType<typeof setTimeout> | undefined;
-      try {
-        const still = await Promise.race([new Capture(track).takePhoto(),new Promise<never>((_,reject)=>{timer=setTimeout(()=>reject(new Error("Still capture timed out.")),3000);})]);
-        if (still.size && still.type.startsWith('image/')) return still;
-      } catch { /* HD video frame remains a supported fallback. */ }
-      finally { if (timer) clearTimeout(timer); }
-    }
-  }
-  return new Promise((resolve, reject) => canvas.toBlob(
-    (blob) => blob ? resolve(blob) : reject(new Error("Camera capture failed.")), "image/jpeg", 0.95
-  ));
+  return new Promise<Blob>((resolve, reject) => {
+    let settled = false;
+    const frames: number[] = [];
+    const finish = (error?: unknown, blob?: Blob) => {
+      if (settled) return;
+      settled = true;
+      clearTimeout(timer);
+      for (const frame of frames) globalThis.cancelAnimationFrame?.(frame);
+      if (error) reject(error); else resolve(blob!);
+    };
+    // One deadline covers both the paint yield and whichever capture API is supported.
+    const timer = setTimeout(() => finish(new Error("Camera capture timed out.")), 3000);
+    const capture = async () => {
+      const canvas = document.createElement("canvas");
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      const context = canvas.getContext("2d");
+      if (!context) throw new Error("Camera capture unavailable.");
+      context.drawImage(video, 0, 0);
+      if (onFrame) {
+        onFrame(canvas);
+        await new Promise<void>(resolve => {
+          frames.push(requestAnimationFrame(() => {
+            if (!settled) frames.push(requestAnimationFrame(() => resolve()));
+          }));
+        });
+      }
+      if (settled) return;
+      if (preferStill) {
+        const track = (video.srcObject as MediaStream | null)?.getVideoTracks?.()[0];
+        const Capture = (globalThis as unknown as {ImageCapture?: new(track: MediaStreamTrack) => {takePhoto(): Promise<Blob>}}).ImageCapture;
+        if (track && Capture) {
+          const still = await new Capture(track).takePhoto();
+          if (!still.size || !still.type.startsWith('image/')) throw new Error("Camera capture failed.");
+          return still;
+        }
+      }
+      return new Promise<Blob>((resolve, reject) => canvas.toBlob(
+        blob => blob ? resolve(blob) : reject(new Error("Camera capture failed.")), "image/jpeg", 0.95
+      ));
+    };
+    void capture().then(blob => { if (blob) finish(undefined, blob); }, error => finish(error));
+  });
 }
