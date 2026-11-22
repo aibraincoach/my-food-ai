@@ -1,3 +1,4 @@
+import {unavailableSentence} from "@/lib/fdc/unavailable";
 import {storedEstimateFood} from "@/lib/fdc/approximation-metadata";
 import { ApiError, ioError } from "@/lib/worker/errors";
 import type { SupabaseClient } from "@supabase/supabase-js";
@@ -80,13 +81,43 @@ export function sumNutrition(items: (NutritionLike & {name?:string;missing?:Miss
   return totals;
 }
 
-export function unavailableFoods(totals: {missing?:MissingNutrition}, keys: readonly NutrientKey[] = ["calories","protein_g","carbs_g","fat_g"]): string[] {
-  return [...new Set(keys.flatMap(key=>totals.missing?.[key]??[]))];
+export interface NutritionGap { name: string; nutrients: NutrientKey[] }
+export const GAP_LEAD = "Showing known values.";
+export function nutritionGaps(totals: {missing?:MissingNutrition}, shown: readonly NutrientKey[] = ["calories","protein_g","carbs_g","fat_g"]): NutritionGap[] {
+  const byFood = new Map<string, NutrientKey[]>();
+  for (const key of new Set(shown)) for (const name of totals.missing?.[key] ?? []) {
+    const keys = byFood.get(name) ?? [];
+    if (!keys.includes(key)) keys.push(key);
+    byFood.set(name, keys);
+  }
+  return [...byFood].map(([name,nutrients]) => ({name,nutrients}));
+}
+const nutrientNames: Record<NutrientKey,string> = {calories:"calories",protein_g:"protein",carbs_g:"carbs",fat_g:"fat",fibre_g:"fibre",sugar_g:"sugar",sodium_mg:"sodium"};
+function wordList(words:string[]):string {
+  return words.length < 3 ? words.join(" and ") : `${words.slice(0,-1).join(", ")}, and ${words.at(-1)}`;
+}
+// One wording path for comments, cards, calendar accessibility and disclosures.
+// A missing calorie figure does not say that every other nutrient is unknown.
+export function gapSentence(gaps: NutritionGap[], reasons: {name:string;sourceRef:unknown}[] = [], withDetail = false): string {
+  const sentences = gaps.map(gap => {
+    if (gap.nutrients.includes("calories")) {
+      const why = [...new Set(reasons.filter(row=>row.name===gap.name).map(row=>unavailableSentence(row.name,row.sourceRef,withDetail)).filter(Boolean))].join(" ");
+      return `Calories unavailable for ${gap.name}.${why ? ` ${why}` : ""}`;
+    }
+    return gap.nutrients.length ? `Missing ${wordList(gap.nutrients.map(key=>nutrientNames[key]))} for ${gap.name}.` : "";
+  }).filter(Boolean);
+  // Callers can also carry a durable reason without a missing-name aggregate.
+  // Preserve that reason once; do not invent another availability claim.
+  for (const reason of reasons) if (!gaps.some(gap=>gap.name===reason.name && gap.nutrients.includes("calories"))) {
+    const why=unavailableSentence(reason.name,reason.sourceRef,withDetail);
+    if (why && !sentences.includes(why)) sentences.push(why);
+  }
+  return sentences.join(" ");
 }
 
 export function formatConsumed(totals: MealTotals): string {
-  const names=unavailableFoods(totals);
-  return `Consumed: ${totals.calories===null?"unavailable":formatCalories(totals.calories)} kcal${names.length?` · Nutrition unavailable: ${names.join(", ")}`:""}`;
+  const gap=gapSentence(nutritionGaps(totals)).replace(/\.$/, "");
+  return `Consumed: ${totals.calories===null?"unavailable":formatCalories(totals.calories)} kcal${gap?` · ${gap}`:""}`;
 }
 
 export function formatGrams(grams: Numeric): string {

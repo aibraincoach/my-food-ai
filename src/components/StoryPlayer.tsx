@@ -1,5 +1,5 @@
 "use client";
-import { unavailableFoods } from "@/lib/nutrition/totals";
+import { nutritionGaps, gapSentence, GAP_LEAD } from "@/lib/nutrition/totals";
 
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import {useDeviceTimeZone} from "@/components/LocalTime";
@@ -48,7 +48,7 @@ export default function StoryPlayer({ day, zone, onClose, onDay, cell }: { day: 
   const today = dateInZone(new Date(), zone);
   const previous = shiftDay(day.date, -1), next = shiftDay(day.date, 1);
   const post = day.posts[slide];
-  const unavailable=unavailableFoods(day.totals);
+  const gap=gapSentence(nutritionGaps(day.totals));
   const time = (value: string) => clockZone ? formatLocalTime(value,clockZone) : "";
   const title = new Date(`${day.date}T12:00:00Z`).toLocaleDateString("en", { timeZone: "UTC", weekday: "long", month: "short", day: "numeric" });
   const weekday = new Date(`${day.date}T12:00:00Z`).toLocaleDateString("en", { timeZone: "UTC", weekday: "long" });
@@ -134,7 +134,7 @@ export default function StoryPlayer({ day, zone, onClose, onDay, cell }: { day: 
             {photo(post) ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img src={photo(post)!} onError={() => photoFailed(post.photoUrl)} alt={post.caption || "Meal"} className="h-full w-full object-cover" />
-            ) : <ResultsCard unavailable={unavailableFoods(post.totals)} size={width} time={time(post.eatenAt)} calories={post.totals.calories} protein={post.totals.protein_g} carbs={post.totals.carbs_g} fat={post.totals.fat_g} items={post.items.map(item => ({ name: item.name, grams: item.portion_grams == null ? null : Number(item.portion_grams) }))} />}
+            ) : <ResultsCard gap={gapSentence(nutritionGaps(post.totals))} size={width} time={time(post.eatenAt)} calories={post.totals.calories} protein={post.totals.protein_g} carbs={post.totals.carbs_g} fat={post.totals.fat_g} items={post.items.map(item => ({ name: item.name, grams: item.portion_grams == null ? null : Number(item.portion_grams) }))} />}
           </div>
           <div className="px-screen-x"><p className="text-body">{post.caption}</p><p className="mt-1 text-meta text-faint">{time(post.eatenAt)}</p></div>
         </div> : <div className="mt-auto flex shrink-0 flex-col gap-7 px-screen-x">
@@ -142,7 +142,7 @@ export default function StoryPlayer({ day, zone, onClose, onDay, cell }: { day: 
           <div className="grid grid-cols-3 pt-4" style={{ borderTop: `${tokens.border.hairline}px solid ${tokens.colors.surface}`, borderTopColor: `color-mix(in srgb, ${tokens.colors.surface} 14%, transparent)` }}>
             {([[day.totals.protein_g, "protein"], [day.totals.carbs_g, "carbs"], [day.totals.fat_g, "fat"]] as const).map(([value, word]) => <div key={word}><p className="text-day-macro tabular-nums">{formatNutrition(value)} g</p><p className="text-meta text-faint">{word}</p></div>)}
           </div>
-          {unavailable.length>0&&<details data-day-nutrition-disclosure className="text-meta text-faint"><summary className="cursor-pointer">Known nutrition shown · Unavailable foods</summary><p className="mt-2">Nutrition unavailable: {unavailable.join(', ')}</p></details>}
+          {Boolean(gap)&&<details data-day-nutrition-disclosure className="text-meta text-faint"><summary className="cursor-pointer">{GAP_LEAD}</summary><p className="mt-2">{gap}</p></details>}
           {day.intake === null ? <p role="alert" className="text-meta text-faint">Couldn’t load drinks.<button type="button" className="ml-2 min-h-tap text-surface" onClick={() => onDay(day.date)}>Try again</button></p> : intakeLine(day.intake) ? <p className="text-meta text-faint tabular-nums">{intakeLine(day.intake)}</p> : null}
           <div className="grid grid-cols-3 gap-2">{day.posts.map(entry => <Link key={entry.id} href={`/posts/${entry.id}`} className="min-w-0">
             <div className="flex aspect-square items-center justify-center overflow-hidden rounded-thumb bg-card text-text">

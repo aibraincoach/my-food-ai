@@ -1,5 +1,5 @@
 import {alcoholGrams} from '@/lib/intake/alcohol';
-import { formatCalories, formatNutrition, sumNutrition, unavailableFoods } from '@/lib/nutrition/totals';
+import { formatCalories, formatNutrition, sumNutrition, nutritionGaps, gapSentence } from '@/lib/nutrition/totals';
 import type { FeedPost } from '@/lib/posts/feed';
 import type { DrinkCardData } from '@/lib/intake/hydration';
 
@@ -38,6 +38,6 @@ export function summaryLine(post: PostPresentation, drink: DrinkCardData | null 
   const leftovers=post.items.filter(item=>item.not_eaten_grams!=null);
   const leftoverLine=leftovers.length?` · Leftovers: ${number(leftovers.reduce((total,item)=>total+(item.not_eaten_grams??0),0))} g`:'';
   const prefix = post.count_text ? `${post.count_text} · ` : '';
-  const missing = unavailableFoods(totals);
-  return `Consumed: ${prefix}${formatCalories(totals.calories)} kcal${drinkLine} · ${formatNutrition(totals.protein_g)} g protein · ${formatNutrition(totals.carbs_g)} g carbs · ${formatNutrition(totals.fat_g)} g fat${(post.foodWaterMl ?? 0) >= 50 ? ` · ${number(post.foodWaterMl!)} ml water` : ''}${missing.length ? ` · Nutrition unavailable: ${missing.join(', ')}` : ''}${leftoverLine}`;
+  const gap = gapSentence(nutritionGaps(totals));
+  return `Consumed: ${prefix}${formatCalories(totals.calories)} kcal${drinkLine} · ${formatNutrition(totals.protein_g)} g protein · ${formatNutrition(totals.carbs_g)} g carbs · ${formatNutrition(totals.fat_g)} g fat${(post.foodWaterMl ?? 0) >= 50 ? ` · ${number(post.foodWaterMl!)} ml water` : ''}${gap ? ` · ${gap}` : ''}${leftoverLine}`;
 }

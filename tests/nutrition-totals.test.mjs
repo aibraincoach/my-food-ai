@@ -7,7 +7,7 @@ test('an unknown item preserves available meal and day sums with omissions',()=>
  const known={...zeros,calories:100,protein_g:8};const unknown={...zeros,calories:null,protein_g:2};
  const meal=sumNutrition([known,unknown]);assert.equal(meal.calories,100);assert.equal(meal.protein_g,10);
  assert.equal(sumNutrition([sumNutrition([known]),meal]).calories,200);
- assert.equal(formatConsumed(meal),'Consumed: 100 kcal · Nutrition unavailable: an item');
+ assert.equal(formatConsumed(meal),'Consumed: 100 kcal · Calories unavailable for an item');
  for(const value of [null,undefined,'', '   ','not a number',NaN,Infinity,-Infinity]){
   assert.equal(sumNutrition([{...zeros,calories:value}]).calories,null);
   assert.equal(formatNutrition(value),'—');
