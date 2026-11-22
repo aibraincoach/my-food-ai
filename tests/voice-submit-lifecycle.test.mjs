@@ -83,3 +83,12 @@ for(const phase of ['recording','transcribing'])test(`drink detection during ${p
  assert.equal(h.caption(),'Typed meal spoken drink description','transcript is kept before the automatic surface switch');
  assert.equal(h.posted.length,0,'no automatic submission');
 });
+
+// Caption blur changes the phone composer layout before the synthesized touch click.
+test('Speak retains field focus on pointerdown so the click can start recording',async()=>{
+ const h=harness('LightComposer');const button=h.speak(h.render());let prevented=false;
+ button.props.onPointerDown({preventDefault(){prevented=true;}});
+ assert.equal(prevented,true,'do not let field blur move Speak before click');
+ button.props.onClick();await h.settle();
+ assert.equal(h.speak(h.render()).props['aria-label'],'Stop recording');
+});
