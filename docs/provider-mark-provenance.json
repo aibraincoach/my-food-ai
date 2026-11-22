@@ -1,0 +1,48 @@
+{
+  "retrieved": "2026-11-22",
+  "assets": [
+    {
+      "file": "public/providers/google-sign-in.png",
+      "archive": "google-assets.zip",
+      "member": "Android + Web/PNG @4x/Light/Theme=Light, Show text=No, Shape=Square, Platform=Android+Web@4x.png",
+      "sha256": "2bc2ae8e4c67de66d74bf1deed12cd8f22981270266a487576b671b0b4df361c",
+      "bytes": 7192,
+      "source_page": "https://developers.google.com/identity/branding-guidelines",
+      "archive_sha256": "ba884069e12093b06bcfd776915081254a7c95094b80d50be2c5dc6bac1c1da1",
+      "width": 160,
+      "height": 160
+    },
+    {
+      "file": "public/providers/line-login.png",
+      "archive": "line-assets.zip",
+      "member": "Line_Login_Button_Image/images/DeskTop/2x/44dp/line_88.png",
+      "sha256": "b3d3c91217e979882e2e947c219d299bd471b5305c3714276636111ac70f0688",
+      "bytes": 1535,
+      "source_page": "https://developers.line.biz/en/docs/line-login/login-button/",
+      "archive_sha256": "2357d4643557b3eca7c7d83bdd66c5fee7712fedd4f3c1abb75a2ffb30eb9111",
+      "width": 88,
+      "height": 88
+    },
+    {
+      "file": "public/providers/facebook-login.png",
+      "archive": "facebook-assets.zip",
+      "member": "Facebook Brand Asset Pack/Logo/Primary Logo/Facebook_Logo_Primary.png",
+      "sha256": "2adfd474d91fd20c51084309ed000c1ae6cc7f5f70af14d375930f5a71301308",
+      "bytes": 54771,
+      "source_page": "https://www.meta.com/brand/resources/facebook/logo/",
+      "archive_sha256": "5c51e2c9c2377b1656a3294b391ed4a42f88dd8c46fc05b98d3bc27affc97f3a",
+      "width": 2084,
+      "height": 2084
+    },
+    {
+      "file": "public/providers/apple-login.png",
+      "url": "https://appleid.cdn-apple.com/appleid/button/logo?size=40&color=black&border=false&border_radius=0&scale=2",
+      "sha256": "f0e1498f1e69e015fa15b41c04fce10c83c058fe36206d11676978344a726a36",
+      "bytes": 747,
+      "width": 80,
+      "height": 80
+    }
+  ],
+  "apple": "Official web button logo endpoint, explicitly documented for embedding; the separately downloaded mock-up-only Design Resources bundle is NOT used.",
+  "chatgpt": "plain word only; OpenAI approval is held on #1183"
+}
