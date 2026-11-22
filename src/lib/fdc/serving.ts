@@ -1,4 +1,5 @@
 import type { FdcFood } from "@/lib/fdc/client";
+import { scaleNutrition } from "./nutrients";
 
 // What one "serving" of a search result is: the label's gram serving for Branded foods, otherwise 100 g.
 export function servingGrams(food: FdcFood): number {
@@ -6,6 +7,6 @@ export function servingGrams(food: FdcFood): number {
 }
 
 export function caloriesPerServing(food: FdcFood): number | null {
-  const energy = food.foodNutrients.find((nutrient) => nutrient.nutrientId === 1008);
-  return energy ? Math.round(energy.value * servingGrams(food) / 100) : null;
+  const calories = scaleNutrition(food, servingGrams(food)).calories;
+  return calories === null ? null : Math.round(calories);
 }
