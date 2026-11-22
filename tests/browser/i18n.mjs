@@ -52,7 +52,7 @@ for(const [name,engine] of [['chromium',chromium],['webkit',webkit]].filter(([na
   await faultPage.waitForFunction(()=>{const f=Array.from(document.querySelectorAll('select')).find(n=>n.getClientRects().length);return f&&Object.keys(f).some(k=>k.startsWith('__reactFiber'));});
   let posts=0;await faultPage.route('**/profile',route=>{if(route.request().method()==='POST'){posts++;return route.abort('failed');}return route.continue();});
   await faultSelect.selectOption('en');
-  await faultPage.getByRole('alert').filter({hasText:'言語を保存できませんでした。もう一度お試しください。'}).waitFor();
+  await faultPage.getByRole('alert').filter({hasText:'言語の設定を保存できませんでした。もう一度お試しください。'}).waitFor();
   assert.equal(posts,1);
   assert.equal(await faultPage.locator('section').filter({has:faultPage.locator('select:visible')}).evaluate(e=>e.scrollWidth<=e.clientWidth),true);
   await faultPage.screenshot({path:out+'/'+name+'-error.png'});await faultContext.close();
