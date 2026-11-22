@@ -97,8 +97,8 @@ export function checkRecord(name: string, record: { description: string; categor
   const syrupDishes = [/\bgulab jamun\b/i];
   const sameSyrupDish = syrupDishes.some(dish => dish.test(name) && dish.test(record.description));
   if (frying.test(name) && !frying.test(record.description) && !sameSyrupDish
-    && /\b(?:syrup[- ]pack|juice[- ]pack|in (?:light |heavy |extra light )?syrup)\b/i.test(record.description))
-    strong.push("packed: the record is packed in syrup or juice; the food is fried");
+    && /\b(?:candied|syrup[- ]pack|juice[- ]pack|in (?:light |heavy |extra light )?syrup)\b/i.test(record.description))
+    strong.push("packed: the record is preserved in syrup or juice, or candied; the food is fried");
   if (/\b(with|and|&)\b/i.test(name)) {
     const parts = name.split(/\b(?:with|and)\b|&/i).map(part => nameKinds(part)).filter(set => set.size > 0);
     const described = nameKinds(record.description);

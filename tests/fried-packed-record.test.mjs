@@ -23,3 +23,7 @@ test('a fried or explicitly named syrup-served dish keeps its own preparation re
 test('unlisted fried fruit cannot be mistaken for a syrup dish',()=>{
  for(const fruit of ['cempedak','nangka','pisang','plantain'])assert.equal(packed(`fried ${fruit}`,`${fruit}, in syrup`).length,1,fruit);
 });
+
+test('candied fruit is not a reference for an explicitly fried fruit',()=>{
+ for(const fruit of ['cempedak','banana'])assert.equal(packed(`fried ${fruit}`,`${fruit}, candied`).length,1,fruit);
+});
