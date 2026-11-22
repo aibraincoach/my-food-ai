@@ -12,7 +12,7 @@ test('Today uses the active zone and ignores older responses even when aborted t
  const exported={};
  vm.runInNewContext(compile('DesktopToday.tsx'),{exports:exported,Intl,Date,AbortController,setTimeout:()=>1,clearTimeout(){},fetch:(url,options)=>new Promise(resolve=>requests.push({url,signal:options.signal,resolve})),window:{addEventListener:(name,fn)=>listeners.set(name,fn),removeEventListener:name=>listeners.delete(name)},require(name){
   if(name==='react')return{useState:initial=>{const slot=index++;state[slot]=initial;return[initial,value=>{state[slot]=value;}]},useEffect:fn=>effects.push(fn)};
-  if(name==='react/jsx-runtime')return{jsx,jsxs:jsx};if(name==='@/lib/ui/use-desktop')return{useDesktop:()=>true};if(name==='@/lib/posts/days')return{dateInZone,validZone};if(name==='@/lib/nutrition/totals')return{formatCalories:()=>'',formatNutrition:()=>''};if(name==='next/link')return{default:'a'};throw Error(name);
+  if(name==='@/components/LocalTime')return{useDeviceTimeZone:()=>''};if(name==='react/jsx-runtime')return{jsx,jsxs:jsx};if(name==='@/lib/ui/use-desktop')return{useDesktop:()=>true};if(name==='@/lib/posts/days')return{dateInZone,validZone};if(name==='@/lib/nutrition/totals')return{formatCalories:()=>'',formatNutrition:()=>''};if(name==='next/link')return{default:'a'};throw Error(name);
  }});
  exported.default({zone:'Asia/Jakarta'});const cleanup=effects[0]();assert.equal(new URL(requests[0].url,'http://localhost').searchParams.get('tz'),'Asia/Jakarta');
  listeners.get('post-settled')();assert.equal(requests[0].signal.aborted,true);assert.equal(requests[1].signal.aborted,false);
