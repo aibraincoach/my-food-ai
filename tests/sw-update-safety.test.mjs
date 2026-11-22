@@ -40,7 +40,7 @@ function pageFixture() {
  const exports={};vm.runInNewContext(code,{exports,require:name=>{
   if(name==='react')return react;if(name==='next/navigation')return {usePathname:()=>'/'};
   if(name==='@/lib/sw-update-safety')return {createUpdateSafety,hasUnsentText};
-  if(name.endsWith('/upload-manager'))return {uploadManager:{list:()=>pending?[{}]:[]}};
+  if(name.endsWith('/upload-presence'))return {hasMemoryUploads:()=>pending};
   if(name.endsWith('/upload-store'))return {uploadStore:{hasPending:async()=>stored}};
   throw Error(name);
  },window,document,navigator:{serviceWorker:worker},MediaStream,MutationObserver:class{constructor(fn){observers.push(fn);}observe(){}disconnect(){}},setTimeout,Event,Element:class{},requestAnimationFrame:fn=>{frames.set(++nextFrame,fn);return nextFrame;},cancelAnimationFrame:id=>frames.delete(id),console});

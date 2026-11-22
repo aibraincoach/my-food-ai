@@ -11,6 +11,7 @@ import type { CapturedLocation } from '@/lib/location/capture';
 import { PhotoUploadError, type UploadError } from '@/lib/media/put-with-progress';
 import { PackPhotoUpload, JSON_REQUEST_LIMIT_MS } from '@/lib/media/pack-photo-upload';
 import { reencodeShot } from '@/lib/media/reencode';
+import { registerUploadPresence } from './upload-presence';
 
 // AGY wording: a failed durable write only guarantees the current screen's copy.
 export const PHOTO_STORAGE_FAILED = "This photo couldn't be saved, but it is still on this screen—tap Try again.";
@@ -534,3 +535,4 @@ export class UploadManager {
     }
 }
 export const uploadManager = new UploadManager();
+registerUploadPresence(() => uploadManager.list().some(upload => !upload.postId));
