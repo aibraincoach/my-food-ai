@@ -2,7 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import { usePathname } from "next/navigation";
-import { createUpdateSafety } from "@/lib/sw-update-safety";
+import { createUpdateSafety, hasUnsentText } from "@/lib/sw-update-safety";
 import { uploadManager } from "@/lib/posts/upload-manager";
 import { uploadStore } from "@/lib/posts/upload-store";
 
@@ -13,7 +13,7 @@ export default function ServiceWorkerRegistration() {
     if (!("serviceWorker" in navigator)) return;
     const blocked = () => document.documentElement.hasAttribute('data-mfa-sheet-open') || Boolean(document.querySelector('[role="dialog"]')) ||
       Array.from(document.querySelectorAll('video')).some(video => video.srcObject instanceof MediaStream && video.srcObject.getVideoTracks().some(track => track.readyState === 'live')) ||
-      uploadManager.list().some(upload => !upload.postId);
+      uploadManager.list().some(upload => !upload.postId) || hasUnsentText(document);
     const update = createUpdateSafety({blocked, pending: () => uploadStore.hasPending(), reload: () => window.location.reload()});
     const check = () => { void update.safePoint().catch(() => console.error('App update deferred: pending photos could not be checked.')); };
     safePoint.current = check;
