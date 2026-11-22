@@ -29,7 +29,7 @@ test('session renewal is visible to the current server render and persists for t
  }finally{globalThis.fetch=originalFetch;if(originalUrl===undefined)delete process.env.NEXT_PUBLIC_SUPABASE_URL;else process.env.NEXT_PUBLIC_SUPABASE_URL=originalUrl;if(originalKey===undefined)delete process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;else process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=originalKey;}
 });
 
-test('expired session cleanup survives the redirect to sign-in',async()=>{
+test('expired session cleanup survives the redirect to Welcome',async()=>{
  const originalFetch=globalThis.fetch;const originalUrl=process.env.NEXT_PUBLIC_SUPABASE_URL;const originalKey=process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
  process.env.NEXT_PUBLIC_SUPABASE_URL='https://fixture.invalid';process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY='fixture-public-key';
  globalThis.fetch=async()=>Response.json({code:'refresh_token_not_found',message:'Invalid refresh token'},{status:400});
@@ -37,7 +37,7 @@ test('expired session cleanup survives the redirect to sign-in',async()=>{
   const expired={access_token:token(Math.floor(Date.now()/1000)-3600),refresh_token:'fixture-invalid',expires_in:3600,expires_at:Math.floor(Date.now()/1000)-3600,token_type:'bearer',user};
   const req=new NextRequest('https://app.invalid/profile');req.cookies.set(cookieName,cookie(expired));
   const response=await middleware(req);
-  assert.equal(response.status,307);assert.equal(response.headers.get('location'),'https://app.invalid/sign-in');
+  assert.equal(response.status,307);assert.equal(response.headers.get('location'),'https://app.invalid/welcome');
   const cleared=response.cookies.getAll().find(c=>c.name===cookieName);assert.ok(cleared);assert.equal(cleared.value,'');assert.equal(cleared.maxAge,0);
  }finally{globalThis.fetch=originalFetch;if(originalUrl===undefined)delete process.env.NEXT_PUBLIC_SUPABASE_URL;else process.env.NEXT_PUBLIC_SUPABASE_URL=originalUrl;if(originalKey===undefined)delete process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;else process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=originalKey;}
 });

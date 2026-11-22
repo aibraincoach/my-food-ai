@@ -9,7 +9,7 @@ const compile=path=>ts.transpileModule(readFileSync(new URL('../'+path,import.me
 function fixture(ua){
  const state=[];let cursor=0,requests=0;
  const jsx=(type,props)=>typeof type==='function'?type(props):({type,props});
- const dependencies={'react/jsx-runtime':{jsx,jsxs:jsx},react:{useState(initial){const at=cursor++;if(!(at in state))state[at]=initial;return[state[at],value=>{state[at]=value;}];}}};
+ const dependencies={'next/image':{default:props=>({type:'img',props})},'react/jsx-runtime':{jsx,jsxs:jsx},react:{useState(initial){const at=cursor++;if(!(at in state))state[at]=initial;return[state[at],value=>{state[at]=value;}];}}};
  const load=path=>{const exports={};vm.runInNewContext(compile(path),{exports,fetch(){requests++;throw Error('placeholder must not request');},require(name){assert.ok(name in dependencies,name);return dependencies[name];}});return exports;};
  dependencies['@/components/ui/Button']=load('src/components/ui/Button.tsx');
  dependencies['@/components/ProviderButton']=load('src/components/ProviderButton.tsx');
@@ -21,8 +21,8 @@ function fixture(ua){
 const nodes=tree=>!tree?[]:Array.isArray(tree)?tree.flatMap(nodes):typeof tree==='object'?[tree,...nodes(tree.props?.children)]:[];
 const text=tree=>!tree?'':Array.isArray(tree)?tree.map(text).join(''):typeof tree==='object'?text(tree.props?.children):String(tree);
 for(const[platform,ua,expected]of[
- ['Apple','Mozilla/5.0 (iPhone; CPU iPhone OS 18_0) AppleWebKit/605.1.15 Mobile/15E148',['Google','Apple','LINE','ChatGPT','Facebook']],
- ['non-Apple','Mozilla/5.0 (X11; Linux x86_64) Chrome/130 Safari/537.36',['Google','LINE','ChatGPT','Facebook']],
+ ['Apple','Mozilla/5.0 (iPhone; CPU iPhone OS 18_0) AppleWebKit/605.1.15 Mobile/15E148',['Apple','Google','LINE','Facebook','ChatGPT']],
+ ['non-Apple','Mozilla/5.0 (X11; Linux x86_64) Chrome/130 Safari/537.36',['Google','LINE','Facebook','ChatGPT']],
 ])test(platform+' placeholders show Coming soon on tap without request or form submission',async()=>{
  const f=fixture(ua);let tree=await f.render();let buttons=nodes(tree).filter(n=>n.type==='button');
  assert.equal(buttons.length,expected.length);assert.equal(nodes(tree).some(n=>n.type==='form'||n.type==='a'),false);
