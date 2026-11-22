@@ -229,12 +229,15 @@ test('density-specific copies remain distinct and owner-scoped in the private ca
 
 // A service-worker process can disappear after install has completed. Reusing
 // only its durable caches models activate starting in a fresh worker process.
-test('an updated worker reloads same-origin windows after an install-to-activate restart',async()=>{
- const stores=new Map(),navigated=[];
+test('an updated worker completes activation without waiting on a navigation fetch',async()=>{
+ const stores=new Map(),messages=[],navigated=[];
  const installer=worker({stores,active:true});await installer.event('install');
- const windows=['https://app.example/','https://app.example/posts/meal','https://other.example/'].map(url=>({url,async navigate(target){navigated.push(target);}}));
- const restarted=worker({stores,active:true,windows});await restarted.event('activate');
- assert.deepEqual(navigated,['https://app.example/','https://app.example/posts/meal']);
+ const windows=['https://app.example/','https://app.example/posts/meal','https://other.example/'].map(url=>({url,postMessage(message){messages.push({url,message});},navigate(target){navigated.push(target);return new Promise(()=>{});}}));
+ const restarted=worker({stores,active:true,windows});
+ const finished=await Promise.race([restarted.event('activate').then(()=>true),new Promise(resolve=>setTimeout(()=>resolve(false),100))]);
+ assert.equal(finished,true,'activation must not await a navigation handled by the activating worker');
+ assert.deepEqual(navigated,[]);
+ assert.deepEqual(JSON.parse(JSON.stringify(messages)),windows.slice(0,2).map(({url})=>({url,message:{type:'app-update-ready',build:'test-build'}})));
 });
 test('a first install never reloads windows even if its worker restarts before activate',async()=>{
  const stores=new Map(),navigated=[];

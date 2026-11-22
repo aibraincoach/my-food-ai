@@ -23,7 +23,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en" className="h-full antialiased" data-build={process.env.NEXT_PUBLIC_BUILD}>
       <body className={`${font.className} ${font.variable} flex min-h-dvh flex-col`}>
-        <ServiceWorkerRegistration />
+        <Suspense fallback={null}><ServiceWorkerRegistration /></Suspense>
         <Suspense fallback={null}><DeletePostSheet /><PostOpenTransition /></Suspense>
         <FeedCacheMutations />
         {children}
