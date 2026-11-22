@@ -8,7 +8,7 @@ Policy: `REVIEW_POLICY.md`. Mechanics: `skills/pplx-review/SKILL.md`. Firefox Bi
 
 ## Prerequisites
 
-- `node`, `firefox`, signed-in Perplexity profile at `/home/opc/.mozilla/firefox/w6ycu9xj.default-default` (override with `PPLX_SRC_PROFILE`)
+- `node`, `firefox`, a signed-in Perplexity Firefox profile (set `PPLX_SRC_PROFILE` to its local directory)
 - `gh` authenticated for `aibraincoach/my-food-ai`
 
 ## Batch run
