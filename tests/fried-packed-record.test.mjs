@@ -1,0 +1,15 @@
+import test from 'node:test';import assert from 'node:assert/strict';
+import {checkRecord} from '../src/lib/fdc/record-kind.ts';
+const packed=(name,description)=>checkRecord(name,{description}).strong.filter(signal=>signal.startsWith('packed:'));
+test('explicit frying names reject syrup or juice packs without guessing fat',()=>{
+ for(const name of ['fried cempedak','deep-fried jackfruit','pisang goreng','battered pineapple','banana fritter','banana fritters','banana tempura'])
+  for(const description of ['Jackfruit, canned, syrup pack','Pineapple, canned, juice pack','Bananas in syrup','Peaches in light syrup','Peaches in heavy syrup','Peaches in extra light syrup'])assert.equal(packed(name,description).length,1,`${name}: ${description}`);
+});
+test('canned foods, non-frying names and generic crispy labels keep their prior eligibility',()=>{
+ for(const [name,description] of [
+  ['pineapple','Pineapple, canned, juice pack'],['tuna fried rice','Fish, tuna, light, canned in water'],
+  ['fruit cocktail','Fruit cocktail, canned, heavy syrup'],['peaches in syrup','Peaches, canned, heavy syrup pack'],
+  ['crispy jackfruit','Jackfruit, canned, syrup pack'],['crunchy jackfruit','Jackfruit, canned, syrup pack'],
+  ['fried beans','Beans, canned'],['fried tuna','Fish, tuna, canned in oil'],
+ ])assert.deepEqual(packed(name,description),[],name);
+});
