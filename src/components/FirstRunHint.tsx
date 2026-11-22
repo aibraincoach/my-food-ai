@@ -56,14 +56,14 @@ export default function FirstRunHint({ hint, onTryBarcode, onVisibilityChange }:
       claimed.add(key); identity = key; setVisible(true);
       if (hint === "modes") window.addEventListener("capture-shot", hide);
       else {
-        document.addEventListener("pointerdown", hide, true);
+        document.addEventListener("click", hide, true);
         document.addEventListener("keydown", hide, true);
       }
     }).catch(() => {});
     return () => {
       live = false;
       window.removeEventListener("capture-shot", hide);
-      document.removeEventListener("pointerdown", hide, true);
+      document.removeEventListener("click", hide, true);
       document.removeEventListener("keydown", hide, true);
       // A disappearing host before dismissal may present the hint next time.
       if (identity && !dismissed) claimed.delete(identity);
