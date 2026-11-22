@@ -32,13 +32,28 @@ export async function signUp(_previous:SignUpState, formData: FormData): Promise
   }
   // Only email and handle return on failure. The typed password stays in the
   // existing client input; it is never echoed, persisted or put in an address.
-  const ownsSession=data.session?.user.id===data.user.id;
+  if (!data.session) {
+    return failure("If you received a confirmation email, confirm your account, then sign in. Otherwise, sign in.");
+  }
+  // A returned user id alone is not authority to assign that account a handle.
+  // Verify the session issued by sign-up before making the one profile write.
+  let verifiedId: string | undefined;
+  try {
+    const { data: verified, error: verificationError } = await supabase.auth.getUser();
+    if (!verificationError) verifiedId = verified.user?.id;
+  } catch {
+    console.error("Sign-up session verification failed.");
+  }
+  if (!verifiedId || verifiedId !== data.session.user.id || verifiedId !== data.user.id) {
+    await endCurrentSession(supabase.auth);
+    return failure(signUpMessage(null));
+  }
   let profileMessage: string | null = null;
   try {
-    const { error: profileError } = await createAdminClient().from("profiles").insert({ id: data.user.id, handle });
+    const { error: profileError } = await createAdminClient().from("profiles").insert({ id: verifiedId, handle });
     if (profileError) {
       console.error("Sign-up profile failed:",profileError.code??"unknown");
-      profileMessage = ownsSession && profileError.code === "23505" ? "That handle is taken. Choose another." : signUpMessage(null);
+      profileMessage = profileError.code === "23505" ? "That handle is taken. Choose another." : signUpMessage(null);
     }
   } catch {
     console.error("Sign-up profile failed: request_failure");
@@ -47,8 +62,7 @@ export async function signUp(_previous:SignUpState, formData: FormData): Promise
   if (profileMessage) {
     // The returned Auth id is never permission to delete an account (#1302).
     // Keep the account and use the existing signed-in profile recovery form.
-    if (ownsSession) fail("/choose-handle",profileMessage);
-    return failure(profileMessage);
+    fail("/choose-handle",profileMessage);
   }
   redirect("/");
 }
