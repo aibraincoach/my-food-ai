@@ -92,11 +92,10 @@ export function checkRecord(name: string, record: { description: string; categor
   // #1258: preserved fruit does not represent frying. A reference that
   // itself states frying, or names the same syrup-served dish, remains eligible.
   const frying = /\b(fried|goreng|battered|fritters?|tempura)\b/i;
-  const inSyrup = /\bin (?:light |heavy |extra light )?syrup\b/i;
-  const preservedPack = /\b(?:canned|syrup[- ]pack|juice[- ]pack)\b/i;
-  const dishName = (value: string) => value.toLowerCase().replace(/\b(fried|goreng|battered|fritters?|tempura)\b/g, '').replace(/[^\p{L}\p{N}]+/gu, ' ').trim();
-  const sameSyrupDish = kind !== 'fruit' && inSyrup.test(record.description) && !preservedPack.test(record.description)
-    && dishName(name) === dishName(record.description.split(',')[0]);
+  // PM-approved syrup dishes only: an unlisted fruit must never gain a
+  // dish exemption merely because the preserved record repeats its name.
+  const syrupDishes = [/\bgulab jamun\b/i];
+  const sameSyrupDish = syrupDishes.some(dish => dish.test(name) && dish.test(record.description));
   if (frying.test(name) && !frying.test(record.description) && !sameSyrupDish
     && /\b(?:syrup[- ]pack|juice[- ]pack|in (?:light |heavy |extra light )?syrup)\b/i.test(record.description))
     strong.push("packed: the record is packed in syrup or juice; the food is fried");
