@@ -129,7 +129,13 @@ export default function PostReadinessListener() {
           if (["CHANNEL_ERROR", "TIMED_OUT", "CLOSED"].includes(status)) disconnected = true;
           return;
         }
-        if (!connectedOnce) { connectedOnce = true; disconnected = false; void seedPending(); return; }
+        if (!connectedOnce) {
+          connectedOnce = true; disconnected = false;
+          // A tracked meal can finish after the initial read but before this
+          // subscription connects. The pending-only seed cannot see it now.
+          void seedPending().then(reconcilePending);
+          return;
+        }
         if (!disconnected) return;
         disconnected = false;
         // Exactly one attempt per reconnect, at most once per 30 seconds per tab.
