@@ -33,6 +33,6 @@ export default function ProviderButton({provider, startAction}: Props) {
   </button>;
   return <div className="flex flex-col">
     {startAction ? <form action={startAction}>{button}</form> : button}
-    {!startAction && <p id={messageId} role="status" className="text-center text-comment text-muted">{shown ? 'Coming soon' : ''}</p>}
+    {!startAction && <p id={messageId} role="status" className="min-h-[1lh] text-center text-comment text-muted">{shown ? 'Coming soon' : ''}</p>}
   </div>;
 }

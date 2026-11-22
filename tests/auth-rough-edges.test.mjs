@@ -1,0 +1,22 @@
+import test from'node:test';import assert from'node:assert/strict';import vm from'node:vm';import ts from'typescript';import{readFileSync}from'node:fs';
+const read=p=>readFileSync(new URL('../'+p,import.meta.url),'utf8');
+function actions(error=null,profileError=null){const exports={},removed=[],logs=[],deps={
+ 'next/navigation':{redirect:url=>{throw Object.assign(Error('redirect'),{url})}},
+ '@/lib/supabase/server':{createClient:async()=>({auth:{signUp:async()=>({data:{user:error?null:{id:'new-user'}},error}),signInWithPassword:async()=>({error}),getUser:async()=>({data:{user:null}})}})},
+ '@/lib/supabase/admin':{createAdminClient:()=>({from:()=>({insert:async()=>({error:profileError})}),auth:{admin:{deleteUser:async id=>{removed.push(id);return{error:null}}}}})},
+ '@/lib/auth/end-session':{endCurrentSession:async()=>{}}
+};vm.runInNewContext(ts.transpileModule(read('src/lib/auth/actions.ts'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText,{exports,require:n=>{assert.ok(n in deps,n);return deps[n]},console:{error:(...args)=>logs.push(args)},FormData});return{exports,removed,logs};}
+const form=()=>{const f=new FormData();f.set('email','person@example.com');f.set('handle','taken');f.set('password','PRIVATE password');return f;};
+test('sign-up errors return only safe retained fields, neutral messages and no redirect/password',async()=>{
+ for(const [error,message] of [[{code:'weak_password',message:'SECRET'},'Please choose a stronger password and try again.'],[{code:'email_address_invalid',message:'SECRET'},'Please enter a valid email address.'],[{code:'over_email_send_rate_limit',message:'SECRET'},'Too many requests; please wait and try again.'],[{code:'user_already_exists',message:'Account exists SECRET'},'Unable to complete sign-up; please try again.'],[{code:'unexpected',message:'SECRET'},'Unable to complete sign-up; please try again.']]){
+  const h=actions(error),result=await h.exports.signUp({},form());assert.deepEqual(JSON.parse(JSON.stringify(result)),{email:'person@example.com',handle:'taken',error:message});assert.doesNotMatch(JSON.stringify(result)+JSON.stringify(h.logs),/PRIVATE|SECRET|Account exists/);
+ }
+});
+test('taken handle returns its field error and deletes only the newly created user',async()=>{const h=actions(null,{code:'23505',message:'PRIVATE'});const result=await h.exports.signUp({},form());assert.equal(result.error,'That handle is taken. Choose another.');assert.deepEqual(h.removed,['new-user']);assert.ok(!('password'in result));});
+test('sign-in distinguishes confirmation and rate limit but never leaks unknown service text',async()=>{
+ for(const [error,message]of [[{code:'email_not_confirmed',message:'SECRET'},'Please confirm your email address before signing in.'],[{code:'over_request_rate_limit',message:'SECRET'},'Too many attempts; please wait and try again.'],[{status:429,message:'SECRET'},'Too many attempts; please wait and try again.'],[{code:'other',message:'SECRET'},'Sign-in could not be completed. Try again.']])await assert.rejects(actions(error).exports.signIn(form()),e=>new URL(e.url,'https://app.invalid').searchParams.get('error')===message);
+});
+test('sign-out lands on Welcome; explicit email/error routes stay email routes',async()=>{await assert.rejects(actions().exports.signOut(),e=>e.url==='/welcome');const s=read('src/lib/auth/actions.ts');assert.match(s,/fail\("\/sign-in"/);assert.match(read('src/app/(auth)/welcome/page.tsx'),/href="\/sign-in"/);});
+test('signup has one stateful submission and no query error or secret persistence path',()=>{
+ const page=read('src/app/(auth)/sign-up/page.tsx'),form=read('src/app/(auth)/_components/SignUpForm.tsx');assert.doesNotMatch(page,/searchParams|error\?/);assert.match(form,/startTransition\(\(\)=>submit\(data\)\)/);assert.match(form,/preventDefault/);assert.match(form,/method="post"/);assert.doesNotMatch(form,/\.reset\(|localStorage|sessionStorage|defaultValue=\{[^}]*password/);
+});

@@ -12,7 +12,7 @@ import Thread from '@/components/Thread';
 import PostDetailHeader from '@/components/PostDetailHeader';
 import type {PostPresentation} from '@/lib/posts/summary-line';
 export default async function PostDetail({id,desktopModal=false}:{id:string;desktopModal?:boolean}) {
- await connection();const supabase=await createClient(AbortSignal.timeout(8000));const userId=await verifiedUserId()??(await supabase.auth.getUser()).data.user?.id;if(!userId)redirect('/sign-in');
+ await connection();const supabase=await createClient(AbortSignal.timeout(8000));const userId=await verifiedUserId()??(await supabase.auth.getUser()).data.user?.id;if(!userId)redirect('/welcome');
  if(!isUuid(id))notFound();
  const cookieZone=(await cookies()).get("time-zone")?.value;const zone=validZone(cookieZone);
  const detail=await getPostDetail(supabase,id,zone);if(!detail)notFound();const card=detail.card;

@@ -9,39 +9,46 @@ function fail(path: string, message: string): never {
   redirect(`${path}?error=${encodeURIComponent(message)}`);
 }
 
-export async function signUp(formData: FormData): Promise<void> {
+export type SignUpState = {error:string|null;email:string;handle:string};
+function signUpMessage(error:{code?:string;status?:number;message?:string}|null):string {
+  if (error?.code==='captcha_failed' || error?.message?.toLowerCase().includes('captcha')) return "Complete the check and try again.";
+  if (error?.code==='weak_password') return "Please choose a stronger password and try again.";
+  if (error?.code==='email_address_invalid') return "Please enter a valid email address.";
+  if (error?.code==='over_email_send_rate_limit' || error?.code==='over_request_rate_limit' || error?.status===429) return "Too many requests; please wait and try again.";
+  return "Unable to complete sign-up; please try again.";
+}
+export async function signUp(_previous:SignUpState, formData: FormData): Promise<SignUpState> {
   const email = String(formData.get("email") ?? "");
   const handle = String(formData.get("handle") ?? "");
   const password = String(formData.get("password") ?? "");
+  const failure=(error:string):SignUpState=>({error,email,handle});
   const captchaToken = formData.get("h-captcha-response");
   const options = typeof captchaToken === "string" && captchaToken.trim() ? { captchaToken: captchaToken.trim() } : undefined;
   const supabase = await createClient();
   const { data, error } = await supabase.auth.signUp({ email, password, ...(options ? { options } : {}) });
   if (error || !data.user) {
-    fail("/sign-up", error?.message.toLowerCase().includes("captcha") ? "Complete the check and try again." : "We couldn't finish creating your account. Try again.");
+    console.error("Sign-up failed:",error?.code??"no_user");
+    return failure(signUpMessage(error));
   }
-  // The profiles table has no client insert policy, so the row is created
-  // with the service-role client; the secret key never leaves the server.
-  // The redirect below stays outside the try: redirect() throws
-  // NEXT_REDIRECT, which a catch here would mistake for a real error.
+  // Only email and handle return on failure. The typed password stays in the
+  // existing client input; it is never echoed, persisted or put in an address.
   const ownsSession=data.session?.user.id===data.user.id;
-  const profileFailure="We couldn't finish creating your account. Try again.";
   let profileMessage: string | null = null;
   try {
-    const admin = createAdminClient();
-    const { error: profileError } = await admin
-      .from("profiles")
-      .insert({ id: data.user.id, handle });
-    if (profileError) profileMessage = ownsSession && profileError.code === "23505" ? "That handle is taken. Choose another." : profileFailure;
+    const { error: profileError } = await createAdminClient().from("profiles").insert({ id: data.user.id, handle });
+    if (profileError) {
+      console.error("Sign-up profile failed:",profileError.code??"unknown");
+      profileMessage = ownsSession && profileError.code === "23505" ? "That handle is taken. Choose another." : signUpMessage(null);
+    }
   } catch {
-    profileMessage = profileFailure;
+    console.error("Sign-up profile failed: request_failure");
+    profileMessage = signUpMessage(null);
   }
   if (profileMessage) {
-    // signUp can return an existing/obfuscated account. Its returned id is
-    // never permission to delete an Auth account after a profile failure.
-    // A verified sign-up session can continue through the existing handle form.
+    // The returned Auth id is never permission to delete an account (#1302).
+    // Keep the account and use the existing signed-in profile recovery form.
     if (ownsSession) fail("/choose-handle",profileMessage);
-    fail("/sign-up", profileMessage);
+    return failure(profileMessage);
   }
   redirect("/");
 }
@@ -55,6 +62,8 @@ export async function signIn(formData: FormData): Promise<void> {
   const { error } = await supabase.auth.signInWithPassword({ email, password, ...(options ? { options } : {}) });
   if (error) fail("/sign-in", error.message.toLowerCase().includes("captcha") ? "Complete the check and try again."
     : error.code === "invalid_credentials" ? "That email and password don't match. Try again."
+    : error.code === "email_not_confirmed" ? "Please confirm your email address before signing in."
+    : error.code === "over_request_rate_limit" || error.status === 429 ? "Too many attempts; please wait and try again."
     : "Sign-in could not be completed. Try again.");
   redirect("/");
 }
@@ -62,13 +71,13 @@ export async function signIn(formData: FormData): Promise<void> {
 export async function signOut() {
   const supabase = await createClient();
   await endCurrentSession(supabase.auth);
-  redirect("/sign-in");
+  redirect("/welcome");
 }
 
 export async function chooseHandle(formData: FormData): Promise<void> {
   const supabase = await createClient();
   const {data: {user}, error} = await supabase.auth.getUser();
-  if (error || !user) redirect('/sign-in');
+  if (error || !user) redirect('/welcome');
   const {saveFirstHandle} = await import('@/lib/auth/first-profile');
   const message = await saveFirstHandle(createAdminClient(), user.id, String(formData.get('handle') ?? ''));
   if (message) fail('/choose-handle', message);
