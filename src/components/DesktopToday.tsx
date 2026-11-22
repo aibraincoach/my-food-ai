@@ -12,11 +12,11 @@ export default function DesktopToday({zone:configuredZone,initial,placeholder=fa
  // With no cookie, the server and first hydrated render share an empty clock.
  const deviceZone=useDeviceTimeZone();
  const zone=configuredZone?validZone(configuredZone):deviceZone;
- useEffect(()=>{if(!desktop||!zone)return;let live=true;let controller:AbortController|undefined;let slowTimer:ReturnType<typeof setTimeout>|undefined;
+ useEffect(()=>{if(!desktop||!zone)return;let live=true;let controller:AbortController|undefined;
  const load=()=>{controller?.abort();const request=new AbortController();controller=request;setSlow(false);setError(false);
  void fetch(`/api/today?tz=${encodeURIComponent(zone)}`,{cache:'no-store',signal:request.signal}).then(async response=>{if(!response.ok)throw Error();const data=await response.json() as TodayView;if(live&&controller===request){setLoaded({seed:initial,day:data});setError(false);setSlow(false);}}).catch(()=>{if(live&&controller===request&&!request.signal.aborted)setError(true);});};
  if(!initial)load();
- slowTimer=setTimeout(()=>{if(live&&!initial)setSlow(true);},3000);
+ const slowTimer=setTimeout(()=>{if(live&&!initial)setSlow(true);},3000);
  for(const name of ['post-settled','post-deleted','post-restore','intake-changed'])window.addEventListener(name,load);
  return()=>{live=false;controller?.abort();if(slowTimer)clearTimeout(slowTimer);for(const name of ['post-settled','post-deleted','post-restore','intake-changed'])window.removeEventListener(name,load);};},[desktop,zone,initial,placeholder]);
  const missing=[...new Set(Object.values(day?.totals.missing??{}).flat())];
