@@ -1,7 +1,7 @@
 'use client';
 import {useEffect,useRef,useState,type ReactNode} from 'react';
 import {useRouter} from 'next/navigation';
-import {sendFeedback} from '@/lib/posts/feedback';
+import {sendFeedback,StaleFeedbackError} from '@/lib/posts/feedback';
 import {createTapController} from '@/lib/posts/tap';
 import {Icon} from '@/components/ui/Icon';
 import {openPost} from '@/lib/posts/open-post';
@@ -13,7 +13,7 @@ export default function DoubleTap({postId,modelCommentId,fingerprint,href,childr
  const vote=()=>{
   if(!modelCommentId||!fingerprint||pending.current)return;
   pending.current=true;
-  void sendFeedback(postId,'up',modelCommentId,fingerprint).then(()=>{setShown(true);if(timer.current)clearTimeout(timer.current);timer.current=setTimeout(()=>setShown(false),600);}).catch(()=>window.dispatchEvent(new CustomEvent('feedback-error',{detail:{postId}}))).finally(()=>{pending.current=false;});
+  void sendFeedback(postId,'up',modelCommentId,fingerprint).then(()=>{setShown(true);if(timer.current)clearTimeout(timer.current);timer.current=setTimeout(()=>setShown(false),600);}).catch(error=>{const stale=error instanceof StaleFeedbackError;window.dispatchEvent(new CustomEvent('feedback-error',{detail:{postId,stale,...(stale?{message:error.message}:{})}}));if(stale)router.refresh();}).finally(()=>{pending.current=false;});
  };
  const latest=useRef({vote,open:(target:string)=>openTarget(router,target)});
  const controller=useRef<ReturnType<typeof createTapController>|null>(null);
