@@ -6,7 +6,7 @@ import {useDesktop} from '@/lib/ui/use-desktop';
 import {useDeviceTimeZone} from '@/components/LocalTime';
 import {dateInZone,validZone} from '@/lib/posts/days';
 import type {TodayView} from '@/lib/posts/today-view';
-import {formatCalories,formatNutrition} from '@/lib/nutrition/totals';
+import {formatCalories,formatNutrition,nutritionGaps,gapSentence,GAP_LEAD} from '@/lib/nutrition/totals';
 export default function DesktopToday({zone:configuredZone,initial,placeholder=false}:{zone?:string;initial?:TodayView;placeholder?:boolean}){
  const desktop=useDesktop();const [loaded,setLoaded]=useState<{seed:TodayView|undefined;day:TodayView}|null>(null);const day=loaded&&loaded.seed===initial?loaded.day:initial??null;const [error,setError]=useState(false);const [slow,setSlow]=useState(false);
  // With no cookie, the server and first hydrated render share an empty clock.
@@ -19,7 +19,7 @@ export default function DesktopToday({zone:configuredZone,initial,placeholder=fa
  const slowTimer=setTimeout(()=>{if(live&&!initial)setSlow(true);},3000);
  for(const name of ['post-settled','post-deleted','post-restore','intake-changed'])window.addEventListener(name,load);
  return()=>{live=false;controller?.abort();if(slowTimer)clearTimeout(slowTimer);for(const name of ['post-settled','post-deleted','post-restore','intake-changed'])window.removeEventListener(name,load);};},[desktop,zone,initial,placeholder]);
- const missing=[...new Set(Object.values(day?.totals.missing??{}).flat())];
+ const gap=gapSentence(nutritionGaps(day?.totals??{}));
  const dateText=day?.date??(zone?dateInZone(new Date(),zone):null);
  const date=dateText?new Date(`${dateText}T12:00:00Z`):null;
  const showPlaceholder=placeholder||(!day&&!error&&!slow);
@@ -27,7 +27,7 @@ export default function DesktopToday({zone:configuredZone,initial,placeholder=fa
   <div><h2 className="mb-[6px] text-[13px] text-muted">{showPlaceholder||(!day&&!configuredZone)?'Today':`Today · ${date?.toLocaleDateString('en',{weekday:'long',month:'short',day:'numeric',timeZone:'UTC'})}`}</h2><p className="flex items-baseline gap-2"><span className="text-[34px] font-semibold tracking-[-.8px] tabular-nums">{day?formatCalories(day.totals.calories):'—'}</span><span className="text-[14px] text-muted">kcal consumed</span></p></div>
   <div className="grid grid-cols-3 border-y border-hairline">{(['protein','carbs','fat'] as const).map(key=><div key={key} className="py-3"><p className="text-[16px] font-semibold tabular-nums">{day?formatNutrition(day.totals[`${key}_g`]):'—'} g</p><p className="text-[12px] text-muted">{key}</p></div>)}</div>
   <div><h3 className="mb-3 text-[13px] font-semibold">Today&apos;s meals</h3><div className="space-y-3">{day?.posts.map(post=><Link key={post.id} href={`/?post=${post.id}`} className="flex items-center gap-3">{post.photoUrl?<img loading="lazy" src={post.photoUrl} alt="" className="size-11 shrink-0 rounded-thumb object-cover"/>:<span className="size-11 shrink-0 rounded-thumb bg-card"/>}<span className="min-w-0 flex-1"><span className="block truncate text-[14px] font-medium">{post.caption||post.items.map(item=>item.name).join(', ')||'Meal'}</span><span className="text-[12px] text-muted">{zone?new Date(post.eatenAt).toLocaleTimeString('en',{hour:'numeric',minute:'2-digit',timeZone:zone}):''}</span></span><span className="text-[13px] tabular-nums">{formatCalories(post.totals.calories)} kcal</span></Link>)}</div>{day&&!day.posts.length?<p className="text-detail text-muted">No meals today</p>:null}</div>
-  {missing.length?<p className="text-meta text-muted">Known nutrition shown. Nutrition unavailable: {missing.join(', ')}</p>:null}
+  {gap?<p className="text-meta text-muted">{GAP_LEAD} {gap}</p>:null}
   {slow&&!day&&!error?<p role="status" className="text-detail text-muted">Today&apos;s totals couldn&apos;t load. <button type="button" className="underline" onClick={()=>void fetch(`/api/today?tz=${encodeURIComponent(zone)}`,{cache:'no-store'}).then(async response=>{if(!response.ok)throw Error();setLoaded({seed:initial,day:await response.json()});setSlow(false);}).catch(()=>setError(true))}>Try again</button></p>:null}
   {error?<p role="status" className="text-detail text-muted">Today&apos;s totals couldn&apos;t load. <button type="button" className="underline" onClick={()=>{setError(false);void fetch(`/api/today?tz=${encodeURIComponent(zone)}`,{cache:'no-store'}).then(async response=>{if(!response.ok)throw Error();setLoaded({seed:initial,day:await response.json()});}).catch(()=>setError(true));}}>Try again</button></p>:null}
  </aside>;

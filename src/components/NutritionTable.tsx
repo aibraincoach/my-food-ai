@@ -1,6 +1,5 @@
-import { unavailableSentence } from "@/lib/fdc/unavailable";
 import OpenFoodFactsAttribution from './OpenFoodFactsAttribution';
-import { unavailableFoods, formatCalories, formatNutrition, sumNutrition, type CurrentItem } from "@/lib/nutrition/totals";
+import { nutritionGaps, gapSentence, GAP_LEAD, NUTRIENT_KEYS, formatCalories, formatNutrition, sumNutrition, type CurrentItem } from "@/lib/nutrition/totals";
 
 import {nutritionTableRows, formatTableNutrient} from "@/lib/nutrition/table";
 
@@ -11,9 +10,9 @@ function number(value: number | null, unit: string) {
 export default function NutritionTable({ items }: { items: CurrentItem[] }) {
   const totals = sumNutrition(items);
   const rows = nutritionTableRows(items);
+  const gap=gapSentence(nutritionGaps(totals,NUTRIENT_KEYS),items.map(item=>({name:item.name,sourceRef:item.source_ref})),true);
   return <section className="px-screen-x pt-grid" aria-label="Consumed nutrition">
-    {unavailableFoods(totals).length ? <p className="text-meta text-muted">Known nutrition shown. Nutrition unavailable: {unavailableFoods(totals).join(", ")}</p> : null}
-    {items.map(item=>{const why=unavailableSentence(item.name,item.source_ref);return why?<p key={item.id} className="text-meta text-muted">{why}</p>:null;})}
+    {gap ? <p className="text-meta text-muted">{GAP_LEAD} {gap}</p> : null}
     <table className="w-full border-collapse text-detail tabular-nums"><caption className="sr-only">Consumed nutrition from USDA FoodData Central</caption>
       <tbody>{rows.map((row, index) => <tr key={`${index}:${row.name}:${row.unit}`} className={`h-table-row border-b border-hairline ${index === 0 ? "font-medium text-text" : "text-muted"}`}>
         <th scope="row" className="py-grid text-left" style={{ fontWeight: "inherit" }}>{row.name}{row.unavailable?.length?` · unavailable: ${row.unavailable.join(", ")}`:""}</th>

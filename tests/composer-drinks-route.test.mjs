@@ -99,7 +99,7 @@ test('composer identify enforces caps and ownership, caches one model call, and 
   assert.equal(checked(await db.from('posts').select('id,status').eq('id',id).single()).status,'ready');
   const items=checked(await db.from('current_post_items').select('id,portion_text').eq('post_id',id));assert.equal(items.length,1);assert.equal(items[0].portion_text,'150 ml');
   assert.equal(checked(await db.from('intake_logs').select('ml').eq('post_id',id).single()).ml,150);
-  const nutrition=checked(await db.from('item_nutrition').select('calories').eq('post_item_id',items[0].id).single());assert.ok(Math.abs(Number(nutrition.calories)-0.15)<1e-9);const summary=checked(await db.from('post_comments').select('body').eq('post_id',id).eq('author','model').single()).body;assert.match(summary,/Consumed: <1 kcal/);assert.match(summary,/Nutrition unavailable: Water, glass/);
+  const nutrition=checked(await db.from('item_nutrition').select('calories').eq('post_item_id',items[0].id).single());assert.ok(Math.abs(Number(nutrition.calories)-0.15)<1e-9);const summary=checked(await db.from('post_comments').select('body').eq('post_id',id).eq('author','model').single()).body;assert.match(summary,/Consumed: <1 kcal/);assert.match(summary,/Missing protein for Water, glass/);
   assert.equal(checked(await db.from('post_media').select('position').eq('post_id',id).eq('kind','photo').single()).position,0);
   const retry=await request('/api/drinks/post',body);assert.equal(retry.status,201);assert.equal((await retry.json()).post_id,id);assert.equal(checked(await db.from('current_post_items').select('id').eq('post_id',id)).length,1);
   assert.equal(await count(),1);

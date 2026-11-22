@@ -1,9 +1,9 @@
 import {drinkGlyph,type DrinkGlyph} from '@/lib/intake/drink-glyph';
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { getPostHydrationData, type DrinkCardData, type HydrationRecord } from "@/lib/intake/hydration";
-import { formatCalories, formatNutrition, sumNutrition, toNumber, unavailableFoods, type Numeric, type NutritionLike, type StoredNutrient } from "@/lib/nutrition/totals";
+import { formatCalories, formatNutrition, sumNutrition, toNumber, nutritionGaps, gapSentence, type Numeric, type NutritionLike, type StoredNutrient } from "@/lib/nutrition/totals";
 
-export type CardItem = NutritionLike & { id?:string; name: string; portion_grams: Numeric; portion_text?: string | null; micronutrients?: StoredNutrient[]; not_eaten_grams?:number|null;not_eaten_count_text?:string|null;not_eaten_calories?:number|null;supersedes?:string|null };
+export type CardItem = NutritionLike & { source_ref?:string|null; id?:string; name: string; portion_grams: Numeric; portion_text?: string | null; micronutrients?: StoredNutrient[]; not_eaten_grams?:number|null;not_eaten_count_text?:string|null;not_eaten_calories?:number|null;supersedes?:string|null };
 export interface CardData {
   kind: "meal" | "drink";
   glyph?:DrinkGlyph;
@@ -19,7 +19,7 @@ export interface CardData {
   kcal?: number | null;
   macros?: { protein: number | null; carbs: number | null; fat: number | null };
   items?: { name: string; grams: number | null }[];
-  unavailable?: string[];
+  gap?: string;
   waterLine?: string;
   mealDrinkLine?: string;
   footer?: string;
@@ -59,7 +59,7 @@ export function cardDataFromRow(source: CardSource): CardData {
     kcal: totals.calories,
     macros: { protein: totals.protein_g, carbs: totals.carbs_g, fat: totals.fat_g },
     items: source.items.map(item => ({ name: item.name, grams: item.portion_grams == null ? null : toNumber(item.portion_grams) })),
-    unavailable: unavailableFoods(totals),
+    gap: gapSentence(nutritionGaps(totals),source.items.map(item=>({name:item.name,sourceRef:item.source_ref}))),
     waterLine: (source.foodWaterMl ?? 0) >= 50 && hydration ? `Water in this meal: ${Math.round(source.foodWaterMl!).toLocaleString("en-US")} ml · Consumed today: ${hydration.totalMl.toLocaleString("en-US")} ml` : undefined,
     mealDrinkLine: !drink && source.itemDrinks?.length ? `Drinks with this meal: ${source.itemDrinks.map(row => `${Math.round(row.ml).toLocaleString("en-US")} ml ${row.label}`).join(" · ")}${source.itemDrinks.reduce((sum, row) => sum + row.caffeineMg, 0) > 0 ? ` · ${Math.round(source.itemDrinks.reduce((sum, row) => sum + row.caffeineMg, 0))} mg caffeine` : ""}` : undefined,
     footer: source.footer ?? remainderFooter(source.items),

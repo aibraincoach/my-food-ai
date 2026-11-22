@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {getProfileGrid} from '../src/lib/posts/grid.ts';
-import {sumNutrition,unavailableFoods} from '../src/lib/nutrition/totals.ts';
+import {sumNutrition,nutritionGaps} from '../src/lib/nutrition/totals.ts';
 const eaten='2026-10-31T08:00:00Z';
 const nutrition=(id,calories)=>({post_item_id:id,calories,protein_g:calories===null?null:10,carbs_g:calories===null?null:20,fat_g:calories===null?null:5,fibre_g:null,sugar_g:null,sodium_mg:null,micronutrients:[],source_ref:null});
 function fixture({signFails=false}={}){
@@ -30,7 +30,7 @@ function fixture({signFails=false}={}){
 }
 test('caption-only grid uses current known nutrition and identifies omissions, never old card pixels',async()=>{
  const {db,calls}=fixture();const posts=await getProfileGrid(db,'owner');const meal=posts.find(p=>p.id==='meal');
- assert.equal(meal.photoUrl,null);assert.equal(meal.calories,257.6);assert.deepEqual(new Set(unavailableFoods(sumNutrition(meal.items))),new Set(['coffee']));
+ assert.equal(meal.photoUrl,null);assert.equal(meal.calories,257.6);assert.deepEqual(new Set(nutritionGaps(sumNutrition(meal.items)).map(gap=>gap.name)),new Set(['coffee']));
  assert.ok(sumNutrition(meal.items).missing.fibre_g.includes('toast'));
  assert.equal(meal.items.length,2);assert.equal(posts.find(p=>p.id==='drink').isDrink,true);
  assert.equal(posts.find(p=>p.id==='photo').photoUrl,'signed:owner/photo/1.feed.jpg');

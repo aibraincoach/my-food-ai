@@ -10,7 +10,7 @@ export type ResultsCardProps = {
   data?: CardData;
   // Kept for story totals and existing callers while they adopt CardData.
   drink?: DrinkCardData | null;
-  unavailable?: string[];
+  gap?: string;
   time?: string;
   calories?: number | null;
   protein?: number | null;
@@ -26,12 +26,12 @@ export type ResultsCardProps = {
 export const ARROW_GUTTER = 24;
 
 /** The exact same flex layout renders in the browser and next/og (Satori). */
-export function ResultsCard({ data, drink, unavailable = [], time, calories = null, protein = null, carbs = null, fat = null, items = [], size = tokens.spacing.phone, fontFamily, gutter = 0 }: ResultsCardProps) {
+export function ResultsCard({ data, drink, gap = "", time, calories = null, protein = null, carbs = null, fat = null, items = [], size = tokens.spacing.phone, fontFamily, gutter = 0 }: ResultsCardProps) {
   const card: CardData = data ?? {
     kind: drink ? 'drink' : 'meal', amountMl: drink?.ml, caffeineMg: drink?.caffeineMg,
     drinkLine: drink ? `${drink.label}${drink.caffeineMg ? ` · ${formatNutrition(drink.caffeineMg)} mg caffeine · ${formatCalories(calories)} kcal` : ''}` : undefined,
     hydration: drink ? { totalMl: drink.totalMl, drinksMl: drink.drinksMl, foodMl: drink.foodMl, caffeineMg: drink.dayCaffeineMg ?? drink.caffeineMg } : undefined,
-    kcal: calories, macros: { protein, carbs, fat }, items, unavailable,
+    kcal: calories, macros: { protein, carbs, fat }, items, gap,
   };
   const isDrink = card.kind === 'drink';
   const glyph=card.glyph??drinkGlyph(drink?.label??'',(card.caffeineMg??0)>0?'caffeine':'water');
@@ -76,7 +76,7 @@ export function ResultsCard({ data, drink, unavailable = [], time, calories = nu
       <div style={{ display: 'flex', gap: tokens.spacing['macro-gap'] * scale, ...text('body') }}>
         {macro(card.macros?.protein, 'protein')}{macro(card.macros?.carbs, 'carbs')}{macro(card.macros?.fat, 'fat')}
       </div>
-      {(card.unavailable?.length ?? 0) > 0 ? <div style={{ display: 'flex', ...text('meta'), color: tokens.colors.muted }}>Nutrition unavailable: {card.unavailable!.join(', ')}</div> : null}
+      {card.gap ? <div style={{ display: 'flex', ...text('meta'), color: tokens.colors.muted }}>{card.gap}</div> : null}
       <div style={{ display: 'flex', flexDirection: 'column', gap: 6 * scale, ...text('detail'), lineHeight: tokens.card.itemLeading, color: tokens.colors.muted }}>
         <div style={{ display: 'flex' }}>{(card.items ?? []).map(item => `${item.name}${item.grams === null ? '' : ` ${Math.round(item.grams)} g`}`).join(' · ')}</div>
         {card.mealDrinkLine ? <div style={{ display: 'flex' }}>{card.mealDrinkLine}</div> : null}
