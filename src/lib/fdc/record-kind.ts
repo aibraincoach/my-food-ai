@@ -56,14 +56,16 @@ export function recordKind(description: string, category?: string | null): FoodK
     && !(kind === "condiment" && /\b(?:soups?|mixtures)\b/.test(text))
     && !(kind === "fruit" && /^pre-packaged fruit (?:and|&) vegetables$/.test(text)))?.[0];
   if (fromCategory) return fromCategory;
-  // No category: name the food before its accompaniment, never the dressing or sauce it comes with.
-  const head = description.split(",")[0].split(/\b(?:with|and|in)\b|&/i)[0];
+  // No category: the record's own first words name it ("Persimmons, japanese, dried").
+  const head = description.split(",")[0];
+  // #1153: an unknown food before its accompaniment must not inherit that accompaniment's kind.
+  if (nameKinds(head.split(/\b(?:with|and|in)\b|&/i)[0]).size === 0) return null;
   const kinds = nameKinds(head);
   if ([...kinds].every(kind => SINGLE_KINDS.has(kind))) return [...kinds][0] ?? null;
   // #1089: a head that mixes kinds is named by its last word, the noun: "Salad dressing" is a condiment, "Fish oil" a
   // fat, "Milk shakes" a drink. The head is cut at its first with/and/&/in first, so a whole dish keeps no kind
   // ("Beef and noodles with soy-based sauce" ends at "Beef"). Only a single kind counts; anything else stays unknown.
-  const last = head.trim().split(/\s+/).at(-1) ?? "";
+  const last = head.split(/\b(?:with|and|in)\b|&/i)[0].trim().split(/\s+/).at(-1) ?? "";
   const named = [...nameKinds(last)];
   return named.length === 1 && SINGLE_KINDS.has(named[0]) ? named[0] : null;
 }
