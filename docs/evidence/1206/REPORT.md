@@ -48,3 +48,7 @@ Receipts and raw scripts: `/home/opc/.openrig/shared-docs/rigs/myfoodai/state/bu
 Migration 0077 is additive: only new objects. Per the PM's separate rollout ruling, after zero-blocker review and an explicit **exact-head step order**, apply 0077 to production first using the 0075/0076 preflight, transaction/timeouts, grants/readback, judge check and cleanup protocol; then merge that exact PR head; then one authorized judge Send/admin-list check. No production application or check is part of this local proof. Until the schema is present, Send fails visibly. #1206 remains open for that completion.
 
 Admin means any signed-in account whose `profiles.role` is `admin`, as ruled by the PM. No production role count was requested or performed. #1190 and #1260 remain held.
+
+## Review amendment
+
+The reviewer found one additional stale assertion: `tests/i18n.test.mjs` expected the pre-support count143. It now expects209 (143existing +66support). All15 tests in that file and the209-key message check pass. This amendment changes only that test and this evidence note; product source and SQL are unchanged. The reviewer reported the same41 baseline full-suite failures plus this one head-only failure on the original head, and separately verified permissions, whitelist rejection and12-way rate-limit concurrency on a throwaway PostgreSQL database. Their browser/build and production limits remain stated in the review.
