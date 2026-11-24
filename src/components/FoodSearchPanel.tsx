@@ -1,4 +1,5 @@
 "use client";
+import {DisplayError} from '@/i18n/display-error';
 import {useFailureMessages} from '@/i18n/failure-messages';
 import {useLocale,useTranslations} from 'next-intl';
 import type {Locale} from '@/i18n/locales';
@@ -44,7 +45,7 @@ export default function FoodSearchPanel({ eatenAt, disabled, onQueued, onDescrib
     try {
       const operationId=await uploadManager.postFood({fdc_id:food.id,query:results.query,eaten_at:eatenAt??new Date().toISOString()},food.description);
       onQueued(operationId);
-    } catch (e) { onError(e instanceof CaptureFailureError ? captureFailureText(e.failure,tf)! : e instanceof Error ? e.message : t('mealSaveFailed')); }
+    } catch (e) { onError(e instanceof CaptureFailureError ? captureFailureText(e.failure,tf)! : e instanceof DisplayError ? e.message : t('mealSaveFailed')); }
     finally { pickingRef.current = false; setPicking(false); }
   };
 

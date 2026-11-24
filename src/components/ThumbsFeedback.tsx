@@ -16,16 +16,16 @@ export default function ThumbsFeedback({postId,modelCommentId,fingerprint,compac
  useEffect(()=>{let live=true;const client=createClient();
   const refresh=()=>{void client.from('post_feedback').select('verdict,model_comment_id,item_fingerprint').eq('post_id',postId).maybeSingle().then(({data})=>{if(live&&revisionRef.current===revision&&!saving.current)setVerdict(data?.model_comment_id===modelCommentId&&data?.item_fingerprint===fingerprint?data?.verdict??null:null);});};
   const onFeedback=(event:Event)=>{const detail=(event as CustomEvent).detail;if(detail?.postId===postId&&revisionRef.current===revision&&!saving.current&&detail.modelCommentId===modelCommentId&&detail.fingerprint===fingerprint)setVerdict(detail.verdict);};
-  const onError=(event:Event)=>{const detail=(event as CustomEvent).detail;if(detail?.postId===postId&&(!detail.revision||detail.revision===revision)&&revisionRef.current===revision)setError({revision:detail.stale?null:revision,message:detail.message});};
+  const onError=(event:Event)=>{const detail=(event as CustomEvent).detail;if(detail?.postId===postId&&(!detail.revision||detail.revision===revision)&&revisionRef.current===revision)setError({revision:detail.stale?null:revision,message:t('feedbackSaveFailed')});};
   window.addEventListener('post-feedback',onFeedback);window.addEventListener('feedback-error',onError);refresh();return()=>{live=false;window.removeEventListener('post-feedback',onFeedback);window.removeEventListener('feedback-error',onError);};
- },[postId,modelCommentId,fingerprint,revision]);
+ },[postId,modelCommentId,fingerprint,revision,t]);
  const vote=async(value:Verdict)=>{if(!modelCommentId||!fingerprint)return;const token=Symbol();const displayedRevision=revision;
   const isCurrent=()=>saving.current===token&&revisionRef.current===displayedRevision;
   try{await saveFeedbackRevision(displayedRevision,async()=>{
    saving.current=token;setError(null);
    await saveFeedbackOptimistically({previous:verdict,next:value,save:()=>sendFeedback(postId,value,modelCommentId,fingerprint),isCurrent,select:setVerdict});
   });}
-  catch(error){const stale=error instanceof StaleFeedbackError;const message=stale?error.message:undefined;if(isCurrent()||stale)setError({revision:stale?null:displayedRevision,message});window.dispatchEvent(new CustomEvent('feedback-error',{detail:{postId,revision:displayedRevision,message,stale}}));if(stale)router.refresh();}
+  catch(error){const stale=error instanceof StaleFeedbackError;const message=stale?t('feedbackSaveFailed'):undefined;if(isCurrent()||stale)setError({revision:stale?null:displayedRevision,message});window.dispatchEvent(new CustomEvent('feedback-error',{detail:{postId,revision:displayedRevision,message,stale}}));if(stale)router.refresh();}
   finally{if(isCurrent())saving.current=null;}
  };
  const thumbClass=(value:Verdict)=>{

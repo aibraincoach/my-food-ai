@@ -1,8 +1,11 @@
+import {checkAllErrorDisplays} from './check-error-displays.mjs';
 import {checkRouteNamespaces} from './check-route-namespaces.mjs';
 import {checkCaptureNamespaces} from './check-capture-namespaces.mjs';
 import {checkMessages, readMessages} from './check-messages.mjs';
 import {lintTargets} from './eslint-i18n.mjs';
 import {spawnSync} from 'node:child_process';
+const displays=checkAllErrorDisplays();
+if(displays.failures.length)throw new Error('Untranslated UI error displays: '+JSON.stringify(displays.failures));
 const result=checkMessages(readMessages());
 checkCaptureNamespaces();
 checkRouteNamespaces();

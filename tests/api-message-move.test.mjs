@@ -12,7 +12,7 @@ for(const locale of['en','ja'])test(locale+': every moved code keeps its bytes a
  for(const[code,value]of Object.entries(before.messages[locale])){assert.equal(messages.api[code],value);assert.equal(Object.hasOwn(messages.capture,code),false);assert.equal(renderFailureMessage(code,undefined,ts),value);}
  const storedV3=JSON.parse('{"version":3,"failure":{"code":"route_fc3f44ef874c"}}');assert.equal(captureFailureText(storedV3.failure,(code,values)=>renderFailureMessage(code,values,ts)),before.messages[locale].route_fc3f44ef874c);
 });
-test('unknown explicit response codes throw rather than silently becoming a different message',()=>{assert.throws(()=>failureFromResponse({message_code:'route_missing'}),/Unknown route message code/);assert.deepEqual(failureFromResponse({message_code:'route_fc3f44ef874c'}),{code:'route_fc3f44ef874c'});});
+test('unknown response codes use the explicit generic UI message, never the code',()=>{assert.deepEqual(failureFromResponse({message_code:'route_missing'}),{code:'unknownFailure'});assert.deepEqual(failureFromResponse({message_code:'route_fc3f44ef874c'}),{code:'route_fc3f44ef874c'});});
 test('namespace selection never tries the other dictionary on a missing key',()=>{
  const calls=[],ts=translators('en',calls);assert.throws(()=>renderFailureMessage('route_missing',undefined,ts));assert.deepEqual(calls,[]);calls.length=0;assert.throws(()=>renderFailureMessage('missing_local_code',undefined,ts));assert.deepEqual(calls,[]);
 });

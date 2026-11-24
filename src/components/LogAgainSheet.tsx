@@ -1,4 +1,5 @@
 'use client';
+import {DisplayError} from '@/i18n/display-error';
 import {useFailureMessages} from '@/i18n/failure-messages';
 import {useLocale,useTranslations} from 'next-intl';
 import type {Locale} from '@/i18n/locales';
@@ -27,9 +28,9 @@ export default function LogAgainSheet({target,onClose}:{target:LogTarget|null;on
  const sent=useRef<LogTarget|null>(null);
  const close=()=>{if(!lock.current){setError('');setMode('now');setTime('');setDate('');onClose();}};
  async function post(){if(!target||target.loading||lock.current||sent.current===target)return;lock.current=true;setBusy(true);setError('');
- try{const when=new Date(); if(mode!=='now'){if(!time||mode==='day'&&!date)throw new Error(t('chooseDateTime'));if(mode==='day'){const [y,m,d]=date.split('-').map(Number);when.setFullYear(y,m-1,d);}const[h,m]=time.split(':').map(Number);when.setHours(h,m,0,0);}
- sent.current=target;onClose();void uploadManager.postCopy({id:target.id,saved:target.saved,eatenAt:when.toISOString()},target.name).catch(reason=>setCopyError({message:reason instanceof CaptureFailureError ? captureFailureText(reason.failure,tf)! : reason instanceof Error?reason.message:t('mealLogFailed'),key:Date.now()}));setMode('now');setTime('');setDate('');if(pathname!=='/')router.push('/');
- }catch(e){setError(e instanceof CaptureFailureError ? captureFailureText(e.failure,tf)! : e instanceof Error?e.message:t('mealLogFailed'));}finally{lock.current=false;setBusy(false);}}
+ try{const when=new Date(); if(mode!=='now'){if(!time||mode==='day'&&!date)throw new DisplayError(t('chooseDateTime'));if(mode==='day'){const [y,m,d]=date.split('-').map(Number);when.setFullYear(y,m-1,d);}const[h,m]=time.split(':').map(Number);when.setHours(h,m,0,0);}
+ sent.current=target;onClose();void uploadManager.postCopy({id:target.id,saved:target.saved,eatenAt:when.toISOString()},target.name).catch(reason=>setCopyError({message:reason instanceof CaptureFailureError ? captureFailureText(reason.failure,tf)! : reason instanceof DisplayError?reason.message:t('mealLogFailed'),key:Date.now()}));setMode('now');setTime('');setDate('');if(pathname!=='/')router.push('/');
+ }catch(e){setError(e instanceof CaptureFailureError ? captureFailureText(e.failure,tf)! : e instanceof DisplayError?e.message:t('mealLogFailed'));}finally{lock.current=false;setBusy(false);}}
  return <><Sheet hideClose open={!!target} onClose={close} label={tp('eatAgain')} panelStyle={{overflow:'hidden'}}>
   <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto overscroll-contain" data-log-again-content>
    <div className="flex h-11 shrink-0 items-center justify-between"><h2 className="text-sheet-head font-semibold">{tp('eatAgain')}</h2><button onClick={close} aria-label={t('closeEatAgain')} className="min-h-tap min-w-tap">×</button></div>

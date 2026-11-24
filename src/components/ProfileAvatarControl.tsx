@@ -1,4 +1,5 @@
 'use client';
+import {DisplayError} from '@/i18n/display-error';
 import {useApiFailureText} from '@/i18n/api-error-text';
 import {useTranslations} from 'next-intl';
 import {useRef, useState, type ChangeEvent} from 'react';
@@ -36,11 +37,11 @@ export default function ProfileAvatarControl({
       body.set('photo', file);
       const response = await fetch('/api/profile/avatar', {method: 'POST', body});
       const payload = await response.json().catch(() => ({}));
-      if (!response.ok) throw new Error(apiError(payload,"route_b01b8dcc9403"));
+      if (!response.ok) throw new DisplayError(apiError(payload,"route_b01b8dcc9403"));
       notify(typeof payload.avatar_media_id === 'string' ? payload.avatar_media_id : null);
       setMenu(false);
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : t('photoSaveFailed'));
+      setError(cause instanceof DisplayError ? cause.message : t('photoSaveFailed'));
     } finally {
       setBusy(false);
     }
@@ -52,11 +53,11 @@ export default function ProfileAvatarControl({
     try {
       const response = await fetch('/api/profile/avatar', {method: 'DELETE'});
       const payload = await response.json().catch(() => ({}));
-      if (!response.ok) throw new Error(apiError(payload,"route_0c82f1c92275"));
+      if (!response.ok) throw new DisplayError(apiError(payload,"route_0c82f1c92275"));
       notify(null);
       setMenu(false);
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : t('photoRemoveFailed'));
+      setError(cause instanceof DisplayError ? cause.message : t('photoRemoveFailed'));
     } finally {
       setBusy(false);
     }

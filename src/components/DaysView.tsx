@@ -1,4 +1,5 @@
 "use client";
+import {DisplayError,displayErrorText} from '@/i18n/display-error';
 import {useLocale,useTranslations} from "next-intl";
 import {formatDate,formatEnergy,formatNumber} from "@/i18n/format";
 import DesktopDays from '@/components/DesktopDays';
@@ -56,7 +57,7 @@ export default function DaysView({ initialMonths, initialMonthErrors, earliest, 
       let summary: MonthSummary;
       if (!response.ok) {
         const failure = await response.json();
-        if (response.status !== 503 || failure.month !== month || !failure.summary) throw new Error(t("monthLoadFailedRetry"));
+        if (response.status !== 503 || failure.month !== month || !failure.summary) throw new DisplayError(t("monthLoadFailedRetry"));
         summary = failure.summary;
         setMonthErrors(current => [...new Set([...current, month])]);
       } else {
@@ -87,7 +88,7 @@ export default function DaysView({ initialMonths, initialMonthErrors, earliest, 
     setLoadingDay(true); setError("");
     try {
       const [response] = await Promise.all([fetch(url(`/api/days?date=${date}`), { cache: "no-store" }), loadThrough(date.slice(0, 7))]);
-      if (!response.ok) throw new Error(t("dayLoadFailedRetry"));
+      if (!response.ok) throw new DisplayError(t("dayLoadFailedRetry"));
       const data: { day: LoggedDay } = await response.json();
       if (request !== dayRequest.current) return;
       setSelected(date); activeRef.current = data.day; setActive(data.day);
@@ -96,7 +97,7 @@ export default function DaysView({ initialMonths, initialMonthErrors, earliest, 
     } catch (failure) {
       if (request === dayRequest.current) {
         retry.current = () => { void requestDay(date, updateUrl); };
-        setError(failure instanceof Error ? failure.message : t("dayLoadFailed"));
+        setError(failure instanceof DisplayError ? failure.message : t("dayLoadFailed"));
       }
     }
     finally { if (request === dayRequest.current) {openingDay.current=null;setLoadingDay(false);} }
@@ -168,15 +169,15 @@ export default function DaysView({ initialMonths, initialMonthErrors, earliest, 
     setMenuLoading(true); setMenuError("");
     try {
       const response = await fetch(url("/api/days?months=1"), { cache: "no-store" });
-      if (!response.ok) throw new Error(t("monthCountsLoadFailed"));
+      if (!response.ok) throw new DisplayError(t("monthCountsLoadFailed"));
       const data: { months: Record<string, number> } = await response.json(); setCounts(data.months);
-    } catch (failure) { setMenuError(failure instanceof Error ? failure.message : t("monthsLoadFailed")); }
+    } catch (failure) { setMenuError(failure instanceof DisplayError ? failure.message : t("monthsLoadFailed")); }
     finally { setMenuLoading(false); }
   };
   const jump = async (month: string) => {
     setMenu(false); setLoadingMonth(true); setError("");
     try { await loadThrough(month); scrollMonth(month); }
-    catch (failure) { retry.current = () => { void jump(month); }; setError(failure instanceof Error ? failure.message : t("monthLoadFailed")); }
+    catch (failure) { retry.current = () => { void jump(month); }; setError(failure instanceof DisplayError ? failure.message : t("monthLoadFailed")); }
     finally { setLoadingMonth(false); }
   };
   const close = () => {
@@ -188,7 +189,7 @@ export default function DaysView({ initialMonths, initialMonthErrors, earliest, 
   const retryMonth = (month: string) => {
     const attempt = () => {
       setError("");
-      void loadMonth(month,true).catch(failure => { retry.current = attempt; setError(failure.message); });
+      void loadMonth(month,true).catch(failure => { retry.current = attempt; setError(displayErrorText(failure,t("monthLoadFailed"))); });
     };
     attempt();
   };
@@ -201,7 +202,7 @@ export default function DaysView({ initialMonths, initialMonthErrors, earliest, 
     {monthFailures}
     <div className="desktop:flex desktop:items-start desktop:justify-center desktop:gap-6"><div ref={monthScroll} className="flex flex-col pt-1 desktop:max-h-[calc(100dvh-96px)] desktop:overflow-y-auto desktop:w-[616px] desktop:min-w-0 desktop:flex-1 desktop:max-w-[616px]" style={{ gap: tokens.spacing["icon-small"] + tokens.spacing.grid }}>
       <PhoneCalendar months={months} today={today} selected={selected} onDay={date=>{if(activeRef.current?.date!==date)void openDay(date);}} onOlder={last>floor?()=>{
-        const attempt=()=>{setLoadingMonth(true);setError('');void loadMonth(shiftMonth(last,-1)).catch(failure=>{retry.current=attempt;setError(failure.message);}).finally(()=>setLoadingMonth(false));};attempt();
+        const attempt=()=>{setLoadingMonth(true);setError('');void loadMonth(shiftMonth(last,-1)).catch(failure=>{retry.current=attempt;setError(displayErrorText(failure,t("monthLoadFailed")));}).finally(()=>setLoadingMonth(false));};attempt();
       }:undefined}/>
     </div>
     <aside className="hidden desktop:sticky desktop:top-6 desktop:block desktop:w-[440px] desktop:max-w-[44%] desktop:shrink-0 desktop:overflow-hidden desktop:rounded-[16px] desktop:border desktop:border-line desktop:bg-white" aria-label={t("selectedDay")}>

@@ -15,7 +15,7 @@ export async function POST(request:Request){
   if(!validReport(report))return Response.json({message_code: "unknownFailure"},{status:400});
   try {
     const {error}=await client.from('freeze_reports').insert({...report,user_id:user.id});
-    if(error)return Response.json({message_code: error.code==='P4290' ? "unknownFailure" : "unknownFailure"},{status:error.code==='P4290'?429:500});
+    if(error)return Response.json({message_code: "unknownFailure"},{status:error.code==='P4290'?429:500});
     return Response.json({ok:true});
   }catch{return Response.json({message_code: "unknownFailure"},{status:500});}
 }

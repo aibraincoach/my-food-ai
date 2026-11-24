@@ -7,8 +7,8 @@ test('all26 known route/helper errors retain their exact English through the per
   const f=failureFromResponse({message_code:code});assert.equal(f.code,code);assert.equal(captureEnglish(f.code),line);assert.equal(JSON.stringify(f).includes(line),false);
  }
 });
-test('unknown explicit codes throw; missing responses use the neutral registered message',()=>{
- for(const value of['New database detail','toString','__proto__',null])assert.throws(()=>failureFromResponse({message_code:value}));
+test('unknown and missing response codes use the neutral registered message',()=>{
+ for(const value of['New database detail','toString','__proto__',null])assert.deepEqual(failureFromResponse({message_code:value}),{code:'unknownFailure'});
  assert.equal(captureEnglish(failureFromResponse(null).code),'Something went wrong. Try again.');
  assert.equal(captureEnglish('saved-before-update'),'Something went wrong. Try again.');
 });

@@ -1,4 +1,5 @@
 "use client";
+import {DisplayError} from '@/i18n/display-error';
 import {useApiFailureText} from '@/i18n/api-error-text';
 import {useLocale,useTranslations} from 'next-intl';
 import type {Locale} from '@/i18n/locales';
@@ -36,11 +37,11 @@ export default function ItemEditSheet({ postId, item, color, box, open = true, o
     const timer = setTimeout(async () => {
       try {
         const response = await fetch(`/api/fdc/search?q=${encodeURIComponent(query)}`, { signal: controller.signal, cache: "no-store" });
-        if (!response.ok) throw new Error(t('searchUnavailableEntry'));
+        if (!response.ok) throw new DisplayError(t('searchUnavailableEntry'));
         const result = await response.json() as { foods: Match[] };
         if (!controller.signal.aborted) setMatches({ query, values: result.foods });
       } catch (cause) {
-        if (!controller.signal.aborted) setMatches({ query, values: [], error: cause instanceof Error ? cause.message : t('searchUnavailable') });
+        if (!controller.signal.aborted) setMatches({ query, values: [], error: cause instanceof DisplayError ? cause.message : t('searchUnavailable') });
       }
     }, 300);
     return () => { clearTimeout(timer); controller.abort(); };
@@ -68,9 +69,9 @@ export default function ItemEditSheet({ postId, item, color, box, open = true, o
     try {
       const response = await fetch(`/api/posts/${postId}/items`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(edit) });
       const result = await response.json();
-      if (!response.ok) throw new Error(apiError(result,"route_6d3417bf1ab7"));
+      if (!response.ok) throw new DisplayError(apiError(result,"route_6d3417bf1ab7"));
       onSaved();
-    } catch (cause) { setError(cause instanceof Error ? cause.message : t('itemSaveFailed')); }
+    } catch (cause) { setError(cause instanceof DisplayError ? cause.message : t('itemSaveFailed')); }
     finally { savingRef.current = false; setSaving(false); }
   };
   const visibleMatches = name !== chosen && matches?.query === name.trim() ? matches : null;

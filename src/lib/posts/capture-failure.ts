@@ -1,5 +1,5 @@
 import type messages from '../../../messages/en.json';
-import {API_MESSAGE_CODES} from '@/i18n/api-codes';
+import {API_MESSAGE_CODES,FAILURE_MESSAGE_NAMESPACES} from '@/i18n/api-codes';
 export type CaptureMessageCode = keyof typeof messages.capture | keyof typeof messages.api;
 export type CaptureFailure = {code:CaptureMessageCode;values?:Record<string,string|number>};
 // No dictionary or locale is loaded by the upload manager.
@@ -125,7 +125,7 @@ const known = new Set<string>([...CAPTURE_FAILURE_CODES,...API_MESSAGE_CODES]);
 export function failureFromResponse(body:unknown,missingCode:CaptureMessageCode='unknownFailure'):CaptureFailure {
  const code=body&&typeof body==='object'?(body as {message_code?:unknown}).message_code:undefined;
  if(code===undefined){if(!known.has(missingCode))throw new Error('Unknown route message code');return {code:missingCode};}
- if(typeof code!=='string'||!known.has(code))throw new Error('Unknown route message code');
+ if(typeof code!=='string'||!known.has(code))return {code:'unknownFailure'};
  const values=(body as {values?:unknown}).values;
  if(values===undefined)return {code:code as CaptureMessageCode};
  if(!values||typeof values!=='object'||Array.isArray(values)||Object.values(values).some(value=>typeof value!=='string'&&(typeof value!=='number'||!Number.isFinite(value))))throw new Error('Invalid route message values');
@@ -136,5 +136,5 @@ export class CaptureFailureError extends Error {
 }
 
 export function captureFailureText(failure:CaptureFailure|undefined,t:(code:CaptureMessageCode,values?:Record<string,string|number>)=>string):string|undefined {
- return failure?t(failure.code,failure.values):undefined;
+ return failure?t(Object.hasOwn(FAILURE_MESSAGE_NAMESPACES,failure.code)?failure.code:'unknownFailure',Object.hasOwn(FAILURE_MESSAGE_NAMESPACES,failure.code)?failure.values:undefined):undefined;
 }

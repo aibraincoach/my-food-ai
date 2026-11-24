@@ -51,7 +51,7 @@ function StatusLine({ post }: { post: FeedPost }) {
       const response=await fetch(`/api/posts/${post.id}/retry`,{method:"POST"});
       if(!response.ok) {setRetryError({key:'retryAttemptFailed'});return;}
       window.dispatchEvent(new CustomEvent("post-created",{detail:{id:post.id,post}}));
-    } catch(error) {setRetryError(error instanceof Error?{message:error.message}:{key:'retryFailed'});}
+    } catch {setRetryError({key:'retryFailed'});}
     finally{setRetrying(false);}
   };
   if (post.itemsUnavailable && !post.items.length) return <p className="text-detail text-muted" role="status">{t('detailsRetrying')}</p>;

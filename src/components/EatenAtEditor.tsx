@@ -1,4 +1,5 @@
 "use client";
+import {DisplayError} from '@/i18n/display-error';
 import {useApiFailureText} from '@/i18n/api-error-text';
 import {useTranslations} from 'next-intl';
 
@@ -21,9 +22,9 @@ export default function EatenAtEditor({ postId, eatenAt }: { postId: string; eat
     setSaving(true); setError("");
     try {
       const response = await fetch(`/api/posts/${postId}/eaten-at`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ eaten_at: iso }) });
-      if (!response.ok) throw new Error(apiError((await response.json().catch(() => null)),"route_6f4458352e2c"));
+      if (!response.ok) throw new DisplayError(apiError((await response.json().catch(() => null)),"route_6f4458352e2c"));
       router.refresh();
-    } catch (e) { setError(e instanceof Error ? e.message : t('timeSaveFailed')); }
+    } catch (e) { setError(e instanceof DisplayError ? e.message : t('timeSaveFailed')); }
     finally { setSaving(false); }
   };
   return <section aria-label={t('timeEaten')} className="flex flex-wrap items-center gap-2 px-screen-x pt-sheet-top text-detail">

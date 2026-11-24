@@ -1,4 +1,5 @@
 'use client';
+import {DisplayError} from '@/i18n/display-error';
 import {useApiFailureText} from '@/i18n/api-error-text';
 import {useTranslations} from 'next-intl';
 import {servingsMessageValues} from '@/i18n/servings';
@@ -36,11 +37,11 @@ function HeaderServings({postId,servings}:{postId:string;servings:number}) {
     busyRef.current=true;setBusy(true);setError('');
     try{
       const response=await fetch(`/api/posts/${postId}/servings`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({servings:next})});
-      if(!response.ok)throw new Error(apiError((await response.json().catch(()=>null)),"route_bbb2ee989003"));
+      if(!response.ok)throw new DisplayError(apiError((await response.json().catch(()=>null)),"route_bbb2ee989003"));
       setSaved(next);setDraft(servingsLabel(next));
       window.dispatchEvent(new CustomEvent('post-updated',{detail:{id:postId}}));
       router.refresh();
-    }catch(e){setDraft(servingsLabel(saved));setError(e instanceof Error?e.message:t('servingsFailed'));}
+    }catch(e){setDraft(servingsLabel(saved));setError(e instanceof DisplayError?e.message:t('servingsFailed'));}
     finally{busyRef.current=false;setBusy(false);}
   };
   const applyDraft=()=>{
