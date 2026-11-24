@@ -1,3 +1,4 @@
+import type {CaptureFailure} from './capture-failure';
 import type {TileDrinkRequest,PhotoDrinksRequest} from './drink-request';
 import type {CopyRequest} from './copy-request';
 
@@ -39,17 +40,44 @@ export interface StoredUpload {
     photoLost?: boolean;
     failureKind?: 'storage';
     lostNoticeSeen?: true;
-    message?: string;
+    failure?: CaptureFailure;
     state: 'uploading' | 'uploaded' | 'failed';
     error?: 'dropped' | 'too_large' | 'no_response';
     sent: number;
     total: number;
 }
 const DB_NAME = 'mfa-uploads';
-const DB_VERSION = 2;
-function database(): Promise<IDBDatabase> { return new Promise((resolve, reject) => { const request = indexedDB.open(DB_NAME, DB_VERSION); request.onupgradeneeded = () => { const db = request.result; if (!db.objectStoreNames.contains('drafts'))
-    db.createObjectStore('drafts', { keyPath: 'operationId' }); if (!db.objectStoreNames.contains('intents'))
-    db.createObjectStore('intents', { keyPath: 'operationId' }); }; request.onsuccess = () => resolve(request.result); request.onerror = () => reject(request.error); }); }
+const DB_VERSION = 3;
+// Version 3 removes persisted wording once. There is no legacy message reader.
+export function upgradeUploadDraft(value: Record<string, unknown>): Record<string, unknown> {
+    if (!Object.prototype.hasOwnProperty.call(value, 'message')) return value;
+    const {message: previousMessage, ...draft} = value;
+    return {...draft, ...(typeof previousMessage === 'string' && previousMessage.trim()
+        ? {failure: {code: 'saved-before-update'}} : {})};
+}
+function database(): Promise<IDBDatabase> {
+    return new Promise((resolve, reject) => {
+        const request = indexedDB.open(DB_NAME, DB_VERSION);
+        request.onupgradeneeded = event => {
+            const db = request.result;
+            if (!db.objectStoreNames.contains('drafts')) db.createObjectStore('drafts', {keyPath: 'operationId'});
+            if (!db.objectStoreNames.contains('intents')) db.createObjectStore('intents', {keyPath: 'operationId'});
+            if (event.oldVersion > 0 && event.oldVersion < 3) {
+                const cursor = request.transaction!.objectStore('drafts').openCursor();
+                cursor.onsuccess = () => {
+                    const row = cursor.result;
+                    if (!row) return;
+                    const original = row.value;
+                    const upgraded = upgradeUploadDraft(original);
+                    if (upgraded !== original) row.update(upgraded);
+                    row.continue();
+                };
+            }
+        };
+        request.onsuccess = () => resolve(request.result);
+        request.onerror = () => reject(request.error);
+    });
+}
 async function transaction<T>(stores: string | string[], mode: IDBTransactionMode, action: (tx: IDBTransaction) => IDBRequest<T> | void): Promise<T | void> {
     const db = await database();
     const names = Array.isArray(stores) ? stores : [stores];

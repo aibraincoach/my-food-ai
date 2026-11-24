@@ -1,3 +1,4 @@
+import {captureRouteMessageCode} from '@/lib/posts/capture-route-failure';
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -20,7 +21,7 @@ export async function POST(request: Request) {
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user) return NextResponse.json({ error: "Sign in required." }, { status: 401 });
+  if (!user) return NextResponse.json({ error: "Sign in required.",message_code: "route_ac6a88b19530" }, { status: 401 });
 
   const body = (await request.json().catch(() => ({}))) as { postId?: string; staged?: boolean; shots?: ShotSpec[] };
   if (body.staged === true) {
@@ -32,14 +33,14 @@ export async function POST(request: Request) {
       const uploads = await signShotUploads(supabase, user.id, stageId, [0]);
       return NextResponse.json({ uploads });
     } catch {
-      return NextResponse.json({ error: "Signing upload URLs failed." }, { status: 500 });
+      return NextResponse.json({ error: "Signing upload URLs failed.",message_code: "route_df3e655d054f" }, { status: 500 });
     }
   }
   if (!body.postId) {
-    return NextResponse.json({ error: "postId is required." }, { status: 400 });
+    return NextResponse.json({ error: "postId is required.",message_code: "route_8752bd7a7233" }, { status: 400 });
   }
   if (!validUploadShots(body.shots) || body.shots.length === 0) {
-    return NextResponse.json({ error: "Each photo needs its position in order and a size from 1 to 4096 pixels." }, { status: 400 });
+    return NextResponse.json({ error: "Each photo needs its position in order and a size from 1 to 4096 pixels.",message_code: "route_7f9243203d21" }, { status: 400 });
   }
 
   const { data: post, error: postError } = await supabase
@@ -48,7 +49,7 @@ export async function POST(request: Request) {
     .eq("id", body.postId)
     .single();
   if (postError || !post) {
-    return NextResponse.json({ error: "Post not found." }, { status: 404 });
+    return NextResponse.json({ error: "Post not found.",message_code: "route_9c5ac1fe3dd7" }, { status: 404 });
   }
 
   const { error: mediaError } = await supabase.from("post_media").insert(
@@ -61,7 +62,7 @@ export async function POST(request: Request) {
     }))
   );
   if (mediaError) {
-    return NextResponse.json({ error: mediaError.message }, { status: 400 });
+    return NextResponse.json({ error: mediaError.message, message_code: captureRouteMessageCode(mediaError.message) }, { status: 400 });
   }
 
   try {
@@ -74,7 +75,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ uploads });
   } catch (e) {
     return NextResponse.json(
-      { error: e instanceof Error ? e.message : "Signing upload URLs failed." },
+      { error: e instanceof Error ? e.message : "Signing upload URLs failed.", message_code: captureRouteMessageCode(e instanceof Error ? e.message : "Signing upload URLs failed.") },
       { status: 500 }
     );
   }

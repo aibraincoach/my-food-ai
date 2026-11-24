@@ -19,3 +19,41 @@ On deployed main, the SQL schema applies the repository's migrations except exte
 `tests/fixtures/local-providers.mjs` redirects only the USDA endpoint to the loopback fixture while retaining the real FDC client/parser code. It refuses activation outside the disposable environment. Barcode fixture results are deliberately named scripted products and are not observations from live USDA. Test doubles for component effects import the actual data helpers and model response/abort races explicitly.
 
 Six existing optional integration cases retain their opt-in or fixed-port gates (servings, food/label HTTP routes, drink edits/HTTP, and leftovers emergency pause). No new skips are used to make the default integration run pass. `npm run test:db` selects the database gate with the same disposable environment checks.
+
+### Capture translation acceptance
+
+The capture browser scripts use CAPTURE_CHECK_OUT, APP_URL, ONLY_ENGINE,
+MFA_PLAYWRIGHT_MODULE, and, for Chromium, TEST_CHROMIUM_EXECUTABLE. The food
+flow also needs the loopback LOCAL_MODEL_FIXTURE URL. Use the normal service
+worker and the scripted local providers described above. Set TEST_OFF_FIXTURE_MISS=1\non the local app for the unknown-barcode case; Open Food Facts then returns a\nscripted 404 without contacting that service.
+
+Create a fresh account for each independent group of checks. Reusing one account
+across many camera runs can hit the real hourly cap. Reusing one image after
+changing a scripted identify reply can correctly reuse the app's cached result.
+Use a distinct synthetic drink image and a new unknown barcode for each label
+case; the flow script does this automatically.
+
+    CAPTURE_CHECK_OUT=/tmp/capture-check node --env-file=.env.test.local \
+      tests/fixtures/capture-acceptance.mjs setup
+
+The helper requires loopback app, Auth and database URLs and
+MFA_TEST_DISPOSABLE=1. It creates one synthetic account, a ready meal and a
+scripted model comment, plus a known EAN image. Its private output directory must
+be outside the checkout: the temporary session and fixture password are mode
+600, and are never printed. Run the selected tests/browser/capture-*.mjs
+script with the same output directory. The retry script additionally
+needs a local HTTP fault proxy that refuses PUT /api/posts with a known
+message_code until explicitly released; do not replace the real transport with
+a browser route mock.
+
+Always clean up before starting the next independent group:
+
+    CAPTURE_CHECK_OUT=/tmp/capture-check node --env-file=.env.test.local \
+      tests/fixtures/capture-acceptance.mjs cleanup
+
+Cleanup signs out the fixture's own session, removes its rows and media, verifies
+zero accounts, sessions, meals, drafts, jobs, comments and storage objects, then
+deletes temporary session files and redacts the fixture password. Keep failure
+receipts and screenshots. The first-hint script saves the failing page before
+closing its context. Playwright WebKit and synthetic camera/microphone streams
+do not prove Safari or real-device behavior.

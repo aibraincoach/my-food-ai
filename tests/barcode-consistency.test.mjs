@@ -1,3 +1,4 @@
+import {showFailure} from './fixtures/capture-wording.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
@@ -21,7 +22,7 @@ test('failed save retry reuses uploaded photo; a partial upload retries only its
  const request=async(url,options)=>{calls.push([url,options.method]);if(options.method==='POST')return Response.json({uploads:[{originalPath:'stage/0.jpg',originalSignedUrl:'original',feedSignedUrl:'feed'}]});if(url==='feed'&&fail){fail=false;return new Response('',{status:503})}return new Response('')};
  const uploader=new PackPhotoUpload(async()=>({original:new Blob(['original']),feed:new Blob(['feed']),width:100,height:100}),request);
  const file=new File(['photo'],'pack.jpg');
- await assert.rejects(uploader.prepare(file),/could(?: not|n't) be uploaded/);
+ await assert.rejects(uploader.prepare(file),error=>/could(?: not|n't) be uploaded/.test(showFailure(error.failure)));
  const photo=await uploader.prepare(file);assert.equal(photo.path,'stage/0.jpg');
  // Product save can fail or lose its response: preparing again changes no storage.
  assert.deepEqual(await uploader.prepare(file),photo);
@@ -49,7 +50,7 @@ test('a cleanup record is durable before upload, delayed past capability expiry,
  await queueStagedPhotoCleanup({from(table){assert.equal(table,'jobs');return{async insert(value){row=value;return{error:null}}}}},'owner','stage');
  assert.equal(row.post_id,null);assert.equal(row.kind,'media_cleanup');assert.deepEqual(row.payload.paths,['owner/stage/0.jpg','owner/stage/0.feed.jpg']);
  assert.ok(Date.parse(row.run_after)>=before+3*60*60*1000);
- await assert.rejects(queueStagedPhotoCleanup({from(){return{async insert(){return{error:{message:'offline'}}}}}},'owner','stage'),/could not be scheduled/);
+ await assert.rejects(queueStagedPhotoCleanup({from(){return{async insert(){return{error:{message:'offline'}}}}}},'owner','stage'),error=>/could not be scheduled/.test(showFailure(error.failure)));
 });
 
 test('orphan cleanup removes both copies and only an unpublished owner draft; committed stages bypass every deletion',async()=>{

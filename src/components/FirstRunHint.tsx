@@ -1,4 +1,6 @@
 "use client";
+import {useTranslations} from 'next-intl';
+
 
 import { useEffect, useRef, useState } from "react";
 import { Tooltip } from "@/components/ui/Tooltip";
@@ -26,14 +28,11 @@ async function loadHintState() {
   })().catch(() => null).then(state => { if (!state && hintState === read) hintState = null; return state; });
   return read;
 }
-const copy: Record<HintKey, string> = {
-  modes: "Swipe to scan a barcode",
-  capture: "A caption alone works too",
-  thread: "Reply here to fix the estimate",
-  thumbs: "Was this estimate right?",
-};
+
 
 export default function FirstRunHint({ hint, onTryBarcode, onVisibilityChange }: { hint: HintKey; onTryBarcode?: () => void; onVisibilityChange?: (visible: boolean) => void }) {
+  const t=useTranslations('capture');
+  const copy:Record<HintKey,string>={modes:t('hintModes'),capture:t('hintCapture'),thread:t('hintThread'),thumbs:t('hintThumbs')};
   const dismiss = useRef<() => void>(() => {});
   const [visible, setVisible] = useState(false);
   useEffect(() => {
@@ -74,12 +73,12 @@ export default function FirstRunHint({ hint, onTryBarcode, onVisibilityChange }:
     return () => onVisibilityChange?.(false);
   }, [visible, onVisibilityChange]);
   if (!visible) return null;
-  if (hint === "modes") return <section aria-label="Barcode tip" className="relative z-10 mx-5 mb-3 max-w-[350px] rounded-card bg-surface p-4 text-text shadow-lg">
+  if (hint === "modes") return <section aria-label={t('barcodeTip')} className="relative z-10 mx-5 mb-3 max-w-[350px] rounded-card bg-surface p-4 text-text shadow-lg">
     <h2 className="text-[15px] font-semibold">{copy.modes}</h2>
-    <p className="mt-2 text-[14px] leading-5">Packaged food? Barcode mode reads the code and fills in the product. A photo of a barcode or a nutrition label in Photo mode is read too.</p>
+    <p className="mt-2 text-[14px] leading-5">{t('barcodeTipDescription')}</p>
     <div className="mt-3 flex items-center gap-4">
-      <button type="button" onClick={() => { dismiss.current(); onTryBarcode?.(); }} className="min-h-tap rounded-pill bg-accent px-4 text-[14px] font-semibold text-white">Try Barcode</button>
-      <button type="button" onClick={() => dismiss.current()} className="min-h-tap px-2 text-[14px]">Got it</button>
+      <button type="button" onClick={() => { dismiss.current(); onTryBarcode?.(); }} className="min-h-tap rounded-pill bg-accent px-4 text-[14px] font-semibold text-white">{t('tryBarcode')}</button>
+      <button type="button" onClick={() => dismiss.current()} className="min-h-tap px-2 text-[14px]">{t('gotIt')}</button>
     </div>
   </section>;
   return <span className="pointer-events-none relative z-10 inline-flex pb-3">

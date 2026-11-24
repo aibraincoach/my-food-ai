@@ -8,6 +8,6 @@ const paths:Record<DrinkGlyph,string[]>={
  beer:['M5 5h13l-1 18H6Z','M18 8h3v10h-4','M8 9v10M12 9v10M15 9v10','M5 5c-2-4 3-5 5-3 2-3 6-2 6 0 3-1 5 1 2 3'],
  tumbler:['M5 3h14l-2 20H7Z','M6 10h12']
 };
-export function DrinkPicture({glyph,size}:{glyph:DrinkGlyph;size:number}){
- return <svg width={size} height={size} viewBox="0 0 24 26" fill="none" stroke={tokens.colors.text} strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" aria-label={glyph}><title>{glyph}</title>{paths[glyph].map((d,index)=><path key={index} d={d}/>)}</svg>;
+export function DrinkPicture({glyph,size,label}:{glyph:DrinkGlyph;size:number;label:string}){
+ return <svg width={size} height={size} viewBox="0 0 24 26" fill="none" stroke={tokens.colors.text} strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" aria-label={label}><title>{label}</title>{paths[glyph].map((d,index)=><path key={index} d={d}/>)}</svg>;
 }

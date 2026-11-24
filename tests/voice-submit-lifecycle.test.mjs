@@ -4,6 +4,8 @@ import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import vm from 'node:vm';
 import ts from 'typescript';
+import {captureEnglish} from './fixtures/capture-wording.mjs';
+import * as captureFailure from '../src/lib/posts/capture-failure.ts';
 function harness(component,{desktop=false,reject=false}={}){
  const instances=new Map(),worklets=[],requests=[],posted=[],timers=[];
  let current,cursor,caption='Typed meal',done,fail,drinkActive=false,stopped=0;
@@ -16,6 +18,8 @@ function harness(component,{desktop=false,reject=false}={}){
   const code=ts.transpileModule(readFileSync(new URL('../src/components/'+name+'.tsx',import.meta.url),'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,jsx:ts.JsxEmit.ReactJSX,target:ts.ScriptTarget.ES2022}}).outputText;
   const fallback=new Proxy({},{get:(_,key)=>key==='__esModule'?true:key==='DRINK_TILES'?[]:key==='TILE_SIZES'?[]:()=>null});
   vm.runInNewContext(code,{exports,console,Blob,FormData,AbortController,AbortSignal,Float32Array,crypto,Date,Intl,Event,CustomEvent,requestAnimationFrame:()=>1,cancelAnimationFrame(){},setTimeout:fn=>{timers.push(fn);return timers.length;},clearTimeout(){},window:{AudioContext:true,addEventListener(){},removeEventListener(){},dispatchEvent(){},setTimeout:()=>1,clearTimeout(){}},navigator:{mediaDevices:{getUserMedia:async()=>({getTracks:()=>[{stop(){stopped++;}}]})}},AudioContext:class{sampleRate=16000;audioWorklet={addModule:async()=>{}};destination={};async resume(){}async close(){}createMediaStreamSource(){return{connect(){}};}},AudioWorkletNode:class{constructor(){worklets.push(this);}port={postMessage(){}};connect(){}disconnect(){}},fetch:async(url,init)=>{if(url==='/api/transcribe'){requests.push(init);return response;}return Response.json({rows:[],counts:[],usualMl:[]});},Response,require(id){
+   if(id==='@/lib/posts/capture-failure')return captureFailure;
+   if(id==='next-intl')return {useTranslations:()=>captureEnglish,useLocale:()=> 'en',useFormatter:()=>({dateTime:date=>date.toISOString()})};
    if(id==='react')return hooks;if(id==='react/jsx-runtime')return{jsx,jsxs:jsx};
    if(id==='@/components/VoiceButton')return load('VoiceButton');if(id==='@/components/VoiceRecorder')return load('VoiceRecorder');
    if(id==='@/lib/audio/wav-encoder')return{encodeWav:()=>new Uint8Array(100)};
@@ -47,16 +51,17 @@ function harness(component,{desktop=false,reject=false}={}){
  const post=tree=>find(tree,n=>n.type==='button'&&(n.props.type==='submit'||n.props.children==='Post'));
  const speak=tree=>find(tree,n=>n.props?.['aria-label']==='Speak'||n.props?.['aria-label']==='Stop recording');
  const form=tree=>find(tree,n=>n.type==='form');
- return{render,posted,requests,worklets,speak,post,form,done,fail,detectDrinks:()=>{drinkActive=true;},stopped:()=>stopped,caption:()=>caption,setDrink(tree){find(tree,n=>n.props?.['aria-label']==='Drink description').props.onChange({target:{value:'Typed drink'}});},settle:()=>new Promise(resolve=>setImmediate(resolve)),reject};
+ const text=tree=>nodes(tree).flatMap(n=>{const words=v=>Array.isArray(v)?v.flatMap(words):typeof v==='string'?[v]:[];return words(n.props?.children);}).join(' ');
+ return{render,text,posted,requests,worklets,speak,post,form,done,fail,detectDrinks:()=>{drinkActive=true;},stopped:()=>stopped,caption:()=>caption,setDrink(tree){find(tree,n=>n.props?.['aria-label']==='Drink description').props.onChange({target:{value:'Typed drink'}});},settle:()=>new Promise(resolve=>setImmediate(resolve)),reject};
 }
 for(const component of ['LightComposer','IntakeSheet'])for(const desktop of component==='LightComposer'?[false,true]:[false])test(`${component} ${desktop?'desktop':'phone'} preserves speech through recording and transcription, then submits combined text`,async()=>{
  const h=harness(component,{desktop});let tree=h.render();if(component==='IntakeSheet'){h.setDrink(tree);tree=h.render();}
  // Keep the original callback to exercise submit before React has committed disabled.
  const earlySubmit=component==='IntakeSheet'?()=>h.form(tree).props.onSubmit({preventDefault(){}}):h.post(tree).props.onClick;
  h.speak(tree).props.onClick();earlySubmit();assert.deepEqual(h.posted,[],'same-event submit is refused');await h.settle();
- tree=h.render();assert.equal(h.post(tree).props.disabled,true);assert.equal(h.speak(tree).props.disabled,false,'Stop stays enabled');
+ tree=h.render();assert.equal(h.post(tree).props.disabled,true);assert.equal(h.speak(tree).props.disabled,false,'Stop stays enabled');assert.ok(h.text(tree).includes('Recording… tap to stop. Stops automatically after two minutes.'));
  h.post(tree).props.onClick?.();if(component==='IntakeSheet')h.form(tree).props.onSubmit({preventDefault(){}});assert.equal(h.posted.length,0);
- h.speak(tree).props.onClick();const sent=h.worklets[0].port.onmessage({data:{samples:new Float32Array([.1]),stopped:true}});await h.settle();tree=h.render();assert.equal(h.requests.length,1);assert.equal(h.post(tree).props.disabled,true);assert.equal(h.requests[0].signal.aborted,false);
+ h.speak(tree).props.onClick();const sent=h.worklets[0].port.onmessage({data:{samples:new Float32Array([.1]),stopped:true}});await h.settle();tree=h.render();assert.equal(h.requests.length,1);assert.equal(h.post(tree).props.disabled,true);assert.equal(h.requests[0].signal.aborted,false);assert.ok(h.text(tree).includes('Transcribing…'));
  h.done(Response.json({transcript:'spoken words'}));await sent;tree=h.render();assert.equal(h.post(tree).props.disabled,false);
  if(component==='IntakeSheet')await h.form(tree).props.onSubmit({preventDefault(){}});else h.post(tree).props.onClick();await h.settle();
  assert.deepEqual(h.posted,[component==='IntakeSheet'?'Typed drink spoken words':'Typed meal spoken words']);

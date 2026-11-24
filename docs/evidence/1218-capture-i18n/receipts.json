@@ -1,0 +1,520 @@
+{
+  "chromium-draft.json": {
+    "engine": "chromium",
+    "cases": [
+      {
+        "locale": "en",
+        "version": 3,
+        "rows": [
+          {
+            "hasMessage": false,
+            "failure": {
+              "code": "saved-before-update"
+            },
+            "fileCount": 1,
+            "caption": "Synthetic persisted photo"
+          }
+        ]
+      },
+      {
+        "locale": "ja",
+        "version": 3,
+        "rows": [
+          {
+            "hasMessage": false,
+            "failure": {
+              "code": "saved-before-update"
+            },
+            "fileCount": 1,
+            "caption": "Synthetic persisted photo"
+          }
+        ]
+      },
+      {
+        "locale": "en",
+        "version": 3,
+        "rows": [
+          {
+            "hasMessage": false,
+            "failure": {
+              "code": "saved-before-update"
+            },
+            "fileCount": 1,
+            "caption": "Synthetic persisted photo"
+          }
+        ]
+      }
+    ],
+    "cleanupDrafts": 0,
+    "pass": true
+  },
+  "webkit-draft.json": {
+    "engine": "webkit",
+    "cases": [
+      {
+        "locale": "en",
+        "version": 3,
+        "rows": [
+          {
+            "hasMessage": false,
+            "failure": {
+              "code": "saved-before-update"
+            },
+            "fileCount": 1,
+            "caption": "Synthetic persisted photo"
+          }
+        ]
+      },
+      {
+        "locale": "ja",
+        "version": 3,
+        "rows": [
+          {
+            "hasMessage": false,
+            "failure": {
+              "code": "saved-before-update"
+            },
+            "fileCount": 1,
+            "caption": "Synthetic persisted photo"
+          }
+        ]
+      },
+      {
+        "locale": "en",
+        "version": 3,
+        "rows": [
+          {
+            "hasMessage": false,
+            "failure": {
+              "code": "saved-before-update"
+            },
+            "fileCount": 1,
+            "caption": "Synthetic persisted photo"
+          }
+        ]
+      }
+    ],
+    "cleanupDrafts": 0,
+    "pass": true
+  },
+  "chromium-english-comparison.json": [
+    {
+      "state": "camera",
+      "textIdentical": true,
+      "labelsIdentical": true
+    },
+    {
+      "state": "barcode",
+      "textIdentical": true,
+      "labelsIdentical": true
+    },
+    {
+      "state": "composer",
+      "textIdentical": true,
+      "labelsIdentical": true
+    },
+    {
+      "state": "text",
+      "textIdentical": true,
+      "labelsIdentical": true
+    },
+    {
+      "state": "typed-caption",
+      "textIdentical": true,
+      "labelsIdentical": true
+    },
+    {
+      "state": "camera-unavailable",
+      "textIdentical": true,
+      "labelsIdentical": true
+    }
+  ],
+  "webkit-english-comparison.json": [
+    {
+      "state": "camera",
+      "textIdentical": true,
+      "labelsIdentical": true
+    },
+    {
+      "state": "barcode",
+      "textIdentical": true,
+      "labelsIdentical": true
+    },
+    {
+      "state": "composer",
+      "textIdentical": true,
+      "labelsIdentical": true
+    },
+    {
+      "state": "text",
+      "textIdentical": true,
+      "labelsIdentical": true
+    },
+    {
+      "state": "typed-caption",
+      "textIdentical": true,
+      "labelsIdentical": true
+    },
+    {
+      "state": "camera-unavailable",
+      "textIdentical": true,
+      "labelsIdentical": true
+    }
+  ],
+  "chromium-offline-capture.json": {
+    "engine": "chromium",
+    "errors": [],
+    "text": "新規投稿\nテキスト\n写真\nバーコード\n日時\n現在 ›\n食品を検索\n\n位置情報は投稿と一緒に保存され、同じ場所で食べた食事の認識に役立ちます。他の人には公開されません。\n\n投稿する",
+    "lang": "ja",
+    "localeErrors": [],
+    "pass": true
+  },
+  "webkit-offline-capture.json": {
+    "engine": "webkit",
+    "errors": [
+      "TypeError: Load failed",
+      "/127.0.0.1:64424/_next/static/media/Manrope_400-s.2krc6ouz_rrxj.woff2.",
+      "TypeError: Load failed",
+      "/127.0.0.1:64424/_next/static/media/Manrope_500-s.2djzfus2knebm.woff2.",
+      "Response served by service worker is an error",
+      "Response served by service worker is an error",
+      "Response served by service worker is an error",
+      "TypeError: Load failed",
+      "/127.0.0.1:64424/_next/static/media/Manrope_600-s.03ancj__wsp8x.woff2.",
+      "TypeError: Load failed",
+      "/127.0.0.1:64424/_next/static/media/Manrope_300-s.2up49ql0rn-7z.woff2.",
+      "Response served by service worker is an error",
+      "Response served by service worker is an error",
+      "Response served by service worker is an error"
+    ],
+    "text": "新規投稿\n\nカメラを起動できませんでした。\n\nカメラを許可\nテキスト\n写真\nバーコード\n日時\n現在 ›\n食品を検索\n\n位置情報は投稿と一緒に保存され、同じ場所で食べた食事の認識に役立ちます。他の人には公開されません。\n\n投稿する",
+    "lang": "ja",
+    "localeErrors": [],
+    "pass": true
+  },
+  "retry-chromium/chromium-retry.json": {
+    "engine": "chromium",
+    "cases": [
+      {
+        "locale": "en",
+        "id": "13b81532-be60-4152-b460-1bd2a6cf9cd8",
+        "restored": [
+          {
+            "operationId": "61bb374c-768a-4de0-9b9f-c8a73651a9e0",
+            "fileCount": 1,
+            "failure": {
+              "code": "serverFailed"
+            },
+            "hasMessage": false
+          }
+        ],
+        "ready": true,
+        "caption": "Scripted camera retry meal",
+        "drafts": 0
+      },
+      {
+        "locale": "ja",
+        "id": "b91b970b-8591-4f2b-919c-241c813ef0fc",
+        "restored": [
+          {
+            "operationId": "66111049-525e-4995-a2d8-4830b41cb0ed",
+            "fileCount": 1,
+            "failure": {
+              "code": "serverFailed"
+            },
+            "hasMessage": false
+          }
+        ],
+        "ready": true,
+        "caption": "Scripted camera retry meal",
+        "drafts": 0
+      }
+    ],
+    "pass": true
+  },
+  "retry-webkit/webkit-retry.json": {
+    "engine": "webkit",
+    "cases": [
+      {
+        "locale": "en",
+        "id": "a54ce0ff-a91a-433f-a206-2c143441f1f1",
+        "restored": [
+          {
+            "operationId": "5036ecd8-acbb-458b-bc92-11ee0a71b5dd",
+            "fileCount": 1,
+            "failure": {
+              "code": "serverFailed"
+            },
+            "hasMessage": false
+          }
+        ],
+        "ready": true,
+        "caption": "Scripted camera retry meal",
+        "drafts": 0
+      },
+      {
+        "locale": "ja",
+        "id": "190a5090-6a97-4fb0-b7f3-0e2196f6b99f",
+        "restored": [
+          {
+            "operationId": "df119494-7ee7-43ce-9bec-a35956efcf78",
+            "fileCount": 1,
+            "failure": {
+              "code": "serverFailed"
+            },
+            "hasMessage": false
+          }
+        ],
+        "ready": true,
+        "caption": "Scripted camera retry meal",
+        "drafts": 0
+      }
+    ],
+    "pass": true
+  },
+  "retry-chromium/chromium-final-579-food-flows.json": {
+    "engine": "chromium",
+    "cases": [
+      {
+        "locale": "ja",
+        "kind": "label",
+        "id": "5093f43f-07d7-4bd5-8923-0ecf2074cec0",
+        "status": "ready",
+        "items": [
+          {
+            "name": "Scripted label food",
+            "calories": 230,
+            "grams": 55
+          }
+        ],
+        "drink": null
+      }
+    ],
+    "errors": [],
+    "phase": "ja label",
+    "pass": true
+  },
+  "webkit-flows/webkit-final-579-food-flows.json": {
+    "engine": "webkit",
+    "cases": [
+      {
+        "locale": "ja",
+        "kind": "label",
+        "id": "fa315caf-b878-4d63-a916-0a42e66eaffe",
+        "status": "ready",
+        "items": [
+          {
+            "name": "Scripted label food",
+            "calories": 230,
+            "grams": 55
+          }
+        ],
+        "drink": null
+      }
+    ],
+    "errors": [],
+    "phase": "ja label",
+    "pass": true
+  },
+  "cleanup.json": {
+    "at": "2026-11-24T14:25:24.414Z",
+    "ownLocalSignout": true,
+    "absent": {
+      "auth": 0,
+      "profiles": 0,
+      "posts": 0,
+      "drafts": 0,
+      "jobs": 0,
+      "media": 0,
+      "comments": 0,
+      "storage": 0,
+      "sessions": 0
+    }
+  },
+  "hints/cleanup.json": {
+    "at": "2026-11-24T14:25:24.765Z",
+    "ownLocalSignout": true,
+    "absent": {
+      "auth": 0,
+      "profiles": 0,
+      "posts": 0,
+      "drafts": 0,
+      "jobs": 0,
+      "media": 0,
+      "comments": 0,
+      "storage": 0,
+      "sessions": 0
+    }
+  },
+  "webkit-flows/cleanup.json": {
+    "at": "2026-11-24T14:25:25.192Z",
+    "ownLocalSignout": true,
+    "absent": {
+      "auth": 0,
+      "profiles": 0,
+      "posts": 0,
+      "drafts": 0,
+      "jobs": 0,
+      "media": 0,
+      "comments": 0,
+      "storage": 0,
+      "sessions": 0
+    }
+  },
+  "retry-chromium/cleanup.json": {
+    "at": "2026-11-24T14:25:25.532Z",
+    "ownLocalSignout": true,
+    "absent": {
+      "auth": 0,
+      "profiles": 0,
+      "posts": 0,
+      "drafts": 0,
+      "jobs": 0,
+      "media": 0,
+      "comments": 0,
+      "storage": 0,
+      "sessions": 0
+    }
+  },
+  "retry-webkit/cleanup.json": {
+    "at": "2026-11-24T14:25:25.841Z",
+    "ownLocalSignout": true,
+    "absent": {
+      "auth": 0,
+      "profiles": 0,
+      "posts": 0,
+      "drafts": 0,
+      "jobs": 0,
+      "media": 0,
+      "comments": 0,
+      "storage": 0,
+      "sessions": 0
+    }
+  },
+  "amended-full-suite-comparison": {
+    "headFailureNames": 41,
+    "baseFailureNames": 41,
+    "headOnly": [],
+    "baseOnly": [],
+    "totals": [
+      "# tests 1329",
+      "# pass 1266",
+      "# fail 41",
+      "# skipped 22",
+      "# duration_ms 209676.34361"
+    ]
+  },
+  "amended-chromium-draft.json": {
+    "engine": "chromium",
+    "cases": [
+      {
+        "locale": "en",
+        "version": 3,
+        "rows": [
+          {
+            "hasMessage": false,
+            "failure": {
+              "code": "saved-before-update"
+            },
+            "fileCount": 1,
+            "caption": "Synthetic persisted photo"
+          }
+        ]
+      },
+      {
+        "locale": "ja",
+        "version": 3,
+        "rows": [
+          {
+            "hasMessage": false,
+            "failure": {
+              "code": "saved-before-update"
+            },
+            "fileCount": 1,
+            "caption": "Synthetic persisted photo"
+          }
+        ]
+      },
+      {
+        "locale": "en",
+        "version": 3,
+        "rows": [
+          {
+            "hasMessage": false,
+            "failure": {
+              "code": "saved-before-update"
+            },
+            "fileCount": 1,
+            "caption": "Synthetic persisted photo"
+          }
+        ]
+      }
+    ],
+    "cleanupDrafts": 0,
+    "pass": true
+  },
+  "amended-webkit-draft.json": {
+    "engine": "webkit",
+    "cases": [
+      {
+        "locale": "en",
+        "version": 3,
+        "rows": [
+          {
+            "hasMessage": false,
+            "failure": {
+              "code": "saved-before-update"
+            },
+            "fileCount": 1,
+            "caption": "Synthetic persisted photo"
+          }
+        ]
+      },
+      {
+        "locale": "ja",
+        "version": 3,
+        "rows": [
+          {
+            "hasMessage": false,
+            "failure": {
+              "code": "saved-before-update"
+            },
+            "fileCount": 1,
+            "caption": "Synthetic persisted photo"
+          }
+        ]
+      },
+      {
+        "locale": "en",
+        "version": 3,
+        "rows": [
+          {
+            "hasMessage": false,
+            "failure": {
+              "code": "saved-before-update"
+            },
+            "fileCount": 1,
+            "caption": "Synthetic persisted photo"
+          }
+        ]
+      }
+    ],
+    "cleanupDrafts": 0,
+    "pass": true
+  },
+  "amended-cleanup.json": {
+    "at": "2026-11-24T14:50:33.791Z",
+    "ownLocalSignout": true,
+    "absent": {
+      "auth": 0,
+      "profiles": 0,
+      "posts": 0,
+      "drafts": 0,
+      "jobs": 0,
+      "media": 0,
+      "comments": 0,
+      "storage": 0,
+      "sessions": 0
+    }
+  }
+}

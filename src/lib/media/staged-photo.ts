@@ -1,3 +1,4 @@
+import {CaptureFailureError} from '@/lib/posts/capture-failure';
 import type { SupabaseClient } from "@supabase/supabase-js";
 
 // Cleanup outlives a failed request or a closed tab. Signed upload URLs last two hours.
@@ -8,5 +9,5 @@ export async function queueStagedPhotoCleanup(admin: SupabaseClient, userId: str
     run_after: new Date(Date.now() + 3 * 60 * 60 * 1000).toISOString(),
     payload: { owner_id: userId, deleted_post_id: stageId, paths: [`${prefix}/0.jpg`, `${prefix}/0.feed.jpg`] },
   });
-  if (error) throw new Error("Pack photo cleanup could not be scheduled.");
+  if (error) throw new CaptureFailureError({code:'error_f5cfe45ec544'});
 }

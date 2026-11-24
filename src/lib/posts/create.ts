@@ -1,3 +1,4 @@
+import {CaptureFailureError,failureFromResponse} from '@/lib/posts/capture-failure';
 import type { CapturedLocation } from "@/lib/location/capture";
 import { reencodeShot } from "@/lib/media/reencode";
 import { uploadedMatches, JSON_REQUEST_LIMIT_MS, PHOTO_PUT_LIMIT_MS } from "@/lib/media/pack-photo-upload";
@@ -42,7 +43,7 @@ export class PostUploadDraft {
 
   private async runSubmit(caption: string, files: File[], location: CapturedLocation | null, eatenAt: string | null, intent: "photo" | "text", options:PostOptions={}, publish=true): Promise<CreatedPost> {
     if(this.prepareActive)await this.prepareActive.catch(()=>{});
-    if (intent === "photo" && files.length === 0) throw new Error("The selected photo is not ready. Your draft was kept.");
+    if (intent === "photo" && files.length === 0) throw new CaptureFailureError({code:'route_97d26acf361a'});
     if (!this.pending || files.length !== this.pending.files.length || files.some((file, i) => file !== this.pending!.files[i])) {
       const restored=this.restored?.images.length===files.length?this.restored:null;this.restored=null;
       this.pending = { id: restored?.id??this.uuid(), files: [...files], images: restored?Promise.resolve(restored.images):Promise.all(files.map(file => this.encode(file))), completed: new Set(restored?.completed??[]) };
@@ -50,22 +51,22 @@ export class PostUploadDraft {
     const pending = this.pending;
     let images: Awaited<ReturnType<typeof reencodeShot>>[];
     try { images = await pending.images; }
-    catch { this.pending = null; throw new Error("The photo could not be prepared. Your selected files were kept."); }
+    catch { this.pending = null; throw new CaptureFailureError({code:'error_c39425902c8c'}); }
     await this.persistSnapshot();
     const create = await this.request("/api/posts", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ operation_id: pending.id, capture_intent: intent, ...options, caption, location, eaten_at: eatenAt ?? new Date().toISOString(), shots: images.map((image, position) => ({ position, width: image.width, height: image.height, phash: image.phash })) }), signal: AbortSignal.timeout(JSON_REQUEST_LIMIT_MS) });
     if (!create.ok) {
       const detail = await create.json().catch(() => null);
       if (create.status === 410) this.pending = null;
-      throw new Error(typeof detail?.error === "string" ? detail.error : "The post could not be prepared. Your draft was kept; try again.");
+      throw new CaptureFailureError(failureFromResponse(detail));
     }
     const result = await create.json() as { postId: string; uploads: SignedUpload[]; completed?: boolean };
-    if (result.postId !== pending.id || !Array.isArray(result.uploads)) throw new Error("The post draft could not be confirmed. Try again.");
+    if (result.postId !== pending.id || !Array.isArray(result.uploads)) throw new CaptureFailureError({code:'error_70b3cbc9c21c'});
     if (result.completed) return { postId: result.postId };
-    if (result.uploads.length !== images.length) throw new Error("The selected photos could not be confirmed. Your draft was kept.");
+    if (result.uploads.length !== images.length) throw new CaptureFailureError({code:'error_886df6967e0a'});
     const tasks: { url: string; path: string; blob: Blob }[] = [];
     for (const upload of result.uploads) {
       const image = images[upload.position];
-      if (!image) throw new Error("The selected photos could not be confirmed.");
+      if (!image) throw new CaptureFailureError({code:'error_a28a1468c93f'});
       for (const [url, path, blob] of [[upload.originalSignedUrl, upload.originalPath, image.original], [upload.feedSignedUrl, upload.feedPath, image.feed]] as const) {
         if (!pending.completed.has(path)) tasks.push({ url, path, blob });
       }
@@ -87,9 +88,9 @@ export class PostUploadDraft {
           }
           catch(error) { uploadError=error; /* Reconcile an ambiguous upload through the owner's read policy. */ }
           if (!confirmed) confirmed = await this.verify(path, blob);
-          if (!confirmed) throw uploadError??new Error("The photo upload failed. Your draft was kept; try again.");
+          if (!confirmed) throw uploadError??new CaptureFailureError({code:'error_3b48efca6dca'});
           pending.completed.add(path);sent.set(path,blob.size);report();await this.persistSnapshot();
-        } catch (error) { failure = error instanceof Error ? error : new Error("The photo upload failed. Your draft was kept; try again."); }
+        } catch (error) { failure = error instanceof Error ? error : new CaptureFailureError({code:'error_3b48efca6dca'}); }
       }
     };
     // Drain both in-flight requests before rejecting. A retry can never race an
@@ -100,7 +101,7 @@ export class PostUploadDraft {
     const complete = await this.request("/api/posts", { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ postId: pending.id }), signal: AbortSignal.timeout(JSON_REQUEST_LIMIT_MS) });
     if (!complete.ok) {
       if (complete.status === 410) this.pending = null;
-      throw new Error(complete.status === 410 ? "The upload draft expired. Your photos were kept; try again." : "The post could not be completed. Your uploaded photos were kept; try again.");
+      throw new CaptureFailureError({code:complete.status === 410 ? 'uploadExpired' : 'postCompletionFailed'});
     }
     return { postId: pending.id };
   }

@@ -1,3 +1,4 @@
+import {showFailure} from './fixtures/capture-wording.mjs';
 // node --import tsx --env-file=.env.local --test tests/upload-guard.test.mjs
 import test from 'node:test';
 import assert from 'node:assert/strict';
@@ -146,7 +147,7 @@ test('an unreadable attachment asks for a retake immediately without retry delay
  const draft=()=>({setProgress(){},snapshot:async()=>null});
  const manager=new UploadManager(store,draft,async()=>{delays++},async()=>assert.fail('unreadable photo must not reach network'),async()=>'owner',async()=>{encodes++;throw new DOMException('Cannot read photo','NotReadableError')},async row=>{failures.push(row)});
  await manager.initialize('owner');await manager.postAttachment(file,{postId:'post-1',notEaten:true});await until(()=>manager.list()[0]?.state==='failed');
- assert.equal(manager.list()[0].photoLost,true);assert.match(manager.list()[0].message,/Take it again/);assert.equal(delays,0);assert.equal(encodes,1);assert.equal(failures.length,1);assert.equal(failures[0].stage,'encode');
+ assert.equal(manager.list()[0].photoLost,true);assert.match(showFailure(manager.list()[0].failure),/Take it again/);assert.equal(delays,0);assert.equal(encodes,1);assert.equal(failures.length,1);assert.equal(failures[0].stage,'encode');
 });
 test('a signing network failure remains retryable and records sign rather than encode',async()=>{
  const rows=new Map(),failures=[];
@@ -154,7 +155,7 @@ test('a signing network failure remains retryable and records sign rather than e
  const encoded={original:new Blob(['original']),feed:new Blob(['feed']),width:1,height:1};
  const manager=new UploadManager(store,()=>({setProgress(){},snapshot:async()=>null}),async()=>{},async()=>{throw new TypeError('offline')},async()=>'owner',async()=>encoded,async row=>{failures.push(row)});
  await manager.initialize('owner');const id=await manager.postAttachment(file,{postId:'post-1',notEaten:true});await until(()=>manager.list()[0]?.state==='failed');
- assert.equal(manager.list()[0].photoLost,undefined);assert.equal(rows.get(id).files.length,1);assert.equal(manager.list()[0].message,"The photo couldn't be uploaded. Try again, or remove it.");assert.equal(failures.length,3);assert.ok(failures.every(row=>row.stage==='sign'&&row.status==='network'));
+ assert.equal(manager.list()[0].photoLost,undefined);assert.equal(rows.get(id).files.length,1);assert.equal(showFailure(manager.list()[0].failure),"The photo couldn't be uploaded. Try again, or remove it.");assert.equal(failures.length,3);assert.ok(failures.every(row=>row.stage==='sign'&&row.status==='network'));
 });
 test('an attachment whose bytes cannot be read when they are kept also asks for a retake',async()=>{
  const rows=new Map(),failures=[];let delays=0;
@@ -162,7 +163,7 @@ test('an attachment whose bytes cannot be read when they are kept also asks for 
  const store=withIntents({all:async()=>[...rows.values()],put:async row=>{if(row.files.length)throw new DOMException('Cannot read stored File','NotReadableError');rows.set(row.operationId,structuredClone(row))}},rows);
  const manager=new UploadManager(store,()=>({setProgress(){},snapshot:async()=>null}),async()=>{delays++},async()=>assert.fail('unreadable legacy photo must not reach network'),async()=>'owner',async()=>assert.fail('checkpoint failure precedes encoding'),async row=>{failures.push(row)});
  await manager.initialize('owner');manager.retry('legacy');await until(()=>manager.list()[0]?.state==='failed');
- assert.equal(manager.list()[0].photoLost,true);assert.match(manager.list()[0].message,/Take it again/);assert.equal(delays,0);assert.equal(rows.get('legacy').files.length,0);assert.equal(failures[0]?.stage,'encode');
+ assert.equal(manager.list()[0].photoLost,true);assert.match(showFailure(manager.list()[0].failure),/Take it again/);assert.equal(delays,0);assert.equal(rows.get('legacy').files.length,0);assert.equal(failures[0]?.stage,'encode');
 });
 test('an attachment is durable before the sheet may close, then uploads and attaches in the background',async()=>{
  const {manager,store,rows,calls}=attachHarness(()=>Response.json({post_id:'post-1'},{status:201}));
@@ -185,7 +186,7 @@ test('a lost photo write after publish intent leaves retake state on reload',asy
  await manager.initialize('owner');const put=store.put;store.put=async()=>{throw Error('disk full');};
  const id=await manager.postAttachment(file,{postId:'post-1',notEaten:true});assert.ok(store.intents.has(id));
  const restored=make();await restored.initialize('owner');assert.equal(restored.list().length,1);
- assert.equal(restored.list()[0].photoLost,true);assert.match(restored.list()[0].message,/not kept/);
+ assert.equal(restored.list()[0].photoLost,true);assert.match(showFailure(restored.list()[0].failure),/not kept/);
  store.put=put;
 });
 test('online and explicit retry skip photo-lost attachments without network work',async()=>{
@@ -203,7 +204,7 @@ test('a failed attachment keeps the photo and retries from the chip',async()=>{
  const {manager,rows,calls}=attachHarness(()=>succeed?Response.json({post_id:'post-1'},{status:201}):Response.json({error:'The photo could not be attached.'},{status:503}));
  await manager.initialize('owner');const id=await manager.postAttachment(file,{postId:'post-1',notEaten:true});
  await until(()=>manager.list()[0]?.state==='failed');
- assert.equal(manager.list()[0].message,'The photo could not be attached.');assert.equal(manager.list()[0].attachment.postId,'post-1');assert.equal(rows.get(id).files[0].size,file.size);
+ assert.equal(showFailure(manager.list()[0].failure),"Something went wrong. Try again.",'fixture has no message_code, so the neutral unknown failure is used');assert.deepEqual(manager.list()[0].failure,{code:'unknownFailure'});assert.equal(manager.list()[0].attachment.postId,'post-1');assert.equal(rows.get(id).files[0].size,file.size);
  succeed=true;manager.retry(id);await until(()=>manager.list()[0]?.postId==='post-1');
  assert.equal(calls.filter(c=>c==='/api/media/sign-upload').length,1);
 });
@@ -222,7 +223,7 @@ test('reloading a failed attachment reuses its durable stage after an ambiguous 
 });
 test('a rejected publish intent leaves only the sheet owning a retry',async()=>{
  const {manager,store,calls,rows}=attachHarness(()=>Response.json({post_id:'post-1'},{status:201}));await manager.initialize('owner');const putIntent=store.putIntent;store.putIntent=async()=>{throw Error('intent write lost');};
- await assert.rejects(()=>manager.postAttachment(file,{postId:'post-1',notEaten:true}),/could not be kept/);
+ await assert.rejects(()=>manager.postAttachment(file,{postId:'post-1',notEaten:true}),error=>/could not be kept/.test(showFailure(error.failure)));
  assert.deepEqual(calls,[]);assert.deepEqual(manager.list(),[]);assert.equal(rows.size,0);assert.equal(store.intents.size,0);
  store.putIntent=putIntent;await manager.postAttachment(file,{postId:'post-1',notEaten:true});await until(()=>manager.list()[0]?.postId==='post-1');
  assert.equal(manager.list().length,1);assert.equal(calls.filter(c=>c.endsWith('/media')).length,1);
