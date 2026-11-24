@@ -240,14 +240,6 @@
     "modePhoto": "写真",
     "modeBarcode": "バーコード",
     "modeText": "テキスト",
-    "hintModes": "スワイプしてバーコードを読み取る",
-    "hintCapture": "説明の入力だけでも記録できます",
-    "hintThread": "ここに返信して推定値を修正できます",
-    "hintThumbs": "この推定値は合っていましたか？",
-    "barcodeTip": "バーコードのヒント",
-    "barcodeTipDescription": "市販の食品ですか？バーコードモードはコードを読み取って商品情報を入力します。写真モードでも、バーコードや栄養成分表示の写真を読み取れます。",
-    "tryBarcode": "バーコードを試す",
-    "gotIt": "わかりました",
     "noAudioRecorded": "音声が録音されませんでした。",
     "transcriptionFailed": "文字起こしを完了できませんでした。",
     "voiceUnavailable": "このブラウザーでは音声録音を利用できません。",
@@ -656,7 +648,8 @@
     "loadingPage": "読み込み中…",
     "pageLoadFailed": "このページを読み込めませんでした。",
     "openMealDetails": "食事の詳細を開く",
-    "loadingMealDetails": "食事の詳細を読み込み中…"
+    "loadingMealDetails": "食事の詳細を読み込み中…",
+    "noFoodFound": "食品が見つかりません"
   },
   "post": {
     "backToFeed": "フィードに戻る",
@@ -925,5 +918,15 @@
     "commentOrCorrect": "コメントまたは修正",
     "commentPlaceholder": "コメントまたは修正…",
     "sendComment": "コメントを送信"
+  },
+  "hints": {
+    "hintCapture": "説明の入力だけでも記録できます",
+    "hintModes": "スワイプしてバーコードを読み取る",
+    "hintThread": "ここに返信して推定値を修正できます",
+    "hintThumbs": "この推定値は合っていましたか？",
+    "barcodeTip": "バーコードのヒント",
+    "barcodeTipDescription": "市販の食品ですか？バーコードモードはコードを読み取って商品情報を入力します。写真モードでも、バーコードや栄養成分表示の写真を読み取れます。",
+    "tryBarcode": "バーコードを試す",
+    "gotIt": "わかりました"
   }
 }

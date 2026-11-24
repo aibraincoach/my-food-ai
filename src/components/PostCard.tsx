@@ -88,7 +88,7 @@ export default function PostCard({ post, showDate = false, upload, priority = fa
   return <article className="flex flex-col" data-post-id={post.id} data-post-status={post.status} data-upload-id={upload?.operationId}>
     <div className="flex min-h-[52px] items-center gap-[10px] px-inset">
       <Avatar handle={handle} userId={author.userId} mediaId={author.avatarMediaId} sizePx={32} textClassName="text-avatar"/>
-      <span className="min-w-0 flex-1 [overflow-wrap:anywhere] text-handle">{handle}<AgentAttribution name={post.agentName}/></span>
+      <span className="min-w-0 flex-1 [overflow-wrap:anywhere] text-handle"><span data-i18n-stored="handle">{handle}</span><AgentAttribution name={post.agentName}/></span>
       {upload&&!upload.postId?(upload.state==='failed'&&!upload.kind?<UploadMenu upload={upload}/>:<span aria-hidden="true" className="flex size-tap items-center justify-center text-xl">···</span>):<PostMenu postId={post.id} caption={post.caption} eatenAt={post.eaten_at} gtin={record.gtin} rows={[
         ...(post.status==='ready'&&!hasDrink?[{label:t('addPhoto'),onSelect:()=>window.dispatchEvent(new CustomEvent('open-entry',{detail:{entry:'camera',forPost:post.id,notEaten:false}}))}]:[]),
         {label:t('eatAgain'),onSelect:()=>window.dispatchEvent(new CustomEvent('log-again',{detail:{postId:post.id,post,savedMealId:record.saved_meal_id??null}}))},

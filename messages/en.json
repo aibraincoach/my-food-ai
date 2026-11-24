@@ -240,14 +240,6 @@
     "modePhoto": "Photo",
     "modeBarcode": "Barcode",
     "modeText": "Text",
-    "hintModes": "Swipe to scan a barcode",
-    "hintCapture": "A caption alone works too",
-    "hintThread": "Reply here to fix the estimate",
-    "hintThumbs": "Was this estimate right?",
-    "barcodeTip": "Barcode tip",
-    "barcodeTipDescription": "Packaged food? Barcode mode reads the code and fills in the product. A photo of a barcode or a nutrition label in Photo mode is read too.",
-    "tryBarcode": "Try Barcode",
-    "gotIt": "Got it",
     "noAudioRecorded": "No audio was recorded.",
     "transcriptionFailed": "Transcription could not be completed.",
     "voiceUnavailable": "Voice recording is unavailable in this browser.",
@@ -656,7 +648,8 @@
     "pageLoadFailed": "This page could not be loaded.",
     "openMealDetails": "Open meal details",
     "loadingMealDetails": "Loading meal details…",
-    "loadingPage": "Loading…"
+    "loadingPage": "Loading…",
+    "noFoodFound": "No food found"
   },
   "post": {
     "backToFeed": "Back to Feed",
@@ -925,5 +918,15 @@
     "commentOrCorrect": "Comment or correct",
     "commentPlaceholder": "Comment or correct…",
     "sendComment": "Send comment"
+  },
+  "hints": {
+    "hintCapture": "A caption alone works too",
+    "hintModes": "Swipe to scan a barcode",
+    "hintThread": "Reply here to fix the estimate",
+    "hintThumbs": "Was this estimate right?",
+    "barcodeTip": "Barcode tip",
+    "barcodeTipDescription": "Packaged food? Barcode mode reads the code and fills in the product. A photo of a barcode or a nutrition label in Photo mode is read too.",
+    "tryBarcode": "Try Barcode",
+    "gotIt": "Got it"
   }
 }

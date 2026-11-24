@@ -36,7 +36,7 @@ test('drink totals retain exact base sentence and unknown qualifier in all four 
  }
 });
 for(const missing of['post','postMenu','thread'])test('source graph rejects missing reading namespace '+missing,()=>{
- const supplied=['navigation','errors','card','capture','feed','post','postMenu','thread'].filter(namespace=>namespace!==missing);
+ const supplied=['navigation','errors','card','capture','feed','post','postMenu','thread','hints'].filter(namespace=>namespace!==missing);
  assert.throws(()=>checkCaptureNamespaces(undefined,undefined,supplied),new RegExp('Missing capture-provider namespace '+missing+' for'));
 });
 test('each converted reading file rejects a planted visible literal',async()=>{

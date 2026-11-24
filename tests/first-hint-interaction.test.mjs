@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import vm from 'node:vm';
 import ts from 'typescript';
-import {captureEnglish} from './fixtures/capture-wording.mjs';
+import {englishIntl} from './fixtures/english-intl.mjs';
 function fixture(hint) {
  const effects=[],states=[],saved=[],documentListeners=new Map(),windowListeners=new Map();
  const events=map=>({addEventListener:(name,fn)=>map.set(name,fn),removeEventListener:(name,fn)=>{if(map.get(name)===fn)map.delete(name);}});
@@ -13,7 +13,7 @@ function fixture(hint) {
  assert.equal(code.diagnostics?.length??0,0);
  const db={auth:{getSession:async()=>({data:{session:{user:{id:'local-fixture'}}}})},from:()=>({select:()=>({eq:()=>({single:async()=>({data:{hints_seen:[]},error:null})})})})};
  vm.runInNewContext(code.outputText,{exports,document:events(documentListeners),window:events(windowListeners),require:name=>{
-  if(name==='next-intl')return{useTranslations:()=>captureEnglish};
+  if(name==='next-intl')return englishIntl;
   if(name==='react')return{useRef:value=>({current:value}),useState:value=>[value,next=>states.push(next)],useEffect:fn=>effects.push(fn)};
   if(name==='react/jsx-runtime')return{jsx:(type,props)=>({type,props}),jsxs:(type,props)=>({type,props})};
   if(name==='@/lib/profile/hints')return{dismissHint:async key=>{saved.push(key);}};

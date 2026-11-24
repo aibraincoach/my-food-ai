@@ -54,7 +54,7 @@ export default function FoodSearchPanel({ eatenAt, disabled, onQueued, onDescrib
     {shown && !shown.failed && shown.foods.length === 0 ? <p className="px-grid text-detail text-camera-muted" role="status">{t('noFoods')}</p> : null}
     {shown?.foods.length ? <ul aria-label={t('foodResults')} className="divide-y divide-surface/15">
       {shown.foods.map((food) => <li key={food.id}><button type="button" disabled={busy} onClick={() => { void pick(food); }} className="flex min-h-tap w-full items-baseline justify-between gap-3 px-grid py-grid text-left text-detail disabled:opacity-50">
-        <span className="min-w-0 flex-1">{food.description}</span>
+        <span data-i18n-stored="food" className="min-w-0 flex-1">{food.description}</span>
         <span className="shrink-0 tabular-nums text-camera-muted">{food.calories === null ? "–" : `${formatNumber(locale,food.calories,{useGrouping:false,maximumFractionDigits:20})} kcal`} · {formatNumber(locale,food.serving_amount,{useGrouping:false,maximumFractionDigits:20})} {food.serving_unit}</span>
       </button></li>)}
     </ul> : null}
