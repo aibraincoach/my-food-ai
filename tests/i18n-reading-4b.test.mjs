@@ -18,6 +18,7 @@ for(const locale of ['en','ja'])for(const count of [0,1,2])test(`${locale}: Days
  assert.equal(search('postCount',{count}),locale==='en'?`${count} ${count===1?'post':'posts'}`:`${count}件の投稿`);
  assert.equal(agents('connectedCount',values),locale==='en'?`${count} connected`:`${count}件接続中`);
  assert.equal(agents('readMeals',{count}),locale==='en'?`Read ${count} ${meal}`:`${count}件の食事を閲覧しました`);
+ assert.equal(days('cellSummary',{date:'2026-11-24',hasDay:'yes',count,hasPending:'no',unfinished:'0',hasIntake:'no',ready:'no',kcal:'0',hasGap:'no',gap:''}),locale==='en'?`2026-11-24, ${count} ${meal}`:`2026-11-24、${count}件の食事`);
 });
 for(const locale of ['en','ja'])test(`${locale}: calendar sentence preserves every branch and the held server gap`,()=>{
  const t=translator(locale,'days');

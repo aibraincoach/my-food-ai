@@ -33,6 +33,14 @@ if(mode==='extend'){
  sql(`insert into model_calls(post_id,kind,started_at,duration_ms,input_tokens,output_tokens,request_text,response_text,fdc_id,error)values('${f.post}','spark_identify','2026-11-24T12:00:00Z',123,20,30,'検証用リクエスト','検証用レスポンス',12345,'検証用エラー');`);
  f.accountReading=true;await fs.writeFile(out+'/fixture-ledger.json',JSON.stringify(f,null,2),{mode:0o600});
  console.log(JSON.stringify({extended:true,posts:3,agents:2,localSyntheticAdmin:true}));
+}else if(mode==='reset-ui'){
+ if(!f.accountReading||!f.agentSeeds?.every(id=>/^[a-f0-9-]{36}$/.test(id)))throw Error('Extended fixture required');
+ for(const result of [
+  await admin.from('agent_tokens').delete().eq('user_id',f.user).not('id','in','('+f.agentSeeds.join(',')+')'),
+  await admin.from('agent_tokens').update({revoked_at:null}).eq('user_id',f.user).eq('id',f.agentSeeds[0]),
+  await admin.from('posts').update({deleted_at:'2026-11-24T12:30:00Z'}).eq('user_id',f.user).eq('id',f.deleted),
+ ])if(result.error)throw result.error;
+ console.log(JSON.stringify({ownedUiReset:true}));
 }else if(mode==='cleanup-traces'){
  const removed=JSON.parse(sql(`with gone as(delete from model_calls where post_id is null and kind='spark_search' and position('${f.handle}' in request_text)>0 returning id)select coalesce(json_agg(id),'[]')from gone`));
  await fs.writeFile(out+'/owned-search-trace-cleanup.json',JSON.stringify({removed},null,2));console.log(JSON.stringify({ownedSearchTracesRemoved:removed.length}));
