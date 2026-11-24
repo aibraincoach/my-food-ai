@@ -78,6 +78,7 @@ try{
     assert.equal(latin.length,0,'Japanese Latin text '+state.name+': '+JSON.stringify(latin));
     if(preflight){await page.locator('[data-post-id="'+fixture.post+'"]').getByRole('link',{name:dictionaries.en.postMenu.details,exact:true}).tap();await page.waitForURL('**/posts/'+fixture.post);await page.locator('[data-post-detail-ready]').waitFor({state:'attached'});await page.getByRole('region',{name:dictionaries[locale].thread.mealComments,exact:true}).filter({hasText:'これは検証用の返信です。'}).waitFor();receipt.cases.push({build,locale,state:'cached-post-open',pass:true});}
    }
+   if(locale==='en'&&!preflight)assert.ok(receipt.realtime.at(-1).transport.acknowledgedJoins>0,'Realtime fixture must acknowledge a join in every snapshot context');
   }catch(error){await page.screenshot({path:out+'/'+engine+'-failure.png',fullPage:true});await fs.writeFile(out+'/'+engine+'-failure.html',await page.content(),{mode:0o600});throw error;}
   finally{closing=true;await context.close();}
  }
