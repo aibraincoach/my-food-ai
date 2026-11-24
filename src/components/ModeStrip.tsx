@@ -1,10 +1,12 @@
 "use client";
+import {useTranslations} from 'next-intl';
+
 
 import { useLayoutEffect, useRef, useState, type PointerEvent } from "react";
 import type { CaptureMode } from "@/components/CaptureSheet";
 
 const modes: CaptureMode[] = ["text", "photo", "barcode"];
-const labels = { photo: "Photo", barcode: "Barcode", text: "Text" };
+
 
 export function useModeSwipe(mode: CaptureMode, onChange: (mode: CaptureMode) => void, disabled: boolean) {
   const start = useRef<{ id: number; x: number; y: number } | null>(null);
@@ -52,6 +54,8 @@ export function BarcodeGlyph({ className = "" }: { className?: string }) {
 export default function ModeStrip({ mode, onChange, disabled = false, highlightBarcode = false }: {
   mode: CaptureMode; onChange: (mode: CaptureMode) => void; disabled?: boolean; highlightBarcode?: boolean;
 }) {
+  const t=useTranslations('capture');
+  const labels={photo:t('modePhoto'),barcode:t('modeBarcode'),text:t('modeText')};
   const track = useRef<HTMLDivElement>(null);
   const [offset, setOffset] = useState(0);
   const [animate,setAnimate]=useState(false);
@@ -67,7 +71,7 @@ export default function ModeStrip({ mode, onChange, disabled = false, highlightB
     if (track.current) observer.observe(track.current);
     return () => { cancelAnimationFrame(frame); observer.disconnect(); };
   }, [mode]);
-  return <div role="tablist" aria-label="Capture mode" aria-orientation="horizontal"
+  return <div role="tablist" aria-label={t('captureMode')} aria-orientation="horizontal"
     className="relative h-11 touch-pan-y overflow-hidden"
     {...swipe}
     onKeyDown={event => {
@@ -88,10 +92,12 @@ export default function ModeStrip({ mode, onChange, disabled = false, highlightB
         {mode === tab && <span aria-hidden="true" className="absolute bottom-0 left-1/2 size-1 -translate-x-1/2 rounded-full bg-accent" />}
       </button>)}
     </div>
-    <style jsx>{`
+    <style jsx>{MODESTRIP_ANIMATION_CSS_0}</style>
+  </div>;
+}
+
+const MODESTRIP_ANIMATION_CSS_0 = `
       @keyframes barcode-hint-nudge { 0%, 100% { transform: translateX(0); } 50% { transform: translateX(-8px); } }
       .barcode-hint-ring { animation: barcode-hint-nudge 700ms ease-in-out 2; }
       @media (prefers-reduced-motion: reduce) { .barcode-hint-ring { animation: none; } }
-    `}</style>
-  </div>;
-}
+    `;

@@ -1,3 +1,4 @@
+import {showFailure} from './fixtures/capture-wording.mjs';
 import test from 'node:test';import assert from 'node:assert/strict';
 import {UploadManager} from '../src/lib/posts/upload-manager.ts';
 const food={fdc_id:123,query:'croissant',eaten_at:'2026-11-03T01:00:00Z'},pause=()=>new Promise(resolve=>setImmediate(resolve));
@@ -20,7 +21,7 @@ test('a committed response lost in transit explicitly retries the same operation
 });
 test('failed input survives reload, stays private to its owner and explicit retry retains the original operation',async()=>{
  const db=store(),bad=new UploadManager(db,makeDraft,async()=>{},async()=>Response.json({error:'Offline fixture'},{status:503}));
- await bad.initialize('owner');const id=await bad.postFood(food,'Croissant');await until(()=>bad.list()[0].state==='failed');assert.equal(db.rows.get(id).food.query,'croissant');assert.equal(bad.list()[0].message,'Offline fixture');
+ await bad.initialize('owner');const id=await bad.postFood(food,'Croissant');await until(()=>bad.list()[0].state==='failed');assert.equal(db.rows.get(id).food.query,'croissant');assert.equal(showFailure(bad.list()[0].failure),"The server didn't respond.");
  const other=new UploadManager(db,makeDraft,async()=>{},async()=>{throw Error('must not send another owner selection');});await other.initialize('other');assert.deepEqual(other.list(),[]);
  let body;const restored=new UploadManager(db,makeDraft,async()=>{},async(_url,options)=>{body=JSON.parse(options.body);return Response.json({post_id:'retried-post'},{status:201});});await restored.initialize('owner');assert.equal(restored.list()[0].state,'failed');restored.retry(id);await until(()=>restored.list()[0].postId==='retried-post');assert.equal(body.operation_id,id);assert.equal(body.owner_id,'owner');assert.equal(body.fdc_id,123);
 });
@@ -35,7 +36,7 @@ test('an account switch during the durable checkpoint cannot send the prior acco
  const db=store(),gate=deferred(),put=db.put;let pending=false,sent=0;db.put=async row=>{pending=true;await gate.promise;return put(row);};
  const manager=new UploadManager(db,makeDraft,async()=>{},async()=>{sent++;return Response.json({post_id:'wrong-owner'});});await manager.initialize('owner');
  const posting=manager.postFood(food,'Private selection');await until(()=>pending);await manager.initialize('other');gate.resolve();
- await assert.rejects(posting,/Sign-in changed/);assert.equal(sent,0);assert.deepEqual(manager.list(),[]);assert.equal([...db.rows.values()][0].ownerId,'owner');
+ await assert.rejects(posting,error=>/Sign-in changed/.test(showFailure(error.failure)));assert.equal(sent,0);assert.deepEqual(manager.list(),[]);assert.equal([...db.rows.values()][0].ownerId,'owner');
 });
 test('failed removal is durable and reload retries cancellation rather than posting the selection again',async()=>{
  const db=store();let deletes=0,posts=0;

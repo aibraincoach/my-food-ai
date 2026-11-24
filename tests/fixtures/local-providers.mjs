@@ -8,6 +8,7 @@ if(base){
  const fetcher=globalThis.fetch;
  globalThis.fetch=(input,init)=>{
   const url=new URL(typeof input==='string'||input instanceof URL?input:input.url);
+  if(process.env.TEST_OFF_FIXTURE_MISS==='1'&&url.hostname==='world.openfoodfacts.org')return Promise.resolve(Response.json({status:0},{status:404}));
   if(url.hostname==='api.nal.usda.gov'&&url.pathname.startsWith('/fdc/v1/')){
    const fixture=new URL(local);fixture.pathname=url.pathname;fixture.search=url.search;
    return fetcher(input instanceof Request?new Request(fixture,input):fixture,init);

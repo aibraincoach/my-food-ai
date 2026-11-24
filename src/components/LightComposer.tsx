@@ -1,5 +1,6 @@
 /* eslint-disable @next/next/no-img-element -- Local blob camera and gallery previews. */
 'use client';
+import {useTranslations,useFormatter} from 'next-intl';
 import {useDesktop} from '@/lib/ui/use-desktop';
 import {useEffect,useRef,useState,type ReactNode} from 'react';
 import UploadBar from './UploadBar';
@@ -16,6 +17,8 @@ function Switch({label,on,disabled,onChange}:{label:string;on:boolean;disabled:b
  return <button type="button" role="switch" aria-label={label} aria-checked={on} disabled={disabled} onClick={onChange} className={`relative h-[26px] w-[44px] shrink-0 rounded-circle disabled:opacity-50 ${on?'bg-accent':'bg-ring'}`}><span className="absolute top-[3px] size-5 rounded-circle bg-white" style={{left:on?21:3,boxShadow:'var(--color-shadow-knob)'}}/></button>;
 }
 export default function LightComposer(p:Props) {
+ const t=useTranslations('capture');
+ const format=useFormatter();
  const desktop=useDesktop();
  const drinks=useComposerDrinks(p);
  const voice=useVoiceActivity();
@@ -25,7 +28,7 @@ export default function LightComposer(p:Props) {
  const [typing,setTyping]=useState(false);
  const [drinkReview,setDrinkReview]=useState<string|null>(null);
  const reviewing=drinks.active&&drinkReview===drinks.identity;
- const reviewAction=drinks.active?<button type="button" disabled={busy} aria-expanded={reviewing} onPointerDown={event=>event.preventDefault()} onClick={()=>setDrinkReview(reviewing?null:drinks.identity)} className="min-h-tap rounded-field bg-field px-3 text-detail font-medium">Review drinks</button>:null;
+ const reviewAction=drinks.active?<button type="button" disabled={busy} aria-expanded={reviewing} onPointerDown={event=>event.preventDefault()} onClick={()=>setDrinkReview(reviewing?null:drinks.identity)} className="min-h-tap rounded-field bg-field px-3 text-detail font-medium">{t('review_drinks')}</button>:null;
  const [voiceError,setVoiceError]=useState('');
  const [whenOpen,setWhenOpen]=useState(false);
  const [photoOptions,setPhotoOptions]=useState(false);
@@ -47,7 +50,7 @@ export default function LightComposer(p:Props) {
   observedPhoto.current={index:p.index,count:p.shots.length};
  },[p.index,p.shots.length,typing]);
  const current=p.shots[Math.min(p.index,p.shots.length-1)],on=p.notEaten.includes(p.index);
- const when=p.when?new Date(p.when).toLocaleString(undefined,{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'}):'Now';
+ const when=p.when?format.dateTime(new Date(p.when),{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'}):t('now');
  const groups:number[][]=[];
  for(let index=0;index<p.shots.length;index++){
   if(p.notEaten.length){if(!p.notEaten.includes(index)||!groups.length)groups.push([index]);else groups[groups.length-1].push(index);}
@@ -60,98 +63,100 @@ export default function LightComposer(p:Props) {
  // Local blob previews are kept on device.
  if(desktop)return <div className="desktop-composer grid h-[min(620px,calc(100dvh-48px))] grid-cols-[minmax(0,600px)_360px] bg-surface text-text">
   <div className="relative min-h-0 overflow-hidden bg-camera text-surface">
-   {p.cameraPreview?<CameraPreview frame={p.cameraPreview}/>:current?<img src={current.previewUrl} alt={`Meal photo ${p.index+1}`} className="size-full object-contain"/>:<div className="flex h-full items-center justify-center text-muted">Text post</div>}
-   {p.shots.length>1&&<><button aria-label="Previous photo" disabled={p.index===0} onClick={()=>p.setIndex(p.index-1)} className="absolute left-4 top-1/2 size-10 rounded-circle bg-white text-[24px] text-text disabled:invisible">‹</button><button aria-label="Next photo" disabled={p.index===p.shots.length-1} onClick={()=>p.setIndex(p.index+1)} className="absolute right-4 top-1/2 size-10 rounded-circle bg-white text-[24px] text-text disabled:invisible">›</button></>}
-   {current&&<><button aria-label={`Remove photo ${p.index+1}`} onClick={()=>p.onRemove(p.index)} className="absolute left-4 top-4 size-8 rounded-circle bg-overlay text-white">×</button><span className="absolute right-4 top-4 rounded-pill bg-overlay px-3 py-1 text-meta">{p.index+1}/{p.shots.length}</span></>}
+   {p.cameraPreview?<CameraPreview frame={p.cameraPreview}/>:current?<img src={current.previewUrl} alt={t('meal_photo_v0', {v0: p.index+1})} className="size-full object-contain"/>:<div className="flex h-full items-center justify-center text-muted">{t('text_post')}</div>}
+   {p.shots.length>1&&<><button aria-label={t('previous_photo')} disabled={p.index===0} onClick={()=>p.setIndex(p.index-1)} className="absolute left-4 top-1/2 size-10 rounded-circle bg-white text-[24px] text-text disabled:invisible">‹</button><button aria-label={t('next_photo')} disabled={p.index===p.shots.length-1} onClick={()=>p.setIndex(p.index+1)} className="absolute right-4 top-1/2 size-10 rounded-circle bg-white text-[24px] text-text disabled:invisible">›</button></>}
+   {current&&<><button aria-label={t('remove_photo_v0', {v0: p.index+1})} onClick={()=>p.onRemove(p.index)} className="absolute left-4 top-4 size-8 rounded-circle bg-overlay text-white">×</button><span className="absolute right-4 top-4 rounded-pill bg-overlay px-3 py-1 text-meta">{p.index+1}/{p.shots.length}</span></>}
    {p.upload&&<UploadBar upload={p.upload}/>}
   </div>
-  <section className="flex min-h-0 flex-col"><header className="flex h-14 shrink-0 items-center justify-between border-b border-hairline px-5"><h1 id="capture-title" className="text-[16px] font-semibold">New post</h1><button aria-label="Back to Feed" onClick={p.onBack} disabled={busy} className="size-8 text-[24px]">×</button></header>
+  <section className="flex min-h-0 flex-col"><header className="flex h-14 shrink-0 items-center justify-between border-b border-hairline px-5"><h1 id="capture-title" className="text-[16px] font-semibold">{t('new_post')}</h1><button aria-label={t('back_to_feed')} onClick={p.onBack} disabled={busy} className="size-8 text-[24px]">×</button></header>
    <div className="min-h-0 flex-1 overflow-y-auto p-5">
-    <label htmlFor="capture-caption" className="text-[14px] font-semibold">{handle}</label><textarea ref={caption} id="capture-caption" aria-label="Caption" maxLength={2000} rows={3} placeholder="Add a caption…" value={p.caption} disabled={busy} onChange={event=>p.setCaption(event.target.value)} className="mt-2 w-full resize-none text-[14px] outline-none"/><VoiceButton value={p.caption} onChange={p.setCaption} max={2000} disabled={inputBusy} onActiveChange={voice.onActiveChange}/>
-    <div className="my-3 flex gap-2"><button onClick={photo} disabled={busy||p.shots.length>=8} className="flex h-9 items-center gap-2 rounded-field bg-field px-3 text-[13px]"><Icon name="camera" size={16}/>Another photo</button><button onClick={p.onSearch} disabled={busy} className="flex h-9 items-center gap-2 rounded-field bg-field px-3 text-[13px]"><Icon name="search" size={16}/>Search foods</button></div>
+    <label htmlFor="capture-caption" className="text-[14px] font-semibold">{handle}</label><textarea ref={caption} id="capture-caption" aria-label={t('caption')} maxLength={2000} rows={3} placeholder={t('add_a_caption')} value={p.caption} disabled={busy} onChange={event=>p.setCaption(event.target.value)} className="mt-2 w-full resize-none text-[14px] outline-none"/><VoiceButton value={p.caption} onChange={p.setCaption} max={2000} disabled={inputBusy} onActiveChange={voice.onActiveChange}/>
+    <div className="my-3 flex gap-2"><button onClick={photo} disabled={busy||p.shots.length>=8} className="flex h-9 items-center gap-2 rounded-field bg-field px-3 text-[13px]"><Icon name="camera" size={16}/>{t('another_photo')}</button><button onClick={p.onSearch} disabled={busy} className="flex h-9 items-center gap-2 rounded-field bg-field px-3 text-[13px]"><Icon name="search" size={16}/>{t('search_foods')}</button></div>
     {p.searchPanel}{reviewAction}{reviewing&&drinks.card}
-    <label className="flex min-h-[56px] flex-wrap items-center justify-between gap-2 border-b border-hairline text-[14px]">Eaten at<input type="datetime-local" aria-label="Eaten at" value={p.when??''} max={toLocalInput(new Date())} disabled={busy} onChange={event=>p.setWhen(event.target.value||null)} className="max-w-[190px] bg-transparent text-[12px]"/></label>
-    {p.index>0&&<div className="flex min-h-[56px] items-center justify-between border-b border-hairline text-[14px]">Leftovers<Switch label="Leftovers" on={on} disabled={busy} onChange={()=>p.setNotEaten(on?p.notEaten.filter(index=>index!==p.index):[...p.notEaten,p.index].sort((a,b)=>a-b))}/></div>}
-    {p.onSavePhoto&&p.shots.length>0&&<div className="flex min-h-[56px] items-center justify-between border-b border-hairline text-[14px]">Save photo<button type="button" disabled={busy} onClick={p.onSavePhoto} className="min-h-tap rounded-field bg-field px-3 text-[13px]">Save</button></div>}
-    <div className="flex min-h-[56px] items-center justify-between border-b border-hairline text-[14px]">Location<Switch label="Save location" on={p.locationEnabled} disabled={busy} onChange={()=>p.setLocationEnabled(!p.locationEnabled)}/></div>
-    <div className="flex min-h-[56px] items-center justify-between border-b border-hairline text-[14px]">Save as meal<Switch label="Save as meal" on={p.saveAsMeal} disabled={busy} onChange={()=>p.setSaveAsMeal(!p.saveAsMeal)}/></div>
-   </div><footer className="shrink-0 border-t border-hairline p-5">{(p.error||drinks.error)&&<p role="alert" className="mb-2 text-detail">{p.error||drinks.error}</p>}{p.pending>0&&<p role="status" className="text-meta">Preparing selected photos…</p>}<Button disabled={busy||p.pending>0||(drinks.active?drinks.disabled:!p.caption.trim()&&!p.shots.length)} onClick={post}>{inputBusy?'Posting…':drinks.active?drinks.button:'Post'}</Button></footer>
+    <label className="flex min-h-[56px] flex-wrap items-center justify-between gap-2 border-b border-hairline text-[14px]">{t('eaten_at')}<input type="datetime-local" aria-label={t('eaten_at')} value={p.when??''} max={toLocalInput(new Date())} disabled={busy} onChange={event=>p.setWhen(event.target.value||null)} className="max-w-[190px] bg-transparent text-[12px]"/></label>
+    {p.index>0&&<div className="flex min-h-[56px] items-center justify-between border-b border-hairline text-[14px]">{t('leftovers')}<Switch label={t('leftovers')} on={on} disabled={busy} onChange={()=>p.setNotEaten(on?p.notEaten.filter(index=>index!==p.index):[...p.notEaten,p.index].sort((a,b)=>a-b))}/></div>}
+    {p.onSavePhoto&&p.shots.length>0&&<div className="flex min-h-[56px] items-center justify-between border-b border-hairline text-[14px]">{t('save_photo')}<button type="button" disabled={busy} onClick={p.onSavePhoto} className="min-h-tap rounded-field bg-field px-3 text-[13px]">{t('save')}</button></div>}
+    <div className="flex min-h-[56px] items-center justify-between border-b border-hairline text-[14px]">{t('location')}<Switch label={t('save_location')} on={p.locationEnabled} disabled={busy} onChange={()=>p.setLocationEnabled(!p.locationEnabled)}/></div>
+    <div className="flex min-h-[56px] items-center justify-between border-b border-hairline text-[14px]">{t('save_as_meal')}<Switch label={t('save_as_meal')} on={p.saveAsMeal} disabled={busy} onChange={()=>p.setSaveAsMeal(!p.saveAsMeal)}/></div>
+   </div><footer className="shrink-0 border-t border-hairline p-5">{(p.error||drinks.error)&&<p role="alert" className="mb-2 text-detail">{p.error||drinks.error}</p>}{p.pending>0&&<p role="status" className="text-meta">{t('preparing_selected_photos')}</p>}<Button disabled={busy||p.pending>0||(drinks.active?drinks.disabled:!p.caption.trim()&&!p.shots.length)} onClick={post}>{inputBusy?t('posting'):drinks.active?drinks.button:t('post')}</Button></footer>
   </section>{drinks.editor}{p.children}
  </div>;
  // Only a deliberate review may replace the caption; identification never does.
  if(reviewing&&!voice.active)return <div className="flex h-full flex-col bg-camera text-surface">
-  <header className="flex h-top-safe shrink-0 items-center justify-between px-5"><button type="button" aria-label="Back to Feed" disabled={busy} onClick={p.onBack} className="flex size-tap items-center justify-center"><Icon name="close"/></button><h1 id="capture-title" className="text-body font-semibold">New post</h1><button type="button" disabled={busy} onClick={()=>setDrinkReview(null)} className="min-h-tap text-meta">Post details</button></header>
+  <header className="flex h-top-safe shrink-0 items-center justify-between px-5"><button type="button" aria-label={t('back_to_feed')} disabled={busy} onClick={p.onBack} className="flex size-tap items-center justify-center"><Icon name="close"/></button><h1 id="capture-title" className="text-body font-semibold">{t('new_post')}</h1><button type="button" disabled={busy} onClick={()=>setDrinkReview(null)} className="min-h-tap text-meta">{t('post_details')}</button></header>
   <div className="relative min-h-[140px] flex-1 overflow-hidden">
-   <img src={current?.previewUrl} alt="Photographed drinks" className="size-full object-contain"/>
+   <img src={current?.previewUrl} alt={t('photographed_drinks')} className="size-full object-contain"/>
   </div>
   <div className="max-h-[70%] shrink-0 overflow-y-auto rounded-t-sheet bg-text">{drinks.card}
    <footer className="px-5 pt-4 pb-[calc(34px+env(safe-area-inset-bottom))]">
     {drinks.error&&<p role="alert" className="mb-2 text-detail text-faint">{drinks.error}</p>}
     {voiceError&&<p role="alert" className="mb-2 text-detail text-faint">{voiceError}</p>}
-    <Button variant="camera" style={{height:48,borderRadius:12,fontSize:15}} disabled={busy||drinks.disabled} onClick={post}>{inputBusy?'Posting…':drinks.button}</Button>
+    <Button variant="camera" style={{height:48,borderRadius:12,fontSize:15}} disabled={busy||drinks.disabled} onClick={post}>{inputBusy?t('posting'):drinks.button}</Button>
    </footer>
   </div>{drinks.editor}{p.children}
  </div>;
  return <div className="flex h-full flex-col bg-surface text-text" style={{animation:'composer-in 220ms ease-out'}}>
-  <style>{'@keyframes composer-in {from {transform:translateX(30px);opacity:.5}to {transform:translateX(0);opacity:1}}'}</style>
-  <header className="flex h-top-safe shrink-0 items-center justify-between px-inset"><button type="button" aria-label="Back to Feed" disabled={busy} onClick={p.onBack} className="flex size-tap items-center justify-center rounded-circle bg-field"><Icon name="back" size={22}/></button><h1 id="capture-title" className="text-sheet-title">New post</h1><span className="size-tap"/></header>
+  <style>{LIGHTCOMPOSER_ANIMATION_CSS_0}</style>
+  <header className="flex h-top-safe shrink-0 items-center justify-between px-inset"><button type="button" aria-label={t('back_to_feed')} disabled={busy} onClick={p.onBack} className="flex size-tap items-center justify-center rounded-circle bg-field"><Icon name="back" size={22}/></button><h1 id="capture-title" className="text-sheet-title">{t('new_post')}</h1><span className="size-tap"/></header>
   <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain pb-2">
    {p.cameraPreview&&<CameraPreview frame={p.cameraPreview}/>}
-   {typing?<div className="flex gap-2 overflow-x-auto px-inset pt-3" aria-label="Meal photos">{p.shots.map((shot,index)=><img key={shot.previewUrl} src={shot.previewUrl} alt={`Meal photo ${index+1}`} className="size-[72px] shrink-0 rounded-thumb object-cover"/>)}</div>:!p.cameraPreview&&!!p.shots.length&&<div className="pt-3">
+   {typing?<div className="flex gap-2 overflow-x-auto px-inset pt-3" aria-label={t('meal_photos')}>{p.shots.map((shot,index)=><img key={shot.previewUrl} src={shot.previewUrl} alt={t('meal_photo_v0', {v0: index+1})} className="size-[72px] shrink-0 rounded-thumb object-cover"/>)}</div>:!p.cameraPreview&&!!p.shots.length&&<div className="pt-3">
     {p.shots.length===1?<div className="relative mx-auto h-[276px] w-[220px] overflow-hidden rounded-card">
-       <img src={current.previewUrl} alt="Meal photo 1" className="size-full object-cover"/><button type="button" disabled={busy} onClick={()=>p.onRemove(0)} aria-label="Remove photo 1" className="absolute top-[10px] left-[10px] flex size-[22px] items-center justify-center rounded-circle bg-overlay text-surface"><Icon name="close" size={16}/></button><span className="absolute top-[10px] right-[10px] rounded-tile bg-overlay px-2 text-meta text-surface">1/1</span>
+       <img src={current.previewUrl} alt={t('meal_photo_1')} className="size-full object-cover"/><button type="button" disabled={busy} onClick={()=>p.onRemove(0)} aria-label={t('remove_photo_1')} className="absolute top-[10px] left-[10px] flex size-[22px] items-center justify-center rounded-circle bg-overlay text-surface"><Icon name="close" size={16}/></button><span className="absolute top-[10px] right-[10px] rounded-tile bg-overlay px-2 text-meta text-surface">1/1</span>
       {p.upload&&(p.upload.state!=='uploaded'||uploadedVisible)&&<UploadBar upload={p.upload}/>}
-    </div>:p.shots.length>2?<div aria-label="Selected meal photos" className="flex flex-col gap-3 px-inset" data-paired-photos>
-     {groups.map((indices,group)=><section key={indices[0]} aria-label={p.notEaten.length?`Plate ${group+1}`:`Photos ${indices.map(index=>index+1).join(', ')}`}><h2 className="mb-[6px] text-meta font-semibold text-muted">{p.notEaten.length?`Plate ${group+1}`:`${indices.length===1?'Photo':'Photos'} ${indices.map(index=>index+1).join(', ')}`}</h2><div className="grid grid-cols-2 gap-2">
+    </div>:p.shots.length>2?<div aria-label={t('selected_meal_photos')} className="flex flex-col gap-3 px-inset" data-paired-photos>
+     {groups.map((indices,group)=><section key={indices[0]} aria-label={p.notEaten.length?t('plate_v0', {v0: group+1}):t('photos_v0', {v0: indices.map(index=>index+1).join(', ')})}><h2 className="mb-[6px] text-meta font-semibold text-muted">{p.notEaten.length?t('plate_v0', {v0: group+1}):t('leftoverPhotos',{count:indices.length,numbers:indices.map(index=>index+1).join(', ')})}</h2><div className="grid grid-cols-2 gap-2">
       {indices.map(index=><div key={p.shots[index].previewUrl} className={`relative h-32 overflow-hidden rounded-field ${p.index===index&&photoOptions?'ring-2 ring-text':''}`}>
-       <button type="button" disabled={busy} aria-label={`Edit photo ${index+1}`} onClick={()=>{p.setIndex(index);setPhotoOptions(true);}} className="size-full">
-       <img src={p.shots[index].previewUrl} alt={`Meal photo ${index+1}`} className="size-full object-cover"/>
+       <button type="button" disabled={busy} aria-label={t('edit_photo_v0', {v0: index+1})} onClick={()=>{p.setIndex(index);setPhotoOptions(true);}} className="size-full">
+       <img src={p.shots[index].previewUrl} alt={t('meal_photo_v0', {v0: index+1})} className="size-full object-cover"/>
        </button>
-       <button type="button" disabled={busy} onClick={()=>p.onRemove(index)} aria-label={`Remove photo ${index+1}`} className="absolute left-2 top-2 flex size-[22px] items-center justify-center rounded-circle bg-overlay text-surface"><Icon name="close" size={16}/></button>
+       <button type="button" disabled={busy} onClick={()=>p.onRemove(index)} aria-label={t('remove_photo_v0', {v0: index+1})} className="absolute left-2 top-2 flex size-[22px] items-center justify-center rounded-circle bg-overlay text-surface"><Icon name="close" size={16}/></button>
        <span className="pointer-events-none absolute right-2 top-2 rounded-tile bg-overlay px-[7px] py-[2px] text-[11px] text-surface">{index+1}/{p.shots.length}</span>
-       {p.notEaten.includes(index)&&<span className="pointer-events-none absolute bottom-2 left-2 rounded-tile bg-text px-2 py-1 text-[11px] font-semibold text-surface">Leftovers</span>}
+       {p.notEaten.includes(index)&&<span className="pointer-events-none absolute bottom-2 left-2 rounded-tile bg-text px-2 py-1 text-[11px] font-semibold text-surface">{t('leftovers')}</span>}
        {p.upload&&(p.upload.state!=='uploaded'||uploadedVisible)&&<UploadBar upload={p.upload}/>}
       </div>)}
      </div></section>)}
-    </div>:<div ref={preview} aria-label="Selected meal photos" className="flex snap-x snap-mandatory gap-[10px] overflow-x-auto px-[calc((100%-200px)/2)]" onScroll={event=>{const next=Math.round(event.currentTarget.scrollLeft/210);if(next<=p.shots.length){observedPhoto.current={index:next,count:p.shots.length};if(next!==p.index)p.setIndex(next);}}}>
+    </div>:<div ref={preview} aria-label={t('selected_meal_photos')} className="flex snap-x snap-mandatory gap-[10px] overflow-x-auto px-[calc((100%-200px)/2)]" onScroll={event=>{const next=Math.round(event.currentTarget.scrollLeft/210);if(next<=p.shots.length){observedPhoto.current={index:next,count:p.shots.length};if(next!==p.index)p.setIndex(next);}}}>
      {p.shots.map((shot,index)=><div key={shot.previewUrl} className="relative h-[232px] w-[200px] shrink-0 snap-center overflow-hidden rounded-card">
-       <img src={shot.previewUrl} alt={`Meal photo ${index+1}`} className="size-full object-cover"/><button type="button" disabled={busy} onClick={()=>p.onRemove(index)} aria-label={`Remove photo ${index+1}`} className="absolute top-[10px] left-[10px] flex size-[22px] items-center justify-center rounded-circle bg-overlay text-surface"><Icon name="close" size={16}/></button><span className="absolute top-[10px] right-[10px] rounded-tile bg-overlay px-2 text-meta text-surface">{index+1}/{p.shots.length}</span>
-       {p.notEaten.includes(index)&&<span className="absolute bottom-[10px] left-[10px] rounded-tile bg-text px-[10px] py-[5px] text-badge text-surface">Leftovers</span>}
+       <img src={shot.previewUrl} alt={t('meal_photo_v0', {v0: index+1})} className="size-full object-cover"/><button type="button" disabled={busy} onClick={()=>p.onRemove(index)} aria-label={t('remove_photo_v0', {v0: index+1})} className="absolute top-[10px] left-[10px] flex size-[22px] items-center justify-center rounded-circle bg-overlay text-surface"><Icon name="close" size={16}/></button><span className="absolute top-[10px] right-[10px] rounded-tile bg-overlay px-2 text-meta text-surface">{index+1}/{p.shots.length}</span>
+       {p.notEaten.includes(index)&&<span className="absolute bottom-[10px] left-[10px] rounded-tile bg-text px-[10px] py-[5px] text-badge text-surface">{t('leftovers')}</span>}
        {p.upload&&(p.upload.state!=='uploaded'||uploadedVisible)&&<UploadBar upload={p.upload}/>}
       </div>)}
-     {p.shots.length<8&&<button type="button" onClick={photo} disabled={busy} aria-label="Take another photo" className="flex h-[232px] w-[200px] shrink-0 snap-center items-center justify-center rounded-card border-[1.5px] border-dashed border-ring"><Icon name="plus" size={28}/></button>}
+     {p.shots.length<8&&<button type="button" onClick={photo} disabled={busy} aria-label={t('take_another_photo')} className="flex h-[232px] w-[200px] shrink-0 snap-center items-center justify-center rounded-card border-[1.5px] border-dashed border-ring"><Icon name="plus" size={28}/></button>}
     </div>}
-    {p.upload&&(p.upload.state!=='uploaded'||uploadedVisible)&&<p className="mt-2 text-center text-detail text-muted" role="status">{p.upload.state==='failed'?'Upload failed':p.upload.state==='uploaded'?'Uploaded':p.shots.length>1?`Uploading ${p.shots.length} photos…`:'Uploading photo…'}</p>}
+    {p.upload&&(p.upload.state!=='uploaded'||uploadedVisible)&&<p className="mt-2 text-center text-detail text-muted" role="status">{p.upload.state==='failed'?t('upload_failed'):p.upload.state==='uploaded'?t('uploaded'):p.shots.length>1?t('uploading_v0_photos', {v0: p.shots.length}):t('uploading_photo')}</p>}
    </div>}
    {!typing&&!drinks.active&&drinks.card}
    {!typing&&p.shots.length>1&&p.index>0&&p.index<p.shots.length&&(p.shots.length===2||photoOptions)&&<div className={`mx-inset mt-3 flex items-center gap-[14px] rounded-card px-inset py-3 ${on?'bg-text text-surface':'bg-card'}`}>
-    <div className="min-w-0 flex-1"><p className="text-body">This photo shows leftovers</p><p className={`mt-1 text-meta leading-[1.4] ${on?'text-faint':'text-muted'}`}>{on?`Consumed = photo ${mealBefore+1} minus photo ${p.index+1}. The card will say so.`:p.shots.length===2?'Off: both photos are of the meal. On: the first photo is the meal, this one is what remained, and the record is the difference.':'Off: this photo is part of the meal. On: this photo shows what remained from the preceding meal photo, and the record is the difference.'}</p></div>
-    <button type="button" role="switch" aria-label="Leftovers" aria-checked={on} disabled={busy} onClick={()=>p.setNotEaten(on?p.notEaten.filter(index=>index!==p.index):[...p.notEaten,p.index].sort((a,b)=>a-b))} className={`relative h-[30px] w-[50px] shrink-0 rounded-circle ${on?'bg-accent':'bg-ring'}`}><span className="absolute top-[3px] size-6 rounded-circle bg-white" style={{left:on?23:3,boxShadow:'var(--color-shadow-knob)'}}/></button>
-    {p.shots.length>2&&<button type="button" aria-label="Close photo options" onClick={()=>setPhotoOptions(false)} className="flex size-tap shrink-0 items-center justify-center"><Icon name="close" size={18}/></button>}
+    <div className="min-w-0 flex-1"><p className="text-body">{t('this_photo_shows_leftovers')}</p><p className={`mt-1 text-meta leading-[1.4] ${on?'text-faint':'text-muted'}`}>{on?t('consumed_photo_v0_minus_photo_v1_the', {v0: mealBefore+1, v1: p.index+1}):p.shots.length===2?t('off_both_photos_are_of_the_meal'):t('off_this_photo_is_part_of_the')}</p></div>
+    <button type="button" role="switch" aria-label={t('leftovers')} aria-checked={on} disabled={busy} onClick={()=>p.setNotEaten(on?p.notEaten.filter(index=>index!==p.index):[...p.notEaten,p.index].sort((a,b)=>a-b))} className={`relative h-[30px] w-[50px] shrink-0 rounded-circle ${on?'bg-accent':'bg-ring'}`}><span className="absolute top-[3px] size-6 rounded-circle bg-white" style={{left:on?23:3,boxShadow:'var(--color-shadow-knob)'}}/></button>
+    {p.shots.length>2&&<button type="button" aria-label={t('close_photo_options')} onClick={()=>setPhotoOptions(false)} className="flex size-tap shrink-0 items-center justify-center"><Icon name="close" size={18}/></button>}
    </div>}
-   <div className="px-inset pt-[14px]"><label htmlFor="capture-caption" className="text-body font-semibold">{handle}</label><textarea ref={caption} onFocus={()=>{if(!p.cameraPreview){setTyping(true);requestAnimationFrame(()=>caption.current?.scrollIntoView({block:"nearest"}));}}} onBlur={()=>setTyping(false)} id="capture-caption" aria-label="Caption" maxLength={2000} rows={2} placeholder="Add a caption…" value={p.caption} disabled={busy} onChange={event=>p.setCaption(event.target.value)} className="min-h-tap w-full resize-none bg-transparent text-body font-normal outline-none placeholder:text-muted"/><VoiceButton value={p.caption} onChange={p.setCaption} max={2000} disabled={inputBusy} onActiveChange={voice.onActiveChange} onError={setVoiceError}/></div>
+   <div className="px-inset pt-[14px]"><label htmlFor="capture-caption" className="text-body font-semibold">{handle}</label><textarea ref={caption} onFocus={()=>{if(!p.cameraPreview){setTyping(true);requestAnimationFrame(()=>caption.current?.scrollIntoView({block:"nearest"}));}}} onBlur={()=>setTyping(false)} id="capture-caption" aria-label={t('caption')} maxLength={2000} rows={2} placeholder={t('add_a_caption')} value={p.caption} disabled={busy} onChange={event=>p.setCaption(event.target.value)} className="min-h-tap w-full resize-none bg-transparent text-body font-normal outline-none placeholder:text-muted"/><VoiceButton value={p.caption} onChange={p.setCaption} max={2000} disabled={inputBusy} onActiveChange={voice.onActiveChange} onError={setVoiceError}/></div>
    {reviewAction&&<div className="px-inset pt-2">{reviewAction}</div>}
    <div className="flex gap-2 px-inset pt-[22px]">
-    <button type="button" disabled={busy||p.shots.length>=8} onClick={photo} className="flex h-[34px] items-center gap-2 rounded-[17px] bg-field px-3 text-detail font-medium"><Icon name="camera" size={16}/>Another photo</button>
-    <button type="button" disabled={busy} onClick={p.onSearch} className="flex h-[34px] items-center gap-2 rounded-[17px] bg-field px-3 text-detail font-medium"><Icon name="search" size={16}/>Search foods</button>
+    <button type="button" disabled={busy||p.shots.length>=8} onClick={photo} className="flex h-[34px] items-center gap-2 rounded-[17px] bg-field px-3 text-detail font-medium"><Icon name="camera" size={16}/>{t('another_photo')}</button>
+    <button type="button" disabled={busy} onClick={p.onSearch} className="flex h-[34px] items-center gap-2 rounded-[17px] bg-field px-3 text-detail font-medium"><Icon name="search" size={16}/>{t('search_foods')}</button>
    </div>
    {p.searchPanel}
    {!typing&&<div className="px-inset pt-[6px]">
-    <button type="button" disabled={busy} onClick={()=>setWhenOpen(value=>!value)} className="flex min-h-[52px] w-full items-center gap-[14px] border-b border-hairline text-left"><Icon name="clock"/><span className="flex-1 text-body">Eaten at</span><span className="text-detail text-muted">{when}</span><Icon name="chevron-right" size={16}/></button>
-    {whenOpen&&<input id="composer-when" type="datetime-local" aria-label="Eaten at" disabled={busy} value={p.when??''} max={toLocalInput(new Date())} onChange={event=>p.setWhen(event.target.value||null)} className="mt-1 min-h-tap w-full rounded-field bg-field px-3 text-detail"/>}
-    <button type="button" disabled={busy} onClick={()=>{if(p.shots.length<2)photo();else {p.setIndex(p.notEaten[0]??1);setPhotoOptions(value=>!value);}}} className="flex h-[52px] w-full items-center gap-[14px] border-b border-hairline text-left"><Icon name="photo-add"/><span className="min-w-0 flex-1"><span className="block text-body">Leftovers</span><span className="block text-meta text-muted">Add a photo of what remained</span></span><span className="text-detail text-muted">{p.notEaten.length?`${p.notEaten.length===1?'Photo':'Photos'} ${selectedNumbers}`:p.shots.length>1?'Off':''}</span><Icon name="chevron-right" size={16}/></button>
-    {p.onSavePhoto&&p.shots.length>0&&<button type="button" disabled={busy} onClick={p.onSavePhoto} className="flex min-h-[52px] w-full items-center gap-[14px] border-b border-hairline text-left"><Icon name="camera"/><span className="min-w-0 flex-1"><span className="block text-body">Save photo</span><span className="block text-meta text-muted">Share or download this photo</span></span><Icon name="chevron-right" size={16}/></button>}
-    <div className="flex h-[52px] items-center gap-[14px] border-b border-hairline"><Icon name="pin"/><span className="flex-1"><span className="block text-body">Location</span><span className="block text-meta text-muted">Only you see it</span></span><Switch label="Save location" on={p.locationEnabled} disabled={busy} onChange={()=>p.setLocationEnabled(!p.locationEnabled)}/></div>
-    <div className="flex h-[52px] items-center gap-[14px] border-b border-hairline"><Icon name="bookmark"/><span className="flex-1 text-body">Save as meal</span><Switch label="Save as meal" on={p.saveAsMeal} disabled={busy} onChange={()=>p.setSaveAsMeal(!p.saveAsMeal)}/></div>
+    <button type="button" disabled={busy} onClick={()=>setWhenOpen(value=>!value)} className="flex min-h-[52px] w-full items-center gap-[14px] border-b border-hairline text-left"><Icon name="clock"/><span className="flex-1 text-body">{t('eaten_at')}</span><span className="text-detail text-muted">{when}</span><Icon name="chevron-right" size={16}/></button>
+    {whenOpen&&<input id="composer-when" type="datetime-local" aria-label={t('eaten_at')} disabled={busy} value={p.when??''} max={toLocalInput(new Date())} onChange={event=>p.setWhen(event.target.value||null)} className="mt-1 min-h-tap w-full rounded-field bg-field px-3 text-detail"/>}
+    <button type="button" disabled={busy} onClick={()=>{if(p.shots.length<2)photo();else {p.setIndex(p.notEaten[0]??1);setPhotoOptions(value=>!value);}}} className="flex h-[52px] w-full items-center gap-[14px] border-b border-hairline text-left"><Icon name="photo-add"/><span className="min-w-0 flex-1"><span className="block text-body">{t('leftovers')}</span><span className="block text-meta text-muted">{t('add_a_photo_of_what_remained')}</span></span><span className="text-detail text-muted">{p.notEaten.length?t('leftoverPhotos',{count:p.notEaten.length,numbers:selectedNumbers}):p.shots.length>1?t('off'):''}</span><Icon name="chevron-right" size={16}/></button>
+    {p.onSavePhoto&&p.shots.length>0&&<button type="button" disabled={busy} onClick={p.onSavePhoto} className="flex min-h-[52px] w-full items-center gap-[14px] border-b border-hairline text-left"><Icon name="camera"/><span className="min-w-0 flex-1"><span className="block text-body">{t('save_photo')}</span><span className="block text-meta text-muted">{t('share_or_download_this_photo')}</span></span><Icon name="chevron-right" size={16}/></button>}
+    <div className="flex h-[52px] items-center gap-[14px] border-b border-hairline"><Icon name="pin"/><span className="flex-1"><span className="block text-body">{t('location')}</span><span className="block text-meta text-muted">{t('only_you_see_it')}</span></span><Switch label={t('save_location')} on={p.locationEnabled} disabled={busy} onChange={()=>p.setLocationEnabled(!p.locationEnabled)}/></div>
+    <div className="flex h-[52px] items-center gap-[14px] border-b border-hairline"><Icon name="bookmark"/><span className="flex-1 text-body">{t('save_as_meal')}</span><Switch label={t('save_as_meal')} on={p.saveAsMeal} disabled={busy} onChange={()=>p.setSaveAsMeal(!p.saveAsMeal)}/></div>
    </div>}
   </div>
   <div className="shrink-0 px-inset pt-2 pb-[calc(30px+env(safe-area-inset-bottom))]">
    {drinks.error&&<p role="alert" className="mb-2 text-detail text-muted">{drinks.error}</p>}
    {p.error&&<p role="alert" className="mb-2 text-detail text-muted">{p.error}</p>}
-   {p.pending>0&&<p role="status" className="mb-2 text-meta text-muted">Preparing selected photos…</p>}
-   <Button style={{height:50,borderRadius:14,fontSize:16}} disabled={busy||drinks.saving||p.pending>0||(drinks.active?drinks.disabled:(!p.caption.trim()&&!p.shots.length))} onClick={post}>{inputBusy&&!p.cameraPreview?'Posting…':drinks.active?drinks.button:'Post'}</Button>
+   {p.pending>0&&<p role="status" className="mb-2 text-meta text-muted">{t('preparing_selected_photos')}</p>}
+   <Button style={{height:50,borderRadius:14,fontSize:16}} disabled={busy||drinks.saving||p.pending>0||(drinks.active?drinks.disabled:(!p.caption.trim()&&!p.shots.length))} onClick={post}>{inputBusy&&!p.cameraPreview?t('posting'):drinks.active?drinks.button:t('post')}</Button>
   </div>
   {drinks.editor}
   {p.children}
  </div>;
 }
+
+const LIGHTCOMPOSER_ANIMATION_CSS_0 = `@keyframes composer-in {from {transform:translateX(30px);opacity:.5}to {transform:translateX(0);opacity:1}}`;

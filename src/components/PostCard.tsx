@@ -1,5 +1,7 @@
 "use client";
 
+import {useTranslations} from 'next-intl';
+import {captureFailureText} from '@/lib/posts/capture-failure';
 import { failureMessage } from "@/lib/worker/failure-message";
 import Link from "next/link";
 import {uploadManager,type UploadState} from "@/lib/posts/upload-manager";
@@ -70,6 +72,7 @@ function StatusLine({ post }: { post: FeedPost }) {
 }
 
 export default function PostCard({ post, showDate = false, upload, priority = false }: { priority?: boolean; upload?:UploadState;post: FeedPost; analysis?: ReactNode; showDate?: boolean }) {
+  const tc=useTranslations('capture');
   const record=post as PostPresentation;
   const drink = useDrinkCard(post.id, post.status, post.eaten_at, post.drink);
   const author=usePostAuthor(record.user_id?{userId:record.user_id,handle:record.handle??'',avatarMediaId:record.avatar_media_id??null}:null);
@@ -96,8 +99,8 @@ export default function PostCard({ post, showDate = false, upload, priority = fa
       <PostCaption postId={post.id} handle={handle} caption={upload&&!upload.postId?upload.caption:post.caption}/>
       {post.status==='ready'&&(post.itemDrinks?.length??0)>=2&&<div className="my-2 flex flex-col divide-y divide-line rounded-[14px] bg-card px-4 py-1" aria-label="Drinks">{post.itemDrinks!.map((row,index)=><Link key={row.post_item_id??index} href={`/posts/${post.id}`} className="flex min-h-tap items-center justify-between gap-3 text-[15px]"><span>{row.label} · {Math.round(row.ml).toLocaleString('en-US')} ml</span><span className="shrink-0 tabular-nums text-muted">{row.caffeineMg>0?`${Math.round(row.caffeineMg).toLocaleString('en-US')} mg`:'—'}</span></Link>)}</div>}
       {post.status==='ready'&&post.itemDrinks?.some(row=>row.caffeineMg>0&&row.caffeineMg===Math.min(1000,Math.round(32*row.ml/330))&&post.items.some(item=>item.id===row.post_item_id&&/\b(coca[- ]?cola|coke|cola|pepsi)\b/i.test(item.name)&&!item.micronutrients?.some(n=>n.nutrientId===1057&&n.basis==='portion')))&&<p className="text-meta text-muted">Cola caffeine estimated at 32 mg per 330 ml.</p>}
-      {upload&&!upload.postId?<p className="text-detail text-muted">{pendingUploadLine(upload)}</p>:post.status==='ready'&&post.items.length>0 ? <Link href={`/posts/${post.id}`} className="text-detail leading-[1.4] text-muted">{summaryLine(displayRecord,drink)} <span className="text-text">more</span></Link> : <StatusLine post={post}/>}
-      {(upload?.kind||upload?.text)&&!upload.postId&&upload.state==='failed'&&!upload.photoLost&&!upload.previewUrl&&<><p role="alert" className="text-detail text-muted">{upload.message||'The server did not respond.'}</p><button type="button" onClick={()=>uploadManager.retry(upload.operationId)} className="min-h-tap self-start text-detail text-accent">Try again</button></>}
+      {upload&&!upload.postId?<p className="text-detail text-muted">{captureFailureText(pendingUploadLine(upload),tc)}</p>:post.status==='ready'&&post.items.length>0 ? <Link href={`/posts/${post.id}`} className="text-detail leading-[1.4] text-muted">{summaryLine(displayRecord,drink)} <span className="text-text">more</span></Link> : <StatusLine post={post}/>}
+      {(upload?.kind||upload?.text)&&!upload.postId&&upload.state==='failed'&&!upload.photoLost&&!upload.previewUrl&&<><p role="alert" className="text-detail text-muted">{captureFailureText(upload.failure,tc)??tc('postServerFailed')}</p><button type="button" onClick={()=>uploadManager.retry(upload.operationId)} className="min-h-tap self-start text-detail text-accent">Try again</button></>}
       {upload?.kind&&!upload.postId&&upload.state==='failed'&&<button type="button" onClick={()=>{void (upload.kind==='drink'?uploadManager.discardDrink(upload.operationId):upload.kind==='copy'?uploadManager.discardCopy(upload.operationId):uploadManager.discardFood(upload.operationId));}} className="min-h-tap self-start text-detail text-muted">Remove pending post</button>}
 
       {hasUnavailableFields(post) && post.items.length > 0 ? <p className="text-meta text-muted" role="status">Some meal details could not be refreshed. Retrying…</p> : null}

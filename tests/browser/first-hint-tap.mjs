@@ -47,7 +47,7 @@ try{
    result.cases.push({name:fresh?'fresh camera':'seen camera',photo:true,drafts:1,events,hints:saved});
    await p.getByRole('button',{name:'Remove photo 1',exact:true}).tap();
    await p.waitForFunction(async()=>await new Promise(resolve=>{const r=indexedDB.open('mfa-uploads');r.onsuccess=()=>{const db=r.result,q=db.transaction('drafts').objectStore('drafts').count();q.onsuccess=()=>{resolve(q.result===0);db.close();};};}));
-  }finally{await c.close();}
+  }catch(error){await fs.writeFile(out+'/'+engine+'-failure-dom.json',JSON.stringify({url:p.url(),body:await p.locator('body').innerText().catch(()=>''),html:await p.locator('body').innerHTML().catch(()=>''),tapEvents:await p.evaluate(()=>window.__tapRects??[]).catch(()=>[])},null,2));await p.screenshot({path:out+'/'+engine+'-failure.png',fullPage:true}).catch(()=>{});throw error;}finally{await c.close();}
  }
  if(process.env.ONLY_CASE!=='camera'){
  await reset(['capture','modes']);
@@ -69,7 +69,7 @@ try{
   assert.equal(await p.getByText('Reply here to fix the estimate',{exact:true}).count(),0);assert.ok((await seen()).includes('thread'));
   await p.reload({waitUntil:'load'});assert.equal(await p.getByText('Reply here to fix the estimate',{exact:true}).count(),0);
   result.cases.push({name:'thread',firstTapFocused:true,shownAgain:false});
- }finally{await c.close();}
+ }catch(error){await fs.writeFile(out+'/'+engine+'-failure-dom.json',JSON.stringify({url:p.url(),body:await p.locator('body').innerText().catch(()=>''),html:await p.locator('body').innerHTML().catch(()=>''),tapEvents:await p.evaluate(()=>window.__tapRects??[]).catch(()=>[])},null,2));await p.screenshot({path:out+'/'+engine+'-failure.png',fullPage:true}).catch(()=>{});throw error;}finally{await c.close();}
  }
  result.pass=true;
 }catch(error){result.pass=false;result.failure=String(error);process.exitCode=1;}

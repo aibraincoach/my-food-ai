@@ -1,4 +1,6 @@
 'use client';
+import {useTranslations} from 'next-intl';
+import {CaptureFailureError,captureFailureText} from '@/lib/posts/capture-failure';
 import {usePathname,useRouter} from 'next/navigation';
 import {uploadManager} from '@/lib/posts/upload-manager';
 import {savedItemsLine} from '@/lib/posts/saved-summary';
@@ -9,6 +11,7 @@ import {Button} from './ui/Button';
 import type {SavedMeal} from '@/lib/posts/saved';
 export type LogTarget={loading?:boolean;loadError?:string;id:string;name:string;saved:boolean;thumbnail?:string|null;items?:SavedMeal['items'];drinks?:SavedMeal['drinks'];firstPostAt?:string|null};
 export default function LogAgainSheet({target,onClose}:{target:LogTarget|null;onClose:()=>void}){
+ const tc=useTranslations('capture');
  const router=useRouter();const pathname=usePathname();
  const [copyError,setCopyError]=useState<{message:string;key:number}|null>(null);
  const [mode,setMode]=useState('now'); const [time,setTime]=useState('');const [date,setDate]=useState('');const [busy,setBusy]=useState(false);const [error,setError]=useState('');const lock=useRef(false);
@@ -21,8 +24,8 @@ export default function LogAgainSheet({target,onClose}:{target:LogTarget|null;on
  const close=()=>{if(!lock.current){setError('');setMode('now');setTime('');setDate('');onClose();}};
  async function post(){if(!target||target.loading||lock.current||sent.current===target)return;lock.current=true;setBusy(true);setError('');
  try{const when=new Date(); if(mode!=='now'){if(!time||mode==='day'&&!date)throw new Error('Choose a date and time.');if(mode==='day'){const [y,m,d]=date.split('-').map(Number);when.setFullYear(y,m-1,d);}const[h,m]=time.split(':').map(Number);when.setHours(h,m,0,0);}
- sent.current=target;onClose();void uploadManager.postCopy({id:target.id,saved:target.saved,eatenAt:when.toISOString()},target.name).catch(reason=>setCopyError({message:reason instanceof Error?reason.message:'The meal could not be logged.',key:Date.now()}));setMode('now');setTime('');setDate('');if(pathname!=='/')router.push('/');
- }catch(e){setError(e instanceof Error?e.message:'The meal could not be logged.');}finally{lock.current=false;setBusy(false);}}
+ sent.current=target;onClose();void uploadManager.postCopy({id:target.id,saved:target.saved,eatenAt:when.toISOString()},target.name).catch(reason=>setCopyError({message:reason instanceof CaptureFailureError ? captureFailureText(reason.failure,tc)! : reason instanceof Error?reason.message:'The meal could not be logged.',key:Date.now()}));setMode('now');setTime('');setDate('');if(pathname!=='/')router.push('/');
+ }catch(e){setError(e instanceof CaptureFailureError ? captureFailureText(e.failure,tc)! : e instanceof Error?e.message:'The meal could not be logged.');}finally{lock.current=false;setBusy(false);}}
  return <><Sheet hideClose open={!!target} onClose={close} label="Eat this again" panelStyle={{overflow:'hidden'}}>
   <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto overscroll-contain" data-log-again-content>
    <div className="flex h-11 shrink-0 items-center justify-between"><h2 className="text-sheet-head font-semibold">Eat this again</h2><button onClick={close} aria-label="Close Eat this again" className="min-h-tap min-w-tap">×</button></div>

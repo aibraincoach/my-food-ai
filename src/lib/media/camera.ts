@@ -1,3 +1,4 @@
+import {CaptureFailureError} from '@/lib/posts/capture-failure';
 export type Facing = "environment" | "user";
 
 // Ideals improve capture pixels without rejecting cameras that deliver less.
@@ -28,7 +29,7 @@ function isContention(error: unknown): boolean {
 }
 
 export async function openCamera(initialFacing: Facing): Promise<Camera> {
-  if (!navigator.mediaDevices?.getUserMedia) throw new Error("Camera unavailable.");
+  if (!navigator.mediaDevices?.getUserMedia) throw new CaptureFailureError({code:'error_176bfb06cdfd'});
   let facing = initialFacing;
   let closed = false;
   let generation = 0;
@@ -46,7 +47,7 @@ export async function openCamera(initialFacing: Facing): Promise<Camera> {
         // Acquire first: a rejected request leaves the working camera untouched.
         stream = await open(next);
       } catch (cause) {
-        if (superseded()) throw new Error("Camera closed.");
+        if (superseded()) throw new CaptureFailureError({code:'error_2dcdabb158f7'});
         // Releasing the working camera only helps when the failure is device contention. Anything else
         // (permission, no such camera, constraints) leaves it running and the facing unchanged.
         if (!isContention(cause)) throw new CameraFlipError(cause);
@@ -56,21 +57,21 @@ export async function openCamera(initialFacing: Facing): Promise<Camera> {
         try {
           stream = await open(next);
         } catch (second) {
-          if (superseded()) throw new Error("Camera closed.");
+          if (superseded()) throw new CaptureFailureError({code:'error_2dcdabb158f7'});
           let restored: MediaStream;
           try {
             restored = await open(facing);
           } catch {
-            throw new Error("Camera unavailable.");
+            throw new CaptureFailureError({code:'error_176bfb06cdfd'});
           }
-          if (superseded()) { stop(restored); throw new Error("Camera closed."); }
+          if (superseded()) { stop(restored); throw new CaptureFailureError({code:'error_2dcdabb158f7'}); }
           camera.stream = restored;
           throw new CameraFlipError(second ?? cause, restored);
         }
       }
       if (superseded()) {
         stop(stream);
-        throw new Error("Camera closed.");
+        throw new CaptureFailureError({code:'error_2dcdabb158f7'});
       }
       if (camera.stream !== stream) stop(camera.stream);
       facing = next;
@@ -88,7 +89,7 @@ export async function openCamera(initialFacing: Facing): Promise<Camera> {
 
 export async function grabFrame(video: HTMLVideoElement, onFrame?: (frame: HTMLCanvasElement) => void, preferStill = false): Promise<Blob> {
   if (video.readyState < HTMLMediaElement.HAVE_CURRENT_DATA || !video.videoWidth || !video.videoHeight) {
-    throw new Error("Camera is not ready yet.");
+    throw new CaptureFailureError({code:'error_92aab0c25492'});
   }
   return new Promise<Blob>((resolve, reject) => {
     let settled = false;
@@ -101,13 +102,13 @@ export async function grabFrame(video: HTMLVideoElement, onFrame?: (frame: HTMLC
       if (error) reject(error); else resolve(blob!);
     };
     // One deadline covers both the paint yield and whichever capture API is supported.
-    const timer = setTimeout(() => finish(new Error("Camera capture timed out.")), 3000);
+    const timer = setTimeout(() => finish(new CaptureFailureError({code:'error_36a165957524'})), 3000);
     const capture = async () => {
       const canvas = document.createElement("canvas");
       canvas.width = video.videoWidth;
       canvas.height = video.videoHeight;
       const context = canvas.getContext("2d");
-      if (!context) throw new Error("Camera capture unavailable.");
+      if (!context) throw new CaptureFailureError({code:'error_7a2109e8c9ac'});
       context.drawImage(video, 0, 0);
       if (onFrame) {
         onFrame(canvas);
@@ -123,12 +124,12 @@ export async function grabFrame(video: HTMLVideoElement, onFrame?: (frame: HTMLC
         const Capture = (globalThis as unknown as {ImageCapture?: new(track: MediaStreamTrack) => {takePhoto(): Promise<Blob>}}).ImageCapture;
         if (track && Capture) {
           const still = await new Capture(track).takePhoto();
-          if (!still.size || !still.type.startsWith('image/')) throw new Error("Camera capture failed.");
+          if (!still.size || !still.type.startsWith('image/')) throw new CaptureFailureError({code:'error_08a16b6b46a5'});
           return still;
         }
       }
       return new Promise<Blob>((resolve, reject) => canvas.toBlob(
-        blob => blob ? resolve(blob) : reject(new Error("Camera capture failed.")), "image/jpeg", 0.95
+        blob => blob ? resolve(blob) : reject(new CaptureFailureError({code:'error_08a16b6b46a5'})), "image/jpeg", 0.95
       ));
     };
     void capture().then(blob => { if (blob) finish(undefined, blob); }, error => finish(error));

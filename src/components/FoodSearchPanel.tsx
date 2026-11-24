@@ -1,4 +1,6 @@
 "use client";
+import {useTranslations} from 'next-intl';
+import {CaptureFailureError,captureFailureText} from '@/lib/posts/capture-failure';
 
 import { useEffect, useRef, useState } from "react";
 import {uploadManager} from "@/lib/posts/upload-manager";
@@ -11,6 +13,7 @@ type Match = { id: number; description: string; serving_amount: number; serving_
 export default function FoodSearchPanel({ eatenAt, disabled, onQueued, onDescribe, onError }: {
   eatenAt: string | null; disabled: boolean; onQueued: (postId: string) => void; onDescribe: (text: string) => void; onError: (message: string | null) => void;
 }) {
+  const tc=useTranslations('capture');
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<{ query: string; foods: Match[]; failed?: boolean } | null>(null);
   const [picking, setPicking] = useState(false);
@@ -37,7 +40,7 @@ export default function FoodSearchPanel({ eatenAt, disabled, onQueued, onDescrib
     try {
       const operationId=await uploadManager.postFood({fdc_id:food.id,query:results.query,eaten_at:eatenAt??new Date().toISOString()},food.description);
       onQueued(operationId);
-    } catch (e) { onError(e instanceof Error ? e.message : "The meal could not be saved."); }
+    } catch (e) { onError(e instanceof CaptureFailureError ? captureFailureText(e.failure,tc)! : e instanceof Error ? e.message : "The meal could not be saved."); }
     finally { pickingRef.current = false; setPicking(false); }
   };
 

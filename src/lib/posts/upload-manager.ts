@@ -1,4 +1,5 @@
 'use client';
+import {CaptureFailureError,failureFromResponse,type CaptureFailure} from './capture-failure';
 import type {TileDrinkRequest,PhotoDrinksRequest} from './drink-request';
 import {copyEndpoint,type CopyRequest} from './copy-request';
 
@@ -14,15 +15,15 @@ import { reencodeShot } from '@/lib/media/reencode';
 import { registerUploadPresence } from './upload-presence';
 
 // AGY wording: a failed durable write only guarantees the current screen's copy.
-export const PHOTO_STORAGE_FAILED = "This photo couldn't be saved, but it is still on this screen—tap Try again.";
+export const PHOTO_STORAGE_FAILED:CaptureFailure = {code:'photoStorageFailed'};
 class UploadStorageError extends Error {
     constructor(cause: unknown) { super('Photo storage failed.', {cause}); this.name = 'UploadStorageError'; }
 }
-const RETAKE_ATTACHMENT_MESSAGE = 'This photo was not kept. Take it again.';
+const RETAKE_ATTACHMENT_FAILURE:CaptureFailure = {code:'retakeAttachment'};
 // #1093: a new meal whose kept photo is from before #684's fix. It has no meal to retake a photo for.
-export const PHOTO_NOT_KEPT = 'This photo was not kept. Remove this post and take a new photo.';
+export const PHOTO_NOT_KEPT:CaptureFailure = {code:'photoNotKept'};
 // #684: say only what is true. The photo is kept inside the app, not in the phone's photos.
-const ATTACHMENT_UPLOAD_FAILED = "The photo couldn't be uploaded. Try again, or remove it.";
+const ATTACHMENT_UPLOAD_FAILED:CaptureFailure = {code:'attachmentUploadFailed'};
 // #684: which step of an added photo failed, and how. No photo data; read by operators with the service key.
 export type UploadFailure = { post_id: string; kind: 'attachment'; stage: 'encode' | 'sign' | 'put-original' | 'put-feed' | 'attach'; status: string | null; detail: string | null; bytes: number | null; mime: string | null; user_agent: string | null };
 export async function reportUploadFailure(row: UploadFailure): Promise<void> {
@@ -40,7 +41,7 @@ export interface UploadState {
     photoLost?: boolean;
     lostNotice: boolean;
     failureKind?: 'storage';
-    message?: string;
+    failure?: CaptureFailure;
     uploadId?: string;
     sent: number;
     total: number;
@@ -85,7 +86,7 @@ export class UploadManager {
         if (this.ownerPending) return this.ownerPending;
         const epoch = this.ownerEpoch;
         const pending = this.readOwner().then(owner => {
-            if (!owner || epoch !== this.ownerEpoch || (this.ownerId && this.ownerId !== owner)) throw new Error('Sign-in changed. Keep this screen open and try again.');
+            if (!owner || epoch !== this.ownerEpoch || (this.ownerId && this.ownerId !== owner)) throw new CaptureFailureError({code:'error_7e10bf2e4306'});
             this.ownerId = owner;
             return owner;
         });
@@ -100,12 +101,12 @@ export class UploadManager {
         window.dispatchEvent(new CustomEvent(event, { detail: this.state(entry) })); }
     private photoLost(entry: Entry) {
         const d = entry.data;
-        return Boolean(!d.files.length && (d.photoLost || (d.attachment && d.message === RETAKE_ATTACHMENT_MESSAGE)));
+        return Boolean(!d.files.length && (d.photoLost || (d.attachment && d.failure?.code === RETAKE_ATTACHMENT_FAILURE.code)));
     }
-    private state(entry: Entry): UploadState { const d = entry.data; const photoLost=this.photoLost(entry); return { operationId: d.operationId, lostNotice: !d.posted && photoLost && !d.lostNoticeSeen, uploadId:d.snapshot?.id, caption: d.caption, eatenAt: d.eatenAt ?? new Date(d.createdAt).toISOString(), previewUrl: entry.previewUrl, sent: d.sent, total: d.total, state: d.state, error: d.error, posted: d.posted, ...(d.failureKind==='storage'?{message:d.message,failureKind:d.failureKind}:{}), ...(d.attachment?{attachment:d.attachment,message:d.message,...(photoLost?{photoLost:true}:{})}:{}), ...((d.food||d.copy||d.drink||d.photoDrinks)?{kind:d.copy?"copy" as const:d.food?"food" as const:"drink" as const,removing:d.cancelRequested,message:d.message}:{}), ...(d.drink?{drinkTile:true}:{}), ...(!d.files.length&&!photoLost&&!d.food&&!d.copy&&!d.drink&&!d.photoDrinks&&!d.attachment?{text:true}:{}), ...(photoLost&&!d.attachment?{photoLost:true,message:PHOTO_NOT_KEPT}:{}), ...(entry.finished ? { postId: d.resultPostId??d.snapshot?.id } : {}) }; }
+    private state(entry: Entry): UploadState { const d = entry.data; const photoLost=this.photoLost(entry); return { operationId: d.operationId, lostNotice: !d.posted && photoLost && !d.lostNoticeSeen, uploadId:d.snapshot?.id, caption: d.caption, eatenAt: d.eatenAt ?? new Date(d.createdAt).toISOString(), previewUrl: entry.previewUrl, sent: d.sent, total: d.total, state: d.state, error: d.error, failure: d.failure, posted: d.posted, ...(d.failureKind==='storage'?{failure:d.failure,failureKind:d.failureKind}:{}), ...(d.attachment?{attachment:d.attachment,failure:d.failure,...(photoLost?{photoLost:true}:{})}:{}), ...((d.food||d.copy||d.drink||d.photoDrinks)?{kind:d.copy?"copy" as const:d.food?"food" as const:"drink" as const,removing:d.cancelRequested,failure:d.failure}:{}), ...(d.drink?{drinkTile:true}:{}), ...(!d.files.length&&!photoLost&&!d.food&&!d.copy&&!d.drink&&!d.photoDrinks&&!d.attachment?{text:true}:{}), ...(photoLost&&!d.attachment?{photoLost:true,failure:PHOTO_NOT_KEPT}:{}), ...(entry.finished ? { postId: d.resultPostId??d.snapshot?.id } : {}) }; }
     private intentFor(entry: Entry, ownerId: string): PublishIntent { const d=entry.data,attachment=d.attachment; return {operationId:d.operationId,ownerId,createdAt:d.createdAt,postId:attachment?.postId??null,notEaten:attachment?.notEaten??false}; }
-    private applyIntent(data: StoredUpload, intent: PublishIntent) { data.posted=true; data.ownerId=intent.ownerId; if(intent.postId&&!data.attachment)data.attachment={postId:intent.postId,notEaten:intent.notEaten}; if(data.attachment&&!data.files.length){data.state='failed';data.message=RETAKE_ATTACHMENT_MESSAGE;data.photoLost=true;} }
-    private attachmentFromIntent(intent: PublishIntent): StoredUpload { return {operationId:intent.operationId,ownerId:intent.ownerId,createdAt:intent.createdAt,reservedAt:intent.createdAt,caption:intent.notEaten?'Leftovers':'Added photo',eatenAt:null,location:null,options:{},files:[],snapshot:null,posted:true,attachment:{postId:intent.postId!,notEaten:intent.notEaten},state:'failed',message:RETAKE_ATTACHMENT_MESSAGE,photoLost:true,sent:0,total:0}; }
+    private applyIntent(data: StoredUpload, intent: PublishIntent) { data.posted=true; data.ownerId=intent.ownerId; if(intent.postId&&!data.attachment)data.attachment={postId:intent.postId,notEaten:intent.notEaten}; if(data.attachment&&!data.files.length){data.state='failed';data.failure=RETAKE_ATTACHMENT_FAILURE;data.photoLost=true;} }
+    private attachmentFromIntent(intent: PublishIntent): StoredUpload { return {operationId:intent.operationId,ownerId:intent.ownerId,createdAt:intent.createdAt,reservedAt:intent.createdAt,caption:intent.notEaten?'Leftovers':'Added photo',eatenAt:null,location:null,options:{},files:[],snapshot:null,posted:true,attachment:{postId:intent.postId!,notEaten:intent.notEaten},state:'failed',failure:RETAKE_ATTACHMENT_FAILURE,photoLost:true,sent:0,total:0}; }
 
     list = () => [...this.entries.values()].filter(e => !e.deleted).sort((a, b) => b.data.createdAt - a.data.createdAt).map(e => this.state(e));
     async acknowledgeLost(id: string) {
@@ -179,7 +180,7 @@ export class UploadManager {
         else if (files.length !== entry.data.files.length || files.some((file, i) => file !== entry!.data.files[i])) {
             entry.data.files = [...files];
             entry.data.failureKind = undefined;
-            entry.data.message = undefined;
+            entry.data.failure = undefined;
             entry.data.snapshot = null;
             entry.data.reservedAt = Date.now();
             entry.draft = this.makeDraft();
@@ -195,7 +196,7 @@ export class UploadManager {
         // Only Try again (or selecting new files above) clears a storage failure.
         if (entry.data.failureKind === 'storage') { this.notify(entry, 'upload-failed'); return entry.data.operationId; }
         entry.data.state = 'uploading';
-        entry.data.message = undefined;
+        entry.data.failure = undefined;
         entry.data.error = undefined;
         this.notify(entry, 'upload-started');
         void this.run(entry);
@@ -210,7 +211,7 @@ export class UploadManager {
         return this.store.put(snapshot); } }).catch(error => {
             if (!entry.data.files.length || this.photoLost(entry) || (error as Error)?.name === 'NotReadableError') throw error;
             entry.data.failureKind = 'storage';
-            entry.data.message = PHOTO_STORAGE_FAILED;
+            entry.data.failure = PHOTO_STORAGE_FAILED;
             entry.data.state = 'failed';
             this.notify(entry, 'upload-failed');
             throw new UploadStorageError(error);
@@ -221,7 +222,7 @@ export class UploadManager {
         food={...food};
         if (!this.ownerId) {
             const {data:{user}}=await createClient().auth.getUser();
-            if(!user)throw new Error('Sign in to keep this food selection.');
+            if(!user)throw new CaptureFailureError({code:'error_59ce9fa6e753'});
             this.ownerId=user.id;
         }
         let entry=stagedId?this.entries.get(stagedId):undefined;
@@ -231,56 +232,56 @@ export class UploadManager {
             entry=this.make({operationId:id,ownerId:this.ownerId,createdAt:now,reservedAt:now,caption:label,eatenAt:food.eaten_at,location:null,options:{},files:[...files],snapshot:null,posted:true,food,state:'uploading',sent:0,total:'photo' in food?0:files.reduce((sum,file)=>sum+file.size,0)});
             this.entries.set(id,entry);
         }else{
-            Object.assign(entry.data,{food,caption:label,eatenAt:food.eaten_at,posted:true,state:'uploading',message:undefined});
+            Object.assign(entry.data,{food,caption:label,eatenAt:food.eaten_at,posted:true,state:'uploading',failure:undefined});
         }
         await this.persist(entry);
-        if(entry.deleted||entry.data.ownerId!==this.ownerId)throw new Error('Sign-in changed. Your selection is kept for its original account.');
+        if(entry.deleted||entry.data.ownerId!==this.ownerId)throw new CaptureFailureError({code:'error_d47c183df99f'});
         this.notify(entry,'upload-started');
         if(entry.active)entry.rerun=true;
         void this.run(entry);
         return entry.data.operationId;
     }
     async postCaption(caption:string,eatenAt:string){
-        if(!this.ownerId){const {data:{user}}=await createClient().auth.getUser();if(!user)throw new Error('Sign in to keep this caption.');this.ownerId=user.id;}
+        if(!this.ownerId){const {data:{user}}=await createClient().auth.getUser();if(!user)throw new CaptureFailureError({code:'error_844d05ae458e'});this.ownerId=user.id;}
         const now=Date.now(),id=crypto.randomUUID();
         const entry=this.make({operationId:id,ownerId:this.ownerId,createdAt:now,reservedAt:now,caption,eatenAt,location:null,options:{},files:[],snapshot:null,posted:true,state:'uploading',sent:0,total:0});
         this.entries.set(id,entry);try{await this.persist(entry);}catch(error){entry.deleted=true;this.entries.delete(id);throw error;}
-        if(entry.deleted||entry.data.ownerId!==this.ownerId)throw new Error('Sign-in changed. Your caption is kept for its original account.');
+        if(entry.deleted||entry.data.ownerId!==this.ownerId)throw new CaptureFailureError({code:'error_57b18a509a0e'});
         this.notify(entry,'upload-started');void this.run(entry);return id;
     }
     async postDrink(drink:TileDrinkRequest,label:string){
         drink={...drink};
-        if(!this.ownerId){const {data:{user}}=await createClient().auth.getUser();if(!user)throw new Error('Sign in to keep this drink.');this.ownerId=user.id;}
+        if(!this.ownerId){const {data:{user}}=await createClient().auth.getUser();if(!user)throw new CaptureFailureError({code:'error_8b51f31b2473'});this.ownerId=user.id;}
         const now=Date.now(),id=crypto.randomUUID();
         const entry=this.make({operationId:id,ownerId:this.ownerId,createdAt:now,reservedAt:now,caption:label,eatenAt:drink.eaten_at,location:null,options:{},files:[],snapshot:null,posted:true,drink,state:'uploading',sent:0,total:0});
         this.entries.set(id,entry);await this.persist(entry);
-        if(entry.deleted||entry.data.ownerId!==this.ownerId)throw new Error('Sign-in changed. Your drink is kept for its original account.');
+        if(entry.deleted||entry.data.ownerId!==this.ownerId)throw new CaptureFailureError({code:'error_9809bfd89146'});
         this.notify(entry,'upload-started');void this.run(entry);return id;
     }
     async postPhotoDrinks(photoDrinks:PhotoDrinksRequest,label:string,id:string){
         const entry=this.entries.get(id);
-        if(!entry||entry.deleted||entry.finished||entry.data.posted||entry.data.ownerId!==this.ownerId||entry.data.snapshot?.id!==photoDrinks.upload_id||!entry.data.files.length)throw new Error('Keep the uploaded drink photo and try again.');
-        entry.data.photoDrinks=structuredClone(photoDrinks);entry.data.posted=true;entry.data.caption=label;entry.data.eatenAt=photoDrinks.eaten_at;entry.data.state='uploading';entry.data.message=undefined;
+        if(!entry||entry.deleted||entry.finished||entry.data.posted||entry.data.ownerId!==this.ownerId||entry.data.snapshot?.id!==photoDrinks.upload_id||!entry.data.files.length)throw new CaptureFailureError({code:'error_a8b5df9b34f6'});
+        entry.data.photoDrinks=structuredClone(photoDrinks);entry.data.posted=true;entry.data.caption=label;entry.data.eatenAt=photoDrinks.eaten_at;entry.data.state='uploading';entry.data.failure=undefined;
         await this.persist(entry);
-        if(entry.deleted||entry.data.ownerId!==this.ownerId)throw new Error('Sign-in changed. Your photo is kept for its original account.');
+        if(entry.deleted||entry.data.ownerId!==this.ownerId)throw new CaptureFailureError({code:'error_3288af35d828'});
         this.notify(entry,'upload-started');if(entry.active)entry.rerun=true;void this.run(entry);return id;
     }
     async discardDrink(id:string){
         const entry=this.entries.get(id);if(!entry||( !entry.data.drink&&!entry.data.photoDrinks)||entry.deleted||entry.finished)return;
-        entry.data.cancelRequested=true;entry.data.state='uploading';entry.data.message=undefined;
-        try{await this.persist(entry);}catch{entry.data.state='failed';entry.data.message='The removal could not be kept on this phone. Try again.';this.notify(entry,'upload-failed');return;}
+        entry.data.cancelRequested=true;entry.data.state='uploading';entry.data.failure=undefined;
+        try{await this.persist(entry);}catch{entry.data.state='failed';entry.data.failure={code:'removalStorageFailed'};this.notify(entry,'upload-failed');return;}
         if(entry.deleted||entry.data.ownerId!==this.ownerId)return;
         this.notify(entry,'upload-progress');if(entry.active)entry.rerun=true;void this.run(entry);
     }
     async postCopy(copy:CopyRequest,label:string) {
         copy={...copy};
-        if(!this.ownerId){const {data:{user}}=await createClient().auth.getUser();if(!user)throw new Error('Sign in to keep this copy.');this.ownerId=user.id;}
+        if(!this.ownerId){const {data:{user}}=await createClient().auth.getUser();if(!user)throw new CaptureFailureError({code:'error_2c1ec80621be'});this.ownerId=user.id;}
         const now=Date.now(),id=crypto.randomUUID();
         const entry=this.make({operationId:id,ownerId:this.ownerId,createdAt:now,reservedAt:now,caption:label,eatenAt:copy.eatenAt,location:null,options:{},files:[],snapshot:null,posted:true,copy,state:'uploading',sent:0,total:0});
         this.entries.set(id,entry);
         this.notify(entry,'upload-started');
-        try{await this.persist(entry);}catch{entry.data.state='failed';entry.data.message='The copy could not be kept on this phone. Try again.';this.notify(entry,'upload-failed');return id;}
-        if(entry.deleted||entry.data.ownerId!==this.ownerId)throw new Error('Sign-in changed. Your copy is kept for its original account.');
+        try{await this.persist(entry);}catch{entry.data.state='failed';entry.data.failure={code:'copyStorageFailed'};this.notify(entry,'upload-failed');return id;}
+        if(entry.deleted||entry.data.ownerId!==this.ownerId)throw new CaptureFailureError({code:'error_4b1e7a70ff3a'});
         void this.run(entry);return id;
     }
 
@@ -293,9 +294,9 @@ export class UploadManager {
         this.notify(entry,'upload-started');
         try{await this.store.putIntent(this.intentFor(entry,owner));}catch{
             await this.remove(id);
-            throw new Error('The photo could not be kept on this phone. Try again.');
+            throw new CaptureFailureError({code:'error_5d8e81ab8a75'});
         }
-        if(entry.deleted||this.ownerId!==owner)throw new Error('Sign-in changed. Your photo is kept for its original account.');
+        if(entry.deleted||this.ownerId!==owner)throw new CaptureFailureError({code:'error_3288af35d828'});
         void this.persist(entry);
         void this.run(entry);
         return id;
@@ -304,20 +305,20 @@ export class UploadManager {
         const d=entry.data,attachment=d.attachment!;
         if(!d.attachmentPhoto){
             entry.attachmentUpload??=new PackPhotoUpload(this.encodeShot,this.foodRequest);
-            // #970: a photo that never reached storage says so; the chip shows d.message beside Try again.
+            // #970: a photo that never reached storage says so; the chip shows d.failure beside Try again.
             try{d.attachmentPhoto=await entry.attachmentUpload.prepare(d.files[0]);}
             catch(error){
                 const failure=error as {stage?:UploadFailure['stage'];status?:string;name?:string;message?:string};
                 void this.report({post_id:attachment.postId,kind:'attachment',stage:failure.stage??'encode',status:failure.status??null,detail:`${failure.name??'Error'}: ${failure.message??''}`.slice(0,300),bytes:d.files[0]?.size??null,mime:d.files[0]?.type||null,user_agent:typeof navigator==='undefined'?null:navigator.userAgent.slice(0,300)});
                 // #684: a kept photo that can no longer be read cannot be sent by any retry; ask for it again.
-                if(failure.stage==='encode'){d.files=[];d.photoLost=true;d.message=RETAKE_ATTACHMENT_MESSAGE;await this.persist(entry).catch(()=>{});}
-                else d.message=ATTACHMENT_UPLOAD_FAILED;
+                if(failure.stage==='encode'){d.files=[];d.photoLost=true;d.failure=RETAKE_ATTACHMENT_FAILURE;await this.persist(entry).catch(()=>{});}
+                else d.failure=ATTACHMENT_UPLOAD_FAILED;
                 throw error;
             }
         }
         // Persist before attach: the server deduplicates by this stage path, even after a lost response/reload.
         await this.persist(entry);
-        if(entry.deleted||d.ownerId!==this.ownerId)throw new Error('Sign-in changed. Your photo is kept for its original account.');
+        if(entry.deleted||d.ownerId!==this.ownerId)throw new CaptureFailureError({code:'error_3288af35d828'});
         const response=await this.foodRequest(`/api/posts/${attachment.postId}/media`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({photo:d.attachmentPhoto,not_eaten:attachment.notEaten}),signal:AbortSignal.timeout(JSON_REQUEST_LIMIT_MS)});
         const result=await response.json().catch(()=>null) as {post_id?:string;error?:string;code?:string}|null;
         if(!response.ok&&result?.code==='attachment_stage_expired'){
@@ -326,7 +327,7 @@ export class UploadManager {
             d.attachmentPhoto=undefined;entry.attachmentUpload=undefined;
             await this.persist(entry);
         }
-        if(!response.ok||!result?.post_id){d.message=typeof result?.error==='string'?result.error.slice(0,200):'The photo could not be attached. Your photo is kept.';void this.report({post_id:attachment.postId,kind:'attachment',stage:'attach',status:String(response.status),detail:(result?.code??d.message).slice(0,300),bytes:d.files[0]?.size??null,mime:d.files[0]?.type||null,user_agent:typeof navigator==='undefined'?null:navigator.userAgent.slice(0,300)});throw new Error(d.message);}
+        if(!response.ok||!result?.post_id){d.failure=failureFromResponse(result);void this.report({post_id:attachment.postId,kind:'attachment',stage:'attach',status:String(response.status),detail:String(result?.code??d.failure.code).slice(0,300),bytes:d.files[0]?.size??null,mime:d.files[0]?.type||null,user_agent:typeof navigator==='undefined'?null:navigator.userAgent.slice(0,300)});throw new CaptureFailureError(d.failure);}
         return {postId:result.post_id};
     }
 
@@ -356,14 +357,14 @@ export class UploadManager {
     async discardFood(id:string){
         const entry=this.entries.get(id);
         if((!entry?.data.food&&!entry?.data.copy)||entry.deleted||entry.finished)return;
-        entry.data.cancelRequested=true;entry.data.state='uploading';entry.data.message=undefined;
-        try{await this.persist(entry);}catch{entry.data.state='failed';entry.data.message='The removal could not be kept on this phone. Try again.';this.notify(entry,'upload-failed');return;}
+        entry.data.cancelRequested=true;entry.data.state='uploading';entry.data.failure=undefined;
+        try{await this.persist(entry);}catch{entry.data.state='failed';entry.data.failure={code:'removalStorageFailed'};this.notify(entry,'upload-failed');return;}
         if(entry.deleted||entry.data.ownerId!==this.ownerId)return;
         this.notify(entry,'upload-progress');if(entry.active)entry.rerun=true;void this.run(entry);
     }
     discardCopy(id:string){return this.discardFood(id);}
     retry(id: string) { const entry = this.entries.get(id); if (!entry || entry.deleted || entry.finished || this.photoLost(entry))
-        return; entry.data.state = 'uploading'; entry.data.error = undefined; entry.data.message=undefined; entry.data.failureKind=undefined; this.notify(entry, 'upload-progress'); if(entry.active)entry.rerun=true; void this.run(entry); }
+        return; entry.data.state = 'uploading'; entry.data.error = undefined; entry.data.failure=undefined; entry.data.failureKind=undefined; this.notify(entry, 'upload-progress'); if(entry.active)entry.rerun=true; void this.run(entry); }
     online = () => { for (const entry of this.entries.values())
         if (entry.data.state === 'failed' && entry.data.failureKind !== 'storage' && !this.photoLost(entry))
             this.retry(entry.data.operationId); };
@@ -387,12 +388,12 @@ export class UploadManager {
         const d=entry.data;
         const prepared=Boolean(d.food&&'photo' in d.food);
         const photo=prepared?null:d.files.length?d.snapshot?.images[0]:null;
-        if(d.files.length&&!prepared&&(!photo||!d.snapshot))throw new Error('The pack photo is not ready. Your selection is kept.');
+        if(d.files.length&&!prepared&&(!photo||!d.snapshot))throw new CaptureFailureError({code:'error_65467f9f76fc'});
         const response=await this.foodRequest('/api/posts/food',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({...d.food,operation_id:d.operationId,owner_id:d.ownerId,...(photo&&d.snapshot?{photo:{path:this.ownerId+'/'+d.snapshot.id+'/0.jpg',width:photo.width,height:photo.height}}:{})}),signal:AbortSignal.timeout(JSON_REQUEST_LIMIT_MS)});
         const result=await response.json().catch(()=>null) as {post_id?:string;error?:string}|null;
         if(!response.ok||!result?.post_id){
-            d.message=typeof result?.error==='string'?result.error.slice(0,200):'The server did not respond. Your selection is kept.';
-            throw new Error(d.message);
+            d.failure=failureFromResponse(result);
+            throw new CaptureFailureError(d.failure);
         }
         return {postId:result.post_id};
     }
@@ -401,7 +402,7 @@ export class UploadManager {
         const endpoint=photo?'/api/drinks/post':'/api/intake/post?tz='+encodeURIComponent(tile!.time_zone);
         const response=await this.foodRequest(endpoint,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({...photo??tile,operation_id:d.operationId,owner_id:d.ownerId}),signal:AbortSignal.timeout(JSON_REQUEST_LIMIT_MS)});
         const result=await response.json().catch(()=>null) as {post_id?:string;error?:string}|null;
-        if(!response.ok||!result?.post_id){d.message=result?.error??'The drink save could not be confirmed. Your selection is kept.';throw new Error(d.message);}
+        if(!response.ok||!result?.post_id){d.failure=failureFromResponse(result);throw new CaptureFailureError(d.failure);}
         return{postId:result.post_id};
     }
     private async submitCopy(entry:Entry):Promise<{postId:string}> {
@@ -409,7 +410,7 @@ export class UploadManager {
         const response=await this.foodRequest(copyEndpoint(copy),{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({operation_id:d.operationId,owner_id:d.ownerId,eaten_at:copy.eatenAt}),signal:AbortSignal.timeout(JSON_REQUEST_LIMIT_MS)});
         const result=await response.json().catch(()=>null) as {postId?:string;post_id?:string;error?:string}|null;
         const postId=result?.postId??result?.post_id;
-        if(!response.ok||!postId){d.message=typeof result?.error==='string'?result.error.slice(0,200):'The copy could not be confirmed. Your selection is kept.';throw new Error(d.message);}
+        if(!response.ok||!postId){d.failure=failureFromResponse(result);throw new CaptureFailureError(d.failure);}
         return {postId};
 
     }
@@ -428,7 +429,7 @@ export class UploadManager {
                 const response=await this.foodRequest(entry.data.copy?copyEndpoint(entry.data.copy):entry.data.photoDrinks?'/api/drinks/post':entry.data.drink?'/api/intake/post':'/api/posts/food',{method:'DELETE',headers:{'Content-Type':'application/json'},body:JSON.stringify({operation_id:entry.data.operationId,owner_id:entry.data.ownerId,...(entry.data.copy?{eaten_at:entry.data.copy.eatenAt}:{}),...(entry.data.photoDrinks?{upload_id:entry.data.photoDrinks.upload_id}:{})}),signal:AbortSignal.timeout(JSON_REQUEST_LIMIT_MS)});
 
                 const body=await response.json().catch(()=>null) as {post_id?:string;error?:string}|null;
-                if(!response.ok){entry.data.message=body?.error??(entry.data.copy?'The pending copy could not be removed. Your selection is kept.':'The pending food could not be removed. Your selection is kept.');throw new Error(entry.data.message);}
+                if(!response.ok){entry.data.failure=failureFromResponse(body);throw new CaptureFailureError(entry.data.failure);}
                 if(entry.deleted)return;
                 await this.remove(entry.data.operationId);
                 if(body?.post_id&&typeof window!=='undefined')window.dispatchEvent(new CustomEvent('post-deleted',{detail:{id:body.post_id}}));
@@ -515,8 +516,11 @@ export class UploadManager {
             if (entry.data.attachment && !this.photoLost(entry) && (error as Error)?.name === 'NotReadableError') {
                 const d=entry.data,file=d.files[0];
                 void this.report({post_id:d.attachment!.postId,kind:'attachment',stage:'encode',status:null,detail:`NotReadableError: ${(error as Error).message}`.slice(0,300),bytes:file?.size??null,mime:file?.type||null,user_agent:typeof navigator==='undefined'?null:navigator.userAgent.slice(0,300)});
-                d.files=[];d.photoLost=true;d.message=RETAKE_ATTACHMENT_MESSAGE;
+                d.files=[];d.photoLost=true;d.failure=RETAKE_ATTACHMENT_FAILURE;
             }
+            // Ordinary photo errors already displayed this generic line on base.
+            // Persist its code too, so a restored failure has no implicit wording path.
+            entry.data.failure ??= {code:entry.data.error==='dropped'?'the_connection_dropped':entry.data.error==='too_large'?'the_photo_is_too_large':'serverFailed'};
             entry.data.state = 'failed';
             if (!(error instanceof UploadStorageError)) {
                 try {
@@ -526,7 +530,7 @@ export class UploadManager {
                 catch {
                     if (entry.data.files.length && !this.photoLost(entry)) {
                         entry.data.failureKind = 'storage';
-                        entry.data.message = PHOTO_STORAGE_FAILED;
+                        entry.data.failure = PHOTO_STORAGE_FAILED;
                     }
                 }
             }

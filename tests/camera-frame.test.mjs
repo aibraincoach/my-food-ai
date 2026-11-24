@@ -1,5 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import {showFailure} from './fixtures/capture-wording.mjs';
 import {grabFrame} from '../src/lib/media/camera.ts';
 
 test('frozen preview receives drawn pixels before full-quality JPEG encoding begins',async()=>{
@@ -12,7 +13,7 @@ test('frozen preview receives drawn pixels before full-quality JPEG encoding beg
   assert.deepEqual(calls,['draw','preview']);assert.equal(canvas.width,1920);assert.equal(canvas.height,1080);
   frames.shift()();assert.deepEqual(calls,['draw','preview']);frames.shift()();
   assert.equal(await pending,blob);assert.deepEqual(calls,['draw','preview','encode']);
-  await assert.rejects(grabFrame({readyState:0,videoWidth:0,videoHeight:0},()=>assert.fail('must not show an empty preview')),/not ready/);
+  await assert.rejects(grabFrame({readyState:0,videoWidth:0,videoHeight:0},()=>assert.fail('must not show an empty preview')),error=>/not ready/.test(showFailure(error.failure)));
  }finally{for(const[k,v]of Object.entries(previous)){if(v===undefined)delete globalThis[k];else globalThis[k]=v;}}
 });
 
@@ -26,7 +27,7 @@ for(const blocked of ['paint','encode','still'])test(`one 3-second frame deadlin
  globalThis.ImageCapture=class{takePhoto(){return new Promise(()=>{});}};
  try{
   const pending=grabFrame({readyState:2,videoWidth:320,videoHeight:240,srcObject:{getVideoTracks:()=>[{}]}},blocked==='paint'?()=>{}:undefined,blocked==='still');
-  let settled=false;const outcome=pending.then(()=>{settled=true;return 'resolved';},e=>{settled=true;return e.message;});
+  let settled=false;const outcome=pending.then(()=>{settled=true;return 'resolved';},e=>{settled=true;return e.failure?showFailure(e.failure):e.message;});
   mock.timers.tick(2999);await Promise.resolve();assert.equal(settled,false);
   mock.timers.tick(1);await Promise.resolve();await Promise.resolve();assert.equal(settled,true,'a missing callback must not keep the shutter busy forever');
   assert.match(await outcome,/timed out/);assert.equal(encodes,blocked==='encode'?1:0,'no silent fallback encode');

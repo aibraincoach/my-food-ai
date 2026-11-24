@@ -1,3 +1,4 @@
+import {CaptureFailureError} from '@/lib/posts/capture-failure';
 import { createClient } from "@/lib/supabase/client";
 import { reencodeShot } from "./reencode";
 import type { SignedUpload } from "./storage";
@@ -34,7 +35,7 @@ export class PackPhotoUpload {
       let response: Response;
       try { response = await this.request("/api/media/sign-upload", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ staged: true }), signal: AbortSignal.timeout(JSON_REQUEST_LIMIT_MS) }); }
       catch (error) { throw Object.assign(error instanceof Error ? error : new Error(String(error)), { stage: "sign", status: (error as Error)?.name === "TimeoutError" ? "timeout" : "network" }); }
-      if (!response.ok) throw Object.assign(new Error("The pack photo could not be uploaded."), { stage: "sign", status: String(response.status) });
+      if (!response.ok) throw Object.assign(new CaptureFailureError({code:'error_6b1129a66ce9'}), { stage: "sign", status: String(response.status) });
       let uploads: SignedUpload[];
       try { ({ uploads } = await response.json() as { uploads: SignedUpload[] }); }
       catch (error) { throw Object.assign(error instanceof Error ? error : new Error(String(error)), { stage: "sign", status: String(response.status) }); }
@@ -47,7 +48,7 @@ export class PackPhotoUpload {
       try { const put = await this.request(url, { method: "PUT", headers: { "Content-Type": "image/jpeg" }, body: blob, signal: AbortSignal.timeout(PHOTO_PUT_LIMIT_MS) }); status = String(put.status); confirmed = put.ok; }
       catch (error) { status = (error as Error)?.name === "TimeoutError" ? "timeout" : "network"; /* Read below reconciles a committed upload whose response was lost. */ }
       if (!confirmed) confirmed = await this.verify(path, blob);
-      if (!confirmed) throw Object.assign(new Error("The pack photo could not be uploaded."), { stage: path === upload.originalPath ? "put-original" : "put-feed", status });
+      if (!confirmed) throw Object.assign(new CaptureFailureError({code:'error_6b1129a66ce9'}), { stage: path === upload.originalPath ? "put-original" : "put-feed", status });
       completed.add(url);
     }
     return { path: upload.originalPath, width: image.width, height: image.height };

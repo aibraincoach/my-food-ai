@@ -1,6 +1,7 @@
 // node --import tsx --test tests/camera-flip.test.mjs
 import assert from "node:assert/strict";
 import test from "node:test";
+import {showFailure} from "./fixtures/capture-wording.mjs";
 
 function fakeStream() {
   const track = { stopped: false, stop() { this.stopped = true; } };
@@ -61,7 +62,7 @@ test("if the previous camera cannot be reopened either, the failure is not a ret
   const first = fakeStream();
   stubCamera((n) => { if (n === 1) return first; throw busy(); });
   const camera = await openCamera("environment");
-  await assert.rejects(camera.flip(), (error) => !(error instanceof CameraFlipError) && /Camera unavailable/.test(error.message));
+  await assert.rejects(camera.flip(), (error) => !(error instanceof CameraFlipError) && /Camera unavailable/.test(showFailure(error.failure)));
 });
 
 test("a failure that releasing cannot fix leaves the working camera running", async () => {

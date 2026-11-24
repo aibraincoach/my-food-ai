@@ -1,21 +1,21 @@
 import assert from 'node:assert/strict';
 // The caller supplies a disposable authenticated page and captures the resulting
 // post id for DB verification/cleanup. No page.route stub: use native transcription.
-export async function postVoiceAndReadRenderedResult(page,{app,handle,onPost}) {
+export async function postVoiceAndReadRenderedResult(page,{app,handle,onPost,words={postMeal:'Post a meal',text:'Text',speak:'Speak',stop:'Stop recording',caption:'Caption',post:'Post'}}) {
  page.setDefaultTimeout(30000);
  await page.goto(app,{waitUntil:'load'});
- await page.getByRole('button',{name:'Post a meal',exact:true}).tap();
- await page.getByRole('button',{name:'Text',exact:true}).tap();
+ await page.getByRole('button',{name:words.postMeal,exact:true}).tap();
+ await page.getByRole('button',{name:words.text,exact:true}).tap();
  const transcribe=page.waitForResponse(r=>new URL(r.url()).pathname==='/api/transcribe'&&r.request().method()==='POST');
- await page.getByRole('button',{name:'Speak',exact:true}).tap();
- const stop=page.getByRole('button',{name:'Stop recording',exact:true});await stop.waitFor();
+ await page.getByRole('button',{name:words.speak,exact:true}).tap();
+ const stop=page.getByRole('button',{name:words.stop,exact:true});await stop.waitFor();
  await page.waitForTimeout(1000);await stop.tap();
  const audioReply=await transcribe;assert.equal(audioReply.status(),200,'Native transcription must reach the scripted provider');
- const caption=page.getByRole('textbox',{name:'Caption',exact:true});
+ const caption=page.getByRole('textbox',{name:words.caption,exact:true});
  await page.waitForFunction(()=>document.querySelector('#capture-caption')?.value==='A bowl of porridge');
  assert.equal(await caption.inputValue(),'A bowl of porridge');
  const published=page.waitForResponse(r=>new URL(r.url()).pathname==='/api/posts'&&r.request().method()==='POST');
- await page.getByRole('button',{name:'Post',exact:true}).tap();
+ await page.getByRole('button',{name:words.post,exact:true}).tap();
  const response=await published;assert.ok(response.ok());const body=await response.json();assert.match(body.postId,/^[a-f0-9-]{36}$/);await onPost(body.postId);
  const deadline=Date.now()+90000;let post;
  do{

@@ -3,16 +3,19 @@ import assert from 'node:assert/strict';
 import vm from 'node:vm';
 import {readFileSync} from 'node:fs';
 import ts from 'typescript';
+import {captureEnglish} from './fixtures/capture-wording.mjs';
+import * as captureFailure from '../src/lib/posts/capture-failure.ts';
 
-const message='This meal was deleted, so remove this photo or log it as a new meal.';
+const failure={code:'serverFailed'};
 const jsx=(type,props)=>({type,props:props??{}});
 function fixture(){
- const photo={operationId:'attachment',posted:true,state:'failed',caption:'Added photo',message,attachment:{postId:'meal',notEaten:false},previewUrl:'blob:kept-photo'};
+ const photo={operationId:'attachment',posted:true,state:'failed',caption:'Added photo',failure,attachment:{postId:'meal',notEaten:false},previewUrl:'blob:kept-photo'};
  const rows=new Map([[photo.operationId,photo],['completed',{operationId:'completed',postId:'meal'}]]),events=new EventTarget(),effects=[];
  const manager={list:()=>[...rows.values()],initialize:async()=>{},online(){},remove:async id=>{rows.delete(id);}};
  const window={addEventListener:(...args)=>events.addEventListener(...args),removeEventListener:(...args)=>events.removeEventListener(...args),matchMedia:()=>({matches:false,addEventListener(){},removeEventListener(){}})};
  const db={auth:{getSession:async()=>({data:{session:{user:{id:'owner'}}}}),onAuthStateChange:()=>({data:{subscription:{unsubscribe(){}}}})}};
  const dependencies={
+  'next-intl':{useTranslations:()=>captureEnglish},'@/lib/posts/capture-failure':captureFailure,
   'react':{useEffect:fn=>effects.push(fn),useState:value=>[value,()=>{}]},
   'react/jsx-runtime':{jsx,jsxs:jsx},'react-dom':{createPortal:x=>x},
   'next/navigation':{usePathname:()=> '/',useRouter:()=>({push(){}})},
@@ -29,7 +32,7 @@ function buttons(node){if(!node||typeof node!=='object')return[];if(Array.isArra
 for(const event of ['post-deleted','post-unavailable'])test(`${event} keeps a pending attachment's refusal until the person removes it`,async()=>{
  const app=fixture();app.emit(event);await new Promise(r=>setImmediate(r));
  assert.ok(app.rows.has('attachment'),'the selected photo and refusal must survive meal retirement');
- assert.equal(app.rows.get('attachment').message,message);
+ assert.deepEqual(app.rows.get('attachment').failure,failure);
  assert.equal(app.rows.has('completed'),false,'ordinary completed upload retirement is unchanged');
  const remove=buttons(app.tree).find(x=>x.props.children==='Remove');assert.ok(remove,'the retained photo has a Remove action');remove.props.onClick();await new Promise(r=>setImmediate(r));assert.equal(app.rows.has('attachment'),false,'explicit Remove dismisses the pending photo');
 });

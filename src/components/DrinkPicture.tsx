@@ -1,3 +1,5 @@
+"use client";
+import {useTranslations} from 'next-intl';
 import type {DrinkGlyph} from '@/lib/intake/drink-glyph';
 import {tokens} from '@/lib/theme/tokens';
 const paths:Record<DrinkGlyph,string[]>={
@@ -9,5 +11,7 @@ const paths:Record<DrinkGlyph,string[]>={
  tumbler:['M5 3h14l-2 20H7Z','M6 10h12']
 };
 export function DrinkPicture({glyph,size}:{glyph:DrinkGlyph;size:number}){
- return <svg width={size} height={size} viewBox="0 0 24 26" fill="none" stroke={tokens.colors.text} strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" aria-label={glyph}><title>{glyph}</title>{paths[glyph].map((d,index)=><path key={index} d={d}/>)}</svg>;
+ const t=useTranslations('capture');
+ const labels={coffee:t('glyphCoffee'),water:t('glyphWater'),cocktail:t('glyphCocktail'),wine:t('glyphWine'),beer:t('glyphBeer'),tumbler:t('glyphTumbler')};
+ return <svg width={size} height={size} viewBox="0 0 24 26" fill="none" stroke={tokens.colors.text} strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" aria-label={labels[glyph]}><title>{labels[glyph]}</title>{paths[glyph].map((d,index)=><path key={index} d={d}/>)}</svg>;
 }

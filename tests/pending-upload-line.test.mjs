@@ -1,11 +1,14 @@
+import {showFailure} from './fixtures/capture-wording.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
-import {pendingUploadLine,PHOTO_NOT_POSTED} from '../src/lib/posts/pending-upload-line.ts';
+import {pendingUploadLine as pendingUploadCode,PHOTO_NOT_POSTED} from '../src/lib/posts/pending-upload-line.ts';
+
+const pendingUploadLine=upload=>showFailure(pendingUploadCode(upload));
 
 test('a new readable photo failure names its Try again and Delete controls',()=>{
  assert.equal(pendingUploadLine({state:'failed'}),'Not posted yet. Try again, or delete it.');
- assert.doesNotMatch(PHOTO_NOT_POSTED,/phone|kept|saved/i);
+ assert.doesNotMatch(showFailure(PHOTO_NOT_POSTED),/phone|kept|saved/i);
  assert.equal(pendingUploadLine({state:'uploading'}),'Uploading photo…');
 });
 test('a new lost photo names Delete this post and never the chip’s Remove or an ignored retry',()=>{
@@ -29,6 +32,6 @@ test('failed selections keep AGY’s retention sentence and ordinary in-flight l
  assert.equal(pendingUploadLine({kind:'food',state:'uploading',removing:true}),'Removing pending post…');
 });
 test('the card delegates the line and the chip’s words remain separate and unchanged',()=>{
- const card=readFileSync(new URL('../src/components/PostCard.tsx',import.meta.url),'utf8');assert.match(card,/\{pendingUploadLine\(upload\)\}/);assert.doesNotMatch(card,/The photo is kept on this phone/);
- const manager=readFileSync(new URL('../src/lib/posts/upload-manager.ts',import.meta.url),'utf8');assert.match(manager,/PHOTO_NOT_KEPT = 'This photo was not kept\. Remove this post and take a new photo\.'/);
+ const card=readFileSync(new URL('../src/components/PostCard.tsx',import.meta.url),'utf8');assert.match(card,/captureFailureText\(pendingUploadLine\(upload\),tc\)/);assert.doesNotMatch(card,/The photo is kept on this phone/);
+ const manager=readFileSync(new URL('../src/lib/posts/upload-manager.ts',import.meta.url),'utf8');assert.match(manager,/PHOTO_NOT_KEPT:CaptureFailure = \{code:'photoNotKept'\}/);
 });

@@ -1,3 +1,4 @@
+import {showFailure} from './fixtures/capture-wording.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {UploadManager} from '../src/lib/posts/upload-manager.ts';
@@ -19,15 +20,15 @@ test('lost committed response explicitly retries one frozen operation without du
 });
 test('saved copy survives reload and cannot be replayed by another signed-in owner',async()=>{
  const db=store(),selection={...copy,saved:true};
- const first=new UploadManager(db,makeDraft,async()=>{},async()=>Response.json({error:'Network fixture'},{status:503}));await first.initialize('owner');const id=await first.postCopy(selection,'Saved rice');await until(()=>first.list()[0].state==='failed');assert.equal(first.list()[0].message,'Network fixture');
+ const first=new UploadManager(db,makeDraft,async()=>{},async()=>Response.json({error:'Network fixture'},{status:503}));await first.initialize('owner');const id=await first.postCopy(selection,'Saved rice');await until(()=>first.list()[0].state==='failed');assert.equal(showFailure(first.list()[0].failure),"The server didn't respond.");
  const other=new UploadManager(db,makeDraft,async()=>{},async()=>{throw Error('Another owner must not send this copy');});await other.initialize('other');assert.deepEqual(other.list(),[]);
  let sent;const restored=new UploadManager(db,makeDraft,async()=>{},async(url,options)=>{assert.equal(url,'/api/saved/source/log');sent=JSON.parse(options.body);return Response.json({postId:'restored-copy'});});await restored.initialize('owner');restored.retry(id);await until(()=>restored.list()[0].postId==='restored-copy');assert.equal(sent.operation_id,id);assert.equal(sent.owner_id,'owner');assert.equal(sent.eaten_at,copy.eatenAt);
 });
 test('a failed durable checkpoint keeps a visible failed copy without a network mutation',async()=>{
- const db=store();db.put=async()=>{throw Error('Storage unavailable');};let calls=0;const manager=new UploadManager(db,makeDraft,async()=>{},async()=>{calls++;return Response.json({postId:'unexpected'});});await manager.initialize('owner');const id=await manager.postCopy(copy,'Rice');const failed=manager.list();assert.equal(failed.length,1);assert.equal(failed[0].operationId,id);assert.equal(failed[0].state,'failed');assert.match(failed[0].message,/could not be kept on this phone/);assert.equal(db.rows.size,0);assert.equal(calls,0);
+ const db=store();db.put=async()=>{throw Error('Storage unavailable');};let calls=0;const manager=new UploadManager(db,makeDraft,async()=>{},async()=>{calls++;return Response.json({postId:'unexpected'});});await manager.initialize('owner');const id=await manager.postCopy(copy,'Rice');const failed=manager.list();assert.equal(failed.length,1);assert.equal(failed[0].operationId,id);assert.equal(failed[0].state,'failed');assert.match(showFailure(failed[0].failure),/could not be kept on this phone/);assert.equal(db.rows.size,0);assert.equal(calls,0);
 });
 test('sign-in change during persistence preserves the original selection without sending it as the new owner',async()=>{
- const db=store(),gate=deferred(),put=db.put;let writing=false,calls=0;db.put=async row=>{writing=true;await gate.promise;return put(row);};const manager=new UploadManager(db,makeDraft,async()=>{},async()=>{calls++;return Response.json({postId:'wrong-owner'});});await manager.initialize('owner');const pending=manager.postCopy(copy,'Rice');await until(()=>writing);await manager.initialize('other');gate.resolve();await assert.rejects(pending,/Sign-in changed/);assert.equal(calls,0);assert.equal([...db.rows.values()][0].ownerId,'owner');assert.deepEqual(manager.list(),[]);
+ const db=store(),gate=deferred(),put=db.put;let writing=false,calls=0;db.put=async row=>{writing=true;await gate.promise;return put(row);};const manager=new UploadManager(db,makeDraft,async()=>{},async()=>{calls++;return Response.json({postId:'wrong-owner'});});await manager.initialize('owner');const pending=manager.postCopy(copy,'Rice');await until(()=>writing);await manager.initialize('other');gate.resolve();await assert.rejects(pending,error=>/Sign-in changed/.test(showFailure(error.failure)));assert.equal(calls,0);assert.equal([...db.rows.values()][0].ownerId,'owner');assert.deepEqual(manager.list(),[]);
 });
 test('cancellation after a lost commit stays durable and reload only retries DELETE',async()=>{
  const db=store(),committed=new Map();let posts=0,deletes=0;const request=async(url,options)=>{assert.equal(url,'/api/posts/source/log-again');const body=JSON.parse(options.body);if(options.method==='POST'){posts++;committed.set(body.operation_id,'committed-copy');throw Error('response lost');}deletes++;assert.equal(body.eaten_at,copy.eatenAt);throw Error('cancel acknowledgement lost');};

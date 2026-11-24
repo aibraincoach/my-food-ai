@@ -26,7 +26,7 @@ test('an old new-meal row shows that its photo was not kept, offers no retry and
  const manager=managerWith({operationId:'meal',...base,files:[new File(['image'],'meal.jpg',{type:'image/jpeg'})]});
  await manager.initialize('owner');
  const [state]=manager.list();
- assert.deepEqual([state.state,state.photoLost,state.message,state.text],['failed',true,PHOTO_NOT_KEPT,undefined]);
+ assert.deepEqual([state.state,state.photoLost,state.failure,state.text],['failed',true,PHOTO_NOT_KEPT,undefined]);
  manager.retry('meal');await new Promise(resolve=>setTimeout(resolve,10));assert.equal(manager.list()[0].state,'failed');
 });
 test('an old leftovers row asks for a retake of that meal\'s photo',async()=>{
@@ -38,7 +38,7 @@ test('an old leftovers row asks for a retake of that meal\'s photo',async()=>{
 test('the chip shows the not-kept line with Remove for a lost photo that has no meal to retake for',()=>{
  const chip=readFileSync(new URL('../src/components/UploadChip.tsx',import.meta.url),'utf8');
  assert.match(chip,/upload\.photoLost\?<>\{upload\.attachment\?<button/);
- assert.match(chip,/:<p role="alert" className="text-detail text-muted">\{upload\.message\}<\/p>\}/);
+ assert.match(chip,/:<p role="alert" className="text-detail text-muted">\{captureFailureText\(upload\.failure,t\)\}<\/p>\}/);
  const store=readFileSync(new URL('../src/lib/posts/upload-store.ts',import.meta.url),'utf8');
  assert.doesNotMatch(store,/file instanceof Blob \? file/);
  assert.doesNotMatch(readFileSync(new URL('../src/lib/posts/upload-manager.ts',import.meta.url),'utf8'),/meal-\$\{index\}\.jpg/);

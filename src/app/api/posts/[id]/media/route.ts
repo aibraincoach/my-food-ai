@@ -6,15 +6,15 @@ import {isUuid} from '@/lib/posts/items';
 import {attachPostPhoto,AttachmentStageExpired,ATTACH_REFUSALS} from '@/lib/posts/attach-photo';
 export async function POST(request:Request,context:{params:Promise<{id:string}>}){
  const client=await createClient();const {data:{user}}=await client.auth.getUser();
- if(!user)return NextResponse.json({error:'Sign in required.'},{status:401});
+ if(!user)return NextResponse.json({error:'Sign in required.',message_code: "route_ac6a88b19530"},{status:401});
  const capped = await capUser(user.id, "correct"); if (capped) return capped;
- const {id}=await context.params;if(!isUuid(id))return NextResponse.json({error:'Post not found.'},{status:404});
+ const {id}=await context.params;if(!isUuid(id))return NextResponse.json({error:'Post not found.',message_code: "route_9c5ac1fe3dd7"},{status:404});
  const {data:post,error:readError}=await client.from('posts').select('id').eq('id',id).maybeSingle();
- if(readError)return NextResponse.json({error:'The meal could not be read.'},{status:503});
+ if(readError)return NextResponse.json({error:'The meal could not be read.',message_code: "route_b91d61a2bc90"},{status:503});
  // #970: a meal deleted while its photo was on the way says so, with the same sentence the attach refusal uses.
  if(!post){const missing=ATTACH_REFUSALS.get('Post not found')!;return NextResponse.json({error:missing.message,code:missing.code},{status:404});}
  const body=await request.json().catch(()=>null),photo=body?.photo;
- if(typeof body?.not_eaten!=='boolean'||!photo||typeof photo.path!=='string'||!new RegExp(`^${user.id}/[0-9a-f-]{36}/0[.]jpg$`).test(photo.path)||!Number.isSafeInteger(photo.width)||!Number.isSafeInteger(photo.height)||photo.width<1||photo.width>4096||photo.height<1||photo.height>4096)return NextResponse.json({error:'Choose a valid uploaded photo.'},{status:400});
+ if(typeof body?.not_eaten!=='boolean'||!photo||typeof photo.path!=='string'||!new RegExp(`^${user.id}/[0-9a-f-]{36}/0[.]jpg$`).test(photo.path)||!Number.isSafeInteger(photo.width)||!Number.isSafeInteger(photo.height)||photo.width<1||photo.width>4096||photo.height<1||photo.height>4096)return NextResponse.json({error:'Choose a valid uploaded photo.',message_code: "route_feddb7c47125"},{status:400});
  try{
   const result=await attachPostPhoto(createAdminClient(),id,user.id,photo,body.not_eaten);
   after(async()=>{try{await fetch(new URL('/api/jobs/tick',request.url),{cache:'no-store',signal:AbortSignal.timeout(10000)});}catch{/* Durable queue is retried by the wake. */}});
@@ -29,14 +29,14 @@ export async function POST(request:Request,context:{params:Promise<{id:string}>}
 
 export async function DELETE(request:Request,{params}:{params:Promise<{id:string}>}){
  const client=await createClient();const {data:{user}}=await client.auth.getUser();
- if(!user)return NextResponse.json({error:'Sign in required.'},{status:401});
+ if(!user)return NextResponse.json({error:'Sign in required.',message_code: "route_ac6a88b19530"},{status:401});
  const {id}=await params;const mediaId=new URL(request.url).searchParams.get('media_id');
  if(!isUuid(id)||!isUuid(mediaId))return new Response(null,{status:404});
  const {data:photo,error:readError}=await client.from('post_media').select('id').eq('id',mediaId).eq('post_id',id).maybeSingle();
- if(readError)return NextResponse.json({error:'The photo could not be read.'},{status:503});
+ if(readError)return NextResponse.json({error:'The photo could not be read.',message_code: "route_ddbbbee9f719"},{status:503});
  if(!photo)return new Response(null,{status:404});
  const {data,error}=await client.rpc('remove_post_media',{p_media_id:mediaId});
- if(error)return NextResponse.json({error:'The photo could not be removed.'},{status:503});
+ if(error)return NextResponse.json({error:'The photo could not be removed.',message_code: "route_0c82f1c92275"},{status:503});
  if(!data)return new Response(null,{status:404});
  after(async()=>{try{await fetch(new URL('/api/jobs/tick',request.url),{cache:'no-store',signal:AbortSignal.timeout(10000)});}catch{/* Durable wake retries. */}});
  return new Response(null,{status:204});
@@ -44,14 +44,14 @@ export async function DELETE(request:Request,{params}:{params:Promise<{id:string
 
 export async function PATCH(request:Request,{params}:{params:Promise<{id:string}>}){
  const client=await createClient();const {data:{user}}=await client.auth.getUser();
- if(!user)return NextResponse.json({error:'Sign in required.'},{status:401});
+ if(!user)return NextResponse.json({error:'Sign in required.',message_code: "route_ac6a88b19530"},{status:401});
  const capped=await capUser(user.id,'correct');if(capped)return capped;
  const {id}=await params;const mediaId=new URL(request.url).searchParams.get('media_id');
  if(!isUuid(id)||!isUuid(mediaId))return new Response(null,{status:404});
  const body=await request.json().catch(()=>null);
- if(body?.not_eaten!==false)return NextResponse.json({error:'Choose a leftovers photo to unmark.'},{status:400});
+ if(body?.not_eaten!==false)return NextResponse.json({error:'Choose a leftovers photo to unmark.',message_code: "route_fff732b010cc"},{status:400});
  const {data:photo,error:readError}=await client.from('post_media').select('id').eq('id',mediaId).eq('post_id',id).maybeSingle();
- if(readError)return NextResponse.json({error:'The photo could not be read.'},{status:503});
+ if(readError)return NextResponse.json({error:'The photo could not be read.',message_code: "route_ddbbbee9f719"},{status:503});
  if(!photo)return new Response(null,{status:404});
  const {data:jobId,error}=await client.rpc('unmark_not_eaten',{p_media_id:mediaId});
  if(error)return NextResponse.json({error:error.code==='55000'?'Wait for this meal to be ready.':'The photo could not be unmarked.'},{status:error.code==='42501'?404:error.code==='55000'?409:503});
