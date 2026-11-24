@@ -7,7 +7,7 @@ Auth, About, not-found/error wording, navigation and the live card use the langu
 ## Results
 
 - check:messages:137keys, strict key/ICU parity, no English per-key fallback; translated-scope lint passes.
-- Both final app builds, TypeScript and145 focused tests pass (69 focused,41 auth/desktop related,2 captcha,2 PNG,31 worker-cache; separate files, no repeated-count sum).
+- Both final app builds, TypeScript and152 focused tests pass (69 focused,41 auth/desktop related,2 captcha,2 PNG,31 worker-cache,7 save-readiness; separate files, no repeated-count sum).
 - Broader src lint has3 pre-existing errors: PostOpenTransition setState-in-effect and2 fixed-text errors in unconverted ui/Sheet. The same3 are reproduced on base; these unchanged files are outside this slice. Ten warnings on head. Do not call broad lint clean.
 - English visible text and visible aria labels match the base in Chromium and WebKit on Welcome, sign-in, sign-up, reset, new-password, not-found, About and a ready meal; shell comparison covers the converted bottom navigation. Base tree dcf2e011 has empty diff against main d5b86946.
 - Both languages and engines: Welcome/email, wrong-password banner, provider Coming soon, reset form outcomes, taken-handle error/Choose-a-handle recovery, and + menu. Local Auth confirmation off; no mail-delivery proof. First English reset accepted, later requests returned a localized failure under local throttling; not counted as delivered mail.
@@ -35,3 +35,7 @@ Initial DOM snapshots read streamed Loading states and pending client identity/h
 All8 ledgered disposable accounts (7 original plus1 isolated menu fixture), their meals/reservations/drafts/media/comments/jobs/storage and Auth sessions were removed and read back zero; local primary session signed out. No production action for this slice. The isolated menu check waits for all labels to finish animating and verifies they fit390px in both languages/engines; the early screenshots are retained. Raw results/screenshots, translation hashes/review receipts and cleanup.json are retained in the build evidence store under1218-slice2. Console reports include local WebKit access-control/WebSocket noise, not attributed to a product cause.
 
 Held source wording is listed in held-wording.md; it stays unchanged in this pure-conversion PR and is approved for a separate #1243/#1253 follow-up. Card data paths and stored-text limits are in card-paths.md.
+
+## Review amendment
+
+The reviewer found three head-only failures in the existing save-meal-readiness test, which was outside the original145-test selection. Reproduced4pass/3fail with useDeviceTimeZone missing; updated only the VM mocks to supply UTC and the existing English locale/translation fixture. The original seven readiness cases now all pass; product code unchanged. Reviewer ruled that the mixed WebKit receipt alone does not block merge, conditioned on its continued disclosure and no clean-WebKit or real-phone claim. Exact-head delta review remains required.

@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import vm from 'node:vm';
 import ts from 'typescript';
 import {readFileSync} from 'node:fs';
+import {englishIntl} from './fixtures/english-intl.mjs';
 import {beginBookmark,finishBookmark} from '../src/lib/posts/save-optimistic.ts';
 
 // Render the actual surfaces and their actual menu/action children. Unrelated
@@ -22,6 +23,7 @@ function mount(status,saved=false){
    const component=id.split('/').at(-1);if(names.has(component))return load(component);
    if(id==='react')return{useState:initial=>[typeof initial==='function'?initial():initial,()=>{}],useRef:current=>({current}),useEffect:()=>{},Fragment:'fragment'};
    if(id==='react/jsx-runtime')return{jsx,jsxs:jsx,Fragment:'fragment'};
+   if(id==='next-intl')return englishIntl;
    if(id==='next/link')return{default:'a'};
    if(id==='next/navigation')return{useRouter:()=>({refresh(){}}),notFound:()=>{throw Error('not found')},redirect:()=>{throw Error('redirect')}};
    if(id==='next/server')return{connection:async()=>{}};
@@ -32,7 +34,7 @@ function mount(status,saved=false){
    if(id==='@/lib/posts/days')return{validZone:x=>x};
    if(id==='@/lib/posts/save-optimistic')return{beginBookmark,finishBookmark};
    if(id==='@/lib/theme/tokens')return{tokens:{spacing:{phone:390},detail:{}}};
-   if(id==='@/components/LocalTime')return{useLocalTime:()=>'',useLocalDate:()=>'',LocalTime:()=>null};
+   if(id==='@/components/LocalTime')return{useDeviceTimeZone:()=> 'UTC',useLocalTime:()=>'',useLocalDate:()=>'',LocalTime:()=>null};
    if(id==='@/components/PostHandle')return{usePostHandle:()=> 'test',usePostAuthor:()=>({handle:'test',userId:'owner',avatarMediaId:null}),AgentAttribution:()=>null};
    if(id==='@/components/useDrinkCard')return{useDrinkCard:()=>null};
    if(id==='@/lib/pipeline/pending-items')return{readPendingItems:()=>[]};
