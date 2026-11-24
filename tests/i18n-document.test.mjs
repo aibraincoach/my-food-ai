@@ -36,6 +36,7 @@ test('translated front screens serve the resolved document language',async()=>{
   '@/lib/theme/font':{font:{className:'font',variable:'font-variable'}},
   '@/lib/theme/tokens':{tokens:{colors:{surface:'white'}}},
   '@/components/i18n/LocaleReporter':{default:'LocaleReporter'},
+  '@/components/DiagnosticsRecorder':{default:'DiagnosticsRecorder'},
   '@/components/ServiceWorkerRegistration':{default:'ServiceWorkerRegistration'},
   '@/components/PostOpenTransition':{default:'PostOpenTransition'},
   '@/components/FeedCacheMutations':{default:'FeedCacheMutations'},

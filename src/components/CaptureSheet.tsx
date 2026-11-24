@@ -1,5 +1,7 @@
 /* eslint-disable @next/next/no-img-element -- Private owner images bypass paid optimization. */
 "use client";
+import {record} from '@/lib/diagnostics/recorder';
+import {cameraFailure} from '@/lib/diagnostics/schema';
 import OpenFoodFactsAttribution from './OpenFoodFactsAttribution';
 import {useDesktop} from "@/lib/ui/use-desktop";
 import {useCameraMode} from "@/lib/media/camera-mode";
@@ -181,22 +183,27 @@ export default function CaptureSheet({ onClose, initialMode = "photo", forPost, 
     if (!shotsRef.current.length && !pendingFilesRef.current.length) selectedPhotoRef.current = false;
   };
 
+  useEffect(()=>()=>{void record('sheet','capture-close');},[]);
+
   const cameraEnabled = mode !== "text" && (!composer || takingPhoto) && !(phoneCamera && mode === "photo");
   useEffect(() => {
     mountedRef.current = true;
     let cancelled = false;
     if (!cameraEnabled) return () => { cancelled = true; mountedRef.current = false; };
+    void record('camera','opening');
     const acquire=desktop&&deviceId?navigator.mediaDevices.getUserMedia({video:cameraVideoConstraints('user',deviceId),audio:false}).then(stream=>({stream,close(){stream.getTracks().forEach(track=>track.stop());},async flip(){return stream;}})):openCamera(desktop?'user':'environment');
     void acquire.then((camera) => {
       if (cancelled) { camera.close(); return; }
       liveCameraRef.current = camera;
+      void record('camera','ready');
       setCameraUnavailable(false); setCameraRecoveryFailed(false); recovering.current=false; setStream(camera.stream);
       if(desktop)void navigator.mediaDevices.enumerateDevices().then(all=>{if(!cancelled)setDevices(all.filter(device=>device.kind==='videoinput'));}).catch(()=>{});
-    }).catch((cause:unknown) => { if (!cancelled) {setCameraRecoveryFailed(recovering.current&&(cause as {name?:string}|null)?.name!=="NotAllowedError");setCameraUnavailable(true);} });
+    }).catch((cause:unknown) => { if (!cancelled) {setCameraRecoveryFailed(recovering.current&&(cause as {name?:string}|null)?.name!=="NotAllowedError");setCameraUnavailable(true);void record('camera',cameraFailure(cause));} });
     return () => {
       cancelled = true;
       mountedRef.current = false;
       liveCameraRef.current?.close();
+      void record('camera','closed');
       liveCameraRef.current = null;
     };
   }, [cameraEnabled,desktop,deviceId,cameraAttempt]);
@@ -240,6 +247,7 @@ export default function CaptureSheet({ onClose, initialMode = "photo", forPost, 
   }, [stream]);
 
   useEffect(() => {
+    void record('sheet','capture-open');
     const previousFocus = document.activeElement;
     const releaseScroll=lockBodyScroll();
     if (initialMode === "text") document.getElementById("capture-caption")?.focus();
