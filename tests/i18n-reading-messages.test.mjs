@@ -25,6 +25,7 @@ test('counted reading messages keep 0/1/2 and their English wording in each loca
   const label=t.rich('commentsCount',{count,amount:String(count),number:chunks=>chunks});
   assert.equal(label,locale==='en'?`Comments ${count}`:`コメント ${count}`);
   assert.equal(p('showAll',{count,amount:String(count)}),locale==='en'?`Show all ${count}`:`すべて表示（${count}）`);
+  assert.equal(translator(locale,'postMenu')('servingAmount',{count,amount:String(count)}),locale==='en'?`${count} ${count===1?'serving':'servings'}`:`${count}食分`);
  }
 });
 test('drink totals retain exact base sentence and unknown qualifier in all four combinations',()=>{

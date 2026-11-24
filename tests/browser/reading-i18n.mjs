@@ -47,7 +47,7 @@ try{
   await context.addCookies([...cookies.map(cookie=>({name:cookie.name,value:cookie.value,url})),{name:'lang',value:locale,url},{name:'time-zone',value:'UTC',url}]);
   let closing=false,lastNavigation=null;
   const page=await context.newPage();page.setDefaultTimeout(15000);page.setDefaultNavigationTimeout(30000);
-  const event=message=>({build,locale,message,at:new Date().toISOString(),url:page.url(),lastNavigation,closing});
+  const event=message=>({build,locale,message:message.replace(/([?&]apikey=)[^&\s']+/g,'$1<redacted>'),at:new Date().toISOString(),url:page.url(),lastNavigation,closing});
   page.on('pageerror',error=>receipt.errors.push(event(error.message)));
   page.on('console',message=>{if(message.type()==='error'){receipt.consoleErrors??=[];receipt.consoleErrors.push(event(message.text()));}});
   try{

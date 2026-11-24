@@ -1,3 +1,5 @@
+import {englishIntl} from './fixtures/english-intl.mjs';
+import * as readingFormat from '../src/i18n/format.ts';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import vm from 'node:vm';
@@ -10,6 +12,8 @@ function mount(overrides={}){
  const events=new EventTarget(),effects=[],exports={},jsx=(type,props)=>({type,props}),slots=[];let cursor=0,tree;
  const dates={shiftDay:(date,n)=>{const d=new Date(date+'T12:00:00Z');d.setUTCDate(d.getUTCDate()+n);return d.toISOString().slice(0,10);},withZone:x=>x};
  vm.runInNewContext(code,{exports,Date,Intl,Boolean,Array,CustomEvent,window:events,document:{cookie:''},fetch:async()=>{throw Error('no network in test');},require(name){
+  if(name==='next-intl')return englishIntl;
+  if(name==='@/i18n/format')return readingFormat;
   if(name==='react')return{useState:initial=>{const slot=cursor++;if(!(slot in slots))slots[slot]=initial;return[slots[slot],value=>{slots[slot]=typeof value==='function'?value(slots[slot]):value;}];},useEffect:run=>effects.push(run),useRef:initial=>({current:initial}),useCallback:fn=>fn};
   if(name==='react/jsx-runtime')return{jsx,jsxs:jsx};
   if(name==='next/navigation')return{useRouter:()=>({refresh(){}})};

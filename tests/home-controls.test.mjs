@@ -1,3 +1,4 @@
+import {englishIntlServer} from './fixtures/english-intl.mjs';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import {readFileSync} from 'node:fs';
@@ -9,6 +10,7 @@ function load(file){
  const exports={};
  const code=ts.transpileModule(source,{compilerOptions:{module:ts.ModuleKind.CommonJS,jsx:ts.JsxEmit.ReactJSX,target:ts.ScriptTarget.ES2022}}).outputText;
  vm.runInNewContext(code,{exports,Date:class extends Date{constructor(){super();throw Error('shell read unstable current time before request boundary');}},Promise,AbortSignal,setTimeout,clearTimeout,require(name){
+  if(name==='next-intl/server')return englishIntlServer;
   if(name==='react')return{cache:fn=>fn,Suspense:'Suspense'};
   if(name==='react/jsx-runtime')return{jsx:(type,props)=>({type,props}),jsxs:(type,props)=>({type,props})};
   if(name==='react-dom')return{preload(){}};
@@ -28,11 +30,11 @@ function walk(node,visit,parents=[]){
  walk(node.props.children,visit,[...parents,node]);
 }
 
-test('tab navigation streams outside the data and listener Suspense boundaries',()=>{
+test('tab navigation streams outside the data and listener Suspense boundaries',async()=>{
  const {source,render}=load('../src/app/(tabs)/layout.tsx');
  assert.doesNotMatch(source,/^["']use client["']/,'the layout must stream its server children independently');
  const found=[];
- walk(render({children:{type:'SlowPage',props:{}}}),(node,parents)=>{
+ walk(await render({children:{type:'SlowPage',props:{}}}),(node,parents)=>{
   if(node.type==='@/components/NavigationControls'||node.type==='@/components/Sidebar'){
    found.push(node.type);
    assert.equal(parents.some(parent=>parent.type==='Suspense'),false,'navigation must not wait on a suspending sibling');

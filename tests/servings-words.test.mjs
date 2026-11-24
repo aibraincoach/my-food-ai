@@ -1,3 +1,5 @@
+import {englishIntl} from './fixtures/english-intl.mjs';
+import {servingsMessageValues} from '../src/i18n/servings.ts';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
@@ -8,9 +10,11 @@ test('the servings control says serving for one or a part, servings above one (#
 });
 test('the meal header shows the words beside the pencil; its name says what it edits and its count (#1124, #1134)',()=>{
  const source=readFileSync(new URL('../src/components/PostDetailHeader.tsx',import.meta.url),'utf8');
- const start=source.indexOf('aria-label={`Edit servings, ${servingsText(saved)}`}');assert.ok(start>0,'the accessible name includes the count and unit');
+ const t=englishIntl.useTranslations('postMenu');
+ for(const value of[0.25,1,1.5,2])assert.equal(t('editServings',{amount:t('servingAmount',servingsMessageValues(value))}),`Edit servings, ${servingsText(value)}`);
+ const start=source.indexOf("aria-label={t('editServings',{amount:servingText(saved)})}");assert.ok(start>0,'the accessible name includes the count and unit');
  const button=source.slice(start,source.indexOf('</button>',start));
- assert.ok(button.includes('>{servingsText(saved)} <span className="text-muted" aria-hidden>✎</span>'),button);
+ assert.ok(button.includes('>{servingText(saved)} <span className="text-muted" aria-hidden>✎</span>'),button);
  assert.ok(!button.includes('{servingsLabel(saved)} <span'));
  assert.match(button,/className="[^"]*\bmin-h-tap\b[^"]*"/,'the closed control meets the 44 px tap size');
  assert.match(button,/className="[^"]*-my-3\b[^"]*"/,'its margin keeps the header row height');

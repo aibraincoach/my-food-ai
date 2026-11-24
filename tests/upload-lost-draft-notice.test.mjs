@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
+const feedMessages=JSON.parse(readFileSync(new URL('../messages/en.json',import.meta.url),'utf8')).feed;
 const {restoreFiles}=await import('../src/lib/posts/upload-store.ts');
 const {UploadManager}=await import('../src/lib/posts/upload-manager.ts');
 const row=(patch={})=>({operationId:'draft',ownerId:'owner',createdAt:1,reservedAt:1,caption:'Saved caption',eatenAt:null,location:null,options:{},files:[new File(['photo'],'old.jpg')],snapshot:null,posted:false,state:'uploading',sent:0,total:5,...patch});
@@ -26,12 +27,12 @@ test('posted new-meal and leftovers rows never show the unposted-draft notice',a
  const f=fixture([row({operationId:'meal',posted:true}),row({operationId:'left',posted:true,attachment:{postId:'post',notEaten:true}})]),m=f.manager();await m.initialize('owner');assert.deepEqual(m.list().map(s=>s.lostNotice),[false,false]);
 });
 test('Home renders one inline notice in the main Feed with OK and a visible save failure',()=>{
- const source=readFileSync(new URL('../src/components/Feed.tsx',import.meta.url),'utf8');assert.match(source,/!fallbackOnly[\s\S]*?<LostDraftNotice/);assert.match(source,/data-lost-draft-notice/);assert.match(source,/An unposted photo couldn’t be recovered, but your caption is saved\./);assert.match(source,/An unposted photo couldn’t be recovered\./);assert.match(source,/>OK<\/button>/);assert.match(source,/This could not be saved\. Try again\./);assert.match(source,/await uploadManager\.acknowledgeLost/);assert.doesNotMatch(source.slice(source.indexOf('function LostDraftNotice')),/setTimeout|setInterval|fixed/);
+ const source=readFileSync(new URL('../src/components/Feed.tsx',import.meta.url),'utf8');assert.match(source,/!fallbackOnly[\s\S]*?<LostDraftNotice/);assert.match(source,/data-lost-draft-notice/);assert.ok(source.includes("t('lostPhotoCaption')"));assert.equal(feedMessages.lostPhotoCaption,'An unposted photo couldn’t be recovered, but your caption is saved.');assert.ok(source.includes("t('lostPhoto')"));assert.equal(feedMessages.lostPhoto,'An unposted photo couldn’t be recovered.');assert.ok(source.includes("t('acknowledgeLost')"));assert.equal(feedMessages.acknowledgeLost,'OK');assert.ok(source.includes("t('lostNoticeSaveFailed')"));assert.equal(feedMessages.lostNoticeSaveFailed,'This could not be saved. Try again.');assert.match(source,/await uploadManager\.acknowledgeLost/);assert.doesNotMatch(source.slice(source.indexOf('function LostDraftNotice')),/setTimeout|setInterval|fixed/);
 });
 
 test('the empty-feed notice is a full-width sibling above the centered empty-state row',()=>{
  const source=readFileSync(new URL('../src/components/Feed.tsx',import.meta.url),'utf8');
  const branch=source.slice(source.indexOf('if (!visibleState.posts.length) return'),source.indexOf('const firstPhotoId='));
  assert.match(branch,/className="flex w-full flex-1 flex-col">\s*\{lostNotice\}\s*<div className="flex flex-1 items-center justify-center"/);
- assert.match(branch,/Post your first meal/);
+ assert.ok(branch.includes("t('firstMeal')"));assert.equal(feedMessages.firstMeal,'Post your first meal');
 });

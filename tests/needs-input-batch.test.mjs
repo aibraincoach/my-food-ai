@@ -1,3 +1,5 @@
+import {englishIntl,englishIntlServer} from './fixtures/english-intl.mjs';
+import * as readingFormat from '../src/i18n/format.ts';
 // node --import tsx --test tests/needs-input-batch.test.mjs
 import assert from 'node:assert/strict';
 import test from 'node:test';
@@ -25,7 +27,7 @@ test('questions share immutable thumbnail identities; media waits for events and
  }};
  const exports={};vm.runInNewContext(source,{exports,AbortSignal,Date:{now:()=>now},document:{hidden:false,visibilityState:'visible',addEventListener(){},removeEventListener(){}},window:events,process:{env:{NEXT_PUBLIC_SUPABASE_URL:'https://fixture.invalid',NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY:'fixture-key'}},
   setTimeout(fn,ms=0){timers.set(++timerId,{fn,at:now+ms});return timerId;},clearTimeout:id=>timers.delete(id),queueMicrotask,fetch:async()=>{throw Error('strip must not sign or fetch full-size photos');},
-  require(name){if(name==='react')return{useEffect:fn=>effects.push(fn),useState:initial=>[initial,value=>states.push(value)]};if(name==='react/jsx-runtime')return{jsx:()=>null,jsxs:()=>null};if(name==='@/lib/supabase/client')return{createClient:()=>db};if(name==='@/lib/posts/feed-photo-url')return{smallFeedPhotoUrl};if(name==='@/lib/pipeline/needs-input')return{readNeedsInput};if(name.startsWith('@/components/'))return{default:()=>null};throw Error(name);}
+  require(name){if(name==='next-intl')return englishIntl;if(name==='next-intl/server')return englishIntlServer;if(name==='@/i18n/format')return readingFormat;if(name==='react')return{useEffect:fn=>effects.push(fn),useState:initial=>[initial,value=>states.push(value)]};if(name==='react/jsx-runtime')return{jsx:()=>null,jsxs:()=>null};if(name==='@/lib/supabase/client')return{createClient:()=>db};if(name==='@/lib/posts/feed-photo-url')return{smallFeedPhotoUrl};if(name==='@/lib/pipeline/needs-input')return{readNeedsInput};if(name.startsWith('@/components/'))return{default:()=>null};throw Error(name);}
  });
  exports.default();const cleanup=effects[0]();await turn();await turn();
  assert.equal(reads.filter(x=>x.table==='post_media').length,1);
