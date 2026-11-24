@@ -1,18 +1,21 @@
 /** An update is applied only on a later user lifecycle event, with no work at risk. */
-export function createUpdateSafety({blocked, pending, reload}: {
+export function createUpdateSafety({blocked, pending, reload, observe}: {
   blocked: () => boolean;
   pending: () => Promise<boolean>;
   reload: () => void;
+  observe?: (state: 'waiting'|'deferred'|'reloading') => void;
 }) {
   let ready = false, checking = false, reloaded = false;
   return {
-    ready() { ready = true; },
+    ready() { ready = true; observe?.('waiting'); },
     async safePoint() {
-      if (!ready || checking || reloaded || blocked()) return;
+      if (!ready || checking || reloaded) return;
+      if (blocked()) { observe?.('deferred'); return; }
       checking = true;
       try {
-        if (await pending() || blocked()) return;
+        if (await pending() || blocked()) { observe?.('deferred'); return; }
         reloaded = true;
+        observe?.('reloading');
         reload();
       } finally { checking = false; }
     },

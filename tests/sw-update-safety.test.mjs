@@ -38,6 +38,7 @@ function pageFixture() {
  const react={useEffect:fn=>effects.push(fn),useRef:value=>({current:value})};
  const code=ts.transpileModule(fs.readFileSync(new URL('../src/components/ServiceWorkerRegistration.tsx',import.meta.url),'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,jsx:ts.JsxEmit.ReactJSX}}).outputText;
  const exports={};vm.runInNewContext(code,{exports,require:name=>{
+  if(name==='@/lib/diagnostics/recorder')return {record:()=>Promise.resolve()};
   if(name==='react')return react;if(name==='next/navigation')return {usePathname:()=>'/'};
   if(name==='@/lib/sw-update-safety')return {createUpdateSafety,hasUnsentText};
   if(name.endsWith('/upload-presence'))return {hasMemoryUploads:()=>pending};
@@ -67,4 +68,11 @@ test('real page listener waits for controlled text and applies the update after 
  const page=pageFixture(),field={tagName:'INPUT',type:'email',value:'local@example.invalid',defaultValue:'local@example.invalid',getClientRects:()=>[{}],matches:()=>false,hasAttribute:()=>false};
  page.set({fields:[field]});page.message();page.hidden();page.close();await settled();assert.equal(page.reloads(),0);
  field.value='';page.hidden();await settled();assert.equal(page.reloads(),1);page.dispose();
+});
+
+test('diagnostic states follow the existing safety decisions without changing reload timing',async()=>{
+ const states=[];let blocked=true,reloads=0;
+ const update=createUpdateSafety({blocked:()=>blocked,pending:async()=>false,reload:()=>reloads++,observe:state=>states.push(state)});
+ update.ready();await update.safePoint();assert.deepEqual(states,['waiting','deferred']);assert.equal(reloads,0);
+ blocked=false;await update.safePoint();assert.deepEqual(states,['waiting','deferred','reloading']);assert.equal(reloads,1);
 });

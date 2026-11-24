@@ -1,3 +1,4 @@
+import DiagnosticsRecorder from '@/components/DiagnosticsRecorder';
 import LocaleReporter from '@/components/i18n/LocaleReporter';
 import {getLocale,getMessages,getTimeZone,getTranslations} from 'next-intl/server';
 import StrictIntlProvider from '@/components/i18n/StrictIntlProvider';
@@ -34,7 +35,7 @@ async function LocaleDocument({children}: {children: React.ReactNode}) {
   return (
     <html lang={locale} className="h-full antialiased" data-build={process.env.NEXT_PUBLIC_BUILD}>
       <body className={`${font.className} ${font.variable} flex min-h-dvh flex-col`}>
-        <Suspense fallback={null}><ServiceWorkerRegistration /></Suspense>
+        <Suspense fallback={null}><ServiceWorkerRegistration /><DiagnosticsRecorder/></Suspense>
         <LocaleReporter locale={locale}/>
         <Suspense fallback={null}><DeletePostSheet /><PostOpenTransition /></Suspense>
         <FeedCacheMutations />

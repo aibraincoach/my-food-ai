@@ -1,4 +1,5 @@
 "use client";
+import {record} from '@/lib/diagnostics/recorder';
 
 import { useEffect, useRef } from "react";
 import { usePathname } from "next/navigation";
@@ -14,7 +15,7 @@ export default function ServiceWorkerRegistration() {
     const blocked = () => document.documentElement.hasAttribute('data-mfa-sheet-open') || Boolean(document.querySelector('[role="dialog"]')) ||
       Array.from(document.querySelectorAll('video')).some(video => video.srcObject instanceof MediaStream && video.srcObject.getVideoTracks().some(track => track.readyState === 'live')) ||
       hasMemoryUploads() || hasUnsentText(document);
-    const update = createUpdateSafety({blocked, pending: () => uploadStore.hasPending(), reload: () => window.location.reload()});
+    const update = createUpdateSafety({blocked, pending: () => uploadStore.hasPending(), reload: () => window.location.reload(), observe: state => { void record('update',state); }});
     const check = () => { void update.safePoint().catch(() => console.error('App update deferred: pending photos could not be checked.')); };
     safePoint.current = check;
     let closeFrame = 0;
@@ -43,6 +44,7 @@ export default function ServiceWorkerRegistration() {
     if (!("serviceWorker" in navigator)) return;
     const register = () => {
       void navigator.serviceWorker.register("/sw.js", { updateViaCache: "none" }).then(registration => {
+        registration.addEventListener('updatefound',()=>{void record('update','found');});
         // Request the check on every normal page load rather than waiting for
         // the browser's background update schedule to notice imported bytes.
         return registration.update();

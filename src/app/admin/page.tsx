@@ -1,3 +1,4 @@
+import {getTranslations} from 'next-intl/server';
 import Link from "next/link";
 import { Suspense } from "react";
 import { notFound } from "next/navigation";
@@ -19,9 +20,11 @@ async function AdminPageContent() {
   const { data: profile, error } = await client.from("profiles").select("role").eq("id", user.id).maybeSingle();
   if (error || profile?.role !== "admin") notFound();
   // No service-role query runs before the user's authenticated role check.
+  const t=await getTranslations('support');
   const stats = await getQueueStats(createAdminClient());
   return <main className={`${font.className} mx-auto w-full max-w-phone bg-surface px-screen-x py-card-gap text-detail text-text`}>
     <h1 className="mb-card-gap text-title">Admin</h1>
+    <Link href="/admin/freeze-reports" className="flex min-h-tap items-center underline">{t('adminTitle')}</Link>
     <h2 className="mb-sheet-top text-sheet-title">App</h2>
     <table className="mb-card-gap w-full tabular-nums"><thead><tr className="text-left"><th scope="col">Count</th><th scope="col" className="text-right">All time</th><th scope="col" className="text-right">Last 24 h</th></tr></thead>
       <tbody>
