@@ -39,7 +39,7 @@ function StatusLine({ post }: { post: FeedPost }) {
   const t=useTranslations('post'),locale=useLocale() as Locale;
   const [traffic,setTraffic]=useState(currentTraffic);
   const [retrying,setRetrying]=useState(false);
-  const [retryError,setRetryError]=useState<{key:'retryAttemptFailed'|'retryFailed'}|{message:string}|null>(null);
+  const [retryError,setRetryError]=useState<{key:'retryAttemptFailed'|'retryFailed'}|null>(null);
   useEffect(()=>{
     const receive=(event:Event)=>setTraffic((event as CustomEvent<{traffic:string}>).detail.traffic);
     window.addEventListener("queue-traffic",receive);
@@ -58,7 +58,7 @@ function StatusLine({ post }: { post: FeedPost }) {
   if (post.status === "failed") return <div className="flex flex-col gap-0.5 text-detail">
     <p data-i18n-server-wording="failure" className="text-muted">{failureMessage((post as FeedPost & { fail_reason?: string | null }).fail_reason)}</p>
     <button type="button" disabled={retrying} onClick={retry} className="min-h-tap self-start text-text">{retrying?t('retrying'):t('tryAgain')}</button>
-    {retryError&&<p role="alert">{'key'in retryError?t(retryError.key):retryError.message}</p>}
+    {retryError&&<p role="alert">{t(retryError.key)}</p>}
   </div>;
   if (post.status === "ready") {
     if (!post.items.length) return <div className="flex flex-col gap-0.5 text-detail">
