@@ -1,4 +1,4 @@
-import {formatDate} from '../src/i18n/format.ts';
+import * as formats from '../src/i18n/format.ts';
 import {englishIntl} from './fixtures/english-intl.mjs';
 import {cardGapWording} from '../src/i18n/card.ts';
 import test from 'node:test';
@@ -17,14 +17,13 @@ function mount(file,{fetch=()=>{throw Error('unexpected read');},desktop=false}=
  const hooks={useState(initial){const index=cursor++;if(!(index in slots))slots[index]=typeof initial==='function'?initial():initial;return[slots[index],value=>{slots[index]=typeof value==='function'?value(slots[index]):value;}];},useRef(current){const index=cursor++;return slots[index]??=( {current});},useCallback:fn=>fn,useEffect(){},useSyncExternalStore:(_s,_r,server)=>server()};
  const exports={};
  vm.runInNewContext(ts.transpileModule(readFileSync(new URL(`../src/components/${file}.tsx`,import.meta.url),'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022,jsx:ts.JsxEmit.ReactJSX}}).outputText,{exports,fetch,console,matchMedia:()=>({matches:false}),requestAnimationFrame:fn=>fn(),window:{history:{replaceState(){}},location:{pathname:'/days'}},document:{getElementById:()=>null},require(name){
-  if(name==='@/i18n/format')return{formatDate};if(name==='next-intl')return englishIntl;if(name==='@/i18n/card')return{cardGapWording};
+  if(name==='@/i18n/format')return formats;if(name==='next-intl')return englishIntl;if(name==='@/i18n/card')return{cardGapWording};
   if(name==='react')return hooks;if(name==='react/jsx-runtime')return jsx;
   if(name==='@/lib/posts/days')return days;if(name==='@/lib/nutrition/totals')return nutrition;if(name==='@/lib/intake/intake')return intake;if(name==='@/lib/theme/tokens')return{tokens};
   if(name==='next/navigation')return{useRouter:()=>({refresh(){}})};
   if(name==='@/lib/ui/use-desktop')return{useDesktop:()=>desktop};
   if(name==='@/components/LocalTime')return{useDeviceTimeZone:()=> 'UTC'};
   if(name==='@/lib/time/local')return{formatLocalTime:()=> '12:00 PM'};
-  if(name==='@/components/MonthGrid')return{formatDayKcal:n=>String(n)};
   if(name==='@/components/StoryPlayer')return{__esModule:true,default:'StoryPlayer',dayPostName:post=>post.caption};
   if(name==='next/link'||name.startsWith('@/components/'))return{__esModule:true,default:name,Icon:'Icon',TopBar:'TopBar',ResultsCard:'ResultsCard'};
   throw Error(name);

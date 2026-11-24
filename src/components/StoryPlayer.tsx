@@ -1,6 +1,6 @@
 "use client";
-import {useLocale} from 'next-intl';
-import {formatDate} from '@/i18n/format';
+import {useLocale,useTranslations} from 'next-intl';
+import {formatDate,formatEnergy,formatNutrient,formatNumber} from '@/i18n/format';
 import {cardGapWording} from '@/i18n/card';
 import { nutritionGaps, gapSentence, GAP_LEAD } from "@/lib/nutrition/totals";
 
@@ -8,13 +8,11 @@ import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import {useDeviceTimeZone} from "@/components/LocalTime";
 import {formatLocalTime} from "@/lib/time/local";
 import Link from "next/link";
-import { formatCalories, formatNutrition } from "@/lib/nutrition/totals";
 import { intakeLine } from "@/lib/intake/intake";
 import { tokens } from "@/lib/theme/tokens";
 import { dateInZone, shiftDay, type DayPost, type LoggedDay } from "@/lib/posts/days";
 import { ResultsCard } from "@/components/ResultsCard";
 import { Icon } from "@/components/ui/Icon";
-import { formatDayKcal } from "@/components/MonthGrid";
 
 function subscribeWidth(listener: () => void) {
   window.addEventListener("resize", listener);
@@ -23,15 +21,15 @@ function subscribeWidth(listener: () => void) {
 const readWidth = () => Math.min(tokens.spacing.phone, window.innerWidth);
 const serverWidth = () => tokens.spacing.phone;
 
-export function dayPostName(post:Pick<DayPost,'items'|'caption'>):string {
+export function dayPostName(post:Pick<DayPost,'items'|'caption'>,emptyLabel:string):string {
   const names=[...new Set(post.items.map(item=>item.name.trim()).filter(Boolean))];
-  return names.join(' · ')||post.caption.trim()||'Meal';
+  return names.join(' · ')||post.caption.trim()||emptyLabel;
 }
 
 export default function StoryPlayer({ day, zone, onClose, onDay, cell }: { day: LoggedDay; zone: string; onClose: () => void; onDay: (date: string) => void; cell: () => DOMRect | undefined }) {
   useEffect(()=>{const refresh=()=>onDay(day.date);window.addEventListener('post-deleted',refresh);return()=>window.removeEventListener('post-deleted',refresh);},[day.date,onDay]);
   const clockZone=useDeviceTimeZone();
-  const locale=useLocale();
+  const locale=useLocale(),t=useTranslations("days");
   const width = useSyncExternalStore(subscribeWidth, readWidth, serverWidth);
   const dialog = useRef<HTMLDialogElement>(null);
   const story = useRef<HTMLDivElement>(null);
@@ -53,13 +51,12 @@ export default function StoryPlayer({ day, zone, onClose, onDay, cell }: { day: 
   const previous = shiftDay(day.date, -1), next = shiftDay(day.date, 1);
   const post = day.posts[slide];
   const gap=gapSentence(nutritionGaps(day.totals));
-  // Slice4b supplies the active locale; retain StoryPlayer's existing English until then.
-  const time = (value: string) => clockZone ? formatLocalTime('en',value,clockZone) : "";
-  const title = new Date(`${day.date}T12:00:00Z`).toLocaleDateString("en", { timeZone: "UTC", weekday: "long", month: "short", day: "numeric" });
-  const weekday = new Date(`${day.date}T12:00:00Z`).toLocaleDateString("en", { timeZone: "UTC", weekday: "long" });
-  const month = new Date(`${day.date}T12:00:00Z`).toLocaleDateString("en", { timeZone: "UTC", month: "long" });
-  const previousLabel = new Date(`${previous}T12:00:00Z`).toLocaleDateString("en", { timeZone: "UTC", weekday: "short", month: "short", day: "numeric" });
-  const nextLabel = new Date(`${next}T12:00:00Z`).toLocaleDateString("en", { timeZone: "UTC", weekday: "short" });
+  const time = (value: string) => clockZone ? formatLocalTime(locale,value,clockZone) : "";
+  const title = formatDate(locale,new Date(`${day.date}T12:00:00Z`),"UTC",{ weekday: "long", month: "short", day: "numeric" });
+  const weekday = formatDate(locale,new Date(`${day.date}T12:00:00Z`),"UTC",{ weekday: "long" });
+  const month = formatDate(locale,new Date(`${day.date}T12:00:00Z`),"UTC",{ month: "long" });
+  const previousLabel = formatDate(locale,new Date(`${previous}T12:00:00Z`),"UTC",{ weekday: "short", month: "short", day: "numeric" });
+  const nextLabel = formatDate(locale,new Date(`${next}T12:00:00Z`),"UTC",{ weekday: "short" });
   useEffect(() => {
     const element = dialog.current;
     const previousOverflow = document.body.style.overflow;
@@ -91,7 +88,7 @@ export default function StoryPlayer({ day, zone, onClose, onDay, cell }: { day: 
     else if (gestureMode.current === "dismiss" && dy > 120) { gesture.current = true; void close(); }
     else if (Math.abs(dy) > 10 || Math.abs(dx) > 10) { gesture.current = true; setDrag(0); }
   };
-  return <dialog ref={dialog} aria-label={`Meals on ${title}`} onCancel={event => { event.preventDefault(); void close(); }}
+  return <dialog ref={dialog} aria-label={t("mealsOnDate",{date:title})} onCancel={event => { event.preventDefault(); void close(); }}
     className="fixed inset-0 m-0 h-dvh max-h-none w-full max-w-none overflow-hidden bg-transparent p-0 text-surface backdrop:bg-transparent">
     <div className="absolute inset-0 bg-text" style={{ opacity: 0.32 * (1 - Math.min(drag / 300, 1)) }} />
     <div ref={story} className="relative mx-auto flex h-dvh w-full max-w-phone flex-col overflow-hidden bg-text pt-safe pb-safe"
@@ -118,13 +115,13 @@ export default function StoryPlayer({ day, zone, onClose, onDay, cell }: { day: 
         start.current = null; gestureMode.current = null; setDragging(false); setDrag(0);
       }}
       onClickCapture={event => { if (gesture.current) { event.preventDefault(); event.stopPropagation(); } }}>
-      <div className="flex gap-1" style={{ padding: `${tokens.spacing.grid * 2}px ${tokens.spacing["sheet-top"]}px 0` }} aria-label={`Slide ${slide + 1} of ${day.posts.length + 1}`}>
-        {Array.from({ length: day.posts.length + 1 }, (_, index) => <button type="button" key={index} aria-label={`Show slide ${index + 1}`} onClick={() => setSlide(index)} className={`flex-1 bg-surface ${index > slide ? "opacity-30" : ""}`} style={{ height: tokens.border.hairline * 2 }} />)}
+      <div className="flex gap-1" style={{ padding: `${tokens.spacing.grid * 2}px ${tokens.spacing["sheet-top"]}px 0` }} aria-label={t("slidePosition",{current:formatNumber(locale,slide+1,{useGrouping:false}),total:formatNumber(locale,day.posts.length+1,{useGrouping:false})})}>
+        {Array.from({ length: day.posts.length + 1 }, (_, index) => <button type="button" key={index} aria-label={t("showSlide",{number:formatNumber(locale,index+1,{useGrouping:false})})} onClick={() => setSlide(index)} className={`flex-1 bg-surface ${index > slide ? "opacity-30" : ""}`} style={{ height: tokens.border.hairline * 2 }} />)}
       </div>
       <header className="flex shrink-0 items-center justify-between" style={{ padding: `${tokens.spacing["tooltip-y"]}px ${tokens.spacing["sheet-top"]}px 0 ${tokens.spacing["tooltip-y"]}px` }}>
         <button type="button" onClick={() => { void close(); }} className="flex min-h-tap items-center text-body"><Icon name="back" size={tokens.radii.pill} strokeWidth={tokens.icon.strongStroke} />{month}</button>
         <h1 className="text-body font-semibold">{title}</h1>
-        <button type="button" onClick={() => { void close(); }} aria-label="Close day" className="flex size-tap items-center justify-center"><Icon name="close" size={tokens.radii.pill} /></button>
+        <button type="button" onClick={() => { void close(); }} aria-label={t("closeDay")} className="flex size-tap items-center justify-center"><Icon name="close" size={tokens.radii.pill} /></button>
       </header>
       <div ref={content} className="flex min-h-0 flex-1 flex-col gap-7 overflow-y-auto" style={{ paddingBottom: tokens.spacing.tap, touchAction: "none" }}
         onClick={event => {
@@ -138,29 +135,29 @@ export default function StoryPlayer({ day, zone, onClose, onDay, cell }: { day: 
           <div className="aspect-square w-full shrink-0 overflow-hidden">
             {photo(post) ? (
               // eslint-disable-next-line @next/next/no-img-element
-              <img src={photo(post)!} onError={() => photoFailed(post.photoUrl)} alt={post.caption || "Meal"} className="h-full w-full object-cover" />
+              <img src={photo(post)!} onError={() => photoFailed(post.photoUrl)} alt={post.caption || t("mealImage")} className="h-full w-full object-cover" />
             ) : <ResultsCard locale={locale} gap={gapSentence(nutritionGaps(post.totals),[],false,cardGapWording(locale))} size={width} time={clockZone?formatDate(locale,new Date(post.eatenAt),clockZone,{hour:'numeric',minute:'2-digit'}):''} calories={post.totals.calories} protein={post.totals.protein_g} carbs={post.totals.carbs_g} fat={post.totals.fat_g} items={post.items.map(item => ({ name: item.name, grams: item.portion_grams == null ? null : Number(item.portion_grams) }))} />}
           </div>
           <div className="px-screen-x"><p className="text-body">{post.caption}</p><p className="mt-1 text-meta text-faint">{time(post.eatenAt)}</p></div>
         </div> : <div className="mt-auto flex shrink-0 flex-col gap-7 px-screen-x">
-          <div><p className="mb-3 text-detail text-faint">Consumed on {weekday}</p><p className="flex items-baseline gap-2"><span className="text-display-day tabular-nums">{formatDayKcal(day.totals.calories)}</span><span className="text-month font-normal text-faint">kcal</span></p><p className="mt-2 text-meta text-faint">{day.posts.length} {day.posts.length===1?'meal':'meals'}{day.pending?` · ${day.pending} not finished`:''}</p></div>
+          <div><p className="mb-3 text-detail text-faint">{t("consumedOn",{weekday})}</p><p className="flex items-baseline gap-2"><span className="text-display-day tabular-nums">{formatEnergy(locale,day.totals.calories)}</span><span className="text-month font-normal text-faint">kcal</span></p><p className="mt-2 text-meta text-faint">{t("mealCount",{count:day.posts.length,pending:day.pending?"yes":"no",unfinished:formatNumber(locale,day.pending,{useGrouping:false})})}</p></div>
           <div className="grid grid-cols-3 pt-4" style={{ borderTop: `${tokens.border.hairline}px solid ${tokens.colors.surface}`, borderTopColor: `color-mix(in srgb, ${tokens.colors.surface} 14%, transparent)` }}>
-            {([[day.totals.protein_g, "protein"], [day.totals.carbs_g, "carbs"], [day.totals.fat_g, "fat"]] as const).map(([value, word]) => <div key={word}><p className="text-day-macro tabular-nums">{formatNutrition(value)} g</p><p className="text-meta text-faint">{word}</p></div>)}
+            {([[day.totals.protein_g, "protein"], [day.totals.carbs_g, "carbs"], [day.totals.fat_g, "fat"]] as const).map(([value, word]) => <div key={word}><p className="text-day-macro tabular-nums">{formatNutrient(locale,value)} g</p><p className="text-meta text-faint">{t(word)}</p></div>)}
           </div>
           {Boolean(gap)&&<details data-day-nutrition-disclosure className="text-meta text-faint"><summary className="cursor-pointer">{GAP_LEAD}</summary><p className="mt-2">{gap}</p></details>}
-          {day.intake === null ? <p role="alert" className="text-meta text-faint">Couldn’t load drinks.<button type="button" className="ml-2 min-h-tap text-surface" onClick={() => onDay(day.date)}>Try again</button></p> : intakeLine(day.intake) ? <p className="text-meta text-faint tabular-nums">{intakeLine(day.intake)}</p> : null}
+          {day.intake === null ? <p role="alert" className="text-meta text-faint">{t("drinksLoadFailed")}<button type="button" className="ml-2 min-h-tap text-surface" onClick={() => onDay(day.date)}>{t("tryAgain")}</button></p> : intakeLine(day.intake) ? <p className="text-meta text-faint tabular-nums">{intakeLine(day.intake)}</p> : null}
           <div className="grid grid-cols-3 gap-2">{day.posts.map(entry => <Link key={entry.id} href={`/posts/${entry.id}`} className="min-w-0">
             <div className="flex aspect-square items-center justify-center overflow-hidden rounded-thumb bg-card text-text">
               {photo(entry) ? (
                 // eslint-disable-next-line @next/next/no-img-element
-                <img src={photo(entry)!} onError={() => photoFailed(entry.photoUrl)} alt={entry.caption || "Meal"} className="h-full w-full object-cover" />
-              ) : <span className="line-clamp-3 px-2 text-center text-detail">{dayPostName(entry)}</span>}
+                <img src={photo(entry)!} onError={() => photoFailed(entry.photoUrl)} alt={entry.caption || t("mealImage")} className="h-full w-full object-cover" />
+              ) : <span className="line-clamp-3 px-2 text-center text-detail">{dayPostName(entry,t("mealImage"))}</span>}
             </div>
-            <p className="mt-1 flex justify-between gap-1 text-label text-faint tabular-nums"><span>{time(entry.eatenAt)}</span><span>{formatCalories(entry.totals.calories)} kcal</span></p>
+            <p className="mt-1 flex justify-between gap-1 text-label text-faint tabular-nums"><span>{time(entry.eatenAt)}</span><span>{formatEnergy(locale,entry.totals.calories)} kcal</span></p>
           </Link>)}</div>
         </div>}
-        <nav className="flex items-center justify-between px-screen-x text-meta text-muted" aria-label="Adjacent days">
-          <button type="button" className="min-h-tap" onClick={() => adjacent(previous)}>‹ {previousLabel}</button><span>Swipe down to close</span><button type="button" disabled={next > today} className="min-h-tap disabled:text-faint" onClick={() => adjacent(next)}>{nextLabel} ›</button>
+        <nav className="flex items-center justify-between px-screen-x text-meta text-muted" aria-label={t("adjacentDays")}>
+          <button type="button" className="min-h-tap" onClick={() => adjacent(previous)}>‹ {previousLabel}</button><span>{t("swipeDownClose")}</span><button type="button" disabled={next > today} className="min-h-tap disabled:text-faint" onClick={() => adjacent(next)}>{nextLabel} ›</button>
         </nav>
       </div>
     </div>

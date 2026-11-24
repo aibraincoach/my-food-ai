@@ -1,3 +1,4 @@
+import {englishIntl} from './fixtures/english-intl.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import vm from 'node:vm';
@@ -11,7 +12,7 @@ function fixture(){
  const source=readFileSync(new URL('../src/components/NavigationControls.tsx',import.meta.url),'utf8').replace(/const loadCaptureSheet=[^\n]+;/,'const loadCaptureSheet=()=>globalThis.__loadComposer();');
  const code=ts.transpileModule(source,{compilerOptions:{module:ts.ModuleKind.CommonJS,jsx:ts.JsxEmit.ReactJSX,target:ts.ScriptTarget.ES2022}}).outputText;
  const window={setTimeout(fn,ms){timers.set(timers.size+1,{fn,ms});return timers.size},clearTimeout(id){timers.delete(id)},addEventListener(n,fn){listeners.set(n,fn)},removeEventListener(n,fn){if(listeners.get(n)===fn)listeners.delete(n)},dispatchEvent(event){listeners.get(event.type)?.(event)},location:{reload(){reloads++}}};
- vm.runInNewContext(code,{exports,window,matchMedia:()=>({matches:false}),__loadComposer:()=>new Promise((resolve,reject)=>loads.push({resolve,reject})),require(n){if(n==='react')return hooks;if(n==='react/jsx-runtime')return{jsx,jsxs:jsx,Fragment:'fragment'};if(n==='next/navigation')return{useRouter:()=>({push(){}})};if(n==='@/components/ui/Sheet')return{Sheet:'sheet'};return{default:n}}});
+ vm.runInNewContext(code,{exports,window,matchMedia:()=>({matches:false}),__loadComposer:()=>new Promise((resolve,reject)=>loads.push({resolve,reject})),require(n){if(n==='next-intl')return englishIntl;if(n==='react')return hooks;if(n==='react/jsx-runtime')return{jsx,jsxs:jsx,Fragment:'fragment'};if(n==='next/navigation')return{useRouter:()=>({push(){}})};if(n==='@/components/ui/Sheet')return{Sheet:'sheet'};return{default:n}}});
  function render(){index=0;dirty=false;tree=exports.default();while(effects.length)effects.shift()();return tree}
  async function flush(){for(let i=0;i<5;i++){await new Promise(r=>setImmediate(r));if(dirty)render()}}
  function nodes(root=tree){if(!root||typeof root!=='object')return[];return[root,...[root.props?.children].flat(Infinity).filter(x=>x!=null&&x!==false).flatMap(x=>nodes(x))]}

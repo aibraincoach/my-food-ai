@@ -1,3 +1,4 @@
+import {CAPTURE_NAMESPACES} from '../src/i18n/capture-scope.ts';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
@@ -10,7 +11,7 @@ test('capture routes, the offline shell and their imported client components hav
 });
 
 test('a missing provider namespace fails before a client reaches strict runtime formatting',()=>{
- assert.throws(()=>checkCaptureNamespaces(undefined,undefined,['navigation','errors','card','feed','post','postMenu','thread','hints']),/Missing capture-provider namespace capture/);
+ assert.throws(()=>checkCaptureNamespaces(undefined,undefined,CAPTURE_NAMESPACES.filter(namespace=>namespace!=='capture')),/Missing capture-provider namespace capture/);
 });
 
 
