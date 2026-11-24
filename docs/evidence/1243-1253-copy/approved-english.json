@@ -1,0 +1,47 @@
+[
+  {
+    "key": "auth.heroTitle",
+    "english": "Know the nutrition in your meals",
+    "place": "Welcome headline"
+  },
+  {
+    "key": "auth.heroSupport",
+    "english": "Log with a photo, a few words or your voice.",
+    "place": "Welcome support"
+  },
+  {
+    "key": "metadata.description",
+    "english": "Record what you eat using a photo, words, or your voice. Review your nutrition without targets or judgment.",
+    "place": "search/share metadata"
+  },
+  {
+    "key": "card.tableCaption",
+    "english": "Meal nutrition",
+    "place": "screen-reader table caption only"
+  },
+  {
+    "key": "card.sourceNote",
+    "english": "Values come from nutrition labels, food reference data, or labelled estimates.",
+    "place": "existing card footnote style"
+  },
+  {
+    "key": "card.estimateNote",
+    "english": "Nutrition for {name} is a model estimate because no matching database record or label was found.",
+    "place": "one line per estimated food, placeholder preserved"
+  },
+  {
+    "key": "about.description",
+    "english": "Take a photo, type a description, or speak to log your meal. My Food AI identifies your food, estimates portions, and records the nutrition consumed. You can edit any entry. The app provides no advice, sets no targets, and makes no health claims.",
+    "place": "About opening"
+  },
+  {
+    "key": "about.source",
+    "english": "Nutrition values come from nutrition labels, food reference data, or labelled model estimates.",
+    "place": "About photo steps"
+  },
+  {
+    "key": "about.dataDescription",
+    "english": "Only your signed-in account can view your meals in the app. Anyone with a photo's unguessable link can open it, but the app does not publish these links.",
+    "place": "About data/privacy"
+  }
+]

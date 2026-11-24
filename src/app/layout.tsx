@@ -1,5 +1,5 @@
 import LocaleReporter from '@/components/i18n/LocaleReporter';
-import {getLocale,getMessages,getTimeZone} from 'next-intl/server';
+import {getLocale,getMessages,getTimeZone,getTranslations} from 'next-intl/server';
 import StrictIntlProvider from '@/components/i18n/StrictIntlProvider';
 import type { Metadata, Viewport } from "next";
 import { Suspense } from "react";
@@ -11,13 +11,16 @@ import FeedCacheMutations from "@/components/FeedCacheMutations";
 import DeletePostSheet from "@/components/DeletePostSheet";
 import "./globals.css";
 
-export const metadata: Metadata = {
+export async function generateMetadata(): Promise<Metadata> {
+ const t=await getTranslations('metadata');
+ return {
   title: "My Food AI",
-  description: "Log meals with a photo and get nutrition numbers.",
+  description: t('description'),
   manifest: "/manifest.webmanifest",
   appleWebApp: { capable: true, statusBarStyle: "default", title: "My Food AI" },
   icons: { apple: "/icons/icon-192.png" },
-};
+ };
+}
 
 // viewport-fit=cover lets the page run under the notch and home indicator; env(safe-area-inset-*) keeps content clear of them.
 export const viewport: Viewport = { themeColor: tokens.colors.surface, viewportFit: "cover", interactiveWidget: "resizes-content" };
