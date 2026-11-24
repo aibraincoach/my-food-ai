@@ -21,7 +21,7 @@ export default function PhoneCalendar({months,today,selected,onDay,onOlder}:Prop
  const ordered=Object.keys(months).sort();
  const key=ordered.join(',');
  const root=useRef<HTMLDivElement>(null),sentinel=useRef<HTMLDivElement>(null),headerRef=useRef<HTMLDivElement>(null);
- const anchor=useRef<{day:string;offset:number}|null>(null),opened=useRef(false),personScrolled=useRef(false);
+ const anchor=useRef<{day:string;offset:number}|null>(null),opened=useRef(false);
  const [visible,setVisible]=useState(today.slice(0,7));
  const olderRef=useRef(onOlder);
  useEffect(()=>{olderRef.current=onOlder;});
@@ -46,31 +46,18 @@ export default function PhoneCalendar({months,today,selected,onDay,onOlder}:Prop
   let raf=0;
   const update=()=>{
    raf=0;
-   // Opening scroll/resize keeps today; person input enables the existing rule.
-   if(!personScrolled.current)return;
    const line=headerRef.current?.getBoundingClientRect().bottom??0;
    const elements=root.current?.querySelectorAll<HTMLElement>('[data-month-start]');
    if(!elements?.length)return;
    const starts=Array.from(elements).map(el=>({month:el.dataset.monthStart!,top:el.getBoundingClientRect().top}));
-   const next=visibleMonth(starts,line,today.slice(0,7));
+   const next=visibleMonth(starts,{headerBottom:line,viewportHeight:window.innerHeight,scrollTop:window.scrollY,scrollHeight:document.documentElement.scrollHeight},today.slice(0,7));
    setVisible(prev=>prev===next?prev:next);
   };
   const schedule=()=>{cancelAnimationFrame(raf);raf=requestAnimationFrame(update);};
-  const input=(event:Event)=>{
-   if(!event.isTrusted||event.defaultPrevented)return;
-   if(event instanceof KeyboardEvent){
-    if(event.altKey||event.ctrlKey||event.metaKey||!['ArrowUp','ArrowDown','PageUp','PageDown','Home','End',' '].includes(event.key)||(event.target as Element|null)?.closest?.('input,textarea,select,[contenteditable="true"],[role="combobox"]'))return;
-   }else if(!(event.target instanceof Node)||!root.current?.contains(event.target))return;
-   personScrolled.current=true;
-  };
-  window.addEventListener('wheel',input,{passive:true});
-  window.addEventListener('touchmove',input,{passive:true});
-  window.addEventListener('pointerdown',input,{passive:true});
-  window.addEventListener('keydown',input);
   window.addEventListener('scroll',schedule,{passive:true});
   window.addEventListener('resize',schedule,{passive:true});
   schedule();
-  return()=>{window.removeEventListener('wheel',input);window.removeEventListener('touchmove',input);window.removeEventListener('pointerdown',input);window.removeEventListener('keydown',input);window.removeEventListener('scroll',schedule);window.removeEventListener('resize',schedule);cancelAnimationFrame(raf);};
+  return()=>{window.removeEventListener('scroll',schedule);window.removeEventListener('resize',schedule);cancelAnimationFrame(raf);};
  },[key,today]);
  useEffect(()=>{
   if(!hasOlder||!sentinel.current)return;
