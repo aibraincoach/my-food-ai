@@ -12,8 +12,19 @@ export async function sendCommentAboveNavigation(page,{postId,body,doubleTap=fal
   const hit=()=>send.evaluate(element=>{
     const rect=element.getBoundingClientRect();
     const target=document.elementFromPoint(rect.x+rect.width/2,rect.y+rect.height/2);
+    window.__commentHitTest={at:performance.now(),rect:rect.toJSON(),scrollY,documentHeight:document.documentElement.scrollHeight,viewport:{width:innerWidth,height:innerHeight,offset:visualViewport?.offsetTop,visualHeight:visualViewport?.height},target:target?{tag:target.tagName,id:target.id,label:target.getAttribute('aria-label'),text:target.textContent?.slice(0,100)}:null};
     return Boolean(target&&(target===element||element.contains(target)));
   });
+  // The composer is inline: centre Send before H4's bounded hit-test setup.
+  await send.evaluate(async element=>{element.scrollIntoView({block:'center'});await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));});
+  // A lasting cover still times out with its hit target.
+  await page.waitForFunction(label=>{
+    const button=[...document.querySelectorAll('button[aria-label]')].find(node=>node.getAttribute('aria-label')===label);
+    if(!button)return false;
+    const rect=button.getBoundingClientRect(),target=document.elementFromPoint(rect.x+rect.width/2,rect.y+rect.height/2);
+    window.__commentHitTest={at:performance.now(),rect:rect.toJSON(),scrollY,documentHeight:document.documentElement.scrollHeight,viewport:{width:innerWidth,height:innerHeight,offset:visualViewport?.offsetTop,visualHeight:visualViewport?.height},target:target?{tag:target.tagName,id:target.id,label:target.getAttribute('aria-label'),text:target.textContent?.slice(0,100)}:null};
+    return rect.top>=0&&rect.bottom<=innerHeight&&!button.disabled&&getComputedStyle(button).opacity==='1'&&Boolean(target&&(target===button||button.contains(target)));
+  },words.sendComment,{timeout:10000});
   assert.equal(await hit(),true,'Send is covered after focusing and typing');
   await send.scrollIntoViewIfNeeded();
   assert.equal(await hit(),true,'Send is covered after scrollIntoViewIfNeeded');

@@ -3,7 +3,6 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import {createTranslator} from 'next-intl';
 import {servingsMessageValues} from '../src/i18n/servings.ts';
-import {servingsText} from '../src/lib/posts/servings.ts';
 import {onError,getMessageFallback} from '../src/i18n/strict.ts';
 import {checkCaptureNamespaces} from '../scripts/check-capture-namespaces.mjs';
 import {readingLintTargets} from '../scripts/eslint-i18n.mjs';
@@ -13,9 +12,9 @@ const translator=(locale,namespace)=>createTranslator({locale,messages:dict[loca
 
 test('servings English is identical for every existing glyph/decimal form and Japanese keeps quantities',()=>{
  const en=translator('en','postMenu'),ja=translator('ja','postMenu');
- for(const value of[0.1,0.25,0.33,0.5,0.67,0.75,1,1.25,1.5,2,2.1,12,50]){
+ for(const [value,expected] of[[0,'0 servings'],[0.1,'0.1 servings'],[0.25,'¼ serving'],[0.33,'⅓ serving'],[0.5,'½ serving'],[0.67,'⅔ serving'],[0.75,'¾ serving'],[1,'1 serving'],[1.25,'1¼ servings'],[1.5,'1½ servings'],[2,'2 servings'],[2.1,'2.1 servings'],[12,'12 servings'],[50,'50 servings']]){
   const values=servingsMessageValues(value);
-  assert.equal(en('servingAmount',values),servingsText(value));
+  assert.equal(en('servingAmount',values),expected);
   assert.equal(ja('servingAmount',values),values.amount+'食分');
  }
 });
