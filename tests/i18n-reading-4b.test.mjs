@@ -45,4 +45,5 @@ test('root chrome and standalone Agents reject omitted namespace before runtime'
  assert.throws(()=>checkRootSiblingNamespaces(undefined,source.replace('shortcuts:messages.shortcuts,','')),/Missing root-provider namespace shortcuts/);
  assert.ok(checkAgentNamespaces().files>1);
  assert.throws(()=>checkAgentNamespaces(undefined,['postMenu']),/Missing capture-provider namespace agents/);
+ assert.throws(()=>checkAgentNamespaces(undefined,['agents']),/Missing capture-provider namespace postMenu/);
 });
