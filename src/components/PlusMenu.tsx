@@ -1,19 +1,23 @@
 "use client";
+import {useTranslations} from 'next-intl';
+
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { Icon, type IconName } from "@/components/ui/Icon";
 import { tokens } from "@/lib/theme/tokens";
 
 export type PostEntry = "camera" | "text" | "drink" | "coffee" | "saved";
-const entries: { entry: PostEntry; label: string; icon: IconName; angle: number }[] = [
-  { entry: "camera", label: "Camera", icon: "entry-camera", angle: 160 },
-  { entry: "text", label: "Text", icon: "entry-text", angle: 125 },
-  { entry: "drink", label: "Drink", icon: "entry-drink", angle: 90 },
-  { entry: "coffee", label: "Coffee", icon: "entry-coffee", angle: 55 },
-  { entry: "saved", label: "Saved", icon: "bookmark", angle: 20 },
-];
 // The pill becomes non-inert when the close state commits. Restore focus after it.
 const focusToggle=()=>{requestAnimationFrame(()=>document.getElementById("post-menu-toggle")?.focus());};
 export default function PlusMenu({ open, onClose }: { open: boolean; onClose: () => void }) {
+ const t=useTranslations('navigation');
+ const entries: { entry: PostEntry; label: string; icon: IconName; angle: number }[] = [
+  { entry: "camera", label: t('camera'), icon: "entry-camera", angle: 160 },
+  { entry: "text", label: t('text'), icon: "entry-text", angle: 125 },
+  { entry: "drink", label: t('drink'), icon: "entry-drink", angle: 90 },
+  { entry: "coffee", label: t('coffee'), icon: "entry-coffee", angle: 55 },
+  { entry: "saved", label: t('saved'), icon: "bookmark", angle: 20 },
+];
+
   const ref = useRef<HTMLDivElement>(null);
   const [visible, setVisible] = useState(false);
   const [centre, setCentre] = useState({x: 0, y: 0});
@@ -40,9 +44,9 @@ export default function PlusMenu({ open, onClose }: { open: boolean; onClose: ()
   }, [open,onClose]);
   useEffect(() => { if(open) {const timer=setTimeout(()=>{if(document.activeElement === document.getElementById("post-menu-toggle") || document.activeElement === document.body)ref.current?.querySelector<HTMLButtonElement>("button[data-entry]")?.focus();},360);return()=>clearTimeout(timer);} },[open]);
   const dismiss = () => {onClose();focusToggle();};
-  return <div ref={ref} id="post-menu" role="group" aria-label="New post" aria-hidden={!open} inert={!open} className="fixed inset-0 z-40" style={{pointerEvents:open?"auto":"none"}}>
-    <button tabIndex={-1} aria-label="Close post menu" onClick={dismiss} className="absolute inset-0 h-full w-full" style={{background:tokens.colors['scrim-light'],opacity:visible?1:0,transition:`opacity ${open?160:220}ms`}} />
-    <button aria-label="Close post menu" onClick={dismiss} className="fixed flex h-tap w-tap items-center justify-center rounded-circle bg-text text-surface" style={{left:centre.x-tokens.spacing.tap/2,top:centre.y-tokens.spacing.tap/2,opacity:visible?1:0,transition:"opacity 160ms"}}><Icon name="plus" style={{transform:"rotate(45deg)"}} /></button>
+  return <div ref={ref} id="post-menu" role="group" aria-label={t('newPost')} aria-hidden={!open} inert={!open} className="fixed inset-0 z-40" style={{pointerEvents:open?"auto":"none"}}>
+    <button tabIndex={-1} aria-label={t('closeMenu')} onClick={dismiss} className="absolute inset-0 h-full w-full" style={{background:tokens.colors['scrim-light'],opacity:visible?1:0,transition:`opacity ${open?160:220}ms`}} />
+    <button aria-label={t('closeMenu')} onClick={dismiss} className="fixed flex h-tap w-tap items-center justify-center rounded-circle bg-text text-surface" style={{left:centre.x-tokens.spacing.tap/2,top:centre.y-tokens.spacing.tap/2,opacity:visible?1:0,transition:"opacity 160ms"}}><Icon name="plus" style={{transform:"rotate(45deg)"}} /></button>
     {entries.map(({entry,label,icon,angle},index)=>{
       const radius=tokens.spacing['table-row']*5;
       const radians=angle*Math.PI/180;

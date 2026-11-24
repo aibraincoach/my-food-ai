@@ -1,10 +1,11 @@
 "use client";
+import {useLocale,useTranslations} from 'next-intl';
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { useDesktop } from "@/lib/ui/use-desktop";
 import { ARROW_GUTTER, ResultsCard } from "@/components/ResultsCard";
 import { type NutritionLike, type Numeric } from "@/lib/nutrition/totals";
 import { tokens } from "@/lib/theme/tokens";
-import { cardDataFromRow, type CardData } from "@/lib/pipeline/card-data";
+import { localizeCardData, cardDataFromRow, type CardData } from "@/lib/pipeline/card-data";
 import type { FeedPost } from "@/lib/posts/feed";
 import type { DrinkCardData } from "@/lib/intake/hydration";
 
@@ -23,12 +24,13 @@ function subscribeClock(listener: () => void) {
 // Both the server and the first hydrated render omit the clock. The browser then
 // formats the actual instant in its own zone; a server's zone never leaks into it.
 export default function LiveNutritionCard({ items, eatenAt, drink, data, post }: { post?: FeedPost; items: CardNutritionItem[]; eatenAt: string; drink?: DrinkCardData | null; data?: CardData }) {
+  const locale=useLocale(),t=useTranslations('card');
   const ref = useRef<HTMLDivElement>(null);
   const desktop = useDesktop();
   const [width, setWidth] = useState<number>(tokens.spacing.phone);
   const time = useSyncExternalStore(subscribeClock, () => {
     const date = new Date(eatenAt);
-    return Number.isFinite(date.getTime()) ? date.toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" }) : "";
+    return Number.isFinite(date.getTime()) ? date.toLocaleTimeString(locale, { hour: "numeric", minute: "2-digit" }) : "";
   }, () => "");
   useEffect(() => {
     const element = ref.current;
@@ -40,10 +42,10 @@ export default function LiveNutritionCard({ items, eatenAt, drink, data, post }:
     return () => observer.disconnect();
   }, []);
   const hydration = drink ? { totalMl: drink.totalMl, drinksMl: drink.drinksMl, foodMl: drink.foodMl, caffeineMg: drink.dayCaffeineMg ?? drink.caffeineMg } : undefined;
-  const cardData = post ? cardDataFromRow({ ...post, drink, ...(hydration ? { dayHydration: hydration } : {}) })
-    : drink ? { ...cardDataFromRow({ items, eatenAt, drink, dayHydration: hydration }), footer: data?.footer }
-    : data ?? cardDataFromRow({ items, eatenAt, drink });
-  return <div ref={ref} className="aspect-square w-full overflow-hidden bg-card" aria-label="Meal nutrition summary">
-    <ResultsCard size={width} time={time} data={cardData} gutter={desktop ? ARROW_GUTTER : 0} />
+  const cardData = post ? cardDataFromRow({ ...post, drink, ...(hydration ? { dayHydration: hydration } : {}) },locale)
+    : drink ? { ...cardDataFromRow({ items, eatenAt, drink, dayHydration: hydration },locale), footer:data?.wording?localizeCardData(data,locale).footer:data?.footer }
+    : data?.wording ? localizeCardData(data,locale) : cardDataFromRow({ items, eatenAt, drink },locale);
+  return <div ref={ref} className="aspect-square w-full overflow-hidden bg-card" aria-label={t('summary')}>
+    <ResultsCard locale={locale} size={width} time={time} data={cardData} gutter={desktop ? ARROW_GUTTER : 0} />
   </div>;
 }

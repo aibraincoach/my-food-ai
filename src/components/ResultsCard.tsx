@@ -1,3 +1,5 @@
+import {cardTranslator} from '@/i18n/card';
+import type {Locale} from '@/i18n/locales';
 import {DrinkPicture} from './DrinkPicture';
 import {drinkGlyph,waterCups} from '@/lib/intake/drink-glyph';
 import type { DrinkCardData } from '@/lib/intake/hydration';
@@ -7,6 +9,7 @@ import { formatCalories, formatNutrition } from '@/lib/nutrition/totals';
 import { tokens } from '@/lib/theme/tokens';
 
 export type ResultsCardProps = {
+  locale?: Locale;
   data?: CardData;
   // Kept for story totals and existing callers while they adopt CardData.
   drink?: DrinkCardData | null;
@@ -26,10 +29,11 @@ export type ResultsCardProps = {
 export const ARROW_GUTTER = 24;
 
 /** The exact same flex layout renders in the browser and next/og (Satori). */
-export function ResultsCard({ data, drink, gap = "", time, calories = null, protein = null, carbs = null, fat = null, items = [], size = tokens.spacing.phone, fontFamily, gutter = 0 }: ResultsCardProps) {
+export function ResultsCard({ locale = "en", data, drink, gap = "", time, calories = null, protein = null, carbs = null, fat = null, items = [], size = tokens.spacing.phone, fontFamily, gutter = 0 }: ResultsCardProps) {
+  const t=cardTranslator(locale);
   const card: CardData = data ?? {
     kind: drink ? 'drink' : 'meal', amountMl: drink?.ml, caffeineMg: drink?.caffeineMg,
-    drinkLine: drink ? `${drink.label}${drink.caffeineMg ? ` · ${formatNutrition(drink.caffeineMg)} mg caffeine · ${formatCalories(calories)} kcal` : ''}` : undefined,
+    drinkLine: drink ? `${drink.label}${drink.caffeineMg ? ` · ${t('caffeineDetail',{amount:formatNutrition(drink.caffeineMg)})} · ${formatCalories(calories)} kcal` : ''}` : undefined,
     hydration: drink ? { totalMl: drink.totalMl, drinksMl: drink.drinksMl, foodMl: drink.foodMl, caffeineMg: drink.dayCaffeineMg ?? drink.caffeineMg } : undefined,
     kcal: calories, macros: { protein, carbs, fat }, items, gap,
   };
@@ -45,36 +49,39 @@ export function ResultsCard({ data, drink, gap = "", time, calories = null, prot
   const macro = (value: number | null | undefined, word: string) => <div key={word} style={{ display: 'flex', gap: tokens.spacing.grid * scale }}>
     <span style={{ fontWeight: tokens.card.emphasisWeight }}>{formatNutrition(value)} g</span><span style={{ color: tokens.colors.muted }}>{word}</span>
   </div>;
-  const split = (value: number, word: string) => <span key={word}>
-    <span style={{ color: tokens.colors.text, fontWeight: tokens.card.emphasisWeight }}>{Math.round(value).toLocaleString('en-US')}{word === 'caffeine' ? ' mg' : ' ml'}</span>{` ${word}`}
+  const split = (value: number, word: string) => {
+    const suffix=` ${word}`;
+    return <span key={word}>
+    <span style={{ color: tokens.colors.text, fontWeight: tokens.card.emphasisWeight }}>{Math.round(value).toLocaleString('en-US')}{word === t('caffeine') ? ' mg' : ' ml'}</span>{suffix}
   </span>;
+  };
   return <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between', width: size, height: size, padding: tokens.spacing['card-padding'] * scale, ...(gutter ? { paddingLeft: tokens.spacing['card-padding'] * scale + gutter, paddingRight: tokens.spacing['card-padding'] * scale + gutter } : {}), boxSizing: 'border-box', background: tokens.colors.card, color: tokens.colors.text, fontFamily }}>
-    <div style={{ display: 'flex', ...text('meta'), color: tokens.colors.muted, letterSpacing: tokens.card.labelTracking * scale, textTransform: 'uppercase' }}>{isDrink ? 'DRANK' : 'CONSUMED'}{time ? ` · ${time}` : ''}</div>
+    <div style={{ display: 'flex', ...text('meta'), color: tokens.colors.muted, letterSpacing: tokens.card.labelTracking * scale, textTransform: 'uppercase' }}>{isDrink ? t('drank') : t('consumed')}{time ? ` · ${time}` : ''}</div>
     {isDrink?<div style={{display:'flex',alignItems:'center',gap:12*scale}}>
       <div style={{display:'flex',flexWrap:'wrap',maxWidth:150*scale}}>{Array.from({length:cups},(_,index)=><DrinkPicture key={index} glyph={glyph} size={tokens.typography['display-card'].size*scale}/>)}</div>
       <div style={{display:'flex',flex:1,flexDirection:'column',gap:6*scale}}>
-        <div style={{display:'flex',...text('body')}}>{card.drinkLabel??drink?.label??card.drinkLine??'Drink'}</div>
+        <div style={{display:'flex',...text('body')}}>{card.drinkLabel??drink?.label??card.drinkLine??t('drink')}</div>
         <div style={{display:'flex',...text('detail'),color:tokens.colors.muted}}>{card.drinkDetail??`${formatNutrition(card.amountMl??0)} ml`}</div>
       </div>
     </div>:<div style={{display:'flex',flexDirection:'column',gap:4*scale}}>
-      <div style={{display:'flex',...text('display-card')}}>{card.kcal===null?'unavailable':formatCalories(card.kcal)}</div>
+      <div style={{display:'flex',...text('display-card')}}>{card.kcal===null?t('unavailable'):formatCalories(card.kcal)}</div>
       <div style={{display:'flex',...text('body'),fontWeight:400,color:tokens.colors.muted}}>kcal</div>
     </div>}
     {isDrink ? <div style={{ display: 'flex', flexDirection: 'column', borderTop: `1px solid ${tokens.colors.line}`, paddingTop: 16 * scale, gap: 10 * scale }}>
-      <div style={{display:'flex',...text('detail')}}>Today</div>
+      <div style={{display:'flex',...text('detail')}}>{t('today')}</div>
       <div style={{display:'flex',flexWrap:'wrap',gap:3*scale}}>{dayPictures.map((picture,index)=><DrinkPicture key={index} glyph={picture} size={Math.min(22,280/Math.max(1,dayPictures.length))*scale}/>)}</div>
       <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 * scale }}>
         <span style={text('day-macro')}>{Math.round(card.hydration?.totalMl ?? 0).toLocaleString('en-US')} ml</span>
-        <span style={{ ...text('detail'), color: tokens.colors.muted }}>consumed today</span>
+        <span style={{ ...text('detail'), color: tokens.colors.muted }}>{t('consumedToday')}</span>
       </div>
       <div style={{ display: 'flex', gap: 24 * scale, ...text('detail'), color: tokens.colors.muted }}>
-        {split(card.hydration?.drinksMl ?? 0, 'from drinks')}
-        {split(card.hydration?.foodMl ?? 0, 'from food')}
-        {(card.caffeineMg ?? 0) > 0 ? split(card.hydration?.caffeineMg ?? 0, 'caffeine') : null}
+        {split(card.hydration?.drinksMl ?? 0, t('fromDrinks'))}
+        {split(card.hydration?.foodMl ?? 0, t('fromFood'))}
+        {(card.caffeineMg ?? 0) > 0 ? split(card.hydration?.caffeineMg ?? 0, t('caffeine')) : null}
       </div>
     </div> : <div style={{ display: 'flex', flexDirection: 'column', gap: 16 * scale }}>
       <div style={{ display: 'flex', gap: tokens.spacing['macro-gap'] * scale, ...text('body') }}>
-        {macro(card.macros?.protein, 'protein')}{macro(card.macros?.carbs, 'carbs')}{macro(card.macros?.fat, 'fat')}
+        {macro(card.macros?.protein, t('protein'))}{macro(card.macros?.carbs, t('carbs'))}{macro(card.macros?.fat, t('fat'))}
       </div>
       {card.gap ? <div style={{ display: 'flex', ...text('meta'), color: tokens.colors.muted }}>{card.gap}</div> : null}
       <div style={{ display: 'flex', flexDirection: 'column', gap: 6 * scale, ...text('detail'), lineHeight: tokens.card.itemLeading, color: tokens.colors.muted }}>

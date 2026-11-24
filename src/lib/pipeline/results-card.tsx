@@ -43,7 +43,8 @@ export async function renderResultsCard(admin: SupabaseClient, postId: string, j
   const cardData = await readStoredCardData(admin,snapshot.user_id,source,undefined,variant);
   const [light, regular, medium, semibold] = await fonts();
   const size = tokens.card.outputSize;
-  const response = new ImageResponse(<ResultsCard data={cardData}
+  // Stored artefacts stay English until #1220; live cards use the reader's locale.
+  const response = new ImageResponse(<ResultsCard locale="en" data={cardData}
     size={size} fontFamily="Manrope"
   />, { width: size, height: size, fonts: [
     { name: "Manrope", data: light, weight: 300, style: "normal" },

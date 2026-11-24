@@ -16,8 +16,8 @@ function load(path,imports,append='') {
  }});
  return exports;
 }
-test('slice 1 defers phone default but keeps explicit device choice and shell selection',async()=>{
- for(const [cookie,header,shell,expected] of [[undefined,'ja-JP',null,'en'],['ja','en',null,'ja'],['en','ja-JP',null,'en'],[undefined,'en','ja','ja']]) {
+test('translated front screens enable phone default and keep explicit device choice and public document selection',async()=>{
+ for(const [cookie,header,shell,expected] of [[undefined,'ja-JP',null,'ja'],['ja','en',null,'ja'],['en','ja-JP',null,'en'],[undefined,'en','ja','ja']]) {
   const request=load('../src/i18n/request.ts',{
    '@/lib/posts/days':{validZone:value=>value??'UTC'},
    'next/headers':{cookies:async()=>({get:key=>key==='lang'&&cookie?{value:cookie}:undefined}),headers:async()=>({get:key=>key==='accept-language'?header:key==='x-mfa-shell-locale'?shell:null})},
@@ -27,10 +27,11 @@ test('slice 1 defers phone default but keeps explicit device choice and shell se
   assert.equal((await request.default()).locale,expected);
  }
 });
-test('slice 1 serves English document language even with a Japanese device choice',async()=>{
+test('translated front screens serve the resolved document language',async()=>{
  const jsx=(type,props)=>({type,props});
  const root=load('../src/app/layout.tsx',{
-  'next-intl/server':{getLocale:async()=> 'ja'},
+  'next-intl/server':{getLocale:async()=> 'ja',getMessages:async()=>({navigation:{},errors:{},card:{}}),getTimeZone:async()=> 'UTC'},
+  '@/components/i18n/StrictIntlProvider':{default:'StrictIntlProvider'},
   'react':{Suspense:'Suspense'},'react/jsx-runtime':{jsx,jsxs:jsx},
   '@/lib/theme/font':{font:{className:'font',variable:'font-variable'}},
   '@/lib/theme/tokens':{tokens:{colors:{surface:'white'}}},
@@ -41,7 +42,7 @@ test('slice 1 serves English document language even with a Japanese device choic
   '@/components/DeletePostSheet':{default:'DeletePostSheet'},'./globals.css':{},
  },'\nexport {LocaleDocument};');
  const document=await root.LocaleDocument({children:'English front screens'});
- assert.equal(document.type,'html');assert.equal(document.props.lang,'en');
+ assert.equal(document.type,'html');assert.equal(document.props.lang,'ja');
  const setting=readFileSync(new URL('../src/components/i18n/LanguageSetting.tsx',import.meta.url),'utf8');
- assert.match(setting,/<section lang={locale}/,'the translated Language row declares its own language');
+ assert.doesNotMatch(setting,/<section lang=/,'the row inherits the resolved document language');
 });

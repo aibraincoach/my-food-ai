@@ -1,5 +1,6 @@
 import LocaleReporter from '@/components/i18n/LocaleReporter';
-import {getLocale} from 'next-intl/server';
+import {getLocale,getMessages,getTimeZone} from 'next-intl/server';
+import StrictIntlProvider from '@/components/i18n/StrictIntlProvider';
 import type { Metadata, Viewport } from "next";
 import { Suspense } from "react";
 import { font } from "@/lib/theme/font";
@@ -26,16 +27,15 @@ export default function RootLayout({children}: {children: React.ReactNode}) {
 }
 
 async function LocaleDocument({children}: {children: React.ReactNode}) {
-  const locale=await getLocale();
-  // Slice 1 translates only the Language row. Enable document locale with slice 2.
+  const [locale,messages,timeZone]=await Promise.all([getLocale(),getMessages(),getTimeZone()]);
   return (
-    <html lang="en" className="h-full antialiased" data-build={process.env.NEXT_PUBLIC_BUILD}>
+    <html lang={locale} className="h-full antialiased" data-build={process.env.NEXT_PUBLIC_BUILD}>
       <body className={`${font.className} ${font.variable} flex min-h-dvh flex-col`}>
         <Suspense fallback={null}><ServiceWorkerRegistration /></Suspense>
         <LocaleReporter locale={locale}/>
         <Suspense fallback={null}><DeletePostSheet /><PostOpenTransition /></Suspense>
         <FeedCacheMutations />
-        {children}
+        <StrictIntlProvider locale={locale} timeZone={timeZone} messages={{navigation:messages.navigation,errors:messages.errors,card:messages.card}}>{children}</StrictIntlProvider>
       </body>
     </html>
   );

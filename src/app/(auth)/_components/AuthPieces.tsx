@@ -1,3 +1,4 @@
+import {useTranslations} from 'next-intl';
 import Link from 'next/link';
 import type {ReactNode} from 'react';
 import {Icon} from '@/components/ui/Icon';
@@ -6,7 +7,8 @@ export function AuthHeader({title,children,description,align='center'}:{title:st
  return <header className={`flex flex-col ${align==='start'?'items-start gap-2':'items-center gap-screen-x'}`}>{children}<h1 className={align==='start'?"text-[28px] font-semibold leading-[1.15] tracking-[-0.6px]":"text-title"}>{title}</h1>{description?<p className="text-body">{description}</p>:null}</header>;
 }
 export function AuthBackRow({href,children}:{href:string;children:ReactNode}){
- return <nav aria-label="Back" className="flex min-h-tap items-center"><Link href={href} className="inline-flex min-h-tap items-center text-body"><Icon name="back" aria-hidden="true"/>{children}</Link></nav>;
+ const t=useTranslations('auth');
+ return <nav aria-label={t('back')} className="flex min-h-tap items-center"><Link href={href} className="inline-flex min-h-tap items-center text-body"><Icon name="back" aria-hidden="true"/>{children}</Link></nav>;
 }
 export function AuthErrorBanner({children}:{children:ReactNode}){
  return <div role="alert" className="flex items-start gap-tooltip-y rounded-field bg-accent-halo px-tooltip-x py-sheet-top text-comment text-text">

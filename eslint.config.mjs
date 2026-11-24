@@ -1,4 +1,4 @@
-import {converted, deferred, noFixedMessages} from './scripts/eslint-i18n.mjs';
+import {converted, deferred, noFixedMessages, HELD_FOR_OWNER_WORDING, untranslatedNamesAndUnits} from './scripts/eslint-i18n.mjs';
 import { defineConfig, globalIgnores } from "eslint/config";
 import nextVitals from "eslint-config-next/core-web-vitals";
 import nextTs from "eslint-config-next/typescript";
@@ -11,7 +11,7 @@ const eslintConfig = defineConfig([
     ignores: deferred,
     plugins: {messages: {rules: {'no-fixed-text': noFixedMessages}}},
     rules: {
-      'react/jsx-no-literals': ['error', {noStrings: true, ignoreProps: true}],
+      'react/jsx-no-literals': ['error', {noStrings: true, ignoreProps: true, allowedStrings: [...HELD_FOR_OWNER_WORDING,...untranslatedNamesAndUnits]}],
       'messages/no-fixed-text': 'error',
     },
   },

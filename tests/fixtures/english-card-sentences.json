@@ -1,0 +1,424 @@
+{
+  "base": "d5b86946eba5c4f45077c136db832c6676cfa2f6",
+  "cases": [
+    {
+      "name": "water and meal drinks",
+      "source": {
+        "items": [
+          {
+            "name": "Rice",
+            "portion_grams": 100,
+            "calories": 180,
+            "protein_g": 4,
+            "carbs_g": 42,
+            "fat_g": 0
+          }
+        ],
+        "foodWaterMl": 134,
+        "dayHydration": {
+          "totalMl": 1134,
+          "drinksMl": 1000,
+          "foodMl": 134,
+          "caffeineMg": 80
+        },
+        "itemDrinks": [
+          {
+            "post_item_id": "x",
+            "label": "Tea",
+            "ml": 200,
+            "caffeineMg": 30
+          },
+          {
+            "post_item_id": "y",
+            "label": "Water",
+            "ml": 300,
+            "caffeineMg": 0
+          }
+        ]
+      },
+      "expected": {
+        "glyph": "tumbler",
+        "drinkLabel": "Rice",
+        "drinkDetail": "0 ml",
+        "kind": "meal",
+        "hydration": {
+          "totalMl": 1134,
+          "drinksMl": 1000,
+          "foodMl": 134,
+          "caffeineMg": 80
+        },
+        "kcal": 180,
+        "macros": {
+          "protein": 4,
+          "carbs": 42,
+          "fat": 0
+        },
+        "items": [
+          {
+            "name": "Rice",
+            "grams": 100
+          }
+        ],
+        "gap": "",
+        "waterLine": "Water in this meal: 134 ml · Consumed today: 1,134 ml",
+        "mealDrinkLine": "Drinks with this meal: 200 ml Tea · 300 ml Water · 30 mg caffeine"
+      }
+    },
+    {
+      "name": "coffee caffeine",
+      "source": {
+        "items": [
+          {
+            "name": "Rice",
+            "portion_grams": 100,
+            "calories": 180,
+            "protein_g": 4,
+            "carbs_g": 42,
+            "fat_g": 0
+          }
+        ],
+        "drink": {
+          "label": "Coffee",
+          "kind": "caffeine",
+          "source": "item",
+          "ml": 250,
+          "caffeineMg": 80,
+          "dayCaffeineMg": 100,
+          "totalMl": 1250,
+          "drinksMl": 1000,
+          "foodMl": 250
+        }
+      },
+      "expected": {
+        "glyph": "coffee",
+        "drinkLabel": "Coffee",
+        "drinkDetail": "80 mg caffeine",
+        "kind": "drink",
+        "amountMl": 250,
+        "caffeineMg": 80,
+        "drinkLine": "Coffee · 80 mg caffeine · 180 kcal",
+        "hydration": {
+          "totalMl": 1250,
+          "drinksMl": 1000,
+          "foodMl": 250,
+          "caffeineMg": 100
+        },
+        "kcal": 180,
+        "macros": {
+          "protein": 4,
+          "carbs": 42,
+          "fat": 0
+        },
+        "items": [
+          {
+            "name": "Rice",
+            "grams": 100
+          }
+        ],
+        "gap": ""
+      }
+    },
+    {
+      "name": "alcohol",
+      "source": {
+        "items": [
+          {
+            "name": "Rice",
+            "portion_grams": 100,
+            "calories": 180,
+            "protein_g": 4,
+            "carbs_g": 42,
+            "fat_g": 0
+          }
+        ],
+        "drink": {
+          "label": "Beer",
+          "kind": "alcohol",
+          "source": "item",
+          "ml": 250,
+          "caffeineMg": 0,
+          "dayCaffeineMg": 100,
+          "totalMl": 1250,
+          "drinksMl": 1000,
+          "foodMl": 250,
+          "alcoholG": 14
+        }
+      },
+      "expected": {
+        "glyph": "beer",
+        "drinkLabel": "Beer",
+        "drinkDetail": "14 g alcohol · 1.0 standard drinks",
+        "kind": "drink",
+        "amountMl": 250,
+        "caffeineMg": 0,
+        "drinkLine": "Beer · 180 kcal",
+        "hydration": {
+          "totalMl": 1250,
+          "drinksMl": 1000,
+          "foodMl": 250,
+          "caffeineMg": 100
+        },
+        "kcal": 180,
+        "macros": {
+          "protein": 4,
+          "carbs": 42,
+          "fat": 0
+        },
+        "items": [
+          {
+            "name": "Rice",
+            "grams": 100
+          }
+        ],
+        "gap": ""
+      }
+    },
+    {
+      "name": "alcohol unavailable",
+      "source": {
+        "items": [
+          {
+            "name": "Rice",
+            "portion_grams": 100,
+            "calories": 180,
+            "protein_g": 4,
+            "carbs_g": 42,
+            "fat_g": 0
+          }
+        ],
+        "drink": {
+          "label": "Beer",
+          "kind": "alcohol",
+          "source": "item",
+          "ml": 250,
+          "caffeineMg": 0,
+          "dayCaffeineMg": 100,
+          "totalMl": 1250,
+          "drinksMl": 1000,
+          "foodMl": 250,
+          "alcoholG": 0
+        }
+      },
+      "expected": {
+        "glyph": "beer",
+        "drinkLabel": "Beer",
+        "drinkDetail": "alcohol unavailable",
+        "kind": "drink",
+        "amountMl": 250,
+        "caffeineMg": 0,
+        "drinkLine": "Beer · 180 kcal",
+        "hydration": {
+          "totalMl": 1250,
+          "drinksMl": 1000,
+          "foodMl": 250,
+          "caffeineMg": 100
+        },
+        "kcal": 180,
+        "macros": {
+          "protein": 4,
+          "carbs": 42,
+          "fat": 0
+        },
+        "items": [
+          {
+            "name": "Rice",
+            "grams": 100
+          }
+        ],
+        "gap": ""
+      }
+    },
+    {
+      "name": "partial missing macros",
+      "source": {
+        "items": [
+          {
+            "name": "Rice",
+            "portion_grams": 100,
+            "calories": 180,
+            "protein_g": null,
+            "carbs_g": null,
+            "fat_g": null
+          }
+        ]
+      },
+      "expected": {
+        "glyph": "tumbler",
+        "drinkLabel": "Rice",
+        "drinkDetail": "0 ml",
+        "kind": "meal",
+        "kcal": 180,
+        "macros": {
+          "protein": null,
+          "carbs": null,
+          "fat": null
+        },
+        "items": [
+          {
+            "name": "Rice",
+            "grams": 100
+          }
+        ],
+        "gap": "Missing protein, carbs, and fat for Rice."
+      }
+    },
+    {
+      "name": "calories missing with a held reason",
+      "source": {
+        "items": [
+          {
+            "name": "Rice",
+            "portion_grams": 100,
+            "calories": null,
+            "protein_g": 4,
+            "carbs_g": 42,
+            "fat_g": 0,
+            "source_ref": "unavailable:no_match:synthetic lookup"
+          }
+        ]
+      },
+      "expected": {
+        "glyph": "tumbler",
+        "drinkLabel": "Rice",
+        "drinkDetail": "0 ml",
+        "kind": "meal",
+        "kcal": null,
+        "macros": {
+          "protein": 4,
+          "carbs": 42,
+          "fat": 0
+        },
+        "items": [
+          {
+            "name": "Rice",
+            "grams": 100
+          }
+        ],
+        "gap": "Calories unavailable for Rice. No USDA record matched “Rice”."
+      }
+    },
+    {
+      "name": "all nutrition missing",
+      "source": {
+        "items": [
+          {
+            "name": "Rice",
+            "portion_grams": 100,
+            "calories": null,
+            "protein_g": null,
+            "carbs_g": null,
+            "fat_g": null
+          }
+        ]
+      },
+      "expected": {
+        "glyph": "tumbler",
+        "drinkLabel": "Rice",
+        "drinkDetail": "0 ml",
+        "kind": "meal",
+        "kcal": null,
+        "macros": {
+          "protein": null,
+          "carbs": null,
+          "fat": null
+        },
+        "items": [
+          {
+            "name": "Rice",
+            "grams": 100
+          }
+        ],
+        "gap": "Nutrition unavailable for Rice."
+      }
+    },
+    {
+      "name": "leftovers grams and count",
+      "source": {
+        "items": [
+          {
+            "name": "Rice",
+            "portion_grams": 100,
+            "calories": 180,
+            "protein_g": 4,
+            "carbs_g": 42,
+            "fat_g": 0,
+            "not_eaten_grams": 50,
+            "not_eaten_calories": 90
+          },
+          {
+            "name": "Apple",
+            "portion_grams": 100,
+            "calories": 180,
+            "protein_g": 4,
+            "carbs_g": 42,
+            "fat_g": 0,
+            "not_eaten_grams": 100,
+            "not_eaten_count_text": "one slice",
+            "not_eaten_calories": 45
+          }
+        ]
+      },
+      "expected": {
+        "glyph": "tumbler",
+        "drinkLabel": "Rice · Apple",
+        "drinkDetail": "0 ml",
+        "kind": "meal",
+        "kcal": 360,
+        "macros": {
+          "protein": 8,
+          "carbs": 84,
+          "fat": 0
+        },
+        "items": [
+          {
+            "name": "Rice",
+            "grams": 100
+          },
+          {
+            "name": "Apple",
+            "grams": 100
+          }
+        ],
+        "gap": "",
+        "footer": "Leftovers: 50 g, one slice · 135 kcal"
+      }
+    },
+    {
+      "name": "leftovers unavailable",
+      "source": {
+        "items": [
+          {
+            "name": "Rice",
+            "portion_grams": 100,
+            "calories": 180,
+            "protein_g": 4,
+            "carbs_g": 42,
+            "fat_g": 0,
+            "not_eaten_grams": 50,
+            "not_eaten_calories": null
+          }
+        ]
+      },
+      "expected": {
+        "glyph": "tumbler",
+        "drinkLabel": "Rice",
+        "drinkDetail": "0 ml",
+        "kind": "meal",
+        "kcal": 180,
+        "macros": {
+          "protein": 4,
+          "carbs": 42,
+          "fat": 0
+        },
+        "items": [
+          {
+            "name": "Rice",
+            "grams": 100
+          }
+        ],
+        "gap": "",
+        "footer": "Leftovers: 50 g · unavailable kcal"
+      }
+    }
+  ]
+}

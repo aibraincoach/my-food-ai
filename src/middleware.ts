@@ -15,12 +15,14 @@ export async function middleware(request: NextRequest) {
   request.headers.delete('x-mfa-shell-locale');
   // Only the anonymous worker shell accepts this explicit, non-credential
   // override. Return before constructing Auth or reading account data.
-  if (request.nextUrl.pathname === '/shell') {
+  if (request.nextUrl.pathname === '/shell' || request.nextUrl.pathname === '/welcome') {
     const locale = request.nextUrl.searchParams.get('lang');
     const headers = new Headers(request.headers);
     if (isLocale(locale)) headers.set('x-mfa-shell-locale', locale);
     return NextResponse.next({request: {headers}});
   }
+  const publicLocale=request.nextUrl.pathname==='/'?request.nextUrl.searchParams.get('lang'):null;
+  if(isLocale(publicLocale))request.headers.set('x-mfa-shell-locale',publicLocale);
   const session = sessionCookieBridge(request);
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -69,7 +71,9 @@ export async function middleware(request: NextRequest) {
     if(!allowed)return adminNotFoundResponse(session.response);
   }
   if (!userId && PROTECTED.some((p) => pathname === p || pathname.startsWith(p + "/"))) {
-    return session.apply(NextResponse.redirect(new URL("/welcome", request.url)));
+    const welcome=new URL("/welcome",request.url);
+    if(isLocale(publicLocale))welcome.searchParams.set('lang',publicLocale);
+    return session.apply(NextResponse.redirect(welcome));
   }
   const postPath = pathname.match(/^\/posts\/([^/]+)\/?$/);
   if (userId && postPath && !request.headers.get("RSC")) {
@@ -94,5 +98,5 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/shell", "/", "/search/:path*", "/days/:path*", "/profile/:path*", "/posts/:path*", "/admin/:path*", "/choose-handle"],
+  matcher: ["/shell", "/welcome", "/", "/search/:path*", "/days/:path*", "/profile/:path*", "/posts/:path*", "/admin/:path*", "/choose-handle"],
 };

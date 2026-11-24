@@ -130,7 +130,7 @@ test('signed-in navigation HTML is never added to a shared cache',async()=>{
 });
 test('install stores only anonymous shell responses with credentials omitted',async()=>{
  const w=worker(),requests=[];w.setFetch(async request=>{requests.push(request);return new Response('anonymous');});await w.event('install');
- assert.equal(requests.length,4);assert.ok(requests.every(request=>request.credentials==='omit'));assert.equal(w.stores.get('my-food-ai-shell-v4').size,4);
+ assert.equal(requests.length,7);assert.ok(requests.every(request=>request.credentials==='omit'));assert.equal(w.stores.get('my-food-ai-shell-v4').size,7);
 });
 
 test('validated navigation UUID headers authorize the second visit before JavaScript registration',async()=>{
@@ -273,7 +273,7 @@ test('anonymous install caches both locale shells with no credentials',async()=>
  await w.event('install');
  for(const locale of ['en','ja']) {
   assert.ok(requests.some(r=>new URL(r.url).pathname==='/shell' && new URL(r.url).searchParams.get('lang')===locale && r.credentials==='omit'));
-  assert.ok(await(await w.caches.open('my-food-ai-shell-v4')).match('/shell?lang='+locale));
+  for(const route of ['/','/welcome','/shell'])assert.ok(await(await w.caches.open('my-food-ai-shell-v4')).match(route+'?lang='+locale));
  }
  assert.equal(await(await w.caches.open('my-food-ai-shell-v4')).match('/shell'),undefined);
 });
@@ -307,4 +307,16 @@ test('unknown worker locale never guesses English; invalid report does not chang
  await w.event('message',{source:{id:'old-document'},data:{type:'app-locale',locale:'xx'}});
  const saved=await(await w.caches.open(CONTROL)).match('https://app.example/__mfa_locale__');
  assert.equal(await saved.text(),'ja');
+});
+
+test('offline anonymous root and Welcome select only their reported language',async()=>{
+ for(const path of ['/','/welcome'])for(const locale of ['en','ja']){
+  const w=worker({setTimer:fn=>{queueMicrotask(fn);return 1;}}),cache=await w.caches.open('my-food-ai-shell-v4');
+  for(const language of ['en','ja'])await cache.put(path+'?lang='+language,new Response(language+' public '+path));
+  await w.event('message',{source:{id:'old-document'},data:{type:'app-locale',locale}});
+  w.setFetch(async()=>{throw Error('offline');});
+  assert.equal(await(await w.navigate('https://app.example'+path)).text(),locale+' public '+path);
+  await cache.delete(path+'?lang='+locale);
+  assert.equal((await w.navigate('https://app.example'+path)).type,'error','missing locale must not borrow another public copy');
+ }
 });

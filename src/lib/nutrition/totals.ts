@@ -98,14 +98,19 @@ function wordList(words:string[]):string {
 }
 // One wording path for comments, cards, calendar accessibility and disclosures.
 // A missing calorie figure does not say that every other nutrient is unknown.
-export function gapSentence(gaps: NutritionGap[], reasons: {name:string;sourceRef:unknown}[] = [], withDetail = false): string {
+export interface GapWording {
+ nutritionUnavailable:(food:string)=>string;
+ caloriesUnavailable:(food:string)=>string;
+ missing:(nutrients:string[],food:string)=>string;
+}
+export function gapSentence(gaps: NutritionGap[], reasons: {name:string;sourceRef:unknown}[] = [], withDetail = false, wording?:GapWording): string {
   const sentences = gaps.map(gap => {
     if (gap.nutrients.includes("calories")) {
       const why = [...new Set(reasons.filter(row=>row.name===gap.name).map(row=>unavailableSentence(row.name,row.sourceRef,withDetail)).filter(Boolean))].join(" ");
-      if (["calories","protein_g","carbs_g","fat_g"].every(key=>gap.nutrients.includes(key as NutrientKey))) return why || `Nutrition unavailable for ${gap.name}.`;
-      return `Calories unavailable for ${gap.name}.${why ? ` ${why}` : ""}`;
+      if (["calories","protein_g","carbs_g","fat_g"].every(key=>gap.nutrients.includes(key as NutrientKey))) return why || (wording?wording.nutritionUnavailable(gap.name):`Nutrition unavailable for ${gap.name}.`);
+      return `${wording?wording.caloriesUnavailable(gap.name):`Calories unavailable for ${gap.name}.`}${why ? ` ${why}` : ""}`;
     }
-    return gap.nutrients.length ? `Missing ${wordList(gap.nutrients.map(key=>nutrientNames[key]))} for ${gap.name}.` : "";
+    return gap.nutrients.length ? (wording?wording.missing(gap.nutrients.map(key=>nutrientNames[key]),gap.name):`Missing ${wordList(gap.nutrients.map(key=>nutrientNames[key]))} for ${gap.name}.`) : "";
   }).filter(Boolean);
   // Callers can also carry a durable reason without a missing-name aggregate.
   // Preserve that reason once; do not invent another availability claim.

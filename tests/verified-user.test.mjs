@@ -105,10 +105,10 @@ test('a matched standalone detail forwards only the verified session identity wi
 });
 
 
-test('locale-keyed shell bypasses Auth and strips forged account and locale headers',async()=>{
+test('locale-keyed public documents bypass Auth and strips forged account and locale headers',async()=>{
   await withAuth(async calls=>{
-    for(const locale of ['en','ja','bad']) {
-      const req=new NextRequest('https://app.invalid/shell?lang='+locale,{headers:{[VERIFIED_USER_HEADER]:'forged','x-mfa-shell-locale':'forged'}});
+    for(const path of ['/shell','/welcome'])for(const locale of ['en','ja','bad']) {
+      const req=new NextRequest('https://app.invalid'+path+'?lang='+locale,{headers:{[VERIFIED_USER_HEADER]:'forged','x-mfa-shell-locale':'forged'}});
       assert.equal(unstable_doesMiddlewareMatch({config,url:req.url,headers:Object.fromEntries(req.headers)}),true);
       const response=await middleware(req);
       assert.equal(response.status,200);

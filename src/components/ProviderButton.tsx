@@ -1,4 +1,6 @@
 "use client";
+import {useTranslations} from 'next-intl';
+
 
 import {useState} from 'react';
 import Image from 'next/image';
@@ -18,6 +20,7 @@ const colours = {
 };
 
 export default function ProviderButton({provider, startAction}: Props) {
+ const t=useTranslations('auth');
   const [shown, setShown] = useState(false);
   const messageId = `${provider.toLowerCase()}-coming-soon`;
   const button = <button type={startAction ? 'submit' : 'button'}
@@ -27,12 +30,12 @@ export default function ProviderButton({provider, startAction}: Props) {
     className="flex w-full items-center justify-center gap-[10px] rounded-field text-body font-semibold">
     {provider !== 'ChatGPT' && <Image src={marks[provider]} alt="" width={20} height={20} sizes="20px" />}
     <span className="flex flex-col items-center">
-      <span>{provider === 'LINE' ? 'Log in with LINE' : `Continue with ${provider}`}</span>
-      {!startAction && <span className="text-label font-normal">Coming soon</span>}
+      <span>{provider === 'LINE' ? t('lineLogin') : t('providerContinue',{provider})}</span>
+      {!startAction && <span className="text-label font-normal">{t('comingSoon')}</span>}
     </span>
   </button>;
   return <div className="flex flex-col">
     {startAction ? <form action={startAction}>{button}</form> : button}
-    {!startAction && <p id={messageId} role="status" className="min-h-[1lh] text-center text-comment text-muted">{shown ? 'Coming soon' : ''}</p>}
+    {!startAction && <p id={messageId} role="status" className="min-h-[1lh] text-center text-comment text-muted">{shown ? t('comingSoon') : ''}</p>}
   </div>;
 }
