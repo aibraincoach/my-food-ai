@@ -17,6 +17,7 @@ export const captureLintTargets = [
   "src/lib/posts/upload-manager.ts",
   "src/lib/posts/upload-store.ts",
   "src/lib/posts/capture-failure.ts",
+  "src/lib/posts/capture-route-failure.ts",
   "src/lib/posts/create.ts",
   "src/lib/media/camera.ts",
   "src/lib/media/pack-photo-upload.ts",

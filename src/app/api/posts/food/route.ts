@@ -1,3 +1,4 @@
+import {captureRouteMessageCode} from '@/lib/posts/capture-route-failure';
 import {foodRequestKey} from "@/lib/posts/food-operation";
 import { capUser } from "@/lib/limits/user-cap";
 import {cookies} from "next/headers";
@@ -98,7 +99,7 @@ export async function POST(request: Request) {
       const args: Record<string, unknown> = { p_user_id: user.id, p_eaten_at: eatenAt, p_name: product.name.slice(0, 160), p_grams: amount, p_nutrition: {...barcodeNutrition(product, amount),gtin:product.gtin} };
       if (photo) args.p_photo = photo;
       const { data, error } = await publish(createAdminClient(), args);
-      if (error) return NextResponse.json({ error: error.code?.startsWith("22") ? "The pack photo or portion could not be saved." : "The meal could not be saved." }, { status: error.code?.startsWith("PT") ? Number(error.code.slice(2)) : error.code?.startsWith("22") ? 400 : 500 });
+      if (error) return NextResponse.json({ error: error.code?.startsWith("22") ? "The pack photo or portion could not be saved." : "The meal could not be saved.", message_code: captureRouteMessageCode(error.code?.startsWith("22") ? "The pack photo or portion could not be saved." : "The meal could not be saved.") }, { status: error.code?.startsWith("PT") ? Number(error.code.slice(2)) : error.code?.startsWith("22") ? 400 : 500 });
       await finish(data as string,createAdminClient());
       return NextResponse.json({ post_id: data as string }, { status: 201 });
     } catch (error) {
@@ -119,7 +120,7 @@ export async function POST(request: Request) {
     const { data, error } = await publish(admin, { p_user_id: user.id, p_eaten_at: eatenAt, p_name: food.description.slice(0, 160), p_grams: portion.amount,
       p_nutrition: { calories: n.calories, protein_g: n.proteinG, carbs_g: n.carbsG, fat_g: n.fatG, fibre_g: n.fibreG, sugar_g: n.sugarG, sodium_mg: n.sodiumMg, micronutrients: n.micronutrients, source_ref: n.sourceRef, portion_unit: portion.unit } });
     if (error?.code === "42501") return NextResponse.json({ error: "Sign in required.",message_code: "route_ac6a88b19530" }, { status: 401 });
-    if (error) return NextResponse.json({ error: error.code?.startsWith("22") ? "That food could not be logged." : "The meal could not be saved." }, { status: error.code?.startsWith("PT") ? Number(error.code.slice(2)) : error.code?.startsWith("22") ? 400 : 500 });
+    if (error) return NextResponse.json({ error: error.code?.startsWith("22") ? "That food could not be logged." : "The meal could not be saved.", message_code: captureRouteMessageCode(error.code?.startsWith("22") ? "That food could not be logged." : "The meal could not be saved.") }, { status: error.code?.startsWith("PT") ? Number(error.code.slice(2)) : error.code?.startsWith("22") ? 400 : 500 });
     await finish(data as string,admin);
     return NextResponse.json({ post_id: data as string }, { status: 201 });
   } catch (error) {

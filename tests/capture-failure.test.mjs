@@ -21,8 +21,8 @@ test('response wording and semantic retry code never become a saved message',()=
  const failure=failureFromResponse({error:'A server sentence',code:'draft_expired',message_code:'photoStorageFailed'});
  assert.deepEqual(failure,{code:'photoStorageFailed'});
  assert.equal(JSON.stringify(failure).includes('server sentence'),false);
- assert.deepEqual(failureFromResponse({error:'A new server sentence',code:'draft_expired',message_code:'unknown'}),{code:'serverFailed'});
- assert.deepEqual(failureFromResponse(null),{code:'serverFailed'});
+ assert.deepEqual(failureFromResponse({error:'A new server sentence',code:'draft_expired',message_code:'unknown'}),{code:'unknownFailure'});
+ assert.deepEqual(failureFromResponse(null),{code:'unknownFailure'});
  assert.deepEqual(new CaptureFailureError(failure).failure,failure);
 });
 

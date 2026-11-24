@@ -1,3 +1,4 @@
+import {captureRouteMessageCode} from '@/lib/posts/capture-route-failure';
 import {createHash} from 'node:crypto';
 import {NextResponse} from 'next/server';
 import {createClient} from '@/lib/supabase/server';
@@ -17,7 +18,7 @@ export async function POST(request:Request){
  if(!draft||draft.published||!Array.isArray(draft.shots)||body.position>=draft.shots.length)return NextResponse.json({error:'Photo draft not found.',message_code: "route_e431cb5e4a79"},{status:404});
  const {data:existing,error:existingError}=await admin.from('composer_drink_readings').select('id,position,drinks,all_drinks,state').eq('upload_id',body.upload_id).eq('position',body.position).eq('user_id',user.id).maybeSingle();
  if(existingError)return NextResponse.json({error:'Drinks could not be checked. You can still post the photo.',message_code: "route_56080fee81fd"},{status:503});
- if(existing)return existing.state==='ready'?NextResponse.json({id:existing.id,position:existing.position,drinks:existing.drinks,allDrinks:existing.all_drinks}):NextResponse.json({error:existing.state==='pending'?'This photo is being checked.':'Drinks could not be checked. You can still post the photo.'},{status:existing.state==='pending'?409:502});
+ if(existing)return existing.state==='ready'?NextResponse.json({id:existing.id,position:existing.position,drinks:existing.drinks,allDrinks:existing.all_drinks}):NextResponse.json({error:existing.state==='pending'?'This photo is being checked.':'Drinks could not be checked. You can still post the photo.', message_code: captureRouteMessageCode(existing.state==='pending'?'This photo is being checked.':'Drinks could not be checked. You can still post the photo.')},{status:existing.state==='pending'?409:502});
  const path=`${user.id}/${body.upload_id}/${body.position}.jpg`;
  const {data:photo,error:photoError}=await admin.storage.from('media').download(path);
  if(photoError||!photo||photo.size>20*1024*1024)return NextResponse.json({error:'The photo could not be opened.',message_code: "route_16b7bffc583d"},{status:400});
@@ -33,7 +34,7 @@ export async function POST(request:Request){
  }
  // Unique claims prevent concurrent rerenders and changed manifests from making two model calls.
  const {data:claimed,error:claimError}=await admin.from('composer_drink_readings').insert({user_id:user.id,upload_id:body.upload_id,position:body.position,photo_hash:hash}).select('id').single();
- if(claimError)return NextResponse.json({error:claimError.code==='23505'?'This photo has already been checked.':'Drinks could not be checked. You can still post the photo.'},{status:claimError.code==='23505'?409:503});
+ if(claimError)return NextResponse.json({error:claimError.code==='23505'?'This photo has already been checked.':'Drinks could not be checked. You can still post the photo.', message_code: captureRouteMessageCode(claimError.code==='23505'?'This photo has already been checked.':'Drinks could not be checked. You can still post the photo.')},{status:claimError.code==='23505'?409:503});
  try{
   // A prior pending claim may have finished between our cache lookup and insert.
   const {data:finished,error:finishedError}=await admin.from('composer_drink_readings').select('drinks,all_drinks').eq('user_id',user.id).eq('photo_hash',hash).eq('state','ready').gte('created_at',new Date(Date.now()-3_600_000).toISOString()).limit(1).maybeSingle();

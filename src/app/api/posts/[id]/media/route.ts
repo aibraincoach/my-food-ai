@@ -1,3 +1,4 @@
+import {captureRouteMessageCode} from '@/lib/posts/capture-route-failure';
 import { capUser } from "@/lib/limits/user-cap";
 import {after,NextResponse} from 'next/server';
 import {createClient} from '@/lib/supabase/server';
@@ -12,7 +13,7 @@ export async function POST(request:Request,context:{params:Promise<{id:string}>}
  const {data:post,error:readError}=await client.from('posts').select('id').eq('id',id).maybeSingle();
  if(readError)return NextResponse.json({error:'The meal could not be read.',message_code: "route_b91d61a2bc90"},{status:503});
  // #970: a meal deleted while its photo was on the way says so, with the same sentence the attach refusal uses.
- if(!post){const missing=ATTACH_REFUSALS.get('Post not found')!;return NextResponse.json({error:missing.message,code:missing.code},{status:404});}
+ if(!post){const missing=ATTACH_REFUSALS.get('Post not found')!;return NextResponse.json({error:missing.message, message_code: captureRouteMessageCode(missing.message),code:missing.code},{status:404});}
  const body=await request.json().catch(()=>null),photo=body?.photo;
  if(typeof body?.not_eaten!=='boolean'||!photo||typeof photo.path!=='string'||!new RegExp(`^${user.id}/[0-9a-f-]{36}/0[.]jpg$`).test(photo.path)||!Number.isSafeInteger(photo.width)||!Number.isSafeInteger(photo.height)||photo.width<1||photo.width>4096||photo.height<1||photo.height>4096)return NextResponse.json({error:'Choose a valid uploaded photo.',message_code: "route_feddb7c47125"},{status:400});
  try{
@@ -20,10 +21,10 @@ export async function POST(request:Request,context:{params:Promise<{id:string}>}
   after(async()=>{try{await fetch(new URL('/api/jobs/tick',request.url),{cache:'no-store',signal:AbortSignal.timeout(10000)});}catch{/* Durable queue is retried by the wake. */}});
   return NextResponse.json({media_id:result.mediaId,post_id:id},{status:201});
  }catch(error){
-  if(error instanceof AttachmentStageExpired)return NextResponse.json({error:error.message,code:error.code},{status:409});
+  if(error instanceof AttachmentStageExpired)return NextResponse.json({error:error.message, message_code: captureRouteMessageCode(error.message),code:error.code},{status:409});
   const code=(error as {code?:string;cause?:{code?:string}})?.cause?.code??(error as {code?:string})?.code;
   const refusal=(error as {refusal?:string})?.refusal;
-  return NextResponse.json({error:error instanceof Error?error.message:'The photo could not be attached.',...(refusal?{code:refusal}:{})},{status:code==='42501'?404:code==='55000'||code==='40001'?409:code?.startsWith('22')?400:503});
+  return NextResponse.json({error:error instanceof Error?error.message:'The photo could not be attached.', message_code: captureRouteMessageCode(error instanceof Error?error.message:'The photo could not be attached.'),...(refusal?{code:refusal}:{})},{status:code==='42501'?404:code==='55000'||code==='40001'?409:code?.startsWith('22')?400:503});
  }
 }
 
@@ -54,7 +55,7 @@ export async function PATCH(request:Request,{params}:{params:Promise<{id:string}
  if(readError)return NextResponse.json({error:'The photo could not be read.',message_code: "route_ddbbbee9f719"},{status:503});
  if(!photo)return new Response(null,{status:404});
  const {data:jobId,error}=await client.rpc('unmark_not_eaten',{p_media_id:mediaId});
- if(error)return NextResponse.json({error:error.code==='55000'?'Wait for this meal to be ready.':'The photo could not be unmarked.'},{status:error.code==='42501'?404:error.code==='55000'?409:503});
+ if(error)return NextResponse.json({error:error.code==='55000'?'Wait for this meal to be ready.':'The photo could not be unmarked.', message_code: captureRouteMessageCode(error.code==='55000'?'Wait for this meal to be ready.':'The photo could not be unmarked.')},{status:error.code==='42501'?404:error.code==='55000'?409:503});
  after(async()=>{try{await fetch(new URL('/api/jobs/tick',request.url),{cache:'no-store',signal:AbortSignal.timeout(10000)});}catch{/* Durable wake retries. */}});
  return NextResponse.json({job_id:jobId});
 }

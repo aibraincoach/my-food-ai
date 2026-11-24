@@ -21,7 +21,7 @@ test('a committed response lost in transit explicitly retries the same operation
 });
 test('failed input survives reload, stays private to its owner and explicit retry retains the original operation',async()=>{
  const db=store(),bad=new UploadManager(db,makeDraft,async()=>{},async()=>Response.json({error:'Offline fixture'},{status:503}));
- await bad.initialize('owner');const id=await bad.postFood(food,'Croissant');await until(()=>bad.list()[0].state==='failed');assert.equal(db.rows.get(id).food.query,'croissant');assert.equal(showFailure(bad.list()[0].failure),"The server didn't respond.");
+ await bad.initialize('owner');const id=await bad.postFood(food,'Croissant');await until(()=>bad.list()[0].state==='failed');assert.equal(db.rows.get(id).food.query,'croissant');assert.equal(showFailure(bad.list()[0].failure),"Something went wrong. Try again.");
  const other=new UploadManager(db,makeDraft,async()=>{},async()=>{throw Error('must not send another owner selection');});await other.initialize('other');assert.deepEqual(other.list(),[]);
  let body;const restored=new UploadManager(db,makeDraft,async()=>{},async(_url,options)=>{body=JSON.parse(options.body);return Response.json({post_id:'retried-post'},{status:201});});await restored.initialize('owner');assert.equal(restored.list()[0].state,'failed');restored.retry(id);await until(()=>restored.list()[0].postId==='retried-post');assert.equal(body.operation_id,id);assert.equal(body.owner_id,'owner');assert.equal(body.fdc_id,123);
 });

@@ -3,6 +3,28 @@ export type CaptureMessageCode = keyof typeof messages.capture;
 export type CaptureFailure = {code:CaptureMessageCode;values?:Record<string,string|number>};
 // No dictionary or locale is loaded by the upload manager.
 export const CAPTURE_FAILURE_CODES = [
+  "unknownFailure",
+  "route_b57f3ec3ba46",
+  "route_90f611283783",
+  "route_68e3d124f8a5",
+  "route_07c3267907ee",
+  "route_35d40f66fffa",
+  "error_0795a0b4a0a6",
+  "route_55f1bddd8582",
+  "route_24ead72d486b",
+  "route_f9138625bc22",
+  "route_1841fc578710",
+  "route_e1c684489cf3",
+  "route_7b5714a8578a",
+  "uploadExpired",
+  "route_26d8c2e230c5",
+  "route_10c2e5d8b96a",
+  "route_73da0d100358",
+  "route_9837648cf759",
+  "transcriptionFailed",
+  "route_ac137d59993d",
+  "route_e3e80626edf3",
+  "route_e4b3b1ea79cb",
   "photoStorageFailed",
   "retakeAttachment",
   "photoNotKept",
@@ -101,7 +123,7 @@ export const CAPTURE_FAILURE_CODES = [
 const known = new Set<string>(CAPTURE_FAILURE_CODES);
 export function failureFromResponse(body:unknown):CaptureFailure {
  const code=body&&typeof body==='object'?(body as {message_code?:unknown}).message_code:undefined;
- return {code:typeof code==='string'&&known.has(code)?code as CaptureMessageCode:'serverFailed'};
+ return {code:typeof code==='string'&&known.has(code)?code as CaptureMessageCode :'unknownFailure'};
 }
 export class CaptureFailureError extends Error {
  constructor(readonly failure:CaptureFailure){super(failure.code);this.name='CaptureFailureError';}

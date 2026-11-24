@@ -27,6 +27,7 @@ export type ResultsCardProps = {
 };
 
 export const ARROW_GUTTER = 24;
+const glyphMessage = {coffee:'glyphCoffee',water:'glyphWater',cocktail:'glyphCocktail',wine:'glyphWine',beer:'glyphBeer',tumbler:'glyphTumbler'} as const;
 
 /** The exact same flex layout renders in the browser and next/og (Satori). */
 export function ResultsCard({ locale = "en", data, drink, gap = "", time, calories = null, protein = null, carbs = null, fat = null, items = [], size = tokens.spacing.phone, fontFamily, gutter = 0 }: ResultsCardProps) {
@@ -58,7 +59,7 @@ export function ResultsCard({ locale = "en", data, drink, gap = "", time, calori
   return <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between', width: size, height: size, padding: tokens.spacing['card-padding'] * scale, ...(gutter ? { paddingLeft: tokens.spacing['card-padding'] * scale + gutter, paddingRight: tokens.spacing['card-padding'] * scale + gutter } : {}), boxSizing: 'border-box', background: tokens.colors.card, color: tokens.colors.text, fontFamily }}>
     <div style={{ display: 'flex', ...text('meta'), color: tokens.colors.muted, letterSpacing: tokens.card.labelTracking * scale, textTransform: 'uppercase' }}>{isDrink ? t('drank') : t('consumed')}{time ? ` · ${time}` : ''}</div>
     {isDrink?<div style={{display:'flex',alignItems:'center',gap:12*scale}}>
-      <div style={{display:'flex',flexWrap:'wrap',maxWidth:150*scale}}>{Array.from({length:cups},(_,index)=><DrinkPicture key={index} glyph={glyph} size={tokens.typography['display-card'].size*scale}/>)}</div>
+      <div style={{display:'flex',flexWrap:'wrap',maxWidth:150*scale}}>{Array.from({length:cups},(_,index)=><DrinkPicture key={index} glyph={glyph} label={t(glyphMessage[glyph])} size={tokens.typography['display-card'].size*scale}/>)}</div>
       <div style={{display:'flex',flex:1,flexDirection:'column',gap:6*scale}}>
         <div style={{display:'flex',...text('body')}}>{card.drinkLabel??drink?.label??card.drinkLine??t('drink')}</div>
         <div style={{display:'flex',...text('detail'),color:tokens.colors.muted}}>{card.drinkDetail??`${formatNutrition(card.amountMl??0)} ml`}</div>
@@ -69,7 +70,7 @@ export function ResultsCard({ locale = "en", data, drink, gap = "", time, calori
     </div>}
     {isDrink ? <div style={{ display: 'flex', flexDirection: 'column', borderTop: `1px solid ${tokens.colors.line}`, paddingTop: 16 * scale, gap: 10 * scale }}>
       <div style={{display:'flex',...text('detail')}}>{t('today')}</div>
-      <div style={{display:'flex',flexWrap:'wrap',gap:3*scale}}>{dayPictures.map((picture,index)=><DrinkPicture key={index} glyph={picture} size={Math.min(22,280/Math.max(1,dayPictures.length))*scale}/>)}</div>
+      <div style={{display:'flex',flexWrap:'wrap',gap:3*scale}}>{dayPictures.map((picture,index)=><DrinkPicture key={index} glyph={picture} label={t(glyphMessage[picture])} size={Math.min(22,280/Math.max(1,dayPictures.length))*scale}/>)}</div>
       <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 * scale }}>
         <span style={text('day-macro')}>{Math.round(card.hydration?.totalMl ?? 0).toLocaleString('en-US')} ml</span>
         <span style={{ ...text('detail'), color: tokens.colors.muted }}>{t('consumedToday')}</span>

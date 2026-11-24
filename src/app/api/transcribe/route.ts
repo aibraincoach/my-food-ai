@@ -1,3 +1,4 @@
+import {captureRouteMessageCode} from '@/lib/posts/capture-route-failure';
 import { capUser } from "@/lib/limits/user-cap";
 import {traceContext} from "@/lib/trace/context";
 import {NextResponse} from 'next/server';
@@ -29,5 +30,5 @@ export async function POST(request:Request){
  const bytes=await audio.arrayBuffer();const v=new DataView(bytes);const ascii=(start:number,n:number)=>new TextDecoder().decode(new Uint8Array(bytes,start,n));
  if(ascii(0,4)!=='RIFF'||ascii(8,4)!=='WAVE'||ascii(12,4)!=='fmt '||v.getUint32(16,true)!==16||v.getUint16(20,true)!==1||v.getUint16(22,true)!==1||v.getUint32(24,true)!==16000||v.getUint32(28,true)!==32000||v.getUint16(32,true)!==2||v.getUint16(34,true)!==16||ascii(36,4)!=='data'||v.getUint32(40,true)!==audio.size-44||v.getUint32(4,true)!==audio.size-8||(audio.size-44)%2!==0)return NextResponse.json({error:'Recording must be mono 16-bit 16 kHz WAV.',message_code: "route_62ba019bd09f"},{status:400});
  try{return NextResponse.json({transcript:await traceContext.run({postId:typeof postId==='string'?postId:null},()=>transcribe(new Blob([bytes],{type:'audio/wav'}),draftId))});}
- catch(error){return NextResponse.json({error:error instanceof MetaApiError&&error.status===429?'Transcription is busy. Please try again.':'Transcription could not be completed.'},{status:error instanceof MetaApiError&&error.status===429?429:502});}
+ catch(error){return NextResponse.json({error:error instanceof MetaApiError&&error.status===429?'Transcription is busy. Please try again.':'Transcription could not be completed.', message_code: captureRouteMessageCode(error instanceof MetaApiError&&error.status===429?'Transcription is busy. Please try again.':'Transcription could not be completed.')},{status:error instanceof MetaApiError&&error.status===429?429:502});}
 }

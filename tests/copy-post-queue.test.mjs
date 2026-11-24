@@ -20,7 +20,7 @@ test('lost committed response explicitly retries one frozen operation without du
 });
 test('saved copy survives reload and cannot be replayed by another signed-in owner',async()=>{
  const db=store(),selection={...copy,saved:true};
- const first=new UploadManager(db,makeDraft,async()=>{},async()=>Response.json({error:'Network fixture'},{status:503}));await first.initialize('owner');const id=await first.postCopy(selection,'Saved rice');await until(()=>first.list()[0].state==='failed');assert.equal(showFailure(first.list()[0].failure),"The server didn't respond.");
+ const first=new UploadManager(db,makeDraft,async()=>{},async()=>Response.json({error:'Network fixture'},{status:503}));await first.initialize('owner');const id=await first.postCopy(selection,'Saved rice');await until(()=>first.list()[0].state==='failed');assert.equal(showFailure(first.list()[0].failure),"Something went wrong. Try again.");
  const other=new UploadManager(db,makeDraft,async()=>{},async()=>{throw Error('Another owner must not send this copy');});await other.initialize('other');assert.deepEqual(other.list(),[]);
  let sent;const restored=new UploadManager(db,makeDraft,async()=>{},async(url,options)=>{assert.equal(url,'/api/saved/source/log');sent=JSON.parse(options.body);return Response.json({postId:'restored-copy'});});await restored.initialize('owner');restored.retry(id);await until(()=>restored.list()[0].postId==='restored-copy');assert.equal(sent.operation_id,id);assert.equal(sent.owner_id,'owner');assert.equal(sent.eaten_at,copy.eatenAt);
 });

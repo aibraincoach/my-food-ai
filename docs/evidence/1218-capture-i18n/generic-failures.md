@@ -1,56 +1,34 @@
-# Responses displayed as the generic server failure
+# Capture error display codes
 
-Known response message_code values keep their exact original English. An absent or unknown message_code produces capture.serverFailed. The operational code field is untouched.
+The 26 known route/helper errors below retain their exact existing English. The server boundary attaches a stable message_code without changing error text, status or operational code. Eight existing reviewed keys are reused; 18 PM Japanese drafts received a second model reading, including the leftovers terminology correction.
 
-These fixed route/helper sentences occur in uncoded error responses and therefore now display "The server didn't respond." instead of the raw text:
+| Display code | Exact English |
+| --- | --- |
+| route_b57f3ec3ba46 | Drink operation not found. |
+| route_56080fee81fd | Drinks could not be checked. You can still post the photo. |
+| route_e431cb5e4a79 | Photo draft not found. |
+| route_df3e655d054f | Signing upload URLs failed. |
+| route_90f611283783 | That food could not be logged. |
+| route_68e3d124f8a5 | The drink operation could not be confirmed. Your selection is kept. |
+| route_07c3267907ee | The drinks could not be posted. Your photo was kept. |
+| route_35d40f66fffa | The meal could not be logged. |
+| error_0795a0b4a0a6 | The meal could not be saved. |
+| route_55f1bddd8582 | The pack photo or portion could not be saved. |
+| route_24ead72d486b | The pending copy could not be removed. |
+| route_f9138625bc22 | The photo could not be attached. |
+| route_1841fc578710 | The photo could not be unmarked. |
+| route_e1c684489cf3 | The photo upload could not be completed. Your draft was kept; try again. |
+| route_7b5714a8578a | The saved drink could not be confirmed. Your selection is kept. |
+| uploadExpired | The upload draft expired. Your photos were kept; try again. |
+| route_26d8c2e230c5 | This drink intent changed. |
+| route_10c2e5d8b96a | This drink post was removed. |
+| route_73da0d100358 | This drink selection changed. Start a new drink post. |
+| route_cd303598164e | This pending drink was removed. |
+| route_9837648cf759 | This photo has already been checked. |
+| route_1108dcdbb205 | This photo is being checked. |
+| transcriptionFailed | Transcription could not be completed. |
+| route_ac137d59993d | Transcription is busy. Please try again. |
+| route_e3e80626edf3 | Wait for this meal to be ready. |
+| route_e4b3b1ea79cb | You have made a lot of requests this hour. Try again later. |
 
-- Drink operation not found.
-- Drinks could not be checked. You can still post the photo.
-- Photo draft not found.
-- Signing upload URLs failed.
-- That food could not be logged.
-- The drink operation could not be confirmed. Your selection is kept.
-- The drinks could not be posted. Your photo was kept.
-- The meal could not be logged.
-- The meal could not be saved.
-- The pack photo or portion could not be saved.
-- The pending copy could not be removed.
-- The photo could not be attached.
-- The photo could not be unmarked.
-- The photo upload could not be completed. Your draft was kept; try again.
-- The saved drink could not be confirmed. Your selection is kept.
-- The upload draft expired. Your photos were kept; try again.
-- This drink intent changed.
-- This drink post was removed.
-- This drink selection changed. Start a new drink post.
-- This pending drink was removed.
-- This photo has already been checked.
-- This photo is being checked.
-- Transcription could not be completed.
-- Transcription is busy. Please try again.
-- Wait for this meal to be ready.
-- You have made a lot of requests this hour. Try again later.
-
-Other sites return database/provider error.message or receipt.error; arbitrary runtime detail cannot be enumerated. Their exact source expressions are listed below. No such raw wording is persisted.
-
-- src/app/api/drinks/identify/route.ts:20 — existing.state==='pending'?'This photo is being checked.':'Drinks could not be checked. You can still post the photo.'
-- src/app/api/drinks/identify/route.ts:36 — claimError.code==='23505'?'This photo has already been checked.':'Drinks could not be checked. You can still post the photo.'
-- src/app/api/drinks/post/route.ts:25 — receipt.error
-- src/app/api/drinks/post/route.ts:43 — error.code==='42501'?'Photo draft not found.':'The drinks could not be posted. Your photo was kept.'
-- src/app/api/intake/post/route.ts:49 — receipt.error
-- src/app/api/media/sign-upload/route.ts:64 — mediaError.message
-- src/app/api/media/sign-upload/route.ts:77 — e instanceof Error ? e.message : "Signing upload URLs failed."
-- src/app/api/posts/[id]/log-again/route.ts:16 — error instanceof CopyOperationError?error.message:'The meal could not be logged.'
-- src/app/api/posts/[id]/log-again/route.ts:22 — error instanceof CopyOperationError?error.message:'The pending copy could not be removed.'
-- src/app/api/posts/[id]/media/route.ts:15 — missing.message
-- src/app/api/posts/[id]/media/route.ts:23 — error.message
-- src/app/api/posts/[id]/media/route.ts:26 — error instanceof Error?error.message:'The photo could not be attached.'
-- src/app/api/posts/[id]/media/route.ts:57 — error.code==='55000'?'Wait for this meal to be ready.':'The photo could not be unmarked.'
-- src/app/api/posts/food/route.ts:46 — null
-- src/app/api/posts/food/route.ts:101 — error.code?.startsWith("22") ? "The pack photo or portion could not be saved." : "The meal could not be saved."
-- src/app/api/posts/food/route.ts:122 — error.code?.startsWith("22") ? "That food could not be logged." : "The meal could not be saved."
-- src/app/api/posts/route.ts:53 — error.message
-- src/app/api/posts/route.ts:76 — expired ? "The upload draft expired. Your photos were kept; try again." : "The photo upload could not be completed. Your draft was kept; try again."
-- src/app/api/saved/[id]/log/route.ts:14 — error instanceof CopyOperationError?error.message:'The meal could not be logged.'
-- src/app/api/saved/[id]/log/route.ts:20 — error instanceof CopyOperationError?error.message:'The pending copy could not be removed.'
-- src/app/api/transcribe/route.ts:32 — error instanceof MetaApiError&&error.status===429?'Transcription is busy. Please try again.':'Transcription could not be completed.'
+The finite server boundary table matches known app error sentences emitted by the existing helpers. It does not parse user/model stored text. Every other runtime database/provider detail receives unknownFailure: “Something went wrong. Try again.” / 「問題が発生しました。もう一度お試しください。」. The client never stores the raw sentence. This neutral line also replaces the previous false-cause wording for migrated legacy draft messages. Actual transport failures retain their existing network/size wording.

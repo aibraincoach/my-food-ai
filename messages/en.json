@@ -152,7 +152,13 @@
     "missing": "Missing {nutrients} for {food}.",
     "tableCaption": "Meal nutrition",
     "sourceNote": "Values come from nutrition labels, food reference data, or labelled estimates.",
-    "estimateNote": "Nutrition for {name} is a model estimate because no matching database record or label was found."
+    "estimateNote": "Nutrition for {name} is a model estimate because no matching database record or label was found.",
+    "glyphCoffee": "coffee",
+    "glyphWater": "water",
+    "glyphCocktail": "cocktail",
+    "glyphWine": "wine",
+    "glyphBeer": "beer",
+    "glyphTumbler": "tumbler"
   },
   "metadata": {
     "description": "Record what you eat using a photo, words, or your voice. Review your nutrition without targets or judgment."
@@ -250,12 +256,6 @@
     "recordCorrection": "Record a correction",
     "recordingStatus": "Recording… tap to stop. Stops automatically after two minutes.",
     "transcribingStatus": "Transcribing…",
-    "glyphCoffee": "coffee",
-    "glyphWater": "water",
-    "glyphCocktail": "cocktail",
-    "glyphWine": "wine",
-    "glyphBeer": "beer",
-    "glyphTumbler": "tumbler",
     "or_drop_photos_here": "Or drop photos here",
     "paste_one_with_v": "paste one with ⌘V",
     "choose_files": "Choose files",
@@ -434,7 +434,7 @@
     "copyRemovalFailed": "The pending copy could not be removed. Your selection is kept.",
     "foodRemovalFailed": "The pending food could not be removed. Your selection is kept.",
     "serverFailed": "The server didn't respond.",
-    "saved-before-update": "The server didn't respond.",
+    "saved-before-update": "Something went wrong. Try again.",
     "route_ac6a88b19530": "Sign in required.",
     "route_277df75eda6a": "Invalid caption.",
     "route_f4094c5e9670": "Invalid save choice.",
@@ -594,6 +594,25 @@
     "error_5d8e81ab8a75": "The photo could not be kept on this phone. Try again.",
     "error_65467f9f76fc": "The pack photo is not ready. Your selection is kept.",
     "per100Label": "Per 100 {unit}",
-    "servingAmount": "{count} {count, plural, one {serving} other {servings}}"
+    "servingAmount": "{count} {count, plural, one {serving} other {servings}}",
+    "unknownFailure": "Something went wrong. Try again.",
+    "route_b57f3ec3ba46": "Drink operation not found.",
+    "route_90f611283783": "That food could not be logged.",
+    "route_68e3d124f8a5": "The drink operation could not be confirmed. Your selection is kept.",
+    "route_07c3267907ee": "The drinks could not be posted. Your photo was kept.",
+    "route_35d40f66fffa": "The meal could not be logged.",
+    "route_55f1bddd8582": "The pack photo or portion could not be saved.",
+    "route_24ead72d486b": "The pending copy could not be removed.",
+    "route_f9138625bc22": "The photo could not be attached.",
+    "route_1841fc578710": "The photo could not be unmarked.",
+    "route_e1c684489cf3": "The photo upload could not be completed. Your draft was kept; try again.",
+    "route_7b5714a8578a": "The saved drink could not be confirmed. Your selection is kept.",
+    "route_26d8c2e230c5": "This drink intent changed.",
+    "route_10c2e5d8b96a": "This drink post was removed.",
+    "route_73da0d100358": "This drink selection changed. Start a new drink post.",
+    "route_9837648cf759": "This photo has already been checked.",
+    "route_ac137d59993d": "Transcription is busy. Please try again.",
+    "route_e3e80626edf3": "Wait for this meal to be ready.",
+    "route_e4b3b1ea79cb": "You have made a lot of requests this hour. Try again later."
   }
 }

@@ -204,7 +204,7 @@ test('a failed attachment keeps the photo and retries from the chip',async()=>{
  const {manager,rows,calls}=attachHarness(()=>succeed?Response.json({post_id:'post-1'},{status:201}):Response.json({error:'The photo could not be attached.'},{status:503}));
  await manager.initialize('owner');const id=await manager.postAttachment(file,{postId:'post-1',notEaten:true});
  await until(()=>manager.list()[0]?.state==='failed');
- assert.equal(showFailure(manager.list()[0].failure),"The server didn't respond.",'fixture has no message_code, so the approved visible generic failure is used');assert.deepEqual(manager.list()[0].failure,{code:'serverFailed'});assert.equal(manager.list()[0].attachment.postId,'post-1');assert.equal(rows.get(id).files[0].size,file.size);
+ assert.equal(showFailure(manager.list()[0].failure),"Something went wrong. Try again.",'fixture has no message_code, so the neutral unknown failure is used');assert.deepEqual(manager.list()[0].failure,{code:'unknownFailure'});assert.equal(manager.list()[0].attachment.postId,'post-1');assert.equal(rows.get(id).files[0].size,file.size);
  succeed=true;manager.retry(id);await until(()=>manager.list()[0]?.postId==='post-1');
  assert.equal(calls.filter(c=>c==='/api/media/sign-upload').length,1);
 });

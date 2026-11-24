@@ -1,5 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import {CaptureFailureError} from '../src/lib/posts/capture-failure.ts';
 import {PostUploadDraft} from '../src/lib/posts/create.ts';
 import {publishUpload,validUploadShots} from '../src/lib/posts/upload-draft.ts';
 const id='11111111-1111-4111-8111-111111111111';
@@ -10,7 +11,7 @@ const response=(body,status=200)=>new Response(JSON.stringify(body),{status,head
 
 test('photo intent without a selected file never reaches the server',async()=>{
  const draft=new PostUploadDraft(async()=>image,async()=>{throw Error('must not request')},async()=>false,()=>id);
- await assert.rejects(draft.submit('meal',[],null,null,'photo'),/selected photo is not ready/);
+ await assert.rejects(draft.submit('meal',[],null,null,'photo'),error=>error instanceof CaptureFailureError&&error.failure.code==='route_97d26acf361a');
 });
 test('completion failure keeps the same operation and successful uploads for retry',async()=>{
  const ids=[];let encodes=0,puts=0,completes=0;
@@ -20,7 +21,7 @@ test('completion failure keeps the same operation and successful uploads for ret
   puts++;return response({});
  };
  const draft=new PostUploadDraft(async()=>{encodes++;return image},request,async()=>false,()=>id);
- await assert.rejects(draft.submit('meal',[file],null,null,'photo'),/could not be completed/);
+ await assert.rejects(draft.submit('meal',[file],null,null,'photo'),error=>error instanceof CaptureFailureError&&error.failure.code==='postCompletionFailed');
  assert.deepEqual(await draft.submit('meal',[file],null,null,'photo'),{postId:id});
  assert.deepEqual(ids,[id,id]);assert.equal(encodes,1);assert.equal(puts,2);assert.equal(completes,2);
 });
@@ -43,7 +44,7 @@ test('an incomplete derivative cannot publish and retry uploads only the missing
   return ++feeds===1?response({},503):response({});
  };
  const draft=new PostUploadDraft(async()=>image,request,async()=>false,()=>id);
- await assert.rejects(draft.submit('meal',[file],null,null,'photo'),/upload failed/);assert.equal(completed,0);
+ await assert.rejects(draft.submit('meal',[file],null,null,'photo'),error=>error instanceof CaptureFailureError&&error.failure.code==='error_3b48efca6dca');assert.equal(completed,0);
  await draft.submit('meal',[file],null,null,'photo');assert.equal(originals,1);assert.equal(feeds,2);assert.equal(completed,1);
 });
 test('a lost publication response returns the already published post on retry',async()=>{
@@ -69,11 +70,11 @@ test('an expired stage keeps the selected file but starts a fresh operation on e
  let reserves=0,uuids=0;const ids=[];
  const second='22222222-2222-4222-8222-222222222222';
  const request=async(url,init)=>{
-  if(init.method==='POST'){const parsed=JSON.parse(init.body);ids.push(parsed.operation_id);return ++reserves===1?response({error:'The upload draft expired. Your photos were kept; try again.'},410):response({postId:second,uploads:[upload]});}
+  if(init.method==='POST'){const parsed=JSON.parse(init.body);ids.push(parsed.operation_id);return ++reserves===1?response({error:'The upload draft expired. Your photos were kept; try again.',message_code:'uploadExpired'},410):response({postId:second,uploads:[upload]});}
   return response({ok:true});
  };
  const draft=new PostUploadDraft(async()=>image,request,async()=>false,()=>++uuids===1?id:second);
- await assert.rejects(draft.submit('meal',[file],null,null,'photo'),/expired/);
+ await assert.rejects(draft.submit('meal',[file],null,null,'photo'),error=>error instanceof CaptureFailureError&&error.failure.code==='uploadExpired');
  assert.deepEqual(await draft.submit('meal',[file],null,null,'photo'),{postId:second});assert.deepEqual(ids,[id,second]);
 });
 test('four photos upload with at most two concurrent PUT requests',async()=>{
@@ -100,5 +101,5 @@ test('failure waits for all in-flight PUTs before permitting retry',async()=>{
  const first=draft.submit('meal',[file],null,null,'photo');first.catch(()=>{settled=true});
  await new Promise(r=>setTimeout(r,10));assert.equal(settled,false);
  assert.equal(draft.submit('meal',[file],null,null,'photo'),first);assert.equal(reserves,1);assert.equal(feedCalls,1);
- release();await assert.rejects(first,/upload failed/);assert.equal(settled,true);
+ release();await assert.rejects(first,error=>error instanceof CaptureFailureError&&error.failure.code==='error_3b48efca6dca');assert.equal(settled,true);
 });

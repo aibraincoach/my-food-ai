@@ -1,3 +1,4 @@
+import {captureRouteMessageCode} from '@/lib/posts/capture-route-failure';
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -61,7 +62,7 @@ export async function POST(request: Request) {
     }))
   );
   if (mediaError) {
-    return NextResponse.json({ error: mediaError.message }, { status: 400 });
+    return NextResponse.json({ error: mediaError.message, message_code: captureRouteMessageCode(mediaError.message) }, { status: 400 });
   }
 
   try {
@@ -74,7 +75,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ uploads });
   } catch (e) {
     return NextResponse.json(
-      { error: e instanceof Error ? e.message : "Signing upload URLs failed." },
+      { error: e instanceof Error ? e.message : "Signing upload URLs failed.", message_code: captureRouteMessageCode(e instanceof Error ? e.message : "Signing upload URLs failed.") },
       { status: 500 }
     );
   }

@@ -1,3 +1,4 @@
+import {captureRouteMessageCode} from '@/lib/posts/capture-route-failure';
 import {tileDrinkKey,readDrinkReceipt,drinkErrorStatus} from "@/lib/intake/drink-operation";
 import {validEatenAt} from "@/lib/posts/eaten-at";
 import { cookies } from "next/headers";
@@ -46,7 +47,7 @@ export async function POST(request: Request) {
   if(!eatenAt)return NextResponse.json({error:"Choose a valid time eaten.",message_code: "route_6572182f4064"},{status:400});
   if(body.operation_id){
     const receipt=await readDrinkReceipt(admin,user.id,body.operation_id,key,'tile');
-    if(receipt){if('status' in receipt)return NextResponse.json({error:receipt.error},{status:receipt.status});return NextResponse.json({post_id:receipt.postId,drink:null},{status:201});}
+    if(receipt){if('status' in receipt)return NextResponse.json({error:receipt.error, message_code: captureRouteMessageCode(receipt.error)},{status:receipt.status});return NextResponse.json({post_id:receipt.postId,drink:null},{status:201});}
   }
   try {
     const result = await postDrink(admin,user.id,input,zone,body.operation_id?{id:body.operation_id,key,eatenAt}:undefined);

@@ -1,3 +1,4 @@
+import {captureRouteMessageCode} from '@/lib/posts/capture-route-failure';
 import { capUser } from "@/lib/limits/user-cap";
 import {cookies} from "next/headers";
 import {validZone} from "@/lib/posts/days";
@@ -50,7 +51,7 @@ export async function POST(request: Request) {
       renderZone: validZone((await cookies()).get("time-zone")?.value),
     });
   } catch (error) {
-    if (error instanceof UploadReservationError) return NextResponse.json({ error: error.message }, { status: error.status });
+    if (error instanceof UploadReservationError) return NextResponse.json({ error: error.message, message_code: captureRouteMessageCode(error.message) }, { status: error.status });
     throw error;
   }
   if (reservation.published) { kickoff(request); return NextResponse.json({ postId: operationId, uploads: [], completed: true }); }
@@ -73,6 +74,6 @@ export async function PUT(request: Request) {
     return NextResponse.json({ ok: true, postId });
   } catch (error) {
     const expired = error instanceof Error && error.name === "UploadExpiredError";
-    return NextResponse.json({ error: expired ? "The upload draft expired. Your photos were kept; try again." : "The photo upload could not be completed. Your draft was kept; try again." }, { status: expired ? 410 : 409 });
+    return NextResponse.json({ error: expired ? "The upload draft expired. Your photos were kept; try again." : "The photo upload could not be completed. Your draft was kept; try again.", message_code: captureRouteMessageCode(expired ? "The upload draft expired. Your photos were kept; try again." : "The photo upload could not be completed. Your draft was kept; try again.") }, { status: expired ? 410 : 409 });
   }
 }

@@ -1,3 +1,4 @@
+import {captureRouteMessageCode} from '@/lib/posts/capture-route-failure';
 import {photoDrinkKey,readDrinkReceipt,drinkErrorStatus} from '@/lib/intake/drink-operation';
 import {NextResponse} from 'next/server';
 import {createClient} from '@/lib/supabase/server';
@@ -22,7 +23,7 @@ export async function POST(request:Request){
  const admin=createAdminClient(),key=photoDrinkKey(body);
  if(body.operation_id){
   const receipt=await readDrinkReceipt(admin,user.id,body.operation_id,key,'photo');
-  if(receipt){if('status' in receipt)return NextResponse.json({error:receipt.error},{status:receipt.status});return NextResponse.json({post_id:receipt.postId},{status:201});}
+  if(receipt){if('status' in receipt)return NextResponse.json({error:receipt.error, message_code: captureRouteMessageCode(receipt.error)},{status:receipt.status});return NextResponse.json({post_id:receipt.postId},{status:201});}
  }else{
   // Legacy clients still retry the upload tombstone, but cannot bypass a
   // cancellation made by the durable client for that same owned upload.
@@ -40,7 +41,7 @@ export async function POST(request:Request){
  }
  const summary=plainConsumed(sumNutrition(items.map(item=>({...item.nutrition,name:item.name}))));
  const {data,error}=await admin.rpc(body.operation_id?'publish_photo_drink_operation':'publish_composer_drinks',{...(body.operation_id?{p_operation_id:body.operation_id,p_request_key:key}:{}),p_upload_id:body.upload_id,p_user_id:user.id,p_readings:body.readings,p_caption:body.caption,p_eaten_at:eatenAt,p_location:location,p_save_as_meal:body.save_as_meal,p_items:items,p_summary:summary,p_expected:expected});
- if(error)return NextResponse.json({error:error.code==='42501'?'Photo draft not found.':'The drinks could not be posted. Your photo was kept.'},{status:drinkErrorStatus(error.code)});
+ if(error)return NextResponse.json({error:error.code==='42501'?'Photo draft not found.':'The drinks could not be posted. Your photo was kept.', message_code: captureRouteMessageCode(error.code==='42501'?'Photo draft not found.':'The drinks could not be posted. Your photo was kept.')},{status:drinkErrorStatus(error.code)});
  // Nutrition, intake and the photo have committed together. Optional PNG work
  // must never turn a successful Post into a retry that creates another meal.
  try{await markReady(data,admin,undefined,{notify:false});}catch{console.error('Drink photo card rendering failed.');}

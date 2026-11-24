@@ -1,0 +1,35 @@
+import type {CaptureMessageCode} from './capture-failure';
+
+// Server-only boundary: retain existing error text and attach a stable display code.
+// Runtime database/provider detail outside this finite list receives a neutral message.
+export const CAPTURE_ROUTE_FAILURES:Record<string,CaptureMessageCode> = {
+  "Drink operation not found.": "route_b57f3ec3ba46",
+  "Drinks could not be checked. You can still post the photo.": "route_56080fee81fd",
+  "Photo draft not found.": "route_e431cb5e4a79",
+  "Signing upload URLs failed.": "route_df3e655d054f",
+  "That food could not be logged.": "route_90f611283783",
+  "The drink operation could not be confirmed. Your selection is kept.": "route_68e3d124f8a5",
+  "The drinks could not be posted. Your photo was kept.": "route_07c3267907ee",
+  "The meal could not be logged.": "route_35d40f66fffa",
+  "The meal could not be saved.": "error_0795a0b4a0a6",
+  "The pack photo or portion could not be saved.": "route_55f1bddd8582",
+  "The pending copy could not be removed.": "route_24ead72d486b",
+  "The photo could not be attached.": "route_f9138625bc22",
+  "The photo could not be unmarked.": "route_1841fc578710",
+  "The photo upload could not be completed. Your draft was kept; try again.": "route_e1c684489cf3",
+  "The saved drink could not be confirmed. Your selection is kept.": "route_7b5714a8578a",
+  "The upload draft expired. Your photos were kept; try again.": "uploadExpired",
+  "This drink intent changed.": "route_26d8c2e230c5",
+  "This drink post was removed.": "route_10c2e5d8b96a",
+  "This drink selection changed. Start a new drink post.": "route_73da0d100358",
+  "This pending drink was removed.": "route_cd303598164e",
+  "This photo has already been checked.": "route_9837648cf759",
+  "This photo is being checked.": "route_1108dcdbb205",
+  "Transcription could not be completed.": "transcriptionFailed",
+  "Transcription is busy. Please try again.": "route_ac137d59993d",
+  "Wait for this meal to be ready.": "route_e3e80626edf3",
+  "You have made a lot of requests this hour. Try again later.": "route_e4b3b1ea79cb"
+};
+export function captureRouteMessageCode(error:unknown):CaptureMessageCode {
+ return typeof error==='string'&&Object.hasOwn(CAPTURE_ROUTE_FAILURES,error)?CAPTURE_ROUTE_FAILURES[error]:'unknownFailure';
+}
