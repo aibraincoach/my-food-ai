@@ -47,7 +47,7 @@ export default async function ProfilePage({searchParams}:{searchParams:Promise<{
         <div className="desktop:hidden"><SignOutButton /></div>
       </header>
       <div className="desktop:hidden"><ConnectAgentRow userId={user.id} /></div>
-      <StrictIntlProvider locale={await getLocale()} timeZone={await getTimeZone()} messages={{language:(await getMessages()).language,support:(await getMessages()).support}}><LanguageSetting/><FreezeReport/></StrictIntlProvider>
+      <StrictIntlProvider locale={await getLocale()} timeZone={await getTimeZone()} messages={{language:(await getMessages()).language,support:(await getMessages()).support,postMenu:(await getMessages()).postMenu}}><LanguageSetting/><FreezeReport/></StrictIntlProvider>
       <CameraModeSwitch/>
       {openWeightsConfigured()?<IdentifyProviderSwitch initial={preference.data?.identify_provider==='open'?'open':'meta'}/>:null}
       <Link href="/profile/about" className="flex min-h-tap items-center px-screen-x text-detail desktop:px-0">How My Food AI works</Link>
