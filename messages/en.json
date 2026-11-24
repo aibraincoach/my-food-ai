@@ -60,7 +60,7 @@
     "signupFailure": "We couldn't finish creating your account. Try again.",
     "confirmOrSignIn": "If you received a confirmation email, confirm your account, then sign in. Otherwise, sign in.",
     "takenHandle": "That handle is taken. Choose another.",
-    "credentialsMismatch": "That email and password don't match. Try again.",
+    "credentialsMismatch": "That email and password don't match. Try again, or reset your password.",
     "confirmEmail": "Confirm your email address before you sign in.",
     "tooManyAttempts": "Too many attempts. Wait a moment, then try again.",
     "signinFailure": "Sign-in could not be completed. Try again.",
@@ -73,7 +73,8 @@
     "salmon": "Salmon",
     "rice": "Rice",
     "heroTitle": "Know the nutrition in your meals",
-    "heroSupport": "Log with a photo, a few words or your voice."
+    "heroSupport": "Log with a photo, a few words or your voice.",
+    "forgotPassword": "Forgot password?"
   },
   "navigation": {
     "home": "Home",
