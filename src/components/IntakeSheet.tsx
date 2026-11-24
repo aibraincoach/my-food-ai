@@ -1,4 +1,5 @@
 "use client";
+import {useFailureMessages} from '@/i18n/failure-messages';
 import {useLocale,useTranslations} from 'next-intl';
 import type {Locale} from '@/i18n/locales';
 import {formatNumber} from '@/i18n/format';
@@ -18,7 +19,8 @@ type Posted = { id: string; label: string; expires: number };
 
 // Mounted once alongside capture. The fan and this sheet meet through open-entry.
 export default function IntakeSheet({ embedded = false, onClose }: { initialKind?: "water" | "caffeine"; embedded?: boolean; onClose?: () => void } = {}) {
- const tc=useTranslations('capture'),t=useTranslations('postMenu'),locale=useLocale() as Locale;
+ const tf=useFailureMessages();
+ const t=useTranslations('postMenu'),locale=useLocale() as Locale;
  const number=(value:number)=>formatNumber(locale,value);
  const tileName=(index:number)=>t((['drinkWater','drinkCoffee','drinkEspresso','drinkTea','drinkCola','drinkWater']as const)[index]);
  const sizeName=(index:number,ml:number)=>t(([["sizeGlass","sizeGlass","sizeGlass"],["sizeCup","sizeLarge"],["sizeSingle","sizeDouble"],["sizeMug","sizeLarge"],["sizeCan","sizeBottle"],["sizeBottle","sizeBottle"]]as const)[index][TILE_SIZES[index].findIndex(size=>size.ml===ml)]);
@@ -80,7 +82,7 @@ export default function IntakeSheet({ embedded = false, onClose }: { initialKind
       const choice=DRINK_TILES[tile],size=TILE_SIZES[tile].find(size=>size.ml===ml);
       await uploadManager.postDrink({tile,ml,eaten_at:new Date().toISOString(),time_zone:Intl.DateTimeFormat().resolvedOptions().timeZone},choice.name+', '+(size?.word??choice.size)+' · '+ml+' ml');
       close();
-    } catch (reason) { setError(reason instanceof CaptureFailureError ? captureFailureText(reason.failure,tc)! : reason instanceof Error ? reason.message : t('drinkSaveFailed')); }
+    } catch (reason) { setError(reason instanceof CaptureFailureError ? captureFailureText(reason.failure,tf)! : reason instanceof Error ? reason.message : t('drinkSaveFailed')); }
   };
   useEffect(()=>{
     const finished=(event:Event)=>{const drink=(event as CustomEvent<UploadState>).detail;if(drink?.drinkTile&&drink.postId)setPosted(previous=>[...previous,{id:drink.postId!,label:drink.caption,expires:Date.now()+4000}]);};
@@ -92,7 +94,7 @@ export default function IntakeSheet({ embedded = false, onClose }: { initialKind
     try {
       await uploadManager.postCaption(caption.trim(),new Date().toISOString());
       setCaption(""); close();
-    } catch (reason) { setError(reason instanceof CaptureFailureError ? captureFailureText(reason.failure,tc)! : reason instanceof Error ? reason.message : t('drinkSaveFailed')); }
+    } catch (reason) { setError(reason instanceof CaptureFailureError ? captureFailureText(reason.failure,tf)! : reason instanceof Error ? reason.message : t('drinkSaveFailed')); }
     finally { captionPending.current = false; setBusy(false); }
   };
   const undo = async (id: string) => {
@@ -103,7 +105,7 @@ export default function IntakeSheet({ embedded = false, onClose }: { initialKind
       if (!response.ok) throw new Error(t('drinkRemoveFailed'));
       window.dispatchEvent(new CustomEvent("post-deleted", { detail: { id } }));
       setPosted(previous => previous.filter(row => row.id !== id));
-    } catch (reason) { setError(reason instanceof CaptureFailureError ? captureFailureText(reason.failure,tc)! : reason instanceof Error ? reason.message : t('drinkRemoveFailed')); }
+    } catch (reason) { setError(reason instanceof CaptureFailureError ? captureFailureText(reason.failure,tf)! : reason instanceof Error ? reason.message : t('drinkRemoveFailed')); }
     finally { setUndoing(null); }
   };
   const ml = rows.reduce((total, row) => total + (row.kind === "alcohol" ? 0 : (row.ml ?? (row.kind === "water" ? row.amount : 0))), 0);

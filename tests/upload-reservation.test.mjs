@@ -1,3 +1,4 @@
+import {captureEnglish} from './fixtures/capture-wording.mjs';
 // Local/pure only: node --import tsx --test tests/upload-reservation.test.mjs
 import test from 'node:test';
 import assert from 'node:assert/strict';
@@ -33,7 +34,7 @@ test('storage ownership remains checked even after a successful reservation',asy
 test('a missing reservation function fails visibly and no older function is called (#1125)',async()=>{
  for(const notEatenPositions of [[],[0],[1,2]]){
   const f=fixture(),called=[];const admin={rpc:async name=>{called.push(name);return{data:null,error:{code:'PGRST202',message:'Could not find the function public.reserve_post_upload_with_leftovers'}};}};
-  await assert.rejects(reserveUpload(admin,f.client(owner),owner,{...input,notEatenPositions}),error=>error.status===409&&/could not be reserved/.test(error.message));
+  await assert.rejects(reserveUpload(admin,f.client(owner),owner,{...input,notEatenPositions}),error=>error.status===409&&/could not be reserved/.test(captureEnglish(error.failure.code)));
   assert.deepEqual(called,['reserve_post_upload_with_leftovers'],String(notEatenPositions));assert.equal(f.signs.length,0);
  }
 });

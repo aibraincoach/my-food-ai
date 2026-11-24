@@ -26,6 +26,7 @@ function harness(component,{desktop=false,reject=false}={}){
  if(id==='@/i18n/format')return readingFormat;
  if(id==='@/i18n/servings')return {servingsMessageValues};
 
+   if(id==='@/i18n/failure-messages')return{useFailureMessages:()=>captureEnglish};
    if(id==='@/lib/posts/capture-failure')return captureFailure;
    if(id==='next-intl')return {useTranslations:()=>captureEnglish,useLocale:()=> 'en',useFormatter:()=>({dateTime:date=>date.toISOString()})};
    if(id==='react')return hooks;if(id==='react/jsx-runtime')return{jsx,jsxs:jsx};

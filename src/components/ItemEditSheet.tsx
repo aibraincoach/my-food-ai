@@ -1,4 +1,5 @@
 "use client";
+import {useApiFailureText} from '@/i18n/api-error-text';
 import {useLocale,useTranslations} from 'next-intl';
 import type {Locale} from '@/i18n/locales';
 import {formatNutrient,formatNumber,formatPortion} from '@/i18n/format';
@@ -15,7 +16,8 @@ export default function ItemEditSheet({ postId, item, color, box, open = true, o
   postId: string; item: DetailItem | null; color: string; box?: ItemBox; open?: boolean;
   onClose: () => void; onSaved: () => void; onAdd: () => void; onDraw?: () => void;
 }) {
-  const t=useTranslations('postMenu'),tp=useTranslations('post'),locale=useLocale() as Locale;
+  const apiError=useApiFailureText();
+ const t=useTranslations('postMenu'),tp=useTranslations('post'),locale=useLocale() as Locale;
   const unitLabel=(value:Unit)=>t(({g:'unitG',oz:'unitOz',piece:'unitPiece',cup:'unitCup'}as const)[value]);
   const [name, setName] = useState(item?.name ?? "");
   const [grams, setGrams] = useState(item?.portion_grams == null ? "" : String(item.portion_grams));
@@ -66,7 +68,7 @@ export default function ItemEditSheet({ postId, item, color, box, open = true, o
     try {
       const response = await fetch(`/api/posts/${postId}/items`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(edit) });
       const result = await response.json();
-      if (!response.ok) throw new Error(result.error ?? t('itemSaveFailed'));
+      if (!response.ok) throw new Error(apiError(result,"route_6d3417bf1ab7"));
       onSaved();
     } catch (cause) { setError(cause instanceof Error ? cause.message : t('itemSaveFailed')); }
     finally { savingRef.current = false; setSaving(false); }

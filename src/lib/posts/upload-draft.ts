@@ -1,3 +1,5 @@
+import {CaptureFailureError} from '@/lib/posts/capture-failure';
+import type {ApiMessageCode} from '@/i18n/api-codes';
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { signShotUploads, type SignedUpload } from "@/lib/media/storage";
 
@@ -32,9 +34,9 @@ export interface ReservationInput {
   renderZone: string | null;
 }
 
-export class UploadReservationError extends Error {
-  constructor(public readonly status: 409 | 410 | 503, message: string) {
-    super(message);
+export class UploadReservationError extends CaptureFailureError {
+  constructor(public readonly status: 409 | 410 | 503, messageCode: ApiMessageCode) {
+    super({code:messageCode});
     this.name = "UploadReservationError";
   }
 }
@@ -54,13 +56,13 @@ export async function reserveUpload(admin: SupabaseClient, ownerDb: SupabaseClie
   const { data, error } = await admin.rpc("reserve_post_upload_with_leftovers", { ...options, p_not_eaten_positions: input.notEatenPositions });
   if (error || !data || data.id !== input.operationId || typeof data.published !== "boolean") {
     const expired = /expired/i.test(error?.message ?? "");
-    throw new UploadReservationError(expired ? 410 : 409, expired ? "The upload draft expired. Your photos were kept; try again." : "The post draft could not be reserved. Your photos were kept; try again.");
+    throw new UploadReservationError(expired ? 410 : 409, expired ? "uploadExpired" : "route_efbf3451e49b");
   }
   if (data.published || !input.shots.length) return { postId: input.operationId, published: data.published, uploads: [] };
   try {
     const uploads = await signShotUploads(ownerDb, userId, input.operationId, input.shots.map(shot => shot.position), { upsert: true });
     return { postId: input.operationId, published: false, uploads };
   } catch {
-    throw new UploadReservationError(503, "Upload could not be prepared. Your draft was kept; try again.");
+    throw new UploadReservationError(503, "route_c20d53c5075e");
   }
 }

@@ -5,7 +5,7 @@ import {DRINK_TILES, TILE_SIZES} from "@/lib/intake/intake";
 export async function GET() {
   const db = await createClient();
   const {data: {user}} = await db.auth.getUser();
-  if (!user) return NextResponse.json({error: "Sign in required."}, {status: 401});
+  if (!user) return NextResponse.json({message_code: "route_ac6a88b19530"}, {status: 401});
   const now = new Date();
   const since = new Date(now.getTime() - 30 * 86400000).toISOString();
   const posts = DRINK_TILES.map(() => new Set<string>());
@@ -14,7 +14,7 @@ export async function GET() {
     const {data, error} = await db.from("intake_logs").select("label,ml,post_id")
       .eq("user_id", user.id).not("post_id", "is", null).gte("logged_at", since).lte("logged_at", now.toISOString())
       .order("logged_at", {ascending: false}).order("id", {ascending: false}).range(offset, offset + 999);
-    if (error) return NextResponse.json({error: "Drink history could not be read."}, {status: 500});
+    if (error) return NextResponse.json({message_code: "route_13dddc8ffb06"}, {status: 500});
     for (const row of data ?? []) {
       const index = DRINK_TILES.findIndex((tile, index) => TILE_SIZES[index].some(size => row.label === `${tile.name}, ${size.word}`));
       if (index < 0 || !row.post_id || posts[index].has(row.post_id)) continue;

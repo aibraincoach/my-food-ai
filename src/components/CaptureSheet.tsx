@@ -1,5 +1,6 @@
 /* eslint-disable @next/next/no-img-element -- Private owner images bypass paid optimization. */
 "use client";
+import {useFailureMessages} from '@/i18n/failure-messages';
 import {CaptureFailureError,captureFailureText,failureFromResponse} from '@/lib/posts/capture-failure';
 import {useTranslations,useLocale} from 'next-intl';
 import {record} from '@/lib/diagnostics/recorder';
@@ -47,6 +48,7 @@ export type CaptureMode = "photo" | "text" | "barcode";
 type BarcodePick = { remaining: number; found: boolean; files: File[] };
 type BarcodeState = "idle" | "looking" | "missing" | "found" | "error" | "unread";
 export default function CaptureSheet({ onClose, initialMode = "photo", forPost, attachNotEaten = false, initialFiles }: { onClose: () => void; initialMode?: CaptureMode; forPost?: string; attachNotEaten?: boolean; initialFiles?: File[] }) {
+ const tf=useFailureMessages();
  const t=useTranslations('capture');
  const locale=useLocale();
  const FLIP_ERROR=t('error_7c013ff3b128');
@@ -169,14 +171,14 @@ export default function CaptureSheet({ onClose, initialMode = "photo", forPost, 
       const result = await response.json();
       if (!mountedRef.current || mine !== lookupRef.current) return;
       if (response.status === 404) { setBarcodeState("missing"); return; }
-      if (!response.ok || !result.product) throw new Error(t('route_fc3f44ef874c'));
+      if (!response.ok || !result.product) throw new Error(tf('route_fc3f44ef874c'));
       const next = result.product as BarcodeProduct;
       const serving = next.servingSize && next.servingSizeUnit ? amountInBasis(next.servingSize, next.servingSizeUnit, next.basisUnit) : null;
       setPortion(serving ?? 100); setProduct(next); setBarcodeState("found");
     } catch {
       if (mountedRef.current && mine === lookupRef.current) { setBarcodeState("error"); setError(t('error_1c31b95a0238')); }
     }
-  }, [setError, setBarcodeState, t]);
+  }, [setError, setBarcodeState, t, tf]);
 
   const dismissBarcode = () => {
     if (postingRef.current) return;
@@ -329,7 +331,7 @@ export default function CaptureSheet({ onClose, initialMode = "photo", forPost, 
       if(!result.reading.is_label||!result.reading.per_serving){setLabelState("missing");return;}
       setLabelReading(result);setLabelName("");setLabelServings(1);setLabelState("read");
       window.setTimeout(()=>document.getElementById("label-name")?.focus(),0);
-    }catch(e){if(mountedRef.current){setLabelState("failed");setError(e instanceof CaptureFailureError ? captureFailureText(e.failure,t)! : e instanceof Error ? e.message:t('error_7f3988fea3b6'));}}
+    }catch(e){if(mountedRef.current){setLabelState("failed");setError(e instanceof CaptureFailureError ? captureFailureText(e.failure,tf)! : e instanceof Error ? e.message:t('error_7f3988fea3b6'));}}
   };
   const typePackInstead=()=>{
     const kept=packPhotoRef.current;
@@ -345,7 +347,7 @@ export default function CaptureSheet({ onClose, initialMode = "photo", forPost, 
       if(!eatenAt||!packPhotoRef.current)throw new Error(t('error_be2e37f28789'));
       await uploadManager.postFood({label_reading_id:labelReading.reading_id,servings:labelServings,name:labelName,photo:{...labelPhotoRef.current},...(labelForCode?{gtin:labelForCode}:{}),eaten_at:eatenAt},labelName.trim()||t('packagedFood'),[packPhotoRef.current.file]);
       onClose();
-    }catch(e){setError(e instanceof CaptureFailureError ? captureFailureText(e.failure,t)! : e instanceof Error ? e.message:t('error_0795a0b4a0a6'));}finally{postingRef.current=false;setPosting(false);}
+    }catch(e){setError(e instanceof CaptureFailureError ? captureFailureText(e.failure,tf)! : e instanceof Error ? e.message:tf('error_0795a0b4a0a6'));}finally{postingRef.current=false;setPosting(false);}
   };
   const attachFile=async(file:File)=>{
     if(!forPost)return false;
@@ -354,7 +356,7 @@ export default function CaptureSheet({ onClose, initialMode = "photo", forPost, 
       // The file is kept on this device; upload and attachment continue in the background.
       await uploadManager.postAttachment(file,{postId:forPost,notEaten:attachmentIsLeftovers});
       onClose();router.refresh();return true;
-    }catch(e){if(mountedRef.current)setError(e instanceof CaptureFailureError ? captureFailureText(e.failure,t)! : e instanceof Error ? e.message:t('error_7292b850e4fa'));return false;}
+    }catch(e){if(mountedRef.current)setError(e instanceof CaptureFailureError ? captureFailureText(e.failure,tf)! : e instanceof Error ? e.message:t('error_7292b850e4fa'));return false;}
     finally{postingRef.current=false;if(mountedRef.current)setPosting(false);}
   };
   const addFiles = async (files: FileList | File[] | null) => {
@@ -485,7 +487,7 @@ export default function CaptureSheet({ onClose, initialMode = "photo", forPost, 
       const id=uploadManager.stage(shotsRef.current.map(shot=>shot.file),{caption,location:chosenLocation,eatenAt,options:{not_eaten_positions:notEaten,save_as_meal:saveAsMeal}},operationRef.current??undefined);
       operationRef.current=id;setOperationId(id);if(!await uploadManager.post(id))throw new Error(t('error_6bb4c3f944a9'));onClose();router.refresh();
     } catch (e) {
-      setError(e instanceof CaptureFailureError ? captureFailureText(e.failure,t)! : e instanceof Error ? e.message : t('error_a7684107da5e'));
+      setError(e instanceof CaptureFailureError ? captureFailureText(e.failure,tf)! : e instanceof Error ? e.message : t('error_a7684107da5e'));
     } finally {
       postingRef.current = false;
       setPosting(false);
@@ -497,7 +499,7 @@ export default function CaptureSheet({ onClose, initialMode = "photo", forPost, 
     postingRef.current = true; setPosting(true); setError(null);
     try {
       const eatenAt=when===null?new Date().toISOString():fromLocalInput(when);
-      if(!eatenAt)throw new Error(t('route_6572182f4064'));
+      if(!eatenAt)throw new Error(tf('route_6572182f4064'));
       await uploadManager.postFood({gtin:product.gtin,amount:portion,unit:product.basisUnit,eaten_at:eatenAt},product.name,[packPhotoRef.current.file],packOperationRef.current??undefined);
       packOperationRef.current=null;
       if (pendingFilesRef.current.length || shotsRef.current.length) {
@@ -506,7 +508,7 @@ export default function CaptureSheet({ onClose, initialMode = "photo", forPost, 
         window.setTimeout(() => document.getElementById("capture-caption")?.focus(), 0);
       } else onClose();
 
-    } catch (error) { if (mountedRef.current) setError(error instanceof CaptureFailureError ? captureFailureText(error.failure,t)! : error instanceof Error ? error.message : t('error_0795a0b4a0a6')); }
+    } catch (error) { if (mountedRef.current) setError(error instanceof CaptureFailureError ? captureFailureText(error.failure,tf)! : error instanceof Error ? error.message : tf('error_0795a0b4a0a6')); }
     finally { postingRef.current = false; if (mountedRef.current) setPosting(false); }
   };
 

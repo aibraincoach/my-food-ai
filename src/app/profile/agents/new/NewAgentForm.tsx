@@ -1,4 +1,5 @@
 'use client';
+import {useApiFailureText} from '@/i18n/api-error-text';
 import {useTranslations} from 'next-intl';
 import Link from 'next/link';
 import { useEffect, useRef, useState } from 'react';
@@ -9,7 +10,8 @@ import { Button } from '@/components/ui/Button';
 import { createTokenAction } from '../actions';
 import TokenShown from '../TokenShown';
 export default function NewAgentForm() {
-  const t=useTranslations('agents');
+  const apiError=useApiFailureText();
+ const t=useTranslations('agents');
   const form = useRef<HTMLFormElement>(null);
   useEffect(() => { const input = form.current?.querySelector('input'); input?.focus(); input?.select(); }, []);
   const [name, setName] = useState(()=>t('defaultName'));
@@ -21,7 +23,7 @@ export default function NewAgentForm() {
     <TopBar title={<h1>{t('connect')}</h1>} left={<Link href="/profile" className="flex h-tap items-center text-[15px]"><Icon name="back" size={22}/>{t('profile')}</Link>} right={<span className="w-[70px]"/>} />
     <form ref={form} className="flex flex-1 flex-col" onSubmit={async event => {
       event.preventDefault(); if (pending || !name.trim()) return; setPending(true); setError('');
-      try { const result = await createTokenAction(name); if ('error' in result) setError(result.error ?? t('createFailed')); else setCreated(result); }
+      try { const result = await createTokenAction(name); if ('message_code' in result) setError(apiError(result,"route_e9844fc0e758")); else setCreated(result); }
       catch { setError(t('createFailed')); } finally { setPending(false); }
     }}>
       <div className="flex flex-col gap-[22px] px-screen-x pt-5">

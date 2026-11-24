@@ -14,7 +14,7 @@ export async function capUser(userId: string, route: CapRoute, db = createAdminC
     if (data === false) {
       const now = Date.now();
       const seconds = Math.max(1, Math.ceil((Math.floor(now / 3_600_000) * 3_600_000 + 3_600_000 - now) / 1000));
-      return NextResponse.json({ error: "You have made a lot of requests this hour. Try again later." }, {
+      return NextResponse.json({ message_code: "route_e4b3b1ea79cb" }, {
         status: 429,
         headers: { "Retry-After": String(seconds), "Cache-Control": "private, no-store" },
       });

@@ -1,4 +1,5 @@
 "use client";
+import {useFailureMessages} from '@/i18n/failure-messages';
 import {useLocale,useTranslations} from 'next-intl';
 import type {Locale} from '@/i18n/locales';
 import {formatNumber} from '@/i18n/format';
@@ -15,7 +16,8 @@ type Match = { id: number; description: string; serving_amount: number; serving_
 export default function FoodSearchPanel({ eatenAt, disabled, onQueued, onDescribe, onError }: {
   eatenAt: string | null; disabled: boolean; onQueued: (postId: string) => void; onDescribe: (text: string) => void; onError: (message: string | null) => void;
 }) {
-  const tc=useTranslations('capture'),t=useTranslations('postMenu'),locale=useLocale() as Locale;
+  const tf=useFailureMessages();
+ const t=useTranslations('postMenu'),locale=useLocale() as Locale;
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<{ query: string; foods: Match[]; failed?: boolean } | null>(null);
   const [picking, setPicking] = useState(false);
@@ -42,7 +44,7 @@ export default function FoodSearchPanel({ eatenAt, disabled, onQueued, onDescrib
     try {
       const operationId=await uploadManager.postFood({fdc_id:food.id,query:results.query,eaten_at:eatenAt??new Date().toISOString()},food.description);
       onQueued(operationId);
-    } catch (e) { onError(e instanceof CaptureFailureError ? captureFailureText(e.failure,tc)! : e instanceof Error ? e.message : t('mealSaveFailed')); }
+    } catch (e) { onError(e instanceof CaptureFailureError ? captureFailureText(e.failure,tf)! : e instanceof Error ? e.message : t('mealSaveFailed')); }
     finally { pickingRef.current = false; setPicking(false); }
   };
 

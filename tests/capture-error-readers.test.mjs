@@ -16,7 +16,7 @@ function writer(source,structured){
  }visit(ast);assert.ok(expression,'consumer has an actual UI error writer');
  const parameter=expression.condition.left?.getText(ast);assert.match(parameter,/^\w+$/);
  const code=ts.transpileModule('const render=('+parameter+')=>('+expression.getText(ast)+');render;',{compilerOptions:{target:ts.ScriptTarget.ES2022}}).outputText;
- return vm.runInNewContext(code,{Error,CaptureFailureError,captureFailureText,tc:captureEnglish});
+ return vm.runInNewContext(code,{Error,CaptureFailureError,captureFailureText,tc:captureEnglish,tf:captureEnglish});
 }
 for(const [name,sentence]of[
  ['IntakeSheet','Sign in to keep this drink.'],

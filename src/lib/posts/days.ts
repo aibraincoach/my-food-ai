@@ -1,3 +1,4 @@
+import {CaptureFailureError} from '@/lib/posts/capture-failure';
 import {localDateStart} from '@/lib/search/dates';
 import {visibleDrinkRows,withAlcoholNutrition,type DrinkRow} from '@/lib/intake/hydration';
 import type { SupabaseClient } from "@supabase/supabase-js";
@@ -219,9 +220,9 @@ export async function getDayTotals(db: SupabaseClient, userId: string, zone: str
 
 export interface MonthDay { intake?: boolean; day: string; kcal: number | null; posts: number; pending: number; ready: boolean; missing?:string[]; known?:number }
 export interface MonthSummary { days: MonthDay[]; posted: number }
-export class MonthIntakeError extends Error {
+export class MonthIntakeError extends CaptureFailureError {
   constructor(readonly month: string, readonly summary: MonthSummary) {
-    super("Couldn’t load monthly drinks.");
+    super({code:"monthlyDrinksLoadFailed"});
     this.name = "MonthIntakeError";
   }
 }

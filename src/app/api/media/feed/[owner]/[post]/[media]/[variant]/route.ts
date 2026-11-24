@@ -5,7 +5,7 @@ import {feedPhotoPath, readFeedSource, reserveFeedPhoto, resizeSharpPhoto, MAX_O
 // their own identity; the v1 route stays for 1x screens and old caches.
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const headers = {'Cache-Control': 'private, no-store', 'X-Content-Type-Options': 'nosniff'};
-const fail = (status: number) => new Response(null, {status, headers});
+const fail = (status: number) => Response.json({message_code:"unknownFailure"}, {status, headers});
 
 export async function GET(request: Request, context: {params: Promise<{owner: string; post: string; media: string; variant: string}>}) {
   try { return await readPhoto(request, context); }

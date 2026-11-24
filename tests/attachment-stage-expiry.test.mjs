@@ -1,5 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import {captureEnglish} from './fixtures/capture-wording.mjs';
 import {attachPostPhoto,AttachmentStageExpired,ATTACH_REFUSALS} from '../src/lib/posts/attach-photo.ts';
 const expired={code:'22023',message:'Photo stage expired'};
 const photo={path:'owner/stage/0.jpg',width:10,height:10};
@@ -27,15 +28,21 @@ test('expiry while copying is reported as renewable by the locked completion res
 });
 test('each database refusal keeps its own stable code, sentence and status source',async()=>{
  const raised=[['Wait for this meal to be ready','55000','attachment_meal_not_ready'],['Drink amounts were recorded when posted','55000','attachment_meal_has_drink'],['A meal has at most eight photos','22023','attachment_photo_limit'],['Photo upload incomplete','22023','attachment_upload_incomplete'],['Post not found','42501','attachment_meal_missing']];
- assert.equal(ATTACH_REFUSALS.size,raised.length);assert.equal(new Set([...ATTACH_REFUSALS.values()].map(r=>r.message)).size,raised.length);
+ assert.equal(ATTACH_REFUSALS.size,raised.length);assert.equal(new Set([...ATTACH_REFUSALS.values()].map(r=>captureEnglish(r.message_code))).size,raised.length);
  for(const [message,sqlstate,code]of raised){
   const {db}=harness({prepareError:{code:sqlstate,message}});
-  await assert.rejects(()=>attachPostPhoto(db,'post','owner',photo,true),error=>error.refusal===code&&error.message===ATTACH_REFUSALS.get(message).message&&error.message!=='The photo could not be attached.'&&error.cause.code===sqlstate&&!(error instanceof AttachmentStageExpired));
+  await assert.rejects(()=>attachPostPhoto(db,'post','owner',photo,true),error=>error.refusal===code&&captureEnglish(error.failure.code)===captureEnglish(ATTACH_REFUSALS.get(message).message_code)&&captureEnglish(error.failure.code)!=='The photo could not be attached.'&&error.cause.code===sqlstate&&!(error instanceof AttachmentStageExpired));
   const late=harness({lease:{status:'queued',run_after:'2999-01-01T00:00:00Z'},complete:{data:null,error:{code:sqlstate,message},status:400}});
   await assert.rejects(()=>attachPostPhoto(late.db,'post','owner',photo,true),error=>error.refusal===code);
  }
 });
 test('an unlisted database refusal keeps the general sentence and no code',async()=>{
  const {db}=harness({prepareError:{code:'22023',message:'Photo already claimed'}});
- await assert.rejects(()=>attachPostPhoto(db,'post','owner',photo,true),error=>error.refusal===undefined&&error.message==='The photo could not be attached.');
+ await assert.rejects(()=>attachPostPhoto(db,'post','owner',photo,true),error=>error.refusal===undefined&&captureEnglish(error.failure.code)==='The photo could not be attached.');
+});
+
+test('a storage copy failure remains HTTP-503 metadata even if its SDK detail resembles a SQL refusal',async()=>{
+ const {db}=harness({lease:{status:'queued',run_after:'2999-01-01T00:00:00Z'}});
+ db.storage.from=()=>({copy:async()=>({error:{code:'22023',message:'storage detail'}}),download:async()=>({data:null,error:{message:'missing'}})});
+ await assert.rejects(()=>attachPostPhoto(db,'post','owner',photo,true),error=>error.status===503&&error.cause===undefined&&captureEnglish(error.failure.code)==='The photo could not be copied. Your photo was kept; try again.');
 });

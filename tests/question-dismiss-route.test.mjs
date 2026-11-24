@@ -1,3 +1,4 @@
+import {captureEnglish} from './fixtures/capture-wording.mjs';
 import test from 'node:test';import assert from 'node:assert/strict';import {randomUUID} from 'node:crypto';import {createClient} from '@supabase/supabase-js';import {signInAsTestUser,signInTestClient} from '../scripts/lib/session.mjs';
 const checked=r=>{assert.ifError(r.error);return r.data;};
 test('every failure of the question dismiss route answers JSON with an error (#627)',{timeout:60000},async()=>{
@@ -7,8 +8,8 @@ test('every failure of the question dismiss route answers JSON with an error (#6
  const dismiss=(id,auth)=>fetch(`${origin}/api/posts/${id}/question`,{method:'DELETE',headers:auth?{Cookie:auth}:{}});
  const post=checked(await db.from('posts').insert({user_id:user.id,status:'ready',question:{short:'Clarification needed',question:'Which beer is it?',options:['Lager']}}).select('id').single());
  try{
-  const anonymous=await dismiss(post.id,'');assert.equal(anonymous.status,401);assert.deepEqual(await anonymous.json(),{error:'Sign in required.'});
-  for(const [id,auth] of [['not-a-meal',cookie],[randomUUID(),cookie],[post.id,otherCookie]]){const r=await dismiss(id,auth);assert.equal(r.status,404);assert.deepEqual(await r.json(),{error:'Meal not found.'});}
+  const anonymous=await dismiss(post.id,'');assert.equal(anonymous.status,401);const denied=await anonymous.json();assert.deepEqual(Object.keys(denied),['message_code']);assert.equal(captureEnglish(denied.message_code),'Sign in required.');
+  for(const [id,auth] of [['not-a-meal',cookie],[randomUUID(),cookie],[post.id,otherCookie]]){const r=await dismiss(id,auth);assert.equal(r.status,404);const denied=await r.json();assert.deepEqual(Object.keys(denied),['message_code']);assert.equal(captureEnglish(denied.message_code),'Meal not found.');}
   assert.notEqual(checked(await db.from('posts').select('question').eq('id',post.id).single()).question,null);
   assert.equal((await dismiss(post.id,cookie)).status,204);
   assert.equal(checked(await db.from('posts').select('question').eq('id',post.id).single()).question,null);
