@@ -1,0 +1,92 @@
+{
+  "base": "188cbd42b9a87691aa3840d36b4f0eff5d581c53",
+  "messagesPerLocale": 902,
+  "addedKeys": 304,
+  "readingLintFiles": 50,
+  "rootDictionaryJsonBytes": {
+    "en": 12056,
+    "ja": 15217
+  },
+  "cleanup": {
+    "fixtures": 22,
+    "allReadbacksZero": true,
+    "activeSessionJars": 0,
+    "ownServicesStopped": true,
+    "sharedStackStopped": false
+  },
+  "checks": {
+    "englishSnapshots": {
+      "pass": true,
+      "cases": 30,
+      "pageErrors": 0,
+      "acknowledgedJoins": [
+        20,
+        20
+      ],
+      "statesCompared": 15
+    },
+    "chromiumJapanese": {
+      "pass": true,
+      "cases": 15,
+      "pageErrors": 0
+    },
+    "webkitOriginal": {
+      "pass": false,
+      "cases": 30,
+      "pageErrors": 1
+    },
+    "webkitJapaneseObservation": {
+      "pass": true,
+      "cases": 15,
+      "pageErrors": 0
+    },
+    "chromiumFaults": {
+      "pass": true,
+      "cases": 6,
+      "pageErrors": 0
+    },
+    "webkitFaults": {
+      "pass": true,
+      "cases": 4,
+      "pageErrors": 0
+    },
+    "chromiumComments": {
+      "pass": true,
+      "cases": 2,
+      "pageErrors": 0
+    },
+    "webkitComments": {
+      "pass": true,
+      "cases": 2,
+      "pageErrors": 0
+    },
+    "chromiumEmpty": {
+      "pass": true,
+      "cases": 3,
+      "pageErrors": 0
+    },
+    "webkitEmpty": {
+      "pass": true,
+      "cases": 2,
+      "pageErrors": 0
+    },
+    "chromiumOffline": {
+      "pass": true,
+      "cases": 1,
+      "pageErrors": 0
+    },
+    "webkitOffline": {
+      "pass": true,
+      "cases": 1,
+      "pageErrors": 9
+    },
+    "chromiumCommentDatabase": {
+      "verified": true,
+      "count": 2
+    },
+    "webkitCommentDatabase": {
+      "verified": true,
+      "count": 2
+    }
+  }
+}
