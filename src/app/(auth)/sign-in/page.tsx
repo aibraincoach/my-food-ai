@@ -24,6 +24,7 @@ async function SignInContent({searchParams}:Props){
       {error?<AuthErrorBanner>{error}</AuthErrorBanner>:null}
       <AuthField label={t('email')} name="email" type="email" required autoComplete="email" placeholder={t('emailPlaceholder')}/>
       <AuthField label={t('password')} name="password" type="password" required autoComplete="current-password" placeholder={t('password')}/>
+      <Link href="/reset-password" className="inline-flex min-h-tap items-center self-start text-body underline">{t('forgotPassword')}</Link>
       <HCaptcha/>
       <Button type="submit">{t('signIn')}</Button>
     </form>
