@@ -1,3 +1,4 @@
+import {getTranslations} from 'next-intl/server';
 import {connection} from 'next/server';
 import {cookies} from 'next/headers';
 import {validZone} from '@/lib/posts/days';
@@ -15,6 +16,7 @@ export default async function PostDetail({id,desktopModal=false}:{id:string;desk
  await connection();const supabase=await createClient(AbortSignal.timeout(8000));const userId=await verifiedUserId()??(await supabase.auth.getUser()).data.user?.id;if(!userId)redirect('/welcome');
  if(!isUuid(id))notFound();
  const cookieZone=(await cookies()).get("time-zone")?.value;const zone=validZone(cookieZone);
+ const t=await getTranslations('post');
  const detail=await getPostDetail(supabase,id,zone);if(!detail)notFound();const card=detail.card;
  const row=card as PostPresentation|null;
  // A failed meal's foods and nutrition are incomplete or absent, so it offers no scaling.
@@ -26,7 +28,7 @@ export default async function PostDetail({id,desktopModal=false}:{id:string;desk
   <LocalTimeZone zone={zone} explicit={Boolean(cookieZone)}/>
   {!desktopModal&&header}
   <OutlineOverlay desktopModal={desktopModal} desktopHeader={header} desktopThread={thread} slides={detail.slides} key={id} initialized={detail.post.analysis_initialized_at!=null} readOnly={detail.isDrink} postId={id} caption={detail.post.caption} eatenAt={detail.post.eaten_at} status={detail.post.status} photo={detail.photo} items={detail.items} cardData={detail.cardData} initialDrink={detail.drink} failReason={detail.post.fail_reason??null} modelCommentId={card?.modelCommentId??null} fingerprint={card?.analysisFingerprint??null} saved={Boolean(row?.saved_meal_id)}>
-   {detail.identification?.model?<p className="px-inset text-[12px] text-muted">{detail.identification.host==='baseten'?`Identified by Muse Spark Open (${detail.identification.model}) · Built with Muse Spark Open`:detail.openFallback?'Muse Spark Open was unavailable · Identified by Muse Spark 1.3':'Identified by Muse Spark 1.3'}</p>:null}
+   {detail.identification?.model?<p className="px-inset text-[12px] text-muted">{detail.identification.host==='baseten'?t('identifiedOpen',{model:detail.identification.model}):detail.openFallback?t('identifiedFallback'):t('identifiedDefault')}</p>:null}
   </OutlineOverlay>
   {!desktopModal&&thread}
  </>;

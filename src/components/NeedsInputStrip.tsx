@@ -1,5 +1,6 @@
 /* eslint-disable @next/next/no-img-element -- Owner-authorized thumbnails bypass paid optimization. */
 "use client";
+import {useTranslations} from "next-intl";
 import {useEffect,useState} from "react";
 import {createClient} from "@/lib/supabase/client";
 import {Icon} from "@/components/ui/Icon";
@@ -7,7 +8,8 @@ import {smallFeedPhotoUrl} from "@/lib/posts/feed-photo-url";
 import {readNeedsInput} from "@/lib/pipeline/needs-input";
 import NeedsInputSheet,{type QuestionPost} from "@/components/NeedsInputSheet";
 export default function NeedsInputStrip(){
-  const [posts,setPosts]=useState<QuestionPost[]>([]),[selected,setSelected]=useState<QuestionPost|null>(null),[error,setError]=useState("");
+  const t=useTranslations('feed');
+  const [posts,setPosts]=useState<QuestionPost[]>([]),[selected,setSelected]=useState<QuestionPost|null>(null),[errorCode,setErrorCode]=useState<''|'questionsLoadFailed'|'discardFailed'|'dismissFailed'>('');
   useEffect(()=>{
     const db=createClient();let live=true,busy=false;
     let owner: string | null = null, lastQuestions = '';
@@ -17,7 +19,7 @@ export default function NeedsInputStrip(){
     const auth = db.auth.onAuthStateChange((_event, session) => {
       if (owner !== (session?.user.id ?? null)) {
         authGeneration++; owner = session?.user.id ?? null; lastQuestions = ''; auxiliaryFailed = false;
-        if (live) { setError("");setPosts([]);setSelected(null); }
+        if (live) { setErrorCode("");setPosts([]);setSelected(null); }
         // A sign-in or an account change starts a read, after this callback has returned.
         queueMicrotask(kick);
       }
@@ -41,7 +43,7 @@ export default function NeedsInputStrip(){
           return question ? [{id:post.id,eaten_at:post.eaten_at,needs_input:question,held}] : [];
         });
         const identity = JSON.stringify(questions);
-        setError("");
+        setErrorCode("");
         if(identity === lastQuestions && !auxiliaryFailed) return;
         const media = questions.length ? await db.from('post_media').select('id,post_id,position').in('post_id',questions.map(post=>post.id)).eq('kind','photo').order('position').abortSignal(AbortSignal.timeout(8000)) : {data:[],error:null};
         const first = new Map<string, string>();
@@ -54,7 +56,7 @@ export default function NeedsInputStrip(){
           setPosts(questions.map(post=>({...post,photoUrl:first.get(post.id)??null})));
           lastQuestions=identity;
         }
-      }catch{if(live&&generation===authGeneration)setError("Questions could not be loaded.");}finally{busy=false;if(again&&live){again=false;void refresh();}}
+      }catch{if(live&&generation===authGeneration)setErrorCode('questionsLoadFailed');}finally{busy=false;if(again&&live){again=false;void refresh();}}
     };
     const kick = () => { if (!live) return; if (busy) again = true; else void refresh(); };
     const visible = () => { if (document.visibilityState === "visible") kick(); };
@@ -69,8 +71,8 @@ export default function NeedsInputStrip(){
   return <>{posts.map(post=><div key={post.id} className="flex min-h-brand items-center gap-sheet-top border-b border-hairline px-screen-x">
     <button type="button" onClick={()=>setSelected(post)} className="flex min-w-0 flex-1 items-center gap-sheet-top text-left">
       {post.photoUrl?<img crossOrigin="anonymous" src={post.photoUrl} loading="lazy" decoding="async" width={40} height={40} alt="" className="size-tap shrink-0 rounded-thumb object-cover"/>:<span className="size-tap shrink-0 rounded-thumb bg-card"/>}
-      <span className="min-w-0"><span className="block text-body">{post.needs_input.short==="Clarification needed"?"A quick question about your meal":post.needs_input.short}</span><span className="block truncate text-meta text-muted">{post.needs_input.short==="No food found"?"Add a caption to log it":post.needs_input.question}</span></span>
+      <span className="min-w-0"><span className="block text-body">{post.needs_input.short==="Clarification needed"?t('quickQuestion'):post.needs_input.short}</span><span className="block truncate text-meta text-muted">{post.needs_input.short==="No food found"?t('captionToLog'):post.needs_input.question}</span></span>
     </button>
-    <button type="button" aria-label={post.held?"Discard meal":"Dismiss question"} className="flex size-tap items-center justify-center" onClick={async()=>{const response=post.held?await fetch(`/api/posts/${post.id}/discard`,{method:"POST"}):await fetch(`/api/posts/${post.id}/question`,{method:"DELETE"});if(response.ok){remove(post.id);if(post.held)window.dispatchEvent(new CustomEvent('post-deleted',{detail:{id:post.id}}));}else setError(post.held?"Meal could not be discarded.":"Question could not be dismissed.");}}><Icon name="close"/></button>
-  </div>)}{error&&<p role="alert">{error}</p>}{selected&&<NeedsInputSheet post={selected} onClose={()=>setSelected(null)} onAnswered={()=>remove(selected.id)}/>}</>;
+    <button type="button" aria-label={post.held?t('discardMeal'):t('dismissQuestion')} className="flex size-tap items-center justify-center" onClick={async()=>{const response=post.held?await fetch(`/api/posts/${post.id}/discard`,{method:"POST"}):await fetch(`/api/posts/${post.id}/question`,{method:"DELETE"});if(response.ok){remove(post.id);if(post.held)window.dispatchEvent(new CustomEvent('post-deleted',{detail:{id:post.id}}));}else setErrorCode(post.held?'discardFailed':'dismissFailed');}}><Icon name="close"/></button>
+  </div>)}{errorCode&&<p role="alert">{t(errorCode)}</p>}{selected&&<NeedsInputSheet post={selected} onClose={()=>setSelected(null)} onAnswered={()=>remove(selected.id)}/>}</>;
 }

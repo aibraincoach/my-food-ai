@@ -1,4 +1,5 @@
 'use client';
+import {useTranslations} from 'next-intl';
 import {useRef,useState} from 'react';
 import {useRouter} from 'next/navigation';
 import {Sheet} from '@/components/ui/Sheet';
@@ -8,28 +9,29 @@ import {updateCaption} from '@/lib/posts/caption-client';
 import {useLocalTime} from '@/components/LocalTime';
 export type PostMenuRow={label:string;disabled?:boolean;muted?:boolean;detail?:string;onSelect?:()=>void;onClick?:()=>void};
 export default function PostMenu({postId,caption,eatenAt,rows=[],gtin}:{postId:string;caption:string;eatenAt?:string;rows?:PostMenuRow[];gtin?:string|null}) {
+ const t=useTranslations('postMenu');
  const router=useRouter();const menu=useRef<HTMLDetailsElement>(null);const savingRef=useRef(false);
  const [open,setOpen]=useState(false),[timeOpen,setTimeOpen]=useState(false),[value,setValue]=useState(caption),[saving,setSaving]=useState(false),[error,setError]=useState('');
  const clock=useLocalTime(eatenAt??'');
  const dismiss=()=>{if(menu.current)menu.current.open=false;};
  const edit=()=>{dismiss();setValue(caption);setError('');setOpen(true);};
- const save=async()=>{if(savingRef.current)return;savingRef.current=true;setSaving(true);setError('');window.dispatchEvent(new CustomEvent('post-caption',{detail:{id:postId,caption:value}}));setOpen(false);try{await updateCaption(postId,value);router.refresh();}catch(e){const message=e instanceof Error?e.message:'The caption could not be saved.';setError(message);window.dispatchEvent(new CustomEvent('post-caption',{detail:{id:postId,caption,error:message}}));setOpen(true);}finally{savingRef.current=false;setSaving(false);}};
- const options:PostMenuRow[]=[...rows.filter(row=>!row.muted),{label:'Edit caption',onSelect:edit},...(eatenAt?[{label:'Edit time',detail:clock,onSelect:()=>setTimeOpen(true)}]:[]),...(gtin?[{label:'Correct product',onSelect:()=>window.dispatchEvent(new CustomEvent('correct-product',{detail:{postId,gtin}}))}]:[]),...rows.filter(row=>row.muted)];
+ const save=async()=>{if(savingRef.current)return;savingRef.current=true;setSaving(true);setError('');window.dispatchEvent(new CustomEvent('post-caption',{detail:{id:postId,caption:value}}));setOpen(false);try{await updateCaption(postId,value);router.refresh();}catch(e){const message=e instanceof Error?e.message:t('captionSaveFailed');setError(message);window.dispatchEvent(new CustomEvent('post-caption',{detail:{id:postId,caption,error:message}}));setOpen(true);}finally{savingRef.current=false;setSaving(false);}};
+ const options:PostMenuRow[]=[...rows.filter(row=>!row.muted),{label:t('editCaption'),onSelect:edit},...(eatenAt?[{label:t('editTime'),detail:clock,onSelect:()=>setTimeOpen(true)}]:[]),...(gtin?[{label:t('correctProduct'),onSelect:()=>window.dispatchEvent(new CustomEvent('correct-product',{detail:{postId,gtin}}))}]:[]),...rows.filter(row=>row.muted)];
  return <>
   <details onKeyDown={event=>{if(event.key==='Escape'){event.preventDefault();dismiss();menu.current?.querySelector('summary')?.focus();}}} ref={menu} className="relative shrink-0">
-   <summary aria-label="Meal menu" className="flex min-h-tap min-w-tap cursor-pointer list-none items-center justify-center text-[18px] tracking-[1px]">···</summary>
+   <summary aria-label={t('mealMenu')} className="flex min-h-tap min-w-tap cursor-pointer list-none items-center justify-center text-[18px] tracking-[1px]">···</summary>
    <div className="absolute right-0 z-30 w-[230px] rounded-card border border-hairline bg-surface p-[6px]" style={{boxShadow:'var(--color-shadow-pill)'}}>
     <MenuOptions rows={options} onDismiss={dismiss}/>
    </div>
   </details>
-  <Sheet open={open} onClose={()=>{if(!savingRef.current)setOpen(false);}} label="Edit caption">
-   <h2 className="text-sheet-head">Edit caption</h2>
-   <label htmlFor={`caption-${postId}`} className="text-meta text-muted">Caption</label>
+  <Sheet open={open} onClose={()=>{if(!savingRef.current)setOpen(false);}} label={t('editCaption')}>
+   <h2 className="text-sheet-head">{t('editCaption')}</h2>
+   <label htmlFor={`caption-${postId}`} className="text-meta text-muted">{t('caption')}</label>
    <textarea id={`caption-${postId}`} autoFocus maxLength={MAX_CAPTION_LENGTH} disabled={saving} value={value} onChange={event=>setValue(event.target.value)} className="min-h-24 rounded-field bg-field p-tooltip-x text-body"/>
    {error&&<p role="alert" className="text-meta text-muted">{error}</p>}
-   <button type="button" disabled={saving||value===caption} onClick={()=>{void save();}} className="min-h-field-h rounded-field bg-text px-screen-x text-body text-surface disabled:opacity-50">{saving?'Saving…':'Save'}</button>
+   <button type="button" disabled={saving||value===caption} onClick={()=>{void save();}} className="min-h-field-h rounded-field bg-text px-screen-x text-body text-surface disabled:opacity-50">{saving?t('saving'):t('save')}</button>
   </Sheet>
-  {eatenAt&&<Sheet open={timeOpen} onClose={()=>setTimeOpen(false)} label="Edit time"><h2 className="text-sheet-head">Edit time</h2><EatenAtEditor key={`${postId}:${eatenAt}`} postId={postId} eatenAt={eatenAt}/></Sheet>}
+  {eatenAt&&<Sheet open={timeOpen} onClose={()=>setTimeOpen(false)} label={t('editTime')}><h2 className="text-sheet-head">{t('editTime')}</h2><EatenAtEditor key={`${postId}:${eatenAt}`} postId={postId} eatenAt={eatenAt}/></Sheet>}
  </>;
 }
 

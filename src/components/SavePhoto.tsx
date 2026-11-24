@@ -1,4 +1,5 @@
 "use client";
+import {useTranslations} from 'next-intl';
 import {createPortal} from "react-dom";
 import {useSyncExternalStore} from "react";
 
@@ -33,15 +34,16 @@ const subscribeMounted = () => () => {};
 const mounted = () => typeof document !== "undefined";
 
 export function SavePhotoPrompt({ open, previewUrl, onClose }: { open: boolean; previewUrl: string; onClose: () => void }) {
+  const t=useTranslations('postMenu');
   const ready = useSyncExternalStore(subscribeMounted, mounted, () => false);
   if (!open || !ready) return null;
   return createPortal(
-    <div role="dialog" aria-modal="true" aria-label="Save photo" className="fixed inset-0 z-[200] flex items-end justify-center bg-scrim-32 p-4 desktop:items-center" onClick={onClose}>
+    <div role="dialog" aria-modal="true" aria-label={t('savePhoto')} className="fixed inset-0 z-[200] flex items-end justify-center bg-scrim-32 p-4 desktop:items-center" onClick={onClose}>
       <div className="flex max-h-[92dvh] w-full max-w-phone flex-col gap-4 rounded-t-sheet bg-white p-4 desktop:rounded-sheet" onClick={(event) => event.stopPropagation()}>
-        <p className="text-center text-body">Press and hold the photo, then tap Save to Photos</p>
+        <p className="text-center text-body">{t('savePhotoHint')}</p>
         <img src={previewUrl} alt="" draggable={false} className="max-h-[70dvh] w-full object-contain [-webkit-touch-callout:default]" />
         <button type="button" onClick={onClose} className="min-h-tap rounded-field bg-field text-body">
-          Done
+          {t('done')}
         </button>
       </div>
     </div>,

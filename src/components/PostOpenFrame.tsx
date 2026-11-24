@@ -1,4 +1,5 @@
 'use client';
+import {useTranslations} from 'next-intl';
 import {imageIdentity} from '@/lib/media/retained-image';
 import {feedPhotoSrcSet} from '@/lib/posts/feed-photo-url';
 import {useState} from 'react';
@@ -29,16 +30,18 @@ function Header({post,height}:{post:FeedPost;height:string}) {
 }
 
 function Photo({post,desktop=false}:{post:FeedPost;desktop?:boolean}) {
+ const t=useTranslations('post');
  const slide=post.slides.find(slide=>slide.kind!=='card');
  const url=slide?.url??post.photoUrl;
  const [failedSharp,setFailedSharp]=useState<string|null>(null);
  if(!url)return <div className="aspect-square w-full bg-card"/>;
  // eslint-disable-next-line @next/next/no-img-element
- return <div className="relative w-full overflow-hidden bg-card" style={desktop?undefined:photoBoxStyle(slide)}><img src={url} srcSet={failedSharp!==imageIdentity(url)?feedPhotoSrcSet(url):undefined} onError={()=>setFailedSharp(imageIdentity(url))} crossOrigin="anonymous" sizes="(min-width: 1024px) 520px, 100vw" alt={post.caption||'Meal photo'} draggable={false} className="h-full w-full object-contain"/></div>;
+ return <div className="relative w-full overflow-hidden bg-card" style={desktop?undefined:photoBoxStyle(slide)}><img src={url} srcSet={failedSharp!==imageIdentity(url)?feedPhotoSrcSet(url):undefined} onError={()=>setFailedSharp(imageIdentity(url))} crossOrigin="anonymous" sizes="(min-width: 1024px) 520px, 100vw" alt={post.caption||t('mealPhoto')} draggable={false} className="h-full w-full object-contain"/></div>;
 }
 
 function Rows() {
- return <div className="flex flex-col gap-3 px-inset pt-3" role="status" aria-label="Loading meal"><Shimmer width="70%"/><Shimmer width="45%"/><Shimmer width="60%"/></div>;
+ const t=useTranslations('post');
+ return <div className="flex flex-col gap-3 px-inset pt-3" role="status" aria-label={t('loadingMeal')}><Shimmer width="70%"/><Shimmer width="45%"/><Shimmer width="60%"/></div>;
 }
 
 function PhoneFrame({post}:{post:FeedPost}) {

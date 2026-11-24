@@ -1,10 +1,13 @@
 "use client";
-import { formatCalories } from "@/lib/nutrition/totals";
+import {useLocale,useTranslations} from 'next-intl';
+import {formatDate,formatEnergy} from '@/i18n/format';
+import type {Locale} from '@/i18n/locales';
 import { useEffect, useRef, useState } from "react";
 import { dateInZone, shiftDay, type FeedDayTotal } from "@/lib/posts/days";
 import { tokens } from "@/lib/theme/tokens";
 
 export default function DayHeader({ day, zone, empty, total }: { day: string; zone: string; empty: boolean; total?: FeedDayTotal }) {
+  const t=useTranslations('feed'),locale=useLocale() as Locale;
   const sentinel = useRef<HTMLDivElement>(null);
   const [stuck, setStuck] = useState(false);
   useEffect(() => {
@@ -14,16 +17,16 @@ export default function DayHeader({ day, zone, empty, total }: { day: string; zo
     return () => observer.disconnect();
   }, []);
   const today = dateInZone(new Date(), zone);
-  const relative = day === today ? "Today" : day === shiftDay(today, -1) ? "Yesterday" : null;
+  const relative = day === today ? t('today') : day === shiftDay(today, -1) ? t('yesterday') : null;
   const older = new Date(`${day}T12:00:00Z`) < new Date(`${Number(today.slice(0,4))-1}${today.slice(4)}T12:00:00Z`);
-  const label = new Intl.DateTimeFormat("en-US", { timeZone: "UTC", weekday: "long", month: "short", day: "numeric", ...(older ? {year: "numeric"} : {}) }).format(new Date(`${day}T12:00:00Z`));
+  const label = formatDate(locale,new Date(`${day}T12:00:00Z`),'UTC',{weekday:'long',month:'short',day:'numeric',...(older?{year:'numeric'}:{})});
   return <>
-    <div className="desktop-day-rule hidden desktop:flex desktop:items-center desktop:gap-3 desktop:pt-8 desktop:pb-1 desktop:text-[13px]"><span className="font-semibold">{label}</span><span className="h-px flex-1 bg-hairline"/><span className="text-muted tabular-nums">{empty?'No meals':total?.ready?`Consumed: ${total.kcal===null?'unavailable':formatCalories(total.kcal)} kcal`:''}</span></div>
+    <div className="desktop-day-rule hidden desktop:flex desktop:items-center desktop:gap-3 desktop:pt-8 desktop:pb-1 desktop:text-[13px]"><span className="font-semibold">{label}</span><span className="h-px flex-1 bg-hairline"/><span className="text-muted tabular-nums">{empty?t('noMeals'):total?.ready?t('consumedAmount',{amount:total.kcal===null?t('unavailable'):formatEnergy(locale,total.kcal)}):''}</span></div>
     <div ref={sentinel} aria-hidden="true" style={{height: tokens.border.hairline}} />
     <header className={`desktop:hidden sticky z-10 flex h-10 items-center justify-between border-y border-hairline bg-surface px-inset ${empty ? "text-faint" : "text-text"} ${stuck ? "stuck" : ""}`}
       style={{top: `calc(${tokens.spacing['top-h']}px + env(safe-area-inset-top))`, boxShadow: stuck ? tokens.colors['shadow-stuck'] : undefined}}>
       <div className="flex items-baseline gap-2"><span className="text-handle">{relative ?? label}</span>{relative ? <span className={`text-meta ${empty ? "text-faint" : "text-muted"}`}>{label}</span> : null}</div>
-      <span className={`text-meta tabular-nums ${empty ? "text-faint" : "text-muted"}`}>{empty ? "No meals" : total?.ready ? `Consumed: ${total.kcal === null ? "unavailable" : formatCalories(total.kcal)} kcal` : ""}</span>
+      <span className={`text-meta tabular-nums ${empty ? "text-faint" : "text-muted"}`}>{empty?t('noMeals'):total?.ready?t('consumedAmount',{amount:total.kcal===null?t('unavailable'):formatEnergy(locale,total.kcal)}):''}</span>
     </header>
   </>;
 }

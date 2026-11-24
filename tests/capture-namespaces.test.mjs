@@ -9,5 +9,5 @@ test('capture routes, the offline shell and their imported client components hav
 });
 
 test('a missing provider namespace fails before a client reaches strict runtime formatting',()=>{
- assert.throws(()=>checkCaptureNamespaces(undefined,undefined,['navigation','errors','card']),/Missing capture-provider namespace capture/);
+ assert.throws(()=>checkCaptureNamespaces(undefined,undefined,['navigation','errors','card','feed','post','postMenu','thread']),/Missing capture-provider namespace capture/);
 });

@@ -1,3 +1,4 @@
+export const readingLintTargets=["src/components/SavedMealListeners.tsx","src/components/FoodSearchPanel.tsx","src/components/IntakeSheet.tsx","src/components/LogAgainSheet.tsx","src/components/SavedMealsButton.tsx","src/components/SavedMealsSheet.tsx","src/components/CorrectProductAction.tsx","src/components/CorrectProductSheet.tsx","src/components/ItemEditSheet.tsx","src/components/NeedsInputSheet.tsx","src/components/OutlineOverlay.tsx","src/components/ItemRows.tsx","src/components/NutritionSummary.tsx","src/components/NutritionTable.tsx","src/components/OpenFoodFactsAttribution.tsx","src/components/PostDetail.tsx","src/components/Carousel.tsx","src/components/Thread.tsx","src/components/CommentComposer.tsx","src/components/PostDetailHeader.tsx","src/components/DeletePostSheet.tsx","src/components/EatenAtEditor.tsx","src/components/PostMenu.tsx","src/components/PostActions.tsx","src/components/PostCaption.tsx","src/components/PostHandle.tsx","src/components/PostReadinessListener.tsx","src/components/SavePhoto.tsx","src/components/ThumbsFeedback.tsx","src/components/ui/Sheet.tsx","src/components/PostCard.tsx","src/components/LocalTime.tsx","src/lib/time/local.ts","src/components/Feed.tsx", "src/components/NeedsInputStrip.tsx", "src/components/PushPrompt.tsx", "src/components/UndoToast.tsx", "src/components/DayHeader.tsx", "src/components/DayRings.tsx", "src/components/PostPageShell.tsx", "src/components/PostOpenFrame.tsx", "src/components/PostOpenTransition.tsx", "src/components/PostDetailSkeleton.tsx", "src/app/(tabs)/layout.tsx", "src/app/(tabs)/page.tsx", "src/app/(tabs)/error.tsx", "src/app/posts/[id]/layout.tsx", "src/app/posts/[id]/page.tsx", "src/app/posts/[id]/loading.tsx"];
 export const captureLintTargets = [
   "src/components/CaptureSheet.tsx",
   "src/components/LightComposer.tsx",
@@ -33,15 +34,17 @@ export const HELD_FOR_OWNER_WORDING = [
  'No USDA record matched “{food}” and the model gave no usable estimate.',
  'No USDA record matched “{food}”.',
 ];
-export const untranslatedNamesAndUnits = ['My Food AI','kcal','g','ml','mg','(',')','+','·','···','‹','›','×','/','1/1'];
+export const untranslatedNamesAndUnits = ['My Food AI','kcal','g','ml','mg','(',')','+','·','···','‹','›','×','/','1/1','✎','−'];
+// Dynamic route brackets are literals, not glob character classes.
+const lintPathPattern=file=>file.replace(/[\[\]]/g,character=>'\\'+character);
 export const deferred = [
  'src/app/**','!src/app/admin/freeze-reports/**','!src/app/(auth)/**','!src/app/error.tsx','!src/app/not-found.tsx','!src/app/(tabs)/profile/about/page.tsx',
- 'src/components/*.tsx',...['AuthProviders','ProviderButton','HCaptcha','BottomBar','PlusMenu','ResultsCard'].map(name=>'!src/components/'+name+'.tsx'),
+ 'src/components/*.tsx',...readingLintTargets.map(file=>'!'+lintPathPattern(file)),...['AuthProviders','ProviderButton','HCaptcha','BottomBar','PlusMenu','ResultsCard'].map(name=>'!src/components/'+name+'.tsx'),
  ...captureLintTargets.filter(file=>!file.startsWith('src/lib/')).map(file=>'!'+file),
- 'src/lib/**','!src/lib/auth/actions.ts','!src/lib/auth/password-reset.ts','!src/lib/pipeline/card-data.ts','src/middleware.ts',...captureLintTargets.filter(file=>file.startsWith('src/lib/')).map(file=>'!'+file),
+ 'src/lib/**','!src/lib/auth/actions.ts','!src/lib/auth/password-reset.ts','!src/lib/pipeline/card-data.ts','src/middleware.ts',...captureLintTargets.filter(file=>file.startsWith('src/lib/')).map(file=>'!'+file),...readingLintTargets.filter(file=>file.startsWith('src/lib/')).map(file=>'!'+file),
 ];
 export const converted = ['src/**/*.{ts,tsx}'];
-export const lintTargets = [...captureLintTargets,'src/i18n','src/components/i18n','src/components/support','src/app/admin/freeze-reports','src/app/(auth)','src/app/error.tsx','src/app/not-found.tsx','src/app/(tabs)/profile/about/page.tsx',...['AuthProviders','ProviderButton','HCaptcha','BottomBar','PlusMenu','ResultsCard'].map(name=>'src/components/'+name+'.tsx'),'src/lib/auth/actions.ts','src/lib/auth/password-reset.ts','src/lib/pipeline/card-data.ts'];
+export const lintTargets = [...captureLintTargets,...readingLintTargets,'src/i18n','src/components/i18n','src/components/support','src/app/admin/freeze-reports','src/app/(auth)','src/app/error.tsx','src/app/not-found.tsx','src/app/(tabs)/profile/about/page.tsx',...['AuthProviders','ProviderButton','HCaptcha','BottomBar','PlusMenu','ResultsCard'].map(name=>'src/components/'+name+'.tsx'),'src/lib/auth/actions.ts','src/lib/auth/password-reset.ts','src/lib/pipeline/card-data.ts'];
 const visibleAttributes = new Set(['aria-label', 'aria-description', 'placeholder', 'title', 'alt', 'label']);
 function hasFixedText(node) {
   if(!node) return false;

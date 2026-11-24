@@ -1,3 +1,5 @@
+import {englishIntl,englishIntlServer} from './fixtures/english-intl.mjs';
+import * as readingFormat from '../src/i18n/format.ts';
 import {verifiedUserCookie} from '../src/lib/auth/verified-cookie.ts';
 import {sumNutrition} from '../src/lib/nutrition/totals.ts';
 import assert from 'node:assert/strict';
@@ -18,6 +20,10 @@ test('middleware makes no photo query or HTTP image preload while preserving aut
   const response=new Response(null,{headers:{Link:'</existing>; rel=preconnect'}});let photoReads=0;
   const exports={};
   vm.runInNewContext(compiled,{exports,AbortSignal,console:{info(){}},process:{env:{}},URL,require(name){
+ if(name==='next-intl')return englishIntl;
+ if(name==='next-intl/server')return englishIntlServer;
+ if(name==='@/i18n/format')return readingFormat;
+
    if(name==='@/i18n/locales')return{isLocale:value=>value==='en'||value==='ja'};
    if(name==='@/lib/auth/verified-cookie')return{verifiedUserCookie};
    if(name==='@/lib/auth/verified-user-header')return{VERIFIED_USER_HEADER:'x-mfa-verified-user'};
@@ -40,6 +46,10 @@ test('Home HTML preload and first image expose the same single 640 candidate wit
  const url=smallFeedPhotoUrl(owner,post,media,'a'.repeat(32)),preloads=[],exports={};
  const source=readFileSync(new URL('../src/app/(tabs)/page.tsx',import.meta.url),'utf8')+'\nexport {HomeFirstPhoto,homeSeed};';
  vm.runInNewContext(compile(source),{exports,Date,Promise,Array,AbortSignal,setTimeout,clearTimeout,require(name){
+ if(name==='next-intl')return englishIntl;
+ if(name==='next-intl/server')return englishIntlServer;
+ if(name==='@/i18n/format')return readingFormat;
+
   if(name==='react')return{cache:fn=>fn,Suspense:()=>null};
   if(name==='react-dom')return{preload:(href,options)=>preloads.push({href,...options})};
   if(name==='react/jsx-runtime')return{jsx:(type,props)=>typeof type==='function'?type(props):({type,props}),jsxs:(type,props)=>({type,props})};

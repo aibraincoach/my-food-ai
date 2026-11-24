@@ -1,3 +1,6 @@
+import * as readingFormat from '../src/i18n/format.ts';
+import {servingsMessageValues} from '../src/i18n/servings.ts';
+import {englishIntl,englishIntlServer} from './fixtures/english-intl.mjs';
 // node --import tsx --test tests/feed-unavailable-retry.test.mjs
 import test from 'node:test';
 import assert from 'node:assert/strict';
@@ -12,6 +15,11 @@ test('a failed optional card read waits for focus before recovering its nutritio
  const code=ts.transpileModule(readFileSync(new URL('../src/components/RealtimePost.tsx',import.meta.url),'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,jsx:ts.JsxEmit.ReactJSX,target:ts.ScriptTarget.ES2022}}).outputText;
  const exports={};vm.runInNewContext(code,{exports,Date:{now:()=>now},document:{visibilityState:'visible',addEventListener(){},removeEventListener(){}},window:events,CustomEvent,setTimeout(fn,ms=0){timers.set(++timerId,{fn,at:now+ms});return timerId;},clearTimeout:id=>timers.delete(id),
  require(name){
+ if(name==='next-intl')return englishIntl;
+ if(name==='next-intl/server')return englishIntlServer;
+ if(name==='@/i18n/format')return readingFormat;
+ if(name==='@/i18n/servings')return {servingsMessageValues};
+
   if(name==='react')return{useState(initial){const index=stateIndex++;states[index]=initial;return[initial,next=>{states[index]=typeof next==='function'?next(states[index]):next;}];},useRef:current=>({current}),useEffect:fn=>effects.push(fn)};
   if(name==='react/jsx-runtime')return{jsx:()=>null,Fragment:Symbol()};
   if(name==='@/lib/supabase/client')return{createClient:()=>({channel:()=>channel,removeChannel(){}})};

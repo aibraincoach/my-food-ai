@@ -1,4 +1,7 @@
 'use client';
+import {useLocale,useTranslations} from 'next-intl';
+import type {Locale} from '@/i18n/locales';
+import {formatNumber} from '@/i18n/format';
 import {formatModelCommentLabels} from '@/lib/posts/comment-label';
 import UndoToast from '@/components/UndoToast';
 import {delayAction} from '@/lib/posts/delayed-action';
@@ -15,11 +18,12 @@ import {LocalTime} from '@/components/LocalTime';
 import {usePostHandle} from '@/components/PostHandle';
 const sort=(rows:CommentRow[])=>rows.toSorted((a,b)=>a.created_at.localeCompare(b.created_at)||a.id.localeCompare(b.id));
 export default function Thread({postId,readOnly=false,sourcePostId,desktopActions,fingerprint=null}:{desktopActions?:ReactNode;postId:string;readOnly?:boolean;sourcePostId?:string|null;fingerprint?:string|null}){
+ const t=useTranslations('thread'),tp=useTranslations('post'),tm=useTranslations('postMenu'),locale=useLocale() as Locale;
  const menus=useRef<HTMLElement>(null);useRemovalMenus(menus);
  const handle=usePostHandle();
  const [accepted,setAccepted]=useState<string|null>(null);
  const router=useRouter();
- const [rows,setRows]=useState<CommentRow[]>([]);const [error,setError]=useState('');const [waiting,setWaiting]=useState(false);const [failed,setFailed]=useState(false);const [retrying,setRetrying]=useState(false);
+ const [rows,setRows]=useState<CommentRow[]>([]);const [error,setError]=useState<{key:'loadFailed'|'updateFailed'|'removeFailedRetry'|'removeFailed'}|{message:string}|{retry:true}|null>(null);const [waiting,setWaiting]=useState(false);const [failed,setFailed]=useState(false);const [retrying,setRetrying]=useState(false);
  const wake=useRef<()=>void>(()=>{});
  const append=useCallback((row:CommentRow)=>{setRows(old=>sort([...old.filter(r=>r.id!==row.id),row]));setWaiting(row.author==='user');wake.current();},[]);
  useEffect(()=>{
@@ -32,16 +36,16 @@ export default function Thread({postId,readOnly=false,sourcePostId,desktopAction
     readPostComments(client,postId),
     client.from('posts').select('status,analysis_initialized_at,fail_reason').eq('id',postId).maybeSingle(),
    ]);
-   if(!live)return;if(postError||!post){setError('Comments could not be loaded.');return;}
+   if(!live)return;if(postError||!post){setError({key:'loadFailed'});return;}
    const models=(data??[]).filter(row=>row.author==='model');
    const freshModel=knownStatus!==null&&models.some(row=>!modelIds.has(row.id));
    modelIds=new Set(models.map(row=>row.id));
    if(freshModel)router.refresh();
    if(knownStatus&&knownStatus!==post.status)router.refresh();knownStatus=post.status;
    const feedback=correctionFeedback(post.status);
-   setFailed(feedback==='failed');setError(feedback==='failed'?(post.analysis_initialized_at?'The meal could not be updated.':failureMessage(post.fail_reason)):'');setRows(old=>sort([...new Map([...old,...(data??[])].map(row=>[row.id,row as CommentRow])).values()]));
+   setFailed(feedback==='failed');setError(feedback==='failed'?(post.analysis_initialized_at?{key:'updateFailed'}:{message:failureMessage(post.fail_reason)}):null);setRows(old=>sort([...new Map([...old,...(data??[])].map(row=>[row.id,row as CommentRow])).values()]));
    setWaiting(feedback==='waiting');
-  }catch{if(live)setError('Comments could not be loaded.');}finally{inFlight=false;if(again&&live){again=false;void load();}}};
+  }catch{if(live)setError({key:'loadFailed'});}finally{inFlight=false;if(again&&live){again=false;void load();}}};
   const channel=client.channel(`thread-${postId}`).on('postgres_changes',{event:'INSERT',schema:'public',table:'post_comments',filter:`post_id=eq.${postId}`},()=>{void load();}).on('postgres_changes',{event:'UPDATE',schema:'public',table:'post_comments',filter:`post_id=eq.${postId}`},()=>{void load();}).subscribe((status)=>{if(status==='SUBSCRIBED')void load();});
   const visible=()=>{if(document.visibilityState==='visible')void load();};
   const readiness=(event:Event)=>{if((event as CustomEvent<{id?:string}>).detail?.id===postId)void load();};
@@ -56,32 +60,32 @@ export default function Thread({postId,readOnly=false,sourcePostId,desktopAction
  const pendingRemovalIds=useRef(new Set<string>());
  const removeCorrection=(commentId:string)=>{
   if(pendingRemovalIds.current.size)return;
-  pendingRemovalIds.current.add(commentId);setError('');setPendingRemovals(old=>[...old,commentId]);
+  pendingRemovalIds.current.add(commentId);setError(null);setPendingRemovals(old=>[...old,commentId]);
   const restore=()=>{pendingRemovalIds.current.delete(commentId);setPendingRemovals(old=>old.filter(id=>id!==commentId));};
   const action=delayAction(6000,async keepalive=>{
    try{
     const response=await fetch(`/api/posts/${postId}/comments/${commentId}/revert`,{method:'POST',keepalive});
-    if(!response.ok)throw Error('The correction could not be removed. Try again.');
+    if(!response.ok){restore();setError({key:'removeFailedRetry'});return;}
     setRows(old=>old.map(row=>row.id===commentId?{...row,reverted_at:new Date().toISOString()}:row));restore();
     setWaiting(true);window.dispatchEvent(new CustomEvent('correction-reverted',{detail:{id:postId,commentId}}));router.refresh();wake.current();
-   }catch(cause){restore();setError(cause instanceof Error?cause.message:'The correction could not be removed.');}
+   }catch(cause){restore();setError(cause instanceof Error?{message:cause.message}:{key:'removeFailed'});}
   });
   setToast(previous=>({key:(previous?.key??0)+1,undo:()=>{action.undo();restore();setToast(null);}}));
  };
- const retry=async()=>{setRetrying(true);try{const response=await fetch(`/api/posts/${postId}/retry`,{method:'POST'});if(!response.ok)throw new Error('retry failed');setFailed(false);setError('');setWaiting(true);router.refresh();wake.current();}catch{setError('Could not retry. Please try again.');}finally{setRetrying(false);}};
- return <section ref={menus} aria-label="Meal comments" className="relative px-inset pt-[14px]">
-  {sourcePostId?<p className="mb-[10px] text-meta text-muted">Logged again</p>:null}
-  <h2 className="mb-[10px] text-handle">Comments <span className="font-normal text-muted">{rows.length}</span></h2>
+ const retry=async()=>{setRetrying(true);try{const response=await fetch(`/api/posts/${postId}/retry`,{method:'POST'});if(!response.ok)throw new Error('retry failed');setFailed(false);setError(null);setWaiting(true);router.refresh();wake.current();}catch{setError({retry:true});}finally{setRetrying(false);}};
+ return <section ref={menus} aria-label={t('mealComments')} className="relative px-inset pt-[14px]">
+  {sourcePostId?<p className="mb-[10px] text-meta text-muted">{t('loggedAgain')}</p>:null}
+  <h2 className="mb-[10px] text-handle">{t.rich('commentsCount',{count:rows.length,amount:formatNumber(locale,rows.length,{useGrouping:false}),number:chunks=><span className="font-normal text-muted">{chunks}</span>})}</h2>
   <div aria-live="polite" className="flex flex-col gap-[10px]">{rows.filter(row=>!pendingRemovals.includes(row.id)).map(row=><div key={row.id} className="flex items-start gap-[10px]">
-    <span className={`flex size-7 shrink-0 items-center justify-center rounded-circle text-avatar-sm ${row.author==='model'?'bg-text text-surface':'bg-field text-text'}`}>{row.author==='model'?'AI':handle.slice(0,1).toUpperCase()}</span>
-    <p className={`min-w-0 flex-1 whitespace-pre-wrap break-words text-detail leading-[1.45] ${row.reverted_at?'text-muted':''}`}><span className="font-semibold">{row.author==='model'?'My Food AI':handle}</span> {row.author==='model'?formatModelCommentLabels(row.body):row.body} <span className="whitespace-nowrap text-muted"><LocalTime value={row.created_at}/></span>{row.reverted_at?<span className="block text-meta text-muted">Removed</span>:row.author==='user'&&!readOnly?<details data-removal-menu className="inline-block"><summary className="ml-2 cursor-pointer list-none text-meta text-muted underline">Remove</summary><div className="absolute right-4 z-30 w-[230px] rounded-card border border-hairline bg-surface p-[6px] text-[15px] text-text" style={{boxShadow:'var(--color-shadow-pill)'}}><button type="button" onClick={event=>{event.currentTarget.closest('details')?.removeAttribute('open');void removeCorrection(row.id);}} className="h-tap w-full border-b border-hairline px-[10px] text-left" style={{color:'oklch(0.52 0.17 25)'}}>Remove correction</button><span className="block px-[10px] py-2 text-meta text-muted">Removes your comment and the AI’s reply, and puts back what it changed.</span><button type="button" onClick={event=>event.currentTarget.closest('details')?.removeAttribute('open')} className="h-tap w-full px-[10px] text-left">Cancel</button></div></details>:null}{accepted===row.id?<span className="ml-2 text-meta text-muted">Accepted</span>:null}</p>
+    <span className={`flex size-7 shrink-0 items-center justify-center rounded-circle text-avatar-sm ${row.author==='model'?'bg-text text-surface':'bg-field text-text'}`}>{row.author==='model'?t('aiAvatar'):handle.slice(0,1).toUpperCase()}</span>
+    <p className={`min-w-0 flex-1 whitespace-pre-wrap break-words text-detail leading-[1.45] ${row.reverted_at?'text-muted':''}`}><span className="font-semibold">{row.author==='model'?'My Food AI':handle}</span> {row.author==='model'?formatModelCommentLabels(row.body):row.body} <span className="whitespace-nowrap text-muted"><LocalTime value={row.created_at}/></span>{row.reverted_at?<span className="block text-meta text-muted">{t('removed')}</span>:row.author==='user'&&!readOnly?<details data-removal-menu className="inline-block"><summary className="ml-2 cursor-pointer list-none text-meta text-muted underline">{t('remove')}</summary><div className="absolute right-4 z-30 w-[230px] rounded-card border border-hairline bg-surface p-[6px] text-[15px] text-text" style={{boxShadow:'var(--color-shadow-pill)'}}><button type="button" onClick={event=>{event.currentTarget.closest('details')?.removeAttribute('open');void removeCorrection(row.id);}} className="h-tap w-full border-b border-hairline px-[10px] text-left" style={{color:'oklch(0.52 0.17 25)'}}>{t('removeCorrection')}</button><span className="block px-[10px] py-2 text-meta text-muted">{t('removeExplanation')}</span><button type="button" onClick={event=>event.currentTarget.closest('details')?.removeAttribute('open')} className="h-tap w-full px-[10px] text-left">{tm('cancel')}</button></div></details>:null}{accepted===row.id?<span className="ml-2 text-meta text-muted">{t('accepted')}</span>:null}</p>
   </div>)}</div>
-  {waiting?<p role="status" className="py-grid text-meta text-muted">Updating the meal…</p>:null}
-  {error?<p role="status" className="text-meta text-muted">{error}</p>:null}
-  {toast&&<UndoToast key={toast.key} text="Correction removed" onUndo={toast.undo} ms={6000}/>}
+  {waiting?<p role="status" className="py-grid text-meta text-muted">{t('updating')}</p>:null}
+  {error?<p role="status" className="text-meta text-muted">{'key'in error?t(error.key):'message'in error?error.message:tp('retryAttemptFailed')}</p>:null}
+  {toast&&<UndoToast key={toast.key} text={t('correctionRemoved')} onUndo={toast.undo} ms={6000}/>}
   <FirstRunHint hint="thread" />
-  {failed?<button type="button" disabled={retrying} onClick={retry} className="min-h-tap text-meta text-text">{retrying?'Retrying…':'Try again'}</button>:null}
+  {failed?<button type="button" disabled={retrying} onClick={retry} className="min-h-tap text-meta text-text">{retrying?tp('retrying'):tp('tryAgain')}</button>:null}
   {desktopActions}
-  {readOnly ? <p className="text-meta text-muted">Drink amounts were recorded when posted.</p> : <CommentComposer postId={postId} onPosted={append}/>}
+  {readOnly ? <p className="text-meta text-muted">{t('drinkRecorded')}</p> : <CommentComposer postId={postId} onPosted={append}/>}
  </section>;
 }

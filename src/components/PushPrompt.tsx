@@ -1,4 +1,5 @@
 "use client";
+import {useTranslations} from "next-intl";
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { Sheet } from "@/components/ui/Sheet";
@@ -30,9 +31,10 @@ async function registerDevice(account: string) {
   write(promptedKey(account), "1");
 }
 export default function PushPrompt() {
+  const t=useTranslations('feed');
   const [account, setAccount] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
-  const [error, setError] = useState("");
+  const [error, setError] = useState(false);
   useEffect(() => {
     if (!process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY || !("Notification" in window) || !("PushManager" in window) || !("serviceWorker" in navigator)) return;
     pushSessionStarted();
@@ -64,21 +66,21 @@ export default function PushPrompt() {
   const dismiss = () => { if (account) write(promptedKey(account), "1"); setAccount(null); };
   const enable = async () => {
     if (!account || busy) return;
-    setBusy(true); setError("");
+    setBusy(true); setError(false);
     try {
       // Called directly from a button gesture, required by mobile browsers.
       if (await Notification.requestPermission() !== "granted") { write(promptedKey(account), "1"); setAccount(null); return; }
       await withPushLock(() => registerDevice(account));
       setAccount(null);
-    } catch { setError("Notifications could not be enabled. You can try again."); }
+    } catch { setError(true); }
     finally { setBusy(false); }
   };
   if (!account) return null;
-  return <Sheet open={Boolean(account)} onClose={() => { if (!busy) dismiss(); }} label="Meal notifications">
-    <p className="text-body">Notify you when your meal is ready?</p>
-    <p className="text-detail text-muted">Notifications may show your meal photo or a question about it on this device.</p>
-    {error && <p role="alert" className="text-detail">{error}</p>}
-    <Button disabled={busy} onClick={enable}>{busy ? "Enabling…" : "Enable notifications"}</Button>
-    <Button variant="secondary" disabled={busy} onClick={dismiss}>Not now</Button>
+  return <Sheet open={Boolean(account)} onClose={() => { if (!busy) dismiss(); }} label={t('notificationsTitle')}>
+    <p className="text-body">{t('notificationsQuestion')}</p>
+    <p className="text-detail text-muted">{t('notificationsHint')}</p>
+    {error && <p role="alert" className="text-detail">{t('notificationsEnableFailed')}</p>}
+    <Button disabled={busy} onClick={enable}>{busy ? t('enablingNotifications') : t('enableNotifications')}</Button>
+    <Button variant="secondary" disabled={busy} onClick={dismiss}>{t('notNow')}</Button>
   </Sheet>;
 }

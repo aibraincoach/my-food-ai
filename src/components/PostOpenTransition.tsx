@@ -1,4 +1,5 @@
 'use client';
+import {useTranslations} from 'next-intl';
 import {useEffect,useState} from 'react';
 import {usePathname,useRouter} from 'next/navigation';
 import {recallPost,clearRememberedPosts} from '@/lib/posts/open-frame';
@@ -8,6 +9,7 @@ import PostPageShell from '@/components/PostPageShell';
 import PostOpenFrame from '@/components/PostOpenFrame';
 
 export default function PostOpenTransition() {
+ const t=useTranslations('post');
  const path=usePathname();
  const router=useRouter();
  const [opening,setOpening]=useState<{id:string;from:string;committed:boolean}|null>(null);
@@ -44,6 +46,8 @@ export default function PostOpenTransition() {
  useEffect(()=>{
   if(!opening)return;
   const blocked=opening.committed&&cannotOpenPost();
+  // Preserve the existing navigation state machine in this wording-only slice.
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   setPhase(blocked?'error':'opening');
   if(blocked)return;
   const completed=()=>{if(document.querySelector(`[data-post-detail-ready="${opening.id}"]`))setOpening(null);};
@@ -55,8 +59,8 @@ export default function PostOpenTransition() {
  if(!opening||(path!==opening.from&&path!==`/posts/${opening.id}`))return null;
  const retry=()=>{setPhase('opening');setAttempt(n=>n+1);if(!cannotOpenPost())router.push(`/posts/${opening.id}`);};
  return <div className={`fixed inset-0 z-40 overflow-hidden bg-surface desktop:hidden ${opening.committed?'pointer-events-auto':'pointer-events-none'}`} aria-hidden={opening.committed?undefined:true} aria-busy={phase!=='error'}>
-  {phase==='slow'&&<p role="status" className="absolute inset-x-inset top-[52px] z-50 px-inset text-center text-detail text-muted">Still opening… (slow connection)</p>}
-  {phase==='error'?<div className="flex h-full flex-col items-center justify-center gap-4 px-inset text-center"><p className="text-body">Couldn&apos;t open this meal.</p><div className="flex gap-3"><button type="button" className="min-h-tap rounded-field bg-field px-4 text-detail font-medium" onClick={retry}>Try again</button><button type="button" className="min-h-tap rounded-field bg-field px-4 text-detail font-medium" onClick={()=>{setOpening(null);if(path!==opening.from)router.back();}}>Back</button></div></div>:
+  {phase==='slow'&&<p role="status" className="absolute inset-x-inset top-[52px] z-50 px-inset text-center text-detail text-muted">{t('stillOpening')}</p>}
+  {phase==='error'?<div className="flex h-full flex-col items-center justify-center gap-4 px-inset text-center"><p className="text-body">{t('couldNotOpen')}</p><div className="flex gap-3"><button type="button" className="min-h-tap rounded-field bg-field px-4 text-detail font-medium" onClick={retry}>{t('tryAgain')}</button><button type="button" className="min-h-tap rounded-field bg-field px-4 text-detail font-medium" onClick={()=>{setOpening(null);if(path!==opening.from)router.back();}}>{t('back')}</button></div></div>:
   /* eslint-disable-next-line @next/next/no-location-assign-relative-destination -- A full load abandons the pending post navigation; a router push would queue behind it. */
   <PostPageShell onBack={event=>{event.preventDefault();setOpening(null);window.location.assign('/');}}><div inert><PostOpenFrame id={opening.id}/></div></PostPageShell>}
  </div>;

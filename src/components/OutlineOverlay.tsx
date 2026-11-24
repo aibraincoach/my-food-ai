@@ -1,6 +1,6 @@
 /* eslint-disable @next/next/no-img-element -- Responsive photos use the existing cacheable media route. */
 "use client";
-import {useLocale} from 'next-intl';
+import {useLocale,useTranslations} from 'next-intl';
 import {useDeviceTimeZone} from '@/components/LocalTime';
 import {imageIdentity} from '@/lib/media/retained-image';
 import {feedPhotoSrcSet} from '@/lib/posts/feed-photo-url';
@@ -8,13 +8,12 @@ import {desktopPhotoVars,photoBoxStyle} from '@/lib/media/photo-box';
 import {alcoholGrams,isAlcoholic} from '@/lib/intake/alcohol';
 import { nutritionTableRows } from "@/lib/nutrition/table";
 
-import {formatDate} from '@/i18n/format';
+import {formatDate,formatNumber,formatPortion} from '@/i18n/format';
 import {LocalTime} from "@/components/LocalTime";
 import { Fragment, useEffect, useRef, useState, type CSSProperties, type PointerEvent } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import type { DetailItem, DetailPhoto, ItemBox } from "@/lib/posts/items";
-import { formatGrams } from "@/lib/nutrition/totals";
 import { failureMessage } from "@/lib/worker/failure-message";
 import { tokens } from "@/lib/theme/tokens";
 import { useDrinkCard } from "@/components/useDrinkCard";
@@ -35,6 +34,7 @@ export function DetailDate({ value, weekday = false }: { value: string; weekday?
 }
 
 function DetailImage({ photo, alt, sizes }: { photo: DetailPhoto; alt: string; sizes: string }) {
+  const t=useTranslations('post');
   const src = photo.previewUrl ?? photo.url;
   const [failed, setFailed] = useState<string | null>(null);
   // Masks and boxes use the original coordinate grid, scaled to this same frame;
@@ -42,7 +42,7 @@ function DetailImage({ photo, alt, sizes }: { photo: DetailPhoto; alt: string; s
   return <><img src={src} srcSet={feedPhotoSrcSet(src)} sizes={sizes}
     onError={() => setFailed(imageIdentity(src))} crossOrigin="anonymous" alt={alt}
     draggable={false} className="h-full w-full object-contain" />
-    {failed === imageIdentity(src) && <span role="status" className="absolute bottom-3 left-3 rounded-field bg-surface px-2 text-meta text-text">Meal photo could not be loaded.</span>}</>;
+    {failed === imageIdentity(src) && <span role="status" className="absolute bottom-3 left-3 rounded-field bg-surface px-2 text-meta text-text">{t('mealPhotoFailed')}</span>}</>;
 }
 
 function Mask({ url, photo, color, frame, fallback }: {
@@ -68,6 +68,7 @@ export default function OutlineOverlay({ desktopModal=false, desktopHeader, desk
   cardData?: CardData; initialDrink?: DrinkCardData|null; failReason?: string|null;
   initialized: boolean; readOnly?: boolean; postId: string; caption: string; eatenAt: string; status: string; photo: DetailPhoto | null; items: DetailItem[]; modelCommentId?:string|null; fingerprint?:string|null; saved?:boolean; handle?:string; children?:ReactNode;
 }) {
+  const t=useTranslations('post'),tm=useTranslations('postMenu');
   const router = useRouter();
   const handle=usePostHandle(providedHandle);
   const [slide,setSlide]=useState(0);
@@ -175,20 +176,20 @@ export default function OutlineOverlay({ desktopModal=false, desktopHeader, desk
           .sort((a, b) => (a.box!.right - a.box!.left) * (a.box!.bottom - a.box!.top) - (b.box!.right - b.box!.left) * (b.box!.bottom - b.box!.top))[0];
         if (hit) setSelection({ item: hit, key: Date.now() });
       }}>
-      {selectedIndex>0 ? selectedSlide?.kind==='photo'&&activePhoto?<DetailImage key={selectedSlide.id??selectedSlide.url} photo={activePhoto} alt={selectedSlide.not_eaten?'Leftovers':`Meal photo ${selectedIndex+1}`} sizes={`${width}px`}/>:<ResultsCard locale={locale} data={displayCard} size={width} time={cardTime}/> : photo && (!drink || drink.source === 'item') ? <>
-        <DetailImage photo={photo} alt={caption || "Meal photo"} sizes={`${width}px`} />
+      {selectedIndex>0 ? selectedSlide?.kind==='photo'&&activePhoto?<DetailImage key={selectedSlide.id??selectedSlide.url} photo={activePhoto} alt={selectedSlide.not_eaten?t('leftovers'):t('mealPhotoNumber',{number:formatNumber(locale,selectedIndex+1,{useGrouping:false})})} sizes={`${width}px`}/>:<ResultsCard locale={locale} data={displayCard} size={width} time={cardTime}/> : photo && (!drink || drink.source === 'item') ? <>
+        <DetailImage photo={photo} alt={caption || t('mealPhoto')} sizes={`${width}px`} />
         {outlines && items.map((item, index) => item.box ? <div key={item.id}>
           <Mask url={outlines ? item.maskUrl : null} photo={photo} color={outlineColor(index)} frame={frame} fallback={boxStyle(item.box)} />
-          <button type="button" disabled={!initialized || readOnly} aria-label={`Edit ${item.name}`} className="absolute max-w-full rounded-chip py-grid text-label font-semibold text-white"
+          <button type="button" disabled={!initialized || readOnly} aria-label={t('editItem',{name:item.name})} className="absolute max-w-full rounded-chip py-grid text-label font-semibold text-white"
             style={{ left: offsetX + item.box.left * scale, top: offsetY + item.box.top * scale, paddingLeft: tokens.detail.chipX, paddingRight: tokens.detail.chipX, background: outlineColor(index) }}
             onClick={(event) => { event.stopPropagation(); setSelection({ item, key: Date.now() }); }}>
-            {item.name}{isAlcoholic(item) ? (alcoholGrams(item.micronutrients)>0 ? ` · ${Math.round(alcoholGrams(item.micronutrients))} g alcohol` : " · alcohol unavailable") : item.portion_grams == null ? "" : ` · ${formatGrams(item.portion_grams)}`}
+            {isAlcoholic(item) ? (alcoholGrams(item.micronutrients)>0 ? t('itemAlcohol',{name:item.name,amount:formatNumber(locale,Math.round(alcoholGrams(item.micronutrients)),{useGrouping:false})}) : t('itemAlcoholUnavailable',{name:item.name})) : item.portion_grams == null ? item.name : t('itemAmount',{name:item.name,amount:formatPortion(locale,item.portion_grams)})}
           </button>
         </div> : null)}
         {drawBox ? <div className="pointer-events-none absolute rounded-field border-2 border-text" style={boxStyle(drawBox)} /> : null}
-        <span className="pointer-events-none absolute bottom-3 right-3 rounded-field bg-overlay px-[10px] py-[5px] text-meta text-white">Outlines · tap one to edit</span>
-      </> : showNutrition ? <ResultsCard locale={locale} data={displayCard} size={width} time={cardTime} gutter={visibleSlides.length>1?ARROW_GUTTER:0} /> : <div role="status" className="flex h-full items-center justify-center px-screen-x text-body text-muted">{status === "failed" ? failureMessage(failReason) : status === "needs_input" ? "A quick question about your meal" : "Processing, traffic low"}</div>}
-      {visibleSlides.length>1&&<><button type="button" aria-label="Previous slide" disabled={selectedIndex===0} onClick={event=>{event.stopPropagation();setSlide(Math.max(0,selectedIndex-1));}} className="absolute left-3 top-1/2 size-9 rounded-circle bg-white/90 text-[24px] text-text disabled:invisible">‹</button><button type="button" aria-label="Next slide" disabled={selectedIndex>=visibleSlides.length-1} onClick={event=>{event.stopPropagation();setSlide(Math.min(Math.max(0,visibleSlides.length-1),selectedIndex+1));}} className="absolute right-3 top-1/2 size-9 rounded-circle bg-white/90 text-[24px] text-text disabled:invisible">›</button><span className="absolute right-3 top-3 rounded-pill bg-overlay px-2 py-1 text-meta text-white">{selectedIndex+1}/{Math.max(1,visibleSlides.length)}</span></>}
+        <span className="pointer-events-none absolute bottom-3 right-3 rounded-field bg-overlay px-[10px] py-[5px] text-meta text-white">{t('outlinesHint')}</span>
+      </> : showNutrition ? <ResultsCard locale={locale} data={displayCard} size={width} time={cardTime} gutter={visibleSlides.length>1?ARROW_GUTTER:0} /> : <div role="status" className="flex h-full items-center justify-center px-screen-x text-body text-muted">{status === "failed" ? failureMessage(failReason) : status === "needs_input" ? t('quickQuestion') : t('processingLow')}</div>}
+      {visibleSlides.length>1&&<><button type="button" aria-label={t('previousSlide')} disabled={selectedIndex===0} onClick={event=>{event.stopPropagation();setSlide(Math.max(0,selectedIndex-1));}} className="absolute left-3 top-1/2 size-9 rounded-circle bg-white/90 text-[24px] text-text disabled:invisible">‹</button><button type="button" aria-label={t('nextSlide')} disabled={selectedIndex>=visibleSlides.length-1} onClick={event=>{event.stopPropagation();setSlide(Math.min(Math.max(0,visibleSlides.length-1),selectedIndex+1));}} className="absolute right-3 top-1/2 size-9 rounded-circle bg-white/90 text-[24px] text-text disabled:invisible">›</button><span className="absolute right-3 top-3 rounded-pill bg-overlay px-2 py-1 text-meta text-white">{t('slideCount',{current:formatNumber(locale,selectedIndex+1,{useGrouping:false}),total:formatNumber(locale,Math.max(1,visibleSlides.length),{useGrouping:false})})}</span></>}
     </div>
     <Container {...(desktopModal?{className:"desktop-post-record"}:{})}>
     {desktopModal&&desktopHeader}
@@ -199,17 +200,17 @@ export default function OutlineOverlay({ desktopModal=false, desktopHeader, desk
       <NutritionSummary items={items}/>
       {desktopModal&&<ItemRows disabled={!initialized||readOnly} items={items} onSelect={item=>setSelection({item,key:Date.now()})} onAdd={add}/>}
       <button type="button" onClick={()=>setExpandedNutrition(value=>!value)} aria-expanded={expandedNutrition} aria-controls={`all-nutrients-${postId}`} className="flex min-h-tap w-full items-center justify-between gap-2 px-inset pt-[10px] text-detail">
-        <span className="text-muted">Consumed · all nutrients</span><span className="flex items-center gap-1 font-medium">{expandedNutrition?'Show less':`Show all ${nutritionTableRows(items).length}`} <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" className={expandedNutrition?'rotate-180':''} aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></span>
+        <span className="text-muted">{t('consumedAll')}</span><span className="flex items-center gap-1 font-medium">{expandedNutrition?t('showLess'):t('showAll',{count:nutritionTableRows(items).length,amount:formatNumber(locale,nutritionTableRows(items).length,{useGrouping:false})})} <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" className={expandedNutrition?'rotate-180':''} aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></span>
       </button>
       {children}
       {expandedNutrition&&<div id={`all-nutrients-${postId}`}>
-        {drawing&&<div className="flex justify-between px-inset text-comment"><button className="min-h-tap" onClick={()=>{setDrawing(false);setDrawBox(null);setSelection(current=>current?{...current,box:undefined}:null);}}>Continue without a box</button><button className="min-h-tap text-muted" onClick={()=>{setDrawing(false);setDrawBox(null);}}>Cancel</button></div>}
+        {drawing&&<div className="flex justify-between px-inset text-comment"><button className="min-h-tap" onClick={()=>{setDrawing(false);setDrawBox(null);setSelection(current=>current?{...current,box:undefined}:null);}}>{t('continueWithoutBox')}</button><button className="min-h-tap text-muted" onClick={()=>{setDrawing(false);setDrawBox(null);}}>{tm('cancel')}</button></div>}
         {!desktopModal&&<ItemRows disabled={!initialized||readOnly} items={items} onSelect={item=>setSelection({item,key:Date.now()})} onAdd={add}/>}
         <NutritionTable items={items}/>
       </div>}
     </>}
-    {waiting || ["queued", "processing"].includes(status) ? <p role="status" className="px-screen-x text-meta text-muted">Updating nutrition…</p> : null}
-    {status === "failed" && initialized ? <p role="status" className="px-screen-x text-meta text-muted">Nutrition could not be updated.</p> : null}
+    {waiting || ["queued", "processing"].includes(status) ? <p role="status" className="px-screen-x text-meta text-muted">{t('updatingNutrition')}</p> : null}
+    {status === "failed" && initialized ? <p role="status" className="px-screen-x text-meta text-muted">{t('nutritionUpdateFailed')}</p> : null}
     </Container>
     {desktopModal&&desktopThread}
     </Container>

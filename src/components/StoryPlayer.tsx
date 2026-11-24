@@ -53,7 +53,8 @@ export default function StoryPlayer({ day, zone, onClose, onDay, cell }: { day: 
   const previous = shiftDay(day.date, -1), next = shiftDay(day.date, 1);
   const post = day.posts[slide];
   const gap=gapSentence(nutritionGaps(day.totals));
-  const time = (value: string) => clockZone ? formatLocalTime(value,clockZone) : "";
+  // Slice4b supplies the active locale; retain StoryPlayer's existing English until then.
+  const time = (value: string) => clockZone ? formatLocalTime('en',value,clockZone) : "";
   const title = new Date(`${day.date}T12:00:00Z`).toLocaleDateString("en", { timeZone: "UTC", weekday: "long", month: "short", day: "numeric" });
   const weekday = new Date(`${day.date}T12:00:00Z`).toLocaleDateString("en", { timeZone: "UTC", weekday: "long" });
   const month = new Date(`${day.date}T12:00:00Z`).toLocaleDateString("en", { timeZone: "UTC", month: "long" });
