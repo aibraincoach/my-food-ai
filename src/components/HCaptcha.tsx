@@ -1,5 +1,5 @@
 "use client";
-import {useTranslations} from 'next-intl';
+import {useLocale,useTranslations} from 'next-intl';
 
 
 import Script from "next/script";
@@ -23,6 +23,7 @@ const listeners=new Set<()=>void>();
 
 export default function HCaptcha(){
  const t=useTranslations('auth');
+ const gap=useLocale()==='ja'?'':' ';
   const sitekey=process.env.NEXT_PUBLIC_HCAPTCHA_SITE_KEY;
   const [failed,setFailed]=useState(false);
   const container=useCallback((node:HTMLDivElement|null)=>{
@@ -80,6 +81,6 @@ export default function HCaptcha(){
     <Script id="mfa-hcaptcha" src="https://js.hcaptcha.com/1/api.js?onload=mfaHCaptchaReady&render=explicit"
       strategy="afterInteractive" onError={()=>setFailed(true)}/>
     {failed?<AuthErrorBanner>{t('checkFailure')}</AuthErrorBanner>:null}
-    <p className="text-label text-muted">{t('captchaLead')} <a href="https://www.hcaptcha.com/privacy" className="underline">{t('privacy')}</a> {t('captchaAnd')} <a href="https://www.hcaptcha.com/terms" className="underline">{t('terms')}</a> {t('captchaEnd')}</p>
+    <p className="text-label text-muted">{t('captchaLead')}{gap}<a href="https://www.hcaptcha.com/privacy" className="underline">{t('privacy')}</a>{gap}{t('captchaAnd')}{gap}<a href="https://www.hcaptcha.com/terms" className="underline">{t('terms')}</a>{gap}{t('captchaEnd')}</p>
   </>;
 }
