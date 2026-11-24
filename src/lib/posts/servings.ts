@@ -41,11 +41,6 @@ export const servingsLabel = (value: number): string => {
   return String(Number(rounded.toFixed(2)));
 };
 
-// The header's words: exactly one is "serving", more than one is "servings".
-// Displayed fractions below one use "serving"; decimal quantities use "servings" (AGY).
-export const servingsText = (value: number): string =>
-  `${servingsLabel(value)} ${(roundServings(value) > 1 || servingsLabel(value).includes(".")) ? "servings" : "serving"}`;
-
 const parseFractionToken = (token: string): number | null => {
   const trimmed = token.trim();
   if (!trimmed) return null;

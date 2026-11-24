@@ -1,4 +1,5 @@
 "use client";
+import {useTranslations} from 'next-intl';
 
 import { useEffect, useState } from "react";
 import {refreshAfterReadinessSeed,refreshAfterReady} from "@/lib/posts/readiness-refresh";
@@ -7,6 +8,7 @@ import { createClient } from "@/lib/supabase/client";
 
 // Tabs share one readiness observer so capture also updates Days and Profile.
 export default function PostReadinessListener() {
+  const t=useTranslations('feed');
   const router = useRouter();
   const [reconnectFailed, setReconnectFailed] = useState(false);
   useEffect(() => {
@@ -182,5 +184,5 @@ export default function PostReadinessListener() {
       window.removeEventListener("focus", focus);
     };
   }, [router]);
-  return reconnectFailed ? <p role="status">Meal updates could not reconnect. Refresh to try again.</p> : null;
+  return reconnectFailed ? <p role="status">{t('updatesReconnectFailed')}</p> : null;
 }

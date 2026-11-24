@@ -1,4 +1,5 @@
 /* eslint-disable @next/next/no-img-element -- Private signed photos bypass paid optimization. */
+import {getTranslations} from 'next-intl/server';
 import {firstPhotoSources} from '@/lib/posts/feed-photo-url';
 import type { TodayView } from "@/lib/posts/today-view";
 import { verifiedUserId } from "@/lib/auth/verified-user";
@@ -125,13 +126,14 @@ async function HomeFirstPhoto() {
   } catch { /* The normal feed boundary and cache remain available. */ }
   if(!first)return null;
   if(first.photoUrl)preloadFirstPhoto(first.photoUrl);
+  const [t,tp]=await Promise.all([getTranslations('feed'),getTranslations('post')]);
   return <div data-fast-feed-seed className="relative pb-card-gap">
     <DayHeader day={dateInZone(first.eaten_at,zone)} zone={zone} empty={false}/><div className="pt-sheet-top">
     <div className="flex h-[52px] items-center gap-[10px] px-inset" aria-hidden="true"><span className="size-8 rounded-circle bg-card"/><span className="h-3 w-24 rounded-field bg-card"/></div>
-    {first.photoUrl?<Link href={`/posts/${first.id}`} aria-label="Open meal details" className="block aspect-square">
-      <FirstPhoto url={first.photoUrl} alt={first.caption||'Meal photo'} />
+    {first.photoUrl?<Link href={`/posts/${first.id}`} aria-label={t('openMealDetails')} className="block aspect-square">
+      <FirstPhoto url={first.photoUrl} alt={first.caption||tp('mealPhoto')} />
     </Link>:null}
-    <div className="px-inset py-sheet-top">{first.caption?<p className="text-body">{first.caption}</p>:null}<p className="text-detail text-muted" role="status">Loading meal details…</p></div></div>
+    <div className="px-inset py-sheet-top">{first.caption?<p className="text-body">{first.caption}</p>:null}<p className="text-detail text-muted" role="status">{t('loadingMealDetails')}</p></div></div>
   </div>;
 }
 
@@ -158,12 +160,14 @@ export default async function Home({searchParams}:{searchParams:Promise<{post?:s
     <NeedsInputStrip />
     <Suspense fallback={<DayRings pending days={[]} totals={[]} today="1970-01-01" zone="UTC" zoneKnown={false}/>}><HomeDays /></Suspense>
     <div data-home-feed>
-      <style>{`[data-home-feed]:has([data-server-feed-ready], [data-feed-client-ready]) > [data-cached-feed] { display: none; }
-[data-home-feed]:has([data-server-feed-ready], [data-feed-client-ready], [data-cached-feed-ready], [data-feed-error]) [data-fast-feed-seed] { display: none; }
-[data-home-feed]:has([data-fast-feed-seed]) > [data-cached-feed]:not(:has([data-cached-feed-ready])) { display: none; }`}</style>
+      <style>{HOME_FEED_STYLES}</style>
       <div data-cached-feed><CachedFeedFallback /></div>
       <Suspense fallback={null}><HomeFirstPhoto /></Suspense>
       <Suspense fallback={null}><HomeFeed /></Suspense>
     </div>
   </DesktopHomeFrame></DesktopWorkspace>;
 }
+
+const HOME_FEED_STYLES = `[data-home-feed]:has([data-server-feed-ready], [data-feed-client-ready]) > [data-cached-feed] { display: none; }
+[data-home-feed]:has([data-server-feed-ready], [data-feed-client-ready], [data-cached-feed-ready], [data-feed-error]) [data-fast-feed-seed] { display: none; }
+[data-home-feed]:has([data-fast-feed-seed]) > [data-cached-feed]:not(:has([data-cached-feed-ready])) { display: none; }`;

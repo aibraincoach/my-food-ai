@@ -1,16 +1,27 @@
+import {createTranslator} from 'next-intl';
+import {englishIntl} from './fixtures/english-intl.mjs';
+import {servingsMessageValues} from '../src/i18n/servings.ts';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
-import {servingsText} from '../src/lib/posts/servings.ts';
 
 test('the servings control says serving for one or a part, servings above one (#1124)',()=>{
- for(const [value,want] of [[1,'1 serving'],[2,'2 servings'],[1.5,'1½ servings'],[0.5,'½ serving'],[0.25,'¼ serving'],[0.1,'0.1 servings'],[50,'50 servings'],[1.25,'1¼ servings']])assert.equal(servingsText(value),want,String(value));
+ const t=englishIntl.useTranslations('postMenu');
+ for(const [value,want] of [[0,'0 servings'],[1,'1 serving'],[2,'2 servings'],[1.5,'1½ servings'],[0.5,'½ serving'],[0.25,'¼ serving'],[0.1,'0.1 servings'],[50,'50 servings'],[1.25,'1¼ servings']])assert.equal(t('servingAmount',servingsMessageValues(value)),want,String(value));
 });
 test('the meal header shows the words beside the pencil; its name says what it edits and its count (#1124, #1134)',()=>{
  const source=readFileSync(new URL('../src/components/PostDetailHeader.tsx',import.meta.url),'utf8');
- const start=source.indexOf('aria-label={`Edit servings, ${servingsText(saved)}`}');assert.ok(start>0,'the accessible name includes the count and unit');
+ const t=englishIntl.useTranslations('postMenu');
+ for(const [value,expected] of[[0,'0 servings'],[0.25,'¼ serving'],[1,'1 serving'],[1.5,'1½ servings'],[2,'2 servings']])assert.equal(t('editServings',{amount:t('servingAmount',servingsMessageValues(value))}),`Edit servings, ${expected}`);
+ const jaMessages=JSON.parse(readFileSync(new URL('../messages/ja.json',import.meta.url),'utf8'));
+ const ja=createTranslator({locale:'ja',namespace:'postMenu',messages:jaMessages});
+ for(const value of[0,0.25,1,1.5,2]){
+  assert.equal(ja('servingAmount',servingsMessageValues(value)),servingsMessageValues(value).amount+'食分');
+  assert.equal(ja('editServings',{amount:ja('servingAmount',servingsMessageValues(value))}),`食分の数を編集、${servingsMessageValues(value).amount}食分`);
+ }
+ const start=source.indexOf("aria-label={t('editServings',{amount:servingText(saved)})}");assert.ok(start>0,'the accessible name includes the count and unit');
  const button=source.slice(start,source.indexOf('</button>',start));
- assert.ok(button.includes('>{servingsText(saved)} <span className="text-muted" aria-hidden>✎</span>'),button);
+ assert.ok(button.includes('>{servingText(saved)} <span className="text-muted" aria-hidden>✎</span>'),button);
  assert.ok(!button.includes('{servingsLabel(saved)} <span'));
  assert.match(button,/className="[^"]*\bmin-h-tap\b[^"]*"/,'the closed control meets the 44 px tap size');
  assert.match(button,/className="[^"]*-my-3\b[^"]*"/,'its margin keeps the header row height');

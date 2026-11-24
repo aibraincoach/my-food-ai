@@ -1,3 +1,5 @@
+import {englishIntl,englishIntlServer} from './fixtures/english-intl.mjs';
+import * as readingFormat from '../src/i18n/format.ts';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {refreshAfterReadinessSeed,refreshAfterReady} from '../src/lib/posts/readiness-refresh.ts';
@@ -24,7 +26,7 @@ test('mounted readiness observer skips initial Home reloads but still refreshes 
   const db={auth:{onAuthStateChange:()=>({data:{subscription:{unsubscribe(){}}}}),getUser:async()=>({data:{user:{id:'owner'}}}),getSession:async()=>({data:{session:{user:{id:'owner'}}}})},channel:()=>channel,removeChannel:async()=>{},from:()=>({select:()=>{
    const query={eq(){return this;},in:async()=>({data:pendingRows,error:null}),order(){return this;},limit:async()=>({data:[{id:'meal',status:'ready'}],error:null})};return query;
   }})};
-  vm.default.runInNewContext(code,{exports,Map,Date:FakeDate,Promise,Event,CustomEvent,window:events,document,location:{pathname:home?'/':'/days'},setTimeout:(run)=>{timers.set(1,run);return 1;},clearTimeout:id=>timers.delete(id),require(name){
+  vm.default.runInNewContext(code,{exports,Map,Date:FakeDate,Promise,Event,CustomEvent,window:events,document,location:{pathname:home?'/':'/days'},setTimeout:(run)=>{timers.set(1,run);return 1;},clearTimeout:id=>timers.delete(id),require(name){if(name==='next-intl')return englishIntl;if(name==='next-intl/server')return englishIntlServer;if(name==='@/i18n/format')return readingFormat;
    if(name==='react')return{useEffect:run=>{effect=run;},useState:initial=>[initial,()=>{}]};
    if(name==='react/jsx-runtime')return{jsx:()=>null};
    if(name==='next/navigation')return{useRouter:()=>({refresh(){refreshes++;}})};

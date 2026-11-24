@@ -1,4 +1,5 @@
 "use client";
+import {useTranslations} from "next-intl";
 
 import {dayTotalRefreshDates} from "@/lib/posts/day-total-changes";
 
@@ -42,6 +43,7 @@ export function CachedFeedFallback() {
 // Home discovers new rows on events and focus; failed channels never start a poll.
 // Per-card refreshes remain in RealtimePost, so discovery fetches only IDs.
 export default function Feed({initialPage, initialUserId, initialZone = "UTC", fallbackOnly = false}: {initialZone?: string; fallbackOnly?: boolean; initialPage?: {posts: FeedPost[]; days: FeedDayTotal[]; nextCursor: string | null; discoveryIds?: string[]}; initialUserId?: string} = {}) {
+  const t=useTranslations('feed');
   const router = useRouter();
   const deviceZone=useDeviceTimeZone();
   const renderZone=deviceZone||initialZone;
@@ -485,13 +487,13 @@ export default function Feed({initialPage, initialUserId, initialZone = "UTC", f
   const localDay=uploads.map(upload=>dateInZone((visibleState.kind==='ready'?visibleState.posts.find(post=>post.id===upload.postId)?.eaten_at:undefined)??upload.eatenAt,renderZone));
   const localCards=uploads.map(upload=>{const server=visibleState.kind==='ready'?visibleState.posts.find(post=>post.id===upload.postId):undefined;const seed:FeedPost=server??{id:upload.postId??upload.operationId,caption:upload.caption,eaten_at:upload.eatenAt,created_at:upload.eatenAt,status:"queued",photoUrl:upload.previewUrl,slides:[],items:[]};const zone=renderZone;const day=dateInZone(seed.eaten_at,zone);const header=!uploadDays.has(day);const measured=visibleState.kind==='ready'?visibleState.days.find(value=>value.day===day):undefined;const measuredTotal=measured?{...measured,ready:measured.ready||measured.kcal===0}:undefined;if(header)uploadDays.add(day);return <UploadHydratedCard key={upload.operationId} post={seed} upload={upload} attachment={upload.postId?attachmentUploads.find(attached=>uploadTargetsPost(attached,upload.postId!)):undefined} header={header?<DayHeader day={day} zone={zone} empty={false} total={measuredTotal}/>:null}/>;});
   if (visibleState.kind === "loading"&&localCards.length)return <div>{lostNotice}{localCards}{null}</div>;
-  if (visibleState.kind === "loading") return <div>{lostNotice}<p className="px-screen-x text-detail text-muted" role="status">Loading feed…</p></div>;
-  if (visibleState.kind === "error") return <div data-feed-error>{lostNotice}{localCards}<p className="px-screen-x text-detail text-muted" role="alert">The feed could not be loaded.</p><button type="button" className="min-h-tap px-screen-x text-text" onClick={() => retryInitial.current()}>Try again</button></div>;
+  if (visibleState.kind === "loading") return <div>{lostNotice}<p className="px-screen-x text-detail text-muted" role="status">{t('loading')}</p></div>;
+  if (visibleState.kind === "error") return <div data-feed-error>{lostNotice}{localCards}<p className="px-screen-x text-detail text-muted" role="alert">{t('loadFailed')}</p><button type="button" className="min-h-tap px-screen-x text-text" onClick={() => retryInitial.current()}>{t('tryAgain')}</button></div>;
   if (!visibleState.posts.length&&localCards.length)return <div>{lostNotice}{localCards}{null}</div>;
   if (!visibleState.posts.length) return <div data-feed-source={fallbackOnly||!freshResponse?"cache":"fresh"} data-feed-client-ready={!fallbackOnly ? true : undefined} data-cached-feed-ready={fallbackOnly ? true : undefined} className="flex w-full flex-1 flex-col">
     {lostNotice}
     <div className="flex flex-1 items-center justify-center" style={{ paddingBottom: tokens.spacing['sheet-bottom'] * 3 }}>
-    <p className="text-sheet-title font-normal text-muted">Post your first meal</p>
+    <p className="text-sheet-title font-normal text-muted">{t('firstMeal')}</p>
     </div>
   </div>;
   const firstPhotoId=visibleState.posts.find(post=>post.photoUrl)?.id;
@@ -507,7 +509,7 @@ export default function Feed({initialPage, initialUserId, initialZone = "UTC", f
   const totals = new Map(visibleState.days.map(day => [day.day, day]));
   return <div data-feed-source={fallbackOnly||!freshResponse?"cache":"fresh"} data-feed-client-ready={!fallbackOnly ? true : undefined} data-cached-feed-ready={fallbackOnly ? true : undefined} className="flex flex-col">
     {lostNotice}
-    {reconnectFailed?<p role="status" className="px-screen-x text-detail text-muted">Meal updates could not reconnect. Refresh to try again.</p>:null}
+    {reconnectFailed?<p role="status" className="px-screen-x text-detail text-muted">{t('updatesReconnectFailed')}</p>:null}
     {localCards.filter((_,index)=>!days.includes(localDay[index]))}
     {days.map(day => <section key={day} aria-label={day} className="relative pb-card-gap">
       {!uploadDays.has(day)&&<DayHeader day={day} zone={zone} empty={!groups.has(day)} total={totals.get(day)} />}
@@ -516,8 +518,8 @@ export default function Feed({initialPage, initialUserId, initialZone = "UTC", f
          />} />}</div>)}</div> : null}
     </section>)}
     {pageError || cardReadFailed ? <div className="px-screen-x text-detail text-muted" role="alert">
-      <p>More meals could not be loaded.</p>
-      <button type="button" className="min-h-tap text-text" onClick={() => { if(cardReadFailed)retryCards.current();else loadMore.current(); }}>Try again</button>
+      <p>{t('moreMealsFailed')}</p>
+      <button type="button" className="min-h-tap text-text" onClick={() => { if(cardReadFailed)retryCards.current();else loadMore.current(); }}>{t('tryAgain')}</button>
     </div> : null}
     <div ref={sentinel} className="h-tap" aria-hidden="true" />
   </div>;
@@ -583,6 +585,7 @@ function UploadHydratedCard({post,upload,attachment,header}:{post:FeedPost;uploa
 
 // Only the main Feed renders this durable draft notice.
 function LostDraftNotice({upload}: {upload: UploadState}) {
+  const t=useTranslations('feed');
   const [failed,setFailed]=useState(false);
   const [saving,setSaving]=useState(false);
   const acknowledge=async()=>{
@@ -592,8 +595,8 @@ function LostDraftNotice({upload}: {upload: UploadState}) {
     finally { setSaving(false); }
   };
   return <div data-lost-draft-notice className="px-screen-x text-detail text-muted" role="status">
-    <p>{upload.caption.trim() ? "An unposted photo couldn’t be recovered, but your caption is saved." : "An unposted photo couldn’t be recovered."}</p>
-    <button type="button" className="min-h-tap text-text" disabled={saving} onClick={()=>void acknowledge()}>OK</button>
-    {failed?<p role="alert">This could not be saved. Try again.</p>:null}
+    <p>{upload.caption.trim() ? t('lostPhotoCaption') : t('lostPhoto')}</p>
+    <button type="button" className="min-h-tap text-text" disabled={saving} onClick={()=>void acknowledge()}>{t('acknowledgeLost')}</button>
+    {failed?<p role="alert">{t('lostNoticeSaveFailed')}</p>:null}
   </div>;
 }

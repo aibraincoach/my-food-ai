@@ -1,4 +1,5 @@
 'use client';
+import {useTranslations} from 'next-intl';
 import {useEffect,useState} from 'react';
 import {createClient} from '@/lib/supabase/client';
 export type ProfileIdentity={handle:string;userId:string;avatarMediaId:string|null};
@@ -62,5 +63,6 @@ export function usePostHandle(handle?:string,author?:PostAuthorRow|null) {
 }
 
 export function AgentAttribution({ name }: { name?: string | null }) {
- return name ? <span className="block truncate text-[11px] font-normal leading-[1.3] text-muted">via {name}</span> : null;
+ const t=useTranslations('post');
+ return name ? <span className="block truncate text-[11px] font-normal leading-[1.3] text-muted">{t('viaAgent',{name})}</span> : null;
 }

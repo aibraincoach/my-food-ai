@@ -1,3 +1,6 @@
+import * as readingFormat from '../src/i18n/format.ts';
+import {servingsMessageValues} from '../src/i18n/servings.ts';
+import {englishIntl,englishIntlServer} from './fixtures/english-intl.mjs';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import {readFileSync} from 'node:fs';
@@ -13,6 +16,11 @@ function component(file,name){
  const source=readFileSync(new URL('../src/components/'+file,import.meta.url),'utf8')+`\nexport {${name}};`;
  const compiled=ts.transpileModule(source,{compilerOptions:{module:ts.ModuleKind.CommonJS,jsx:ts.JsxEmit.ReactJSX,target:ts.ScriptTarget.ES2022}}).outputText,exports={};
  vm.runInNewContext(compiled,{exports,Image:class{constructor(){images.push(this);}},require(dependency){
+ if(dependency==='next-intl')return englishIntl;
+ if(dependency==='next-intl/server')return englishIntlServer;
+ if(dependency==='@/i18n/format')return readingFormat;
+ if(dependency==='@/i18n/servings')return {servingsMessageValues};
+
   if(dependency==='react')return hooks;
   if(dependency==='react/jsx-runtime')return{jsx:(type,props)=>({type,props}),jsxs:(type,props)=>({type,props})};
   if(dependency==='@/lib/posts/feed-photo-url')return{feedPhotoSrcSet,firstPhotoSources,FEED_PHOTO_SIZES,firstPhotoUpgrade:()=>new Promise(()=>{})};

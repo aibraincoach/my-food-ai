@@ -1,3 +1,6 @@
+import * as readingFormat from '../src/i18n/format.ts';
+import {servingsMessageValues} from '../src/i18n/servings.ts';
+import {englishIntl,englishIntlServer} from './fixtures/english-intl.mjs';
 // node --import tsx --test tests/feed-removal.test.mjs
 import test from 'node:test';
 import assert from 'node:assert/strict';
@@ -16,6 +19,11 @@ test('retiring the last meal clears feed state and rejects an older hydration re
  vm.runInNewContext(code,{exports,URLSearchParams,AbortSignal,fetch:async()=>({ok:true,json:async()=>forceReset?new Promise(resolve=>{resolvePage=resolve;}):({posts:[post],nextCursor:null,days:[]})}),document:{hidden:false,addEventListener(){},removeEventListener(){}},CustomEvent:class{constructor(type,init){this.type=type;this.detail=init?.detail;}},
  window:{addEventListener(type,fn){listeners.set(type,fn);},removeEventListener(){},dispatchEvent(){}},setTimeout:()=>{timedReads++;throw Error('Feed must not schedule a retry or discovery timer');},clearTimeout(){},
  require(name){
+ if(name==='next-intl')return englishIntl;
+ if(name==='next-intl/server')return englishIntlServer;
+ if(name==='@/i18n/format')return readingFormat;
+ if(name==='@/i18n/servings')return {servingsMessageValues};
+
   if(name==='@/lib/posts/day-total-changes')return{dayTotalRefreshDates};if(name==='@/lib/posts/day-totals-refresh')return{createDayTotalsRefresh};if(name==='react')return{useEffect:fn=>effects.push(fn),useRef:current=>({current}),useState:initial=>[initial,state=>{if(state&&typeof state==='object'&&'kind'in state)states.push(state);}]};
   if(name==='react/jsx-runtime')return{jsx:()=>null,jsxs:()=>null};
   if(name==='next/navigation')return{useRouter:()=>({replace(){}})};

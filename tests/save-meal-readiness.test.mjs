@@ -1,9 +1,11 @@
+import * as readingFormat from '../src/i18n/format.ts';
+import {servingsMessageValues} from '../src/i18n/servings.ts';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import vm from 'node:vm';
 import ts from 'typescript';
 import {readFileSync} from 'node:fs';
-import {englishIntl} from './fixtures/english-intl.mjs';
+import {englishIntl,englishIntlServer} from './fixtures/english-intl.mjs';
 import {beginBookmark,finishBookmark} from '../src/lib/posts/save-optimistic.ts';
 
 // Render the actual surfaces and their actual menu/action children. Unrelated
@@ -20,6 +22,11 @@ function mount(status,saved=false){
   const source=readFileSync(new URL(`../src/components/${name}.tsx`,import.meta.url),'utf8');
   const code=ts.transpileModule(source,{compilerOptions:{module:ts.ModuleKind.CommonJS,jsx:ts.JsxEmit.ReactJSX,target:ts.ScriptTarget.ES2022}}).outputText;
   vm.runInNewContext(code,{exports,setTimeout:()=>0,clearTimeout:()=>{},Date,Intl,Boolean,Array,CustomEvent,AbortSignal,window:events,require(id){
+ if(id==='next-intl')return englishIntl;
+ if(id==='next-intl/server')return englishIntlServer;
+ if(id==='@/i18n/format')return readingFormat;
+ if(id==='@/i18n/servings')return {servingsMessageValues};
+
    const component=id.split('/').at(-1);if(names.has(component))return load(component);
    if(id==='react')return{useState:initial=>[typeof initial==='function'?initial():initial,()=>{}],useRef:current=>({current}),useEffect:()=>{},Fragment:'fragment'};
    if(id==='react/jsx-runtime')return{jsx,jsxs:jsx,Fragment:'fragment'};

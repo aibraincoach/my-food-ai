@@ -31,7 +31,7 @@ async function loadHintState() {
 
 
 export default function FirstRunHint({ hint, onTryBarcode, onVisibilityChange }: { hint: HintKey; onTryBarcode?: () => void; onVisibilityChange?: (visible: boolean) => void }) {
-  const t=useTranslations('capture');
+  const t=useTranslations('hints');
   const copy:Record<HintKey,string>={modes:t('hintModes'),capture:t('hintCapture'),thread:t('hintThread'),thumbs:t('hintThumbs')};
   const dismiss = useRef<() => void>(() => {});
   const [visible, setVisible] = useState(false);

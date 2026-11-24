@@ -1,3 +1,6 @@
+import * as readingFormat from '../src/i18n/format.ts';
+import {servingsMessageValues} from '../src/i18n/servings.ts';
+import {englishIntl,englishIntlServer} from './fixtures/english-intl.mjs';
 // node --import tsx --test tests/feed-cache-lifecycle.test.mjs
 import test from 'node:test';
 import assert from 'node:assert/strict';
@@ -26,6 +29,9 @@ async function serverHome(seedRead){
  const exported={};
  const noop=()=>null;
  const require=name=>{
+  if(name==='next-intl/server')return englishIntlServer;
+  if(name==='next-intl')return englishIntl;
+  if(name==='@/i18n/format')return readingFormat;
   if(name==='react')return{Suspense:({children})=>children,cache:fn=>fn};
   if(name==='@/lib/posts/feed-photo-url')return{feedPhotoSrcSet:()=>undefined};
     if(name==='react-dom')return{preload(){}};
@@ -65,6 +71,11 @@ function attribute(tree,name){
 function fallbackFor(tree){
  const exported={};
  vm.runInNewContext(compile('../src/components/Feed.tsx'),{exports:exported,document:{querySelector(selector){return selector.split(',').some(part=>{const name=/^\[([^\]]+)\]$/.exec(part.trim())?.[1];return name&&attribute(tree,name);})?{}:null;}},require(name){
+ if(name==='next-intl')return englishIntl;
+ if(name==='next-intl/server')return englishIntlServer;
+ if(name==='@/i18n/format')return readingFormat;
+ if(name==='@/i18n/servings')return {servingsMessageValues};
+
   if(name==='react')return{useSyncExternalStore:(_subscribe,snapshot)=>snapshot()};
   if(name==='react/jsx-runtime')return{jsx,jsxs:jsx};
   if(name==='@/lib/posts/day-totals-refresh')return{createDayTotalsRefresh};
@@ -107,6 +118,11 @@ async function mountedFeed(initialPosts,{cachedPosts,failPage=false,initialPage,
   window:{addEventListener:(type,fn)=>listeners.set(type,fn),removeEventListener:type=>listeners.delete(type),dispatchEvent(){}},
   CustomEvent:class{constructor(type,init){this.type=type;this.detail=init?.detail;}},setInterval:()=>1,clearInterval(){},setTimeout:(fn,ms=0)=>{timers.set(++nextTimer,{fn,at:now+ms});return nextTimer;},clearTimeout:id=>timers.delete(id),
   require(name){
+ if(name==='next-intl')return englishIntl;
+ if(name==='next-intl/server')return englishIntlServer;
+ if(name==='@/i18n/format')return readingFormat;
+ if(name==='@/i18n/servings')return {servingsMessageValues};
+
    if(name==='react')return{useEffect:fn=>effects.push(fn),useRef:value=>({current:value}),useState:initial=>{const index=hookIndex++;if(!(index in hookStates))hookStates[index]=initial;return[hookStates[index],next=>{hookStates[index]=typeof next==='function'?next(hookStates[index]):next;states.push(hookStates[index]);}];}};
    if(name==='react/jsx-runtime')return{jsx,jsxs:jsx};
    if(name==='next/navigation')return{useRouter:()=>({replace(){}})};

@@ -1,3 +1,5 @@
+import {englishIntl,englishIntlServer} from './fixtures/english-intl.mjs';
+import * as readingFormat from '../src/i18n/format.ts';
 // node --import tsx --test tests/home-day-totals.test.mjs
 import assert from 'node:assert/strict';
 import test from 'node:test';
@@ -16,7 +18,7 @@ test('parallel Home streams share one totals read and pass that snapshot into Fe
   const source=readFileSync(new URL('../src/app/(tabs)/page.tsx',import.meta.url),'utf8')+'\nexport {HomeDays,HomeFeed,HomeToday};';
   const code=ts.transpileModule(source,{compilerOptions:{module:ts.ModuleKind.CommonJS,jsx:ts.JsxEmit.ReactJSX,target:ts.ScriptTarget.ES2022}}).outputText;
   const exports={};
-  vm.runInNewContext(code,{exports,Date,Promise,Array,Boolean,AbortSignal,setTimeout,clearTimeout,console,require(name){
+  vm.runInNewContext(code,{exports,Date,Promise,Array,Boolean,AbortSignal,setTimeout,clearTimeout,console,require(name){if(name==='next-intl')return englishIntl;if(name==='next-intl/server')return englishIntlServer;if(name==='@/i18n/format')return readingFormat;
     if(name==='react')return {cache(fn){let promise;return()=>promise??=fn();},Suspense:()=>null};
     if(name==='react/jsx-runtime')return{jsx:(component,props)=>({component,props}),jsxs:(component,props)=>({component,props})};
     if(name==='@/lib/posts/feed-photo-url')return{feedPhotoSrcSet:()=>undefined};
@@ -46,7 +48,7 @@ test('Home feed and Today each perform one read per render',async()=>{
   const source=readFileSync(new URL('../src/app/(tabs)/page.tsx',import.meta.url),'utf8')+'\nexport {HomeFeed,HomeToday};';
   const code=ts.transpileModule(source,{compilerOptions:{module:ts.ModuleKind.CommonJS,jsx:ts.JsxEmit.ReactJSX,target:ts.ScriptTarget.ES2022}}).outputText;
   const exports={};
-  vm.runInNewContext(code,{exports,Date,Promise,Array,Boolean,AbortSignal,setTimeout,clearTimeout,console,require(name){
+  vm.runInNewContext(code,{exports,Date,Promise,Array,Boolean,AbortSignal,setTimeout,clearTimeout,console,require(name){if(name==='next-intl')return englishIntl;if(name==='next-intl/server')return englishIntlServer;if(name==='@/i18n/format')return readingFormat;
     if(name==='react')return {cache(fn){let promise;return()=>promise??=fn();},Suspense:()=>null};
     if(name==='react/jsx-runtime')return{jsx:(component,props)=>({component,props}),jsxs:(component,props)=>({component,props})};
     if(name==='@/lib/posts/feed-photo-url')return{feedPhotoSrcSet:()=>undefined};
@@ -71,7 +73,7 @@ test('when the shared read of today fails, the circles and the feed still get ev
   const source=readFileSync(new URL('../src/app/(tabs)/page.tsx',import.meta.url),'utf8')+'\nexport {HomeDays,HomeFeed,HomeToday};';
   const code=ts.transpileModule(source,{compilerOptions:{module:ts.ModuleKind.CommonJS,jsx:ts.JsxEmit.ReactJSX,target:ts.ScriptTarget.ES2022}}).outputText;
   const exports={};
-  vm.runInNewContext(code,{exports,Date,Promise,Array,Boolean,AbortSignal,setTimeout,clearTimeout,console,require(name){
+  vm.runInNewContext(code,{exports,Date,Promise,Array,Boolean,AbortSignal,setTimeout,clearTimeout,console,require(name){if(name==='next-intl')return englishIntl;if(name==='next-intl/server')return englishIntlServer;if(name==='@/i18n/format')return readingFormat;
     if(name==='react')return {cache(fn){let promise;return()=>promise??=fn();},Suspense:()=>null};
     if(name==='react/jsx-runtime')return{jsx:(component,props)=>({component,props}),jsxs:(component,props)=>({component,props})};
     if(name==='@/lib/posts/feed-photo-url')return{feedPhotoSrcSet:()=>undefined};
@@ -119,7 +121,7 @@ test('feed API validates the known-date boundary and retains its independent Aut
   const code=ts.transpileModule(source,{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText;
   let authCalls=0,readCalls=0,options;
   const exports={};
-  vm.runInNewContext(code,{exports,Date,Promise,URL,Set,Number,AbortSignal,setTimeout,clearTimeout,console,require(name){
+  vm.runInNewContext(code,{exports,Date,Promise,URL,Set,Number,AbortSignal,setTimeout,clearTimeout,console,require(name){if(name==='next-intl')return englishIntl;if(name==='next-intl/server')return englishIntlServer;if(name==='@/i18n/format')return readingFormat;
     if(name==='next/server')return{NextResponse:{json:(body,init)=>Response.json(body,init)}};
     if(name==='next/headers')return{cookies:async()=>({get:()=>({value:'UTC'})}),headers:async()=>({get:()=>null})};
     if(name==='@/lib/posts/home-today')return{homeToday:async()=>({date:'2026-11-03',posts:[],totals:{}})};

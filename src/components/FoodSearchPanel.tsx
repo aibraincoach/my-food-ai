@@ -1,5 +1,7 @@
 "use client";
-import {useTranslations} from 'next-intl';
+import {useLocale,useTranslations} from 'next-intl';
+import type {Locale} from '@/i18n/locales';
+import {formatNumber} from '@/i18n/format';
 import {CaptureFailureError,captureFailureText} from '@/lib/posts/capture-failure';
 
 import { useEffect, useRef, useState } from "react";
@@ -13,7 +15,7 @@ type Match = { id: number; description: string; serving_amount: number; serving_
 export default function FoodSearchPanel({ eatenAt, disabled, onQueued, onDescribe, onError }: {
   eatenAt: string | null; disabled: boolean; onQueued: (postId: string) => void; onDescribe: (text: string) => void; onError: (message: string | null) => void;
 }) {
-  const tc=useTranslations('capture');
+  const tc=useTranslations('capture'),t=useTranslations('postMenu'),locale=useLocale() as Locale;
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<{ query: string; foods: Match[]; failed?: boolean } | null>(null);
   const [picking, setPicking] = useState(false);
@@ -40,23 +42,23 @@ export default function FoodSearchPanel({ eatenAt, disabled, onQueued, onDescrib
     try {
       const operationId=await uploadManager.postFood({fdc_id:food.id,query:results.query,eaten_at:eatenAt??new Date().toISOString()},food.description);
       onQueued(operationId);
-    } catch (e) { onError(e instanceof CaptureFailureError ? captureFailureText(e.failure,tc)! : e instanceof Error ? e.message : "The meal could not be saved."); }
+    } catch (e) { onError(e instanceof CaptureFailureError ? captureFailureText(e.failure,tc)! : e instanceof Error ? e.message : t('mealSaveFailed')); }
     finally { pickingRef.current = false; setPicking(false); }
   };
 
   const shown = results && results.query === query.trim() ? results : null;
   const busy = disabled || picking;
   return <div className="flex flex-col gap-2">
-    <Field variant="camera" id="food-search" aria-label="Search foods" value={query} onChange={(event) => setQuery(event.target.value)} disabled={busy} placeholder="Search foods, for example croissant" autoComplete="off" />
-    {shown?.failed ? <p className="px-grid text-detail text-camera-muted" role="status">Food search is temporarily unavailable.</p> : null}
-    {shown && !shown.failed && shown.foods.length === 0 ? <p className="px-grid text-detail text-camera-muted" role="status">No foods found.</p> : null}
-    {shown?.foods.length ? <ul aria-label="Food results" className="divide-y divide-surface/15">
+    <Field variant="camera" id="food-search" aria-label={t('searchFoods')} value={query} onChange={(event) => setQuery(event.target.value)} disabled={busy} placeholder={t('searchFoodPlaceholder')} autoComplete="off" />
+    {shown?.failed ? <p className="px-grid text-detail text-camera-muted" role="status">{t('searchUnavailable')}</p> : null}
+    {shown && !shown.failed && shown.foods.length === 0 ? <p className="px-grid text-detail text-camera-muted" role="status">{t('noFoods')}</p> : null}
+    {shown?.foods.length ? <ul aria-label={t('foodResults')} className="divide-y divide-surface/15">
       {shown.foods.map((food) => <li key={food.id}><button type="button" disabled={busy} onClick={() => { void pick(food); }} className="flex min-h-tap w-full items-baseline justify-between gap-3 px-grid py-grid text-left text-detail disabled:opacity-50">
-        <span className="min-w-0 flex-1">{food.description}</span>
-        <span className="shrink-0 tabular-nums text-camera-muted">{food.calories === null ? "–" : `${food.calories} kcal`} · {food.serving_amount} {food.serving_unit}</span>
+        <span data-i18n-stored="food" className="min-w-0 flex-1">{food.description}</span>
+        <span className="shrink-0 tabular-nums text-camera-muted">{food.calories === null ? "–" : `${formatNumber(locale,food.calories,{useGrouping:false,maximumFractionDigits:20})} kcal`} · {formatNumber(locale,food.serving_amount,{useGrouping:false,maximumFractionDigits:20})} {food.serving_unit}</span>
       </button></li>)}
     </ul> : null}
-    {picking ? <p className="px-grid text-detail text-camera-muted" role="status">Logging…</p> : null}
-    <button type="button" disabled={busy} onClick={() => onDescribe(query.trim())} className="min-h-tap self-start px-grid text-detail text-surface disabled:opacity-50">Describe it instead</button>
+    {picking ? <p className="px-grid text-detail text-camera-muted" role="status">{t('logging')}</p> : null}
+    <button type="button" disabled={busy} onClick={() => onDescribe(query.trim())} className="min-h-tap self-start px-grid text-detail text-surface disabled:opacity-50">{t('describeInstead')}</button>
   </div>;
 }

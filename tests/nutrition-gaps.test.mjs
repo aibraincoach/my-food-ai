@@ -30,8 +30,18 @@ test('a missing calorie value keeps its stored no-match reason, without inventin
  assert.match(plainConsumed({...complete,calories:null},[],[{name:'mystery',sourceRef:'unavailable:no_match:no suitable record'}]),/No USDA record matched “mystery”/);
 });
 test('every disclosure uses the shared sentence and the old list builder is deleted',()=>{
+ // A message key may share the old helper's name. Forbid the old binding/call
+ // and list expression, while retaining the guard against rebuilt English.
+ const oldListBuilder=/\b(?:const|let|var)\s+unavailableFoods\b|\bunavailableFoods\s*(?:=|\()|Object\.values\s*\(\s*day\?\.totals\.missing/;
+ assert.doesNotMatch("tp('unavailableFoods',{foods:row.unavailable.join(', ')})",oldListBuilder);
+ for(const oldSource of [
+  'const unavailableFoods: string[] = names;',
+  'function unavailableFoods(items) { return items; }',
+  'unavailableFoods(items)',
+  'Object.values(day?.totals.missing).flat()',
+ ])assert.match(oldSource,oldListBuilder);
  const walk=p=>readdirSync(p,{withFileTypes:true}).flatMap(e=>e.isDirectory()?walk(`${p}/${e.name}`):/\.tsx?$/.test(e.name)?[`${p}/${e.name}`]:[]);
- for(const path of walk('src')){const source=readFileSync(path,'utf8');assert.doesNotMatch(source,/unavailableFoods|Object\.values\(day\?\.totals\.missing/);
+ for(const path of walk('src')){const source=readFileSync(path,'utf8');assert.doesNotMatch(source,oldListBuilder);
  if(path!=='src/lib/nutrition/totals.ts')assert.doesNotMatch(source,/Nutrition unavailable:|Calories unavailable for|Showing known values\.|Missing \$\{nutrient/);}
 });
 
