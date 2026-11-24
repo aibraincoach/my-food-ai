@@ -1,10 +1,13 @@
 "use client";
+import {useLocale,useTranslations} from 'next-intl';
 import {useEffect,useLayoutEffect,useRef,useState} from 'react';
-import {formatCalories,nutritionGaps,gapSentence,GAP_LEAD} from '@/lib/nutrition/totals';
+import {nutritionGaps,gapSentence,GAP_LEAD} from '@/lib/nutrition/totals';
 import {visibleMonth} from '@/lib/posts/visible-month';
 import {tokens} from '@/lib/theme/tokens';
 import type {MonthSummary} from '@/lib/posts/days';
-import {formatDayKcal,monthName,postedLabel} from './MonthGrid';
+import {calendarDayValues} from '@/i18n/days';
+import {formatDate,formatEnergy,formatNumber} from '@/i18n/format';
+import {monthName} from './MonthGrid';
 
 type Props={months:Record<string,MonthSummary>;today:string;selected?:string;onDay:(date:string,cell:HTMLElement)=>void;onOlder?:()=>void};
 
@@ -14,6 +17,7 @@ const HEADER_H=tokens.spacing.grid+18+tokens.spacing.grid/2+18+DISCLOSURE_ROW+4;
 function documentOffset(el:HTMLElement){return el.getBoundingClientRect().top+window.scrollY;}
 
 export default function PhoneCalendar({months,today,selected,onDay,onOlder}:Props){
+ const locale=useLocale(),t=useTranslations("days");
  const ordered=Object.keys(months).sort();
  const key=ordered.join(',');
  const root=useRef<HTMLDivElement>(null),sentinel=useRef<HTMLDivElement>(null),headerRef=useRef<HTMLDivElement>(null);
@@ -73,8 +77,8 @@ export default function PhoneCalendar({months,today,selected,onDay,onOlder}:Prop
  if(first){const end=new Date(today.slice(0,7)+'-01T12:00:00Z');end.setUTCMonth(end.getUTCMonth()+1);for(const d=new Date(first);d<end;d.setUTCDate(d.getUTCDate()+1))dates.push(d.toISOString().slice(0,10));}
  return <div ref={root} style={{overflowAnchor:'none'}}>
   <div ref={headerRef} className="sticky z-10 bg-surface pb-1" style={{top:'calc(var(--spacing-top-h) + env(safe-area-inset-top))',height:HEADER_H}}>
-   <div className="grid grid-cols-7 gap-1 px-tooltip-x" aria-hidden="true">{['S','M','T','W','T','F','S'].map((label,index)=><span key={index} className="text-center text-bubble text-faint">{label}</span>)}</div>
-   <p className="px-screen-x text-meta text-muted" aria-live="polite">{monthName(visible,true)} · {postedLabel(current?.posted??0)}</p>
+   <div className="grid grid-cols-7 gap-1 px-tooltip-x" aria-hidden="true">{Array.from({length:7},(_,index)=>formatDate(locale,Date.UTC(2026,10,1+index),'UTC',{weekday:'narrow'})).map((label,index)=><span key={index} className="text-center text-bubble text-faint">{label}</span>)}</div>
+   <p className="px-screen-x text-meta text-muted" aria-live="polite">{monthName(locale,visible,true)} · {t("postedCount",{count:current?.posted??0,amount:formatNumber(locale,current?.posted??0)})}</p>
    <div className="relative px-screen-x" style={{height:DISCLOSURE_ROW}}>
     {gap?<details data-nutrition-disclosure className="absolute inset-x-0 top-0 z-10 bg-surface text-meta text-muted"><summary className="cursor-pointer">{GAP_LEAD}</summary><p className="mt-2">{gap}</p></details>:null}
    </div>
@@ -85,13 +89,13 @@ export default function PhoneCalendar({months,today,selected,onDay,onOlder}:Prop
    {dates.map(date=>{
     const month=date.slice(0,7),day=months[month]?.days.find(entry=>entry.day===date),number=Number(date.slice(8));
     const outlined=date===today||date===selected;
-    const short=new Date(month+'-01T12:00:00Z').toLocaleDateString('en',{month:'short',timeZone:'UTC'});
+    const short=formatDate(locale,new Date(month+'-01T12:00:00Z'),'UTC',{month:'short'});
     return <button type="button" key={date} data-day={date} id={number===1?'month-'+month:undefined} data-month-start={number===1?month:undefined} disabled={!(day&&date<=today)} tabIndex={!day?-1:0} onClick={event=>{if(day)onDay(date,event.currentTarget);}}
-     aria-label={`${date}${day?`, ${day.posts} ${day.posts===1?'meal':'meals'}${day.pending?`, ${day.pending} not finished`:''}${day.intake?', drank':''}${day.ready?`, ${formatCalories(day.kcal)} kcal${day.missing?.length?`, ${gapSentence(nutritionGaps({missing:{calories:day.missing}},["calories"]))}`:''}`:''}`:''}`}
+     aria-label={t("cellSummary",calendarDayValues(locale,date,day))}
      className={`flex min-w-0 scroll-mt-32 flex-col justify-between rounded-tile text-left ${day?'bg-card':''} ${date>today?'text-faint':'text-text'}`}
      style={{height:tokens.spacing.tap,padding:`${tokens.spacing.grid}px ${tokens.calendar.padding}px`,border:outlined?`${tokens.calendar.border}px solid ${tokens.colors.text}`:`${tokens.calendar.border}px solid transparent`}}>
-     <span className={`text-label leading-none ${number===1?'font-semibold':'font-medium'}`}>{number===1?`${short} 1`:number}</span>
-     <span className="text-cell-kcal text-muted tabular-nums">{day?.ready?`${formatDayKcal(day.kcal)}`:day?.intake?'Drank':''}</span>
+     <span className={`text-label leading-none ${number===1?'font-semibold':'font-medium'}`}>{number===1?t("firstOfMonth",{month:short}):formatNumber(locale,number)}</span>
+     <span className="text-cell-kcal text-muted tabular-nums">{day?.ready?`${formatEnergy(locale,day.kcal)}`:day?.intake?t("drank"):''}</span>
     </button>;
    })}
   </div>

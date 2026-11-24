@@ -1,4 +1,5 @@
 "use client";
+import {useTranslations} from "next-intl";
 import { useEffect, useRef, useState } from "react";
 import { signOut } from "@/lib/auth/actions";
 import { detachCurrentPushDevice, withPushLock } from "@/lib/push/lifecycle";
@@ -7,6 +8,7 @@ import { clearFeedCache } from "@/lib/posts/feed-cache";
 import { leaveSession } from "@/lib/push/leave";
 
 export function SignOutButton({desktopButton=false}:{desktopButton?:boolean}={}) {
+  const t=useTranslations("profile");
   useEffect(connectMediaSession, []);
   const leaving = useRef(false);
   const [busy, setBusy] = useState(false);
@@ -39,7 +41,7 @@ export function SignOutButton({desktopButton=false}:{desktopButton?:boolean}={})
     }
   };
   return <div className="text-right">
-    <button type="button" disabled={busy} onClick={() => { void leave(); }} className={desktopButton?"h-9 rounded-[10px] bg-field px-[14px] text-[14px] font-semibold":"min-h-tap shrink-0 whitespace-nowrap text-comment text-muted"}>{busy ? "Signing out…" : "Sign out"}</button>
-    {error ? <p role="alert" className="text-meta text-muted">Could not sign out. Try again.</p> : null}
+    <button type="button" disabled={busy} onClick={() => { void leave(); }} className={desktopButton?"h-9 rounded-[10px] bg-field px-[14px] text-[14px] font-semibold":"min-h-tap shrink-0 whitespace-nowrap text-comment text-muted"}>{busy ? t("signingOut") : t("signOut")}</button>
+    {error ? <p role="alert" className="text-meta text-muted">{t("signOutFailed")}</p> : null}
   </div>;
 }

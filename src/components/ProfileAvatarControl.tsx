@@ -1,4 +1,5 @@
 'use client';
+import {useTranslations} from 'next-intl';
 import {useRef, useState, type ChangeEvent} from 'react';
 import Avatar from '@/components/Avatar';
 import {Sheet} from '@/components/ui/Sheet';
@@ -12,6 +13,7 @@ export default function ProfileAvatarControl({
   handle: string;
   initialMediaId: string | null;
 }) {
+  const t=useTranslations('profile');
   const [mediaId, setMediaId] = useState(initialMediaId);
   const [menu, setMenu] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -32,11 +34,11 @@ export default function ProfileAvatarControl({
       body.set('photo', file);
       const response = await fetch('/api/profile/avatar', {method: 'POST', body});
       const payload = await response.json().catch(() => ({}));
-      if (!response.ok) throw new Error(typeof payload.error === 'string' ? payload.error : 'The photo could not be saved.');
+      if (!response.ok) throw new Error(typeof payload.error === 'string' ? payload.error : t('photoSaveFailed'));
       notify(typeof payload.avatar_media_id === 'string' ? payload.avatar_media_id : null);
       setMenu(false);
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : 'The photo could not be saved.');
+      setError(cause instanceof Error ? cause.message : t('photoSaveFailed'));
     } finally {
       setBusy(false);
     }
@@ -48,11 +50,11 @@ export default function ProfileAvatarControl({
     try {
       const response = await fetch('/api/profile/avatar', {method: 'DELETE'});
       const payload = await response.json().catch(() => ({}));
-      if (!response.ok) throw new Error(typeof payload.error === 'string' ? payload.error : 'The photo could not be removed.');
+      if (!response.ok) throw new Error(typeof payload.error === 'string' ? payload.error : t('photoRemoveFailed'));
       notify(null);
       setMenu(false);
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : 'The photo could not be removed.');
+      setError(cause instanceof Error ? cause.message : t('photoRemoveFailed'));
     } finally {
       setBusy(false);
     }
@@ -68,7 +70,7 @@ export default function ProfileAvatarControl({
     <>
       <button
         type="button"
-        aria-label="Profile picture"
+        aria-label={t('picture')}
         disabled={busy}
         onClick={() => setMenu(true)}
         className="hidden desktop:flex desktop:shrink-0 disabled:opacity-50"
@@ -77,7 +79,7 @@ export default function ProfileAvatarControl({
       </button>
       <button
         type="button"
-        aria-label="Profile picture"
+        aria-label={t('picture')}
         disabled={busy}
         onClick={() => setMenu(true)}
         className="desktop:hidden disabled:opacity-50"
@@ -86,17 +88,17 @@ export default function ProfileAvatarControl({
       </button>
       <input ref={galleryRef} type="file" accept="image/*" className="hidden" onChange={onPick} />
       <input ref={cameraRef} type="file" accept="image/*" capture="environment" className="hidden" onChange={onPick} />
-      <Sheet open={menu} onClose={() => !busy && setMenu(false)} label="Profile picture">
+      <Sheet open={menu} onClose={() => !busy && setMenu(false)} label={t('picture')}>
         <div className="flex flex-col gap-2 px-4 pb-6 pt-2">
           <button type="button" disabled={busy} className="min-h-tap rounded-field px-3 text-left text-body" onClick={() => cameraRef.current?.click()}>
-            Take photo
+            {t('takePhoto')}
           </button>
           <button type="button" disabled={busy} className="min-h-tap rounded-field px-3 text-left text-body" onClick={() => galleryRef.current?.click()}>
-            Choose photo
+            {t('choosePhoto')}
           </button>
           {mediaId ? (
             <button type="button" disabled={busy} className="min-h-tap rounded-field px-3 text-left text-body text-muted" onClick={() => void remove()}>
-              Remove
+              {t('remove')}
             </button>
           ) : null}
           {error ? <p role="alert" className="px-3 text-detail text-muted">{error}</p> : null}

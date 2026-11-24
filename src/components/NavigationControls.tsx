@@ -1,4 +1,5 @@
 'use client';
+import {useTranslations} from 'next-intl';
 import {useRouter} from 'next/navigation';
 import {useCallback,useEffect,useState} from 'react';
 import UploadChip from './UploadChip';
@@ -14,6 +15,7 @@ import {Sheet} from '@/components/ui/Sheet';
 const loadCaptureSheet=()=>import('@/components/CaptureSheet').then(module=>module.default);
 /** The same navigation and entry surface is mounted on tabs and post detail. */
 export default function NavigationControls() {
+  const t=useTranslations('days'),nav=useTranslations('navigation');
   const router=useRouter();
   const [initialFiles,setInitialFiles]=useState<File[]|undefined>();
   const [menuOpen,setMenuOpen]=useState(false);
@@ -57,8 +59,8 @@ export default function NavigationControls() {
     <div className="desktop:hidden"><BottomBar onPlus={()=>setMenuOpen(value=>!value)} menuOpen={menuOpen}/>
     <PlusMenu open={menuOpen} onClose={closeMenu}/></div>
     {capture&&CaptureSheet?<CaptureSheet initialFiles={initialFiles} key={`${entry}:${attachment?.postId??"new"}:${attachment?.notEaten??false}`} forPost={attachment?.postId} attachNotEaten={attachment?.notEaten} initialMode={entry==='camera'?'photo':'text'} onClose={closeCapture}/>:null}
-    <Sheet confirmation open={capture&&!CaptureSheet} onClose={closeEntry} label="New post">
-      {loadFailed?<><p role="alert">Couldn’t open composer.</p><button className="min-h-tap text-accent" onClick={()=>{setLoadFailed(false);setLoadAttempt(value=>value+1);}}>Try again</button><button className="min-h-tap text-accent" onClick={()=>window.location.reload()}>Reload app</button></>:<p role="status">Opening composer…</p>}
+    <Sheet confirmation open={capture&&!CaptureSheet} onClose={closeEntry} label={nav('newPost')}>
+      {loadFailed?<><p role="alert">{t('composerOpenFailed')}</p><button className="min-h-tap text-accent" onClick={()=>{setLoadFailed(false);setLoadAttempt(value=>value+1);}}>{t('tryAgain')}</button><button className="min-h-tap text-accent" onClick={()=>window.location.reload()}>{t('reloadApp')}</button></>:<p role="status">{t('openingComposer')}</p>}
     </Sheet>
     <IntakeBar onClose={closeEntry}/>
   </>;

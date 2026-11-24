@@ -78,6 +78,14 @@ export function checkCaptureNamespaces(root=project,entrypoints,provided){
  });
  return {files:sources.size,namespaces:provided};
 }
+export function checkAgentNamespaces(root=project,provided){
+ if(!provided){
+  const sf=ts.createSourceFile('scope.ts',fs.readFileSync(path.join(root,'src/i18n/agent-scope.ts'),'utf8'),ts.ScriptTarget.Latest,true);
+  walk(sf,n=>{if(ts.isVariableDeclaration(n)&&n.name.getText(sf)==='AGENT_NAMESPACES')provided=[...n.initializer.expression.elements].map(x=>x.text);});
+ }
+ return checkCaptureNamespaces(root,['src/app/profile/agents/page.tsx','src/app/profile/agents/new/page.tsx'],provided);
+}
 if(process.argv[1]&&path.resolve(process.argv[1])===fileURLToPath(import.meta.url)){
+ const agents=checkAgentNamespaces();console.log('Agent namespaces checked in '+agents.files+' source files.');
  const result=checkCaptureNamespaces();console.log('Capture namespaces checked in '+result.files+' source files.');
 }

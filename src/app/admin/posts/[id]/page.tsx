@@ -1,3 +1,5 @@
+import {getTranslations,getLocale} from 'next-intl/server';
+import {formatNumber} from '@/i18n/format';
 import Link from "next/link";
 import { Suspense } from "react";
 import { notFound } from "next/navigation";
@@ -13,6 +15,8 @@ export default function PostTrace({ params }: { params: Promise<{ id: string }> 
 
 async function PostTraceContent({ params }: { params: Promise<{ id: string }> }) {
   const { connection } = await import("next/server");
+  const t=await getTranslations('admin'),locale=await getLocale();
+  const number=(value:number|null)=>value===null?'—':formatNumber(locale,value,{useGrouping:false});
   await connection();
   const client = await createClient();
   const { data: { user } } = await client.auth.getUser();
@@ -27,22 +31,22 @@ async function PostTraceContent({ params }: { params: Promise<{ id: string }> })
   for (let offset = 0; ; offset += 100) {
     const { data, error } = await client.from("model_calls").select("*").eq("post_id", id)
       .order("started_at").order("id").range(offset, offset + 99);
-    if (error) throw new Error("Model calls could not be loaded.");
+    if (error) throw new Error(t('modelCallsLoadFailed'));
     calls.push(...data as Call[]);
     if (data.length < 100) break;
   }
   return <main className={`${font.className} mx-auto min-h-dvh w-full max-w-phone bg-surface px-screen-x py-card-gap text-detail text-text`}>
-    <Link href="/admin" className="mb-sheet-top inline-flex min-h-tap items-center text-muted">Back to queue</Link>
-    <h1 className="text-title">Model calls</h1><p className="my-sheet-top break-all text-meta text-muted">{id}</p>
-    {calls.length === 0 ? <p>No calls recorded.</p> : <ol className="space-y-card-gap">{calls.map((call) => <li key={call.id} className="border-b border-hairline pb-card-gap">
+    <Link href="/admin" className="mb-sheet-top inline-flex min-h-tap items-center text-muted">{t('backToQueue')}</Link>
+    <h1 className="text-title">{t('modelCalls')}</h1><p className="my-sheet-top break-all text-meta text-muted">{id}</p>
+    {calls.length === 0 ? <p>{t('noCalls')}</p> : <ol className="space-y-card-gap">{calls.map((call) => <li key={call.id} className="border-b border-hairline pb-card-gap">
       <h2 className="text-sheet-title">{call.kind}</h2><time dateTime={call.started_at} className="text-meta text-muted">{call.started_at}</time>
       <dl className="mt-sheet-top space-y-grid tabular-nums">
-        <div>Duration: {call.duration_ms} ms</div><div>Tokens in / out: {call.input_tokens ?? "—"} / {call.output_tokens ?? "—"}</div>
-        <div>FDC id: {call.fdc_id ?? "—"}</div>
+        <div>{t('duration',{amount:number(call.duration_ms)})}</div><div>{t('tokensInOut',{input:number(call.input_tokens),output:number(call.output_tokens)})}</div>
+        <div>{t('fdcId',{id:call.fdc_id??'—'})}</div>
       </dl>
-      <h3 className="mt-sheet-top font-semibold">Request</h3><pre className="whitespace-pre-wrap break-words font-sans">{call.request_text ?? "—"}</pre>
-      <h3 className="mt-sheet-top font-semibold">Response</h3><pre className="whitespace-pre-wrap break-words font-sans">{call.response_text ?? "—"}</pre>
-      {call.error && <p className="mt-sheet-top">Error: {call.error}</p>}
+      <h3 className="mt-sheet-top font-semibold">{t('request')}</h3><pre className="whitespace-pre-wrap break-words font-sans">{call.request_text ?? "—"}</pre>
+      <h3 className="mt-sheet-top font-semibold">{t('response')}</h3><pre className="whitespace-pre-wrap break-words font-sans">{call.response_text ?? "—"}</pre>
+      {call.error && <p className="mt-sheet-top">{t('error',{error:call.error})}</p>}
     </li>)}</ol>}
   </main>;
 }

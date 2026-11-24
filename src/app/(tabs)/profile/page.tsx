@@ -1,7 +1,7 @@
 import FreezeReport from '@/components/support/FreezeReport';
 import LanguageSetting from '@/components/i18n/LanguageSetting';
 import StrictIntlProvider from '@/components/i18n/StrictIntlProvider';
-import {getLocale, getMessages, getTimeZone} from 'next-intl/server';
+import {getLocale, getMessages, getTimeZone, getTranslations} from 'next-intl/server';
 import {Suspense} from 'react';
 import PostOpenFrame from '@/components/PostOpenFrame';
 import Link from "next/link";
@@ -22,6 +22,7 @@ import { getProfileGrid } from "@/lib/posts/grid";
 import { createClient } from "@/lib/supabase/server";
 
 export default async function ProfilePage({searchParams}:{searchParams:Promise<{post?:string}>}) {
+  const t=await getTranslations("profile");
   const {post}=await searchParams;
   await connection();
   const supabase = await createClient();
@@ -32,7 +33,7 @@ export default async function ProfilePage({searchParams}:{searchParams:Promise<{
     supabase.from("profiles").select("handle,avatar_media_id").eq("id", user.id).single(),
     getProfileGrid(supabase, user.id),
   ]);
-  if (error) throw new Error("Profile could not be loaded.");
+  if (error) throw new Error(t("loadFailed"));
   // During configuration/rollout the optional preference column may not yet
   // exist. Keep the ordinary Profile usable; the setting endpoint reports a
   // failed save until its migration is present.
@@ -50,8 +51,8 @@ export default async function ProfilePage({searchParams}:{searchParams:Promise<{
       <StrictIntlProvider locale={await getLocale()} timeZone={await getTimeZone()} messages={{language:(await getMessages()).language,support:(await getMessages()).support,postMenu:(await getMessages()).postMenu}}><LanguageSetting/><FreezeReport/></StrictIntlProvider>
       <CameraModeSwitch/>
       {openWeightsConfigured()?<IdentifyProviderSwitch initial={preference.data?.identify_provider==='open'?'open':'meta'}/>:null}
-      <Link href="/profile/about" className="flex min-h-tap items-center px-screen-x text-detail desktop:px-0">How My Food AI works</Link>
-      <Link href="/profile/deleted" className="flex min-h-tap items-center px-screen-x text-detail desktop:px-0">Recently deleted</Link>
+      <Link href="/profile/about" className="flex min-h-tap items-center px-screen-x text-detail desktop:px-0">{t("about")}</Link>
+      <Link href="/profile/deleted" className="flex min-h-tap items-center px-screen-x text-detail desktop:px-0">{t("recentlyDeleted")}</Link>
       <ProfileGrid posts={posts} />
     </main></DesktopWorkspace>
   );
