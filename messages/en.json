@@ -71,7 +71,9 @@
     "handleLength": "Enter a handle of 1 to 80 characters.",
     "handleFailure": "Your handle could not be saved. Try again.",
     "salmon": "Salmon",
-    "rice": "Rice"
+    "rice": "Rice",
+    "heroTitle": "Know the nutrition in your meals",
+    "heroSupport": "Log with a photo, a few words or your voice."
   },
   "navigation": {
     "home": "Home",
@@ -98,12 +100,12 @@
   "about": {
     "back": "‹ Profile",
     "title": "How My Food AI works",
-    "description": "Photograph a meal, write a caption, or say what changed, and see what was consumed. The app records what was eaten. It gives no advice, sets no targets and makes no health claims.",
+    "description": "Take a photo, type a description, or speak to log your meal. My Food AI identifies your food, estimates portions, and records the nutrition consumed. You can edit any entry. The app provides no advice, sets no targets, and makes no health claims.",
     "photoTitle": "What happens to a photo",
     "upload": "The photo is uploaded and the meal appears in your feed at once, marked as being analysed.",
     "outline": "SAM 3.1 outlines each food in the photo.",
     "name": "Muse Spark 1.3 names each food and estimates its portion.",
-    "source": "USDA FoodData Central supplies the nutrition for each named food. When no exact record exists, the closest generic USDA record is used and named, and when none is close, Muse Spark estimates typical nutrition and the meal says so.",
+    "source": "Nutrition values come from nutrition labels, food reference data, or labelled model estimates.",
     "correction": "The meal shows every food, its portion and the nutrition consumed. Tap a food to correct it, or write or say a correction such as “I ate half the rice”; the earlier version is kept.",
     "leftovers": "A photo of the leftovers, marked as not eaten, takes the uneaten part out of the record.",
     "modelsTitle": "Models in use",
@@ -113,7 +115,7 @@
     "openJob": "An optional path for naming foods and portions, switched on under Profile. SAM and transcription stay on the Meta API.",
     "modelNote": "Every model call is recorded with the model that answered. USDA FoodData Central and Open Food Facts are databases, not models.",
     "dataTitle": "Your data",
-    "dataDescription": "Your meals, photos, comments and drinks are visible to your account only. Nobody else’s meals appear anywhere in the app.",
+    "dataDescription": "Only your signed-in account can view your meals in the app. Anyone with a photo's unguessable link can open it, but the app does not publish these links.",
     "mealsTitle": "Your meals",
     "empty": "No meals yet.",
     "photoLink": "Photograph a meal ›"
@@ -146,6 +148,12 @@
     "leftovers": "Leftovers: {amounts} · {calories} kcal",
     "nutritionUnavailable": "Nutrition unavailable for {food}.",
     "caloriesUnavailable": "Calories unavailable for {food}.",
-    "missing": "Missing {nutrients} for {food}."
+    "missing": "Missing {nutrients} for {food}.",
+    "tableCaption": "Meal nutrition",
+    "sourceNote": "Values come from nutrition labels, food reference data, or labelled estimates.",
+    "estimateNote": "Nutrition for {name} is a model estimate because no matching database record or label was found."
+  },
+  "metadata": {
+    "description": "Record what you eat using a photo, words, or your voice. Review your nutrition without targets or judgment."
   }
 }

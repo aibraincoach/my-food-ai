@@ -19,8 +19,8 @@ export function AuthProduct({welcome=false}:{welcome?:boolean}){
         <figcaption className="mfaAuth-sampleLabel">{t('sample')}</figcaption>
       </figure>
       <div className="mfaAuth-copy">
-        <Heading lang="en" className="mfaAuth-headline">Log a meal in seconds.</Heading>
-        <p lang="en" className="mfaAuth-support">Photograph it, type it or say it.</p>
+        <Heading className="mfaAuth-headline">{t('heroTitle')}</Heading>
+        <p className="mfaAuth-support">{t('heroSupport')}</p>
       </div>
     </div>
   </div>;

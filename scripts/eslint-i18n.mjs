@@ -3,11 +3,6 @@
 // at slice 6. Do not add a converted directory back to the exemptions.
 // #1243/#1253 owner wording holds. Delete this one entry after the owner rules.
 export const HELD_FOR_OWNER_WORDING = [
- 'Log a meal in seconds.',
- 'Photograph it, type it or say it.',
- 'Consumed nutrition from USDA FoodData Central',
- 'Nutrition values from USDA FoodData Central.',
- 'Log meals with a photo and get nutrition numbers.',
  // unavailableSentence templates remain untouched in their existing reader.
  'The model did not treat “{food}” as a food, so no nutrition was estimated.',
  'No USDA record matched “{food}” and the model gave no usable estimate.',
