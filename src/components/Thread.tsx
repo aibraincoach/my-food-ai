@@ -23,7 +23,7 @@ export default function Thread({postId,readOnly=false,sourcePostId,desktopAction
  const handle=usePostHandle();
  const [accepted,setAccepted]=useState<string|null>(null);
  const router=useRouter();
- const [rows,setRows]=useState<CommentRow[]>([]);const [error,setError]=useState<{key:'loadFailed'|'updateFailed'|'removeFailedRetry'|'removeFailed'}|{message:string}|{retry:true}|null>(null);const [waiting,setWaiting]=useState(false);const [failed,setFailed]=useState(false);const [retrying,setRetrying]=useState(false);
+ const [rows,setRows]=useState<CommentRow[]>([]);const [error,setError]=useState<{key:'loadFailed'|'updateFailed'|'removeFailedRetry'|'removeFailed'}|{failureReason:string|null}|{retry:true}|null>(null);const [waiting,setWaiting]=useState(false);const [failed,setFailed]=useState(false);const [retrying,setRetrying]=useState(false);
  const wake=useRef<()=>void>(()=>{});
  const append=useCallback((row:CommentRow)=>{setRows(old=>sort([...old.filter(r=>r.id!==row.id),row]));setWaiting(row.author==='user');wake.current();},[]);
  useEffect(()=>{
@@ -43,7 +43,7 @@ export default function Thread({postId,readOnly=false,sourcePostId,desktopAction
    if(freshModel)router.refresh();
    if(knownStatus&&knownStatus!==post.status)router.refresh();knownStatus=post.status;
    const feedback=correctionFeedback(post.status);
-   setFailed(feedback==='failed');setError(feedback==='failed'?(post.analysis_initialized_at?{key:'updateFailed'}:{message:failureMessage(post.fail_reason)}):null);setRows(old=>sort([...new Map([...old,...(data??[])].map(row=>[row.id,row as CommentRow])).values()]));
+   setFailed(feedback==='failed');setError(feedback==='failed'?(post.analysis_initialized_at?{key:'updateFailed'}:{failureReason:post.fail_reason??null}):null);setRows(old=>sort([...new Map([...old,...(data??[])].map(row=>[row.id,row as CommentRow])).values()]));
    setWaiting(feedback==='waiting');
   }catch{if(live)setError({key:'loadFailed'});}finally{inFlight=false;if(again&&live){again=false;void load();}}};
   const channel=client.channel(`thread-${postId}`).on('postgres_changes',{event:'INSERT',schema:'public',table:'post_comments',filter:`post_id=eq.${postId}`},()=>{void load();}).on('postgres_changes',{event:'UPDATE',schema:'public',table:'post_comments',filter:`post_id=eq.${postId}`},()=>{void load();}).subscribe((status)=>{if(status==='SUBSCRIBED')void load();});
@@ -81,7 +81,7 @@ export default function Thread({postId,readOnly=false,sourcePostId,desktopAction
     <p className={`min-w-0 flex-1 whitespace-pre-wrap break-words text-detail leading-[1.45] ${row.reverted_at?'text-muted':''}`}><span className="font-semibold" data-i18n-stored="author">{row.author==='model'?'My Food AI':handle}</span> <span data-i18n-stored="comment">{row.author==='model'?formatModelCommentLabels(row.body):row.body}</span> <span className="whitespace-nowrap text-muted"><LocalTime value={row.created_at}/></span>{row.reverted_at?<span className="block text-meta text-muted">{t('removed')}</span>:row.author==='user'&&!readOnly?<details data-removal-menu className="inline-block"><summary className="ml-2 cursor-pointer list-none text-meta text-muted underline">{t('remove')}</summary><div className="absolute right-4 z-30 w-[230px] rounded-card border border-hairline bg-surface p-[6px] text-[15px] text-text" style={{boxShadow:'var(--color-shadow-pill)'}}><button type="button" onClick={event=>{event.currentTarget.closest('details')?.removeAttribute('open');void removeCorrection(row.id);}} className="h-tap w-full border-b border-hairline px-[10px] text-left" style={{color:'oklch(0.52 0.17 25)'}}>{t('removeCorrection')}</button><span className="block px-[10px] py-2 text-meta text-muted">{t('removeExplanation')}</span><button type="button" onClick={event=>event.currentTarget.closest('details')?.removeAttribute('open')} className="h-tap w-full px-[10px] text-left">{tm('cancel')}</button></div></details>:null}{accepted===row.id?<span className="ml-2 text-meta text-muted">{t('accepted')}</span>:null}</p>
   </div>)}</div>
   {waiting?<p role="status" className="py-grid text-meta text-muted">{t('updating')}</p>:null}
-  {error?<p role="status" className="text-meta text-muted">{'key'in error?t(error.key):'message'in error?error.message:tp('retryAttemptFailed')}</p>:null}
+  {error?<p role="status" className="text-meta text-muted">{'key'in error?t(error.key):'failureReason'in error?<span data-i18n-server-wording="failure">{failureMessage(error.failureReason)}</span>:tp('retryAttemptFailed')}</p>:null}
   {toast&&<UndoToast key={toast.key} text={t('correctionRemoved')} onUndo={toast.undo} ms={6000}/>}
   <FirstRunHint hint="thread" />
   {failed?<button type="button" disabled={retrying} onClick={retry} className="min-h-tap text-meta text-text">{retrying?tp('retrying'):tp('tryAgain')}</button>:null}
