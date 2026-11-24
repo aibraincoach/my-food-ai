@@ -1,11 +1,18 @@
 export type MonthStart = { month: string; top: number };
+export type CalendarViewport = {
+  headerBottom: number;
+  viewportHeight: number;
+  scrollTop: number;
+  scrollHeight: number;
+};
 
-/** Month whose start row is nearest the sticky header line while scrolling Days. */
-export function visibleMonth(starts: MonthStart[], line: number, fallback: string): string {
-  if (!starts.length) return fallback;
-  const past = starts.filter(entry => entry.top <= line).at(-1);
-  if (past) return past.month;
-  return starts.reduce((best, entry) =>
-    Math.abs(entry.top - line) < Math.abs(best.top - line) ? entry : best,
-  ).month;
+/** The month in the middle of Days, with explicit first/current month ends. */
+export function visibleMonth(starts: MonthStart[], viewport: CalendarViewport, currentMonth: string): string {
+  if (!starts.length) return currentMonth;
+  const {headerBottom, viewportHeight, scrollTop, scrollHeight} = viewport;
+  // A short calendar is also at the bottom, so this takes precedence over top.
+  if (scrollHeight - viewportHeight - scrollTop <= 1) return currentMonth;
+  if (scrollTop <= 1) return starts[0].month;
+  const middle = (headerBottom + viewportHeight) / 2;
+  return starts.filter(entry => entry.top <= middle).at(-1)?.month ?? starts[0].month;
 }

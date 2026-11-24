@@ -50,7 +50,7 @@ export default function PhoneCalendar({months,today,selected,onDay,onOlder}:Prop
    const elements=root.current?.querySelectorAll<HTMLElement>('[data-month-start]');
    if(!elements?.length)return;
    const starts=Array.from(elements).map(el=>({month:el.dataset.monthStart!,top:el.getBoundingClientRect().top}));
-   const next=visibleMonth(starts,line,today.slice(0,7));
+   const next=visibleMonth(starts,{headerBottom:line,viewportHeight:window.innerHeight,scrollTop:window.scrollY,scrollHeight:document.documentElement.scrollHeight},today.slice(0,7));
    setVisible(prev=>prev===next?prev:next);
   };
   const schedule=()=>{cancelAnimationFrame(raf);raf=requestAnimationFrame(update);};
