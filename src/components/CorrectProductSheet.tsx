@@ -1,4 +1,6 @@
 "use client";
+import {DisplayError} from '@/i18n/display-error';
+import {useApiFailureText} from '@/i18n/api-error-text';
 import {useTranslations} from 'next-intl';
 import {formatGtin} from "@/lib/fdc/gtin";
 import {Icon} from "@/components/ui/Icon";
@@ -10,6 +12,7 @@ import type { BarcodeCorrection, BarcodeNutrition, ResolvedProduct } from "@/lib
 const HIDE_PILL_STYLE='nav[data-pill]{visibility:hidden}';
 const fields:[keyof BarcodeNutrition,'caloriesField'|'proteinField'|'carbsField'|'fatField'|'fibreField'|'sugarField'|'sodiumField',string][]=[["calories",'caloriesField',"kcal"],["protein_g",'proteinField',"g"],["carbs_g",'carbsField',"g"],["fat_g",'fatField',"g"],["fibre_g",'fibreField',"g"],["sugar_g",'sugarField',"g"],["sodium_mg",'sodiumField',"mg"]];
 export default function CorrectProductSheet({product,onClose,onSaved,onSave}:{product:ResolvedProduct;onClose:()=>void;onSaved:()=>void;onSave?:(correction:BarcodeCorrection)=>Promise<void>}){
+ const apiError=useApiFailureText();
  const t=useTranslations('postMenu');
  const [name,setName]=useState(product.name);const [pack,setPack]=useState(product.packageWeight?.match(/^[\d.]+/)?.[0]??"");
  const [serving,setServing]=useState(String(product.servingSize??""));const [unit,setUnit]=useState<"g"|"ml">(product.basisUnit);
@@ -17,8 +20,8 @@ export default function CorrectProductSheet({product,onClose,onSaved,onSave}:{pr
  async function save(){if(busy)return;setBusy(true);setError("");try{
   const correction={name,pack_amount:pack?Number(pack):null,pack_unit:unit,serving_amount:serving?Number(serving):null,serving_unit:unit,per_100:nutrition};
   if(onSave){await onSave(correction);onSaved();return;}
-  const response=await fetch(`/api/barcode/${encodeURIComponent(product.gtin)}/correction`,{method:"PUT",headers:{"Content-Type":"application/json"},body:JSON.stringify(correction)});const result=await response.json();if(!response.ok)throw Error(result.error??t('productCorrectionFailed'));onSaved();
- }catch(e){setError(e instanceof Error?e.message:t('productCorrectionFailed'));}finally{setBusy(false);}}
+  const response=await fetch(`/api/barcode/${encodeURIComponent(product.gtin)}/correction`,{method:"PUT",headers:{"Content-Type":"application/json"},body:JSON.stringify(correction)});const result=await response.json();if(!response.ok)throw new DisplayError(apiError(result,"route_f050ad5fac73"));onSaved();
+ }catch(e){setError(e instanceof DisplayError?e.message:t('productCorrectionFailed'));}finally{setBusy(false);}}
  return <Sheet hideClose open confirmation={Boolean(onSave)} onClose={()=>{if(!busy)onClose();}} label={t('correctThisProduct')} initialFocus="[data-correct-product-name]" panelStyle={{overflow:"hidden",color:"var(--color-text)"}}>{onSave&&<style>{HIDE_PILL_STYLE}</style>}<div className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto overscroll-contain"><div className="flex h-11 items-center justify-between"><h2 className="text-sheet-head">{t('correctThisProduct')}</h2><button type="button" onClick={onClose} disabled={busy} className="size-tap" aria-label={t('closeCorrection')}><Icon name="close" size={22}/></button></div>
  <p className="text-meta text-muted">{product.gtin?t('barcodeSource',{barcode:formatGtin(product.gtin),source:onSave?t('forThisPhoto'):product.source==='own'?t('fromOwnCorrection'):product.source==='shared'?t('fromSharedCorrection'):t('fromDatabase')}):onSave?t('forThisPhoto'):product.source==='own'?t('fromOwnCorrection'):product.source==='shared'?t('fromSharedCorrection'):t('fromDatabase')}</p>
  <label className="text-meta text-muted">{t('nameField')}<Field data-correct-product-name autoFocus className="[&>div:focus-within]:border-text" value={name} maxLength={80} onChange={e=>setName(e.target.value)} disabled={busy}/></label>

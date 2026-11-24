@@ -1,4 +1,6 @@
 'use client';
+import {useApiFailureText} from '@/i18n/api-error-text';
+import {CaptureFailureError} from '@/lib/posts/capture-failure';
 import {useTranslations} from 'next-intl';
 import {useRef,useState} from 'react';
 import {useRouter} from 'next/navigation';
@@ -10,12 +12,13 @@ import {useLocalTime} from '@/components/LocalTime';
 export type PostMenuRow={label:string;disabled?:boolean;muted?:boolean;detail?:string;onSelect?:()=>void;onClick?:()=>void};
 export default function PostMenu({postId,caption,eatenAt,rows=[],gtin}:{postId:string;caption:string;eatenAt?:string;rows?:PostMenuRow[];gtin?:string|null}) {
  const t=useTranslations('postMenu');
+ const apiError=useApiFailureText();
  const router=useRouter();const menu=useRef<HTMLDetailsElement>(null);const savingRef=useRef(false);
  const [open,setOpen]=useState(false),[timeOpen,setTimeOpen]=useState(false),[value,setValue]=useState(caption),[saving,setSaving]=useState(false),[error,setError]=useState('');
  const clock=useLocalTime(eatenAt??'');
  const dismiss=()=>{if(menu.current)menu.current.open=false;};
  const edit=()=>{dismiss();setValue(caption);setError('');setOpen(true);};
- const save=async()=>{if(savingRef.current)return;savingRef.current=true;setSaving(true);setError('');window.dispatchEvent(new CustomEvent('post-caption',{detail:{id:postId,caption:value}}));setOpen(false);try{await updateCaption(postId,value);router.refresh();}catch(e){const message=e instanceof Error?e.message:t('captionSaveFailed');setError(message);window.dispatchEvent(new CustomEvent('post-caption',{detail:{id:postId,caption,error:message}}));setOpen(true);}finally{savingRef.current=false;setSaving(false);}};
+ const save=async()=>{if(savingRef.current)return;savingRef.current=true;setSaving(true);setError('');window.dispatchEvent(new CustomEvent('post-caption',{detail:{id:postId,caption:value}}));setOpen(false);try{await updateCaption(postId,value);router.refresh();}catch(e){const message=e instanceof CaptureFailureError?apiError({message_code:e.failure.code,values:e.failure.values},'captionSaveFailed'):t('captionSaveFailed');setError(message);window.dispatchEvent(new CustomEvent('post-caption',{detail:{id:postId,caption,error:message}}));setOpen(true);}finally{savingRef.current=false;setSaving(false);}};
  const options:PostMenuRow[]=[...rows.filter(row=>!row.muted),{label:t('editCaption'),onSelect:edit},...(eatenAt?[{label:t('editTime'),detail:clock,onSelect:()=>setTimeOpen(true)}]:[]),...(gtin?[{label:t('correctProduct'),onSelect:()=>window.dispatchEvent(new CustomEvent('correct-product',{detail:{postId,gtin}}))}]:[]),...rows.filter(row=>row.muted)];
  return <>
   <details onKeyDown={event=>{if(event.key==='Escape'){event.preventDefault();dismiss();menu.current?.querySelector('summary')?.focus();}}} ref={menu} className="relative shrink-0">

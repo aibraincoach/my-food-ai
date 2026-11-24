@@ -1,3 +1,4 @@
+import {captureEnglish} from './fixtures/capture-wording.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import vm from 'node:vm';
@@ -13,7 +14,7 @@ function harness(answer,rows=[]){let models=0,reads=0;const db={auth:{getUser:as
 for(const [name,answer]of[['unfinished',{status:'incomplete',outputText:'{}'}],['empty',{status:'completed',outputText:''}]]){
  test(`${name} search interpretation returns a visible failure, never an empty success`,async()=>{
   const h=harness(answer);const response=await h.route.GET(new Request('http://local/api/search?q=my%20biggest%20dinner&tz=UTC'));
-  assert.equal(response.status,503);assert.equal((await response.json()).error,'Search could not be completed.');assert.equal(h.counts().models,1);assert.equal(h.counts().reads,0);
+  assert.equal(response.status,503);const body=await response.json();assert.equal(captureEnglish(body.message_code),'Search could not be completed.');assert.equal(Object.hasOwn(body,'error'),false);assert.equal(h.counts().models,1);assert.equal(h.counts().reads,0);
  });
 }
 test('a completed interpretation with no matches remains a genuine empty success',async()=>{

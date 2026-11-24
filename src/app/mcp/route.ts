@@ -1,3 +1,4 @@
+import {machineMessage} from '@/i18n/machine-messages';
 import { readAgentText } from '@/lib/agents/request-body';
 import { authenticateBearer, agentErrorResponse, AgentError } from '@/lib/agents/tokens';
 import { AGENT_TOOLS } from '@/lib/agents/mcp-tools';
@@ -10,19 +11,19 @@ export async function POST(request: Request) {
     let body: unknown;
     try { body = JSON.parse(raw); } catch {
       await authenticateBearer(request);
-      return Response.json(rpcError(null, -32700, 'Parse error'));
+      return Response.json(rpcError(null, -32700, machineMessage("route_65837ce7a4be")));
     }
     const batch = Array.isArray(body);
     const requests: unknown[] = Array.isArray(body) ? body : [body];
     const identity = await authenticateBearer(request, requests.length);
-    if (!requests.length) return Response.json(rpcError(null, -32600, 'Invalid Request'));
+    if (!requests.length) return Response.json(rpcError(null, -32600, machineMessage("route_97b1d0e9352f")));
     let work = false;
     const responses = [];
     for (const entry of requests) {
       const rpc = entry as { jsonrpc?: unknown; id?: unknown; method?: unknown; params?: unknown } | null;
       if (!rpc || typeof rpc !== 'object' || rpc.jsonrpc !== '2.0' || typeof rpc.method !== 'string' ||
         (rpc.id !== undefined && rpc.id !== null && typeof rpc.id !== 'number' && typeof rpc.id !== 'string')) {
-        responses.push(rpcError(null, -32600, 'Invalid Request')); continue;
+        responses.push(rpcError(null, -32600, machineMessage("route_97b1d0e9352f"))); continue;
       }
       const notification = !Object.hasOwn(rpc, 'id');
       const params = rpc.params;
@@ -34,19 +35,19 @@ export async function POST(request: Request) {
         case 'ping': result = {}; break;
         case 'tools/list': result = { tools: AGENT_TOOLS }; break;
         case 'tools/call': {
-          if (!params || typeof params !== 'object' || Array.isArray(params)) { error = { code: -32602, message: 'Invalid params' }; break; }
+          if (!params || typeof params !== 'object' || Array.isArray(params)) { error = { code: -32602, message: machineMessage("route_7a57cdae960d") }; break; }
           const { name, arguments: args = {} } = params as { name?: unknown; arguments?: unknown };
-          if (!args || typeof args !== 'object' || Array.isArray(args)) { error = { code: -32602, message: 'Invalid params' }; break; }
+          if (!args || typeof args !== 'object' || Array.isArray(args)) { error = { code: -32602, message: machineMessage("route_7a57cdae960d") }; break; }
           try {
             const data = await callTool(identity, name, args as AgentArgs);
             work ||= name === 'log_meal' || name === 'correct_meal';
             result = { content: [{ type: 'text', text: JSON.stringify(data) }] };
           } catch (failure) {
-            result = { content: [{ type: 'text', text: failure instanceof AgentError ? failure.message : 'The request could not be completed' }], isError: true };
+            result = { content: [{ type: 'text', text: failure instanceof AgentError ? failure.message : machineMessage("route_91d213c5adb6") }], isError: true };
           }
           break;
         }
-        default: error = { code: -32601, message: 'Method not found' };
+        default: error = { code: -32601, message: machineMessage("route_a362d1ab7712") };
       }
       if (!notification) responses.push(error ? rpcError(rpc.id, error.code, error.message) : { jsonrpc: '2.0', id: rpc.id, result: result ?? {} });
     }

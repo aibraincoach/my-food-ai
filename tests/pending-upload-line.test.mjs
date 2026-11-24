@@ -32,6 +32,6 @@ test('failed selections keep AGY’s retention sentence and ordinary in-flight l
  assert.equal(pendingUploadLine({kind:'food',state:'uploading',removing:true}),'Removing pending post…');
 });
 test('the card delegates the line and the chip’s words remain separate and unchanged',()=>{
- const card=readFileSync(new URL('../src/components/PostCard.tsx',import.meta.url),'utf8');assert.match(card,/captureFailureText\(pendingUploadLine\(upload\),tc\)/);assert.doesNotMatch(card,/The photo is kept on this phone/);
+ const card=readFileSync(new URL('../src/components/PostCard.tsx',import.meta.url),'utf8');assert.match(card,/captureFailureText\(pendingUploadLine\(upload\),tf\)/);assert.doesNotMatch(card,/The photo is kept on this phone/);
  const manager=readFileSync(new URL('../src/lib/posts/upload-manager.ts',import.meta.url),'utf8');assert.match(manager,/PHOTO_NOT_KEPT:CaptureFailure = \{code:'photoNotKept'\}/);
 });

@@ -15,7 +15,7 @@ function fixture(){
  const window={addEventListener:(...args)=>events.addEventListener(...args),removeEventListener:(...args)=>events.removeEventListener(...args),matchMedia:()=>({matches:false,addEventListener(){},removeEventListener(){}})};
  const db={auth:{getSession:async()=>({data:{session:{user:{id:'owner'}}}}),onAuthStateChange:()=>({data:{subscription:{unsubscribe(){}}}})}};
  const dependencies={
-  'next-intl':{useTranslations:()=>captureEnglish},'@/lib/posts/capture-failure':captureFailure,
+  '@/i18n/failure-messages':{useFailureMessages:()=>captureEnglish},'next-intl':{useTranslations:()=>captureEnglish},'@/lib/posts/capture-failure':captureFailure,
   'react':{useEffect:fn=>effects.push(fn),useState:value=>[value,()=>{}]},
   'react/jsx-runtime':{jsx,jsxs:jsx},'react-dom':{createPortal:x=>x},
   'next/navigation':{usePathname:()=> '/',useRouter:()=>({push(){}})},

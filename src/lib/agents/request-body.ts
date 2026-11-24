@@ -13,7 +13,7 @@ export async function readAgentText(request: Request, maxBytes = 65536): Promise
       bytes += value.byteLength;
       if (bytes > maxBytes) {
         await reader.cancel();
-        throw new AgentError('Request too large', 413);
+        throw new AgentError("route_66228a295b6f", 413);
       }
       text += decoder.decode(value, { stream: true });
     }

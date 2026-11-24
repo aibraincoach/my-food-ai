@@ -1,4 +1,6 @@
 'use client';
+import {DisplayError} from '@/i18n/display-error';
+import {useFailureMessages} from '@/i18n/failure-messages';
 import {CaptureFailureError,captureFailureText,failureFromResponse} from '@/lib/posts/capture-failure';
 import {useTranslations,useLocale} from 'next-intl';
 import {useEffect,useRef,useState} from 'react';
@@ -12,6 +14,7 @@ import {fromLocalInput} from '@/lib/posts/eaten-at';
 type Props={upload?:UploadState;shots:{previewUrl:string}[];notEaten:number[];caption:string;when:string|null;busy:boolean;saveAsMeal:boolean;locationEnabled:boolean};
 
 export function useComposerDrinks(p:Props){
+ const tf=useFailureMessages();
  const t=useTranslations('capture');
  const locale=useLocale();
  const amount=(value:number|null)=>value===null?t('unavailable'):new Intl.NumberFormat(locale,{maximumFractionDigits:1}).format(value);
@@ -35,12 +38,12 @@ export function useComposerDrinks(p:Props){
     const result=await response.json();
     if(response.status===409){await new Promise(resolve=>setTimeout(resolve,1000));continue;}
     if(!response.ok)throw new CaptureFailureError(failureFromResponse(result));return result as PhotoDrinkReading;
-   }throw Error(t('route_56080fee81fd'));};
+   }throw new DisplayError(tf('route_56080fee81fd'));};
    void identify()
     .then(result=>setReadings(previous=>({...previous,[key]:result})))
-    .catch(failure=>setError({identity:mine,message:failure instanceof CaptureFailureError ? captureFailureText(failure.failure,t)! : failure instanceof Error ? failure.message:t('error_622c487d3135')}));
+    .catch(failure=>setError({identity:mine,message:failure instanceof CaptureFailureError ? captureFailureText(failure.failure,tf)! : failure instanceof DisplayError ? failure.message:t('error_622c487d3135')}));
   }
- },[uploadId,p.upload?.state,p.shots.length,identity,t]);
+ },[uploadId,p.upload?.state,p.shots.length,identity,t,tf]);
  const ready=!!uploadId&&p.shots.length>0&&!p.notEaten.length&&p.shots.every((_,position)=>readingAt(position)?.allDrinks);
  useEffect(()=>{if(!ready)return;const controller=new AbortController();void fetch(`/api/intake/post?tz=${encodeURIComponent(Intl.DateTimeFormat().resolvedOptions().timeZone)}`,{signal:controller.signal}).then(async response=>{if(!response.ok)return;const result=await response.json();setTodayMl((result.rows??[]).reduce((n:number,r:{ml?:number|null;kind:string;amount:number})=>n+(r.ml??(r.kind==='water'?r.amount:0)),0));}).catch(()=>{});return()=>controller.abort();},[ready]);
  const all=ready?p.shots.flatMap((_,position)=>readingAt(position).drinks.map((drink,index)=>({key:`${uploadId}:${position}:${index}`,position,index,drink}))):[];
@@ -53,11 +56,11 @@ export function useComposerDrinks(p:Props){
  async function post(){
   if(!ready||busy||!rows.length||queueing.current)return;queueing.current=true;setSaving(true);setError({identity,message:''});
   try{
-   if(!p.upload||!uploadId)throw Error(t('error_a8b5df9b34f6'));
-   const eatenAt=p.when?fromLocalInput(p.when):new Date().toISOString();if(!eatenAt)throw Error(t('route_6572182f4064'));
+   if(!p.upload||!uploadId)throw new DisplayError(t('error_a8b5df9b34f6'));
+   const eatenAt=p.when?fromLocalInput(p.when):new Date().toISOString();if(!eatenAt)throw new DisplayError(tf('route_6572182f4064'));
    await uploadManager.postPhotoDrinks({upload_id:uploadId,caption:p.caption,save_as_meal:p.saveAsMeal,location:p.locationEnabled?uploadManager.fields(p.upload.operationId)?.location??null:null,eaten_at:eatenAt,readings:p.shots.map((_,position)=>({reading_id:readingAt(position).id,selections:rows.filter(r=>r.position===position).map(r=>({index:r.index,ml:r.chosen.ml}))}))},p.caption.trim()||(rows.length===1?rows[0].chosen.name:t('drinksCount',{count:rows.length})),p.upload.operationId);
    window.dispatchEvent(new Event('close-sheets'));
-  }catch(failure){setError({identity,message:failure instanceof CaptureFailureError ? captureFailureText(failure.failure,t)! : failure instanceof Error ? failure.message:t('drinksPostFailed')});}finally{queueing.current=false;setSaving(false);}
+  }catch(failure){setError({identity,message:failure instanceof CaptureFailureError ? captureFailureText(failure.failure,tf)! : failure instanceof DisplayError ? failure.message:t('drinksPostFailed')});}finally{queueing.current=false;setSaving(false);}
  }
  const correction=all.find(r=>r.key===correcting);
  async function saveCorrection(value:BarcodeCorrection){

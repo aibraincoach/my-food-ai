@@ -1,4 +1,3 @@
-import {captureRouteMessageCode} from '@/lib/posts/capture-route-failure';
 import {foodRequestKey} from "@/lib/posts/food-operation";
 import { capUser } from "@/lib/limits/user-cap";
 import {cookies} from "next/headers";
@@ -22,14 +21,14 @@ import { ApiError } from "@/lib/worker/errors";
 export async function POST(request: Request) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return NextResponse.json({ error: "Sign in required.",message_code: "route_ac6a88b19530" }, { status: 401 });
+  if (!user) return NextResponse.json({ message_code: "route_ac6a88b19530" }, { status: 401 });
  const capped = await capUser(user.id, "post"); if (capped) return capped;
   const timeZone=validZone((await cookies()).get("time-zone")?.value);
   const body = await request.json().catch(() => null) as { owner_id?:unknown; operation_id?:unknown; fdc_id?: unknown; query?: unknown; eaten_at?: unknown; gtin?: unknown; amount?: unknown; unit?: unknown; photo?: unknown; nutrition?: unknown; label_reading_id?: unknown; servings?: unknown; name?: unknown } | null;
-  if (body && Object.hasOwn(body, "nutrition")) return NextResponse.json({ error: "Nutrition is resolved by the server.",message_code: "route_b7ca1f666882" }, { status: 400 });
-  if(body?.owner_id!==undefined&&body.owner_id!==user.id)return NextResponse.json({error:"This selection belongs to another sign-in.",message_code: "route_bb967e31cbfd"},{status:404});
+  if (body && Object.hasOwn(body, "nutrition")) return NextResponse.json({ message_code: "route_b7ca1f666882" }, { status: 400 });
+  if(body?.owner_id!==undefined&&body.owner_id!==user.id)return NextResponse.json({message_code: "route_bb967e31cbfd"},{status:404});
   const operationId=body?.operation_id;
-  if(operationId!==undefined&&(typeof operationId!=="string"||!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(operationId)))return NextResponse.json({error:"Invalid food operation.",message_code: "route_836c626dd8b0"},{status:400});
+  if(operationId!==undefined&&(typeof operationId!=="string"||!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(operationId)))return NextResponse.json({message_code: "route_836c626dd8b0"},{status:400});
   const requestKey=body?foodRequestKey(body as Record<string,unknown>):'';
   const publish=(admin:ReturnType<typeof createAdminClient>,args:Record<string,unknown>)=>{
     const {p_barcode_correction:correction,...legacy}=args;
@@ -39,26 +38,26 @@ export async function POST(request: Request) {
   if(operationId){
     const admin=createAdminClient();
     const {data:receipt,error}=await admin.from('food_post_operations').select('user_id,request_key,post_id,cancelled').eq('operation_id',operationId).maybeSingle();
-    if(error)return NextResponse.json({error:"The food operation could not be confirmed. Retry your kept selection.",message_code: "route_7e7874d9008c"},{status:503});
+    if(error)return NextResponse.json({message_code: "route_7e7874d9008c"},{status:503});
     if(receipt){
-      if(receipt.user_id!==user.id)return NextResponse.json({error:"Food operation not found.",message_code: "route_47befe454974"},{status:404});
-      if(receipt.cancelled)return NextResponse.json({error:"This pending food post was removed.",message_code: "route_7302ac89b495"},{status:410});
-      if(receipt.request_key!==requestKey)return NextResponse.json({error:"This selection changed. Start a new food post.",message_code: "route_1502498aacbf"},{status:409});
+      if(receipt.user_id!==user.id)return NextResponse.json({message_code: "route_47befe454974"},{status:404});
+      if(receipt.cancelled)return NextResponse.json({message_code: "route_7302ac89b495"},{status:410});
+      if(receipt.request_key!==requestKey)return NextResponse.json({message_code: "route_1502498aacbf"},{status:409});
       const {data:post,error:postError}=receipt.post_id?await admin.from('posts').select('id').eq('id',receipt.post_id).eq('user_id',user.id).is('deleted_at',null).maybeSingle():{data:null,error:null};
-      if(postError)return NextResponse.json({error:"The saved food could not be confirmed. Retry your kept selection.",message_code: "route_b4e630f7aeff"},{status:503});
-      if(!post)return NextResponse.json({error:"This food post was removed.",message_code: "route_4683d1a2d3e1"},{status:410});
+      if(postError)return NextResponse.json({message_code: "route_b4e630f7aeff"},{status:503});
+      if(!post)return NextResponse.json({message_code: "route_4683d1a2d3e1"},{status:410});
       await finish(post.id,admin);return NextResponse.json({post_id:post.id},{status:201});
     }
   }
   if(body?.label_reading_id !== undefined){
-    if(typeof body.label_reading_id!=="string" || typeof body.servings!=="number" || !Number.isFinite(body.servings) || body.servings<0.25 || body.servings>50 || (body.name!==undefined && (typeof body.name!=="string" || body.name.trim().length>80)))return NextResponse.json({error:"Choose a valid label and servings.",message_code: "route_7015e9b9acc8"},{status:400});
+    if(typeof body.label_reading_id!=="string" || typeof body.servings!=="number" || !Number.isFinite(body.servings) || body.servings<0.25 || body.servings>50 || (body.name!==undefined && (typeof body.name!=="string" || body.name.trim().length>80)))return NextResponse.json({message_code: "route_7015e9b9acc8"},{status:400});
     const {data:stored,error:readError}=await supabase.from("label_readings").select("reading,photo_path").eq("id",body.label_reading_id).eq("user_id",user.id).maybeSingle();
-    if(readError||!stored)return NextResponse.json({error:"Label reading not found.",message_code: "route_3dbac83a74f4"},{status:404});
+    if(readError||!stored)return NextResponse.json({message_code: "route_3dbac83a74f4"},{status:404});
     const photo=body.photo as {path?:unknown;width?:unknown;height?:unknown}|undefined;
-    if(!photo || photo.path!==stored.photo_path)return NextResponse.json({error:"Use the photo from this label reading.",message_code: "route_58e8c760062c"},{status:400});
+    if(!photo || photo.path!==stored.photo_path)return NextResponse.json({message_code: "route_58e8c760062c"},{status:400});
     const eatenAt=body.eaten_at===undefined?new Date().toISOString():validEatenAt(body.eaten_at as string);
     const gtin=typeof body.gtin==="string"?canonicalGtin(body.gtin):null;
-    if(!eatenAt || (body.gtin!==undefined&&!gtin))return NextResponse.json({error:"Invalid time or barcode.",message_code: "route_d8890d6f2376"},{status:400});
+    if(!eatenAt || (body.gtin!==undefined&&!gtin))return NextResponse.json({message_code: "route_d8890d6f2376"},{status:400});
     try{
       const reading=parseLabelReading(stored.reading);const nutrition=labelNutrition(reading,body.servings);
       const name=typeof body.name==="string"&&body.name.trim()?body.name.trim():"Packaged food";
@@ -67,64 +66,64 @@ export async function POST(request: Request) {
       const per100=reading.serving?labelNutrition(reading,100/reading.serving.amount):null;
       const correction=gtin&&reading.serving&&per100?{gtin,name,serving_amount:reading.serving.amount,serving_unit:reading.serving.unit,per_100:Object.fromEntries(["calories","protein_g","carbs_g","fat_g","fibre_g","sugar_g","sodium_mg"].map(key=>[key,per100[key as keyof typeof per100]]))}:null;
       const {data,error}=await publish(admin,{p_user_id:user.id,p_eaten_at:eatenAt,p_name:name,p_grams:grams,p_nutrition:{...nutrition,source_ref:`label:${body.label_reading_id}`,...(gtin?{gtin}:{})},p_photo:photo,...(correction?{p_barcode_correction:correction}:{})});
-      if(error)return NextResponse.json({error:"The label post could not be saved.",message_code: "route_c119c11ebaae"},{status:error.code?.startsWith("PT")?Number(error.code.slice(2)):error.code?.startsWith("22")?400:500});
+      if(error)return NextResponse.json({message_code: "route_c119c11ebaae"},{status:error.code?.startsWith("PT")?Number(error.code.slice(2)):error.code?.startsWith("22")?400:500});
       if(gtin&&!operationId&&reading.serving&&per100){
         const perServing=labelNutrition(reading,100/reading.serving.amount);const {calories,...rest}=perServing;
         const {error:saveError}=await admin.from("barcode_corrections").upsert({gtin,user_id:user.id,name,source:"label",serving_amount:reading.serving.amount,serving_unit:reading.serving.unit,per_100:{calories,...Object.fromEntries(["protein_g","carbs_g","fat_g","fibre_g","sugar_g","sodium_mg"].map(key=>[key,rest[key as keyof typeof rest]]))},updated_at:new Date().toISOString()},{onConflict:"gtin,user_id"});
-        if(saveError)return NextResponse.json({error:"The post was saved, but the barcode correction could not be kept. Retry to keep it.",message_code: "route_5ac2b1cd154e"},{status:503});
+        if(saveError)return NextResponse.json({message_code: "route_5ac2b1cd154e"},{status:503});
       }
       await finish(data as string,admin);
       return NextResponse.json({post_id:data},{status:201});
-    }catch{return NextResponse.json({error:"A readable serving and nutrition panel are required.",message_code: "route_bb3ca709a35b"},{status:400});}
+    }catch{return NextResponse.json({message_code: "route_bb3ca709a35b"},{status:400});}
   }
   if (body?.gtin !== undefined) {
     if (typeof body.gtin !== "string" || !validGtin(body.gtin) || typeof body.amount !== "number" || !Number.isFinite(body.amount) || body.amount <= 0 || typeof body.unit !== "string")
-      return NextResponse.json({ error: "Choose a valid barcode and amount.",message_code: "route_28585ec931c3" }, { status: 400 });
+      return NextResponse.json({ message_code: "route_28585ec931c3" }, { status: 400 });
     const eatenAt = body.eaten_at === undefined ? new Date().toISOString() : validEatenAt(body.eaten_at as string);
-    if (!eatenAt) return NextResponse.json({ error: "Invalid time eaten.",message_code: "route_22819daf8128" }, { status: 400 });
+    if (!eatenAt) return NextResponse.json({ message_code: "route_22819daf8128" }, { status: 400 });
     let photo: { path: string; width: number; height: number } | null = null;
     if (body.photo !== undefined) {
       const input = body.photo as { path?: unknown; width?: unknown; height?: unknown } | null;
       if (!input || typeof input.path !== "string" || !new RegExp(`^${user.id}/[0-9a-f-]{36}/0[.]jpg$`).test(input.path)
         || !Number.isSafeInteger(input.width) || !Number.isSafeInteger(input.height)
         || (input.width as number) < 1 || (input.width as number) > 4096 || (input.height as number) < 1 || (input.height as number) > 4096)
-        return NextResponse.json({ error: "Invalid pack photo.",message_code: "route_2b5c661add89" }, { status: 400 });
+        return NextResponse.json({ message_code: "route_2b5c661add89" }, { status: 400 });
       photo = { path: input.path, width: input.width as number, height: input.height as number };
     }
     try {
       const product = await resolveProduct(body.gtin,user.id);
-      if (!product) return NextResponse.json({ error: "Not in the database",message_code: "route_eb53cdb7f215" }, { status: 404 });
+      if (!product) return NextResponse.json({ message_code: "route_eb53cdb7f215" }, { status: 404 });
       const amount = amountInBasis(body.amount, body.unit, product.basisUnit);
-      if (amount === null || amount > 100000) return NextResponse.json({ error: "Choose an amount in the product's own unit.",message_code: "route_8a9239da8a05" }, { status: 400 });
+      if (amount === null || amount > 100000) return NextResponse.json({ message_code: "route_8a9239da8a05" }, { status: 400 });
       const args: Record<string, unknown> = { p_user_id: user.id, p_eaten_at: eatenAt, p_name: product.name.slice(0, 160), p_grams: amount, p_nutrition: {...barcodeNutrition(product, amount),gtin:product.gtin} };
       if (photo) args.p_photo = photo;
       const { data, error } = await publish(createAdminClient(), args);
-      if (error) return NextResponse.json({ error: error.code?.startsWith("22") ? "The pack photo or portion could not be saved." : "The meal could not be saved.", message_code: captureRouteMessageCode(error.code?.startsWith("22") ? "The pack photo or portion could not be saved." : "The meal could not be saved.") }, { status: error.code?.startsWith("PT") ? Number(error.code.slice(2)) : error.code?.startsWith("22") ? 400 : 500 });
+      if (error) return NextResponse.json({  message_code: error.code?.startsWith("22") ? "route_55f1bddd8582" : "error_0795a0b4a0a6" }, { status: error.code?.startsWith("PT") ? Number(error.code.slice(2)) : error.code?.startsWith("22") ? 400 : 500 });
       await finish(data as string,createAdminClient());
       return NextResponse.json({ post_id: data as string }, { status: 201 });
     } catch (error) {
-      return NextResponse.json({ error: "Barcode lookup is temporarily unavailable.",message_code: "route_fc3f44ef874c" }, { status: error instanceof ApiError && error.status === 429 ? 429 : 502 });
+      return NextResponse.json({ message_code: "route_fc3f44ef874c" }, { status: error instanceof ApiError && error.status === 429 ? 429 : 502 });
     }
   }
   const query = typeof body?.query === "string" ? body.query.trim() : "";
   if (!Number.isSafeInteger(body?.fdc_id) || (body!.fdc_id as number) <= 0 || query.length < 2 || query.length > 160)
-    return NextResponse.json({ error: "Choose a food from the search results.",message_code: "route_f24bd2262b30" }, { status: 400 });
+    return NextResponse.json({ message_code: "route_f24bd2262b30" }, { status: 400 });
   const eatenAt = body!.eaten_at === undefined ? new Date().toISOString() : validEatenAt(body!.eaten_at as string);
-  if (!eatenAt) return NextResponse.json({ error: "Invalid time eaten.",message_code: "route_22819daf8128" }, { status: 400 });
+  if (!eatenAt) return NextResponse.json({ message_code: "route_22819daf8128" }, { status: 400 });
   try {
     const admin = createAdminClient();
     const food = (await searchFoods(admin, query)).find((row) => row.fdcId === body!.fdc_id);
-    if (!food) return NextResponse.json({ error: "That food is no longer in the results. Search again.",message_code: "route_f97ebd5857bc" }, { status: 409 });
+    if (!food) return NextResponse.json({ message_code: "route_f97ebd5857bc" }, { status: 409 });
     const portion = servingPortion(food);
     const n = scaleNutrition(food, portion.amount, null, portion.unit);
     const { data, error } = await publish(admin, { p_user_id: user.id, p_eaten_at: eatenAt, p_name: food.description.slice(0, 160), p_grams: portion.amount,
       p_nutrition: { calories: n.calories, protein_g: n.proteinG, carbs_g: n.carbsG, fat_g: n.fatG, fibre_g: n.fibreG, sugar_g: n.sugarG, sodium_mg: n.sodiumMg, micronutrients: n.micronutrients, source_ref: n.sourceRef, portion_unit: portion.unit } });
-    if (error?.code === "42501") return NextResponse.json({ error: "Sign in required.",message_code: "route_ac6a88b19530" }, { status: 401 });
-    if (error) return NextResponse.json({ error: error.code?.startsWith("22") ? "That food could not be logged." : "The meal could not be saved.", message_code: captureRouteMessageCode(error.code?.startsWith("22") ? "That food could not be logged." : "The meal could not be saved.") }, { status: error.code?.startsWith("PT") ? Number(error.code.slice(2)) : error.code?.startsWith("22") ? 400 : 500 });
+    if (error?.code === "42501") return NextResponse.json({ message_code: "route_ac6a88b19530" }, { status: 401 });
+    if (error) return NextResponse.json({  message_code: error.code?.startsWith("22") ? "route_90f611283783" : "error_0795a0b4a0a6" }, { status: error.code?.startsWith("PT") ? Number(error.code.slice(2)) : error.code?.startsWith("22") ? 400 : 500 });
     await finish(data as string,admin);
     return NextResponse.json({ post_id: data as string }, { status: 201 });
   } catch (error) {
-    return NextResponse.json({ error: "Food search is temporarily unavailable.",message_code: "route_ea88574adf4a" }, { status: error instanceof ApiError && error.status === 429 ? 429 : 502 });
+    return NextResponse.json({ message_code: "route_ea88574adf4a" }, { status: error instanceof ApiError && error.status === 429 ? 429 : 502 });
   }
 }
 
@@ -133,12 +132,12 @@ export async function POST(request: Request) {
 // hidden, and a request arriving later cannot publish a discarded selection.
 export async function DELETE(request:Request){
  const db=await createClient();const {data:{user}}=await db.auth.getUser();
- if(!user)return NextResponse.json({error:"Sign in required.",message_code: "route_ac6a88b19530"},{status:401});
+ if(!user)return NextResponse.json({message_code: "route_ac6a88b19530"},{status:401});
  const capped=await capUser(user.id,"post");if(capped)return capped;
  const body=await request.json().catch(()=>null) as {operation_id?:unknown;owner_id?:unknown}|null;
- if(body?.owner_id!==user.id)return NextResponse.json({error:"This selection belongs to another sign-in.",message_code: "route_bb967e31cbfd"},{status:404});
- if(typeof body.operation_id!=="string"||!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(body.operation_id))return NextResponse.json({error:"Invalid food operation.",message_code: "route_836c626dd8b0"},{status:400});
+ if(body?.owner_id!==user.id)return NextResponse.json({message_code: "route_bb967e31cbfd"},{status:404});
+ if(typeof body.operation_id!=="string"||!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(body.operation_id))return NextResponse.json({message_code: "route_836c626dd8b0"},{status:400});
  const {data,error}=await createAdminClient().rpc("cancel_food_operation",{p_operation_id:body.operation_id,p_user_id:user.id});
- if(error)return NextResponse.json({error:"The pending food could not be removed. Your selection is kept.",message_code: "route_3dafcce53b7d"},{status:error.code==='42501'?404:error.code?.startsWith('PT')?Number(error.code.slice(2)):503});
+ if(error)return NextResponse.json({message_code: "route_3dafcce53b7d"},{status:error.code==='42501'?404:error.code?.startsWith('PT')?Number(error.code.slice(2)):503});
  return NextResponse.json({post_id:data},{status:200});
 }

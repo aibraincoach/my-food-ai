@@ -1,4 +1,6 @@
 "use client";
+import {DisplayError} from '@/i18n/display-error';
+import {useApiFailureText} from '@/i18n/api-error-text';
 import {useTranslations} from 'next-intl';
 
 import { useState } from "react";
@@ -7,7 +9,8 @@ import { fromLocalInput, toLocalInput } from "@/lib/posts/eaten-at";
 
 // "Time eaten" on post detail: change when the meal was eaten (feed, Days and Search follow it).
 export default function EatenAtEditor({ postId, eatenAt }: { postId: string; eatenAt: string }) {
-  const t=useTranslations('postMenu');
+  const apiError=useApiFailureText();
+ const t=useTranslations('postMenu');
   const router = useRouter();
   const [value, setValue] = useState(() => toLocalInput(new Date(eatenAt)));
   const [saving, setSaving] = useState(false);
@@ -19,9 +22,9 @@ export default function EatenAtEditor({ postId, eatenAt }: { postId: string; eat
     setSaving(true); setError("");
     try {
       const response = await fetch(`/api/posts/${postId}/eaten-at`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ eaten_at: iso }) });
-      if (!response.ok) throw new Error((await response.json().catch(() => null))?.error ?? t('timeSaveFailed'));
+      if (!response.ok) throw new DisplayError(apiError((await response.json().catch(() => null)),"route_6f4458352e2c"));
       router.refresh();
-    } catch (e) { setError(e instanceof Error ? e.message : t('timeSaveFailed')); }
+    } catch (e) { setError(e instanceof DisplayError ? e.message : t('timeSaveFailed')); }
     finally { setSaving(false); }
   };
   return <section aria-label={t('timeEaten')} className="flex flex-wrap items-center gap-2 px-screen-x pt-sheet-top text-detail">

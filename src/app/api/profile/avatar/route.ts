@@ -20,19 +20,19 @@ async function removeStoredAvatar(
 export async function POST(request: Request) {
   const supabase = await createClient();
   const {data: {user}} = await supabase.auth.getUser();
-  if (!user) return NextResponse.json({error: 'Sign in required.'}, {status: 401});
+  if (!user) return NextResponse.json({message_code: "route_ac6a88b19530"}, {status: 401});
 
   const form = await request.formData().catch(() => null);
   const file = form?.get('photo');
   if (!(file instanceof Blob) || file.size === 0) {
-    return NextResponse.json({error: 'Choose a photo.'}, {status: 400});
+    return NextResponse.json({message_code: "route_e28f25da2e9a"}, {status: 400});
   }
 
   let source: Buffer;
   try {
     source = await readAvatarUpload(Buffer.from(await file.arrayBuffer()));
   } catch {
-    return NextResponse.json({error: 'That photo could not be read.'}, {status: 400});
+    return NextResponse.json({message_code: "route_c37cfb143b8e"}, {status: 400});
   }
 
   const mediaId = crypto.randomUUID();
@@ -48,14 +48,14 @@ export async function POST(request: Request) {
     }
   } catch {
     await removeStoredAvatar(supabase, user.id, mediaId);
-    return NextResponse.json({error: 'The photo could not be saved.'}, {status: 503});
+    return NextResponse.json({message_code: "route_b01b8dcc9403"}, {status: 503});
   }
 
   const {data: prior} = await supabase.from('profiles').select('avatar_media_id').eq('id', user.id).maybeSingle();
   const {error: profileError} = await supabase.from('profiles').update({avatar_media_id: mediaId}).eq('id', user.id);
   if (profileError) {
     await removeStoredAvatar(supabase, user.id, mediaId);
-    return NextResponse.json({error: 'The photo could not be saved.'}, {status: 503});
+    return NextResponse.json({message_code: "route_b01b8dcc9403"}, {status: 503});
   }
 
   if (prior?.avatar_media_id && prior.avatar_media_id !== mediaId) {
@@ -68,14 +68,14 @@ export async function POST(request: Request) {
 export async function DELETE() {
   const supabase = await createClient();
   const {data: {user}} = await supabase.auth.getUser();
-  if (!user) return NextResponse.json({error: 'Sign in required.'}, {status: 401});
+  if (!user) return NextResponse.json({message_code: "route_ac6a88b19530"}, {status: 401});
 
   const {data: profile} = await supabase.from('profiles').select('avatar_media_id').eq('id', user.id).maybeSingle();
   const mediaId = profile?.avatar_media_id;
   if (!mediaId) return NextResponse.json({ok: true});
 
   const {error} = await supabase.from('profiles').update({avatar_media_id: null}).eq('id', user.id);
-  if (error) return NextResponse.json({error: 'The photo could not be removed.'}, {status: 503});
+  if (error) return NextResponse.json({message_code: "route_0c82f1c92275"}, {status: 503});
 
   await removeStoredAvatar(supabase, user.id, mediaId);
   const listed = await supabase.storage.from('media').list(avatarStoragePrefix(user.id, mediaId));

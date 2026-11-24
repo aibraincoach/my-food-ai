@@ -26,7 +26,7 @@ async function open(){
  const p=await c.newPage();p.setDefaultTimeout(10000);p.on('pageerror',e=>result.errors.push(e.message));return {c,p};
 }
 try{
- for(const fresh of (process.env.ONLY_CASE==='feed'?[]:[true,false])){
+ for(const fresh of (['feed','thread'].includes(process.env.ONLY_CASE)?[]:[true,false])){
   await reset(fresh?[]:['capture','modes','thumbs','thread']);
   const {c,p}=await open();
   try{
@@ -50,11 +50,12 @@ try{
   }catch(error){await fs.writeFile(out+'/'+engine+'-failure-dom.json',JSON.stringify({url:p.url(),body:await p.locator('body').innerText().catch(()=>''),html:await p.locator('body').innerHTML().catch(()=>''),tapEvents:await p.evaluate(()=>window.__tapRects??[]).catch(()=>[])},null,2));await p.screenshot({path:out+'/'+engine+'-failure.png',fullPage:true}).catch(()=>{});throw error;}finally{await c.close();}
  }
  if(process.env.ONLY_CASE!=='camera'){
- await reset(['capture','modes']);
+ await reset(process.env.ONLY_CASE==='thread'?['capture','modes','thumbs']:['capture','modes']);
  const cleared=await admin.from('post_feedback').delete().eq('post_id',fixture.post);if(cleared.error)throw cleared.error;
  const {c,p}=await open();
  try{
   await p.goto(app+'/',{waitUntil:'domcontentloaded'});const card=p.locator('article[data-post-id="'+fixture.post+'"]');
+  if(process.env.ONLY_CASE!=='thread'){
   await card.getByText('Was this estimate right?',{exact:true}).waitFor();
   const accept=card.getByRole('button',{name:'Accept analysis',exact:true});assert.equal(await accept.isEnabled(),true);
   const response=p.waitForResponse(r=>new URL(r.url()).pathname==='/api/posts/'+fixture.post+'/feedback'&&r.request().method()==='POST');
@@ -63,10 +64,13 @@ try{
   const feedback=await admin.from('post_feedback').select('verdict').eq('post_id',fixture.post).single();assert.equal(feedback.error,null);assert.equal(feedback.data.verdict,'up');
   assert.ok((await seen()).includes('thumbs'));await p.reload({waitUntil:'load'});assert.equal(await p.getByText('Was this estimate right?',{exact:true}).count(),0);
   result.cases.push({name:'thumbs',firstTapSaved:'up',shownAgain:false});
+  }
   await p.goto(app+'/posts/'+fixture.post,{waitUntil:'load'});await p.getByText('Reply here to fix the estimate',{exact:true}).waitFor();
-  const field=p.locator('#comment-field:visible');await field.tap();assert.equal(await field.evaluate(e=>document.activeElement===e),true);
+  const field=p.locator('#comment-field:visible');
+  const savedThread=p.waitForResponse(response=>response.request().method()==='POST'&&Boolean(response.request().headers()['next-action'])&&response.request().postData()?.includes('"thread"'));
+  savedThread.catch(()=>{});await field.tap();assert.equal(await field.evaluate(e=>document.activeElement===e),true);
   await field.fill('Local draft text');assert.equal(await field.inputValue(),'Local draft text');await field.fill('');
-  assert.equal(await p.getByText('Reply here to fix the estimate',{exact:true}).count(),0);assert.ok((await seen()).includes('thread'));
+  assert.equal(await p.getByText('Reply here to fix the estimate',{exact:true}).count(),0);assert.equal((await savedThread).status(),200);assert.ok((await seen()).includes('thread'));
   await p.reload({waitUntil:'load'});assert.equal(await p.getByText('Reply here to fix the estimate',{exact:true}).count(),0);
   result.cases.push({name:'thread',firstTapFocused:true,shownAgain:false});
  }catch(error){await fs.writeFile(out+'/'+engine+'-failure-dom.json',JSON.stringify({url:p.url(),body:await p.locator('body').innerText().catch(()=>''),html:await p.locator('body').innerHTML().catch(()=>''),tapEvents:await p.evaluate(()=>window.__tapRects??[]).catch(()=>[])},null,2));await p.screenshot({path:out+'/'+engine+'-failure.png',fullPage:true}).catch(()=>{});throw error;}finally{await c.close();}

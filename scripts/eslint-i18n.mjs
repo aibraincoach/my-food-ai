@@ -18,7 +18,6 @@ export const captureLintTargets = [
   "src/lib/posts/upload-manager.ts",
   "src/lib/posts/upload-store.ts",
   "src/lib/posts/capture-failure.ts",
-  "src/lib/posts/capture-route-failure.ts",
   "src/lib/posts/create.ts",
   "src/lib/media/camera.ts",
   "src/lib/media/pack-photo-upload.ts",
@@ -37,14 +36,16 @@ export const HELD_FOR_OWNER_WORDING = [
 export const untranslatedNamesAndUnits = ['My Food AI','@','?','—','Enter','Esc','N','D','J / K','← →','↑ ↓','kcal','g','ml','mg','(',')','+','·','···','‹','›','×','/','1/1','✎','−'];
 // Dynamic route brackets are literals, not glob character classes.
 const lintPathPattern=file=>file.replace(/[\[\]]/g,character=>'\\'+character);
+export const serverLintTargets=['src/app/api/**','src/app/mcp/**','src/app/profile/agents/actions.ts','src/lib/agents/**','src/lib/limits/user-cap.ts','src/lib/posts/barcode-correction.ts','src/lib/posts/caption.ts','src/lib/posts/caption-client.ts','src/lib/posts/copy-operation.ts','src/lib/posts/attach-photo.ts','src/lib/intake/drink-operation.ts'];
 export const deferred = [
  'src/app/**','!src/app/admin/freeze-reports/**','!src/app/(auth)/**','!src/app/error.tsx','!src/app/not-found.tsx','!src/app/(tabs)/profile/about/page.tsx',
  'src/components/*.tsx',...readingLintTargets.map(file=>'!'+lintPathPattern(file)),...['AuthProviders','ProviderButton','HCaptcha','BottomBar','PlusMenu','ResultsCard'].map(name=>'!src/components/'+name+'.tsx'),
  ...captureLintTargets.filter(file=>!file.startsWith('src/lib/')).map(file=>'!'+file),
  'src/lib/**','!src/lib/auth/actions.ts','!src/lib/auth/password-reset.ts','!src/lib/pipeline/card-data.ts','src/middleware.ts',...captureLintTargets.filter(file=>file.startsWith('src/lib/')).map(file=>'!'+file),...readingLintTargets.filter(file=>file.startsWith('src/lib/')).map(file=>'!'+file),
 ];
+deferred.push(...serverLintTargets.map(file=>'!'+file));
 export const converted = ['src/**/*.{ts,tsx}'];
-export const lintTargets = [...captureLintTargets,...readingLintTargets,'src/i18n','src/components/i18n','src/components/support','src/app/admin/freeze-reports','src/app/(auth)','src/app/error.tsx','src/app/not-found.tsx','src/app/(tabs)/profile/about/page.tsx',...['AuthProviders','ProviderButton','HCaptcha','BottomBar','PlusMenu','ResultsCard'].map(name=>'src/components/'+name+'.tsx'),'src/lib/auth/actions.ts','src/lib/auth/password-reset.ts','src/lib/pipeline/card-data.ts'];
+export const lintTargets = [...serverLintTargets,...captureLintTargets,...readingLintTargets,'src/i18n','src/components/i18n','src/components/support','src/app/admin/freeze-reports','src/app/(auth)','src/app/error.tsx','src/app/not-found.tsx','src/app/(tabs)/profile/about/page.tsx',...['AuthProviders','ProviderButton','HCaptcha','BottomBar','PlusMenu','ResultsCard'].map(name=>'src/components/'+name+'.tsx'),'src/lib/auth/actions.ts','src/lib/auth/password-reset.ts','src/lib/pipeline/card-data.ts'];
 const visibleAttributes = new Set(['aria-label', 'aria-description', 'placeholder', 'title', 'alt', 'label']);
 function hasFixedText(node) {
   if(!node) return false;

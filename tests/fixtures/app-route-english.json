@@ -1,0 +1,1864 @@
+{
+  "base": "a56faea7cd8633e0d7b9178a356c5b06c9d1cb35",
+  "rows": [
+    {
+      "file": "src/app/api/transcribe/route.ts",
+      "site": 0,
+      "english": [
+        "Sign in to transcribe."
+      ]
+    },
+    {
+      "file": "src/app/api/transcribe/route.ts",
+      "site": 1,
+      "english": [
+        "Audio is required."
+      ]
+    },
+    {
+      "file": "src/app/api/transcribe/route.ts",
+      "site": 2,
+      "english": [
+        "Recording is too large."
+      ]
+    },
+    {
+      "file": "src/app/api/transcribe/route.ts",
+      "site": 4,
+      "english": [
+        "Audio could not be read."
+      ]
+    },
+    {
+      "file": "src/app/api/transcribe/route.ts",
+      "site": 5,
+      "english": [
+        "A post is required."
+      ]
+    },
+    {
+      "file": "src/app/api/transcribe/route.ts",
+      "site": 6,
+      "english": [
+        "Post not found."
+      ]
+    },
+    {
+      "file": "src/app/api/transcribe/route.ts",
+      "site": 7,
+      "english": [
+        "Send a WAV recording up to two minutes."
+      ]
+    },
+    {
+      "file": "src/app/api/transcribe/route.ts",
+      "site": 8,
+      "english": [
+        "Recording must be mono 16-bit 16 kHz WAV."
+      ]
+    },
+    {
+      "file": "src/app/api/transcribe/route.ts",
+      "site": 10,
+      "english": [
+        "Transcription is busy. Please try again.",
+        "Transcription could not be completed."
+      ]
+    },
+    {
+      "file": "src/app/api/today/route.ts",
+      "site": 0,
+      "english": [
+        "Sign in required."
+      ]
+    },
+    {
+      "file": "src/app/api/today/route.ts",
+      "site": 2,
+      "english": [
+        "Today could not be loaded."
+      ]
+    },
+    {
+      "file": "src/app/api/search/route.ts",
+      "site": 0,
+      "english": [
+        "Sign in required."
+      ]
+    },
+    {
+      "file": "src/app/api/search/route.ts",
+      "site": 1,
+      "english": [
+        "Enter a search of up to 500 characters."
+      ]
+    },
+    {
+      "file": "src/app/api/search/route.ts",
+      "site": 3,
+      "english": [
+        "Search could not be completed."
+      ]
+    },
+    {
+      "file": "src/app/api/saved/route.ts",
+      "site": 0,
+      "english": [
+        "Sign in required."
+      ]
+    },
+    {
+      "file": "src/app/api/saved/route.ts",
+      "site": 2,
+      "english": [
+        "Saved meals could not be loaded."
+      ]
+    },
+    {
+      "file": "src/app/api/saved/route.ts",
+      "site": 3,
+      "english": [
+        "Sign in required."
+      ]
+    },
+    {
+      "file": "src/app/api/saved/route.ts",
+      "site": 4,
+      "english": [
+        "Invalid meal."
+      ]
+    },
+    {
+      "file": "src/app/api/saved/route.ts",
+      "site": 6,
+      "english": [
+        "The meal could not be saved."
+      ]
+    },
+    {
+      "file": "src/app/api/saved/[id]/route.ts",
+      "site": 0,
+      "english": [
+        "Sign in required."
+      ]
+    },
+    {
+      "file": "src/app/api/saved/[id]/route.ts",
+      "site": 1,
+      "english": [
+        "Saved meal not found."
+      ]
+    },
+    {
+      "file": "src/app/api/saved/[id]/route.ts",
+      "site": 3,
+      "english": [
+        "The name could not be saved."
+      ]
+    },
+    {
+      "file": "src/app/api/saved/[id]/route.ts",
+      "site": 4,
+      "english": [
+        "Sign in required."
+      ]
+    },
+    {
+      "file": "src/app/api/saved/[id]/route.ts",
+      "site": 5,
+      "english": [
+        "Saved meal not found."
+      ]
+    },
+    {
+      "file": "src/app/api/saved/[id]/route.ts",
+      "site": 6,
+      "english": [
+        "The meal could not be unsaved."
+      ]
+    },
+    {
+      "file": "src/app/api/saved/[id]/log/route.ts",
+      "site": 0,
+      "english": [
+        "Sign in required."
+      ]
+    },
+    {
+      "file": "src/app/api/saved/[id]/log/route.ts",
+      "site": 1,
+      "english": [
+        "Meal not found."
+      ]
+    },
+    {
+      "file": "src/app/api/saved/[id]/log/route.ts",
+      "site": 3,
+      "english": [
+        "The meal could not be logged."
+      ]
+    },
+    {
+      "file": "src/app/api/saved/[id]/log/route.ts",
+      "site": 4,
+      "english": [
+        "Sign in required."
+      ]
+    },
+    {
+      "file": "src/app/api/saved/[id]/log/route.ts",
+      "site": 5,
+      "english": [
+        "Meal not found."
+      ]
+    },
+    {
+      "file": "src/app/api/saved/[id]/log/route.ts",
+      "site": 7,
+      "english": [
+        "The pending copy could not be removed."
+      ]
+    },
+    {
+      "file": "src/app/api/push/subscribe/route.ts",
+      "site": 0,
+      "english": [
+        "Invalid origin."
+      ]
+    },
+    {
+      "file": "src/app/api/push/subscribe/route.ts",
+      "site": 1,
+      "english": [
+        "Sign in required."
+      ]
+    },
+    {
+      "file": "src/app/api/push/subscribe/route.ts",
+      "site": 2,
+      "english": [
+        "Invalid subscription."
+      ]
+    },
+    {
+      "file": "src/app/api/push/subscribe/route.ts",
+      "site": 3,
+      "english": [
+        "Invalid subscription."
+      ]
+    },
+    {
+      "file": "src/app/api/push/subscribe/route.ts",
+      "site": 4,
+      "english": [
+        "Subscription could not be saved."
+      ]
+    },
+    {
+      "file": "src/app/api/push/subscribe/route.ts",
+      "site": 6,
+      "english": [
+        "Invalid origin."
+      ]
+    },
+    {
+      "file": "src/app/api/push/subscribe/route.ts",
+      "site": 7,
+      "english": [
+        "Sign in required."
+      ]
+    },
+    {
+      "file": "src/app/api/push/subscribe/route.ts",
+      "site": 8,
+      "english": [
+        "Invalid endpoint."
+      ]
+    },
+    {
+      "file": "src/app/api/push/subscribe/route.ts",
+      "site": 9,
+      "english": [
+        "Invalid endpoint."
+      ]
+    },
+    {
+      "file": "src/app/api/push/subscribe/route.ts",
+      "site": 10,
+      "english": [
+        "Device could not be detached."
+      ]
+    },
+    {
+      "file": "src/app/api/profile/identify-provider/route.ts",
+      "site": 0,
+      "english": [
+        "Sign in required."
+      ]
+    },
+    {
+      "file": "src/app/api/profile/identify-provider/route.ts",
+      "site": 1,
+      "english": [
+        "Open identify is not available."
+      ]
+    },
+    {
+      "file": "src/app/api/profile/identify-provider/route.ts",
+      "site": 2,
+      "english": [
+        "Choose an identify provider."
+      ]
+    },
+    {
+      "file": "src/app/api/profile/identify-provider/route.ts",
+      "site": 3,
+      "english": [
+        "The setting could not be saved."
+      ]
+    },
+    {
+      "file": "src/app/api/label/read/route.ts",
+      "site": 0,
+      "english": [
+        "Sign in required."
+      ]
+    },
+    {
+      "file": "src/app/api/label/read/route.ts",
+      "site": 1,
+      "english": [
+        "Choose an uploaded photo."
+      ]
+    },
+    {
+      "file": "src/app/api/label/read/route.ts",
+      "site": 2,
+      "english": [
+        "The photo could not be opened."
+      ]
+    },
+    {
+      "file": "src/app/api/label/read/route.ts",
+      "site": 4,
+      "english": [
+        "The nutrition label could not be read. Try again."
+      ]
+    },
+    {
+      "file": "src/app/api/intake/tile-counts/route.ts",
+      "site": 0,
+      "english": [
+        "Sign in required."
+      ]
+    },
+    {
+      "file": "src/app/api/intake/tile-counts/route.ts",
+      "site": 1,
+      "english": [
+        "Drink history could not be read."
+      ]
+    },
+    {
+      "file": "src/app/api/profile/avatar/route.ts",
+      "site": 0,
+      "english": [
+        "Sign in required."
+      ]
+    },
+    {
+      "file": "src/app/api/profile/avatar/route.ts",
+      "site": 1,
+      "english": [
+        "Choose a photo."
+      ]
+    },
+    {
+      "file": "src/app/api/profile/avatar/route.ts",
+      "site": 2,
+      "english": [
+        "That photo could not be read."
+      ]
+    },
+    {
+      "file": "src/app/api/profile/avatar/route.ts",
+      "site": 3,
+      "english": [
+        "The photo could not be saved."
+      ]
+    },
+    {
+      "file": "src/app/api/profile/avatar/route.ts",
+      "site": 4,
+      "english": [
+        "The photo could not be saved."
+      ]
+    },
+    {
+      "file": "src/app/api/profile/avatar/route.ts",
+      "site": 6,
+      "english": [
+        "Sign in required."
+      ]
+    },
+    {
+      "file": "src/app/api/profile/avatar/route.ts",
+      "site": 8,
+      "english": [
+        "The photo could not be removed."
+      ]
+    },
+    {
+      "file": "src/app/api/intake/post/route.ts",
+      "site": 0,
+      "english": [
+        "Sign in required."
+      ]
+    },
+    {
+      "file": "src/app/api/intake/post/route.ts",
+      "site": 1,
+      "english": [
+        "Invalid posts."
+      ]
+    },
+    {
+      "file": "src/app/api/intake/post/route.ts",
+      "site": 3,
+      "english": [
+        "Invalid post."
+      ]
+    },
+    {
+      "file": "src/app/api/intake/post/route.ts",
+      "site": 6,
+      "english": [
+        "Drinks could not be read."
+      ]
+    },
+    {
+      "file": "src/app/api/intake/post/route.ts",
+      "site": 7,
+      "english": [
+        "Sign in required."
+      ]
+    },
+    {
+      "file": "src/app/api/intake/post/route.ts",
+      "site": 8,
+      "english": [
+        "This drink belongs to another sign-in."
+      ]
+    },
+    {
+      "file": "src/app/api/intake/post/route.ts",
+      "site": 9,
+      "english": [
+        "Invalid drink operation."
+      ]
+    },
+    {
+      "file": "src/app/api/intake/post/route.ts",
+      "site": 10,
+      "english": [
+        "Choose a drink tile or a whole amount from 1 to 5000 ml (coffee up to 1000 mg caffeine)."
+      ]
+    },
+    {
+      "file": "src/app/api/intake/post/route.ts",
+      "site": 11,
+      "english": [
+        "Choose a valid time eaten."
+      ]
+    },
+    {
+      "file": "src/app/api/intake/post/route.ts",
+      "site": 15,
+      "english": [
+        "The drink could not be saved. Your selection is kept."
+      ]
+    },
+    {
+      "file": "src/app/api/intake/post/route.ts",
+      "site": 16,
+      "english": [
+        "Sign in required."
+      ]
+    },
+    {
+      "file": "src/app/api/intake/post/route.ts",
+      "site": 17,
+      "english": [
+        "This drink belongs to another sign-in."
+      ]
+    },
+    {
+      "file": "src/app/api/intake/post/route.ts",
+      "site": 18,
+      "english": [
+        "Invalid drink operation."
+      ]
+    },
+    {
+      "file": "src/app/api/intake/post/route.ts",
+      "site": 19,
+      "english": [
+        "The pending drink could not be removed. Your selection is kept."
+      ]
+    },
+    {
+      "file": "src/app/api/posts/route.ts",
+      "site": 0,
+      "english": [
+        "Sign in required."
+      ]
+    },
+    {
+      "file": "src/app/api/posts/route.ts",
+      "site": 1,
+      "english": [
+        "Invalid caption."
+      ]
+    },
+    {
+      "file": "src/app/api/posts/route.ts",
+      "site": 2,
+      "english": [
+        "Invalid save choice."
+      ]
+    },
+    {
+      "file": "src/app/api/posts/route.ts",
+      "site": 3,
+      "english": [
+        "The selected photo is not ready. Your draft was kept."
+      ]
+    },
+    {
+      "file": "src/app/api/posts/route.ts",
+      "site": 4,
+      "english": [
+        "Only photos after the first can be marked as leftovers."
+      ]
+    },
+    {
+      "file": "src/app/api/posts/route.ts",
+      "site": 5,
+      "english": [
+        "Invalid draft."
+      ]
+    },
+    {
+      "file": "src/app/api/posts/route.ts",
+      "site": 6,
+      "english": [
+        "Invalid time eaten."
+      ]
+    },
+    {
+      "file": "src/app/api/posts/route.ts",
+      "site": 7,
+      "english": [
+        "Invalid location."
+      ]
+    },
+    {
+      "file": "src/app/api/posts/route.ts",
+      "site": 11,
+      "english": [
+        "The post could not be completed. Your draft was kept; try again."
+      ]
+    },
+    {
+      "file": "src/app/api/posts/route.ts",
+      "site": 13,
+      "english": [
+        "Sign in required."
+      ]
+    },
+    {
+      "file": "src/app/api/posts/route.ts",
+      "site": 14,
+      "english": [
+        "Invalid draft."
+      ]
+    },
+    {
+      "file": "src/app/api/posts/route.ts",
+      "site": 16,
+      "english": [
+        "The upload draft expired. Your photos were kept; try again.",
+        "The photo upload could not be completed. Your draft was kept; try again."
+      ]
+    },
+    {
+      "file": "src/app/api/posts/food/route.ts",
+      "site": 0,
+      "english": [
+        "Sign in required."
+      ]
+    },
+    {
+      "file": "src/app/api/posts/food/route.ts",
+      "site": 1,
+      "english": [
+        "Nutrition is resolved by the server."
+      ]
+    },
+    {
+      "file": "src/app/api/posts/food/route.ts",
+      "site": 2,
+      "english": [
+        "This selection belongs to another sign-in."
+      ]
+    },
+    {
+      "file": "src/app/api/posts/food/route.ts",
+      "site": 3,
+      "english": [
+        "Invalid food operation."
+      ]
+    },
+    {
+      "file": "src/app/api/posts/food/route.ts",
+      "site": 4,
+      "english": [
+        "The food operation could not be confirmed. Retry your kept selection."
+      ]
+    },
+    {
+      "file": "src/app/api/posts/food/route.ts",
+      "site": 5,
+      "english": [
+        "Food operation not found."
+      ]
+    },
+    {
+      "file": "src/app/api/posts/food/route.ts",
+      "site": 6,
+      "english": [
+        "This pending food post was removed."
+      ]
+    },
+    {
+      "file": "src/app/api/posts/food/route.ts",
+      "site": 7,
+      "english": [
+        "This selection changed. Start a new food post."
+      ]
+    },
+    {
+      "file": "src/app/api/posts/food/route.ts",
+      "site": 8,
+      "english": [
+        "The saved food could not be confirmed. Retry your kept selection."
+      ]
+    },
+    {
+      "file": "src/app/api/posts/food/route.ts",
+      "site": 9,
+      "english": [
+        "This food post was removed."
+      ]
+    },
+    {
+      "file": "src/app/api/posts/food/route.ts",
+      "site": 11,
+      "english": [
+        "Choose a valid label and servings."
+      ]
+    },
+    {
+      "file": "src/app/api/posts/food/route.ts",
+      "site": 12,
+      "english": [
+        "Label reading not found."
+      ]
+    },
+    {
+      "file": "src/app/api/posts/food/route.ts",
+      "site": 13,
+      "english": [
+        "Use the photo from this label reading."
+      ]
+    },
+    {
+      "file": "src/app/api/posts/food/route.ts",
+      "site": 14,
+      "english": [
+        "Invalid time or barcode."
+      ]
+    },
+    {
+      "file": "src/app/api/posts/food/route.ts",
+      "site": 15,
+      "english": [
+        "The label post could not be saved."
+      ]
+    },
+    {
+      "file": "src/app/api/posts/food/route.ts",
+      "site": 16,
+      "english": [
+        "The post was saved, but the barcode correction could not be kept. Retry to keep it."
+      ]
+    },
+    {
+      "file": "src/app/api/posts/food/route.ts",
+      "site": 18,
+      "english": [
+        "A readable serving and nutrition panel are required."
+      ]
+    },
+    {
+      "file": "src/app/api/posts/food/route.ts",
+      "site": 19,
+      "english": [
+        "Choose a valid barcode and amount."
+      ]
+    },
+    {
+      "file": "src/app/api/posts/food/route.ts",
+      "site": 20,
+      "english": [
+        "Invalid time eaten."
+      ]
+    },
+    {
+      "file": "src/app/api/posts/food/route.ts",
+      "site": 21,
+      "english": [
+        "Invalid pack photo."
+      ]
+    },
+    {
+      "file": "src/app/api/posts/food/route.ts",
+      "site": 22,
+      "english": [
+        "Not in the database"
+      ]
+    },
+    {
+      "file": "src/app/api/posts/food/route.ts",
+      "site": 23,
+      "english": [
+        "Choose an amount in the product's own unit."
+      ]
+    },
+    {
+      "file": "src/app/api/posts/food/route.ts",
+      "site": 24,
+      "english": [
+        "The pack photo or portion could not be saved.",
+        "The meal could not be saved."
+      ]
+    },
+    {
+      "file": "src/app/api/posts/food/route.ts",
+      "site": 26,
+      "english": [
+        "Barcode lookup is temporarily unavailable."
+      ]
+    },
+    {
+      "file": "src/app/api/posts/food/route.ts",
+      "site": 27,
+      "english": [
+        "Choose a food from the search results."
+      ]
+    },
+    {
+      "file": "src/app/api/posts/food/route.ts",
+      "site": 28,
+      "english": [
+        "Invalid time eaten."
+      ]
+    },
+    {
+      "file": "src/app/api/posts/food/route.ts",
+      "site": 29,
+      "english": [
+        "That food is no longer in the results. Search again."
+      ]
+    },
+    {
+      "file": "src/app/api/posts/food/route.ts",
+      "site": 30,
+      "english": [
+        "Sign in required."
+      ]
+    },
+    {
+      "file": "src/app/api/posts/food/route.ts",
+      "site": 31,
+      "english": [
+        "That food could not be logged.",
+        "The meal could not be saved."
+      ]
+    },
+    {
+      "file": "src/app/api/posts/food/route.ts",
+      "site": 33,
+      "english": [
+        "Food search is temporarily unavailable."
+      ]
+    },
+    {
+      "file": "src/app/api/posts/food/route.ts",
+      "site": 34,
+      "english": [
+        "Sign in required."
+      ]
+    },
+    {
+      "file": "src/app/api/posts/food/route.ts",
+      "site": 35,
+      "english": [
+        "This selection belongs to another sign-in."
+      ]
+    },
+    {
+      "file": "src/app/api/posts/food/route.ts",
+      "site": 36,
+      "english": [
+        "Invalid food operation."
+      ]
+    },
+    {
+      "file": "src/app/api/posts/food/route.ts",
+      "site": 37,
+      "english": [
+        "The pending food could not be removed. Your selection is kept."
+      ]
+    },
+    {
+      "file": "src/app/api/feed/route.ts",
+      "site": 0,
+      "english": [
+        "Sign in required."
+      ]
+    },
+    {
+      "file": "src/app/api/feed/route.ts",
+      "site": 1,
+      "english": [
+        "Invalid cursor."
+      ]
+    },
+    {
+      "file": "src/app/api/feed/route.ts",
+      "site": 2,
+      "english": [
+        "Invalid page size."
+      ]
+    },
+    {
+      "file": "src/app/api/feed/route.ts",
+      "site": 3,
+      "english": [
+        "Invalid meal IDs."
+      ]
+    },
+    {
+      "file": "src/app/api/feed/route.ts",
+      "site": 5,
+      "english": [
+        "Invalid known dates."
+      ]
+    },
+    {
+      "file": "src/app/api/feed/route.ts",
+      "site": 7,
+      "english": [
+        "The feed could not be loaded."
+      ]
+    },
+    {
+      "file": "src/app/api/fdc/search/route.ts",
+      "site": 0,
+      "english": [
+        "Sign in required."
+      ]
+    },
+    {
+      "file": "src/app/api/fdc/search/route.ts",
+      "site": 1,
+      "english": [
+        "Enter a food name up to 160 characters."
+      ]
+    },
+    {
+      "file": "src/app/api/fdc/search/route.ts",
+      "site": 3,
+      "english": [
+        "Food search is temporarily unavailable."
+      ]
+    },
+    {
+      "file": "src/app/api/fdc/barcode/route.ts",
+      "site": 0,
+      "english": [
+        "Sign in required."
+      ]
+    },
+    {
+      "file": "src/app/api/fdc/barcode/route.ts",
+      "site": 1,
+      "english": [
+        "That is not a valid product barcode."
+      ]
+    },
+    {
+      "file": "src/app/api/fdc/barcode/route.ts",
+      "site": 2,
+      "english": [
+        "No nutrition was found for that barcode."
+      ]
+    },
+    {
+      "file": "src/app/api/fdc/barcode/route.ts",
+      "site": 4,
+      "english": [
+        "Barcode lookup is temporarily unavailable."
+      ]
+    },
+    {
+      "file": "src/app/api/posts/[id]/route.ts",
+      "site": 0,
+      "english": [
+        "Sign in required."
+      ]
+    },
+    {
+      "file": "src/app/api/posts/[id]/route.ts",
+      "site": 2,
+      "english": [
+        "Post could not be deleted."
+      ]
+    },
+    {
+      "file": "src/app/api/posts/[id]/servings/route.ts",
+      "site": 0,
+      "english": [
+        "Sign in required."
+      ]
+    },
+    {
+      "file": "src/app/api/posts/[id]/servings/route.ts",
+      "site": 1,
+      "english": [
+        "Post not found."
+      ]
+    },
+    {
+      "file": "src/app/api/posts/[id]/servings/route.ts",
+      "site": 2,
+      "english": [
+        "Servings must be between 0.1 and 50."
+      ]
+    },
+    {
+      "file": "src/app/api/posts/[id]/servings/route.ts",
+      "site": 3,
+      "english": [
+        "Wait for the initial meal analysis before changing servings.",
+        "Post not found.",
+        "Servings must be between 0.1 and 50.",
+        "Servings could not be changed."
+      ]
+    },
+    {
+      "file": "src/app/api/drinks/post/route.ts",
+      "site": 0,
+      "english": [
+        "Sign in required."
+      ]
+    },
+    {
+      "file": "src/app/api/drinks/post/route.ts",
+      "site": 1,
+      "english": [
+        "This photo belongs to another sign-in."
+      ]
+    },
+    {
+      "file": "src/app/api/drinks/post/route.ts",
+      "site": 2,
+      "english": [
+        "Invalid drink operation."
+      ]
+    },
+    {
+      "file": "src/app/api/drinks/post/route.ts",
+      "site": 3,
+      "english": [
+        "Choose the drinks and their portions."
+      ]
+    },
+    {
+      "file": "src/app/api/drinks/post/route.ts",
+      "site": 4,
+      "english": [
+        "Choose a valid drink portion."
+      ]
+    },
+    {
+      "file": "src/app/api/drinks/post/route.ts",
+      "site": 5,
+      "english": [
+        "Choose valid post details."
+      ]
+    },
+    {
+      "file": "src/app/api/drinks/post/route.ts",
+      "site": 8,
+      "english": [
+        "The photo operation could not be confirmed."
+      ]
+    },
+    {
+      "file": "src/app/api/drinks/post/route.ts",
+      "site": 9,
+      "english": [
+        "This pending drink was removed."
+      ]
+    },
+    {
+      "file": "src/app/api/drinks/post/route.ts",
+      "site": 10,
+      "english": [
+        "The drink choices could not be read."
+      ]
+    },
+    {
+      "file": "src/app/api/drinks/post/route.ts",
+      "site": 11,
+      "english": [
+        "Photo draft not found.",
+        "The drinks could not be posted. Your photo was kept."
+      ]
+    },
+    {
+      "file": "src/app/api/drinks/post/route.ts",
+      "site": 13,
+      "english": [
+        "Sign in required."
+      ]
+    },
+    {
+      "file": "src/app/api/drinks/post/route.ts",
+      "site": 14,
+      "english": [
+        "This photo belongs to another sign-in."
+      ]
+    },
+    {
+      "file": "src/app/api/drinks/post/route.ts",
+      "site": 15,
+      "english": [
+        "Invalid photo drink operation."
+      ]
+    },
+    {
+      "file": "src/app/api/drinks/post/route.ts",
+      "site": 16,
+      "english": [
+        "The pending drinks could not be removed. Your photo is kept."
+      ]
+    },
+    {
+      "file": "src/app/api/posts/[id]/retry/route.ts",
+      "site": 0,
+      "english": [
+        "Sign in required."
+      ]
+    },
+    {
+      "file": "src/app/api/posts/[id]/retry/route.ts",
+      "site": 1,
+      "english": [
+        "Could not retry."
+      ]
+    },
+    {
+      "file": "src/app/api/posts/[id]/retry/route.ts",
+      "site": 2,
+      "english": [
+        "Failed post not found."
+      ]
+    },
+    {
+      "file": "src/app/api/posts/[id]/retry/route.ts",
+      "site": 3,
+      "english": [
+        "Could not identify failed work."
+      ]
+    },
+    {
+      "file": "src/app/api/posts/[id]/retry/route.ts",
+      "site": 4,
+      "english": [
+        "The failed work could not be identified."
+      ]
+    },
+    {
+      "file": "src/app/api/posts/[id]/retry/route.ts",
+      "site": 5,
+      "english": [
+        "Failed post not found."
+      ]
+    },
+    {
+      "file": "src/app/api/posts/[id]/retry/route.ts",
+      "site": 6,
+      "english": [
+        "Could not queue retry."
+      ]
+    },
+    {
+      "file": "src/app/api/drinks/identify/route.ts",
+      "site": 0,
+      "english": [
+        "Sign in required."
+      ]
+    },
+    {
+      "file": "src/app/api/drinks/identify/route.ts",
+      "site": 1,
+      "english": [
+        "Choose an uploaded photo."
+      ]
+    },
+    {
+      "file": "src/app/api/drinks/identify/route.ts",
+      "site": 2,
+      "english": [
+        "The photo draft could not be read."
+      ]
+    },
+    {
+      "file": "src/app/api/drinks/identify/route.ts",
+      "site": 3,
+      "english": [
+        "Photo draft not found."
+      ]
+    },
+    {
+      "file": "src/app/api/drinks/identify/route.ts",
+      "site": 4,
+      "english": [
+        "Drinks could not be checked. You can still post the photo."
+      ]
+    },
+    {
+      "file": "src/app/api/drinks/identify/route.ts",
+      "site": 6,
+      "english": [
+        "This photo is being checked.",
+        "Drinks could not be checked. You can still post the photo."
+      ]
+    },
+    {
+      "file": "src/app/api/drinks/identify/route.ts",
+      "site": 7,
+      "english": [
+        "The photo could not be opened."
+      ]
+    },
+    {
+      "file": "src/app/api/drinks/identify/route.ts",
+      "site": 8,
+      "english": [
+        "Drinks could not be checked. You can still post the photo."
+      ]
+    },
+    {
+      "file": "src/app/api/drinks/identify/route.ts",
+      "site": 9,
+      "english": [
+        "This photo is being checked."
+      ]
+    },
+    {
+      "file": "src/app/api/drinks/identify/route.ts",
+      "site": 11,
+      "english": [
+        "This photo has already been checked.",
+        "Drinks could not be checked. You can still post the photo."
+      ]
+    },
+    {
+      "file": "src/app/api/drinks/identify/route.ts",
+      "site": 13,
+      "english": [
+        "Drinks could not be checked. You can still post the photo."
+      ]
+    },
+    {
+      "file": "src/app/api/drinks/identify/route.ts",
+      "site": 14,
+      "english": [
+        "Sign in required."
+      ]
+    },
+    {
+      "file": "src/app/api/drinks/identify/route.ts",
+      "site": 15,
+      "english": [
+        "Choose a name, volume and nutrition."
+      ]
+    },
+    {
+      "file": "src/app/api/drinks/identify/route.ts",
+      "site": 16,
+      "english": [
+        "Enter valid nutrition."
+      ]
+    },
+    {
+      "file": "src/app/api/drinks/identify/route.ts",
+      "site": 17,
+      "english": [
+        "Drink reading not found."
+      ]
+    },
+    {
+      "file": "src/app/api/drinks/identify/route.ts",
+      "site": 18,
+      "english": [
+        "The photo was already posted."
+      ]
+    },
+    {
+      "file": "src/app/api/drinks/identify/route.ts",
+      "site": 19,
+      "english": [
+        "Choose a smaller drink portion."
+      ]
+    },
+    {
+      "file": "src/app/api/drinks/identify/route.ts",
+      "site": 20,
+      "english": [
+        "The correction could not be saved. Reload the photo draft and try again."
+      ]
+    },
+    {
+      "file": "src/app/api/days/route.ts",
+      "site": 0,
+      "english": [
+        "Sign in required."
+      ]
+    },
+    {
+      "file": "src/app/api/days/route.ts",
+      "site": 2,
+      "english": [
+        "Invalid day."
+      ]
+    },
+    {
+      "file": "src/app/api/days/route.ts",
+      "site": 4,
+      "english": [
+        "Invalid month."
+      ]
+    },
+    {
+      "file": "src/app/api/days/route.ts",
+      "site": 7,
+      "english": [
+        "Days could not be loaded."
+      ]
+    },
+    {
+      "file": "src/app/api/barcode/[gtin]/correction/route.ts",
+      "site": 0,
+      "english": [
+        "Sign in required."
+      ]
+    },
+    {
+      "file": "src/app/api/barcode/[gtin]/correction/route.ts",
+      "site": 1,
+      "english": [
+        "Invalid barcode."
+      ]
+    },
+    {
+      "file": "src/app/api/barcode/[gtin]/correction/route.ts",
+      "site": 2,
+      "english": [
+        "The correction could not be saved."
+      ]
+    },
+    {
+      "file": "src/app/api/barcode/[gtin]/correction/route.ts",
+      "site": 4,
+      "english": [
+        "Invalid product."
+      ]
+    },
+    {
+      "file": "src/app/api/posts/[id]/eaten-at/route.ts",
+      "site": 0,
+      "english": [
+        "Sign in required."
+      ]
+    },
+    {
+      "file": "src/app/api/posts/[id]/eaten-at/route.ts",
+      "site": 1,
+      "english": [
+        "Meal not found."
+      ]
+    },
+    {
+      "file": "src/app/api/posts/[id]/eaten-at/route.ts",
+      "site": 2,
+      "english": [
+        "Choose a time that is not in the future."
+      ]
+    },
+    {
+      "file": "src/app/api/posts/[id]/eaten-at/route.ts",
+      "site": 3,
+      "english": [
+        "The time could not be saved."
+      ]
+    },
+    {
+      "file": "src/app/api/posts/[id]/eaten-at/route.ts",
+      "site": 4,
+      "english": [
+        "Meal not found."
+      ]
+    },
+    {
+      "file": "src/app/api/posts/[id]/restore/route.ts",
+      "site": 0,
+      "english": [
+        "Sign in required."
+      ]
+    },
+    {
+      "file": "src/app/api/posts/[id]/restore/route.ts",
+      "site": 2,
+      "english": [
+        "Post could not be restored."
+      ]
+    },
+    {
+      "file": "src/app/api/posts/[id]/caption/route.ts",
+      "site": 0,
+      "english": [
+        "Sign in required."
+      ]
+    },
+    {
+      "file": "src/app/api/posts/[id]/caption/route.ts",
+      "site": 1,
+      "english": [
+        "Meal not found."
+      ]
+    },
+    {
+      "file": "src/app/api/posts/[id]/caption/route.ts",
+      "site": 2,
+      "english": [
+        "Invalid caption."
+      ]
+    },
+    {
+      "file": "src/app/api/posts/[id]/discard/route.ts",
+      "site": 0,
+      "english": [
+        "Sign in required."
+      ]
+    },
+    {
+      "file": "src/app/api/posts/[id]/discard/route.ts",
+      "site": 4,
+      "english": [
+        "Meal could not be discarded."
+      ]
+    },
+    {
+      "file": "src/app/api/posts/[id]/discard/route.ts",
+      "site": 5,
+      "english": [
+        "Meal changed before it could be discarded."
+      ]
+    },
+    {
+      "file": "src/app/api/media/sign-upload/route.ts",
+      "site": 0,
+      "english": [
+        "Sign in required."
+      ]
+    },
+    {
+      "file": "src/app/api/media/sign-upload/route.ts",
+      "site": 2,
+      "english": [
+        "Signing upload URLs failed."
+      ]
+    },
+    {
+      "file": "src/app/api/media/sign-upload/route.ts",
+      "site": 3,
+      "english": [
+        "postId is required."
+      ]
+    },
+    {
+      "file": "src/app/api/media/sign-upload/route.ts",
+      "site": 4,
+      "english": [
+        "Each photo needs its position in order and a size from 1 to 4096 pixels."
+      ]
+    },
+    {
+      "file": "src/app/api/media/sign-upload/route.ts",
+      "site": 5,
+      "english": [
+        "Post not found."
+      ]
+    },
+    {
+      "file": "src/app/api/media/sign-upload/route.ts",
+      "site": 8,
+      "english": [
+        "Signing upload URLs failed."
+      ]
+    },
+    {
+      "file": "src/app/api/posts/[id]/question/route.ts",
+      "site": 0,
+      "english": [
+        "Sign in required."
+      ]
+    },
+    {
+      "file": "src/app/api/posts/[id]/question/route.ts",
+      "site": 1,
+      "english": [
+        "Meal not found."
+      ]
+    },
+    {
+      "file": "src/app/api/posts/[id]/question/route.ts",
+      "site": 2,
+      "english": [
+        "Question could not be dismissed."
+      ]
+    },
+    {
+      "file": "src/app/api/posts/[id]/question/route.ts",
+      "site": 3,
+      "english": [
+        "Meal not found."
+      ]
+    },
+    {
+      "file": "src/app/api/posts/[id]/question/route.ts",
+      "site": 4,
+      "english": [
+        "Question could not be dismissed."
+      ]
+    },
+    {
+      "file": "src/app/api/posts/[id]/media/route.ts",
+      "site": 0,
+      "english": [
+        "Sign in required."
+      ]
+    },
+    {
+      "file": "src/app/api/posts/[id]/media/route.ts",
+      "site": 1,
+      "english": [
+        "Post not found."
+      ]
+    },
+    {
+      "file": "src/app/api/posts/[id]/media/route.ts",
+      "site": 2,
+      "english": [
+        "The meal could not be read."
+      ]
+    },
+    {
+      "file": "src/app/api/posts/[id]/media/route.ts",
+      "site": 4,
+      "english": [
+        "Choose a valid uploaded photo."
+      ]
+    },
+    {
+      "file": "src/app/api/posts/[id]/media/route.ts",
+      "site": 7,
+      "english": [
+        "The photo could not be attached."
+      ]
+    },
+    {
+      "file": "src/app/api/posts/[id]/media/route.ts",
+      "site": 8,
+      "english": [
+        "Sign in required."
+      ]
+    },
+    {
+      "file": "src/app/api/posts/[id]/media/route.ts",
+      "site": 10,
+      "english": [
+        "The photo could not be read."
+      ]
+    },
+    {
+      "file": "src/app/api/posts/[id]/media/route.ts",
+      "site": 12,
+      "english": [
+        "The photo could not be removed."
+      ]
+    },
+    {
+      "file": "src/app/api/posts/[id]/media/route.ts",
+      "site": 15,
+      "english": [
+        "Sign in required."
+      ]
+    },
+    {
+      "file": "src/app/api/posts/[id]/media/route.ts",
+      "site": 17,
+      "english": [
+        "Choose a leftovers photo to unmark."
+      ]
+    },
+    {
+      "file": "src/app/api/posts/[id]/media/route.ts",
+      "site": 18,
+      "english": [
+        "The photo could not be read."
+      ]
+    },
+    {
+      "file": "src/app/api/posts/[id]/media/route.ts",
+      "site": 20,
+      "english": [
+        "Wait for this meal to be ready.",
+        "The photo could not be unmarked."
+      ]
+    },
+    {
+      "file": "src/app/api/posts/[id]/comments/route.ts",
+      "site": 0,
+      "english": [
+        "Sign in to comment."
+      ]
+    },
+    {
+      "file": "src/app/api/posts/[id]/comments/route.ts",
+      "site": 1,
+      "english": [
+        "Meal not found."
+      ]
+    },
+    {
+      "file": "src/app/api/posts/[id]/comments/route.ts",
+      "site": 2,
+      "english": [
+        "Meal could not be loaded."
+      ]
+    },
+    {
+      "file": "src/app/api/posts/[id]/comments/route.ts",
+      "site": 3,
+      "english": [
+        "Meal not found."
+      ]
+    },
+    {
+      "file": "src/app/api/posts/[id]/comments/route.ts",
+      "site": 4,
+      "english": [
+        "Enter a comment up to 4000 characters."
+      ]
+    },
+    {
+      "file": "src/app/api/posts/[id]/comments/route.ts",
+      "site": 5,
+      "english": [
+        "Enter a comment up to 4000 characters."
+      ]
+    },
+    {
+      "file": "src/app/api/posts/[id]/comments/route.ts",
+      "site": 6,
+      "english": [
+        "Comment could not be saved."
+      ]
+    },
+    {
+      "file": "src/app/api/posts/[id]/log-again/route.ts",
+      "site": 0,
+      "english": [
+        "Sign in required."
+      ]
+    },
+    {
+      "file": "src/app/api/posts/[id]/log-again/route.ts",
+      "site": 1,
+      "english": [
+        "Meal not found."
+      ]
+    },
+    {
+      "file": "src/app/api/posts/[id]/log-again/route.ts",
+      "site": 3,
+      "english": [
+        "The meal could not be logged."
+      ]
+    },
+    {
+      "file": "src/app/api/posts/[id]/log-again/route.ts",
+      "site": 4,
+      "english": [
+        "Sign in required."
+      ]
+    },
+    {
+      "file": "src/app/api/posts/[id]/log-again/route.ts",
+      "site": 5,
+      "english": [
+        "Meal not found."
+      ]
+    },
+    {
+      "file": "src/app/api/posts/[id]/log-again/route.ts",
+      "site": 7,
+      "english": [
+        "The pending copy could not be removed."
+      ]
+    },
+    {
+      "file": "src/app/api/posts/[id]/log-again/route.ts",
+      "site": 8,
+      "english": [
+        "Sign in required."
+      ]
+    },
+    {
+      "file": "src/app/api/posts/[id]/log-again/route.ts",
+      "site": 9,
+      "english": [
+        "Meal not found."
+      ]
+    },
+    {
+      "file": "src/app/api/posts/[id]/log-again/route.ts",
+      "site": 10,
+      "english": [
+        "Meal not found."
+      ]
+    },
+    {
+      "file": "src/app/api/posts/[id]/log-again/route.ts",
+      "site": 11,
+      "english": [
+        "The meal could not be loaded."
+      ]
+    },
+    {
+      "file": "src/app/api/posts/[id]/items/route.ts",
+      "site": 0,
+      "english": [
+        "Sign in required."
+      ]
+    },
+    {
+      "file": "src/app/api/posts/[id]/items/route.ts",
+      "site": 1,
+      "english": [
+        "Post not found."
+      ]
+    },
+    {
+      "file": "src/app/api/posts/[id]/items/route.ts",
+      "site": 2,
+      "english": [
+        "Meal could not be loaded."
+      ]
+    },
+    {
+      "file": "src/app/api/posts/[id]/items/route.ts",
+      "site": 3,
+      "english": [
+        "Post not found."
+      ]
+    },
+    {
+      "file": "src/app/api/posts/[id]/items/route.ts",
+      "site": 4,
+      "english": [
+        "Invalid barcode."
+      ]
+    },
+    {
+      "file": "src/app/api/posts/[id]/items/route.ts",
+      "site": 5,
+      "english": [
+        "Product not found."
+      ]
+    },
+    {
+      "file": "src/app/api/posts/[id]/items/route.ts",
+      "site": 6,
+      "english": [
+        "Product not found."
+      ]
+    },
+    {
+      "file": "src/app/api/posts/[id]/items/route.ts",
+      "site": 7,
+      "english": [
+        "The corrected unit must match this post's portion."
+      ]
+    },
+    {
+      "file": "src/app/api/posts/[id]/items/route.ts",
+      "site": 8,
+      "english": [
+        "The product could not be corrected."
+      ]
+    },
+    {
+      "file": "src/app/api/posts/[id]/items/route.ts",
+      "site": 10,
+      "english": [
+        "Invalid edit."
+      ]
+    },
+    {
+      "file": "src/app/api/posts/[id]/items/route.ts",
+      "site": 11,
+      "english": [
+        "No weight is known for that unit with this food. Enter grams or ounces."
+      ]
+    },
+    {
+      "file": "src/app/api/posts/[id]/comments/[commentId]/revert/route.ts",
+      "site": 0,
+      "english": [
+        "Sign in required."
+      ]
+    },
+    {
+      "file": "src/app/api/posts/[id]/comments/[commentId]/revert/route.ts",
+      "site": 2,
+      "english": [
+        "The correction could not be read."
+      ]
+    },
+    {
+      "file": "src/app/api/posts/[id]/comments/[commentId]/revert/route.ts",
+      "site": 4,
+      "english": [
+        "The correction could not be removed."
+      ]
+    },
+    {
+      "file": "src/app/api/posts/[id]/feedback/route.ts",
+      "site": 0,
+      "english": [
+        "Sign in to save feedback."
+      ]
+    },
+    {
+      "file": "src/app/api/posts/[id]/feedback/route.ts",
+      "site": 1,
+      "english": [
+        "Meal not found."
+      ]
+    },
+    {
+      "file": "src/app/api/posts/[id]/feedback/route.ts",
+      "site": 2,
+      "english": [
+        "Meal could not be loaded."
+      ]
+    },
+    {
+      "file": "src/app/api/posts/[id]/feedback/route.ts",
+      "site": 3,
+      "english": [
+        "Meal not found."
+      ]
+    },
+    {
+      "file": "src/app/api/posts/[id]/feedback/route.ts",
+      "site": 4,
+      "english": [
+        "Choose up or down."
+      ]
+    },
+    {
+      "file": "src/app/api/posts/[id]/feedback/route.ts",
+      "site": 5,
+      "english": [
+        "Choose an analysis revision."
+      ]
+    },
+    {
+      "file": "src/app/api/posts/[id]/feedback/route.ts",
+      "site": 6,
+      "english": [
+        "Analysis could not be loaded."
+      ]
+    },
+    {
+      "file": "src/app/api/posts/[id]/feedback/route.ts",
+      "site": 7,
+      "english": [
+        "Analysis revision not found."
+      ]
+    },
+    {
+      "file": "src/app/api/posts/[id]/feedback/route.ts",
+      "site": 8,
+      "english": [
+        "Meal not found."
+      ]
+    },
+    {
+      "file": "src/app/api/posts/[id]/feedback/route.ts",
+      "site": 9,
+      "english": [
+        "Choose an analysis revision."
+      ]
+    },
+    {
+      "file": "src/app/api/posts/[id]/feedback/route.ts",
+      "site": 10,
+      "english": [
+        "Feedback could not be saved."
+      ]
+    },
+    {
+      "file": "src/app/api/posts/[id]/feedback/route.ts",
+      "site": 11,
+      "english": [
+        "Feedback could not be saved."
+      ]
+    },
+    {
+      "file": "src/lib/limits/user-cap.ts",
+      "site": 0,
+      "english": [
+        "You have made a lot of requests this hour. Try again later."
+      ]
+    }
+  ]
+}

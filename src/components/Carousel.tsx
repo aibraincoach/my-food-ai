@@ -1,4 +1,5 @@
 "use client";
+import {DisplayError} from '@/i18n/display-error';
 import {useLocale,useTranslations} from 'next-intl';
 import type {Locale} from '@/i18n/locales';
 import {formatEnergy,formatNumber} from '@/i18n/format';
@@ -32,8 +33,8 @@ export default function Carousel({slides,caption,postId,href,modelCommentId,fing
   const flush=(keepalive=false)=>{
    if(settled)return;settled=true;clearTimeout(timer);window.removeEventListener('pagehide',leave);pendingUnmark.current=null;
    void fetch(`/api/posts/${postId}/media?media_id=${mediaId}`,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({not_eaten:false}),keepalive})
-    .then(async response=>{if(!response.ok)throw Error(t('unmarkPhotoFailedRetry'));window.dispatchEvent(new CustomEvent('post-created',{detail:{id:postId}}));router.refresh();})
-    .catch(cause=>{setUnmarked(old=>old.filter(id=>id!==mediaId));setError(cause instanceof Error?cause.message:t('unmarkPhotoFailed'));}).finally(()=>setUnmarking(false));
+    .then(async response=>{if(!response.ok)throw new DisplayError(t('unmarkPhotoFailedRetry'));window.dispatchEvent(new CustomEvent('post-created',{detail:{id:postId}}));router.refresh();})
+    .catch(cause=>{setUnmarked(old=>old.filter(id=>id!==mediaId));setError(cause instanceof DisplayError?cause.message:t('unmarkPhotoFailed'));}).finally(()=>setUnmarking(false));
   };
   const leave=()=>flush(true);
   const timer=setTimeout(()=>flush(),6000);window.addEventListener('pagehide',leave);
@@ -49,9 +50,9 @@ export default function Carousel({slides,caption,postId,href,modelCommentId,fing
     // Attaching a photo first sets processing; removal becomes legal at ready.
     const response=await fetch(`/api/posts/${postId}/media?media_id=${pending.id}`,{method:'DELETE'});
     if(response.status===404&&pending.attempts++<120){retry=setTimeout(()=>{void finish();},2000);return;}
-    if(!response.ok)throw Error(t('replacementRemoveFailed'));
+    if(!response.ok)throw new DisplayError(t('replacementRemoveFailed'));
     replacement.current=null;if(live)setRemoved(old=>[...old,pending.id]);window.dispatchEvent(new CustomEvent('media-removed',{detail:{id:postId,mediaId:pending.id}}));router.refresh();
-   }catch(cause){replacement.current=null;if(live)setError(cause instanceof Error?cause.message:t('previousPhotoRemoveFailed'));}
+   }catch(cause){replacement.current=null;if(live)setError(cause instanceof DisplayError?cause.message:t('previousPhotoRemoveFailed'));}
    finally{pending.busy=false;if(!live&&!replacement.current)detach();}
   };
   const created=(event:Event)=>{if((event as CustomEvent).detail?.id===postId&&replacement.current){replacement.current.attached=true;void finish();}};
@@ -71,9 +72,9 @@ export default function Carousel({slides,caption,postId,href,modelCommentId,fing
   const action=delayAction(6000,async keepalive=>{
    try{
     const response=await fetch(`/api/posts/${postId}/media?media_id=${mediaId}`,{method:'DELETE',keepalive});
-    if(!response.ok)throw Error(t('removePhotoFailedRetry'));
+    if(!response.ok)throw new DisplayError(t('removePhotoFailedRetry'));
     window.dispatchEvent(new CustomEvent('media-removed',{detail:{id:postId,mediaId}}));router.refresh();
-   }catch(cause){setRemoved(old=>old.filter(id=>id!==mediaId));setError(cause instanceof Error?cause.message:t('removePhotoFailed'));}
+   }catch(cause){setRemoved(old=>old.filter(id=>id!==mediaId));setError(cause instanceof DisplayError?cause.message:t('removePhotoFailed'));}
    finally{setRemoving(false);}
   });
   setToast(previous=>({key:(previous?.key??0)+1,undo:()=>{action.undo();setRemoved(old=>old.filter(id=>id!==mediaId));setRemoving(false);setToast(null);}}));

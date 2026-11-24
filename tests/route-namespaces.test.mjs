@@ -32,3 +32,9 @@ test('a nested provider replaces namespaces rather than silently inheriting an o
  const red=auditRouteNamespaces(undefined,{overrides:{[file]:source.replace(',postMenu:(await getMessages()).postMenu','')}});
  assert.ok(red.issues.some(row=>row.route==='/profile'&&row.namespace==='postMenu'&&row.chain.some(part=>part.includes('FreezeReport'))));
 });
+test('route-code readers require the full api namespace, including imported hooks',()=>{
+ assert.equal(checkRouteNamespaces().issues.length,0);
+ const file='src/i18n/capture-scope.ts',source=fs.readFileSync(new URL('../'+file,import.meta.url),'utf8');
+ const red=auditRouteNamespaces(undefined,{overrides:{[file]:source.replace("'api',",'')}});
+ assert.ok(red.issues.some(row=>row.namespace==='api'&&row.consumer==='src/i18n/failure-messages.ts'));
+});

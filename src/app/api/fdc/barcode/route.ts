@@ -8,15 +8,15 @@ import { ApiError } from "@/lib/worker/errors";
 export async function GET(request: Request) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return NextResponse.json({ error: "Sign in required." }, { status: 401 });
+  if (!user) return NextResponse.json({ message_code: "route_ac6a88b19530" }, { status: 401 });
  const capped = await capUser(user.id, "fdc_barcode"); if (capped) return capped;
   const code = new URL(request.url).searchParams.get("code")?.trim() ?? "";
-  if (!gtinCandidates(code).length) return NextResponse.json({ error: "That is not a valid product barcode." }, { status: 400 });
+  if (!gtinCandidates(code).length) return NextResponse.json({ message_code: "route_661101eb9543" }, { status: 400 });
   try {
     const product = await resolveProduct(code,user.id);
-    if (!product) return NextResponse.json({ error: "No nutrition was found for that barcode." }, { status: 404, headers: { "Cache-Control": "private, no-store" } });
+    if (!product) return NextResponse.json({ message_code: "route_260cc698d1c0" }, { status: 404, headers: { "Cache-Control": "private, no-store" } });
     return NextResponse.json({ product }, { headers: { "Cache-Control": "private, no-store" } });
   } catch (error) {
-    return NextResponse.json({ error: "Barcode lookup is temporarily unavailable." }, { status: error instanceof ApiError && error.status === 429 ? 429 : 502 });
+    return NextResponse.json({ message_code: "route_fc3f44ef874c" }, { status: error instanceof ApiError && error.status === 429 ? 429 : 502 });
   }
 }

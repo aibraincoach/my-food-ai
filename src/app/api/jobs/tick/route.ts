@@ -1,3 +1,4 @@
+import {machineMessage} from '@/i18n/machine-messages';
 import { randomUUID } from "node:crypto";
 import { NextResponse } from "next/server";
 import { after } from "next/server";
@@ -19,7 +20,7 @@ export async function GET(request: Request) {
   try {
     admin = createAdminClient();
   } catch {
-    return NextResponse.json({ error: "Worker is not configured." }, { status: 503, headers });
+    return NextResponse.json({ error: machineMessage("route_423154fc3564") }, { status: 503, headers });
   }
   try {
     const holder = randomUUID();
@@ -28,7 +29,7 @@ export async function GET(request: Request) {
       const drainUrl = new URL("/api/jobs/drain", request.url);
       drainUrl.searchParams.set("holder", holder);
       after(() => fetch(drainUrl, { cache: "no-store", signal: AbortSignal.timeout(290_000) })
-        .then((response) => { if (!response.ok) throw new Error(`Drain failed: ${response.status}`); }));
+        .then((response) => { if (!response.ok) throw new Error(machineMessage("route_47313c1f0c16",{"v0":response.status})); }));
     }
     return NextResponse.json({
       queued: status.queued,
@@ -37,7 +38,7 @@ export async function GET(request: Request) {
     }, { headers });
   } catch (e) {
     return NextResponse.json(
-      { error: e instanceof Error ? e.message : "Tick failed." },
+      { error: e instanceof Error ? e.message : machineMessage("route_a61f18c241a5") },
       { status: 500, headers }
     );
   }

@@ -1,4 +1,5 @@
 'use client';
+import {DisplayError} from '@/i18n/display-error';
 import {useLocale,useTranslations} from 'next-intl';
 import type {Locale} from '@/i18n/locales';
 import {formatDate,formatEnergy} from '@/i18n/format';
@@ -18,14 +19,14 @@ export default function DeletePostSheet(){
  const remove=async()=>{if(!id||lock.current)return;lock.current=true;setBusy(true);setError('');const deletedId=id,post=selectedPost;
  try{
   const response=await fetch(`/api/posts/${deletedId}`,{method:'DELETE'});
-  if(!response.ok)throw Error(t('deleteFailedRetry'));
+  if(!response.ok)throw new DisplayError(t('deleteFailedRetry'));
   setId(null);
   const card=document.querySelector<HTMLElement>(`[data-desktop-post="${deletedId}"]`);
   if(card&&!matchMedia('(prefers-reduced-motion: reduce)').matches){const animation=card.animate([{height:`${card.offsetHeight}px`,opacity:1},{height:'0px',opacity:0}],{duration:200,easing:'ease',fill:'forwards'});card.style.overflow='hidden';await animation.finished.catch(()=>{});}
   window.dispatchEvent(new CustomEvent('post-deleted',{detail:{id:deletedId}}));
   setToast({id:deletedId,post});if(pathname.startsWith('/posts/'))router.replace('/');router.refresh();
- }catch(cause){setError(cause instanceof Error?cause.message:t('deleteFailed'));}finally{lock.current=false;setBusy(false);}};
- const undo=async()=>{if(!toast)return;try{const response=await fetch(`/api/posts/${toast.id}/restore`,{method:'POST'});if(!response.ok)throw Error(t('restoreFailedRecently'));window.dispatchEvent(new CustomEvent('post-restore',{detail:toast}));router.refresh();}catch(cause){setError(cause instanceof Error?cause.message:t('restoreFailed'));}finally{setToast(null);}};
+ }catch(cause){setError(cause instanceof DisplayError?cause.message:t('deleteFailed'));}finally{lock.current=false;setBusy(false);}};
+ const undo=async()=>{if(!toast)return;try{const response=await fetch(`/api/posts/${toast.id}/restore`,{method:'POST'});if(!response.ok)throw new DisplayError(t('restoreFailedRecently'));window.dispatchEvent(new CustomEvent('post-restore',{detail:toast}));router.refresh();}catch(cause){setError(cause instanceof DisplayError?cause.message:t('restoreFailed'));}finally{setToast(null);}};
  const post=selectedPost,caption=post?.caption||post?.items[0]?.name||t('meal');
  const weekday=post?formatDate(locale,new Date(post.eaten_at),Intl.DateTimeFormat().resolvedOptions().timeZone,{weekday:'long'}):'';
  const calories=post?sumNutrition(post.items).calories:null;

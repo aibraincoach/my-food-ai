@@ -1,3 +1,4 @@
+import {CaptureFailureError} from '@/lib/posts/capture-failure';
 import { getPostHydrationData } from "@/lib/intake/hydration";
 import { cardDataFromRow } from "@/lib/pipeline/card-data";
 import { getFoodById, searchFoods } from "@/lib/fdc/client";
@@ -26,36 +27,36 @@ export function itemBox(raw: unknown): ItemBox | null {
 }
 
 export function parseItemEdit(body: unknown): ItemEdit {
-  if (!body || typeof body !== "object" || Array.isArray(body)) throw new Error("An item edit is required.");
+  if (!body || typeof body !== "object" || Array.isArray(body)) throw new CaptureFailureError({code:"route_2ca2e00fb810"});
   let b = body as Record<string, unknown>;
   // An amount in another unit: oz converts exactly here; cup and piece need the food's stated weight, so the grams
   // stay a placeholder until editPostItem resolves them against the matched FDC food.
   let unit: Unit | undefined;
   if (b.portion_unit !== undefined) {
-    if (!isUnit(b.portion_unit) || b.portion_grams !== undefined) throw new Error("Invalid portion unit.");
+    if (!isUnit(b.portion_unit) || b.portion_grams !== undefined) throw new CaptureFailureError({code:"route_c5bd1647f9bd"});
     const amount = b.portion_amount;
-    if (typeof amount !== "number" || !Number.isFinite(amount) || amount <= 0 || amount > 100000) throw new Error("Enter an amount between 0 and 100000.");
+    if (typeof amount !== "number" || !Number.isFinite(amount) || amount <= 0 || amount > 100000) throw new CaptureFailureError({code:"route_9cd1c6a5e605"});
     unit = b.portion_unit;
     b = { ...b, portion_grams: unit === "g" ? amount : unit === "oz" ? roundGrams(amount * OZ_G) : 1 };
   }
-  if (!["rename", "portion", "remove", "add"].includes(String(b.action))) throw new Error("Invalid item action.");
+  if (!["rename", "portion", "remove", "add"].includes(String(b.action))) throw new CaptureFailureError({code:"route_03e925ee5ab3"});
   const action = b.action as ItemEdit["action"];
-  if (action !== "add" && !isUuid(b.item_id)) throw new Error("An item ID is required.");
-  if (action === "add" && b.item_id !== undefined) throw new Error("A new item cannot replace an existing ID.");
-  if (b.name !== undefined && (typeof b.name !== "string" || !b.name.trim() || b.name.trim().length > 160)) throw new Error("Enter a name up to 160 characters.");
-  if ((action === "add" || action === "rename") && b.name === undefined) throw new Error("A name is required.");
-  if (b.portion_grams !== undefined && (typeof b.portion_grams !== "number" || !Number.isFinite(b.portion_grams) || b.portion_grams <= 0 || b.portion_grams > 100000)) throw new Error("Enter a portion between 0 and 100000 grams.");
-  if ((action === "add" || action === "portion") && b.portion_grams === undefined) throw new Error("A portion in grams is required.");
+  if (action !== "add" && !isUuid(b.item_id)) throw new CaptureFailureError({code:"route_5561bc342413"});
+  if (action === "add" && b.item_id !== undefined) throw new CaptureFailureError({code:"route_05c0f4dd04ce"});
+  if (b.name !== undefined && (typeof b.name !== "string" || !b.name.trim() || b.name.trim().length > 160)) throw new CaptureFailureError({code:"route_81d10ffbaaa2"});
+  if ((action === "add" || action === "rename") && b.name === undefined) throw new CaptureFailureError({code:"route_54d33a418d04"});
+  if (b.portion_grams !== undefined && (typeof b.portion_grams !== "number" || !Number.isFinite(b.portion_grams) || b.portion_grams <= 0 || b.portion_grams > 100000)) throw new CaptureFailureError({code:"route_ccf0d08bc2bc"});
+  if ((action === "add" || action === "portion") && b.portion_grams === undefined) throw new CaptureFailureError({code:"route_9930567fd4af"});
   let selection: ItemEdit["fdc_selection"];
   if (b.fdc_selection !== undefined) {
     const selected = b.fdc_selection as Record<string, unknown> | null;
     if (!selected || typeof selected !== "object" || !Number.isSafeInteger(selected.id) || Number(selected.id) <= 0
       || typeof selected.query !== "string" || selected.query.trim().length < 2 || selected.query.trim().length > 160
-      || action === "remove" || b.name === undefined || b.portion_grams === undefined) throw new Error("Invalid food selection.");
+      || action === "remove" || b.name === undefined || b.portion_grams === undefined) throw new CaptureFailureError({code:"route_f1e6d13a4044"});
     selection = { id: selected.id as number, query: selected.query.trim() };
   }
   const box = b.box === undefined ? undefined : itemBox(b.box);
-  if (box === null || (b.box !== undefined && action !== "add")) throw new Error("A valid box can be supplied for a new item only.");
+  if (box === null || (b.box !== undefined && action !== "add")) throw new CaptureFailureError({code:"route_59efe5e321a6"});
   return { action, item_id: b.item_id as string | undefined, name: typeof b.name === "string" ? b.name.trim() : undefined,
     portion_grams: b.portion_grams as number | undefined, box, fdc_selection: selection,
     ...(unit ? { portion_amount: b.portion_amount as number, portion_unit: unit } : {}) };

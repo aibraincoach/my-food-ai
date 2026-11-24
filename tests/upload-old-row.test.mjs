@@ -38,7 +38,7 @@ test('an old leftovers row asks for a retake of that meal\'s photo',async()=>{
 test('the chip shows the not-kept line with Remove for a lost photo that has no meal to retake for',()=>{
  const chip=readFileSync(new URL('../src/components/UploadChip.tsx',import.meta.url),'utf8');
  assert.match(chip,/upload\.photoLost\?<>\{upload\.attachment\?<button/);
- assert.match(chip,/:<p role="alert" className="text-detail text-muted">\{captureFailureText\(upload\.failure,t\)\}<\/p>\}/);
+ assert.match(chip,/:<p role="alert" className="text-detail text-muted">\{captureFailureText\(upload\.failure,tf\)\}<\/p>\}/);
  const store=readFileSync(new URL('../src/lib/posts/upload-store.ts',import.meta.url),'utf8');
  assert.doesNotMatch(store,/file instanceof Blob \? file/);
  assert.doesNotMatch(readFileSync(new URL('../src/lib/posts/upload-manager.ts',import.meta.url),'utf8'),/meal-\$\{index\}\.jpg/);

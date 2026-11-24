@@ -1,8 +1,4 @@
-import type {CaptureMessageCode} from './capture-failure';
-
-// Server-only boundary: retain existing error text and attach a stable display code.
-// Runtime database/provider detail outside this finite list receives a neutral message.
-export const CAPTURE_ROUTE_FAILURES:Record<string,CaptureMessageCode> = {
+{
   "Drink operation not found.": "route_b57f3ec3ba46",
   "Drinks could not be checked. You can still post the photo.": "route_56080fee81fd",
   "Photo draft not found.": "route_e431cb5e4a79",
@@ -29,7 +25,4 @@ export const CAPTURE_ROUTE_FAILURES:Record<string,CaptureMessageCode> = {
   "Transcription is busy. Please try again.": "route_ac137d59993d",
   "Wait for this meal to be ready.": "route_e3e80626edf3",
   "You have made a lot of requests this hour. Try again later.": "route_e4b3b1ea79cb"
-};
-export function captureRouteMessageCode(error:unknown):CaptureMessageCode {
- return typeof error==='string'&&Object.hasOwn(CAPTURE_ROUTE_FAILURES,error)?CAPTURE_ROUTE_FAILURES[error]:'unknownFailure';
 }

@@ -68,7 +68,7 @@ export default function Thread({postId,readOnly=false,sourcePostId,desktopAction
     if(!response.ok){restore();setError({key:'removeFailedRetry'});return;}
     setRows(old=>old.map(row=>row.id===commentId?{...row,reverted_at:new Date().toISOString()}:row));restore();
     setWaiting(true);window.dispatchEvent(new CustomEvent('correction-reverted',{detail:{id:postId,commentId}}));router.refresh();wake.current();
-   }catch(cause){restore();setError(cause instanceof Error?{message:cause.message}:{key:'removeFailed'});}
+   }catch{restore();setError({key:'removeFailed'});}
   });
   setToast(previous=>({key:(previous?.key??0)+1,undo:()=>{action.undo();restore();setToast(null);}}));
  };

@@ -1,4 +1,6 @@
 'use client';
+import {DisplayError} from '@/i18n/display-error';
+import {useApiFailureText} from '@/i18n/api-error-text';
 import {useTranslations} from 'next-intl';
 import {useEffect,useRef,useState} from 'react';
 import VoiceRecorder from '@/components/VoiceRecorder';
@@ -6,6 +8,7 @@ import {useSearchParams} from 'next/navigation';
 import {usePostHandle} from '@/components/PostHandle';
 export type CommentRow={id:string;author:'user'|'model';body:string;created_at:string;reverted_at?:string|null};
 export default function CommentComposer({postId,onPosted}:{postId:string;onPosted:(comment:CommentRow)=>void}){
+ const apiError=useApiFailureText();
  const t=useTranslations('thread');
  const handle=usePostHandle();
  const [text,setText]=useState(''); const [busy,setBusy]=useState(false); const posting=useRef(false);
@@ -16,9 +19,9 @@ export default function CommentComposer({postId,onPosted}:{postId:string;onPoste
   event.preventDefault(); if(posting.current||voicePending.current||!text.trim())return;
   posting.current=true;setBusy(true);setError('');
   try{const response=await fetch(`/api/posts/${postId}/comments`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text:text.trim()})});
-   const body=await response.json();if(!response.ok)throw new Error(body.error??t('commentSendFailed'));
+   const body=await response.json();if(!response.ok)throw new DisplayError(apiError(body,"route_7d219d547f2c"));
    setText('');onPosted(body.comment);
-  }catch(cause){setError(cause instanceof Error?cause.message:t('commentSendFailed'));}
+  }catch(cause){setError(cause instanceof DisplayError?cause.message:t('commentSendFailed'));}
   finally{posting.current=false;setBusy(false);}
  }}>
   <span className="flex size-7 shrink-0 items-center justify-center rounded-circle bg-field text-avatar-sm">{handle.slice(0,1).toUpperCase()}</span>

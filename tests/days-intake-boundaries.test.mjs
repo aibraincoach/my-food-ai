@@ -1,3 +1,4 @@
+import {captureEnglish} from './fixtures/capture-wording.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import vm from 'node:vm';
@@ -28,7 +29,7 @@ test('month API failure remains HTTP 503 with preserved meals, never a partial s
  const {GET}=module('app/api/days/route.ts',{getMonthSummary:async()=>{throw new days.MonthIntakeError(month,summary);}});
  const response=await GET(new Request(`http://local/api/days?month=${month}`));
  assert.equal(response.status,503);assert.match(response.headers.get('cache-control'),/no-store/);
- assert.deepEqual(await response.json(),{error:'Couldn’t load monthly drinks.',month,summary});
+ const body=await response.json();assert.deepEqual(body,{message_code:'monthlyDrinksLoadFailed',month,summary});assert.equal(captureEnglish(body.message_code),'Couldn’t load monthly drinks.');
 });
 test('day API preserves unavailable intake while successful empty reads remain empty',async()=>{
  for(const failed of [true,false]){

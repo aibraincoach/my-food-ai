@@ -1,0 +1,277 @@
+{
+  "base": "a56faea7cd8633e0d7b9178a356c5b06c9d1cb35",
+  "messages": [
+    {
+      "code": "route_5e56bcb7c8d1",
+      "english": "Enter a name up to 40 characters."
+    },
+    {
+      "code": "route_e9844fc0e758",
+      "english": "The token could not be created."
+    },
+    {
+      "code": "route_9ebe5656058e",
+      "english": "Token required"
+    },
+    {
+      "code": "route_eae7adbc54c7",
+      "english": "Token could not be checked"
+    },
+    {
+      "code": "route_3e6b7ba7b910",
+      "english": "Call limit could not be checked"
+    },
+    {
+      "code": "route_802600d12446",
+      "english": "Too many requests"
+    },
+    {
+      "code": "route_4441b4b45947",
+      "english": "Token not found"
+    },
+    {
+      "code": "route_f60c824125e6",
+      "english": "Invalid JSON"
+    },
+    {
+      "code": "route_91d213c5adb6",
+      "english": "The request could not be completed"
+    },
+    {
+      "code": "route_66228a295b6f",
+      "english": "Request too large"
+    },
+    {
+      "code": "route_c88c8ae8515e",
+      "english": "Enter a meal up to 2000 characters"
+    },
+    {
+      "code": "route_9ab6fd52348f",
+      "english": "Use an ISO time with a time-zone offset"
+    },
+    {
+      "code": "route_f6ff28f5e782",
+      "english": "Time eaten must be in the past"
+    },
+    {
+      "code": "route_e3ebaa16dd9d",
+      "english": "Not found"
+    },
+    {
+      "code": "route_1e0443a0f2c1",
+      "english": "The meal could not be read"
+    },
+    {
+      "code": "route_a5adf0a4e619",
+      "english": "Agent activity could not be saved"
+    },
+    {
+      "code": "route_c31449d6d045",
+      "english": "The meal could not be posted"
+    },
+    {
+      "code": "route_644b13e9d68e",
+      "english": "Limit must be between 1 and 50"
+    },
+    {
+      "code": "route_9588923e9714",
+      "english": "Invalid date range"
+    },
+    {
+      "code": "route_077b160e9e33",
+      "english": "Meals could not be read"
+    },
+    {
+      "code": "route_430f651d1ea0",
+      "english": "The meal thread could not be read"
+    },
+    {
+      "code": "route_8d4ba958c623",
+      "english": "Enter a correction up to 4000 characters"
+    },
+    {
+      "code": "route_57691a365e05",
+      "english": "The correction could not be saved"
+    },
+    {
+      "code": "route_31ddb0abd2ff",
+      "english": "Unknown tool"
+    },
+    {
+      "code": "route_fc3612a6af0e",
+      "english": "The meal id"
+    },
+    {
+      "code": "route_ec3f7b71b8c9",
+      "english": "Post a meal the user tells you about."
+    },
+    {
+      "code": "route_ccf1a54a80b3",
+      "english": "When eaten, in the past. Defaults to now."
+    },
+    {
+      "code": "route_1143db8392bd",
+      "english": "Read meals the user has posted, newest first."
+    },
+    {
+      "code": "route_b3862cccf2e0",
+      "english": "Inclusive ISO date or instant"
+    },
+    {
+      "code": "route_3c8c5227359c",
+      "english": "Exclusive ISO date or instant"
+    },
+    {
+      "code": "route_0929975e657f",
+      "english": "Read one owned meal, its items, consumed totals and thread."
+    },
+    {
+      "code": "route_cc02e22e1a3e",
+      "english": "Add a correction to an owned meal."
+    },
+    {
+      "code": "route_65837ce7a4be",
+      "english": "Parse error"
+    },
+    {
+      "code": "route_97b1d0e9352f",
+      "english": "Invalid Request"
+    },
+    {
+      "code": "route_7a57cdae960d",
+      "english": "Invalid params"
+    },
+    {
+      "code": "route_a362d1ab7712",
+      "english": "Method not found"
+    },
+    {
+      "code": "route_423154fc3564",
+      "english": "Worker is not configured."
+    },
+    {
+      "code": "route_47313c1f0c16",
+      "english": "Drain failed: {v0}"
+    },
+    {
+      "code": "route_a61f18c241a5",
+      "english": "Tick failed."
+    },
+    {
+      "code": "route_cd5a3ccf711c",
+      "english": "Missing holder."
+    },
+    {
+      "code": "route_a9503f04e5ab",
+      "english": "Not the lease holder."
+    },
+    {
+      "code": "route_5935b5454120",
+      "english": "Worker re-tick failed: {v0}"
+    },
+    {
+      "code": "route_938bb7a3785c",
+      "english": "Drain failed."
+    },
+    {
+      "code": "route_ac6a88b19530",
+      "english": "Sign in required."
+    },
+    {
+      "code": "route_55b90e3fb6ef",
+      "english": "The token could not be revoked."
+    }
+  ],
+  "tools": [
+    {
+      "name": "log_meal",
+      "description": "Post a meal the user tells you about.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "caption": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 2000
+          },
+          "eaten_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When eaten, in the past. Defaults to now."
+          }
+        },
+        "required": [
+          "caption"
+        ],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "list_meals",
+      "description": "Read meals the user has posted, newest first.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "from": {
+            "type": "string",
+            "description": "Inclusive ISO date or instant"
+          },
+          "to": {
+            "type": "string",
+            "description": "Exclusive ISO date or instant"
+          },
+          "limit": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 50,
+            "default": 20
+          }
+        },
+        "required": [],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "get_meal",
+      "description": "Read one owned meal, its items, consumed totals and thread.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "The meal id"
+          }
+        },
+        "required": [
+          "id"
+        ],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "correct_meal",
+      "description": "Add a correction to an owned meal.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "The meal id"
+          },
+          "text": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 4000
+          }
+        },
+        "required": [
+          "id",
+          "text"
+        ],
+        "additionalProperties": false
+      }
+    }
+  ]
+}

@@ -1,3 +1,4 @@
+import * as displayErrors from '../src/i18n/display-error.ts';
 import * as readingFormat from '../src/i18n/format.ts';
 import {servingsMessageValues} from '../src/i18n/servings.ts';
 import {englishIntl,englishIntlServer} from './fixtures/english-intl.mjs';
@@ -21,11 +22,13 @@ function harness(component,{desktop=false,reject=false}={}){
   const code=ts.transpileModule(readFileSync(new URL('../src/components/'+name+'.tsx',import.meta.url),'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,jsx:ts.JsxEmit.ReactJSX,target:ts.ScriptTarget.ES2022}}).outputText;
   const fallback=new Proxy({},{get:(_,key)=>key==='__esModule'?true:key==='DRINK_TILES'?[]:key==='TILE_SIZES'?[]:()=>null});
   vm.runInNewContext(code,{exports,console,Blob,FormData,AbortController,AbortSignal,Float32Array,crypto,Date,Intl,Event,CustomEvent,requestAnimationFrame:()=>1,cancelAnimationFrame(){},setTimeout:fn=>{timers.push(fn);return timers.length;},clearTimeout(){},window:{AudioContext:true,addEventListener(){},removeEventListener(){},dispatchEvent(){},setTimeout:()=>1,clearTimeout(){}},navigator:{mediaDevices:{getUserMedia:async()=>({getTracks:()=>[{stop(){stopped++;}}]})}},AudioContext:class{sampleRate=16000;audioWorklet={addModule:async()=>{}};destination={};async resume(){}async close(){}createMediaStreamSource(){return{connect(){}};}},AudioWorkletNode:class{constructor(){worklets.push(this);}port={postMessage(){}};connect(){}disconnect(){}},fetch:async(url,init)=>{if(url==='/api/transcribe'){requests.push(init);return response;}return Response.json({rows:[],counts:[],usualMl:[]});},Response,require(id){
+ if(id==='@/i18n/display-error')return displayErrors;
  if(id==='next-intl')return englishIntl;
  if(id==='next-intl/server')return englishIntlServer;
  if(id==='@/i18n/format')return readingFormat;
  if(id==='@/i18n/servings')return {servingsMessageValues};
 
+   if(id==='@/i18n/failure-messages')return{useFailureMessages:()=>captureEnglish};
    if(id==='@/lib/posts/capture-failure')return captureFailure;
    if(id==='next-intl')return {useTranslations:()=>captureEnglish,useLocale:()=> 'en',useFormatter:()=>({dateTime:date=>date.toISOString()})};
    if(id==='react')return hooks;if(id==='react/jsx-runtime')return{jsx,jsxs:jsx};
