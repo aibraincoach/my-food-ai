@@ -4,12 +4,17 @@ import { expandUpcE } from "@/lib/fdc/gtin";
 
 // Reused by the live capture viewfinder and a single photo/library decode.
 // Loading the decoder never requests a second camera stream.
-// Clearing a rejected import only permits an explicit retry. Timer callers must
-// latch a rejection (CaptureSheet does); this module does not own that policy.
+// A failed import stays cached. Only a person action may opt into another
+// attempt; frame/timer callers always use the non-retrying default.
 let decoder: Promise<typeof import("@zxing/library")> | undefined;
-export function loadBarcodeDecoder() {
+let decoderRejected = false;
+export function loadBarcodeDecoder(options?: {retry: true}) {
+  if (options?.retry && decoderRejected) {
+    decoder = undefined;
+    decoderRejected = false;
+  }
   return decoder ??= import("@zxing/library").catch(error => {
-    decoder = undefined; // Only a later person-initiated load may retry.
+    decoderRejected = true;
     throw error;
   });
 }

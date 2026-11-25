@@ -104,7 +104,7 @@ export default function CaptureSheet({ onClose, initialMode = "photo", forPost, 
   const [portion, setPortion] = useState(100);
   const lookupRef = useRef(0);
   const scanBusy = useRef(false);
-  const decoderFailedRef = useRef(false);
+  const decoderFailedRef = useRef<"error"|"decoderSlow"|null>(null);
   const rejectedCode = useRef<{ code: string; lastSeen: number } | null>(null);
 
   const dialogRef = useRef<HTMLDivElement>(null);
@@ -201,15 +201,15 @@ export default function CaptureSheet({ onClose, initialMode = "photo", forPost, 
     const generation = lookupRef.current;
     // Back is the person's explicit retry. Keep live-frame polling latched
     // until this one bounded load succeeds, or show its failure again.
-    decoderFailedRef.current = true;
+    // Retain the known failure while this explicit attempt is pending.
     setBarcodeState("decoderLoading");
-    void barcodeDecoderOutcome(loadBarcodeDecoder).then(result => {
+    void barcodeDecoderOutcome(() => loadBarcodeDecoder({retry:true})).then(result => {
       if (!mountedRef.current || postingRef.current || generation !== lookupRef.current) return;
       if (result.state === "loaded") {
-        decoderFailedRef.current = false;
+        decoderFailedRef.current = null;
         setBarcodeState("idle"); setError(null);
       } else {
-        decoderFailedRef.current = true;
+        decoderFailedRef.current = result.state;
         setBarcodeState(result.state);
         setError(result.state === "error" ? t('decoderLoadFailed') : null);
       }
@@ -319,24 +319,51 @@ export default function CaptureSheet({ onClose, initialMode = "photo", forPost, 
     for (const shot of shotsRef.current) URL.revokeObjectURL(shot.previewUrl);
   }, []);
 
+  const showDecoderLoadFailure = useEffectEvent(() => {
+    if (!postingRef.current) { setBarcodeState("error"); setError(t('decoderLoadFailed')); }
+  });
   useEffect(() => {
     if (mode !== "barcode") return;
     let cancelled = false;
-    decoderFailedRef.current = false;
-    void loadBarcodeDecoder().catch(() => {
-      decoderFailedRef.current = true;
-      if (!cancelled && !postingRef.current) { setBarcodeState("error"); setError(t('decoderLoadFailed')); }
+    decoderFailedRef.current = null;
+    // This effect runs only on entry to Barcode, not on wording/state changes.
+    void loadBarcodeDecoder({retry:true}).catch(() => {
+      decoderFailedRef.current = "error";
+      if (!cancelled) showDecoderLoadFailure();
     });
     return () => { cancelled = true; };
-  }, [mode, setBarcodeState, t]);
+  }, [mode]);
 
   useEffect(() => {
     if (mode !== "barcode" || !stream) return;
     let cancelled = false;
     const timer = window.setInterval(async () => {
-      if (cancelled || decoderFailedRef.current || scanBusy.current || !videoRef.current || postingRef.current) return;
+      if (cancelled || !mountedRef.current || !videoRef.current || postingRef.current) return;
+      if (decoderFailedRef.current) {
+        // A cancelled observer may have latched a failure; never show idle
+        // "Looking" while this active scanner cannot work.
+        if (barcodeStateRef.current === "idle") {
+          setBarcodeState(decoderFailedRef.current);
+          setError(decoderFailedRef.current === "error" ? t('decoderLoadFailed') : null);
+        }
+        return;
+      }
+      if (scanBusy.current || barcodeStateRef.current !== "idle") return;
       scanBusy.current = true;
       try {
+        // The live loop never opts into a retry. It shares any pending load,
+        // bounds its wait, and latches every rejected/timed-out outcome itself.
+        const loaded = await barcodeDecoderOutcome(loadBarcodeDecoder);
+        if (loaded.state !== "loaded") {
+          decoderFailedRef.current = loaded.state;
+          if (!cancelled && mountedRef.current && !postingRef.current &&
+              ["idle", "decoderLoading", "decoderSlow"].includes(barcodeStateRef.current)) {
+            setBarcodeState(loaded.state);
+            setError(loaded.state === "error" ? t('decoderLoadFailed') : null);
+          }
+          return;
+        }
+        if (cancelled || !mountedRef.current || postingRef.current || barcodeStateRef.current !== "idle") return;
         const code = await decodeBarcode(videoRef.current);
         if (cancelled) return;
         if (!code) return;
@@ -351,7 +378,7 @@ export default function CaptureSheet({ onClose, initialMode = "photo", forPost, 
       finally { scanBusy.current = false; }
     }, 300);
     return () => { cancelled = true; window.clearInterval(timer); };
-  }, [mode, stream, findBarcode]);
+  }, [mode, stream, findBarcode, setBarcodeState, t]);
 
   const readLabelFile = async(file:File)=>{
     setLabelState("reading");setError(null);
@@ -424,20 +451,20 @@ export default function CaptureSheet({ onClose, initialMode = "photo", forPost, 
         if (!barcode) continue;
         const shot = shotsRef.current[shotsRef.current.length - 1];
         const generation = lookupRef.current;
-        decoderFailedRef.current = false; // A new library choice is an explicit retry.
+        decoderFailedRef.current = null; // A new library choice is an explicit retry.
         setBarcodeState("decoderLoading"); setError(null);
         // Give React and the browser a paint before the decoder's CPU work.
         void new Promise<void>(resolve => requestAnimationFrame(() => requestAnimationFrame(() => resolve())))
           .then(() => {
             if (!mountedRef.current || postingRef.current || generation !== lookupRef.current || !shotsRef.current.includes(shot)) return null;
-            return barcodePhotoOutcome(loadBarcodeDecoder, () => decodeBarcodeFile(file));
+            return barcodePhotoOutcome(() => loadBarcodeDecoder({retry:true}), () => decodeBarcodeFile(file));
           })
           .then((result) => {
             if (!result || !mountedRef.current || postingRef.current || generation !== lookupRef.current || !shotsRef.current.includes(shot)) return;
             if (result.state !== "found") {
               if (result.state === "error" || result.state === "decoderSlow") pick.failure = result.state;
               // Every failed or timed-out load stays latched until a person retries.
-              if (result.state === "error" || result.state === "decoderSlow") decoderFailedRef.current = true;
+              if (result.state === "error" || result.state === "decoderSlow") decoderFailedRef.current = result.state;
               return;
             }
             const index = shotsRef.current.indexOf(shot);
