@@ -483,7 +483,6 @@ declare d public.post_upload_drafts; r public.composer_drink_readings; choice js
  items jsonb:='[]'; positions integer[]:='{}'; indexes integer[]; ml numeric; idx integer; item_index integer:=0; result uuid; intake jsonb;
 begin
  perform public.require_capture_zone(p_render_zone);
- perform public.require_meal_summary(p_message);
  perform pg_advisory_xact_lock(hashtextextended(p_upload_id::text,0));
  select * into d from public.post_upload_drafts where id=p_upload_id and user_id=p_user_id for update;
  if not found then raise exception 'Draft not found' using errcode='42501';end if;
@@ -498,6 +497,7 @@ begin
   end if;
   raise exception 'Draft is no longer available' using errcode='PT409';
  end if;
+ perform public.require_meal_summary(p_message);
  if jsonb_typeof(p_readings) is distinct from 'array' or jsonb_array_length(p_readings) not between 1 and 8
   or p_caption is null or length(p_caption)>2000 or p_eaten_at is null or p_eaten_at>clock_timestamp()+interval '5 minutes'
   or jsonb_typeof(p_items) is distinct from 'array' or jsonb_typeof(p_expected) is distinct from 'object' or p_message is null or octet_length(p_message::text)>100000
@@ -553,7 +553,6 @@ returns uuid language plpgsql security definer set search_path=public,pg_temp as
 declare receipt public.drink_post_operations;draft public.post_upload_drafts;result uuid;
 begin
  perform public.require_capture_zone(p_render_zone);
- perform public.require_meal_summary(p_message);
  if p_operation_id is null or p_upload_id is null or p_user_id is null or p_request_key is null or length(p_request_key)<>64 then raise exception 'Invalid photo drink operation' using errcode='22023';end if;
  perform pg_advisory_xact_lock(hashtextextended('drink-operation:'||p_operation_id::text,0));
  perform pg_advisory_xact_lock(hashtextextended(p_upload_id::text,0));
@@ -573,6 +572,7 @@ begin
   end if;
   return receipt.post_id;
  end if;
+ perform public.require_meal_summary(p_message);
  select * into draft from public.post_upload_drafts where id=p_upload_id and user_id=p_user_id for update;
  if not found then raise exception 'Photo draft not found' using errcode='42501';end if;
  select * into receipt from public.drink_post_operations where upload_id=p_upload_id for update;
