@@ -1,10 +1,11 @@
-// Disposable menu hit testing. Base runs are visual-only: the one main early-tap
-// observation is retained separately and must not become a repeated collection.
+// Disposable menu hit testing. Base early-tap proof requires explicit opt-in;
+// the completed main observations must not become a repeated collection.
 import fs from 'node:fs/promises';
 import assert from 'node:assert/strict';
 const app=process.env.APP_URL,out=process.env.MENU_CHECK_OUT,engine=process.env.ONLY_ENGINE,label=process.env.CHECK_LABEL;
 const visualOnly=process.env.MENU_VISUAL_ONLY==='1';
-if(process.env.MFA_TEST_DISPOSABLE!=='1'||new URL(app).hostname!=='127.0.0.1'||!out||!['chromium','webkit'].includes(engine)||!['base','head'].includes(label)||(label==='base'&&!visualOnly))throw Error('Bounded disposable menu proof only');
+const baseRed=label==='base'&&process.env.MENU_BASE_RED==='1';
+if(process.env.MFA_TEST_DISPOSABLE!=='1'||new URL(app).hostname!=='127.0.0.1'||!out||!['chromium','webkit'].includes(engine)||!['base','head'].includes(label)||(label==='base'&&!visualOnly&&!baseRed)||(baseRed&&visualOnly))throw Error('Bounded disposable menu proof only');
 await fs.mkdir(out,{recursive:true});
 const cookies=JSON.parse(await fs.readFile(process.env.TEST_SESSION_FILE,'utf8'));
 const words=JSON.parse(await fs.readFile(new URL('../../messages/en.json',import.meta.url),'utf8'));
@@ -45,6 +46,20 @@ async function entryCase(entry,early){
   receipt.cases.push({entry,early,hit,events:await p.evaluate(()=>window.__entryEvents),mediaCalls:await p.evaluate(()=>window.__mediaCalls.length),pass:true});
  }catch(e){await p.screenshot({path:out+'/failure.png',fullPage:true});await fs.writeFile(out+'/failure.html',await p.content(),{mode:0o600});throw e;}finally{await f.close();}
 }
+// Run once per engine only when a new base observation is explicitly authorised.
+async function baseRedCase(){
+ const f=await context(),{p}=f;receipt.phase='base early-camera red';
+ try{
+  await fullyOpen(p);const r=await p.locator('#post-menu button[data-entry="camera"]').boundingBox(),point={x:r.x+r.width/2,y:r.y+r.height/2};
+  await p.keyboard.press('Escape');await p.waitForFunction(()=>document.querySelector('#post-menu')?.getAttribute('aria-hidden')==='true');await settled(p);
+  await p.evaluate(()=>{window.__tapLog=[];window.__openedAt=null;});await toggle(p);await p.waitForTimeout(30);
+  const hit=await p.evaluate(({x,y})=>{const b=document.elementFromPoint(x,y)?.closest('button');return{elapsed:performance.now()-window.__openedAt,label:b?.getAttribute('aria-label'),entry:b?.dataset.entry??null,rect:b?.getBoundingClientRect().toJSON()};},point);
+  assert.equal(hit.label,words.navigation.closeMenu,'base early tap hits the installed scrim label');assert.equal(hit.entry,null);
+  await click(p,point.x,point.y);await p.waitForFunction(()=>document.querySelector('#post-menu')?.getAttribute('aria-hidden')==='true');await settled(p);
+  assert.equal(await p.evaluate(()=>window.__mediaCalls.length),0);assert.equal(await p.locator('video').count(),0);
+  receipt.cases.push({name:'base early-camera red',hit,mediaCalls:0,video:false,menuHidden:true,pass:true});
+ }finally{await f.close();}
+}
 async function keyboardAndScrim(){
  const f=await context(),{p}=f;receipt.phase='keyboard/scrim';
  try{
@@ -77,7 +92,8 @@ async function visuals(){
  }finally{await f.close();}
 }
 try{
- if(!visualOnly){for(const early of [true,false])for(const entry of ['camera','text','drink','coffee','saved'])await entryCase(entry,early);await keyboardAndScrim();}
- await visuals();receipt.functionalPass=true;receipt.pass=receipt.errors.length===0;if(!receipt.pass)process.exitCode=1;
+ if(baseRed)await baseRedCase();
+ else if(!visualOnly){for(const early of [true,false])for(const entry of ['camera','text','drink','coffee','saved'])await entryCase(entry,early);await keyboardAndScrim();}
+ if(!baseRed)await visuals();receipt.functionalPass=true;receipt.pass=receipt.errors.length===0;if(!receipt.pass)process.exitCode=1;
 }catch(e){receipt.pass=false;receipt.failure=e.message;process.exitCode=1;}
 finally{await browser.close();await fs.writeFile(out+'/menu.json',JSON.stringify(receipt,null,2));console.log(JSON.stringify({engine,label,pass:receipt.pass,functionalPass:receipt.functionalPass,cases:receipt.cases.length,errors:receipt.errors.length,phase:receipt.phase,failure:receipt.failure}));}
