@@ -127,9 +127,11 @@ nothing; the English arm still supports the declared bilingual retrieval. In a
 paired C-locale cluster the same Japanese queries find nothing.
 
 The once-ordered apply read-back also records the actual database character
-classification and encoding once:
+classification and encoding once. In its bounded read-only transaction, use the
+same extension search path as the search function:
 
 ```sql
+set local search_path = public, extensions, pg_temp;
 select datctype as lc_ctype, datlocprovider,
        pg_encoding_to_char(encoding) as encoding,
        cardinality(show_trgm('精白米')) > 0 as japanese_trigrams
