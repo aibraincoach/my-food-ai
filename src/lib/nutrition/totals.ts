@@ -67,7 +67,11 @@ export function formatCalories(value: Numeric, _t: NutritionTranslator, locale: 
 }
 
 export const MACRO_NUTRIENT_IDS:Record<NutrientKey,number>={calories:1008,protein_g:1003,carbs_g:1005,fat_g:1004,fibre_g:1079,sugar_g:2000,sodium_mg:1093};
+export function hasNutrientTrace(value:unknown,nutrientId:number):boolean{return Array.isArray(value)&&value.some(n=>n&&typeof n==='object'&&n.nutrientId===nutrientId&&n.marker==='trace'&&n.value===null);}
 type NutritionContribution=NutritionLike & {name?:string;missing?:MissingNutrition;trace?:MissingNutrition;traceOnly?:NutrientKey[];micronutrients?:unknown};
+export function formatTotalEnergy(totals:Pick<MealTotals,'calories'|'traceOnly'>,t:NutritionTranslator,locale:Locale):string{return totals.traceOnly?.includes('calories')?t('trace'):formatCalories(totals.calories,t,locale);}
+export function hasMixedTrace(totals:Pick<MealTotals,'trace'|'traceOnly'>):boolean{return Boolean(totals.trace&&Object.keys(totals.trace).some(key=>!totals.traceOnly?.includes(key as NutrientKey)));}
+
 export function sumNutrition(items: NutritionContribution[]): MealTotals {
   const totals:MealTotals={calories:0,protein_g:0,carbs_g:0,fat_g:0,fibre_g:0,sugar_g:0,sodium_mg:0};
   const missing:MissingNutrition={},trace:MissingNutrition={},traceOnly:NutrientKey[]=[];
@@ -76,7 +80,7 @@ export function sumNutrition(items: NutritionContribution[]): MealTotals {
     const omitted=new Set<string>(),traces=new Set<string>();
     for(const item of items){
       const amount=nutritionNumber(item[key]);
-      const sourceTrace=amount===null&&Array.isArray(item.micronutrients)&&item.micronutrients.some(n=>n&&typeof n==='object'&&n.nutrientId===MACRO_NUTRIENT_IDS[key]&&n.marker==='trace'&&n.value===null);
+      const sourceTrace=amount===null&&hasNutrientTrace(item.micronutrients,MACRO_NUTRIENT_IDS[key]);
       if(sourceTrace){known++;traces.add(item.name||UNNAMED_ITEM);}
       else if(amount===null){if(!item.missing?.[key]?.length)omitted.add(item.name||UNNAMED_ITEM);}
       else {sum+=amount;known++;if(!item.traceOnly?.includes(key))measured++;}

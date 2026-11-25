@@ -1,6 +1,7 @@
 "use client";
+import {formatTotalEnergy,hasMixedTrace} from '@/lib/nutrition/totals';
 import {useLocale,useTranslations} from 'next-intl';
-import {formatDate,formatEnergy,formatNutrient,formatNumber} from '@/i18n/format';
+import {formatDate,formatNutrient,formatNumber} from '@/i18n/format';
 import { nutritionGaps, gapSentence} from "@/lib/nutrition/totals";
 
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
@@ -136,11 +137,11 @@ export default function StoryPlayer({ day, zone, onClose, onDay, cell }: { day: 
             {photo(post) ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img src={photo(post)!} onError={() => photoFailed(post.photoUrl)} alt={post.caption || t("mealImage")} className="h-full w-full object-cover" />
-            ) : <ResultsCard t={tc} tn={tn} locale={locale} gap={gapSentence(nutritionGaps(post.totals),tn,locale,[],false)} size={width} time={clockZone?formatDate(locale,new Date(post.eatenAt),clockZone,{hour:'numeric',minute:'2-digit'}):''} calories={post.totals.calories} protein={post.totals.protein_g} carbs={post.totals.carbs_g} fat={post.totals.fat_g} items={post.items.map(item => ({ name: item.name, grams: item.portion_grams == null ? null : Number(item.portion_grams) }))} />}
+            ) : <ResultsCard trace={post.totals.trace} traceOnly={post.totals.traceOnly} mext={post.items.some(item=>item.source_ref?.startsWith('mext:'))} t={tc} tn={tn} locale={locale} gap={gapSentence(nutritionGaps(post.totals),tn,locale,[],false)} size={width} time={clockZone?formatDate(locale,new Date(post.eatenAt),clockZone,{hour:'numeric',minute:'2-digit'}):''} calories={post.totals.calories} protein={post.totals.protein_g} carbs={post.totals.carbs_g} fat={post.totals.fat_g} items={post.items.map(item => ({ name: item.name, grams: item.portion_grams == null ? null : Number(item.portion_grams) }))} />}
           </div>
           <div className="px-screen-x"><p className="text-body">{post.caption}</p><p className="mt-1 text-meta text-faint">{time(post.eatenAt)}</p></div>
         </div> : <div className="mt-auto flex shrink-0 flex-col gap-7 px-screen-x">
-          <div><p className="mb-3 text-detail text-faint">{t("consumedOn",{weekday})}</p><p className="flex items-baseline gap-2"><span className="text-display-day tabular-nums">{formatEnergy(locale,day.totals.calories)}</span><span className="text-month font-normal text-faint">kcal</span></p><p className="mt-2 text-meta text-faint">{t("mealCount",{count:day.posts.length,pending:day.pending?"yes":"no",unfinished:formatNumber(locale,day.pending,{useGrouping:false})})}</p></div>
+          <div><p className="mb-3 text-detail text-faint">{t("consumedOn",{weekday})}</p><p className="flex items-baseline gap-2"><span className="text-display-day tabular-nums">{formatTotalEnergy(day.totals,tn,locale)}</span><span className="text-month font-normal text-faint">kcal</span></p>{hasMixedTrace(day.totals)?<p className="text-meta text-faint">{tn('includesTraceAmounts')}</p>:null}<p className="mt-2 text-meta text-faint">{t("mealCount",{count:day.posts.length,pending:day.pending?"yes":"no",unfinished:formatNumber(locale,day.pending,{useGrouping:false})})}</p></div>
           <div className="grid grid-cols-3 pt-4" style={{ borderTop: `${tokens.border.hairline}px solid ${tokens.colors.surface}`, borderTopColor: `color-mix(in srgb, ${tokens.colors.surface} 14%, transparent)` }}>
             {([[day.totals.protein_g, "protein"], [day.totals.carbs_g, "carbs"], [day.totals.fat_g, "fat"]] as const).map(([value, word]) => <div key={word}><p className="text-day-macro tabular-nums">{formatNutrient(locale,value)} g</p><p className="text-meta text-faint">{t(word)}</p></div>)}
           </div>
@@ -153,7 +154,7 @@ export default function StoryPlayer({ day, zone, onClose, onDay, cell }: { day: 
                 <img src={photo(entry)!} onError={() => photoFailed(entry.photoUrl)} alt={entry.caption || t("mealImage")} className="h-full w-full object-cover" />
               ) : <span className="line-clamp-3 px-2 text-center text-detail">{dayPostName(entry,t("mealImage"))}</span>}
             </div>
-            <p className="mt-1 flex justify-between gap-1 text-label text-faint tabular-nums"><span>{time(entry.eatenAt)}</span><span>{formatEnergy(locale,entry.totals.calories)} kcal</span></p>
+            <p className="mt-1 flex justify-between gap-1 text-label text-faint tabular-nums"><span>{time(entry.eatenAt)}</span><span>{formatTotalEnergy(entry.totals,tn,locale)} kcal{hasMixedTrace(entry.totals)?<span className="block text-label">{tn('includesTraceAmounts')}</span>:null}</span></p>
           </Link>)}</div>
         </div>}
         <nav className="flex items-center justify-between px-screen-x text-meta text-muted" aria-label={t("adjacentDays")}>

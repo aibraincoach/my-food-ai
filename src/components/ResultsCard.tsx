@@ -14,6 +14,9 @@ export type ResultsCardProps = {
   t: CardTranslator;
   tn: NutritionTranslator;
   data?: CardData;
+  trace?:CardData['trace'];
+  traceOnly?:CardData['traceOnly'];
+  mext?:boolean;
   // Kept for story totals and existing callers while they adopt CardData.
   drink?: DrinkCardData | null;
   gap?: string;
@@ -33,11 +36,12 @@ export const ARROW_GUTTER = 24;
 const glyphMessage = {coffee:'glyphCoffee',water:'glyphWater',cocktail:'glyphCocktail',wine:'glyphWine',beer:'glyphBeer',tumbler:'glyphTumbler'} as const;
 
 /** The exact same flex layout renders in the browser and next/og (Satori). */
-export function ResultsCard({ locale, t, tn, data, drink, gap = "", time, calories = null, protein = null, carbs = null, fat = null, items = [], size = tokens.spacing.phone, fontFamily, gutter = 0 }: ResultsCardProps) {
+export function ResultsCard({ locale, t, tn, data, trace, traceOnly, mext, drink, gap = "", time, calories = null, protein = null, carbs = null, fat = null, items = [], size = tokens.spacing.phone, fontFamily, gutter = 0 }: ResultsCardProps) {
   const card: CardData = data ?? {
     kind: drink ? 'drink' : 'meal', amountMl: drink?.ml, caffeineMg: drink?.caffeineMg,
     drinkLine: drink ? `${drink.label}${drink.caffeineMg ? ` · ${t('caffeineDetail',{amount:formatNutrition(drink.caffeineMg,tn,locale)})} · ${formatCalories(calories,tn,locale)} kcal` : ''}` : undefined,
     hydration: drink ? { totalMl: drink.totalMl, drinksMl: drink.drinksMl, foodMl: drink.foodMl, caffeineMg: drink.dayCaffeineMg ?? drink.caffeineMg } : undefined,
+    ...(trace?{trace}:{}),...(traceOnly?{traceOnly}:{}),...(mext?{mext}:{}),
     kcal: calories, macros: { protein, carbs, fat }, items, gap,
   };
   const isDrink = card.kind === 'drink';
@@ -95,6 +99,6 @@ export function ResultsCard({ locale, t, tn, data, drink, gap = "", time, calori
       </div>
     </div>}
       {card.trace&&Object.keys(card.trace).some(key=>!card.traceOnly?.includes(key as import('@/lib/nutrition/totals').NutrientKey))?<div style={{display:'flex',...text('meta'),color:tokens.colors.muted}}>{tn('includesTraceAmounts')}</div>:null}
-      {card.mext?<div style={{display:'flex',...text('meta'),color:tokens.colors.muted}}>{t.rich('mextAttribution',{mext:chunks=><span>{chunks}</span>})}</div>:null}
+      {card.mext?<div style={{display:'flex',...text('meta'),color:tokens.colors.muted}}><span>{t.rich('mextAttribution',{mext:chunks=><span>{chunks}</span>})}</span></div>:null}
   </div>;
 }

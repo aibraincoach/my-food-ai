@@ -1,7 +1,8 @@
 "use client";
+import {formatTotalEnergy,hasMixedTrace} from '@/lib/nutrition/totals';
 import {DisplayError,displayErrorText} from '@/i18n/display-error';
 import {useLocale,useTranslations} from "next-intl";
-import {formatDate,formatEnergy,formatNumber} from "@/i18n/format";
+import {formatDate,formatNumber} from "@/i18n/format";
 import DesktopDays from '@/components/DesktopDays';
 import {useDesktop} from "@/lib/ui/use-desktop";
 
@@ -18,7 +19,7 @@ import StoryPlayer,{dayPostName} from "@/components/StoryPlayer";
 
 type Props = { initialMonths: Record<string, MonthSummary>; initialMonthErrors?: string[]; earliest: string; today: string; zone: string; initialDay?: LoggedDay };
 export default function DaysView({ initialMonths, initialMonthErrors, earliest, today, zone, initialDay }: Props) {
-  const t=useTranslations("days"),locale=useLocale();
+  const t=useTranslations("days"),tn=useTranslations('nutrition'),locale=useLocale();
   const router = useRouter();
   const [months, setMonths] = useState(initialMonths);
   const monthsRef = useRef(initialMonths);
@@ -206,8 +207,8 @@ export default function DaysView({ initialMonths, initialMonthErrors, earliest, 
       }:undefined}/>
     </div>
     <aside className="hidden desktop:sticky desktop:top-6 desktop:block desktop:w-[440px] desktop:max-w-[44%] desktop:shrink-0 desktop:overflow-hidden desktop:rounded-[16px] desktop:border desktop:border-line desktop:bg-white" aria-label={t("selectedDay")}>
-      {active?<><div className="border-b border-hairline px-4 pb-3 pt-4"><h2 className="text-[17px] font-semibold">{formatDate(locale,new Date(`${active.date}T12:00:00Z`),'UTC',{weekday:'long',month:'short',day:'numeric'})}</h2><p className="mt-2 text-detail text-muted">{t('consumedSummary',{kcal:formatEnergy(locale,active.totals.calories),count:active.posts.length,pending:active.pending?'yes':'no',unfinished:formatNumber(locale,active.pending,{useGrouping:false})})}</p></div>
-      <div>{active.posts.map(post=><Link key={post.id} href={`/?post=${post.id}`} className="flex items-center gap-3 border-b border-hairline px-4 py-[10px]">{post.photoUrl?<img src={post.photoUrl} alt={post.caption||t("mealImage")} className="size-10 rounded-thumb object-cover"/>:<span className="size-10 rounded-thumb bg-card"/>}<span className="min-w-0 flex-1"><span className="block truncate text-body" title={dayPostName(post,t("mealImage"))}>{dayPostName(post,t("mealImage"))}</span>{post.caption.trim()&&post.caption.trim()!==dayPostName(post,t("mealImage"))?<span className="block truncate text-meta text-muted">{post.caption}</span>:null}<span className="text-meta text-muted">{formatDate(locale,new Date(post.eatenAt),zone,{hour:'numeric',minute:'2-digit'})}</span></span><span className="text-meta text-muted">{formatEnergy(locale,post.totals.calories)} kcal</span></Link>)}</div>
+      {active?<><div className="border-b border-hairline px-4 pb-3 pt-4"><h2 className="text-[17px] font-semibold">{formatDate(locale,new Date(`${active.date}T12:00:00Z`),'UTC',{weekday:'long',month:'short',day:'numeric'})}</h2><p className="mt-2 text-detail text-muted">{t('consumedSummary',{kcal:formatTotalEnergy(active.totals,tn,locale),count:active.posts.length,pending:active.pending?'yes':'no',unfinished:formatNumber(locale,active.pending,{useGrouping:false})})}{hasMixedTrace(active.totals)?(locale==='ja'?'':' ')+tn('includesTraceAmounts'):''}</p></div>
+      <div>{active.posts.map(post=><Link key={post.id} href={`/?post=${post.id}`} className="flex items-center gap-3 border-b border-hairline px-4 py-[10px]">{post.photoUrl?<img src={post.photoUrl} alt={post.caption||t("mealImage")} className="size-10 rounded-thumb object-cover"/>:<span className="size-10 rounded-thumb bg-card"/>}<span className="min-w-0 flex-1"><span className="block truncate text-body" title={dayPostName(post,t("mealImage"))}>{dayPostName(post,t("mealImage"))}</span>{post.caption.trim()&&post.caption.trim()!==dayPostName(post,t("mealImage"))?<span className="block truncate text-meta text-muted">{post.caption}</span>:null}<span className="text-meta text-muted">{formatDate(locale,new Date(post.eatenAt),zone,{hour:'numeric',minute:'2-digit'})}</span></span><span className="text-meta text-muted">{formatTotalEnergy(post.totals,tn,locale)} kcal{hasMixedTrace(post.totals)?<span className="block text-label">{tn('includesTraceAmounts')}</span>:null}</span></Link>)}</div>
       <Link href={url(`/days/${active.date}`)} className="block px-4 py-3 text-body" onClick={event=>{event.preventDefault();setDesktopStory(true);window.history.pushState(null,'',url(`/days/${active.date}`));}}>{t("openDay")}</Link></>:<p className="p-4 text-detail text-muted">{t("chooseDay")}</p>}
     </aside></div>
     {loadingMonth || loadingDay ? <p role="status" className="px-screen-x text-meta text-muted">{loadingDay ? t("loadingDay") : t("loadingMonths")}</p> : null}

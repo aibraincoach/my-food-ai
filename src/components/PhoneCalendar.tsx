@@ -96,7 +96,7 @@ export default function PhoneCalendar({months,today,selected,onDay,onOlder}:Prop
      className={`flex min-w-0 scroll-mt-32 flex-col justify-between rounded-tile text-left ${day?'bg-card':''} ${date>today?'text-faint':'text-text'}`}
      style={{height:tokens.spacing.tap,padding:`${tokens.spacing.grid}px ${tokens.calendar.padding}px`,border:outlined?`${tokens.calendar.border}px solid ${tokens.colors.text}`:`${tokens.calendar.border}px solid transparent`}}>
      <span className={`text-label leading-none ${number===1?'font-semibold':'font-medium'}`}>{number===1?t("firstOfMonth",{month:short}):formatNumber(locale,number)}</span>
-     <span className="text-cell-kcal text-muted tabular-nums">{day?.ready?`${formatEnergy(locale,day.kcal)}`:day?.intake?t("drank"):''}</span>
+     <span className="text-cell-kcal text-muted tabular-nums">{day?.ready?day.traceOnly?tn('trace'):`${formatEnergy(locale,day.kcal)}`:day?.intake?t("drank"):''}</span>
     </button>;
    })}
   </div>

@@ -4,7 +4,7 @@ import {visibleDrinkRows,withAlcoholNutrition,type DrinkRow} from '@/lib/intake/
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { groupIntakeByDay, emptyIntake, type IntakeTotals } from "@/lib/intake/intake";
 import { publicPhotoUrl } from "@/lib/posts/feed-photo-url";
-import { CURRENT_ITEM_COLUMNS, CURRENT_NUTRITION_COLUMNS, mapCurrentItems, requireStoredNutrition, nutritionNumber, sumNutrition, type CurrentItem, type MealTotals, type NutritionRow } from "@/lib/nutrition/totals";
+import { CURRENT_ITEM_COLUMNS, CURRENT_NUTRITION_COLUMNS, mapCurrentItems, requireStoredNutrition, nutritionNumber, hasNutrientTrace, sumNutrition, type CurrentItem, type MealTotals, type NutritionRow } from "@/lib/nutrition/totals";
 
 export interface DayPost { id: string; caption: string; eatenAt: string; photoUrl: string | null; items: CurrentItem[]; totals: MealTotals }
 // pending: meals of that day still being analysed or waiting for a reply; they are listed nowhere yet and are counted apart.
@@ -151,30 +151,32 @@ export async function getLoggedDates(supabase: SupabaseClient, userId: string, z
   return [...dates].sort().map((date) => ({ date }));
 }
 
-export interface DayPostReceipt { id: string; eatenAt: string; kcal: number; missing: string[]; known: number }
-export interface FeedDayTotal { day: string; kcal: number | null; ready: boolean; missing?:string[]; known?:number; posts?: DayPostReceipt[] }
+export interface DayPostReceipt { id: string; eatenAt: string; kcal: number; missing: string[]; known: number; trace?:string[];traceOnly?:true }
+export interface FeedDayTotal { day: string; kcal: number | null; ready: boolean; missing?:string[]; known?:number;trace?:string[];traceOnly?:true; posts?: DayPostReceipt[] }
 // A compact contribution receipt from the same owner/RLS read as the total.
 // It lets discovery recognize an older meal already included by SSR.
-export function dayPostReceipt(id: string, eatenAt: string, items: {name:string;calories:import('@/lib/nutrition/totals').Numeric}[]): DayPostReceipt {
+export function dayPostReceipt(id: string, eatenAt: string, items: {name:string;calories:import('@/lib/nutrition/totals').Numeric;micronutrients?:unknown}[]): DayPostReceipt {
   const receipt: DayPostReceipt = {id,eatenAt,kcal:0,missing:[],known:0};
   for (const item of items) {
     const value=nutritionNumber(item.calories);
-    if(value===null)receipt.missing.push(item.name);else{receipt.kcal+=value;receipt.known++;}
+    if(value===null&&hasNutrientTrace(item.micronutrients,1008)){const before=receipt.known;receipt.known++;(receipt.trace??=[]).push(item.name);if(before===0||receipt.traceOnly)receipt.traceOnly=true;}
+    else if(value===null)receipt.missing.push(item.name);else{receipt.kcal+=value;receipt.known++;delete receipt.traceOnly;}
   }
-  receipt.missing=[...new Set(receipt.missing)].sort();return receipt;
+  receipt.missing=[...new Set(receipt.missing)].sort();if(receipt.trace)receipt.trace=[...new Set(receipt.trace)].sort();return receipt;
 }
 
 // One day circle's total from that day's ready meals, in eaten order. getDayTotals uses it
 // for every day it reads, and readToday (home-today.ts) for today, so the rule lives once.
-export function dayTotalFromMeals(day: string, meals: {id: string; eatenAt: string; items: {name: string; calories: import('@/lib/nutrition/totals').Numeric}[]}[]): FeedDayTotal {
-  let kcal = 0, known = 0;
-  const missing: string[] = [];
-  for (const meal of meals) for (const item of meal.items) {
-    const value = nutritionNumber(item.calories);
-    if (value === null) missing.push(item.name); else { kcal += value; known++; }
-  }
-  const unique = [...new Set(missing)];
-  return { day, kcal: known === 0 && unique.length ? null : kcal, ready: meals.length > 0, missing: unique, known, posts: meals.map(meal => dayPostReceipt(meal.id, meal.eatenAt, meal.items)) };
+export function dayTotalFromMeals(day: string, meals: {id:string;eatenAt:string;items:{name:string;calories:import('@/lib/nutrition/totals').Numeric;micronutrients?:unknown}[]}[]):FeedDayTotal {
+ let kcal=0,known=0,measured=0;const omitted:string[]=[],traces:string[]=[];
+ for(const meal of meals)for(const item of meal.items){
+  const value=nutritionNumber(item.calories);
+  if(value===null&&hasNutrientTrace(item.micronutrients,1008)){known++;traces.push(item.name);}
+  else if(value===null)omitted.push(item.name);else{kcal+=value;known++;measured++;}
+ }
+ const missing=[...new Set(omitted)],trace=[...new Set(traces)];
+ return {day,kcal:known===0&&missing.length?null:kcal,ready:meals.length>0,missing,known,posts:meals.map(meal=>dayPostReceipt(meal.id,meal.eatenAt,meal.items)),
+  ...(trace.length?{trace,...(!measured?{traceOnly:true as const}:{})}:{})};
 }
 
 // Read all current nutrition for the touched days together, never one query per card.
@@ -182,7 +184,7 @@ export function dayTotalFromMeals(day: string, meals: {id: string; eatenAt: stri
 export async function getDayTotals(db: SupabaseClient, userId: string, zone: string, dates: string[]): Promise<FeedDayTotal[]> {
   const wanted = [...new Set(dates)].sort();
   if (!wanted.length) return [];
-  const groups = new Map(wanted.map(day => [day, { day, meals: [] as {id: string; eatenAt: string; items: {name: string; calories: number | null}[]}[] }]));
+  const groups = new Map(wanted.map(day => [day, { day, meals: [] as {id: string; eatenAt: string; items: {name: string; calories: number | null;micronutrients?:unknown}[]}[] }]));
   // Group contiguous requested days only; widely separated card events must
   // not rescan every meal between the two days.
   const windows: {from: string; through: string}[] = [];
@@ -203,12 +205,12 @@ export async function getDayTotals(db: SupabaseClient, userId: string, zone: str
     for (const row of data ?? []) {
       const group = groups.get(dateInZone(row.eaten_at, zone));
       if (!group || group.day < window.from || group.day > window.through) continue;
-      const contributions: {name:string;calories:number|null}[]=[];
+      const contributions: {name:string;calories:number|null;micronutrients?:unknown}[]=[];
       for (const item of row.current_post_items ?? []) {
         const nutrients = Array.isArray(item.item_nutrition) ? item.item_nutrition : [item.item_nutrition];
         const nutrition = nutrients[0];
         const value = nutrition ? requireStoredNutrition(nutrition as NutritionRow).calories : null;
-        contributions.push({name:item.name,calories:nutritionNumber(value)});
+        contributions.push({name:item.name,calories:nutritionNumber(value),...(nutrition?{micronutrients:nutrition.micronutrients}:{})});
       }
       group.meals.push({id: row.id, eatenAt: row.eaten_at, items: contributions});
     }
@@ -218,7 +220,7 @@ export async function getDayTotals(db: SupabaseClient, userId: string, zone: str
   return [...groups.values()].map(group => dayTotalFromMeals(group.day, group.meals));
 }
 
-export interface MonthDay { intake?: boolean; day: string; kcal: number | null; posts: number; pending: number; ready: boolean; missing?:string[]; known?:number }
+export interface MonthDay { intake?: boolean; day: string; kcal: number | null; posts: number; pending: number; ready: boolean; missing?:string[]; known?:number;trace?:string[];traceOnly?:true }
 export interface MonthSummary { days: MonthDay[]; posted: number }
 export class MonthIntakeError extends CaptureFailureError {
   constructor(readonly month: string, readonly summary: MonthSummary) {
@@ -262,7 +264,8 @@ export async function getMonthSummary(supabase: SupabaseClient, userId: string, 
           const stored = Array.isArray(item.item_nutrition) ? item.item_nutrition[0] : item.item_nutrition;
           const normalized = stored ? requireStoredNutrition(stored as NutritionRow) : null;
           const calories = normalized?.calories;
-          if(calories==null)(day.missing??=[]).push(item.name); else {day.kcal=(day.kcal??0)+Number(calories);day.known=(day.known??0)+1;}
+          if(calories==null&&hasNutrientTrace(normalized?.micronutrients,1008)){const before=day.known??0;day.known=before+1;(day.trace??=[]).push(item.name);if(before===0||day.traceOnly)day.traceOnly=true;}
+          else if(calories==null)(day.missing??=[]).push(item.name); else {day.kcal=(day.kcal??0)+Number(calories);day.known=(day.known??0)+1;delete day.traceOnly;}
         }
       }
       groups.set(date, day);
