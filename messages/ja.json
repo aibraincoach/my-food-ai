@@ -503,7 +503,10 @@
     "error_5d8e81ab8a75": "このスマートフォンに写真を保持できませんでした。もう一度お試しください。",
     "error_65467f9f76fc": "パッケージの写真の準備ができていません。選択内容は保持されています。",
     "per100Label": "100 {unit}あたり",
-    "servingAmount": "{count}{count, plural, one {食分} other {食分}}"
+    "servingAmount": "{count}{count, plural, one {食分} other {食分}}",
+    "decoderLoading": "スキャナーはまだ読み込み中です。しばらくしてからもう一度お試しください。",
+    "decoderSlow": "スキャナーの処理が時間内に終わりませんでした。もう一度お試しください。",
+    "decoderLoadFailed": "スキャナーを読み込めませんでした。写真をもう一度選択してください。"
   },
   "feed": {
     "loading": "フィードを読み込み中…",

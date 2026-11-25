@@ -12,15 +12,15 @@ function fixture(mode='photo',answer='9591234567892'){
  const code=ts.transpileModule(source.slice(start,end)+'\nexport {addFiles};',{compilerOptions:{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.CommonJS}}).outputText;
  const file=new File(['synthetic EAN 9591234567892'],'ean-photo.jpg',{type:'image/jpeg'}),shotsRef={current:[]},pendingFilesRef={current:[]},operationRef={current:null},scanBusy={current:false};
  const seen={decoded:0,lookups:0,removed:0,composer:false,staged:null,errors:[],deadline:null,states:[]};const barcodeStateRef={current:'idle'},exports={};
- const environment={exports,File,Array,Promise,URL:{createObjectURL:()=> 'blob:ean-photo'},
+ const environment={exports,File,Array,Promise,decoderFailedRef:{current:false},loadBarcodeDecoder:async()=>{},t:key=>JSON.parse(readFileSync(new URL('../messages/en.json',import.meta.url))).capture[key],URL:{createObjectURL:()=> 'blob:ean-photo'},
   postingRef:{current:false},selectedPhotoRef:{current:false},pendingFilesRef,shotsRef,scanBusy,mountedRef:{current:true},operationRef,packOperationRef:{current:null},
   lookupRef:{current:0},packPhotoRef:{current:null},setProduct(){},setPackPhoto(){},setLabelState(){},setLabelReading(){},setLabelForCode(){},barcodeStateRef,setBarcodeState:value=>{barcodeStateRef.current=value;seen.states.push(value);},window:{dispatchEvent(){}},Event,mode,MAX_SHOTS:6,forPost:null,labelForCode:null,caption:'Keep this photo',when:null,locationEnabled:false,location:null,notEaten:[],saveAsMeal:false,
-  setPendingCount(){},setCameraBusy(){},setOperationId(){},setShots(){},setPhotoIndex(){},setComposer:value=>{seen.composer=value;},setError:message=>seen.errors.push(message),
+  setPendingCount(){},setCameraBusy(){},setOperationId(){},setShots(){},setPhotoIndex(){},setComposer:value=>{seen.composer=value;},setError:message=>{if(message)seen.errors.push(message);},
   uploadManager:{stage(files){seen.staged=files;return 'operation';}},
   decodeBarcodeFile:async file=>{seen.decoded++;if(typeof answer==='function')return answer(file);if(answer==='reject')throw Error('decoder failed');return answer==='pending'?new Promise(()=>{}):answer;},findBarcode:async()=>{seen.lookups++;environment.setBarcodeState('looking');},removeShot(index){seen.removed++;shotsRef.current.splice(index,1);},
   requestAnimationFrame:callback=>{callback();return 1;},setTimeout:callback=>{seen.deadline=callback;return 1;},clearTimeout(){},
  };
- vm.runInNewContext(code,environment);vm.runInNewContext(ts.transpileModule('exports.dismiss='+initializer('dismissBarcode'),{compilerOptions:{module:ts.ModuleKind.CommonJS}}).outputText,environment);return{dismiss:()=>exports.dismiss(),seen,file,shotsRef,scanBusy,environment,barcodeStateRef,add:files=>exports.addFiles(files)};
+ vm.runInNewContext(ts.transpileModule(readFileSync(new URL('../src/lib/media/barcode-photo.ts',import.meta.url),'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS}}).outputText,environment);environment.barcodePhotoOutcome=exports.barcodePhotoOutcome;vm.runInNewContext(code,environment);vm.runInNewContext(ts.transpileModule('exports.dismiss='+initializer('dismissBarcode'),{compilerOptions:{module:ts.ModuleKind.CommonJS}}).outputText,environment);return{dismiss:()=>exports.dismiss(),seen,file,shotsRef,scanBusy,environment,barcodeStateRef,add:files=>exports.addFiles(files)};
 }
 
 test('Photo retains a selected file even when a decoder would report its EAN',async()=>{
@@ -69,12 +69,12 @@ test('Back from unread restores camera mode while retaining the selected photo',
 
 test('blank plus delayed EAN finds the product without first showing unread',async()=>{
  let finish;const delayed=new Promise(r=>finish=r),f=fixture('barcode',file=>file.name==='late-code.jpg'?delayed:null);
- await f.add([f.file,new File(['code'],'late-code.jpg')]);await flush();assert.equal(f.barcodeStateRef.current,'idle');finish('9591234567892');await flush();assert.equal(f.seen.lookups,1);assert.ok(!f.seen.states.includes('unread'));
+ await f.add([f.file,new File(['code'],'late-code.jpg')]);await flush();assert.equal(f.barcodeStateRef.current,'decoderLoading');finish('9591234567892');await flush();assert.equal(f.seen.lookups,1);assert.ok(!f.seen.states.includes('unread'));
 });
 test('two blank files show unread once when the pick is complete',async()=>{
- const f=fixture('barcode',null);await f.add([f.file,new File(['blank'],'blank.jpg')]);await flush();assert.deepEqual(f.seen.states,['unread']);assert.equal(f.shotsRef.current.length,2);
+ const f=fixture('barcode',null);await f.add([f.file,new File(['blank'],'blank.jpg')]);await flush();assert.deepEqual(f.seen.states,['decoderLoading','decoderLoading','unread']);assert.equal(f.shotsRef.current.length,2);
 });
 test('Back after a timed-out pick cannot be reopened by a late decode',async()=>{
  let finish;const delayed=new Promise(r=>finish=r),f=fixture('barcode',file=>file.name==='late-code.jpg'?delayed:null);
- await f.add([f.file,new File(['code'],'late-code.jpg')]);await flush();assert.equal(f.barcodeStateRef.current,'idle');f.seen.deadline();await flush();assert.equal(f.barcodeStateRef.current,'unread');f.dismiss();finish('9591234567892');await flush();assert.equal(f.seen.lookups,0);assert.equal(f.barcodeStateRef.current,'idle');assert.equal(f.shotsRef.current.length,2);
+ await f.add([f.file,new File(['code'],'late-code.jpg')]);await flush();assert.equal(f.barcodeStateRef.current,'decoderLoading');f.seen.deadline();await flush();assert.equal(f.barcodeStateRef.current,'unread');f.dismiss();finish('9591234567892');await flush();assert.equal(f.seen.lookups,0);assert.equal(f.barcodeStateRef.current,'idle');assert.equal(f.shotsRef.current.length,2);
 });

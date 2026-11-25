@@ -19,6 +19,7 @@ import { iosNeedsSaveHint, SavePhotoPrompt, shareOrDownloadPhoto } from "@/compo
 import type {CapturedLocation} from "@/lib/location/capture";
 import { PackPhotoUpload } from "@/lib/media/pack-photo-upload";
 
+import {barcodePhotoOutcome,barcodeDecoderOutcome} from "@/lib/media/barcode-photo";
 import { decodeBarcode, decodeBarcodeFile, loadBarcodeDecoder } from "@/components/BarcodeScanner";
 import { barcodeAmounts, amountInBasis, packageAmount, type BarcodeProduct } from "@/lib/fdc/barcode-product";
 import { formatNutrition } from "@/lib/nutrition/totals";
@@ -46,8 +47,8 @@ const MAX_SHOTS = 8;
 
 
 export type CaptureMode = "photo" | "text" | "barcode";
-type BarcodePick = { remaining: number; found: boolean; files: File[] };
-type BarcodeState = "idle" | "looking" | "missing" | "found" | "error" | "unread";
+type BarcodePick = { remaining: number; found: boolean; files: File[]; decoderAttempted?: boolean; failure?: "error" | "decoderSlow" };
+type BarcodeState = "idle" | "looking" | "missing" | "found" | "error" | "unread" | "decoderLoading" | "decoderSlow";
 export default function CaptureSheet({ onClose, initialMode = "photo", forPost, attachNotEaten = false, initialFiles }: { onClose: () => void; initialMode?: CaptureMode; forPost?: string; attachNotEaten?: boolean; initialFiles?: File[] }) {
  const tf=useFailureMessages();
  const t=useTranslations('capture');
@@ -103,6 +104,7 @@ export default function CaptureSheet({ onClose, initialMode = "photo", forPost, 
   const [portion, setPortion] = useState(100);
   const lookupRef = useRef(0);
   const scanBusy = useRef(false);
+  const decoderFailedRef = useRef<"error"|"decoderSlow"|null>(null);
   const rejectedCode = useRef<{ code: string; lastSeen: number } | null>(null);
 
   const dialogRef = useRef<HTMLDivElement>(null);
@@ -184,12 +186,34 @@ export default function CaptureSheet({ onClose, initialMode = "photo", forPost, 
   const dismissBarcode = () => {
     if (postingRef.current) return;
     lookupRef.current += 1;
-    if (barcodeStateRef.current === "unread") setComposer(false);
+    if (["unread", "decoderLoading", "decoderSlow", "error"].includes(barcodeStateRef.current)) setComposer(false);
     if(packOperationRef.current){void uploadManager.remove(packOperationRef.current);packOperationRef.current=null;}
     setProduct(null); setBarcodeState("idle"); setPackPhoto(null); setError(null); setLabelState("idle");setLabelReading(null);setLabelForCode(null);
     if (packPhotoRef.current) URL.revokeObjectURL(packPhotoRef.current.previewUrl);
     packPhotoRef.current = null;
     if (!shotsRef.current.length && !pendingFilesRef.current.length) selectedPhotoRef.current = false;
+  };
+
+  const backToBarcodeCamera = () => {
+    const retry = decoderFailedRef.current && ["error", "decoderSlow", "decoderLoading"].includes(barcodeStateRef.current);
+    dismissBarcode();
+    if (!retry) return;
+    const generation = lookupRef.current;
+    // Back is the person's explicit retry. Keep live-frame polling latched
+    // until this one bounded load succeeds, or show its failure again.
+    // Retain the known failure while this explicit attempt is pending.
+    setBarcodeState("decoderLoading");
+    void barcodeDecoderOutcome(() => loadBarcodeDecoder({retry:true})).then(result => {
+      if (!mountedRef.current || postingRef.current || generation !== lookupRef.current) return;
+      if (result.state === "loaded") {
+        decoderFailedRef.current = null;
+        setBarcodeState("idle"); setError(null);
+      } else {
+        decoderFailedRef.current = result.state;
+        setBarcodeState(result.state);
+        setError(result.state === "error" ? t('decoderLoadFailed') : null);
+      }
+    });
   };
 
   useEffect(()=>()=>{void record('sheet','capture-close');},[]);
@@ -295,14 +319,53 @@ export default function CaptureSheet({ onClose, initialMode = "photo", forPost, 
     for (const shot of shotsRef.current) URL.revokeObjectURL(shot.previewUrl);
   }, []);
 
+  const showDecoderLoadFailure = useEffectEvent(() => {
+    if (!postingRef.current) { setBarcodeState("error"); setError(t('decoderLoadFailed')); }
+  });
+  useEffect(() => {
+    if (mode !== "barcode") return;
+    let cancelled = false;
+    decoderFailedRef.current = null;
+    // This effect runs only on entry to Barcode, not on wording/state changes.
+    void loadBarcodeDecoder({retry:true}).catch(() => {
+      decoderFailedRef.current = "error";
+      if (!cancelled) showDecoderLoadFailure();
+    });
+    return () => { cancelled = true; };
+  }, [mode]);
+
   useEffect(() => {
     if (mode !== "barcode" || !stream) return;
-    void loadBarcodeDecoder();
     let cancelled = false;
     const timer = window.setInterval(async () => {
-      if (cancelled || scanBusy.current || !videoRef.current || postingRef.current) return;
+      if (cancelled || !mountedRef.current || !videoRef.current || postingRef.current) return;
+      if (decoderFailedRef.current) {
+        // A cancelled observer may have latched a failure; never show idle
+        // "Looking" while this active scanner cannot work.
+        if (barcodeStateRef.current === "idle") {
+          setBarcodeState(decoderFailedRef.current);
+          setError(decoderFailedRef.current === "error" ? t('decoderLoadFailed') : null);
+        }
+        return;
+      }
+      // Healthy decoding continues behind result cards so lastSeen follows
+      // the barcode in view. Only decoder-problem states pause that work.
+      if (scanBusy.current || ["decoderLoading", "decoderSlow"].includes(barcodeStateRef.current)) return;
       scanBusy.current = true;
       try {
+        // The live loop never opts into a retry. It shares any pending load,
+        // bounds its wait, and latches every rejected/timed-out outcome itself.
+        const loaded = await barcodeDecoderOutcome(loadBarcodeDecoder);
+        if (loaded.state !== "loaded") {
+          decoderFailedRef.current = loaded.state;
+          if (!cancelled && mountedRef.current && !postingRef.current &&
+              ["idle", "decoderLoading", "decoderSlow"].includes(barcodeStateRef.current)) {
+            setBarcodeState(loaded.state);
+            setError(loaded.state === "error" ? t('decoderLoadFailed') : null);
+          }
+          return;
+        }
+        if (cancelled || !mountedRef.current || postingRef.current || ["decoderLoading", "decoderSlow"].includes(barcodeStateRef.current)) return;
         const code = await decodeBarcode(videoRef.current);
         if (cancelled) return;
         if (!code) return;
@@ -310,14 +373,14 @@ export default function CaptureSheet({ onClose, initialMode = "photo", forPost, 
         const now = Date.now();
         const suppressed = previous?.code === code && now - previous.lastSeen < 2000;
         rejectedCode.current = { code, lastSeen: now };
-        if (barcodeState !== "idle" || suppressed) return;
+        if (barcodeStateRef.current !== "idle" || suppressed) return;
         const blob = await grabFrame(videoRef.current);
         if (!cancelled) void findBarcode(code, new File([blob], "pack.jpg", { type: "image/jpeg" }));
       } catch { /* An unreadable frame is retried on the next interval. */ }
       finally { scanBusy.current = false; }
     }, 300);
     return () => { cancelled = true; window.clearInterval(timer); };
-  }, [mode, barcodeState, stream, findBarcode]);
+  }, [mode, stream, findBarcode, setBarcodeState, t]);
 
   const readLabelFile = async(file:File)=>{
     setLabelState("reading");setError(null);
@@ -389,29 +452,42 @@ export default function CaptureSheet({ onClose, initialMode = "photo", forPost, 
         setShots(shotsRef.current);setPhotoIndex(shotsRef.current.length-1);setComposer(true);
         if (!barcode) continue;
         const shot = shotsRef.current[shotsRef.current.length - 1];
-        let deadline: ReturnType<typeof setTimeout> | undefined;
+        const generation = lookupRef.current;
+        decoderFailedRef.current = null; // A new library choice is an explicit retry.
+        setBarcodeState("decoderLoading"); setError(null);
         // Give React and the browser a paint before the decoder's CPU work.
         void new Promise<void>(resolve => requestAnimationFrame(() => requestAnimationFrame(() => resolve())))
           .then(() => {
-            if (!mountedRef.current || postingRef.current || !shotsRef.current.includes(shot)) return null;
-            return Promise.race([decodeBarcodeFile(file), new Promise<null>((resolve) => { deadline = setTimeout(() => resolve(null), 900); })]);
+            if (!mountedRef.current || postingRef.current || generation !== lookupRef.current || !shotsRef.current.includes(shot)) return null;
+            return barcodePhotoOutcome(() => {
+              // A multi-file selection is one person action: only its first
+              // active file can retry; all others share pending/success/failure.
+              const retry = !pick.decoderAttempted;
+              pick.decoderAttempted = true;
+              return loadBarcodeDecoder(retry ? {retry:true} : undefined);
+            }, () => decodeBarcodeFile(file));
           })
-          // Decode rejection is the same unread outcome as a null or deadline.
-          .then(code => code, () => null)
-          .then((code) => {
-            if (!code || !mountedRef.current || postingRef.current) return;
+          .then((result) => {
+            if (!result || !mountedRef.current || postingRef.current || generation !== lookupRef.current || !shotsRef.current.includes(shot)) return;
+            if (result.state !== "found") {
+              if (result.state === "error" || result.state === "decoderSlow") pick.failure = result.state;
+              // Every failed or timed-out load stays latched until a person retries.
+              if (result.state === "error" || result.state === "decoderSlow") decoderFailedRef.current = result.state;
+              return;
+            }
             const index = shotsRef.current.indexOf(shot);
-            if (index < 0) return;
             if(shotsRef.current.length===1&&operationRef.current){packOperationRef.current=operationRef.current;operationRef.current=null;setOperationId(null);}
             removeShot(index);
             if (!shotsRef.current.length) setComposer(false);
             pick.found = true;
-            void findBarcode(code, file);
+            void findBarcode(result.code, file);
           })
           .finally(() => {
-            clearTimeout(deadline);
             pick.remaining -= 1;
-            if (pick.remaining === 0 && !pick.found && mountedRef.current && !postingRef.current && barcodeStateRef.current === "idle" && shotsRef.current.some(shot => pick.files.includes(shot.file))) setBarcodeState("unread");
+            if (pick.remaining === 0 && !pick.found && mountedRef.current && !postingRef.current && generation === lookupRef.current && shotsRef.current.some(shot => pick.files.includes(shot.file))) {
+              setBarcodeState(pick.failure ?? "unread");
+              if (pick.failure === "error") setError(t('decoderLoadFailed'));
+            }
           });
 
       }
@@ -632,8 +708,8 @@ export default function CaptureSheet({ onClose, initialMode = "photo", forPost, 
           <p className="mt-[18px] text-body">{t('consumed')}{labelNumber("kcal")} {t('kcal')}<span className="text-detail text-faint">· {labelMacros().split(" · ").slice(1).join(" · ")}</span></p><p className="mt-2.5 text-meta text-muted">{t('read_by_the_model_from_the_label')}</p>
           </>}
         </section> : (mode === "barcode" || barcodeState !== "idle") ? <section aria-label={t('scanned_product')} className="relative shrink-0 rounded-t-sheet bg-text px-screen-x text-surface" style={{ paddingTop: tokens.spacing['screen-x'] - tokens.icon.strongStroke, paddingBottom: `calc(${tokens.brand.barHeight - tokens.radii.chip}px + env(safe-area-inset-bottom))` }}>
-          {barcodeState !== "idle" && <button type="button" aria-label={t('dismiss_scanned_product')} disabled={posting} onClick={dismissBarcode} className="absolute right-screen-x top-sheet-top flex size-tap items-center justify-center"><Icon name="close" size={tokens.capture.galleryIcon} /></button>}
-          {barcodeState === "idle" ? <><p className="text-body">{cameraUnavailable ? t('camera_unavailable') : t('looking_for_a_barcode')}</p><p className="text-detail text-faint">{cameraUnavailable ? t('choose_a_photo_containing_a_barcode') : t('hold_the_code_steady_in_the_frame')}</p></> : barcodeState === "looking" ? <p className="text-body" role="status">{t('looking_it_up')}</p>  : barcodeState === "unread" ? <><p role="status" className="pr-tap text-body">{t('we_couldn_t_read_a_barcode_from')}</p><p className="mt-2 text-detail text-faint">{t('your_photo_is_kept')}</p><Button variant="camera" disabled={posting || cameraBusy || full} className="mt-4 w-full" onClick={() => galleryRef.current?.click()}>{t('choose_another_photo')}</Button><button type="button" disabled={posting} onClick={dismissBarcode} className="min-h-tap w-full text-detail">{t('back_to_camera')}</button></> : barcodeState === "missing" ? <><div className="flex items-start gap-3 pr-tap"><div className="min-w-0 flex-1"><p className="text-meta text-faint">{t('not_in_the_database')}</p><p className="text-month">{formatGtin(scannedCode)}</p><p className="text-detail text-faint">{t('no_product_for_this_code_yet_photograph')}</p></div>{packPhoto&&<img src={packPhoto.previewUrl} alt={t('scanned_pack')} className="size-14 shrink-0 rounded-thumb object-cover"/>}</div><Button variant="camera" className="flex items-center justify-center gap-2" onClick={()=>{setLabelForCode(scannedCode);setComposer(false);setMode("photo");setBarcodeState("idle");}}><Icon name="camera" size={18}/>{t('photograph_the_nutrition_label')}</Button><button type="button" onClick={typePackInstead} className="mt-2 h-field-h w-full rounded-field border border-ring-on-ink text-body">{t('type_it_instead')}</button><button type="button" onClick={()=>{rejectedCode.current=null;dismissBarcode();}} className="min-h-tap w-full text-detail text-muted">{t('try_the_code_again')}</button></> : null}
+          {barcodeState !== "idle" && <button type="button" aria-label={t('dismiss_scanned_product')} disabled={posting} onClick={backToBarcodeCamera} className="absolute right-screen-x top-sheet-top flex size-tap items-center justify-center"><Icon name="close" size={tokens.capture.galleryIcon} /></button>}
+          {barcodeState === "idle" ? <><p className="text-body">{cameraUnavailable ? t('camera_unavailable') : t('looking_for_a_barcode')}</p><p className="text-detail text-faint">{cameraUnavailable ? t('choose_a_photo_containing_a_barcode') : t('hold_the_code_steady_in_the_frame')}</p></> : barcodeState === "looking" ? <p className="text-body" role="status">{t('looking_it_up')}</p>  : barcodeState === "unread" ? <><p role="status" className="pr-tap text-body">{t('we_couldn_t_read_a_barcode_from')}</p><p className="mt-2 text-detail text-faint">{t('your_photo_is_kept')}</p><Button variant="camera" disabled={posting || cameraBusy || full} className="mt-4 w-full" onClick={() => galleryRef.current?.click()}>{t('choose_another_photo')}</Button><button type="button" disabled={posting} onClick={backToBarcodeCamera} className="min-h-tap w-full text-detail">{t('back_to_camera')}</button></> : barcodeState === "decoderLoading" ? <p role="status" className="pr-tap text-body">{t('decoderLoading')}</p> : barcodeState === "decoderSlow" || barcodeState === "error" ? <>{barcodeState === "decoderSlow" && <p role="status" className="pr-tap text-body">{t('decoderSlow')}</p>}<Button variant="camera" disabled={posting || cameraBusy || full} className="mt-4 w-full" onClick={() => galleryRef.current?.click()}>{t('choose_another_photo')}</Button><button type="button" disabled={posting} onClick={backToBarcodeCamera} className="min-h-tap w-full text-detail">{t('back_to_camera')}</button></> : barcodeState === "missing" ? <><div className="flex items-start gap-3 pr-tap"><div className="min-w-0 flex-1"><p className="text-meta text-faint">{t('not_in_the_database')}</p><p className="text-month">{formatGtin(scannedCode)}</p><p className="text-detail text-faint">{t('no_product_for_this_code_yet_photograph')}</p></div>{packPhoto&&<img src={packPhoto.previewUrl} alt={t('scanned_pack')} className="size-14 shrink-0 rounded-thumb object-cover"/>}</div><Button variant="camera" className="flex items-center justify-center gap-2" onClick={()=>{setLabelForCode(scannedCode);setComposer(false);setMode("photo");setBarcodeState("idle");}}><Icon name="camera" size={18}/>{t('photograph_the_nutrition_label')}</Button><button type="button" onClick={typePackInstead} className="mt-2 h-field-h w-full rounded-field border border-ring-on-ink text-body">{t('type_it_instead')}</button><button type="button" onClick={()=>{rejectedCode.current=null;dismissBarcode();}} className="min-h-tap w-full text-detail text-muted">{t('try_the_code_again')}</button></> : null}
           {cameraUnavailable && mode === "barcode" && <div className="mt-sheet-top"><p role="status" className="text-detail text-faint">{t('the_camera_could_not_be_opened_choose')}</p><button type="button" disabled={posting || cameraBusy} onClick={() => galleryRef.current?.click()} className="min-h-tap text-detail underline">{t('choose_from_library')}</button></div>}
           {barcodeState === "idle" && pendingCount > 0 && <button type="button" disabled={posting || cameraBusy} onClick={() => { void continueSelected(); }} className="min-h-tap text-detail underline">{t('continueWithPhotos',{count:pendingCount})}</button>}
           {product && <>

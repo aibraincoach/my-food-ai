@@ -4,9 +4,19 @@ import { expandUpcE } from "@/lib/fdc/gtin";
 
 // Reused by the live capture viewfinder and a single photo/library decode.
 // Loading the decoder never requests a second camera stream.
+// A failed import stays cached. Only a person action may opt into another
+// attempt; frame/timer callers always use the non-retrying default.
 let decoder: Promise<typeof import("@zxing/library")> | undefined;
-export function loadBarcodeDecoder() {
-  return decoder ??= import("@zxing/library");
+let decoderRejected = false;
+export function loadBarcodeDecoder(options?: {retry: true}) {
+  if (options?.retry && decoderRejected) {
+    decoder = undefined;
+    decoderRejected = false;
+  }
+  return decoder ??= import("@zxing/library").catch(error => {
+    decoderRejected = true;
+    throw error;
+  });
 }
 
 export async function decodeBarcode(source: HTMLVideoElement | HTMLImageElement): Promise<string | null> {

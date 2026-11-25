@@ -503,7 +503,10 @@
     "error_5d8e81ab8a75": "The photo could not be kept on this phone. Try again.",
     "error_65467f9f76fc": "The pack photo is not ready. Your selection is kept.",
     "per100Label": "Per 100 {unit}",
-    "servingAmount": "{count} {count, plural, one {serving} other {servings}}"
+    "servingAmount": "{count} {count, plural, one {serving} other {servings}}",
+    "decoderLoading": "The scanner is still loading. Try again in a moment.",
+    "decoderSlow": "The scanner ran out of time. Try again.",
+    "decoderLoadFailed": "The scanner could not be loaded. Choose the photo again."
   },
   "feed": {
     "loading": "Loading feed…",
