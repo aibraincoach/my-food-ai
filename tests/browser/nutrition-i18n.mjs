@@ -62,14 +62,14 @@ async function capture(page,name,build,locale){
  await page.waitForFunction(()=>[...document.querySelectorAll('time[datetime]')].filter(node=>node.getClientRects().length).every(node=>Boolean(node.textContent.trim())&&node.textContent!=='—'));
  return page.evaluate(({name,build,locale,changes})=>{
   let text=document.body.innerText;const labelChanges=[];
-  if(['nutrition','add-item'].includes(name)&&locale==='en')for(const change of changes){const rows=[...document.querySelectorAll('table tbody tr')].filter(row=>row.cells[1]?.innerText===change.value);if(rows.length!==1)throw Error('Named label row absent/duplicated: '+change.id);const row=rows[0],label=row.querySelector('[data-i18n-server-wording="nutrient-name"]')?.textContent,expected=build==='base'?change.before:change.after;if(label!==expected)throw Error('Incorrect nutrient label '+change.id+': '+label);labelChanges.push({id:change.id,value:change.value,label});text=text.replace(row.innerText,row.innerText.replace(label,'<approved-label-'+change.id+'>'));}
+  if(['nutrition','add-item'].includes(name)&&locale==='en')for(const change of changes){const rows=[...document.querySelectorAll('table tbody tr')].filter(row=>row.cells[1]?.innerText===change.value);if(rows.length!==1)throw Error('Named label row absent/duplicated: '+change.id);const row=rows[0],label=row.querySelector('th[scope="row"] > span')?.textContent,expected=build==='base'?change.before:change.after;if(label!==expected)throw Error('Incorrect nutrient label '+change.id+': '+label);labelChanges.push({id:change.id,value:change.value,label});text=text.replace(row.innerText,row.innerText.replace(label,'<approved-label-'+change.id+'>'));}
   return{text,aria:[...document.querySelectorAll('[aria-label]')].filter(node=>node.getClientRects().length).map(node=>node.getAttribute('aria-label')),labelChanges};
  },{name,build,locale,changes:fixture.labelChanges});
 }
 try{
  const runs=process.env.READING_EN_ONLY==='1'?[['base','en',base],['head','en',app]]:process.env.READING_JA_ONLY==='1'?[['head','ja',app]]:preflight?[['head','en',app]]:[['base','en',base],['head','en',app],['head','ja',app]];
  for(const [build,locale,url]of runs){
-  const selected=(preflight?states.filter(state=>state.name==='feed'):states).filter(state=>!process.env.ONLY_STATE||state.name===process.env.ONLY_STATE);
+  const selected=(preflight?states.filter(state=>state.name==='feed'):states).filter(state=>!process.env.ONLY_STATE||process.env.ONLY_STATE.split(',').includes(state.name));
   if(selected.every(state=>receipt.cases.some(done=>done.build===build&&done.locale===locale&&done.state===state.name)))continue;
   const context=await browser.newContext({...devices['iPhone 13'],viewport:{width:390,height:844},locale:'en-US',timezoneId:'UTC',...(locale==='en'?{serviceWorkers:'block'}:{})});
   if(locale==='en'){receipt.realtime??=[];receipt.realtime.push({build,locale,transport:await readingRealtime(context)});}
@@ -81,7 +81,7 @@ try{
   page.on('console',message=>{if(message.type()==='error'){receipt.consoleErrors??=[];receipt.consoleErrors.push(event(message.text()));}});
   try{
    const m=dictionaries[locale];
-   for(const state of (preflight?states.filter(state=>state.name==='feed'):states).filter(state=>!process.env.ONLY_STATE||state.name===process.env.ONLY_STATE)){
+   for(const state of (preflight?states.filter(state=>state.name==='feed'):states).filter(state=>!process.env.ONLY_STATE||process.env.ONLY_STATE.split(',').includes(state.name))){
     await page.setViewportSize(state.desktop?{width:1280,height:900}:{width:390,height:844});
     if(receipt.cases.some(done=>done.build===build&&done.locale===locale&&done.state===state.name))continue;
     receipt.current={build,locale,state:state.name};

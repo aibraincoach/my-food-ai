@@ -1,5 +1,5 @@
 import {nutritionTranslator} from '@/i18n/nutrition';
-// Agent summaries are English by API contract.
+// #1219 boundary: agent summaries retain their approved English API contract.
 const locale='en',tn=nutritionTranslator(locale);
 import { createAdminClient } from '@/lib/supabase/admin';
 import { getPostCard, getPostCards, type FeedPost } from '@/lib/posts/feed';

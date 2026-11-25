@@ -16,10 +16,10 @@ export default function NutritionTable({ items }: { items: CurrentItem[] }) {
   const rows = nutritionTableRows(items,tn,labels,locale);
   const gap=gapSentence(nutritionGaps(totals,NUTRIENT_KEYS),tn,locale,items.map(item=>({name:item.name,sourceRef:item.source_ref})),true);
   return <section className="px-screen-x pt-grid" aria-label={tp('consumedNutrition')}>
-    {gap ? <p data-i18n-server-wording="nutrition-gap" className="text-meta text-muted">{tn('knownValues')}{locale==='ja'?'':' '}{gap}</p> : null}
+    {gap ? <p className="text-meta text-muted">{tn('knownValues')}{locale==='ja'?'':' '}{gap}</p> : null}
     <table className="w-full border-collapse text-detail tabular-nums"><caption className="sr-only">{t('tableCaption')}</caption>
       <tbody>{rows.map((row, index) => <tr key={`${index}:${row.name}:${row.unit}`} className={`h-table-row border-b border-hairline ${index === 0 ? "font-medium text-text" : "text-muted"}`}>
-        <th scope="row" className="py-grid text-left" style={{ fontWeight: "inherit" }}><span data-i18n-server-wording="nutrient-name">{row.name}</span>{row.unavailable?.length?tp('unavailableFoods',{foods:row.unavailable.join(locale==='ja'?'、':', ')}):""}</th>
+        <th scope="row" className="py-grid text-left" style={{ fontWeight: "inherit" }}><span data-i18n-server-wording={row.unmappedName?'nutrient-name':undefined}>{row.name}</span>{row.unavailable?.length?tp('unavailableFoods',{foods:row.unavailable.join(locale==='ja'?'、':', ')}):""}</th>
         <td className="whitespace-nowrap py-grid pl-grid text-right">{row.value===null?t('unavailable'):row.micro?formatMicroNutrient(locale,row.value):row.unit.toLowerCase()==='kcal'?formatEnergy(locale,row.value):formatNutrient(locale,row.value)}{row.value === null ? "" : ` ${row.unit}`}</td>
       </tr>)}</tbody>
     </table>

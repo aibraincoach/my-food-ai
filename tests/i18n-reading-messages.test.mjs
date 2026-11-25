@@ -6,7 +6,6 @@ import {createTranslator} from 'next-intl';
 import {servingsMessageValues} from '../src/i18n/servings.ts';
 import {onError,getMessageFallback} from '../src/i18n/strict.ts';
 import {checkCaptureNamespaces} from '../scripts/check-capture-namespaces.mjs';
-import {readingLintTargets} from '../scripts/eslint-i18n.mjs';
 import {ESLint} from 'eslint';
 const dict=Object.fromEntries(['en','ja'].map(locale=>[locale,JSON.parse(fs.readFileSync(new URL('../messages/'+locale+'.json',import.meta.url),'utf8'))]));
 const translator=(locale,namespace)=>createTranslator({locale,messages:dict[locale][namespace],onError,getMessageFallback});
@@ -40,9 +39,9 @@ for(const missing of['post','postMenu','thread'])test('source graph rejects miss
  const supplied=CAPTURE_NAMESPACES.filter(namespace=>namespace!==missing);
  assert.throws(()=>checkCaptureNamespaces(undefined,undefined,supplied),new RegExp('Missing capture-provider namespace '+missing+' for'));
 });
-test('each converted reading file rejects a planted visible literal',async()=>{
+test('every top-level source area rejects a planted visible literal',async()=>{
  const eslint=new ESLint();
- for(const filePath of readingLintTargets){
+ for(const filePath of ['src/app/i18n-probe.tsx','src/components/i18n-probe.tsx','src/lib/i18n-probe.ts']){
   const [result]=await eslint.lintText("function probe(){setError('Untranslated fixed failure');}",{filePath});
   assert.ok(result.messages.some(message=>message.ruleId==='messages/no-fixed-text'),filePath);
  }

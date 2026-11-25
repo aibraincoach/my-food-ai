@@ -1,3 +1,4 @@
+import {formatNumber} from '@/i18n/format';
 import {nutritionTranslator} from '@/i18n/nutrition';
 import {cardTranslator} from '@/i18n/card';
 import type {Locale} from '@/i18n/locales';
@@ -92,8 +93,8 @@ export function localizeCardData(card:CardData,locale:Locale):CardData {
    drinkDetail:words.alcoholic?(words.alcoholG>0?t('alcoholDetail',{grams:formatNutrition(words.alcoholG,tn,locale),drinks:(words.alcoholG/14).toFixed(1)}):t('alcoholUnavailable')):words.glyph==='coffee'?t('caffeineDetail',{amount:formatNutrition(card.caffeineMg??0,tn,locale)}):`${formatNutrition(card.amountMl??0,tn,locale)} ml`,
    drinkLine:drink?`${drink.label}${drink.caffeineMg?` · ${t('caffeineDetail',{amount:formatNutrition(drink.caffeineMg,tn,locale)})} · ${kcal} kcal`:drink.source==='item'?` · ${kcal} kcal`:''}`:undefined,
    gap:gapSentence(words.gaps,tn,locale,words.reasons,false),
-   waterLine:words.foodWaterMl>=50&&card.hydration?t('waterLine',{meal:Math.round(words.foodWaterMl).toLocaleString('en-US'),day:card.hydration.totalMl.toLocaleString('en-US')}):undefined,
-   mealDrinkLine:!drink&&words.itemDrinks.length?t('mealDrinks',{drinks:words.itemDrinks.map(row=>`${Math.round(row.ml).toLocaleString('en-US')} ml ${row.label}`).join(' · ')})+(caffeineTotal>0?t('caffeineSuffix',{amount:Math.round(caffeineTotal)}):''):undefined,
+   waterLine:words.foodWaterMl>=50&&card.hydration?t('waterLine',{meal:formatNumber(locale,Math.round(words.foodWaterMl)),day:formatNumber(locale,card.hydration.totalMl)}):undefined,
+   mealDrinkLine:!drink&&words.itemDrinks.length?t('mealDrinks',{drinks:words.itemDrinks.map(row=>`${formatNumber(locale,Math.round(row.ml))} ml ${row.label}`).join(' · ')})+(caffeineTotal>0?t('caffeineSuffix',{amount:Math.round(caffeineTotal)}):''):undefined,
    footer:words.leftovers?t('leftovers',{amounts:words.leftovers.texts.join(', '),calories:words.leftovers.calories===null?t('unavailable'):formatCalories(words.leftovers.calories,tn,locale)}):card.footer,
  };
 }
