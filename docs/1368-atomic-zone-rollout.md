@@ -1,6 +1,14 @@
 # Atomic capture zones (#1368 C-atomic)
 
-A food, tile drink, photo drink, copy or agent publication now commits its capture
+**File-first migration preparation: 0082 is UNAPPLIED and held.** This PR adds
+SQL, its rollback, SQL-level tests and documentation only. Its `src` diff is
+empty. Merging it changes no app callers and runs no migration. Production
+apply still requires RT's written database yes and the PM's exact order. The
+app switch is a separate, held PR.
+
+
+Once applied and called by the separate app switch, a food, tile drink, photo
+drink, copy or agent publication commits its capture
 zone in the same database transaction as its post. The browser supplies a
 canonical IANA name. Each new RPC checks the database's own `pg_timezone_names`
 before any insert and raises `PT400` when it refuses the zone. Offset and
@@ -9,7 +17,7 @@ abbreviation inputs are refused. Changed non-null zones on a receipt replay get
 zone with the retry's explicit value. Existing owner, key, cancellation and job
 fences stay in the publication transaction.
 
-The app uses the new overloads only. It removes the separate post-commit zone
+The separate C-atomic app PR uses the new overloads only. It removes the separate post-commit zone
 save, the copy compare and renderer metadata writes. Receipt fast paths still
 avoid repeating food/label lookups, but call the same atomic publication RPC to
 check/repair their zone. On those owned-receipt paths, selection inputs that the
@@ -17,7 +25,11 @@ RPC no longer needs are null; a missing receipt therefore fails validation rathe
 than creating a second meal. The agent API and MCP schema require `time_zone`;
 agent docs and in-app instructions explain it.
 
-## Apply and switch
+## Merge files, apply and switch
+
+0. Review and merge the migration-only PR only on the PM's exact-head order.
+   This merges files, not a production apply. Keep 0082 unchanged in the app PR;
+   after this merge any SQL change belongs in a new additive migration.
 
 1. Obtain RT's written database yes and the PM's exact order for **0082**. The
    checked-in SQL is preparation, not evidence of an apply.
@@ -63,3 +75,6 @@ retain 0084; no rollback erases messages or rebuilds history.
 - The pre-existing comment-label test hook lint errors are fixed without
   changing its stored-text assertions. The error-display guard lint issue had
   already been fixed in C1. The unused tile POST `?tz=` was removed.
+
+- The reviewer measured approximately 33 ms per validator call on a local stack.
+  The PM accepted that cost; no cache is added, and no production timing is claimed.
