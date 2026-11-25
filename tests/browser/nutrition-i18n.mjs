@@ -10,19 +10,24 @@ const {chromium,webkit,devices}=await import(process.env.MFA_PLAYWRIGHT_MODULE??
 const browser=await(engine==='webkit'?webkit:chromium).launch(engine==='chromium'?{executablePath:process.env.TEST_CHROMIUM_EXECUTABLE,args:['--no-sandbox']}:{});
 const receipt={engine,parity:[],cases:[],errors:[],limits:['Emulated iPhone at390x844; no real iPhone/Safari proof','English DOM comparison blocks workers in both builds; translated flows use normal worker','Stored data/count_text/matcher detail and explicitly unmapped USDA names remain data; fixed server wording is covered']};
 const snapshots={},preflight=process.env.READING_PREFLIGHT==='1';
+if(process.env.READING_RESUME==='1'){const previous=JSON.parse(await fs.readFile(out+'/'+engine+'-nutrition-reading.json'));Object.assign(snapshots,JSON.parse(await fs.readFile(out+'/'+engine+'-nutrition-snapshots.json')));receipt.cases=previous.cases;receipt.parity=previous.parity;receipt.errors=previous.errors;receipt.consoleErrors=previous.consoleErrors??[];receipt.labelChanges=previous.labelChanges??[];receipt.resumedAfter=previous.failure;}
 async function calendarSettled(page){await page.waitForFunction(()=>{const nodes=[...document.querySelectorAll('[data-month-start]')];if(!nodes.length)return false;const heading=document.querySelector('[aria-live="polite"]')?.textContent;const geometry=JSON.stringify({heading,y:scrollY,starts:nodes.map(n=>[n.dataset.monthStart,n.getBoundingClientRect().top])});const last=window.__nutritionCalendar;window.__nutritionCalendar={geometry,stable:last?.geometry===geometry?last.stable+1:0};return window.__nutritionCalendar.stable>=3;});}
 async function settled(page){await page.evaluate(async()=>{await document.fonts.ready;await Promise.all(document.getAnimations().filter(a=>a.effect?.getComputedTiming().iterations!==Infinity).map(a=>a.finished.catch(()=>{})));await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));});}
 async function feedPost(page){
+ receipt.phase='feed pagination';
  const target=page.locator('[data-post-id="'+fixture.post+'"]');
  for(let pageNumber=0;pageNumber<5&&await target.count()===0;pageNumber++){
   const count=await page.locator('[data-post-id]').count();
   await page.evaluate(()=>window.scrollTo(0,document.documentElement.scrollHeight));
   await page.waitForFunction(({id,count})=>document.querySelector('[data-post-id="'+id+'"]')||document.querySelectorAll('[data-post-id]').length>count,{id:fixture.post,count});
  }
- await target.waitFor({state:'attached'});await target.scrollIntoViewIfNeeded();
+ receipt.phase='feed target attached';await target.waitFor({state:'attached'});await target.scrollIntoViewIfNeeded();
 }
 async function menu(page,m){const summary=page.getByLabel(m.postMenu.mealMenu,{exact:true});await summary.tap();await settled(page);}
 async function plus(page,entry){
+ await page.evaluate(()=>window.scrollTo({top:0,behavior:'instant'}));
+ await settled(page);
+ await page.waitForFunction(()=>{const button=document.getElementById('post-menu-toggle');if(!button||!Object.keys(button).some(key=>key.startsWith('__reactFiber')))return false;const r=button.getBoundingClientRect(),hit=document.elementFromPoint(r.x+r.width/2,r.y+r.height/2);return button===hit||button.contains(hit);});
  const toggle=page.locator('#post-menu-toggle:visible');await toggle.tap();
  await page.waitForFunction(entry=>{const menu=document.querySelector('#post-menu'),button=menu?.querySelector('button[data-entry="'+entry+'"]');if(menu?.getAttribute('aria-hidden')!=='false'||!button||getComputedStyle(button).opacity!=='1'||getComputedStyle(button.querySelector('span')).opacity!=='1')return false;const rect=button.getBoundingClientRect();return document.elementFromPoint(rect.x+rect.width/2,rect.y+rect.height/2)?.closest('button')===button;},entry);
  await page.locator('#post-menu button[data-entry="'+entry+'"]').tap();
@@ -45,7 +50,7 @@ const states=[
  {name:'no-food',path:'/',open:async(p,m)=>{await p.getByText(m.feed.noFoodFound,{exact:true}).waitFor();}},
  {name:'unavailable-table',path:'post',idKey:'unavailable',open:async(p,m)=>{await p.getByRole('button',{name:new RegExp('^'+m.post.consumedAll)}).tap();await p.getByRole('table').waitFor();}},
  {name:'failed-detail',path:'post',idKey:'failed'},
- {name:'search',path:'/search',open:async(p,m)=>{await p.getByRole('textbox',{name:m.search.meals,exact:true}).fill('検証用の食事');await p.getByText('検証用の食事',{exact:true}).waitFor();}},
+ {name:'search',path:'/search',open:async(p,m)=>{await p.getByRole('textbox',{name:m.search.meals,exact:true}).fill(fixture.date);await p.getByRole('textbox',{name:m.search.meals,exact:true}).press('Enter');await p.getByText('検証用の食事',{exact:true}).waitFor();}},
  {name:'days',path:'/days',open:async p=>{await p.locator('[data-day="'+fixture.date+'"]').waitFor();await calendarSettled(p);}},
  {name:'day-detail',path:'/days',open:async p=>{await p.locator('[data-day="'+fixture.date+'"]').waitFor();await calendarSettled(p);await p.locator('[data-day="'+fixture.date+'"]').tap();await p.getByRole('dialog').waitFor();}},
  {name:'desktop-today',path:'/',desktop:true},
@@ -74,13 +79,14 @@ try{
    const m=dictionaries[locale];
    for(const state of (preflight?states.filter(state=>state.name==='feed'):states).filter(state=>!process.env.ONLY_STATE||state.name===process.env.ONLY_STATE)){
     await page.setViewportSize(state.desktop?{width:1280,height:900}:{width:390,height:844});
+    if(receipt.cases.some(done=>done.build===build&&done.locale===locale&&done.state===state.name))continue;
     receipt.current={build,locale,state:state.name};
     lastNavigation={at:new Date().toISOString(),state:state.name,url:url+(state.path==='post'?'/posts/'+fixture[state.idKey??'post']:state.path)};
     await page.goto(lastNavigation.url,{waitUntil:'load'});
     if(state.path==='post'){await page.locator('[data-post-detail-ready]').waitFor({state:'attached'});await page.getByRole('region',{name:dictionaries[locale].thread.mealComments,exact:true}).filter({hasText:'これは検証用の返信です。'}).waitFor();}
-    else if(state.path==='/'){await feedPost(page);if(['feed','clarification','no-food'].includes(state.name)){await page.getByText(m.feed.noFoodFound,{exact:true}).waitFor();await page.getByText('これは何の料理ですか？',{exact:true}).waitFor();}}
-    await page.waitForFunction(()=>{const node=document.querySelector('[data-post-id]')??document.querySelector('summary')??document.querySelector('main button,main input');return node&&Object.keys(node).some(key=>key.startsWith('__reactFiber'));});
-    if(state.open)await state.open(page,m);
+    else if(state.path==='/'){if(preflight)await feedPost(page);else await page.locator('[data-feed-client-ready=true] article[data-post-id]').first().waitFor();if(['feed','clarification','no-food'].includes(state.name)){await page.getByText(m.feed.noFoodFound,{exact:true}).waitFor();await page.getByText('これは何の料理ですか？',{exact:true}).waitFor();}}
+    receipt.phase='hydration';await page.waitForFunction(()=>{const node=document.querySelector('[data-post-id]')??document.querySelector('summary')??document.querySelector('main button,main input');return node&&Object.keys(node).some(key=>key.startsWith('__reactFiber'));});
+    receipt.phase='state open';if(state.open)await state.open(page,m);receipt.phase='capture';
     const captured=await capture(page,state.name,build,locale);receipt.labelChanges??=[];receipt.labelChanges.push({build,locale,state:state.name,rows:captured.labelChanges});delete captured.labelChanges;const snapshot=normalize(captured,state.name);snapshots[build+'-'+locale+'-'+state.name]=snapshot;
     if(!preflight&&build==='head'&&locale==='en'){assert.deepEqual(snapshot,snapshots['base-en-'+state.name],'English parity '+state.name);receipt.parity.push(state.name);}
     const overflow=await page.evaluate(()=>[...document.querySelectorAll('button,label,p,h1,h2,input')].filter(node=>{const r=node.getBoundingClientRect();return r.width>0&&r.height>0&&getComputedStyle(node).visibility!=='hidden'&&(r.left< -1||r.right>innerWidth+1||node.scrollWidth>node.clientWidth+2);}).map(node=>({tag:node.tagName,text:node.innerText,label:node.getAttribute('aria-label')})));
@@ -104,5 +110,5 @@ try{
   finally{closing=true;await context.close();}
  }
  assert.equal(receipt.errors.length,0,'No client runtime errors');receipt.pass=true;
-}catch(error){receipt.pass=false;receipt.failure=String(error);process.exitCode=1;}
+}catch(error){receipt.pass=false;receipt.failure=String(error);receipt.stack=error.stack;process.exitCode=1;}
 finally{await browser.close();await fs.writeFile(out+'/'+engine+(preflight?'-preflight':'')+'-nutrition-reading.json',JSON.stringify(receipt,null,2));await fs.writeFile(out+'/'+engine+(preflight?'-preflight':'')+'-nutrition-snapshots.json',JSON.stringify(snapshots,null,2));console.log(JSON.stringify({engine,pass:receipt.pass,cases:receipt.cases.length,current:receipt.current,failure:receipt.failure}));}
