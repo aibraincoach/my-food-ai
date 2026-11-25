@@ -1,9 +1,19 @@
 -- #1219 A. Additive only: apply before the app switch, by RT yes + PM order.
 -- Old body rows and text overloads are untouched. No history rebuild or English parsing.
 begin;
--- R8.1: this partial draft is deliberately not apply-ready until the canonical
--- 0082 overloads are on main and the photo path is composed with p_render_zone.
-do $$ begin raise exception '0084 draft held: compose with canonical0082 before apply';end $$;
+set local lock_timeout='1s';
+set local statement_timeout='5s';
+-- 0082 must already be applied; the file on main alone is not a database apply.
+do $$ begin
+ if to_regprocedure('public.require_capture_zone(text)') is null
+  or to_regprocedure('public.publish_food_operation(uuid,uuid,text,timestamptz,text,numeric,jsonb,text,jsonb,jsonb)') is null
+  or to_regprocedure('public.publish_drink_operation(uuid,uuid,text,timestamptz,text,integer,text,integer,jsonb,text)') is null
+  or to_regprocedure('public.publish_photo_drink_operation(uuid,uuid,text,uuid,jsonb,text,timestamptz,jsonb,boolean,jsonb,text,jsonb,text)') is null
+  or to_regprocedure('public.publish_copy_operation(uuid,uuid,boolean,timestamptz,text)') is null
+  or to_regprocedure('public.agent_log_meal(uuid,uuid,text,timestamptz,text)') is null then
+  raise exception '0084 requires applied 0082 atomic zone overloads first' using errcode='22023';
+ end if;
+end $$;
 alter table public.post_comments add column message jsonb;
 alter table public.post_comments alter column body drop not null;
 alter table public.post_comments add constraint post_comment_one_content check (
@@ -388,7 +398,7 @@ begin
  select array_agg(id order by id) into actual from public.current_post_items where post_id=p_post_id;
  select array_agg(id order by id) into expected from unnest(p_expected) id;
  if actual is distinct from expected then raise exception 'Items changed during photo correction' using errcode='40001';end if;
- if jsonb_typeof(p_items)<>'array' or char_p_message is null then raise exception 'Invalid correction' using errcode='22023';end if;
+ if jsonb_typeof(p_items) is distinct from 'array' or p_message is null or octet_length(p_message::text)>100000 then raise exception 'Invalid correction' using errcode='22023';end if;
  update public.post_items set superseded_at=now() where post_id=p_post_id and superseded_at is null;
  for row in select value from jsonb_array_elements(p_items) loop
   prior:=nullif(row->>'supersedes','')::uuid;
@@ -469,18 +479,27 @@ end $$;
 revoke all on function public.persist_correction_question(uuid,uuid,uuid[],uuid,jsonb,jsonb,jsonb) from public,anon,authenticated,service_role;
 grant execute on function public.persist_correction_question(uuid,uuid,uuid[],uuid,jsonb,jsonb,jsonb) to service_role;
 
-create function public.publish_composer_drinks(p_upload_id uuid,p_user_id uuid,p_readings jsonb,p_caption text,p_eaten_at timestamptz,p_location jsonb,p_save_as_meal boolean,p_items jsonb,p_message jsonb,p_expected jsonb)
+create function public.publish_composer_drinks(p_upload_id uuid,p_user_id uuid,p_readings jsonb,p_caption text,p_eaten_at timestamptz,p_location jsonb,p_save_as_meal boolean,p_items jsonb,p_message jsonb,p_expected jsonb,p_render_zone text)
 returns uuid language plpgsql security definer set search_path=public,pg_temp as $$
 declare d public.post_upload_drafts; r public.composer_drink_readings; choice jsonb; selection jsonb; drink jsonb; row_item jsonb;
  items jsonb:='[]'; positions integer[]:='{}'; indexes integer[]; ml numeric; idx integer; item_index integer:=0; result uuid; intake jsonb;
 begin
+ perform public.require_capture_zone(p_render_zone);
  perform pg_advisory_xact_lock(hashtextextended(p_upload_id::text,0));
  select * into d from public.post_upload_drafts where id=p_upload_id and user_id=p_user_id for update;
  if not found then raise exception 'Draft not found' using errcode='42501';end if;
  if d.published then
-  if exists(select 1 from public.posts where id=d.id and user_id=p_user_id and deleted_at is null and analysis_initialized_at is not null) then return d.id;end if;
+  if exists(select 1 from public.posts where id=d.id and user_id=p_user_id and deleted_at is null and analysis_initialized_at is not null) then
+   perform 1 from public.posts where id=d.id for update;
+   update public.posts set render_time_zone=p_render_zone where id=d.id and render_time_zone is null;
+   if (select render_time_zone from public.posts where id=d.id) is distinct from p_render_zone then
+    raise exception 'The capture time zone changed' using errcode='PT409';
+   end if;
+   return d.id;
+  end if;
   raise exception 'Draft is no longer available' using errcode='PT409';
  end if;
+ perform public.require_meal_summary(p_message);
  if jsonb_typeof(p_readings) is distinct from 'array' or jsonb_array_length(p_readings) not between 1 and 8
   or p_caption is null or length(p_caption)>2000 or p_eaten_at is null or p_eaten_at>clock_timestamp()+interval '5 minutes'
   or jsonb_typeof(p_items) is distinct from 'array' or jsonb_typeof(p_expected) is distinct from 'object' or p_message is null or octet_length(p_message::text)>100000
@@ -515,6 +534,7 @@ begin
  -- The normal publication checks uploaded originals/feed copies, expiry and the
  -- cleanup lease. Its analyze job never becomes externally visible in this txn.
  result:=public.publish_uploaded_post(p_upload_id,p_user_id);
+ update public.posts set render_time_zone=p_render_zone where id=result;
  delete from public.jobs where id=result and post_id=result and kind='analyze' and status='queued';
  perform public.persist_analysis(result,items,p_message);
  update public.posts set identify_model='muse-spark-1.3',identify_host='meta' where id=result;
@@ -527,13 +547,14 @@ begin
  delete from public.composer_drink_readings where upload_id=p_upload_id and user_id=p_user_id;
  return result;
 end $$;
-revoke all on function public.publish_composer_drinks(uuid,uuid,jsonb,text,timestamptz,jsonb,boolean,jsonb,jsonb,jsonb) from public,anon,authenticated,service_role;
-grant execute on function public.publish_composer_drinks(uuid,uuid,jsonb,text,timestamptz,jsonb,boolean,jsonb,jsonb,jsonb) to service_role;
+revoke all on function public.publish_composer_drinks(uuid,uuid,jsonb,text,timestamptz,jsonb,boolean,jsonb,jsonb,jsonb,text) from public,anon,authenticated,service_role;
+grant execute on function public.publish_composer_drinks(uuid,uuid,jsonb,text,timestamptz,jsonb,boolean,jsonb,jsonb,jsonb,text) to service_role;
 
-create function public.publish_photo_drink_operation(p_operation_id uuid,p_user_id uuid,p_request_key text,p_upload_id uuid,p_readings jsonb,p_caption text,p_eaten_at timestamptz,p_location jsonb,p_save_as_meal boolean,p_items jsonb,p_message jsonb,p_expected jsonb)
+create function public.publish_photo_drink_operation(p_operation_id uuid,p_user_id uuid,p_request_key text,p_upload_id uuid,p_readings jsonb,p_caption text,p_eaten_at timestamptz,p_location jsonb,p_save_as_meal boolean,p_items jsonb,p_message jsonb,p_expected jsonb,p_render_zone text)
 returns uuid language plpgsql security definer set search_path=public,pg_temp as $$
 declare receipt public.drink_post_operations;draft public.post_upload_drafts;result uuid;
 begin
+ perform public.require_capture_zone(p_render_zone);
  if p_operation_id is null or p_upload_id is null or p_user_id is null or p_request_key is null or length(p_request_key)<>64 then raise exception 'Invalid photo drink operation' using errcode='22023';end if;
  perform pg_advisory_xact_lock(hashtextextended('drink-operation:'||p_operation_id::text,0));
  perform pg_advisory_xact_lock(hashtextextended(p_upload_id::text,0));
@@ -544,8 +565,16 @@ begin
   if receipt.cancelled then raise exception 'Pending drink removed' using errcode='PT410';end if;
   if receipt.request_key<>p_request_key then raise exception 'Drink selection changed' using errcode='PT409';end if;
   if receipt.post_id is null or not exists(select 1 from public.posts where id=receipt.post_id and user_id=p_user_id and deleted_at is null) then raise exception 'Drink post removed' using errcode='PT410';end if;
+  perform 1 from public.posts where id=receipt.post_id for update;
+  -- C1 may have committed its receipt before its separate zone save failed.
+  -- Repair a missing zone with this explicit retry value; never overwrite one.
+  update public.posts set render_time_zone=p_render_zone where id=receipt.post_id and render_time_zone is null;
+  if (select render_time_zone from public.posts where id=receipt.post_id) is distinct from p_render_zone then
+   raise exception 'The capture time zone changed' using errcode='PT409';
+  end if;
   return receipt.post_id;
  end if;
+ perform public.require_meal_summary(p_message);
  select * into draft from public.post_upload_drafts where id=p_upload_id and user_id=p_user_id for update;
  if not found then raise exception 'Photo draft not found' using errcode='42501';end if;
  select * into receipt from public.drink_post_operations where upload_id=p_upload_id for update;
@@ -554,12 +583,12 @@ begin
   raise exception 'Photo already belongs to another drink intent' using errcode='PT409';
  end if;
  if draft.published or exists(select 1 from public.posts where id=p_upload_id) then raise exception 'Photo already posted' using errcode='PT409';end if;
- result:=public.publish_composer_drinks(p_upload_id,p_user_id,p_readings,p_caption,p_eaten_at,p_location,p_save_as_meal,p_items,p_message,p_expected);
+ result:=public.publish_composer_drinks(p_upload_id,p_user_id,p_readings,p_caption,p_eaten_at,p_location,p_save_as_meal,p_items,p_message,p_expected,p_render_zone);
  insert into public.drink_post_operations(operation_id,user_id,kind,request_key,upload_id,post_id)values(p_operation_id,p_user_id,'photo',p_request_key,p_upload_id,result);
  return result;
 end $$;
-revoke all on function public.publish_photo_drink_operation(uuid,uuid,text,uuid,jsonb,text,timestamptz,jsonb,boolean,jsonb,jsonb,jsonb) from public,anon,authenticated,service_role;
-grant execute on function public.publish_photo_drink_operation(uuid,uuid,text,uuid,jsonb,text,timestamptz,jsonb,boolean,jsonb,jsonb,jsonb) to service_role;
+revoke all on function public.publish_photo_drink_operation(uuid,uuid,text,uuid,jsonb,text,timestamptz,jsonb,boolean,jsonb,jsonb,jsonb,text) from public,anon,authenticated,service_role;
+grant execute on function public.publish_photo_drink_operation(uuid,uuid,text,uuid,jsonb,text,timestamptz,jsonb,boolean,jsonb,jsonb,jsonb,text) to service_role;
 
 create function public.correct_barcode_item(p_post uuid,p_user uuid,p_gtin text,p_name text,p_amount numeric,p_unit text,p_nutrition jsonb,p_message jsonb)
 returns uuid language plpgsql security definer set search_path=public,pg_temp as $$

@@ -1,13 +1,14 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {execFileSync} from 'node:child_process';
+import {spawnSync} from 'node:child_process';
+import {readFileSync} from 'node:fs';
 const url=process.env.TEST_SQL_DATABASE_URL;
 const summary={code:'mealSummary',values:{kind:'consumed',totals:{calories:100,protein_g:5,carbs_g:10,fat_g:2},approximations:[],unavailable:[]}};
 const literal=value=>"'"+JSON.stringify(value).replaceAll("'","''")+"'::jsonb";
-test('structured SQL writers preserve questions, fence retries and own one same-post summary pointer atomically',()=>{
+function run(prefix=''){
  assert.ok(url&&['localhost','127.0.0.1','[::1]'].includes(new URL(url).hostname),'Disposable local migrated database required');
- const input=`begin;set local statement_timeout='5s';
- do $test$ declare u uuid:=gen_random_uuid();p uuid:=gen_random_uuid();old_post uuid:=gen_random_uuid();j uuid:=gen_random_uuid();s uuid;q uuid;before_message jsonb;expected jsonb;
+ const input=`begin;set local statement_timeout='5s';${prefix}
+ do $test$ declare u uuid:=gen_random_uuid();p uuid:=gen_random_uuid();old_post uuid:=gen_random_uuid();j uuid:=gen_random_uuid();s uuid;q uuid;before_message jsonb;expected jsonb;copied uuid;saved uuid;
  message jsonb:=${literal(summary)};
  items jsonb:='[{"name":"Rice","portion_grams":100,"nutrition":{"calories":100,"protein_g":5,"carbs_g":10,"fat_g":2,"micronutrients":[],"source_ref":"1"}}]';
  question jsonb:='{"short":"Question","question":"Is this rice?","options":["Yes","No"]}';
@@ -43,8 +44,23 @@ test('structured SQL writers preserve questions, fence retries and own one same-
  update post_comments set message=${literal(summary)} where id=s;
  update jobs set kind='correct',payload='{"post_ownership":true,"correction_from_sequence":0}' where id=j;
  insert into post_comments(post_id,author,body)values(p,'user','Use 120 grams') returning id into q;
- perform persist_correction_question(p,j,array(select id from current_post_items where post_id=p),q,'[]'::jsonb,message,question);
+ perform persist_correction_question(p,j,array(select id from current_post_items where post_id=p),q,items,message,question);
  if (select summary_comment_id from posts where id=p)=s or not exists(select 1 from post_comments where post_id=p and body='Is this rice?') then raise exception 'Correction did not create its own summary/question';end if;
+ -- A photo correction writes a new summary pointer and keeps its model question separate.
+ update jobs set status='finished' where id=j;
+ j:=gen_random_uuid();
+ insert into jobs(id,post_id,kind,status,payload)values(j,p,'correct','running','{"post_ownership":true,"photo_added":true,"correction_from_sequence":1,"correction_pending_ids":[]}');
+ update posts set active_job_id=j where id=p;
+ perform persist_photo_correction(p,j,array(select id from current_post_items where post_id=p),items,message,question);
+ if (select summary_comment_id from posts where id=p) is null or not exists(select 1 from post_comments where post_id=p and body='Is this rice?') then raise exception 'Photo correction missed structured summary/question';end if;
+ -- Copies do not copy comment history. A source pointer must never leak to the copy.
+ perform set_config('request.jwt.claims',jsonb_build_object('sub',u,'role','authenticated')::text,true);
+ update posts set status='ready' where id=p;
+ copied:=copy_owned_post(p,now());
+ if (select summary_comment_id from posts where id=copied) is not null or exists(select 1 from post_comments where post_id=copied) then raise exception 'Copied source summary pointer/history leaked';end if;
+ saved:=save_meal_from_post(p,'Snapshot');
+ copied:=copy_owned_saved_meal(saved,now());
+ if (select summary_comment_id from posts where id=copied) is not null or exists(select 1 from post_comments where post_id=copied) then raise exception 'Saved copy summary pointer/history leaked';end if;
  -- Old rows have no pointer; refresh is a no-op, never a prose search or backfill.
  update jobs set status='finished' where id=j;update posts set active_job_id=null,status='ready' where id=p;
  perform refresh_owned_approximation_summary(old_post,null,message,'[]'::jsonb);
@@ -54,5 +70,13 @@ test('structured SQL writers preserve questions, fence retries and own one same-
  begin insert into post_comments(post_id,author,message)values(p,'model','{"values":{}}');raise exception 'Missing code accepted';exception when check_violation then null;end;
  end $test$;
  rollback;`;
- execFileSync('psql',['-XqAt','--dbname',url,'-v','ON_ERROR_STOP=1'],{input,encoding:'utf8',timeout:20000});
+ const r=spawnSync('psql',['-XqAt','--dbname',url,'-v','ON_ERROR_STOP=1'],{input,encoding:'utf8',timeout:20000});assert.ifError(r.error);return r;
+}
+test('structured SQL writers preserve questions, fence retries and own one same-post summary pointer atomically',()=>{const r=run();assert.equal(r.status,0,r.stderr);});
+test('refresh code guard rejects non-summary pointers and goes red when the guard is removed',()=>{
+ const source=readFileSync(new URL('../../supabase/migrations/0084_structured_comment_messages.sql',import.meta.url),'utf8');
+ const a=source.indexOf('create function public.refresh_owned_approximation_summary'),b=source.indexOf('revoke all on function public.refresh_owned_approximation_summary',a);
+ const original=source.slice(a,b);
+ const mutant=original.replace('create function','create or replace function').replace("and author='model' and message->>'code'='mealSummary'","and author='model'");
+ assert.ok(!mutant.includes("message->>'code'='mealSummary'"));const r=run(mutant);assert.notEqual(r.status,0);assert.match(r.stderr,/Non-summary code was refreshed/);
 });

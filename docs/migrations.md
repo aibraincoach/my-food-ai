@@ -1,5 +1,30 @@
 # Production migration status
 
+## 0084 file-first preparation — UNAPPLIED and held (2026-11-25)
+
+`0084_structured_comment_messages.sql` is **UNAPPLIED and held**. Merging its
+files applies nothing. Production apply requires RT's written database yes and
+the PM's exact order, after 0082 is applied and read back. The local bootstrap
+is not a production receipt. The separate #1219 A app switch waits for C-atomic
+to deploy green, then 0084 apply/read-back and the PM's exact app-head order.
+See [the structured-comment runbook](1219-structured-comment-rollout.md).
+No old summaries are rebuilt or parsed.
+
+## 0082 file-first preparation — UNAPPLIED and held (2026-11-25)
+
+`0082_atomic_capture_zones.sql` is **UNAPPLIED and held**. Its presence on main
+or a merged migration PR is not an apply receipt and does not authorize an
+apply. Production apply requires RT's written database yes and the PM's exact
+order. No production schema or data changes are performed by merging the files.
+
+The additive zone overloads retain all old signatures for the deployed C1 app.
+The separate C-atomic app PR may merge only after 0082 is applied and read back,
+with the PM's exact-head order. The app PR must carry the migration merged by
+this file-first PR unchanged. See [the apply/switch/rollback runbook](1368-atomic-zone-rollout.md).
+The older status statements below are historical observations, not a current
+claim about later migrations.
+
+
 Current update, November4,14:07UTC:0053 and0054 applied/read back before #588 deployed.0055 activated after production reader SHA931ea7ccf89e4221b39aea849e841d4dcc1fa598 was verified READY. Compact format is active;4tagged rows,0repeated labels, required first-label fields intact and legacy claims fenced. No refusals. There are now no known outstanding migrations through0055. [Exact closeout](run15-report.md). The audit below preserves the earlier pre-application state.
 
 Read-only observation: November4,2026,13:41–13:44UTC (20:41–20:44WIB,07:41–07:44MDT). Main `376e3306942161a5e659e8d99c85154c8ac26a35` was independently rechecked at13:49UTC. No migration or production data write was performed.
