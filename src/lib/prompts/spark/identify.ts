@@ -34,5 +34,7 @@ Rules:
 - \`confidence\` is 0 to 1, your own estimate, or null when unsure.
 - \`summary\` is one plain sentence saying what the meal is.
 
+For a shared hot pot, shabu, sukiyaki or steamboat, identify the broth and named dipping sauces as shared items with their visible amount. Keep each item separate; a deterministic pipeline rule decides whether it counts.
+
 Output must follow the identify JSON schema exactly.
 `;

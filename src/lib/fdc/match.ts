@@ -1,3 +1,4 @@
+import type {PotContext} from '../nutrition/hot-pot';
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { searchFoods, type FdcFood } from "./client";
 import { excludedComponents } from "./exclusions";
@@ -8,7 +9,7 @@ import { nutritionBudgetMs, NUTRITION_MAX_MS } from "@/lib/worker/budget";
 import { FOOD_MATCH_VERSION } from "./version";
 import { closestGenericFood, composeRiceWithProtein } from "./approximate";
 import { referenceProteinMismatch } from "./protein-reference";
-import { recordContradicts } from "./record-kind";
+import { checkRecord,recordContradicts } from "./record-kind";
 import { estimateFood } from "./estimate";
 import { type UnavailableReason } from "./unavailable";
 
@@ -18,7 +19,7 @@ export const nutritionResolutionBudget = () => AbortSignal.timeout(nutritionBudg
 export type MatchChoice = { id: number | null; query: string | null; query_food?: string | null; reason: string };
 export type MatchDependencies = { search: (query: string) => Promise<FdcFood[]>; choose: (name: string, caption: string, foods: FdcFood[], retry: boolean, currentQuery: string, searchesRemaining: number) => Promise<MatchChoice> };
 
-const MATCH_INSTRUCTIONS = `Select a USDA nutrition reference for the ONE target food and its preparation. The caption supplies context; other foods in it are not part of this item's search or portion.
+const MATCH_INSTRUCTIONS = `For thin-sliced pork for shabu/hot pot/sukiyaki, prefer a lean raw loin or leg reference; do not substitute pork belly unless the caption names it. For thin beef, exclude plate/short-plate/belly unless the caption names that cut.\nSelect a USDA nutrition reference for the ONE target food and its preparation. The caption supplies context; other foods in it are not part of this item's search or portion.
 Prefer a compatible generic Foundation, Survey (FNDDS), or SR Legacy record. These are food references, not exact recipe or origin certificates: a collection setting such as restaurant and unspecified variety alone do not disqualify an otherwise compatible reference. A geographic descriptor can be omitted ONLY when the record is the same generic food and preparation; it cannot justify choosing a different regional recipe that merely shares ingredients. The absence of a topping word from a generic or NFS whole-dish description is not an explicit exclusion; judge the whole-dish category and known composition. This does not permit using a single ingredient for a combination of different foods. A generic or NFS whole-dish record is acceptable only as a broader version of the target, with compatible known ingredients, cooking process and physical form (mixed versus assembled, raw versus cooked, and coated versus uncoated matter); state that it is a generic reference in the reason. Do not require the culinary name to appear verbatim.
 Branded data is a fallback for the same plain food/preparation when no compatible generic record exists. An unknown manufacturer alone does not invalidate a retail record for a common whole dish when its label explicitly covers every known substantial component and preparation, with no incompatible additions or exclusions. A complete compatible retail label is preferable to an incompatible generic base; do not require a nonexistent unbranded record or confirmed manufacturer for that fallback. Distinguish this retail composition label from an unrelated restaurant's identifiable proprietary recipe. Do not require a brand merely because a record was collected in a restaurant; reject identifiable proprietary recipes or extra ingredients not supported by the meal. A named chain or manufacturer recipe is not merely a collection setting, and SR Legacy classification does not make it unbranded. Before treating an unrelated named-chain recipe as a proxy, reject it and use the one improved search for an unbranded whole-food reference with compatible components.
 Reject a different food category, a different named species, incompatible preparation, a condiment in place of its dish, or an isolated topping in place of a compound dish. Prefer a whole-dish reference that includes its main components. Do not treat ingredient overlap as recipe compatibility. A combination of different foods cannot be represented by just one member applied to the entire combined portion. Account for every named substantial component of the target: a base missing its named additions is not the whole dish. An explicit exclusion in a reference (no/without a component) conflicts with that component in the target; do not silently drop it or treat the omission as harmless recipe variation. For an assembled or mixed dish, explain how the selected whole-dish reference covers the known main components, rather than listing only the compatible subset. Never invent nutrients or assume a mass-to-volume density. Return null if all candidates are incompatible.
@@ -61,42 +62,46 @@ async function choose(name: string, caption: string, foods: FdcFood[], retry: bo
 }
 
 // At most three searches: the name and distinct refinements, with a base-food fallback. A valid rejection stays unknown; provider errors remain retryable errors.
-export async function matchFood(name: string, caption: string, dependencies: MatchDependencies, signal?:AbortSignal): Promise<{food:FdcFood|null; reason:string; searches:number; baseFood:string|null}> {
+export async function matchFood(name: string, caption: string, dependencies: MatchDependencies, signal?:AbortSignal, context?:PotContext & {portionText?:string|null}): Promise<{food:FdcFood|null; reason:string; searches:number; baseFood:string|null}> {
   let query=foodSearchQuery(name);
   let baseQuery:string|null=null;
   if(!query)return {food:null,reason:"The item has no searchable food name.",searches:0,baseFood:null};
   const eligible=new Map<number,FdcFood>();
+  const compatibility={caption,names:[name],...context};
+  const rejected=new Set<string>();
+  const reason=(text:string)=>rejected.size?text+" "+[...rejected].join("; "):text;
   const searched=new Set<string>();
   for(let attempt=0;attempt<3;attempt++){
     if(signal?.aborted)throw new MetaApiError(503,"Food resolution budget was exhausted.");
     searched.add(query.toLowerCase());
     for(const food of await dependencies.search(query)){
-      if(gramBasis(food)&&hasNutrition(food)&&energyFits(name,food)&&!eligible.has(food.fdcId)&&!excludedComponents(food.description,`${name} ${caption}`).length&&!referenceProteinMismatch(name,food.description)&&!recordContradicts(name,food))eligible.set(food.fdcId,food);
+      for(const rule of checkRecord(name,{description:food.description,category:food.foodCategory},compatibility).strong)if(rule.startsWith("hot-pot:"))rejected.add(rule);
+      if(gramBasis(food)&&hasNutrition(food)&&energyFits(name,food)&&!eligible.has(food.fdcId)&&!excludedComponents(food.description,`${name} ${caption}`).length&&!referenceProteinMismatch(name,food.description)&&!recordContradicts(name,food,compatibility))eligible.set(food.fdcId,food);
     }
     const candidates=[...eligible.values()];
     const decision=await dependencies.choose(name,caption,candidates,attempt>0,query,2-attempt);
     let food=decision.id===null?null:candidates.find(f=>f.fdcId===decision.id)??null;
     if(decision.id!==null&&!food)throw new Error("Food decision selected an ineligible candidate.");
     if(food&&referenceProteinMismatch(name,food.description))food=null;
-    if(food)return {food,reason:decision.reason,searches:attempt+1,baseFood:baseQuery??query};
+    if(food)return {food,reason:reason(decision.reason),searches:attempt+1,baseFood:baseQuery??query};
     const improved=decision.query?(decision.query_food?requiredFoodSearchQuery(decision.query,decision.query_food):foodSearchQuery(decision.query)):null;
     // Retain the first category if the next decision has no distinct refinement.
     if(attempt===0&&decision.query_food)baseQuery=foodSearchQuery(decision.query_food);
     const next=[improved,...(attempt>0?[baseQuery]:[])].find(candidate=>candidate&&!searched.has(candidate.toLowerCase()));
-    if(attempt===2||!next)return {food:null,reason:decision.reason,searches:attempt+1,baseFood:baseQuery??query};
+    if(attempt===2||!next)return {food:null,reason:reason(decision.reason),searches:attempt+1,baseFood:baseQuery??query};
     query=next;
   }
   throw new Error("Unreachable match state.");
 }
 
 // The food, or why there is none: the reason travels with the item (issue #575).
-export async function resolveFoodMatchDetailed(admin:SupabaseClient,name:string,caption="",signal:AbortSignal=nutritionResolutionBudget(),options:{approximate?:boolean}={}):Promise<{food:FdcFood|null;unavailable:UnavailableReason|null}>{
+export async function resolveFoodMatchDetailed(admin:SupabaseClient,name:string,caption="",signal:AbortSignal=nutritionResolutionBudget(),options:{approximate?:boolean;portionText?:string|null;mealNames?:readonly string[]}={}):Promise<{food:FdcFood|null;unavailable:UnavailableReason|null}>{
   try {
-    const result=await recordCall("fdc",{event:"food_resolution",name,matcherVersion:FOOD_MATCH_VERSION},()=>matchFood(name,caption,{search:query=>searchFoods(admin,query,signal),choose:(item,context,foods,retry,query,remaining)=>choose(item,context,foods,retry,signal,query,remaining)},signal),r=>({text:{source:r.food?"selected":"unavailable",reason:r.reason,searches:r.searches},fdcId:r.food?.fdcId??null}));
+    const result=await recordCall("fdc",{event:"food_resolution",name,matcherVersion:FOOD_MATCH_VERSION},()=>matchFood(name,caption,{search:query=>searchFoods(admin,query,signal),choose:(item,context,foods,retry,query,remaining)=>choose(item,context,foods,retry,signal,query,remaining)},signal,{caption,names:options.mealNames??[name],portionText:options.portionText}),r=>({text:{source:r.food?"selected":"unavailable",reason:r.reason,searches:r.searches},fdcId:r.food?.fdcId??null}));
     if(result.food)return {food:result.food,unavailable:null};
     if(!options.approximate)return {food:null,unavailable:{code:'no_match',detail:result.reason}};
     const closest=result.baseFood?await closestGenericFood(admin,name,caption,result.baseFood,signal):{food:null,reason:result.reason};
-    if(closest.food&&!referenceProteinMismatch(name,closest.food.description))return {food:closest.food,unavailable:null};
+    if(closest.food&&!referenceProteinMismatch(name,closest.food.description)&&!recordContradicts(name,closest.food,{caption,names:options.mealNames??[name],portionText:options.portionText}))return {food:closest.food,unavailable:null};
     const dishSuggestsRice=/\b(rice|sushi|nigiri|donburi)\b/i.test(name);
     if(dishSuggestsRice){
       const composed=await composeRiceWithProtein(admin,name,caption,signal);
@@ -113,7 +118,7 @@ export async function resolveFoodMatchDetailed(admin:SupabaseClient,name:string,
     throw error;
   }
 }
-export async function resolveFoodMatch(admin:SupabaseClient,name:string,caption="",signal:AbortSignal=nutritionResolutionBudget(),options:{approximate?:boolean}={}):Promise<FdcFood|null>{
+export async function resolveFoodMatch(admin:SupabaseClient,name:string,caption="",signal:AbortSignal=nutritionResolutionBudget(),options:{approximate?:boolean;portionText?:string|null;mealNames?:readonly string[]}={}):Promise<FdcFood|null>{
   return (await resolveFoodMatchDetailed(admin,name,caption,signal,options)).food;
 }
 

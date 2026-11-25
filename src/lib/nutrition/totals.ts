@@ -1,3 +1,4 @@
+import {sharedPotMarker} from './hot-pot';
 import {unavailableSentence} from "@/lib/fdc/unavailable";
 import {storedEstimateFood} from "@/lib/fdc/approximation-metadata";
 import { ApiError, ioError } from "@/lib/worker/errors";
@@ -141,7 +142,7 @@ export interface StoredNutrient {
 }
 
 // Sum available micronutrients, distinguishing unavailable values from measured zero.
-export function sumMicronutrients(items: {name?:string;micronutrients:StoredNutrient[]}[]): {name:string;unit:string;value:number|null;unavailable?:string[]}[] {
+export function sumMicronutrients(items: {name?:string;source_ref?:string|null;micronutrients:StoredNutrient[]}[]): {name:string;unit:string;value:number|null;unavailable?:string[]}[] {
   const identities=new Map<string,{name:string;unit:string}>();
   const contributions=items.map(item=>{
     const map=new Map<string,number|null>();
@@ -157,7 +158,7 @@ export function sumMicronutrients(items: {name?:string;micronutrients:StoredNutr
   return [...identities].map(([key,identity])=>{
     let value=0,known=0;const omitted=new Set<string>();
     for(const [index,map] of contributions.entries()){
-      const amount=map.get(key);
+      const amount=sharedPotMarker(items[index].source_ref)?0:map.get(key);
       if(amount==null)omitted.add(items[index].name??"an item");else {value+=amount;known++;}
     }
     return {...identity,value:known&&Number.isFinite(value)?value:null,...(omitted.size?{unavailable:[...omitted]}:{})};

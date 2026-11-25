@@ -1,3 +1,4 @@
+import {sharedPotMarker} from '../nutrition/hot-pot';
 import {drinkGlyph,type DrinkGlyph} from './drink-glyph';
 import {alcoholGrams,isAlcoholic,keepsCaffeine} from './alcohol';
 import {rowCaffeineMg} from './intake';
@@ -30,9 +31,9 @@ export interface HydrationRecord { drinksMl: number; foodMl: number; totalMl: nu
 export interface DrinkCardData extends Omit<HydrationRecord, "caffeineMg"> { kind?:"water"|"caffeine"|"alcohol"; alcoholG?:number; dayDrinks?:{glyph:DrinkGlyph;ml:number}[]; source?: "sheet" | "item"; ml: number; label: string; caffeineMg: number; dayCaffeineMg?: number }
 export interface ItemDrinkRecord { alcoholG?:number; kind?:"water"|"caffeine"|"alcohol"; post_item_id?: string | null; label: string; ml: number; caffeineMg: number }
 export interface PostHydrationData { dayDrinks?:{glyph:DrinkGlyph;ml:number}[]; itemDrinks: ItemDrinkRecord[]; drinkSource?: "sheet" | "item"; kind: "meal" | "drink"; foodWaterMl: number; dayHydration: HydrationRecord; drink: DrinkCardData | null }
-type WaterItem = { food_category?:string|null; id?: string; portion_text?: string | null; portion_grams: Numeric; micronutrients: StoredNutrient[] };
+type WaterItem = { source_ref?:string|null; food_category?:string|null; id?: string; portion_text?: string | null; portion_grams: Numeric; micronutrients: StoredNutrient[] };
 export function itemWaterMl(item: WaterItem, isDrink = false): number {
-  if (isDrink || isAlcoholic(item)) return 0;
+  if (sharedPotMarker(item.source_ref) || isDrink || isAlcoholic(item)) return 0;
   const nutrient = item.micronutrients.find(n => n.nutrientId === 1051 && n.basis === "portion"
     && (n.unitName ?? n.unit)?.toLowerCase() === "g");
   if (!nutrient) return 0;

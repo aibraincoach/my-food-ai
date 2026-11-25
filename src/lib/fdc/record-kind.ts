@@ -1,3 +1,4 @@
+import {thinPotRecordReason,type PotContext} from '../nutrition/hot-pot.ts';
 // #990: is a USDA record the same kind of food as the food it stands for? One reader for the matcher (which drops a
 // record that is plainly another kind of food before the model chooses) and for the stored-numbers detector
 // (scripts/numbers/mismatch.mjs), so both apply the same rules.
@@ -71,8 +72,10 @@ export function recordKind(description: string, category?: string | null): FoodK
 export type RecordCheck = { strong: string[]; weak: string[]; score: number };
 
 // Every signal for one food and its record. kcalPer100g is the record's (or the stored food's) energy density, if known.
-export function checkRecord(name: string, record: { description: string; category?: string | null; kcalPer100g?: number | null }): RecordCheck {
+export function checkRecord(name: string, record: { description: string; category?: string | null; kcalPer100g?: number | null }, context?:PotContext & {portionText?:string|null}): RecordCheck {
   const strong: string[] = [], weak: string[] = [];
+  const potReason=thinPotRecordReason({name,portionText:context?.portionText},context??{caption:"",names:[name]},record.description);
+  if(potReason)strong.push(potReason);
   const kinds = nameKinds(name);
   const head = name.split(/\b(?:with|and|in)\b|&/i)[0].trim().split(/\s+/).at(-1) ?? "";
   const headKinds = nameKinds(head);
@@ -114,6 +117,6 @@ export function checkRecord(name: string, record: { description: string; categor
 }
 
 /** True when the record is plainly another kind of food: the matcher drops it before choosing. */
-export function recordContradicts(name: string, food: { description: string; foodCategory?: string }): boolean {
-  return checkRecord(name, { description: food.description, category: food.foodCategory }).strong.length > 0;
+export function recordContradicts(name: string, food: { description: string; foodCategory?: string }, context?:PotContext & {portionText?:string|null}): boolean {
+  return checkRecord(name, { description: food.description, category: food.foodCategory },context).strong.length > 0;
 }

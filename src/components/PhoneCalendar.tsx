@@ -1,4 +1,5 @@
 "use client";
+import {dayReview} from '@/lib/nutrition/day-review';
 import {useLocale,useTranslations} from 'next-intl';
 import {useEffect,useLayoutEffect,useRef,useState} from 'react';
 import {nutritionGaps,gapSentence,GAP_LEAD} from '@/lib/nutrition/totals';
@@ -89,12 +90,14 @@ export default function PhoneCalendar({months,today,selected,onDay,onOlder}:Prop
    {dates.map(date=>{
     const month=date.slice(0,7),day=months[month]?.days.find(entry=>entry.day===date),number=Number(date.slice(8));
     const outlined=date===today||date===selected;
+    const review=dayReview(day?.kcal);
+    const cellLabel=[t('cellSummary',calendarDayValues(locale,date,day)),review.high?t('highTotalNote'):null].filter(Boolean).join(' ');
     const short=formatDate(locale,new Date(month+'-01T12:00:00Z'),'UTC',{month:'short'});
     return <button type="button" key={date} data-day={date} id={number===1?'month-'+month:undefined} data-month-start={number===1?month:undefined} disabled={!(day&&date<=today)} tabIndex={!day?-1:0} onClick={event=>{if(day)onDay(date,event.currentTarget);}}
-     aria-label={t("cellSummary",calendarDayValues(locale,date,day))}
+     aria-label={cellLabel}
      className={`flex min-w-0 scroll-mt-32 flex-col justify-between rounded-tile text-left ${day?'bg-card':''} ${date>today?'text-faint':'text-text'}`}
      style={{height:tokens.spacing.tap,padding:`${tokens.spacing.grid}px ${tokens.calendar.padding}px`,border:outlined?`${tokens.calendar.border}px solid ${tokens.colors.text}`:`${tokens.calendar.border}px solid transparent`}}>
-     <span className={`text-label leading-none ${number===1?'font-semibold':'font-medium'}`}>{number===1?t("firstOfMonth",{month:short}):formatNumber(locale,number)}</span>
+     <span className={`flex w-full items-center justify-between text-label leading-none ${number===1?'font-semibold':'font-medium'}`}>{number===1?t("firstOfMonth",{month:short}):formatNumber(locale,number)}{review.high?<span aria-hidden="true" data-high-day-marker className="size-1 shrink-0 rounded-circle bg-text"/>:null}</span>
      <span className="text-cell-kcal text-muted tabular-nums">{day?.ready?`${formatEnergy(locale,day.kcal)}`:day?.intake?t("drank"):''}</span>
     </button>;
    })}

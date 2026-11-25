@@ -630,7 +630,8 @@
     "offAttribution": "<off>Open Food Facts</off>のデータを含みます。<license>Open Database License</license>に基づいて利用できます。",
     "identifiedOpen": "Muse Spark Open（{model}）による識別 · Muse Spark Open で構築",
     "identifiedFallback": "Muse Spark Open は利用できませんでした · Muse Spark 1.3 による識別",
-    "identifiedDefault": "Muse Spark 1.3 による識別"
+    "identifiedDefault": "Muse Spark 1.3 による識別",
+    "sharedNotCounted": "共有のため、摂取量に含めていません"
   },
   "postMenu": {
     "captionSaveFailed": "説明を保存できませんでした。",
@@ -882,7 +883,8 @@
     "postDetail": "投稿の詳細",
     "closePostDetail": "投稿の詳細を閉じる",
     "previousPost": "前の投稿",
-    "nextPost": "次の投稿"
+    "nextPost": "次の投稿",
+    "highTotalNote": "この日の合計がとても高くなっています。一部の食品が二重に数えられている可能性があります。"
   },
   "search": {
     "title": "検索",

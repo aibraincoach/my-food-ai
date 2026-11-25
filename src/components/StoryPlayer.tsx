@@ -1,4 +1,5 @@
 "use client";
+import DayTotalReview from '@/components/DayTotalReview';
 import {useLocale,useTranslations} from 'next-intl';
 import {formatDate,formatEnergy,formatNutrient,formatNumber} from '@/i18n/format';
 import {cardGapWording} from '@/i18n/card';
@@ -140,7 +141,7 @@ export default function StoryPlayer({ day, zone, onClose, onDay, cell }: { day: 
           </div>
           <div className="px-screen-x"><p className="text-body">{post.caption}</p><p className="mt-1 text-meta text-faint">{time(post.eatenAt)}</p></div>
         </div> : <div className="mt-auto flex shrink-0 flex-col gap-7 px-screen-x">
-          <div><p className="mb-3 text-detail text-faint">{t("consumedOn",{weekday})}</p><p className="flex items-baseline gap-2"><span className="text-display-day tabular-nums">{formatEnergy(locale,day.totals.calories)}</span><span className="text-month font-normal text-faint">kcal</span></p><p className="mt-2 text-meta text-faint">{t("mealCount",{count:day.posts.length,pending:day.pending?"yes":"no",unfinished:formatNumber(locale,day.pending,{useGrouping:false})})}</p></div>
+          <div><p className="mb-3 text-detail text-faint">{t("consumedOn",{weekday})}</p><p className="flex items-baseline gap-2"><span className="text-display-day tabular-nums">{formatEnergy(locale,day.totals.calories)}</span><span className="text-month font-normal text-faint">kcal</span></p><p className="mt-2 text-meta text-faint">{t("mealCount",{count:day.posts.length,pending:day.pending?"yes":"no",unfinished:formatNumber(locale,day.pending,{useGrouping:false})})}</p></div><DayTotalReview kcal={day.totals.calories} posts={day.posts}/>
           <div className="grid grid-cols-3 pt-4" style={{ borderTop: `${tokens.border.hairline}px solid ${tokens.colors.surface}`, borderTopColor: `color-mix(in srgb, ${tokens.colors.surface} 14%, transparent)` }}>
             {([[day.totals.protein_g, "protein"], [day.totals.carbs_g, "carbs"], [day.totals.fat_g, "fat"]] as const).map(([value, word]) => <div key={word}><p className="text-day-macro tabular-nums">{formatNutrient(locale,value)} g</p><p className="text-meta text-faint">{t(word)}</p></div>)}
           </div>

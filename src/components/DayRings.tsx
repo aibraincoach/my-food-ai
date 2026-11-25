@@ -1,4 +1,5 @@
 'use client';
+import DayTotalReview from '@/components/DayTotalReview';
 import {useLocale,useTranslations} from 'next-intl';
 import {formatDate,formatNumber,formatEnergy} from '@/i18n/format';
 import type {Locale} from '@/i18n/locales';
@@ -55,7 +56,7 @@ export default function DayRings({days,totals,today,zone,zoneKnown,ownerId,earli
  },[touched,ownerId,limit,today,loadMonth]);
  const onScroll=()=>{const element=row.current;if(!element)return;if(!touched)setTouched(true);if(element.scrollLeft+element.clientWidth>=element.scrollWidth-NEAR_END*RING_STEP&&limit<span)setCount(value=>Math.min(value+LOAD_MORE,span));};
  const todayAction=()=>window.dispatchEvent(new CustomEvent('open-entry',{detail:{entry:'camera'}}));
- return <nav ref={row} aria-label={t('daysLabel')} onScroll={onScroll} onPointerDown={()=>{if(!touched)setTouched(true);}} className="desktop:hidden flex gap-[10px] overflow-x-auto snap-x snap-mandatory scroll-pl-inset overscroll-x-contain px-inset pt-[2px] pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+ return <><nav ref={row} aria-label={t('daysLabel')} onScroll={onScroll} onPointerDown={()=>{if(!touched)setTouched(true);}} className="desktop:hidden flex gap-[10px] overflow-x-auto snap-x snap-mandatory scroll-pl-inset overscroll-x-contain px-inset pt-[2px] pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
   {Array.from({length:limit},(_,index)=>{
    const day=shiftDay(today,-index),month=loaded[day];
    const total=currentTotals.find(entry=>entry.day===day)??(month?{day,kcal:month.kcal,ready:month.ready,missing:month.missing}:undefined);
@@ -69,5 +70,5 @@ export default function DayRings({days,totals,today,zone,zoneKnown,ownerId,earli
    const className='flex w-[62px] shrink-0 snap-start flex-col items-center gap-[5px]';
    return index===0?<button key={day} type="button" aria-label={t('photographToday')} onClick={todayAction} className={className}>{content}</button>:hasDay?<Link key={day} aria-label={dayLabel} href={withZone(`/days/${day}`,zone,zoneKnown)} className={className}>{content}</Link>:<span key={day} aria-label={dayLabel} className={className}>{content}</span>;
   })}
- </nav>;
+ </nav>{!waiting?<div className="desktop:hidden">{currentTotals.map(total=><DayTotalReview key={total.day} day={total.day} kcal={total.kcal} posts={total.posts}/>)}</div>:null}</>;
 }

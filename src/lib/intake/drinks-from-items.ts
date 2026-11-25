@@ -1,3 +1,4 @@
+import {sharedPotMarker} from '../nutrition/hot-pot';
 import {ALCOHOLIC_NAME,alcoholGrams,expectsCaffeine,isAlcoholic,keepsCaffeine} from './alcohol';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { getCurrentItems, toNumber, type Numeric, type StoredNutrient } from '@/lib/nutrition/totals';
@@ -11,7 +12,7 @@ const BEVERAGE_CATEGORIES = new Set(['beverages', 'water', 'soft drinks', 'coffe
   'milk, whole', 'milk, reduced fat', 'milk, lowfat', 'milk, nonfat', 'flavored milk, whole', 'flavored milk, reduced fat', 'flavored milk, lowfat', 'flavored milk, nonfat',
   'milk shakes and other dairy drinks', 'plant-based milk', 'soy milk', 'baby juice', 'baby water']);
 const PLAIN_DRINKS = new Set(['water', 'sparkling water', 'coffee', 'black coffee', 'espresso', 'americano', 'tea', 'green tea', 'black tea', 'cola', 'coca-cola', 'coca cola', 'cocacola', 'coke', 'pepsi', 'diet cola', 'diet coke', 'coke zero', 'coca-cola zero', 'diet pepsi', 'pepsi max', 'pepsi zero', 'evian bottled water']);
-export type DrinkItem = { id: string; name: string; portion_text?: string | null; portion_grams: Numeric; food_category?: string | null; micronutrients?: StoredNutrient[] };
+export type DrinkItem = { id: string; name: string; portion_text?: string | null; portion_grams: Numeric; food_category?: string | null; source_ref?:string|null; micronutrients?: StoredNutrient[] };
 export type ItemDrink = { post_item_id: string; kind: 'water' | 'caffeine' | 'alcohol'; amount: number; ml: number; label: string; caffeineMg: number; alcoholG: number };
 // SR Legacy puts liquid milk and solid cheese in the same category. This
 // owner-approved fallback is limited to that proven ambiguous category and
@@ -37,7 +38,8 @@ function plainDrinkName(name: string): boolean {
   const words = name.trim().toLowerCase().replace(/\s+/g, ' ').split(/[,(]| (?:with|in|on) /)[0].trim().split(' ');
   return ALCOHOLIC_DRINK_ENDING.test(words.join(' ')) || words.some((_, start) => PLAIN_DRINKS.has(words.slice(start).join(' ')));
 }
-export function isDrinkItem(item: Pick<DrinkItem, 'name' | 'food_category'>): boolean {
+export function isDrinkItem(item: Pick<DrinkItem, 'name' | 'food_category' | 'source_ref'>): boolean {
+  if(sharedPotMarker(item.source_ref))return false;
   const category = item.food_category?.trim().toLowerCase();
   return category ? (category === 'dairy and egg products' && ambiguousDairyDrink(item.name)) || BEVERAGE_CATEGORIES.has(category) || /\b(?:beverage|beverages|drink|drinks|juice|soda|coffee|tea|water)\b/.test(category)
     : plainDrinkName(item.name);

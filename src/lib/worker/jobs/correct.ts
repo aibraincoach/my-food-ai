@@ -1,3 +1,5 @@
+import {excludeSharedItem,sharedPotKind,sharedPotMarker,sharedNutrition,thinPotPortion} from '@/lib/nutrition/hot-pot';
+import {recordCall} from '@/lib/trace/record';
 import { approximationLabels } from "@/lib/fdc/approximation-metadata";
 import {beforeLeftovers,carryLeftovers,retainedNutrition} from '@/lib/pipeline/leftovers';
 import { sendPostPush } from "@/lib/push/send";
@@ -86,6 +88,7 @@ export async function replayCorrection(admin:import('@supabase/supabase-js').Sup
  const resolutionBudget=nutritionResolutionBudget();
  const {data:context,error:contextError,status:contextStatus}=await admin.from("posts").select("caption").eq("id",postId).abortSignal(resolutionBudget).single();
  if(contextError)throw ioError("Correction context could not be read.",contextError,resolutionBudget.aborted?503:contextStatus);
+ const potContext={caption:context.caption??"",names:result.items.map(item=>item.name),items:result.items.map(item=>({name:item.name,portionText:item.portion_text})),corrections:[...history,...pending].filter(comment=>comment.author==="user").map(comment=>comment.body)};
  const kept=new Set<string>();
  const resolutionItems=result.items.map(item=>{
   const old=item.keep?grossItems.find(i=>i.id===item.keep):undefined;
@@ -103,19 +106,25 @@ export async function replayCorrection(admin:import('@supabase/supabase-js').Sup
  for(const {old,region:sourceRegion} of resolutionItems){const region=old??sourceRegion;if(region?.not_eaten_grams!=null){if(protectedSources.has(region.id))throw new MetaApiError(500,'Correction duplicated a food with recorded leftovers.');protectedSources.add(region.id);}}
  const rows=await resolveNutritionItems(resolutionItems,resolutionBudget,async({item,old,region},_index,signal)=>{
   let nutrition;
-  if(old&&!nutritionUnavailable(old)){
+  const excluded=excludeSharedItem(item.name,potContext);
+  const counting=Boolean(sharedPotMarker((old??region)?.source_ref))&&!excluded;
+  const portion=thinPotPortion({name:item.name,portionText:item.portion_text,portionGrams:item.portion_grams},potContext);
+  const grams=old&&!counting?item.portion_grams:portion.grams;
+  if(portion.adjusted||excluded||counting)await recordCall("fdc",{event:"hot_pot_correction_policy",name:item.name,modelGrams:item.portion_grams},async()=>({excluded,counting,...portion}),value=>({text:value}));
+  if(excluded){nutrition=sharedNutrition(sharedPotKind(item.name)!,old??region??null);}
+  else if(old&&!counting&&!nutritionUnavailable(old)){
    nutrition={calories:old.calories,protein_g:old.protein_g,carbs_g:old.carbs_g,fat_g:old.fat_g,fibre_g:old.fibre_g,sugar_g:old.sugar_g,sodium_mg:old.sodium_mg,micronutrients:old.micronutrients,source_ref:old.source_ref,food_category:old.food_category ?? null};
    await traceNutritionReuse(item.name,nutrition,"unchanged",old.id);
   } else {
-   const retained=replaying&&region?.name===item.name?rescalePortionNutrition({...retainedNutrition(region),post_item_id:region.id},region.portion_grams,item.portion_grams,region.portion_text,item.portion_text):region?.name===item.name?await resolvePortionNutrition(admin,postId!,region.id,item.name,item.portion_grams,item.portion_text,signal):null;
+   const retained=counting?null:replaying&&region?.name===item.name?rescalePortionNutrition({...retainedNutrition(region),post_item_id:region.id},region.portion_grams,grams,region.portion_text,item.portion_text):region?.name===item.name?await resolvePortionNutrition(admin,postId!,region.id,item.name,grams,item.portion_text,signal):null;
    if(retained&&!nutritionUnavailable(retained))nutrition=retained;
    else {
-   const match=await resolveFoodMatchDetailed(admin,item.name,context.caption??'',signal,{approximate:true});
-   const n=scaleNutrition(match.food,item.portion_grams,match.unavailable);
+   const match=await resolveFoodMatchDetailed(admin,item.name,context.caption??'',signal,{approximate:true,portionText:item.portion_text,mealNames:potContext.names});
+   const n=scaleNutrition(match.food,grams,match.unavailable);
    nutrition={calories:n.calories,protein_g:n.proteinG,carbs_g:n.carbsG,fat_g:n.fatG,fibre_g:n.fibreG,sugar_g:n.sugarG,sodium_mg:n.sodiumMg,micronutrients:n.micronutrients,source_ref:n.sourceRef,food_category:n.foodCategory ?? null};
    }
   }
-  return carryLeftovers({name:item.name,portion_text:item.portion_text,portion_grams:item.portion_grams,box:old?old.box:region?.box??null,mask_path:old?old.mask_path:region?.mask_path??null,supersedes:old?.id??region?.id??null,nutrition},items.find(prior=>prior.id===(old?.id??region?.id)));
+  return carryLeftovers({name:item.name,portion_text:item.portion_text,portion_grams:grams,box:old?old.box:region?.box??null,mask_path:old?old.mask_path:region?.mask_path??null,supersedes:old?.id??region?.id??null,nutrition},items.find(prior=>prior.id===(old?.id??region?.id)),{reuseUnchanged:!counting});
  });
  // A model omission must never delete an earlier leftover record.
  for(const prior of items.filter(item=>item.not_eaten_grams!=null&&!protectedSources.has(item.id))){rows.push({...prior,portion_grams:prior.portion_grams==null?null:toNumber(prior.portion_grams),supersedes:prior.id,nutrition:retainedNutrition(prior)});}

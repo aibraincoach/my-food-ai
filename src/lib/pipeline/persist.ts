@@ -1,3 +1,6 @@
+import {excludeSharedItem,sharedPotKind,sharedNutrition,thinPotPortion} from '@/lib/nutrition/hot-pot';
+import {recordCall} from '@/lib/trace/record';
+import {getCurrentItems} from '@/lib/nutrition/totals';
 import { approximationLabels } from "@/lib/fdc/approximation-metadata";
 import {writePendingNames,writePendingKcal} from './pending-items';
 import { syncItemDrinks } from "@/lib/intake/drinks-from-items";
@@ -66,17 +69,24 @@ export async function persistAnalysis(
  const resolutionBudget=nutritionResolutionBudget();
   const {data:context,error:contextError,status:contextStatus}=await admin.from("posts").select("caption").eq("id",named.postId).abortSignal(resolutionBudget).single();
   if(contextError)throw ioError("Meal context could not be read.",contextError,resolutionBudget.aborted?503:contextStatus);
+  const potContext={caption:context.caption??"",names:rows.map(row=>row.name),items:rows};
+  const priorShared=rows.some(row=>excludeSharedItem(row.name,potContext))&&!copiedNutrition?await getCurrentItems(admin,named.postId):[];
   const resolved = await resolveNutritionItems(rows,resolutionBudget,async (row,index,signal) => {
     const copied=copiedNutrition?.[index];
     if(copied)await traceNutritionReuse(row.name,copied,"copied",typeof copied.post_item_id==="string"?copied.post_item_id:undefined);
-    const match=copied?{food:null,unavailable:null}:await resolveFoodMatchDetailed(admin,row.name,context.caption??"",signal,{approximate:true});
-    const scaled = scaleNutrition(match.food, row.portionGrams, match.unavailable);
-    const nutritionProgress=copied?.calories??scaled.calories;
+    const excluded=!copied&&excludeSharedItem(row.name,potContext);
+    const portion=copied?{grams:row.portionGrams,adjusted:false}:thinPotPortion(row,potContext);
+    if(excluded||portion.adjusted)await recordCall("fdc",{event:"hot_pot_policy",name:row.name,modelGrams:row.portionGrams},async()=>({excluded,...portion}),value=>({text:value}));
+    const match=copied||excluded?{food:null,unavailable:null}:await resolveFoodMatchDetailed(admin,row.name,context.caption??"",signal,{approximate:true,portionText:row.portionText,mealNames:potContext.names});
+    const scaled = scaleNutrition(match.food, portion.grams, match.unavailable);
+    const old=priorShared.filter(item=>item.name===row.name);
+    const zero=excluded?sharedNutrition(sharedPotKind(row.name)!,old.length===1?old[0]:null):null;
+    const nutritionProgress=zero?.calories??copied?.calories??scaled.calories;
     await writePendingKcal(admin,named.postId,index,typeof nutritionProgress==='number'?nutritionProgress:null,jobId);
     return {
       name: row.name,
       portion_text: row.portionText,
-      portion_grams: row.portionGrams,
+      portion_grams: portion.grams,
       box: row.box,
       mask_path: row.maskPath,
       confidence: row.confidence,
@@ -92,6 +102,7 @@ export async function persistAnalysis(
         source_ref: scaled.sourceRef,
         food_category: scaled.foodCategory ?? null,
         ...(copied ?? {}),
+        ...(zero??{}),
       },
     };
   });
