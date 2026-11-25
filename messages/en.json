@@ -155,7 +155,8 @@
     "glyphCocktail": "cocktail",
     "glyphWine": "wine",
     "glyphBeer": "beer",
-    "glyphTumbler": "tumbler"
+    "glyphTumbler": "tumbler",
+    "mextAttribution": "Nutrient data from <mext>MEXT Standard Tables of Food Composition in Japan, Eighth Revised Edition, 2023 supplement</mext>. English food names from the 2015 Seventh Revised Edition and 2016 supplement. Amounts for each portion are calculated by My Food AI."
   },
   "metadata": {
     "description": "Record what you eat using a photo, words, or your voice. Review your nutrition without targets or judgment."
@@ -1034,7 +1035,8 @@
     "request": "Request",
     "response": "Response",
     "error": "Error: {error}",
-    "seconds": "{amount} s"
+    "seconds": "{amount} s",
+    "mextCallKind": "MEXT food reference"
   },
   "api": {
     "error_0795a0b4a0a6": "The meal could not be saved.",
@@ -1333,6 +1335,8 @@
     "sugar": "sugar",
     "sodium": "sodium",
     "unavailable": "unavailable",
+    "trace": "trace",
+    "includesTraceAmounts": "Includes trace amounts.",
     "itemUnnamed": "An item",
     "editRemoved": "Removed {name}.",
     "editAdded": "Added {name}, {amount}.",
@@ -1346,7 +1350,8 @@
     "remainderReply": "Leftovers: {leftovers} · {omitted} kcal. Consumed: {consumed} · {calories} kcal.",
     "remainderCount": "{count} {unit}",
     "consumedCount": "{count} of {total} {unit}",
-    "productCorrected": "Product corrected to {name}."
+    "productCorrected": "Product corrected to {name}.",
+    "approxMext": "Nutrition for {name} is taken from the closest MEXT record, {basis}."
   },
   "nutrients": {
     "core_calories": "Calories",

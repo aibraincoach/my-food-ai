@@ -29,7 +29,8 @@ export default function DeletePostSheet(){
  const undo=async()=>{if(!toast)return;try{const response=await fetch(`/api/posts/${toast.id}/restore`,{method:'POST'});if(!response.ok)throw new DisplayError(t('restoreFailedRecently'));window.dispatchEvent(new CustomEvent('post-restore',{detail:toast}));router.refresh();}catch(cause){setError(cause instanceof DisplayError?cause.message:t('restoreFailed'));}finally{setToast(null);}};
  const post=selectedPost,caption=post?.caption||post?.items[0]?.name||t('meal');
  const weekday=post?formatDate(locale,new Date(post.eaten_at),Intl.DateTimeFormat().resolvedOptions().timeZone,{weekday:'long'}):'';
- const calories=post?sumNutrition(post.items).calories:null;
+ const totals=post?sumNutrition(post.items):null;
+ const calories=totals?.trace?.calories?.length?null:totals?.calories??null;
  return <><Sheet confirmation open={Boolean(id)} onClose={()=>{if(!lock.current)setId(null);}} label={t('deleteTitle')}>
   <h2 className="pt-2 text-sheet-head">{t('deleteTitle')}</h2><p className="text-[15px] leading-[1.5] text-muted">{t('deleteDescription',{caption})}{post&&<> {calories===null?t('deleteTotalUpdated',{weekday}):t('deleteTotalReduced',{weekday,amount:formatEnergy(locale,calories)})}</>}</p>
   {post?.saved_meal_id&&<p className="text-[15px] leading-[1.5] text-muted">{t('savedUnaffected',{caption})}</p>}

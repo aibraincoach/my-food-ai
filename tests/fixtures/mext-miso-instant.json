@@ -1,0 +1,104 @@
+[
+  {
+    "_source": "Official cached factual identity/energy subset from pinned source editions. Gate test only, not a substitute for a prepared bowl.",
+    "food_number": "17049",
+    "name_ja": "＜調味料類＞　（みそ類）　即席みそ　粉末タイプ",
+    "name_en": "Miso, instant miso soup, powdered type",
+    "food_group": "17",
+    "identity_status": "joined",
+    "source_manifest": {
+      "current": {
+        "file": "main.xlsx",
+        "url": "https://www.mext.go.jp/content/20260327-mxt_kagsei-mext-000029402_02.xlsx",
+        "date": "2026-03-27",
+        "sha256": "0d5a77077dd6cd91cbc2e6e317b8b218a38728c409eed452f1c10635a0d3099c"
+      },
+      "errata": {
+        "file": "errata.xlsx",
+        "url": "https://www.mext.go.jp/content/20260327-mxt_kagsei-mext-000029402_16.xlsx",
+        "date": "2026-03-27",
+        "sha256": "fb61037c7f66af0db1fb0729977913a629bc17097bc3ff7bf75217f9110acabb"
+      },
+      "japanese": {
+        "file": "japanese2015.xlsx",
+        "url": "https://www.mext.go.jp/component/a_menu/science/detail/__icsFiles/afieldfile/2017/12/25/1365334_1r12.xlsx",
+        "date": "2017-12-27",
+        "sha256": "eb515b12af20fe978e7361d1a46dcfd25c71eef60bef8360fd0daebf404381e3"
+      },
+      "english": {
+        "file": "english2015.xlsx",
+        "url": "https://www.mext.go.jp/component/english/__icsFiles/afieldfile/2017/12/25/1374049_1r12_1.xlsx",
+        "date": "2017-12-27",
+        "sha256": "5c968f1801f706b2970d51599ab2dce6f9e09ff3901fcf1990922960761885fb"
+      },
+      "supplement": {
+        "file": "english2016.xlsx",
+        "url": "https://www.mext.go.jp/component/english/__icsFiles/afieldfile/2017/09/12/1380333-2r7e.xlsx",
+        "date": "2017-06-21",
+        "sha256": "bf30dbcb72a749ce3a64a7ecd780a37da31691a1e91a04700452713bacd5b069"
+      }
+    },
+    "nutrients": {
+      "1008": {
+        "value": 321,
+        "marker": null,
+        "estimated": false,
+        "raw": "321",
+        "annotation": null,
+        "unitName": "KCAL",
+        "source_tag": "ENERC_KCAL"
+      }
+    }
+  },
+  {
+    "_source": "Official cached factual identity/energy subset from pinned source editions. Gate test only, not a substitute for a prepared bowl.",
+    "food_number": "17050",
+    "name_ja": "＜調味料類＞　（みそ類）　即席みそ　ペーストタイプ",
+    "name_en": "Miso, instant miso soup, Paste type",
+    "food_group": "17",
+    "identity_status": "joined",
+    "source_manifest": {
+      "current": {
+        "file": "main.xlsx",
+        "url": "https://www.mext.go.jp/content/20260327-mxt_kagsei-mext-000029402_02.xlsx",
+        "date": "2026-03-27",
+        "sha256": "0d5a77077dd6cd91cbc2e6e317b8b218a38728c409eed452f1c10635a0d3099c"
+      },
+      "errata": {
+        "file": "errata.xlsx",
+        "url": "https://www.mext.go.jp/content/20260327-mxt_kagsei-mext-000029402_16.xlsx",
+        "date": "2026-03-27",
+        "sha256": "fb61037c7f66af0db1fb0729977913a629bc17097bc3ff7bf75217f9110acabb"
+      },
+      "japanese": {
+        "file": "japanese2015.xlsx",
+        "url": "https://www.mext.go.jp/component/a_menu/science/detail/__icsFiles/afieldfile/2017/12/25/1365334_1r12.xlsx",
+        "date": "2017-12-27",
+        "sha256": "eb515b12af20fe978e7361d1a46dcfd25c71eef60bef8360fd0daebf404381e3"
+      },
+      "english": {
+        "file": "english2015.xlsx",
+        "url": "https://www.mext.go.jp/component/english/__icsFiles/afieldfile/2017/12/25/1374049_1r12_1.xlsx",
+        "date": "2017-12-27",
+        "sha256": "5c968f1801f706b2970d51599ab2dce6f9e09ff3901fcf1990922960761885fb"
+      },
+      "supplement": {
+        "file": "english2016.xlsx",
+        "url": "https://www.mext.go.jp/component/english/__icsFiles/afieldfile/2017/09/12/1380333-2r7e.xlsx",
+        "date": "2017-06-21",
+        "sha256": "bf30dbcb72a749ce3a64a7ecd780a37da31691a1e91a04700452713bacd5b069"
+      }
+    },
+    "nutrients": {
+      "1008": {
+        "value": 122,
+        "marker": null,
+        "estimated": false,
+        "raw": "122",
+        "annotation": null,
+        "unitName": "KCAL",
+        "source_tag": "ENERC_KCAL"
+      }
+    }
+  }
+]

@@ -11,6 +11,7 @@ export function dayTotalRefreshDates(previous: FeedPost | undefined, fresh: Feed
   const contribution=fresh.status==='ready'&&!fresh.itemsUnavailable?dayPostReceipt(fresh.id,fresh.eaten_at,fresh.items):null;
   const included=Boolean(receipt&&contribution&&new Date(receipt.eatenAt).getTime()===new Date(fresh.eaten_at).getTime()
     &&receipt.known===contribution.known&&Math.abs(receipt.kcal-contribution.kcal)<1e-9
-    &&JSON.stringify(receipt.missing)===JSON.stringify(contribution.missing));
+    &&JSON.stringify(receipt.missing)===JSON.stringify(contribution.missing)
+    &&JSON.stringify(receipt.trace)===JSON.stringify(contribution.trace)&&receipt.traceOnly===contribution.traceOnly);
   return !force && (included || (!receipt && same)) ? dates.filter(day => !knownDays.has(day)) : dates;
 }

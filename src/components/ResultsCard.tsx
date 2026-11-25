@@ -14,6 +14,9 @@ export type ResultsCardProps = {
   t: CardTranslator;
   tn: NutritionTranslator;
   data?: CardData;
+  trace?:CardData['trace'];
+  traceOnly?:CardData['traceOnly'];
+  mext?:boolean;
   // Kept for story totals and existing callers while they adopt CardData.
   drink?: DrinkCardData | null;
   gap?: string;
@@ -33,11 +36,12 @@ export const ARROW_GUTTER = 24;
 const glyphMessage = {coffee:'glyphCoffee',water:'glyphWater',cocktail:'glyphCocktail',wine:'glyphWine',beer:'glyphBeer',tumbler:'glyphTumbler'} as const;
 
 /** The exact same flex layout renders in the browser and next/og (Satori). */
-export function ResultsCard({ locale, t, tn, data, drink, gap = "", time, calories = null, protein = null, carbs = null, fat = null, items = [], size = tokens.spacing.phone, fontFamily, gutter = 0 }: ResultsCardProps) {
+export function ResultsCard({ locale, t, tn, data, trace, traceOnly, mext, drink, gap = "", time, calories = null, protein = null, carbs = null, fat = null, items = [], size = tokens.spacing.phone, fontFamily, gutter = 0 }: ResultsCardProps) {
   const card: CardData = data ?? {
     kind: drink ? 'drink' : 'meal', amountMl: drink?.ml, caffeineMg: drink?.caffeineMg,
     drinkLine: drink ? `${drink.label}${drink.caffeineMg ? ` · ${t('caffeineDetail',{amount:formatNutrition(drink.caffeineMg,tn,locale)})} · ${formatCalories(calories,tn,locale)} kcal` : ''}` : undefined,
     hydration: drink ? { totalMl: drink.totalMl, drinksMl: drink.drinksMl, foodMl: drink.foodMl, caffeineMg: drink.dayCaffeineMg ?? drink.caffeineMg } : undefined,
+    ...(trace?{trace}:{}),...(traceOnly?{traceOnly}:{}),...(mext?{mext}:{}),
     kcal: calories, macros: { protein, carbs, fat }, items, gap,
   };
   const isDrink = card.kind === 'drink';
@@ -49,8 +53,8 @@ export function ResultsCard({ locale, t, tn, data, drink, gap = "", time, calori
     const type = tokens.typography[name];
     return { fontSize: type.size * scale, fontWeight: type.weight, letterSpacing: type.tracking * scale, lineHeight: type.leading };
   };
-  const macro = (value: number | null | undefined, word: string) => <div key={word} style={{ display: 'flex', gap: tokens.spacing.grid * scale }}>
-    <span style={{ fontWeight: tokens.card.emphasisWeight }}>{formatNutrition(value,tn,locale)} g</span><span style={{ color: tokens.colors.muted }}>{word}</span>
+  const macro = (value: number | null | undefined, word: string, key:'protein_g'|'carbs_g'|'fat_g') => <div key={word} style={{ display: 'flex', gap: tokens.spacing.grid * scale }}>
+    <span style={{ fontWeight: tokens.card.emphasisWeight }}>{card.traceOnly?.includes(key)?tn('trace'):`${formatNutrition(value,tn,locale)} g`}</span><span style={{ color: tokens.colors.muted }}>{word}</span>
   </div>;
   const split = (value: number, word: string) => {
     const suffix=` ${word}`;
@@ -67,7 +71,7 @@ export function ResultsCard({ locale, t, tn, data, drink, gap = "", time, calori
         <div style={{display:'flex',...text('detail'),color:tokens.colors.muted}}>{card.drinkDetail??`${formatNutrition(card.amountMl??0,tn,locale)} ml`}</div>
       </div>
     </div>:<div style={{display:'flex',flexDirection:'column',gap:4*scale}}>
-      <div style={{display:'flex',...text('display-card')}}>{card.kcal===null?t('unavailable'):formatCalories(card.kcal,tn,locale)}</div>
+      <div style={{display:'flex',...text('display-card')}}>{card.traceOnly?.includes('calories')?tn('trace'):card.kcal===null?t('unavailable'):formatCalories(card.kcal,tn,locale)}</div>
       <div style={{display:'flex',...text('body'),fontWeight:400,color:tokens.colors.muted}}>kcal</div>
     </div>}
     {isDrink ? <div style={{ display: 'flex', flexDirection: 'column', borderTop: `1px solid ${tokens.colors.line}`, paddingTop: 16 * scale, gap: 10 * scale }}>
@@ -84,7 +88,7 @@ export function ResultsCard({ locale, t, tn, data, drink, gap = "", time, calori
       </div>
     </div> : <div style={{ display: 'flex', flexDirection: 'column', gap: 16 * scale }}>
       <div style={{ display: 'flex', gap: tokens.spacing['macro-gap'] * scale, ...text('body') }}>
-        {macro(card.macros?.protein, t('protein'))}{macro(card.macros?.carbs, t('carbs'))}{macro(card.macros?.fat, t('fat'))}
+        {macro(card.macros?.protein, t('protein'),'protein_g')}{macro(card.macros?.carbs, t('carbs'),'carbs_g')}{macro(card.macros?.fat, t('fat'),'fat_g')}
       </div>
       {card.gap ? <div style={{ display: 'flex', ...text('meta'), color: tokens.colors.muted }}>{card.gap}</div> : null}
       <div style={{ display: 'flex', flexDirection: 'column', gap: 6 * scale, ...text('detail'), lineHeight: tokens.card.itemLeading, color: tokens.colors.muted }}>
@@ -94,5 +98,7 @@ export function ResultsCard({ locale, t, tn, data, drink, gap = "", time, calori
         {card.footer ? <div style={{ display: 'flex' }}>{card.footer}</div> : null}
       </div>
     </div>}
+      {card.trace&&Object.keys(card.trace).some(key=>!card.traceOnly?.includes(key as import('@/lib/nutrition/totals').NutrientKey))?<div style={{display:'flex',...text('meta'),color:tokens.colors.muted}}>{tn('includesTraceAmounts')}</div>:null}
+      {card.mext?<div style={{display:'flex',...text('meta'),color:tokens.colors.muted}}><span>{t.rich('mextAttribution',{mext:chunks=><span>{chunks}</span>})}</span></div>:null}
   </div>;
 }

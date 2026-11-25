@@ -4,7 +4,7 @@ import type {CardTranslator} from '@/i18n/card';
 import type {Locale} from '@/i18n/locales';
 import {drinkGlyph,type DrinkGlyph} from '@/lib/intake/drink-glyph';
 import type { DrinkCardData, HydrationRecord } from "@/lib/intake/hydration";
-import { formatCalories, formatNutrition, sumNutrition, toNumber, nutritionGaps, gapSentence, type Numeric, type NutritionLike, type StoredNutrient, type NutritionGap } from "@/lib/nutrition/totals";
+import { formatCalories, formatNutrition, sumNutrition, toNumber, nutritionGaps, gapSentence, type Numeric, type NutritionLike, type StoredNutrient, type NutritionGap, type MealTotals } from "@/lib/nutrition/totals";
 
 export type CardTranslators={t:CardTranslator;tn:NutritionTranslator};
 
@@ -32,6 +32,9 @@ export interface CardData {
   drinkLine?: string;
   caffeineMg?: number;
   hydration?: HydrationRecord;
+  trace?: MealTotals['trace'];
+  traceOnly?: MealTotals['traceOnly'];
+  mext?: boolean;
   kcal?: number | null;
   macros?: { protein: number | null; carbs: number | null; fat: number | null };
   items?: { name: string; grams: number | null; portionText?: string }[];
@@ -69,6 +72,8 @@ export function cardDataFromRow(source: CardSource, locale:Locale, translators:C
     glyph,drinkLabel:label,dayDrinks:drink?.dayDrinks??source.dayDrinks,
     kind: drink || source.kind === "drink" || (source.items.length>0&&source.items.every(item=>item.id&&source.itemDrinks?.some(row=>row.post_item_id===item.id))) ? "drink" : "meal",
     time:source.eaten_at??source.eatenAt,amountMl:drink?.ml,caffeineMg:drink?.caffeineMg,hydration,
+    ...(totals.trace?{trace:totals.trace}:{}),...(totals.traceOnly?{traceOnly:totals.traceOnly}:{}),
+    ...(source.items.some(item=>item.source_ref?.startsWith('mext:'))?{mext:true}:{}),
     kcal:totals.calories,macros:{protein:totals.protein_g,carbs:totals.carbs_g,fat:totals.fat_g},
     items:source.items.map(item=>({name:item.name,grams:item.portion_grams==null?null:toNumber(item.portion_grams),...(item.portion_grams==null&&/^\d+(?:\.\d+)? ml$/i.test(item.portion_text??'')?{portionText:item.portion_text!}:{})})),
     footer:source.footer,
@@ -87,7 +92,7 @@ export function localizeCardData(card:CardData,locale:Locale,{t,tn}:CardTranslat
  const words=card.wording;
  if(!words){if(locale==='en')return card;throw new Error('Card presentation inputs are unavailable for this language.');}
  const drink=words.drink;
- const kcal=card.kcal==null?t('unavailable'):formatCalories(card.kcal,tn,locale);
+ const kcal=card.traceOnly?.includes('calories')?tn('trace'):card.kcal==null?t('unavailable'):formatCalories(card.kcal,tn,locale);
  const caffeineTotal=words.itemDrinks.reduce((sum,row)=>sum+row.caffeineMg,0);
  return {...card,
    drinkDetail:words.alcoholic?(words.alcoholG>0?t('alcoholDetail',{grams:formatNutrition(words.alcoholG,tn,locale),drinks:(words.alcoholG/14).toFixed(1)}):t('alcoholUnavailable')):words.glyph==='coffee'?t('caffeineDetail',{amount:formatNutrition(card.caffeineMg??0,tn,locale)}):`${formatNutrition(card.amountMl??0,tn,locale)} ml`,

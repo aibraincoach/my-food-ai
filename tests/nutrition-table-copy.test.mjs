@@ -22,7 +22,7 @@ function render(locale,messages,fixtureItems=items){
   if(name==='@/lib/nutrition/totals')return totals;
   if(name==='@/lib/nutrition/table')return table;
   if(name==='@/lib/fdc/approximation-metadata')return approximation;
-  if(name==='./OpenFoodFactsAttribution')return{__esModule:true,default:()=>null};
+  if(name==='./OpenFoodFactsAttribution'||name==='./MextAttribution')return{__esModule:true,default:()=>null};
   throw Error(name);
  }});
  return renderToStaticMarkup(React.createElement(exports.default,{items:fixtureItems}));

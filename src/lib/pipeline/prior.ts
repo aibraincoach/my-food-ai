@@ -1,3 +1,5 @@
+import {readMextFood} from '../mext/client';
+import {mextFoodNumber} from '../mext/record';
 import {ioError,isRetriable} from "@/lib/worker/errors";
 import type {SupabaseClient} from "@supabase/supabase-js";
 import {confirmSameMeal} from "@/lib/meta/same-meal";
@@ -37,9 +39,13 @@ export async function findPrior(admin:SupabaseClient,postId:string):Promise<{hin
   const hint=`Historical reference only (unconfirmed): this user logged this meal before as: ${items.map(item=>`${item.name}, ${item.portion_grams??"unknown"} g`).join("; ")}. Use these names or portions only when the current caption and photo support them. A changed caption takes precedence; never assume the previous portion.`;
   if(best.score<PRIOR.copyThreshold) return {hint};
   const {data:decisions,error:traceError,status:traceStatus}=await admin.from("model_calls")
-    .select("request_text,response_text,fdc_id,error,started_at").eq("post_id",best.post_id).eq("kind","fdc").gt("fdc_id",0).like("request_text",'%"event":%').order("started_at",{ascending:false}).limit(200);
+    .select("request_text,response_text,fdc_id,reference_ref,error,started_at").eq("post_id",best.post_id).in("kind",["fdc","mext"]).like("request_text",'%"event":%').order("started_at",{ascending:false}).limit(200);
   if(traceError) throw ioError("Prior nutrition provenance could not be read.",traceError,traceStatus);
   if(!priorNutritionTrusted(items,decisions??[])) return {hint};
+  // A retained trace is proof of the identity, not proof that its reference
+  // table still exists. Stored MEXT facts require that reference for edits.
+  const references=new Set(items.flatMap(item=>{const n=Array.isArray(item.item_nutrition)?item.item_nutrition[0]:item.item_nutrition;const ref=n?.source_ref;return mextFoodNumber(ref)!==null?[ref as string]:[];}));
+  for(const ref of references)await readMextFood(admin,ref);
   const {data:post,error:postError,status:postStatus}=await admin.from("posts").select("user_id,caption").eq("id",postId).single();
   if(postError) throw ioError(postError.message,postError,postStatus);
   const {data:past,error:pastError,status:pastStatus}=await admin.from("posts").select("caption").eq("id",best.post_id).eq("user_id",post.user_id).single();

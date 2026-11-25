@@ -1,3 +1,7 @@
+import {readMextFood} from '../mext/client';
+import {mextFoodNumber} from '../mext/record';
+import {matchMext} from '../mext/match';
+import {scaleMextNutrition} from '../mext/nutrients';
 import {foodApproximation} from "@/lib/fdc/approximation-metadata";
 import {traceNutritionReuse} from "@/lib/fdc/match";
 import type {SupabaseClient} from '@supabase/supabase-js';
@@ -40,6 +44,12 @@ export async function resolvePortionNutrition(admin: SupabaseClient, postId: str
   if(row){
    const nutrition=row as NutritionRow;
    await traceNutritionReuse(name,nutrition,"retained",priorId);
+   if(mextFoodNumber(nutrition.source_ref)!==null){
+    const reference=await readMextFood(admin,nutrition.source_ref!,signal);
+    const matched=await matchMext(name,'',{kind:'localized',locale:'ja',displayName:reference.nameJa},{search:async()=>[reference],choose:async()=>({foodNumber:reference.foodNumber,closest:foodApproximation(nutrition)?.kind==='closest',reason:'Stored reference retained for portion edit.'})});
+    if(!matched.food)throw new Error('Stored MEXT reference is incompatible.');
+    return storedNutrition(scaleMextNutrition(matched.food,grams==null?null:toNumber(grams)),priorId);
+   }
    const hasAmounts=[nutrition.calories,nutrition.protein_g,nutrition.carbs_g,nutrition.fat_g,...(Array.isArray(nutrition.micronutrients)?nutrition.micronutrients:[]).map(n=>n.value)].some(n=>n!=null);
    if(prior.portion_grams==null&&grams==null)return rescalePortionNutrition(nutrition,prior.portion_grams,grams,prior.portion_text,portionText);
    if(nutrition.source_ref && Number.isSafeInteger(Number(nutrition.source_ref)) && Number(nutrition.source_ref)>0 && (toNumber(prior.portion_grams)<=0 || !hasAmounts)) {

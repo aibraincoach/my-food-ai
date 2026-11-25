@@ -1,3 +1,4 @@
+import {resolveFoodReference,scaleFoodReference} from '@/lib/mext/resolve';
 import { approximationLabels } from "@/lib/fdc/approximation-metadata";
 import {beforeLeftovers,carryLeftovers,retainedNutrition} from '@/lib/pipeline/leftovers';
 import { sendPostPush } from "@/lib/push/send";
@@ -16,9 +17,8 @@ import { createResponse, MetaApiError } from '@/lib/meta/client';
 import { correctPrompt } from '@/lib/prompts/spark/correct';
 import { correctionSchema } from '@/lib/prompts/spark/correct-schema';
 import { resolveNutritionItems } from "@/lib/fdc/resolve-items";
-import { resolveFoodMatchDetailed, traceNutritionReuse, nutritionResolutionBudget } from '@/lib/fdc/match';
+import { traceNutritionReuse, nutritionResolutionBudget } from '@/lib/fdc/match';
 import { sumNutrition } from '@/lib/nutrition/totals';
-import { scaleNutrition } from '@/lib/fdc/nutrients';
 import {mealSummaryMessage} from '@/lib/posts/comment-message';
 import { correctionWindow } from '@/lib/pipeline/correction-state';
 import { markReady } from '@/lib/pipeline/persist';
@@ -111,8 +111,8 @@ export async function replayCorrection(admin:import('@supabase/supabase-js').Sup
    const retained=replaying&&region?.name===item.name?rescalePortionNutrition({...retainedNutrition(region),post_item_id:region.id},region.portion_grams,item.portion_grams,region.portion_text,item.portion_text):region?.name===item.name?await resolvePortionNutrition(admin,postId!,region.id,item.name,item.portion_grams,item.portion_text,signal):null;
    if(retained&&!nutritionUnavailable(retained))nutrition=retained;
    else {
-   const match=await resolveFoodMatchDetailed(admin,item.name,context.caption??'',signal,{approximate:true});
-   const n=scaleNutrition(match.food,item.portion_grams,match.unavailable);
+   const match=await resolveFoodReference(admin,item.name,{kind:'usda-only'},context.caption??'',signal,{approximate:true});
+   const n=scaleFoodReference(match.reference,item.portion_grams,match.unavailable);
    nutrition={calories:n.calories,protein_g:n.proteinG,carbs_g:n.carbsG,fat_g:n.fatG,fibre_g:n.fibreG,sugar_g:n.sugarG,sodium_mg:n.sodiumMg,micronutrients:n.micronutrients,source_ref:n.sourceRef,food_category:n.foodCategory ?? null};
    }
   }

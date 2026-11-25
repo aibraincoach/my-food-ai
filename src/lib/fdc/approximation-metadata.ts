@@ -1,3 +1,4 @@
+import {mextFoodNumber} from '../mext/record';
 import type {FdcFood} from "./client";
 // Provenance travels with nutrient entries through JSON copies and
 // portion rescaling. It never acts as a nutrient or changes a source_ref.
@@ -11,12 +12,12 @@ export function foodApproximation(row:NutritionSource):{kind:'closest'|'estimate
  }
  return null;
 }
-export function approximationLabels(items:readonly (NutritionSource & {name:string})[]):{name:string;basis:string;kind:'closest'|'estimate'}[]{
+export function approximationLabels(items:readonly (NutritionSource & {name:string})[]):{name:string;basis:string;kind:'closest'|'estimate';source?:'mext'}[]{
  const seen=new Set<string>();
  return items.flatMap(item=>{
   const approximation=foodApproximation(item),key=`${item.name}\0${item.source_ref}`;
   if(!approximation||seen.has(key))return[];
-  seen.add(key);return[{name:item.name,basis:approximation.basis,kind:approximation.kind}];
+  seen.add(key);return[{name:item.name,basis:approximation.basis,kind:approximation.kind,...(mextFoodNumber(item.source_ref)!==null?{source:'mext' as const}:{})}];
  });
 }
 

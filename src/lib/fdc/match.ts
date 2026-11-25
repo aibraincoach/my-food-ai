@@ -1,3 +1,5 @@
+import {mextFoodNumber,mextSourceRef} from '../mext/record';
+import type {MextStep} from '../mext/match';
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { searchFoods, type FdcFood } from "./client";
 import { excludedComponents } from "./exclusions";
@@ -90,9 +92,9 @@ export async function matchFood(name: string, caption: string, dependencies: Mat
 }
 
 // The food, or why there is none: the reason travels with the item (issue #575).
-export async function resolveFoodMatchDetailed(admin:SupabaseClient,name:string,caption="",signal:AbortSignal=nutritionResolutionBudget(),options:{approximate?:boolean}={}):Promise<{food:FdcFood|null;unavailable:UnavailableReason|null}>{
+export async function resolveFoodMatchDetailed(admin:SupabaseClient,name:string,caption="",signal:AbortSignal=nutritionResolutionBudget(),options:{approximate?:boolean;sourceSteps?:MextStep[]}={}):Promise<{food:FdcFood|null;unavailable:UnavailableReason|null}>{
   try {
-    const result=await recordCall("fdc",{event:"food_resolution",name,matcherVersion:FOOD_MATCH_VERSION},()=>matchFood(name,caption,{search:query=>searchFoods(admin,query,signal),choose:(item,context,foods,retry,query,remaining)=>choose(item,context,foods,retry,signal,query,remaining)},signal),r=>({text:{source:r.food?"selected":"unavailable",reason:r.reason,searches:r.searches},fdcId:r.food?.fdcId??null}));
+    const result=await recordCall("fdc",{event:"food_resolution",name,matcherVersion:FOOD_MATCH_VERSION},()=>matchFood(name,caption,{search:query=>searchFoods(admin,query,signal),choose:(item,context,foods,retry,query,remaining)=>choose(item,context,foods,retry,signal,query,remaining)},signal),r=>({text:{source:r.food?"selected":"unavailable",reason:r.reason,searches:r.searches,...(options.sourceSteps?{mextSteps:options.sourceSteps}:{})},fdcId:r.food?.fdcId??null}));
     if(result.food)return {food:result.food,unavailable:null};
     if(!options.approximate)return {food:null,unavailable:{code:'no_match',detail:result.reason}};
     const closest=result.baseFood?await closestGenericFood(admin,name,caption,result.baseFood,signal):{food:null,reason:result.reason};
@@ -113,10 +115,15 @@ export async function resolveFoodMatchDetailed(admin:SupabaseClient,name:string,
     throw error;
   }
 }
-export async function resolveFoodMatch(admin:SupabaseClient,name:string,caption="",signal:AbortSignal=nutritionResolutionBudget(),options:{approximate?:boolean}={}):Promise<FdcFood|null>{
+export async function resolveFoodMatch(admin:SupabaseClient,name:string,caption="",signal:AbortSignal=nutritionResolutionBudget(),options:{approximate?:boolean;sourceSteps?:MextStep[]}={}):Promise<FdcFood|null>{
   return (await resolveFoodMatchDetailed(admin,name,caption,signal,options)).food;
 }
 
 export async function traceNutritionReuse<T extends {source_ref?:unknown;matcher_version?:unknown}>(name:string,nutrition:T,source:string,sourceItem?:string){
+  const mext=mextFoodNumber(nutrition.source_ref);
+  if(mext!==null){
+    await recordCall('mext',{event:'nutrition_reuse',name,source,sourceItem:sourceItem??null,...(source==='copied'&&nutrition.matcher_version===FOOD_MATCH_VERSION?{matcherVersion:FOOD_MATCH_VERSION}:{})},async()=>nutrition,n=>({text:{source,source_ref:n.source_ref??null},referenceRef:mextSourceRef(mext)}),{model:null,host:'postgres'});
+    return;
+  }
   await recordCall("fdc",{event:"nutrition_reuse",name,source,sourceItem:sourceItem??null,...(source==="copied"&&nutrition.matcher_version===FOOD_MATCH_VERSION?{matcherVersion:FOOD_MATCH_VERSION}:{})},async()=>nutrition,n=>({text:{source,source_ref:n.source_ref??null},fdcId:Number(n.source_ref)||null}));
 }

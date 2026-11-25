@@ -1,7 +1,7 @@
 import { dateInZone } from "./days";
 import { sumNutrition, type MealTotals } from "@/lib/nutrition/totals";
 import type { FeedPost } from "./feed";
-export interface TodayView { date: string; posts: { id: string; caption: string; eatenAt: string; photoUrl: string | null; items: { name: string }[]; totals: { calories: number | null } }[]; totals: MealTotals }
+export interface TodayView { date: string; posts: { id: string; caption: string; eatenAt: string; photoUrl: string | null; items: { name: string }[]; totals: Pick<MealTotals,'calories'|'trace'|'traceOnly'> }[]; totals: MealTotals }
 // Today's column from the feed's first page, so Home does not query today's
 // totals a second time. Null when today's posts may run past the page: the
 // page is ordered by eaten_at descending, so a post eaten before today, or

@@ -155,7 +155,8 @@
     "glyphCocktail": "カクテル",
     "glyphWine": "ワイン",
     "glyphBeer": "ビール",
-    "glyphTumbler": "タンブラー"
+    "glyphTumbler": "タンブラー",
+    "mextAttribution": "栄養成分のデータ：<mext>日本食品標準成分表（八訂）増補2023年</mext>から引用（又は出典）。英語の食品名：日本食品標準成分表2015年版（七訂）および2016年の追補。各分量あたりの数値は My Food AI が算出しています。"
   },
   "metadata": {
     "description": "食べたものを、写真、文章、または音声で記録できます。目標や評価なしで、栄養を確認できます。"
@@ -1034,7 +1035,8 @@
     "request": "リクエスト",
     "response": "レスポンス",
     "error": "エラー：{error}",
-    "seconds": "{amount}秒"
+    "seconds": "{amount}秒",
+    "mextCallKind": "MEXT 食品参照データ"
   },
   "api": {
     "error_0795a0b4a0a6": "食事を保存できませんでした。",
@@ -1333,6 +1335,8 @@
     "sugar": "糖類",
     "sodium": "ナトリウム",
     "unavailable": "不明",
+    "trace": "微量",
+    "includesTraceAmounts": "微量を含みます。",
     "itemUnnamed": "食品",
     "editRemoved": "{name}を削除しました。",
     "editAdded": "{name}を追加しました（{amount}）。",
@@ -1346,7 +1350,8 @@
     "remainderReply": "食べ残し：{leftovers} · {omitted} kcal。摂取：{consumed} · {calories} kcal。",
     "remainderCount": "{count}{unit}",
     "consumedCount": "{total}{unit}のうち{count}{unit}",
-    "productCorrected": "商品を{name}に修正しました。"
+    "productCorrected": "商品を{name}に修正しました。",
+    "approxMext": "{name}の栄養は、最も近い MEXT の記録（{basis}）に基づいています。"
   },
   "nutrients": {
     "core_calories": "カロリー",

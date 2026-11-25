@@ -1,3 +1,4 @@
+import {mextFoodNumber} from '../mext/record';
 import {parseCommentMessage} from './comment-message';
 import {cardTranslator} from '@/i18n/card';
 import {nutritionTranslator} from '@/i18n/nutrition';
@@ -80,7 +81,11 @@ export async function editPostItem(admin: SupabaseClient, postId: string, userId
     let foodId = edit.fdc_selection?.id ?? null;
     if (foodId === null && edit.item_id) {
       const { data } = await admin.from("item_nutrition").select("source_ref").eq("post_item_id", edit.item_id).maybeSingle();
-      const ref = Number((data as { source_ref?: string | null } | null)?.source_ref);
+      const sourceRef=(data as {source_ref?:string|null}|null)?.source_ref;
+      // The MEXT table provides no cup/piece measures. Do not reinterpret its
+      // five-digit identity as a USDA id or invent a grams conversion.
+      if(mextFoodNumber(sourceRef)!==null)return {error:UNIT_UNAVAILABLE,itemId:null};
+      const ref = Number(sourceRef);
       foodId = Number.isSafeInteger(ref) && ref > 0 ? ref : null;
     }
     const grams = foodId === null ? null : toGrams(edit.portion_amount!, edit.portion_unit, (await getFoodById(admin, foodId)).portions ?? []);

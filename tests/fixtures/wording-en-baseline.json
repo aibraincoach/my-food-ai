@@ -1,0 +1,710 @@
+{
+  "base": "74868671a3435b53c1a9031adfbdc0de496fb535",
+  "banned": [
+    "coach",
+    "coaching",
+    "advice",
+    "advise",
+    "recommend",
+    "recommendation",
+    "goal",
+    "target",
+    "plan",
+    "budget",
+    "progress",
+    "left",
+    "remaining",
+    "ring",
+    "streak",
+    "should",
+    "try to",
+    "aim for",
+    "cut back",
+    "next time",
+    "keep it up",
+    "well done",
+    "good job"
+  ],
+  "cases": [
+    {
+      "text": "Salmon 120 g, green beans 80 g. About 463 kcal.",
+      "hits": []
+    },
+    {
+      "text": "Spring rolls on a plate.",
+      "hits": []
+    },
+    {
+      "text": "Leftovers: 50 g.",
+      "hits": []
+    },
+    {
+      "text": "you should eat",
+      "hits": [
+        "should"
+      ]
+    },
+    {
+      "text": "calories left",
+      "hits": [
+        "left"
+      ]
+    },
+    {
+      "text": "TRY  TO eat more",
+      "hits": [
+        "try to"
+      ]
+    },
+    {
+      "text": "Good job!",
+      "hits": [
+        "good job"
+      ]
+    },
+    {
+      "text": "coach",
+      "hits": [
+        "coach"
+      ]
+    },
+    {
+      "text": "COACH",
+      "hits": [
+        "coach"
+      ]
+    },
+    {
+      "text": "xcoachx",
+      "hits": []
+    },
+    {
+      "text": "(coach)",
+      "hits": [
+        "coach"
+      ]
+    },
+    {
+      "text": "coach",
+      "hits": [
+        "coach"
+      ]
+    },
+    {
+      "text": "coaching",
+      "hits": [
+        "coaching"
+      ]
+    },
+    {
+      "text": "COACHING",
+      "hits": [
+        "coaching"
+      ]
+    },
+    {
+      "text": "xcoachingx",
+      "hits": []
+    },
+    {
+      "text": "(coaching)",
+      "hits": [
+        "coaching"
+      ]
+    },
+    {
+      "text": "coaching",
+      "hits": [
+        "coaching"
+      ]
+    },
+    {
+      "text": "advice",
+      "hits": [
+        "advice"
+      ]
+    },
+    {
+      "text": "ADVICE",
+      "hits": [
+        "advice"
+      ]
+    },
+    {
+      "text": "xadvicex",
+      "hits": []
+    },
+    {
+      "text": "(advice)",
+      "hits": [
+        "advice"
+      ]
+    },
+    {
+      "text": "advice",
+      "hits": [
+        "advice"
+      ]
+    },
+    {
+      "text": "advise",
+      "hits": [
+        "advise"
+      ]
+    },
+    {
+      "text": "ADVISE",
+      "hits": [
+        "advise"
+      ]
+    },
+    {
+      "text": "xadvisex",
+      "hits": []
+    },
+    {
+      "text": "(advise)",
+      "hits": [
+        "advise"
+      ]
+    },
+    {
+      "text": "advise",
+      "hits": [
+        "advise"
+      ]
+    },
+    {
+      "text": "recommend",
+      "hits": [
+        "recommend"
+      ]
+    },
+    {
+      "text": "RECOMMEND",
+      "hits": [
+        "recommend"
+      ]
+    },
+    {
+      "text": "xrecommendx",
+      "hits": []
+    },
+    {
+      "text": "(recommend)",
+      "hits": [
+        "recommend"
+      ]
+    },
+    {
+      "text": "recommend",
+      "hits": [
+        "recommend"
+      ]
+    },
+    {
+      "text": "recommendation",
+      "hits": [
+        "recommendation"
+      ]
+    },
+    {
+      "text": "RECOMMENDATION",
+      "hits": [
+        "recommendation"
+      ]
+    },
+    {
+      "text": "xrecommendationx",
+      "hits": []
+    },
+    {
+      "text": "(recommendation)",
+      "hits": [
+        "recommendation"
+      ]
+    },
+    {
+      "text": "recommendation",
+      "hits": [
+        "recommendation"
+      ]
+    },
+    {
+      "text": "goal",
+      "hits": [
+        "goal"
+      ]
+    },
+    {
+      "text": "GOAL",
+      "hits": [
+        "goal"
+      ]
+    },
+    {
+      "text": "xgoalx",
+      "hits": []
+    },
+    {
+      "text": "(goal)",
+      "hits": [
+        "goal"
+      ]
+    },
+    {
+      "text": "goal",
+      "hits": [
+        "goal"
+      ]
+    },
+    {
+      "text": "target",
+      "hits": [
+        "target"
+      ]
+    },
+    {
+      "text": "TARGET",
+      "hits": [
+        "target"
+      ]
+    },
+    {
+      "text": "xtargetx",
+      "hits": []
+    },
+    {
+      "text": "(target)",
+      "hits": [
+        "target"
+      ]
+    },
+    {
+      "text": "target",
+      "hits": [
+        "target"
+      ]
+    },
+    {
+      "text": "plan",
+      "hits": [
+        "plan"
+      ]
+    },
+    {
+      "text": "PLAN",
+      "hits": [
+        "plan"
+      ]
+    },
+    {
+      "text": "xplanx",
+      "hits": []
+    },
+    {
+      "text": "(plan)",
+      "hits": [
+        "plan"
+      ]
+    },
+    {
+      "text": "plan",
+      "hits": [
+        "plan"
+      ]
+    },
+    {
+      "text": "budget",
+      "hits": [
+        "budget"
+      ]
+    },
+    {
+      "text": "BUDGET",
+      "hits": [
+        "budget"
+      ]
+    },
+    {
+      "text": "xbudgetx",
+      "hits": []
+    },
+    {
+      "text": "(budget)",
+      "hits": [
+        "budget"
+      ]
+    },
+    {
+      "text": "budget",
+      "hits": [
+        "budget"
+      ]
+    },
+    {
+      "text": "progress",
+      "hits": [
+        "progress"
+      ]
+    },
+    {
+      "text": "PROGRESS",
+      "hits": [
+        "progress"
+      ]
+    },
+    {
+      "text": "xprogressx",
+      "hits": []
+    },
+    {
+      "text": "(progress)",
+      "hits": [
+        "progress"
+      ]
+    },
+    {
+      "text": "progress",
+      "hits": [
+        "progress"
+      ]
+    },
+    {
+      "text": "left",
+      "hits": [
+        "left"
+      ]
+    },
+    {
+      "text": "LEFT",
+      "hits": [
+        "left"
+      ]
+    },
+    {
+      "text": "xleftx",
+      "hits": []
+    },
+    {
+      "text": "(left)",
+      "hits": [
+        "left"
+      ]
+    },
+    {
+      "text": "left",
+      "hits": [
+        "left"
+      ]
+    },
+    {
+      "text": "remaining",
+      "hits": [
+        "remaining"
+      ]
+    },
+    {
+      "text": "REMAINING",
+      "hits": [
+        "remaining"
+      ]
+    },
+    {
+      "text": "xremainingx",
+      "hits": []
+    },
+    {
+      "text": "(remaining)",
+      "hits": [
+        "remaining"
+      ]
+    },
+    {
+      "text": "remaining",
+      "hits": [
+        "remaining"
+      ]
+    },
+    {
+      "text": "ring",
+      "hits": [
+        "ring"
+      ]
+    },
+    {
+      "text": "RING",
+      "hits": [
+        "ring"
+      ]
+    },
+    {
+      "text": "xringx",
+      "hits": []
+    },
+    {
+      "text": "(ring)",
+      "hits": [
+        "ring"
+      ]
+    },
+    {
+      "text": "ring",
+      "hits": [
+        "ring"
+      ]
+    },
+    {
+      "text": "streak",
+      "hits": [
+        "streak"
+      ]
+    },
+    {
+      "text": "STREAK",
+      "hits": [
+        "streak"
+      ]
+    },
+    {
+      "text": "xstreakx",
+      "hits": []
+    },
+    {
+      "text": "(streak)",
+      "hits": [
+        "streak"
+      ]
+    },
+    {
+      "text": "streak",
+      "hits": [
+        "streak"
+      ]
+    },
+    {
+      "text": "should",
+      "hits": [
+        "should"
+      ]
+    },
+    {
+      "text": "SHOULD",
+      "hits": [
+        "should"
+      ]
+    },
+    {
+      "text": "xshouldx",
+      "hits": []
+    },
+    {
+      "text": "(should)",
+      "hits": [
+        "should"
+      ]
+    },
+    {
+      "text": "should",
+      "hits": [
+        "should"
+      ]
+    },
+    {
+      "text": "try to",
+      "hits": [
+        "try to"
+      ]
+    },
+    {
+      "text": "TRY TO",
+      "hits": [
+        "try to"
+      ]
+    },
+    {
+      "text": "xtry tox",
+      "hits": []
+    },
+    {
+      "text": "(try to)",
+      "hits": [
+        "try to"
+      ]
+    },
+    {
+      "text": "try \t to",
+      "hits": [
+        "try to"
+      ]
+    },
+    {
+      "text": "aim for",
+      "hits": [
+        "aim for"
+      ]
+    },
+    {
+      "text": "AIM FOR",
+      "hits": [
+        "aim for"
+      ]
+    },
+    {
+      "text": "xaim forx",
+      "hits": []
+    },
+    {
+      "text": "(aim for)",
+      "hits": [
+        "aim for"
+      ]
+    },
+    {
+      "text": "aim \t for",
+      "hits": [
+        "aim for"
+      ]
+    },
+    {
+      "text": "cut back",
+      "hits": [
+        "cut back"
+      ]
+    },
+    {
+      "text": "CUT BACK",
+      "hits": [
+        "cut back"
+      ]
+    },
+    {
+      "text": "xcut backx",
+      "hits": []
+    },
+    {
+      "text": "(cut back)",
+      "hits": [
+        "cut back"
+      ]
+    },
+    {
+      "text": "cut \t back",
+      "hits": [
+        "cut back"
+      ]
+    },
+    {
+      "text": "next time",
+      "hits": [
+        "next time"
+      ]
+    },
+    {
+      "text": "NEXT TIME",
+      "hits": [
+        "next time"
+      ]
+    },
+    {
+      "text": "xnext timex",
+      "hits": []
+    },
+    {
+      "text": "(next time)",
+      "hits": [
+        "next time"
+      ]
+    },
+    {
+      "text": "next \t time",
+      "hits": [
+        "next time"
+      ]
+    },
+    {
+      "text": "keep it up",
+      "hits": [
+        "keep it up"
+      ]
+    },
+    {
+      "text": "KEEP IT UP",
+      "hits": [
+        "keep it up"
+      ]
+    },
+    {
+      "text": "xkeep it upx",
+      "hits": []
+    },
+    {
+      "text": "(keep it up)",
+      "hits": [
+        "keep it up"
+      ]
+    },
+    {
+      "text": "keep \t it \t up",
+      "hits": [
+        "keep it up"
+      ]
+    },
+    {
+      "text": "well done",
+      "hits": [
+        "well done"
+      ]
+    },
+    {
+      "text": "WELL DONE",
+      "hits": [
+        "well done"
+      ]
+    },
+    {
+      "text": "xwell donex",
+      "hits": []
+    },
+    {
+      "text": "(well done)",
+      "hits": [
+        "well done"
+      ]
+    },
+    {
+      "text": "well \t done",
+      "hits": [
+        "well done"
+      ]
+    },
+    {
+      "text": "good job",
+      "hits": [
+        "good job"
+      ]
+    },
+    {
+      "text": "GOOD JOB",
+      "hits": [
+        "good job"
+      ]
+    },
+    {
+      "text": "xgood jobx",
+      "hits": []
+    },
+    {
+      "text": "(good job)",
+      "hits": [
+        "good job"
+      ]
+    },
+    {
+      "text": "good \t job",
+      "hits": [
+        "good job"
+      ]
+    }
+  ]
+}

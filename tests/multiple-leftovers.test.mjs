@@ -23,7 +23,7 @@ test('fully uneaten foods and cumulative footer keep their recorded calories aft
  const row=carryLeftovers({name:prior.name,portion_grams:100,portion_text:'100 g',nutrition:retainedNutrition(prior)},prior);
  assert.equal(row.nutrition.calories,0);assert.equal(row.portion_grams,0);assert.equal(row.not_eaten_calories,200);
  const card=cardDataFromRow({items:[{...prior,...row,not_eaten_count_text:'100 g'}]},'en',cardTranslators('en'));assert.equal(card.footer,'Leftovers: 100 g · 200 kcal');
- assert.equal(checkWording(card.footer).ok,true);assert.equal(checkWording('Leftovers').ok,true);assert.equal(checkWording('100 calories left').ok,false);
+ assert.equal(checkWording(card.footer,'en').ok,true);assert.equal(checkWording('Leftovers','en').ok,true);assert.equal(checkWording('100 calories left','en').ok,false);
 });
 test('two independent leftovers photos accumulate, retry once, survive ordinary correction, and stay owner-scoped',async()=>{
  const owner=await user(1);const migration=readFileSync(new URL('../supabase/migrations/0028_multiple_leftovers.sql',import.meta.url),'utf8');

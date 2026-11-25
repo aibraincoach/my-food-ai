@@ -16,7 +16,7 @@ import {Icon} from '@/components/ui/Icon';
 const FIRST_LOAD=30,LOAD_MORE=30,NEAR_END=5,RING_STEP=72;
 function daysBetween(from:string,to:string){return Math.round((Date.parse(`${to}T12:00:00Z`)-Date.parse(`${from}T12:00:00Z`))/86_400_000);}
 export default function DayRings({days,totals,today,zone,zoneKnown,ownerId,earliest=null,pending=false}:{pending?:boolean;ownerId?:string|null;days:{date:string}[];totals:FeedDayTotal[];today:string;zone:string;zoneKnown:boolean;earliest?:string|null}) {
- const t=useTranslations('feed'),locale=useLocale() as Locale;
+ const t=useTranslations('feed'),tn=useTranslations('nutrition'),locale=useLocale() as Locale;
  const router=useRouter();
  const [snapshot,setSnapshot]=useState({seed:totals,days:totals,ready:!pending});
  const [count,setCount]=useState(FIRST_LOAD);
@@ -58,16 +58,17 @@ export default function DayRings({days,totals,today,zone,zoneKnown,ownerId,earli
  return <nav ref={row} aria-label={t('daysLabel')} onScroll={onScroll} onPointerDown={()=>{if(!touched)setTouched(true);}} className="desktop:hidden flex gap-[10px] overflow-x-auto snap-x snap-mandatory scroll-pl-inset overscroll-x-contain px-inset pt-[2px] pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
   {Array.from({length:limit},(_,index)=>{
    const day=shiftDay(today,-index),month=loaded[day];
-   const total=currentTotals.find(entry=>entry.day===day)??(month?{day,kcal:month.kcal,ready:month.ready,missing:month.missing}:undefined);
+   const total=currentTotals.find(entry=>entry.day===day)??(month?{day,kcal:month.kcal,ready:month.ready,missing:month.missing,...(month.trace?{trace:month.trace}:{}),...(month.traceOnly?{traceOnly:month.traceOnly}:{})}:undefined);
    const hasDay=total?total.ready:month?month.posts>0:days.some(entry=>entry.date===day);
    const label=waiting?(index===0?t('today'):'—'):index===0?t('today'):t('ringDate',{weekday:formatDate(locale,new Date(`${day}T12:00:00Z`),'UTC',{weekday:'short'}),day:formatNumber(locale,Number(day.slice(-2)))});
    const content=<><span className={`relative flex size-[56px] items-center justify-center rounded-circle border-2 p-[3px] ${index===0||hasDay?'border-text':'border-ring'}`}>
-    <span className={`flex size-full items-center justify-center rounded-circle text-meta font-medium tabular-nums ${index===0||hasDay?'bg-card':''}`}>{total?.ready&&total.kcal!==null?formatEnergy(locale,total.kcal):''}</span>
+    <span className={`flex size-full items-center justify-center rounded-circle text-meta font-medium tabular-nums ${index===0||hasDay?'bg-card':''}`}>{total?.ready&&total.kcal!==null?(total.traceOnly?tn('trace'):formatEnergy(locale,total.kcal)):''}</span>
     {index===0&&<span className="absolute -right-[3px] -bottom-[3px] flex size-[22px] items-center justify-center rounded-circle border-2 border-surface bg-text text-surface"><Icon name="plus" size={12} strokeWidth={3}/></span>}
    </span><span className={`text-label ${index===0?'text-text':bubbleLinkClass(hasDay)}`}>{label}</span></>;
-   const dayLabel=waiting?t('ringUpdatingLabel',{label}):hasDay?(total?.kcal==null?t('ringUnavailableLabel',{label}):t('ringConsumedLabel',{label,amount:formatEnergy(locale,total.kcal)})):t('ringEmptyLabel',{label});
+   const dayLabel=waiting?t('ringUpdatingLabel',{label}):hasDay?(total?.kcal==null?t('ringUnavailableLabel',{label}):t('ringConsumedLabel',{label,amount:total.traceOnly?tn('trace'):formatEnergy(locale,total.kcal)})):t('ringEmptyLabel',{label});
+   const traceNote=total?.trace?.length&&!total.traceOnly?tn('includesTraceAmounts'):undefined;
    const className='flex w-[62px] shrink-0 snap-start flex-col items-center gap-[5px]';
-   return index===0?<button key={day} type="button" aria-label={t('photographToday')} onClick={todayAction} className={className}>{content}</button>:hasDay?<Link key={day} aria-label={dayLabel} href={withZone(`/days/${day}`,zone,zoneKnown)} className={className}>{content}</Link>:<span key={day} aria-label={dayLabel} className={className}>{content}</span>;
+   return index===0?<button key={day} type="button" aria-label={t('photographToday')} title={traceNote} onClick={todayAction} className={className}>{content}</button>:hasDay?<Link key={day} aria-label={traceNote?dayLabel+(locale==='ja'?'':' ')+traceNote:dayLabel} title={traceNote} href={withZone(`/days/${day}`,zone,zoneKnown)} className={className}>{content}</Link>:<span key={day} aria-label={traceNote?dayLabel+(locale==='ja'?'':' ')+traceNote:dayLabel} title={traceNote} className={className}>{content}</span>;
   })}
  </nav>;
 }

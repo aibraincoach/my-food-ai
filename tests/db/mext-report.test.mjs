@@ -1,0 +1,23 @@
+import test from 'node:test';import assert from 'node:assert/strict';import{readFileSync}from'node:fs';import{spawnSync}from'node:child_process';import{randomUUID}from'node:crypto';
+import{importRows}from'../../scripts/lib/mext-import.mjs';
+const url=process.env.TEST_SQL_DATABASE_URL;
+const literal=v=>"'"+JSON.stringify(v).replaceAll("'","''")+"'::jsonb";
+test('the MEXT report preserves USDA JSON bytes and projects a raw group without inventing a category',()=>{
+ assert.equal(process.env.MFA_TEST_DISPOSABLE,'1');assert.ok(['127.0.0.1','localhost'].includes(new URL(url).hostname));
+ const source=importRows(JSON.parse(readFileSync(new URL('../fixtures/mext-source-sample.json',import.meta.url),'utf8')),{}).find(row=>row.food_number==='01088');
+ const u=randomUUID(),p=randomUUID(),a=randomUUID(),b=randomUUID();
+ const fields='food_number,name_ja,food_group,name_ja_2015,name_en,name_en_source,identity_status,refuse_percent,nutrients,raw_values,source_manifest,record_sha256';
+ const setup=`begin;set local statement_timeout='5s';
+ insert into auth.users(id)values('${u}');insert into profiles(id,handle)values('${u}','mext-report-${u}');
+ insert into posts(id,user_id,status)values('${p}','${u}','ready');
+ insert into post_items(id,post_id,name,portion_grams,source)values('${a}','${p}','USDA fixture',100,'model'),('${b}','${p}','MEXT fixture',100,'model');
+ insert into item_nutrition(post_item_id,calories,micronutrients,source_ref)values('${a}',100,'[]','12345'),('${b}',156,'[]','mext:01088');
+ insert into fdc_cache(query,response)values('fdc-detail:12345','{"fdcId":12345,"description":"Rice, cooked"}') on conflict(query)do update set response=excluded.response;
+ insert into jp_foods(${fields}) select ${fields} from jsonb_populate_record(null::jp_foods,${literal(source)})on conflict(food_number)do nothing;
+ `;
+ const execute=query=>{const r=spawnSync('psql',['-XqAt','--dbname',url,'-v','ON_ERROR_STOP=1'],{input:setup+query+'\nrollback;',encoding:'utf8',timeout:15000});assert.ifError(r.error);assert.equal(r.status,0,r.stderr);return r.stdout.trim().split('\n').filter(Boolean);};
+ const before=execute(readFileSync(new URL('../fixtures/mext-report-main.sql',import.meta.url),'utf8')),after=execute(readFileSync(new URL('../../scripts/numbers/23-records.sql',import.meta.url),'utf8'));
+ const own=lines=>lines.map(line=>({line,row:JSON.parse(line)})).filter(({row})=>row.meal===p.slice(0,8));
+ const oldUsda=own(before).find(({row})=>row.record==='12345'),newUsda=own(after).find(({row})=>row.record==='12345');assert.equal(newUsda.line,oldUsda.line);
+ const mext=own(after).find(({row})=>row.record==='mext:01088').row;assert.equal(mext.how,'mext');assert.equal(mext.description,source.name_en);assert.equal(mext.mext_group,'01');assert.equal(mext.category,null);
+});

@@ -1,3 +1,4 @@
+import {mextFoodNumber} from '../mext/record';
 import { readPendingItems } from '@/lib/pipeline/pending-items';
 import { getPostHydrationData, type DrinkCardData, type HydrationRecord } from "@/lib/intake/hydration";
 import { dateInZone, getDayTotals, type FeedDayTotal } from "./days";
@@ -14,6 +15,7 @@ export type PostStatus =
   | "failed";
 
 export interface FeedItem {
+  source_ref?:string|null;
   not_eaten_grams?:number|null;
   not_eaten_calories?:number|null;
   not_eaten_count_text?:string|null;
@@ -270,8 +272,10 @@ export async function toFeedPosts(db: SupabaseClient, rows: PostRow[], zone = "U
       not_eaten_grams: item.not_eaten_grams, not_eaten_calories: item.not_eaten_calories, not_eaten_count_text: item.not_eaten_count_text,
       count_text: item.count_text, supersedes: item.supersedes, calories: item.calories, protein_g: item.protein_g, carbs_g: item.carbs_g,
       fat_g: item.fat_g, fibre_g: item.fibre_g, sugar_g: item.sugar_g, sodium_mg: item.sodium_mg,
-      // Feed cards need water only; full micronutrients belong to post detail.
-      micronutrients: item.micronutrients.filter(entry => entry.nutrientId === 1051),
+      // Keep water and compact macro markers for live cards, plus MEXT identity
+      // for attribution. Full measured micronutrients stay in post detail.
+      ...(mextFoodNumber(item.source_ref)!==null?{source_ref:item.source_ref}:{}),
+      micronutrients: item.micronutrients.filter(entry => entry.nutrientId === 1051 || entry.marker!==undefined&&[1008,1003,1004,1005,1079,2000,1093].includes(entry.nutrientId??-1)),
     }));
     const ownMedia = media?.filter(entry => entry.post_id === row.id);
     const slides = (ownMedia ?? []).flatMap(entry => {

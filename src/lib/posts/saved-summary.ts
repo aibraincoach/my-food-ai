@@ -1,6 +1,6 @@
 import type {NutritionTranslator} from '@/i18n/nutrition';
 import type {Locale} from '@/i18n/locales';
-import {formatCalories, toNumber} from '@/lib/nutrition/totals';
+import {formatTotalEnergy, sumNutrition, hasMixedTrace} from '@/lib/nutrition/totals';
 import type {SavedDrink, SavedItem} from './saved';
 // Volume and caffeine come from the saved intake snapshot, never inferred
 // from a food name, mass, or a nutrient that may describe a different basis.
@@ -12,6 +12,7 @@ export function savedItemsLine(items: SavedItem[], t: NutritionTranslator, local
     return drink ? t('savedDrink',{name:item.name,known:ml===null?'no':'yes',ml:number(ml??0),caffeine:drink.kind==='caffeine'?'yes':'no',amount:number(drink.amount)})
       : `${item.name}${item.portion_text ? ` ${item.portion_text}` : ''}`;
   });
-  const calories=t('savedCalories',{known:items.length&&items.every(item=>item.nutrition?.calories!=null)?'yes':'no',calories:formatCalories(items.reduce((sum,item)=>sum+toNumber(item.nutrition.calories),0),t,locale)});
+  const totals=sumNutrition(items.map(item=>({...item.nutrition,name:item.name,fibre_g:null,sugar_g:null,sodium_mg:null})));
+  const calories=t('savedCalories',{known:items.length&&!totals.missing?.calories?.length?'yes':'no',calories:formatTotalEnergy(totals,t,locale)})+(hasMixedTrace(totals)?(locale==='ja'?'':' ')+t('includesTraceAmounts'):'');
   return [...descriptions, ...(items.length ? [calories] : [])].join(' · ');
 }

@@ -1,0 +1,4 @@
+{
+  "base": "f93b2cb39d39d1c0744c82114d9be9dd87963419",
+  "payload": "{\"revisionUnavailable\":true,\"mediaUnavailable\":false,\"expectedMediaIds\":[],\"savedStateUnavailable\":false,\"itemsUnavailable\":false,\"fail_reason\":null,\"agentName\":null,\"agent_token_id\":null,\"saved_meal_id\":null,\"modelCommentId\":null,\"analysisFingerprint\":null,\"day\":\"2026-11-25\",\"user_id\":\"10000000-0000-4000-8000-000000000001\",\"handle\":\"\",\"avatar_media_id\":null,\"id\":\"20000000-0000-4000-8000-000000000001\",\"eaten_at\":\"2026-11-25T00:00:00Z\",\"status\":\"ready\",\"photoUrl\":null,\"slides\":[],\"items\":[{\"id\":\"item\",\"name\":\"Fixture\",\"portion_grams\":100,\"calories\":null,\"protein_g\":2,\"carbs_g\":10,\"fat_g\":0,\"fibre_g\":0,\"sugar_g\":0,\"sodium_mg\":0,\"micronutrients\":[{\"nutrientId\":1051,\"nutrientName\":\"Water\",\"unitName\":\"G\",\"basis\":\"portion\",\"value\":10}]}],\"count_text\":null}"
+}

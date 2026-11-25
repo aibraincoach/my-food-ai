@@ -47,7 +47,7 @@ export default function MonthGrid({ month, summary, today, selected, onDay, onOp
             className={`flex min-w-0 flex-col justify-between rounded-tile text-left desktop:!h-[100px] desktop:focus-visible:outline-2 desktop:focus-visible:outline-text ${day?"bg-card":""} ${date===selected?"desktop:bg-text desktop:text-white desktop:[&>span]:text-white":""} ${date > today ? "text-faint" : "text-text"}`}
             style={{ height: tokens.spacing.tap, padding: `${tokens.spacing.grid}px ${tokens.calendar.padding}px`, border: outlined ? `${tokens.calendar.border}px solid ${tokens.colors.text}` : `${tokens.calendar.border}px solid transparent` }}>
             <span className="text-label font-medium leading-none desktop:text-[13px]">{formatNumber(locale,index + 1)}</span>
-            <span className="text-cell-kcal text-muted tabular-nums desktop:text-[12px]">{day?.ready ? `${formatEnergy(locale,day.kcal)}` : day?.intake ? t("drank") : ""}</span>
+            <span className="text-cell-kcal text-muted tabular-nums desktop:text-[12px]">{day?.ready ? day.traceOnly?tn('trace'):`${formatEnergy(locale,day.kcal)}` : day?.intake ? t("drank") : ""}{day?.trace?.length&&!day.traceOnly?<span className="block whitespace-normal text-[8px] leading-tight">{tn('includesTraceAmounts')}</span>:null}</span>
           </button>;
         })}
       </div>

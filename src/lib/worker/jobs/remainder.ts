@@ -24,8 +24,8 @@ const remainder:JobHandler=async(admin,job)=>{
  const kcal=sumNutrition(rows.map(row=>({...row.nutrition,name:row.name}))).calories;
  const omitted=rows.some(row=>row.notEatenKcal===null)?null:rows.reduce((total,row)=>total+(row.notEatenKcal??0),0);
  const message=parseCommentMessage({code:'mealSummary',values:{kind:'leftovers',leftovers:rows.map(row=>row.notEatenQuantity),consumed:rows.map(row=>row.consumedQuantity),omitted,calories:kcal}});
- // #1219 keeps the English model-text check; Japanese checking follows in #1214.
- if(!checkWording(formatCommentMessage(message,nutritionTranslator('en'),'en')).ok)throw Error('Not-eaten reply contained unsupported wording.');
+ // #1214 checks the model values in both rendered languages before persistence.
+ if((['en','ja'] as const).some(locale=>!checkWording(formatCommentMessage(message,nutritionTranslator(locale),locale),locale).ok))throw Error('Not-eaten reply contained unsupported wording.');
  const {error,status}=await admin.rpc('apply_post_remainder',{p_post_id:job.post_id,p_job_id:job.id,p_photo_id:photo.id,p_expected:items.map(item=>item.id),p_items:rows,p_message:message});
  if(error)throw ioError('Not-eaten estimate could not be saved.',error,status);
  await markReady(job.post_id,admin,job.id);

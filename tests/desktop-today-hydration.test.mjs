@@ -1,7 +1,8 @@
 import {nutritionTranslator} from '../src/i18n/nutrition.ts';
 import {englishIntl} from './fixtures/english-intl.mjs';
 import * as formats from '../src/i18n/format.ts';
-import {nutritionGaps,gapSentence} from '../src/lib/nutrition/totals.ts';
+import * as totals from '../src/lib/nutrition/totals.ts';
+const {nutritionGaps,gapSentence}=totals;
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
@@ -21,7 +22,7 @@ function render(phase,deviceZone,zone,initial=view){
   if(name==='next-intl')return englishIntl;if(name==='@/i18n/format')return formats;
   if(name==='react')return react;if(name==='react/jsx-runtime')return{jsx,jsxs:jsx};if(name==='next/link')return{default:'a'};
   if(name==='@/lib/ui/use-desktop')return{useDesktop:()=>false};if(name==='@/components/LocalTime')return local;
-  if(name==='@/lib/posts/days')return{dateInZone,validZone};if(name==='@/lib/nutrition/totals')return{formatCalories:String,formatNutrition:String,nutritionGaps,gapSentence,GAP_LEAD};throw Error(name);
+  if(name==='@/lib/posts/days')return{dateInZone,validZone};if(name==='@/lib/nutrition/totals')return{...totals,formatCalories:String,formatNutrition:String,GAP_LEAD};throw Error(name);
  }});
  const tree=exports.default({...(initial?{initial}:{}),...(zone?{zone}:{})});const times=[];
  function walk(node){if(Array.isArray(node)){node.forEach(walk);return;}if(!node?.props)return;if(node.type==='span'&&node.props.className==='text-[12px] text-muted')times.push(node.props.children);walk(node.props.children);}

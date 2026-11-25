@@ -1,8 +1,8 @@
 import { createAdminClient } from "@/lib/supabase/admin";
 import { traceContext } from "./context";
 
-export type CallKind = "sam" | "spark_identify" | "spark_correct" | "spark_same_meal" | "spark_search" | "fdc" | "transcribe" | "spark_label" | "spark_remainder";
-type Details = { text?: unknown; usage?: { input_tokens?: number; output_tokens?: number } | null; fdcId?: number | null };
+export type CallKind = "sam" | "spark_identify" | "spark_correct" | "spark_same_meal" | "spark_search" | "fdc" | "transcribe" | "spark_label" | "spark_remainder" | "mext";
+type Details = { text?: unknown; usage?: { input_tokens?: number; output_tokens?: number } | null; fdcId?: number | null; referenceRef?: `mext:${string}` };
 
 const SENSITIVE_KEY = /image_url|audio|raster|mask|authorization|api[_-]?key|token$|secret|pass(word|wd|phrase)|pwd|cookie/i;
 export const TRACE_WRITE_TIMEOUT_MS = 3000;
@@ -40,7 +40,10 @@ export function traceText(value: unknown): string {
   return (safe ?? "").slice(0, 60000);
 }
 
-export async function recordCall<T>(kind: CallKind, requestText: unknown, fn: () => Promise<T>, describe: (value: T) => Details = (value) => ({ text: value }), identity?: { model: string | null; host: string }): Promise<T> {
+type CallIdentity={model:string|null;host:string};
+export function recordCall<T>(kind:'mext',requestText:unknown,fn:()=>Promise<T>,describe:(value:T)=>Omit<Details,'fdcId'|'referenceRef'>&{referenceRef:`mext:${string}`},identity?:CallIdentity):Promise<T>;
+export function recordCall<T>(kind:Exclude<CallKind,'mext'>,requestText:unknown,fn:()=>Promise<T>,describe?:(value:T)=>Omit<Details,'referenceRef'>,identity?:CallIdentity):Promise<T>;
+export async function recordCall<T>(kind: CallKind, requestText: unknown, fn: () => Promise<T>, describe: (value: T) => Details = (value) => ({ text: value }), identity?: CallIdentity): Promise<T> {
   const started = Date.now();
   const startedAt = new Date(started).toISOString();
   let details: Details = {};
@@ -61,7 +64,7 @@ export async function recordCall<T>(kind: CallKind, requestText: unknown, fn: ()
         duration_ms: Math.min(2147483647, Date.now() - started),
         input_tokens: finite(details.usage?.input_tokens), output_tokens: finite(details.usage?.output_tokens),
         request_text: traceText(requestText), response_text: details.text === undefined ? null : traceText(details.text),
-        fdc_id: finite(details.fdcId ?? undefined), error: failure,
+        fdc_id: finite(details.fdcId ?? undefined), reference_ref:details.referenceRef??null, error: failure,
       };
       const db=createAdminClient(), deadline=AbortSignal.timeout(TRACE_WRITE_TIMEOUT_MS);
       // Rule 5: one insert with every column. A failed write is logged with its code and is not retried in another shape.

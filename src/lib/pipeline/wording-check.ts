@@ -1,5 +1,15 @@
-const banned = ["coach", "coaching", "advice", "advise", "recommend", "recommendation", "goal", "target", "plan", "budget", "progress", "left", "remaining", "ring", "streak", "should", "try to", "aim for", "cut back", "next time", "keep it up", "well done", "good job"];
-export function checkWording(text: string): { ok: boolean; hits: string[] } {
-  const hits = banned.filter((phrase) => new RegExp(`\\b${phrase.replaceAll(" ", "\\s+")}\\b`, "i").test(text));
-  return { ok: hits.length === 0, hits };
+import english from '@/lib/wording/rules/en.json';
+import japanese from '@/lib/wording/rules/ja.json';
+import {wordingRules, wordingHits} from '@/lib/wording/check';
+import {isLocale, type Locale} from '@/i18n/locales';
+
+const rules = {en: wordingRules(english), ja: wordingRules(japanese)};
+
+export function checkWording(text: string, locale: Locale): {ok: boolean; hits: string[]} {
+  if (!isLocale(locale)) throw new Error('Unknown wording locale.');
+  const hits = [...new Set([
+    ...wordingHits(text, rules[locale]),
+    ...(locale === 'ja' ? wordingHits(text, rules.en) : []),
+  ])];
+  return {ok: hits.length === 0, hits};
 }
