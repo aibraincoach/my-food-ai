@@ -29,3 +29,13 @@ test('all five menu targets are at their settled centres before the visual anima
 test('closed menu remains inert and cannot receive pointers',()=>{
  const tree=render(false,false);assert.equal(tree.props.inert,true);assert.equal(tree.props['aria-hidden'],true);assert.equal(tree.props.style.pointerEvents,'none');
 });
+
+test('each label has a fixed hit area outside the pointer-transparent animation',()=>{
+ for(const visible of [false,true])for(const button of entries(render(visible))){
+  const target=button.props.children.find(node=>node?.props&&'data-entry-label-target' in node.props);
+  assert.ok(target,button.props['data-entry']);assert.equal(target.props['aria-hidden'],'true');
+  assert.equal(target.props.children,button.props['aria-label']);assert.match(target.props.className,/absolute bottom-full mb-2/);
+  assert.match(target.props.className,/opacity-0/);assert.doesNotMatch(target.props.className,/pointer-events-none/);
+  assert.equal(target.props.style?.transform,undefined);
+ }
+});

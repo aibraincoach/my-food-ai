@@ -5,16 +5,19 @@ import assert from 'node:assert/strict';
 const app=process.env.APP_URL,out=process.env.MENU_CHECK_OUT,engine=process.env.ONLY_ENGINE,label=process.env.CHECK_LABEL;
 const visualOnly=process.env.MENU_VISUAL_ONLY==='1';
 const baseRed=label==='base'&&process.env.MENU_BASE_RED==='1';
+const labelsOnly=process.env.MENU_LABELS_ONLY==='1',expectLabelRed=process.env.MENU_EXPECT_LABEL_RED==='1';
+if(expectLabelRed&&!labelsOnly)throw Error('Label regression expectation is bounded to label-only checks');
 if(process.env.MFA_TEST_DISPOSABLE!=='1'||new URL(app).hostname!=='127.0.0.1'||!out||!['chromium','webkit'].includes(engine)||!['base','head'].includes(label)||(label==='base'&&!visualOnly&&!baseRed)||(baseRed&&visualOnly))throw Error('Bounded disposable menu proof only');
 await fs.mkdir(out,{recursive:true});
 const cookies=JSON.parse(await fs.readFile(process.env.TEST_SESSION_FILE,'utf8'));
-const words=JSON.parse(await fs.readFile(new URL('../../messages/en.json',import.meta.url),'utf8'));
+const locale=process.env.MENU_LOCALE??'en';if(!['en','ja'].includes(locale))throw Error('Known menu locale required');
+const words=JSON.parse(await fs.readFile(new URL('../../messages/'+locale+'.json',import.meta.url),'utf8'));
 const {chromium,webkit,devices}=await import('/tmp/mfa-f62-browser/node_modules/playwright/index.mjs');
 const browser=await(engine==='webkit'?webkit:chromium).launch(engine==='chromium'?{executablePath:'/usr/bin/chromium-browser',args:['--no-sandbox','--use-fake-device-for-media-stream','--use-fake-ui-for-media-stream']}:{});
-const receipt={engine,label,visualOnly,cases:[],errors:[],limits:['390x844 emulation; synthetic/fake camera, no real iPhone/Safari proof','Requested early delay30ms; actual native-input timing recorded']};
+const receipt={engine,label,locale,visualOnly,cases:[],errors:[],limits:['390x844 emulation; synthetic/fake camera, no real iPhone/Safari proof','Requested early delay30ms; actual native-input timing recorded']};
 async function context(){
  const c=await browser.newContext({...devices['iPhone 13'],viewport:{width:390,height:844},timezoneId:'UTC',...(engine==='chromium'?{permissions:['camera']}:{})});
- await c.addCookies([...cookies.map(v=>({name:v.name,value:v.value,url:app})),{name:'lang',value:'en',url:app}]);
+ await c.addCookies([...cookies.map(v=>({name:v.name,value:v.value,url:app})),{name:'lang',value:locale,url:app}]);
  await c.addInitScript(({engine})=>{
   localStorage.setItem('mfa-camera-mode','app');window.__mediaCalls=[];window.__tapLog=[];window.__entryEvents=[];
   window.addEventListener('open-entry',e=>window.__entryEvents.push(e.detail?.entry));
@@ -32,18 +35,27 @@ async function click(p,x,y){if(engine==='webkit')await p.touchscreen.tap(x,y);el
 async function toggle(p){const r=await p.locator('#post-menu-toggle').boundingBox();await click(p,r.x+r.width/2,r.y+r.height/2);}
 async function settled(p){await p.evaluate(async()=>{await Promise.all(document.getAnimations().filter(a=>a.effect?.getComputedTiming().iterations!==Infinity).map(a=>a.finished.catch(()=>{})));await new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)));});}
 async function fullyOpen(p){await toggle(p);await p.waitForFunction(()=>document.querySelector('#post-menu')?.getAttribute('aria-hidden')==='false');await p.waitForFunction(()=>{const b=document.querySelector('#post-menu button[data-entry="camera"]'),visual=b?.querySelector(':scope > div')??b;return visual&&getComputedStyle(visual).opacity==='1'&&getComputedStyle(visual.querySelector('span')).opacity==='1';});await settled(p);}
-async function entryCase(entry,early){
- const f=await context(),{p}=f;receipt.phase={entry,early};
+async function entryCase(entry,early,labelTarget=false){
+ const f=await context(),{p}=f;receipt.phase={entry,early,labelTarget};
  try{
-  await fullyOpen(p);const r=await p.locator('#post-menu button[data-entry="'+entry+'"]').boundingBox(),point={x:r.x+r.width/2,y:r.y+r.height/2};
+  await fullyOpen(p);const button=p.locator('#post-menu button[data-entry="'+entry+'"]'),r=await(labelTarget?button.locator('span').first():button).boundingBox(),point={x:r.x+r.width/2,y:r.y+r.height/2};
+  let labelGeometry;
+  if(labelTarget&&!expectLabelRed){
+   labelGeometry=await button.evaluate(b=>{const v=b.querySelector('span').getBoundingClientRect(),hit=b.querySelector('[data-entry-label-target]'),h=hit.getBoundingClientRect();return{visual:v.toJSON(),target:h.toJSON(),ariaHidden:hit.getAttribute('aria-hidden'),tabIndex:hit.tabIndex,buttonName:b.getAttribute('aria-label')};});
+   for(const key of ['x','y','width','height'])assert.ok(Math.abs(labelGeometry.visual[key]-labelGeometry.target[key])<=0.015,'label target matches visual '+key);
+   assert.equal(labelGeometry.ariaHidden,'true');assert.equal(labelGeometry.tabIndex,-1);assert.equal(labelGeometry.buttonName,words.navigation[entry]);
+  }
   if(early){await p.keyboard.press('Escape');await p.waitForFunction(()=>document.querySelector('#post-menu')?.getAttribute('aria-hidden')==='true');await settled(p);await p.evaluate(()=>{window.__tapLog=[];window.__openedAt=null;});await toggle(p);await p.waitForTimeout(30);}
   const hit=await p.evaluate(({x,y})=>{const b=document.elementFromPoint(x,y)?.closest('button');return{at:performance.now(),elapsed:performance.now()-window.__openedAt,entry:b?.dataset.entry??null,label:b?.getAttribute('aria-label'),rect:b?.getBoundingClientRect().toJSON()};},point);
+  if(expectLabelRed){
+   assert.equal(hit.entry,null,'broken head label falls through');assert.equal(hit.label,words.navigation.closeMenu);await click(p,point.x,point.y);await p.waitForFunction(()=>document.querySelector('#post-menu')?.getAttribute('aria-hidden')==='true');await settled(p);assert.equal(await p.evaluate(()=>window.__entryEvents.length),0);assert.equal(await p.evaluate(()=>window.__mediaCalls.length),0);assert.equal(await p.locator('video').count(),0);receipt.cases.push({entry,early,labelTarget,hit,expectedRegression:true,pass:true});return;
+  }
   assert.equal(hit.entry,entry,'native target is the requested entry');await click(p,point.x,point.y);
   if(entry==='camera'){await p.waitForFunction(()=>window.__mediaCalls.length>0&&Boolean(document.querySelector('video')));assert.equal(await p.evaluate(()=>window.__mediaCalls.length),1);}
   else if(entry==='text'){await p.locator('#capture-caption:visible').waitFor();assert.equal(await p.locator('video').count(),0);}
   else await p.getByRole('dialog',{name:entry==='saved'?words.postMenu.savedMeals:words.postMenu.drinkTitle,exact:true}).waitFor();
   assert.deepEqual(await p.evaluate(()=>window.__entryEvents),[entry]);
-  receipt.cases.push({entry,early,hit,events:await p.evaluate(()=>window.__entryEvents),mediaCalls:await p.evaluate(()=>window.__mediaCalls.length),pass:true});
+  receipt.cases.push({entry,early,labelTarget,labelGeometry,hit,events:await p.evaluate(()=>window.__entryEvents),mediaCalls:await p.evaluate(()=>window.__mediaCalls.length),pass:true});
  }catch(e){await p.screenshot({path:out+'/failure.png',fullPage:true});await fs.writeFile(out+'/failure.html',await p.content(),{mode:0o600});throw e;}finally{await f.close();}
 }
 // Run once per engine only when a new base observation is explicitly authorised.
@@ -93,7 +105,7 @@ async function visuals(){
 }
 try{
  if(baseRed)await baseRedCase();
- else if(!visualOnly){for(const early of [true,false])for(const entry of ['camera','text','drink','coffee','saved'])await entryCase(entry,early);await keyboardAndScrim();}
- if(!baseRed)await visuals();receipt.functionalPass=true;receipt.pass=receipt.errors.length===0;if(!receipt.pass)process.exitCode=1;
+ else if(!visualOnly){for(const early of [true,false])for(const entry of ['camera','text','drink','coffee','saved']){if(!labelsOnly)await entryCase(entry,early);await entryCase(entry,early,true);}if(!labelsOnly)await keyboardAndScrim();}
+ if(!baseRed&&!labelsOnly)await visuals();receipt.functionalPass=true;receipt.pass=receipt.errors.length===0;if(!receipt.pass)process.exitCode=1;
 }catch(e){receipt.pass=false;receipt.failure=e.message;process.exitCode=1;}
 finally{await browser.close();await fs.writeFile(out+'/menu.json',JSON.stringify(receipt,null,2));console.log(JSON.stringify({engine,label,pass:receipt.pass,functionalPass:receipt.functionalPass,cases:receipt.cases.length,errors:receipt.errors.length,phase:receipt.phase,failure:receipt.failure}));}

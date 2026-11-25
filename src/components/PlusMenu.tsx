@@ -62,6 +62,8 @@ export default function PlusMenu({ open, onClose }: { open: boolean; onClose: ()
         <span className="absolute bottom-full mb-2 whitespace-nowrap text-meta font-medium text-text" style={{opacity:visible?1:0,transition:"opacity 100ms",transitionDelay:open?`${260+index*30}ms`:"0ms"}}>{label}</span>
         <Icon name={icon} size={tokens.spacing['item-row']} />
         </div>
+        {/* The label's hit area stays at its final place along with the circle. */}
+        <span aria-hidden="true" data-entry-label-target className="absolute bottom-full mb-2 whitespace-nowrap text-meta font-medium opacity-0">{label}</span>
       </button>;
     })}
   </div>;
