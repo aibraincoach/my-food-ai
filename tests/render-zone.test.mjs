@@ -31,12 +31,12 @@ test('stored meal card uses its recorded local day across UTC midnight, matching
  assert.equal(legacy.hydration.totalMl,320,'legacy unknown zone is explicitly qualified as UTC');
 });
 
-test('model-free posts record their first explicit render zone and subsequent corrections retain it',async()=>{
- const db=hydrationFixture(null);
- assert.equal(await renderTimeZone(db,'meal','Asia/Tokyo'),'Asia/Tokyo');
- assert.equal(db.post.render_time_zone,'Asia/Tokyo');
+test('the renderer only reads the committed zone; it cannot choose or repair stored metadata',async()=>{
+ const db=hydrationFixture('Asia/Tokyo');
  assert.equal(await renderTimeZone(db,'meal'),'Asia/Tokyo');
- assert.equal(await renderTimeZone(db,'meal','UTC'),'Asia/Tokyo','a retry after travel does not rewrite the capture zone');
+ assert.equal(db.post.render_time_zone,'Asia/Tokyo');
+ const missing=hydrationFixture(null);assert.equal(await renderTimeZone(missing,'meal'),'UTC');
+ assert.equal(missing.post.render_time_zone,null,'C2 removes this read default after the held backfill');
 });
 
 test('upload reservation carries a validated capture zone into the published post atomically and clears the tombstone',{skip:!process.env.SUPABASE_DB_URL},async()=>{

@@ -12,7 +12,6 @@ import { validEatenAt } from "@/lib/posts/eaten-at";
 import { resolveProduct } from "@/lib/fdc/barcode-resolver";
 import { labelNutrition, parseLabelReading } from "@/lib/meta/label";
 import { canonicalGtin } from "@/lib/posts/barcode-correction";
-import {saveCaptureZone,CaptureZoneConflictError} from '@/lib/pipeline/capture-zone';
 import { markReady } from "@/lib/pipeline/persist";
 import { ApiError } from "@/lib/worker/errors";
 
@@ -32,8 +31,8 @@ export async function POST(request: Request) {
   const capped = await capUser(user.id, "post"); if (capped) return capped;
   const requestKey=body?foodRequestKey({...body,time_zone:timeZone} as Record<string,unknown>):'';
   const publish=(admin:ReturnType<typeof createAdminClient>,args:Record<string,unknown>)=>
-    admin.rpc('publish_food_operation',{...args,p_operation_id:operationId,p_request_key:requestKey});
-  const finish=async(id:string,admin:ReturnType<typeof createAdminClient>)=>{try{await saveCaptureZone(admin,id,timeZone);}catch(error){return error instanceof CaptureZoneConflictError?409:503;}try{await markReady(id,admin,undefined,{notify:false,timeZone});}catch{console.error('Food card repair remains queued.');}return 201;};
+    admin.rpc('publish_food_operation',{...args,p_operation_id:operationId,p_request_key:requestKey,p_render_zone:timeZone});
+  const finish=async(id:string,admin:ReturnType<typeof createAdminClient>)=>{try{await markReady(id,admin,undefined,{notify:false});}catch{console.error('Food card repair remains queued.');}};
   const receiptAdmin=createAdminClient();
 
   const {data:receipt,error}=await receiptAdmin.from('food_post_operations').select('user_id,request_key,post_id,cancelled').eq('operation_id',operationId).maybeSingle();
@@ -45,7 +44,11 @@ export async function POST(request: Request) {
     const {data:post,error:postError}=receipt.post_id?await receiptAdmin.from('posts').select('id').eq('id',receipt.post_id).eq('user_id',user.id).is('deleted_at',null).maybeSingle():{data:null,error:null};
     if(postError)return NextResponse.json({message_code: "route_b4e630f7aeff"},{status:503});
     if(!post)return NextResponse.json({message_code: "route_4683d1a2d3e1"},{status:410});
-    const finished=await finish(post.id,receiptAdmin);if(finished!==201)return NextResponse.json({message_code:finished===409?"route_1502498aacbf":"unknownFailure"},{status:finished});return NextResponse.json({post_id:post.id},{status:201});
+    // Selection facts are not needed for an existing receipt. The same RPC
+    // rechecks its key/owner and repairs a C1 null zone under its transaction.
+    const replay=await publish(receiptAdmin,{p_user_id:user.id,p_eaten_at:null,p_name:null,p_grams:null,p_nutrition:null});
+    if(replay.error)return NextResponse.json({message_code:replay.error.code==='PT400'?'captureZoneRequired':'unknownFailure'},{status:replay.error.code?.startsWith('PT')?Number(replay.error.code.slice(2)):503});
+    await finish(replay.data as string,receiptAdmin);return NextResponse.json({post_id:post.id},{status:201});
   }
   if(body?.label_reading_id !== undefined){
     if(typeof body.label_reading_id!=="string" || typeof body.servings!=="number" || !Number.isFinite(body.servings) || body.servings<0.25 || body.servings>50 || (body.name!==undefined && (typeof body.name!=="string" || body.name.trim().length>80)))return NextResponse.json({message_code: "route_7015e9b9acc8"},{status:400});
@@ -65,7 +68,7 @@ export async function POST(request: Request) {
       const correction=gtin&&reading.serving&&per100?{gtin,name,serving_amount:reading.serving.amount,serving_unit:reading.serving.unit,per_100:Object.fromEntries(["calories","protein_g","carbs_g","fat_g","fibre_g","sugar_g","sodium_mg"].map(key=>[key,per100[key as keyof typeof per100]]))}:null;
       const {data,error}=await publish(admin,{p_user_id:user.id,p_eaten_at:eatenAt,p_name:name,p_grams:grams,p_nutrition:{...nutrition,source_ref:`label:${body.label_reading_id}`,...(gtin?{gtin}:{})},p_photo:photo,...(correction?{p_barcode_correction:correction}:{})});
       if(error)return NextResponse.json({message_code: "route_c119c11ebaae"},{status:error.code?.startsWith("PT")?Number(error.code.slice(2)):error.code?.startsWith("22")?400:500});
-      const finished=await finish(data as string,admin);if(finished!==201)return NextResponse.json({message_code:finished===409?"route_1502498aacbf":"unknownFailure"},{status:finished});
+      await finish(data as string,admin);
       return NextResponse.json({post_id:data},{status:201});
     }catch{return NextResponse.json({message_code: "route_bb3ca709a35b"},{status:400});}
   }
@@ -92,7 +95,7 @@ export async function POST(request: Request) {
       if (photo) args.p_photo = photo;
       const { data, error } = await publish(createAdminClient(), args);
       if (error) return NextResponse.json({  message_code: error.code?.startsWith("22") ? "route_55f1bddd8582" : "error_0795a0b4a0a6" }, { status: error.code?.startsWith("PT") ? Number(error.code.slice(2)) : error.code?.startsWith("22") ? 400 : 500 });
-      const finished=await finish(data as string,createAdminClient());if(finished!==201)return NextResponse.json({message_code:finished===409?"route_1502498aacbf":"unknownFailure"},{status:finished});
+      await finish(data as string,createAdminClient());
       return NextResponse.json({ post_id: data as string }, { status: 201 });
     } catch (error) {
       return NextResponse.json({ message_code: "route_fc3f44ef874c" }, { status: error instanceof ApiError && error.status === 429 ? 429 : 502 });
@@ -113,7 +116,7 @@ export async function POST(request: Request) {
       p_nutrition: { calories: n.calories, protein_g: n.proteinG, carbs_g: n.carbsG, fat_g: n.fatG, fibre_g: n.fibreG, sugar_g: n.sugarG, sodium_mg: n.sodiumMg, micronutrients: n.micronutrients, source_ref: n.sourceRef, portion_unit: portion.unit } });
     if (error?.code === "42501") return NextResponse.json({ message_code: "route_ac6a88b19530" }, { status: 401 });
     if (error) return NextResponse.json({  message_code: error.code?.startsWith("22") ? "route_90f611283783" : "error_0795a0b4a0a6" }, { status: error.code?.startsWith("PT") ? Number(error.code.slice(2)) : error.code?.startsWith("22") ? 400 : 500 });
-    const finished=await finish(data as string,admin);if(finished!==201)return NextResponse.json({message_code:finished===409?"route_1502498aacbf":"unknownFailure"},{status:finished});
+    await finish(data as string,admin);
     return NextResponse.json({ post_id: data as string }, { status: 201 });
   } catch (error) {
     return NextResponse.json({ message_code: "route_ea88574adf4a" }, { status: error instanceof ApiError && error.status === 429 ? 429 : 502 });

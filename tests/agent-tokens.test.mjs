@@ -40,7 +40,7 @@ test('JSON-RPC batches consume a hit for every call and refuse the whole over-li
 });
 test('meal input preserves a past eaten-at and rejects future times and invalid captions', () => {
   const now = Date.parse('2026-11-02T12:00:00Z'); const eaten = '2026-11-02T11:00:00.000Z';
-  assert.deepEqual(mealInput({ caption: 'coffee', eaten_at: eaten }, now), { caption: 'coffee', eaten_at: eaten });
+  assert.deepEqual(mealInput({ time_zone:'UTC',caption: 'coffee', eaten_at: eaten }, now), { caption: 'coffee', eaten_at: eaten,time_zone:'UTC' });
   for (const data of [null, {}, { caption: '' }, { caption: 'x'.repeat(2001) }, { caption: 'coffee', eaten_at: '2026-11-02T12:00:01Z' }, { caption: 'coffee', eaten_at: '2026-11-02T11:00:00' }]) assert.throws(() => mealInput(data, now));
 });
 test('a second owner cannot get or correct another owner meal through the service', async () => {
@@ -67,4 +67,12 @@ test('agent request limits count bytes and reject a multibyte body above 64 KiB'
   const boundary = '😀'.repeat(16384);
   assert.equal(await readAgentText(request(boundary)), boundary);
   await assert.rejects(readAgentText(request(boundary + '😀')), error => error.status === 413);
+});
+
+test('agent input requires an explicit canonical named zone; DB rejection maps to400',async()=>{
+ const now=Date.parse('2026-11-02T12:00:00Z');
+ for(const time_zone of [undefined,null,'+01:00','EST','Bad/Zone'])assert.throws(()=>mealInput({caption:'coffee',time_zone},now),e=>e.status===400&&e.message_code==='captureZoneRequired');
+ assert.equal(mealInput({caption:'coffee',time_zone:'asia/tokyo'},now).time_zone,'Asia/Tokyo');
+ const {logMeal}=await import('../src/lib/agents/ops.ts');
+ await assert.rejects(logMeal({userId:'owner',tokenId:'token'},{caption:'coffee',time_zone:'Asia/Tokyo'}, {rpc:async(name,args)=>{assert.equal(name,'agent_log_meal');assert.equal(args.p_render_zone,'Asia/Tokyo');return {data:null,error:{code:'PT400'}};}}),e=>e.status===400&&e.message_code==='captureZoneRequired');
 });
