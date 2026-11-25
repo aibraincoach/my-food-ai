@@ -14,7 +14,7 @@ async function until(check){const end=Date.now()+8000;while(Date.now()<end){if(a
 // has read its expected revision and blocked in the RPC, then change the row.
 // A deterministic 40001 would loop in PostgREST14; PT409 must return promptly.
 async function staleReadingConflict(upload,reading,rpc,request){
- assert.ok(['publish_composer_drinks','correct_composer_drinks'].includes(rpc));
+ assert.ok(['publish_photo_drink_operation','correct_composer_drinks'].includes(rpc));
  const lock=spawn('psql',['-X','-qAt','--dbname',process.env.SUPABASE_DB_URL,'-v','ON_ERROR_STOP=1']);
  let stdout='',stderr='';lock.stdout.on('data',b=>stdout+=b);lock.stderr.on('data',b=>stderr+=b);
  const closed=new Promise(resolve=>lock.once('exit',code=>resolve(code)));
@@ -85,12 +85,12 @@ test('composer identify enforces caps and ownership, caches one model call, and 
   const correction={reading_id:reading.id,index:0,correction:{name:'Water, glass',pack_amount:360,pack_unit:'ml',per_100:{calories:0.1,protein_g:null,carbs_g:0,fat_g:0,fibre_g:0,sugar_g:0,sodium_mg:0}}};
   const patch=session=>fetch(origin+'/api/drinks/identify',{method:'PATCH',headers:{Cookie:session,'Content-Type':'application/json'},body:JSON.stringify(correction),signal:AbortSignal.timeout(15000)});
   assert.equal((await patch(other)).status,404);const corrected=await patch(cookie);assert.equal(corrected.status,200);assert.equal((await corrected.json()).drinks[0].ml,360);assert.equal(await count(),1);
-  const body={items:[{nutrition:{calories:999999}}],upload_id:id,caption:'Water',save_as_meal:false,location:null,readings:[{reading_id:reading.id,selections:[{index:0,ml:150}]}]};
+  const body={operation_id:randomUUID(),owner_id:user.id,items:[{nutrition:{calories:999999}}],upload_id:id,caption:'Water',save_as_meal:false,location:null,readings:[{reading_id:reading.id,selections:[{index:0,ml:150}]}]};
   assert.equal((await request('/api/drinks/post',body,other)).status,404);
   await staleReadingConflict(id,reading.id,'correct_composer_drinks',()=>patch(cookie));
   assert.equal(checked(await db.from('composer_drink_readings').select('drinks').eq('id',reading.id).single()).drinks[0].name,'Water, concurrent revision');
   assert.equal((await patch(cookie)).status,200,'fresh correction can retry after conflict');
-  await staleReadingConflict(id,reading.id,'publish_composer_drinks',()=>request('/api/drinks/post',body));
+  await staleReadingConflict(id,reading.id,'publish_photo_drink_operation',()=>request('/api/drinks/post',body));
   assert.equal(checked(await db.from('post_upload_drafts').select('published').eq('id',id).single()).published,false);
   assert.deepEqual(checked(await db.from('posts').select('id').eq('id',id)),[],'conflict leaves no partial meal');
   assert.equal((await patch(cookie)).status,200,'reload/current reading remains correctable before publication');
@@ -113,13 +113,13 @@ test('composer identify enforces caps and ownership, caches one model call, and 
   checked(await db.from('fdc_cache').upsert({query:cacheQuery,response:{kind:'fdc-search-v3',query:'coca cola',payload:{foods:[{fdcId:990040,description:'Beverages, carbonated, cola, regular',foodCategory:'Soft drinks',dataType:'SR Legacy',foodNutrients:[{nutrientId:1008,nutrientName:'Energy',unitName:'KCAL',value:42},{nutrientId:1003,nutrientName:'Protein',unitName:'G',value:0},{nutrientId:1004,nutrientName:'Fat',unitName:'G',value:0},{nutrientId:1005,nutrientName:'Carbohydrate',unitName:'G',value:10},{nutrientId:1057,nutrientName:'Caffeine',unitName:'MG',value:9}]}]}}},{onConflict:'query'}));
   await fetch(model+'/__fixture',{method:'POST',headers:{'Content-Type':'application/json'},body:'{"mode":"cola"}'});
   const colaStage=await stage('03'),colaResponse=await request('/api/drinks/identify',{upload_id:colaStage,position:0}),cola=await colaResponse.json();assert.equal(colaResponse.status,200,JSON.stringify(cola));assert.ok(Math.abs(cola.drinks[0].caffeineMg-29.7)<1e-9);
-  const half=await request('/api/drinks/post',{upload_id:colaStage,caption:'Half a cola',save_as_meal:false,location:null,readings:[{reading_id:cola.id,selections:[{index:0,ml:165}]}]});assert.equal(half.status,201,JSON.stringify(await half.json()));
+  const half=await request('/api/drinks/post',{operation_id:randomUUID(),owner_id:user.id,upload_id:colaStage,caption:'Half a cola',save_as_meal:false,location:null,readings:[{reading_id:cola.id,selections:[{index:0,ml:165}]}]});assert.equal(half.status,201,JSON.stringify(await half.json()));
   const halfItem=checked(await db.from('current_post_items').select('id,portion_text').eq('post_id',colaStage).single());assert.equal(halfItem.portion_text,'165 ml');const halfNutrition=checked(await db.from('item_nutrition').select('calories,micronutrients').eq('post_item_id',halfItem.id).single());assert.ok(Math.abs(Number(halfNutrition.calories)-69.3)<1e-9);assert.ok(Math.abs(halfNutrition.micronutrients.find(n=>n.nutrientId===1057).value-14.85)<1e-9);assert.equal(checked(await db.from('intake_logs').select('amount').eq('post_id',colaStage).single()).amount,15);
   await fetch(model+'/__fixture',{method:'POST',headers:{'Content-Type':'application/json'},body:'{"mode":"cola-unknown"}'});
   const unknownStage=await stage('02'),unknown=await request('/api/drinks/identify',{upload_id:unknownStage,position:0}),unknownReading=await unknown.json();assert.equal(unknown.status,200,JSON.stringify(unknownReading));assert.equal(unknownReading.drinks[0].caffeineMg,null);assert.equal(unknownReading.drinks[0].kcal,null);assert.equal(unknownReading.drinks[0].nutrition.micronutrients.find(n=>n.nutrientId===1057).value,null);assert.equal(await count(),1);
 
  }finally{
-  if(stages.length){checked(await db.from('posts').delete().in('id',stages));checked(await db.from('post_upload_drafts').delete().in('id',stages));
+  if(stages.length){checked(await db.from('drink_post_operations').delete().eq('user_id',user.id).in('upload_id',stages));checked(await db.from('posts').delete().in('id',stages));checked(await db.from('post_upload_drafts').delete().in('id',stages));
    const result=spawnSync('psql',['-X','-qAt','--dbname',process.env.SUPABASE_DB_URL,'-v','ON_ERROR_STOP=1'],{input:`delete from public.jobs where payload->>'deleted_post_id' in (${stages.map(id=>`'${id}'`).join(',')});delete from storage.objects where ${stages.map(id=>`name like '${user.id}/${id}/%'`).join(' or ')};`,encoding:'utf8'});assert.equal(result.status,0,result.stderr);}
   checked(await db.from('fdc_cache').delete().eq('query',cacheQuery));if(priorCache.length)checked(await db.from('fdc_cache').insert(priorCache));
   written.add(hourOf(0));checked(await db.from('user_call_hits').delete().eq('user_id',user.id).in('route',['post','drink_identify']).in('hour',[...written]));if(prior.length)checked(await db.from('user_call_hits').insert(prior));

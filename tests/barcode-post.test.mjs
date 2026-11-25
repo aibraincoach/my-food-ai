@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
 import { readFileSync } from "node:fs";
 import test from "node:test";
+import {randomUUID} from "node:crypto";
 import { createClient } from "@supabase/supabase-js";
 import { resolveProduct } from "../src/lib/fdc/barcode-resolver.ts";
 import { user as testUser } from "./db/helpers.mjs";
@@ -106,7 +107,7 @@ test("the signed-in food route accepts server-resolved GTIN/photo, rejects suppl
   assert.ok(product,"The owner-resolved barcode product must exist.");
   const expectedNutrition = barcodeNutrition(product,27);
   let postId; let paths = [];
-  const send = (path, body) => fetch(`${origin}${path}`, { method: "POST", headers: { "Content-Type": "application/json", cookie }, body: JSON.stringify(body) });
+  const send = (path, body) => fetch(`${origin}${path}`, { method: "POST", headers: { "Content-Type": "application/json", cookie }, body: JSON.stringify(path==="/api/posts/food"?{...body,operation_id:randomUUID(),owner_id:owner.user.id}:body) });
   try {
     const forged = await send("/api/posts/food", { gtin: product.gtin, amount: 27, unit: "g", nutrition: { calories: 1 } });
     assert.equal(forged.status,400);
@@ -147,6 +148,6 @@ test("a label reading belonging to a second user cannot become the signed-in use
  const {data:auth,error:authError}=await other.auth.signInWithPassword({email:process.env.TEST_USER2_EMAIL,password:process.env.TEST_USER2_PASSWORD});assert.ifError(authError);
  const {data:reading,error}=await admin.from('label_readings').insert({user_id:auth.user.id,photo_path:auth.user.id+'/fixture/0.jpg',reading:{is_label:true}}).select('id').single();assert.ifError(error);
  try{
-  const response=await fetch(origin+'/api/posts/food',{method:'POST',headers:{'Content-Type':'application/json',cookie},body:JSON.stringify({label_reading_id:reading.id,servings:2,name:'Packaged food'})});assert.equal(response.status,404);
+  const response=await fetch(origin+'/api/posts/food',{method:'POST',headers:{'Content-Type':'application/json',cookie},body:JSON.stringify({label_reading_id:reading.id,servings:2,name:'Packaged food',operation_id:randomUUID()})});assert.equal(response.status,404);
  }finally{await admin.from('label_readings').delete().eq('id',reading.id);}
 });

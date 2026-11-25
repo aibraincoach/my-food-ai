@@ -11,7 +11,7 @@ const args = (owner,input) => ({p_user_id:owner,p_eaten_at:new Date().toISOStrin
 test('all six server drink tiles and legacy Water commit matching posts and intake rows atomically',async()=>{
  const db=admin(),one=await user(1),two=await user(2),ids=[];
  try{
-  for(const input of [...Array.from({length:6},(_,tile)=>parseDrinkInput({tile})),parseDrinkInput({kind:'water',ml:330})]){
+  for(const input of [...Array.from({length:6},(_,tile)=>parseDrinkInput({tile})),parseDrinkInput({tile:0})]){
    const id=checked(await db.rpc('create_drink_post',args(one.user.id,input)));ids.push(id);
    const post=checked(await db.from('posts').select('id,user_id,status,caption').eq('id',id).single());
    assert.equal(post.user_id,one.user.id);assert.equal(post.status,'ready');assert.equal(post.caption,input.label);
@@ -28,7 +28,7 @@ test('all six server drink tiles and legacy Water commit matching posts and inta
 });
 
 test('water guard rejects arbitrary or null labels, caffeine and out-of-bounds inputs before any write',async()=>{
- const db=admin(),one=await user(1);const good=args(one.user.id,parseDrinkInput({kind:'water',ml:330}));
+ const db=admin(),one=await user(1);const good=args(one.user.id,parseDrinkInput({tile:0}));
  const beforePosts=checked(await db.from('posts').select('id').eq('user_id',one.user.id));
  const beforeIntake=checked(await db.from('intake_logs').select('id').eq('user_id',one.user.id));
  for(const change of [{p_label:null},{p_label:'Water, bucket'},{p_label:'water'},{p_label:''},{p_label:'Coffee, cup'},{p_caffeine_mg:1},{p_caffeine_mg:null},{p_ml:0},{p_ml:5001},{p_ml:null},{p_kind:null},{p_kind:'juice'}]){

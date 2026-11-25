@@ -1,5 +1,5 @@
 -- Keep future compact payloads readable by old code before expanding storage.
--- Use scripts/rollback-compact-nutrition.sql before rolling the app below its reader floor.
+-- Historical inverse only. After0081, restore compact enforcement before an app rollback; do not expand stored rows.
 do $$begin
  if exists(select 1 from public.nutrition_provenance_format where id and compact) then
   raise exception 'Switch the database write boundary to legacy before rollback';

@@ -34,8 +34,8 @@ const golden=JSON.parse(fs.readFileSync(new URL('./fixtures/app-route-english.js
 for(const file of new Set(golden.rows.map(r=>r.file))){const source=fs.readFileSync(file,'utf8'),ast=ts.createSourceFile(file,source,ts.ScriptTarget.Latest,true),calls=[];
  function v(n){if((ts.isCallExpression(n)&&/^(NextResponse|Response)\.json$/.test(n.expression.getText(ast)))||(ts.isNewExpression(n)&&n.expression.getText(ast)==='Response'))calls.push(n);ts.forEachChild(n,v);}v(ast);
  function vals(n){if(!n)return[];if(ts.isStringLiteralLike(n))return[en.api[n.text]??en.capture[n.text]??n.text];if(ts.isConditionalExpression(n))return[...vals(n.whenTrue),...vals(n.whenFalse)];if(ts.isObjectLiteralExpression(n))return n.properties.flatMap(p=>ts.isPropertyAssignment(p)&&p.name.getText(ast)==='message_code'?vals(p.initializer):[]);return[];}
- for(const r of golden.rows.filter(r=>r.file===file)){const n=calls[r.site],lines=vals(n?.arguments?.[0]);const diagnosticFallback=(file==='src/app/api/media/sign-upload/route.ts'&&r.site===8)||(file==='src/app/api/posts/[id]/media/route.ts'&&r.site===7);
+ for(const r of golden.rows.filter(r=>r.file===file)){const n=calls[r.site],lines=vals(n?.arguments?.[0]);const diagnosticFallback=(file==='src/app/api/posts/[id]/media/route.ts'&&r.site===7);
  if(diagnosticFallback){assert.deepEqual(lines,['Something went wrong. Try again.',...r.english],file+': unknown SDK exceptions retain the former classifier neutral output');direct++;}
  else if(JSON.stringify(lines)===JSON.stringify(r.english))direct++;else unknown.push({...r,now:lines,expr:n?.arguments?.[0]?.getText(ast)});}
-}assert.equal(golden.rows.length,264);assert.deepEqual(unknown,[]);assert.equal(direct,264);
+}assert.equal(golden.rows.length,258);assert.deepEqual(unknown,[]);assert.equal(direct,258);
 });

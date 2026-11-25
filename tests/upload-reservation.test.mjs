@@ -13,8 +13,8 @@ function fixture(){
  const admin={rpc:async(name,args)=>{rpcs.push({name,args});if(args.p_user_id!==owner)return{data:null,error:{code:'42501',message:'Draft not found'}};return{data:{id:args.p_operation_id,published},error:null};}};
  return{objects,signs,rpcs,admin,client,publish:()=>published=true};
 }
-test('shared signing stays write-once for legacy/staged callers',async()=>{
- const f=fixture(),db=f.client(owner);await signShotUploads(db,owner,id,[0]);assert.ok(f.signs.every(sign=>!sign.upsert));f.objects.set(`${owner}/${id}/0.jpg`,new Blob(['original']));await assert.rejects(signShotUploads(db,owner,id,[0]),/already exists/);assert.ok(f.signs.every(sign=>!sign.upsert));
+test('current staged pack-photo signing stays write-once',async()=>{
+ const f=fixture(),db=f.client(owner);await signShotUploads(db,owner,id,[0],{upsert:false});assert.ok(f.signs.every(sign=>!sign.upsert));f.objects.set(`${owner}/${id}/0.jpg`,new Blob(['original']));await assert.rejects(signShotUploads(db,owner,id,[0],{upsert:false}),/already exists/);assert.ok(f.signs.every(sign=>!sign.upsert));
 });
 test('an owned active unpublished reservation explicitly enables scoped renewal of existing copies',async()=>{
  const f=fixture();for(const suffix of['0.jpg','0.feed.jpg'])f.objects.set(`${owner}/${id}/${suffix}`,new Blob(['stored']));const result=await reserveUpload(f.admin,f.client(owner),owner,input);assert.equal(result.published,false);assert.equal(result.uploads.length,1);assert.ok(f.signs.every(sign=>sign.upsert&&sign.path.startsWith(`${owner}/${id}/`)));assert.equal(f.rpcs[0].args.p_user_id,owner);
