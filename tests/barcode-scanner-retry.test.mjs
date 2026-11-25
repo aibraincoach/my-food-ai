@@ -33,7 +33,7 @@ function fixture(outcomes){
  back:()=>exports.back(),x:()=>exports.back(),add:()=>exports.add([new File(['synthetic'],'barcode.png',{type:'image/png'})]),tick:async()=>{for(const fn of [...intervals.values()])await fn();},
  mode(next){preloadCleanup?.();liveCleanup?.();exports.dismiss();environment.mode=next;preloadCleanup=exports.preload();liveCleanup=exports.live();}};
 }
-function deferred(){let reject;const promise=new Promise((_,r)=>reject=r);return{load:()=>promise,reject:()=>reject(Error('Late decoder chunk failure'))};}
+function deferred(){let reject,resolve;const promise=new Promise((ok,r)=>{resolve=ok;reject=r;});return{load:()=>promise,resolve:()=>resolve({}),reject:()=>reject(Error('Late decoder chunk failure'))};}
 const rows=[
  {name:'mode preload fast failure',actions:['fail'],prepare:async f=>{f.mount();await flush();}},
  {name:'explicit photo fast failure',actions:['fail','fail'],prepare:async f=>{f.mount();await flush();await f.add();await flush();}},
@@ -54,4 +54,16 @@ for(const action of['Back','photo','leave and re-enter Barcode'])test('one expli
  const f=fixture(['fail','ok']);f.mount();await flush();assert.equal(f.requests,1);assert.equal(f.state.current,'error');
  if(action==='Back')f.back();else if(action==='photo')await f.add();else{f.mode('text');await flush();assert.equal(f.requests,1);f.mode('barcode');}await flush();assert.equal(f.requests,2,'exactly one import per person action');
  if(action==='photo')assert.deepEqual(f.found,['9591234567892']);else{assert.equal(f.state.current,'idle');for(let i=0;i<5;i++)await f.tick();assert.equal(f.decodes,5,'actual video decoder resumes');}assert.equal(f.requests,2);
+});
+
+for(const scenario of ['Back shares a still-pending first load','late live-load success waits for Back'])test('pending decoder cache: '+scenario,async t=>{
+ t.mock.timers.enable({apis:['setTimeout']});const d=deferred(),f=fixture([d.load]);f.mount(false);
+ const polling=f.tick();await flush();assert.equal(f.requests,1);t.mock.timers.tick(10000);await polling;await flush();assert.equal(f.state.current,'decoderSlow');
+ if(scenario==='Back shares a still-pending first load'){
+  f.back();await flush();assert.equal(f.state.current,'decoderLoading');assert.equal(f.requests,1,'retry:true shares the pending import');d.resolve();await flush();
+ }else{
+  d.resolve();await flush();for(let i=0;i<5;i++)await f.tick();assert.equal(f.state.current,'decoderSlow','late success cannot resume scanning without a person');assert.equal(f.decodes,0);assert.equal(f.requests,1);
+  f.back();await flush();
+ }
+ assert.equal(f.state.current,'idle');for(let i=0;i<5;i++)await f.tick();assert.equal(f.decodes,5,'scanning resumes with the cached success');assert.equal(f.requests,1,'Back reuses the same import');
 });
