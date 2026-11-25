@@ -1,4 +1,3 @@
-import {saveCaptureZone} from "@/lib/pipeline/capture-zone";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { searchFoods } from "@/lib/fdc/client";
 import { scaleNutrition } from "@/lib/fdc/nutrients";
@@ -47,19 +46,18 @@ export async function postDrink(admin: SupabaseClient, userId: string, input: Dr
         { nutrientId: 1057, nutrientName: "Caffeine", unitName: "MG", value: input.caffeineMg, basis: "portion" }], source_ref: n.sourceRef };
   }
   const { data, error } = await admin.rpc("publish_drink_operation", { p_operation_id:operation.id,p_request_key:operation.key,p_user_id: userId, p_eaten_at: eatenAt,
-    p_kind: input.kind, p_ml: input.ml, p_label: input.label, p_caffeine_mg: input.caffeineMg, p_nutrition: nutrition });
+    p_kind: input.kind, p_ml: input.ml, p_label: input.label, p_caffeine_mg: input.caffeineMg, p_nutrition: nutrition,p_render_zone:tz });
   if(error)throw Object.assign(new Error("The drink could not be saved."),{code:error.code});
   if(typeof data!=="string")throw new Error("The drink could not be confirmed.");
   const postId = data;
   const zone = tz;
-  await saveCaptureZone(admin,postId,zone);
   let drink: DrinkCardData | null = null;
   try {
   const hydration = await hydrationSoFar(admin, userId, dateInZone(eatenAt, zone), zone, eatenAt);
   drink = { ...hydration, dayCaffeineMg: hydration.caffeineMg,
     ml: input.ml, label: input.label, caffeineMg: input.caffeineMg };
   // The committed post remains readable with its live card if optional PNG rendering fails.
-  await renderResultsCard(admin, postId, undefined, drink, zone);
+  await renderResultsCard(admin, postId, undefined, drink);
   } catch {
     // Do not turn a committed drink into a failed POST; the live card retries the read.
     console.error("Drink hydration/card rendering failed.", { postId });

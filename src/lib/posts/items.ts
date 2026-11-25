@@ -1,3 +1,4 @@
+import {parseCommentMessage} from './comment-message';
 import {cardTranslator} from '@/i18n/card';
 import {nutritionTranslator} from '@/i18n/nutrition';
 import {CaptureFailureError} from '@/lib/posts/capture-failure';
@@ -65,14 +66,15 @@ export function parseItemEdit(body: unknown): ItemEdit {
 }
 
 const UNIT_UNAVAILABLE = { code: "UNIT", message: "No weight is known for that unit." };
-const amountText = (edit: ItemEdit) => edit.portion_unit && edit.portion_unit !== "g"
-  ? `${edit.portion_amount} ${edit.portion_unit}${edit.portion_amount === 1 || edit.portion_unit === "oz" ? "" : "s"} (${edit.portion_grams} g)` : `${edit.portion_grams} g`;
+
 
 export async function editPostItem(admin: SupabaseClient, postId: string, userId: string, edit: ItemEdit) {
   let before: string | null = null;
+  let beforeGrams:number|null=null;
   if (edit.item_id) {
-    const { data } = await admin.from("current_post_items").select("name").eq("id", edit.item_id).eq("post_id", postId).maybeSingle();
+    const { data } = await admin.from("current_post_items").select("name,portion_grams").eq("id", edit.item_id).eq("post_id", postId).maybeSingle();
     before = (data as { name?: string } | null)?.name ?? null;
+    beforeGrams=data?.portion_grams==null?null:Number(data.portion_grams);
   }
   if (edit.portion_unit === "cup" || edit.portion_unit === "piece") {
     let foodId = edit.fdc_selection?.id ?? null;
@@ -98,12 +100,10 @@ export async function editPostItem(admin: SupabaseClient, postId: string, userId
     p_portion_grams: edit.portion_grams ?? null, p_box: edit.box ?? null, ...(nutrition ? { p_nutrition: nutrition } : {}) });
   if (error) return { error, itemId: null };
   // The thread records what changed; a failed note never undoes the edit.
-  const name = edit.name ?? before ?? "An item";
-  const note = edit.action === "remove" ? `Removed ${before ?? "an item"}.`
-    : edit.action === "add" ? `Added ${name}, ${amountText(edit)}.`
-    : edit.action === "rename" ? `Renamed ${before ?? "an item"} to ${name}, ${amountText(edit)}.`
-    : `${name} set to ${amountText(edit)}.`;
-  await admin.from("post_comments").insert({ post_id: postId, author: "model", body: note });
+  const grams=edit.portion_grams??beforeGrams;
+  const message=parseCommentMessage(edit.action==='remove'?{code:'editRemoved',values:{name:before}}
+    :{code:edit.action==='add'?'editAdded':edit.action==='rename'?'editRenamed':'editPortion',values:{name:edit.name??before,before,grams,amount:edit.portion_amount??null,unit:edit.portion_unit??'g'}});
+  await admin.from('post_comments').insert({ post_id:postId,author:'model',body:null,message });
   return { error: null, itemId: data as string | null };
 }
 

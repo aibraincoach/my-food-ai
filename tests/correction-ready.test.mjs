@@ -61,8 +61,10 @@ test('the real recompute handler repairs an exhausted predecessor without creati
    summaryRefreshes++;const body=JSON.parse(init.body);
    assert.equal(body.p_post_id,'post');assert.equal(body.p_job_id,'current-correction');
    assert.deepEqual(body.p_expected,[{id:'edited',source_ref:'77'},{id:'second-edit',source_ref:'77'}]);
-   assert.match(body.p_summary,/^Consumed: 150 kcal/);
-   assert.doesNotMatch(body.p_summary,/is taken from the closest USDA record/);
+   assert.equal(body.p_message.code,'mealSummary');
+   assert.equal(body.p_message.values.totals.calories,150);
+   assert.deepEqual(body.p_message.values.approximations,[]);
+   assert.equal('p_summary' in body,false);
    return new Response(null,{status:204});
   }
   if(path.endsWith('/rpc/results_card_snapshot')){publications++;return Response.json(null);}

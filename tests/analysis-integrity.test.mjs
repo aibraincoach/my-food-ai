@@ -3,7 +3,6 @@ import test from 'node:test';import assert from 'node:assert/strict';
 import {matchFood} from '../src/lib/fdc/match.ts';
 import {chooseBestMatch,scaleNutrition,scoreFoodMatch} from '../src/lib/fdc/nutrients.ts';
 import {sumNutrition,formatConsumed,nutritionGaps,sumMicronutrients} from '../src/lib/nutrition/totals.ts';
-import {safeSummary} from '../src/lib/pipeline/wording.ts';
 const food=(id,description,extra={})=>({fdcId:id,description,dataType:'SR Legacy',foodNutrients:[{nutrientId:1008,nutrientName:'Energy',unitName:'KCAL',value:100}],...extra});
 const zero={calories:0,protein_g:0,carbs_g:0,fat_g:0,fibre_g:0,sugar_g:0,sodium_mg:0};
 test('unrelated shared adjective and incompatible volume never become a gram match',()=>{
@@ -28,10 +27,6 @@ test('partial nutrients retain known sums and names through day aggregation',()=
  assert.equal(sumNutrition([totals,{...zero,calories:100}]).calories,357.6);
  assert.equal(sumNutrition([{...zero,name:'unknown',calories:null}]).calories,null);
  assert.equal(sumNutrition([{...zero,name:'water'}]).calories,0);
-});
-test('summary cannot publish model numbers and uses identical display rounding',async()=>{
- const caption='two eggs';const totals={calories:600,protein_g:12.6,carbs_g:0,fat_g:null,missing:{fat_g:['coffee']}};
- const summary=await safeSummary('Consumed: 900 kcal',totals);assert.match(summary,/600 kcal/);assert.doesNotMatch(summary,/900/);assert.match(summary,/13 g protein/);assert.match(summary,/coffee/);assert.equal(caption,'two eggs');
 });
 test('micronutrients keep available contributions, flag unavailable foods, preserve genuine zero',()=>{
  const iron=value=>({nutrientId:1089,nutrientName:'Iron',unitName:'MG',value});

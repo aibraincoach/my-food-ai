@@ -17,12 +17,14 @@ function failed(code?:string):never {
  if(code==='PT409')throw new CopyOperationError("route_4b150ec62015",409);
  if(code==='PT410')throw new CopyOperationError("route_eae035551b2d",410);
  if(code==='42501')throw new CopyOperationError("route_6798c08ac231",404);
+ if(code==='PT400')throw new CopyOperationError('captureZoneRequired',400);
  if(code==='22023')throw new CopyOperationError("route_6572182f4064",400);
  throw new CopyOperationError("copySaveFailed",503);
 }
-export async function copyOperation(db:SupabaseClient,operationId:string,sourceId:string,saved:boolean,eatenAt:unknown,cancel=false):Promise<string|null>{
+export async function copyOperation(db:SupabaseClient,operationId:string,sourceId:string,saved:boolean,eatenAt:unknown,timeZone:string|null,cancel=false):Promise<string|null>{
+ if(!cancel&&(typeof timeZone!=='string'||!timeZone))throw new CopyOperationError('captureZoneRequired',400);
  const time=validEatenAt(eatenAt);if(!time)throw new CopyOperationError("route_6572182f4064",400);
- const {data,error}=await db.rpc(cancel?'cancel_copy_operation':'publish_copy_operation',{p_operation_id:operationId,p_source_id:sourceId,p_saved:saved,p_eaten_at:time});
+ const {data,error}=await db.rpc(cancel?'cancel_copy_operation':'publish_copy_operation',{p_operation_id:operationId,p_source_id:sourceId,p_saved:saved,p_eaten_at:time,...(!cancel?{p_render_zone:timeZone}:{})});
  if(error)failed(error.code);
  if(data===null&&cancel)return null;
  if(typeof data!=='string'||!isUuid(data))failed();

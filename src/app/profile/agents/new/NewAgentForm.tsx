@@ -28,6 +28,7 @@ export default function NewAgentForm() {
     }}>
       <div className="flex flex-col gap-[22px] px-screen-x pt-5">
       <p className="text-[15px] leading-[1.5] text-text">{t('newExplanation')}</p>
+      <p className="text-detail text-muted">{t('captureZoneInstruction')}</p>
       <div className="flex flex-col gap-2"><label htmlFor="agent-name" className="text-[13px] font-semibold">{t('name')}</label><Field id="agent-name" className="[&>div]:focus-within:border-[1.5px] [&>div]:focus-within:border-text" value={name} maxLength={40} autoFocus onFocus={event => event.currentTarget.select()} onChange={event => setName(event.target.value)} />
         <p className="text-[12px] leading-[1.5] text-muted">{t('nameHint')}</p></div>
       <div className="flex flex-col border-t border-hairline"><p className="pt-[14px] pb-1 text-[13px] font-semibold">{t('tokenCan')}</p>

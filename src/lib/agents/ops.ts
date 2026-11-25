@@ -1,3 +1,5 @@
+import {commentText} from '@/lib/posts/comment-message';
+import {captureZone} from '@/lib/posts/capture-zone';
 import {nutritionTranslator} from '@/i18n/nutrition';
 // #1219 boundary: agent summaries retain their approved English API contract.
 const locale='en',tn=nutritionTranslator(locale);
@@ -14,12 +16,14 @@ type MealRecord = Pick<FeedPost, 'id' | 'caption' | 'eaten_at' | 'status' | 'ite
 const agentTotals=(items:FeedPost['items'])=>{const totals=sumNutrition(items);return {...totals,...(totals.missing?{missing:Object.fromEntries(Object.entries(totals.missing).map(([key,names])=>[key,names?.map(name=>name===UNNAMED_ITEM?tn('anItem'):name)]))}:{})};};
 const record = (post: MealRecord) => ({ id: post.id, caption: post.caption, eaten_at: post.eaten_at, status: post.status,
   ...(post.status === 'ready' ? { totals: agentTotals(post.items), summary: summaryLine(post as FeedPost,tn,locale, post.drink) } : {}) });
-export function mealInput(input: AgentArgs, now = Date.now()): { caption: string; eaten_at: string } {
+export function mealInput(input: AgentArgs, now = Date.now()): { caption: string; eaten_at: string; time_zone:string } {
   if (!input || typeof input !== 'object' || typeof input.caption !== 'string' || !input.caption.trim() || input.caption.length > 2000 || input.caption.includes('\0')) throw new AgentError("route_c88c8ae8515e");
   if (input.eaten_at !== undefined && (typeof input.eaten_at !== 'string' || !/^\d{4}-\d{2}-\d{2}T.*(?:Z|[+-]\d{2}:\d{2})$/.test(input.eaten_at))) throw new AgentError("route_9ab6fd52348f");
   const eaten_at = input.eaten_at === undefined ? new Date(now).toISOString() : validEatenAt(input.eaten_at, now);
   if (!eaten_at || Date.parse(eaten_at) > now) throw new AgentError("route_f6ff28f5e782");
-  return { caption: input.caption.trim(), eaten_at };
+  const time_zone=captureZone(input.time_zone);
+  if(!time_zone)throw new AgentError('captureZoneRequired');
+  return { caption: input.caption.trim(), eaten_at,time_zone };
 }
 async function owned(db: SupabaseClient, identity: AgentIdentity, id: unknown) {
   if (!isUuid(id)) throw new AgentError("route_e3ebaa16dd9d", 404);
@@ -34,7 +38,8 @@ async function activity(db: SupabaseClient, identity: AgentIdentity, action: 're
 }
 export async function logMeal(identity: AgentIdentity, input: AgentArgs, db: SupabaseClient = createAdminClient()) {
   const meal = mealInput(input);
-  const { data: id, error } = await db.rpc('agent_log_meal', { p_user_id: identity.userId, p_token_id: identity.tokenId, p_caption: meal.caption, p_eaten_at: meal.eaten_at });
+  const { data: id, error } = await db.rpc('agent_log_meal', { p_user_id: identity.userId, p_token_id: identity.tokenId, p_caption: meal.caption, p_eaten_at: meal.eaten_at,p_render_zone:meal.time_zone });
+  if(error?.code==='PT400')throw new AgentError('captureZoneRequired',400);
   if (error || typeof id !== 'string') throw new AgentError(error?.code === '42501' ? "route_9ebe5656058e" : "route_c31449d6d045", error?.code === '42501' ? 401 : 503);
   return { id, ...meal, status: 'queued' };
 }
@@ -62,12 +67,12 @@ export async function listMeals(identity: AgentIdentity, input: AgentArgs, db: S
 export async function getMeal(identity: AgentIdentity, id: unknown, db: SupabaseClient = createAdminClient()) {
   const postId = await owned(db, identity, id);
   const [post, detail, thread] = await Promise.all([getPostCard(db, postId, 'UTC'), getPostDetail(db, postId, 'UTC'),
-    db.from('post_comments').select('id,author,body,created_at').eq('post_id', postId).order('created_at')]);
+    db.from('post_comments').select('id,author,body,message,created_at').eq('post_id', postId).order('created_at')]);
   if (!detail) throw new AgentError("route_e3ebaa16dd9d", 404);
   if (thread.error) throw new AgentError("route_430f651d1ea0", 503);
   await activity(db, identity, 'read', postId);
   const meal = post ?? { ...detail.post, items: detail.items, drink: detail.drink, kind: detail.kind, dayHydration: detail.dayHydration, foodWaterMl: detail.foodWaterMl };
-  return { ...record(meal), items: detail.items, thread: thread.data };
+  return { ...record(meal), items: detail.items, thread: thread.data.map(({message,...row})=>({...row,body:commentText({...row,message},tn,locale)})) };
 }
 export async function correctMeal(identity: AgentIdentity, id: unknown, text: unknown, db: SupabaseClient = createAdminClient()) {
   const postId = await owned(db, identity, id);

@@ -29,13 +29,14 @@ test('no production sentence-to-code classifier survives',()=>{
  for(const file of sourceFiles)assert.equal(fs.readFileSync(file,'utf8').includes('captureRouteMessageCode'),false);
 });
 
-test('every literal error response from main renders byte-identical English at the same HTTP site',()=>{
+test('every approved route error site renders its pinned English, including atomic-zone refusals',()=>{
 const golden=JSON.parse(fs.readFileSync(new URL('./fixtures/app-route-english.json',import.meta.url))),en=JSON.parse(fs.readFileSync(new URL('../messages/en.json',import.meta.url)));let direct=0,unknown=[];
 for(const file of new Set(golden.rows.map(r=>r.file))){const source=fs.readFileSync(file,'utf8'),ast=ts.createSourceFile(file,source,ts.ScriptTarget.Latest,true),calls=[];
  function v(n){if((ts.isCallExpression(n)&&/^(NextResponse|Response)\.json$/.test(n.expression.getText(ast)))||(ts.isNewExpression(n)&&n.expression.getText(ast)==='Response'))calls.push(n);ts.forEachChild(n,v);}v(ast);
  function vals(n){if(!n)return[];if(ts.isStringLiteralLike(n))return[en.api[n.text]??en.capture[n.text]??n.text];if(ts.isConditionalExpression(n))return[...vals(n.whenTrue),...vals(n.whenFalse)];if(ts.isObjectLiteralExpression(n))return n.properties.flatMap(p=>ts.isPropertyAssignment(p)&&p.name.getText(ast)==='message_code'?vals(p.initializer):[]);return[];}
+ if(golden.atomicZoneApproval.files.includes(file)){const actual=calls.flatMap((call,site)=>vals(call.arguments?.[0]).length?[site]:[]);assert.deepEqual(actual,golden.rows.filter(r=>r.file===file).map(r=>r.site),file+': every current literal error site must be pinned');}
  for(const r of golden.rows.filter(r=>r.file===file)){const n=calls[r.site],lines=vals(n?.arguments?.[0]);const diagnosticFallback=(file==='src/app/api/posts/[id]/media/route.ts'&&r.site===7);
  if(diagnosticFallback){assert.deepEqual(lines,['Something went wrong. Try again.',...r.english],file+': unknown SDK exceptions retain the former classifier neutral output');direct++;}
  else if(JSON.stringify(lines)===JSON.stringify(r.english))direct++;else unknown.push({...r,now:lines,expr:n?.arguments?.[0]?.getText(ast)});}
-}assert.equal(golden.rows.length,271);assert.deepEqual(unknown,[]);assert.equal(direct,271);
+}assert.equal(golden.rows.length,267);assert.deepEqual(unknown,[]);assert.equal(direct,267);
 });

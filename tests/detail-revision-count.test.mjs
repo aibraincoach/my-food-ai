@@ -1,3 +1,4 @@
+import {commentText} from '../src/lib/posts/comment-message.ts';
 import {failureMessageKey} from '../src/lib/worker/failure-message.ts';
 import * as readingFormat from '../src/i18n/format.ts';
 import {servingsMessageValues} from '../src/i18n/servings.ts';
@@ -21,6 +22,7 @@ test('a thread uses the supplied fingerprint and makes no revision RPC on load',
  const client={rpc(){revisionReads++;return Promise.resolve({data:{fingerprint:'same'}});},from(table){const q={select(){return q;},eq(){return q;},maybeSingle:async()=>({data:table==='post_feedback'?{verdict:'up',model_comment_id:'model',item_fingerprint:'same'}:{status:'ready',analysis_initialized_at:'done'},error:null})};return q;},channel(){const c={on(){return c;},subscribe(){return c;}};return c;},removeChannel(){}};
  const code=ts.transpileModule(readFileSync(new URL('../src/components/Thread.tsx',import.meta.url),'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022,jsx:ts.JsxEmit.ReactJSX}}).outputText;
  const exports={};vm.runInNewContext(code,{exports,window,document,Event,CustomEvent,setTimeout,clearTimeout,require(name){
+ if(name==='@/lib/posts/comment-message')return {commentText};
  if(name==='next-intl')return englishIntl;
  if(name==='next-intl/server')return englishIntlServer;
  if(name==='@/i18n/format')return readingFormat;

@@ -1,4 +1,6 @@
 /* eslint-disable @next/next/no-img-element -- Private signed photos bypass paid optimization. */
+import LiveNutritionCard from '@/components/LiveNutritionCard';
+import type {FeedPost} from '@/lib/posts/feed';
 import {getTranslations} from 'next-intl/server';
 import {firstPhotoSources} from '@/lib/posts/feed-photo-url';
 import type { TodayView } from "@/lib/posts/today-view";
@@ -116,14 +118,14 @@ const homeSeed=cache(async()=>{
 
 async function HomeFirstPhoto() {
   await connection();
-  let first: { id: string; caption: string; eaten_at: string; photoUrl: string | null } | null = null;
+  let first: FeedPost | null = null;
   let zone = "UTC";
   try {
     const seed = await homeDeadline(homeSeed());
     if (seed) {
       zone = seed.zone;
       const post = seed.page.posts.find((row) => row.photoUrl) ?? seed.page.posts[0];
-      if (post) first = { id: post.id, caption: post.caption, eaten_at: post.eaten_at, photoUrl: post.photoUrl };
+      if (post) first = post;
     }
   } catch { /* The normal feed boundary and cache remain available. */ }
   if(!first)return null;
@@ -134,7 +136,7 @@ async function HomeFirstPhoto() {
     <div className="flex h-[52px] items-center gap-[10px] px-inset" aria-hidden="true"><span className="size-8 rounded-circle bg-card"/><span className="h-3 w-24 rounded-field bg-card"/></div>
     {first.photoUrl?<Link href={`/posts/${first.id}`} aria-label={t('openMealDetails')} className="block aspect-square">
       <FirstPhoto url={first.photoUrl} alt={first.caption||tp('mealPhoto')} />
-    </Link>:null}
+    </Link>:<Link href={`/posts/${first.id}`} aria-label={t('openMealDetails')} className="block aspect-square"><LiveNutritionCard items={first.items} eatenAt={first.eaten_at} post={first} drink={first.drink}/></Link>}
     <div className="px-inset py-sheet-top">{first.caption?<p className="text-body">{first.caption}</p>:null}<p className="text-detail text-muted" role="status">{t('loadingMealDetails')}</p></div></div>
   </div>;
 }

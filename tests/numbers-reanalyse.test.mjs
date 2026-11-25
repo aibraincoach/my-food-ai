@@ -91,7 +91,7 @@ test('restore parameters come from the snapshot line of that meal', () => {
   assert.throws(() => findSnapshot(text, '33333333'), UsageError);
   assert.throws(() => findSnapshot(JSON.stringify(snapshot(A)) + '\n' + JSON.stringify(snapshot('11111111-cccc-4ccc-8ccc-cccccccccccc')), '11111111'), /Two different meals/);
   assert.deepEqual(restoreParams(snapshot(A)), { post: A, old_ids: '{aaaaaaaa-0000-4000-8000-000000000002,aaaaaaaa-0000-4000-8000-000000000003}',
-    summary_comment_id: 'cccccccc-0000-4000-8000-000000000002', old_summary: 'Consumed: 50 kcal', analysis_initialized_at: '2026-11-01T00:00:00+00:00' });
+    summary_comment_id: 'cccccccc-0000-4000-8000-000000000002', old_summary: 'Consumed: 50 kcal',old_message:'null',old_summary_pointer:'', analysis_initialized_at: '2026-11-01T00:00:00+00:00' });
   const none = restoreParams(later);
   assert.equal(none.summary_comment_id, '00000000-0000-0000-0000-000000000000');
   assert.equal(none.old_summary, '');
@@ -440,3 +440,12 @@ test('repair records original nutrition before writing and restore undoes it on 
 
 // #1029: a row whose only negative value is a micronutrient is repaired and undone the same way.
 test('repair also takes a row whose only negative value is a micronutrient', { skip: !process.env.TEST_SQL_DATABASE_URL }, t => repairRoundTrip(t, { carbs: 2 }));
+
+ test('restore preserves a structured summary and its dedicated pointer without selecting a later question',()=>{
+ const data=snapshot(A);const id=data.comments.find(c=>c.author==='model').id;
+ const message={code:'mealSummary',values:{kind:'consumed',totals:{calories:50,protein_g:1,carbs_g:2,fat_g:0},approximations:[],unavailable:[]}};
+ data.post.summary_comment_id=id;data.comments=data.comments.map(c=>c.id===id?{...c,body:null,message}:c);
+ data.comments.push({id:'dddddddd-0000-4000-8000-000000000001',author:'model',body:'Which food?',created_at:'2026-11-02T00:00:00Z'});
+ const params=restoreParams(data);assert.equal(params.summary_comment_id,id);assert.equal(params.old_summary_pointer,id);assert.equal(params.old_summary,'');assert.deepEqual(JSON.parse(params.old_message),message);
+ assert.throws(()=>restoreParams({...data,post:{...data.post,summary_comment_id:'dddddddd-0000-4000-8000-000000000001'}}),UsageError);
+});
