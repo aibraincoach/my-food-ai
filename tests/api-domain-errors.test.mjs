@@ -37,7 +37,7 @@ test('copy ownership/operation refusals keep status and original English',async(
  ])assert.throws(()=>readCopyOperation(body,id),e=>e.status===status&&shown(e)===line,line);
  for(const[code,status,line]of[
   ['PT409',409,'The copy selection changed. Start a new copy.'],['PT410',410,'This pending copy was removed.'],['42501',404,'Meal not found.'],['22023',400,'Choose a valid time eaten.'],['other',503,'The copy could not be confirmed. Your selection is kept.'],
- ])await assert.rejects(copyOperation({rpc:async()=>({data:null,error:{code}})},id,id,false,'2026-11-01T12:00:00Z'),e=>e.status===status&&shown(e)===line,line);
+ ])await assert.rejects(copyOperation({rpc:async()=>({data:null,error:{code}})},id,id,false,'2026-11-01T12:00:00Z','UTC'),e=>e.status===status&&shown(e)===line,line);
 });
 test('reservation refusals preserve expiry status and kept-photo promises',async()=>{
  for(const[message,status,line]of[

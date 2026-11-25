@@ -989,7 +989,8 @@
     "canCorrect": "あなたの食事に修正を追加",
     "cannotAccount": "アカウントの変更やパスワードの閲覧はできません",
     "creatingToken": "トークンを作成中…",
-    "createToken": "トークンを作成"
+    "createToken": "トークンを作成",
+    "captureZoneInstruction": "エージェントが食事を投稿するときは、あなたのタイムゾーンを time_zone に含めるよう伝えてください。"
   },
   "deleted": {
     "title": "削除した食事",

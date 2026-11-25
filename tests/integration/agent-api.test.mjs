@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { admin, user } from '../db/helpers.mjs';
 import { createToken } from '../../src/lib/agents/tokens.ts';
-const origin = 'http://127.0.0.1:3105';
+const origin = process.env.APP_URL??'http://127.0.0.1:3105';
 async function rpc(token, name, args, id = 1) {
   const response = await fetch(`${origin}/mcp`, { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
     body: JSON.stringify({ jsonrpc: '2.0', id, method: 'tools/call', params: { name, arguments: args } }) });
@@ -17,11 +17,11 @@ test('MCP logs coffee with past eaten-at, isolates owners, revokes immediately a
   let postId;
   try {
     const eaten_at = new Date(Date.now() - 3600000).toISOString();
-    const logged = await rpc(firstToken.token, 'log_meal', { caption: 'coffee', eaten_at });
+    const logged = await rpc(firstToken.token, 'log_meal', { caption: 'coffee', eaten_at,time_zone:'UTC' });
     assert.equal(logged.response.status, 200); assert.ok(!logged.body.result.isError);
     const meal = JSON.parse(logged.body.result.content[0].text); postId = meal.id;
     const read = await rpc(firstToken.token, 'get_meal', { id: postId });
-    assert.ok(!read.body.result.isError); assert.equal(JSON.parse(read.body.result.content[0].text).eaten_at, eaten_at);
+    assert.ok(!read.body.result.isError); assert.equal(Date.parse(JSON.parse(read.body.result.content[0].text).eaten_at),Date.parse(eaten_at));
     const other = await rpc(secondToken.token, 'get_meal', { id: postId });
     assert.equal(other.body.result.isError, true); assert.equal(other.body.result.content[0].text, 'Not found');
     const revoked = await first.client.from('agent_tokens').update({ revoked_at: new Date().toISOString() }).eq('id', firstToken.id);

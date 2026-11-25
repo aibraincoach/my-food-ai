@@ -42,6 +42,7 @@ export default function TokenShown({ token, name }: { token: string; name: strin
     <div className="flex flex-col gap-4 px-screen-x pt-7">
       <h1 className="text-title">{t('tokenCreated')}</h1>
       <p className="text-[15px] leading-[1.5] text-text">{t('copyInstruction')}</p>
+      <p className="text-detail text-muted">{t('captureZoneInstruction')}</p>
       <div className="flex flex-col gap-[14px] rounded-[14px] bg-field p-4">
       <textarea rows={2} aria-label={t('agentToken')} readOnly onCopy={() => { setCopied(true); mayLeave.current = true; }} value={token} className="h-[48px] min-w-0 resize-none border-0 bg-transparent p-0 font-mono text-[15px] leading-[1.5] outline-none" onFocus={event => event.currentTarget.select()} />
       <Button style={{ height: 44 }} onClick={async () => { try { await navigator.clipboard.writeText(token); setCopied(true); mayLeave.current = true; setCopyLabel(true); clearTimeout(timeout.current); timeout.current = setTimeout(() => setCopyLabel(false), 2000); } catch { setError(t('copyFailed')); } }}><span className="flex items-center justify-center gap-2"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V5a1 1 0 0 0-1-1H5a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h3"/></svg>{copyLabel ? t('copied') : t('copyToken')}</span></Button>

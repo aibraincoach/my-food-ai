@@ -2,7 +2,7 @@
 import test from 'node:test';import assert from 'node:assert/strict';import fs from 'node:fs';import vm from 'node:vm';import ts from 'typescript';import React from 'react';import * as jsx from 'react/jsx-runtime';import {renderToStaticMarkup} from 'react-dom/server';
 function render(body,author){
  const row={id:'fixture',author,body,created_at:'2026-11-25T00:00:00Z',reverted_at:null};let firstArray=true;
- const react={...React,useState(initial){if(Array.isArray(initial)&&firstArray){firstArray=false;return React.useState([row]);}return React.useState(initial);}};
+ const react={...React,useState(initial){const injected=Array.isArray(initial)&&firstArray;if(injected)firstArray=false;return React.useState(injected?[row]:initial);}};
  const t=Object.assign(key=>key,{rich:(_key,{count})=>String(count)}),exports={};
  const source=ts.transpileModule(fs.readFileSync(new URL('../src/components/Thread.tsx',import.meta.url),'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,jsx:ts.JsxEmit.ReactJSX,target:ts.ScriptTarget.ES2022}}).outputText;
  vm.runInNewContext(source,{exports,require(name){

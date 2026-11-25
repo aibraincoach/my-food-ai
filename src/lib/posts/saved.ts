@@ -2,7 +2,6 @@ import {CaptureFailureError} from '@/lib/posts/capture-failure';
 import {CopyOperationError,copyOperation} from './copy-operation';
 import { syncItemDrinks } from '@/lib/intake/drinks-from-items';
 import type { SupabaseClient } from '@supabase/supabase-js';
-import {saveCaptureZone,CaptureZoneConflictError} from '@/lib/pipeline/capture-zone';
 import { renderResultsCard } from '@/lib/pipeline/results-card';
 import { validEatenAt } from './eaten-at';
 export type SavedNutrition = {calories:number|null;protein_g:number|null;carbs_g:number|null;fat_g:number|null;food_category?:string|null;micronutrients?:import('@/lib/nutrition/totals').StoredNutrient[]};
@@ -41,12 +40,11 @@ export async function savePost(db:SupabaseClient,postId:string) {
 export async function logMeal(db:SupabaseClient,admin:SupabaseClient,id:string,eatenAt:unknown,saved:boolean,timeZone:string,operationId:string) {
  const time=validEatenAt(eatenAt);
  if(!time)throw new CopyOperationError("route_6572182f4064",400);
- const data=await copyOperation(db,operationId,id,saved,time);
+ const data=await copyOperation(db,operationId,id,saved,time,timeZone);
  if(typeof data!=='string')throw new CaptureFailureError({code:"route_35d40f66fffa"});
- try{await saveCaptureZone(admin,data,timeZone);}catch(error){if(error instanceof CaptureZoneConflictError)throw new CopyOperationError("route_4b150ec62015",409);throw error;}
  // Sheet intake commits atomically with its copy. Item copies also retain a
  // durable drink_sync repair job.
  // Never turn a failed follow-up into a failed copy that the user repeats.
- try{await syncItemDrinks(admin,data);await renderResultsCard(admin,data,undefined,undefined,timeZone);}catch{console.error('Copied meal hydration/card repair remains queued.');}
+ try{await syncItemDrinks(admin,data);await renderResultsCard(admin,data);}catch{console.error('Copied meal hydration/card repair remains queued.');}
  return {postId:data};
 }

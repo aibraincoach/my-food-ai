@@ -26,7 +26,7 @@ curl '<app origin>/mcp' \
 curl '<app origin>/mcp' \
   -H 'Authorization: Bearer <token>' \
   -H 'Content-Type: application/json' \
-  -d '{"jsonrpc":"2.0","id":2,"method":"tools/call","params":{"name":"log_meal","arguments":{"caption":"coffee","eaten_at":"2026-11-02T08:00:00Z"}}}'
+  -d '{"jsonrpc":"2.0","id":2,"method":"tools/call","params":{"name":"log_meal","arguments":{"caption":"coffee","time_zone":"Asia/Tokyo","eaten_at":"2026-11-02T08:00:00Z"}}}'
 ```
 
 Supported methods: `initialize`, `notifications/initialized`, `ping`, `tools/list`
@@ -36,7 +36,7 @@ return 202. Tool refusals return text content with `isError: true`.
 
 | Tool | Fields | Result |
 | --- | --- | --- |
-| `log_meal` | `caption` (1–2000 characters), optional `eaten_at` (ISO instant in the past; defaults to now) | Meal id, caption, time eaten, queued status |
+| `log_meal` | `caption` (1–2000 characters), required `time_zone` (the actual IANA zone, for example `Asia/Tokyo`), optional `eaten_at` (ISO instant in the past; defaults to now) | Meal id, caption, time eaten, queued status |
 | `list_meals` | Optional `from` (inclusive), `to` (exclusive), `limit` (1–50, default 20) | Owned meals newest first, with consumed totals when ready |
 | `get_meal` | `id` | Owned meal, items, consumed totals and thread |
 | `correct_meal` | `id`, `text` (1–4000 characters) | Queued correction |
@@ -78,3 +78,5 @@ curl '<app origin>/mcp' \
 ```
 
 The server accepts only this fixed header. It has no sign-in page and no OAuth flow, so a client that cannot send its own `Authorization` header cannot connect. Without a token the server answers 401.
+
+Every log-meal request must send the actual capture `time_zone`. Missing or invalid names fail with HTTP 400 before publication. The server stores the canonical name; the database checks its own time-zone data and commits the zone with the post. No UTC substitute is selected for agent requests. Existing meals keep their stored zone.

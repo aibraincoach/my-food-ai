@@ -33,6 +33,10 @@ begin
   if receipt.cancelled then raise exception 'This pending food post was removed' using errcode='PT410';end if;
   if receipt.request_key<>p_request_key then raise exception 'Food selection changed' using errcode='PT409';end if;
   if receipt.post_id is null or not exists(select 1 from public.posts where id=receipt.post_id and user_id=p_user_id and deleted_at is null) then raise exception 'This food post was removed' using errcode='PT410';end if;
+  perform 1 from public.posts where id=receipt.post_id for update;
+  -- C1 may have committed its receipt before its separate zone save failed.
+  -- Repair a missing zone with this explicit retry value; never overwrite one.
+  update public.posts set render_time_zone=p_render_zone where id=receipt.post_id and render_time_zone is null;
   if (select render_time_zone from public.posts where id=receipt.post_id) is distinct from p_render_zone then
    raise exception 'The capture time zone changed' using errcode='PT409';
   end if;
@@ -66,6 +70,10 @@ begin
   if receipt.cancelled then raise exception 'Pending drink removed' using errcode='PT410';end if;
   if receipt.request_key<>p_request_key then raise exception 'Drink selection changed' using errcode='PT409';end if;
   if receipt.post_id is null or not exists(select 1 from public.posts where id=receipt.post_id and user_id=p_user_id and deleted_at is null) then raise exception 'Drink post removed' using errcode='PT410';end if;
+  perform 1 from public.posts where id=receipt.post_id for update;
+  -- C1 may have committed its receipt before its separate zone save failed.
+  -- Repair a missing zone with this explicit retry value; never overwrite one.
+  update public.posts set render_time_zone=p_render_zone where id=receipt.post_id and render_time_zone is null;
   if (select render_time_zone from public.posts where id=receipt.post_id) is distinct from p_render_zone then
    raise exception 'The capture time zone changed' using errcode='PT409';
   end if;
@@ -94,6 +102,10 @@ begin
   if receipt.cancelled then raise exception 'Pending drink removed' using errcode='PT410';end if;
   if receipt.request_key<>p_request_key then raise exception 'Drink selection changed' using errcode='PT409';end if;
   if receipt.post_id is null or not exists(select 1 from public.posts where id=receipt.post_id and user_id=p_user_id and deleted_at is null) then raise exception 'Drink post removed' using errcode='PT410';end if;
+  perform 1 from public.posts where id=receipt.post_id for update;
+  -- C1 may have committed its receipt before its separate zone save failed.
+  -- Repair a missing zone with this explicit retry value; never overwrite one.
+  update public.posts set render_time_zone=p_render_zone where id=receipt.post_id and render_time_zone is null;
   if (select render_time_zone from public.posts where id=receipt.post_id) is distinct from p_render_zone then
    raise exception 'The capture time zone changed' using errcode='PT409';
   end if;
@@ -129,6 +141,10 @@ begin
   if receipt.source_id<>p_source_id or receipt.saved<>p_saved or receipt.eaten_at<>p_eaten_at then raise exception 'Copy selection changed' using errcode='PT409';end if;
   if receipt.cancelled then raise exception 'This pending copy was removed' using errcode='PT410';end if;
   if receipt.post_id is null or not exists(select 1 from public.posts where id=receipt.post_id and user_id=owner_id and deleted_at is null) then raise exception 'This copied post was removed' using errcode='PT410';end if;
+  perform 1 from public.posts where id=receipt.post_id for update;
+  -- C1 may have committed its receipt before its separate zone save failed.
+  -- Repair a missing zone with this explicit retry value; never overwrite one.
+  update public.posts set render_time_zone=p_render_zone where id=receipt.post_id and render_time_zone is null;
   if (select render_time_zone from public.posts where id=receipt.post_id) is distinct from p_render_zone then
    raise exception 'The capture time zone changed' using errcode='PT409';
   end if;
