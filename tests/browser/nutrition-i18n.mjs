@@ -58,6 +58,8 @@ const states=[
 function normalize(snapshot,name){const copy=structuredClone(snapshot);if(name==='log-again')copy.text=copy.text.replace(/\b\d{1,2}:\d{2}\s*(AM|PM)\b/g,'<clock>');return copy;}
 async function capture(page,name,build,locale){
  await settled(page);
+ // LocalTime intentionally renders empty until its device-zone store hydrates.
+ await page.waitForFunction(()=>[...document.querySelectorAll('time[datetime]')].filter(node=>node.getClientRects().length).every(node=>Boolean(node.textContent.trim())&&node.textContent!=='—'));
  return page.evaluate(({name,build,locale,changes})=>{
   let text=document.body.innerText;const labelChanges=[];
   if(['nutrition','add-item'].includes(name)&&locale==='en')for(const change of changes){const rows=[...document.querySelectorAll('table tbody tr')].filter(row=>row.cells[1]?.innerText===change.value);if(rows.length!==1)throw Error('Named label row absent/duplicated: '+change.id);const row=rows[0],label=row.querySelector('[data-i18n-server-wording="nutrient-name"]')?.textContent,expected=build==='base'?change.before:change.after;if(label!==expected)throw Error('Incorrect nutrient label '+change.id+': '+label);labelChanges.push({id:change.id,value:change.value,label});text=text.replace(row.innerText,row.innerText.replace(label,'<approved-label-'+change.id+'>'));}
