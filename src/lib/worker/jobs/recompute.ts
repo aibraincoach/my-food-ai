@@ -153,7 +153,7 @@ async function rebuildRemoved(admin:SupabaseClient,job:JobRow){
  // Quoted user words are retained verbatim; only generated commentary makes
  // claims. A user's 'remaining half' must not prevent removing a correction.
  const generated=job.payload.reason==='media_removed'?reply:`Removed the correction. ${summary}.`;
- if(!checkWording(generated).ok)throw Error('Removal reply contained unsupported wording.');
+ if(!checkWording(generated,'en').ok)throw Error('Removal reply contained unsupported wording.');
  const {error,status}=await admin.rpc('persist_removed_rebuild',{p_post_id:postId,p_job_id:job.id,p_expected:current.map(item=>item.id),p_comments:comments.map(comment=>comment.id),p_photos:(photos??[]).map(photo=>photo.id),p_items:rows.map(row=>{const matches=current.filter(item=>item.name===row.name);return {...row,supersedes:matches.length===1?matches[0].id:null};}),p_reply:reply});
  if(error)throw ioError('Rebuilt meal could not be saved.',error,status);
  await markReady(postId,admin,job.id);

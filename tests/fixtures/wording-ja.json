@@ -1,0 +1,218 @@
+[
+  {
+    "category": 1,
+    "text": "塩分を控えましょう。",
+    "expect": "fail",
+    "note": "ましょう advice"
+  },
+  {
+    "category": 1,
+    "text": "もう少し野菜を食べたほうがいいです。",
+    "expect": "fail",
+    "note": "should"
+  },
+  {
+    "category": 1,
+    "text": "夕食はたんぱく質を増やすことをおすすめします。",
+    "expect": "fail",
+    "note": "recommendation"
+  },
+  {
+    "category": 1,
+    "text": "次回は揚げ物を減らしてみてください。",
+    "expect": "fail",
+    "note": "next time, try to"
+  },
+  {
+    "category": 1,
+    "text": "アドバイス：水分をこまめにとりましょう。",
+    "expect": "fail",
+    "note": "advice"
+  },
+  {
+    "category": 1,
+    "text": "ごはん150 gとみそ汁を食べました。",
+    "expect": "pass",
+    "note": "fact"
+  },
+  {
+    "category": 1,
+    "text": "この食事は約620 kcalです。",
+    "expect": "pass",
+    "note": "fact"
+  },
+  {
+    "category": 2,
+    "text": "今日の目標カロリーは2,000 kcalです。",
+    "expect": "fail",
+    "note": "goal"
+  },
+  {
+    "category": 2,
+    "text": "1日の予算を超えています。",
+    "expect": "fail",
+    "note": "budget"
+  },
+  {
+    "category": 2,
+    "text": "計画どおりの食事です。",
+    "expect": "fail",
+    "note": "plan"
+  },
+  {
+    "category": 2,
+    "text": "ターゲットのたんぱく質量に届きました。",
+    "expect": "fail",
+    "note": "target"
+  },
+  {
+    "category": 2,
+    "text": "この食事のたんぱく質は28 gです。",
+    "expect": "pass",
+    "note": "fact"
+  },
+  {
+    "category": 2,
+    "text": "今日これまでの摂取は1,450 kcalです。",
+    "expect": "pass",
+    "note": "consumed total"
+  },
+  {
+    "category": 3,
+    "text": "よくできました！",
+    "expect": "fail",
+    "note": "praise"
+  },
+  {
+    "category": 3,
+    "text": "その調子で続けましょう。",
+    "expect": "fail",
+    "note": "keep it up"
+  },
+  {
+    "category": 3,
+    "text": "7日連続記録を達成しました。",
+    "expect": "fail",
+    "note": "streak"
+  },
+  {
+    "category": 3,
+    "text": "リングが完成しました。",
+    "expect": "fail",
+    "note": "ring"
+  },
+  {
+    "category": 3,
+    "text": "素晴らしい選択です。",
+    "expect": "fail",
+    "note": "praise"
+  },
+  {
+    "category": 3,
+    "text": "進捗は順調です。",
+    "expect": "fail",
+    "note": "progress"
+  },
+  {
+    "category": 3,
+    "text": "朝食、昼食、夕食を記録しました。",
+    "expect": "pass",
+    "note": "fact"
+  },
+  {
+    "category": 4,
+    "text": "食物繊維は6 gです。",
+    "expect": "pass",
+    "note": "fact"
+  },
+  {
+    "category": 4,
+    "text": "ナトリウムは1,200 mgです。",
+    "expect": "pass",
+    "note": "fact"
+  },
+  {
+    "category": 5,
+    "text": "夕食まであと500 kcal残っています。",
+    "expect": "fail",
+    "note": "remaining"
+  },
+  {
+    "category": 5,
+    "text": "今日の残りは600 kcalです。",
+    "expect": "fail",
+    "note": "remaining"
+  },
+  {
+    "category": 5,
+    "text": "カロリーが残りわずかです。",
+    "expect": "fail",
+    "note": "remaining"
+  },
+  {
+    "category": 5,
+    "text": "ごはんは茶碗1杯食べました。",
+    "expect": "pass",
+    "note": "consumed fact"
+  },
+  {
+    "category": 5,
+    "text": "スープは半分飲みました。",
+    "expect": "pass",
+    "note": "consumed fact"
+  },
+  {
+    "category": 5,
+    "text": "ラーメンの麺は全部、スープは約3分の1を飲みました。",
+    "expect": "pass",
+    "note": "consumed fact"
+  },
+  {
+    "category": 5,
+    "text": "鍋のだしは飲んでいません。",
+    "expect": "pass",
+    "note": "consumed fact, shared pot"
+  },
+  {
+    "category": 6,
+    "text": "食べ残し：焼き魚の皮、ごはん少量。",
+    "expect": "pass",
+    "note": "approved leftovers label names food"
+  },
+  {
+    "category": 6,
+    "text": "食べ残し：なし。",
+    "expect": "pass",
+    "note": "leftovers none"
+  },
+  {
+    "category": 6,
+    "text": "食べ残しの写真を削除しました。",
+    "expect": "pass",
+    "note": "installed string"
+  },
+  {
+    "category": 6,
+    "text": "食べ残しは焼き魚の皮です。",
+    "expect": "pass",
+    "note": "names the food"
+  },
+  {
+    "category": 6,
+    "text": "残りは焼き魚の皮です。",
+    "expect": "fail",
+    "note": "残り"
+  },
+  {
+    "category": 6,
+    "text": "残りのごはんは100 gです。",
+    "expect": "fail",
+    "note": "amount remaining"
+  },
+  {
+    "category": 6,
+    "text": "ごはんが少し残っています。",
+    "expect": "fail",
+    "note": "残っ"
+  }
+]

@@ -14,8 +14,8 @@ import { dirname, join, relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import ts from "typescript";
 
-// Keep in sync with the banned list in src/lib/pipeline/wording-check.ts.
-export const BANNED = ["coach", "coaching", "advice", "advise", "recommend", "recommendation", "goal", "target", "plan", "budget", "progress", "left", "remaining", "ring", "streak", "should", "try to", "aim for", "cut back", "next time", "keep it up", "well done", "good job"];
+import englishRules from '../src/lib/wording/rules/en.json' with {type:'json'};
+export const BANNED = englishRules.banned;
 
 // Terms named in #294 whose every occurrence must be listed for owner ruling.
 export const TRACKED_TERMS = [
@@ -174,7 +174,7 @@ export function renderInventory({ entries, tracked }) {
     "",
     "## Flagged by the wording rules",
     "",
-    "Whole-word match against the banned list mirrored from `src/lib/pipeline/wording-check.ts` (no target, goal, ring or percentage; never \"left\" for a remaining amount). A hit is a prompt to check context, not proof of a violation — e.g. a CSS `left:` position is not wording.",
+    "Whole-word match against the shared English rules in `src/lib/wording/rules/en.json` (no target, goal, ring or percentage; never \"left\" for a remaining amount). A hit is a prompt to check context, not proof of a violation — e.g. a CSS `left:` position is not wording.",
     "",
     flagged.length ? "| Text | Banned phrase(s) | Places (file:line) |\n| --- | --- | --- |" : "No flagged strings.",
     ...flagged.map((e) => `| ${esc(e.text)} | ${bannedHits(e.text).join(", ")} | ${e.locations.map((l) => `\`${l.file}:${l.line}\``).join(", ")} |`),
