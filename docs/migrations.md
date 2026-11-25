@@ -1,5 +1,14 @@
 # Production migration status
 
+## 0086 file-first preparation — UNAPPLIED and held (2026-11-25)
+
+`0086_mext_trace_reference.sql` is **UNAPPLIED and held**. Merging the files
+applies nothing. It adds the typed MEXT trace identity and retention exception;
+it has no app callers in this packet. Apply requires RT's written database yes
+and the PM's exact order. The #1221 app waits for 0085 and 0086 apply/read-back,
+the separately ordered night import, and its own exact-head merge order.
+See [the trace rollout](1221-mext-trace-rollout.md).
+
 ## 0085 file-first preparation — UNAPPLIED and held (2026-11-25)
 
 `0085_mext_food_reference.sql` is **UNAPPLIED and held**. Merging the
