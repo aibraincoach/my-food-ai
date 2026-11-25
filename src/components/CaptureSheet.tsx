@@ -19,7 +19,7 @@ import { iosNeedsSaveHint, SavePhotoPrompt, shareOrDownloadPhoto } from "@/compo
 import type {CapturedLocation} from "@/lib/location/capture";
 import { PackPhotoUpload } from "@/lib/media/pack-photo-upload";
 
-import {barcodePhotoOutcome} from "@/lib/media/barcode-photo";
+import {barcodePhotoOutcome,barcodeDecoderOutcome} from "@/lib/media/barcode-photo";
 import { decodeBarcode, decodeBarcodeFile, loadBarcodeDecoder } from "@/components/BarcodeScanner";
 import { barcodeAmounts, amountInBasis, packageAmount, type BarcodeProduct } from "@/lib/fdc/barcode-product";
 import { formatNutrition } from "@/lib/nutrition/totals";
@@ -192,6 +192,28 @@ export default function CaptureSheet({ onClose, initialMode = "photo", forPost, 
     if (packPhotoRef.current) URL.revokeObjectURL(packPhotoRef.current.previewUrl);
     packPhotoRef.current = null;
     if (!shotsRef.current.length && !pendingFilesRef.current.length) selectedPhotoRef.current = false;
+  };
+
+  const backToBarcodeCamera = () => {
+    const retry = decoderFailedRef.current && ["error", "decoderSlow", "decoderLoading"].includes(barcodeStateRef.current);
+    dismissBarcode();
+    if (!retry) return;
+    const generation = lookupRef.current;
+    // Back is the person's explicit retry. Keep live-frame polling latched
+    // until this one bounded load succeeds, or show its failure again.
+    decoderFailedRef.current = true;
+    setBarcodeState("decoderLoading");
+    void barcodeDecoderOutcome(loadBarcodeDecoder).then(result => {
+      if (!mountedRef.current || postingRef.current || generation !== lookupRef.current) return;
+      if (result.state === "loaded") {
+        decoderFailedRef.current = false;
+        setBarcodeState("idle"); setError(null);
+      } else {
+        decoderFailedRef.current = true;
+        setBarcodeState(result.state);
+        setError(result.state === "error" ? t('decoderLoadFailed') : null);
+      }
+    });
   };
 
   useEffect(()=>()=>{void record('sheet','capture-close');},[]);
@@ -650,8 +672,8 @@ export default function CaptureSheet({ onClose, initialMode = "photo", forPost, 
           <p className="mt-[18px] text-body">{t('consumed')}{labelNumber("kcal")} {t('kcal')}<span className="text-detail text-faint">· {labelMacros().split(" · ").slice(1).join(" · ")}</span></p><p className="mt-2.5 text-meta text-muted">{t('read_by_the_model_from_the_label')}</p>
           </>}
         </section> : (mode === "barcode" || barcodeState !== "idle") ? <section aria-label={t('scanned_product')} className="relative shrink-0 rounded-t-sheet bg-text px-screen-x text-surface" style={{ paddingTop: tokens.spacing['screen-x'] - tokens.icon.strongStroke, paddingBottom: `calc(${tokens.brand.barHeight - tokens.radii.chip}px + env(safe-area-inset-bottom))` }}>
-          {barcodeState !== "idle" && <button type="button" aria-label={t('dismiss_scanned_product')} disabled={posting} onClick={dismissBarcode} className="absolute right-screen-x top-sheet-top flex size-tap items-center justify-center"><Icon name="close" size={tokens.capture.galleryIcon} /></button>}
-          {barcodeState === "idle" ? <><p className="text-body">{cameraUnavailable ? t('camera_unavailable') : t('looking_for_a_barcode')}</p><p className="text-detail text-faint">{cameraUnavailable ? t('choose_a_photo_containing_a_barcode') : t('hold_the_code_steady_in_the_frame')}</p></> : barcodeState === "looking" ? <p className="text-body" role="status">{t('looking_it_up')}</p>  : barcodeState === "unread" ? <><p role="status" className="pr-tap text-body">{t('we_couldn_t_read_a_barcode_from')}</p><p className="mt-2 text-detail text-faint">{t('your_photo_is_kept')}</p><Button variant="camera" disabled={posting || cameraBusy || full} className="mt-4 w-full" onClick={() => galleryRef.current?.click()}>{t('choose_another_photo')}</Button><button type="button" disabled={posting} onClick={dismissBarcode} className="min-h-tap w-full text-detail">{t('back_to_camera')}</button></> : barcodeState === "decoderLoading" ? <p role="status" className="pr-tap text-body">{t('decoderLoading')}</p> : barcodeState === "decoderSlow" || barcodeState === "error" ? <>{barcodeState === "decoderSlow" && <p role="status" className="pr-tap text-body">{t('decoderSlow')}</p>}<Button variant="camera" disabled={posting || cameraBusy || full} className="mt-4 w-full" onClick={() => galleryRef.current?.click()}>{t('choose_another_photo')}</Button><button type="button" disabled={posting} onClick={dismissBarcode} className="min-h-tap w-full text-detail">{t('back_to_camera')}</button></> : barcodeState === "missing" ? <><div className="flex items-start gap-3 pr-tap"><div className="min-w-0 flex-1"><p className="text-meta text-faint">{t('not_in_the_database')}</p><p className="text-month">{formatGtin(scannedCode)}</p><p className="text-detail text-faint">{t('no_product_for_this_code_yet_photograph')}</p></div>{packPhoto&&<img src={packPhoto.previewUrl} alt={t('scanned_pack')} className="size-14 shrink-0 rounded-thumb object-cover"/>}</div><Button variant="camera" className="flex items-center justify-center gap-2" onClick={()=>{setLabelForCode(scannedCode);setComposer(false);setMode("photo");setBarcodeState("idle");}}><Icon name="camera" size={18}/>{t('photograph_the_nutrition_label')}</Button><button type="button" onClick={typePackInstead} className="mt-2 h-field-h w-full rounded-field border border-ring-on-ink text-body">{t('type_it_instead')}</button><button type="button" onClick={()=>{rejectedCode.current=null;dismissBarcode();}} className="min-h-tap w-full text-detail text-muted">{t('try_the_code_again')}</button></> : null}
+          {barcodeState !== "idle" && <button type="button" aria-label={t('dismiss_scanned_product')} disabled={posting} onClick={backToBarcodeCamera} className="absolute right-screen-x top-sheet-top flex size-tap items-center justify-center"><Icon name="close" size={tokens.capture.galleryIcon} /></button>}
+          {barcodeState === "idle" ? <><p className="text-body">{cameraUnavailable ? t('camera_unavailable') : t('looking_for_a_barcode')}</p><p className="text-detail text-faint">{cameraUnavailable ? t('choose_a_photo_containing_a_barcode') : t('hold_the_code_steady_in_the_frame')}</p></> : barcodeState === "looking" ? <p className="text-body" role="status">{t('looking_it_up')}</p>  : barcodeState === "unread" ? <><p role="status" className="pr-tap text-body">{t('we_couldn_t_read_a_barcode_from')}</p><p className="mt-2 text-detail text-faint">{t('your_photo_is_kept')}</p><Button variant="camera" disabled={posting || cameraBusy || full} className="mt-4 w-full" onClick={() => galleryRef.current?.click()}>{t('choose_another_photo')}</Button><button type="button" disabled={posting} onClick={backToBarcodeCamera} className="min-h-tap w-full text-detail">{t('back_to_camera')}</button></> : barcodeState === "decoderLoading" ? <p role="status" className="pr-tap text-body">{t('decoderLoading')}</p> : barcodeState === "decoderSlow" || barcodeState === "error" ? <>{barcodeState === "decoderSlow" && <p role="status" className="pr-tap text-body">{t('decoderSlow')}</p>}<Button variant="camera" disabled={posting || cameraBusy || full} className="mt-4 w-full" onClick={() => galleryRef.current?.click()}>{t('choose_another_photo')}</Button><button type="button" disabled={posting} onClick={backToBarcodeCamera} className="min-h-tap w-full text-detail">{t('back_to_camera')}</button></> : barcodeState === "missing" ? <><div className="flex items-start gap-3 pr-tap"><div className="min-w-0 flex-1"><p className="text-meta text-faint">{t('not_in_the_database')}</p><p className="text-month">{formatGtin(scannedCode)}</p><p className="text-detail text-faint">{t('no_product_for_this_code_yet_photograph')}</p></div>{packPhoto&&<img src={packPhoto.previewUrl} alt={t('scanned_pack')} className="size-14 shrink-0 rounded-thumb object-cover"/>}</div><Button variant="camera" className="flex items-center justify-center gap-2" onClick={()=>{setLabelForCode(scannedCode);setComposer(false);setMode("photo");setBarcodeState("idle");}}><Icon name="camera" size={18}/>{t('photograph_the_nutrition_label')}</Button><button type="button" onClick={typePackInstead} className="mt-2 h-field-h w-full rounded-field border border-ring-on-ink text-body">{t('type_it_instead')}</button><button type="button" onClick={()=>{rejectedCode.current=null;dismissBarcode();}} className="min-h-tap w-full text-detail text-muted">{t('try_the_code_again')}</button></> : null}
           {cameraUnavailable && mode === "barcode" && <div className="mt-sheet-top"><p role="status" className="text-detail text-faint">{t('the_camera_could_not_be_opened_choose')}</p><button type="button" disabled={posting || cameraBusy} onClick={() => galleryRef.current?.click()} className="min-h-tap text-detail underline">{t('choose_from_library')}</button></div>}
           {barcodeState === "idle" && pendingCount > 0 && <button type="button" disabled={posting || cameraBusy} onClick={() => { void continueSelected(); }} className="min-h-tap text-detail underline">{t('continueWithPhotos',{count:pendingCount})}</button>}
           {product && <>
