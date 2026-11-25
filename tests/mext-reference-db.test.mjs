@@ -37,7 +37,14 @@ test('reference rows are inaccessible to client roles, service role has read onl
   assert.equal(sql("select has_table_privilege('anon','jp_foods','select'),has_table_privilege('authenticated','jp_foods','select'),has_table_privilege('service_role','jp_foods','select'),has_table_privilege('service_role','jp_foods','update')"),'f|f|t|f');
   assert.equal(sql("select relrowsecurity,(select count(*) from pg_policy where polrelid=c.oid) from pg_class c where oid='jp_foods'::regclass"),'t|0');
   assert.equal(sql("select has_function_privilege('anon','search_mext_foods(text,text)','execute'),has_function_privilege('authenticated','search_mext_foods(text,text)','execute'),has_function_privilege('service_role','search_mext_foods(text,text)','execute')"),'f|f|t');
-  assert.equal(sql('set role service_role;select count(*) from jp_foods;'),'20');
+  assert.equal(sql('set role service_role;select count(*) from jp_foods;'),'22');
+});
+
+test('a baked-squid search never returns the ambiguously named boiled row',()=>{
+  const ids=sql("select food_number from search_mext_foods('するめいか 焼き','Japanese common squid, baked')").split('\n');
+  assert.ok(!ids.includes('10346'));
+  assert.ok(!ids.includes('10347'));
+  assert.equal(sql("select count(*) from jp_foods where food_number in ('10346','10347') and identity_status='english_name_ambiguous'"),'2');
 });
 
 test('trigram candidates include the seven acceptance records and exclude rejected identities',()=>{

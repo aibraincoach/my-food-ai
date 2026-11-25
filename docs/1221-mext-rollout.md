@@ -28,8 +28,16 @@ removal of the Japanese descriptor comma. The sole additional equivalence is
 ささ身→ささみ, cited in the code to the eighth-edition meat notes. No synonym,
 word-order, preparation, cut or similarity rule proves identity.
 
-Full source result: 2,538 records, 1,987 joined, 227 identity_changed,
-324 no_english, zero group_mismatch. Excluded records retain their current facts
+After that proof, the importer also requires each joined English identity to
+identify one food number. It compares NFKC/lowercase names with collapsed
+whitespace and excludes every member of a duplicate set, without choosing a
+preferred row or translating the source. The official English name shared by
+10346 (boiled squid) and 10347 (baked squid) is a source defect; both are excluded
+as english_name_ambiguous. The scan of all 1,987 previously joined rows found
+one duplicate-name group (these two rows), with no other duplicates.
+
+Full source result: 2,538 records, 1,985 joined, 227 identity_changed,
+324 no_english, 2 english_name_ambiguous, zero group_mismatch. Excluded records retain their current facts
 but cannot enter search results. The report lists each excluded ID and both names.
 All seven positive acceptance IDs join: 01088, 11129, 11277, 11153, 10134–10136.
 Generic miso soup is a composed dish outside this table's prepared-food scope;
@@ -41,7 +49,7 @@ terms and food-table pages. Credit both the 2023 nutrient source and the 2015/20
 name sources in the app integration. Use the requested 2023 credit:
 「日本食品標準成分表（八訂）増補2023年から引用（又は出典）」.
 Label our processing as our work. Raw workbooks, images and explanatory prose are
-not committed. The fixture is a twenty-row numeric/name excerpt with provenance.
+not committed. The fixture is a twenty-two-row numeric/name excerpt with provenance.
 
 ## Nutrients and corrections
 

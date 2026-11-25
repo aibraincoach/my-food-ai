@@ -17,6 +17,10 @@ export function englishName(value) {
   return typeof value === 'string' && /[A-Za-z]/u.test(value) && !/[\p{Script=Han}\p{Script=Hiragana}\p{Script=Katakana}]/u.test(value);
 }
 
+export function englishIdentityKey(name) {
+  return name.normalize('NFKC').trim().replace(/\s+/gu,' ').toLowerCase();
+}
+
 export function foodRows(rows) {
   const result = new Map();
   for (const row of rows) {
@@ -33,7 +37,7 @@ export function joinIdentities(current, oldJapanese, mainEnglish, supplement) {
   for (const [id, row] of supplement) {
     if (englishName(row.D)) english.set(id, {...row, source: 'mext-2016-supp-en'});
   }
-  return [...current].map(([food_number, row]) => {
+  const identities = [...current].map(([food_number, row]) => {
     const en = english.get(food_number), old = oldJapanese.get(food_number);
     let identity_status = 'joined';
     if (!englishName(en?.D)) identity_status = 'no_english';
@@ -45,6 +49,20 @@ export function joinIdentities(current, oldJapanese, mainEnglish, supplement) {
       name_en_source: englishName(en?.D) ? en.source : null, identity_status,
     };
   });
+  // An English gate identity must identify one food number. Exclude every
+  // member of an ambiguous set; order or Japanese display text cannot fix it.
+  const names = new Map();
+  for (const identity of identities) {
+    if (identity.identity_status !== 'joined') continue;
+    const key = englishIdentityKey(identity.name_en);
+    const members = names.get(key) ?? [];
+    members.push(identity);
+    names.set(key,members);
+  }
+  for (const members of names.values()) {
+    if (members.length > 1) for (const identity of members) identity.identity_status = 'english_name_ambiguous';
+  }
+  return identities;
 }
 
 // Only exact nutrient equivalents from the main table. No sugars substitution.

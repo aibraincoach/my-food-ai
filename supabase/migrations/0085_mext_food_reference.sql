@@ -14,7 +14,7 @@ create table public.jp_foods (
   name_en text,
   name_en_source text check (name_en_source in ('mext-2015-en','mext-2016-supp-en')),
   identity_status text not null check (identity_status in
-    ('joined','no_english','group_mismatch','identity_changed')),
+    ('joined','no_english','group_mismatch','identity_changed','english_name_ambiguous')),
   refuse_percent numeric check (refuse_percent between 0 and 100),
   -- Per 100g edible reference, not stored per-portion item nutrition.
   -- Keys are app nutrient ids. Values retain number/Tr/- and source notation.

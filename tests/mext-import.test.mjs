@@ -11,8 +11,8 @@ const fixture=JSON.parse(readFileSync(new URL('./fixtures/mext-source-sample.jso
 const manifest=JSON.parse(readFileSync(new URL('../scripts/mext-sources.json',import.meta.url),'utf8'));
 const rows=importRows(fixture,manifest),byId=id=>rows.find(row=>row.food_number===id);
 
-test('twenty official rows retain kcal, fibre, sodium, Tr and unavailable values',()=>{
-  assert.equal(rows.length,20);
+test('official rows retain kcal, fibre, sodium, Tr and unavailable values',()=>{
+  assert.equal(rows.length,22);
   assert.equal(byId('01088').nutrients['1008'].value,156);
   assert.equal(byId('01088').nutrients['1079'].value,1.5);
   assert.equal(byId('01088').nutrients['1093'].value,1);
@@ -24,6 +24,12 @@ test('twenty official rows retain kcal, fibre, sodium, Tr and unavailable values
   assert.equal(byId('03032').nutrients['1079'].value,14);
   assert.equal(byId('03032').nutrients['1079'].annotation,'†');
   assert.match(byId('03032').nutrients['1079'].annotation_note,/規定法/);
+});
+
+test('both official squid rows sharing an English identity are excluded; a unique name joins',()=>{
+  assert.equal(byId('10346').name_en,byId('10347').name_en);
+  for(const id of ['10346','10347']) assert.equal(byId(id).identity_status,'english_name_ambiguous');
+  assert.equal(byId('01088').identity_status,'joined');
 });
 
 test('all seven acceptance identities join, changed and new identities stay excluded',()=>{

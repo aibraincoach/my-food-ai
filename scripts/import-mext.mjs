@@ -6,7 +6,7 @@ import {createHash} from 'node:crypto';
 import {spawnSync} from 'node:child_process';
 import {fileURLToPath} from 'node:url';
 import path from 'node:path';
-import {importRows,importSql} from './lib/mext-import.mjs';
+import {importRows,importSql,englishIdentityKey} from './lib/mext-import.mjs';
 import {verifyErrata} from './lib/mext-errata.mjs';
 
 const args = process.argv.slice(2), options = {};
@@ -32,9 +32,16 @@ for (const id of acceptance) {
 }
 const counts = {};
 for (const row of rows) counts[row.identity_status]=(counts[row.identity_status]??0)+1;
+const ambiguityGroups = new Map();
+for (const row of rows.filter(row=>row.identity_status==='english_name_ambiguous')) {
+  const key=englishIdentityKey(row.name_en);
+  const group=ambiguityGroups.get(key)??{name_en:row.name_en,food_numbers:[]};
+  group.food_numbers.push(row.food_number);ambiguityGroups.set(key,group);
+}
 const errata = verifyErrata(workbooks.errata,rows);
 const report = {source_manifest:manifest,counts,total:rows.length,acceptance,errata,
-  exclusions:rows.filter(row=>row.identity_status!=='joined').map(({food_number,identity_status,name_ja,name_ja_2015})=>({food_number,identity_status,name_ja,name_ja_2015})),
+  english_name_ambiguities:[...ambiguityGroups.values()],
+  exclusions:rows.filter(row=>row.identity_status!=='joined').map(({food_number,identity_status,name_ja,name_ja_2015,name_en,name_en_source})=>({food_number,identity_status,name_ja,name_ja_2015,name_en,name_en_source})),
   corrections_verified:true,sql_prepared:Boolean(options['--sql']),database_connections:0};
 if (options['--sql']) writeFileSync(options['--sql'],importSql(rows),{flag:'wx',mode:0o600});
 writeFileSync(options['--report'],JSON.stringify(report,null,2)+'\n',{flag:'wx'});
