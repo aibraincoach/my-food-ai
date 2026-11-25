@@ -28,6 +28,7 @@ begin
   end if;
   grams:=(row->>'portion_grams')::numeric;
   if grams<0 or grams>100000 then raise exception 'Invalid rematch portion' using errcode='22023';end if;
+  if jsonb_typeof(coalesce(row->'micronutrients','[]'::jsonb))<>'array' then raise exception 'Rematch micronutrients must be an array' using errcode='22023';end if;
   foreach nutrient in array array['calories','protein_g','carbs_g','fat_g','fibre_g','sugar_g','sodium_mg'] loop
    if (row->>nutrient)::numeric<0 or (row->>nutrient)::numeric in('NaN'::numeric,'Infinity'::numeric,'-Infinity'::numeric) then
     raise exception 'Negative or non-finite rematch nutrient: %',nutrient using errcode='22023';

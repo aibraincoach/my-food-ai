@@ -1,6 +1,6 @@
  do $test$
  declare u uuid:=gen_random_uuid();p uuid:=gen_random_uuid();j uuid:=gen_random_uuid();a uuid;b uuid;
-  payload jsonb;before_ref text;nutrient text;invalid text;
+  payload jsonb;before_ref text;nutrient text;invalid text;shape jsonb;
  begin
   if has_function_privilege('anon','public.persist_operator_rematch(uuid,uuid,uuid[],jsonb)','EXECUTE')
    or has_function_privilege('authenticated','public.persist_operator_rematch(uuid,uuid,uuid[],jsonb)','EXECUTE')
@@ -19,6 +19,17 @@
   if (select portion_grams from post_items where id=a)<>30 or(select calories from item_nutrition where post_item_id=a)<>30 then raise exception 'Portion/nutrition not committed';end if;
   if (select calories from item_nutrition where post_item_id=b)<>0 then raise exception 'Broth not zero';end if;
   select source_ref into before_ref from item_nutrition where post_item_id=b;
+  foreach shape in array array['{}'::jsonb,'"not an array"'::jsonb,'1'::jsonb,'true'::jsonb,'null'::jsonb] loop
+   begin
+    perform persist_operator_rematch(p,j,array[a,b],jsonb_build_array(
+     jsonb_build_object('post_item_id',a,'portion_grams',31,'calories',31),
+     jsonb_build_object('post_item_id',b,'portion_grams',100,'calories',0,'micronutrients',shape)));
+    raise exception 'Non-array micronutrients accepted: %',shape;
+   exception when sqlstate '22023' then
+    if sqlerrm<>'Rematch micronutrients must be an array' then raise;end if;
+   end;
+   if (select portion_grams from post_items where id=a)<>30 or(select calories from item_nutrition where post_item_id=a)<>30 then raise exception 'Invalid array shape escaped atomic rollback';end if;
+  end loop;
   foreach nutrient in array array['calories','protein_g','carbs_g','fat_g','fibre_g','sugar_g','sodium_mg'] loop
    begin
     perform persist_operator_rematch(p,j,array[a,b],jsonb_build_array(
