@@ -21,11 +21,12 @@ begin
   union all select user_id,created_at from public.intake_logs where created_at<=p_now
   union all select user_id,created_at from public.agent_activity where action in ('posted','corrected') and created_at<=p_now
  ), errors as materialized (
-  -- Error text is never returned: only a recognised upstream prefix/status.
+  -- Error text is never returned: posts/jobs use a recognised service/status;
+  -- traces use the fixed model_calls kind and its recorded status suffix.
   -- Failed posts have no failure timestamp: their creation time is the only stored time.
-  select id,user_id,id post_id,created_at at,'failedMeal' kind,substring(fail_reason from '^(fdc:[0-9]{3}|meta:[0-9]{3})(?![0-9])') code from live_posts where status='failed'
-  union all select j.id,p.user_id,p.id,coalesce(j.finished_at,j.started_at,j.created_at),'failedJob',substring(j.error from '^(fdc:[0-9]{3}|meta:[0-9]{3})(?![0-9])') from public.jobs j join live_posts p on p.id=j.post_id where j.status='error' and coalesce(j.finished_at,j.started_at,j.created_at)<=p_now
-  union all select c.id,p.user_id,p.id,c.started_at,'failedCall',substring(c.error from '^(fdc:[0-9]{3}|meta:[0-9]{3})(?![0-9])') from public.model_calls c join live_posts p on p.id=c.post_id where c.error is not null and c.started_at<=p_now
+  select id,user_id,id post_id,created_at at,'failedMeal' kind,substring(fail_reason from '^(fdc|meta):') || coalesce(' ' || substring(fail_reason from E'\\mfailed with ([0-9]{3})[.]?$'),'') code from live_posts where status='failed'
+  union all select j.id,p.user_id,p.id,coalesce(j.finished_at,j.started_at,j.created_at),'failedJob',substring(j.error from '^(fdc|meta):') || coalesce(' ' || substring(j.error from E'\\mfailed with ([0-9]{3})[.]?$'),'') from public.jobs j join live_posts p on p.id=j.post_id where j.status='error' and coalesce(j.finished_at,j.started_at,j.created_at)<=p_now
+  union all select c.id,p.user_id,p.id,c.started_at,'failedCall',case when c.kind in ('sam','spark_identify','spark_correct','spark_same_meal','spark_search','fdc','transcribe','spark_label','spark_remainder') then c.kind || coalesce(' ' || substring(c.error from E'\\(status ([0-9]{3})\\)$'),'') end from public.model_calls c join live_posts p on p.id=c.post_id where c.error is not null and c.started_at<=p_now
   union all select id,user_id,null::uuid,created_at,'freezeReport',null::text from public.freeze_reports where created_at<=p_now
  ), groups as (
   select 'signup' kind,u.id,u.created_at at from auth.users u,bounds b where u.created_at>=b.today_at and u.created_at<=p_now

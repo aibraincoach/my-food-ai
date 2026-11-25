@@ -1,0 +1,116 @@
+[
+  {
+    "source": "src/lib/fdc/client.ts search HTTP failure",
+    "value": "fdc: search failed with 503.",
+    "kind": null,
+    "expected": "fdc 503"
+  },
+  {
+    "source": "src/lib/fdc/client.ts malformed JSON",
+    "value": "fdc: search failed with 502.",
+    "kind": null,
+    "expected": "fdc 502"
+  },
+  {
+    "source": "src/lib/fdc/barcode.ts branded search",
+    "value": "fdc: barcode search failed with 429.",
+    "kind": null,
+    "expected": "fdc 429"
+  },
+  {
+    "source": "src/lib/meta/client.ts responses HTTP failure",
+    "value": "meta: /responses failed with 503.",
+    "kind": null,
+    "expected": "meta 503"
+  },
+  {
+    "source": "src/lib/meta/client.ts audio HTTP failure",
+    "value": "meta: /audio/transcriptions failed with 429.",
+    "kind": null,
+    "expected": "meta 429"
+  },
+  {
+    "source": "supabase/migrations/0034_renew_lease.sql rate limit",
+    "value": "fdc: rate limited",
+    "kind": null,
+    "expected": "fdc"
+  },
+  {
+    "source": "src/lib/worker/drain.ts sanitised Meta failure",
+    "value": "meta: analysis request failed.",
+    "kind": null,
+    "expected": "meta"
+  },
+  {
+    "source": "src/lib/fdc/barcode.ts missing configuration",
+    "value": "fdc: FDC_API_KEY is not set.",
+    "kind": null,
+    "expected": "fdc"
+  },
+  {
+    "source": "src/lib/trace/record.ts MetaApiError name/status",
+    "value": "MetaApiError (status 503)",
+    "kind": "spark_identify",
+    "expected": "spark_identify 503"
+  },
+  {
+    "source": "src/lib/trace/record.ts ApiError name/status",
+    "value": "ApiError (status 429)",
+    "kind": "fdc",
+    "expected": "fdc 429"
+  },
+  {
+    "source": "src/lib/trace/record.ts thrown Error without status",
+    "value": "Error",
+    "kind": "sam",
+    "expected": "sam"
+  },
+  {
+    "source": "src/lib/trace/record.ts non-Error throw",
+    "value": "CallError",
+    "kind": "spark_correct",
+    "expected": "spark_correct"
+  },
+  {
+    "source": "negative control: private text, no recognised prefix",
+    "value": "PRIVATE_MEAL_TEXT",
+    "kind": null,
+    "expected": null
+  },
+  {
+    "source": "negative control: prefix present in body only",
+    "value": "PRIVATE_MEAL fdc: search failed with 503.",
+    "kind": null,
+    "expected": null
+  },
+  {
+    "source": "negative control: status is four digits",
+    "value": "fdc: search failed with 5031.",
+    "kind": null,
+    "expected": "fdc"
+  },
+  {
+    "source": "privacy control: meta path never leaves the reader",
+    "value": "meta: /PRIVATE_PATH failed with 500.",
+    "kind": null,
+    "expected": "meta 500"
+  },
+  {
+    "source": "negative control: arbitrary model class/status, known kind",
+    "value": "PRIVATE_ERROR (status 503)",
+    "kind": "transcribe",
+    "expected": "transcribe 503"
+  },
+  {
+    "source": "negative control: four-digit trace status",
+    "value": "MetaApiError (status 5031)",
+    "kind": "spark_identify",
+    "expected": "spark_identify"
+  },
+  {
+    "source": "no stored error",
+    "value": null,
+    "kind": null,
+    "expected": null
+  }
+]

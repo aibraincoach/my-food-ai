@@ -8,12 +8,12 @@ test('owner aggregate: local synthetic boundaries, writes only, metadata privacy
  ${fs.readFileSync('supabase/migrations/0079_admin_people.sql','utf8')}
  insert into auth.users(id,created_at) values ${ids.map((id,i)=>`('${id}','${i<3?'2026-11-25T00:30:00Z':'2026-11-20T12:00:00Z'}')`).join(',')};
  insert into public.profiles(id,handle) values ${ids.slice(0,4).map(id=>`('${id}','owner_panel_${id.slice(0,8)}')`).join(',')};
- insert into public.posts(id,user_id,caption,status,fail_reason,created_at) values('${post}','${ids[0]}','PRIVATE_CAPTION','failed','meta:503 PRIVATE_POST_ERROR','2026-11-24T18:00:00Z');
+ insert into public.posts(id,user_id,caption,status,fail_reason,created_at) values('${post}','${ids[0]}','PRIVATE_CAPTION','failed','meta: /PRIVATE_POST_ERROR failed with 503.','2026-11-24T18:00:00Z');
  insert into public.post_comments(post_id,author,body,created_at)values('${post}','user','PRIVATE_COMMENT','2026-11-22T12:00:00Z');
  insert into public.intake_logs(user_id,kind,amount,created_at)values('${ids[1]}','water',100,'2026-11-15T12:00:00Z');
- insert into public.jobs(post_id,kind,status,error,created_at,finished_at)values('${post}','correct','error','fdc:429 PRIVATE_JOB_ERROR','2026-11-24T18:00:00Z','2026-11-25T00:30:00Z');
+ insert into public.jobs(post_id,kind,status,error,created_at,finished_at)values('${post}','correct','error','fdc: PRIVATE_JOB_ERROR failed with 429.','2026-11-24T18:00:00Z','2026-11-25T00:30:00Z');
  insert into public.jobs(post_id,kind,status,payload,created_at,finished_at)values('${post}','correct','finished','{"correction_applied":true}','2026-11-22T12:00:00Z','2026-11-22T12:01:00Z');
- insert into public.model_calls(post_id,kind,started_at,duration_ms,error,request_text,response_text)values('${post}','fdc','2026-11-25T00:30:00Z',1,'meta:503 PRIVATE_CALL_ERROR','PRIVATE_REQUEST','PRIVATE_RESPONSE');
+ insert into public.model_calls(post_id,kind,started_at,duration_ms,error,request_text,response_text)values('${post}','fdc','2026-11-25T00:30:00Z',1,'MetaApiError (status 503)','PRIVATE_REQUEST','PRIVATE_RESPONSE');
  insert into public.freeze_reports(user_id,created_at,events,user_agent,build,camera_permission)values('${ids[2]}','2026-11-25T00:30:00Z','[]','synthetic','fixture','unknown');
  insert into public.agent_tokens(id,user_id,name,token_hash,token_last4)values('${token}','${ids[3]}','fixture','${token}','1234');
  insert into public.agent_activity(token_id,user_id,action,created_at)values('${token}','${ids[3]}','read','2026-11-25T00:30:00Z'),('${token}','${ids[3]}','listed','2026-11-25T00:31:00Z');
@@ -23,7 +23,7 @@ test('owner aggregate: local synthetic boundaries, writes only, metadata privacy
  const result=JSON.parse(output),own=data=>data.groups.filter(g=>ids.includes(g.id));
  assert.deepEqual(result.grants,[false,false,true]);
  assert.equal(result.utc.daily.length,30);assert.equal(result.jakarta.daily.length,30);
- for(const forbidden of ['PRIVATE_CAPTION','PRIVATE_COMMENT','PRIVATE_POST_ERROR','PRIVATE_JOB_ERROR','PRIVATE_CALL_ERROR','PRIVATE_REQUEST','PRIVATE_RESPONSE'])assert.ok(!output.includes(forbidden),forbidden);
+ for(const forbidden of ['PRIVATE_CAPTION','PRIVATE_COMMENT','PRIVATE_POST_ERROR','PRIVATE_JOB_ERROR','PRIVATE_REQUEST','PRIVATE_RESPONSE'])assert.ok(!output.includes(forbidden),forbidden);
  assert.equal(own(result.utc).filter(g=>g.kind==='signup').length,3);
  assert.equal(own(result.utc).filter(g=>g.kind==='today').length,0);
  assert.equal(own(result.jakarta).filter(g=>g.kind==='today').length,1);
@@ -31,6 +31,6 @@ test('owner aggregate: local synthetic boundaries, writes only, metadata privacy
  assert.equal(own(result.utc).filter(g=>g.kind==='error').length,2);
  assert.ok(!own(result.utc).some(g=>g.kind==='today'&&g.id===ids[3]),'agent read/list is not active');
  const person=result.utc.metadata.find(p=>p.id===ids[0]);assert.equal(person.meals,1);assert.equal(person.comments,1);assert.equal(person.corrections,1);assert.equal(person.errors,3);
- assert.equal(result.utc.person_errors.length,3);assert.deepEqual(new Set(result.utc.person_errors.map(e=>e.code)),new Set(['meta:503','fdc:429']));
+ assert.equal(result.utc.person_errors.length,3);assert.deepEqual(new Set(result.utc.person_errors.map(e=>e.code)),new Set(['meta 503','fdc 429','fdc 503']));
  assert.equal(result.utc.metadata.find(p=>p.id===ids[4]).handle,null,'Auth user without profile included');
 });

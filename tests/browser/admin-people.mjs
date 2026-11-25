@@ -22,7 +22,7 @@ try{
     assert.ok(await p.getByText(t.noHandleYet,{exact:false}).count()>0);assert.ok(await p.getByText(t.emailNotConfirmed,{exact:true}).count()>0);const overviewPath=root+'/'+engine+'-'+lang+'-overview.png';await p.screenshot({path:overviewPath,fullPage:true});report.screenshots.push(overviewPath);await p.getByRole('link',{name:t.peopleNext,exact:true}).last().click();await p.waitForURL('**page=2**');await p.getByText(t.accountsPage.replace('{page}','2'),{exact:true}).waitFor();
     await p.goto(app+'/admin/people?page=3');await p.locator('main').waitFor();assert.ok(await p.getByRole('link',{name:t.peoplePrevious,exact:true}).count()>0);
    }
-   if(route==='/admin/people/'+owner.user){await p.getByText(owner.email,{exact:true}).waitFor();await p.getByText('meta:503',{exact:false}).first().waitFor();assert.ok((await p.locator('main').innerText()).includes(t.peopleNotRecorded));}
+   if(route==='/admin/people/'+owner.user){await p.getByText(owner.email,{exact:true}).waitFor();await p.getByText('meta 503',{exact:false}).first().waitFor();assert.ok((await p.locator('main').innerText()).includes(t.peopleNotRecorded));}
    assert.ok(await p.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth+1),'page overflow '+route);
    report.cases.push({name:lang+' owner '+route,status:200});
    if(route==='/admin/people/'+owner.user){const path=root+'/'+engine+'-'+lang+'-'+(route==='/admin/people'?'overview':'person')+'.png';await p.screenshot({path,fullPage:true});report.screenshots.push(path);}
