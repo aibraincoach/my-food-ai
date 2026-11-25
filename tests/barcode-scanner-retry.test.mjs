@@ -30,7 +30,7 @@ function fixture(outcomes){
  assert.match(capture,/onClick=\{backToBarcodeCamera\}[^>]*>\{t\('back_to_camera'\)\}/);
  let preloadCleanup,liveCleanup;
  return{environment,state,found,errors,get requests(){return requests;},get decodes(){return decodes;},rawLoad:()=>scanner.loadBarcodeDecoder(),mount(preload=true){if(preload)preloadCleanup=exports.preload();liveCleanup=exports.live();},
- back:()=>exports.back(),x:()=>exports.back(),add:()=>exports.add([new File(['synthetic'],'barcode.png',{type:'image/png'})]),tick:async()=>{for(const fn of [...intervals.values()])await fn();},
+ back:()=>exports.back(),x:()=>exports.back(),add:(count=1)=>exports.add(Array.from({length:count},(_,i)=>new File(['synthetic'],'barcode-'+i+'.png',{type:'image/png'}))),tick:async()=>{for(const fn of [...intervals.values()])await fn();},
  mode(next){preloadCleanup?.();liveCleanup?.();exports.dismiss();environment.mode=next;preloadCleanup=exports.preload();liveCleanup=exports.live();}};
 }
 function deferred(){let reject,resolve;const promise=new Promise((ok,r)=>{resolve=ok;reject=r;});return{load:()=>promise,resolve:()=>resolve({}),reject:()=>reject(Error('Late decoder chunk failure'))};}
@@ -66,4 +66,25 @@ for(const scenario of ['Back shares a still-pending first load','late live-load 
   f.back();await flush();
  }
  assert.equal(f.state.current,'idle');for(let i=0;i<5;i++)await f.tick();assert.equal(f.decodes,5,'scanning resumes with the cached success');assert.equal(f.requests,1,'Back reuses the same import');
+});
+
+for(const cardState of ['looking','found','missing','unread','error'])test('dismissed-code suppression stays fresh while '+cardState,async()=>{
+ const f=fixture(['ok']);let clock=1000,visible=true;f.environment.Date={now:()=>clock};
+ f.environment.decodeBarcode=async()=>visible?'9591234567892':null;f.environment.grabFrame=async()=>({});f.mount();await flush();
+ await f.tick();assert.equal(f.found.length,1);f.state.current=cardState;
+ for(let i=0;i<10;i++){clock+=300;await f.tick();}assert.equal(f.found.length,1,'a non-idle card never starts another lookup');
+ f.x();clock+=300;await f.tick();assert.equal(f.found.length,1,'dismissing cannot reopen the same barcode on the next tick');assert.equal(f.state.current,'idle');
+ for(let i=0;i<10;i++){clock+=300;await f.tick();}assert.equal(f.found.length,1,'continuous visibility refreshes suppression beyond two seconds');
+ visible=false;clock+=2100;await f.tick();visible=true;clock+=300;await f.tick();assert.equal(f.found.length,2,'after leaving view for over two seconds a new presentation is scanned');assert.equal(f.requests,1,'refreshing suppression never reloads the decoder');
+});
+
+for(const count of [3,8])test('one decoder retry per multi-photo pick of '+count,async()=>{
+ const f=fixture(['fail','fail','ok']);f.mount();await flush();assert.equal(f.requests,1);assert.equal(f.state.current,'error');
+ const frames=[];f.environment.requestAnimationFrame=fn=>frames.push(fn);await f.add(count);assert.equal(frames.length,count);
+ // Deliver each photo's paint callback after the preceding import has failed,
+ // so accidental per-file retry cannot hide behind a shared pending promise.
+ for(let i=0;i<count;i++){frames.shift()();frames.pop()();await flush();}
+ assert.equal(f.requests,2,'all photos in one selection share exactly one additional import');assert.equal(f.state.current,'error');assert.equal(f.found.length,0);
+ for(let i=0;i<100;i++)await f.tick();assert.equal(f.requests,2,'failed selection never restarts itself');
+ f.back();await flush();assert.equal(f.requests,3,'a later Back is one new person action');assert.equal(f.state.current,'idle');
 });

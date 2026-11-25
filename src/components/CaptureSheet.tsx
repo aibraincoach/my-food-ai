@@ -47,7 +47,7 @@ const MAX_SHOTS = 8;
 
 
 export type CaptureMode = "photo" | "text" | "barcode";
-type BarcodePick = { remaining: number; found: boolean; files: File[]; failure?: "error" | "decoderSlow" };
+type BarcodePick = { remaining: number; found: boolean; files: File[]; decoderAttempted?: boolean; failure?: "error" | "decoderSlow" };
 type BarcodeState = "idle" | "looking" | "missing" | "found" | "error" | "unread" | "decoderLoading" | "decoderSlow";
 export default function CaptureSheet({ onClose, initialMode = "photo", forPost, attachNotEaten = false, initialFiles }: { onClose: () => void; initialMode?: CaptureMode; forPost?: string; attachNotEaten?: boolean; initialFiles?: File[] }) {
  const tf=useFailureMessages();
@@ -348,7 +348,9 @@ export default function CaptureSheet({ onClose, initialMode = "photo", forPost, 
         }
         return;
       }
-      if (scanBusy.current || barcodeStateRef.current !== "idle") return;
+      // Healthy decoding continues behind result cards so lastSeen follows
+      // the barcode in view. Only decoder-problem states pause that work.
+      if (scanBusy.current || ["decoderLoading", "decoderSlow"].includes(barcodeStateRef.current)) return;
       scanBusy.current = true;
       try {
         // The live loop never opts into a retry. It shares any pending load,
@@ -363,7 +365,7 @@ export default function CaptureSheet({ onClose, initialMode = "photo", forPost, 
           }
           return;
         }
-        if (cancelled || !mountedRef.current || postingRef.current || barcodeStateRef.current !== "idle") return;
+        if (cancelled || !mountedRef.current || postingRef.current || ["decoderLoading", "decoderSlow"].includes(barcodeStateRef.current)) return;
         const code = await decodeBarcode(videoRef.current);
         if (cancelled) return;
         if (!code) return;
@@ -457,7 +459,13 @@ export default function CaptureSheet({ onClose, initialMode = "photo", forPost, 
         void new Promise<void>(resolve => requestAnimationFrame(() => requestAnimationFrame(() => resolve())))
           .then(() => {
             if (!mountedRef.current || postingRef.current || generation !== lookupRef.current || !shotsRef.current.includes(shot)) return null;
-            return barcodePhotoOutcome(() => loadBarcodeDecoder({retry:true}), () => decodeBarcodeFile(file));
+            return barcodePhotoOutcome(() => {
+              // A multi-file selection is one person action: only its first
+              // active file can retry; all others share pending/success/failure.
+              const retry = !pick.decoderAttempted;
+              pick.decoderAttempted = true;
+              return loadBarcodeDecoder(retry ? {retry:true} : undefined);
+            }, () => decodeBarcodeFile(file));
           })
           .then((result) => {
             if (!result || !mountedRef.current || postingRef.current || generation !== lookupRef.current || !shotsRef.current.includes(shot)) return;
