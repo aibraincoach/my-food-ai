@@ -1,6 +1,8 @@
 -- #1219 A. Additive only: apply before the app switch, by RT yes + PM order.
 -- Old body rows and text overloads are untouched. No history rebuild or English parsing.
 begin;
+set local lock_timeout='1s';
+set local statement_timeout='5s';
 -- 0082 must already be applied; the file on main alone is not a database apply.
 do $$ begin
  if to_regprocedure('public.require_capture_zone(text)') is null

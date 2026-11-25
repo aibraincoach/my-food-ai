@@ -5,6 +5,11 @@ tests and documentation only; its src/messages/scripts diff is empty. Merging
 files runs no SQL and changes no app callers. RT's written database yes and the
 PM's exact apply order remain required. Applied migration history is unchanged.
 
+The migration sets transaction-local lock_timeout to 1 second and
+statement_timeout to 5 seconds before any ALTER. A busy table fails visibly,
+rolling back all earlier schema changes. A later attempt needs a fresh PM order;
+there is no automatic retry.
+
 ## Contract
 
 A new nullable post_comments.message contains a code and values. Exactly one of
