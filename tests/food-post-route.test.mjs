@@ -11,7 +11,7 @@ test('actual food HTTP publishing keeps Auth/caps, resolves nutrition and retrie
  const labelGtin='00016000275683',correctionPrior=checked(await admin.from('barcode_corrections').select('*').eq('gtin',labelGtin).eq('user_id',user.id));
  const request=(body,auth=cookie)=>fetch(origin+'/api/posts/food',{method:'POST',headers:{Cookie:auth,'Content-Type':'application/json'},body:JSON.stringify(body)});
  const cancel=(body,auth=cookie)=>fetch(origin+'/api/posts/food',{method:'DELETE',headers:{Cookie:auth,'Content-Type':'application/json'},body:JSON.stringify(body)});
- const base=()=>({operation_id:randomUUID(),owner_id:user.id,fdc_id:food.fdcId,query,eaten_at:new Date().toISOString()});
+ const base=()=>({time_zone:'UTC',operation_id:randomUUID(),owner_id:user.id,fdc_id:food.fdcId,query,eaten_at:new Date().toISOString()});
  try{
   checked(await admin.from('fdc_cache').upsert({query:cacheKey,response:{kind:'fdc-search-v3',query,payload:{foods:[food]}}},{onConflict:'query'}));
   for(const id of owners)checked(await admin.from('user_call_hits').upsert({user_id:id,route:'post',hour:bucket,hits:0},{onConflict:'user_id,route,hour'}));
@@ -46,7 +46,7 @@ test('actual food HTTP publishing keeps Auth/caps, resolves nutrition and retrie
   const source=randomUUID(),path=user.id+'/'+source+'/0.jpg',feed=path.replace('.jpg','.feed.jpg');paths.push(path,feed);stages.push(source);await queueStagedPhotoCleanup(admin,user.id,source);
   const bytes=await readFile(new URL('../eval/photos/01.jpg',import.meta.url));for(const object of paths)checked(await admin.storage.from('media').upload(object,bytes,{contentType:'image/jpeg'}));
   const reading=checked(await admin.from('label_readings').insert({user_id:user.id,photo_path:path,reading:{is_label:true,serving:{amount:30,unit:'g'},per_serving:{kcal:120,protein_g:3,carbs_g:20,fat_g:3,fibre_g:1,sugar_g:5,sodium_mg:100},product_name:'Scripted stored label',box:null}}).select('id').single());readings.push(reading.id);
-  const label={operation_id:randomUUID(),owner_id:user.id,label_reading_id:reading.id,servings:0.5,name:'Verified cereal',gtin:labelGtin,eaten_at:new Date().toISOString(),photo:{path,width:390,height:390}};operations.push(label.operation_id);
+  const label={time_zone:'UTC',operation_id:randomUUID(),owner_id:user.id,label_reading_id:reading.id,servings:0.5,name:'Verified cereal',gtin:labelGtin,eaten_at:new Date().toISOString(),photo:{path,width:390,height:390}};operations.push(label.operation_id);
   assert.equal((await request({...label,owner_id:other.id},otherCookie)).status,404,'stored label remains owner-scoped');
   assert.equal((await request({...label,nutrition:{calories:999999}})).status,400);
   const labelResponse=await request(label),labelPost=await labelResponse.json();assert.equal(labelResponse.status,201,JSON.stringify(labelPost));posts.push(labelPost.post_id);

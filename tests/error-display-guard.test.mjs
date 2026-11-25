@@ -55,7 +55,7 @@ for(const locale of['en','ja'])for(const code of['route_ac6a88b19530','route_unk
  const states=[],effects=[],listeners=new Map();let index=0,mounted=false,requested;
  const hooks={useState(initial){const i=index++;if(!(i in states))states[i]=initial;return[states[i],value=>{states[i]=typeof value==='function'?value(states[i]):value;}];},useCallback:fn=>fn,useRef:value=>({current:value}),useEffect:fn=>{if(!mounted)effects.push(fn);}};
  const sheet=()=>null;
- const module={exports:{}};
+ const loaded={exports:{}};
  const source=ts.transpileModule(fs.readFileSync('src/components/SavedMealListeners.tsx','utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,jsx:ts.JsxEmit.ReactJSX,target:ts.ScriptTarget.ES2022}}).outputText;
  const require=name=>{
   if(name==='react')return hooks;
@@ -69,8 +69,8 @@ for(const locale of['en','ja'])for(const code of['route_ac6a88b19530','route_unk
   if(name==='./SavedMealsSheet')return{default:sheet};
   return new Proxy({}, {get:()=>()=>null});
  };
- vm.runInNewContext(source,{module,exports:module.exports,require,fetch:async url=>{requested=url;return{ok:false,json:async()=>code===undefined?{}:{message_code:code}};},window:{addEventListener:(name,fn)=>listeners.set(name,fn),removeEventListener(){}}});
- const component=module.exports.default;
+ vm.runInNewContext(source,{module:loaded,exports:loaded.exports,require,fetch:async url=>{requested=url;return{ok:false,json:async()=>code===undefined?{}:{message_code:code}};},window:{addEventListener:(name,fn)=>listeners.set(name,fn),removeEventListener(){}}});
+ const component=loaded.exports.default;
  component();for(const effect of effects)effect();mounted=true;
  assert.ok(listeners.has('open-saved'));listeners.get('open-saved')();
  await new Promise(resolve=>setImmediate(resolve));index=0;

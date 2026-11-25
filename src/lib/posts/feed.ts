@@ -124,6 +124,12 @@ function feedPathFor(storagePath: string): string {
   return `${base}.feed.jpg`;
 }
 
+function requiredPhotoUrl(owner:string,post:string,media:string,secret?:string|null):string {
+ const url=smallFeedPhotoUrl(owner,post,media,secret);
+ if(!url)throw new Error('The photo identity is unavailable.');
+ return url;
+}
+
 export interface PostRow {
   fail_reason?: string | null;
   agent_token_id?: string | null;
@@ -160,7 +166,7 @@ export async function toFeedPost(
     .select("id,storage_path,kind,not_eaten,width,height,photo_secret").eq("post_id",row.id).order("position");
   if(mediaError) throw new Error(mediaError.message);
   const slides = (await Promise.all((media ?? []).map(async (entry) => {
-    try { return {id:entry.id,url: (entry.kind === "photo" ? smallFeedPhotoUrl(row.user_id,row.id,entry.id,(entry as {photo_secret?:string|null}).photo_secret) : null) ?? await feedCopyUrl(supabase, entry.kind === "card" ? entry.storage_path : feedPathFor(entry.storage_path),row.user_id),kind:entry.kind as "photo"|"card",not_eaten:Boolean(entry.not_eaten),width:entry.width??undefined,height:entry.height??undefined}; }
+    try { return {id:entry.id,url: entry.kind === "photo" ? requiredPhotoUrl(row.user_id,row.id,entry.id,(entry as {photo_secret?:string|null}).photo_secret) : await feedCopyUrl(supabase, entry.storage_path,row.user_id),kind:entry.kind as "photo"|"card",not_eaten:Boolean(entry.not_eaten),width:entry.width??undefined,height:entry.height??undefined}; }
     catch { return null; }
   }))).filter((entry): entry is NonNullable<typeof entry> => entry !== null);
   const photoUrl = slides[0]?.url ?? null;
@@ -171,6 +177,7 @@ export async function toFeedPost(
   if(savedError)throw new Error('Saved meal state could not be read.');
   const revisionAfter=row.status==="ready"?await latestRevision(supabase,row.id):null;
   return {
+    mediaUnavailable: slides.length !== (media?.length??0),expectedMediaIds:media?.map(entry=>entry.id),
     revisionUnavailable: row.status === "ready" && JSON.stringify(revisionBefore) !== JSON.stringify(revisionAfter),
     fail_reason: row.fail_reason ?? null,
     agentName: (Array.isArray(row.agent_tokens) ? row.agent_tokens[0] : row.agent_tokens)?.name ?? null,
@@ -228,7 +235,7 @@ export async function toFeedPosts(db: SupabaseClient, rows: PostRow[], zone = "U
     if (result.error) throw result.error; return result.data ?? [];
   }, null);
   const urlRead = mediaRead.then(async media => {
-    const paths = [...new Set((media ?? []).map(entry => entry.kind === 'card' ? entry.storage_path : feedPathFor(entry.storage_path)))];
+    const paths = [...new Set((media ?? []).filter(entry=>entry.kind==='card').map(entry => entry.storage_path))];
     const owners=new Map(rows.map(row=>[row.id,row.user_id]));
     const smallPhotos=new Map<string,string>();
     for(const entry of media??[]){
@@ -241,8 +248,7 @@ export async function toFeedPosts(db: SupabaseClient, rows: PostRow[], zone = "U
     const smallFirst = firstPath ? smallPhotos.get(firstPath)??null : null;
     if (smallFirst) onFirstPhoto?.(smallFirst);
     // Fast SSR and the full page share one immutable private photo URL.
-    // Legacy identifiers retain the shared owner/path signing fallback.
-    const firstRead = smallFirst ? Promise.resolve(smallFirst) : firstPath ? optionalRead('first-photo', () => feedCopyUrl(db, firstPath, rows[0].user_id), null) : Promise.resolve(null);
+    const firstRead = Promise.resolve(smallFirst);
     const batchRead = optionalRead('signed-urls', async () => {
       if (!paths.length) return new Map<string, string>();
       const signedPaths = paths.filter(path => !smallPhotos.has(path));
@@ -308,7 +314,7 @@ export async function getFirstFeedPhoto(db: SupabaseClient, userId: string) {
   if(!data)return null;
   if(data.user_id!==userId)throw new Error('The first meal owner did not match.');
   const photo=[...(data.post_media??[])].filter(row=>row.kind==='photo').sort((a,b)=>a.position-b.position)[0];
-  const photoUrl=photo?(smallFeedPhotoUrl(data.user_id,data.id,photo.id,(photo as {photo_secret?:string|null}).photo_secret)??await feedCopyUrl(db,feedPathFor(photo.storage_path),data.user_id)):null;
+  const photoUrl=photo?requiredPhotoUrl(data.user_id,data.id,photo.id,(photo as {photo_secret?:string|null}).photo_secret):null;
   return {id:data.id,caption:data.caption??'',eaten_at:data.eaten_at,photoUrl};
 }
 

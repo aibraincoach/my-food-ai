@@ -13,7 +13,7 @@ test('actual intake route commits all six server tiles and rejects retired kind-
  for(const endpoint of [origin,process.env.NEXT_PUBLIC_SUPABASE_URL])assert.ok(['localhost','127.0.0.1','[::1]'].includes(new URL(endpoint).hostname),'Disposable local stack required.');
  const db=createClient(process.env.NEXT_PUBLIC_SUPABASE_URL,process.env.SUPABASE_SECRET_KEY,{auth:{persistSession:false}});
  const cookie=await signInAsTestUser(),ids=[],operations=[];
- const intent=body=>{const operation_id=randomUUID();operations.push(operation_id);return{...body,operation_id};};
+ const intent=body=>{const operation_id=randomUUID();operations.push(operation_id);return{time_zone:'UTC',...body,operation_id};};
  const counts=async(auth)=>{const response=await fetch(`${origin}/api/intake/tile-counts`,{headers:{Cookie:auth}});assert.equal(response.status,200);return response.json();};
  const otherCookie=await signInAsTestUser(2);
  let before;

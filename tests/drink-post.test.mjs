@@ -35,6 +35,7 @@ test("cola tile keeps cola nutrition and server caffeine in the atomic write", a
   let saved;
   const admin = {
     from(table) {
+      if(table==='posts'){let zone;return {update(value){zone=value.render_time_zone;return this;},eq(){return this;},is(){return this;},select(){return this;},async maybeSingle(){assert.equal(zone,'UTC');return {data:{render_time_zone:zone},error:null};}};}
       assert.equal(table, "fdc_cache");
       let key;
       return {
@@ -181,17 +182,23 @@ test("real route logs 250 ml water and 240 ml coffee; hydration excludes drink i
   const admin = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.SUPABASE_SECRET_KEY, { auth: { persistSession: false } });
   const schema = await admin.from("intake_logs").select("ml").limit(0);
   if (schema.error) { context.skip("0019 not deployed; live route proof waits for its migration/merge order"); return; }
-  const origin = "http://127.0.0.1:3000";
-  try { await fetch(origin, { signal: AbortSignal.timeout(3000) }); }
-  catch { context.skip("serve the production build on localhost:3000 for the live route proof"); return; }
+  const origin = process.env.APP_URL;
+  if(!origin){context.skip("APP_URL is required for the disposable served route proof");return;}
+  assert.ok(["127.0.0.1","localhost"].includes(new URL(origin).hostname));
+  await fetch(origin,{signal:AbortSignal.timeout(3000)});
   const cookie = await signInAsTestUser();
   const secondCookie = await signInAsTestUser(2);
   const ids = [];
+  const checked=r=>{assert.ifError(r.error);return r.data;};
+  const queries=['Coffee, brewed from grounds, prepared with tap water','Beverages, carbonated, cola, regular'];
+  const fixtures=queries.map((description,i)=>{const query=description.toLowerCase();return {query:'fdc-search-v3:'+query,response:{kind:'fdc-search-v3',query,payload:{foods:[{fdcId:9900380+i,description,dataType:'SR Legacy',foodNutrients:[{nutrientId:1008,value:i?42:1},{nutrientId:1003,value:0},{nutrientId:1004,value:0},{nutrientId:1005,value:0}]}]}}};});
+  const prior=checked(await admin.from('fdc_cache').select('*').in('query',fixtures.map(row=>row.query)));
   const read = async (path, second = false) => {
     const response = await fetch(`${origin}${path}`, { headers: { Cookie: second ? secondCookie : cookie }, signal: AbortSignal.timeout(30000) });
     assert.equal(response.status, 200); return response.json();
   };
   try {
+    checked(await admin.from('fdc_cache').upsert(fixtures,{onConflict:'query'}));
     let userId;
     const userClient = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY, { auth: { persistSession: false } });
     const signedIn = await userClient.auth.signInWithPassword({ email: process.env.TEST_USER_EMAIL, password: process.env.TEST_USER_PASSWORD });
@@ -199,12 +206,12 @@ test("real route logs 250 ml water and 240 ml coffee; hydration excludes drink i
     const now = new Date().toISOString();
     const before = await hydrationSoFar(admin, userId, dateInZone(now,"UTC"), "UTC", now);
     for (const [kind, ml] of [["water",250],["caffeine",240]]) {
-      const response = await fetch(`${origin}/api/intake/post`, { method: "POST", headers: { Cookie: cookie, "Content-Type": "application/json" }, body: JSON.stringify({tile:kind==="water"?0:1,ml,operation_id:randomUUID()}), signal: AbortSignal.timeout(90000) });
+      const response = await fetch(`${origin}/api/intake/post`, { method: "POST", headers: { Cookie: cookie, "Content-Type": "application/json" }, body: JSON.stringify({time_zone:'UTC',tile:kind==="water"?0:1,ml,operation_id:randomUUID()}), signal: AbortSignal.timeout(90000) });
       assert.equal(response.status,201);
       const saved = await response.json(); ids.push(saved.post_id);
       const { data: post } = await admin.from("posts").select("status").eq("id",saved.post_id).single(); assert.equal(post.status,"ready");
       const { data: row } = await admin.from("intake_logs").select("ml,amount,post_id").eq("post_id",saved.post_id).single();
-      assert.equal(row.ml,ml); assert.equal(row.amount, kind === "water" ? 330 : 95);
+      assert.equal(row.ml,ml); assert.equal(row.amount, kind === "water" ? 250 : 95);
       assert.deepEqual(await read(`/api/intake/post?post_id=${saved.post_id}&tz=UTC`,true),{drink:null});
       if (kind === "water") {
         const {data: items} = await admin.from("post_items").select("id").eq("post_id",saved.post_id);
@@ -214,14 +221,16 @@ test("real route logs 250 ml water and 240 ml coffee; hydration excludes drink i
     const after = await hydrationSoFar(admin,userId,dateInZone(new Date(),"UTC"),"UTC",new Date().toISOString());
     assert.equal(after.drinksMl-before.drinksMl,490); assert.equal(after.foodMl,before.foodMl);
     const card = await read(`/api/intake/post?post_id=${ids[1]}&tz=UTC`); assert.equal(card.drink.caffeineMg,95);
-    const colaResponse = await fetch(`${origin}/api/intake/post`, { method: "POST", headers: { Cookie: cookie, "Content-Type": "application/json" }, body: JSON.stringify({ tile: 4,operation_id:randomUUID() }), signal: AbortSignal.timeout(90000) });
+    const colaResponse = await fetch(`${origin}/api/intake/post`, { method: "POST", headers: { Cookie: cookie, "Content-Type": "application/json" }, body: JSON.stringify({time_zone:'UTC', tile: 4,operation_id:randomUUID() }), signal: AbortSignal.timeout(90000) });
     assert.equal(colaResponse.status, 201);
     const cola = await colaResponse.json(); ids.push(cola.post_id);
     const { data: colaIntake } = await admin.from("intake_logs").select("ml,amount,label").eq("post_id", cola.post_id).single();
     assert.deepEqual(colaIntake, { ml: 330, amount: 32, label: "Coca-Cola, can" });
-    const invalid = await fetch(`${origin}/api/intake/post`, { method: "POST", headers: { Cookie: cookie, "Content-Type": "application/json" }, body: JSON.stringify({ tile: 9,operation_id:randomUUID() }) });
+    const invalid = await fetch(`${origin}/api/intake/post`, { method: "POST", headers: { Cookie: cookie, "Content-Type": "application/json" }, body: JSON.stringify({time_zone:'UTC', tile: 9,operation_id:randomUUID() }) });
     assert.equal(invalid.status, 400);
   } finally {
+    checked(await admin.from('fdc_cache').delete().in('query',fixtures.map(row=>row.query)));
+    if(prior.length)checked(await admin.from('fdc_cache').upsert(prior,{onConflict:'query'}));
     if (ids.length) {
       const {data: media} = await admin.from("post_media").select("storage_path").in("post_id",ids);
       await admin.from("intake_logs").delete().in("post_id",ids);

@@ -265,7 +265,8 @@ export const API_MESSAGE_CODES = [
   "route_397499279570",
   "route_18a223594571",
   "captionSaveFailed",
-  "monthlyDrinksLoadFailed"
+  "monthlyDrinksLoadFailed",
+  "captureZoneRequired"
 ] as const;
 export type ApiMessageCode = typeof API_MESSAGE_CODES[number];
 export const FAILURE_MESSAGE_NAMESPACES = {
@@ -543,6 +544,7 @@ export const FAILURE_MESSAGE_NAMESPACES = {
   "decoderLoading": "capture",
   "decoderSlow": "capture",
   "decoderLoadFailed": "capture",
+  "cameraChoiceTemporary": "capture",
   "error_0795a0b4a0a6": "api",
   "route_077b160e9e33": "api",
   "route_0786ac0ef4c6": "api",
@@ -808,5 +810,6 @@ export const FAILURE_MESSAGE_NAMESPACES = {
   "route_397499279570": "api",
   "route_18a223594571": "api",
   "captionSaveFailed": "api",
-  "monthlyDrinksLoadFailed": "api"
+  "monthlyDrinksLoadFailed": "api",
+  "captureZoneRequired": "api"
 } as const;

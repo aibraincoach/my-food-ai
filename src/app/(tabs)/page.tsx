@@ -85,6 +85,7 @@ async function HomeDays() {
   let totals: import("@/lib/posts/days").FeedDayTotal[] = [];
   let ownerId: string | null = null;
   let earliest: string | null = null;
+  let unavailable=false;
   try {
     [days, totals, ownerId, earliest] = await homeDeadline((async () => {
       const {db:supabase,user} = await homeReader();
@@ -95,7 +96,8 @@ async function HomeDays() {
       ]) : [[], [], null] as [{date: string}[], import('@/lib/posts/days').FeedDayTotal[], string | null];
       return [logged,readTotals,user?.id??null,first] as [{date:string}[],import('@/lib/posts/days').FeedDayTotal[],string|null,string|null];
     })());
-  } catch { /* Optional day reads must not take down Home. */ }
+  } catch { unavailable=true; }
+  if(unavailable){const t=await getTranslations('feed');return <p role="status" data-day-summaries-unavailable className="px-screen-x text-detail text-muted">{t('daySummariesFailed')}</p>;}
   return <DayRings ownerId={ownerId} days={days} totals={totals} today={today} zone={zone} zoneKnown={known} earliest={earliest} />;
 }
 

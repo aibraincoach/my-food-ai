@@ -32,18 +32,8 @@ async function readPhoto(request: Request, context: {params: Promise<{owner: str
   if (request.headers.get('if-none-match') === cacheHeaders.ETag) {
     return new Response(null, {status: 304, headers: cacheHeaders});
   }
-  // Only called after the owning user's RLS lookup, including on overload/failure.
-  const original = async () => {
-    try {
-      const result = await db.storage.from('media').createSignedUrl(data.storage_path, 60);
-      if (result.error || !result.data?.signedUrl) return fail(502);
-      const target = new URL(result.data.signedUrl);
-      if (target.origin !== new URL(process.env.NEXT_PUBLIC_SUPABASE_URL!).origin) return fail(502);
-      return new Response(null, {status: 302, headers: {...headers, Location: target.href}});
-    } catch { return fail(502); }
-  };
   const release = reserveFeedPhoto();
-  if (!release) return original();
+  if (!release) return fail(503);
   try {
     const {data: {session}} = await db.auth.getSession();
     if (!session?.access_token) return fail(401);
@@ -56,8 +46,8 @@ async function readPhoto(request: Request, context: {params: Promise<{owner: str
       if (signal.aborted) return fail(503);
       return new Response(new Uint8Array(output), {headers: {...cacheHeaders, 'Content-Type': 'image/webp'}});
     } catch {
-      return new Response(new Uint8Array(source), {headers: {...cacheHeaders, 'Content-Type': 'image/jpeg'}});
+      return fail(503);
     }
-  } catch { return original(); }
+  } catch { return fail(503); }
   finally { release(); }
 }

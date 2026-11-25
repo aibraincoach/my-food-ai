@@ -193,28 +193,35 @@
     },
     {
       "file": "src/app/api/saved/[id]/log/route.ts",
-      "site": 3,
+      "site": 2,
       "english": [
-        "The meal could not be logged."
+        "A valid time zone is required to save this meal."
       ]
     },
     {
       "file": "src/app/api/saved/[id]/log/route.ts",
       "site": 4,
       "english": [
-        "Sign in required."
+        "The meal could not be logged."
       ]
     },
     {
       "file": "src/app/api/saved/[id]/log/route.ts",
       "site": 5,
       "english": [
+        "Sign in required."
+      ]
+    },
+    {
+      "file": "src/app/api/saved/[id]/log/route.ts",
+      "site": 6,
+      "english": [
         "Meal not found."
       ]
     },
     {
       "file": "src/app/api/saved/[id]/log/route.ts",
-      "site": 7,
+      "site": 8,
       "english": [
         "The pending copy could not be removed."
       ]
@@ -468,40 +475,55 @@
       "file": "src/app/api/intake/post/route.ts",
       "site": 11,
       "english": [
+        "A valid time zone is required to save this meal."
+      ]
+    },
+    {
+      "file": "src/app/api/intake/post/route.ts",
+      "site": 12,
+      "english": [
         "Choose a valid time eaten."
       ]
     },
     {
       "file": "src/app/api/intake/post/route.ts",
-      "site": 15,
+      "site": 14,
       "english": [
-        "The drink could not be saved. Your selection is kept."
-      ]
-    },
-    {
-      "file": "src/app/api/intake/post/route.ts",
-      "site": 16,
-      "english": [
-        "Sign in required."
+        "This drink selection changed. Start a new drink post.",
+        "Something went wrong. Try again."
       ]
     },
     {
       "file": "src/app/api/intake/post/route.ts",
       "site": 17,
       "english": [
-        "This drink belongs to another sign-in."
+        "The drink could not be saved. Your selection is kept."
       ]
     },
     {
       "file": "src/app/api/intake/post/route.ts",
       "site": 18,
       "english": [
-        "Invalid drink operation."
+        "Sign in required."
       ]
     },
     {
       "file": "src/app/api/intake/post/route.ts",
       "site": 19,
+      "english": [
+        "This drink belongs to another sign-in."
+      ]
+    },
+    {
+      "file": "src/app/api/intake/post/route.ts",
+      "site": 20,
+      "english": [
+        "Invalid drink operation."
+      ]
+    },
+    {
+      "file": "src/app/api/intake/post/route.ts",
+      "site": 21,
       "english": [
         "The pending drink could not be removed. Your selection is kept."
       ]
@@ -531,61 +553,68 @@
       "file": "src/app/api/posts/route.ts",
       "site": 3,
       "english": [
-        "The selected photo is not ready. Your draft was kept."
+        "A valid time zone is required to save this meal."
       ]
     },
     {
       "file": "src/app/api/posts/route.ts",
       "site": 4,
       "english": [
-        "Only photos after the first can be marked as leftovers."
+        "The selected photo is not ready. Your draft was kept."
       ]
     },
     {
       "file": "src/app/api/posts/route.ts",
       "site": 5,
       "english": [
-        "Invalid draft."
+        "Only photos after the first can be marked as leftovers."
       ]
     },
     {
       "file": "src/app/api/posts/route.ts",
       "site": 6,
       "english": [
-        "Invalid time eaten."
+        "Invalid draft."
       ]
     },
     {
       "file": "src/app/api/posts/route.ts",
       "site": 7,
       "english": [
+        "Invalid time eaten."
+      ]
+    },
+    {
+      "file": "src/app/api/posts/route.ts",
+      "site": 8,
+      "english": [
         "Invalid location."
       ]
     },
     {
       "file": "src/app/api/posts/route.ts",
-      "site": 11,
+      "site": 12,
       "english": [
         "The post could not be completed. Your draft was kept; try again."
       ]
     },
     {
       "file": "src/app/api/posts/route.ts",
-      "site": 13,
+      "site": 14,
       "english": [
         "Sign in required."
       ]
     },
     {
       "file": "src/app/api/posts/route.ts",
-      "site": 14,
+      "site": 15,
       "english": [
         "Invalid draft."
       ]
     },
     {
       "file": "src/app/api/posts/route.ts",
-      "site": 16,
+      "site": 17,
       "english": [
         "The upload draft expired. Your photos were kept; try again.",
         "The photo upload could not be completed. Your draft was kept; try again."
@@ -623,40 +652,47 @@
       "file": "src/app/api/posts/food/route.ts",
       "site": 4,
       "english": [
-        "The food operation could not be confirmed. Retry your kept selection."
+        "A valid time zone is required to save this meal."
       ]
     },
     {
       "file": "src/app/api/posts/food/route.ts",
       "site": 5,
       "english": [
-        "Food operation not found."
+        "The food operation could not be confirmed. Retry your kept selection."
       ]
     },
     {
       "file": "src/app/api/posts/food/route.ts",
       "site": 6,
       "english": [
-        "This pending food post was removed."
+        "Food operation not found."
       ]
     },
     {
       "file": "src/app/api/posts/food/route.ts",
       "site": 7,
       "english": [
-        "This selection changed. Start a new food post."
+        "This pending food post was removed."
       ]
     },
     {
       "file": "src/app/api/posts/food/route.ts",
       "site": 8,
       "english": [
-        "The saved food could not be confirmed. Retry your kept selection."
+        "This selection changed. Start a new food post."
       ]
     },
     {
       "file": "src/app/api/posts/food/route.ts",
       "site": 9,
+      "english": [
+        "The saved food could not be confirmed. Retry your kept selection."
+      ]
+    },
+    {
+      "file": "src/app/api/posts/food/route.ts",
+      "site": 10,
       "english": [
         "This food post was removed."
       ]
@@ -665,82 +701,98 @@
       "file": "src/app/api/posts/food/route.ts",
       "site": 11,
       "english": [
-        "Choose a valid label and servings."
-      ]
-    },
-    {
-      "file": "src/app/api/posts/food/route.ts",
-      "site": 12,
-      "english": [
-        "Label reading not found."
+        "This selection changed. Start a new food post.",
+        "Something went wrong. Try again."
       ]
     },
     {
       "file": "src/app/api/posts/food/route.ts",
       "site": 13,
       "english": [
-        "Use the photo from this label reading."
+        "Choose a valid label and servings."
       ]
     },
     {
       "file": "src/app/api/posts/food/route.ts",
       "site": 14,
       "english": [
-        "Invalid time or barcode."
+        "Label reading not found."
       ]
     },
     {
       "file": "src/app/api/posts/food/route.ts",
       "site": 15,
       "english": [
-        "The label post could not be saved."
+        "Use the photo from this label reading."
+      ]
+    },
+    {
+      "file": "src/app/api/posts/food/route.ts",
+      "site": 16,
+      "english": [
+        "Invalid time or barcode."
       ]
     },
     {
       "file": "src/app/api/posts/food/route.ts",
       "site": 17,
       "english": [
-        "A readable serving and nutrition panel are required."
+        "The label post could not be saved."
       ]
     },
     {
       "file": "src/app/api/posts/food/route.ts",
       "site": 18,
       "english": [
-        "Choose a valid barcode and amount."
-      ]
-    },
-    {
-      "file": "src/app/api/posts/food/route.ts",
-      "site": 19,
-      "english": [
-        "Invalid time eaten."
+        "This selection changed. Start a new food post.",
+        "Something went wrong. Try again."
       ]
     },
     {
       "file": "src/app/api/posts/food/route.ts",
       "site": 20,
       "english": [
-        "Invalid pack photo."
+        "A readable serving and nutrition panel are required."
       ]
     },
     {
       "file": "src/app/api/posts/food/route.ts",
       "site": 21,
       "english": [
-        "Not in the database"
+        "Choose a valid barcode and amount."
       ]
     },
     {
       "file": "src/app/api/posts/food/route.ts",
       "site": 22,
       "english": [
-        "Choose an amount in the product's own unit."
+        "Invalid time eaten."
       ]
     },
     {
       "file": "src/app/api/posts/food/route.ts",
       "site": 23,
+      "english": [
+        "Invalid pack photo."
+      ]
+    },
+    {
+      "file": "src/app/api/posts/food/route.ts",
+      "site": 24,
+      "english": [
+        "Not in the database"
+      ]
+    },
+    {
+      "file": "src/app/api/posts/food/route.ts",
+      "site": 25,
+      "english": [
+        "Choose an amount in the product's own unit."
+      ]
+    },
+    {
+      "file": "src/app/api/posts/food/route.ts",
+      "site": 26,
       "english": [
         "The pack photo or portion could not be saved.",
         "The meal could not be saved."
@@ -748,52 +800,38 @@
     },
     {
       "file": "src/app/api/posts/food/route.ts",
-      "site": 25,
-      "english": [
-        "Barcode lookup is temporarily unavailable."
-      ]
-    },
-    {
-      "file": "src/app/api/posts/food/route.ts",
-      "site": 26,
-      "english": [
-        "Choose a food from the search results."
-      ]
-    },
-    {
-      "file": "src/app/api/posts/food/route.ts",
       "site": 27,
       "english": [
-        "Invalid time eaten."
-      ]
-    },
-    {
-      "file": "src/app/api/posts/food/route.ts",
-      "site": 28,
-      "english": [
-        "That food is no longer in the results. Search again."
+        "This selection changed. Start a new food post.",
+        "Something went wrong. Try again."
       ]
     },
     {
       "file": "src/app/api/posts/food/route.ts",
       "site": 29,
       "english": [
-        "Sign in required."
+        "Barcode lookup is temporarily unavailable."
       ]
     },
     {
       "file": "src/app/api/posts/food/route.ts",
       "site": 30,
       "english": [
-        "That food could not be logged.",
-        "The meal could not be saved."
+        "Choose a food from the search results."
+      ]
+    },
+    {
+      "file": "src/app/api/posts/food/route.ts",
+      "site": 31,
+      "english": [
+        "Invalid time eaten."
       ]
     },
     {
       "file": "src/app/api/posts/food/route.ts",
       "site": 32,
       "english": [
-        "Food search is temporarily unavailable."
+        "That food is no longer in the results. Search again."
       ]
     },
     {
@@ -807,19 +845,49 @@
       "file": "src/app/api/posts/food/route.ts",
       "site": 34,
       "english": [
-        "This selection belongs to another sign-in."
+        "That food could not be logged.",
+        "The meal could not be saved."
       ]
     },
     {
       "file": "src/app/api/posts/food/route.ts",
       "site": 35,
       "english": [
+        "This selection changed. Start a new food post.",
+        "Something went wrong. Try again."
+      ]
+    },
+    {
+      "file": "src/app/api/posts/food/route.ts",
+      "site": 37,
+      "english": [
+        "Food search is temporarily unavailable."
+      ]
+    },
+    {
+      "file": "src/app/api/posts/food/route.ts",
+      "site": 38,
+      "english": [
+        "Sign in required."
+      ]
+    },
+    {
+      "file": "src/app/api/posts/food/route.ts",
+      "site": 39,
+      "english": [
+        "This selection belongs to another sign-in."
+      ]
+    },
+    {
+      "file": "src/app/api/posts/food/route.ts",
+      "site": 40,
+      "english": [
         "Invalid food operation."
       ]
     },
     {
       "file": "src/app/api/posts/food/route.ts",
-      "site": 36,
+      "site": 41,
       "english": [
         "The pending food could not be removed. Your selection is kept."
       ]
@@ -1004,14 +1072,29 @@
     },
     {
       "file": "src/app/api/drinks/post/route.ts",
+      "site": 6,
+      "english": [
+        "A valid time zone is required to save this meal."
+      ]
+    },
+    {
+      "file": "src/app/api/drinks/post/route.ts",
       "site": 8,
+      "english": [
+        "This drink selection changed. Start a new drink post.",
+        "Something went wrong. Try again."
+      ]
+    },
+    {
+      "file": "src/app/api/drinks/post/route.ts",
+      "site": 10,
       "english": [
         "The drink choices could not be read."
       ]
     },
     {
       "file": "src/app/api/drinks/post/route.ts",
-      "site": 9,
+      "site": 11,
       "english": [
         "Photo draft not found.",
         "The drinks could not be posted. Your photo was kept."
@@ -1019,28 +1102,36 @@
     },
     {
       "file": "src/app/api/drinks/post/route.ts",
-      "site": 11,
+      "site": 12,
+      "english": [
+        "This drink selection changed. Start a new drink post.",
+        "Something went wrong. Try again."
+      ]
+    },
+    {
+      "file": "src/app/api/drinks/post/route.ts",
+      "site": 14,
       "english": [
         "Sign in required."
       ]
     },
     {
       "file": "src/app/api/drinks/post/route.ts",
-      "site": 12,
+      "site": 15,
       "english": [
         "This photo belongs to another sign-in."
       ]
     },
     {
       "file": "src/app/api/drinks/post/route.ts",
-      "site": 13,
+      "site": 16,
       "english": [
         "Invalid photo drink operation."
       ]
     },
     {
       "file": "src/app/api/drinks/post/route.ts",
-      "site": 14,
+      "site": 17,
       "english": [
         "The pending drinks could not be removed. Your photo is kept."
       ]
@@ -1380,7 +1471,7 @@
       "file": "src/app/api/media/sign-upload/route.ts",
       "site": 1,
       "english": [
-        "postId is required."
+        "This photo upload could not be prepared. Try again."
       ]
     },
     {
@@ -1575,44 +1666,44 @@
     },
     {
       "file": "src/app/api/posts/[id]/log-again/route.ts",
-      "site": 3,
+      "site": 2,
       "english": [
-        "The meal could not be logged."
+        "A valid time zone is required to save this meal."
       ]
     },
     {
       "file": "src/app/api/posts/[id]/log-again/route.ts",
       "site": 4,
       "english": [
-        "Sign in required."
+        "The meal could not be logged."
       ]
     },
     {
       "file": "src/app/api/posts/[id]/log-again/route.ts",
       "site": 5,
       "english": [
-        "Meal not found."
+        "Sign in required."
       ]
     },
     {
       "file": "src/app/api/posts/[id]/log-again/route.ts",
-      "site": 7,
+      "site": 6,
       "english": [
-        "The pending copy could not be removed."
+        "Meal not found."
       ]
     },
     {
       "file": "src/app/api/posts/[id]/log-again/route.ts",
       "site": 8,
       "english": [
-        "Sign in required."
+        "The pending copy could not be removed."
       ]
     },
     {
       "file": "src/app/api/posts/[id]/log-again/route.ts",
       "site": 9,
       "english": [
-        "Meal not found."
+        "Sign in required."
       ]
     },
     {
@@ -1625,6 +1716,13 @@
     {
       "file": "src/app/api/posts/[id]/log-again/route.ts",
       "site": 11,
+      "english": [
+        "Meal not found."
+      ]
+    },
+    {
+      "file": "src/app/api/posts/[id]/log-again/route.ts",
+      "site": 12,
       "english": [
         "The meal could not be loaded."
       ]
@@ -1827,5 +1925,18 @@
       "src/app/api/drinks/post/route.ts"
     ],
     "reason": "Removed old publication/signing sites; current literal response English and new site indices read from source."
+  },
+  "packetCUpdate": {
+    "base": "9671fe3efb60044ff1a52affb481392d53ddf10a",
+    "files": [
+      "src/app/api/media/sign-upload/route.ts",
+      "src/app/api/posts/food/route.ts",
+      "src/app/api/drinks/post/route.ts",
+      "src/app/api/intake/post/route.ts",
+      "src/app/api/posts/route.ts",
+      "src/app/api/posts/[id]/log-again/route.ts",
+      "src/app/api/saved/[id]/log/route.ts"
+    ],
+    "reason": "Required capture-zone refusal and approved staged-refusal copy; response English/site indices read from source."
   }
 }

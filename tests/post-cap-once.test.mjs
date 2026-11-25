@@ -5,7 +5,7 @@ test('a photo reservation costs one post hit however often the composer re-sends
  const db=createClient(process.env.NEXT_PUBLIC_SUPABASE_URL,process.env.SUPABASE_SECRET_KEY,{auth:{persistSession:false}});
  const {user}=await signInTestClient(1),cookie=await signInAsTestUser(1),origin=process.env.APP_URL;
  const hour=new Date();hour.setUTCMinutes(0,0,0);const bucket=hour.toISOString(),prior=checked(await db.from('user_call_hits').select('*').eq('user_id',user.id).eq('route','post').eq('hour',bucket));
- const reserve=id=>fetch(origin+'/api/posts',{method:'POST',headers:{Cookie:cookie,'Content-Type':'application/json'},body:JSON.stringify({operation_id:id,capture_intent:'photo',caption:'Cap check',eaten_at:new Date().toISOString(),shots:[{position:0,width:390,height:390}]})});
+ const reserve=id=>fetch(origin+'/api/posts',{method:'POST',headers:{Cookie:cookie,'Content-Type':'application/json'},body:JSON.stringify({time_zone:'UTC',operation_id:id,capture_intent:'photo',caption:'Cap check',eaten_at:new Date().toISOString(),shots:[{position:0,width:390,height:390}]})});
  const used=async()=>checked(await db.from('user_call_hits').select('hits').eq('user_id',user.id).eq('route','post').eq('hour',bucket).maybeSingle())?.hits??0;
  const ids=[];
  try{

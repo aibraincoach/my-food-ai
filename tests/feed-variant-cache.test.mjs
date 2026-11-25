@@ -2,11 +2,13 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 
-test('feed variant fallback redirect is not long-cache immutable', () => {
+test('feed variant failure has no redirect or immutable success headers', () => {
   const source = readFileSync(
     new URL('../src/app/api/media/feed/[owner]/[post]/[media]/[variant]/route.ts', import.meta.url),
     'utf8'
   );
-  assert.match(source, /status: 302, headers: \{\.\.\.headers, Location:/);
-  assert.doesNotMatch(source, /302, headers: \{\.\.\.cacheHeaders, Location:/);
+  assert.doesNotMatch(source, /status:\s*302|Location:|createSignedUrl/);
+  assert.match(source, /const headers = \{'Cache-Control': 'private, no-store',/);
+  assert.match(source, /if \(!release\) return fail\(503\)/);
+  assert.match(source, /catch \{ return fail\(503\); \}/);
 });

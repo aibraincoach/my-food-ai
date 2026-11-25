@@ -5,7 +5,7 @@ export function tileDrinkKey(body:Record<string,unknown>,zone:string):string {
  return createHash('sha256').update(JSON.stringify({tile:body.tile??null,ml:body.ml??null,kind:body.kind??null,custom:body.custom??null,eaten_at:body.eaten_at??null,zone})).digest('hex');
 }
 export function photoDrinkKey(body:Record<string,unknown>):string {
- return createHash('sha256').update(JSON.stringify({upload_id:body.upload_id,caption:body.caption,eaten_at:body.eaten_at??null,save_as_meal:body.save_as_meal,location:body.location??null,readings:body.readings})).digest('hex');
+ return createHash('sha256').update(JSON.stringify({time_zone:body.time_zone,upload_id:body.upload_id,caption:body.caption,eaten_at:body.eaten_at??null,save_as_meal:body.save_as_meal,location:body.location??null,readings:body.readings})).digest('hex');
 }
 export type DrinkReceipt = {postId:string}|{status:number;message_code:ApiMessageCode};
 export async function readDrinkReceipt(admin:SupabaseClient,userId:string,operationId:string,key:string,kind:'tile'|'photo'):Promise<DrinkReceipt|null>{

@@ -11,7 +11,7 @@ test('actual copy routes deduplicate concurrent/retried copies, bind owners and 
  const admin=createClient(process.env.NEXT_PUBLIC_SUPABASE_URL,process.env.SUPABASE_SECRET_KEY,{auth:{persistSession:false}}),{user}=await signInTestClient(2),cookie=await signInAsTestUser(2),other=await signInAsTestUser(1);
  const source=randomUUID(),item=randomUUID(),when=new Date(Date.now()-3600000).toISOString(),operations=[randomUUID(),randomUUID(),randomUUID(),randomUUID()],posts=new Set([source]);let saved,failure;
  const request=async(path,method,body,auth=cookie)=>{const response=await fetch(origin+path,{method,headers:{...(auth?{Cookie:auth}:{}),'Content-Type':'application/json'},body:JSON.stringify(body),signal:AbortSignal.timeout(90000)});const result=await response.json();if(result.postId??result.post_id)posts.add(result.postId??result.post_id);return{status:response.status,body:result};};
- const selection=operation_id=>({operation_id,owner_id:user.id,eaten_at:when}),postPath=`/api/posts/${source}/log-again`;
+ const selection=operation_id=>({operation_id,owner_id:user.id,eaten_at:when,time_zone:'Asia/Tokyo'}),postPath=`/api/posts/${source}/log-again`;
  try{
   checked(await admin.from('posts').insert({id:source,user_id:user.id,caption:'Copy route fixture',eaten_at:when,status:'ready',analysis_initialized_at:new Date().toISOString()}));
   checked(await admin.from('post_items').insert({id:item,post_id:source,name:'Coffee fixture',portion_grams:240,portion_text:'240 ml',source:'user'}));
@@ -24,7 +24,7 @@ test('actual copy routes deduplicate concurrent/retried copies, bind owners and 
   assert.equal((await request(postPath,'POST',selection(operations[0]),other)).status,403);
   const{user:otherUser}=await signInTestClient(1);assert.equal((await request(postPath,'POST',{...selection(operations[0]),owner_id:otherUser.id},other)).status,404);
   assert.equal((await request(postPath,'DELETE',{...selection(operations[0]),owner_id:otherUser.id},other)).status,404);
-  assert.equal((await request(postPath,'POST',{operation_id:operations[0],eaten_at:when})).status,403);
+  assert.equal((await request(postPath,'POST',{operation_id:operations[0],eaten_at:when,time_zone:'Asia/Tokyo'})).status,403);
   assert.equal((await request(postPath,'POST',{...selection(operations[0]),operation_id:'bad'})).status,400);
   assert.equal((await request(postPath,'POST',selection(operations[0]),null)).status,401);
   checked(await admin.from('posts').delete().eq('user_id',user.id).eq('id',source));
@@ -37,7 +37,7 @@ test('actual copy routes deduplicate concurrent/retried copies, bind owners and 
   assert.equal((await request(savedPath,'DELETE',selection(operations[2]))).status,200);assert.equal((await request(savedPath,'POST',selection(operations[2]))).status,410);assert.equal((await request(savedPath,'DELETE',selection(operations[2]))).status,200);
   const race=await Promise.all([request(savedPath,'POST',selection(operations[3])),request(savedPath,'DELETE',selection(operations[3]))]);assert.ok([200,410].includes(race[0].status));assert.equal(race[1].status,200);assert.equal((await request(savedPath,'POST',selection(operations[3]))).status,410);
   const receipt=checked(await admin.from('copy_post_operations').select('post_id,cancelled').eq('operation_id',operations[3]).single());assert.equal(receipt.cancelled,true);if(receipt.post_id)assert.ok(checked(await admin.from('posts').select('deleted_at').eq('id',receipt.post_id).single()).deleted_at);
-  const legacy=await request(savedPath,'POST',{eaten_at:when});assert.equal(legacy.status,200,'Legacy clients retain their copy contract');
+  const before=checked(await admin.from('posts').select('id').eq('user_id',user.id));const retired=await request(savedPath,'POST',{eaten_at:when,time_zone:'Asia/Tokyo'});assert.equal(retired.status,400);assert.equal(typeof retired.body.message_code,'string');assert.deepEqual(checked(await admin.from('posts').select('id').eq('user_id',user.id)),before,'missing operation writes no row');
  }catch(error){failure=error;}finally{
   const storageFailures=[];
   const receipts=checked(await admin.from('copy_post_operations').select('post_id').eq('user_id',user.id).in('operation_id',operations));for(const row of receipts)if(row.post_id)posts.add(row.post_id);

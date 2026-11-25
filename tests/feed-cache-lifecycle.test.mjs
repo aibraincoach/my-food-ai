@@ -140,6 +140,7 @@ async function mountedFeed(initialPosts,{cachedPosts,failPage=false,initialPage,
    if(name==='@/lib/posts/upload-manager')return{uploadManager:{list:()=>[]}};
    if(name==='@/lib/posts/upload-target')return{uploadTargetsPost};
    if(name==='@/lib/theme/tokens')return{tokens:{spacing:{'sheet-bottom':1}}};
+   if(name==='./FeedConnectionNotice')return{default:()=>null};
    if(name.startsWith('@/components/'))return{default:()=>null};
    throw Error('Unexpected feed dependency '+name);
   }});
