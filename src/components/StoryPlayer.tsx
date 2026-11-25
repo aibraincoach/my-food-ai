@@ -1,8 +1,7 @@
 "use client";
 import {useLocale,useTranslations} from 'next-intl';
 import {formatDate,formatEnergy,formatNutrient,formatNumber} from '@/i18n/format';
-import {cardGapWording} from '@/i18n/card';
-import { nutritionGaps, gapSentence, GAP_LEAD } from "@/lib/nutrition/totals";
+import { nutritionGaps, gapSentence} from "@/lib/nutrition/totals";
 
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import {useDeviceTimeZone} from "@/components/LocalTime";
@@ -27,6 +26,7 @@ export function dayPostName(post:Pick<DayPost,'items'|'caption'>,emptyLabel:stri
 }
 
 export default function StoryPlayer({ day, zone, onClose, onDay, cell }: { day: LoggedDay; zone: string; onClose: () => void; onDay: (date: string) => void; cell: () => DOMRect | undefined }) {
+ const tn=useTranslations('nutrition');
   useEffect(()=>{const refresh=()=>onDay(day.date);window.addEventListener('post-deleted',refresh);return()=>window.removeEventListener('post-deleted',refresh);},[day.date,onDay]);
   const clockZone=useDeviceTimeZone();
   const locale=useLocale(),t=useTranslations("days");
@@ -50,7 +50,7 @@ export default function StoryPlayer({ day, zone, onClose, onDay, cell }: { day: 
   const today = dateInZone(new Date(), zone);
   const previous = shiftDay(day.date, -1), next = shiftDay(day.date, 1);
   const post = day.posts[slide];
-  const gap=gapSentence(nutritionGaps(day.totals));
+  const gap=gapSentence(nutritionGaps(day.totals),tn,locale);
   const time = (value: string) => clockZone ? formatLocalTime(locale,value,clockZone) : "";
   const title = formatDate(locale,new Date(`${day.date}T12:00:00Z`),"UTC",{ weekday: "long", month: "short", day: "numeric" });
   const weekday = formatDate(locale,new Date(`${day.date}T12:00:00Z`),"UTC",{ weekday: "long" });
@@ -136,7 +136,7 @@ export default function StoryPlayer({ day, zone, onClose, onDay, cell }: { day: 
             {photo(post) ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img src={photo(post)!} onError={() => photoFailed(post.photoUrl)} alt={post.caption || t("mealImage")} className="h-full w-full object-cover" />
-            ) : <ResultsCard locale={locale} gap={gapSentence(nutritionGaps(post.totals),[],false,cardGapWording(locale))} size={width} time={clockZone?formatDate(locale,new Date(post.eatenAt),clockZone,{hour:'numeric',minute:'2-digit'}):''} calories={post.totals.calories} protein={post.totals.protein_g} carbs={post.totals.carbs_g} fat={post.totals.fat_g} items={post.items.map(item => ({ name: item.name, grams: item.portion_grams == null ? null : Number(item.portion_grams) }))} />}
+            ) : <ResultsCard locale={locale} gap={gapSentence(nutritionGaps(post.totals),tn,locale,[],false)} size={width} time={clockZone?formatDate(locale,new Date(post.eatenAt),clockZone,{hour:'numeric',minute:'2-digit'}):''} calories={post.totals.calories} protein={post.totals.protein_g} carbs={post.totals.carbs_g} fat={post.totals.fat_g} items={post.items.map(item => ({ name: item.name, grams: item.portion_grams == null ? null : Number(item.portion_grams) }))} />}
           </div>
           <div className="px-screen-x"><p className="text-body">{post.caption}</p><p className="mt-1 text-meta text-faint">{time(post.eatenAt)}</p></div>
         </div> : <div className="mt-auto flex shrink-0 flex-col gap-7 px-screen-x">
@@ -144,7 +144,7 @@ export default function StoryPlayer({ day, zone, onClose, onDay, cell }: { day: 
           <div className="grid grid-cols-3 pt-4" style={{ borderTop: `${tokens.border.hairline}px solid ${tokens.colors.surface}`, borderTopColor: `color-mix(in srgb, ${tokens.colors.surface} 14%, transparent)` }}>
             {([[day.totals.protein_g, "protein"], [day.totals.carbs_g, "carbs"], [day.totals.fat_g, "fat"]] as const).map(([value, word]) => <div key={word}><p className="text-day-macro tabular-nums">{formatNutrient(locale,value)} g</p><p className="text-meta text-faint">{t(word)}</p></div>)}
           </div>
-          {Boolean(gap)&&<details data-day-nutrition-disclosure className="text-meta text-faint"><summary className="cursor-pointer">{GAP_LEAD}</summary><p className="mt-2">{gap}</p></details>}
+          {Boolean(gap)&&<details data-day-nutrition-disclosure className="text-meta text-faint"><summary className="cursor-pointer">{tn('knownValues')}</summary><p className="mt-2">{gap}</p></details>}
           {day.intake === null ? <p role="alert" className="text-meta text-faint">{t("drinksLoadFailed")}<button type="button" className="ml-2 min-h-tap text-surface" onClick={() => onDay(day.date)}>{t("tryAgain")}</button></p> : intakeLine(day.intake) ? <p className="text-meta text-faint tabular-nums">{intakeLine(day.intake)}</p> : null}
           <div className="grid grid-cols-3 gap-2">{day.posts.map(entry => <Link key={entry.id} href={`/posts/${entry.id}`} className="min-w-0">
             <div className="flex aspect-square items-center justify-center overflow-hidden rounded-thumb bg-card text-text">

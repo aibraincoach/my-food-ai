@@ -1,3 +1,6 @@
+import {nutritionTranslator} from '@/i18n/nutrition';
+// Stored English remains unchanged until #1219.
+const locale='en',tn=nutritionTranslator(locale);
 import { approximationLabels } from "@/lib/fdc/approximation-metadata";
 import { nutritionUnavailable } from "@/lib/nutrition/available";
 import { resolvePortionNutrition } from "@/lib/nutrition/portion";
@@ -144,7 +147,7 @@ async function rebuildRemoved(admin:SupabaseClient,job:JobRow){
   install(await replayRemainder(admin,photo.storage_path,items) as unknown as RebuiltRow[]);
  }
  const labels=approximationLabels(items);
- const summary=[formatConsumed(sumNutrition(items)),...labels.map(label=>label.kind==='estimate'?`Nutrition for ${label.name} is a model estimate, ${label.basis}`:`Nutrition for ${label.name} is taken from the closest USDA record, ${label.basis}`)].join('. ');
+ const summary=[formatConsumed(sumNutrition(items),tn,locale),...labels.map(label=>label.kind==='estimate'?`Nutrition for ${label.name} is a model estimate, ${label.basis}`:`Nutrition for ${label.name} is taken from the closest USDA record, ${label.basis}`)].join('. ');
  const removed=thread.find(comment=>comment.id===job.payload.comment_id);
  const reply=job.payload.reason==='media_removed'?`${job.payload.media_unmarked===true?'Unmarked the leftovers photo.':'Removed the leftovers photo.'} ${summary}.`:`Removed the correction "${(removed?.body??'').slice(0,60)}". ${summary}.`;
  // Quoted user words are retained verbatim; only generated commentary makes

@@ -1,3 +1,5 @@
+import type {NutritionTranslator} from '@/i18n/nutrition';
+import type {Locale} from '@/i18n/locales';
 // Why a food has no nutrition, kept on the item's source_ref as
 // "unavailable:<code>:<detail>" so every copy and reader carries it, and
 // turned into plain words for the meal page and its first comment.
@@ -16,11 +18,11 @@ export function parseUnavailable(sourceRef: unknown): UnavailableReason | null {
   return { code, detail: colon < 0 ? '' : rest.slice(colon + 1) };
 }
 // The sentence a reader sees. The model's own words follow in quotes when asked for.
-export function unavailableSentence(name: string, sourceRef: unknown, withDetail = true): string | null {
+export function unavailableSentence(name: string, sourceRef: unknown, t: NutritionTranslator, _locale: Locale, withDetail = true): string | null {
   const reason = parseUnavailable(sourceRef);
   if (!reason) return null;
-  const lead = reason.code === 'not_food' ? `The model did not treat “${name}” as a food, so no nutrition was estimated.`
-    : reason.code === 'no_estimate' ? `No USDA record matched “${name}” and the model gave no usable estimate.`
-    : `No USDA record matched “${name}”.`;
-  return withDetail && reason.detail ? `${lead} The matcher said: “${reason.detail}”` : lead;
+  const key = reason.code === 'not_food' ? 'modelNotFood' : reason.code === 'no_estimate' ? 'modelNoEstimate' : 'modelNoMatch';
+  const lead = t(key, {name});
+  // Detail is stored model data (#1219), never another translation lookup.
+  return withDetail && reason.detail ? t('matcherDetail', {lead, detail: reason.detail}) : lead;
 }

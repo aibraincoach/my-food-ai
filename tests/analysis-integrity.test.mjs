@@ -1,3 +1,4 @@
+import {nutritionTranslator} from '../src/i18n/nutrition.ts';
 import test from 'node:test';import assert from 'node:assert/strict';
 import {matchFood} from '../src/lib/fdc/match.ts';
 import {chooseBestMatch,scaleNutrition,scoreFoodMatch} from '../src/lib/fdc/nutrients.ts';
@@ -23,7 +24,7 @@ test('selection is restricted to eligible candidate ids, provider failures are n
 });
 test('partial nutrients retain known sums and names through day aggregation',()=>{
  const known={...zero,name:'toast',calories:257.6};const missing={...zero,name:'coffee',calories:null,protein_g:null};
- const totals=sumNutrition([known,missing]);assert.equal(totals.calories,257.6);assert.deepEqual(nutritionGaps(totals).map(gap=>gap.name),['coffee']);assert.match(formatConsumed(totals),/258 kcal.*coffee/);
+ const totals=sumNutrition([known,missing]);assert.equal(totals.calories,257.6);assert.deepEqual(nutritionGaps(totals).map(gap=>gap.name),['coffee']);assert.match(formatConsumed(totals,nutritionTranslator('en'),'en'),/258 kcal.*coffee/);
  assert.equal(sumNutrition([totals,{...zero,calories:100}]).calories,357.6);
  assert.equal(sumNutrition([{...zero,name:'unknown',calories:null}]).calories,null);
  assert.equal(sumNutrition([{...zero,name:'water'}]).calories,0);

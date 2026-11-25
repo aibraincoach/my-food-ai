@@ -1,0 +1,552 @@
+{
+  "base": "5a9637cb1ef6ef195ebc4e2ffb6ff7d4e8e13f32",
+  "cases": [
+    {
+      "kind": "summary",
+      "input": {
+        "items": [
+          {"id": "food", "name": "Tofu", "calories": 1234.4, "protein_g": 4, "carbs_g": 5, "fat_g": 6, "fibre_g": 1, "sugar_g": 2, "sodium_mg": 3, "micronutrients": [], "portion_grams": 100}
+        ]
+      },
+      "output": "Consumed: 1,234 kcal · 4 g protein · 5 g carbs · 6 g fat",
+      "ja": "摂取：1,234 kcal · たんぱく質 4 g · 炭水化物 5 g · 脂質 6 g"
+    },
+    {
+      "kind": "summary",
+      "input": {
+        "items": [
+          {"id": "food", "name": "Tofu", "calories": 1234.4, "protein_g": 4, "carbs_g": 5, "fat_g": 6, "fibre_g": 1, "sugar_g": 2, "sodium_mg": 3, "micronutrients": [], "portion_grams": 100}
+        ],
+        "count_text": "2 pieces"
+      },
+      "output": "Consumed: 2 pieces · 1,234 kcal · 4 g protein · 5 g carbs · 6 g fat",
+      "ja": "摂取：2 pieces · 1,234 kcal · たんぱく質 4 g · 炭水化物 5 g · 脂質 6 g"
+    },
+    {
+      "kind": "summary",
+      "input": {
+        "items": [
+          {"id": "food", "name": "Tofu", "calories": 1234.4, "protein_g": 4, "carbs_g": 5, "fat_g": 6, "fibre_g": 1, "sugar_g": 2, "sodium_mg": 3, "micronutrients": [], "portion_grams": 100}
+        ],
+        "foodWaterMl": 49
+      },
+      "output": "Consumed: 1,234 kcal · 4 g protein · 5 g carbs · 6 g fat",
+      "ja": "摂取：1,234 kcal · たんぱく質 4 g · 炭水化物 5 g · 脂質 6 g"
+    },
+    {
+      "kind": "summary",
+      "input": {
+        "items": [
+          {"id": "food", "name": "Tofu", "calories": 1234.4, "protein_g": 4, "carbs_g": 5, "fat_g": 6, "fibre_g": 1, "sugar_g": 2, "sodium_mg": 3, "micronutrients": [], "portion_grams": 100}
+        ],
+        "foodWaterMl": 50
+      },
+      "output": "Consumed: 1,234 kcal · 4 g protein · 5 g carbs · 6 g fat · 50 ml water",
+      "ja": "摂取：1,234 kcal · たんぱく質 4 g · 炭水化物 5 g · 脂質 6 g · 水分 50 ml"
+    },
+    {
+      "kind": "summary",
+      "input": {
+        "items": [
+          {"id": "food", "name": "Tofu", "calories": 1234.4, "protein_g": 4, "carbs_g": 5, "fat_g": 6, "fibre_g": 1, "sugar_g": 2, "sodium_mg": 3, "micronutrients": [], "portion_grams": 100, "not_eaten_grams": 12}
+        ]
+      },
+      "output": "Consumed: 1,234 kcal · 4 g protein · 5 g carbs · 6 g fat · Leftovers: 12 g",
+      "ja": "摂取：1,234 kcal · たんぱく質 4 g · 炭水化物 5 g · 脂質 6 g · 食べ残し：12 g"
+    },
+    {
+      "kind": "summary",
+      "input": {
+        "items": [
+          {"id": "food", "name": "Tofu", "calories": null, "protein_g": 4, "carbs_g": 5, "fat_g": 6, "fibre_g": 1, "sugar_g": 2, "sodium_mg": 3, "micronutrients": [], "portion_grams": 100}
+        ]
+      },
+      "output": "Consumed: — kcal · 4 g protein · 5 g carbs · 6 g fat · Calories unavailable for Tofu.",
+      "ja": "摂取：— kcal · たんぱく質 4 g · 炭水化物 5 g · 脂質 6 g · Tofuのカロリーは不明です。"
+    },
+    {
+      "kind": "summary",
+      "input": {
+        "items": [
+          {"id": "food", "name": "Tofu", "calories": 1234.4, "protein_g": null, "carbs_g": null, "fat_g": 6, "fibre_g": 1, "sugar_g": 2, "sodium_mg": 3, "micronutrients": [], "portion_grams": 100}
+        ]
+      },
+      "output": "Consumed: 1,234 kcal · — g protein · — g carbs · 6 g fat · Missing protein and carbs for Tofu.",
+      "ja": "摂取：1,234 kcal · たんぱく質 — g · 炭水化物 — g · 脂質 6 g · Tofuのたんぱく質、炭水化物のデータがありません。"
+    },
+    {
+      "kind": "summary",
+      "input": {"items": []},
+      "output": "Consumed: — kcal · — g protein · — g carbs · — g fat",
+      "ja": "摂取：— kcal · たんぱく質 — g · 炭水化物 — g · 脂質 — g"
+    },
+    {
+      "kind": "summary",
+      "input": {
+        "kind": "drink",
+        "items": [],
+        "drink": {"ml": null, "caffeineMg": 0, "totalMl": 690, "dayCaffeineMg": 158, "drinksMl": 440, "foodMl": 250}
+      },
+      "output": "Drank: unavailable ml · Consumed today: 690 ml",
+      "ja": "飲んだ量：不明 ml · 今日の摂取量：690 ml"
+    },
+    {
+      "kind": "summary",
+      "input": {
+        "kind": "drink",
+        "items": [],
+        "drink": {"ml": 240, "caffeineMg": 0, "totalMl": 690, "dayCaffeineMg": 158, "drinksMl": 440, "foodMl": 250}
+      },
+      "output": "Drank: 240 ml · Consumed today: 690 ml",
+      "ja": "飲んだ量：240 ml · 今日の摂取量：690 ml"
+    },
+    {
+      "kind": "summary",
+      "input": {
+        "kind": "drink",
+        "items": [],
+        "drink": {"ml": null, "caffeineMg": 95, "totalMl": 690, "dayCaffeineMg": 158, "drinksMl": 440, "foodMl": 250}
+      },
+      "output": "Drank: unavailable ml · 95 mg caffeine · Consumed today: 690 ml · 158 mg caffeine today",
+      "ja": "飲んだ量：不明 ml · カフェイン 95 mg · 今日の摂取量：690 ml · 今日のカフェイン 158 mg"
+    },
+    {
+      "kind": "summary",
+      "input": {
+        "kind": "drink",
+        "items": [],
+        "drink": {"ml": 240, "caffeineMg": 95, "totalMl": 690, "dayCaffeineMg": 158, "drinksMl": 440, "foodMl": 250}
+      },
+      "output": "Drank: 240 ml · 95 mg caffeine · Consumed today: 690 ml · 158 mg caffeine today",
+      "ja": "飲んだ量：240 ml · カフェイン 95 mg · 今日の摂取量：690 ml · 今日のカフェイン 158 mg"
+    },
+    {
+      "kind": "summary",
+      "input": {
+        "kind": "drink",
+        "drinkSource": "item",
+        "items": [
+          {"id": "drink0", "name": "Tofu", "calories": 1234.4, "protein_g": 4, "carbs_g": 5, "fat_g": 6, "fibre_g": 1, "sugar_g": 2, "sodium_mg": 3, "micronutrients": [], "portion_grams": 100}
+        ],
+        "itemDrinks": [
+          {"post_item_id": "drink0", "kind": "caffeine", "ml": 240, "caffeineMg": 0}
+        ]
+      },
+      "output": "Drank: 240 ml · 1,234 kcal",
+      "ja": "飲んだ量：240 ml · 1,234 kcal"
+    },
+    {
+      "kind": "summary",
+      "input": {
+        "kind": "drink",
+        "drinkSource": "item",
+        "items": [
+          {"id": "drink0", "name": "Tofu", "calories": 1234.4, "protein_g": 4, "carbs_g": 5, "fat_g": 6, "fibre_g": 1, "sugar_g": 2, "sodium_mg": 3, "micronutrients": [], "portion_grams": 100}
+        ],
+        "itemDrinks": [
+          {"post_item_id": "drink0", "kind": "caffeine", "ml": 240, "caffeineMg": 95}
+        ]
+      },
+      "output": "Drank: 240 ml · 95 mg caffeine · 1,234 kcal",
+      "ja": "飲んだ量：240 ml · カフェイン 95 mg · 1,234 kcal"
+    },
+    {
+      "kind": "summary",
+      "input": {
+        "kind": "drink",
+        "drinkSource": "item",
+        "items": [
+          {"id": "drink0", "name": "Tofu", "calories": 1234.4, "protein_g": 4, "carbs_g": 5, "fat_g": 6, "fibre_g": 1, "sugar_g": 2, "sodium_mg": 3, "micronutrients": [], "portion_grams": 100},
+          {"id": "drink1", "name": "Tofu", "calories": 1234.4, "protein_g": 4, "carbs_g": 5, "fat_g": 6, "fibre_g": 1, "sugar_g": 2, "sodium_mg": 3, "micronutrients": [], "portion_grams": 100}
+        ],
+        "itemDrinks": [
+          {"post_item_id": "drink0", "kind": "caffeine", "ml": 240, "caffeineMg": 0},
+          {"post_item_id": "drink1", "kind": "caffeine", "ml": 240, "caffeineMg": 0}
+        ]
+      },
+      "output": "Drank: 2 drinks · 480 ml · 2,469 kcal",
+      "ja": "飲んだ量：飲み物 2件 · 480 ml · 2,469 kcal"
+    },
+    {
+      "kind": "summary",
+      "input": {
+        "kind": "drink",
+        "drinkSource": "item",
+        "items": [
+          {"id": "drink0", "name": "Tofu", "calories": 1234.4, "protein_g": 4, "carbs_g": 5, "fat_g": 6, "fibre_g": 1, "sugar_g": 2, "sodium_mg": 3, "micronutrients": [], "portion_grams": 100},
+          {"id": "drink1", "name": "Tofu", "calories": 1234.4, "protein_g": 4, "carbs_g": 5, "fat_g": 6, "fibre_g": 1, "sugar_g": 2, "sodium_mg": 3, "micronutrients": [], "portion_grams": 100}
+        ],
+        "itemDrinks": [
+          {"post_item_id": "drink0", "kind": "caffeine", "ml": 240, "caffeineMg": 95},
+          {"post_item_id": "drink1", "kind": "caffeine", "ml": 240, "caffeineMg": 95}
+        ]
+      },
+      "output": "Drank: 2 drinks · 480 ml · 190 mg caffeine · 2,469 kcal",
+      "ja": "飲んだ量：飲み物 2件 · 480 ml · カフェイン 190 mg · 2,469 kcal"
+    },
+    {
+      "kind": "summary",
+      "input": {
+        "kind": "drink",
+        "drinkSource": "item",
+        "items": [
+          {"id": "food", "name": "Tofu", "calories": 1234.4, "protein_g": 4, "carbs_g": 5, "fat_g": 6, "fibre_g": 1, "sugar_g": 2, "sodium_mg": 3, "micronutrients": [], "portion_grams": 100}
+        ],
+        "itemDrinks": [
+          {"post_item_id": "food", "kind": "alcohol", "alcoholG": 0, "ml": 220, "caffeineMg": 0}
+        ]
+      },
+      "output": "Drank: alcohol unavailable · 1,234 kcal",
+      "ja": "飲んだ量：アルコール量は不明 · 1,234 kcal"
+    },
+    {
+      "kind": "summary",
+      "input": {
+        "kind": "drink",
+        "drinkSource": "item",
+        "items": [
+          {"id": "food", "name": "Tofu", "calories": 1234.4, "protein_g": 4, "carbs_g": 5, "fat_g": 6, "fibre_g": 1, "sugar_g": 2, "sodium_mg": 3, "micronutrients": [], "portion_grams": 100}
+        ],
+        "itemDrinks": [
+          {"post_item_id": "food", "kind": "alcohol", "alcoholG": 15, "ml": 220, "caffeineMg": 0}
+        ]
+      },
+      "output": "Drank: 15 g alcohol · 1.1 standard drinks · 1,234 kcal",
+      "ja": "飲んだ量：アルコール 15 g · 標準ドリンク 1.1杯 · 1,234 kcal"
+    },
+    {
+      "kind": "unavailable",
+      "input": {"name": "Tofu", "sourceRef": "unavailable:not_food:"},
+      "output": "The model did not treat “Tofu” as a food, so no nutrition was estimated.",
+      "ja": "モデルは「Tofu」を食品として扱わなかったため、栄養は推定されませんでした。"
+    },
+    {
+      "kind": "plain",
+      "input": {
+        "totals": {
+          "calories": 1234.4,
+          "protein_g": 4,
+          "carbs_g": 5,
+          "fat_g": 6,
+          "fibre_g": 1,
+          "sugar_g": 2,
+          "sodium_mg": 3,
+          "missing": {"calories": ["Tofu"]}
+        },
+        "unavailable": [
+          {"name": "Tofu", "sourceRef": "unavailable:not_food:"}
+        ]
+      },
+      "output": "Consumed: 1,234 kcal · 4 g protein · 5 g carbs · 6 g fat. Calories unavailable for Tofu. The model did not treat “Tofu” as a food, so no nutrition was estimated.",
+      "ja": "Consumed: 1,234 kcal · 4 g protein · 5 g carbs · 6 g fat. Calories unavailable for Tofu. The model did not treat “Tofu” as a food, so no nutrition was estimated."
+    },
+    {
+      "kind": "unavailable",
+      "input": {"name": "Tofu", "sourceRef": "unavailable:not_food:fixture detail"},
+      "output": "The model did not treat “Tofu” as a food, so no nutrition was estimated. The matcher said: “fixture detail”",
+      "ja": "モデルは「Tofu」を食品として扱わなかったため、栄養は推定されませんでした。マッチャーの説明：「fixture detail」"
+    },
+    {
+      "kind": "plain",
+      "input": {
+        "totals": {
+          "calories": 1234.4,
+          "protein_g": 4,
+          "carbs_g": 5,
+          "fat_g": 6,
+          "fibre_g": 1,
+          "sugar_g": 2,
+          "sodium_mg": 3,
+          "missing": {"calories": ["Tofu"]}
+        },
+        "unavailable": [
+          {"name": "Tofu", "sourceRef": "unavailable:not_food:fixture detail"}
+        ]
+      },
+      "output": "Consumed: 1,234 kcal · 4 g protein · 5 g carbs · 6 g fat. Calories unavailable for Tofu. The model did not treat “Tofu” as a food, so no nutrition was estimated.",
+      "ja": "Consumed: 1,234 kcal · 4 g protein · 5 g carbs · 6 g fat. Calories unavailable for Tofu. The model did not treat “Tofu” as a food, so no nutrition was estimated."
+    },
+    {
+      "kind": "unavailable",
+      "input": {"name": "Tofu", "sourceRef": "unavailable:no_match:"},
+      "output": "No USDA record matched “Tofu”.",
+      "ja": "「Tofu」に一致する USDA の記録はありませんでした。"
+    },
+    {
+      "kind": "plain",
+      "input": {
+        "totals": {
+          "calories": 1234.4,
+          "protein_g": 4,
+          "carbs_g": 5,
+          "fat_g": 6,
+          "fibre_g": 1,
+          "sugar_g": 2,
+          "sodium_mg": 3,
+          "missing": {"calories": ["Tofu"]}
+        },
+        "unavailable": [
+          {"name": "Tofu", "sourceRef": "unavailable:no_match:"}
+        ]
+      },
+      "output": "Consumed: 1,234 kcal · 4 g protein · 5 g carbs · 6 g fat. Calories unavailable for Tofu. No USDA record matched “Tofu”.",
+      "ja": "Consumed: 1,234 kcal · 4 g protein · 5 g carbs · 6 g fat. Calories unavailable for Tofu. No USDA record matched “Tofu”."
+    },
+    {
+      "kind": "unavailable",
+      "input": {"name": "Tofu", "sourceRef": "unavailable:no_match:fixture detail"},
+      "output": "No USDA record matched “Tofu”. The matcher said: “fixture detail”",
+      "ja": "「Tofu」に一致する USDA の記録はありませんでした。マッチャーの説明：「fixture detail」"
+    },
+    {
+      "kind": "plain",
+      "input": {
+        "totals": {
+          "calories": 1234.4,
+          "protein_g": 4,
+          "carbs_g": 5,
+          "fat_g": 6,
+          "fibre_g": 1,
+          "sugar_g": 2,
+          "sodium_mg": 3,
+          "missing": {"calories": ["Tofu"]}
+        },
+        "unavailable": [
+          {"name": "Tofu", "sourceRef": "unavailable:no_match:fixture detail"}
+        ]
+      },
+      "output": "Consumed: 1,234 kcal · 4 g protein · 5 g carbs · 6 g fat. Calories unavailable for Tofu. No USDA record matched “Tofu”.",
+      "ja": "Consumed: 1,234 kcal · 4 g protein · 5 g carbs · 6 g fat. Calories unavailable for Tofu. No USDA record matched “Tofu”."
+    },
+    {
+      "kind": "unavailable",
+      "input": {"name": "Tofu", "sourceRef": "unavailable:no_estimate:"},
+      "output": "No USDA record matched “Tofu” and the model gave no usable estimate.",
+      "ja": "「Tofu」に一致する USDA の記録がなく、モデルも使用可能な推定値を出しませんでした。"
+    },
+    {
+      "kind": "plain",
+      "input": {
+        "totals": {
+          "calories": 1234.4,
+          "protein_g": 4,
+          "carbs_g": 5,
+          "fat_g": 6,
+          "fibre_g": 1,
+          "sugar_g": 2,
+          "sodium_mg": 3,
+          "missing": {"calories": ["Tofu"]}
+        },
+        "unavailable": [
+          {"name": "Tofu", "sourceRef": "unavailable:no_estimate:"}
+        ]
+      },
+      "output": "Consumed: 1,234 kcal · 4 g protein · 5 g carbs · 6 g fat. Calories unavailable for Tofu. No USDA record matched “Tofu” and the model gave no usable estimate.",
+      "ja": "Consumed: 1,234 kcal · 4 g protein · 5 g carbs · 6 g fat. Calories unavailable for Tofu. No USDA record matched “Tofu” and the model gave no usable estimate."
+    },
+    {
+      "kind": "unavailable",
+      "input": {"name": "Tofu", "sourceRef": "unavailable:no_estimate:fixture detail"},
+      "output": "No USDA record matched “Tofu” and the model gave no usable estimate. The matcher said: “fixture detail”",
+      "ja": "「Tofu」に一致する USDA の記録がなく、モデルも使用可能な推定値を出しませんでした。マッチャーの説明：「fixture detail」"
+    },
+    {
+      "kind": "plain",
+      "input": {
+        "totals": {
+          "calories": 1234.4,
+          "protein_g": 4,
+          "carbs_g": 5,
+          "fat_g": 6,
+          "fibre_g": 1,
+          "sugar_g": 2,
+          "sodium_mg": 3,
+          "missing": {"calories": ["Tofu"]}
+        },
+        "unavailable": [
+          {"name": "Tofu", "sourceRef": "unavailable:no_estimate:fixture detail"}
+        ]
+      },
+      "output": "Consumed: 1,234 kcal · 4 g protein · 5 g carbs · 6 g fat. Calories unavailable for Tofu. No USDA record matched “Tofu” and the model gave no usable estimate.",
+      "ja": "Consumed: 1,234 kcal · 4 g protein · 5 g carbs · 6 g fat. Calories unavailable for Tofu. No USDA record matched “Tofu” and the model gave no usable estimate."
+    },
+    {
+      "kind": "plain",
+      "input": {
+        "totals": {"calories": 1234.4, "protein_g": 4, "carbs_g": 5, "fat_g": 6, "fibre_g": 1, "sugar_g": 2, "sodium_mg": 3},
+        "approximations": [
+          {"name": "Tofu", "basis": "Local fixture", "kind": "estimate"}
+        ]
+      },
+      "output": "Consumed: 1,234 kcal · 4 g protein · 5 g carbs · 6 g fat. Nutrition for Tofu is a model estimate, Local fixture.",
+      "ja": "Consumed: 1,234 kcal · 4 g protein · 5 g carbs · 6 g fat. Nutrition for Tofu is a model estimate, Local fixture."
+    },
+    {
+      "kind": "plain",
+      "input": {
+        "totals": {"calories": 1234.4, "protein_g": 4, "carbs_g": 5, "fat_g": 6, "fibre_g": 1, "sugar_g": 2, "sodium_mg": 3},
+        "approximations": [
+          {"name": "Tofu", "basis": "Local fixture", "kind": "closest"}
+        ]
+      },
+      "output": "Consumed: 1,234 kcal · 4 g protein · 5 g carbs · 6 g fat. Nutrition for Tofu is taken from the closest USDA record, Local fixture.",
+      "ja": "Consumed: 1,234 kcal · 4 g protein · 5 g carbs · 6 g fat. Nutrition for Tofu is taken from the closest USDA record, Local fixture."
+    },
+    {
+      "kind": "brief",
+      "input": {
+        "calories": null,
+        "protein_g": 4,
+        "carbs_g": 5,
+        "fat_g": 6,
+        "fibre_g": 1,
+        "sugar_g": 2,
+        "sodium_mg": 3,
+        "missing": {"calories": ["Tofu"]}
+      },
+      "output": "Consumed: unavailable kcal · Calories unavailable for Tofu",
+      "ja": "摂取：不明 kcal · Tofuのカロリーは不明です。"
+    },
+    {
+      "kind": "gap",
+      "input": [
+        {"name": "Tofu", "nutrients": ["calories"]}
+      ],
+      "output": "Calories unavailable for Tofu.",
+      "ja": "Tofuのカロリーは不明です。"
+    },
+    {
+      "kind": "brief",
+      "input": {
+        "calories": 1234.4,
+        "protein_g": null,
+        "carbs_g": 5,
+        "fat_g": 6,
+        "fibre_g": 1,
+        "sugar_g": 2,
+        "sodium_mg": 3,
+        "missing": {"protein_g": ["Tofu"]}
+      },
+      "output": "Consumed: 1,234 kcal · Missing protein for Tofu",
+      "ja": "摂取：1,234 kcal · Tofuのたんぱく質のデータがありません。"
+    },
+    {
+      "kind": "gap",
+      "input": [
+        {"name": "Tofu", "nutrients": ["protein_g"]}
+      ],
+      "output": "Missing protein for Tofu.",
+      "ja": "Tofuのたんぱく質のデータがありません。"
+    },
+    {
+      "kind": "brief",
+      "input": {
+        "calories": 1234.4,
+        "protein_g": 4,
+        "carbs_g": null,
+        "fat_g": 6,
+        "fibre_g": 1,
+        "sugar_g": 2,
+        "sodium_mg": 3,
+        "missing": {"carbs_g": ["Tofu"]}
+      },
+      "output": "Consumed: 1,234 kcal · Missing carbs for Tofu",
+      "ja": "摂取：1,234 kcal · Tofuの炭水化物のデータがありません。"
+    },
+    {
+      "kind": "gap",
+      "input": [
+        {"name": "Tofu", "nutrients": ["carbs_g"]}
+      ],
+      "output": "Missing carbs for Tofu.",
+      "ja": "Tofuの炭水化物のデータがありません。"
+    },
+    {
+      "kind": "brief",
+      "input": {
+        "calories": 1234.4,
+        "protein_g": 4,
+        "carbs_g": 5,
+        "fat_g": null,
+        "fibre_g": 1,
+        "sugar_g": 2,
+        "sodium_mg": 3,
+        "missing": {"fat_g": ["Tofu"]}
+      },
+      "output": "Consumed: 1,234 kcal · Missing fat for Tofu",
+      "ja": "摂取：1,234 kcal · Tofuの脂質のデータがありません。"
+    },
+    {
+      "kind": "gap",
+      "input": [
+        {"name": "Tofu", "nutrients": ["fat_g"]}
+      ],
+      "output": "Missing fat for Tofu.",
+      "ja": "Tofuの脂質のデータがありません。"
+    },
+    {
+      "kind": "saved",
+      "input": {
+        "items": [
+          {
+            "name": "Coffee, cup",
+            "portion_text": "240 g",
+            "nutrition": {"calories": null}
+          }
+        ],
+        "drinks": []
+      },
+      "output": "Coffee, cup 240 g · calories unavailable",
+      "ja": "Coffee, cup 240 g · カロリーは不明"
+    },
+    {
+      "kind": "saved",
+      "input": {
+        "items": [
+          {
+            "name": "Coffee, cup",
+            "portion_text": "240 g",
+            "nutrition": {"calories": 2.4}
+          }
+        ],
+        "drinks": []
+      },
+      "output": "Coffee, cup 240 g · 2 kcal",
+      "ja": "Coffee, cup 240 g · 2 kcal"
+    },
+    {
+      "kind": "saved",
+      "input": {
+        "items": [
+          {
+            "name": "Coffee, cup",
+            "portion_text": "240 g",
+            "nutrition": {"calories": null}
+          }
+        ],
+        "drinks": [
+          {"kind": "caffeine", "amount": 95, "ml": 240, "label": "Coffee, cup", "source": "sheet"}
+        ]
+      },
+      "output": "Coffee, cup · 240 ml · 95 mg caffeine · calories unavailable",
+      "ja": "Coffee, cup · 240 ml · カフェイン 95 mg · カロリーは不明"
+    },
+    {
+      "kind": "saved",
+      "input": {
+        "items": [
+          {
+            "name": "Coffee, cup",
+            "portion_text": "240 g",
+            "nutrition": {"calories": 2.4}
+          }
+        ],
+        "drinks": [
+          {"kind": "caffeine", "amount": 95, "ml": 240, "label": "Coffee, cup", "source": "sheet"}
+        ]
+      },
+      "output": "Coffee, cup · 240 ml · 95 mg caffeine · 2 kcal",
+      "ja": "Coffee, cup · 240 ml · カフェイン 95 mg · 2 kcal"
+    }
+  ]
+}

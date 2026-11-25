@@ -1,10 +1,12 @@
+import publicMessages from '../messages/en.json' with {type:'json'};
+const failureMessage=reason=>publicMessages.post[failureMessageKey(reason)];
 // node --import tsx --test tests/worker-safety.test.mjs
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { renewLease } from '../src/lib/queue/lease.ts';
 import { FdcRateLimited } from '../src/lib/fdc/client.ts';
 import { drainOnce, runWorker } from '../src/lib/worker/drain.ts';
-import { failureMessage } from '../src/lib/worker/failure-message.ts';
+import { failureMessageKey } from '../src/lib/worker/failure-message.ts';
 
 test('renewal checks the dedicated ownership RPC and refuses a lost lease',async()=>{
  let name;await renewLease({rpc:async rpc=>{name=rpc;return {data:true,error:null};}},'holder');assert.equal(name,'renew_worker_lease');

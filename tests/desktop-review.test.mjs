@@ -1,12 +1,14 @@
+import {nutritionTranslator} from '../src/i18n/nutrition.ts';
 import {englishIntl} from './fixtures/english-intl.mjs';
 import * as formats from '../src/i18n/format.ts';
-import {nutritionGaps,gapSentence,GAP_LEAD} from '../src/lib/nutrition/totals.ts';
+import {nutritionGaps,gapSentence} from '../src/lib/nutrition/totals.ts';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import vm from 'node:vm';
 import ts from 'typescript';
 import{readFileSync}from'node:fs';
 import{dateInZone,validZone}from'../src/lib/posts/days.ts';
+const GAP_LEAD=nutritionTranslator('en')('knownValues');
 const jsx=(type,props)=>({type,props:props??{}});
 function compile(file){return ts.transpileModule(readFileSync(new URL('../src/components/'+file,import.meta.url),'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,jsx:ts.JsxEmit.ReactJSX,target:ts.ScriptTarget.ES2022}}).outputText;}
 const flush=()=>new Promise(resolve=>setImmediate(resolve));

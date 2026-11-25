@@ -1,3 +1,4 @@
+import {nutritionTranslator} from '../src/i18n/nutrition.ts';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
@@ -31,8 +32,8 @@ for(const locale of ['en','ja'])test(`${locale}: calendar sentence preserves eve
   [{ready:'yes'},'2026-11-24, 2 meals, 1,200 kcal','2026-11-24、2件の食事、1,200 kcal'],
   [{hasPending:'yes',hasIntake:'yes',ready:'yes',hasGap:'yes'},'2026-11-24, 2 meals, 1 not finished, drank, 1,200 kcal, GAPTEXT','2026-11-24、2件の食事、1件が未完了、飲んだ、1,200 kcal、GAPTEXT'],
  ])assert.equal(t('cellSummary',{...base,...flags}),locale==='en'?en:ja);
- const empty=calendarDayValues(locale,'2026-11-24',undefined);assert.equal(t('cellSummary',empty),'2026-11-24');
- const actual=calendarDayValues(locale,'2026-11-24',{day:'2026-11-24',posts:1,pending:0,intake:true,ready:true,kcal:1200});
+ const empty=calendarDayValues(locale,'2026-11-24',undefined,nutritionTranslator(locale));assert.equal(t('cellSummary',empty),'2026-11-24');
+ const actual=calendarDayValues(locale,'2026-11-24',{day:'2026-11-24',posts:1,pending:0,intake:true,ready:true,kcal:1200},nutritionTranslator(locale));
  assert.equal(t('cellSummary',actual),locale==='en'?'2026-11-24, 1 meal, drank, 1,200 kcal':'2026-11-24、1件の食事、飲んだ、1,200 kcal');
 });
 test('the phone calendar month token is localized before the first-day message',()=>{

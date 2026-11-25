@@ -1,8 +1,9 @@
+import {nutritionTranslator} from '../src/i18n/nutrition.ts';
 import test from'node:test';import assert from'node:assert/strict';
 import{formatDate,formatEnergy}from'../src/i18n/format.ts';
 import{formatCalories}from'../src/lib/nutrition/totals.ts';
 test('English energy display retains base behavior including positive fractions, serialized values and missing values',()=>{
- for(const value of[null,undefined,'',' ',NaN,Infinity,'bad',-1,-0.1,0,0.1,0.49,0.5,1,1234.5,'1234.5'])assert.equal(formatEnergy('en',value),formatCalories(value),String(value));
+ for(const value of[null,undefined,'',' ',NaN,Infinity,'bad',-1,-0.1,0,0.1,0.49,0.5,1,1234.5,'1234.5'])assert.equal(formatEnergy('en',value),formatCalories(value,nutritionTranslator('en'),'en'),String(value));
 });
 test('Japanese energy display retains less-than-one and measured zero',()=>{
  assert.equal(formatEnergy('ja',0.1),'<1');assert.equal(formatEnergy('ja',0),'0');assert.equal(formatEnergy('ja',1234.5),'1,235');assert.equal(formatEnergy('ja',null),'—');
@@ -27,8 +28,8 @@ test('localized nutrients retain base whole and micronutrient precision',async()
  const {formatNutrient,formatMicroNutrient}=await import('../src/i18n/format.ts');
  const {formatNutrition}=await import('../src/lib/nutrition/totals.ts');
  const {formatTableNutrient}=await import('../src/lib/nutrition/table.ts');
- for(const value of[null,undefined,'',' ',NaN,Infinity,'bad',-1,-0.1,0,0.1,0.49,0.5,1,1234.5,'1234.5'])assert.equal(formatNutrient('en',value),formatNutrition(value),String(value));
- for(const value of[-1,0,0.0001,0.009,0.01,0.126,1,1234.567])assert.equal(formatMicroNutrient('en',value),formatTableNutrient(value),String(value));
+ for(const value of[null,undefined,'',' ',NaN,Infinity,'bad',-1,-0.1,0,0.1,0.49,0.5,1,1234.5,'1234.5'])assert.equal(formatNutrient('en',value),formatNutrition(value,nutritionTranslator('en'),'en'),String(value));
+ for(const value of[-1,0,0.0001,0.009,0.01,0.126,1,1234.567])assert.equal(formatMicroNutrient('en',value),formatTableNutrient(value,'en'),String(value));
  assert.equal(formatMicroNutrient('ja',0.001),'<0.01');
 });
 

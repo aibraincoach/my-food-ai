@@ -50,6 +50,7 @@ export type CaptureMode = "photo" | "text" | "barcode";
 type BarcodePick = { remaining: number; found: boolean; files: File[]; decoderAttempted?: boolean; failure?: "error" | "decoderSlow" };
 type BarcodeState = "idle" | "looking" | "missing" | "found" | "error" | "unread" | "decoderLoading" | "decoderSlow";
 export default function CaptureSheet({ onClose, initialMode = "photo", forPost, attachNotEaten = false, initialFiles }: { onClose: () => void; initialMode?: CaptureMode; forPost?: string; attachNotEaten?: boolean; initialFiles?: File[] }) {
+ const tn=useTranslations('nutrition');
  const tf=useFailureMessages();
  const t=useTranslations('capture');
  const locale=useLocale();
@@ -618,7 +619,7 @@ export default function CaptureSheet({ onClose, initialMode = "photo", forPost, 
   const amountLabel = (amount: number) => product?.basisUnit === "ml" && amount >= 1000 && amount % 1000 === 0 ? `${amount / 1000} l` : `${new Intl.NumberFormat(locale, { maximumFractionDigits: 2 }).format(amount)} ${product?.basisUnit ?? "g"}`;
   const value = (key: "calories" | "protein_g" | "carbs_g" | "fat_g", amount: number) => {
     const nutrient = product?.per100g[key];
-    return nutrient === null || nutrient === undefined ? "–" : formatNutrition(nutrient * amount / 100);
+    return nutrient === null || nutrient === undefined ? "–" : formatNutrition(nutrient * amount / 100,tn,locale);
   };
   const macros = (amount: number) => t('macroSummary',{calories:value("calories",amount),protein:value("protein_g",amount),carbs:value("carbs_g",amount),fat:value("fat_g",amount)});
 

@@ -1,3 +1,4 @@
+import {UNNAMED_ITEM} from '../src/lib/nutrition/totals.ts';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import {sumMicronutrients} from '../src/lib/nutrition/totals.ts';
@@ -5,7 +6,7 @@ test('micronutrient totals preserve order/units and label partial totals',()=>{
  const iron=value=>({nutrientId:1089,nutrientName:'Iron',unitName:'MG',value});
  const vitamin=value=>({nutrientId:1106,nutrientName:'Vitamin A',unitName:'UG',value});
  assert.deepEqual(sumMicronutrients([{micronutrients:[iron(1),vitamin(20)]},{micronutrients:[iron(2)]}]),[
-  {name:'Iron',unit:'MG',value:3},{name:'Vitamin A',unit:'UG',value:20,unavailable:['an item']},
+  {name:'Iron',unit:'MG',value:3},{name:'Vitamin A',unit:'UG',value:20,unavailable:[UNNAMED_ITEM]},
  ]);
  assert.equal(sumMicronutrients([{micronutrients:[iron(1)]},{micronutrients:[]}])[0].value,1);
  assert.equal(sumMicronutrients([{micronutrients:[iron(1)]},{micronutrients:[iron(null)]}])[0].value,1);

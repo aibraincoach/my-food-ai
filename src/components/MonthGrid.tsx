@@ -5,7 +5,7 @@ import {formatDate,formatEnergy,formatNumber} from "@/i18n/format";
 import type {Locale} from "@/i18n/locales";
 import {useDesktop} from "@/lib/ui/use-desktop";
 
-import {  nutritionGaps, gapSentence, GAP_LEAD } from "@/lib/nutrition/totals";
+import {  nutritionGaps, gapSentence} from "@/lib/nutrition/totals";
 import { tokens } from "@/lib/theme/tokens";
 import type { MonthSummary } from "@/lib/posts/days";
 
@@ -14,9 +14,10 @@ export function monthName(locale:Locale,month: string, year = false) {
 }
 
 export default function MonthGrid({ month, summary, today, selected, onDay, onOpenDay }: { month: string; summary: MonthSummary; today: string; selected?: string; onDay: (date: string, cell: HTMLElement) => void; onOpenDay?: (date:string)=>void }) {
+ const tn=useTranslations('nutrition');
   const locale=useLocale(),t=useTranslations("days");
   const desktop=useDesktop();
-  const gap=gapSentence(nutritionGaps({missing:{calories:[...new Set(summary.days.flatMap(day=>day.missing??[]))]}},["calories"]));
+  const gap=gapSentence(nutritionGaps({missing:{calories:[...new Set(summary.days.flatMap(day=>day.missing??[]))]}},["calories"]),tn,locale);
   const first = new Date(`${month}-01T12:00:00Z`);
   const count = new Date(Date.UTC(first.getUTCFullYear(), first.getUTCMonth() + 1, 0)).getUTCDate();
   return <section aria-label={monthName(locale,month, true)} data-month={month} id={`month-${month}`} className="desktop:w-full" onKeyDown={event=>{
@@ -31,7 +32,7 @@ export default function MonthGrid({ month, summary, today, selected, onDay, onOp
     <div className="flex items-baseline justify-between px-screen-x" style={{ paddingBottom: tokens.spacing.grid + tokens.spacing.grid / 2 }}>
       <h2 className="text-month desktop:text-[22px]">{monthName(locale,month, true)}</h2><span className="text-meta text-muted tabular-nums">{t("postedCount",{count:summary.posted,amount:formatNumber(locale,summary.posted)})}</span>
     </div>
-    {gap ? <details data-nutrition-disclosure className="px-screen-x text-meta text-muted"><summary className="cursor-pointer">{GAP_LEAD}</summary><p className="mt-2">{gap}</p></details> : null}
+    {gap ? <details data-nutrition-disclosure className="px-screen-x text-meta text-muted"><summary className="cursor-pointer">{tn('knownValues')}</summary><p className="mt-2">{gap}</p></details> : null}
     <div style={{ paddingInline: tokens.spacing["tooltip-x"] }}>
       <div className="grid grid-cols-7 gap-1 pb-1" aria-hidden="true">{Array.from({length:7},(_,index)=>formatDate(locale,Date.UTC(2026,10,1+index),"UTC",{weekday:"narrow"})).map((label, index) => <span key={index} className="text-center text-bubble text-faint">{label}</span>)}</div>
       <div className="grid grid-cols-7 gap-1">
@@ -42,7 +43,7 @@ export default function MonthGrid({ month, summary, today, selected, onDay, onOp
           const enabled = Boolean((day||desktop) && date <= today);
           const outlined = date === today || date === selected;
           return <button type="button" key={date} data-day={date} disabled={!enabled} aria-pressed={desktop?date===selected:undefined} tabIndex={!day&&!desktop?-1:0} onFocus={event=>{if(matchMedia("(min-width:1024px)").matches)onDay(date,event.currentTarget);}} onClick={event => { if(day || matchMedia("(min-width:1024px)").matches)onDay(date, event.currentTarget); }}
-            aria-label={t("cellSummary",calendarDayValues(locale,date,day))}
+            aria-label={t("cellSummary",calendarDayValues(locale,date,day,tn))}
             className={`flex min-w-0 flex-col justify-between rounded-tile text-left desktop:!h-[100px] desktop:focus-visible:outline-2 desktop:focus-visible:outline-text ${day?"bg-card":""} ${date===selected?"desktop:bg-text desktop:text-white desktop:[&>span]:text-white":""} ${date > today ? "text-faint" : "text-text"}`}
             style={{ height: tokens.spacing.tap, padding: `${tokens.spacing.grid}px ${tokens.calendar.padding}px`, border: outlined ? `${tokens.calendar.border}px solid ${tokens.colors.text}` : `${tokens.calendar.border}px solid transparent` }}>
             <span className="text-label font-medium leading-none desktop:text-[13px]">{formatNumber(locale,index + 1)}</span>
