@@ -2,9 +2,7 @@ import {formatNumber} from '@/i18n/format';
 import {getTranslations,getLocale} from 'next-intl/server';
 import Link from "next/link";
 import { Suspense } from "react";
-import { notFound } from "next/navigation";
-import { createClient } from "@/lib/supabase/server";
-import { createAdminClient } from "@/lib/supabase/admin";
+import {requireOwner} from "@/lib/admin/owner";
 import { getQueueStats } from "@/lib/admin/stats";
 import { font } from "@/lib/theme/font";
 
@@ -15,17 +13,14 @@ export default function AdminPage() {
 async function AdminPageContent() {
   const { connection } = await import("next/server");
   await connection();
-  const client = await createClient();
-  const { data: { user }, error: authError } = await client.auth.getUser();
-  if (authError || !user) notFound();
-  const { data: profile, error } = await client.from("profiles").select("role").eq("id", user.id).maybeSingle();
-  if (error || profile?.role !== "admin") notFound();
+  await requireOwner();
   // No service-role query runs before the user's authenticated role check.
   const support=await getTranslations('support'),t=await getTranslations('admin'),locale=await getLocale();
   const number=(value:number)=>formatNumber(locale,value,{useGrouping:false});
-  const stats = await getQueueStats(createAdminClient());
+  const stats = await getQueueStats();
   return <main className={`${font.className} mx-auto w-full max-w-phone bg-surface px-screen-x py-card-gap text-detail text-text`}>
     <h1 className="mb-card-gap text-title">{t('title')}</h1>
+    <Link href="/admin/people" className="flex min-h-tap items-center underline">{t('peopleTitle')}</Link>
     <Link href="/admin/freeze-reports" className="flex min-h-tap items-center underline">{support('adminTitle')}</Link>
     <h2 className="mb-sheet-top text-sheet-title">{t('app')}</h2>
     <table className="mb-card-gap w-full tabular-nums"><thead><tr className="text-left"><th scope="col">{t('count')}</th><th scope="col" className="text-right">{t('allTime')}</th><th scope="col" className="text-right">{t('last24h')}</th></tr></thead>
@@ -50,7 +45,7 @@ async function AdminPageContent() {
     <h2 className="mt-card-gap mb-sheet-top text-sheet-title">{t('lastTenErrors')}</h2>
     {stats.errors.length === 0 ? <p className="text-muted">{t('noErrors')}</p> : <ol className="space-y-sheet-top">{stats.errors.map((entry) => <li key={entry.id} className="border-b border-hairline pb-sheet-top">
       <time className="text-meta text-muted" dateTime={entry.finished_at ?? entry.started_at ?? undefined}>{entry.finished_at ?? entry.started_at ?? t('timeUnavailable')}</time>
-      <pre className="whitespace-pre-wrap break-words font-sans text-detail">{entry.error}</pre>
+      <pre className="whitespace-pre-wrap break-words font-sans text-detail">{t(entry.kind)}{' '}{entry.code ?? t('peopleNotRecorded')}</pre>
     </li>)}</ol>}
     <h2 className="mt-card-gap mb-sheet-top text-sheet-title">{t('recentPosts')}</h2>
     <ol className="space-y-sheet-top">{stats.posts.map((post) => <li key={post.id} className="break-words border-b border-hairline pb-sheet-top">
