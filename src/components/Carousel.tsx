@@ -13,19 +13,21 @@ import {observeNearViewport} from '@/lib/media/near-viewport';
 import {useRemovalMenus} from '@/components/useRemovalMenus';
 import UndoToast from '@/components/UndoToast';
 import type {FeedItem} from '@/lib/posts/feed';
-import {toNumber} from '@/lib/nutrition/totals';
+import {toNumber,hasNutrientTrace} from '@/lib/nutrition/totals';
 import {delayAction} from '@/lib/posts/delayed-action';
 export type Slide={id?:string;url:string;kind?:'photo'|'card';not_eaten?:boolean;width?:number;height?:number};
 export default function Carousel({slides,caption,postId,href,modelCommentId,fingerprint,nutrition,items=[],onIndexChange,canAddNotEaten=false,priority=false}:{priority?:boolean;items?:FeedItem[];slides:Slide[];caption:string;postId:string;href?:string;modelCommentId:string|null;fingerprint:string|null;nutrition:ReactNode;onIndexChange?:(index:number)=>void;canAddNotEaten?:boolean}) {
- const t=useTranslations('post'),tm=useTranslations('postMenu'),locale=useLocale() as Locale;
+ const t=useTranslations('post'),tm=useTranslations('postMenu'),tn=useTranslations('nutrition'),locale=useLocale() as Locale;
  const menus=useRef<HTMLDivElement>(null);useRemovalMenus(menus);
  const [index,setIndex]=useState(0);const [removed,setRemoved]=useState<string[]>([]),[removing,setRemoving]=useState(false),[error,setError]=useState('');const router=useRouter();
  const [toast,setToast]=useState<{key:number;undo:()=>void}|null>(null);
  const [unmarked,setUnmarked]=useState<string[]>([]),[unmarkToast,setUnmarkToast]=useState(0),[unmarking,setUnmarking]=useState(false);
  const pendingUnmark=useRef<{id:string;undo:()=>boolean}|null>(null);
  const replacement=useRef<{id:string;attached:boolean;busy:boolean;attempts:number}|null>(null);
- const wholeKnown=items.length>0&&items.every(item=>item.calories!=null&&(!(item.not_eaten_grams??0)||item.not_eaten_calories!=null));
- const whole=wholeKnown?`${formatEnergy(locale,items.reduce((sum,item)=>sum+toNumber(item.calories)+toNumber(item.not_eaten_calories),0))} kcal`:t('nutritionUnavailable');
+ const wholeKnown=items.length>0&&items.every(item=>(item.calories!=null||hasNutrientTrace(item.micronutrients,1008))&&(!(item.not_eaten_grams??0)||item.not_eaten_calories!=null||hasNutrientTrace(item.micronutrients,1008)));
+ const hasTrace=items.some(item=>item.calories==null&&hasNutrientTrace(item.micronutrients,1008));
+ const onlyTrace=items.length>0&&items.every(item=>item.calories==null&&hasNutrientTrace(item.micronutrients,1008)&&item.not_eaten_calories==null);
+ const whole=wholeKnown?onlyTrace?tn('trace'):`${formatEnergy(locale,items.reduce((sum,item)=>sum+toNumber(item.calories)+toNumber(item.not_eaten_calories),0))} kcal`+(hasTrace?(locale==='ja'?'':' ')+tn('includesTraceAmounts'):''):t('nutritionUnavailable');
  const unmark=(mediaId:string)=>{
   if(pendingUnmark.current||removing)return;
   setError('');setUnmarking(true);setUnmarked(old=>[...old,mediaId]);setUnmarkToast(value=>value+1);

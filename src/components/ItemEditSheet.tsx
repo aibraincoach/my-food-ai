@@ -1,4 +1,5 @@
 "use client";
+import {hasNutrientTrace} from '@/lib/nutrition/totals';
 import {DisplayError} from '@/i18n/display-error';
 import {useApiFailureText} from '@/i18n/api-error-text';
 import {useLocale,useTranslations} from 'next-intl';
@@ -18,7 +19,7 @@ export default function ItemEditSheet({ postId, item, color, box, open = true, o
   onClose: () => void; onSaved: () => void; onAdd: () => void; onDraw?: () => void;
 }) {
   const apiError=useApiFailureText();
- const t=useTranslations('postMenu'),tp=useTranslations('post'),locale=useLocale() as Locale;
+ const t=useTranslations('postMenu'),tp=useTranslations('post'),tn=useTranslations('nutrition'),locale=useLocale() as Locale;
   const unitLabel=(value:Unit)=>t(({g:'unitG',oz:'unitOz',piece:'unitPiece',cup:'unitCup'}as const)[value]);
   const [name, setName] = useState(item?.name ?? "");
   const [grams, setGrams] = useState(item?.portion_grams == null ? "" : String(item.portion_grams));
@@ -77,7 +78,7 @@ export default function ItemEditSheet({ postId, item, color, box, open = true, o
   const visibleMatches = name !== chosen && matches?.query === name.trim() ? matches : null;
   return <Sheet open={open} onClose={onClose} label={item ? t('editMealItem') : t('addMealItem')}>
     <div className="flex items-center gap-2 text-sheet-title"><span className="size-shimmer-h shrink-0 rounded-circle" style={{ background: color }} aria-hidden="true" />
-      <h2>{item ? t('itemHeading',{name:item.name,portion:item.portion_grams == null ? '—' : formatPortion(locale,item.portion_grams),calories:formatNutrient(locale,item.calories)}) : tp('addItem')}</h2>
+      <h2>{item ? t('itemHeading',{name:item.name,portion:item.portion_grams == null ? '—' : formatPortion(locale,item.portion_grams),calories:item.calories==null&&hasNutrientTrace(item.micronutrients,1008)?tn('trace'):formatNutrient(locale,item.calories)}) : tp('addItem')}</h2>
     </div>
     <div className="flex flex-col gap-grid">
       <Field label={t('nameField')} value={name} onChange={(event) => { setName(event.target.value); setFdcSelection(undefined); }} maxLength={160} disabled={saving} autoComplete="off" />
