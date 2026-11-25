@@ -1,3 +1,5 @@
+import {formatCommentMessage} from '../src/lib/posts/comment-message.ts';
+import {nutritionTranslator} from '../src/i18n/nutrition.ts';
 // Run: node --import tsx --env-file=.env.local --test tests/removal-replay.test.mjs
 import test from 'node:test';
 import assert from 'node:assert/strict';
@@ -68,8 +70,10 @@ test('removal preserves quoted user words without treating them as generated cla
  const text='Use the remaining half, not what was left.';
  const calls=await fixture({reason:'correction_reverted',commentId:'removed',comments:[comment('removed',text,'user',t)]});
  assert.ok(calls.saved,'quoted user language must not block the atomic rebuild');
- assert.equal(calls.saved.p_reply,`Removed the correction "${text}". Consumed: 400 kcal.`);
+ assert.equal(formatCommentMessage(calls.saved.p_message,nutritionTranslator('en'),'en'),`Removed the correction "${text}". Consumed: 400 kcal.`);
  assert.equal(calls.saved.p_items[0].portion_grams,400);
+ assert.equal('p_reply' in calls.saved,false);
+ assert.ok(formatCommentMessage(calls.saved.p_message,nutritionTranslator('ja'),'ja').includes(text),'user quote stays data across locales');
 });
 
 // Fixed main strings cover the stored removal writer, not the table renderer.
@@ -79,6 +83,6 @@ test('removed rebuild keeps main English for estimate and closest-USDA annotatio
   ['closest','Removed the leftovers photo. Consumed: 400 kcal. Nutrition for Toast is taken from the closest USDA record, fixture basis.'],
  ]){
   const calls=await fixture({approximation:{kind,basis:'fixture basis'}});
-  assert.equal(calls.saved.p_reply,expected);
+  assert.equal(formatCommentMessage(calls.saved.p_message,nutritionTranslator('en'),'en'),expected);
  }
 });

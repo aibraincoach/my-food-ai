@@ -1,3 +1,5 @@
+import {formatCommentMessage} from '../src/lib/posts/comment-message.ts';
+import {nutritionTranslator} from '../src/i18n/nutrition.ts';
 import {cardTranslators} from './fixtures/card-translators.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
@@ -95,5 +97,5 @@ test('second-plate remainder targets its own photo and preserves the first plate
   if(path.endsWith('/apply_post_remainder')){applied=JSON.parse(init.body);return Response.json({message:'captured fixture save',code:'40001'},{status:409});}
   throw Error('Unexpected worker fixture route '+path);
  }}});
- try{await assert.rejects(remainder(db,{id:'job',post_id:'post',payload:{remainder_photo_id:'photo2'}}));assert.equal(photoQuery,'eq.photo2');assert.ok(applied);const row=applied.p_items[0];assert.equal(row.portion_grams,60);assert.equal(row.not_eaten_grams,40);assert.equal(row.not_eaten_calories,80);assert.equal(row.nutrition.calories,120);const second=applied.p_items[1];assert.equal(second.portion_grams,100);assert.equal(second.not_eaten_grams,100);assert.equal(second.not_eaten_calories,157);assert.equal(second.nutrition.calories,157);assert.match(applied.p_reply,/^Leftovers:/);}finally{globalThis.fetch=saved;if(priorKey===undefined)delete process.env.MODEL_API_KEY;else process.env.MODEL_API_KEY=priorKey;}
+ try{await assert.rejects(remainder(db,{id:'job',post_id:'post',payload:{remainder_photo_id:'photo2'}}));assert.equal(photoQuery,'eq.photo2');assert.ok(applied);const row=applied.p_items[0];assert.equal(row.portion_grams,60);assert.equal(row.not_eaten_grams,40);assert.equal(row.not_eaten_calories,80);assert.equal(row.nutrition.calories,120);const second=applied.p_items[1];assert.equal(second.portion_grams,100);assert.equal(second.not_eaten_grams,100);assert.equal(second.not_eaten_calories,157);assert.equal(second.nutrition.calories,157);assert.match(formatCommentMessage(applied.p_message,nutritionTranslator('en'),'en'),/^Leftovers:/);}finally{globalThis.fetch=saved;if(priorKey===undefined)delete process.env.MODEL_API_KEY;else process.env.MODEL_API_KEY=priorKey;}
 });
