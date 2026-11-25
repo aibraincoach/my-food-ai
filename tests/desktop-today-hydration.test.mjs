@@ -16,6 +16,7 @@ function render(phase,deviceZone,zone,initial=view){
  const compile=file=>ts.transpileModule(fs.readFileSync(new URL('../src/components/'+file,import.meta.url),'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,jsx:ts.JsxEmit.ReactJSX}}).outputText;
  vm.runInNewContext(compile('LocalTime.tsx'),{exports:local,window:{},document:{},Intl:intl,require:name=>name==='react'?react:{formatLocalDate,formatLocalTime}});
  vm.runInNewContext(compile('DesktopToday.tsx'),{exports,Intl:intl,Date,require:name=>{
+  if(name==='@/components/DayTotalReview')return{default:'day-total-review'};
   if(name==='next-intl')return englishIntl;if(name==='@/i18n/format')return formats;
   if(name==='react')return react;if(name==='react/jsx-runtime')return{jsx,jsxs:jsx};if(name==='next/link')return{default:'a'};
   if(name==='@/lib/ui/use-desktop')return{useDesktop:()=>false};if(name==='@/components/LocalTime')return local;

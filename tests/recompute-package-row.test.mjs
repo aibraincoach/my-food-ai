@@ -34,6 +34,10 @@ test('recompute keeps a label row that lacks a value instead of searching for it
    return reply(init,ids.map(id=>stored.get(id)).filter(Boolean));
   }
   if(path.endsWith('/posts'))return reply(init,[{caption:'',status:'processing'}]);
+  if(path.endsWith('/rpc/persist_operator_rematch')){
+   const body=JSON.parse(init.body);assert.deepEqual(body.p_expected,['copy']);assert.equal(body.p_items[0].portion_grams,null);
+   batch=body.p_items.map(({portion_grams,...row})=>row);for(const row of batch)stored.set(row.post_item_id,row);return new Response(null,{status:204});
+  }
   if(path.endsWith('/rpc/sync_item_drinks'))return new Response(null,{status:204});
   if(path.endsWith('/rpc/refresh_owned_approximation_summary')){summary=JSON.parse(init.body);return new Response(null,{status:204});}
   if(path.endsWith('/rpc/results_card_snapshot'))return Response.json(null);

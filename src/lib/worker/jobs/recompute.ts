@@ -1,3 +1,5 @@
+import {excludeSharedItem,sharedPotKind,sharedNutrition,thinPotPortion,PINNED_SOURCE as PACKAGE_SOURCE} from '@/lib/nutrition/hot-pot';
+import {recordCall} from '@/lib/trace/record';
 import { approximationLabels } from "@/lib/fdc/approximation-metadata";
 import { nutritionUnavailable } from "@/lib/nutrition/available";
 import { resolvePortionNutrition } from "@/lib/nutrition/portion";
@@ -11,7 +13,7 @@ import { markReady, refreshOperatorSavedMeal } from "@/lib/pipeline/persist";
 import { toNumber, type CurrentItem, type NutritionLike, type StoredNutrient } from "@/lib/nutrition/totals";
 
 // The nutrition sources that scripts/numbers/11-rematch.sql carries over: a barcode, a label or the person's own numbers.
-export const PACKAGE_SOURCE = /^(barcode:|off:|label|user:)/;
+export {PACKAGE_SOURCE};
 
 export default async function recompute(admin: SupabaseClient, job: JobRow): Promise<void> {
   if (!job.post_id) throw new Error("recompute: post is required.");
@@ -24,19 +26,30 @@ export default async function recompute(admin: SupabaseClient, job: JobRow): Pro
     return;
   }
   const { data: items, error, status: itemsStatus } = await admin.from("current_post_items")
-    .select("id,name,portion_grams,portion_text,supersedes").eq("post_id", job.post_id);
+    .select("id,name,portion_grams,portion_text,supersedes,gtin,created_at").eq("post_id", job.post_id);
   if (error) throw ioError(`recompute items: ${error.message}`, error, itemsStatus);
  const resolutionBudget=nutritionResolutionBudget();
   const {data:context,error:contextError,status:contextStatus}=await admin.from("posts").select("caption").eq("id",job.post_id).abortSignal(resolutionBudget).single();
   if(contextError)throw ioError("Recompute context could not be read.",contextError,resolutionBudget.aborted?503:contextStatus);
   if (items?.length) {
+    const rematch=job.payload.operator==="rematch";
+    const potContext={caption:context.caption??"",names:items.map(item=>item.name),items:items.map(item=>({name:item.name,portionText:item.portion_text}))};
     const { data: existing, error: nutritionError, status: nutritionStatus } = await admin.from("item_nutrition")
-      .select("post_item_id,source_ref,calories,protein_g,carbs_g,fat_g").in("post_item_id", items.map((item) => item.id)).abortSignal(resolutionBudget);
+      .select("post_item_id,source_ref,calories,protein_g,carbs_g,fat_g,fibre_g,sugar_g,sodium_mg,micronutrients,food_category").in("post_item_id", items.map((item) => item.id)).abortSignal(resolutionBudget);
     if (nutritionError) throw ioError(`recompute nutrition: ${nutritionError.message}`, nutritionError, nutritionStatus);
+    // 11-rematch leaves unpinned supersedes null so ordinary repair cannot
+    // reuse the rejected reference. Retain its historical provenance only.
+    const times=[...new Set(items.flatMap(item=>item.created_at?[item.created_at]:[]))];
+    const historical: {name:string;portion_text:string|null;portion_grams:unknown;item_nutrition:unknown}[]=[];
+    if(rematch&&times.length&&items.some(item=>excludeSharedItem(item.name,potContext))){
+      const prior=await admin.from("post_items").select("name,portion_text,portion_grams,item_nutrition(*)").eq("post_id",job.post_id).in("superseded_at",times).abortSignal(resolutionBudget);
+      if(prior.error)throw ioError("Rematch provenance could not be read.",prior.error,prior.status);
+      historical.push(...(prior.data??[]));
+    }
     const complete = new Map((existing ?? []).map((row) => [row.post_item_id,row]));
     const resolved = await resolveNutritionItems(items,resolutionBudget,async (item,_index,signal) => {
       const prior = complete.get(item.id);
-      if (prior && !nutritionUnavailable(prior)) {
+      if (prior && (!rematch||item.gtin||PACKAGE_SOURCE.test(prior.source_ref??"")) && (!nutritionUnavailable(prior)||rematch)) {
         await traceNutritionReuse(item.name,prior,"existing_item",item.id);
         return null;
       }
@@ -44,19 +57,29 @@ export default async function recompute(admin: SupabaseClient, job: JobRow): Pro
       const retained = await resolvePortionNutrition(admin, job.post_id!, item.supersedes, item.name, item.portion_grams, item.portion_text,signal);
       // #989: a barcode, label or typed row came from the package or the person, not from a USDA search. A search by
       // its name cannot do better (a label's 140 kcal became NULL under the name "Packaged food"), so it is kept as it is.
-      if (retained && (!nutritionUnavailable(retained) || PACKAGE_SOURCE.test(retained.source_ref ?? ""))) return {...retained,post_item_id:item.id};
-      const match = await resolveFoodMatchDetailed(admin,item.name,context.caption??"",signal,{approximate:true});
-      const n = scaleNutrition(match.food, item.portion_grams == null ? null : toNumber(item.portion_grams), match.unavailable);
+      if (retained && (!rematch||item.gtin||PACKAGE_SOURCE.test(retained.source_ref ?? "")) && (!nutritionUnavailable(retained) || PACKAGE_SOURCE.test(retained.source_ref ?? ""))) return {...retained,post_item_id:item.id};
+      const portion=rematch?thinPotPortion({name:item.name,portionText:item.portion_text,portionGrams:item.portion_grams==null?null:toNumber(item.portion_grams)},potContext):{grams:item.portion_grams==null?null:toNumber(item.portion_grams),adjusted:false};
+      const excluded=rematch&&excludeSharedItem(item.name,potContext);
+      if(excluded||portion.adjusted)await recordCall("fdc",{event:"hot_pot_rematch_policy",name:item.name,modelGrams:item.portion_grams},async()=>({excluded,...portion}),value=>({text:value}));
+      if(excluded){
+        const candidates=historical.filter(row=>row.name===item.name&&row.portion_text===item.portion_text&&Number(row.portion_grams)===Number(item.portion_grams)).flatMap(row=>Array.isArray(row.item_nutrition)?row.item_nutrition:[row.item_nutrition]).filter(Boolean);
+        const original=prior??(candidates.length===1?candidates[0]:candidates.length?{source_ref:null,candidates}:null);
+        return{post_item_id:item.id,...sharedNutrition(sharedPotKind(item.name)!,original),portion_grams:portion.grams};
+      }
+      const match = await resolveFoodMatchDetailed(admin,item.name,context.caption??"",signal,{approximate:true,portionText:item.portion_text,mealNames:potContext.names});
+      const n = scaleNutrition(match.food, portion.grams, match.unavailable);
       return {
-        post_item_id: item.id, calories: n.calories, protein_g: n.proteinG,
+        post_item_id: item.id,...(rematch?{portion_grams:portion.grams}:{}), calories: n.calories, protein_g: n.proteinG,
         carbs_g: n.carbsG, fat_g: n.fatG, fibre_g: n.fibreG, sugar_g: n.sugarG,
         sodium_mg: n.sodiumMg, micronutrients: n.micronutrients, source_ref: n.sourceRef, food_category: n.foodCategory ?? null,
       };
     });
     const writes=resolved.filter(row=>row!==null);
     if(writes.length){
-      const {error:writeError,status:writeStatus}=await admin.from("item_nutrition")
-        .upsert(writes,{onConflict:"post_item_id"});
+      const {error:writeError,status:writeStatus}=rematch?await admin.rpc("persist_operator_rematch",{
+        p_post_id:job.post_id,p_job_id:job.id,p_expected:items.map(item=>item.id),
+        p_items:writes.map(row=>({...row,portion_grams:"portion_grams" in row?row.portion_grams:items.find(item=>item.id===row.post_item_id)!.portion_grams})),
+      }):await admin.from("item_nutrition").upsert(writes,{onConflict:"post_item_id"});
       if(writeError)throw ioError(`recompute save: ${writeError.message}`,writeError,writeStatus);
     }
   }

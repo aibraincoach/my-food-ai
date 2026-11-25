@@ -630,7 +630,8 @@
     "offAttribution": "Contains data from <off>Open Food Facts</off>, available under the <license>Open Database License</license>.",
     "identifiedOpen": "Identified by Muse Spark Open ({model}) · Built with Muse Spark Open",
     "identifiedFallback": "Muse Spark Open was unavailable · Identified by Muse Spark 1.3",
-    "identifiedDefault": "Identified by Muse Spark 1.3"
+    "identifiedDefault": "Identified by Muse Spark 1.3",
+    "sharedNotCounted": "Shared item, not counted"
   },
   "postMenu": {
     "captionSaveFailed": "The caption could not be saved.",
@@ -882,7 +883,8 @@
     "postDetail": "Post detail",
     "closePostDetail": "Close post detail",
     "previousPost": "Previous post",
-    "nextPost": "Next post"
+    "nextPost": "Next post",
+    "highTotalNote": "This day's total is very high. Some items may be counted more than once."
   },
   "search": {
     "title": "Search",

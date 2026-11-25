@@ -1,4 +1,5 @@
 "use client";
+import {dayReview} from '@/lib/nutrition/day-review';
 import {useLocale,useTranslations} from "next-intl";
 import {calendarDayValues} from "@/i18n/days";
 import {formatDate,formatEnergy,formatNumber} from "@/i18n/format";
@@ -41,11 +42,13 @@ export default function MonthGrid({ month, summary, today, selected, onDay, onOp
           const day = summary.days.find(entry => entry.day === date);
           const enabled = Boolean((day||desktop) && date <= today);
           const outlined = date === today || date === selected;
+          const review=dayReview(day?.kcal);
+          const cellLabel=[t("cellSummary",calendarDayValues(locale,date,day)),review.high?t("highTotalNote"):null].filter(Boolean).join(" ");
           return <button type="button" key={date} data-day={date} disabled={!enabled} aria-pressed={desktop?date===selected:undefined} tabIndex={!day&&!desktop?-1:0} onFocus={event=>{if(matchMedia("(min-width:1024px)").matches)onDay(date,event.currentTarget);}} onClick={event => { if(day || matchMedia("(min-width:1024px)").matches)onDay(date, event.currentTarget); }}
-            aria-label={t("cellSummary",calendarDayValues(locale,date,day))}
+            aria-label={cellLabel}
             className={`flex min-w-0 flex-col justify-between rounded-tile text-left desktop:!h-[100px] desktop:focus-visible:outline-2 desktop:focus-visible:outline-text ${day?"bg-card":""} ${date===selected?"desktop:bg-text desktop:text-white desktop:[&>span]:text-white":""} ${date > today ? "text-faint" : "text-text"}`}
             style={{ height: tokens.spacing.tap, padding: `${tokens.spacing.grid}px ${tokens.calendar.padding}px`, border: outlined ? `${tokens.calendar.border}px solid ${tokens.colors.text}` : `${tokens.calendar.border}px solid transparent` }}>
-            <span className="text-label font-medium leading-none desktop:text-[13px]">{formatNumber(locale,index + 1)}</span>
+            <span className="flex w-full items-center justify-between text-label font-medium leading-none desktop:text-[13px]">{formatNumber(locale,index + 1)}{review.high?<span aria-hidden="true" data-high-day-marker className="size-1 shrink-0 rounded-circle bg-text"/>:null}</span>
             <span className="text-cell-kcal text-muted tabular-nums desktop:text-[12px]">{day?.ready ? `${formatEnergy(locale,day.kcal)}` : day?.intake ? t("drank") : ""}</span>
           </button>;
         })}

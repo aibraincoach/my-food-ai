@@ -1,5 +1,6 @@
 /* eslint-disable @next/next/no-img-element -- Private signed meal photos bypass public image optimization. */
 'use client';
+import DayTotalReview from '@/components/DayTotalReview';
 import {useLocale,useTranslations} from 'next-intl';
 import {formatDate,formatEnergy,formatNutrient} from '@/i18n/format';
 import {useEffect,useState} from 'react';
@@ -28,6 +29,7 @@ export default function DesktopToday({zone:configuredZone,initial,placeholder=fa
  const showPlaceholder=placeholder||(!day&&!error&&!slow);
  return <aside aria-label={t('today')} className="sticky top-8 hidden self-start desktop:flex desktop:min-w-0 desktop:max-w-[280px] desktop:flex-1 desktop:flex-col desktop:gap-6">
   <div><h2 className="mb-[6px] text-[13px] text-muted">{showPlaceholder||(!day&&!configuredZone)?t('today'):t('todayDate',{date:date?formatDate(locale,date,'UTC',{weekday:'long',month:'short',day:'numeric'}):''})}</h2><p className="flex items-baseline gap-2"><span className="text-[34px] font-semibold tracking-[-.8px] tabular-nums">{day?formatEnergy(locale,day.totals.calories):'—'}</span><span className="text-[14px] text-muted">{t('kcalConsumed')}</span></p></div>
+  {day?<DayTotalReview kcal={day.totals.calories} posts={day.posts}/>:null}
   <div className="grid grid-cols-3 border-y border-hairline">{(['protein','carbs','fat'] as const).map(key=><div key={key} className="py-3"><p className="text-[16px] font-semibold tabular-nums">{day?formatNutrient(locale,day.totals[`${key}_g`]):'—'} g</p><p className="text-[12px] text-muted">{t(key)}</p></div>)}</div>
   <div><h3 className="mb-3 text-[13px] font-semibold">{t('todaysMeals')}</h3><div className="space-y-3">{day?.posts.map(post=><Link key={post.id} href={`/?post=${post.id}`} className="flex items-center gap-3">{post.photoUrl?<img loading="lazy" src={post.photoUrl} alt="" className="size-11 shrink-0 rounded-thumb object-cover"/>:<span className="size-11 shrink-0 rounded-thumb bg-card"/>}<span className="min-w-0 flex-1"><span className="block truncate text-[14px] font-medium">{post.caption||post.items.map(item=>item.name).join(', ')||t('mealImage')}</span><span className="text-[12px] text-muted">{zone?formatDate(locale,new Date(post.eatenAt),zone,{hour:'numeric',minute:'2-digit'}):''}</span></span><span className="text-[13px] tabular-nums">{formatEnergy(locale,post.totals.calories)} kcal</span></Link>)}</div>{day&&!day.posts.length?<p className="text-detail text-muted">{t('noMealsToday')}</p>:null}</div>
   {gap?<p className="text-meta text-muted">{GAP_LEAD} {gap}</p>:null}
