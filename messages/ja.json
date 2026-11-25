@@ -155,7 +155,8 @@
     "glyphCocktail": "カクテル",
     "glyphWine": "ワイン",
     "glyphBeer": "ビール",
-    "glyphTumbler": "タンブラー"
+    "glyphTumbler": "タンブラー",
+    "mextAttribution": "栄養成分のデータ：<mext>日本食品標準成分表（八訂）増補2023年</mext>から引用（又は出典）。英語の食品名：日本食品標準成分表2015年版（七訂）および2016年の追補。各分量あたりの数値は My Food AI が算出しています。"
   },
   "metadata": {
     "description": "食べたものを、写真、文章、または音声で記録できます。目標や評価なしで、栄養を確認できます。"
@@ -1033,7 +1034,8 @@
     "request": "リクエスト",
     "response": "レスポンス",
     "error": "エラー：{error}",
-    "seconds": "{amount}秒"
+    "seconds": "{amount}秒",
+    "mextCallKind": "MEXT 食品参照データ"
   },
   "api": {
     "error_0795a0b4a0a6": "食事を保存できませんでした。",
@@ -1331,7 +1333,9 @@
     "fibre": "食物繊維",
     "sugar": "糖類",
     "sodium": "ナトリウム",
-    "unavailable": "不明"
+    "unavailable": "不明",
+    "trace": "微量",
+    "includesTraceAmounts": "微量を含みます。"
   },
   "nutrients": {
     "core_calories": "カロリー",

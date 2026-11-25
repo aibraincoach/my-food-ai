@@ -1,0 +1,429 @@
+{
+  "_source": "One factual record prepared from the already pinned MEXT workbooks, with importer source provenance; no raw workbook or prose.",
+  "food_number": "10345",
+  "name_ja": "＜いか・たこ類＞　（いか類）　するめいか　生",
+  "food_group": "10",
+  "name_ja_2015": "＜いか・たこ類＞（いか類）　するめいか　生　　",
+  "name_en": "Mollusks, Japanese common squid*, raw\n［*Syn. short-finned squid］",
+  "name_en_source": "mext-2015-en",
+  "identity_status": "joined",
+  "refuse_percent": 30,
+  "nutrients": {
+    "1003": {
+      "value": 17.9,
+      "marker": null,
+      "estimated": false,
+      "raw": "17.899999999999999",
+      "annotation": null,
+      "unitName": "G",
+      "source_tag": "PROT-"
+    },
+    "1004": {
+      "value": 0.8,
+      "marker": null,
+      "estimated": false,
+      "raw": "0.8",
+      "annotation": null,
+      "unitName": "G",
+      "source_tag": "FAT-"
+    },
+    "1005": {
+      "value": 0.1,
+      "marker": null,
+      "estimated": false,
+      "raw": "0.1",
+      "annotation": null,
+      "unitName": "G",
+      "source_tag": "CHOCDF-"
+    },
+    "1008": {
+      "value": 76,
+      "marker": null,
+      "estimated": false,
+      "raw": "76",
+      "annotation": null,
+      "unitName": "KCAL",
+      "source_tag": "ENERC_KCAL"
+    },
+    "1051": {
+      "value": 80.2,
+      "marker": null,
+      "estimated": false,
+      "raw": "80.2",
+      "annotation": null,
+      "unitName": "G",
+      "source_tag": "WATER"
+    },
+    "1057": {
+      "value": null,
+      "marker": "-",
+      "estimated": false,
+      "raw": null,
+      "unitName": "MG",
+      "source_tag": null,
+      "reason": "no_equivalent"
+    },
+    "1079": {
+      "value": 0,
+      "marker": null,
+      "estimated": true,
+      "raw": "(0)",
+      "annotation": null,
+      "unitName": "G",
+      "source_tag": "FIB-"
+    },
+    "1087": {
+      "value": 11,
+      "marker": null,
+      "estimated": false,
+      "raw": "11",
+      "annotation": null,
+      "unitName": "MG",
+      "source_tag": "CA"
+    },
+    "1089": {
+      "value": 0.1,
+      "marker": null,
+      "estimated": false,
+      "raw": "0.1",
+      "annotation": null,
+      "unitName": "MG",
+      "source_tag": "FE"
+    },
+    "1090": {
+      "value": 46,
+      "marker": null,
+      "estimated": false,
+      "raw": "46",
+      "annotation": null,
+      "unitName": "MG",
+      "source_tag": "MG"
+    },
+    "1091": {
+      "value": 250,
+      "marker": null,
+      "estimated": false,
+      "raw": "250",
+      "annotation": null,
+      "unitName": "MG",
+      "source_tag": "P"
+    },
+    "1092": {
+      "value": 300,
+      "marker": null,
+      "estimated": false,
+      "raw": "300",
+      "annotation": null,
+      "unitName": "MG",
+      "source_tag": "K"
+    },
+    "1093": {
+      "value": 210,
+      "marker": null,
+      "estimated": false,
+      "raw": "210",
+      "annotation": null,
+      "unitName": "MG",
+      "source_tag": "NA"
+    },
+    "1095": {
+      "value": 1.5,
+      "marker": null,
+      "estimated": false,
+      "raw": "1.5",
+      "annotation": null,
+      "unitName": "MG",
+      "source_tag": "ZN"
+    },
+    "1098": {
+      "value": 0.29,
+      "marker": null,
+      "estimated": false,
+      "raw": "0.28999999999999998",
+      "annotation": null,
+      "unitName": "MG",
+      "source_tag": "CU"
+    },
+    "1101": {
+      "value": null,
+      "marker": "Tr",
+      "estimated": false,
+      "raw": "Tr",
+      "annotation": null,
+      "unitName": "MG",
+      "source_tag": "MN"
+    },
+    "1103": {
+      "value": 41,
+      "marker": null,
+      "estimated": false,
+      "raw": "41",
+      "annotation": null,
+      "unitName": "UG",
+      "source_tag": "SE"
+    },
+    "1104": {
+      "value": null,
+      "marker": "-",
+      "estimated": false,
+      "raw": null,
+      "unitName": "IU",
+      "source_tag": null,
+      "reason": "no_equivalent"
+    },
+    "1105": {
+      "value": 13,
+      "marker": null,
+      "estimated": false,
+      "raw": "13",
+      "annotation": null,
+      "unitName": "UG",
+      "source_tag": "RETOL"
+    },
+    "1106": {
+      "value": 13,
+      "marker": null,
+      "estimated": false,
+      "raw": "13",
+      "annotation": null,
+      "unitName": "UG",
+      "source_tag": "VITA_RAE"
+    },
+    "1109": {
+      "value": 2.1,
+      "marker": null,
+      "estimated": false,
+      "raw": "2.1",
+      "annotation": null,
+      "unitName": "MG",
+      "source_tag": "TOCPHA"
+    },
+    "1110": {
+      "value": null,
+      "marker": "-",
+      "estimated": false,
+      "raw": null,
+      "unitName": "IU",
+      "source_tag": null,
+      "reason": "no_equivalent"
+    },
+    "1114": {
+      "value": 0.3,
+      "marker": null,
+      "estimated": false,
+      "raw": "0.3",
+      "annotation": null,
+      "unitName": "UG",
+      "source_tag": "VITD"
+    },
+    "1162": {
+      "value": 1,
+      "marker": null,
+      "estimated": false,
+      "raw": "1",
+      "annotation": null,
+      "unitName": "MG",
+      "source_tag": "VITC"
+    },
+    "1165": {
+      "value": 0.07,
+      "marker": null,
+      "estimated": false,
+      "raw": "7.0000000000000007E-2",
+      "annotation": null,
+      "unitName": "MG",
+      "source_tag": "THIA"
+    },
+    "1166": {
+      "value": 0.05,
+      "marker": null,
+      "estimated": false,
+      "raw": "0.05",
+      "annotation": null,
+      "unitName": "MG",
+      "source_tag": "RIBF"
+    },
+    "1167": {
+      "value": 4,
+      "marker": null,
+      "estimated": false,
+      "raw": "4.0",
+      "annotation": null,
+      "unitName": "MG",
+      "source_tag": "NIA"
+    },
+    "1175": {
+      "value": 0.21,
+      "marker": null,
+      "estimated": false,
+      "raw": "0.21",
+      "annotation": null,
+      "unitName": "MG",
+      "source_tag": "VITB6A"
+    },
+    "1177": {
+      "value": 5,
+      "marker": null,
+      "estimated": false,
+      "raw": "5",
+      "annotation": null,
+      "unitName": "UG",
+      "source_tag": "FOL"
+    },
+    "1178": {
+      "value": 4.9,
+      "marker": null,
+      "estimated": false,
+      "raw": "4.9000000000000004",
+      "annotation": null,
+      "unitName": "UG",
+      "source_tag": "VITB12"
+    },
+    "1180": {
+      "value": null,
+      "marker": "-",
+      "estimated": false,
+      "raw": null,
+      "unitName": "MG",
+      "source_tag": null,
+      "reason": "no_equivalent"
+    },
+    "1185": {
+      "value": null,
+      "marker": "-",
+      "estimated": false,
+      "raw": "-",
+      "annotation": null,
+      "unitName": "UG",
+      "source_tag": "VITK"
+    },
+    "1186": {
+      "value": null,
+      "marker": "-",
+      "estimated": false,
+      "raw": null,
+      "unitName": "UG",
+      "source_tag": null,
+      "reason": "no_equivalent"
+    },
+    "1190": {
+      "value": null,
+      "marker": "-",
+      "estimated": false,
+      "raw": null,
+      "unitName": "UG",
+      "source_tag": null,
+      "reason": "no_equivalent"
+    },
+    "1253": {
+      "value": 250,
+      "marker": null,
+      "estimated": false,
+      "raw": "250",
+      "annotation": null,
+      "unitName": "MG",
+      "source_tag": "CHOLE"
+    },
+    "1258": {
+      "value": null,
+      "marker": "-",
+      "estimated": false,
+      "raw": null,
+      "unitName": "G",
+      "source_tag": null,
+      "reason": "no_equivalent"
+    },
+    "1292": {
+      "value": null,
+      "marker": "-",
+      "estimated": false,
+      "raw": null,
+      "unitName": "G",
+      "source_tag": null,
+      "reason": "no_equivalent"
+    },
+    "1293": {
+      "value": null,
+      "marker": "-",
+      "estimated": false,
+      "raw": null,
+      "unitName": "G",
+      "source_tag": null,
+      "reason": "no_equivalent"
+    },
+    "2000": {
+      "value": null,
+      "marker": "-",
+      "estimated": false,
+      "raw": null,
+      "unitName": "G",
+      "source_tag": null,
+      "reason": "no_equivalent"
+    }
+  },
+  "raw_values": {
+    "PROT-": "17.899999999999999",
+    "FAT-": "0.8",
+    "CHOCDF-": "0.1",
+    "ENERC_KCAL": "76",
+    "WATER": "80.2",
+    "FIB-": "(0)",
+    "CA": "11",
+    "FE": "0.1",
+    "MG": "46",
+    "P": "250",
+    "K": "300",
+    "NA": "210",
+    "ZN": "1.5",
+    "CU": "0.28999999999999998",
+    "MN": "Tr",
+    "SE": "41",
+    "RETOL": "13",
+    "VITA_RAE": "13",
+    "TOCPHA": "2.1",
+    "VITD": "0.3",
+    "VITC": "1",
+    "THIA": "7.0000000000000007E-2",
+    "RIBF": "0.05",
+    "NIA": "4.0",
+    "VITB6A": "0.21",
+    "FOL": "5",
+    "VITB12": "4.9000000000000004",
+    "VITK": "-",
+    "CHOLE": "250",
+    "REFUSE": "30"
+  },
+  "source_manifest": {
+    "current": {
+      "file": "main.xlsx",
+      "url": "https://www.mext.go.jp/content/20260327-mxt_kagsei-mext-000029402_02.xlsx",
+      "date": "2026-03-27",
+      "sha256": "0d5a77077dd6cd91cbc2e6e317b8b218a38728c409eed452f1c10635a0d3099c"
+    },
+    "errata": {
+      "file": "errata.xlsx",
+      "url": "https://www.mext.go.jp/content/20260327-mxt_kagsei-mext-000029402_16.xlsx",
+      "date": "2026-03-27",
+      "sha256": "fb61037c7f66af0db1fb0729977913a629bc17097bc3ff7bf75217f9110acabb"
+    },
+    "japanese": {
+      "file": "japanese2015.xlsx",
+      "url": "https://www.mext.go.jp/component/a_menu/science/detail/__icsFiles/afieldfile/2017/12/25/1365334_1r12.xlsx",
+      "date": "2017-12-27",
+      "sha256": "eb515b12af20fe978e7361d1a46dcfd25c71eef60bef8360fd0daebf404381e3"
+    },
+    "english": {
+      "file": "english2015.xlsx",
+      "url": "https://www.mext.go.jp/component/english/__icsFiles/afieldfile/2017/12/25/1374049_1r12_1.xlsx",
+      "date": "2017-12-27",
+      "sha256": "5c968f1801f706b2970d51599ab2dce6f9e09ff3901fcf1990922960761885fb"
+    },
+    "supplement": {
+      "file": "english2016.xlsx",
+      "url": "https://www.mext.go.jp/component/english/__icsFiles/afieldfile/2017/09/12/1380333-2r7e.xlsx",
+      "date": "2017-06-21",
+      "sha256": "bf30dbcb72a749ce3a64a7ecd780a37da31691a1e91a04700452713bacd5b069"
+    }
+  },
+  "record_sha256": "c9b025801e82b3ea7d1b26d5ea1bd8e1340334225d11cbc8b5ebf5637cebf7a3"
+}

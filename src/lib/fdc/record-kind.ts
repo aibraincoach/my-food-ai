@@ -71,7 +71,7 @@ export function recordKind(description: string, category?: string | null): FoodK
 export type RecordCheck = { strong: string[]; weak: string[]; score: number };
 
 // Every signal for one food and its record. kcalPer100g is the record's (or the stored food's) energy density, if known.
-export function checkRecord(name: string, record: { description: string; category?: string | null; kcalPer100g?: number | null }): RecordCheck {
+export function checkRecord(name: string, record: { description: string; category?: string | null; kcalPer100g?: number | null; kind?: FoodKind | null }): RecordCheck {
   const strong: string[] = [], weak: string[] = [];
   const kinds = nameKinds(name);
   const head = name.split(/\b(?:with|and|in)\b|&/i)[0].trim().split(/\s+/).at(-1) ?? "";
@@ -84,7 +84,7 @@ export function checkRecord(name: string, record: { description: string; categor
   const spiceProduct = /\b(spices?|herbs?|seasonings?|powders?|masala)\b/i.test(name) || headKinds.has("condiment");
   const spiceCategory = /\b(spices?|herbs?|seasonings?)\b/i.test(record.category ?? "")
     && !/\b(soups?|mixtures)\b/i.test(record.category ?? "");
-  const kind = spiceCategory && mainHead && !spiceProduct ? "condiment" : recordKind(record.description, record.category);
+  const kind = record.kind ?? (spiceCategory && mainHead && !spiceProduct ? "condiment" : recordKind(record.description, record.category));
   if (kind && SINGLE_KINDS.has(kind) && kinds.size > 0 && !kinds.has(kind)) strong.push(`kind: the record is a ${kind}; the name has no ${kind} word`);
   // A name that is only fruit or only a drink, matched to a record of another kind.
   if (kind && kinds.size > 0 && [...kinds].every(k => k === "fruit" || k === "drink") && !kinds.has(kind) && kind !== "dairy") strong.push(`kind: the name is a ${[...kinds].join(" or ")}; the record is a ${kind}`);
@@ -114,6 +114,6 @@ export function checkRecord(name: string, record: { description: string; categor
 }
 
 /** True when the record is plainly another kind of food: the matcher drops it before choosing. */
-export function recordContradicts(name: string, food: { description: string; foodCategory?: string }): boolean {
-  return checkRecord(name, { description: food.description, category: food.foodCategory }).strong.length > 0;
+export function recordContradicts(name: string, food: { description: string; foodCategory?: string; kind?: FoodKind | null }): boolean {
+  return checkRecord(name, { description: food.description, category: food.foodCategory, kind: food.kind }).strong.length > 0;
 }
