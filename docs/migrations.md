@@ -1,5 +1,13 @@
 # Production migration status
 
+## 0085 file-first preparation — UNAPPLIED and held (2026-11-25)
+
+`0085_mext_food_reference.sql` is **UNAPPLIED and held**. Merging the
+reference schema and importer applies nothing and imports no data. Production
+apply and the night-time import each need RT's written yes and the PM's exact
+order. The app matcher is a separate packet and the locale arm waits for
+#1219 slice B. See [the MEXT runbook](1221-mext-rollout.md).
+
 ## 0084 file-first preparation — UNAPPLIED and held (2026-11-25)
 
 `0084_structured_comment_messages.sql` is **UNAPPLIED and held**. Merging its
