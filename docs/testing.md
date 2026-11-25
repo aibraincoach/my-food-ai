@@ -57,3 +57,15 @@ deletes temporary session files and redacts the fixture password. Keep failure
 receipts and screenshots. The first-hint script saves the failing page before
 closing its context. Playwright WebKit and synthetic camera/microphone streams
 do not prove Safari or real-device behavior.
+
+For email-confirmation coverage, start a separate disposable stack with
+`MFA_STACK_CONFIRM=1` and fresh `TEST_STACK_DIR`, `TEST_ENV_FILE`,
+`TEST_PG_PORT` and `TEST_PORT_BASE`. This turns auto-confirm off and adds
+Mailpit v1.29.2, with SMTP on base+9 and its API on base+10, both bound to
+127.0.0.1. The confirmation test app uses `localhost` consistently (including its email
+redirect) so Next’s loopback URL normalization cannot switch the cookie host.
+The generated private env includes `TEST_MAILPIT_URL`. The default
+stack keeps auto-confirm on. Confirmation mail stays inside this local stack;
+no production email or Auth settings are used. Stop that stack with the same
+`TEST_STACK_DIR` and `node scripts/test-stack.mjs down` after deleting synthetic
+users and Mailpit messages and recording zero remaining test rows.

@@ -4,6 +4,7 @@ import {getTranslations} from 'next-intl/server';
 import {headers} from 'next/headers';
 import {redirect} from 'next/navigation';
 import {createClient} from '@/lib/supabase/server';
+import {authRedirectOrigin} from '@/lib/auth/redirect-origin';
 
 function fail(path:string,message:string):never{
   redirect(`${path}?error=${encodeURIComponent(message)}`);
@@ -14,13 +15,8 @@ export async function requestPasswordReset(form:FormData):Promise<void>{
   if(email.length>254||!/^\S+@\S+\.\S+$/.test(email))fail('/reset-password',t('enterEmail'));
   // Next's server-action boundary checks Origin against Host before this runs.
   // Missing/invalid origins fail; no guessed host or alternate redirect route.
-  const origin=(await headers()).get('origin');
-  let validOrigin=false;
-  try{
-    const url=new URL(origin??'');
-    validOrigin=url.origin===origin&&(url.protocol==='https:'||url.protocol==='http:'&&['localhost','127.0.0.1','[::1]'].includes(url.hostname));
-  }catch{}
-  if(!validOrigin)fail('/reset-password',t('resetFailure'));
+  const origin=authRedirectOrigin((await headers()).get('origin'));
+  if(!origin)fail('/reset-password',t('resetFailure'));
   const token=form.get('h-captcha-response');
   let failed=false;
   try{

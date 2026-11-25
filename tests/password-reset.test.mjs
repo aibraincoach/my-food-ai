@@ -1,3 +1,4 @@
+import {authRedirectOrigin} from '../src/lib/auth/redirect-origin.ts';
 import {englishIntl,englishIntlServer} from './fixtures/english-intl.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
@@ -8,7 +9,7 @@ import {readFileSync,existsSync} from 'node:fs';
 function fixture({resetError=null,user={id:'verified-user'},updateError=null,origin='https://app.invalid'}={}){
   const calls=[],exports={},path=new URL('../src/lib/auth/password-reset.ts',import.meta.url);
   if(!existsSync(path))return{calls,exports};
-  const deps={'next-intl':englishIntl,'next-intl/server':englishIntlServer,
+  const deps={'@/lib/auth/redirect-origin':{authRedirectOrigin},'next-intl':englishIntl,'next-intl/server':englishIntlServer,
     'next/navigation':{redirect:url=>{throw Object.assign(Error('redirect'),{url});}},
     'next/headers':{headers:async()=>({get:key=>key==='origin'?origin:null})},
     '@/lib/supabase/server':{createClient:async signal=>{
