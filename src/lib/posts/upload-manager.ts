@@ -20,7 +20,7 @@ class UploadStorageError extends Error {
     constructor(cause: unknown) { super('Photo storage failed.', {cause}); this.name = 'UploadStorageError'; }
 }
 const RETAKE_ATTACHMENT_FAILURE:CaptureFailure = {code:'retakeAttachment'};
-// #1093: a new meal whose kept photo is from before #684's fix. It has no meal to retake a photo for.
+// A current new-meal draft whose photo record is missing has no meal to retake a photo for.
 export const PHOTO_NOT_KEPT:CaptureFailure = {code:'photoNotKept'};
 // #684: say only what is true. The photo is kept inside the app, not in the phone's photos.
 const ATTACHMENT_UPLOAD_FAILED:CaptureFailure = {code:'attachmentUploadFailed'};
@@ -61,6 +61,7 @@ export interface DraftFields {
 }
 type Entry = {
     data: StoredUpload;
+    selectedFiles: File[];
     draft: PostUploadDraft;
     previewUrl: string;
     active: Promise<void> | null;
@@ -122,7 +123,7 @@ export class UploadManager {
     private attachSnapshot(entry: Entry) { const draft = entry.draft; draft.setProgress((sent, total) => { if (entry.deleted || entry.draft !== draft)
         return; entry.data.sent = sent; entry.data.total = total; this.notify(entry, 'upload-progress'); }); draft.setSnapshotListener?.(async (snapshot) => { if (entry.deleted || entry.finished || entry.draft !== draft)
         return; entry.data.snapshot = snapshot; await this.persist(entry); }); }
-    private make(data: StoredUpload) { const entry: Entry = { data, draft: this.makeDraft(), previewUrl: data.files[0] ? URL.createObjectURL(data.files[0]) : '', active: null, version: 0, rerun: false, deleted: false, finished: false, writing: Promise.resolve() }; if (data.snapshot)
+    private make(data: StoredUpload) { const entry: Entry = { data, selectedFiles: [...data.files], draft: this.makeDraft(), previewUrl: data.files[0] ? URL.createObjectURL(data.files[0]) : '', active: null, version: 0, rerun: false, deleted: false, finished: false, writing: Promise.resolve() }; if (data.snapshot)
         entry.draft.restore(data.snapshot); entry.draft.setProgress((sent, total) => { if (entry.deleted)
         return; entry.data.sent = sent; entry.data.total = total; this.notify(entry, 'upload-progress'); }); this.attachSnapshot(entry); return entry; }
     async initialize(ownerId: string) {
@@ -168,6 +169,7 @@ export class UploadManager {
             URL.revokeObjectURL(entry.previewUrl);
     } this.entries.clear(); this.notify(); }
     async clear() { const writes = [...this.entries.values()].map(entry => entry.writing.catch(() => { })); this.resetMemory(); this.ownerId = ''; this.ownerEpoch++; this.ownerPending=null; this.initializing = null; await Promise.all(writes); await this.store.clear(); }
+    private sameFiles(entry: Entry, files: File[]) { return files.length === entry.data.files.length && files.every((file, index) => file === entry.data.files[index] || file === entry.selectedFiles[index]); }
     stage(files: File[], fields: DraftFields, operationId?: string) {
         let entry = operationId ? this.entries.get(operationId) : undefined;
         if(entry?.finished)return entry.data.operationId;
@@ -177,8 +179,9 @@ export class UploadManager {
             entry = this.make({ operationId: id, ownerId: this.ownerId, createdAt: now, reservedAt: now, ...fields, files: [...files], snapshot: null, posted: false, state: 'uploading', sent: 0, total: files.reduce((sum, file) => sum + file.size, 0) });
             this.entries.set(id, entry);
         }
-        else if (files.length !== entry.data.files.length || files.some((file, i) => file !== entry!.data.files[i])) {
-            entry.data.files = [...files];
+        else if (!this.sameFiles(entry, files)) {
+            entry.data.files = files.map(file => { const index = entry!.selectedFiles.indexOf(file); return index < 0 ? file : entry!.data.files[index]; });
+            entry.selectedFiles = [...files];
             entry.data.failureKind = undefined;
             entry.data.failure = undefined;
             entry.data.snapshot = null;
@@ -204,11 +207,16 @@ export class UploadManager {
     }
     update(id: string, fields: Partial<DraftFields>) { const entry = this.entries.get(id); if (!entry || entry.deleted || entry.finished)
         return; Object.assign(entry.data, fields); void this.persist(entry).catch(() => { /* Storage failure is announced by persist. */ }); this.notify(entry, 'upload-progress'); }
-    private persist(entry: Entry, fields: Partial<StoredUpload> = {}) { const snapshot = { ...entry.data, ...fields, files: [...entry.data.files] }; const writing = entry.writing.catch(() => { }).then(() => { if (!entry.deleted && !entry.finished) {
+    private persist(entry: Entry, fields: Partial<StoredUpload> = {}) { const snapshot = { ...entry.data, ...fields, files: [...entry.data.files] }, selected = snapshot.files, draft = entry.draft; const writing = entry.writing.catch(() => { }).then(() => { if (!entry.deleted && !entry.finished) {
         // A queued caption write must not undo an acknowledgment that just committed.
         if (entry.data.lostNoticeSeen) snapshot.lostNoticeSeen = true;
         if (entry.data.failureKind === 'storage') throw new UploadStorageError('Storage retry requires a user action.');
-        return this.store.put(snapshot); } }).catch(error => {
+        return this.store.put(snapshot).then(() => {
+            if (entry.draft === draft && entry.data.files.length === selected.length && entry.data.files.every((file, index) => file === selected[index]) && snapshot.files.some((file, index) => file !== selected[index])) {
+                entry.data.files = snapshot.files;
+                draft.retainFiles(selected, snapshot.files);
+            }
+        }); } }).catch(error => {
             if (!entry.data.files.length || this.photoLost(entry) || (error as Error)?.name === 'NotReadableError') throw error;
             entry.data.failureKind = 'storage';
             entry.data.failure = PHOTO_STORAGE_FAILED;
@@ -226,7 +234,7 @@ export class UploadManager {
             this.ownerId=user.id;
         }
         let entry=stagedId?this.entries.get(stagedId):undefined;
-        if(entry&&(entry.finished||entry.data.posted||entry.data.ownerId!==this.ownerId||entry.data.files.length!==files.length||files.some((file,index)=>entry!.data.files[index]!==file)))entry=undefined;
+        if(entry&&(entry.finished||entry.data.posted||entry.data.ownerId!==this.ownerId||!this.sameFiles(entry,files)))entry=undefined;
         if(!entry){
             const now=Date.now(),id=crypto.randomUUID();
             entry=this.make({operationId:id,ownerId:this.ownerId,createdAt:now,reservedAt:now,caption:label,eatenAt:food.eaten_at,location:null,options:{},files:[...files],snapshot:null,posted:true,food,state:'uploading',sent:0,total:'photo' in food?0:files.reduce((sum,file)=>sum+file.size,0)});

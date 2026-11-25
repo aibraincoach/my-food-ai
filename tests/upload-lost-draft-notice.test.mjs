@@ -2,16 +2,16 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 const feedMessages=JSON.parse(readFileSync(new URL('../messages/en.json',import.meta.url),'utf8')).feed;
-const {restoreFiles}=await import('../src/lib/posts/upload-store.ts');
+const {missingPhotoUpload}=await import('./fixtures/missing-upload-photo.mjs');
 const {UploadManager}=await import('../src/lib/posts/upload-manager.ts');
 const row=(patch={})=>({operationId:'draft',ownerId:'owner',createdAt:1,reservedAt:1,caption:'Saved caption',eatenAt:null,location:null,options:{},files:[new File(['photo'],'old.jpg')],snapshot:null,posted:false,state:'uploading',sent:0,total:5,...patch});
 function fixture(initial=[row()]){
  const rows=new Map(initial.map(r=>[r.operationId,r]));let fail=false,hold=null,writes=0;
- const store={all:async()=>[...rows.values()].map(r=>restoreFiles(structuredClone(r))),allIntents:async()=>[],putIntent:async()=>{},put:async r=>{writes++;if(hold)await hold;if(fail)throw Error('Storage failed');rows.set(r.operationId,structuredClone(r));},remove:async id=>rows.delete(id),clear:async()=>rows.clear()};
+ const store={all:async()=>[...rows.values()].map(r=>missingPhotoUpload(structuredClone(r))),allIntents:async()=>[],putIntent:async()=>{},put:async r=>{writes++;if(hold)await hold;if(fail)throw Error('Storage failed');rows.set(r.operationId,structuredClone(r));},remove:async id=>rows.delete(id),clear:async()=>rows.clear()};
  const manager=()=>new UploadManager(store,()=>({setProgress(){},setSnapshotListener(){},restore(){},stage:()=>assert.fail('No staging')}),async()=>{},async()=>assert.fail('No network'),async()=>'owner');
  return {rows,manager,get writes(){return writes;},set fail(v){fail=v;},set hold(v){hold=v;}};
 }
-test('an old unposted photo draft reports a notice and keeps its caption without network work',async()=>{
+test('a current unposted photo draft with a missing record reports a notice and keeps its caption without network work',async()=>{
  const f=fixture(),m=f.manager();await m.initialize('owner');const s=m.list()[0];assert.equal(s.lostNotice,true);assert.equal(s.state,'failed');assert.equal(s.caption,'Saved caption');assert.equal(m.newest().files.length,0);assert.equal(f.writes,0);
 });
 test('OK waits for durable storage before notifying and stays acknowledged after reload',async()=>{

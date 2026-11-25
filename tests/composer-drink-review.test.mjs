@@ -66,3 +66,9 @@ for(const locale of ['en','ja'])test(locale+' three-photo heading renders the wh
  assert.ok(headings.includes(locale==='en'?'Photos 1, 2':'写真 1, 2'));
  assert.ok(headings.includes(locale==='en'?'Photo 3':'写真 3'));
 });
+
+for(const desktop of [false,true])for(const locale of ['en','ja'])test(`${locale} ${desktop?'desktop':'phone'} storage failure shows its line and only a person tap retries`,()=>{
+ const h=mount(desktop,locale);let retries=0;h.props.upload={state:'failed',failureKind:'storage',failure:{code:'photoStorageFailed'},sent:0,total:5};h.props.storageFailureText=JSON.parse(readFileSync(new URL('../messages/'+locale+'.json',import.meta.url),'utf8')).capture.photoStorageFailed;h.props.onRetryUpload=()=>{retries++;};
+ const nodes=h.nodes(h.render()),line=nodes.find(n=>n.props?.role==='alert'&&n.props.children===h.props.storageFailureText),retry=nodes.find(n=>n.type==='button'&&n.props.children===(locale==='en'?'Try again':'もう一度試す'));
+ assert.ok(line);assert.ok(retry);assert.equal(retries,0);retry.props.onClick();assert.equal(retries,1);assert.ok(h.nodes(h.render()).find(n=>n.props?.role==='alert'&&n.props.children===h.props.storageFailureText));assert.equal(retries,1,'refusal stays visible without another retry');
+});

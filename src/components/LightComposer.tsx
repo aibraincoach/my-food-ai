@@ -12,7 +12,7 @@ import {Button} from '@/components/ui/Button';
 import {usePostHandle} from '@/components/PostHandle';
 import {toLocalInput} from '@/lib/posts/eaten-at';
 import VoiceButton,{useVoiceActivity} from '@/components/VoiceButton';
-type Props={cameraPreview?:HTMLCanvasElement|null;upload?:UploadState;shots:{previewUrl:string}[];caption:string;setCaption:(value:string)=>void;index:number;setIndex:(value:number)=>void;notEaten:number[];setNotEaten:(value:number[])=>void;when:string|null;setWhen:(value:string|null)=>void;locationEnabled:boolean;setLocationEnabled:(value:boolean)=>void;saveAsMeal:boolean;setSaveAsMeal:(value:boolean)=>void;busy:boolean;error:string|null;pending:number;onBack:()=>void;onPhoto:()=>void;onSearch:()=>void;onPost:()=>void;children?:ReactNode;searchPanel?:ReactNode;onRemove:(index:number)=>void;onSavePhoto?:()=>void};
+type Props={cameraPreview?:HTMLCanvasElement|null;upload?:UploadState;shots:{previewUrl:string}[];caption:string;setCaption:(value:string)=>void;index:number;setIndex:(value:number)=>void;notEaten:number[];setNotEaten:(value:number[])=>void;when:string|null;setWhen:(value:string|null)=>void;locationEnabled:boolean;setLocationEnabled:(value:boolean)=>void;saveAsMeal:boolean;setSaveAsMeal:(value:boolean)=>void;busy:boolean;error:string|null;pending:number;onBack:()=>void;onPhoto:()=>void;onSearch:()=>void;onPost:()=>void;onRetryUpload:()=>void;storageFailureText:string|null;children?:ReactNode;searchPanel?:ReactNode;onRemove:(index:number)=>void;onSavePhoto?:()=>void};
 function Switch({label,on,disabled,onChange}:{label:string;on:boolean;disabled:boolean;onChange:()=>void}) {
  return <button type="button" role="switch" aria-label={label} aria-checked={on} disabled={disabled} onClick={onChange} className={`relative h-[26px] w-[44px] shrink-0 rounded-circle disabled:opacity-50 ${on?'bg-accent':'bg-ring'}`}><span className="absolute top-[3px] size-5 rounded-circle bg-white" style={{left:on?21:3,boxShadow:'var(--color-shadow-knob)'}}/></button>;
 }
@@ -24,6 +24,8 @@ export default function LightComposer(p:Props) {
  const voice=useVoiceActivity();
  const inputBusy=p.busy||drinks.saving;
  const busy=inputBusy||voice.active;
+ const storageFailure=p.upload?.state==='failed'&&p.upload.failureKind==='storage';
+ const storageNotice=storageFailure?<div className="mb-2 text-detail"><p role="alert">{p.storageFailureText}</p><button type="button" disabled={busy} onClick={p.onRetryUpload} className="min-h-tap underline disabled:opacity-50">{t('try_again')}</button></div>:null;
  const post=()=>{if(voice.activeRef.current||inputBusy)return;if(drinks.active)void drinks.post();else p.onPost();};
  const [typing,setTyping]=useState(false);
  const [drinkReview,setDrinkReview]=useState<string|null>(null);
@@ -78,7 +80,7 @@ export default function LightComposer(p:Props) {
     {p.onSavePhoto&&p.shots.length>0&&<div className="flex min-h-[56px] items-center justify-between border-b border-hairline text-[14px]">{t('save_photo')}<button type="button" disabled={busy} onClick={p.onSavePhoto} className="min-h-tap rounded-field bg-field px-3 text-[13px]">{t('save')}</button></div>}
     <div className="flex min-h-[56px] items-center justify-between border-b border-hairline text-[14px]">{t('location')}<Switch label={t('save_location')} on={p.locationEnabled} disabled={busy} onChange={()=>p.setLocationEnabled(!p.locationEnabled)}/></div>
     <div className="flex min-h-[56px] items-center justify-between border-b border-hairline text-[14px]">{t('save_as_meal')}<Switch label={t('save_as_meal')} on={p.saveAsMeal} disabled={busy} onChange={()=>p.setSaveAsMeal(!p.saveAsMeal)}/></div>
-   </div><footer className="shrink-0 border-t border-hairline p-5">{(p.error||drinks.error)&&<p role="alert" className="mb-2 text-detail">{p.error||drinks.error}</p>}{p.pending>0&&<p role="status" className="text-meta">{t('preparing_selected_photos')}</p>}<Button disabled={busy||p.pending>0||(drinks.active?drinks.disabled:!p.caption.trim()&&!p.shots.length)} onClick={post}>{inputBusy?t('posting'):drinks.active?drinks.button:t('post')}</Button></footer>
+   </div><footer className="shrink-0 border-t border-hairline p-5">{storageNotice}{(p.error||drinks.error)&&<p role="alert" className="mb-2 text-detail">{p.error||drinks.error}</p>}{p.pending>0&&<p role="status" className="text-meta">{t('preparing_selected_photos')}</p>}<Button disabled={busy||p.pending>0||(drinks.active?drinks.disabled:!p.caption.trim()&&!p.shots.length)} onClick={post}>{inputBusy?t('posting'):drinks.active?drinks.button:t('post')}</Button></footer>
   </section>{drinks.editor}{p.children}
  </div>;
  // Only a deliberate review may replace the caption; identification never does.
@@ -88,7 +90,7 @@ export default function LightComposer(p:Props) {
    <img src={current?.previewUrl} alt={t('photographed_drinks')} className="size-full object-contain"/>
   </div>
   <div className="max-h-[70%] shrink-0 overflow-y-auto rounded-t-sheet bg-text">{drinks.card}
-   <footer className="px-5 pt-4 pb-[calc(34px+env(safe-area-inset-bottom))]">
+   <footer className="px-5 pt-4 pb-[calc(34px+env(safe-area-inset-bottom))]">{storageNotice}
     {drinks.error&&<p role="alert" className="mb-2 text-detail text-faint">{drinks.error}</p>}
     {voiceError&&<p role="alert" className="mb-2 text-detail text-faint">{voiceError}</p>}
     <Button variant="camera" style={{height:48,borderRadius:12,fontSize:15}} disabled={busy||drinks.disabled} onClick={post}>{inputBusy?t('posting'):drinks.button}</Button>
@@ -149,6 +151,7 @@ export default function LightComposer(p:Props) {
    </div>}
   </div>
   <div className="shrink-0 px-inset pt-2 pb-[calc(30px+env(safe-area-inset-bottom))]">
+   {storageNotice}
    {drinks.error&&<p role="alert" className="mb-2 text-detail text-muted">{drinks.error}</p>}
    {p.error&&<p role="alert" className="mb-2 text-detail text-muted">{p.error}</p>}
    {p.pending>0&&<p role="status" className="mb-2 text-meta text-muted">{t('preparing_selected_photos')}</p>}

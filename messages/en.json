@@ -422,7 +422,6 @@
     "copyRemovalFailed": "The pending copy could not be removed. Your selection is kept.",
     "foodRemovalFailed": "The pending food could not be removed. Your selection is kept.",
     "serverFailed": "The server didn't respond.",
-    "saved-before-update": "Something went wrong. Try again.",
     "notPostedYet": "Not posted yet. Try again, or delete it.",
     "postPhotoLost": "Photo lost. Delete this post.",
     "attachmentPhotoLost": "Photo lost. Delete this photo.",

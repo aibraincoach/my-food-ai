@@ -10,7 +10,6 @@ test('all26 known route/helper errors retain their exact English through the per
 test('unknown and missing response codes use the neutral registered message',()=>{
  for(const value of['New database detail','toString','__proto__',null])assert.deepEqual(failureFromResponse({message_code:value}),{code:'unknownFailure'});
  assert.equal(captureEnglish(failureFromResponse(null).code),'Something went wrong. Try again.');
- assert.equal(captureEnglish('saved-before-update'),'Something went wrong. Try again.');
 });
 const root=new URL('../',import.meta.url),sourceFiles=[];
 function files(dir){for(const e of fs.readdirSync(dir,{withFileTypes:true})){const p=new URL(e.name+(e.isDirectory()?'/':''),dir);if(e.isDirectory())files(p);else if(e.name==='route.ts'&&!/\/api\/(agent|jobs|health)(\/|\.)/.test(p.pathname))sourceFiles.push(p);}}
