@@ -21,7 +21,7 @@ test('feedback route conceals other owners, returns current stale revision and s
    method:'POST',headers:{cookie:session,'Content-Type':'application/json'},
    body:JSON.stringify({verdict:'up',modelCommentId:comment.id,fingerprint}),signal:AbortSignal.timeout(15000)
   });
-  const hidden=await send(otherCookie,revision.fingerprint);assert.equal(hidden.status,404);assert.deepEqual(await hidden.json(),{error:'Meal not found.'});
+  const hidden=await send(otherCookie,revision.fingerprint);assert.equal(hidden.status,404);assert.deepEqual(await hidden.json(),{message_code:'route_6798c08ac231'});
   const stale=revision.fingerprint==='0'.repeat(32)?'1'.repeat(32):'0'.repeat(32);
   const conflict=await send(cookie,stale);assert.equal(conflict.status,409);
   const body=await conflict.json();assert.equal(body.revision.fingerprint,revision.fingerprint);assert.equal(body.revision.modelCommentId,comment.id);

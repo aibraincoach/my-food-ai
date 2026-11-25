@@ -36,14 +36,14 @@ test('backdated discovery reuses its SSR contribution, but inserted or edited me
  assert.deepEqual(check({...ready,eaten_at:'2026-11-03T12:00:00Z'}),['2026-11-03','2026-11-02']);
 });
 
-test('the existing owner day query supplies normalized receipts without an extra database read',async()=>{
+test('the existing owner day query supplies current receipts without an extra database read',async()=>{
  const {createClient}=await import('@supabase/supabase-js');
  const {getDayTotals}=await import('../src/lib/posts/days.ts');
  const reads=[];
  const db=createClient('https://fixture.invalid','fixture',{global:{fetch:async input=>{
   const url=new URL(input instanceof Request?input.url:String(input));reads.push(url);
   return Response.json([{id:'meal',eaten_at:meal.eaten_at,current_post_items:[
-   {name:'rice',portion_grams:50,item_nutrition:{calories:120,source_ref:{basis:'per_100g'}}},
+   {name:'rice',portion_grams:50,item_nutrition:{calories:120,source_ref:'1',micronutrients:[]}},
    {name:'sauce',portion_grams:null,item_nutrition:null},
   ]}]);
  }}});

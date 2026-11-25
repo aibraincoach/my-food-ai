@@ -2,7 +2,7 @@ import type {NutritionTranslator} from '@/i18n/nutrition';
 import {isLocale,type Locale} from '@/i18n/locales';
 import {formatEnergy,formatNutrient} from '@/i18n/format';
 import {unavailableSentence} from "@/lib/fdc/unavailable";
-import {storedEstimateFood} from "@/lib/fdc/approximation-metadata";
+import {foodApproximation,storedEstimateFood} from "@/lib/fdc/approximation-metadata";
 import { ApiError, ioError } from "@/lib/worker/errors";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { scaleNutrition } from "@/lib/fdc/nutrients";
@@ -183,23 +183,13 @@ export type NutritionRow = NutritionLike & {
   food_category?: string | null;
 };
 
-// Pre-item-12 arrays were the unscaled FDC search values. Reconstruct both
-// macros and all nutrient amounts on read, rather than mixing a legacy branded
-// serving-size denominator with correctly scaled new rows. No database write.
-export function normalizeStoredNutrition(row: NutritionRow, grams: Numeric): NutritionRow {
-  const entries = Array.isArray(row.micronutrients) ? row.micronutrients : [];
-  if (!entries.length || entries.every((entry) => entry.basis === "portion")) return { ...row, micronutrients: entries };
-  const fdc = entries.filter((entry): entry is StoredNutrient & {
-    nutrientId: number; nutrientName: string; unitName: string; value: number;
-  } => typeof entry.nutrientId === "number" && typeof entry.nutrientName === "string"
-    && typeof entry.unitName === "string" && typeof entry.value === "number" && Number.isFinite(entry.value));
-  // Non-FDC entries already recorded with their own units are left intact.
-  if (fdc.length !== entries.length) return { ...row, micronutrients: entries };
-  const scaled = scaleNutrition({ fdcId: Number(row.source_ref) || 0, description: "", dataType: "Foundation", foodNutrients: fdc },
-    grams == null ? null : toNumber(grams));
-  return { ...row, calories: scaled.calories, protein_g: scaled.proteinG, carbs_g: scaled.carbsG,
-    fat_g: scaled.fatG, fibre_g: scaled.fibreG, sugar_g: scaled.sugarG, sodium_mg: scaled.sodiumMg,
-    micronutrients: scaled.micronutrients as StoredNutrient[] };
+// One stored contract: nutrient values already describe the consumed portion.
+// Malformed/old arrays fail visibly; readers never reconstruct another format.
+export function requireStoredNutrition(row: NutritionRow): NutritionRow {
+  if (!Array.isArray(row.micronutrients) || row.micronutrients.some(entry => !entry || typeof entry !== 'object' || entry.basis !== 'portion')) {
+    throw new ApiError(503, '', 'Stored nutrition format is invalid.');
+  }
+  return row;
 }
 
 // Portion-only revisions retain the already selected USDA identity and density.
@@ -209,13 +199,14 @@ export function rescaleStoredNutrition(row: NutritionRow, oldGrams: Numeric, new
     const n=scaleNutrition(reference,newGrams==null?null:toNumber(newGrams));
     return {...row,calories:n.calories,protein_g:n.proteinG,carbs_g:n.carbsG,fat_g:n.fatG,fibre_g:n.fibreG,sugar_g:n.sugarG,sodium_mg:n.sodiumMg,micronutrients:n.micronutrients as StoredNutrient[]};
   }
+  if(foodApproximation(row)?.kind==='estimate')throw new ApiError(503,'','Stored estimate density is unavailable.');
   return rescaleStoredAmounts(row,oldGrams,newGrams);
 }
 
 // Ratio-only rescaling of already consumed amounts. The quantities may be ml;
 // unlike gram reconstruction this never interprets them as a reference mass.
 export function rescaleStoredAmounts(row:NutritionRow,oldAmount:Numeric,newAmount:Numeric):NutritionRow{
-  const normalized = normalizeStoredNutrition(row, oldAmount);
+  const normalized = requireStoredNutrition(row);
   const old = toNumber(oldAmount), next = toNumber(newAmount);
   const factor = old > 0 && next > 0 ? next / old : null;
   const scale = (value: Numeric) => value == null || factor === null ? null : toNumber(value) * factor;
@@ -248,7 +239,7 @@ export async function getCurrentItems(supabase: SupabaseClient, postId: string, 
   return data.map((item) => {
     const row = byId.get(item.id);
     if (!row && options.requireNutrition) throw new MissingNutritionError();
-    const normalized = row ? normalizeStoredNutrition(row, item.portion_grams) : null;
+    const normalized = row ? requireStoredNutrition(row) : null;
     return { ...item, source: item.source as "model" | "user", calories: normalized?.calories ?? null,
       protein_g: normalized?.protein_g ?? null, carbs_g: normalized?.carbs_g ?? null,
       fat_g: normalized?.fat_g ?? null, fibre_g: normalized?.fibre_g ?? null,
@@ -267,7 +258,7 @@ type BatchedItem = Omit<CurrentItem, keyof NutritionLike | 'micronutrients' | 's
 export function mapCurrentItems(data: BatchedItem[]): CurrentItem[] {
   return data.map(item => {
     const row = Array.isArray(item.item_nutrition) ? item.item_nutrition[0] : item.item_nutrition;
-    const normalized = row ? normalizeStoredNutrition(row, item.portion_grams) : null;
+    const normalized = row ? requireStoredNutrition(row) : null;
     const {item_nutrition: _embedded, post_id: _postId, ...fields} = item;
     void _embedded; void _postId;
     return { ...fields, calories: normalized?.calories ?? null,

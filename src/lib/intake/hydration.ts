@@ -3,7 +3,7 @@ import {alcoholGrams,isAlcoholic,keepsCaffeine} from './alcohol';
 import {rowCaffeineMg} from './intake';
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { dateInZone, shiftDay, validZone } from "@/lib/posts/days";
-import { normalizeStoredNutrition, toNumber, type NutritionRow, type Numeric, type StoredNutrient } from "@/lib/nutrition/totals";
+import { requireStoredNutrition, toNumber, type NutritionRow, type Numeric, type StoredNutrient } from "@/lib/nutrition/totals";
 
 // Hydration is a record: full water for drinks/ml portions, otherwise 80% of
 // database food water. Round the sum once, rather than each food's contribution.
@@ -21,8 +21,11 @@ export interface DrinkRow {
   ml: number | null;
   label: string | null;
   post_id: string | null;
-  source?: "sheet" | "item";
+  source: "sheet" | "item";
   post_item_id?: string | null;
+}
+function requireIntakeSources(rows: {source?: unknown}[]): void {
+  if(rows.some(row=>row.source!=="sheet"&&row.source!=="item"))throw new Error('Stored intake source is unavailable.');
 }
 export interface HydrationRecord { drinksMl: number; foodMl: number; totalMl: number; caffeineMg: number }
 // caffeineMg remains the drink's own amount for existing consumers. The day's
@@ -41,7 +44,7 @@ export function itemWaterMl(item: WaterItem, isDrink = false): number {
 }
 export function foodWaterMl(items: WaterItem[]): number { return roundWaterMl(items.reduce((sum, item) => sum + itemWaterMl(item), 0)); }
 
-// Service clients bypass intake RLS; retain legacy unlinked entries while
+// Service clients bypass intake RLS; keep current unlinked sheet entries while
 // excluding any drink whose parent post is retained in the deleted archive.
 export async function visibleDrinkRows<T extends {post_id?:string|null}>(db:SupabaseClient,userId:string,rows:T[]):Promise<T[]>{
  const ids=[...new Set(rows.flatMap(row=>row.post_id?[row.post_id]:[]))];
@@ -62,7 +65,7 @@ export async function withAlcoholNutrition<T extends Pick<DrinkRow,'kind'|'post_
   if(error)throw new Error('Alcohol nutrition could not be read.');
   for(const item of data??[]){
    const stored=Array.isArray(item.item_nutrition)?item.item_nutrition[0]:item.item_nutrition;
-   const nutrition=stored?normalizeStoredNutrition(stored as NutritionRow,item.portion_grams):null;
+   const nutrition=stored?requireStoredNutrition(stored as NutritionRow):null;
    const nutrients=nutrition?.micronutrients??[];
    const caffeine=keepsCaffeine({name:item.name,food_category:stored?.food_category,micronutrients:nutrients})?nutrients.find(n=>n.nutrientId===1057&&n.basis==='portion'):null;
    amounts.set(item.id,{alcoholG:alcoholGrams(nutrients),caffeineMg:Math.min(1000,Math.max(0,Math.round(toNumber(caffeine?.value))))});
@@ -79,6 +82,7 @@ export async function drinksForDay(db: SupabaseClient, userId: string, day: stri
       .lt("logged_at", `${shiftDay(day, 2)}T00:00:00Z`)
       .order("logged_at").order("id").range(offset, offset + 999);
     if (error) throw new Error("Drinks could not be read.");
+    requireIntakeSources(data ?? []);
     rows.push(...((data ?? []) as DrinkRow[]).filter(row => dateInZone(row.logged_at, validZone(zone)) === day));
     if ((data?.length ?? 0) < 1000) break;
   }
@@ -101,6 +105,7 @@ async function hydrationTimelines(db: SupabaseClient, userId: string, latestByDa
       const {data, error} = await db.from('intake_logs').select('kind,amount,logged_at,ml,label,post_id,source,post_item_id')
         .eq('user_id', userId).or(ranges('logged_at')).order('logged_at').order('id').range(offset, offset + 999).abortSignal(AbortSignal.timeout(8000));
       if (error) throw new Error('Drinks could not be read.');
+      requireIntakeSources(data ?? []);
       drinks.push(...(data ?? []) as DrinkRow[]); if ((data?.length ?? 0) < 1000) break;
     } })(),
     (async () => { for (let offset = 0; ; offset += 1000) {
@@ -119,7 +124,8 @@ async function hydrationTimelines(db: SupabaseClient, userId: string, latestByDa
   const {data: links, error: linkError} = await db.from('intake_logs').select('post_id,source,post_item_id').eq('user_id', userId)
     .in('post_id', candidates.map(post => post.id)).abortSignal(AbortSignal.timeout(8000));
   if (linkError) throw new Error('Drink links could not be read.');
-  const drinkPosts = new Set((links ?? []).filter(row => row.source === 'sheet' || row.source == null).map(row => row.post_id));
+  requireIntakeSources(links ?? []);
+  const drinkPosts = new Set((links ?? []).filter(row => row.source === 'sheet').map(row => row.post_id));
   const drinkItems = new Set((links ?? []).filter(row => row.source === 'item').map(row => row.post_item_id));
   const foods = new Map(candidates.filter(post => !drinkPosts.has(post.id)).map(post => [post.id, {postId: post.id, eatenAt: post.eaten_at, waterMl: 0}]));
   if (foods.size) for (let offset = 0; ; offset += 1000) {
@@ -129,7 +135,7 @@ async function hydrationTimelines(db: SupabaseClient, userId: string, latestByDa
     for (const item of data ?? []) {
       const stored = Array.isArray(item.item_nutrition) ? item.item_nutrition[0] : item.item_nutrition;
       const food = foods.get(item.post_id);
-      if (stored && food) food.waterMl += itemWaterMl({...item, food_category:stored.food_category, micronutrients: normalizeStoredNutrition(stored as NutritionRow, item.portion_grams).micronutrients}, drinkItems.has(item.id));
+      if (stored && food) food.waterMl += itemWaterMl({...item, food_category:stored.food_category, micronutrients: requireStoredNutrition(stored as NutritionRow).micronutrients}, drinkItems.has(item.id));
     }
     if ((data?.length ?? 0) < 1000) break;
   }
@@ -141,10 +147,19 @@ async function hydrationTimeline(db: SupabaseClient, userId: string, day: string
   return (await hydrationTimelines(db, userId, new Map([[day, upToEatenAt]]), tz)).get(day)!;
 }
 
+// Unlinked sheet intake currently records water/caffeine amounts without a
+// volume. Caffeine without a volume contributes no water; linked water needs ml.
+function drinkWaterMl(row: DrinkRow): number {
+  if(row.ml!=null)return toNumber(row.ml);
+  if(row.kind==='caffeine')return 0;
+  if(row.post_id===null&&row.source==='sheet')return toNumber(row.amount);
+  throw new Error('Linked water volume is unavailable.');
+}
+
 function hydrationAt(timeline: HydrationTimeline, upToEatenAt: string): HydrationRecord {
   const cutoff = new Date(upToEatenAt).getTime();
   const drinks = timeline.drinks.filter(row => new Date(row.logged_at).getTime() <= cutoff);
-  const drinksMl = Math.round(drinks.reduce((total, row) => total + (row.kind === "alcohol" ? 0 : toNumber(row.ml ?? (row.kind === "water" ? row.amount : 0))), 0));
+  const drinksMl = Math.round(drinks.reduce((total, row) => total + (row.kind === "alcohol" ? 0 : drinkWaterMl(row)), 0));
   const caffeineMg = Math.round(drinks.reduce((total, row) => total + rowCaffeineMg(row), 0));
   const foodMl = roundWaterMl(timeline.foods.filter(row => new Date(row.eatenAt).getTime() <= cutoff).reduce((total, row) => total + row.waterMl, 0));
   return { drinksMl, foodMl, totalMl: drinksMl + foodMl, caffeineMg };
@@ -187,7 +202,7 @@ export async function getPostHydrationData(db: SupabaseClient, userId: string, p
     }
     for (const post of dayPosts) {
       const links = drinksByPost.get(post.id) ?? [];
-      const sheet = links.some(row => row.source !== "item");
+      const sheet = links.some(row => row.source === "sheet");
       if (!sheet && post.items) {
         const linked = new Set(links.map(row => row.post_item_id));
         const own = { postId: post.id, eatenAt: post.eaten_at, waterMl: post.items.reduce((sum, item) => sum + itemWaterMl(item, linked.has(item.id)), 0) };
@@ -197,7 +212,7 @@ export async function getPostHydrationData(db: SupabaseClient, userId: string, p
     }
     for (const post of dayPosts) {
       const links = drinksByPost.get(post.id) ?? [];
-      const source = links.some(row => row.source !== "item") ? "sheet" as const : "item" as const;
+      const source = links.some(row => row.source === "sheet") ? "sheet" as const : "item" as const;
       const itemDrinks = links.filter(row => row.source === "item").map(row => ({ post_item_id: row.post_item_id, label: row.label!, ...(row.kind==="alcohol"?{kind:row.kind,alcoholG:row.alcoholG??alcoholGrams(post.items?.find(item=>item.id===row.post_item_id)?.micronutrients)}:{}), ml: toNumber(row.ml), caffeineMg: rowCaffeineMg(row) }));
       const currentIds = post.items ? post.items.map(item => item.id) : itemIds.get(post.id) ?? [];
       const linkedIds = new Set(links.map(row => row.post_item_id));

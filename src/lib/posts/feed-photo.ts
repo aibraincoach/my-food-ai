@@ -39,25 +39,13 @@ export async function readFeedSource(response: Response, limit = MAX_FEED_SOURCE
   if (source.length < 3 || source[0] !== 0xff || source[1] !== 0xd8 || source[2] !== 0xff) throw new Error('Expected JPEG');
   return source;
 }
-// v1 remains byte-policy compatible with its year-long immutable URLs. v2
-// retains enough pixels for a 3x phone; its source JPEG is capped at 1920 px.
-export async function resizeFeedPhoto(source: Buffer, version: 1 | 2 = 1): Promise<Buffer> {
-  if (version === 2) {
-    const transform = (quality: number) => sharp(source,{limitInputPixels:4_000_000,failOn:'error'})
-      .timeout({seconds:1}).rotate().resize({width:1920,height:1920,fit:'inside',withoutEnlargement:true})
-      .webp({quality,effort:3}).toBuffer();
-    const output=await transform(76);
-    return output.length<=220_000?output:transform(64);
-  }
-  const output = await sharp(source, {limitInputPixels: 4_000_000, failOn: 'error'})
-    .timeout({seconds: 1}).rotate().resize({width: 512, height: 512, fit: 'inside', withoutEnlargement: true})
-    .webp({quality: 62, effort: 3}).toBuffer();
-  if (output.length <= 50_000) return output;
-  const smaller = await sharp(source, {limitInputPixels: 4_000_000, failOn: 'error'})
-    .timeout({seconds: 1}).rotate().resize({width: 384, height: 384, fit: 'inside', withoutEnlargement: true})
-    .webp({quality: 50, effort: 3}).toBuffer();
-  if (smaller.length > 50_000) throw new Error('Preview too large');
-  return smaller;
+// Current feed copy: enough pixels for a 3x phone, capped at1920px.
+export async function resizeFeedPhoto(source: Buffer): Promise<Buffer> {
+  const transform = (quality: number) => sharp(source,{limitInputPixels:4_000_000,failOn:'error'})
+    .timeout({seconds:1}).rotate().resize({width:1920,height:1920,fit:'inside',withoutEnlargement:true})
+    .webp({quality,effort:3}).toBuffer();
+  const output=await transform(76);
+  return output.length<=220_000?output:transform(64);
 }
 
 // Density-specific copies read the original, independently of the legacy feed JPEG.

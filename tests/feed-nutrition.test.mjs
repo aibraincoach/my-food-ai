@@ -2,9 +2,9 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {getPostCard} from '../src/lib/posts/feed.ts';
 import {getCurrentItems} from '../src/lib/nutrition/totals.ts';
-test('feed and detail normalize the same legacy branded row',async()=>{
+test('feed and detail read current portion values identically and reject the old array',async()=>{
  const item={id:'item',name:'Food',portion_grams:50,portion_text:'50g',source:'model'};
- const row={post_item_id:'item',calories:333,protein_g:16,source_ref:'123',micronutrients:[{nutrientId:1008,nutrientName:'Energy',unitName:'KCAL',value:200}]};
+ const row={post_item_id:'item',calories:100,protein_g:null,source_ref:'123',micronutrients:[{nutrientId:1008,nutrientName:'Energy',unitName:'KCAL',value:100,basis:'portion'}]};
  const client={rpc:()=>({abortSignal:async()=>({data:{modelCommentId:null,fingerprint:'fixture'},error:null})}),from(table){
   let ranged=false;
   const data=table==='posts'?{id:'post',status:'ready',eaten_at:'2026-10-27T12:00:00Z'}:['post_media','saved_meals'].includes(table)?null:table==='current_post_items'?[item]:[row];
@@ -13,16 +13,19 @@ test('feed and detail normalize the same legacy branded row',async()=>{
  const card=await getPostCard(client,'post');const detail=await getCurrentItems(client,'post');
  assert.equal(card.items[0].calories,100);assert.equal(card.items[0].calories,detail[0].calories);
  assert.equal(card.items[0].protein_g,null);
+ row.micronutrients=[{nutrientId:1008,nutrientName:'Energy',unitName:'KCAL',value:200}];
+ await assert.rejects(getPostCard(client,'post'),/Stored nutrition format/);
+ await assert.rejects(getCurrentItems(client,'post'),/Stored nutrition format/);
 });
 
 // #1103, rule 5: not_eaten_calories is read as stored; the original food is never read to work it out.
-test('batch nutrition preserves post ownership and legacy scaling, and reads stored leftover calories in one request',async()=>{
+test('batch nutrition preserves post ownership and current portion values, and reads stored leftover calories in one request',async()=>{
  const {createClient}=await import('@supabase/supabase-js');
  const {getCurrentItemsForPosts}=await import('../src/lib/nutrition/totals.ts');
  const calls=[];const db=createClient('https://fixture.invalid','fixture',{global:{fetch:async input=>{
   const url=new URL(input instanceof Request?input.url:String(input));calls.push(url);
   if(url.pathname.endsWith('/post_items'))throw Error('the original food must not be read');
-  return Response.json([{id:'a',post_id:'post-a',name:'Food A',portion_grams:50,not_eaten_grams:50,not_eaten_calories:100,supersedes:'parent',item_nutrition:{post_item_id:'a',calories:333,micronutrients:[{nutrientId:1008,nutrientName:'Energy',unitName:'KCAL',value:200}]}},{id:'b',post_id:'post-b',name:'Food B',portion_grams:20,item_nutrition:null}]);
+  return Response.json([{id:'a',post_id:'post-a',name:'Food A',portion_grams:50,not_eaten_grams:50,not_eaten_calories:100,supersedes:'parent',item_nutrition:{post_item_id:'a',calories:100,micronutrients:[{nutrientId:1008,nutrientName:'Energy',unitName:'KCAL',value:100,basis:'portion'}]}},{id:'b',post_id:'post-b',name:'Food B',portion_grams:20,item_nutrition:null}]);
  }}});
  const result=await getCurrentItemsForPosts(db,['post-a','post-b']);
  assert.equal('item_nutrition' in result.get('post-a')[0],false,'embedded nutrition is not duplicated into the feed payload');assert.equal('post_id' in result.get('post-a')[0],false);

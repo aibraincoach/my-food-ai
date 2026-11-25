@@ -5,12 +5,12 @@ const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const headers = {'Cache-Control': 'private, no-store', 'X-Content-Type-Options': 'nosniff'};
 const fail = (status: number) => Response.json({message_code:"unknownFailure"}, {status, headers});
 
-export async function serveFeedPhoto(request: Request, context: {params: Promise<{owner: string; post: string; media: string}>}, version: 1 | 2) {
-  try { return await readPhoto(request, context, version); }
+export async function serveFeedPhoto(request: Request, context: {params: Promise<{owner: string; post: string; media: string}>}) {
+  try { return await readPhoto(request, context); }
   catch { return fail(503); }
 }
 
-async function readPhoto(request: Request, context: {params: Promise<{owner: string; post: string; media: string}>}, version: 1 | 2) {
+async function readPhoto(request: Request, context: {params: Promise<{owner: string; post: string; media: string}>}) {
   const {owner, post, media} = await context.params;
   if (![owner, post, media].every(value => UUID.test(value)) || new URL(request.url).search) return fail(404);
   const signal = AbortSignal.any([request.signal, AbortSignal.timeout(4000)]);
@@ -26,7 +26,7 @@ async function readPhoto(request: Request, context: {params: Promise<{owner: str
   if (!path) return fail(404);
   // The URL is owner-scoped and ownership is checked on every request, including
   // the 304 path. Varying on Cookie made every session-token refresh refetch.
-  const cacheHeaders = {...headers, 'Cache-Control': 'private, max-age=31536000, immutable', ETag: `"${media}-v${version}"`};
+  const cacheHeaders = {...headers, 'Cache-Control': 'private, max-age=31536000, immutable', ETag: `"${media}-v2"`};
   // Authenticate and verify ownership even for conditional reads. No Storage
   // request or image work is needed when the browser already has this media.
   if (request.headers.get('if-none-match') === cacheHeaders.ETag) {
@@ -52,7 +52,7 @@ async function readPhoto(request: Request, context: {params: Promise<{owner: str
     const response = await fetch(sourceUrl, {headers: {Authorization: `Bearer ${session.access_token}`, apikey: process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!}, signal, cache: 'no-store', redirect: 'error'});
     const source = await readFeedSource(response);
     try {
-      const output = await resizeFeedPhoto(source, version);
+      const output = await resizeFeedPhoto(source);
       if (signal.aborted) return fail(503);
       return new Response(new Uint8Array(output), {headers: {...cacheHeaders, 'Content-Type': 'image/webp'}});
     } catch {

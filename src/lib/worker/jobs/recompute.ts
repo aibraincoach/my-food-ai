@@ -112,7 +112,7 @@ async function rebuildRemoved(admin:SupabaseClient,job:JobRow){
  const {replayCorrection}=await import('./correct');
  const {replayRemainder}=await import('./remainder');
  const {readPostComments}=await import('@/lib/posts/timeline');
- const {getCurrentItems,normalizeStoredNutrition,formatConsumed,sumNutrition}=await import('@/lib/nutrition/totals');
+ const {getCurrentItems,requireStoredNutrition,formatConsumed,sumNutrition}=await import('@/lib/nutrition/totals');
  const {checkWording}=await import('@/lib/pipeline/wording-check');
  const current=await getCurrentItems(admin,postId,{requireNutrition:true});
  const {data:original,error:originalError,status:originalStatus}=await admin.from('post_items').select('*,item_nutrition(*)').eq('post_id',postId).eq('source','model').order('created_at').order('id');
@@ -126,7 +126,7 @@ async function rebuildRemoved(admin:SupabaseClient,job:JobRow){
  let items:import('@/lib/nutrition/totals').CurrentItem[]=(original??[]).filter(row=>row.created_at===base).map(row=>{
   const nutrition=Array.isArray(row.item_nutrition)?row.item_nutrition[0]:row.item_nutrition;
   if(!nutrition)throw Error('Original meal nutrition is unavailable.');
-  return {...row,...normalizeStoredNutrition(nutrition,row.portion_grams),id:row.id,not_eaten_grams:null,not_eaten_calories:null,not_eaten_count_text:null};
+  return {...row,...requireStoredNutrition(nutrition),id:row.id,not_eaten_grams:null,not_eaten_calories:null,not_eaten_count_text:null};
  });
  const comments=thread.filter(row=>row.author==='user'&&!row.reverted_at);
  const {data:photos,error:photoError,status:photoStatus}=await admin.from('post_media').select('id,storage_path').eq('post_id',postId).eq('kind','photo').eq('not_eaten',true).order('position').order('id');
