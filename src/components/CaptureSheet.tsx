@@ -1,5 +1,6 @@
 /* eslint-disable @next/next/no-img-element -- Private owner images bypass paid optimization. */
 "use client";
+import {formatNumber} from '@/i18n/format';
 import {DisplayError} from '@/i18n/display-error';
 import {useFailureMessages} from '@/i18n/failure-messages';
 import {CaptureFailureError,captureFailureText,failureFromResponse} from '@/lib/posts/capture-failure';
@@ -590,7 +591,7 @@ export default function CaptureSheet({ onClose, initialMode = "photo", forPost, 
     finally { postingRef.current = false; if (mountedRef.current) setPosting(false); }
   };
 
-  const labelNumber=(key:"kcal"|"protein_g"|"carbs_g"|"fat_g"|"fibre_g"|"sugar_g"|"sodium_mg",amount=labelServings)=>{const n=labelReading?.reading.per_serving?.[key];return n==null?"—":new Intl.NumberFormat("en-US",{maximumFractionDigits:2}).format(n*amount);};
+  const labelNumber=(key:"kcal"|"protein_g"|"carbs_g"|"fat_g"|"fibre_g"|"sugar_g"|"sodium_mg",amount=labelServings)=>{const n=labelReading?.reading.per_serving?.[key];return n==null?"—":formatNumber(locale,n*amount,{maximumFractionDigits:2});};
   const labelMacros=(amount=labelServings)=>t('macroSummary',{calories:labelNumber("kcal",amount),protein:labelNumber("protein_g",amount),carbs:labelNumber("carbs_g",amount),fat:labelNumber("fat_g",amount)});
   useEffect(()=>{
     if(initialFiles?.length)void addFiles(initialFiles);

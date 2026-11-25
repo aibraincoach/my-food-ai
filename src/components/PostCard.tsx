@@ -57,7 +57,7 @@ function StatusLine({ post }: { post: FeedPost }) {
   };
   if (post.itemsUnavailable && !post.items.length) return <p className="text-detail text-muted" role="status">{t('detailsRetrying')}</p>;
   if (post.status === "failed") return <div className="flex flex-col gap-0.5 text-detail">
-    <p data-i18n-server-wording="failure" className="text-muted">{t(failureMessageKey((post as FeedPost & { fail_reason?: string | null }).fail_reason))}</p>
+    <p className="text-muted">{t(failureMessageKey((post as FeedPost & { fail_reason?: string | null }).fail_reason))}</p>
     <button type="button" disabled={retrying} onClick={retry} className="min-h-tap self-start text-text">{retrying?t('retrying'):t('tryAgain')}</button>
     {retryError&&<p role="alert">{t(retryError.key)}</p>}
   </div>;
@@ -66,7 +66,7 @@ function StatusLine({ post }: { post: FeedPost }) {
       <p className="text-muted">{t('noFoodFound')}</p>
       <span className="text-text">{t('addCaption')}</span>
     </div>;
-    return <p data-i18n-server-wording="consumed" className="text-detail text-muted">{formatConsumed(sumNutrition(post.items),tn,locale)}</p>;
+    return <p className="text-detail text-muted">{formatConsumed(sumNutrition(post.items),tn,locale)}</p>;
   }
   const pending=readPendingItems((post as FeedPost&{pendingItems?:unknown}).pendingItems);
   return <div className="flex flex-col gap-2" role="status" aria-label={t('processingLabel')}>
@@ -106,7 +106,7 @@ export default function PostCard({ post, showDate = false, upload, priority = fa
       <PostCaption postId={post.id} handle={handle} caption={upload&&!upload.postId?upload.caption:post.caption}/>
       {post.status==='ready'&&(post.itemDrinks?.length??0)>=2&&<div className="my-2 flex flex-col divide-y divide-line rounded-[14px] bg-card px-4 py-1" aria-label={t('drinks')}>{post.itemDrinks!.map((row,index)=><Link key={row.post_item_id??index} href={`/posts/${post.id}`} className="flex min-h-tap items-center justify-between gap-3 text-[15px]"><span>{row.label} · {formatNumber(locale,Math.round(row.ml))} ml</span><span className="shrink-0 tabular-nums text-muted">{row.caffeineMg>0?`${formatNumber(locale,Math.round(row.caffeineMg))} mg`:'—'}</span></Link>)}</div>}
       {post.status==='ready'&&post.itemDrinks?.some(row=>row.caffeineMg>0&&row.caffeineMg===Math.min(1000,Math.round(32*row.ml/330))&&post.items.some(item=>item.id===row.post_item_id&&/\b(coca[- ]?cola|coke|cola|pepsi)\b/i.test(item.name)&&!item.micronutrients?.some(n=>n.nutrientId===1057&&n.basis==='portion')))&&<p className="text-meta text-muted">{t('colaEstimate')}</p>}
-      {upload&&!upload.postId?<p className="text-detail text-muted">{captureFailureText(pendingUploadLine(upload),tf)}</p>:post.status==='ready'&&post.items.length>0 ? <Link href={`/posts/${post.id}`} className="text-detail leading-[1.4] text-muted"><span data-i18n-server-wording="summary">{summaryLine(displayRecord,tn,locale,drink)}</span> <span className="text-text">{t('more')}</span></Link> : <StatusLine post={post}/>}
+      {upload&&!upload.postId?<p className="text-detail text-muted">{captureFailureText(pendingUploadLine(upload),tf)}</p>:post.status==='ready'&&post.items.length>0 ? <Link href={`/posts/${post.id}`} className="text-detail leading-[1.4] text-muted"><span>{summaryLine(displayRecord,tn,locale,drink)}</span> <span className="text-text">{t('more')}</span></Link> : <StatusLine post={post}/>}
       {(upload?.kind||upload?.text)&&!upload.postId&&upload.state==='failed'&&!upload.photoLost&&!upload.previewUrl&&<><p role="alert" className="text-detail text-muted">{captureFailureText(upload.failure,tf)??tc('postServerFailed')}</p><button type="button" onClick={()=>uploadManager.retry(upload.operationId)} className="min-h-tap self-start text-detail text-accent">{t('tryAgain')}</button></>}
       {upload?.kind&&!upload.postId&&upload.state==='failed'&&<button type="button" onClick={()=>{void (upload.kind==='drink'?uploadManager.discardDrink(upload.operationId):upload.kind==='copy'?uploadManager.discardCopy(upload.operationId):uploadManager.discardFood(upload.operationId));}} className="min-h-tap self-start text-detail text-muted">{t('removePendingPost')}</button>}
 

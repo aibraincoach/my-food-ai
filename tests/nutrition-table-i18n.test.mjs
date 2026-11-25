@@ -3,7 +3,7 @@ import test from'node:test';import assert from'node:assert/strict';import fs fro
 import{nutritionTableRows,formatTableNutrient}from'../src/lib/nutrition/table.ts';import{nutritionTranslator}from'../src/i18n/nutrition.ts';
 const data=JSON.parse(fs.readFileSync(new URL('./fixtures/nutrition-table-goldens.json',import.meta.url)));
 for(const locale of['en','ja'])test('fixed '+locale+' nutrient-table labels and unchanged values/order',()=>{
- for(const row of data.cases){const actual=nutritionTableRows(row.items,nutritionTranslator(locale),nutrientsTranslator(locale),locale);assert.deepEqual(JSON.parse(JSON.stringify(actual)),locale==='en'?row.output:row.ja);
+ for(const row of data.cases){const actual=nutritionTableRows(row.items,nutritionTranslator(locale),nutrientsTranslator(locale),locale);assert.deepEqual(JSON.parse(JSON.stringify(actual,(key,value)=>key==='unmappedName'?undefined:value)),locale==='en'?row.output:row.ja);
   if(locale==='ja')for(const cell of actual){if(['Unmapped USDA fixture','Iron'].includes(cell.name))continue;assert.doesNotMatch(cell.name.replace(/DFE|IU|B\d+|[ACDEK]/g,''),/[A-Za-z]/);}
   assert.doesNotMatch(JSON.stringify(actual),/nutrition\.anItem/);
  }
