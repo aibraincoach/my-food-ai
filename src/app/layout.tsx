@@ -37,7 +37,7 @@ async function LocaleDocument({children}: {children: React.ReactNode}) {
       <body className={`${font.className} ${font.variable} flex min-h-dvh flex-col`}>
         <Suspense fallback={null}><ServiceWorkerRegistration /><DiagnosticsRecorder/></Suspense>
         <LocaleReporter locale={locale}/>
-        <Suspense fallback={null}><StrictIntlProvider locale={locale} timeZone={timeZone} messages={{nutrition:messages.nutrition,feed:messages.feed,post:messages.post,postMenu:messages.postMenu,hints:messages.hints,navigation:messages.navigation,shortcuts:messages.shortcuts,search:messages.search}}><DeletePostSheet /><PostOpenTransition /></StrictIntlProvider></Suspense>
+        <Suspense fallback={null}><StrictIntlProvider locale={locale} timeZone={timeZone} messages={{card:messages.card,nutrition:messages.nutrition,feed:messages.feed,post:messages.post,postMenu:messages.postMenu,hints:messages.hints,navigation:messages.navigation,shortcuts:messages.shortcuts,search:messages.search}}><DeletePostSheet /><PostOpenTransition /></StrictIntlProvider></Suspense>
         <FeedCacheMutations />
         <StrictIntlProvider locale={locale} timeZone={timeZone} messages={{navigation:messages.navigation,errors:messages.errors,card:messages.card}}>{children}</StrictIntlProvider>
       </body>

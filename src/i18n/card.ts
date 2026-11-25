@@ -1,4 +1,5 @@
-import {createTranslator} from 'next-intl';
+import 'server-only';
+import {createTranslator,type useTranslations} from 'next-intl';
 import english from '../../messages/en.json';
 import japanese from '../../messages/ja.json';
 import type {Locale} from './locales';
@@ -11,3 +12,5 @@ export function cardTranslator(locale:Locale) {
  if(!messages)throw new Error('Card translations are unavailable for this language.');
  return createTranslator({locale,messages,onError,getMessageFallback});
 }
+
+export type CardTranslator=ReturnType<typeof useTranslations<'card'>>;

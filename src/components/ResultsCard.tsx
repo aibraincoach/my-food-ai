@@ -1,5 +1,5 @@
-import {nutritionTranslator} from '@/i18n/nutrition';
-import {cardTranslator} from '@/i18n/card';
+import type {NutritionTranslator} from '@/i18n/nutrition';
+import type {CardTranslator} from '@/i18n/card';
 import type {Locale} from '@/i18n/locales';
 import {DrinkPicture} from './DrinkPicture';
 import {drinkGlyph,waterCups} from '@/lib/intake/drink-glyph';
@@ -11,6 +11,8 @@ import { tokens } from '@/lib/theme/tokens';
 
 export type ResultsCardProps = {
   locale: Locale;
+  t: CardTranslator;
+  tn: NutritionTranslator;
   data?: CardData;
   // Kept for story totals and existing callers while they adopt CardData.
   drink?: DrinkCardData | null;
@@ -31,9 +33,7 @@ export const ARROW_GUTTER = 24;
 const glyphMessage = {coffee:'glyphCoffee',water:'glyphWater',cocktail:'glyphCocktail',wine:'glyphWine',beer:'glyphBeer',tumbler:'glyphTumbler'} as const;
 
 /** The exact same flex layout renders in the browser and next/og (Satori). */
-export function ResultsCard({ locale, data, drink, gap = "", time, calories = null, protein = null, carbs = null, fat = null, items = [], size = tokens.spacing.phone, fontFamily, gutter = 0 }: ResultsCardProps) {
- const tn=nutritionTranslator(locale);
-  const t=cardTranslator(locale);
+export function ResultsCard({ locale, t, tn, data, drink, gap = "", time, calories = null, protein = null, carbs = null, fat = null, items = [], size = tokens.spacing.phone, fontFamily, gutter = 0 }: ResultsCardProps) {
   const card: CardData = data ?? {
     kind: drink ? 'drink' : 'meal', amountMl: drink?.ml, caffeineMg: drink?.caffeineMg,
     drinkLine: drink ? `${drink.label}${drink.caffeineMg ? ` · ${t('caffeineDetail',{amount:formatNutrition(drink.caffeineMg,tn,locale)})} · ${formatCalories(calories,tn,locale)} kcal` : ''}` : undefined,

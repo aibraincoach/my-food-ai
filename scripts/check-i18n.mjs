@@ -1,9 +1,11 @@
+import {checkClientDictionaries} from './check-client-dictionaries.mjs';
 import {checkLocaleFormats} from './check-locale-formats.mjs';
 import {checkAllErrorDisplays} from './check-error-displays.mjs';
 import {checkRouteNamespaces} from './check-route-namespaces.mjs';
 import {checkCaptureNamespaces} from './check-capture-namespaces.mjs';
 import {checkMessages, readMessages} from './check-messages.mjs';
 import {spawnSync} from 'node:child_process';
+checkClientDictionaries();
 const formats=checkLocaleFormats();
 if(formats.failures.length)throw new Error('Locale formatting failures: '+JSON.stringify(formats.failures));
 console.log('Explicit English boundaries: '+JSON.stringify(formats.allowed));

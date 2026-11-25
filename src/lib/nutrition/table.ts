@@ -1,4 +1,5 @@
-import {nutrientsTranslator,type NutrientsTranslator} from '@/i18n/nutrients';
+import type {NutrientsTranslator} from '@/i18n/nutrients';
+import {USDA_CANONICAL_NAMES,USDA_MACRO_NAMES} from './usda-canonical-names';
 import {type NutritionTranslator} from '@/i18n/nutrition';
 import {isLocale,type Locale} from '@/i18n/locales';
 import {formatMicroNutrient} from '@/i18n/format';
@@ -56,9 +57,8 @@ function unit(value: string): string {
 export function nutritionTableRows(items: CurrentItem[], t: NutritionTranslator, labels: NutrientsTranslator, locale: Locale) {
   if(!isLocale(locale))throw new Error('Nutrition locale is required.');
   // USDA canonical identity/sort order remains English; only labels are viewed.
-  const english=nutrientsTranslator('en');
-  const names=Object.fromEntries(Object.entries(nutrientMessages).map(([id,key])=>[id,english(key)]));
-  const macroNames=new Set([...core.map(row=>english(row.message).toLowerCase()),...macroAliases]);
+  const names=USDA_CANONICAL_NAMES;
+  const macroNames=new Set([...USDA_MACRO_NAMES.map(name=>name.toLowerCase()),...macroAliases]);
   const totals=sumNutrition(items);
   const nutrients=items.map(item=>({...item,micronutrients:item.micronutrients.filter(row=>{
     const name=(row.nutrientName??row.name??'').toLowerCase().replace(/[(),]/g,' ').replace(/\s+/g,' ').trim();

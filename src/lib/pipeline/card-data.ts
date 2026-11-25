@@ -1,11 +1,12 @@
 import {formatNumber} from '@/i18n/format';
-import {nutritionTranslator} from '@/i18n/nutrition';
-import {cardTranslator} from '@/i18n/card';
+import type {NutritionTranslator} from '@/i18n/nutrition';
+import type {CardTranslator} from '@/i18n/card';
 import type {Locale} from '@/i18n/locales';
 import {drinkGlyph,type DrinkGlyph} from '@/lib/intake/drink-glyph';
-import type { SupabaseClient } from "@supabase/supabase-js";
-import { getPostHydrationData, type DrinkCardData, type HydrationRecord } from "@/lib/intake/hydration";
+import type { DrinkCardData, HydrationRecord } from "@/lib/intake/hydration";
 import { formatCalories, formatNutrition, sumNutrition, toNumber, nutritionGaps, gapSentence, type Numeric, type NutritionLike, type StoredNutrient, type NutritionGap } from "@/lib/nutrition/totals";
+
+export type CardTranslators={t:CardTranslator;tn:NutritionTranslator};
 
 export type CardItem = NutritionLike & { source_ref?:string|null; id?:string; name: string; portion_grams: Numeric; portion_text?: string | null; micronutrients?: StoredNutrient[]; not_eaten_grams?:number|null;not_eaten_count_text?:string|null;not_eaten_calories?:number|null;supersedes?:string|null };
 export interface CardWording {
@@ -53,7 +54,7 @@ export interface CardSource {
 }
 
 /** All live cards and stored PNGs use this one presentation data builder. */
-export function cardDataFromRow(source: CardSource, locale:Locale): CardData {
+export function cardDataFromRow(source: CardSource, locale:Locale, translators:CardTranslators): CardData {
   const totals = sumNutrition(source.items);
   const drink = source.drink;
   const hydration = source.dayHydration ?? (drink ? { totalMl: drink.totalMl, drinksMl: drink.drinksMl, foodMl: drink.foodMl, caffeineMg: drink.dayCaffeineMg ?? drink.caffeineMg } : undefined);
@@ -78,15 +79,14 @@ export function cardDataFromRow(source: CardSource, locale:Locale): CardData {
       leftovers:source.footer===undefined&&omitted.length?{texts:omitted.map(item=>item.not_eaten_count_text??`${Math.round(item.not_eaten_grams!)} g`),calories:remainderCalories.some(value=>value===null)?null:remainderCalories.reduce<number>((sum,value)=>sum+(value??0),0)}:undefined,
     },
   };
-  return localizeCardData(card,locale);
+  return localizeCardData(card,locale,translators);
 }
 
 /** The one formatter for initial card building and reader-language changes. */
-export function localizeCardData(card:CardData,locale:Locale):CardData {
- const tn=nutritionTranslator(locale);
+export function localizeCardData(card:CardData,locale:Locale,{t,tn}:CardTranslators):CardData {
  const words=card.wording;
  if(!words){if(locale==='en')return card;throw new Error('Card presentation inputs are unavailable for this language.');}
- const t=cardTranslator(locale),drink=words.drink;
+ const drink=words.drink;
  const kcal=card.kcal==null?t('unavailable'):formatCalories(card.kcal,tn,locale);
  const caffeineTotal=words.itemDrinks.reduce((sum,row)=>sum+row.caffeineMg,0);
  return {...card,
@@ -100,11 +100,3 @@ export function localizeCardData(card:CardData,locale:Locale):CardData {
 }
 
 export const buildCardData = cardDataFromRow;
-
-/** Read presentation fields with owner-scoped access; callers may provide their
- * atomic nutrition snapshot, preserving the renderer's publication fingerprint. */
-export async function readCardData(db: SupabaseClient, userId: string, post: { id: string; eaten_at: string; items: CardItem[] }, zone = "UTC"): Promise<CardData> {
-  const values = await getPostHydrationData(db, userId, [{ ...post, items: post.items.map(item => ({ ...item, micronutrients: item.micronutrients ?? [] })) }], zone);
-  // Stored card text remains English until #1219; viewers localize its wording data.
-  return cardDataFromRow({ ...post, ...values[post.id] },'en');
-}

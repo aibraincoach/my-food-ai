@@ -1,10 +1,11 @@
+import {cardTranslators} from './fixtures/card-translators.mjs';
 import {absentMigration} from './fixtures/absent-migration.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {spawnSync} from 'node:child_process';
 import {user} from './db/helpers.mjs';
-import {readCardData} from '../src/lib/pipeline/card-data.ts';
+import {readCardData} from '../src/lib/pipeline/read-card-data.ts';
 import {remainderRule} from '../src/lib/pipeline/remainder-rule.ts';
 const estimate=(remaining,counts={})=>({index:0,remaining_grams:remaining,total_count:null,remaining_count:null,unit:null,...counts});
 test('not-eaten difference clamps the photographed amount and preserves count records',()=>{
@@ -76,5 +77,5 @@ test('a card with missing leftover calories does not read or derive old nutritio
  assert.ok(!reads.includes('post_items'),'no original-food lookup even for an incomplete input');
  assert.equal(data.footer,'Leftovers: 50 g · unavailable kcal');
  const {cardDataFromRow}=await import('../src/lib/pipeline/card-data.ts');
- assert.equal(cardDataFromRow({items:[{name:'Food',portion_grams:50,calories:100,not_eaten_grams:50}]},'en').footer,'Leftovers: 50 g · unavailable kcal');
+ assert.equal(cardDataFromRow({items:[{name:'Food',portion_grams:50,calories:100,not_eaten_grams:50}]},'en',cardTranslators('en')).footer,'Leftovers: 50 g · unavailable kcal');
 });

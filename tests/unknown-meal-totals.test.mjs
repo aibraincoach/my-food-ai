@@ -1,10 +1,11 @@
+import {cardTranslators} from './fixtures/card-translators.mjs';
 import {nutritionTranslator} from '../src/i18n/nutrition.ts';
 import test from 'node:test';import assert from 'node:assert/strict';
 import {sumNutrition,formatConsumed,formatCalories} from '../src/lib/nutrition/totals.ts';
 import {getDays} from '../src/lib/posts/days.ts';import {cardDataFromRow} from '../src/lib/pipeline/card-data.ts';import {summaryLine} from '../src/lib/posts/summary-line.ts';
 const unknown={name:'Unmatched meal',calories:null,protein_g:null,carbs_g:null,fat_g:null,fibre_g:null,sugar_g:null,sodium_mg:null};
 test('empty or unavailable meal cannot publish an invented zero in shared card or summary data',()=>{
- for(const items of [[],[unknown]]){assert.equal(sumNutrition(items).calories,null);assert.equal(cardDataFromRow({items},'en').kcal,null);assert.doesNotMatch(summaryLine({items},nutritionTranslator('en'),'en'),/Consumed: 0 kcal/);}
+ for(const items of [[],[unknown]]){assert.equal(sumNutrition(items).calories,null);assert.equal(cardDataFromRow({items},'en',cardTranslators('en')).kcal,null);assert.doesNotMatch(summaryLine({items},nutritionTranslator('en'),'en'),/Consumed: 0 kcal/);}
  const water={...unknown,name:'Water',calories:0,protein_g:0,carbs_g:0,fat_g:0};assert.equal(sumNutrition([water]).calories,0);assert.equal(formatConsumed(sumNutrition([water]),nutritionTranslator('en'),'en'),'Consumed: 0 kcal');
 });
 function db(calories){

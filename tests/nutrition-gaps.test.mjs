@@ -1,3 +1,4 @@
+import {cardTranslators} from './fixtures/card-translators.mjs';
 import {nutritionTranslator} from '../src/i18n/nutrition.ts';
 import test from 'node:test';
 import assert from 'node:assert/strict';
@@ -11,7 +12,7 @@ test('known calories name only the missing shown nutrient, not unavailable food'
  const totals=nutrition.sumNutrition(items),text=plainConsumed(totals);
  assert.match(text,/Consumed: 251 kcal/);assert.match(text,/Missing fat for syrup\./);assert.doesNotMatch(text,/unavailable: syrup|Calories unavailable|waffle/);
  assert.equal(nutrition.gapSentence(nutrition.nutritionGaps(totals),nutritionTranslator('en'),'en'),'Missing fat for syrup.');
- assert.equal(cardDataFromRow({items},'en').gap,'Missing fat for syrup.');
+ assert.equal(cardDataFromRow({items},'en',cardTranslators('en')).gap,'Missing fat for syrup.');
  assert.equal(nutrition.formatConsumed(totals,nutritionTranslator('en'),'en'),'Consumed: 251 kcal · Missing fat for syrup');
  assert.doesNotMatch([nutrition.formatConsumed(totals,nutritionTranslator('en'),'en'),'Approximation follows'].join('. '),/\.\./);
 });

@@ -1,3 +1,4 @@
+import {cardTranslators} from './fixtures/card-translators.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
@@ -19,7 +20,7 @@ test('fully uneaten foods and cumulative footer keep their recorded calories aft
  const prior={...item,portion_grams:0,not_eaten_grams:100,not_eaten_calories:200,calories:0};
  const row=carryLeftovers({name:prior.name,portion_grams:100,portion_text:'100 g',nutrition:retainedNutrition(prior)},prior);
  assert.equal(row.nutrition.calories,0);assert.equal(row.portion_grams,0);assert.equal(row.not_eaten_calories,200);
- const card=cardDataFromRow({items:[{...prior,...row,not_eaten_count_text:'100 g'}]},'en');assert.equal(card.footer,'Leftovers: 100 g · 200 kcal');
+ const card=cardDataFromRow({items:[{...prior,...row,not_eaten_count_text:'100 g'}]},'en',cardTranslators('en'));assert.equal(card.footer,'Leftovers: 100 g · 200 kcal');
  assert.equal(checkWording(card.footer).ok,true);assert.equal(checkWording('Leftovers').ok,true);assert.equal(checkWording('100 calories left').ok,false);
 });
 test('two independent leftovers photos accumulate, retry once, survive ordinary correction, and stay owner-scoped',async()=>{
