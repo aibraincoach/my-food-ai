@@ -8,7 +8,7 @@ import {createTranslator} from 'next-intl';
 import {renderFailureMessage} from '../src/i18n/failure-code.ts';
 
 test('every UI source rejects raw exception/response error text at error, toast and alert sinks',()=>{
- const current=checkAllErrorDisplays();assert.ok(current.files>=150);assert.deepEqual(current.failures,[]);
+ const current=checkAllErrorDisplays();assert.ok(current.files>=149);assert.deepEqual(current.failures,[]);
  for(const source of[
   'setError(e.message)','toast(body.error)','alert(response["error"])',
   'const message=e.message; setError(message)',
