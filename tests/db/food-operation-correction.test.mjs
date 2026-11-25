@@ -8,11 +8,11 @@ function run(prefix=''){
  correction jsonb:='{"gtin":"00016000275683","serving_amount":30,"serving_unit":"g","per_100":{"calories":400}}';
  begin
  insert into auth.users(id)values(owner_id);insert into public.profiles(id,handle)values(owner_id,'atomic_'||owner_id);
- published_id:=public.publish_food_operation(operation,owner_id,repeat('a',64),now(),'Verified label',30,nutrition,null,correction);
+ published_id:=public.publish_food_operation(operation,owner_id,repeat('a',64),now(),'Verified label',30,nutrition,null::jsonb,correction);
  if not exists(select 1 from public.barcode_corrections where user_id=owner_id and gtin=correction->>'gtin' and source='label' and per_100->>'calories'='400')then raise exception 'Atomic correction missing';end if;
  if not exists(select 1 from public.food_post_operations where operation_id=operation and user_id=owner_id and food_post_operations.post_id=published_id)then raise exception 'Atomic receipt missing';end if;
  update public.barcode_corrections set name='Newer explicit correction' where user_id=owner_id and gtin=correction->>'gtin';
- replay:=public.publish_food_operation(operation,owner_id,repeat('a',64),now(),'Verified label',30,nutrition,null,correction);
+ replay:=public.publish_food_operation(operation,owner_id,repeat('a',64),now(),'Verified label',30,nutrition,null::jsonb,correction);
  if replay<>published_id or (select name from public.barcode_corrections where user_id=owner_id and gtin=correction->>'gtin')<>'Newer explicit correction' then raise exception 'Replay rewrote a correction';end if;
  end $test$;rollback;`;
  return spawnSync('psql',['-XqAt','--dbname',url,'-v','ON_ERROR_STOP=1'],{input:sql,encoding:'utf8',timeout:15000});
