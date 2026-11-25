@@ -1,3 +1,5 @@
+import {formatCommentMessage} from '../src/lib/posts/comment-message.ts';
+import {nutritionTranslator} from '../src/i18n/nutrition.ts';
 // node --import tsx --test tests/item-food-selection.test.mjs
 import assert from 'node:assert/strict';
 import test from 'node:test';
@@ -32,17 +34,19 @@ test('selected FDC identity wins over first/ranked food and client nutrient forg
   assert.equal((await editPostItem(admin, 'post', 'owner', parseItemEdit({ ...payload, fdc_selection: { id: 999, query: 'rice' } }))).error.code, '22023');
   assert.equal((await editPostItem(admin, 'post', 'owner', parseItemEdit({ ...payload, name: 'Forged description' }))).error.code, '22023');
   assert.equal(calls, 1, 'unverified selections must not write');
-  assert.deepEqual(notes, [{ post_id: 'post', author: 'model', body: 'Added Rice, 50 g.' }], 'only the committed edit is noted in the thread');
+  assert.deepEqual(notes, [{post_id:'post',author:'model',body:null,message:{code:'editAdded',values:{name:'Rice',before:null,grams:50,amount:null,unit:'g'}}}], 'only the committed edit is noted in the thread');
+  assert.equal(formatCommentMessage(notes[0].message,nutritionTranslator('en'),'en'),'Added Rice, 50 g.');
 });
 
 test('a portion edit with no name still notes the item by its current name', async () => {
   const notes = [];
   const admin = {
-    from: table => table === 'post_comments' ? { insert: async row => { notes.push(row.body); return { error: null }; } }
+    from: table => table === 'post_comments' ? { insert: async row => { notes.push(row); return { error: null }; } }
       : { select: () => ({ eq: () => ({ eq: () => ({ maybeSingle: async () => ({ data: { name: 'Rice' }, error: null }) }) }) }) },
     rpc: async () => ({ data: null, error: null }),
   };
   const id = '0f0659f8-d3b4-4bc0-8c4d-8c4d8c4d8c4d';
   await editPostItem(admin, 'post', 'owner', { action: 'portion', item_id: id, portion_grams: 150 });
-  assert.deepEqual(notes, ['Rice set to 150 g.']);
+  assert.deepEqual(notes,[{post_id:'post',author:'model',body:null,message:{code:'editPortion',values:{name:'Rice',before:'Rice',grams:150,amount:null,unit:'g'}}}]);
+  assert.equal(formatCommentMessage(notes[0].message,nutritionTranslator('en'),'en'),'Rice set to 150 g.');
 });

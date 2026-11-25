@@ -1,3 +1,5 @@
+import {formatCommentMessage} from '../src/lib/posts/comment-message.ts';
+import {nutritionTranslator} from '../src/i18n/nutrition.ts';
 // Run: node --import tsx --env-file=.env.local --test tests/removal-replay.test.mjs
 import test from 'node:test';
 import assert from 'node:assert/strict';
@@ -9,7 +11,7 @@ const nutrition=(id,grams)=>({post_item_id:id,calories:grams,protein_g:grams/10,
 const food=(id,grams,created_at=t)=>({id,name:'Toast',source:'model',portion_grams:grams,portion_text:`${grams} g`,created_at,not_eaten_grams:null,not_eaten_calories:null,box:null,mask_path:null,supersedes:null});
 const comment=(id,body,author='user',reverted_at=null)=>({id,body,author,created_at:t,reverted_at});
 
-async function fixture({comments=[],photos=[],reason='media_removed',commentId,approximation}={}){
+async function fixture({comments=[],photos=[],reason='media_removed',commentId,approximation,name='Toast',expectedError}={}){
  const calls={corrections:[],remainders:[],downloads:[],saved:null};let remainderIndex=0;
  const priorFetch=globalThis.fetch,priorKey=process.env.MODEL_API_KEY;process.env.MODEL_API_KEY='fixture';
  globalThis.fetch=async(_input,init)=>{
@@ -30,7 +32,7 @@ async function fixture({comments=[],photos=[],reason='media_removed',commentId,a
   const url=new URL(input),path=url.pathname;
   if(path.endsWith('/current_post_items'))return Response.json([food('current',50,'2026-11-02T00:01:00Z')]);
   if(path.endsWith('/item_nutrition'))return Response.json([nutrition('current',50)]);
-  if(path.endsWith('/post_items'))return Response.json([{...food('identify',400),item_nutrition:{...nutrition('identify',400),...(approximation?{micronutrients:[{nutrientId:1008,nutrientName:'Energy',unitName:'KCAL',value:400,basis:'portion',approximation:{...approximation,sourceRef:'123'}}]}:{})}},{...food('current',50,'2026-11-02T00:01:00Z'),item_nutrition:nutrition('current',50)}]);
+  if(path.endsWith('/post_items'))return Response.json([{...food('identify',400),name,item_nutrition:{...nutrition('identify',400),...(approximation?{micronutrients:[{nutrientId:1008,nutrientName:'Energy',unitName:'KCAL',value:400,basis:'portion',approximation:{...approximation,sourceRef:'123'}}]}:{})}},{...food('current',50,'2026-11-02T00:01:00Z'),item_nutrition:nutrition('current',50)}]);
   if(path.endsWith('/post_comments'))return Response.json(url.searchParams.has('or')?[]:[comment('initial','Consumed: 400 kcal.','model'),...comments]);
   if(path.endsWith('/post_media'))return Response.json(url.searchParams.get('not_eaten')==='eq.true'?photos:[]);
   if(path.endsWith('/posts'))return Response.json({user_id:'owner',caption:'Toast',analysis_initialized_at:t});
@@ -38,7 +40,7 @@ async function fixture({comments=[],photos=[],reason='media_removed',commentId,a
   if(path.endsWith('/persist_removed_rebuild')){calls.saved=JSON.parse(init.body);return Response.json({message:'fixture captured atomic save',code:'40001'},{status:409});}
   throw Error(`Unexpected fixture request ${path}`);
  }}});
- try{await assert.rejects(recompute(db,{id:'job',post_id:'post',payload:{reason,...(commentId?{comment_id:commentId}:{})}}));return calls;}
+ try{await assert.rejects(recompute(db,{id:'job',post_id:'post',payload:{reason,...(commentId?{comment_id:commentId}:{})}}),expectedError);return calls;}
  finally{globalThis.fetch=priorFetch;if(priorKey===undefined)delete process.env.MODEL_API_KEY;else process.env.MODEL_API_KEY=priorKey;}
 }
 
@@ -68,8 +70,10 @@ test('removal preserves quoted user words without treating them as generated cla
  const text='Use the remaining half, not what was left.';
  const calls=await fixture({reason:'correction_reverted',commentId:'removed',comments:[comment('removed',text,'user',t)]});
  assert.ok(calls.saved,'quoted user language must not block the atomic rebuild');
- assert.equal(calls.saved.p_reply,`Removed the correction "${text}". Consumed: 400 kcal.`);
+ assert.equal(formatCommentMessage(calls.saved.p_message,nutritionTranslator('en'),'en'),`Removed the correction "${text}". Consumed: 400 kcal.`);
  assert.equal(calls.saved.p_items[0].portion_grams,400);
+ assert.equal('p_reply' in calls.saved,false);
+ assert.ok(formatCommentMessage(calls.saved.p_message,nutritionTranslator('ja'),'ja').includes(text),'user quote stays data across locales');
 });
 
 // Fixed main strings cover the stored removal writer, not the table renderer.
@@ -79,6 +83,11 @@ test('removed rebuild keeps main English for estimate and closest-USDA annotatio
   ['closest','Removed the leftovers photo. Consumed: 400 kcal. Nutrition for Toast is taken from the closest USDA record, fixture basis.'],
  ]){
   const calls=await fixture({approximation:{kind,basis:'fixture basis'}});
-  assert.equal(calls.saved.p_reply,expected);
+  assert.equal(formatCommentMessage(calls.saved.p_message,nutritionTranslator('en'),'en'),expected);
  }
+});
+
+test('removal rejects banned model approximation names before storing a message',async()=>{
+ const calls=await fixture({name:'Toast remaining',approximation:{kind:'estimate',basis:'fixture basis'},expectedError:/Removal reply contained unsupported wording/});
+ assert.equal(calls.saved,null,'banned model text cannot reach the persistence RPC');
 });

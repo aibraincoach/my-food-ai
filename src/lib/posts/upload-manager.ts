@@ -407,7 +407,7 @@ export class UploadManager {
     }
     private async submitDrink(entry:Entry):Promise<{postId:string}>{
         const d=entry.data,photo=d.photoDrinks,tile=d.drink;
-        const endpoint=photo?'/api/drinks/post':'/api/intake/post?tz='+encodeURIComponent(tile!.time_zone);
+        const endpoint=photo?'/api/drinks/post':'/api/intake/post';
         const response=await this.foodRequest(endpoint,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({...photo??tile,time_zone:d.timeZone,operation_id:d.operationId,owner_id:d.ownerId}),signal:AbortSignal.timeout(JSON_REQUEST_LIMIT_MS)});
         const result=await response.json().catch(()=>null) as {post_id?:string;error?:string}|null;
         if(!response.ok||!result?.post_id){d.failure=failureFromResponse(result);throw new CaptureFailureError(d.failure);}

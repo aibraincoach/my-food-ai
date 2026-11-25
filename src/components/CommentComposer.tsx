@@ -6,7 +6,7 @@ import {useEffect,useRef,useState} from 'react';
 import VoiceRecorder from '@/components/VoiceRecorder';
 import {useSearchParams} from 'next/navigation';
 import {usePostHandle} from '@/components/PostHandle';
-export type CommentRow={id:string;author:'user'|'model';body:string;created_at:string;reverted_at?:string|null};
+export type CommentRow={id:string;author:'user'|'model';body:string;message?:unknown;created_at:string;reverted_at?:string|null};
 export default function CommentComposer({postId,onPosted}:{postId:string;onPosted:(comment:CommentRow)=>void}){
  const apiError=useApiFailureText();
  const t=useTranslations('thread');

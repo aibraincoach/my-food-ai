@@ -1,3 +1,5 @@
+import {formatCommentMessage} from '../src/lib/posts/comment-message.ts';
+import {nutritionTranslator} from '../src/i18n/nutrition.ts';
 // Run: node --import tsx --test tests/removal-after-reanalysis.test.mjs
 import test from 'node:test';
 import assert from 'node:assert/strict';
@@ -47,7 +49,7 @@ test('removing a correction after an operator re-analysis rebuilds from the re-a
  assert.equal(calls.corrections.length,0);
  assert.equal(calls.saved.p_items[0].portion_grams,300,'the first analysis must not come back');
  assert.equal(calls.saved.p_items[0].nutrition.calories,300);
- assert.equal(calls.saved.p_reply,'Removed the correction "Halve it.". Consumed: 300 kcal.');
+ assert.equal(formatCommentMessage(calls.saved.p_message,nutritionTranslator('en'),'en'),'Removed the correction "Halve it.". Consumed: 300 kcal.');
 });
 
 test('a correction kept after the re-analysis is replayed once on the re-analysed rows',async()=>{

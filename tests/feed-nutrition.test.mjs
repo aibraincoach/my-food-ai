@@ -76,7 +76,7 @@ test('fast first-photo read and full snapshot share the same owner-scoped capabi
 });
 
 
-test('all feed and refreshed photos use small owner URLs while only card PNGs are signed',async()=>{
+test('feed and realtime photos keep small owner URLs; live cards never sign a stored bitmap',async()=>{
  const {createClient}=await import('@supabase/supabase-js');const {toFeedPosts}=await import('../src/lib/posts/feed.ts');
  const uuid=n=>`00000000-0000-4000-8000-${String(n).padStart(12,'0')}`;
  const owner=uuid(99),posts=[1,2].map(n=>({id:uuid(n),user_id:owner,caption:'Food',eaten_at:'2026-11-03T00:00:00Z',created_at:'2026-11-03T00:00:00Z',status:'queued'}));
@@ -93,7 +93,8 @@ test('all feed and refreshed photos use small owner URLs while only card PNGs ar
  }}});
  const batch=await toFeedPosts(db,posts);
  for(const post of batch)for(const slide of post.slides.filter(s=>s.kind==='photo'))assert.equal(slide.url,`/api/media/feed/${owner}/${post.id}/${slide.id}/v2.webp`);
- assert.deepEqual(signed,[media[2].storage_path],'photo signing is eliminated, not duplicated beside small URLs');
+ assert.deepEqual(signed,[],'no human card bitmap is signed');
+ assert.equal(batch[0].slides.find(slide=>slide.kind==='card').url,'');
  const refreshed=await getPostCard(db,posts[0].id);
  assert.deepEqual(refreshed.slides.filter(s=>s.kind==='photo').map(s=>s.url),batch[0].slides.filter(s=>s.kind==='photo').map(s=>s.url),'realtime refresh cannot restore the old large Storage paths');
 });

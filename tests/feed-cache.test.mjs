@@ -54,18 +54,19 @@ test('disabled storage cannot block reading, saving or clearing the feed', () =>
 
 const signedCard = expiresAt => `https://local.invalid/storage/v1/object/sign/media/card.png?token=header.${Buffer.from(JSON.stringify({exp:Math.floor(expiresAt/1000)})).toString('base64url')}.signature`;
 
-test('a write-primed snapshot drops expired card slides on its first read', () => {
+test('a write-primed snapshot strips stored card capabilities and keeps its live-card metadata', () => {
  clearFeedCache();
  const photo='/api/media/feed/owner/post/photo/v1.webp';
  const card=signedCard(now-1000);
  writeFeedCache('expiry-first',{posts:[{...post('meal'),photoUrl:photo,slides:[{id:'photo',kind:'photo',url:photo},{id:'card',kind:'card',url:card}]}],savedAt:now});
  const value=readFeedCache('expiry-first',now);
- assert.deepEqual(value.posts[0].slides.map(slide=>slide.id),['photo']);
+ assert.deepEqual(value.posts[0].slides.map(slide=>slide.id),['photo','card']);
+ assert.equal(value.posts[0].slides[1].url,'');
  assert.equal(value.posts[0].photoUrl,photo);
  assert.equal(readFeedCache('expiry-first',now),value);
 });
 
-test('unchanged raw cache data is rechecked when card tokens age while snapshots stay stable otherwise', () => {
+test('a cached card-only post never exposes a photograph URL and stays stable when the retired token ages', () => {
  clearFeedCache();
  const card=signedCard(now+5*60_000);
  writeFeedCache('expiry-later',{posts:[{...post('meal'),photoUrl:card,slides:[{id:'card',kind:'card',url:card}]}],savedAt:now});
@@ -73,8 +74,8 @@ test('unchanged raw cache data is rechecked when card tokens age while snapshots
  assert.equal(fresh.posts[0].slides.length,1);
  assert.equal(readFeedCache('expiry-later',now+60_000),fresh);
  const expired=readFeedCache('expiry-later',now+4*60_000);
- assert.notEqual(expired,fresh);
- assert.deepEqual(expired.posts[0].slides,[]);
+ assert.equal(expired,fresh);
+ assert.deepEqual(expired.posts[0].slides,[{id:'card',kind:'card',url:''}]);
  assert.equal(expired.posts[0].photoUrl,null);
  assert.equal(readFeedCache('expiry-later',now+4*60_000),expired);
 });

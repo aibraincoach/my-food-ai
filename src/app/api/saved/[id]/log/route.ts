@@ -16,6 +16,6 @@ export async function POST(request:Request,{params}:Context){
 export async function DELETE(request:Request,{params}:Context){
  const db=await createClient();const{data:{user}}=await db.auth.getUser();if(!user)return NextResponse.json({message_code: "route_ac6a88b19530"},{status:401});
  const{id}=await params;const body=await request.json().catch(()=>null);if(!isUuid(id))return NextResponse.json({message_code: "route_6798c08ac231"},{status:404});
- try{const operationId=readCopyOperation(body,user.id);return NextResponse.json({post_id:await copyOperation(db,operationId,id,true,body?.eaten_at,true)});}
+ try{const operationId=readCopyOperation(body,user.id);return NextResponse.json({post_id:await copyOperation(db,operationId,id,true,body?.eaten_at,null,true)});}
  catch(error){return NextResponse.json({ message_code: error instanceof CopyOperationError ? error.failure.code : "route_24ead72d486b"},{status:error instanceof CopyOperationError?error.status:503});}
 }

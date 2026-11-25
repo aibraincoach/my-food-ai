@@ -1,3 +1,5 @@
+import {formatCommentMessage} from '../src/lib/posts/comment-message.ts';
+import {nutritionTranslator} from '../src/i18n/nutrition.ts';
 import {cardTranslators} from './fixtures/card-translators.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
@@ -95,5 +97,28 @@ test('second-plate remainder targets its own photo and preserves the first plate
   if(path.endsWith('/apply_post_remainder')){applied=JSON.parse(init.body);return Response.json({message:'captured fixture save',code:'40001'},{status:409});}
   throw Error('Unexpected worker fixture route '+path);
  }}});
- try{await assert.rejects(remainder(db,{id:'job',post_id:'post',payload:{remainder_photo_id:'photo2'}}));assert.equal(photoQuery,'eq.photo2');assert.ok(applied);const row=applied.p_items[0];assert.equal(row.portion_grams,60);assert.equal(row.not_eaten_grams,40);assert.equal(row.not_eaten_calories,80);assert.equal(row.nutrition.calories,120);const second=applied.p_items[1];assert.equal(second.portion_grams,100);assert.equal(second.not_eaten_grams,100);assert.equal(second.not_eaten_calories,157);assert.equal(second.nutrition.calories,157);assert.match(applied.p_reply,/^Leftovers:/);}finally{globalThis.fetch=saved;if(priorKey===undefined)delete process.env.MODEL_API_KEY;else process.env.MODEL_API_KEY=priorKey;}
+ try{await assert.rejects(remainder(db,{id:'job',post_id:'post',payload:{remainder_photo_id:'photo2'}}));assert.equal(photoQuery,'eq.photo2');assert.ok(applied);const row=applied.p_items[0];assert.equal(row.portion_grams,60);assert.equal(row.not_eaten_grams,40);assert.equal(row.not_eaten_calories,80);assert.equal(row.nutrition.calories,120);const second=applied.p_items[1];assert.equal(second.portion_grams,100);assert.equal(second.not_eaten_grams,100);assert.equal(second.not_eaten_calories,157);assert.equal(second.nutrition.calories,157);assert.match(formatCommentMessage(applied.p_message,nutritionTranslator('en'),'en'),/^Leftovers:/);}finally{globalThis.fetch=saved;if(priorKey===undefined)delete process.env.MODEL_API_KEY;else process.env.MODEL_API_KEY=priorKey;}
+});
+
+test('model leftovers count units are checked before storing a message',async()=>{
+ const {createClient}=await import('@supabase/supabase-js');const {default:remainder}=await import('../src/lib/worker/jobs/remainder.ts');
+ const priorFetch=globalThis.fetch,priorKey=process.env.MODEL_API_KEY;process.env.MODEL_API_KEY='fixture';
+ try{for(const unit of ['remaining','left','pieces']){
+  let applied=null;
+  globalThis.fetch=async(_input,init)=>{const body=JSON.parse(init?.body??'{}');if(!body.model)return new Response(null,{status:201});return Response.json({id:'wording-fixture',status:'completed',output:[{type:'message',role:'assistant',content:[{type:'output_text',text:JSON.stringify({items:[{index:0,remaining_grams:20,total_count:3,remaining_count:1,unit}]})}]}]});};
+  const db=createClient('http://127.0.0.1:1','fixture',{auth:{persistSession:false},global:{fetch:async(input,init)=>{
+   const path=new URL(input).pathname;
+   if(path.endsWith('/post_media'))return Response.json({id:'photo',storage_path:'owner/post/1.jpg'});
+   if(path.endsWith('/posts'))return Response.json({user_id:'owner',analysis_initialized_at:'2026-11-02T00:00:00Z'});
+   if(path.endsWith('/current_post_items'))return Response.json([item]);
+   if(path.endsWith('/item_nutrition'))return Response.json([{...retainedNutrition(item),post_item_id:item.id}]);
+   if(path.includes('/storage/'))return new Response(new Uint8Array([1]),{headers:{'Content-Type':'image/jpeg'}});
+   if(path.endsWith('/apply_post_remainder')){applied=JSON.parse(init.body);return Response.json({message:'fixture captured save',code:'40001'},{status:409});}
+   throw Error('Unexpected wording fixture route '+path);
+  }}});
+  const banned=unit!=='pieces';
+  await assert.rejects(remainder(db,{id:'job',post_id:'post',payload:{remainder_photo_id:'photo'}}),banned?/Not-eaten reply contained unsupported wording/:/Not-eaten estimate could not be saved/);
+  if(banned)assert.equal(applied,null,'banned model unit cannot reach persistence');
+  else{assert.equal(applied.p_message.values.leftovers[0].unit,'pieces');assert.equal(applied.p_message.values.leftovers[0].count,1);}
+ }}finally{globalThis.fetch=priorFetch;if(priorKey===undefined)delete process.env.MODEL_API_KEY;else process.env.MODEL_API_KEY=priorKey;}
 });

@@ -390,8 +390,10 @@ export function restoreParams(snapshot) {
   const oldIds = (snapshot.items ?? []).filter((item) => item.superseded_at === null).map((item) => item.id);
   if (!oldIds.length) throw new UsageError('The snapshot has no current items to put back.');
   for (const id of oldIds) if (!/^[0-9a-f-]{36}$/.test(id)) throw new UsageError('The snapshot holds an item id that is not a uuid.');
-  const summary = (snapshot.comments ?? []).find((comment) => comment.author === 'model');
-  return { post: snapshot.post.id, old_ids: `{${oldIds.join(',')}}`, summary_comment_id: summary?.id ?? NIL_UUID, old_summary: summary?.body ?? '',
+  const pointer=snapshot.post.summary_comment_id??null;
+  const summary = pointer?(snapshot.comments??[]).find(comment=>comment.id===pointer):(snapshot.comments ?? []).find((comment) => comment.author === 'model');
+  if(pointer&&(!summary||summary.message?.code!=='mealSummary'))throw new UsageError('Snapshot summary pointer has no structured summary.');
+  return { post: snapshot.post.id, old_ids: `{${oldIds.join(',')}}`, summary_comment_id: summary?.id ?? NIL_UUID, old_summary: summary?.body ?? '',old_message:JSON.stringify(summary?.message??null),old_summary_pointer:pointer??'',
     analysis_initialized_at: snapshot.post.analysis_initialized_at ?? '' };
 }
 
@@ -713,7 +715,7 @@ async function restore(request) {
   console.log(`Restoring meal ${request.meal} from its ${request.snapshot} snapshot (${count} in the ledger): ${params.old_ids.split(',').length} item(s) come back.`);
   const since = dbNow();
   // One psql session: a failed or needs_input meal first regains its snapshot state, then 13-restore.sql runs as it is.
-  psql({ vars: { post: params.post, old_ids: params.old_ids, summary_comment_id: params.summary_comment_id, old_summary: params.old_summary, initialized: params.analysis_initialized_at,
+  psql({ vars: { post: params.post, old_ids: params.old_ids, summary_comment_id: params.summary_comment_id, old_summary: params.old_summary,old_message:params.old_message,old_summary_pointer:params.old_summary_pointer, initialized: params.analysis_initialized_at,
     snapshot_needs_input: JSON.stringify(snapshot.post.needs_input ?? null), snapshot_question: JSON.stringify(snapshot.post.question ?? null), snapshot_fail_reason: snapshot.post.fail_reason ?? '',
     nutrition_rows: JSON.stringify(repairNutrition ?? []) },
     input: `update public.posts p set status = 'ready', fail_reason = nullif(:'snapshot_fail_reason', ''),

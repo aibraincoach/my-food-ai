@@ -17,7 +17,8 @@ import {
   scaleNutrition,
 } from "@/lib/fdc/nutrients";
 import { renderResultsCard } from "./results-card";
-import { safeSummary, type ConsumedTotals } from "./wording";
+import type {ConsumedTotals} from "./wording";
+import {mealSummaryMessage} from "@/lib/posts/comment-message";
 import type { NamedPost } from "./analyze";
 
 export async function persistAnalysis(
@@ -98,7 +99,7 @@ export async function persistAnalysis(
   items.push(...resolved);
   const totals = sumNutrition(items.map(item=>({...item.nutrition,name:item.name})));
   const approximations=approximationLabels(items.map(item=>({name:item.name,...item.nutrition})));
-  const summary = await safeSummary(named.summary, totals, approximations, items.map(item=>({name:item.name,sourceRef:item.nutrition.source_ref})));
+  const summary = mealSummaryMessage(totals, approximations, items.map(item=>({name:item.name,sourceRef:item.nutrition.source_ref})));
   // Owner ruling (Nov 4, #615): a question about a meal the model could still name does not hold
   // the post back. The meal publishes with the named items; the question is kept in posts.question,
   // shown in the Home strip, and sent as the "needs a reply" push. No food found keeps the held route.
@@ -107,7 +108,7 @@ export async function persistAnalysis(
     p_job_id: jobId ?? null,
     p_post_id: named.postId,
     p_items: items,
-    p_summary: summary,
+    p_message: summary,
     p_needs_input: visibleQuestion ? null : named.needsInput ?? null,
   };
   const identificationArgs={...args,
@@ -123,7 +124,7 @@ export async function persistAnalysis(
       p_post_id: named.postId,
       p_job_id: jobId ?? null,
       p_items: items,
-      p_summary: summary,
+      p_message: summary,
       p_question: question,
       p_identify_model: identificationArgs.p_identify_model,
       p_identify_host: identificationArgs.p_identify_host,
@@ -160,11 +161,11 @@ export async function refreshOperatorSavedMeal(admin: SupabaseClient, job: { id:
 // Publication clears clarification atomically with ready under the post lock. The stored card is optional:
 // a render or upload failure is logged and the meal is marked ready on its nutrition anyway; the live card
 // is the fallback. (An outdated card after a failed regeneration is tracked in the backlog.)
-export async function markReady(postId: string, admin: SupabaseClient = createAdminClient(), jobId?:string, options: { notify?: boolean;saveMeal?:boolean;timeZone?:string } = {}): Promise<boolean> {
+export async function markReady(postId: string, admin: SupabaseClient = createAdminClient(), jobId?:string, options: { notify?: boolean;saveMeal?:boolean } = {}): Promise<boolean> {
   await syncItemDrinks(admin, postId);
   let ready: boolean;
   try {
-    ready = await renderResultsCard(admin, postId, jobId,undefined,options.timeZone);
+    ready = await renderResultsCard(admin, postId, jobId);
   } catch (cardError) {
     console.error("results card failed; marking the meal ready without it", postId, cardError instanceof Error ? cardError.message : cardError);
     const { data, error, status } = await admin.rpc("mark_post_ready", { p_post_id: postId, p_job_id: jobId ?? null });

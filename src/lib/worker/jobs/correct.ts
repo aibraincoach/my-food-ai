@@ -2,7 +2,8 @@ import { approximationLabels } from "@/lib/fdc/approximation-metadata";
 import {beforeLeftovers,carryLeftovers,retainedNutrition} from '@/lib/pipeline/leftovers';
 import { sendPostPush } from "@/lib/push/send";
 import {readNeedsInput,type NeedsInput} from '@/lib/pipeline/needs-input';
-import { readPostComments, readCorrectionProgress } from '@/lib/posts/timeline';
+import { readWorkerComments } from '@/lib/posts/worker-comments';
+import { readCorrectionProgress } from '@/lib/posts/timeline';
 import { nutritionUnavailable } from "@/lib/nutrition/available";
 import { resolvePortionNutrition, rescalePortionNutrition } from "@/lib/nutrition/portion";
 import recompute from "./recompute";
@@ -18,8 +19,8 @@ import { resolveNutritionItems } from "@/lib/fdc/resolve-items";
 import { resolveFoodMatchDetailed, traceNutritionReuse, nutritionResolutionBudget } from '@/lib/fdc/match';
 import { sumNutrition } from '@/lib/nutrition/totals';
 import { scaleNutrition } from '@/lib/fdc/nutrients';
-import { safeSummary } from '@/lib/pipeline/wording';
-import { correctionWindow, correctionReply } from '@/lib/pipeline/correction-state';
+import {mealSummaryMessage} from '@/lib/posts/comment-message';
+import { correctionWindow } from '@/lib/pipeline/correction-state';
 import { markReady } from '@/lib/pipeline/persist';
 import { boundedHistory } from '@/lib/pipeline/history-budget';
 
@@ -41,7 +42,7 @@ const correct:JobHandler=async(admin,job)=>{
  await waitForInitialAnalysis(admin,job.post_id);
  if(job.payload.correction_applied===true){await markReady(job.post_id,admin,job.id);return;}
  const items=await loadCorrectionItems(admin,job.post_id,()=>recompute(admin,job));
- const [thread,completed]=await Promise.all([readPostComments(admin,job.post_id),readCorrectionProgress(admin,job.post_id)]);
+ const [thread,completed]=await Promise.all([readWorkerComments(admin,job.post_id),readCorrectionProgress(admin,job.post_id)]);
  let window;
  try{window=correctionWindow(thread??[],completed??[]);const reverted=new Set(thread.filter(comment=>comment.reverted_at).map(comment=>comment.id));window.pending=window.pending.filter(comment=>!reverted.has(comment.id));window.history=window.history.filter(comment=>!reverted.has(comment.id));}catch{throw new MetaApiError(503,'Correction history changed while loading.');}
  const latest=window.pending.at(-1);
@@ -57,8 +58,8 @@ const correct:JobHandler=async(admin,job)=>{
  if(!prepared)throw new MetaApiError(503,'Correction snapshot could not be saved.');
  const {rows,result,approximations}=await replayCorrection(admin,job.post_id,items,window.pending,window.history,photoAdded);
  const totals=sumNutrition(rows.map(row=>({...row.nutrition,name:row.name})));
- const reply=await safeSummary(correctionReply(items,rows,totals),totals,approximations,rows.map(row=>({name:row.name,sourceRef:row.nutrition.source_ref})));
- const {error,status}=await admin.rpc(photoAdded?'persist_photo_correction':result.needs_input?'persist_correction_question':'persist_correction',{p_post_id:job.post_id,p_job_id:job.id,p_expected:items.map(i=>i.id),...(!photoAdded?{p_through:latest!.id}:{}),p_items:rows,p_reply:reply,...(photoAdded?{p_question:result.needs_input}:result.needs_input?{p_question:result.needs_input}:{})});
+ const reply=mealSummaryMessage(totals,approximations,rows.map(row=>({name:row.name,sourceRef:row.nutrition.source_ref})));
+ const {error,status}=await admin.rpc(photoAdded?'persist_photo_correction':result.needs_input?'persist_correction_question':'persist_correction',{p_post_id:job.post_id,p_job_id:job.id,p_expected:items.map(i=>i.id),...(!photoAdded?{p_through:latest!.id}:{}),p_items:rows,p_message:reply,...(photoAdded?{p_question:result.needs_input}:result.needs_input?{p_question:result.needs_input}:{})});
  if(error)throw ioError('Correction transaction failed.',error,status);
  if(!result.needs_input)await markReady(job.post_id,admin,job.id);
  else await sendPostPush(admin,job.post_id,result.needs_input.question);

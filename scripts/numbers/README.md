@@ -100,3 +100,11 @@ A failed or questioning meal, a changed food count, a changed name or portion, a
 This is a one-off data correction tool. It changes no matcher rule; the same wrong match can recur in a future meal (#990 remains open). Before any production write, compare the caption, food name and stored record and skip a food if its caption contradicts the correction.
 
 An uncertain SQL completion (for example, a lost command response after commit) is a failed attempt, never a skip. The operator attempts the existing guarded restore; if a job is still queued or running, restore refuses and the run stops visibly. It does not retry the SQL or race the worker.
+
+#1219 structured summaries: `cards.mjs` uses the named server-only marker loader
+shown in its usage, and prints `first_structured_summary_kcal` directly from a
+`mealSummary` message's numeric facts. Old text comments leave that field blank;
+the tool does not parse English. `08-snapshot.sql` captures both the message and
+the dedicated summary pointer. `reanalyse.mjs restore` supplies both to
+`13-restore.sql` so a structured summary never becomes an empty text row. An old
+snapshot has a null pointer and restores its original text, without a rebuild.

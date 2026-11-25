@@ -1,3 +1,4 @@
+import {commentText} from '../src/lib/posts/comment-message.ts';
 import {failureMessageKey} from '../src/lib/worker/failure-message.ts';
 import {englishIntl,englishIntlServer} from './fixtures/english-intl.mjs';
 import * as readingFormat from '../src/i18n/format.ts';
@@ -18,6 +19,7 @@ test('an unsettled upload card waits for the tab event or focus, with no timed r
 test('a waiting thread loads once per matching readiness or comment event, and never on a timer',async()=>{
  const fake=clock(),events=new EventTarget(),document=Object.assign(new EventTarget(),{visibilityState:'visible'}),effects=[],callbacks={};let state=0,loads=0;const client={rpc:async()=>({data:{fingerprint:'same'}}),from(table){const q={select(){return q;},eq(){return q;},maybeSingle:async()=>({data:table==='post_feedback'?null:{status:'processing',analysis_initialized_at:'done'},error:null})};return q;},channel(){const c={on(_type,filter,fn){callbacks[filter.event]=fn;return c;},subscribe(){return c;}};return c;},removeChannel(){}};const exports={};
  vm.runInNewContext(compile(readFileSync(new URL('../src/components/Thread.tsx',import.meta.url),'utf8')),{exports,window:events,document,Event,CustomEvent,...fake,require(name){
+ if(name==='@/lib/posts/comment-message')return {commentText};
  if(name==='next-intl')return englishIntl;
  if(name==='next-intl/server')return englishIntlServer;
  if(name==='@/i18n/format')return readingFormat;

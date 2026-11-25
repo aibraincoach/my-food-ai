@@ -989,7 +989,8 @@
     "canCorrect": "Add corrections to your meals",
     "cannotAccount": "Cannot change your account or see your password",
     "creatingToken": "Creating token…",
-    "createToken": "Create token"
+    "createToken": "Create token",
+    "captureZoneInstruction": "Ask your agent to include your time zone in time_zone whenever it posts a meal."
   },
   "deleted": {
     "title": "Recently deleted",
@@ -1331,7 +1332,21 @@
     "fibre": "fibre",
     "sugar": "sugar",
     "sodium": "sodium",
-    "unavailable": "unavailable"
+    "unavailable": "unavailable",
+    "itemUnnamed": "An item",
+    "editRemoved": "Removed {name}.",
+    "editAdded": "Added {name}, {amount}.",
+    "editRenamed": "Renamed {before} to {name}, {amount}.",
+    "editPortion": "{name} set to {amount}.",
+    "editGrams": "{grams} g",
+    "editUnitAmount": "{amount} {unit, select, oz {oz} cup {{count, plural, one {cup} other {cups}}} piece {{count, plural, one {piece} other {pieces}}} other {}} ({grams} g)",
+    "removedLeftovers": "Removed the leftovers photo. {summary}.",
+    "unmarkedLeftovers": "Unmarked the leftovers photo. {summary}.",
+    "removedCorrection": "Removed the correction \"{text}\". {summary}.",
+    "remainderReply": "Leftovers: {leftovers} · {omitted} kcal. Consumed: {consumed} · {calories} kcal.",
+    "remainderCount": "{count} {unit}",
+    "consumedCount": "{count} of {total} {unit}",
+    "productCorrected": "Product corrected to {name}."
   },
   "nutrients": {
     "core_calories": "Calories",

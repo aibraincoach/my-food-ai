@@ -9,10 +9,12 @@ import {readCardData} from '../src/lib/pipeline/read-card-data.ts';
 import {remainderRule} from '../src/lib/pipeline/remainder-rule.ts';
 const estimate=(remaining,counts={})=>({index:0,remaining_grams:remaining,total_count:null,remaining_count:null,unit:null,...counts});
 test('not-eaten difference clamps the photographed amount and preserves count records',()=>{
- assert.deepEqual(remainderRule(800,estimate(300,{total_count:8,remaining_count:3,unit:'slices'})),{consumedGrams:500,notEatenGrams:300,countText:'5 of 8 slices',notEatenCountText:'3 slices',consumedText:'5 of 8 slices',notEatenText:'3 slices'});
+ assert.deepEqual(remainderRule(800,estimate(300,{total_count:8,remaining_count:3,unit:'slices'})),{consumedGrams:500,notEatenGrams:300,consumedQuantity:{grams:500,count:5,total:8,unit:'slices'},notEatenQuantity:{grams:300,count:3,total:8,unit:'slices'},countText:'5 of 8 slices',notEatenCountText:'3 slices',consumedText:'5 of 8 slices',notEatenText:'3 slices'});
  assert.equal(remainderRule(100,estimate(200)).consumedGrams,0);
  assert.equal(remainderRule(100,estimate(-20)).consumedGrams,100);
  assert.equal(remainderRule(100,estimate(25)).countText,null);
+ assert.deepEqual(remainderRule(100,estimate(25)).consumedQuantity,{grams:75,count:null,total:null,unit:null});
+ assert.deepEqual(remainderRule(100,estimate(200)).notEatenQuantity,{grams:100,count:null,total:null,unit:null});
  assert.equal(remainderRule(100,estimate(25)).notEatenText,'25 g');
  assert.equal(remainderRule(100,estimate(25,{total_count:2,remaining_count:3,unit:'pieces'})).countText,null);
  assert.throws(()=>remainderRule(Number.NaN,estimate(10)));
