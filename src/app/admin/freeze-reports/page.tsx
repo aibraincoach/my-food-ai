@@ -1,18 +1,14 @@
 import {Suspense} from 'react';
 import Link from 'next/link';
 import {connection} from 'next/server';
-import {notFound} from 'next/navigation';
 import {getTranslations,getFormatter} from 'next-intl/server';
-import {createClient} from '@/lib/supabase/server';
+import {requireOwner} from '@/lib/admin/owner';
 import {createAdminClient} from '@/lib/supabase/admin';
 import {eventLabel,permissionKey} from '@/lib/diagnostics/labels';
 import type {DiagnosticEvent} from '@/lib/diagnostics/schema';
 export default function FreezeReports(){return <Suspense fallback={null}><Reports/></Suspense>;}
 async function Reports(){
- await connection();const client=await createClient();const {data:{user},error}=await client.auth.getUser();
- if(error||!user)notFound();
- const {data:profile,error:profileError}=await client.from('profiles').select('role').eq('id',user.id).maybeSingle();
- if(profileError||profile?.role!=='admin')notFound();
+ await connection();await requireOwner();
  const {data:reports,error:readError}=await createAdminClient().from('freeze_reports').select('id,user_id,created_at,events,user_agent,build,camera_permission').order('created_at',{ascending:false}).limit(50);
  if(readError)throw new Error('Freeze reports could not be read');
  const t=await getTranslations('support'),format=await getFormatter();

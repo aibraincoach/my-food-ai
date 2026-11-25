@@ -3,7 +3,7 @@ import {formatNumber} from '@/i18n/format';
 import Link from "next/link";
 import { Suspense } from "react";
 import { notFound } from "next/navigation";
-import { createClient } from "@/lib/supabase/server";
+import {requireOwner} from "@/lib/admin/owner";
 import { isUuid } from "@/lib/posts/items";
 import { font } from "@/lib/theme/font";
 
@@ -18,11 +18,7 @@ async function PostTraceContent({ params }: { params: Promise<{ id: string }> })
   const t=await getTranslations('admin'),locale=await getLocale();
   const number=(value:number|null)=>value===null?'—':formatNumber(locale,value,{useGrouping:false});
   await connection();
-  const client = await createClient();
-  const { data: { user } } = await client.auth.getUser();
-  if (!user) notFound();
-  const { data: profile } = await client.from("profiles").select("role").eq("id", user.id).maybeSingle();
-  if (profile?.role !== "admin") notFound();
+  const {client} = await requireOwner();
   const { id } = await params;
   if (!isUuid(id)) notFound();
   // Use the admin-select RLS policy through the session client, never a service

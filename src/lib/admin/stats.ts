@@ -1,7 +1,11 @@
 import "server-only";
-import type { SupabaseClient } from "@supabase/supabase-js";
+import {requireOwner} from "./owner";
+import {createAdminClient} from "@/lib/supabase/admin";
+import {adminErrorCode} from "./error-code";
 
-export async function getQueueStats(admin: SupabaseClient, now = new Date()) {
+export async function getQueueStats(now = new Date()) {
+  await requireOwner();
+  const admin = createAdminClient();
   const hourAgo = new Date(now.getTime() - 60 * 60_000);
   const dayAgo = new Date(now.getTime() - 24 * 60 * 60_000);
   const [depth, oldest, failures, errors, posts, users, postCount, postsDay, calls, callsDay, failedCalls, failedCallsDay] = await Promise.all([
@@ -41,7 +45,7 @@ export async function getQueueStats(admin: SupabaseClient, now = new Date()) {
     oldestAgeSeconds: oldest.data ? Math.max(0, Math.floor((now.getTime() - new Date(oldest.data.created_at).getTime()) / 1000)) : null,
     failures: failures.count ?? 0,
     perMinute,
-    errors: errors.data ?? [],
+    errors: (errors.data ?? []).map(({error, ...entry}) => ({...entry, kind: "failedJob" as const, code: adminErrorCode(error)})),
     posts: posts.data ?? [],
     app: { users: users.count ?? 0, posts: postCount.count ?? 0, postsDay: postsDay.count ?? 0, modelCalls: calls.count ?? 0, modelCallsDay: callsDay.count ?? 0, failedCalls: failedCalls.count ?? 0, failedCallsDay: failedCallsDay.count ?? 0 },
   };

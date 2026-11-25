@@ -1,0 +1,3 @@
+import test from 'node:test';import assert from 'node:assert/strict';import fs from 'node:fs';import ts from 'typescript';import vm from 'node:vm';
+const exports={};vm.runInNewContext(ts.transpileModule(fs.readFileSync('src/lib/admin/error-code.ts','utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS}}).outputText,{exports});
+test('admin errors expose only recognised complete prefix/status and never meal text',()=>{for(const [input,want]of [[null,null],['synthetic private meal',null],['fdc:429 private caption','fdc:429'],['meta:503 private output','meta:503'],['meta:5031 private',null],['meta: analysis request failed.',null],['FDC:400 private',null]])assert.equal(exports.adminErrorCode(input),want);});
