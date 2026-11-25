@@ -24,9 +24,10 @@ const proxy=http.createServer((request,response)=>{
  const documentRequest=request.headers['sec-fetch-mode']==='navigate';
  const target=workerScript||documentRequest?upstream:affinity==='A'?a:affinity==='B'?b:upstream;
  // No request body, query, cookie, authorization header or field value is logged.
- if(['/sw.js','/build.js'].includes(url.pathname))requests.push({case:activeCase,t:Date.now(),path:url.pathname,build:target===a?'A':'B'});
+ if(['/sw.js','/build.js','/manifest.webmanifest'].includes(url.pathname))requests.push({case:activeCase,t:Date.now(),path:url.pathname,build:target===a?'A':'B',destination:request.headers['sec-fetch-dest']??null,mode:request.headers['sec-fetch-mode']??null});
  const headers={...request.headers,host:front.host};delete headers['accept-encoding'];
  const forwarded=http.request({hostname:target.hostname,port:target.port,path:request.url,method:request.method,headers},res=>{
+  if(['/build.js','/manifest.webmanifest'].includes(url.pathname))row?.events.push({kind:'public-response',t:Date.now(),path:url.pathname,upstream:target===a?'A':'B',status:res.statusCode,vary:res.headers.vary??null});
   const outgoing={...res.headers};if(documentRequest&&String(res.headers['content-type']).includes('text/html'))outgoing['set-cookie']=[...(Array.isArray(outgoing['set-cookie'])?outgoing['set-cookie']:outgoing['set-cookie']?[outgoing['set-cookie']]:[]),'__1310_build='+(target===a?'A':'B')+'; Path=/; HttpOnly; SameSite=Lax'];if(outgoing.location)outgoing.location=outgoing.location.replace(target.origin,front.origin);
   response.writeHead(res.statusCode,outgoing);res.pipe(response);
  });
@@ -94,6 +95,7 @@ async function activate(){
  await until(()=>row.diagnostics.some(e=>e.value==='waiting'&&e.t>=row.changedAt));
  await snapshot('update-waiting');
 }
+async function cacheState(){return page.evaluate(async()=>{const registration=await navigator.serviceWorker.getRegistration(),names=await caches.keys(),result={active:registration?.active?.state??null,controller:navigator.serviceWorker.controller?.state??null,shellPresent:names.includes('my-food-ai-shell-v4'),manifest:[]};const cache=await caches.open('my-food-ai-shell-v4');for(const key of await cache.keys()){if(new URL(key.url).pathname!=='/manifest.webmanifest')continue;const normal=await cache.match('/manifest.webmanifest'),exact=await cache.match(key),ignoreVary=await cache.match('/manifest.webmanifest',{ignoreVary:true});result.manifest.push({path:new URL(key.url).pathname,normal:!!normal,exact:!!exact,ignoreVary:!!ignoreVary,normalBuild:normal?.headers.get('x-mfa-update-build')??null,exactBuild:exact?.headers.get('x-mfa-update-build')??null,ignoreVaryBuild:ignoreVary?.headers.get('x-mfa-update-build')??null,vary:ignoreVary?.headers.get('vary')??null,requestHeaders:[...key.headers.keys()]});}return result;});}
 async function sheet(){
  row.action='open-saved-sheet';
  await page.locator('#post-menu-toggle:visible').first().tap();
@@ -115,14 +117,26 @@ async function captureCleanup(c){
 }
 try{
  for(const name of (process.env.ONLY_CASE??'M0,M1,M2,M3,M4,M5,M6').split(',')){
-  if(!/^M[0-6]$/.test(name))throw Error('Unknown case');
+  if(!/^M[0-6]$/.test(name)&&!['D2-WK','D2-AUTH'].includes(name))throw Error('Unknown case');
   activeCase=name;upstream=a;row={case:name,engine,startedAt:Date.now(),events:[],diagnostics:[],steps:[],safeMoments:[],visibility:'simulated event, not an OS background transition'};rows.push(row);deadline=Date.now()+120000;
   const dir=path.join(profileRoot,name);
   try{
-   context=await launch(dir);await instrument(context);if(!['M3','M4'].includes(name))await context.addCookies(cookies.map(cookie=>({name:cookie.name,value:cookie.value,url:front.origin,expires:Math.floor(Date.now()/1000)+3600})));
+   context=await launch(dir);await instrument(context);if(!['M3','M4','D2-WK','D2-AUTH'].includes(name))await context.addCookies(cookies.map(cookie=>({name:cookie.name,value:cookie.value,url:front.origin,expires:Math.floor(Date.now()/1000)+3600})));
    await context.addCookies([{name:'lang',value:'en',url:front.origin}]);page=await context.newPage();page.setDefaultTimeout(10000);page.on('pageerror',()=>{row.pageErrors=(row.pageErrors??0)+1;});
    const bounded=async()=>{
-    if(name==='M0'){
+    if(name==='D2-WK'){
+     await goto('/sign-in');await authFields(fixture.password);await controlled();await snapshot('initial-controlled');
+     row.cacheBefore=await cacheState();row.action='cause-only-real-update';upstream=b;row.changedAt=Date.now();
+     await page.evaluate(async()=>{const r=await navigator.serviceWorker.getRegistration();if(!r?.active)throw Error('Active worker required');window.__measure1310({kind:'pre-update-active',t:Date.now(),state:r.active.state});
+      const watch=w=>{if(!w)return;const emit=()=>window.__measure1310({kind:'worker-state',t:Date.now(),state:w.state});emit();w.addEventListener('statechange',emit);};r.addEventListener('updatefound',()=>watch(r.installing));navigator.serviceWorker.addEventListener('controllerchange',()=>window.__measure1310({kind:'controller-change',t:Date.now()}));await r.update();watch(r.installing);});
+     await until(()=>row.events.some(e=>e.kind==='worker-state'&&e.state==='activated'&&e.t>=row.changedAt));
+     await page.waitForTimeout(250);row.cacheAfter=await cacheState();await snapshot('after-activation');
+     row.workerReadyCount=row.events.filter(e=>e.kind==='worker-ready'&&e.t>=row.changedAt).length;
+    }else if(name==='D2-AUTH'){
+     await goto('/sign-in');await authFields(fixture.password);await controlled();await activate();await visibility();
+     row.pendingBeforeSuccess=!released()&&row.diagnostics.some(e=>e.value==='waiting');if(!row.pendingBeforeSuccess)throw Error('Pending update required before success');
+     row.safeMoments.push({name:'successful-sign-in',t:Date.now()});await page.getByRole('button',{name:'Sign in',exact:true}).click();await page.waitForURL(front.origin+'/');await snapshot('after-successful-sign-in');await visibility();row.releasedAfterSuccess=released();
+    }else if(name==='M0'){
      await goto('/');await hydrated('a[href="/search"]');await controlled();await snapshot('initial');const initialBoots=row.events.filter(e=>e.kind==='boot').length;upstream=b;row.changedAt=Date.now();
      for(let i=0;i<20;i++){row.safeMoments.push({name:'route',t:Date.now()});await nav(i%2?'/':'/search');}
      await visibility();row.openApp={documentBoots:row.events.filter(e=>e.kind==='boot').length-initialBoots,workerReady:row.events.filter(e=>e.kind==='worker-ready'&&e.t>=row.changedAt).length,workerRequests:requests.filter(e=>e.case===name&&e.t>=row.changedAt)};
