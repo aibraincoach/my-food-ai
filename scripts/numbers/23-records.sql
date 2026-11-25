@@ -38,7 +38,7 @@ select json_build_object(
   'record', f.source_ref, 'category', f.food_category,
   'how', coalesce((select m->'approximation'->>'kind' from jsonb_array_elements(f.micro) m
                    where m->'approximation'->>'kind' in ('closest', 'estimate') limit 1),
-                  case when f.source_ref ~ '^(barcode:|off:|label|user:)' then 'own' when f.source_ref ~ '^[1-9][0-9]*$' then 'match' else 'none' end),
+                  case when f.source_ref ~ '^(barcode(-own)?:|off:|label|user:)' then 'own' when f.source_ref ~ '^[1-9][0-9]*$' then 'match' else 'none' end),
   'description', coalesce((select m->'approximation'->>'basis' from jsonb_array_elements(f.micro) m where m->'approximation'->>'kind' = 'closest' limit 1), cf.description))
 from foods f left join cache_foods cf on cf.fdc_id = f.source_ref
 order by f.kind, f.user_id, f.meal_id, f.at;

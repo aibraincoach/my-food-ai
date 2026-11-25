@@ -19,5 +19,5 @@ export function scalePhotoDrink(drink:PhotoDrink,ml:number):PhotoDrink {
 export function photoDrinkProduct(drink:PhotoDrink):ResolvedProduct {
  const n=drink.nutrition;
  return {gtin:'',fdcId:Number(n.source_ref)||0,name:drink.name,brand:null,basisUnit:'ml',servingSize:drink.ml,servingSizeUnit:'ml',servingText:null,packageWeight:`${drink.ml} ml`,micronutrients:[],foodCategory:n.food_category,
- source:'own',per100g:Object.fromEntries(['calories','protein_g','carbs_g','fat_g','fibre_g','sugar_g','sodium_mg'].map(k=>[k,n[k as keyof DrinkNutrition]===null?null:Number(n[k as keyof DrinkNutrition])*100/drink.ml])) as unknown as ResolvedProduct['per100g']};
+ source:'own',nutritionSource:'base',per100g:Object.fromEntries(['calories','protein_g','carbs_g','fat_g','fibre_g','sugar_g','sodium_mg'].map(k=>[k,n[k as keyof DrinkNutrition]===null?null:Number(n[k as keyof DrinkNutrition])*100/drink.ml])) as unknown as ResolvedProduct['per100g']};
 }

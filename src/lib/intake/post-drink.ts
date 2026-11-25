@@ -26,7 +26,7 @@ export function parseDrinkInput(body: unknown): DrinkInput | null {
 export async function postDrink(admin: SupabaseClient, userId: string, input: DrinkInput, tz: string, operation:{id:string;key:string;eatenAt:string}): Promise<{ postId: string; drink: DrinkCardData | null }> {
   const eatenAt = operation.eatenAt;
   let nutrition: Record<string, unknown> = { calories: 0, protein_g: 0, carbs_g: 0, fat_g: 0, fibre_g: 0, sugar_g: 0, sodium_mg: 0,
-    micronutrients: [{ nutrientId: 1051, nutrientName: "Water", unitName: "G", value: input.ml, basis: "portion" }], source_ref: null };
+    micronutrients: [{ nutrientId: 1051, nutrientName: "Water", unitName: "G", value: input.ml, basis: "portion" }], source_ref: "user:drink-tile" };
   if (input.kind === "caffeine") {
     const source = input.label.startsWith("Coca-Cola")
       ? { query: "Beverages, carbonated, cola, regular", match: /carbonated.*cola.*regular/i }

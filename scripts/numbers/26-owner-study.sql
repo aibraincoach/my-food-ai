@@ -16,7 +16,7 @@ select json_build_object(
  'kcal_per_100g',case when f.grams>0 and f.calories is not null then round(f.calories/f.grams*100,1) end,
  'record',f.source_ref,'category',f.food_category,
  'how',coalesce((select m->'approximation'->>'kind' from jsonb_array_elements(f.micro)m where m->'approximation'->>'kind' in('closest','estimate') limit 1),
-                 case when f.source_ref~'^(barcode:|off:|label|user:)' then 'own' when f.source_ref~'^[1-9][0-9]*$' then 'match' else 'none' end),
+                 case when f.source_ref~'^(barcode(-own)?:|off:|label|user:)' then 'own' when f.source_ref~'^[1-9][0-9]*$' then 'match' else 'none' end),
  'description',coalesce((select m->'approximation'->>'basis' from jsonb_array_elements(f.micro)m where m->'approximation'->>'kind'='closest' limit 1),c.response->'payload'->>'description',c.response->>'description'),
  'not_eaten_g',f.not_eaten_grams,'not_eaten_kcal',f.not_eaten_calories,
  'evidence_rows',jsonb_build_array(jsonb_build_object('id','post_items:'||f.item_id::text,'kind','current','meal_id',f.meal_id,'item_id',f.item_id,

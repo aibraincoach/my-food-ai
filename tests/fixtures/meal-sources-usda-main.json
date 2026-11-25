@@ -1,0 +1,19 @@
+{
+  "main": "f93b2cb39d39d1c0744c82114d9be9dd87963419",
+  "items": [
+    {
+      "id": "usda",
+      "name": "Rice",
+      "calories": 100,
+      "protein_g": 2,
+      "carbs_g": 20,
+      "fat_g": 1,
+      "fibre_g": 1,
+      "sugar_g": 0,
+      "sodium_mg": 2,
+      "micronutrients": [],
+      "source_ref": "123"
+    }
+  ],
+  "html": "<section class=\"px-screen-x pt-grid\" aria-label=\"Consumed nutrition\"><table class=\"w-full border-collapse text-detail tabular-nums\"><caption class=\"sr-only\">Meal nutrition</caption><tbody><tr class=\"h-table-row border-b border-hairline font-medium text-text\"><th scope=\"row\" class=\"py-grid text-left\" style=\"font-weight:inherit\"><span>Calories</span></th><td class=\"whitespace-nowrap py-grid pl-grid text-right\">100 kcal</td></tr><tr class=\"h-table-row border-b border-hairline text-muted\"><th scope=\"row\" class=\"py-grid text-left\" style=\"font-weight:inherit\"><span>Protein</span></th><td class=\"whitespace-nowrap py-grid pl-grid text-right\">2 g</td></tr><tr class=\"h-table-row border-b border-hairline text-muted\"><th scope=\"row\" class=\"py-grid text-left\" style=\"font-weight:inherit\"><span>Carbs</span></th><td class=\"whitespace-nowrap py-grid pl-grid text-right\">20 g</td></tr><tr class=\"h-table-row border-b border-hairline text-muted\"><th scope=\"row\" class=\"py-grid text-left\" style=\"font-weight:inherit\"><span>Fat</span></th><td class=\"whitespace-nowrap py-grid pl-grid text-right\">1 g</td></tr><tr class=\"h-table-row border-b border-hairline text-muted\"><th scope=\"row\" class=\"py-grid text-left\" style=\"font-weight:inherit\"><span>Fibre</span></th><td class=\"whitespace-nowrap py-grid pl-grid text-right\">1 g</td></tr><tr class=\"h-table-row border-b border-hairline text-muted\"><th scope=\"row\" class=\"py-grid text-left\" style=\"font-weight:inherit\"><span>Sugar</span></th><td class=\"whitespace-nowrap py-grid pl-grid text-right\">0 g</td></tr><tr class=\"h-table-row border-b border-hairline text-muted\"><th scope=\"row\" class=\"py-grid text-left\" style=\"font-weight:inherit\"><span>Sodium</span></th><td class=\"whitespace-nowrap py-grid pl-grid text-right\">2 mg</td></tr></tbody></table><p class=\"pt-sheet-top text-label text-muted\">Values come from nutrition labels, food reference data, or labelled estimates.</p></section>"
+}

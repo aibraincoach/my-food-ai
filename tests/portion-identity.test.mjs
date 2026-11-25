@@ -25,3 +25,9 @@ test('exact identity endpoint validates response and never searches by name',asy
  await assert.rejects(getFoodById(admin({cache:false}),77),/invalid food detail/);
  }finally{globalThis.fetch=original;if(key===undefined)delete process.env.FDC_API_KEY;else process.env.FDC_API_KEY=key;}
 });
+
+for(const source_ref of ['barcode:123','barcode-own:123'])test(source_ref+' preserves values and provenance on a volume edit without a lookup',async()=>{
+ const row={post_item_id:'original',calories:100,protein_g:1,carbs_g:10,fat_g:2,fibre_g:null,sugar_g:null,sodium_mg:null,source_ref,micronutrients:[]};
+ const admin={from(table){assert.ok(['post_items','item_nutrition'].includes(table));const q={select(){return q;},eq(){return q;},async maybeSingle(){return {data:table==='post_items'?{name:'Drink',portion_grams:null,portion_text:'100 ml',supersedes:null}:row,error:null};}};return q;}};
+ const result=await resolvePortionNutrition(admin,'post','original','Drink',null,'200 ml');assert.equal(result.calories,200);assert.equal(result.source_ref,source_ref);
+});

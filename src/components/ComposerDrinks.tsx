@@ -5,7 +5,7 @@ import {CaptureFailureError,captureFailureText,failureFromResponse} from '@/lib/
 import {useTranslations,useLocale} from 'next-intl';
 import {useEffect,useRef,useState} from 'react';
 import CorrectProductSheet from './CorrectProductSheet';
-import type {BarcodeCorrection} from '@/lib/fdc/barcode-product';
+import type {DrinkCorrection} from '@/lib/intake/drink-correction';
 import {photoDrinkProduct,scalePhotoDrink,type PhotoDrinkReading} from '@/lib/intake/photo-drinks';
 import {uploadManager,type UploadState} from '@/lib/posts/upload-manager';
 import {formatCalories} from '@/lib/nutrition/totals';
@@ -64,7 +64,7 @@ export function useComposerDrinks(p:Props){
   }catch(failure){setError({identity,message:failure instanceof CaptureFailureError ? captureFailureText(failure.failure,tf)! : failure instanceof DisplayError ? failure.message:t('drinksPostFailed')});}finally{queueing.current=false;setSaving(false);}
  }
  const correction=all.find(r=>r.key===correcting);
- async function saveCorrection(value:BarcodeCorrection){
+ async function saveCorrection(value:DrinkCorrection){
   if(!correction)return;
   const response=await fetch('/api/drinks/identify',{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({reading_id:readingAt(correction.position).id,index:correction.index,correction:value})});
   const result=await response.json();if(!response.ok)throw new CaptureFailureError(failureFromResponse(result));

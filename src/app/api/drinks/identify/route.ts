@@ -5,6 +5,7 @@ import {createAdminClient} from '@/lib/supabase/admin';
 import {capUser} from '@/lib/limits/user-cap';
 import {isUuid} from '@/lib/posts/items';
 import {identifyDrinks} from '@/lib/intake/identify-drinks';
+import {correctedPhotoDrink} from '@/lib/intake/drink-correction';
 import {traceContext} from '@/lib/trace/context';
 export const maxDuration=300;
 export async function POST(request:Request){
@@ -60,13 +61,8 @@ export async function PATCH(request:Request){
  if(!draft||draft.published)return NextResponse.json({message_code: "route_ffe96d63b81f"},{status:409});
  const expected=reading.drinks;
  const drinks=structuredClone(reading.drinks) as import('@/lib/intake/photo-drinks').PhotoDrink[];
- const previous=drinks[body.index],ml=Math.round(correction.pack_amount),ratio=ml/previous.ml;
- const nutrition={...previous.nutrition,source_ref:`user:photo-drink:${reading.id}`};
- for(const key of ['calories','protein_g','carbs_g','fat_g','fibre_g','sugar_g','sodium_mg'] as const)nutrition[key]=correction.per_100[key]===null?null:correction.per_100[key]*ml/100;
- nutrition.micronutrients=nutrition.micronutrients.map(n=>({...n,value:n.value===null?null:Number(n.value)*ratio}));
- const caffeineMg=previous.caffeineMg===null?null:previous.caffeineMg*ratio;
- if(caffeineMg!==null&&caffeineMg>1000)return NextResponse.json({message_code: "route_539a7f77b41d"},{status:400});
- drinks[body.index]={...previous,name:correction.name.trim(),ml,grams:previous.grams===null?null:previous.grams*ratio,caffeineMg,kcal:nutrition.calories,nutrition};
+ try{drinks[body.index]=correctedPhotoDrink(drinks[body.index],correction,reading.id);}
+ catch{return NextResponse.json({message_code: "route_5fa4e89696f8"},{status:400});}
  const {error}=await admin.rpc('correct_composer_drinks',{p_reading_id:reading.id,p_user_id:user.id,p_expected:expected,p_drinks:drinks});
  if(error)return NextResponse.json({message_code: "route_a3e13a2f5f70"},{status:['40001','PT409'].includes(error.code)?409:503});
  return NextResponse.json({id:reading.id,position:reading.position,drinks,allDrinks:reading.all_drinks});

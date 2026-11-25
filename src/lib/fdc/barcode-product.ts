@@ -76,7 +76,7 @@ export function barcodeNutrition(product: BarcodeProduct, amount: number) {
   return {
     ...Object.fromEntries(Object.entries(product.per100g).map(([key, value]) => [key, value === null ? null : value * factor])),
     micronutrients: product.micronutrients.map((n) => ({ ...n, value: n.value * factor })),
-    source_ref: "source" in product && product.source === "own" ? `barcode:${product.gtin}` : product.attribution === "off" ? `off:${product.gtin}` : String(product.fdcId),
+    source_ref: "nutritionSource" in product && product.nutritionSource === "own" ? `barcode-own:${product.gtin}` : product.attribution === "off" ? `off:${product.gtin}` : String(product.fdcId),
     portion_unit: product.basisUnit,
     food_category: product.foodCategory ?? null,
   };
@@ -87,7 +87,7 @@ export interface BarcodeCorrection {
   serving_amount?: number | null; serving_unit?: "g" | "ml" | null;
   per_100?: BarcodeNutrition | null; source?: "user" | "label";
 }
-export type ResolvedProduct = BarcodeProduct & { source: "database" | "own" | "shared"; originalName?: string };
+export type ResolvedProduct = BarcodeProduct & { source: "database" | "own" | "shared"; nutritionSource: "own" | "base"; originalName?: string };
 
 // Zero is a valid label value; an empty object or null-only nutrition is not.
 export function usableBarcodeNutrition(nutrition: BarcodeNutrition | null | undefined): boolean {
@@ -105,7 +105,7 @@ export function mergeProduct(gtin: string, base: BarcodeProduct | null, own: Bar
   if (!base && !(usableBarcodeNutrition(own?.per_100) && own?.name && own.serving_unit)) return null;
   const original = base ?? { fdcId: 0, gtin, name: "Packaged food", brand: null, basisUnit: own?.serving_unit ?? "g", servingSize: null,
     servingSizeUnit: null, servingText: null, packageWeight: null, micronutrients: [], per100g: own!.per_100! };
-  return { ...original, source: own ? "own" : sharedName ? "shared" : "database", originalName: original.name,
+  return { ...original, nutritionSource: usableBarcodeNutrition(own?.per_100) ? "own" : "base", source: own ? "own" : sharedName ? "shared" : "database", originalName: original.name,
     name: own?.name ?? sharedName ?? original.name,
     ...(usableBarcodeNutrition(own?.per_100) ? { per100g: own!.per_100!, micronutrients: [], basisUnit: own!.serving_unit ?? original.basisUnit } : {}),
     ...(own?.serving_amount ? { servingSize: Number(own.serving_amount), servingSizeUnit: own.serving_unit ?? original.basisUnit } : {}),
