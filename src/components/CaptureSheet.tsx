@@ -426,7 +426,7 @@ export default function CaptureSheet({ onClose, initialMode = "photo", forPost, 
   };
   const addFiles = async (files: FileList | File[] | null) => {
     if (!files || postingRef.current) return;
-    if (Array.from(files).length) { selectedPhotoRef.current = true; window.dispatchEvent(new Event("capture-shot")); }
+    if (Array.from(files).length) selectedPhotoRef.current = true;
     const chosen = Array.from(files).slice(0, Math.max(0, (forPost?1:MAX_SHOTS) - shotsRef.current.length - pendingFilesRef.current.length));
     const pick: BarcodePick = {remaining: chosen.length, found: false, files: chosen};
     pendingFilesRef.current.push(...chosen.map(file => ({file, barcode: mode === "barcode", pick})));

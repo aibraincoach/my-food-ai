@@ -43,9 +43,15 @@ export default function FirstRunHint({ hint, onTryBarcode, onVisibilityChange }:
       if (!identity || dismissed) return;
       dismissed = true;
       setVisible(false);
-      void hintState?.then(state => { if (state && identity === `${state.userId}:${hint}` && !state.seen.includes(hint)) state.seen.push(hint); });
-      // Keep the session claim while retrying a transient action failure.
-      void dismissHint(hint).catch(() => dismissHint(hint)).catch(() => {});
+      const key = identity, stateAtDismiss = hintState;
+      void stateAtDismiss?.then(state => { if (state && key === `${state.userId}:${hint}` && !state.seen.includes(hint)) state.seen.push(hint); });
+      // One best-effort preference save, no silent retry or error toast. A failed
+      // save releases the local claim so the tip may return on a later open.
+      void dismissHint(hint).catch(async () => {
+        claimed.delete(key);
+        const state = await stateAtDismiss;
+        if (state && key === `${state.userId}:${hint}`) state.seen = state.seen.filter(value => value !== hint);
+      });
     };
     dismiss.current = hide;
     void loadHintState().then((state) => {
@@ -53,18 +59,18 @@ export default function FirstRunHint({ hint, onTryBarcode, onVisibilityChange }:
       const key = `${state.userId}:${hint}`;
       if (claimed.has(key)) return;
       claimed.add(key); identity = key; setVisible(true);
-      if (hint === "modes") window.addEventListener("capture-shot", hide);
-      else {
+      if (hint !== "modes") {
         document.addEventListener("click", hide, true);
         document.addEventListener("keydown", hide, true);
       }
     }).catch(() => {});
     return () => {
       live = false;
-      window.removeEventListener("capture-shot", hide);
       document.removeEventListener("click", hide, true);
       document.removeEventListener("keydown", hide, true);
-      // A disappearing host before dismissal may present the hint next time.
+      // Leaving the camera counts only after the modes tip claimed a visible slot.
+      if (hint === "modes") hide();
+      // Other undismissed hints may still appear on their next host.
       if (identity && !dismissed) claimed.delete(identity);
     };
   }, [hint]);
