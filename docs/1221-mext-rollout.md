@@ -35,6 +35,9 @@ preferred row or translating the source. The official English name shared by
 10346 (boiled squid) and 10347 (baked squid) is a source defect; both are excluded
 as english_name_ambiguous. The scan of all 1,987 previously joined rows found
 one duplicate-name group (these two rows), with no other duplicates.
+Their exclusion can leave raw squid among retrieved candidates. The later app
+packet must prove that the unchanged compatibility gates reject a raw/baked
+mismatch; candidate order is never permission to substitute the raw food.
 
 Full source result: 2,538 records, 1,985 joined, 227 identity_changed,
 324 no_english, 2 english_name_ambiguous, zero group_mismatch. Excluded records retain their current facts
@@ -91,7 +94,8 @@ transaction, with 1s lock and 5s statement limits, and upserts only unequal reco
 hashes. An unchanged re-import preserves data and import timestamps. No deletes
 are issued. The SQL file contains public reference data, never credentials.
 
-The DB test starts its own isolated loopback PostgreSQL 17 using the standard
+The DB test starts its own isolated loopback PostgreSQL 17 with explicit
+C.UTF-8/UTF8 (a C-locale database cannot build Japanese trigrams), using the standard
 installation at /usr/pgsql-17/bin, with no environment/production URL loading.
 It checks RLS/grants, trigram retrieval, excluded rows, repeat imports and rollback
 guards, then stops and removes its database. Full stack reset through 0085 is a
@@ -108,12 +112,34 @@ database owner/import operator writes. pg_trgm may already exist and is retained
 Read back schema, RLS, grants and function definition. A failure rolls back and
 requires a fresh PM order; no automatic retry.
 
-Import only the locally checked, hash-pinned SQL by the separate night-time order.
+Import only the locally checked, hash-pinned SQL by the separate night-time order,
+using the direct database connection named in that order (not a pooled endpoint;
+the prepared import is one approximately 16.9 MB statement).
 Read back the ordered count and acceptance records once. The app matcher PR waits
 for schema/import read-back and its own exact-head release order. Its gates must
 remain unchanged and use only joined English identities plus food group.
 The retrieval function's trigram word threshold is 0.4 for candidate discovery;
-it is not an identity or compatibility acceptance threshold.
+it is not an identity or compatibility acceptance threshold. Japanese-only tests
+use English input `zzzz qqqq` to prevent the English arm from satisfying them.
+Against the complete 2,538-row import in C.UTF-8, 精白米 finds 01088; ばら finds
+11129, 11153 and 11277; しろさけ finds 10134–10136. Colloquial 白飯 alone finds
+nothing; the English arm still supports the declared bilingual retrieval. In a
+paired C-locale cluster the same Japanese queries find nothing.
+
+The once-ordered apply read-back also records the actual database character
+classification and encoding once:
+
+```sql
+select datctype as lc_ctype, datlocprovider,
+       pg_encoding_to_char(encoding) as encoding
+from pg_database where datname = current_database();
+```
+
+`SHOW lc_ctype` is not a supported setting in PostgreSQL 17; the catalog is the
+read-back source. The local test proves C.UTF-8 behavior, not the current
+production locale. If the recorded production setting differs, hold and report
+before assuming Japanese retrieval works there. No production read is performed
+by these local tests.
 
 Before any app has emitted mext: refs, the reviewed rollback drops the search
 function and reference table while retaining shared pg_trgm. It refuses when

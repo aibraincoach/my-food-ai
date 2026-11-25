@@ -23,7 +23,7 @@ const prepared=importSql(importRows(fixture,{}));
 before(async()=>{
   const server=net.createServer();await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));
   port=server.address().port;await new Promise(resolve=>server.close(resolve));
-  run(path.join(pgBin,'initdb'),['-D',path.join(root,'pg'),'-U','postgres','-A','trust','--no-locale']);
+  run(path.join(pgBin,'initdb'),['-D',path.join(root,'pg'),'-U','postgres','-A','trust','--locale=C.UTF-8','--encoding=UTF8']);
   run(path.join(pgBin,'pg_ctl'),['-D',path.join(root,'pg'),'-l',path.join(root,'postgres.log'),'-o',`-p ${port} -h 127.0.0.1 -k ${root}`,'start']);started=true;
   sql('create role anon nologin;create role authenticated nologin;create role service_role nologin bypassrls;grant usage on schema public to anon,authenticated,service_role;create table item_nutrition(source_ref text);create table saved_meals(items jsonb);');
   sql(migration);sql(prepared);
@@ -55,6 +55,19 @@ test('trigram candidates include the seven acceptance records and exclude reject
   }
   assert.equal(sql("select count(*) from search_mext_foods('押麦','Barley') where identity_status<>'joined'"),'0');
   assert.equal(sql("select count(*) from search_mext_foods('','')"),'0');
+});
+
+test('Japanese retrieval alone finds the acceptance foods under the database ctype',()=>{
+  const receipt={lc_ctype:sql('select datctype from pg_database where datname=current_database()'),japanese_trigrams:sql("select cardinality(show_trgm('精白米'))"),searches:[]};
+  assert.equal(receipt.lc_ctype,'C.UTF-8');
+  for(const [term,expected] of [['精白米',['01088']],['ばら',['11129','11277','11153']],['しろさけ',['10134','10135','10136']]]) {
+    const found=sql(`select food_number from search_mext_foods('${term}','zzzz qqqq')`).split('\n').filter(Boolean);
+    receipt.searches.push({term,found});
+    for(const id of expected) assert.ok(found.includes(id),`Japanese-only ${term} must find ${id}; ctype=${receipt.lc_ctype}`);
+  }
+  receipt.hakuhan=sql("select food_number from search_mext_foods('白飯','zzzz qqqq')").split('\n').filter(Boolean);
+  console.info('Japanese-only retrieval:',JSON.stringify(receipt));
+  assert.ok(Number(receipt.japanese_trigrams)>0);
 });
 
 test('re-import leaves both stored values and import timestamps unchanged',()=>{
