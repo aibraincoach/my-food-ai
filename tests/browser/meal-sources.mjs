@@ -9,7 +9,7 @@ const result={engine,cases:[],pageErrors:[],limit:'NutritionTable component SSR 
 try{
  const context=await browser.newContext({viewport:{width:390,height:844}}),page=await context.newPage();
  page.on('pageerror',e=>result.pageErrors.push(e.message));
- for(const locale of ['en','ja'])for(const name of ['usda','mixed','personal','water','old','mext']){
+ for(const locale of ['en','ja'])for(const name of ['usda','mixed','personal','water','old','mext','bareLabel','photoWater']){
   await page.goto(origin+'/'+locale+'/'+name,{waitUntil:'load'});
   const table=page.getByRole('table');assert.equal(await table.count(),1);
   const source=page.locator('[data-meal-sources]'),text=await source.innerText();assert.ok(text.trim());

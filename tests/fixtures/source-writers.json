@@ -1,0 +1,430 @@
+{
+  "forms": [
+    {
+      "form": "USDA integer",
+      "ref": "173227",
+      "key": "sourceUsda"
+    },
+    {
+      "form": "USDA blend zero",
+      "ref": "0",
+      "key": "sourceUsda"
+    },
+    {
+      "form": "estimate without a tag",
+      "ref": "estimate:recipe",
+      "key": "sourceEstimate"
+    },
+    {
+      "form": "OFF",
+      "ref": "off:123",
+      "key": "sourceOff"
+    },
+    {
+      "form": "new saved values",
+      "ref": "barcode-own:123",
+      "key": "sourceSaved"
+    },
+    {
+      "form": "old barcode read only",
+      "ref": "barcode:123",
+      "key": "sourceUnrecorded"
+    },
+    {
+      "form": "label reading",
+      "ref": "label:reading",
+      "key": "sourceLabel"
+    },
+    {
+      "form": "bare label",
+      "ref": "label",
+      "key": "sourceLabel"
+    },
+    {
+      "form": "new drink correction",
+      "ref": "user:drink-correction:reading",
+      "key": "sourceEntered"
+    },
+    {
+      "form": "old photo-drink read only",
+      "ref": "user:photo-drink:reading",
+      "key": "sourcePartial"
+    },
+    {
+      "form": "water tile",
+      "ref": "user:drink-tile",
+      "key": "sourceAmount"
+    },
+    {
+      "form": "photo-drink volume",
+      "ref": "user:drink-volume",
+      "key": "sourceAmount"
+    },
+    {
+      "form": "not food",
+      "ref": "unavailable:not_food:x",
+      "key": null
+    },
+    {
+      "form": "no match",
+      "ref": "unavailable:no_match:x",
+      "key": null
+    },
+    {
+      "form": "no estimate",
+      "ref": "unavailable:no_estimate:x",
+      "key": null
+    },
+    {
+      "form": "held MEXT",
+      "ref": "mext:01088",
+      "key": "sourceMext"
+    },
+    {
+      "form": "old null read only",
+      "ref": null,
+      "key": "sourceUnrecorded"
+    }
+  ],
+  "inventory": {
+    "assignments": [
+      {
+        "file": "src/app/api/posts/food/route.ts",
+        "kind": "property",
+        "expression": "`label:${body.label_reading_id}`"
+      },
+      {
+        "file": "src/app/api/posts/food/route.ts",
+        "kind": "property",
+        "expression": "n.sourceRef"
+      },
+      {
+        "file": "src/components/NutritionTable.tsx",
+        "kind": "property",
+        "expression": "item.source_ref"
+      },
+      {
+        "file": "src/lib/fdc/barcode-product.ts",
+        "kind": "property",
+        "expression": "\"nutritionSource\" in product && product.nutritionSource === \"own\" ? `barcode-own:${product.gtin}` : product.attribution === \"off\" ? `off:${product.gtin}` : String(product.fdcId)"
+      },
+      {
+        "file": "src/lib/fdc/match.ts",
+        "kind": "property",
+        "expression": "n.source_ref??null"
+      },
+      {
+        "file": "src/lib/fdc/nutrients.ts",
+        "kind": "property",
+        "expression": "unavailableRef(unavailable)"
+      },
+      {
+        "file": "src/lib/fdc/nutrients.ts",
+        "kind": "variable",
+        "expression": "food.approximation?.kind === \"estimate\" ? `estimate:${food.approximation.basis}` : String(food.fdcId)"
+      },
+      {
+        "file": "src/lib/fdc/nutrients.ts",
+        "kind": "shorthand",
+        "expression": "sourceRef"
+      },
+      {
+        "file": "src/lib/fdc/nutrients.ts",
+        "kind": "shorthand",
+        "expression": "sourceRef"
+      },
+      {
+        "file": "src/lib/fdc/nutrients.ts",
+        "kind": "shorthand",
+        "expression": "sourceRef"
+      },
+      {
+        "file": "src/lib/intake/drink-correction.ts",
+        "kind": "property",
+        "expression": "`user:drink-correction:${readingId}`"
+      },
+      {
+        "file": "src/lib/intake/identify-drinks.ts",
+        "kind": "property",
+        "expression": "'user:drink-volume'"
+      },
+      {
+        "file": "src/lib/intake/identify-drinks.ts",
+        "kind": "property",
+        "expression": "scaled!.sourceRef"
+      },
+      {
+        "file": "src/lib/intake/post-drink.ts",
+        "kind": "property",
+        "expression": "\"user:drink-tile\""
+      },
+      {
+        "file": "src/lib/intake/post-drink.ts",
+        "kind": "property",
+        "expression": "n.sourceRef"
+      },
+      {
+        "file": "src/lib/meta/label.ts",
+        "kind": "property",
+        "expression": "\"label\""
+      },
+      {
+        "file": "src/lib/nutrition/portion.ts",
+        "kind": "property",
+        "expression": "n.sourceRef"
+      },
+      {
+        "file": "src/lib/nutrition/totals.ts",
+        "kind": "property",
+        "expression": "normalized?.source_ref ?? null"
+      },
+      {
+        "file": "src/lib/nutrition/totals.ts",
+        "kind": "property",
+        "expression": "normalized?.source_ref ?? null"
+      },
+      {
+        "file": "src/lib/pipeline/card-data.ts",
+        "kind": "property",
+        "expression": "item.source_ref"
+      },
+      {
+        "file": "src/lib/pipeline/leftovers.ts",
+        "kind": "property",
+        "expression": "item.source_ref"
+      },
+      {
+        "file": "src/lib/pipeline/persist.ts",
+        "kind": "property",
+        "expression": "scaled.sourceRef"
+      },
+      {
+        "file": "src/lib/pipeline/persist.ts",
+        "kind": "property",
+        "expression": "item.nutrition.source_ref"
+      },
+      {
+        "file": "src/lib/posts/items.ts",
+        "kind": "property",
+        "expression": "n.sourceRef"
+      },
+      {
+        "file": "src/lib/worker/jobs/correct.ts",
+        "kind": "property",
+        "expression": "row.nutrition.source_ref"
+      },
+      {
+        "file": "src/lib/worker/jobs/correct.ts",
+        "kind": "property",
+        "expression": "old.source_ref"
+      },
+      {
+        "file": "src/lib/worker/jobs/correct.ts",
+        "kind": "property",
+        "expression": "n.sourceRef"
+      },
+      {
+        "file": "src/lib/worker/jobs/recompute.ts",
+        "kind": "property",
+        "expression": "n.sourceRef"
+      },
+      {
+        "file": "src/lib/worker/jobs/recompute.ts",
+        "kind": "property",
+        "expression": "item.source_ref"
+      },
+      {
+        "file": "src/lib/worker/jobs/recompute.ts",
+        "kind": "property",
+        "expression": "item.source_ref"
+      },
+      {
+        "file": "src/lib/worker/jobs/recompute.ts",
+        "kind": "property",
+        "expression": "row.nutrition.source_ref??null"
+      }
+    ],
+    "sql": [
+      {
+        "file": "supabase/migrations/0001_init.sql",
+        "sourceRefLines": 1,
+        "sha256": "7e2a2f8b706a753c327ac81d6351b286e6df95845b746279d46eb726de6951dd"
+      },
+      {
+        "file": "supabase/migrations/0004_persist_analysis.sql",
+        "sourceRefLines": 2,
+        "sha256": "0259958f88253715930a9b83efa5ccfaf8d4b201b905fb687570be10193dee9b"
+      },
+      {
+        "file": "supabase/migrations/0007_post_items_supersede.sql",
+        "sourceRefLines": 2,
+        "sha256": "50a52ce5d55a85c20917855eada68b0f3f6d6bc9e162443c1fd5bc3a372c215c"
+      },
+      {
+        "file": "supabase/migrations/0007b_comment_corrections.sql",
+        "sourceRefLines": 2,
+        "sha256": "c7290a5b196fd3ec64928f1c78c59e40bfbb419fd3cc5b6bdde8b17a5d1b6b5c"
+      },
+      {
+        "file": "supabase/migrations/0018_food_posts.sql",
+        "sourceRefLines": 2,
+        "sha256": "69eb44b64a89786a2301b11b1686900c133c495b545ed53d79aac3cc41ff30d2"
+      },
+      {
+        "file": "supabase/migrations/0020_food_post_photo.sql",
+        "sourceRefLines": 2,
+        "sha256": "69eb44b64a89786a2301b11b1686900c133c495b545ed53d79aac3cc41ff30d2"
+      },
+      {
+        "file": "supabase/migrations/0025_barcode_corrections.sql",
+        "sourceRefLines": 3,
+        "sha256": "7c7c0d9e1ca55fe2e9d0f61d2dec47de3ec5fa0b742255e4d998746a3b147963"
+      },
+      {
+        "file": "supabase/migrations/0026_saved_meals.sql",
+        "sourceRefLines": 4,
+        "sha256": "e72d698e659e357d1d3cab90b13c38249465f036b569d12652db153c4a7adb4c"
+      },
+      {
+        "file": "supabase/migrations/0027_not_eaten.sql",
+        "sourceRefLines": 3,
+        "sha256": "cc52508642b48043494299cc0bf7c154436c180a1760c46299904823b89b930d"
+      },
+      {
+        "file": "supabase/migrations/0028_multiple_leftovers.sql",
+        "sourceRefLines": 2,
+        "sha256": "413f83b787521f602905d1958be914d6406780d10f3035965e8594fcc80625ba"
+      },
+      {
+        "file": "supabase/migrations/0029_drinks_from_items.sql",
+        "sourceRefLines": 17,
+        "sha256": "6bd63edaace15833327ec355e4049d23d87bdc7aaee28dcf5df9dccdf6d70d83"
+      },
+      {
+        "file": "supabase/migrations/0041_saved_drink_snapshots.sql",
+        "sourceRefLines": 4,
+        "sha256": "c9e5d34a89b4400858f3459c503985ad48d5cc20cde6784e7caf7ab05665fa26"
+      },
+      {
+        "file": "supabase/migrations/0051_approximation_summary.sql",
+        "sourceRefLines": 1,
+        "sha256": "05411988ed15a44a5374465013fb63196cdd7feae339195ce8074e8f58e0716f"
+      },
+      {
+        "file": "supabase/migrations/0052_estimate_summary.sql",
+        "sourceRefLines": 1,
+        "sha256": "05411988ed15a44a5374465013fb63196cdd7feae339195ce8074e8f58e0716f"
+      },
+      {
+        "file": "supabase/migrations/0054_unavailable_summary.sql",
+        "sourceRefLines": 1,
+        "sha256": "05411988ed15a44a5374465013fb63196cdd7feae339195ce8074e8f58e0716f"
+      },
+      {
+        "file": "supabase/migrations/0060_label_serving_unit.sql",
+        "sourceRefLines": 4,
+        "sha256": "b89ccc0f52af5730a23c12f5870510774f231a66d115c4ca4bc8a036b978e1c9"
+      },
+      {
+        "file": "supabase/migrations/0065_operator_revision.sql",
+        "sourceRefLines": 1,
+        "sha256": "05411988ed15a44a5374465013fb63196cdd7feae339195ce8074e8f58e0716f"
+      },
+      {
+        "file": "supabase/migrations/0066_summary_without_comment.sql",
+        "sourceRefLines": 1,
+        "sha256": "05411988ed15a44a5374465013fb63196cdd7feae339195ce8074e8f58e0716f"
+      },
+      {
+        "file": "supabase/migrations/0071_job_retention.sql",
+        "sourceRefLines": 4,
+        "sha256": "b89ccc0f52af5730a23c12f5870510774f231a66d115c4ca4bc8a036b978e1c9"
+      },
+      {
+        "file": "supabase/migrations/0072_trace_retention.sql",
+        "sourceRefLines": 2,
+        "sha256": "71c9e5b7d0493614918a961f02e4495bec7353d5d3a044c5149ccc7bce18902f"
+      },
+      {
+        "file": "supabase/migrations/0075_food_post_gtin.sql",
+        "sourceRefLines": 2,
+        "sha256": "2b7b6f2bfc596f81ea95e321c56c831b461c23f165d978f4e15fb396896ecb8c"
+      },
+      {
+        "file": "supabase/migrations/0076_summary_gap_refresh.sql",
+        "sourceRefLines": 1,
+        "sha256": "05411988ed15a44a5374465013fb63196cdd7feae339195ce8074e8f58e0716f"
+      },
+      {
+        "file": "supabase/migrations/0084_structured_comment_messages.sql",
+        "sourceRefLines": 11,
+        "sha256": "37a703763d703c5361475bf1a4de7bacd2ed6dbb8ce17276010ae179becdf5e8"
+      },
+      {
+        "file": "supabase/migrations/0086_mext_trace_reference.sql",
+        "sourceRefLines": 2,
+        "sha256": "b9c51fc225dab0572c56044596edb22ad980b160ec055e389f21ea7e4641e2cc"
+      },
+      {
+        "file": "scripts/numbers/02-inventory.sql",
+        "sourceRefLines": 14,
+        "sha256": "ad7a619777562a48d90b1cac6093acc296bd8f858069e1e7f78944fbed7f49ff"
+      },
+      {
+        "file": "scripts/numbers/03-suspicious.sql",
+        "sourceRefLines": 4,
+        "sha256": "ed09d2cfd3729f2e9298d09bce0541890b13722b327387f44b2ba6af31c88b33"
+      },
+      {
+        "file": "scripts/numbers/04-summary.sql",
+        "sourceRefLines": 4,
+        "sha256": "ed09d2cfd3729f2e9298d09bce0541890b13722b327387f44b2ba6af31c88b33"
+      },
+      {
+        "file": "scripts/numbers/06-seafood.sql",
+        "sourceRefLines": 10,
+        "sha256": "c9d8bd704cfabece24f3c9727c05a205d13ed9f6581ebeec2147965cd6627345"
+      },
+      {
+        "file": "scripts/numbers/07-four-meals.sql",
+        "sourceRefLines": 1,
+        "sha256": "a26a732d4479db856088d09fda974402d605b58af17769b6c097faa77fa9d691"
+      },
+      {
+        "file": "scripts/numbers/11-rematch.sql",
+        "sourceRefLines": 1,
+        "sha256": "48b4984b73447208ef46dc7ae460bb4d9e46e6cd6eaa3f4e2d9d5b6310fcb456"
+      },
+      {
+        "file": "scripts/numbers/14-rule-failures.sql",
+        "sourceRefLines": 3,
+        "sha256": "7a93cf9f9983dd08fe1947cc878952b423dfe04719e77b37567e3a3538a62f9a"
+      },
+      {
+        "file": "scripts/numbers/15-repair-undo.sql",
+        "sourceRefLines": 1,
+        "sha256": "c247b8677019fd0a9ba77fa7541482132f77d92d675e638b380e5ed6d27cf8aa"
+      },
+      {
+        "file": "scripts/numbers/22-items.sql",
+        "sourceRefLines": 4,
+        "sha256": "492def8fa3b051ead9a9169864d6bebc7a07c530ebb966cf1def9df3c1703548"
+      },
+      {
+        "file": "scripts/numbers/23-records.sql",
+        "sourceRefLines": 6,
+        "sha256": "66f3bb27a79369410cc2b30924e2e006b578dbc6e3beb18f6eceb1cc0e258e22"
+      },
+      {
+        "file": "scripts/numbers/26-owner-study.sql",
+        "sourceRefLines": 5,
+        "sha256": "0a235282bd1efcf7b88480063663dbbe4cfe12276562a6bd719ddfd48debb983"
+      },
+      {
+        "file": "scripts/numbers/27-set-record.sql",
+        "sourceRefLines": 2,
+        "sha256": "48a90eb48f4bf96852337d872cc7da5e8ae6ae03b733355fa19a99a0c2a4b3fc"
+      }
+    ]
+  }
+}

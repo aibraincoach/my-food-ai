@@ -11,11 +11,11 @@ test('only recorded suppliers appear, once in fixed order; copies preserve the l
  assert.deepEqual(mealSources([item('7','A'),item('7','A')]),[{kind:'usda',foods:['A']}]);
 });
 test('new corrections, old mixed corrections, water and old unrecorded rows remain distinct',()=>{
- for(const [ref,kinds] of [['barcode-own:123',['saved']],['barcode:123',['unrecorded']],['label:reading',['label']],['mext:01088',['mext']],['user:drink-tile',['amount']],['user:drink-correction:reading',['entered']],['user:photo-drink:reading',['entered','partial']],[null,['unrecorded']]]){
+ for(const [ref,kinds] of [['barcode-own:123',['saved']],['barcode:123',['unrecorded']],['label:reading',['label']],['label',['label']],['user:drink-volume',['amount']],['mext:01088',['mext']],['user:drink-tile',['amount']],['user:drink-correction:reading',['entered']],['user:photo-drink:reading',['entered','partial']],[null,['unrecorded']]]){
   assert.deepEqual(mealSources([item(ref,'Food')]).map(s=>s.kind),kinds);
  }
  assert.throws(()=>mealSources([item('guess:usda','USDA food')]));
- assert.throws(()=>mealSources([item('estimate:recipe','Soup')]));
+ assert.equal(mealSources([item('estimate:recipe','Soup')])[0].kind,'estimate');
  assert.deepEqual(mealSources([item('0','USDA blend')]),[{kind:'usda',foods:['USDA blend']}]);
 });
 test('name-only barcode corrections retain the actual USDA or OFF supplier; saved nutrients use the new ref',()=>{

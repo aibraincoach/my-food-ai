@@ -30,7 +30,7 @@ export interface ScaledNutrition {
   sugarG: number | null;
   sodiumMg: number | null;
   micronutrients: unknown[];
-  sourceRef: string | null;
+  sourceRef: string;
   foodCategory?: string | null;
 }
 
@@ -143,6 +143,7 @@ export function scaleNutrition(
   portionUnit: "g" | "ml" = "g"
 ): ScaledNutrition {
   if (!food) {
+    if (!unavailable) throw new Error("An unavailable nutrition reason is required.");
     return {
       calories: null,
       proteinG: null,
@@ -152,7 +153,7 @@ export function scaleNutrition(
       sugarG: null,
       sodiumMg: null,
       micronutrients: [],
-      sourceRef: unavailable ? unavailableRef(unavailable) : null,
+      sourceRef: unavailableRef(unavailable),
       foodCategory: null,
     };
   }

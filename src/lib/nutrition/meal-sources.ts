@@ -1,4 +1,3 @@
-import {foodApproximation} from '@/lib/fdc/approximation-metadata';
 
 export const MEAL_SOURCE_KINDS = ['usda','off','saved','label','estimate','mext','entered','amount','unrecorded','partial'] as const;
 export type MealSourceKind = typeof MEAL_SOURCE_KINDS[number];
@@ -17,10 +16,10 @@ export function mealSources(items:readonly SourceItem[]):MealSource[] {
   else if(/^off:.+/.test(ref))kind='off';
   else if(/^barcode-own:.+/.test(ref))kind='saved';
   else if(/^barcode:.+/.test(ref))kind='unrecorded';
-  else if(/^label:.+/.test(ref))kind='label';
-  else if(/^estimate:.+/.test(ref)&&foodApproximation(item)?.kind==='estimate')kind='estimate';
+  else if(ref==='label'||/^label:.+/.test(ref))kind='label';
+  else if(/^estimate:.+/.test(ref))kind='estimate';
   else if(/^mext:[0-9]{5}$/.test(ref))kind='mext';
-  else if(ref==='user:drink-tile')kind='amount';
+  else if(ref==='user:drink-tile'||ref==='user:drink-volume')kind='amount';
   else if(/^user:drink-correction:.+/.test(ref))kind='entered';
   else if(/^user:photo-drink:.+/.test(ref)){add('entered',item.name);add('partial',item.name);continue;}
   else if(ref.startsWith('unavailable:'))continue;

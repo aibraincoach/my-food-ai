@@ -75,3 +75,52 @@ output and built CSS at 390px in Chromium and WebKit, including accessibility
 snapshots; it is component evidence, not an authenticated full-app journey or a
 real phone. The correction sheet's state is verified separately in both locales,
 and the PATCH and publication checks use an owned disposable database.
+
+## Complete source-reference writer audit (S10)
+
+The reviewed search covers all source_ref and sourceRef assignments in src,
+plus every source_ref site in migration and operator SQL. The CI fixture
+source-writers.json pins that complete search, including pass-through and trace
+metadata sites rather than relying on a hand-selected set of writer filenames.
+A new or changed assignment or SQL source-reference site fails the inventory
+test. Its accepted form must be added to the classifier and real-table corpus
+at the same review. The corpus renders every listed form in English and Japanese;
+an invented prefix throws through the actual NutritionTable component.
+
+| Constructor | Every form it can generate |
+|---|---|
+| fdc/nutrients.ts scaleNutrition | Numeric USDA ids (including 0 for a composed USDA reference); estimate:<basis>; unavailable:not_food:<detail>, unavailable:no_match:<detail>, unavailable:no_estimate:<detail>. No-food without a reason now throws; sourceRef is non-nullable. |
+| meta/label.ts labelNutrition | Bare label. The analyze job passes this to persistAnalysis's label branch, which publishes the label nutrition directly. |
+| app/api/posts/food/route.ts photographed-label branch | label:<reading_id>. Other food branches pass barcodeNutrition or scaleNutrition's ref unchanged. |
+| fdc/barcode-product.ts barcodeNutrition | barcode-own:<gtin> for usable saved nutrients, off:<gtin> for OFF, numeric USDA otherwise. |
+| intake/post-drink.ts | user:drink-tile for water; scaleNutrition's numeric ref for reference-backed tiles. |
+| intake/identify-drinks.ts | user:drink-volume for plain water confirmed in the photo-drink flow; non-water uses resolveFoodMatchDetailed and passes its unavailable reason to scaleNutrition. It never scales a null food without a reason. |
+| intake/drink-correction.ts | user:drink-correction:<reading_id>. |
+| Held #1399 scaleMextNutrition | mext:<five-digit food number>; supported here without a schema dependency. |
+
+Old barcode:<gtin>, old user:photo-drink:<id> and old null are compatibility
+reads only. They keep their explicit uncertainty labels and are never rewritten.
+Bare label and label:<id> are equally valid package-label sources. An estimate
+reference is explicit provenance even when its tag is absent: the supplier list
+accepts the prefix; tag-dependent per-food approximation wording stays separate.
+
+The other src assignment sites (persistAnalysis, correction/recompute,
+items/portion, leftovers and numeric rescaling) pass through one of these
+constructors or retain an existing stored reference. Their no-food calls either
+pass resolveFoodMatchDetailed's reason or have a non-null exact-reference read;
+the no-food guard prevents a new silent null if that assumption changes.
+
+SQL does not invent a supplier form. Nutrition sinks accept the server's typed
+p_nutrition/p_items JSON or copy an existing source_ref: create_food_post and its
+retained without-GTIN wrapper; edit_post_item_with_nutrition;
+persist_analysis/persist_analysis_initial/persist_correction/
+persist_photo_correction/persist_removed_rebuild; correct_barcode_item;
+apply_post_remainder; copy_owned_post/copy_owned_saved_meal. The operation
+wrappers delegate to those sinks. publish_composer_drinks corrects/publishes
+server-held reading items by calling the correction/item sinks; its reading
+cache retains the constructor output. agent_log_meal itself only creates the
+post/job, and subsequent analysis uses the same constructors. Held 0082 and
+0084 add zone/message overloads and still pass the supplied reference through;
+they remain unapplied. SQL retention, summary guards and format triggers do not
+choose a source. CI pins source-reference sites across historical definitions
+too, so a newly introduced SQL writer cannot silently escape this search.

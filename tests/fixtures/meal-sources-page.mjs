@@ -2,7 +2,7 @@
 import fs from 'node:fs';
 import http from 'node:http';
 import {renderNutritionTable} from './render-nutrition-table.mjs';
-const cases={usda:['123'],mixed:['123','off:123','estimate:soup'],personal:['label:reading','barcode-own:123','user:drink-correction:reading'],water:['user:drink-tile'],old:['barcode:123',null,'user:photo-drink:reading'],mext:['mext:01088']};
+const cases={usda:['123'],mixed:['123','off:123','estimate:soup'],personal:['label:reading','barcode-own:123','user:drink-correction:reading'],water:['user:drink-tile'],old:['barcode:123',null,'user:photo-drink:reading'],mext:['mext:01088'],bareLabel:['label'],photoWater:['user:drink-volume']};
 const html=new Map();
 const css=fs.readdirSync('.next/static',{recursive:true}).filter(f=>f.endsWith('.css')).map(f=>fs.readFileSync('.next/static/'+f,'utf8')).join('\n');
 for(const locale of ['en','ja'])for(const [name,refs] of Object.entries(cases)){
