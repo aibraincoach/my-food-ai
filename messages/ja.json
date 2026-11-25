@@ -626,7 +626,7 @@
     "addItem": "別の食品を追加",
     "consumedSummary": "摂取の概要",
     "consumedNutrition": "摂取した栄養",
-    "unavailableFoods": " · 不明：{foods}",
+    "unavailableFoods": "・不明：{foods}",
     "offAttribution": "<off>Open Food Facts</off>のデータを含みます。<license>Open Database License</license>に基づいて利用できます。",
     "identifiedOpen": "Muse Spark Open（{model}）による識別 · Muse Spark Open で構築",
     "identifiedFallback": "Muse Spark Open は利用できませんでした · Muse Spark 1.3 による識別",
@@ -1327,7 +1327,9 @@
     "fibre": "食物繊維",
     "sugar": "糖類",
     "sodium": "ナトリウム",
-    "unavailable": "不明",
+    "unavailable": "不明"
+  },
+  "nutrients": {
     "core_calories": "カロリー",
     "core_protein_g": "たんぱく質",
     "core_carbs_g": "炭水化物",

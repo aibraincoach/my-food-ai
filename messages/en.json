@@ -1327,7 +1327,9 @@
     "fibre": "fibre",
     "sugar": "sugar",
     "sodium": "sodium",
-    "unavailable": "unavailable",
+    "unavailable": "unavailable"
+  },
+  "nutrients": {
     "core_calories": "Calories",
     "core_protein_g": "Protein",
     "core_carbs_g": "Carbs",

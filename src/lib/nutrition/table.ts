@@ -1,4 +1,5 @@
-import {nutritionTranslator,type NutritionTranslator} from '@/i18n/nutrition';
+import {nutrientsTranslator,type NutrientsTranslator} from '@/i18n/nutrients';
+import {type NutritionTranslator} from '@/i18n/nutrition';
 import {isLocale,type Locale} from '@/i18n/locales';
 import {formatMicroNutrient} from '@/i18n/format';
 import {sumMicronutrients, sumNutrition, UNNAMED_ITEM, type CurrentItem} from './totals';
@@ -52,10 +53,10 @@ function unit(value: string): string {
   const upper=value.toUpperCase();
   return upper==='UG'||upper==='MCG'||upper==='ΜG'?'µg':upper==='IU'?'IU':upper==='KJ'?'kJ':value.toLowerCase();
 }
-export function nutritionTableRows(items: CurrentItem[], t: NutritionTranslator, locale: Locale) {
+export function nutritionTableRows(items: CurrentItem[], t: NutritionTranslator, labels: NutrientsTranslator, locale: Locale) {
   if(!isLocale(locale))throw new Error('Nutrition locale is required.');
   // USDA canonical identity/sort order remains English; only labels are viewed.
-  const english=nutritionTranslator('en');
+  const english=nutrientsTranslator('en');
   const names=Object.fromEntries(Object.entries(nutrientMessages).map(([id,key])=>[id,english(key)]));
   const macroNames=new Set([...core.map(row=>english(row.message).toLowerCase()),...macroAliases]);
   const totals=sumNutrition(items);
@@ -70,7 +71,7 @@ export function nutritionTableRows(items: CurrentItem[], t: NutritionTranslator,
     return rank(a.name)-rank(b.name);
   });
   const foods=(values:string[]|undefined)=>values?.map(name=>name===UNNAMED_ITEM?t('anItem'):name);
-  return [...core.map(({message,key,unit})=>({name:t(message),unit,value:totals[key],unavailable:foods(totals.missing?.[key]),micro:false})),...micros.map(({nutrientId,...row})=>({...row,name:nutrientId!=null&&nutrientId in nutrientMessages?t(nutrientMessages[nutrientId as keyof typeof nutrientMessages]):row.name,...(row.unavailable?{unavailable:foods(row.unavailable)}:{}),micro:true}))];
+  return [...core.map(({message,key,unit})=>({name:labels(message),unit,value:totals[key],unavailable:foods(totals.missing?.[key]),micro:false})),...micros.map(({nutrientId,...row})=>({...row,name:nutrientId!=null&&nutrientId in nutrientMessages?labels(nutrientMessages[nutrientId as keyof typeof nutrientMessages]):row.name,...(row.unavailable?{unavailable:foods(row.unavailable)}:{}),micro:true}))];
 }
 export function formatTableNutrient(value: number, locale: Locale): string {
   if(!isLocale(locale))throw new Error('Nutrition locale is required.');

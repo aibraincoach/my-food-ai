@@ -68,7 +68,7 @@ export default function OutlineOverlay({ desktopModal=false, desktopHeader, desk
   cardData?: CardData; initialDrink?: DrinkCardData|null; failReason?: string|null;
   initialized: boolean; readOnly?: boolean; postId: string; caption: string; eatenAt: string; status: string; photo: DetailPhoto | null; items: DetailItem[]; modelCommentId?:string|null; fingerprint?:string|null; saved?:boolean; handle?:string; children?:ReactNode;
 }) {
-  const t=useTranslations('post'),tm=useTranslations('postMenu'),tn=useTranslations('nutrition');
+  const t=useTranslations('post'),tm=useTranslations('postMenu'),tn=useTranslations('nutrition'),labels=useTranslations('nutrients');
   const router = useRouter();
   const handle=usePostHandle(providedHandle);
   const [slide,setSlide]=useState(0);
@@ -200,7 +200,7 @@ export default function OutlineOverlay({ desktopModal=false, desktopHeader, desk
       <NutritionSummary items={items}/>
       {desktopModal&&<ItemRows disabled={!initialized||readOnly} items={items} onSelect={item=>setSelection({item,key:Date.now()})} onAdd={add}/>}
       <button type="button" onClick={()=>setExpandedNutrition(value=>!value)} aria-expanded={expandedNutrition} aria-controls={`all-nutrients-${postId}`} className="flex min-h-tap w-full items-center justify-between gap-2 px-inset pt-[10px] text-detail">
-        <span className="text-muted">{t('consumedAll')}</span><span className="flex items-center gap-1 font-medium">{expandedNutrition?t('showLess'):t('showAll',{count:nutritionTableRows(items,tn,locale).length,amount:formatNumber(locale,nutritionTableRows(items,tn,locale).length,{useGrouping:false})})} <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" className={expandedNutrition?'rotate-180':''} aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></span>
+        <span className="text-muted">{t('consumedAll')}</span><span className="flex items-center gap-1 font-medium">{expandedNutrition?t('showLess'):t('showAll',{count:nutritionTableRows(items,tn,labels,locale).length,amount:formatNumber(locale,nutritionTableRows(items,tn,labels,locale).length,{useGrouping:false})})} <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" className={expandedNutrition?'rotate-180':''} aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></span>
       </button>
       {children}
       {expandedNutrition&&<div id={`all-nutrients-${postId}`}>
