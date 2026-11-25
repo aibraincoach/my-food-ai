@@ -27,7 +27,7 @@ const remainder:JobHandler=async(admin,job)=>{
  const omitted=rows.some(row=>row.notEatenKcal===null)?null:rows.reduce((total,row)=>total+(row.notEatenKcal??0),0);
  const describe=(values:string[])=>values.length===1?values[0]:values.join(', ');
  const reply=`Leftovers: ${describe(rows.map(row=>row.notEatenText))} · ${omitted===null?'unavailable':formatCalories(omitted,tn,locale)} kcal. Consumed: ${describe(rows.map(row=>row.consumedText))} · ${kcal===null?'unavailable':formatCalories(kcal,tn,locale)} kcal.`;
- if(!checkWording(reply).ok)throw Error('Not-eaten reply contained unsupported wording.');
+ if(!checkWording(reply,'en').ok)throw Error('Not-eaten reply contained unsupported wording.');
  const {error,status}=await admin.rpc('apply_post_remainder',{p_post_id:job.post_id,p_job_id:job.id,p_photo_id:photo.id,p_expected:items.map(item=>item.id),p_items:rows,p_reply:reply});
  if(error)throw ioError('Not-eaten estimate could not be saved.',error,status);
  await markReady(job.post_id,admin,job.id);

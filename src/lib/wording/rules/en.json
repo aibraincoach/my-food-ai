@@ -1,0 +1,37 @@
+{
+  "match": "word",
+  "banned": [
+    "coach",
+    "coaching",
+    "advice",
+    "advise",
+    "recommend",
+    "recommendation",
+    "goal",
+    "target",
+    "plan",
+    "budget",
+    "progress",
+    "left",
+    "remaining",
+    "ring",
+    "streak",
+    "should",
+    "try to",
+    "aim for",
+    "cut back",
+    "next time",
+    "keep it up",
+    "well done",
+    "good job"
+  ],
+  "allow": [],
+  "notes": [
+    "No coaching, advice or recommendations.",
+    "No goals, targets or budgets.",
+    "No praise, progress, rings or streaks.",
+    "No claims that food improves health.",
+    "State consumed food and nutrition facts. Do not describe an amount as left or remaining.",
+    "Leftovers names the food not eaten; it is not an amount remaining. Preserve the approved Japanese leftovers label."
+  ]
+}
