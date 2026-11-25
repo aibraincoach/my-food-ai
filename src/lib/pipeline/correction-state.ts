@@ -1,5 +1,3 @@
-import { plainConsumed, type ConsumedTotals } from './wording';
-
 type Comment = { id: string; author: string; body: string; created_at: string };
 type Progress = { correction_sequence?: unknown; correction_pending_ids?: unknown; correction_through?: unknown };
 
@@ -21,13 +19,4 @@ export function correctionWindow(thread: Comment[], completed: { payload: Progre
   const pending = thread.filter(comment => comment.author === 'user' && !applied.has(comment.id));
   const ids = new Set(pending.map(comment => comment.id));
   return { sequence, pending, history: thread.filter(comment => !ids.has(comment.id)) };
-}
-
-// Model prose is not a source of nutrient numbers. The caller appends a
-// deterministic consumed line only after resolving the replacement with USDA.
-export function correctionReply(before: { name: string; portion_grams: unknown }[], after: { name: string; portion_grams: unknown }[], totals: ConsumedTotals): string {
-  const signature = (items: typeof before) => items.map(item => JSON.stringify([item.name, item.portion_grams == null ? null : Number(item.portion_grams)])).sort().join('|');
-  const change = signature(before) === signature(after) ? 'Meal items and portions are unchanged.'
-    : after.length === 0 ? 'Removed all meal items.' : 'Updated the meal items and portions.';
-  return `${change} ${plainConsumed(totals)}`;
 }
