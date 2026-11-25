@@ -1,3 +1,5 @@
+import {authRedirectOrigin} from '../src/lib/auth/redirect-origin.ts';
+import {pendingHandle} from '../src/lib/auth/pending-handle.ts';
 import {englishIntl,englishIntlServer} from './fixtures/english-intl.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
@@ -9,7 +11,7 @@ const nextStep='If you received a confirmation email, confirm your account, then
 function fixture({user={id:'new'},session={user:{id:'new'}},verified={id:'new'},verifyError=null,throws=false,profileError=null}={}) {
  const inserts=[],ends=[],checks=[],exports={};
  const auth={signUp:async()=>({data:{user,session},error:null}),getUser:async()=>{checks.push(1);if(throws)throw Error('private');return{data:{user:verified},error:verifyError}},signOut:async()=>{ends.push(1);return{error:null}}};
- const deps={'next-intl':englishIntl,'next-intl/server':englishIntlServer,'next/navigation':{redirect:url=>{throw Object.assign(Error('redirect'),{url})}},'@/lib/supabase/server':{createClient:async()=>({auth})},'@/lib/supabase/admin':{createAdminClient:()=>({from:()=>({insert:async row=>{inserts.push(row);return{error:profileError}}})})},'@/lib/auth/end-session':{endCurrentSession:async a=>a.signOut({scope:'local'})}};
+ const deps={'@/lib/auth/redirect-origin':{authRedirectOrigin},'@/lib/auth/pending-handle':{pendingHandle},'next/headers':{headers:async()=>({get:()=> 'https://app.invalid'})},'next-intl':englishIntl,'next-intl/server':englishIntlServer,'next/navigation':{redirect:url=>{throw Object.assign(Error('redirect'),{url})}},'@/lib/supabase/server':{createClient:async()=>({auth})},'@/lib/supabase/admin':{createAdminClient:()=>({from:()=>({insert:async row=>{inserts.push(row);return{error:profileError}}})})},'@/lib/auth/end-session':{endCurrentSession:async a=>a.signOut({scope:'local'})}};
  vm.runInNewContext(ts.transpileModule(readFileSync(new URL('../src/lib/auth/actions.ts',import.meta.url),'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText,{exports,require:n=>deps[n]});
  const form=new FormData();form.set('email','person@example.com');form.set('handle','chosen');form.set('password','private-password');
  return{inserts,ends,checks,run:()=>exports.signUp({},form)};

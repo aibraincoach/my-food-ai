@@ -1,5 +1,8 @@
 "use server";
 import {getTranslations} from 'next-intl/server';
+import {headers} from 'next/headers';
+import {authRedirectOrigin} from '@/lib/auth/redirect-origin';
+import {pendingHandle} from '@/lib/auth/pending-handle';
 
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
@@ -22,13 +25,20 @@ function signUpMessage(t:(key:AuthMessageKey)=>string,error:{code?:string;status
 export async function signUp(_previous:SignUpState, formData: FormData): Promise<SignUpState> {
   const t=await getTranslations('auth');
   const email = String(formData.get("email") ?? "");
-  const handle = String(formData.get("handle") ?? "");
+  const handle = String(formData.get("handle") ?? "").trim();
   const password = String(formData.get("password") ?? "");
   const failure=(error:string):SignUpState=>({error,email,handle});
+  if (!pendingHandle(handle)) return failure(t('handleLength'));
+  const origin = authRedirectOrigin((await headers()).get('origin'));
+  if (!origin) return failure(t('signupFailure'));
   const captchaToken = formData.get("h-captcha-response");
-  const options = typeof captchaToken === "string" && captchaToken.trim() ? { captchaToken: captchaToken.trim() } : undefined;
+  const options = {
+    data: {pending_handle: handle},
+    emailRedirectTo: `${origin}/auth/callback`,
+    ...(typeof captchaToken === 'string' && captchaToken.trim() ? {captchaToken: captchaToken.trim()} : {}),
+  };
   const supabase = await createClient();
-  const { data, error } = await supabase.auth.signUp({ email, password, ...(options ? { options } : {}) });
+  const { data, error } = await supabase.auth.signUp({ email, password, options });
   if (error || !data.user) {
     console.error("Sign-up failed:",error?.code??"no_user");
     return failure(signUpMessage(t,error));
