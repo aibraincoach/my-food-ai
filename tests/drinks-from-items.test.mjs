@@ -1,3 +1,4 @@
+import {cardTranslators} from './fixtures/card-translators.mjs';
 import {nutritionTranslator} from '../src/i18n/nutrition.ts';
 // node --import tsx --env-file=.env.local --test tests/drinks-from-items.test.mjs
 import assert from 'node:assert/strict';
@@ -90,7 +91,7 @@ test('all-drink photo aggregates the card, while mixed meal copy retains consume
   assert.equal(hydrated.kind, 'drink'); assert.equal(hydrated.drink.source, 'item'); assert.equal(hydrated.drink.ml, 355);
   const mixed = { items: [{ name: 'Meal', portion_grams: 100, calories: 200, protein_g: 10, carbs_g: 20, fat_g: 8 }],
     itemDrinks: hydrated.itemDrinks, kind: 'meal' };
-  assert.equal(cardDataFromRow(mixed,'en').mealDrinkLine, 'Drinks with this meal: 355 ml Cola · 34 mg caffeine');
+  assert.equal(cardDataFromRow(mixed,'en',cardTranslators('en')).mealDrinkLine, 'Drinks with this meal: 355 ml Cola · 34 mg caffeine');
   assert.match(summaryLine(mixed,nutritionTranslator('en'),'en'), /Consumed: 200 kcal · 355 ml drank · 34 mg caffeine · 10 g protein/);
 });
 test('0029 preserves categories in every SQL writer and restricts linked intake writes', () => {
@@ -135,7 +136,7 @@ test('a glass of milk adds drink volume while its calories stay on the drink car
   const snapshot = structuredClone(milk);
   const [record] = drinksFromItems([milk]);
   assert.equal(record.ml, 250); assert.equal(record.kind, 'water');
-  const card = cardDataFromRow({ items: [milk], kind: 'drink', drink: { source: 'item', ml: record.ml, label: record.label, caffeineMg: 0, drinksMl: 250, foodMl: 0, totalMl: 250 } },'en');
+  const card = cardDataFromRow({ items: [milk], kind: 'drink', drink: { source: 'item', ml: record.ml, label: record.label, caffeineMg: 0, drinksMl: 250, foodMl: 0, totalMl: 250 } },'en',cardTranslators('en'));
   assert.equal(card.kind, 'drink'); assert.equal(card.amountMl, 250); assert.equal(card.kcal, 150);
   assert.equal(card.drinkLine, 'Whole milk · 150 kcal'); assert.deepEqual(card.macros, { protein: 8, carbs: 12, fat: 8 });
   assert.deepEqual(milk, snapshot);

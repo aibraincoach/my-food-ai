@@ -68,7 +68,7 @@ export default function OutlineOverlay({ desktopModal=false, desktopHeader, desk
   cardData?: CardData; initialDrink?: DrinkCardData|null; failReason?: string|null;
   initialized: boolean; readOnly?: boolean; postId: string; caption: string; eatenAt: string; status: string; photo: DetailPhoto | null; items: DetailItem[]; modelCommentId?:string|null; fingerprint?:string|null; saved?:boolean; handle?:string; children?:ReactNode;
 }) {
-  const t=useTranslations('post'),tm=useTranslations('postMenu'),tn=useTranslations('nutrition'),labels=useTranslations('nutrients');
+  const t=useTranslations('post'),tm=useTranslations('postMenu'),tn=useTranslations('nutrition'),labels=useTranslations('nutrients'),tc=useTranslations('card');
   const router = useRouter();
   const handle=usePostHandle(providedHandle);
   const [slide,setSlide]=useState(0);
@@ -159,8 +159,8 @@ export default function OutlineOverlay({ desktopModal=false, desktopHeader, desk
     setSelection((current) => current ? { ...current, box: box.right - box.left > 1 && box.bottom - box.top > 1 ? box : current.box } : null);
   };
   const add = () => { setDrawing(false); setSelection({ item: null, key: Date.now() }); };
-  const displayCard = drink ? { ...cardDataFromRow({ items, eatenAt, drink },locale), footer: cardData?.wording?localizeCardData(cardData,locale).footer:cardData?.footer }
-    : cardData?.wording?localizeCardData(cardData,locale):cardDataFromRow({ items, eatenAt },locale);
+  const displayCard = drink ? { ...cardDataFromRow({ items, eatenAt, drink },locale,{t:tc,tn}), footer: cardData?.wording?localizeCardData(cardData,locale,{t:tc,tn}).footer:cardData?.footer }
+    : cardData?.wording?localizeCardData(cardData,locale,{t:tc,tn}):cardDataFromRow({ items, eatenAt },locale,{t:tc,tn});
   const showNutrition = initialized && (items.length > 0 || status === "ready");
   const Container=desktopModal?"div":Fragment;
   return <Container {...(desktopModal?{className:"desktop-post-content",style:desktopPhotoVars(activePhoto)}:{})}>
@@ -176,7 +176,7 @@ export default function OutlineOverlay({ desktopModal=false, desktopHeader, desk
           .sort((a, b) => (a.box!.right - a.box!.left) * (a.box!.bottom - a.box!.top) - (b.box!.right - b.box!.left) * (b.box!.bottom - b.box!.top))[0];
         if (hit) setSelection({ item: hit, key: Date.now() });
       }}>
-      {selectedIndex>0 ? selectedSlide?.kind==='photo'&&activePhoto?<DetailImage key={selectedSlide.id??selectedSlide.url} photo={activePhoto} alt={selectedSlide.not_eaten?t('leftovers'):t('mealPhotoNumber',{number:formatNumber(locale,selectedIndex+1,{useGrouping:false})})} sizes={`${width}px`}/>:<ResultsCard locale={locale} data={displayCard} size={width} time={cardTime}/> : photo && (!drink || drink.source === 'item') ? <>
+      {selectedIndex>0 ? selectedSlide?.kind==='photo'&&activePhoto?<DetailImage key={selectedSlide.id??selectedSlide.url} photo={activePhoto} alt={selectedSlide.not_eaten?t('leftovers'):t('mealPhotoNumber',{number:formatNumber(locale,selectedIndex+1,{useGrouping:false})})} sizes={`${width}px`}/>:<ResultsCard t={tc} tn={tn} locale={locale} data={displayCard} size={width} time={cardTime}/> : photo && (!drink || drink.source === 'item') ? <>
         <DetailImage photo={photo} alt={caption || t('mealPhoto')} sizes={`${width}px`} />
         {outlines && items.map((item, index) => item.box ? <div key={item.id}>
           <Mask url={outlines ? item.maskUrl : null} photo={photo} color={outlineColor(index)} frame={frame} fallback={boxStyle(item.box)} />
@@ -188,7 +188,7 @@ export default function OutlineOverlay({ desktopModal=false, desktopHeader, desk
         </div> : null)}
         {drawBox ? <div className="pointer-events-none absolute rounded-field border-2 border-text" style={boxStyle(drawBox)} /> : null}
         <span className="pointer-events-none absolute bottom-3 right-3 rounded-field bg-overlay px-[10px] py-[5px] text-meta text-white">{t('outlinesHint')}</span>
-      </> : showNutrition ? <ResultsCard locale={locale} data={displayCard} size={width} time={cardTime} gutter={visibleSlides.length>1?ARROW_GUTTER:0} /> : <div role="status" className="flex h-full items-center justify-center px-screen-x text-body text-muted">{status === "failed" ? t(failureMessageKey(failReason)) : status === "needs_input" ? t('quickQuestion') : t('processingLow')}</div>}
+      </> : showNutrition ? <ResultsCard t={tc} tn={tn} locale={locale} data={displayCard} size={width} time={cardTime} gutter={visibleSlides.length>1?ARROW_GUTTER:0} /> : <div role="status" className="flex h-full items-center justify-center px-screen-x text-body text-muted">{status === "failed" ? t(failureMessageKey(failReason)) : status === "needs_input" ? t('quickQuestion') : t('processingLow')}</div>}
       {visibleSlides.length>1&&<><button type="button" aria-label={t('previousSlide')} disabled={selectedIndex===0} onClick={event=>{event.stopPropagation();setSlide(Math.max(0,selectedIndex-1));}} className="absolute left-3 top-1/2 size-9 rounded-circle bg-white/90 text-[24px] text-text disabled:invisible">‹</button><button type="button" aria-label={t('nextSlide')} disabled={selectedIndex>=visibleSlides.length-1} onClick={event=>{event.stopPropagation();setSlide(Math.min(Math.max(0,visibleSlides.length-1),selectedIndex+1));}} className="absolute right-3 top-1/2 size-9 rounded-circle bg-white/90 text-[24px] text-text disabled:invisible">›</button><span className="absolute right-3 top-3 rounded-pill bg-overlay px-2 py-1 text-meta text-white">{t('slideCount',{current:formatNumber(locale,selectedIndex+1,{useGrouping:false}),total:formatNumber(locale,Math.max(1,visibleSlides.length),{useGrouping:false})})}</span></>}
     </div>
     <Container {...(desktopModal?{className:"desktop-post-record"}:{})}>

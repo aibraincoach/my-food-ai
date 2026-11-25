@@ -1,3 +1,5 @@
+import {cardTranslator} from '@/i18n/card';
+import {nutritionTranslator} from '@/i18n/nutrition';
 import { renderTimeZone, readStoredCardData } from "./render-zone";
 import { ioError } from "@/lib/worker/errors";
 import { ImageResponse } from "next/og";
@@ -44,7 +46,7 @@ export async function renderResultsCard(admin: SupabaseClient, postId: string, j
   const [light, regular, medium, semibold] = await fonts();
   const size = tokens.card.outputSize;
   // Stored artefacts stay English until #1220; live cards use the reader's locale.
-  const response = new ImageResponse(<ResultsCard locale="en" data={cardData}
+  const response = new ImageResponse(<ResultsCard t={cardTranslator('en')} tn={nutritionTranslator('en')} locale="en" data={cardData}
     size={size} fontFamily="Manrope"
   />, { width: size, height: size, fonts: [
     { name: "Manrope", data: light, weight: 300, style: "normal" },

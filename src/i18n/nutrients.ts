@@ -1,3 +1,4 @@
+import 'server-only';
 import {createTranslator,type useTranslations} from 'next-intl';
 import english from '../../messages/en.json';
 import japanese from '../../messages/ja.json';

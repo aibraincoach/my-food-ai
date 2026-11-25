@@ -24,7 +24,7 @@ function subscribeClock(listener: () => void) {
 // Both the server and the first hydrated render omit the clock. The browser then
 // formats the actual instant in its own zone; a server's zone never leaks into it.
 export default function LiveNutritionCard({ items, eatenAt, drink, data, post }: { post?: FeedPost; items: CardNutritionItem[]; eatenAt: string; drink?: DrinkCardData | null; data?: CardData }) {
-  const locale=useLocale(),t=useTranslations('card');
+  const locale=useLocale(),t=useTranslations('card'),tn=useTranslations('nutrition');
   const ref = useRef<HTMLDivElement>(null);
   const desktop = useDesktop();
   const [width, setWidth] = useState<number>(tokens.spacing.phone);
@@ -42,10 +42,10 @@ export default function LiveNutritionCard({ items, eatenAt, drink, data, post }:
     return () => observer.disconnect();
   }, []);
   const hydration = drink ? { totalMl: drink.totalMl, drinksMl: drink.drinksMl, foodMl: drink.foodMl, caffeineMg: drink.dayCaffeineMg ?? drink.caffeineMg } : undefined;
-  const cardData = post ? cardDataFromRow({ ...post, drink, ...(hydration ? { dayHydration: hydration } : {}) },locale)
-    : drink ? { ...cardDataFromRow({ items, eatenAt, drink, dayHydration: hydration },locale), footer:data?.wording?localizeCardData(data,locale).footer:data?.footer }
-    : data?.wording ? localizeCardData(data,locale) : cardDataFromRow({ items, eatenAt, drink },locale);
+  const cardData = post ? cardDataFromRow({ ...post, drink, ...(hydration ? { dayHydration: hydration } : {}) },locale,{t:t,tn})
+    : drink ? { ...cardDataFromRow({ items, eatenAt, drink, dayHydration: hydration },locale,{t:t,tn}), footer:data?.wording?localizeCardData(data,locale,{t:t,tn}).footer:data?.footer }
+    : data?.wording ? localizeCardData(data,locale,{t:t,tn}) : cardDataFromRow({ items, eatenAt, drink },locale,{t:t,tn});
   return <div ref={ref} className="aspect-square w-full overflow-hidden bg-card" aria-label={t('summary')}>
-    <ResultsCard locale={locale} size={width} time={time} data={cardData} gutter={desktop ? ARROW_GUTTER : 0} />
+    <ResultsCard t={t} tn={tn} locale={locale} size={width} time={time} data={cardData} gutter={desktop ? ARROW_GUTTER : 0} />
   </div>;
 }

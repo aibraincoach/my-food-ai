@@ -1,3 +1,5 @@
+import {cardTranslator} from '@/i18n/card';
+import {nutritionTranslator} from '@/i18n/nutrition';
 import {CaptureFailureError} from '@/lib/posts/capture-failure';
 import { getPostHydrationData } from "@/lib/intake/hydration";
 import { cardDataFromRow } from "@/lib/pipeline/card-data";
@@ -159,5 +161,5 @@ export async function getPostDetail(supabase: SupabaseClient, postId: string, zo
   });
   return { post, photo, photos, slides, items, identification: identification ?? null, openFallback: Boolean(openFailure), card, isDrink: hydrated.kind === "drink" && hydrated.drinkSource !== "item", ...hydrated,
     // Stored/transport card wording remains English until #1219; viewers localize on read.
-    cardData: cardDataFromRow({ ...post, items, ...hydrated },'en') };
+    cardData: cardDataFromRow({ ...post, items, ...hydrated },'en',{t:cardTranslator('en'),tn:nutritionTranslator('en')}) };
 }

@@ -1,7 +1,10 @@
+import {readCardData} from './read-card-data';
+import {cardTranslator} from '@/i18n/card';
+import {nutritionTranslator} from '@/i18n/nutrition';
 import type {SupabaseClient} from '@supabase/supabase-js';
 import {validZone} from '@/lib/posts/days';
 import {ioError} from '@/lib/worker/errors';
-import {cardDataFromRow,readCardData,type CardItem} from './card-data';
+import {cardDataFromRow,type CardItem} from './card-data';
 import type {DrinkCardData} from '@/lib/intake/hydration';
 
 /** A stored PNG records the day in the capture zone. Keep that first zone on
@@ -22,5 +25,5 @@ export async function renderTimeZone(db:SupabaseClient,postId:string,explicitZon
 export async function readStoredCardData(db:SupabaseClient,userId:string,post:{id:string;eaten_at:string;items:CardItem[]},explicitZone?:string,variant?:DrinkCardData){
  const zone=await renderTimeZone(db,post.id,explicitZone);
  // Stored PNG text stays English until #1219.
- return variant?cardDataFromRow({...post,drink:variant},'en'):readCardData(db,userId,post,zone);
+ return variant?cardDataFromRow({...post,drink:variant},'en',{t:cardTranslator('en'),tn:nutritionTranslator('en')}):readCardData(db,userId,post,zone);
 }

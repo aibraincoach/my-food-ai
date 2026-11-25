@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// Development queue inspector: node scripts/worker-local.mjs
+// Development queue inspector / source-loaded drain: node --import ./scripts/lib/server-only.mjs scripts/worker-local.mjs
 // Prints queued/running depth and the oldest waiting job. Draining itself
 // happens through GET /api/jobs/tick (item 7) once the app runs.
 import { readFileSync, existsSync } from "node:fs";

@@ -1,3 +1,4 @@
+import {cardTranslators} from './fixtures/card-translators.mjs';
 import {nutritionTranslator} from '../src/i18n/nutrition.ts';
 import test from 'node:test';
 import assert from 'node:assert/strict';
@@ -15,7 +16,7 @@ test('feed alcohol summaries use the same hydrated grams as their result card',(
  const row={post_item_id:'cocktail',kind:'alcohol',alcoholG:15,ml:220,caffeineMg:0,label:item.name};
  const post={kind:'drink',items:[item],itemDrinks:[row],drinkSource:'item',drink:{kind:'alcohol',source:'item',alcoholG:15,ml:0,label:item.name,caffeineMg:0,totalMl:0,drinksMl:0,foodMl:0}};
  assert.equal(summaryLine(post,nutritionTranslator('en'),'en'),'Drank: 15 g alcohol · 1.1 standard drinks · 160 kcal');
- assert.equal(cardDataFromRow(post,'en').drinkDetail,'15 g alcohol · 1.1 standard drinks');
+ assert.equal(cardDataFromRow(post,'en',cardTranslators('en')).drinkDetail,'15 g alcohol · 1.1 standard drinks');
  assert.equal(summaryLine({...post,drink:null},nutritionTranslator('en'),'en'),'Drank: 15 g alcohol · 1.1 standard drinks · 160 kcal');
  assert.equal(summaryLine({...post,drink:null,itemDrinks:[{...row,alcoholG:0}]},nutritionTranslator('en'),'en'),'Drank: alcohol unavailable · 160 kcal');
 });

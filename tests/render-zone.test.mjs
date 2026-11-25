@@ -5,7 +5,7 @@ import {readFileSync} from 'node:fs';
 import {spawnSync} from 'node:child_process';
 import {user} from './db/helpers.mjs';
 import {renderTimeZone,readStoredCardData} from '../src/lib/pipeline/render-zone.ts';
-import {readCardData} from '../src/lib/pipeline/card-data.ts';
+import {readCardData} from '../src/lib/pipeline/read-card-data.ts';
 
 const eatenAt='2026-11-01T00:30:00Z';
 const item={name:'Soup',not_eaten_calories:null,portion_grams:100,portion_text:'100 g',calories:30,protein_g:1,carbs_g:4,fat_g:1,fibre_g:1,sugar_g:1,sodium_mg:10,micronutrients:[{nutrientId:1051,unitName:'G',value:100,basis:'portion'}]};
