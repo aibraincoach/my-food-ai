@@ -1,4 +1,6 @@
-import {mealSummaryMessage,type MealSummaryMessage} from '@/lib/posts/comment-message';
+import {mealSummaryMessage,formatCommentMessage,type MealSummaryMessage} from '@/lib/posts/comment-message';
+import {nutritionTranslator} from '@/i18n/nutrition';
+import {checkWording} from '@/lib/pipeline/wording-check';
 import { approximationLabels } from "@/lib/fdc/approximation-metadata";
 import { nutritionUnavailable } from "@/lib/nutrition/available";
 import { resolvePortionNutrition } from "@/lib/nutrition/portion";
@@ -148,6 +150,10 @@ async function rebuildRemoved(admin:SupabaseClient,job:JobRow){
  const message:MealSummaryMessage={code:'mealSummary',values:{...summary.values,kind:'removal',removal:job.payload.reason==='media_removed'
   ?{kind:job.payload.media_unmarked===true?'unmarkedLeftovers':'removedLeftovers'}
   :{kind:'removedCorrection',text:(removed?.body??'').slice(0,60)}} as MealSummaryMessage['values']};
+ // #1219 retains English checking; the person's quote stays exempt (#1214 covers Japanese).
+ const checked=message.values.kind==='removal'&&message.values.removal.kind==='removedCorrection'
+  ?{...message,values:{...message.values,removal:{kind:'removedCorrection',text:''}}}:message;
+ if(!checkWording(formatCommentMessage(checked,nutritionTranslator('en'),'en')).ok)throw Error('Removal reply contained unsupported wording.');
  const {error,status}=await admin.rpc('persist_removed_rebuild',{p_post_id:postId,p_job_id:job.id,p_expected:current.map(item=>item.id),p_comments:comments.map(comment=>comment.id),p_photos:(photos??[]).map(photo=>photo.id),p_items:rows.map(row=>{const matches=current.filter(item=>item.name===row.name);return {...row,supersedes:matches.length===1?matches[0].id:null};}),p_message:message});
  if(error)throw ioError('Rebuilt meal could not be saved.',error,status);
  await markReady(postId,admin,job.id);
