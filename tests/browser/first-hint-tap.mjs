@@ -22,13 +22,18 @@ async function seen(){const {data,error}=await admin.from('profiles').select('hi
 async function open(){
  const c=await browser.newContext({...devices['iPhone 13'],viewport:{width:390,height:844},timezoneId:'UTC',...(engine==='chromium'?{permissions:['camera']}:{} )});
  await c.addCookies(cookies.map(v=>({name:v.name,value:v.value,url:app})));
- if(engine==='webkit')await c.addInitScript(()=>{localStorage.setItem('mfa-camera-mode','app');Object.defineProperty(navigator,'mediaDevices',{value:{getUserMedia:async()=>new MediaStream(),enumerateDevices:async()=>[]}});for(const[k,v]of Object.entries({videoWidth:320,videoHeight:240,readyState:4}))Object.defineProperty(HTMLVideoElement.prototype,k,{get:()=>v});HTMLVideoElement.prototype.play=()=>Promise.resolve();const original=CanvasRenderingContext2D.prototype.drawImage;CanvasRenderingContext2D.prototype.drawImage=function(image,...args){if(image instanceof HTMLVideoElement){this.fillStyle='#88bb55';this.fillRect(0,0,this.canvas.width,this.canvas.height);}else original.call(this,image,...args);};});
- const p=await c.newPage();p.setDefaultTimeout(10000);p.on('pageerror',e=>result.errors.push(e.message));return {c,p};
+ if(engine==='webkit')await c.addInitScript(()=>{localStorage.setItem('mfa-camera-mode','app');Object.defineProperty(navigator,'mediaDevices',{value:{getUserMedia:async()=>{const stream=new MediaStream();(window.__captureMediaCalls??=[]).push({at:Date.now(),tracks:stream.getTracks().length});return stream;},enumerateDevices:async()=>[]}});for(const[k,v]of Object.entries({videoWidth:320,videoHeight:240,readyState:4}))Object.defineProperty(HTMLVideoElement.prototype,k,{get:()=>v});HTMLVideoElement.prototype.play=()=>Promise.resolve();const original=CanvasRenderingContext2D.prototype.drawImage;CanvasRenderingContext2D.prototype.drawImage=function(image,...args){if(image instanceof HTMLVideoElement){this.fillStyle='#88bb55';this.fillRect(0,0,this.canvas.width,this.canvas.height);}else original.call(this,image,...args);};});
+ const p=await c.newPage();p.setDefaultTimeout(10000);p.on('pageerror',e=>result.errors.push(e.message));const consoleMessages=[];p.on('console',message=>consoleMessages.push({type:message.type(),text:message.text()}));return {c,p,consoleMessages};
+}
+async function captureFailure(p,consoleMessages){
+ const page=await p.evaluate(()=>({url:location.href,html:document.body.innerHTML.slice(0,200000),htmlTruncated:document.body.innerHTML.length>200000,body:document.body.innerText,dialogs:[...document.querySelectorAll('dialog,[role=dialog]')].map(node=>({label:node.getAttribute('aria-label'),text:node.innerText})),videos:document.querySelectorAll('video').length,cameraMode:localStorage.getItem('mfa-camera-mode'),mediaCalls:window.__captureMediaCalls??[],tapEvents:window.__tapRects??[]})).catch(error=>({captureError:String(error)}));
+ result.failureCapture={...page,phase:result.phase,hints:await seen().catch(()=>null),console:consoleMessages,pageErrors:[...result.errors]};
+ await fs.writeFile(out+'/'+engine+'-failure-dom.json',JSON.stringify(result.failureCapture,null,2));await p.screenshot({path:out+'/'+engine+'-failure.png',fullPage:true}).catch(()=>{});
 }
 try{
- for(const fresh of (['feed','thread'].includes(process.env.ONLY_CASE)?[]:[true,false])){
+ for(const fresh of (['feed','thread'].includes(process.env.ONLY_CASE)?[]:process.env.ONLY_CASE==='seen-camera'?[false]:[true,false])){
   await reset(fresh?[]:['capture','modes','thumbs','thread']);
-  const {c,p}=await open();
+  const {c,p,consoleMessages}=await open();
   try{
    await p.goto(app+'/',{waitUntil:'domcontentloaded'});await p.getByRole('button',{name:'Post a meal',exact:true}).tap();await p.getByRole('button',{name:'Camera',exact:true}).tap();
    result.phase='video ready';await p.waitForFunction(()=>document.querySelector('video')?.videoWidth>0);
@@ -47,12 +52,12 @@ try{
    result.cases.push({name:fresh?'fresh camera':'seen camera',photo:true,drafts:1,events,hints:saved});
    await p.getByRole('button',{name:'Remove photo 1',exact:true}).tap();
    await p.waitForFunction(async()=>await new Promise(resolve=>{const r=indexedDB.open('mfa-uploads');r.onsuccess=()=>{const db=r.result,q=db.transaction('drafts').objectStore('drafts').count();q.onsuccess=()=>{resolve(q.result===0);db.close();};};}));
-  }catch(error){await fs.writeFile(out+'/'+engine+'-failure-dom.json',JSON.stringify({url:p.url(),body:await p.locator('body').innerText().catch(()=>''),html:await p.locator('body').innerHTML().catch(()=>''),tapEvents:await p.evaluate(()=>window.__tapRects??[]).catch(()=>[])},null,2));await p.screenshot({path:out+'/'+engine+'-failure.png',fullPage:true}).catch(()=>{});throw error;}finally{await c.close();}
+  }catch(error){await captureFailure(p,consoleMessages);throw error;}finally{await c.close();}
  }
- if(process.env.ONLY_CASE!=='camera'){
+ if(!['camera','seen-camera'].includes(process.env.ONLY_CASE)){
  await reset(process.env.ONLY_CASE==='thread'?['capture','modes','thumbs']:['capture','modes']);
  const cleared=await admin.from('post_feedback').delete().eq('post_id',fixture.post);if(cleared.error)throw cleared.error;
- const {c,p}=await open();
+ const {c,p,consoleMessages}=await open();
  try{
   await p.goto(app+'/',{waitUntil:'domcontentloaded'});const card=p.locator('article[data-post-id="'+fixture.post+'"]');
   if(process.env.ONLY_CASE!=='thread'){
@@ -73,7 +78,7 @@ try{
   assert.equal(await p.getByText('Reply here to fix the estimate',{exact:true}).count(),0);assert.equal((await savedThread).status(),200);assert.ok((await seen()).includes('thread'));
   await p.reload({waitUntil:'load'});assert.equal(await p.getByText('Reply here to fix the estimate',{exact:true}).count(),0);
   result.cases.push({name:'thread',firstTapFocused:true,shownAgain:false});
- }catch(error){await fs.writeFile(out+'/'+engine+'-failure-dom.json',JSON.stringify({url:p.url(),body:await p.locator('body').innerText().catch(()=>''),html:await p.locator('body').innerHTML().catch(()=>''),tapEvents:await p.evaluate(()=>window.__tapRects??[]).catch(()=>[])},null,2));await p.screenshot({path:out+'/'+engine+'-failure.png',fullPage:true}).catch(()=>{});throw error;}finally{await c.close();}
+ }catch(error){await captureFailure(p,consoleMessages);throw error;}finally{await c.close();}
  }
  result.pass=true;
 }catch(error){result.pass=false;result.failure=String(error);process.exitCode=1;}
