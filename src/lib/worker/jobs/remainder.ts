@@ -5,7 +5,7 @@ import {formatCalories} from '@/lib/nutrition/totals';
 import type {JobHandler} from '@/lib/worker/handlers';
 import {readRemainder} from '@/lib/meta/remainder';
 import {remainderRule} from '@/lib/pipeline/remainder-rule';
-import {getCurrentItems,normalizeStoredNutrition,rescaleStoredNutrition,sumNutrition,toNumber,NUTRIENT_KEYS,type NutritionRow} from '@/lib/nutrition/totals';
+import {getCurrentItems,requireStoredNutrition,rescaleStoredNutrition,sumNutrition,toNumber,NUTRIENT_KEYS,type NutritionRow} from '@/lib/nutrition/totals';
 import {checkWording} from '@/lib/pipeline/wording-check';
 import {markReady} from '@/lib/pipeline/persist';
 import {ioError,ApiError} from '@/lib/worker/errors';
@@ -42,7 +42,7 @@ export async function replayRemainder(admin:import('@supabase/supabase-js').Supa
   const estimate=estimates.find(row=>row.index===index)!;
   const rule=remainderRule(toNumber(item.portion_grams),estimate);
   const original={...item,post_item_id:item.id} as NutritionRow;
-  const normalized=normalizeStoredNutrition(original,item.portion_grams);
+  const normalized=requireStoredNutrition(original);
   const nutrition=rescaleStoredNutrition(normalized,item.portion_grams,rule.consumedGrams);
   if(rule.consumedGrams===0){for(const key of NUTRIENT_KEYS)nutrition[key]=normalized[key]==null?null:0;nutrition.micronutrients=normalized.micronutrients.map(entry=>({...entry,value:entry.value==null?null:0,basis:'portion'}));}
   const ratio=toNumber(item.portion_grams)>0?rule.notEatenGrams/toNumber(item.portion_grams):0;

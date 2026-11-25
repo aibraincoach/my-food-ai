@@ -39,7 +39,8 @@ test('resize, download and abort failures redirect through a fresh signing deadl
   assert.equal(response.status,302,mode);assert.equal(response.headers.get('cache-control'),'private, no-store');assert.match(response.headers.get('location'),/^https:\/\/storage\.example\//);assert.equal(r.calls.sign,1);assert.equal(r.calls.signals.length,2);
  }
 });
-test('legacy v1 and current v2 URLs select the same density candidates',()=>{
- for(const version of ['v1','v2'])assert.equal(feedPhotoSrcSet(`/api/media/feed/a/b/c/${version}.webp`),`/api/media/feed/a/b/c/${version}.webp 1x, /api/media/feed/a/b/c/v2-1040.webp 2x, /api/media/feed/a/b/c/v2-1560.webp 3x`);
+test('only the current v2 URL selects density candidates',()=>{
+ assert.equal(feedPhotoSrcSet('/api/media/feed/a/b/c/v1.webp'),undefined);
+ for(const version of ['v2'])assert.equal(feedPhotoSrcSet(`/api/media/feed/a/b/c/${version}.webp`),`/api/media/feed/a/b/c/${version}.webp 1x, /api/media/feed/a/b/c/v2-1040.webp 2x, /api/media/feed/a/b/c/v2-1560.webp 3x`);
  assert.equal(feedPhotoSrcSet('https://x/y.jpg'),undefined);
 });

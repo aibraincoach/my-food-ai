@@ -4,7 +4,7 @@ import {visibleDrinkRows,withAlcoholNutrition,type DrinkRow} from '@/lib/intake/
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { groupIntakeByDay, emptyIntake, type IntakeTotals } from "@/lib/intake/intake";
 import { publicPhotoUrl } from "@/lib/posts/feed-photo-url";
-import { CURRENT_ITEM_COLUMNS, CURRENT_NUTRITION_COLUMNS, mapCurrentItems, normalizeStoredNutrition, nutritionNumber, sumNutrition, type CurrentItem, type MealTotals, type NutritionRow } from "@/lib/nutrition/totals";
+import { CURRENT_ITEM_COLUMNS, CURRENT_NUTRITION_COLUMNS, mapCurrentItems, requireStoredNutrition, nutritionNumber, sumNutrition, type CurrentItem, type MealTotals, type NutritionRow } from "@/lib/nutrition/totals";
 
 export interface DayPost { id: string; caption: string; eatenAt: string; photoUrl: string | null; items: CurrentItem[]; totals: MealTotals }
 // pending: meals of that day still being analysed or waiting for a reply; they are listed nowhere yet and are counted apart.
@@ -207,7 +207,7 @@ export async function getDayTotals(db: SupabaseClient, userId: string, zone: str
       for (const item of row.current_post_items ?? []) {
         const nutrients = Array.isArray(item.item_nutrition) ? item.item_nutrition : [item.item_nutrition];
         const nutrition = nutrients[0];
-        const value = nutrition ? normalizeStoredNutrition(nutrition as NutritionRow, item.portion_grams).calories : null;
+        const value = nutrition ? requireStoredNutrition(nutrition as NutritionRow).calories : null;
         contributions.push({name:item.name,calories:nutritionNumber(value)});
       }
       group.meals.push({id: row.id, eatenAt: row.eaten_at, items: contributions});
@@ -260,7 +260,7 @@ export async function getMonthSummary(supabase: SupabaseClient, userId: string, 
         day.ready = true;
         for (const item of row.current_post_items ?? []) {
           const stored = Array.isArray(item.item_nutrition) ? item.item_nutrition[0] : item.item_nutrition;
-          const normalized = stored ? normalizeStoredNutrition(stored as NutritionRow, item.portion_grams) : null;
+          const normalized = stored ? requireStoredNutrition(stored as NutritionRow) : null;
           const calories = normalized?.calories;
           if(calories==null)(day.missing??=[]).push(item.name); else {day.kcal=(day.kcal??0)+Number(calories);day.known=(day.known??0)+1;}
         }

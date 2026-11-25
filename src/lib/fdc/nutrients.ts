@@ -160,14 +160,12 @@ export function scaleNutrition(
   const sourceRef = food.approximation?.kind === "estimate" ? `estimate:${food.approximation.basis}` : String(food.fdcId);
   const factor = portionAmount !== null && Number.isFinite(portionAmount) && portionAmount > 0 && nutritionBasis(food) === portionUnit
     ? portionAmount / 100 : null;
-  // Reader-first rollout: writers stay legacy until explicit activation. The
-  // database format boundary also protects mixed deployments and app rollback.
-  const compact = process.env.NUTRITION_COMPACT_WRITE === "1";
+  // One current format: provenance once, retained density on each estimate entry.
   const micronutrients = food.foodNutrients.map((nutrient, index) => ({
     ...nutrient, value: factor === null ? null : nutrient.value * factor,
     basis: "portion" as const,
-    ...(food.approximation && (!compact || index === 0) ? {approximation:{...food.approximation,sourceRef,...(!compact && food.approximation.kind === "estimate" ? {per100: nutrient.value} : {})}} : {}),
-    ...(compact && food.approximation?.kind === "estimate" ? {per100: nutrient.value} : {}),
+    ...(food.approximation && index === 0 ? {approximation:{...food.approximation,sourceRef}} : {}),
+    ...(food.approximation?.kind === "estimate" ? {per100: nutrient.value} : {}),
   }));
   if (factor === null) {
     return {

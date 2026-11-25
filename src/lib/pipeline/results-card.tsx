@@ -10,7 +10,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { ResultsCard } from "@/components/ResultsCard";
 import { tokens } from "@/lib/theme/tokens";
 import { isOwnedGeneratedCardPath } from "@/lib/media/paths";
-import { normalizeStoredNutrition, type CurrentItem } from "@/lib/nutrition/totals";
+import { requireStoredNutrition, type CurrentItem } from "@/lib/nutrition/totals";
 
 import { type DrinkCardData } from "@/lib/intake/hydration";
 
@@ -37,7 +37,7 @@ export async function renderResultsCard(admin: SupabaseClient, postId: string, j
   if (error) throw ioError(`Card snapshot failed: ${error.message}`, error, status);
   const snapshot = data as Snapshot | null;
   if (!snapshot || snapshot.items.some(({ nutrition }) => !nutrition)) return false;
-  const nutrition = snapshot.items.map(({ item, nutrition }) => ({...normalizeStoredNutrition(nutrition!, item.portion_grams),name:item.name}));
+  const nutrition = snapshot.items.map(({ item, nutrition }) => ({...requireStoredNutrition(nutrition!),name:item.name}));
   const source = { id: postId, eaten_at: snapshot.eaten_at,
     items: snapshot.items.map(({item}, index) => ({ ...item, ...nutrition[index] })) };
   // Model-free drinks have just read this timeline after their atomic commit.

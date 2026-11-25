@@ -2,7 +2,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { scaleNutrition } from '../src/lib/fdc/nutrients.ts';
-import { normalizeStoredNutrition, rescaleStoredNutrition } from '../src/lib/nutrition/totals.ts';
+import { requireStoredNutrition, rescaleStoredNutrition } from '../src/lib/nutrition/totals.ts';
 const food = { fdcId: 1, description: 'Fixture', dataType: 'Branded', servingSize: 30, servingSizeUnit: 'g', foodNutrients: [
   { nutrientId: 1008, nutrientName: 'Energy', unitName: 'KCAL', value: 200 },
   { nutrientId: 1003, nutrientName: 'Protein', unitName: 'G', value: 10 },
@@ -20,17 +20,14 @@ test('unknown portions and volume basis never masquerade as consumed amounts', (
     assert.equal(n.calories, null); assert.ok(n.micronutrients.every(n => n.value === null));
   }
 });
-test('legacy read normalization corrects macros and does not double-scale versioned arrays', () => {
-  const row = {post_item_id:'fixture', source_ref:'1', calories:333, protein_g:16, micronutrients:food.foodNutrients};
-  const normalized = normalizeStoredNutrition(row, 50);
-  assert.equal(normalized.calories, 100); assert.equal(normalized.protein_g, 5);
-  assert.equal(normalized.micronutrients[2].value, 3);
-  assert.deepEqual(normalizeStoredNutrition(normalized, 50), normalized);
-  assert.equal(normalizeStoredNutrition(row, null).calories, null);
+test('stored portion arrays are read unchanged and old unscaled arrays fail visibly', () => {
+  const row = {post_item_id:'fixture', source_ref:'1', calories:100, protein_g:5, micronutrients:scaleNutrition(food,50).micronutrients};
+  assert.deepEqual(requireStoredNutrition(row),row);
+  assert.throws(()=>requireStoredNutrition({...row,micronutrients:food.foodNutrients}),/Stored nutrition format/);
 });
 
 test('portion changes retain exact selected identity and normalized density', () => {
-  const row = {post_item_id:'fixture', source_ref:'987654', calories:333, protein_g:16, micronutrients:food.foodNutrients};
+  const row = {post_item_id:'fixture', source_ref:'987654', calories:100, protein_g:5, micronutrients:scaleNutrition(food,50).micronutrients};
   const revised = rescaleStoredNutrition(row, 50, 75);
   assert.equal(revised.source_ref,'987654'); assert.equal(revised.calories,150);
   assert.equal(revised.protein_g,7.5); assert.equal(revised.micronutrients[2].value,4.5);

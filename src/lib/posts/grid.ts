@@ -1,5 +1,5 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { normalizeStoredNutrition, sumNutrition, type NutritionRow } from "@/lib/nutrition/totals";
+import { requireStoredNutrition, sumNutrition, type NutritionRow } from "@/lib/nutrition/totals";
 import type { CardNutritionItem } from "@/components/LiveNutritionCard";
 
 export interface GridPost {
@@ -36,7 +36,7 @@ async function gridNutrition(db: SupabaseClient, postIds: string[]): Promise<Map
       const byId = new Map((nutrition as NutritionRow[] | null ?? []).map(row => [row.post_item_id, row]));
       for (const item of chunk) {
         const row = byId.get(item.id);
-        const normalized = row ? normalizeStoredNutrition(row, item.portion_grams) : null;
+        const normalized = row ? requireStoredNutrition(row) : null;
         output.get(item.post_id)?.push({ name: item.name, portion_grams: item.portion_grams,
           calories: normalized?.calories ?? null, protein_g: normalized?.protein_g ?? null,
           carbs_g: normalized?.carbs_g ?? null, fat_g: normalized?.fat_g ?? null,

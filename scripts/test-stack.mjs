@@ -54,8 +54,15 @@ if(emailTemplates){
 }
 container(names.auth,'docker.io/supabase/gotrue:v2.197.0',{GOTRUE_API_HOST:'127.0.0.1',GOTRUE_API_PORT:basePort+8,API_EXTERNAL_URL:gateway,GOTRUE_SITE_URL:env.APP_URL,GOTRUE_DB_DRIVER:'postgres',GOTRUE_DB_DATABASE_URL:db+'&search_path=auth,public',GOTRUE_DB_MIGRATIONS_PATH:'/usr/local/etc/auth/migrations',GOTRUE_JWT_SECRET:secret,GOTRUE_JWT_AUD:'authenticated',GOTRUE_JWT_DEFAULT_GROUP_NAME:'authenticated',GOTRUE_JWT_ADMIN_ROLES:'service_role',GOTRUE_EXTERNAL_EMAIL_ENABLED:'true',GOTRUE_MAILER_AUTOCONFIRM:confirmationOn?'false':'true',...templateSettings,...(confirmationOn?{GOTRUE_MAILER_URLPATHS_CONFIRMATION:'/auth/v1/verify',GOTRUE_MAILER_URLPATHS_RECOVERY:'/auth/v1/verify',GOTRUE_SMTP_HOST:'127.0.0.1',GOTRUE_SMTP_PORT:basePort+9,GOTRUE_SMTP_ADMIN_EMAIL:'auth@local.test',GOTRUE_SMTP_SENDER_NAME:'Disposable Auth',GOTRUE_SMTP_MAX_FREQUENCY:'0s',GOTRUE_RATE_LIMIT_EMAIL_SENT:'100',GOTRUE_URI_ALLOW_LIST:env.APP_URL+'/auth/callback,'+env.APP_URL+'/auth/password-reset'}:{}),GOTRUE_DISABLE_SIGNUP:'false'});
 await ready(`http://127.0.0.1:${basePort+8}/health`);
-for(const name of readdirSync('supabase/migrations').filter(x=>x.endsWith('.sql')).sort()){if(['0024_worker_wake.sql','0055_approximation_once.sql'].includes(name))continue; // 0055 is an explicit reader-first activation, not a bootstrap migration.
- sql(readFileSync('supabase/migrations/'+name,'utf8'));}
+for(const name of readdirSync('supabase/migrations').filter(x=>x.endsWith('.sql')).sort()){
+ if(name==='0024_worker_wake.sql')continue;
+ if(name==='0055_approximation_once.sql'){
+  // Replay the historical activation on this empty disposable database before
+  // 0081 removes its rollout machinery. This is not a deployed-reader claim.
+  sql("update public.nutrition_provenance_format set compact=true,reader_floor=repeat('0',40) where id;");
+ }
+ sql(readFileSync('supabase/migrations/'+name,'utf8'));
+}
 container(names.rest,'docker.io/postgrest/postgrest:v14.18',{PGRST_DB_URI:db,PGRST_DB_SCHEMAS:'public',PGRST_DB_ANON_ROLE:'anon',PGRST_JWT_SECRET:secret,PGRST_SERVER_HOST:'127.0.0.1',PGRST_SERVER_PORT:basePort+7});
 env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=jwt('anon');env.SUPABASE_SECRET_KEY=jwt('service_role');
 background('tests/fixtures/local-gateway.mjs');background('tests/fixtures/local-model.mjs');await ready(gateway+'/auth/v1/health');await ready(`http://127.0.0.1:${basePort+7}/`);

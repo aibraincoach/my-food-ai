@@ -34,7 +34,6 @@ test('a thread uses the supplied fingerprint and makes no revision RPC on load',
   if(name==='@/lib/posts/correction-feedback')return{correctionFeedback};
   if(name==='@/components/PostHandle')return{usePostHandle:()=> 'owner'};
   if(name==='@/components/useRemovalMenus')return{useRemovalMenus(){}};
-  if(name==='@/lib/posts/comment-label')return{formatModelCommentLabels:s=>s};
   if(name==='@/lib/worker/failure-message')return{failureMessageKey};
   if(name==='@/lib/posts/delayed-action')return{delayAction(){throw Error('not used');}};
   if(name.startsWith('@/components/'))return{default:()=>null,LocalTime:()=>null};throw Error(name);

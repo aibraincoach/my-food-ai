@@ -2,7 +2,7 @@ import {createClient} from '@/lib/supabase/server';
 import {feedPhotoPath, readFeedSource, reserveFeedPhoto, resizeSharpPhoto, MAX_ORIGINAL_SOURCE_BYTES, SHARP_FEED_BOXES, type SharpVariant} from '@/lib/posts/feed-photo';
 
 // Sharper feed copies (2x, 3x) made from the original and cached a year under
-// their own identity; the v1 route stays for 1x screens and old caches.
+// their own identity; the current v2 route serves the 1x copy.
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const headers = {'Cache-Control': 'private, no-store', 'X-Content-Type-Options': 'nosniff'};
 const fail = (status: number) => Response.json({message_code:"unknownFailure"}, {status, headers});
@@ -58,7 +58,7 @@ async function readPhoto(request: Request, context: {params: Promise<{owner: str
     } catch {
       // A failed or slow resize must still show a photo: a browser does not fall
       // back from a failed srcset candidate to src, so the answer is a redirect
-      // to the signed original, the same fallback the v1 route uses on overload.
+      // to the signed original, the same fallback the v2 route uses on overload.
       return original();
     }
   } catch { return original(); }

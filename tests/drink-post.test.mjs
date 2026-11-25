@@ -70,14 +70,14 @@ test("cola tile keeps cola nutrition and server caffeine in the atomic write", a
   assert.equal(saved.p_nutrition.micronutrients.find(row => row.nutrientId === 1057).value, 32);
 });
 
-test("hydration counts food water once, old water rows and local-day cutoff", async () => {
+test("hydration counts food water once, current unlinked sheet water and local-day cutoff", async () => {
   const intake = [
     { kind: "water", amount: 250, ml: null, label: null, post_id: null, logged_at: "2026-10-28T07:00:00Z" },
     { kind: "water", amount: 330, ml: 330, label: "Water", post_id: "water", logged_at: "2026-10-28T08:00:00Z" },
     { kind: "caffeine", amount: 95, ml: 240, label: "Coffee, cup", post_id: "coffee", logged_at: "2026-10-28T09:00:00Z" },
     { kind: "water", amount: 500, ml: 500, label: "Water", post_id: "later", logged_at: "2026-10-28T10:00:00Z" },
     { kind: "water", amount: 600, ml: 600, label: "Water", post_id: null, logged_at: "2026-10-28T03:00:00Z" },
-  ];
+  ].map(row=>({...row,source:'sheet'}));
   const posts = [
     { id: "water", eaten_at: "2026-10-28T08:00:00Z" },
     { id: "coffee", eaten_at: "2026-10-28T09:00:00Z" },
@@ -106,7 +106,7 @@ test("hydration counts food water once, old water rows and local-day cutoff", as
   assert.deepEqual(result,{drinksMl:820,foodMl:340,totalMl:1160,caffeineMg:95});
 });
 
-test("batched cards share a day read, preserve legacy food water, and apply each drink's own cutoff", async () => {
+test("batched cards share a day read, preserve current food water, and apply each drink's own cutoff", async () => {
   const calls = [];
   const posts = [
     {id:"w",eaten_at:"2026-10-28T08:00:00Z"},{id:"c",eaten_at:"2026-10-28T09:00:00Z"},
@@ -115,11 +115,11 @@ test("batched cards share a day read, preserve legacy food water, and apply each
   const drinks = [
     {post_id:"w",kind:"water",amount:330,ml:330,label:"Water",logged_at:posts[0].eaten_at},
     {post_id:"c",kind:"caffeine",amount:95,ml:240,label:"Coffee, cup",logged_at:posts[1].eaten_at},
-  ];
+  ].map(row=>({...row,source:'sheet'}));
   const items = [{id:"i1",post_id:"meal1",portion_grams:100},{id:"i2",post_id:"meal2",portion_grams:50}];
   const nutrition = [
     {post_item_id:"i1",micronutrients:[{nutrientId:1051,nutrientName:"Water",unitName:"G",value:420,basis:"portion"}]},
-    {post_item_id:"i2",micronutrients:[{nutrientId:1051,nutrientName:"Water",unitName:"G",value:200}]},
+    {post_item_id:"i2",micronutrients:[{nutrientId:1051,nutrientName:"Water",unitName:"G",value:100,basis:"portion"}]},
   ];
   const builder = table => {
     let columns, filter, offset=0, end=999, cutoff;

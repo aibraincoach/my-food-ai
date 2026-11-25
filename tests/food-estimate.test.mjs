@@ -59,11 +59,11 @@ test('actual correction replay shares volume dispatch and preserves known consum
 
 test('a food answer without numbers is a 502 marked noEstimate',async()=>withPayload({...valid,calories:null},async()=>{await assert.rejects(()=>estimateFood('kerupuk',''),error=>error.status===502&&error.noEstimate===true);}));
 
-test('stored estimates read both repeated legacy tags and single-label nutrient bases',async()=>withPayload(valid,async()=>{
+test('stored estimates read only single-label nutrient bases',async()=>withPayload(valid,async()=>{
  const {storedEstimateFood}=await import('../src/lib/fdc/approximation-metadata.ts');
  const food=await estimateFood('kerupuk',''),n=scaleNutrition(food,null);
  const current={source_ref:n.sourceRef,micronutrients:n.micronutrients};
  const legacy={...current,micronutrients:n.micronutrients.map(({per100,approximation:_label,...entry})=>({...entry,approximation:{kind:'estimate',basis:valid.basis,sourceRef:n.sourceRef,per100}}))};
- assert.deepEqual(storedEstimateFood(current),storedEstimateFood(legacy));
+ assert.ok(storedEstimateFood(current));assert.equal(storedEstimateFood(legacy),null);
  assert.deepEqual(storedEstimateFood(current).foodNutrients,food.foodNutrients);
 }));
