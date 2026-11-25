@@ -1,6 +1,6 @@
 # Local measurements of updates held by unsent text
 
-These are bounded laboratory observations, not production latency estimates. Chromium kept updates pending while text remained in visible or retained hidden fields. Clearing a Search query, or a failed sign-in that cleared its fields, let the next simulated hidden event release the update. A restart loaded the new build without an extra guard reload.
+These are n=1 bounded laboratory observations for each attempted case, not production latency estimates or a complete matrix. In the measured Chromium cases, visible or retained hidden text deferred an update. Clearing Search, or a failed sign-in that cleared its fields, released it at the next simulated hidden event. One restart loaded the new build without an extra guard reload; the incomplete cases below limit those findings.
 
 The matrix is **incomplete**. Some instrument actions failed, one case was interrupted by the builder, and WebKit did not deliver an update-ready message in the pending-update setup. Unavailable values below are not passing results or measured hold durations. The PM decides whether another measurement packet is useful; this filing implements no fix.
 
@@ -39,6 +39,19 @@ Times are from the app's own persisted diagnostic `waiting` to `reloading` event
 M0's answer is narrow: no worker check was observed during the uninterrupted 20-change sequence. A full page load performed a check and loaded B. This does **not** prove a browser can never discover an update while left open; browser background scheduling was not observed.
 
 The Chromium successful-sign-in step retained nonempty hidden Auth fields, but its earlier failed-sign-in step had already released the pending update. Those booleans support a source-based concern about a *future* update, not a measured successful-sign-in delay. The current taken-handle path is `/choose-handle`, not the historical three-field sign-up form; this packet did not complete that case.
+
+## D2 follow-on: successful sign-in and WebKit cause probe
+
+The PM authorized this separate bounded packet after #1373. It does not repeat the earlier matrix. Each case ran once, with the same two-minute cap; no corrected repeat was used. Both returned in under nine seconds. The existing optimized A/B artifacts and their real workers were reused. Their update, Auth and diagnostic source is byte-identical to this report's base `f6af59fa`; only the manual runner and this report changed. The document-version affinity, simulated autofill/visibility and browser-emulation limits above still apply.
+
+| Case | Observation | Result and limit |
+|---|---|---|
+| Chromium successful sign-in, update already pending | The real B worker sent update-ready; the page recorded waiting. The first simulated hide deferred. Sign-in succeeded directly, with no failed attempt first. Both nonempty Auth fields remained hidden after the Home navigation. The route safe point and next simulated hide deferred again. | Last persisted deferred was **791 ms after waiting**. No reloading event or reload document was seen before the case ended. Successful sign-in did not release this pending update in this one short case; eventual release and long duration remain unmeasured. |
+| WebKit cause-only probe | A was already activated and controlling the sign-in page before the switch. B's imported script and manifest reached the proxy, with manifest HTTP 200. B installed, activated and changed the controller. No update-ready message was observed through the final sample, about 300 ms after activation. The page's shell cache existed but listed **no manifest entry before or after** the switch. | The missing page-side header is explained by an absent page-cache entry, rather than a present entry with a missing header. The worker's activation code sends only if its cached manifest marker equals its build. **The cause of the missing entry and absent notification is not established.** This probe does not read the worker's cache execution directly, establish shared page/worker cache state, or exclude a later message. No product fix is claimed. |
+
+The WebKit result narrows the prior null-header observation but does not complete the requested root-cause diagnosis. Its runner `completed` flag means the bounded probe returned, not that a cause or text hold was proved. There was no proven instrument fault authorizing a repeat, and none was taken. This packet leaves #1310 open; another browser attempt or product change needs its own PM scope.
+
+D2 raw receipts, the runner SHA256 captured before execution, source comparison, measurement index and cleanup are in `state/build/1310-update-hold-d2/`. No field contents were collected. The synthetic account, owned rows, storage and sessions read back zero; diagnostics and owned browser profiles were removed; both local app servers and proxies stopped; copied credentials were removed. The shared backend was preserved.
 
 ## What can hold indefinitely: inference, not a long observation
 
