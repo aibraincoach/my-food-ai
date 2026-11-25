@@ -110,13 +110,11 @@ function MealPhoto({url,priority,alt}:{url:string;priority:boolean;alt:string}) 
  const [read,setRead]=useState({path:imageIdentity(url),url,failed:false});
  const image=useRef<HTMLImageElement>(null);
  const [nearViewport,setNearViewport]=useState(false);
- const [failedSharp,setFailedSharp]=useState<string|null>(null);
  useEffect(()=>{
   if(priority||nearViewport||!image.current)return;
   return observeNearViewport(image.current,()=>setNearViewport(true));
  },[priority,nearViewport]);
  const active=retainedImageUrl(read,url);
- const sharp=failedSharp!==imageIdentity(active);
  const [photoError,setPhotoError]=useState<{url:string;key:'sharperPhotoFailed'|'mealPhotoFailed'}|null>(null);
  useEffect(()=>{
   if(!priority||!image.current)return;
@@ -124,9 +122,9 @@ function MealPhoto({url,priority,alt}:{url:string;priority:boolean;alt:string}) 
   void firstPhotoUpgrade(active,image.current,controller.signal).catch(()=>{if(live)setPhotoError({url:active,key:'sharperPhotoFailed'});});
   return()=>{live=false;controller.abort();};
  },[active,priority]);
- const sources=priority?firstPhotoSources(active):{src:active,srcSet:sharp?feedPhotoSrcSet(active):undefined,sizes:FEED_PHOTO_SIZES};
+ const sources=priority?firstPhotoSources(active):{src:active,srcSet:feedPhotoSrcSet(active),sizes:FEED_PHOTO_SIZES};
  // eslint-disable-next-line @next/next/no-img-element
  return <><img ref={image} src={priority||nearViewport?sources.src:undefined} srcSet={priority||nearViewport?sources.srcSet:undefined} crossOrigin="anonymous" sizes={sources.sizes} width={1080} height={1080} fetchPriority={priority?"high":undefined} loading={priority?"eager":"lazy"} decoding="async" alt={alt} className="h-full w-full object-cover"
-  onError={()=>{if(priority){setPhotoError({url:active,key:'mealPhotoFailed'});return;}if(sharp&&feedPhotoSrcSet(active)){setFailedSharp(imageIdentity(active));return;}setRead({path:imageIdentity(active),url:active,failed:true});}}
-  onLoad={()=>{if(read.failed||read.url!==active||read.path!==imageIdentity(active))setRead({path:imageIdentity(active),url:active,failed:false});}}/>{priority&&photoError?.url===active&&<span role="status" className="absolute bottom-3 left-3 rounded-field bg-surface px-2 text-meta text-text">{t(photoError.key)}</span>}</>;
+  onError={()=>{setRead({path:imageIdentity(active),url:active,failed:true});setPhotoError({url:active,key:'mealPhotoFailed'});}}
+  onLoad={()=>{setPhotoError(previous=>previous?.key==='mealPhotoFailed'?null:previous);if(read.failed||read.url!==active||read.path!==imageIdentity(active))setRead({path:imageIdentity(active),url:active,failed:false});}}/>{photoError?.url===active&&<span role="status" className="absolute bottom-3 left-3 rounded-field bg-surface px-2 text-meta text-text">{t(photoError.key)}</span>}</>;
 }

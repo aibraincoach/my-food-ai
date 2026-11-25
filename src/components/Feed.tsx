@@ -10,6 +10,7 @@ import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { FEED_PAGE_SIZE, readFeedDiscovery, hasUnavailableFields, retainCompleteItems, getPostCard, getPendingItems, type FeedPost } from "@/lib/posts/feed";
 import { tokens } from "@/lib/theme/tokens";
+import FeedConnectionNotice from "./FeedConnectionNotice";
 import DayHeader from "@/components/DayHeader";
 import { dateInZone, shiftDay, getDayTotals, type FeedDayTotal } from "@/lib/posts/days";
 import {useUploads} from "@/components/useUploads";
@@ -492,6 +493,7 @@ export default function Feed({initialPage, initialUserId, initialZone = "UTC", f
   if (!visibleState.posts.length&&localCards.length)return <div>{lostNotice}{localCards}{null}</div>;
   if (!visibleState.posts.length) return <div data-feed-source={fallbackOnly||!freshResponse?"cache":"fresh"} data-feed-client-ready={!fallbackOnly ? true : undefined} data-cached-feed-ready={fallbackOnly ? true : undefined} className="flex w-full flex-1 flex-col">
     {lostNotice}
+    <FeedConnectionNotice cached={fallbackOnly||!freshResponse}/>
     <div className="flex flex-1 items-center justify-center" style={{ paddingBottom: tokens.spacing['sheet-bottom'] * 3 }}>
     <p className="text-sheet-title font-normal text-muted">{t('firstMeal')}</p>
     </div>
@@ -509,6 +511,7 @@ export default function Feed({initialPage, initialUserId, initialZone = "UTC", f
   const totals = new Map(visibleState.days.map(day => [day.day, day]));
   return <div data-feed-source={fallbackOnly||!freshResponse?"cache":"fresh"} data-feed-client-ready={!fallbackOnly ? true : undefined} data-cached-feed-ready={fallbackOnly ? true : undefined} className="flex flex-col">
     {lostNotice}
+    <FeedConnectionNotice cached={fallbackOnly||!freshResponse}/>
     {reconnectFailed?<p role="status" className="px-screen-x text-detail text-muted">{t('updatesReconnectFailed')}</p>:null}
     {localCards.filter((_,index)=>!days.includes(localDay[index]))}
     {days.map(day => <section key={day} aria-label={day} className="relative pb-card-gap">

@@ -105,10 +105,10 @@ test('0029 preserves categories in every SQL writer and restricts linked intake 
 
 test('a committed Log again copy survives a failed follow-up hydration read', async () => {
   let copies = 0;
-  const db = { rpc: async name => { assert.equal(name, 'log_post_again'); copies++; return { data: 'copied-post', error: null }; } };
-  const admin = { from() { throw new Error('network lost after copy commit'); } };
-  const result = await logMeal(db, admin, 'source', new Date(Date.now() - 3600000).toISOString(), false);
-  assert.deepEqual(result, { postId: 'copied-post' }); assert.equal(copies, 1);
+  const db = { rpc: async name => { assert.equal(name, 'publish_copy_operation'); copies++; return { data: '11111111-1111-4111-8111-111111111111', error: null }; } };
+  const admin = { from(table) { if(table==='posts'){const q={update(){return q},eq(){return q},is(){return q},select(){return q},maybeSingle:async()=>({data:{render_time_zone:'Asia/Tokyo'},error:null})};return q;}throw new Error('network lost after copy commit'); } };
+  const result = await logMeal(db, admin, 'source', new Date(Date.now() - 3600000).toISOString(), false,'Asia/Tokyo','22222222-2222-4222-8222-222222222222');
+  assert.deepEqual(result, { postId: '11111111-1111-4111-8111-111111111111' }); assert.equal(copies, 1);
   const sql = readFileSync(new URL('../supabase/migrations/0029_drinks_from_items.sql', import.meta.url), 'utf8');
   for (const name of ['copy_owned_saved_meal', 'copy_owned_post']) {
     const block = sql.slice(sql.indexOf(`function public.${name}(`));

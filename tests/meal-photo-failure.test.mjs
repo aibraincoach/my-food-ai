@@ -1,0 +1,9 @@
+import test from 'node:test';import assert from 'node:assert/strict';import fs from 'node:fs';import vm from 'node:vm';import ts from 'typescript';import {createTranslator} from 'next-intl';import {imageIdentity,retainedImageUrl} from '../src/lib/media/retained-image.ts';
+const source=fs.readFileSync('src/components/Carousel.tsx','utf8'),ast=ts.createSourceFile('Carousel.tsx',source,ts.ScriptTarget.Latest,true,ts.ScriptKind.TSX),fn=ast.statements.find(n=>ts.isFunctionDeclaration(n)&&n.name?.text==='MealPhoto');
+const code=ts.transpileModule(fn.getText(ast)+'\nexports.view=MealPhoto;',{compilerOptions:{module:ts.ModuleKind.CommonJS,jsx:ts.JsxEmit.ReactJSX,target:ts.ScriptTarget.ES2022}}).outputText;
+for(const locale of ['en','ja'])for(const priority of [false,true])test(locale+': '+(priority?'first':'lower')+' photo error is visible on its own card',()=>{
+ const messages=JSON.parse(fs.readFileSync('messages/'+locale+'.json')),t=createTranslator({locale,messages,namespace:'post'}),states=[];let index=0;const exports={};
+ vm.runInNewContext(code,{exports,require:()=>({jsx:(type,props)=>({type,props}),jsxs:(type,props)=>({type,props}),Fragment:'fragment'}),useTranslations:()=>t,useState:initial=>{const i=index++;if(!(i in states))states[i]=initial;return[states[i],value=>{states[i]=typeof value==='function'?value(states[i]):value;}];},useRef:()=>({current:null}),useEffect:()=>{},imageIdentity,retainedImageUrl,feedPhotoSrcSet:()=>'/copy2.webp 2x, /copy3.webp 3x',FEED_PHOTO_SIZES:'100vw',firstPhotoSources:url=>({src:url,sizes:'100vw'})});
+ const render=()=>{index=0;return exports.view({url:'/copy.webp',priority,alt:'meal'});};
+ let tree=render();const image=tree.props.children[0];image.props.onError();tree=render();const status=tree.props.children[1];assert.equal(status.props.role,'status');assert.equal(status.props.children,messages.post.mealPhotoFailed);tree.props.children[0].props.onLoad();assert.equal(render().props.children[1],false);
+});

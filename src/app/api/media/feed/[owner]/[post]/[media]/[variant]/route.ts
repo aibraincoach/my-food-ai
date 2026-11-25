@@ -31,20 +31,8 @@ async function readPhoto(request: Request, context: {params: Promise<{owner: str
   if (request.headers.get('if-none-match') === cacheHeaders.ETag) {
     return new Response(null, {status: 304, headers: cacheHeaders});
   }
-  // Only called after the owning user's RLS lookup, including on overload/failure.
-  const original = async () => {
-    try {
-      // The transform deadline may have expired; signing gets its own bounded client.
-      const signing = await createClient(AbortSignal.timeout(2000));
-      const result = await signing.storage.from('media').createSignedUrl(data.storage_path, 60);
-      if (result.error || !result.data?.signedUrl) return fail(502);
-      const target = new URL(result.data.signedUrl);
-      if (target.origin !== new URL(process.env.NEXT_PUBLIC_SUPABASE_URL!).origin) return fail(502);
-      return new Response(null, {status: 302, headers: {...headers, Location: target.href}});
-    } catch { return fail(502); }
-  };
   const release = reserveFeedPhoto();
-  if (!release) return original();
+  if (!release) return fail(503);
   try {
     if (!session.access_token) return fail(401);
     const base = new URL(process.env.NEXT_PUBLIC_SUPABASE_URL!);
@@ -53,14 +41,11 @@ async function readPhoto(request: Request, context: {params: Promise<{owner: str
     const source = await readFeedSource(response, MAX_ORIGINAL_SOURCE_BYTES);
     try {
       const output = await resizeSharpPhoto(source, box);
-      if (signal.aborted) return original();
+      if (signal.aborted) return fail(503);
       return new Response(new Uint8Array(output), {headers: {...cacheHeaders, 'Content-Type': 'image/webp'}});
     } catch {
-      // A failed or slow resize must still show a photo: a browser does not fall
-      // back from a failed srcset candidate to src, so the answer is a redirect
-      // to the signed original, the same fallback the v2 route uses on overload.
-      return original();
+      return fail(503);
     }
-  } catch { return original(); }
+  } catch { return fail(503); }
   finally { release(); }
 }

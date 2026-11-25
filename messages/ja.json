@@ -502,7 +502,8 @@
     "servingAmount": "{count}{count, plural, one {食分} other {食分}}",
     "decoderLoading": "スキャナーはまだ読み込み中です。しばらくしてからもう一度お試しください。",
     "decoderSlow": "スキャナーの処理が時間内に終わりませんでした。もう一度お試しください。",
-    "decoderLoadFailed": "スキャナーを読み込めませんでした。写真をもう一度選択してください。"
+    "decoderLoadFailed": "スキャナーを読み込めませんでした。写真をもう一度選択してください。",
+    "cameraChoiceTemporary": "このカメラの選択は、アプリを再読み込みすると失われます。"
   },
   "feed": {
     "loading": "フィードを読み込み中…",
@@ -546,7 +547,10 @@
     "pageLoadFailed": "このページを読み込めませんでした。",
     "openMealDetails": "食事の詳細を開く",
     "loadingMealDetails": "食事の詳細を読み込み中…",
-    "noFoodFound": "食品が見つかりません"
+    "noFoodFound": "食品が見つかりません",
+    "offlineNotice": "オフラインです。このデバイスに保存された食事を表示しています。",
+    "cachedNotice": "このデバイスに保存された食事を表示しています。最新の内容を見るには、接続を確認してください。",
+    "daySummariesFailed": "日別の概要を読み込めませんでした。ページを再読み込みして、もう一度お試しください。"
   },
   "post": {
     "backToFeed": "フィードに戻る",
@@ -1143,7 +1147,7 @@
     "route_860477fccdfe": "録音のファイルサイズが大きすぎます。",
     "route_860d3b3155ad": "2分以内のWAV録音を送信してください。",
     "route_86ae9d4b581e": "質問を閉じられませんでした。",
-    "route_8752bd7a7233": "postIdが必要です。",
+    "route_8752bd7a7233": "この写真のアップロードを準備できませんでした。もう一度お試しください。",
     "route_887223813ce1": "修正後の単位は、この投稿の量と一致している必要があります。",
     "route_8a9239da8a05": "商品の単位で量を選択してください。",
     "route_8b0cad93568a": "食事を読み込めませんでした。",
@@ -1297,7 +1301,8 @@
     "route_397499279570": "この食品が変更されました。再読み込みして、もう一度お試しください。",
     "route_18a223594571": "食品の詳細が無効です。",
     "captionSaveFailed": "説明を保存できませんでした。",
-    "monthlyDrinksLoadFailed": "月間の飲み物を読み込めませんでした。"
+    "monthlyDrinksLoadFailed": "月間の飲み物を読み込めませんでした。",
+    "captureZoneRequired": "この食事を保存するには、有効なタイムゾーンが必要です。"
   },
   "nutrition": {
     "summaryMeal": "摂取：{hasCount, select, yes {{count} · } other {}}{calories} kcal{hasDrink, select, yes { · 飲んだ量 {ml} ml{hasCaffeine, select, yes { · カフェイン {caffeine} mg} other {}}} other {}} · たんぱく質 {protein} g · 炭水化物 {carbs} g · 脂質 {fat} g{hasWater, select, yes { · 水分 {water} ml} other {}}{hasGap, select, yes { · {gap}} other {}}{hasLeftovers, select, yes { · 食べ残し：{leftovers} g} other {}}",

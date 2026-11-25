@@ -23,6 +23,7 @@ export interface StoredUpload {
     eatenAt: string | null;
     location: CapturedLocation | null;
     options: PostOptions;
+    timeZone?: string;
     files: File[];
     snapshot: UploadSnapshot | null;
     posted: boolean;

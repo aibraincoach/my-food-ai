@@ -8,10 +8,23 @@ import sharp from 'sharp';
 import * as photo from '../src/lib/posts/feed-photo.ts';
 import {smallFeedPhotoUrl} from '../src/lib/posts/feed-photo-url.ts';
 import {createClient} from '@supabase/supabase-js';
-import {getFeed,getFirstFeedPhoto} from '../src/lib/posts/feed.ts';
+import {getFeed,getFirstFeedPhoto,toFeedPost} from '../src/lib/posts/feed.ts';
 
 const owner='11111111-1111-4111-8111-111111111111',post='22222222-2222-4222-8222-222222222222',media='33333333-3333-4333-8333-333333333333';
 const path=`${owner}/${post}/0.jpg`;
+test('camera, staged pack and copied photos use identity URLs; a meal without media retains its live card data',async()=>{
+ let signs=0;
+ const db={from(){return {select(){return this;},eq(){return this;},async maybeSingle(){return {data:null,error:null};}};},rpc(){return {async abortSignal(){return {data:null,error:null};}};},storage:{from(){return {async createSignedUrl(){signs++;throw Error('photo signing must not run');}};}}};
+ const row={id:post,user_id:owner,status:'ready',caption:'Meal',created_at:'2026-11-25T00:00:00Z',eaten_at:'2026-11-25T00:00:00Z'};
+ const items=[{id:'item',name:'Rice',calories:180,portion_grams:150}];
+ const known={items,revisionBefore:null,profile:{handle:'fixture',avatar_media_id:null}};
+ for(const storage_path of [path,`${owner}/staged/pack/0.jpg`,`${owner}/source-post/copied.jpg`]){
+  const result=await toFeedPost(db,row,'UTC',{...known,media:[{id:media,storage_path,kind:'photo',not_eaten:false}]});
+  assert.equal(result.photoUrl,smallFeedPhotoUrl(owner,post,media));assert.equal(result.mediaUnavailable,false);assert.deepEqual(result.items,items);
+ }
+ const noPhoto=await toFeedPost(db,row,'UTC',{...known,media:[]});
+ assert.equal(noPhoto.photoUrl,null);assert.deepEqual(noPhoto.slides,[]);assert.deepEqual(noPhoto.items,items);assert.equal(noPhoto.status,'ready');assert.equal(noPhoto.mediaUnavailable,false);assert.equal(signs,0);
+});
 const routeSource=readFileSync(new URL('../src/lib/posts/feed-photo-response.ts',import.meta.url),'utf8');
 const compiled=ts.transpileModule(routeSource,{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText;
 function route({user={id:owner},row={storage_path:path,kind:'photo'},authThrows=false,transform=photo.resizeFeedPhoto,sourceFetch}={}) {
@@ -45,11 +58,11 @@ test('authorized route binds both media and post, uses fixed storage origin and 
  const info=await sharp(body).metadata();assert.equal(info.width,1080);assert.equal(info.height,1080);assert.ok(body.length<=220_000);
 });
 
-test('authorized transform failure retains bounded JPEG; download failure redirects only after ownership lookup',async()=>{
+test('transform and download failures are visible and never cache alternate bytes or redirect',async()=>{
  const source=await sharp({create:{width:16,height:16,channels:3,background:'#fff'}}).jpeg().toBuffer();
- let r=route({sourceFetch:async()=>new Response(source),transform:async()=>{throw Error('native failure');}});
- let response=await r.get();assert.equal(response.status,200);assert.equal(response.headers.get('content-type'),'image/jpeg');assert.deepEqual(Buffer.from(await response.arrayBuffer()),source);
- r=route({sourceFetch:async()=>{throw Error('timeout');}});response=await r.get();assert.equal(response.status,302);assert.equal(r.calls.select,1);assert.equal(r.calls.sign,1);assert.match(response.headers.get('location'),/^https:\/\/storage\.example\//);
+ for(const setup of [{sourceFetch:async()=>new Response(source),transform:async()=>{throw Error('native failure');}},{sourceFetch:async()=>{throw Error('timeout');}}]){
+  const r=route(setup),response=await r.get();assert.equal(response.status,503);assert.equal(response.headers.get('cache-control'),'private, no-store');assert.equal(response.headers.get('location'),null);assert.equal(response.headers.get('etag'),null);assert.equal(response.headers.get('content-type'),'application/json');assert.equal(r.calls.sign,0);assert.equal(r.calls.select,1);
+ }
 });
 
 test('stream byte and decoded pixel limits are enforced; owner paths cannot traverse',async()=>{
@@ -109,4 +122,9 @@ test('v2 preserves dense-phone pixels under a new immutable identity and still v
  assert.equal(response.headers.get('etag'),`"${media}-v2"`);assert.match(smallFeedPhotoUrl(owner,post,media),/\/v2\.webp$/);
  const conditional=await r.get({owner,post,media},'',{'If-None-Match':`"${media}-v2"`});assert.equal(conditional.status,304);assert.equal(r.calls.select,2);assert.equal(r.calls.fetch,1);
  const denied=await route({user:{id:post}}).get();assert.equal(denied.status,404);
+});
+
+test('an overloaded transform slot returns visible no-store failure without a signed original',async()=>{
+ const releases=[];let release;while((release=photo.reserveFeedPhoto()))releases.push(release);
+ try{const r=route(),response=await r.get();assert.equal(response.status,503);assert.equal(response.headers.get('cache-control'),'private, no-store');assert.equal(response.headers.get('location'),null);assert.equal(response.headers.get('etag'),null);assert.equal(r.calls.sign,0);assert.equal(r.calls.fetch,0);}finally{for(const done of releases)done();}
 });

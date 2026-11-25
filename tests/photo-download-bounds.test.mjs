@@ -18,12 +18,12 @@ function route(fetchSource,{expire=false}={}){
 test('public photo uses the shared eight-MiB reader and returns cacheable output for a valid source',async()=>{
  const r=route(async()=>new Response(new Uint8Array([255,216,255,1]))),res=await r.get();assert.equal(res.status,200);assert.equal(res.headers.get('content-type'),'image/webp');assert.deepEqual(r.transforms,[4]);assert.equal(r.releases.length,1);assert.deepEqual(r.deadlines,[6000]);assert.equal(r.fetches[0].options.signal,r.signals[0]);assert.equal(r.fetches[0].options.redirect,'error');
 });
-for(const declared of [true,false])test(`oversized ${declared?'declared':'streamed'} source is cancelled before resizing and uses no-store fallback`,async()=>{
+for(const declared of [true,false])test(`oversized ${declared?'declared':'streamed'} source is cancelled before resizing and returns visible no-store failure`,async()=>{
  let cancelled=false;
  const r=route(async()=>new Response(new ReadableStream({pull(controller){controller.enqueue(new Uint8Array(photo.MAX_ORIGINAL_SOURCE_BYTES+1));},cancel(){cancelled=true;}}),{headers:declared?{'content-length':String(photo.MAX_ORIGINAL_SOURCE_BYTES+1)}:{}}));
- const res=await r.get();assert.equal(res.status,302);assert.equal(res.headers.get('cache-control'),'no-store');assert.equal(cancelled,true);assert.deepEqual(r.transforms,[]);assert.equal(r.releases.length,1);assert.deepEqual(r.deadlines,[6000,2000]);
+ const res=await r.get();assert.equal(res.status,503);assert.equal(res.headers.get('cache-control'),'no-store');assert.equal(res.headers.get('location'),null);assert.equal(cancelled,true);assert.deepEqual(r.transforms,[]);assert.equal(r.releases.length,1);assert.deepEqual(r.deadlines,[6000]);
 });
 for(const mode of ['deadline','disconnect'])test(`${mode} cancels the source fetch and releases the reservation`,async()=>{
  const r=route(async(_url,{signal})=>{if(mode==='disconnect')r.controller.abort();assert.equal(signal.aborted,true);throw signal.reason;},{expire:mode==='deadline'});
- const res=await r.get();assert.equal(res.status,302);assert.equal(r.releases.length,1);assert.deepEqual(r.transforms,[]);assert.equal(r.signals[1].aborted,false);
+ const res=await r.get();assert.equal(res.status,503);assert.equal(res.headers.get('location'),null);assert.equal(res.headers.get('cache-control'),'no-store');assert.equal(r.releases.length,1);assert.deepEqual(r.transforms,[]);assert.equal(r.signals.length,1);
 });

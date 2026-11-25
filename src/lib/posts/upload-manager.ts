@@ -176,7 +176,7 @@ export class UploadManager {
         if (!entry) {
             const id = crypto.randomUUID();
             const now = Date.now();
-            entry = this.make({ operationId: id, ownerId: this.ownerId, createdAt: now, reservedAt: now, ...fields, files: [...files], snapshot: null, posted: false, state: 'uploading', sent: 0, total: files.reduce((sum, file) => sum + file.size, 0) });
+            entry = this.make({ operationId: id, ownerId: this.ownerId, createdAt: now, reservedAt: now, timeZone:Intl.DateTimeFormat().resolvedOptions().timeZone, ...fields, files: [...files], snapshot: null, posted: false, state: 'uploading', sent: 0, total: files.reduce((sum, file) => sum + file.size, 0) });
             this.entries.set(id, entry);
         }
         else if (!this.sameFiles(entry, files)) {
@@ -237,7 +237,7 @@ export class UploadManager {
         if(entry&&(entry.finished||entry.data.posted||entry.data.ownerId!==this.ownerId||!this.sameFiles(entry,files)))entry=undefined;
         if(!entry){
             const now=Date.now(),id=crypto.randomUUID();
-            entry=this.make({operationId:id,ownerId:this.ownerId,createdAt:now,reservedAt:now,caption:label,eatenAt:food.eaten_at,location:null,options:{},files:[...files],snapshot:null,posted:true,food,state:'uploading',sent:0,total:'photo' in food?0:files.reduce((sum,file)=>sum+file.size,0)});
+            entry=this.make({operationId:id,ownerId:this.ownerId,createdAt:now,reservedAt:now,timeZone:Intl.DateTimeFormat().resolvedOptions().timeZone,caption:label,eatenAt:food.eaten_at,location:null,options:{},files:[...files],snapshot:null,posted:true,food,state:'uploading',sent:0,total:'photo' in food?0:files.reduce((sum,file)=>sum+file.size,0)});
             this.entries.set(id,entry);
         }else{
             Object.assign(entry.data,{food,caption:label,eatenAt:food.eaten_at,posted:true,state:'uploading',failure:undefined});
@@ -252,7 +252,7 @@ export class UploadManager {
     async postCaption(caption:string,eatenAt:string){
         if(!this.ownerId){const {data:{user}}=await createClient().auth.getUser();if(!user)throw new CaptureFailureError({code:'error_844d05ae458e'});this.ownerId=user.id;}
         const now=Date.now(),id=crypto.randomUUID();
-        const entry=this.make({operationId:id,ownerId:this.ownerId,createdAt:now,reservedAt:now,caption,eatenAt,location:null,options:{},files:[],snapshot:null,posted:true,state:'uploading',sent:0,total:0});
+        const entry=this.make({operationId:id,ownerId:this.ownerId,createdAt:now,reservedAt:now,timeZone:Intl.DateTimeFormat().resolvedOptions().timeZone,caption,eatenAt,location:null,options:{},files:[],snapshot:null,posted:true,state:'uploading',sent:0,total:0});
         this.entries.set(id,entry);try{await this.persist(entry);}catch(error){entry.deleted=true;this.entries.delete(id);throw error;}
         if(entry.deleted||entry.data.ownerId!==this.ownerId)throw new CaptureFailureError({code:'error_57b18a509a0e'});
         this.notify(entry,'upload-started');void this.run(entry);return id;
@@ -261,7 +261,7 @@ export class UploadManager {
         drink={...drink};
         if(!this.ownerId){const {data:{user}}=await createClient().auth.getUser();if(!user)throw new CaptureFailureError({code:'error_8b51f31b2473'});this.ownerId=user.id;}
         const now=Date.now(),id=crypto.randomUUID();
-        const entry=this.make({operationId:id,ownerId:this.ownerId,createdAt:now,reservedAt:now,caption:label,eatenAt:drink.eaten_at,location:null,options:{},files:[],snapshot:null,posted:true,drink,state:'uploading',sent:0,total:0});
+        const entry=this.make({operationId:id,ownerId:this.ownerId,createdAt:now,reservedAt:now,timeZone:Intl.DateTimeFormat().resolvedOptions().timeZone,caption:label,eatenAt:drink.eaten_at,location:null,options:{},files:[],snapshot:null,posted:true,drink,state:'uploading',sent:0,total:0});
         this.entries.set(id,entry);await this.persist(entry);
         if(entry.deleted||entry.data.ownerId!==this.ownerId)throw new CaptureFailureError({code:'error_9809bfd89146'});
         this.notify(entry,'upload-started');void this.run(entry);return id;
@@ -285,7 +285,7 @@ export class UploadManager {
         copy={...copy};
         if(!this.ownerId){const {data:{user}}=await createClient().auth.getUser();if(!user)throw new CaptureFailureError({code:'error_2c1ec80621be'});this.ownerId=user.id;}
         const now=Date.now(),id=crypto.randomUUID();
-        const entry=this.make({operationId:id,ownerId:this.ownerId,createdAt:now,reservedAt:now,caption:label,eatenAt:copy.eatenAt,location:null,options:{},files:[],snapshot:null,posted:true,copy,state:'uploading',sent:0,total:0});
+        const entry=this.make({operationId:id,ownerId:this.ownerId,createdAt:now,reservedAt:now,timeZone:Intl.DateTimeFormat().resolvedOptions().timeZone,caption:label,eatenAt:copy.eatenAt,location:null,options:{},files:[],snapshot:null,posted:true,copy,state:'uploading',sent:0,total:0});
         this.entries.set(id,entry);
         this.notify(entry,'upload-started');
         try{await this.persist(entry);}catch{entry.data.state='failed';entry.data.failure={code:'copyStorageFailed'};this.notify(entry,'upload-failed');return id;}
@@ -297,7 +297,7 @@ export class UploadManager {
     async postAttachment(file: File, attachment: {postId: string; notEaten: boolean}): Promise<string> {
         const owner = await this.resolveOwner();
         const now=Date.now(),id=crypto.randomUUID();
-        const entry=this.make({operationId:id,ownerId:owner,createdAt:now,reservedAt:now,caption:attachment.notEaten?'Leftovers':'Added photo',eatenAt:null,location:null,options:{},files:[file],snapshot:null,posted:true,attachment:{...attachment},state:'uploading',sent:0,total:file.size});
+        const entry=this.make({operationId:id,ownerId:owner,createdAt:now,reservedAt:now,timeZone:Intl.DateTimeFormat().resolvedOptions().timeZone,caption:attachment.notEaten?'Leftovers':'Added photo',eatenAt:null,location:null,options:{},files:[file],snapshot:null,posted:true,attachment:{...attachment},state:'uploading',sent:0,total:file.size});
         this.entries.set(id,entry);
         this.notify(entry,'upload-started');
         try{await this.store.putIntent(this.intentFor(entry,owner));}catch{
@@ -397,7 +397,7 @@ export class UploadManager {
         const prepared=Boolean(d.food&&'photo' in d.food);
         const photo=prepared?null:d.files.length?d.snapshot?.images[0]:null;
         if(d.files.length&&!prepared&&(!photo||!d.snapshot))throw new CaptureFailureError({code:'error_65467f9f76fc'});
-        const response=await this.foodRequest('/api/posts/food',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({...d.food,operation_id:d.operationId,owner_id:d.ownerId,...(photo&&d.snapshot?{photo:{path:this.ownerId+'/'+d.snapshot.id+'/0.jpg',width:photo.width,height:photo.height}}:{})}),signal:AbortSignal.timeout(JSON_REQUEST_LIMIT_MS)});
+        const response=await this.foodRequest('/api/posts/food',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({...d.food,time_zone:d.timeZone,operation_id:d.operationId,owner_id:d.ownerId,...(photo&&d.snapshot?{photo:{path:this.ownerId+'/'+d.snapshot.id+'/0.jpg',width:photo.width,height:photo.height}}:{})}),signal:AbortSignal.timeout(JSON_REQUEST_LIMIT_MS)});
         const result=await response.json().catch(()=>null) as {post_id?:string;error?:string}|null;
         if(!response.ok||!result?.post_id){
             d.failure=failureFromResponse(result);
@@ -408,14 +408,14 @@ export class UploadManager {
     private async submitDrink(entry:Entry):Promise<{postId:string}>{
         const d=entry.data,photo=d.photoDrinks,tile=d.drink;
         const endpoint=photo?'/api/drinks/post':'/api/intake/post?tz='+encodeURIComponent(tile!.time_zone);
-        const response=await this.foodRequest(endpoint,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({...photo??tile,operation_id:d.operationId,owner_id:d.ownerId}),signal:AbortSignal.timeout(JSON_REQUEST_LIMIT_MS)});
+        const response=await this.foodRequest(endpoint,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({...photo??tile,time_zone:d.timeZone,operation_id:d.operationId,owner_id:d.ownerId}),signal:AbortSignal.timeout(JSON_REQUEST_LIMIT_MS)});
         const result=await response.json().catch(()=>null) as {post_id?:string;error?:string}|null;
         if(!response.ok||!result?.post_id){d.failure=failureFromResponse(result);throw new CaptureFailureError(d.failure);}
         return{postId:result.post_id};
     }
     private async submitCopy(entry:Entry):Promise<{postId:string}> {
         const d=entry.data,copy=d.copy!;
-        const response=await this.foodRequest(copyEndpoint(copy),{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({operation_id:d.operationId,owner_id:d.ownerId,eaten_at:copy.eatenAt}),signal:AbortSignal.timeout(JSON_REQUEST_LIMIT_MS)});
+        const response=await this.foodRequest(copyEndpoint(copy),{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({operation_id:d.operationId,owner_id:d.ownerId,eaten_at:copy.eatenAt,time_zone:d.timeZone}),signal:AbortSignal.timeout(JSON_REQUEST_LIMIT_MS)});
         const result=await response.json().catch(()=>null) as {postId?:string;post_id?:string;error?:string}|null;
         const postId=result?.postId??result?.post_id;
         if(!response.ok||!postId){d.failure=failureFromResponse(result);throw new CaptureFailureError(d.failure);}
@@ -455,7 +455,7 @@ export class UploadManager {
                     }
                     const d = entry.data;
                     if (d.files.length&&!d.attachment&&!d.photoDrinks&&!(d.food&&'photo' in d.food))
-                        await entry.draft.stage(d.caption, d.files, d.location, d.eatenAt, d.options);
+                        await entry.draft.stage(d.caption, d.files, d.location, d.eatenAt, {...d.options,time_zone:d.timeZone});
                     if (entry.deleted)
                         return;
                     d.snapshot = await entry.draft.snapshot();
@@ -478,7 +478,7 @@ export class UploadManager {
                     await this.persist(entry);
                     if (entry.deleted)
                         return;
-                    const result = d.attachment?await this.submitAttachment(entry):d.copy?await this.submitCopy(entry):d.food ? await this.submitFood(entry) : (d.drink||d.photoDrinks)?await this.submitDrink(entry):await entry.draft.submit(d.caption, d.files, d.location, d.eatenAt, d.files.length ? 'photo' : 'text', d.options);
+                    const result = d.attachment?await this.submitAttachment(entry):d.copy?await this.submitCopy(entry):d.food ? await this.submitFood(entry) : (d.drink||d.photoDrinks)?await this.submitDrink(entry):await entry.draft.submit(d.caption, d.files, d.location, d.eatenAt, d.files.length ? 'photo' : 'text', {...d.options,time_zone:d.timeZone});
 
                     if (entry.deleted)
                         return;
@@ -502,6 +502,7 @@ export class UploadManager {
                         entry.rerun = true;
                         return;
                     }
+                    if(error instanceof CaptureFailureError&&error.failure.code==='captureZoneRequired'){entry.data.failure=error.failure;throw error;}
                     if (error instanceof UploadStorageError || this.photoLost(entry) || (error as Error)?.name === 'NotReadableError') throw error;
                     // A selection failure is visible immediately; only an explicit retry may resend its receipt.
                     if (entry.data.food || entry.data.copy || entry.data.drink || entry.data.photoDrinks) {

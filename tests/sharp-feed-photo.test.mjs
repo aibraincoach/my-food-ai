@@ -30,13 +30,13 @@ test('invalid variants and unowned photos perform no storage access',async()=>{
   const r=route(options);assert.equal((await r.get(variant)).status,status);assert.equal(r.calls.fetch,0);assert.equal(r.calls.sign,0);
  }
 });
-test('resize, download and abort failures redirect through a fresh signing deadline',async()=>{
+test('resize, download and abort failures never redirect or cache alternate bytes',async()=>{
  const source=await sharp({create:{width:16,height:16,channels:3,background:'#fff'}}).jpeg().toBuffer();
  for(const mode of ['resize','download','abort-reject','abort-resolve']){
   const controller=new AbortController();
   const r=route({sourceFetch:async()=>{if(mode==='download')throw Error('download');return new Response(source);},transform:async()=>{if(mode.startsWith('abort')){controller.abort();await new Promise(resolve=>setTimeout(resolve,10));if(mode==='abort-resolve')return source;}throw Error('resize');}});
   const response=await r.get('v2-1560.webp',controller.signal);
-  assert.equal(response.status,302,mode);assert.equal(response.headers.get('cache-control'),'private, no-store');assert.match(response.headers.get('location'),/^https:\/\/storage\.example\//);assert.equal(r.calls.sign,1);assert.equal(r.calls.signals.length,2);
+  assert.equal(response.status,503,mode);assert.equal(response.headers.get('cache-control'),'private, no-store');assert.equal(response.headers.get('location'),null);assert.equal(response.headers.get('etag'),null);assert.equal(r.calls.sign,0);assert.equal(r.calls.signals.length,1);
  }
 });
 test('only the current v2 URL selects density candidates',()=>{

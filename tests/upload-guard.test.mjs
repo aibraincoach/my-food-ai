@@ -31,7 +31,7 @@ test('deleting a draft waits for a pending checkpoint so it cannot reappear afte
 });
 test('an old ambiguous publication retries the same reservation instead of duplicating the meal',async()=>{
  let factories=0,restored=null;const draft={setProgress(){},restore(value){restored=value;},snapshot:async()=>({id:'original-id',images:[],completed:[]}),stage:async()=>{},submit:async()=>({postId:'original-id'})};
- const{manager,store}=harness(()=>{factories++;return draft;});await store.put({operationId:'logical-id',ownerId:'owner',createdAt:0,reservedAt:0,caption:'meal',eatenAt:null,location:null,options:{},files:[file],snapshot:{id:'original-id',images:[],completed:[]},posted:true,publishStarted:true,state:'failed',sent:1,total:1});await manager.initialize('owner');manager.retry('logical-id');await until(()=>manager.list()[0]?.postId==='original-id');assert.equal(factories,1);assert.equal(restored.id,'original-id');
+ const{manager,store}=harness(()=>{factories++;return draft;});await store.put({operationId:'logical-id',ownerId:'owner',createdAt:0,reservedAt:0,timeZone:'UTC',caption:'meal',eatenAt:null,location:null,options:{},files:[file],snapshot:{id:'original-id',images:[],completed:[]},posted:true,publishStarted:true,state:'failed',sent:1,total:1});await manager.initialize('owner');manager.retry('logical-id');await until(()=>manager.list()[0]?.postId==='original-id');assert.equal(factories,1);assert.equal(restored.id,'original-id');
 });
 test('a checkpoint for fewer photos cannot silently omit a selected photo after reload',async()=>{
  const image={width:10,height:10,phash:'1',original:new Blob(['original']),feed:new Blob(['feed'])};let encoded=0,manifest;
@@ -73,7 +73,7 @@ test('publish intent survives a slow draft write and still publishes after reloa
  let publishes=0;const draft={setProgress(){},restore(){},snapshot:async()=>({id:'posted',images:[],completed:[]}),stage:async()=>{},submit:async()=>{publishes++;return{postId:'posted'}}};
  const {store,rows}=harness(()=>draft);const id=randomUUID(),now=Date.now();
  await store.putIntent({operationId:id,ownerId:'owner',createdAt:now,postId:null,notEaten:false});
- await store.put({operationId:id,ownerId:'owner',createdAt:now,reservedAt:now,...fields,files:[file],snapshot:null,posted:false,state:'uploading',sent:0,total:file.size});
+ await store.put({operationId:id,ownerId:'owner',createdAt:now,reservedAt:now,timeZone:'UTC',...fields,files:[file],snapshot:null,posted:false,state:'uploading',sent:0,total:file.size});
  assert.equal(rows.get(id).posted,false);
  const restored=new UploadManager(store,()=>draft,async()=>{});await restored.initialize('owner');assert.equal(restored.list()[0].posted,true);
  await until(()=>publishes===1);assert.equal(restored.list()[0].postId,'posted');

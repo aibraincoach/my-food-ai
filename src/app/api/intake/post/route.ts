@@ -1,3 +1,5 @@
+import {saveCaptureZone,CaptureZoneConflictError} from '@/lib/pipeline/capture-zone';
+import {captureZone} from '@/lib/posts/capture-zone';
 import {tileDrinkKey,readDrinkReceipt,drinkErrorStatus} from "@/lib/intake/drink-operation";
 import {validEatenAt} from "@/lib/posts/eaten-at";
 import { cookies } from "next/headers";
@@ -40,12 +42,13 @@ export async function POST(request: Request) {
   if(!isUuid(body?.operation_id))return NextResponse.json({message_code: "route_22cedede8c18"},{status:400});
   const input = parseDrinkInput(body);
   if (!input) return NextResponse.json({ message_code: "route_1537a97602c2" }, { status: 400 });
-  const zone = validZone(new URL(request.url).searchParams.get("tz") ?? (await cookies()).get("time-zone")?.value);
+  const zone = captureZone(body.time_zone);
+  if (!zone) return NextResponse.json({message_code: "captureZoneRequired"}, {status: 400});
   const admin=createAdminClient(),key=tileDrinkKey(body,zone);
   const eatenAt=body?.eaten_at===undefined?new Date().toISOString():validEatenAt(body.eaten_at);
   if(!eatenAt)return NextResponse.json({message_code: "route_6572182f4064"},{status:400});
   const receipt=await readDrinkReceipt(admin,user.id,body.operation_id,key,'tile');
-  if(receipt){if('status' in receipt)return NextResponse.json({ message_code: receipt.message_code},{status:receipt.status});return NextResponse.json({post_id:receipt.postId,drink:null},{status:201});}
+  if(receipt){if('status' in receipt)return NextResponse.json({ message_code: receipt.message_code},{status:receipt.status});try{await saveCaptureZone(admin,receipt.postId,zone);}catch(error){return NextResponse.json({message_code:error instanceof CaptureZoneConflictError?"route_73da0d100358":"unknownFailure"},{status:error instanceof CaptureZoneConflictError?409:503});}return NextResponse.json({post_id:receipt.postId,drink:null},{status:201});}
   try {
     const result = await postDrink(admin,user.id,input,zone,{id:body.operation_id,key,eatenAt});
     return NextResponse.json({ post_id: result.postId, drink: result.drink }, { status: 201 });

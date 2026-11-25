@@ -1,7 +1,8 @@
 import {CaptureFailureError} from '@/lib/posts/capture-failure';
-import {copyOperation} from './copy-operation';
+import {CopyOperationError,copyOperation} from './copy-operation';
 import { syncItemDrinks } from '@/lib/intake/drinks-from-items';
 import type { SupabaseClient } from '@supabase/supabase-js';
+import {saveCaptureZone,CaptureZoneConflictError} from '@/lib/pipeline/capture-zone';
 import { renderResultsCard } from '@/lib/pipeline/results-card';
 import { validEatenAt } from './eaten-at';
 export type SavedNutrition = {calories:number|null;protein_g:number|null;carbs_g:number|null;fat_g:number|null;food_category?:string|null;micronutrients?:import('@/lib/nutrition/totals').StoredNutrient[]};
@@ -37,11 +38,12 @@ export async function savePost(db:SupabaseClient,postId:string) {
  if(error||typeof data!=='string')throw Object.assign(new CaptureFailureError({code:error?.code==='42501'?"route_c3a1756aac70":error?.code==='22023'?"route_8181b1c27406":"error_0795a0b4a0a6"}),{code:error?.code});
  return {id:data,name};
 }
-export async function logMeal(db:SupabaseClient,admin:SupabaseClient,id:string,eatenAt:unknown,saved:boolean,timeZone?:string,operationId?:string) {
+export async function logMeal(db:SupabaseClient,admin:SupabaseClient,id:string,eatenAt:unknown,saved:boolean,timeZone:string,operationId:string) {
  const time=validEatenAt(eatenAt);
- if(!time)throw new CaptureFailureError({code:"route_6572182f4064"});
- const result=operationId?{data:await copyOperation(db,operationId,id,saved,time),error:null}:await db.rpc(saved?'log_saved_meal':'log_post_again',saved?{p_id:id,p_eaten_at:time}:{p_post_id:id,p_eaten_at:time});
- const {data,error}=result;if(error||typeof data!=='string')throw new CaptureFailureError({code:"route_35d40f66fffa"});
+ if(!time)throw new CopyOperationError("route_6572182f4064",400);
+ const data=await copyOperation(db,operationId,id,saved,time);
+ if(typeof data!=='string')throw new CaptureFailureError({code:"route_35d40f66fffa"});
+ try{await saveCaptureZone(admin,data,timeZone);}catch(error){if(error instanceof CaptureZoneConflictError)throw new CopyOperationError("route_4b150ec62015",409);throw error;}
  // Sheet intake commits atomically with its copy. Item copies also retain a
  // durable drink_sync repair job.
  // Never turn a failed follow-up into a failed copy that the user repeats.

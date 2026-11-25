@@ -502,7 +502,8 @@
     "servingAmount": "{count} {count, plural, one {serving} other {servings}}",
     "decoderLoading": "The scanner is still loading. Try again in a moment.",
     "decoderSlow": "The scanner ran out of time. Try again.",
-    "decoderLoadFailed": "The scanner could not be loaded. Choose the photo again."
+    "decoderLoadFailed": "The scanner could not be loaded. Choose the photo again.",
+    "cameraChoiceTemporary": "This camera choice will be lost when the app reloads."
   },
   "feed": {
     "loading": "Loading feed…",
@@ -546,7 +547,10 @@
     "openMealDetails": "Open meal details",
     "loadingMealDetails": "Loading meal details…",
     "loadingPage": "Loading…",
-    "noFoodFound": "No food found"
+    "noFoodFound": "No food found",
+    "offlineNotice": "You're offline. Showing meals stored on this device.",
+    "cachedNotice": "Showing meals stored on this device. Check your connection to see the latest.",
+    "daySummariesFailed": "Day summaries could not be loaded. Refresh to try again."
   },
   "post": {
     "backToFeed": "Back to Feed",
@@ -1143,7 +1147,7 @@
     "route_860477fccdfe": "Recording is too large.",
     "route_860d3b3155ad": "Send a WAV recording up to two minutes.",
     "route_86ae9d4b581e": "Question could not be dismissed.",
-    "route_8752bd7a7233": "postId is required.",
+    "route_8752bd7a7233": "This photo upload could not be prepared. Try again.",
     "route_887223813ce1": "The corrected unit must match this post's portion.",
     "route_8a9239da8a05": "Choose an amount in the product's own unit.",
     "route_8b0cad93568a": "The meal could not be loaded.",
@@ -1297,7 +1301,8 @@
     "route_397499279570": "This item changed. Reload and try again.",
     "route_18a223594571": "Invalid item details.",
     "captionSaveFailed": "The caption could not be saved.",
-    "monthlyDrinksLoadFailed": "Couldn’t load monthly drinks."
+    "monthlyDrinksLoadFailed": "Couldn’t load monthly drinks.",
+    "captureZoneRequired": "A valid time zone is required to save this meal."
   },
   "nutrition": {
     "summaryMeal": "Consumed: {hasCount, select, yes {{count} · } other {}}{calories} kcal{hasDrink, select, yes { · {ml} ml drank{hasCaffeine, select, yes { · {caffeine} mg caffeine} other {}}} other {}} · {protein} g protein · {carbs} g carbs · {fat} g fat{hasWater, select, yes { · {water} ml water} other {}}{hasGap, select, yes { · {gap}} other {}}{hasLeftovers, select, yes { · Leftovers: {leftovers} g} other {}}",

@@ -1,8 +1,8 @@
-import {renderTimeZone} from "@/lib/pipeline/render-zone";
+import {saveCaptureZone} from "@/lib/pipeline/capture-zone";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { searchFoods } from "@/lib/fdc/client";
 import { scaleNutrition } from "@/lib/fdc/nutrients";
-import { dateInZone, validZone } from "@/lib/posts/days";
+import { dateInZone } from "@/lib/posts/days";
 import { hydrationSoFar, type DrinkCardData } from "./hydration";
 import { DRINK_TILES, TILE_SIZES } from "./intake";
 import { renderResultsCard } from "@/lib/pipeline/results-card";
@@ -51,10 +51,10 @@ export async function postDrink(admin: SupabaseClient, userId: string, input: Dr
   if(error)throw Object.assign(new Error("The drink could not be saved."),{code:error.code});
   if(typeof data!=="string")throw new Error("The drink could not be confirmed.");
   const postId = data;
-  const zone = validZone(tz);
+  const zone = tz;
+  await saveCaptureZone(admin,postId,zone);
   let drink: DrinkCardData | null = null;
   try {
-  await renderTimeZone(admin,postId,zone);
   const hydration = await hydrationSoFar(admin, userId, dateInZone(eatenAt, zone), zone, eatenAt);
   drink = { ...hydration, dayCaffeineMg: hydration.caffeineMg,
     ml: input.ml, label: input.label, caffeineMg: input.caffeineMg };

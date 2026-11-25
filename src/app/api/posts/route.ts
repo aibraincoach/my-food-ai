@@ -1,6 +1,5 @@
 import { capUser } from "@/lib/limits/user-cap";
-import {cookies} from "next/headers";
-import {validZone} from "@/lib/posts/days";
+import {captureZone} from "@/lib/posts/capture-zone";
 import { randomUUID } from "node:crypto";
 import { after, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
@@ -23,6 +22,8 @@ export async function POST(request: Request) {
   const body = await request.json().catch(() => null);
   if (!body || typeof body.caption !== "string" || body.caption.length > 2000 || body.caption.includes("\u0000")) return NextResponse.json({ message_code: "route_277df75eda6a" }, { status: 400 });
   if(body.save_as_meal!==undefined&&typeof body.save_as_meal!=='boolean')return NextResponse.json({message_code: "route_f4094c5e9670"},{status:400});
+  const timeZone = captureZone(body.time_zone);
+  if (!timeZone) return NextResponse.json({message_code: "captureZoneRequired"}, {status: 400});
   const shots = body.shots ?? [];
   if (!validUploadShots(shots) || (body.capture_intent !== undefined && !["photo", "text"].includes(body.capture_intent)) || (body.capture_intent === "photo" && shots.length === 0) || (shots.length === 0 && !body.caption.trim())) return NextResponse.json({ message_code: "route_97d26acf361a" }, { status: 400 });
   const notEatenPositions=body.not_eaten_positions??(body.not_eaten_position==null?[]:[body.not_eaten_position]);
@@ -47,7 +48,7 @@ export async function POST(request: Request) {
     reservation = await reserveUpload(admin, db, user.id, {
       operationId, caption: body.caption, eatenAt, shots, location,
       notEatenPositions, saveAsMeal: body.save_as_meal === true,
-      renderZone: validZone((await cookies()).get("time-zone")?.value),
+      renderZone: timeZone,
     });
   } catch (error) {
     if (error instanceof UploadReservationError) return NextResponse.json({  message_code: error.failure.code }, { status: error.status });

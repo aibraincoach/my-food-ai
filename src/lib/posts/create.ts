@@ -8,7 +8,7 @@ import type { SignedUpload } from "@/lib/media/storage";
 
 export interface NewShot { file: File; previewUrl: string }
 export interface CreatedPost { postId: string }
-export interface PostOptions {not_eaten_position?:number|null;not_eaten_positions?:number[];save_as_meal?:boolean}
+export interface PostOptions {time_zone?:string;not_eaten_position?:number|null;not_eaten_positions?:number[];save_as_meal?:boolean}
 
 // The upload manager can stage this operation before Post. Repeated attempts
 // keep its identifier, encoded bytes and acknowledged uploads, including lost responses.
@@ -55,7 +55,7 @@ export class PostUploadDraft {
     try { images = await pending.images; }
     catch { this.pending = null; throw new CaptureFailureError({code:'error_c39425902c8c'}); }
     await this.persistSnapshot();
-    const create = await this.request("/api/posts", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ operation_id: pending.id, capture_intent: intent, ...options, caption, location, eaten_at: eatenAt ?? new Date().toISOString(), shots: images.map((image, position) => ({ position, width: image.width, height: image.height, phash: image.phash })) }), signal: AbortSignal.timeout(JSON_REQUEST_LIMIT_MS) });
+    const create = await this.request("/api/posts", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ operation_id: pending.id, capture_intent: intent, ...options, time_zone:options.time_zone, caption, location, eaten_at: eatenAt ?? new Date().toISOString(), shots: images.map((image, position) => ({ position, width: image.width, height: image.height, phash: image.phash })) }), signal: AbortSignal.timeout(JSON_REQUEST_LIMIT_MS) });
     if (!create.ok) {
       const detail = await create.json().catch(() => null);
       if (create.status === 410) this.pending = null;

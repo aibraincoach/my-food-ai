@@ -6,10 +6,9 @@ import {validEatenAt} from './eaten-at';
 export class CopyOperationError extends CaptureFailureError {
  constructor(messageCode:CaptureMessageCode,readonly status:number){super({code:messageCode});}
 }
-export function readCopyOperation(body:unknown,ownerId:string,required=false):string|undefined {
+export function readCopyOperation(body:unknown,ownerId:string):string {
  const value=body as {owner_id?:unknown;operation_id?:unknown}|null;
  if(value?.owner_id!==undefined&&value.owner_id!==ownerId)throw new CopyOperationError("route_0b8ac49fa994",403);
- if(value?.operation_id===undefined&&!required)return undefined;
  if(!isUuid(value?.operation_id))throw new CopyOperationError("route_440bd4fc27f4",400);
  if(value?.owner_id!==ownerId)throw new CopyOperationError("route_62c98a4a0da4",403);
  return value.operation_id;

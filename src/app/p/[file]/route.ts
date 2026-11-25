@@ -21,16 +21,8 @@ export async function GET(request: Request, context: {params: Promise<{file: str
     const {data: post, error: postError} = await admin.from('posts').select('deleted_at').eq('id', photo.post_id).maybeSingle();
     if (postError) return fail(503);
     if (!post || post.deleted_at) return fail(404);
-    // A browser does not fall back from a failed srcset candidate, so a busy or failed
-    // resize answers with a short signed link to the stored original, as the signed-in route does.
-    const original = async () => {
-      const signing=createAdminClient(AbortSignal.timeout(2000));
-      const {data: signed, error: signError} = await signing.storage.from('media').createSignedUrl(photo.storage_path, 60);
-      if (signError || !signed?.signedUrl) return fail(503);
-      return new Response(null, {status: 302, headers: {...closed, Location: signed.signedUrl}});
-    };
     const release = reserveFeedPhoto();
-    if (!release) return original();
+    if (!release) return fail(503);
     try {
       // Read the original as a bounded, cancellable stream, never as a whole Blob.
       const base=new URL(process.env.NEXT_PUBLIC_SUPABASE_URL!);
@@ -41,8 +33,8 @@ export async function GET(request: Request, context: {params: Promise<{file: str
         if(response.status===404)return fail(404);
         const source=await readFeedSource(response,MAX_ORIGINAL_SOURCE_BYTES);
         output=await resizeSharpPhoto(source,Number(width));
-        if(signal.aborted)return original();
-      } catch { return original(); }
+        if(signal.aborted)return fail(503);
+      } catch { return fail(503); }
       return new Response(new Uint8Array(output), {headers: {
         'Content-Type': 'image/webp',
         'Cache-Control': 'public, max-age=31536000, s-maxage=86400, immutable',
