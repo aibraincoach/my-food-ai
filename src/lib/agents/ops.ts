@@ -1,3 +1,4 @@
+import {commentText} from '@/lib/posts/comment-message';
 import {nutritionTranslator} from '@/i18n/nutrition';
 // #1219 boundary: agent summaries retain their approved English API contract.
 const locale='en',tn=nutritionTranslator(locale);
@@ -62,12 +63,12 @@ export async function listMeals(identity: AgentIdentity, input: AgentArgs, db: S
 export async function getMeal(identity: AgentIdentity, id: unknown, db: SupabaseClient = createAdminClient()) {
   const postId = await owned(db, identity, id);
   const [post, detail, thread] = await Promise.all([getPostCard(db, postId, 'UTC'), getPostDetail(db, postId, 'UTC'),
-    db.from('post_comments').select('id,author,body,created_at').eq('post_id', postId).order('created_at')]);
+    db.from('post_comments').select('id,author,body,message,created_at').eq('post_id', postId).order('created_at')]);
   if (!detail) throw new AgentError("route_e3ebaa16dd9d", 404);
   if (thread.error) throw new AgentError("route_430f651d1ea0", 503);
   await activity(db, identity, 'read', postId);
   const meal = post ?? { ...detail.post, items: detail.items, drink: detail.drink, kind: detail.kind, dayHydration: detail.dayHydration, foodWaterMl: detail.foodWaterMl };
-  return { ...record(meal), items: detail.items, thread: thread.data };
+  return { ...record(meal), items: detail.items, thread: thread.data.map(({message,...row})=>({...row,body:commentText({...row,message},tn,locale)})) };
 }
 export async function correctMeal(identity: AgentIdentity, id: unknown, text: unknown, db: SupabaseClient = createAdminClient()) {
   const postId = await owned(db, identity, id);

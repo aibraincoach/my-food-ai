@@ -27,9 +27,11 @@ function validPost(value: unknown): value is FeedPost {
     Array.isArray(post.items) && post.items.every(item => item && typeof item.id === "string" && typeof item.name === "string");
 }
 
-// Signed card URLs last an hour (feed.ts) but the cache lasts a day; drop slides whose token has expired.
+// Stored card pixels are never a human image source. Keep only their live-card metadata.
+// Signed photographs from an older cache still respect their expiry.
 function withLiveSlides(post: FeedPost, savedAt: number, now: number): FeedPost {
-  const slides = post.slides.filter(slide => {
+  const normalized=post.slides.map(slide=>slide.kind==='card'&&slide.url!==''?{...slide,url:''}:slide);
+  const slides = normalized.filter(slide => {
     if (!slide.url.includes("/storage/v1/object/sign/")) return true;
     try {
       const token = new URL(slide.url).searchParams.get("token") ?? "";
@@ -37,7 +39,8 @@ function withLiveSlides(post: FeedPost, savedAt: number, now: number): FeedPost 
       return typeof exp === "number" ? exp * 1000 > now + 120_000 : now - savedAt < 50 * 60_000;
     } catch { return now - savedAt < 50 * 60_000; }
   });
-  return slides.length === post.slides.length ? post : { ...post, slides, photoUrl: slides[0]?.url ?? null };
+  const photoUrl=slides.find(slide=>slide.kind==='photo')?.url??null;
+  return slides.length===post.slides.length&&slides.every((slide,index)=>slide===post.slides[index])&&photoUrl===post.photoUrl?post:{...post,slides,photoUrl};
 }
 
 // Local storage can be disabled, full, stale or corrupt. None may stop Home.

@@ -33,7 +33,7 @@ export async function POST(request: Request, context: { params: Promise<{ id: st
     const amount=item.portion_grams!==null?Number(item.portion_grams):match?Number(match[1]):null;
     const unit=item.portion_grams!==null?"g":match?.[2];
     if(!amount||unit!==product.basisUnit)return NextResponse.json({message_code: "route_887223813ce1"},{status:422});
-    const {data,error}=await admin.rpc("correct_barcode_item",{p_post:id,p_user:user.id,p_gtin:gtin,p_name:product.name,p_amount:amount,p_unit:unit,p_nutrition:barcodeNutrition(product,amount)});
+    const {data,error}=await admin.rpc("correct_barcode_item",{p_post:id,p_user:user.id,p_gtin:gtin,p_name:product.name,p_amount:amount,p_unit:unit,p_nutrition:barcodeNutrition(product,amount),p_message:{code:"productCorrected",values:{name:product.name}}});
     if(error)return NextResponse.json({message_code: "route_966cabcb23ac"},{status:error.code==="40001"?409:500});
     after(async()=>{try{await fetch(new URL("/api/jobs/tick",request.url),{cache:"no-store",signal:AbortSignal.timeout(10000)});}catch{}});
     return NextResponse.json({item_id:data});

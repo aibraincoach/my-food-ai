@@ -7,7 +7,7 @@ import {isUuid} from '@/lib/posts/items';
 import {validEatenAt} from '@/lib/posts/eaten-at';
 import {scalePhotoDrink,type PhotoDrink} from '@/lib/intake/photo-drinks';
 import {sumNutrition} from '@/lib/nutrition/totals';
-import {plainConsumed} from '@/lib/pipeline/wording';
+import {mealSummaryMessage} from '@/lib/posts/comment-message';
 import {saveCaptureZone,CaptureZoneConflictError} from '@/lib/pipeline/capture-zone';
 import {markReady} from '@/lib/pipeline/persist';
 export const maxDuration=300;
@@ -35,8 +35,8 @@ export async function POST(request:Request){
   expected[reading.id]=reading.drinks as PhotoDrink[];
   for(const selection of choice.selections){const drink=(reading.drinks as PhotoDrink[])[selection.index];if(!drink)continue;const scaled=scalePhotoDrink(drink,selection.ml);items.push({name:scaled.name,portion_text:`${scaled.ml} ml`,portion_grams:scaled.grams,nutrition:scaled.nutrition});}
  }
- const summary=plainConsumed(sumNutrition(items.map(item=>({...item.nutrition,name:item.name}))));
- const {data,error}=await admin.rpc('publish_photo_drink_operation',{p_operation_id:body.operation_id,p_request_key:key,p_upload_id:body.upload_id,p_user_id:user.id,p_readings:body.readings,p_caption:body.caption,p_eaten_at:eatenAt,p_location:location,p_save_as_meal:body.save_as_meal,p_items:items,p_summary:summary,p_expected:expected});
+ const summary=mealSummaryMessage(sumNutrition(items.map(item=>({...item.nutrition,name:item.name}))));
+ const {data,error}=await admin.rpc('publish_photo_drink_operation',{p_operation_id:body.operation_id,p_request_key:key,p_upload_id:body.upload_id,p_user_id:user.id,p_readings:body.readings,p_caption:body.caption,p_eaten_at:eatenAt,p_location:location,p_save_as_meal:body.save_as_meal,p_items:items,p_message:summary,p_expected:expected});
  if(error)return NextResponse.json({ message_code: error.code==='42501' ? "route_e431cb5e4a79" : "route_07c3267907ee"},{status:drinkErrorStatus(error.code)});
  // Nutrition, intake and the photo have committed together. Optional PNG work
  // must never turn a successful Post into a retry that creates another meal.

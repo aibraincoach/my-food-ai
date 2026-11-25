@@ -1,12 +1,8 @@
-import {nutritionTranslator} from '@/i18n/nutrition';
-// Stored English remains unchanged until #1219.
-const locale='en',tn=nutritionTranslator(locale);
-import {formatCalories} from '@/lib/nutrition/totals';
+import {parseCommentMessage} from '@/lib/posts/comment-message';
 import type {JobHandler} from '@/lib/worker/handlers';
 import {readRemainder} from '@/lib/meta/remainder';
 import {remainderRule} from '@/lib/pipeline/remainder-rule';
 import {getCurrentItems,requireStoredNutrition,rescaleStoredNutrition,sumNutrition,toNumber,NUTRIENT_KEYS,type NutritionRow} from '@/lib/nutrition/totals';
-import {checkWording} from '@/lib/pipeline/wording-check';
 import {markReady} from '@/lib/pipeline/persist';
 import {ioError,ApiError} from '@/lib/worker/errors';
 import {isOwnedPhotoPath} from '@/lib/media/paths';
@@ -25,10 +21,8 @@ const remainder:JobHandler=async(admin,job)=>{
  const rows=await replayRemainder(admin,photo.storage_path,items);
  const kcal=sumNutrition(rows.map(row=>({...row.nutrition,name:row.name}))).calories;
  const omitted=rows.some(row=>row.notEatenKcal===null)?null:rows.reduce((total,row)=>total+(row.notEatenKcal??0),0);
- const describe=(values:string[])=>values.length===1?values[0]:values.join(', ');
- const reply=`Leftovers: ${describe(rows.map(row=>row.notEatenText))} · ${omitted===null?'unavailable':formatCalories(omitted,tn,locale)} kcal. Consumed: ${describe(rows.map(row=>row.consumedText))} · ${kcal===null?'unavailable':formatCalories(kcal,tn,locale)} kcal.`;
- if(!checkWording(reply).ok)throw Error('Not-eaten reply contained unsupported wording.');
- const {error,status}=await admin.rpc('apply_post_remainder',{p_post_id:job.post_id,p_job_id:job.id,p_photo_id:photo.id,p_expected:items.map(item=>item.id),p_items:rows,p_reply:reply});
+ const message=parseCommentMessage({code:'mealSummary',values:{kind:'leftovers',leftovers:rows.map(row=>row.notEatenQuantity),consumed:rows.map(row=>row.consumedQuantity),omitted,calories:kcal}});
+ const {error,status}=await admin.rpc('apply_post_remainder',{p_post_id:job.post_id,p_job_id:job.id,p_photo_id:photo.id,p_expected:items.map(item=>item.id),p_items:rows,p_message:message});
  if(error)throw ioError('Not-eaten estimate could not be saved.',error,status);
  await markReady(job.post_id,admin,job.id);
 };
@@ -48,7 +42,7 @@ export async function replayRemainder(admin:import('@supabase/supabase-js').Supa
   const ratio=toNumber(item.portion_grams)>0?rule.notEatenGrams/toNumber(item.portion_grams):0;
   const incrementKcal=rule.notEatenGrams===0?0:item.calories==null?null:toNumber(item.calories)*ratio;
   const cumulativeKcal=((item.not_eaten_grams??0)>0&&item.not_eaten_calories==null)||incrementKcal==null?null:(item.not_eaten_calories??0)+incrementKcal;
-  return {old_id:item.id,name:item.name,portion_grams:rule.consumedGrams,portion_text:rule.consumedText,box:item.box,mask_path:item.mask_path,gtin:item.gtin??null,not_eaten_grams:(item.not_eaten_grams??0)+rule.notEatenGrams,not_eaten_calories:cumulativeKcal,count_text:item.not_eaten_grams?null:rule.countText,not_eaten_count_text:item.not_eaten_grams?`${(item.not_eaten_grams??0)+rule.notEatenGrams} g`:rule.notEatenCountText,nutrition,notEatenKcal:incrementKcal,notEatenText:rule.notEatenText,consumedText:rule.consumedText};
+  return {consumedQuantity:rule.consumedQuantity,notEatenQuantity:rule.notEatenQuantity,old_id:item.id,name:item.name,portion_grams:rule.consumedGrams,portion_text:rule.consumedText,box:item.box,mask_path:item.mask_path,gtin:item.gtin??null,not_eaten_grams:(item.not_eaten_grams??0)+rule.notEatenGrams,not_eaten_calories:cumulativeKcal,count_text:item.not_eaten_grams?null:rule.countText,not_eaten_count_text:item.not_eaten_grams?`${(item.not_eaten_grams??0)+rule.notEatenGrams} g`:rule.notEatenCountText,nutrition,notEatenKcal:incrementKcal,notEatenText:rule.notEatenText,consumedText:rule.consumedText};
  });
 
  return rows;

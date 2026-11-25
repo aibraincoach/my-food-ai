@@ -7,6 +7,7 @@ import {delayAction} from '@/lib/posts/delayed-action';
 import FirstRunHint from '@/components/FirstRunHint';
 import {useRemovalMenus} from '@/components/useRemovalMenus';
 import {useCallback,useEffect,useRef,useState,type ReactNode} from 'react';
+import {commentText} from '@/lib/posts/comment-message';
 import {readPostComments} from '@/lib/posts/timeline';
 import {useRouter} from 'next/navigation';
 import {correctionFeedback} from '@/lib/posts/correction-feedback';
@@ -17,7 +18,7 @@ import {LocalTime} from '@/components/LocalTime';
 import {usePostHandle} from '@/components/PostHandle';
 const sort=(rows:CommentRow[])=>rows.toSorted((a,b)=>a.created_at.localeCompare(b.created_at)||a.id.localeCompare(b.id));
 export default function Thread({postId,readOnly=false,sourcePostId,desktopActions,fingerprint=null}:{desktopActions?:ReactNode;postId:string;readOnly?:boolean;sourcePostId?:string|null;fingerprint?:string|null}){
- const t=useTranslations('thread'),tp=useTranslations('post'),tm=useTranslations('postMenu'),locale=useLocale() as Locale;
+ const tn=useTranslations('nutrition'),t=useTranslations('thread'),tp=useTranslations('post'),tm=useTranslations('postMenu'),locale=useLocale() as Locale;
  const menus=useRef<HTMLElement>(null);useRemovalMenus(menus);
  const handle=usePostHandle();
  const [accepted,setAccepted]=useState<string|null>(null);
@@ -36,13 +37,14 @@ export default function Thread({postId,readOnly=false,sourcePostId,desktopAction
     client.from('posts').select('status,analysis_initialized_at,fail_reason').eq('id',postId).maybeSingle(),
    ]);
    if(!live)return;if(postError||!post){setError({key:'loadFailed'});return;}
-   const models=(data??[]).filter(row=>row.author==='model');
+   const formatted=data.map(row=>({...row,body:commentText(row,tn,locale)}));
+   const models=formatted.filter(row=>row.author==='model');
    const freshModel=knownStatus!==null&&models.some(row=>!modelIds.has(row.id));
    modelIds=new Set(models.map(row=>row.id));
    if(freshModel)router.refresh();
    if(knownStatus&&knownStatus!==post.status)router.refresh();knownStatus=post.status;
    const feedback=correctionFeedback(post.status);
-   setFailed(feedback==='failed');setError(feedback==='failed'?(post.analysis_initialized_at?{key:'updateFailed'}:{failureReason:post.fail_reason??null}):null);setRows(old=>sort([...new Map([...old,...(data??[])].map(row=>[row.id,row as CommentRow])).values()]));
+   setFailed(feedback==='failed');setError(feedback==='failed'?(post.analysis_initialized_at?{key:'updateFailed'}:{failureReason:post.fail_reason??null}):null);setRows(old=>sort([...new Map([...old,...formatted].map(row=>[row.id,row as CommentRow])).values()]));
    setWaiting(feedback==='waiting');
   }catch{if(live)setError({key:'loadFailed'});}finally{inFlight=false;if(again&&live){again=false;void load();}}};
   const channel=client.channel(`thread-${postId}`).on('postgres_changes',{event:'INSERT',schema:'public',table:'post_comments',filter:`post_id=eq.${postId}`},()=>{void load();}).on('postgres_changes',{event:'UPDATE',schema:'public',table:'post_comments',filter:`post_id=eq.${postId}`},()=>{void load();}).subscribe((status)=>{if(status==='SUBSCRIBED')void load();});
@@ -53,7 +55,7 @@ export default function Thread({postId,readOnly=false,sourcePostId,desktopAction
   wake.current=()=>{void load();};
   void load();
   return()=>{live=false;wake.current=()=>{};window.removeEventListener('focus',visible);document.removeEventListener('visibilitychange',visible);window.removeEventListener('post-readiness',readiness);void client.removeChannel(channel);};
- },[postId,router,fingerprint]);
+ },[postId,router,fingerprint,tn,locale]);
  const [toast,setToast]=useState<{key:number;undo:()=>void}|null>(null);
  const [pendingRemovals,setPendingRemovals]=useState<string[]>([]);
  const pendingRemovalIds=useRef(new Set<string>());
@@ -77,7 +79,7 @@ export default function Thread({postId,readOnly=false,sourcePostId,desktopAction
   <h2 className="mb-[10px] text-handle">{t.rich('commentsCount',{count:rows.length,amount:formatNumber(locale,rows.length,{useGrouping:false}),number:chunks=><span className="font-normal text-muted">{chunks}</span>})}</h2>
   <div aria-live="polite" className="flex flex-col gap-[10px]">{rows.filter(row=>!pendingRemovals.includes(row.id)).map(row=><div key={row.id} className="flex items-start gap-[10px]">
     <span className={`flex size-7 shrink-0 items-center justify-center rounded-circle text-avatar-sm ${row.author==='model'?'bg-text text-surface':'bg-field text-text'}`}>{row.author==='model'?t('aiAvatar'):handle.slice(0,1).toUpperCase()}</span>
-    <p className={`min-w-0 flex-1 whitespace-pre-wrap break-words text-detail leading-[1.45] ${row.reverted_at?'text-muted':''}`}><span className="font-semibold" data-i18n-stored="author">{row.author==='model'?'My Food AI':handle}</span> <span data-i18n-stored="comment">{row.body}</span> <span className="whitespace-nowrap text-muted"><LocalTime value={row.created_at}/></span>{row.reverted_at?<span className="block text-meta text-muted">{t('removed')}</span>:row.author==='user'&&!readOnly?<details data-removal-menu className="inline-block"><summary className="ml-2 cursor-pointer list-none text-meta text-muted underline">{t('remove')}</summary><div className="absolute right-4 z-30 w-[230px] rounded-card border border-hairline bg-surface p-[6px] text-[15px] text-text" style={{boxShadow:'var(--color-shadow-pill)'}}><button type="button" onClick={event=>{event.currentTarget.closest('details')?.removeAttribute('open');void removeCorrection(row.id);}} className="h-tap w-full border-b border-hairline px-[10px] text-left" style={{color:'oklch(0.52 0.17 25)'}}>{t('removeCorrection')}</button><span className="block px-[10px] py-2 text-meta text-muted">{t('removeExplanation')}</span><button type="button" onClick={event=>event.currentTarget.closest('details')?.removeAttribute('open')} className="h-tap w-full px-[10px] text-left">{tm('cancel')}</button></div></details>:null}{accepted===row.id?<span className="ml-2 text-meta text-muted">{t('accepted')}</span>:null}</p>
+    <p className={`min-w-0 flex-1 whitespace-pre-wrap break-words text-detail leading-[1.45] ${row.reverted_at?'text-muted':''}`}><span className="font-semibold" data-i18n-stored="author">{row.author==='model'?'My Food AI':handle}</span> <span data-i18n-stored={row.message==null?"comment":undefined}>{row.body}</span> <span className="whitespace-nowrap text-muted"><LocalTime value={row.created_at}/></span>{row.reverted_at?<span className="block text-meta text-muted">{t('removed')}</span>:row.author==='user'&&!readOnly?<details data-removal-menu className="inline-block"><summary className="ml-2 cursor-pointer list-none text-meta text-muted underline">{t('remove')}</summary><div className="absolute right-4 z-30 w-[230px] rounded-card border border-hairline bg-surface p-[6px] text-[15px] text-text" style={{boxShadow:'var(--color-shadow-pill)'}}><button type="button" onClick={event=>{event.currentTarget.closest('details')?.removeAttribute('open');void removeCorrection(row.id);}} className="h-tap w-full border-b border-hairline px-[10px] text-left" style={{color:'oklch(0.52 0.17 25)'}}>{t('removeCorrection')}</button><span className="block px-[10px] py-2 text-meta text-muted">{t('removeExplanation')}</span><button type="button" onClick={event=>event.currentTarget.closest('details')?.removeAttribute('open')} className="h-tap w-full px-[10px] text-left">{tm('cancel')}</button></div></details>:null}{accepted===row.id?<span className="ml-2 text-meta text-muted">{t('accepted')}</span>:null}</p>
   </div>)}</div>
   {waiting?<p role="status" className="py-grid text-meta text-muted">{t('updating')}</p>:null}
   {error?<p role="status" className="text-meta text-muted">{'key'in error?t(error.key):'failureReason'in error?<span>{tp(failureMessageKey(error.failureReason))}</span>:tp('retryAttemptFailed')}</p>:null}

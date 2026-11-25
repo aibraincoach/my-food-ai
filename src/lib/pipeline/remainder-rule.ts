@@ -8,6 +8,8 @@ export function remainderRule(grams:number, estimate:RemainderEstimate) {
  const unit=estimate.unit?.trim();
  const counted=Number.isInteger(total)&&Number.isInteger(count)&&total!>0&&count!>=0&&count!<=total!&&!!unit&&unit.length<=32;
  return { consumedGrams:consumed, notEatenGrams:notEaten,
+  consumedQuantity:{grams:consumed,count:counted?total!-count!:null,total:counted?total!:null,unit:counted?unit!:null},
+  notEatenQuantity:{grams:notEaten,count:counted?count!:null,total:counted?total!:null,unit:counted?unit!:null},
   countText:counted?`${total!-count!} of ${total} ${unit}`:null,
   notEatenCountText:counted?`${count} ${unit}`:null,
   consumedText:counted?`${total!-count!} of ${total} ${unit}`:`${Math.round(consumed)} g`,

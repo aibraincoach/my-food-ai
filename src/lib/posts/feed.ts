@@ -3,7 +3,6 @@ import { getPostHydrationData, type DrinkCardData, type HydrationRecord } from "
 import { dateInZone, getDayTotals, type FeedDayTotal } from "./days";
 import { encodeFeedCursor, parseFeedCursor } from "./feed-cursor";
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { feedCopyUrl } from "@/lib/media/media-url";
 import {smallFeedPhotoUrl} from '@/lib/posts/feed-photo-url';
 import { getCurrentItems, getCurrentItemsForPosts, type Numeric, type CurrentItem } from "@/lib/nutrition/totals";
 
@@ -90,7 +89,7 @@ export function retainCompleteItems(previous: FeedPost | undefined, fresh: FeedP
     const keep = previous.slides.filter(slide => !expected || Boolean(slide.id && expected.has(slide.id)));
     const byId = new Map([...keep, ...fresh.slides].map(slide=>[slide.id ?? slide.url,slide]));
     next.slides = expected ? fresh.expectedMediaIds!.flatMap(id=>byId.has(id)?[byId.get(id)!]:[]) : [...byId.values()];
-    next.photoUrl = next.slides[0]?.url ?? null;
+    next.photoUrl = next.slides.find(slide=>slide.kind==='photo')?.url ?? null;
   }
   if (fresh.hydrationUnavailable && previous.eaten_at === fresh.eaten_at && previous.day === fresh.day) {
     next.kind=previous.kind;next.drink=previous.drink;next.drinkSource=previous.drinkSource;
@@ -166,10 +165,10 @@ export async function toFeedPost(
     .select("id,storage_path,kind,not_eaten,width,height,photo_secret").eq("post_id",row.id).order("position");
   if(mediaError) throw new Error(mediaError.message);
   const slides = (await Promise.all((media ?? []).map(async (entry) => {
-    try { return {id:entry.id,url: entry.kind === "photo" ? requiredPhotoUrl(row.user_id,row.id,entry.id,(entry as {photo_secret?:string|null}).photo_secret) : await feedCopyUrl(supabase, entry.storage_path,row.user_id),kind:entry.kind as "photo"|"card",not_eaten:Boolean(entry.not_eaten),width:entry.width??undefined,height:entry.height??undefined}; }
+    try { return {id:entry.id,url: entry.kind === "photo" ? requiredPhotoUrl(row.user_id,row.id,entry.id,(entry as {photo_secret?:string|null}).photo_secret) : '',kind:entry.kind as "photo"|"card",not_eaten:Boolean(entry.not_eaten),width:entry.width??undefined,height:entry.height??undefined}; }
     catch { return null; }
   }))).filter((entry): entry is NonNullable<typeof entry> => entry !== null);
-  const photoUrl = slides[0]?.url ?? null;
+  const photoUrl = slides.find(slide=>slide.kind==='photo')?.url ?? null;
 
   const items: FeedItem[] = row.status === "ready" ? known?.items ?? await getCurrentItems(supabase, row.id) : [];
 
@@ -235,7 +234,6 @@ export async function toFeedPosts(db: SupabaseClient, rows: PostRow[], zone = "U
     if (result.error) throw result.error; return result.data ?? [];
   }, null);
   const urlRead = mediaRead.then(async media => {
-    const paths = [...new Set((media ?? []).filter(entry=>entry.kind==='card').map(entry => entry.storage_path))];
     const owners=new Map(rows.map(row=>[row.id,row.user_id]));
     const smallPhotos=new Map<string,string>();
     for(const entry of media??[]){
@@ -249,19 +247,9 @@ export async function toFeedPosts(db: SupabaseClient, rows: PostRow[], zone = "U
     if (smallFirst) onFirstPhoto?.(smallFirst);
     // Fast SSR and the full page share one immutable private photo URL.
     const firstRead = Promise.resolve(smallFirst);
-    const batchRead = optionalRead('signed-urls', async () => {
-      if (!paths.length) return new Map<string, string>();
-      const signedPaths = paths.filter(path => !smallPhotos.has(path));
-      if (!signedPaths.length) return new Map<string, string>();
-      const result = await db.storage.from('media').createSignedUrls(signedPaths, 3600);
-      if (result.error) throw result.error;
-      return new Map((result.data ?? []).filter(entry => entry.signedUrl && !entry.error).map(entry => [entry.path!, entry.signedUrl]));
-    }, new Map<string, string>());
-    const [urls, firstUrl] = await Promise.all([batchRead, firstRead]);
-    for(const [path,url]of smallPhotos)urls.set(path,url);
-    if (firstPath && firstUrl) urls.set(firstPath, firstUrl);
-    const url = first && urls.get(first.kind === 'card' ? first.storage_path : feedPathFor(first.storage_path));
-    if (url && !smallFirst) onFirstPhoto?.(url);
+    const firstUrl=await firstRead;
+    const urls=new Map(smallPhotos);
+    if(firstPath&&firstUrl)urls.set(firstPath,firstUrl);
     return urls;
   });
   const profileRead = optionalRead('profiles', async () => {
@@ -287,8 +275,8 @@ export async function toFeedPosts(db: SupabaseClient, rows: PostRow[], zone = "U
     }));
     const ownMedia = media?.filter(entry => entry.post_id === row.id);
     const slides = (ownMedia ?? []).flatMap(entry => {
-      const url = urls.get(entry.kind === 'card' ? entry.storage_path : feedPathFor(entry.storage_path));
-      return url ? [{ id: entry.id, url, kind: entry.kind as 'photo' | 'card', not_eaten: Boolean(entry.not_eaten), width: entry.width ?? undefined, height: entry.height ?? undefined }] : [];
+      const url = entry.kind==='card'?'':urls.get(feedPathFor(entry.storage_path));
+      return url!==undefined ? [{ id: entry.id, url, kind: entry.kind as 'photo' | 'card', not_eaten: Boolean(entry.not_eaten), width: entry.width ?? undefined, height: entry.height ?? undefined }] : [];
     });
     const revision = revisionById.get(row.id);
     const profile = profiles.get(row.user_id) ?? {handle: '', avatar_media_id: null};
@@ -298,7 +286,7 @@ export async function toFeedPosts(db: SupabaseClient, rows: PostRow[], zone = "U
       day: dateInZone(row.eaten_at, zone), gtin: items.find(item => item.gtin)?.gtin,
       user_id: row.user_id, handle: profile.handle, avatar_media_id: profile.avatar_media_id,
       id: row.id, caption: row.caption, eaten_at: row.eaten_at, status: row.status, created_at: row.created_at,
-      photoUrl: slides[0]?.url ?? null, slides, items, count_text: items[0]?.count_text ?? null };
+      photoUrl: slides.find(slide=>slide.kind==='photo')?.url ?? null, slides, items, count_text: items[0]?.count_text ?? null };
   });
 }
 

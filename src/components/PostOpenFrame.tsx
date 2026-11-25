@@ -1,4 +1,5 @@
 'use client';
+import LiveNutritionCard from './LiveNutritionCard';
 import {useTranslations} from 'next-intl';
 import {imageIdentity} from '@/lib/media/retained-image';
 import {feedPhotoSrcSet} from '@/lib/posts/feed-photo-url';
@@ -34,7 +35,7 @@ function Photo({post,desktop=false}:{post:FeedPost;desktop?:boolean}) {
  const slide=post.slides.find(slide=>slide.kind!=='card');
  const url=slide?.url??post.photoUrl;
  const [failedSharp,setFailedSharp]=useState<string|null>(null);
- if(!url)return <div className="aspect-square w-full bg-card"/>;
+ if(!url)return <LiveNutritionCard items={post.items} eatenAt={post.eaten_at} post={post} drink={post.drink}/>;
  // eslint-disable-next-line @next/next/no-img-element
  return <div className="relative w-full overflow-hidden bg-card" style={desktop?undefined:photoBoxStyle(slide)}><img src={url} srcSet={failedSharp!==imageIdentity(url)?feedPhotoSrcSet(url):undefined} onError={()=>setFailedSharp(imageIdentity(url))} crossOrigin="anonymous" sizes="(min-width: 1024px) 520px, 100vw" alt={post.caption||t('mealPhoto')} draggable={false} className="h-full w-full object-contain"/></div>;
 }

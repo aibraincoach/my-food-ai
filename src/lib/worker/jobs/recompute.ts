@@ -1,6 +1,4 @@
-import {nutritionTranslator} from '@/i18n/nutrition';
-// Stored English remains unchanged until #1219.
-const locale='en',tn=nutritionTranslator(locale);
+import {mealSummaryMessage,type MealSummaryMessage} from '@/lib/posts/comment-message';
 import { approximationLabels } from "@/lib/fdc/approximation-metadata";
 import { nutritionUnavailable } from "@/lib/nutrition/available";
 import { resolvePortionNutrition } from "@/lib/nutrition/portion";
@@ -65,13 +63,12 @@ export default async function recompute(admin: SupabaseClient, job: JobRow): Pro
   }
   {
     const {getCurrentItems,sumNutrition}=await import('@/lib/nutrition/totals');
-    const {safeSummary}=await import('@/lib/pipeline/wording');
     const current=await getCurrentItems(admin,job.post_id,{requireNutrition:true});
     const labels=approximationLabels(current);
-    const body=await safeSummary('',sumNutrition(current),labels,current.map(item=>({name:item.name,sourceRef:item.source_ref})));
+    const body=mealSummaryMessage(sumNutrition(current),labels,current.map(item=>({name:item.name,sourceRef:item.source_ref})));
     // Post lock, job ownership and current source refs are rechecked together.
     const {error:summaryError,status:summaryStatus}=await admin.rpc('refresh_owned_approximation_summary',{
-      p_post_id:job.post_id,p_job_id:job.id,p_summary:body,
+      p_post_id:job.post_id,p_job_id:job.id,p_message:body,
       p_expected:current.map(item=>({id:item.id,source_ref:item.source_ref})),
     });
     if(summaryError)throw ioError('Nutrition summary could not be saved.',summaryError,summaryStatus);
@@ -111,15 +108,14 @@ async function rebuildRemoved(admin:SupabaseClient,job:JobRow){
  // nutrition, while removal replay shares the exact correction implementation.
  const {replayCorrection}=await import('./correct');
  const {replayRemainder}=await import('./remainder');
- const {readPostComments}=await import('@/lib/posts/timeline');
- const {getCurrentItems,requireStoredNutrition,formatConsumed,sumNutrition}=await import('@/lib/nutrition/totals');
- const {checkWording}=await import('@/lib/pipeline/wording-check');
+ const {readWorkerComments}=await import('@/lib/posts/worker-comments');
+ const {getCurrentItems,requireStoredNutrition,sumNutrition}=await import('@/lib/nutrition/totals');
  const current=await getCurrentItems(admin,postId,{requireNutrition:true});
  const {data:original,error:originalError,status:originalStatus}=await admin.from('post_items').select('*,item_nutrition(*)').eq('post_id',postId).eq('source','model').order('created_at').order('id');
  if(originalError)throw ioError('Original meal could not be read.',originalError,originalStatus);
  // Initial analysis inserts all its items in one transaction. Later model
  // revisions share source=model, so use the earliest revision timestamp.
- const thread=await readPostComments(admin,postId);
+ const thread=await readWorkerComments(admin,postId);
  const first=thread.find(comment=>comment.author==='model')?.created_at??original?.[0]?.created_at;
  if(!first&&current.length)throw Error('Original meal revision is unavailable.');
  const base=first?analysisRevision(original??[],thread,first):first;
@@ -147,14 +143,12 @@ async function rebuildRemoved(admin:SupabaseClient,job:JobRow){
   install(await replayRemainder(admin,photo.storage_path,items) as unknown as RebuiltRow[]);
  }
  const labels=approximationLabels(items);
- const summary=[formatConsumed(sumNutrition(items),tn,locale),...labels.map(label=>tn(label.kind==='estimate'?'approxModel':'approxUSDA',{name:label.name,basis:label.basis}).slice(0,-1))].join('. ');
+ const summary=mealSummaryMessage(sumNutrition(items),labels,items.map(item=>({name:item.name,sourceRef:item.source_ref})));
  const removed=thread.find(comment=>comment.id===job.payload.comment_id);
- const reply=job.payload.reason==='media_removed'?`${job.payload.media_unmarked===true?'Unmarked the leftovers photo.':'Removed the leftovers photo.'} ${summary}.`:`Removed the correction "${(removed?.body??'').slice(0,60)}". ${summary}.`;
- // Quoted user words are retained verbatim; only generated commentary makes
- // claims. A user's 'remaining half' must not prevent removing a correction.
- const generated=job.payload.reason==='media_removed'?reply:`Removed the correction. ${summary}.`;
- if(!checkWording(generated).ok)throw Error('Removal reply contained unsupported wording.');
- const {error,status}=await admin.rpc('persist_removed_rebuild',{p_post_id:postId,p_job_id:job.id,p_expected:current.map(item=>item.id),p_comments:comments.map(comment=>comment.id),p_photos:(photos??[]).map(photo=>photo.id),p_items:rows.map(row=>{const matches=current.filter(item=>item.name===row.name);return {...row,supersedes:matches.length===1?matches[0].id:null};}),p_reply:reply});
+ const message:MealSummaryMessage={code:'mealSummary',values:{...summary.values,kind:'removal',removal:job.payload.reason==='media_removed'
+  ?{kind:job.payload.media_unmarked===true?'unmarkedLeftovers':'removedLeftovers'}
+  :{kind:'removedCorrection',text:(removed?.body??'').slice(0,60)}} as MealSummaryMessage['values']};
+ const {error,status}=await admin.rpc('persist_removed_rebuild',{p_post_id:postId,p_job_id:job.id,p_expected:current.map(item=>item.id),p_comments:comments.map(comment=>comment.id),p_photos:(photos??[]).map(photo=>photo.id),p_items:rows.map(row=>{const matches=current.filter(item=>item.name===row.name);return {...row,supersedes:matches.length===1?matches[0].id:null};}),p_message:message});
  if(error)throw ioError('Rebuilt meal could not be saved.',error,status);
  await markReady(postId,admin,job.id);
 }

@@ -1331,7 +1331,21 @@
     "fibre": "食物繊維",
     "sugar": "糖類",
     "sodium": "ナトリウム",
-    "unavailable": "不明"
+    "unavailable": "不明",
+    "itemUnnamed": "食品",
+    "editRemoved": "{name}を削除しました。",
+    "editAdded": "{name}を追加しました（{amount}）。",
+    "editRenamed": "{before}の名前を{name}に変更しました（{amount}）。",
+    "editPortion": "{name}を{amount}に設定しました。",
+    "editGrams": "{grams} g",
+    "editUnitAmount": "{amount}{unit, select, oz { oz} cup {{count, plural, other {カップ}}} piece {{count, plural, other {個}}} other {}} ({grams} g)",
+    "removedLeftovers": "食べ残しの写真を削除しました。{summary}。",
+    "unmarkedLeftovers": "食べ残しの写真の設定を解除しました。{summary}。",
+    "removedCorrection": "修正「{text}」を削除しました。{summary}。",
+    "remainderReply": "食べ残し：{leftovers} · {omitted} kcal。摂取：{consumed} · {calories} kcal。",
+    "remainderCount": "{count}{unit}",
+    "consumedCount": "{total}{unit}のうち{count}{unit}",
+    "productCorrected": "商品を{name}に修正しました。"
   },
   "nutrients": {
     "core_calories": "カロリー",
