@@ -1,6 +1,6 @@
 import {cardTranslator} from '@/i18n/card';
 import {nutritionTranslator} from '@/i18n/nutrition';
-import { renderTimeZone, readStoredCardData } from "./render-zone";
+import { readStoredCardData } from "./render-zone";
 import { ioError } from "@/lib/worker/errors";
 import { ImageResponse } from "next/og";
 import { readFile } from "node:fs/promises";
@@ -31,8 +31,7 @@ function fonts() {
   return fontData;
 }
 
-export async function renderResultsCard(admin: SupabaseClient, postId: string, jobId?: string, variant?: DrinkCardData, zone?: string): Promise<boolean> {
-  if(zone!==undefined)await renderTimeZone(admin,postId,zone);
+export async function renderResultsCard(admin: SupabaseClient, postId: string, jobId?: string, variant?: DrinkCardData): Promise<boolean> {
   const { data, error, status } = await admin.rpc("results_card_snapshot", { p_post_id: postId });
   if (error) throw ioError(`Card snapshot failed: ${error.message}`, error, status);
   const snapshot = data as Snapshot | null;
@@ -42,7 +41,7 @@ export async function renderResultsCard(admin: SupabaseClient, postId: string, j
     items: snapshot.items.map(({item}, index) => ({ ...item, ...nutrition[index] })) };
   // Model-free drinks have just read this timeline after their atomic commit.
   // Reuse that record while still rendering nutrition from this fingerprinted snapshot.
-  const cardData = await readStoredCardData(admin,snapshot.user_id,source,undefined,variant);
+  const cardData = await readStoredCardData(admin,snapshot.user_id,source,variant);
   const [light, regular, medium, semibold] = await fonts();
   const size = tokens.card.outputSize;
   // Stored artefacts stay English until #1220; live cards use the reader's locale.

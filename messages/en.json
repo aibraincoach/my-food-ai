@@ -989,7 +989,8 @@
     "canCorrect": "Add corrections to your meals",
     "cannotAccount": "Cannot change your account or see your password",
     "creatingToken": "Creating token…",
-    "createToken": "Create token"
+    "createToken": "Create token",
+    "captureZoneInstruction": "Ask your agent to include your time zone in time_zone whenever it posts a meal."
   },
   "deleted": {
     "title": "Recently deleted",

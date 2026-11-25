@@ -198,10 +198,16 @@
             "type": "string",
             "format": "date-time",
             "description": "When eaten, in the past. Defaults to now."
+          },
+          "time_zone": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100
           }
         },
         "required": [
-          "caption"
+          "caption",
+          "time_zone"
         ],
         "additionalProperties": false
       }

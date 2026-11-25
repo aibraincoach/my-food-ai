@@ -8,7 +8,6 @@ import {validEatenAt} from '@/lib/posts/eaten-at';
 import {scalePhotoDrink,type PhotoDrink} from '@/lib/intake/photo-drinks';
 import {sumNutrition} from '@/lib/nutrition/totals';
 import {mealSummaryMessage} from '@/lib/posts/comment-message';
-import {saveCaptureZone,CaptureZoneConflictError} from '@/lib/pipeline/capture-zone';
 import {markReady} from '@/lib/pipeline/persist';
 export const maxDuration=300;
 export async function POST(request:Request){
@@ -24,9 +23,9 @@ export async function POST(request:Request){
  const timeZone=captureZone(body.time_zone);
  if(!timeZone)return NextResponse.json({message_code:"captureZoneRequired"},{status:400});
  const admin=createAdminClient(),key=photoDrinkKey({...body,time_zone:timeZone});
- const finish=async(postId:string)=>{try{await saveCaptureZone(admin,postId,timeZone);}catch(error){return error instanceof CaptureZoneConflictError?409:503;}try{await markReady(postId,admin,undefined,{notify:false,timeZone});}catch{console.error('Drink photo card rendering failed.');}return 201;};
+ const finish=async(postId:string)=>{try{await markReady(postId,admin,undefined,{notify:false});}catch{console.error('Drink photo card rendering failed.');}};
  const receipt=await readDrinkReceipt(admin,user.id,body.operation_id,key,'photo');
- if(receipt){if('status' in receipt)return NextResponse.json({ message_code: receipt.message_code},{status:receipt.status});const finished=await finish(receipt.postId);if(finished!==201)return NextResponse.json({message_code:finished===409?"route_73da0d100358":"unknownFailure"},{status:finished});return NextResponse.json({post_id:receipt.postId},{status:201});}
+ if(receipt){if('status' in receipt)return NextResponse.json({ message_code: receipt.message_code},{status:receipt.status});const replay=await admin.rpc('publish_photo_drink_operation',{p_operation_id:body.operation_id,p_user_id:user.id,p_request_key:key,p_upload_id:body.upload_id,p_readings:null,p_caption:null,p_eaten_at:null,p_location:null,p_save_as_meal:null,p_items:null,p_message:null,p_expected:null,p_render_zone:timeZone});if(replay.error)return NextResponse.json({message_code:replay.error.code==='PT400'?'captureZoneRequired':'unknownFailure'},{status:drinkErrorStatus(replay.error.code)});await finish(replay.data);return NextResponse.json({post_id:receipt.postId},{status:201});}
  const {data:stored,error:readError}=await admin.from('composer_drink_readings').select('id,drinks').eq('user_id',user.id).eq('upload_id',body.upload_id).in('id',body.readings.map((r:{reading_id:string})=>r.reading_id));
  if(readError)return NextResponse.json({message_code: "route_c9652e91a22b"},{status:503});
  const expected:Record<string,PhotoDrink[]>={},items:{name:string;portion_text:string;portion_grams:number|null;nutrition:PhotoDrink['nutrition']}[]=[];
@@ -36,11 +35,11 @@ export async function POST(request:Request){
   for(const selection of choice.selections){const drink=(reading.drinks as PhotoDrink[])[selection.index];if(!drink)continue;const scaled=scalePhotoDrink(drink,selection.ml);items.push({name:scaled.name,portion_text:`${scaled.ml} ml`,portion_grams:scaled.grams,nutrition:scaled.nutrition});}
  }
  const summary=mealSummaryMessage(sumNutrition(items.map(item=>({...item.nutrition,name:item.name}))));
- const {data,error}=await admin.rpc('publish_photo_drink_operation',{p_operation_id:body.operation_id,p_request_key:key,p_upload_id:body.upload_id,p_user_id:user.id,p_readings:body.readings,p_caption:body.caption,p_eaten_at:eatenAt,p_location:location,p_save_as_meal:body.save_as_meal,p_items:items,p_message:summary,p_expected:expected});
+ const {data,error}=await admin.rpc('publish_photo_drink_operation',{p_operation_id:body.operation_id,p_request_key:key,p_upload_id:body.upload_id,p_user_id:user.id,p_readings:body.readings,p_caption:body.caption,p_eaten_at:eatenAt,p_location:location,p_save_as_meal:body.save_as_meal,p_items:items,p_message:summary,p_expected:expected,p_render_zone:timeZone});
  if(error)return NextResponse.json({ message_code: error.code==='42501' ? "route_e431cb5e4a79" : "route_07c3267907ee"},{status:drinkErrorStatus(error.code)});
  // Nutrition, intake and the photo have committed together. Optional PNG work
  // must never turn a successful Post into a retry that creates another meal.
- const finished=await finish(data);if(finished!==201)return NextResponse.json({message_code:finished===409?"route_73da0d100358":"unknownFailure"},{status:finished});
+ await finish(data);
  return NextResponse.json({post_id:data},{status:201});
 }
 

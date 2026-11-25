@@ -1,4 +1,3 @@
-import {saveCaptureZone,CaptureZoneConflictError} from '@/lib/pipeline/capture-zone';
 import {captureZone} from '@/lib/posts/capture-zone';
 import {tileDrinkKey,readDrinkReceipt,drinkErrorStatus} from "@/lib/intake/drink-operation";
 import {validEatenAt} from "@/lib/posts/eaten-at";
@@ -48,7 +47,7 @@ export async function POST(request: Request) {
   const eatenAt=body?.eaten_at===undefined?new Date().toISOString():validEatenAt(body.eaten_at);
   if(!eatenAt)return NextResponse.json({message_code: "route_6572182f4064"},{status:400});
   const receipt=await readDrinkReceipt(admin,user.id,body.operation_id,key,'tile');
-  if(receipt){if('status' in receipt)return NextResponse.json({ message_code: receipt.message_code},{status:receipt.status});try{await saveCaptureZone(admin,receipt.postId,zone);}catch(error){return NextResponse.json({message_code:error instanceof CaptureZoneConflictError?"route_73da0d100358":"unknownFailure"},{status:error instanceof CaptureZoneConflictError?409:503});}return NextResponse.json({post_id:receipt.postId,drink:null},{status:201});}
+  if(receipt){if('status' in receipt)return NextResponse.json({message_code:receipt.message_code},{status:receipt.status});const replay=await admin.rpc('publish_drink_operation',{p_operation_id:body.operation_id,p_user_id:user.id,p_request_key:key,p_eaten_at:eatenAt,p_kind:input.kind,p_ml:input.ml,p_label:input.label,p_caffeine_mg:input.caffeineMg,p_nutrition:null,p_render_zone:zone});if(replay.error)return NextResponse.json({message_code:replay.error.code==='PT400'?'captureZoneRequired':'unknownFailure'},{status:drinkErrorStatus(replay.error.code)});return NextResponse.json({post_id:replay.data,drink:null},{status:201});}
   try {
     const result = await postDrink(admin,user.id,input,zone,{id:body.operation_id,key,eatenAt});
     return NextResponse.json({ post_id: result.postId, drink: result.drink }, { status: 201 });

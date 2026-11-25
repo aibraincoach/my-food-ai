@@ -8,7 +8,7 @@ const golden=JSON.parse(fs.readFileSync(new URL('./fixtures/machine-english.json
 test('all fixed machine messages retain their original English contract, including status interpolation',()=>{
  for(const row of golden.messages){const values=row.english.includes('{v0}')?{v0:503}:undefined;assert.equal(machineMessage(row.code,values),row.english.replaceAll('{v0}','503'));}
 });
-test('MCP tool metadata is byte-for-byte equivalent to its pre-conversion object',()=>assert.deepEqual(AGENT_TOOLS,golden.tools));
+test('MCP tool metadata matches the approved contract including required capture time_zone',()=>assert.deepEqual(AGENT_TOOLS,golden.tools));
 test('generated code/namespace metadata covers both strict dictionaries without text values',()=>{
  const en=JSON.parse(fs.readFileSync(new URL('../messages/en.json',import.meta.url),'utf8')),ja=JSON.parse(fs.readFileSync(new URL('../messages/ja.json',import.meta.url),'utf8'));
  assert.deepEqual([...API_MESSAGE_CODES].sort(),Object.keys(en.api).sort());assert.deepEqual(Object.keys(en.api).sort(),Object.keys(ja.api).sort());
