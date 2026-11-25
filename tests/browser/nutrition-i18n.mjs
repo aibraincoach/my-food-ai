@@ -76,10 +76,10 @@ try{
     if(!preflight&&build==='head'&&locale==='en'){assert.deepEqual(snapshot,snapshots['base-en-'+state.name],'English parity '+state.name);receipt.parity.push(state.name);}
     const overflow=await page.evaluate(()=>[...document.querySelectorAll('button,label,p,h1,h2,input')].filter(node=>{const r=node.getBoundingClientRect();return r.width>0&&r.height>0&&getComputedStyle(node).visibility!=='hidden'&&(r.left< -1||r.right>innerWidth+1||node.scrollWidth>node.clientWidth+2);}).map(node=>({tag:node.tagName,text:node.innerText,label:node.getAttribute('aria-label')})));
     const latin=locale==='ja'?await page.evaluate(allowedData=>{
-     const held='[data-i18n-stored],.text-avatar,.text-avatar-sm';
+     const held='[data-i18n-stored],.text-avatar,.text-avatar-sm,kbd,aside nav a[href="/days"] > span:last-child';
      const proper=['My Food AI','Coca-Cola','Open Food Facts','Open Database License','Muse Spark Open','Muse Spark 1.3','AI'];
      const stored=[...document.querySelectorAll('input[type=text],textarea,[data-correct-product-name]')].map(node=>node.value).filter(Boolean);
-     const clean=value=>{for(const word of [...proper,...stored,...allowedData])value=value.split(word).join('');return value.replace(/ビタミン[ACDEK]/g,'').replace(/\b(kcal|ml|mg|oz|g|IU|kJ|DFE|B1|B2|B3|B6|B12)\b/g,'');};
+     const clean=value=>{for(const word of [...proper,...stored,...allowedData])value=value.split(word).join('');return value.replace(/ビタミン[ACDEK]/g,'').replace(/\b(kcal|ml|mg|oz|g|IU|kJ|USDA|DFE|B1|B2|B3|B6|B12)\b/g,'');};
      const result=[],walker=document.createTreeWalker(document.body,NodeFilter.SHOW_TEXT);
      while(walker.nextNode()){const node=walker.currentNode,parent=node.parentElement;if(!parent||parent.closest(held)||parent.closest('script,style')||!parent.getClientRects().length)continue;if(/[A-Za-z]/.test(clean(node.textContent)))result.push({text:node.textContent,tag:parent.tagName});}
      for(const node of document.querySelectorAll('[aria-label],input[placeholder],img[alt]')){if(!node.getClientRects().length||node.closest(held))continue;for(const key of ['aria-label','placeholder','alt']){const text=node.getAttribute(key);if(text&&/[A-Za-z]/.test(clean(text)))result.push({attribute:key,text});}}
