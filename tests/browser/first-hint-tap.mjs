@@ -35,7 +35,9 @@ try{
   await reset(fresh?[]:['capture','modes','thumbs','thread']);
   const {c,p,consoleMessages}=await open();
   try{
-   await p.goto(app+'/',{waitUntil:'domcontentloaded'});await p.getByRole('button',{name:'Post a meal',exact:true}).tap();await p.getByRole('button',{name:'Camera',exact:true}).tap();
+   await p.goto(app+'/',{waitUntil:'domcontentloaded'});await p.getByRole('button',{name:'Post a meal',exact:true}).tap();
+   await p.waitForFunction(()=>{const button=document.querySelector('#post-menu button[data-entry="camera"]');if(!button)return false;const rect=button.getBoundingClientRect(),target=document.elementFromPoint(rect.x+rect.width/2,rect.y+rect.height/2);const ready=getComputedStyle(button).opacity==='1'&&getComputedStyle(button.querySelector('span')).opacity==='1'&&target?.closest('button')===button;if(ready)window.__cameraMenuReady={at:performance.now(),rect:rect.toJSON(),opacity:getComputedStyle(button).opacity,hit:target?.closest('button')?.getAttribute('aria-label')};return ready;});
+   result.menuReadiness=await p.evaluate(()=>window.__cameraMenuReady);await p.getByRole('button',{name:'Camera',exact:true}).tap();
    result.phase='video ready';await p.waitForFunction(()=>document.querySelector('video')?.videoWidth>0);
    result.phase='fresh hint ready';if(fresh){await p.getByText('A caption alone works too',{exact:true}).waitFor();await p.locator('section[aria-label="Barcode tip"]').waitFor();}
    await p.evaluate(()=>{window.__tapRects=[];for(const type of ['pointerdown','pointerup','click'])document.addEventListener(type,e=>{const button=document.querySelector('button[aria-label="Take a photo"]');if(button)window.__tapRects.push({type,target:e.target.closest?.('button')?.getAttribute('aria-label'),rect:button.getBoundingClientRect().toJSON()});},{capture:true});});
