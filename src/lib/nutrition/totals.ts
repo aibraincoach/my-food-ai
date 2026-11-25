@@ -26,6 +26,8 @@ export type MissingNutrition = Partial<Record<NutrientKey, string[]>>;
 
 export interface MealTotals {
   missing?: MissingNutrition;
+  trace?: MissingNutrition;
+  traceOnly?: NutrientKey[];
   calories: number | null;
   protein_g: number | null;
   carbs_g: number | null;
@@ -64,22 +66,30 @@ export function formatCalories(value: Numeric, _t: NutritionTranslator, locale: 
   return formatEnergy(locale,value);
 }
 
-export function sumNutrition(items: (NutritionLike & {name?:string;missing?:MissingNutrition})[]): MealTotals {
-  const totals: MealTotals = { calories: 0, protein_g: 0, carbs_g: 0, fat_g: 0, fibre_g: 0, sugar_g: 0, sodium_mg: 0 };
-  const missing: MissingNutrition = {};
+export const MACRO_NUTRIENT_IDS:Record<NutrientKey,number>={calories:1008,protein_g:1003,carbs_g:1005,fat_g:1004,fibre_g:1079,sugar_g:2000,sodium_mg:1093};
+type NutritionContribution=NutritionLike & {name?:string;missing?:MissingNutrition;trace?:MissingNutrition;traceOnly?:NutrientKey[];micronutrients?:unknown};
+export function sumNutrition(items: NutritionContribution[]): MealTotals {
+  const totals:MealTotals={calories:0,protein_g:0,carbs_g:0,fat_g:0,fibre_g:0,sugar_g:0,sodium_mg:0};
+  const missing:MissingNutrition={},trace:MissingNutrition={},traceOnly:NutrientKey[]=[];
   for(const key of NUTRIENT_KEYS){
-    let sum=0, known=0;
-    const omitted=new Set<string>();
+    let sum=0,known=0,measured=0;
+    const omitted=new Set<string>(),traces=new Set<string>();
     for(const item of items){
       const amount=nutritionNumber(item[key]);
-      if(amount===null){if(!item.missing?.[key]?.length)omitted.add(item.name||UNNAMED_ITEM);}
-      else {sum+=amount;known++;}
+      const sourceTrace=amount===null&&Array.isArray(item.micronutrients)&&item.micronutrients.some(n=>n&&typeof n==='object'&&n.nutrientId===MACRO_NUTRIENT_IDS[key]&&n.marker==='trace'&&n.value===null);
+      if(sourceTrace){known++;traces.add(item.name||UNNAMED_ITEM);}
+      else if(amount===null){if(!item.missing?.[key]?.length)omitted.add(item.name||UNNAMED_ITEM);}
+      else {sum+=amount;known++;if(!item.traceOnly?.includes(key))measured++;}
       for(const name of item.missing?.[key]??[])omitted.add(name);
+      for(const name of item.trace?.[key]??[])traces.add(name);
     }
     totals[key]=known&&Number.isFinite(sum)?sum:null;
     if(omitted.size)missing[key]=[...omitted];
+    if(traces.size){trace[key]=[...traces];if(known&&!measured)traceOnly.push(key);}
   }
   if(Object.keys(missing).length)totals.missing=missing;
+  if(Object.keys(trace).length)totals.trace=trace;
+  if(traceOnly.length)totals.traceOnly=traceOnly;
   return totals;
 }
 
@@ -116,7 +126,8 @@ export function gapSentence(gaps: NutritionGap[], t: NutritionTranslator, locale
 
 export function formatConsumed(totals: MealTotals, t: NutritionTranslator, locale: Locale): string {
   const gap=gapSentence(nutritionGaps(totals),t,locale).replace(/\.$/, '');
-  return t('consumedBrief',{known:totals.calories===null?'no':'yes',calories:formatCalories(totals.calories,t,locale),hasGap:gap?'yes':'no',gap});
+  const brief=t('consumedBrief',{known:totals.calories===null?'no':'yes',calories:totals.traceOnly?.includes('calories')?t('trace'):formatCalories(totals.calories,t,locale),hasGap:gap?'yes':'no',gap});
+  return totals.trace&&Object.keys(totals.trace).some(key=>!totals.traceOnly?.includes(key as NutrientKey))?brief+(locale==='ja'?'':' ')+t('includesTraceAmounts'):brief;
 }
 
 export function formatGrams(grams: Numeric): string {
@@ -131,29 +142,34 @@ export interface StoredNutrient {
   unit?: string;
   value: number | null;
   basis?: "portion";
+  marker?: "trace" | "not_measured";
 }
 
 // Sum available micronutrients, distinguishing unavailable values from measured zero.
-export function sumMicronutrients(items: {name?:string;micronutrients:StoredNutrient[]}[], options: {withNutrientIds?:boolean} = {}): {name:string;unit:string;value:number|null;unavailable?:string[];nutrientId?:number}[] {
+export function sumMicronutrients(items: {name?:string;micronutrients:StoredNutrient[]}[], options: {withNutrientIds?:boolean} = {}): {name:string;unit:string;value:number|null;unavailable?:string[];trace?:string[];traceOnly?:true;nutrientId?:number}[] {
   const identities=new Map<string,{name:string;unit:string;nutrientId?:number}>();
   const contributions=items.map(item=>{
-    const map=new Map<string,number|null>();
+    const map=new Map<string,{value:number|null;trace:boolean}>();
     for(const n of item.micronutrients){
       const name=n.nutrientName??n.name,unit=n.unitName??n.unit;
       if(!name||!unit)continue;
       const key=`${n.nutrientId??name}:${unit}`;identities.set(key,{name,unit,...(options.withNutrientIds&&n.nutrientId!=null?{nutrientId:n.nutrientId}:{})});
-      const value=nutritionNumber(n.value);
-      if(!map.has(key))map.set(key,value);else if(map.get(key)!==value)map.set(key,null);
+      const value=nutritionNumber(n.value),trace=n.marker==='trace'&&n.value===null;
+      if(!map.has(key))map.set(key,{value,trace});
+      else {const prior=map.get(key)!;if(prior.value!==value||prior.trace!==trace)map.set(key,{value:null,trace:false});}
     }
     return map;
   });
   return [...identities].map(([key,identity])=>{
-    let value=0,known=0;const omitted=new Set<string>();
+    let value=0,known=0,measured=0;const omitted=new Set<string>(),trace=new Set<string>();
     for(const [index,map] of contributions.entries()){
-      const amount=map.get(key);
-      if(amount==null)omitted.add(items[index].name??UNNAMED_ITEM);else {value+=amount;known++;}
+      const contribution=map.get(key),name=items[index].name??UNNAMED_ITEM;
+      if(contribution?.trace){known++;trace.add(name);}
+      else if(contribution?.value==null)omitted.add(name);
+      else {value+=contribution.value;known++;measured++;}
     }
-    return {...identity,value:known&&Number.isFinite(value)?value:null,...(omitted.size?{unavailable:[...omitted]}:{})};
+    return {...identity,value:known&&Number.isFinite(value)?value:null,...(omitted.size?{unavailable:[...omitted]}:{}),
+      ...(trace.size?{trace:[...trace],...(!measured?{traceOnly:true as const}:{})}:{})};
   });
 }
 
@@ -186,7 +202,7 @@ export type NutritionRow = NutritionLike & {
 // One stored contract: nutrient values already describe the consumed portion.
 // Malformed/old arrays fail visibly; readers never reconstruct another format.
 export function requireStoredNutrition(row: NutritionRow): NutritionRow {
-  if (!Array.isArray(row.micronutrients) || row.micronutrients.some(entry => !entry || typeof entry !== 'object' || entry.basis !== 'portion')) {
+  if (!Array.isArray(row.micronutrients) || row.micronutrients.some(entry => !entry || typeof entry !== 'object' || entry.basis !== 'portion' || (entry.marker!==undefined&&(!['trace','not_measured'].includes(entry.marker)||entry.value!==null)))) {
     throw new ApiError(503, '', 'Stored nutrition format is invalid.');
   }
   return row;

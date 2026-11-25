@@ -1,3 +1,4 @@
+import {energyFits} from '../fdc/nutrients';
 import {checkRecord,type FoodKind} from '../fdc/record-kind';
 import {excludedComponents} from '../fdc/exclusions';
 import {referenceProteinMismatch} from '../fdc/protein-reference';
@@ -19,6 +20,8 @@ export function groupKind(group:string):FoodKind|null {
 // for the whole compound; other weak signals remain evidence for the chooser.
 export function mextCandidateEligible(name:string,caption:string,food:MextRecord):boolean {
   if(food.identityStatus!=='joined'||!food.nameEn)return false;
+  const energy={foodNutrients:Object.entries(food.nutrients).flatMap(([key,n])=>n.value===null?[]:[{nutrientId:Number(key),nutrientName:key,unitName:n.unitName,value:n.value}])};
+  if(!energyFits(name,energy))return false;
   const record={description:food.nameEn,category:null,kind:groupKind(food.foodGroup),kcalPer100g:food.nutrients['1008']?.value};
   const check=checkRecord(name,record);
   return check.strong.length===0&&!check.weak.some(signal=>signal.startsWith('part:'))

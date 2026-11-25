@@ -1,3 +1,4 @@
+import {resolveFoodReference,scaleFoodReference} from '@/lib/mext/resolve';
 import {mealSummaryMessage,formatCommentMessage,type MealSummaryMessage} from '@/lib/posts/comment-message';
 import {nutritionTranslator} from '@/i18n/nutrition';
 import {checkWording} from '@/lib/pipeline/wording-check';
@@ -8,8 +9,7 @@ import { ioError } from "@/lib/worker/errors";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { JobRow } from "@/lib/queue/claim";
 import { resolveNutritionItems } from "@/lib/fdc/resolve-items";
-import { resolveFoodMatchDetailed, traceNutritionReuse, nutritionResolutionBudget } from "@/lib/fdc/match";
-import { scaleNutrition } from "@/lib/fdc/nutrients";
+import { traceNutritionReuse, nutritionResolutionBudget } from "@/lib/fdc/match";
 import { markReady, refreshOperatorSavedMeal } from "@/lib/pipeline/persist";
 import { toNumber, type CurrentItem, type NutritionLike, type StoredNutrient } from "@/lib/nutrition/totals";
 
@@ -48,8 +48,8 @@ export default async function recompute(admin: SupabaseClient, job: JobRow): Pro
       // #989: a barcode, label or typed row came from the package or the person, not from a USDA search. A search by
       // its name cannot do better (a label's 140 kcal became NULL under the name "Packaged food"), so it is kept as it is.
       if (retained && (!nutritionUnavailable(retained) || PACKAGE_SOURCE.test(retained.source_ref ?? ""))) return {...retained,post_item_id:item.id};
-      const match = await resolveFoodMatchDetailed(admin,item.name,context.caption??"",signal,{approximate:true});
-      const n = scaleNutrition(match.food, item.portion_grams == null ? null : toNumber(item.portion_grams), match.unavailable);
+      const match = await resolveFoodReference(admin,item.name,{kind:'usda-only'},context.caption??"",signal,{approximate:true});
+      const n = scaleFoodReference(match.reference, item.portion_grams == null ? null : toNumber(item.portion_grams), match.unavailable);
       return {
         post_item_id: item.id, calories: n.calories, protein_g: n.proteinG,
         carbs_g: n.carbsG, fat_g: n.fatG, fibre_g: n.fibreG, sugar_g: n.sugarG,

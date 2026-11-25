@@ -3,7 +3,7 @@ import type {NutritionTranslator} from '@/i18n/nutrition';
 import {formatNumber} from '@/i18n/format';
 import {formatCalories,formatNutrition,formatConsumed,gapSentence,nutritionGaps,NUTRIENT_KEYS,type MealTotals,type MissingNutrition} from '@/lib/nutrition/totals';
 
-export type SummaryTotals=Pick<MealTotals,'calories'|'protein_g'|'carbs_g'|'fat_g'|'missing'>;
+export type SummaryTotals=Pick<MealTotals,'calories'|'protein_g'|'carbs_g'|'fat_g'|'missing'|'trace'|'traceOnly'>;
 export type Approximation={name:string;basis:string;kind?:'closest'|'estimate'};
 type Quantity={grams:number;count:number|null;total:number|null;unit:string|null};
 type SummaryValues={totals:SummaryTotals;approximations:Approximation[];unavailable:{name:string;sourceRef:string|null}[]};
@@ -25,6 +25,9 @@ const quantity=(v:unknown)=>object(v)&&numeric(v.grams)&&v.grams>=0&&nullableNum
  &&(v.count===null&&v.total===null&&v.unit===null||(numeric(v.count)&&Number.isInteger(v.count)&&numeric(v.total)&&Number.isInteger(v.total)&&v.total>0&&v.count>=0&&v.count<=v.total&&text(v.unit)&&v.unit.length>0));
 function summary(v:Record<string,unknown>):boolean {
  if(!object(v.totals)||!['calories','protein_g','carbs_g','fat_g'].every(k=>nullableNumber((v.totals as Record<string,unknown>)[k])))return false;
+ const trace=v.totals.trace,traceOnly=v.totals.traceOnly;
+ if(trace!==undefined&&(!object(trace)||!Object.entries(trace).every(([k,n])=>NUTRIENT_KEYS.includes(k as typeof NUTRIENT_KEYS[number])&&Array.isArray(n)&&n.length>0&&n.every(text))))return false;
+ if(traceOnly!==undefined&&(!Array.isArray(traceOnly)||!traceOnly.every(k=>NUTRIENT_KEYS.includes(k as typeof NUTRIENT_KEYS[number])&&object(trace)&&(!(String(k) in (v.totals as Record<string,unknown>))||(v.totals as Record<string,unknown>)[String(k)]===0)&&Array.isArray(trace[String(k)])&&(trace[String(k)] as unknown[]).length>0)))return false;
  const missing=v.totals.missing;
  if(missing!==undefined&&(!object(missing)||!Object.entries(missing).every(([k,n])=>NUTRIENT_KEYS.includes(k as typeof NUTRIENT_KEYS[number])&&Array.isArray(n)&&n.every(text))))return false;
  return Array.isArray(v.approximations)&&v.approximations.every(a=>object(a)&&text(a.name)&&text(a.basis)&&(a.kind===undefined||a.kind==='closest'||a.kind==='estimate'))
@@ -47,15 +50,16 @@ export function parseCommentMessage(raw:unknown):CommentMessage {
  throw new Error('Unknown or invalid meal comment message.');
 }
 export function mealSummaryMessage(totals:SummaryTotals,approximations:Approximation[]=[],unavailable:{name:string;sourceRef:unknown}[]=[]):MealSummaryMessage {
- const cleanTotals:SummaryTotals={calories:totals.calories,protein_g:totals.protein_g,carbs_g:totals.carbs_g,fat_g:totals.fat_g,...(totals.missing?{missing:totals.missing as MissingNutrition}:{})};
+ const cleanTotals:SummaryTotals={calories:totals.calories,protein_g:totals.protein_g,carbs_g:totals.carbs_g,fat_g:totals.fat_g,...(totals.missing?{missing:totals.missing as MissingNutrition}:{}),...(totals.trace?{trace:totals.trace}:{}),...(totals.traceOnly?{traceOnly:totals.traceOnly}:{})};
  return parseCommentMessage({code:'mealSummary',values:{kind:'consumed',totals:cleanTotals,approximations,unavailable:unavailable.map(a=>({name:a.name,sourceRef:typeof a.sourceRef==='string'?a.sourceRef:null}))}}) as MealSummaryMessage;
 }
 function consumed(values:SummaryValues,t:NutritionTranslator,locale:Locale):string {
  const {totals}=values;
- const value=(n:number|null)=>n===null?t('unavailable'):formatNutrition(n,t,locale);
+ const value=(key:'protein_g'|'carbs_g'|'fat_g')=>totals.traceOnly?.includes(key)?t('trace'):totals[key]===null?t('unavailable'):formatNutrition(totals[key],t,locale);
  const gap=gapSentence(nutritionGaps(totals),t,locale,values.unavailable);
+ const traceNote=totals.trace&&Object.keys(totals.trace).some(key=>!totals.traceOnly?.includes(key as typeof NUTRIENT_KEYS[number]))?(locale==='ja'?'':' ')+t('includesTraceAmounts'):'';
  const notes=values.approximations.map(a=>' '+t(a.kind==='estimate'?'approxModel':'approxUSDA',{name:a.name,basis:a.basis})).join('');
- return t('consumedStored',{calories:totals.calories===null?t('unavailable'):formatCalories(totals.calories,t,locale),protein:value(totals.protein_g),carbs:value(totals.carbs_g),fat:value(totals.fat_g),hasGap:gap?'yes':'no',gap,approximations:notes});
+ return t('consumedStored',{calories:totals.traceOnly?.includes('calories')?t('trace'):totals.calories===null?t('unavailable'):formatCalories(totals.calories,t,locale),protein:value('protein_g'),carbs:value('carbs_g'),fat:value('fat_g'),hasGap:gap?'yes':'no',gap,approximations:notes+traceNote});
 }
 function quantityText(value:Quantity,isConsumed:boolean,t:NutritionTranslator,locale:Locale):string {
  return value.count===null?t('editGrams',{grams:formatNumber(locale,Math.round(value.grams),{useGrouping:false})})

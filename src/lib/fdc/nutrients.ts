@@ -73,7 +73,7 @@ function energyToKcal(value: number, unit: string): number {
 }
 
 function nutrientValue(
-  food: FdcFood,
+  food: Pick<FdcFood,'foodNutrients'>,
   ids: number[]
 ): { value: number; unit: string } | null {
   for (const id of ids) {
@@ -99,7 +99,7 @@ export function hasNutrition(food: FdcFood): boolean {
 
 // #989: a record with no energy value gave "unsalted butter packet" no calories, and one with zero energy gave
 // "Sambal" 0 kcal. Zero energy fits only the plain drinks that rule b of scripts/numbers/03-suspicious.sql allows.
-export function energyFits(name: string, food: FdcFood): boolean {
+export function energyFits(name: string, food: Pick<FdcFood,'foodNutrients'>): boolean {
   const energy = nutrientValue(food, ENERGY_IDS);
   if (!energy || !Number.isFinite(energy.value) || energy.value < 0) return false;
   if (energy.value > 0) return true;

@@ -9,7 +9,9 @@ export type MextMeasurement = {
   reason?: 'no_equivalent';
 };
 export type MextIdentityStatus = 'joined' | 'no_english' | 'group_mismatch' | 'identity_changed' | 'english_name_ambiguous';
+export type SourceManifest=Record<string,{file:string;url:string;date:string;sha256:string}>;
 export type MextRecord = {
+  manifest:SourceManifest;
   foodNumber: string;
   nameJa: string;
   nameEn: string | null;
@@ -26,7 +28,7 @@ export function mextFoodNumber(sourceRef:unknown):string|null {
   return typeof sourceRef==='string' ? /^mext:([0-9]{5})$/.exec(sourceRef)?.[1]??null : null;
 }
 
-export function mextSourceRef(foodNumber:string):string {
+export function mextSourceRef(foodNumber:string):`mext:${string}` {
   if(!/^[0-9]{5}$/.test(foodNumber))throw new Error('MEXT food number is invalid.');
   return `mext:${foodNumber}`;
 }
@@ -39,6 +41,8 @@ export function parseMextRecord(raw:unknown):MextRecord {
     || typeof row.food_group!=='string' || !/^(0[1-9]|1[0-8])$/.test(row.food_group)
     || !statuses.has(row.identity_status as MextIdentityStatus))return invalid();
   if(row.identity_status==='joined' && (typeof row.name_en!=='string' || !/[A-Za-z]/.test(row.name_en)))return invalid();
+  const manifest=object(row.source_manifest);
+  if(!manifest||!Object.values(manifest).every(source=>{const v=object(source);return v&&typeof v.file==='string'&&typeof v.url==='string'&&typeof v.date==='string'&&typeof v.sha256==='string'&&/^[a-f0-9]{64}$/.test(v.sha256);}))return invalid();
   const values=object(row.nutrients);
   if(!values || !Object.keys(values).length)return invalid();
   const nutrients:Record<string,MextMeasurement>={};
@@ -55,6 +59,6 @@ export function parseMextRecord(raw:unknown):MextRecord {
       estimated:entry.estimated,source_tag:entry.source_tag as string|null,
       ...(entry.reason==='no_equivalent'?{reason:'no_equivalent' as const}:{})};
   }
-  return {foodNumber:row.food_number,nameJa:row.name_ja,nameEn:row.name_en as string|null,
+  return {manifest:manifest as SourceManifest,foodNumber:row.food_number,nameJa:row.name_ja,nameEn:row.name_en as string|null,
     foodGroup:row.food_group,identityStatus:row.identity_status as MextIdentityStatus,nutrients};
 }

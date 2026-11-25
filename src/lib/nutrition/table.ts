@@ -71,7 +71,7 @@ export function nutritionTableRows(items: CurrentItem[], t: NutritionTranslator,
     return rank(a.name)-rank(b.name);
   });
   const foods=(values:string[]|undefined)=>values?.map(name=>name===UNNAMED_ITEM?t('anItem'):name);
-  return [...core.map(({message,key,unit})=>({name:labels(message),unit,value:totals[key],unavailable:foods(totals.missing?.[key]),micro:false,unmappedName:false})),...micros.map(({nutrientId,...row})=>({...row,name:nutrientId!=null&&nutrientId in nutrientMessages?labels(nutrientMessages[nutrientId as keyof typeof nutrientMessages]):row.name,...(row.unavailable?{unavailable:foods(row.unavailable)}:{}),micro:true,unmappedName:nutrientId==null||!(nutrientId in nutrientMessages)}))];
+  return [...core.map(({message,key,unit})=>({name:labels(message),unit,value:totals[key],unavailable:foods(totals.missing?.[key]),...(totals.trace?.[key]?{trace:foods(totals.trace[key])}:{}),...(totals.traceOnly?.includes(key)?{traceOnly:true as const}:{}),micro:false,unmappedName:false})),...micros.map(({nutrientId,...row})=>({...row,name:nutrientId!=null&&nutrientId in nutrientMessages?labels(nutrientMessages[nutrientId as keyof typeof nutrientMessages]):row.name,...(row.unavailable?{unavailable:foods(row.unavailable)}:{}),micro:true,unmappedName:nutrientId==null||!(nutrientId in nutrientMessages)}))];
 }
 export function formatTableNutrient(value: number, locale: Locale): string {
   if(!isLocale(locale))throw new Error('Nutrition locale is required.');

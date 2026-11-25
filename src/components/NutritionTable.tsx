@@ -3,6 +3,7 @@ import type {Locale} from '@/i18n/locales';
 import {formatEnergy,formatNutrient,formatMicroNutrient} from '@/i18n/format';
 import {foodApproximation} from '@/lib/fdc/approximation-metadata';
 import OpenFoodFactsAttribution from './OpenFoodFactsAttribution';
+import MextAttribution from './MextAttribution';
 import { nutritionGaps, gapSentence, NUTRIENT_KEYS, sumNutrition, type CurrentItem } from "@/lib/nutrition/totals";
 
 import {nutritionTableRows} from "@/lib/nutrition/table";
@@ -20,11 +21,12 @@ export default function NutritionTable({ items }: { items: CurrentItem[] }) {
     <table className="w-full border-collapse text-detail tabular-nums"><caption className="sr-only">{t('tableCaption')}</caption>
       <tbody>{rows.map((row, index) => <tr key={`${index}:${row.name}:${row.unit}`} className={`h-table-row border-b border-hairline ${index === 0 ? "font-medium text-text" : "text-muted"}`}>
         <th scope="row" className="py-grid text-left" style={{ fontWeight: "inherit" }}><span data-i18n-server-wording={row.unmappedName?'nutrient-name':undefined}>{row.name}</span>{row.unavailable?.length?tp('unavailableFoods',{foods:row.unavailable.join(locale==='ja'?'、':', ')}):""}</th>
-        <td className="whitespace-nowrap py-grid pl-grid text-right">{row.value===null?t('unavailable'):row.micro?formatMicroNutrient(locale,row.value):row.unit.toLowerCase()==='kcal'?formatEnergy(locale,row.value):formatNutrient(locale,row.value)}{row.value === null ? "" : ` ${row.unit}`}</td>
+        <td className="whitespace-nowrap py-grid pl-grid text-right">{row.traceOnly?tn('trace'):row.value===null?t('unavailable'):row.micro?formatMicroNutrient(locale,row.value):row.unit.toLowerCase()==='kcal'?formatEnergy(locale,row.value):formatNutrient(locale,row.value)}{row.value === null || row.traceOnly ? "" : ` ${row.unit}`}{row.trace?.length&&!row.traceOnly?<span className="block text-label">{tn('includesTraceAmounts')}</span>:null}</td>
       </tr>)}</tbody>
     </table>
     <p className="pt-sheet-top text-label text-muted">{t('sourceNote')}</p>
     {estimated.map(item=><p key={item.id} className="text-label text-muted">{t('estimateNote',{name:item.name})}</p>)}
+    {items.some(item=>item.source_ref?.startsWith("mext:")) && <MextAttribution/>}
     {items.some(item=>item.source_ref?.startsWith("off:")) && <OpenFoodFactsAttribution/>}
   </section>;
 }
