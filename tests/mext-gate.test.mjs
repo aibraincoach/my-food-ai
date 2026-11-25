@@ -25,3 +25,9 @@ test('a single pork reference cannot represent pork and rice; USDA keeps its exi
   assert.equal(mextCandidateEligible('pork belly and rice','',pork),false);
   assert.equal(recordContradicts('pork belly and rice',{description:pork.nameEn}),false);
 });
+
+test('instant miso powder and paste are never substituted for a prepared bowl of miso soup',()=>{
+ const instant=JSON.parse(readFileSync(new URL('./fixtures/mext-miso-instant.json',import.meta.url),'utf8'));
+ assert.deepEqual(instant.map(row=>row.food_number),['17049','17050']);
+ for(const row of instant){const candidate=parseMextRecord(row);assert.equal(candidate.foodGroup,'17');assert.equal(mextCandidateEligible('miso soup','a prepared bowl',candidate),false);}
+});
