@@ -3,7 +3,7 @@
 create function public.persist_operator_rematch(
  p_post_id uuid,p_job_id uuid,p_expected uuid[],p_items jsonb
 ) returns void language plpgsql security definer set search_path=public,pg_temp as $$
-declare row jsonb; item_id uuid; grams numeric; actual uuid[]; expected uuid[];
+declare row jsonb; item_id uuid; grams numeric; actual uuid[]; expected uuid[]; nutrient text;
 begin
  perform 1 from public.posts where id=p_post_id for update;
  if not found or not public.post_work_matches(p_post_id,p_job_id)
@@ -28,6 +28,17 @@ begin
   end if;
   grams:=(row->>'portion_grams')::numeric;
   if grams<0 or grams>100000 then raise exception 'Invalid rematch portion' using errcode='22023';end if;
+  foreach nutrient in array array['calories','protein_g','carbs_g','fat_g','fibre_g','sugar_g','sodium_mg'] loop
+   if (row->>nutrient)::numeric<0 or (row->>nutrient)::numeric in('NaN'::numeric,'Infinity'::numeric,'-Infinity'::numeric) then
+    raise exception 'Negative or non-finite rematch nutrient: %',nutrient using errcode='22023';
+   end if;
+  end loop;
+  if exists(select 1 from jsonb_array_elements(case when jsonb_typeof(row->'micronutrients')='array' then row->'micronutrients' else '[]'::jsonb end) entry
+   where (entry->>'value')::numeric<0 or (entry->>'amount')::numeric<0
+    or (entry->>'value')::numeric in('NaN'::numeric,'Infinity'::numeric,'-Infinity'::numeric)
+    or (entry->>'amount')::numeric in('NaN'::numeric,'Infinity'::numeric,'-Infinity'::numeric)) then
+   raise exception 'Negative or non-finite rematch nutrient: micronutrients' using errcode='22023';
+  end if;
   update public.post_items set portion_grams=grams where id=item_id and post_id=p_post_id and superseded_at is null;
   insert into public.item_nutrition(post_item_id,calories,protein_g,carbs_g,fat_g,fibre_g,sugar_g,sodium_mg,micronutrients,source_ref,food_category)
   values(item_id,(row->>'calories')::numeric,(row->>'protein_g')::numeric,(row->>'carbs_g')::numeric,(row->>'fat_g')::numeric,

@@ -1,6 +1,6 @@
  do $test$
  declare u uuid:=gen_random_uuid();p uuid:=gen_random_uuid();j uuid:=gen_random_uuid();a uuid;b uuid;
-  payload jsonb;before_ref text;
+  payload jsonb;before_ref text;nutrient text;invalid text;
  begin
   if has_function_privilege('anon','public.persist_operator_rematch(uuid,uuid,uuid[],jsonb)','EXECUTE')
    or has_function_privilege('authenticated','public.persist_operator_rematch(uuid,uuid,uuid[],jsonb)','EXECUTE')
@@ -19,6 +19,39 @@
   if (select portion_grams from post_items where id=a)<>30 or(select calories from item_nutrition where post_item_id=a)<>30 then raise exception 'Portion/nutrition not committed';end if;
   if (select calories from item_nutrition where post_item_id=b)<>0 then raise exception 'Broth not zero';end if;
   select source_ref into before_ref from item_nutrition where post_item_id=b;
+  foreach nutrient in array array['calories','protein_g','carbs_g','fat_g','fibre_g','sugar_g','sodium_mg'] loop
+   begin
+    perform persist_operator_rematch(p,j,array[a,b],jsonb_build_array(
+     jsonb_build_object('post_item_id',a,'portion_grams',31,'calories',31),
+     jsonb_build_object('post_item_id',b,'portion_grams',100,nutrient,-1)));
+    raise exception 'Negative nutrient accepted: %',nutrient;
+   exception when sqlstate '22023' then
+    if sqlerrm not like 'Negative or non-finite rematch nutrient%' then raise;end if;
+   end;
+   if (select portion_grams from post_items where id=a)<>30 or(select calories from item_nutrition where post_item_id=a)<>30 then raise exception 'Negative nutrient escaped atomic rollback';end if;
+  end loop;
+  foreach nutrient in array array['value','amount'] loop
+   begin
+    perform persist_operator_rematch(p,j,array[a,b],jsonb_build_array(jsonb_build_object(
+     'post_item_id',b,'portion_grams',100,'calories',0,'micronutrients',
+     jsonb_build_array(jsonb_build_object('nutrientId',1089,nutrient,-2)))));
+    raise exception 'Negative micronutrient accepted: %',nutrient;
+   exception when sqlstate '22023' then
+    if sqlerrm not like 'Negative or non-finite rematch nutrient%' then raise;end if;
+   end;
+  end loop;
+  foreach invalid in array array['NaN','Infinity','-Infinity'] loop
+   foreach nutrient in array array['calories','protein_g','carbs_g','fat_g','fibre_g','sugar_g','sodium_mg','value','amount'] loop
+    begin
+     perform persist_operator_rematch(p,j,array[a,b],jsonb_build_array(
+      jsonb_build_object('post_item_id',a,'portion_grams',30)||
+      case when nutrient in('value','amount') then jsonb_build_object('micronutrients',jsonb_build_array(jsonb_build_object('nutrientId',1089,nutrient,invalid))) else jsonb_build_object(nutrient,invalid) end));
+     raise exception 'Non-finite nutrient accepted: % %',nutrient,invalid;
+    exception when sqlstate '22023' then
+     if sqlerrm not like 'Negative or non-finite rematch nutrient%' then raise;end if;
+    end;
+   end loop;
+  end loop;
   begin
    perform persist_operator_rematch(p,j,array[a,b],jsonb_build_array(jsonb_build_object('post_item_id',a,'portion_grams',40,'calories',999),jsonb_build_object('post_item_id',gen_random_uuid(),'portion_grams',1,'calories',1)));
    raise exception 'Foreign item accepted';

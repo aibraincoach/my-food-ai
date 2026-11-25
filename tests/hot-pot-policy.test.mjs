@@ -11,6 +11,21 @@ import {sumNutrition,nutritionGaps,sumMicronutrients} from '../src/lib/nutrition
 import {nutritionUnavailable} from '../src/lib/nutrition/available.ts';
 import {unavailableSentence} from '../src/lib/fdc/unavailable.ts';
 const context={caption:'A shared hot pot',names:['Pork','Broth','Shabu sauce','Dipping sauce']};
+test('explicit partial and full shared intake counts, while unmentioned shared items stay excluded',()=>{
+ for(const quantity of ['some of the','all of the','some','all','half the']){
+  assert.equal(excludeSharedItem('Broth',{...context,caption:'Hot pot. I drank '+quantity+' broth'}),false,quantity);
+  assert.equal(excludeSharedItem('Shabu sauce',{...context,caption:'Hot pot. I had '+quantity+' sauce'}),false,quantity);
+ }
+ for(const verb of ['had','finished','sipped'])assert.equal(excludeSharedItem('Broth',{...context,caption:'Hot pot. I '+verb+' some broth'}),false,verb);
+ assert.equal(excludeSharedItem('Broth',context),true);
+ for(const body of ["I didn't drink some of the broth",'I did not have any of the sauce']){
+  assert.equal(excludeSharedItem(body.includes('sauce')?'Shabu sauce':'Broth',{...context,caption:'Hot pot. '+body}),true);
+ }
+});
+test('a food with sauce or in broth remains counted; only a broth or sauce item is excluded',()=>{
+ for(const name of ['Pork slices with dipping sauce','Beef shabu with sesame dipping sauce','Udon noodles in broth','Pork over hot-pot sauce','Rice and dipping sauce','Broth-flavoured noodles'])assert.equal(excludeSharedItem(name,context),false,name);
+ for(const name of ['Dipping sauce','Broth','Shabu-shabu broth','Shabu sauce','Chicken stock'])assert.equal(excludeSharedItem(name,context),true,name);
+});
 test('shared-pot broth and named dipping sauces remain named but contribute measured zero',()=>{
  for(const name of['Broth','Stock','Soup base','Dipping sauce','Shabu sauce','Hot-pot sauce']){
   assert.equal(excludeSharedItem(name,context),true,name);

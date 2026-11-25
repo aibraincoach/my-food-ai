@@ -52,7 +52,13 @@ test('actual persist pipeline publishes zero shared rows,30g thin pork and one c
  assert.deepEqual(h.matches.map(v=>v.name),['Pork for shabu']);
  assert.equal(h.traces.find(v=>v.request.name==='Pork for shabu').value.modelGrams,70);
 });
-for(const [name,body]of[['Shabu sauce','count the sauce'],['Broth','I drank the broth']])test('actual correction '+body+' re-resolves and clears marker despite model keep flag',async()=>{
+for(const body of ['I drank some of the broth','I drank all of the broth','I had the broth'])test('actual caption '+body+' resolves the model portion without a shared marker',async()=>{
+ const h=harness('src/lib/pipeline/persist.ts',{caption:'Hot pot. '+body});
+ await h.exports.persistAnalysis(h.db,{postId:'fixture',regions:[],captionOnly:[{name:'Broth',portionText:'30 g consumed',portionGrams:30,confidence:1}],summary:'ignored'});
+ const row=h.writes.find(v=>v.name==='persist_approximated_analysis').args.p_items[0];
+ assert.equal(h.matches.length,1);assert.equal(row.portion_grams,30);assert.equal(row.nutrition.calories,30);assert.equal(policy.sharedPotMarker(row.nutrition.source_ref),null);
+});
+for(const [name,body]of[['Shabu sauce','count the sauce'],['Broth','I drank the broth'],['Broth','I drank some of the broth'],['Broth','I drank all of the broth'],['Shabu sauce','I had some of the sauce']])test('actual correction '+body+' re-resolves and clears marker despite model keep flag',async()=>{
  const n=policy.sharedNutrition(name==='Broth'?'broth':'sauce',{source_ref:'777',calories:30});
  const old={...n,id:'kept',name,portion_text:'30 g',portion_grams:30,box:null,mask_path:null,source:'model'};
  const correction={items:[{name,portion_text:'30 g',portion_grams:30,region_index:0,keep:'kept'}],reply:'counted',needs_input:null};

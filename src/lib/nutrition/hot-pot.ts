@@ -14,12 +14,18 @@ export function sharedPotContext(context:PotContext):boolean {
  return namedPotSauce&&items.some(item=>/\b(?:pork|beef)\b/i.test(item.name)&&!/\b(?:ham|bacon|sausage)\b/i.test(item.name)&&/\b(?:thin(?:ly)?[- ](?:slices?|sliced)|shabu|hot[- ]pot|sukiyaki)\b/i.test(item.name+' '+(item.portionText??'')));
 }
 export function sharedPotKind(name:string):'broth'|'sauce'|null {
- return BROTH.test(name)?'broth':SAUCE.test(name)?'sauce':null;
+ // The item itself must be the liquid/condiment, not food served with it.
+ for(const [kind,term]of [['broth',BROTH],['sauce',SAUCE]]as const){
+  const head=new RegExp(term.source+'(?:\\s*\\([^)]*\\))?\\s*[.!]?$','i').exec(name);
+  if(head&&!/\b(?:with|in|and|over|on|served)\b/i.test(name.slice(0,head.index)))return kind;
+ }
+ return null;
 }
 export function countSharedItem(kind:'broth'|'sauce',context:PotContext):boolean {
  const target=kind==='broth'?'(?:broth|stock|soup base)':'(?:sauce|dipping sauce|shabu sauce|hot[- ]pot sauce)';
- const directive=new RegExp('\\b(?:(?:i\\s+)?(?:drank|ate|consumed)|count)\\s+(?:all\\s+|the\\s+|this\\s+|my\\s+)?'+target+'\\b','i');
- const excluded=new RegExp("\\b(?:do not|don't|did not|didn't|not)\\s+(?:count|drink|eat|consume)\\s+(?:the\\s+|this\\s+|my\\s+)?"+target+'\\b','i');
+ const amount='(?:(?:some|all|any|half)(?:\\s+of)?\\s+)?(?:the\\s+|this\\s+|my\\s+)?';
+ const directive=new RegExp('\\b(?:(?:i\\s+)?(?:drank|ate|consumed|had|finished|sipped)|count)\\s+'+amount+target+'\\b','i');
+ const excluded=new RegExp("\\b(?:do not|don't|did not|didn't|not)\\s+(?:count|drink|eat|consume|have|finish|sip|drank|ate|consumed|had|finished|sipped)\\s+"+amount+target+'\\b','i');
  let counted=false;
  for(const text of[context.caption,...(context.corrections??[])]){
   if(excluded.test(text))counted=false;
