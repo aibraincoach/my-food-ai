@@ -9,6 +9,7 @@ export function adminErrorCode(value:string|null,kind:string|null=null):string|n
   const status=value.match(/\(status ([0-9]{3})\)$/)?.[1];
   return kind+(status?' '+status:'');
  }
+ if(value==='worker error.'||value==='Worker execution expired before completion')return 'worker';
  const service=value.match(/^(fdc|meta):/)?.[1];
  if(!service)return null;
  const status=value.match(/\bfailed with ([0-9]{3})\.?$/)?.[1];

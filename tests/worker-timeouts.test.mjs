@@ -13,7 +13,7 @@ test('fetch timeout causes remain retryable through SDK wrappers', () => {
     assert.equal(isRetriable(new Error('provider request failed', { cause: fetchError })), true, code);
   }
   assert.equal(isRetriable(new TypeError('fetch failed', { cause: { code: 'ENOTFOUND' } })), false);
-  assert.equal(isRetriable(new ApiError(400, 'invalid request')), false);
+  assert.equal(isRetriable(new ApiError(400, 'invalid request', "Fixture request failed.")), false);
   assert.equal(isRetriable(new SyntaxError('invalid provider JSON')), false);
   const cyclic = new Error('not a timeout');
   cyclic.cause = cyclic;
@@ -88,6 +88,6 @@ test('PostgREST transaction conflicts retry despite HTTP409; constraints do not'
       return true;
     });
   }
-  assert.equal(isRetriable(new ApiError(409, 'model conflict')), false);
-  assert.equal(isRetriable(new ApiError(400, 'bad model input')), false);
+  assert.equal(isRetriable(new ApiError(409, 'model conflict', "Fixture request failed.")), false);
+  assert.equal(isRetriable(new ApiError(400, 'bad model input', "Fixture request failed.")), false);
 });

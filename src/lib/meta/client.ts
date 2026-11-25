@@ -30,7 +30,8 @@ export function metaApiKey(): string {
 export class MetaApiError extends ApiError {
   readonly code: string | undefined;
 
-  constructor(status: number, message: string, code?: string, body = "") {
+  // Only HTTP-response boundaries set responseStatus; status also classifies internal failures.
+  constructor(status: number, message: string, code?: string, body = "", readonly responseStatus?: number) {
     super(status, body, message);
     this.name = "MetaApiError";
     this.code = code;
@@ -114,7 +115,7 @@ export async function fetchWithRetry(url: string, init: RequestInit, timeoutMs: 
       if (response && !response.ok) {
         const wait = retryAfterSeconds(response.headers);
         if (!retryable(response.status) || (wait !== null && wait > MAX_RETRY_AFTER_S))
-          throw new MetaApiError(response.status, `meta: ${path} failed with ${response.status}.`);
+          throw new MetaApiError(response.status, `meta: ${path} failed with ${response.status}.`, undefined, "", response.status);
       }
       if (!timeout.aborted && !isRetriable(error)) throw error;
       if (attempt < retries) continue;
@@ -136,7 +137,7 @@ export async function fetchWithRetry(url: string, init: RequestInit, timeoutMs: 
     const body = await response.text();
     let code: string | undefined;
     try { code = errorCode(JSON.parse(body)); } catch { /* Non-JSON errors retain their HTTP status. */ }
-    throw new MetaApiError(response.status, `meta: ${path} failed with ${response.status}.`, code, body);
+    throw new MetaApiError(response.status, `meta: ${path} failed with ${response.status}.`, code, body, response.status);
   }
   throw new MetaApiError(503, "meta: retry limit reached.");
 }

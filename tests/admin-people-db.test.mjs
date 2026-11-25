@@ -1,11 +1,11 @@
-import test from 'node:test';import assert from 'node:assert/strict';import fs from 'node:fs';import{execFileSync}from'node:child_process';import{randomUUID}from'node:crypto';
+import {adminMigrations} from './fixtures/admin-migrations.mjs';
+import test from 'node:test';import assert from 'node:assert/strict';import{execFileSync}from'node:child_process';import{randomUUID}from'node:crypto';
 const url=process.env.TEST_SQL_DATABASE_URL;
 const enabled=process.env.MFA_TEST_DISPOSABLE==='1'&&url&&['127.0.0.1','localhost'].includes(new URL(url).hostname);
 test('owner aggregate: local synthetic boundaries, writes only, metadata privacy and grants',{skip:!enabled},()=>{
  const ids=Array.from({length:5},()=>randomUUID()),post= randomUUID(),token=randomUUID();
  const sql=`begin;
- drop function if exists public.admin_people(text,timestamptz,uuid[],integer,uuid);
- ${fs.readFileSync('supabase/migrations/0079_admin_people.sql','utf8')}
+ ${adminMigrations()}
  insert into auth.users(id,created_at) values ${ids.map((id,i)=>`('${id}','${i<3?'2026-11-25T00:30:00Z':'2026-11-20T12:00:00Z'}')`).join(',')};
  insert into public.profiles(id,handle) values ${ids.slice(0,4).map(id=>`('${id}','owner_panel_${id.slice(0,8)}')`).join(',')};
  insert into public.posts(id,user_id,caption,status,fail_reason,created_at) values('${post}','${ids[0]}','PRIVATE_CAPTION','failed','meta: /PRIVATE_POST_ERROR failed with 503.','2026-11-24T18:00:00Z');

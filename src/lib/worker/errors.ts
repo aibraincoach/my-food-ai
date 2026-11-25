@@ -6,7 +6,7 @@ export class ApiError extends Error {
   constructor(
     readonly status: number,
     readonly body: string,
-    message = `API request failed with ${status}.`
+    message: string
   ) {
     super(message);
     this.name = "ApiError";

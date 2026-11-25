@@ -35,9 +35,12 @@ export async function drainOnce(admin: SupabaseClient, handlers: JobHandlers = j
     }
     // The database locks the running job and commits job/post failure together.
     // attempts was incremented by claim_job; the third retriable error is final.
+    const metaStatus = e instanceof Error && e.name === "MetaApiError" ? (e as Error & {responseStatus?: unknown}).responseStatus : undefined;
+    const metaMessage = typeof metaStatus === "number" && Number.isInteger(metaStatus) && metaStatus >= 100 && metaStatus <= 999
+      ? `meta: analysis request failed with ${metaStatus}.` : "meta: analysis request failed.";
     const { error, status } = await admin.rpc("fail_job", {
       p_job_id: job.id,
-      p_message: e instanceof Error && e.name === "MetaApiError" ? "meta: analysis request failed." : e instanceof Error ? e.message : "worker error.",
+      p_message: e instanceof Error && e.name === "MetaApiError" ? metaMessage : e instanceof Error ? e.message : "worker error.",
       p_retriable: isRetriable(e),
     });
     if (error) throw ioError(`fail_job failed: ${error.message}`, error, status);

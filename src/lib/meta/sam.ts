@@ -1,3 +1,4 @@
+import {APIError} from "openai";
 import { recordCall } from "@/lib/trace/record";
 // SAM 3.1 segmentation step (item 8). One streaming request with the
 // single concept "food item"; records parsed with @meta-sam/parser.
@@ -38,7 +39,9 @@ function toMetaApiError(error: unknown, fallback: string): MetaApiError {
       : 500;
   const message =
     error instanceof Error ? error.message : fallback;
-  return new MetaApiError(status, `sam: ${message}`);
+  const responseStatus = error instanceof APIError && typeof error.status === "number"
+    && Number.isInteger(error.status) && error.status >= 100 && error.status <= 999 ? error.status : undefined;
+  return new MetaApiError(status, `sam: ${message}`, undefined, "", responseStatus);
 }
 
 function identityNumber(identity: string): number | null {
