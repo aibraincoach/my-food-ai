@@ -9,7 +9,10 @@ alter table public.model_calls add constraint model_calls_kind_check check (
   kind in ('sam','spark_identify','spark_correct','spark_same_meal','spark_search','fdc','transcribe','spark_label','spark_remainder','mext')
 );
 alter table public.model_calls add constraint model_calls_reference_ref_check check (
-  (kind = 'mext' and reference_ref is not null and reference_ref ~ '^mext:[0-9]{5}$' and fdc_id is null)
+  (kind = 'mext' and fdc_id is null and (
+    (error is null and reference_ref is not null and reference_ref ~ '^mext:[0-9]{5}$')
+    or (error is not null and reference_ref is null)
+  ))
   or (kind <> 'mext' and reference_ref is null)
 );
 create or replace function public.retention_trace_candidates(p_now timestamptz)

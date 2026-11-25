@@ -9,9 +9,16 @@ No production read, write, import, model call or browser judge is part of this P
 ## Contract
 
 model_calls gains nullable reference_ref. The nine existing kinds and fdc_id
-are unchanged. Only kind mext may use reference_ref and it must be exactly
-mext: plus five digits, including leading zeros, with no fdc_id. A missing,
-malformed or cross-source reference is refused by a CHECK.
+are unchanged. Only kind mext may use reference_ref. A selected/reused MEXT row has no error
+and requires exactly mext: plus five digits, including leading zeros. A failed
+MEXT read has a non-null error and a null reference_ref because no food was
+selected. Both require a null fdc_id. A missing selected identity, an identity
+on a failed read, or a cross-source reference is refused by a CHECK.
+
+No-selection outcomes mext_none, mext_incompatible and mext_unclassified are
+typed fixed-key metadata on the existing final food-resolution trace (fdc on
+USDA fallback), with candidate numbers and no invented identity or free text.
+The app packet tests that metadata; this migration packet tests its SQL shape.
 
 The existing retention function keeps the original USDA predicate byte-for-byte.
 One additional exception retains an error-free MEXT row only while its exact

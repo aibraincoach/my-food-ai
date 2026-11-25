@@ -50,6 +50,8 @@ test('every previous kind still inserts; MEXT requires its exact typed identity 
   assert.throws(()=>sql("insert into model_calls(kind,started_at,duration_ms,reference_ref,fdc_id) values('mext',now(),1,'mext:01088',1088)"),/model_calls_reference_ref_check/);
   assert.throws(()=>sql("insert into model_calls(kind,started_at,duration_ms,reference_ref) values('fdc',now(),1,'mext:01088')"),/model_calls_reference_ref_check/);
   sql("insert into model_calls(kind,started_at,duration_ms,reference_ref) values('mext',now(),1,'mext:01088')");
+  assert.throws(()=>sql("insert into model_calls(kind,started_at,duration_ms,reference_ref,error) values('mext',now(),1,'mext:01088','read failed')"),/model_calls_reference_ref_check/);
+  sql("insert into model_calls(kind,started_at,duration_ms,reference_ref,error) values('mext',now(),1,null,'read failed')");
   sql('truncate model_calls');
 });
 
@@ -68,7 +70,7 @@ test('the USDA retention predicate is byte-identical and all old-kind candidate 
 test('purge preserves only error-free exact current MEXT references, and counts expired rows',()=>{
   sql("update item_nutrition set source_ref='mext:01088'");
   const post="'00000000-0000-0000-0000-000000000001'";
-  const insert=(ref,error='null',age=50)=>sql(`insert into model_calls(post_id,kind,started_at,duration_ms,reference_ref,error) values(${post},'mext',now()-interval '${age} days',1,'${ref}',${error}) returning id`);
+  const insert=(ref,error='null',age=50)=>sql(`insert into model_calls(post_id,kind,started_at,duration_ms,reference_ref,error) values(${post},'mext',now()-interval '${age} days',1,${error==='null'?`'${ref}'`:'null'},${error}) returning id`);
   const keep=insert('mext:01088'),young=insert('mext:01089','null',44);
   insert('mext:01089');insert('mext:01088',"'failed'");
   assert.equal(sql('select retention_traces_batch(100)'), '2');
