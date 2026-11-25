@@ -1,0 +1,30 @@
+import fs from 'node:fs/promises';import assert from 'node:assert/strict';import{writeEan13}from'../fixtures/barcode-image.mjs';
+const app=process.env.APP_URL,out=process.env.BARCODE_CHECK_OUT,engine=process.env.ONLY_ENGINE,build=process.env.BARCODE_BUILD_ROOT??process.cwd(),baseline=process.env.BARCODE_BASELINE==='1';
+if(process.env.MFA_TEST_DISPOSABLE!=='1'||new URL(app).hostname!=='127.0.0.1'||!out)throw Error('Local disposable only');
+const chunks=await fs.readdir(build+'/.next/static/chunks'),decoder=[];for(const file of chunks.filter(n=>n.endsWith('.js')))if((await fs.readFile(build+'/.next/static/chunks/'+file,'utf8')).includes('RSS14Reader'))decoder.push(file);assert.equal(decoder.length,1,'one identified ZXing library chunk');
+const cookies=JSON.parse(await fs.readFile(out+'/session.json','utf8')),code='9591234567892',image=out+'/ean.png';await writeEan13(code,image);const blank=out+'/blank.png';const{default:sharp}=await import('sharp');await sharp({create:{width:470,height:240,channels:3,background:'#ffffff'}}).png().toFile(blank);
+const{chromium,webkit,devices}=await import(process.env.MFA_PLAYWRIGHT_MODULE??'playwright'),b=await(engine==='webkit'?webkit:chromium).launch(engine==='chromium'?{executablePath:process.env.TEST_CHROMIUM_EXECUTABLE,args:['--no-sandbox']}:{}),result={engine,baseline,chunk:decoder[0],workerBlocked:true,cases:[],pageerrors:[]};
+try{
+ for(const locale of(baseline?['en']:['en','ja']).filter(x=>!process.env.ONLY_LOCALE||x===process.env.ONLY_LOCALE))for(const scenario of(baseline?['slow']:['slow','timeout','failure-retry','blank']).filter(x=>!process.env.ONLY_SCENARIO||x===process.env.ONLY_SCENARIO)){
+  const m=JSON.parse(await fs.readFile(new URL('../../messages/'+locale+'.json',import.meta.url),'utf8')).capture,c=await b.newContext({...devices['iPhone 13'],viewport:{width:390,height:844},serviceWorkers:'block'});await c.addCookies([...cookies.map(x=>({name:x.name,value:x.value,url:app})),{name:'lang',value:locale,url:app}]);await c.addInitScript(()=>{localStorage.setItem('mfa-camera-mode','app');Object.defineProperty(navigator,'mediaDevices',{configurable:true,value:{getUserMedia:async()=>{throw Object.assign(Error('Scripted camera unavailable'),{name:'NotAllowedError'});},enumerateDevices:async()=>[]}});});
+  const p=await c.newPage();p.setDefaultTimeout(18000);let requests=0,lookups=[],requested,release;const started=new Promise(r=>requested=r),held=new Promise(r=>release=r);const errors=[];p.on('pageerror',e=>errors.push(e.message));
+  await p.route('**/api/fdc/barcode?*',r=>{lookups.push(new URL(r.request().url()).searchParams.get('code'));return r.fulfill({status:404,contentType:'application/json',body:'{"error":"fixture product absent"}'});});
+  await p.route('**/_next/static/chunks/'+decoder[0],async r=>{requests++;requested();if(scenario==='failure-retry'&&requests<=2)return r.abort('failed');if(scenario==='slow')await new Promise(resolve=>setTimeout(resolve,3000));if(scenario==='timeout')await held;return r.continue().catch(()=>{});});
+  try{
+   await p.goto(app+'/',{waitUntil:'load'});await p.locator('#post-menu-toggle:visible').tap();await p.waitForFunction(()=>{const b=document.querySelector('#post-menu button[data-entry="camera"]');if(!b)return false;const r=b.getBoundingClientRect();return getComputedStyle(b).opacity==='1'&&getComputedStyle(b.querySelector('span')).opacity==='1'&&document.elementFromPoint(r.x+r.width/2,r.y+r.height/2)?.closest('button')===b;});await p.locator('#post-menu button[data-entry=camera]').tap();await p.getByRole('tab',{name:m.modeBarcode,exact:true}).tap();await p.getByText(m.camera_unavailable,{exact:true}).waitFor();
+   if(!baseline){await Promise.race([started,new Promise((_,reject)=>setTimeout(()=>reject(Error('No decoder preload without camera')),4000))]);assert.equal(requests,1);}
+   if(scenario==='failure-retry'){
+    await p.getByText(m.decoderLoadFailed,{exact:true}).waitFor();assert.equal(await p.getByText(m.we_couldn_t_read_a_barcode_from,{exact:true}).count(),0);await p.waitForTimeout(700);assert.equal(requests,2,'after the framework retry fails, app makes no further request without a person');await p.locator('input[type=file]:not([capture])').setInputFiles(image);await p.getByText(m.not_in_the_database,{exact:true}).waitFor();assert.deepEqual(lookups,[code]);assert.equal(requests,3,'one later photo choice re-requests decoder');
+   }else{
+    await p.locator('input[type=file]:not([capture])').setInputFiles(scenario==='blank'?blank:image);
+    if(baseline){await p.getByText(m.we_couldn_t_read_a_barcode_from,{exact:true}).waitFor();assert.deepEqual(lookups,[]);}
+    else if(scenario==='timeout'){await p.getByText(m.decoderLoading,{exact:true}).waitFor();await p.getByText(m.decoderSlow,{exact:true}).waitFor();assert.equal(await p.getByText(m.we_couldn_t_read_a_barcode_from,{exact:true}).count(),0);assert.deepEqual(lookups,[]);assert.equal(requests,1);release();}
+    else if(scenario==='blank'){await p.getByText(m.we_couldn_t_read_a_barcode_from,{exact:true}).waitFor();assert.deepEqual(lookups,[]);}
+    else{await p.getByText(m.not_in_the_database,{exact:true}).waitFor();assert.deepEqual(lookups,[code]);assert.equal(await p.getByText(m.we_couldn_t_read_a_barcode_from,{exact:true}).count(),0);}
+   }
+   await p.screenshot({path:out+'/'+engine+'-'+(baseline?'base':'head')+'-'+locale+'-'+scenario+'.png'});assert.deepEqual(errors,[]);result.cases.push({locale,scenario,requests,lookups,pass:true,mainUnreadBugObserved:baseline});
+  }catch(e){await fs.writeFile(out+'/'+engine+'-'+locale+'-'+scenario+'-failure.html',await p.content());result.phase={locale,scenario,requests,lookups,errors};throw e;}
+  finally{release();result.pageerrors.push(...errors);await c.close();}
+ }
+ result.pass=true;
+}catch(e){result.pass=false;result.failure=String(e);process.exitCode=1;}finally{await b.close();await fs.writeFile(out+'/'+engine+'-'+(baseline?'base':'head')+'.json',JSON.stringify(result,null,2));console.log(JSON.stringify(result));}

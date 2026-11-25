@@ -6,7 +6,10 @@ import { expandUpcE } from "@/lib/fdc/gtin";
 // Loading the decoder never requests a second camera stream.
 let decoder: Promise<typeof import("@zxing/library")> | undefined;
 export function loadBarcodeDecoder() {
-  return decoder ??= import("@zxing/library");
+  return decoder ??= import("@zxing/library").catch(error => {
+    decoder = undefined; // Only a later person-initiated load may retry.
+    throw error;
+  });
 }
 
 export async function decodeBarcode(source: HTMLVideoElement | HTMLImageElement): Promise<string | null> {
