@@ -9,7 +9,7 @@ function fixture(outcomes){
  const transpile=code=>ts.transpileModule(code,{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText;
  // Execute the real cached dynamic-import loader. Only the network/module
  // boundary is scripted; the caller's preload, polling and retry handlers run.
- vm.runInNewContext(transpile(readFileSync(new URL('../src/components/BarcodeScanner.tsx',import.meta.url),'utf8')),{exports:scanner,HTMLVideoElement:Video,require:n=>{if(n==='@/lib/fdc/gtin')return{expandUpcE:v=>v};assert.equal(n,'@zxing/library');const action=outcomes[requests++];if(action==='fail')throw Error('Scripted decoder chunk failure');if(action==='pending')return new Promise(()=>{});return{};}});
+ vm.runInNewContext(transpile(readFileSync(new URL('../src/components/BarcodeScanner.tsx',import.meta.url),'utf8')),{exports:scanner,HTMLVideoElement:Video,require:n=>{if(n==='@/lib/fdc/gtin')return{expandUpcE:v=>v};assert.equal(n,'@zxing/library');const action=outcomes[requests++];if(action==='fail')throw Error('Scripted decoder chunk failure');if(action==='pending')return new Promise(()=>{});if(typeof action==='function')return action();return{};}});
  const shotsRef={current:[]},environment={exports,File,Array,Promise,Event,MAX_SHOTS:8,URL:{createObjectURL:()=> 'blob:synthetic',revokeObjectURL(){}},
  mode:'barcode',stream:{},decoderFailedRef:{current:false},postingRef:{current:false},mountedRef:{current:true},videoRef:{current:new Video()},scanBusy:{current:false},rejectedCode:{current:null},lookupRef:{current:0},barcodeStateRef:state,
  packOperationRef:{current:null},packPhotoRef:{current:null},selectedPhotoRef:{current:false},pendingFilesRef:{current:[]},operationRef:{current:null},shotsRef,
@@ -34,4 +34,12 @@ test('a successful explicit Back retry releases the latch and actual live decodi
 });
 test('explicit Back retry has the same 10-second load bound and does not silently restart polling',async t=>{
  t.mock.timers.enable({apis:['setTimeout']});const f=fixture(['fail','pending']);f.mount();await flush();f.back();await flush();assert.equal(f.state.current,'decoderLoading');t.mock.timers.tick(10000);await flush();assert.equal(f.state.current,'decoderSlow');assert.equal(f.environment.decoderFailedRef.current,true);await f.frames();assert.equal(f.requests,2);assert.equal(f.decodes,0);
+});
+
+test('a photo load timeout stays latched after the import rejects; only an explicit Back starts one new load',async t=>{
+ t.mock.timers.enable({apis:['setTimeout']});let rejectImport;const f=fixture(['fail',()=>new Promise((_,reject)=>rejectImport=reject),'ok']);
+ f.mount();await flush();assert.equal(f.requests,1);assert.equal(f.state.current,'error');
+ await f.add();await flush();assert.equal(f.requests,2);assert.equal(f.state.current,'decoderLoading');t.mock.timers.tick(10000);await flush();assert.equal(f.state.current,'decoderSlow');
+ rejectImport(Error('Late decoder download failure'));await flush();await f.frames();t.mock.timers.tick(30000);await flush();await f.frames();assert.equal(f.requests,2,'no new import after timeout, late rejection and ten live ticks');assert.equal(f.decodes,0);
+ f.back();await flush();assert.equal(f.requests,3,'one new load only after the person taps Back');assert.equal(f.state.current,'idle');assert.equal(f.environment.decoderFailedRef.current,false);
 });

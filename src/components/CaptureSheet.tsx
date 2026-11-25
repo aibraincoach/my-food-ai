@@ -436,7 +436,8 @@ export default function CaptureSheet({ onClose, initialMode = "photo", forPost, 
             if (!result || !mountedRef.current || postingRef.current || generation !== lookupRef.current || !shotsRef.current.includes(shot)) return;
             if (result.state !== "found") {
               if (result.state === "error" || result.state === "decoderSlow") pick.failure = result.state;
-              if (result.state === "error") decoderFailedRef.current = true;
+              // Every failed or timed-out load stays latched until a person retries.
+              if (result.state === "error" || result.state === "decoderSlow") decoderFailedRef.current = true;
               return;
             }
             const index = shotsRef.current.indexOf(shot);
