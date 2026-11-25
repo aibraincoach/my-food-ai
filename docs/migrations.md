@@ -1,5 +1,15 @@
 # Production migration status
 
+## 0084 file-first preparation — UNAPPLIED and held (2026-11-25)
+
+`0084_structured_comment_messages.sql` is **UNAPPLIED and held**. Merging its
+files applies nothing. Production apply requires RT's written database yes and
+the PM's exact order, after 0082 is applied and read back. The local bootstrap
+is not a production receipt. The separate #1219 A app switch waits for C-atomic
+to deploy green, then 0084 apply/read-back and the PM's exact app-head order.
+See [the structured-comment runbook](1219-structured-comment-rollout.md).
+No old summaries are rebuilt or parsed.
+
 ## 0082 file-first preparation — UNAPPLIED and held (2026-11-25)
 
 `0082_atomic_capture_zones.sql` is **UNAPPLIED and held**. Its presence on main

@@ -2,7 +2,8 @@ import test from 'node:test';import assert from 'node:assert/strict';import fs f
 test('new zone RPCs are red before0082, additive after it; down keeps old signatures and stored-zone schema',()=>{
  const db=process.env.TEST_SQL_DATABASE_URL;assert.ok(db&&['localhost','127.0.0.1','[::1]'].includes(new URL(db).hostname));
  const migration=fs.readFileSync(new URL('../../supabase/migrations/0082_atomic_capture_zones.sql',import.meta.url),'utf8').replace(/^begin;$/m,'').replace(/^commit;$/m,''),down=fs.readFileSync(new URL('../../supabase/rollback/0082_atomic_capture_zones.down.sql',import.meta.url),'utf8').replace(/^begin;$/m,'').replace(/^commit;$/m,'');
- const input='begin;'+down+String.raw`
+ const structuredDown=fs.readFileSync(new URL('../../supabase/rollback/0084_structured_comment_messages.down.sql',import.meta.url),'utf8').replace(/^begin;$/m,'').replace(/^commit;$/m,'');
+ const input='begin;'+structuredDown+down+String.raw`
  do $test$ begin
  if to_regprocedure('public.publish_food_operation(uuid,uuid,text,timestamptz,text,numeric,jsonb,text,jsonb,jsonb)') is not null then raise exception 'Zone signature survived down';end if;
  if to_regprocedure('public.publish_food_operation(uuid,uuid,text,timestamptz,text,numeric,jsonb,jsonb,jsonb)') is null then raise exception 'Old running-app signature removed';end if;

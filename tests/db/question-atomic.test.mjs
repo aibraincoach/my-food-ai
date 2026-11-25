@@ -24,7 +24,7 @@ test('a question beside a meal saves with its items, ready flip and comment, or 
  begin
   perform persist_analysis_with_question(p,j,payload,'Fixture summary','{"short":"Clarification needed","options":["Lager"]}'::jsonb);
   raise exception 'A question without text was saved';
- exception when not_null_violation then null;
+ exception when not_null_violation or check_violation then null;
  end;
  if exists(select 1 from current_post_items where post_id=p) or exists(select 1 from post_comments where post_id=p)
  or (select status from posts where id=p)<>'processing' or (select question from posts where id=p) is not null
