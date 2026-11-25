@@ -31,14 +31,18 @@ with foods as (
   where fdc_id in (select source_ref from foods where source_ref ~ '^[1-9][0-9]*$') and description is not null
   order by fdc_id, found_in, description
 )
-select json_build_object(
+select case when report_rows.source_ref ~ '^mext:[0-9]{5}$'
+  then (report_rows.payload::jsonb || jsonb_build_object('mext_group',report_rows.mext_group))::json
+  else report_rows.payload end
+from (select f.kind,f.user_id,f.meal_id,f.at,f.source_ref,j.food_group as mext_group,json_build_object(
   'kind', f.kind, 'account', left(f.user_id::text, 8), 'meal', left(f.meal_id::text, 8), 'item', left(f.item_id::text, 8),
   'name', f.name, 'grams', round(f.grams, 1), 'kcal', round(f.calories, 1),
   'kcal_per_100g', case when f.grams > 0 and f.calories is not null then round(f.calories / f.grams * 100, 1) end,
   'record', f.source_ref, 'category', f.food_category,
-  'how', coalesce((select m->'approximation'->>'kind' from jsonb_array_elements(f.micro) m
+  'how', case when f.source_ref ~ '^mext:[0-9]{5}$' then 'mext' else coalesce((select m->'approximation'->>'kind' from jsonb_array_elements(f.micro) m
                    where m->'approximation'->>'kind' in ('closest', 'estimate') limit 1),
-                  case when f.source_ref ~ '^(barcode:|off:|label|user:)' then 'own' when f.source_ref ~ '^[1-9][0-9]*$' then 'match' else 'none' end),
-  'description', coalesce((select m->'approximation'->>'basis' from jsonb_array_elements(f.micro) m where m->'approximation'->>'kind' = 'closest' limit 1), cf.description))
+                  case when f.source_ref ~ '^(barcode:|off:|label|user:)' then 'own' when f.source_ref ~ '^[1-9][0-9]*$' then 'match' else 'none' end) end,
+  'description', case when f.source_ref ~ '^mext:[0-9]{5}$' then j.name_en else coalesce((select m->'approximation'->>'basis' from jsonb_array_elements(f.micro) m where m->'approximation'->>'kind' = 'closest' limit 1), cf.description) end) as payload
 from foods f left join cache_foods cf on cf.fdc_id = f.source_ref
-order by f.kind, f.user_id, f.meal_id, f.at;
+left join public.jp_foods j on f.source_ref = 'mext:' || j.food_number) report_rows
+order by report_rows.kind, report_rows.user_id, report_rows.meal_id, report_rows.at;

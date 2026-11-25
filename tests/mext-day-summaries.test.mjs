@@ -32,3 +32,7 @@ test('the database day and month projection carries trace-only and mixed-day rec
  const days=await getDayTotals(db,'owner','UTC',['2026-11-25','2026-11-26']);assert.equal(days[0].kcal,0);assert.equal(days[0].traceOnly,undefined);assert.equal(days[1].traceOnly,true);assert.deepEqual(days[1].trace,['Trace']);
  const month=await getMonthSummary(db,'owner','UTC','2026-11');assert.equal(month.days[0].kcal,0);assert.equal(month.days[0].traceOnly,undefined);assert.equal(month.days[1].traceOnly,true);assert.deepEqual(month.days[1].trace,['Trace']);
 });
+
+test('a mixed contribution receipt clears traceOnly even when its measured contribution is zero',()=>{
+ const receipt=dayPostReceipt('mixed',meal.eatenAt,[item,{...zero,name:'Measured zero'}]);assert.equal(receipt.traceOnly,undefined);assert.deepEqual(receipt.trace,['Fixture']);
+});
