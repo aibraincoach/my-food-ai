@@ -8,6 +8,8 @@ import {beginBookmark,finishBookmark} from '@/lib/posts/save-optimistic';
 import type {FeedPost} from '@/lib/posts/feed';
 import { Icon } from '@/components/ui/Icon';
 export function postAction(name:string,postId:string) { window.dispatchEvent(new CustomEvent(name,{detail:{postId}})); }
+export type NoticeKey='cannotSave'|'analysisFailed'|'answerFirst'|'analysisPending';
+export function emitSaveMealBlocked(postId:string,messageKey:NoticeKey){window.dispatchEvent(new CustomEvent('save-meal-blocked',{detail:{postId,messageKey}}));}
 export default function PostActions({postId,modelCommentId,fingerprint,drink=false,saved=false,slides=1,index=0,detail=false,post,status}:{post?:FeedPost;status?:string;postId:string;modelCommentId:string|null;fingerprint:string|null;drink?:boolean;saved?:boolean;slides?:number;index?:number;detail?:boolean}) {
   const t=useTranslations('postMenu'),tp=useTranslations('post');
   const ref=useRef<HTMLDivElement>(null),[width,setWidth]=useState<number>(tokens.spacing.phone);
@@ -15,7 +17,6 @@ export default function PostActions({postId,modelCommentId,fingerprint,drink=fal
   const [bookmark,setBookmark]=useState({id:post?.saved_meal_id??(saved?'unknown':null) as string|null,pending:false});
   const bookmarkRef=useRef(bookmark);useEffect(()=>{bookmarkRef.current=bookmark;},[bookmark]);
   const waitCleanupRef=useRef<(() => void)|null>(null);
-  type NoticeKey='cannotSave'|'analysisFailed'|'answerFirst'|'analysisPending';
   const [notice,setNoticeError]=useState<{key:NoticeKey}|null>(null);
   useEffect(()=>()=>{waitCleanupRef.current?.();},[]);
   useEffect(()=>{const receive=(event:Event)=>{const d=(event as CustomEvent<{postId:string;savedMealId?:string|null;failed?:boolean}>).detail;if(d?.postId!==postId)return;const next=finishBookmark({id:d.savedMealId??null,pending:false},d.savedMealId??null,Boolean(d.failed));bookmarkRef.current=next;setBookmark(next);if(!d.failed)setNoticeError(null);};const refused=(event:Event)=>{const d=(event as CustomEvent<{postId?:string;messageKey?:NoticeKey}>).detail;if(d?.postId===postId)setNoticeError({key:d.messageKey??'cannotSave'});};const starting=(event:Event)=>{const d=(event as CustomEvent<{postId:string}>).detail;if(d?.postId!==postId||bookmarkRef.current.pending)return;const next=beginBookmark(bookmarkRef.current);bookmarkRef.current=next;setBookmark(next);};window.addEventListener('save-meal-result',receive);window.addEventListener('save-meal',starting);window.addEventListener('save-meal-blocked',refused);return()=>{window.removeEventListener('save-meal-result',receive);window.removeEventListener('save-meal',starting);window.removeEventListener('save-meal-blocked',refused);};},[postId]);
@@ -24,17 +25,17 @@ export default function PostActions({postId,modelCommentId,fingerprint,drink=fal
   const save=()=>{if(bookmarkRef.current.pending)return;const previous=bookmarkRef.current;const postStatus=post?.status??status;
    const detail={postId,savedMealId:previous.id,previousSaved:visibleSaved};
    if(visibleSaved){const next=beginBookmark({...previous,id:previous.id});bookmarkRef.current=next;setBookmark(next);window.dispatchEvent(new CustomEvent('save-meal',{detail}));return;}
-   if(postStatus==='failed'){window.dispatchEvent(new CustomEvent('save-meal-result',{detail:{postId,savedMealId:null,failed:true}}));window.dispatchEvent(new CustomEvent('save-meal-blocked',{detail:{postId,messageKey:'analysisFailed'}}));return;}
-   if(postStatus==='needs_input'){window.dispatchEvent(new CustomEvent('save-meal-blocked',{detail:{postId,messageKey:'answerFirst'}}));return;}
+   if(postStatus==='failed'){window.dispatchEvent(new CustomEvent('save-meal-result',{detail:{postId,savedMealId:null,failed:true}}));emitSaveMealBlocked(postId,'analysisFailed');return;}
+   if(postStatus==='needs_input'){emitSaveMealBlocked(postId,'answerFirst');return;}
    if(!ready){
      waitCleanupRef.current?.();
      const next=beginBookmark({...previous,id:null});bookmarkRef.current=next;setBookmark(next);
      const cleanup=()=>{window.removeEventListener('post-settled',onSettled);window.removeEventListener('post-ready',onReady);clearTimeout(cap);waitCleanupRef.current=null;};
      waitCleanupRef.current=cleanup;
-     const revert=()=>{cleanup();const restored=finishBookmark({id:previous.id,pending:false},previous.id,false);bookmarkRef.current=restored;setBookmark(restored);window.dispatchEvent(new CustomEvent('save-meal-blocked',{detail:{postId,messageKey:'analysisPending'}}));};
+     const revert=()=>{cleanup();const restored=finishBookmark({id:previous.id,pending:false},previous.id,false);bookmarkRef.current=restored;setBookmark(restored);emitSaveMealBlocked(postId,'analysisPending');};
      const cap=setTimeout(revert,120_000);
      const onReady=(event:Event)=>{const d=(event as CustomEvent<{id?:string}>).detail;if(d?.id!==postId)return;cleanup();window.dispatchEvent(new CustomEvent('save-meal',{detail}));};
-     const onSettled=(event:Event)=>{const settled=(event as CustomEvent<{id?:string;status?:string}>).detail;if(settled?.id!==postId)return;cleanup();if(settled?.status==='ready'){window.dispatchEvent(new CustomEvent('save-meal',{detail}));return;}window.dispatchEvent(new CustomEvent('save-meal-result',{detail:{postId,savedMealId:null,failed:true}}));window.dispatchEvent(new CustomEvent('save-meal-blocked',{detail:{postId,messageKey:'analysisFailed'}}));};
+     const onSettled=(event:Event)=>{const settled=(event as CustomEvent<{id?:string;status?:string}>).detail;if(settled?.id!==postId)return;cleanup();if(settled?.status==='ready'){window.dispatchEvent(new CustomEvent('save-meal',{detail}));return;}window.dispatchEvent(new CustomEvent('save-meal-result',{detail:{postId,savedMealId:null,failed:true}}));emitSaveMealBlocked(postId,'analysisFailed');};
      window.addEventListener('post-settled',onSettled);window.addEventListener('post-ready',onReady);return;}
    const next=beginBookmark({...previous,id:null});bookmarkRef.current=next;setBookmark(next);
    window.dispatchEvent(new CustomEvent('save-meal',{detail}));
