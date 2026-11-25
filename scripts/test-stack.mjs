@@ -8,6 +8,8 @@ const envOutput=process.env.TEST_ENV_FILE||'.env.test.local';
 const root=process.cwd(),dir=path.resolve(process.env.TEST_STACK_DIR||'uploads/test-stack'),stateFile=path.join(dir,'state.json');
 const pgBin=process.env.PG_BIN||'/usr/pgsql-17/bin',dbPort=Number(process.env.TEST_PG_PORT||55449),basePort=Number(process.env.TEST_PORT_BASE||60260);
 const confirmationOn=process.env.MFA_STACK_CONFIRM==='1';
+const emailTemplates=process.env.MFA_STACK_EMAIL_TEMPLATES==='1';
+if(emailTemplates&&!confirmationOn)throw Error('Email template proof requires MFA_STACK_CONFIRM=1');
 const names={...(confirmationOn?{mail:'mfa-test-mail-'+basePort}:{}),auth:'mfa-test-auth-'+basePort,rest:'mfa-test-rest-'+basePort};
 function run(cmd,args,options={}){const r=spawnSync(cmd,args,{encoding:'utf8',...options});if(r.error||r.status!==0){mkdirSync(dir,{recursive:true});writeFileSync(path.join(dir,'failure.log'),String(r.stderr||r.error));throw Error(`${path.basename(cmd)} failed; inspect ${dir} logs.`);}return r.stdout?.trim();}
 function save(state){writeFileSync(stateFile,JSON.stringify(state,null,2),{mode:0o600});}
@@ -20,6 +22,7 @@ const secret=randomBytes(32).toString('hex'),db=`postgres://postgres@127.0.0.1:$
 const state={pg,pgBin,names,pids:[],stopped:false};save(state);
 const sql=text=>run('psql',['-X','-qAt','--dbname',db,'-v','ON_ERROR_STOP=1'],{input:text});
 const env={MFA_TEST_DISPOSABLE:'1',APP_URL:`http://${confirmationOn?'localhost':'127.0.0.1'}:${basePort}`,NEXT_PUBLIC_SUPABASE_URL:gateway,SUPABASE_DB_URL:db,TEST_SQL_DATABASE_URL:db,MODEL_API_KEY:'local-scripted-key',MODEL_API_BASE_URL:`http://127.0.0.1:${basePort+5}/v1`,FDC_API_KEY:'local-fixture-key',TEST_FDC_FIXTURE_URL:`http://127.0.0.1:${basePort+5}`,TEST_MODEL_PORT:String(basePort+5),TEST_GATEWAY_PORT:String(basePort+6),TEST_REST_PORT:String(basePort+7),TEST_AUTH_PORT:String(basePort+8),TEST_JWT_SECRET:secret,TEST_STORAGE_DIR:path.join(dir,'objects'),ALLOW_SHARED_DB_TESTS:'1'};
+if(emailTemplates)env.TEST_AUTH_TEMPLATES_PORT=String(basePort+11);
 function jwt(role){const b=x=>Buffer.from(JSON.stringify(x)).toString('base64url');const data=b({alg:'HS256',typ:'JWT'})+'.'+b({role,iss:'supabase',iat:Math.floor(Date.now()/1000),exp:Math.floor(Date.now()/1000)+86400});return data+'.'+createHmac('sha256',secret).update(data).digest('base64url');}
 function container(name,image,values){const file=path.join(dir,name+'.env');writeFileSync(file,Object.entries(values).map(([k,v])=>`${k}=${v}`).join('\n'),{mode:0o600});run('podman',['run','-d','--network','host','--name',name,'--env-file',file,image]);}
 async function ready(url){for(let i=0;i<100;i++){try{const r=await fetch(url);if(r.ok)return;}catch{}await new Promise(resolve=>setTimeout(resolve,100));}throw Error('Local service did not become ready.');}
@@ -40,7 +43,16 @@ if(confirmationOn){
  env.TEST_MAILPIT_URL=`http://127.0.0.1:${basePort+10}`;
  await ready(env.TEST_MAILPIT_URL+'/api/v1/info');
 }
-container(names.auth,'docker.io/supabase/gotrue:v2.197.0',{GOTRUE_API_HOST:'127.0.0.1',GOTRUE_API_PORT:basePort+8,API_EXTERNAL_URL:gateway,GOTRUE_SITE_URL:env.APP_URL,GOTRUE_DB_DRIVER:'postgres',GOTRUE_DB_DATABASE_URL:db+'&search_path=auth,public',GOTRUE_DB_MIGRATIONS_PATH:'/usr/local/etc/auth/migrations',GOTRUE_JWT_SECRET:secret,GOTRUE_JWT_AUD:'authenticated',GOTRUE_JWT_DEFAULT_GROUP_NAME:'authenticated',GOTRUE_JWT_ADMIN_ROLES:'service_role',GOTRUE_EXTERNAL_EMAIL_ENABLED:'true',GOTRUE_MAILER_AUTOCONFIRM:confirmationOn?'false':'true',...(confirmationOn?{GOTRUE_MAILER_URLPATHS_CONFIRMATION:'/auth/v1/verify',GOTRUE_SMTP_HOST:'127.0.0.1',GOTRUE_SMTP_PORT:basePort+9,GOTRUE_SMTP_ADMIN_EMAIL:'auth@local.test',GOTRUE_SMTP_SENDER_NAME:'Disposable Auth',GOTRUE_SMTP_MAX_FREQUENCY:'0s',GOTRUE_RATE_LIMIT_EMAIL_SENT:'100',GOTRUE_URI_ALLOW_LIST:env.APP_URL+'/auth/callback'}:{}),GOTRUE_DISABLE_SIGNUP:'false'});
+const templateSettings={};
+if(emailTemplates){
+ const subjects=JSON.parse(readFileSync('supabase/templates/subjects.json','utf8'));
+ for(const flow of ['confirmation','recovery']){if(typeof subjects[flow]!=='string'||!subjects[flow].trim()||/[\r\n]/.test(subjects[flow]))throw Error('Invalid local auth email subject');}
+ background('tests/fixtures/local-auth-templates.mjs');
+ const origin=`http://127.0.0.1:${env.TEST_AUTH_TEMPLATES_PORT}`;
+ await ready(origin+'/confirmation.html');await ready(origin+'/recovery.html');
+ Object.assign(templateSettings,{GOTRUE_MAILER_TEMPLATES_CONFIRMATION:origin+'/confirmation.html',GOTRUE_MAILER_TEMPLATES_RECOVERY:origin+'/recovery.html',GOTRUE_MAILER_SUBJECTS_CONFIRMATION:subjects.confirmation,GOTRUE_MAILER_SUBJECTS_RECOVERY:subjects.recovery});
+}
+container(names.auth,'docker.io/supabase/gotrue:v2.197.0',{GOTRUE_API_HOST:'127.0.0.1',GOTRUE_API_PORT:basePort+8,API_EXTERNAL_URL:gateway,GOTRUE_SITE_URL:env.APP_URL,GOTRUE_DB_DRIVER:'postgres',GOTRUE_DB_DATABASE_URL:db+'&search_path=auth,public',GOTRUE_DB_MIGRATIONS_PATH:'/usr/local/etc/auth/migrations',GOTRUE_JWT_SECRET:secret,GOTRUE_JWT_AUD:'authenticated',GOTRUE_JWT_DEFAULT_GROUP_NAME:'authenticated',GOTRUE_JWT_ADMIN_ROLES:'service_role',GOTRUE_EXTERNAL_EMAIL_ENABLED:'true',GOTRUE_MAILER_AUTOCONFIRM:confirmationOn?'false':'true',...templateSettings,...(confirmationOn?{GOTRUE_MAILER_URLPATHS_CONFIRMATION:'/auth/v1/verify',GOTRUE_MAILER_URLPATHS_RECOVERY:'/auth/v1/verify',GOTRUE_SMTP_HOST:'127.0.0.1',GOTRUE_SMTP_PORT:basePort+9,GOTRUE_SMTP_ADMIN_EMAIL:'auth@local.test',GOTRUE_SMTP_SENDER_NAME:'Disposable Auth',GOTRUE_SMTP_MAX_FREQUENCY:'0s',GOTRUE_RATE_LIMIT_EMAIL_SENT:'100',GOTRUE_URI_ALLOW_LIST:env.APP_URL+'/auth/callback,'+env.APP_URL+'/auth/password-reset'}:{}),GOTRUE_DISABLE_SIGNUP:'false'});
 await ready(`http://127.0.0.1:${basePort+8}/health`);
 for(const name of readdirSync('supabase/migrations').filter(x=>x.endsWith('.sql')).sort()){if(['0024_worker_wake.sql','0055_approximation_once.sql'].includes(name))continue; // 0055 is an explicit reader-first activation, not a bootstrap migration.
  sql(readFileSync('supabase/migrations/'+name,'utf8'));}

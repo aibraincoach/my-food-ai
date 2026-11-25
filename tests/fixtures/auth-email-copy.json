@@ -1,0 +1,30 @@
+{
+  "en": {
+    "confirmation.subject": "My Food AI: confirm your email",
+    "confirmation.heading": "Confirm your email address",
+    "confirmation.reason": "Confirm your email address to finish creating your My Food AI account.",
+    "confirmation.action": "Confirm email address",
+    "confirmation.ignore": "If you did not create a My Food AI account, you can ignore this email.",
+    "confirmation.signoff": "My Food AI",
+    "recovery.subject": "My Food AI: reset your password",
+    "recovery.heading": "Reset your password",
+    "recovery.reason": "We received a request to reset your My Food AI password.",
+    "recovery.action": "Set a new password",
+    "recovery.ignore": "If you did not request a password reset, you can ignore this email.",
+    "recovery.signoff": "My Food AI"
+  },
+  "ja": {
+    "confirmation.subject": "メールアドレスの確認",
+    "confirmation.heading": "メールアドレスを確認してください",
+    "confirmation.reason": "My Food AIのアカウント作成を完了するには、メールアドレスを確認してください。",
+    "confirmation.action": "メールアドレスを確認",
+    "confirmation.ignore": "My Food AIのアカウントを作成した覚えがない場合は、このメールを無視してかまいません。",
+    "confirmation.signoff": "My Food AI",
+    "recovery.subject": "パスワードのリセット",
+    "recovery.heading": "パスワードをリセット",
+    "recovery.reason": "My Food AIのパスワードのリセットがリクエストされました。",
+    "recovery.action": "新しいパスワードを設定",
+    "recovery.ignore": "パスワードのリセットをリクエストした覚えがない場合は、このメールを無視してかまいません。",
+    "recovery.signoff": "My Food AI"
+  }
+}
