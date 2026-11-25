@@ -23,6 +23,11 @@ if(estimateCases[mode]&&(name==='identify'||name==='nutrition_estimate')){
  for(const output of response.output)for(const text of output.content??[])if(text.type==='output_text')text.text=JSON.stringify(payload);
  return send(200,response);
 }
+if(name==='mext_reference'){
+ const data=JSON.parse(body.input[0].content[0].text),result=structuredClone(fixture);
+ for(const output of result.output)for(const text of output.content??[])if(text.type==='output_text')text.text=JSON.stringify({foodNumber:data.candidates?.[0]?.foodNumber??null,closest:false,reason:'Scripted compatible MEXT candidate'});
+ return send(200,result);
+}
 if(name==='search_query'&&body.text?.format?.schema?.properties?.id){const data=JSON.parse(body.input[0].content[0].text);const result=structuredClone(fixture);for(const output of result.output)for(const text of output.content??[])if(text.type==='output_text')text.text=JSON.stringify({id:data.candidates?.[0]?.id??null,query:null,query_food:null,reason:'Scripted candidate chosen'});return send(200,result);}
 if(mode==='meta-refusal'&&name==='identify')return send(200,{status:'completed',output:[{type:'message',content:[{type:'refusal',refusal:'Scripted refusal'}]}],usage:{input_tokens:1,output_tokens:1}});
 // #615: a caption that disagrees with the photo. The beer is named from the caption and the model asks one question.

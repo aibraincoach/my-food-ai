@@ -50,3 +50,14 @@ test('live card trace and the exact Japanese credit survive rich-text tag bounda
   assert.equal(cardDataFromRow({items:[{...trace,source_ref:'12345',micronutrients:[],calories:100}]},locale,props).mext,undefined);
  }
 });
+
+test('MEXT closest labels are self-contained and cannot be rendered as USDA records',async()=>{
+ const {approximationLabels}=await import('../src/lib/fdc/approximation-metadata.ts');
+ const tagged={name:'Fixture meal',source_ref:'mext:01088',micronutrients:[{basis:'portion',value:1,approximation:{kind:'closest',basis:'Official English reference',sourceRef:'mext:01088'}}]};
+ const labels=approximationLabels([tagged]);assert.equal(labels[0].source,'mext');
+ const summary=mealSummaryMessage(sumNutrition([zeros]),labels);
+ for(const locale of ['en','ja']){const rendered=formatCommentMessage(summary,nutritionTranslator(locale),locale);assert.ok(rendered.includes('MEXT'));assert.ok(!rendered.includes('USDA'));}
+ const invalid=structuredClone(summary);invalid.values.approximations[0].source='invented';assert.throws(()=>parseCommentMessage(invalid),/invalid/);
+ const usda={...tagged,source_ref:'12345',micronutrients:[{...tagged.micronutrients[0],approximation:{...tagged.micronutrients[0].approximation,sourceRef:'12345'}}]};
+ assert.deepEqual(approximationLabels([usda]),[{name:'Fixture meal',kind:'closest',basis:'Official English reference'}]);
+});

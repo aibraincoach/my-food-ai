@@ -1350,7 +1350,8 @@
     "remainderReply": "食べ残し：{leftovers} · {omitted} kcal。摂取：{consumed} · {calories} kcal。",
     "remainderCount": "{count}{unit}",
     "consumedCount": "{total}{unit}のうち{count}{unit}",
-    "productCorrected": "商品を{name}に修正しました。"
+    "productCorrected": "商品を{name}に修正しました。",
+    "approxMext": "{name}の栄養は、最も近い MEXT の記録（{basis}）に基づいています。"
   },
   "nutrients": {
     "core_calories": "カロリー",

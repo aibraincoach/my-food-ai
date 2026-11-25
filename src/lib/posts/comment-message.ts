@@ -4,7 +4,7 @@ import {formatNumber} from '@/i18n/format';
 import {formatCalories,formatNutrition,formatConsumed,gapSentence,nutritionGaps,NUTRIENT_KEYS,type MealTotals,type MissingNutrition} from '@/lib/nutrition/totals';
 
 export type SummaryTotals=Pick<MealTotals,'calories'|'protein_g'|'carbs_g'|'fat_g'|'missing'|'trace'|'traceOnly'>;
-export type Approximation={name:string;basis:string;kind?:'closest'|'estimate'};
+export type Approximation={name:string;basis:string;kind?:'closest'|'estimate';source?:'mext'};
 type Quantity={grams:number;count:number|null;total:number|null;unit:string|null};
 type SummaryValues={totals:SummaryTotals;approximations:Approximation[];unavailable:{name:string;sourceRef:string|null}[]};
 type Removal={kind:'removedLeftovers'|'unmarkedLeftovers'}|{kind:'removedCorrection';text:string};
@@ -30,7 +30,7 @@ function summary(v:Record<string,unknown>):boolean {
  if(traceOnly!==undefined&&(!Array.isArray(traceOnly)||!traceOnly.every(k=>NUTRIENT_KEYS.includes(k as typeof NUTRIENT_KEYS[number])&&object(trace)&&(!(String(k) in (v.totals as Record<string,unknown>))||(v.totals as Record<string,unknown>)[String(k)]===0)&&Array.isArray(trace[String(k)])&&(trace[String(k)] as unknown[]).length>0)))return false;
  const missing=v.totals.missing;
  if(missing!==undefined&&(!object(missing)||!Object.entries(missing).every(([k,n])=>NUTRIENT_KEYS.includes(k as typeof NUTRIENT_KEYS[number])&&Array.isArray(n)&&n.every(text))))return false;
- return Array.isArray(v.approximations)&&v.approximations.every(a=>object(a)&&text(a.name)&&text(a.basis)&&(a.kind===undefined||a.kind==='closest'||a.kind==='estimate'))
+ return Array.isArray(v.approximations)&&v.approximations.every(a=>object(a)&&text(a.name)&&text(a.basis)&&(a.kind===undefined||a.kind==='closest'||a.kind==='estimate')&&(a.source===undefined||a.source==='mext'))
   &&Array.isArray(v.unavailable)&&v.unavailable.every(a=>object(a)&&text(a.name)&&nullableText(a.sourceRef));
 }
 /** Stored codes are a protocol. Unknown/invalid messages fail; body text is never parsed. */
@@ -58,7 +58,7 @@ function consumed(values:SummaryValues,t:NutritionTranslator,locale:Locale):stri
  const value=(key:'protein_g'|'carbs_g'|'fat_g')=>totals.traceOnly?.includes(key)?t('trace'):totals[key]===null?t('unavailable'):formatNutrition(totals[key],t,locale);
  const gap=gapSentence(nutritionGaps(totals),t,locale,values.unavailable);
  const traceNote=totals.trace&&Object.keys(totals.trace).some(key=>!totals.traceOnly?.includes(key as typeof NUTRIENT_KEYS[number]))?(locale==='ja'?'':' ')+t('includesTraceAmounts'):'';
- const notes=values.approximations.map(a=>' '+t(a.kind==='estimate'?'approxModel':'approxUSDA',{name:a.name,basis:a.basis})).join('');
+ const notes=values.approximations.map(a=>' '+t(a.kind==='estimate'?'approxModel':a.source==='mext'?'approxMext':'approxUSDA',{name:a.name,basis:a.basis})).join('');
  return t('consumedStored',{calories:totals.traceOnly?.includes('calories')?t('trace'):totals.calories===null?t('unavailable'):formatCalories(totals.calories,t,locale),protein:value('protein_g'),carbs:value('carbs_g'),fat:value('fat_g'),hasGap:gap?'yes':'no',gap,approximations:notes+traceNote});
 }
 function quantityText(value:Quantity,isConsumed:boolean,t:NutritionTranslator,locale:Locale):string {
@@ -73,7 +73,7 @@ export function formatCommentMessage(raw:unknown,t:NutritionTranslator,locale:Lo
   if(s.kind==='leftovers')return t('remainderReply',{leftovers:s.leftovers.map(q=>quantityText(q,false,t,locale)).join(', '),consumed:s.consumed.map(q=>quantityText(q,true,t,locale)).join(', '),omitted:s.omitted===null?t('unavailable'):formatCalories(s.omitted,t,locale),calories:s.calories===null?t('unavailable'):formatCalories(s.calories,t,locale)});
   // Keep the old brief removal summary exactly in English. In Japanese remove
   // its final punctuation before the surrounding translated sentence adds it.
-  const brief=[formatConsumed({...s.totals,fibre_g:null,sugar_g:null,sodium_mg:null},t,locale),...s.approximations.map(a=>t(a.kind==='estimate'?'approxModel':'approxUSDA',{name:a.name,basis:a.basis}).replace(/[.。]$/u,''))].join(locale==='ja'?'。':'. ').replace(/[。]$/u,'');
+  const brief=[formatConsumed({...s.totals,fibre_g:null,sugar_g:null,sodium_mg:null},t,locale),...s.approximations.map(a=>t(a.kind==='estimate'?'approxModel':a.source==='mext'?'approxMext':'approxUSDA',{name:a.name,basis:a.basis}).replace(/[.。]$/u,''))].join(locale==='ja'?'。':'. ').replace(/[。]$/u,'');
   return t(s.removal.kind,{summary:brief,...(s.removal.kind==='removedCorrection'?{text:s.removal.text}:{})});
  }
  if(message.code==='editRemoved')return t('editRemoved',{name:message.values.name??t('anItem')});

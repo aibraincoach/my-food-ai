@@ -4,7 +4,7 @@ import { syncItemDrinks } from '@/lib/intake/drinks-from-items';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { renderResultsCard } from '@/lib/pipeline/results-card';
 import { validEatenAt } from './eaten-at';
-export type SavedNutrition = {calories:number|null;protein_g:number|null;carbs_g:number|null;fat_g:number|null;food_category?:string|null;micronutrients?:import('@/lib/nutrition/totals').StoredNutrient[]};
+export type SavedNutrition = {source_ref?:string|null;calories:number|null;protein_g:number|null;carbs_g:number|null;fat_g:number|null;food_category?:string|null;micronutrients?:import('@/lib/nutrition/totals').StoredNutrient[]};
 export type SavedItem = {name:string;portion_grams:number|null;portion_text:string|null;nutrition:SavedNutrition};
 export type SavedDrink = {kind:"water"|"caffeine";amount:number;ml:number|null;label:string|null;source?:"sheet"|"item";item_name?:string|null};
 export type SavedMeal = {id:string;name:string;source_post_id:string|null;items:SavedItem[];drinks?:SavedDrink[];last_logged_at:string|null;thumbnail?:string|null};

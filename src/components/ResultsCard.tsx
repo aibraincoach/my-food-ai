@@ -86,8 +86,6 @@ export function ResultsCard({ locale, t, tn, data, drink, gap = "", time, calori
       <div style={{ display: 'flex', gap: tokens.spacing['macro-gap'] * scale, ...text('body') }}>
         {macro(card.macros?.protein, t('protein'),'protein_g')}{macro(card.macros?.carbs, t('carbs'),'carbs_g')}{macro(card.macros?.fat, t('fat'),'fat_g')}
       </div>
-      {card.trace&&Object.keys(card.trace).some(key=>!card.traceOnly?.includes(key as import('@/lib/nutrition/totals').NutrientKey))?<div style={{display:'flex',...text('meta'),color:tokens.colors.muted}}>{tn('includesTraceAmounts')}</div>:null}
-      {card.mext?<div style={{display:'flex',...text('meta'),color:tokens.colors.muted}}>{t.rich('mextAttribution',{mext:chunks=><span>{chunks}</span>})}</div>:null}
       {card.gap ? <div style={{ display: 'flex', ...text('meta'), color: tokens.colors.muted }}>{card.gap}</div> : null}
       <div style={{ display: 'flex', flexDirection: 'column', gap: 6 * scale, ...text('detail'), lineHeight: tokens.card.itemLeading, color: tokens.colors.muted }}>
         <div style={{ display: 'flex' }}>{(card.items ?? []).map(item => `${item.name}${item.grams === null ? (item.portionText ? ` ${item.portionText}` : '') : ` ${Math.round(item.grams)} g`}`).join(' · ')}</div>
@@ -96,5 +94,7 @@ export function ResultsCard({ locale, t, tn, data, drink, gap = "", time, calori
         {card.footer ? <div style={{ display: 'flex' }}>{card.footer}</div> : null}
       </div>
     </div>}
+      {card.trace&&Object.keys(card.trace).some(key=>!card.traceOnly?.includes(key as import('@/lib/nutrition/totals').NutrientKey))?<div style={{display:'flex',...text('meta'),color:tokens.colors.muted}}>{tn('includesTraceAmounts')}</div>:null}
+      {card.mext?<div style={{display:'flex',...text('meta'),color:tokens.colors.muted}}>{t.rich('mextAttribution',{mext:chunks=><span>{chunks}</span>})}</div>:null}
   </div>;
 }

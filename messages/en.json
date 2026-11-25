@@ -1350,7 +1350,8 @@
     "remainderReply": "Leftovers: {leftovers} · {omitted} kcal. Consumed: {consumed} · {calories} kcal.",
     "remainderCount": "{count} {unit}",
     "consumedCount": "{count} of {total} {unit}",
-    "productCorrected": "Product corrected to {name}."
+    "productCorrected": "Product corrected to {name}.",
+    "approxMext": "Nutrition for {name} is taken from the closest MEXT record, {basis}."
   },
   "nutrients": {
     "core_calories": "Calories",
