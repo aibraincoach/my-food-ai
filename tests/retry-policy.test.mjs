@@ -67,10 +67,10 @@ async function session() {
 test("classified failures, delayed claims, third-attempt limit and worker-only access", { timeout: 30_000 }, async () => {
   const { drainOnce } = await import("../src/lib/worker/drain.ts");
   const { ApiError, isRetriable } = await import("../src/lib/worker/errors.ts");
-  assert.equal(isRetriable(new ApiError(400, "bad input")), false);
-  assert.equal(isRetriable(new ApiError(404, "missing")), false);
-  assert.equal(isRetriable(new ApiError(429, "busy")), true);
-  assert.equal(isRetriable(new ApiError(503, "unavailable")), true);
+  assert.equal(isRetriable(new ApiError(400, "bad input", "Fixture request failed.")), false);
+  assert.equal(isRetriable(new ApiError(404, "missing", "Fixture request failed.")), false);
+  assert.equal(isRetriable(new ApiError(429, "busy", "Fixture request failed.")), true);
+  assert.equal(isRetriable(new ApiError(503, "unavailable", "Fixture request failed.")), true);
   assert.equal(isRetriable(Object.assign(new Error("timeout"), { name: "AbortError" })), true);
   assert.equal(isRetriable({ code: "ETIMEDOUT" }), true);
   assert.equal(isRetriable({ cause: { code: "ETIMEDOUT" } }), true);
