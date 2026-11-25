@@ -30,7 +30,39 @@ async function captureFailure(p,consoleMessages){
  result.failureCapture={...page,phase:result.phase,hints:await seen().catch(()=>null),console:consoleMessages,pageErrors:[...result.errors]};
  await fs.writeFile(out+'/'+engine+'-failure-dom.json',JSON.stringify(result.failureCapture,null,2));await p.screenshot({path:out+'/'+engine+'-failure.png',fullPage:true}).catch(()=>{});
 }
+async function modesCase(){
+ const exit=process.env.MODE_EXIT_CASE;if(!['photo','leave','seen'].includes(exit))throw Error('Choose a bounded modes case');
+ const expected=process.env.MODE_EXPECT_SEEN==='1';await reset(['capture','thread','thumbs',...(exit==='seen'?['modes']:[])]);
+ const {c,p,consoleMessages}=await open();let saveRequests=0,lastNavigation=null,closing=false;
+ p.on('request',r=>{if(r.isNavigationRequest())lastNavigation={url:r.url(),at:Date.now()};if(r.method()==='POST'&&r.headers()['next-action']&&r.postData()?.includes('"modes"'))saveRequests++;});
+ p.on('pageerror',e=>{(result.modeErrorDetails??=[]).push({message:e.message,at:new Date().toISOString(),url:p.url(),lastNavigation,closing});});
+ const camera=async()=>{await p.getByRole('button',{name:'Post a meal',exact:true}).tap();await p.getByRole('button',{name:'Camera',exact:true}).tap();await p.waitForFunction(()=>document.querySelector('video')?.videoWidth>0);};
+ try{
+  result.phase='modes '+exit;await p.goto(app,{waitUntil:'load'});await camera();
+  const tip=p.locator('section[aria-label="Barcode tip"]');
+  if(exit==='seen'){
+   assert.equal(await tip.count(),0);await p.getByRole('button',{name:'Back to Feed',exact:true}).tap();await p.waitForFunction(()=>!document.querySelector('video'));await camera();assert.equal(await tip.count(),0);assert.equal(saveRequests,0);
+   result.cases.push({name:'modes already seen',tipShown:false,saveRequests,hints:await seen(),pass:true});return;
+  }
+  await tip.waitFor();
+  const persisted=expected?p.waitForResponse(r=>r.request().method()==='POST'&&r.request().headers()['next-action']&&r.request().postData()?.includes('"modes"')):null;persisted?.catch(()=>{});
+  if(exit==='photo'){
+   await p.getByRole('button',{name:'Take a photo',exact:true}).tap();await p.getByRole('button',{name:'Remove photo 1',exact:true}).waitFor();
+   await p.getByRole('button',{name:'Remove photo 1',exact:true}).tap();await p.waitForFunction(async()=>await new Promise(resolve=>{const r=indexedDB.open('mfa-uploads');r.onsuccess=()=>{const db=r.result,q=db.transaction('drafts').objectStore('drafts').count();q.onsuccess=()=>{resolve(q.result===0);db.close();};};}));
+  }
+  await p.getByRole('button',{name:'Back to Feed',exact:true}).tap();await p.waitForFunction(()=>!document.querySelector('video'));
+  // Wait for this action's response, rather than starting a second navigation
+  // while the save still refreshes the current route.
+  if(persisted)assert.equal((await persisted).status(),200);
+  await p.waitForLoadState('load');await p.evaluate(()=>new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r))));
+  const saved=await seen();assert.equal(saved.includes('modes'),expected,'modes persistence after '+exit);
+  await camera();if(expected)assert.equal(await tip.count(),0);else await tip.waitFor();
+  assert.equal(saveRequests,expected?1:0,'one save when leaving the shown tip');
+  result.cases.push({name:'modes '+exit,hints:saved,shownAgain:!expected,saveRequests,expectedRegression:!expected,pass:true});
+ }catch(error){await captureFailure(p,consoleMessages);throw error;}finally{closing=true;await c.close();}
+}
 try{
+ if(process.env.ONLY_CASE==='modes')await modesCase();else {
  for(const fresh of (['feed','thread'].includes(process.env.ONLY_CASE)?[]:process.env.ONLY_CASE==='seen-camera'?[false]:[true,false])){
   await reset(fresh?[]:['capture','modes','thumbs','thread']);
   const {c,p,consoleMessages}=await open();
@@ -50,7 +82,7 @@ try{
    // The camera changes to its composer; inspect the changed capture hint's save.
    await p.waitForFunction(()=>!document.querySelector('section[aria-label="Barcode tip"]'));
    await p.screenshot({path:out+'/'+engine+'-'+(fresh?'fresh':'seen')+'.png'});
-   result.phase='capture seen saved';const saved=await seen();assert.ok(saved.includes('capture')); // Modes may unmount with preview before capture-shot (existing behavior).
+   result.phase='capture seen saved';const saved=await seen();assert.ok(saved.includes('capture'));
    result.cases.push({name:fresh?'fresh camera':'seen camera',photo:true,drafts:1,events,hints:saved});
    await p.getByRole('button',{name:'Remove photo 1',exact:true}).tap();
    await p.waitForFunction(async()=>await new Promise(resolve=>{const r=indexedDB.open('mfa-uploads');r.onsuccess=()=>{const db=r.result,q=db.transaction('drafts').objectStore('drafts').count();q.onsuccess=()=>{resolve(q.result===0);db.close();};};}));
@@ -81,6 +113,7 @@ try{
   await p.reload({waitUntil:'load'});assert.equal(await p.getByText('Reply here to fix the estimate',{exact:true}).count(),0);
   result.cases.push({name:'thread',firstTapFocused:true,shownAgain:false});
  }catch(error){await captureFailure(p,consoleMessages);throw error;}finally{await c.close();}
+ }
  }
  result.pass=true;
 }catch(error){result.pass=false;result.failure=String(error);process.exitCode=1;}
