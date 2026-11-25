@@ -11,12 +11,3 @@ export function cardTranslator(locale:Locale) {
  if(!messages)throw new Error('Card translations are unavailable for this language.');
  return createTranslator({locale,messages,onError,getMessageFallback});
 }
-
-export function cardGapWording(locale:Locale) {
- const t=cardTranslator(locale);
- return {
-  nutritionUnavailable:(food:string)=>t('nutritionUnavailable',{food}),
-  caloriesUnavailable:(food:string)=>t('caloriesUnavailable',{food}),
-  missing:(nutrients:string[],food:string)=>t('missing',{nutrients:new Intl.ListFormat(locale,{style:'long',type:'conjunction'}).format(nutrients.map(key=>t(key as 'protein'|'carbs'|'fat'|'fibre'|'sugar'|'sodium'))),food}),
- };
-}

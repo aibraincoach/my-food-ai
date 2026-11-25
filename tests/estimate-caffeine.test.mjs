@@ -1,3 +1,5 @@
+import {nutrientsTranslator} from '../src/i18n/nutrients.ts';
+import {nutritionTranslator} from '../src/i18n/nutrition.ts';
 // node --import tsx --test tests/estimate-caffeine.test.mjs
 import test from 'node:test';
 import assert from 'node:assert/strict';
@@ -32,7 +34,7 @@ test('an estimated coffee stores caffeine as nutrient 1057 for the portion and k
  assert.match(plainConsumed({calories:n.calories,protein_g:n.proteinG,carbs_g:n.carbsG,fat_g:n.fatG},approximationLabels([row])),/Nutrition for black coffee is a model estimate, brewed black coffee\./);
  // The drink row and the nutrition table read it exactly as they read a matched record's caffeine.
  assert.deepEqual(drinksFromItems([row]),[{post_item_id:'item',kind:'caffeine',amount:72,ml:180,label:'black coffee',caffeineMg:72,alcoholG:0}]);
- assert.equal(nutritionTableRows([{...row,calories:n.calories,protein_g:n.proteinG,carbs_g:n.carbsG,fat_g:n.fatG,fibre_g:n.fibreG,sugar_g:n.sugarG,sodium_mg:n.sodiumMg}]).find(line=>line.name==='Caffeine').value,72);
+ assert.equal(nutritionTableRows([{...row,calories:n.calories,protein_g:n.proteinG,carbs_g:n.carbsG,fat_g:n.fatG,fibre_g:n.fibreG,sugar_g:n.sugarG,sodium_mg:n.sodiumMg}],nutritionTranslator('en'),nutrientsTranslator('en'),'en').find(line=>line.name==='Caffeine').value,72);
  // The per-100 g reference survives a later portion change.
  assert.equal(storedEstimateFood(row).foodNutrients.find(entry=>entry.nutrientId===1057).value,40);
 }));
@@ -44,7 +46,7 @@ test('an estimated drink with no caffeine source drops the estimated caffeine',a
   // Only "herbal tea" and "decaf coffee" are drinks by name without a category; orange juice needs a category.
   const [drink]=drinksFromItems([{...stored(name,n,200),food_category:name==='orange juice'?'citrus juice':null}]);
   assert.equal(drink.caffeineMg,0,name);assert.equal(drink.kind,'water',name);
-  assert.equal(nutritionTableRows([{...stored(name,n,200),food_category:name==='orange juice'?'citrus juice':null,calories:1,protein_g:0,carbs_g:0,fat_g:0,fibre_g:0,sugar_g:0,sodium_mg:0}]).some(line=>line.name==='Caffeine'),false,name);
+  assert.equal(nutritionTableRows([{...stored(name,n,200),food_category:name==='orange juice'?'citrus juice':null,calories:1,protein_g:0,carbs_g:0,fat_g:0,fibre_g:0,sugar_g:0,sodium_mg:0}],nutritionTranslator('en'),nutrientsTranslator('en'),'en').some(line=>line.name==='Caffeine'),false,name);
  }
 }));
 

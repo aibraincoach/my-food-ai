@@ -1,6 +1,6 @@
-// Render only fixed public copy, never provider bodies or stored diagnostics.
-export function failureMessage(reason?: string | null): string {
-  if (reason?.startsWith("fdc:")) return "The food database was busy. Try again in a minute.";
-  if (reason?.startsWith("meta:")) return "The analysis service refused this request. Try again.";
-  return "This meal could not be analysed. Please try again.";
+// Only the stored reason prefix chooses public copy; diagnostics stay private.
+export function failureMessageKey(reason?: string | null): 'failureDatabaseBusy' | 'failureAnalysisRefused' | 'failureMeal' {
+  if (reason?.startsWith('fdc:')) return 'failureDatabaseBusy';
+  if (reason?.startsWith('meta:')) return 'failureAnalysisRefused';
+  return 'failureMeal';
 }

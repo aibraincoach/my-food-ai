@@ -76,5 +76,5 @@ test('a card with missing leftover calories does not read or derive old nutritio
  assert.ok(!reads.includes('post_items'),'no original-food lookup even for an incomplete input');
  assert.equal(data.footer,'Leftovers: 50 g · unavailable kcal');
  const {cardDataFromRow}=await import('../src/lib/pipeline/card-data.ts');
- assert.equal(cardDataFromRow({items:[{name:'Food',portion_grams:50,calories:100,not_eaten_grams:50}]}).footer,'Leftovers: 50 g · unavailable kcal');
+ assert.equal(cardDataFromRow({items:[{name:'Food',portion_grams:50,calories:100,not_eaten_grams:50}]},'en').footer,'Leftovers: 50 g · unavailable kcal');
 });

@@ -1,3 +1,4 @@
+import {failureMessageKey} from '../src/lib/worker/failure-message.ts';
 import * as readingFormat from '../src/i18n/format.ts';
 import {servingsMessageValues} from '../src/i18n/servings.ts';
 import {englishIntl,englishIntlServer} from './fixtures/english-intl.mjs';
@@ -34,7 +35,7 @@ test('a thread uses the supplied fingerprint and makes no revision RPC on load',
   if(name==='@/components/PostHandle')return{usePostHandle:()=> 'owner'};
   if(name==='@/components/useRemovalMenus')return{useRemovalMenus(){}};
   if(name==='@/lib/posts/comment-label')return{formatModelCommentLabels:s=>s};
-  if(name==='@/lib/worker/failure-message')return{failureMessage:s=>s};
+  if(name==='@/lib/worker/failure-message')return{failureMessageKey};
   if(name==='@/lib/posts/delayed-action')return{delayAction(){throw Error('not used');}};
   if(name.startsWith('@/components/'))return{default:()=>null,LocalTime:()=>null};throw Error(name);
  }});

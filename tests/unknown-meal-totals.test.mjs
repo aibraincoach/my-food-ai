@@ -1,10 +1,11 @@
+import {nutritionTranslator} from '../src/i18n/nutrition.ts';
 import test from 'node:test';import assert from 'node:assert/strict';
 import {sumNutrition,formatConsumed,formatCalories} from '../src/lib/nutrition/totals.ts';
 import {getDays} from '../src/lib/posts/days.ts';import {cardDataFromRow} from '../src/lib/pipeline/card-data.ts';import {summaryLine} from '../src/lib/posts/summary-line.ts';
 const unknown={name:'Unmatched meal',calories:null,protein_g:null,carbs_g:null,fat_g:null,fibre_g:null,sugar_g:null,sodium_mg:null};
 test('empty or unavailable meal cannot publish an invented zero in shared card or summary data',()=>{
- for(const items of [[],[unknown]]){assert.equal(sumNutrition(items).calories,null);assert.equal(cardDataFromRow({items}).kcal,null);assert.doesNotMatch(summaryLine({items}),/Consumed: 0 kcal/);}
- const water={...unknown,name:'Water',calories:0,protein_g:0,carbs_g:0,fat_g:0};assert.equal(sumNutrition([water]).calories,0);assert.equal(formatConsumed(sumNutrition([water])),'Consumed: 0 kcal');
+ for(const items of [[],[unknown]]){assert.equal(sumNutrition(items).calories,null);assert.equal(cardDataFromRow({items},'en').kcal,null);assert.doesNotMatch(summaryLine({items},nutritionTranslator('en'),'en'),/Consumed: 0 kcal/);}
+ const water={...unknown,name:'Water',calories:0,protein_g:0,carbs_g:0,fat_g:0};assert.equal(sumNutrition([water]).calories,0);assert.equal(formatConsumed(sumNutrition([water]),nutritionTranslator('en'),'en'),'Consumed: 0 kcal');
 });
 function db(calories){
  const posts=calories.map((value,i)=>({id:`post${i}`,caption:'Meal',status:'ready',eaten_at:'2026-11-01T12:00:00Z',post_media:[],current_post_items:[{id:`item${i}`,post_id:`post${i}`,name:`Food ${i}`,portion_grams:100,source:'model',created_at:'2026-11-01T12:00:00Z',item_nutrition:{...unknown,name:undefined,calories:value,micronutrients:[],source_ref:null}}]}));
@@ -18,7 +19,7 @@ test('mixed days retain known calories and name the unavailable food without a p
 });
 
 test('positive sub-kcal energy is never displayed as a measured zero',()=>{
- for(const n of [.01,.3,.49,'0.3'])assert.equal(formatCalories(n),'<1');
- assert.equal(formatCalories(0),'0');assert.equal(formatCalories(34811),'34,811');assert.equal(formatCalories(2118.4),'2,118');assert.equal(formatCalories(null),'—');assert.equal(formatCalories(.5),'1');
- const items=[{...unknown,name:'Espresso',calories:.3}];assert.match(summaryLine({items}),/Consumed: <1 kcal/);assert.equal(formatConsumed(sumNutrition(items)),'Consumed: <1 kcal · Missing protein, carbs, and fat for Espresso');
+ for(const n of [.01,.3,.49,'0.3'])assert.equal(formatCalories(n,nutritionTranslator('en'),'en'),'<1');
+ assert.equal(formatCalories(0,nutritionTranslator('en'),'en'),'0');assert.equal(formatCalories(34811,nutritionTranslator('en'),'en'),'34,811');assert.equal(formatCalories(2118.4,nutritionTranslator('en'),'en'),'2,118');assert.equal(formatCalories(null,nutritionTranslator('en'),'en'),'—');assert.equal(formatCalories(.5,nutritionTranslator('en'),'en'),'1');
+ const items=[{...unknown,name:'Espresso',calories:.3}];assert.match(summaryLine({items},nutritionTranslator('en'),'en'),/Consumed: <1 kcal/);assert.equal(formatConsumed(sumNutrition(items),nutritionTranslator('en'),'en'),'Consumed: <1 kcal · Missing protein, carbs, and fat for Espresso');
 });

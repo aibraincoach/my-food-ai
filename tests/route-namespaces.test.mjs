@@ -38,3 +38,10 @@ test('route-code readers require the full api namespace, including imported hook
  const red=auditRouteNamespaces(undefined,{overrides:{[file]:source.replace("'api',",'')}});
  assert.ok(red.issues.some(row=>row.namespace==='api'&&row.consumer==='src/i18n/failure-messages.ts'));
 });
+test('table readers require nutrients without putting table labels in the root provider',()=>{
+ const root=fs.readFileSync(new URL('../src/app/layout.tsx',import.meta.url),'utf8');
+ assert.doesNotMatch(root,/nutrients\s*:/);
+ const file='src/i18n/capture-scope.ts',source=fs.readFileSync(new URL('../'+file,import.meta.url),'utf8');
+ const red=auditRouteNamespaces(undefined,{overrides:{[file]:source.replace("'nutrients',",'')}});
+ assert.ok(red.issues.some(row=>row.namespace==='nutrients'&&row.consumer==='src/components/NutritionTable.tsx'));
+});

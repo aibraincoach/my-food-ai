@@ -1,3 +1,4 @@
+import {failureMessageKey} from '../src/lib/worker/failure-message.ts';
 import * as displayErrors from '../src/i18n/display-error.ts';
 import * as readingFormat from '../src/i18n/format.ts';
 import {servingsMessageValues} from '../src/i18n/servings.ts';
@@ -23,6 +24,7 @@ function mount(status,saved=false){
   const source=readFileSync(new URL(`../src/components/${name}.tsx`,import.meta.url),'utf8');
   const code=ts.transpileModule(source,{compilerOptions:{module:ts.ModuleKind.CommonJS,jsx:ts.JsxEmit.ReactJSX,target:ts.ScriptTarget.ES2022}}).outputText;
   vm.runInNewContext(code,{exports,setTimeout:()=>0,clearTimeout:()=>{},Date,Intl,Boolean,Array,CustomEvent,AbortSignal,window:events,require(id){
+    if(id==='@/lib/worker/failure-message')return{failureMessageKey};
  if(id==='@/i18n/display-error')return displayErrors;
  if(id==='next-intl')return englishIntl;
  if(id==='next-intl/server')return englishIntlServer;

@@ -1,15 +1,19 @@
+import {nutritionTranslator} from '@/i18n/nutrition';
+// Agent summaries are English by API contract.
+const locale='en',tn=nutritionTranslator(locale);
 import { createAdminClient } from '@/lib/supabase/admin';
 import { getPostCard, getPostCards, type FeedPost } from '@/lib/posts/feed';
 import { getPostDetail, isUuid } from '@/lib/posts/items';
 import { summaryLine } from '@/lib/posts/summary-line';
-import { sumNutrition } from '@/lib/nutrition/totals';
+import { sumNutrition, UNNAMED_ITEM } from '@/lib/nutrition/totals';
 import { validEatenAt } from '@/lib/posts/eaten-at';
 import { AgentError, type AgentIdentity } from './tokens';
 import type { SupabaseClient } from '@supabase/supabase-js';
 export type AgentArgs = Record<string, unknown>;
 type MealRecord = Pick<FeedPost, 'id' | 'caption' | 'eaten_at' | 'status' | 'items'> & Partial<FeedPost>;
+const agentTotals=(items:FeedPost['items'])=>{const totals=sumNutrition(items);return {...totals,...(totals.missing?{missing:Object.fromEntries(Object.entries(totals.missing).map(([key,names])=>[key,names?.map(name=>name===UNNAMED_ITEM?tn('anItem'):name)]))}:{})};};
 const record = (post: MealRecord) => ({ id: post.id, caption: post.caption, eaten_at: post.eaten_at, status: post.status,
-  ...(post.status === 'ready' ? { totals: sumNutrition(post.items), summary: summaryLine(post as FeedPost, post.drink) } : {}) });
+  ...(post.status === 'ready' ? { totals: agentTotals(post.items), summary: summaryLine(post as FeedPost,tn,locale, post.drink) } : {}) });
 export function mealInput(input: AgentArgs, now = Date.now()): { caption: string; eaten_at: string } {
   if (!input || typeof input !== 'object' || typeof input.caption !== 'string' || !input.caption.trim() || input.caption.length > 2000 || input.caption.includes('\0')) throw new AgentError("route_c88c8ae8515e");
   if (input.eaten_at !== undefined && (typeof input.eaten_at !== 'string' || !/^\d{4}-\d{2}-\d{2}T.*(?:Z|[+-]\d{2}:\d{2})$/.test(input.eaten_at))) throw new AgentError("route_9ab6fd52348f");

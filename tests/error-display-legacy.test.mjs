@@ -6,7 +6,7 @@ test('bookmark notice and thread/card retry state have one key-only display path
  }
  const thread=fs.readFileSync('src/components/Thread.tsx','utf8');
  assert.match(thread,/failureReason:post.fail_reason\?\?null/);
- assert.match(thread,/failureMessage\(error.failureReason\)/,'the existing worker failure-wording reader is retained, not replaced by a generic line');
+ assert.match(thread,/tp\(failureMessageKey\(error.failureReason\)\)/,'the reason-specific worker failure key is rendered with the viewer translator');
  const actions=fs.readFileSync('src/components/PostActions.tsx','utf8');
  assert.match(actions,/setNoticeError\(\{key:d.messageKey\?\?'cannotSave'\}\)/);
  assert.ok(checkErrorDisplays('setNoticeError({message:detail.message})').length,'bookmark setter now belongs to error-sink guard');

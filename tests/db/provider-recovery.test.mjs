@@ -1,8 +1,10 @@
+import publicMessages from '../../messages/en.json' with {type:'json'};
+const failureMessage=reason=>publicMessages.post[failureMessageKey(reason)];
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {admin,user,checked} from './helpers.mjs';
 import {signInAsTestUser} from '../../scripts/lib/session.mjs';
-import {failureMessage} from '../../src/lib/worker/failure-message.ts';
+import {failureMessageKey} from '../../src/lib/worker/failure-message.ts';
 const pause=ms=>new Promise(resolve=>setTimeout(resolve,ms));
 async function mode(value){const response=await fetch(new URL('/__fixture',process.env.MODEL_API_BASE_URL),{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({mode:value})});assert.equal(response.status,200);}
 async function until(read,predicate){const end=Date.now()+180000;let value,polls=0;while(Date.now()<end){value=await read();if(predicate(value))return value;if(++polls%10===0)await fetch(new URL('/api/jobs/tick',process.env.APP_URL));await pause(500);}assert.fail('Local provider fixture did not settle: '+JSON.stringify(value));}

@@ -9,7 +9,7 @@ const nutrition=(id,grams)=>({post_item_id:id,calories:grams,protein_g:grams/10,
 const food=(id,grams,created_at=t)=>({id,name:'Toast',source:'model',portion_grams:grams,portion_text:`${grams} g`,created_at,not_eaten_grams:null,not_eaten_calories:null,box:null,mask_path:null,supersedes:null});
 const comment=(id,body,author='user',reverted_at=null)=>({id,body,author,created_at:t,reverted_at});
 
-async function fixture({comments=[],photos=[],reason='media_removed',commentId}={}){
+async function fixture({comments=[],photos=[],reason='media_removed',commentId,approximation}={}){
  const calls={corrections:[],remainders:[],downloads:[],saved:null};let remainderIndex=0;
  const priorFetch=globalThis.fetch,priorKey=process.env.MODEL_API_KEY;process.env.MODEL_API_KEY='fixture';
  globalThis.fetch=async(_input,init)=>{
@@ -30,7 +30,7 @@ async function fixture({comments=[],photos=[],reason='media_removed',commentId}=
   const url=new URL(input),path=url.pathname;
   if(path.endsWith('/current_post_items'))return Response.json([food('current',50,'2026-11-02T00:01:00Z')]);
   if(path.endsWith('/item_nutrition'))return Response.json([nutrition('current',50)]);
-  if(path.endsWith('/post_items'))return Response.json([{...food('identify',400),item_nutrition:nutrition('identify',400)},{...food('current',50,'2026-11-02T00:01:00Z'),item_nutrition:nutrition('current',50)}]);
+  if(path.endsWith('/post_items'))return Response.json([{...food('identify',400),item_nutrition:{...nutrition('identify',400),...(approximation?{micronutrients:[{nutrientId:1008,nutrientName:'Energy',unitName:'KCAL',value:400,basis:'portion',approximation:{...approximation,sourceRef:'123'}}]}:{})}},{...food('current',50,'2026-11-02T00:01:00Z'),item_nutrition:nutrition('current',50)}]);
   if(path.endsWith('/post_comments'))return Response.json(url.searchParams.has('or')?[]:[comment('initial','Consumed: 400 kcal.','model'),...comments]);
   if(path.endsWith('/post_media'))return Response.json(url.searchParams.get('not_eaten')==='eq.true'?photos:[]);
   if(path.endsWith('/posts'))return Response.json({user_id:'owner',caption:'Toast',analysis_initialized_at:t});
@@ -70,4 +70,15 @@ test('removal preserves quoted user words without treating them as generated cla
  assert.ok(calls.saved,'quoted user language must not block the atomic rebuild');
  assert.equal(calls.saved.p_reply,`Removed the correction "${text}". Consumed: 400 kcal.`);
  assert.equal(calls.saved.p_items[0].portion_grams,400);
+});
+
+// Fixed main strings cover the stored removal writer, not the table renderer.
+test('removed rebuild keeps main English for estimate and closest-USDA annotations',async()=>{
+ for(const [kind,expected]of [
+  ['estimate','Removed the leftovers photo. Consumed: 400 kcal. Nutrition for Toast is a model estimate, fixture basis.'],
+  ['closest','Removed the leftovers photo. Consumed: 400 kcal. Nutrition for Toast is taken from the closest USDA record, fixture basis.'],
+ ]){
+  const calls=await fixture({approximation:{kind,basis:'fixture basis'}});
+  assert.equal(calls.saved.p_reply,expected);
+ }
 });

@@ -158,5 +158,6 @@ export async function getPostDetail(supabase: SupabaseClient, postId: string, zo
     return original?{...slide,url:original.url,previewUrl:original.previewUrl,width:original.width,height:original.height}:slide;
   });
   return { post, photo, photos, slides, items, identification: identification ?? null, openFallback: Boolean(openFailure), card, isDrink: hydrated.kind === "drink" && hydrated.drinkSource !== "item", ...hydrated,
-    cardData: cardDataFromRow({ ...post, items, ...hydrated }) };
+    // Stored/transport card wording remains English until #1219; viewers localize on read.
+    cardData: cardDataFromRow({ ...post, items, ...hydrated },'en') };
 }

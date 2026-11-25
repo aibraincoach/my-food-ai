@@ -1,3 +1,6 @@
+import type {NutritionTranslator} from '@/i18n/nutrition';
+import {isLocale,type Locale} from '@/i18n/locales';
+import {formatEnergy,formatNutrient} from '@/i18n/format';
 import {unavailableSentence} from "@/lib/fdc/unavailable";
 import {storedEstimateFood} from "@/lib/fdc/approximation-metadata";
 import { ApiError, ioError } from "@/lib/worker/errors";
@@ -18,6 +21,7 @@ export interface NutritionLike {
 
 export const NUTRIENT_KEYS = ["calories","protein_g","carbs_g","fat_g","fibre_g","sugar_g","sodium_mg"] as const;
 export type NutrientKey = typeof NUTRIENT_KEYS[number];
+export const UNNAMED_ITEM = 'nutrition.anItem';
 export type MissingNutrition = Partial<Record<NutrientKey, string[]>>;
 
 export interface MealTotals {
@@ -49,17 +53,15 @@ export function nutritionNumber(value: Numeric): number | null {
   return Number.isFinite(parsed) ? parsed : null;
 }
 
-export function formatNutrition(value: Numeric): string {
-  const amount = nutritionNumber(value);
-  return amount === null ? "—" : Math.round(Math.max(0, amount)).toLocaleString("en-US");
+export function formatNutrition(value: Numeric, _t: NutritionTranslator, locale: Locale): string {
+  if(!isLocale(locale))throw new Error('Nutrition locale is required.');
+  return formatNutrient(locale,value);
 }
 
-// Preserve positive energy below the whole-kcal display precision; zero is a measured value.
-export function formatCalories(value: Numeric): string {
-  const amount = nutritionNumber(value);
-  if (amount === null) return "—";
-  if (amount > 0 && Math.round(amount) === 0) return "<1";
-  return Math.round(amount).toLocaleString("en-US");
+// The same precision as every other energy display; no default English locale.
+export function formatCalories(value: Numeric, _t: NutritionTranslator, locale: Locale): string {
+  if(!isLocale(locale))throw new Error('Nutrition locale is required.');
+  return formatEnergy(locale,value);
 }
 
 export function sumNutrition(items: (NutritionLike & {name?:string;missing?:MissingNutrition})[]): MealTotals {
@@ -70,7 +72,7 @@ export function sumNutrition(items: (NutritionLike & {name?:string;missing?:Miss
     const omitted=new Set<string>();
     for(const item of items){
       const amount=nutritionNumber(item[key]);
-      if(amount===null){if(!item.missing?.[key]?.length)omitted.add(item.name||"an item");}
+      if(amount===null){if(!item.missing?.[key]?.length)omitted.add(item.name||UNNAMED_ITEM);}
       else {sum+=amount;known++;}
       for(const name of item.missing?.[key]??[])omitted.add(name);
     }
@@ -82,7 +84,6 @@ export function sumNutrition(items: (NutritionLike & {name?:string;missing?:Miss
 }
 
 export interface NutritionGap { name: string; nutrients: NutrientKey[] }
-export const GAP_LEAD = "Showing known values.";
 export function nutritionGaps(totals: {missing?:MissingNutrition}, shown: readonly NutrientKey[] = ["calories","protein_g","carbs_g","fat_g"]): NutritionGap[] {
   const byFood = new Map<string, NutrientKey[]>();
   for (const key of new Set(shown)) for (const name of totals.missing?.[key] ?? []) {
@@ -92,38 +93,30 @@ export function nutritionGaps(totals: {missing?:MissingNutrition}, shown: readon
   }
   return [...byFood].map(([name,nutrients]) => ({name,nutrients}));
 }
-const nutrientNames: Record<NutrientKey,string> = {calories:"calories",protein_g:"protein",carbs_g:"carbs",fat_g:"fat",fibre_g:"fibre",sugar_g:"sugar",sodium_mg:"sodium"};
-function wordList(words:string[]):string {
-  return words.length < 3 ? words.join(" and ") : `${words.slice(0,-1).join(", ")}, and ${words.at(-1)}`;
-}
-// One wording path for comments, cards, calendar accessibility and disclosures.
-// A missing calorie figure does not say that every other nutrient is unknown.
-export interface GapWording {
- nutritionUnavailable:(food:string)=>string;
- caloriesUnavailable:(food:string)=>string;
- missing:(nutrients:string[],food:string)=>string;
-}
-export function gapSentence(gaps: NutritionGap[], reasons: {name:string;sourceRef:unknown}[] = [], withDetail = false, wording?:GapWording): string {
+const nutrientNames = {calories:'calories',protein_g:'protein',carbs_g:'carbs',fat_g:'fat',fibre_g:'fibre',sugar_g:'sugar',sodium_mg:'sodium'} as const;
+// All consumers share the same full sentences, including the PNG path.
+export function gapSentence(gaps: NutritionGap[], t: NutritionTranslator, locale: Locale, reasons: {name:string;sourceRef:unknown}[] = [], withDetail = false): string {
+  const joiner = locale === 'ja' ? '' : ' ';
   const sentences = gaps.map(gap => {
-    if (gap.nutrients.includes("calories")) {
-      const why = [...new Set(reasons.filter(row=>row.name===gap.name).map(row=>unavailableSentence(row.name,row.sourceRef,withDetail)).filter(Boolean))].join(" ");
-      if (["calories","protein_g","carbs_g","fat_g"].every(key=>gap.nutrients.includes(key as NutrientKey))) return why || (wording?wording.nutritionUnavailable(gap.name):`Nutrition unavailable for ${gap.name}.`);
-      return `${wording?wording.caloriesUnavailable(gap.name):`Calories unavailable for ${gap.name}.`}${why ? ` ${why}` : ""}`;
+    const food=gap.name===UNNAMED_ITEM?t('anItem'):gap.name;
+    if (gap.nutrients.includes('calories')) {
+      const why = [...new Set(reasons.filter(row=>row.name===gap.name).map(row=>unavailableSentence(row.name,row.sourceRef,t,locale,withDetail)).filter(Boolean))].join(joiner);
+      if (['calories','protein_g','carbs_g','fat_g'].every(key=>gap.nutrients.includes(key as NutrientKey))) return why || t('nutritionUnavailable',{food});
+      return [t('caloriesUnavailable',{food}),why].filter(Boolean).join(joiner);
     }
-    return gap.nutrients.length ? (wording?wording.missing(gap.nutrients.map(key=>nutrientNames[key]),gap.name):`Missing ${wordList(gap.nutrients.map(key=>nutrientNames[key]))} for ${gap.name}.`) : "";
+    const nutrients=new Intl.ListFormat(locale,{style:'long',type:'conjunction'}).format(gap.nutrients.map(key=>t(nutrientNames[key])));
+    return gap.nutrients.length ? t('missing',{nutrients,food}) : '';
   }).filter(Boolean);
-  // Callers can also carry a durable reason without a missing-name aggregate.
-  // Preserve that reason once; do not invent another availability claim.
-  for (const reason of reasons) if (!gaps.some(gap=>gap.name===reason.name && gap.nutrients.includes("calories"))) {
-    const why=unavailableSentence(reason.name,reason.sourceRef,withDetail);
+  for (const reason of reasons) if (!gaps.some(gap=>gap.name===reason.name && gap.nutrients.includes('calories'))) {
+    const why=unavailableSentence(reason.name,reason.sourceRef,t,locale,withDetail);
     if (why && !sentences.includes(why)) sentences.push(why);
   }
-  return sentences.join(" ");
+  return sentences.join(joiner);
 }
 
-export function formatConsumed(totals: MealTotals): string {
-  const gap=gapSentence(nutritionGaps(totals)).replace(/\.$/, "");
-  return `Consumed: ${totals.calories===null?"unavailable":formatCalories(totals.calories)} kcal${gap?` · ${gap}`:""}`;
+export function formatConsumed(totals: MealTotals, t: NutritionTranslator, locale: Locale): string {
+  const gap=gapSentence(nutritionGaps(totals),t,locale).replace(/\.$/, '');
+  return t('consumedBrief',{known:totals.calories===null?'no':'yes',calories:formatCalories(totals.calories,t,locale),hasGap:gap?'yes':'no',gap});
 }
 
 export function formatGrams(grams: Numeric): string {
@@ -141,14 +134,14 @@ export interface StoredNutrient {
 }
 
 // Sum available micronutrients, distinguishing unavailable values from measured zero.
-export function sumMicronutrients(items: {name?:string;micronutrients:StoredNutrient[]}[]): {name:string;unit:string;value:number|null;unavailable?:string[]}[] {
-  const identities=new Map<string,{name:string;unit:string}>();
+export function sumMicronutrients(items: {name?:string;micronutrients:StoredNutrient[]}[], options: {withNutrientIds?:boolean} = {}): {name:string;unit:string;value:number|null;unavailable?:string[];nutrientId?:number}[] {
+  const identities=new Map<string,{name:string;unit:string;nutrientId?:number}>();
   const contributions=items.map(item=>{
     const map=new Map<string,number|null>();
     for(const n of item.micronutrients){
       const name=n.nutrientName??n.name,unit=n.unitName??n.unit;
       if(!name||!unit)continue;
-      const key=`${n.nutrientId??name}:${unit}`;identities.set(key,{name,unit});
+      const key=`${n.nutrientId??name}:${unit}`;identities.set(key,{name,unit,...(options.withNutrientIds&&n.nutrientId!=null?{nutrientId:n.nutrientId}:{})});
       const value=nutritionNumber(n.value);
       if(!map.has(key))map.set(key,value);else if(map.get(key)!==value)map.set(key,null);
     }
@@ -158,7 +151,7 @@ export function sumMicronutrients(items: {name?:string;micronutrients:StoredNutr
     let value=0,known=0;const omitted=new Set<string>();
     for(const [index,map] of contributions.entries()){
       const amount=map.get(key);
-      if(amount==null)omitted.add(items[index].name??"an item");else {value+=amount;known++;}
+      if(amount==null)omitted.add(items[index].name??UNNAMED_ITEM);else {value+=amount;known++;}
     }
     return {...identity,value:known&&Number.isFinite(value)?value:null,...(omitted.size?{unavailable:[...omitted]}:{})};
   });

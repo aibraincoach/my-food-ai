@@ -14,7 +14,7 @@ import { Fragment, useEffect, useRef, useState, type CSSProperties, type Pointer
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import type { DetailItem, DetailPhoto, ItemBox } from "@/lib/posts/items";
-import { failureMessage } from "@/lib/worker/failure-message";
+import { failureMessageKey } from "@/lib/worker/failure-message";
 import { tokens } from "@/lib/theme/tokens";
 import { useDrinkCard } from "@/components/useDrinkCard";
 import {localizeCardData, cardDataFromRow, type CardData } from "@/lib/pipeline/card-data";
@@ -68,7 +68,7 @@ export default function OutlineOverlay({ desktopModal=false, desktopHeader, desk
   cardData?: CardData; initialDrink?: DrinkCardData|null; failReason?: string|null;
   initialized: boolean; readOnly?: boolean; postId: string; caption: string; eatenAt: string; status: string; photo: DetailPhoto | null; items: DetailItem[]; modelCommentId?:string|null; fingerprint?:string|null; saved?:boolean; handle?:string; children?:ReactNode;
 }) {
-  const t=useTranslations('post'),tm=useTranslations('postMenu');
+  const t=useTranslations('post'),tm=useTranslations('postMenu'),tn=useTranslations('nutrition'),labels=useTranslations('nutrients');
   const router = useRouter();
   const handle=usePostHandle(providedHandle);
   const [slide,setSlide]=useState(0);
@@ -188,7 +188,7 @@ export default function OutlineOverlay({ desktopModal=false, desktopHeader, desk
         </div> : null)}
         {drawBox ? <div className="pointer-events-none absolute rounded-field border-2 border-text" style={boxStyle(drawBox)} /> : null}
         <span className="pointer-events-none absolute bottom-3 right-3 rounded-field bg-overlay px-[10px] py-[5px] text-meta text-white">{t('outlinesHint')}</span>
-      </> : showNutrition ? <ResultsCard locale={locale} data={displayCard} size={width} time={cardTime} gutter={visibleSlides.length>1?ARROW_GUTTER:0} /> : <div role="status" className="flex h-full items-center justify-center px-screen-x text-body text-muted">{status === "failed" ? failureMessage(failReason) : status === "needs_input" ? t('quickQuestion') : t('processingLow')}</div>}
+      </> : showNutrition ? <ResultsCard locale={locale} data={displayCard} size={width} time={cardTime} gutter={visibleSlides.length>1?ARROW_GUTTER:0} /> : <div role="status" className="flex h-full items-center justify-center px-screen-x text-body text-muted">{status === "failed" ? t(failureMessageKey(failReason)) : status === "needs_input" ? t('quickQuestion') : t('processingLow')}</div>}
       {visibleSlides.length>1&&<><button type="button" aria-label={t('previousSlide')} disabled={selectedIndex===0} onClick={event=>{event.stopPropagation();setSlide(Math.max(0,selectedIndex-1));}} className="absolute left-3 top-1/2 size-9 rounded-circle bg-white/90 text-[24px] text-text disabled:invisible">‹</button><button type="button" aria-label={t('nextSlide')} disabled={selectedIndex>=visibleSlides.length-1} onClick={event=>{event.stopPropagation();setSlide(Math.min(Math.max(0,visibleSlides.length-1),selectedIndex+1));}} className="absolute right-3 top-1/2 size-9 rounded-circle bg-white/90 text-[24px] text-text disabled:invisible">›</button><span className="absolute right-3 top-3 rounded-pill bg-overlay px-2 py-1 text-meta text-white">{t('slideCount',{current:formatNumber(locale,selectedIndex+1,{useGrouping:false}),total:formatNumber(locale,Math.max(1,visibleSlides.length),{useGrouping:false})})}</span></>}
     </div>
     <Container {...(desktopModal?{className:"desktop-post-record"}:{})}>
@@ -200,7 +200,7 @@ export default function OutlineOverlay({ desktopModal=false, desktopHeader, desk
       <NutritionSummary items={items}/>
       {desktopModal&&<ItemRows disabled={!initialized||readOnly} items={items} onSelect={item=>setSelection({item,key:Date.now()})} onAdd={add}/>}
       <button type="button" onClick={()=>setExpandedNutrition(value=>!value)} aria-expanded={expandedNutrition} aria-controls={`all-nutrients-${postId}`} className="flex min-h-tap w-full items-center justify-between gap-2 px-inset pt-[10px] text-detail">
-        <span className="text-muted">{t('consumedAll')}</span><span className="flex items-center gap-1 font-medium">{expandedNutrition?t('showLess'):t('showAll',{count:nutritionTableRows(items).length,amount:formatNumber(locale,nutritionTableRows(items).length,{useGrouping:false})})} <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" className={expandedNutrition?'rotate-180':''} aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></span>
+        <span className="text-muted">{t('consumedAll')}</span><span className="flex items-center gap-1 font-medium">{expandedNutrition?t('showLess'):t('showAll',{count:nutritionTableRows(items,tn,labels,locale).length,amount:formatNumber(locale,nutritionTableRows(items,tn,labels,locale).length,{useGrouping:false})})} <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" className={expandedNutrition?'rotate-180':''} aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></span>
       </button>
       {children}
       {expandedNutrition&&<div id={`all-nutrients-${postId}`}>

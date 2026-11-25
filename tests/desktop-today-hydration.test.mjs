@@ -1,6 +1,7 @@
+import {nutritionTranslator} from '../src/i18n/nutrition.ts';
 import {englishIntl} from './fixtures/english-intl.mjs';
 import * as formats from '../src/i18n/format.ts';
-import {nutritionGaps,gapSentence,GAP_LEAD} from '../src/lib/nutrition/totals.ts';
+import {nutritionGaps,gapSentence} from '../src/lib/nutrition/totals.ts';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
@@ -8,6 +9,7 @@ import vm from 'node:vm';
 import ts from 'typescript';
 import {dateInZone,validZone} from '../src/lib/posts/days.ts';
 import {formatLocalDate,formatLocalTime} from '../src/lib/time/local.ts';
+const GAP_LEAD=nutritionTranslator('en')('knownValues');
 const jsx=(type,props)=>({type,props:props??{}});
 const view={date:'2026-11-22',totals:{calories:100,protein_g:5,carbs_g:10,fat_g:4,missing:{}},posts:[{id:'meal',caption:'Synthetic meal',eatenAt:'2026-11-22T13:09:00Z',photoUrl:null,items:[],totals:{calories:100}}]};
 function render(phase,deviceZone,zone,initial=view){

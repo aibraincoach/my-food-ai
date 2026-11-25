@@ -1,3 +1,4 @@
+import {nutritionTranslator} from '../../src/i18n/nutrition.ts';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {admin,user,checked} from './helpers.mjs';
@@ -20,7 +21,7 @@ test('alcohol sync accepts 16 g, rejects 600 g, and never contributes hydration'
   const bad=await db.rpc('sync_item_drinks',{p_post_id:id,p_rows:[{...drink,amount:600}]});assert.ok(bad.error);assert.equal(bad.error.code,'23514');
   const data=(await getPostHydrationData(db,account.user.id,[{id,eaten_at,items:[item]}],'UTC'))[id];
   assert.equal(data.dayHydration.drinksMl,0);assert.equal(data.foodWaterMl,0);assert.equal(data.kind,'drink');
-  assert.match(summaryLine({id,eaten_at,items:[{...item,calories:150,protein_g:0,carbs_g:0,fat_g:0}],...data}),/14 g alcohol · 1.0 standard drinks · 150 kcal/);
+  assert.match(summaryLine({id,eaten_at,items:[{...item,calories:150,protein_g:0,carbs_g:0,fat_g:0}],...data},nutritionTranslator('en'),'en'),/14 g alcohol · 1.0 standard drinks · 150 kcal/);
   const rum={...item,id:crypto.randomUUID(),name:'Rum and coke',food_category:'Liquor and cocktails',micronutrients:[alcohol,water,{nutrientId:1057,nutrientName:'Caffeine',unitName:'MG',basis:'portion',value:20}]};
   checked(await db.from('post_items').insert({id:rum.id,post_id:id,name:rum.name,portion_text:'220 ml',portion_grams:220,source:'model'}));
   checked(await db.from('item_nutrition').insert({post_item_id:rum.id,food_category:rum.food_category,micronutrients:rum.micronutrients,calories:150}));

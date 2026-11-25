@@ -21,5 +21,6 @@ export async function renderTimeZone(db:SupabaseClient,postId:string,explicitZon
 
 export async function readStoredCardData(db:SupabaseClient,userId:string,post:{id:string;eaten_at:string;items:CardItem[]},explicitZone?:string,variant?:DrinkCardData){
  const zone=await renderTimeZone(db,post.id,explicitZone);
- return variant?cardDataFromRow({...post,drink:variant}):readCardData(db,userId,post,zone);
+ // Stored PNG text stays English until #1219.
+ return variant?cardDataFromRow({...post,drink:variant},'en'):readCardData(db,userId,post,zone);
 }
