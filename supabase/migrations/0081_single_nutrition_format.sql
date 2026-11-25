@@ -1,6 +1,7 @@
 -- #1368 A: one current nutrition format. Applied history stays untouched.
 -- Production apply is held for RT written yes and the PM's exact order.
--- Apply before deploying the single-format application writer/reader.
+-- Apply ONLY AFTER the reviewed single-format application is deployed green.
+-- The compact flag below is a data-format assertion, not a deployment gate.
 begin;
 set local lock_timeout='1s';
 set local statement_timeout='5s';

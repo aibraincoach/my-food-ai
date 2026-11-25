@@ -54,7 +54,7 @@ test('cap response carries the next-hour wait and fails open without exposing di
   assert.equal(denied.status, 429);
   assert.ok(Number(denied.headers.get('Retry-After')) >= 1);
   assert.ok(Number(denied.headers.get('Retry-After')) <= 3600);
-  assert.deepEqual(await denied.json(), { error: 'You have made a lot of requests this hour. Try again later.' });
+  assert.deepEqual(await denied.json(), { message_code: 'route_e4b3b1ea79cb' });
   assert.equal(await capUser('owner-id', 'post', { rpc: async () => ({ data: true, error: null }) }), null);
   const logs = [], original = console.error;
   console.error = (...values) => logs.push(values.join(' '));
@@ -103,7 +103,7 @@ test('each spending route allows its final slot then refuses before invalid inpu
       const refused = await fetch(new URL(path, process.env.APP_URL), { ...options, signal: AbortSignal.timeout(15000) });
       assert.equal(refused.status, 429, `${method} ${path}: next call refused`);
       assert.ok(Number(refused.headers.get('Retry-After')) > 0);
-      assert.deepEqual(await refused.json(), { error: 'You have made a lot of requests this hour. Try again later.' });
+      assert.deepEqual(await refused.json(), { message_code: 'route_e4b3b1ea79cb' });
     }
   } finally {
     runSql(`delete from public.user_call_hits where user_id='${account.user.id}';`);
