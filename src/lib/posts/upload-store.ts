@@ -128,7 +128,9 @@ export function restoreUploadDraft(row: PhotoRow, photos: Map<string, StoredPhot
 async function checkRoom(bytes: number): Promise<void> {
     if (!bytes || typeof navigator === 'undefined' || !navigator.storage?.estimate) return;
     const {quota, usage} = await navigator.storage.estimate();
-    if (!Number.isFinite(quota) || !Number.isFinite(usage) || quota! < 0 || usage! < 0) throw new Error('Storage estimate is incomplete.');
+    // An incomplete estimate is unavailable, not evidence that a write will fail.
+    // The transaction still reports an actual quota failure through the visible retry path.
+    if (!Number.isFinite(quota) || quota! <= 0 || !Number.isFinite(usage) || usage! < 0) return;
     const margin = Math.max(64 * 1024, Math.ceil(bytes * 0.1));
     if (quota! - usage! < bytes + margin) throw new DOMException('Insufficient photo storage.', 'QuotaExceededError');
 }
