@@ -1,7 +1,9 @@
-/** Capture is stored data: reject missing/invalid zones, never substitute UTC.
- * Store the canonical ICU name; the existing DB trigger validates pg tzdata. */
+const namedZones = new Set(Intl.supportedValuesOf('timeZone'));
+/** Capture requires a named zone, never an ICU fixed offset or a substitute.
+ * Canonical ICU names are checked against local PG tzdata in the DB test. */
 export function captureZone(value: unknown): string | null {
  if (typeof value !== 'string' || !value || value.length > 100) return null;
- try { return new Intl.DateTimeFormat('en', {timeZone: value}).resolvedOptions().timeZone; }
+ if(!value.includes('/')&&value.toUpperCase()!=='UTC')return null;
+ try { const zone=new Intl.DateTimeFormat('en', {timeZone: value}).resolvedOptions().timeZone;return zone==='UTC'||namedZones.has(zone)?zone:null; }
  catch { return null; }
 }

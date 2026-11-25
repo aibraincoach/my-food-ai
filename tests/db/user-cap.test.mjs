@@ -96,7 +96,7 @@ test('each spending route allows its final slot then refuses before invalid inpu
   try {
     for (const [method, path, route, cap, expected] of boundaries) {
       runSql(`insert into public.user_call_hits(user_id,route,hour,hits) values('${account.user.id}','${route}',date_trunc('hour',clock_timestamp()),${cap - 1}) on conflict(user_id,route,hour) do update set hits=excluded.hits;`);
-      const options = { method, headers: { cookie, 'Content-Type': 'application/json' }, ...(method === 'GET' ? {} : { body: '{}' }), signal: AbortSignal.timeout(15000) };
+      const options = { method, headers: { cookie, 'Content-Type': 'application/json' }, ...(method === 'GET' ? {} : { body: JSON.stringify(path==='/api/posts/food'?{time_zone:'UTC',operation_id:id}:{}) }), signal: AbortSignal.timeout(15000) };
       const last = await fetch(new URL(path, process.env.APP_URL), options);
       assert.equal(last.status, expected, `${method} ${path}: final allowed slot reaches validation`);
       await last.text();

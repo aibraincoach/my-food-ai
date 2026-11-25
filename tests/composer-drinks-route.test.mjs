@@ -49,7 +49,7 @@ test('composer identify enforces caps and ownership, caches one model call, and 
  const cacheQuery='fdc-search-v3:coca cola';
  const priorCache=checked(await db.from('fdc_cache').select('*').eq('query',cacheQuery));
  const stages=[];
- const request=(path,body,session=cookie)=>fetch(origin+path,{method:'POST',headers:{Cookie:session,'Content-Type':'application/json'},body:JSON.stringify(body),signal:AbortSignal.timeout(15000)});
+ const request=(path,body,session=cookie)=>fetch(origin+path,{method:'POST',headers:{Cookie:session,'Content-Type':'application/json'},body:JSON.stringify({time_zone:'UTC',...body}),signal:AbortSignal.timeout(15000)});
  const cap=(hits,route='drink_identify')=>{capped=[hourOf(0),hourOf(1)];capped.forEach(hour=>written.add(hour));return db.from('user_call_hits').upsert(capped.map(hour=>({user_id:user.id,route,hour,hits})),{onConflict:'user_id,route,hour'}).then(checked);};
  const hitsFor=async route=>Math.max(...checked(await db.from('user_call_hits').select('hits').eq('user_id',user.id).eq('route',route).in('hour',capped)).map(row=>row.hits));
  const count=()=>fetch(model+'/__calls').then(r=>r.json()).then(rows=>rows.filter(row=>row.name==='identify').length);

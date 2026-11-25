@@ -19,6 +19,7 @@ test('retiring the last meal clears feed state and rejects an older hydration re
  vm.runInNewContext(code,{exports,URLSearchParams,AbortSignal,fetch:async()=>({ok:true,json:async()=>forceReset?new Promise(resolve=>{resolvePage=resolve;}):({posts:[post],nextCursor:null,days:[]})}),document:{hidden:false,addEventListener(){},removeEventListener(){}},CustomEvent:class{constructor(type,init){this.type=type;this.detail=init?.detail;}},
  window:{addEventListener(type,fn){listeners.set(type,fn);},removeEventListener(){},dispatchEvent(){}},setTimeout:()=>{timedReads++;throw Error('Feed must not schedule a retry or discovery timer');},clearTimeout(){},
  require(name){
+ if(name==='./FeedConnectionNotice')return{default:()=>null};
  if(name==='next-intl')return englishIntl;
  if(name==='next-intl/server')return englishIntlServer;
  if(name==='@/i18n/format')return readingFormat;

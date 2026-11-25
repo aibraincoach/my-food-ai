@@ -33,6 +33,6 @@ test('Home renders one inline notice in the main Feed with OK and a visible save
 test('the empty-feed notice is a full-width sibling above the centered empty-state row',()=>{
  const source=readFileSync(new URL('../src/components/Feed.tsx',import.meta.url),'utf8');
  const branch=source.slice(source.indexOf('if (!visibleState.posts.length) return'),source.indexOf('const firstPhotoId='));
- assert.match(branch,/className="flex w-full flex-1 flex-col">\s*\{lostNotice\}\s*<div className="flex flex-1 items-center justify-center"/);
+ assert.match(branch,/className="flex w-full flex-1 flex-col">\s*\{lostNotice\}\s*<FeedConnectionNotice cached=\{fallbackOnly\|\|!freshResponse\}\/>\s*<div className="flex flex-1 items-center justify-center"/);
  assert.ok(branch.includes("t('firstMeal')"));assert.equal(feedMessages.firstMeal,'Post your first meal');
 });

@@ -4,7 +4,7 @@ test('real drink HTTP intents are owner-scoped, atomic and cancel safely after u
  for(const k of['APP_URL','NEXT_PUBLIC_SUPABASE_URL','SUPABASE_DB_URL'])assert.ok(['localhost','127.0.0.1','[::1]'].includes(new URL(process.env[k]).hostname));
  const db=createClient(process.env.NEXT_PUBLIC_SUPABASE_URL,process.env.SUPABASE_SECRET_KEY,{auth:{persistSession:false}}),{user}=await signInTestClient(1),{user:other}=await signInTestClient(2),cookie=await signInAsTestUser(1),otherCookie=await signInAsTestUser(2),origin=process.env.APP_URL,ops=[],posts=[],stages=[],paths=[];
  const hour=new Date();hour.setUTCMinutes(0,0,0);const bucket=hour.toISOString(),prior=checked(await db.from('user_call_hits').select('*').eq('user_id',user.id).eq('route','post').eq('hour',bucket));
- const request=(path,body,method='POST',auth=cookie)=>fetch(origin+path,{method,headers:{Cookie:auth,'Content-Type':'application/json'},body:JSON.stringify(body)});
+ const request=(path,body,method='POST',auth=cookie)=>fetch(origin+path,{method,headers:{Cookie:auth,'Content-Type':'application/json'},body:JSON.stringify({time_zone:'UTC',...body})});
  const tile=()=>{const operation_id=randomUUID();ops.push(operation_id);return{operation_id,owner_id:user.id,tile:0,ml:250,eaten_at:new Date().toISOString()};};
  const nutrition={calories:0,protein_g:0,carbs_g:0,fat_g:0,fibre_g:0,sugar_g:0,sodium_mg:0,micronutrients:[{nutrientId:1051,nutrientName:'Water',unitName:'G',value:300,basis:'portion'}],source_ref:null,food_category:'Water'};
  async function photo(){

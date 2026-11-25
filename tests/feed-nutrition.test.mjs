@@ -60,19 +60,19 @@ test('transient auxiliary failures retain known fields and recovery still applie
 
 test('fast first-photo read and full snapshot share the same owner-scoped capability',async()=>{
  const {createClient}=await import('@supabase/supabase-js');const {getFirstFeedPhoto,toFeedPosts}=await import('../src/lib/posts/feed.ts');
- const post={id:'first-photo-post',user_id:'first-owner',caption:'Food',eaten_at:'2026-11-03T00:00:00Z',created_at:'2026-11-03T00:00:00Z',status:'queued'};
- const media={id:'first-photo',post_id:post.id,storage_path:'first-owner/first-photo-post/photo.jpg',kind:'photo',position:0};let single=0;
- const db=createClient('https://photo-fixture.invalid','fixture',{global:{fetch:async(input,init)=>{
+ const post={id:'11111111-1111-4111-8111-111111111111',user_id:'22222222-2222-4222-8222-222222222222',caption:'Food',eaten_at:'2026-11-03T00:00:00Z',created_at:'2026-11-03T00:00:00Z',status:'queued'};
+ const media={id:'33333333-3333-4333-8333-333333333333',post_id:post.id,storage_path:`${post.user_id}/${post.id}/photo.jpg`,photo_secret:'a'.repeat(32),kind:'photo',position:0};let single=0;
+ const db=createClient('https://photo-fixture.invalid','fixture',{global:{fetch:async(input)=>{
   const url=new URL(input instanceof Request?input.url:String(input));
-  if(url.pathname.endsWith('/posts')){assert.equal(url.searchParams.get('user_id'),'eq.first-owner');return Response.json({...post,post_media:[media]});}
+  if(url.pathname.endsWith('/posts')){assert.equal(url.searchParams.get('user_id'),'eq.'+post.user_id);return Response.json({...post,post_media:[media]});}
   if(url.pathname.endsWith('/post_media'))return Response.json([media]);
   if(url.pathname.endsWith('/saved_meals'))return Response.json([]);
-  if(url.pathname.endsWith('/object/sign/media'))return Response.json([{path:'first-owner/first-photo-post/photo.feed.jpg',signedURL:'/object/sign/media/first-owner/first-photo-post/photo.feed.jpg?token=batch'}]);
+  if(url.pathname.includes('/object/sign/media')){single++;throw Error('Photos must not use signed-original URLs');}
   if(url.pathname.endsWith('/photo.feed.jpg')){single++;return Response.json({signedURL:'/object/sign/media/first-owner/first-photo-post/photo.feed.jpg?token=first'});}
   throw Error('Unexpected fixture request');
  }}});
- const first=await getFirstFeedPhoto(db,'first-owner');const full=await toFeedPosts(db,[post]);
- assert.equal(first.id,post.id);assert.equal(first.photoUrl,full[0].photoUrl);assert.equal(single,1,'the first-photo promise is reused rather than replacing its signing token');
+ const first=await getFirstFeedPhoto(db,post.user_id);const full=await toFeedPosts(db,[post]);
+ assert.equal(first.id,post.id);assert.equal(first.photoUrl,full[0].photoUrl);assert.equal(single,0,'immutable photo identities require no signed-original capability');assert.equal(first.photoUrl,`/p/${media.id}_${media.photo_secret}_1080.webp`);
 });
 
 
