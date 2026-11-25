@@ -10,7 +10,7 @@ const {chromium,webkit,devices}=await import(process.env.MFA_PLAYWRIGHT_MODULE??
 const browser=await(engine==='webkit'?webkit:chromium).launch(engine==='chromium'?{executablePath:process.env.TEST_CHROMIUM_EXECUTABLE,args:['--no-sandbox']}:{});
 const receipt={engine,parity:[],cases:[],errors:[],limits:['Emulated iPhone at390x844; no real iPhone/Safari proof','English DOM comparison blocks workers in both builds; translated flows use normal worker','Stored data/count_text/matcher detail and explicitly unmapped USDA names remain data; fixed server wording is covered']};
 const snapshots={},preflight=process.env.READING_PREFLIGHT==='1';
-if(process.env.READING_RESUME==='1'){const previous=JSON.parse(await fs.readFile(out+'/'+engine+'-nutrition-reading.json'));Object.assign(snapshots,JSON.parse(await fs.readFile(out+'/'+engine+'-nutrition-snapshots.json')));receipt.cases=previous.cases;receipt.parity=previous.parity;receipt.errors=previous.errors;receipt.consoleErrors=previous.consoleErrors??[];receipt.labelChanges=previous.labelChanges??[];receipt.resumedAfter=previous.failure;}
+if(process.env.READING_RESUME==='1'){const previous=JSON.parse(await fs.readFile(out+'/'+engine+'-nutrition-reading.json'));Object.assign(snapshots,JSON.parse(await fs.readFile(out+'/'+engine+'-nutrition-snapshots.json')));receipt.cases=previous.cases;receipt.parity=previous.parity;receipt.errors=previous.errors;receipt.consoleErrors=previous.consoleErrors??[];receipt.labelChanges=previous.labelChanges??[];receipt.realtime=previous.realtime??[];receipt.resumedAfter=previous.failure;}
 async function calendarSettled(page){await page.waitForFunction(()=>{const nodes=[...document.querySelectorAll('[data-month-start]')];if(!nodes.length)return false;const heading=document.querySelector('[aria-live="polite"]')?.textContent;const geometry=JSON.stringify({heading,y:scrollY,starts:nodes.map(n=>[n.dataset.monthStart,n.getBoundingClientRect().top])});const last=window.__nutritionCalendar;window.__nutritionCalendar={geometry,stable:last?.geometry===geometry?last.stable+1:0};return window.__nutritionCalendar.stable>=3;});}
 async function settled(page){await page.evaluate(async()=>{await document.fonts.ready;await Promise.all(document.getAnimations().filter(a=>a.effect?.getComputedTiming().iterations!==Infinity).map(a=>a.finished.catch(()=>{})));await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));});}
 async function feedPost(page){
@@ -43,14 +43,14 @@ const states=[
  {name:'time',path:'post',open:async(p,m)=>{await menu(p,m);await p.getByRole('button',{name:new RegExp('^'+m.postMenu.editTime)}).tap();await p.getByRole('dialog',{name:m.postMenu.editTime,exact:true}).waitFor();}},
  {name:'delete',path:'post',open:async(p,m)=>{await menu(p,m);await p.getByRole('button',{name:m.post.delete,exact:true}).tap();await p.getByRole('dialog',{name:m.postMenu.deleteTitle,exact:true}).waitFor();}},
  {name:'correct-product',path:'post',open:async(p,m)=>{await menu(p,m);await p.getByRole('button',{name:m.postMenu.correctProduct,exact:true}).tap();await p.getByRole('dialog',{name:m.postMenu.correctThisProduct,exact:true}).waitFor();}},
- {name:'log-again',path:'post',open:async(p,m)=>{await menu(p,m);await p.locator('details[open]').getByRole('button',{name:m.post.eatAgain,exact:true}).tap();await p.getByRole('dialog',{name:m.post.eatAgain,exact:true}).waitFor();await p.locator('[data-log-again-content]').waitFor();await p.getByRole('button',{name:new RegExp('^'+(m===dictionaries.en?'Post ·':'投稿する ·'))}).waitFor();}},
+ {name:'log-again',path:'post',open:async(p,m)=>{await menu(p,m);await p.locator('details[open]').getByRole('button',{name:m.post.eatAgain,exact:true}).tap();await p.getByRole('dialog',{name:m.post.eatAgain,exact:true}).waitFor();await p.locator('[data-log-again-content]').waitFor();await p.getByRole('button',{name:m.postMenu.postMeal.replace('{name}','検証用の食事'),exact:true}).waitFor();}},
  {name:'saved',path:'/',open:async(p,m)=>{await plus(p,'saved');await p.getByRole('dialog',{name:m.postMenu.savedMeals,exact:true}).waitFor();await p.getByText('検証用の保存した食事',{exact:true}).waitFor();}},
  {name:'drink',path:'/',open:async(p,m)=>{await plus(p,'drink');await p.getByRole('dialog',{name:m.postMenu.drinkTitle,exact:true}).waitFor();await p.getByText(m.postMenu.drinkTea,{exact:true}).waitFor();}},
  {name:'clarification',path:'/',open:async(p,m)=>{await p.getByText('これは何の料理ですか？',{exact:true}).tap();await p.getByRole('dialog',{name:m.postMenu.clarifyMeal,exact:true}).waitFor();}},
  {name:'no-food',path:'/',open:async(p,m)=>{await p.getByText(m.feed.noFoodFound,{exact:true}).waitFor();}},
  {name:'unavailable-table',path:'post',idKey:'unavailable',open:async(p,m)=>{await p.getByRole('button',{name:new RegExp('^'+m.post.consumedAll)}).tap();await p.getByRole('table').waitFor();}},
  {name:'failed-detail',path:'post',idKey:'failed'},
- {name:'search',path:'/search',open:async(p,m)=>{await p.getByRole('textbox',{name:m.search.meals,exact:true}).fill(fixture.date);await p.getByRole('textbox',{name:m.search.meals,exact:true}).press('Enter');await p.getByText('検証用の食事',{exact:true}).waitFor();}},
+ {name:'search',path:'/search',open:async(p,m)=>{await p.getByRole('textbox',{name:m.search.meals,exact:true}).fill(fixture.date);await p.getByRole('textbox',{name:m.search.meals,exact:true}).press('Enter');await p.locator('article[data-post-id="'+fixture.post+'"]:visible').waitFor();}},
  {name:'days',path:'/days',open:async p=>{await p.locator('[data-day="'+fixture.date+'"]').waitFor();await calendarSettled(p);}},
  {name:'day-detail',path:'/days',open:async p=>{await p.locator('[data-day="'+fixture.date+'"]').waitFor();await calendarSettled(p);await p.locator('[data-day="'+fixture.date+'"]').tap();await p.getByRole('dialog').waitFor();}},
  {name:'desktop-today',path:'/',desktop:true},
@@ -60,13 +60,15 @@ async function capture(page,name,build,locale){
  await settled(page);
  return page.evaluate(({name,build,locale,changes})=>{
   let text=document.body.innerText;const labelChanges=[];
-  if(name==='nutrition'&&locale==='en')for(const change of changes){const rows=[...document.querySelectorAll('table tbody tr')].filter(row=>row.cells[1]?.innerText===change.value);if(rows.length!==1)throw Error('Named label row absent/duplicated: '+change.id);const row=rows[0],label=row.querySelector('[data-i18n-server-wording="nutrient-name"]')?.textContent,expected=build==='base'?change.before:change.after;if(label!==expected)throw Error('Incorrect nutrient label '+change.id+': '+label);labelChanges.push({id:change.id,value:change.value,label});text=text.replace(row.innerText,row.innerText.replace(label,'<approved-label-'+change.id+'>'));}
+  if(['nutrition','add-item'].includes(name)&&locale==='en')for(const change of changes){const rows=[...document.querySelectorAll('table tbody tr')].filter(row=>row.cells[1]?.innerText===change.value);if(rows.length!==1)throw Error('Named label row absent/duplicated: '+change.id);const row=rows[0],label=row.querySelector('[data-i18n-server-wording="nutrient-name"]')?.textContent,expected=build==='base'?change.before:change.after;if(label!==expected)throw Error('Incorrect nutrient label '+change.id+': '+label);labelChanges.push({id:change.id,value:change.value,label});text=text.replace(row.innerText,row.innerText.replace(label,'<approved-label-'+change.id+'>'));}
   return{text,aria:[...document.querySelectorAll('[aria-label]')].filter(node=>node.getClientRects().length).map(node=>node.getAttribute('aria-label')),labelChanges};
  },{name,build,locale,changes:fixture.labelChanges});
 }
 try{
  const runs=process.env.READING_EN_ONLY==='1'?[['base','en',base],['head','en',app]]:process.env.READING_JA_ONLY==='1'?[['head','ja',app]]:preflight?[['head','en',app]]:[['base','en',base],['head','en',app],['head','ja',app]];
  for(const [build,locale,url]of runs){
+  const selected=(preflight?states.filter(state=>state.name==='feed'):states).filter(state=>!process.env.ONLY_STATE||state.name===process.env.ONLY_STATE);
+  if(selected.every(state=>receipt.cases.some(done=>done.build===build&&done.locale===locale&&done.state===state.name)))continue;
   const context=await browser.newContext({...devices['iPhone 13'],viewport:{width:390,height:844},locale:'en-US',timezoneId:'UTC',...(locale==='en'?{serviceWorkers:'block'}:{})});
   if(locale==='en'){receipt.realtime??=[];receipt.realtime.push({build,locale,transport:await readingRealtime(context)});}
   await context.addCookies([...cookies.map(cookie=>({name:cookie.name,value:cookie.value,url})),{name:'lang',value:locale,url},{name:'time-zone',value:'UTC',url}]);
@@ -91,7 +93,7 @@ try{
     if(!preflight&&build==='head'&&locale==='en'){assert.deepEqual(snapshot,snapshots['base-en-'+state.name],'English parity '+state.name);receipt.parity.push(state.name);}
     const overflow=await page.evaluate(()=>[...document.querySelectorAll('button,label,p,h1,h2,input')].filter(node=>{const r=node.getBoundingClientRect();return r.width>0&&r.height>0&&getComputedStyle(node).visibility!=='hidden'&&(r.left< -1||r.right>innerWidth+1||node.scrollWidth>node.clientWidth+2);}).map(node=>({tag:node.tagName,text:node.innerText,label:node.getAttribute('aria-label')})));
     const latin=locale==='ja'?await page.evaluate(allowedData=>{
-     const held='[data-i18n-stored],.text-avatar,.text-avatar-sm,kbd,aside nav a[href="/days"] > span:last-child';
+     const held='[data-i18n-stored],.text-avatar,.text-avatar-sm,kbd,aside nav a[href="/days"] > span:last-child,aside a[href="/profile"] > span[aria-hidden="true"],aside a[href="/profile"] > span > span:first-child';
      const proper=['My Food AI','Coca-Cola','Open Food Facts','Open Database License','Muse Spark Open','Muse Spark 1.3','AI'];
      const stored=[...document.querySelectorAll('input[type=text],textarea,[data-correct-product-name]')].map(node=>node.value).filter(Boolean);
      const clean=value=>{for(const word of [...proper,...stored,...allowedData])value=value.split(word).join('');return value.replace(/ビタミン[ACDEK]/g,'').replace(/\b(kcal|ml|mg|oz|g|IU|kJ|USDA|DFE|B1|B2|B3|B6|B12)\b/g,'');};
@@ -101,8 +103,8 @@ try{
      return result;
     },fixture.dataExceptions):[];
     if(locale==='ja')await page.screenshot({path:out+'/'+engine+'-ja-'+state.name+'.png',fullPage:true});
-    receipt.cases.push({build,locale,state:state.name,overflow,latin,dataExceptions:fixture.dataExceptions,failedCopyCovered:true});
     assert.equal(latin.length,0,'Japanese Latin text '+state.name+': '+JSON.stringify(latin));
+    receipt.cases.push({build,locale,state:state.name,overflow,latin,dataExceptions:fixture.dataExceptions,failedCopyCovered:true});
     if(preflight){await page.locator('[data-post-id="'+fixture.post+'"]').getByRole('link',{name:dictionaries.en.postMenu.details,exact:true}).tap();await page.waitForURL('**/posts/'+fixture.post);await page.locator('[data-post-detail-ready]').waitFor({state:'attached'});await page.getByRole('region',{name:dictionaries[locale].thread.mealComments,exact:true}).filter({hasText:'これは検証用の返信です。'}).waitFor();receipt.cases.push({build,locale,state:'cached-post-open',pass:true});}
    }
    if(locale==='en')assert.ok(receipt.realtime.at(-1).transport.acknowledgedJoins>0,'Realtime fixture must acknowledge a join in every snapshot context');
