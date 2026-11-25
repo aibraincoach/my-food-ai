@@ -22,6 +22,8 @@ export class PostUploadDraft {
   private async persistSnapshot(){const snapshot=await this.snapshot();if(snapshot)await this.snapshotChanged(snapshot);}
   setProgress(callback:(sent:number,total:number)=>void){this.progress=callback;}
   restore(snapshot:UploadSnapshot){this.restored=snapshot;}
+  // A durable encoded original replaces selection bytes without invalidating PUT acknowledgments.
+  retainFiles(previous:File[],retained:File[]){const pending=this.pending;if(pending&&pending.files.length===previous.length&&pending.files.every((file,index)=>file===previous[index]))pending.files=[...retained];}
   async snapshot():Promise<UploadSnapshot|null>{const p=this.pending;return p?{id:p.id,images:await p.images,completed:[...p.completed]}:null;}
   async stage(caption:string,files:File[],location:CapturedLocation|null,eatenAt:string|null,options:PostOptions={}):Promise<CreatedPost>{
     if(this.prepareActive)await this.prepareActive.catch(()=>{});

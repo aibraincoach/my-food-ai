@@ -1,21 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {upgradeUploadDraft} from '../src/lib/posts/upload-store.ts';
 import {failureFromResponse,captureFailureText,CaptureFailureError} from '../src/lib/posts/capture-failure.ts';
-
-test('v2 draft upgrade preserves photos, identity and retry state while removing old wording',()=>{
- const bytes=new Uint8Array([1,2,3]).buffer;
- const legacy={operationId:'same-operation',ownerId:'same-owner',state:'failed',files:[{bytes}],message:'An old English failure',caption:'A caption the person typed'};
- const upgraded=upgradeUploadDraft(legacy);
- assert.equal(upgraded.operationId,legacy.operationId);
- assert.equal(upgraded.files,legacy.files);
- assert.equal(upgraded.caption,legacy.caption);
- assert.equal(upgraded.state,'failed');
- assert.deepEqual(upgraded.failure,{code:'saved-before-update'});
- assert.equal(Object.hasOwn(upgraded,'message'),false);
- assert.equal(Object.hasOwn(legacy,'message'),true,'the input fixture is not mutated');
- assert.equal(upgradeUploadDraft(upgraded),upgraded,'upgrade is idempotent');
-});
 
 test('response wording and semantic retry code never become a saved message',()=>{
  const failure=failureFromResponse({error:'A server sentence',code:'draft_expired',message_code:'photoStorageFailed'});

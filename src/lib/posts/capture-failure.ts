@@ -39,7 +39,6 @@ export const CAPTURE_FAILURE_CODES = [
   "copyRemovalFailed",
   "foodRemovalFailed",
   "serverFailed",
-  "saved-before-update",
   "route_ac6a88b19530",
   "route_277df75eda6a",
   "route_f4094c5e9670",

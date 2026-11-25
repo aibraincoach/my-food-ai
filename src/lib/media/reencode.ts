@@ -55,10 +55,9 @@ export async function reencodeShot(file: File): Promise<ReencodedShot> {
       el.src = url;
     });
     const originalCanvas = drawScaled(img, ORIGINAL_LONG_SIDE);
-    const [original, feed] = await Promise.all([
-      toJpeg(originalCanvas),
-      toJpeg(drawScaled(img, FEED_LONG_SIDE)),
-    ]);
+    const original = await toJpeg(originalCanvas);
+    const feed = Math.max(img.naturalWidth, img.naturalHeight) <= FEED_LONG_SIDE
+      ? original : await toJpeg(drawScaled(img, FEED_LONG_SIDE));
     return { original, feed, phash:differenceHash(originalCanvas), width: originalCanvas.width, height: originalCanvas.height };
   } finally {
     URL.revokeObjectURL(url);

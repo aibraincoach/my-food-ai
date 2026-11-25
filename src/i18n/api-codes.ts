@@ -462,7 +462,6 @@ export const FAILURE_MESSAGE_NAMESPACES = {
   "copyRemovalFailed": "capture",
   "foodRemovalFailed": "capture",
   "serverFailed": "capture",
-  "saved-before-update": "capture",
   "notPostedYet": "capture",
   "postPhotoLost": "capture",
   "attachmentPhotoLost": "capture",

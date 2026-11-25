@@ -103,3 +103,11 @@ test('failure waits for all in-flight PUTs before permitting retry',async()=>{
  assert.equal(draft.submit('meal',[file],null,null,'photo'),first);assert.equal(reserves,1);assert.equal(feedCalls,1);
  release();await assert.rejects(first,error=>error instanceof CaptureFailureError&&error.failure.code==='error_3b48efca6dca');assert.equal(settled,true);
 });
+
+test('retaining an encoded original preserves the prepared operation and acknowledged PUTs',async()=>{
+ const encoded=new File([image.original],file.name,{type:'image/jpeg',lastModified:file.lastModified});let encodes=0,puts=0,reserves=0;
+ const request=async(url,init)=>{if(init.method==='POST'){reserves++;return response({postId:id,uploads:[upload]});}puts++;return response({ok:true});};
+ const draft=new PostUploadDraft(async()=>{encodes++;return image;},request,async()=>false,()=>id);
+ await draft.stage('first',[file],null,null);draft.retainFiles([file],[encoded]);await draft.stage('caption changed',[encoded],null,null);
+ assert.equal(encodes,1);assert.equal(puts,2);assert.equal(reserves,2);assert.deepEqual((await draft.snapshot()).completed.sort(),[upload.originalPath,upload.feedPath].sort());
+});
