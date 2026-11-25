@@ -698,56 +698,49 @@
     },
     {
       "file": "src/app/api/posts/food/route.ts",
-      "site": 16,
-      "english": [
-        "The post was saved, but the barcode correction could not be kept. Retry to keep it."
-      ]
-    },
-    {
-      "file": "src/app/api/posts/food/route.ts",
-      "site": 18,
+      "site": 17,
       "english": [
         "A readable serving and nutrition panel are required."
       ]
     },
     {
       "file": "src/app/api/posts/food/route.ts",
-      "site": 19,
+      "site": 18,
       "english": [
         "Choose a valid barcode and amount."
       ]
     },
     {
       "file": "src/app/api/posts/food/route.ts",
-      "site": 20,
+      "site": 19,
       "english": [
         "Invalid time eaten."
       ]
     },
     {
       "file": "src/app/api/posts/food/route.ts",
-      "site": 21,
+      "site": 20,
       "english": [
         "Invalid pack photo."
       ]
     },
     {
       "file": "src/app/api/posts/food/route.ts",
-      "site": 22,
+      "site": 21,
       "english": [
         "Not in the database"
       ]
     },
     {
       "file": "src/app/api/posts/food/route.ts",
-      "site": 23,
+      "site": 22,
       "english": [
         "Choose an amount in the product's own unit."
       ]
     },
     {
       "file": "src/app/api/posts/food/route.ts",
-      "site": 24,
+      "site": 23,
       "english": [
         "The pack photo or portion could not be saved.",
         "The meal could not be saved."
@@ -755,42 +748,42 @@
     },
     {
       "file": "src/app/api/posts/food/route.ts",
-      "site": 26,
+      "site": 25,
       "english": [
         "Barcode lookup is temporarily unavailable."
       ]
     },
     {
       "file": "src/app/api/posts/food/route.ts",
-      "site": 27,
+      "site": 26,
       "english": [
         "Choose a food from the search results."
       ]
     },
     {
       "file": "src/app/api/posts/food/route.ts",
-      "site": 28,
+      "site": 27,
       "english": [
         "Invalid time eaten."
       ]
     },
     {
       "file": "src/app/api/posts/food/route.ts",
-      "site": 29,
+      "site": 28,
       "english": [
         "That food is no longer in the results. Search again."
       ]
     },
     {
       "file": "src/app/api/posts/food/route.ts",
-      "site": 30,
+      "site": 29,
       "english": [
         "Sign in required."
       ]
     },
     {
       "file": "src/app/api/posts/food/route.ts",
-      "site": 31,
+      "site": 30,
       "english": [
         "That food could not be logged.",
         "The meal could not be saved."
@@ -798,35 +791,35 @@
     },
     {
       "file": "src/app/api/posts/food/route.ts",
-      "site": 33,
+      "site": 32,
       "english": [
         "Food search is temporarily unavailable."
       ]
     },
     {
       "file": "src/app/api/posts/food/route.ts",
-      "site": 34,
+      "site": 33,
       "english": [
         "Sign in required."
       ]
     },
     {
       "file": "src/app/api/posts/food/route.ts",
-      "site": 35,
+      "site": 34,
       "english": [
         "This selection belongs to another sign-in."
       ]
     },
     {
       "file": "src/app/api/posts/food/route.ts",
-      "site": 36,
+      "site": 35,
       "english": [
         "Invalid food operation."
       ]
     },
     {
       "file": "src/app/api/posts/food/route.ts",
-      "site": 37,
+      "site": 36,
       "english": [
         "The pending food could not be removed. Your selection is kept."
       ]
@@ -1013,26 +1006,12 @@
       "file": "src/app/api/drinks/post/route.ts",
       "site": 8,
       "english": [
-        "The photo operation could not be confirmed."
-      ]
-    },
-    {
-      "file": "src/app/api/drinks/post/route.ts",
-      "site": 9,
-      "english": [
-        "This pending drink was removed."
-      ]
-    },
-    {
-      "file": "src/app/api/drinks/post/route.ts",
-      "site": 10,
-      "english": [
         "The drink choices could not be read."
       ]
     },
     {
       "file": "src/app/api/drinks/post/route.ts",
-      "site": 11,
+      "site": 9,
       "english": [
         "Photo draft not found.",
         "The drinks could not be posted. Your photo was kept."
@@ -1040,28 +1019,28 @@
     },
     {
       "file": "src/app/api/drinks/post/route.ts",
-      "site": 13,
+      "site": 11,
       "english": [
         "Sign in required."
       ]
     },
     {
       "file": "src/app/api/drinks/post/route.ts",
-      "site": 14,
+      "site": 12,
       "english": [
         "This photo belongs to another sign-in."
       ]
     },
     {
       "file": "src/app/api/drinks/post/route.ts",
-      "site": 15,
+      "site": 13,
       "english": [
         "Invalid photo drink operation."
       ]
     },
     {
       "file": "src/app/api/drinks/post/route.ts",
-      "site": 16,
+      "site": 14,
       "english": [
         "The pending drinks could not be removed. Your photo is kept."
       ]
@@ -1399,35 +1378,14 @@
     },
     {
       "file": "src/app/api/media/sign-upload/route.ts",
-      "site": 2,
-      "english": [
-        "Signing upload URLs failed."
-      ]
-    },
-    {
-      "file": "src/app/api/media/sign-upload/route.ts",
-      "site": 3,
+      "site": 1,
       "english": [
         "postId is required."
       ]
     },
     {
       "file": "src/app/api/media/sign-upload/route.ts",
-      "site": 4,
-      "english": [
-        "Each photo needs its position in order and a size from 1 to 4096 pixels."
-      ]
-    },
-    {
-      "file": "src/app/api/media/sign-upload/route.ts",
-      "site": 5,
-      "english": [
-        "Post not found."
-      ]
-    },
-    {
-      "file": "src/app/api/media/sign-upload/route.ts",
-      "site": 8,
+      "site": 3,
       "english": [
         "Signing upload URLs failed."
       ]
@@ -1860,5 +1818,14 @@
         "You have made a lot of requests this hour. Try again later."
       ]
     }
-  ]
+  ],
+  "packetBUpdate": {
+    "base": "c7c0ac1598220e9da898db82ecb02424806a4d4f",
+    "files": [
+      "src/app/api/media/sign-upload/route.ts",
+      "src/app/api/posts/food/route.ts",
+      "src/app/api/drinks/post/route.ts"
+    ],
+    "reason": "Removed old publication/signing sites; current literal response English and new site indices read from source."
+  }
 }

@@ -16,3 +16,11 @@ test('user search strings cannot poison typed exact-food cache entries',async()=
   assert.equal(cache.get('fdc-detail:77').kind,'fdc-detail-v1');assert.equal(cache.get('fdc-search-v3:rice').query,'rice');
  }finally{globalThis.fetch=original;if(oldKey===undefined)delete process.env.FDC_API_KEY;else process.env.FDC_API_KEY=oldKey;}
 });
+
+test('an untagged exact-food payload is a cache miss, replaced by the current typed response',async()=>{
+ const stale={fdcId:77,description:'Old untagged food',dataType:'Foundation',foodNutrients:[]},fresh={...stale,description:'Current USDA food'},cache=new Map([['fdc-detail:77',stale]]);let requests=0;
+ const admin={from(){let key;const q={select(){return q;},eq(_,value){key=value;return q;},maybeSingle:async()=>({data:{response:cache.get(key)},error:null,status:200}),upsert({query,response}){cache.set(query,response);return Promise.resolve({error:null,status:201});}};return q;}};
+ const original=globalThis.fetch,key=process.env.FDC_API_KEY;process.env.FDC_API_KEY='fixture';
+ try{globalThis.fetch=async url=>{if(new URL(url).pathname.endsWith('/model_calls'))return Response.json(null);requests++;return Response.json(fresh);};assert.equal((await getFoodById(admin,77)).description,fresh.description);assert.equal(requests,1);assert.equal(cache.get('fdc-detail:77').kind,'fdc-detail-v1');await getFoodById(admin,77);assert.equal(requests,1);}
+ finally{globalThis.fetch=original;if(key===undefined)delete process.env.FDC_API_KEY;else process.env.FDC_API_KEY=key;}
+});

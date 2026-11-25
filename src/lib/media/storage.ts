@@ -20,9 +20,10 @@ export async function signShotUploads(
   userId: string,
   postId: string,
   positions: number[],
-  options: { upsert?: boolean } = {}
+  options: { upsert: boolean }
 ): Promise<SignedUpload[]> {
-  // Capability replacement is opt-in: legacy and staged callers remain write-once.
+  // Reservations renew the same owned unpublished draft (upsert:true).
+  // Pack-photo stages are write-once so a published image cannot be replaced.
   const signingOptions = options.upsert === true ? { upsert: true } : undefined;
   const out: SignedUpload[] = [];
   for (const position of positions) {

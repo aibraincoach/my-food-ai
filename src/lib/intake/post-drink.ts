@@ -4,11 +4,10 @@ import { searchFoods } from "@/lib/fdc/client";
 import { scaleNutrition } from "@/lib/fdc/nutrients";
 import { dateInZone, validZone } from "@/lib/posts/days";
 import { hydrationSoFar, type DrinkCardData } from "./hydration";
-import { customCoffeeCaffeine, DRINK_TILES, TILE_SIZES } from "./intake";
+import { DRINK_TILES, TILE_SIZES } from "./intake";
 import { renderResultsCard } from "@/lib/pipeline/results-card";
 
 export interface DrinkInput { kind: "water" | "caffeine"; label: string; ml: number; caffeineMg: number }
-const presets = [{ ml: 30, mg: 63, label: "Coffee, espresso" }, { ml: 240, mg: 95, label: "Coffee, cup" }, { ml: 350, mg: 150, label: "Coffee, large" }];
 // The client chooses kind/volume only; caffeine and labels are resolved here.
 export function parseDrinkInput(body: unknown): DrinkInput | null {
   if (!body || typeof body !== "object") return null;
@@ -21,17 +20,11 @@ export function parseDrinkInput(body: unknown): DrinkInput | null {
     if (!size) return null;
     return { kind: tile.kind, label: `${tile.name}, ${size.word}`, ml: size.ml, caffeineMg: size.caffeineMg ?? Math.round(tile.caffeineMg * size.ml / tile.ml) };
   }
-  if ((value.kind !== "water" && value.kind !== "caffeine") || !Number.isInteger(value.ml) || (value.ml as number) < 1 || (value.ml as number) > 5000) return null;
-  const ml = value.ml as number;
-  if (value.kind === "water") return { kind: "water", label: "Water", ml, caffeineMg: 0 };
-  const preset = value.custom === true ? undefined : presets.find(row => row.ml === ml);
-  const caffeineMg = preset?.mg ?? customCoffeeCaffeine(ml);
-  if (caffeineMg === null) return null;
-  return { kind: "caffeine", label: preset?.label ?? "Coffee", ml, caffeineMg };
+  return null;
 }
 
-export async function postDrink(admin: SupabaseClient, userId: string, input: DrinkInput, tz: string, operation?:{id:string;key:string;eatenAt:string}): Promise<{ postId: string; drink: DrinkCardData | null }> {
-  const eatenAt = operation?.eatenAt??new Date().toISOString();
+export async function postDrink(admin: SupabaseClient, userId: string, input: DrinkInput, tz: string, operation:{id:string;key:string;eatenAt:string}): Promise<{ postId: string; drink: DrinkCardData | null }> {
+  const eatenAt = operation.eatenAt;
   let nutrition: Record<string, unknown> = { calories: 0, protein_g: 0, carbs_g: 0, fat_g: 0, fibre_g: 0, sugar_g: 0, sodium_mg: 0,
     micronutrients: [{ nutrientId: 1051, nutrientName: "Water", unitName: "G", value: input.ml, basis: "portion" }], source_ref: null };
   if (input.kind === "caffeine") {
@@ -53,7 +46,7 @@ export async function postDrink(admin: SupabaseClient, userId: string, input: Dr
       micronutrients: [...n.micronutrients.filter(row => (row as { nutrientId?: number }).nutrientId !== 1057),
         { nutrientId: 1057, nutrientName: "Caffeine", unitName: "MG", value: input.caffeineMg, basis: "portion" }], source_ref: n.sourceRef };
   }
-  const { data, error } = await admin.rpc(operation?"publish_drink_operation":"create_drink_post", { ...(operation?{p_operation_id:operation.id,p_request_key:operation.key}:{}),p_user_id: userId, p_eaten_at: eatenAt,
+  const { data, error } = await admin.rpc("publish_drink_operation", { p_operation_id:operation.id,p_request_key:operation.key,p_user_id: userId, p_eaten_at: eatenAt,
     p_kind: input.kind, p_ml: input.ml, p_label: input.label, p_caffeine_mg: input.caffeineMg, p_nutrition: nutrition });
   if(error)throw Object.assign(new Error("The drink could not be saved."),{code:error.code});
   if(typeof data!=="string")throw new Error("The drink could not be confirmed.");

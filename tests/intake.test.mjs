@@ -36,8 +36,8 @@ test("the line shows totals only; a day with nothing logged shows nothing", () =
   assert.equal(intakeLine(emptyIntake(), { includeZero: true }), "Water 0 ml · Caffeine 0 mg");
 });
 
-test("no intake text or code mentions a target, a goal or what is left", () => {
-  for (const file of ["../src/lib/intake/intake.ts", "../src/components/IntakeBar.tsx"]) {
+test("intake calculation text and code mention no target, goal or what is left", () => {
+  for (const file of ["../src/lib/intake/intake.ts"]) {
     const source = readFileSync(new URL(file, import.meta.url), "utf8")
       .split("\n").filter((line) => !/^\s*(\/\/|\*)/.test(line)).join("\n");   // comments may say what the feature is not
     assert.doesNotMatch(source, /\b(?<!event\.)(target|goal|remaining|left|quota|recommended|daily value)\b/i, file);

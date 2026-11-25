@@ -266,8 +266,7 @@ export async function getFoodById(admin: SupabaseClient, id: number, signal?:Abo
     const entry=cached.response as {kind?:unknown;fdcId?:unknown;payload?:unknown};
     try {
       if(entry?.kind==='fdc-detail-v1'&&entry.fdcId===id)return await recordCall("fdc",{fdcId:id,source:"cache"},async()=>parseFoodDetail(entry.payload,id),food=>({text:{source:"cache",food},fdcId:id}));
-      if(entry&&!entry.kind)return await recordCall("fdc",{fdcId:id,source:"legacy_cache"},async()=>parseFoodDetail(entry,id),food=>({text:{source:"legacy_cache",food},fdcId:id}));
-    } catch { /* A legacy search-key collision is a cache miss, never permanent failure. */ }
+    } catch { /* An invalid typed cache entry is a miss; fetch and replace it from USDA. */ }
   }
   return recordCall("fdc", { fdcId: id, source:"network" }, async () => {
   const params = new URLSearchParams({format: "full", api_key: fdcApiKey()});

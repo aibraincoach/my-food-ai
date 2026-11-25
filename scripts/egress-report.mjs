@@ -25,7 +25,7 @@ const prefix=`multiIf(startsWith(${path},'/storage/v1/object/'),'/storage/v1/obj
 const ua=`multiIf(positionCaseInsensitive(${agent},'pg_net')>0,'pg_net',positionCaseInsensitive(${agent},'Mozilla')>0,'browser',positionCaseInsensitive(${agent},'vercel')>0 OR positionCaseInsensitive(${agent},'node')>0 OR positionCaseInsensitive(${agent},'undici')>0,'server runtime','other/absent')`;
 // Stored feed sources: <owner>/<post>/<media>.feed.jpg; generated cards:
 // <owner>/<post>/cards/<revision>/card.png; original photographs: <media>.jpg.
-// The app's /api/media/feed/.../v1.webp proxy is not itself a Storage log path.
+// The app's /api/media/feed/.../v2.webp proxy is not itself a Storage log path.
 const fileClass=`multiIf(endsWith(${path},'.feed.jpg'),'feed photo source',position(${path},'/cards/')>0 AND endsWith(${path},'/card.png'),'results card',endsWith(${path},'.jpg'),'original photograph','other storage')`;
 const clientClass=`multiIf(positionCaseInsensitive(${agent},'HeadlessChrome')>0 OR positionCaseInsensitive(${agent},'node')>0 OR positionCaseInsensitive(${agent},'undici')>0 OR positionCaseInsensitive(${agent},'curl')>0,'automation',positionCaseInsensitive(${agent},'Mobile')>0 AND positionCaseInsensitive(${agent},'Safari')>0,'mobile browser',positionCaseInsensitive(${agent},'Chrome')>0 OR positionCaseInsensitive(${agent},'Safari')>0 OR positionCaseInsensitive(${agent},'Firefox')>0,'desktop browser','other/unknown')`;
 const queries=[

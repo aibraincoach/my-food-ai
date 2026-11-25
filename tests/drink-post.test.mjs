@@ -3,41 +3,31 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { spawnSync } from "node:child_process";
 import test from "node:test";
+import {randomUUID} from "node:crypto";
 import { createClient } from "@supabase/supabase-js";
 import { parseDrinkInput, postDrink } from "../src/lib/intake/post-drink.ts";
-import { customCoffeeCaffeine } from "../src/lib/intake/intake.ts";
 import { hydrationSoFar, getDrinkCardsData } from "../src/lib/intake/hydration.ts";
 import { dateInZone } from "../src/lib/posts/days.ts";
 import { signInAsTestUser } from "../scripts/lib/session.mjs";
 
+const operation={id:'11111111-1111-4111-8111-111111111111',key:'a'.repeat(64),eatenAt:'2026-01-01T12:00:00Z'};
 const migration = readFileSync(new URL("../supabase/migrations/0019_intake_logs_drink.sql", import.meta.url), "utf8");
 
 test("drink data is bounded and caffeine/labels come from the server", () => {
-  assert.deepEqual(parseDrinkInput({ kind: "water", ml: 330, label: "tampered", caffeineMg: 900 }), { kind: "water", ml: 330, label: "Water", caffeineMg: 0 });
-  assert.deepEqual(parseDrinkInput({ kind: "caffeine", ml: 240 }), { kind: "caffeine", ml: 240, label: "Coffee, cup", caffeineMg: 95 });
   assert.deepEqual(parseDrinkInput({ tile: 4, caffeineMg: 999 }), { kind: "caffeine", label: "Coca-Cola, can", ml: 330, caffeineMg: 32 });
   assert.equal(parseDrinkInput({ tile: 4, ml: 1 }), null, "unsupported tile sizes cannot silently become a default");
   assert.equal(parseDrinkInput({ tile: 9 }), null);
   assert.equal(parseDrinkInput({ tile: -1 }), null);
   assert.equal(parseDrinkInput({ tile: "4" }), null);
-  assert.equal(parseDrinkInput({ kind: "caffeine", ml: 30 }).caffeineMg, 63);
-  assert.equal(parseDrinkInput({ kind: "caffeine", ml: 30, custom: true }).caffeineMg, 12);
-  for (const ml of [1,2,2527,2528]) {
-    const caffeine = customCoffeeCaffeine(ml);
-    const parsed = parseDrinkInput({ kind: "caffeine", ml, custom: true });
-    assert.equal(parsed?.caffeineMg ?? null, caffeine);
-  }
-  assert.equal(customCoffeeCaffeine(1), null);
-  assert.equal(customCoffeeCaffeine(2), 1);
-  for (const body of [null, { kind: "water", ml: 0 }, { kind: "water", ml: 5001 }, { kind: "water", ml: 1.5 }, { kind: "water", ml: "330" }, { kind: "caffeine", ml: 5000 }, { kind: "other", ml: 30 }]) assert.equal(parseDrinkInput(body), null);
+  for (const body of [{kind:"water",ml:330},{kind:"caffeine",ml:240},null, { kind: "water", ml: 0 }, { kind: "water", ml: 5001 }, { kind: "water", ml: 1.5 }, { kind: "water", ml: "330" }, { kind: "caffeine", ml: 5000 }, { kind: "other", ml: 30 }]) assert.equal(parseDrinkInput(body), null);
 });
 
 test("a failed atomic drink save does not expose or compensate a partially committed post", async () => {
   let calls = 0;
-  const admin = { async rpc(name,args) { calls++; assert.equal(name,"create_drink_post"); assert.equal(args.p_ml,330);
+  const admin = { async rpc(name,args) { calls++; assert.equal(name,"publish_drink_operation"); assert.equal(args.p_ml,250);
     assert.equal(args.p_kind,"water"); return {data:null,error:{message:"write failed"}}; },
     from() { throw new Error("No separate post/intake writes are allowed."); } };
-  await assert.rejects(postDrink(admin,"owner",parseDrinkInput({kind:"water",ml:330}),"UTC"),/could not be saved/);
+  await assert.rejects(postDrink(admin,"owner",parseDrinkInput({tile:0}),"UTC",operation),/could not be saved/);
   assert.equal(calls,1);
 });
 
@@ -59,11 +49,11 @@ test("cola tile keeps cola nutrition and server caffeine in the atomic write", a
         },
       };
     },
-    async rpc(name, args) { assert.equal(name, "create_drink_post"); saved = args; return { data: "cola-post", error: null }; },
+    async rpc(name, args) { assert.equal(name, "publish_drink_operation"); saved = args; return { data: "cola-post", error: null }; },
   };
   // Optional rendering is best-effort after the committed atomic save.
   const originalError = console.error; console.error = () => {};
-  try { await postDrink(admin, "owner", parseDrinkInput({ tile: 4 }), "UTC"); }
+  try { await postDrink(admin, "owner", parseDrinkInput({ tile: 4 }), "UTC",operation); }
   finally { console.error = originalError; }
   assert.equal(saved.p_ml, 330); assert.equal(saved.p_label, "Coca-Cola, can"); assert.equal(saved.p_caffeine_mg, 32);
   assert.equal(saved.p_nutrition.calories, 138.6);
@@ -187,7 +177,7 @@ rollback;`;
 
 // This route proof runs only after the migration merge order has been executed and the local production build is served.
 // Before that it reports an explicit skip, never substitutes a mocked database for the required route proof.
-test("real route logs 330 ml water and 240 ml coffee; hydration excludes drink items and another user sees neither", async context => {
+test("real route logs 250 ml water and 240 ml coffee; hydration excludes drink items and another user sees neither", async context => {
   const admin = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.SUPABASE_SECRET_KEY, { auth: { persistSession: false } });
   const schema = await admin.from("intake_logs").select("ml").limit(0);
   if (schema.error) { context.skip("0019 not deployed; live route proof waits for its migration/merge order"); return; }
@@ -208,8 +198,8 @@ test("real route logs 330 ml water and 240 ml coffee; hydration excludes drink i
     assert.ifError(signedIn.error); userId = signedIn.data.user.id;
     const now = new Date().toISOString();
     const before = await hydrationSoFar(admin, userId, dateInZone(now,"UTC"), "UTC", now);
-    for (const [kind, ml] of [["water",330],["caffeine",240]]) {
-      const response = await fetch(`${origin}/api/intake/post`, { method: "POST", headers: { Cookie: cookie, "Content-Type": "application/json" }, body: JSON.stringify({kind,ml}), signal: AbortSignal.timeout(90000) });
+    for (const [kind, ml] of [["water",250],["caffeine",240]]) {
+      const response = await fetch(`${origin}/api/intake/post`, { method: "POST", headers: { Cookie: cookie, "Content-Type": "application/json" }, body: JSON.stringify({tile:kind==="water"?0:1,ml,operation_id:randomUUID()}), signal: AbortSignal.timeout(90000) });
       assert.equal(response.status,201);
       const saved = await response.json(); ids.push(saved.post_id);
       const { data: post } = await admin.from("posts").select("status").eq("id",saved.post_id).single(); assert.equal(post.status,"ready");
@@ -222,14 +212,14 @@ test("real route logs 330 ml water and 240 ml coffee; hydration excludes drink i
       }
     }
     const after = await hydrationSoFar(admin,userId,dateInZone(new Date(),"UTC"),"UTC",new Date().toISOString());
-    assert.equal(after.drinksMl-before.drinksMl,570); assert.equal(after.foodMl,before.foodMl);
+    assert.equal(after.drinksMl-before.drinksMl,490); assert.equal(after.foodMl,before.foodMl);
     const card = await read(`/api/intake/post?post_id=${ids[1]}&tz=UTC`); assert.equal(card.drink.caffeineMg,95);
-    const colaResponse = await fetch(`${origin}/api/intake/post`, { method: "POST", headers: { Cookie: cookie, "Content-Type": "application/json" }, body: JSON.stringify({ tile: 4 }), signal: AbortSignal.timeout(90000) });
+    const colaResponse = await fetch(`${origin}/api/intake/post`, { method: "POST", headers: { Cookie: cookie, "Content-Type": "application/json" }, body: JSON.stringify({ tile: 4,operation_id:randomUUID() }), signal: AbortSignal.timeout(90000) });
     assert.equal(colaResponse.status, 201);
     const cola = await colaResponse.json(); ids.push(cola.post_id);
     const { data: colaIntake } = await admin.from("intake_logs").select("ml,amount,label").eq("post_id", cola.post_id).single();
     assert.deepEqual(colaIntake, { ml: 330, amount: 32, label: "Coca-Cola, can" });
-    const invalid = await fetch(`${origin}/api/intake/post`, { method: "POST", headers: { Cookie: cookie, "Content-Type": "application/json" }, body: JSON.stringify({ tile: 9 }) });
+    const invalid = await fetch(`${origin}/api/intake/post`, { method: "POST", headers: { Cookie: cookie, "Content-Type": "application/json" }, body: JSON.stringify({ tile: 9,operation_id:randomUUID() }) });
     assert.equal(invalid.status, 400);
   } finally {
     if (ids.length) {

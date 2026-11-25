@@ -56,7 +56,7 @@ test('two-shot reservation refuses publication with only one stored object (2202
   checked(await db.storage.from('media').upload(`${base}/0.jpg`,new Blob(['test-object'],{type:'image/jpeg'})));
   // Staging must be able to refresh metadata/capabilities after an earlier PUT succeeded.
   const renewed=await reserveUpload(db,client,owner.id,{operationId:id,caption:'upload guard test',eatenAt:new Date().toISOString(),shots,location:null,notEatenPositions:[],saveAsMeal:false,renderZone:'UTC'});assert.equal(renewed.uploads.length,2);
-  const {client:other}=await user(2);await assert.rejects(signShotUploads(other,owner.id,id,[0]),/row.level security/i);
+  const {client:other}=await user(2);await assert.rejects(signShotUploads(other,owner.id,id,[0],{upsert:false}),/row.level security/i);
   const result=await db.rpc('publish_uploaded_post',{p_operation_id:id,p_user_id:owner.id});assert.equal(result.error?.code,'22023');assert.match(result.error.message,/incomplete/i);
   const post=checked(await db.from('posts').select('status').eq('id',id).maybeSingle());assert.equal(post,null);
  }finally{await db.storage.from('media').remove([`${base}/0.jpg`]);await db.from('jobs').delete().contains('payload',{deleted_post_id:id});await db.from('post_upload_drafts').delete().eq('id',id);}

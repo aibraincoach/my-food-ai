@@ -8,7 +8,7 @@ import CorrectProductAction from './CorrectProductAction';
 import BottomBar from '@/components/BottomBar';
 import PlusMenu,{type PostEntry} from '@/components/PlusMenu';
 import type CaptureSheetComponent from '@/components/CaptureSheet';
-import IntakeBar from '@/components/IntakeBar';
+import IntakeSheet from '@/components/IntakeSheet';
 import {Sheet} from '@/components/ui/Sheet';
 
 // Fetched after the page is up, not with it. public/sw.js keeps the file for offline opens.
@@ -62,6 +62,6 @@ export default function NavigationControls() {
     <Sheet confirmation open={capture&&!CaptureSheet} onClose={closeEntry} label={nav('newPost')}>
       {loadFailed?<><p role="alert">{t('composerOpenFailed')}</p><button className="min-h-tap text-accent" onClick={()=>{setLoadFailed(false);setLoadAttempt(value=>value+1);}}>{t('tryAgain')}</button><button className="min-h-tap text-accent" onClick={()=>window.location.reload()}>{t('reloadApp')}</button></>:<p role="status">{t('openingComposer')}</p>}
     </Sheet>
-    <IntakeBar onClose={closeEntry}/>
+    <IntakeSheet onClose={closeEntry}/>
   </>;
 }

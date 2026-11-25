@@ -33,15 +33,15 @@ Specific readbacks:
 - 0036: expected purge cron active at `0 3 * * *`.
 - Required extensions `pgcrypto`, `pg_trgm`, `pg_cron`, `pg_net` are present. Media bucket is private.
 
-## Outstanding Fleet15 migrations in PR588
+## Historical Fleet15 pre-application audit (superseded by the closeout above)
 
 | File | Current state | Required order |
 |---|---|---|
 |0053_estimate_reader_rollout.sql|Unapplied: format table, normalizer/trigger and versioned claim overload absent|Apply reviewed preparation before deploying #588; existing readers continue to receive legacy format|
 |0054_unavailable_summary.sql|Unapplied: production still matches0052 function bodies|Previous PM explicitly reserved the scope decision for the owner; no subsequent ruling is recorded. Apply before the matching new-code deployment if retained|
-|0055_approximation_once.sql|Unapplied: all4 provenance-bearing nutrition rows currently repeat their labels|After verified reader-compatible production deployment, use `scripts/activate-compact-nutrition.sql`; never treat this as an ordinary pre-deployment sequential migration|
+|0055_approximation_once.sql|Unapplied: all4 provenance-bearing nutrition rows currently repeat their labels|Historical reader-first activation; completed as recorded in the closeout above|
 
-The activation script needs the verified40-character deployed reader SHA, immediate NOWAIT locks, and zero running jobs. It fences old claim entrypoints and switches the database format barrier atomically with compaction. It does not drain on a timer. New compact writers default off; the DB barrier maintains the applicable format. `scripts/rollback-compact-nutrition.sql` expands stored/future compact writes before restoring old claims. Rollback files are contingency procedures, not outstanding migrations to run forward.
+The historical activation fenced old claim entrypoints and switched the database format barrier atomically. Packet #1368 A prepares0081 to remove that barrier after confirming compact activation; its apply and application deploy remain held for RT's written database yes and the PM's exact order. The obsolete activation/expansion scripts and write flag are retired. Current rollback restores compact enforcement before reverting the application; it does not expand owner rows. Historical review/audit records remain evidence, not executable runbooks.
 
 These source files/scripts are on the open #588 branch, not deployed main. Its final reviewed head is `223bf70eb7b682a1a06a7d6bdcf33c79b9d36212`. The final combined disposable gate passed45/45; that is not production application evidence. Deployment and migration application need their applicable authorization; this status document supplies none.
 

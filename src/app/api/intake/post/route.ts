@@ -37,19 +37,17 @@ export async function POST(request: Request) {
   if (!user) return NextResponse.json({ message_code: "route_ac6a88b19530" }, { status: 401 });
   const body=await request.json().catch(()=>null);
   if(body?.owner_id!==undefined&&body.owner_id!==user.id)return NextResponse.json({message_code: "route_746975d64da6"},{status:404});
-  if(body?.operation_id!==undefined&&!isUuid(body.operation_id))return NextResponse.json({message_code: "route_22cedede8c18"},{status:400});
+  if(!isUuid(body?.operation_id))return NextResponse.json({message_code: "route_22cedede8c18"},{status:400});
   const input = parseDrinkInput(body);
   if (!input) return NextResponse.json({ message_code: "route_1537a97602c2" }, { status: 400 });
   const zone = validZone(new URL(request.url).searchParams.get("tz") ?? (await cookies()).get("time-zone")?.value);
   const admin=createAdminClient(),key=tileDrinkKey(body,zone);
   const eatenAt=body?.eaten_at===undefined?new Date().toISOString():validEatenAt(body.eaten_at);
   if(!eatenAt)return NextResponse.json({message_code: "route_6572182f4064"},{status:400});
-  if(body.operation_id){
-    const receipt=await readDrinkReceipt(admin,user.id,body.operation_id,key,'tile');
-    if(receipt){if('status' in receipt)return NextResponse.json({ message_code: receipt.message_code},{status:receipt.status});return NextResponse.json({post_id:receipt.postId,drink:null},{status:201});}
-  }
+  const receipt=await readDrinkReceipt(admin,user.id,body.operation_id,key,'tile');
+  if(receipt){if('status' in receipt)return NextResponse.json({ message_code: receipt.message_code},{status:receipt.status});return NextResponse.json({post_id:receipt.postId,drink:null},{status:201});}
   try {
-    const result = await postDrink(admin,user.id,input,zone,body.operation_id?{id:body.operation_id,key,eatenAt}:undefined);
+    const result = await postDrink(admin,user.id,input,zone,{id:body.operation_id,key,eatenAt});
     return NextResponse.json({ post_id: result.postId, drink: result.drink }, { status: 201 });
   } catch(reason) { const code=(reason as {code?:string})?.code;return NextResponse.json({ message_code: "route_d9093df4e1e4" }, { status: code?drinkErrorStatus(code):502 }); }
 }
