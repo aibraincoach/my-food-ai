@@ -30,7 +30,7 @@ export default function BottomBar({ onPlus, menuOpen = false }: { onPlus: () => 
       {slot.href==='/profile'?identity.handle?<Avatar handle={identity.handle} userId={identity.userId} mediaId={identity.avatarMediaId} sizePx={26} textClassName="text-avatar-sm"/>:<Icon name="profile" size={18}/>:<Icon name={slot.icon} active={active} size={24}/>}
     </Link>;
   };
-  return <nav aria-label={t('primary')} aria-hidden={menuOpen||undefined} inert={menuOpen} data-pill className="fixed left-1/2 z-50 [[data-mfa-sheet-open]_&]:z-[70] grid h-[58px] w-[calc(100%-48px)] max-w-[342px] -translate-x-1/2 grid-cols-5 items-center rounded-[29px] bg-surface-94 px-[6px]" style={{opacity:menuOpen?0:1,pointerEvents:menuOpen?'none':undefined,transition:'opacity 160ms',bottom:'calc(24px + env(safe-area-inset-bottom))',boxShadow:'var(--color-shadow-pill)',backdropFilter:'blur(var(--spacing-blur-pill))'}}>
+  return <nav aria-label={t('primary')} aria-hidden={menuOpen||undefined} inert={menuOpen} data-pill className="fixed left-1/2 z-50 [[data-mfa-sheet-open]_&]:z-[70] grid h-[58px] w-[calc(100%-48px)] max-w-[342px] -translate-x-1/2 grid-cols-5 items-center rounded-[29px] bg-surface-94 px-[6px]" style={{opacity:menuOpen?0:1,pointerEvents:menuOpen?'none':undefined,transition:'opacity 160ms',bottom:'calc(24px + env(safe-area-inset-bottom))'}}>
     {link(SLOTS[0])}{link(SLOTS[1])}
     <div className="relative flex h-[46px] items-center justify-center">
       {pathname==='/'&&feedEmpty&&<div className="pointer-events-none absolute bottom-full left-1/2 -translate-x-1/2 whitespace-nowrap pb-4"><Tooltip>{t('photoHint')}</Tooltip></div>}

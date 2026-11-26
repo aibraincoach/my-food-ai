@@ -58,7 +58,7 @@ export default function PlusMenu({ open, onClose }: { open: boolean; onClose: ()
         style={{left:centre.x+x-size/2,top:centre.y+y-size/2,width:size,height:size}}>
         {/* Keep the hit target fixed; only the pointer-transparent visual moves. */}
         <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center rounded-circle"
-          style={{background:tokens.colors.white,boxShadow:tokens.colors['shadow-entry'],color:tokens.colors.text,opacity:visible?1:0,transform:`translate(${visible?0:-x}px,${visible?0:-y}px) scale(${visible?1:0.7}) rotate(${visible?0:-60}deg)`,transition:`transform ${open?360:220}ms cubic-bezier(0.34,1.3,0.64,1), opacity ${open?160:220}ms`,transitionDelay:open?`${index*30}ms`:"0ms"}}>
+          style={{background:tokens.colors.white,boxShadow:'var(--color-shadow-entry)',color:tokens.colors.text,opacity:visible?1:0,transform:`translate(${visible?0:-x}px,${visible?0:-y}px) scale(${visible?1:0.7}) rotate(${visible?0:-60}deg)`,transition:`transform ${open?360:220}ms cubic-bezier(0.34,1.3,0.64,1), opacity ${open?160:220}ms`,transitionDelay:open?`${index*30}ms`:"0ms"}}>
         <span className="absolute bottom-full mb-2 whitespace-nowrap text-meta font-medium text-text" style={{opacity:visible?1:0,transition:"opacity 100ms",transitionDelay:open?`${260+index*30}ms`:"0ms"}}>{label}</span>
         <Icon name={icon} size={tokens.spacing['item-row']} />
         </div>
