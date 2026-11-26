@@ -18,7 +18,7 @@ for(const [name,ref,label]of [['Label meal','label','the package label you photo
  const named={postId:post.id,regions:[],captionOnly:[{name,portionText:'one serving',portionGrams:100,confidence:0.9}],summary:'',needsInput:null,hasNotEaten:true,...(ref==='label'?{labelNutrition:nutrition}:{})};
  await persistAnalysis(db,named,[nutrition],job.id);
  const items=await getCurrentItems(db,post.id);assert.equal(items.length,1);assert.equal(items[0].source_ref,ref);assert.equal(items[0].calories,180);assert.equal(items[0].protein_g,4);assert.equal(items[0].fibre_g,null);assert.deepEqual(items[0].micronutrients,[]);
- const html=renderNutritionTable('en',JSON.parse(fs.readFileSync(new URL('../messages/en.json',import.meta.url),'utf8')),items);assert.ok(html.includes(label),html);assert.ok(!String(items[0].source_ref).startsWith('unavailable:')); 
+ const html=renderNutritionTable('en',JSON.parse(fs.readFileSync(new URL('../messages/en.json',import.meta.url),'utf8')),items);assert.ok(html.includes(label),html);assert.ok(!String(items[0].source_ref).startsWith('unavailable:'));
  assert.equal(checked(await db.from('posts').select('status').eq('id',post.id).single()).status,'ready');
  }finally{checked(await db.from('posts').delete().eq('id',post.id));}
 });
