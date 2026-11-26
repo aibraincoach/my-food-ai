@@ -33,6 +33,7 @@ let priorityRegistered = false;
 let settleFirstPhoto!: () => void;
 export const firstPhotoSettled = new Promise<void>(resolve => { settleFirstPhoto = resolve; });
 export function registerFirstPhoto(): void { priorityRegistered = true; }
+export function finishFirstPhoto(): void { settleFirstPhoto(); }
 // Called at load, after priority readers have registered during their render.
 export function settleWithoutFirstPhoto(): boolean {
   const serverPhoto = Array.from(document.querySelectorAll<HTMLImageElement>('img[data-first-photo]'))
@@ -67,10 +68,9 @@ function sharpPhoto(url: string): Promise<HTMLImageElement> {
 
 // The temporary server seed is replaced by the real feed. Only the visible
 // mounted feed image upgrades, after its small first frame has actually painted.
-export async function firstPhotoUpgrade(url: string, image: HTMLImageElement, signal: AbortSignal): Promise<void> {
-  if (image.closest('[data-fast-feed-seed]')) return;
-  if (signal.aborted || !image.isConnected) return;
-  let painted = false;
+export async function firstPhotoUpgrade(url: string, image: HTMLImageElement, signal: AbortSignal): Promise<string | null> {
+  if (image.closest('[data-fast-feed-seed]')) return null;
+  if (signal.aborted || !image.isConnected) return null;
   try {
     const sharp = sharpPhoto(url);
     // Start the sharp fetch on the existing load/idle trigger, independently of
@@ -96,10 +96,10 @@ export async function firstPhotoUpgrade(url: string, image: HTMLImageElement, si
       }
       return false;
     };
-    if (!await paintSmall()) return;
+    if (!await paintSmall()) return null;
     const result = await decodedSharp;
     if ('error' in result) throw result.error;
-    if (signal.aborted || (!visible() && !await paintSmall())) return;
+    if (signal.aborted || (!visible() && !await paintSmall())) return null;
     const srcset = feedPhotoSrcSet(url) ?? '';
     // The decoded browser-selected candidate uses the same responsive selection
     // as the visible box. Do not swap an unverified or differently sized bitmap.
@@ -108,17 +108,10 @@ export async function firstPhotoUpgrade(url: string, image: HTMLImageElement, si
     if (result.copy.sizes !== FEED_PHOTO_SIZES || result.copy.srcset !== srcset || !candidates.includes(result.copy.currentSrc)) {
       throw new Error('Sharp photo candidate does not match the visible image');
     }
-    // One synchronous write, while first-frame effects remain disabled.
-    image.sizes = FEED_PHOTO_SIZES;
-    image.srcset = srcset;
-    image.src = url;
-    await image.decode();
-    await new Promise<void>(resolve => requestAnimationFrame(() => requestAnimationFrame(() => resolve())));
-    painted = !signal.aborted;
+    // MealPhoto mounts this decoded candidate over the unchanged soft bitmap.
+    return result.copy.currentSrc;
   } catch (error) {
     if (!signal.aborted) settleFirstPhoto();
     throw error;
-  } finally {
-    if (painted) settleFirstPhoto();
   }
 }

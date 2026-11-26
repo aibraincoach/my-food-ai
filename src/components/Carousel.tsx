@@ -3,7 +3,7 @@ import {DisplayError} from '@/i18n/display-error';
 import {useLocale,useTranslations} from 'next-intl';
 import type {Locale} from '@/i18n/locales';
 import {formatEnergy,formatNumber} from '@/i18n/format';
-import {feedPhotoSrcSet,firstPhotoSources,firstPhotoUpgrade,registerFirstPhoto,FEED_PHOTO_SIZES} from '@/lib/posts/feed-photo-url';
+import {feedPhotoSrcSet,firstPhotoSources,firstPhotoUpgrade,registerFirstPhoto,finishFirstPhoto,FEED_PHOTO_SIZES} from '@/lib/posts/feed-photo-url';
 import {useEffect,useRef,useState,type ReactNode} from 'react';
 import Link from 'next/link';
 import {useRouter} from 'next/navigation';
@@ -105,11 +105,15 @@ export function FirstPhoto({url,alt}:{url:string;alt:string}) {
  return <MealPhoto url={url} priority alt={alt}/>;
 }
 
+/* Native sibling bitmaps must retain their decode and paint lifecycle. */
+/* eslint-disable @next/next/no-img-element */
 function MealPhoto({url,priority,alt}:{url:string;priority:boolean;alt:string}) {
  if(priority)registerFirstPhoto();
  const t=useTranslations('post');
  const [read,setRead]=useState({path:imageIdentity(url),url,failed:false});
  const image=useRef<HTMLImageElement>(null);
+ const sharpImage=useRef<HTMLImageElement>(null);
+ const [sharp,setSharp]=useState<{url:string;src:string;phase:'decode'|'visible'|'complete'}|null>(null);
  const [nearViewport,setNearViewport]=useState(false);
  useEffect(()=>{
   if(priority||nearViewport||!image.current)return;
@@ -120,12 +124,30 @@ function MealPhoto({url,priority,alt}:{url:string;priority:boolean;alt:string}) 
  useEffect(()=>{
   if(!priority||!image.current)return;
   let live=true;const controller=new AbortController();
-  void firstPhotoUpgrade(active,image.current,controller.signal).catch(()=>{if(live)setPhotoError({url:active,key:'sharperPhotoFailed'});});
+  void firstPhotoUpgrade(active,image.current,controller.signal).then(src=>{
+   if(live&&src)setSharp({url:active,src,phase:'decode'});
+  }).catch(()=>{if(live)setPhotoError({url:active,key:'sharperPhotoFailed'});});
   return()=>{live=false;controller.abort();};
  },[active,priority]);
+ useEffect(()=>{
+  if(!sharp||sharp.url!==active||!sharpImage.current)return;
+  let live=true;const frames:number[]=[];
+  const frame=(fn:()=>void)=>{frames.push(requestAnimationFrame(()=>{if(live)fn();}));};
+  if(sharp.phase==='decode')void sharpImage.current.decode().then(()=>{
+   if(live)frame(()=>frame(()=>setSharp({...sharp,phase:'visible'})));
+  }).catch(()=>{if(live){setPhotoError({url:active,key:'sharperPhotoFailed'});finishFirstPhoto();}});
+  else if(sharp.phase==='visible')frame(()=>setSharp({...sharp,phase:'complete'}));
+  else finishFirstPhoto();
+  return()=>{live=false;frames.forEach(cancelAnimationFrame);};
+ },[active,sharp]);
+ const shownSharp=sharp?.url===active?sharp:null;
+ const complete=shownSharp?.phase==='complete';
  const sources=priority?firstPhotoSources(active):{src:active,srcSet:feedPhotoSrcSet(active),sizes:FEED_PHOTO_SIZES};
- // eslint-disable-next-line @next/next/no-img-element
- return <><img ref={image} data-first-photo={priority?"":undefined} src={priority||nearViewport?sources.src:undefined} srcSet={priority||nearViewport?sources.srcSet:undefined} crossOrigin="anonymous" sizes={sources.sizes} width={1080} height={1080} fetchPriority={priority?"high":undefined} loading={priority?"eager":"lazy"} decoding="async" alt={alt} className="h-full w-full object-cover"
+ return <>{!complete&&<img ref={image} data-first-photo={priority?"":undefined} src={priority||nearViewport?sources.src:undefined} srcSet={priority||nearViewport?sources.srcSet:undefined} crossOrigin="anonymous" sizes={sources.sizes} width={1080} height={1080} fetchPriority={priority?"high":undefined} loading={priority?"eager":"lazy"} decoding="async" alt={alt} className="h-full w-full object-cover"
   onError={()=>{setRead({path:imageIdentity(active),url:active,failed:true});setPhotoError({url:active,key:'mealPhotoFailed'});}}
-  onLoad={()=>{setPhotoError(previous=>previous?.key==='mealPhotoFailed'?null:previous);if(read.failed||read.url!==active||read.path!==imageIdentity(active))setRead({path:imageIdentity(active),url:active,failed:false});}}/>{photoError?.url===active&&<span role="status" className="absolute bottom-3 left-3 rounded-field bg-surface px-2 text-meta text-text">{t(photoError.key)}</span>}</>;
+  onLoad={()=>{setPhotoError(previous=>previous?.key==='mealPhotoFailed'?null:previous);if(read.failed||read.url!==active||read.path!==imageIdentity(active))setRead({path:imageIdentity(active),url:active,failed:false});}}/>}
+  {/* The soft bitmap remains opaque until the mounted sharp sibling has painted. */}
+  {shownSharp&&<img data-first-photo-sharp="" ref={sharpImage} data-first-photo="" src={shownSharp.src} srcSet={feedPhotoSrcSet(active)} sizes={FEED_PHOTO_SIZES} crossOrigin="anonymous" width={1080} height={1080} loading="eager" decoding="async" alt={complete?alt:''} aria-hidden={complete?undefined:true} className="pointer-events-none absolute inset-0 h-full w-full object-cover" style={{opacity:shownSharp.phase==='decode'?0:1,transition:'none'}} onError={()=>{setPhotoError({url:active,key:'sharperPhotoFailed'});finishFirstPhoto();}}/>}
+  {photoError?.url===active&&<span role="status" className="absolute bottom-3 left-3 rounded-field bg-surface px-2 text-meta text-text">{t(photoError.key)}</span>}</>;
 }
+/* eslint-enable @next/next/no-img-element */
