@@ -14,3 +14,6 @@ test('named coleslaw remains eligible while an unlisted compound gets no suffix 
 });
 
 test('the crossed cabbage and carrot slaw name has the same coleslaw identity',()=>assert.equal(recordContradicts('shredded cabbage and carrot slaw',{description:'Coleslaw with dressing'}),false));
+test('a classified lead cannot borrow a matching word to hide its condiment kind',()=>assert.equal(recordContradicts('potato salad',{description:'Potato gravy with dressing'}),true));
+test('a three-letter descriptor cannot establish food identity',()=>assert.equal(recordContradicts('red cabbage',{description:'Red with dressing'}),true));
+test('plain whole-word identity works without a compound-table entry',()=>assert.equal(recordContradicts('quinoa salad',{description:'Quinoa with dressing'}),false));
