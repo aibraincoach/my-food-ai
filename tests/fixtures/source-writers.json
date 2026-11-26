@@ -376,6 +376,11 @@
         "sha256": "b9c51fc225dab0572c56044596edb22ad980b160ec055e389f21ea7e4641e2cc"
       },
       {
+        "file": "supabase/migrations/0087_item_record_description.sql",
+        "sourceRefLines": 41,
+        "sha256": "01764425a0283c9175003a0aae7a77350ae9dc32f12bcdd159f0927c62e21f7b"
+      },
+      {
         "file": "scripts/numbers/02-inventory.sql",
         "sourceRefLines": 14,
         "sha256": "ad7a619777562a48d90b1cac6093acc296bd8f858069e1e7f78944fbed7f49ff"
@@ -408,7 +413,7 @@
       {
         "file": "scripts/numbers/14-rule-failures.sql",
         "sourceRefLines": 3,
-        "sha256": "7a93cf9f9983dd08fe1947cc878952b423dfe04719e77b37567e3a3538a62f9a"
+        "sha256": "df3e215dadcb1fce8fa753279088b41e983ff64ae30d4472ec7e14e2acffb8ee"
       },
       {
         "file": "scripts/numbers/15-repair-undo.sql",
@@ -423,7 +428,7 @@
       {
         "file": "scripts/numbers/23-records.sql",
         "sourceRefLines": 6,
-        "sha256": "66f3bb27a79369410cc2b30924e2e006b578dbc6e3beb18f6eceb1cc0e258e22"
+        "sha256": "1843804ff0736b4a2b7dbf791abf1ab914078b4b4852410e875623a1dfbcbb78"
       },
       {
         "file": "scripts/numbers/26-owner-study.sql",

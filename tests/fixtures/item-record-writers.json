@@ -1,0 +1,82 @@
+[
+  {
+    "signature": "apply_post_remainder(uuid,uuid,uuid,uuid[],jsonb,jsonb)",
+    "base": "0084_structured_comment_messages.sql",
+    "replacement": "0087_item_record_description.sql"
+  },
+  {
+    "signature": "apply_post_remainder(uuid,uuid,uuid,uuid[],jsonb,text)",
+    "base": "0029_drinks_from_items.sql",
+    "replacement": "0087_item_record_description.sql"
+  },
+  {
+    "signature": "copy_owned_post(uuid,timestamp with time zone)",
+    "base": "0041_saved_drink_snapshots.sql",
+    "replacement": "0087_item_record_description.sql"
+  },
+  {
+    "signature": "copy_owned_saved_meal(uuid,timestamp with time zone)",
+    "base": "0041_saved_drink_snapshots.sql",
+    "replacement": "0087_item_record_description.sql"
+  },
+  {
+    "signature": "correct_barcode_item(uuid,uuid,text,text,numeric,text,jsonb,jsonb)",
+    "base": "0084_structured_comment_messages.sql",
+    "replacement": "0087_item_record_description.sql"
+  },
+  {
+    "signature": "correct_barcode_item(uuid,uuid,text,text,numeric,text,jsonb)",
+    "base": "0029_drinks_from_items.sql",
+    "replacement": "0087_item_record_description.sql"
+  },
+  {
+    "signature": "create_food_post(uuid,timestamp with time zone,text,numeric,jsonb,jsonb)",
+    "base": "0075_food_post_gtin.sql",
+    "replacement": "0087_item_record_description.sql"
+  },
+  {
+    "signature": "edit_post_item_with_nutrition(uuid,uuid,text,uuid,text,numeric,jsonb,jsonb)",
+    "base": "0029_drinks_from_items.sql",
+    "replacement": "0087_item_record_description.sql"
+  },
+  {
+    "signature": "persist_analysis_initial(uuid,jsonb,jsonb)",
+    "base": "0084_structured_comment_messages.sql",
+    "replacement": "0087_item_record_description.sql"
+  },
+  {
+    "signature": "persist_analysis_initial(uuid,jsonb,text)",
+    "base": "0029_drinks_from_items.sql",
+    "replacement": "0087_item_record_description.sql"
+  },
+  {
+    "signature": "persist_correction(uuid,uuid,uuid[],uuid,jsonb,jsonb)",
+    "base": "0084_structured_comment_messages.sql",
+    "replacement": "0087_item_record_description.sql"
+  },
+  {
+    "signature": "persist_correction(uuid,uuid,uuid[],uuid,jsonb,text)",
+    "base": "0029_drinks_from_items.sql",
+    "replacement": "0087_item_record_description.sql"
+  },
+  {
+    "signature": "persist_photo_correction(uuid,uuid,uuid[],jsonb,jsonb,jsonb)",
+    "base": "0084_structured_comment_messages.sql",
+    "replacement": "0087_item_record_description.sql"
+  },
+  {
+    "signature": "persist_photo_correction(uuid,uuid,uuid[],jsonb,text,jsonb)",
+    "base": "0029_drinks_from_items.sql",
+    "replacement": "0087_item_record_description.sql"
+  },
+  {
+    "signature": "persist_removed_rebuild(uuid,uuid,uuid[],uuid[],uuid[],jsonb,jsonb)",
+    "base": "0084_structured_comment_messages.sql",
+    "replacement": "0087_item_record_description.sql"
+  },
+  {
+    "signature": "persist_removed_rebuild(uuid,uuid,uuid[],uuid[],uuid[],jsonb,text)",
+    "base": "0030_delete_and_remove.sql",
+    "replacement": "0087_item_record_description.sql"
+  }
+]
