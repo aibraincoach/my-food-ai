@@ -2,7 +2,7 @@ const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 // Immutable media identity keeps the private worker cache correct when a
 // photo is removed or replaced. This module is also safe in browser bundles.
-export function publicPhotoUrl(media: string, secret: string, width: 640 | 1080 | 1200 | 1600): string {
+export function publicPhotoUrl(media: string, secret: string, width: 320 | 640 | 1080 | 1200 | 1600): string {
   return `/p/${media}_${secret}_${width}.webp`;
 }
 // With the photo's secret the address is the permanent public one; without it, the signed-in route.
@@ -25,14 +25,41 @@ export function feedPhotoSrcSet(url: string | null | undefined): string | undefi
 // The fast server copy, feed card and initial preload select one fixed file.
 export const FEED_PHOTO_SIZES = '(min-width: 1024px) 520px, 100vw';
 export function firstPhotoSources(url: string): {src: string; srcSet?: string; sizes?: string} {
-  const src = url.replace(/^(\/p\/[0-9a-f-]{36}_[0-9a-f]{32})_1080\.webp$/, '$1_640.webp');
+  const src = url.replace(/^(\/p\/[0-9a-f-]{36}_[0-9a-f]{32})_1080\.webp$/, '$1_320.webp');
   return {src};
+}
+
+const sharpPhotos = new Map<string, Promise<HTMLImageElement>>();
+function sharpPhoto(url: string): Promise<HTMLImageElement> {
+  let pending = sharpPhotos.get(url);
+  if (!pending) {
+    pending = new Promise<void>(resolve => {
+      const idle = () => {
+        if ('requestIdleCallback' in window) window.requestIdleCallback(() => resolve(), {timeout: 3000});
+        else setTimeout(resolve, 0);
+      };
+      if (document.readyState === 'complete') idle();
+      else window.addEventListener('load', idle, {once: true});
+    }).then(async () => {
+      const copy = new Image();
+      copy.crossOrigin = 'anonymous'; copy.fetchPriority = 'high';
+      copy.sizes = FEED_PHOTO_SIZES; copy.srcset = feedPhotoSrcSet(url) ?? ''; copy.src = url;
+      await copy.decode(); return copy;
+    });
+    // Only the current first photo needs a decoded sharp bitmap retained.
+    sharpPhotos.clear(); sharpPhotos.set(url, pending);
+  }
+  return pending;
 }
 
 // The temporary server seed is replaced by the real feed. Only the visible
 // mounted feed image upgrades, after its small first frame has actually painted.
 export async function firstPhotoUpgrade(url: string, image: HTMLImageElement, signal: AbortSignal): Promise<void> {
   if (signal.aborted || !image.isConnected || image.closest('[data-fast-feed-seed]')) return;
+  const sharp = sharpPhoto(url);
+  // Start the sharp fetch on the existing load/idle trigger, independently of
+  // the small frame. Attach rejection handling immediately while it paints.
+  const decodedSharp = sharp.then(copy => ({copy}), error => ({error}));
   const visible = () => {
     const rect = image.getBoundingClientRect();
     return image.isConnected && rect.width > 0 && rect.height > 0 && rect.bottom > 0 && rect.top < window.innerHeight && getComputedStyle(image).visibility !== 'hidden';
@@ -54,14 +81,8 @@ export async function firstPhotoUpgrade(url: string, image: HTMLImageElement, si
     return false;
   };
   if (!await paintSmall()) return;
-  await new Promise<void>(resolve => {
-    const idle = () => {
-      if ('requestIdleCallback' in window) window.requestIdleCallback(() => resolve(), {timeout: 3000});
-      else setTimeout(resolve, 0);
-    };
-    if (document.readyState === 'complete') idle();
-    else window.addEventListener('load', idle, {once: true});
-  });
+  const result = await decodedSharp;
+  if ('error' in result) throw result.error;
   if (signal.aborted || (!visible() && !await paintSmall())) return;
   image.sizes = FEED_PHOTO_SIZES;
   image.srcset = feedPhotoSrcSet(url) ?? '';

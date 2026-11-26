@@ -44,3 +44,5 @@ test('only the current v2 URL selects density candidates',()=>{
  for(const version of ['v2'])assert.equal(feedPhotoSrcSet(`/api/media/feed/a/b/c/${version}.webp`),`/api/media/feed/a/b/c/${version}.webp 1x, /api/media/feed/a/b/c/v2-1040.webp 2x, /api/media/feed/a/b/c/v2-1560.webp 3x`);
  assert.equal(feedPhotoSrcSet('https://x/y.jpg'),undefined);
 });
+
+test('the soft first frame is 320 wide and existing sharp widths keep their exact bytes',async()=>{const source=await sharp({create:{width:1280,height:854,channels:3,background:'#a44c32'}}).jpeg().toBuffer();const small=await photo.resizeSharpPhoto(source,320);assert.equal((await sharp(small).metadata()).width,320);for(const width of [640,1080,1200,1600]){const expected=await sharp(source,{limitInputPixels:16_777_216,failOn:'error'}).timeout({seconds:3}).rotate().resize({width,height:width,fit:'inside',withoutEnlargement:true}).webp({quality:68,effort:3}).toBuffer();assert.deepEqual(await photo.resizeSharpPhoto(source,width),expected);}});
