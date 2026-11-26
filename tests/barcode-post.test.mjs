@@ -97,9 +97,9 @@ rollback;
 test("the signed-in food route accepts server-resolved GTIN/photo, rejects supplied nutrition, and hides the post from the second user", { skip: !process.env.SUPABASE_DB_URL || !process.env.FDC_API_KEY }, async (t) => {
   const installed = sql("select exists(select 1 from pg_proc where proname='create_food_post' and pronargs=6);").trim() === "t";
   if (!installed) { t.skip("Migration 0020 is not installed; applying it requires the PR's merge order."); return; }
-  const origin = "http://127.0.0.1:3104";
+  const origin = process.env.APP_URL;assert.ok(origin,"APP_URL is required for the served route proof");
   try { await fetch(`${origin}/signin`, { signal: AbortSignal.timeout(3000) }); }
-  catch { t.skip("Start the built item 4 app on port 3104 to run the real HTTP route check."); return; }
+  catch { t.skip("Start the built app at APP_URL to run the real HTTP route check."); return; }
   const cookie = await signInAsTestUser(1);
   const admin = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.SUPABASE_SECRET_KEY);
   const owner = await testUser(1);
@@ -107,7 +107,7 @@ test("the signed-in food route accepts server-resolved GTIN/photo, rejects suppl
   assert.ok(product,"The owner-resolved barcode product must exist.");
   const expectedNutrition = barcodeNutrition(product,27);
   let postId; let paths = [];
-  const send = (path, body) => fetch(`${origin}${path}`, { method: "POST", headers: { "Content-Type": "application/json", cookie }, body: JSON.stringify(path==="/api/posts/food"?{...body,operation_id:randomUUID(),owner_id:owner.user.id}:body) });
+  const send = (path, body) => fetch(`${origin}${path}`, { method: "POST", headers: { "Content-Type": "application/json", cookie }, body: JSON.stringify(path==="/api/posts/food"?{...body,time_zone:'UTC',operation_id:randomUUID(),owner_id:owner.user.id}:body) });
   try {
     const forged = await send("/api/posts/food", { gtin: product.gtin, amount: 27, unit: "g", nutrition: { calories: 1 } });
     assert.equal(forged.status,400);
@@ -140,7 +140,7 @@ test("the signed-in food route accepts server-resolved GTIN/photo, rejects suppl
 test("a label reading belonging to a second user cannot become the signed-in user's post",{skip:!process.env.SUPABASE_DB_URL},async(t)=>{
  const installed=sql("select to_regclass('public.label_readings') is not null;").trim()==='t';
  if(!installed){t.skip('Migration 0025 awaits its merge order.');return;}
- const origin='http://127.0.0.1:3104';let healthResponse;try{healthResponse=await fetch(origin+'/api/health');}catch{t.skip('Local built application is not running.');return;}
+ const origin=process.env.APP_URL;assert.ok(origin,'APP_URL is required for the served route proof');let healthResponse;try{healthResponse=await fetch(origin+'/api/health');}catch{t.skip('Local built application is not running.');return;}
  const health=await healthResponse.json();assert.equal(typeof health.config.MODEL_API_KEY,'boolean');assert.equal(typeof health.database.ok,'boolean');assert.equal(typeof health.model.ok,'boolean');
  const cookie=await signInAsTestUser();
  const admin=createClient(process.env.NEXT_PUBLIC_SUPABASE_URL,process.env.SUPABASE_SECRET_KEY,{auth:{persistSession:false,autoRefreshToken:false}});
@@ -148,6 +148,6 @@ test("a label reading belonging to a second user cannot become the signed-in use
  const {data:auth,error:authError}=await other.auth.signInWithPassword({email:process.env.TEST_USER2_EMAIL,password:process.env.TEST_USER2_PASSWORD});assert.ifError(authError);
  const {data:reading,error}=await admin.from('label_readings').insert({user_id:auth.user.id,photo_path:auth.user.id+'/fixture/0.jpg',reading:{is_label:true}}).select('id').single();assert.ifError(error);
  try{
-  const response=await fetch(origin+'/api/posts/food',{method:'POST',headers:{'Content-Type':'application/json',cookie},body:JSON.stringify({label_reading_id:reading.id,servings:2,name:'Packaged food',operation_id:randomUUID()})});assert.equal(response.status,404);
+  const response=await fetch(origin+'/api/posts/food',{method:'POST',headers:{'Content-Type':'application/json',cookie},body:JSON.stringify({time_zone:'UTC',label_reading_id:reading.id,servings:2,name:'Packaged food',operation_id:randomUUID()})});assert.equal(response.status,404);
  }finally{await admin.from('label_readings').delete().eq('id',reading.id);}
 });
