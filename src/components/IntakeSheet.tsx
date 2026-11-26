@@ -12,6 +12,7 @@ import { Field } from "@/components/ui/Field";
 import { Button } from "@/components/ui/Button";
 import { Icon } from "@/components/ui/Icon";
 import {uploadManager,type UploadState} from "@/lib/posts/upload-manager";
+import {TEA_REFERENCES,teaCaffeine,type TeaId} from "@/lib/intake/tea-references";
 import { DRINK_TILES, TILE_SIZES } from "@/lib/intake/intake";
 import type { DrinkRow } from "@/lib/intake/hydration";
 import VoiceButton,{useVoiceActivity} from "@/components/VoiceButton";
@@ -38,6 +39,7 @@ export default function IntakeSheet({ embedded = false, onClose }: { initialKind
   const [tileCounts, setTileCounts] = useState<number[]>(DRINK_TILES.map(() => 0));
   const [countsReady, setCountsReady] = useState(false);
   const [usualMl, setUsualMl] = useState<number[]>(DRINK_TILES.map(tile => tile.ml));
+  const [teaId,setTeaId]=useState<TeaId>("tea-black");
   const [sizeTile, setSizeTile] = useState<number | null>(null);
   const hold = useRef<{timer: ReturnType<typeof setTimeout>; x: number; y: number} | null>(null);
   const held = useRef(false);
@@ -81,7 +83,7 @@ export default function IntakeSheet({ embedded = false, onClose }: { initialKind
     setError("");
     try {
       const choice=DRINK_TILES[tile],size=TILE_SIZES[tile].find(size=>size.ml===ml);
-      await uploadManager.postDrink({tile,ml,eaten_at:new Date().toISOString(),time_zone:Intl.DateTimeFormat().resolvedOptions().timeZone},choice.name+', '+(size?.word??choice.size)+' · '+ml+' ml');
+      await uploadManager.postDrink({tile,ml,...(choice.id==='tea-black'?{tea_id:teaId}:{}),eaten_at:new Date().toISOString(),time_zone:Intl.DateTimeFormat().resolvedOptions().timeZone},(choice.id==='tea-black'?TEA_REFERENCES[teaId].name:choice.name)+', '+(size?.word??choice.size)+' · '+ml+' ml');
       close();
     } catch (reason) { setError(reason instanceof CaptureFailureError ? captureFailureText(reason.failure,tf)! : reason instanceof DisplayError ? reason.message : t('drinkSaveFailed')); }
   };
@@ -121,8 +123,8 @@ export default function IntakeSheet({ embedded = false, onClose }: { initialKind
     <div className={`grid grid-cols-3 gap-2 ${countsReady?'':'invisible'}`} aria-busy={!countsReady}>{tileOrder.map(index => {
       const tile = DRINK_TILES[index];
       const size = TILE_SIZES[index].find(size => size.ml === usualMl[index])!;
-      const caffeineMg = size.caffeineMg ?? Math.round(tile.caffeineMg * size.ml / tile.ml);
-      return <button key={index} type="button" disabled={busy||voice.active} onClick={() => { if (held.current) { held.current = false; return; } void postTile(index); }}
+      const caffeineMg = tile.id==='tea-black'?teaCaffeine(teaId,size.ml):size.caffeineMg ?? Math.round(tile.caffeineMg * size.ml / tile.ml);
+      return <button key={index} type="button" disabled={busy||voice.active} onClick={() => { if (held.current) { held.current = false; return; } if(tile.id==='tea-black'){setSizeTile(index);return;} void postTile(index); }}
         onPointerDown={event => {
           if (!event.isPrimary || event.button !== 0) return;
           cancelHold(); held.current = false;
@@ -134,11 +136,15 @@ export default function IntakeSheet({ embedded = false, onClose }: { initialKind
         onKeyDown={event => { if (event.key === "Enter" || event.key === " ") held.current = false; if (event.key === "ArrowDown") { event.preventDefault(); setSizeTile(index); } }}
         aria-label={t('postDrinkLabel',{name:tileName(index),size:sizeName(index,size.ml)})} aria-expanded={sizeTile === index} aria-controls={sizeTile === index ? "drink-tile-sizes" : undefined}
         className="flex h-[92px] touch-manipulation flex-col justify-between rounded-[14px] border border-line bg-white px-3 py-[10px] text-left active:bg-field disabled:opacity-50">
-        <span className="flex flex-col"><span className="text-[14px] font-semibold">{tileName(index)}</span><span className="text-[12px] text-muted">{sizeName(index,size.ml)}</span></span>
+        <span className="flex flex-col"><span className="text-[14px] font-semibold">{tileName(index)}</span><span className="text-[12px] text-muted">{tile.id==='tea-black'?t(TEA_REFERENCES[teaId].messageKey)+' · ':''}{sizeName(index,size.ml)}</span></span>
         <span className="flex justify-between gap-1 text-[12px] tabular-nums"><span>{formatNumber(locale,size.ml,{useGrouping:false})} ml</span>{caffeineMg > 0 && <span className="text-muted">{formatNumber(locale,caffeineMg,{useGrouping:false})} mg</span>}</span>
       </button>;
     })}</div>
     {sizeTile !== null && <div id="drink-tile-sizes" role="group" aria-label={t('drinkSizes',{name:tileName(sizeTile)})} className="flex flex-wrap gap-2">
+      {sizeTile===3&&<div role="group" aria-label={t('chooseTea')} className="flex w-full flex-wrap gap-2">
+        <p className="w-full text-detail">{t('chooseTea')}</p>
+        {Object.values(TEA_REFERENCES).map(tea=><button key={tea.id} type="button" disabled={busy||voice.active} aria-pressed={teaId===tea.id} onClick={()=>setTeaId(tea.id)} className="min-h-tap rounded-field border border-line px-3 py-2 text-detail aria-pressed:bg-field">{t(tea.messageKey)}</button>)}
+      </div>}
       {TILE_SIZES[sizeTile].map(size => <button key={size.ml} type="button" disabled={busy||voice.active} className="min-h-tap rounded-field border border-line px-3 py-2 text-detail active:bg-field" onClick={() => { held.current = false; void postTile(sizeTile, size.ml); }}>
         {sizeName(sizeTile,size.ml)} · {formatNumber(locale,size.ml,{useGrouping:false})} ml
       </button>)}

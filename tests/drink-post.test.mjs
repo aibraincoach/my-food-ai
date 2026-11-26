@@ -14,7 +14,7 @@ const operation={id:'11111111-1111-4111-8111-111111111111',key:'a'.repeat(64),ea
 const migration = readFileSync(new URL("../supabase/migrations/0019_intake_logs_drink.sql", import.meta.url), "utf8");
 
 test("drink data is bounded and caffeine/labels come from the server", () => {
-  assert.deepEqual(parseDrinkInput({ tile: 4, caffeineMg: 999 }), { kind: "caffeine", label: "Coca-Cola, can", ml: 330, caffeineMg: 32 });
+  assert.deepEqual(parseDrinkInput({ tile: 4, caffeineMg: 999 }), { id:"cola", kind: "caffeine", label: "Coca-Cola, can", ml: 330, caffeineMg: 32 });
   assert.equal(parseDrinkInput({ tile: 4, ml: 1 }), null, "unsupported tile sizes cannot silently become a default");
   assert.equal(parseDrinkInput({ tile: 9 }), null);
   assert.equal(parseDrinkInput({ tile: -1 }), null);

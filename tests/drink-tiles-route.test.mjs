@@ -1,6 +1,7 @@
 // node --import tsx --env-file=.env.local --test tests/drink-tiles-route.test.mjs
 // Requires a locally served build and disposable database with migration 0037.
 import test from 'node:test';
+import {readFileSync} from 'node:fs';
 import {randomUUID} from 'node:crypto';
 import assert from 'node:assert/strict';
 import {createClient} from '@supabase/supabase-js';
@@ -22,6 +23,7 @@ test('actual intake route commits all six server tiles and rejects retired kind-
  // Explicit synthetic FDC search cache fixtures prevent real USDA traffic.
  const queries=['Coffee, brewed from grounds, prepared with tap water','Coffee, brewed, espresso, restaurant-prepared','Beverages, tea, black, brewed, prepared with tap water','Beverages, carbonated, cola, regular'];
  const fixtures=queries.map((description,i)=>{const query=description.toLowerCase();return{query:`fdc-search-v3:${query}`,response:{kind:'fdc-search-v3',query,payload:{foods:[{fdcId:9900370+i,description,dataType:'SR Legacy',foodNutrients:[{nutrientId:1008,nutrientName:'Energy',unitName:'KCAL',value:i===3?42:1},{nutrientId:1003,nutrientName:'Protein',unitName:'G',value:0},{nutrientId:1004,nutrientName:'Total lipid (fat)',unitName:'G',value:0},{nutrientId:1005,nutrientName:'Carbohydrate, by difference',unitName:'G',value:0}]}]}}};});
+ fixtures.push(...JSON.parse(readFileSync(new URL('./fixtures/tea-usda-records.json',import.meta.url),'utf8')).map(payload=>({query:`fdc-detail:${payload.fdcId}`,response:{kind:'fdc-detail-v1',fdcId:payload.fdcId,payload}})));
  const prior=checked(await db.from('fdc_cache').select('*').in('query',fixtures.map(x=>x.query)));
  try{
   checked(await db.from('fdc_cache').upsert(fixtures,{onConflict:'query'}));
@@ -45,18 +47,26 @@ test('actual intake route commits all six server tiles and rejects retired kind-
     checked(await db.from('fdc_cache').upsert(fixtures.find(row=>row.query===coffeeQuery),{onConflict:'query'}));
    }
   });
-  for(const [body,expected] of [...DRINK_TILES.map((tile,index)=>[{tile:index},{label:`${tile.name}, ${tile.size}`,kind:tile.kind,ml:tile.ml,caffeineMg:tile.caffeineMg}]),[{tile:1,ml:350},{label:'Coffee, large',kind:'caffeine',ml:350,caffeineMg:138}]]){
+  for(const [body,expected] of [...DRINK_TILES.map((tile,index)=>[{tile:index},{label:`${index===3?'Black tea':tile.name}, ${tile.size}`,kind:tile.kind,ml:tile.ml,caffeineMg:tile.caffeineMg}]),...[['tea-green',36],['tea-oolong',48]].map(([tea_id,caffeineMg])=>[{tile:3,tea_id},{label:`${tea_id==='tea-green'?'Green':'Oolong'} tea, mug`,kind:'caffeine',ml:300,caffeineMg}]),[{tile:1,ml:350},{label:'Coffee, large',kind:'caffeine',ml:350,caffeineMg:138}]]){
    if(body.tile===1&&body.ml===350)before=await counts(cookie);
-   const r=await fetch(`${origin}/api/intake/post`,{method:'POST',headers:{Cookie:cookie,'Content-Type':'application/json'},body:JSON.stringify(intent(body)),signal:AbortSignal.timeout(90000)});
+   const request=intent(body);
+   const r=await fetch(`${origin}/api/intake/post`,{method:'POST',headers:{Cookie:cookie,'Content-Type':'application/json'},body:JSON.stringify(request),signal:AbortSignal.timeout(90000)});
    const result=await r.json();if(result.post_id)ids.push(result.post_id);assert.equal(r.status,201,JSON.stringify({body,result}));assert.equal(typeof result.post_id,'string');
+   if(body.tile===3&&!body.tea_id){
+    const replay=await fetch(`${origin}/api/intake/post`,{method:'POST',headers:{Cookie:cookie,'Content-Type':'application/json'},body:JSON.stringify(request)});
+    assert.equal(replay.status,201);assert.equal((await replay.json()).post_id,result.post_id);
+    const changed=await fetch(`${origin}/api/intake/post`,{method:'POST',headers:{Cookie:cookie,'Content-Type':'application/json'},body:JSON.stringify({...request,tea_id:'tea-green'})});assert.equal(changed.status,409);
+    assert.equal(checked(await db.from('intake_logs').select('id').eq('post_id',result.post_id)).length,1);
+   }
    const row=checked(await db.from('intake_logs').select('kind,ml,amount,label').eq('post_id',result.post_id).single());
    assert.deepEqual(row,{kind:expected.kind,ml:expected.ml,amount:expected.kind==='water'?expected.ml:expected.caffeineMg,label:expected.label});
    const items=checked(await db.from('post_items').select('id').eq('post_id',result.post_id));assert.equal(items.length,1);
-   const nutrition=checked(await db.from('item_nutrition').select('calories,micronutrients').eq('post_item_id',items[0].id).single());
+   const nutrition=checked(await db.from('item_nutrition').select('calories,micronutrients,source_ref').eq('post_item_id',items[0].id).single());
    if(expected.kind==='water')assert.equal(Number(nutrition.calories),0);
    else assert.equal(nutrition.micronutrients.find(x=>x.nutrientId===1057).value,expected.caffeineMg);
+   if(body.tile===3)assert.equal(nutrition.source_ref,body.tea_id==='tea-green'?'171917':body.tea_id==='tea-oolong'?'174120':'173227');
   }
-  for(const body of [{tile:9},{tile:1,ml:300},{kind:'water',ml:330}]){
+  for(const body of [{tile:9},{tile:1,ml:300},{kind:'water',ml:330},{tile:1,tea_id:'tea-green'},{tile:3,tea_id:'tea-matcha'}]){
    const invalid=await fetch(`${origin}/api/intake/post`,{method:'POST',headers:{Cookie:cookie,'Content-Type':'application/json'},body:JSON.stringify(intent(body))});assert.equal(invalid.status,400);
   }
   const after=await counts(cookie);

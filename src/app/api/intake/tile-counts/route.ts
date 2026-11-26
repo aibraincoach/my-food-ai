@@ -1,5 +1,6 @@
 import {NextResponse} from "next/server";
 import {createClient} from "@/lib/supabase/server";
+import {tileUsageIndex} from "@/lib/intake/tile-usage";
 import {DRINK_TILES, TILE_SIZES} from "@/lib/intake/intake";
 
 export async function GET() {
@@ -11,12 +12,12 @@ export async function GET() {
   const posts = DRINK_TILES.map(() => new Set<string>());
   const volumes = DRINK_TILES.map(() => new Map<number, number>());
   for (let offset = 0; ; offset += 1000) {
-    const {data, error} = await db.from("intake_logs").select("label,ml,post_id")
+    const {data, error} = await db.from("intake_logs").select("label,ml,post_id,posts(post_items(item_nutrition(source_ref)))")
       .eq("user_id", user.id).not("post_id", "is", null).gte("logged_at", since).lte("logged_at", now.toISOString())
       .order("logged_at", {ascending: false}).order("id", {ascending: false}).range(offset, offset + 999);
     if (error) return NextResponse.json({message_code: "route_13dddc8ffb06"}, {status: 500});
     for (const row of data ?? []) {
-      const index = DRINK_TILES.findIndex((tile, index) => TILE_SIZES[index].some(size => row.label === `${tile.name}, ${size.word}`));
+      const index = tileUsageIndex(row);
       if (index < 0 || !row.post_id || posts[index].has(row.post_id)) continue;
       posts[index].add(row.post_id);
       if (TILE_SIZES[index].some(size => size.ml === row.ml)) volumes[index].set(row.ml, (volumes[index].get(row.ml) ?? 0) + 1);

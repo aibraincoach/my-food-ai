@@ -1,3 +1,4 @@
+import {teaCaffeine} from './tea-references';
 // Water and caffeine are logged as intake only. This module never defines a target, a goal or a remainder.
 export type IntakeKind = "water" | "caffeine";
 export interface IntakeRow { kind: IntakeKind; amount: number; logged_at: string }
@@ -10,12 +11,12 @@ export const INTAKE = {
 
 // Defaults shared by the sheet and server; clients send a tile index and an optional allowed size.
 export const DRINK_TILES = [
-  { name: "Water", size: "glass", ml: 250, kind: "water", caffeineMg: 0 },
-  { name: "Coffee", size: "cup", ml: 240, kind: "caffeine", caffeineMg: 95 },
-  { name: "Espresso", size: "double", ml: 60, kind: "caffeine", caffeineMg: 126 },
-  { name: "Tea", size: "mug", ml: 300, kind: "caffeine", caffeineMg: 45 },
-  { name: "Coca-Cola", size: "can", ml: 330, kind: "caffeine", caffeineMg: 32 },
-  { name: "Water", size: "bottle", ml: 500, kind: "water", caffeineMg: 0 },
+  { id: "water-glass", name: "Water", size: "glass", ml: 250, kind: "water", caffeineMg: 0 },
+  { id: "coffee", name: "Coffee", size: "cup", ml: 240, kind: "caffeine", caffeineMg: 95 },
+  { id: "espresso", name: "Espresso", size: "double", ml: 60, kind: "caffeine", caffeineMg: 126 },
+  { id: "tea-black", name: "Tea", size: "mug", ml: 300, kind: "caffeine", caffeineMg: teaCaffeine("tea-black",300) },
+  { id: "cola", name: "Coca-Cola", size: "can", ml: 330, kind: "caffeine", caffeineMg: 32 },
+  { id: "water-bottle", name: "Water", size: "bottle", ml: 500, kind: "water", caffeineMg: 0 },
 ] as const;
 
 // Labels are server-owned. Water labels remain compatible with migration 0037.
