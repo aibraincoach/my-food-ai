@@ -33,3 +33,12 @@ test('deletion checks only the known discovery window, with the id tie-break at 
  assert.equal(staleView(rendered(all.slice(0,3)),read(all.slice(0,2)),true),true,'a short latest page covers every rendered row');
  assert.equal(staleView(rendered(all),{latest:null,pending:null},true),false,'failed reads prove no deletion');
 });
+
+test('exact-ID status evidence catches an older settlement when both broad reads cannot establish it',()=>{
+ const old=post('old','processing','2025-01-01T00:00:00+00:00');
+ const latest=Array.from({length:20},(_,i)=>post(String(100-i)));
+ const rows=rendered([...latest,old]);
+ assert.equal(staleView(rows,{latest,pending:null,readStatuses:new Map([['old','ready']])},true),true);
+ assert.equal(staleView(rows,{latest,pending:null,readStatuses:new Map([['old','processing']])},true),false);
+ assert.equal(staleView(rendered([old]),{latest:null,pending:null,readStatuses:new Map([['old','ready']])},true),true);
+});

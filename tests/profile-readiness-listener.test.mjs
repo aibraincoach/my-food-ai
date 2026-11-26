@@ -4,12 +4,12 @@ import {tabReturnModule,returnToTab} from './fixtures/tab-return-module.mjs';
 import {refreshAfterReadinessSeed,refreshAfterReady,staleView} from '../src/lib/posts/readiness-refresh.ts';
 const compiled=ts.transpileModule(readFileSync(new URL('../src/components/PostReadinessListener.tsx',import.meta.url),'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022,jsx:ts.JsxEmit.ReactJSX}}).outputText;
 const at='2026-11-26T00:00:00+00:00',row=(id,status='ready',created_at=at)=>({id,status,created_at});
-async function mount({rendered=[],latest=[],pending=[],seedFailed=false,complete=true,streamed=false}={}){
+async function mount({rendered=[],latest=[],pending=[],seedFailed=false,exactRows=null,complete=true,streamed=false}={}){
  let effect,subscribe,refreshes=0,idReads=0,markerPresent=!streamed;const events=new EventTarget(),timers=new Map();
  const list={querySelectorAll:()=>rendered.map(p=>({dataset:{postId:p.id,postStatus:p.status,postCreated:p.created_at}}))};
  const document=Object.assign(new EventTarget(),{visibilityState:'visible',readyState:streamed?'loading':'complete',querySelector:s=>s==='[data-lists-all]'&&complete&&markerPresent?list:null});
  const channel={on(){return this;},subscribe(fn){subscribe=fn;return this;}};
- const db={auth:{getSession:async()=>({data:{session:{user:{id:'owner'}}}}),onAuthStateChange:()=>({data:{subscription:{unsubscribe(){}}}})},channel:()=>channel,removeChannel(){},from(){let selection,ids=null;const query={select(s){selection=s;return query;},eq(){return query;},is(){return query;},order(){return query;},limit(){return query;},in(column,values){if(column==='id')ids=values;return query;},then(resolve){if(ids)idReads++;const data=ids?latest.filter(p=>ids.includes(p.id)):selection==='id'?pending.map(id=>({id})):latest;return Promise.resolve({data,error:selection==='id'&&seedFailed?{message:'seed failed'}:null}).then(resolve);}};return query;}};
+ const db={auth:{getSession:async()=>({data:{session:{user:{id:'owner'}}}}),onAuthStateChange:()=>({data:{subscription:{unsubscribe(){}}}})},channel:()=>channel,removeChannel(){},from(){let selection,ids=null;const query={select(s){selection=s;return query;},eq(){return query;},is(){return query;},order(){return query;},limit(){return query;},in(column,values){if(column==='id')ids=values;return query;},then(resolve){if(ids)idReads++;const data=ids?(exactRows??latest).filter(p=>ids.includes(p.id)):selection==='id'?pending.map(id=>({id})):latest;return Promise.resolve({data,error:selection==='id'&&(typeof seedFailed==='function'?seedFailed():seedFailed)?{message:'seed failed'}:null}).then(resolve);}};return query;}};
  const exports={};vm.runInNewContext(compiled,{exports,Map,Set,Promise,Date,Event,CustomEvent,window:events,document,location:{pathname:complete?'/profile':'/days'},setTimeout:fn=>{timers.set(1,fn);return 1;},clearTimeout:id=>timers.delete(id),require(name){if(name==='react')return{useEffect:fn=>{effect=fn;},useState:v=>[v,()=>{}]};if(name==='react/jsx-runtime')return{jsx:()=>null};if(name==='next-intl')return{useTranslations:()=>key=>key};if(name==='next/navigation')return{useRouter:()=>({refresh(){refreshes++;}})};if(name==='@/lib/client/tab-return')return tabReturnModule(events,document);if(name==='@/lib/posts/readiness-refresh')return{refreshAfterReadinessSeed,refreshAfterReady,staleView};if(name==='@/lib/supabase/client')return{createClient:()=>db};throw Error(name);}});
  exports.default();const cleanup=effect(),flush=()=>new Promise(resolve=>setImmediate(resolve));await flush();return{cleanup,async load(){markerPresent=true;document.readyState='complete';events.dispatchEvent(new Event('load'));await flush();},refreshes:()=>refreshes,idReads:()=>idReads,async connect(){subscribe('SUBSCRIBED');await flush();},async return(){returnToTab(document);await flush();await flush();}};
 }
@@ -51,4 +51,18 @@ test('a subscription-gap reconcile read settles tracked posts without refreshing
    assert.equal(app.refreshes(),alreadyRendered?0:1,'read-driven settle uses staleView instead of forcing another refresh');
   }finally{app.cleanup();}
  }
+});
+
+test('a failed subscription seed still reconciles a settled post older than discovery through its exact-ID status',async()=>{
+ const latest=Array.from({length:20},(_,i)=>row(String(100-i)));
+ const old=row('old','processing','2025-01-01T00:00:00+00:00');
+ const rendered=[...latest,old],pending=['old'],exactRows=[old];let failSeed=false;
+ const app=await mount({rendered,latest,pending,exactRows,seedFailed:()=>failSeed});
+ try{
+  assert.equal(app.refreshes(),0);assert.equal(app.idReads(),0);
+  failSeed=true;pending.splice(0);exactRows[0]=row('old','ready',old.created_at);
+  await app.connect();
+  assert.equal(app.idReads(),1);
+  assert.equal(app.refreshes(),1,'successful exact-ID evidence survives a failed pending seed and missing latest-window row');
+ }finally{app.cleanup();}
 });

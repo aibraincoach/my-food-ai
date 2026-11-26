@@ -10,6 +10,8 @@ export function refreshAfterReady(announce: boolean, wasPending: boolean, previo
 export interface RenderedReadinessPost { status: string; createdAt: string }
 export interface ReadinessPost { id: string; status: string; created_at: string }
 export interface ReadinessRead {
+  // Exact-ID reconciliation can observe posts older than the latest window.
+  readStatuses?: ReadonlyMap<string, string>;
   latest: readonly ReadinessPost[] | null;
   // Null means the pending seed failed or has not completed, not an empty set.
   pending: ReadonlySet<string> | null;
@@ -24,6 +26,8 @@ export function staleView(rendered: ReadonlyMap<string, RenderedReadinessPost>, 
   for (const [id, post] of rendered) {
     const current = byId.get(id);
     if (current && current.status !== post.status) return true;
+    const exactStatus = read.readStatuses?.get(id);
+    if (exactStatus !== undefined && exactStatus !== post.status) return true;
     if (read.pending && ["queued", "processing"].includes(post.status) && !read.pending.has(id)) return true;
   }
   if (!latest) return false;

@@ -21,6 +21,7 @@ export default function PostReadinessListener() {
     const known = new Map<string, string>();
     const listsAll = () => location.pathname !== '/' && Boolean(document.querySelector('[data-lists-all]'));
     let latestRead: ReadinessPost[] | null = null;
+    const readStatuses = new Map<string, string>();
     let pendingRead: Set<string> | null = null;
     let staleRefresh: string | null = null;
     const refreshStaleList = () => {
@@ -30,7 +31,7 @@ export default function PostReadinessListener() {
       for (const node of list?.querySelectorAll<HTMLElement>('[data-post-id][data-post-status]') ?? []) {
         rendered.set(node.dataset.postId!, {status: node.dataset.postStatus!, createdAt: node.dataset.postCreated ?? ''});
       }
-      if (!staleView(rendered, {latest: latestRead, pending: pendingRead}, true)) { staleRefresh = null; return; }
+      if (!staleView(rendered, {latest: latestRead, pending: pendingRead, readStatuses}, true)) { staleRefresh = null; return; }
       // Seed and discovery can finish before the same RSC update paints. Refresh
       // that rendered snapshot once; a later explicit return may reconcile again.
       const signature = JSON.stringify([...rendered].sort(([a], [b]) => a.localeCompare(b)));
@@ -102,11 +103,11 @@ export default function PostReadinessListener() {
     let discovered = false;
     const discover = async () => {
       const revision = authRevision;
-      latestRead = null;
+      latestRead = null; readStatuses.clear();
       try {
         const { data, error } = await db.from("posts").select("id,status,created_at").is("deleted_at", null).order("created_at", { ascending: false }).order("id", { ascending: false }).limit(20);
         if (!live || revision !== authRevision) return false;
-        if (error) { latestRead = null; return false; }
+        if (error) { latestRead = null; readStatuses.clear(); return false; }
         let changed = false;
         for (const row of data ?? []) {
           if (discovered && known.get(row.id) !== row.status && ["ready", "failed", "needs_input"].includes(row.status)) changed = true;
@@ -155,7 +156,7 @@ export default function PostReadinessListener() {
       if (!live) return;
       if (focusInFlight) { returnAgain = true; return; }
       focusInFlight = true;
-      latestRead = null;
+      latestRead = null; readStatuses.clear();
       void (async () => { try { await reconcilePending();await seedPending();await discover(); } finally { focusInFlight = false; if (returnAgain && live) { returnAgain = false; focus(); } } })();
     };
     let channel: ReturnType<typeof db.channel> | null = null;
@@ -166,7 +167,7 @@ export default function PostReadinessListener() {
       if (channel) void db.removeChannel(channel);
       channel = null; channelUser = userId;
       pending.clear(); known.clear(); discovered = false;
-      latestRead = null; pendingRead = null; staleRefresh = null;
+      latestRead = null; readStatuses.clear(); pendingRead = null; staleRefresh = null;
       firstDiscoveryDone = false; seedDecisionPending = false;
       setReconnectFailed(false);
       if (!userId) return;
@@ -218,6 +219,7 @@ export default function PostReadinessListener() {
         const { data,error } = await db.from("posts").select("id,status").in("id", ids);
         if (!live || revision !== authRevision) return;
         if (error) { setReconnectFailed(true);return; }
+        for (const row of data ?? []) readStatuses.set(row.id, row.status);
         for (const row of data ?? []) settle(row.id,row.status,true,true);
         const found = new Set((data ?? []).map(row=>row.id));
         for (const id of ids) if (!found.has(id)) pending.delete(id);
