@@ -1,3 +1,4 @@
+import {tabReturnModule,returnToTab} from './fixtures/tab-return-module.mjs';
 import * as readingFormat from '../src/i18n/format.ts';
 import {servingsMessageValues} from '../src/i18n/servings.ts';
 import {englishIntl,englishIntlServer} from './fixtures/english-intl.mjs';
@@ -14,11 +15,14 @@ test('retiring the last meal clears feed state and rejects an older hydration re
  const effects=[],listeners=new Map(),states=[],resolvers=new Map(),rejectors=new Map();let resolveCard,resolvePage,timedReads=0;let forceReset=false,deferTotals=false;const dayWaiters=[];
  const post={id:'meal',status:'processing',created_at:'2026-10-01',eaten_at:'2026-10-01T12:00:00Z',items:[],slides:[]};
  const channel={on(){return this;},subscribe(){return this;}};
+ const document=Object.assign(new EventTarget(),{hidden:false,visibilityState:'visible'});
+ const window={addEventListener(type,fn){listeners.set(type,fn);},removeEventListener(){},dispatchEvent(){}};
  const exports={};
  const code=ts.transpileModule(readFileSync(new URL('../src/components/Feed.tsx',import.meta.url),'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,jsx:ts.JsxEmit.ReactJSX,target:ts.ScriptTarget.ES2022}}).outputText;
- vm.runInNewContext(code,{exports,URLSearchParams,AbortSignal,fetch:async()=>({ok:true,json:async()=>forceReset?new Promise(resolve=>{resolvePage=resolve;}):({posts:[post],nextCursor:null,days:[]})}),document:{hidden:false,addEventListener(){},removeEventListener(){}},CustomEvent:class{constructor(type,init){this.type=type;this.detail=init?.detail;}},
- window:{addEventListener(type,fn){listeners.set(type,fn);},removeEventListener(){},dispatchEvent(){}},setTimeout:()=>{timedReads++;throw Error('Feed must not schedule a retry or discovery timer');},clearTimeout(){},
+ vm.runInNewContext(code,{exports,URLSearchParams,AbortSignal,fetch:async()=>({ok:true,json:async()=>forceReset?new Promise(resolve=>{resolvePage=resolve;}):({posts:[post],nextCursor:null,days:[]})}),document,CustomEvent:class{constructor(type,init){this.type=type;this.detail=init?.detail;}},
+ window,setTimeout:()=>{timedReads++;throw Error('Feed must not schedule a retry or discovery timer');},clearTimeout(){},
  require(name){
+ if(name==='@/lib/client/tab-return')return tabReturnModule(window,document);
  if(name==='./FeedConnectionNotice')return{default:()=>null};
  if(name==='next-intl')return englishIntl;
  if(name==='next-intl/server')return englishIntlServer;
@@ -74,7 +78,7 @@ test('retiring the last meal clears feed state and rejects an older hydration re
  listeners.get('post-answer-resume')({detail:{id:'settled-during-reset'}});
  listeners.get('post-settled')({detail:{id:'settled-during-reset'}});
  const beforeReset=resolveCard;
- forceReset=true;listeners.get('focus')();await new Promise(resolve=>setImmediate(resolve));
+ forceReset=true;returnToTab(document);await new Promise(resolve=>setImmediate(resolve));
  assert.equal(typeof resolvePage,'function','a fresh first-page read is pending');
  beforeReset({...post,id:'settled-during-reset',status:'ready'});await new Promise(resolve=>setImmediate(resolve));
  assert.ok(states.at(-1).posts.some(row=>row.id==='settled-during-reset'),'the settled-card read can complete while the fresh page is loading');
@@ -91,13 +95,13 @@ test('retiring the last meal clears feed state and rejects an older hydration re
  rejectors.get('settled-after-network-recovery')(new Error('temporary network failure'));
  await new Promise(resolve=>setImmediate(resolve));
  const exhausted=resolvers.get('settled-after-network-recovery');
- assert.equal(timedReads,0,'failed reads wait for an event or focus without timer retries');
- listeners.get('focus')();await new Promise(resolve=>setImmediate(resolve));
+ assert.equal(timedReads,0,'failed reads wait for an event or tab return without timer retries');
+ returnToTab(document);await new Promise(resolve=>setImmediate(resolve));
  const recovered=resolvers.get('settled-after-network-recovery');
- assert.notEqual(recovered,exhausted,'focus retains and retries the older ID outside discovery');
+ assert.notEqual(recovered,exhausted,'tab return retains and retries the older ID outside discovery');
  recovered({...post,id:'settled-after-network-recovery',status:'ready'});await new Promise(resolve=>setImmediate(resolve));
  assert.ok(states.at(-1).posts.some(row=>row.id==='settled-after-network-recovery'),'a transient outage cannot permanently strand the older settled meal');
- listeners.get('focus')();await new Promise(resolve=>setImmediate(resolve));
+ returnToTab(document);await new Promise(resolve=>setImmediate(resolve));
  assert.equal(resolvers.get('settled-after-network-recovery'),recovered,'an accepted card leaves deferred recovery tracking');
  deferTotals=true;
  listeners.get('post-created')({detail:{id:'day-a'}});resolvers.get('day-a')({...post,id:'day-a',status:'ready',eaten_at:'2026-10-01T12:00:00Z'});await new Promise(resolve=>setImmediate(resolve));

@@ -23,7 +23,7 @@ test('a deletion reaches the meal page by post-deleted in this tab and by a read
   const overlay=read('OutlineOverlay');
   assert.match(overlay,/addEventListener\("post-deleted", deleted\)/);
   assert.match(overlay,/const deleted = \(event: Event\) => \{ if \(\(event as CustomEvent<\{id\?: string\}>\)\.detail\?\.id === postId\) router\.replace\("\/"\); \};/);
-  assert.match(overlay,/\n    document\.addEventListener\("visibilitychange", visible\);/,'the return read is not limited to an updating meal');
+  assert.match(overlay,/const stopReturn = onTabReturn\(/,'the return read is not limited to an updating meal');
   assert.match(overlay,/if \(!data\) \{ router\.replace\("\/"\); return; \}/);
   assert.match(read('NeedsInputStrip'),/if\(response\.ok\)\{remove\(post\.id\);if\(post\.held\)window\.dispatchEvent\(new CustomEvent\('post-deleted',\{detail:\{id:post\.id\}\}\)\);\}/);
 });

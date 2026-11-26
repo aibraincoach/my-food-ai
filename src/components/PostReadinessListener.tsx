@@ -1,4 +1,5 @@
 "use client";
+import {onTabReturn} from '@/lib/client/tab-return';
 import {useTranslations} from 'next-intl';
 
 import { useEffect, useState } from "react";
@@ -59,7 +60,7 @@ export default function PostReadinessListener() {
         if (live && revision === authRevision && refreshAfterReadinessSeed(location.pathname,Boolean(document.querySelector("[data-home-feed]")))) refreshView();
       }
     };
-    // Reconcile newest meals on mount and focus; Realtime handles live changes.
+    // Reconcile newest meals on mount and return; Realtime handles live changes.
     let discovered = false;
     const discover = async () => {
       const revision = authRevision;
@@ -78,7 +79,7 @@ export default function PostReadinessListener() {
         return false;
       }
     };
-    // One boundary event keeps the local day current; focus and visibility reconcile changes.
+    // One boundary event keeps the local day current; tab returns reconcile changes.
     let day = new Date().toDateString();
     const visible = () => {
       if (document.visibilityState !== "visible" || !live) return;
@@ -100,12 +101,13 @@ export default function PostReadinessListener() {
       }, Math.max(1,next.getTime()-Date.now()));
     };
     scheduleDayBoundary();
-    document.addEventListener("visibilitychange", visible);
     let focusInFlight = false;
+    let returnAgain = false;
     const focus = () => {
-      if (!live || focusInFlight) return;
+      if (!live) return;
+      if (focusInFlight) { returnAgain = true; return; }
       focusInFlight = true;
-      void (async () => { try { await reconcilePending();await seedPending();await discover(); } finally { focusInFlight = false; } })();
+      void (async () => { try { await reconcilePending();await seedPending();await discover(); } finally { focusInFlight = false; if (returnAgain && live) { returnAgain = false; focus(); } } })();
     };
     let channel: ReturnType<typeof db.channel> | null = null;
     let channelUser: string | null = null;
@@ -156,7 +158,7 @@ export default function PostReadinessListener() {
     void db.auth.getSession().then(({data: {session}}) => {
       if (authRevision === initialRevision) subscribeUser(session?.user.id ?? null);
     });
-    // Focus reconciles tracked old IDs even when they are outside the newest discovery page.
+    // A tab return reconciles tracked old IDs even when they are outside the newest discovery page.
     const reconcilePending = async () => {
       if (!pending.size || checkingPending || document.visibilityState === "hidden") return;
       checkingPending = true;
@@ -175,13 +177,12 @@ export default function PostReadinessListener() {
     window.addEventListener("post-created", created);
     window.addEventListener("post-answer-resume",created);
     window.addEventListener("post-ready", ready);
-    window.addEventListener("focus", focus);
+    const stopReturn = onTabReturn(visible);
     return () => {
-      live = false; clearTimeout(dayBoundaryTimer); document.removeEventListener("visibilitychange", visible); subscription.unsubscribe(); if (channel) void db.removeChannel(channel);
+      live = false; clearTimeout(dayBoundaryTimer); stopReturn(); subscription.unsubscribe(); if (channel) void db.removeChannel(channel);
       window.removeEventListener("post-created", created);
       window.removeEventListener("post-answer-resume",created);
       window.removeEventListener("post-ready", ready);
-      window.removeEventListener("focus", focus);
     };
   }, [router]);
   return reconnectFailed ? <p role="status">{t('updatesReconnectFailed')}</p> : null;

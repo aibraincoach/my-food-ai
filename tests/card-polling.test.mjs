@@ -1,3 +1,4 @@
+import {tabReturnModule,returnToTab} from './fixtures/tab-return-module.mjs';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import vm from 'node:vm';
@@ -20,6 +21,7 @@ function harness(status, hidden = false, fields = {}) {
     window:events, CustomEvent,
     AbortSignal,setTimeout:(cb,ms=0)=>{timers.set(++timerId,{at:now+ms,cb});return timerId;},clearTimeout:id=>{timers.delete(id);},
     require(name){
+      if(name==='@/lib/client/tab-return')return tabReturnModule(events,doc);
       if(name==='react')return {useState:initial=>[initial,()=>{}],useRef:initial=>{const ref={current:initial};refs.push(ref);return ref;},useEffect:fn=>effects.push(fn)};
       if(name==='react/jsx-runtime')return {jsx:()=>null,Fragment:()=>null};
       if(name==='@/lib/supabase/client')return {createClient:()=>({channel:()=>{throw Error('#1095: a card opens no Realtime channel of its own');},removeChannel(){},from(){const q={select(){return q},eq(){return q},abortSignal(){return q},async maybeSingle(){return{data:{pending_items:[]},error:null}}};return q;}})};
@@ -29,7 +31,7 @@ function harness(status, hidden = false, fields = {}) {
     }});
   exports.default({initial:post,renderCard:()=>null});
   const cleanups=effects.map(fn=>fn());
-  return {doc,post,retired,focus:()=>events.dispatchEvent(new Event('focus')),remove:()=>{gone=true;events.dispatchEvent(new Event('focus'));},reads:()=>reads,update:()=>events.dispatchEvent(new CustomEvent('post-readiness',{detail:{id:post.id}})),other:()=>events.dispatchEvent(new CustomEvent('post-readiness',{detail:{id:'another-meal'}})),async tick(ms){now+=ms;for(const [id,timer] of [...timers])if(timer.at<=now){timers.delete(id);timer.cb();}await new Promise(resolve=>setImmediate(resolve));},cleanup(){for(const fn of cleanups)fn?.();}};
+  return {doc,post,retired,focus:()=>returnToTab(doc),remove:()=>{gone=true;returnToTab(doc);},reads:()=>reads,update:()=>events.dispatchEvent(new CustomEvent('post-readiness',{detail:{id:post.id}})),other:()=>events.dispatchEvent(new CustomEvent('post-readiness',{detail:{id:'another-meal'}})),async tick(ms){now+=ms;for(const [id,timer] of [...timers])if(timer.at<=now){timers.delete(id);timer.cb();}await new Promise(resolve=>setImmediate(resolve));},cleanup(){for(const fn of cleanups)fn?.();}};
 }
 test('missing optional cards make no timed reads; the tab event for this meal makes one (#1095)',async()=>{
  const h=harness('ready');await h.tick(0);const initial=h.reads();assert.equal(initial,1);
@@ -37,7 +39,7 @@ test('missing optional cards make no timed reads; the tab event for this meal ma
  h.other();await h.tick(0);assert.equal(h.reads(),initial,'another meal\'s event makes no read');
  h.update();await h.tick(0);assert.equal(h.reads(),initial+1);h.cleanup();
 });
-test('hidden pages make no reads and active analysis waits for an event or focus',async()=>{
+test('hidden pages make no reads and active analysis waits for an event or tab return',async()=>{
  const hidden=harness('ready',true);await hidden.tick(600000);assert.equal(hidden.reads(),0);hidden.cleanup();
  const active=harness('processing');await active.tick(0);const initial=active.reads();await active.tick(600000);assert.equal(active.reads(),initial);active.focus();await active.tick(0);assert.equal(active.reads(),initial+1);active.cleanup();
 });
@@ -49,9 +51,9 @@ test('clarification and deleted meals retire instead of polling invisibly; a del
  const deleted=harness('processing');await Promise.resolve();deleted.remove();await deleted.tick(0);const before=deleted.reads();await deleted.tick(2000);assert.equal(deleted.reads(),before);assert.equal(deleted.retired.at(-1).detail.reason,'deleted');deleted.cleanup();
 });
 
-test('complete server cards skip the mount read; an unavailable revision waits for focus',async()=>{
+test('complete server cards skip the mount read; an unavailable revision waits for tab return',async()=>{
  const complete={slides:[{kind:'card',url:'card'}],analysisFingerprint:'stable'};
  const good=harness('ready',false,complete);await good.tick(15000);assert.equal(good.reads(),0,'complete ready seed has no mount read or poll');good.update();await Promise.resolve();assert.equal(good.reads(),1,'database changes still refresh');good.cleanup();
- const raced=harness('ready',false,{...complete,analysisFingerprint:null,revisionUnavailable:true});await Promise.resolve();assert.equal(raced.reads(),1,'inconsistent revision is read on mount');await raced.tick(600000);assert.equal(raced.reads(),1,'no timer retries an inconsistent seed');raced.focus();await raced.tick(0);assert.equal(raced.reads(),2,'focus requests one repair');raced.cleanup();
+ const raced=harness('ready',false,{...complete,analysisFingerprint:null,revisionUnavailable:true});await Promise.resolve();assert.equal(raced.reads(),1,'inconsistent revision is read on mount');await raced.tick(600000);assert.equal(raced.reads(),1,'no timer retries an inconsistent seed');raced.focus();await raced.tick(0);assert.equal(raced.reads(),2,'tab return requests one repair');raced.cleanup();
  const empty=harness('ready',false,{items:[],slides:[],analysisFingerprint:null});await empty.tick(15000);assert.equal(empty.reads(),0,'a genuinely empty complete meal is not made to poll');empty.cleanup();
 });

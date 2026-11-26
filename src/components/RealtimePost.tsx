@@ -1,4 +1,5 @@
 "use client";
+import {onTabReturn} from '@/lib/client/tab-return';
 
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { createClient } from "@/lib/supabase/client";
@@ -54,7 +55,7 @@ if(!isSettled(fresh.status)||fresh.status==='failed'){
           setSnapshot(previous => ({ seed: initial, current: retainCompleteItems(previous.seed.id === fresh.id ? previous.current : undefined, fresh) }));
         } while (live && again && pageVisible());
       } catch {
-        // Keep the visible card until a new event or focus requests another read.
+        // Keep the visible card until a new event or tab return requests another read.
       } finally { inFlight = false; }
     };
     // A finished card drawn from the server's page is already current; re-reading every card on mount doubled the first feed read.
@@ -65,13 +66,10 @@ if(!isSettled(fresh.status)||fresh.status==='failed'){
     // #1095: the tab's one Realtime channel announces every change to this owner's posts; a deletion is a deleted_at
     // update, and the re-read that follows retires the card.
     window.addEventListener('post-readiness',changed);window.addEventListener('media-removed',changed);window.addEventListener('correction-reverted',changed);
-    const visible = () => { if (pageVisible()) void refresh(); };
-    document.addEventListener("visibilitychange", visible);
-    window.addEventListener("focus", visible);
+    const stopReturn = onTabReturn(() => { void refresh(); });
     return () => {
       live = false;
-      document.removeEventListener("visibilitychange", visible);
-      window.removeEventListener("focus", visible);
+      stopReturn();
       window.removeEventListener('post-readiness',changed);window.removeEventListener('media-removed',changed);window.removeEventListener('correction-reverted',changed);
     };
   }, [initial]);

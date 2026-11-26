@@ -1,3 +1,4 @@
+import {tabReturnModule,returnToTab} from './fixtures/tab-return-module.mjs';
 import * as readingFormat from '../src/i18n/format.ts';
 import {servingsMessageValues} from '../src/i18n/servings.ts';
 import {englishIntl,englishIntlServer} from './fixtures/english-intl.mjs';
@@ -111,13 +112,16 @@ async function mountedFeed(initialPosts,{cachedPosts,failPage=false,initialPage,
  const pageReads=[],cardReads=[];let discovered=[];
  const cache={userId:hookOwner,cached:hookCachedPosts,save:posts=>writeFeedCache(hookOwner,{posts,savedAt:Date.now()})};
  const subscriptions=[];const channel={on(_type,filter){subscriptions.push(filter);return this;},subscribe(fn){channelStatus=fn;return this;}};
+ const document=Object.assign(new EventTarget(),{hidden:false,visibilityState:'visible'});
+ const window={addEventListener:(type,fn)=>listeners.set(type,fn),removeEventListener:type=>listeners.delete(type),dispatchEvent(){}};
  const exported={};
  vm.runInNewContext(compile('../src/components/Feed.tsx'),{exports:exported,URLSearchParams,AbortSignal,Date:FakeDate,
   fetch:async url=>{pageReads.push(url);if(failPage)throw Error('temporary server failure');return{ok:true,status:200,json:async()=>({posts:initialPosts,days:[],nextCursor:null})};},
-  document:{hidden:false,addEventListener(){},removeEventListener(){}},
-  window:{addEventListener:(type,fn)=>listeners.set(type,fn),removeEventListener:type=>listeners.delete(type),dispatchEvent(){}},
+  document,
+  window,
   CustomEvent:class{constructor(type,init){this.type=type;this.detail=init?.detail;}},setInterval:()=>1,clearInterval(){},setTimeout:(fn,ms=0)=>{timers.set(++nextTimer,{fn,at:now+ms});return nextTimer;},clearTimeout:id=>timers.delete(id),
   require(name){
+ if(name==='@/lib/client/tab-return')return tabReturnModule(window,document);
  if(name==='next-intl')return englishIntl;
  if(name==='next-intl/server')return englishIntlServer;
  if(name==='@/i18n/format')return readingFormat;
@@ -145,7 +149,7 @@ async function mountedFeed(initialPosts,{cachedPosts,failPage=false,initialPage,
    throw Error('Unexpected feed dependency '+name);
   }});
  const tree=exported.default({initialPage,initialUserId,initialZone:Intl.DateTimeFormat().resolvedOptions().timeZone});const cleanups=effects.map(fn=>fn());await turn();await turn();
- return{tree,render(){hookIndex=0;return exported.default({initialPage,initialUserId,initialZone:Intl.DateTimeFormat().resolvedOptions().timeZone});},discoveryReads:()=>discoveryReads,failDiscovery:value=>{failDiscovery=value;},async channelStatus(status){channelStatus(status);await turn();await turn();},async advance(ms){for(let elapsed=0;elapsed<ms;elapsed+=1000){now+=Math.min(1000,ms-elapsed);for(const[id,timer]of[...timers])if(timer.at<=now){timers.delete(id);timer.fn();}await turn();}},subscriptions,cardReads,async discover(rows){discovered=rows;listeners.get('focus')();await turn();await turn();},setCard(value){current=value;},emit(type,id,extra={}){assert.ok(listeners.has(type),'real feed listener must be mounted');listeners.get(type)({detail:{id,...extra}});},pageReads,snapshotFor:id=>readFeedCache(id)?.posts,snapshot:()=>readFeedCache(sessionUserId)?.posts,readyState:()=>states.findLast(state=>state?.kind==='ready'),cleanup(){for(const cleanup of cleanups)cleanup?.();clearFeedCache();if(priorStorage)Object.defineProperty(globalThis,'localStorage',priorStorage);else delete globalThis.localStorage;if(priorWindow)Object.defineProperty(globalThis,'window',priorWindow);else delete globalThis.window;}};
+ return{tree,render(){hookIndex=0;return exported.default({initialPage,initialUserId,initialZone:Intl.DateTimeFormat().resolvedOptions().timeZone});},discoveryReads:()=>discoveryReads,failDiscovery:value=>{failDiscovery=value;},async channelStatus(status){channelStatus(status);await turn();await turn();},async advance(ms){for(let elapsed=0;elapsed<ms;elapsed+=1000){now+=Math.min(1000,ms-elapsed);for(const[id,timer]of[...timers])if(timer.at<=now){timers.delete(id);timer.fn();}await turn();}},subscriptions,cardReads,async discover(rows){discovered=rows;returnToTab(document);await turn();await turn();},setCard(value){current=value;},emit(type,id,extra={}){assert.ok(listeners.has(type),'real feed listener must be mounted');listeners.get(type)({detail:{id,...extra}});},pageReads,snapshotFor:id=>readFeedCache(id)?.posts,snapshot:()=>readFeedCache(sessionUserId)?.posts,readyState:()=>states.findLast(state=>state?.kind==='ready'),cleanup(){for(const cleanup of cleanups)cleanup?.();clearFeedCache();if(priorStorage)Object.defineProperty(globalThis,'localStorage',priorStorage);else delete globalThis.localStorage;if(priorWindow)Object.defineProperty(globalThis,'window',priorWindow);else delete globalThis.window;}};
 }
 
 test('deleting a cached meal persists its removal and a failed delete can restore it',async()=>{
@@ -246,7 +250,7 @@ test('a photo after a drink gets the single first-photo priority, matching the f
 function textOf(node){if(Array.isArray(node))return node.map(textOf).join(' ');if(typeof node==='string')return node;if(!node||typeof node!=='object')return '';return textOf(node.props?.children);}
 test('an unsubscribed feed makes zero timed discovery or failed-card retries in ten minutes (#1096)',async()=>{
  const seed=meal();const app=await mountedFeed([seed],{initialUserId:'owner',initialPage:{posts:[seed],days:[],nextCursor:null}});
- try{app.setCard(Error('offline'));app.emit('post-updated',seed.id);await turn();await turn();assert.equal(app.cardReads.length,1);const discoveries=app.discoveryReads();await app.advance(600000);assert.equal(app.cardReads.length,1);assert.equal(app.discoveryReads(),discoveries);assert.match(textOf(app.render()),/More meals could not be loaded/);app.setCard(seed);await app.discover([]);assert.equal(app.cardReads.length,2,'focus requests one failed-card recovery');}finally{app.cleanup();}
+ try{app.setCard(Error('offline'));app.emit('post-updated',seed.id);await turn();await turn();assert.equal(app.cardReads.length,1);const discoveries=app.discoveryReads();await app.advance(600000);assert.equal(app.cardReads.length,1);assert.equal(app.discoveryReads(),discoveries);assert.match(textOf(app.render()),/More meals could not be loaded/);app.setCard(seed);await app.discover([]);assert.equal(app.cardReads.length,2,'tab return requests one failed-card recovery');}finally{app.cleanup();}
 });
 test('feed reconnect catch-up is once, skips the first subscribe, rate-limits flaps and exposes a failed read (#1096)',async()=>{
  const seed=meal();const app=await mountedFeed([seed],{initialUserId:'owner',initialPage:{posts:[seed],days:[],nextCursor:null}});

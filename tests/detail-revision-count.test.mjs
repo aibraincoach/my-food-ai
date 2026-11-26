@@ -1,3 +1,4 @@
+import {tabReturnModule,returnToTab} from './fixtures/tab-return-module.mjs';
 import {failureMessageKey} from '../src/lib/worker/failure-message.ts';
 import * as readingFormat from '../src/i18n/format.ts';
 import {servingsMessageValues} from '../src/i18n/servings.ts';
@@ -20,7 +21,7 @@ test('a thread uses the supplied fingerprint and makes no revision RPC on load',
  const effects=[],states=[];let revisionReads=0,refreshes=0;const comments=[{id:'model',author:'model',body:'Existing reply',created_at:'2026-11-03T00:00:00Z'}];const window=new EventTarget(),document=Object.assign(new EventTarget(),{visibilityState:'visible'});
  const client={rpc(){revisionReads++;return Promise.resolve({data:{fingerprint:'same'}});},from(table){const q={select(){return q;},eq(){return q;},maybeSingle:async()=>({data:table==='post_feedback'?{verdict:'up',model_comment_id:'model',item_fingerprint:'same'}:{status:'ready',analysis_initialized_at:'done'},error:null})};return q;},channel(){const c={on(){return c;},subscribe(){return c;}};return c;},removeChannel(){}};
  const code=ts.transpileModule(readFileSync(new URL('../src/components/Thread.tsx',import.meta.url),'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022,jsx:ts.JsxEmit.ReactJSX}}).outputText;
- const exports={};vm.runInNewContext(code,{exports,window,document,Event,CustomEvent,setTimeout,clearTimeout,require(name){
+ const exports={};vm.runInNewContext(code,{exports,window,document,Event,CustomEvent,setTimeout,clearTimeout,require(name){if(name==='@/lib/client/tab-return')return tabReturnModule(window,document);
  if(name==='next-intl')return englishIntl;
  if(name==='next-intl/server')return englishIntlServer;
  if(name==='@/i18n/format')return readingFormat;
@@ -38,7 +39,7 @@ test('a thread uses the supplied fingerprint and makes no revision RPC on load',
   if(name==='@/lib/posts/delayed-action')return{delayAction(){throw Error('not used');}};
   if(name.startsWith('@/components/'))return{default:()=>null,LocalTime:()=>null};throw Error(name);
  }});
- exports.default({postId:post.id,fingerprint:'same'});const cleanup=effects.map(fn=>fn());await new Promise(resolve=>setImmediate(resolve));assert.equal(revisionReads,0);assert.equal(states[0],'model');assert.equal(refreshes,0,'initial comments must not force a second detail revision read');comments.push({id:'new-model',author:'model',body:'New reply',created_at:'2026-11-03T01:00:00Z'});window.dispatchEvent(new Event('focus'));await new Promise(resolve=>setImmediate(resolve));assert.equal(refreshes,1,'a newly arrived reply still refreshes the detail');for(const fn of cleanup)fn?.();
+ exports.default({postId:post.id,fingerprint:'same'});const cleanup=effects.map(fn=>fn());await new Promise(resolve=>setImmediate(resolve));assert.equal(revisionReads,0);assert.equal(states[0],'model');assert.equal(refreshes,0,'initial comments must not force a second detail revision read');comments.push({id:'new-model',author:'model',body:'New reply',created_at:'2026-11-03T01:00:00Z'});returnToTab(document);await new Promise(resolve=>setImmediate(resolve));assert.equal(refreshes,1,'a newly arrived reply still refreshes the detail');for(const fn of cleanup)fn?.();
 });
 
 test('a correction committing between revision and item reads fences the rendered card',async()=>{

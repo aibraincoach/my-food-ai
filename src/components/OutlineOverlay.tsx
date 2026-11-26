@@ -1,5 +1,7 @@
 /* eslint-disable @next/next/no-img-element -- Responsive photos use the existing cacheable media route. */
 "use client";
+import {latestRevision} from '@/lib/posts/feed';
+import {onTabReturn} from '@/lib/client/tab-return';
 import {useLocale,useTranslations} from 'next-intl';
 import {useDeviceTimeZone} from '@/components/LocalTime';
 import {imageIdentity} from '@/lib/media/retained-image';
@@ -63,10 +65,10 @@ function Mask({ url, photo, color, frame, fallback }: {
     : <div className="pointer-events-none absolute rounded-field" style={{ ...fallback, border: `${tokens.detail.outlineWidth}px solid ${color}` }} />;
 }
 
-export default function OutlineOverlay({ desktopModal=false, desktopHeader, desktopThread, slides=[], initialized, readOnly = false, postId, caption, eatenAt, status, photo, items, modelCommentId=null, fingerprint=null, saved=false, handle:providedHandle, cardData, initialDrink, failReason=null, children }: {
+export default function OutlineOverlay({ desktopModal=false, desktopHeader, desktopThread, slides=[], initialized, initializedAt, readOnly = false, postId, caption, eatenAt, status, photo, items, modelCommentId=null, fingerprint=null, saved=false, handle:providedHandle, cardData, initialDrink, failReason=null, children }: {
   desktopModal?:boolean; desktopHeader?:ReactNode; desktopThread?:ReactNode; slides?:import('@/lib/posts/items').DetailSlide[];
   cardData?: CardData; initialDrink?: DrinkCardData|null; failReason?: string|null;
-  initialized: boolean; readOnly?: boolean; postId: string; caption: string; eatenAt: string; status: string; photo: DetailPhoto | null; items: DetailItem[]; modelCommentId?:string|null; fingerprint?:string|null; saved?:boolean; handle?:string; children?:ReactNode;
+  initializedAt: string|null; initialized: boolean; readOnly?: boolean; postId: string; caption: string; eatenAt: string; status: string; photo: DetailPhoto | null; items: DetailItem[]; modelCommentId?:string|null; fingerprint?:string|null; saved?:boolean; handle?:string; children?:ReactNode;
 }) {
   const t=useTranslations('post'),tm=useTranslations('postMenu'),tn=useTranslations('nutrition'),labels=useTranslations('nutrients'),tc=useTranslations('card');
   const router = useRouter();
@@ -100,30 +102,40 @@ export default function OutlineOverlay({ desktopModal=false, desktopHeader, desk
   }, [desktopModal,wholePhoto]);
   useEffect(() => {
     const supabase = createClient();
+    const mediaKey = (rows: {id?:string;not_eaten?:boolean}[]) => JSON.stringify(rows.filter(row=>typeof row.id==='string').map(row=>[row.id,Boolean(row.not_eaten)]).sort((a,b)=>String(a[0]).localeCompare(String(b[0]))));
+    const renderedMedia = mediaKey(slides);
+    const itemKey = (rows: {id:string;gtin?:string|null;not_eaten_calories?:number|null}[]) => JSON.stringify(rows.map(row=>[row.id,row.gtin??null,row.not_eaten_calories==null?null:Number(row.not_eaten_calories)]).sort((a,b)=>String(a[0]).localeCompare(String(b[0]))));
+    const renderedItems = itemKey(items);
     let live = true;
     let checking = false;
+    let again = false;
     const refresh = async () => {
-      if (checking) return;
+      if (checking) { again = true; return; }
       checking = true;
       try {
-        const { data, error } = await supabase.from("posts").select("status").eq("id", postId).maybeSingle();
+        const [{ data, error }, revision] = await Promise.all([
+          supabase.from("posts").select("status,analysis_initialized_at,fail_reason,caption,eaten_at,post_media(id,not_eaten),post_items(id,gtin,not_eaten_calories)").eq("id", postId).is("post_items.superseded_at",null).maybeSingle(),
+          latestRevision(supabase, postId),
+        ]);
         if (!live || error) return;
         if (!data) { router.replace("/"); return; }
-        router.refresh();
+        const initializedNow = data.analysis_initialized_at ?? null;
+        const sameInitialization = initializedNow === initializedAt || (initializedNow !== null && initializedAt !== null && Date.parse(initializedNow) === Date.parse(initializedAt));
+        if (data.status !== status || !sameInitialization || data.caption !== caption || Date.parse(data.eaten_at) !== Date.parse(eatenAt) || mediaKey(data.post_media ?? []) !== renderedMedia || itemKey(data.post_items ?? []) !== renderedItems
+          || (data.fail_reason ?? null) !== failReason || (revision?.fingerprint ?? null) !== fingerprint || (revision?.modelCommentId ?? null) !== modelCommentId) router.refresh();
         if (data.status === "ready" || data.status === "failed") setWaiting(false);
-      } catch { /* The next post-readiness event or return to the tab reads again. */ } finally { checking = false; }
+      } catch { /* The next post-readiness event or return to the tab reads again. */ } finally { checking = false; if (again && live) { again = false; void refresh(); } }
     };
     // #1095: the tab's one Realtime channel announces this post's changes; there is no timer (rule 5). A deletion is
     // not announced there (the deleted row is hidden from its owner), so returning to the tab reads once, and a read
     // that finds no meal leaves the page. A deletion in this tab arrives as post-deleted.
     const changed = (event: Event) => { if ((event as CustomEvent<{id?: string}>).detail?.id === postId) void refresh(); };
     const deleted = (event: Event) => { if ((event as CustomEvent<{id?: string}>).detail?.id === postId) router.replace("/"); };
-    const visible = () => { if (document.visibilityState === "visible") void refresh(); };
+    const stopReturn = onTabReturn(() => { void refresh(); });
     window.addEventListener("post-readiness", changed);
     window.addEventListener("post-deleted", deleted);
-    document.addEventListener("visibilitychange", visible);
-    return () => { live = false; window.removeEventListener("post-readiness", changed); window.removeEventListener("post-deleted", deleted); document.removeEventListener("visibilitychange", visible); };
-  }, [postId, router]);
+    return () => { live = false; window.removeEventListener("post-readiness", changed); window.removeEventListener("post-deleted", deleted); stopReturn(); };
+  }, [postId, router, status, initializedAt, failReason, fingerprint, modelCommentId, caption, eatenAt, slides, items]);
 
   const height=desktopModal||wholePhoto?frameHeight:width;
   const scale = photo ? Math.min(width / photo.width, height / photo.height) : 1;
