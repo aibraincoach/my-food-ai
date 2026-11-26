@@ -1,9 +1,9 @@
 import {createAdminClient} from '@/lib/supabase/admin';
 import {MAX_ORIGINAL_SOURCE_BYTES, readFeedSource, reserveFeedPhoto, resizeSharpPhoto} from '@/lib/posts/feed-photo';
 
-// A photo's permanent public address: /p/{photo id}_{secret}_{width}.webp, width 640, 1080, 1200 or 1600.
+// A photo's permanent public address: /p/{photo id}_{secret}_{width}.webp, width 320, 640, 1080, 1200 or 1600.
 // The secret on the photo's row is the only check, so the answer can be kept by the CDN.
-const FILE = /^([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})_([0-9a-f]{32})_(640|1080|1200|1600)\.webp$/;
+const FILE = /^([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})_([0-9a-f]{32})_(320|640|1080|1200|1600)\.webp$/;
 const closed = {'Cache-Control': 'no-store', 'X-Content-Type-Options': 'nosniff'};
 const fail = (status: number) => new Response(null, {status, headers: closed});
 

@@ -16,6 +16,21 @@ body {
   font-family: var(--font-sans, sans-serif);
 }
 
+/* The resting tokens stay unchanged; only their first-frame use is deferred. */
+html:not([data-effects]) {
+  --color-shadow-pill: none;
+  --color-shadow-entry: none;
+  --color-shadow-stuck: none;
+  --color-shadow-segment: none;
+}
+html:not([data-effects]) .animate-shimmer { animation: none; }
+html[data-effects] nav[data-pill] {
+  transition: opacity 160ms;
+  -webkit-backdrop-filter: blur(var(--spacing-blur-pill));
+  backdrop-filter: blur(var(--spacing-blur-pill));
+  box-shadow: var(--color-shadow-pill);
+}
+
 /* Safe areas: with viewport-fit=cover the notch and the home indicator overlap the page, so bars and sheets
    add the inset to their own height. The inset is 0 where there is none (desktop, Android, uninstalled). */
 @utility pt-safe { padding-top: env(safe-area-inset-top); }

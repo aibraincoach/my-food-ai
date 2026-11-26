@@ -52,7 +52,7 @@ export async function resizeFeedPhoto(source: Buffer): Promise<Buffer> {
 export async function resizeSharpPhoto(source: Buffer, box: number): Promise<Buffer> {
   const output = await sharp(source, {limitInputPixels: 16_777_216, failOn: 'error'})
     .timeout({seconds: 3}).rotate().resize({width: box, height: box, fit: 'inside', withoutEnlargement: true})
-    .webp({quality: 68, effort: 3}).toBuffer();
+    .webp({quality: box === 320 ? 32 : 68, effort: 3}).toBuffer();
   if (output.length > 600_000) throw new Error('Sharp copy too large');
   return output;
 }

@@ -1,6 +1,4 @@
-/* eslint-disable @next/next/no-img-element -- Private signed photos bypass paid optimization. */
 import {getTranslations} from 'next-intl/server';
-import {firstPhotoSources} from '@/lib/posts/feed-photo-url';
 import type { TodayView } from "@/lib/posts/today-view";
 import { verifiedUserId } from "@/lib/auth/verified-user";
 import {FirstPhoto} from '@/components/Carousel';
@@ -13,7 +11,6 @@ import PostOpenFrame from '@/components/PostOpenFrame';
 import SavedMealsButton from '@/components/SavedMealsButton';
 import { connection } from "next/server";
 import { cache, Suspense } from "react";
-import {preload} from "react-dom";
 import Link from "next/link";
 import {getFeed} from "@/lib/posts/feed";
 import NeedsInputStrip from "@/components/NeedsInputStrip";
@@ -101,16 +98,11 @@ async function HomeDays() {
   return <DayRings ownerId={ownerId} days={days} totals={totals} today={today} zone={zone} zoneKnown={known} earliest={earliest} />;
 }
 
-function preloadFirstPhoto(url: string) {
- const {src,srcSet,sizes}=firstPhotoSources(url);
- preload(src,{as:'image',fetchPriority:'high',crossOrigin:'anonymous',imageSrcSet:srcSet,imageSizes:sizes});
-}
-
 // Share one first-page read between the feed, day summaries and Today.
 const homeSeed=cache(async()=>{
  const {db,user}=await homeReader();if(!user)return undefined;
  const {zone}=await homeZone();
- const page=await getFeed(db,user.id,null,zone,6,{knownDays:Array.from({length:5},(_,i)=>shiftDay(dateInZone(new Date(),zone),-i)),onFirstPhoto:preloadFirstPhoto});
+ const page=await getFeed(db,user.id,null,zone,6,{knownDays:Array.from({length:5},(_,i)=>shiftDay(dateInZone(new Date(),zone),-i))});
  return {page,userId:user.id,zone};
 });
 
@@ -127,7 +119,6 @@ async function HomeFirstPhoto() {
     }
   } catch { /* The normal feed boundary and cache remain available. */ }
   if(!first)return null;
-  if(first.photoUrl)preloadFirstPhoto(first.photoUrl);
   const [t,tp]=await Promise.all([getTranslations('feed'),getTranslations('post')]);
   return <div data-fast-feed-seed className="relative pb-card-gap">
     <DayHeader day={dateInZone(first.eaten_at,zone)} zone={zone} empty={false}/><div className="pt-sheet-top">

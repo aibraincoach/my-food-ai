@@ -23,7 +23,7 @@ function component(file,name){
 
   if(dependency==='react')return hooks;
   if(dependency==='react/jsx-runtime')return{jsx:(type,props)=>({type,props}),jsxs:(type,props)=>({type,props})};
-  if(dependency==='@/lib/posts/feed-photo-url')return{feedPhotoSrcSet,firstPhotoSources,FEED_PHOTO_SIZES,firstPhotoUpgrade:()=>new Promise(()=>{})};
+  if(dependency==='@/lib/posts/feed-photo-url')return{feedPhotoSrcSet,firstPhotoSources,FEED_PHOTO_SIZES,registerFirstPhoto:()=>{},firstPhotoUpgrade:()=>new Promise(()=>{})};
   if(dependency==='@/lib/media/retained-image')return{imageIdentity,retainedImageUrl};
   if(dependency==='@/lib/media/photo-box')return{photoBoxStyle,desktopPhotoVars};
   return{};
