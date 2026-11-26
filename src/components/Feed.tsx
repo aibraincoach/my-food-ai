@@ -1,4 +1,5 @@
 "use client";
+import {onTabReturn} from '@/lib/client/tab-return';
 import {useTranslations} from "next-intl";
 
 import {dayTotalRefreshDates} from "@/lib/posts/day-total-changes";
@@ -408,11 +409,17 @@ export default function Feed({initialPage, initialUserId, initialZone = "UTC", f
       } finally { discovering = false; }
     };
     void load();
+    let returnInFlight = false, returnAgain = false;
     const focus = () => {
-      if (!document.hidden) void discover(true).then(ok => { if (live) setReconnectFailed(!ok || !channelReady); });
+      if (!live || document.hidden) return;
+      if (returnInFlight) { returnAgain = true; return; }
+      returnInFlight = true;
+      void discover(true).then(ok => { if (live) setReconnectFailed(!ok || !channelReady); }).finally(() => {
+        returnInFlight = false;
+        if (returnAgain && live) { returnAgain = false; focus(); }
+      });
     };
-    window.addEventListener("focus", focus);
-    document.addEventListener("visibilitychange", focus);
+    const stopReturn = onTabReturn(focus);
     let channel: ReturnType<typeof supabase.channel> | null = null;
     let channelUser: string | null = null;
     const subscribeInserts = (ownerId: string | null) => {
@@ -461,8 +468,7 @@ export default function Feed({initialPage, initialUserId, initialZone = "UTC", f
       window.removeEventListener("post-settled",created);
       window.removeEventListener("post-unavailable",unavailableEvent);
       window.removeEventListener("post-deleted",unavailableEvent);
-      window.removeEventListener("focus", focus);
-      document.removeEventListener("visibilitychange", focus);
+      stopReturn();
       if (channel) void supabase.removeChannel(channel);
     };
   }, [router, initialPage, initialUserId, initialZone, fallbackOnly]);
@@ -571,16 +577,16 @@ function UploadHydratedCard({post,upload,attachment,header}:{post:FeedPost;uploa
       }
     };
     const refresh=()=>{void read();};
-    const visible=()=>{if(!document.hidden)refresh();};
+    const stopReturn = onTabReturn(refresh);
     const changed=(event:Event)=>{if((event as CustomEvent<{id?:string}>).detail?.id===id)refresh();};
     // #1095: the tab's one Realtime channel announces this post's changes as post-readiness.
-    window.addEventListener('online',refresh);window.addEventListener('focus',refresh);
-    window.addEventListener('post-readiness',changed);window.addEventListener('post-updated',changed);document.addEventListener('visibilitychange',visible);
+    window.addEventListener('online',refresh);
+    window.addEventListener('post-readiness',changed);window.addEventListener('post-updated',changed);
     void read();
     return()=>{
       live=false;
-      window.removeEventListener('online',refresh);window.removeEventListener('focus',refresh);
-      window.removeEventListener('post-readiness',changed);window.removeEventListener('post-updated',changed);document.removeEventListener('visibilitychange',visible);
+      window.removeEventListener('online',refresh);stopReturn();
+      window.removeEventListener('post-readiness',changed);window.removeEventListener('post-updated',changed);
     };
   },[post.id,upload.postId,upload.operationId]);
   return <div data-desktop-post={upload.postId??upload.operationId} tabIndex={-1}>{header}<PostCard post={fresh??post} upload={attachment??upload}/></div>;

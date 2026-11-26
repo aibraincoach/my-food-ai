@@ -1,4 +1,5 @@
 'use client';
+import {onTabReturn} from '@/lib/client/tab-return';
 import {useLocale,useTranslations} from 'next-intl';
 import type {Locale} from '@/i18n/locales';
 import {formatNumber} from '@/i18n/format';
@@ -27,10 +28,13 @@ export default function Thread({postId,readOnly=false,sourcePostId,desktopAction
  const append=useCallback((row:CommentRow)=>{setRows(old=>sort([...old.filter(r=>r.id!==row.id),row]));setWaiting(row.author==='user');wake.current();},[]);
  useEffect(()=>{
   const client=createClient();let live=true;let inFlight=false;let again=false;let knownStatus:string|null=null;let modelIds=new Set<string>();
+  const readFeedback=async()=>{try{
+   const {data:verdict,error}=await client.from('post_feedback').select('verdict,model_comment_id,item_fingerprint').eq('post_id',postId).maybeSingle();
+   if(error)throw error;
+   if(live)setAccepted(fingerprint!==null&&verdict?.verdict==='up'&&verdict.item_fingerprint===fingerprint?verdict.model_comment_id:null);
+  }catch{if(live)setError({key:'loadFailed'});}};
   // Always a full, ordered read: a comment can commit with an earlier timestamp than one already seen.
   const load=async()=>{if(inFlight){again=true;return;}inFlight=true;try{
-   const {data:verdict}=await client.from('post_feedback').select('verdict,model_comment_id,item_fingerprint').eq('post_id',postId).maybeSingle();
-   if(live)setAccepted(fingerprint!==null&&verdict?.verdict==='up'&&verdict.item_fingerprint===fingerprint?verdict.model_comment_id:null);
    const [data,{data:post,error:postError}]=await Promise.all([
     readPostComments(client,postId),
     client.from('posts').select('status,analysis_initialized_at,fail_reason').eq('id',postId).maybeSingle(),
@@ -46,13 +50,12 @@ export default function Thread({postId,readOnly=false,sourcePostId,desktopAction
    setWaiting(feedback==='waiting');
   }catch{if(live)setError({key:'loadFailed'});}finally{inFlight=false;if(again&&live){again=false;void load();}}};
   const channel=client.channel(`thread-${postId}`).on('postgres_changes',{event:'INSERT',schema:'public',table:'post_comments',filter:`post_id=eq.${postId}`},()=>{void load();}).on('postgres_changes',{event:'UPDATE',schema:'public',table:'post_comments',filter:`post_id=eq.${postId}`},()=>{void load();}).subscribe((status)=>{if(status==='SUBSCRIBED')void load();});
-  const visible=()=>{if(document.visibilityState==='visible')void load();};
+  const stopReturn=onTabReturn(()=>{void readFeedback();void load();});
   const readiness=(event:Event)=>{if((event as CustomEvent<{id?:string}>).detail?.id===postId)void load();};
-  window.addEventListener('focus',visible);document.addEventListener('visibilitychange',visible);
   window.addEventListener('post-readiness',readiness);
   wake.current=()=>{void load();};
-  void load();
-  return()=>{live=false;wake.current=()=>{};window.removeEventListener('focus',visible);document.removeEventListener('visibilitychange',visible);window.removeEventListener('post-readiness',readiness);void client.removeChannel(channel);};
+  void readFeedback();void load();
+  return()=>{live=false;wake.current=()=>{};stopReturn();window.removeEventListener('post-readiness',readiness);void client.removeChannel(channel);};
  },[postId,router,fingerprint]);
  const [toast,setToast]=useState<{key:number;undo:()=>void}|null>(null);
  const [pendingRemovals,setPendingRemovals]=useState<string[]>([]);

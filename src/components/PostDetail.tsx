@@ -27,7 +27,7 @@ export default async function PostDetail({id,desktopModal=false}:{id:string;desk
   <span hidden data-post-detail-ready={id}/>
   <LocalTimeZone zone={zone} explicit={Boolean(cookieZone)}/>
   {!desktopModal&&header}
-  <OutlineOverlay desktopModal={desktopModal} desktopHeader={header} desktopThread={thread} slides={detail.slides} key={id} initialized={detail.post.analysis_initialized_at!=null} readOnly={detail.isDrink} postId={id} caption={detail.post.caption} eatenAt={detail.post.eaten_at} status={detail.post.status} photo={detail.photo} items={detail.items} cardData={detail.cardData} initialDrink={detail.drink} failReason={detail.post.fail_reason??null} modelCommentId={card?.modelCommentId??null} fingerprint={card?.analysisFingerprint??null} saved={Boolean(row?.saved_meal_id)}>
+  <OutlineOverlay desktopModal={desktopModal} desktopHeader={header} desktopThread={thread} slides={detail.slides} key={id} initialized={detail.post.analysis_initialized_at!=null} initializedAt={detail.post.analysis_initialized_at} readOnly={detail.isDrink} postId={id} caption={detail.post.caption} eatenAt={detail.post.eaten_at} status={detail.post.status} photo={detail.photo} items={detail.items} cardData={detail.cardData} initialDrink={detail.drink} failReason={detail.post.fail_reason??null} modelCommentId={card?.modelCommentId??null} fingerprint={card?.analysisFingerprint??null} saved={Boolean(row?.saved_meal_id)}>
    {detail.identification?.model?<p className="px-inset text-[12px] text-muted">{detail.identification.host==='baseten'?t('identifiedOpen',{model:detail.identification.model}):detail.openFallback?t('identifiedFallback'):t('identifiedDefault')}</p>:null}
   </OutlineOverlay>
   {!desktopModal&&thread}

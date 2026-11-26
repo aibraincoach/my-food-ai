@@ -1,5 +1,6 @@
 /* eslint-disable @next/next/no-img-element -- Owner-authorized thumbnails bypass paid optimization. */
 "use client";
+import {onTabReturn} from '@/lib/client/tab-return';
 import {useTranslations} from "next-intl";
 import {useEffect,useState} from "react";
 import {createClient} from "@/lib/supabase/client";
@@ -59,13 +60,10 @@ export default function NeedsInputStrip(){
       }catch{if(live&&generation===authGeneration)setErrorCode('questionsLoadFailed');}finally{busy=false;if(again&&live){again=false;void refresh();}}
     };
     const kick = () => { if (!live) return; if (busy) again = true; else void refresh(); };
-    const visible = () => { if (document.visibilityState === "visible") kick(); };
-    const onFocus = () => { kick(); };
-    document.addEventListener("visibilitychange", visible);
-    window.addEventListener("focus", onFocus);
+    const stopReturn = onTabReturn(kick);
     window.addEventListener("post-readiness", kick);
     void refresh();
-    return()=>{live=false;document.removeEventListener("visibilitychange", visible);window.removeEventListener("focus", onFocus);window.removeEventListener("post-readiness", kick);auth.data.subscription.unsubscribe();};
+    return()=>{live=false;stopReturn();window.removeEventListener("post-readiness", kick);auth.data.subscription.unsubscribe();};
   },[]);
   const remove=(id:string)=>{setPosts(rows=>rows.filter(row=>row.id!==id));setSelected(null);};
   return <>{posts.map(post=><div key={post.id} className="flex min-h-brand items-center gap-sheet-top border-b border-hairline px-screen-x">
