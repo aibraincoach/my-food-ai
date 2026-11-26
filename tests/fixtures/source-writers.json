@@ -164,6 +164,11 @@
         "expression": "n.sourceRef"
       },
       {
+        "file": "src/lib/intake/post-drink.ts",
+        "kind": "property",
+        "expression": "n.sourceRef"
+      },
+      {
         "file": "src/lib/meta/label.ts",
         "kind": "property",
         "expression": "\"label\""

@@ -812,7 +812,11 @@
     "sizeCan": "can",
     "sizeBottle": "bottle",
     "caffeineCorrectionField": "Caffeine (mg)",
-    "caffeineCorrectionHint": "Leave empty if you do not know."
+    "caffeineCorrectionHint": "Leave empty if you do not know.",
+    "chooseTea": "Choose a tea",
+    "teaBlack": "Black tea",
+    "teaGreen": "Green tea",
+    "teaOolong": "Oolong tea"
   },
   "thread": {
     "loadFailed": "Comments could not be loaded.",

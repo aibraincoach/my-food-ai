@@ -810,9 +810,13 @@
     "sizeMug": "マグ",
     "sizeCan": "缶",
     "sizeBottle": "ボトル",
-    "drinkTea": "紅茶",
+    "drinkTea": "お茶",
     "caffeineCorrectionField": "カフェイン（mg）",
-    "caffeineCorrectionHint": "わからない場合は空欄のままにしてください。"
+    "caffeineCorrectionHint": "わからない場合は空欄のままにしてください。",
+    "chooseTea": "お茶の種類を選択",
+    "teaBlack": "紅茶",
+    "teaGreen": "緑茶",
+    "teaOolong": "ウーロン茶"
   },
   "thread": {
     "loadFailed": "コメントを読み込めませんでした。",
