@@ -115,8 +115,9 @@ async function HomeFirstPhoto() {
     const seed = await homeDeadline(homeSeed());
     if (seed) {
       zone = seed.zone;
-      const post = seed.page.posts.find((row) => cardMedia(row,row.drink??null)==='photo');
-      if (post) first = { id: post.id, caption: post.caption, eaten_at: post.eaten_at, photoUrl: post.photoUrl };
+      const photoPost = seed.page.posts.find((row) => cardMedia(row,row.drink??null)==='photo');
+      const post = photoPost ?? seed.page.posts[0];
+      if (post) first = { id: post.id, caption: post.caption, eaten_at: post.eaten_at, photoUrl: photoPost ? photoPost.photoUrl : null };
     }
   } catch { /* The normal feed boundary and cache remain available. */ }
   if(!first)return null;

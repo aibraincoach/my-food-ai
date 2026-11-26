@@ -85,3 +85,22 @@ test('React deduplicates the bare first-frame hint and both server images',async
  assert.equal((header.match(/rel=preload/g)??[]).length+links.length,1,'one bare resource hint across streams and images');
  assert.ok((header+links.join('')).includes(url));assert.doesNotMatch(header+html,/image[Ss]rc[Ss]et|image[Ss]izes|src[Ss]et=/);
 });
+
+test('card-only and sheet-drink-only pages retain the caption seed without requesting an image',async()=>{
+ const source=readFileSync(new URL('../src/app/(tabs)/page.tsx',import.meta.url),'utf8');
+ const ast=ts.createSourceFile('page.tsx',source,ts.ScriptTarget.Latest,true,ts.ScriptKind.TSX);
+ const fn=ast.statements.find(node=>ts.isFunctionDeclaration(node)&&node.name?.text==='HomeFirstPhoto');
+ for(const row of [
+  {id:post,caption:'Card-only caption',eaten_at:'2026-11-03T10:00:00Z',slides:[],photoUrl:null,drink:null},
+  {id:post,caption:'Drink-only caption',eaten_at:'2026-11-03T10:00:00Z',slides:[{url:'/drink.webp'}],photoUrl:'/drink.webp',kind:'drink',drinkSource:'sheet',drink:{source:'sheet'}},
+ ]){
+  const exports={},imageReads=[];
+  const jsx=(type,props)=>typeof type==='function'?type(props):({type,props});
+  vm.runInNewContext(compile(fn.getText(ast)+'\nexports.render=HomeFirstPhoto;'),{exports,require:()=>({jsx,jsxs:jsx}),connection:async()=>{},homeDeadline:read=>read,homeSeed:async()=>({zone:'UTC',page:{posts:[row]}}),cardMedia:cardMediaModule.cardMedia,getTranslations:async()=>key=>key,dateInZone:()=> '2026-11-03',DayHeader:()=>null,Link:({children})=>children,FirstPhoto:({url})=>{imageReads.push(url);return jsx('img',{src:url});}});
+  const tree=await exports.render(),walk=node=>Array.isArray(node)?node.flatMap(walk):node&&typeof node==='object'?[node,...walk(node.props?.children)]:[];
+  assert.equal(tree.props['data-fast-feed-seed'],true);
+  assert.equal(walk(tree).filter(node=>node.type==='img').length,0);
+  assert.deepEqual(imageReads,[],'the seed never requests the drink 320 copy');
+  assert.ok(walk(tree).some(node=>node.type==='p'&&node.props.children===row.caption));
+ }
+});
