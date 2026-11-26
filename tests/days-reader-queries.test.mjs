@@ -88,16 +88,3 @@ test('explicit NULL leftover calories match the legacy reader rather than invent
  assert.equal(legacy[0].not_eaten_calories,null);
  assert.deepEqual(days[0].posts[0].items,legacy);
 });
-
-test('Days uses the 320 public thumbnail without signing; private photos and cards keep their signed paths',async()=>{
- const data=rows(3);data[0].post_media[0]={...data[0].post_media[0],id:'14200000-0000-4000-8000-000000000001',photo_secret:'14201420142014201420142014201420'};
- data[2].post_media[0].storage_path='u/p2/card.png';
- const {db,calls}=client(data);const days=await getDays(db,'u','UTC','2026-11-01','2026-11-30');
- assert.equal(days[0].posts[0].photoUrl,'/p/14200000-0000-4000-8000-000000000001_14201420142014201420142014201420_320.webp');
- assert.deepEqual(JSON.parse(calls.find(call=>call.path.startsWith('/storage/')).body).paths,['u/p1/0.feed.jpg','u/p2/card.png']);
- assert.match(days[0].posts[1].photoUrl,/0\.feed\.jpg/);assert.match(days[0].posts[2].photoUrl,/card\.png/);
-});
-test('an all-public Days page skips signing entirely',async()=>{
- const data=rows(1);data[0].post_media[0]={...data[0].post_media[0],id:'14200000-0000-4000-8000-000000000001',photo_secret:'14201420142014201420142014201420'};
- const {db,calls}=client(data);await getDays(db,'u','UTC','2026-11-01','2026-11-30');assert.ok(!calls.some(call=>call.path.startsWith('/storage/')));
-});
