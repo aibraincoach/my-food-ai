@@ -3,7 +3,7 @@ import {englishIntl,englishIntlServer} from './fixtures/english-intl.mjs';
 import * as readingFormat from '../src/i18n/format.ts';
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {refreshAfterReadinessSeed,refreshAfterReady} from '../src/lib/posts/readiness-refresh.ts';
+import {refreshAfterReadinessSeed,refreshAfterReady,staleView} from '../src/lib/posts/readiness-refresh.ts';
 test('Home reconciliation avoids both redundant seed RSC refreshes; other tabs and absent feed still retry',()=>{
  assert.equal(refreshAfterReadinessSeed('/',true),false);
  assert.equal(refreshAfterReadinessSeed('/',false),true);
@@ -22,17 +22,17 @@ test('mounted readiness observer skips initial Home reloads but still refreshes 
  const vm=await import('node:vm'),ts=await import('typescript'),{readFileSync}=await import('node:fs');
  const code=ts.default.transpileModule(readFileSync(new URL('../src/components/PostReadinessListener.tsx',import.meta.url),'utf8'),{compilerOptions:{module:ts.default.ModuleKind.CommonJS,target:ts.default.ScriptTarget.ES2022,jsx:ts.default.JsxEmit.ReactJSX}}).outputText;
  async function mount(home,shell=false){
-  const events=new EventTarget(),document=Object.assign(new EventTarget(),{visibilityState:'visible',querySelector:selector=>selector==='[data-shell]'?(shell?{}:null):home?{}:null}),exports={};let effect,refreshes=0,pendingRows=[],subscribed,revalidations=0,day=null;const FakeDate=class extends Date{toDateString(){return day??super.toDateString();}};const timers=new Map();events.addEventListener('feed-revalidate',()=>revalidations++);
+  const events=new EventTarget(),document=Object.assign(new EventTarget(),{visibilityState:'visible',readyState:'complete',querySelector:selector=>selector==='[data-shell]'?(shell?{}:null):home?{}:null}),exports={};let effect,refreshes=0,pendingRows=[],subscribed,revalidations=0,day=null;const FakeDate=class extends Date{toDateString(){return day??super.toDateString();}};const timers=new Map();events.addEventListener('feed-revalidate',()=>revalidations++);
   const channel={on(){return this;},subscribe(fn){subscribed=fn;return this;}};
   const db={auth:{onAuthStateChange:()=>({data:{subscription:{unsubscribe(){}}}}),getUser:async()=>({data:{user:{id:'owner'}}}),getSession:async()=>({data:{session:{user:{id:'owner'}}}})},channel:()=>channel,removeChannel:async()=>{},from:()=>({select:()=>{
-   const query={eq(){return this;},in:async()=>({data:pendingRows,error:null}),order(){return this;},limit:async()=>({data:[{id:'meal',status:'ready'}],error:null})};return query;
+   const query={eq(){return this;},is(){return this;},in:async()=>({data:pendingRows,error:null}),order(){return this;},limit:async()=>({data:[{id:'meal',status:'ready'}],error:null})};return query;
   }})};
   vm.default.runInNewContext(code,{exports,Map,Date:FakeDate,Promise,Event,CustomEvent,window:events,document,location:{pathname:home?'/':'/days'},setTimeout:(run)=>{timers.set(1,run);return 1;},clearTimeout:id=>timers.delete(id),require(name){if(name==='@/lib/client/tab-return')return tabReturnModule(events,document);if(name==='next-intl')return englishIntl;if(name==='next-intl/server')return englishIntlServer;if(name==='@/i18n/format')return readingFormat;
    if(name==='react')return{useEffect:run=>{effect=run;},useState:initial=>[initial,()=>{}]};
    if(name==='react/jsx-runtime')return{jsx:()=>null};
    if(name==='next/navigation')return{useRouter:()=>({refresh(){refreshes++;}})};
    if(name==='@/lib/supabase/client')return{createClient:()=>db};
-   if(name==='@/lib/posts/readiness-refresh')return{refreshAfterReadinessSeed,refreshAfterReady};
+   if(name==='@/lib/posts/readiness-refresh')return{refreshAfterReadinessSeed,refreshAfterReady,staleView};
    throw Error(name);
   }});
   exports.default();const cleanup=effect(),tick=()=>new Promise(resolve=>setImmediate(resolve));await tick();

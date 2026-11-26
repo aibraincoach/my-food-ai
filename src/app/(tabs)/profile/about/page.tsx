@@ -39,7 +39,7 @@ export default async function AboutPage(){
   <h2 className="mt-6 text-sheet-title">{t('dataTitle')}</h2>
   <p className="mt-2 text-detail">{t('dataDescription')}</p>
   <h2 className="mt-6 text-sheet-title">{t('mealsTitle')}</h2>
-  {posts.length?<ProfileGrid posts={posts}/>:<p className="mt-2 text-detail text-muted">{t('empty')}</p>}
+  {posts.length?<ProfileGrid posts={posts}/>:<p data-lists-all className="mt-2 text-detail text-muted">{t('empty')}</p>}
   <div className="mt-6 flex flex-col gap-2"><Link href="/" className="flex min-h-tap items-center text-body font-semibold">{t('photoLink')}</Link></div>
  </main>;
 }

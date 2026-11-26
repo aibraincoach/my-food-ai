@@ -3,7 +3,7 @@ import {onTabReturn} from '@/lib/client/tab-return';
 import {useTranslations} from 'next-intl';
 
 import { useEffect, useState } from "react";
-import {refreshAfterReadinessSeed,refreshAfterReady} from "@/lib/posts/readiness-refresh";
+import {refreshAfterReadinessSeed,refreshAfterReady,staleView,type ReadinessPost} from "@/lib/posts/readiness-refresh";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 
@@ -19,10 +19,45 @@ export default function PostReadinessListener() {
     const refreshView=()=>{if(document.querySelector('[data-shell]'))window.dispatchEvent(new Event('feed-revalidate'));else router.refresh();};
     const pending = new Set<string>();
     const known = new Map<string, string>();
+    const listsAll = () => location.pathname !== '/' && Boolean(document.querySelector('[data-lists-all]'));
+    let latestRead: ReadinessPost[] | null = null;
+    const readStatuses = new Map<string, string>();
+    let pendingRead: Set<string> | null = null;
+    let staleRefresh: string | null = null;
+    const refreshStaleList = () => {
+      if (!listsAll()) return;
+      const list = document.querySelector('[data-lists-all]');
+      const rendered = new Map<string, {status: string; createdAt: string}>();
+      for (const node of list?.querySelectorAll<HTMLElement>('[data-post-id][data-post-status]') ?? []) {
+        rendered.set(node.dataset.postId!, {status: node.dataset.postStatus!, createdAt: node.dataset.postCreated ?? ''});
+      }
+      if (!staleView(rendered, {latest: latestRead, pending: pendingRead, readStatuses}, true)) { staleRefresh = null; return; }
+      // Seed and discovery can finish before the same RSC update paints. Refresh
+      // that rendered snapshot once; a later explicit return may reconcile again.
+      const signature = JSON.stringify([...rendered].sort(([a], [b]) => a.localeCompare(b)));
+      if (signature === staleRefresh) return;
+      staleRefresh = signature;
+      refreshView();
+    };
+    let firstDiscoveryDone = false;
+    let seedDecisionPending = false;
+    let waitingForLoad = false;
+    const decideSeed = () => {
+      if (!firstDiscoveryDone) { seedDecisionPending = true; return; }
+      if (listsAll()) { refreshStaleList(); return; }
+      // A streamed complete-list marker may arrive after the shared listener.
+      // Decide once the document has arrived, rather than treating it as Days.
+      if (location.pathname !== '/' && document.readyState !== 'complete') {
+        if (!waitingForLoad) { waitingForLoad = true; window.addEventListener('load', decideAfterLoad, {once: true}); }
+        return;
+      }
+      if (refreshAfterReadinessSeed(location.pathname,Boolean(document.querySelector('[data-home-feed]')))) refreshView();
+    };
+    const decideAfterLoad = () => { waitingForLoad = false; if (live) decideSeed(); };
     let live = true;
     let checkingPending = false;
     let lastReconnectRead = -Infinity;
-    const settle = (id: string, status: string, announce=true) => {
+    const settle = (id: string, status: string, announce=true, fromRead=false) => {
       if (!["ready", "failed", "needs_input"].includes(status)) return;
       const refresh=refreshAfterReady(announce,pending.has(id),known.get(id));
       known.set(id,status);
@@ -30,7 +65,7 @@ export default function PostReadinessListener() {
       if (live) {
         if(announce&&status!=="needs_input")window.dispatchEvent(new CustomEvent("post-settled",{detail:{id,status}}));
         if(status==="ready"&&announce)window.dispatchEvent(new CustomEvent("post-ready",{detail:{id}}));
-        if(refresh)refreshView();
+        if (refresh) { if (fromRead && listsAll()) refreshStaleList(); else refreshView(); }
       }
     };
     const created = (event: Event) => {
@@ -43,6 +78,7 @@ export default function PostReadinessListener() {
     };
     const seedPending = async () => {
       const revision = authRevision;
+      pendingRead = null;
       try {
         const { data: { session } } = await db.auth.getSession();
         const user = session?.user;
@@ -50,33 +86,45 @@ export default function PostReadinessListener() {
         const { data, error } = await db.from("posts").select("id")
           .eq("user_id", user.id).in("status", ["queued", "processing"]);
         if (!live || revision !== authRevision) return;
+        pendingRead = error ? null : new Set((data ?? []).map(row => row.id));
         if (!error) for (const row of data ?? []) {
           if (!pending.has(row.id)) pending.add(row.id);
         }
         // Covers a meal that became ready before this pending-status read,
         // including the gap before the realtime subscription is established.
-        if(refreshAfterReadinessSeed(location.pathname,Boolean(document.querySelector("[data-home-feed]"))))refreshView();
+        decideSeed();
       } catch {
-        if (live && revision === authRevision && refreshAfterReadinessSeed(location.pathname,Boolean(document.querySelector("[data-home-feed]")))) refreshView();
+        if (!live || revision !== authRevision) return;
+        pendingRead = null;
+        decideSeed();
       }
     };
     // Reconcile newest meals on mount and return; Realtime handles live changes.
     let discovered = false;
     const discover = async () => {
       const revision = authRevision;
+      latestRead = null; readStatuses.clear();
       try {
-        const { data, error } = await db.from("posts").select("id,status").order("created_at", { ascending: false }).limit(20);
-        if (!live || error || revision !== authRevision) return false;
+        const { data, error } = await db.from("posts").select("id,status,created_at").is("deleted_at", null).order("created_at", { ascending: false }).order("id", { ascending: false }).limit(20);
+        if (!live || revision !== authRevision) return false;
+        if (error) { latestRead = null; readStatuses.clear(); return false; }
         let changed = false;
         for (const row of data ?? []) {
           if (discovered && known.get(row.id) !== row.status && ["ready", "failed", "needs_input"].includes(row.status)) changed = true;
           known.set(row.id, row.status);
         }
         discovered = true;
-        if (changed) refreshView();
+        latestRead = data ?? [];
+        if (listsAll()) refreshStaleList();
+        else if (changed) refreshView();
         return true;
       } catch {
         return false;
+      } finally {
+        if (live && revision === authRevision) {
+          firstDiscoveryDone = true;
+          if (seedDecisionPending) { seedDecisionPending = false; decideSeed(); }
+        }
       }
     };
     // One boundary event keeps the local day current; tab returns reconcile changes.
@@ -86,7 +134,8 @@ export default function PostReadinessListener() {
       const today = new Date().toDateString();
       const newDay = today !== day;
       day = today;
-      if (newDay || pending.size > 0 || refreshAfterReadinessSeed(location.pathname,Boolean(document.querySelector("[data-home-feed]")))) refreshView();
+      staleRefresh = null;
+      if (newDay || (!listsAll() && (pending.size > 0 || refreshAfterReadinessSeed(location.pathname,Boolean(document.querySelector("[data-home-feed]")))))) refreshView();
       clearTimeout(dayBoundaryTimer);scheduleDayBoundary();
       focus();
     };
@@ -107,6 +156,7 @@ export default function PostReadinessListener() {
       if (!live) return;
       if (focusInFlight) { returnAgain = true; return; }
       focusInFlight = true;
+      latestRead = null; readStatuses.clear();
       void (async () => { try { await reconcilePending();await seedPending();await discover(); } finally { focusInFlight = false; if (returnAgain && live) { returnAgain = false; focus(); } } })();
     };
     let channel: ReturnType<typeof db.channel> | null = null;
@@ -117,6 +167,8 @@ export default function PostReadinessListener() {
       if (channel) void db.removeChannel(channel);
       channel = null; channelUser = userId;
       pending.clear(); known.clear(); discovered = false;
+      latestRead = null; readStatuses.clear(); pendingRead = null; staleRefresh = null;
+      firstDiscoveryDone = false; seedDecisionPending = false;
       setReconnectFailed(false);
       if (!userId) return;
       let connectedOnce = false, disconnected = false;
@@ -167,7 +219,8 @@ export default function PostReadinessListener() {
         const { data,error } = await db.from("posts").select("id,status").in("id", ids);
         if (!live || revision !== authRevision) return;
         if (error) { setReconnectFailed(true);return; }
-        for (const row of data ?? []) settle(row.id,row.status);
+        for (const row of data ?? []) readStatuses.set(row.id, row.status);
+        for (const row of data ?? []) settle(row.id,row.status,true,true);
         const found = new Set((data ?? []).map(row=>row.id));
         for (const id of ids) if (!found.has(id)) pending.delete(id);
         setReconnectFailed(false);
@@ -179,7 +232,7 @@ export default function PostReadinessListener() {
     window.addEventListener("post-ready", ready);
     const stopReturn = onTabReturn(visible);
     return () => {
-      live = false; clearTimeout(dayBoundaryTimer); stopReturn(); subscription.unsubscribe(); if (channel) void db.removeChannel(channel);
+      live = false; window.removeEventListener('load', decideAfterLoad); clearTimeout(dayBoundaryTimer); stopReturn(); subscription.unsubscribe(); if (channel) void db.removeChannel(channel);
       window.removeEventListener("post-created", created);
       window.removeEventListener("post-answer-resume",created);
       window.removeEventListener("post-ready", ready);
