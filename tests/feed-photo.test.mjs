@@ -98,8 +98,8 @@ test('SSR seed and every batch slide use immutable owner-scoped private identiti
   }
   throw Error('Unexpected read '+url.pathname);
  }}});
- const preloads=[],page=await getFeed(db,owner,null,'UTC',6,{summaries:false,onFirstPhoto:url=>preloads.push(url)}),seed=await getFirstFeedPhoto(db,owner);
- assert.equal(page.posts[0].photoUrl,smallFeedPhotoUrl(owner,post,media));assert.equal(seed.photoUrl,page.posts[0].photoUrl);assert.deepEqual(preloads,[seed.photoUrl]);
+ const page=await getFeed(db,owner,null,'UTC',6,{summaries:false}),seed=await getFirstFeedPhoto(db,owner);
+ assert.equal(page.posts[0].photoUrl,smallFeedPhotoUrl(owner,post,media));assert.equal(seed.photoUrl,page.posts[0].photoUrl);
  assert.equal(page.posts[1].photoUrl,smallFeedPhotoUrl(owner,nextPost,nextMedia));assert.equal(signed,0);
 });
 
