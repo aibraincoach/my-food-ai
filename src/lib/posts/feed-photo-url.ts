@@ -29,6 +29,13 @@ export function firstPhotoSources(url: string): {src: string; srcSet?: string; s
   return {src};
 }
 
+let priorityRegistered = false;
+let settleFirstPhoto!: () => void;
+export const firstPhotoSettled = new Promise<void>(resolve => { settleFirstPhoto = resolve; });
+export function registerFirstPhoto(): void { priorityRegistered = true; }
+// Called at load, after priority readers have registered during their render.
+export function settleWithoutFirstPhoto(): void { if (!priorityRegistered) settleFirstPhoto(); }
+
 const sharpPhotos = new Map<string, Promise<HTMLImageElement>>();
 function sharpPhoto(url: string): Promise<HTMLImageElement> {
   let pending = sharpPhotos.get(url);
@@ -55,37 +62,55 @@ function sharpPhoto(url: string): Promise<HTMLImageElement> {
 // The temporary server seed is replaced by the real feed. Only the visible
 // mounted feed image upgrades, after its small first frame has actually painted.
 export async function firstPhotoUpgrade(url: string, image: HTMLImageElement, signal: AbortSignal): Promise<void> {
-  if (signal.aborted || !image.isConnected || image.closest('[data-fast-feed-seed]')) return;
-  const sharp = sharpPhoto(url);
-  // Start the sharp fetch on the existing load/idle trigger, independently of
-  // the small frame. Attach rejection handling immediately while it paints.
-  const decodedSharp = sharp.then(copy => ({copy}), error => ({error}));
-  const visible = () => {
-    const rect = image.getBoundingClientRect();
-    return image.isConnected && rect.width > 0 && rect.height > 0 && rect.bottom > 0 && rect.top < window.innerHeight && getComputedStyle(image).visibility !== 'hidden';
-  };
-  const waitVisible = () => new Promise<boolean>(resolve => {
-    const observer = new IntersectionObserver(() => { if (visible()) finish(true); });
-    const finish = (value: boolean) => { observer.disconnect(); signal.removeEventListener('abort', abort); resolve(value); };
-    const abort = () => finish(false);
-    signal.addEventListener('abort', abort, {once: true}); observer.observe(image);
-  });
-  const paintSmall = async () => {
-    while (!signal.aborted && image.isConnected) {
-      if (!await waitVisible()) return false;
-      await image.decode();
-      if (signal.aborted) return false;
-      await new Promise<void>(resolve => requestAnimationFrame(() => requestAnimationFrame(() => resolve())));
-      if (!signal.aborted && visible()) return true;
+  if (image.closest('[data-fast-feed-seed]')) return;
+  if (signal.aborted || !image.isConnected) { settleFirstPhoto(); return; }
+  const settle = () => settleFirstPhoto();
+  signal.addEventListener('abort', settle, {once: true});
+  try {
+    const sharp = sharpPhoto(url);
+    // Start the sharp fetch on the existing load/idle trigger, independently of
+    // the small frame. Attach rejection handling immediately while it paints.
+    const decodedSharp = sharp.then(copy => ({copy}), error => ({error}));
+    const visible = () => {
+      const rect = image.getBoundingClientRect();
+      return image.isConnected && rect.width > 0 && rect.height > 0 && rect.bottom > 0 && rect.top < window.innerHeight && getComputedStyle(image).visibility !== 'hidden';
+    };
+    const waitVisible = () => new Promise<boolean>(resolve => {
+      const observer = new IntersectionObserver(() => { if (visible()) finish(true); });
+      const finish = (value: boolean) => { observer.disconnect(); signal.removeEventListener('abort', abort); resolve(value); };
+      const abort = () => finish(false);
+      signal.addEventListener('abort', abort, {once: true}); observer.observe(image);
+    });
+    const paintSmall = async () => {
+      while (!signal.aborted && image.isConnected) {
+        if (!await waitVisible()) return false;
+        await image.decode();
+        if (signal.aborted) return false;
+        await new Promise<void>(resolve => requestAnimationFrame(() => requestAnimationFrame(() => resolve())));
+        if (!signal.aborted && visible()) return true;
+      }
+      return false;
+    };
+    if (!await paintSmall()) return;
+    const result = await decodedSharp;
+    if ('error' in result) throw result.error;
+    if (signal.aborted || (!visible() && !await paintSmall())) return;
+    const srcset = feedPhotoSrcSet(url) ?? '';
+    // The decoded browser-selected candidate uses the same responsive selection
+    // as the visible box. Do not swap an unverified or differently sized bitmap.
+    const candidates = (srcset ? srcset.split(',').map(candidate => candidate.trim().split(' ')[0]) : [url])
+      .map(candidate => new URL(candidate, document.baseURI).href);
+    if (result.copy.sizes !== FEED_PHOTO_SIZES || result.copy.srcset !== srcset || !candidates.includes(result.copy.currentSrc)) {
+      throw new Error('Sharp photo candidate does not match the visible image');
     }
-    return false;
-  };
-  if (!await paintSmall()) return;
-  const result = await decodedSharp;
-  if ('error' in result) throw result.error;
-  if (signal.aborted || (!visible() && !await paintSmall())) return;
-  image.sizes = FEED_PHOTO_SIZES;
-  image.srcset = feedPhotoSrcSet(url) ?? '';
-  image.src = url;
-  await image.decode();
+    // One synchronous write, while first-frame effects remain disabled.
+    image.sizes = FEED_PHOTO_SIZES;
+    image.srcset = srcset;
+    image.src = url;
+    await image.decode();
+    await new Promise<void>(resolve => requestAnimationFrame(() => requestAnimationFrame(() => resolve())));
+  } finally {
+    signal.removeEventListener('abort', settle);
+    settleFirstPhoto();
+  }
 }

@@ -1,20 +1,33 @@
 "use client";
 
 import {useEffect} from 'react';
+import {firstPhotoSettled,settleWithoutFirstPhoto} from '@/lib/posts/feed-photo-url';
 
-// Let the first content render before creating the frosted/shadowed layers.
+// Restore the resting effects after the photo upgrade has painted, or at the cap.
 export default function DeferredEffects() {
   useEffect(() => {
     let frame: number | undefined;
+    let live = true;
+    let enabled = false;
     const enable = () => {
-      frame = requestAnimationFrame(() => {
-        document.documentElement.dataset.effects = '';
+      if (!live || enabled) return;
+      enabled = true;
+      document.documentElement.dataset.effects = '';
+      clearTimeout(cap);
+    };
+    const loaded = () => {
+      settleWithoutFirstPhoto();
+      void firstPhotoSettled.then(() => {
+        if (live && !enabled) frame = requestAnimationFrame(enable);
       });
     };
-    if (document.readyState === 'complete') enable();
-    else window.addEventListener('load', enable, {once: true});
+    const cap = setTimeout(enable, Math.max(0, 8000 - performance.now()));
+    if (document.readyState === 'complete') loaded();
+    else window.addEventListener('load', loaded, {once: true});
     return () => {
-      window.removeEventListener('load', enable);
+      live = false;
+      window.removeEventListener('load', loaded);
+      clearTimeout(cap);
       if (frame !== undefined) cancelAnimationFrame(frame);
     };
   }, []);

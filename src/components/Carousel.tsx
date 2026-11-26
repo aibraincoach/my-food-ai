@@ -3,7 +3,7 @@ import {DisplayError} from '@/i18n/display-error';
 import {useLocale,useTranslations} from 'next-intl';
 import type {Locale} from '@/i18n/locales';
 import {formatEnergy,formatNumber} from '@/i18n/format';
-import {feedPhotoSrcSet,firstPhotoSources,firstPhotoUpgrade,FEED_PHOTO_SIZES} from '@/lib/posts/feed-photo-url';
+import {feedPhotoSrcSet,firstPhotoSources,firstPhotoUpgrade,registerFirstPhoto,FEED_PHOTO_SIZES} from '@/lib/posts/feed-photo-url';
 import {useEffect,useRef,useState,type ReactNode} from 'react';
 import Link from 'next/link';
 import {useRouter} from 'next/navigation';
@@ -106,6 +106,7 @@ export function FirstPhoto({url,alt}:{url:string;alt:string}) {
 }
 
 function MealPhoto({url,priority,alt}:{url:string;priority:boolean;alt:string}) {
+ if(priority)registerFirstPhoto();
  const t=useTranslations('post');
  const [read,setRead]=useState({path:imageIdentity(url),url,failed:false});
  const image=useRef<HTMLImageElement>(null);
