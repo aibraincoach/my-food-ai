@@ -105,8 +105,13 @@
       },
       {
         "file": "src/lib/fdc/barcode-product.ts",
-        "kind": "property",
+        "kind": "variable",
         "expression": "\"nutritionSource\" in product && product.nutritionSource === \"own\" ? `barcode-own:${product.gtin}` : product.attribution === \"off\" ? `off:${product.gtin}` : String(product.fdcId)"
+      },
+      {
+        "file": "src/lib/fdc/barcode-product.ts",
+        "kind": "property",
+        "expression": "sourceRef"
       },
       {
         "file": "src/lib/fdc/match.ts",

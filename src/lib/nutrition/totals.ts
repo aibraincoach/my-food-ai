@@ -174,6 +174,8 @@ export interface CurrentItem extends NutritionLike {
   micronutrients: StoredNutrient[];
   source_ref: string | null;
   food_category?: string | null;
+  record_description?:string|null;
+  record_data_type?:string|null;
 }
 
 export type NutritionRow = NutritionLike & {
@@ -181,6 +183,8 @@ export type NutritionRow = NutritionLike & {
   micronutrients: StoredNutrient[];
   source_ref: string | null;
   food_category?: string | null;
+  record_description?:string|null;
+  record_data_type?:string|null;
 };
 
 // One stored contract: nutrient values already describe the consumed portion.
@@ -231,11 +235,12 @@ export async function getCurrentItems(supabase: SupabaseClient, postId: string, 
   const data=snapshot.data as unknown as ItemSnapshot[]|null;
   if(error)throw ioError("Current items could not be read.",error,status);
   if (!data?.length) return [];
+  const nutritionColumns=options.requireNutrition?"post_item_id,calories,protein_g,carbs_g,fat_g,fibre_g,sugar_g,sodium_mg,micronutrients,source_ref,food_category,record_description,record_data_type":"post_item_id,calories,protein_g,carbs_g,fat_g,fibre_g,sugar_g,sodium_mg,micronutrients,source_ref,food_category";
   const { data: nutrition, error: nutritionError, status: nutritionStatus } = await supabase.from("item_nutrition")
-    .select("post_item_id,calories,protein_g,carbs_g,fat_g,fibre_g,sugar_g,sodium_mg,micronutrients,source_ref,food_category")
+    .select(nutritionColumns)
     .in("post_item_id", data.map((item) => item.id));
   if (nutritionError) throw ioError("Nutrition could not be read.", nutritionError, nutritionStatus);
-  const byId = new Map((nutrition as NutritionRow[] | null ?? []).map((row) => [row.post_item_id, row]));
+  const byId = new Map((nutrition as unknown as NutritionRow[] | null ?? []).map((row) => [row.post_item_id, row]));
   return data.map((item) => {
     const row = byId.get(item.id);
     if (!row && options.requireNutrition) throw new MissingNutritionError();
@@ -244,7 +249,7 @@ export async function getCurrentItems(supabase: SupabaseClient, postId: string, 
       protein_g: normalized?.protein_g ?? null, carbs_g: normalized?.carbs_g ?? null,
       fat_g: normalized?.fat_g ?? null, fibre_g: normalized?.fibre_g ?? null,
       sugar_g: normalized?.sugar_g ?? null, sodium_mg: normalized?.sodium_mg ?? null,
-      micronutrients: normalized?.micronutrients ?? [], source_ref: normalized?.source_ref ?? null, food_category: normalized?.food_category ?? null };
+      micronutrients: normalized?.micronutrients ?? [], source_ref: normalized?.source_ref ?? null, food_category: normalized?.food_category ?? null,...(options.requireNutrition?{record_description:normalized?.record_description??null,record_data_type:normalized?.record_data_type??null}:{}) };
   });
 }
 

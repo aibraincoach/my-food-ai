@@ -91,7 +91,7 @@ export async function editPostItem(admin: SupabaseClient, postId: string, userId
     if (!food || food.description !== edit.name) return { error: { code: "22023", message: "Food selection changed; search again." }, itemId: null };
     const n = scaleNutrition(food, edit.portion_grams ?? null);
     nutrition = { calories: n.calories, protein_g: n.proteinG, carbs_g: n.carbsG, fat_g: n.fatG,
-      fibre_g: n.fibreG, sugar_g: n.sugarG, sodium_mg: n.sodiumMg, micronutrients: n.micronutrients, source_ref: n.sourceRef, food_category: n.foodCategory ?? null };
+      fibre_g: n.fibreG, sugar_g: n.sugarG, sodium_mg: n.sodiumMg, micronutrients: n.micronutrients, source_ref: n.sourceRef,record_description:n.recordDescription??null,record_data_type:n.recordDataType??null, food_category: n.foodCategory ?? null };
   }
   const { data, error } = await admin.rpc(nutrition ? "edit_post_item_with_nutrition" : "edit_post_item", { p_post_id: postId, p_user_id: userId,
     p_action: edit.action, p_item_id: edit.item_id ?? null, p_name: edit.name ?? null,

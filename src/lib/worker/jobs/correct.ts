@@ -1,3 +1,4 @@
+import {storedRecordMetadata} from "@/lib/fdc/record-metadata";
 import { approximationLabels } from "@/lib/fdc/approximation-metadata";
 import {beforeLeftovers,carryLeftovers,retainedNutrition} from '@/lib/pipeline/leftovers';
 import { sendPostPush } from "@/lib/push/send";
@@ -104,7 +105,7 @@ export async function replayCorrection(admin:import('@supabase/supabase-js').Sup
  const rows=await resolveNutritionItems(resolutionItems,resolutionBudget,async({item,old,region},_index,signal)=>{
   let nutrition;
   if(old&&!nutritionUnavailable(old)){
-   nutrition={calories:old.calories,protein_g:old.protein_g,carbs_g:old.carbs_g,fat_g:old.fat_g,fibre_g:old.fibre_g,sugar_g:old.sugar_g,sodium_mg:old.sodium_mg,micronutrients:old.micronutrients,source_ref:old.source_ref,food_category:old.food_category ?? null};
+   nutrition={calories:old.calories,protein_g:old.protein_g,carbs_g:old.carbs_g,fat_g:old.fat_g,fibre_g:old.fibre_g,sugar_g:old.sugar_g,sodium_mg:old.sodium_mg,micronutrients:old.micronutrients,source_ref:old.source_ref,food_category:old.food_category ?? null,...storedRecordMetadata(old)};
    await traceNutritionReuse(item.name,nutrition,"unchanged",old.id);
   } else {
    const retained=replaying&&region?.name===item.name?rescalePortionNutrition({...retainedNutrition(region),post_item_id:region.id},region.portion_grams,item.portion_grams,region.portion_text,item.portion_text):region?.name===item.name?await resolvePortionNutrition(admin,postId!,region.id,item.name,item.portion_grams,item.portion_text,signal):null;
@@ -112,7 +113,7 @@ export async function replayCorrection(admin:import('@supabase/supabase-js').Sup
    else {
    const match=await resolveFoodMatchDetailed(admin,item.name,context.caption??'',signal,{approximate:true});
    const n=scaleNutrition(match.food,item.portion_grams,match.unavailable);
-   nutrition={calories:n.calories,protein_g:n.proteinG,carbs_g:n.carbsG,fat_g:n.fatG,fibre_g:n.fibreG,sugar_g:n.sugarG,sodium_mg:n.sodiumMg,micronutrients:n.micronutrients,source_ref:n.sourceRef,food_category:n.foodCategory ?? null};
+   nutrition={calories:n.calories,protein_g:n.proteinG,carbs_g:n.carbsG,fat_g:n.fatG,fibre_g:n.fibreG,sugar_g:n.sugarG,sodium_mg:n.sodiumMg,micronutrients:n.micronutrients,source_ref:n.sourceRef,record_description:n.recordDescription??null,record_data_type:n.recordDataType??null,food_category:n.foodCategory ?? null};
    }
   }
   return carryLeftovers({name:item.name,portion_text:item.portion_text,portion_grams:item.portion_grams,box:old?old.box:region?.box??null,mask_path:old?old.mask_path:region?.mask_path??null,supersedes:old?.id??region?.id??null,nutrition},items.find(prior=>prior.id===(old?.id??region?.id)));

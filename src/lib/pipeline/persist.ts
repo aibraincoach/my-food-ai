@@ -1,3 +1,4 @@
+import {storedRecordMetadata} from "@/lib/fdc/record-metadata";
 import { approximationLabels } from "@/lib/fdc/approximation-metadata";
 import {writePendingNames,writePendingKcal} from './pending-items';
 import { syncItemDrinks } from "@/lib/intake/drinks-from-items";
@@ -60,7 +61,7 @@ export async function persistAnalysis(
   const items: {
     name: string; portion_text: string | null; portion_grams: number | null;
     box: unknown; mask_path: string | null; confidence: number | null;
-    nutrition: ConsumedTotals & { fibre_g: number | null; sugar_g: number | null; sodium_mg: number | null; micronutrients: unknown; source_ref: string | null; food_category: string | null };
+    nutrition: ConsumedTotals & { fibre_g: number | null; sugar_g: number | null; sodium_mg: number | null; micronutrients: unknown; source_ref: string | null; food_category: string | null; record_description:string|null; record_data_type:string|null };
   }[] = [];
  await writePendingNames(admin,named.postId,rows.map(row=>row.name),jobId);
  const resolutionBudget=nutritionResolutionBudget();
@@ -77,14 +78,14 @@ export async function persistAnalysis(
         protein_g:copied.protein_g as number|null??null,carbs_g:copied.carbs_g as number|null??null,
         fat_g:copied.fat_g as number|null??null,fibre_g:copied.fibre_g as number|null??null,
         sugar_g:copied.sugar_g as number|null??null,sodium_mg:copied.sodium_mg as number|null??null,
-        micronutrients:copied.micronutrients??[],source_ref:copied.source_ref as string|null??null,food_category:copied.food_category as string|null??null,
+        micronutrients:copied.micronutrients??[],source_ref:copied.source_ref as string|null??null,food_category:copied.food_category as string|null??null,...storedRecordMetadata(copied),
       };
     }else{
       const match=await resolveFoodMatchDetailed(admin,row.name,context.caption??"",signal,{approximate:true});
       const scaled=scaleNutrition(match.food,row.portionGrams,match.unavailable);
       nutrition={calories:scaled.calories,protein_g:scaled.proteinG,carbs_g:scaled.carbsG,
         fat_g:scaled.fatG,fibre_g:scaled.fibreG,sugar_g:scaled.sugarG,sodium_mg:scaled.sodiumMg,
-        micronutrients:scaled.micronutrients,source_ref:scaled.sourceRef,food_category:scaled.foodCategory??null};
+        micronutrients:scaled.micronutrients,source_ref:scaled.sourceRef,food_category:scaled.foodCategory??null,record_description:scaled.recordDescription,record_data_type:scaled.recordDataType};
     }
     await writePendingKcal(admin,named.postId,index,typeof nutrition.calories==='number'?nutrition.calories:null,jobId);
     return {
