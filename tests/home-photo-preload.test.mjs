@@ -71,24 +71,17 @@ test('Home HTML preload and first image expose the same single 640 candidate wit
  function findImage(node){if(Array.isArray(node))return node.map(findImage).find(Boolean);if(node?.type==='img')return node.props;return node?.props?findImage(node.props.children):undefined;}
  const image=findImage(tree);assert.ok(image);
  assert.equal(image.src,firstPhotoSources(url).src);assert.equal(image.srcSet,firstPhotoSources(url).srcSet);
- assert.equal(image.srcSet,firstPhotoSources(url).src+' 1x','the first card has one candidate even on a dense display');
+ assert.equal(image.srcSet,undefined,'one fixed first frame does not need responsive hint parsing');
  assert.equal(preloads.length,2,'independent streams both describe the same responsive resource for React to deduplicate');
  for(const preload of preloads){assert.equal(preload.href,firstPhotoSources(url).src);assert.equal(preload.imageSrcSet,image.srcSet);assert.equal(preload.crossOrigin,image.crossOrigin);assert.equal(preload.as,'image');}
 });
 
 
-test('React emits one responsive HTML preload and no base image Link header for duplicated stream hints',async()=>{
- const url=smallFeedPhotoUrl(owner,post,media),srcSet=feedPhotoSrcSet(url);let headers;
- function ResponsivePhoto(){
-  const options={as:'image',crossOrigin:'anonymous',imageSrcSet:srcSet,fetchPriority:'high'};
-  preload(url,options);preload(url,options);
-  return createElement('img',{src:url,srcSet,crossOrigin:'anonymous',fetchPriority:'high',alt:'Meal'});
- }
- const stream=await renderToReadableStream(createElement(ResponsivePhoto),{onHeaders:value=>{headers=value;}});
- const html=await new Response(stream).text();
- assert.equal(headers.get('link'),null,'responsive hints must not request the base URL via an HTTP header');
- const links=html.match(/<link\b[^>]*>/g)??[];
- assert.equal(links.length,1,'duplicate server streams and the img share one preload resource');
- assert.ok(links[0].includes('rel="preload"'));assert.ok(links[0].includes('imageSrcSet="'+srcSet+'"'));
- assert.equal(/\bhref=/.test(links[0]),false,'the HTML preload selects srcset instead of also fetching a base href');
+test('React deduplicates the bare first-frame hint and both server images',async()=>{
+ const url=firstPhotoSources(smallFeedPhotoUrl(owner,post,media,'a'.repeat(32))).src;let headers;
+ function Photo(){preload(url,{as:'image',crossOrigin:'anonymous',fetchPriority:'high'});preload(url,{as:'image',crossOrigin:'anonymous',fetchPriority:'high'});return createElement('div',null,...[1,2].map(key=>createElement('img',{key,src:url,crossOrigin:'anonymous',fetchPriority:'high',alt:'Meal'})));}
+ const stream=await renderToReadableStream(createElement(Photo),{onHeaders:value=>{headers=value;}}),html=await new Response(stream).text();
+ const header=headers.get('link')??'',links=html.match(/<link\b[^>]*rel="preload"[^>]*>/g)??[];
+ assert.equal((header.match(/rel=preload/g)??[]).length+links.length,1,'one bare resource hint across streams and images');
+ assert.ok((header+links.join('')).includes(url));assert.doesNotMatch(header+html,/image[Ss]rc[Ss]et|image[Ss]izes|src[Ss]et=/);
 });

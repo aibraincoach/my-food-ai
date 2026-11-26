@@ -12,8 +12,7 @@ export function smallFeedPhotoUrl(owner: string, post: string, media: string, se
     ? `/api/media/feed/${owner}/${post}/${media}/v2.webp` : null;
 }
 
-// Explicit 1x keeps href-less responsive HTML preloads and img selection equal.
-// Current v2 identity and denser candidates read the original.
+// Later sharp candidates use the immutable media identity.
 export function feedPhotoSrcSet(url: string | null | undefined): string | undefined {
   const open = url?.match(/^(\/p\/[0-9a-f-]{36}_[0-9a-f]{32})_1080\.webp$/);
   // #372, #222: a 390-pixel card on a 3x phone needs 1170 pixels; 1200 serves it without the 1600 file's bytes.
@@ -23,33 +22,49 @@ export function feedPhotoSrcSet(url: string | null | undefined): string | undefi
   return `${url} 1x, ${base}/v2-1040.webp 2x, ${base}/v2-1560.webp 3x`;
 }
 
-// The fast server copy, feed card and responsive preload must select the same one file.
+// The fast server copy, feed card and initial preload select one fixed file.
 export const FEED_PHOTO_SIZES = '(min-width: 1024px) 520px, 100vw';
-export function firstPhotoSources(url: string): {src: string; srcSet: string; sizes: string} {
+export function firstPhotoSources(url: string): {src: string; srcSet?: string; sizes?: string} {
   const src = url.replace(/^(\/p\/[0-9a-f-]{36}_[0-9a-f]{32})_1080\.webp$/, '$1_640.webp');
-  return {src, srcSet: `${src} 1x`, sizes: FEED_PHOTO_SIZES};
+  return {src};
 }
 
-const firstPhotoReady = new Map<string, Promise<void>>();
-// Share one load/idle gate. Each mounted image keeps its current bitmap while its pending image decodes.
-export function firstPhotoUpgrade(url: string, image: HTMLImageElement, signal: AbortSignal): Promise<void> {
-  let ready = firstPhotoReady.get(url);
-  if (!ready) {
-    ready = new Promise<void>(resolve => {
-      const idle = () => {
-        if ('requestIdleCallback' in window) window.requestIdleCallback(() => resolve(), {timeout: 3000});
-        else setTimeout(resolve, 0);
-      };
-      if (document.readyState === 'complete') idle();
-      else window.addEventListener('load', idle, {once: true});
-    });
-    firstPhotoReady.set(url, ready);
-  }
-  return ready.then(async () => {
-    if (signal.aborted || !image.isConnected) return;
-    image.sizes = FEED_PHOTO_SIZES;
-    image.srcset = feedPhotoSrcSet(url) ?? '';
-    image.src = url;
-    await image.decode();
+// The temporary server seed is replaced by the real feed. Only the visible
+// mounted feed image upgrades, after its small first frame has actually painted.
+export async function firstPhotoUpgrade(url: string, image: HTMLImageElement, signal: AbortSignal): Promise<void> {
+  if (signal.aborted || !image.isConnected || image.closest('[data-fast-feed-seed]')) return;
+  const visible = () => {
+    const rect = image.getBoundingClientRect();
+    return image.isConnected && rect.width > 0 && rect.height > 0 && rect.bottom > 0 && rect.top < window.innerHeight && getComputedStyle(image).visibility !== 'hidden';
+  };
+  const waitVisible = () => new Promise<boolean>(resolve => {
+    const observer = new IntersectionObserver(() => { if (visible()) finish(true); });
+    const finish = (value: boolean) => { observer.disconnect(); signal.removeEventListener('abort', abort); resolve(value); };
+    const abort = () => finish(false);
+    signal.addEventListener('abort', abort, {once: true}); observer.observe(image);
   });
+  const paintSmall = async () => {
+    while (!signal.aborted && image.isConnected) {
+      if (!await waitVisible()) return false;
+      await image.decode();
+      if (signal.aborted) return false;
+      await new Promise<void>(resolve => requestAnimationFrame(() => requestAnimationFrame(() => resolve())));
+      if (!signal.aborted && visible()) return true;
+    }
+    return false;
+  };
+  if (!await paintSmall()) return;
+  await new Promise<void>(resolve => {
+    const idle = () => {
+      if ('requestIdleCallback' in window) window.requestIdleCallback(() => resolve(), {timeout: 3000});
+      else setTimeout(resolve, 0);
+    };
+    if (document.readyState === 'complete') idle();
+    else window.addEventListener('load', idle, {once: true});
+  });
+  if (signal.aborted || (!visible() && !await paintSmall())) return;
+  image.sizes = FEED_PHOTO_SIZES;
+  image.srcset = feedPhotoSrcSet(url) ?? '';
+  image.src = url;
+  await image.decode();
 }

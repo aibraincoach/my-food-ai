@@ -102,8 +102,8 @@ async function HomeDays() {
 }
 
 function preloadFirstPhoto(url: string) {
- const {src,srcSet,sizes}=firstPhotoSources(url);
- preload(src,{as:'image',fetchPriority:'high',crossOrigin:'anonymous',imageSrcSet:srcSet,imageSizes:sizes});
+ const {src}=firstPhotoSources(url);
+ preload(src,{as:'image',fetchPriority:'high',crossOrigin:'anonymous'});
 }
 
 // Share one first-page read between the feed, day summaries and Today.
