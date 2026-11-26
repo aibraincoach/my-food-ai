@@ -1,5 +1,6 @@
 'use client';
 import {onTabReturn} from '@/lib/client/tab-return';
+import {requestFeedback} from '@/lib/client/feedback-batch';
 import {useLocale,useTranslations} from 'next-intl';
 import type {Locale} from '@/i18n/locales';
 import {formatNumber} from '@/i18n/format';
@@ -29,8 +30,7 @@ export default function Thread({postId,readOnly=false,sourcePostId,desktopAction
  useEffect(()=>{
   const client=createClient();let live=true;let inFlight=false;let again=false;let knownStatus:string|null=null;let modelIds=new Set<string>();
   const readFeedback=async()=>{try{
-   const {data:verdict,error}=await client.from('post_feedback').select('verdict,model_comment_id,item_fingerprint').eq('post_id',postId).maybeSingle();
-   if(error)throw error;
+   const verdict=await requestFeedback(postId);
    if(live)setAccepted(fingerprint!==null&&verdict?.verdict==='up'&&verdict.item_fingerprint===fingerprint?verdict.model_comment_id:null);
   }catch{if(live)setError({key:'loadFailed'});}};
   // Always a full, ordered read: a comment can commit with an earlier timestamp than one already seen.
