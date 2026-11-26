@@ -1171,4 +1171,3 @@ Reproduction and full per-filter results live at /home/opc/.openrig/shared-docs/
 | burger bun | shrimp cocktail | bun | shrimp cocktail | drop → drop | drop |
 | burger bun | Gravy, CAMPBELL'S, chicken | bun | Gravy, CAMPBELL'S, chicken | drop → drop | drop |
 | burger bun | Chicken caesar salad, no dressing | bun | Chicken caesar salad, no dressing | drop → drop | drop |
-
