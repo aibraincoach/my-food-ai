@@ -26,8 +26,8 @@ html:not([data-effects]) {
 html:not([data-effects]) .animate-shimmer { animation: none; }
 html[data-effects] nav[data-pill] {
   transition: opacity 160ms;
-  backdrop-filter: blur(var(--spacing-blur-pill));
   -webkit-backdrop-filter: blur(var(--spacing-blur-pill));
+  backdrop-filter: blur(var(--spacing-blur-pill));
   box-shadow: var(--color-shadow-pill);
 }
 
